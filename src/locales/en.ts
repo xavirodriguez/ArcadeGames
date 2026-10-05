@@ -77,6 +77,24 @@ export const en = {
   asteroids: {
     instructions: "↑ Thrust  ←→ Rotate  Space Shoot  Shift Hyperspace",
   },
+    menu: {
+      title: "RETRO ARCADE",
+      asteroids: "ASTEROIDS",
+      space_invaders: "SPACE INVADERS",
+      flappybird: "FLAPPY BIRD",
+      pong: "PONG",
+      geometrywars: "GEOMETRY WARS",
+      echorunner: "ECHO // RUNNER",
+      cyoa: "THE CAVE // CYOA",
+      blindstation: "THE BLIND STATION",
+      platformer: "PLATFORMER // 2D",
+      frogger: "FROGGER // CROSSING",
+      "vertical-shmup": "1942 // VERTICAL SHMUP",
+      arkanoid: "ARKANOID",
+      racing: "MICRO RACERS",
+      tower_defense: "TOWER DEFENSE",
+      campaign: "STORY CAMPAIGN",
+      level: "LEVEL",
   missions: {
     rey_del_caos: {
       title: "King of Chaos",
@@ -195,6 +213,51 @@ export const en = {
       name: "Hyper Drift",
       description: "Ship has high inertia and power.",
     },
+    "tower-defense": {
+      instructions: "Tap a tile to select, build, sell or upgrade towers. Defend the base!",
+      select_tower: "Select Tower",
+      build: "Build",
+      sell: "Sell",
+      upgrade: "Upgrade",
+      start_wave: "Start Wave",
+      gold: "Gold",
+      lives: "Lives",
+      wave: "Wave",
+      phase: "Phase",
+    },
+    mutators: {
+      heavy_gravity: {
+        name: "Heavy Gravity",
+        description: "Gravity is twice as strong.",
+      },
+      hyper_drift: {
+        name: "Hyper Drift",
+        description: "Ship has high inertia and power.",
+      },
+      ghost_ball: {
+        name: "Ghost Ball",
+        description: "The ball is invisible for 1 second after each hit.",
+      },
+      bouncing_bullets: {
+        name: "Bouncing Bullets",
+        description: "Projectiles bounce off edges.",
+      },
+      silent_horde: {
+        name: "Silent Horde",
+        description: "Enemies make no sound. Use the shadows.",
+      },
+      speed_run: {
+        name: "Speed Run",
+        description: "Everything moves 50% faster.",
+      },
+      tiny_ship: {
+        name: "Tiny Ship",
+        description: "Your ship is half size but much more agile.",
+      },
+      fast_traffic: {
+        name: "Fast Traffic",
+        description: "Vehicles and logs move 50% faster.",
+      },
     ghost_ball: {
       name: "Ghost Ball",
       description: "The ball is invisible for 1 second after each hit.",

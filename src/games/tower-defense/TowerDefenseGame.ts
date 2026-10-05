@@ -3,6 +3,7 @@ import {
   BaseGame,
   SystemPhase,
   ConfigService,
+  spawnBlueprintEntity,
   Renderer,
   RendererUtils,
   NetworkController,
@@ -14,6 +15,7 @@ import {
   BlueprintDefinition,
   NullBaseGame,
   MovementSystem,
+  HierarchySystem,
   TTLSystem,
   BoundarySystem,
   CollisionSystem2D,
@@ -34,7 +36,13 @@ import {
   WaveDefinitions,
 } from "./types/TowerDefenseTypes";
 import { TowerDefenseConfigSchema, TowerDefenseConfig } from "./types/TowerDefenseConfigSchema";
-import { createInputComponent, createPlayerComponent } from "./EntityFactory";
+import {
+  createInputComponent,
+  createPlayerComponent,
+  populateTower,
+  populateCreep,
+  populateTowerProjectile,
+} from "./EntityFactory";
 import { TowerProjectilePool } from "./EntityPool";
 import {
   parseLevelLayout,
@@ -43,6 +51,7 @@ import {
 } from "./MapUtils";
 import type { GridLayout } from "../shared/grid/GridTypes";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
+import { runWithUnlockedRandomAndMutators } from "../shared/configHelper";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
 import towerDefenseConfigRaw from "./config/tower-defense.json";
 
@@ -58,21 +67,57 @@ import { SlowOnHitSystem } from "./systems/SlowOnHitSystem";
 import { TowerDefenseAudioSystem } from "./systems/TowerDefenseAudioSystem";
 import { ThreatHudSystem } from "./systems/ThreatHudSystem";
 
-interface TowerDefenseBlueprintMap {
-  creep: BlueprintDefinition<TowerDefenseComponentRegistry, TowerDefenseEventRegistry, { type: string; x: number; y: number }>;
-  tower: BlueprintDefinition<TowerDefenseComponentRegistry, TowerDefenseEventRegistry, { type: string; col: number; row: number }>;
-  tower_projectile: BlueprintDefinition<TowerDefenseComponentRegistry, TowerDefenseEventRegistry, { x: number; y: number; damage: number; speed: number; target?: number }>;
-}
-
-export class TowerDefenseGame
-  extends BaseGame<
-    GameStateComponent,
-    InputState,
+export interface TowerDefenseBlueprintMap
+  extends Record<
+    string,
+    BlueprintDefinition<
+      TowerDefenseComponentRegistry,
+      TowerDefenseEventRegistry,
+      any
+    >
+  > {
+  creep: BlueprintDefinition<
     TowerDefenseComponentRegistry,
     TowerDefenseEventRegistry,
-    TowerDefenseBlueprintMap
-  >
-{
+    { type: string; x: number; y: number }
+  >;
+  tower: BlueprintDefinition<
+    TowerDefenseComponentRegistry,
+    TowerDefenseEventRegistry,
+    { type: string; col: number; row: number }
+  >;
+  tower_projectile: BlueprintDefinition<
+    TowerDefenseComponentRegistry,
+    TowerDefenseEventRegistry,
+    {
+      x: number;
+      y: number;
+      damage: number;
+      speed: number;
+      targetEntity?: number | null;
+      slowFactor?: number;
+      slowDurationMs?: number;
+    }
+  >;
+  gameState: BlueprintDefinition<
+    TowerDefenseComponentRegistry,
+    TowerDefenseEventRegistry,
+    Record<string, unknown>
+  >;
+  player: BlueprintDefinition<
+    TowerDefenseComponentRegistry,
+    TowerDefenseEventRegistry,
+    Record<string, unknown>
+  >;
+}
+
+export class TowerDefenseGame extends BaseGame<
+  GameStateComponent,
+  InputState,
+  TowerDefenseComponentRegistry,
+  TowerDefenseEventRegistry,
+  TowerDefenseBlueprintMap
+> {
   public isMultiplayer = false;
   public readonly gameId = "tower-defense";
   private projectilePool!: TowerProjectilePool;
@@ -110,79 +155,184 @@ export class TowerDefenseGame
     this.network = new NetworkController<TowerDefenseComponentRegistry>(this.world);
   }
 
-  protected override onWorldCreated(world: World<TowerDefenseComponentRegistry>): void {
-    world.setResource("GameConfig", this.config);
+  protected override async onRegisterSystems(): Promise<void> {
+    this.config = this.setupArcadeGameConfig(
+      this.baseConfig,
+      (_cfg, options) =>
+        ConfigService.load<TowerDefenseConfig>(
+          this.gameId,
+          TowerDefenseConfigSchema,
+          options?.rawConfig ?? towerDefenseConfigRaw
+        )
+    );
+
+    this.world.setResource("GameConfig", this.config);
 
     const gridLayout = createGridLayout(this.config);
-    world.setResource<GridLayout>("GridLayout", gridLayout);
+    this.world.setResource<GridLayout>("GridLayout", gridLayout);
 
     const tileGrid = parseLevelLayout(
       this.config.LEVEL_LAYOUT,
       this.config.GRID_COLS,
       this.config.GRID_ROWS
     );
-    world.setResource<TileGrid>("TileGrid", tileGrid);
+    this.world.setResource<TileGrid>("TileGrid", tileGrid);
 
     const waypoints = extractWaypoints(tileGrid, gridLayout);
-    world.setResource<WaypointList>("WaypointList", waypoints);
+    this.world.setResource<WaypointList>("WaypointList", waypoints);
 
     const towerCatalog: TowerCatalog = {};
     for (const t of this.config.TOWERS) towerCatalog[t.id] = t;
-    world.setResource<TowerCatalog>("TowerCatalog", towerCatalog);
+    this.world.setResource<TowerCatalog>("TowerCatalog", towerCatalog);
 
     const creepCatalog: CreepCatalog = {};
     for (const c of this.config.CREEPS) creepCatalog[c.id] = c;
-    world.setResource<CreepCatalog>("CreepCatalog", creepCatalog);
+    this.world.setResource<CreepCatalog>("CreepCatalog", creepCatalog);
 
-    world.setResource<WaveDefinitions>("WaveDefinitions", this.config.WAVES);
+    this.world.setResource<WaveDefinitions>("WaveDefinitions", this.config.WAVES);
 
-    world.addSingleton({
-      ...INITIAL_GAME_STATE,
-      gold: this.config.STARTING_GOLD,
-      lives: this.config.STARTING_LIVES,
-      selectedTowerType: this.config.TOWERS[0]?.id ?? "basic",
-    } as GameStateComponent);
+    this.blueprints.register("gameState", {
+      spawn: (world) => {
+        const entity = world.createEntity();
+        world.addComponent(entity, {
+          ...INITIAL_GAME_STATE,
+          gold: this.config.STARTING_GOLD,
+          lives: this.config.STARTING_LIVES,
+          selectedTowerType: this.config.TOWERS[0]?.id ?? "basic",
+        } as GameStateComponent);
+        return entity;
+      },
+    });
 
-    const player = world.createEntity();
-    world.addComponent(player, createPlayerComponent(this.config.TOWERS[0]?.id ?? "basic"));
-    world.addComponent(player, createInputComponent());
-    world.addComponent(player, { type: "LocalPlayer" });
+    this.blueprints.register("player", {
+      spawn: (world) => {
+        const entity = world.createEntity();
+        world.addComponent(
+          entity,
+          createPlayerComponent(this.config.TOWERS[0]?.id ?? "basic")
+        );
+        world.addComponent(entity, createInputComponent());
+        world.addComponent(entity, { type: "LocalPlayer" });
+        return entity;
+      },
+    });
 
-    const director = world.createEntity();
-    world.addComponent(director, {
-      type: "SpawnDirector",
-      waveIndex: 0,
-      cooldownRemaining: 0,
-      pendingSpawns: [],
-      waveElapsedTime: 0,
-      enemiesRemaining: 0,
-      status: "idle",
+    this.blueprints.register("creep", {
+      spawn: (world, entity, args: { type: string; x: number; y: number }) => {
+        const catalog = world.getResource<CreepCatalog>("CreepCatalog");
+        const def = catalog?.[args.type];
+        if (def) {
+          populateCreep(world, entity, def, args.x, args.y);
+        }
+        return entity;
+      },
+    });
+
+    this.blueprints.register("tower", {
+      spawn: (world, entity, args: { type: string; col: number; row: number }) => {
+        const catalog = world.getResource<TowerCatalog>("TowerCatalog");
+        const layout = world.getResource<GridLayout>("GridLayout");
+        const def = catalog?.[args.type];
+        if (def && layout) {
+          populateTower(world, entity, def, args.col, args.row, layout);
+        }
+        return entity;
+      },
+    });
+
+    this.blueprints.register("tower_projectile", {
+      spawn: (world, entity, args) => {
+        const config = world.getResource<TowerDefenseConfig>("GameConfig");
+        if (config) {
+          populateTowerProjectile(
+            world,
+            entity,
+            config,
+            args.x,
+            args.y,
+            args.targetEntity ?? null,
+            args.damage,
+            args.speed,
+            args.slowFactor && args.slowDurationMs
+              ? { factor: args.slowFactor, durationMs: args.slowDurationMs }
+              : undefined
+          );
+        }
+        return entity;
+      },
     });
 
     this.projectilePool = new TowerProjectilePool();
 
-    world.addSystem(new BuildSystem(), { phase: SystemPhase.Input });
+    this.world.addSystem(new BuildSystem(), { phase: SystemPhase.Input });
 
-    world.addSystem(new CreepMovementSystem(), { phase: SystemPhase.Simulation });
-    world.addSystem(new TowerTargetingSystem(), { phase: SystemPhase.Simulation });
-    world.addSystem(new TowerFiringSystem(this.projectilePool), { phase: SystemPhase.Simulation });
-    world.addSystem(new ProjectileHomingSystem(), { phase: SystemPhase.Simulation });
-    world.addSystem(new MovementSystem(), { phase: SystemPhase.Simulation });
-    world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
-    world.addSystem(new BoundarySystem(), { phase: SystemPhase.Simulation });
-    world.addSystem(new WaveSpawnSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new CreepMovementSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new TowerTargetingSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new TowerFiringSystem(this.projectilePool), {
+      phase: SystemPhase.Simulation,
+    });
+    this.world.addSystem(new ProjectileHomingSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new MovementSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new HierarchySystem(), { phase: SystemPhase.Transform });
+    this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new BoundarySystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new WaveSpawnSystem(), { phase: SystemPhase.Simulation });
 
-    world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
-    world.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });
+    this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
+    this.world.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });
 
-    world.addSystem(new CreepDeathSystem(), { phase: SystemPhase.GameRules });
-    world.addSystem(new SlowOnHitSystem(), { phase: SystemPhase.GameRules });
-    world.addSystem(new GameStateSystem(), { phase: SystemPhase.GameRules });
+    this.world.addSystem(new CreepDeathSystem(), { phase: SystemPhase.GameRules });
+    this.world.addSystem(new SlowOnHitSystem(), { phase: SystemPhase.GameRules });
+    this.world.addSystem(new GameStateSystem(), { phase: SystemPhase.GameRules });
 
-    world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation });
-    world.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation });
-    world.addSystem(new TowerDefenseAudioSystem(), { phase: SystemPhase.Presentation });
-    world.addSystem(new ThreatHudSystem(), { phase: SystemPhase.Presentation });
+    this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation });
+    this.world.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation });
+    this.world.addSystem(new TowerDefenseAudioSystem(), { phase: SystemPhase.Presentation });
+    this.world.addSystem(new ThreatHudSystem(), { phase: SystemPhase.Presentation });
+  }
+
+  protected override async onInitializeEntities(): Promise<void> {
+    runWithUnlockedRandomAndMutators(this.world, this._config.gameOptions, () => {
+      spawnBlueprintEntity(this.world, "gameState", {});
+      spawnBlueprintEntity(this.world, "player", {});
+
+      const director = this.world.createEntity();
+      this.world.addComponent(director, {
+        type: "SpawnDirector",
+        waveIndex: 0,
+        cooldownRemaining: 0,
+        pendingSpawns: [],
+        waveElapsedTime: 0,
+        enemiesRemaining: 0,
+        status: "idle",
+      });
+    });
+  }
+
+  protected override async onBeforeRestart(): Promise<void> {
+    const gameStateSystem = this.world.schedule
+      .getSystems()
+      .find((s) => s instanceof GameStateSystem) as GameStateSystem | undefined;
+    gameStateSystem?.reset();
+
+    const creepDeathSystem = this.world.schedule
+      .getSystems()
+      .find((s) => s instanceof CreepDeathSystem) as CreepDeathSystem | undefined;
+    creepDeathSystem?.reset();
+  }
+
+  public override update(dt: number): void {
+    this.world.update(dt);
+  }
+
+  public getGameState(): GameStateComponent {
+    const gs = this.world.getSingleton("GameState");
+    return gs ? { ...gs } : { ...INITIAL_GAME_STATE };
+  }
+
+  public isGameOver(): boolean {
+    const gs = this.world.getSingleton("GameState");
+    return gs?.phase === "game_over" || gs?.phase === "victory";
   }
 
   protected override async onPreloadAssets(): Promise<void> {
@@ -315,4 +465,8 @@ export const TowerDefenseDefinition = {
 
 export class NullTowerDefenseGame extends NullBaseGame {
   public readonly gameId = "tower-defense";
+
+  public override getGameState(): GameStateComponent {
+    return { ...INITIAL_GAME_STATE };
+  }
 }

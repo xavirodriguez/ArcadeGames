@@ -27,6 +27,24 @@ export const es = {
     your_score: "Tu Score",
     mutator: "Mutador",
   },
+    menu: {
+      title: "RETRO ARCADE",
+      asteroids: "ASTEROIDES",
+      space_invaders: "SPACE INVADERS",
+      flappybird: "FLAPPY BIRD",
+      pong: "PONG",
+      geometrywars: "GEOMETRY WARS",
+      echorunner: "ECHO // RUNNER",
+      cyoa: "LA CUEVA // CYOA",
+      blindstation: "LA ESTACIÓN CIEGA",
+      platformer: "PLATAFORMAS // 2D",
+      frogger: "FROGGER // CROSSING",
+      "vertical-shmup": "1942 // VERTICAL SHMUP",
+      arkanoid: "ARKANOID",
+      racing: "MICRO RACERS",
+      tower_defense: "TOWER DEFENSE",
+      campaign: "CAMPAÑA HISTORIA",
+      level: "NIVEL",
   missions: {
     chaos_king: {
       title: "Rey del Caos",
@@ -91,6 +109,51 @@ export const es = {
       title: "Caza Cercana",
       description: "Destruye un asteroide grande a menos de 100px de distancia de tu nave.",
     },
+    "tower-defense": {
+      instructions: "Toca una celda para seleccionar, construir, vender o mejorar torres. ¡Defiende la base!",
+      select_tower: "Seleccionar torre",
+      build: "Construir",
+      sell: "Vender",
+      upgrade: "Mejorar",
+      start_wave: "Lanzar oleada",
+      gold: "Oro",
+      lives: "Vidas",
+      wave: "Oleada",
+      phase: "Fase",
+    },
+    mutators: {
+      heavy_gravity: {
+        name: "Gravedad Pesada",
+        description: "La gravedad es el doble de fuerte.",
+      },
+      hyper_drift: {
+        name: "Hyper Drift",
+        description: "Nave con mucha inercia y potencia.",
+      },
+      ghost_ball: {
+        name: "Bola Fantasma",
+        description: "La bola es invisible durante 1 segundo tras cada golpe.",
+      },
+      bouncing_bullets: {
+        name: "Balas Rebotantes",
+        description: "Los proyectiles rebotan en los bordes.",
+      },
+      silent_horde: {
+        name: "Horda Silenciosa",
+        description: "Los enemigos no emiten sonido. Usa las sombras.",
+      },
+      speed_run: {
+        name: "Carrera Rápida",
+        description: "Todo se mueve un 50% más rápido.",
+      },
+      tiny_ship: {
+        name: "Nave Enana",
+        description: "Tu nave es la mitad de grande pero mucho más ágil.",
+      },
+      fast_traffic: {
+        name: "Tráfico Rápido",
+        description: "Los vehículos y troncos se mueven un 50% más rápido.",
+      },
     contra_el_reloj: {
       title: "Contra el Reloj",
       description: "Destruye 6 asteroides en menos de 20 segundos.",

@@ -6,8 +6,6 @@ import { spawnTowerProjectile } from "./EntityFactory";
 /**
  * Simple pool for tower projectiles. Reuses entities when possible;
  * falls back to spawnTowerProjectile for new ones.
- * Mirrors the PlayerBulletPool / EnemyBulletPool pattern of Space Invaders
- * but keeps the implementation minimal for the TD skeleton.
  */
 export class TowerProjectilePool {
   private free: Entity[] = [];
@@ -27,12 +25,9 @@ export class TowerProjectilePool {
     speed: number,
     slow?: { factor: number; durationMs: number }
   ): Entity {
-    // Prefer fresh spawn for correctness with full component setup;
-    // pool recycling can be tightened later once blueprints are fully wired.
     if (this.free.length > 0) {
       const entity = this.free.pop()!;
-      // Re-init via factory-like path is safer than partial mutate for now
-      world.destroyEntity(entity);
+      world.commands.removeEntity(entity);
     }
     return spawnTowerProjectile(world, config, x, y, targetEntity, damage, speed, slow);
   }

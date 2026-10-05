@@ -1,110 +1,110 @@
 import { System, SystemPhase, World } from "@tiny-aster/core";
+import type { SpawnRequest } from "@tiny-aster/gameplay-kit";
 import type {
   TowerDefenseComponentRegistry,
+  TowerDefenseEventRegistry,
   WaveDefinitions,
-  CreepCatalog,
   WaypointList,
   GameStateComponent,
 } from "../types/TowerDefenseTypes";
-import { spawnCreep } from "../EntityFactory";
 
-interface PendingSpawn {
-  creepType: string;
-  remaining: number;
-  intervalMs: number;
-  cooldownMs: number;
-}
-
-export class WaveSpawnSystem extends System<TowerDefenseComponentRegistry> {
+export class WaveSpawnSystem extends System<TowerDefenseComponentRegistry, TowerDefenseEventRegistry> {
   readonly phase = SystemPhase.Simulation;
-  private pending: PendingSpawn[] = [];
-  private waveActive = false;
 
-  update(world: World<TowerDefenseComponentRegistry>, dt: number): void {
+  update(world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>, dt: number): void {
     const gs = world.getSingleton("GameState") as GameStateComponent | undefined;
     if (!gs) return;
 
-    const director = world.query("SpawnDirector")[0];
-    if (director === undefined) return;
+    const directorEntity = world.query("SpawnDirector")[0];
+    if (directorEntity === undefined) return;
 
-    const sd = world.getComponent(director, "SpawnDirector");
+    const sd = world.getComponent(directorEntity, "SpawnDirector");
     if (!sd) return;
 
-    if (gs.phase === "wave" && sd.status === "idle" && !this.waveActive) {
-      this.startWave(world, gs.wave);
-    }
-
-    if (!this.waveActive) return;
-
-    for (const p of this.pending) {
-      if (p.remaining <= 0) continue;
-      p.cooldownMs -= dt;
-      if (p.cooldownMs <= 0) {
-        this.spawnOne(world, p.creepType);
-        p.remaining -= 1;
-        p.cooldownMs = p.intervalMs;
-        const stillPending = this.pending.reduce((sum, x) => sum + x.remaining, 0);
-        const alive = world.query("Creep").length;
-        world.mutateComponent(director, "SpawnDirector", (s) => {
-          s.enemiesRemaining = stillPending + alive;
-        });
-      }
-    }
-
-    const stillSpawning = this.pending.some((p) => p.remaining > 0);
-    const liveCreeps = world.query("Creep").length;
-
-    if (!stillSpawning && liveCreeps === 0 && this.waveActive) {
-      this.waveActive = false;
-      world.mutateComponent(director, "SpawnDirector", (s) => {
-        s.status = "idle";
-        s.enemiesRemaining = 0;
-      });
-      world.eventBus?.emit("wave:cleared", { waveIndex: gs.wave });
-    }
-  }
-
-  private startWave(world: World<TowerDefenseComponentRegistry>, waveIndex: number): void {
-    const waves = world.getResource<WaveDefinitions>("WaveDefinitions");
-    if (!waves || waveIndex >= waves.length) return;
-
-    const def = waves[waveIndex];
-    this.pending = def.creeps.map((c) => ({
-      creepType: c.type,
-      remaining: c.count,
-      intervalMs: (c.interval ?? 0.8) * 1000,
-      cooldownMs: 0,
-    }));
-
-    const total = this.pending.reduce((sum, p) => sum + p.remaining, 0);
-    const director = world.query("SpawnDirector")[0];
-    if (director !== undefined) {
-      world.mutateComponent(director, "SpawnDirector", (s) => {
-        s.waveIndex = waveIndex;
-        s.status = "spawning";
-        s.enemiesRemaining = total;
-        s.pendingSpawns = [];
-        s.cooldownRemaining = 0;
-        s.waveElapsedTime = 0;
-      });
-    }
-
-    this.waveActive = true;
-    world.eventBus?.emit("wave:started", { waveIndex });
-  }
-
-  private spawnOne(world: World<TowerDefenseComponentRegistry>, creepType: string): void {
-    const catalog = world.getResource<CreepCatalog>("CreepCatalog");
-    const waypoints = world.getResource<WaypointList>("WaypointList");
-    if (!catalog || !waypoints || waypoints.points.length === 0) return;
-
-    const def = catalog[creepType];
-    if (!def) {
-      console.warn(`[TD] Unknown creep type: ${creepType}`);
+    if (gs.phase === "wave" && sd.status === "idle") {
+      this.startWave(world, directorEntity, gs.wave);
       return;
     }
 
-    const start = waypoints.points[0];
-    spawnCreep(world, def, start.x, start.y);
+    if (sd.status !== "spawning" && sd.status !== "active") return;
+
+    const newElapsedTime = sd.waveElapsedTime + dt;
+    world.mutateComponent(directorEntity, "SpawnDirector", (s) => {
+      s.waveElapsedTime = newElapsedTime;
+    });
+
+    const readyToSpawn: SpawnRequest[] = [];
+    const remainingSpawns: SpawnRequest[] = [];
+
+    for (const req of sd.pendingSpawns) {
+      if (req.spawnTime !== undefined && newElapsedTime >= req.spawnTime) {
+        readyToSpawn.push(req);
+      } else {
+        remainingSpawns.push(req);
+      }
+    }
+
+    if (readyToSpawn.length > 0) {
+      for (const req of readyToSpawn) {
+        world.commands.spawnFromBlueprint(req.blueprintId, req.args);
+      }
+      world.mutateComponent(directorEntity, "SpawnDirector", (s) => {
+        s.pendingSpawns = remainingSpawns;
+      });
+    }
+
+    const liveCreeps = world.query("Creep").length;
+    const pendingCount = remainingSpawns.length;
+
+    world.mutateComponent(directorEntity, "SpawnDirector", (s) => {
+      s.enemiesRemaining = pendingCount + liveCreeps;
+    });
+
+    if (pendingCount === 0 && liveCreeps === 0 && sd.status === "spawning") {
+      world.mutateComponent(directorEntity, "SpawnDirector", (s) => {
+        s.status = "idle";
+        s.enemiesRemaining = 0;
+      });
+      world.getEventBus()?.emit("wave:cleared", { waveIndex: gs.wave });
+    }
+  }
+
+  private startWave(
+    world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>,
+    directorEntity: number,
+    waveIndex: number
+  ): void {
+    const waves = world.getResource<WaveDefinitions>("WaveDefinitions");
+    const waypoints = world.getResource<WaypointList>("WaypointList");
+    if (!waves || waveIndex >= waves.length || !waypoints || waypoints.points.length === 0) return;
+
+    const def = waves[waveIndex];
+    const startPos = waypoints.points[0];
+
+    const pendingSpawns: SpawnRequest[] = [];
+    let accumulatedTime = 0;
+
+    for (const c of def.creeps) {
+      const interval = c.interval ?? 0.8;
+      for (let i = 0; i < c.count; i++) {
+        pendingSpawns.push({
+          blueprintId: "creep",
+          args: { type: c.type, x: startPos.x, y: startPos.y },
+          spawnTime: accumulatedTime,
+        });
+        accumulatedTime += interval;
+      }
+    }
+
+    world.mutateComponent(directorEntity, "SpawnDirector", (s) => {
+      s.waveIndex = waveIndex;
+      s.status = "spawning";
+      s.enemiesRemaining = pendingSpawns.length;
+      s.pendingSpawns = pendingSpawns;
+      s.cooldownRemaining = 0;
+      s.waveElapsedTime = 0;
+    });
+
+    world.getEventBus()?.emit("wave:started", { waveIndex });
   }
 }

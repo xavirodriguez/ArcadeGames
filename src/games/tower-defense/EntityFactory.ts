@@ -1,5 +1,5 @@
-import { World, EntityBuilder, ShapeType, CircleShape, BoundaryComponent, TTLComponent } from "@tiny-aster/core";
-import { CollisionLayers, FactionComponent, DamageComponent, HealthComponent } from "@tiny-aster/gameplay-kit";
+import { World, EntityBuilder, ShapeType, CircleShape, BoundaryComponent, TTLComponent, HealthComponent } from "@tiny-aster/core";
+import { CollisionLayers, FactionComponent, DamageComponent } from "@tiny-aster/gameplay-kit";
 import type {
   TowerDefenseComponentRegistry,
   InputComponent,
@@ -34,13 +34,13 @@ export function createPlayerComponent(selectedTowerType: string | null = "basic"
   };
 }
 
-export function spawnCreep(
+export function populateCreep(
   world: World<TowerDefenseComponentRegistry>,
+  entity: number,
   def: CreepDefinition,
   x: number,
   y: number
 ): number {
-  const entity = world.createEntity();
   EntityBuilder.fromEntity(world, entity)
     .withTransform({ x, y })
     .withVelocity({ vx: 0, vy: 0 })
@@ -78,15 +78,25 @@ export function spawnCreep(
   return entity;
 }
 
-export function spawnTower(
+export function spawnCreep(
   world: World<TowerDefenseComponentRegistry>,
+  def: CreepDefinition,
+  x: number,
+  y: number
+): number {
+  const entity = world.createEntity();
+  return populateCreep(world, entity, def, x, y);
+}
+
+export function populateTower(
+  world: World<TowerDefenseComponentRegistry>,
+  entity: number,
   def: TowerDefinition,
   col: number,
   row: number,
   layout: GridLayout
 ): number {
   const pos = cellCenter(col, row, layout);
-  const entity = world.createEntity();
   EntityBuilder.fromEntity(world, entity)
     .withTransform({ x: pos.x, y: pos.y })
     .withRender({ shape: `tower_${def.id}`, size: layout.stepX * 0.7, color: "cyan", order: 8 })
@@ -120,8 +130,20 @@ export function spawnTower(
   return entity;
 }
 
-export function spawnTowerProjectile(
+export function spawnTower(
   world: World<TowerDefenseComponentRegistry>,
+  def: TowerDefinition,
+  col: number,
+  row: number,
+  layout: GridLayout
+): number {
+  const entity = world.createEntity();
+  return populateTower(world, entity, def, col, row, layout);
+}
+
+export function populateTowerProjectile(
+  world: World<TowerDefenseComponentRegistry>,
+  entity: number,
   config: TowerDefenseConfig,
   x: number,
   y: number,
@@ -130,7 +152,6 @@ export function spawnTowerProjectile(
   speed: number,
   slow?: { factor: number; durationMs: number }
 ): number {
-  const entity = world.createEntity();
   EntityBuilder.fromEntity(world, entity)
     .withTransform({ x, y })
     .withVelocity({ vx: 0, vy: 0 })
@@ -141,9 +162,10 @@ export function spawnTowerProjectile(
       order: 10,
     })
     .withCollider({
-      shape: { type: ShapeType.Circle, radius: config.PROJECTILE_SIZE } as CircleShape,
+      shape: { type: ShapeType.Circle, radius: config.PROJECTILE_SIZE * 2 } as CircleShape,
       layer: CollisionLayers.PROJECTILE,
       mask: CollisionLayers.ENEMY,
+      isTrigger: true,
     })
     .withCollisionEvents()
     .withTTL(config.PROJECTILE_TTL / 1000);
@@ -177,4 +199,18 @@ export function spawnTowerProjectile(
   } as FactionComponent);
 
   return entity;
+}
+
+export function spawnTowerProjectile(
+  world: World<TowerDefenseComponentRegistry>,
+  config: TowerDefenseConfig,
+  x: number,
+  y: number,
+  targetEntity: number | null,
+  damage: number,
+  speed: number,
+  slow?: { factor: number; durationMs: number }
+): number {
+  const entity = world.createEntity();
+  return populateTowerProjectile(world, entity, config, x, y, targetEntity, damage, speed, slow);
 }

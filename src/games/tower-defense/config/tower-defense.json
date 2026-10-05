@@ -19,17 +19,17 @@
   "GRID_OFFSET_Y": 40,
   "LEVEL_LAYOUT": [
     "XXXXXXXXXXXXXXXX",
-    "SBBBBBBBBBBBBBBX",
-    "XPPPPPPPPPPPPPBX",
+    "SPPPPPPPPPPPPPBX",
     "XBBBBBBBBBBBBPBX",
     "XBBPPPPPPPPPBPBX",
     "XBBPBBBBBBBPBPBX",
     "XBBPBBBBBBBPBPBX",
     "XBBPBBBBBBBPBPBX",
+    "XBBPBBBBBBBPBPBX",
     "XBBPPPPPPPPPBPBX",
     "XBBBBBBBBBBBBPBX",
     "XBBBBBBBBBBBBPBX",
-    "XBBBBBBBBBBBBBBE"
+    "XBBBBBBBBBBBBPPE"
   ],
   "TOWERS": [
     { "id": "basic", "name": "Basic Tower", "cost": 50, "range": 120, "damage": 15, "fireRate": 1.0, "projectileSpeed": 400, "upgradeCost": 40, "maxLevel": 3 },

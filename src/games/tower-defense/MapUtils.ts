@@ -60,8 +60,7 @@ export function extractWaypoints(
   }
 
   if (!spawn || !base) {
-    console.warn("[TD] Level layout missing spawn (S) or base (E)");
-    return { points: [] };
+    throw new Error("[TD] Level layout missing spawn (S) or base (E)");
   }
 
   const isWalkable = (r: number, c: number) => {
@@ -103,8 +102,7 @@ export function extractWaypoints(
   }
 
   if (!found) {
-    console.warn("[TD] No path from spawn to base");
-    return { points: [] };
+    throw new Error("[TD] Invalid map layout: No walkable path from spawn (S) to base (E)");
   }
 
   const pathCells: GridCoordinates[] = [];
@@ -129,6 +127,21 @@ export function cellCenter(col: number, row: number, layout: GridLayout): WorldP
 
 export function worldToCellCoords(x: number, y: number, layout: GridLayout): GridCoordinates {
   return worldToCell(layout, { x, y });
+}
+
+export function touchToCellCoords(
+  touchX: number,
+  touchY: number,
+  canvasWidth: number,
+  canvasHeight: number,
+  config: TowerDefenseConfig,
+  layout: GridLayout
+): GridCoordinates {
+  const scaleX = canvasWidth > 0 ? canvasWidth / config.worldWidth : 1;
+  const scaleY = canvasHeight > 0 ? canvasHeight / config.worldHeight : 1;
+  const worldX = touchX / scaleX;
+  const worldY = touchY / scaleY;
+  return worldToCellCoords(worldX, worldY, layout);
 }
 
 export function isBuildable(tileGrid: TileGrid, col: number, row: number): boolean {

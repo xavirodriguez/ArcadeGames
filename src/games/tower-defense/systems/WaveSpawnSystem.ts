@@ -65,7 +65,9 @@ export class WaveSpawnSystem extends System<TowerDefenseComponentRegistry, Tower
         s.status = "idle";
         s.enemiesRemaining = 0;
       });
-      world.getEventBus()?.emit("wave:cleared", { waveIndex: gs.wave });
+      const bus = world.getEventBus();
+      bus?.emit("wave:cleared", { waveIndex: gs.wave });
+      bus?.emit("spawn:wave_complete", { waveIndex: gs.wave });
     }
   }
 

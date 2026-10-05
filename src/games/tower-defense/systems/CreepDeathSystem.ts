@@ -68,6 +68,7 @@ export class CreepDeathSystem extends System<TowerDefenseComponentRegistry, Towe
 
     const bus = world.getEventBus();
     bus?.emit("creep:killed", { entity, reward, creepType });
+    bus?.emit("enemy:destroyed", { entity, enemyType: creepType });
     const director = world.query("SpawnDirector")[0];
     if (director !== undefined) {
       world.mutateComponent(director, "SpawnDirector", (s: any) => {

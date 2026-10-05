@@ -25,7 +25,7 @@ export class BuildSystem extends System<TowerDefenseComponentRegistry, TowerDefe
     if (!input || !player) return;
 
     const gs = world.getSingleton("GameState") as GameStateComponent | undefined;
-    if (!gs || (gs.phase !== "build" && gs.phase !== "intermission")) return;
+    if (!gs || gs.phase === "game_over" || gs.phase === "victory") return;
 
     const tileGrid = world.getResource<TileGrid>("TileGrid");
     const layout = world.getResource<GridLayout>("GridLayout");

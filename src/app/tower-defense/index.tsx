@@ -1,5 +1,5 @@
 import { useState, useEffect, FC } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Platform, GestureResponderEvent } from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity, Platform, GestureResponderEvent, LayoutChangeEvent } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
@@ -41,6 +41,18 @@ export default function TowerDefenseScreen() {
   const { game, gameState, handleInput, isReady, restartWithSeed } =
     useTowerDefenseGame(started, initialSeed);
 
+  const [canvasLayout, setCanvasLayout] = useState<{ width: number; height: number }>({
+    width: towerDefenseConfigRaw.worldWidth,
+    height: towerDefenseConfigRaw.worldHeight,
+  });
+
+  const handleLayout = (e: LayoutChangeEvent) => {
+    const { width, height } = e.nativeEvent.layout;
+    if (width > 0 && height > 0) {
+      setCanvasLayout({ width, height });
+    }
+  };
+
   // Keyboard shortcuts for web
   useEffect(() => {
     if (Platform.OS !== "web" || !game || !isReady) return;
@@ -81,8 +93,8 @@ export default function TowerDefenseScreen() {
     const cell = touchToCellCoords(
       locationX,
       locationY,
-      towerDefenseConfigRaw.worldWidth,
-      towerDefenseConfigRaw.worldHeight,
+      canvasLayout.width,
+      canvasLayout.height,
       towerDefenseConfigRaw as any,
       layout
     );
@@ -91,6 +103,7 @@ export default function TowerDefenseScreen() {
       cursorX: worldPos.x,
       cursorY: worldPos.y,
       selectedTowerType: selectedTower,
+      build: true,
     });
   };
 
@@ -139,6 +152,7 @@ export default function TowerDefenseScreen() {
             <TouchableOpacity
               activeOpacity={1}
               onPress={handleCanvasTouch}
+              onLayout={handleLayout}
               style={styles.canvasTouchArea}
             >
               <CanvasRenderer

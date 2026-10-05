@@ -30,6 +30,7 @@ export class GameStateSystem extends System<TowerDefenseComponentRegistry, Tower
       if (bus && !(world as any).isReSimulating) {
         bus.emitDeferred?.("PlaySFX", { name: "game_over" }) ?? bus.emit?.("PlaySFX", { name: "game_over" });
       }
+      bus?.emit("game:over", { completed: false, score: gs.score, phase: "game_over" });
       return;
     }
 
@@ -45,7 +46,7 @@ export class GameStateSystem extends System<TowerDefenseComponentRegistry, Tower
     }
 
     const playerEntity = world.query("Player")[0];
-    if (playerEntity !== undefined && gs.phase === "build") {
+    if (playerEntity !== undefined && (gs.phase === "build" || gs.phase === "intermission")) {
       const input = world.getComponent(playerEntity, "Input");
       if (input?.startWave) {
         this.beginWave(world);
@@ -83,6 +84,7 @@ export class GameStateSystem extends System<TowerDefenseComponentRegistry, Tower
           g.phase = "victory";
           g.wave = nextWave;
         });
+        bus?.emit("game:over", { completed: true, score: gs.score, phase: "victory" });
       } else {
         world.mutateSingleton("GameState", (g: GameStateComponent) => {
           g.phase = "intermission";

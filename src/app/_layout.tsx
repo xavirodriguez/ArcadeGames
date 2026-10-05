@@ -59,6 +59,8 @@ export default function RootLayout() {
           <Stack.Screen name="cyoa" options={{ title: "Choose Your Own Adventure" }} />
           <Stack.Screen name="blindstation" options={{ title: "Blind Station" }} />
           <Stack.Screen name="hitandrun" options={{ title: "Hit and Run" }} />
+          <Stack.Screen name="racing" options={{ title: "Micro Racers" }} />
+          <Stack.Screen name="vertical-shmup" options={{ title: "1942 // Vertical Shmup" }} />
         </Stack>
       </GameServicesProvider>
     </GestureHandlerRootView>

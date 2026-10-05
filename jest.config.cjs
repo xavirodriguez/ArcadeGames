@@ -15,7 +15,8 @@ module.exports = {
     "<rootDir>/src/games/echorunner/jest.config.cjs",
     "<rootDir>/src/games/platformer/jest.config.cjs",
     "<rootDir>/src/games/frogger/jest.config.cjs",
-    "<rootDir>/src/games/racing/jest.config.cjs"
-    "<rootDir>/src/games/vertical-shmup/jest.config.cjs"
+    "<rootDir>/src/games/racing/jest.config.cjs",
+    "<rootDir>/src/games/vertical-shmup/jest.config.cjs",
+    "<rootDir>/src/games/hitandrun/jest.config.cjs"
   ]
 };

@@ -1,5 +1,5 @@
 /**
- * Hit&Run — fantasy belt-scroll beat'em-up (melee + ranged) on @tiny-aster/core.
+ * Hit&Run — Metal Slug arcade run-and-gun brawler on @tiny-aster/core.
  */
 import {
   System,
@@ -14,6 +14,12 @@ import {
   HealthComponent,
   TagComponent,
   RunState,
+  TTLSystem,
+  EntityBuilder,
+  ShapeType,
+  BoxShape,
+  Theme,
+  resolveThemeColor,
   registerEnemyStateMachines,
   SegmentTemplate,
   SegmentGenerator,
@@ -29,22 +35,17 @@ import type {
   HitAndRunGameState,
   HitAndRunInput
 } from "./types/HitAndRunTypes";
-import { PlatformerInputSystem } from "../platformer/systems/PlatformerInputSystem";
 import {
-  ArcadeEntityBuilder,
   registerPlatformerEnemyBlueprints,
   registerPlatformerEnvironmentBlueprints,
   mutatePlatformerInputState,
-  registerCommonPlatformerSystems,
-  updatePlayerInvulnerabilityAndContactDamage
+  registerCommonPlatformerSystems
 } from "@tiny-aster/gameplay-kit";
 import {
   setupPlatformerMovementComponents,
   registerPlatformerTilemapBlueprint,
   createMainCamera2D,
-  registerPresentationSystems,
-  syncLevelWorldDimensions,
-  registerCollectibleTriggerBlueprint
+  syncLevelWorldDimensions
 } from "../shared/componentBuilders";
 import { DEFAULT_ECHO_RUNNER_CONFIG } from "../echorunner/types/EchoRunnerConfigSchema";
 import hitRunLevelData from "./levels/level-01.json";
@@ -52,12 +53,15 @@ import { registerHitRunMelee } from "./melee/registerHitRunMelee";
 import { registerHitRunFeedback } from "./systems/registerHitRunFeedback";
 import { registerHitRunHurt } from "./hurt/registerHitRunHurt";
 import { registerHitRunWeapons } from "./weapons/registerHitRunWeapons";
-import { registerBeltSystems } from "./belt/registerBeltSystems";
-import {
-  registerBeltPlayerBlueprint,
-  DEFAULT_BELT_PLAYER_SPAWN
-} from "./belt/registerBeltPlayerBlueprint";
-import { mutateBeltInputState } from "./belt/mutateBeltInputState";
+import { registerHitRunWaves } from "./waves/registerHitRunWaves";
+import { registerHitRunAI } from "./ai/registerHitRunAI";
+import { registerHitRunDeathFlow } from "./systems/HitRunDeathFlowSystem";
+import { registerHitRunCameraScroll } from "./systems/HitRunCameraScrollSystem";
+import { HitRunPlayerControllerSystem } from "./systems/HitRunPlayerControllerSystem";
+import { registerPowBlueprint } from "./pow/registerPowBlueprint";
+import { HitRunPowSystem } from "./pow/HitRunPowSystem";
+import { createMeleeAttackComponent } from "./melee/HitRunMeleeSystem";
+import { createWeaponState } from "./weapons/HitRunWeaponCatalog";
 import {
   DEFAULT_COMBO_MELEE_CONFIG,
   COMBO_MELEE_CONFIG_RESOURCE
@@ -70,72 +74,21 @@ import {
 } from "./waves/HitRunWaveTypes";
 import type { HitRunWeaponState } from "./weapons/HitRunWeaponTypes";
 import { HIT_RUN_BACKDROP_THEME } from "./rendering/HitAndRunPalette";
-import { HIT_RUN_BACKDROP_RESOURCE } from "./rendering/HitRunBackdropCanvas";
+import { HIT_RUN_BACKDROP_RESOURCE, drawHitRunBackdrop } from "./rendering/HitRunBackdropCanvas";
+import { drawHitRunHud } from "./rendering/HitRunHudCanvas";
+import {
+  drawHitRunPlayer,
+  drawHitRunPopcorn,
+  drawHitRunWallTrooper,
+  drawHitRunHopper,
+  drawHitRunCharger,
+  drawHitRunElite,
+  drawHitRunBullet,
+  drawHitRunRocket,
+  drawHitRunPow
+} from "./rendering/HitRunCanvasVisuals";
 
 export type HitAndRunConfig = EchoRunnerConfig;
-
-class HitRunDamageSystem extends System<CoreComponentRegistry> {
-  public update(world: import("@tiny-aster/core").World<CoreComponentRegistry>, deltaTime: number): void {
-    updatePlayerInvulnerabilityAndContactDamage(world, deltaTime, {
-      contactDistance: 20,
-      invulnerabilityDuration: 1.0,
-      damageAmount: 1,
-      hitFlashFrames: 8,
-      screenShakeIntensity: 12,
-      screenShakeDuration: 0.25,
-      sfxName: "hit"
-    });
-  }
-}
-
-class HitRunAttackSystem extends System<CoreComponentRegistry> {
-  public update(world: import("@tiny-aster/core").World<CoreComponentRegistry>, deltaTime: number): void {
-    const players = world.query("PlatformerInput", "Transform");
-    for (let i = 0; i < players.length; i++) {
-      const player = players[i];
-      const input = world.getComponent(player, "PlatformerInput") as
-        | { pulseCooldown?: number; pulsePressed?: boolean }
-        | undefined;
-      const trans = world.getComponent(player, "Transform")!;
-      if (!input) continue;
-
-      let cd = input.pulseCooldown ?? 0;
-      if (cd > 0) {
-        cd = PhysicsUtils.tickTimer(cd, deltaTime);
-        world.mutateComponent(player, "PlatformerInput", (inp: unknown) => {
-          (inp as { pulseCooldown?: number }).pulseCooldown = cd;
-        });
-      }
-
-      if (input.pulsePressed && cd <= 0) {
-        world.mutateComponent(player, "PlatformerInput", (inp: unknown) => {
-          (inp as { pulseCooldown?: number }).pulseCooldown = 0.45;
-        });
-
-        const vel = world.getComponent(player, "Velocity")!;
-        let dir = 1;
-        if (vel.vx !== 0) dir = vel.vx > 0 ? 1 : -1;
-        else if (trans.scaleX < 0) dir = -1;
-
-        const audio =
-          world.getResource<IAudioPlayer>("AudioPlayer") ||
-          world.getResource<IAudioPlayer>("Audio");
-        if (audio) audio.playSFX("pulse");
-
-        world.commands.spawnFromBlueprint("pulse_hitbox", {
-          dir,
-          x: trans.x,
-          y: trans.y,
-          parent: player
-        });
-
-        world.mutateComponent(player, "PlatformerInput", (inp: unknown) => {
-          (inp as { pulsePressed?: boolean }).pulsePressed = false;
-        });
-      }
-    }
-  }
-}
 
 export class HitAndRunGame extends PlatformerArcadeGame<
   HitAndRunGameState,
@@ -212,12 +165,20 @@ export class HitAndRunGame extends PlatformerArcadeGame<
   protected override async onRegisterSystems(): Promise<void> {
     await super.onRegisterSystems();
 
-    registerBeltSystems(this.world);
+    registerCommonPlatformerSystems(this.world);
 
+    this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new HitRunPlayerControllerSystem(), { phase: SystemPhase.Simulation, priority: 2 });
+    this.world.addSystem(new HitRunPowSystem(), { phase: SystemPhase.Simulation, priority: 3 });
+
+    registerHitRunCameraScroll(this.world);
     registerHitRunFeedback(this.world);
     registerHitRunHurt(this.world);
     registerHitRunMelee(this.world);
     registerHitRunWeapons(this.world);
+    registerHitRunWaves(this.world);
+    registerHitRunAI(this.world);
+    registerHitRunDeathFlow(this.world);
 
     this.world.setResource(COMBO_MELEE_CONFIG_RESOURCE, {
       ...DEFAULT_COMBO_MELEE_CONFIG
@@ -225,29 +186,112 @@ export class HitAndRunGame extends PlatformerArcadeGame<
   }
 
   protected override async onInitializeEntities(): Promise<void> {
-    registerBeltPlayerBlueprint(this.blueprints);
+    registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_ECHO_RUNNER_CONFIG);
+    registerPlatformerEnvironmentBlueprints(this.blueprints);
+    registerPlatformerEnemyBlueprints(this.blueprints);
+    registerPowBlueprint(this.blueprints);
+
+    // Register level blueprints
+    const templates = (this.customLevelData?.templates ?? hitRunLevelData.templates) as SegmentTemplate[];
+    const grammar = this.customLevelData?.grammar ?? hitRunLevelData.grammar;
+    const seed = this.getSeed() || 12345;
+
+    this.levelPlan = SegmentGenerator.generatePlan(templates, grammar, seed);
+
+    const tileDefinitions = {
+      1: { solid: true },
+      5: { solid: true }
+    };
+
+    SegmentGenerator.instantiatePlan(this.world, this.levelPlan, DEFAULT_ECHO_RUNNER_CONFIG.TILE_SIZE, tileDefinitions);
+    syncLevelWorldDimensions(this.world, this.levelPlan, DEFAULT_ECHO_RUNNER_CONFIG);
+
+    this.blueprints.register("player", {
+      spawn: (world, entity, args: { x?: number; y?: number; weaponId?: string }) => {
+        const theme = world.getResource<Theme>("Theme");
+        const assetKey = theme?.spriteMap["player"] ?? "player_sprite";
+        const tint = resolveThemeColor(world, "player");
+
+        const x = args.x ?? 100;
+        const y = args.y ?? 300;
+
+        EntityBuilder.fromEntity(world, entity)
+          .withTransform({ x, y })
+          .withVelocity()
+          .withCollider({ shape: { type: ShapeType.Box, width: 20, height: 32 } as BoxShape })
+          .withRender({ shape: "player", size: 28, color: tint, order: 2 });
+
+        world.addComponent(entity, { type: "Health", current: 5, max: 5 } as HealthComponent);
+        world.addComponent(entity, { type: "Tag", tags: ["TileCollider", "Player"] });
+        world.addComponent(entity, { type: "Sprite", assetKey, anchor: { x: 0.5, y: 0.5 } });
+        world.addComponent(entity, { type: "Faction", value: "player" });
+
+        const config = world.getResource<import("../shared/componentBuilders").CommonPlatformerConfig>("GameConfig") || DEFAULT_ECHO_RUNNER_CONFIG;
+        setupPlatformerMovementComponents(world, entity, config);
+
+        world.addComponent(entity, {
+          type: "PlatformerInput",
+          moveDir: 0,
+          jumpPressed: false,
+          jumpHeld: false,
+          jumpReleased: false,
+          aimX: 1,
+          aimY: 0,
+          fireHeld: false,
+          firePressed: false,
+          attackPressed: false
+        } as { type: string; [key: string]: unknown });
+
+        world.addComponent(entity, createMeleeAttackComponent());
+        world.addComponent(entity, createWeaponState(args.weaponId ?? "hmg"));
+      }
+    });
 
     const playerEntity = this.world.createEntity();
     const playerBp = this.blueprints.get("player");
     if (playerBp) {
       playerBp.spawn(this.world, playerEntity, {
-        x: DEFAULT_BELT_PLAYER_SPAWN.x,
-        y: DEFAULT_BELT_PLAYER_SPAWN.y,
-        weaponId: "longbow",
-        health: 5
-      } as import("./belt/registerBeltPlayerBlueprint").BeltPlayerSpawnArgs);
+        x: 100,
+        y: 300,
+        weaponId: "hmg"
+      } as unknown as { x: number; y: number });
     } else {
       throw new Error("[HitAndRunGame] Blueprint 'player' is not registered.");
     }
+
+    createMainCamera2D(this.world, playerEntity, {
+      zoom: 1.0
+    });
+
+    this.world.flush();
   }
 
   public override setInputState(input: Partial<HitAndRunInput>): void {
-    mutateBeltInputState(this.getWorld(), input);
+    mutatePlatformerInputState(this.getWorld(), input);
   }
 
   public initializeRenderer(
-    _renderer: Renderer<CoreComponentRegistry, RenderContext>
-  ): void {}
+    renderer: Renderer<CoreComponentRegistry, RenderContext>
+  ): void {
+    if (renderer.type !== "canvas") return;
+
+    this.installProceduralBackdrop(800, 600);
+    renderer.registerBackgroundEffect("hitrun_backdrop", drawHitRunBackdrop);
+
+    renderer.registerShape("player", drawHitRunPlayer);
+    renderer.registerShape("popcorn", drawHitRunPopcorn);
+    renderer.registerShape("wall_trooper", drawHitRunWallTrooper);
+    renderer.registerShape("hopper", drawHitRunHopper);
+    renderer.registerShape("charger", drawHitRunCharger);
+    renderer.registerShape("elite", drawHitRunElite);
+    renderer.registerShape("bullet_hmg", drawHitRunBullet);
+    renderer.registerShape("bullet_shotgun", drawHitRunBullet);
+    renderer.registerShape("bullet_rocket", drawHitRunRocket);
+    renderer.registerShape("enemy_bullet", drawHitRunBullet);
+    renderer.registerShape("pow", drawHitRunPow);
+
+    renderer.registerBackgroundEffect("hitrun_hud", drawHitRunHud);
+  }
 
   public getGameState(): HitAndRunGameState {
     const rs = this.world.getResource<RunState>("RunState");

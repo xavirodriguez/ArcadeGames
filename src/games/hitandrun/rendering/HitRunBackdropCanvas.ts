@@ -569,7 +569,7 @@ function drawPlayfieldMask(
 /*  Main drawer                                                                */
 /* -------------------------------------------------------------------------- */
 
-export const drawHitRunProceduralBackdrop: EffectDrawer<
+export const drawHitRunBackdrop: EffectDrawer<
   CanvasRenderingContext2D,
   CoreComponentRegistry
 > = {

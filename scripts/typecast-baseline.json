@@ -84,6 +84,11 @@
     "unknownCount": 5,
     "total": 5
   },
+  "packages/core/src/physics/vehicles/VehicleWaypointSystem.ts": {
+    "anyCount": 0,
+    "unknownCount": 2,
+    "total": 2
+  },
   "packages/core/src/rendering/RendererUtils.ts": {
     "anyCount": 0,
     "unknownCount": 1,
@@ -774,6 +779,21 @@
     "unknownCount": 0,
     "total": 1
   },
+  "src/games/racing/EntityFactory.ts": {
+    "anyCount": 0,
+    "unknownCount": 1,
+    "total": 1
+  },
+  "src/games/racing/RacingGame.ts": {
+    "anyCount": 0,
+    "unknownCount": 2,
+    "total": 2
+  },
+  "src/games/racing/systems/VehicleAISystem.ts": {
+    "anyCount": 0,
+    "unknownCount": 1,
+    "total": 1
+  },
   "src/games/shared/CaptureSystem.ts": {
     "anyCount": 7,
     "unknownCount": 0,
@@ -953,6 +973,11 @@
     "anyCount": 2,
     "unknownCount": 0,
     "total": 2
+  },
+  "src/games/vertical-shmup/EntityPool.ts": {
+    "anyCount": 0,
+    "unknownCount": 1,
+    "total": 1
   },
   "src/hooks/useKeyboardControls.ts": {
     "anyCount": 1,

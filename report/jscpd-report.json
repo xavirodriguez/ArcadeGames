@@ -224,6 +224,117 @@
     },
     {
       "firstFile": {
+        "end": 36,
+        "endLoc": {
+          "column": 23,
+          "line": 36,
+          "position": 1526
+        },
+        "name": "physics/vehicles/VehicleWaypointSystem.ts",
+        "start": 20,
+        "startLoc": {
+          "column": 32,
+          "line": 20,
+          "position": 796
+        }
+      },
+      "format": "typescript",
+      "fragment": "      const entity = entities[i];\n      const waypointsComp = world.getComponent(entity, \"VehicleWaypoint\") as VehicleWaypointComponent | undefined;\n      const vehicle = world.getMutableComponent(entity, \"VehicleSteering\") as VehicleSteeringComponent | undefined;\n      const transform = world.getComponent(entity, \"Transform\");\n\n      if (!waypointsComp || !vehicle || !transform || waypointsComp.waypoints.length === 0) continue;\n\n      const idx = waypointsComp.currentWaypointIndex;\n      const target = waypointsComp.waypoints[idx];\n      if (!target) continue;\n\n      const dx = target.x - transform.x;\n      const dy = target.y - transform.y;\n      const dist = Math.hypot(dx, dy);\n\n      if (dist <= waypointsComp.targetRadius) {\n        const nextIdx = idx + 1;",
+      "isNew": false,
+      "lines": 17,
+      "secondFile": {
+        "end": 35,
+        "endLoc": {
+          "column": 23,
+          "line": 35,
+          "position": 1705
+        },
+        "name": "racing/systems/VehicleAISystem.ts",
+        "start": 18,
+        "startLoc": {
+          "column": 61,
+          "line": 18,
+          "position": 974
+        }
+      },
+      "tokens": 136
+    },
+    {
+      "firstFile": {
+        "end": 55,
+        "endLoc": {
+          "column": 68,
+          "line": 55,
+          "position": 2341
+        },
+        "name": "physics/vehicles/VehicleWaypointSystem.ts",
+        "start": 46,
+        "startLoc": {
+          "column": 6,
+          "line": 46,
+          "position": 1991
+        }
+      },
+      "format": "typescript",
+      "fragment": "      }\n\n      const desiredAngle = Math.atan2(dy, dx);\n      let diffAngle = desiredAngle - (transform.rotation ?? 0);\n\n      while (diffAngle > Math.PI) diffAngle -= Math.PI * 2;\n      while (diffAngle < -Math.PI) diffAngle += Math.PI * 2;\n\n      // Calculate normalized steering input\n      vehicle.steering = Math.max(-1, Math.min(1, diffAngle * 1.8));",
+      "isNew": false,
+      "lines": 10,
+      "secondFile": {
+        "end": 47,
+        "endLoc": {
+          "column": 68,
+          "line": 47,
+          "position": 2224
+        },
+        "name": "racing/systems/VehicleAISystem.ts",
+        "start": 39,
+        "startLoc": {
+          "column": 6,
+          "line": 39,
+          "position": 1919
+        }
+      },
+      "tokens": 82
+    },
+    {
+      "firstFile": {
+        "end": 33,
+        "endLoc": {
+          "column": 9,
+          "line": 33,
+          "position": 1149
+        },
+        "name": "rendering/Camera2D.ts",
+        "start": 28,
+        "startLoc": {
+          "column": 43,
+          "line": 28,
+          "position": 801
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const cameras = world.query(\"Camera2D\");\n    const gameConfig = world.getResource<WorldSizeConfig>(\"GameConfig\");\n    const screenConfig = world.getResource<{ width: number; height: number }>(\"ScreenConfig\");\n    const viewportWidth = gameConfig?.viewportWidth ?? screenConfig?.width ?? 800;\n    const viewportHeight = gameConfig?.viewportHeight ?? screenConfig?.height ?? 600;\n    const worldWidth = gameConfig?.worldWidth;",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 203,
+        "endLoc": {
+          "column": 9,
+          "line": 203,
+          "position": 7781
+        },
+        "name": "rendering/Camera2D.ts",
+        "start": 196,
+        "startLoc": {
+          "column": 26,
+          "line": 196,
+          "position": 7431
+        }
+      },
+      "tokens": 62
+    },
+    {
+      "firstFile": {
         "end": 21,
         "endLoc": {
           "column": 3,
@@ -668,40 +779,40 @@
     },
     {
       "firstFile": {
-        "end": 639,
+        "end": 88,
         "endLoc": {
-          "column": 11,
-          "line": 639,
-          "position": 19433
+          "column": 8,
+          "line": 88,
+          "position": 3122
         },
         "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
-        "start": 634,
+        "start": 78,
         "startLoc": {
-          "column": 25,
-          "line": 634,
-          "position": 19214
+          "column": 74,
+          "line": 78,
+          "position": 2774
         }
       },
       "format": "typescript",
-      "fragment": "      ctx.lineWidth = 1.5;\n      for (let i = 0; i < 3; i++) {\n        const angle = elapsed + (i * Math.PI * 2) / 3;\n        const sx = Math.cos(angle) * (size * 0.6);\n        const sy = Math.sin(angle) * (size * 0.2) - size * 0.5;\n        ctx.beginPath();",
+      "fragment": "    const { width, height, elapsed } = resolveEchoBackgroundContext(world);\n\n    // Layer 0: Sky / Artificial Sun Atmosphere Void\n    const skyGrad = ctx.createLinearGradient(0, 0, 0, height);\n    skyGrad.addColorStop(0, SOLAR_GARDEN_PALETTE.skyDawn);\n    skyGrad.addColorStop(1, SOLAR_GARDEN_PALETTE.skyMid);\n    ctx.fillStyle = skyGrad;\n    ctx.fillRect(0, 0, width, height);\n\n    // Distant Artificial Sun Halo\n    ctx.save();",
       "isNew": false,
-      "lines": 6,
+      "lines": 11,
       "secondFile": {
-        "end": 646,
+        "end": 164,
         "endLoc": {
-          "column": 14,
-          "line": 646,
-          "position": 22480
+          "column": 8,
+          "line": 164,
+          "position": 5043
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 641,
+        "name": "vertical-shmup/rendering/ShmupCanvasVisuals.ts",
+        "start": 154,
         "startLoc": {
-          "column": 31,
-          "line": 641,
-          "position": 22258
+          "column": 38,
+          "line": 154,
+          "position": 4694
         }
       },
-      "tokens": 69
+      "tokens": 60
     },
     {
       "firstFile": {
@@ -1815,80 +1926,6 @@
     },
     {
       "firstFile": {
-        "end": 123,
-        "endLoc": {
-          "column": 14,
-          "line": 123,
-          "position": 5364
-        },
-        "name": "racing/RacingGame.ts",
-        "start": 118,
-        "startLoc": {
-          "column": 73,
-          "line": 118,
-          "position": 5118
-        }
-      },
-      "format": "typescript",
-      "fragment": "          const cars = world.query(\"LocalPlayer\", \"Transform\", \"Velocity\");\n          for (let i = 0; i < cars.length; i += 1) {\n            const entity = cars[i];\n            const transform = world.getComponent(entity, \"Transform\");\n            const velocity = world.getComponent(entity, \"Velocity\");\n            if (!transform || !velocity) continue;",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 18,
-        "endLoc": {
-          "column": 11,
-          "line": 18,
-          "position": 940
-        },
-        "name": "racing/systems/RacingInputSystem.ts",
-        "start": 12,
-        "startLoc": {
-          "column": 83,
-          "line": 12,
-          "position": 720
-        }
-      },
-      "tokens": 52
-    },
-    {
-      "firstFile": {
-        "end": 142,
-        "endLoc": {
-          "column": 9,
-          "line": 142,
-          "position": 6056
-        },
-        "name": "racing/RacingGame.ts",
-        "start": 130,
-        "startLoc": {
-          "column": 12,
-          "line": 130,
-          "position": 5593
-        }
-      },
-      "format": "typescript",
-      "fragment": "            );\n            const nextVelocity = world.getMutableComponent(entity, \"Velocity\");\n            const nextTransform = world.getMutableComponent(entity, \"Transform\");\n            if (nextVelocity) {\n              nextVelocity.vx = result.vx;\n              nextVelocity.vy = result.vy;\n            }\n            if (nextTransform) {\n              nextTransform.rotation = result.rotation;\n              nextTransform.dirty = true;\n            }\n          }\n        }",
-      "isNew": false,
-      "lines": 13,
-      "secondFile": {
-        "end": 39,
-        "endLoc": {
-          "column": 3,
-          "line": 39,
-          "position": 1706
-        },
-        "name": "racing/systems/RacingInputSystem.ts",
-        "start": 32,
-        "startLoc": {
-          "column": 6,
-          "line": 32,
-          "position": 1358
-        }
-      },
-      "tokens": 70
-    },
-    {
-      "firstFile": {
         "end": 11,
         "endLoc": {
           "column": 9,
@@ -1923,43 +1960,6 @@
         }
       },
       "tokens": 56
-    },
-    {
-      "firstFile": {
-        "end": 10,
-        "endLoc": {
-          "column": 14,
-          "line": 10,
-          "position": 538
-        },
-        "name": "racing/systems/RaceStateSystem.ts",
-        "start": 5,
-        "startLoc": {
-          "column": 29,
-          "line": 5,
-          "position": 238
-        }
-      },
-      "format": "typescript",
-      "fragment": "export class RaceStateSystem extends System<RacingComponentRegistry, RacingEventRegistry> {\n  constructor(private readonly config: RacingConfig) { super(); }\n\n  public update(world: World<RacingComponentRegistry, RacingEventRegistry>, deltaTime: number): void {\n    const state = world.getSingleton(\"RacingState\");\n    if (!state) return;",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 11,
-        "endLoc": {
-          "column": 14,
-          "line": 11,
-          "position": 599
-        },
-        "name": "racing/systems/RacingInputSystem.ts",
-        "start": 6,
-        "startLoc": {
-          "column": 31,
-          "line": 6,
-          "position": 299
-        }
-      },
-      "tokens": 55
     },
     {
       "firstFile": {
@@ -2481,106 +2481,69 @@
     },
     {
       "firstFile": {
-        "end": 10,
+        "end": 16,
         "endLoc": {
-          "column": 20,
-          "line": 10,
-          "position": 395
+          "column": 15,
+          "line": 16,
+          "position": 733
         },
         "name": "vertical-shmup/rendering/ShmupCanvasVisuals.ts",
-        "start": 4,
+        "start": 10,
         "startLoc": {
           "column": 28,
-          "line": 4,
-          "position": 144
+          "line": 10,
+          "position": 502
         }
       },
       "format": "typescript",
-      "fragment": "export const drawShmupPlayer: ShapeDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {\n  draw(ctx, world, entity) {\n    const render = world.getComponent(entity, \"Render\");\n    if (!render) return;\n    const size = render.size ?? 20;\n    ctx.save();\n    ctx.shadowBlur = 14;",
+      "fragment": "export const drawShmupPlayer: ShapeDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {\n  draw(ctx, world, entity) {\n    const render = world.getComponent(entity, \"Render\");\n    if (!render) return;\n    const size = render.size ?? 20;\n\n    ctx.save();",
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 30,
+        "end": 60,
         "endLoc": {
-          "column": 20,
-          "line": 30,
-          "position": 970
+          "column": 15,
+          "line": 60,
+          "position": 2018
         },
         "name": "vertical-shmup/rendering/ShmupCanvasVisuals.ts",
-        "start": 24,
+        "start": 54,
         "startLoc": {
           "column": 27,
-          "line": 24,
-          "position": 719
+          "line": 54,
+          "position": 1787
         }
       },
-      "tokens": 56
-    },
-    {
-      "firstFile": {
-        "end": 50,
-        "endLoc": {
-          "column": 35,
-          "line": 50,
-          "position": 1592
-        },
-        "name": "vertical-shmup/rendering/ShmupCanvasVisuals.ts",
-        "start": 45,
-        "startLoc": {
-          "column": 34,
-          "line": 45,
-          "position": 1343
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const drawShmupPlayerBullet: ShapeDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {\n  draw(ctx, world, entity) {\n    const render = world.getComponent(entity, \"Render\");\n    if (!render) return;\n    const size = render.size ?? 4;\n    ctx.fillStyle = render.color ?? \"#ffe600\";",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 62,
-        "endLoc": {
-          "column": 35,
-          "line": 62,
-          "position": 2011
-        },
-        "name": "vertical-shmup/rendering/ShmupCanvasVisuals.ts",
-        "start": 57,
-        "startLoc": {
-          "column": 33,
-          "line": 57,
-          "position": 1762
-        }
-      },
-      "tokens": 54
+      "tokens": 52
     }
   ],
   "statistics": {
-    "detectionDate": "2026-10-04T15:52:45.863Z",
+    "detectionDate": "2026-10-04T23:53:44.641Z",
     "formats": {
       "typescript": {
-        "clones": 69,
-        "duplicatedLines": 593,
-        "duplicatedTokens": 4443,
-        "lines": 82750,
+        "clones": 68,
+        "duplicatedLines": 601,
+        "duplicatedTokens": 4479,
+        "lines": 83418,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.7166163141993958,
-        "percentageTokens": 1.008161959414844,
-        "sources": 522,
-        "tokens": 440703
+        "percentage": 0.7204680045074204,
+        "percentageTokens": 1.0081865921762558,
+        "sources": 529,
+        "tokens": 444263
       }
     },
     "total": {
-      "clones": 69,
-      "duplicatedLines": 593,
-      "duplicatedTokens": 4443,
-      "lines": 82750,
+      "clones": 68,
+      "duplicatedLines": 601,
+      "duplicatedTokens": 4479,
+      "lines": 83418,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.7166163141993958,
-      "percentageTokens": 1.008161959414844,
-      "sources": 522,
-      "tokens": 440703
+      "percentage": 0.7204680045074204,
+      "percentageTokens": 1.0081865921762558,
+      "sources": 529,
+      "tokens": 444263
     }
   }
 }

@@ -30,7 +30,9 @@ import { loadAndMutateConfig } from "../shared/configHelper";
 import { RacingConfigSchema, RacingConfig } from "./types/RacingConfigSchema";
 import { RacingComponentRegistry, RacingEventRegistry, RacingBlueprintMap } from "./types/RacingRegistry";
 import { RacingGameState, RacingInputState } from "./types/RacingTypes";
+import { TrackSpecSchema, TrackSpec } from "./types/TrackSpecSchema";
 import { registerRacingBlueprints, spawnBlueprint } from "./EntityFactory";
+import breakfastTrackRaw from "./config/tracks/breakfast_table.json";
 import { RacingInputSystem } from "./systems/RacingInputSystem";
 import { RacingSurfaceSystem } from "./systems/RacingSurfaceSystem";
 import { RacingWallSystem } from "./systems/RacingWallSystem";
@@ -39,6 +41,7 @@ import { RaceStateSystem } from "./systems/RaceStateSystem";
 import { RacingEventsSystem } from "./systems/RacingEventsSystem";
 import { HeadToHeadStateSystem } from "./systems/HeadToHeadStateSystem";
 import { VehicleAISystem } from "./systems/VehicleAISystem";
+import { VehicleCollisionSystem } from "./systems/VehicleCollisionSystem";
 import { computeCarPhysics } from "./physics/CarPhysics";
 import { initializeRacingRenderer } from "./rendering/RacingRenderer";
 import { createMainCamera2D } from "../shared/componentBuilders";
@@ -99,6 +102,7 @@ export class RacingGame extends BaseGame<
     this.world.addSystem(new MovementSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new RacingSurfaceSystem(this.config), { phase: SystemPhase.Simulation });
     this.world.addSystem(new RacingWallSystem(), { phase: SystemPhase.Collision });
+    this.world.addSystem(new VehicleCollisionSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
     this.world.addSystem(new SpatialPartitioningSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new VehicleAISystem(), { phase: SystemPhase.Simulation });
@@ -151,61 +155,59 @@ export class RacingGame extends BaseGame<
 
   protected override async onInitializeEntities(): Promise<void> {
     const config = this.config;
+    const trackSpec: TrackSpec = TrackSpecSchema.parse(breakfastTrackRaw);
+    this.world.setResource("ActiveTrackSpec", trackSpec);
+
     const state = spawnBlueprint(this.world, "state", {});
 
-    const cx = config.WORLD_WIDTH / 2;
-    const cy = config.WORLD_HEIGHT / 2;
-
-    // Compact closed oval track: checkpoint 0 is the finish line and the
-    // remaining gates force traversal around the circuit.
-    const checkpoints = [
-      { x: cx, y: cy - 300, rotation: 0, isFinish: true },
-      { x: cx + 420, y: cy - 120, rotation: Math.PI / 2 },
-      { x: cx + 420, y: cy + 180, rotation: Math.PI / 2 },
-      { x: cx, y: cy + 300, rotation: 0 },
-      { x: cx - 420, y: cy + 180, rotation: Math.PI / 2 },
-      { x: cx - 420, y: cy - 120, rotation: Math.PI / 2 }
-    ];
-
-    for (let i = 0; i < checkpoints.length; i += 1) {
-      const point = checkpoints[i];
+    // Spawn checkpoints from track spec waypoints
+    for (let i = 0; i < trackSpec.waypoints.length; i += 1) {
+      const point = trackSpec.waypoints[i];
       spawnBlueprint(this.world, "checkpoint", {
         index: i,
         x: point.x,
         y: point.y,
-        width: config.CHECKPOINT_WIDTH,
-        height: config.CHECKPOINT_HEIGHT,
-        isFinish: point.isFinish
+        width: point.radius * 2,
+        height: point.radius * 2,
+        isFinish: i === 0
       });
     }
 
-    const wall = config.WALL_THICKNESS;
-    const walls = [
-      { x: cx, y: cy - 470, width: 980, height: wall },
-      { x: cx, y: cy + 470, width: 980, height: wall },
-      { x: cx - 470, y: cy, width: wall, height: 700 },
-      { x: cx + 470, y: cy, width: wall, height: 700 },
-      { x: cx, y: cy - 90, width: 430, height: wall },
-      { x: cx, y: cy + 90, width: 430, height: wall }
-    ];
-
-    for (let i = 0; i < walls.length; i += 1) {
-      spawnBlueprint(this.world, "wall", walls[i]);
+    // Spawn track walls
+    for (let i = 0; i < trackSpec.walls.length; i += 1) {
+      spawnBlueprint(this.world, "wall", trackSpec.walls[i]);
     }
 
-    const car = spawnBlueprint(this.world, "car", {
-      x: cx,
-      y: cy - 380,
-      rotation: Math.PI / 2
+    const spawnPt1 = trackSpec.spawnPoints[0] ?? { x: 800, y: 200, rotation: 0 };
+    const car1 = spawnBlueprint(this.world, "car", {
+      x: spawnPt1.x,
+      y: spawnPt1.y,
+      rotation: spawnPt1.rotation
     });
 
-    const lap = this.world.getMutableComponent(car, "Lap");
+    const lap = this.world.getMutableComponent(car1, "Lap");
     if (lap) lap.lapStartedAt = 0;
-    createMainCamera2D(this.world, car, {
+
+    const spawnPt2 = trackSpec.spawnPoints[1] ?? { x: 800, y: 240, rotation: 0 };
+    const car2 = spawnBlueprint(this.world, "car", {
+      x: spawnPt2.x,
+      y: spawnPt2.y,
+      rotation: spawnPt2.rotation
+    });
+
+    createMainCamera2D(this.world, car1, {
       smoothingX: 6,
       smoothingY: 6,
       zoom: 1
     });
+
+    const cam = this.world.query("Camera2D")[0];
+    if (cam !== undefined) {
+      this.world.mutateComponent(cam, "Camera2D", (m) => {
+        m.followEntities = [car1, car2];
+      });
+    }
+
     void state;
   }
 

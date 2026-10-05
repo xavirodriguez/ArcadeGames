@@ -1,5 +1,6 @@
 import { System, World, Camera2DSystem } from "@tiny-aster/core";
 import type { RacingComponentRegistry, RacingEventRegistry } from "../types/RacingRegistry";
+import type { TrackSpec } from "../types/TrackSpecSchema";
 
 export class HeadToHeadStateSystem extends System<RacingComponentRegistry, RacingEventRegistry> {
   public update(world: World<RacingComponentRegistry, RacingEventRegistry>, deltaTime: number): void {
@@ -29,7 +30,7 @@ export class HeadToHeadStateSystem extends System<RacingComponentRegistry, Racin
       const cars = world.query("Car", "Transform");
       if (cars.length < 2) return;
 
-      // Find the leader based on furthest progress or X coordinate
+      // Find the leader based on furthest progress
       let leader = cars[0];
       let maxProgress = -Infinity;
 
@@ -48,7 +49,9 @@ export class HeadToHeadStateSystem extends System<RacingComponentRegistry, Racin
 
       h2h.leaderEntity = leader;
 
-      // Check if any car is out of the camera viewport bounds or in deadly edge zone
+      const trackSpec = world.getResource<TrackSpec>("ActiveTrackSpec");
+
+      // Check if any car is out of camera viewport or inside a deadly edge zone
       for (let i = 0; i < cars.length; i++) {
         const car = cars[i];
         if (car === leader) continue;
@@ -56,8 +59,28 @@ export class HeadToHeadStateSystem extends System<RacingComponentRegistry, Racin
         const transform = world.getComponent(car, "Transform");
         if (!transform) continue;
 
+        let inDeadlyZone = false;
+        if (trackSpec && trackSpec.zones) {
+          for (let j = 0; j < trackSpec.zones.length; j++) {
+            const zone = trackSpec.zones[j];
+            if (zone.surface === "deadly_edge") {
+              const halfW = zone.width / 2;
+              const halfH = zone.height / 2;
+              if (
+                transform.x >= zone.x - halfW &&
+                transform.x <= zone.x + halfW &&
+                transform.y >= zone.y - halfH &&
+                transform.y <= zone.y + halfH
+              ) {
+                inDeadlyZone = true;
+                break;
+              }
+            }
+          }
+        }
+
         const inViewport = Camera2DSystem.isEntityInViewport(world as never, car, -20);
-        if (!inViewport) {
+        if (!inViewport || inDeadlyZone) {
           // Trailing car lost the round! Leader scores point.
           this.handleRoundLoss(world, h2h, leader, car);
           break;

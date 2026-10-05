@@ -56,11 +56,35 @@ export default function RacingScreen() {
           }
           centerHudSlot={
             <View style={styles.hud}>
-              <Text style={styles.hudText}>
-                LAP {gameState.currentLap}/{gameState.totalLaps} · {gameState.raceTime.toFixed(2)}s
-              </Text>
-              <Text style={styles.hudText}>
-                {gameState.phase === "countdown" ? Math.ceil(gameState.countdownRemaining) : gameState.phase.toUpperCase()}
+              <View style={styles.h2hRow}>
+                <Text style={[styles.hudText, { color: "#00e5ff" }]}>P1</Text>
+                <View style={styles.pearlsRow}>
+                  {[...Array(5)].map((_, i) => (
+                    <View
+                      key={`p1_${i}`}
+                      style={[
+                        styles.pearl,
+                        { backgroundColor: i < (game.getWorld().getSingleton("HeadToHeadState")?.scores.player_1 ?? 0) ? "#00e5ff" : "#1e293b" }
+                      ]}
+                    />
+                  ))}
+                </View>
+                <Text style={styles.vsText}>VS</Text>
+                <View style={styles.pearlsRow}>
+                  {[...Array(5)].map((_, i) => (
+                    <View
+                      key={`p2_${i}`}
+                      style={[
+                        styles.pearl,
+                        { backgroundColor: i < (game.getWorld().getSingleton("HeadToHeadState")?.scores.player_2 ?? 0) ? "#f43f5e" : "#1e293b" }
+                      ]}
+                    />
+                  ))}
+                </View>
+                <Text style={[styles.hudText, { color: "#f43f5e" }]}>P2</Text>
+              </View>
+              <Text style={styles.subHudText}>
+                LAP {gameState.currentLap}/{gameState.totalLaps} · {gameState.phase.toUpperCase()}
               </Text>
             </View>
           }
@@ -104,8 +128,6 @@ export default function RacingScreen() {
               </View>
             ) : null
           }
-          onPause={togglePause}
-          isPaused={isPaused}
         />
       </SafeAreaProvider>
     </GameErrorBoundary>
@@ -113,7 +135,12 @@ export default function RacingScreen() {
 }
 
 const styles = StyleSheet.create({
-  hud: { padding: 10, borderWidth: 1, borderColor: "#00e5ff", backgroundColor: "rgba(0,0,0,0.65)", borderRadius: 8 },
+  hud: { padding: 8, borderWidth: 1, borderColor: "#00e5ff", backgroundColor: "rgba(0,0,0,0.75)", borderRadius: 8, alignItems: "center", gap: 4 },
+  h2hRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  pearlsRow: { flexDirection: "row", gap: 4 },
+  pearl: { width: 10, height: 10, borderRadius: 5, borderWidth: 1, borderColor: "#475569" },
+  vsText: { color: "#fbbf24", fontFamily: "monospace", fontWeight: "bold", fontSize: 12 },
+  subHudText: { color: "#94a3b8", fontFamily: "monospace", fontSize: 11, fontWeight: "bold" },
   hudText: { color: "#00e5ff", fontFamily: "monospace", fontWeight: "bold" },
   controls: { ...StyleSheet.absoluteFillObject, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", padding: 24 },
   steering: { flexDirection: "row", gap: 12 },

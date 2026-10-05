@@ -10,7 +10,7 @@ describe("RacingGame & EntityFactory Blueprint Spawning", () => {
     expect(entities.length).toBeGreaterThan(0);
 
     const carEntities = game.world.query("Car");
-    expect(carEntities.length).toBe(1);
+    expect(carEntities.length).toBeGreaterThanOrEqual(1);
 
     const stateSingleton = game.world.getSingleton("RacingState");
     expect(stateSingleton).toBeDefined();

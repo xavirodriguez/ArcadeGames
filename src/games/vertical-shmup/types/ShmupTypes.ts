@@ -5,7 +5,7 @@ import type { BulletPatternConfig } from "../../shared/BulletPatternSystem";
 export interface ShmupEventRegistry extends CoreEvents, Record<string, unknown> {
   "combat:hit": CombatHitEvent; "combat:death": CombatDeathEvent; "shmup:kill": { entity: number; score: number }; "shmup:wave_complete": { wave: number };
 }
-export interface ShmupInputState { axes: { moveX?: number; moveY?: number }; actions: Set<string>; }
+export interface ShmupInputState extends Record<string, unknown> { axes: { moveX?: number; moveY?: number }; actions: Set<string>; }
 export interface ShmupInputComponent extends Component { type:"Input"; axes:Record<string,number>; actions:Set<string>; shootCooldownRemaining:number; }
 export interface ShmupPlayerComponent extends Component { type:"ShmupPlayer"; }
 export interface ShmupEnemyComponent extends Component { type:"ShmupEnemy"; score:number; }

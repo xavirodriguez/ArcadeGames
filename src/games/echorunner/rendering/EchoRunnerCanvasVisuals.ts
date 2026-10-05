@@ -1,5 +1,7 @@
 import { ShapeDrawer, EffectDrawer, CoreComponentRegistry } from "@tiny-aster/core";
 import { ECHO_PALETTE } from "./EchoRunnerPalette";
+import { SOLAR_GARDEN_THEME, SOLAR_GARDEN_VARIANTS } from "../../../theme/solarGardenTheme";
+import { SOLAR_GARDEN_DEBUG_FLAGS } from "../../../theme/solarGardenDebug";
 import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 import {
   calculateEchoPlayerPose,
@@ -14,6 +16,11 @@ import {
   resolveEchoCheckpointDrawContext,
   resolveEchoBackgroundContext,
 } from "./EchoRunnerVisualUtils";
+import {
+  computeBiomechanicalDeformation,
+  drawBiomechanicalChitinPlate,
+  drawBiomechanicalEye
+} from "../../shared/rendering/SolarGardenVisuals";
 
 const gradientCache = new Map<number, CanvasGradient>();
 let lastCtx: CanvasRenderingContext2D | null = null;
@@ -27,16 +34,16 @@ function getMemoryCoreGradient(ctx: CanvasRenderingContext2D, size: number): Can
   let grad = gradientCache.get(key);
   if (!grad) {
     grad = ctx.createRadialGradient(0, 0, 2, 0, 0, size * 0.5);
-    grad.addColorStop(0, ECHO_PALETTE.restorationWhite);
-    grad.addColorStop(0.35, ECHO_PALETTE.restorationGold);
-    grad.addColorStop(1, ECHO_PALETTE.corruptionAmber);
+    grad.addColorStop(0, SOLAR_GARDEN_THEME.SOLAR_WHITE);
+    grad.addColorStop(0.35, SOLAR_GARDEN_THEME.SOLAR_GOLD);
+    grad.addColorStop(1, SOLAR_GARDEN_THEME.THREAT_ORANGE);
     gradientCache.set(key, grad);
   }
   return grad;
 }
 
 function drawCanvasHitFlashCircle(ctx: CanvasRenderingContext2D, radius: number): true {
-  ctx.fillStyle = ECHO_PALETTE.restorationWhite;
+  ctx.fillStyle = SOLAR_GARDEN_THEME.SOLAR_WHITE;
   ctx.beginPath();
   ctx.arc(0, 0, radius, 0, Math.PI * 2);
   ctx.fill();
@@ -45,7 +52,7 @@ function drawCanvasHitFlashCircle(ctx: CanvasRenderingContext2D, radius: number)
 }
 
 function drawCanvasHitFlashRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number): true {
-  ctx.fillStyle = ECHO_PALETTE.restorationWhite;
+  ctx.fillStyle = SOLAR_GARDEN_THEME.SOLAR_WHITE;
   ctx.beginPath();
   ctx.rect(x, y, w, h);
   ctx.fill();
@@ -53,33 +60,16 @@ function drawCanvasHitFlashRect(ctx: CanvasRenderingContext2D, x: number, y: num
   return true;
 }
 
-function getPulseAttackGradient(ctx: CanvasRenderingContext2D, size: number): CanvasGradient {
-  if (lastCtx !== ctx) {
-    lastCtx = ctx;
-    gradientCache.clear();
-  }
-  const key = 2000 + size;
-  let grad = gradientCache.get(key);
-  if (!grad) {
-    grad = ctx.createRadialGradient(0, 0, size * 0.2, 0, 0, size);
-    grad.addColorStop(0, "rgba(255, 255, 255, 0.95)");
-    grad.addColorStop(0.4, ECHO_PALETTE.restorationCyanGlow);
-    grad.addColorStop(1, "rgba(0, 240, 255, 0)");
-    gradientCache.set(key, grad);
-  }
-  return grad;
-}
-
 export const drawEchoBackground: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
     const { width, height, elapsed } = resolveEchoBackgroundContext(world);
 
-    // Deep Archive Void Background
-    ctx.fillStyle = ECHO_PALETTE.archiveVoidDark;
+    // Deep Solar Garden Void Background
+    ctx.fillStyle = SOLAR_GARDEN_THEME.BIO_BLACK;
     ctx.fillRect(0, 0, width, height);
 
-    // Layer 1: Parallax Distant Memory Grid
-    ctx.strokeStyle = ECHO_PALETTE.archiveGridLineSecondary;
+    // Layer 1: Parallax Distant Solar Forest / Grid Lines
+    ctx.strokeStyle = "rgba(45, 69, 52, 0.25)";
     ctx.lineWidth = 1;
 
     const bgGridSize = 80;
@@ -99,45 +89,36 @@ export const drawEchoBackground: EffectDrawer<CanvasRenderingContext2D, CoreComp
       ctx.stroke();
     }
 
-    // Layer 2: Foreground Digital Matrix Grid
-    ctx.strokeStyle = ECHO_PALETTE.archiveGridLine;
-    const gridSize = 40;
-    const offsetX = (elapsed * 15) % gridSize;
-    const offsetY = (elapsed * 10) % gridSize;
-
-    for (let x = offsetX; x < width; x += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, height);
-      ctx.stroke();
-    }
-    for (let y = offsetY; y < height; y += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(width, y);
-      ctx.stroke();
+    // Layer 2: Architecture Columns & Porcelain Pillars
+    ctx.fillStyle = "rgba(240, 244, 248, 0.04)";
+    for (let i = 0; i < 5; i++) {
+      const px = ((i * 180 + elapsed * 12) % (width + 120)) - 60;
+      ctx.fillRect(px, 0, 35, height);
+      ctx.strokeStyle = SOLAR_GARDEN_THEME.SOLAR_GOLD;
+      ctx.lineWidth = 0.5;
+      ctx.strokeRect(px, 0, 35, height);
     }
 
-    // Layer 3: Memory Stream Data Pillars
-    ctx.fillStyle = ECHO_PALETTE.archiveDataStream;
-    for (let i = 0; i < 4; i++) {
-      const px = ((i * 210 + elapsed * 20) % width);
-      const py = ((i * 150 + elapsed * 35) % (height + 100)) - 50;
-      ctx.fillRect(px, py, 12 + (i % 2) * 8, 40 + (i % 3) * 30);
-    }
-
-    // Ambient particles
-    for (let i = 0; i < 6; i++) {
-      const px = ((i * 143 + elapsed * 8) % width);
-      const py = ((i * 187 + elapsed * 12) % height);
-      ctx.fillStyle = i % 2 === 0 ? ECHO_PALETTE.restorationCyanGlow : ECHO_PALETTE.corruptionPurpleGlow;
-      ctx.beginPath();
-      ctx.arc(px, py, 2 + (i % 3), 0, Math.PI * 2);
-      ctx.fill();
+    // Ambient floating solar garden spores
+    if (SOLAR_GARDEN_DEBUG_FLAGS.particles) {
+      for (let i = 0; i < 8; i++) {
+        const px = ((i * 143 + elapsed * 10) % width);
+        const py = ((i * 187 + elapsed * 14) % height);
+        ctx.fillStyle = i % 2 === 0 ? SOLAR_GARDEN_THEME.SOLAR_CYAN : SOLAR_GARDEN_THEME.SOLAR_GOLD;
+        ctx.globalAlpha = 0.4 + 0.2 * Math.sin(elapsed * 2 + i);
+        ctx.beginPath();
+        ctx.arc(px, py, 2 + (i % 3), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+      }
     }
   }
 };
 
+/**
+ * Echo Runner Player — Restoration Unit
+ * WHITE PORCELAIN + GOLD JOINTS + CRYSTALLINE CORE + SEED / MANTIS SILHOUETTE
+ */
 export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
     const playerCtx = resolveEchoPlayerDrawContext(world, entity);
@@ -148,7 +129,7 @@ export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
     ctx.save();
 
     const flashState = resolveHitFlash(render, render.color || "cyan", 1.0);
-    if (flashState.isFlashing) {
+    if (flashState.isFlashing && SOLAR_GARDEN_DEBUG_FLAGS.hitFlash) {
       return drawCanvasHitFlashCircle(ctx, size * 0.65);
     }
 
@@ -162,87 +143,91 @@ export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
     ctx.translate(0, hoverY);
     ctx.rotate(tiltAngle);
 
+    // Ground Drop Shadow
     ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
     ctx.beginPath();
     ctx.ellipse(0, size * 0.7 - hoverY, size * 0.5, size * 0.15, 0, 0, Math.PI * 2);
     ctx.fill();
 
+    // Pulse attack field aura
     if (isAttacking) {
-      ctx.strokeStyle = ECHO_PALETTE.restorationCyan;
+      ctx.strokeStyle = SOLAR_GARDEN_THEME.SOLAR_CYAN;
       ctx.lineWidth = 2;
-      ctx.shadowColor = ECHO_PALETTE.restorationCyan;
+      ctx.shadowColor = SOLAR_GARDEN_THEME.SOLAR_CYAN;
       ctx.shadowBlur = 12;
       ctx.beginPath();
-      ctx.arc(0, 0, size * 0.85, 0, Math.PI * 2);
+      ctx.arc(0, 0, size * 0.9, 0, Math.PI * 2);
       ctx.stroke();
     }
 
-    ctx.shadowColor = ECHO_PALETTE.restorationCyan;
-    ctx.shadowBlur = 10;
-
-    ctx.strokeStyle = ECHO_PALETTE.corruptionCrimson;
+    // Mantis Antennae / Crown Wings
+    ctx.strokeStyle = SOLAR_GARDEN_THEME.SOLAR_GOLD;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(-size * 0.22, -size * 0.5);
-    ctx.lineTo(-size * 0.32, -size * 0.85);
+    ctx.moveTo(-size * 0.15, -size * 0.5);
+    ctx.lineTo(-size * 0.3, -size * 0.9);
+    ctx.moveTo(size * 0.15, -size * 0.5);
+    ctx.lineTo(size * 0.3, -size * 0.9);
     ctx.stroke();
 
-    ctx.fillStyle = ECHO_PALETTE.corruptionCrimson;
+    ctx.fillStyle = SOLAR_GARDEN_THEME.SOLAR_CYAN;
     ctx.beginPath();
-    ctx.arc(-size * 0.32, -size * 0.85, 2, 0, Math.PI * 2);
+    ctx.arc(-size * 0.3, -size * 0.9, 2.5, 0, Math.PI * 2);
+    ctx.arc(size * 0.3, -size * 0.9, 2.5, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = ECHO_PALETTE.archiveSlate;
-    ctx.strokeStyle = ECHO_PALETTE.restorationCyan;
+    // Porcelain Head (Upper Helmet/Mantle)
+    ctx.fillStyle = SOLAR_GARDEN_THEME.SOLAR_WHITE;
+    ctx.strokeStyle = SOLAR_GARDEN_THEME.SOLAR_GOLD;
+    ctx.lineWidth = 1.5;
+
+    ctx.beginPath();
+    ctx.arc(0, -size * 0.45, size * 0.35, Math.PI, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Visor / Crystalline Sensor Lens
+    ctx.fillStyle = SOLAR_GARDEN_THEME.SOLAR_CYAN;
+    ctx.beginPath();
+    ctx.ellipse(0, -size * 0.48, size * 0.22, size * 0.08, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Main Torso Armor (Porcelain Mantis Shell)
+    ctx.fillStyle = SOLAR_GARDEN_THEME.SOLAR_WHITE;
+    ctx.strokeStyle = SOLAR_GARDEN_THEME.SOLAR_GOLD;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(0, -size * 0.4, size * 0.35, Math.PI, 0);
-    ctx.lineTo(0, -size * 0.4);
+    ctx.moveTo(0, -size * 0.25);
+    ctx.lineTo(size * 0.3, 0);
+    ctx.lineTo(size * 0.2, size * 0.45);
+    ctx.lineTo(-size * 0.2, size * 0.45);
+    ctx.lineTo(-size * 0.3, 0);
+    ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    ctx.shadowColor = ECHO_PALETTE.corruptionCrimson;
-    ctx.fillStyle = ECHO_PALETTE.corruptionCrimson;
+    // Central Crystalline Core (Solar Cyan / Gold Emission)
+    ctx.fillStyle = isAttacking ? SOLAR_GARDEN_THEME.SOLAR_WHITE : SOLAR_GARDEN_THEME.SOLAR_CYAN;
+    ctx.shadowColor = SOLAR_GARDEN_THEME.SOLAR_CYAN;
+    ctx.shadowBlur = 10;
     ctx.beginPath();
-    ctx.ellipse(size * 0.08, -size * 0.45, size * 0.24, size * 0.07, 0, 0, Math.PI * 2);
+    ctx.arc(0, size * 0.05, isAttacking ? size * 0.18 : size * 0.13, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.shadowColor = ECHO_PALETTE.restorationCyan;
-    ctx.fillStyle = ECHO_PALETTE.archiveBorderDark;
+    // Golden Hinge Joints for Limbs
+    ctx.fillStyle = SOLAR_GARDEN_THEME.SOLAR_GOLD;
     ctx.beginPath();
-    if (ctx.roundRect) {
-      ctx.roundRect(-size * 0.3, -size * 0.15, size * 0.6, size * 0.6, 4);
-    } else {
-      ctx.rect(-size * 0.3, -size * 0.15, size * 0.6, size * 0.6);
-    }
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = isAttacking ? ECHO_PALETTE.restorationWhite : ECHO_PALETTE.restorationCyan;
-    ctx.beginPath();
-    ctx.arc(0, size * 0.1, isAttacking ? size * 0.16 : size * 0.12, 0, Math.PI * 2);
+    ctx.arc(leftLegX, leftLegY, size * 0.09, 0, Math.PI * 2);
+    ctx.arc(rightLegX, rightLegY, size * 0.09, 0, Math.PI * 2);
     ctx.fill();
 
-    if (isAttacking) {
-      ctx.fillStyle = ECHO_PALETTE.restorationCyan;
-      ctx.fillRect(size * 0.1, -size * 0.05, size * 0.4, size * 0.18);
-      ctx.fillStyle = ECHO_PALETTE.restorationWhite;
-      ctx.beginPath();
-      ctx.arc(size * 0.5, size * 0.04, 3, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    ctx.fillStyle = ECHO_PALETTE.archiveBorderLight;
-    ctx.beginPath();
-    ctx.arc(leftLegX, leftLegY, size * 0.08, 0, Math.PI * 2);
-    ctx.arc(rightLegX, rightLegY, size * 0.08, 0, Math.PI * 2);
-    ctx.fill();
-
+    // Jet / Air Jump Thruster Plume
     if (!isGrounded && vy < -20) {
-      ctx.fillStyle = ECHO_PALETTE.restorationCyan;
+      ctx.fillStyle = SOLAR_GARDEN_THEME.SOLAR_CYAN;
       ctx.beginPath();
       ctx.moveTo(-size * 0.15, leftLegY);
-      ctx.lineTo(0, leftLegY + size * 0.35);
+      ctx.lineTo(0, leftLegY + size * 0.4);
       ctx.lineTo(size * 0.15, rightLegY);
       ctx.closePath();
       ctx.fill();
@@ -257,17 +242,17 @@ export const drawMemoryFragment: ShapeDrawer<CanvasRenderingContext2D, CoreCompo
     const fragCtx = resolveEchoMemoryFragmentDrawContext(world, entity);
     if (!fragCtx) return;
 
-    const { size, elapsed, hoverOffset, strokeColor, fillColor } = fragCtx;
+    const { size, elapsed, hoverOffset } = fragCtx;
 
     ctx.save();
     ctx.translate(0, hoverOffset);
     ctx.rotate(elapsed * 1.5);
 
-    ctx.shadowColor = strokeColor;
+    ctx.shadowColor = SOLAR_GARDEN_THEME.SOLAR_CYAN;
     ctx.shadowBlur = 8;
 
-    ctx.fillStyle = fillColor;
-    ctx.strokeStyle = strokeColor;
+    ctx.fillStyle = SOLAR_GARDEN_THEME.SOLAR_WHITE;
+    ctx.strokeStyle = SOLAR_GARDEN_THEME.SOLAR_GOLD;
     ctx.lineWidth = 2;
 
     ctx.beginPath();
@@ -279,7 +264,7 @@ export const drawMemoryFragment: ShapeDrawer<CanvasRenderingContext2D, CoreCompo
     ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = ECHO_PALETTE.restorationWhite;
+    ctx.fillStyle = SOLAR_GARDEN_THEME.SOLAR_CYAN;
     ctx.beginPath();
     ctx.moveTo(0, -size * 0.25);
     ctx.lineTo(size * 0.18, 0);
@@ -302,10 +287,10 @@ export const drawMemoryCore: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
     ctx.save();
     ctx.translate(0, hoverOffset);
 
-    ctx.shadowColor = ECHO_PALETTE.restorationGold;
+    ctx.shadowColor = SOLAR_GARDEN_THEME.SOLAR_GOLD;
     ctx.shadowBlur = 15;
 
-    ctx.strokeStyle = ECHO_PALETTE.restorationGoldGlow;
+    ctx.strokeStyle = SOLAR_GARDEN_VARIANTS.SOLAR_GOLD_GLOW;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.ellipse(0, 0, size * 0.8, size * 0.3, elapsed * 2, 0, Math.PI * 2);
@@ -335,20 +320,23 @@ export const drawCheckpointNode: ShapeDrawer<CanvasRenderingContext2D, CoreCompo
 
     ctx.save();
 
-    const statusColor = isActive ? ECHO_PALETTE.archiveNodeActive : ECHO_PALETTE.archiveNodeInactive;
+    const statusColor = isActive ? SOLAR_GARDEN_THEME.SOLAR_GOLD : SOLAR_GARDEN_THEME.THREAT_ORANGE;
     ctx.shadowColor = statusColor;
     ctx.shadowBlur = 10;
 
-    ctx.fillStyle = ECHO_PALETTE.archiveSlate;
-    ctx.strokeStyle = ECHO_PALETTE.archiveBorderLight;
+    // Porcelain Base Plate
+    ctx.fillStyle = SOLAR_GARDEN_THEME.SOLAR_WHITE;
+    ctx.strokeStyle = SOLAR_GARDEN_THEME.SOLAR_GOLD;
     ctx.lineWidth = 2;
     ctx.fillRect(-size * 0.4, size * 0.3, size * 0.8, size * 0.2);
     ctx.strokeRect(-size * 0.4, size * 0.3, size * 0.8, size * 0.2);
 
-    ctx.fillStyle = ECHO_PALETTE.archiveBorderDark;
+    // Dark Structure Core
+    ctx.fillStyle = SOLAR_GARDEN_THEME.BIO_BLACK;
     ctx.fillRect(-size * 0.25, -size * 0.5, size * 0.5, size * 0.8);
     ctx.strokeRect(-size * 0.25, -size * 0.5, size * 0.5, size * 0.8);
 
+    // Active Gold / Threat Orange Indicator Ring
     ctx.fillStyle = statusColor;
     ctx.fillRect(-size * 0.18, -size * 0.4, size * 0.36, size * 0.35);
 
@@ -365,30 +353,86 @@ export const drawCheckpointNode: ShapeDrawer<CanvasRenderingContext2D, CoreCompo
   }
 };
 
+/**
+ * Crystal Annihilation Pulse & Golden Energy Attraction
+ */
 export const drawPulseAttack: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
     const size = render.size || 35;
+    const progress = Math.min(1.0, (world.tick % 10) / 10); // ~300ms cycle
 
     ctx.save();
 
-    ctx.shadowColor = ECHO_PALETTE.restorationCyan;
-    ctx.shadowBlur = 12;
+    // 1. Cyan Ring transitioning to Gold
+    const ringRadius = size * (0.3 + 0.8 * progress);
+    const ringAlpha = 1.0 - progress;
 
-    const grad = getPulseAttackGradient(ctx, size);
+    const ringGrad = ctx.createRadialGradient(0, 0, ringRadius * 0.4, 0, 0, ringRadius);
+    ringGrad.addColorStop(0, "rgba(0, 229, 255, 0.95)");
+    ringGrad.addColorStop(0.5, "rgba(230, 184, 0, 0.8)");
+    ringGrad.addColorStop(1, "rgba(230, 184, 0, 0)");
 
-    ctx.fillStyle = grad;
+    ctx.fillStyle = ringGrad;
     ctx.beginPath();
-    ctx.arc(0, 0, size, -Math.PI * 0.35, Math.PI * 0.35);
-    ctx.lineTo(0, 0);
-    ctx.closePath();
+    ctx.arc(0, 0, ringRadius, 0, Math.PI * 2);
     ctx.fill();
+
+    // 2. Corruption Fracture — 6 Floating Crystal Fragments
+    const fragmentCount = 6;
+    for (let i = 0; i < fragmentCount; i++) {
+      const angle = (i * Math.PI * 2) / fragmentCount + progress * 0.5;
+      const dist = size * 0.85 * progress;
+      const fx = Math.cos(angle) * dist;
+      const fy = Math.sin(angle) * dist;
+      const fragSize = 3.5;
+
+      ctx.save();
+      ctx.translate(fx, fy);
+      ctx.rotate(angle + progress * 2.5);
+
+      ctx.fillStyle = i % 2 === 0 ? SOLAR_GARDEN_THEME.SOLAR_CYAN : SOLAR_GARDEN_THEME.SOLAR_WHITE;
+      ctx.strokeStyle = SOLAR_GARDEN_THEME.SOLAR_GOLD;
+      ctx.lineWidth = 1;
+
+      ctx.beginPath();
+      ctx.moveTo(0, -fragSize * 1.5);
+      ctx.lineTo(fragSize, 0);
+      ctx.lineTo(0, fragSize * 1.5);
+      ctx.lineTo(-fragSize, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    // 3. Golden Energy Attraction — Particles accelerating toward center
+    if (SOLAR_GARDEN_DEBUG_FLAGS.particles) {
+      const attrCount = 8;
+      for (let i = 0; i < attrCount; i++) {
+        const startAngle = (i * Math.PI * 2) / attrCount;
+        const inwardProgress = (progress + i / attrCount) % 1.0;
+        const attrDist = size * (1.2 - inwardProgress * 1.0);
+        const ax = Math.cos(startAngle) * attrDist;
+        const ay = Math.sin(startAngle) * attrDist;
+
+        ctx.fillStyle = SOLAR_GARDEN_THEME.SOLAR_GOLD;
+        ctx.globalAlpha = Math.sin(inwardProgress * Math.PI) * ringAlpha;
+        ctx.beginPath();
+        ctx.arc(ax, ay, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
 
     ctx.restore();
   }
 };
 
+/**
+ * Sentinel Enemy — Biomechanical flying drone with dark chitin shell and magenta eye.
+ */
 export const drawSentinel: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
     const drawCtx = resolveEchoDrawContext(world, entity, 22);
@@ -397,18 +441,16 @@ export const drawSentinel: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRe
 
     ctx.save();
 
-    if (isHitFlash) {
+    if (isHitFlash && SOLAR_GARDEN_DEBUG_FLAGS.hitFlash) {
       return drawCanvasHitFlashCircle(ctx, size * 0.5);
     }
 
-    const { isAlert, isAttack, glowColor } = resolveSentinelVisualState(state);
-    ctx.shadowColor = glowColor;
-    ctx.shadowBlur = 10;
+    const { isAlert, isAttack } = resolveSentinelVisualState(state);
 
     if (isAlert) {
       const pulse = Math.sin(world.tick * 0.5) * 3;
-      ctx.fillStyle = ECHO_PALETTE.corruptionAmber;
-      ctx.strokeStyle = ECHO_PALETTE.restorationGold;
+      ctx.fillStyle = SOLAR_GARDEN_THEME.THREAT_ORANGE;
+      ctx.strokeStyle = SOLAR_GARDEN_THEME.SOLAR_GOLD;
       ctx.lineWidth = 1.5;
 
       ctx.beginPath();
@@ -418,47 +460,21 @@ export const drawSentinel: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRe
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
-
-      ctx.strokeStyle = ECHO_PALETTE.corruptionAmber;
-      ctx.lineWidth = 1.5;
-      const ringRadius = size * (0.8 + 0.3 * Math.sin(world.tick * 0.3));
-      ctx.beginPath();
-      ctx.arc(0, 0, ringRadius, 0, Math.PI * 2);
-      ctx.stroke();
-    } else if (isAttack) {
-      ctx.strokeStyle = ECHO_PALETTE.corruptionCrimson;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(0, 0, size * 0.85, 0, Math.PI * 2);
-      ctx.stroke();
     }
 
-    ctx.fillStyle = ECHO_PALETTE.archiveBorderDark;
-    ctx.strokeStyle = glowColor;
-    ctx.lineWidth = 2;
+    // Outer Chitin Armor Plates with Magenta Muscle accent
+    drawBiomechanicalChitinPlate(ctx, 0, 0, size * 0.9, size * 0.8, world.tick * 0.05, SOLAR_GARDEN_THEME.BIO_MAGENTA);
 
-    ctx.beginPath();
-    ctx.arc(0, 0, size * 0.45, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = isAlert && Math.floor(world.tick / 4) % 2 === 0 ? ECHO_PALETTE.restorationWhite : glowColor;
-    ctx.beginPath();
-    ctx.arc(0, -size * 0.05, size * 0.15, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.strokeStyle = ECHO_PALETTE.archiveBorderLight;
-    ctx.beginPath();
-    ctx.moveTo(-size * 0.45, size * 0.1);
-    ctx.lineTo(-size * 0.6, size * 0.3);
-    ctx.moveTo(size * 0.45, size * 0.1);
-    ctx.lineTo(size * 0.6, size * 0.3);
-    ctx.stroke();
+    // Central Corrupted Eye Lens
+    drawBiomechanicalEye(ctx, 0, -size * 0.05, size * 0.2, world.tick * 0.1, isAttack ? 0.1 : 1.0);
 
     ctx.restore();
   }
 };
 
+/**
+ * Hopper Enemy — Insectoid ground pouncer with heavy chitin legs.
+ */
 export const drawHopper: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
     const drawCtx = resolveEchoDrawContext(world, entity, 24);
@@ -467,53 +483,23 @@ export const drawHopper: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegi
 
     ctx.save();
 
-    if (isHitFlash) {
+    if (isHitFlash && SOLAR_GARDEN_DEBUG_FLAGS.hitFlash) {
       return drawCanvasHitFlashRect(ctx, -size * 0.4, -size * 0.4, size * 0.8, size * 0.8);
     }
 
-    const { isAlert, isAttack, glowColor, scaleX, scaleY } = resolveHopperVisualState(state);
-    ctx.shadowColor = glowColor;
-    ctx.shadowBlur = 8;
-
-    if (isAlert) {
-      ctx.fillStyle = ECHO_PALETTE.corruptionAmber;
-      ctx.beginPath();
-      ctx.moveTo(0, -size * 0.7);
-      ctx.lineTo(-size * 0.2, -size * 0.95);
-      ctx.lineTo(size * 0.2, -size * 0.95);
-      ctx.closePath();
-      ctx.fill();
-    }
-
-    ctx.fillStyle = ECHO_PALETTE.archiveSlate;
-    ctx.strokeStyle = glowColor;
-    ctx.lineWidth = 2;
-
+    const { scaleX, scaleY } = resolveHopperVisualState(state);
     ctx.scale(scaleX, scaleY);
 
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(-size * 0.15, size * 0.3);
-    ctx.lineTo(size * 0.15, size * 0.3);
-    ctx.closePath();
-    ctx.stroke();
-
-    ctx.beginPath();
-    if (ctx.roundRect) {
-      ctx.roundRect(-size * 0.35, -size * 0.4, size * 0.7, size * 0.45, 3);
-    } else {
-      ctx.rect(-size * 0.35, -size * 0.4, size * 0.7, size * 0.45);
-    }
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = glowColor;
-    ctx.fillRect(-size * 0.2, -size * 0.28, size * 0.4, size * 0.1);
+    // Dark Chitin Body Shell
+    drawBiomechanicalChitinPlate(ctx, 0, -size * 0.15, size * 0.8, size * 0.6, world.tick * 0.08, SOLAR_GARDEN_THEME.BIO_ACID);
 
     ctx.restore();
   }
 };
 
+/**
+ * Watcher Enemy — Biomechanical sensor turret with dark chitin eyelids.
+ */
 export const drawWatcher: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
     const drawCtx = resolveEchoDrawContext(world, entity, 26);
@@ -522,18 +508,15 @@ export const drawWatcher: ShapeDrawer<CanvasRenderingContext2D, CoreComponentReg
 
     ctx.save();
 
-    if (isHitFlash) {
+    if (isHitFlash && SOLAR_GARDEN_DEBUG_FLAGS.hitFlash) {
       return drawCanvasHitFlashCircle(ctx, size * 0.4);
     }
 
-    const { isAlert, isAttack, glowColor } = resolveWatcherVisualState(state);
-
-    ctx.shadowColor = glowColor;
-    ctx.shadowBlur = 10;
+    const { isAlert, isAttack } = resolveWatcherVisualState(state);
 
     if (isAlert || isAttack) {
-      ctx.fillStyle = isAttack ? ECHO_PALETTE.corruptionCrimsonGlow : "rgba(249, 115, 22, 0.15)";
-      ctx.strokeStyle = isAttack ? ECHO_PALETTE.corruptionCrimson : ECHO_PALETTE.corruptionAmber;
+      ctx.fillStyle = isAttack ? SOLAR_GARDEN_VARIANTS.BIO_MAGENTA_GLOW : "rgba(255, 59, 0, 0.15)";
+      ctx.strokeStyle = isAttack ? SOLAR_GARDEN_THEME.BIO_MAGENTA : SOLAR_GARDEN_THEME.THREAT_ORANGE;
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(0, -size * 0.05);
@@ -543,35 +526,19 @@ export const drawWatcher: ShapeDrawer<CanvasRenderingContext2D, CoreComponentReg
       ctx.stroke();
     }
 
-    ctx.fillStyle = ECHO_PALETTE.archiveBorderDark;
-    ctx.strokeStyle = glowColor;
-    ctx.lineWidth = 2;
+    // Biomechanical Eye and Chitin Base
+    ctx.fillStyle = SOLAR_GARDEN_THEME.BIO_BLACK;
+    ctx.fillRect(-size * 0.35, size * 0.15, size * 0.7, size * 0.3);
 
-    ctx.beginPath();
-    ctx.arc(0, size * 0.3, size * 0.3, Math.PI, 0);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = ECHO_PALETTE.archiveSlate;
-    ctx.beginPath();
-    ctx.arc(0, -size * 0.05, size * 0.32, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = isAlert || isAttack ? glowColor : "rgba(59, 130, 246, 0.4)";
-    ctx.beginPath();
-    ctx.arc(0, -size * 0.05, size * 0.18, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = isAlert && Math.floor(world.tick / 3) % 2 === 0 ? ECHO_PALETTE.restorationWhite : "#60a5fa";
-    ctx.beginPath();
-    ctx.arc(0, -size * 0.05, size * 0.08, 0, Math.PI * 2);
-    ctx.fill();
+    drawBiomechanicalEye(ctx, 0, -size * 0.05, size * 0.28, world.tick * 0.08);
 
     ctx.restore();
   }
 };
 
+/**
+ * Charger Enemy — Battering ram enemy with thick chitin horn plates.
+ */
 export const drawCharger: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
     const drawCtx = resolveEchoDrawContext(world, entity, 28);
@@ -580,57 +547,18 @@ export const drawCharger: ShapeDrawer<CanvasRenderingContext2D, CoreComponentReg
 
     ctx.save();
 
-    if (isHitFlash) {
+    if (isHitFlash && SOLAR_GARDEN_DEBUG_FLAGS.hitFlash) {
       return drawCanvasHitFlashRect(ctx, -size * 0.5, -size * 0.3, size, size * 0.7);
     }
 
-    const { isStunned, isAlert, isAttack, glowColor } = resolveChargerVisualState(state);
+    const { isStunned, isAttack } = resolveChargerVisualState(state);
 
-    ctx.shadowColor = glowColor;
-    ctx.shadowBlur = 12;
-
-    if (isAlert) {
-      ctx.fillStyle = ECHO_PALETTE.corruptionAmber;
-      ctx.strokeStyle = ECHO_PALETTE.restorationGold;
-      ctx.lineWidth = 1.5;
-
-      const pulse = (world.tick % 8) * 2;
-      ctx.beginPath();
-      ctx.moveTo(size * 0.5 + pulse, -size * 0.1);
-      ctx.lineTo(size * 0.7 + pulse, 0);
-      ctx.lineTo(size * 0.5 + pulse, size * 0.1);
-      ctx.stroke();
-    } else if (isAttack) {
-      ctx.strokeStyle = ECHO_PALETTE.corruptionCrimsonGlow;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(-size * 0.6, -size * 0.2);
-      ctx.lineTo(-size * 0.9, -size * 0.2);
-      ctx.moveTo(-size * 0.5, size * 0.1);
-      ctx.lineTo(-size * 0.85, size * 0.1);
-      ctx.stroke();
-    }
-
-    ctx.fillStyle = ECHO_PALETTE.archiveSlate;
-    ctx.strokeStyle = glowColor;
-    ctx.lineWidth = 2;
-
-    ctx.beginPath();
-    ctx.moveTo(-size * 0.5, -size * 0.3);
-    ctx.lineTo(size * 0.5, -size * 0.3);
-    ctx.lineTo(size * 0.4, size * 0.4);
-    ctx.lineTo(-size * 0.4, size * 0.4);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = glowColor;
-    ctx.fillRect(-size * 0.25, -size * 0.1, size * 0.1, size * 0.3);
-    ctx.fillRect(size * 0.15, -size * 0.1, size * 0.1, size * 0.3);
+    // Heavy Chitin Battering Ram Shell
+    drawBiomechanicalChitinPlate(ctx, 0, 0, size, size * 0.7, world.tick * 0.05, isAttack ? SOLAR_GARDEN_THEME.BIO_ACID : SOLAR_GARDEN_THEME.BIO_MAGENTA);
 
     if (isStunned) {
       const elapsed = world.tick * 0.1;
-      ctx.strokeStyle = ECHO_PALETTE.restorationGold;
+      ctx.strokeStyle = SOLAR_GARDEN_THEME.SOLAR_GOLD;
       ctx.lineWidth = 1.5;
       for (let i = 0; i < 3; i++) {
         const angle = elapsed + (i * Math.PI * 2) / 3;

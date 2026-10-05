@@ -65,7 +65,7 @@ export default function RacingScreen() {
                       key={`p1_${i}`}
                       style={[
                         styles.pearl,
-                        { backgroundColor: i < (game.getWorld().getSingleton("HeadToHeadState")?.scores.player_1 ?? 0) ? "#00e5ff" : "#1e293b" }
+                        { backgroundColor: i < (game?.getWorld().getSingleton("HeadToHeadState")?.scores.player_1 ?? 0) ? "#00e5ff" : "#1e293b" }
                       ]}
                     />
                   ))}
@@ -77,7 +77,7 @@ export default function RacingScreen() {
                       key={`p2_${i}`}
                       style={[
                         styles.pearl,
-                        { backgroundColor: i < (game.getWorld().getSingleton("HeadToHeadState")?.scores.player_2 ?? 0) ? "#f43f5e" : "#1e293b" }
+                        { backgroundColor: i < (game?.getWorld().getSingleton("HeadToHeadState")?.scores.player_2 ?? 0) ? "#f43f5e" : "#1e293b" }
                       ]}
                     />
                   ))}

@@ -29,4 +29,16 @@ describe("RacingGame & EntityFactory Blueprint Spawning", () => {
     expect(game.world.hasEntity(spawnedWall)).toBe(true);
     expect(game.world.hasComponent(spawnedWall, "RacingWall")).toBe(true);
   });
+
+  it("should update input state when receiving canonical keyboard actions", async () => {
+    const game = new RacingGame();
+    await game.init();
+
+    game.setInputState({ rotateLeft: true, thrust: true });
+    const player = game.world.query("LocalPlayer", "Input")[0];
+    const inputComp = game.world.getComponent(player, "Input")!;
+
+    expect(inputComp.axes.moveX).toBe(-1);
+    expect(inputComp.axes.moveY).toBe(-1);
+  });
 });

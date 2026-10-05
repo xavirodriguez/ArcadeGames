@@ -215,16 +215,52 @@ export class RacingGame extends BaseGame<
     this.world.update(dt);
   }
 
-  public setInputState(input: Partial<RacingInputState>): void {
+  public setInputState(input: Record<string, unknown> | Partial<RacingInputState>): void {
     const car = this.world.query("LocalPlayer", "Input")[0];
     if (car === undefined) return;
     const component = this.world.getMutableComponent(car, "Input");
     if (!component) return;
 
-    if (input.moveX !== undefined) component.axes.moveX = input.moveX;
-    if (input.moveY !== undefined) component.axes.moveY = input.moveY;
-    if (input.boost !== undefined) component.actions.boost = input.boost;
-    if (input.brake !== undefined) component.actions.brake = input.brake;
+    const inp = input as Record<string, unknown>;
+
+    let moveX = component.axes.moveX ?? 0;
+    if (typeof inp.moveX === "number") {
+      moveX = inp.moveX;
+    } else if (
+      inp.rotateLeft !== undefined ||
+      inp.rotateRight !== undefined ||
+      inp.moveLeft !== undefined ||
+      inp.moveRight !== undefined ||
+      inp.p1Left !== undefined ||
+      inp.p1Right !== undefined
+    ) {
+      const left = inp.rotateLeft === true || inp.moveLeft === true || inp.p1Left === true;
+      const right = inp.rotateRight === true || inp.moveRight === true || inp.p1Right === true;
+      moveX = (right ? 1 : 0) - (left ? 1 : 0);
+    }
+
+    let moveY = component.axes.moveY ?? 0;
+    if (typeof inp.moveY === "number") {
+      moveY = inp.moveY;
+    } else if (
+      inp.thrust !== undefined ||
+      inp.moveUp !== undefined ||
+      inp.moveDown !== undefined ||
+      inp.p1Up !== undefined ||
+      inp.p1Down !== undefined ||
+      inp.p1Launch !== undefined ||
+      inp.brake !== undefined
+    ) {
+      const up = inp.thrust === true || inp.moveUp === true || inp.p1Up === true || inp.p1Launch === true;
+      const down = inp.moveDown === true || inp.p1Down === true || inp.brake === true;
+      moveY = up ? -1 : (down ? 1 : 0);
+    }
+
+    component.axes.moveX = moveX;
+    component.axes.moveY = moveY;
+
+    if (typeof inp.boost === "boolean") component.actions.boost = inp.boost;
+    if (typeof inp.brake === "boolean") component.actions.brake = inp.brake;
   }
 
   public initializeRenderer(renderer: Renderer<RacingComponentRegistry, RenderContext>): void {

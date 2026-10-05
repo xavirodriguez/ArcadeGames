@@ -1,4 +1,4 @@
-import { touchToCellCoords, cellCenter, worldToCellCoords } from "../MapUtils";
+import { touchToCellCoords, cellCenter, worldToCellCoords, isBuildable } from "../MapUtils";
 import towerDefenseConfigRaw from "../config/tower-defense.json";
 
 describe("MapUtils touch to cell conversion", () => {
@@ -32,5 +32,21 @@ describe("MapUtils touch to cell conversion", () => {
     // row 4: 40 + 4 * 40 + 20 = 220
     expect(pos.x).toBe(220);
     expect(pos.y).toBe(220);
+  });
+
+  it("safely handles out-of-bounds and NaN coordinates in isBuildable", () => {
+    const mockTileGrid: any = {
+      cols: 16,
+      rows: 12,
+      tiles: Array.from({ length: 12 }, () => Array(16).fill("buildable")),
+    };
+
+    expect(isBuildable(mockTileGrid, 0, 0)).toBe(true);
+    expect(isBuildable(mockTileGrid, -1, 0)).toBe(false);
+    expect(isBuildable(mockTileGrid, 0, -1)).toBe(false);
+    expect(isBuildable(mockTileGrid, 100, 0)).toBe(false);
+    expect(isBuildable(mockTileGrid, 0, 100)).toBe(false);
+    expect(isBuildable(mockTileGrid, NaN, 0)).toBe(false);
+    expect(isBuildable(mockTileGrid, 0, NaN)).toBe(false);
   });
 });

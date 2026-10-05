@@ -145,6 +145,8 @@ export function touchToCellCoords(
 }
 
 export function isBuildable(tileGrid: TileGrid, col: number, row: number): boolean {
+  if (!tileGrid?.tiles) return false;
+  if (typeof row !== "number" || typeof col !== "number" || isNaN(row) || isNaN(col)) return false;
   if (row < 0 || row >= tileGrid.rows || col < 0 || col >= tileGrid.cols) return false;
-  return tileGrid.tiles[row][col] === "buildable";
+  return tileGrid.tiles[row]?.[col] === "buildable";
 }

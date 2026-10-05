@@ -31,7 +31,7 @@ export const TowerDefenseControls: FC<TowerDefenseControlsProps> = ({
   phase,
   gold,
 }) => {
-  const canStartWave = phase === "build";
+  const canStartWave = phase === "build" || phase === "intermission";
 
   return (
     <View style={styles.container}>

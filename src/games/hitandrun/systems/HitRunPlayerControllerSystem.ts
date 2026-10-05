@@ -154,7 +154,6 @@ export class HitRunPlayerControllerSystem extends System<CoreComponentRegistry> 
 
         world.commands.addComponent(reservedId, {
           type: "ExplosivePayload",
-          radius: 50,
           damage: 4,
           detonated: false
         } as unknown as CoreComponentRegistry[Extract<keyof CoreComponentRegistry, string>]);

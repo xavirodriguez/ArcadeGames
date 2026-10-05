@@ -235,12 +235,10 @@ export class HitAndRunGame extends PlatformerArcadeGame<
           jumpPressed: false,
           jumpHeld: false,
           jumpReleased: false,
-          aimX: 1,
-          aimY: 0,
           fireHeld: false,
           firePressed: false,
           attackPressed: false
-        } as { type: string; [key: string]: unknown });
+        } as unknown as CoreComponentRegistry[Extract<keyof CoreComponentRegistry, string>]);
 
         world.addComponent(entity, createMeleeAttackComponent());
         world.addComponent(entity, createWeaponState(args.weaponId ?? "hmg"));
@@ -252,9 +250,8 @@ export class HitAndRunGame extends PlatformerArcadeGame<
     if (playerBp) {
       playerBp.spawn(this.world, playerEntity, {
         x: 100,
-        y: 300,
-        weaponId: "hmg"
-      } as unknown as { x: number; y: number });
+        y: 300
+      });
     } else {
       throw new Error("[HitAndRunGame] Blueprint 'player' is not registered.");
     }

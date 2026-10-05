@@ -29,7 +29,6 @@ export function registerPowBlueprint(blueprints: { register: (id: string, def: a
 
       world.addComponent(entity, {
         type: "PowHostage",
-        id: args.id,
         weaponDrop: args.weaponDrop ?? "shotgun",
         ammo: args.ammo ?? 30,
         rescued: false

@@ -2,11 +2,7 @@ import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
 import type { ShmupComponentRegistry } from "../types/ShmupTypes";
 import { SOLAR_GARDEN_PALETTE } from "../../shared/rendering/SolarGardenPalette";
 import { drawSolarLeafWing, drawBiomechanicalChitin, drawThreatProjectile } from "../../shared/rendering/SolarGardenMotifs";
-
-/**
- * Cenit-01 Solar Maintenance/Defense Player Ship
- * Porcelain white body, leaf-shaped wings, gold solar trim, cyan energy core.
-import { SOLAR_GARDEN_THEME, SOLAR_GARDEN_VARIANTS } from "../../../theme/solarGardenTheme";
+import { SOLAR_GARDEN_THEME } from "../../../theme/solarGardenTheme";
 import { SOLAR_GARDEN_DEBUG_FLAGS } from "../../../theme/solarGardenDebug";
 import { drawDualShellBullet, drawBiomechanicalEye } from "../../shared/rendering/SolarGardenVisuals";
 
@@ -31,7 +27,6 @@ export const drawSolarParallaxBackground: EffectDrawer<CanvasRenderingContext2D,
     const height = screen.height;
     const elapsed = world.tick * 0.016;
 
-    // 1. Sky Sun Layer (speedRatio 0.05)
     ctx.fillStyle = SOLAR_GARDEN_THEME.BIO_BLACK;
     ctx.fillRect(0, 0, width, height);
 
@@ -44,7 +39,6 @@ export const drawSolarParallaxBackground: EffectDrawer<CanvasRenderingContext2D,
     ctx.arc(width * 0.5, height * 0.25, 120, 0, Math.PI * 2);
     ctx.fill();
 
-    // 2. Far Structures (speedRatio 0.15)
     const offsetFar = (elapsed * 20) % height;
     ctx.fillStyle = "rgba(45, 69, 52, 0.35)";
     for (let i = 0; i < 4; i++) {
@@ -56,7 +50,6 @@ export const drawSolarParallaxBackground: EffectDrawer<CanvasRenderingContext2D,
       ctx.strokeRect(px, py, 45, 120);
     }
 
-    // 3. Solar Forest (speedRatio 0.35)
     const offsetForest = (elapsed * 50) % height;
     ctx.fillStyle = "rgba(45, 69, 52, 0.5)";
     for (let i = 0; i < 6; i++) {
@@ -67,7 +60,6 @@ export const drawSolarParallaxBackground: EffectDrawer<CanvasRenderingContext2D,
       ctx.fill();
     }
 
-    // 4. Architecture (speedRatio 0.6)
     const offsetArch = (elapsed * 80) % height;
     ctx.strokeStyle = "rgba(240, 244, 248, 0.25)";
     ctx.lineWidth = 1;
@@ -83,9 +75,6 @@ export const drawSolarParallaxBackground: EffectDrawer<CanvasRenderingContext2D,
 
 /**
  * Solar Purification Wave Effect Drawer
- * Phase A — Desaturation (~150ms)
- * Phase B — Solar Ring Sweep (BOTTOM -> MIDDLE -> TOP)
- * Phase C — Crystal Freeze and Fragmentation
  */
 export const drawSolarPurificationWave: EffectDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
   draw(ctx, world) {
@@ -97,14 +86,12 @@ export const drawSolarPurificationWave: EffectDrawer<CanvasRenderingContext2D, S
     const height = screen.height;
     const elapsed = waveResource.elapsed;
 
-    // Phase A — Desaturation (0 - 150ms)
     if (elapsed <= 0.15) {
       const desatAlpha = (elapsed / 0.15) * 0.4;
       ctx.fillStyle = `rgba(180, 190, 200, ${desatAlpha.toFixed(2)})`;
       ctx.fillRect(0, 0, width, height);
     }
 
-    // Phase B — Solar Ring (Sweep from BOTTOM -> MIDDLE -> TOP over ~600ms)
     if (elapsed > 0.05 && elapsed <= 0.75) {
       const ringProgress = (elapsed - 0.05) / 0.7;
       const ringY = height * (1.1 - ringProgress * 1.2);
@@ -119,7 +106,6 @@ export const drawSolarPurificationWave: EffectDrawer<CanvasRenderingContext2D, S
       ctx.fillStyle = waveGrad;
       ctx.fillRect(0, ringY - 40, width, 80);
 
-      // Phase C — Crystal Freeze Outlines & Micro-crystals
       const sparkCount = 12;
       for (let i = 0; i < sparkCount; i++) {
         const sx = (i * 43) % width;
@@ -134,7 +120,6 @@ export const drawSolarPurificationWave: EffectDrawer<CanvasRenderingContext2D, S
 
 /**
  * Vertical Shmup Player — Cenit-01
- * Concept: Lotus Leaf + Albatross + Solar Aircraft
  */
 export const drawShmupPlayer: ShapeDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
   draw(ctx, world, entity) {
@@ -144,11 +129,9 @@ export const drawShmupPlayer: ShapeDrawer<CanvasRenderingContext2D, ShmupCompone
 
     ctx.save();
 
-    // Leaf-shaped Wings
     drawSolarLeafWing(ctx, size * 1.3, size * 0.6, Math.PI * 0.25);
     drawSolarLeafWing(ctx, size * 1.3, size * 0.6, -Math.PI * 0.25);
 
-    // Porcelain Central Hull
     ctx.fillStyle = SOLAR_GARDEN_PALETTE.solarWhite;
     ctx.strokeStyle = SOLAR_GARDEN_PALETTE.solarGold;
     ctx.lineWidth = 2;
@@ -164,7 +147,6 @@ export const drawShmupPlayer: ShapeDrawer<CanvasRenderingContext2D, ShmupCompone
     ctx.fill();
     ctx.stroke();
 
-    // Glowing Cyan Energy Core
     ctx.fillStyle = SOLAR_GARDEN_PALETTE.solarCyan;
     ctx.shadowColor = SOLAR_GARDEN_PALETTE.solarCyan;
     ctx.shadowBlur = 12;
@@ -178,7 +160,6 @@ export const drawShmupPlayer: ShapeDrawer<CanvasRenderingContext2D, ShmupCompone
 
 /**
  * Biomechanical Garden Fauna Enemy
- * Segmented chitin shell, biomechanical wings, glowing organ core.
  */
 export const drawShmupEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
   draw(ctx, world, entity) {
@@ -192,7 +173,6 @@ export const drawShmupEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupComponen
     ctx.save();
 
     if (kind === "arc" || size > 25) {
-      // Amber Scarab (Heavy Tank)
       ctx.fillStyle = SOLAR_GARDEN_THEME.BIO_BLACK;
       ctx.strokeStyle = SOLAR_GARDEN_THEME.THREAT_ORANGE;
       ctx.lineWidth = 2;
@@ -212,7 +192,6 @@ export const drawShmupEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupComponen
       ctx.arc(0, 0, size * 0.35, 0, Math.PI * 2);
       ctx.fill();
     } else if (kind === "sine") {
-      // Solar Wasp (Fast Attacker)
       ctx.fillStyle = SOLAR_GARDEN_THEME.BIO_BLACK;
       ctx.strokeStyle = SOLAR_GARDEN_THEME.BIO_MAGENTA;
       ctx.lineWidth = 1.5;
@@ -233,7 +212,6 @@ export const drawShmupEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupComponen
       ctx.ellipse(0, -size * 0.3, size * 0.2, size * 0.1, 0, 0, Math.PI * 2);
       ctx.fill();
     } else {
-      // Standard Biomechanical Drone
       ctx.fillStyle = SOLAR_GARDEN_THEME.BIO_BLACK;
       ctx.strokeStyle = SOLAR_GARDEN_THEME.BIO_ACID;
       ctx.lineWidth = 1.5;
@@ -258,23 +236,35 @@ export const drawShmupEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupComponen
 };
 
 /**
- * Player Solar Purification Bolt
+ * Player Bullet — Concentrated Crystalline Cyan / Gold Bolt
  */
 export const drawShmupPlayerBullet: ShapeDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
-    if (!render) return;
+    if (!render || !render.visible) return;
     const size = render.size ?? 4;
 
     ctx.save();
-    ctx.fillStyle = SOLAR_GARDEN_PALETTE.solarCyan;
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = SOLAR_GARDEN_PALETTE.solarCyan;
+    ctx.fillStyle = SOLAR_GARDEN_THEME.SOLAR_CYAN;
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = SOLAR_GARDEN_THEME.SOLAR_CYAN;
 
-    ctx.fillRect(-size / 2, -size * 2.5, size, size * 5);
+    ctx.beginPath();
+    ctx.moveTo(0, -size * 2.5);
+    ctx.lineTo(size * 0.8, size * 1.5);
+    ctx.lineTo(0, size * 0.8);
+    ctx.lineTo(-size * 0.8, size * 1.5);
+    ctx.closePath();
+    ctx.fill();
 
-    ctx.fillStyle = SOLAR_GARDEN_PALETTE.solarWhite;
-    ctx.fillRect(-size / 4, -size * 2, size / 2, size * 4);
+    ctx.fillStyle = SOLAR_GARDEN_THEME.SOLAR_WHITE;
+    ctx.fillRect(-1, -size * 1.8, 2, size * 2.5);
+
+    ctx.restore();
+  }
+};
+
+/**
  * Solar Bloom Boss — 5-Phase Biomechanical Flower
  */
 export const drawSolarBloomBoss: ShapeDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
@@ -351,140 +341,6 @@ export const drawSolarBloomBoss: ShapeDrawer<CanvasRenderingContext2D, ShmupComp
 
 /**
  * Hostile Biomechanical Threat Projectile
- * High-contrast threat orange / magenta with dark outline for maximum gameplay readability.
- */
-export const drawShmupEnemyBullet: ShapeDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
-  draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render) return;
-    const size = render.size ?? 5;
-
-    ctx.save();
-    drawThreatProjectile(ctx, size, SOLAR_GARDEN_PALETTE.threatOrange);
-    ctx.restore();
-  }
-};
-
-/**
- * Boss Visual: "The Solar Bloom"
- * Biomechanical floral boss overhanging the Solar Garden.
- */
-export const drawSolarBloomBoss: ShapeDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
-  draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render) return;
-    const size = render.size ?? 60;
-    const tick = world.tick;
-
-    ctx.save();
-
-    // Outer Petals / Chitin Shell
-    const petalCount = 8;
-    for (let i = 0; i < petalCount; i++) {
-      const angle = (i * Math.PI * 2) / petalCount + tick * 0.01;
-      ctx.save();
-      ctx.rotate(angle);
-      ctx.translate(0, -size * 0.6);
-      drawBiomechanicalChitin(ctx, size * 0.35, i % 2 === 0);
-      ctx.restore();
-    }
-
-    // Exposed Glowing Core
-    ctx.fillStyle = SOLAR_GARDEN_PALETTE.bioMagenta;
-    ctx.shadowColor = SOLAR_GARDEN_PALETTE.bioMagenta;
-    ctx.shadowBlur = 20;
-
-    ctx.beginPath();
-    ctx.arc(0, 0, size * 0.4, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Inner Active Core
-    ctx.fillStyle = SOLAR_GARDEN_PALETTE.bioAcid;
-    ctx.beginPath();
-    ctx.arc(0, 0, size * 0.2, 0, Math.PI * 2);
-    ctx.fill();
-
- * Player Bullet — Concentrated Crystalline Cyan / Gold Bolt
- */
-export const drawShmupPlayerBullet: ShapeDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
-  draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
-    const size = render.size ?? 4;
-
-    ctx.save();
-    ctx.fillStyle = SOLAR_GARDEN_THEME.SOLAR_CYAN;
-    ctx.shadowBlur = 8;
-    ctx.shadowColor = SOLAR_GARDEN_THEME.SOLAR_CYAN;
-
-    ctx.beginPath();
-    ctx.moveTo(0, -size * 2.5);
-    ctx.lineTo(size * 0.8, size * 1.5);
-    ctx.lineTo(0, size * 0.8);
-    ctx.lineTo(-size * 0.8, size * 1.5);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.fillStyle = SOLAR_GARDEN_THEME.SOLAR_WHITE;
-    ctx.fillRect(-1, -size * 1.8, 2, size * 2.5);
-
-    ctx.restore();
-  }
-};
-
-/**
- * Vertical Shmup Parallax Background: Solar Garden Overhead View
- */
-export const drawShmupBackground: EffectDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
-  draw(ctx, world) {
-    const width = 480;
-    const height = 854;
-    const elapsed = world.tick * 0.016;
-
-    // Layer 0: Sky Atmosphere
-    const skyGrad = ctx.createLinearGradient(0, 0, 0, height);
-    skyGrad.addColorStop(0, SOLAR_GARDEN_PALETTE.skyDawn);
-    skyGrad.addColorStop(1, SOLAR_GARDEN_PALETTE.skyMid);
-    ctx.fillStyle = skyGrad;
-    ctx.fillRect(0, 0, width, height);
-
-    // Layer 1: Distant Garden & Porcelain Canopy (0.15x)
-    ctx.fillStyle = "rgba(61, 90, 69, 0.25)";
-    ctx.strokeStyle = "rgba(230, 184, 0, 0.2)";
-    ctx.lineWidth = 1;
-
-    const scroll1 = (elapsed * 30) % 120;
-    for (let y = -120 + scroll1; y < height + 120; y += 120) {
-      for (let x = 30; x < width; x += 120) {
-        ctx.beginPath();
-        ctx.arc(x, y, 35, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-      }
-    }
-
-    // Layer 2: Ceramic Architecture Grid & Solar Structures (0.35x)
-    ctx.strokeStyle = SOLAR_GARDEN_PALETTE.glassBorder;
-    ctx.lineWidth = 1;
-
-    const scroll2 = (elapsed * 70) % 160;
-    for (let y = -160 + scroll2; y < height + 160; y += 160) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(width, y);
-      ctx.stroke();
-    }
-
-    // Layer 3: Floating Pollen & Solar Particles (1.2x)
-    for (let i = 0; i < 10; i++) {
-      const px = ((i * 97 + elapsed * 20) % width);
-      const py = ((i * 131 + elapsed * 90) % height);
-      ctx.fillStyle = i % 3 === 0 ? SOLAR_GARDEN_PALETTE.solarGold : SOLAR_GARDEN_PALETTE.bioMagenta;
-      ctx.beginPath();
-      ctx.arc(px, py, 1.5, 0, Math.PI * 2);
-      ctx.fill();
-    }
- * Enemy Bullet — Dual-Shell Rule Integration
  */
 export const drawShmupEnemyBullet: ShapeDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
   draw(ctx, world, entity) {
@@ -503,5 +359,56 @@ export const drawShmupEnemyBullet: ShapeDrawer<CanvasRenderingContext2D, ShmupCo
       0.4
     );
     ctx.restore();
+  }
+};
+
+/**
+ * Vertical Shmup Parallax Background: Solar Garden Overhead View
+ */
+export const drawShmupBackground: EffectDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
+  draw(ctx, world) {
+    const width = 480;
+    const height = 854;
+    const elapsed = world.tick * 0.016;
+
+    const skyGrad = ctx.createLinearGradient(0, 0, 0, height);
+    skyGrad.addColorStop(0, SOLAR_GARDEN_PALETTE.skyDawn);
+    skyGrad.addColorStop(1, SOLAR_GARDEN_PALETTE.skyMid);
+    ctx.fillStyle = skyGrad;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.fillStyle = "rgba(61, 90, 69, 0.25)";
+    ctx.strokeStyle = "rgba(230, 184, 0, 0.2)";
+    ctx.lineWidth = 1;
+
+    const scroll1 = (elapsed * 30) % 120;
+    for (let y = -120 + scroll1; y < height + 120; y += 120) {
+      for (let x = 30; x < width; x += 120) {
+        ctx.beginPath();
+        ctx.arc(x, y, 35, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      }
+    }
+
+    ctx.strokeStyle = SOLAR_GARDEN_PALETTE.glassBorder;
+    ctx.lineWidth = 1;
+
+    const scroll2 = (elapsed * 70) % 160;
+    for (let y = -160 + scroll2; y < height + 160; y += 160) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
+    }
+
+    for (let i = 0; i < 10; i++) {
+      const px = ((i * 97 + elapsed * 20) % width);
+      const py = ((i * 131 + elapsed * 90) % height);
+      ctx.fillStyle = i % 3 === 0 ? SOLAR_GARDEN_PALETTE.solarGold : SOLAR_GARDEN_PALETTE.bioMagenta;
+      ctx.beginPath();
+      ctx.arc(px, py, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 };

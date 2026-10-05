@@ -8,7 +8,6 @@ import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rende
 import {
   calculateEchoPlayerPose,
   resolveHopperVisualState,
-  resolveSentinelVisualState,
   resolveWatcherVisualState,
   resolveChargerVisualState,
   resolveEchoDrawContext,
@@ -19,7 +18,6 @@ import {
   resolveEchoBackgroundContext,
 } from "./EchoRunnerVisualUtils";
 import {
-  computeBiomechanicalDeformation,
   drawBiomechanicalChitinPlate,
   drawBiomechanicalEye
 } from "../../shared/rendering/SolarGardenVisuals";
@@ -60,24 +58,6 @@ function drawCanvasHitFlashRect(ctx: CanvasRenderingContext2D, x: number, y: num
   ctx.fill();
   ctx.restore();
   return true;
-}
-
-function getPulseAttackGradient(ctx: CanvasRenderingContext2D, size: number): CanvasGradient {
-  if (lastCtx !== ctx) {
-    lastCtx = ctx;
-    gradientCache.clear();
-  }
-  const key = 2000 + size;
-  let grad = gradientCache.get(key);
-  if (!grad) {
-    grad = ctx.createRadialGradient(0, 0, size * 0.2, 0, 0, size);
-    grad.addColorStop(0, "rgba(240, 244, 248, 0.95)");
-    grad.addColorStop(0.4, SOLAR_GARDEN_PALETTE.solarCyanGlow);
-    grad.addColorStop(0.8, SOLAR_GARDEN_PALETTE.solarGoldGlow);
-    grad.addColorStop(1, "rgba(0, 229, 255, 0)");
-    gradientCache.set(key, grad);
-  }
-  return grad;
 }
 
 export const drawEchoBackground: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
@@ -323,13 +303,15 @@ export const drawPulseAttack: ShapeDrawer<CanvasRenderingContext2D, CoreComponen
     if (!render || !render.visible) return;
     const size = render.size || 35;
     const progress = Math.min(1.0, (world.tick % 10) / 10); // ~300ms cycle
+    const ringRadius = size * progress;
+    const ringAlpha = 1.0 - progress;
 
     ctx.save();
 
     ctx.shadowColor = SOLAR_GARDEN_PALETTE.solarCyan;
     ctx.shadowBlur = 16;
 
-    const ringGrad = ctx.createRadialGradient(0, 0, ringRadius * 0.4, 0, 0, ringRadius);
+    const ringGrad = ctx.createRadialGradient(0, 0, ringRadius * 0.4, 0, 0, ringRadius || 1);
     ringGrad.addColorStop(0, "rgba(0, 229, 255, 0.95)");
     ringGrad.addColorStop(0.5, "rgba(230, 184, 0, 0.8)");
     ringGrad.addColorStop(1, "rgba(230, 184, 0, 0)");
@@ -454,7 +436,7 @@ export const drawWatcher: ShapeDrawer<CanvasRenderingContext2D, CoreComponentReg
   draw(ctx, world, entity) {
     const drawCtx = resolveEchoDrawContext(world, entity, 26);
     if (!drawCtx) return;
-    const { size, isHitFlash } = drawCtx;
+    const { size, isHitFlash, state } = drawCtx;
 
     ctx.save();
 
@@ -495,7 +477,7 @@ export const drawCharger: ShapeDrawer<CanvasRenderingContext2D, CoreComponentReg
   draw(ctx, world, entity) {
     const drawCtx = resolveEchoDrawContext(world, entity, 28);
     if (!drawCtx) return;
-    const { size, isHitFlash } = drawCtx;
+    const { size, isHitFlash, state } = drawCtx;
 
     ctx.save();
 

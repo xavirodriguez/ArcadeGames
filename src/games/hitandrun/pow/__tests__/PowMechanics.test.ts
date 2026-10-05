@@ -22,21 +22,36 @@ describe("POW (Prisoner of War) Mechanics (Phase 6)", () => {
       x: 100,
       y: 100,
       worldX: 100,
-      worldY: 100
-    } as any);
+      worldY: 100,
+      rotation: 0,
+      worldRotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      worldScaleX: 1,
+      worldScaleY: 1,
+      dirty: true
+    });
 
     world.addComponent(powEntity, {
       type: "PowHostage",
-      id: "pow_1",
       weaponDrop: "rocket",
       ammo: 15,
       rescued: false
-    } as any);
+    } as unknown as CoreComponentRegistry[Extract<keyof CoreComponentRegistry, string>]);
 
     expect(world.hasComponent(powEntity, "PowHostage")).toBe(true);
 
     const player = world.createEntity();
-    world.addComponent(player, { type: "PlatformerInput" } as any);
+    world.addComponent(player, {
+      type: "PlatformerInput",
+      moveDir: 0,
+      jumpPressed: false,
+      jumpHeld: false,
+      jumpReleased: false,
+      fireHeld: false,
+      firePressed: false,
+      attackPressed: false
+    } as unknown as CoreComponentRegistry[Extract<keyof CoreComponentRegistry, string>]);
 
     world.addComponent(powEntity, {
       type: "CollisionEvents",
@@ -44,7 +59,7 @@ describe("POW (Prisoner of War) Mechanics (Phase 6)", () => {
       activeTriggers: [player],
       triggersEntered: [],
       triggersExited: []
-    } as any);
+    });
 
     powSystem.update(world, 0.016);
     world.flush();
@@ -56,8 +71,8 @@ describe("POW (Prisoner of War) Mechanics (Phase 6)", () => {
     expect(pickups.length).toBe(1);
 
     const pickup = pickups[0];
-    const pData = world.getComponent(pickup, "WeaponPickup") as unknown as { weaponId: string; ammo: number };
-    expect(pData.weaponId).toBe("rocket");
-    expect(pData.ammo).toBe(15);
+    const pData = world.getComponent(pickup, "WeaponPickup") as { weaponId: string; ammo: number } | undefined;
+    expect(pData?.weaponId).toBe("rocket");
+    expect(pData?.ammo).toBe(15);
   });
 });

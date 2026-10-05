@@ -3,6 +3,7 @@ import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 import { ShmupComponentRegistry } from "./types/ShmupTypes";
 import { ShmupConfig } from "./types/ShmupConfigSchema";
 import { PlayerBulletPool, EnemyBulletPool } from "./EntityPool";
+import { SOLAR_GARDEN_PALETTE } from "../shared/rendering/SolarGardenPalette";
 
 export function createPlayer(world: World<ShmupComponentRegistry>, x: number, y: number): Entity {
   const c = world.getResource<ShmupConfig>("GameConfig")!;
@@ -10,7 +11,7 @@ export function createPlayer(world: World<ShmupComponentRegistry>, x: number, y:
   EntityBuilder.fromEntity(world, e)
     .withTransform({ x, y })
     .withVelocity()
-    .withRender({ shape: "shmup_player", size: c.PLAYER_SIZE, color: "#00e5ff", order: 5 })
+    .withRender({ shape: "shmup_player", size: c.PLAYER_SIZE, color: SOLAR_GARDEN_PALETTE.solarCyan, order: 5 })
     .withCollider({ shape: { type: ShapeType.Circle, radius: c.PLAYER_COLLIDER_RADIUS } as CircleShape, layer: CollisionLayers.PLAYER, mask: CollisionLayers.ENEMY })
     .withCollisionEvents();
   world.addComponent(e, { type: "ShmupPlayer" });
@@ -28,7 +29,7 @@ export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: 
   EntityBuilder.fromEntity(world, e)
     .withTransform({ x, y })
     .withVelocity({ vy: c.ENEMY_SPEED })
-    .withRender({ shape: "shmup_enemy", size: c.ENEMY_SIZE, color: "#ff2a6d", order: 4 })
+    .withRender({ shape: "shmup_enemy", size: c.ENEMY_SIZE, color: SOLAR_GARDEN_PALETTE.bioMagenta, order: 4 })
     .withCollider({ shape: { type: ShapeType.Circle, radius: c.ENEMY_COLLIDER_RADIUS } as CircleShape, layer: CollisionLayers.ENEMY, mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE })
     .withCollisionEvents();
   world.addComponent(e, { type: "ShmupEnemy", score: c.ENEMY_SCORE });
@@ -40,9 +41,10 @@ export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: 
 
 export function createPlayerBullet(world: World<ShmupComponentRegistry>, x: number, y: number, pool: PlayerBulletPool): Entity {
   const c = world.getResource<ShmupConfig>("GameConfig");
-  return pool.acquireBullet(world, { x, y, dx: 0, dy: -(c?.PLAYER_BULLET_SPEED ?? 650), size: c?.PLAYER_BULLET_SIZE ?? 4, color: "#ffe600", ttl: c?.PLAYER_BULLET_TTL ?? 2 });
+  return pool.acquireBullet(world, { x, y, dx: 0, dy: -(c?.PLAYER_BULLET_SPEED ?? 650), size: c?.PLAYER_BULLET_SIZE ?? 4, color: SOLAR_GARDEN_PALETTE.solarCyan, ttl: c?.PLAYER_BULLET_TTL ?? 2 });
 }
+
 export function createEnemyBullet(world: World<ShmupComponentRegistry>, x: number, y: number, dx: number, dy: number, pool: EnemyBulletPool): Entity {
   const c = world.getResource<ShmupConfig>("GameConfig");
-  return pool.acquireBullet(world, { x, y, dx, dy, size: c?.ENEMY_BULLET_SIZE ?? 4, color: "#ff5a5a", ttl: c?.ENEMY_BULLET_TTL ?? 5 });
+  return pool.acquireBullet(world, { x, y, dx, dy, size: c?.ENEMY_BULLET_SIZE ?? 4, color: SOLAR_GARDEN_PALETTE.threatOrange, ttl: c?.ENEMY_BULLET_TTL ?? 5 });
 }

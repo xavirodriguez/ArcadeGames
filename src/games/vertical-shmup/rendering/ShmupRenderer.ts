@@ -1,5 +1,6 @@
 import { Renderer, RendererUtils } from "@tiny-aster/core";
 import { ShmupComponentRegistry } from "../types/ShmupTypes";
+import { drawShmupPlayer, drawShmupEnemy, drawShmupPlayerBullet, drawShmupEnemyBullet, drawSolarBloomBoss, drawShmupBackground } from "./ShmupCanvasVisuals";
 import {
   drawShmupPlayer,
   drawShmupEnemy,
@@ -11,6 +12,8 @@ import {
 } from "./ShmupCanvasVisuals";
 
 export function initializeShmupRenderer(renderer: Renderer<ShmupComponentRegistry, unknown>): void {
+  renderer.registerBackgroundEffect("shmup_bg", drawShmupBackground);
+
   RendererUtils.registerAssets(renderer, {
     canvas: (r) => {
       r.registerBackgroundEffect("shmup_solar_parallax", drawSolarParallaxBackground);
@@ -20,6 +23,7 @@ export function initializeShmupRenderer(renderer: Renderer<ShmupComponentRegistr
       r.registerShape("solar_bloom_boss", drawSolarBloomBoss);
       r.registerShape("shmup_player_bullet", drawShmupPlayerBullet);
       r.registerShape("shmup_enemy_bullet", drawShmupEnemyBullet);
+      r.registerShape("shmup_boss", drawSolarBloomBoss);
     },
     skia: () => {}
   });

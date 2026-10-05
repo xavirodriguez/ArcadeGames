@@ -52,10 +52,15 @@ export const GAME_ACCENTS = {
     secondary: 'gold' as const,
     accent: 'pink' as const,
   },
+  echorunner: {
+    primary: 'cyan' as const,
+    secondary: 'gold' as const,
+    accent: 'magentaHot' as const,
+  },
   'vertical-shmup': {
     primary: 'cyan' as const,
-    secondary: 'purple' as const,
-    accent: 'pink' as const,
+    secondary: 'gold' as const,
+    accent: 'magentaHot' as const,
   },
   campaign: {
     primary: 'cyan' as const,

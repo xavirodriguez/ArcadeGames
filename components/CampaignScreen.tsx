@@ -223,7 +223,7 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
   }, []);
 
   // Activate keyboard controls for Web
-  useKeyboardControls(activeGame, !isLoading && activeGame !== null);
+  useKeyboardControls(activeGame as any, !isLoading && activeGame !== null);
 
   // Reactively synchronized StoryRuntime state hook
   const { currentNode, flags } = useStoryRuntime(runtimeRef.current, eventBusRef.current);

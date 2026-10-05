@@ -41,7 +41,7 @@ export default function VerticalShmupScreen() {
         <GameLayoutShell
           style={sharedScreenStyles.container}
           topLeftSlot={<BackButton label="Menu" />}
-          centerHudSlot={<View style={styles.hud}><Text style={styles.hudText}>SCORE {gameState.score} · WAVE {gameState.wave}</Text></View>}
+          centerHudSlot={<View style={styles.hud}><Text style={styles.hudText}>SCORE {gameState?.score ?? 0} · WAVE {gameState?.wave ?? 1}</Text></View>}
           canvasSlot={<CanvasRenderer world={game.getWorld()} gameLoop={game.getGameLoop()} onInitialize={(renderer) => game.initializeRenderer(renderer)} />}
           controlsSlot={
             <View style={styles.controls}>

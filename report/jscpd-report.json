@@ -668,43 +668,6 @@
     },
     {
       "firstFile": {
-        "end": 135,
-        "endLoc": {
-          "column": 1,
-          "line": 135,
-          "position": 5407
-        },
-        "name": "echorunner/EchoRunnerGame.ts",
-        "start": 124,
-        "startLoc": {
-          "column": 23,
-          "line": 124,
-          "position": 5072
-        }
-      },
-      "format": "typescript",
-      "fragment": "  public update(world: World<CoreComponentRegistry>, deltaTime: number): void {\n    updatePlayerInvulnerabilityAndContactDamage(world, deltaTime, {\n      contactDistance: 20,\n      invulnerabilityDuration: 1.0,\n      damageAmount: 1,\n      hitFlashFrames: 8,\n      screenShakeIntensity: 12,\n      screenShakeDuration: 0.25,\n      sfxName: \"hit\"\n    });\n  }\n}",
-      "isNew": false,
-      "lines": 12,
-      "secondFile": {
-        "end": 89,
-        "endLoc": {
-          "column": 1,
-          "line": 89,
-          "position": 3031
-        },
-        "name": "hitandrun/HitAndRunGame.ts",
-        "start": 78,
-        "startLoc": {
-          "column": 50,
-          "line": 78,
-          "position": 2696
-        }
-      },
-      "tokens": 51
-    },
-    {
-      "firstFile": {
         "end": 168,
         "endLoc": {
           "column": 17,
@@ -761,36 +724,36 @@
       "isNew": false,
       "lines": 15,
       "secondFile": {
-        "end": 178,
+        "end": 131,
         "endLoc": {
           "column": 5,
-          "line": 178,
-          "position": 5900
+          "line": 131,
+          "position": 4265
         },
         "name": "hitandrun/HitAndRunGame.ts",
-        "start": 167,
+        "start": 120,
         "startLoc": {
           "column": 9,
-          "line": 167,
-          "position": 5520
+          "line": 120,
+          "position": 3885
         }
       },
       "tokens": 85
     },
     {
       "firstFile": {
-        "end": 88,
+        "end": 75,
         "endLoc": {
           "column": 8,
-          "line": 88,
-          "position": 3122
+          "line": 75,
+          "position": 2772
         },
         "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
-        "start": 78,
+        "start": 65,
         "startLoc": {
           "column": 74,
-          "line": 78,
-          "position": 2774
+          "line": 65,
+          "position": 2424
         }
       },
       "format": "typescript",
@@ -798,21 +761,132 @@
       "isNew": false,
       "lines": 11,
       "secondFile": {
-        "end": 164,
+        "end": 380,
         "endLoc": {
           "column": 8,
-          "line": 164,
-          "position": 5043
+          "line": 380,
+          "position": 12285
         },
         "name": "vertical-shmup/rendering/ShmupCanvasVisuals.ts",
-        "start": 154,
+        "start": 372,
         "startLoc": {
           "column": 38,
-          "line": 154,
-          "position": 4694
+          "line": 372,
+          "position": 12025
         }
       },
       "tokens": 60
+    },
+    {
+      "firstFile": {
+        "end": 314,
+        "endLoc": {
+          "column": 34,
+          "line": 314,
+          "position": 10466
+        },
+        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "start": 307,
+        "startLoc": {
+          "column": 61,
+          "line": 307,
+          "position": 10269
+        }
+      },
+      "format": "typescript",
+      "fragment": "      return drawSkiaHitFlashCircle(canvas, paint, size * 0.5);\n    }\n\n    paint.reset();\n    paint.setAntiAlias(true);\n    paint.setStyle(Skia.PaintStyle.Fill);\n    paint.setColor(Skia.Color(SOLAR_GARDEN_THEME.BIO_BLACK));\n    canvas.drawCircle(0, 0, size * 0.45, paint);",
+      "isNew": false,
+      "lines": 8,
+      "secondFile": {
+        "end": 376,
+        "endLoc": {
+          "column": 34,
+          "line": 376,
+          "position": 12470
+        },
+        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "start": 369,
+        "startLoc": {
+          "column": 61,
+          "line": 369,
+          "position": 12273
+        }
+      },
+      "tokens": 51
+    },
+    {
+      "firstFile": {
+        "end": 340,
+        "endLoc": {
+          "column": 56,
+          "line": 340,
+          "position": 11282
+        },
+        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "start": 332,
+        "startLoc": {
+          "column": 60,
+          "line": 332,
+          "position": 11045
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const drawCtx = resolveEchoDrawContext(world, entity, 24);\n    if (!drawCtx) return;\n    const { size, isHitFlash } = drawCtx;\n\n    const paint = getPaint();\n    canvas.save();\n\n    if (isHitFlash && SOLAR_GARDEN_DEBUG_FLAGS.hitFlash) {\n      return drawSkiaHitFlashRect(canvas, paint, -size * 0.4, -size * 0.4, size * 0.8, size * 0.8);",
+      "isNew": false,
+      "lines": 9,
+      "secondFile": {
+        "end": 398,
+        "endLoc": {
+          "column": 56,
+          "line": 398,
+          "position": 13131
+        },
+        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "start": 390,
+        "startLoc": {
+          "column": 60,
+          "line": 390,
+          "position": 12894
+        }
+      },
+      "tokens": 50
+    },
+    {
+      "firstFile": {
+        "end": 347,
+        "endLoc": {
+          "column": 41,
+          "line": 347,
+          "position": 11527
+        },
+        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "start": 340,
+        "startLoc": {
+          "column": 97,
+          "line": 340,
+          "position": 11323
+        }
+      },
+      "format": "typescript",
+      "fragment": "      return drawSkiaHitFlashRect(canvas, paint, -size * 0.4, -size * 0.4, size * 0.8, size * 0.8);\n    }\n\n    paint.reset();\n    paint.setAntiAlias(true);\n    paint.setStyle(Skia.PaintStyle.Fill);\n    paint.setColor(Skia.Color(SOLAR_GARDEN_THEME.BIO_BLACK));\n    canvas.drawRect(Skia.XYWHRect(-size * 0.35, -size * 0.3, size * 0.7, size * 0.5), paint);",
+      "isNew": false,
+      "lines": 8,
+      "secondFile": {
+        "end": 405,
+        "endLoc": {
+          "column": 41,
+          "line": 405,
+          "position": 13370
+        },
+        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "start": 398,
+        "startLoc": {
+          "column": 91,
+          "line": 398,
+          "position": 13166
+        }
+      },
+      "tokens": 52
     },
     {
       "firstFile": {
@@ -1131,18 +1205,18 @@
       "isNew": false,
       "lines": 15,
       "secondFile": {
-        "end": 286,
+        "end": 274,
         "endLoc": {
           "column": 11,
-          "line": 286,
-          "position": 7736
+          "line": 274,
+          "position": 7333
         },
         "name": "hitandrun/melee/HitRunMeleeSystem.ts",
-        "start": 270,
+        "start": 258,
         "startLoc": {
           "column": 18,
-          "line": 270,
-          "position": 7439
+          "line": 258,
+          "position": 7036
         }
       },
       "tokens": 61
@@ -1741,18 +1815,18 @@
     },
     {
       "firstFile": {
-        "end": 234,
+        "end": 222,
         "endLoc": {
           "column": 9,
-          "line": 234,
-          "position": 6589
+          "line": 222,
+          "position": 6186
         },
         "name": "hitandrun/melee/HitRunMeleeSystem.ts",
-        "start": 229,
+        "start": 217,
         "startLoc": {
           "column": 4,
-          "line": 229,
-          "position": 6352
+          "line": 217,
+          "position": 5949
         }
       },
       "format": "typescript",
@@ -1760,36 +1834,36 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 327,
+        "end": 315,
         "endLoc": {
           "column": 9,
-          "line": 327,
-          "position": 8749
+          "line": 315,
+          "position": 8346
         },
         "name": "hitandrun/melee/HitRunMeleeSystem.ts",
-        "start": 321,
+        "start": 309,
         "startLoc": {
           "column": 4,
-          "line": 321,
-          "position": 8511
+          "line": 309,
+          "position": 8108
         }
       },
       "tokens": 57
     },
     {
       "firstFile": {
-        "end": 193,
+        "end": 216,
         "endLoc": {
           "column": 10,
-          "line": 193,
-          "position": 6212
+          "line": 216,
+          "position": 6937
         },
         "name": "hitandrun/rendering/HitRunCanvasVisuals.ts",
-        "start": 185,
+        "start": 208,
         "startLoc": {
           "column": 34,
-          "line": 185,
-          "position": 5889
+          "line": 208,
+          "position": 6614
         }
       },
       "format": "typescript",
@@ -1797,36 +1871,36 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 255,
+        "end": 278,
         "endLoc": {
           "column": 10,
-          "line": 255,
-          "position": 8338
+          "line": 278,
+          "position": 9063
         },
         "name": "hitandrun/rendering/HitRunCanvasVisuals.ts",
-        "start": 247,
+        "start": 270,
         "startLoc": {
           "column": 30,
-          "line": 247,
-          "position": 8015
+          "line": 270,
+          "position": 8740
         }
       },
       "tokens": 75
     },
     {
       "firstFile": {
-        "end": 136,
+        "end": 171,
         "endLoc": {
           "column": 11,
-          "line": 136,
-          "position": 4120
+          "line": 171,
+          "position": 5329
         },
         "name": "hitandrun/waves/HitRunWaveSystem.ts",
-        "start": 131,
+        "start": 166,
         "startLoc": {
           "column": 6,
-          "line": 131,
-          "position": 3827
+          "line": 166,
+          "position": 5036
         }
       },
       "format": "typescript",
@@ -1834,18 +1908,18 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 178,
+        "end": 213,
         "endLoc": {
           "column": 9,
-          "line": 178,
-          "position": 5531
+          "line": 213,
+          "position": 6740
         },
         "name": "hitandrun/waves/HitRunWaveSystem.ts",
-        "start": 173,
+        "start": 208,
         "startLoc": {
           "column": 4,
-          "line": 173,
-          "position": 5248
+          "line": 208,
+          "position": 6457
         }
       },
       "tokens": 71
@@ -1997,6 +2071,43 @@
         }
       },
       "tokens": 74
+    },
+    {
+      "firstFile": {
+        "end": 30,
+        "endLoc": {
+          "column": 13,
+          "line": 30,
+          "position": 773
+        },
+        "name": "shared/rendering/SolarGardenMotifs.ts",
+        "start": 23,
+        "startLoc": {
+          "column": 49,
+          "line": 23,
+          "position": 616
+        }
+      },
+      "format": "typescript",
+      "fragment": "  ctx.fillStyle = SOLAR_GARDEN_PALETTE.solarWhite;\n  ctx.beginPath();\n  if (ctx.roundRect) {\n    ctx.roundRect(-w / 2, -h / 2, w, h, radius);\n  } else {\n    ctx.rect(-w / 2, -h / 2, w, h);\n  }\n  ctx.fill();",
+      "isNew": false,
+      "lines": 8,
+      "secondFile": {
+        "end": 103,
+        "endLoc": {
+          "column": 13,
+          "line": 103,
+          "position": 2843
+        },
+        "name": "shared/rendering/SolarGardenVisuals.ts",
+        "start": 95,
+        "startLoc": {
+          "column": 36,
+          "line": 95,
+          "position": 2685
+        }
+      },
+      "tokens": 64
     },
     {
       "firstFile": {
@@ -2481,69 +2592,69 @@
     },
     {
       "firstFile": {
-        "end": 16,
+        "end": 28,
         "endLoc": {
-          "column": 15,
-          "line": 16,
-          "position": 733
+          "column": 19,
+          "line": 28,
+          "position": 1464
         },
         "name": "vertical-shmup/rendering/ShmupCanvasVisuals.ts",
-        "start": 10,
+        "start": 23,
         "startLoc": {
-          "column": 28,
-          "line": 10,
-          "position": 502
+          "column": 42,
+          "line": 23,
+          "position": 1248
         }
       },
       "format": "typescript",
-      "fragment": "export const drawShmupPlayer: ShapeDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {\n  draw(ctx, world, entity) {\n    const render = world.getComponent(entity, \"Render\");\n    if (!render) return;\n    const size = render.size ?? 20;\n\n    ctx.save();",
+      "fragment": "    if (!SOLAR_GARDEN_DEBUG_FLAGS.parallax) return;\n\n    const screen = world.getResource<{ width: number; height: number }>(\"ScreenConfig\") ?? { width: 480, height: 800 };\n    const width = screen.width;\n    const height = screen.height;\n    const elapsed = world.tick * 0.016;",
       "isNew": false,
-      "lines": 7,
+      "lines": 6,
       "secondFile": {
-        "end": 60,
+        "end": 87,
         "endLoc": {
-          "column": 15,
-          "line": 60,
-          "position": 2018
+          "column": 19,
+          "line": 87,
+          "position": 3571
         },
         "name": "vertical-shmup/rendering/ShmupCanvasVisuals.ts",
-        "start": 54,
+        "start": 82,
         "startLoc": {
-          "column": 27,
-          "line": 54,
-          "position": 1787
+          "column": 45,
+          "line": 82,
+          "position": 3355
         }
       },
-      "tokens": 52
+      "tokens": 51
     }
   ],
   "statistics": {
-    "detectionDate": "2026-10-04T23:53:44.641Z",
+    "detectionDate": "2026-10-05T11:59:53.803Z",
     "formats": {
       "typescript": {
-        "clones": 68,
-        "duplicatedLines": 601,
-        "duplicatedTokens": 4479,
-        "lines": 83418,
+        "clones": 71,
+        "duplicatedLines": 618,
+        "duplicatedTokens": 4644,
+        "lines": 83691,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.7204680045074204,
-        "percentageTokens": 1.0081865921762558,
-        "sources": 529,
-        "tokens": 444263
+        "percentage": 0.738430655626053,
+        "percentageTokens": 1.0408961927944163,
+        "sources": 527,
+        "tokens": 446154
       }
     },
     "total": {
-      "clones": 68,
-      "duplicatedLines": 601,
-      "duplicatedTokens": 4479,
-      "lines": 83418,
+      "clones": 71,
+      "duplicatedLines": 618,
+      "duplicatedTokens": 4644,
+      "lines": 83691,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.7204680045074204,
-      "percentageTokens": 1.0081865921762558,
-      "sources": 529,
-      "tokens": 444263
+      "percentage": 0.738430655626053,
+      "percentageTokens": 1.0408961927944163,
+      "sources": 527,
+      "tokens": 446154
     }
   }
 }

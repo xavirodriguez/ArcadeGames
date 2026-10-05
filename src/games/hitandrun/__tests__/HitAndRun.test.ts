@@ -24,6 +24,74 @@ describe("Hit & Run Game Systems", () => {
       expect(state.score).toBe(0);
       expect(state.isGameOver).toBe(false);
     });
+
+    it("creates exactly one main Camera2D entity after initialization", async () => {
+      const game = new HitAndRunGame({ seed: 12345 });
+      await game.init();
+
+      const gameWorld = game.getWorld();
+      const cameras = gameWorld.query("Camera2D");
+      expect(cameras.length).toBe(1);
+
+      const camComp = gameWorld.getComponent(cameras[0], "Camera2D") as { isMain?: boolean } | undefined;
+      expect(camComp?.isMain).toBe(true);
+    });
+
+    it("registers canvas shapes and effects during initializeRenderer", () => {
+      const game = new HitAndRunGame({ seed: 12345 });
+      const shapesRegistered = new Set<string>();
+      const effectsRegistered = new Set<string>();
+
+      const mockRenderer = {
+        type: "canvas",
+        render: jest.fn(),
+        registerShape: (name: string) => { shapesRegistered.add(name); },
+        registerBackgroundEffect: (name: string) => { effectsRegistered.add(name); }
+      };
+
+      game.initializeRenderer(mockRenderer as unknown as import("@tiny-aster/core").Renderer);
+
+      expect(shapesRegistered.has("player")).toBe(true);
+      expect(shapesRegistered.has("popcorn")).toBe(true);
+      expect(shapesRegistered.has("wall_trooper")).toBe(true);
+      expect(shapesRegistered.has("hopper")).toBe(true);
+      expect(shapesRegistered.has("charger")).toBe(true);
+      expect(shapesRegistered.has("elite")).toBe(true);
+      expect(shapesRegistered.has("bullet_hmg")).toBe(true);
+      expect(shapesRegistered.has("bullet_rocket")).toBe(true);
+      expect(shapesRegistered.has("tilemap")).toBe(true);
+
+      expect(effectsRegistered.has("hit_run_procedural_backdrop")).toBe(true);
+      expect(effectsRegistered.has("hit_run_hud")).toBe(true);
+    });
+
+    it("generates and instantiates level plan and backdrop resource on init", async () => {
+      const game = new HitAndRunGame({ seed: 12345 });
+      await game.init();
+
+      const plan = game.getLevelPlan();
+      expect(plan).toBeDefined();
+      expect(plan.totalWidth).toBeGreaterThan(0);
+
+      const gameWorld = game.getWorld();
+      const tilemaps = gameWorld.query("Tilemap");
+      expect(tilemaps.length).toBeGreaterThan(0);
+
+      const backdrop = gameWorld.getResource("HitRunBackdropSpec");
+      expect(backdrop).toBeDefined();
+    });
+
+    it("registers wave director and death flow resources on init", async () => {
+      const game = new HitAndRunGame({ seed: 12345 });
+      await game.init();
+
+      const gameWorld = game.getWorld();
+      const waveState = gameWorld.getResource("WaveDirectorState");
+      expect(waveState).toBeDefined();
+
+      const deathFlow = gameWorld.getResource("HitRunDeathFlow");
+      expect(deathFlow).toBeDefined();
+    });
   });
 
   describe("Weapon System", () => {

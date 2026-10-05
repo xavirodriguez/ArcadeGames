@@ -137,29 +137,6 @@ export const drawHitRunPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreCompone
   }
 };
 
-export const drawHitRunPow: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
-  draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render?.visible) return;
-    const size = render.size || 24;
-    ctx.save();
-    ctx.fillStyle = "#facc15";
-    ctx.shadowColor = "#facc15";
-    ctx.shadowBlur = 10;
-    ctx.beginPath();
-    ctx.arc(0, -size * 0.25, size * 0.2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillRect(-size * 0.25, -size * 0.05, size * 0.5, size * 0.45);
-    ctx.strokeStyle = "#78350f";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(-size * 0.25, size * 0.1);
-    ctx.lineTo(size * 0.25, size * 0.1);
-    ctx.stroke();
-    ctx.restore();
-  }
-};
-
 function drawEnemyBase(
   ctx: CanvasRenderingContext2D,
   size: number,

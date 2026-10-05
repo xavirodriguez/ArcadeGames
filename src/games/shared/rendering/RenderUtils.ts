@@ -1,4 +1,5 @@
 import { colors } from "../../../theme/colors";
+import { SOLAR_GARDEN_THEME } from "../../../theme/solarGardenTheme";
 
 /**
  * Interface representing any object or component with optional hitFlashFrames.
@@ -37,7 +38,7 @@ export function resolveHitFlash(
   if (render && render.hitFlashFrames !== undefined && render.hitFlashFrames > 0) {
     const isDimmed = (render.hitFlashFrames >> 1) % 2 === 0;
     return {
-      color: colors.white,
+      color: SOLAR_GARDEN_THEME.SOLAR_WHITE,
       opacity: isDimmed ? dimOpacity : baseOpacity,
       isFlashing: true
     };

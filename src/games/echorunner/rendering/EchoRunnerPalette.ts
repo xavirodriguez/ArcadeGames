@@ -1,31 +1,35 @@
+import { SOLAR_GARDEN_THEME, SOLAR_GARDEN_VARIANTS } from "../../../theme/solarGardenTheme";
+
 /**
-  * EchoRunner "The Archive" Color Palette
-  * Distinguishes Corrupted vs Restored Archive data and environments.
+  * EchoRunner Solar Garden Palette
+  * Map directly to central Solar Garden tokens: Porcelain/Gold/Cyan Restoration vs Biomechanical Chitin/Magenta/Acid Corruption.
   */
 export const ECHO_PALETTE = {
   // Restoration & Restored Data (Player, Core, Active Pulse, Restored Nodes)
-  restorationCyan: "#00f0ff",
-  restorationCyanGlow: "rgba(0, 240, 255, 0.4)",
-  restorationCyanFade: "rgba(0, 240, 255, 0.08)",
-  restorationGold: "#fbbf24",
-  restorationGoldGlow: "rgba(251, 191, 36, 0.5)",
-  restorationWhite: "#ffffff",
+  restorationCyan: SOLAR_GARDEN_THEME.SOLAR_CYAN,
+  restorationCyanGlow: "rgba(0, 229, 255, 0.4)",
+  restorationCyanFade: "rgba(0, 229, 255, 0.08)",
+  restorationGold: SOLAR_GARDEN_THEME.SOLAR_GOLD,
+  restorationGoldGlow: SOLAR_GARDEN_VARIANTS.SOLAR_GOLD_GLOW,
+  restorationWhite: SOLAR_GARDEN_THEME.SOLAR_WHITE,
 
   // Corruption & Corrupted Data (Enemies, Hazards, Alert States)
-  corruptionCrimson: "#ff0055",
-  corruptionCrimsonGlow: "rgba(255, 0, 85, 0.4)",
-  corruptionAmber: "#f97316",
-  corruptionPurple: "#a855f7",
-  corruptionPurpleGlow: "rgba(168, 85, 247, 0.4)",
+  corruptionCrimson: SOLAR_GARDEN_THEME.BIO_MAGENTA,
+  corruptionCrimsonGlow: SOLAR_GARDEN_VARIANTS.BIO_MAGENTA_GLOW,
+  corruptionAmber: SOLAR_GARDEN_THEME.THREAT_ORANGE,
+  corruptionPurple: SOLAR_GARDEN_THEME.BIO_BLACK,
+  corruptionPurpleGlow: "rgba(20, 24, 29, 0.5)",
+  corruptionAcid: SOLAR_GARDEN_THEME.BIO_ACID,
+  corruptionAcidGlow: SOLAR_GARDEN_VARIANTS.BIO_ACID_GLOW,
 
-  // Neutral Archive Structure & Environment
-  archiveVoidDark: "#060913",
-  archiveSlate: "#1e293b",
-  archiveBorderDark: "#0f172a",
-  archiveBorderLight: "#334155",
-  archiveGridLine: "rgba(0, 240, 255, 0.05)",
-  archiveGridLineSecondary: "rgba(168, 85, 247, 0.03)",
-  archiveDataStream: "rgba(255, 0, 85, 0.06)",
-  archiveNodeActive: "#10b981",
-  archiveNodeInactive: "#ef4444"
+  // Environment & Architecture
+  archiveVoidDark: SOLAR_GARDEN_THEME.BIO_BLACK,
+  archiveSlate: SOLAR_GARDEN_THEME.GARDEN_GREEN,
+  archiveBorderDark: "#0B0E12",
+  archiveBorderLight: "#3D4F42",
+  archiveGridLine: "rgba(0, 229, 255, 0.06)",
+  archiveGridLineSecondary: "rgba(230, 184, 0, 0.04)",
+  archiveDataStream: "rgba(255, 0, 127, 0.08)",
+  archiveNodeActive: SOLAR_GARDEN_THEME.SOLAR_GOLD,
+  archiveNodeInactive: SOLAR_GARDEN_THEME.THREAT_ORANGE
 } as const;

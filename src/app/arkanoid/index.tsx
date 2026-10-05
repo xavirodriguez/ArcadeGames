@@ -162,7 +162,7 @@ function ArkanoidContent() {
         overlaySlot={
           gameState?.isGameOver ? (
             <View style={sharedScreenStyles.overlay}>
-              <Text style={sharedScreenStyles.overlayText}>{t.gameOver ?? "Game Over"}</Text>
+              <Text style={sharedScreenStyles.overlayText}>{t.common?.game_over ?? "Game Over"}</Text>
               <TouchableOpacity
                 style={styles.restartButton}
                 onPress={() => {
@@ -170,7 +170,7 @@ function ArkanoidContent() {
                   game.restart();
                 }}
               >
-                <Text style={styles.restartButtonText}>{t.restart ?? "Retry"}</Text>
+                <Text style={styles.restartButtonText}>{t.common?.retry ?? "Retry"}</Text>
               </TouchableOpacity>
             </View>
           ) : null

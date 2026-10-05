@@ -17,7 +17,7 @@ import { colors, spacing, typography, effects, neonTextGlow, COLORS } from "../t
 
 interface GameEntry {
   id: string;
-  key: "asteroids" | "space_invaders" | "flappybird" | "pong" | "geometrywars" | "echorunner" | "hitandrun" | "platformer" | "frogger" | "cyoa" | "blindstation" | "campaign" | "arkanoid" | "racing" | "tower_defense";
+  key: "asteroids" | "space_invaders" | "flappybird" | "pong" | "geometrywars" | "echorunner" | "hitandrun" | "platformer" | "frogger" | "cyoa" | "blindstation" | "campaign" | "arkanoid" | "racing" | "tower_defense" | "vertical-shmup";
   href: Href;
 }
 

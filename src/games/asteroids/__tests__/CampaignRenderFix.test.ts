@@ -9,7 +9,7 @@ describe("Campaign Render Fix (Hypothesis A)", () => {
     };
 
     initializeAsteroidsRenderer(
-      mockRenderer as Parameters<typeof initializeAsteroidsRenderer>[0]
+      mockRenderer as unknown as Parameters<typeof initializeAsteroidsRenderer>[0]
     );
 
     expect(mockRenderer.registerShape).toHaveBeenCalledWith("player_ship", expect.objectContaining({ draw: expect.any(Function) }));

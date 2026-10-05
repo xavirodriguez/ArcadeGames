@@ -146,3 +146,26 @@ export const HIT_RUN_WEAPON_CATALOG: Record<string, HitRunWeaponDefinition> = {
 export function getWeaponDefinition(id: HitRunWeaponId): HitRunWeaponDefinition {
   return HIT_RUN_WEAPON_CATALOG[id] ?? HIT_RUN_WEAPON_CATALOG.hmg;
 }
+
+export const WEAPON_AMMO_DEFAULTS: Record<string, number> = {
+  hmg: -1,
+  shotgun: 30,
+  rocket: 15,
+  longbow: -1,
+  rune_scatter: 35,
+  fire_staff: 15,
+  crossbow: 40
+};
+
+export function createWeaponState(weaponId: HitRunWeaponId = "hmg", ammoOverride?: number) {
+  const defaultAmmo = WEAPON_AMMO_DEFAULTS[weaponId] ?? -1;
+  const ammo = ammoOverride ?? defaultAmmo;
+  return {
+    type: "HitRunWeapon",
+    weaponId,
+    cooldownRemaining: 0,
+    ammo,
+    maxAmmo: defaultAmmo,
+    muzzleFlashRemaining: 0
+  };
+}

@@ -1,13 +1,14 @@
 import { System, SystemPhase, World } from "@tiny-aster/core";
-import type { TowerDefenseComponentRegistry, TowerCatalog } from "../types/TowerDefenseTypes";
+import type { TowerDefenseComponentRegistry, TowerDefenseEventRegistry, TowerCatalog } from "../types/TowerDefenseTypes";
 import type { TowerDefenseConfig } from "../types/TowerDefenseConfigSchema";
 import type { TowerProjectilePool } from "../EntityPool";
 
 /**
  * Fires projectiles at the current target when cooldown allows.
  * Frost towers attach slow payload to projectiles.
+ * Uses world.commands to spawn projectiles safely during simulation update.
  */
-export class TowerFiringSystem extends System<TowerDefenseComponentRegistry> {
+export class TowerFiringSystem extends System<TowerDefenseComponentRegistry, TowerDefenseEventRegistry> {
   readonly phase = SystemPhase.Simulation;
   private pool: TowerProjectilePool;
 
@@ -16,7 +17,7 @@ export class TowerFiringSystem extends System<TowerDefenseComponentRegistry> {
     this.pool = pool;
   }
 
-  update(world: World<TowerDefenseComponentRegistry>, dt: number): void {
+  update(world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>, dt: number): void {
     const config = world.getResource<TowerDefenseConfig>("GameConfig");
     if (!config) return;
     const catalog = world.getResource<TowerCatalog>("TowerCatalog");
@@ -52,25 +53,24 @@ export class TowerFiringSystem extends System<TowerDefenseComponentRegistry> {
           ? { factor: def.slowFactor, durationMs: def.slowDurationMs }
           : undefined;
 
-      this.pool.acquire(
-        world,
-        config,
-        transform.x,
-        transform.y,
-        tower.targetEntity,
-        tower.damage,
-        tower.projectileSpeed,
-        slow
-      );
+      world.commands.spawnFromBlueprint("tower_projectile", {
+        x: transform.x,
+        y: transform.y,
+        targetEntity: tower.targetEntity,
+        damage: tower.damage,
+        speed: tower.projectileSpeed,
+        slowFactor: slow?.factor,
+        slowDurationMs: slow?.durationMs,
+      });
 
-      const bus = world.getEventBus?.() ?? (world as any).eventBus;
+      const bus = world.getEventBus();
       if (bus && !(world as any).isReSimulating) {
         bus.emitDeferred?.("PlaySFX", { name: "shoot" }) ?? bus.emit?.("PlaySFX", { name: "shoot" });
       }
 
-      const cooldownMs = 1000 / tower.fireRate;
+      const cooldownSec = 1.0 / tower.fireRate;
       world.mutateComponent(towerEntity, "Tower", (t) => {
-        t.cooldownRemaining = cooldownMs;
+        t.cooldownRemaining = cooldownSec;
       });
     }
   }

@@ -16,10 +16,11 @@ export class SlowOnHitSystem extends System<TowerDefenseComponentRegistry, Tower
   }
 
   private bind(world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>): void {
-    const bus = world.getEventBus?.() ?? (world as any).eventBus;
+    const bus = world.getEventBus();
     if (!bus?.on) return;
 
-    bus.on("combat:hit", (ev: { targetEntity: number; sourceEntity: number }) => {
+    bus.on("combat:hit", (ev) => {
+      if (!ev.sourceEntity) return;
       const proj = world.getComponent(ev.sourceEntity, "TowerProjectile");
       if (!proj?.slowFactor || !proj.slowDurationMs) return;
       if (!world.hasComponent(ev.targetEntity, "Creep")) return;

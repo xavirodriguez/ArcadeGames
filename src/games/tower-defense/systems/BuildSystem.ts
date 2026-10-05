@@ -1,22 +1,22 @@
 import { System, SystemPhase, World } from "@tiny-aster/core";
 import type {
   TowerDefenseComponentRegistry,
+  TowerDefenseEventRegistry,
   TileGrid,
   TowerCatalog,
   GameStateComponent,
 } from "../types/TowerDefenseTypes";
 import type { GridLayout } from "../../shared/grid/GridTypes";
 import { isBuildable, worldToCellCoords } from "../MapUtils";
-import { spawnTower } from "../EntityFactory";
 
 /**
  * Handles build / sell / upgrade from Input.
  * Rule: towers only on `buildable` tiles (no path blocking → no dynamic pathfinding needed).
  */
-export class BuildSystem extends System<TowerDefenseComponentRegistry> {
+export class BuildSystem extends System<TowerDefenseComponentRegistry, TowerDefenseEventRegistry> {
   readonly phase = SystemPhase.Input;
 
-  update(world: World<TowerDefenseComponentRegistry>, _dt: number): void {
+  update(world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>, _dt: number): void {
     const playerEntity = world.query("Player")[0];
     if (playerEntity === undefined) return;
 
@@ -58,9 +58,14 @@ export class BuildSystem extends System<TowerDefenseComponentRegistry> {
         g.gold -= def.cost;
       });
 
-      const towerEntity = spawnTower(world, def, cell.col, cell.row, layout);
-      world.eventBus?.emit("tower:built", {
-        entity: towerEntity,
+      world.commands.spawnFromBlueprint("tower", {
+        type: def.id,
+        col: cell.col,
+        row: cell.row,
+      });
+
+      world.getEventBus()?.emit("tower:built", {
+        entity: 0,
         towerType: def.id,
         col: cell.col,
         row: cell.row,
@@ -82,8 +87,8 @@ export class BuildSystem extends System<TowerDefenseComponentRegistry> {
         world.mutateSingleton("GameState", (g: GameStateComponent) => {
           g.gold += refund;
         });
-        world.eventBus?.emit("tower:sold", { entity: towerAtCell, refund });
-        world.destroyEntity(towerAtCell);
+        world.getEventBus()?.emit("tower:sold", { entity: towerAtCell, refund });
+        world.commands.removeEntity(towerAtCell);
       }
       world.mutateComponent(playerEntity, "Input", (i) => {
         i.sell = false;
@@ -109,7 +114,7 @@ export class BuildSystem extends System<TowerDefenseComponentRegistry> {
               t.range = Math.floor(t.range * 1.1);
               t.fireRate = t.fireRate * 1.1;
             });
-            world.eventBus?.emit("tower:upgraded", {
+            world.getEventBus()?.emit("tower:upgraded", {
               entity: towerAtCell,
               level: tower.level + 1,
             });

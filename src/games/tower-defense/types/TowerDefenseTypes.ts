@@ -1,10 +1,9 @@
-import { Component, CoreComponentRegistry, CoreEvents, MultiplayerRegistry } from "@tiny-aster/core";
+import { Component, CoreComponentRegistry, CoreEvents, MultiplayerRegistry, HealthComponent } from "@tiny-aster/core";
 import {
   DamageComponent,
   FactionComponent,
   SpawnDirectorComponent,
   WaveMemberComponent,
-  HealthComponent,
 } from "@tiny-aster/gameplay-kit";
 import type { TileType, TowerDefinition, CreepDefinition, WaveDefinition } from "./TowerDefenseConfigSchema";
 
@@ -15,8 +14,8 @@ export type { TileType };
 
 /** Event registry for Tower Defense. */
 export interface TowerDefenseEventRegistry extends CoreEvents, Record<string, unknown> {
-  "combat:hit": { attacker: number; target: number; amount: number };
-  "combat:death": { entity: number; killer?: number };
+  "combat:hit": { targetEntity: number; sourceEntity?: number; amount: number; remainingHealth?: number; category?: string };
+  "combat:death": { entity: number; sourceEntity?: number; category?: string };
   "creep:killed": { entity: number; reward: number; creepType: string };
   "creep:reached_base": { entity: number };
   "tower:built": { entity: number; towerType: string; col: number; row: number };
@@ -126,6 +125,7 @@ export interface TowerDefenseComponentRegistry extends CoreComponentRegistry, Mu
   Faction: FactionComponent;
   SpawnDirector: SpawnDirectorComponent;
   WaveMember: WaveMemberComponent;
+  Dying: { type: "Dying" };
   LocalPlayer: { type: "LocalPlayer" };
   RemotePlayer: { type: "RemotePlayer"; sessionId?: string };
 }

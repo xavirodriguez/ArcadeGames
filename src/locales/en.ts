@@ -47,6 +47,7 @@ export const en = {
       "vertical-shmup": "1942 // VERTICAL SHMUP",
       arkanoid: "ARKANOID",
       racing: "MICRO RACERS",
+      tower_defense: "TOWER DEFENSE",
       campaign: "STORY CAMPAIGN",
       level: "LEVEL",
     },
@@ -216,6 +217,18 @@ export const en = {
     },
     frogger: {
       instructions: "W/A/S/D or Arrows: Jump Up/Down/Left/Right",
+    },
+    "tower-defense": {
+      instructions: "Tap a tile to select, build, sell or upgrade towers. Defend the base!",
+      select_tower: "Select Tower",
+      build: "Build",
+      sell: "Sell",
+      upgrade: "Upgrade",
+      start_wave: "Start Wave",
+      gold: "Gold",
+      lives: "Lives",
+      wave: "Wave",
+      phase: "Phase",
     },
     mutators: {
       heavy_gravity: {

@@ -1,18 +1,19 @@
 import { System, SystemPhase, World } from "@tiny-aster/core";
 import type {
   TowerDefenseComponentRegistry,
+  TowerDefenseEventRegistry,
   GameStateComponent,
   WaveDefinitions,
 } from "../types/TowerDefenseTypes";
 import type { TowerDefenseConfig } from "../types/TowerDefenseConfigSchema";
 
-export class GameStateSystem extends System<TowerDefenseComponentRegistry> {
+export class GameStateSystem extends System<TowerDefenseComponentRegistry, TowerDefenseEventRegistry> {
   readonly phase = SystemPhase.GameRules;
   private unsubKilled?: () => void;
   private unsubWaveCleared?: () => void;
   private bound = false;
 
-  update(world: World<TowerDefenseComponentRegistry>, dt: number): void {
+  update(world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>, dt: number): void {
     if (!this.bound) {
       this.bindEvents(world);
       this.bound = true;
@@ -25,7 +26,7 @@ export class GameStateSystem extends System<TowerDefenseComponentRegistry> {
       world.mutateSingleton("GameState", (g: GameStateComponent) => {
         g.phase = "game_over";
       });
-      const bus = world.getEventBus?.() ?? (world as any).eventBus;
+      const bus = world.getEventBus();
       if (bus && !(world as any).isReSimulating) {
         bus.emitDeferred?.("PlaySFX", { name: "game_over" }) ?? bus.emit?.("PlaySFX", { name: "game_over" });
       }
@@ -36,7 +37,7 @@ export class GameStateSystem extends System<TowerDefenseComponentRegistry> {
 
     if (gs.phase === "intermission") {
       world.mutateSingleton("GameState", (g: GameStateComponent) => {
-        g.intermissionRemaining = Math.max(0, g.intermissionRemaining - dt / 1000);
+        g.intermissionRemaining = Math.max(0, g.intermissionRemaining - dt);
         if (g.intermissionRemaining <= 0) {
           g.phase = "build";
         }
@@ -55,15 +56,22 @@ export class GameStateSystem extends System<TowerDefenseComponentRegistry> {
     }
   }
 
-  private bindEvents(world: World<TowerDefenseComponentRegistry>): void {
-    this.unsubKilled = world.eventBus?.on("creep:killed", (ev: { reward: number }) => {
+  public reset(): void {
+    this.unsubKilled?.();
+    this.unsubWaveCleared?.();
+    this.bound = false;
+  }
+
+  private bindEvents(world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>): void {
+    const bus = world.getEventBus();
+    this.unsubKilled = bus?.on("creep:killed", (ev: { reward: number }) => {
       world.mutateSingleton("GameState", (g: GameStateComponent) => {
         g.gold += ev.reward;
         g.score += ev.reward;
       });
     });
 
-    this.unsubWaveCleared = world.eventBus?.on("wave:cleared", () => {
+    this.unsubWaveCleared = bus?.on("wave:cleared", () => {
       const config = world.getResource<TowerDefenseConfig>("GameConfig");
       const waves = world.getResource<WaveDefinitions>("WaveDefinitions");
       const gs = world.getSingleton("GameState") as GameStateComponent | undefined;
@@ -85,7 +93,7 @@ export class GameStateSystem extends System<TowerDefenseComponentRegistry> {
     });
   }
 
-  private beginWave(world: World<TowerDefenseComponentRegistry>): void {
+  private beginWave(world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>): void {
     world.mutateSingleton("GameState", (g: GameStateComponent) => {
       g.phase = "wave";
     });

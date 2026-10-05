@@ -32,14 +32,6 @@ export class ProjectileHomingSystem extends System<TowerDefenseComponentRegistry
         }
       }
 
-      // Integrate velocity
-      const vel = world.getComponent(entity, "Velocity");
-      if (vel) {
-        world.mutateComponent(entity, "Transform", (t) => {
-          t.x += vel.vx * (dt / 1000);
-          t.y += vel.vy * (dt / 1000);
-        });
-      }
     }
   }
 }

@@ -115,6 +115,7 @@ The engine features a platform-agnostic audio system designed for a decouple-fir
 | **Space Invaders** | Wave scaling, shields, combo multipliers, kamikaze dive patterns         |
 | **Flappy Bird**    | Animated background effects, pipe generation, precision collision        |
 | **Pong**           | Paddle physics, authoritative multiplayer via Colyseus                   |
+| **Tower Defense**  | Grid-based path navigation, data-driven creep waves, tower upgrades     |
 
 ---
 

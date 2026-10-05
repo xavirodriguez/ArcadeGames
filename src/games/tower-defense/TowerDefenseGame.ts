@@ -167,6 +167,7 @@ export class TowerDefenseGame extends BaseGame<
     );
 
     this.world.setResource("GameConfig", this.config);
+    this.world.setResource("BackgroundEffect", "td_map");
 
     const gridLayout = createGridLayout(this.config);
     this.world.setResource<GridLayout>("GridLayout", gridLayout);

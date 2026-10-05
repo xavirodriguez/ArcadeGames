@@ -187,7 +187,7 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
 
     for (let row = 0; row < tileGrid.rows; row++) {
       for (let col = 0; col < tileGrid.cols; col++) {
-        const tile = tileGrid.tiles[row][col];
+        const tile = tileGrid.tiles[row]?.[col];
         const x = layout.offsetX + col * layout.stepX;
         const y = layout.offsetY + row * layout.stepY;
         let color = "#0f0f1a";
@@ -233,7 +233,7 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
           const gy = layout.offsetY + row * layout.stepY;
           const cx = gx + layout.stepX / 2;
           const cy = gy + layout.stepY / 2;
-          const buildable = tileGrid.tiles[row][col] === "buildable";
+          const buildable = tileGrid.tiles[row]?.[col] === "buildable";
           const canAfford = (gs?.gold ?? 0) >= def.cost;
           const occupied = world.query("Tower").some((e) => {
             const tw = world.getComponent(e, "Tower");

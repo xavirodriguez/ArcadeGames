@@ -124,10 +124,11 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
 
     const weaponId = (weapon?.weaponId ?? "hmg").toUpperCase();
     const cd = weapon?.cooldownRemaining ?? 0;
+    const ammoText = weapon?.ammo !== undefined && weapon.ammo >= 0 ? ` [${weapon.ammo}]` : " [∞]";
     ctx.font = "bold 12px 'Share Tech Mono', monospace";
     ctx.textAlign = "left";
     ctx.fillStyle = HIT_PALETTE.hitRunYellow;
-    ctx.fillText(weaponId, startX + maxHp * (pipW + 6) + 16, 22);
+    ctx.fillText(`${weaponId}${ammoText}`, startX + maxHp * (pipW + 6) + 16, 22);
     if (cd > 0.02) {
       ctx.fillStyle = "rgba(255,255,255,0.35)";
       ctx.fillRect(startX + maxHp * (pipW + 6) + 16, 26, 40 * Math.min(1, cd / 0.2), 3);

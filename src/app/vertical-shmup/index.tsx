@@ -1,6 +1,5 @@
 import { useCallback, useState } from "react";
 import { StyleSheet, Text, View, Pressable } from "react-native";
-import { router } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
@@ -41,7 +40,7 @@ export default function VerticalShmupScreen() {
         <GameLayoutShell
           style={sharedScreenStyles.container}
           topLeftSlot={<BackButton label="Menu" />}
-          centerHudSlot={<View style={styles.hud}><Text style={styles.hudText}>SCORE {gameState.score} · WAVE {gameState.wave}</Text></View>}
+          centerHudSlot={<View style={styles.hud}><Text style={styles.hudText}>SCORE {gameState?.score ?? 0} · WAVE {gameState?.wave ?? 1}</Text></View>}
           canvasSlot={<CanvasRenderer world={game.getWorld()} gameLoop={game.getGameLoop()} onInitialize={(renderer) => game.initializeRenderer(renderer)} />}
           controlsSlot={
             <View style={styles.controls}>
@@ -51,7 +50,7 @@ export default function VerticalShmupScreen() {
               <Pressable style={styles.fire} onPressIn={() => setInput({shoot:true})} onPressOut={() => setInput({shoot:false})}><Text style={styles.text}>FIRE</Text></Pressable>
             </View>
           }
-          debugSlot={<DebugOverlay game={game} />}
+          debugSlot={<DebugOverlay game={game as never} />}
         />
       </SafeAreaProvider>
     </GameErrorBoundary>

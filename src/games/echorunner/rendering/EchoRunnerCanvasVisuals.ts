@@ -2,6 +2,8 @@ import { ShapeDrawer, EffectDrawer, CoreComponentRegistry } from "@tiny-aster/co
 import { ECHO_PALETTE } from "./EchoRunnerPalette";
 import { SOLAR_GARDEN_PALETTE } from "../../shared/rendering/SolarGardenPalette";
 import { drawSolarLeafWing, drawBiomechanicalChitin } from "../../shared/rendering/SolarGardenMotifs";
+import { SOLAR_GARDEN_THEME, SOLAR_GARDEN_VARIANTS } from "../../../theme/solarGardenTheme";
+import { SOLAR_GARDEN_DEBUG_FLAGS } from "../../../theme/solarGardenDebug";
 import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 import {
   calculateEchoPlayerPose,
@@ -16,6 +18,11 @@ import {
   resolveEchoCheckpointDrawContext,
   resolveEchoBackgroundContext,
 } from "./EchoRunnerVisualUtils";
+import {
+  computeBiomechanicalDeformation,
+  drawBiomechanicalChitinPlate,
+  drawBiomechanicalEye
+} from "../../shared/rendering/SolarGardenVisuals";
 
 const gradientCache = new Map<number, CanvasGradient>();
 let lastCtx: CanvasRenderingContext2D | null = null;
@@ -141,6 +148,10 @@ export const drawEchoBackground: EffectDrawer<CanvasRenderingContext2D, CoreComp
   }
 };
 
+/**
+ * Echo Runner Player — Restoration Unit
+ * WHITE PORCELAIN + GOLD JOINTS + CRYSTALLINE CORE + SEED / MANTIS SILHOUETTE
+ */
 export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
     const playerCtx = resolveEchoPlayerDrawContext(world, entity);
@@ -151,7 +162,7 @@ export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
     ctx.save();
 
     const flashState = resolveHitFlash(render, render.color || "cyan", 1.0);
-    if (flashState.isFlashing) {
+    if (flashState.isFlashing && SOLAR_GARDEN_DEBUG_FLAGS.hitFlash) {
       return drawCanvasHitFlashCircle(ctx, size * 0.65);
     }
 
@@ -213,8 +224,8 @@ export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
     // Leg Joints
     ctx.fillStyle = SOLAR_GARDEN_PALETTE.solarGold;
     ctx.beginPath();
-    ctx.arc(leftLegX, leftLegY, size * 0.08, 0, Math.PI * 2);
-    ctx.arc(rightLegX, rightLegY, size * 0.08, 0, Math.PI * 2);
+    ctx.arc(leftLegX, leftLegY, size * 0.09, 0, Math.PI * 2);
+    ctx.arc(rightLegX, rightLegY, size * 0.09, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.restore();
@@ -293,6 +304,7 @@ export const drawCheckpointNode: ShapeDrawer<CanvasRenderingContext2D, CoreCompo
     ctx.fillRect(-size * 0.25, -size * 0.5, size * 0.5, size * 0.8);
     ctx.strokeRect(-size * 0.25, -size * 0.5, size * 0.5, size * 0.8);
 
+    // Active Gold / Threat Orange Indicator Ring
     ctx.fillStyle = statusColor;
     ctx.beginPath();
     ctx.arc(0, -size * 0.2, size * 0.2, 0, Math.PI * 2);
@@ -302,30 +314,87 @@ export const drawCheckpointNode: ShapeDrawer<CanvasRenderingContext2D, CoreCompo
   }
 };
 
+/**
+ * Crystal Annihilation Pulse & Golden Energy Attraction
+ */
 export const drawPulseAttack: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
     const size = render.size || 35;
+    const progress = Math.min(1.0, (world.tick % 10) / 10); // ~300ms cycle
 
     ctx.save();
 
     ctx.shadowColor = SOLAR_GARDEN_PALETTE.solarCyan;
     ctx.shadowBlur = 16;
 
-    const grad = getPulseAttackGradient(ctx, size);
+    const ringGrad = ctx.createRadialGradient(0, 0, ringRadius * 0.4, 0, 0, ringRadius);
+    ringGrad.addColorStop(0, "rgba(0, 229, 255, 0.95)");
+    ringGrad.addColorStop(0.5, "rgba(230, 184, 0, 0.8)");
+    ringGrad.addColorStop(1, "rgba(230, 184, 0, 0)");
 
-    ctx.fillStyle = grad;
+    ctx.fillStyle = ringGrad;
     ctx.beginPath();
     ctx.arc(0, 0, size, -Math.PI * 0.4, Math.PI * 0.4);
     ctx.lineTo(0, 0);
     ctx.closePath();
     ctx.fill();
 
+    // 2. Corruption Fracture — 6 Floating Crystal Fragments
+    const fragmentCount = 6;
+    for (let i = 0; i < fragmentCount; i++) {
+      const angle = (i * Math.PI * 2) / fragmentCount + progress * 0.5;
+      const dist = size * 0.85 * progress;
+      const fx = Math.cos(angle) * dist;
+      const fy = Math.sin(angle) * dist;
+      const fragSize = 3.5;
+
+      ctx.save();
+      ctx.translate(fx, fy);
+      ctx.rotate(angle + progress * 2.5);
+
+      ctx.fillStyle = i % 2 === 0 ? SOLAR_GARDEN_THEME.SOLAR_CYAN : SOLAR_GARDEN_THEME.SOLAR_WHITE;
+      ctx.strokeStyle = SOLAR_GARDEN_THEME.SOLAR_GOLD;
+      ctx.lineWidth = 1;
+
+      ctx.beginPath();
+      ctx.moveTo(0, -fragSize * 1.5);
+      ctx.lineTo(fragSize, 0);
+      ctx.lineTo(0, fragSize * 1.5);
+      ctx.lineTo(-fragSize, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    // 3. Golden Energy Attraction — Particles accelerating toward center
+    if (SOLAR_GARDEN_DEBUG_FLAGS.particles) {
+      const attrCount = 8;
+      for (let i = 0; i < attrCount; i++) {
+        const startAngle = (i * Math.PI * 2) / attrCount;
+        const inwardProgress = (progress + i / attrCount) % 1.0;
+        const attrDist = size * (1.2 - inwardProgress * 1.0);
+        const ax = Math.cos(startAngle) * attrDist;
+        const ay = Math.sin(startAngle) * attrDist;
+
+        ctx.fillStyle = SOLAR_GARDEN_THEME.SOLAR_GOLD;
+        ctx.globalAlpha = Math.sin(inwardProgress * Math.PI) * ringAlpha;
+        ctx.beginPath();
+        ctx.arc(ax, ay, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
     ctx.restore();
   }
 };
 
+/**
+ * Sentinel Enemy — Biomechanical flying drone with dark chitin shell and magenta eye.
+ */
 export const drawSentinel: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
     const drawCtx = resolveEchoDrawContext(world, entity, 22);
@@ -334,7 +403,7 @@ export const drawSentinel: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRe
 
     ctx.save();
 
-    if (isHitFlash) {
+    if (isHitFlash && SOLAR_GARDEN_DEBUG_FLAGS.hitFlash) {
       return drawCanvasHitFlashCircle(ctx, size * 0.5);
     }
 
@@ -353,6 +422,9 @@ export const drawSentinel: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRe
   }
 };
 
+/**
+ * Hopper Enemy — Insectoid ground pouncer with heavy chitin legs.
+ */
 export const drawHopper: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
     const drawCtx = resolveEchoDrawContext(world, entity, 24);
@@ -361,19 +433,23 @@ export const drawHopper: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegi
 
     ctx.save();
 
-    if (isHitFlash) {
+    if (isHitFlash && SOLAR_GARDEN_DEBUG_FLAGS.hitFlash) {
       return drawCanvasHitFlashRect(ctx, -size * 0.4, -size * 0.4, size * 0.8, size * 0.8);
     }
 
     const { scaleX, scaleY } = resolveHopperVisualState(state);
-
     ctx.scale(scaleX, scaleY);
-    drawBiomechanicalChitin(ctx, size * 0.4, true);
+
+    // Dark Chitin Body Shell
+    drawBiomechanicalChitinPlate(ctx, 0, -size * 0.15, size * 0.8, size * 0.6, world.tick * 0.08, SOLAR_GARDEN_THEME.BIO_ACID);
 
     ctx.restore();
   }
 };
 
+/**
+ * Watcher Enemy — Biomechanical sensor turret with dark chitin eyelids.
+ */
 export const drawWatcher: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
     const drawCtx = resolveEchoDrawContext(world, entity, 26);
@@ -382,17 +458,39 @@ export const drawWatcher: ShapeDrawer<CanvasRenderingContext2D, CoreComponentReg
 
     ctx.save();
 
-    if (isHitFlash) {
+    if (isHitFlash && SOLAR_GARDEN_DEBUG_FLAGS.hitFlash) {
       return drawCanvasHitFlashCircle(ctx, size * 0.4);
     }
 
     // Organic Sensor Seed / Watcher
     drawBiomechanicalChitin(ctx, size * 0.42, false);
+    const { isAlert, isAttack } = resolveWatcherVisualState(state);
+
+    if (isAlert || isAttack) {
+      ctx.fillStyle = isAttack ? SOLAR_GARDEN_VARIANTS.BIO_MAGENTA_GLOW : "rgba(255, 59, 0, 0.15)";
+      ctx.strokeStyle = isAttack ? SOLAR_GARDEN_THEME.BIO_MAGENTA : SOLAR_GARDEN_THEME.THREAT_ORANGE;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, -size * 0.05);
+      ctx.arc(0, -size * 0.05, size * 2.2, -Math.PI * 0.2, Math.PI * 0.2);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    // Biomechanical Eye and Chitin Base
+    ctx.fillStyle = SOLAR_GARDEN_THEME.BIO_BLACK;
+    ctx.fillRect(-size * 0.35, size * 0.15, size * 0.7, size * 0.3);
+
+    drawBiomechanicalEye(ctx, 0, -size * 0.05, size * 0.28, world.tick * 0.08);
 
     ctx.restore();
   }
 };
 
+/**
+ * Charger Enemy — Battering ram enemy with thick chitin horn plates.
+ */
 export const drawCharger: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
     const drawCtx = resolveEchoDrawContext(world, entity, 28);
@@ -401,12 +499,30 @@ export const drawCharger: ShapeDrawer<CanvasRenderingContext2D, CoreComponentReg
 
     ctx.save();
 
-    if (isHitFlash) {
+    if (isHitFlash && SOLAR_GARDEN_DEBUG_FLAGS.hitFlash) {
       return drawCanvasHitFlashRect(ctx, -size * 0.5, -size * 0.3, size, size * 0.7);
     }
 
     // Armoured Biomechanical Beetle / Charger
     drawBiomechanicalChitin(ctx, size * 0.55, true);
+    const { isStunned, isAttack } = resolveChargerVisualState(state);
+
+    // Heavy Chitin Battering Ram Shell
+    drawBiomechanicalChitinPlate(ctx, 0, 0, size, size * 0.7, world.tick * 0.05, isAttack ? SOLAR_GARDEN_THEME.BIO_ACID : SOLAR_GARDEN_THEME.BIO_MAGENTA);
+
+    if (isStunned) {
+      const elapsed = world.tick * 0.1;
+      ctx.strokeStyle = SOLAR_GARDEN_THEME.SOLAR_GOLD;
+      ctx.lineWidth = 1.5;
+      for (let i = 0; i < 3; i++) {
+        const angle = elapsed + (i * Math.PI * 2) / 3;
+        const sx = Math.cos(angle) * (size * 0.6);
+        const sy = Math.sin(angle) * (size * 0.2) - size * 0.5;
+        ctx.beginPath();
+        ctx.arc(sx, sy, 2, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
 
     ctx.restore();
   }

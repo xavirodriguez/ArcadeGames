@@ -170,7 +170,7 @@ export const drawSkiaTdMapBackground: EffectDrawer<any, TowerDefenseComponentReg
 
     for (let row = 0; row < tileGrid.rows; row++) {
       for (let col = 0; col < tileGrid.cols; col++) {
-        const tile = tileGrid.tiles[row][col];
+        const tile = tileGrid.tiles[row]?.[col];
         const x = layout.offsetX + col * layout.stepX;
         const y = layout.offsetY + row * layout.stepY;
         let color = "#0f0f1a";

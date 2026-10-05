@@ -142,15 +142,13 @@ export class HitRunCameraScrollSystem extends System<CoreComponentRegistry> {
       let desiredX = camX;
       let desiredY = camY;
 
-      // Check if camera lock / gate is active
-      const cameraLocked = world.getResource<boolean>("CameraLocked") === true;
-
-      // Horizontal push-scroll: move right, but never left, and obey camera lock
+      // Horizontal push-scroll
       const rightEdge = viewW * RIGHT_THRESHOLD;
-      if (!cameraLocked && screenX > rightEdge) {
-        desiredX = Math.max(camX, px - rightEdge);
-      } else {
-        desiredX = camX;
+      const leftEdge = viewW * LEFT_THRESHOLD;
+      if (screenX > rightEdge) {
+        desiredX = px - rightEdge;
+      } else if (screenX < leftEdge) {
+        desiredX = px - leftEdge;
       }
 
       // Vertical: soft center with deadzone
@@ -173,39 +171,13 @@ export class HitRunCameraScrollSystem extends System<CoreComponentRegistry> {
       world.mutateComponent(cams[i], "Camera2D", (c: Camera2DComponent) => {
         c.targetX = desiredX;
         c.targetY = desiredY;
-        // Drive x/y directly for snappy side-scroll (still smoothed, locked to never go left)
-        c.x = Math.max(c.x, c.x + (desiredX - c.x) * t);
+        // Drive x/y directly for snappy side-scroll (still smoothed)
+        c.x += (desiredX - c.x) * t;
         c.y += (desiredY - c.y) * t;
         // Re-clamp after smooth
         c.x = Math.max(0, Math.min(c.x, maxX));
         c.y = Math.max(0, Math.min(c.y, maxY));
       });
-
-      // Clamp player position so they cannot go past camera left edge or camera right edge when locked
-      const leftBound = camComp.x + 10;
-      const rightBound = cameraLocked ? camComp.x + viewW - 10 : Infinity;
-
-      if (px < leftBound) {
-        world.mutateComponent(player, "Transform", (tr: TransformComponent) => {
-          tr.x = leftBound;
-          tr.worldX = leftBound;
-        });
-        if (world.hasComponent(player, "Velocity")) {
-          world.mutateComponent(player, "Velocity", (v: { vx: number }) => {
-            if (v.vx < 0) v.vx = 0;
-          });
-        }
-      } else if (px > rightBound) {
-        world.mutateComponent(player, "Transform", (tr: TransformComponent) => {
-          tr.x = rightBound;
-          tr.worldX = rightBound;
-        });
-        if (world.hasComponent(player, "Velocity")) {
-          world.mutateComponent(player, "Velocity", (v: { vx: number }) => {
-            if (v.vx > 0) v.vx = 0;
-          });
-        }
-      }
       break;
     }
   }

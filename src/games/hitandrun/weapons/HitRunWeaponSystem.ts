@@ -91,17 +91,6 @@ export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
         weaponState.cooldownRemaining = def.cooldownDuration;
         weaponState.muzzleFlashRemaining = 0.06;
 
-        // Decrement ammo if limited
-        if (weaponState.ammo > 0) {
-          weaponState.ammo -= 1;
-          if (weaponState.ammo <= 0) {
-            // Revert to default pistol / HMG when depleted
-            weaponState.weaponId = "hmg";
-            weaponState.ammo = -1;
-            weaponState.maxAmmo = -1;
-          }
-        }
-
         if (!world.isReSimulating) {
           const shake = world.getResource<{ intensity: number; duration: number; elapsed: number }>(
             "HitRunScreenShake"
@@ -140,6 +129,12 @@ export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
         }
       }
 
+      const beltInput = world.getMutableComponent(entity, "BeltInput") as
+        | WeaponInputLike
+        | undefined;
+      if (beltInput && beltInput.firePressed) {
+        beltInput.firePressed = false;
+      }
       const platInput = world.getMutableComponent(entity, "PlatformerInput") as
         | WeaponInputLike
         | undefined;
@@ -153,6 +148,11 @@ export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
     world: World<CoreComponentRegistry>,
     entity: number
   ): WeaponInputLike | undefined {
+    const belt = world.getComponent(entity, "BeltInput") as
+      | WeaponInputLike
+      | undefined;
+    if (belt) return belt;
+
     const plat = world.getComponent(entity, "PlatformerInput") as
       | WeaponInputLike
       | undefined;

@@ -75,47 +75,12 @@ export class HitRunWaveSystem extends System<CoreComponentRegistry> {
     // Preview telegraphs for upcoming events
     this.queueTelegraphs(world, state, script, telegraphs);
 
-    // Read camera X for scroll/X-triggered waves
-    let camX = 0;
-    const cams = world.query("Camera2D");
-    for (let c = 0; c < cams.length; c++) {
-      const cam = world.getComponent(cams[c], "Camera2D") as { isMain?: boolean; x?: number } | undefined;
-      if (cam?.isMain) {
-        camX = cam.x ?? 0;
-        break;
-      }
-    }
-
-    // Check camera gate state: if an active gate event spawned enemies, lock camera until enemies = 0
-    const activeGate = world.getResource<{ waveId?: string; active?: boolean }>("ActiveCameraGate");
-    if (activeGate?.active) {
-      const activeEnemies = world.query("Enemy");
-      if (activeEnemies.length === 0) {
-        world.setResource("ActiveCameraGate", { active: false });
-        world.setResource("CameraLocked", false);
-      } else {
-        world.setResource("CameraLocked", true);
-      }
-    }
-
     const events = script.events;
     const eLen = events.length;
     while (state.nextEventIndex < eLen) {
       const ev = events[state.nextEventIndex];
-
-      // Determine trigger condition: camera X or elapsed time
-      if (ev.triggerByX) {
-        if (camX < ev.t) break;
-      } else {
-        if (ev.t > state.elapsed) break;
-      }
-
+      if (ev.t > state.elapsed) break;
       this.dispatchEvent(world, state, ev, state.nextEventIndex);
-      if (ev.gateCamera) {
-        world.setResource("ActiveCameraGate", { waveId: `${script.id}:${state.nextEventIndex}`, active: true });
-        world.setResource("CameraLocked", true);
-      }
-
       state.nextEventIndex++;
     }
 

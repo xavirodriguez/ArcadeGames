@@ -4,8 +4,7 @@ import { DEFAULT_HIT_AND_RUN_CONFIG } from "./HitAndRunConfigSchema";
 export interface HitAndRunEventRegistry extends CoreEvents, Record<string, unknown> {}
 
 /**
- * Action map for the fantasy belt-scroll control scheme.
- * Bridged into BeltInput via mutateBeltInputState / setInputState.
+ * Action map for PlatformerInput control scheme.
  */
 export interface HitAndRunInput {
   left?: boolean;
@@ -18,7 +17,10 @@ export interface HitAndRunInput {
   special?: boolean;
   moveLeft?: boolean;
   moveRight?: boolean;
+  aimUp?: boolean;
+  aimDown?: boolean;
   pulse?: boolean;
+  grenadePressed?: boolean;
   [key: string]: unknown;
 }
 

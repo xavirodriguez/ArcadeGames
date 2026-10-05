@@ -254,7 +254,16 @@ export class RacingGame extends BaseGame<
   }
 
   protected override async onPreloadAssets(): Promise<void> {
-    if (this.audio) await preloadSharedAudioManifest(this.audio);
+    if (this.audio) {
+      try {
+        await Promise.race([
+          preloadSharedAudioManifest(this.audio),
+          new Promise((resolve) => setTimeout(resolve, 2000))
+        ]);
+      } catch (e) {
+        console.warn("[RacingGame] Audio preloading failed or timed out:", e);
+      }
+    }
   }
 }
 

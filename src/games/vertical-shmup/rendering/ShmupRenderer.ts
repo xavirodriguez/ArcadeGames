@@ -1,12 +1,12 @@
 import { Renderer, RendererUtils } from "@tiny-aster/core";
 import { ShmupComponentRegistry } from "../types/ShmupTypes";
-import { drawShmupPlayer, drawShmupEnemy, drawShmupPlayerBullet, drawShmupEnemyBullet, drawSolarBloomBoss, drawShmupBackground } from "./ShmupCanvasVisuals";
 import {
   drawShmupPlayer,
   drawShmupEnemy,
   drawSolarBloomBoss,
   drawShmupPlayerBullet,
   drawShmupEnemyBullet,
+  drawShmupBackground,
   drawSolarParallaxBackground,
   drawSolarPurificationWave
 } from "./ShmupCanvasVisuals";

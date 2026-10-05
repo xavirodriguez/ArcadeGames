@@ -26,12 +26,8 @@ export type WaveFormation =
  * Ejemplo JSON: `{ "t": 5, "type": "popcorn", "count": 6, "formation": "line" }`
  */
 export interface WaveEvent {
-  /** Tiempo en segundos desde el inicio del script (o X de disparo si triggerByX es true). */
+  /** Tiempo en segundos desde el inicio del script. */
   t: number;
-  /** Si es true, `t` representa la coordenada X de la cámara a la que se activa la oleada. */
-  triggerByX?: boolean;
-  /** Si es true, esta oleada bloquea el avance de la cámara hasta que todos los enemigos sean destruidos. */
-  gateCamera?: boolean;
   /** Arquetipo de enemigo. */
   type: HitRunEnemyArchetypeId;
   /** Cantidad a spawnear (default 1). */

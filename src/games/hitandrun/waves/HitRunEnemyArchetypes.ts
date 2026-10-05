@@ -24,7 +24,7 @@ export const HIT_RUN_ENEMY_ARCHETYPES: Record<
     behaviorTags: ["walk", "shoot_slow", "flank"]
   },
 
-  /** Wall trooper — dispara quieto/bloquea desde posición fija. */
+  /** Muro denso — avanza en bloque, poco flanqueo. */
   wall: {
     id: "wall",
     poolId: "enemy_wall",
@@ -33,8 +33,8 @@ export const HIT_RUN_ENEMY_ARCHETYPES: Record<
     shape: "wall_trooper",
     size: 14,
     color: "#78716c",
-    speed: 0,
-    behaviorTags: ["shoot_slow", "block"]
+    speed: 40,
+    behaviorTags: ["walk", "block"]
   },
 
   /** Hopper con sesgo lateral al saltar. */

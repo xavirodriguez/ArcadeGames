@@ -79,7 +79,9 @@ function getDrawerContext(world: World<CoreComponentRegistry>, entity: Entity, d
   const render = getRenderComponent(world, entity);
   if (!render) return null;
 
-  const size = render.size || defaultSize;
+  const transform = world.getComponent(entity, "Transform");
+  const scale = transform ? transform.scaleX : 1.0;
+  const size = (render.size || defaultSize) * scale;
   const state = getVFXState(world);
   return { render, size, timePhase: state.timePhase };
 }
@@ -115,10 +117,11 @@ export function computeThrusterPlume(timePhase: number, size: number): { plumeLe
   return { plumeLength, flickerScale };
 }
 
-export function computeHologramLayers(timePhase: number, size: number): Array<{ color: string; alpha: number; x: number; radius: number }> {
+export function computeHologramLayers(timePhase: number, size: number, baseColor?: string): Array<{ color: string; alpha: number; x: number; radius: number }> {
   const offset = Math.sin(timePhase * 12) * 3;
+  const cyanColor = baseColor || COSMIC_ARCADE_PALETTE.neonCyan;
   return [
-    { color: COSMIC_ARCADE_PALETTE.neonCyan, alpha: 0.7, x: -offset, radius: size },
+    { color: cyanColor, alpha: 0.7, x: -offset, radius: size },
     { color: COSMIC_ARCADE_PALETTE.neonMagenta, alpha: 0.7, x: offset, radius: size },
     { color: COSMIC_ARCADE_PALETTE.white, alpha: 0.9, x: 0, radius: size * 0.9 }
   ];
@@ -268,6 +271,7 @@ export function registerSharedVFXAssets(renderer: Renderer<CoreComponentRegistry
       r.registerBackgroundEffect("distant_space_station", DistantSpaceStationBackgroundEffect);
       r.registerBackgroundEffect("distant_asteroid_belt", DistantAsteroidBeltBackgroundEffect);
       r.registerBackgroundEffect("ringing_planet", RingingPlanetBackgroundEffect);
+      r.registerBackgroundEffect("screen_border_glow", ScreenBorderGlowEffect);
     },
     skia: (r) => {
       r.registerShape("shield_bubble", SkiaEnergyShieldBubbleEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
@@ -285,6 +289,7 @@ export function registerSharedVFXAssets(renderer: Renderer<CoreComponentRegistry
       r.registerBackgroundEffect("distant_space_station", SkiaDistantSpaceStationBackgroundEffect);
       r.registerBackgroundEffect("distant_asteroid_belt", SkiaDistantAsteroidBeltBackgroundEffect);
       r.registerBackgroundEffect("ringing_planet", SkiaRingingPlanetBackgroundEffect);
+      r.registerBackgroundEffect("screen_border_glow", SkiaScreenBorderGlowEffect);
     }
   });
 }
@@ -336,9 +341,12 @@ export function spawnLayeredExplosion<
   y: number,
   options?: LayeredExplosionOptions
 ): void {
+  const state = getVFXState(world);
+
   const type = options?.type ?? "enemy";
   const profile = EXPLOSION_PROFILES[type];
-  const scale = options?.scale ?? 1.0;
+  const juiceScale = state.juiceLevel ?? 1.0;
+  const scale = (options?.scale ?? 1.0) * juiceScale;
   const size = profile.maxRadius * scale;
   const coreWorld = world as unknown as World<CoreComponentRegistry>;
   const isUpdating = coreWorld.isUpdating === true;
@@ -360,39 +368,41 @@ export function spawnLayeredExplosion<
     }
   };
 
-  // Layer 1: Core Flash entity
-  const flashEntity = createEntity();
-  addComp(flashEntity, {
-    type: "Transform",
-    x,
-    y,
-    rotation: 0,
-    scaleX: 1,
-    scaleY: 1,
-    worldX: x,
-    worldY: y,
-    worldRotation: 0,
-    worldScaleX: 1,
-    worldScaleY: 1,
-    dirty: true
-  });
-  addComp(flashEntity, {
-    type: "Render",
-    shape: "shield_bubble",
-    size: size * 0.8,
-    color: options?.color ?? profile.colorSequence[0],
-    visible: true,
-    opacity: 1,
-    order: 10,
-    rotation: 0,
-    angularVelocity: 0,
-    hitFlashFrames: 0
-  });
-  addComp(flashEntity, {
-    type: "TTL",
-    remaining: 0.08,
-    timeLeft: 0.08
-  });
+  // Layer 1: Core Flash entity (suppressed in Low Stimulation mode)
+  if (!state.lowStimulationMode) {
+    const flashEntity = createEntity();
+    addComp(flashEntity, {
+      type: "Transform",
+      x,
+      y,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      worldX: x,
+      worldY: y,
+      worldRotation: 0,
+      worldScaleX: 1,
+      worldScaleY: 1,
+      dirty: true
+    });
+    addComp(flashEntity, {
+      type: "Render",
+      shape: "shield_bubble",
+      size: size * 0.8,
+      color: options?.color ?? profile.colorSequence[0],
+      visible: true,
+      opacity: 1,
+      order: 10,
+      rotation: 0,
+      angularVelocity: 0,
+      hitFlashFrames: 0
+    });
+    addComp(flashEntity, {
+      type: "TTL",
+      remaining: 0.08,
+      timeLeft: 0.08
+    });
+  }
 
   // Layer 2: Shockwave Ring
   if (profile.hasShockwave) {
@@ -434,7 +444,7 @@ export function spawnLayeredExplosion<
   const particlePool = world.getResource<any>("ParticlePool");
   if (particlePool) {
     const rng = world.gameplayRandom;
-    const count = profile.particleCount;
+    const count = Math.round(profile.particleCount * juiceScale);
     const colors = profile.colorSequence;
 
     for (let i = 0; i < count; i++) {
@@ -451,10 +461,14 @@ export function spawnLayeredExplosion<
     }
   }
 
-  // Layer 5: Screen Shake
-  const intensity = options?.shakeIntensity ?? (type === "boss" ? 6.0 : type === "ship" ? 5.0 : 2.5);
-  const duration = options?.shakeDuration ?? (type === "boss" ? 200 : 100);
-  Juice.shake(coreWorld, intensity, duration);
+  // Layer 5: Screen Shake (suppressed in Low Stimulation Mode)
+  if (!state.lowStimulationMode) {
+    const intensity = (options?.shakeIntensity ?? (type === "boss" ? 6.0 : type === "ship" ? 5.0 : 2.5)) * juiceScale;
+    const duration = (options?.shakeDuration ?? (type === "boss" ? 200 : 100)) * juiceScale;
+    if (intensity > 0 && duration > 0) {
+      Juice.shake(coreWorld, intensity, duration);
+    }
+  }
 }
 
 // -------------------------------------------------------------
@@ -554,13 +568,14 @@ export function drawEnergyShieldBubble(adapter: IDrawAdapter, world: World<CoreC
   const dCtx = getDrawerContext(world, entity, 35, isSkia);
   if (!dCtx) return;
 
-  const { size, timePhase } = dCtx;
+  const { render, size, timePhase } = dCtx;
   const radius = size * 1.3;
+  const color = render.color || COSMIC_ARCADE_PALETTE.neonCyan;
   const { pulseFactor, pulseAlpha } = computeShieldBubbleParams(timePhase);
 
   adapter.save();
-  adapter.drawGlow(COSMIC_ARCADE_PALETTE.neonCyan, (glowAdapter) => {
-    glowAdapter.strokeCircle(0, 0, radius * pulseFactor, COSMIC_ARCADE_PALETTE.neonCyan, 3);
+  adapter.drawGlow(color, (glowAdapter) => {
+    glowAdapter.strokeCircle(0, 0, radius * pulseFactor, color, 3);
   });
 
   const rng = world.renderRandom;
@@ -592,6 +607,7 @@ export const SkiaEnergyShieldBubbleEffect: ShapeDrawer<RenderContext, CoreCompon
 function drawShockwaveSparks(
   rng: RandomService,
   currentRadius: number,
+  color: string,
   drawSpark: (sparkX: number, sparkY: number, sparkSize: number) => void
 ): void {
   for (let i = 0; i < 8; i++) {
@@ -611,13 +627,14 @@ export function drawDebrisShockwave(adapter: IDrawAdapter, world: World<CoreComp
   if (!effect) return;
 
   const { render, progress, alpha } = effect;
+  const baseColor = render.color || COSMIC_ARCADE_PALETTE.solarOrange;
   const { currentRadius, strokeWidth } = computeShockwaveParams(render.size || 20, progress);
 
   adapter.save();
-  adapter.strokeCircle(0, 0, currentRadius, COSMIC_ARCADE_PALETTE.solarOrange, strokeWidth, alpha);
+  adapter.strokeCircle(0, 0, currentRadius, baseColor, strokeWidth, alpha);
   adapter.strokeCircle(0, 0, currentRadius * 1.2, COSMIC_ARCADE_PALETTE.plasmaYellow, strokeWidth * 0.5, alpha * 0.7);
 
-  drawShockwaveSparks(world.renderRandom, currentRadius, (sparkX, sparkY, sparkSize) => {
+  drawShockwaveSparks(world.renderRandom, currentRadius, baseColor, (sparkX, sparkY, sparkSize) => {
     adapter.fillRect(sparkX - sparkSize / 2, sparkY - sparkSize / 2, sparkSize, sparkSize, COSMIC_ARCADE_PALETTE.plasmaYellow, alpha);
   });
   adapter.restore();
@@ -687,6 +704,7 @@ export const SkiaMatrixDigitalRainEffect: EffectDrawer<RenderContext, CoreCompon
 export const CRTGlitchShudderEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
     const { width, height, state } = getScreenAndVFXState(world);
+    if (state.lowStimulationMode) return;
     const timePhase = state.timePhase;
     const isGlitching = Math.sin(timePhase * 17) > 0.85;
 
@@ -705,6 +723,7 @@ export const SkiaCRTGlitchShudderEffect: EffectDrawer<RenderContext, CoreCompone
   draw(canvas: RenderContext, world) {
     if (!Skia) return;
     const { width, height, state } = getScreenAndVFXState(world);
+    if (state.lowStimulationMode) return;
     const timePhase = state.timePhase;
     const isGlitching = Math.sin(timePhase * 17) > 0.85;
 
@@ -881,13 +900,14 @@ export const SkiaLaserRailBeamEffect: ShapeDrawer<RenderContext, CoreComponentRe
 // -------------------------------------------------------------
 // 9. ScreenBorderGlowEffect (Canvas & Skia)
 // -------------------------------------------------------------
-export function drawScreenBorderGlow(adapter: IDrawAdapter, world: World<CoreComponentRegistry>): void {
+export function drawScreenBorderGlow(adapter: IDrawAdapter, world: World<CoreComponentRegistry>, tint?: string): void {
   const { width, height, state } = getScreenAndVFXState(world);
   const timePhase = state.timePhase;
-  const alpha = 0.12 + 0.08 * Math.sin(timePhase * 3);
+  const alpha = (0.12 + 0.08 * Math.sin(timePhase * 3)) * (state.lowStimulationMode ? 0.3 : 1.0);
+  const borderTint = tint || COSMIC_ARCADE_PALETTE.dangerRed;
 
   adapter.save();
-  adapter.strokeRect(7, 7, width - 14, height - 14, COSMIC_ARCADE_PALETTE.dangerRed, 14, alpha);
+  adapter.strokeRect(7, 7, width - 14, height - 14, borderTint, 14, alpha);
   adapter.restore();
 }
 
@@ -962,15 +982,16 @@ export function drawCometMotionTrail(adapter: IDrawAdapter, world: World<CoreCom
   const dCtx = getDrawerContext(world, entity, 15, isSkia);
   if (!dCtx) return;
 
-  const { size, timePhase } = dCtx;
+  const { render, size, timePhase } = dCtx;
   const trailParams = computeTrailParameters(1.0, 1.0, size);
+  const glowColor = render.color || trailParams.glowColor;
   const segments = computeCometTrailSegments(timePhase, trailParams.scaledLength || size);
 
   adapter.save();
-  adapter.drawGlow(trailParams.glowColor, (glowAdapter) => {
+  adapter.drawGlow(glowColor, (glowAdapter) => {
     for (let i = 0; i < segments.length; i++) {
       const seg = segments[i];
-      glowAdapter.strokeCircle(seg.wiggle, seg.offset, seg.radius, trailParams.glowColor, 1, seg.alpha);
+      glowAdapter.strokeCircle(seg.wiggle, seg.offset, seg.radius, glowColor, 1, seg.alpha);
     }
   });
   adapter.restore();
@@ -1012,8 +1033,9 @@ export function drawRGBHologramGlitch(adapter: IDrawAdapter, world: World<CoreCo
   const dCtx = getDrawerContext(world, entity, 20, isSkia);
   if (!dCtx) return;
 
-  const { size, timePhase } = dCtx;
-  const layers = computeHologramLayers(timePhase, size);
+  const { render, size, timePhase } = dCtx;
+  const baseColor = render.color;
+  const layers = computeHologramLayers(timePhase, size, baseColor);
 
   adapter.save();
   for (let i = 0; i < layers.length; i++) {
@@ -1043,12 +1065,13 @@ export function drawFloatingTextScore(adapter: IDrawAdapter, world: World<CoreCo
   const effect = prepareEffectRender(world, entity);
   if (!effect) return;
 
-  const { progress, alpha } = effect;
-  const label = (entity as { text?: string }).text || "+100";
+  const { render, progress, alpha } = effect;
+  const label = (render as { text?: string }).text || "+100";
+  const textColor = render.color || COSMIC_ARCADE_PALETTE.plasmaYellow;
   const offsetY = -progress * 50;
 
   adapter.save();
-  adapter.drawText(label, 0, offsetY, COSMIC_ARCADE_PALETTE.plasmaYellow, alpha, 14);
+  adapter.drawText(label, 0, offsetY, textColor, alpha, 14);
   adapter.restore();
 }
 

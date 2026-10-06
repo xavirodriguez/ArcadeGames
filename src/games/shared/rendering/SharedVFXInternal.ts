@@ -175,6 +175,15 @@ export interface VFXWorldState {
   milkyWayInitialized: boolean;
   stationInitialized: boolean;
   timePhase: number;
+
+  // Extended Juice / Game Feel State
+  hitStopTimer: number;
+  hitStopPriority: number;
+  hitStopCooldown: number;
+  kineticCharge: number;
+  juiceLevel: number;
+  lowStimulationMode: boolean;
+
   cachedCRTGradient?: CanvasGradient | null;
   cachedSkiaShader?: SkShader | null;
   cachedPlanetGradient?: CanvasGradient | null;
@@ -226,6 +235,12 @@ export function getVFXState<TComponents extends ComponentRegistry = ComponentReg
       milkyWayInitialized: false,
       stationInitialized: false,
       timePhase: 0,
+      hitStopTimer: 0,
+      hitStopPriority: 0,
+      hitStopCooldown: 0,
+      kineticCharge: 0,
+      juiceLevel: 1.0,
+      lowStimulationMode: false,
       lastWidth: 0,
       lastHeight: 0
     };

@@ -44,6 +44,8 @@ import { SpaceInvadersConfig } from "../types/SpaceInvadersConfigSchema";
 import { GAME_CONFIG } from "../types/SpaceInvadersTypes";
 import { ISpaceInvadersGame } from "../types/GameInterfaces";
 import { getFormationSize } from "../utils/SpaceInvadersFormationUtils";
+import { HitStopSystem } from "../../shared/rendering/HitStopSystem";
+import { KineticFlowSystem } from "../../shared/rendering/KineticFlowSystem";
 
 /**
  * Main gameplay scene for Space Invaders.
@@ -173,6 +175,7 @@ export class SpaceInvadersGameScene extends Scene<SpaceInvadersComponentRegistry
     const inputSys = new SpaceInvadersInputSystem(this.playerBulletPool);
     if (this.game.isMultiplayer) inputSys.setMultiplayerMode(true);
 
+    this.world.addSystem(new HitStopSystem() as any, { phase: SystemPhase.Simulation, priority: 100, group: "simulation" });
     this.world.addSystem(inputSys, { phase: SystemPhase.Simulation, group: "simulation" });
     this.world.addSystem(new MovementSystem(), { phase: SystemPhase.Simulation, group: "simulation" });
     this.world.addSystem(new BoundarySystem(), { phase: SystemPhase.Simulation, group: "simulation" });
@@ -192,6 +195,7 @@ export class SpaceInvadersGameScene extends Scene<SpaceInvadersComponentRegistry
     this.world.addSystem(new SpaceInvadersGameStateSystem(this.game), { phase: SystemPhase.GameRules, group: "simulation" });
     this.world.addSystem(new DifficultyDirectorSystem(), { phase: SystemPhase.GameRules, group: "simulation" });
     this.world.addSystem(new AchievementSystem(), { phase: SystemPhase.Simulation, group: "simulation" });
+    this.world.addSystem(new KineticFlowSystem() as any, { phase: SystemPhase.Presentation, priority: 50, group: "simulation" });
 
     const mutators = gameInternal._config?.gameOptions?.mutators || gameInternal._config?.gameOptions?.activeMutators || [];
     this.world.addSystem(new MutatorSystem(mutators as unknown as Mutator<SpaceInvadersComponentRegistry>[]), { phase: SystemPhase.Simulation, group: "simulation" });

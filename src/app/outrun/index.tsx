@@ -6,6 +6,7 @@ import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { VirtualJoystick } from "@/components/controls/VirtualJoystick";
+import { GestureActionButton } from "@/components/controls/GestureActionButton";
 import { useOutrunGame } from "@/hooks/useOutrunGame";
 import { useKeyboardControls } from "@/hooks/useKeyboardControls";
 import {
@@ -104,33 +105,38 @@ export default function OutrunScreen() {
                 <VirtualJoystick
                   joystickId="outrun_steer"
                   type="movement"
+                  floating={false}
                   onMove={(x) => {
+                    const curvedX = x * Math.abs(x);
                     input({
-                      left: x < -0.25,
-                      right: x > 0.25,
-                      accelerate: true
+                      left: curvedX < -0.2,
+                      right: curvedX > 0.2,
                     });
                   }}
                   onRelease={() => {
-                    input({ left: false, right: false, accelerate: false });
+                    input({ left: false, right: false });
                   }}
                 />
               </View>
               <View style={styles.rightControlArea} pointerEvents="box-none">
-                <TouchableOpacity
-                  style={styles.accel}
+                <GestureActionButton
+                  label="GAS"
+                  accessibilityLabel="Accelerate pedal"
                   onPressIn={() => input({ accelerate: true })}
                   onPressOut={() => input({ accelerate: false })}
-                >
-                  <Text style={styles.btnText}>GAS</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.brake}
+                  haptic="medium"
+                  color="rgba(22,163,74,0.3)"
+                  borderColor="#16a34a"
+                />
+                <GestureActionButton
+                  label="BRAKE"
+                  accessibilityLabel="Brake pedal"
                   onPressIn={() => input({ brake: true })}
                   onPressOut={() => input({ brake: false })}
-                >
-                  <Text style={styles.btnText}>BRAKE</Text>
-                </TouchableOpacity>
+                  haptic="heavy"
+                  color="rgba(220,38,38,0.3)"
+                  borderColor="#dc2626"
+                />
               </View>
             </View>
           }

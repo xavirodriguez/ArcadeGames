@@ -6,7 +6,8 @@ import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { ComboDisplay } from "@/components/ComboDisplay";
 import { SpaceInvadersUI } from "@/components/SpaceInvadersUI";
 import { VirtualJoystick } from "../../components/controls/VirtualJoystick";
-import { ShootButton } from "../../components/ShootButton";
+import { GestureActionButton } from "../../components/controls/GestureActionButton";
+import { DEFAULT_ROTATE_THRESHOLD } from "../../components/controls/MobileControlsOverlay";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { useSpaceInvadersGame } from "@/hooks/useSpaceInvadersGame";
 import { useMultiplayerGame } from "@/hooks/useMultiplayerGame";
@@ -228,9 +229,10 @@ export default function SpaceInvadersScreen() {
                 <VirtualJoystick
                   joystickId="movement_joystick"
                   type="movement"
-                  onMove={(x, y) => {
-                    const moveLeft = x < -0.25;
-                    const moveRight = x > 0.25;
+                  floating={false}
+                  onMove={(x) => {
+                    const moveLeft = x < -DEFAULT_ROTATE_THRESHOLD;
+                    const moveRight = x > DEFAULT_ROTATE_THRESHOLD;
                     handleMultiplayerInput({
                       moveLeft,
                       moveRight,
@@ -244,9 +246,13 @@ export default function SpaceInvadersScreen() {
                   }}
                 />
               </View>
-              <ShootButton
+              <GestureActionButton
+                label="🔥"
+                accessibilityLabel={t?.accessibility?.shoot_button_label || "Fire weapon"}
                 onPressIn={handleShootPress}
                 onPressOut={handleShootRelease}
+                haptic="light"
+                color="rgba(255,80,80,0.25)"
               />
             </View>
           ) : null

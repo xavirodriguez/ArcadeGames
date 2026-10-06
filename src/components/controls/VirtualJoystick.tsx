@@ -1,4 +1,4 @@
-import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
+import { LayoutChangeEvent, StyleProp, StyleSheet, View, ViewStyle, useWindowDimensions } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useSharedValue,
@@ -30,10 +30,12 @@ export interface VirtualJoystickProps {
   joystickId?: string;
   /** Semantic purpose of the joystick. */
   type?: JoystickType;
-  /** Radius of the joystick base (default: 60). */
+  /** Radius of the joystick base (default: responsive 70/90). */
   size?: number;
-  /** Radius of the knob (default: 24). */
+  /** Radius of the knob (default: responsive 28/36). */
   knobSize?: number;
+  /** Whether the joystick base floats to touch contact location or stays anchored (default: true). */
+  floating?: boolean;
   /** Base color of the joystick elements. */
   color?: string;
   /** Color when active. */
@@ -56,23 +58,29 @@ export interface VirtualJoystickProps {
   onRelease?: () => void;
   /** Dead zone radius threshold (0-1 normalized, default: 0). */
   deadZone?: number;
-  /** Sensitivity scale factor for output values (default: 1.0). */
+  /**
+   * Sensitivity scale factor for output values (default: 1.0).
+   * Note: Avoid using sensitivity < 1.0 to smooth steering, as it clips the maximum output range.
+   * Keep sensitivity = 1.0 and apply non-linear curves (e.g., x * |x|) in onMove instead.
+   */
   sensitivity?: number;
 }
 
 /**
- * Enhanced Virtual Joystick (Phase 3).
+ * Enhanced Virtual Joystick.
  *
  * Features:
- * - Floating Dynamic behavior (appears on touch).
+ * - Floating Dynamic behavior (appears on touch) or Anchored Fixed position (`floating={false}`).
+ * - Responsive sizing for phones vs tablets.
  * - Reanimated 3 for smooth, decoupled knob movement.
  * - Direct ECS integration via world.getMutableComponent.
  */
 export function VirtualJoystick({
   joystickId = "joystick",
   type = "movement",
-  size = 75,
-  knobSize = 30,
+  size,
+  knobSize,
+  floating = true,
   color = "rgba(255,255,255,0.3)",
   activeColor = "rgba(255,255,255,0.7)",
   opacity = 0.6,
@@ -87,15 +95,28 @@ export function VirtualJoystick({
   sensitivity = 1.0,
 }: VirtualJoystickProps) {
   const { t } = useTranslation();
-  const BASE_RADIUS = size;
-  const KNOB_RADIUS = knobSize;
+  const { width, height } = useWindowDimensions();
+  const isTablet = Math.min(width, height) >= 600;
+
+  const BASE_RADIUS = size ?? (isTablet ? 90 : 70);
+  const KNOB_RADIUS = knobSize ?? (isTablet ? 36 : 28);
   const MAX_OFFSET = BASE_RADIUS - KNOB_RADIUS;
 
-  const isVisible = useSharedValue(false);
-  const visualOpacity = useSharedValue(0);
+  const idleOpacity = floating ? 0 : opacity * 0.5;
+  const isVisible = useSharedValue(!floating);
+  const visualOpacity = useSharedValue(idleOpacity);
   const basePos = useSharedValue({ x: 0, y: 0 });
   const knobX = useSharedValue(0);
   const knobY = useSharedValue(0);
+
+  const handleContainerLayout = (e: LayoutChangeEvent) => {
+    const { width: layoutW, height: layoutH } = e.nativeEvent.layout;
+    if (!floating) {
+      basePos.value = { x: layoutW / 2, y: layoutH / 2 };
+      isVisible.value = true;
+      visualOpacity.value = idleOpacity;
+    }
+  };
 
   const pan = Gesture.Pan()
     .minDistance(0)
@@ -103,7 +124,9 @@ export function VirtualJoystick({
       'worklet';
       isVisible.value = true;
       visualOpacity.value = withTiming(opacity, { duration: 150 });
-      basePos.value = { x: e.x, y: e.y };
+      if (floating) {
+        basePos.value = { x: e.x, y: e.y };
+      }
       knobX.value = 0;
       knobY.value = 0;
 
@@ -143,9 +166,11 @@ export function VirtualJoystick({
       'worklet';
       knobX.value = withSpring(0, { damping: 20, stiffness: 300 });
       knobY.value = withSpring(0, { damping: 20, stiffness: 300 });
-      visualOpacity.value = withTiming(0, { duration: 250 }, () => {
+      visualOpacity.value = withTiming(idleOpacity, { duration: 250 }, () => {
         'worklet';
-        isVisible.value = false;
+        if (floating) {
+          isVisible.value = false;
+        }
       });
 
       if (onRelease) {
@@ -189,6 +214,7 @@ export function VirtualJoystick({
         accessibilityRole="adjustable"
         accessibilityLabel={label}
         accessibilityHint={hint}
+        onLayout={handleContainerLayout}
         style={[styles.container, containerStyle]}
       >
         <Animated.View

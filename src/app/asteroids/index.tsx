@@ -12,8 +12,8 @@ import { useMultiplayerGame } from "@/hooks/useMultiplayerGame";
 import { AsteroidsGame } from "@/games/asteroids/AsteroidsGame";
 import { useTranslation } from "@/hooks/useTranslation";
 import { VirtualJoystick } from "../../components/controls/VirtualJoystick";
-import { ShootButton } from "../../components/ShootButton";
-import { HyperspaceButton } from "../../components/HyperspaceButton";
+import { GestureActionButton } from "../../components/controls/GestureActionButton";
+import { DEFAULT_ROTATE_THRESHOLD, DEFAULT_THRUST_THRESHOLD } from "../../components/controls/MobileControlsOverlay";
 import { SeedWidget } from "@/components/SeedWidget";
 import { DailyChallengeBanner } from "@/components/DailyChallengeBanner";
 import { DailyResultsOverlay } from "@/components/DailyResultsOverlay";
@@ -330,10 +330,11 @@ function AsteroidsGameContent({
                   <VirtualJoystick
                     joystickId="movement_joystick"
                     type="movement"
+                    floating={true}
                     onMove={(x, y) => {
-                      const rotateLeft = x < -0.25;
-                      const rotateRight = x > 0.25;
-                      const thrust = y < -0.25;
+                      const rotateLeft = x < -DEFAULT_ROTATE_THRESHOLD;
+                      const rotateRight = x > DEFAULT_ROTATE_THRESHOLD;
+                      const thrust = y < DEFAULT_THRUST_THRESHOLD;
                       handleMultiplayerInput({
                         rotateLeft,
                         rotateRight,
@@ -352,14 +353,22 @@ function AsteroidsGameContent({
                   />
                 </View>
                 <View style={styles.rightControlArea} pointerEvents="box-none">
-                  <HyperspaceButton
+                  <GestureActionButton
+                    label="⚡"
+                    accessibilityLabel={t?.accessibility?.hyperspace_button_label || "Hyperspace jump"}
                     onPressIn={handleHyperspacePress}
                     onPressOut={handleHyperspaceRelease}
+                    haptic="heavy"
+                    color="rgba(80,80,255,0.25)"
                   />
                   <View style={styles.spacer20} />
-                  <ShootButton
+                  <GestureActionButton
+                    label="🔥"
+                    accessibilityLabel={t?.accessibility?.shoot_button_label || "Fire weapon"}
                     onPressIn={handleShootPress}
                     onPressOut={handleShootRelease}
+                    haptic="light"
+                    color="rgba(255,80,80,0.25)"
                   />
                 </View>
               </View>

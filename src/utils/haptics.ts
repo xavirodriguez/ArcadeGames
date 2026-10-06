@@ -10,13 +10,40 @@ if (Platform.OS !== "web") {
 }
 
 /**
- * Trigger a light impact haptic feedback when shooting.
+ * Trigger a light impact haptic feedback (e.g. standard shot, light tap).
  */
-export function hapticShoot(): void {
+export function hapticImpactLight(): void {
   if (Platform.OS === "web" || !HapticsModule) return;
   try {
     HapticsModule.impactAsync(HapticsModule.ImpactFeedbackStyle.Light);
   } catch (_e) {}
+}
+
+/**
+ * Trigger a medium impact haptic feedback (e.g. melee attack, jump, weapon fire).
+ */
+export function hapticImpactMedium(): void {
+  if (Platform.OS === "web" || !HapticsModule) return;
+  try {
+    HapticsModule.impactAsync(HapticsModule.ImpactFeedbackStyle.Medium);
+  } catch (_e) {}
+}
+
+/**
+ * Trigger a heavy impact haptic feedback (e.g. collision, boost, explosion).
+ */
+export function hapticImpactHeavy(): void {
+  if (Platform.OS === "web" || !HapticsModule) return;
+  try {
+    HapticsModule.impactAsync(HapticsModule.ImpactFeedbackStyle.Heavy);
+  } catch (_e) {}
+}
+
+/**
+ * Trigger a light impact haptic feedback when shooting.
+ */
+export function hapticShoot(): void {
+  hapticImpactLight();
 }
 
 /**
@@ -43,10 +70,7 @@ export function hapticDeath(): void {
  * Trigger a heavy impact haptic feedback for hyperspace.
  */
 export function hapticHyperspace(): void {
-  if (Platform.OS === "web" || !HapticsModule) return;
-  try {
-    HapticsModule.impactAsync(HapticsModule.ImpactFeedbackStyle.Heavy);
-  } catch (_e) {}
+  hapticImpactHeavy();
 }
 
 /**

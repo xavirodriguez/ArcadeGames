@@ -1,8 +1,14 @@
 import { useCallback, useEffect, useRef } from "react";
-import { Platform, StyleSheet, View } from "react-native";
+import { Platform, StyleSheet, View, useWindowDimensions } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "../../hooks/useTranslation";
 import { VirtualJoystick } from "./VirtualJoystick";
 import { ActionButton } from "./ActionButton";
+
+export const DEFAULT_ROTATE_THRESHOLD = 0.25;
+export const DEFAULT_THRUST_THRESHOLD = -0.25; // negative Y = up on screen
+export const DEFAULT_AIM_FIRE_THRESHOLD = 0.2;
+
 export interface MobileInputAdapter {
   reset(): void;
   setRotateLeft(pressed: boolean): void;
@@ -24,10 +30,8 @@ export interface MobileControlsOverlayProps {
    * Set to false to use raw axis mode (adapter.setMoveAxis).
    */
   discreteMapping?: boolean;
+  floatingJoystick?: boolean;
 }
-
-const ROTATE_THRESHOLD = 0.35;
-const THRUST_THRESHOLD = -0.25; // negative Y = up on screen
 
 /**
  * Renders touch controls on top of the game canvas.
@@ -42,18 +46,30 @@ const THRUST_THRESHOLD = -0.25; // negative Y = up on screen
 export function MobileControlsOverlay({
   adapter,
   discreteMapping = true,
+  floatingJoystick = true,
 }: MobileControlsOverlayProps) {
   // Don't render on web
   if (Platform.OS === "web") return null;
 
-  return <MobileControlsOverlayInner adapter={adapter} discreteMapping={discreteMapping} />;
+  return (
+    <MobileControlsOverlayInner
+      adapter={adapter}
+      discreteMapping={discreteMapping}
+      floatingJoystick={floatingJoystick}
+    />
+  );
 }
 
 // Inner component so hooks are only called on native
 function MobileControlsOverlayInner({
   adapter,
   discreteMapping,
+  floatingJoystick = true,
 }: MobileControlsOverlayProps) {
+  const insets = useSafeAreaInsets();
+  const { width, height } = useWindowDimensions();
+  const isTablet = Math.min(width, height) >= 600;
+
   // Keep a stable ref to avoid stale closures in gesture callbacks
   const adapterRef = useRef(adapter);
   adapterRef.current = adapter;
@@ -68,9 +84,9 @@ function MobileControlsOverlayInner({
   const handleJoystickMove = useCallback((x: number, y: number) => {
     const a = adapterRef.current;
     if (discreteMapping) {
-      a.setRotateLeft(x < -ROTATE_THRESHOLD);
-      a.setRotateRight(x > ROTATE_THRESHOLD);
-      a.setThrust(y < THRUST_THRESHOLD);
+      a.setRotateLeft(x < -DEFAULT_ROTATE_THRESHOLD);
+      a.setRotateRight(x > DEFAULT_ROTATE_THRESHOLD);
+      a.setThrust(y < DEFAULT_THRUST_THRESHOLD);
     } else {
       a.setMoveAxis(x, y);
     }
@@ -89,12 +105,25 @@ function MobileControlsOverlayInner({
 
   const { t } = useTranslation();
 
+  const zoneSize = isTablet ? 200 : 160;
+
   return (
-    <View style={styles.overlay} pointerEvents="box-none">
+    <View
+      style={[
+        styles.overlay,
+        {
+          paddingBottom: Math.max(36, insets.bottom + 12),
+          paddingLeft: Math.max(24, insets.left + 16),
+          paddingRight: Math.max(24, insets.right + 16),
+        },
+      ]}
+      pointerEvents="box-none"
+    >
       {/* Left zone — joystick */}
-      <View style={styles.leftZone}>
+      <View style={[styles.leftZone, { width: zoneSize, height: zoneSize }]}>
         <VirtualJoystick
           type="movement"
+          floating={floatingJoystick}
           onMove={handleJoystickMove}
           onRelease={handleJoystickRelease}
         />

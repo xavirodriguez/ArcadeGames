@@ -7,7 +7,14 @@ import Animated, {
   withTiming,
   runOnJS,
 } from "react-native-reanimated";
-import { hapticSelection } from "../../utils/haptics";
+import {
+  hapticSelection,
+  hapticImpactLight,
+  hapticImpactMedium,
+  hapticImpactHeavy,
+} from "../../utils/haptics";
+
+export type HapticType = "selection" | "light" | "medium" | "heavy" | "none";
 
 export interface GestureActionButtonProps {
   label: string;
@@ -20,6 +27,7 @@ export interface GestureActionButtonProps {
   pressedBorderColor?: string;
   disabledColor?: string;
   textColor?: string;
+  haptic?: HapticType;
   style?: StyleProp<ViewStyle>;
   labelStyle?: StyleProp<TextStyle>;
   accessibilityLabel?: string;
@@ -43,6 +51,7 @@ export function GestureActionButton({
   pressedBorderColor = "#FFFFFF",
   disabledColor = "rgba(100,100,100,0.2)",
   textColor = "#FFFFFF",
+  haptic = "selection",
   style,
   labelStyle,
   accessibilityLabel,
@@ -55,9 +64,12 @@ export function GestureActionButton({
 
   const triggerHapticAndPressIn = useCallback(() => {
     if (disabled) return;
-    hapticSelection();
+    if (haptic === "selection") hapticSelection();
+    else if (haptic === "light") hapticImpactLight();
+    else if (haptic === "medium") hapticImpactMedium();
+    else if (haptic === "heavy") hapticImpactHeavy();
     onPressIn();
-  }, [disabled, onPressIn]);
+  }, [disabled, haptic, onPressIn]);
 
   const triggerPressOut = useCallback(() => {
     if (disabled) return;

@@ -18,6 +18,7 @@ Norte visual: «Una postal japonesa de verano que cobra vida a 200 km/h.» Out R
 - Registro de minijuegos para campaña en `src/services/CampaignGameRegistryService.ts` bajo la clave `"outrun"`.
 - Los datos de carretera viven como resource (`RoadData`) en el World ECS. `RaceStateComponent` es un componente singleton.
 - `projectRoad()` es la función pura de proyección 3D a 2D y la única fuente de verdad geométrica compartida entre Canvas y Skia.
+- **Efecto de Camera2D en renderers pseudo-3D:** `drawOutrunRoad` y la proyección pseudo-3D operan directamente en espacio de pantalla de viewport completo `(0, 0, screenW, screenH)`. El motor no aplica transformaciones de matriz de `Camera2D` sobre la entidad `RoadRoot` para evitar distorsionar o desalinear las coordenadas proyectadas del pseudo-3D.
 
 ---
 
@@ -25,8 +26,8 @@ Norte visual: «Una postal japonesa de verano que cobra vida a 200 km/h.» Out R
 
 - [x] F0 Andamiaje ECS — commit: `feat(outrun): F0 — andamiaje ecs y definicion del juego` — gate: test headless verde
 - [x] F1 Carretera y proyección pura — commit: `feat(outrun): F1 — carretera como datos y proyeccion pura` — gate: 5 tests de proyeccion verdes
-- [ ] F2 ★ Carretera recta en Canvas — commit: — Gate A: —
-- [ ] F3 ★ Curvas, colinas, rumble, fog — commit: — Gate B: —
+- [x] F2 ★ Carretera recta en Canvas — commit: `feat(outrun): F2 — carretera recta en Canvas` — Gate A: carretera legible, avance y steering funcionales, perspectiva estable
+- [x] F3 ★ Curvas, colinas, rumble, fog — commit: `feat(outrun): F3 — curvas, colinas, rumble y fog` — Gate B: tests F1/F3 verdes, fuerza centrifuga en curvas, oclusion en colinas por maxy, fog suave
 - [ ] F4 Coche, tráfico, colisiones — commit: — gate: —
 - [ ] F5 Validación — commit: — Gate C: —
 - [ ] F6 ★ Costa y capas — commit: — Gate D1: —

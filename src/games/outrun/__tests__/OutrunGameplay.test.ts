@@ -68,4 +68,28 @@ describe("OutrunGameplay", () => {
     const world = (game as unknown as { world: { query: (t: string) => number[] } }).world;
     expect(world.query("Racer").length).toBeGreaterThan(0);
   });
+
+  it("centrifugal force drifts playerX outwards when driving through curves at high speed", async () => {
+    const game = new OutrunGame({ seed: 5, headless: true });
+    await game.init();
+
+    const road = game.getWorld().getResource<RoadData>("RoadData")!;
+    // Set current segment curve to a positive right curve
+    road.segments[0].curve = 4;
+
+    game.getWorld().mutateSingleton("RaceState", (s) => {
+      s.speed = 10000;
+      s.playerX = 0;
+      s.playerZ = 0;
+      s.currentSegment = 0;
+    });
+
+    const startX = game.getGameState().playerX;
+    // Update simulation without user steering inputs
+    for (let i = 0; i < 10; i++) game.update(1 / 60);
+
+    const endX = game.getGameState().playerX;
+    // Positive curve should push playerX to the left (outward drift: playerX -= centrifugal)
+    expect(endX).toBeLessThan(startX);
+  });
 });

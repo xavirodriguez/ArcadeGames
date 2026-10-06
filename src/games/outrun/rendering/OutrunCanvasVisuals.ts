@@ -81,39 +81,43 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
       projectionBuffer
     );
 
-    for (let i = count - 1; i >= 0; i--) {
+    let maxy = screenH;
+
+    for (let i = 0; i < count; i++) {
       const p = projectionBuffer[i];
       if (p.p1z <= 0 && p.p2z <= 0) continue;
-      if (p.y1 < 0 && p.y2 < 0) continue;
+      if (p.y2 >= maxy) continue;
 
       const grass = rumbleColor(p.index, rumbleLength, COLORS.grassDark, COLORS.grassLight);
-      fillTrapezoid(ctx, p.x1, p.y1, screenW, p.x2, p.y2, screenW, grass);
+      fillTrapezoid(ctx, p.x1, p.y1, screenW, p.x2, Math.min(p.y2, maxy), screenW, grass);
 
       const rumbleW1 = p.w1 * 1.15;
       const rumbleW2 = p.w2 * 1.15;
       const rumble = rumbleColor(p.index, rumbleLength, COLORS.rumbleDark, COLORS.rumbleLight);
-      fillTrapezoid(ctx, p.x1, p.y1, rumbleW1, p.x2, p.y2, rumbleW2, rumble);
+      fillTrapezoid(ctx, p.x1, p.y1, rumbleW1, p.x2, Math.min(p.y2, maxy), rumbleW2, rumble);
 
       const road = roadColor(p.index, rumbleLength);
-      fillTrapezoid(ctx, p.x1, p.y1, p.w1, p.x2, p.y2, p.w2, road);
+      fillTrapezoid(ctx, p.x1, p.y1, p.w1, p.x2, Math.min(p.y2, maxy), p.w2, road);
 
       if (Math.floor(p.index / rumbleLength) % 2 === 0) {
         const laneW1 = p.w1 * 0.04;
         const laneW2 = p.w2 * 0.04;
-        fillTrapezoid(ctx, p.x1, p.y1, laneW1, p.x2, p.y2, laneW2, COLORS.lane);
+        fillTrapezoid(ctx, p.x1, p.y1, laneW1, p.x2, Math.min(p.y2, maxy), laneW2, COLORS.lane);
       }
 
-      if (p.fog > 0.55) {
-        const alpha = (p.fog - 0.55) * 1.5;
-        ctx.fillStyle = `rgba(92, 148, 252, ${Math.min(0.7, alpha)})`;
+      if (p.fog > 0.4) {
+        const alpha = Math.min(0.8, (p.fog - 0.4) * 1.33);
+        ctx.fillStyle = `rgba(135, 206, 235, ${alpha})`;
         ctx.beginPath();
         ctx.moveTo(p.x1 - p.w1 * 1.2, p.y1);
         ctx.lineTo(p.x1 + p.w1 * 1.2, p.y1);
-        ctx.lineTo(p.x2 + p.w2 * 1.2, p.y2);
-        ctx.lineTo(p.x2 - p.w2 * 1.2, p.y2);
+        ctx.lineTo(p.x2 + p.w2 * 1.2, Math.min(p.y2, maxy));
+        ctx.lineTo(p.x2 - p.w2 * 1.2, Math.min(p.y2, maxy));
         ctx.closePath();
         ctx.fill();
       }
+
+      maxy = p.y2;
     }
   }
 };

@@ -49,7 +49,7 @@ describe("Hit & Run Game Systems", () => {
         registerBackgroundEffect: (name: string) => { effectsRegistered.add(name); }
       };
 
-      game.initializeRenderer(mockRenderer as unknown as import("@tiny-aster/core").Renderer);
+      game.initializeRenderer(mockRenderer as import("@tiny-aster/core").Renderer);
 
       expect(shapesRegistered.has("player")).toBe(true);
       expect(shapesRegistered.has("popcorn")).toBe(true);

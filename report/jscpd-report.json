@@ -224,6 +224,117 @@
     },
     {
       "firstFile": {
+        "end": 36,
+        "endLoc": {
+          "column": 23,
+          "line": 36,
+          "position": 1526
+        },
+        "name": "physics/vehicles/VehicleWaypointSystem.ts",
+        "start": 20,
+        "startLoc": {
+          "column": 32,
+          "line": 20,
+          "position": 796
+        }
+      },
+      "format": "typescript",
+      "fragment": "      const entity = entities[i];\n      const waypointsComp = world.getComponent(entity, \"VehicleWaypoint\") as VehicleWaypointComponent | undefined;\n      const vehicle = world.getMutableComponent(entity, \"VehicleSteering\") as VehicleSteeringComponent | undefined;\n      const transform = world.getComponent(entity, \"Transform\");\n\n      if (!waypointsComp || !vehicle || !transform || waypointsComp.waypoints.length === 0) continue;\n\n      const idx = waypointsComp.currentWaypointIndex;\n      const target = waypointsComp.waypoints[idx];\n      if (!target) continue;\n\n      const dx = target.x - transform.x;\n      const dy = target.y - transform.y;\n      const dist = Math.hypot(dx, dy);\n\n      if (dist <= waypointsComp.targetRadius) {\n        const nextIdx = idx + 1;",
+      "isNew": false,
+      "lines": 17,
+      "secondFile": {
+        "end": 35,
+        "endLoc": {
+          "column": 23,
+          "line": 35,
+          "position": 1705
+        },
+        "name": "racing/systems/VehicleAISystem.ts",
+        "start": 18,
+        "startLoc": {
+          "column": 61,
+          "line": 18,
+          "position": 974
+        }
+      },
+      "tokens": 136
+    },
+    {
+      "firstFile": {
+        "end": 55,
+        "endLoc": {
+          "column": 68,
+          "line": 55,
+          "position": 2311
+        },
+        "name": "physics/vehicles/VehicleWaypointSystem.ts",
+        "start": 46,
+        "startLoc": {
+          "column": 6,
+          "line": 46,
+          "position": 1961
+        }
+      },
+      "format": "typescript",
+      "fragment": "      }\n\n      const desiredAngle = Math.atan2(dy, dx);\n      let diffAngle = desiredAngle - (transform.rotation ?? 0);\n\n      while (diffAngle > Math.PI) diffAngle -= Math.PI * 2;\n      while (diffAngle < -Math.PI) diffAngle += Math.PI * 2;\n\n      // Calculate normalized steering input\n      vehicle.steering = Math.max(-1, Math.min(1, diffAngle * 1.8));",
+      "isNew": false,
+      "lines": 10,
+      "secondFile": {
+        "end": 47,
+        "endLoc": {
+          "column": 68,
+          "line": 47,
+          "position": 2209
+        },
+        "name": "racing/systems/VehicleAISystem.ts",
+        "start": 39,
+        "startLoc": {
+          "column": 6,
+          "line": 39,
+          "position": 1904
+        }
+      },
+      "tokens": 82
+    },
+    {
+      "firstFile": {
+        "end": 33,
+        "endLoc": {
+          "column": 9,
+          "line": 33,
+          "position": 1149
+        },
+        "name": "rendering/Camera2D.ts",
+        "start": 28,
+        "startLoc": {
+          "column": 43,
+          "line": 28,
+          "position": 801
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const cameras = world.query(\"Camera2D\");\n    const gameConfig = world.getResource<WorldSizeConfig>(\"GameConfig\");\n    const screenConfig = world.getResource<{ width: number; height: number }>(\"ScreenConfig\");\n    const viewportWidth = gameConfig?.viewportWidth ?? screenConfig?.width ?? 800;\n    const viewportHeight = gameConfig?.viewportHeight ?? screenConfig?.height ?? 600;\n    const worldWidth = gameConfig?.worldWidth;",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 203,
+        "endLoc": {
+          "column": 9,
+          "line": 203,
+          "position": 7781
+        },
+        "name": "rendering/Camera2D.ts",
+        "start": 196,
+        "startLoc": {
+          "column": 26,
+          "line": 196,
+          "position": 7431
+        }
+      },
+      "tokens": 62
+    },
+    {
+      "firstFile": {
         "end": 21,
         "endLoc": {
           "column": 3,
@@ -576,18 +687,18 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 89,
+        "end": 103,
         "endLoc": {
           "column": 1,
-          "line": 89,
-          "position": 3031
+          "line": 103,
+          "position": 3569
         },
         "name": "hitandrun/HitAndRunGame.ts",
-        "start": 78,
+        "start": 92,
         "startLoc": {
           "column": 50,
-          "line": 78,
-          "position": 2696
+          "line": 92,
+          "position": 3234
         }
       },
       "tokens": 51
@@ -631,6 +742,117 @@
     },
     {
       "firstFile": {
+        "end": 249,
+        "endLoc": {
+          "column": 61,
+          "line": 249,
+          "position": 9792
+        },
+        "name": "echorunner/EchoRunnerGame.ts",
+        "start": 242,
+        "startLoc": {
+          "column": 5,
+          "line": 242,
+          "position": 9389
+        }
+      },
+      "format": "typescript",
+      "fragment": "    });\n\n    registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_ECHO_RUNNER_CONFIG);\n\n    registerCollectibleTriggerBlueprint(this.blueprints, \"collectible_fragment\", \"fragment\", 10, 16, 10, \"fragment\", false, false);\n    registerCollectibleTriggerBlueprint(this.blueprints, \"collectible_core\", \"core\", 100, 24, 12, \"core\", true, true);\n\n    registerPlatformerEnvironmentBlueprints(this.blueprints);",
+      "isNew": false,
+      "lines": 8,
+      "secondFile": {
+        "end": 232,
+        "endLoc": {
+          "column": 61,
+          "line": 232,
+          "position": 7758
+        },
+        "name": "hitandrun/HitAndRunGame.ts",
+        "start": 227,
+        "startLoc": {
+          "column": 34,
+          "line": 227,
+          "position": 7357
+        }
+      },
+      "tokens": 64
+    },
+    {
+      "firstFile": {
+        "end": 361,
+        "endLoc": {
+          "column": 45,
+          "line": 361,
+          "position": 13681
+        },
+        "name": "echorunner/EchoRunnerGame.ts",
+        "start": 353,
+        "startLoc": {
+          "column": 6,
+          "line": 353,
+          "position": 13313
+        }
+      },
+      "format": "typescript",
+      "fragment": "      const tileDefinitions = {\n        1: { solid: true, kind: \"normal\" as const },\n        2: { solid: true, kind: \"ice\" as const },\n        3: { solid: true, kind: \"bounce\" as const, bounce: 1.5 },\n        4: { solid: true, kind: \"spike\" as const },\n        5: { solid: true, oneWay: true, kind: \"normal\" as const }\n      };\n\n      const rawData = this.customLevelData ?? defaultLevelData;",
+      "isNew": false,
+      "lines": 9,
+      "secondFile": {
+        "end": 268,
+        "endLoc": {
+          "column": 43,
+          "line": 268,
+          "position": 8787
+        },
+        "name": "hitandrun/HitAndRunGame.ts",
+        "start": 260,
+        "startLoc": {
+          "column": 4,
+          "line": 260,
+          "position": 8433
+        }
+      },
+      "tokens": 90
+    },
+    {
+      "firstFile": {
+        "end": 372,
+        "endLoc": {
+          "column": 29,
+          "line": 372,
+          "position": 14065
+        },
+        "name": "echorunner/EchoRunnerGame.ts",
+        "start": 361,
+        "startLoc": {
+          "column": 62,
+          "line": 361,
+          "position": 13698
+        }
+      },
+      "format": "typescript",
+      "fragment": "      const rawData = this.customLevelData ?? defaultLevelData;\n      const runnerSeed = this.getSeed() || 41873;\n      this.levelPlan = SegmentGenerator.generatePlan(\n        rawData.templates as SegmentTemplate[],\n        rawData.grammar as string[],\n        runnerSeed\n      );\n\n      syncLevelWorldDimensions(this.world, this.levelPlan, DEFAULT_ECHO_RUNNER_CONFIG);\n\n      // Set world resources\n      this.world.setResource(\"PlayerStartPoint\", { x: 100, y: 350 });",
+      "isNew": false,
+      "lines": 12,
+      "secondFile": {
+        "end": 277,
+        "endLoc": {
+          "column": 27,
+          "line": 277,
+          "position": 9124
+        },
+        "name": "hitandrun/HitAndRunGame.ts",
+        "start": 268,
+        "startLoc": {
+          "column": 59,
+          "line": 268,
+          "position": 8803
+        }
+      },
+      "tokens": 58
+    },
+    {
+      "firstFile": {
         "end": 417,
         "endLoc": {
           "column": 5,
@@ -650,18 +872,18 @@
       "isNew": false,
       "lines": 15,
       "secondFile": {
-        "end": 178,
+        "end": 192,
         "endLoc": {
           "column": 5,
-          "line": 178,
-          "position": 5900
+          "line": 192,
+          "position": 6438
         },
         "name": "hitandrun/HitAndRunGame.ts",
-        "start": 167,
+        "start": 181,
         "startLoc": {
           "column": 9,
-          "line": 167,
-          "position": 5520
+          "line": 181,
+          "position": 6058
         }
       },
       "tokens": 85
@@ -1408,154 +1630,6 @@
     },
     {
       "firstFile": {
-        "end": 36,
-        "endLoc": {
-          "column": 20,
-          "line": 36,
-          "position": 975
-        },
-        "name": "hitandrun/fantasy/FantasyWeaponCatalog.ts",
-        "start": 16,
-        "startLoc": {
-          "column": 42,
-          "line": 16,
-          "position": 518
-        }
-      },
-      "format": "typescript",
-      "fragment": "    projectileColor: FANTASY_PALETTE.arrow,\n    projectileShape: \"arrow\",\n    damage: 1,\n    damageCategory: \"bullet\",\n    consumption: \"destroy-entity\",\n    pelletCount: 1,\n    spreadRadians: 0,\n    muzzleOffset: 16,\n    sfxName: \"shoot\",\n    explosive: false,\n    explosionRadius: 0,\n    explosionDamage: 0,\n    recoilImpulse: 12\n  },\n  rune_scatter: {\n    id: \"rune_scatter\",\n    cooldownDuration: 0.6,\n    projectileSpeed: 400,\n    projectileTtl: 0.4,\n    projectileSize: 4,\n    projectileColor: FANTASY_PALETTE.arcane,",
-      "isNew": false,
-      "lines": 21,
-      "secondFile": {
-        "end": 90,
-        "endLoc": {
-          "column": 20,
-          "line": 90,
-          "position": 2188
-        },
-        "name": "hitandrun/weapons/HitRunWeaponCatalog.ts",
-        "start": 70,
-        "startLoc": {
-          "column": 30,
-          "line": 70,
-          "position": 1731
-        }
-      },
-      "tokens": 75
-    },
-    {
-      "firstFile": {
-        "end": 56,
-        "endLoc": {
-          "column": 20,
-          "line": 56,
-          "position": 1455
-        },
-        "name": "hitandrun/fantasy/FantasyWeaponCatalog.ts",
-        "start": 36,
-        "startLoc": {
-          "column": 43,
-          "line": 36,
-          "position": 998
-        }
-      },
-      "format": "typescript",
-      "fragment": "    projectileColor: FANTASY_PALETTE.arcane,\n    projectileShape: \"bolt\",\n    damage: 2,\n    damageCategory: \"shotgun\",\n    consumption: \"destroy-entity\",\n    pelletCount: 5,\n    spreadRadians: 0.42,\n    muzzleOffset: 14,\n    sfxName: \"shoot\",\n    explosive: false,\n    explosionRadius: 0,\n    explosionDamage: 0,\n    recoilImpulse: 36\n  },\n  fire_staff: {\n    id: \"fire_staff\",\n    cooldownDuration: 1.15,\n    projectileSpeed: 200,\n    projectileTtl: 2.2,\n    projectileSize: 8,\n    projectileColor: FANTASY_PALETTE.fireball,",
-      "isNew": false,
-      "lines": 21,
-      "secondFile": {
-        "end": 110,
-        "endLoc": {
-          "column": 20,
-          "line": 110,
-          "position": 2655
-        },
-        "name": "hitandrun/weapons/HitRunWeaponCatalog.ts",
-        "start": 90,
-        "startLoc": {
-          "column": 30,
-          "line": 90,
-          "position": 2198
-        }
-      },
-      "tokens": 75
-    },
-    {
-      "firstFile": {
-        "end": 76,
-        "endLoc": {
-          "column": 20,
-          "line": 76,
-          "position": 1940
-        },
-        "name": "hitandrun/fantasy/FantasyWeaponCatalog.ts",
-        "start": 56,
-        "startLoc": {
-          "column": 45,
-          "line": 56,
-          "position": 1480
-        }
-      },
-      "format": "typescript",
-      "fragment": "    projectileColor: FANTASY_PALETTE.fireball,\n    projectileShape: \"fireball\",\n    damage: 3,\n    damageCategory: \"explosive\",\n    consumption: \"remove-component\",\n    pelletCount: 1,\n    spreadRadians: 0,\n    muzzleOffset: 18,\n    sfxName: \"shoot\",\n    explosive: true,\n    explosionRadius: 58,\n    explosionDamage: 4,\n    recoilImpulse: 28\n  },\n  crossbow: {\n    id: \"crossbow\",\n    cooldownDuration: 0.75,\n    projectileSpeed: 520,\n    projectileTtl: 1.4,\n    projectileSize: 4.5,\n    projectileColor: FANTASY_PALETTE.bolt,",
-      "isNew": false,
-      "lines": 21,
-      "secondFile": {
-        "end": 130,
-        "endLoc": {
-          "column": 20,
-          "line": 130,
-          "position": 3125
-        },
-        "name": "hitandrun/weapons/HitRunWeaponCatalog.ts",
-        "start": 110,
-        "startLoc": {
-          "column": 30,
-          "line": 110,
-          "position": 2665
-        }
-      },
-      "tokens": 75
-    },
-    {
-      "firstFile": {
-        "end": 92,
-        "endLoc": {
-          "column": 6,
-          "line": 92,
-          "position": 2264
-        },
-        "name": "hitandrun/fantasy/FantasyWeaponCatalog.ts",
-        "start": 76,
-        "startLoc": {
-          "column": 41,
-          "line": 76,
-          "position": 1961
-        }
-      },
-      "format": "typescript",
-      "fragment": "    projectileColor: FANTASY_PALETTE.bolt,\n    projectileShape: \"bolt\",\n    damage: 3,\n    damageCategory: \"bullet\",\n    consumption: \"destroy-entity\",\n    pelletCount: 1,\n    spreadRadians: 0,\n    muzzleOffset: 15,\n    sfxName: \"shoot\",\n    explosive: false,\n    explosionRadius: 0,\n    explosionDamage: 0,\n    recoilImpulse: 22\n  }\n};\n\nexport const FANTASY_WEAPON_ALIASES: Record<string, string> = {",
-      "isNew": false,
-      "lines": 17,
-      "secondFile": {
-        "end": 146,
-        "endLoc": {
-          "column": 6,
-          "line": 146,
-          "position": 3438
-        },
-        "name": "hitandrun/weapons/HitRunWeaponCatalog.ts",
-        "start": 130,
-        "startLoc": {
-          "column": 30,
-          "line": 130,
-          "position": 3135
-        }
-      },
-      "tokens": 52
-    },
-    {
-      "firstFile": {
         "end": 35,
         "endLoc": {
           "column": 38,
@@ -1815,151 +1889,151 @@
     },
     {
       "firstFile": {
-        "end": 123,
+        "end": 11,
         "endLoc": {
-          "column": 14,
-          "line": 123,
-          "position": 5364
+          "column": 51,
+          "line": 11,
+          "position": 519
         },
-        "name": "racing/RacingGame.ts",
-        "start": 118,
+        "name": "racing/rendering/RacingCanvasVisuals.ts",
+        "start": 6,
         "startLoc": {
-          "column": 73,
-          "line": 118,
-          "position": 5118
+          "column": 4,
+          "line": 6,
+          "position": 254
         }
       },
       "format": "typescript",
-      "fragment": "          const cars = world.query(\"LocalPlayer\", \"Transform\", \"Velocity\");\n          for (let i = 0; i < cars.length; i += 1) {\n            const entity = cars[i];\n            const transform = world.getComponent(entity, \"Transform\");\n            const velocity = world.getComponent(entity, \"Velocity\");\n            if (!transform || !velocity) continue;",
+      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    if (!render) return;\n    const size = render.size ?? 16;\n    const color = render.color ?? \"#00e5ff\";\n    const input = world.getComponent(entity, \"Input\");\n    const boosting = input?.actions.boost === true;",
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 18,
+        "end": 15,
         "endLoc": {
-          "column": 11,
-          "line": 18,
-          "position": 940
+          "column": 51,
+          "line": 15,
+          "position": 691
         },
-        "name": "racing/systems/RacingInputSystem.ts",
-        "start": 12,
+        "name": "racing/rendering/RacingSkiaVisuals.ts",
+        "start": 10,
         "startLoc": {
-          "column": 83,
-          "line": 12,
-          "position": 720
+          "column": 4,
+          "line": 10,
+          "position": 426
         }
       },
-      "tokens": 52
+      "tokens": 60
     },
     {
       "firstFile": {
-        "end": 142,
-        "endLoc": {
-          "column": 9,
-          "line": 142,
-          "position": 6056
-        },
-        "name": "racing/RacingGame.ts",
-        "start": 130,
-        "startLoc": {
-          "column": 12,
-          "line": 130,
-          "position": 5593
-        }
-      },
-      "format": "typescript",
-      "fragment": "            );\n            const nextVelocity = world.getMutableComponent(entity, \"Velocity\");\n            const nextTransform = world.getMutableComponent(entity, \"Transform\");\n            if (nextVelocity) {\n              nextVelocity.vx = result.vx;\n              nextVelocity.vy = result.vy;\n            }\n            if (nextTransform) {\n              nextTransform.rotation = result.rotation;\n              nextTransform.dirty = true;\n            }\n          }\n        }",
-      "isNew": false,
-      "lines": 13,
-      "secondFile": {
-        "end": 39,
-        "endLoc": {
-          "column": 3,
-          "line": 39,
-          "position": 1706
-        },
-        "name": "racing/systems/RacingInputSystem.ts",
-        "start": 32,
-        "startLoc": {
-          "column": 6,
-          "line": 32,
-          "position": 1358
-        }
-      },
-      "tokens": 70
-    },
-    {
-      "firstFile": {
-        "end": 11,
-        "endLoc": {
-          "column": 9,
-          "line": 11,
-          "position": 477
-        },
-        "name": "racing/rendering/RacingCanvasVisuals.ts",
-        "start": 5,
-        "startLoc": {
-          "column": 10,
-          "line": 5,
-          "position": 231
-        }
-      },
-      "format": "typescript",
-      "fragment": "  draw(ctx, world, entity) {\n    const render = world.getComponent(entity, \"Render\");\n    if (!render) return;\n    const size = render.size ?? 16;\n    const color = render.color ?? \"#00e5ff\";\n    const input = world.getComponent(entity, \"Input\");\n    const boosting = input?.actions.boost === true;",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
         "end": 12,
         "endLoc": {
-          "column": 9,
+          "column": 31,
           "line": 12,
-          "position": 527
+          "position": 535
         },
         "name": "racing/rendering/RacingSkiaVisuals.ts",
         "start": 6,
         "startLoc": {
-          "column": 13,
+          "column": 30,
           "line": 6,
-          "position": 281
+          "position": 285
+        }
+      },
+      "format": "typescript",
+      "fragment": "export const drawSkiaRacingCar: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const skCanvas = canvas;\n    const render = world.getComponent(entity, \"Render\");\n    if (!render) return;\n    const size = render.size ?? 16;",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 99,
+        "endLoc": {
+          "column": 31,
+          "line": 99,
+          "position": 3582
+        },
+        "name": "racing/rendering/RacingSkiaVisuals.ts",
+        "start": 93,
+        "startLoc": {
+          "column": 30,
+          "line": 93,
+          "position": 3332
         }
       },
       "tokens": 56
     },
     {
       "firstFile": {
-        "end": 10,
+        "end": 12,
         "endLoc": {
-          "column": 14,
-          "line": 10,
-          "position": 538
+          "column": 31,
+          "line": 12,
+          "position": 535
         },
-        "name": "racing/systems/RaceStateSystem.ts",
-        "start": 5,
+        "name": "racing/rendering/RacingSkiaVisuals.ts",
+        "start": 6,
         "startLoc": {
-          "column": 29,
-          "line": 5,
-          "position": 238
+          "column": 30,
+          "line": 6,
+          "position": 285
         }
       },
       "format": "typescript",
-      "fragment": "export class RaceStateSystem extends System<RacingComponentRegistry, RacingEventRegistry> {\n  constructor(private readonly config: RacingConfig) { super(); }\n\n  public update(world: World<RacingComponentRegistry, RacingEventRegistry>, deltaTime: number): void {\n    const state = world.getSingleton(\"RacingState\");\n    if (!state) return;",
+      "fragment": "export const drawSkiaRacingCar: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const skCanvas = canvas;\n    const render = world.getComponent(entity, \"Render\");\n    if (!render) return;\n    const size = render.size ?? 16;",
       "isNew": false,
-      "lines": 6,
+      "lines": 7,
       "secondFile": {
-        "end": 11,
+        "end": 114,
         "endLoc": {
-          "column": 14,
-          "line": 11,
-          "position": 599
-        },
-        "name": "racing/systems/RacingInputSystem.ts",
-        "start": 6,
-        "startLoc": {
           "column": 31,
-          "line": 6,
-          "position": 299
+          "line": 114,
+          "position": 4073
+        },
+        "name": "racing/rendering/RacingSkiaVisuals.ts",
+        "start": 108,
+        "startLoc": {
+          "column": 34,
+          "line": 108,
+          "position": 3823
         }
       },
-      "tokens": 55
+      "tokens": 56
+    },
+    {
+      "firstFile": {
+        "end": 74,
+        "endLoc": {
+          "column": 17,
+          "line": 74,
+          "position": 2722
+        },
+        "name": "racing/systems/HeadToHeadStateSystem.ts",
+        "start": 67,
+        "startLoc": {
+          "column": 14,
+          "line": 67,
+          "position": 2418
+        }
+      },
+      "format": "typescript",
+      "fragment": "              const halfW = zone.width / 2;\n              const halfH = zone.height / 2;\n              if (\n                transform.x >= zone.x - halfW &&\n                transform.x <= zone.x + halfW &&\n                transform.y >= zone.y - halfH &&\n                transform.y <= zone.y + halfH\n              ) {",
+      "isNew": false,
+      "lines": 8,
+      "secondFile": {
+        "end": 32,
+        "endLoc": {
+          "column": 13,
+          "line": 32,
+          "position": 1391
+        },
+        "name": "racing/systems/RacingSurfaceSystem.ts",
+        "start": 25,
+        "startLoc": {
+          "column": 10,
+          "line": 25,
+          "position": 1115
+        }
+      },
+      "tokens": 61
     },
     {
       "firstFile": {
@@ -2130,18 +2204,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 253,
+        "end": 404,
         "endLoc": {
           "column": 20,
-          "line": 253,
-          "position": 9795
+          "line": 404,
+          "position": 13980
         },
         "name": "tower-defense/TowerDefenseGame.ts",
-        "start": 245,
+        "start": 396,
         "startLoc": {
           "column": 41,
-          "line": 245,
-          "position": 9558
+          "line": 396,
+          "position": 13743
         }
       },
       "tokens": 50
@@ -2259,6 +2333,43 @@
     },
     {
       "firstFile": {
+        "end": 285,
+        "endLoc": {
+          "column": 28,
+          "line": 285,
+          "position": 9460
+        },
+        "name": "tower-defense/TowerDefenseGame.ts",
+        "start": 280,
+        "startLoc": {
+          "column": 80,
+          "line": 280,
+          "position": 9261
+        }
+      },
+      "format": "typescript",
+      "fragment": "    this.world.addSystem(new WaveSpawnSystem(), { phase: SystemPhase.Simulation });\n\n    this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });\n    this.world.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });\n\n    this.world.addSystem(new CreepDeathSystem(), { phase: SystemPhase.GameRules });",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 54,
+        "endLoc": {
+          "column": 28,
+          "line": 54,
+          "position": 3179
+        },
+        "name": "vertical-shmup/scenes/ShmupGameScene.ts",
+        "start": 51,
+        "startLoc": {
+          "column": 89,
+          "line": 51,
+          "position": 2982
+        }
+      },
+      "tokens": 50
+    },
+    {
+      "firstFile": {
         "end": 113,
         "endLoc": {
           "column": 38,
@@ -2300,7 +2411,7 @@
         "endLoc": {
           "column": 52,
           "line": 197,
-          "position": 6933
+          "position": 6935
         },
         "name": "tower-defense/rendering/TowerDefenseCanvasVisuals.ts",
         "start": 186,
@@ -2311,7 +2422,7 @@
         }
       },
       "format": "typescript",
-      "fragment": "    if (!layout || !tileGrid) return;\n\n    for (let row = 0; row < tileGrid.rows; row++) {\n      for (let col = 0; col < tileGrid.cols; col++) {\n        const tile = tileGrid.tiles[row][col];\n        const x = layout.offsetX + col * layout.stepX;\n        const y = layout.offsetY + row * layout.stepY;\n        let color = \"#0f0f1a\";\n        if (tile === \"path\") color = \"#2a2a4a\";\n        else if (tile === \"buildable\") color = \"#16213e\";\n        else if (tile === \"spawn\") color = \"#3d1a1a\";\n        else if (tile === \"base\") color = \"#1a3d1a\";",
+      "fragment": "    if (!layout || !tileGrid) return;\n\n    for (let row = 0; row < tileGrid.rows; row++) {\n      for (let col = 0; col < tileGrid.cols; col++) {\n        const tile = tileGrid.tiles[row]?.[col];\n        const x = layout.offsetX + col * layout.stepX;\n        const y = layout.offsetY + row * layout.stepY;\n        let color = \"#0f0f1a\";\n        if (tile === \"path\") color = \"#2a2a4a\";\n        else if (tile === \"buildable\") color = \"#16213e\";\n        else if (tile === \"spawn\") color = \"#3d1a1a\";\n        else if (tile === \"base\") color = \"#1a3d1a\";",
       "isNew": false,
       "lines": 12,
       "secondFile": {
@@ -2319,7 +2430,7 @@
         "endLoc": {
           "column": 52,
           "line": 180,
-          "position": 6339
+          "position": 6341
         },
         "name": "tower-defense/rendering/TowerDefenseSkiaVisuals.ts",
         "start": 169,
@@ -2329,7 +2440,7 @@
           "position": 5822
         }
       },
-      "tokens": 124
+      "tokens": 125
     },
     {
       "firstFile": {
@@ -2370,18 +2481,18 @@
     },
     {
       "firstFile": {
-        "end": 80,
+        "end": 85,
         "endLoc": {
           "column": 64,
-          "line": 80,
-          "position": 2978
+          "line": 85,
+          "position": 3058
         },
         "name": "tower-defense/systems/BuildSystem.ts",
-        "start": 74,
+        "start": 79,
         "startLoc": {
           "column": 18,
-          "line": 74,
-          "position": 2688
+          "line": 79,
+          "position": 2768
         }
       },
       "format": "typescript",
@@ -2389,36 +2500,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 99,
+        "end": 104,
         "endLoc": {
           "column": 64,
-          "line": 99,
-          "position": 3697
+          "line": 104,
+          "position": 3790
         },
         "name": "tower-defense/systems/BuildSystem.ts",
-        "start": 93,
+        "start": 98,
         "startLoc": {
           "column": 21,
-          "line": 93,
-          "position": 3407
+          "line": 98,
+          "position": 3500
         }
       },
       "tokens": 73
     },
     {
       "firstFile": {
-        "end": 81,
+        "end": 86,
         "endLoc": {
           "column": 13,
-          "line": 81,
-          "position": 2992
+          "line": 86,
+          "position": 3072
         },
         "name": "tower-defense/systems/BuildSystem.ts",
-        "start": 75,
+        "start": 80,
         "startLoc": {
           "column": 31,
-          "line": 75,
-          "position": 2723
+          "line": 80,
+          "position": 2803
         }
       },
       "format": "typescript",
@@ -2426,29 +2537,29 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 100,
+        "end": 105,
         "endLoc": {
           "column": 10,
-          "line": 100,
-          "position": 3708
+          "line": 105,
+          "position": 3801
         },
         "name": "tower-defense/systems/BuildSystem.ts",
-        "start": 94,
+        "start": 99,
         "startLoc": {
           "column": 31,
-          "line": 94,
-          "position": 3442
+          "line": 99,
+          "position": 3535
         }
       },
       "tokens": 67
     },
     {
       "firstFile": {
-        "end": 22,
+        "end": 19,
         "endLoc": {
-          "column": 11,
-          "line": 22,
-          "position": 818
+          "column": 33,
+          "line": 19,
+          "position": 747
         },
         "name": "tower-defense/systems/SlowOnHitSystem.ts",
         "start": 8,
@@ -2459,15 +2570,15 @@
         }
       },
       "format": "typescript",
-      "fragment": "  readonly phase = SystemPhase.GameRules;\n  private bound = false;\n\n  update(world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>, _dt: number): void {\n    if (!this.bound) {\n      this.bind(world);\n      this.bound = true;\n    }\n  }\n\n  private bind(world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>): void {\n    const bus = world.getEventBus?.() ?? (world as any).eventBus;\n    if (!bus?.on) return;\n\n    bus.on(\"combat:hit\", (ev: { targetEntity: number; sourceEntity: number }) => {",
+      "fragment": "  readonly phase = SystemPhase.GameRules;\n  private bound = false;\n\n  update(world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>, _dt: number): void {\n    if (!this.bound) {\n      this.bind(world);\n      this.bound = true;\n    }\n  }\n\n  private bind(world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>): void {\n    const bus = world.getEventBus();",
       "isNew": false,
-      "lines": 15,
+      "lines": 12,
       "secondFile": {
-        "end": 33,
+        "end": 30,
         "endLoc": {
-          "column": 11,
-          "line": 33,
-          "position": 1123
+          "column": 33,
+          "line": 30,
+          "position": 1052
         },
         "name": "tower-defense/systems/TowerDefenseAudioSystem.ts",
         "start": 19,
@@ -2477,7 +2588,7 @@
           "position": 711
         }
       },
-      "tokens": 93
+      "tokens": 68
     },
     {
       "firstFile": {
@@ -2555,32 +2666,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-10-04T15:52:45.863Z",
+    "detectionDate": "2026-10-06T05:48:44.557Z",
     "formats": {
       "typescript": {
-        "clones": 69,
-        "duplicatedLines": 593,
-        "duplicatedTokens": 4443,
-        "lines": 82750,
+        "clones": 72,
+        "duplicatedLines": 571,
+        "duplicatedTokens": 4684,
+        "lines": 83787,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.7166163141993958,
-        "percentageTokens": 1.008161959414844,
-        "sources": 522,
-        "tokens": 440703
+        "percentage": 0.6814899686108824,
+        "percentageTokens": 1.0469472234888109,
+        "sources": 528,
+        "tokens": 447396
       }
     },
     "total": {
-      "clones": 69,
-      "duplicatedLines": 593,
-      "duplicatedTokens": 4443,
-      "lines": 82750,
+      "clones": 72,
+      "duplicatedLines": 571,
+      "duplicatedTokens": 4684,
+      "lines": 83787,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.7166163141993958,
-      "percentageTokens": 1.008161959414844,
-      "sources": 522,
-      "tokens": 440703
+      "percentage": 0.6814899686108824,
+      "percentageTokens": 1.0469472234888109,
+      "sources": 528,
+      "tokens": 447396
     }
   }
 }

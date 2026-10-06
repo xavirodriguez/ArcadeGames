@@ -29,8 +29,8 @@ function roadColor(index: number, rumbleLength: number): string {
 }
 
 function fillTrapezoidSkia(
-  canvas: any,
-  paint: any,
+  canvas: import("@shopify/react-native-skia").SkCanvas,
+  paint: import("@shopify/react-native-skia").SkPaint,
   x1: number,
   y1: number,
   w1: number,
@@ -53,7 +53,7 @@ function fillTrapezoidSkia(
   canvas.drawPath(path, paint);
 }
 
-export const drawSkiaOutrunRoad: ShapeDrawer<any, OutrunComponentRegistry> = {
+export const drawSkiaOutrunRoad: ShapeDrawer<import("@shopify/react-native-skia").SkCanvas, OutrunComponentRegistry> = {
   draw(canvas, world, _entity) {
     const state = world.getSingleton("RaceState");
     const roadData = world.getResource<RoadData>("RoadData");
@@ -110,7 +110,7 @@ export const drawSkiaOutrunRoad: ShapeDrawer<any, OutrunComponentRegistry> = {
   }
 };
 
-export const drawSkiaOutrunCar: ShapeDrawer<any, OutrunComponentRegistry> = {
+export const drawSkiaOutrunCar: ShapeDrawer<import("@shopify/react-native-skia").SkCanvas, OutrunComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
@@ -161,7 +161,7 @@ export const drawSkiaOutrunCar: ShapeDrawer<any, OutrunComponentRegistry> = {
   }
 };
 
-export const drawSkiaOutrunRacer: ShapeDrawer<any, OutrunComponentRegistry> = {
+export const drawSkiaOutrunRacer: ShapeDrawer<import("@shopify/react-native-skia").SkCanvas, OutrunComponentRegistry> = {
   draw(canvas, world, entity) {
     const racer = world.getComponent(entity, "Racer");
     const render = world.getComponent(entity, "Render");
@@ -169,7 +169,7 @@ export const drawSkiaOutrunRacer: ShapeDrawer<any, OutrunComponentRegistry> = {
   }
 };
 
-export const drawSkiaOutrunHud: EffectDrawer<any, OutrunComponentRegistry> = {
+export const drawSkiaOutrunHud: EffectDrawer<import("@shopify/react-native-skia").SkCanvas, OutrunComponentRegistry> = {
   draw(_canvas, world) {
     const state = world.getSingleton("RaceState");
     if (!state) return;

@@ -76,7 +76,10 @@ export class OutrunGame extends BaseGame<
     );
     this.world.setResource("GameConfig", this.config);
 
-    const segments = this.generateRoad(this.config, this.world);
+    let segments: RoadSegment[] = [];
+    runWithUnlockedRandomAndMutators(this.world, this._config.gameOptions, () => {
+      segments = this.generateRoad(this.config, this.world);
+    });
     const trackLength = segments.reduce((sum, s) => sum + s.length, 0);
     const roadData: RoadData = { segments, trackLength };
     this.world.setResource("RoadData", roadData);
@@ -261,6 +264,7 @@ export class OutrunGame extends BaseGame<
     this.world.update(dt);
   }
 
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   public initializeRenderer(renderer: Renderer<OutrunComponentRegistry, any>): void {
     RendererUtils.registerAssets(renderer, {
       canvas: (r) => {
@@ -314,7 +318,7 @@ export class OutrunGame extends BaseGame<
   }
 
   protected override async onPreloadAssets(): Promise<void> {
-    await preloadSharedAudioManifest(this.world);
+    await preloadSharedAudioManifest(this.audio);
   }
 }
 

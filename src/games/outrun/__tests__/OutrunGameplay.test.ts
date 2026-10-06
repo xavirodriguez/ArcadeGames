@@ -21,8 +21,7 @@ describe("OutrunGameplay", () => {
   it("advances playerZ when speed is applied", async () => {
     const game = new OutrunGame({ seed: 7, headless: true });
     await game.init();
-    const world = (game as unknown as { world: any }).world;
-    world.mutateSingleton("RaceState", (s: { speed: number }) => {
+    game.getWorld().mutateSingleton("RaceState", (s) => {
       s.speed = 5000;
     });
     const before = game.getGameState().playerZ;
@@ -33,12 +32,11 @@ describe("OutrunGameplay", () => {
   it("steering changes playerX", async () => {
     const game = new OutrunGame({ seed: 11, headless: true });
     await game.init();
-    const world = (game as unknown as { world: any }).world;
-    world.setResource("CurrentInputFrame", {
+    game.getWorld().setResource("CurrentInputFrame", {
       actions: { left: true, accelerate: true },
       axes: {}
     });
-    world.mutateSingleton("RaceState", (s: { speed: number }) => {
+    game.getWorld().mutateSingleton("RaceState", (s) => {
       s.speed = 6000;
     });
     const before = game.getGameState().playerX;

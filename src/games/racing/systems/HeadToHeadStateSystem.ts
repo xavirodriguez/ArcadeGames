@@ -4,89 +4,115 @@ import type { TrackSpec } from "../types/TrackSpecSchema";
 
 export class HeadToHeadStateSystem extends System<RacingComponentRegistry, RacingEventRegistry> {
   public update(world: World<RacingComponentRegistry, RacingEventRegistry>, deltaTime: number): void {
-    world.mutateSingleton("HeadToHeadState", (h2h) => {
-      if (h2h.phase === "countdown") {
-        h2h.roundCountdown = Math.max(0, h2h.roundCountdown - deltaTime);
-        if (h2h.roundCountdown <= 0) {
-          h2h.phase = "racing";
-          const bus = world.getEventBus?.();
-          if (bus) bus.emitDeferred("head_to_head:round_start", {});
-        }
-        return;
+    const h2hEntities = world.query("HeadToHeadState");
+    if (h2hEntities.length === 0) return;
+    const h2hEntity = h2hEntities[0];
+    const rawH2H = world.getComponent(h2hEntity, "HeadToHeadState");
+    if (!rawH2H) return;
+
+    const h2h = {
+      type: "HeadToHeadState" as const,
+      leaderEntity: rawH2H.leaderEntity,
+      scores: { ...rawH2H.scores },
+      targetScore: rawH2H.targetScore,
+      phase: rawH2H.phase,
+      roundCountdown: rawH2H.roundCountdown,
+      winner: rawH2H.winner
+    };
+
+    let modified = false;
+
+    if (h2h.phase === "countdown") {
+      h2h.roundCountdown = Math.max(0, h2h.roundCountdown - deltaTime);
+      if (h2h.roundCountdown <= 0) {
+        h2h.phase = "racing";
+        const bus = world.getEventBus?.();
+        if (bus) bus.emitDeferred("head_to_head:round_start", {});
       }
+      world.commands.addComponent(h2hEntity, h2h);
+      return;
+    }
 
-      if (h2h.phase === "round_end") {
-        h2h.roundCountdown = Math.max(0, h2h.roundCountdown - deltaTime);
-        if (h2h.roundCountdown <= 0) {
-          this.respawnTrailingCars(world);
-          h2h.phase = "countdown";
-          h2h.roundCountdown = 2.0;
-        }
-        return;
+    if (h2h.phase === "round_end") {
+      h2h.roundCountdown = Math.max(0, h2h.roundCountdown - deltaTime);
+      if (h2h.roundCountdown <= 0) {
+        this.respawnTrailingCars(world);
+        h2h.phase = "countdown";
+        h2h.roundCountdown = 2.0;
       }
+      world.commands.addComponent(h2hEntity, h2h);
+      return;
+    }
 
-      if (h2h.phase !== "racing") return;
+    if (h2h.phase !== "racing") {
+      return;
+    }
 
-      const cars = world.query("Car", "Transform");
-      if (cars.length < 2) return;
+    const cars = world.query("Car", "Transform");
+    if (cars.length < 2) return;
 
-      // Find the leader based on furthest progress
-      let leader = cars[0];
-      let maxProgress = -Infinity;
+    // Find the leader based on furthest progress
+    let leader = cars[0];
+    let maxProgress = -Infinity;
 
-      for (let i = 0; i < cars.length; i++) {
-        const c = cars[i];
-        const transform = world.getComponent(c, "Transform");
-        const lap = world.getComponent(c, "Lap");
-        if (!transform) continue;
+    for (let i = 0; i < cars.length; i++) {
+      const c = cars[i];
+      const transform = world.getComponent(c, "Transform");
+      const lap = world.getComponent(c, "Lap");
+      if (!transform) continue;
 
-        const progress = (lap ? lap.lastCheckpoint * 1000 : 0) + transform.x;
-        if (progress > maxProgress) {
-          maxProgress = progress;
-          leader = c;
-        }
+      const progress = (lap ? lap.lastCheckpoint * 1000 : 0) + transform.x;
+      if (progress > maxProgress) {
+        maxProgress = progress;
+        leader = c;
       }
+    }
 
-      h2h.leaderEntity = leader;
+    h2h.leaderEntity = leader;
+    modified = true;
 
-      const trackSpec = world.getResource<TrackSpec>("ActiveTrackSpec");
+    const trackSpec = world.getResource<TrackSpec>("ActiveTrackSpec");
 
-      // Check if any car is out of camera viewport or inside a deadly edge zone
-      for (let i = 0; i < cars.length; i++) {
-        const car = cars[i];
-        if (car === leader) continue;
+    // Check if any car is out of camera viewport or inside a deadly edge zone
+    for (let i = 0; i < cars.length; i++) {
+      const car = cars[i];
+      if (car === leader) continue;
 
-        const transform = world.getComponent(car, "Transform");
-        if (!transform) continue;
+      const transform = world.getComponent(car, "Transform");
+      if (!transform) continue;
 
-        let inDeadlyZone = false;
-        if (trackSpec && trackSpec.zones) {
-          for (let j = 0; j < trackSpec.zones.length; j++) {
-            const zone = trackSpec.zones[j];
-            if (zone.surface === "deadly_edge") {
-              const halfW = zone.width / 2;
-              const halfH = zone.height / 2;
-              if (
-                transform.x >= zone.x - halfW &&
-                transform.x <= zone.x + halfW &&
-                transform.y >= zone.y - halfH &&
-                transform.y <= zone.y + halfH
-              ) {
-                inDeadlyZone = true;
-                break;
-              }
+      let inDeadlyZone = false;
+      if (trackSpec && trackSpec.zones) {
+        for (let j = 0; j < trackSpec.zones.length; j++) {
+          const zone = trackSpec.zones[j];
+          if (zone.surface === "deadly_edge") {
+            const halfW = zone.width / 2;
+            const halfH = zone.height / 2;
+            if (
+              transform.x >= zone.x - halfW &&
+              transform.x <= zone.x + halfW &&
+              transform.y >= zone.y - halfH &&
+              transform.y <= zone.y + halfH
+            ) {
+              inDeadlyZone = true;
+              break;
             }
           }
         }
-
-        const inViewport = Camera2DSystem.isEntityInViewport(world as never, car, -20);
-        if (!inViewport || inDeadlyZone) {
-          // Trailing car lost the round! Leader scores point.
-          this.handleRoundLoss(world, h2h, leader, car);
-          break;
-        }
       }
-    });
+
+      const inViewport = Camera2DSystem.isEntityInViewport(world as never, car, -20);
+      if (!inViewport || inDeadlyZone) {
+        // Trailing car lost the round! Leader scores point.
+        this.handleRoundLoss(world, h2h, leader, car);
+        modified = true;
+        break;
+      }
+    }
+
+    if (modified) {
+      world.commands.addComponent(h2hEntity, h2h);
+    }
   }
 
   private handleRoundLoss(

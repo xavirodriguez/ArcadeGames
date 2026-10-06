@@ -48,6 +48,10 @@ export class Camera2DSystem extends System<CoreComponentRegistry> {
       if (cam.followEntities && cam.followEntities.length > 0) {
         let sumX = 0;
         let sumY = 0;
+        let minEntX = Infinity;
+        let maxEntX = -Infinity;
+        let minEntY = Infinity;
+        let maxEntY = -Infinity;
         let count = 0;
         for (let j = 0; j < cam.followEntities.length; j++) {
           const ent = cam.followEntities[j];
@@ -56,6 +60,10 @@ export class Camera2DSystem extends System<CoreComponentRegistry> {
             if (tComp) {
               sumX += tComp.x;
               sumY += tComp.y;
+              minEntX = Math.min(minEntX, tComp.x);
+              maxEntX = Math.max(maxEntX, tComp.x);
+              minEntY = Math.min(minEntY, tComp.y);
+              maxEntY = Math.max(maxEntY, tComp.y);
               count++;
             }
           }
@@ -63,6 +71,22 @@ export class Camera2DSystem extends System<CoreComponentRegistry> {
         if (count > 0) {
           targetX = sumX / count;
           targetY = sumY / count;
+
+          if (cam.minZoom !== undefined && cam.maxZoom !== undefined) {
+            const padding = cam.autoZoomPadding ?? 120;
+            const extentX = (maxEntX - minEntX) + padding * 2;
+            const extentY = (maxEntY - minEntY) + padding * 2;
+            const requiredZoomX = viewportWidth / Math.max(1, extentX);
+            const requiredZoomY = viewportHeight / Math.max(1, extentY);
+            const calculatedZoom = Math.min(requiredZoomX, requiredZoomY);
+            const clampedZoom = Math.max(cam.minZoom, Math.min(cam.maxZoom, calculatedZoom));
+
+            world.mutateComponent(camEntity, "Camera2D", (mCam) => {
+              const zoomSpeed = 4;
+              const tz = 1 - Math.exp(-zoomSpeed * deltaTime);
+              mCam.zoom += (clampedZoom - mCam.zoom) * tz;
+            });
+          }
         }
       }
 

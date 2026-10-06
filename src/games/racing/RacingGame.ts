@@ -178,6 +178,11 @@ export class RacingGame extends BaseGame<
       spawnBlueprint(this.world, "wall", trackSpec.walls[i]);
     }
 
+    // Spawn track obstacles
+    for (let i = 0; i < trackSpec.obstacles.length; i += 1) {
+      spawnBlueprint(this.world, "obstacle", trackSpec.obstacles[i]);
+    }
+
     const spawnPt1 = trackSpec.spawnPoints[0] ?? { x: 800, y: 200, rotation: 0 };
     const car1 = spawnBlueprint(this.world, "car", {
       x: spawnPt1.x,

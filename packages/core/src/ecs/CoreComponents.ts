@@ -829,6 +829,12 @@ export interface Camera2DComponent extends Component {
   followEntities?: Entity[];
   /** Whether to focus specifically on the leader entity among followEntities. */
   followLeader?: boolean;
+  /** Optional minimum zoom for auto-zoom when tracking multiple entities. */
+  minZoom?: number;
+  /** Optional maximum zoom for auto-zoom when tracking multiple entities. */
+  maxZoom?: number;
+  /** Padding margin in world units for auto-zoom extent calculation. */
+  autoZoomPadding?: number;
   /** Horizontal lookahead offset distance. */
   lookAheadX?: number;
   /** Horizontal position smoothing factor. */

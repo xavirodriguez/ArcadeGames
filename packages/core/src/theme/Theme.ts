@@ -133,6 +133,11 @@ export interface Theme<TRole extends string = string> {
    * Optional visual profile defining background FX and particle parameters per game.
    */
   vfxProfile?: GameVisualProfile;
+
+  /**
+   * Optional formalized visual theme contract for unified design system tokens.
+   */
+  visualTheme?: unknown;
 }
 
 /**

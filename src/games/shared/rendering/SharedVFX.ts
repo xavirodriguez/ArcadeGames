@@ -1,4 +1,4 @@
-import { World, EffectDrawer, ShapeDrawer, ComponentRegistry, CoreComponentRegistry, RenderComponent, TTLComponent, Renderer, RendererUtils, RenderContext, EventRegistry, BlueprintRegistryMap, Entity, RandomService } from "@tiny-aster/core";
+import { World, EffectDrawer, ShapeDrawer, ComponentRegistry, CoreComponentRegistry, RenderComponent, TTLComponent, Renderer, RendererUtils, RenderContext, EventRegistry, BlueprintRegistryMap, Entity, RandomService, EntityBuilder, Juice } from "@tiny-aster/core";
 import type { SkCanvas, SkColor } from "@shopify/react-native-skia";
 import { Skia } from "./SkiaContext";
 import { COSMIC_ARCADE_PALETTE, getSemanticColor, hexToRgba, getSkiaColor } from "./CosmicPalette";
@@ -311,6 +311,150 @@ export function createSharedParticle<
   ttl = 0.8
 ): number {
   return pool.acquire(world, { x, y, dx, dy, size, color, ttl });
+}
+
+export interface LayeredExplosionOptions {
+  type?: ExplosionType;
+  color?: string;
+  scale?: number;
+  shakeIntensity?: number;
+  shakeDuration?: number;
+}
+
+/**
+ * Spawns a multi-layered explosion visual effect with structured timings:
+ * Core Flash (0.08s) -> Shockwave Ring -> Particle Burst & Debris Shards -> Screen Shake
+ * @public
+ */
+export function spawnLayeredExplosion<
+  TComponents extends ComponentRegistry = CoreComponentRegistry,
+  TEvents extends EventRegistry = EventRegistry,
+  TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+>(
+  world: World<TComponents, TEvents, TBlueprints>,
+  x: number,
+  y: number,
+  options?: LayeredExplosionOptions
+): void {
+  const type = options?.type ?? "enemy";
+  const profile = EXPLOSION_PROFILES[type];
+  const scale = options?.scale ?? 1.0;
+  const size = profile.maxRadius * scale;
+  const coreWorld = world as unknown as World<CoreComponentRegistry>;
+  const isUpdating = coreWorld.isUpdating === true;
+
+  const createEntity = (): number => {
+    if (isUpdating) {
+      const id = coreWorld.reserveEntityId();
+      coreWorld.getCommandBuffer().createEntity(id);
+      return id;
+    }
+    return coreWorld.createEntity();
+  };
+
+  const addComp = (entity: number, comp: any): void => {
+    if (isUpdating) {
+      coreWorld.getCommandBuffer().addComponent(entity, comp);
+    } else {
+      coreWorld.addComponent(entity, comp);
+    }
+  };
+
+  // Layer 1: Core Flash entity
+  const flashEntity = createEntity();
+  addComp(flashEntity, {
+    type: "Transform",
+    x,
+    y,
+    rotation: 0,
+    scaleX: 1,
+    scaleY: 1,
+    worldX: x,
+    worldY: y,
+    worldRotation: 0,
+    worldScaleX: 1,
+    worldScaleY: 1,
+    dirty: true
+  });
+  addComp(flashEntity, {
+    type: "Render",
+    shape: "shield_bubble",
+    size: size * 0.8,
+    color: options?.color ?? profile.colorSequence[0],
+    visible: true,
+    opacity: 1,
+    order: 10,
+    rotation: 0,
+    angularVelocity: 0,
+    hitFlashFrames: 0
+  });
+  addComp(flashEntity, {
+    type: "TTL",
+    remaining: 0.08,
+    timeLeft: 0.08
+  });
+
+  // Layer 2: Shockwave Ring
+  if (profile.hasShockwave) {
+    const shockEntity = createEntity();
+    addComp(shockEntity, {
+      type: "Transform",
+      x,
+      y,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      worldX: x,
+      worldY: y,
+      worldRotation: 0,
+      worldScaleX: 1,
+      worldScaleY: 1,
+      dirty: true
+    });
+    addComp(shockEntity, {
+      type: "Render",
+      shape: "shockwave",
+      size: size * 1.2,
+      color: options?.color ?? profile.colorSequence[1] ?? profile.colorSequence[0],
+      visible: true,
+      opacity: 1,
+      order: 9,
+      rotation: 0,
+      angularVelocity: 0,
+      hitFlashFrames: 0
+    });
+    addComp(shockEntity, {
+      type: "TTL",
+      remaining: profile.durationMs / 1000,
+      timeLeft: profile.durationMs / 1000
+    });
+  }
+
+  // Layer 3 & 4: Particle Burst & Debris Shards
+  const particlePool = world.getResource<any>("ParticlePool");
+  if (particlePool) {
+    const rng = world.gameplayRandom;
+    const count = profile.particleCount;
+    const colors = profile.colorSequence;
+
+    for (let i = 0; i < count; i++) {
+      const angle = rng.next() * Math.PI * 2;
+      const speed = rng.nextRange(50, 180) * scale;
+      const px = x + (rng.next() - 0.5) * 6;
+      const py = y + (rng.next() - 0.5) * 6;
+      const vx = Math.cos(angle) * speed;
+      const vy = Math.sin(angle) * speed;
+      const pColor = options?.color ?? colors[rng.nextInt(0, colors.length)];
+      const pSize = rng.nextRange(1.5, 4.5) * scale;
+      const ttl = rng.nextRange(0.2, profile.durationMs / 1000);
+      createSharedParticle(world, px, py, vx, vy, pColor, particlePool, pSize, ttl);
+    }
+  }
+
+  // Layer 5: Screen Shake
+  const intensity = options?.shakeIntensity ?? (type === "boss" ? 6.0 : type === "ship" ? 5.0 : 2.5);
+  const duration = options?.shakeDuration ?? (type === "boss" ? 200 : 100);
+  Juice.shake(coreWorld, intensity, duration);
 }
 
 // -------------------------------------------------------------

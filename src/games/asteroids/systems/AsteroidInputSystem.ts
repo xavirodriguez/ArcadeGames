@@ -1,4 +1,4 @@
-import { World, System, computeShipPhysics, getForwardVector, PhysicsUtils } from "@tiny-aster/core";
+import { World, System, computeShipPhysics, getForwardVector, PhysicsUtils, Juice } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/AsteroidRegistry";
 import { AsteroidConfig } from "../types/AsteroidConfigSchema";
 import { createBullet } from "../EntityFactory";
@@ -85,6 +85,13 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
                   vy,
                   rotation: transform.rotation,
                   ownerId: "player"
+              });
+
+              Juice.playShootJuice(world, entity, {
+                  muzzleFrames: 2,
+                  recoilPx: 4,
+                  shakeIntensity: 1.0,
+                  shakeDuration: 40
               });
 
               const eventBus = world.getEventBus();

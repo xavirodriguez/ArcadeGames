@@ -1,5 +1,6 @@
 import { colors } from './colors';
 import type { Theme, GameVisualProfile } from '@tiny-aster/core';
+import { createVisualTheme, VisualTheme } from './VisualTheme';
 
 /**
  * Mapeo de paletas de juego a tokens de color existentes.
@@ -194,6 +195,13 @@ export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<
     "track-wall": accentColors.accent,
   };
 
+  const visualTheme: VisualTheme = createVisualTheme(
+    accentColors.primary,
+    accentColors.secondary,
+    accentColors.accent,
+    { particleShape: defaultVfx?.particleShape }
+  );
+
   return {
     spriteMap: { ...customTheme?.spriteMap },
     colorMap: { ...defaultColorMap, ...customTheme?.colorMap },
@@ -201,5 +209,6 @@ export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<
     vfxProfile: customTheme?.vfxProfile
       ? { ...defaultVfx, ...customTheme.vfxProfile }
       : defaultVfx,
+    visualTheme,
   };
 }

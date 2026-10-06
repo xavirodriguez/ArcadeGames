@@ -81,6 +81,16 @@ describe("Deterministic Zero-Allocation Shared VFX (All 19 Effects)", () => {
   });
 
   // -----------------------------------------------------------
+  // Layered VFX (spawnLayeredExplosion)
+  // -----------------------------------------------------------
+  it("should spawn layered explosion entities with flash, shockwave and particle layers", () => {
+    const initialEntities = world.query("Render").length;
+    SharedVFX.spawnLayeredExplosion(world, 100, 100, { type: "enemy" });
+    const newEntities = world.query("Render").length;
+    expect(newEntities).toBeGreaterThan(initialEntities);
+  });
+
+  // -----------------------------------------------------------
   // 1. RetroCRTScanlinesEffect
   // -----------------------------------------------------------
   it("should draw RetroCRTScanlinesEffect deterministically and without Math.random", () => {

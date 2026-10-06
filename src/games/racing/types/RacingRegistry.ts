@@ -16,8 +16,18 @@ export interface RacingBlueprintMap extends Record<string, BlueprintDefinition<R
     index: number; x: number; y: number; width?: number; height?: number; isFinish?: boolean;
   }>;
   state: BlueprintDefinition<RacingComponentRegistry, RacingEventRegistry, Record<string, never>>;
-  track_zone: BlueprintDefinition<RacingComponentRegistry, RacingEventRegistry, { x: number; y: number; width?: number; height?: number; surface?: string }>;
-  track_obstacle: BlueprintDefinition<RacingComponentRegistry, RacingEventRegistry, { x: number; y: number; radius?: number; kind?: string }>;
+  track_surface: BlueprintDefinition<RacingComponentRegistry, RacingEventRegistry, {
+    width: number; height: number;
+  }>;
+  track_ribbon: BlueprintDefinition<RacingComponentRegistry, RacingEventRegistry, Record<string, never>>;
+  skid_marks: BlueprintDefinition<RacingComponentRegistry, RacingEventRegistry, Record<string, never>>;
+  smoke: BlueprintDefinition<RacingComponentRegistry, RacingEventRegistry, Record<string, never>>;
+  track_zone: BlueprintDefinition<RacingComponentRegistry, RacingEventRegistry, {
+    id: string; x: number; y: number; width: number; height: number; surface: string;
+  }>;
+  track_obstacle: BlueprintDefinition<RacingComponentRegistry, RacingEventRegistry, {
+    id: string; x: number; y: number; radius: number; kind: string;
+  }>;
 }
 
 export type { RacingInputState, RacingGameState };

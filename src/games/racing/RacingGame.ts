@@ -37,6 +37,7 @@ import { registerRacingBlueprints, spawnBlueprint } from "./EntityFactory";
 import breakfastTrackRaw from "./config/tracks/breakfast_table.json";
 import { RacingInputSystem } from "./systems/RacingInputSystem";
 import { RacingSurfaceSystem } from "./systems/RacingSurfaceSystem";
+import { RacingParticleSystem } from "./systems/RacingParticleSystem";
 import { RacingWallSystem } from "./systems/RacingWallSystem";
 import { LapSystem } from "./systems/LapSystem";
 import { RaceStateSystem } from "./systems/RaceStateSystem";
@@ -116,6 +117,7 @@ export class RacingGame extends BaseGame<
     this.world.addSystem(new RacingEventsSystem(), { phase: SystemPhase.GameRules });
 
     if (!this.isHeadless) {
+      this.world.addSystem(new RacingParticleSystem(), { phase: SystemPhase.Presentation });
       this.world.addSystem(new ScreenShakeSystem(), { phase: SystemPhase.Presentation });
       this.world.addSystem(new FeedbackSystem(), { phase: SystemPhase.Presentation });
       this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation });
@@ -184,17 +186,11 @@ export class RacingGame extends BaseGame<
       winner: null
     });
 
-    if (trackSpec.zones) {
-      for (const zone of trackSpec.zones) {
-        spawnBlueprint(this.world, "track_zone", zone);
-      }
-    }
-
-    if (trackSpec.obstacles) {
-      for (const obstacle of trackSpec.obstacles) {
-        spawnBlueprint(this.world, "track_obstacle", obstacle);
-      }
-    }
+    // Spawn surface, ribbon, skid marks, and smoke
+    spawnBlueprint(this.world, "track_surface", { width: trackSpec.width, height: trackSpec.height });
+    spawnBlueprint(this.world, "track_ribbon", {});
+    spawnBlueprint(this.world, "skid_marks", {});
+    spawnBlueprint(this.world, "smoke", {});
 
     // Spawn checkpoints from track spec waypoints
     for (let i = 0; i < trackSpec.waypoints.length; i += 1) {
@@ -212,6 +208,31 @@ export class RacingGame extends BaseGame<
     // Spawn track walls
     for (let i = 0; i < trackSpec.walls.length; i += 1) {
       spawnBlueprint(this.world, "wall", trackSpec.walls[i]);
+    }
+
+    // Spawn track zones
+    for (let i = 0; i < trackSpec.zones.length; i += 1) {
+      const zone = trackSpec.zones[i];
+      spawnBlueprint(this.world, "track_zone", {
+        id: zone.id,
+        x: zone.x,
+        y: zone.y,
+        width: zone.width,
+        height: zone.height,
+        surface: zone.surface
+      });
+    }
+
+    // Spawn track obstacles
+    for (let i = 0; i < trackSpec.obstacles.length; i += 1) {
+      const obs = trackSpec.obstacles[i];
+      spawnBlueprint(this.world, "track_obstacle", {
+        id: obs.id,
+        x: obs.x,
+        y: obs.y,
+        radius: obs.radius,
+        kind: obs.kind
+      });
     }
 
     const spawnPt1 = trackSpec.spawnPoints[0] ?? { x: 800, y: 200, rotation: 0 };

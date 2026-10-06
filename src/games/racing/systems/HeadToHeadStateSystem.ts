@@ -6,7 +6,7 @@ export class HeadToHeadStateSystem extends System<RacingComponentRegistry, Racin
   public update(world: World<RacingComponentRegistry, RacingEventRegistry>, deltaTime: number): void {
     const h2hEntities = world.query("HeadToHeadState");
     if (h2hEntities.length === 0) return;
-    const h2hEntity = h2hEntities[0];
+    const h2hEntity = h2hEntities[0]!;
     const rawH2H = world.getComponent(h2hEntity, "HeadToHeadState");
     if (!rawH2H) return;
 
@@ -51,12 +51,11 @@ export class HeadToHeadStateSystem extends System<RacingComponentRegistry, Racin
     const cars = world.query("Car", "Transform");
     if (cars.length < 2) return;
 
-    // Find the leader based on furthest progress
-    let leader = cars[0];
+    let leader = cars[0]!;
     let maxProgress = -Infinity;
 
     for (let i = 0; i < cars.length; i++) {
-      const c = cars[i];
+      const c = cars[i]!;
       const transform = world.getComponent(c, "Transform");
       const lap = world.getComponent(c, "Lap");
       if (!transform) continue;
@@ -73,9 +72,8 @@ export class HeadToHeadStateSystem extends System<RacingComponentRegistry, Racin
 
     const trackSpec = world.getResource<TrackSpec>("ActiveTrackSpec");
 
-    // Check if any car is out of camera viewport or inside a deadly edge zone
     for (let i = 0; i < cars.length; i++) {
-      const car = cars[i];
+      const car = cars[i]!;
       if (car === leader) continue;
 
       const transform = world.getComponent(car, "Transform");
@@ -84,7 +82,7 @@ export class HeadToHeadStateSystem extends System<RacingComponentRegistry, Racin
       let inDeadlyZone = false;
       if (trackSpec && trackSpec.zones) {
         for (let j = 0; j < trackSpec.zones.length; j++) {
-          const zone = trackSpec.zones[j];
+          const zone = trackSpec.zones[j]!;
           if (zone.surface === "deadly_edge") {
             const halfW = zone.width / 2;
             const halfH = zone.height / 2;
@@ -103,7 +101,6 @@ export class HeadToHeadStateSystem extends System<RacingComponentRegistry, Racin
 
       const inViewport = Camera2DSystem.isEntityInViewport(world as never, car, -20);
       if (!inViewport || inDeadlyZone) {
-        // Trailing car lost the round! Leader scores point.
         this.handleRoundLoss(world, h2h, leader, car);
         modified = true;
         break;
@@ -119,7 +116,7 @@ export class HeadToHeadStateSystem extends System<RacingComponentRegistry, Racin
     world: World<RacingComponentRegistry, RacingEventRegistry>,
     h2h: { phase: string; roundCountdown: number; scores: Record<string, number>; targetScore: number; winner: string | null },
     winnerCar: number,
-    loserCar: number
+    _loserCar: number
   ): void {
     h2h.phase = "round_end";
     h2h.roundCountdown = 1.5;
@@ -150,12 +147,12 @@ export class HeadToHeadStateSystem extends System<RacingComponentRegistry, Racin
     if (cars.length < 2) return;
 
     const h2h = world.getSingleton("HeadToHeadState");
-    const leader = h2h?.leaderEntity ?? cars[0];
+    const leader = h2h?.leaderEntity ?? cars[0]!;
     const leaderTransform = world.getComponent(leader, "Transform");
     if (!leaderTransform) return;
 
     for (let i = 0; i < cars.length; i++) {
-      const car = cars[i];
+      const car = cars[i]!;
       if (car === leader) continue;
 
       const trans = world.getMutableComponent(car, "Transform");

@@ -1,0 +1,21 @@
+{
+  "segmentLength": 200,
+  "rumbleLength": 3,
+  "roadWidth": 2000,
+  "cameraHeight": 1000,
+  "cameraDepth": 0.84,
+  "drawDistance": 300,
+  "maxSpeed": 12000,
+  "centrifugalForce": 0.3,
+  "accel": 2000,
+  "brake": 4000,
+  "decel": 800,
+  "offRoadDecel": 2000,
+  "offRoadLimit": 4000,
+  "steerSpeed": 3.0,
+  "playerZOffset": 0,
+  "laneWidth": 0.3,
+  "trafficDensity": 0.02,
+  "WIDTH": 800,
+  "HEIGHT": 600
+}

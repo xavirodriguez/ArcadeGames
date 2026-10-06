@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { World, System, resolveThemeColor } from "@tiny-aster/core";
+import { World, System, resolveThemeColor, Juice } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/AsteroidRegistry";
 import { CombatDeathEvent } from "@tiny-aster/gameplay-kit";
 import { fragmentAsteroid } from "../EntityFactory";
 import { spawnScorePopup } from "@tiny-aster/gameplay-kit";
-import { createSharedParticle, EXPLOSION_PROFILES } from "../../shared/rendering/SharedVFX";
+import { createSharedParticle, EXPLOSION_PROFILES, spawnLayeredExplosion } from "../../shared/rendering/SharedVFX";
 import { getLogsForLevel } from "../story/StoryBeats";
 import { colors } from "../../../theme/colors";
 import { applyComboKill } from "../../shared/arcade/ComboUtils";
@@ -151,28 +151,8 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
     transform: { x: number; y: number },
     size: "large" | "medium" | "small" | "ship"
   ): void {
-    const particlePool = world.getResource<any>("ParticlePool");
-    if (!particlePool) return;
-
-    const ax = transform.x;
-    const ay = transform.y;
-    const profile = size === "large" ? EXPLOSION_PROFILES["enemy"] : EXPLOSION_PROFILES["small"];
-    const particleCount = profile.particleCount;
-    const rng = world.gameplayRandom;
-    const colors = profile.colorSequence;
-
-    for (let i = 0; i < particleCount; i++) {
-      const angle = rng.next() * Math.PI * 2;
-      const speed = rng.nextRange(40, 150);
-      const px = ax + (rng.next() - 0.5) * 8;
-      const py = ay + (rng.next() - 0.5) * 8;
-      const vx = Math.cos(angle) * speed;
-      const vy = Math.sin(angle) * speed;
-      const color = colors[rng.nextInt(0, colors.length)];
-      const pSize = rng.nextRange(1.5, 4.5);
-      const ttl = rng.nextRange(0.4, 0.9);
-      createSharedParticle(world, px, py, vx, vy, color, particlePool, pSize, ttl);
-    }
+    const explosionType = size === "ship" ? "ship" : size === "large" ? "enemy" : "small";
+    spawnLayeredExplosion(world, transform.x, transform.y, { type: explosionType });
   }
 
   private maybeSpawnStoryLog(
@@ -291,11 +271,12 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
       }
     }
 
-    // Spawn particle explosion for player ship impact/death
+    // Spawn particle explosion and juice for player ship impact/death
     const shipTransform = world.getComponent(ship, "Transform");
     if (shipTransform) {
       this.spawnExplosionParticles(world, shipTransform, "ship");
     }
+    Juice.playDeathJuice(world, ship, { shakeIntensity: 6.0, shakeDuration: 180 });
 
     if (lives > 0) {
       // Respawn ship at center with invulnerability
@@ -351,6 +332,7 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
       this.maybeSpawnStoryLog(world, asteroidTransform, size, nextMultiplier);
       this.spawnExplosionParticles(world, asteroidTransform, size);
     }
+    Juice.shake(world, size === "large" ? 3.0 : 1.5, 80);
 
     // Fragment asteroid
     fragmentAsteroid(world, asteroid);

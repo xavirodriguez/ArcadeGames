@@ -35,13 +35,12 @@ export class ShmupInputSystem extends System<ShmupComponentRegistry, ShmupEventR
         createPlayerBullet(world, transform.x, transform.y - config.PLAYER_SIZE, pool);
         cooldown = config.PLAYER_SHOOT_COOLDOWN / 1000;
 
-        world.mutateComponent(entity, "Render", render => {
-          render.muzzleFlashFrames = config.MUZZLE_FLASH_FRAMES;
+        Juice.playShootJuice(world, entity, {
+          muzzleFrames: config.MUZZLE_FLASH_FRAMES,
+          recoilPx: config.RETROCOIL_PX,
+          shakeIntensity: 1.2,
+          shakeDuration: 45
         });
-        Juice.add(world, entity, { property: "y", target: config.RETROCOIL_PX, duration: 60, easing: "easeOut" });
-        Juice.add(world, entity, { property: "y", target: 0, duration: 160, delay: 60, easing: "elasticOut" });
-        Juice.squash(world, entity, 0.9, 1.15, 90);
-        Juice.shake(world as World<CoreComponentRegistry>, 1.2, 45);
         world.getEventBus()?.emitDeferred("PlaySFX", { name: "shoot", cooldownMs: 70 });
       }
 

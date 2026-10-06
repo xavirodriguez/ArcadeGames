@@ -372,6 +372,80 @@
     },
     {
       "firstFile": {
+        "end": 189,
+        "endLoc": {
+          "column": 36,
+          "line": 189,
+          "position": 7831
+        },
+        "name": "utils/Juice.ts",
+        "start": 182,
+        "startLoc": {
+          "column": 28,
+          "line": 182,
+          "position": 7499
+        }
+      },
+      "format": "typescript",
+      "fragment": "  public static playHitJuice<\n    TComponents extends CoreComponentRegistry = CoreComponentRegistry,\n    TEvents extends EventRegistry = EventRegistry,\n    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>\n  >(\n    world: World<TComponents, TEvents, TBlueprints>,\n    entity: Entity,\n    config?: { flashFrames?: number; squashDuration?: number; shakeIntensity?: number; shakeDuration?: number }",
+      "isNew": false,
+      "lines": 8,
+      "secondFile": {
+        "end": 211,
+        "endLoc": {
+          "column": 36,
+          "line": 211,
+          "position": 8759
+        },
+        "name": "utils/Juice.ts",
+        "start": 204,
+        "startLoc": {
+          "column": 30,
+          "line": 204,
+          "position": 8427
+        }
+      },
+      "tokens": 50
+    },
+    {
+      "firstFile": {
+        "end": 191,
+        "endLoc": {
+          "column": 21,
+          "line": 191,
+          "position": 7940
+        },
+        "name": "utils/Juice.ts",
+        "start": 182,
+        "startLoc": {
+          "column": 28,
+          "line": 182,
+          "position": 7499
+        }
+      },
+      "format": "typescript",
+      "fragment": "  public static playHitJuice<\n    TComponents extends CoreComponentRegistry = CoreComponentRegistry,\n    TEvents extends EventRegistry = EventRegistry,\n    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>\n  >(\n    world: World<TComponents, TEvents, TBlueprints>,\n    entity: Entity,\n    config?: { flashFrames?: number; squashDuration?: number; shakeIntensity?: number; shakeDuration?: number }\n  ): void {\n    const flashFrames = config?.flashFrames ?? 5;",
+      "isNew": false,
+      "lines": 10,
+      "secondFile": {
+        "end": 234,
+        "endLoc": {
+          "column": 46,
+          "line": 234,
+          "position": 9697
+        },
+        "name": "utils/Juice.ts",
+        "start": 225,
+        "startLoc": {
+          "column": 31,
+          "line": 225,
+          "position": 9256
+        }
+      },
+      "tokens": 71
+    },
+    {
+      "firstFile": {
         "end": 39,
         "endLoc": {
           "column": 25,
@@ -2000,22 +2074,22 @@
     },
     {
       "firstFile": {
-        "end": 74,
+        "end": 96,
         "endLoc": {
-          "column": 17,
-          "line": 74,
-          "position": 2722
+          "column": 15,
+          "line": 96,
+          "position": 3231
         },
         "name": "racing/systems/HeadToHeadStateSystem.ts",
-        "start": 67,
+        "start": 89,
         "startLoc": {
-          "column": 14,
-          "line": 67,
-          "position": 2418
+          "column": 12,
+          "line": 89,
+          "position": 2941
         }
       },
       "format": "typescript",
-      "fragment": "              const halfW = zone.width / 2;\n              const halfH = zone.height / 2;\n              if (\n                transform.x >= zone.x - halfW &&\n                transform.x <= zone.x + halfW &&\n                transform.y >= zone.y - halfH &&\n                transform.y <= zone.y + halfH\n              ) {",
+      "fragment": "            const halfW = zone.width / 2;\n            const halfH = zone.height / 2;\n            if (\n              transform.x >= zone.x - halfW &&\n              transform.x <= zone.x + halfW &&\n              transform.y >= zone.y - halfH &&\n              transform.y <= zone.y + halfH\n            ) {",
       "isNew": false,
       "lines": 8,
       "secondFile": {
@@ -2071,6 +2145,43 @@
         }
       },
       "tokens": 74
+    },
+    {
+      "firstFile": {
+        "end": 379,
+        "endLoc": {
+          "column": 10,
+          "line": 379,
+          "position": 15881
+        },
+        "name": "shared/rendering/SharedVFX.ts",
+        "start": 365,
+        "startLoc": {
+          "column": 21,
+          "line": 365,
+          "position": 15669
+        }
+      },
+      "format": "typescript",
+      "fragment": "  addComp(flashEntity, {\n    type: \"Transform\",\n    x,\n    y,\n    rotation: 0,\n    scaleX: 1,\n    scaleY: 1,\n    worldX: x,\n    worldY: y,\n    worldRotation: 0,\n    worldScaleX: 1,\n    worldScaleY: 1,\n    dirty: true\n  });\n  addComp(flashEntity, {",
+      "isNew": false,
+      "lines": 15,
+      "secondFile": {
+        "end": 414,
+        "endLoc": {
+          "column": 12,
+          "line": 414,
+          "position": 16591
+        },
+        "name": "shared/rendering/SharedVFX.ts",
+        "start": 400,
+        "startLoc": {
+          "column": 23,
+          "line": 400,
+          "position": 16351
+        }
+      },
+      "tokens": 50
     },
     {
       "firstFile": {
@@ -2666,32 +2777,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-10-06T05:48:44.557Z",
+    "detectionDate": "2026-10-06T09:56:15.661Z",
     "formats": {
       "typescript": {
-        "clones": 72,
-        "duplicatedLines": 571,
-        "duplicatedTokens": 4684,
-        "lines": 83787,
+        "clones": 75,
+        "duplicatedLines": 601,
+        "duplicatedTokens": 4855,
+        "lines": 84149,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.6814899686108824,
-        "percentageTokens": 1.0469472234888109,
+        "percentage": 0.7142093191838287,
+        "percentageTokens": 1.0793950052135557,
         "sources": 528,
-        "tokens": 447396
+        "tokens": 449789
       }
     },
     "total": {
-      "clones": 72,
-      "duplicatedLines": 571,
-      "duplicatedTokens": 4684,
-      "lines": 83787,
+      "clones": 75,
+      "duplicatedLines": 601,
+      "duplicatedTokens": 4855,
+      "lines": 84149,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.6814899686108824,
-      "percentageTokens": 1.0469472234888109,
+      "percentage": 0.7142093191838287,
+      "percentageTokens": 1.0793950052135557,
       "sources": 528,
-      "tokens": 447396
+      "tokens": 449789
     }
   }
 }

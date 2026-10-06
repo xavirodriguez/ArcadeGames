@@ -21,6 +21,7 @@ import { attachEnemyDefaults } from "../shared/enemyHelpers";
 import { PowerUpComponent } from "@tiny-aster/gameplay-kit";
 import { BulletPool, AsteroidPool } from "./EntityPool";
 import { colors } from "../../theme/colors";
+import { getGameplayColor } from "../../theme/GameplayColorMap";
 
 /**
  * @param lootType - Loot/power-up identifier (e.g. "shield", "speed_boost").
@@ -104,7 +105,7 @@ export function registerAsteroidsBlueprints(
       const useSprites = gameConfig?.USE_SPRITES !== false;
 
       const assetKey = theme?.spriteMap["player-ship"] ?? theme?.spriteMap["player"] ?? "ship_sprite";
-      const tint = resolveThemeColor(w, "ship", "player-ship", "player");
+      const tint = resolveThemeColor(w, "ship", "player-ship", "player") ?? getGameplayColor("Player", w);
 
       EntityBuilder.fromEntity(w, entity)
         .withTransform({
@@ -168,7 +169,7 @@ export function registerAsteroidsBlueprints(
 
   registry.register("bullet", {
     spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; vx: number; vy: number; rotation?: number; ownerId?: string; ttl?: number }) => {
-      const tint = resolveThemeColor(w, "bullet", "player-bullet");
+      const tint = resolveThemeColor(w, "bullet", "player-bullet") ?? getGameplayColor("PlayerProjectile", w);
       const gameConfig = w.getResource<any>("GameConfig");
 
       EntityBuilder.fromEntity(w, entity)
@@ -243,7 +244,7 @@ export function registerAsteroidsBlueprints(
       else if (args.size === "small") radius = 10;
 
       const logicalRole = args.size === "large" ? "asteroid-large" : args.size === "medium" ? "asteroid-medium" : "asteroid-small";
-      const tint = resolveThemeColor(w, logicalRole, "asteroid", "enemy") || colors.cyan;
+      const tint = resolveThemeColor(w, logicalRole, "asteroid", "enemy") ?? getGameplayColor("Enemy", w);
 
       buildMovingCircularEnemy(w, entity, {
         x: args.x,
@@ -324,7 +325,7 @@ export function registerAsteroidsBlueprints(
       const gameConfig = w.getResource<any>("GameConfig");
       const worldWidth = gameConfig?.worldWidth ?? 800;
       const worldHeight = gameConfig?.worldHeight ?? 600;
-      const tint = resolveThemeColor(w, "ufo", "enemy") || "#ff0055";
+      const tint = resolveThemeColor(w, "ufo", "enemy") ?? getGameplayColor("Enemy", w);
       const ufoSize = args.size ?? "large";
       const radius = ufoSize === "large" ? 18 : 10;
       const speed = ufoSize === "large" ? 100 : 160;

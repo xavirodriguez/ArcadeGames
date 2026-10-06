@@ -15,6 +15,7 @@ import {
   FormationComponent,
 } from "./types/SpaceInvadersTypes";
 import { EnemyFactory } from "./EnemyFactory";
+import { getGameplayColor } from "../../theme/GameplayColorMap";
 
 /**
  * Creates a default, strongly-typed InputComponent.
@@ -78,7 +79,7 @@ export function createPlayerBullet(world: World<SpaceInvadersComponentRegistry>,
         dx: 0,
         dy: -config.PLAYER_BULLET_SPEED,
         size: config.PLAYER_BULLET_SIZE,
-        color: "#00FF00",
+        color: getGameplayColor("PlayerProjectile", world),
         ttl: config.PLAYER_BULLET_TTL
     }
   );
@@ -87,7 +88,6 @@ export function createPlayerBullet(world: World<SpaceInvadersComponentRegistry>,
 /**
  * Creates an enemy bullet using the pool.
  * @remarks See createPlayerBullet for the explicit-pool pattern used here.
- * Color is hardcoded ("#FF0000") rather than theme-driven.
  */
 export function createEnemyBullet(world: World<SpaceInvadersComponentRegistry>, x: number, y: number, pool: EnemyBulletPool): Entity {
   const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
@@ -99,7 +99,7 @@ export function createEnemyBullet(world: World<SpaceInvadersComponentRegistry>, 
         dx: 0,
         dy: config.ENEMY_BULLET_SPEED,
         size: config.ENEMY_BULLET_SIZE,
-        color: "#FF0000",
+        color: getGameplayColor("EnemyProjectile", world),
         ttl: config.ENEMY_BULLET_TTL
     }
   );

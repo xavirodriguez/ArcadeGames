@@ -147,4 +147,96 @@ export class Juice {
         easing: "elasticOut"
     });
   }
+
+  /**
+   * Reusable juice helper for weapon firing feedback (recoil, muzzle flash, squash/stretch, screen shake).
+   */
+  public static playShootJuice<
+    TComponents extends CoreComponentRegistry = CoreComponentRegistry,
+    TEvents extends EventRegistry = EventRegistry,
+    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+  >(
+    world: World<TComponents, TEvents, TBlueprints>,
+    entity: Entity,
+    config?: { muzzleFrames?: number; recoilPx?: number; shakeIntensity?: number; shakeDuration?: number }
+  ): void {
+    const coreWorld = world as unknown as World<CoreComponentRegistry>;
+    const muzzleFrames = config?.muzzleFrames ?? 3;
+    const recoilPx = config?.recoilPx ?? 6;
+    const intensity = config?.shakeIntensity ?? 1.2;
+    const duration = config?.shakeDuration ?? 45;
+
+    coreWorld.mutateComponent(entity, "Render", (render) => {
+      render.hitFlashFrames = muzzleFrames;
+    });
+
+    this.add(world, entity, { property: "y", target: recoilPx, duration: 60, easing: "easeOut" });
+    this.add(world, entity, { property: "y", target: 0, duration: 160, delay: 60, easing: "elasticOut" });
+    this.squash(world, entity, 0.9, 1.15, 90);
+    this.shake(world, intensity, duration);
+  }
+
+  /**
+   * Reusable juice helper for entity impact feedback (hit flash, squash pulse, screen shake).
+   */
+  public static playHitJuice<
+    TComponents extends CoreComponentRegistry = CoreComponentRegistry,
+    TEvents extends EventRegistry = EventRegistry,
+    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+  >(
+    world: World<TComponents, TEvents, TBlueprints>,
+    entity: Entity,
+    config?: { flashFrames?: number; squashDuration?: number; shakeIntensity?: number; shakeDuration?: number }
+  ): void {
+    const flashFrames = config?.flashFrames ?? 5;
+    const squashDuration = config?.squashDuration ?? 100;
+    const intensity = config?.shakeIntensity ?? 2.5;
+    const duration = config?.shakeDuration ?? 80;
+
+    this.flash(world, entity, flashFrames);
+    this.squash(world, entity, 1.2, 0.8, squashDuration);
+    this.shake(world, intensity, duration);
+  }
+
+  /**
+   * Reusable juice helper for entity destruction feedback (death flash, expansion pop, screen shake).
+   */
+  public static playDeathJuice<
+    TComponents extends CoreComponentRegistry = CoreComponentRegistry,
+    TEvents extends EventRegistry = EventRegistry,
+    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+  >(
+    world: World<TComponents, TEvents, TBlueprints>,
+    entity: Entity,
+    config?: { flashFrames?: number; shakeIntensity?: number; shakeDuration?: number }
+  ): void {
+    const flashFrames = config?.flashFrames ?? 8;
+    const intensity = config?.shakeIntensity ?? 5.0;
+    const duration = config?.shakeDuration ?? 150;
+
+    this.flash(world, entity, flashFrames);
+    this.squash(world, entity, 1.5, 1.5, 120);
+    this.shake(world, intensity, duration);
+  }
+
+  /**
+   * Reusable juice helper for item/buff pickup feedback (pop bounce, glow flash, light shake).
+   */
+  public static playPickupJuice<
+    TComponents extends CoreComponentRegistry = CoreComponentRegistry,
+    TEvents extends EventRegistry = EventRegistry,
+    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+  >(
+    world: World<TComponents, TEvents, TBlueprints>,
+    entity: Entity,
+    config?: { flashFrames?: number; shakeIntensity?: number; shakeDuration?: number }
+  ): void {
+    const flashFrames = config?.flashFrames ?? 4;
+    const intensity = config?.shakeIntensity ?? 1.0;
+    const duration = config?.shakeDuration ?? 40;
+
+    this.flash(world, entity, flashFrames);
+    this.squash(world, entity, 1.3, 1.3, 100);
+    this.shake(world, intensity, duration);
+  }
 }

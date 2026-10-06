@@ -92,4 +92,66 @@ describe("OutrunGameplay", () => {
     // Positive curve should push playerX to the left (outward drift: playerX -= centrifugal)
     expect(endX).toBeLessThan(startX);
   });
+
+  it("traffic system reduces player speed upon collision and updates race position", async () => {
+    const game = new OutrunGame({ seed: 10, headless: true });
+    await game.init();
+
+    const world = game.getWorld();
+    const racers = world.query("Racer");
+    expect(racers.length).toBeGreaterThan(0);
+
+    const firstRacer = racers[0];
+    world.mutateComponent(firstRacer, "Racer", (r) => {
+      r.z = 100;
+      r.lateralX = 0;
+      r.speed = 1000;
+    });
+
+    world.mutateSingleton("RaceState", (s) => {
+      s.playerZ = 100;
+      s.playerX = 0;
+      s.speed = 8000;
+    });
+
+    let collisionEmitted = false;
+    world.getEventBus().on("outrun:collision", () => {
+      collisionEmitted = true;
+    });
+
+    game.update(1 / 60);
+
+    expect(collisionEmitted).toBe(true);
+    expect(game.getGameState().speed).toBeLessThan(8000);
+  });
+
+  it("validates full vertical slice: snapshot/restore, steering, acceleration, and track loop wrapping", async () => {
+    const game = new OutrunGame({ seed: 77, headless: true });
+    await game.init();
+
+    // Accelerate for 60 ticks
+    game.getWorld().setResource("CurrentInputFrame", {
+      actions: { accelerate: true, right: true },
+      axes: {}
+    });
+
+    for (let i = 0; i < 60; i++) game.update(1 / 60);
+
+    const midState = game.getGameState();
+    expect(midState.speed).toBeGreaterThan(0);
+    expect(midState.playerZ).toBeGreaterThan(0);
+    expect(midState.playerX).toBeGreaterThan(0);
+
+    // Verify snapshot and restore
+    const snapshot = game.getWorld().snapshot();
+    for (let i = 0; i < 30; i++) game.update(1 / 60);
+
+    expect(game.getGameState().playerZ).toBeGreaterThan(midState.playerZ);
+
+    game.getWorld().restore(snapshot);
+    const restoredState = game.getGameState();
+    expect(restoredState.playerZ).toBeCloseTo(midState.playerZ, 5);
+    expect(restoredState.playerX).toBeCloseTo(midState.playerX, 5);
+    expect(restoredState.speed).toBeCloseTo(midState.speed, 5);
+  });
 });

@@ -28,8 +28,8 @@ Norte visual: «Una postal japonesa de verano que cobra vida a 200 km/h.» Out R
 - [x] F1 Carretera y proyección pura — commit: `feat(outrun): F1 — carretera como datos y proyeccion pura` — gate: 5 tests de proyeccion verdes
 - [x] F2 ★ Carretera recta en Canvas — commit: `feat(outrun): F2 — carretera recta en Canvas` — Gate A: carretera legible, avance y steering funcionales, perspectiva estable
 - [x] F3 ★ Curvas, colinas, rumble, fog — commit: `feat(outrun): F3 — curvas, colinas, rumble y fog` — Gate B: tests F1/F3 verdes, fuerza centrifuga en curvas, oclusion en colinas por maxy, fog suave
-- [ ] F4 Coche, tráfico, colisiones — commit: — gate: —
-- [ ] F5 Validación — commit: — Gate C: —
+- [x] F4 Coche, tráfico, colisiones — commit: `feat(outrun): F4 — coche, trafico y colisiones` — gate: tests de trafico y colisiones verdes, oclusion por colinas en rivales
+- [x] F5 Validación — commit: `feat(outrun): F5 — validacion del vertical slice` — Gate C: recta -> perspectiva -> avance -> curvas -> colinas -> coche -> trafico -> colisiones jugable, determinista y build verde
 - [ ] F6 ★ Costa y capas — commit: — Gate D1: —
 - [ ] F7 ★ Desierto, montaña, transición — commit: — Gate D2: —
 - [ ] F8 VFX y animación — commit: — Gate E: —

@@ -220,7 +220,7 @@ export const drawOutrunRacer: ShapeDrawer<CanvasRenderingContext2D, OutrunCompon
     const carW = sw * 0.35;
     const carH = carW * 0.6;
 
-    if (sy > config.HEIGHT || carW < 2) return;
+    if (sy > config.HEIGHT || sy >= best.clip || carW < 2) return;
 
     const colors = ["#457b9d", "#2a9d8f", "#e9c46a", "#f4a261", "#e76f51"];
     const bodyColor = colors[racer.colorIndex % colors.length];

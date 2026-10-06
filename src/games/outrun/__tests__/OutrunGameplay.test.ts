@@ -1,5 +1,6 @@
 import { OutrunGame, OutrunDefinition } from "../OutrunGame";
 import type { RoadData } from "../types/OutrunTypes";
+import { OUTRUN_PALETTES, scenarioHash } from "../rendering/OutrunPalettes";
 
 describe("OutrunGameplay", () => {
   it("creates a deterministic simulation from the same seed", async () => {
@@ -153,5 +154,24 @@ describe("OutrunGameplay", () => {
     expect(restoredState.playerZ).toBeCloseTo(midState.playerZ, 5);
     expect(restoredState.playerX).toBeCloseTo(midState.playerX, 5);
     expect(restoredState.speed).toBeCloseTo(midState.speed, 5);
+  });
+
+  it("resolves scenario color palettes and generates deterministic faceted mountain hashes", () => {
+    expect(OUTRUN_PALETTES.coast).toBeDefined();
+    expect(OUTRUN_PALETTES.desert).toBeDefined();
+    expect(OUTRUN_PALETTES.mountain).toBeDefined();
+
+    expect(OUTRUN_PALETTES.coast.skyBands.length).toBeGreaterThanOrEqual(4);
+    expect(OUTRUN_PALETTES.coast.sun).toBe("#ff4e50");
+
+    const h1 = scenarioHash("coast", 5);
+    const h2 = scenarioHash("coast", 5);
+    const h3 = scenarioHash("desert", 5);
+
+    expect(h1).toBe(h2); // Deterministic
+    expect(typeof h1).toBe("number");
+    expect(h1).toBeGreaterThanOrEqual(0);
+    expect(h1).toBeLessThanOrEqual(1);
+    expect(h1).not.toBe(h3); // Unique per scenario
   });
 });

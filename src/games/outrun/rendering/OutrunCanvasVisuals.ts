@@ -4,29 +4,18 @@ import type { OutrunConfig } from "../types/OutrunConfigSchema";
 import { DEFAULT_OUTRUN_CONFIG } from "../types/OutrunConfigSchema";
 import type { RoadData, ProjectedSegment } from "../types/OutrunTypes";
 import { projectRoad, createProjectionBuffer } from "./RoadProjection";
+import { COAST_PALETTE, ScenarioPalette, scenarioHash } from "./OutrunPalettes";
 
 /** Module-level reusable buffer — avoids per-frame allocations. */
 const PROJECTION_CAPACITY = 400;
 const projectionBuffer: ProjectedSegment[] = createProjectionBuffer(PROJECTION_CAPACITY);
 
-const COLORS = {
-  sky: "#5c94fc",
-  skyHorizon: "#87ceeb",
-  grassDark: "#10a010",
-  grassLight: "#10c010",
-  rumbleDark: "#cc0000",
-  rumbleLight: "#ffffff",
-  roadDark: "#444444",
-  roadLight: "#666666",
-  lane: "#ffffff"
-};
-
 function rumbleColor(index: number, rumbleLength: number, dark: string, light: string): string {
   return Math.floor(index / rumbleLength) % 2 === 0 ? dark : light;
 }
 
-function roadColor(index: number, rumbleLength: number): string {
-  return Math.floor(index / rumbleLength) % 2 === 0 ? COLORS.roadDark : COLORS.roadLight;
+function roadColor(index: number, rumbleLength: number, palette: ScenarioPalette): string {
+  return Math.floor(index / rumbleLength) % 2 === 0 ? palette.roadDark : palette.roadLight;
 }
 
 function fillTrapezoid(
@@ -62,11 +51,52 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
     const screenH = config.HEIGHT;
     const rumbleLength = config.rumbleLength;
 
-    const skyGrad = ctx.createLinearGradient(0, 0, 0, screenH * 0.55);
-    skyGrad.addColorStop(0, COLORS.sky);
-    skyGrad.addColorStop(1, COLORS.skyHorizon);
-    ctx.fillStyle = skyGrad;
-    ctx.fillRect(0, 0, screenW, screenH);
+    const palette = COAST_PALETTE;
+
+    // PASS 1: Sky Multi-Band Gradient (5 bands)
+    const bandHeight = (screenH * 0.45) / palette.skyBands.length;
+    for (let b = 0; b < palette.skyBands.length; b++) {
+      ctx.fillStyle = palette.skyBands[b];
+      ctx.fillRect(0, b * bandHeight, screenW, bandHeight + 1);
+    }
+
+    // PASS 2: Sun
+    const sunRadius = 42;
+    const sunY = screenH * 0.28;
+    const sunX = screenW * 0.5 - state.playerX * 30;
+    ctx.fillStyle = palette.sun;
+    ctx.beginPath();
+    ctx.arc(sunX, sunY, sunRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // PASS 3: Parallax Faceted Mountains
+    const horizonY = screenH * 0.45;
+    const numPeaks = 12;
+    const peakSpacing = screenW / 4;
+    const mountainOffsetX = ((state.playerZ * 0.00015) % peakSpacing) + state.playerX * 25;
+
+    for (let m = -2; m < numPeaks + 2; m++) {
+      const h1 = scenarioHash(palette.id, m);
+      const h2 = scenarioHash(palette.id, m + 100);
+      const px = m * peakSpacing - mountainOffsetX;
+      const peakY = horizonY - 40 - h1 * 60;
+
+      ctx.fillStyle = palette.mountainBase;
+      ctx.beginPath();
+      ctx.moveTo(px - peakSpacing * 0.6, horizonY);
+      ctx.lineTo(px, peakY);
+      ctx.lineTo(px + peakSpacing * 0.6, horizonY);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = palette.mountainFacet;
+      ctx.beginPath();
+      ctx.moveTo(px, peakY);
+      ctx.lineTo(px + peakSpacing * 0.6, horizonY);
+      ctx.lineTo(px + (h2 - 0.5) * 20, horizonY);
+      ctx.closePath();
+      ctx.fill();
+    }
 
     const count = projectRoad(
       roadData.segments,
@@ -88,21 +118,21 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
       if (p.p1z <= 0 && p.p2z <= 0) continue;
       if (p.y2 >= maxy) continue;
 
-      const grass = rumbleColor(p.index, rumbleLength, COLORS.grassDark, COLORS.grassLight);
+      const grass = rumbleColor(p.index, rumbleLength, palette.groundDark, palette.groundLight);
       fillTrapezoid(ctx, p.x1, p.y1, screenW, p.x2, Math.min(p.y2, maxy), screenW, grass);
 
       const rumbleW1 = p.w1 * 1.15;
       const rumbleW2 = p.w2 * 1.15;
-      const rumble = rumbleColor(p.index, rumbleLength, COLORS.rumbleDark, COLORS.rumbleLight);
+      const rumble = rumbleColor(p.index, rumbleLength, palette.rumbleDark, palette.rumbleLight);
       fillTrapezoid(ctx, p.x1, p.y1, rumbleW1, p.x2, Math.min(p.y2, maxy), rumbleW2, rumble);
 
-      const road = roadColor(p.index, rumbleLength);
+      const road = roadColor(p.index, rumbleLength, palette);
       fillTrapezoid(ctx, p.x1, p.y1, p.w1, p.x2, Math.min(p.y2, maxy), p.w2, road);
 
       if (Math.floor(p.index / rumbleLength) % 2 === 0) {
         const laneW1 = p.w1 * 0.04;
         const laneW2 = p.w2 * 0.04;
-        fillTrapezoid(ctx, p.x1, p.y1, laneW1, p.x2, Math.min(p.y2, maxy), laneW2, COLORS.lane);
+        fillTrapezoid(ctx, p.x1, p.y1, laneW1, p.x2, Math.min(p.y2, maxy), laneW2, palette.lane);
       }
 
       if (p.fog > 0.4) {

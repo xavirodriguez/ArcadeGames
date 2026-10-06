@@ -30,7 +30,7 @@ Norte visual: «Una postal japonesa de verano que cobra vida a 200 km/h.» Out R
 - [x] F3 ★ Curvas, colinas, rumble, fog — commit: `feat(outrun): F3 — curvas, colinas, rumble y fog` — Gate B: tests F1/F3 verdes, fuerza centrifuga en curvas, oclusion en colinas por maxy, fog suave
 - [x] F4 Coche, tráfico, colisiones — commit: `feat(outrun): F4 — coche, trafico y colisiones` — gate: tests de trafico y colisiones verdes, oclusion por colinas en rivales
 - [x] F5 Validación — commit: `feat(outrun): F5 — validacion del vertical slice` — Gate C: recta -> perspectiva -> avance -> curvas -> colinas -> coche -> trafico -> colisiones jugable, determinista y build verde
-- [ ] F6 ★ Costa y capas — commit: — Gate D1: —
+- [x] F6 ★ Costa y capas — commit: `feat(outrun): F6 — costa y capas` — Gate D1: paleta como datos en OutrunPalettes.ts, sky de 5 bandas, sol, montañas facetadas por hash determinista, parallax
 - [ ] F7 ★ Desierto, montaña, transición — commit: — Gate D2: —
 - [ ] F8 VFX y animación — commit: — Gate E: —
 - [ ] F9 HUD y escenas — commit: — gate: —

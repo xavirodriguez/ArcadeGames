@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
 import { GestureActionButton } from "@/components/controls/GestureActionButton";
+import { VirtualJoystick } from "@/components/controls/VirtualJoystick";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
@@ -323,54 +324,23 @@ function HitAndRunContent() {
 
         {isTouchDevice && (
           <View style={styles.touchControlsContainer} pointerEvents="box-none">
-            <View style={styles.dpad} pointerEvents="box-none">
-              <GestureActionButton
-                label="◀"
-                size={60}
-                color="rgba(30, 41, 59, 0.7)"
-                borderColor={colors.borderLight}
-                pressedColor="rgba(30, 41, 59, 0.9)"
-                pressedBorderColor={colors.white}
-                onPressIn={() => handleTouchLeft(true)}
-                onPressOut={() => handleTouchLeft(false)}
-                accessibilityLabel="Move left"
-                style={{ marginHorizontal: spacing.sm }}
-              />
-              <GestureActionButton
-                label="▶"
-                size={60}
-                color="rgba(30, 41, 59, 0.7)"
-                borderColor={colors.borderLight}
-                pressedColor="rgba(30, 41, 59, 0.9)"
-                pressedBorderColor={colors.white}
-                onPressIn={() => handleTouchRight(true)}
-                onPressOut={() => handleTouchRight(false)}
-                accessibilityLabel="Move right"
-                style={{ marginHorizontal: spacing.sm }}
-              />
-              <GestureActionButton
-                label="▲"
-                size={52}
-                color="rgba(30, 41, 59, 0.7)"
-                borderColor={colors.gold}
-                pressedColor="rgba(30, 41, 59, 0.9)"
-                pressedBorderColor={colors.white}
-                onPressIn={() => handleTouchAimUp(true)}
-                onPressOut={() => handleTouchAimUp(false)}
-                accessibilityLabel="Aim up"
-                style={{ marginHorizontal: spacing.sm }}
-              />
-              <GestureActionButton
-                label="▼"
-                size={52}
-                color="rgba(30, 41, 59, 0.7)"
-                borderColor={colors.gold}
-                pressedColor="rgba(30, 41, 59, 0.9)"
-                pressedBorderColor={colors.white}
-                onPressIn={() => handleTouchAimDown(true)}
-                onPressOut={() => handleTouchAimDown(false)}
-                accessibilityLabel="Aim down"
-                style={{ marginHorizontal: spacing.sm }}
+            <View style={styles.leftZone} pointerEvents="box-none">
+              <VirtualJoystick
+                joystickId="hitrun_move"
+                type="movement"
+                floating={true}
+                onMove={(x, y) => {
+                  handleTouchLeft(x < -0.2);
+                  handleTouchRight(x > 0.2);
+                  handleTouchAimUp(y < -0.2);
+                  handleTouchAimDown(y > 0.2);
+                }}
+                onRelease={() => {
+                  handleTouchLeft(false);
+                  handleTouchRight(false);
+                  handleTouchAimUp(false);
+                  handleTouchAimDown(false);
+                }}
               />
             </View>
             <View style={styles.actions} pointerEvents="box-none">
@@ -381,6 +351,7 @@ function HitAndRunContent() {
                 borderColor={colors.pink}
                 pressedColor="rgba(30, 41, 59, 0.9)"
                 pressedBorderColor={colors.white}
+                haptic="medium"
                 onPressIn={() => handleTouchPulse()}
                 onPressOut={() => {}}
                 accessibilityLabel="Melee"
@@ -393,6 +364,7 @@ function HitAndRunContent() {
                 borderColor={colors.gold}
                 pressedColor="rgba(30, 41, 59, 0.9)"
                 pressedBorderColor={colors.white}
+                haptic="light"
                 onPressIn={() => handleTouchFire(true)}
                 onPressOut={() => handleTouchFire(false)}
                 accessibilityLabel="Hold to fire"
@@ -405,6 +377,7 @@ function HitAndRunContent() {
                 borderColor={colors.cyan}
                 pressedColor="rgba(30, 41, 59, 0.9)"
                 pressedBorderColor={colors.white}
+                haptic="medium"
                 onPressIn={() => handleTouchJump(true)}
                 onPressOut={() => handleTouchJump(false)}
                 accessibilityLabel="Jump"
@@ -509,7 +482,7 @@ const styles = StyleSheet.create({
     height: 180,
     zIndex: 15,
   },
-  dpad: { flexDirection: "row", flexWrap: "wrap", maxWidth: 280 },
+  leftZone: { width: 140, height: 140 },
   actions: { flexDirection: "row", alignItems: "flex-end" },
   gameOverOverlay: {
     ...StyleSheet.absoluteFillObject,

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef, FC } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Pressable, Platform } from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity, Platform } from "react-native";
+import { GestureActionButton } from "@/components/controls/GestureActionButton";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
@@ -171,65 +172,61 @@ export default function FroggerScreen() {
             />
           }
           controlsSlot={
-            <View style={styles.dpadContainer}>
-              <Pressable
-                style={({ pressed }) => [styles.dpadButton, styles.dpadUp, pressed && styles.dpadButtonPressed]}
-                onPressIn={() => {
-                  hapticSelection();
-                  handleGameInput({ moveUp: true });
-                }}
+            <View style={styles.dpadContainer} pointerEvents="box-none">
+              <GestureActionButton
+                label="▲"
+                size={58}
+                color="rgba(57, 255, 20, 0.2)"
+                borderColor="#39FF14"
+                pressedColor="rgba(57, 255, 20, 0.4)"
+                pressedBorderColor="#FFFFFF"
+                haptic="medium"
+                onPressIn={() => handleGameInput({ moveUp: true })}
                 onPressOut={() => handleGameInput({ moveUp: false })}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                accessibilityRole="button"
                 accessibilityLabel="Move Up"
                 accessibilityHint="Mueve la rana hacia arriba"
-              >
-                <Text style={styles.dpadText}>▲</Text>
-              </Pressable>
-              <View style={styles.dpadHorizontalRow}>
-                <Pressable
-                  style={({ pressed }) => [styles.dpadButton, styles.dpadLeft, pressed && styles.dpadButtonPressed]}
-                  onPressIn={() => {
-                    hapticSelection();
-                    handleGameInput({ moveLeft: true });
-                  }}
+              />
+              <View style={styles.dpadHorizontalRow} pointerEvents="box-none">
+                <GestureActionButton
+                  label="◀"
+                  size={58}
+                  color="rgba(57, 255, 20, 0.2)"
+                  borderColor="#39FF14"
+                  pressedColor="rgba(57, 255, 20, 0.4)"
+                  pressedBorderColor="#FFFFFF"
+                  haptic="medium"
+                  onPressIn={() => handleGameInput({ moveLeft: true })}
                   onPressOut={() => handleGameInput({ moveLeft: false })}
-                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                  accessibilityRole="button"
                   accessibilityLabel={t?.accessibility?.move_left_label || "Move Left"}
                   accessibilityHint="Mueve la rana a la izquierda"
-                >
-                  <Text style={styles.dpadText}>◀</Text>
-                </Pressable>
-                <Pressable
-                  style={({ pressed }) => [styles.dpadButton, styles.dpadRight, pressed && styles.dpadButtonPressed]}
-                  onPressIn={() => {
-                    hapticSelection();
-                    handleGameInput({ moveRight: true });
-                  }}
+                />
+                <GestureActionButton
+                  label="▶"
+                  size={58}
+                  color="rgba(57, 255, 20, 0.2)"
+                  borderColor="#39FF14"
+                  pressedColor="rgba(57, 255, 20, 0.4)"
+                  pressedBorderColor="#FFFFFF"
+                  haptic="medium"
+                  onPressIn={() => handleGameInput({ moveRight: true })}
                   onPressOut={() => handleGameInput({ moveRight: false })}
-                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                  accessibilityRole="button"
                   accessibilityLabel={t?.accessibility?.move_right_label || "Move Right"}
                   accessibilityHint="Mueve la rana a la derecha"
-                >
-                  <Text style={styles.dpadText}>▶</Text>
-                </Pressable>
+                />
               </View>
-              <Pressable
-                style={({ pressed }) => [styles.dpadButton, styles.dpadDown, pressed && styles.dpadButtonPressed]}
-                onPressIn={() => {
-                  hapticSelection();
-                  handleGameInput({ moveDown: true });
-                }}
+              <GestureActionButton
+                label="▼"
+                size={58}
+                color="rgba(57, 255, 20, 0.2)"
+                borderColor="#39FF14"
+                pressedColor="rgba(57, 255, 20, 0.4)"
+                pressedBorderColor="#FFFFFF"
+                haptic="medium"
+                onPressIn={() => handleGameInput({ moveDown: true })}
                 onPressOut={() => handleGameInput({ moveDown: false })}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                accessibilityRole="button"
                 accessibilityLabel="Move Down"
                 accessibilityHint="Mueve la rana hacia abajo"
-              >
-                <Text style={styles.dpadText}>▼</Text>
-              </Pressable>
+              />
             </View>
           }
           debugSlot={<DebugOverlay game={game} />}

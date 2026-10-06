@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -8,6 +8,8 @@ import { GameErrorBoundary } from "@/src/components/GameErrorBoundary";
 import { useGeometryWarsGame } from "@/src/hooks/useGeometryWarsGame";
 import { useTranslation } from "@/src/hooks/useTranslation";
 import { VirtualJoystick } from "@/src/components/controls/VirtualJoystick";
+import { DEFAULT_AIM_FIRE_THRESHOLD } from "@/src/components/controls/MobileControlsOverlay";
+import { hapticImpactLight } from "@/src/utils/haptics";
 import { useMultiplayerGame } from "@/hooks/useMultiplayerGame";
 import { GeometryWarsGame } from "@/games/geometrywars/GeometryWarsGame";
 import { useTouchDevice } from "@/src/hooks/useTouchDevice";
@@ -44,6 +46,7 @@ export default function GeometryWarsScreen() {
   };
   const insets = useSafeAreaInsets();
   const isTouchDevice = useTouchDevice();
+  const isAimFiringRef = useRef(false);
 
   const {
     game,
@@ -319,12 +322,20 @@ export default function GeometryWarsScreen() {
                   <VirtualJoystick
                     joystickId="aim_joystick"
                     type="rotation"
+                    floating={true}
                     onMove={(x, y) => {
                       const mag = Math.sqrt(x * x + y * y);
-                      const isFiring = mag > 0.2;
+                      const isFiring = mag > DEFAULT_AIM_FIRE_THRESHOLD;
+                      if (isFiring && !isAimFiringRef.current) {
+                        hapticImpactLight();
+                      }
+                      isAimFiringRef.current = isFiring;
                       handleMultiplayerInput({ aimX: x, aimY: y, fire: isFiring });
                     }}
-                    onRelease={() => handleMultiplayerInput({ fire: false })}
+                    onRelease={() => {
+                      isAimFiringRef.current = false;
+                      handleMultiplayerInput({ fire: false });
+                    }}
                   />
                 </View>
               </View>

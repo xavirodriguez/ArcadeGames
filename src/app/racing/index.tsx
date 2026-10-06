@@ -7,6 +7,7 @@ import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { VirtualJoystick } from "@/components/controls/VirtualJoystick";
+import { GestureActionButton } from "@/components/controls/GestureActionButton";
 import { useRacingGame } from "@/hooks/useRacingGame";
 import { useKeyboardControls } from "@/hooks/useKeyboardControls";
 import { GameLayoutShell, GameScreen, GameTitle, GameInstructions, BackButton, NeonButton } from "@/components/ui";
@@ -140,8 +141,11 @@ export default function RacingScreen() {
                 <VirtualJoystick
                   joystickId="steering_joystick"
                   type="movement"
+                  floating={false}
                   onMove={(x, y) => {
-                    input({ moveX: x, moveY: y });
+                    // Non-linear steering curve for precision center control
+                    const curvedX = x * Math.abs(x);
+                    input({ moveX: curvedX, moveY: y });
                   }}
                   onRelease={() => {
                     input({ moveX: 0, moveY: 0 });
@@ -149,9 +153,15 @@ export default function RacingScreen() {
                 />
               </View>
               <View style={styles.rightControlArea} pointerEvents="box-none">
-                <Pressable style={styles.boost} onPressIn={() => input({ boost: true })} onPressOut={() => input({ boost: false })}>
-                  <Text style={styles.buttonText}>BOOST</Text>
-                </Pressable>
+                <GestureActionButton
+                  label="BOOST"
+                  accessibilityLabel="Boost nitro"
+                  onPressIn={() => input({ boost: true })}
+                  onPressOut={() => input({ boost: false })}
+                  haptic="heavy"
+                  color="rgba(242,201,76,0.25)"
+                  borderColor="#F2C94C"
+                />
               </View>
             </View>
           }

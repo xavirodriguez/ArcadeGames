@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
 import { GestureActionButton } from "@/components/controls/GestureActionButton";
+import { VirtualJoystick } from "@/components/controls/VirtualJoystick";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
@@ -196,32 +197,19 @@ function PlatformerContent() {
         controlsSlot={
           isTouchDevice ? (
             <View style={styles.touchControlsContainer} pointerEvents="box-none">
-              <View style={styles.dpad} pointerEvents="box-none">
-                <GestureActionButton
-                  label="◀"
-                  size={65}
-                  color="rgba(30, 41, 59, 0.7)"
-                  borderColor={colors.borderLight}
-                  pressedColor="rgba(30, 41, 59, 0.9)"
-                  pressedBorderColor={colors.white}
-                  onPressIn={() => handleTouchLeft(true)}
-                  onPressOut={() => handleTouchLeft(false)}
-                  accessibilityLabel={t?.accessibility?.move_left_label || "Move left"}
-                  accessibilityHint={t?.accessibility?.move_left_hint || "Moves player left"}
-                  style={{ marginHorizontal: spacing.sm }}
-                />
-                <GestureActionButton
-                  label="▶"
-                  size={65}
-                  color="rgba(30, 41, 59, 0.7)"
-                  borderColor={colors.borderLight}
-                  pressedColor="rgba(30, 41, 59, 0.9)"
-                  pressedBorderColor={colors.white}
-                  onPressIn={() => handleTouchRight(true)}
-                  onPressOut={() => handleTouchRight(false)}
-                  accessibilityLabel={t?.accessibility?.move_right_label || "Move right"}
-                  accessibilityHint={t?.accessibility?.move_right_hint || "Moves player right"}
-                  style={{ marginHorizontal: spacing.sm }}
+              <View style={styles.leftZone} pointerEvents="box-none">
+                <VirtualJoystick
+                  joystickId="platformer_move"
+                  type="movement"
+                  floating={false}
+                  onMove={(x) => {
+                    handleTouchLeft(x < -0.2);
+                    handleTouchRight(x > 0.2);
+                  }}
+                  onRelease={() => {
+                    handleTouchLeft(false);
+                    handleTouchRight(false);
+                  }}
                 />
               </View>
 
@@ -233,6 +221,7 @@ function PlatformerContent() {
                   borderColor={colors.gold}
                   pressedColor="rgba(30, 41, 59, 0.9)"
                   pressedBorderColor={colors.white}
+                  haptic="medium"
                   onPressIn={() => handleTouchDash()}
                   onPressOut={() => {}}
                   accessibilityLabel={"Dash"}
@@ -246,6 +235,7 @@ function PlatformerContent() {
                   borderColor={colors.cyan}
                   pressedColor="rgba(30, 41, 59, 0.9)"
                   pressedBorderColor={colors.white}
+                  haptic="medium"
                   onPressIn={() => handleTouchJump(true)}
                   onPressOut={() => handleTouchJump(false)}
                   accessibilityLabel={t?.accessibility?.jump_button_label || "Jump"}
@@ -342,8 +332,9 @@ const styles = StyleSheet.create({
     height: 180,
     zIndex: 15,
   },
-  dpad: {
-    flexDirection: "row",
+  leftZone: {
+    width: 140,
+    height: 140,
   },
   actions: {
     flexDirection: "row",

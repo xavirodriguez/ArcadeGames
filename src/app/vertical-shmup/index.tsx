@@ -7,6 +7,8 @@ import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { useVerticalShmupGame } from "@/hooks/useVerticalShmupGame";
 import { useKeyboardControls } from "@/hooks/useKeyboardControls";
+import { VirtualJoystick } from "@/components/controls/VirtualJoystick";
+import { GestureActionButton } from "@/components/controls/GestureActionButton";
 import { GameLayoutShell, GameScreen, GameTitle, GameInstructions, BackButton, NeonButton } from "@/components/ui";
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 
@@ -44,11 +46,27 @@ export default function VerticalShmupScreen() {
           centerHudSlot={<View style={styles.hud}><Text style={styles.hudText}>SCORE {gameState?.score ?? 0} · WAVE {gameState?.wave ?? 1}</Text></View>}
           canvasSlot={<CanvasRenderer world={game.getWorld()} gameLoop={game.getGameLoop()} onInitialize={(renderer) => game.initializeRenderer(renderer)} />}
           controlsSlot={
-            <View style={styles.controls}>
-              <Pressable style={styles.button} onPressIn={() => setInput({moveX:-1})} onPressOut={() => setInput({moveX:0})}><Text style={styles.text}>◀</Text></Pressable>
-              <Pressable style={styles.button} onPressIn={() => setInput({moveX:1})} onPressOut={() => setInput({moveX:0})}><Text style={styles.text}>▶</Text></Pressable>
-              <Pressable style={styles.button} onPressIn={() => setInput({moveY:-1})} onPressOut={() => setInput({moveY:0})}><Text style={styles.text}>▲</Text></Pressable>
-              <Pressable style={styles.fire} onPressIn={() => setInput({shoot:true})} onPressOut={() => setInput({shoot:false})}><Text style={styles.text}>FIRE</Text></Pressable>
+            <View style={styles.controls} pointerEvents="box-none">
+              <View style={styles.leftControlArea} pointerEvents="box-none">
+                <VirtualJoystick
+                  joystickId="shmup_movement"
+                  type="movement"
+                  floating={true}
+                  onMove={(x, y) => setInput({ moveX: x, moveY: y })}
+                  onRelease={() => setInput({ moveX: 0, moveY: 0 })}
+                />
+              </View>
+              <View style={styles.rightControlArea} pointerEvents="box-none">
+                <GestureActionButton
+                  label="🔥"
+                  accessibilityLabel="Fire primary weapon"
+                  onPressIn={() => setInput({ shoot: true })}
+                  onPressOut={() => setInput({ shoot: false })}
+                  haptic="light"
+                  color="rgba(255,42,109,0.25)"
+                  borderColor="#ff2a6d"
+                />
+              </View>
             </View>
           }
           debugSlot={<DebugOverlay game={game} />}
@@ -61,7 +79,7 @@ const styles=StyleSheet.create({
   hud:{padding:8,borderWidth:1,borderColor:"#00e5ff",backgroundColor:"rgba(0,0,0,.7)"},
   hudText:{color:"#00e5ff",fontFamily:"monospace",fontWeight:"bold"},
   controls:{...StyleSheet.absoluteFillObject,flexDirection:"row",justifyContent:"space-between",alignItems:"flex-end",padding:24},
-  button:{width:58,height:58,borderRadius:12,borderWidth:2,borderColor:"#00e5ff",backgroundColor:"rgba(0,229,255,.18)",justifyContent:"center",alignItems:"center"},
-  fire:{width:76,height:58,borderRadius:12,borderWidth:2,borderColor:"#ff2a6d",backgroundColor:"rgba(255,42,109,.2)",justifyContent:"center",alignItems:"center"},
+  leftControlArea:{flex:1,height:"100%"},
+  rightControlArea:{width:120,height:"100%",justify:"flex-end",alignItems:"center",paddingBottom:20},
   text:{color:"#fff",fontFamily:"monospace",fontWeight:"bold"}
 });

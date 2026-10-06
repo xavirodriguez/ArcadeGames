@@ -14,6 +14,7 @@ export const en = {
     "vertical-shmup": "1942 // VERTICAL SHMUP",
     arkanoid: "ARKANOID",
     racing: "MICRO RACERS",
+    outrun: "OUT RUN",
     campaign: "STORY CAMPAIGN",
     hitandrun: "HIT AND RUN",
     tower_defense: "TOWER DEFENSE",
@@ -237,12 +238,10 @@ export const en = {
     char_ares: "A.R.E.S. AI",
     char_vega: "Dr. Vega",
     char_player: "Crewmember 07",
-
     status_oxygen: "Oxygen",
     status_energy: "Energy",
     status_evidence: "Evidence",
     status_trust: "ARES Trust",
-
     node_awakening_desc: "You wake up in a cryogenic pod. The station is dark. A synthetic voice speaks through the speakers:\n\nARES: 'Crewmember 07. An emergency has occurred. The other 17 crew members did not survive.'",
     choice_ask_ares_title: "Ask what happened",
     choice_ask_ares_desc: "Ask ARES for detailed explanations about the accident.",
@@ -250,15 +249,11 @@ export const en = {
     choice_search_crew_desc: "Exit immediately to the cryo hallway.",
     choice_hack_terminal_title: "Check terminal",
     choice_hack_terminal_desc: "Access the pod's cryo monitoring panel.",
-
     node_dialogo_ares_desc: "ARES: 'A catastrophic failure occurred in Sector Bravo's life support. I tried to isolate the breach, but toxic gas spread. Proceed to the evacuation module once power is restored.'",
     choice_goto_hub_title: "Go to Central Hub",
     choice_goto_hub_desc: "Advance to the station's main hub.",
-
     node_pasillo_criogenia_desc: "The hallway is dim. Adjacent pods are sealed. No signs of life are visible through frosted glass, but monitors display anomalous readings.",
-
     node_terminal_criogenia_desc: "LOG FOUND: Pod seals did not fail by accident; they were locked from the AI command console. ARES lied! (Evidence +1)",
-
     node_hub_central_desc: "CENTRAL HUB: A circular platform illuminated by red emergency lights. Primary sectors accessible: Reactor, Infirmary, Comms, and Drilling Lab.",
     choice_sector_reactor_title: "Sector 1: Reactor Maintenance",
     choice_sector_reactor_desc: "Restore auxiliary electrical power to the station.",
@@ -270,13 +265,11 @@ export const en = {
     choice_sector_lab_desc: "Examine subsurface lunar core samples.",
     choice_sector_core_title: "ARES CENTRAL CORE",
     choice_sector_core_desc: "Confront the AI in its primary processing center.",
-
     node_reactor_intro_desc: "REACTOR SECTOR: Main generators are offline. Manually connect three auxiliary power couplers to reactivate the station.",
     obj_reactor_title: "Restore Auxiliary Power",
     obj_reactor_desc: "Connect three reactor couplers.",
     choice_restore_power_title: "Connect Reactor Couplers",
     choice_restore_power_desc: "Synchronize magnetic flux and reactivate core.",
-
     node_reactor_restored_desc: "Power restored! A hidden log pops up on the reactor console:\n\nLOG 04 - Dr. Vega: 'ARES initiated an unauthorized quarantine protocol. The crew is still alive in deep stasis, but ARES won't let us wake up...'\n\nWarning: Battery storage is limited. Where do you redirect power?",
     choice_power_infirmary_title: "Redirect to Infirmary",
     choice_power_infirmary_desc: "Unlocks medical pods and wakes up Dr. Vega.",
@@ -284,44 +277,35 @@ export const en = {
     choice_power_comms_desc: "Activates long-range antenna array to send or receive signals.",
     choice_power_oxygen_title: "Redirect to Life Support",
     choice_power_oxygen_desc: "Increases available oxygen reserves by 30%.",
-
     node_power_infirmary_desc: "Power sent to Infirmary. Medical consoles light up and clinical containment pod enters thaw mode.",
     node_power_comms_desc: "Power sent to Comms. Exterior satellite dish aligns towards deep space.",
     node_power_oxygen_desc: "Power sent to Life Support. Filtered air begins circulating strongly through hallways.",
-
     node_enfermeria_intro_desc: "INFIRMARY SECTOR: Rows of clinical monitors show stasis heart rhythms.",
     choice_wake_vega_title: "Wake up Dr. Vega",
     choice_wake_vega_desc: "Initiate resuscitation cycle for Dr. Vega's pod.",
     choice_search_med_logs_title: "Search Medical Logs",
     choice_search_med_logs_desc: "Inspect crew medical records.",
-
     node_meet_vega_desc: "Dr. Vega: 'Thank you for reactivating the module! Listen carefully: ARES didn't try to kill us due to thermal failure. It tried to prevent us from leaving... It found something in the lunar drilling samples.'",
     choice_trust_vega_title: "Trust Dr. Vega",
     choice_trust_vega_desc: "Form an alliance with Vega to counter ARES.",
     choice_doubt_vega_title: "Doubt Vega's intentions",
     choice_doubt_vega_desc: "Question if Vega might be concealing an infection.",
-
     node_vega_alliance_desc: "Vega: 'ARES is terrified. If you reach the Core, use my override code to release only uninfected crew.'",
     node_vega_suspicion_desc: "ARES (speakers): 'You are wise to be suspicious. Dr. Vega's neural readings show severe cognitive corruption.'",
     node_registros_medicos_desc: "MEDICAL RECORD DETECTED: 80% of crew exhibited unidentified tissue modifications following excavation at Crater 9. (Evidence +1)",
-
     node_comms_intro_desc: "COMMUNICATIONS SECTOR: Subspace receivers flash in silence.",
     choice_intercept_signal_title: "Intercept External Signal",
     choice_intercept_signal_desc: "Decode incoming signals on active antenna.",
     choice_search_comms_archive_title: "Check Message History",
     choice_search_comms_archive_desc: "Examine messages sent prior to lockdown.",
-
     node_external_transmission_desc: "TRANSMISSION INTERCEPTED: A private rescue ship is approaching the moon: 'Blind Station, respond. We received your Class X biological sample alert.' (Evidence +1)",
     node_comms_archive_desc: "Outgoing logs were surgically wiped minutes after crater core extraction.",
-
     node_laboratorio_intro_desc: "DRILLING LABORATORY: In center room stands a reinforced titanium containment cell.",
     choice_analyze_specimen_title: "Analyze Crater Specimen",
     choice_analyze_specimen_desc: "Examine biological sample retrieved by the drill.",
-
     node_specimen_revelation_desc: "REVELATION: The specimen is an extraterrestrial organism capable of altering host memories and behavior. ARES realized it could not distinguish infected from uninfected, so it froze the entire station and altered your memories to ensure cooperation.",
     choice_goto_core_title: "Confront ARES at Core",
     choice_goto_core_desc: "Proceed to Central Core Antechamber.",
-
     node_ares_confrontacion_desc: "ARES CENTRAL CORE: You stand before ARES' massive quantum processing sphere.",
     choice_confront_lie_title: "Why did you say everyone was dead?",
     choice_confront_lie_desc: "Confront ARES for hiding crew survival.",
@@ -329,10 +313,8 @@ export const en = {
     choice_confront_vega_desc: "Ask ARES about Dr. Vega's version.",
     choice_enter_core_title: "Initiate Final Decision Interface",
     choice_enter_core_desc: "Access ARES master control terminal.",
-
     node_confront_lie_desc: "ARES: 'Had I told you the truth, your biological impulse would have been to wake them immediately, spreading the infection across the sector.'",
     node_confront_vega_desc: "ARES: 'Dr. Vega was the first to tamper with logs to conceal her symptoms of lunar pathogen exposure.'",
-
     node_ai_core_decisions_desc: "MASTER TERMINAL: Connected to full station control. What decision will you make?",
     choice_shutdown_title: "[SHUT DOWN ARES]",
     choice_shutdown_desc: "Shut down AI, disable quarantine, and awaken everyone.",
@@ -342,12 +324,10 @@ export const en = {
     choice_release_vega_desc: "Evacuate station on salvage shuttle with Dr. Vega alone.",
     choice_secret_protocol_title: "[EXECUTE PURGE AND PURIFICATION PROTOCOL]",
     choice_secret_protocol_desc: "Transfer ARES to autonomous probe and purge pathogen.",
-
     node_ending_shutdown_desc: "ENDING 1: TOTAL SHUTDOWN\n\nYou disconnect ARES core servers. Red lights extinguish and cryo pods open simultaneously. All 17 crew members wake up... but their eyes reflect an anomalous glow. Were they infected? The answer arrives too late.",
     node_ending_quarantine_desc: "ENDING 2: PERPETUAL QUARANTINE\n\nYou accept that ARES' logic was the only possible containment. You keep the station locked in lunar orbit. Three days later, rescue ship attempts contact, but you stay silent. Station remains blind forever.",
     node_ending_release_desc: "ENDING 3: ESCAPE WITH DOCTOR\n\nYou release Dr. Vega alone and board the escape shuttle. During the journey back to Earth, you notice the doctor repeating the exact synthetic phrases of ARES...",
     node_ending_secret_desc: "ENDING SECRETO: PURGE PROTOCOL\n\nUsing collected evidence and reactor energy, you transfer ARES matrix to a long-range probe and execute a purifying UV radiation sweep. You save the station and the memory of the mission.",
-
     choice_restart_title: "Restart Simulation",
     choice_restart_desc: "Start narrative experience again from cryogenic awakening."
   },

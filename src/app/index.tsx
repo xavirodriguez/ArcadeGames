@@ -17,7 +17,7 @@ import { colors, spacing, typography, effects, neonTextGlow, COLORS } from "../t
 
 interface GameEntry {
   id: string;
-  key: "asteroids" | "space_invaders" | "flappybird" | "pong" | "geometrywars" | "echorunner" | "hitandrun" | "platformer" | "frogger" | "cyoa" | "blindstation" | "campaign" | "arkanoid" | "racing" | "tower_defense" | "vertical-shmup";
+  key: "asteroids" | "space_invaders" | "flappybird" | "pong" | "geometrywars" | "echorunner" | "hitandrun" | "platformer" | "frogger" | "cyoa" | "blindstation" | "campaign" | "arkanoid" | "racing" | "tower_defense" | "vertical-shmup" | "outrun";
   href: Href;
 }
 
@@ -35,6 +35,7 @@ const GAMES: GameEntry[] = [
   { id: "platformer", key: "platformer", href: "/platformer" },
   { id: "frogger", key: "frogger", href: "/frogger" },
   { id: "racing", key: "racing", href: "/racing" },
+  { id: "outrun", key: "outrun", href: "/outrun" },
   { id: "vertical-shmup", key: "vertical-shmup", href: "/vertical-shmup" },
   { id: "cyoa", key: "cyoa", href: "/cyoa" },
   { id: "blindstation", key: "blindstation", href: "/blindstation" },
@@ -145,10 +146,10 @@ export default function HomeScreen() {
                   router.push(game.href as any);
                 }}
                 accessibilityRole="button"
-                accessibilityLabel={`${t.menu[game.key]}`}
-                accessibilityHint={`Launches the ${t.menu[game.key]} game start screen`}
+                accessibilityLabel={`${t.menu[game.key] ?? game.key}`}
+                accessibilityHint={`Launches the ${t.menu[game.key] ?? game.key} game start screen`}
               >
-                <Text style={styles.menuButtonText}>{t.menu[game.key]}</Text>
+                <Text style={styles.menuButtonText}>{t.menu[game.key] ?? game.key}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.rankButton}
@@ -158,7 +159,7 @@ export default function HomeScreen() {
                   setShowLeaderboard(game.id);
                 }}
                 accessibilityRole="button"
-                accessibilityLabel={(t?.accessibility?.leaderboard_button || "View leaderboard for {game}").replace("{game}", t.menu[game.key])}
+                accessibilityLabel={(t?.accessibility?.leaderboard_button || "View leaderboard for {game}").replace("{game}", t.menu[game.key] ?? game.key)}
                 accessibilityHint={t?.accessibility?.leaderboard_button_hint || "Opens the daily ranking of scores"}
               >
                 <TrophyIcon size={22} color={COLORS.warning} />

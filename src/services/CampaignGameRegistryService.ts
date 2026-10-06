@@ -9,6 +9,7 @@ import { PlatformerDefinition } from "../games/platformer/PlatformerGame";
 import { FroggerDefinition } from "../games/frogger/FroggerGame";
 import { RacingDefinition } from "../games/racing/RacingGame";
 import { VerticalShmupDefinition } from "../games/vertical-shmup/VerticalShmupGame";
+import { OutrunDefinition } from "../games/outrun/OutrunGame";
 
 let isRegistered = false;
 
@@ -30,4 +31,5 @@ export function registerDefaultCampaignGames(): void {
   GameDefinitionRegistry.register("frogger", FroggerDefinition);
   GameDefinitionRegistry.register("racing", RacingDefinition);
   GameDefinitionRegistry.register("vertical-shmup", VerticalShmupDefinition);
+  GameDefinitionRegistry.register("outrun", OutrunDefinition);
 }

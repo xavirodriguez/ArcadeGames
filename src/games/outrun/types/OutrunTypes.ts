@@ -24,6 +24,10 @@ export interface RaceStateComponent {
   position: number;
   /** Current segment index for convenience. */
   currentSegment: number;
+  /** Current race flow phase. */
+  racePhase?: "countdown" | "racing" | "finished";
+  /** Countdown timer before start in seconds. */
+  countdownTime?: number;
 }
 
 /**
@@ -61,6 +65,8 @@ export interface RoadSegment {
   curve: number;
   /** Vertical hill height offset. */
   hill: number;
+  /** Visual scenario theme for this segment. */
+  scenarioId?: "coast" | "desert" | "mountain";
 }
 
 /**

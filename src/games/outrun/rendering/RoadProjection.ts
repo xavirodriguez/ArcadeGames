@@ -80,7 +80,7 @@ export function projectRoad(
 
     const scale1 = p1z > 0 ? cameraDepth / p1z : cameraDepth / 0.001;
     const projX1 = (1 + ((x - cameraX) * scale1) / roadWidth) * (screenW / 2);
-    const projY1 = (1 - ((cameraHeight + y) * scale1) / roadWidth) * (screenH / 2);
+    const projY1 = (screenH / 2) - scale1 * (y - cameraHeight) * (screenH / 2);
     const projW1 = (scale1 * screenW) / 2;
 
     x += dx;
@@ -90,7 +90,7 @@ export function projectRoad(
 
     const scale2 = p2z > 0 ? cameraDepth / p2z : cameraDepth / 0.001;
     const projX2 = (1 + ((x - cameraX) * scale2) / roadWidth) * (screenW / 2);
-    const projY2 = (1 - ((cameraHeight + y) * scale2) / roadWidth) * (screenH / 2);
+    const projY2 = (screenH / 2) - scale2 * (y - cameraHeight) * (screenH / 2);
     const projW2 = (scale2 * screenW) / 2;
 
     const fog = Math.min(1, Math.max(0, i / maxProject));

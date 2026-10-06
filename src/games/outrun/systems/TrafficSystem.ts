@@ -58,6 +58,7 @@ export class TrafficSystem extends System<OutrunComponentRegistry, OutrunEventRe
       const dx = Math.abs(racer.lateralX - playerX);
 
       if (Math.abs(dz) < collisionZ && dx < collisionX) {
+        world.getEventBus().emit("outrun:collision", { entity, other: entity });
         world.mutateSingleton("RaceState", (s) => {
           s.speed = Math.min(s.speed, racer.speed * 0.7);
           if (s.playerX < racer.lateralX) {

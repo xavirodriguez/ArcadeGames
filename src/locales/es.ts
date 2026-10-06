@@ -14,6 +14,7 @@ export const es = {
     "vertical-shmup": "1942 // VERTICAL SHMUP",
     arkanoid: "ARKANOID",
     racing: "MICRO RACERS",
+    outrun: "OUT RUN",
     campaign: "CAMPAÑA HISTORIA",
     hitandrun: "HIT AND RUN",
     tower_defense: "TOWER DEFENSE",

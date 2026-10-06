@@ -30,6 +30,18 @@ export class RoadAdvanceSystem extends System<OutrunComponentRegistry, OutrunEve
     if (trackLength <= 0) return;
 
     world.mutateSingleton("RaceState", (s) => {
+      const phase = s.racePhase ?? "racing";
+
+      if (phase === "countdown") {
+        const cd = (s.countdownTime ?? 3) - deltaTime;
+        s.countdownTime = cd;
+        if (cd <= 0) {
+          s.racePhase = "racing";
+          s.countdownTime = 0;
+        }
+        return;
+      }
+
       s.playerZ += s.speed * deltaTime;
       if (s.playerZ >= trackLength) {
         s.playerZ -= trackLength;

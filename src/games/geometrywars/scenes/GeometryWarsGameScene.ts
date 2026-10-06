@@ -29,6 +29,8 @@ import { GeometryWarsAISystem } from "../systems/GeometryWarsAISystem";
 import { WaveDefinition, SpawnRequest } from "@tiny-aster/gameplay-kit";
 import { ComboSystem } from "@tiny-aster/core";
 import { GeometryWarsGameStateSystem } from "../systems/GeometryWarsGameStateSystem";
+import { HitStopSystem } from "../../shared/rendering/HitStopSystem";
+import { KineticFlowSystem } from "../../shared/rendering/KineticFlowSystem";
 
 /**
  * Main gameplay scene for Geometry Wars.
@@ -78,6 +80,7 @@ export class GeometryWarsGameScene extends Scene<GeometryWarsComponentRegistry> 
     registerGeometryWarsBlueprints(this.gworld);
 
     // 3. Register systems
+    this.gworld.addSystem(new HitStopSystem() as any, { phase: SystemPhase.Simulation, priority: 100 });
     this.gworld.addSystem(new GeometryWarsInputSystem(), { phase: SystemPhase.Simulation });
     this.gworld.addSystem(new GeometryWarsAISystem(), { phase: SystemPhase.Simulation });
     this.gworld.addSystem(new SteeringSystem() as unknown as System<GeometryWarsComponentRegistry>, { phase: SystemPhase.Simulation });
@@ -91,6 +94,7 @@ export class GeometryWarsGameScene extends Scene<GeometryWarsComponentRegistry> 
     this.gworld.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });
     this.gworld.addSystem(new GeometryWarsGameStateSystem(), { phase: SystemPhase.GameRules });
     this.gworld.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
+    this.gworld.addSystem(new KineticFlowSystem() as any, { phase: SystemPhase.Presentation, priority: 50 });
 
     if (!this.isHeadless) {
       this.gworld.addSystem(new Camera2DSystem() as any, { phase: SystemPhase.Presentation });

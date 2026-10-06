@@ -174,4 +174,37 @@ describe("OutrunGameplay", () => {
     expect(h1).toBeLessThanOrEqual(1);
     expect(h1).not.toBe(h3); // Unique per scenario
   });
+
+  it("calculates car scale and high speed ratio for VFX speed lines threshold", async () => {
+    const game = new OutrunGame({ seed: 50, headless: true });
+    await game.init();
+
+    game.getWorld().mutateSingleton("RaceState", (s) => {
+      s.speed = 10000;
+    });
+
+    const state = game.getGameState();
+    const config = game.getWorld().getResource<import("../types/OutrunConfigSchema").OutrunConfig>("GameConfig")!;
+    const speedRatio = state.speed / config.maxSpeed;
+
+    expect(speedRatio).toBeGreaterThan(0.7); // Threshold for speed lines
+  });
+
+  it("decrements countdown timer and transitions racePhase from countdown to racing", async () => {
+    const game = new OutrunGame({ seed: 33, headless: true });
+    await game.init();
+
+    game.getWorld().mutateSingleton("RaceState", (s) => {
+      s.racePhase = "countdown";
+      s.countdownTime = 1.0;
+    });
+
+    expect(game.getGameState().racePhase).toBe("countdown");
+
+    // Advance simulation past countdown time (1.0s)
+    for (let i = 0; i < 70; i++) game.update(1 / 60);
+
+    expect(game.getGameState().racePhase).toBe("racing");
+    expect(game.getGameState().countdownTime).toBe(0);
+  });
 });

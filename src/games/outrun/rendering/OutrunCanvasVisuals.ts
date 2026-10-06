@@ -113,6 +113,29 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
 
     let maxy = screenH;
 
+    // PASS 4: Speed lines at high speed
+    const speedRatio = state.speed / config.maxSpeed;
+    if (speedRatio > 0.7) {
+      const lineCount = 12;
+      const alpha = (speedRatio - 0.7) * 2.5;
+      ctx.strokeStyle = `rgba(255, 255, 255, ${Math.min(0.6, alpha)})`;
+      ctx.lineWidth = 2;
+      const t = state.playerZ * 0.05;
+
+      for (let sl = 0; sl < lineCount; sl++) {
+        const angle = (sl / lineCount) * Math.PI * 2 + (sl % 2 === 0 ? t : -t) * 0.1;
+        const x1 = screenW / 2 + Math.cos(angle) * (screenW * 0.2);
+        const y1 = horizonY + Math.sin(angle) * (screenH * 0.15);
+        const x2 = screenW / 2 + Math.cos(angle) * (screenW * 0.55);
+        const y2 = horizonY + Math.sin(angle) * (screenH * 0.45);
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      }
+    }
+
     for (let i = 0; i < count; i++) {
       const p = projectionBuffer[i];
       if (p.p1z <= 0 && p.p2z <= 0) continue;
@@ -163,14 +186,30 @@ export const drawOutrunCar: ShapeDrawer<CanvasRenderingContext2D, OutrunComponen
     const config =
       world.getResource<OutrunConfig>("GameConfig") ?? DEFAULT_OUTRUN_CONFIG;
 
+    const visualOffset = world.getComponent(entity, "VisualOffset");
+    const vX = visualOffset?.offsetX ?? 0;
+    const vY = visualOffset?.offsetY ?? 0;
+
     const screenW = config.WIDTH;
     const screenH = config.HEIGHT;
-    const carScale = 1.0 + (state.speed / config.maxSpeed) * 0.08;
-    const baseY = screenH - 80;
-    const baseX = screenW / 2 + state.playerX * 40;
+    const speedRatio = state.speed / config.maxSpeed;
+    const carScale = 1.0 + speedRatio * 0.08;
+
+    // Offroad vibration / high-speed suspension bounce
+    const isOffroad = Math.abs(state.playerX) > 1.0;
+    const bounceY = isOffroad
+      ? (Math.sin(state.playerZ * 0.2) * 3)
+      : (Math.sin(state.playerZ * 0.05) * 1.2 * speedRatio);
+
+    // Steering roll/tilt
+    const tiltAngle = state.playerX * 0.08 * speedRatio;
+
+    const baseY = screenH - 80 + bounceY + vY;
+    const baseX = screenW / 2 + state.playerX * 40 + vX;
 
     ctx.save();
     ctx.translate(baseX, baseY);
+    ctx.rotate(tiltAngle);
     ctx.scale(carScale, carScale);
 
     ctx.fillStyle = "#e63946";
@@ -275,25 +314,55 @@ export const drawOutrunHud: EffectDrawer<CanvasRenderingContext2D, OutrunCompone
 
     const speedKmh = Math.round((state.speed / config.maxSpeed) * 280);
     const timeStr = state.lapTime.toFixed(1);
+    const phase = state.racePhase ?? "racing";
 
     ctx.save();
-    ctx.font = "bold 18px monospace";
-    ctx.fillStyle = "#ffffff";
-    ctx.strokeStyle = "#000000";
-    ctx.lineWidth = 3;
-    ctx.textAlign = "left";
 
-    const speedText = `${speedKmh} km/h`;
-    ctx.strokeText(speedText, 16, 28);
-    ctx.fillText(speedText, 16, 28);
+    // Top HUD Bar with dark high-contrast backing plates (Contrast >= 4.5:1)
+    const drawHudCard = (x: number, y: number, w: number, h: number, text: string, align: "left" | "right" = "left") => {
+      ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+      ctx.fillRect(x, y, w, h);
+      ctx.strokeStyle = "#00f0ff";
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(x, y, w, h);
 
-    const timeText = `TIME ${timeStr}`;
-    ctx.strokeText(timeText, 16, 52);
-    ctx.fillText(timeText, 16, 52);
+      ctx.font = "bold 16px monospace";
+      ctx.fillStyle = "#ffffff";
+      ctx.textAlign = align;
+      const tx = align === "left" ? x + 10 : x + w - 10;
+      ctx.fillText(text, tx, y + 24);
+    };
 
-    const posText = `POS ${state.position}`;
-    ctx.strokeText(posText, config.WIDTH - 100, 28);
-    ctx.fillText(posText, config.WIDTH - 100, 28);
+    drawHudCard(12, 12, 130, 36, `${speedKmh} KM/H`);
+    drawHudCard(150, 12, 130, 36, `TIME ${timeStr}s`);
+    drawHudCard(config.WIDTH - 122, 12, 110, 36, `POS ${state.position}`, "right");
+
+    // Countdown or Finish Center Overlay
+    if (phase === "countdown") {
+      const cd = Math.ceil(state.countdownTime ?? 3);
+      const cdText = cd > 0 ? `${cd}` : "GO!";
+      ctx.fillStyle = "rgba(15, 23, 42, 0.75)";
+      ctx.fillRect(config.WIDTH / 2 - 90, config.HEIGHT / 2 - 50, 180, 100);
+      ctx.strokeStyle = "#ff007f";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(config.WIDTH / 2 - 90, config.HEIGHT / 2 - 50, 180, 100);
+
+      ctx.font = "bold 42px monospace";
+      ctx.fillStyle = "#00f0ff";
+      ctx.textAlign = "center";
+      ctx.fillText(cdText, config.WIDTH / 2, config.HEIGHT / 2 + 14);
+    } else if (phase === "finished" || state.isGameOver) {
+      ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+      ctx.fillRect(config.WIDTH / 2 - 120, config.HEIGHT / 2 - 50, 240, 100);
+      ctx.strokeStyle = "#ffe066";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(config.WIDTH / 2 - 120, config.HEIGHT / 2 - 50, 240, 100);
+
+      ctx.font = "bold 28px monospace";
+      ctx.fillStyle = "#ffe066";
+      ctx.textAlign = "center";
+      ctx.fillText("FINISH!", config.WIDTH / 2, config.HEIGHT / 2 + 10);
+    }
 
     ctx.restore();
   }

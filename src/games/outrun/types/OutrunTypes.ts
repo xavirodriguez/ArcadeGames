@@ -24,6 +24,10 @@ export interface RaceStateComponent {
   position: number;
   /** Current segment index for convenience. */
   currentSegment: number;
+  /** Current race flow phase. */
+  racePhase?: "countdown" | "racing" | "finished";
+  /** Countdown timer before start in seconds. */
+  countdownTime?: number;
 }
 
 /**

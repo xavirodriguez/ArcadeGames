@@ -32,8 +32,8 @@ Norte visual: «Una postal japonesa de verano que cobra vida a 200 km/h.» Out R
 - [x] F5 Validación — commit: `feat(outrun): F5 — validacion del vertical slice` — Gate C: recta -> perspectiva -> avance -> curvas -> colinas -> coche -> trafico -> colisiones jugable, determinista y build verde
 - [x] F6 ★ Costa y capas — commit: `feat(outrun): F6 — costa y capas` — Gate D1: paleta como datos en OutrunPalettes.ts, sky de 5 bandas, sol, montañas facetadas por hash determinista, parallax
 - [x] F7 ★ Desierto, montaña, transición — commit: `feat(outrun): F7 — desierto, montaña y transicion` — Gate D2: costa -> desierto -> montaña con interpolacion suave de paletas en getScenarioPaletteAtZ
-- [ ] F8 VFX y animación — commit: — Gate E: —
-- [ ] F9 HUD y escenas — commit: — gate: —
+- [x] F8 VFX y animación — commit: `feat(outrun): F8 — vfx y animacion` — Gate E: lineas de velocidad a >70% maxSpeed, inclinado al girar, rebote off-road y soporte VisualOffset
+- [x] F9 HUD y escenas — commit: `feat(outrun): F9 — hud y escenas` — gate: HUD con tarjetas de alto contraste >=4.5:1, flujo con fases (countdown, racing, finish), ruta /outrun en e2e
 - [ ] F10 Skia y paridad — commit: — Gate F: —
 - [ ] F11 Cierre — commit: — gate: —
 

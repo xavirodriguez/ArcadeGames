@@ -13,6 +13,7 @@ const GAME_ROUTES = [
   { name: "Frogger", path: "/frogger" },
   { name: "CYOA", path: "/cyoa" },
   { name: "Blind Station", path: "/blindstation" },
+  { name: "Out Run", path: "/outrun" },
 ];
 
 test.describe("Game Launch Test Suite", () => {

@@ -29,7 +29,7 @@ import { resolveHitRunAim } from "../../games/hitandrun/input/resolveHitRunAim";
 
 /** Write aimX/aimY + fire flags onto the player so HitRunWeaponSystem can shoot 8-way. */
 function applyAimToPlayer(
-  game: { getWorld: () => { query: (t: string) => readonly number[]; getComponent: (e: number, t: string) => unknown; mutateComponent: (e: number, t: string, fn: (c: any) => void) => void; hasComponent: (e: number, t: string) => boolean } },
+  game: { getWorld: () => { query: (...t: string[]) => ReadonlyArray<number>; getComponent: (e: number, t: string) => unknown; mutateComponent: (e: number, t: string, fn: (c: any) => void) => void; hasComponent: (e: number, t: string) => boolean } },
   keys: {
     moveLeft: boolean;
     moveRight: boolean;
@@ -39,7 +39,8 @@ function applyAimToPlayer(
   }
 ) {
   const world = game.getWorld();
-  const player = world.query("PlatformerInput")[0];
+  const players = world.query("BeltInput");
+  const player = players[0];
   if (player === undefined) return;
 
   const transform = world.getComponent(player, "Transform") as { scaleX?: number } | undefined;
@@ -51,7 +52,7 @@ function applyAimToPlayer(
     lastFacingX: transform?.scaleX ?? 1
   });
 
-  world.mutateComponent(player, "PlatformerInput", (comp: {
+  world.mutateComponent(player, "BeltInput", (comp: {
     aimX?: number;
     aimY?: number;
     fireHeld?: boolean;
@@ -200,9 +201,9 @@ function HitAndRunContent() {
     // Re-read current component state is incomplete for multi-button — build from last known
     // Touch path: merge via successive setInputState; apply aim with best-effort flags
     const world = game.getWorld();
-    const player = world.query("PlatformerInput")[0];
+    const player = world.query("BeltInput")[0];
     if (player === undefined) return;
-    const inp = world.getComponent(player, "PlatformerInput") as {
+    const inp = world.getComponent(player, "BeltInput") as {
       moveDir?: number;
       aimX?: number;
       aimY?: number;

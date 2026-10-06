@@ -105,7 +105,7 @@ export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
             const cam = world.getComponent(cams[c], "Camera2D") as { isMain?: boolean } | undefined;
             if (!cam?.isMain) continue;
             if (!world.hasComponent(cams[c], "ScreenShake")) {
-              world.addComponent(cams[c], {
+              world.getCommandBuffer().addComponent(cams[c], {
                 type: "ScreenShake",
                 intensity: def.id === "hmg" ? 2.5 : 8,
                 duration: def.id === "hmg" ? 0.06 : 0.18,

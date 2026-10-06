@@ -6,7 +6,9 @@ import {
   System,
   SystemPhase,
   World,
-  CoreComponentRegistry
+  CoreComponentRegistry,
+  CollisionSystem2D,
+  HierarchySystem
 } from "@tiny-aster/core";
 import { CombatSystem } from "@tiny-aster/gameplay-kit";
 
@@ -28,6 +30,14 @@ class HitRunDeadCleanupSystem extends System<CoreComponentRegistry> {
  * Register after Collision phase systems so CollisionEvents are populated.
  */
 export function registerHitRunCombat(world: World<CoreComponentRegistry>): void {
+  world.addSystem(new HierarchySystem(), {
+    phase: SystemPhase.Collision,
+    priority: 100
+  });
+  world.addSystem(new CollisionSystem2D(), {
+    phase: SystemPhase.Collision,
+    priority: 10
+  });
   world.addSystem(new CombatSystem(), {
     phase: SystemPhase.Collision,
     priority: -5 // after CollisionSystem2D / HitDetection

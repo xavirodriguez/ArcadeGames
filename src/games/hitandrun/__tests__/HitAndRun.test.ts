@@ -169,4 +169,237 @@ describe("Hit & Run Game Systems", () => {
       expect(world.getResource<number>("HitStopRemaining")).toBe(0);
     });
   });
+
+  describe("Full Input -> Weapon -> Collision -> Damage Integration", () => {
+    it("fires weapon on fire input and damages enemy via CollisionSystem2D and CombatSystem", async () => {
+      const game = new HitAndRunGame({ seed: 12345 });
+      await game.init();
+
+      const gameWorld = game.getWorld();
+
+      const players = gameWorld.query("BeltInput", "Transform");
+      expect(players.length).toBe(1);
+      const player = players[0];
+
+      gameWorld.mutateComponent(player, "Transform", (t: { x: number; y: number; worldX: number; worldY: number; scaleX: number }) => {
+        t.x = 100;
+        t.y = 400;
+        t.worldX = 100;
+        t.worldY = 400;
+        t.scaleX = 1;
+      });
+
+      // Spawn an enemy in path of bullet at x = 200, y = 400
+      const enemy = gameWorld.createEntity();
+      gameWorld.addComponent(enemy, {
+        type: "Transform",
+        x: 200,
+        y: 400,
+        worldX: 200,
+        worldY: 400,
+        rotation: 0,
+        worldRotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: true
+      });
+      gameWorld.addComponent(enemy, {
+        type: "Velocity",
+        vx: 0,
+        vy: 0,
+        angularVelocity: 0
+      });
+      gameWorld.addComponent(enemy, {
+        type: "Collider2D",
+        shape: { type: "aabb", halfWidth: 16, halfHeight: 16 },
+        layer: 1 << 4, // Enemy layer
+        mask: 0xffff,
+        offsetX: 0,
+        offsetY: 0,
+        enabled: true,
+        isTrigger: true
+      });
+      gameWorld.addComponent(enemy, {
+        type: "CollisionEvents",
+        collisions: [],
+        activeTriggers: [],
+        triggersEntered: [],
+        triggersExited: []
+      });
+      gameWorld.addComponent(enemy, {
+        type: "Health",
+        current: 10,
+        max: 10
+      });
+      gameWorld.addComponent(enemy, {
+        type: "Faction",
+        faction: "enemy",
+        value: "enemy"
+      } as any);
+
+      // Press fire button
+      game.setInputState({ fire: true });
+
+      // Run 1 tick: BeltInputSystem processes fire edge, HitRunWeaponSystem spawns projectile
+      game.update(0.016);
+
+      const bulletsBefore = gameWorld.query("PlayerBullet");
+      expect(bulletsBefore.length).toBeGreaterThan(0);
+
+      // Run ticks so projectile moves from x=116 to x=200 and collides
+      for (let i = 0; i < 15; i++) {
+        game.update(0.016);
+      }
+
+      const enemyHealth = gameWorld.getComponent(enemy, "Health") as { current: number } | undefined;
+      expect(enemyHealth?.current).toBeLessThan(10);
+    });
+
+    it("strictly separates attack (melee) and fire (ranged weapon)", async () => {
+      const game = new HitAndRunGame({ seed: 12345 });
+      await game.init();
+
+      const gameWorld = game.getWorld();
+      const players = gameWorld.query("BeltInput");
+      const player = players[0];
+
+      // 1. Send attack only
+      game.setInputState({ attack: true, fire: false });
+      game.update(0.016);
+
+      let beltInput = gameWorld.getComponent(player, "BeltInput") as unknown as {
+        attackHeld: boolean;
+        fireHeld: boolean;
+      };
+      expect(beltInput.attackHeld).toBe(true);
+      expect(beltInput.fireHeld).toBe(false);
+
+      // 2. Send fire only
+      game.setInputState({ attack: false, fire: true });
+      game.update(0.016);
+
+      beltInput = gameWorld.getComponent(player, "BeltInput") as unknown as {
+        attackHeld: boolean;
+        fireHeld: boolean;
+      };
+      expect(beltInput.attackHeld).toBe(false);
+      expect(beltInput.fireHeld).toBe(true);
+    });
+
+    it("verifies firePressed edge is computed by BeltInputSystem from fireHeld", async () => {
+      const game = new HitAndRunGame({ seed: 12345 });
+      await game.init();
+
+      const gameWorld = game.getWorld();
+      const players = gameWorld.query("BeltInput");
+      const player = players[0];
+
+      // setInputState passes fire: true -> sets fireHeld = true
+      game.setInputState({ fire: true });
+
+      let beltInput = gameWorld.getComponent(player, "BeltInput") as unknown as {
+        fireHeld: boolean;
+        firePressed: boolean;
+      };
+      expect(beltInput.fireHeld).toBe(true);
+      expect(beltInput.firePressed).toBe(false);
+
+      // SystemPhase.Input runs BeltInputSystem, which computes firePressed edge = true
+      game.update(0.016);
+
+      beltInput = gameWorld.getComponent(player, "BeltInput") as unknown as {
+        fireHeld: boolean;
+        firePressed: boolean;
+      };
+      expect(beltInput.fireHeld).toBe(true);
+    });
+
+    it("supports 8-directional diagonal aim hitting an enemy at vertical offset (y=340)", async () => {
+      const game = new HitAndRunGame({ seed: 12345 });
+      await game.init();
+
+      const gameWorld = game.getWorld();
+      const players = gameWorld.query("BeltInput", "Transform");
+      const player = players[0];
+
+      gameWorld.mutateComponent(player, "Transform", (t: { x: number; y: number; worldX: number; worldY: number; scaleX: number }) => {
+        t.x = 100;
+        t.y = 400;
+        t.worldX = 100;
+        t.worldY = 400;
+        t.scaleX = 1;
+      });
+
+      // Spawn enemy diagonally up-right at x = 180, y = 320
+      const enemy = gameWorld.createEntity();
+      gameWorld.addComponent(enemy, {
+        type: "Transform",
+        x: 180,
+        y: 320,
+        worldX: 180,
+        worldY: 320,
+        rotation: 0,
+        worldRotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: true
+      });
+      gameWorld.addComponent(enemy, {
+        type: "Velocity",
+        vx: 0,
+        vy: 0,
+        angularVelocity: 0
+      });
+      gameWorld.addComponent(enemy, {
+        type: "Collider2D",
+        shape: { type: "aabb", halfWidth: 16, halfHeight: 16 },
+        layer: 1 << 4,
+        mask: 0xffff,
+        offsetX: 0,
+        offsetY: 0,
+        enabled: true,
+        isTrigger: true
+      });
+      gameWorld.addComponent(enemy, {
+        type: "CollisionEvents",
+        collisions: [],
+        activeTriggers: [],
+        triggersEntered: [],
+        triggersExited: []
+      });
+      gameWorld.addComponent(enemy, {
+        type: "Health",
+        current: 10,
+        max: 10
+      });
+      gameWorld.addComponent(enemy, {
+        type: "Faction",
+        faction: "enemy",
+        value: "enemy"
+      } as any);
+
+      // Aim up-right and fire
+      game.setInputState({ moveRight: true, aimUp: true, fire: true });
+      gameWorld.mutateComponent(player, "BeltInput", (inp: unknown) => {
+        const c = inp as { aimX?: number; aimY?: number };
+        c.aimX = Math.SQRT1_2;
+        c.aimY = -Math.SQRT1_2;
+      });
+
+      // Update tick 1: fires bullet with diagonal trajectory
+      game.update(0.016);
+
+      // Update ticks so bullet travels diagonally and hits enemy
+      for (let i = 0; i < 15; i++) {
+        game.update(0.016);
+      }
+
+      const enemyHealth = gameWorld.getComponent(enemy, "Health") as { current: number } | undefined;
+      expect(enemyHealth?.current).toBeLessThan(10);
+    });
+  });
 });

@@ -102,54 +102,6 @@ class HitRunDamageSystem extends System<CoreComponentRegistry> {
   }
 }
 
-class HitRunAttackSystem extends System<CoreComponentRegistry> {
-  public update(world: import("@tiny-aster/core").World<CoreComponentRegistry>, deltaTime: number): void {
-    const players = world.query("PlatformerInput", "Transform");
-    for (let i = 0; i < players.length; i++) {
-      const player = players[i];
-      const input = world.getComponent(player, "PlatformerInput") as
-        | { pulseCooldown?: number; pulsePressed?: boolean }
-        | undefined;
-      const trans = world.getComponent(player, "Transform")!;
-      if (!input) continue;
-
-      let cd = input.pulseCooldown ?? 0;
-      if (cd > 0) {
-        cd = PhysicsUtils.tickTimer(cd, deltaTime);
-        world.mutateComponent(player, "PlatformerInput", (inp: unknown) => {
-          (inp as { pulseCooldown?: number }).pulseCooldown = cd;
-        });
-      }
-
-      if (input.pulsePressed && cd <= 0) {
-        world.mutateComponent(player, "PlatformerInput", (inp: unknown) => {
-          (inp as { pulseCooldown?: number }).pulseCooldown = 0.45;
-        });
-
-        const vel = world.getComponent(player, "Velocity")!;
-        let dir = 1;
-        if (vel.vx !== 0) dir = vel.vx > 0 ? 1 : -1;
-        else if (trans.scaleX < 0) dir = -1;
-
-        const audio =
-          world.getResource<IAudioPlayer>("AudioPlayer") ||
-          world.getResource<IAudioPlayer>("Audio");
-        if (audio) audio.playSFX("pulse");
-
-        world.commands.spawnFromBlueprint("pulse_hitbox", {
-          dir,
-          x: trans.x,
-          y: trans.y,
-          parent: player
-        });
-
-        world.mutateComponent(player, "PlatformerInput", (inp: unknown) => {
-          (inp as { pulsePressed?: boolean }).pulsePressed = false;
-        });
-      }
-    }
-  }
-}
 
 export class HitAndRunGame extends PlatformerArcadeGame<
   HitAndRunGameState,
@@ -196,7 +148,14 @@ export class HitAndRunGame extends PlatformerArcadeGame<
 
   protected override async onPreloadAssets(): Promise<void> {
     if (this.audio) {
-      await preloadSharedAudioManifest(this.audio);
+      try {
+        await Promise.race([
+          preloadSharedAudioManifest(this.audio),
+          new Promise((resolve) => setTimeout(resolve, 2000))
+        ]);
+      } catch (e) {
+        console.warn("[HitAndRunGame] Audio preloading failed or timed out:", e);
+      }
     }
   }
 

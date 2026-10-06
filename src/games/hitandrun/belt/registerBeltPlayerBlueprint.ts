@@ -138,6 +138,8 @@ export function registerBeltPlayerBlueprint(blueprints: {
   blueprints.register("player", createBeltPlayerBlueprint());
 }
 
+import { HierarchySystem } from "@tiny-aster/core";
+
 export function ensurePhysicsIntegration(
   world: World<CoreComponentRegistry>
 ): void {
@@ -145,6 +147,10 @@ export function ensurePhysicsIntegration(
   world.addSystem(new PhysicsIntegrateSystem(), {
     phase: SystemPhase.Simulation,
     priority: -10
+  });
+  world.addSystem(new HierarchySystem(), {
+    phase: SystemPhase.Transform,
+    priority: 0
   });
   world.setResource("BeltPhysicsIntegrateRegistered", true);
 }

@@ -2,7 +2,8 @@ import {
   System,
   World,
   CoreComponentRegistry,
-  Entity
+  Entity,
+  createDeferredEntity
 } from "@tiny-aster/core";
 import { isSimulationFrozen } from "../systems/HitRunFeedbackSystem";
 import { isPlayerControlLocked } from "../hurt/HitRunHurtSystem";
@@ -239,9 +240,9 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
       (world.getComponent(owner, "Faction") as { value?: string } | undefined)?.value ??
       "player";
 
-    const e = world.createEntity();
+    const { entity: e, add } = createDeferredEntity(world);
 
-    world.addComponent(e, {
+    add({
       type: "Transform",
       x: hx,
       y: hy,
@@ -256,14 +257,14 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
       dirty: true
     });
 
-    world.addComponent(e, {
+    add({
       type: "Velocity",
       vx: 0,
       vy: 0,
       angularVelocity: 0
     });
 
-    world.addComponent(e, {
+    add({
       type: "Collider2D",
       shape: { type: "aabb", halfWidth: halfW, halfHeight: halfH },
       layer: ownerFaction === "player" ? 1 << 3 : 1 << 4,
@@ -274,7 +275,7 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
       enabled: true
     });
 
-    world.addComponent(e, {
+    add({
       type: "CollisionEvents",
       collisions: [],
       activeTriggers: [],
@@ -282,12 +283,12 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
       triggersExited: []
     });
 
-    world.addComponent(e, {
+    add({
       type: "Faction",
       value: ownerFaction
     });
 
-    world.addComponent(e, {
+    add({
       type: "Tag",
       tags: ["MeleeHitbox"]
     });

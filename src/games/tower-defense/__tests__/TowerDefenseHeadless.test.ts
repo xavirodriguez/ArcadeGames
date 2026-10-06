@@ -30,7 +30,7 @@ describe("TowerDefense headless - Phase 2 (Playable Headless)", () => {
         ["blocked", "blocked", "blocked", "base"],
       ],
     };
-    const layout = createGridLayout(towerDefenseConfigRaw as any);
+    const layout = createGridLayout(towerDefenseConfigRaw as import("../types/TowerDefenseConfigSchema").TowerDefenseConfig);
     expect(() => extractWaypoints(invalidGrid, layout)).toThrow(
       "[TD] Invalid map layout: No walkable path from spawn (S) to base (E)"
     );
@@ -64,7 +64,7 @@ describe("TowerDefense headless - Phase 2 (Playable Headless)", () => {
 
     const player = game.getWorld().query("Player")[0];
     // Build tower at (col 1, row 3) which is buildable
-    const layout = game.getWorld().getResource<any>("GridLayout");
+    const layout = game.getWorld().getResource<import("../../shared/grid/GridTypes").GridLayout>("GridLayout")!;
     const cellX = layout.offsetX + 1 * layout.stepX + layout.stepX / 2;
     const cellY = layout.offsetY + 3 * layout.stepY + layout.stepY / 2;
 

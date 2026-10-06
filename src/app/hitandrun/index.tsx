@@ -29,7 +29,7 @@ import { resolveHitRunAim } from "../../games/hitandrun/input/resolveHitRunAim";
 
 /** Write aimX/aimY + fire flags onto the player so HitRunWeaponSystem can shoot 8-way. */
 function applyAimToPlayer(
-  game: { getWorld: () => { query: (t: string) => number[]; getComponent: (e: number, t: string) => unknown; mutateComponent: (e: number, t: string, fn: (c: any) => void) => void; hasComponent: (e: number, t: string) => boolean } },
+  game: { getWorld: () => { query: (t: string) => readonly number[]; getComponent: (e: number, t: string) => unknown; mutateComponent: (e: number, t: string, fn: (c: any) => void) => void; hasComponent: (e: number, t: string) => boolean } },
   keys: {
     moveLeft: boolean;
     moveRight: boolean;

@@ -116,5 +116,5 @@ export function spawnBlueprint<K extends keyof RacingBlueprintMap>(
   name: K,
   args: Parameters<RacingBlueprintMap[K]["spawn"]>[2]
 ): number {
-  return spawnBlueprintEntity(world as unknown as World, String(name), args as never);
+  return spawnBlueprintEntity(world as World, String(name), args as never);
 }

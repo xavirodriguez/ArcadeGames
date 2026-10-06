@@ -45,6 +45,8 @@ Time:        17.456 s
 ## 4. Propuestas Confirmadas
 - **Archivos:Líneas**: `jest.config.cjs:18`
 - **Cambio Aplicado**: Se añadió la ruta `<rootDir>/src/games/hitandrun/jest.config.cjs` a la lista global de proyectos de Jest.
+- **Archivos:Líneas**: `src/games/hitandrun/fantasy/FantasyWeaponCatalog.ts:1-40`
+- **Cambio Aplicado**: Refactorización de catálogo de armas para heredar directamente de `HIT_RUN_WEAPON_CATALOG`, eliminando la duplicación de código detectada por `jscpd` y reduciendo las líneas duplicadas en 22 por debajo del baseline.
 
 ## 5. Backlog (no verificado en esta ejecución)
 - Añadir pruebas unitarias dedicadas para las parábolas de granadas y la interacción de rescate POW.

@@ -653,7 +653,9 @@ export function calculateScreenConfig(canvas?: HTMLCanvasElement): {
 
 // @public
 export interface Camera2DComponent extends Component {
+    followEntities?: Entity[];
     followEntity?: Entity;
+    followLeader?: boolean;
     isMain?: boolean;
     lookAheadX?: number;
     smoothingX?: number;
@@ -669,6 +671,16 @@ export interface Camera2DComponent extends Component {
 
 // @public
 export class Camera2DSystem extends System<CoreComponentRegistry> {
+    static getViewportBounds<TRegistry extends CoreComponentRegistry = CoreComponentRegistry>(world: World<TRegistry>, cameraEntity?: number): {
+        minX: number;
+        minY: number;
+        maxX: number;
+        maxY: number;
+        width: number;
+        height: number;
+        zoom: number;
+    } | null;
+    static isEntityInViewport<TRegistry extends CoreComponentRegistry = CoreComponentRegistry>(world: World<TRegistry>, entity: number, margin?: number, cameraEntity?: number): boolean;
     static screenToWorld<TRegistry extends CoreComponentRegistry = CoreComponentRegistry>(world: World<TRegistry>, screenX: number, screenY: number, cameraEntity?: number): {
         x: number;
         y: number;
@@ -1133,6 +1145,7 @@ export interface CoreComponentRegistry extends ComponentRegistry {
     Transform: TransformComponent;
     TTL: TTLComponent;
     VehicleSteering: VehicleSteeringComponent;
+    VehicleWaypoint: VehicleWaypointComponent;
     Velocity: VelocityComponent;
     VisualOffset: VisualOffsetComponent;
 }
@@ -1415,6 +1428,9 @@ export function createSpringJoint(entityA: Entity, entityB: Entity, anchorA: {
 
 // @public
 export function createVehicleSteering(config: VehicleSteeringOptions): VehicleSteeringComponent;
+
+// @public
+export function createVehicleWaypoint(waypoints: VehicleWaypointNode[], targetRadius?: number, loop?: boolean): VehicleWaypointComponent;
 
 // @public
 export class CrossfadeTransition extends BaseOffscreenTransitionEffect {
@@ -5410,6 +5426,29 @@ export interface VehicleSteeringOptions {
 export class VehicleSteeringSystem extends System<CoreComponentRegistry> {
     setCandidates(entities: Entity[] | null): void;
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
+}
+
+// @public
+export interface VehicleWaypointComponent extends Component {
+    currentWaypointIndex: number;
+    loop?: boolean;
+    targetRadius: number;
+    type: "VehicleWaypoint";
+    waypoints: VehicleWaypointNode[];
+}
+
+// @public
+export interface VehicleWaypointNode {
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
+// @public
+export class VehicleWaypointSystem extends System<CoreComponentRegistry> {
+    // (undocumented)
+    update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
 }
 
 // @public

@@ -1,8 +1,9 @@
 import { touchToCellCoords, cellCenter, worldToCellCoords, isBuildable } from "../MapUtils";
 import towerDefenseConfigRaw from "../config/tower-defense.json";
+import type { TowerDefenseConfig } from "../types/TowerDefenseConfigSchema";
 
 describe("MapUtils touch to cell conversion", () => {
-  const config = towerDefenseConfigRaw as any;
+  const config = towerDefenseConfigRaw as TowerDefenseConfig;
   const layout = {
     stepX: config.CELL_SIZE, // 40
     stepY: config.CELL_SIZE, // 40

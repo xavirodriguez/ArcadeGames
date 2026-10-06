@@ -11,6 +11,7 @@ import { hapticSelection } from "../../utils/haptics";
 import { colors, spacing, typography } from "../../theme";
 import { touchToCellCoords, cellCenter } from "../../games/tower-defense/MapUtils";
 import towerDefenseConfigRaw from "../../games/tower-defense/config/tower-defense.json";
+import type { TowerDefenseConfig } from "../../games/tower-defense/types/TowerDefenseConfigSchema";
 
 import {
   GameScreen,
@@ -95,7 +96,7 @@ export default function TowerDefenseScreen() {
       locationY,
       canvasLayout.width,
       canvasLayout.height,
-      towerDefenseConfigRaw as any,
+      towerDefenseConfigRaw as TowerDefenseConfig,
       layout
     );
     const worldPos = cellCenter(cell.col, cell.row, layout);

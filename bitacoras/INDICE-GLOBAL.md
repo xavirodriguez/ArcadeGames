@@ -59,6 +59,7 @@ El monorepo cuenta con **13 juegos activos** en `src/games/`:
 | Patrón Detectado | Juegos Afectados | Refactor Sugerido | Destino Recomendado |
 |------------------|------------------|-------------------|---------------------|
 | Configuración Jest por juego ausente en la raíz | `hitandrun`, `tower-defense` | Añadir sus `jest.config.cjs` al archivo raíz `jest.config.cjs` | `jest.config.cjs` |
+| Catálogos de armas duplicados entre variantes de temas | `hitandrun` | Heredar especificaciones base desde `HIT_RUN_WEAPON_CATALOG` | `src/games/hitandrun/fantasy/` |
 | Propiedades duplicadas en archivos de i18n | `geometrywars`, `asteroids` | Limpiar duplicados de objetos de localización en `en.ts` y `es.ts` | `src/locales/` |
 | Bloqueo de `RandomService` en fase de setup | `vertical-shmup`, `arkanoid`, `hitandrun` | Envolver llamadas de setup con `runWithUnlockedRandomAndMutators` | `src/games/shared/configHelper.ts` |
 | Definiciones de colisionadores de paletas duplicadas | `pong`, `arkanoid` | Reutilizar `createPaddleColliderConfig` | `src/games/shared/componentBuilders` |

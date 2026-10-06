@@ -7,7 +7,7 @@ import { IGame } from "@tiny-aster/core";
  * Translates pressed keys to abstract actions and routes them directly to
  * game.setInputState() using the React Bridge pattern.
  */
-export function useKeyboardControls(game: IGame | null, isReady: boolean, onInput?: (input: any) => void) {
+export function useKeyboardControls(game: IGame<any, any> | null, isReady: boolean, onInput?: (input: any) => void) {
   useEffect(() => {
     if (Platform.OS !== "web" || !game || !isReady) {
       return;

@@ -130,8 +130,8 @@ export class RacingGame extends BaseGame<
             const velocity = world.getComponent(entity, "Velocity" as never);
             if (!transform || !velocity) continue;
             const result = computeCarPhysics(
-              transform as unknown as { rotation: number },
-              velocity as unknown as { vx: number; vy: number },
+              transform as never,
+              velocity as never,
               input as RacingInputState,
               this.config,
               dt

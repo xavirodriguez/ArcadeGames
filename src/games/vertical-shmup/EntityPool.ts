@@ -13,7 +13,7 @@ const config = (player: boolean): PrefabConfig<ProjectileComponents, ProjectileP
   extraComponents: (data: Record<string, unknown>) => {
     data.boundary = { type: "Boundary", width: 480, height: 854, mode: "destroy" } as BoundaryComponent;
   }
-}) as unknown as PrefabConfig<ProjectileComponents, ProjectileParams>;
+}) as never;
 
 export class PlayerBulletPool extends ProjectilePool<ProjectileComponents, ProjectileParams> {
   constructor() { super(config(true)); }

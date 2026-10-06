@@ -35,12 +35,12 @@ export class VehicleWaypointSystem extends System<CoreComponentRegistry> {
       if (dist <= waypointsComp.targetRadius) {
         const nextIdx = idx + 1;
         if (nextIdx < waypointsComp.waypoints.length) {
-          world.mutateComponent(entity, "VehicleWaypoint", (m) => {
-            (m as unknown as VehicleWaypointComponent).currentWaypointIndex = nextIdx;
+          world.mutateComponent(entity, "VehicleWaypoint", (m: VehicleWaypointComponent) => {
+            m.currentWaypointIndex = nextIdx;
           });
         } else if (waypointsComp.loop !== false) {
-          world.mutateComponent(entity, "VehicleWaypoint", (m) => {
-            (m as unknown as VehicleWaypointComponent).currentWaypointIndex = 0;
+          world.mutateComponent(entity, "VehicleWaypoint", (m: VehicleWaypointComponent) => {
+            m.currentWaypointIndex = 0;
           });
         }
       }

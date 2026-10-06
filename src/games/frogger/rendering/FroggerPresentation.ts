@@ -1,39 +1,45 @@
 import { Renderer } from "@tiny-aster/core";
+import {
+  drawFroggerCanvas,
+  drawCarCanvas,
+  drawTruckCanvas,
+  drawLogCanvas,
+  drawTurtleCanvas,
+  drawLilyPadCanvas,
+  froggerBackgroundCanvasEffect,
+} from "./FroggerCanvasVisuals";
+import {
+  drawFroggerSkia,
+  drawCarSkia,
+  drawTruckSkia,
+  drawLogSkia,
+  drawTurtleSkia,
+  drawLilyPadSkia,
+  froggerBackgroundSkiaEffect,
+} from "./FroggerSkiaVisuals";
 
 /**
  * Registers Frogger visual shape drawers and background effects on the provided renderer.
  * Keeps renderer backend imports separated from pure ECS simulation logic.
  */
 export function initializeFroggerRenderer(renderer: Renderer<any, any>): void {
-  try {
-    if (renderer.type === "canvas") {
-      const visuals = require("./FroggerCanvasVisuals");
-      const shapeMap: Record<string, any> = {
-        frogger: visuals.drawFroggerCanvas,
-        car: visuals.drawCarCanvas,
-        truck: visuals.drawTruckCanvas,
-        log: visuals.drawLogCanvas,
-        turtle: visuals.drawTurtleCanvas,
-        lily_pad: visuals.drawLilyPadCanvas,
-      };
-      Object.entries(shapeMap).forEach(([name, fn]) => renderer.registerShape(name, fn));
-      renderer.registerBackgroundEffect("froggerBackground", visuals.froggerBackgroundCanvasEffect);
-    } else if (renderer.type === "skia") {
-      const visuals = require("./FroggerSkiaVisuals");
-      const shapeMap: Record<string, any> = {
-        frogger: visuals.drawFroggerSkia,
-        car: visuals.drawCarSkia,
-        truck: visuals.drawTruckSkia,
-        log: visuals.drawLogSkia,
-        turtle: visuals.drawTurtleSkia,
-        lily_pad: visuals.drawLilyPadSkia,
-      };
-      Object.entries(shapeMap).forEach(([name, fn]) => renderer.registerShape(name, fn));
-      renderer.registerBackgroundEffect("froggerBackground", visuals.froggerBackgroundSkiaEffect);
-    } else {
-      console.warn("[Frogger] Unrecognized renderer type:", renderer?.type);
-    }
-  } catch (err) {
-    console.error("[Frogger] Failed to register shapes:", err);
+  if (renderer?.type === "canvas") {
+    renderer.registerShape("frogger", drawFroggerCanvas);
+    renderer.registerShape("car", drawCarCanvas);
+    renderer.registerShape("truck", drawTruckCanvas);
+    renderer.registerShape("log", drawLogCanvas);
+    renderer.registerShape("turtle", drawTurtleCanvas);
+    renderer.registerShape("lily_pad", drawLilyPadCanvas);
+    renderer.registerBackgroundEffect("froggerBackground", froggerBackgroundCanvasEffect);
+  } else if (renderer?.type === "skia") {
+    renderer.registerShape("frogger", drawFroggerSkia);
+    renderer.registerShape("car", drawCarSkia);
+    renderer.registerShape("truck", drawTruckSkia);
+    renderer.registerShape("log", drawLogSkia);
+    renderer.registerShape("turtle", drawTurtleSkia);
+    renderer.registerShape("lily_pad", drawLilyPadSkia);
+    renderer.registerBackgroundEffect("froggerBackground", froggerBackgroundSkiaEffect);
+  } else {
+    console.warn("[Frogger] Unrecognized renderer type:", renderer?.type);
   }
 }

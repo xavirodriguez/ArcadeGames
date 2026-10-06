@@ -10,12 +10,14 @@ export interface RacingComponentRegistry extends CoreComponentRegistry, LocalRac
 export interface RacingEventRegistry extends CoreEvents, LocalRacingEventRegistry {}
 
 export interface RacingBlueprintMap extends Record<string, BlueprintDefinition<RacingComponentRegistry, RacingEventRegistry, unknown>> {
-  car: BlueprintDefinition<RacingComponentRegistry, RacingEventRegistry, { x: number; y: number; rotation?: number }>;
+  car: BlueprintDefinition<RacingComponentRegistry, RacingEventRegistry, { x: number; y: number; rotation?: number; isAI?: boolean; color?: string }>;
   wall: BlueprintDefinition<RacingComponentRegistry, RacingEventRegistry, { x: number; y: number; width: number; height: number }>;
   checkpoint: BlueprintDefinition<RacingComponentRegistry, RacingEventRegistry, {
     index: number; x: number; y: number; width?: number; height?: number; isFinish?: boolean;
   }>;
   state: BlueprintDefinition<RacingComponentRegistry, RacingEventRegistry, Record<string, never>>;
+  track_zone: BlueprintDefinition<RacingComponentRegistry, RacingEventRegistry, { x: number; y: number; width?: number; height?: number; surface?: string }>;
+  track_obstacle: BlueprintDefinition<RacingComponentRegistry, RacingEventRegistry, { x: number; y: number; radius?: number; kind?: string }>;
 }
 
 export type { RacingInputState, RacingGameState };

@@ -7,6 +7,8 @@ import {
   RenderContext,
   SystemPhase,
   MovementSystem,
+  HierarchySystem,
+  VehicleSteeringSystem,
   CollisionSystem2D,
   SpatialPartitioningSystem,
   RenderUpdateSystem,
@@ -100,12 +102,14 @@ export class RacingGame extends BaseGame<
 
     this.world.addSystem(new RacingInputSystem(this.config), { phase: SystemPhase.Simulation });
     this.world.addSystem(new MovementSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new HierarchySystem(), { phase: SystemPhase.Transform });
     this.world.addSystem(new RacingSurfaceSystem(this.config), { phase: SystemPhase.Simulation });
     this.world.addSystem(new RacingWallSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new VehicleCollisionSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
     this.world.addSystem(new SpatialPartitioningSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new VehicleAISystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new VehicleSteeringSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new LapSystem(this.config), { phase: SystemPhase.GameRules });
     this.world.addSystem(new HeadToHeadStateSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new RaceStateSystem(this.config), { phase: SystemPhase.GameRules });
@@ -120,19 +124,28 @@ export class RacingGame extends BaseGame<
       this.world.addSystem(new Camera2DSystem(), { phase: SystemPhase.Presentation });
     }
 
-    if (this.networkManager) {
+    if (this._config.isMultiplayer && this.networkManager) {
       this.world.addSystem(new LocalPredictionSystem(this.networkManager as never, {
         simulateFn: (world, input, dt) => {
+          const state = world.getSingleton("RacingState") as RacingGameState | undefined;
+          if (!state || state.phase !== "racing") return;
+
           const cars = world.query("LocalPlayer" as never, "Transform" as never, "Velocity" as never);
           for (let i = 0; i < cars.length; i += 1) {
             const entity = cars[i];
             const transform = world.getComponent(entity, "Transform" as never);
             const velocity = world.getComponent(entity, "Velocity" as never);
+            const inputComp = world.getComponent(entity, "Input" as never) as { axes?: { moveX?: number; moveY?: number }; actions?: { boost?: boolean; brake?: boolean } } | undefined;
             if (!transform || !velocity) continue;
             const result = computeCarPhysics(
-              transform as never,
-              velocity as never,
-              input as RacingInputState,
+              transform as unknown as { rotation: number },
+              velocity as unknown as { vx: number; vy: number },
+              {
+                moveX: inputComp?.axes?.moveX ?? 0,
+                moveY: inputComp?.axes?.moveY ?? 0,
+                boost: inputComp?.actions?.boost === true,
+                brake: inputComp?.actions?.brake === true
+              },
               this.config,
               dt
             );
@@ -159,6 +172,29 @@ export class RacingGame extends BaseGame<
     this.world.setResource("ActiveTrackSpec", trackSpec);
 
     const state = spawnBlueprint(this.world, "state", {});
+
+    const h2hEntity = this.world.createEntity();
+    this.world.addComponent(h2hEntity, {
+      type: "HeadToHeadState",
+      leaderEntity: null,
+      scores: { player_1: 0, player_2: 0 },
+      targetScore: 4,
+      phase: "countdown",
+      roundCountdown: config.COUNTDOWN_SECONDS,
+      winner: null
+    });
+
+    if (trackSpec.zones) {
+      for (const zone of trackSpec.zones) {
+        spawnBlueprint(this.world, "track_zone", zone);
+      }
+    }
+
+    if (trackSpec.obstacles) {
+      for (const obstacle of trackSpec.obstacles) {
+        spawnBlueprint(this.world, "track_obstacle", obstacle);
+      }
+    }
 
     // Spawn checkpoints from track spec waypoints
     for (let i = 0; i < trackSpec.waypoints.length; i += 1) {
@@ -192,7 +228,8 @@ export class RacingGame extends BaseGame<
     const car2 = spawnBlueprint(this.world, "car", {
       x: spawnPt2.x,
       y: spawnPt2.y,
-      rotation: spawnPt2.rotation
+      rotation: spawnPt2.rotation,
+      isAI: true
     });
 
     createMainCamera2D(this.world, car1, {
@@ -205,6 +242,12 @@ export class RacingGame extends BaseGame<
     if (cam !== undefined) {
       this.world.mutateComponent(cam, "Camera2D", (m) => {
         m.followEntities = [car1, car2];
+        const initialX = (spawnPt1.x + spawnPt2.x) / 2;
+        const initialY = (spawnPt1.y + spawnPt2.y) / 2;
+        m.x = initialX - 400;
+        m.y = initialY - 300;
+        m.targetX = m.x;
+        m.targetY = m.y;
       });
     }
 

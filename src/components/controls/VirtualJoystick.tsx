@@ -7,7 +7,7 @@ import Animated, {
   withTiming,
   runOnJS,
 } from "react-native-reanimated";
-import { World, Component } from "@tiny-aster/core";
+import { World, Component, VirtualJoystickProvider } from "@tiny-aster/core";
 import { useTranslation } from "../../hooks/useTranslation";
 
 export type JoystickType = "movement" | "rotation";
@@ -64,6 +64,10 @@ export interface VirtualJoystickProps {
    * Keep sensitivity = 1.0 and apply non-linear curves (e.g., x * |x|) in onMove instead.
    */
   sensitivity?: number;
+  /** Optional VirtualJoystickProvider from @tiny-aster/core to automatically update. */
+  provider?: VirtualJoystickProvider<string>;
+  /** Which stick of the provider to write to (default: "left" for movement, "right" for rotation). */
+  providerStick?: "left" | "right";
 }
 
 /**
@@ -93,6 +97,8 @@ export function VirtualJoystick({
   onRelease,
   deadZone = 0,
   sensitivity = 1.0,
+  provider,
+  providerStick = type === "rotation" ? "right" : "left",
 }: VirtualJoystickProps) {
   const { t } = useTranslation();
   const { width, height } = useWindowDimensions();
@@ -159,6 +165,14 @@ export function VirtualJoystick({
         const normX = norm === 0 ? 0 : norm * Math.cos(angle);
         const normY = norm === 0 ? 0 : norm * Math.sin(angle);
 
+        if (provider) {
+          if (providerStick === "left") {
+            provider.setLeftStick(normX, normY);
+          } else {
+            provider.setRightStick(normX, normY);
+          }
+        }
+
         runOnJS(onMove)(normX, normY);
       }
     })
@@ -172,6 +186,14 @@ export function VirtualJoystick({
           isVisible.value = false;
         }
       });
+
+      if (provider) {
+        if (providerStick === "left") {
+          provider.setLeftStick(0, 0);
+        } else {
+          provider.setRightStick(0, 0);
+        }
+      }
 
       if (onRelease) {
         runOnJS(onRelease)();

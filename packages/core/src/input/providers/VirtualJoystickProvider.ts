@@ -12,6 +12,10 @@ import { InputProvider } from "./KeyboardInputProvider";
 export interface VirtualJoystickOptions {
   /** Deadzone threshold for right stick auto-firing. Defaults to 0.25. */
   fireThreshold?: number;
+  /** Axis deadzone threshold (0-1). Below this magnitude, stick axis outputs 0. Defaults to 0. */
+  deadzone?: number;
+  /** Non-linear response curve function (e.g., (x) => x * Math.abs(x)). */
+  responseCurve?: (val: number) => number;
 }
 
 /**
@@ -24,10 +28,14 @@ export class VirtualJoystickProvider<TExtra extends string = never> implements I
   private rightX = 0;
   private rightY = 0;
   private fireThreshold: number;
+  private deadzone: number;
+  private responseCurve?: (val: number) => number;
   private extraActions = new Set<CanonicalActionName<TExtra>>();
 
   constructor(options?: VirtualJoystickOptions) {
     this.fireThreshold = options?.fireThreshold ?? 0.25;
+    this.deadzone = options?.deadzone ?? 0;
+    this.responseCurve = options?.responseCurve;
   }
 
   /** Updates the left stick (movement) axes. */
@@ -51,14 +59,22 @@ export class VirtualJoystickProvider<TExtra extends string = never> implements I
     }
   }
 
+  private processAxis(raw: number): number {
+    if (Math.abs(raw) < this.deadzone) return 0;
+    const sign = Math.sign(raw);
+    const remapped = (Math.abs(raw) - this.deadzone) / (1 - this.deadzone);
+    const clamped = Math.min(1, Math.max(0, remapped)) * sign;
+    return this.responseCurve ? this.responseCurve(clamped) : clamped;
+  }
+
   public getInputState(): CanonicalInputState<TExtra> {
     const state = createEmptyCanonicalInputState<TExtra>();
     state.timestamp = Date.now();
 
-    state.axes.moveX = this.leftX;
-    state.axes.moveY = this.leftY;
-    state.axes.aimX = this.rightX;
-    state.axes.aimY = this.rightY;
+    state.axes.moveX = this.processAxis(this.leftX);
+    state.axes.moveY = this.processAxis(this.leftY);
+    state.axes.aimX = this.processAxis(this.rightX);
+    state.axes.aimY = this.processAxis(this.rightY);
 
     // Check right stick magnitude threshold for twin-stick auto-fire
     const rightMagSq = this.rightX * this.rightX + this.rightY * this.rightY;

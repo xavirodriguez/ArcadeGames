@@ -1,6 +1,12 @@
 import { OutrunGame, OutrunDefinition } from "../OutrunGame";
 import type { RoadData } from "../types/OutrunTypes";
 import { OUTRUN_PALETTES, scenarioHash } from "../rendering/OutrunPalettes";
+import {
+  drawSkiaOutrunRoad,
+  drawSkiaOutrunCar,
+  drawSkiaOutrunRacer,
+  drawSkiaOutrunHud
+} from "../rendering/OutrunSkiaVisuals";
 
 describe("OutrunGameplay", () => {
   it("creates a deterministic simulation from the same seed", async () => {
@@ -188,6 +194,20 @@ describe("OutrunGameplay", () => {
     const speedRatio = state.speed / config.maxSpeed;
 
     expect(speedRatio).toBeGreaterThan(0.7); // Threshold for speed lines
+  });
+
+  it("exposes Skia drawers for rendering parity with Canvas", () => {
+    expect(drawSkiaOutrunRoad).toBeDefined();
+    expect(typeof drawSkiaOutrunRoad.draw).toBe("function");
+
+    expect(drawSkiaOutrunCar).toBeDefined();
+    expect(typeof drawSkiaOutrunCar.draw).toBe("function");
+
+    expect(drawSkiaOutrunRacer).toBeDefined();
+    expect(typeof drawSkiaOutrunRacer.draw).toBe("function");
+
+    expect(drawSkiaOutrunHud).toBeDefined();
+    expect(typeof drawSkiaOutrunHud.draw).toBe("function");
   });
 
   it("decrements countdown timer and transitions racePhase from countdown to racing", async () => {

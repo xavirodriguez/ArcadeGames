@@ -65,6 +65,8 @@ export interface RoadSegment {
   curve: number;
   /** Vertical hill height offset. */
   hill: number;
+  /** Visual scenario theme for this segment. */
+  scenarioId?: "coast" | "desert" | "mountain";
 }
 
 /**

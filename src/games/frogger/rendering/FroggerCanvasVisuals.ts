@@ -15,11 +15,7 @@ export const drawFroggerCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCom
       frogger?.invulnerableRemaining ?? health?.invulnerableRemaining ?? 0;
     const isInvulnerable = invulnerableRemaining > 0;
     const shouldSkip = isInvulnerable && Math.floor(world.tick / 3) % 2 === 0;
-
-    console.log("🐸 [DEBUG-5] Dibujando Frogger | invulnerableRemaining:", invulnerableRemaining, "skipRender:", shouldSkip);
-    if (shouldSkip) {
-      console.log("👻 [DEBUG-5] Render de rana OMITIDO por parpadeo");
-    }
+    if (shouldSkip) return;
 
     const playerCtx = resolveFroggerPlayerDrawContext(world, entity);
     if (!playerCtx) return;

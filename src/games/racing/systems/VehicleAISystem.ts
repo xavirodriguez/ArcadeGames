@@ -33,8 +33,8 @@ export class VehicleAISystem extends System<RacingComponentRegistry, RacingEvent
 
       if (dist <= waypointsComp.targetRadius) {
         const nextIdx = (idx + 1) % waypointsComp.waypoints.length;
-        world.mutateComponent(entity, "VehicleWaypoint", (m) => {
-          (m as unknown as VehicleWaypointComponent).currentWaypointIndex = nextIdx;
+        world.mutateComponent(entity, "VehicleWaypoint", (m: VehicleWaypointComponent) => {
+          m.currentWaypointIndex = nextIdx;
         });
       }
 

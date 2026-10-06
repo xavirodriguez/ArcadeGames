@@ -3,6 +3,7 @@ import {
   SystemPhase,
   System,
   MovementSystem,
+  HierarchySystem,
   CollisionSystem2D,
   JuiceSystem,
   Renderer,
@@ -103,6 +104,7 @@ export class FroggerGame extends BaseGame<
 
     this.world.addSystem(new FroggerInputSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new MovementSystem() as System<FroggerComponentRegistry>, { phase: SystemPhase.Simulation });
+    this.world.addSystem(new HierarchySystem() as System<FroggerComponentRegistry>, { phase: SystemPhase.Transform });
     this.world.addSystem(new BoundarySystem() as System<FroggerComponentRegistry>, { phase: SystemPhase.Simulation });
     this.world.addSystem(new CollisionSystem2D() as System<FroggerComponentRegistry>, { phase: SystemPhase.Collision });
     this.world.addSystem(new FroggerLogCarrySystem(), { phase: SystemPhase.Simulation });

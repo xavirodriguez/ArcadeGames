@@ -77,6 +77,25 @@ export interface RacingWallComponent extends Component {
   height: number;
 }
 
+export interface TrackZoneDataComponent extends Component {
+  type: "TrackZoneData";
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  surface: string;
+}
+
+export interface TrackObstacleDataComponent extends Component {
+  type: "TrackObstacleData";
+  id: string;
+  x: number;
+  y: number;
+  radius: number;
+  kind: string;
+}
+
 export interface RacingComponentRegistry extends CoreComponentRegistry {
   Input: RacingInputComponent;
   Car: CarComponent;
@@ -84,6 +103,8 @@ export interface RacingComponentRegistry extends CoreComponentRegistry {
   Checkpoint: CheckpointComponent;
   Track: TrackComponent;
   RacingWall: RacingWallComponent;
+  TrackZoneData: TrackZoneDataComponent;
+  TrackObstacleData: TrackObstacleDataComponent;
   RacingState: RacingGameState;
   HeadToHeadState: HeadToHeadStateComponent;
 }

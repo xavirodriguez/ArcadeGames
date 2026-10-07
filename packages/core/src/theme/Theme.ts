@@ -1,3 +1,7 @@
+import { VisualTheme } from "./VisualTheme";
+
+export * from "./VisualTheme";
+
 /**
  * Resource key string used to store and access the `Theme` instance in the `World`.
  * @public
@@ -137,7 +141,7 @@ export interface Theme<TRole extends string = string> {
   /**
    * Optional formalized visual theme contract for unified design system tokens.
    */
-  visualTheme?: unknown;
+  visualTheme?: VisualTheme;
 }
 
 /**

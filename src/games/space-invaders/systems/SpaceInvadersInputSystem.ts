@@ -164,26 +164,12 @@ export class SpaceInvadersInputSystem extends GameSystem {
             createPlayerBullet(world, pos.x, pos.y - 25, this.bulletPool);
             nextShootCooldownRemaining = config.PLAYER_SHOOT_COOLDOWN / 1000;
 
-            world.mutateComponent(entity, "Render", render => {
-              render.muzzleFlashFrames = 3;
+            Juice.playShootJuice(world, entity, {
+              muzzleFrames: 3,
+              recoilPx: 10,
+              shakeIntensity: 1.5,
+              shakeDuration: 60
             });
-
-            // Physical recoil on player ship (Y axis recoil down ~10px and elastic return)
-            Juice.add(world, entity, {
-              property: "y",
-              target: 10,
-              duration: 60,
-              easing: "easeOut"
-            });
-            Juice.add(world, entity, {
-              property: "y",
-              target: 0,
-              duration: 180,
-              delay: 60,
-              easing: "elasticOut"
-            });
-            Juice.squash(world, entity, 0.9, 1.15, 100);
-            Juice.shake(world, 1.5, 60);
 
             // Muzzle smoke emitter
             const emitter = createEmitter(world, {

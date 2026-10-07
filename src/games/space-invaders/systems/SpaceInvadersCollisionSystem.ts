@@ -16,7 +16,7 @@ import {
 } from "../types/SpaceInvadersTypes";
 import { SpaceInvadersConfig } from "../types/SpaceInvadersConfigSchema";
 import { ParticlePool } from "../EntityPool";
-import { createSharedParticle, EXPLOSION_PROFILES } from "../../shared/rendering/SharedVFX";
+import { createSharedParticle, EXPLOSION_PROFILES, spawnLayeredExplosion as spawnSharedLayeredExplosion } from "../../shared/rendering/SharedVFX";
 import { spawnLayeredExplosion } from "../rendering/SpaceInvadersCanvasVisuals";
 import { colors } from "../../../theme/colors";
 import { applyComboKill } from "../../shared/arcade/ComboUtils";
@@ -521,6 +521,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     // Layers 2, 3, 4: Visual-only pool (Expanding ring, debris with gravity, residual smoke)
     if (!world.isReSimulating) {
       spawnLayeredExplosion(x, y, color, 1.0);
+      spawnSharedLayeredExplosion(world, x, y, { color, type: "enemy" });
     }
   }
 

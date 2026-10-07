@@ -209,6 +209,6 @@ export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<
     vfxProfile: customTheme?.vfxProfile
       ? { ...defaultVfx, ...customTheme.vfxProfile }
       : defaultVfx,
-    visualTheme,
+    visualTheme: customTheme?.visualTheme ?? visualTheme,
   };
 }

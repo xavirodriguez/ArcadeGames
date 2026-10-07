@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { StyleSheet, Text, View, ViewStyle, StyleProp } from "react-native";
+import { Text, ViewStyle, StyleProp } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   useSharedValue,
@@ -11,6 +11,7 @@ import { TouchInputState } from "@tiny-aster/core";
 import { colors } from "../../theme/colors";
 import { hapticImpactLight } from "../../utils/haptics";
 import { useTouchInputState } from "./TouchInputProvider";
+import { touchControlStyles } from "./TouchControlStyles";
 
 export interface TouchActionButtonProps {
   /** Name/id key for the action button in TouchInputState.buttons */
@@ -106,7 +107,7 @@ export const TouchActionButton: React.FC<TouchActionButtonProps> = ({
     <GestureDetector gesture={tap}>
       <Animated.View
         style={[
-          styles.button,
+          touchControlStyles.buttonBase,
           animatedStyle,
           {
             width: size,
@@ -117,21 +118,8 @@ export const TouchActionButton: React.FC<TouchActionButtonProps> = ({
           style,
         ]}
       >
-        {label && <Text style={[styles.text, { color: textColor }]}>{label}</Text>}
+        {label && <Text style={[touchControlStyles.buttonText, { color: textColor }]}>{label}</Text>}
       </Animated.View>
     </GestureDetector>
   );
 };
-
-const styles = StyleSheet.create({
-  button: {
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-  },
-  text: {
-    fontSize: 20,
-    fontWeight: "bold",
-    userSelect: "none",
-  },
-});

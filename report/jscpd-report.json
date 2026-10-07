@@ -742,11 +742,11 @@
     },
     {
       "firstFile": {
-        "end": 135,
+        "end": 137,
         "endLoc": {
-          "column": 1,
-          "line": 135,
-          "position": 5407
+          "column": 12,
+          "line": 137,
+          "position": 5421
         },
         "name": "echorunner/EchoRunnerGame.ts",
         "start": 124,
@@ -757,15 +757,15 @@
         }
       },
       "format": "typescript",
-      "fragment": "  public update(world: World<CoreComponentRegistry>, deltaTime: number): void {\n    updatePlayerInvulnerabilityAndContactDamage(world, deltaTime, {\n      contactDistance: 20,\n      invulnerabilityDuration: 1.0,\n      damageAmount: 1,\n      hitFlashFrames: 8,\n      screenShakeIntensity: 12,\n      screenShakeDuration: 0.25,\n      sfxName: \"hit\"\n    });\n  }\n}",
+      "fragment": "  public update(world: World<CoreComponentRegistry>, deltaTime: number): void {\n    updatePlayerInvulnerabilityAndContactDamage(world, deltaTime, {\n      contactDistance: 20,\n      invulnerabilityDuration: 1.0,\n      damageAmount: 1,\n      hitFlashFrames: 8,\n      screenShakeIntensity: 12,\n      screenShakeDuration: 0.25,\n      sfxName: \"hit\"\n    });\n  }\n}\n\nexport class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, EchoRunnerInput, CoreComponentRegistry, EchoRunnerEventRegistry, EchoRunnerBlueprintMap> {",
       "isNew": false,
-      "lines": 12,
+      "lines": 14,
       "secondFile": {
-        "end": 103,
+        "end": 106,
         "endLoc": {
-          "column": 1,
-          "line": 103,
-          "position": 3569
+          "column": 12,
+          "line": 106,
+          "position": 3584
         },
         "name": "hitandrun/HitAndRunGame.ts",
         "start": 92,
@@ -775,7 +775,7 @@
           "position": 3234
         }
       },
-      "tokens": 51
+      "tokens": 53
     },
     {
       "firstFile": {
@@ -835,18 +835,18 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 232,
+        "end": 191,
         "endLoc": {
           "column": 61,
-          "line": 232,
-          "position": 7758
+          "line": 191,
+          "position": 6251
         },
         "name": "hitandrun/HitAndRunGame.ts",
-        "start": 227,
+        "start": 186,
         "startLoc": {
           "column": 34,
-          "line": 227,
-          "position": 7357
+          "line": 186,
+          "position": 5850
         }
       },
       "tokens": 64
@@ -872,18 +872,18 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 268,
+        "end": 227,
         "endLoc": {
           "column": 43,
-          "line": 268,
-          "position": 8787
+          "line": 227,
+          "position": 7280
         },
         "name": "hitandrun/HitAndRunGame.ts",
-        "start": 260,
+        "start": 219,
         "startLoc": {
           "column": 4,
-          "line": 260,
-          "position": 8433
+          "line": 219,
+          "position": 6926
         }
       },
       "tokens": 90
@@ -909,18 +909,18 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 277,
+        "end": 236,
         "endLoc": {
           "column": 27,
-          "line": 277,
-          "position": 9124
+          "line": 236,
+          "position": 7617
         },
         "name": "hitandrun/HitAndRunGame.ts",
-        "start": 268,
+        "start": 227,
         "startLoc": {
           "column": 59,
-          "line": 268,
-          "position": 8803
+          "line": 227,
+          "position": 7296
         }
       },
       "tokens": 58
@@ -946,18 +946,18 @@
       "isNew": false,
       "lines": 15,
       "secondFile": {
-        "end": 192,
+        "end": 144,
         "endLoc": {
           "column": 5,
-          "line": 192,
-          "position": 6438
+          "line": 144,
+          "position": 4708
         },
         "name": "hitandrun/HitAndRunGame.ts",
-        "start": 181,
+        "start": 133,
         "startLoc": {
           "column": 9,
-          "line": 181,
-          "position": 6058
+          "line": 133,
+          "position": 4328
         }
       },
       "tokens": 85
@@ -1297,40 +1297,40 @@
     },
     {
       "firstFile": {
-        "end": 154,
+        "end": 157,
         "endLoc": {
-          "column": 9,
-          "line": 154,
-          "position": 3837
+          "column": 21,
+          "line": 157,
+          "position": 5032
         },
-        "name": "hitandrun/ai/enemyShoot.ts",
-        "start": 140,
+        "name": "hitandrun/HitAndRunGame.ts",
+        "start": 146,
         "startLoc": {
-          "column": 11,
-          "line": 140,
-          "position": 3570
+          "column": 25,
+          "line": 146,
+          "position": 4735
         }
       },
       "format": "typescript",
-      "fragment": "    mask: 1,\n    offsetX: 0,\n    offsetY: 0,\n    isTrigger: true,\n    enabled: true\n  });\n  world.addComponent(e, {\n    type: \"CollisionEvents\",\n    collisions: [],\n    activeTriggers: [],\n    triggersEntered: [],\n    triggersExited: []\n  });\n  world.addComponent(e, {\n    type: \"Render\",",
+      "fragment": "    this.world.update(dt);\n  }\n\n  protected override async onPreloadAssets(): Promise<void> {\n    if (this.audio) {\n      try {\n        await Promise.race([\n          preloadSharedAudioManifest(this.audio),\n          new Promise((resolve) => setTimeout(resolve, 2000))\n        ]);\n      } catch (e) {\n        console.warn(\"[HitAndRunGame] Audio preloading failed or timed out:\", e);",
       "isNew": false,
-      "lines": 15,
+      "lines": 12,
       "secondFile": {
-        "end": 286,
+        "end": 364,
         "endLoc": {
-          "column": 11,
-          "line": 286,
-          "position": 7736
+          "column": 21,
+          "line": 364,
+          "position": 14095
         },
-        "name": "hitandrun/melee/HitRunMeleeSystem.ts",
-        "start": 270,
+        "name": "racing/RacingGame.ts",
+        "start": 353,
         "startLoc": {
-          "column": 18,
-          "line": 270,
-          "position": 7439
+          "column": 41,
+          "line": 353,
+          "position": 13798
         }
       },
-      "tokens": 61
+      "tokens": 63
     },
     {
       "firstFile": {
@@ -1778,18 +1778,18 @@
     },
     {
       "firstFile": {
-        "end": 234,
+        "end": 235,
         "endLoc": {
           "column": 9,
-          "line": 234,
-          "position": 6589
+          "line": 235,
+          "position": 6613
         },
         "name": "hitandrun/melee/HitRunMeleeSystem.ts",
-        "start": 229,
+        "start": 230,
         "startLoc": {
           "column": 4,
-          "line": 229,
-          "position": 6352
+          "line": 230,
+          "position": 6376
         }
       },
       "format": "typescript",
@@ -1797,18 +1797,18 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 327,
+        "end": 328,
         "endLoc": {
           "column": 9,
-          "line": 327,
-          "position": 8749
+          "line": 328,
+          "position": 8689
         },
         "name": "hitandrun/melee/HitRunMeleeSystem.ts",
-        "start": 321,
+        "start": 322,
         "startLoc": {
           "column": 4,
-          "line": 321,
-          "position": 8511
+          "line": 322,
+          "position": 8451
         }
       },
       "tokens": 57
@@ -1889,6 +1889,524 @@
     },
     {
       "firstFile": {
+        "end": 145,
+        "endLoc": {
+          "column": 11,
+          "line": 145,
+          "position": 4349
+        },
+        "name": "outrun/OutrunGame.ts",
+        "start": 130,
+        "startLoc": {
+          "column": 40,
+          "line": 130,
+          "position": 4076
+        }
+      },
+      "format": "typescript",
+      "fragment": "      this.world.addComponent(roadEntity, {\n        type: \"Transform\",\n        x: 0,\n        y: 0,\n        rotation: 0,\n        scaleX: 1,\n        scaleY: 1,\n        worldX: 0,\n        worldY: 0,\n        worldRotation: 0,\n        worldScaleX: 1,\n        worldScaleY: 1,\n        dirty: false\n      });\n\n      const carEntity = this.world.createEntity();",
+      "isNew": false,
+      "lines": 16,
+      "secondFile": {
+        "end": 172,
+        "endLoc": {
+          "column": 11,
+          "line": 172,
+          "position": 4970
+        },
+        "name": "outrun/OutrunGame.ts",
+        "start": 157,
+        "startLoc": {
+          "column": 39,
+          "line": 157,
+          "position": 4697
+        }
+      },
+      "tokens": 53
+    },
+    {
+      "firstFile": {
+        "end": 143,
+        "endLoc": {
+          "column": 9,
+          "line": 143,
+          "position": 4336
+        },
+        "name": "outrun/OutrunGame.ts",
+        "start": 130,
+        "startLoc": {
+          "column": 40,
+          "line": 130,
+          "position": 4076
+        }
+      },
+      "format": "typescript",
+      "fragment": "      this.world.addComponent(roadEntity, {\n        type: \"Transform\",\n        x: 0,\n        y: 0,\n        rotation: 0,\n        scaleX: 1,\n        scaleY: 1,\n        worldX: 0,\n        worldY: 0,\n        worldRotation: 0,\n        worldScaleX: 1,\n        worldScaleY: 1,\n        dirty: false\n      });",
+      "isNew": false,
+      "lines": 14,
+      "secondFile": {
+        "end": 213,
+        "endLoc": {
+          "column": 11,
+          "line": 213,
+          "position": 6194
+        },
+        "name": "outrun/OutrunGame.ts",
+        "start": 200,
+        "startLoc": {
+          "column": 35,
+          "line": 200,
+          "position": 5908
+        }
+      },
+      "tokens": 52
+    },
+    {
+      "firstFile": {
+        "end": 21,
+        "endLoc": {
+          "column": 8,
+          "line": 21,
+          "position": 1048
+        },
+        "name": "outrun/rendering/OutrunCanvasVisuals.ts",
+        "start": 10,
+        "startLoc": {
+          "column": 0,
+          "line": 10,
+          "position": 561
+        }
+      },
+      "format": "typescript",
+      "fragment": "const PROJECTION_CAPACITY = 400;\nconst projectionBuffer: ProjectedSegment[] = createProjectionBuffer(PROJECTION_CAPACITY);\n\nfunction rumbleColor(index: number, rumbleLength: number, dark: string, light: string): string {\n  return Math.floor(index / rumbleLength) % 2 === 0 ? dark : light;\n}\n\nfunction roadColor(index: number, rumbleLength: number, palette: ScenarioPalette): string {\n  return Math.floor(index / rumbleLength) % 2 === 0 ? palette.roadDark : palette.roadLight;\n}\n\nfunction fillTrapezoid(",
+      "isNew": false,
+      "lines": 12,
+      "secondFile": {
+        "end": 21,
+        "endLoc": {
+          "column": 8,
+          "line": 21,
+          "position": 1055
+        },
+        "name": "outrun/rendering/OutrunSkiaVisuals.ts",
+        "start": 10,
+        "startLoc": {
+          "column": 0,
+          "line": 10,
+          "position": 568
+        }
+      },
+      "tokens": 100
+    },
+    {
+      "firstFile": {
+        "end": 54,
+        "endLoc": {
+          "column": 9,
+          "line": 54,
+          "position": 1929
+        },
+        "name": "outrun/rendering/OutrunCanvasVisuals.ts",
+        "start": 42,
+        "startLoc": {
+          "column": 10,
+          "line": 42,
+          "position": 1501
+        }
+      },
+      "format": "typescript",
+      "fragment": "  draw(ctx, world, _entity) {\n    const state = world.getSingleton(\"RaceState\");\n    const roadData = world.getResource<RoadData>(\"RoadData\");\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;\n\n    if (!state || !roadData || roadData.segments.length === 0) return;\n\n    const screenW = config.WIDTH;\n    const screenH = config.HEIGHT;\n    const rumbleLength = config.rumbleLength;\n\n    const palette = COAST_PALETTE;",
+      "isNew": false,
+      "lines": 13,
+      "secondFile": {
+        "end": 58,
+        "endLoc": {
+          "column": 9,
+          "line": 58,
+          "position": 2177
+        },
+        "name": "outrun/rendering/OutrunSkiaVisuals.ts",
+        "start": 47,
+        "startLoc": {
+          "column": 13,
+          "line": 47,
+          "position": 1750
+        }
+      },
+      "tokens": 84
+    },
+    {
+      "firstFile": {
+        "end": 82,
+        "endLoc": {
+          "column": 44,
+          "line": 82,
+          "position": 2970
+        },
+        "name": "outrun/rendering/OutrunCanvasVisuals.ts",
+        "start": 70,
+        "startLoc": {
+          "column": 13,
+          "line": 70,
+          "position": 2492
+        }
+      },
+      "format": "typescript",
+      "fragment": "    ctx.fill();\n\n    // PASS 3: Parallax Faceted Mountains\n    const horizonY = screenH * 0.45;\n    const numPeaks = 12;\n    const peakSpacing = screenW / 4;\n    const mountainOffsetX = ((state.playerZ * 0.00015) % peakSpacing) + state.playerX * 25;\n\n    for (let m = -2; m < numPeaks + 2; m++) {\n      const h1 = scenarioHash(palette.id, m);\n      const h2 = scenarioHash(palette.id, m + 100);\n      const px = m * peakSpacing - mountainOffsetX;\n      const peakY = horizonY - 40 - h1 * 60;",
+      "isNew": false,
+      "lines": 13,
+      "secondFile": {
+        "end": 92,
+        "endLoc": {
+          "column": 44,
+          "line": 92,
+          "position": 3473
+        },
+        "name": "outrun/rendering/OutrunSkiaVisuals.ts",
+        "start": 80,
+        "startLoc": {
+          "column": 50,
+          "line": 80,
+          "position": 2995
+        }
+      },
+      "tokens": 106
+    },
+    {
+      "firstFile": {
+        "end": 114,
+        "endLoc": {
+          "column": 23,
+          "line": 114,
+          "position": 3778
+        },
+        "name": "outrun/rendering/OutrunCanvasVisuals.ts",
+        "start": 98,
+        "startLoc": {
+          "column": 15,
+          "line": 98,
+          "position": 3451
+        }
+      },
+      "format": "typescript",
+      "fragment": "      ctx.fill();\n    }\n\n    const count = projectRoad(\n      roadData.segments,\n      state.playerZ,\n      state.playerX,\n      config.cameraHeight,\n      config.cameraDepth,\n      config.roadWidth,\n      Math.min(config.drawDistance, PROJECTION_CAPACITY),\n      screenW,\n      screenH,\n      projectionBuffer\n    );\n\n    let maxy = screenH;",
+      "isNew": false,
+      "lines": 17,
+      "secondFile": {
+        "end": 127,
+        "endLoc": {
+          "column": 23,
+          "line": 127,
+          "position": 4478
+        },
+        "name": "outrun/rendering/OutrunSkiaVisuals.ts",
+        "start": 111,
+        "startLoc": {
+          "column": 34,
+          "line": 111,
+          "position": 4151
+        }
+      },
+      "tokens": 55
+    },
+    {
+      "firstFile": {
+        "end": 144,
+        "endLoc": {
+          "column": 96,
+          "line": 144,
+          "position": 4886
+        },
+        "name": "outrun/rendering/OutrunCanvasVisuals.ts",
+        "start": 139,
+        "startLoc": {
+          "column": 4,
+          "line": 139,
+          "position": 4638
+        }
+      },
+      "format": "typescript",
+      "fragment": "    for (let i = 0; i < count; i++) {\n      const p = projectionBuffer[i];\n      if (p.p1z <= 0 && p.p2z <= 0) continue;\n      if (p.y2 >= maxy) continue;\n\n      const grass = rumbleColor(p.index, rumbleLength, palette.groundDark, palette.groundLight);",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 134,
+        "endLoc": {
+          "column": 96,
+          "line": 134,
+          "position": 4732
+        },
+        "name": "outrun/rendering/OutrunSkiaVisuals.ts",
+        "start": 129,
+        "startLoc": {
+          "column": 4,
+          "line": 129,
+          "position": 4484
+        }
+      },
+      "tokens": 69
+    },
+    {
+      "firstFile": {
+        "end": 150,
+        "endLoc": {
+          "column": 19,
+          "line": 150,
+          "position": 5168
+        },
+        "name": "outrun/rendering/OutrunCanvasVisuals.ts",
+        "start": 145,
+        "startLoc": {
+          "column": 23,
+          "line": 145,
+          "position": 4910
+        }
+      },
+      "format": "typescript",
+      "fragment": "      fillTrapezoid(ctx, p.x1, p.y1, screenW, p.x2, Math.min(p.y2, maxy), screenW, grass);\n\n      const rumbleW1 = p.w1 * 1.15;\n      const rumbleW2 = p.w2 * 1.15;\n      const rumble = rumbleColor(p.index, rumbleLength, palette.rumbleDark, palette.rumbleLight);\n      fillTrapezoid(ctx, p.x1, p.y1, rumbleW1, p.x2, Math.min(p.y2, maxy), rumbleW2, rumble);",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 140,
+        "endLoc": {
+          "column": 23,
+          "line": 140,
+          "position": 5032
+        },
+        "name": "outrun/rendering/OutrunSkiaVisuals.ts",
+        "start": 135,
+        "startLoc": {
+          "column": 37,
+          "line": 135,
+          "position": 4770
+        }
+      },
+      "tokens": 69
+    },
+    {
+      "firstFile": {
+        "end": 158,
+        "endLoc": {
+          "column": 21,
+          "line": 158,
+          "position": 5542
+        },
+        "name": "outrun/rendering/OutrunCanvasVisuals.ts",
+        "start": 153,
+        "startLoc": {
+          "column": 23,
+          "line": 153,
+          "position": 5329
+        }
+      },
+      "format": "typescript",
+      "fragment": "      fillTrapezoid(ctx, p.x1, p.y1, p.w1, p.x2, Math.min(p.y2, maxy), p.w2, road);\n\n      if (Math.floor(p.index / rumbleLength) % 2 === 0) {\n        const laneW1 = p.w1 * 0.04;\n        const laneW2 = p.w2 * 0.04;\n        fillTrapezoid(ctx, p.x1, p.y1, laneW1, p.x2, Math.min(p.y2, maxy), laneW2, palette.lane);",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 148,
+        "endLoc": {
+          "column": 25,
+          "line": 148,
+          "position": 5434
+        },
+        "name": "outrun/rendering/OutrunSkiaVisuals.ts",
+        "start": 143,
+        "startLoc": {
+          "column": 37,
+          "line": 143,
+          "position": 5217
+        }
+      },
+      "tokens": 71
+    },
+    {
+      "firstFile": {
+        "end": 208,
+        "endLoc": {
+          "column": 56,
+          "line": 208,
+          "position": 7251
+        },
+        "name": "outrun/rendering/OutrunCanvasVisuals.ts",
+        "start": 179,
+        "startLoc": {
+          "column": 10,
+          "line": 179,
+          "position": 6198
+        }
+      },
+      "format": "typescript",
+      "fragment": "  draw(ctx, world, entity) {\n    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const state = world.getSingleton(\"RaceState\");\n    if (!state) return;\n\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;\n\n    const visualOffset = world.getComponent(entity, \"VisualOffset\");\n    const vX = visualOffset?.offsetX ?? 0;\n    const vY = visualOffset?.offsetY ?? 0;\n\n    const screenW = config.WIDTH;\n    const screenH = config.HEIGHT;\n    const speedRatio = state.speed / config.maxSpeed;\n    const carScale = 1.0 + speedRatio * 0.08;\n\n    // Offroad vibration / high-speed suspension bounce\n    const isOffroad = Math.abs(state.playerX) > 1.0;\n    const bounceY = isOffroad\n      ? (Math.sin(state.playerZ * 0.2) * 3)\n      : (Math.sin(state.playerZ * 0.05) * 1.2 * speedRatio);\n\n    // Steering roll/tilt\n    const tiltAngle = state.playerX * 0.08 * speedRatio;\n\n    const baseY = screenH - 80 + bounceY + vY;\n    const baseX = screenW / 2 + state.playerX * 40 + vX;",
+      "isNew": false,
+      "lines": 30,
+      "secondFile": {
+        "end": 184,
+        "endLoc": {
+          "column": 56,
+          "line": 184,
+          "position": 6667
+        },
+        "name": "outrun/rendering/OutrunSkiaVisuals.ts",
+        "start": 157,
+        "startLoc": {
+          "column": 13,
+          "line": 157,
+          "position": 5696
+        }
+      },
+      "tokens": 214
+    },
+    {
+      "firstFile": {
+        "end": 295,
+        "endLoc": {
+          "column": 63,
+          "line": 295,
+          "position": 9813
+        },
+        "name": "outrun/rendering/OutrunCanvasVisuals.ts",
+        "start": 243,
+        "startLoc": {
+          "column": 10,
+          "line": 243,
+          "position": 8018
+        }
+      },
+      "format": "typescript",
+      "fragment": "  draw(ctx, world, entity) {\n    const racer = world.getComponent(entity, \"Racer\");\n    const render = world.getComponent(entity, \"Render\");\n    if (!racer || !racer.active || !render || !render.visible) return;\n\n    const state = world.getSingleton(\"RaceState\");\n    const roadData = world.getResource<RoadData>(\"RoadData\");\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;\n    if (!state || !roadData) return;\n\n    const count = projectRoad(\n      roadData.segments,\n      state.playerZ,\n      state.playerX,\n      config.cameraHeight,\n      config.cameraDepth,\n      config.roadWidth,\n      Math.min(config.drawDistance, PROJECTION_CAPACITY),\n      config.WIDTH,\n      config.HEIGHT,\n      projectionBuffer\n    );\n\n    const trackLength = roadData.trackLength;\n    let relZ = racer.z - state.playerZ;\n    if (relZ > trackLength / 2) relZ -= trackLength;\n    if (relZ < -trackLength / 2) relZ += trackLength;\n    if (relZ <= 0 || relZ > config.drawDistance * config.segmentLength) return;\n\n    let best: ProjectedSegment | null = null;\n    for (let i = 0; i < count; i++) {\n      const p = projectionBuffer[i];\n      if (p.p1z <= relZ && p.p2z >= relZ) {\n        best = p;\n        break;\n      }\n    }\n    if (!best) return;\n\n    const t = (relZ - best.p1z) / Math.max(0.001, best.p2z - best.p1z);\n    const sx = best.x1 + (best.x2 - best.x1) * t;\n    const sy = best.y1 + (best.y2 - best.y1) * t;\n    const sw = best.w1 + (best.w2 - best.w1) * t;\n\n    const lateral = racer.lateralX * sw;\n    const carW = sw * 0.35;\n    const carH = carW * 0.6;\n\n    if (sy > config.HEIGHT || sy >= best.clip || carW < 2) return;\n\n    const colors = [\"#457b9d\", \"#2a9d8f\", \"#e9c46a\", \"#f4a261\", \"#e76f51\"];\n    const bodyColor = colors[racer.colorIndex % colors.length];",
+      "isNew": false,
+      "lines": 53,
+      "secondFile": {
+        "end": 275,
+        "endLoc": {
+          "column": 63,
+          "line": 275,
+          "position": 9645
+        },
+        "name": "outrun/rendering/OutrunSkiaVisuals.ts",
+        "start": 223,
+        "startLoc": {
+          "column": 13,
+          "line": 223,
+          "position": 7850
+        }
+      },
+      "tokens": 427
+    },
+    {
+      "firstFile": {
+        "end": 317,
+        "endLoc": {
+          "column": 46,
+          "line": 317,
+          "position": 10526
+        },
+        "name": "outrun/rendering/OutrunCanvasVisuals.ts",
+        "start": 308,
+        "startLoc": {
+          "column": 10,
+          "line": 308,
+          "position": 10177
+        }
+      },
+      "format": "typescript",
+      "fragment": "  draw(ctx, world) {\n    const state = world.getSingleton(\"RaceState\");\n    if (!state) return;\n\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;\n\n    const speedKmh = Math.round((state.speed / config.maxSpeed) * 280);\n    const timeStr = state.lapTime.toFixed(1);\n    const phase = state.racePhase ?? \"racing\";",
+      "isNew": false,
+      "lines": 10,
+      "secondFile": {
+        "end": 304,
+        "endLoc": {
+          "column": 46,
+          "line": 304,
+          "position": 10596
+        },
+        "name": "outrun/rendering/OutrunSkiaVisuals.ts",
+        "start": 295,
+        "startLoc": {
+          "column": 13,
+          "line": 295,
+          "position": 10247
+        }
+      },
+      "tokens": 77
+    },
+    {
+      "firstFile": {
+        "end": 21,
+        "endLoc": {
+          "column": 77,
+          "line": 21,
+          "position": 905
+        },
+        "name": "outrun/systems/RacerInputSystem.ts",
+        "start": 10,
+        "startLoc": {
+          "column": 30,
+          "line": 10,
+          "position": 469
+        }
+      },
+      "format": "typescript",
+      "fragment": "export class RacerInputSystem extends System<OutrunComponentRegistry, OutrunEventRegistry> {\n  public override update(\n    world: World<OutrunComponentRegistry, OutrunEventRegistry>,\n    deltaTime: number\n  ): void {\n    if (world.getResource(\"IsPaused\") === true) return;\n\n    const state = world.getSingleton(\"RaceState\");\n    if (!state || state.isGameOver) return;\n\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;",
+      "isNew": false,
+      "lines": 12,
+      "secondFile": {
+        "end": 25,
+        "endLoc": {
+          "column": 77,
+          "line": 25,
+          "position": 919
+        },
+        "name": "outrun/systems/RoadAdvanceSystem.ts",
+        "start": 14,
+        "startLoc": {
+          "column": 31,
+          "line": 14,
+          "position": 483
+        }
+      },
+      "tokens": 77
+    },
+    {
+      "firstFile": {
+        "end": 26,
+        "endLoc": {
+          "column": 13,
+          "line": 26,
+          "position": 993
+        },
+        "name": "outrun/systems/RacerInputSystem.ts",
+        "start": 10,
+        "startLoc": {
+          "column": 30,
+          "line": 10,
+          "position": 469
+        }
+      },
+      "format": "typescript",
+      "fragment": "export class RacerInputSystem extends System<OutrunComponentRegistry, OutrunEventRegistry> {\n  public override update(\n    world: World<OutrunComponentRegistry, OutrunEventRegistry>,\n    deltaTime: number\n  ): void {\n    if (world.getResource(\"IsPaused\") === true) return;\n\n    const state = world.getSingleton(\"RaceState\");\n    if (!state || state.isGameOver) return;\n\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;\n\n    let accelerate = false;\n    let brake = false;\n    let left = false;\n    let right = false;",
+      "isNew": false,
+      "lines": 17,
+      "secondFile": {
+        "end": 27,
+        "endLoc": {
+          "column": 17,
+          "line": 27,
+          "position": 985
+        },
+        "name": "outrun/systems/TrafficSystem.ts",
+        "start": 14,
+        "startLoc": {
+          "column": 27,
+          "line": 14,
+          "position": 469
+        }
+      },
+      "tokens": 94
+    },
+    {
+      "firstFile": {
         "end": 182,
         "endLoc": {
           "column": 47,
@@ -1963,129 +2481,462 @@
     },
     {
       "firstFile": {
-        "end": 11,
+        "end": 29,
         "endLoc": {
-          "column": 51,
-          "line": 11,
-          "position": 519
+          "column": 9,
+          "line": 29,
+          "position": 1180
         },
         "name": "racing/rendering/RacingCanvasVisuals.ts",
-        "start": 6,
+        "start": 22,
         "startLoc": {
-          "column": 4,
-          "line": 6,
-          "position": 254
+          "column": 76,
+          "line": 22,
+          "position": 838
         }
       },
       "format": "typescript",
-      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    if (!render) return;\n    const size = render.size ?? 16;\n    const color = render.color ?? \"#00e5ff\";\n    const input = world.getComponent(entity, \"Input\");\n    const boosting = input?.actions.boost === true;",
+      "fragment": "    const start = typeof performance !== \"undefined\" ? performance.now() : 0;\n    const palette = getRacingPalette(world as unknown as World<RacingComponentRegistry, RacingEventRegistry>);\n    const trackSpec = world.getResource<TrackSpec>(\"ActiveTrackSpec\");\n    const width = trackSpec?.width ?? 1600;\n    const height = trackSpec?.height ?? 1000;\n    const halfW = width / 2;\n    const halfH = height / 2;\n    const cacheKey = `${trackSpec?.id ?? \"default\"}:${trackSpec?.theme ?? \"breakfast\"}`;",
+      "isNew": false,
+      "lines": 8,
+      "secondFile": {
+        "end": 20,
+        "endLoc": {
+          "column": 9,
+          "line": 20,
+          "position": 991
+        },
+        "name": "racing/rendering/RacingSkiaVisuals.ts",
+        "start": 12,
+        "startLoc": {
+          "column": 21,
+          "line": 12,
+          "position": 648
+        }
+      },
+      "tokens": 64
+    },
+    {
+      "firstFile": {
+        "end": 100,
+        "endLoc": {
+          "column": 56,
+          "line": 100,
+          "position": 3657
+        },
+        "name": "racing/rendering/RacingCanvasVisuals.ts",
+        "start": 95,
+        "startLoc": {
+          "column": 4,
+          "line": 95,
+          "position": 3293
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const palette = getRacingPalette(world as unknown as World<RacingComponentRegistry, RacingEventRegistry>);\n    const trackSpec = world.getResource<TrackSpec>(\"ActiveTrackSpec\");\n    if (!trackSpec || trackSpec.waypoints.length < 3) return;\n\n    const { left, right } = buildTrackRibbon(trackSpec.waypoints);\n    if (left.length === 0 || right.length === 0) return;",
       "isNew": false,
       "lines": 6,
       "secondFile": {
+        "end": 52,
+        "endLoc": {
+          "column": 56,
+          "line": 52,
+          "position": 2269
+        },
+        "name": "racing/rendering/RacingSkiaVisuals.ts",
+        "start": 47,
+        "startLoc": {
+          "column": 4,
+          "line": 47,
+          "position": 1905
+        }
+      },
+      "tokens": 75
+    },
+    {
+      "firstFile": {
+        "end": 207,
+        "endLoc": {
+          "column": 62,
+          "line": 207,
+          "position": 6971
+        },
+        "name": "racing/rendering/RacingCanvasVisuals.ts",
+        "start": 194,
+        "startLoc": {
+          "column": 4,
+          "line": 194,
+          "position": 6248
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const palette = getRacingPalette(world as unknown as World<RacingComponentRegistry, RacingEventRegistry>);\n    const render = world.getComponent(entity, \"Render\");\n    const transform = world.getComponent(entity, \"Transform\");\n    if (!render) return;\n\n    const size = render.size ?? 16;\n    const isPlayer = world.hasComponent(entity, \"LocalPlayer\");\n    const bodyColor = isPlayer ? palette.player : palette.rival;\n    const highlightColor = isPlayer ? palette.playerHighlight : palette.rivalHighlight;\n    const rotation = transform?.rotation ?? 0;\n\n    const input = world.getComponent(entity, \"Input\");\n    const boosting = input?.actions.boost === true;\n    const time = world.getResource<number>(\"RacingTime\") ?? 0;",
+      "isNew": false,
+      "lines": 14,
+      "secondFile": {
+        "end": 142,
+        "endLoc": {
+          "column": 62,
+          "line": 142,
+          "position": 5624
+        },
+        "name": "racing/rendering/RacingSkiaVisuals.ts",
+        "start": 129,
+        "startLoc": {
+          "column": 4,
+          "line": 129,
+          "position": 4901
+        }
+      },
+      "tokens": 142
+    },
+    {
+      "firstFile": {
+        "end": 333,
+        "endLoc": {
+          "column": 20,
+          "line": 333,
+          "position": 11113
+        },
+        "name": "racing/rendering/RacingCanvasVisuals.ts",
+        "start": 326,
+        "startLoc": {
+          "column": 4,
+          "line": 326,
+          "position": 10766
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const palette = getRacingPalette(world as unknown as World<RacingComponentRegistry, RacingEventRegistry>);\n    const render = world.getComponent(entity, \"Render\");\n    const wall = world.getComponent(entity, \"RacingWall\");\n    if (!render || !wall) return;\n\n    const halfW = wall.width / 2;\n    const halfH = wall.height / 2;\n    const depth = 5;",
+      "isNew": false,
+      "lines": 8,
+      "secondFile": {
+        "end": 263,
+        "endLoc": {
+          "column": 20,
+          "line": 263,
+          "position": 10437
+        },
+        "name": "racing/rendering/RacingSkiaVisuals.ts",
+        "start": 256,
+        "startLoc": {
+          "column": 4,
+          "line": 256,
+          "position": 10090
+        }
+      },
+      "tokens": 74
+    },
+    {
+      "firstFile": {
+        "end": 388,
+        "endLoc": {
+          "column": 43,
+          "line": 388,
+          "position": 12885
+        },
+        "name": "racing/rendering/RacingCanvasVisuals.ts",
+        "start": 373,
+        "startLoc": {
+          "column": 14,
+          "line": 373,
+          "position": 12302
+        }
+      },
+      "format": "typescript",
+      "fragment": "    ctx.save();\n    if (checkpoint.isFinish) {\n      const halfW = checkpoint.width / 2;\n      const halfH = checkpoint.height / 2;\n      const cols = 8;\n      const rows = 2;\n      const colW = checkpoint.width / cols;\n      const rowH = checkpoint.height / rows;\n\n      const trackSpec = world.getResource<TrackSpec>(\"ActiveTrackSpec\");\n      const isBilliard = trackSpec?.theme === \"billiard\";\n      const color1 = isBilliard ? \"#FFFFF0\" : \"#FFFFFF\";\n      const color2 = isBilliard ? \"#1B5E20\" : \"#5D4037\";\n\n      for (let r = 0; r < rows; r += 1) {\n        for (let c = 0; c < cols; c += 1) {",
+      "isNew": false,
+      "lines": 16,
+      "secondFile": {
+        "end": 314,
+        "endLoc": {
+          "column": 43,
+          "line": 314,
+          "position": 12433
+        },
+        "name": "racing/rendering/RacingSkiaVisuals.ts",
+        "start": 298,
+        "startLoc": {
+          "column": 27,
+          "line": 298,
+          "position": 11849
+        }
+      },
+      "tokens": 126
+    },
+    {
+      "firstFile": {
+        "end": 418,
+        "endLoc": {
+          "column": 29,
+          "line": 418,
+          "position": 14033
+        },
+        "name": "racing/rendering/RacingCanvasVisuals.ts",
+        "start": 409,
+        "startLoc": {
+          "column": 4,
+          "line": 409,
+          "position": 13590
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const palette = getRacingPalette(world as unknown as World<RacingComponentRegistry, RacingEventRegistry>);\n    const data = world.getComponent(entity, \"TrackZoneData\");\n    const render = world.getComponent(entity, \"Render\");\n    if (!data && !render) return;\n\n    const width = data?.width ?? 140;\n    const height = data?.height ?? 140;\n    const surface = data?.surface ?? \"water\";\n    const halfW = width / 2;\n    const halfH = height / 2;",
+      "isNew": false,
+      "lines": 10,
+      "secondFile": {
+        "end": 349,
+        "endLoc": {
+          "column": 29,
+          "line": 349,
+          "position": 13951
+        },
+        "name": "racing/rendering/RacingSkiaVisuals.ts",
+        "start": 340,
+        "startLoc": {
+          "column": 4,
+          "line": 340,
+          "position": 13508
+        }
+      },
+      "tokens": 92
+    },
+    {
+      "firstFile": {
+        "end": 494,
+        "endLoc": {
+          "column": 9,
+          "line": 494,
+          "position": 16350
+        },
+        "name": "racing/rendering/RacingCanvasVisuals.ts",
+        "start": 487,
+        "startLoc": {
+          "column": 4,
+          "line": 487,
+          "position": 15982
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const palette = getRacingPalette(world as unknown as World<RacingComponentRegistry, RacingEventRegistry>);\n    const data = world.getComponent(entity, \"TrackObstacleData\");\n    const render = world.getComponent(entity, \"Render\");\n    if (!data && !render) return;\n\n    const radius = data?.radius ?? render?.size ?? 30;\n    const kind = data?.kind ?? \"bowl\";\n    const id = data?.id ?? \"\";",
+      "isNew": false,
+      "lines": 8,
+      "secondFile": {
+        "end": 389,
+        "endLoc": {
+          "column": 9,
+          "line": 389,
+          "position": 15527
+        },
+        "name": "racing/rendering/RacingSkiaVisuals.ts",
+        "start": 380,
+        "startLoc": {
+          "column": 4,
+          "line": 380,
+          "position": 15139
+        }
+      },
+      "tokens": 74
+    },
+    {
+      "firstFile": {
+        "end": 515,
+        "endLoc": {
+          "column": 21,
+          "line": 515,
+          "position": 16817
+        },
+        "name": "racing/rendering/RacingCanvasVisuals.ts",
+        "start": 507,
+        "startLoc": {
+          "column": 31,
+          "line": 507,
+          "position": 16621
+        }
+      },
+      "format": "typescript",
+      "fragment": "      ctx.fillStyle = \"#F8FAFC\";\n      ctx.strokeStyle = palette.outline;\n      ctx.lineWidth = 2;\n      ctx.beginPath();\n      ctx.arc(0, 0, radius, 0, Math.PI * 2);\n      ctx.fill();\n      ctx.stroke();\n\n      ctx.fillStyle = \"#FFFEE0\";",
+      "isNew": false,
+      "lines": 9,
+      "secondFile": {
+        "end": 569,
+        "endLoc": {
+          "column": 21,
+          "line": 569,
+          "position": 18454
+        },
+        "name": "racing/rendering/RacingCanvasVisuals.ts",
+        "start": 561,
+        "startLoc": {
+          "column": 80,
+          "line": 561,
+          "position": 18258
+        }
+      },
+      "tokens": 56
+    },
+    {
+      "firstFile": {
+        "end": 567,
+        "endLoc": {
+          "column": 19,
+          "line": 567,
+          "position": 18431
+        },
+        "name": "racing/rendering/RacingCanvasVisuals.ts",
+        "start": 561,
+        "startLoc": {
+          "column": 64,
+          "line": 561,
+          "position": 18242
+        }
+      },
+      "format": "typescript",
+      "fragment": "      ctx.fillStyle = isCue ? \"#FFFFFF\" : isEight ? \"#111827\" : palette.obstacle;\n      ctx.strokeStyle = palette.outline;\n      ctx.lineWidth = 2;\n      ctx.beginPath();\n      ctx.arc(0, 0, radius, 0, Math.PI * 2);\n      ctx.fill();\n      ctx.stroke();",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 595,
+        "endLoc": {
+          "column": 19,
+          "line": 595,
+          "position": 19252
+        },
+        "name": "racing/rendering/RacingCanvasVisuals.ts",
+        "start": 589,
+        "startLoc": {
+          "column": 22,
+          "line": 589,
+          "position": 19063
+        }
+      },
+      "tokens": 55
+    },
+    {
+      "firstFile": {
         "end": 15,
         "endLoc": {
-          "column": 51,
+          "column": 9,
           "line": 15,
-          "position": 691
+          "position": 841
         },
         "name": "racing/rendering/RacingSkiaVisuals.ts",
         "start": 10,
         "startLoc": {
-          "column": 4,
+          "column": 33,
           "line": 10,
-          "position": 426
+          "position": 550
+        }
+      },
+      "format": "typescript",
+      "fragment": "export const drawSkiaTrackSurface: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {\n  draw(canvas, world) {\n    if (!Skia) return;\n    const palette = getRacingPalette(world as unknown as World<RacingComponentRegistry, RacingEventRegistry>);\n    const trackSpec = world.getResource<TrackSpec>(\"ActiveTrackSpec\");\n    const width = trackSpec?.width ?? 1600;",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 49,
+        "endLoc": {
+          "column": 6,
+          "line": 49,
+          "position": 2089
+        },
+        "name": "racing/rendering/RacingSkiaVisuals.ts",
+        "start": 44,
+        "startLoc": {
+          "column": 32,
+          "line": 44,
+          "position": 1801
+        }
+      },
+      "tokens": 53
+    },
+    {
+      "firstFile": {
+        "end": 90,
+        "endLoc": {
+          "column": 22,
+          "line": 90,
+          "position": 3580
+        },
+        "name": "racing/rendering/RacingSkiaVisuals.ts",
+        "start": 85,
+        "startLoc": {
+          "column": 30,
+          "line": 85,
+          "position": 3272
+        }
+      },
+      "format": "typescript",
+      "fragment": "export const drawSkiaSkidMarks: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {\n  draw(canvas, world) {\n    if (!Skia) return;\n    const palette = getRacingPalette(world as unknown as World<RacingComponentRegistry, RacingEventRegistry>);\n    const pool = world.getResource<RacingParticlePool>(\"RacingParticles\");\n    if (!pool || pool.skidMarks.length === 0) return;",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 111,
+        "endLoc": {
+          "column": 22,
+          "line": 111,
+          "position": 4359
+        },
+        "name": "racing/rendering/RacingSkiaVisuals.ts",
+        "start": 106,
+        "startLoc": {
+          "column": 26,
+          "line": 106,
+          "position": 4051
         }
       },
       "tokens": 60
     },
     {
       "firstFile": {
-        "end": 12,
+        "end": 131,
         "endLoc": {
-          "column": 31,
-          "line": 12,
-          "position": 535
+          "column": 9,
+          "line": 131,
+          "position": 5074
         },
         "name": "racing/rendering/RacingSkiaVisuals.ts",
-        "start": 6,
+        "start": 126,
         "startLoc": {
           "column": 30,
-          "line": 6,
-          "position": 285
+          "line": 126,
+          "position": 4789
         }
       },
       "format": "typescript",
-      "fragment": "export const drawSkiaRacingCar: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const skCanvas = canvas;\n    const render = world.getComponent(entity, \"Render\");\n    if (!render) return;\n    const size = render.size ?? 16;",
+      "fragment": "export const drawSkiaRacingCar: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const palette = getRacingPalette(world as unknown as World<RacingComponentRegistry, RacingEventRegistry>);\n    const render = world.getComponent(entity, \"Render\");\n    const transform = world.getComponent(entity, \"Transform\");",
       "isNew": false,
-      "lines": 7,
+      "lines": 6,
       "secondFile": {
-        "end": 99,
+        "end": 258,
         "endLoc": {
-          "column": 31,
-          "line": 99,
-          "position": 3582
+          "column": 9,
+          "line": 258,
+          "position": 10263
         },
         "name": "racing/rendering/RacingSkiaVisuals.ts",
-        "start": 93,
+        "start": 253,
         "startLoc": {
           "column": 30,
-          "line": 93,
-          "position": 3332
+          "line": 253,
+          "position": 9978
         }
       },
-      "tokens": 56
+      "tokens": 55
     },
     {
       "firstFile": {
-        "end": 12,
-        "endLoc": {
-          "column": 31,
-          "line": 12,
-          "position": 535
-        },
-        "name": "racing/rendering/RacingSkiaVisuals.ts",
-        "start": 6,
-        "startLoc": {
-          "column": 30,
-          "line": 6,
-          "position": 285
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const drawSkiaRacingCar: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const skCanvas = canvas;\n    const render = world.getComponent(entity, \"Render\");\n    if (!render) return;\n    const size = render.size ?? 16;",
-      "isNew": false,
-      "lines": 7,
-      "secondFile": {
-        "end": 114,
-        "endLoc": {
-          "column": 31,
-          "line": 114,
-          "position": 4073
-        },
-        "name": "racing/rendering/RacingSkiaVisuals.ts",
-        "start": 108,
-        "startLoc": {
-          "column": 34,
-          "line": 108,
-          "position": 3823
-        }
-      },
-      "tokens": 56
-    },
-    {
-      "firstFile": {
-        "end": 96,
+        "end": 94,
         "endLoc": {
           "column": 15,
-          "line": 96,
-          "position": 3231
+          "line": 94,
+          "position": 3107
         },
         "name": "racing/systems/HeadToHeadStateSystem.ts",
-        "start": 89,
+        "start": 87,
         "startLoc": {
           "column": 12,
-          "line": 89,
-          "position": 2941
+          "line": 87,
+          "position": 2817
         }
       },
       "format": "typescript",
@@ -2148,37 +2999,111 @@
     },
     {
       "firstFile": {
-        "end": 379,
+        "end": 31,
         "endLoc": {
-          "column": 10,
-          "line": 379,
-          "position": 15881
+          "column": 6,
+          "line": 31,
+          "position": 734
         },
-        "name": "shared/rendering/SharedVFX.ts",
-        "start": 365,
+        "name": "shared/rendering/JuiceOrchestrator.ts",
+        "start": 19,
         "startLoc": {
-          "column": 21,
-          "line": 365,
-          "position": 15669
+          "column": 12,
+          "line": 19,
+          "position": 510
         }
       },
       "format": "typescript",
-      "fragment": "  addComp(flashEntity, {\n    type: \"Transform\",\n    x,\n    y,\n    rotation: 0,\n    scaleX: 1,\n    scaleY: 1,\n    worldX: x,\n    worldY: y,\n    worldRotation: 0,\n    worldScaleX: 1,\n    worldScaleY: 1,\n    dirty: true\n  });\n  addComp(flashEntity, {",
+      "fragment": "  y?: number;\n  tint?: string;\n  scale?: number;\n  intensity?: number;\n  ttl?: number;\n  text?: string;\n  hitStopMs?: number;\n  hitStopPriority?: HitStopPriority | number;\n  shakeIntensity?: number;\n  shakeDurationMs?: number;\n}\n\nexport interface JuiceProfile {",
+      "isNew": false,
+      "lines": 13,
+      "secondFile": {
+        "end": 44,
+        "endLoc": {
+          "column": 6,
+          "line": 44,
+          "position": 1016
+        },
+        "name": "shared/rendering/JuiceOrchestrator.ts",
+        "start": 32,
+        "startLoc": {
+          "column": 32,
+          "line": 32,
+          "position": 792
+        }
+      },
+      "tokens": 50
+    },
+    {
+      "firstFile": {
+        "end": 388,
+        "endLoc": {
+          "column": 12,
+          "line": 388,
+          "position": 16434
+        },
+        "name": "shared/rendering/SharedVFX.ts",
+        "start": 374,
+        "startLoc": {
+          "column": 23,
+          "line": 374,
+          "position": 16194
+        }
+      },
+      "format": "typescript",
+      "fragment": "    addComp(flashEntity, {\n      type: \"Transform\",\n      x,\n      y,\n      rotation: 0,\n      scaleX: 1,\n      scaleY: 1,\n      worldX: x,\n      worldY: y,\n      worldRotation: 0,\n      worldScaleX: 1,\n      worldScaleY: 1,\n      dirty: true\n    });\n    addComp(flashEntity, {",
       "isNew": false,
       "lines": 15,
       "secondFile": {
-        "end": 414,
+        "end": 424,
         "endLoc": {
           "column": 12,
-          "line": 414,
-          "position": 16591
+          "line": 424,
+          "position": 17180
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 400,
+        "start": 410,
         "startLoc": {
           "column": 23,
-          "line": 400,
-          "position": 16351
+          "line": 410,
+          "position": 16940
+        }
+      },
+      "tokens": 50
+    },
+    {
+      "firstFile": {
+        "end": 711,
+        "endLoc": {
+          "column": 29,
+          "line": 711,
+          "position": 28294
+        },
+        "name": "shared/rendering/SharedVFX.ts",
+        "start": 706,
+        "startLoc": {
+          "column": 4,
+          "line": 706,
+          "position": 28064
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const { width, height, state } = getScreenAndVFXState(world);\n    if (state.lowStimulationMode) return;\n    const timePhase = state.timePhase;\n    const isGlitching = Math.sin(timePhase * 17) > 0.85;\n\n    if (!isGlitching) return;",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 730,
+        "endLoc": {
+          "column": 29,
+          "line": 730,
+          "position": 28918
+        },
+        "name": "shared/rendering/SharedVFX.ts",
+        "start": 725,
+        "startLoc": {
+          "column": 4,
+          "line": 725,
+          "position": 28688
         }
       },
       "tokens": 50
@@ -2777,32 +3702,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-10-06T09:56:15.661Z",
+    "detectionDate": "2026-10-07T07:16:55.157Z",
     "formats": {
       "typescript": {
-        "clones": 75,
-        "duplicatedLines": 601,
-        "duplicatedTokens": 4855,
-        "lines": 84149,
+        "clones": 100,
+        "duplicatedLines": 903,
+        "duplicatedTokens": 7261,
+        "lines": 87943,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.7142093191838287,
-        "percentageTokens": 1.0793950052135557,
-        "sources": 528,
-        "tokens": 449789
+        "percentage": 1.0268014509398133,
+        "percentageTokens": 1.525859333463623,
+        "sources": 547,
+        "tokens": 475863
       }
     },
     "total": {
-      "clones": 75,
-      "duplicatedLines": 601,
-      "duplicatedTokens": 4855,
-      "lines": 84149,
+      "clones": 100,
+      "duplicatedLines": 903,
+      "duplicatedTokens": 7261,
+      "lines": 87943,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.7142093191838287,
-      "percentageTokens": 1.0793950052135557,
-      "sources": 528,
-      "tokens": 449789
+      "percentage": 1.0268014509398133,
+      "percentageTokens": 1.525859333463623,
+      "sources": 547,
+      "tokens": 475863
     }
   }
 }

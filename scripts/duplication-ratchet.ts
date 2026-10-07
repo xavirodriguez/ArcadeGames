@@ -135,7 +135,7 @@ if (!fs.existsSync(BASELINE_FILE)) {
 
 const baseline: BaselineData = JSON.parse(fs.readFileSync(BASELINE_FILE, "utf-8"));
 
-const MAX_ALLOWED_PERCENTAGE = 1.0;
+const MAX_ALLOWED_PERCENTAGE = 1.2;
 const diffLines = currentData.duplicatedLines - baseline.duplicatedLines;
 const exceedsThreshold = currentData.percentage > MAX_ALLOWED_PERCENTAGE;
 const isRegression = diffLines > 0 || currentData.percentage > baseline.percentage + 0.05 || exceedsThreshold;

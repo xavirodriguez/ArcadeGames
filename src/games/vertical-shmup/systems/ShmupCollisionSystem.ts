@@ -1,4 +1,4 @@
-import { System, World, WorldUtils } from "@tiny-aster/core";
+import { System, World, WorldUtils, Juice } from "@tiny-aster/core";
 import { ShmupComponentRegistry, ShmupEventRegistry } from "../types/ShmupTypes";
 import { spawnLayeredExplosion } from "../../shared/rendering/SharedVFX";
 
@@ -26,6 +26,7 @@ export class ShmupCollisionSystem extends System<ShmupComponentRegistry, ShmupEv
         const transform = world.getComponent(entity, "Transform");
         if (transform) {
           spawnLayeredExplosion(world, transform.x, transform.y, { type: "ship" });
+          Juice.playDeathJuice(world, entity, { shakeIntensity: 6.0, shakeDuration: 180 });
         }
         world.mutateSingleton("ShmupGameState", (state) => {
           state.isGameOver = true;

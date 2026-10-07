@@ -14,6 +14,7 @@ function ensureInputComponent(world: World<SpaceInvadersComponentRegistry>, enti
   }
 }
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
+import { getGameplayColor } from "../../theme/GameplayColorMap";
 import { SpaceInvadersConfigSchema, SpaceInvadersConfig } from "./types/SpaceInvadersConfigSchema";
 import { ISpaceInvadersGame } from "./types/GameInterfaces";
 import { PlayerBulletPool, EnemyBulletPool, ParticlePool } from "./EntityPool";
@@ -270,10 +271,11 @@ export class SpaceInvadersGame
     this.blueprints.register("enemy_bullet", {
       spawn: (world, entity, args: { x: number, y: number }) => {
         const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
+        const enemyBulletColor = resolveThemeColor(world, "enemy-bullet", "bullet") ?? getGameplayColor("EnemyProjectile", world);
         EntityBuilder.fromEntity(world, entity)
           .withTransform({ x: args.x, y: args.y })
           .withVelocity({ vy: config.ENEMY_BULLET_SPEED })
-          .withRender({ shape: "enemy_bullet", size: config.ENEMY_BULLET_SIZE, color: "red", order: 10 })
+          .withRender({ shape: "enemy_bullet", size: config.ENEMY_BULLET_SIZE, color: enemyBulletColor, order: 10 })
           .withCollider({
             shape: { type: ShapeType.Circle, radius: config.ENEMY_BULLET_SIZE } as CircleShape,
             layer: CollisionLayers.ENEMY,

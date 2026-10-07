@@ -1,4 +1,4 @@
-import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
+import { ShapeDrawer, EffectDrawer, RenderContext } from "@tiny-aster/core";
 import type { OutrunComponentRegistry } from "../types/OutrunTypes";
 import type { OutrunConfig } from "../types/OutrunConfigSchema";
 import { DEFAULT_OUTRUN_CONFIG } from "../types/OutrunConfigSchema";
@@ -43,7 +43,7 @@ function fillTrapezoidSkia(
   canvas.drawPath(path, paint);
 }
 
-export const drawSkiaOutrunRoad: ShapeDrawer<import("@shopify/react-native-skia").SkCanvas, OutrunComponentRegistry> = {
+export const drawSkiaOutrunRoad: ShapeDrawer<any, OutrunComponentRegistry> = {
   draw(canvas, world, _entity) {
     const state = world.getSingleton("RaceState");
     const roadData = world.getResource<RoadData>("RoadData");
@@ -153,7 +153,7 @@ export const drawSkiaOutrunRoad: ShapeDrawer<import("@shopify/react-native-skia"
   }
 };
 
-export const drawSkiaOutrunCar: ShapeDrawer<import("@shopify/react-native-skia").SkCanvas, OutrunComponentRegistry> = {
+export const drawSkiaOutrunCar: ShapeDrawer<any, OutrunComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
@@ -219,7 +219,7 @@ export const drawSkiaOutrunCar: ShapeDrawer<import("@shopify/react-native-skia")
   }
 };
 
-export const drawSkiaOutrunRacer: ShapeDrawer<import("@shopify/react-native-skia").SkCanvas, OutrunComponentRegistry> = {
+export const drawSkiaOutrunRacer: ShapeDrawer<any, OutrunComponentRegistry> = {
   draw(canvas, world, entity) {
     const racer = world.getComponent(entity, "Racer");
     const render = world.getComponent(entity, "Render");
@@ -291,7 +291,7 @@ export const drawSkiaOutrunRacer: ShapeDrawer<import("@shopify/react-native-skia
   }
 };
 
-export const drawSkiaOutrunHud: EffectDrawer<import("@shopify/react-native-skia").SkCanvas, OutrunComponentRegistry> = {
+export const drawSkiaOutrunHud: EffectDrawer<any, OutrunComponentRegistry> = {
   draw(canvas, world) {
     const state = world.getSingleton("RaceState");
     if (!state) return;

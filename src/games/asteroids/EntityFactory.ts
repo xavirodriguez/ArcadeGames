@@ -35,7 +35,7 @@ function getPowerUpColor(lootType: string, world?: World<any, any, any>): string
   }
   if (lootType === "shield") return colors.cyan;
   if (lootType === "speed_boost") return colors.orange;
-  return colors.gold;
+  return getGameplayColor("Pickup", world);
 }
 
 interface MovingCircularEnemyParams {

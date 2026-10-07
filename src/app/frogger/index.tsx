@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef, FC } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Platform } from "react-native";
+import { GestureDetector, Gesture, Directions } from "react-native-gesture-handler";
+import { useSharedValue, useFrameCallback, runOnJS } from "react-native-reanimated";
 import { GestureActionButton } from "@/components/controls/GestureActionButton";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -172,62 +174,11 @@ export default function FroggerScreen() {
             />
           }
           controlsSlot={
-            <View style={styles.dpadContainer} pointerEvents="box-none">
-              <GestureActionButton
-                label="▲"
-                size={58}
-                color="rgba(57, 255, 20, 0.2)"
-                borderColor="#39FF14"
-                pressedColor="rgba(57, 255, 20, 0.4)"
-                pressedBorderColor="#FFFFFF"
-                haptic="medium"
-                onPressIn={() => handleGameInput({ moveUp: true })}
-                onPressOut={() => handleGameInput({ moveUp: false })}
-                accessibilityLabel="Move Up"
-                accessibilityHint="Mueve la rana hacia arriba"
-              />
-              <View style={styles.dpadHorizontalRow} pointerEvents="box-none">
-                <GestureActionButton
-                  label="◀"
-                  size={58}
-                  color="rgba(57, 255, 20, 0.2)"
-                  borderColor="#39FF14"
-                  pressedColor="rgba(57, 255, 20, 0.4)"
-                  pressedBorderColor="#FFFFFF"
-                  haptic="medium"
-                  onPressIn={() => handleGameInput({ moveLeft: true })}
-                  onPressOut={() => handleGameInput({ moveLeft: false })}
-                  accessibilityLabel={t?.accessibility?.move_left_label || "Move Left"}
-                  accessibilityHint="Mueve la rana a la izquierda"
-                />
-                <GestureActionButton
-                  label="▶"
-                  size={58}
-                  color="rgba(57, 255, 20, 0.2)"
-                  borderColor="#39FF14"
-                  pressedColor="rgba(57, 255, 20, 0.4)"
-                  pressedBorderColor="#FFFFFF"
-                  haptic="medium"
-                  onPressIn={() => handleGameInput({ moveRight: true })}
-                  onPressOut={() => handleGameInput({ moveRight: false })}
-                  accessibilityLabel={t?.accessibility?.move_right_label || "Move Right"}
-                  accessibilityHint="Mueve la rana a la derecha"
-                />
-              </View>
-              <GestureActionButton
-                label="▼"
-                size={58}
-                color="rgba(57, 255, 20, 0.2)"
-                borderColor="#39FF14"
-                pressedColor="rgba(57, 255, 20, 0.4)"
-                pressedBorderColor="#FFFFFF"
-                haptic="medium"
-                onPressIn={() => handleGameInput({ moveDown: true })}
-                onPressOut={() => handleGameInput({ moveDown: false })}
-                accessibilityLabel="Move Down"
-                accessibilityHint="Mueve la rana hacia abajo"
-              />
-            </View>
+            <FroggerTouchControls
+              game={game}
+              handleGameInput={handleGameInput}
+              t={t}
+            />
           }
           debugSlot={<DebugOverlay game={game} />}
           overlaySlot={
@@ -431,3 +382,150 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
 });
+
+function FroggerTouchControls({
+  game,
+  handleGameInput,
+  t,
+}: {
+  game: any;
+  handleGameInput: (input: Partial<FroggerInput>) => void;
+  t: any;
+}) {
+  const queue0 = useSharedValue<number>(-1);
+  const queue1 = useSharedValue<number>(-1);
+  const queueSize = useSharedValue(0);
+  const isHopping = useSharedValue(false);
+  const activeMove = useSharedValue<string | null>(null);
+  const activeFrameCount = useSharedValue(0);
+
+  const pushInput = (dirCode: number) => {
+    "worklet";
+    if (queueSize.value === 0) {
+      queue0.value = dirCode;
+      queueSize.value = 1;
+    } else if (queueSize.value === 1) {
+      queue1.value = dirCode;
+      queueSize.value = 2;
+    }
+  };
+
+  const flingUp = Gesture.Fling().direction(Directions.UP).runOnJS(false).onEnd(() => pushInput(0));
+  const flingDown = Gesture.Fling().direction(Directions.DOWN).runOnJS(false).onEnd(() => pushInput(1));
+  const flingLeft = Gesture.Fling().direction(Directions.LEFT).runOnJS(false).onEnd(() => pushInput(2));
+  const flingRight = Gesture.Fling().direction(Directions.RIGHT).runOnJS(false).onEnd(() => pushInput(3));
+
+  const flingGesture = Gesture.Race(flingUp, flingDown, flingLeft, flingRight);
+
+  useFrameCallback(() => {
+    if (!game) return;
+
+    if (activeMove.value !== null) {
+      activeFrameCount.value += 1;
+      if (activeFrameCount.value >= 3) {
+        runOnJS(handleGameInput)({
+          moveUp: false,
+          moveDown: false,
+          moveLeft: false,
+          moveRight: false,
+        });
+        activeMove.value = null;
+        activeFrameCount.value = 0;
+        isHopping.value = false;
+      }
+      return;
+    }
+
+    if (!isHopping.value && queueSize.value > 0) {
+      const nextDir = queue0.value;
+      if (queueSize.value === 2) {
+        queue0.value = queue1.value;
+        queue1.value = -1;
+        queueSize.value = 1;
+      } else {
+        queue0.value = -1;
+        queueSize.value = 0;
+      }
+
+      isHopping.value = true;
+      activeFrameCount.value = 0;
+
+      if (nextDir === 0) {
+        activeMove.value = "up";
+        runOnJS(handleGameInput)({ moveUp: true });
+      } else if (nextDir === 1) {
+        activeMove.value = "down";
+        runOnJS(handleGameInput)({ moveDown: true });
+      } else if (nextDir === 2) {
+        activeMove.value = "left";
+        runOnJS(handleGameInput)({ moveLeft: true });
+      } else if (nextDir === 3) {
+        activeMove.value = "right";
+        runOnJS(handleGameInput)({ moveRight: true });
+      }
+    }
+  });
+
+  return (
+    <GestureDetector gesture={flingGesture}>
+      <View style={StyleSheet.absoluteFillObject} pointerEvents="box-none">
+        <View style={styles.dpadContainer} pointerEvents="box-none">
+          <GestureActionButton
+            label="▲"
+            size={58}
+            color="rgba(57, 255, 20, 0.2)"
+            borderColor="#39FF14"
+            pressedColor="rgba(57, 255, 20, 0.4)"
+            pressedBorderColor="#FFFFFF"
+            haptic="medium"
+            onPressIn={() => handleGameInput({ moveUp: true })}
+            onPressOut={() => handleGameInput({ moveUp: false })}
+            accessibilityLabel="Move Up"
+            accessibilityHint="Mueve la rana hacia arriba"
+          />
+          <View style={styles.dpadHorizontalRow} pointerEvents="box-none">
+            <GestureActionButton
+              label="◀"
+              size={58}
+              color="rgba(57, 255, 20, 0.2)"
+              borderColor="#39FF14"
+              pressedColor="rgba(57, 255, 20, 0.4)"
+              pressedBorderColor="#FFFFFF"
+              haptic="medium"
+              onPressIn={() => handleGameInput({ moveLeft: true })}
+              onPressOut={() => handleGameInput({ moveLeft: false })}
+              accessibilityLabel={t?.accessibility?.move_left_label || "Move Left"}
+              accessibilityHint="Mueve la rana a la izquierda"
+            />
+            <GestureActionButton
+              label="▶"
+              size={58}
+              color="rgba(57, 255, 20, 0.2)"
+              borderColor="#39FF14"
+              pressedColor="rgba(57, 255, 20, 0.4)"
+              pressedBorderColor="#FFFFFF"
+              haptic="medium"
+              onPressIn={() => handleGameInput({ moveRight: true })}
+              onPressOut={() => handleGameInput({ moveRight: false })}
+              accessibilityLabel={t?.accessibility?.move_right_label || "Move Right"}
+              accessibilityHint="Mueve la rana a la derecha"
+            />
+          </View>
+          <GestureActionButton
+            label="▼"
+            size={58}
+            color="rgba(57, 255, 20, 0.2)"
+            borderColor="#39FF14"
+            pressedColor="rgba(57, 255, 20, 0.4)"
+            pressedBorderColor="#FFFFFF"
+            haptic="medium"
+            onPressIn={() => handleGameInput({ moveDown: true })}
+            onPressOut={() => handleGameInput({ moveDown: false })}
+            accessibilityLabel="Move Down"
+            accessibilityHint="Mueve la rana hacia abajo"
+          />
+        </View>
+      </View>
+    </GestureDetector>
+  );
+}

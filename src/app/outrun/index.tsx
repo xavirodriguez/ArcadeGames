@@ -1,6 +1,8 @@
 import { useState, useCallback } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { GestureDetector, Gesture, Directions } from "react-native-gesture-handler";
+import { useSharedValue, useFrameCallback, runOnJS } from "react-native-reanimated";
 import { router } from "expo-router";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
@@ -100,45 +102,7 @@ export default function OutrunScreen() {
             />
           }
           controlsSlot={
-            <View style={styles.controls} pointerEvents="box-none">
-              <View style={styles.leftControlArea} pointerEvents="box-none">
-                <VirtualJoystick
-                  joystickId="outrun_steer"
-                  type="movement"
-                  floating={false}
-                  onMove={(x) => {
-                    const curvedX = x * Math.abs(x);
-                    input({
-                      left: curvedX < -0.2,
-                      right: curvedX > 0.2,
-                    });
-                  }}
-                  onRelease={() => {
-                    input({ left: false, right: false });
-                  }}
-                />
-              </View>
-              <View style={styles.rightControlArea} pointerEvents="box-none">
-                <GestureActionButton
-                  label="GAS"
-                  accessibilityLabel="Accelerate pedal"
-                  onPressIn={() => input({ accelerate: true })}
-                  onPressOut={() => input({ accelerate: false })}
-                  haptic="medium"
-                  color="rgba(22,163,74,0.3)"
-                  borderColor="#16a34a"
-                />
-                <GestureActionButton
-                  label="BRAKE"
-                  accessibilityLabel="Brake pedal"
-                  onPressIn={() => input({ brake: true })}
-                  onPressOut={() => input({ brake: false })}
-                  haptic="heavy"
-                  color="rgba(220,38,38,0.3)"
-                  borderColor="#dc2626"
-                />
-              </View>
-            </View>
+            <OutrunTouchControls game={game} input={input} />
           }
           debugSlot={<DebugOverlay game={game} />}
         />
@@ -183,3 +147,113 @@ const styles = StyleSheet.create({
   },
   btnText: { color: "#fff", fontWeight: "700", fontSize: 14 }
 });
+
+function OutrunTouchControls({
+  game,
+  input,
+}: {
+  game: any;
+  input: (patch: Partial<{ accelerate: boolean; brake: boolean; left: boolean; right: boolean }>) => void;
+}) {
+  const throttle = useSharedValue(0);
+  const steerInput = useSharedValue(0);
+
+  const longPress = Gesture.LongPress()
+    .minDuration(0)
+    .runOnJS(false)
+    .onStart(() => {
+      throttle.value = 1;
+    })
+    .onFinalize(() => {
+      throttle.value = 0;
+    });
+
+  const flingLeft = Gesture.Fling()
+    .direction(Directions.LEFT)
+    .runOnJS(false)
+    .onEnd(() => {
+      steerInput.value = -1;
+    });
+
+  const flingRight = Gesture.Fling()
+    .direction(Directions.RIGHT)
+    .runOnJS(false)
+    .onEnd(() => {
+      steerInput.value = 1;
+    });
+
+  const combinedGestures = Gesture.Simultaneous(
+    longPress,
+    Gesture.Exclusive(flingLeft, flingRight)
+  );
+
+  const lastStateKey = useSharedValue<string>("");
+
+  useFrameCallback(() => {
+    if (!game) return;
+
+    const isAccel = throttle.value > 0;
+    const isLeft = steerInput.value < -0.2;
+    const isRight = steerInput.value > 0.2;
+
+    const key = `${isAccel ? "A" : ""}_${isLeft ? "L" : ""}_${isRight ? "R" : ""}`;
+    if (key !== lastStateKey.value) {
+      lastStateKey.value = key;
+      runOnJS(input)({
+        accelerate: isAccel,
+        left: isLeft,
+        right: isRight,
+      });
+    }
+
+    if (steerInput.value !== 0) {
+      steerInput.value = steerInput.value * 0.85;
+      if (Math.abs(steerInput.value) < 0.05) {
+        steerInput.value = 0;
+      }
+    }
+  });
+
+  return (
+    <GestureDetector gesture={combinedGestures}>
+      <View style={StyleSheet.absoluteFillObject} pointerEvents="box-none">
+        <View style={styles.controls} pointerEvents="box-none">
+          <View style={styles.leftControlArea} pointerEvents="box-none">
+            <VirtualJoystick
+              joystickId="outrun_steer"
+              type="movement"
+              floating={false}
+              onMove={(x) => {
+                const curvedX = x * Math.abs(x);
+                steerInput.value = curvedX;
+              }}
+              onRelease={() => {
+                steerInput.value = 0;
+              }}
+            />
+          </View>
+          <View style={styles.rightControlArea} pointerEvents="box-none">
+            <GestureActionButton
+              label="GAS"
+              accessibilityLabel="Accelerate pedal"
+              onPressIn={() => input({ accelerate: true })}
+              onPressOut={() => input({ accelerate: false })}
+              haptic="medium"
+              color="rgba(22,163,74,0.3)"
+              borderColor="#16a34a"
+            />
+            <GestureActionButton
+              label="BRAKE"
+              accessibilityLabel="Brake pedal"
+              onPressIn={() => input({ brake: true })}
+              onPressOut={() => input({ brake: false })}
+              haptic="heavy"
+              color="rgba(220,38,38,0.3)"
+              borderColor="#dc2626"
+            />
+          </View>
+        </View>
+      </View>
+    </GestureDetector>
+  );
+}

@@ -26,6 +26,18 @@ import {
 import { RacerInputSystem } from "./systems/RacerInputSystem";
 import { RoadAdvanceSystem } from "./systems/RoadAdvanceSystem";
 import { TrafficSystem } from "./systems/TrafficSystem";
+import {
+  drawOutrunRoad,
+  drawOutrunCar,
+  drawOutrunRacer,
+  drawOutrunHud
+} from "./rendering/OutrunCanvasVisuals";
+import {
+  drawSkiaOutrunRoad,
+  drawSkiaOutrunCar,
+  drawSkiaOutrunRacer,
+  drawSkiaOutrunHud
+} from "./rendering/OutrunSkiaVisuals";
 
 import outrunConfigRaw from "./config/outrun.json";
 
@@ -268,26 +280,12 @@ export class OutrunGame extends BaseGame<
   public initializeRenderer(renderer: Renderer<OutrunComponentRegistry, any>): void {
     RendererUtils.registerAssets(renderer, {
       canvas: (r) => {
-        /* eslint-disable @typescript-eslint/no-require-imports */
-        const {
-          drawOutrunRoad,
-          drawOutrunCar,
-          drawOutrunRacer,
-          drawOutrunHud
-        } = require("./rendering/OutrunCanvasVisuals");
         r.registerShape("road", drawOutrunRoad);
         r.registerShape("outrun_car", drawOutrunCar);
         r.registerShape("outrun_racer", drawOutrunRacer);
         r.registerBackgroundEffect("outrun_hud", drawOutrunHud);
       },
       skia: (r) => {
-        /* eslint-disable @typescript-eslint/no-require-imports */
-        const {
-          drawSkiaOutrunRoad,
-          drawSkiaOutrunCar,
-          drawSkiaOutrunRacer,
-          drawSkiaOutrunHud
-        } = require("./rendering/OutrunSkiaVisuals");
         r.registerShape("road", drawSkiaOutrunRoad);
         r.registerShape("outrun_car", drawSkiaOutrunCar);
         r.registerShape("outrun_racer", drawSkiaOutrunRacer);

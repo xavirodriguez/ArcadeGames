@@ -19,8 +19,8 @@ describe("OutrunGameplay", () => {
     expect(s1.playerZ).toBe(s2.playerZ);
     expect(s1.playerX).toBe(s2.playerX);
     expect(s1.speed).toBe(s2.speed);
-    const road1 = (g1 as unknown as { world: { getResource: (k: string) => RoadData } }).world.getResource("RoadData");
-    const road2 = (g2 as unknown as { world: { getResource: (k: string) => RoadData } }).world.getResource("RoadData");
+    const road1 = g1.getWorld().getResource<RoadData>("RoadData");
+    const road2 = g2.getWorld().getResource<RoadData>("RoadData");
     expect(road1?.segments.length).toBe(road2?.segments.length);
     expect(road1?.trackLength).toBe(road2?.trackLength);
   });
@@ -54,7 +54,7 @@ describe("OutrunGameplay", () => {
   it("road data wraps and has curves/hills", async () => {
     const game = new OutrunGame({ seed: 99, headless: true });
     await game.init();
-    const road = (game as unknown as { world: { getResource: (k: string) => RoadData } }).world.getResource("RoadData");
+    const road = game.getWorld().getResource<RoadData>("RoadData");
     expect(road).toBeDefined();
     expect(road!.segments.length).toBeGreaterThan(50);
     expect(road!.trackLength).toBeGreaterThan(0);
@@ -72,7 +72,7 @@ describe("OutrunGameplay", () => {
   it("traffic entities exist after init", async () => {
     const game = new OutrunGame({ seed: 3, headless: true });
     await game.init();
-    const world = (game as unknown as { world: { query: (t: string) => number[] } }).world;
+    const world = game.getWorld();
     expect(world.query("Racer").length).toBeGreaterThan(0);
   });
 

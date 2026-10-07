@@ -1,7 +1,7 @@
 # Índice Global de Análisis — Tiny Aster
 
 ## Inventario Real de Juegos
-El monorepo cuenta con **13 juegos activos** en `src/games/`:
+El monorepo cuenta con **14 juegos activos** en `src/games/`:
 1. `arkanoid`
 2. `asteroids`
 3. `echorunner`
@@ -9,12 +9,13 @@ El monorepo cuenta con **13 juegos activos** en `src/games/`:
 5. `frogger`
 6. `geometrywars`
 7. `hitandrun`
-8. `platformer`
-9. `pong`
-10. `racing`
-11. `space-invaders`
-12. `tower-defense`
-13. `vertical-shmup`
+8. `outrun`
+9. `platformer`
+10. `pong`
+11. `racing`
+12. `space-invaders`
+13. `tower-defense`
+14. `vertical-shmup`
 
 ---
 
@@ -26,6 +27,7 @@ El monorepo cuenta con **13 juegos activos** en `src/games/`:
 - [x] **frogger** — 3 propuestas validadas (`bitacoras/BITACORA-frogger.md`)
 - [x] **geometrywars** — 3 propuestas validadas (`bitacoras/BITACORA-geometrywars.md`)
 - [x] **hitandrun** — 3 propuestas validadas (`bitacoras/BITACORA-hitandrun.md`)
+- [x] **outrun** — 3 propuestas validadas (`bitacoras/BITACORA-outrun.md`)
 - [x] **platformer** — 3 propuestas validadas (`bitacoras/BITACORA-platformer.md`)
 - [x] **pong** — 3 propuestas validadas (`bitacoras/BITACORA-pong.md`)
 - [x] **racing** — 3 propuestas validadas (`bitacoras/BITACORA-racing.md`)
@@ -45,6 +47,7 @@ El monorepo cuenta con **13 juegos activos** en `src/games/`:
 | frogger | Baja | Básica (1 archivo) | 3/3 | Completado |
 | geometrywars | Alta | Alta (9 archivos) | 3/3 | Completado |
 | hitandrun | Alta | Básica (1 archivo) | 3/3 | Completado |
+| outrun | Baja | Media (2 archivos) | 3/3 | Completado |
 | platformer | Media | Media (2 archivos) | 3/3 | Completado |
 | pong | Alta | Media (2 archivos) | 3/3 | Completado |
 | racing | Media | Alta (5 archivos) | 3/3 | Completado |
@@ -58,12 +61,12 @@ El monorepo cuenta con **13 juegos activos** en `src/games/`:
 
 | Patrón Detectado | Juegos Afectados | Refactor Sugerido | Destino Recomendado |
 |------------------|------------------|-------------------|---------------------|
-| Configuración Jest por juego ausente en la raíz | `hitandrun`, `tower-defense` | Añadir sus `jest.config.cjs` al archivo raíz `jest.config.cjs` | `jest.config.cjs` |
+| Configuración Jest por juego ausente en la raíz | `hitandrun`, `outrun` | Añadir sus `jest.config.cjs` al archivo raíz `jest.config.cjs` | `jest.config.cjs` |
 | Catálogos de armas duplicados entre variantes de temas | `hitandrun` | Heredar especificaciones base desde `HIT_RUN_WEAPON_CATALOG` | `src/games/hitandrun/fantasy/` |
 | Propiedades duplicadas en archivos de i18n | `geometrywars`, `asteroids` | Limpiar duplicados de objetos de localización en `en.ts` y `es.ts` | `src/locales/` |
 | Bloqueo de `RandomService` en fase de setup | `vertical-shmup`, `arkanoid`, `hitandrun` | Envolver llamadas de setup con `runWithUnlockedRandomAndMutators` | `src/games/shared/configHelper.ts` |
 | Definiciones de colisionadores de paletas duplicadas | `pong`, `arkanoid` | Reutilizar `createPaddleColliderConfig` | `src/games/shared/componentBuilders` |
-| Reutilización de renderizadores visuales Canvas/Skia | `space-invaders`, `geometrywars`, `arkanoid`, `asteroids` | Utilizar `RendererUtils.registerAssets` y efectos de `SharedVFX` | `@tiny-aster/core` |
+| Reutilización de renderizadores visuales Canvas/Skia | `space-invaders`, `geometrywars`, `arkanoid`, `asteroids`, `outrun` | Utilizar `RendererUtils.registerAssets` con importaciones estáticas y efectos de `SharedVFX` | `@tiny-aster/core` |
 
 ---
 

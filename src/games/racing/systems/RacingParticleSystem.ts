@@ -160,12 +160,13 @@ export class RacingParticleSystem extends System<RacingComponentRegistry, Racing
       }
 
       if (slip.slipLevel === 2) {
+        const rand = world.renderRandom;
         // Add smoke particle at rear
         pool.addSmokeParticle(
-          rearX + (Math.random() - 0.5) * 6,
-          rearY + (Math.random() - 0.5) * 6,
-          -velocity.vx * 0.2 + (Math.random() - 0.5) * 10,
-          -velocity.vy * 0.2 + (Math.random() - 0.5) * 10,
+          rearX + (rand.next() - 0.5) * 6,
+          rearY + (rand.next() - 0.5) * 6,
+          -velocity.vx * 0.2 + (rand.next() - 0.5) * 10,
+          -velocity.vy * 0.2 + (rand.next() - 0.5) * 10,
           4
         );
       }

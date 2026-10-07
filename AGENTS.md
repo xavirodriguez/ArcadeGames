@@ -160,3 +160,13 @@ To create a new game without breaking core invariants, follow this process:
 - **Headless Server Simulation**: Client instances must not be trusted. All state updates, collisions, damage, and scoring are validated on the headless Colyseus server (`/server`).
 - **Inputs & Desynchronization**: The client sends compressed inputs (`CompactInputFrame`) rather than authoritative entity positions. The server applies inputs to its isolated simulation state to prevent client-side manipulation.
 - **Pure State Separation**: Code inside `/server` is strictly isolated from platform UI packages (`@tiny-aster/react-native`, `@tiny-aster/renderer-skia`). Importing UI dependencies into the server runtime is forbidden by linter rules.
+
+---
+
+## 6. Shared Touch Input Module
+
+The repository features a unified, platform-decoupled Touch Input Architecture:
+- **`TouchInputState` (`packages/core/src/input/TouchInputState.ts`)**: Pure TypeScript mutable state container managing continuous movement axes (`moveX`, `moveY`), boolean action button states (`buttons`), paddle positions (`paddlePos`), pointer locations (`pointerPos`), and consumable discrete event queues (`taps`, `flings`, `laneShifts`). Zero dependencies on React Native or Gesture Handler.
+- **`TouchInputUtils` (`packages/core/src/input/TouchInputUtils.ts`)**: Pure math helpers (`applyDeadzone`, `normalizeVector`, `snapTo4Way`, `snapTo8Way`, `clamp`, `mapPointerToPaddle`).
+- **Reusable Touch Controls (`src/components/controls/`)**: `TouchInputProvider` (with non-blocking `GestureHandlerRootView` check), `TouchVirtualJoystick`, `TouchActionButton`, `TouchHoldButton`, `TouchDragZone`, and `TouchTapZone`.
+- **Input Flow Rule**: Touch gestures invoke `.runOnJS(true)` directly mutating `TouchInputState` without triggering React `setState` re-renders per touch frame. The ECS game loop reads `TouchInputState` once per simulation frame.

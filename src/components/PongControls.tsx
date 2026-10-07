@@ -1,7 +1,8 @@
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { useTranslation } from "../hooks/useTranslation";
-import { GestureActionButton } from "./controls/GestureActionButton";
+import { TouchHoldButton } from "./controls/TouchHoldButton";
+import { TouchInputState } from "@tiny-aster/core";
 
 interface PongControlsProps {
   onP1Up: (pressed: boolean) => void;
@@ -9,6 +10,7 @@ interface PongControlsProps {
   onP2Up: (pressed: boolean) => void;
   onP2Down: (pressed: boolean) => void;
   showP2Controls?: boolean;
+  touchState?: TouchInputState;
 }
 
 export const PongControls: React.FC<PongControlsProps> = ({
@@ -17,69 +19,66 @@ export const PongControls: React.FC<PongControlsProps> = ({
   onP2Up,
   onP2Down,
   showP2Controls = false,
+  touchState,
 }) => {
   const { t } = useTranslation();
 
   return (
     <View style={styles.container} pointerEvents="box-none">
       <View style={styles.side} pointerEvents="box-none">
-        <GestureActionButton
+        <TouchHoldButton
+          buttonName="p1Up"
           label="▲"
           size={80}
           color="rgba(255, 255, 255, 0.2)"
           borderColor="white"
           pressedColor="rgba(255, 255, 255, 0.55)"
-          pressedBorderColor="#FFFFFF"
           textColor="white"
+          touchState={touchState}
           onPressIn={() => onP1Up(true)}
           onPressOut={() => onP1Up(false)}
-          accessibilityLabel={t?.accessibility?.pong_p1_up || "Player 1 Move Up"}
-          accessibilityHint={t?.accessibility?.pong_p1_up_hint || "Moves Player 1 paddle upwards"}
         />
         <View style={styles.spacer} />
-        <GestureActionButton
+        <TouchHoldButton
+          buttonName="p1Down"
           label="▼"
           size={80}
           color="rgba(255, 255, 255, 0.2)"
           borderColor="white"
           pressedColor="rgba(255, 255, 255, 0.55)"
-          pressedBorderColor="#FFFFFF"
           textColor="white"
+          touchState={touchState}
           onPressIn={() => onP1Down(true)}
           onPressOut={() => onP1Down(false)}
-          accessibilityLabel={t?.accessibility?.pong_p1_down || "Player 1 Move Down"}
-          accessibilityHint={t?.accessibility?.pong_p1_down_hint || "Moves Player 1 paddle downwards"}
         />
       </View>
 
       {showP2Controls && (
         <View style={styles.side} pointerEvents="box-none">
-          <GestureActionButton
+          <TouchHoldButton
+            buttonName="p2Up"
             label="▲"
             size={80}
             color="rgba(255, 255, 255, 0.2)"
             borderColor="white"
             pressedColor="rgba(255, 255, 255, 0.55)"
-            pressedBorderColor="#FFFFFF"
             textColor="white"
+            touchState={touchState}
             onPressIn={() => onP2Up(true)}
             onPressOut={() => onP2Up(false)}
-            accessibilityLabel={t?.accessibility?.pong_p2_up || "Player 2 Move Up"}
-            accessibilityHint={t?.accessibility?.pong_p2_up_hint || "Moves Player 2 paddle upwards"}
           />
           <View style={styles.spacer} />
-          <GestureActionButton
+          <TouchHoldButton
+            buttonName="p2Down"
             label="▼"
             size={80}
             color="rgba(255, 255, 255, 0.2)"
             borderColor="white"
             pressedColor="rgba(255, 255, 255, 0.55)"
-            pressedBorderColor="#FFFFFF"
             textColor="white"
+            touchState={touchState}
             onPressIn={() => onP2Down(true)}
             onPressOut={() => onP2Down(false)}
-            accessibilityLabel={t?.accessibility?.pong_p2_down || "Player 2 Move Down"}
-            accessibilityHint={t?.accessibility?.pong_p2_down_hint || "Moves Player 2 paddle downwards"}
           />
         </View>
       )}
@@ -96,27 +95,6 @@ const styles = StyleSheet.create({
   },
   side: {
     justifyContent: "flex-end",
-  },
-  button: {
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    borderColor: "white",
-    userSelect: "none",
-  },
-  pressed: {
-    backgroundColor: "rgba(255, 255, 255, 0.55)",
-    borderColor: "#FFFFFF",
-    transform: [{ scale: 0.92 }],
-  },
-  text: {
-    color: "white",
-    fontSize: 32,
-    userSelect: "none",
   },
   spacer: {
     height: 20,

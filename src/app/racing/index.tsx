@@ -6,8 +6,7 @@ import { router } from "expo-router";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
-import { VirtualJoystick } from "@/components/controls/VirtualJoystick";
-import { GestureActionButton } from "@/components/controls/GestureActionButton";
+import { TouchVirtualJoystick, TouchHoldButton } from "@/components/controls";
 import { useRacingGame } from "@/hooks/useRacingGame";
 import { useKeyboardControls } from "@/hooks/useKeyboardControls";
 import { GameLayoutShell, GameScreen, GameTitle, GameInstructions, BackButton, NeonButton } from "@/components/ui";
@@ -138,12 +137,9 @@ export default function RacingScreen() {
           controlsSlot={
             <View style={styles.controls} pointerEvents="box-none">
               <View style={styles.leftControlArea} pointerEvents="box-none">
-                <VirtualJoystick
-                  joystickId="steering_joystick"
-                  type="movement"
+                <TouchVirtualJoystick
                   floating={false}
                   onMove={(x, y) => {
-                    // Non-linear steering curve for precision center control
                     const curvedX = x * Math.abs(x);
                     input({ moveX: curvedX, moveY: y });
                   }}
@@ -153,14 +149,14 @@ export default function RacingScreen() {
                 />
               </View>
               <View style={styles.rightControlArea} pointerEvents="box-none">
-                <GestureActionButton
-                  label="BOOST"
-                  accessibilityLabel="Boost nitro"
-                  onPressIn={() => input({ boost: true })}
-                  onPressOut={() => input({ boost: false })}
-                  haptic="heavy"
+                <TouchHoldButton
+                  buttonName="boost"
+                  label="GAS"
+                  size={76}
                   color="rgba(242,201,76,0.25)"
                   borderColor="#F2C94C"
+                  onPressIn={() => input({ boost: true })}
+                  onPressOut={() => input({ boost: false })}
                 />
               </View>
             </View>

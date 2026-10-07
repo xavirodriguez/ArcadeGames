@@ -9,8 +9,7 @@ import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { useVerticalShmupGame } from "@/hooks/useVerticalShmupGame";
 import { useKeyboardControls } from "@/hooks/useKeyboardControls";
-import { VirtualJoystick } from "@/components/controls/VirtualJoystick";
-import { GestureActionButton } from "@/components/controls/GestureActionButton";
+import { TouchVirtualJoystick, TouchActionButton } from "@/components/controls";
 import { GameLayoutShell, GameScreen, GameTitle, GameInstructions, BackButton, NeonButton } from "@/components/ui";
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 
@@ -66,106 +65,32 @@ const styles=StyleSheet.create({
 });
 
 function ShmupTouchControls({
-  game,
   setInput,
 }: {
   game: any;
   setInput: (patch: Partial<{ moveX: number; moveY: number; shoot: boolean }>) => void;
 }) {
-  const anchorX = useSharedValue(0);
-  const anchorY = useSharedValue(0);
-  const moveAxisX = useSharedValue(0);
-  const moveAxisY = useSharedValue(0);
-  const isTouching = useSharedValue(false);
-
-  const manualGesture = Gesture.Manual()
-    .runOnJS(false)
-    .onTouchesDown((e) => {
-      if (e.changedTouches.length > 0) {
-        anchorX.value = e.changedTouches[0].x;
-        anchorY.value = e.changedTouches[0].y;
-        isTouching.value = true;
-      }
-    })
-    .onTouchesMove((e) => {
-      if (isTouching.value && e.changedTouches.length > 0) {
-        const touch = e.changedTouches[0];
-        const dx = touch.x - anchorX.value;
-        const dy = touch.y - anchorY.value;
-
-        const maxDist = 50;
-        const deadzone = 10;
-
-        if (Math.abs(dx) < deadzone) {
-          moveAxisX.value = 0;
-        } else {
-          moveAxisX.value = Math.max(-1, Math.min(1, dx / maxDist));
-        }
-
-        if (Math.abs(dy) < deadzone) {
-          moveAxisY.value = 0;
-        } else {
-          moveAxisY.value = Math.max(-1, Math.min(1, dy / maxDist));
-        }
-      }
-    })
-    .onTouchesUp(() => {
-      isTouching.value = false;
-      moveAxisX.value = 0;
-      moveAxisY.value = 0;
-    })
-    .onFinalize(() => {
-      isTouching.value = false;
-      moveAxisX.value = 0;
-      moveAxisY.value = 0;
-    });
-
-  const lastStateKey = useSharedValue<string>("");
-
-  useFrameCallback(() => {
-    if (!game) return;
-
-    const mx = isTouching.value ? Math.round(moveAxisX.value * 10) / 10 : 0;
-    const my = isTouching.value ? Math.round(moveAxisY.value * 10) / 10 : 0;
-    const shoot = isTouching.value;
-
-    const key = `${mx}_${my}_${shoot ? "S" : ""}`;
-    if (key !== lastStateKey.value) {
-      lastStateKey.value = key;
-      runOnJS(setInput)({
-        moveX: mx,
-        moveY: my,
-        shoot,
-      });
-    }
-  });
-
   return (
-    <GestureDetector gesture={manualGesture}>
-      <View style={StyleSheet.absoluteFillObject} pointerEvents="box-none">
-        <View style={styles.controls} pointerEvents="box-none">
-          <View style={styles.leftControlArea} pointerEvents="box-none">
-            <VirtualJoystick
-              joystickId="shmup_movement"
-              type="movement"
-              floating={true}
-              onMove={(x, y) => setInput({ moveX: x, moveY: y, shoot: true })}
-              onRelease={() => setInput({ moveX: 0, moveY: 0, shoot: false })}
-            />
-          </View>
-          <View style={styles.rightControlArea} pointerEvents="box-none">
-            <GestureActionButton
-              label="🔥"
-              accessibilityLabel="Fire primary weapon"
-              onPressIn={() => setInput({ shoot: true })}
-              onPressOut={() => setInput({ shoot: false })}
-              haptic="light"
-              color="rgba(255,42,109,0.25)"
-              borderColor="#ff2a6d"
-            />
-          </View>
-        </View>
+    <View style={styles.controls} pointerEvents="box-none">
+      <View style={styles.leftControlArea} pointerEvents="box-none">
+        <TouchVirtualJoystick
+          floating={true}
+          deadZone={0.1}
+          onMove={(x, y) => setInput({ moveX: x, moveY: y, shoot: true })}
+          onRelease={() => setInput({ moveX: 0, moveY: 0, shoot: false })}
+        />
       </View>
-    </GestureDetector>
+      <View style={styles.rightControlArea} pointerEvents="box-none">
+        <TouchActionButton
+          buttonName="shoot"
+          label="🔥"
+          size={72}
+          color="rgba(255,42,109,0.25)"
+          borderColor="#ff2a6d"
+          onPressIn={() => setInput({ shoot: true })}
+          onPressOut={() => setInput({ shoot: false })}
+        />
+      </View>
+    </View>
   );
 }

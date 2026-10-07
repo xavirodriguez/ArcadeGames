@@ -9,7 +9,7 @@ import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { useArkanoidGame } from "@/hooks/useArkanoidGame";
 import { useTranslation } from "@/hooks/useTranslation";
-import { ShootButton } from "../../components/ShootButton";
+import { TouchDragZone, TouchActionButton } from "@/components/controls";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { useKeyboardControls } from "../../hooks/useKeyboardControls";
 import { RadialBackground } from "@/components/RadialBackground";
@@ -318,16 +318,32 @@ function ArkanoidTouchControls({
   });
 
   return (
-    <GestureDetector gesture={panGesture}>
+    <TouchDragZone
+      mode="relative"
+      targetProperty="paddlePos"
+      onDrag={(x) => {
+        const scale = screenWidth > 0 ? worldWidth / screenWidth : 1;
+        const deltaX = x * scale;
+        let nextX = paddleStartX.value + deltaX;
+        if (nextX < halfPaddle) nextX = halfPaddle;
+        if (nextX > worldWidth - halfPaddle) nextX = worldWidth - halfPaddle;
+        paddleX.value = nextX;
+      }}
+    >
       <View style={styles.controls} pointerEvents="box-none">
         <View style={{ flex: 1 }} pointerEvents="box-none" />
         <View style={styles.rightControlArea} pointerEvents="box-none">
-          <ShootButton
+          <TouchActionButton
+            buttonName="launch"
+            label="🚀"
+            size={72}
+            color="rgba(0, 232, 210, 0.25)"
+            borderColor={colors.cyan}
             onPressIn={() => handleInputState({ launch: true })}
             onPressOut={() => handleInputState({ launch: false })}
           />
         </View>
       </View>
-    </GestureDetector>
+    </TouchDragZone>
   );
 }

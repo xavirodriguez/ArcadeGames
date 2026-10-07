@@ -6,8 +6,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { ComboDisplay } from "@/components/ComboDisplay";
 import { FlappyBirdUI } from "@/components/FlappyBirdUI";
-import { VirtualJoystick } from "../../components/controls/VirtualJoystick";
-import { ShootButton } from "../../components/ShootButton";
+import { TouchVirtualJoystick, TouchActionButton, TouchTapZone } from "@/components/controls";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { useFlappyBirdGame } from "@/hooks/useFlappyBirdGame";
 import { useMultiplayer } from "@tiny-aster/react-native";
@@ -251,28 +250,38 @@ export default function FlappyBirdScreen() {
           />
         }
         controlsSlot={
-          <View style={styles.controls} pointerEvents="box-none">
-            <View style={{ flex: 1, height: '100%' }} pointerEvents="box-none">
-              <VirtualJoystick
-                joystickId="movement_joystick"
-                type="movement"
-                onMove={(x, y) => {
-                  handleInputState({
-                    flap: y < -0.25,
-                  });
-                }}
-                onRelease={() => {
-                  handleInputState({
-                    flap: false,
-                  });
-                }}
+          <TouchTapZone
+            onTap={() => {
+              handleShootPress();
+              setTimeout(() => handleShootRelease(), 100);
+            }}
+          >
+            <View style={styles.controls} pointerEvents="box-none">
+              <View style={{ flex: 1, height: '100%' }} pointerEvents="box-none">
+                <TouchVirtualJoystick
+                  onMove={(x, y) => {
+                    handleInputState({
+                      flap: y < -0.25,
+                    });
+                  }}
+                  onRelease={() => {
+                    handleInputState({
+                      flap: false,
+                    });
+                  }}
+                />
+              </View>
+              <TouchActionButton
+                buttonName="flap"
+                label="▲"
+                size={80}
+                color="rgba(0, 243, 255, 0.25)"
+                borderColor={colors.cyan}
+                onPressIn={handleShootPress}
+                onPressOut={handleShootRelease}
               />
             </View>
-            <ShootButton
-              onPressIn={handleShootPress}
-              onPressOut={handleShootRelease}
-            />
-          </View>
+          </TouchTapZone>
         }
         debugSlot={<DebugOverlay game={game} room={room} />}
         overlaySlot={

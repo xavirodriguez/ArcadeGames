@@ -391,6 +391,8 @@ const styles = StyleSheet.create({
   },
 });
 
+import { TouchVirtualJoystick, TouchActionButton } from "@/components/controls";
+
 function SpaceInvadersTouchControls({
   game,
   handleMultiplayerInput,
@@ -398,83 +400,35 @@ function SpaceInvadersTouchControls({
   game: any;
   handleMultiplayerInput: (input: Partial<InputState>) => void;
 }) {
-  const { width: screenWidth } = useWindowDimensions();
-  const worldWidth = 800;
-  const shipWidth = 60;
-  const halfShip = shipWidth / 2;
-
-  const shipX = useSharedValue(worldWidth / 2);
-  const touchStartX = useSharedValue(0);
-  const shipStartX = useSharedValue(worldWidth / 2);
-  const shouldFire = useSharedValue(0);
-
-  const panGesture = Gesture.Pan()
-    .minDistance(0)
-    .shouldCancelWhenOutside(false)
-    .runOnJS(false)
-    .onBegin((e) => {
-      touchStartX.value = e.x;
-      shipStartX.value = shipX.value;
-    })
-    .onUpdate((e) => {
-      const scale = screenWidth > 0 ? worldWidth / screenWidth : 1;
-      const deltaX = e.translationX * scale;
-      let nextX = shipStartX.value + deltaX;
-
-      if (nextX < halfShip) nextX = halfShip;
-      if (nextX > worldWidth - halfShip) nextX = worldWidth - halfShip;
-
-      shipX.value = nextX;
-    });
-
-  const tapGesture = Gesture.Tap()
-    .runOnJS(false)
-    .onEnd(() => {
-      shouldFire.value = 1;
-    });
-
-  const simultaneousGestures = Gesture.Simultaneous(panGesture, tapGesture);
-
-  const lastState = useSharedValue<string>("");
-
-  useFrameCallback(() => {
-    if (!game) return;
-    const world = game.getWorld?.();
-    if (!world) return;
-
-    const playerEntities = world.query("Player", "Transform");
-    if (playerEntities && playerEntities.length > 0) {
-      const pEntity = playerEntities[0];
-      const transform = world.getComponent(pEntity, "Transform");
-      if (transform) {
-        const targetX = shipX.value;
-        const diff = targetX - transform.x;
-
-        const moveLeft = diff < -3;
-        const moveRight = diff > 3;
-
-        let shoot = false;
-        if (shouldFire.value === 1) {
-          shoot = true;
-          shouldFire.value = 0;
-        }
-
-        const stateKey = `${moveLeft ? "L" : ""}_${moveRight ? "R" : ""}_${shoot ? "S" : ""}`;
-        if (stateKey !== lastState.value) {
-          lastState.value = stateKey;
-          runOnJS(handleMultiplayerInput)({
-            moveLeft,
-            moveRight,
-            shoot,
-          });
-        }
-      }
-    }
-  });
-
   return (
-    <GestureDetector gesture={simultaneousGestures}>
-      <View style={StyleSheet.absoluteFillObject} pointerEvents="box-none" />
-    </GestureDetector>
+    <View style={styles.controls} pointerEvents="box-none">
+      <View style={{ flex: 1, height: "100%" }} pointerEvents="box-none">
+        <TouchVirtualJoystick
+          floating={true}
+          deadZone={0.15}
+          onMove={(x) => {
+            handleMultiplayerInput({
+              moveLeft: x < -0.2,
+              moveRight: x > 0.2,
+            });
+          }}
+          onRelease={() => {
+            handleMultiplayerInput({
+              moveLeft: false,
+              moveRight: false,
+            });
+          }}
+        />
+      </View>
+      <TouchActionButton
+        buttonName="shoot"
+        label="🔥"
+        size={80}
+        color="rgba(0, 232, 210, 0.25)"
+        borderColor={colors.cyan}
+        onPressIn={() => handleMultiplayerInput({ shoot: true })}
+        onPressOut={() => handleMultiplayerInput({ shoot: false })}
+      />
+    </View>
   );
 }

@@ -11,8 +11,7 @@ import { useAsteroidsGame } from "@/hooks/useAsteroidsGame";
 import { useMultiplayerGame } from "@/hooks/useMultiplayerGame";
 import { AsteroidsGame } from "@/games/asteroids/AsteroidsGame";
 import { useTranslation } from "@/hooks/useTranslation";
-import { VirtualJoystick } from "../../components/controls/VirtualJoystick";
-import { GestureActionButton } from "../../components/controls/GestureActionButton";
+import { TouchVirtualJoystick, TouchActionButton } from "@/components/controls";
 import { DEFAULT_ROTATE_THRESHOLD, DEFAULT_THRUST_THRESHOLD } from "../../components/controls/MobileControlsOverlay";
 import { SeedWidget } from "@/components/SeedWidget";
 import { DailyChallengeBanner } from "@/components/DailyChallengeBanner";
@@ -327,10 +326,9 @@ function AsteroidsGameContent({
             !gameState?.isGameOver ? (
               <View style={styles.controls} pointerEvents="box-none">
                 <View style={styles.leftControlArea} pointerEvents="box-none">
-                  <VirtualJoystick
-                    joystickId="movement_joystick"
-                    type="movement"
+                  <TouchVirtualJoystick
                     floating={true}
+                    deadZone={0.2}
                     onMove={(x, y) => {
                       const rotateLeft = x < -DEFAULT_ROTATE_THRESHOLD;
                       const rotateRight = x > DEFAULT_ROTATE_THRESHOLD;
@@ -353,22 +351,24 @@ function AsteroidsGameContent({
                   />
                 </View>
                 <View style={styles.rightControlArea} pointerEvents="box-none">
-                  <GestureActionButton
+                  <TouchActionButton
+                    buttonName="hyperspace"
                     label="⚡"
-                    accessibilityLabel={t?.accessibility?.hyperspace_button_label || "Hyperspace jump"}
+                    size={70}
+                    color="rgba(80,80,255,0.25)"
+                    borderColor={colors.cyan}
                     onPressIn={handleHyperspacePress}
                     onPressOut={handleHyperspaceRelease}
-                    haptic="heavy"
-                    color="rgba(80,80,255,0.25)"
                   />
                   <View style={styles.spacer20} />
-                  <GestureActionButton
+                  <TouchActionButton
+                    buttonName="shoot"
                     label="🔥"
-                    accessibilityLabel={t?.accessibility?.shoot_button_label || "Fire weapon"}
+                    size={70}
+                    color="rgba(255,80,80,0.25)"
+                    borderColor={colors.pink}
                     onPressIn={handleShootPress}
                     onPressOut={handleShootRelease}
-                    haptic="light"
-                    color="rgba(255,80,80,0.25)"
                   />
                 </View>
               </View>

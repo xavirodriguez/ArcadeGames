@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
-import { GestureActionButton } from "@/components/controls/GestureActionButton";
-import { VirtualJoystick } from "@/components/controls/VirtualJoystick";
+import { TouchDragZone, TouchVirtualJoystick, TouchActionButton } from "@/components/controls";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
@@ -197,10 +196,21 @@ function PlatformerContent() {
         controlsSlot={
           isTouchDevice ? (
             <View style={styles.touchControlsContainer} pointerEvents="box-none">
-              <View style={styles.leftZone} pointerEvents="box-none">
-                <VirtualJoystick
-                  joystickId="platformer_move"
-                  type="movement"
+              <TouchDragZone
+                style={styles.leftZone}
+                activeOffsetX={[-10, 10]}
+                failOffsetY={[-10, 10]}
+                targetProperty="move"
+                onDrag={(x) => {
+                  handleTouchLeft(x < -0.2);
+                  handleTouchRight(x > 0.2);
+                }}
+                onRelease={() => {
+                  handleTouchLeft(false);
+                  handleTouchRight(false);
+                }}
+              >
+                <TouchVirtualJoystick
                   floating={false}
                   onMove={(x) => {
                     handleTouchLeft(x < -0.2);
@@ -211,35 +221,26 @@ function PlatformerContent() {
                     handleTouchRight(false);
                   }}
                 />
-              </View>
+              </TouchDragZone>
 
               <View style={styles.actions} pointerEvents="box-none">
-                <GestureActionButton
+                <TouchActionButton
+                  buttonName="dash"
                   label="DASH"
                   size={65}
                   color="rgba(30, 41, 59, 0.7)"
                   borderColor={colors.gold}
-                  pressedColor="rgba(30, 41, 59, 0.9)"
-                  pressedBorderColor={colors.white}
-                  haptic="medium"
                   onPressIn={() => handleTouchDash()}
-                  onPressOut={() => {}}
-                  accessibilityLabel={"Dash"}
-                  accessibilityHint={"Performs a rapid forward dash"}
                   style={{ marginHorizontal: spacing.sm }}
                 />
-                <GestureActionButton
+                <TouchActionButton
+                  buttonName="jump"
                   label="JUMP"
                   size={75}
                   color="rgba(30, 41, 59, 0.7)"
                   borderColor={colors.cyan}
-                  pressedColor="rgba(30, 41, 59, 0.9)"
-                  pressedBorderColor={colors.white}
-                  haptic="medium"
                   onPressIn={() => handleTouchJump(true)}
                   onPressOut={() => handleTouchJump(false)}
-                  accessibilityLabel={t?.accessibility?.jump_button_label || "Jump"}
-                  accessibilityHint={t?.accessibility?.jump_button_hint || "Jumps"}
                   style={{ marginHorizontal: spacing.sm }}
                 />
               </View>

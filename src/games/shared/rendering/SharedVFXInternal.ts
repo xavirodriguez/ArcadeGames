@@ -177,6 +177,7 @@ export interface VFXWorldState {
   timePhase: number;
 
   // Extended Juice / Game Feel State
+  shakeMagnitude: number;
   hitStopTimer: number;
   hitStopPriority: number;
   hitStopCooldown: number;
@@ -235,6 +236,7 @@ export function getVFXState<TComponents extends ComponentRegistry = ComponentReg
       milkyWayInitialized: false,
       stationInitialized: false,
       timePhase: 0,
+      shakeMagnitude: 0,
       hitStopTimer: 0,
       hitStopPriority: 0,
       hitStopCooldown: 0,

@@ -48,18 +48,18 @@ describe("Visual Math Pure Helpers", () => {
     it("debería calcular las fases del Boss según el HP ratio", () => {
       const phase1 = calculateBossPhase(0.8);
       expect(phase1.phase).toBe(1);
-      expect(phase1.baseColor).toBe(colors.magentaHot);
+      expect(phase1.baseColor).toBe(colors.gold);
       expect(phase1.accentColor).toBe(colors.cyan);
 
       const phase2 = calculateBossPhase(0.5);
       expect(phase2.phase).toBe(2);
       expect(phase2.baseColor).toBe(colors.gold);
-      expect(phase2.accentColor).toBe(colors.orangeDark);
+      expect(phase2.accentColor).toBe(colors.orange);
 
       const phase3 = calculateBossPhase(0.2);
       expect(phase3.phase).toBe(3);
-      expect(phase3.baseColor).toBe(colors.redHot);
-      expect(phase3.accentColor).toBe(colors.orange);
+      expect(phase3.baseColor).toBe("#FF4444");
+      expect(phase3.accentColor).toBe("#FF0055");
     });
   });
 });

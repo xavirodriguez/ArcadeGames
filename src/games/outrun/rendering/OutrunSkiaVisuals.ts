@@ -1,4 +1,5 @@
-import { ShapeDrawer, EffectDrawer, RenderContext } from "@tiny-aster/core";
+import type { ShapeDrawer, EffectDrawer, RenderContext } from "@tiny-aster/core";
+import type { SkCanvas } from "@shopify/react-native-skia";
 import type { OutrunComponentRegistry } from "../types/OutrunTypes";
 import type { OutrunConfig } from "../types/OutrunConfigSchema";
 import { DEFAULT_OUTRUN_CONFIG } from "../types/OutrunConfigSchema";
@@ -43,8 +44,9 @@ function fillTrapezoidSkia(
   canvas.drawPath(path, paint);
 }
 
-export const drawSkiaOutrunRoad: ShapeDrawer<any, OutrunComponentRegistry> = {
-  draw(canvas, world, _entity) {
+export const drawSkiaOutrunRoad: ShapeDrawer<RenderContext, OutrunComponentRegistry> = {
+  draw(ctx, world, _entity) {
+    const canvas = ctx as unknown as SkCanvas;
     const state = world.getSingleton("RaceState");
     const roadData = world.getResource<RoadData>("RoadData");
     const config =
@@ -153,8 +155,9 @@ export const drawSkiaOutrunRoad: ShapeDrawer<any, OutrunComponentRegistry> = {
   }
 };
 
-export const drawSkiaOutrunCar: ShapeDrawer<any, OutrunComponentRegistry> = {
-  draw(canvas, world, entity) {
+export const drawSkiaOutrunCar: ShapeDrawer<RenderContext, OutrunComponentRegistry> = {
+  draw(ctx, world, entity) {
+    const canvas = ctx as unknown as SkCanvas;
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
 
@@ -219,8 +222,9 @@ export const drawSkiaOutrunCar: ShapeDrawer<any, OutrunComponentRegistry> = {
   }
 };
 
-export const drawSkiaOutrunRacer: ShapeDrawer<any, OutrunComponentRegistry> = {
-  draw(canvas, world, entity) {
+export const drawSkiaOutrunRacer: ShapeDrawer<RenderContext, OutrunComponentRegistry> = {
+  draw(ctx, world, entity) {
+    const canvas = ctx as unknown as SkCanvas;
     const racer = world.getComponent(entity, "Racer");
     const render = world.getComponent(entity, "Render");
     if (!racer || !racer.active || !render || !render.visible) return;
@@ -291,8 +295,9 @@ export const drawSkiaOutrunRacer: ShapeDrawer<any, OutrunComponentRegistry> = {
   }
 };
 
-export const drawSkiaOutrunHud: EffectDrawer<any, OutrunComponentRegistry> = {
-  draw(canvas, world) {
+export const drawSkiaOutrunHud: EffectDrawer<RenderContext, OutrunComponentRegistry> = {
+  draw(ctx, world) {
+    const canvas = ctx as unknown as SkCanvas;
     const state = world.getSingleton("RaceState");
     if (!state) return;
 

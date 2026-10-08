@@ -120,7 +120,7 @@ export class SpaceInvadersGame
     this.blueprints.register("player", {
       spawn: (world, entity, args: { x: number, y: number }) => {
         const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
-        const tint = resolveThemeColor(world, "player");
+        const tint = resolveThemeColor(world, "player") ?? getGameplayColor("Player", world);
 
         const hasComboHeadStart = world.getResource("HasComboHeadStart") === true;
         const initialCombo = hasComboHeadStart ? 5 : 0;
@@ -304,7 +304,7 @@ export class SpaceInvadersGame
     this.blueprints.register("shield", {
       spawn: (world, entity, args: { x: number, y: number, row: number, col: number }) => {
         const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
-        const tint = resolveThemeColor(world, "shield", "secondary");
+        const tint = resolveThemeColor(world, "shield", "secondary") ?? getGameplayColor("Pickup", world);
 
         EntityBuilder.fromEntity(world, entity)
           .withTransform({ x: args.x, y: args.y })
@@ -364,7 +364,7 @@ export class SpaceInvadersGame
       spawn: (world, entity, args: { level: number }) => {
         const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
         const hp = 50 + (args.level / 5) * 50;
-        const tint = resolveThemeColor(world, "boss", "accent");
+        const tint = resolveThemeColor(world, "boss", "accent") ?? getGameplayColor("Boss", world);
 
         EntityBuilder.fromEntity(world, entity)
           .withTransform({ x: config.worldWidth / 2, y: 100 })

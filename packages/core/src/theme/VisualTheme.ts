@@ -59,23 +59,37 @@ export interface VisualTheme {
 }
 
 /**
+ * Core Solar Garden / Neon Deep Space base color palette tokens.
+ * @public
+ */
+export const SOLAR_GARDEN_PALETTE = {
+  background: "#050611",
+  surface: "#14183A",
+  primary: "#00E5FF",
+  secondary: "#9D00FF",
+  accent: "#FF2A6D",
+  neutral: "#778DA9",
+  ui: "#42F5FF",
+} as const;
+
+/**
  * Creates a default `VisualTheme` from accent color keys and optional shape parameters.
  * @public
  */
 export function createVisualTheme(
-  primaryColor: string = "#00E5FF",
-  secondaryColor: string = "#9D00FF",
-  accentColor: string = "#FF2A6D",
+  primaryColor: string = SOLAR_GARDEN_PALETTE.primary,
+  secondaryColor: string = SOLAR_GARDEN_PALETTE.secondary,
+  accentColor: string = SOLAR_GARDEN_PALETTE.accent,
   shapeTokens?: VisualThemeShapeTokens
 ): VisualTheme {
   return {
     palette: {
-      background: "#050611",
-      surface: "#14183A",
+      background: SOLAR_GARDEN_PALETTE.background,
+      surface: SOLAR_GARDEN_PALETTE.surface,
       primary: primaryColor,
       secondary: secondaryColor,
       accent: accentColor,
-      neutral: "#778DA9",
+      neutral: SOLAR_GARDEN_PALETTE.neutral,
     },
     accentColors: {
       primary: primaryColor,
@@ -83,12 +97,12 @@ export function createVisualTheme(
       accent: accentColor,
     },
     contrastHierarchy: {
-      background: "#050611",
-      world: "#14183A",
+      background: SOLAR_GARDEN_PALETTE.background,
+      world: SOLAR_GARDEN_PALETTE.surface,
       player: primaryColor,
       enemies: accentColor,
       fx: secondaryColor,
-      ui: "#42F5FF",
+      ui: SOLAR_GARDEN_PALETTE.ui,
     },
     shapeTokens,
   };

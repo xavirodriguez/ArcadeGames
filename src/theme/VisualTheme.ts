@@ -1,4 +1,7 @@
 import { colors, semanticColors } from "./colors";
+import { SOLAR_GARDEN_PALETTE } from "@tiny-aster/core";
+
+export { SOLAR_GARDEN_PALETTE };
 
 /**
  * Contrast hierarchy tokens defining background, gameplay world, entities, and visual effects depth.

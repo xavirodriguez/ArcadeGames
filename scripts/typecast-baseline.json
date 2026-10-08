@@ -714,6 +714,11 @@
     "unknownCount": 4,
     "total": 6
   },
+  "src/games/outrun/rendering/OutrunSkiaVisuals.ts": {
+    "anyCount": 0,
+    "unknownCount": 4,
+    "total": 4
+  },
   "src/games/platformer/PlatformerGame.ts": {
     "anyCount": 0,
     "unknownCount": 3,

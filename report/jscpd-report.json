@@ -1982,18 +1982,18 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 21,
+        "end": 22,
         "endLoc": {
           "column": 8,
-          "line": 21,
-          "position": 1070
+          "line": 22,
+          "position": 1135
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 10,
+        "start": 11,
         "startLoc": {
           "column": 0,
-          "line": 10,
-          "position": 583
+          "line": 11,
+          "position": 648
         }
       },
       "tokens": 100
@@ -2007,33 +2007,33 @@
           "position": 1929
         },
         "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 42,
+        "start": 43,
         "startLoc": {
-          "column": 10,
-          "line": 42,
-          "position": 1501
+          "column": 4,
+          "line": 43,
+          "position": 1525
         }
       },
       "format": "typescript",
-      "fragment": "  draw(ctx, world, _entity) {\n    const state = world.getSingleton(\"RaceState\");\n    const roadData = world.getResource<RoadData>(\"RoadData\");\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;\n\n    if (!state || !roadData || roadData.segments.length === 0) return;\n\n    const screenW = config.WIDTH;\n    const screenH = config.HEIGHT;\n    const rumbleLength = config.rumbleLength;\n\n    const palette = COAST_PALETTE;",
+      "fragment": "    const state = world.getSingleton(\"RaceState\");\n    const roadData = world.getResource<RoadData>(\"RoadData\");\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;\n\n    if (!state || !roadData || roadData.segments.length === 0) return;\n\n    const screenW = config.WIDTH;\n    const screenH = config.HEIGHT;\n    const rumbleLength = config.rumbleLength;\n\n    const palette = COAST_PALETTE;",
       "isNew": false,
-      "lines": 13,
+      "lines": 12,
       "secondFile": {
-        "end": 58,
+        "end": 60,
         "endLoc": {
           "column": 9,
-          "line": 58,
-          "position": 2150
+          "line": 60,
+          "position": 2269
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 47,
+        "start": 50,
         "startLoc": {
-          "column": 13,
-          "line": 47,
-          "position": 1723
+          "column": 4,
+          "line": 50,
+          "position": 1866
         }
       },
-      "tokens": 84
+      "tokens": 78
     },
     {
       "firstFile": {
@@ -2056,18 +2056,18 @@
       "isNew": false,
       "lines": 13,
       "secondFile": {
-        "end": 92,
+        "end": 94,
         "endLoc": {
           "column": 44,
-          "line": 92,
-          "position": 3446
+          "line": 94,
+          "position": 3565
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 80,
+        "start": 82,
         "startLoc": {
           "column": 50,
-          "line": 80,
-          "position": 2968
+          "line": 82,
+          "position": 3087
         }
       },
       "tokens": 106
@@ -2093,18 +2093,18 @@
       "isNew": false,
       "lines": 17,
       "secondFile": {
-        "end": 127,
+        "end": 129,
         "endLoc": {
           "column": 23,
-          "line": 127,
-          "position": 4451
+          "line": 129,
+          "position": 4570
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 111,
+        "start": 113,
         "startLoc": {
           "column": 34,
-          "line": 111,
-          "position": 4124
+          "line": 113,
+          "position": 4243
         }
       },
       "tokens": 55
@@ -2130,18 +2130,18 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 134,
+        "end": 136,
         "endLoc": {
           "column": 96,
-          "line": 134,
-          "position": 4705
+          "line": 136,
+          "position": 4824
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 129,
+        "start": 131,
         "startLoc": {
           "column": 4,
-          "line": 129,
-          "position": 4457
+          "line": 131,
+          "position": 4576
         }
       },
       "tokens": 69
@@ -2167,18 +2167,18 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 140,
+        "end": 142,
         "endLoc": {
           "column": 23,
-          "line": 140,
-          "position": 5005
+          "line": 142,
+          "position": 5124
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 135,
+        "start": 137,
         "startLoc": {
           "column": 37,
-          "line": 135,
-          "position": 4743
+          "line": 137,
+          "position": 4862
         }
       },
       "tokens": 69
@@ -2204,18 +2204,18 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 148,
+        "end": 150,
         "endLoc": {
           "column": 25,
-          "line": 148,
-          "position": 5407
+          "line": 150,
+          "position": 5526
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 143,
+        "start": 145,
         "startLoc": {
           "column": 37,
-          "line": 143,
-          "position": 5190
+          "line": 145,
+          "position": 5309
         }
       },
       "tokens": 71
@@ -2229,33 +2229,33 @@
           "position": 7251
         },
         "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 179,
+        "start": 180,
         "startLoc": {
-          "column": 10,
-          "line": 179,
-          "position": 6198
+          "column": 4,
+          "line": 180,
+          "position": 6221
         }
       },
       "format": "typescript",
-      "fragment": "  draw(ctx, world, entity) {\n    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const state = world.getSingleton(\"RaceState\");\n    if (!state) return;\n\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;\n\n    const visualOffset = world.getComponent(entity, \"VisualOffset\");\n    const vX = visualOffset?.offsetX ?? 0;\n    const vY = visualOffset?.offsetY ?? 0;\n\n    const screenW = config.WIDTH;\n    const screenH = config.HEIGHT;\n    const speedRatio = state.speed / config.maxSpeed;\n    const carScale = 1.0 + speedRatio * 0.08;\n\n    // Offroad vibration / high-speed suspension bounce\n    const isOffroad = Math.abs(state.playerX) > 1.0;\n    const bounceY = isOffroad\n      ? (Math.sin(state.playerZ * 0.2) * 3)\n      : (Math.sin(state.playerZ * 0.05) * 1.2 * speedRatio);\n\n    // Steering roll/tilt\n    const tiltAngle = state.playerX * 0.08 * speedRatio;\n\n    const baseY = screenH - 80 + bounceY + vY;\n    const baseX = screenW / 2 + state.playerX * 40 + vX;",
+      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const state = world.getSingleton(\"RaceState\");\n    if (!state) return;\n\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;\n\n    const visualOffset = world.getComponent(entity, \"VisualOffset\");\n    const vX = visualOffset?.offsetX ?? 0;\n    const vY = visualOffset?.offsetY ?? 0;\n\n    const screenW = config.WIDTH;\n    const screenH = config.HEIGHT;\n    const speedRatio = state.speed / config.maxSpeed;\n    const carScale = 1.0 + speedRatio * 0.08;\n\n    // Offroad vibration / high-speed suspension bounce\n    const isOffroad = Math.abs(state.playerX) > 1.0;\n    const bounceY = isOffroad\n      ? (Math.sin(state.playerZ * 0.2) * 3)\n      : (Math.sin(state.playerZ * 0.05) * 1.2 * speedRatio);\n\n    // Steering roll/tilt\n    const tiltAngle = state.playerX * 0.08 * speedRatio;\n\n    const baseY = screenH - 80 + bounceY + vY;\n    const baseX = screenW / 2 + state.playerX * 40 + vX;",
       "isNew": false,
-      "lines": 30,
+      "lines": 29,
       "secondFile": {
-        "end": 184,
+        "end": 187,
         "endLoc": {
           "column": 56,
-          "line": 184,
-          "position": 6598
+          "line": 187,
+          "position": 6771
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 157,
+        "start": 161,
         "startLoc": {
-          "column": 13,
-          "line": 157,
-          "position": 5627
+          "column": 4,
+          "line": 161,
+          "position": 5823
         }
       },
-      "tokens": 214
+      "tokens": 208
     },
     {
       "firstFile": {
@@ -2266,33 +2266,33 @@
           "position": 9813
         },
         "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 243,
+        "start": 244,
         "startLoc": {
-          "column": 10,
-          "line": 243,
-          "position": 8018
+          "column": 4,
+          "line": 244,
+          "position": 8041
         }
       },
       "format": "typescript",
-      "fragment": "  draw(ctx, world, entity) {\n    const racer = world.getComponent(entity, \"Racer\");\n    const render = world.getComponent(entity, \"Render\");\n    if (!racer || !racer.active || !render || !render.visible) return;\n\n    const state = world.getSingleton(\"RaceState\");\n    const roadData = world.getResource<RoadData>(\"RoadData\");\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;\n    if (!state || !roadData) return;\n\n    const count = projectRoad(\n      roadData.segments,\n      state.playerZ,\n      state.playerX,\n      config.cameraHeight,\n      config.cameraDepth,\n      config.roadWidth,\n      Math.min(config.drawDistance, PROJECTION_CAPACITY),\n      config.WIDTH,\n      config.HEIGHT,\n      projectionBuffer\n    );\n\n    const trackLength = roadData.trackLength;\n    let relZ = racer.z - state.playerZ;\n    if (relZ > trackLength / 2) relZ -= trackLength;\n    if (relZ < -trackLength / 2) relZ += trackLength;\n    if (relZ <= 0 || relZ > config.drawDistance * config.segmentLength) return;\n\n    let best: ProjectedSegment | null = null;\n    for (let i = 0; i < count; i++) {\n      const p = projectionBuffer[i];\n      if (p.p1z <= relZ && p.p2z >= relZ) {\n        best = p;\n        break;\n      }\n    }\n    if (!best) return;\n\n    const t = (relZ - best.p1z) / Math.max(0.001, best.p2z - best.p1z);\n    const sx = best.x1 + (best.x2 - best.x1) * t;\n    const sy = best.y1 + (best.y2 - best.y1) * t;\n    const sw = best.w1 + (best.w2 - best.w1) * t;\n\n    const lateral = racer.lateralX * sw;\n    const carW = sw * 0.35;\n    const carH = carW * 0.6;\n\n    if (sy > config.HEIGHT || sy >= best.clip || carW < 2) return;\n\n    const colors = [\"#457b9d\", \"#2a9d8f\", \"#e9c46a\", \"#f4a261\", \"#e76f51\"];\n    const bodyColor = colors[racer.colorIndex % colors.length];",
+      "fragment": "    const racer = world.getComponent(entity, \"Racer\");\n    const render = world.getComponent(entity, \"Render\");\n    if (!racer || !racer.active || !render || !render.visible) return;\n\n    const state = world.getSingleton(\"RaceState\");\n    const roadData = world.getResource<RoadData>(\"RoadData\");\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;\n    if (!state || !roadData) return;\n\n    const count = projectRoad(\n      roadData.segments,\n      state.playerZ,\n      state.playerX,\n      config.cameraHeight,\n      config.cameraDepth,\n      config.roadWidth,\n      Math.min(config.drawDistance, PROJECTION_CAPACITY),\n      config.WIDTH,\n      config.HEIGHT,\n      projectionBuffer\n    );\n\n    const trackLength = roadData.trackLength;\n    let relZ = racer.z - state.playerZ;\n    if (relZ > trackLength / 2) relZ -= trackLength;\n    if (relZ < -trackLength / 2) relZ += trackLength;\n    if (relZ <= 0 || relZ > config.drawDistance * config.segmentLength) return;\n\n    let best: ProjectedSegment | null = null;\n    for (let i = 0; i < count; i++) {\n      const p = projectionBuffer[i];\n      if (p.p1z <= relZ && p.p2z >= relZ) {\n        best = p;\n        break;\n      }\n    }\n    if (!best) return;\n\n    const t = (relZ - best.p1z) / Math.max(0.001, best.p2z - best.p1z);\n    const sx = best.x1 + (best.x2 - best.x1) * t;\n    const sy = best.y1 + (best.y2 - best.y1) * t;\n    const sw = best.w1 + (best.w2 - best.w1) * t;\n\n    const lateral = racer.lateralX * sw;\n    const carW = sw * 0.35;\n    const carH = carW * 0.6;\n\n    if (sy > config.HEIGHT || sy >= best.clip || carW < 2) return;\n\n    const colors = [\"#457b9d\", \"#2a9d8f\", \"#e9c46a\", \"#f4a261\", \"#e76f51\"];\n    const bodyColor = colors[racer.colorIndex % colors.length];",
       "isNew": false,
-      "lines": 53,
+      "lines": 52,
       "secondFile": {
-        "end": 275,
+        "end": 279,
         "endLoc": {
           "column": 63,
-          "line": 275,
-          "position": 9534
+          "line": 279,
+          "position": 9761
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 223,
+        "start": 228,
         "startLoc": {
-          "column": 13,
-          "line": 223,
-          "position": 7739
+          "column": 4,
+          "line": 228,
+          "position": 7989
         }
       },
-      "tokens": 427
+      "tokens": 421
     },
     {
       "firstFile": {
@@ -2303,33 +2303,33 @@
           "position": 10526
         },
         "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 308,
+        "start": 309,
         "startLoc": {
-          "column": 10,
-          "line": 308,
-          "position": 10177
+          "column": 4,
+          "line": 309,
+          "position": 10192
         }
       },
       "format": "typescript",
-      "fragment": "  draw(ctx, world) {\n    const state = world.getSingleton(\"RaceState\");\n    if (!state) return;\n\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;\n\n    const speedKmh = Math.round((state.speed / config.maxSpeed) * 280);\n    const timeStr = state.lapTime.toFixed(1);\n    const phase = state.racePhase ?? \"racing\";",
+      "fragment": "    const state = world.getSingleton(\"RaceState\");\n    if (!state) return;\n\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;\n\n    const speedKmh = Math.round((state.speed / config.maxSpeed) * 280);\n    const timeStr = state.lapTime.toFixed(1);\n    const phase = state.racePhase ?? \"racing\";",
       "isNew": false,
-      "lines": 10,
+      "lines": 9,
       "secondFile": {
-        "end": 304,
+        "end": 309,
         "endLoc": {
           "column": 46,
-          "line": 304,
-          "position": 10443
+          "line": 309,
+          "position": 10724
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 295,
+        "start": 301,
         "startLoc": {
-          "column": 13,
-          "line": 295,
-          "position": 10094
+          "column": 4,
+          "line": 301,
+          "position": 10390
         }
       },
-      "tokens": 77
+      "tokens": 73
     },
     {
       "firstFile": {
@@ -3702,32 +3702,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-10-07T10:05:20.776Z",
+    "detectionDate": "2026-10-08T05:43:04.980Z",
     "formats": {
       "typescript": {
         "clones": 100,
-        "duplicatedLines": 903,
-        "duplicatedTokens": 7261,
-        "lines": 87758,
+        "duplicatedLines": 899,
+        "duplicatedTokens": 7239,
+        "lines": 87765,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 1.0289660201918913,
-        "percentageTokens": 1.5294268809254496,
+        "percentage": 1.0243263259841622,
+        "percentageTokens": 1.5246226880031002,
         "sources": 546,
-        "tokens": 474753
+        "tokens": 474806
       }
     },
     "total": {
       "clones": 100,
-      "duplicatedLines": 903,
-      "duplicatedTokens": 7261,
-      "lines": 87758,
+      "duplicatedLines": 899,
+      "duplicatedTokens": 7239,
+      "lines": 87765,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 1.0289660201918913,
-      "percentageTokens": 1.5294268809254496,
+      "percentage": 1.0243263259841622,
+      "percentageTokens": 1.5246226880031002,
       "sources": 546,
-      "tokens": 474753
+      "tokens": 474806
     }
   }
 }

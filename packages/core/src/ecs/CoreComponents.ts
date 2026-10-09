@@ -346,6 +346,8 @@ export interface RenderComponent extends Component {
   shape?: string;
   /** Base rendering scale size or radius. */
   size?: number;
+  /** Optional flag enabling Y-sorting tie-breaking when Render.order is equal (for belt-scroll games). */
+  depthSort?: boolean;
 }
 
 /**

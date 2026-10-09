@@ -15,6 +15,12 @@ Conversión en curso de **platformer run-and-gun** a **belt-scroll beat'em-up** 
 | Estética | Fantasy oscuro: goblins, esqueletos, orcos, wraiths |
 | Multijugador | Después de single-player sólido |
 
+## Decisión de Diseño de Profundidad (Belt-Scroll)
+
+> **Transform.y** = línea de pies sobre el plano del suelo.
+> **elevation.z** = altura sobre el suelo (salto, hop, knockback).
+> El sprite se dibuja hacia ARRIBA desde los pies; la sombra se dibuja SIEMPRE en el plano del suelo, sin elevation.
+
 ## Estructura
 
 - `belt/` — movimiento + cámara gated

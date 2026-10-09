@@ -67,7 +67,8 @@ export function spawnBeltPlayer(
       shape: "player",
       size,
       color: FANTASY_PALETTE.playerArmor,
-      order: 2
+      order: 2,
+      depthSort: true
     })
     .withCollisionEvents();
 
@@ -94,6 +95,13 @@ export function spawnBeltPlayer(
   const beltMove = createBeltMovementComponent(1);
   beltMove.groundY = y;
   world.addComponent(entity, beltMove);
+
+  world.addComponent(entity, {
+    type: "BeltElevation",
+    z: 0,
+    vz: 0,
+    grounded: true
+  } as unknown as import("./BeltElevationComponent").BeltElevationComponent);
 
   world.addComponent(entity, createBeltInputComponent());
 

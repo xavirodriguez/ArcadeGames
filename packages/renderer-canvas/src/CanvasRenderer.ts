@@ -204,7 +204,22 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
     this.sortedEntities.sort((a, b) => {
       const renderA = world.getComponent(a, renderType) as RenderComponent | undefined;
       const renderB = world.getComponent(b, renderType) as RenderComponent | undefined;
-      return (renderA?.order || 0) - (renderB?.order || 0);
+      const orderA = renderA?.order || 0;
+      const orderB = renderB?.order || 0;
+
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+
+      if (renderA?.depthSort && renderB?.depthSort) {
+        const transformA = world.getComponent(a, transformType) as TransformComponent | undefined;
+        const transformB = world.getComponent(b, transformType) as TransformComponent | undefined;
+        const yA = transformA ? (transformA.worldY ?? transformA.y) : 0;
+        const yB = transformB ? (transformB.worldY ?? transformB.y) : 0;
+        return yA - yB;
+      }
+
+      return 0;
     });
 
     ctx.save();                          // ← save de cámara (NUEVO)

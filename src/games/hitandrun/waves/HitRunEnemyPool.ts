@@ -59,6 +59,13 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
     });
 
     world.addComponent(entity, {
+      type: "BeltElevation",
+      z: 0,
+      vz: 0,
+      grounded: true
+    } as unknown as import("../belt/BeltElevationComponent").BeltElevationComponent);
+
+    world.addComponent(entity, {
       type: "Health",
       current: health,
       max: health
@@ -99,7 +106,8 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
       color,
       visible: true,
       opacity: 1,
-      order: 3,
+      order: 2,
+      depthSort: true,
       rotation: 0,
       angularVelocity: 0,
       hitFlashFrames: 0

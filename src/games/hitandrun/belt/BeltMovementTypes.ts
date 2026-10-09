@@ -66,6 +66,9 @@ export const DEFAULT_BELT_MOVEMENT_CONFIG: BeltMovementConfig = {
   depthMax: 520
 };
 
+export * from "./BeltElevationComponent";
+export * from "./BeltDepth";
+
 export interface BeltMovementComponent extends Component {
   type: "BeltMovement";
   facing: number;

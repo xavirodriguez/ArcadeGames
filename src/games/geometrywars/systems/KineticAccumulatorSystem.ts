@@ -167,7 +167,7 @@ export class KineticAccumulatorSystem extends System<GeometryWarsComponentRegist
       if (audio) {
         audio.playSFX("explosion2");
       }
-      const orchestrator = new JuiceOrchestrator(world as unknown as World<CoreComponentRegistry>);
+      const orchestrator = new JuiceOrchestrator(world);
       orchestrator.triggerEvent("geometry-wars", "bomb:trigger", { x: px, y: py });
     }
 

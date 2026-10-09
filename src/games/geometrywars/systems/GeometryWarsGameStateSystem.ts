@@ -67,7 +67,7 @@ export class GeometryWarsGameStateSystem extends System<GeometryWarsComponentReg
           audio.playSFX("explosion2");
         }
         const transform = world.getComponent(deadEntity, "Transform");
-        const orchestrator = new JuiceOrchestrator(world as unknown as World<CoreComponentRegistry>);
+        const orchestrator = new JuiceOrchestrator(world);
         orchestrator.triggerEvent("geometry-wars", "player:death", { x: transform?.x, y: transform?.y });
       }
 
@@ -143,7 +143,7 @@ export class GeometryWarsGameStateSystem extends System<GeometryWarsComponentReg
         if (transform) {
           const px = transform.worldX ?? transform.x;
           const py = transform.worldY ?? transform.y;
-          const orchestrator = new JuiceOrchestrator(world as unknown as World<CoreComponentRegistry>);
+          const orchestrator = new JuiceOrchestrator(world);
           orchestrator.triggerEvent("geometry-wars", "enemy:destroyed", { x: px, y: py });
         }
 

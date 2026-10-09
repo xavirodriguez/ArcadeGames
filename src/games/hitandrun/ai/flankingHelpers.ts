@@ -1,4 +1,5 @@
 import type { World, CoreComponentRegistry } from "@tiny-aster/core";
+import { zeroVx } from "./telegraphedAttackHelpers";
 
 export interface FlankConfig {
   /** Distancia lateral al jugador (px). */
@@ -129,11 +130,7 @@ export function steerTowardFlank(
   const absDx = dx < 0 ? -dx : dx;
 
   if (absDx <= arriveRadius) {
-    const vel = world.getComponent(entity, "Velocity");
-    if (vel && vel.vx !== 0) {
-      const mv = world.getMutableComponent(entity, "Velocity");
-      if (mv) mv.vx = 0;
-    }
+    zeroVx(world, entity);
     return true;
   }
 
@@ -166,11 +163,7 @@ export function steerTowardFlank(
     }
     if (gd.hasGroundAhead === false) {
       // Borde: detener y considerar "llegado" para pasar a ataque
-      const vel = world.getComponent(entity, "Velocity");
-      if (vel && vel.vx !== 0) {
-        const mv = world.getMutableComponent(entity, "Velocity");
-        if (mv) mv.vx = 0;
-      }
+      zeroVx(world, entity);
       return true;
     }
   }

@@ -24,14 +24,26 @@ interface WorldSizeConfig {
  * @public
  */
 export class Camera2DSystem extends System<CoreComponentRegistry> {
-  public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
-    const cameras = world.query("Camera2D");
+  /**
+   * Helper to retrieve configured or fallback viewport and world dimensions from resources.
+   * @public
+   */
+  public static getViewportAndWorldDimensions<TRegistry extends CoreComponentRegistry = CoreComponentRegistry>(
+    world: World<TRegistry>
+  ): { viewportWidth: number; viewportHeight: number; worldWidth?: number; worldHeight?: number } {
     const gameConfig = world.getResource<WorldSizeConfig>("GameConfig");
     const screenConfig = world.getResource<{ width: number; height: number }>("ScreenConfig");
-    const viewportWidth = gameConfig?.viewportWidth ?? screenConfig?.width ?? 800;
-    const viewportHeight = gameConfig?.viewportHeight ?? screenConfig?.height ?? 600;
-    const worldWidth = gameConfig?.worldWidth;
-    const worldHeight = gameConfig?.worldHeight;
+    return {
+      viewportWidth: gameConfig?.viewportWidth ?? screenConfig?.width ?? 800,
+      viewportHeight: gameConfig?.viewportHeight ?? screenConfig?.height ?? 600,
+      worldWidth: gameConfig?.worldWidth,
+      worldHeight: gameConfig?.worldHeight
+    };
+  }
+
+  public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
+    const cameras = world.query("Camera2D");
+    const { viewportWidth, viewportHeight, worldWidth, worldHeight } = Camera2DSystem.getViewportAndWorldDimensions(world);
 
     for (let i = 0; i < cameras.length; i++) {
       const camEntity = cameras[i];
@@ -195,10 +207,7 @@ export class Camera2DSystem extends System<CoreComponentRegistry> {
     const info = Camera2DSystem.getMainCameraInfo(world, cameraEntity);
     if (!info) return null;
 
-    const gameConfig = world.getResource<WorldSizeConfig>("GameConfig");
-    const screenConfig = world.getResource<{ width: number; height: number }>("ScreenConfig");
-    const viewportWidth = gameConfig?.viewportWidth ?? screenConfig?.width ?? 800;
-    const viewportHeight = gameConfig?.viewportHeight ?? screenConfig?.height ?? 600;
+    const { viewportWidth, viewportHeight } = Camera2DSystem.getViewportAndWorldDimensions(world);
 
     const viewW = viewportWidth / info.zoom;
     const viewH = viewportHeight / info.zoom;

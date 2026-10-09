@@ -23,7 +23,7 @@ import {
   NetworkController,
   NullTransport,
   INetworkGame,
-  preloadSharedAudioManifest,
+  preloadSharedAudioWithTimeout,
   SHARED_AUDIO_MANIFEST,
   WebAudioPlayer
 } from "@tiny-aster/core";
@@ -356,10 +356,7 @@ export class RacingGame extends BaseGame<
   protected override async onPreloadAssets(): Promise<void> {
     if (this.audio) {
       try {
-        await Promise.race([
-          preloadSharedAudioManifest(this.audio),
-          new Promise((resolve) => setTimeout(resolve, 2000))
-        ]);
+        await preloadSharedAudioWithTimeout(this.audio, 2000);
       } catch (e) {
         console.warn("[RacingGame] Audio preloading failed or timed out:", e);
       }

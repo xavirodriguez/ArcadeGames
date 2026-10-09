@@ -100,10 +100,10 @@ export const JUICE_CATALOG: Record<SupportedGameId, Record<string, JuiceProfile>
   }
 };
 
-export class JuiceOrchestrator {
-  private world: World<CoreComponentRegistry>;
+export class JuiceOrchestrator<TComponents extends CoreComponentRegistry = CoreComponentRegistry> {
+  private world: World<TComponents>;
 
-  constructor(world: World<CoreComponentRegistry>) {
+  constructor(world: World<TComponents>) {
     this.world = world;
   }
 

@@ -129,7 +129,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     if (pos) {
       this.createExplosion(world, pos.x, pos.y, "#FF00FF");
       if (!world.isReSimulating) {
-        const orchestrator = new JuiceOrchestrator(world as unknown as World<CoreComponentRegistry>);
+        const orchestrator = new JuiceOrchestrator(world);
         orchestrator.triggerEvent("space-invaders", "ufo:destroyed", { x: pos.x, y: pos.y });
       }
     }
@@ -243,7 +243,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
         spawnScorePopup(world, explosionX, explosionY, popupText, popupColor);
 
         if (!world.isReSimulating) {
-          const orchestrator = new JuiceOrchestrator(world as unknown as World<CoreComponentRegistry>);
+          const orchestrator = new JuiceOrchestrator(world);
           orchestrator.triggerEvent("space-invaders", "alien:destroyed", { x: explosionX, y: explosionY });
         }
       }
@@ -490,7 +490,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
 
     const shieldPos = world.getComponent(shieldEntity, "Transform");
     if (shieldPos && !world.isReSimulating) {
-      const orchestrator = new JuiceOrchestrator(world as unknown as World<CoreComponentRegistry>);
+      const orchestrator = new JuiceOrchestrator(world);
       orchestrator.triggerEvent("space-invaders", "shield:degraded", { x: shieldPos.x, y: shieldPos.y });
     }
 

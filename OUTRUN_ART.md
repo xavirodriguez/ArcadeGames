@@ -1,6 +1,6 @@
-# OUTRUN_ART.md — Dirección Artística y Reglas Visuales
+# OUTRUN_ART.md — Dirección Artística y Reglas Visuales ("OUT RUN 2049")
 
-Norte visual: «Una postal japonesa de verano que cobra vida a 200 km/h.» Out Run + ilustración japonesa + low-poly estilizado + cel shading + parallax profundo.
+Norte visual: «Arquitectura contemporánea vectorial y pulcra a 200 km/h.» Estilo vectorial limpio, hormigón blanco/gris claro, negro mate, coral, cian y lavanda ("OUT RUN 2049"). Prohibido pixel art, estética ochentera synthwave y nubes cartoon densas.
 
 ---
 
@@ -16,34 +16,36 @@ Norte visual: «Una postal japonesa de verano que cobra vida a 200 km/h.» Out R
 
 ---
 
-## 2. Paletas de partida por escenario
+## 2. Paletas por escenario ("OUT RUN 2049")
 
-### Scenario 1: Costa de Verano (Coast)
-- Sky Gradation: `#1a2a6c`, `#b21f1f`, `#fdbb2d` (Sunset coastal gradient)
-- Sun: `#ff4e50`
-- Mountains / Hills: `#2b580c`, `#639a67`
-- Ground / Field: `#f7f06d`, `#d4a373`
-- Road Asphalt: `#3a3d40` / `#484b4e`
-- Rumble Strip: `#e63946` / `#f1faee`
-- Player Vehicle: `#ff0055` (Vibrant Magenta/Red)
+### Scenario 1: Costa (Coast)
+- Sky Gradation: `#ff6b6b`, `#ff9e7d`, `#88e1e7`, `#38b6ff`, `#00f0ff` (Coral a Cian)
+- Sun: `#ff5252`
+- Ground: `#e2dfc8`, `#d1ceb2` (Hierba seca clara)
+- Road / Rumble: `#2d3138`, `#ff5252` / `#f8f9fa`
+- Side Elements: `palm` (palmera vectorial de tronco curvo) y `lamp` (poste LED delgado)
 
-### Scenario 2: Desierto Nocturno (Desert)
-- Sky Gradation: `#0f0c29`, `#302b63`, `#24243e`
-- Moon / Sun: `#f8ffae`
-- Mountains / Dunes: `#4a154b`, `#6c2257`
-- Ground / Desert Floor: `#2c003e`, `#3d0c5a`
-- Road Asphalt: `#1f1f2e` / `#28283d`
-- Rumble Strip: `#ff007f` / `#00f0ff`
-- Player Vehicle: `#ff0055`
+### Scenario 2: Desierto (Desert)
+- Sky Gradation: `#1d1829`, `#3a233b`, `#692a4a`, `#9e3d4c`, `#d96b52` (Desaturado con naranja quemado)
+- Sun: `#ff9e7d`
+- Ground: `#d0a67a`, `#ba8f62` (Tierra terrosa suave)
+- Road / Rumble: `#1c1c28`, `#ff5252` / `#00f0ff`
+- Side Elements: `shrub` (arreglos geométricos óvalos) y `wind_tower` (torre eólica estilizada)
 
-### Scenario 3: Montaña de Otoño (Mountain)
-- Sky Gradation: `#2c3e50`, `#bdc3c7`
-- Sun: `#e74c3c`
-- Mountains: `#8e44ad`, `#d35400`
-- Ground: `#e67e22`, `#f39c12`
-- Road Asphalt: `#2c3e50` / `#34495e`
-- Rumble Strip: `#e74c3c` / `#ecf0f1`
-- Player Vehicle: `#ff0055`
+### Scenario 3: Montaña (Mountain)
+- Sky Gradation: `#120e26`, `#251b47`, `#4b2b5e`, `#7e4075`, `#b8b5ff` (Cielo violeta)
+- Sun: `#b8b5ff`
+- Ground: `#8d99ae`, `#788596` (Hormigón y hierba fría)
+- Road / Rumble: `#20252e`, `#b8b5ff` / `#ffffff`
+- Side Elements: `cypress` (ciprés estilizado) y `wall` (muro de contención de hormigón)
+
+---
+
+## 3. Decorado Arquitectónico y Ciclo de Luz
+
+- **Elementos Borde Carretera:** Chevrones corales en curvas (`chevron`), paneles tipográficos de hormigón/cristal (`billboard`), arco de meta ("OUT RUN 2049") y pancartas en checkpoints ("CHECKPOINT").
+- **Ciclo de Luz (DayPhase):** Mapeado a 4 fases — `dawn`, `day`, `sunset`, `blue_hour`. En `blue_hour`, farolas y ventanas de la arquitectura se encienden en azul/cian brillante.
+- **Efectos Dinámicos:** Sombras suaves bajo vehículos, oscurecimiento del asfalto en lado interior de curvas y estelas de polvo al salirse de la pista.
 
 ---
 

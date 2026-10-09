@@ -70,6 +70,7 @@ export function projectRoad(
   let count = 0;
   let currentSegmentIndex = segmentIndex;
   let segmentZ = -cameraZ;
+  let maxy = screenH;
 
   for (let i = 0; i < maxProject; i++) {
     const seg = segments[currentSegmentIndex];
@@ -104,7 +105,8 @@ export function projectRoad(
     dest.w2 = projW2;
     dest.curve = seg.curve;
     dest.fog = fog;
-    dest.clip = projY2;
+    dest.clip = maxy;
+    if (projY2 < maxy) maxy = projY2;
     dest.index = seg.index;
     dest.p1z = p1z;
     dest.p2z = p2z;

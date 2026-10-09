@@ -26,6 +26,7 @@ import {
 import { RacerInputSystem } from "./systems/RacerInputSystem";
 import { RoadAdvanceSystem } from "./systems/RoadAdvanceSystem";
 import { TrafficSystem } from "./systems/TrafficSystem";
+import { scenarioHash } from "./rendering/OutrunPalettes";
 import {
   drawOutrunRoad,
   drawOutrunCar,
@@ -115,6 +116,21 @@ export class OutrunGame extends BaseGame<
 
   protected override async onInitializeEntities(): Promise<void> {
     runWithUnlockedRandomAndMutators(this.world, this._config.gameOptions, () => {
+      const createDefaultTransform = () => ({
+        type: "Transform" as const,
+        x: 0,
+        y: 0,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: 0,
+        worldY: 0,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: false
+      });
+
       const stateEntity = this.world.createEntity();
       this.world.addComponent(stateEntity, {
         type: "RaceState",
@@ -139,20 +155,7 @@ export class OutrunGame extends BaseGame<
         angularVelocity: 0,
         hitFlashFrames: 0
       });
-      this.world.addComponent(roadEntity, {
-        type: "Transform",
-        x: 0,
-        y: 0,
-        rotation: 0,
-        scaleX: 1,
-        scaleY: 1,
-        worldX: 0,
-        worldY: 0,
-        worldRotation: 0,
-        worldScaleX: 1,
-        worldScaleY: 1,
-        dirty: false
-      });
+      this.world.addComponent(roadEntity, createDefaultTransform());
 
       const carEntity = this.world.createEntity();
       this.world.addComponent(carEntity, {
@@ -166,20 +169,7 @@ export class OutrunGame extends BaseGame<
         hitFlashFrames: 0,
         color: "#e63946"
       });
-      this.world.addComponent(carEntity, {
-        type: "Transform",
-        x: 0,
-        y: 0,
-        rotation: 0,
-        scaleX: 1,
-        scaleY: 1,
-        worldX: 0,
-        worldY: 0,
-        worldRotation: 0,
-        worldScaleX: 1,
-        worldScaleY: 1,
-        dirty: false
-      });
+      this.world.addComponent(carEntity, createDefaultTransform());
 
       const rng = this.world.gameplayRandom;
       const roadData = this.world.getResource<RoadData>("RoadData")!;
@@ -209,20 +199,7 @@ export class OutrunGame extends BaseGame<
           angularVelocity: 0,
           hitFlashFrames: 0
         });
-        this.world.addComponent(ent, {
-          type: "Transform",
-          x: 0,
-          y: 0,
-          rotation: 0,
-          scaleX: 1,
-          scaleY: 1,
-          worldX: 0,
-          worldY: 0,
-          worldRotation: 0,
-          worldScaleX: 1,
-          worldScaleY: 1,
-          dirty: false
-        });
+        this.world.addComponent(ent, createDefaultTransform());
       }
     });
   }
@@ -265,8 +242,77 @@ export class OutrunGame extends BaseGame<
       add(10 + Math.floor(rng.next() * 15), 0, 0);
     }
 
-    for (let i = 0; i < segments.length; i++) {
-      segments[i].index = i;
+    const total = segments.length;
+    const cpInterval = Math.floor(total / 4);
+
+    for (let i = 0; i < total; i++) {
+      const seg = segments[i];
+      seg.index = i;
+
+      // Assign scenario zones: classic_coast -> coast -> classic_desert -> desert -> classic_mountain -> mountain
+      let scenarioId: import("./types/OutrunTypes").RoadSegment["scenarioId"] = "classic_coast";
+      const ratio = i / total;
+      if (ratio >= 0.83) {
+        scenarioId = "mountain";
+      } else if (ratio >= 0.66) {
+        scenarioId = "classic_mountain";
+      } else if (ratio >= 0.50) {
+        scenarioId = "desert";
+      } else if (ratio >= 0.33) {
+        scenarioId = "classic_desert";
+      } else if (ratio >= 0.16) {
+        scenarioId = "coast";
+      } else {
+        scenarioId = "classic_coast";
+      }
+      seg.scenarioId = scenarioId;
+
+      const sprites: import("./types/OutrunTypes").RoadSegmentSprite[] = [];
+
+      // Start/Finish Arch at segment 0
+      if (i === 0) {
+        sprites.push({ offset: 0, side: 1, kind: "arch", text: "OUT RUN 2049" });
+      }
+
+      // Checkpoint Banners
+      if (i > 0 && cpInterval > 0 && i % cpInterval === 0 && i < total - 10) {
+        sprites.push({ offset: 0, side: 1, kind: "banner", text: "CHECKPOINT" });
+      }
+
+      // Curve Chevron signs on the outside of sharp curves
+      if (Math.abs(seg.curve) >= 2.0 && i % 2 === 0) {
+        const outerSide: -1 | 1 = seg.curve > 0 ? -1 : 1;
+        sprites.push({ offset: 1.35, side: outerSide, kind: "chevron" });
+      }
+
+      // Sparse Billboards
+      if (i === 18 || i === Math.floor(total * 0.48) || i === Math.floor(total * 0.82)) {
+        const words = ["DRIFT", "NORTH", "2049", "SPEED"];
+        const text = words[i % words.length];
+        sprites.push({ offset: 2.2, side: 1, kind: "billboard", text });
+      }
+
+      // Scenario Side Sprites spaced every ~3-4 segments
+      if (i % 4 === 0 && i !== 0) {
+        const side: -1 | 1 = scenarioHash(scenarioId, i * 7) > 0.5 ? 1 : -1;
+        const offset = 1.4 + scenarioHash(scenarioId, i * 11) * 1.5;
+        const val = scenarioHash(scenarioId, i * 13);
+
+        let kind = "palm";
+        if (scenarioId === "coast" || scenarioId === "classic_coast") {
+          kind = val > 0.35 ? "palm" : "lamp";
+        } else if (scenarioId === "desert" || scenarioId === "classic_desert") {
+          kind = val > 0.35 ? "shrub" : "wind_tower";
+        } else if (scenarioId === "mountain" || scenarioId === "classic_mountain") {
+          kind = val > 0.35 ? "cypress" : "wall";
+        }
+
+        sprites.push({ offset, side, kind });
+      }
+
+      if (sprites.length > 0) {
+        seg.sprites = sprites;
+      }
     }
 
     return segments;

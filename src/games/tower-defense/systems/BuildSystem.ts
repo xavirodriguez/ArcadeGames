@@ -16,6 +16,46 @@ import { isBuildable, worldToCellCoords } from "../MapUtils";
 export class BuildSystem extends System<TowerDefenseComponentRegistry, TowerDefenseEventRegistry> {
   readonly phase = SystemPhase.Input;
 
+  private tryBuild(
+    world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>,
+    selectedTowerType: string | null | undefined,
+    cell: { col: number; row: number },
+    tileGrid: TileGrid,
+    catalog: TowerCatalog,
+    gs: GameStateComponent
+  ): boolean {
+    if (!selectedTowerType) return false;
+    const def = catalog[selectedTowerType];
+    if (!def) return false;
+    if (!isBuildable(tileGrid, cell.col, cell.row)) return false;
+
+    const existing = world.query("Tower").find((e) => {
+      const t = world.getComponent(e, "Tower");
+      return t && t.col === cell.col && t.row === cell.row;
+    });
+    if (existing !== undefined) return false;
+    if (gs.gold < def.cost) return false;
+
+    world.mutateSingleton("GameState", (g: GameStateComponent) => {
+      g.gold -= def.cost;
+    });
+
+    world.commands.spawnFromBlueprint("tower", {
+      type: def.id,
+      col: cell.col,
+      row: cell.row,
+    });
+
+    world.getEventBus()?.emit("tower:built", {
+      entity: 0,
+      towerType: def.id,
+      col: cell.col,
+      row: cell.row,
+    });
+
+    return true;
+  }
+
   update(world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>, _dt: number): void {
     const playerEntity = world.query("Player")[0];
     if (playerEntity === undefined) return;
@@ -42,35 +82,8 @@ export class BuildSystem extends System<TowerDefenseComponentRegistry, TowerDefe
       });
     }
 
-    if (input.build && player.selectedTowerType) {
-      const def = catalog[player.selectedTowerType];
-      if (!def) return;
-      if (!isBuildable(tileGrid, cell.col, cell.row)) return;
-
-      const existing = world.query("Tower").find((e) => {
-        const t = world.getComponent(e, "Tower");
-        return t && t.col === cell.col && t.row === cell.row;
-      });
-      if (existing !== undefined) return;
-      if (gs.gold < def.cost) return;
-
-      world.mutateSingleton("GameState", (g: GameStateComponent) => {
-        g.gold -= def.cost;
-      });
-
-      world.commands.spawnFromBlueprint("tower", {
-        type: def.id,
-        col: cell.col,
-        row: cell.row,
-      });
-
-      world.getEventBus()?.emit("tower:built", {
-        entity: 0,
-        towerType: def.id,
-        col: cell.col,
-        row: cell.row,
-      });
-
+    if (input.build) {
+      this.tryBuild(world, player.selectedTowerType, cell, tileGrid, catalog, gs);
       world.mutateComponent(playerEntity, "Input", (i) => {
         i.build = false;
       });

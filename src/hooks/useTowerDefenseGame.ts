@@ -21,7 +21,7 @@ export const useTowerDefenseGame = (started: boolean, seed?: number) => {
       }
     );
 
-  const { highScore, updateHighScore } = useHighScore();
+  const { highScore, updateHighScore } = useHighScore("tower-defense-high-score");
 
   useEffect(() => {
     if (gameState?.phase === "game_over" && gameState.score !== undefined) {

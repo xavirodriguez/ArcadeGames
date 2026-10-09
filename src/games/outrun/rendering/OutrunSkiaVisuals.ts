@@ -271,7 +271,39 @@ export const drawSkiaOutrunRoad: ShapeDrawer<RenderContext, OutrunComponentRegis
 
     // PASS 3: Scenario Horizon
     const horizonY = screenH * 0.45;
-    if (palette.id === "coast") {
+    const horizonStyle = palette.horizonStyle ?? (palette.id.startsWith("classic_") ? "faceted_peaks" : "coast_sea");
+
+    if (horizonStyle === "faceted_peaks") {
+      const numPeaks = 12;
+      const peakSpacing = screenW / 4;
+      const mountainOffsetX = ((state.playerZ * 0.00015) % peakSpacing) + state.playerX * 25;
+
+      for (let m = -2; m < numPeaks + 2; m++) {
+        const h1 = scenarioHash(palette.id, m);
+        const h2 = scenarioHash(palette.id, m + 100);
+        const px = m * peakSpacing - mountainOffsetX;
+        const peakY = horizonY - 40 - h1 * 60;
+
+        paint.reset();
+        paint.setAntiAlias(true);
+        paint.setStyle(Skia.PaintStyle.Fill);
+        paint.setColor(Skia.Color(palette.mountainBase));
+        const path1 = Skia.Path.Make();
+        path1.moveTo(px - peakSpacing * 0.6, horizonY);
+        path1.lineTo(px, peakY);
+        path1.lineTo(px + peakSpacing * 0.6, horizonY);
+        path1.close();
+        canvas.drawPath(path1, paint);
+
+        paint.setColor(Skia.Color(palette.mountainFacet));
+        const path2 = Skia.Path.Make();
+        path2.moveTo(px, peakY);
+        path2.lineTo(px + peakSpacing * 0.6, horizonY);
+        path2.lineTo(px + (h2 - 0.5) * 20, horizonY);
+        path2.close();
+        canvas.drawPath(path2, paint);
+      }
+    } else if (horizonStyle === "coast_sea") {
       paint.reset();
       paint.setAntiAlias(true);
       paint.setStyle(Skia.PaintStyle.Fill);

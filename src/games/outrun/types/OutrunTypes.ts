@@ -80,7 +80,7 @@ export interface RoadSegment {
   /** Vertical hill height offset. */
   hill: number;
   /** Visual scenario theme for this segment. */
-  scenarioId?: "coast" | "desert" | "mountain";
+  scenarioId?: "coast" | "desert" | "mountain" | "classic_coast" | "classic_desert" | "classic_mountain";
   /** Decorative roadside or over-road elements. */
   sprites?: RoadSegmentSprite[];
 }

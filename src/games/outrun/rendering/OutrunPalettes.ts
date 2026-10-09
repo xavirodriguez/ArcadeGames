@@ -4,7 +4,8 @@
  */
 
 export interface ScenarioPalette {
-  id: "coast" | "desert" | "mountain";
+  id: "coast" | "desert" | "mountain" | "classic_coast" | "classic_desert" | "classic_mountain";
+  horizonStyle?: "faceted_peaks" | "coast_sea" | "desert_dunes" | "mountain_cliffs";
   skyBands: string[];
   sun: string;
   mountainBase: string;
@@ -20,6 +21,7 @@ export interface ScenarioPalette {
 
 export const COAST_PALETTE: ScenarioPalette = {
   id: "coast",
+  horizonStyle: "coast_sea",
   skyBands: ["#ff6b6b", "#ff9e7d", "#88e1e7", "#38b6ff", "#00f0ff"],
   sun: "#ff5252",
   mountainBase: "#00b4d8",
@@ -35,6 +37,7 @@ export const COAST_PALETTE: ScenarioPalette = {
 
 export const DESERT_PALETTE: ScenarioPalette = {
   id: "desert",
+  horizonStyle: "desert_dunes",
   skyBands: ["#1d1829", "#3a233b", "#692a4a", "#9e3d4c", "#d96b52"],
   sun: "#ff9e7d",
   mountainBase: "#5c3d42",
@@ -50,6 +53,7 @@ export const DESERT_PALETTE: ScenarioPalette = {
 
 export const MOUNTAIN_PALETTE: ScenarioPalette = {
   id: "mountain",
+  horizonStyle: "mountain_cliffs",
   skyBands: ["#120e26", "#251b47", "#4b2b5e", "#7e4075", "#b8b5ff"],
   sun: "#b8b5ff",
   mountainBase: "#2b2d42",
@@ -60,6 +64,54 @@ export const MOUNTAIN_PALETTE: ScenarioPalette = {
   roadLight: "#2a303c",
   rumbleDark: "#b8b5ff",
   rumbleLight: "#ffffff",
+  lane: "#ffffff"
+};
+
+export const CLASSIC_COAST_PALETTE: ScenarioPalette = {
+  id: "classic_coast",
+  horizonStyle: "faceted_peaks",
+  skyBands: ["#1a2a6c", "#5c258d", "#b21f1f", "#fdbb2d", "#ffe066"],
+  sun: "#ff4e50",
+  mountainBase: "#2b580c",
+  mountainFacet: "#639a67",
+  groundDark: "#f7f06d",
+  groundLight: "#d4a373",
+  roadDark: "#3a3d40",
+  roadLight: "#484b4e",
+  rumbleDark: "#e63946",
+  rumbleLight: "#f1faee",
+  lane: "#ffffff"
+};
+
+export const CLASSIC_DESERT_PALETTE: ScenarioPalette = {
+  id: "classic_desert",
+  horizonStyle: "faceted_peaks",
+  skyBands: ["#0f0c29", "#201c4e", "#302b63", "#24243e", "#4b2a5e"],
+  sun: "#f8ffae",
+  mountainBase: "#4a154b",
+  mountainFacet: "#6c2257",
+  groundDark: "#2c003e",
+  groundLight: "#3d0c5a",
+  roadDark: "#1f1f2e",
+  roadLight: "#28283d",
+  rumbleDark: "#ff007f",
+  rumbleLight: "#00f0ff",
+  lane: "#ffffff"
+};
+
+export const CLASSIC_MOUNTAIN_PALETTE: ScenarioPalette = {
+  id: "classic_mountain",
+  horizonStyle: "faceted_peaks",
+  skyBands: ["#1c2833", "#2c3e50", "#7f8c8d", "#bdc3c7", "#ecf0f1"],
+  sun: "#e74c3c",
+  mountainBase: "#8e44ad",
+  mountainFacet: "#d35400",
+  groundDark: "#e67e22",
+  groundLight: "#f39c12",
+  roadDark: "#2c3e50",
+  roadLight: "#34495e",
+  rumbleDark: "#e74c3c",
+  rumbleLight: "#ecf0f1",
   lane: "#ffffff"
 };
 
@@ -125,7 +177,10 @@ export function applyDayPhase(palette: ScenarioPalette, progress: number): Modul
 export const OUTRUN_PALETTES: Record<string, ScenarioPalette> = {
   coast: COAST_PALETTE,
   desert: DESERT_PALETTE,
-  mountain: MOUNTAIN_PALETTE
+  mountain: MOUNTAIN_PALETTE,
+  classic_coast: CLASSIC_COAST_PALETTE,
+  classic_desert: CLASSIC_DESERT_PALETTE,
+  classic_mountain: CLASSIC_MOUNTAIN_PALETTE
 };
 
 /**
@@ -187,6 +242,7 @@ export function interpolatePalettes(
 
   return {
     id: t < 0.5 ? p1.id : p2.id,
+    horizonStyle: t < 0.5 ? (p1.horizonStyle ?? "faceted_peaks") : (p2.horizonStyle ?? "faceted_peaks"),
     skyBands,
     sun: interpolateHexColor(p1.sun, p2.sun, t),
     mountainBase: interpolateHexColor(p1.mountainBase, p2.mountainBase, t),

@@ -249,12 +249,21 @@ export class OutrunGame extends BaseGame<
       const seg = segments[i];
       seg.index = i;
 
-      // Assign scenario zones: coast -> desert -> mountain
-      let scenarioId: "coast" | "desert" | "mountain" = "coast";
-      if (i >= Math.floor(total * 0.7)) {
+      // Assign scenario zones: classic_coast -> coast -> classic_desert -> desert -> classic_mountain -> mountain
+      let scenarioId: import("./types/OutrunTypes").RoadSegment["scenarioId"] = "classic_coast";
+      const ratio = i / total;
+      if (ratio >= 0.83) {
         scenarioId = "mountain";
-      } else if (i >= Math.floor(total * 0.35)) {
+      } else if (ratio >= 0.66) {
+        scenarioId = "classic_mountain";
+      } else if (ratio >= 0.50) {
         scenarioId = "desert";
+      } else if (ratio >= 0.33) {
+        scenarioId = "classic_desert";
+      } else if (ratio >= 0.16) {
+        scenarioId = "coast";
+      } else {
+        scenarioId = "classic_coast";
       }
       seg.scenarioId = scenarioId;
 
@@ -290,11 +299,11 @@ export class OutrunGame extends BaseGame<
         const val = scenarioHash(scenarioId, i * 13);
 
         let kind = "palm";
-        if (scenarioId === "coast") {
+        if (scenarioId === "coast" || scenarioId === "classic_coast") {
           kind = val > 0.35 ? "palm" : "lamp";
-        } else if (scenarioId === "desert") {
+        } else if (scenarioId === "desert" || scenarioId === "classic_desert") {
           kind = val > 0.35 ? "shrub" : "wind_tower";
-        } else if (scenarioId === "mountain") {
+        } else if (scenarioId === "mountain" || scenarioId === "classic_mountain") {
           kind = val > 0.35 ? "cypress" : "wall";
         }
 

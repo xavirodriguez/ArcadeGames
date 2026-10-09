@@ -251,7 +251,36 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
 
     // PASS 3: Horizon by Scenario
     const horizonY = screenH * 0.45;
-    if (palette.id === "coast") {
+    const horizonStyle = palette.horizonStyle ?? (palette.id.startsWith("classic_") ? "faceted_peaks" : "coast_sea");
+
+    if (horizonStyle === "faceted_peaks") {
+      const numPeaks = 12;
+      const peakSpacing = screenW / 4;
+      const mountainOffsetX = ((state.playerZ * 0.00015) % peakSpacing) + state.playerX * 25;
+
+      for (let m = -2; m < numPeaks + 2; m++) {
+        const h1 = scenarioHash(palette.id, m);
+        const h2 = scenarioHash(palette.id, m + 100);
+        const px = m * peakSpacing - mountainOffsetX;
+        const peakY = horizonY - 40 - h1 * 60;
+
+        ctx.fillStyle = palette.mountainBase;
+        ctx.beginPath();
+        ctx.moveTo(px - peakSpacing * 0.6, horizonY);
+        ctx.lineTo(px, peakY);
+        ctx.lineTo(px + peakSpacing * 0.6, horizonY);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = palette.mountainFacet;
+        ctx.beginPath();
+        ctx.moveTo(px, peakY);
+        ctx.lineTo(px + peakSpacing * 0.6, horizonY);
+        ctx.lineTo(px + (h2 - 0.5) * 20, horizonY);
+        ctx.closePath();
+        ctx.fill();
+      }
+    } else if (horizonStyle === "coast_sea") {
       // Sea band
       ctx.fillStyle = "#00b4d8";
       ctx.fillRect(0, horizonY - 18, screenW, 18);

@@ -21,7 +21,7 @@ function facingFromTransform(scaleX?: number): number {
 }
 
 function getElevationZ(world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): number {
-  const elevation = world.getComponent(entity, "BeltElevation") as unknown as BeltElevationComponent | undefined;
+  const elevation = world.getComponent(entity, "BeltElevation");
   return elevation?.z ?? 0;
 }
 

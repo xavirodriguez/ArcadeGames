@@ -101,7 +101,7 @@ export function spawnBeltPlayer(
     z: 0,
     vz: 0,
     grounded: true
-  } as unknown as import("./BeltElevationComponent").BeltElevationComponent);
+  });
 
   world.addComponent(entity, createBeltInputComponent());
 

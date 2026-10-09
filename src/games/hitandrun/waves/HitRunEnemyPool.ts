@@ -63,7 +63,7 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
       z: 0,
       vz: 0,
       grounded: true
-    } as unknown as import("../belt/BeltElevationComponent").BeltElevationComponent);
+    });
 
     world.addComponent(entity, {
       type: "Health",

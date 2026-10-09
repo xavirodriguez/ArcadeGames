@@ -4,9 +4,7 @@ import {
   createBeltInputComponent,
   createBeltMovementComponent,
   createBeltElevationComponent,
-  depthT,
-  type BeltElevationComponent,
-  type BeltInputComponent
+  depthT
 } from "../index";
 
 describe("BeltElevation and Depth Model", () => {
@@ -41,7 +39,7 @@ describe("BeltElevation and Depth Model", () => {
 
     const input = createBeltInputComponent();
     input.jumpPressed = true;
-    world.addComponent(entity, input as unknown as import("@tiny-aster/core").Component);
+    world.addComponent(entity, input);
 
     world.addComponent(entity, createBeltMovementComponent());
     world.addComponent(entity, createBeltElevationComponent());
@@ -51,11 +49,11 @@ describe("BeltElevation and Depth Model", () => {
     // Tick 1: trigger jump
     movementSystem.update(world, 0.016);
     world.mutateComponent(entity, "BeltInput", (c) => {
-      (c as BeltInputComponent).jumpPressed = false;
+      c.jumpPressed = false;
     });
 
     const transform = world.getComponent(entity, "Transform")!;
-    const elevation = world.getComponent(entity, "BeltElevation") as unknown as BeltElevationComponent;
+    const elevation = world.getComponent(entity, "BeltElevation")!;
 
     expect(transform.y).toBe(initialY); // Transform.y MUST stay on ground line
     expect(elevation.z).toBeGreaterThan(0);
@@ -67,7 +65,7 @@ describe("BeltElevation and Depth Model", () => {
       expect(transform.y).toBe(initialY); // Transform.y MUST NEVER change from hop
     }
 
-    const finalElevation = world.getComponent(entity, "BeltElevation") as unknown as BeltElevationComponent;
+    const finalElevation = world.getComponent(entity, "BeltElevation")!;
     expect(transform.y).toBe(initialY);
     expect(finalElevation.z).toBe(0);
     expect(finalElevation.grounded).toBe(true);

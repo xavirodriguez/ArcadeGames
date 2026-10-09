@@ -2,6 +2,24 @@ import { World, CoreComponentRegistry } from "../src/index";
 import { CanvasRenderer } from "../../renderer-canvas/src/CanvasRenderer";
 
 describe("CanvasRenderer Y-sorting (depthSort)", () => {
+  function createMockCtx(): CanvasRenderingContext2D {
+    return {
+      canvas: { width: 800, height: 600 },
+      fillStyle: "",
+      strokeStyle: "",
+      globalAlpha: 1,
+      fillRect: () => {},
+      save: () => {},
+      restore: () => {},
+      translate: () => {},
+      scale: () => {},
+      rotate: () => {},
+      beginPath: () => {},
+      rect: () => {},
+      clip: () => {}
+    } as unknown as CanvasRenderingContext2D;
+  }
+
   it("sorts entities with same order by worldY/y ascending when depthSort is true", () => {
     const world = new World<CoreComponentRegistry>();
     const renderer = new CanvasRenderer();
@@ -70,22 +88,7 @@ describe("CanvasRenderer Y-sorting (depthSort)", () => {
       draw: () => { drawOrder.push("test_B"); }
     });
 
-    const ctx = {
-      canvas: { width: 800, height: 600 },
-      fillStyle: "",
-      strokeStyle: "",
-      globalAlpha: 1,
-      fillRect: () => {},
-      save: () => {},
-      restore: () => {},
-      translate: () => {},
-      scale: () => {},
-      rotate: () => {},
-      beginPath: () => {},
-      rect: () => {},
-      clip: () => {}
-    } as unknown as CanvasRenderingContext2D;
-
+    const ctx = createMockCtx();
     renderer.render(world, ctx);
 
     // Entity B (y = 300) must be drawn BEFORE Entity A (y = 500)
@@ -116,12 +119,7 @@ describe("CanvasRenderer Y-sorting (depthSort)", () => {
     renderer.registerShape("test_A", { draw: () => { drawOrder.push("test_A"); } });
     renderer.registerShape("test_B", { draw: () => { drawOrder.push("test_B"); } });
 
-    const ctx = {
-      canvas: { width: 800, height: 600 },
-      fillStyle: "", strokeStyle: "", globalAlpha: 1,
-      fillRect: () => {}, save: () => {}, restore: () => {}, translate: () => {}, scale: () => {}, rotate: () => {}, beginPath: () => {}, rect: () => {}, clip: () => {}
-    } as unknown as CanvasRenderingContext2D;
-
+    const ctx = createMockCtx();
     renderer.render(world, ctx);
 
     // Since depthSort is false, insertion/query order is preserved: test_A then test_B

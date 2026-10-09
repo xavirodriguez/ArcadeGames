@@ -9,7 +9,7 @@ import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { useTranslation } from "@/hooks/useTranslation";
 import { hapticSelection } from "../../utils/haptics";
 import { colors, spacing, typography } from "../../theme";
-import { touchToCellCoords, cellCenter } from "../../games/tower-defense/MapUtils";
+import { touchToCellCoords, cellCenter, fitContain } from "../../games/tower-defense/MapUtils";
 import towerDefenseConfigRaw from "../../games/tower-defense/config/tower-defense.json";
 import type { TowerDefenseConfig } from "../../games/tower-defense/types/TowerDefenseConfigSchema";
 
@@ -28,7 +28,6 @@ export default function TowerDefenseScreen() {
   const params = useLocalSearchParams<{ seed?: string }>();
   const [started, setStarted] = useState(false);
   const [initialSeed, setInitialSeed] = useState<number | undefined>();
-  const [selectedTower, setSelectedTower] = useState<string>("basic");
 
   useEffect(() => {
     if (params.seed) {
@@ -39,18 +38,48 @@ export default function TowerDefenseScreen() {
     }
   }, [params.seed]);
 
+  if (!started) {
+    return (
+      <StartScreen
+        title="TOWER DEFENSE"
+        onStart={() => {
+          hapticSelection();
+          setStarted(true);
+        }}
+        instructions={t["tower-defense"]?.instructions || "Toca celdas para construir torres y defiende la base."}
+      />
+    );
+  }
+
+  return (
+    <GameErrorBoundary gameId="tower-defense">
+      <TowerDefensePlay initialSeed={initialSeed} />
+    </GameErrorBoundary>
+  );
+}
+
+function TowerDefensePlay({ initialSeed }: { initialSeed?: number }) {
+  const { t } = useTranslation();
+  const [selectedTower, setSelectedTower] = useState<string>("basic");
+
   const { game, gameState, handleInput, isReady, restartWithSeed } =
-    useTowerDefenseGame(started, initialSeed);
+    useTowerDefenseGame(true, initialSeed);
 
   const [canvasLayout, setCanvasLayout] = useState<{ width: number; height: number }>({
     width: towerDefenseConfigRaw.worldWidth,
     height: towerDefenseConfigRaw.worldHeight,
   });
 
-  const handleLayout = (e: LayoutChangeEvent) => {
+  const handleContainerLayout = (e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout;
     if (width > 0 && height > 0) {
-      setCanvasLayout({ width, height });
+      const fitted = fitContain(
+        width,
+        height,
+        towerDefenseConfigRaw.worldWidth,
+        towerDefenseConfigRaw.worldHeight
+      );
+      setCanvasLayout(fitted);
     }
   };
 
@@ -108,20 +137,14 @@ export default function TowerDefenseScreen() {
     });
   };
 
-  if (!started) {
+  if (!game || !isReady) {
     return (
-      <StartScreen
-        title="TOWER DEFENSE"
-        onStart={() => {
-          hapticSelection();
-          setStarted(true);
-        }}
-        instructions={t["tower-defense"]?.instructions || "Toca celdas para construir torres y defiende la base."}
-      />
+      <GameScreen>
+        <BackButton label={t.common.menu} />
+        <Text style={styles.loadingText}>CARGANDO...</Text>
+      </GameScreen>
     );
   }
-
-  if (!game || !isReady) return null;
 
   const phaseText =
     gameState?.phase === "build"
@@ -135,26 +158,28 @@ export default function TowerDefenseScreen() {
             : "DERROTA";
 
   return (
-    <GameErrorBoundary gameId="tower-defense">
-      <SafeAreaProvider>
-        <GameLayoutShell
-          style={styles.container}
-          topLeftSlot={<BackButton label={t.common.menu} />}
-          centerHudSlot={
-            <View style={styles.hudBoard}>
-              <Text style={styles.hudTextGold}>🪙 {gameState?.gold ?? 0}</Text>
+    <SafeAreaProvider>
+      <GameLayoutShell
+        style={styles.container}
+        topLeftSlot={<BackButton label={t.common.menu} />}
+        centerHudSlot={
+          <View style={styles.hudBoard}>
+            <Text style={styles.hudTextGold}>🪙 {gameState?.gold ?? 0}</Text>
 
-              <Text style={styles.hudTextLives}>❤️ {gameState?.lives ?? 0}</Text>
-              <Text style={styles.hudTextWave}>🌊 Wave {(gameState?.wave ?? 0) + 1}</Text>
-              <Text style={styles.hudTextPhase}>{phaseText}</Text>
-            </View>
-          }
-          canvasSlot={
+            <Text style={styles.hudTextLives}>❤️ {gameState?.lives ?? 0}</Text>
+            <Text style={styles.hudTextWave}>🌊 Wave {(gameState?.wave ?? 0) + 1}</Text>
+            <Text style={styles.hudTextPhase}>{phaseText}</Text>
+          </View>
+        }
+        canvasSlot={
+          <View style={styles.canvasContainer} onLayout={handleContainerLayout}>
             <TouchableOpacity
               activeOpacity={1}
               onPress={handleCanvasTouch}
-              onLayout={handleLayout}
-              style={styles.canvasTouchArea}
+              style={[
+                styles.canvasTouchArea,
+                { width: canvasLayout.width, height: canvasLayout.height },
+              ]}
             >
               <CanvasRenderer
                 world={game.getWorld()}
@@ -162,51 +187,51 @@ export default function TowerDefenseScreen() {
                 onInitialize={(renderer) => game.initializeRenderer(renderer)}
               />
             </TouchableOpacity>
-          }
-          controlsSlot={
-            <TowerDefenseControls
-              selectedTowerType={selectedTower}
-              onSelectTower={(type) => {
-                setSelectedTower(type);
-                handleInput({ selectedTowerType: type });
-              }}
-              onBuild={() => handleInput({ build: true, selectedTowerType: selectedTower })}
-              onSell={() => handleInput({ sell: true })}
-              onUpgrade={() => handleInput({ upgrade: true })}
-              onStartWave={() => handleInput({ startWave: true })}
-              phase={gameState?.phase}
-              gold={gameState?.gold ?? 0}
-            />
-          }
-          debugSlot={<DebugOverlay game={game} />}
-          overlaySlot={
-            <>
-              {(gameState?.phase === "game_over" || gameState?.phase === "victory") && (
-                <View style={styles.overlay}>
-                  <Text style={styles.overlayTitle}>
-                    {gameState.phase === "victory" ? "¡VICTORIA VALIENTE!" : t.common.game_over}
-                  </Text>
-                  <Text style={styles.overlaySub}>
-                    Puntuación: {gameState?.score ?? 0}
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.restartButton}
-                    onPress={() => {
-                      hapticSelection();
-                      restartWithSeed(initialSeed);
-                    }}
-                    accessibilityRole="button"
-                    accessibilityLabel={t.accessibility.restart_game_label}
-                  >
-                    <Text style={styles.restartButtonText}>{t.common.retry}</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </>
-          }
-        />
-      </SafeAreaProvider>
-    </GameErrorBoundary>
+          </View>
+        }
+        controlsSlot={
+          <TowerDefenseControls
+            selectedTowerType={selectedTower}
+            onSelectTower={(type) => {
+              setSelectedTower(type);
+              handleInput({ selectedTowerType: type });
+            }}
+            onBuild={() => handleInput({ build: true, selectedTowerType: selectedTower })}
+            onSell={() => handleInput({ sell: true })}
+            onUpgrade={() => handleInput({ upgrade: true })}
+            onStartWave={() => handleInput({ startWave: true })}
+            phase={gameState?.phase}
+            gold={gameState?.gold ?? 0}
+          />
+        }
+        debugSlot={<DebugOverlay game={game} />}
+        overlaySlot={
+          <>
+            {(gameState?.phase === "game_over" || gameState?.phase === "victory") && (
+              <View style={styles.overlay}>
+                <Text style={styles.overlayTitle}>
+                  {gameState.phase === "victory" ? "¡VICTORIA VALIENTE!" : t.common.game_over}
+                </Text>
+                <Text style={styles.overlaySub}>
+                  Puntuación: {gameState?.score ?? 0}
+                </Text>
+                <TouchableOpacity
+                  style={styles.restartButton}
+                  onPress={() => {
+                    hapticSelection();
+                    restartWithSeed(initialSeed);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.accessibility.restart_game_label}
+                >
+                  <Text style={styles.restartButtonText}>{t.common.retry}</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </>
+        }
+      />
+    </SafeAreaProvider>
   );
 }
 
@@ -272,9 +297,14 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     fontFamily: typography.game,
   },
-  canvasTouchArea: {
+  canvasContainer: {
+    flex: 1,
     width: "100%",
     height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  canvasTouchArea: {
     alignItems: "center",
     justifyContent: "center",
   },
@@ -308,5 +338,11 @@ const styles = StyleSheet.create({
     color: colors.background,
     fontFamily: typography.game,
     fontWeight: "bold",
+  },
+  loadingText: {
+    color: colors.cyan,
+    fontFamily: typography.game,
+    fontSize: typography.sizes.xl,
+    marginTop: spacing.xl,
   },
 });

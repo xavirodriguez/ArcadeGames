@@ -144,6 +144,32 @@ export function touchToCellCoords(
   return worldToCellCoords(worldX, worldY, layout);
 }
 
+export function fitContain(
+  containerWidth: number,
+  containerHeight: number,
+  worldWidth: number,
+  worldHeight: number
+): { width: number; height: number } {
+  if (containerWidth <= 0 || containerHeight <= 0 || worldWidth <= 0 || worldHeight <= 0) {
+    return { width: 0, height: 0 };
+  }
+
+  const targetAspect = worldWidth / worldHeight;
+  const containerAspect = containerWidth / containerHeight;
+
+  if (containerAspect > targetAspect) {
+    // Container is wider than aspect ratio -> height is constraint
+    const height = containerHeight;
+    const width = height * targetAspect;
+    return { width, height };
+  } else {
+    // Container is taller/equal -> width is constraint
+    const width = containerWidth;
+    const height = width / targetAspect;
+    return { width, height };
+  }
+}
+
 export function isBuildable(tileGrid: TileGrid, col: number, row: number): boolean {
   if (!tileGrid?.tiles) return false;
   if (typeof row !== "number" || typeof col !== "number" || isNaN(row) || isNaN(col)) return false;

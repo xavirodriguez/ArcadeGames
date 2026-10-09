@@ -58,6 +58,7 @@ Norte visual: «Una postal japonesa de verano que cobra vida a 200 km/h.» Out R
 - `OutrunGame` hereda de `BaseGame` directamente y se registra en `CampaignGameRegistryService` y `src/app/index.tsx`.
 - `outrun.json` ajustado con Zod schema estricto conteniendo sólo las claves necesarias por fase.
 - `generateRoad` utiliza `runWithUnlockedRandomAndMutators` para evitar excepciones de `RandomService` bloqueado durante la inicialización.
+- Auditoría de sesión realizada: Se verificó la presencia completa del código de `src/games/outrun/`, sus tests unitarios (18/18 verdes), typecheck, lint y el enrutamiento. Se creó `src/app/outrun/_layout.tsx` para completar el enrutamiento anidado en Expo Router.
 
 ---
 

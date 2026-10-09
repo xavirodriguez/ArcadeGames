@@ -1,6 +1,7 @@
-import { System, World, Entity, Juice } from "@tiny-aster/core";
+import { System, World, Entity, Juice, CoreComponentRegistry } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry } from "../types/GeometryWarsRegistry";
 import { CombatDeathEvent } from "@tiny-aster/gameplay-kit";
+import { JuiceOrchestrator } from "../../shared/rendering/JuiceOrchestrator";
 import { ComboComponent } from "@tiny-aster/core";
 import { GWParticlePool } from "../EntityPool";
 
@@ -65,6 +66,9 @@ export class GeometryWarsGameStateSystem extends System<GeometryWarsComponentReg
         if (audio) {
           audio.playSFX("explosion2");
         }
+        const transform = world.getComponent(deadEntity, "Transform");
+        const orchestrator = new JuiceOrchestrator(world as unknown as World<CoreComponentRegistry>);
+        orchestrator.triggerEvent("geometry-wars", "player:death", { x: transform?.x, y: transform?.y });
       }
 
       // Reset combo on player hit/death
@@ -135,6 +139,13 @@ export class GeometryWarsGameStateSystem extends System<GeometryWarsComponentReg
         // Dynamic screen shake based on enemy rank/score
         const shakeAmt = baseScore >= 150 ? 5 : baseScore >= 100 ? 3.5 : 2;
         Juice.shake(world, shakeAmt, 0.15);
+
+        if (transform) {
+          const px = transform.worldX ?? transform.x;
+          const py = transform.worldY ?? transform.y;
+          const orchestrator = new JuiceOrchestrator(world as unknown as World<CoreComponentRegistry>);
+          orchestrator.triggerEvent("geometry-wars", "enemy:destroyed", { x: px, y: py });
+        }
 
         // Play SFX
         const audio = world.getResource<any>("Audio") || (world as any).audio;

@@ -1,5 +1,6 @@
 import { System, World, ComboComponent, Juice, TransformComponent, RenderComponent, TTLComponent, CoreComponentRegistry, PhysicsUtils } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry } from "../types/GeometryWarsRegistry";
+import { JuiceOrchestrator } from "../../shared/rendering/JuiceOrchestrator";
 import { GeometryWarsConfig } from "../config/GeometryWarsConfig";
 import { GWParticlePool } from "../EntityPool";
 
@@ -166,6 +167,8 @@ export class KineticAccumulatorSystem extends System<GeometryWarsComponentRegist
       if (audio) {
         audio.playSFX("explosion2");
       }
+      const orchestrator = new JuiceOrchestrator(world as unknown as World<CoreComponentRegistry>);
+      orchestrator.triggerEvent("geometry-wars", "bomb:trigger", { x: px, y: py });
     }
 
     // Boost combo multiplier directly via shared ComboComponent

@@ -17,6 +17,7 @@ import {
 import { SpaceInvadersConfig } from "../types/SpaceInvadersConfigSchema";
 import { ParticlePool } from "../EntityPool";
 import { createSharedParticle, EXPLOSION_PROFILES, spawnLayeredExplosion as spawnSharedLayeredExplosion } from "../../shared/rendering/SharedVFX";
+import { JuiceOrchestrator } from "../../shared/rendering/JuiceOrchestrator";
 import { spawnLayeredExplosion } from "../rendering/SpaceInvadersCanvasVisuals";
 import { colors } from "../../../theme/colors";
 import { applyComboKill } from "../../shared/arcade/ComboUtils";
@@ -127,6 +128,10 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     const pos = world.getComponent(target, "Transform");
     if (pos) {
       this.createExplosion(world, pos.x, pos.y, "#FF00FF");
+      if (!world.isReSimulating) {
+        const orchestrator = new JuiceOrchestrator(world as unknown as World<CoreComponentRegistry>);
+        orchestrator.triggerEvent("space-invaders", "ufo:destroyed", { x: pos.x, y: pos.y });
+      }
     }
 
     world.mutateSingleton("GameState", (gs) => {
@@ -236,6 +241,11 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
 
         const popupText = nextMultiplier > 1 ? `+${scoreGain} (x${nextMultiplier})` : `+${scoreGain}`;
         spawnScorePopup(world, explosionX, explosionY, popupText, popupColor);
+
+        if (!world.isReSimulating) {
+          const orchestrator = new JuiceOrchestrator(world as unknown as World<CoreComponentRegistry>);
+          orchestrator.triggerEvent("space-invaders", "alien:destroyed", { x: explosionX, y: explosionY });
+        }
       }
 
       // Contextual screen shake: light for single kills, medium for fast combo chains
@@ -477,6 +487,12 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     });
 
     const eventBus = world.getEventBus();
+
+    const shieldPos = world.getComponent(shieldEntity, "Transform");
+    if (shieldPos && !world.isReSimulating) {
+      const orchestrator = new JuiceOrchestrator(world as unknown as World<CoreComponentRegistry>);
+      orchestrator.triggerEvent("space-invaders", "shield:degraded", { x: shieldPos.x, y: shieldPos.y });
+    }
 
     if (expired) {
       if (eventBus && !world.isReSimulating) {

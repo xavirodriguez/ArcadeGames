@@ -1433,6 +1433,9 @@ export function createVehicleSteering(config: VehicleSteeringOptions): VehicleSt
 export function createVehicleWaypoint(waypoints: VehicleWaypointNode[], targetRadius?: number, loop?: boolean): VehicleWaypointComponent;
 
 // @public
+export function createVisualTheme(primaryColor?: string, secondaryColor?: string, accentColor?: string, shapeTokens?: VisualThemeShapeTokens): VisualTheme;
+
+// @public
 export class CrossfadeTransition extends BaseOffscreenTransitionEffect {
     protected paintOffscreen(ctx: RenderContext, offscreenCanvas: CanvasImageSource | HTMLCanvasElement, progress: number, width: number, height: number, options?: TransitionOptions): void;
 }
@@ -2614,6 +2617,28 @@ export class Juice {
         repeat?: number;
     }): void;
     static flash<TComponents extends CoreComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, entity: Entity, frames?: number): void;
+    static playDeathJuice<TComponents extends CoreComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, entity: Entity, config?: {
+        flashFrames?: number;
+        shakeIntensity?: number;
+        shakeDuration?: number;
+    }): void;
+    static playHitJuice<TComponents extends CoreComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, entity: Entity, config?: {
+        flashFrames?: number;
+        squashDuration?: number;
+        shakeIntensity?: number;
+        shakeDuration?: number;
+    }): void;
+    static playPickupJuice<TComponents extends CoreComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, entity: Entity, config?: {
+        flashFrames?: number;
+        shakeIntensity?: number;
+        shakeDuration?: number;
+    }): void;
+    static playShootJuice<TComponents extends CoreComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, entity: Entity, config?: {
+        muzzleFrames?: number;
+        recoilPx?: number;
+        shakeIntensity?: number;
+        shakeDuration?: number;
+    }): void;
     static shake<TComponents extends CoreComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, intensity: number, duration: number): void;
     static squash<TComponents extends CoreComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, entity: Entity, sx: number, sy: number, duration: number): void;
 }
@@ -4579,6 +4604,17 @@ export interface SoAWorldSnapshot extends BaseWorldSnapshot {
 }
 
 // @public
+export const SOLAR_GARDEN_PALETTE: {
+    readonly background: "#050611";
+    readonly surface: "#14183A";
+    readonly primary: "#00E5FF";
+    readonly secondary: "#9D00FF";
+    readonly accent: "#FF2A6D";
+    readonly neutral: "#778DA9";
+    readonly ui: "#42F5FF";
+};
+
+// @public
 export type SpaceInvadersRoleKey = CommonRoleKey | "invader" | "invader_commander" | "invader_scout" | "commander" | "scout" | "ufo";
 
 // @public
@@ -5215,6 +5251,7 @@ export interface Theme<TRole extends string = string> {
     lore?: Record<string, string>;
     spriteMap: Partial<Record<TRole, string>>;
     vfxProfile?: GameVisualProfile;
+    visualTheme?: VisualTheme;
 }
 
 // @public
@@ -5497,6 +5534,43 @@ export interface VisualOffsetComponent extends Component {
     offsetX: number;
     offsetY: number;
     type: "VisualOffset";
+}
+
+// @public
+export interface VisualTheme {
+    accentColors: {
+        primary: string;
+        secondary: string;
+        accent: string;
+    };
+    contrastHierarchy: VisualThemeContrastHierarchy;
+    palette: {
+        background: string;
+        surface: string;
+        primary: string;
+        secondary: string;
+        accent: string;
+        neutral: string;
+    };
+    shapeTokens?: VisualThemeShapeTokens;
+}
+
+// @public
+export interface VisualThemeContrastHierarchy {
+    background: string;
+    enemies: string;
+    fx: string;
+    player: string;
+    ui: string;
+    world: string;
+}
+
+// @public
+export interface VisualThemeShapeTokens {
+    enemyShape?: string;
+    particleShape?: "circle" | "polygon" | "shard";
+    playerShape?: string;
+    projectileShape?: string;
 }
 
 // @public

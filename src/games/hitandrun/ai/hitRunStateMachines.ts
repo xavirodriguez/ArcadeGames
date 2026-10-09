@@ -1,4 +1,4 @@
-import type { World, CoreComponentRegistry } from "@tiny-aster/core";
+import { getOrCreateStateMachineRegistry, type World, type CoreComponentRegistry } from "@tiny-aster/core";
 import type { StateMachineDefinition } from "@tiny-aster/core";
 import { tryEnemyShoot } from "./enemyShoot";
 import {
@@ -127,13 +127,7 @@ const alertWindup = {
 export function registerHitRunStateMachines(
   world: World<CoreComponentRegistry>
 ): void {
-  let registry = world.getResource<Record<string, StateMachineDefinition>>(
-    "StateMachineRegistry"
-  );
-  if (!registry) {
-    registry = {};
-    world.setResource("StateMachineRegistry", registry);
-  }
+  const registry = getOrCreateStateMachineRegistry(world);
 
   // ─── hr_walk ────────────────────────────────────────────────
   registry["hr_walk"] = {

@@ -18,7 +18,7 @@ import {
   SegmentTemplate,
   SegmentGenerator,
   LevelPlan,
-  preloadSharedAudioManifest,
+  preloadSharedAudioWithTimeout,
   generateBackdrop
 } from "@tiny-aster/core";
 import { EchoRunnerDefinition } from "../echorunner/EchoRunnerGame";
@@ -149,10 +149,7 @@ export class HitAndRunGame extends PlatformerArcadeGame<
   protected override async onPreloadAssets(): Promise<void> {
     if (this.audio) {
       try {
-        await Promise.race([
-          preloadSharedAudioManifest(this.audio),
-          new Promise((resolve) => setTimeout(resolve, 2000))
-        ]);
+        await preloadSharedAudioWithTimeout(this.audio, 2000);
       } catch (e) {
         console.warn("[HitAndRunGame] Audio preloading failed or timed out:", e);
       }

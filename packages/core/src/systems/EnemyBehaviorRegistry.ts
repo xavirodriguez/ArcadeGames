@@ -1,6 +1,6 @@
 import { World } from "../ecs/World";
 import { CoreComponentRegistry } from "../ecs/CoreComponents";
-import { StateMachineDefinition } from "./StateMachineSystem";
+import { StateMachineDefinition, getOrCreateStateMachineRegistry } from "./StateMachineSystem";
 import {
   checkPlayerDetectionToAlert,
   zeroOutVelocityX,
@@ -14,11 +14,7 @@ import {
  * @public
  */
 export function registerEnemyStateMachines(world: World<CoreComponentRegistry>): void {
-  let registry = world.getResource<Record<string, StateMachineDefinition>>("StateMachineRegistry");
-  if (!registry) {
-    registry = {};
-    world.setResource("StateMachineRegistry", registry);
-  }
+  const registry = getOrCreateStateMachineRegistry(world);
 
   const alertAndWindup = {
     Alert: {

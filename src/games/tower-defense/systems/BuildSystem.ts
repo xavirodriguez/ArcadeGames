@@ -16,6 +16,17 @@ import { isBuildable, worldToCellCoords } from "../MapUtils";
 export class BuildSystem extends System<TowerDefenseComponentRegistry, TowerDefenseEventRegistry> {
   readonly phase = SystemPhase.Input;
 
+  private getTowerAtCell(
+    world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>,
+    col: number,
+    row: number
+  ) {
+    return world.query("Tower").find((e) => {
+      const t = world.getComponent(e, "Tower");
+      return t && t.col === col && t.row === row;
+    });
+  }
+
   private tryBuild(
     world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>,
     selectedTowerType: string | null | undefined,
@@ -29,11 +40,7 @@ export class BuildSystem extends System<TowerDefenseComponentRegistry, TowerDefe
     if (!def) return false;
     if (!isBuildable(tileGrid, cell.col, cell.row)) return false;
 
-    const existing = world.query("Tower").find((e) => {
-      const t = world.getComponent(e, "Tower");
-      return t && t.col === cell.col && t.row === cell.row;
-    });
-    if (existing !== undefined) return false;
+    if (this.getTowerAtCell(world, cell.col, cell.row) !== undefined) return false;
     if (gs.gold < def.cost) return false;
 
     world.mutateSingleton("GameState", (g: GameStateComponent) => {
@@ -90,10 +97,7 @@ export class BuildSystem extends System<TowerDefenseComponentRegistry, TowerDefe
     }
 
     if (input.sell) {
-      const towerAtCell = world.query("Tower").find((e) => {
-        const t = world.getComponent(e, "Tower");
-        return t && t.col === cell.col && t.row === cell.row;
-      });
+      const towerAtCell = this.getTowerAtCell(world, cell.col, cell.row);
       if (towerAtCell !== undefined) {
         const tower = world.getComponent(towerAtCell, "Tower")!;
         const refund = Math.floor(tower.cost * 0.6 * tower.level);
@@ -109,10 +113,7 @@ export class BuildSystem extends System<TowerDefenseComponentRegistry, TowerDefe
     }
 
     if (input.upgrade) {
-      const towerAtCell = world.query("Tower").find((e) => {
-        const t = world.getComponent(e, "Tower");
-        return t && t.col === cell.col && t.row === cell.row;
-      });
+      const towerAtCell = this.getTowerAtCell(world, cell.col, cell.row);
       if (towerAtCell !== undefined) {
         const tower = world.getComponent(towerAtCell, "Tower")!;
         if (tower.level < tower.maxLevel) {

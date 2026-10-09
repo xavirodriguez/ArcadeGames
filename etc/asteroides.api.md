@@ -671,6 +671,12 @@ export interface Camera2DComponent extends Component {
 
 // @public
 export class Camera2DSystem extends System<CoreComponentRegistry> {
+    static getViewportAndWorldDimensions<TRegistry extends CoreComponentRegistry = CoreComponentRegistry>(world: World<TRegistry>): {
+        viewportWidth: number;
+        viewportHeight: number;
+        worldWidth?: number;
+        worldHeight?: number;
+    };
     static getViewportBounds<TRegistry extends CoreComponentRegistry = CoreComponentRegistry>(world: World<TRegistry>, cameraEntity?: number): {
         minX: number;
         minY: number;
@@ -2242,6 +2248,9 @@ export function getGameplaySystemContextAndEntities<TRegistry extends CoreCompon
 export function getHorizontalDirectionToPlayer(world: World, entity: Entity, sensor?: PlayerSensorComponent, trans?: TransformComponent): number;
 
 // @public
+export function getOrCreateStateMachineRegistry(world: World<CoreComponentRegistry>): Record<string, StateMachineDefinition>;
+
+// @public
 export interface GridPassabilityMap {
     getCost?(x: number, y: number): number;
     height: number;
@@ -3386,6 +3395,9 @@ export interface NetworkTransport<TServerEvents extends Record<string, unknown> 
 }
 
 // @public
+export function normalizeAngle(angle: number): number;
+
+// @public
 export function normalizeError(error: unknown): Error;
 
 // @public
@@ -3807,6 +3819,9 @@ export class PrefabPool<T extends Record<string, Component>, I> {
 
 // @public
 export function preloadSharedAudioManifest(audio: IAudioPlayer): Promise<void>;
+
+// @public
+export function preloadSharedAudioWithTimeout(audio: IAudioPlayer, timeoutMs?: number): Promise<void>;
 
 // @public
 export interface ProjectileComponents extends Record<string, Component> {
@@ -4374,6 +4389,7 @@ export class Schedule<TComponents extends ComponentRegistry = ComponentRegistry,
     constructor(phases?: string[]);
     addSystem(system: System<TComponents, TEvents>, config: SystemConfig | undefined, world: World<TComponents, TEvents, TBlueprints>): void;
     clearSystems(): void;
+    // (undocumented)
     getSystems(): System<TComponents, TEvents>[];
     setErrorReporter(reporter: GameErrorReporter, context?: ScheduleErrorContext): void;
     update(world: World<TComponents, TEvents, TBlueprints>, deltaTime: number): void;

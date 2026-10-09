@@ -1,4 +1,4 @@
-import { System, World, VehicleWaypointComponent, VehicleSteeringComponent } from "@tiny-aster/core";
+import { System, World, VehicleWaypointComponent, VehicleSteeringComponent, normalizeAngle } from "@tiny-aster/core";
 import type { RacingComponentRegistry, RacingEventRegistry } from "../types/RacingRegistry";
 
 export class VehicleAISystem extends System<RacingComponentRegistry, RacingEventRegistry> {
@@ -39,10 +39,7 @@ export class VehicleAISystem extends System<RacingComponentRegistry, RacingEvent
       }
 
       const desiredAngle = Math.atan2(dy, dx);
-      let diffAngle = desiredAngle - (transform.rotation ?? 0);
-
-      while (diffAngle > Math.PI) diffAngle -= Math.PI * 2;
-      while (diffAngle < -Math.PI) diffAngle += Math.PI * 2;
+      const diffAngle = normalizeAngle(desiredAngle - (transform.rotation ?? 0));
 
       vehicle.steering = Math.max(-1, Math.min(1, diffAngle * 1.8));
 

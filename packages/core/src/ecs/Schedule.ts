@@ -3,7 +3,7 @@ import { EventRegistry } from "../events/EventBus";
 import { System, SystemPhase, SystemConfig } from "./System";
 import { World, BlueprintRegistryMap } from "./World";
 import { RandomService } from "../utils/RandomService";
-import { GameErrorReporter, normalizeError, ENGINE_VERSION } from "../diagnostics";
+import { GameErrorReporter, normalizeError, ENGINE_VERSION, GameErrorPhase } from "../diagnostics";
 
 /**
  * Diagnostic context options provided to Schedule for error reporting.
@@ -114,16 +114,7 @@ export class Schedule<
         this.errorReporter.report({
           timestamp: Date.now(),
           error: err,
-          context: {
-            gameId: this.errorContext.gameId ?? "unknown",
-            engineVersion: ENGINE_VERSION,
-            sessionId: this.errorContext.sessionId ?? "unknown",
-            phase: "registration",
-            system: system?.constructor?.name ?? "unknown",
-            gitCommit: this.errorContext.gitCommit,
-            deploymentId: this.errorContext.deploymentId,
-            environment: this.errorContext.environment
-          }
+          context: this.buildErrorContext("registration", system?.constructor?.name ?? "unknown")
         });
       }
       throw err;
@@ -137,6 +128,19 @@ export class Schedule<
    *
    * @returns Array of registered `System` instances.
    */
+  private buildErrorContext(phase: GameErrorPhase, systemName: string) {
+    return {
+      gameId: this.errorContext.gameId ?? "unknown",
+      engineVersion: ENGINE_VERSION,
+      sessionId: this.errorContext.sessionId ?? "unknown",
+      phase,
+      system: systemName,
+      gitCommit: this.errorContext.gitCommit,
+      deploymentId: this.errorContext.deploymentId,
+      environment: this.errorContext.environment
+    };
+  }
+
   public getSystems(): System<TComponents, TEvents>[] {
     return this.systems.map(s => s.system);
   }
@@ -166,16 +170,7 @@ export class Schedule<
           this.errorReporter.report({
             timestamp: Date.now(),
             error: err,
-            context: {
-              gameId: this.errorContext.gameId ?? "unknown",
-              engineVersion: ENGINE_VERSION,
-              sessionId: this.errorContext.sessionId ?? "unknown",
-              phase: "shutdown",
-              system: s?.system?.constructor?.name ?? "unknown",
-              gitCommit: this.errorContext.gitCommit,
-              deploymentId: this.errorContext.deploymentId,
-              environment: this.errorContext.environment
-            }
+            context: this.buildErrorContext("shutdown", s?.system?.constructor?.name ?? "unknown")
           });
         }
       }

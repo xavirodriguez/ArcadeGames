@@ -5,6 +5,17 @@ import { VehicleSteeringComponent } from "./VehicleSteeringComponent";
 import { VehicleWaypointComponent } from "./VehicleWaypointComponent";
 
 /**
+ * Normalizes an angle in radians to the range [-PI, PI].
+ * @public
+ */
+export function normalizeAngle(angle: number): number {
+  let diff = angle;
+  while (diff > Math.PI) diff -= Math.PI * 2;
+  while (diff < -Math.PI) diff += Math.PI * 2;
+  return diff;
+}
+
+/**
  * System driving AI vehicle steering and throttle toward active waypoint nodes.
  *
  * @public
@@ -46,10 +57,7 @@ export class VehicleWaypointSystem extends System<CoreComponentRegistry> {
       }
 
       const desiredAngle = Math.atan2(dy, dx);
-      let diffAngle = desiredAngle - (transform.rotation ?? 0);
-
-      while (diffAngle > Math.PI) diffAngle -= Math.PI * 2;
-      while (diffAngle < -Math.PI) diffAngle += Math.PI * 2;
+      const diffAngle = normalizeAngle(desiredAngle - (transform.rotation ?? 0));
 
       // Calculate normalized steering input
       vehicle.steering = Math.max(-1, Math.min(1, diffAngle * 1.8));

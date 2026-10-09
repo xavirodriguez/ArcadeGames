@@ -339,6 +339,38 @@ export class PhysicsQuery {
 /**
  * Fast ray-AABB intersection check used as broadphase pre-filter for raycasts.
  */
+/**
+ * Evaluates axis interval intersection for a ray against slab boundaries.
+ */
+function checkRaySlab(
+  o: number,
+  d: number,
+  min: number,
+  max: number,
+  tmin: number,
+  tmax: number
+): { tmin: number; tmax: number } | null {
+  if (Math.abs(d) < 1e-9) {
+    if (o < min || o > max) return null;
+    return { tmin, tmax };
+  }
+  const invD = 1 / d;
+  let t1 = (min - o) * invD;
+  let t2 = (max - o) * invD;
+  if (t1 > t2) {
+    const tmp = t1;
+    t1 = t2;
+    t2 = tmp;
+  }
+  const newTmin = Math.max(tmin, t1);
+  const newTmax = Math.min(tmax, t2);
+  if (newTmin > newTmax) return null;
+  return { tmin: newTmin, tmax: newTmax };
+}
+
+/**
+ * Fast ray-AABB intersection check used as broadphase pre-filter for raycasts.
+ */
 function rayIntersectsAABB(
   ox: number,
   oy: number,
@@ -353,37 +385,15 @@ function rayIntersectsAABB(
   let tmin = 0;
   let tmax = maxDistance;
 
-  if (Math.abs(dx) < 1e-9) {
-    if (ox < minX || ox > maxX) return false;
-  } else {
-    const invD = 1 / dx;
-    let t1 = (minX - ox) * invD;
-    let t2 = (maxX - ox) * invD;
-    if (t1 > t2) {
-      const tmp = t1;
-      t1 = t2;
-      t2 = tmp;
-    }
-    tmin = Math.max(tmin, t1);
-    tmax = Math.min(tmax, t2);
-    if (tmin > tmax) return false;
-  }
+  const resX = checkRaySlab(ox, dx, minX, maxX, tmin, tmax);
+  if (!resX) return false;
+  tmin = resX.tmin;
+  tmax = resX.tmax;
 
-  if (Math.abs(dy) < 1e-9) {
-    if (oy < minY || oy > maxY) return false;
-  } else {
-    const invD = 1 / dy;
-    let t1 = (minY - oy) * invD;
-    let t2 = (maxY - oy) * invD;
-    if (t1 > t2) {
-      const tmp = t1;
-      t1 = t2;
-      t2 = tmp;
-    }
-    tmin = Math.max(tmin, t1);
-    tmax = Math.min(tmax, t2);
-    if (tmin > tmax) return false;
-  }
+  const resY = checkRaySlab(oy, dy, minY, maxY, tmin, tmax);
+  if (!resY) return false;
+  tmin = resY.tmin;
+  tmax = resY.tmax;
 
   return tmax >= tmin && tmax >= 0 && tmin <= maxDistance;
 }

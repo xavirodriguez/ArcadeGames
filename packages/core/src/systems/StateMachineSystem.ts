@@ -44,6 +44,33 @@ export interface StateDefinition {
  * while the system is iterating over entities.
  * @public
  */
+/**
+ * Helper to retrieve or initialize the StateMachineRegistry resource in the world.
+ * @public
+ */
+export function getOrCreateStateMachineRegistry(
+  world: World<CoreComponentRegistry>
+): Record<string, StateMachineDefinition> {
+  let registry = world.getResource<Record<string, StateMachineDefinition>>("StateMachineRegistry");
+  if (!registry) {
+    registry = {};
+    world.setResource("StateMachineRegistry", registry);
+  }
+  return registry;
+}
+
+/**
+ * System that manages entity state machines.
+ *
+ * @remarks
+ * This system updates the state of entities based on defined transitions and behaviors.
+ * State definitions can include `onEnter`, `onUpdate`, and `onExit` hooks.
+ *
+ * Warning: State transitions and hook execution may involve complex logic.
+ * Ensure that hooks do not perform unauthorized structural changes to the world
+ * while the system is iterating over entities.
+ * @public
+ */
 export class StateMachineSystem extends System<CoreComponentRegistry> {
   /**
    * Evaluates active state machines, executes state update hooks, and manages state transitions.

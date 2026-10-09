@@ -346,6 +346,8 @@ export interface RenderComponent extends Component {
   shape?: string;
   /** Base rendering scale size or radius. */
   size?: number;
+  /** Optional flag enabling Y-sorting tie-breaking when Render.order is equal (for belt-scroll games). */
+  depthSort?: boolean;
 }
 
 /**
@@ -1333,7 +1335,47 @@ export interface Collider2DComponent extends Component {
  * Registry map of standard core components used in the framework.
  * @public
  */
+/**
+ * Component tracking vertical elevation above the belt-scroll ground plane.
+ *
+ * @public
+ */
+export interface BeltElevationComponent extends Component {
+  /** Component discriminator type. */
+  type: "BeltElevation";
+  /** Height above ground plane in pixels (z >= 0). */
+  z: number;
+  /** Vertical speed along the z axis (positive upwards). */
+  vz: number;
+  /** Whether the entity is currently touching the ground plane. */
+  grounded: boolean;
+}
+
+/**
+ * Component storing input flags for belt-scroll movement.
+ * @public
+ */
+export interface BeltInputComponent extends Component {
+  /** Component discriminator type. */
+  type: "BeltInput";
+  moveX: number;
+  moveY: number;
+  attackHeld: boolean;
+  attackPressed: boolean;
+  fireHeld: boolean;
+  firePressed: boolean;
+  specialHeld: boolean;
+  specialPressed: boolean;
+  jumpHeld: boolean;
+  jumpPressed: boolean;
+  _prevHeldMask: number;
+}
+
 export interface CoreComponentRegistry extends ComponentRegistry {
+  /** Belt elevation component. */
+  BeltElevation: BeltElevationComponent;
+  /** Belt input component. */
+  BeltInput: BeltInputComponent;
   /** Transform component. */
   Transform: TransformComponent;
   /** Velocity component. */

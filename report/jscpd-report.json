@@ -1593,40 +1593,77 @@
     },
     {
       "firstFile": {
-        "end": 193,
+        "end": 231,
         "endLoc": {
-          "column": 10,
-          "line": 193,
-          "position": 6212
+          "column": 34,
+          "line": 231,
+          "position": 7697
         },
         "name": "hitandrun/rendering/HitRunCanvasVisuals.ts",
-        "start": 185,
+        "start": 221,
         "startLoc": {
           "column": 34,
-          "line": 185,
-          "position": 5889
+          "line": 221,
+          "position": 7345
         }
       },
       "format": "typescript",
-      "fragment": "export const drawHitRunWallTrooper: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {\n  draw(ctx, world, entity) {\n    const render = world.getComponent(entity, \"Render\");\n    if (!render?.visible) return;\n    const size = render.size || 14;\n    ctx.save();\n    if ((render.hitFlashFrames ?? 0) > 0) {\n      ctx.fillStyle = \"#fff\";\n      ctx.fillRect(-size * 0.4, -size * 0.5, size * 0.8, size);",
+      "fragment": "export const drawHitRunWallTrooper: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {\n  draw(ctx, world, entity) {\n    const render = world.getComponent(entity, \"Render\");\n    if (!render?.visible) return;\n    const size = render.size || 14;\n    const z = getElevationZ(world, entity);\n\n    ctx.save();\n\n    // 1. Shadow on ground plane\n    drawGroundShadow(ctx, size, z, 0.5, 0.16);",
+      "isNew": false,
+      "lines": 11,
+      "secondFile": {
+        "end": 325,
+        "endLoc": {
+          "column": 34,
+          "line": 325,
+          "position": 10422
+        },
+        "name": "hitandrun/rendering/HitRunCanvasVisuals.ts",
+        "start": 315,
+        "startLoc": {
+          "column": 30,
+          "line": 315,
+          "position": 10070
+        }
+      },
+      "tokens": 72
+    },
+    {
+      "firstFile": {
+        "end": 340,
+        "endLoc": {
+          "column": 10,
+          "line": 340,
+          "position": 10840
+        },
+        "name": "hitandrun/rendering/HitRunCanvasVisuals.ts",
+        "start": 332,
+        "startLoc": {
+          "column": 28,
+          "line": 332,
+          "position": 10592
+        }
+      },
+      "format": "typescript",
+      "fragment": "      ctx.fillStyle = \"#fff\";\n      ctx.beginPath();\n      ctx.moveTo(size * 0.65, -size * 0.42);\n      ctx.lineTo(-size * 0.45, -size * 0.84);\n      ctx.lineTo(-size * 0.25, -size * 0.42);\n      ctx.lineTo(-size * 0.45, 0);\n      ctx.closePath();\n      ctx.fill();\n      ctx.restore();",
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 255,
+        "end": 357,
         "endLoc": {
-          "column": 10,
-          "line": 255,
-          "position": 8338
+          "column": 8,
+          "line": 357,
+          "position": 11230
         },
         "name": "hitandrun/rendering/HitRunCanvasVisuals.ts",
-        "start": 247,
+        "start": 347,
         "startLoc": {
-          "column": 30,
-          "line": 247,
-          "position": 8015
+          "column": 23,
+          "line": 347,
+          "position": 10996
         }
       },
-      "tokens": 75
+      "tokens": 77
     },
     {
       "firstFile": {
@@ -3628,32 +3665,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-10-09T21:20:07.282Z",
+    "detectionDate": "2026-10-09T21:36:40.708Z",
     "formats": {
       "typescript": {
-        "clones": 98,
-        "duplicatedLines": 833,
-        "duplicatedTokens": 6927,
-        "lines": 88691,
+        "clones": 93,
+        "duplicatedLines": 849,
+        "duplicatedTokens": 6804,
+        "lines": 88068,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.9392159294629668,
-        "percentageTokens": 1.4362578919540945,
+        "percentage": 0.964027796702548,
+        "percentageTokens": 1.429459813775253,
         "sources": 547,
-        "tokens": 482295
+        "tokens": 475984
       }
     },
     "total": {
-      "clones": 98,
-      "duplicatedLines": 833,
-      "duplicatedTokens": 6927,
-      "lines": 88691,
+      "clones": 93,
+      "duplicatedLines": 849,
+      "duplicatedTokens": 6804,
+      "lines": 88068,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.9392159294629668,
-      "percentageTokens": 1.4362578919540945,
+      "percentage": 0.964027796702548,
+      "percentageTokens": 1.429459813775253,
       "sources": 547,
-      "tokens": 482295
+      "tokens": 475984
     }
   }
 }

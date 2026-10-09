@@ -1,7 +1,7 @@
 /**
  * BeltMovementSystem — free X + depth movement for belt-scroll beat'em-up.
  * Replaces PlatformerGravity + PlatformerMovement for the player.
- * Supports optional short hop (fantasy flair) without full platformer physics.
+ * Supports short hop on BeltElevationComponent without modifying Transform.y.
  */
 
 import {
@@ -15,7 +15,9 @@ import {
   DEFAULT_BELT_MOVEMENT_CONFIG,
   type BeltInputComponent,
   type BeltMovementComponent,
-  type BeltMovementConfig
+  type BeltMovementConfig,
+  type BeltElevationComponent,
+  createBeltElevationComponent
 } from "./BeltMovementTypes";
 
 function moveTowards(current: number, target: number, maxDelta: number): number {
@@ -85,35 +87,47 @@ export class BeltMovementSystem extends System<CoreComponentRegistry> {
       transform.scaleX = belt.facing >= 0 ? 1 : -1;
     }
 
-    if (!belt.isHopping && input.jumpPressed && config.hopImpulse !== 0) {
-      belt.isHopping = true;
-      belt.hopElapsed = 0;
-      belt.groundY = transform.y;
-      vel.vy = config.hopImpulse;
+    // Depth movement on ground plane (Y axis)
+    vel.vy = moveTowards(vel.vy, targetVyDepth, accel * dt);
+
+    if (transform.y < config.depthMin) {
+      transform.y = config.depthMin;
+      if (vel.vy < 0) vel.vy = 0;
+    } else if (transform.y > config.depthMax) {
+      transform.y = config.depthMax;
+      if (vel.vy > 0) vel.vy = 0;
     }
 
-    if (belt.isHopping) {
-      belt.hopElapsed += dt;
-      vel.vy += config.hopGravity * dt;
+    // Elevation vertical movement (Z axis)
+    let elevation = world.getMutableComponent(entity, "BeltElevation") as
+      | BeltElevationComponent
+      | undefined;
 
-      if (
-        transform.y >= belt.groundY ||
-        belt.hopElapsed >= config.hopMaxAirSeconds
-      ) {
-        transform.y = belt.groundY;
-        vel.vy = 0;
+    if (!elevation) {
+      elevation = createBeltElevationComponent();
+      world.addComponent(entity, elevation);
+    }
+
+    const canHop = !belt.isHopping && (elevation.grounded || elevation.z <= 0);
+    if (canHop && input.jumpPressed && config.hopImpulse !== 0) {
+      belt.isHopping = true;
+      belt.hopElapsed = 0;
+      elevation.z = Math.max(0, elevation.z);
+      elevation.vz = Math.abs(config.hopImpulse);
+      elevation.grounded = false;
+    }
+
+    if (belt.isHopping || !elevation.grounded || elevation.z > 0) {
+      belt.hopElapsed += dt;
+      elevation.vz -= config.hopGravity * dt;
+      elevation.z += elevation.vz * dt;
+
+      if (elevation.z <= 0 || belt.hopElapsed >= config.hopMaxAirSeconds) {
+        elevation.z = 0;
+        elevation.vz = 0;
+        elevation.grounded = true;
         belt.isHopping = false;
         belt.hopElapsed = 0;
-      }
-    } else {
-      vel.vy = moveTowards(vel.vy, targetVyDepth, accel * dt);
-
-      if (transform.y < config.depthMin) {
-        transform.y = config.depthMin;
-        if (vel.vy < 0) vel.vy = 0;
-      } else if (transform.y > config.depthMax) {
-        transform.y = config.depthMax;
-        if (vel.vy > 0) vel.vy = 0;
       }
     }
   }

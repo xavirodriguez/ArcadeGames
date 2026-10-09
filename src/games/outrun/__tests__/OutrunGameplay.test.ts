@@ -168,7 +168,7 @@ describe("OutrunGameplay", () => {
     expect(OUTRUN_PALETTES.mountain).toBeDefined();
 
     expect(OUTRUN_PALETTES.coast.skyBands.length).toBeGreaterThanOrEqual(4);
-    expect(OUTRUN_PALETTES.coast.sun).toBe("#ff4e50");
+    expect(OUTRUN_PALETTES.coast.sun).toBe("#ff5252");
 
     const h1 = scenarioHash("coast", 5);
     const h2 = scenarioHash("coast", 5);
@@ -179,6 +179,51 @@ describe("OutrunGameplay", () => {
     expect(h1).toBeGreaterThanOrEqual(0);
     expect(h1).toBeLessThanOrEqual(1);
     expect(h1).not.toBe(h3); // Unique per scenario
+  });
+
+  it("assigns scenarioId and side/over-road sprites during generateRoad", async () => {
+    const game = new OutrunGame({ seed: 123, headless: true });
+    await game.init();
+    const road = game.getWorld().getResource<RoadData>("RoadData");
+    expect(road).toBeDefined();
+    expect(road!.segments.length).toBeGreaterThan(50);
+
+    const segments = road!.segments;
+    expect(segments.some((s) => s.scenarioId === "coast")).toBe(true);
+    expect(segments.some((s) => s.scenarioId === "desert")).toBe(true);
+    expect(segments.some((s) => s.scenarioId === "mountain")).toBe(true);
+
+    // Segment 0 should have Start/Finish arch
+    expect(segments[0].sprites).toBeDefined();
+    expect(segments[0].sprites!.some((sp) => sp.kind === "arch")).toBe(true);
+
+    // Should contain side sprites across segments
+    const allSprites = segments.flatMap((s) => s.sprites ?? []);
+    expect(allSprites.some((sp) => sp.kind === "palm" || sp.kind === "lamp")).toBe(true);
+    expect(allSprites.some((sp) => sp.kind === "shrub" || sp.kind === "wind_tower")).toBe(true);
+    expect(allSprites.some((sp) => sp.kind === "cypress" || sp.kind === "wall")).toBe(true);
+    expect(allSprites.some((sp) => sp.kind === "chevron")).toBe(true);
+    expect(allSprites.some((sp) => sp.kind === "banner")).toBe(true);
+  });
+
+  it("modulates palettes smoothly across daylight phases and turns on lights in blue_hour", () => {
+    const { applyDayPhase, getDayPhase, COAST_PALETTE } = require("../rendering/OutrunPalettes");
+
+    const dawnInfo = getDayPhase(0.1);
+    expect(dawnInfo.phase).toBe("dawn");
+    expect(dawnInfo.lightsOn).toBe(false);
+
+    const blueHourInfo = getDayPhase(0.85);
+    expect(blueHourInfo.phase).toBe("blue_hour");
+    expect(blueHourInfo.lightsOn).toBe(true);
+
+    const modulatedDawn = applyDayPhase(COAST_PALETTE, 0.1);
+    expect(modulatedDawn.dayPhase).toBe("dawn");
+    expect(modulatedDawn.lightsOn).toBe(false);
+
+    const modulatedBlueHour = applyDayPhase(COAST_PALETTE, 0.85);
+    expect(modulatedBlueHour.dayPhase).toBe("blue_hour");
+    expect(modulatedBlueHour.lightsOn).toBe(true);
   });
 
   it("calculates car scale and high speed ratio for VFX speed lines threshold", async () => {

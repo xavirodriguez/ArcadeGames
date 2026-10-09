@@ -1667,92 +1667,18 @@
     },
     {
       "firstFile": {
-        "end": 157,
-        "endLoc": {
-          "column": 11,
-          "line": 157,
-          "position": 4605
-        },
-        "name": "outrun/OutrunGame.ts",
-        "start": 142,
-        "startLoc": {
-          "column": 40,
-          "line": 142,
-          "position": 4332
-        }
-      },
-      "format": "typescript",
-      "fragment": "      this.world.addComponent(roadEntity, {\n        type: \"Transform\",\n        x: 0,\n        y: 0,\n        rotation: 0,\n        scaleX: 1,\n        scaleY: 1,\n        worldX: 0,\n        worldY: 0,\n        worldRotation: 0,\n        worldScaleX: 1,\n        worldScaleY: 1,\n        dirty: false\n      });\n\n      const carEntity = this.world.createEntity();",
-      "isNew": false,
-      "lines": 16,
-      "secondFile": {
-        "end": 184,
-        "endLoc": {
-          "column": 11,
-          "line": 184,
-          "position": 5226
-        },
-        "name": "outrun/OutrunGame.ts",
-        "start": 169,
-        "startLoc": {
-          "column": 39,
-          "line": 169,
-          "position": 4953
-        }
-      },
-      "tokens": 53
-    },
-    {
-      "firstFile": {
-        "end": 155,
-        "endLoc": {
-          "column": 9,
-          "line": 155,
-          "position": 4592
-        },
-        "name": "outrun/OutrunGame.ts",
-        "start": 142,
-        "startLoc": {
-          "column": 40,
-          "line": 142,
-          "position": 4332
-        }
-      },
-      "format": "typescript",
-      "fragment": "      this.world.addComponent(roadEntity, {\n        type: \"Transform\",\n        x: 0,\n        y: 0,\n        rotation: 0,\n        scaleX: 1,\n        scaleY: 1,\n        worldX: 0,\n        worldY: 0,\n        worldRotation: 0,\n        worldScaleX: 1,\n        worldScaleY: 1,\n        dirty: false\n      });",
-      "isNew": false,
-      "lines": 14,
-      "secondFile": {
-        "end": 225,
-        "endLoc": {
-          "column": 11,
-          "line": 225,
-          "position": 6450
-        },
-        "name": "outrun/OutrunGame.ts",
-        "start": 212,
-        "startLoc": {
-          "column": 35,
-          "line": 212,
-          "position": 6164
-        }
-      },
-      "tokens": 52
-    },
-    {
-      "firstFile": {
-        "end": 21,
+        "end": 28,
         "endLoc": {
           "column": 8,
-          "line": 21,
-          "position": 1048
+          "line": 28,
+          "position": 1205
         },
         "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 10,
+        "start": 17,
         "startLoc": {
           "column": 0,
-          "line": 10,
-          "position": 561
+          "line": 17,
+          "position": 718
         }
       },
       "format": "typescript",
@@ -1760,147 +1686,295 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 22,
+        "end": 29,
         "endLoc": {
           "column": 8,
-          "line": 22,
-          "position": 1135
+          "line": 29,
+          "position": 1284
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 11,
+        "start": 18,
         "startLoc": {
           "column": 0,
-          "line": 11,
-          "position": 648
+          "line": 18,
+          "position": 797
         }
       },
       "tokens": 100
     },
     {
       "firstFile": {
-        "end": 54,
+        "end": 80,
         "endLoc": {
-          "column": 9,
-          "line": 54,
-          "position": 1929
+          "column": 45,
+          "line": 80,
+          "position": 2386
         },
         "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 43,
+        "start": 74,
         "startLoc": {
-          "column": 4,
-          "line": 43,
-          "position": 1525
+          "column": 29,
+          "line": 74,
+          "position": 2163
         }
       },
       "format": "typescript",
-      "fragment": "    const state = world.getSingleton(\"RaceState\");\n    const roadData = world.getResource<RoadData>(\"RoadData\");\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;\n\n    if (!state || !roadData || roadData.segments.length === 0) return;\n\n    const screenW = config.WIDTH;\n    const screenH = config.HEIGHT;\n    const rumbleLength = config.rumbleLength;\n\n    const palette = COAST_PALETTE;",
+      "fragment": "    ctx.fillStyle = \"#00b4d8\";\n    const topX = sp.side * 10;\n    const topY = -80;\n    for (let f = 0; f < 6; f++) {\n      const angle = (f / 6) * Math.PI * 2;\n      const fx = topX + Math.cos(angle) * 35;\n      const fy = topY + Math.sin(angle) * 20;",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 90,
+        "endLoc": {
+          "column": 45,
+          "line": 90,
+          "position": 2856
+        },
+        "name": "outrun/rendering/OutrunSkiaVisuals.ts",
+        "start": 84,
+        "startLoc": {
+          "column": 41,
+          "line": 84,
+          "position": 2633
+        }
+      },
+      "tokens": 74
+    },
+    {
+      "firstFile": {
+        "end": 212,
+        "endLoc": {
+          "column": 9,
+          "line": 212,
+          "position": 6525
+        },
+        "name": "outrun/rendering/OutrunCanvasVisuals.ts",
+        "start": 201,
+        "startLoc": {
+          "column": 4,
+          "line": 201,
+          "position": 6121
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const state = world.getSingleton(\"RaceState\");\n    const roadData = world.getResource<RoadData>(\"RoadData\");\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;\n\n    if (!state || !roadData || roadData.segments.length === 0) return;\n\n    const screenW = config.WIDTH;\n    const screenH = config.HEIGHT;\n    const rumbleLength = config.rumbleLength;\n\n    const basePalette = getScenarioPaletteAtZ(state.playerZ, roadData);",
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 60,
+        "end": 225,
         "endLoc": {
           "column": 9,
-          "line": 60,
-          "position": 2269
+          "line": 225,
+          "position": 7828
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 50,
+        "start": 215,
         "startLoc": {
           "column": 4,
-          "line": 50,
-          "position": 1866
+          "line": 215,
+          "position": 7425
         }
       },
       "tokens": 78
     },
     {
       "firstFile": {
-        "end": 82,
+        "end": 218,
         "endLoc": {
-          "column": 44,
-          "line": 82,
-          "position": 2970
+          "column": 55,
+          "line": 218,
+          "position": 6867
         },
         "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 70,
+        "start": 210,
         "startLoc": {
-          "column": 13,
-          "line": 70,
-          "position": 2492
+          "column": 44,
+          "line": 210,
+          "position": 6513
         }
       },
       "format": "typescript",
-      "fragment": "    ctx.fill();\n\n    // PASS 3: Parallax Faceted Mountains\n    const horizonY = screenH * 0.45;\n    const numPeaks = 12;\n    const peakSpacing = screenW / 4;\n    const mountainOffsetX = ((state.playerZ * 0.00015) % peakSpacing) + state.playerX * 25;\n\n    for (let m = -2; m < numPeaks + 2; m++) {\n      const h1 = scenarioHash(palette.id, m);\n      const h2 = scenarioHash(palette.id, m + 100);\n      const px = m * peakSpacing - mountainOffsetX;\n      const peakY = horizonY - 40 - h1 * 60;",
+      "fragment": "    const rumbleLength = config.rumbleLength;\n\n    const basePalette = getScenarioPaletteAtZ(state.playerZ, roadData);\n    const progress = state.playerZ / roadData.trackLength;\n    const palette = applyDayPhase(basePalette, progress);\n\n    // PASS 1: Sky Multi-Band Gradient\n    const bandHeight = (screenH * 0.45) / palette.skyBands.length;\n    for (let b = 0; b < palette.skyBands.length; b++) {",
       "isNew": false,
-      "lines": 13,
+      "lines": 9,
       "secondFile": {
-        "end": 94,
+        "end": 233,
         "endLoc": {
-          "column": 44,
-          "line": 94,
-          "position": 3565
+          "column": 55,
+          "line": 233,
+          "position": 8201
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 82,
+        "start": 225,
         "startLoc": {
-          "column": 50,
-          "line": 82,
-          "position": 3087
+          "column": 28,
+          "line": 225,
+          "position": 7847
         }
       },
-      "tokens": 106
+      "tokens": 68
     },
     {
       "firstFile": {
-        "end": 114,
+        "end": 243,
         "endLoc": {
-          "column": 23,
-          "line": 114,
-          "position": 3778
+          "column": 123,
+          "line": 243,
+          "position": 7806
         },
         "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 98,
+        "start": 234,
         "startLoc": {
-          "column": 15,
-          "line": 98,
-          "position": 3451
+          "column": 38,
+          "line": 234,
+          "position": 7333
         }
       },
       "format": "typescript",
-      "fragment": "      ctx.fill();\n    }\n\n    const count = projectRoad(\n      roadData.segments,\n      state.playerZ,\n      state.playerX,\n      config.cameraHeight,\n      config.cameraDepth,\n      config.roadWidth,\n      Math.min(config.drawDistance, PROJECTION_CAPACITY),\n      screenW,\n      screenH,\n      projectionBuffer\n    );\n\n    let maxy = screenH;",
+      "fragment": "    ctx.fillStyle = palette.cloudColor;\n    for (let c = 0; c < cloudCount; c++) {\n      const h1 = scenarioHash(\"cloud_x\", c);\n      const h2 = scenarioHash(\"cloud_y\", c);\n      const h3 = scenarioHash(\"cloud_w\", c);\n      const baseCloudX = h1 * screenW;\n      const cloudY = screenH * 0.08 + h2 * (screenH * 0.2);\n      const cloudW = 50 + h3 * 60;\n      const cloudH = cloudW * 0.35;\n      const cloudX = ((baseCloudX + state.playerZ * 0.00005 * (c + 1) + state.playerX * 15) % screenW + screenW) % screenW;",
       "isNew": false,
-      "lines": 17,
+      "lines": 10,
       "secondFile": {
-        "end": 129,
+        "end": 265,
         "endLoc": {
-          "column": 23,
-          "line": 129,
-          "position": 4570
+          "column": 123,
+          "line": 265,
+          "position": 9444
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 113,
+        "start": 256,
         "startLoc": {
-          "column": 34,
-          "line": 113,
-          "position": 4243
+          "column": 50,
+          "line": 256,
+          "position": 8971
+        }
+      },
+      "tokens": 117
+    },
+    {
+      "firstFile": {
+        "end": 273,
+        "endLoc": {
+          "column": 11,
+          "line": 273,
+          "position": 8890
+        },
+        "name": "outrun/rendering/OutrunCanvasVisuals.ts",
+        "start": 268,
+        "startLoc": {
+          "column": 42,
+          "line": 268,
+          "position": 8677
+        }
+      },
+      "format": "typescript",
+      "fragment": "      ctx.fillStyle = palette.mountainBase;\n      for (let b = -2; b < 8; b++) {\n        const bx = b * spacing - horizonOffset;\n        const bw = 18 + scenarioHash(\"coast_b\", b) * 20;\n        const bh = 15 + scenarioHash(\"coast_bh\", b) * 35;\n        ctx.fillRect(bx, horizonY - bh, bw, bh);",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 288,
+        "endLoc": {
+          "column": 14,
+          "line": 288,
+          "position": 10392
+        },
+        "name": "outrun/rendering/OutrunSkiaVisuals.ts",
+        "start": 283,
+        "startLoc": {
+          "column": 54,
+          "line": 283,
+          "position": 10176
+        }
+      },
+      "tokens": 54
+    },
+    {
+      "firstFile": {
+        "end": 306,
+        "endLoc": {
+          "column": 11,
+          "line": 306,
+          "position": 10249
+        },
+        "name": "outrun/rendering/OutrunCanvasVisuals.ts",
+        "start": 301,
+        "startLoc": {
+          "column": 42,
+          "line": 301,
+          "position": 10048
+        }
+      },
+      "format": "typescript",
+      "fragment": "      ctx.fillStyle = palette.mountainBase;\n      for (let m = -2; m < 7; m++) {\n        const mx = m * spacing - offset;\n        const mh = 35 + scenarioHash(\"mtn_h\", m) * 55;\n        const mw = 30 + scenarioHash(\"mtn_w\", m) * 25;\n        ctx.fillRect(mx, horizonY - mh, mw, mh);",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 318,
+        "endLoc": {
+          "column": 13,
+          "line": 318,
+          "position": 11624
+        },
+        "name": "outrun/rendering/OutrunSkiaVisuals.ts",
+        "start": 313,
+        "startLoc": {
+          "column": 42,
+          "line": 313,
+          "position": 11421
+        }
+      },
+      "tokens": 54
+    },
+    {
+      "firstFile": {
+        "end": 334,
+        "endLoc": {
+          "column": 23,
+          "line": 334,
+          "position": 10965
+        },
+        "name": "outrun/rendering/OutrunCanvasVisuals.ts",
+        "start": 317,
+        "startLoc": {
+          "column": 44,
+          "line": 317,
+          "position": 10631
+        }
+      },
+      "format": "typescript",
+      "fragment": "        ctx.fillStyle = palette.mountainBase;\n      }\n    }\n\n    const count = projectRoad(\n      roadData.segments,\n      state.playerZ,\n      state.playerX,\n      config.cameraHeight,\n      config.cameraDepth,\n      config.roadWidth,\n      Math.min(config.drawDistance, PROJECTION_CAPACITY),\n      screenW,\n      screenH,\n      projectionBuffer\n    );\n\n    let maxy = screenH;",
+      "isNew": false,
+      "lines": 18,
+      "secondFile": {
+        "end": 345,
+        "endLoc": {
+          "column": 23,
+          "line": 345,
+          "position": 12419
+        },
+        "name": "outrun/rendering/OutrunSkiaVisuals.ts",
+        "start": 328,
+        "startLoc": {
+          "column": 36,
+          "line": 328,
+          "position": 12085
         }
       },
       "tokens": 55
     },
     {
       "firstFile": {
-        "end": 144,
+        "end": 365,
         "endLoc": {
           "column": 96,
-          "line": 144,
-          "position": 4886
+          "line": 365,
+          "position": 12085
         },
         "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 139,
+        "start": 360,
         "startLoc": {
           "column": 4,
-          "line": 139,
-          "position": 4638
+          "line": 360,
+          "position": 11837
         }
       },
       "format": "typescript",
@@ -1908,36 +1982,36 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 136,
+        "end": 352,
         "endLoc": {
           "column": 96,
-          "line": 136,
-          "position": 4824
+          "line": 352,
+          "position": 12673
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 131,
+        "start": 347,
         "startLoc": {
           "column": 4,
-          "line": 131,
-          "position": 4576
+          "line": 347,
+          "position": 12425
         }
       },
       "tokens": 69
     },
     {
       "firstFile": {
-        "end": 150,
+        "end": 371,
         "endLoc": {
           "column": 19,
-          "line": 150,
-          "position": 5168
+          "line": 371,
+          "position": 12367
         },
         "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 145,
+        "start": 366,
         "startLoc": {
           "column": 23,
-          "line": 145,
-          "position": 4910
+          "line": 366,
+          "position": 12109
         }
       },
       "format": "typescript",
@@ -1945,147 +2019,258 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 142,
+        "end": 358,
         "endLoc": {
           "column": 23,
-          "line": 142,
-          "position": 5124
+          "line": 358,
+          "position": 12973
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 137,
+        "start": 353,
         "startLoc": {
           "column": 37,
-          "line": 137,
-          "position": 4862
+          "line": 353,
+          "position": 12711
         }
       },
       "tokens": 69
     },
     {
       "firstFile": {
-        "end": 158,
+        "end": 379,
         "endLoc": {
-          "column": 21,
-          "line": 158,
-          "position": 5542
+          "column": 13,
+          "line": 379,
+          "position": 12727
         },
         "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 153,
+        "start": 374,
         "startLoc": {
           "column": 23,
-          "line": 153,
-          "position": 5329
+          "line": 374,
+          "position": 12528
         }
       },
       "format": "typescript",
-      "fragment": "      fillTrapezoid(ctx, p.x1, p.y1, p.w1, p.x2, Math.min(p.y2, maxy), p.w2, road);\n\n      if (Math.floor(p.index / rumbleLength) % 2 === 0) {\n        const laneW1 = p.w1 * 0.04;\n        const laneW2 = p.w2 * 0.04;\n        fillTrapezoid(ctx, p.x1, p.y1, laneW1, p.x2, Math.min(p.y2, maxy), laneW2, palette.lane);",
+      "fragment": "      fillTrapezoid(ctx, p.x1, p.y1, p.w1, p.x2, Math.min(p.y2, maxy), p.w2, road);\n\n      // Inner curve asphalt darkening\n      if (Math.abs(p.curve) > 1.5) {\n        const innerSide = p.curve > 0 ? 1 : -1;\n        const darkAlpha = Math.min(0.25, (Math.abs(p.curve) - 1.5) * 0.08);",
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 150,
+        "end": 366,
         "endLoc": {
           "column": 25,
-          "line": 150,
-          "position": 5526
+          "line": 366,
+          "position": 13369
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 145,
+        "start": 361,
         "startLoc": {
           "column": 37,
-          "line": 145,
-          "position": 5309
+          "line": 361,
+          "position": 13158
         }
       },
-      "tokens": 71
+      "tokens": 63
     },
     {
       "firstFile": {
-        "end": 208,
+        "end": 425,
         "endLoc": {
-          "column": 56,
-          "line": 208,
-          "position": 7251
+          "column": 45,
+          "line": 425,
+          "position": 14364
         },
         "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 180,
+        "start": 405,
         "startLoc": {
-          "column": 4,
-          "line": 180,
-          "position": 6221
+          "column": 17,
+          "line": 405,
+          "position": 13779
         }
       },
       "format": "typescript",
-      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const state = world.getSingleton(\"RaceState\");\n    if (!state) return;\n\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;\n\n    const visualOffset = world.getComponent(entity, \"VisualOffset\");\n    const vX = visualOffset?.offsetX ?? 0;\n    const vY = visualOffset?.offsetY ?? 0;\n\n    const screenW = config.WIDTH;\n    const screenH = config.HEIGHT;\n    const speedRatio = state.speed / config.maxSpeed;\n    const carScale = 1.0 + speedRatio * 0.08;\n\n    // Offroad vibration / high-speed suspension bounce\n    const isOffroad = Math.abs(state.playerX) > 1.0;\n    const bounceY = isOffroad\n      ? (Math.sin(state.playerZ * 0.2) * 3)\n      : (Math.sin(state.playerZ * 0.05) * 1.2 * speedRatio);\n\n    // Steering roll/tilt\n    const tiltAngle = state.playerX * 0.08 * speedRatio;\n\n    const baseY = screenH - 80 + bounceY + vY;\n    const baseX = screenW / 2 + state.playerX * 40 + vX;",
+      "fragment": "        ctx.fill();\n      }\n\n      maxy = p.y2;\n    }\n\n    // Sprites Pass (Render back-to-front with ridge occlusion clipping)\n    for (let i = count - 1; i >= 0; i--) {\n      const p = projectionBuffer[i];\n      const seg = roadData.segments[p.index];\n      if (!seg || !seg.sprites || seg.sprites.length === 0) continue;\n\n      for (const sp of seg.sprites) {\n        let sx = p.x1;\n        if (sp.kind !== \"arch\" && sp.kind !== \"banner\") {\n          sx = p.x1 + sp.side * (p.w1 * sp.offset);\n        }\n        const sy = p.y1;\n        const sw = p.w1;\n\n        if (sy >= p.clip || sw < 2) continue;",
       "isNew": false,
-      "lines": 29,
+      "lines": 21,
       "secondFile": {
-        "end": 187,
+        "end": 402,
         "endLoc": {
-          "column": 56,
-          "line": 187,
-          "position": 6771
+          "column": 45,
+          "line": 402,
+          "position": 14446
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 161,
+        "start": 382,
         "startLoc": {
-          "column": 4,
-          "line": 161,
-          "position": 5823
+          "column": 109,
+          "line": 382,
+          "position": 13861
         }
       },
-      "tokens": 208
+      "tokens": 148
     },
     {
       "firstFile": {
-        "end": 295,
+        "end": 452,
         "endLoc": {
-          "column": 63,
-          "line": 295,
-          "position": 9813
+          "column": 71,
+          "line": 452,
+          "position": 15142
         },
         "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 244,
+        "start": 442,
         "startLoc": {
           "column": 4,
-          "line": 244,
-          "position": 8041
+          "line": 442,
+          "position": 14730
         }
       },
       "format": "typescript",
-      "fragment": "    const racer = world.getComponent(entity, \"Racer\");\n    const render = world.getComponent(entity, \"Render\");\n    if (!racer || !racer.active || !render || !render.visible) return;\n\n    const state = world.getSingleton(\"RaceState\");\n    const roadData = world.getResource<RoadData>(\"RoadData\");\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;\n    if (!state || !roadData) return;\n\n    const count = projectRoad(\n      roadData.segments,\n      state.playerZ,\n      state.playerX,\n      config.cameraHeight,\n      config.cameraDepth,\n      config.roadWidth,\n      Math.min(config.drawDistance, PROJECTION_CAPACITY),\n      config.WIDTH,\n      config.HEIGHT,\n      projectionBuffer\n    );\n\n    const trackLength = roadData.trackLength;\n    let relZ = racer.z - state.playerZ;\n    if (relZ > trackLength / 2) relZ -= trackLength;\n    if (relZ < -trackLength / 2) relZ += trackLength;\n    if (relZ <= 0 || relZ > config.drawDistance * config.segmentLength) return;\n\n    let best: ProjectedSegment | null = null;\n    for (let i = 0; i < count; i++) {\n      const p = projectionBuffer[i];\n      if (p.p1z <= relZ && p.p2z >= relZ) {\n        best = p;\n        break;\n      }\n    }\n    if (!best) return;\n\n    const t = (relZ - best.p1z) / Math.max(0.001, best.p2z - best.p1z);\n    const sx = best.x1 + (best.x2 - best.x1) * t;\n    const sy = best.y1 + (best.y2 - best.y1) * t;\n    const sw = best.w1 + (best.w2 - best.w1) * t;\n\n    const lateral = racer.lateralX * sw;\n    const carW = sw * 0.35;\n    const carH = carW * 0.6;\n\n    if (sy > config.HEIGHT || sy >= best.clip || carW < 2) return;\n\n    const colors = [\"#457b9d\", \"#2a9d8f\", \"#e9c46a\", \"#f4a261\", \"#e76f51\"];\n    const bodyColor = colors[racer.colorIndex % colors.length];",
+      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const state = world.getSingleton(\"RaceState\");\n    if (!state) return;\n\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;\n\n    const visualOffset = world.getComponent(entity, \"VisualOffset\");\n    const geom = computePlayerCarGeometry(state, config, visualOffset);",
       "isNew": false,
-      "lines": 52,
+      "lines": 11,
       "secondFile": {
-        "end": 279,
+        "end": 429,
         "endLoc": {
-          "column": 63,
-          "line": 279,
-          "position": 9761
+          "column": 71,
+          "line": 429,
+          "position": 15319
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 228,
+        "start": 419,
         "startLoc": {
           "column": 4,
-          "line": 228,
-          "position": 7989
+          "line": 419,
+          "position": 14907
         }
       },
-      "tokens": 421
+      "tokens": 80
     },
     {
       "firstFile": {
-        "end": 317,
+        "end": 466,
+        "endLoc": {
+          "column": 109,
+          "line": 466,
+          "position": 15699
+        },
+        "name": "outrun/rendering/OutrunCanvasVisuals.ts",
+        "start": 460,
+        "startLoc": {
+          "column": 13,
+          "line": 460,
+          "position": 15358
+        }
+      },
+      "format": "typescript",
+      "fragment": "    ctx.fill();\n\n    // Off-track Dust\n    if (geom.isOffroad && state.speed > 0) {\n      const roadData = world.getResource<RoadData>(\"RoadData\");\n      const basePal = roadData ? getScenarioPaletteAtZ(state.playerZ, roadData) : COAST_PALETTE;\n      const dustColor = basePal.id === \"coast\" ? \"#e2dfc8\" : basePal.id === \"desert\" ? \"#d0a67a\" : \"#8d99ae\";",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 445,
+        "endLoc": {
+          "column": 109,
+          "line": 445,
+          "position": 16004
+        },
+        "name": "outrun/rendering/OutrunSkiaVisuals.ts",
+        "start": 439,
+        "startLoc": {
+          "column": 129,
+          "line": 439,
+          "position": 15663
+        }
+      },
+      "tokens": 65
+    },
+    {
+      "firstFile": {
+        "end": 472,
+        "endLoc": {
+          "column": 31,
+          "line": 472,
+          "position": 15965
+        },
+        "name": "outrun/rendering/OutrunCanvasVisuals.ts",
+        "start": 466,
+        "startLoc": {
+          "column": 108,
+          "line": 466,
+          "position": 15698
+        }
+      },
+      "format": "typescript",
+      "fragment": "      const dustColor = basePal.id === \"coast\" ? \"#e2dfc8\" : basePal.id === \"desert\" ? \"#d0a67a\" : \"#8d99ae\";\n\n      for (let d = 0; d < 12; d++) {\n        const h1 = scenarioHash(\"dust_x\", d + Math.floor(state.playerZ * 0.1));\n        const h2 = scenarioHash(\"dust_y\", d + Math.floor(state.playerZ * 0.1));\n        const dx = (h1 - 0.5) * 45;\n        const dy = h2 * 25 + 5;",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 452,
+        "endLoc": {
+          "column": 31,
+          "line": 452,
+          "position": 16315
+        },
+        "name": "outrun/rendering/OutrunSkiaVisuals.ts",
+        "start": 447,
+        "startLoc": {
+          "column": 43,
+          "line": 447,
+          "position": 16049
+        }
+      },
+      "tokens": 78
+    },
+    {
+      "firstFile": {
+        "end": 538,
+        "endLoc": {
+          "column": 63,
+          "line": 538,
+          "position": 17847
+        },
+        "name": "outrun/rendering/OutrunCanvasVisuals.ts",
+        "start": 517,
+        "startLoc": {
+          "column": 4,
+          "line": 517,
+          "position": 17102
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const racer = world.getComponent(entity, \"Racer\");\n    const render = world.getComponent(entity, \"Render\");\n    if (!racer || !racer.active || !render || !render.visible) return;\n\n    const state = world.getSingleton(\"RaceState\");\n    const roadData = world.getResource<RoadData>(\"RoadData\");\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;\n    if (!state || !roadData) return;\n\n    const proj = computeRacerProjection(\n      racer,\n      state,\n      roadData,\n      config,\n      projectionBuffer,\n      PROJECTION_CAPACITY\n    );\n    if (!proj) return;\n\n    const colors = [\"#457b9d\", \"#2a9d8f\", \"#e9c46a\", \"#f4a261\", \"#e76f51\"];\n    const bodyColor = colors[racer.colorIndex % colors.length];",
+      "isNew": false,
+      "lines": 22,
+      "secondFile": {
+        "end": 516,
+        "endLoc": {
+          "column": 63,
+          "line": 516,
+          "position": 18394
+        },
+        "name": "outrun/rendering/OutrunSkiaVisuals.ts",
+        "start": 495,
+        "startLoc": {
+          "column": 4,
+          "line": 495,
+          "position": 17649
+        }
+      },
+      "tokens": 146
+    },
+    {
+      "firstFile": {
+        "end": 560,
         "endLoc": {
           "column": 46,
-          "line": 317,
-          "position": 10526
+          "line": 560,
+          "position": 18615
         },
         "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 309,
+        "start": 552,
         "startLoc": {
           "column": 4,
-          "line": 309,
-          "position": 10192
+          "line": 552,
+          "position": 18281
         }
       },
       "format": "typescript",
@@ -2093,18 +2278,18 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 309,
+        "end": 546,
         "endLoc": {
           "column": 46,
-          "line": 309,
-          "position": 10724
+          "line": 546,
+          "position": 19412
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 301,
+        "start": 538,
         "startLoc": {
           "column": 4,
-          "line": 301,
-          "position": 10390
+          "line": 538,
+          "position": 19078
         }
       },
       "tokens": 73
@@ -3406,32 +3591,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-10-09T12:46:02.378Z",
+    "detectionDate": "2026-10-09T21:01:20.428Z",
     "formats": {
       "typescript": {
-        "clones": 92,
-        "duplicatedLines": 839,
-        "duplicatedTokens": 6730,
-        "lines": 87872,
+        "clones": 97,
+        "duplicatedLines": 817,
+        "duplicatedTokens": 6766,
+        "lines": 88563,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.9547978878368536,
-        "percentageTokens": 1.4160342204763179,
-        "sources": 546,
-        "tokens": 475271
+        "percentage": 0.922507141808656,
+        "percentageTokens": 1.405787706525714,
+        "sources": 547,
+        "tokens": 481296
       }
     },
     "total": {
-      "clones": 92,
-      "duplicatedLines": 839,
-      "duplicatedTokens": 6730,
-      "lines": 87872,
+      "clones": 97,
+      "duplicatedLines": 817,
+      "duplicatedTokens": 6766,
+      "lines": 88563,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.9547978878368536,
-      "percentageTokens": 1.4160342204763179,
-      "sources": 546,
-      "tokens": 475271
+      "percentage": 0.922507141808656,
+      "percentageTokens": 1.405787706525714,
+      "sources": 547,
+      "tokens": 481296
     }
   }
 }

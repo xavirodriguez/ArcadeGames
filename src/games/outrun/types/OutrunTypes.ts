@@ -56,6 +56,20 @@ export interface RoadRootComponent {
 }
 
 /**
+ * Side sprite or roadside/over-road decoration element attached to a segment.
+ */
+export interface RoadSegmentSprite {
+  /** Offset in road width units from road edge (~1.2 - 3.5; 0 for over-road). */
+  offset: number;
+  /** Side relative to road center (-1 left, 1 right). */
+  side: -1 | 1;
+  /** Visual type identifier (e.g., palm, lamp, shrub, wind_tower, cypress, wall, chevron, billboard, arch, banner). */
+  kind: string;
+  /** Optional typographic text for billboards and banners. */
+  text?: string;
+}
+
+/**
  * Road segment data (not an ECS component — stored as world resource).
  */
 export interface RoadSegment {
@@ -67,6 +81,8 @@ export interface RoadSegment {
   hill: number;
   /** Visual scenario theme for this segment. */
   scenarioId?: "coast" | "desert" | "mountain";
+  /** Decorative roadside or over-road elements. */
+  sprites?: RoadSegmentSprite[];
 }
 
 /**

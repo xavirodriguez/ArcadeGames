@@ -1,0 +1,41 @@
+{
+  "id": "space_demo",
+  "name": "Cosmic Nebula Grand Prix",
+  "skin": "space",
+  "width": 1600,
+  "height": 1000,
+  "spawnPoints": [
+    { "x": 800, "y": 200, "rotation": 0 },
+    { "x": 800, "y": 230, "rotation": 0 }
+  ],
+  "waypoints": [
+    { "x": 800, "y": 200, "radius": 70 },
+    { "x": 1300, "y": 300, "radius": 70 },
+    { "x": 1200, "y": 750, "radius": 70 },
+    { "x": 800, "y": 850, "radius": 70 },
+    { "x": 400, "y": 750, "radius": 70 },
+    { "x": 300, "y": 300, "radius": 70 }
+  ],
+  "walls": [
+    { "x": 800, "y": 30, "width": 1540, "height": 24 },
+    { "x": 800, "y": 970, "width": 1540, "height": 24 },
+    { "x": 30, "y": 500, "width": 24, "height": 940 },
+    { "x": 1570, "y": 500, "width": 24, "height": 940 }
+  ],
+  "zones": [
+    {
+      "id": "lava_flare_1",
+      "x": 1200,
+      "y": 500,
+      "width": 160,
+      "height": 160,
+      "surface": "lava",
+      "gripModifier": 0.3,
+      "speedModifier": 0.8
+    }
+  ],
+  "obstacles": [
+    { "id": "asteroid_alpha", "x": 800, "y": 520, "radius": 40, "kind": "asteroid" },
+    { "id": "asteroid_beta", "x": 500, "y": 450, "radius": 35, "kind": "asteroid" }
+  ]
+}

@@ -8,7 +8,9 @@ export const VehicleSpecSchema = z.object({
   steeringRate: z.number().positive(),
   traction: z.number().min(0).max(1),
   driftFactor: z.number().min(0).max(1),
-  color: z.string().default("#00e5ff")
+  color: z.string().default("#00e5ff"),
+  drawerKey: z.string().optional(),
+  sprite: z.string().optional()
 });
 
 export type VehicleSpec = z.infer<typeof VehicleSpecSchema>;
@@ -19,7 +21,7 @@ export const TrackZoneSchema = z.object({
   y: z.number(),
   width: z.number(),
   height: z.number(),
-  surface: z.enum(["asphalt", "oil", "water", "grass", "deadly_edge"]),
+  surface: z.string(),
   gripModifier: z.number().default(1.0),
   speedModifier: z.number().default(1.0)
 });
@@ -29,7 +31,8 @@ export type TrackZone = z.infer<typeof TrackZoneSchema>;
 export const TrackSpecSchema = z.object({
   id: z.string(),
   name: z.string(),
-  theme: z.enum(["breakfast", "billiard", "desk", "garden"]).default("breakfast"),
+  theme: z.string().optional(),
+  skin: z.string().optional(),
   width: z.number().positive().default(1600),
   height: z.number().positive().default(1000),
   spawnPoints: z.array(z.object({

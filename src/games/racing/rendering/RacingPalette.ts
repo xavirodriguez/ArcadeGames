@@ -22,16 +22,6 @@ export interface RacingPalette {
   text: string;
 }
 
-/**
- * Semantic color palettes for Miniature Tabletop Rally themes.
- *
- * Derived tokens explanation:
- * - surfaceDetail: Derived for desk (#B2A084) and garden (#5C6E46) by darkening surface tone by ~15% for wood grain / grass turf patterns.
- * - playerHighlight / rivalHighlight: Derived by brightening player cyan/blue and rival coral/orange tones by ~25% for top-down volumetric highlights on toy car roofs.
- * - obstacleHighlight: Derived by brightening obstacle base tones by ~20% for glossy highlights on bowls, mugs, and balls.
- * - outline: Dark tone derived from each theme's shadow base (#2D1E18, #0C2018, #2B2521, #282D20) for consistent tabletop object outlines.
- * - accent: Gold/Yellow (#F2C94C) used for finish line details and boost flame highlights.
- */
 export const RACING_PALETTES: Record<TrackTheme, RacingPalette> = {
   breakfast: {
     surface: "#D8BC91",
@@ -105,6 +95,9 @@ export const RACING_PALETTES: Record<TrackTheme, RacingPalette> = {
 
 export function getRacingPalette(world: World<RacingComponentRegistry, RacingEventRegistry>): RacingPalette {
   const trackSpec = world.getResource<TrackSpec>("ActiveTrackSpec");
-  const theme = trackSpec?.theme ?? "breakfast";
-  return RACING_PALETTES[theme] ?? RACING_PALETTES.breakfast;
+  const theme = (trackSpec?.skin ?? trackSpec?.theme ?? "breakfast") as TrackTheme;
+  if (RACING_PALETTES[theme]) {
+    return RACING_PALETTES[theme];
+  }
+  return RACING_PALETTES.breakfast;
 }

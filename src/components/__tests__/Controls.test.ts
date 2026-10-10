@@ -8,6 +8,31 @@ jest.mock('../../utils/haptics', () => ({
   hapticSelection: jest.fn(),
 }));
 
+jest.mock('react-native-reanimated', () => ({
+  useSharedValue: (val: any) => ({ value: val }),
+  useAnimatedStyle: (fn: any) => (typeof fn === "function" ? fn() : fn),
+  withTiming: (val: any) => val,
+  withSpring: (val: any) => val,
+  runOnJS: (fn: any) => fn,
+  default: {
+    View: 'AnimatedView',
+    Text: 'AnimatedText',
+  },
+}));
+
+jest.mock('react-native-gesture-handler', () => ({
+  Gesture: {
+    Pan: () => ({
+      minDistance: () => ({
+        runOnJS: () => ({
+          onBegin: () => ({ onFinalize: () => ({}) }),
+        }),
+      }),
+    }),
+  },
+  GestureDetector: ({ children }: any) => children,
+}));
+
 describe('Controls Component Export & Interface', () => {
   describe('ShootButton', () => {
     it('exports ShootButton component', () => {

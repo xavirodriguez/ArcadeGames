@@ -16,6 +16,7 @@ module.exports = {
   roots: [
     '<rootDir>',
     path.resolve(__dirname, '../../../src/ui'),
+    path.resolve(__dirname, '../../../src/components'),
     path.resolve(__dirname, '../../../src/hooks'),
     path.resolve(__dirname, '../../../src/app/arkanoid')
   ],

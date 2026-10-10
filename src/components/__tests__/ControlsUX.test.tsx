@@ -6,6 +6,39 @@ import { PongControls } from "../PongControls";
 import { BackButton } from "../ui/BackButton";
 import { PlayerNameInput } from "../ui/PlayerNameInput";
 
+jest.mock("expo-router", () => ({
+  router: {
+    back: jest.fn(),
+    replace: jest.fn(),
+    canGoBack: jest.fn(),
+  },
+}));
+
+jest.mock("react-native-reanimated", () => ({
+  useSharedValue: (val: any) => ({ value: val }),
+  useAnimatedStyle: (fn: any) => (typeof fn === "function" ? fn() : fn),
+  withTiming: (val: any) => val,
+  withSpring: (val: any) => val,
+  runOnJS: (fn: any) => fn,
+  default: {
+    View: "AnimatedView",
+    Text: "AnimatedText",
+  },
+}));
+
+jest.mock("react-native-gesture-handler", () => ({
+  Gesture: {
+    Pan: () => ({
+      minDistance: () => ({
+        runOnJS: () => ({
+          onBegin: () => ({ onFinalize: () => ({}) }),
+        }),
+      }),
+    }),
+  },
+  GestureDetector: ({ children }: any) => children,
+}));
+
 describe("In-Game Controls & Form UI Component Tests", () => {
   it("creates ShootButton React element with props successfully", () => {
     const element = React.createElement(ShootButton, {

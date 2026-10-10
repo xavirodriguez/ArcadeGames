@@ -7,7 +7,7 @@ import { ComboDisplay } from "@/src/components/ComboDisplay";
 import { GameErrorBoundary } from "@/src/components/GameErrorBoundary";
 import { useGeometryWarsGame } from "@/src/hooks/useGeometryWarsGame";
 import { useTranslation } from "@/src/hooks/useTranslation";
-import { VirtualJoystick } from "@/src/components/controls/VirtualJoystick";
+import { TouchVirtualJoystick } from "@/components/controls";
 import { DEFAULT_AIM_FIRE_THRESHOLD } from "@/src/components/controls/MobileControlsOverlay";
 import { hapticImpactLight } from "@/src/utils/haptics";
 import { useMultiplayerGame } from "@/hooks/useMultiplayerGame";
@@ -311,17 +311,17 @@ export default function GeometryWarsScreen() {
             (isTouchDevice || Platform.OS !== "web") ? (
               <View style={styles.controls} pointerEvents="box-none">
                 <View style={styles.leftControlArea} pointerEvents="box-none">
-                  <VirtualJoystick
-                    joystickId="movement_joystick"
-                    type="movement"
+                  <TouchVirtualJoystick
+                    axisTarget="move"
+                    floating={true}
                     onMove={(x, y) => handleMultiplayerInput({ moveX: x, moveY: y })}
                     onRelease={() => handleMultiplayerInput({ moveX: 0, moveY: 0 })}
+                    accessibilityLabel="Movement Joystick"
                   />
                 </View>
                 <View style={styles.rightControlArea} pointerEvents="box-none">
-                  <VirtualJoystick
-                    joystickId="aim_joystick"
-                    type="rotation"
+                  <TouchVirtualJoystick
+                    axisTarget="aim"
                     floating={true}
                     onMove={(x, y) => {
                       const mag = Math.sqrt(x * x + y * y);
@@ -336,6 +336,7 @@ export default function GeometryWarsScreen() {
                       isAimFiringRef.current = false;
                       handleMultiplayerInput({ fire: false });
                     }}
+                    accessibilityLabel="Aim Joystick"
                   />
                 </View>
               </View>

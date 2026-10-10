@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 import { useTranslation } from "../hooks/useTranslation";
-import { GestureActionButton } from "./controls/GestureActionButton";
+import { TouchActionButton } from "./controls/TouchActionButton";
 
 export interface HyperspaceButtonProps {
   onPressIn: () => void;
@@ -13,7 +13,7 @@ export interface HyperspaceButtonProps {
 /**
  * Pure UI component for Hyperspace action.
  * Minimum 56x56px touch target with hitSlop padding, semi-transparent cyan tint.
- * Uses GestureActionButton for modern Gesture API handling.
+ * Uses TouchActionButton for modern Gesture API handling.
  */
 export function HyperspaceButton({
   onPressIn,
@@ -28,7 +28,7 @@ export function HyperspaceButton({
   const hint = accessibilityHint || t?.accessibility?.hyperspace_button_hint || "Teleports ship to a random location";
 
   return (
-    <GestureActionButton
+    <TouchActionButton
       label="H"
       size={56}
       color="rgba(0, 255, 255, 0.3)"

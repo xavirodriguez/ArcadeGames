@@ -3,6 +3,31 @@ import { HyperspaceButton } from "../HyperspaceButton";
 import { ActionButton } from "../controls/ActionButton";
 import { PongControls } from "../PongControls";
 
+jest.mock("react-native-reanimated", () => ({
+  useSharedValue: (val: any) => ({ value: val }),
+  useAnimatedStyle: (fn: any) => (typeof fn === "function" ? fn() : fn),
+  withTiming: (val: any) => val,
+  withSpring: (val: any) => val,
+  runOnJS: (fn: any) => fn,
+  default: {
+    View: "AnimatedView",
+    Text: "AnimatedText",
+  },
+}));
+
+jest.mock("react-native-gesture-handler", () => ({
+  Gesture: {
+    Pan: () => ({
+      minDistance: () => ({
+        runOnJS: () => ({
+          onBegin: () => ({ onFinalize: () => ({}) }),
+        }),
+      }),
+    }),
+  },
+  GestureDetector: ({ children }: any) => children,
+}));
+
 describe("Mobile Controls UX and Accessibility", () => {
   describe("ShootButton", () => {
     it("exports valid ShootButton component", () => {

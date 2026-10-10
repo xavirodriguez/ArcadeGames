@@ -1,15 +1,14 @@
 import { useState, useEffect, useCallback, FC } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator, useWindowDimensions } from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { GestureDetector, Gesture } from "react-native-gesture-handler";
-import { useSharedValue, useFrameCallback, runOnJS } from "react-native-reanimated";
+import { TouchDragZone } from "@/components/controls/TouchDragZone";
+import { TouchActionButton } from "@/components/controls/TouchActionButton";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
 import { router } from "expo-router";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { useArkanoidGame } from "@/hooks/useArkanoidGame";
 import { useTranslation } from "@/hooks/useTranslation";
-import { ShootButton } from "../../components/ShootButton";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { useKeyboardControls } from "../../hooks/useKeyboardControls";
 import { RadialBackground } from "@/components/RadialBackground";
@@ -52,7 +51,7 @@ function ArkanoidContent() {
     PlayerProfileService.updateDisplayName(name);
   };
 
-  const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } =
+  const { game, gameState, handleInput, isReady, highScore, restartWithSeed } =
     useArkanoidGame(started, initialSeed);
 
   useKeyboardControls(game, isReady);
@@ -222,10 +221,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     zIndex: 10,
   },
-  leftControlArea: {
-    flex: 1,
-    height: "100%",
-  },
   rightControlArea: {
     width: 150,
     height: "100%",
@@ -250,84 +245,32 @@ const styles = StyleSheet.create({
 });
 
 function ArkanoidTouchControls({
-  game,
   handleInputState,
 }: {
-  game: any;
+  game?: any;
   handleInputState: (input: Partial<{ left: boolean; right: boolean; launch: boolean }>) => void;
 }) {
-  const { width: screenWidth } = useWindowDimensions();
-  const worldWidth = 800;
-  const paddleWidth = 100;
-  const halfPaddle = paddleWidth / 2;
-
-  const paddleX = useSharedValue(worldWidth / 2);
-  const touchStartX = useSharedValue(0);
-  const paddleStartX = useSharedValue(worldWidth / 2);
-
-  const panGesture = Gesture.Pan()
-    .minDistance(0)
-    .shouldCancelWhenOutside(false)
-    .runOnJS(false)
-    .onBegin((e) => {
-      touchStartX.value = e.x;
-      paddleStartX.value = paddleX.value;
-    })
-    .onUpdate((e) => {
-      const scale = screenWidth > 0 ? worldWidth / screenWidth : 1;
-      const deltaX = e.translationX * scale;
-      let nextX = paddleStartX.value + deltaX;
-
-      if (nextX < halfPaddle) nextX = halfPaddle;
-      if (nextX > worldWidth - halfPaddle) nextX = worldWidth - halfPaddle;
-
-      paddleX.value = nextX;
-    });
-
-  const lastDir = useSharedValue<"left" | "right" | "none">("none");
-
-  useFrameCallback(() => {
-    if (!game) return;
-    const world = game.getWorld?.();
-    if (!world) return;
-
-    const paddleEntities = world.query("Paddle", "Transform");
-    if (paddleEntities && paddleEntities.length > 0) {
-      const pEntity = paddleEntities[0];
-      const transform = world.getComponent(pEntity, "Transform");
-      if (transform) {
-        const targetX = paddleX.value;
-        const diff = targetX - transform.x;
-
-        let nextDir: "left" | "right" | "none" = "none";
-        if (diff < -2) {
-          nextDir = "left";
-        } else if (diff > 2) {
-          nextDir = "right";
-        }
-
-        if (nextDir !== lastDir.value) {
-          lastDir.value = nextDir;
-          runOnJS(handleInputState)({
-            left: nextDir === "left",
-            right: nextDir === "right",
-          });
-        }
-      }
-    }
-  });
-
   return (
-    <GestureDetector gesture={panGesture}>
-      <View style={styles.controls} pointerEvents="box-none">
-        <View style={{ flex: 1 }} pointerEvents="box-none" />
-        <View style={styles.rightControlArea} pointerEvents="box-none">
-          <ShootButton
-            onPressIn={() => handleInputState({ launch: true })}
-            onPressOut={() => handleInputState({ launch: false })}
-          />
-        </View>
+    <View style={styles.controls} pointerEvents="box-none">
+      <TouchDragZone
+        style={{ flex: 1 }}
+        paddleWidth={100}
+        onPaddleMove={(normPos: number) => {
+          const left = normPos < 0.45;
+          const right = normPos > 0.55;
+          handleInputState({ left, right });
+        }}
+      />
+      <View style={styles.rightControlArea} pointerEvents="box-none">
+        <TouchActionButton
+          name="launch"
+          label="🚀"
+          size={64}
+          color={colors.cyan}
+          onPress={() => handleInputState({ launch: true })}
+          accessibilityLabel="Launch Ball"
+        />
       </View>
-    </GestureDetector>
+    </View>
   );
 }

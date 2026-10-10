@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Pressable } from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, withSequence } from "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
-import { VirtualJoystick } from "@/components/controls/VirtualJoystick";
-import { GestureActionButton } from "@/components/controls/GestureActionButton";
+import { TouchDragZone } from "@/components/controls/TouchDragZone";
+import { TouchHoldButton } from "@/components/controls/TouchHoldButton";
 import { useRacingGame } from "@/hooks/useRacingGame";
 import { useKeyboardControls } from "@/hooks/useKeyboardControls";
 import { GameLayoutShell, GameScreen, GameTitle, GameInstructions, BackButton, NeonButton } from "@/components/ui";
@@ -138,29 +138,23 @@ export default function RacingScreen() {
           controlsSlot={
             <View style={styles.controls} pointerEvents="box-none">
               <View style={styles.leftControlArea} pointerEvents="box-none">
-                <VirtualJoystick
-                  joystickId="steering_joystick"
-                  type="movement"
-                  floating={false}
-                  onMove={(x, y) => {
-                    // Non-linear steering curve for precision center control
-                    const curvedX = x * Math.abs(x);
-                    input({ moveX: curvedX, moveY: y });
-                  }}
-                  onRelease={() => {
-                    input({ moveX: 0, moveY: 0 });
+                <TouchDragZone
+                  mode="relative"
+                  paddleWidth={60}
+                  onPaddleMove={(normPos: number) => {
+                    const moveX = (normPos - 0.5) * 2;
+                    input({ moveX, moveY: -1 });
                   }}
                 />
               </View>
               <View style={styles.rightControlArea} pointerEvents="box-none">
-                <GestureActionButton
+                <TouchHoldButton
+                  name="boost"
                   label="BOOST"
+                  size={72}
+                  color="#F2C94C"
+                  onHoldChange={(active: boolean) => input({ boost: active, moveY: -1 })}
                   accessibilityLabel="Boost nitro"
-                  onPressIn={() => input({ boost: true })}
-                  onPressOut={() => input({ boost: false })}
-                  haptic="heavy"
-                  color="rgba(242,201,76,0.25)"
-                  borderColor="#F2C94C"
                 />
               </View>
             </View>
@@ -207,8 +201,6 @@ const styles = StyleSheet.create({
   controls: { ...StyleSheet.absoluteFillObject, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end" },
   leftControlArea: { flex: 1, height: "100%" },
   rightControlArea: { width: 140, height: "100%", justifyContent: "flex-end", alignItems: "center", paddingBottom: 40, paddingRight: 20 },
-  boost: { width: 80, height: 58, borderRadius: 12, borderWidth: 2, borderColor: "#F2C94C", backgroundColor: "rgba(242,201,76,0.25)", justifyContent: "center", alignItems: "center" },
-  buttonText: { color: "#fff", fontFamily: "monospace", fontWeight: "bold" },
   instructions: { marginBottom: 24 },
   text: { color: "#fff", fontFamily: "monospace", textAlign: "center" },
   countdownContainer: { ...StyleSheet.absoluteFillObject, justifyContent: "center", alignItems: "center" },

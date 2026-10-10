@@ -33,23 +33,15 @@ interface CombatHitLike {
  *
  * Alternativa: escuchar solo combat:explosion si otro sistema lo emite.
  */
-export class HitRunExplosionSystem extends System<CoreComponentRegistry> {
-  private subscribed = false;
-  private pendingHits: CombatHitLike[] = [];
+import { CombatHitListenerSystem } from "../combat/CombatHitListenerSystem";
+
+export class HitRunExplosionSystem extends CombatHitListenerSystem<CombatHitLike> {
   private pendingExplosions: CombatExplosionPayload[] = [];
 
   // Scratch para queries de enemigos (reutilizado)
   private scratchTargets: number[] = [];
 
-    // TODO(refactor): código duplicado detectado (método) con hitandrun/hurt/HitRunHurtSystem.ts:29-35. Considerar extraer a función compartida. Ref: cefe2a6c
-public subscribe(eventBus: EventBus): void {
-    if (this.subscribed) return;
-    this.subscribed = true;
-
-    eventBus.on("combat:hit", (payload: unknown) => {
-      this.pendingHits.push(payload as CombatHitLike);
-    });
-
+  protected override onSubscribe(eventBus: EventBus): void {
     eventBus.on("combat:explosion", (payload: unknown) => {
       this.pendingExplosions.push(payload as CombatExplosionPayload);
     });

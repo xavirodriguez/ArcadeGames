@@ -43,7 +43,7 @@ import {
   registerPlatformerTilemapBlueprint,
   createMainCamera2D,
   registerPresentationSystems,
-  syncLevelWorldDimensions,
+  generateAndInstantiatePlatformerLevel,
   registerCollectibleTriggerBlueprint
 } from "../shared/componentBuilders";
 import { DEFAULT_ECHO_RUNNER_CONFIG } from "../echorunner/types/EchoRunnerConfigSchema";
@@ -217,29 +217,14 @@ await super.onRegisterSystems();
   protected override async onInitializeEntities(): Promise<void> {
     registerBeltPlayerBlueprint(this.blueprints);
 
-        // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:353-361. Considerar extraer a función compartida. Ref: 2e267ea9
-const tileDefinitions = {
-      1: { solid: true, kind: "normal" as const },
-      2: { solid: true, kind: "ice" as const },
-      3: { solid: true, kind: "bounce" as const, bounce: 1.5 },
-      4: { solid: true, kind: "spike" as const },
-      5: { solid: true, oneWay: true, kind: "normal" as const }
-    };
-
-        // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:361-372. Considerar extraer a función compartida. Ref: 29f93505
-const rawData = this.customLevelData ?? hitRunLevelData;
-    const runnerSeed = this.getSeed() || 41873;
-    this.levelPlan = SegmentGenerator.generatePlan(
-      rawData.templates as SegmentTemplate[],
-      rawData.grammar as string[],
-      runnerSeed
+    this.levelPlan = generateAndInstantiatePlatformerLevel(
+      this.world,
+      this.customLevelData,
+      hitRunLevelData,
+      this.getSeed() || 41873,
+      DEFAULT_ECHO_RUNNER_CONFIG,
+      DEFAULT_BELT_PLAYER_SPAWN
     );
-
-    syncLevelWorldDimensions(this.world, this.levelPlan, DEFAULT_ECHO_RUNNER_CONFIG);
-    this.world.setResource("LevelPlan", this.levelPlan);
-    this.world.setResource("PlayerStartPoint", { x: DEFAULT_BELT_PLAYER_SPAWN.x, y: DEFAULT_BELT_PLAYER_SPAWN.y });
-
-    SegmentGenerator.instantiatePlan(this.world, this.levelPlan, DEFAULT_ECHO_RUNNER_CONFIG.TILE_SIZE, tileDefinitions);
 
     const playerEntity = this.world.createEntity();
     const playerBp = this.blueprints.get("player");

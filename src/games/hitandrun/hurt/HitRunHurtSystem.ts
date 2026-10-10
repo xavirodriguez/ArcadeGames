@@ -25,18 +25,9 @@ import {
  * Ticks hitstun and invuln blink on HitReaction + Render.opacity.
  * Does not apply damage (already applied by the source system).
  */
-export class HitRunHurtSystem extends System<CoreComponentRegistry> {
-  private subscribed = false;
-  private pendingHits: CombatHitPayload[] = [];
+import { CombatHitListenerSystem } from "../combat/CombatHitListenerSystem";
 
-    // TODO(refactor): código duplicado detectado (método) con hitandrun/weapons/HitRunExplosionSystem.ts:42-49. Considerar extraer a función compartida. Ref: cefe2a6c
-public subscribe(eventBus: EventBus): void {
-    if (this.subscribed) return;
-    this.subscribed = true;
-    eventBus.on("combat:hit", (payload: unknown) => {
-      this.pendingHits.push(payload as CombatHitPayload);
-    });
-  }
+export class HitRunHurtSystem extends CombatHitListenerSystem<CombatHitPayload> {
 
   public enqueueHitForTest(payload: CombatHitPayload): void {
     this.pendingHits.push(payload);

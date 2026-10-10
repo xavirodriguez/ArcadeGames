@@ -1,4 +1,4 @@
-import { System, World, VehicleWaypointComponent, VehicleSteeringComponent, normalizeAngle } from "@tiny-aster/core";
+import { System, World, VehicleWaypointComponent, VehicleSteeringComponent, steerTowardWaypoint } from "@tiny-aster/core";
 import type { RacingComponentRegistry, RacingEventRegistry } from "../types/RacingRegistry";
 
 export class VehicleAISystem extends System<RacingComponentRegistry, RacingEventRegistry> {
@@ -15,37 +15,25 @@ export class VehicleAISystem extends System<RacingComponentRegistry, RacingEvent
     const len = aiCars.length;
     for (let i = 0; i < len; i++) {
       const entity = aiCars[i];
-            // TODO(refactor): código duplicado detectado (bloque) con physics/vehicles/VehicleWaypointSystem.ts:31-47. Considerar extraer a función compartida. Ref: 469377f3
-if (world.hasComponent(entity, "LocalPlayer")) continue;
+      if (world.hasComponent(entity, "LocalPlayer")) continue;
 
       const waypointsComp = world.getComponent(entity, "VehicleWaypoint") as VehicleWaypointComponent | undefined;
       const vehicle = world.getMutableComponent(entity, "VehicleSteering") as VehicleSteeringComponent | undefined;
       const transform = world.getComponent(entity, "Transform");
 
-      if (!waypointsComp || !vehicle || !transform || waypointsComp.waypoints.length === 0) continue;
+      if (!waypointsComp || !vehicle || !transform) continue;
 
-      const idx = waypointsComp.currentWaypointIndex;
-      const target = waypointsComp.waypoints[idx];
-      if (!target) continue;
+      const steerRes = steerTowardWaypoint(transform, waypointsComp, 0.4);
+      if (!steerRes) continue;
 
-      const dx = target.x - transform.x;
-      const dy = target.y - transform.y;
-      const dist = Math.hypot(dx, dy);
-
-      if (dist <= waypointsComp.targetRadius) {
-        const nextIdx = (idx + 1) % waypointsComp.waypoints.length;
+      if (steerRes.reachedTarget && steerRes.nextIndex !== waypointsComp.currentWaypointIndex) {
         world.mutateComponent(entity, "VehicleWaypoint", (m: VehicleWaypointComponent) => {
-                    // TODO(refactor): código duplicado detectado (bloque) con physics/vehicles/VehicleWaypointSystem.ts:57-63. Considerar extraer a función compartida. Ref: e3613c97
-m.currentWaypointIndex = nextIdx;
+          m.currentWaypointIndex = steerRes.nextIndex;
         });
       }
 
-      const desiredAngle = Math.atan2(dy, dx);
-      const diffAngle = normalizeAngle(desiredAngle - (transform.rotation ?? 0));
-
-      vehicle.steering = Math.max(-1, Math.min(1, diffAngle * 1.8));
-
-      let throttle = Math.cos(diffAngle) > 0 ? Math.max(0.4, Math.cos(diffAngle)) : -0.2;
+      vehicle.steering = steerRes.steering;
+      let throttle = steerRes.throttle;
 
       // Rubber-banding adjustments relative to human player
       if (humanTransform) {

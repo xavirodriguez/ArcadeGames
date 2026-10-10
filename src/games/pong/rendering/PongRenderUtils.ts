@@ -1,4 +1,4 @@
-import { World, RenderComponent, TransformComponent, ComboComponent } from "@tiny-aster/core";
+import { World, RenderComponent, TransformComponent, ComboComponent, CoreComponentRegistry } from "@tiny-aster/core";
 import { PongComponentRegistry, BallComponent, PaddleComponent } from "../types";
 import { PongConfig } from "../types/PongConfigSchema";
 import { getComboReaction } from "../../shared/rendering/CanvasNeonUtils";
@@ -19,19 +19,17 @@ export interface PongBallContext {
   ballColor: string;
 }
 
-// TODO(refactor): código duplicado detectado (bloque) con arkanoid/rendering/ArkanoidRenderUtils.ts:16-23. Considerar extraer a función compartida. Ref: b21f1b8a
+import { resolveBasicBallContext } from "../../shared/rendering/BallRenderUtils";
+
 export function resolvePongBallContext(
   world: World<PongComponentRegistry>,
   entity: number
 ): PongBallContext | null {
-  const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
-  if (!render || !render.visible) return null;
+  const basic = resolveBasicBallContext(world as unknown as World<CoreComponentRegistry>, entity, 8);
+  if (!basic) return null;
 
-  const transform = world.getComponent(entity, "Transform") as TransformComponent | undefined;
-  if (!transform) return null;
-
+  const { render, transform, size } = basic;
   const ballComp = world.getComponent(entity, "Ball") as BallComponent | undefined;
-  const size = render.size ?? 8;
 
   const x = transform.worldX ?? transform.x;
   const y = transform.worldY ?? transform.y;

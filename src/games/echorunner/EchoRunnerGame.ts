@@ -36,7 +36,7 @@ import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
 import { PlatformerInputSystem } from "../platformer/systems/PlatformerInputSystem";
 import { resolveAndApplyMutators } from "../../config/MutatorConfig";
 import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, registerPlatformerEnvironmentBlueprints, mutatePlatformerInputState, registerCommonPlatformerSystems, updatePlayerInvulnerabilityAndContactDamage } from "@tiny-aster/gameplay-kit";
-import { setupPlatformerMovementComponents, registerPlatformerTilemapBlueprint, createMainCamera2D, registerPresentationSystems, syncLevelWorldDimensions, registerCollectibleTriggerBlueprint } from "../shared/componentBuilders";
+import { setupPlatformerMovementComponents, registerPlatformerTilemapBlueprint, createMainCamera2D, registerPresentationSystems, generateAndInstantiatePlatformerLevel, registerCollectibleTriggerBlueprint } from "../shared/componentBuilders";
 import defaultLevelData from "./levels/level-01.json";
 
 export interface EchoRunnerConfig {
@@ -353,32 +353,15 @@ registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_ECHO_RUNNER_CONFIG);
 
   protected override async onInitializeEntities(): Promise<void> {
     try {
-            // TODO(refactor): código duplicado detectado (bloque) con hitandrun/HitAndRunGame.ts:216-224. Considerar extraer a función compartida. Ref: 2e267ea9
-const tileDefinitions = {
-        1: { solid: true, kind: "normal" as const },
-        2: { solid: true, kind: "ice" as const },
-        3: { solid: true, kind: "bounce" as const, bounce: 1.5 },
-        4: { solid: true, kind: "spike" as const },
-        5: { solid: true, oneWay: true, kind: "normal" as const }
-      };
-
-            // TODO(refactor): código duplicado detectado (bloque) con hitandrun/HitAndRunGame.ts:224-233. Considerar extraer a función compartida. Ref: 29f93505
-const rawData = this.customLevelData ?? defaultLevelData;
-      const runnerSeed = this.getSeed() || 41873;
-      this.levelPlan = SegmentGenerator.generatePlan(
-        rawData.templates as SegmentTemplate[],
-        rawData.grammar as string[],
-        runnerSeed
-      );
-
-      syncLevelWorldDimensions(this.world, this.levelPlan, DEFAULT_ECHO_RUNNER_CONFIG);
-
-      // Set world resources
-      this.world.setResource("PlayerStartPoint", { x: 100, y: 350 });
-
-      // Instantiate Plan
       const config = this.world.getResource<EchoRunnerConfigType>("GameConfig") || DEFAULT_ECHO_RUNNER_CONFIG;
-      SegmentGenerator.instantiatePlan(this.world, this.levelPlan, config.TILE_SIZE, tileDefinitions);
+      this.levelPlan = generateAndInstantiatePlatformerLevel(
+        this.world,
+        this.customLevelData,
+        defaultLevelData,
+        this.getSeed() || 41873,
+        config,
+        { x: 100, y: 350 }
+      );
 
       // Spawn Player
       const playerEntity = this.world.createEntity();

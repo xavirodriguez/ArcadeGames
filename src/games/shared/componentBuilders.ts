@@ -11,7 +11,9 @@ import {
   RenderUpdateSystem,
   ShapeType,
   BoxShape,
-  Component
+  Component,
+  SegmentGenerator,
+  TileDefinition
 } from "@tiny-aster/core";
 import { CollisionLayers, ArcadeEntityBuilder } from "@tiny-aster/gameplay-kit";
 
@@ -301,6 +303,56 @@ export function createPaddleColliderConfig(width: number, height: number) {
     layer: CollisionLayers.PLAYER,
     mask: CollisionLayers.PROJECTILE
   };
+}
+
+/**
+ * Shared tile definitions for platformer / runner games (EchoRunner, HitAndRun, Platformer).
+ * @public
+ */
+export const COMMON_PLATFORMER_TILE_DEFINITIONS = {
+  1: { solid: true, kind: "normal" as const },
+  2: { solid: true, kind: "ice" as const },
+  3: { solid: true, kind: "bounce" as const, bounce: 1.5 },
+  4: { solid: true, kind: "spike" as const },
+  5: { solid: true, oneWay: true, kind: "normal" as const }
+};
+
+/**
+ * Generates and instantiates a procedural platformer level plan, syncing world dimensions and player start point.
+ *
+ * @param world - Simulation world.
+ * @param customLevelData - Optional custom level templates & grammar.
+ * @param defaultLevelData - Fallback level templates & grammar data.
+ * @param seed - Random seed.
+ * @param config - Game config containing TILE_SIZE.
+ * @param startPoint - Player spawn coordinate.
+ * @param tileDefinitions - Tile definitions mapping (defaults to COMMON_PLATFORMER_TILE_DEFINITIONS).
+ * @returns Generated LevelPlan object.
+ * @public
+ */
+export function generateAndInstantiatePlatformerLevel(
+  world: World<CoreComponentRegistry>,
+  customLevelData: { templates?: unknown[]; grammar?: unknown[] } | undefined,
+  defaultLevelData: { templates: unknown[]; grammar: unknown[] },
+  seed: number,
+  config: Record<string, unknown> & { TILE_SIZE: number; worldWidth?: number; worldHeight?: number },
+  startPoint: { x: number; y: number },
+  tileDefinitions: Record<number, TileDefinition> = COMMON_PLATFORMER_TILE_DEFINITIONS
+): any {
+  const rawData = customLevelData ?? defaultLevelData;
+  const levelPlan = SegmentGenerator.generatePlan(
+    rawData.templates as any,
+    rawData.grammar as any,
+    seed
+  );
+
+  syncLevelWorldDimensions(world, levelPlan, config);
+  world.setResource("LevelPlan", levelPlan);
+  world.setResource("PlayerStartPoint", startPoint);
+
+  SegmentGenerator.instantiatePlan(world, levelPlan, config.TILE_SIZE, tileDefinitions);
+
+  return levelPlan;
 }
 
 /**

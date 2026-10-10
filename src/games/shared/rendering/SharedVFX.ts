@@ -368,11 +368,8 @@ export function spawnLayeredExplosion<
     }
   };
 
-  // Layer 1: Core Flash entity (suppressed in Low Stimulation mode)
-  if (!state.lowStimulationMode) {
-    const flashEntity = createEntity();
-        // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:410-424. Considerar extraer a función compartida. Ref: 90ac4653
-addComp(flashEntity, {
+  const addTransform = (entity: number): void => {
+    addComp(entity, {
       type: "Transform",
       x,
       y,
@@ -386,6 +383,12 @@ addComp(flashEntity, {
       worldScaleY: 1,
       dirty: true
     });
+  };
+
+  // Layer 1: Core Flash entity (suppressed in Low Stimulation mode)
+  if (!state.lowStimulationMode) {
+    const flashEntity = createEntity();
+    addTransform(flashEntity);
     addComp(flashEntity, {
       type: "Render",
       shape: "shield_bubble",
@@ -408,20 +411,7 @@ addComp(flashEntity, {
   // Layer 2: Shockwave Ring
   if (profile.hasShockwave) {
     const shockEntity = createEntity();
-    addComp(shockEntity, {
-      type: "Transform",
-      x,
-      y,
-      rotation: 0,
-      scaleX: 1,
-      scaleY: 1,
-      worldX: x,
-      worldY: y,
-      worldRotation: 0,
-      worldScaleX: 1,
-      worldScaleY: 1,
-      dirty: true
-    });
+    addTransform(shockEntity);
     addComp(shockEntity, {
       type: "Render",
       shape: "shockwave",
@@ -702,15 +692,20 @@ export const SkiaMatrixDigitalRainEffect: EffectDrawer<RenderContext, CoreCompon
 // -------------------------------------------------------------
 // 6. CRTGlitchShudderEffect (Canvas & Skia)
 // -------------------------------------------------------------
+function getGlitchContext(world: World<CoreComponentRegistry>): { width: number; height: number; timePhase: number } | null {
+  const { width, height, state } = getScreenAndVFXState(world);
+  if (state.lowStimulationMode) return null;
+  const timePhase = state.timePhase;
+  const isGlitching = Math.sin(timePhase * 17) > 0.85;
+  if (!isGlitching) return null;
+  return { width, height, timePhase };
+}
+
 export const CRTGlitchShudderEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
-        // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:725-730. Considerar extraer a función compartida. Ref: 5a554bfc
-const { width, height, state } = getScreenAndVFXState(world);
-    if (state.lowStimulationMode) return;
-    const timePhase = state.timePhase;
-    const isGlitching = Math.sin(timePhase * 17) > 0.85;
-
-    if (!isGlitching) return;
+    const glitchCtx = getGlitchContext(world);
+    if (!glitchCtx) return;
+    const { width, height, timePhase } = glitchCtx;
 
     ctx.save();
     ctx.fillStyle = COSMIC_ARCADE_PALETTE.neonCyan;
@@ -724,12 +719,9 @@ const { width, height, state } = getScreenAndVFXState(world);
 export const SkiaCRTGlitchShudderEffect: EffectDrawer<RenderContext, CoreComponentRegistry> = {
   draw(canvas: RenderContext, world) {
     if (!Skia) return;
-    const { width, height, state } = getScreenAndVFXState(world);
-    if (state.lowStimulationMode) return;
-    const timePhase = state.timePhase;
-    const isGlitching = Math.sin(timePhase * 17) > 0.85;
-
-    if (!isGlitching) return;
+    const glitchCtx = getGlitchContext(world);
+    if (!glitchCtx) return;
+    const { width, height, timePhase } = glitchCtx;
 
     const skCanvas = canvas as unknown as SkiaCanvasOps;
     skCanvas.save();

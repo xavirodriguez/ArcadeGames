@@ -16,7 +16,7 @@ export function resolveArkanoidBallContext(
   world: World<ArkanoidComponentRegistry>,
   entity: number
 ): ArkanoidBallContext | null {
-  const basic = resolveBasicBallContext(world as unknown as World<CoreComponentRegistry>, entity, 8);
+  const basic = resolveBasicBallContext(world, entity, 8);
   if (!basic) return null;
 
   const color = basic.render.color || colors.cyan;

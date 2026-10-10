@@ -13,6 +13,7 @@ import {
   BoxShape,
   Component,
   SegmentGenerator,
+  SegmentTemplate,
   TileDefinition
 } from "@tiny-aster/core";
 import { CollisionLayers, ArcadeEntityBuilder } from "@tiny-aster/gameplay-kit";
@@ -338,11 +339,11 @@ export function generateAndInstantiatePlatformerLevel(
   config: Record<string, unknown> & { TILE_SIZE: number; worldWidth?: number; worldHeight?: number },
   startPoint: { x: number; y: number },
   tileDefinitions: Record<number, TileDefinition> = COMMON_PLATFORMER_TILE_DEFINITIONS
-): any {
+) {
   const rawData = customLevelData ?? defaultLevelData;
   const levelPlan = SegmentGenerator.generatePlan(
-    rawData.templates as any,
-    rawData.grammar as any,
+    rawData.templates as SegmentTemplate[],
+    rawData.grammar as string[],
     seed
   );
 

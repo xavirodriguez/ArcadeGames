@@ -25,7 +25,7 @@ export function resolvePongBallContext(
   world: World<PongComponentRegistry>,
   entity: number
 ): PongBallContext | null {
-  const basic = resolveBasicBallContext(world as unknown as World<CoreComponentRegistry>, entity, 8);
+  const basic = resolveBasicBallContext(world, entity, 8);
   if (!basic) return null;
 
   const { render, transform, size } = basic;

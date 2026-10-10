@@ -6,6 +6,7 @@ import {
 } from "@tiny-aster/core";
 import type { EventBus } from "@tiny-aster/core";
 import type { CombatHitPayload } from "../systems/HitRunFeedbackTypes";
+import type { BeltElevationComponent } from "../belt/BeltElevationComponent";
 import {
   DEFAULT_HIT_REACTION_CONFIG,
   HIT_REACTION_CONFIG_RESOURCE,
@@ -152,7 +153,7 @@ public subscribe(eventBus: EventBus): void {
     knockX: number,
     knockY: number
   ): void {
-    if (!world.hasComponent(target, "Velocity")) return;
+    if (!world.hasComponent(target, "Velocity") && !world.hasComponent(target, "BeltElevation")) return;
 
     let dir = 1;
     if (sourceEntity !== undefined && world.hasEntity(sourceEntity)) {
@@ -165,12 +166,26 @@ public subscribe(eventBus: EventBus): void {
       }
     }
 
-    const vel = world.getMutableComponent(target, "Velocity") as
-      | { vx: number; vy: number }
+    if (world.hasComponent(target, "Velocity")) {
+      const vel = world.getMutableComponent(target, "Velocity") as
+        | { vx: number; vy: number }
+        | undefined;
+      if (vel) {
+        vel.vx = dir * knockX;
+      }
+    }
+
+    const elev = world.getMutableComponent(target, "BeltElevation") as
+      | BeltElevationComponent
       | undefined;
-    if (vel) {
-      vel.vx = dir * knockX;
-      vel.vy = -Math.abs(knockY);
+    if (elev) {
+      const currentJuggle = elev.juggleCount ?? 0;
+      if (!elev.grounded) {
+        elev.juggleCount = currentJuggle + 1;
+      }
+      const juggleDiminish = elev.juggleCount && elev.juggleCount > 4 ? 0.3 : 1.0;
+      elev.vz = Math.abs(knockY) * juggleDiminish;
+      elev.grounded = false;
     }
   }
 

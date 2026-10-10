@@ -7,6 +7,8 @@ import {
 } from "@tiny-aster/core";
 import { isSimulationFrozen } from "../systems/HitRunFeedbackSystem";
 import { isPlayerControlLocked } from "../hurt/HitRunHurtSystem";
+import { depthZOverlap } from "../combat/HitVolume";
+import type { BeltElevationComponent } from "../belt/BeltElevationComponent";
 import {
   DEFAULT_MELEE_ATTACK_CONFIG,
   MELEE_MAX_HITS_PER_SWING,
@@ -384,6 +386,11 @@ const ox = transform.worldX ?? transform.x;
         return;
       }
 
+      // Check depth and Z height overlap using depthZOverlap
+      if (!depthZOverlap(owner, other, world, { halfDepth: config.halfDepth ?? 20 })) {
+        return;
+      }
+
       const prev = health.current;
       const next = Math.max(0, prev - config.damage);
       const mutH = world.getMutableComponent(other, "Health") as
@@ -399,8 +406,20 @@ const ox = transform.worldX ?? transform.x;
           | undefined;
         if (vel) {
           vel.vx = melee.facing * config.knockbackX;
-          vel.vy = -Math.abs(config.knockbackY);
         }
+      }
+
+      const elev = world.getMutableComponent(other, "BeltElevation") as
+        | BeltElevationComponent
+        | undefined;
+      if (elev) {
+        const currentJuggle = elev.juggleCount ?? 0;
+        if (!elev.grounded) {
+          elev.juggleCount = currentJuggle + 1;
+        }
+        const juggleDiminish = elev.juggleCount && elev.juggleCount > 4 ? 0.3 : 1.0;
+        elev.vz = Math.abs(config.knockbackY) * juggleDiminish;
+        elev.grounded = false;
       }
 
       const bus = world.getEventBus();

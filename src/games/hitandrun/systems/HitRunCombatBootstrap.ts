@@ -1,6 +1,5 @@
 /**
- * Wire CombatSystem + remove dead enemies so HMG actually kills.
- * Platformer common systems never register CombatSystem (only HitDetection for pulse).
+ * Wire HitRunCombatSystem + remove dead enemies so HMG/weapons actually kill.
  */
 import {
   System,
@@ -10,10 +9,10 @@ import {
   CollisionSystem2D,
   HierarchySystem
 } from "@tiny-aster/core";
-import { CombatSystem } from "@tiny-aster/gameplay-kit";
+import { HitRunCombatSystem } from "./HitRunCombatSystem";
 
 /**
- * Removes non-player entities marked Dead (CombatSystem only adds the tag).
+ * Removes non-player entities marked Dead (HitRunCombatSystem only adds the tag).
  */
 class HitRunDeadCleanupSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, _dt: number): void {
@@ -38,7 +37,7 @@ export function registerHitRunCombat(world: World<CoreComponentRegistry>): void 
     phase: SystemPhase.Collision,
     priority: 10
   });
-  world.addSystem(new CombatSystem(), {
+  world.addSystem(new HitRunCombatSystem(), {
     phase: SystemPhase.Collision,
     priority: -5 // after CollisionSystem2D / HitDetection
   });

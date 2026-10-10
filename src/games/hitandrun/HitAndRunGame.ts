@@ -84,6 +84,7 @@ import {
   drawHitRunRocket
 } from "./rendering/HitRunCanvasVisuals";
 import { drawHitRunHud } from "./rendering/HitRunHudCanvas";
+import { drawHitRunDebugOverlay } from "./rendering/HitRunDebugOverlay";
 import { drawPlatformerTilemap } from "../platformer/rendering/PlatformerCanvasVisuals";
 
 export type HitAndRunConfig = EchoRunnerConfig;
@@ -276,6 +277,7 @@ const rawData = this.customLevelData ?? hitRunLevelData;
     if (renderer.type === "canvas") {
       renderer.registerBackgroundEffect("hit_run_procedural_backdrop", drawHitRunProceduralBackdrop);
       renderer.registerBackgroundEffect("hit_run_hud", drawHitRunHud);
+      renderer.registerBackgroundEffect("hit_run_debug_overlay", drawHitRunDebugOverlay);
 
       renderer.registerShape("player", drawHitRunPlayer);
       renderer.registerShape("popcorn", drawHitRunPopcorn);

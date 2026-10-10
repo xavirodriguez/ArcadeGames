@@ -87,14 +87,37 @@ function drawCanvasSprite(
     }
   } else if (sp.kind === "lamp") {
     // Thin LED post
-    ctx.fillStyle = "#d1d5db";
+    ctx.fillStyle = lightsOn ? "#9ca3af" : "#4b5563";
     ctx.fillRect(-2, -90, 4, 90);
     ctx.fillRect(-2, -90, sp.side * 22, 4);
-    // Light point
-    ctx.fillStyle = lightsOn ? "#00f0ff" : "#fff8e7";
-    ctx.beginPath();
-    ctx.arc(sp.side * 20, -88, 5, 0, Math.PI * 2);
-    ctx.fill();
+
+    if (lightsOn) {
+      // Soft cyan horizontal light glow line (blue hour / night)
+      ctx.strokeStyle = "rgba(0, 240, 255, 0.75)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, -88);
+      ctx.lineTo(sp.side * 22, -88);
+      ctx.stroke();
+
+      // Glowing cyan point
+      ctx.fillStyle = "#00f0ff";
+      ctx.beginPath();
+      ctx.arc(sp.side * 20, -88, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Soft light beam halo
+      ctx.fillStyle = "rgba(0, 240, 255, 0.25)";
+      ctx.beginPath();
+      ctx.arc(sp.side * 20, -88, 12, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      // Off silhouette during day
+      ctx.fillStyle = "#6b7280";
+      ctx.beginPath();
+      ctx.arc(sp.side * 20, -88, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
   } else if (sp.kind === "shrub") {
     ctx.fillStyle = "#8d5b4c";
     ctx.beginPath();
@@ -247,6 +270,25 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
       ctx.arc(cloudX, cloudY - cloudH * 0.2, cloudH, 0, Math.PI * 2);
       ctx.arc(cloudX + cloudW * 0.2, cloudY, cloudH * 0.7, 0, Math.PI * 2);
       ctx.fill();
+    }
+
+    // PASS 2.8: Midday Horizon Heat Haze
+    if (palette.dayPhase === "day") {
+      const hazeY = screenH * 0.45;
+      const numLines = 18;
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+      ctx.lineWidth = 2;
+      for (let h = 0; h < numLines; h++) {
+        const hRatio = h / numLines;
+        const baseX = hRatio * screenW + (state.playerX * 12);
+        const waveOffset = Math.sin((state.playerZ * 0.02) + h * 0.8) * 4;
+        const x = ((baseX + waveOffset) % screenW + screenW) % screenW;
+
+        ctx.beginPath();
+        ctx.moveTo(x, hazeY - 22);
+        ctx.lineTo(x + waveOffset * 0.5, hazeY - 2);
+        ctx.stroke();
+      }
     }
 
     // PASS 3: Horizon by Scenario
@@ -402,6 +444,14 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
       const road = roadColor(p.index, rumbleLength, palette);
       fillTrapezoid(ctx, p.x1, p.y1, p.w1, p.x2, Math.min(p.y2, maxy), p.w2, road);
 
+      // Wet road / center asphalt reflection layer
+      if (palette.reflectionAlpha > 0) {
+        const reflW1 = p.w1 * 0.35;
+        const reflW2 = p.w2 * 0.35;
+        const reflColor = `rgba(255, 255, 255, ${palette.reflectionAlpha.toFixed(3)})`;
+        fillTrapezoid(ctx, p.x1, p.y1, reflW1, p.x2, Math.min(p.y2, maxy), reflW2, reflColor);
+      }
+
       // Inner curve asphalt darkening
       if (Math.abs(p.curve) > 1.5) {
         const innerSide = p.curve > 0 ? 1 : -1;
@@ -483,9 +533,9 @@ export const drawOutrunCar: ShapeDrawer<CanvasRenderingContext2D, OutrunComponen
     ctx.save();
 
     // Car Shadow
-    ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+    ctx.fillStyle = "rgba(0, 0, 0, 0.42)";
     ctx.beginPath();
-    ctx.ellipse(geom.baseX, geom.baseY + 8, 30 * geom.carScale, 8 * geom.carScale, 0, 0, Math.PI * 2);
+    ctx.ellipse(geom.baseX, geom.baseY + 10, 34 * geom.carScale, 10 * geom.carScale, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // Off-track Dust

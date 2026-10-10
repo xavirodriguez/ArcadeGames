@@ -28,11 +28,11 @@ export const COAST_PALETTE: ScenarioPalette = {
   mountainFacet: "#90e0ef",
   groundDark: "#e2dfc8",
   groundLight: "#d1ceb2",
-  roadDark: "#2d3138",
-  roadLight: "#383d45",
-  rumbleDark: "#ff5252",
-  rumbleLight: "#f8f9fa",
-  lane: "#ffffff"
+  roadDark: "#2a2e37",
+  roadLight: "#353a45",
+  rumbleDark: "#e0564c",
+  rumbleLight: "#1a1c20",
+  lane: "#f7f2eb"
 };
 
 export const DESERT_PALETTE: ScenarioPalette = {
@@ -44,11 +44,11 @@ export const DESERT_PALETTE: ScenarioPalette = {
   mountainFacet: "#8d5b4c",
   groundDark: "#d0a67a",
   groundLight: "#ba8f62",
-  roadDark: "#1c1c28",
-  roadLight: "#262636",
-  rumbleDark: "#ff5252",
-  rumbleLight: "#00f0ff",
-  lane: "#ffffff"
+  roadDark: "#2b2321",
+  roadLight: "#382e2b",
+  rumbleDark: "#e0564c",
+  rumbleLight: "#1a1c20",
+  lane: "#f7f2eb"
 };
 
 export const MOUNTAIN_PALETTE: ScenarioPalette = {
@@ -60,11 +60,11 @@ export const MOUNTAIN_PALETTE: ScenarioPalette = {
   mountainFacet: "#4a4e69",
   groundDark: "#8d99ae",
   groundLight: "#788596",
-  roadDark: "#20252e",
-  roadLight: "#2a303c",
-  rumbleDark: "#b8b5ff",
-  rumbleLight: "#ffffff",
-  lane: "#ffffff"
+  roadDark: "#20242b",
+  roadLight: "#2a2f38",
+  rumbleDark: "#e0564c",
+  rumbleLight: "#1a1c20",
+  lane: "#f7f2eb"
 };
 
 export const CLASSIC_COAST_PALETTE: ScenarioPalette = {
@@ -121,39 +121,51 @@ export interface ModulatedPalette extends ScenarioPalette {
   dayPhase: DayPhase;
   lightsOn: boolean;
   cloudColor: string;
+  timeOfDay: number;
+  reflectionAlpha: number;
 }
 
-export function getDayPhase(progress: number): { phase: DayPhase; phaseT: number; lightsOn: boolean } {
-  const t = (progress % 1 + 1) % 1;
+export function getDayPhase(progress: number): { phase: DayPhase; phaseT: number; lightsOn: boolean; timeOfDay: number } {
+  const t = ((progress % 1) + 1) % 1;
   if (t < 0.25) {
-    return { phase: "dawn", phaseT: t / 0.25, lightsOn: false };
+    return { phase: "dawn", phaseT: t / 0.25, lightsOn: false, timeOfDay: t };
   } else if (t < 0.5) {
-    return { phase: "day", phaseT: (t - 0.25) / 0.25, lightsOn: false };
+    return { phase: "day", phaseT: (t - 0.25) / 0.25, lightsOn: false, timeOfDay: t };
   } else if (t < 0.75) {
-    return { phase: "sunset", phaseT: (t - 0.5) / 0.25, lightsOn: false };
+    return { phase: "sunset", phaseT: (t - 0.5) / 0.25, lightsOn: false, timeOfDay: t };
   } else {
-    return { phase: "blue_hour", phaseT: (t - 0.75) / 0.25, lightsOn: true };
+    return { phase: "blue_hour", phaseT: (t - 0.75) / 0.25, lightsOn: true, timeOfDay: t };
   }
 }
 
 export function applyDayPhase(palette: ScenarioPalette, progress: number): ModulatedPalette {
-  const { phase, lightsOn } = getDayPhase(progress);
+  const { phase, phaseT, lightsOn, timeOfDay } = getDayPhase(progress);
 
   let cloudColor = "rgba(255, 255, 255, 0.25)";
   let sunColor = palette.sun;
+  let laneColor = "#f7f2eb"; // Day: warm white
+  let reflectionAlpha = 0.06; // Soft daytime wet reflection
 
   if (phase === "dawn") {
     cloudColor = "rgba(255, 218, 185, 0.3)";
     sunColor = "#ff9e7d";
+    laneColor = interpolateHexColor("#f7f2eb", "#f8a89d", phaseT);
+    reflectionAlpha = 0.08 + phaseT * 0.04;
   } else if (phase === "day") {
     cloudColor = "rgba(255, 255, 255, 0.35)";
     sunColor = "#fff8e7";
+    laneColor = "#f7f2eb";
+    reflectionAlpha = 0.06;
   } else if (phase === "sunset") {
     cloudColor = "rgba(230, 150, 210, 0.3)";
     sunColor = "#ff3b5c";
+    laneColor = interpolateHexColor("#f7f2eb", "#f8a89d", phaseT);
+    reflectionAlpha = 0.12 + phaseT * 0.08;
   } else {
     cloudColor = "rgba(100, 200, 255, 0.25)";
     sunColor = "#00f0ff";
+    laneColor = interpolateHexColor("#f8a89d", "#d0e8ff", phaseT);
+    reflectionAlpha = 0.22;
   }
 
   let groundDark = palette.groundDark;
@@ -166,11 +178,14 @@ export function applyDayPhase(palette: ScenarioPalette, progress: number): Modul
   return {
     ...palette,
     sun: sunColor,
+    lane: laneColor,
     groundDark,
     groundLight,
     dayPhase: phase,
     lightsOn,
-    cloudColor
+    cloudColor,
+    timeOfDay,
+    reflectionAlpha
   };
 }
 

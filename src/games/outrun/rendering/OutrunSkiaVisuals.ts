@@ -97,12 +97,34 @@ function drawSkiaSprite(
     }
   } else if (sp.kind === "lamp") {
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color("#d1d5db"));
+    paint.setColor(Skia.Color(lightsOn ? "#9ca3af" : "#4b5563"));
     canvas.drawRect(Skia.XYWHRect(-2, -90, 4, 90), paint);
     canvas.drawRect(Skia.XYWHRect(-2, -90, sp.side * 22, 4), paint);
 
-    paint.setColor(Skia.Color(lightsOn ? "#00f0ff" : "#fff8e7"));
-    canvas.drawCircle(sp.side * 20, -88, 5, paint);
+    if (lightsOn) {
+      // Soft cyan horizontal light glow line (blue hour / night)
+      paint.setStyle(Skia.PaintStyle.Stroke);
+      paint.setStrokeWidth(3);
+      paint.setColor(Skia.Color("rgba(0, 240, 255, 0.75)"));
+      const glowLine = Skia.Path.Make();
+      glowLine.moveTo(0, -88);
+      glowLine.lineTo(sp.side * 22, -88);
+      canvas.drawPath(glowLine, paint);
+
+      // Soft light beam halo
+      paint.setStyle(Skia.PaintStyle.Fill);
+      paint.setColor(Skia.Color("rgba(0, 240, 255, 0.25)"));
+      canvas.drawCircle(sp.side * 20, -88, 12, paint);
+
+      // Glowing cyan point
+      paint.setColor(Skia.Color("#00f0ff"));
+      canvas.drawCircle(sp.side * 20, -88, 6, paint);
+    } else {
+      // Off silhouette during day
+      paint.setStyle(Skia.PaintStyle.Fill);
+      paint.setColor(Skia.Color("#6b7280"));
+      canvas.drawCircle(sp.side * 20, -88, 4, paint);
+    }
   } else if (sp.kind === "shrub") {
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color("#8d5b4c"));
@@ -269,6 +291,28 @@ export const drawSkiaOutrunRoad: ShapeDrawer<RenderContext, OutrunComponentRegis
       canvas.drawCircle(cloudX + cloudW * 0.2, cloudY, cloudH * 0.7, paint);
     }
 
+    // PASS 2.8: Midday Horizon Heat Haze
+    if (palette.dayPhase === "day") {
+      const hazeY = screenH * 0.45;
+      const numLines = 18;
+      paint.reset();
+      paint.setAntiAlias(true);
+      paint.setStyle(Skia.PaintStyle.Stroke);
+      paint.setStrokeWidth(2);
+      paint.setColor(Skia.Color("rgba(255, 255, 255, 0.15)"));
+      for (let h = 0; h < numLines; h++) {
+        const hRatio = h / numLines;
+        const baseX = hRatio * screenW + (state.playerX * 12);
+        const waveOffset = Math.sin((state.playerZ * 0.02) + h * 0.8) * 4;
+        const x = ((baseX + waveOffset) % screenW + screenW) % screenW;
+
+        const hazeLine = Skia.Path.Make();
+        hazeLine.moveTo(x, hazeY - 22);
+        hazeLine.lineTo(x + waveOffset * 0.5, hazeY - 2);
+        canvas.drawPath(hazeLine, paint);
+      }
+    }
+
     // PASS 3: Scenario Horizon
     const horizonY = screenH * 0.45;
     const horizonStyle = palette.horizonStyle ?? (palette.id.startsWith("classic_") ? "faceted_peaks" : "coast_sea");
@@ -392,6 +436,14 @@ export const drawSkiaOutrunRoad: ShapeDrawer<RenderContext, OutrunComponentRegis
       const road = roadColor(p.index, rumbleLength, palette);
       fillTrapezoidSkia(canvas, paint, p.x1, p.y1, p.w1, p.x2, Math.min(p.y2, maxy), p.w2, road);
 
+      // Wet road / center asphalt reflection layer
+      if (palette.reflectionAlpha > 0) {
+        const reflW1 = p.w1 * 0.35;
+        const reflW2 = p.w2 * 0.35;
+        const reflColor = `rgba(255, 255, 255, ${palette.reflectionAlpha.toFixed(3)})`;
+        fillTrapezoidSkia(canvas, paint, p.x1, p.y1, reflW1, p.x2, Math.min(p.y2, maxy), reflW2, reflColor);
+      }
+
       // Inner curve asphalt darkening
       if (Math.abs(p.curve) > 1.5) {
         const innerSide = p.curve > 0 ? 1 : -1;
@@ -469,8 +521,8 @@ export const drawSkiaOutrunCar: ShapeDrawer<RenderContext, OutrunComponentRegist
     paint.reset();
     paint.setAntiAlias(true);
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color("rgba(0, 0, 0, 0.3)"));
-    canvas.drawOval(Skia.XYWHRect(geom.baseX - 30 * geom.carScale, geom.baseY + 2, 60 * geom.carScale, 16 * geom.carScale), paint);
+    paint.setColor(Skia.Color("rgba(0, 0, 0, 0.42)"));
+    canvas.drawOval(Skia.XYWHRect(geom.baseX - 34 * geom.carScale, geom.baseY, 68 * geom.carScale, 20 * geom.carScale), paint);
 
     // Off-track Dust
     if (geom.isOffroad && state.speed > 0) {

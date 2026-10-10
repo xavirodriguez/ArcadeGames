@@ -7,3 +7,4 @@ export * from "./TouchActionButton";
 export * from "./TouchHoldButton";
 export * from "./TouchDragZone";
 export * from "./TouchTapZone";
+export * from "./useGestureHandlerRootViewCheck";

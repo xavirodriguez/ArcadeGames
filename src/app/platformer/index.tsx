@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
-import { TouchActionButton, TouchVirtualJoystick } from "@/components/controls";
+import { TouchDragZone, TouchActionButton } from "@/components/controls";
+import { TouchInputState } from "@tiny-aster/core";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
@@ -45,6 +46,17 @@ function PlatformerContent() {
 
   const { game, gameState, isReady, togglePause, highScore } =
     usePlatformerGame(started, initialSeed);
+
+  const touchStateRef = useRef<TouchInputState | null>(null);
+  if (!touchStateRef.current) {
+    touchStateRef.current = new TouchInputState();
+  }
+
+  useEffect(() => {
+    if (game && touchStateRef.current) {
+      game.getWorld().setResource("TouchInputState", touchStateRef.current);
+    }
+  }, [game]);
 
   // Keyboard controls for Web platforms
   useEffect(() => {
@@ -195,24 +207,18 @@ function PlatformerContent() {
         }
         controlsSlot={
           isTouchDevice ? (
-            <View style={styles.touchControlsContainer} pointerEvents="box-none">
-              <View style={styles.leftZone} pointerEvents="box-none">
-                <TouchVirtualJoystick
-                  floating={false}
-                  onMove={(x) => {
-                    handleTouchLeft(x < -0.2);
-                    handleTouchRight(x > 0.2);
-                  }}
-                  onRelease={() => {
-                    handleTouchLeft(false);
-                    handleTouchRight(false);
-                  }}
-                />
-              </View>
-
+            <TouchDragZone
+              touchState={touchStateRef.current ?? undefined}
+              target="paddle"
+              activeOffsetX={[-10, 10]}
+              failOffsetY={[-10, 10]}
+              style={styles.touchControlsContainer}
+            >
               <View style={styles.actions} pointerEvents="box-none">
                 <TouchActionButton
                   label="DASH"
+                  buttonName="dash"
+                  touchState={touchStateRef.current ?? undefined}
                   size={65}
                   color="rgba(30, 41, 59, 0.7)"
                   borderColor={colors.gold}
@@ -227,6 +233,8 @@ function PlatformerContent() {
                 />
                 <TouchActionButton
                   label="JUMP"
+                  buttonName="jump"
+                  touchState={touchStateRef.current ?? undefined}
                   size={75}
                   color="rgba(30, 41, 59, 0.7)"
                   borderColor={colors.cyan}
@@ -240,7 +248,7 @@ function PlatformerContent() {
                   style={{ marginHorizontal: spacing.sm }}
                 />
               </View>
-            </View>
+            </TouchDragZone>
           ) : null
         }
         debugSlot={<DebugOverlay game={game} />}

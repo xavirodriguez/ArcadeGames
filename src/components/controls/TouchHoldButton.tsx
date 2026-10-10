@@ -9,6 +9,7 @@ import Animated, {
 import { TouchInputState } from "@tiny-aster/core";
 import { colors } from "@/theme/colors";
 import { hapticImpactLight } from "@/utils/haptics";
+import { useGestureHandlerRootViewCheck } from "./useGestureHandlerRootViewCheck";
 
 export interface TouchHoldButtonProps {
   label: string;
@@ -45,6 +46,7 @@ export function TouchHoldButton({
   accessibilityHint,
   disabled = false,
 }: TouchHoldButtonProps) {
+  useGestureHandlerRootViewCheck();
   const finalSize = Math.max(48, size);
   const isHeld = useSharedValue(false);
   const scale = useSharedValue(1);

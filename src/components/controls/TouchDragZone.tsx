@@ -3,6 +3,7 @@ import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { TouchInputState, mapFingerToPaddle } from "@tiny-aster/core";
 import Animated, { useSharedValue } from "react-native-reanimated";
+import { useGestureHandlerRootViewCheck } from "./useGestureHandlerRootViewCheck";
 
 export interface TouchDragZoneProps {
   /** TouchInputState reference. */
@@ -36,6 +37,7 @@ export function TouchDragZone({
   style,
   children,
 }: TouchDragZoneProps) {
+  useGestureHandlerRootViewCheck();
   const startX = useSharedValue(0);
   const startY = useSharedValue(0);
   const currentX = useSharedValue(0);

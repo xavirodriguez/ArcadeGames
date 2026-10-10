@@ -1,4 +1,4 @@
-import { World, System, InputSystem } from "@tiny-aster/core";
+import { World, System, InputSystem, TouchInputState } from "@tiny-aster/core";
 import { type PongComponentRegistry } from "../types";
 import { PongConfig, DEFAULT_PONG_CONFIG } from "../types/PongConfigSchema";
 import { AIPongController } from "../input/AIPongController";
@@ -22,6 +22,7 @@ export class PongInputSystem extends System<PongComponentRegistry> {
     this.currentTick++;
     const config = world.getResource<PongConfig>("GameConfig") || DEFAULT_PONG_CONFIG;
     const inputSystem = world.getResource<InputSystem>("InputSystem");
+    const touchState = world.getResource<TouchInputState>("TouchInputState");
 
     const paddles = world.query("Paddle");
     const len = paddles.length;
@@ -35,8 +36,13 @@ export class PongInputSystem extends System<PongComponentRegistry> {
       let targetVy = 0;
 
       if (p.side === "left") {
-        const p1Up = inputSystem ? inputSystem.getAction("p1Up") : false;
-        const p1Down = inputSystem ? inputSystem.getAction("p1Down") : false;
+        const p1UpSys = inputSystem ? inputSystem.getAction("p1Up") : false;
+        const p1DownSys = inputSystem ? inputSystem.getAction("p1Down") : false;
+        const touchUp = touchState ? (touchState.getButton("p1Up") || touchState.moveY < -0.2) : false;
+        const touchDown = touchState ? (touchState.getButton("p1Down") || touchState.moveY > 0.2) : false;
+        const p1Up = p1UpSys || touchUp;
+        const p1Down = p1DownSys || touchDown;
+
         if (p1Up) targetVy = -config.PADDLE_SPEED;
         else if (p1Down) targetVy = config.PADDLE_SPEED;
       } else if (p.side === "right") {
@@ -51,8 +57,13 @@ export class PongInputSystem extends System<PongComponentRegistry> {
           if (aiInput.p2Up) targetVy = -config.PADDLE_SPEED;
           else if (aiInput.p2Down) targetVy = config.PADDLE_SPEED;
         } else {
-          const p2Up = inputSystem ? inputSystem.getAction("p2Up") : false;
-          const p2Down = inputSystem ? inputSystem.getAction("p2Down") : false;
+          const p2UpSys = inputSystem ? inputSystem.getAction("p2Up") : false;
+          const p2DownSys = inputSystem ? inputSystem.getAction("p2Down") : false;
+          const touchP2Up = touchState ? touchState.getButton("p2Up") : false;
+          const touchP2Down = touchState ? touchState.getButton("p2Down") : false;
+          const p2Up = p2UpSys || touchP2Up;
+          const p2Down = p2DownSys || touchP2Down;
+
           if (p2Up) targetVy = -config.PADDLE_SPEED;
           else if (p2Down) targetVy = config.PADDLE_SPEED;
         }

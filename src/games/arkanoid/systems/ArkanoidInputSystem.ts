@@ -1,4 +1,4 @@
-import { System, World, WorldUtils, EntityBuilder, ShapeType, BoxShape } from "@tiny-aster/core";
+import { System, World, WorldUtils, EntityBuilder, ShapeType, BoxShape, TouchInputState } from "@tiny-aster/core";
 import { ArkanoidComponentRegistry, ArkanoidEventRegistry } from "../types/ArkanoidTypes";
 import { ArkanoidConfig, DEFAULT_ARKANOID_CONFIG } from "../types/ArkanoidConfigSchema";
 
@@ -26,6 +26,22 @@ export class ArkanoidInputSystem extends System<ArkanoidComponentRegistry, Arkan
         leftInput = !!inputSys.isActionActive("p1Left");
         rightInput = !!inputSys.isActionActive("p1Right");
         launchInput = !!inputSys.isActionActive("p1Launch");
+      }
+    }
+
+    const touchState = world.getResource<TouchInputState>("TouchInputState");
+    if (touchState) {
+      if (touchState.getButton("p1Left") || touchState.moveX < -0.2) leftInput = true;
+      if (touchState.getButton("p1Right") || touchState.moveX > 0.2) rightInput = true;
+      if (touchState.getButton("p1Launch") || touchState.consumeTaps().length > 0) launchInput = true;
+
+      const pEntity = paddleEntities[0];
+      if (touchState.paddle.active && pEntity !== undefined) {
+        const pTrans = world.getComponent(pEntity, "Transform");
+        if (pTrans) {
+          if (touchState.paddle.x < pTrans.x - 5) leftInput = true;
+          else if (touchState.paddle.x > pTrans.x + 5) rightInput = true;
+        }
       }
     }
 

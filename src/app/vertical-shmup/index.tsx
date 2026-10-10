@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
@@ -7,12 +7,25 @@ import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { useVerticalShmupGame } from "@/hooks/useVerticalShmupGame";
 import { useKeyboardControls } from "@/hooks/useKeyboardControls";
 import { TouchVirtualJoystick, TouchActionButton } from "@/components/controls";
+import { TouchInputState } from "@tiny-aster/core";
 import { GameLayoutShell, GameScreen, GameTitle, GameInstructions, BackButton, NeonButton } from "@/components/ui";
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 
 export default function VerticalShmupScreen() {
   const [started, setStarted] = useState(false);
   const { game, gameState, handleInput, isReady } = useVerticalShmupGame(started);
+
+  const touchStateRef = useRef<TouchInputState | null>(null);
+  if (!touchStateRef.current) {
+    touchStateRef.current = new TouchInputState();
+  }
+
+  useEffect(() => {
+    if (game && touchStateRef.current) {
+      game.getWorld().setResource("TouchInputState", touchStateRef.current);
+    }
+  }, [game]);
+
   useKeyboardControls(game, isReady);
 
   const setInput = useCallback((patch: Partial<{ moveX: number; moveY: number; shoot: boolean }>) => {
@@ -48,6 +61,7 @@ export default function VerticalShmupScreen() {
             <View style={styles.controls} pointerEvents="box-none">
               <View style={styles.leftControlArea} pointerEvents="box-none">
                 <TouchVirtualJoystick
+                  touchState={touchStateRef.current ?? undefined}
                   floating={true}
                   onMove={(x, y) => setInput({ moveX: x, moveY: y, shoot: true })}
                   onRelease={() => setInput({ moveX: 0, moveY: 0, shoot: false })}
@@ -57,6 +71,8 @@ export default function VerticalShmupScreen() {
               <View style={styles.rightControlArea} pointerEvents="box-none">
                 <TouchActionButton
                   label="🔥"
+                  buttonName="shoot"
+                  touchState={touchStateRef.current ?? undefined}
                   accessibilityLabel="Fire primary weapon"
                   onPressIn={() => setInput({ shoot: true })}
                   onPressOut={() => setInput({ shoot: false })}

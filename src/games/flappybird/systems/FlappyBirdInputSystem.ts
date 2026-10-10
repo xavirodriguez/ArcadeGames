@@ -1,4 +1,4 @@
-import { System, World, VelocityComponent, InputStateComponent, Juice } from "@tiny-aster/core";
+import { System, World, VelocityComponent, InputStateComponent, TouchInputState, Juice } from "@tiny-aster/core";
 import { FlappyBirdInputComponent, BirdComponent, FLAPPY_CONFIG, FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
 
 const InputUtils = {
@@ -59,7 +59,9 @@ export class FlappyBirdInputSystem extends System<FlappyBirdComponentRegistry> {
     if (this.isMultiplayer) return;
 
     const inputState = world.getSingleton("InputState");
-    const flapRequested = inputState ? InputUtils.isPressed(inputState, "flap") : false;
+    const touchState = world.getResource<TouchInputState>("TouchInputState");
+    const touchFlapRequested = touchState ? (touchState.getButton("flap") || touchState.consumeTaps().length > 0 || touchState.moveY < -0.25) : false;
+    const flapRequested = (inputState ? InputUtils.isPressed(inputState, "flap") : false) || touchFlapRequested;
 
     const entities = world.query("Bird", "FlappyInput", "Velocity");
 

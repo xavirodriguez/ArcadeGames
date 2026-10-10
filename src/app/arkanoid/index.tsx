@@ -1,15 +1,14 @@
-import { useState, useEffect, useCallback, FC } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator, useWindowDimensions } from "react-native";
+import { useState, useEffect, useCallback, useRef, FC } from "react";
+import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { GestureDetector, Gesture } from "react-native-gesture-handler";
-import { useSharedValue, useFrameCallback, runOnJS } from "react-native-reanimated";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
 import { router } from "expo-router";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { useArkanoidGame } from "@/hooks/useArkanoidGame";
 import { useTranslation } from "@/hooks/useTranslation";
-import { ShootButton } from "../../components/ShootButton";
+import { TouchDragZone, TouchActionButton } from "@/components/controls";
+import { TouchInputState } from "@tiny-aster/core";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { useKeyboardControls } from "../../hooks/useKeyboardControls";
 import { RadialBackground } from "@/components/RadialBackground";
@@ -54,6 +53,17 @@ function ArkanoidContent() {
 
   const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } =
     useArkanoidGame(started, initialSeed);
+
+  const touchStateRef = useRef<TouchInputState | null>(null);
+  if (!touchStateRef.current) {
+    touchStateRef.current = new TouchInputState();
+  }
+
+  useEffect(() => {
+    if (game && touchStateRef.current) {
+      game.getWorld().setResource("TouchInputState", touchStateRef.current);
+    }
+  }, [game]);
 
   useKeyboardControls(game, isReady);
 
@@ -135,7 +145,23 @@ function ArkanoidContent() {
           />
         }
         controlsSlot={
-          <ArkanoidTouchControls game={game} handleInputState={handleInputState} />
+          <TouchDragZone
+            touchState={touchStateRef.current ?? undefined}
+            target="paddle"
+            mode="relative"
+            style={styles.controls}
+          >
+            <View style={styles.rightControlArea} pointerEvents="box-none">
+              <TouchActionButton
+                label="LAUNCH"
+                buttonName="p1Launch"
+                touchState={touchStateRef.current ?? undefined}
+                size={80}
+                onPressIn={() => handleInputState({ launch: true })}
+                onPressOut={() => handleInputState({ launch: false })}
+              />
+            </View>
+          </TouchDragZone>
         }
         debugSlot={<DebugOverlay game={game} />}
         overlaySlot={
@@ -248,86 +274,3 @@ const styles = StyleSheet.create({
     userSelect: "none",
   },
 });
-
-function ArkanoidTouchControls({
-  game,
-  handleInputState,
-}: {
-  game: any;
-  handleInputState: (input: Partial<{ left: boolean; right: boolean; launch: boolean }>) => void;
-}) {
-  const { width: screenWidth } = useWindowDimensions();
-  const worldWidth = 800;
-  const paddleWidth = 100;
-  const halfPaddle = paddleWidth / 2;
-
-  const paddleX = useSharedValue(worldWidth / 2);
-  const touchStartX = useSharedValue(0);
-  const paddleStartX = useSharedValue(worldWidth / 2);
-
-  const panGesture = Gesture.Pan()
-    .minDistance(0)
-    .shouldCancelWhenOutside(false)
-    .runOnJS(false)
-    .onBegin((e) => {
-      touchStartX.value = e.x;
-      paddleStartX.value = paddleX.value;
-    })
-    .onUpdate((e) => {
-      const scale = screenWidth > 0 ? worldWidth / screenWidth : 1;
-      const deltaX = e.translationX * scale;
-      let nextX = paddleStartX.value + deltaX;
-
-      if (nextX < halfPaddle) nextX = halfPaddle;
-      if (nextX > worldWidth - halfPaddle) nextX = worldWidth - halfPaddle;
-
-      paddleX.value = nextX;
-    });
-
-  const lastDir = useSharedValue<"left" | "right" | "none">("none");
-
-  useFrameCallback(() => {
-    if (!game) return;
-    const world = game.getWorld?.();
-    if (!world) return;
-
-    const paddleEntities = world.query("Paddle", "Transform");
-    if (paddleEntities && paddleEntities.length > 0) {
-      const pEntity = paddleEntities[0];
-      const transform = world.getComponent(pEntity, "Transform");
-      if (transform) {
-        const targetX = paddleX.value;
-        const diff = targetX - transform.x;
-
-        let nextDir: "left" | "right" | "none" = "none";
-        if (diff < -2) {
-          nextDir = "left";
-        } else if (diff > 2) {
-          nextDir = "right";
-        }
-
-        if (nextDir !== lastDir.value) {
-          lastDir.value = nextDir;
-          runOnJS(handleInputState)({
-            left: nextDir === "left",
-            right: nextDir === "right",
-          });
-        }
-      }
-    }
-  });
-
-  return (
-    <GestureDetector gesture={panGesture}>
-      <View style={styles.controls} pointerEvents="box-none">
-        <View style={{ flex: 1 }} pointerEvents="box-none" />
-        <View style={styles.rightControlArea} pointerEvents="box-none">
-          <ShootButton
-            onPressIn={() => handleInputState({ launch: true })}
-            onPressOut={() => handleInputState({ launch: false })}
-          />
-        </View>
-      </View>
-    </GestureDetector>
-  );
-}

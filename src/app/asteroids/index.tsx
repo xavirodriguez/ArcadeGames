@@ -34,6 +34,7 @@ import { ArcadeProvider } from "@/context/ArcadeProvider";
 import { GameThemeProvider } from "@/context/GameThemeProvider";
 import { useArcadeTransition } from "@/hooks/useArcadeTransition";
 import { TransitionOverlay } from "@/components/TransitionOverlay";
+import { TouchInputState } from "@tiny-aster/core";
 import { ScorePulse } from "@/components/ScorePulse";
 import {
   GameScreen,
@@ -69,6 +70,17 @@ export default function AsteroidsScreen() {
   const [selectedMode, setSelectedMode] = useState<"deathmatch" | "story">("deathmatch");
 
   const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useAsteroidsGame(started, isMulti && started, initialSeed, selectedMode);
+
+  const touchStateRef = useRef<TouchInputState | null>(null);
+  if (!touchStateRef.current) {
+    touchStateRef.current = new TouchInputState();
+  }
+
+  useEffect(() => {
+    if (game && touchStateRef.current) {
+      game.getWorld().setResource("TouchInputState", touchStateRef.current);
+    }
+  }, [game]);
 
   // Activate keyboard controls for Web
   useKeyboardControls(game, isReady);
@@ -139,18 +151,22 @@ export default function AsteroidsScreen() {
   }, [isMulti, room, sendNetInput, game, handleInput]);
 
   const handleShootPress = useCallback(() => {
+    if (touchStateRef.current) touchStateRef.current.setButton("shoot", true);
     handleMultiplayerInput({ shoot: true });
   }, [handleMultiplayerInput]);
 
   const handleShootRelease = useCallback(() => {
+    if (touchStateRef.current) touchStateRef.current.setButton("shoot", false);
     handleMultiplayerInput({ shoot: false });
   }, [handleMultiplayerInput]);
 
   const handleHyperspacePress = useCallback(() => {
+    if (touchStateRef.current) touchStateRef.current.setButton("hyperspace", true);
     handleMultiplayerInput({ hyperspace: true });
   }, [handleMultiplayerInput]);
 
   const handleHyperspaceRelease = useCallback(() => {
+    if (touchStateRef.current) touchStateRef.current.setButton("hyperspace", false);
     handleMultiplayerInput({ hyperspace: false });
   }, [handleMultiplayerInput]);
 
@@ -221,6 +237,7 @@ export default function AsteroidsScreen() {
           handleHyperspaceRelease={handleHyperspaceRelease}
           showDailyResults={showDailyResults}
           setShowDailyResults={setShowDailyResults}
+          touchState={touchStateRef.current}
         />
       </SafeAreaProvider>
     </GameErrorBoundary>
@@ -245,6 +262,7 @@ interface AsteroidsGameContentProps {
   handleHyperspaceRelease: () => void;
   showDailyResults: boolean;
   setShowDailyResults: (show: boolean) => void;
+  touchState: TouchInputState | null;
 }
 
 function AsteroidsGameContent({
@@ -265,6 +283,7 @@ function AsteroidsGameContent({
   handleHyperspaceRelease,
   showDailyResults,
   setShowDailyResults,
+  touchState,
 }: AsteroidsGameContentProps) {
   const { t } = useTranslation();
   const kernel = game.kernel;
@@ -332,6 +351,9 @@ function AsteroidsGameContent({
                     type="movement"
                     floating={true}
                     onMove={(x, y) => {
+                      if (touchState) {
+                        touchState.setMoveAxis(x, y);
+                      }
                       const rotateLeft = x < -DEFAULT_ROTATE_THRESHOLD;
                       const rotateRight = x > DEFAULT_ROTATE_THRESHOLD;
                       const thrust = y < DEFAULT_THRUST_THRESHOLD;
@@ -343,6 +365,9 @@ function AsteroidsGameContent({
                       });
                     }}
                     onRelease={() => {
+                      if (touchState) {
+                        touchState.setMoveAxis(0, 0);
+                      }
                       handleMultiplayerInput({
                         rotateLeft: false,
                         rotateRight: false,

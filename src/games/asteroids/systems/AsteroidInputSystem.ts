@@ -1,4 +1,4 @@
-import { World, System, computeShipPhysics, getForwardVector, PhysicsUtils, Juice } from "@tiny-aster/core";
+import { World, System, computeShipPhysics, getForwardVector, PhysicsUtils, Juice, TouchInputState } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/AsteroidRegistry";
 import { AsteroidConfig } from "../types/AsteroidConfigSchema";
 import { createBullet } from "../EntityFactory";
@@ -21,6 +21,7 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
 
       const dtSec = deltaTime; // deltaTime is already strictly in units of seconds (e.g. 0.016s)
       const config = world.getResource<AsteroidConfig>("GameConfig") || this.config;
+      const touchState = world.getResource<TouchInputState>("TouchInputState");
 
       // Query local player entities
       const entities = world.query("LocalPlayer", "Transform", "Velocity", "Input");
@@ -39,10 +40,23 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
           const ship = world.getComponent(entity, "Ship");
 
           // 1. Process physics (rotation, thrust, friction)
+          const effectiveInput: Parameters<typeof computeShipPhysics>[2] = {
+            actions: input.actions,
+            axes: input.axes,
+          };
+          if (touchState) {
+            if (touchState.moveX !== 0) {
+              effectiveInput.rotationAmount = touchState.moveX;
+            }
+            if (touchState.moveY < -0.25 || touchState.getButton("thrust")) {
+              effectiveInput.thrust = true;
+            }
+          }
+
           const phys = computeShipPhysics(
               transform,
               velocity,
-              input,
+              effectiveInput,
               config,
               dtSec
           );
@@ -71,7 +85,7 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
           const currentShip = world.getComponent(entity, "Ship");
           const cooldown = currentShip ? currentShip.shootCooldownRemaining : 0;
 
-          if (this.hasAction(input, "shoot") && cooldown <= 0) {
+          if (this.hasAction(input, "shoot", touchState) && cooldown <= 0) {
               const bulletSpeed = config.BULLET_SPEED ?? 300;
               const forward = getForwardVector(transform.rotation);
               const vx = forward.x * bulletSpeed;
@@ -111,7 +125,7 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
               }
           }
 
-          if (this.hasAction(input, "thrust")) {
+          if (this.hasAction(input, "thrust", touchState)) {
               const eventBus = world.getEventBus();
               if (eventBus) {
                   eventBus.emitDeferred("PlaySFX", {
@@ -141,7 +155,7 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
           }
 
           // 3. Process hyperspace
-          const isHyperspaceHeld = this.hasAction(input, "hyperspace");
+          const isHyperspaceHeld = this.hasAction(input, "hyperspace", touchState);
           const latestShip = world.getComponent(entity, "Ship")!;
           const hCooldown = latestShip.hyperspaceCooldownRemaining ?? 0;
           const prepActive = (latestShip.hyperspacePrepTime ?? 0) > 0;
@@ -271,7 +285,14 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
       }
   }
 
-  private hasAction(input: AsteroidsComponentRegistry["Input"], actionName: string): boolean {
+  private hasAction(input: AsteroidsComponentRegistry["Input"], actionName: string, touchState?: TouchInputState): boolean {
+    if (touchState) {
+      if (actionName === "shoot" && touchState.getButton("shoot")) return true;
+      if (actionName === "hyperspace" && touchState.getButton("hyperspace")) return true;
+      if (actionName === "thrust" && (touchState.getButton("thrust") || touchState.moveY < -0.25)) return true;
+      if (actionName === "rotateLeft" && (touchState.getButton("rotateLeft") || touchState.moveX < -0.25)) return true;
+      if (actionName === "rotateRight" && (touchState.getButton("rotateRight") || touchState.moveX > 0.25)) return true;
+    }
     const acts = input.actions;
     if (acts instanceof Set) {
       return acts.has(actionName);

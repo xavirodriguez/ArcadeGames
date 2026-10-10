@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, withSequence } from "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -6,7 +6,8 @@ import { router } from "expo-router";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
-import { TouchVirtualJoystick, TouchActionButton } from "@/components/controls";
+import { TouchDragZone, TouchHoldButton, TouchActionButton } from "@/components/controls";
+import { TouchInputState } from "@tiny-aster/core";
 import { useRacingGame } from "@/hooks/useRacingGame";
 import { useKeyboardControls } from "@/hooks/useKeyboardControls";
 import { GameLayoutShell, GameScreen, GameTitle, GameInstructions, BackButton, NeonButton } from "@/components/ui";
@@ -19,6 +20,17 @@ export default function RacingScreen() {
   const { t } = useTranslation();
   const [started, setStarted] = useState(false);
   const { game, gameState, handleInput, isReady } = useRacingGame(started);
+
+  const touchStateRef = useRef<TouchInputState | null>(null);
+  if (!touchStateRef.current) {
+    touchStateRef.current = new TouchInputState();
+  }
+
+  useEffect(() => {
+    if (game && touchStateRef.current) {
+      game.getWorld().setResource("TouchInputState", touchStateRef.current);
+    }
+  }, [game]);
 
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
@@ -140,23 +152,30 @@ export default function RacingScreen() {
             />
           }
           controlsSlot={
-            <View style={styles.controls} pointerEvents="box-none">
-              <View style={styles.leftControlArea} pointerEvents="box-none">
-                <TouchVirtualJoystick
-                  floating={false}
-                  onMove={(x, y) => {
-                    const curvedX = x * Math.abs(x);
-                    input({ moveX: curvedX, moveY: y });
-                  }}
-                  onRelease={() => {
-                    input({ moveX: 0, moveY: 0 });
-                  }}
-                  accessibilityLabel="Steering Joystick"
-                />
-              </View>
+            <TouchDragZone
+              touchState={touchStateRef.current ?? undefined}
+              target="paddle"
+              mode="relative"
+              style={styles.controls}
+            >
               <View style={styles.rightControlArea} pointerEvents="box-none">
+                <TouchHoldButton
+                  label="GAS"
+                  buttonName="thrust"
+                  touchState={touchStateRef.current ?? undefined}
+                  size={72}
+                  color="rgba(0, 232, 210, 0.2)"
+                  borderColor={glowColor}
+                  onHoldStart={() => input({ moveY: -1 })}
+                  onHoldEnd={() => input({ moveY: 0 })}
+                  accessibilityLabel="Accelerate"
+                />
+                <View style={{ height: 12 }} />
                 <TouchActionButton
                   label="BOOST"
+                  buttonName="boost"
+                  touchState={touchStateRef.current ?? undefined}
+                  size={64}
                   accessibilityLabel="Boost nitro"
                   onPressIn={() => input({ boost: true })}
                   onPressOut={() => input({ boost: false })}
@@ -165,7 +184,7 @@ export default function RacingScreen() {
                   borderColor={accentColor}
                 />
               </View>
-            </View>
+            </TouchDragZone>
           }
           debugSlot={<DebugOverlay game={game} />}
           overlaySlot={

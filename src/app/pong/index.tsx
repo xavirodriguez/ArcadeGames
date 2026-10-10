@@ -19,6 +19,7 @@ import { MULTIPLAYER_CONFIG } from "@/config/MultiplayerConfig";
 import { useGameSession } from "@/hooks/useGameSession";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useKeyboardControls } from "@/hooks/useKeyboardControls";
+import { TouchInputState } from "@tiny-aster/core";
 import { hapticSelection } from "../../utils/haptics";
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { colors } from "../../theme";
@@ -57,6 +58,17 @@ export default function PongScreen() {
 
   const isMulti = mode === "online";
   const { game, gameState, handleInput, isReady, restart } = usePongGame(started ? mode : null, initialSeed);
+
+  const touchStateRef = useRef<TouchInputState | null>(null);
+  if (!touchStateRef.current) {
+    touchStateRef.current = new TouchInputState();
+  }
+
+  useEffect(() => {
+    if (game && touchStateRef.current) {
+      game.getWorld().setResource("TouchInputState", touchStateRef.current);
+    }
+  }, [game]);
 
   const handleGameInput = (input: Record<string, boolean>) => {
       if (isMulti && room) {
@@ -218,6 +230,7 @@ export default function PongScreen() {
         }
         controlsSlot={
           <PongControls
+            touchState={touchStateRef.current ?? undefined}
             onP1Up={(pressed) => handleGameInput({ p1Up: pressed })}
             onP1Down={(pressed) => handleGameInput({ p1Down: pressed })}
             onP2Up={(pressed) => { if (mode === "local") handleGameInput({ p2Up: pressed }); }}

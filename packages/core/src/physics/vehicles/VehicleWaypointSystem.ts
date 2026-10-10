@@ -15,6 +15,60 @@ export function normalizeAngle(angle: number): number {
   return diff;
 }
 
+export interface SteerWaypointResult {
+  steering: number;
+  throttle: number;
+  nextIndex: number;
+  reachedTarget: boolean;
+}
+
+/**
+ * Computes normalized steering and base throttle inputs for a vehicle traveling toward its active waypoint.
+ *
+ * @param transform - Current spatial position and rotation of the vehicle.
+ * @param waypointsComp - Active vehicle waypoint component containing target coordinates and radius.
+ * @param minPositiveThrottle - Floor for throttle when aligned with target (defaults to 0.3).
+ * @returns Result object containing calculated inputs and next waypoint index, or null if no waypoints exist.
+ * @public
+ */
+export function steerTowardWaypoint(
+  transform: { x: number; y: number; rotation?: number },
+  waypointsComp: VehicleWaypointComponent,
+  minPositiveThrottle = 0.3
+): SteerWaypointResult | null {
+  if (waypointsComp.waypoints.length === 0) return null;
+
+  const idx = waypointsComp.currentWaypointIndex;
+  const target = waypointsComp.waypoints[idx];
+  if (!target) return null;
+
+  const dx = target.x - transform.x;
+  const dy = target.y - transform.y;
+  const dist = Math.hypot(dx, dy);
+
+  let reachedTarget = false;
+  let nextIndex = idx;
+
+  if (dist <= waypointsComp.targetRadius) {
+    reachedTarget = true;
+    const candidateIdx = idx + 1;
+    if (candidateIdx < waypointsComp.waypoints.length) {
+      nextIndex = candidateIdx;
+    } else if (waypointsComp.loop !== false) {
+      nextIndex = 0;
+    }
+  }
+
+  const desiredAngle = Math.atan2(dy, dx);
+  const diffAngle = normalizeAngle(desiredAngle - (transform.rotation ?? 0));
+
+  const steering = Math.max(-1, Math.min(1, diffAngle * 1.8));
+  const alignment = Math.cos(diffAngle);
+  const throttle = alignment > 0 ? Math.max(minPositiveThrottle, alignment) : -0.2;
+
+  return { steering, throttle, nextIndex, reachedTarget };
+}
+
 /**
  * System driving AI vehicle steering and throttle toward active waypoint nodes.
  *
@@ -28,45 +82,24 @@ export class VehicleWaypointSystem extends System<CoreComponentRegistry> {
     const len = entities.length;
 
     for (let i = 0; i < len; i++) {
-            // TODO(refactor): código duplicado detectado (bloque) con racing/systems/VehicleAISystem.ts:18-35. Considerar extraer a función compartida. Ref: 469377f3
-const entity = entities[i];
+      const entity = entities[i];
       const waypointsComp = world.getComponent(entity, "VehicleWaypoint") as VehicleWaypointComponent | undefined;
       const vehicle = world.getMutableComponent(entity, "VehicleSteering") as VehicleSteeringComponent | undefined;
       const transform = world.getComponent(entity, "Transform");
 
-      if (!waypointsComp || !vehicle || !transform || waypointsComp.waypoints.length === 0) continue;
+      if (!waypointsComp || !vehicle || !transform) continue;
 
-      const idx = waypointsComp.currentWaypointIndex;
-      const target = waypointsComp.waypoints[idx];
-      if (!target) continue;
+      const steerRes = steerTowardWaypoint(transform, waypointsComp, 0.3);
+      if (!steerRes) continue;
 
-      const dx = target.x - transform.x;
-      const dy = target.y - transform.y;
-      const dist = Math.hypot(dx, dy);
-
-      if (dist <= waypointsComp.targetRadius) {
-        const nextIdx = idx + 1;
-        if (nextIdx < waypointsComp.waypoints.length) {
-          world.mutateComponent(entity, "VehicleWaypoint", (m: VehicleWaypointComponent) => {
-            m.currentWaypointIndex = nextIdx;
-          });
-        } else if (waypointsComp.loop !== false) {
-          world.mutateComponent(entity, "VehicleWaypoint", (m: VehicleWaypointComponent) => {
-            m.currentWaypointIndex = 0;
-          });
-        }
+      if (steerRes.reachedTarget && steerRes.nextIndex !== waypointsComp.currentWaypointIndex) {
+        world.mutateComponent(entity, "VehicleWaypoint", (m: VehicleWaypointComponent) => {
+          m.currentWaypointIndex = steerRes.nextIndex;
+        });
       }
 
-            // TODO(refactor): código duplicado detectado (bloque) con racing/systems/VehicleAISystem.ts:39-44. Considerar extraer a función compartida. Ref: e3613c97
-const desiredAngle = Math.atan2(dy, dx);
-      const diffAngle = normalizeAngle(desiredAngle - (transform.rotation ?? 0));
-
-      // Calculate normalized steering input
-      vehicle.steering = Math.max(-1, Math.min(1, diffAngle * 1.8));
-
-      // Calculate normalized throttle input (slow down for sharp turns)
-      const alignment = Math.cos(diffAngle);
-      vehicle.throttle = alignment > 0 ? Math.max(0.3, alignment) : -0.2;
+      vehicle.steering = steerRes.steering;
+      vehicle.throttle = steerRes.throttle;
     }
   }
 }

@@ -23,11 +23,10 @@ import {
  *   so ScreenShakeSystem can drive VisualOffset.
  * - hitFlashFrames on victim Render (also skipped on re-sim).
  */
-export class HitRunFeedbackSystem extends System<CoreComponentRegistry> {
-  private config: HitRunFeedbackConfig;
-  private subscribed = false;
+import { CombatHitListenerSystem } from "../combat/CombatHitListenerSystem";
 
-  private pendingHits: CombatHitPayload[] = [];
+export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPayload> {
+  private config: HitRunFeedbackConfig;
   private pendingDeaths: CombatDeathPayload[] = [];
 
   constructor(config: Partial<HitRunFeedbackConfig> = {}) {
@@ -42,15 +41,7 @@ export class HitRunFeedbackSystem extends System<CoreComponentRegistry> {
     };
   }
 
-    // TODO(refactor): código duplicado detectado (método) con hitandrun/hurt/HitRunHurtSystem.ts:31-36. Considerar extraer a función compartida. Ref: a5b7b380
-public subscribe(eventBus: EventBus): void {
-    if (this.subscribed) return;
-    this.subscribed = true;
-
-    eventBus.on("combat:hit", (payload: unknown) => {
-      this.pendingHits.push(payload as CombatHitPayload);
-    });
-
+  protected override onSubscribe(eventBus: EventBus): void {
     eventBus.on("combat:death", (payload: unknown) => {
       this.pendingDeaths.push(payload as CombatDeathPayload);
     });

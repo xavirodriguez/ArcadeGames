@@ -1,4 +1,4 @@
-import { World, RenderComponent, TransformComponent } from "@tiny-aster/core";
+import { World, RenderComponent, TransformComponent, CoreComponentRegistry } from "@tiny-aster/core";
 import { ArkanoidComponentRegistry, BrickComponent } from "../types/ArkanoidTypes";
 import { ArkanoidConfig } from "../types/ArkanoidConfigSchema";
 import { colors } from "../../../theme/colors";
@@ -10,21 +10,17 @@ export interface ArkanoidBallContext {
   color: string;
 }
 
-// TODO(refactor): código duplicado detectado (bloque) con pong/rendering/PongRenderUtils.ts:25-32. Considerar extraer a función compartida. Ref: b21f1b8a
+import { resolveBasicBallContext } from "../../shared/rendering/BallRenderUtils";
+
 export function resolveArkanoidBallContext(
   world: World<ArkanoidComponentRegistry>,
   entity: number
 ): ArkanoidBallContext | null {
-  const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
-  if (!render || !render.visible) return null;
+  const basic = resolveBasicBallContext(world, entity, 8);
+  if (!basic) return null;
 
-  const transform = world.getComponent(entity, "Transform") as TransformComponent | undefined;
-  if (!transform) return null;
-
-  const size = render.size ?? 8;
-  const color = render.color || colors.cyan;
-
-  return { render, transform, size, color };
+  const color = basic.render.color || colors.cyan;
+  return { render: basic.render, transform: basic.transform, size: basic.size, color };
 }
 
 export interface ArkanoidPaddleContext {

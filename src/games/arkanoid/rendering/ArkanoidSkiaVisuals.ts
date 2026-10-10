@@ -106,10 +106,9 @@ export const drawSkiaArkanoidBrick: ShapeDrawer<any, ArkanoidComponentRegistry> 
 export const drawSkiaArkanoidBackground: EffectDrawer<any, ArkanoidComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-        // TODO(refactor): código duplicado detectado (bloque) con pong/rendering/PongSkiaVisuals.ts:99-105. Considerar extraer a función compartida. Ref: e49eba5d
-const config = world.getResource<ArkanoidConfig>("GameConfig") || { worldWidth: 800, worldHeight: 600 };
-    const width = config.worldWidth;
-    const height = config.worldHeight;
+    const config = world.getResource<{ worldWidth?: number; worldHeight?: number }>("GameConfig");
+    const width = config?.worldWidth ?? 800;
+    const height = config?.worldHeight ?? 600;
     const paint = getPaint();
 
     drawSkiaBackgroundGrid(canvas, paint, width, height, world.tick, 50, 0.25, "rgba(0, 240, 255, 0.05)");

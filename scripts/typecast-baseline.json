@@ -719,6 +719,26 @@
     "unknownCount": 4,
     "total": 6
   },
+  "src/games/hitandrun/belt/BeltDepthScaleSystem.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
+  "src/games/hitandrun/rendering/__tests__/HitRunDebugOverlay.test.ts": {
+    "anyCount": 0,
+    "unknownCount": 1,
+    "total": 1
+  },
+  "src/games/hitandrun/systems/HitRunCombatSystem.ts": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
+  },
+  "src/games/hitandrun/weapons/HitRunBulletPool.ts": {
+    "anyCount": 2,
+    "unknownCount": 0,
+    "total": 2
+  },
   "src/games/outrun/rendering/OutrunSkiaVisuals.ts": {
     "anyCount": 0,
     "unknownCount": 4,
@@ -750,9 +770,9 @@
     "total": 7
   },
   "src/games/platformer/systems/PlatformerInputSystem.ts": {
-    "anyCount": 5,
+    "anyCount": 6,
     "unknownCount": 0,
-    "total": 5
+    "total": 6
   },
   "src/games/platformer/systems/PlatformerWallJumpSystem.ts": {
     "anyCount": 4,

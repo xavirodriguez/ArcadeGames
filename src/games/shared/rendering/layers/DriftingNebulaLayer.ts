@@ -44,7 +44,8 @@ export const DriftingNebulaBackgroundEffect: EffectDrawer<CanvasRenderingContext
     if (!layerCtx) return;
     const { layerState: nebulae, state, offsetX } = layerCtx;
 
-    ctx.save();
+        // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/layers/DriftingNebulaLayer.ts:83-88. Considerar extraer a función compartida. Ref: 7aee7d37
+ctx.save();
 
     for (let i = 0; i < NEBULA_CLOUD_COUNT; i++) {
       const neb = nebulae[i];

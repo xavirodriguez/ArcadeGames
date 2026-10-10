@@ -179,7 +179,8 @@ export class Juice {
   /**
    * Reusable juice helper for entity impact feedback (hit flash, squash pulse, screen shake).
    */
-  public static playHitJuice<
+    // TODO(refactor): código duplicado detectado (método) con utils/Juice.ts:204-211. Considerar extraer a función compartida. Ref: 9c620182
+public static playHitJuice<
     TComponents extends CoreComponentRegistry = CoreComponentRegistry,
     TEvents extends EventRegistry = EventRegistry,
     TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>

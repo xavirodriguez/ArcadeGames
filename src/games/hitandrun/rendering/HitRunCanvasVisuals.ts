@@ -218,6 +218,7 @@ export const drawHitRunPopcorn: ShapeDrawer<CanvasRenderingContext2D, CoreCompon
   }
 };
 
+// TODO(refactor): código duplicado detectado (bloque) con hitandrun/rendering/HitRunCanvasVisuals.ts:315-325. Considerar extraer a función compartida. Ref: a1b5eeea
 export const drawHitRunWallTrooper: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
@@ -329,7 +330,8 @@ export const drawHitRunCharger: ShapeDrawer<CanvasRenderingContext2D, CoreCompon
     ctx.translate(0, -z);
 
     if ((render.hitFlashFrames ?? 0) > 0) {
-      ctx.fillStyle = "#fff";
+            // TODO(refactor): código duplicado detectado (bloque) con hitandrun/rendering/HitRunCanvasVisuals.ts:347-357. Considerar extraer a función compartida. Ref: 73e312af
+ctx.fillStyle = "#fff";
       ctx.beginPath();
       ctx.moveTo(size * 0.65, -size * 0.42);
       ctx.lineTo(-size * 0.45, -size * 0.84);

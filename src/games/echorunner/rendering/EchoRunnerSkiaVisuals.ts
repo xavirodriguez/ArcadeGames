@@ -638,7 +638,8 @@ export const drawSkiaCharger: ShapeDrawer<any, CoreComponentRegistry> = {
       const elapsed = world.tick * 0.1;
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setColor(Skia.Color(ECHO_PALETTE.restorationGold));
-      paint.setStrokeWidth(1.5);
+            // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:634-639. Considerar extraer a función compartida. Ref: 1f6c9725
+paint.setStrokeWidth(1.5);
       for (let i = 0; i < 3; i++) {
         const angle = elapsed + (i * Math.PI * 2) / 3;
         const sx = Math.cos(angle) * (size * 0.6);

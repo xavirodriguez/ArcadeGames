@@ -30,7 +30,8 @@ export const drawArkanoidPaddle: ShapeDrawer<CanvasRenderingContext2D, ArkanoidC
       world.tick,
       primaryColor,
       glowColor,
-      (ctx, widthScale, heightScale) => {
+            // TODO(refactor): código duplicado detectado (función) con pong/rendering/PongCanvasVisuals.ts:80-87. Considerar extraer a función compartida. Ref: c2fd39d3
+(ctx, widthScale, heightScale) => {
         const pw = w * widthScale;
         const ph = h * heightScale;
         canvasRoundRectPath(ctx, -pw / 2, -ph / 2, pw, ph, 4);

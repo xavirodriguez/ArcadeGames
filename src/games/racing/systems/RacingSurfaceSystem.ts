@@ -22,7 +22,8 @@ export class RacingSurfaceSystem extends System<RacingComponentRegistry, RacingE
       if (trackSpec && trackSpec.zones) {
         for (let j = 0; j < trackSpec.zones.length; j++) {
           const zone = trackSpec.zones[j];
-          const halfW = zone.width / 2;
+                    // TODO(refactor): código duplicado detectado (bloque) con racing/systems/HeadToHeadStateSystem.ts:87-94. Considerar extraer a función compartida. Ref: fee52f4e
+const halfW = zone.width / 2;
           const halfH = zone.height / 2;
           if (
             transform.x >= zone.x - halfW &&

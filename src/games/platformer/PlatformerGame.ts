@@ -90,7 +90,8 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
       theme: config.theme ?? createThemeFromGameAccents("platformer"),
       audio: new WebAudioPlayer()
     });
-    this.baseConfig = ConfigService.load<PlatformerConfigType>(
+        // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:160-168. Considerar extraer a función compartida. Ref: 0716a3de
+this.baseConfig = ConfigService.load<PlatformerConfigType>(
       this.gameId,
       PlatformerConfigSchema,
       config.gameOptions?.rawConfig ?? {}
@@ -174,7 +175,8 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
       id: string,
       powerUpKind: string
     ) => {
-      this.blueprints.register(id, {
+            // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:199-204. Considerar extraer a función compartida. Ref: 564e71c2
+this.blueprints.register(id, {
         spawn: (world, entity, args: { x: number; y: number }) => {
           ArcadeEntityBuilder.fromEntity(world, entity)
             .withTransform({ x: args.x, y: args.y })

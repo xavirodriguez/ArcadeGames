@@ -48,7 +48,8 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
     this.world.addSystem(new ScrollSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new BoundarySystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new SpatialPartitioningSystem(), { phase: SystemPhase.Collision });
+        // TODO(refactor): código duplicado detectado (bloque) con tower-defense/TowerDefenseGame.ts:280-285. Considerar extraer a función compartida. Ref: 87a4f2aa
+this.world.addSystem(new SpatialPartitioningSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
     this.world.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new ShmupBulletPatternSystem(), { phase: SystemPhase.Simulation });

@@ -2,55 +2,55 @@
   "duplicates": [
     {
       "firstFile": {
-        "end": 120,
+        "end": 121,
         "endLoc": {
           "column": 9,
-          "line": 120,
-          "position": 3702
+          "line": 121,
+          "position": 3852
         },
         "name": "ai/GridPathfinding.ts",
-        "start": 102,
+        "start": 103,
         "startLoc": {
-          "column": 19,
-          "line": 102,
-          "position": 3113
+          "column": 17,
+          "line": 103,
+          "position": 3263
         }
       },
       "format": "typescript",
-      "fragment": "  public static bfs(\n    grid: GridPassabilityMap,\n    start: GridPoint,\n    target: GridPoint,\n    options?: PathfindingOptions\n  ): GridPoint[] {\n    if (!grid.isWalkable(start.x, start.y) || !grid.isWalkable(target.x, target.y)) {\n      return [];\n    }\n\n    if (start.x === target.x && start.y === target.y) {\n      return options?.includeStart !== false ? [{ x: start.x, y: start.y }] : [];\n    }\n\n    const directions = options?.allowDiagonal ? EIGHT_DIRECTIONS : CARDINAL_DIRECTIONS;\n    const maxNodes = options?.maxNodes ?? 10000;\n    const includeStart = options?.includeStart !== false;\n\n    const queue: GridPoint[] = [start];",
+      "fragment": "public static bfs(\n    grid: GridPassabilityMap,\n    start: GridPoint,\n    target: GridPoint,\n    options?: PathfindingOptions\n  ): GridPoint[] {\n    if (!grid.isWalkable(start.x, start.y) || !grid.isWalkable(target.x, target.y)) {\n      return [];\n    }\n\n    if (start.x === target.x && start.y === target.y) {\n      return options?.includeStart !== false ? [{ x: start.x, y: start.y }] : [];\n    }\n\n    const directions = options?.allowDiagonal ? EIGHT_DIRECTIONS : CARDINAL_DIRECTIONS;\n    const maxNodes = options?.maxNodes ?? 10000;\n    const includeStart = options?.includeStart !== false;\n\n    const queue: GridPoint[] = [start];",
       "isNew": false,
       "lines": 19,
       "secondFile": {
-        "end": 194,
+        "end": 195,
         "endLoc": {
           "column": 9,
-          "line": 194,
-          "position": 5843
+          "line": 195,
+          "position": 5993
         },
         "name": "ai/GridPathfinding.ts",
-        "start": 177,
+        "start": 178,
         "startLoc": {
           "column": 21,
-          "line": 177,
-          "position": 5255
+          "line": 178,
+          "position": 5405
         }
       },
       "tokens": 135
     },
     {
       "firstFile": {
-        "end": 152,
+        "end": 153,
         "endLoc": {
           "column": 13,
-          "line": 152,
-          "position": 4531
+          "line": 153,
+          "position": 4681
         },
         "name": "ai/GridPathfinding.ts",
-        "start": 142,
+        "start": 143,
         "startLoc": {
           "column": 26,
-          "line": 142,
-          "position": 4330
+          "line": 143,
+          "position": 4480
         }
       },
       "format": "typescript",
@@ -58,251 +58,251 @@
       "isNew": false,
       "lines": 11,
       "secondFile": {
-        "end": 273,
+        "end": 274,
         "endLoc": {
           "column": 13,
-          "line": 273,
-          "position": 7987
+          "line": 274,
+          "position": 8137
         },
         "name": "ai/GridPathfinding.ts",
-        "start": 263,
+        "start": 264,
         "startLoc": {
           "column": 32,
-          "line": 263,
-          "position": 7786
+          "line": 264,
+          "position": 7936
         }
       },
       "tokens": 50
     },
     {
       "firstFile": {
-        "end": 448,
+        "end": 450,
         "endLoc": {
           "column": 1,
-          "line": 448,
-          "position": 13133
+          "line": 450,
+          "position": 13434
         },
         "name": "ai/GridPathfinding.ts",
-        "start": 440,
+        "start": 442,
         "startLoc": {
-          "column": 4,
-          "line": 440,
-          "position": 12942
+          "column": 0,
+          "line": 442,
+          "position": 13243
         }
       },
       "format": "typescript",
-      "fragment": "    const nx = x + d.x;\n    const ny = y + d.y;\n    if (nx >= 0 && nx < grid.width && ny >= 0 && ny < grid.height && grid.isWalkable(nx, ny)) {\n      result.push(d);\n    }\n  }\n\n  return result;\n}",
+      "fragment": "const nx = x + d.x;\n    const ny = y + d.y;\n    if (nx >= 0 && nx < grid.width && ny >= 0 && ny < grid.height && grid.isWalkable(nx, ny)) {\n      result.push(d);\n    }\n  }\n\n  return result;\n}",
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 464,
+        "end": 466,
         "endLoc": {
           "column": 1,
-          "line": 464,
-          "position": 13617
+          "line": 466,
+          "position": 13918
         },
         "name": "ai/GridPathfinding.ts",
-        "start": 457,
+        "start": 459,
         "startLoc": {
           "column": 4,
-          "line": 457,
-          "position": 13427
+          "line": 459,
+          "position": 13728
         }
       },
       "tokens": 63
     },
     {
       "firstFile": {
-        "end": 239,
+        "end": 240,
         "endLoc": {
           "column": 15,
-          "line": 239,
-          "position": 9543
+          "line": 240,
+          "position": 9701
         },
         "name": "physics/query/PhysicsQuery.ts",
-        "start": 227,
+        "start": 228,
         "startLoc": {
-          "column": 26,
-          "line": 227,
-          "position": 9090
+          "column": 24,
+          "line": 228,
+          "position": 9248
         }
       },
       "format": "typescript",
-      "fragment": "  public static raycastAll<\n    TComponents extends ComponentRegistry = ComponentRegistry,\n    TEvents extends EventRegistry = EventRegistry,\n    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>\n  >(\n    world: World<TComponents, TEvents, TBlueprints>,\n    origin: { x: number; y: number },\n    direction: { x: number; y: number },\n    maxDistance: number,\n    options?: {\n      filter?: (entity: Entity) => boolean;\n    }\n  ): RaycastHit[] {",
+      "fragment": "public static raycastAll<\n    TComponents extends ComponentRegistry = ComponentRegistry,\n    TEvents extends EventRegistry = EventRegistry,\n    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>\n  >(\n    world: World<TComponents, TEvents, TBlueprints>,\n    origin: { x: number; y: number },\n    direction: { x: number; y: number },\n    maxDistance: number,\n    options?: {\n      filter?: (entity: Entity) => boolean;\n    }\n  ): RaycastHit[] {",
       "isNew": false,
       "lines": 13,
       "secondFile": {
-        "end": 333,
+        "end": 334,
         "endLoc": {
           "column": 15,
-          "line": 333,
-          "position": 12685
+          "line": 334,
+          "position": 12843
         },
         "name": "physics/query/PhysicsQuery.ts",
-        "start": 321,
+        "start": 322,
         "startLoc": {
           "column": 23,
-          "line": 321,
-          "position": 12232
+          "line": 322,
+          "position": 12390
         }
       },
       "tokens": 84
     },
     {
       "firstFile": {
-        "end": 47,
+        "end": 48,
         "endLoc": {
           "column": 23,
-          "line": 47,
-          "position": 1790
+          "line": 48,
+          "position": 1953
         },
         "name": "physics/vehicles/VehicleWaypointSystem.ts",
-        "start": 31,
+        "start": 32,
         "startLoc": {
-          "column": 32,
-          "line": 31,
-          "position": 1060
+          "column": 26,
+          "line": 32,
+          "position": 1223
         }
       },
       "format": "typescript",
-      "fragment": "      const entity = entities[i];\n      const waypointsComp = world.getComponent(entity, \"VehicleWaypoint\") as VehicleWaypointComponent | undefined;\n      const vehicle = world.getMutableComponent(entity, \"VehicleSteering\") as VehicleSteeringComponent | undefined;\n      const transform = world.getComponent(entity, \"Transform\");\n\n      if (!waypointsComp || !vehicle || !transform || waypointsComp.waypoints.length === 0) continue;\n\n      const idx = waypointsComp.currentWaypointIndex;\n      const target = waypointsComp.waypoints[idx];\n      if (!target) continue;\n\n      const dx = target.x - transform.x;\n      const dy = target.y - transform.y;\n      const dist = Math.hypot(dx, dy);\n\n      if (dist <= waypointsComp.targetRadius) {\n        const nextIdx = idx + 1;",
+      "fragment": "const entity = entities[i];\n      const waypointsComp = world.getComponent(entity, \"VehicleWaypoint\") as VehicleWaypointComponent | undefined;\n      const vehicle = world.getMutableComponent(entity, \"VehicleSteering\") as VehicleSteeringComponent | undefined;\n      const transform = world.getComponent(entity, \"Transform\");\n\n      if (!waypointsComp || !vehicle || !transform || waypointsComp.waypoints.length === 0) continue;\n\n      const idx = waypointsComp.currentWaypointIndex;\n      const target = waypointsComp.waypoints[idx];\n      if (!target) continue;\n\n      const dx = target.x - transform.x;\n      const dy = target.y - transform.y;\n      const dist = Math.hypot(dx, dy);\n\n      if (dist <= waypointsComp.targetRadius) {\n        const nextIdx = idx + 1;",
       "isNew": false,
       "lines": 17,
       "secondFile": {
-        "end": 35,
+        "end": 36,
         "endLoc": {
           "column": 23,
-          "line": 35,
-          "position": 1721
+          "line": 36,
+          "position": 1892
         },
         "name": "racing/systems/VehicleAISystem.ts",
-        "start": 18,
+        "start": 19,
         "startLoc": {
-          "column": 61,
-          "line": 18,
-          "position": 990
+          "column": 55,
+          "line": 19,
+          "position": 1161
         }
       },
       "tokens": 136
     },
     {
       "firstFile": {
-        "end": 63,
+        "end": 65,
         "endLoc": {
           "column": 68,
-          "line": 63,
-          "position": 2471
+          "line": 65,
+          "position": 2797
         },
         "name": "physics/vehicles/VehicleWaypointSystem.ts",
-        "start": 57,
+        "start": 58,
         "startLoc": {
           "column": 6,
-          "line": 57,
-          "position": 2225
+          "line": 58,
+          "position": 2388
         }
       },
       "format": "typescript",
-      "fragment": "      }\n\n      const desiredAngle = Math.atan2(dy, dx);\n      const diffAngle = normalizeAngle(desiredAngle - (transform.rotation ?? 0));\n\n      // Calculate normalized steering input\n      vehicle.steering = Math.max(-1, Math.min(1, diffAngle * 1.8));",
+      "fragment": "      }\n\n            // TODO(refactor): código duplicado detectado (bloque) con racing/systems/VehicleAISystem.ts:39-44. Considerar extraer a función compartida. Ref: e3613c97\nconst desiredAngle = Math.atan2(dy, dx);\n      const diffAngle = normalizeAngle(desiredAngle - (transform.rotation ?? 0));\n\n      // Calculate normalized steering input\n      vehicle.steering = Math.max(-1, Math.min(1, diffAngle * 1.8));",
       "isNew": false,
-      "lines": 7,
+      "lines": 8,
       "secondFile": {
-        "end": 44,
+        "end": 46,
         "endLoc": {
           "column": 68,
-          "line": 44,
-          "position": 2121
+          "line": 46,
+          "position": 2467
         },
         "name": "racing/systems/VehicleAISystem.ts",
-        "start": 39,
+        "start": 41,
         "startLoc": {
           "column": 6,
-          "line": 39,
-          "position": 1920
+          "line": 41,
+          "position": 2266
         }
       },
       "tokens": 52
     },
     {
       "firstFile": {
-        "end": 189,
+        "end": 190,
         "endLoc": {
           "column": 36,
-          "line": 189,
-          "position": 7831
+          "line": 190,
+          "position": 7974
         },
         "name": "utils/Juice.ts",
-        "start": 182,
+        "start": 183,
         "startLoc": {
-          "column": 28,
-          "line": 182,
-          "position": 7499
+          "column": 26,
+          "line": 183,
+          "position": 7642
         }
       },
       "format": "typescript",
-      "fragment": "  public static playHitJuice<\n    TComponents extends CoreComponentRegistry = CoreComponentRegistry,\n    TEvents extends EventRegistry = EventRegistry,\n    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>\n  >(\n    world: World<TComponents, TEvents, TBlueprints>,\n    entity: Entity,\n    config?: { flashFrames?: number; squashDuration?: number; shakeIntensity?: number; shakeDuration?: number }",
+      "fragment": "public static playHitJuice<\n    TComponents extends CoreComponentRegistry = CoreComponentRegistry,\n    TEvents extends EventRegistry = EventRegistry,\n    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>\n  >(\n    world: World<TComponents, TEvents, TBlueprints>,\n    entity: Entity,\n    config?: { flashFrames?: number; squashDuration?: number; shakeIntensity?: number; shakeDuration?: number }",
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 211,
+        "end": 212,
         "endLoc": {
           "column": 36,
-          "line": 211,
-          "position": 8759
+          "line": 212,
+          "position": 8902
         },
         "name": "utils/Juice.ts",
-        "start": 204,
+        "start": 205,
         "startLoc": {
           "column": 30,
-          "line": 204,
-          "position": 8427
+          "line": 205,
+          "position": 8570
         }
       },
       "tokens": 50
     },
     {
       "firstFile": {
-        "end": 191,
+        "end": 192,
         "endLoc": {
           "column": 21,
-          "line": 191,
-          "position": 7940
+          "line": 192,
+          "position": 8083
         },
         "name": "utils/Juice.ts",
-        "start": 182,
+        "start": 183,
         "startLoc": {
-          "column": 28,
-          "line": 182,
-          "position": 7499
+          "column": 26,
+          "line": 183,
+          "position": 7642
         }
       },
       "format": "typescript",
-      "fragment": "  public static playHitJuice<\n    TComponents extends CoreComponentRegistry = CoreComponentRegistry,\n    TEvents extends EventRegistry = EventRegistry,\n    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>\n  >(\n    world: World<TComponents, TEvents, TBlueprints>,\n    entity: Entity,\n    config?: { flashFrames?: number; squashDuration?: number; shakeIntensity?: number; shakeDuration?: number }\n  ): void {\n    const flashFrames = config?.flashFrames ?? 5;",
+      "fragment": "public static playHitJuice<\n    TComponents extends CoreComponentRegistry = CoreComponentRegistry,\n    TEvents extends EventRegistry = EventRegistry,\n    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>\n  >(\n    world: World<TComponents, TEvents, TBlueprints>,\n    entity: Entity,\n    config?: { flashFrames?: number; squashDuration?: number; shakeIntensity?: number; shakeDuration?: number }\n  ): void {\n    const flashFrames = config?.flashFrames ?? 5;",
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 234,
+        "end": 235,
         "endLoc": {
           "column": 46,
-          "line": 234,
-          "position": 9697
+          "line": 235,
+          "position": 9840
         },
         "name": "utils/Juice.ts",
-        "start": 225,
+        "start": 226,
         "startLoc": {
           "column": 31,
-          "line": 225,
-          "position": 9256
+          "line": 226,
+          "position": 9399
         }
       },
       "tokens": 71
     },
     {
       "firstFile": {
-        "end": 39,
+        "end": 40,
         "endLoc": {
           "column": 25,
-          "line": 39,
-          "position": 1408
+          "line": 40,
+          "position": 1575
         },
         "name": "arkanoid/rendering/ArkanoidCanvasVisuals.ts",
         "start": 32,
@@ -313,15 +313,15 @@
         }
       },
       "format": "typescript",
-      "fragment": "      glowColor,\n      (ctx, widthScale, heightScale) => {\n        const pw = w * widthScale;\n        const ph = h * heightScale;\n        canvasRoundRectPath(ctx, -pw / 2, -ph / 2, pw, ph, 4);\n      },\n      (ctx) => {\n        const coreW = w * 0.6;",
+      "fragment": "      glowColor,\n            // TODO(refactor): código duplicado detectado (función) con pong/rendering/PongCanvasVisuals.ts:80-87. Considerar extraer a función compartida. Ref: c2fd39d3\n(ctx, widthScale, heightScale) => {\n        const pw = w * widthScale;\n        const ph = h * heightScale;\n        canvasRoundRectPath(ctx, -pw / 2, -ph / 2, pw, ph, 4);\n      },\n      (ctx) => {\n        const coreW = w * 0.6;",
       "isNew": false,
-      "lines": 8,
+      "lines": 9,
       "secondFile": {
-        "end": 87,
+        "end": 88,
         "endLoc": {
           "column": 25,
-          "line": 87,
-          "position": 2784
+          "line": 88,
+          "position": 2959
         },
         "name": "pong/rendering/PongCanvasVisuals.ts",
         "start": 80,
@@ -335,18 +335,18 @@
     },
     {
       "firstFile": {
-        "end": 23,
+        "end": 24,
         "endLoc": {
           "column": 7,
-          "line": 23,
-          "position": 815
+          "line": 24,
+          "position": 972
         },
         "name": "arkanoid/rendering/ArkanoidRenderUtils.ts",
-        "start": 16,
+        "start": 17,
         "startLoc": {
           "column": 23,
-          "line": 16,
-          "position": 538
+          "line": 17,
+          "position": 695
         }
       },
       "format": "typescript",
@@ -354,147 +354,147 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 32,
+        "end": 33,
         "endLoc": {
           "column": 7,
-          "line": 32,
-          "position": 1062
+          "line": 33,
+          "position": 1227
         },
         "name": "pong/rendering/PongRenderUtils.ts",
-        "start": 25,
+        "start": 26,
         "startLoc": {
           "column": 19,
-          "line": 25,
-          "position": 785
+          "line": 26,
+          "position": 950
         }
       },
       "tokens": 57
     },
     {
       "firstFile": {
-        "end": 114,
+        "end": 115,
         "endLoc": {
           "column": 68,
-          "line": 114,
-          "position": 3524
+          "line": 115,
+          "position": 3686
         },
         "name": "arkanoid/rendering/ArkanoidSkiaVisuals.ts",
-        "start": 109,
+        "start": 110,
         "startLoc": {
-          "column": 51,
-          "line": 109,
-          "position": 3291
+          "column": 47,
+          "line": 110,
+          "position": 3453
         }
       },
       "format": "typescript",
-      "fragment": "    const config = world.getResource<ArkanoidConfig>(\"GameConfig\") || { worldWidth: 800, worldHeight: 600 };\n    const width = config.worldWidth;\n    const height = config.worldHeight;\n    const paint = getPaint();\n\n    drawSkiaBackgroundGrid(canvas, paint, width, height, world.tick, 50, 0.25, \"rgba(0, 240, 255, 0.05)\");",
+      "fragment": "const config = world.getResource<ArkanoidConfig>(\"GameConfig\") || { worldWidth: 800, worldHeight: 600 };\n    const width = config.worldWidth;\n    const height = config.worldHeight;\n    const paint = getPaint();\n\n    drawSkiaBackgroundGrid(canvas, paint, width, height, world.tick, 50, 0.25, \"rgba(0, 240, 255, 0.05)\");",
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 105,
+        "end": 106,
         "endLoc": {
           "column": 68,
-          "line": 105,
-          "position": 3394
+          "line": 106,
+          "position": 3565
         },
         "name": "pong/rendering/PongSkiaVisuals.ts",
-        "start": 99,
+        "start": 100,
         "startLoc": {
-          "column": 47,
-          "line": 99,
-          "position": 3160
+          "column": 43,
+          "line": 100,
+          "position": 3331
         }
       },
       "tokens": 50
     },
     {
       "firstFile": {
-        "end": 258,
+        "end": 259,
         "endLoc": {
           "column": 19,
-          "line": 258,
-          "position": 10471
+          "line": 259,
+          "position": 10654
         },
         "name": "arkanoid/systems/ArkanoidCollisionSystem.ts",
-        "start": 250,
+        "start": 251,
         "startLoc": {
-          "column": 32,
-          "line": 250,
-          "position": 10201
+          "column": 18,
+          "line": 251,
+          "position": 10384
         }
       },
       "format": "typescript",
-      "fragment": "              b.speed = newSpeed;\n              b.stuckBounces = 0;\n            });\n            world.mutateComponent(ballEntity, \"Velocity\", (v) => {\n              v.vx = 0;\n              v.vy = 0;\n            });\n            world.mutateComponent(ballEntity, \"Transform\", (t) => {\n              t.x = paddlePos.x + offsetX;",
+      "fragment": "b.speed = newSpeed;\n              b.stuckBounces = 0;\n            });\n            world.mutateComponent(ballEntity, \"Velocity\", (v) => {\n              v.vx = 0;\n              v.vy = 0;\n            });\n            world.mutateComponent(ballEntity, \"Transform\", (t) => {\n              t.x = paddlePos.x + offsetX;",
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 417,
+        "end": 418,
         "endLoc": {
           "column": 13,
-          "line": 417,
-          "position": 16346
+          "line": 418,
+          "position": 16529
         },
         "name": "arkanoid/systems/ArkanoidCollisionSystem.ts",
-        "start": 409,
+        "start": 410,
         "startLoc": {
           "column": 29,
-          "line": 409,
-          "position": 16124
+          "line": 410,
+          "position": 16307
         }
       },
       "tokens": 55
     },
     {
       "firstFile": {
-        "end": 114,
+        "end": 115,
         "endLoc": {
           "column": 37,
-          "line": 114,
-          "position": 4297
+          "line": 115,
+          "position": 4471
         },
         "name": "arkanoid/systems/ArkanoidEnemySystems.ts",
-        "start": 107,
+        "start": 108,
         "startLoc": {
-          "column": 47,
-          "line": 107,
-          "position": 4059
+          "column": 41,
+          "line": 108,
+          "position": 4233
         }
       },
       "format": "typescript",
-      "fragment": "      const events = world.getComponent(eEntity, \"CollisionEvents\");\n      if (!events) continue;\n\n      for (const col of events.collisions) {\n        const other = col.otherEntity;\n        if (!WorldUtils.isEntityActive(world, other)) continue;\n\n        if (world.hasComponent(other, \"Ball\") || world.hasComponent(other, \"Paddle\")) {",
+      "fragment": "const events = world.getComponent(eEntity, \"CollisionEvents\");\n      if (!events) continue;\n\n      for (const col of events.collisions) {\n        const other = col.otherEntity;\n        if (!WorldUtils.isEntityActive(world, other)) continue;\n\n        if (world.hasComponent(other, \"Ball\") || world.hasComponent(other, \"Paddle\")) {",
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 215,
+        "end": 217,
         "endLoc": {
           "column": 37,
-          "line": 215,
-          "position": 8120
+          "line": 217,
+          "position": 8458
         },
         "name": "arkanoid/systems/ArkanoidPowerUpSystems.ts",
-        "start": 208,
+        "start": 210,
         "startLoc": {
-          "column": 47,
-          "line": 208,
-          "position": 7882
+          "column": 41,
+          "line": 210,
+          "position": 8220
         }
       },
       "tokens": 50
     },
     {
       "firstFile": {
-        "end": 15,
+        "end": 16,
         "endLoc": {
           "column": 9,
-          "line": 15,
-          "position": 822
+          "line": 16,
+          "position": 988
         },
         "name": "arkanoid/systems/ArkanoidGameStateSystem.ts",
-        "start": 8,
+        "start": 9,
         "startLoc": {
           "column": 37,
-          "line": 8,
-          "position": 442
+          "line": 9,
+          "position": 608
         }
       },
       "format": "typescript",
@@ -502,36 +502,36 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 70,
+        "end": 71,
         "endLoc": {
           "column": 9,
-          "line": 70,
-          "position": 2736
+          "line": 71,
+          "position": 2902
         },
         "name": "arkanoid/systems/ArkanoidPowerUpSystems.ts",
-        "start": 63,
+        "start": 64,
         "startLoc": {
           "column": 41,
-          "line": 63,
-          "position": 2356
+          "line": 64,
+          "position": 2522
         }
       },
       "tokens": 64
     },
     {
       "firstFile": {
-        "end": 10,
+        "end": 11,
         "endLoc": {
           "column": 9,
-          "line": 10,
-          "position": 656
+          "line": 11,
+          "position": 817
         },
         "name": "arkanoid/systems/ArkanoidInputSystem.ts",
-        "start": 5,
+        "start": 6,
         "startLoc": {
           "column": 33,
-          "line": 5,
-          "position": 312
+          "line": 6,
+          "position": 473
         }
       },
       "format": "typescript",
@@ -539,110 +539,110 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 10,
+        "end": 11,
         "endLoc": {
           "column": 9,
-          "line": 10,
-          "position": 619
+          "line": 11,
+          "position": 781
         },
         "name": "arkanoid/systems/ArkanoidSpinSystem.ts",
-        "start": 5,
+        "start": 6,
         "startLoc": {
           "column": 32,
-          "line": 5,
-          "position": 275
+          "line": 6,
+          "position": 437
         }
       },
       "tokens": 57
     },
     {
       "firstFile": {
-        "end": 187,
+        "end": 188,
         "endLoc": {
           "column": 5,
-          "line": 187,
-          "position": 6348
+          "line": 188,
+          "position": 6521
         },
         "name": "asteroids/rendering/AsteroidsCanvasVisuals.ts",
-        "start": 178,
+        "start": 179,
         "startLoc": {
-          "column": 54,
-          "line": 178,
-          "position": 6031
+          "column": 50,
+          "line": 179,
+          "position": 6204
         }
       },
       "format": "typescript",
-      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    const collider = world.getComponent(entity, \"Collider\");\n    if (!render) return;\n\n    let radius = 25;\n    if (collider && collider.enabled && collider.shape.type === ShapeType.Circle) {\n      radius = (collider.shape as CircleShape).radius;\n    } else if (render.size) {\n      radius = render.size / 2;\n    }",
+      "fragment": "const render = world.getComponent(entity, \"Render\");\n    const collider = world.getComponent(entity, \"Collider\");\n    if (!render) return;\n\n    let radius = 25;\n    if (collider && collider.enabled && collider.shape.type === ShapeType.Circle) {\n      radius = (collider.shape as CircleShape).radius;\n    } else if (render.size) {\n      radius = render.size / 2;\n    }",
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 182,
+        "end": 183,
         "endLoc": {
           "column": 5,
-          "line": 182,
-          "position": 6819
+          "line": 183,
+          "position": 6994
         },
         "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
-        "start": 173,
+        "start": 174,
         "startLoc": {
-          "column": 53,
-          "line": 173,
-          "position": 6502
+          "column": 49,
+          "line": 174,
+          "position": 6677
         }
       },
       "tokens": 75
     },
     {
       "firstFile": {
-        "end": 137,
+        "end": 138,
         "endLoc": {
           "column": 12,
-          "line": 137,
-          "position": 5421
+          "line": 138,
+          "position": 5575
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 124,
+        "start": 125,
         "startLoc": {
-          "column": 23,
-          "line": 124,
-          "position": 5072
+          "column": 21,
+          "line": 125,
+          "position": 5226
         }
       },
       "format": "typescript",
-      "fragment": "  public update(world: World<CoreComponentRegistry>, deltaTime: number): void {\n    updatePlayerInvulnerabilityAndContactDamage(world, deltaTime, {\n      contactDistance: 20,\n      invulnerabilityDuration: 1.0,\n      damageAmount: 1,\n      hitFlashFrames: 8,\n      screenShakeIntensity: 12,\n      screenShakeDuration: 0.25,\n      sfxName: \"hit\"\n    });\n  }\n}\n\nexport class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, EchoRunnerInput, CoreComponentRegistry, EchoRunnerEventRegistry, EchoRunnerBlueprintMap> {",
+      "fragment": "public update(world: World<CoreComponentRegistry>, deltaTime: number): void {\n    updatePlayerInvulnerabilityAndContactDamage(world, deltaTime, {\n      contactDistance: 20,\n      invulnerabilityDuration: 1.0,\n      damageAmount: 1,\n      hitFlashFrames: 8,\n      screenShakeIntensity: 12,\n      screenShakeDuration: 0.25,\n      sfxName: \"hit\"\n    });\n  }\n}\n\nexport class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, EchoRunnerInput, CoreComponentRegistry, EchoRunnerEventRegistry, EchoRunnerBlueprintMap> {",
       "isNew": false,
       "lines": 14,
       "secondFile": {
-        "end": 106,
+        "end": 107,
         "endLoc": {
           "column": 12,
-          "line": 106,
-          "position": 3587
+          "line": 107,
+          "position": 3744
         },
         "name": "hitandrun/HitAndRunGame.ts",
-        "start": 92,
+        "start": 93,
         "startLoc": {
-          "column": 50,
-          "line": 92,
-          "position": 3237
+          "column": 48,
+          "line": 93,
+          "position": 3394
         }
       },
       "tokens": 53
     },
     {
       "firstFile": {
-        "end": 168,
+        "end": 170,
         "endLoc": {
           "column": 17,
-          "line": 168,
-          "position": 6585
+          "line": 170,
+          "position": 6896
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 160,
+        "start": 162,
         "startLoc": {
           "column": 28,
-          "line": 160,
-          "position": 6266
+          "line": 162,
+          "position": 6577
         }
       },
       "format": "typescript",
@@ -650,221 +650,221 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 103,
+        "end": 104,
         "endLoc": {
           "column": 17,
-          "line": 103,
-          "position": 4068
+          "line": 104,
+          "position": 4226
         },
         "name": "platformer/PlatformerGame.ts",
-        "start": 95,
+        "start": 96,
         "startLoc": {
           "column": 28,
-          "line": 95,
-          "position": 3749
+          "line": 96,
+          "position": 3907
         }
       },
       "tokens": 68
     },
     {
       "firstFile": {
-        "end": 249,
+        "end": 252,
         "endLoc": {
           "column": 61,
-          "line": 249,
-          "position": 9792
+          "line": 252,
+          "position": 10259
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 242,
+        "start": 244,
         "startLoc": {
           "column": 5,
-          "line": 242,
-          "position": 9389
+          "line": 244,
+          "position": 9700
         }
       },
       "format": "typescript",
-      "fragment": "    });\n\n    registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_ECHO_RUNNER_CONFIG);\n\n    registerCollectibleTriggerBlueprint(this.blueprints, \"collectible_fragment\", \"fragment\", 10, 16, 10, \"fragment\", false, false);\n    registerCollectibleTriggerBlueprint(this.blueprints, \"collectible_core\", \"core\", 100, 24, 12, \"core\", true, true);\n\n    registerPlatformerEnvironmentBlueprints(this.blueprints);",
+      "fragment": "    });\n\n        // TODO(refactor): código duplicado detectado (bloque) con hitandrun/HitAndRunGame.ts:183-188. Considerar extraer a función compartida. Ref: 94a0e390\nregisterPlatformerTilemapBlueprint(this.blueprints, DEFAULT_ECHO_RUNNER_CONFIG);\n\n    registerCollectibleTriggerBlueprint(this.blueprints, \"collectible_fragment\", \"fragment\", 10, 16, 10, \"fragment\", false, false);\n    registerCollectibleTriggerBlueprint(this.blueprints, \"collectible_core\", \"core\", 100, 24, 12, \"core\", true, true);\n\n    registerPlatformerEnvironmentBlueprints(this.blueprints);",
       "isNew": false,
-      "lines": 8,
+      "lines": 9,
       "secondFile": {
-        "end": 188,
+        "end": 191,
         "endLoc": {
           "column": 61,
-          "line": 188,
-          "position": 6164
+          "line": 191,
+          "position": 6636
         },
         "name": "hitandrun/HitAndRunGame.ts",
-        "start": 183,
+        "start": 186,
         "startLoc": {
-          "column": 34,
-          "line": 183,
-          "position": 5763
+          "column": 30,
+          "line": 186,
+          "position": 6235
         }
       },
       "tokens": 64
     },
     {
       "firstFile": {
-        "end": 361,
+        "end": 366,
         "endLoc": {
-          "column": 45,
-          "line": 361,
-          "position": 13681
+          "column": 39,
+          "line": 366,
+          "position": 14464
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 353,
+        "start": 357,
         "startLoc": {
-          "column": 6,
-          "line": 353,
-          "position": 13313
+          "column": 0,
+          "line": 357,
+          "position": 13938
         }
       },
       "format": "typescript",
-      "fragment": "      const tileDefinitions = {\n        1: { solid: true, kind: \"normal\" as const },\n        2: { solid: true, kind: \"ice\" as const },\n        3: { solid: true, kind: \"bounce\" as const, bounce: 1.5 },\n        4: { solid: true, kind: \"spike\" as const },\n        5: { solid: true, oneWay: true, kind: \"normal\" as const }\n      };\n\n      const rawData = this.customLevelData ?? defaultLevelData;",
+      "fragment": "const tileDefinitions = {\n        1: { solid: true, kind: \"normal\" as const },\n        2: { solid: true, kind: \"ice\" as const },\n        3: { solid: true, kind: \"bounce\" as const, bounce: 1.5 },\n        4: { solid: true, kind: \"spike\" as const },\n        5: { solid: true, oneWay: true, kind: \"normal\" as const }\n      };\n\n            // TODO(refactor): código duplicado detectado (bloque) con hitandrun/HitAndRunGame.ts:224-233. Considerar extraer a función compartida. Ref: 29f93505\nconst rawData = this.customLevelData ?? defaultLevelData;",
       "isNew": false,
-      "lines": 9,
+      "lines": 10,
       "secondFile": {
-        "end": 224,
+        "end": 229,
         "endLoc": {
-          "column": 43,
-          "line": 224,
-          "position": 7193
+          "column": 39,
+          "line": 229,
+          "position": 7981
         },
         "name": "hitandrun/HitAndRunGame.ts",
-        "start": 216,
+        "start": 220,
         "startLoc": {
-          "column": 4,
-          "line": 216,
-          "position": 6839
+          "column": 0,
+          "line": 220,
+          "position": 7469
         }
       },
       "tokens": 90
     },
     {
       "firstFile": {
-        "end": 372,
+        "end": 377,
         "endLoc": {
           "column": 29,
-          "line": 372,
-          "position": 14065
+          "line": 377,
+          "position": 14848
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 361,
+        "start": 366,
         "startLoc": {
-          "column": 62,
-          "line": 361,
-          "position": 13698
+          "column": 56,
+          "line": 366,
+          "position": 14481
         }
       },
       "format": "typescript",
-      "fragment": "      const rawData = this.customLevelData ?? defaultLevelData;\n      const runnerSeed = this.getSeed() || 41873;\n      this.levelPlan = SegmentGenerator.generatePlan(\n        rawData.templates as SegmentTemplate[],\n        rawData.grammar as string[],\n        runnerSeed\n      );\n\n      syncLevelWorldDimensions(this.world, this.levelPlan, DEFAULT_ECHO_RUNNER_CONFIG);\n\n      // Set world resources\n      this.world.setResource(\"PlayerStartPoint\", { x: 100, y: 350 });",
+      "fragment": "const rawData = this.customLevelData ?? defaultLevelData;\n      const runnerSeed = this.getSeed() || 41873;\n      this.levelPlan = SegmentGenerator.generatePlan(\n        rawData.templates as SegmentTemplate[],\n        rawData.grammar as string[],\n        runnerSeed\n      );\n\n      syncLevelWorldDimensions(this.world, this.levelPlan, DEFAULT_ECHO_RUNNER_CONFIG);\n\n      // Set world resources\n      this.world.setResource(\"PlayerStartPoint\", { x: 100, y: 350 });",
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 233,
+        "end": 238,
         "endLoc": {
           "column": 27,
-          "line": 233,
-          "position": 7530
+          "line": 238,
+          "position": 8318
         },
         "name": "hitandrun/HitAndRunGame.ts",
-        "start": 224,
+        "start": 229,
         "startLoc": {
-          "column": 59,
-          "line": 224,
-          "position": 7209
+          "column": 55,
+          "line": 229,
+          "position": 7997
         }
       },
       "tokens": 58
     },
     {
       "firstFile": {
-        "end": 417,
+        "end": 423,
         "endLoc": {
           "column": 5,
-          "line": 417,
-          "position": 15681
+          "line": 423,
+          "position": 16619
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 403,
+        "start": 409,
         "startLoc": {
-          "column": 18,
-          "line": 403,
-          "position": 15238
+          "column": 16,
+          "line": 409,
+          "position": 16176
         }
       },
       "format": "typescript",
-      "fragment": "  public override update(dt: number): void {\n    const runState = this.world.getResource<RunState>(\"RunState\");\n    if (runState) {\n      runState.elapsedTime += dt;\n    }\n\n    // Check level complete (Core collected)\n    if (runState && runState.collectedPermanentIds.includes(\"archive_core_1\")) {\n      if (!this.gameOver) {\n        this.gameOver = true;\n        this.eventBus.emit(\"game:over\", {\n          state: this.getGameState()\n        });\n      }\n    }",
+      "fragment": "public override update(dt: number): void {\n    const runState = this.world.getResource<RunState>(\"RunState\");\n    if (runState) {\n      runState.elapsedTime += dt;\n    }\n\n    // Check level complete (Core collected)\n    if (runState && runState.collectedPermanentIds.includes(\"archive_core_1\")) {\n      if (!this.gameOver) {\n        this.gameOver = true;\n        this.eventBus.emit(\"game:over\", {\n          state: this.getGameState()\n        });\n      }\n    }",
       "isNew": false,
       "lines": 15,
       "secondFile": {
-        "end": 144,
+        "end": 146,
         "endLoc": {
           "column": 5,
-          "line": 144,
-          "position": 4711
+          "line": 146,
+          "position": 5025
         },
         "name": "hitandrun/HitAndRunGame.ts",
-        "start": 133,
+        "start": 135,
         "startLoc": {
-          "column": 9,
-          "line": 133,
-          "position": 4331
+          "column": 7,
+          "line": 135,
+          "position": 4645
         }
       },
       "tokens": 85
     },
     {
       "firstFile": {
-        "end": 639,
+        "end": 640,
         "endLoc": {
           "column": 11,
-          "line": 639,
-          "position": 19433
+          "line": 640,
+          "position": 19610
         },
         "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
-        "start": 634,
+        "start": 635,
         "startLoc": {
-          "column": 25,
-          "line": 634,
-          "position": 19214
+          "column": 19,
+          "line": 635,
+          "position": 19391
         }
       },
       "format": "typescript",
-      "fragment": "      ctx.lineWidth = 1.5;\n      for (let i = 0; i < 3; i++) {\n        const angle = elapsed + (i * Math.PI * 2) / 3;\n        const sx = Math.cos(angle) * (size * 0.6);\n        const sy = Math.sin(angle) * (size * 0.2) - size * 0.5;\n        ctx.beginPath();",
+      "fragment": "ctx.lineWidth = 1.5;\n      for (let i = 0; i < 3; i++) {\n        const angle = elapsed + (i * Math.PI * 2) / 3;\n        const sx = Math.cos(angle) * (size * 0.6);\n        const sy = Math.sin(angle) * (size * 0.2) - size * 0.5;\n        ctx.beginPath();",
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 646,
+        "end": 647,
         "endLoc": {
           "column": 14,
-          "line": 646,
-          "position": 22480
+          "line": 647,
+          "position": 22659
         },
         "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 641,
+        "start": 642,
         "startLoc": {
-          "column": 31,
-          "line": 641,
-          "position": 22258
+          "column": 25,
+          "line": 642,
+          "position": 22437
         }
       },
       "tokens": 69
     },
     {
       "firstFile": {
-        "end": 40,
+        "end": 41,
         "endLoc": {
           "column": 36,
-          "line": 40,
-          "position": 1298
+          "line": 41,
+          "position": 1469
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 34,
+        "start": 35,
         "startLoc": {
           "column": 64,
-          "line": 34,
-          "position": 1058
+          "line": 35,
+          "position": 1229
         }
       },
       "format": "typescript",
@@ -872,214 +872,214 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 94,
+        "end": 95,
         "endLoc": {
           "column": 36,
-          "line": 94,
-          "position": 2714
+          "line": 95,
+          "position": 2887
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 88,
+        "start": 89,
         "startLoc": {
           "column": 65,
-          "line": 88,
-          "position": 2474
+          "line": 89,
+          "position": 2647
         }
       },
       "tokens": 60
     },
     {
       "firstFile": {
-        "end": 306,
+        "end": 308,
         "endLoc": {
           "column": 9,
-          "line": 306,
-          "position": 8791
+          "line": 308,
+          "position": 9137
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 288,
+        "start": 290,
         "startLoc": {
-          "column": 4,
-          "line": 288,
-          "position": 8431
+          "column": 0,
+          "line": 290,
+          "position": 8777
         }
       },
       "format": "typescript",
-      "fragment": "    const pipeCtx = resolveFlappyPipeDrawContext(world, entity);\n    if (!pipeCtx) return;\n\n    const {\n      pos,\n      pipe,\n      width,\n      halfWidth,\n      variant,\n      geometry,\n      capHeight,\n      capWidth,\n      capHalfWidth,\n      beaconPulse,\n    } = pipeCtx;\n\n    const { isTopPipe, pipeY, pipeHeight, capYOffset, beaconY } = geometry;\n\n    const pillarGrad = getCachedCanvasGradient(ctx, `pillar_${halfWidth}_${variant}`, () => {",
+      "fragment": "const pipeCtx = resolveFlappyPipeDrawContext(world, entity);\n    if (!pipeCtx) return;\n\n    const {\n      pos,\n      pipe,\n      width,\n      halfWidth,\n      variant,\n      geometry,\n      capHeight,\n      capWidth,\n      capHalfWidth,\n      beaconPulse,\n    } = pipeCtx;\n\n    const { isTopPipe, pipeY, pipeHeight, capYOffset, beaconY } = geometry;\n\n    const pillarGrad = getCachedCanvasGradient(ctx, `pillar_${halfWidth}_${variant}`, () => {",
       "isNew": false,
       "lines": 19,
       "secondFile": {
-        "end": 311,
+        "end": 313,
         "endLoc": {
           "column": 9,
-          "line": 311,
-          "position": 9550
+          "line": 313,
+          "position": 9900
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 293,
+        "start": 295,
         "startLoc": {
-          "column": 4,
-          "line": 293,
-          "position": 9190
+          "column": 0,
+          "line": 295,
+          "position": 9540
         }
       },
       "tokens": 59
     },
     {
       "firstFile": {
+        "end": 470,
+        "endLoc": {
+          "column": 14,
+          "line": 470,
+          "position": 15319
+        },
+        "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
+        "start": 462,
+        "startLoc": {
+          "column": 11,
+          "line": 462,
+          "position": 14879
+        }
+      },
+      "format": "typescript",
+      "fragment": "ctx.stroke();\n\n        if (world.tick % 4 === 0) {\n          const sparkY = capYOffset + capHeight + world.renderRandom.next() * pipe.gapSize;\n          const sparkAngle = world.renderRandom.next() * Math.PI * 2;\n          const sparkSpeed = world.renderRandom.nextRange(20, 60);\n          spawnVisualParticle(\"spark\", pos.x, sparkY, Math.cos(sparkAngle) * sparkSpeed, Math.sin(sparkAngle) * sparkSpeed, 0.25, 2.5, \"#00F3FF\");\n        }\n      } else {",
+      "isNew": false,
+      "lines": 9,
+      "secondFile": {
         "end": 467,
         "endLoc": {
           "column": 14,
           "line": 467,
-          "position": 14794
-        },
-        "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 459,
-        "startLoc": {
-          "column": 19,
-          "line": 459,
-          "position": 14354
-        }
-      },
-      "format": "typescript",
-      "fragment": "        ctx.stroke();\n\n        if (world.tick % 4 === 0) {\n          const sparkY = capYOffset + capHeight + world.renderRandom.next() * pipe.gapSize;\n          const sparkAngle = world.renderRandom.next() * Math.PI * 2;\n          const sparkSpeed = world.renderRandom.nextRange(20, 60);\n          spawnVisualParticle(\"spark\", pos.x, sparkY, Math.cos(sparkAngle) * sparkSpeed, Math.sin(sparkAngle) * sparkSpeed, 0.25, 2.5, \"#00F3FF\");\n        }\n      } else {",
-      "isNew": false,
-      "lines": 9,
-      "secondFile": {
-        "end": 464,
-        "endLoc": {
-          "column": 14,
-          "line": 464,
-          "position": 15175
+          "position": 15706
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 456,
+        "start": 459,
         "startLoc": {
-          "column": 100,
-          "line": 456,
-          "position": 14735
+          "column": 92,
+          "line": 459,
+          "position": 15266
         }
       },
       "tokens": 102
     },
     {
       "firstFile": {
-        "end": 683,
+        "end": 687,
         "endLoc": {
           "column": 11,
-          "line": 683,
-          "position": 21751
+          "line": 687,
+          "position": 22451
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 674,
+        "start": 678,
         "startLoc": {
-          "column": 36,
-          "line": 674,
-          "position": 21383
+          "column": 32,
+          "line": 678,
+          "position": 22083
         }
       },
       "format": "typescript",
-      "fragment": "    ctx.fillRect(0, 0, width, height);\n\n    const scenarioTheme = getThemeForScenario(gameState.currentScenario);\n    const nebulae = scenarioTheme.nebulae;\n\n    for (let n = 0; n < nebulae.length; n++) {\n      const neb = nebulae[n];\n      const nx = width * neb.xRatio + Math.sin(world.tick * 0.01 + n) * 15;\n      const ny = height * neb.yRatio + Math.cos(world.tick * 0.008 + n * 2) * 10;\n      const nebGrad = getCachedCanvasGradient(ctx, `neb_${n}_${width}_${height}_${scenarioTheme.megaIndex}`, () => {",
+      "fragment": "ctx.fillRect(0, 0, width, height);\n\n    const scenarioTheme = getThemeForScenario(gameState.currentScenario);\n    const nebulae = scenarioTheme.nebulae;\n\n    for (let n = 0; n < nebulae.length; n++) {\n      const neb = nebulae[n];\n      const nx = width * neb.xRatio + Math.sin(world.tick * 0.01 + n) * 15;\n      const ny = height * neb.yRatio + Math.cos(world.tick * 0.008 + n * 2) * 10;\n      const nebGrad = getCachedCanvasGradient(ctx, `neb_${n}_${width}_${height}_${scenarioTheme.megaIndex}`, () => {",
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 667,
+        "end": 671,
         "endLoc": {
           "column": 11,
-          "line": 667,
-          "position": 22927
+          "line": 671,
+          "position": 23635
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 658,
+        "start": 662,
         "startLoc": {
-          "column": 63,
-          "line": 658,
-          "position": 22559
+          "column": 59,
+          "line": 662,
+          "position": 23267
         }
       },
       "tokens": 95
     },
     {
       "firstFile": {
-        "end": 738,
+        "end": 743,
         "endLoc": {
           "column": 48,
-          "line": 738,
-          "position": 23804
+          "line": 743,
+          "position": 24681
         },
         "name": "flappybird/rendering/FlappyBirdCanvasVisuals.ts",
-        "start": 733,
+        "start": 738,
         "startLoc": {
-          "column": 25,
-          "line": 733,
-          "position": 23576
+          "column": 19,
+          "line": 738,
+          "position": 24453
         }
       },
       "format": "typescript",
-      "fragment": "      ctx.lineWidth = 1.2;\n\n      for (let l = 0; l < lineCount; l++) {\n        const angle = (l / lineCount) * Math.PI * 2 + (tick * 0.02);\n        const innerR = 40 + (l * 17 + tick * 8) % (maxR * 0.5);\n        const outerR = innerR + 40 * warpFactor;",
+      "fragment": "ctx.lineWidth = 1.2;\n\n      for (let l = 0; l < lineCount; l++) {\n        const angle = (l / lineCount) * Math.PI * 2 + (tick * 0.02);\n        const innerR = 40 + (l * 17 + tick * 8) % (maxR * 0.5);\n        const outerR = innerR + 40 * warpFactor;",
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 731,
+        "end": 736,
         "endLoc": {
           "column": 48,
-          "line": 731,
-          "position": 25312
+          "line": 736,
+          "position": 26199
         },
         "name": "flappybird/rendering/FlappyBirdSkiaVisuals.ts",
-        "start": 726,
+        "start": 731,
         "startLoc": {
-          "column": 31,
-          "line": 726,
-          "position": 25084
+          "column": 25,
+          "line": 731,
+          "position": 25971
         }
       },
       "tokens": 67
     },
     {
       "firstFile": {
+        "end": 132,
+        "endLoc": {
+          "column": 84,
+          "line": 132,
+          "position": 3840
+        },
+        "name": "flappybird/story/FlappyBirdEncounter.ts",
+        "start": 127,
+        "startLoc": {
+          "column": 48,
+          "line": 127,
+          "position": 3587
+        }
+      },
+      "format": "typescript",
+      "fragment": "return new FlappyBirdGame({ seed: context.seed });\n  }\n\n  protected buildResult(context: MiniGameRunContext, payload?: any): MiniGameResult {\n    const score = payload?.score ?? (this.game as any)?.getScore?.() ?? 0;\n    const completed = payload?.completed ?? (score >= (context.config.targetScore ?? 10));",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
         "end": 131,
         "endLoc": {
           "column": 84,
           "line": 131,
-          "position": 3671
-        },
-        "name": "flappybird/story/FlappyBirdEncounter.ts",
-        "start": 126,
-        "startLoc": {
-          "column": 52,
-          "line": 126,
-          "position": 3418
-        }
-      },
-      "format": "typescript",
-      "fragment": "    return new FlappyBirdGame({ seed: context.seed });\n  }\n\n  protected buildResult(context: MiniGameRunContext, payload?: any): MiniGameResult {\n    const score = payload?.score ?? (this.game as any)?.getScore?.() ?? 0;\n    const completed = payload?.completed ?? (score >= (context.config.targetScore ?? 10));",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 130,
-        "endLoc": {
-          "column": 84,
-          "line": 130,
-          "position": 3586
+          "position": 3755
         },
         "name": "platformer/story/PlatformerEncounter.ts",
-        "start": 125,
+        "start": 126,
         "startLoc": {
-          "column": 30,
-          "line": 125,
-          "position": 3333
+          "column": 26,
+          "line": 126,
+          "position": 3502
         }
       },
       "tokens": 57
     },
     {
       "firstFile": {
-        "end": 341,
+        "end": 342,
         "endLoc": {
           "column": 34,
-          "line": 341,
-          "position": 12009
+          "line": 342,
+          "position": 12178
         },
         "name": "geometrywars/GeometryWarsGame.ts",
         "start": 331,
@@ -1090,299 +1090,299 @@
         }
       },
       "format": "typescript",
-      "fragment": "        );\n      },\n      sync: () => {}\n    }\n  ];\n\n  public updateFromServer(state: Record<string, unknown>, localSessionId?: string) {\n    if (!this.isMultiplayer || !state) return;\n    const world = this.getWorld();\n\n    const gs = world.getSingleton(\"GeometryWarsState\");",
+      "fragment": "        );\n      },\n      sync:       // TODO(refactor): código duplicado detectado (función) con space-invaders/SpaceInvadersGame.ts:784-795. Considerar extraer a función compartida. Ref: bd80e9b8\n() => {}\n    }\n  ];\n\n  public updateFromServer(state: Record<string, unknown>, localSessionId?: string) {\n    if (!this.isMultiplayer || !state) return;\n    const world = this.getWorld();\n\n    const gs = world.getSingleton(\"GeometryWarsState\");",
       "isNew": false,
-      "lines": 11,
+      "lines": 12,
       "secondFile": {
-        "end": 795,
+        "end": 797,
         "endLoc": {
           "column": 34,
-          "line": 795,
-          "position": 33812
+          "line": 797,
+          "position": 34141
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 784,
+        "start": 786,
         "startLoc": {
-          "column": 82,
-          "line": 784,
-          "position": 33487
+          "column": 74,
+          "line": 786,
+          "position": 33816
         }
       },
       "tokens": 60
     },
     {
       "firstFile": {
-        "end": 26,
+        "end": 27,
         "endLoc": {
           "column": 37,
-          "line": 26,
-          "position": 1067
+          "line": 27,
+          "position": 1242
         },
         "name": "geometrywars/rendering/GeometryWarsCanvasVisuals.ts",
-        "start": 21,
+        "start": 22,
         "startLoc": {
-          "column": 5,
-          "line": 21,
-          "position": 916
+          "column": 3,
+          "line": 22,
+          "position": 1091
         }
       },
       "format": "typescript",
-      "fragment": "  ctx.save();\n  for (let i = 0; i < particles.length; i++) {\n    const p = particles[i];\n    if (!p.active) continue;\n\n    const ratio = p.life / p.maxLife;",
+      "fragment": "ctx.save();\n  for (let i = 0; i < particles.length; i++) {\n    const p = particles[i];\n    if (!p.active) continue;\n\n    const ratio = p.life / p.maxLife;",
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 37,
+        "end": 38,
         "endLoc": {
           "column": 37,
-          "line": 37,
-          "position": 1299
+          "line": 38,
+          "position": 1476
         },
         "name": "geometrywars/rendering/GeometryWarsSkiaVisuals.ts",
-        "start": 32,
+        "start": 33,
         "startLoc": {
-          "column": 8,
-          "line": 32,
-          "position": 1148
+          "column": 6,
+          "line": 33,
+          "position": 1325
         }
       },
       "tokens": 50
     },
     {
       "firstFile": {
-        "end": 151,
+        "end": 152,
         "endLoc": {
           "column": 15,
-          "line": 151,
-          "position": 4666
+          "line": 152,
+          "position": 4837
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 142,
+        "start": 143,
         "startLoc": {
-          "column": 10,
-          "line": 142,
-          "position": 4200
+          "column": 0,
+          "line": 143,
+          "position": 4371
         }
       },
       "format": "typescript",
-      "fragment": "          const patrol = world.getComponent(entity, \"Patrol\") as\n            | { direction: number; startX: number; endX: number }\n            | undefined;\n          const gd = world.getComponent(entity, \"GroundDetector\") as\n            | { hasWallAhead?: boolean; hasGroundAhead?: boolean }\n            | undefined;\n          const sensor = world.getComponent(entity, \"PlayerSensor\") as\n            | { detectedPlayerEntity?: number }\n            | undefined;\n          const trans = world.getComponent(entity, \"Transform\");",
+      "fragment": "const patrol = world.getComponent(entity, \"Patrol\") as\n            | { direction: number; startX: number; endX: number }\n            | undefined;\n          const gd = world.getComponent(entity, \"GroundDetector\") as\n            | { hasWallAhead?: boolean; hasGroundAhead?: boolean }\n            | undefined;\n          const sensor = world.getComponent(entity, \"PlayerSensor\") as\n            | { detectedPlayerEntity?: number }\n            | undefined;\n          const trans = world.getComponent(entity, \"Transform\");",
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 269,
+        "end": 274,
         "endLoc": {
           "column": 15,
-          "line": 269,
-          "position": 9157
+          "line": 274,
+          "position": 10020
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 260,
+        "start": 265,
         "startLoc": {
           "column": 10,
-          "line": 260,
-          "position": 8691
+          "line": 265,
+          "position": 9554
         }
       },
       "tokens": 79
     },
     {
       "firstFile": {
-        "end": 160,
+        "end": 162,
         "endLoc": {
           "column": 13,
-          "line": 160,
-          "position": 5081
+          "line": 162,
+          "position": 5423
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 152,
+        "start": 154,
         "startLoc": {
-          "column": 58,
-          "line": 152,
-          "position": 4774
+          "column": 48,
+          "line": 154,
+          "position": 5116
         }
       },
       "format": "typescript",
-      "fragment": "          const speed = (data.patrolSpeed as number) ?? 60;\n\n          if (patrol) {\n            if (gd && (gd.hasWallAhead || gd.hasGroundAhead === false)) {\n              const mp = world.getMutableComponent(entity, \"Patrol\") as\n                | { direction: number }\n                | undefined;\n              if (mp) mp.direction = -mp.direction;\n            } else if (trans) {",
+      "fragment": "const speed = (data.patrolSpeed as number) ?? 60;\n\n          if (patrol) {\n            if (gd && (gd.hasWallAhead || gd.hasGroundAhead === false)) {\n              const mp = world.getMutableComponent(entity, \"Patrol\") as\n                | { direction: number }\n                | undefined;\n              if (mp) mp.direction = -mp.direction;\n            } else if (trans) {",
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 277,
+        "end": 282,
         "endLoc": {
           "column": 13,
-          "line": 277,
-          "position": 9516
+          "line": 282,
+          "position": 10379
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 269,
+        "start": 274,
         "startLoc": {
           "column": 67,
-          "line": 269,
-          "position": 9209
+          "line": 274,
+          "position": 10072
         }
       },
       "tokens": 58
     },
     {
       "firstFile": {
-        "end": 185,
+        "end": 189,
         "endLoc": {
           "column": 14,
-          "line": 185,
-          "position": 6107
+          "line": 189,
+          "position": 6799
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 172,
+        "start": 175,
         "startLoc": {
           "column": 12,
-          "line": 172,
-          "position": 5652
+          "line": 175,
+          "position": 6171
         }
       },
       "format": "typescript",
-      "fragment": "            }\n\n            const cur = world.getComponent(entity, \"Patrol\") as\n              | { direction: number }\n              | undefined;\n            const targetVx = (cur?.direction ?? 1) * speed;\n            const vel = world.getComponent(entity, \"Velocity\");\n            if (vel && vel.vx !== targetVx) {\n              const mv = world.getMutableComponent(entity, \"Velocity\");\n              if (mv) mv.vx = targetVx;\n            }\n          }\n\n          if (data.canShoot && playerDetected(sensor)) {",
+      "fragment": "            }\n\n            const cur = world.getComponent(entity, \"Patrol\") as\n              | { direction: number }\n              | undefined;\n                        // TODO(refactor): código duplicado detectado (bloque) con hitandrun/ai/hitRunStateMachines.ts:582-588. Considerar extraer a función compartida. Ref: 7db838f7\nconst targetVx = (cur?.direction ?? 1) * speed;\n            const vel = world.getComponent(entity, \"Velocity\");\n            if (vel && vel.vx !== targetVx) {\n              const mv = world.getMutableComponent(entity, \"Velocity\");\n              if (mv) mv.vx = targetVx;\n            }\n          }\n\n          if (data.canShoot && playerDetected(sensor)) {",
       "isNew": false,
-      "lines": 14,
+      "lines": 15,
       "secondFile": {
-        "end": 289,
+        "end": 294,
         "endLoc": {
           "column": 14,
-          "line": 289,
-          "position": 9969
+          "line": 294,
+          "position": 10832
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 277,
+        "start": 282,
         "startLoc": {
           "column": 12,
-          "line": 277,
-          "position": 9515
+          "line": 282,
+          "position": 10378
         }
       },
       "tokens": 84
     },
     {
       "firstFile": {
-        "end": 183,
+        "end": 187,
         "endLoc": {
           "column": 11,
-          "line": 183,
-          "position": 6091
+          "line": 187,
+          "position": 6783
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 177,
+        "start": 181,
         "startLoc": {
-          "column": 51,
-          "line": 177,
-          "position": 5835
+          "column": 39,
+          "line": 181,
+          "position": 6527
         }
       },
       "format": "typescript",
-      "fragment": "            const targetVx = (cur?.direction ?? 1) * speed;\n            const vel = world.getComponent(entity, \"Velocity\");\n            if (vel && vel.vx !== targetVx) {\n              const mv = world.getMutableComponent(entity, \"Velocity\");\n              if (mv) mv.vx = targetVx;\n            }\n          }",
+      "fragment": "const targetVx = (cur?.direction ?? 1) * speed;\n            const vel = world.getComponent(entity, \"Velocity\");\n            if (vel && vel.vx !== targetVx) {\n              const mv = world.getMutableComponent(entity, \"Velocity\");\n              if (mv) mv.vx = targetVx;\n            }\n          }",
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 588,
+        "end": 596,
         "endLoc": {
           "column": 11,
-          "line": 588,
-          "position": 20463
+          "line": 596,
+          "position": 21831
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 582,
+        "start": 590,
         "startLoc": {
           "column": 46,
-          "line": 582,
-          "position": 20207
+          "line": 590,
+          "position": 21575
         }
       },
       "tokens": 50
     },
     {
       "firstFile": {
-        "end": 203,
+        "end": 208,
         "endLoc": {
           "column": 53,
-          "line": 203,
-          "position": 6753
+          "line": 208,
+          "position": 7616
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 194,
+        "start": 199,
         "startLoc": {
-          "column": 10,
-          "line": 194,
-          "position": 6419
+          "column": 0,
+          "line": 199,
+          "position": 7282
         }
       },
       "format": "typescript",
-      "fragment": "          if (playerDetected(sensor) && sensor?.detectedPlayerEntity !== undefined) {\n            if (canTakeDamage(world, sensor.detectedPlayerEntity)) {\n              return \"Alert\";\n            }\n          }\n        }\n      },\n      Anticipation: {\n        onEnter(world, entity, data) {\n          enterAnticipationState(world, entity, data, DEFAULT_PATROL_ATTACK_CONFIG.warningColor);",
+      "fragment": "if (playerDetected(sensor) && sensor?.detectedPlayerEntity !== undefined) {\n            if (canTakeDamage(world, sensor.detectedPlayerEntity)) {\n              return \"Alert\";\n            }\n          }\n        }\n      },\n      Anticipation: {\n        onEnter(world, entity, data) {\n          enterAnticipationState(world, entity, data, DEFAULT_PATROL_ATTACK_CONFIG.warningColor);",
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 419,
+        "end": 425,
         "endLoc": {
           "column": 53,
-          "line": 419,
-          "position": 14603
+          "line": 425,
+          "position": 15629
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 410,
+        "start": 416,
         "startLoc": {
           "column": 10,
-          "line": 410,
-          "position": 14269
+          "line": 416,
+          "position": 15295
         }
       },
       "tokens": 54
     },
     {
       "firstFile": {
-        "end": 338,
+        "end": 344,
         "endLoc": {
           "column": 37,
-          "line": 338,
-          "position": 11735
+          "line": 344,
+          "position": 12761
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 328,
+        "start": 334,
         "startLoc": {
-          "column": 19,
-          "line": 328,
-          "position": 11394
+          "column": 17,
+          "line": 334,
+          "position": 12420
         }
       },
       "format": "typescript",
-      "fragment": "  registry[\"hr_hop\"] = {\n    states: {\n      Idle: {\n        onEnter(world, entity) {\n          zeroVx(world, entity);\n        },\n        onUpdate(world, entity, data, elapsed) {\n          const sensor = world.getComponent(entity, \"PlayerSensor\") as\n            | { detectedPlayerEntity?: number }\n            | undefined;\n          if (playerDetected(sensor)) return \"Alert\";",
+      "fragment": "registry[\"hr_hop\"] = {\n    states: {\n      Idle: {\n        onEnter(world, entity) {\n          zeroVx(world, entity);\n        },\n        onUpdate(world, entity, data, elapsed) {\n          const sensor = world.getComponent(entity, \"PlayerSensor\") as\n            | { detectedPlayerEntity?: number }\n            | undefined;\n          if (playerDetected(sensor)) return \"Alert\";",
       "isNew": false,
       "lines": 11,
       "secondFile": {
-        "end": 529,
+        "end": 535,
         "endLoc": {
           "column": 37,
-          "line": 529,
-          "position": 18374
+          "line": 535,
+          "position": 19400
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 519,
+        "start": 525,
         "startLoc": {
           "column": 23,
-          "line": 519,
-          "position": 18033
+          "line": 525,
+          "position": 19059
         }
       },
       "tokens": 65
     },
     {
       "firstFile": {
-        "end": 384,
+        "end": 390,
         "endLoc": {
           "column": 48,
-          "line": 384,
-          "position": 13404
+          "line": 390,
+          "position": 14430
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 376,
+        "start": 382,
         "startLoc": {
           "column": 8,
-          "line": 376,
-          "position": 13152
+          "line": 382,
+          "position": 14178
         }
       },
       "format": "typescript",
@@ -1390,36 +1390,36 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 556,
+        "end": 564,
         "endLoc": {
           "column": 48,
-          "line": 556,
-          "position": 19287
+          "line": 564,
+          "position": 20655
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 548,
+        "start": 556,
         "startLoc": {
           "column": 8,
-          "line": 548,
-          "position": 19035
+          "line": 556,
+          "position": 20403
         }
       },
       "tokens": 53
     },
     {
       "firstFile": {
-        "end": 545,
+        "end": 552,
         "endLoc": {
           "column": 36,
-          "line": 545,
-          "position": 18906
+          "line": 552,
+          "position": 20103
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 535,
+        "start": 542,
         "startLoc": {
           "column": 8,
-          "line": 535,
-          "position": 18606
+          "line": 542,
+          "position": 19803
         }
       },
       "format": "typescript",
@@ -1427,66 +1427,66 @@
       "isNew": false,
       "lines": 11,
       "secondFile": {
-        "end": 599,
+        "end": 607,
         "endLoc": {
           "column": 36,
-          "line": 599,
-          "position": 20772
+          "line": 607,
+          "position": 22140
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 589,
+        "start": 597,
         "startLoc": {
           "column": 8,
-          "line": 589,
-          "position": 20472
+          "line": 597,
+          "position": 21840
         }
       },
       "tokens": 61
     },
     {
       "firstFile": {
-        "end": 556,
+        "end": 564,
         "endLoc": {
           "column": 48,
-          "line": 556,
-          "position": 19287
+          "line": 564,
+          "position": 20655
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 547,
+        "start": 555,
         "startLoc": {
-          "column": 50,
-          "line": 547,
-          "position": 19003
+          "column": 40,
+          "line": 555,
+          "position": 20371
         }
       },
       "format": "typescript",
-      "fragment": "          return timed(data, \"attackDuration\", 0.5, elapsed, \"Recovery\");\n        }\n      },\n      Recovery: {\n        onEnter(world, entity, data) {\n          zeroVx(world, entity);\n          if (data.useFlank) flipFlankSide(data);\n        },\n        onUpdate(_w, _e, data, elapsed) {\n          return timed(data, \"recoveryDuration\", 0.6, elapsed, \"Idle\");",
+      "fragment": "return timed(data, \"attackDuration\", 0.5, elapsed, \"Recovery\");\n        }\n      },\n      Recovery: {\n        onEnter(world, entity, data) {\n          zeroVx(world, entity);\n          if (data.useFlank) flipFlankSide(data);\n        },\n        onUpdate(_w, _e, data, elapsed) {\n          return timed(data, \"recoveryDuration\", 0.6, elapsed, \"Idle\");",
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 609,
+        "end": 617,
         "endLoc": {
           "column": 48,
-          "line": 609,
-          "position": 21108
+          "line": 617,
+          "position": 22476
         },
         "name": "hitandrun/ai/hitRunStateMachines.ts",
-        "start": 600,
+        "start": 608,
         "startLoc": {
           "column": 51,
-          "line": 600,
-          "position": 20824
+          "line": 608,
+          "position": 22192
         }
       },
       "tokens": 59
     },
     {
       "firstFile": {
-        "end": 35,
+        "end": 36,
         "endLoc": {
           "column": 38,
-          "line": 35,
-          "position": 1116
+          "line": 36,
+          "position": 1285
         },
         "name": "hitandrun/hurt/HitRunHurtSystem.ts",
         "start": 29,
@@ -1497,15 +1497,15 @@
         }
       },
       "format": "typescript",
-      "fragment": "  private pendingHits: CombatHitPayload[] = [];\n\n  public subscribe(eventBus: EventBus): void {\n    if (this.subscribed) return;\n    this.subscribed = true;\n    eventBus.on(\"combat:hit\", (payload: unknown) => {\n      this.pendingHits.push(payload as CombatHitPayload);",
+      "fragment": "  private pendingHits: CombatHitPayload[] = [];\n\n    // TODO(refactor): código duplicado detectado (método) con hitandrun/weapons/HitRunExplosionSystem.ts:42-49. Considerar extraer a función compartida. Ref: cefe2a6c\npublic subscribe(eventBus: EventBus): void {\n    if (this.subscribed) return;\n    this.subscribed = true;\n    eventBus.on(\"combat:hit\", (payload: unknown) => {\n      this.pendingHits.push(payload as CombatHitPayload);",
       "isNew": false,
-      "lines": 7,
+      "lines": 8,
       "secondFile": {
-        "end": 49,
+        "end": 50,
         "endLoc": {
           "column": 38,
-          "line": 49,
-          "position": 1615
+          "line": 50,
+          "position": 1776
         },
         "name": "hitandrun/weapons/HitRunExplosionSystem.ts",
         "start": 42,
@@ -1519,92 +1519,92 @@
     },
     {
       "firstFile": {
-        "end": 36,
+        "end": 37,
         "endLoc": {
           "column": 7,
-          "line": 36,
-          "position": 1143
+          "line": 37,
+          "position": 1312
         },
         "name": "hitandrun/hurt/HitRunHurtSystem.ts",
-        "start": 31,
+        "start": 32,
         "startLoc": {
-          "column": 2,
-          "line": 31,
-          "position": 918
+          "column": 0,
+          "line": 32,
+          "position": 1087
         }
       },
       "format": "typescript",
-      "fragment": "  public subscribe(eventBus: EventBus): void {\n    if (this.subscribed) return;\n    this.subscribed = true;\n    eventBus.on(\"combat:hit\", (payload: unknown) => {\n      this.pendingHits.push(payload as CombatHitPayload);\n    });",
+      "fragment": "public subscribe(eventBus: EventBus): void {\n    if (this.subscribed) return;\n    this.subscribed = true;\n    eventBus.on(\"combat:hit\", (payload: unknown) => {\n      this.pendingHits.push(payload as CombatHitPayload);\n    });",
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 51,
+        "end": 52,
         "endLoc": {
           "column": 7,
-          "line": 51,
-          "position": 1542
+          "line": 52,
+          "position": 1703
         },
         "name": "hitandrun/systems/HitRunFeedbackSystem.ts",
-        "start": 45,
+        "start": 46,
         "startLoc": {
-          "column": 2,
-          "line": 45,
-          "position": 1316
+          "column": 0,
+          "line": 46,
+          "position": 1477
         }
       },
       "tokens": 51
     },
     {
       "firstFile": {
-        "end": 235,
+        "end": 236,
         "endLoc": {
           "column": 9,
-          "line": 235,
-          "position": 6613
+          "line": 236,
+          "position": 6779
         },
         "name": "hitandrun/melee/HitRunMeleeSystem.ts",
-        "start": 230,
+        "start": 231,
         "startLoc": {
-          "column": 4,
-          "line": 230,
-          "position": 6376
+          "column": 0,
+          "line": 231,
+          "position": 6542
         }
       },
       "format": "typescript",
-      "fragment": "    const ox = transform.worldX ?? transform.x;\n    const oy = transform.worldY ?? transform.y;\n    const face = melee.facing >= 0 ? 1 : -1;\n    const hx = ox + face * config.hitboxOffsetX;\n    const hy = oy + config.hitboxOffsetY;\n    const halfW = config.hitboxWidth * 0.5;",
+      "fragment": "const ox = transform.worldX ?? transform.x;\n    const oy = transform.worldY ?? transform.y;\n    const face = melee.facing >= 0 ? 1 : -1;\n    const hx = ox + face * config.hitboxOffsetX;\n    const hy = oy + config.hitboxOffsetY;\n    const halfW = config.hitboxWidth * 0.5;",
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 328,
+        "end": 329,
         "endLoc": {
           "column": 9,
-          "line": 328,
-          "position": 8689
+          "line": 329,
+          "position": 8855
         },
         "name": "hitandrun/melee/HitRunMeleeSystem.ts",
-        "start": 322,
+        "start": 323,
         "startLoc": {
           "column": 4,
-          "line": 322,
-          "position": 8451
+          "line": 323,
+          "position": 8617
         }
       },
       "tokens": 57
     },
     {
       "firstFile": {
-        "end": 231,
+        "end": 232,
         "endLoc": {
           "column": 34,
-          "line": 231,
-          "position": 7697
+          "line": 232,
+          "position": 7865
         },
         "name": "hitandrun/rendering/HitRunCanvasVisuals.ts",
-        "start": 221,
+        "start": 222,
         "startLoc": {
           "column": 34,
-          "line": 221,
-          "position": 7345
+          "line": 222,
+          "position": 7513
         }
       },
       "format": "typescript",
@@ -1612,110 +1612,110 @@
       "isNew": false,
       "lines": 11,
       "secondFile": {
-        "end": 325,
+        "end": 326,
         "endLoc": {
           "column": 34,
-          "line": 325,
-          "position": 10422
+          "line": 326,
+          "position": 10590
         },
         "name": "hitandrun/rendering/HitRunCanvasVisuals.ts",
-        "start": 315,
+        "start": 316,
         "startLoc": {
           "column": 30,
-          "line": 315,
-          "position": 10070
+          "line": 316,
+          "position": 10238
         }
       },
       "tokens": 72
     },
     {
       "firstFile": {
-        "end": 340,
+        "end": 342,
         "endLoc": {
           "column": 10,
-          "line": 340,
-          "position": 10840
+          "line": 342,
+          "position": 11182
         },
         "name": "hitandrun/rendering/HitRunCanvasVisuals.ts",
-        "start": 332,
+        "start": 334,
         "startLoc": {
-          "column": 28,
-          "line": 332,
-          "position": 10592
+          "column": 22,
+          "line": 334,
+          "position": 10934
         }
       },
       "format": "typescript",
-      "fragment": "      ctx.fillStyle = \"#fff\";\n      ctx.beginPath();\n      ctx.moveTo(size * 0.65, -size * 0.42);\n      ctx.lineTo(-size * 0.45, -size * 0.84);\n      ctx.lineTo(-size * 0.25, -size * 0.42);\n      ctx.lineTo(-size * 0.45, 0);\n      ctx.closePath();\n      ctx.fill();\n      ctx.restore();",
+      "fragment": "ctx.fillStyle = \"#fff\";\n      ctx.beginPath();\n      ctx.moveTo(size * 0.65, -size * 0.42);\n      ctx.lineTo(-size * 0.45, -size * 0.84);\n      ctx.lineTo(-size * 0.25, -size * 0.42);\n      ctx.lineTo(-size * 0.45, 0);\n      ctx.closePath();\n      ctx.fill();\n      ctx.restore();",
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 357,
+        "end": 359,
         "endLoc": {
           "column": 8,
-          "line": 357,
-          "position": 11230
+          "line": 359,
+          "position": 11572
         },
         "name": "hitandrun/rendering/HitRunCanvasVisuals.ts",
-        "start": 347,
+        "start": 349,
         "startLoc": {
           "column": 23,
-          "line": 347,
-          "position": 10996
+          "line": 349,
+          "position": 11338
         }
       },
       "tokens": 77
     },
     {
       "firstFile": {
-        "end": 136,
+        "end": 137,
         "endLoc": {
           "column": 11,
-          "line": 136,
-          "position": 4120
+          "line": 137,
+          "position": 4287
         },
         "name": "hitandrun/waves/HitRunWaveSystem.ts",
-        "start": 131,
+        "start": 132,
         "startLoc": {
-          "column": 6,
-          "line": 131,
-          "position": 3827
+          "column": 0,
+          "line": 132,
+          "position": 3994
         }
       },
       "format": "typescript",
-      "fragment": "      const count = Math.max(1, ev.count ?? 1);\n      const formation = (ev.formation ?? \"point\") as WaveFormation;\n      const spacing = ev.spacing ?? 24;\n      const baseX = ev.x ?? this.cfg.defaultSpawnX + this.cfg.offscreenOffsetX;\n      const baseY = ev.y ?? this.cfg.defaultSpawnY;\n      const slots = computeFormationSlots(formation, count, baseX, baseY, spacing);",
+      "fragment": "const count = Math.max(1, ev.count ?? 1);\n      const formation = (ev.formation ?? \"point\") as WaveFormation;\n      const spacing = ev.spacing ?? 24;\n      const baseX = ev.x ?? this.cfg.defaultSpawnX + this.cfg.offscreenOffsetX;\n      const baseY = ev.y ?? this.cfg.defaultSpawnY;\n      const slots = computeFormationSlots(formation, count, baseX, baseY, spacing);",
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 178,
+        "end": 179,
         "endLoc": {
           "column": 9,
-          "line": 178,
-          "position": 5531
+          "line": 179,
+          "position": 5698
         },
         "name": "hitandrun/waves/HitRunWaveSystem.ts",
-        "start": 173,
+        "start": 174,
         "startLoc": {
           "column": 4,
-          "line": 173,
-          "position": 5248
+          "line": 174,
+          "position": 5415
         }
       },
       "tokens": 71
     },
     {
       "firstFile": {
-        "end": 28,
+        "end": 29,
         "endLoc": {
           "column": 8,
-          "line": 28,
-          "position": 1205
+          "line": 29,
+          "position": 1366
         },
         "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 17,
+        "start": 18,
         "startLoc": {
           "column": 0,
-          "line": 17,
-          "position": 718
+          "line": 18,
+          "position": 879
         }
       },
       "format": "typescript",
@@ -1723,665 +1723,739 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 29,
+        "end": 30,
         "endLoc": {
           "column": 8,
-          "line": 29,
-          "position": 1284
+          "line": 30,
+          "position": 1447
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 18,
+        "start": 19,
         "startLoc": {
           "column": 0,
-          "line": 18,
-          "position": 797
+          "line": 19,
+          "position": 960
         }
       },
       "tokens": 100
     },
     {
       "firstFile": {
-        "end": 80,
+        "end": 82,
         "endLoc": {
           "column": 45,
-          "line": 80,
-          "position": 2386
+          "line": 82,
+          "position": 2712
         },
         "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 74,
+        "start": 76,
         "startLoc": {
-          "column": 29,
-          "line": 74,
-          "position": 2163
+          "column": 25,
+          "line": 76,
+          "position": 2489
         }
       },
       "format": "typescript",
-      "fragment": "    ctx.fillStyle = \"#00b4d8\";\n    const topX = sp.side * 10;\n    const topY = -80;\n    for (let f = 0; f < 6; f++) {\n      const angle = (f / 6) * Math.PI * 2;\n      const fx = topX + Math.cos(angle) * 35;\n      const fy = topY + Math.sin(angle) * 20;",
+      "fragment": "ctx.fillStyle = \"#00b4d8\";\n    const topX = sp.side * 10;\n    const topY = -80;\n    for (let f = 0; f < 6; f++) {\n      const angle = (f / 6) * Math.PI * 2;\n      const fx = topX + Math.cos(angle) * 35;\n      const fy = topY + Math.sin(angle) * 20;",
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 90,
+        "end": 92,
         "endLoc": {
           "column": 45,
-          "line": 90,
-          "position": 2856
+          "line": 92,
+          "position": 3186
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 84,
+        "start": 86,
         "startLoc": {
-          "column": 41,
-          "line": 84,
-          "position": 2633
+          "column": 37,
+          "line": 86,
+          "position": 2963
         }
       },
       "tokens": 74
     },
     {
       "firstFile": {
-        "end": 212,
+        "end": 239,
         "endLoc": {
           "column": 9,
-          "line": 212,
-          "position": 6525
+          "line": 239,
+          "position": 7828
         },
         "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 201,
+        "start": 227,
         "startLoc": {
-          "column": 4,
-          "line": 201,
-          "position": 6121
+          "column": 0,
+          "line": 227,
+          "position": 7257
         }
       },
       "format": "typescript",
-      "fragment": "    const state = world.getSingleton(\"RaceState\");\n    const roadData = world.getResource<RoadData>(\"RoadData\");\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;\n\n    if (!state || !roadData || roadData.segments.length === 0) return;\n\n    const screenW = config.WIDTH;\n    const screenH = config.HEIGHT;\n    const rumbleLength = config.rumbleLength;\n\n    const basePalette = getScenarioPaletteAtZ(state.playerZ, roadData);",
+      "fragment": "const state = world.getSingleton(\"RaceState\");\n    const roadData = world.getResource<RoadData>(\"RoadData\");\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;\n\n    if (!state || !roadData || roadData.segments.length === 0) return;\n\n    const screenW = config.WIDTH;\n    const screenH = config.HEIGHT;\n        // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:247-255. Considerar extraer a función compartida. Ref: a72c88fe\nconst rumbleLength = config.rumbleLength;\n\n    const basePalette = getScenarioPaletteAtZ(state.playerZ, roadData);",
       "isNew": false,
-      "lines": 12,
+      "lines": 13,
       "secondFile": {
-        "end": 225,
+        "end": 251,
         "endLoc": {
-          "column": 9,
-          "line": 225,
-          "position": 7828
+          "column": 5,
+          "line": 251,
+          "position": 9295
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 215,
+        "start": 240,
         "startLoc": {
-          "column": 4,
-          "line": 215,
-          "position": 7425
+          "column": 0,
+          "line": 240,
+          "position": 8723
         }
       },
       "tokens": 78
     },
     {
       "firstFile": {
-        "end": 218,
+        "end": 245,
         "endLoc": {
           "column": 55,
-          "line": 218,
-          "position": 6867
+          "line": 245,
+          "position": 8170
         },
         "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 210,
+        "start": 237,
         "startLoc": {
-          "column": 44,
-          "line": 210,
-          "position": 6513
+          "column": 40,
+          "line": 237,
+          "position": 7816
         }
       },
       "format": "typescript",
-      "fragment": "    const rumbleLength = config.rumbleLength;\n\n    const basePalette = getScenarioPaletteAtZ(state.playerZ, roadData);\n    const progress = state.playerZ / roadData.trackLength;\n    const palette = applyDayPhase(basePalette, progress);\n\n    // PASS 1: Sky Multi-Band Gradient\n    const bandHeight = (screenH * 0.45) / palette.skyBands.length;\n    for (let b = 0; b < palette.skyBands.length; b++) {",
+      "fragment": "const rumbleLength = config.rumbleLength;\n\n    const basePalette = getScenarioPaletteAtZ(state.playerZ, roadData);\n    const progress = state.playerZ / roadData.trackLength;\n    const palette = applyDayPhase(basePalette, progress);\n\n    // PASS 1: Sky Multi-Band Gradient\n    const bandHeight = (screenH * 0.45) / palette.skyBands.length;\n    for (let b = 0; b < palette.skyBands.length; b++) {",
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 233,
+        "end": 259,
         "endLoc": {
           "column": 55,
-          "line": 233,
-          "position": 8201
+          "line": 259,
+          "position": 9668
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 225,
+        "start": 251,
         "startLoc": {
-          "column": 28,
-          "line": 225,
-          "position": 7847
+          "column": 24,
+          "line": 251,
+          "position": 9314
         }
       },
       "tokens": 68
     },
     {
       "firstFile": {
-        "end": 243,
+        "end": 271,
         "endLoc": {
           "column": 123,
-          "line": 243,
-          "position": 7806
+          "line": 271,
+          "position": 9276
         },
         "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 234,
+        "start": 262,
         "startLoc": {
-          "column": 38,
-          "line": 234,
-          "position": 7333
+          "column": 34,
+          "line": 262,
+          "position": 8803
         }
       },
       "format": "typescript",
-      "fragment": "    ctx.fillStyle = palette.cloudColor;\n    for (let c = 0; c < cloudCount; c++) {\n      const h1 = scenarioHash(\"cloud_x\", c);\n      const h2 = scenarioHash(\"cloud_y\", c);\n      const h3 = scenarioHash(\"cloud_w\", c);\n      const baseCloudX = h1 * screenW;\n      const cloudY = screenH * 0.08 + h2 * (screenH * 0.2);\n      const cloudW = 50 + h3 * 60;\n      const cloudH = cloudW * 0.35;\n      const cloudX = ((baseCloudX + state.playerZ * 0.00005 * (c + 1) + state.playerX * 15) % screenW + screenW) % screenW;",
+      "fragment": "ctx.fillStyle = palette.cloudColor;\n    for (let c = 0; c < cloudCount; c++) {\n      const h1 = scenarioHash(\"cloud_x\", c);\n      const h2 = scenarioHash(\"cloud_y\", c);\n      const h3 = scenarioHash(\"cloud_w\", c);\n      const baseCloudX = h1 * screenW;\n      const cloudY = screenH * 0.08 + h2 * (screenH * 0.2);\n      const cloudW = 50 + h3 * 60;\n      const cloudH = cloudW * 0.35;\n      const cloudX = ((baseCloudX + state.playerZ * 0.00005 * (c + 1) + state.playerX * 15) % screenW + screenW) % screenW;",
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 265,
+        "end": 292,
         "endLoc": {
           "column": 123,
-          "line": 265,
-          "position": 9444
+          "line": 292,
+          "position": 11080
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 256,
+        "start": 283,
         "startLoc": {
-          "column": 50,
-          "line": 256,
-          "position": 8971
+          "column": 46,
+          "line": 283,
+          "position": 10607
         }
       },
       "tokens": 117
     },
     {
       "firstFile": {
-        "end": 265,
+        "end": 291,
         "endLoc": {
-          "column": 46,
-          "line": 265,
-          "position": 8724
+          "column": 71,
+          "line": 291,
+          "position": 10227
         },
         "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 249,
+        "start": 286,
         "startLoc": {
-          "column": 15,
-          "line": 249,
-          "position": 8068
+          "column": 17,
+          "line": 286,
+          "position": 9936
         }
       },
       "format": "typescript",
-      "fragment": "      ctx.fill();\n    }\n\n    // PASS 3: Horizon by Scenario\n    const horizonY = screenH * 0.45;\n    const horizonStyle = palette.horizonStyle ?? (palette.id.startsWith(\"classic_\") ? \"faceted_peaks\" : \"coast_sea\");\n\n    if (horizonStyle === \"faceted_peaks\") {\n      const numPeaks = 12;\n      const peakSpacing = screenW / 4;\n      const mountainOffsetX = ((state.playerZ * 0.00015) % peakSpacing) + state.playerX * 25;\n\n      for (let m = -2; m < numPeaks + 2; m++) {\n        const h1 = scenarioHash(palette.id, m);\n        const h2 = scenarioHash(palette.id, m + 100);\n        const px = m * peakSpacing - mountainOffsetX;\n        const peakY = horizonY - 40 - h1 * 60;",
+      "fragment": "ctx.lineWidth = 2;\n      for (let h = 0; h < numLines; h++) {\n        const hRatio = h / numLines;\n        const baseX = hRatio * screenW + (state.playerX * 12);\n        const waveOffset = Math.sin((state.playerZ * 0.02) + h * 0.8) * 4;\n        const x = ((baseX + waveOffset) % screenW + screenW) % screenW;",
       "isNew": false,
-      "lines": 17,
+      "lines": 6,
       "secondFile": {
-        "end": 285,
+        "end": 313,
         "endLoc": {
-          "column": 46,
-          "line": 285,
-          "position": 10321
+          "column": 71,
+          "line": 313,
+          "position": 12110
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 269,
+        "start": 308,
         "startLoc": {
-          "column": 74,
-          "line": 269,
-          "position": 9668
+          "column": 55,
+          "line": 308,
+          "position": 11819
         }
       },
-      "tokens": 136
+      "tokens": 77
     },
     {
       "firstFile": {
-        "end": 302,
+        "end": 314,
         "endLoc": {
-          "column": 11,
-          "line": 302,
-          "position": 9997
+          "column": 46,
+          "line": 314,
+          "position": 11196
         },
         "name": "outrun/rendering/OutrunCanvasVisuals.ts",
         "start": 297,
         "startLoc": {
-          "column": 42,
-          "line": 297,
-          "position": 9784
-        }
-      },
-      "format": "typescript",
-      "fragment": "      ctx.fillStyle = palette.mountainBase;\n      for (let b = -2; b < 8; b++) {\n        const bx = b * spacing - horizonOffset;\n        const bw = 18 + scenarioHash(\"coast_b\", b) * 20;\n        const bh = 15 + scenarioHash(\"coast_bh\", b) * 35;\n        ctx.fillRect(bx, horizonY - bh, bw, bh);",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 320,
-        "endLoc": {
-          "column": 14,
-          "line": 320,
-          "position": 11702
-        },
-        "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 315,
-        "startLoc": {
-          "column": 54,
-          "line": 315,
-          "position": 11486
-        }
-      },
-      "tokens": 54
-    },
-    {
-      "firstFile": {
-        "end": 335,
-        "endLoc": {
           "column": 11,
-          "line": 335,
-          "position": 11356
-        },
-        "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 330,
-        "startLoc": {
-          "column": 42,
-          "line": 330,
-          "position": 11155
+          "line": 297,
+          "position": 10532
         }
       },
       "format": "typescript",
-      "fragment": "      ctx.fillStyle = palette.mountainBase;\n      for (let m = -2; m < 7; m++) {\n        const mx = m * spacing - offset;\n        const mh = 35 + scenarioHash(\"mtn_h\", m) * 55;\n        const mw = 30 + scenarioHash(\"mtn_w\", m) * 25;\n        ctx.fillRect(mx, horizonY - mh, mw, mh);",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 350,
-        "endLoc": {
-          "column": 13,
-          "line": 350,
-          "position": 12934
-        },
-        "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 345,
-        "startLoc": {
-          "column": 42,
-          "line": 345,
-          "position": 12731
-        }
-      },
-      "tokens": 54
-    },
-    {
-      "firstFile": {
-        "end": 363,
-        "endLoc": {
-          "column": 23,
-          "line": 363,
-          "position": 12072
-        },
-        "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 346,
-        "startLoc": {
-          "column": 44,
-          "line": 346,
-          "position": 11738
-        }
-      },
-      "format": "typescript",
-      "fragment": "        ctx.fillStyle = palette.mountainBase;\n      }\n    }\n\n    const count = projectRoad(\n      roadData.segments,\n      state.playerZ,\n      state.playerX,\n      config.cameraHeight,\n      config.cameraDepth,\n      config.roadWidth,\n      Math.min(config.drawDistance, PROJECTION_CAPACITY),\n      screenW,\n      screenH,\n      projectionBuffer\n    );\n\n    let maxy = screenH;",
+      "fragment": "ctx.stroke();\n      }\n    }\n\n    // PASS 3: Horizon by Scenario\n    const horizonY = screenH * 0.45;\n    const horizonStyle = palette.horizonStyle ?? (palette.id.startsWith(\"classic_\") ? \"faceted_peaks\" : \"coast_sea\");\n\n    if (horizonStyle === \"faceted_peaks\") {\n      const numPeaks = 12;\n      const peakSpacing = screenW / 4;\n      const mountainOffsetX = ((state.playerZ * 0.00015) % peakSpacing) + state.playerX * 25;\n\n      for (let m = -2; m < numPeaks + 2; m++) {\n        const h1 = scenarioHash(palette.id, m);\n        const h2 = scenarioHash(palette.id, m + 100);\n        const px = m * peakSpacing - mountainOffsetX;\n        const peakY = horizonY - 40 - h1 * 60;",
       "isNew": false,
       "lines": 18,
       "secondFile": {
-        "end": 377,
+        "end": 336,
         "endLoc": {
-          "column": 23,
-          "line": 377,
-          "position": 13729
+          "column": 46,
+          "line": 336,
+          "position": 13126
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 360,
+        "start": 319,
+        "startLoc": {
+          "column": 31,
+          "line": 319,
+          "position": 12465
+        }
+      },
+      "tokens": 137
+    },
+    {
+      "firstFile": {
+        "end": 352,
+        "endLoc": {
+          "column": 11,
+          "line": 352,
+          "position": 12638
+        },
+        "name": "outrun/rendering/OutrunCanvasVisuals.ts",
+        "start": 347,
         "startLoc": {
           "column": 36,
-          "line": 360,
-          "position": 13395
+          "line": 347,
+          "position": 12425
+        }
+      },
+      "format": "typescript",
+      "fragment": "ctx.fillStyle = palette.mountainBase;\n      for (let b = -2; b < 8; b++) {\n        const bx = b * spacing - horizonOffset;\n        const bw = 18 + scenarioHash(\"coast_b\", b) * 20;\n        const bh = 15 + scenarioHash(\"coast_bh\", b) * 35;\n        ctx.fillRect(bx, horizonY - bh, bw, bh);",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 372,
+        "endLoc": {
+          "column": 14,
+          "line": 372,
+          "position": 14678
+        },
+        "name": "outrun/rendering/OutrunSkiaVisuals.ts",
+        "start": 367,
+        "startLoc": {
+          "column": 48,
+          "line": 367,
+          "position": 14462
+        }
+      },
+      "tokens": 54
+    },
+    {
+      "firstFile": {
+        "end": 386,
+        "endLoc": {
+          "column": 11,
+          "line": 386,
+          "position": 14166
+        },
+        "name": "outrun/rendering/OutrunCanvasVisuals.ts",
+        "start": 381,
+        "startLoc": {
+          "column": 36,
+          "line": 381,
+          "position": 13965
+        }
+      },
+      "format": "typescript",
+      "fragment": "ctx.fillStyle = palette.mountainBase;\n      for (let m = -2; m < 7; m++) {\n        const mx = m * spacing - offset;\n        const mh = 35 + scenarioHash(\"mtn_h\", m) * 55;\n        const mw = 30 + scenarioHash(\"mtn_w\", m) * 25;\n        ctx.fillRect(mx, horizonY - mh, mw, mh);",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 403,
+        "endLoc": {
+          "column": 13,
+          "line": 403,
+          "position": 16081
+        },
+        "name": "outrun/rendering/OutrunSkiaVisuals.ts",
+        "start": 398,
+        "startLoc": {
+          "column": 36,
+          "line": 398,
+          "position": 15878
+        }
+      },
+      "tokens": 54
+    },
+    {
+      "firstFile": {
+        "end": 415,
+        "endLoc": {
+          "column": 23,
+          "line": 415,
+          "position": 15053
+        },
+        "name": "outrun/rendering/OutrunCanvasVisuals.ts",
+        "start": 398,
+        "startLoc": {
+          "column": 36,
+          "line": 398,
+          "position": 14719
+        }
+      },
+      "format": "typescript",
+      "fragment": "ctx.fillStyle = palette.mountainBase;\n      }\n    }\n\n    const count = projectRoad(\n      roadData.segments,\n      state.playerZ,\n      state.playerX,\n      config.cameraHeight,\n      config.cameraDepth,\n      config.roadWidth,\n      Math.min(config.drawDistance, PROJECTION_CAPACITY),\n      screenW,\n      screenH,\n      projectionBuffer\n    );\n\n    let maxy = screenH;",
+      "isNew": false,
+      "lines": 18,
+      "secondFile": {
+        "end": 431,
+        "endLoc": {
+          "column": 23,
+          "line": 431,
+          "position": 17049
+        },
+        "name": "outrun/rendering/OutrunSkiaVisuals.ts",
+        "start": 414,
+        "startLoc": {
+          "column": 28,
+          "line": 414,
+          "position": 16715
         }
       },
       "tokens": 55
     },
     {
       "firstFile": {
-        "end": 394,
+        "end": 447,
         "endLoc": {
           "column": 96,
-          "line": 394,
-          "position": 13192
+          "line": 447,
+          "position": 16340
         },
         "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 389,
+        "start": 441,
         "startLoc": {
           "column": 4,
-          "line": 389,
-          "position": 12944
+          "line": 441,
+          "position": 15925
         }
       },
       "format": "typescript",
-      "fragment": "    for (let i = 0; i < count; i++) {\n      const p = projectionBuffer[i];\n      if (p.p1z <= 0 && p.p2z <= 0) continue;\n      if (p.y2 >= maxy) continue;\n\n      const grass = rumbleColor(p.index, rumbleLength, palette.groundDark, palette.groundLight);",
+      "fragment": "    for (    // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:423-428. Considerar extraer a función compartida. Ref: a554f6b8\nlet i = 0; i < count; i++) {\n      const p = projectionBuffer[i];\n      if (p.p1z <= 0 && p.p2z <= 0) continue;\n      if (p.y2 >= maxy) continue;\n\n      const grass = rumbleColor(p.index, rumbleLength, palette.groundDark, palette.groundLight);",
       "isNew": false,
-      "lines": 6,
+      "lines": 7,
       "secondFile": {
-        "end": 384,
+        "end": 439,
         "endLoc": {
           "column": 96,
-          "line": 384,
-          "position": 13983
+          "line": 439,
+          "position": 17472
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 379,
+        "start": 433,
         "startLoc": {
           "column": 4,
-          "line": 379,
-          "position": 13735
+          "line": 433,
+          "position": 17055
         }
       },
       "tokens": 69
-    },
-    {
-      "firstFile": {
-        "end": 400,
-        "endLoc": {
-          "column": 19,
-          "line": 400,
-          "position": 13474
-        },
-        "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 395,
-        "startLoc": {
-          "column": 23,
-          "line": 395,
-          "position": 13216
-        }
-      },
-      "format": "typescript",
-      "fragment": "      fillTrapezoid(ctx, p.x1, p.y1, screenW, p.x2, Math.min(p.y2, maxy), screenW, grass);\n\n      const rumbleW1 = p.w1 * 1.15;\n      const rumbleW2 = p.w2 * 1.15;\n      const rumble = rumbleColor(p.index, rumbleLength, palette.rumbleDark, palette.rumbleLight);\n      fillTrapezoid(ctx, p.x1, p.y1, rumbleW1, p.x2, Math.min(p.y2, maxy), rumbleW2, rumble);",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 390,
-        "endLoc": {
-          "column": 23,
-          "line": 390,
-          "position": 14283
-        },
-        "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 385,
-        "startLoc": {
-          "column": 37,
-          "line": 385,
-          "position": 14021
-        }
-      },
-      "tokens": 69
-    },
-    {
-      "firstFile": {
-        "end": 408,
-        "endLoc": {
-          "column": 75,
-          "line": 408,
-          "position": 13896
-        },
-        "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 403,
-        "startLoc": {
-          "column": 23,
-          "line": 403,
-          "position": 13635
-        }
-      },
-      "format": "typescript",
-      "fragment": "      fillTrapezoid(ctx, p.x1, p.y1, p.w1, p.x2, Math.min(p.y2, maxy), p.w2, road);\n\n      // Inner curve asphalt darkening\n      if (Math.abs(p.curve) > 1.5) {\n        const innerSide = p.curve > 0 ? 1 : -1;\n        const darkAlpha = Math.min(0.25, (Math.abs(p.curve) - 1.5) * 0.08);",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 398,
-        "endLoc": {
-          "column": 75,
-          "line": 398,
-          "position": 14729
-        },
-        "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 393,
-        "startLoc": {
-          "column": 37,
-          "line": 393,
-          "position": 14468
-        }
-      },
-      "tokens": 88
     },
     {
       "firstFile": {
         "end": 454,
         "endLoc": {
-          "column": 45,
+          "column": 19,
           "line": 454,
-          "position": 15471
+          "position": 16791
         },
         "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 434,
+        "start": 449,
         "startLoc": {
           "column": 17,
-          "line": 434,
-          "position": 14886
+          "line": 449,
+          "position": 16533
         }
       },
       "format": "typescript",
-      "fragment": "        ctx.fill();\n      }\n\n      maxy = p.y2;\n    }\n\n    // Sprites Pass (Render back-to-front with ridge occlusion clipping)\n    for (let i = count - 1; i >= 0; i--) {\n      const p = projectionBuffer[i];\n      const seg = roadData.segments[p.index];\n      if (!seg || !seg.sprites || seg.sprites.length === 0) continue;\n\n      for (const sp of seg.sprites) {\n        let sx = p.x1;\n        if (sp.kind !== \"arch\" && sp.kind !== \"banner\") {\n          sx = p.x1 + sp.side * (p.w1 * sp.offset);\n        }\n        const sy = p.y1;\n        const sw = p.w1;\n\n        if (sy >= p.clip || sw < 2) continue;",
+      "fragment": "fillTrapezoid(ctx, p.x1, p.y1, screenW, p.x2, Math.min(p.y2, maxy), screenW, grass);\n\n      const rumbleW1 = p.w1 * 1.15;\n      const rumbleW2 = p.w2 * 1.15;\n      const rumble = rumbleColor(p.index, rumbleLength, palette.rumbleDark, palette.rumbleLight);\n      fillTrapezoid(ctx, p.x1, p.y1, rumbleW1, p.x2, Math.min(p.y2, maxy), rumbleW2, rumble);",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 446,
+        "endLoc": {
+          "column": 23,
+          "line": 446,
+          "position": 17943
+        },
+        "name": "outrun/rendering/OutrunSkiaVisuals.ts",
+        "start": 441,
+        "startLoc": {
+          "column": 31,
+          "line": 441,
+          "position": 17681
+        }
+      },
+      "tokens": 69
+    },
+    {
+      "firstFile": {
+        "end": 464,
+        "endLoc": {
+          "column": 87,
+          "line": 464,
+          "position": 17435
+        },
+        "name": "outrun/rendering/OutrunCanvasVisuals.ts",
+        "start": 458,
+        "startLoc": {
+          "column": 17,
+          "line": 458,
+          "position": 17121
+        }
+      },
+      "format": "typescript",
+      "fragment": "fillTrapezoid(ctx, p.x1, p.y1, p.w1, p.x2, Math.min(p.y2, maxy), p.w2, road);\n\n      // Wet road / center asphalt reflection layer\n      if (palette.reflectionAlpha > 0) {\n        const reflW1 = p.w1 * 0.35;\n        const reflW2 = p.w2 * 0.35;\n        const reflColor = `rgba(255, 255, 255, ${palette.reflectionAlpha.toFixed(3)})`;",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 456,
+        "endLoc": {
+          "column": 87,
+          "line": 456,
+          "position": 18613
+        },
+        "name": "outrun/rendering/OutrunSkiaVisuals.ts",
+        "start": 450,
+        "startLoc": {
+          "column": 31,
+          "line": 450,
+          "position": 18299
+        }
+      },
+      "tokens": 76
+    },
+    {
+      "firstFile": {
+        "end": 472,
+        "endLoc": {
+          "column": 75,
+          "line": 472,
+          "position": 17910
+        },
+        "name": "outrun/rendering/OutrunCanvasVisuals.ts",
+        "start": 466,
+        "startLoc": {
+          "column": 17,
+          "line": 466,
+          "position": 17632
+        }
+      },
+      "format": "typescript",
+      "fragment": "fillTrapezoid(ctx, p.x1, p.y1, reflW1, p.x2, Math.min(p.y2, maxy), reflW2, reflColor);\n      }\n\n      // Inner curve asphalt darkening\n      if (Math.abs(p.curve) > 1.5) {\n        const innerSide = p.curve > 0 ? 1 : -1;\n        const darkAlpha = Math.min(0.25, (Math.abs(p.curve) - 1.5) * 0.08);",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 464,
+        "endLoc": {
+          "column": 75,
+          "line": 464,
+          "position": 19104
+        },
+        "name": "outrun/rendering/OutrunSkiaVisuals.ts",
+        "start": 458,
+        "startLoc": {
+          "column": 31,
+          "line": 458,
+          "position": 18826
+        }
+      },
+      "tokens": 85
+    },
+    {
+      "firstFile": {
+        "end": 519,
+        "endLoc": {
+          "column": 45,
+          "line": 519,
+          "position": 19656
+        },
+        "name": "outrun/rendering/OutrunCanvasVisuals.ts",
+        "start": 499,
+        "startLoc": {
+          "column": 9,
+          "line": 499,
+          "position": 19071
+        }
+      },
+      "format": "typescript",
+      "fragment": "ctx.fill();\n      }\n\n      maxy = p.y2;\n    }\n\n    // Sprites Pass (Render back-to-front with ridge occlusion clipping)\n    for (let i = count - 1; i >= 0; i--) {\n      const p = projectionBuffer[i];\n      const seg = roadData.segments[p.index];\n      if (!seg || !seg.sprites || seg.sprites.length === 0) continue;\n\n      for (const sp of seg.sprites) {\n        let sx = p.x1;\n        if (sp.kind !== \"arch\" && sp.kind !== \"banner\") {\n          sx = p.x1 + sp.side * (p.w1 * sp.offset);\n        }\n        const sy = p.y1;\n        const sw = p.w1;\n\n        if (sy >= p.clip || sw < 2) continue;",
       "isNew": false,
       "lines": 21,
       "secondFile": {
-        "end": 436,
+        "end": 503,
         "endLoc": {
           "column": 45,
-          "line": 436,
-          "position": 16063
+          "line": 503,
+          "position": 20611
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 416,
+        "start": 483,
         "startLoc": {
-          "column": 109,
-          "line": 416,
-          "position": 15478
+          "column": 101,
+          "line": 483,
+          "position": 20026
         }
       },
       "tokens": 148
     },
     {
       "firstFile": {
-        "end": 481,
+        "end": 547,
         "endLoc": {
           "column": 71,
-          "line": 481,
-          "position": 16249
+          "line": 547,
+          "position": 20601
         },
         "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 471,
+        "start": 537,
         "startLoc": {
-          "column": 4,
-          "line": 471,
-          "position": 15837
+          "column": 0,
+          "line": 537,
+          "position": 20189
         }
       },
       "format": "typescript",
-      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const state = world.getSingleton(\"RaceState\");\n    if (!state) return;\n\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;\n\n    const visualOffset = world.getComponent(entity, \"VisualOffset\");\n    const geom = computePlayerCarGeometry(state, config, visualOffset);",
+      "fragment": "const render = world.getComponent(entity, \"Render\");\n    if (!render || !render.visible) return;\n\n    const state = world.getSingleton(\"RaceState\");\n    if (!state) return;\n\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;\n\n    const visualOffset = world.getComponent(entity, \"VisualOffset\");\n    const geom = computePlayerCarGeometry(state, config, visualOffset);",
       "isNew": false,
       "lines": 11,
       "secondFile": {
-        "end": 463,
+        "end": 531,
         "endLoc": {
           "column": 71,
-          "line": 463,
-          "position": 16936
+          "line": 531,
+          "position": 21653
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 453,
+        "start": 521,
         "startLoc": {
-          "column": 4,
-          "line": 453,
-          "position": 16524
+          "column": 0,
+          "line": 521,
+          "position": 21241
         }
       },
       "tokens": 80
     },
     {
       "firstFile": {
-        "end": 495,
+        "end": 563,
         "endLoc": {
-          "column": 109,
-          "line": 495,
-          "position": 16806
+          "column": 103,
+          "line": 563,
+          "position": 21497
         },
         "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 489,
+        "start": 556,
         "startLoc": {
-          "column": 13,
-          "line": 489,
-          "position": 16465
+          "column": 9,
+          "line": 556,
+          "position": 20987
         }
       },
       "format": "typescript",
-      "fragment": "    ctx.fill();\n\n    // Off-track Dust\n    if (geom.isOffroad && state.speed > 0) {\n      const roadData = world.getResource<RoadData>(\"RoadData\");\n      const basePal = roadData ? getScenarioPaletteAtZ(state.playerZ, roadData) : COAST_PALETTE;\n      const dustColor = basePal.id === \"coast\" ? \"#e2dfc8\" : basePal.id === \"desert\" ? \"#d0a67a\" : \"#8d99ae\";",
+      "fragment": "ctx.fill();\n\n    // Off-track Dust\n    if (geom.isOffroad && state.speed > 0) {\n      const roadData = world.getResource<RoadData>(\"RoadData\");\n      const basePal = roadData ? getScenarioPaletteAtZ(state.playerZ, roadData) : COAST_PALETTE;\n            // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:533-538. Considerar extraer a función compartida. Ref: 5f35fca5\nconst dustColor = basePal.id === \"coast\" ? \"#e2dfc8\" : basePal.id === \"desert\" ? \"#d0a67a\" : \"#8d99ae\";",
       "isNew": false,
-      "lines": 7,
+      "lines": 8,
       "secondFile": {
-        "end": 479,
+        "end": 548,
         "endLoc": {
           "column": 109,
-          "line": 479,
-          "position": 17621
+          "line": 548,
+          "position": 22504
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 473,
+        "start": 542,
         "startLoc": {
-          "column": 129,
-          "line": 473,
-          "position": 17280
+          "column": 121,
+          "line": 542,
+          "position": 22163
         }
       },
       "tokens": 65
     },
     {
       "firstFile": {
-        "end": 501,
+        "end": 569,
         "endLoc": {
           "column": 31,
-          "line": 501,
-          "position": 17072
+          "line": 569,
+          "position": 21763
         },
         "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 495,
+        "start": 563,
         "startLoc": {
-          "column": 108,
-          "line": 495,
-          "position": 16805
+          "column": 102,
+          "line": 563,
+          "position": 21496
         }
       },
       "format": "typescript",
-      "fragment": "      const dustColor = basePal.id === \"coast\" ? \"#e2dfc8\" : basePal.id === \"desert\" ? \"#d0a67a\" : \"#8d99ae\";\n\n      for (let d = 0; d < 12; d++) {\n        const h1 = scenarioHash(\"dust_x\", d + Math.floor(state.playerZ * 0.1));\n        const h2 = scenarioHash(\"dust_y\", d + Math.floor(state.playerZ * 0.1));\n        const dx = (h1 - 0.5) * 45;\n        const dy = h2 * 25 + 5;",
+      "fragment": "const dustColor = basePal.id === \"coast\" ? \"#e2dfc8\" : basePal.id === \"desert\" ? \"#d0a67a\" : \"#8d99ae\";\n\n      for (let d = 0; d < 12; d++) {\n        const h1 = scenarioHash(\"dust_x\", d + Math.floor(state.playerZ * 0.1));\n        const h2 = scenarioHash(\"dust_y\", d + Math.floor(state.playerZ * 0.1));\n        const dx = (h1 - 0.5) * 45;\n        const dy = h2 * 25 + 5;",
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 486,
+        "end": 556,
         "endLoc": {
           "column": 31,
-          "line": 486,
-          "position": 17932
+          "line": 556,
+          "position": 22986
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 481,
+        "start": 551,
         "startLoc": {
-          "column": 43,
-          "line": 481,
-          "position": 17666
+          "column": 37,
+          "line": 551,
+          "position": 22720
         }
       },
       "tokens": 78
     },
     {
       "firstFile": {
-        "end": 567,
+        "end": 636,
         "endLoc": {
           "column": 63,
-          "line": 567,
-          "position": 18954
+          "line": 636,
+          "position": 23812
         },
         "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 546,
+        "start": 615,
         "startLoc": {
-          "column": 4,
-          "line": 546,
-          "position": 18209
+          "column": 0,
+          "line": 615,
+          "position": 23067
         }
       },
       "format": "typescript",
-      "fragment": "    const racer = world.getComponent(entity, \"Racer\");\n    const render = world.getComponent(entity, \"Render\");\n    if (!racer || !racer.active || !render || !render.visible) return;\n\n    const state = world.getSingleton(\"RaceState\");\n    const roadData = world.getResource<RoadData>(\"RoadData\");\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;\n    if (!state || !roadData) return;\n\n    const proj = computeRacerProjection(\n      racer,\n      state,\n      roadData,\n      config,\n      projectionBuffer,\n      PROJECTION_CAPACITY\n    );\n    if (!proj) return;\n\n    const colors = [\"#457b9d\", \"#2a9d8f\", \"#e9c46a\", \"#f4a261\", \"#e76f51\"];\n    const bodyColor = colors[racer.colorIndex % colors.length];",
+      "fragment": "const racer = world.getComponent(entity, \"Racer\");\n    const render = world.getComponent(entity, \"Render\");\n    if (!racer || !racer.active || !render || !render.visible) return;\n\n    const state = world.getSingleton(\"RaceState\");\n    const roadData = world.getResource<RoadData>(\"RoadData\");\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;\n    if (!state || !roadData) return;\n\n    const proj = computeRacerProjection(\n      racer,\n      state,\n      roadData,\n      config,\n      projectionBuffer,\n      PROJECTION_CAPACITY\n    );\n    if (!proj) return;\n\n    const colors = [\"#457b9d\", \"#2a9d8f\", \"#e9c46a\", \"#f4a261\", \"#e76f51\"];\n    const bodyColor = colors[racer.colorIndex % colors.length];",
       "isNew": false,
       "lines": 22,
       "secondFile": {
-        "end": 550,
+        "end": 621,
         "endLoc": {
           "column": 63,
-          "line": 550,
-          "position": 20011
+          "line": 621,
+          "position": 25234
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 529,
+        "start": 600,
         "startLoc": {
-          "column": 4,
-          "line": 529,
-          "position": 19266
+          "column": 0,
+          "line": 600,
+          "position": 24489
         }
       },
       "tokens": 146
     },
     {
       "firstFile": {
-        "end": 589,
+        "end": 659,
         "endLoc": {
           "column": 46,
-          "line": 589,
-          "position": 19722
+          "line": 659,
+          "position": 24747
         },
         "name": "outrun/rendering/OutrunCanvasVisuals.ts",
-        "start": 581,
+        "start": 651,
         "startLoc": {
-          "column": 4,
-          "line": 581,
-          "position": 19388
+          "column": 0,
+          "line": 651,
+          "position": 24413
         }
       },
       "format": "typescript",
-      "fragment": "    const state = world.getSingleton(\"RaceState\");\n    if (!state) return;\n\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;\n\n    const speedKmh = Math.round((state.speed / config.maxSpeed) * 280);\n    const timeStr = state.lapTime.toFixed(1);\n    const phase = state.racePhase ?? \"racing\";",
+      "fragment": "const state = world.getSingleton(\"RaceState\");\n    if (!state) return;\n\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;\n\n    const speedKmh = Math.round((state.speed / config.maxSpeed) * 280);\n    const timeStr = state.lapTime.toFixed(1);\n    const phase = state.racePhase ?? \"racing\";",
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 580,
+        "end": 652,
         "endLoc": {
           "column": 46,
-          "line": 580,
-          "position": 21029
+          "line": 652,
+          "position": 26421
         },
         "name": "outrun/rendering/OutrunSkiaVisuals.ts",
-        "start": 572,
+        "start": 644,
         "startLoc": {
-          "column": 4,
-          "line": 572,
-          "position": 20695
+          "column": 0,
+          "line": 644,
+          "position": 26087
         }
       },
       "tokens": 73
     },
     {
       "firstFile": {
-        "end": 21,
+        "end": 22,
         "endLoc": {
           "column": 77,
-          "line": 21,
-          "position": 905
+          "line": 22,
+          "position": 1064
         },
         "name": "outrun/systems/RacerInputSystem.ts",
-        "start": 10,
+        "start": 11,
         "startLoc": {
           "column": 30,
-          "line": 10,
-          "position": 469
+          "line": 11,
+          "position": 628
         }
       },
       "format": "typescript",
@@ -2389,36 +2463,36 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 25,
+        "end": 26,
         "endLoc": {
           "column": 77,
-          "line": 25,
-          "position": 919
+          "line": 26,
+          "position": 1077
         },
         "name": "outrun/systems/RoadAdvanceSystem.ts",
-        "start": 14,
+        "start": 15,
         "startLoc": {
           "column": 31,
-          "line": 14,
-          "position": 483
+          "line": 15,
+          "position": 641
         }
       },
       "tokens": 77
     },
     {
       "firstFile": {
-        "end": 26,
+        "end": 27,
         "endLoc": {
           "column": 13,
-          "line": 26,
-          "position": 993
+          "line": 27,
+          "position": 1152
         },
         "name": "outrun/systems/RacerInputSystem.ts",
-        "start": 10,
+        "start": 11,
         "startLoc": {
           "column": 30,
-          "line": 10,
-          "position": 469
+          "line": 11,
+          "position": 628
         }
       },
       "format": "typescript",
@@ -2426,184 +2500,184 @@
       "isNew": false,
       "lines": 17,
       "secondFile": {
-        "end": 27,
+        "end": 28,
         "endLoc": {
           "column": 17,
-          "line": 27,
-          "position": 985
+          "line": 28,
+          "position": 1143
         },
         "name": "outrun/systems/TrafficSystem.ts",
-        "start": 14,
+        "start": 15,
         "startLoc": {
           "column": 27,
-          "line": 14,
-          "position": 469
+          "line": 15,
+          "position": 627
         }
       },
       "tokens": 94
     },
     {
       "firstFile": {
-        "end": 182,
+        "end": 184,
         "endLoc": {
           "column": 47,
-          "line": 182,
-          "position": 6865
+          "line": 184,
+          "position": 7183
         },
         "name": "platformer/PlatformerGame.ts",
-        "start": 177,
+        "start": 179,
         "startLoc": {
-          "column": 33,
-          "line": 177,
-          "position": 6607
+          "column": 27,
+          "line": 179,
+          "position": 6925
         }
       },
       "format": "typescript",
-      "fragment": "      this.blueprints.register(id, {\n        spawn: (world, entity, args: { x: number; y: number }) => {\n          ArcadeEntityBuilder.fromEntity(world, entity)\n            .withTransform({ x: args.x, y: args.y })\n            .withCollider2D({\n              shape: { type: \"aabb\", halfWidth: 12, halfHeight: 12 },",
+      "fragment": "this.blueprints.register(id, {\n        spawn: (world, entity, args: { x: number; y: number }) => {\n          ArcadeEntityBuilder.fromEntity(world, entity)\n            .withTransform({ x: args.x, y: args.y })\n            .withCollider2D({\n              shape: { type: \"aabb\", halfWidth: 12, halfHeight: 12 },",
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 204,
+        "end": 206,
         "endLoc": {
           "column": 45,
-          "line": 204,
-          "position": 7569
+          "line": 206,
+          "position": 7887
         },
         "name": "platformer/PlatformerGame.ts",
-        "start": 199,
+        "start": 201,
         "startLoc": {
           "column": 35,
-          "line": 199,
-          "position": 7321
+          "line": 201,
+          "position": 7639
         }
       },
       "tokens": 61
     },
     {
       "firstFile": {
-        "end": 56,
+        "end": 57,
         "endLoc": {
           "column": 20,
-          "line": 56,
-          "position": 2183
+          "line": 57,
+          "position": 2356
         },
         "name": "pong/systems/PongGameStateSystem.ts",
-        "start": 51,
+        "start": 52,
         "startLoc": {
-          "column": 12,
-          "line": 51,
-          "position": 1900
+          "column": 0,
+          "line": 52,
+          "position": 2073
         }
       },
       "format": "typescript",
-      "fragment": "            world.mutateComponent(ball, \"Transform\", (t: TransformComponent) => {\n              t.x = this.config.worldWidth / 2;\n              t.y = this.config.worldHeight / 2;\n            });\n            world.mutateComponent(ball, \"Velocity\", (v: VelocityComponent) => {\n              v.vx = scorer === \"p1\" ? -this.config.BALL_SPEED_START : this.config.BALL_SPEED_START;",
+      "fragment": "world.mutateComponent(ball, \"Transform\", (t: TransformComponent) => {\n              t.x = this.config.worldWidth / 2;\n              t.y = this.config.worldHeight / 2;\n            });\n            world.mutateComponent(ball, \"Velocity\", (v: VelocityComponent) => {\n              v.vx = scorer === \"p1\" ? -this.config.BALL_SPEED_START : this.config.BALL_SPEED_START;",
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 178,
+        "end": 179,
         "endLoc": {
           "column": 22,
-          "line": 178,
-          "position": 7094
+          "line": 179,
+          "position": 7267
         },
         "name": "pong/systems/PongGameStateSystem.ts",
-        "start": 173,
+        "start": 174,
         "startLoc": {
           "column": 14,
-          "line": 173,
-          "position": 6801
+          "line": 174,
+          "position": 6974
         }
       },
       "tokens": 61
     },
     {
       "firstFile": {
-        "end": 40,
+        "end": 41,
         "endLoc": {
           "column": 9,
-          "line": 40,
-          "position": 1292
+          "line": 41,
+          "position": 1457
         },
         "name": "racing/rendering/RacingCanvasVisuals.ts",
-        "start": 32,
+        "start": 33,
         "startLoc": {
-          "column": 76,
-          "line": 32,
-          "position": 988
+          "column": 72,
+          "line": 33,
+          "position": 1153
         }
       },
       "format": "typescript",
-      "fragment": "    const start = typeof performance !== \"undefined\" ? performance.now() : 0;\n    const skin = getRacingSkin(world);\n    const palette = skin.palette;\n    const trackSpec = world.getResource<TrackSpec>(\"ActiveTrackSpec\");\n    const width = trackSpec?.width ?? 1600;\n    const height = trackSpec?.height ?? 1000;\n    const halfW = width / 2;\n    const halfH = height / 2;\n    const cacheKey = `${trackSpec?.id ?? \"default\"}:${skin.id}`;",
+      "fragment": "const start = typeof performance !== \"undefined\" ? performance.now() : 0;\n    const skin = getRacingSkin(world);\n    const palette = skin.palette;\n    const trackSpec = world.getResource<TrackSpec>(\"ActiveTrackSpec\");\n    const width = trackSpec?.width ?? 1600;\n    const height = trackSpec?.height ?? 1000;\n    const halfW = width / 2;\n    const halfH = height / 2;\n    const cacheKey = `${trackSpec?.id ?? \"default\"}:${skin.id}`;",
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 31,
+        "end": 32,
         "endLoc": {
           "column": 9,
-          "line": 31,
-          "position": 1101
+          "line": 32,
+          "position": 1268
         },
         "name": "racing/rendering/RacingSkiaVisuals.ts",
-        "start": 22,
+        "start": 23,
         "startLoc": {
-          "column": 21,
-          "line": 22,
-          "position": 796
+          "column": 17,
+          "line": 23,
+          "position": 963
         }
       },
       "tokens": 62
     },
     {
       "firstFile": {
-        "end": 121,
+        "end": 123,
         "endLoc": {
           "column": 56,
-          "line": 121,
-          "position": 4202
+          "line": 123,
+          "position": 4532
         },
         "name": "racing/rendering/RacingCanvasVisuals.ts",
-        "start": 115,
+        "start": 117,
         "startLoc": {
-          "column": 4,
-          "line": 115,
-          "position": 3876
+          "column": 0,
+          "line": 117,
+          "position": 4206
         }
       },
       "format": "typescript",
-      "fragment": "    const skin = getRacingSkin(world);\n    const palette = skin.palette;\n    const trackSpec = world.getResource<TrackSpec>(\"ActiveTrackSpec\");\n    if (!trackSpec || trackSpec.waypoints.length < 3) return;\n\n    const { left, right } = buildTrackRibbon(trackSpec.waypoints);\n    if (left.length === 0 || right.length === 0) return;",
+      "fragment": "const skin = getRacingSkin(world);\n    const palette = skin.palette;\n    const trackSpec = world.getResource<TrackSpec>(\"ActiveTrackSpec\");\n    if (!trackSpec || trackSpec.waypoints.length < 3) return;\n\n    const { left, right } = buildTrackRibbon(trackSpec.waypoints);\n    if (left.length === 0 || right.length === 0) return;",
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 64,
+        "end": 66,
         "endLoc": {
           "column": 56,
-          "line": 64,
-          "position": 2367
+          "line": 66,
+          "position": 2703
         },
         "name": "racing/rendering/RacingSkiaVisuals.ts",
-        "start": 58,
+        "start": 60,
         "startLoc": {
-          "column": 4,
-          "line": 58,
-          "position": 2041
+          "column": 0,
+          "line": 60,
+          "position": 2377
         }
       },
       "tokens": 73
     },
     {
       "firstFile": {
-        "end": 169,
+        "end": 172,
         "endLoc": {
           "column": 22,
-          "line": 169,
-          "position": 5460
+          "line": 172,
+          "position": 5955
         },
         "name": "racing/rendering/RacingCanvasVisuals.ts",
-        "start": 164,
+        "start": 167,
         "startLoc": {
           "column": 26,
-          "line": 164,
-          "position": 5200
+          "line": 167,
+          "position": 5695
         }
       },
       "format": "typescript",
@@ -2611,66 +2685,66 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 196,
+        "end": 199,
         "endLoc": {
           "column": 22,
-          "line": 196,
-          "position": 6203
+          "line": 199,
+          "position": 6698
         },
         "name": "racing/rendering/RacingCanvasVisuals.ts",
-        "start": 191,
+        "start": 194,
         "startLoc": {
           "column": 22,
-          "line": 191,
-          "position": 5943
+          "line": 194,
+          "position": 6438
         }
       },
       "tokens": 51
     },
     {
       "firstFile": {
-        "end": 254,
+        "end": 258,
         "endLoc": {
           "column": 43,
-          "line": 254,
-          "position": 7968
+          "line": 258,
+          "position": 8630
         },
         "name": "racing/rendering/RacingCanvasVisuals.ts",
-        "start": 242,
+        "start": 246,
         "startLoc": {
-          "column": 14,
-          "line": 242,
-          "position": 7552
+          "column": 10,
+          "line": 246,
+          "position": 8214
         }
       },
       "format": "typescript",
-      "fragment": "    ctx.save();\n    if (checkpoint.isFinish) {\n      const halfW = checkpoint.width / 2;\n      const halfH = checkpoint.height / 2;\n      const cols = 8;\n      const rows = 2;\n      const colW = checkpoint.width / cols;\n      const rowH = checkpoint.height / rows;\n\n      const [color1, color2] = skin.finishCheckers ?? [\"#FFFFFF\", \"#5D4037\"];\n\n      for (let r = 0; r < rows; r += 1) {\n        for (let c = 0; c < cols; c += 1) {",
+      "fragment": "ctx.save();\n    if (checkpoint.isFinish) {\n      const halfW = checkpoint.width / 2;\n      const halfH = checkpoint.height / 2;\n      const cols = 8;\n      const rows = 2;\n      const colW = checkpoint.width / cols;\n      const rowH = checkpoint.height / rows;\n\n      const [color1, color2] = skin.finishCheckers ?? [\"#FFFFFF\", \"#5D4037\"];\n\n      for (let r = 0; r < rows; r += 1) {\n        for (let c = 0; c < cols; c += 1) {",
       "isNew": false,
       "lines": 13,
       "secondFile": {
-        "end": 181,
+        "end": 185,
         "endLoc": {
           "column": 43,
-          "line": 181,
-          "position": 6188
+          "line": 185,
+          "position": 6856
         },
         "name": "racing/rendering/RacingSkiaVisuals.ts",
-        "start": 168,
+        "start": 172,
         "startLoc": {
-          "column": 27,
-          "line": 168,
-          "position": 5771
+          "column": 23,
+          "line": 172,
+          "position": 6439
         }
       },
       "tokens": 103
     },
     {
       "firstFile": {
-        "end": 25,
+        "end": 26,
         "endLoc": {
           "column": 70,
-          "line": 25,
-          "position": 941
+          "line": 26,
+          "position": 1108
         },
         "name": "racing/rendering/RacingSkiaVisuals.ts",
         "start": 20,
@@ -2681,40 +2755,40 @@
         }
       },
       "format": "typescript",
-      "fragment": "export const drawSkiaTrackSurface: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {\n  draw(canvas, world) {\n    if (!Skia) return;\n    const skin = getRacingSkin(world);\n    const palette = skin.palette;\n    const trackSpec = world.getResource<TrackSpec>(\"ActiveTrackSpec\");",
+      "fragment": "export const drawSkiaTrackSurface: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {\n  draw(canvas, world) {\n        // TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingCanvasVisuals.ts:32-40. Considerar extraer a función compartida. Ref: 4b0cab2d\nif (!Skia) return;\n    const skin = getRacingSkin(world);\n    const palette = skin.palette;\n    const trackSpec = world.getResource<TrackSpec>(\"ActiveTrackSpec\");",
       "isNew": false,
-      "lines": 6,
+      "lines": 7,
       "secondFile": {
-        "end": 60,
+        "end": 62,
         "endLoc": {
           "column": 70,
-          "line": 60,
-          "position": 2180
+          "line": 62,
+          "position": 2516
         },
         "name": "racing/rendering/RacingSkiaVisuals.ts",
-        "start": 55,
+        "start": 56,
         "startLoc": {
           "column": 32,
-          "line": 55,
-          "position": 1937
+          "line": 56,
+          "position": 2104
         }
       },
       "tokens": 51
     },
     {
       "firstFile": {
-        "end": 103,
+        "end": 106,
         "endLoc": {
           "column": 22,
-          "line": 103,
-          "position": 3640
+          "line": 106,
+          "position": 4139
         },
         "name": "racing/rendering/RacingSkiaVisuals.ts",
-        "start": 97,
+        "start": 100,
         "startLoc": {
           "column": 30,
-          "line": 97,
-          "position": 3370
+          "line": 100,
+          "position": 3869
         }
       },
       "format": "typescript",
@@ -2722,110 +2796,110 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 125,
+        "end": 128,
         "endLoc": {
           "column": 22,
-          "line": 125,
-          "position": 4381
+          "line": 128,
+          "position": 4880
         },
         "name": "racing/rendering/RacingSkiaVisuals.ts",
-        "start": 119,
+        "start": 122,
         "startLoc": {
           "column": 26,
-          "line": 119,
-          "position": 4111
+          "line": 122,
+          "position": 4610
         }
       },
       "tokens": 58
     },
     {
       "firstFile": {
-        "end": 94,
+        "end": 95,
         "endLoc": {
           "column": 15,
-          "line": 94,
-          "position": 3107
+          "line": 95,
+          "position": 3280
         },
         "name": "racing/systems/HeadToHeadStateSystem.ts",
-        "start": 87,
+        "start": 88,
         "startLoc": {
-          "column": 12,
-          "line": 87,
-          "position": 2817
+          "column": 0,
+          "line": 88,
+          "position": 2990
         }
       },
       "format": "typescript",
-      "fragment": "            const halfW = zone.width / 2;\n            const halfH = zone.height / 2;\n            if (\n              transform.x >= zone.x - halfW &&\n              transform.x <= zone.x + halfW &&\n              transform.y >= zone.y - halfH &&\n              transform.y <= zone.y + halfH\n            ) {",
+      "fragment": "const halfW = zone.width / 2;\n            const halfH = zone.height / 2;\n            if (\n              transform.x >= zone.x - halfW &&\n              transform.x <= zone.x + halfW &&\n              transform.y >= zone.y - halfH &&\n              transform.y <= zone.y + halfH\n            ) {",
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 32,
+        "end": 33,
         "endLoc": {
           "column": 13,
-          "line": 32,
-          "position": 1391
+          "line": 33,
+          "position": 1564
         },
         "name": "racing/systems/RacingSurfaceSystem.ts",
-        "start": 25,
+        "start": 26,
         "startLoc": {
-          "column": 10,
-          "line": 25,
-          "position": 1115
+          "column": 0,
+          "line": 26,
+          "position": 1288
         }
       },
       "tokens": 61
     },
     {
       "firstFile": {
-        "end": 58,
+        "end": 59,
         "endLoc": {
           "column": 82,
-          "line": 58,
-          "position": 1644
+          "line": 59,
+          "position": 1807
         },
         "name": "shared/rendering/CanvasNeonUtils.ts",
-        "start": 51,
+        "start": 52,
         "startLoc": {
-          "column": 4,
-          "line": 51,
-          "position": 1359
+          "column": 0,
+          "line": 52,
+          "position": 1522
         }
       },
       "format": "typescript",
-      "fragment": "    const trail = this.getTrail(entityId);\n    const drawLength = Math.min(length, this.maxPoints);\n\n    for (let i = drawLength - 1; i >= 0; i--) {\n      const p = trail[i];\n      if (!p.active) continue;\n\n      const { alpha, trailSize } = computeMotionTrailSegment(i, drawLength, size);",
+      "fragment": "const trail = this.getTrail(entityId);\n    const drawLength = Math.min(length, this.maxPoints);\n\n    for (let i = drawLength - 1; i >= 0; i--) {\n      const p = trail[i];\n      if (!p.active) continue;\n\n      const { alpha, trailSize } = computeMotionTrailSegment(i, drawLength, size);",
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 121,
+        "end": 122,
         "endLoc": {
           "column": 82,
-          "line": 121,
-          "position": 4093
+          "line": 122,
+          "position": 4256
         },
         "name": "shared/rendering/SkiaNeonUtils.ts",
-        "start": 114,
+        "start": 115,
         "startLoc": {
-          "column": 4,
-          "line": 114,
-          "position": 3808
+          "column": 0,
+          "line": 115,
+          "position": 3971
         }
       },
       "tokens": 74
     },
     {
       "firstFile": {
-        "end": 31,
+        "end": 32,
         "endLoc": {
           "column": 6,
-          "line": 31,
-          "position": 734
+          "line": 32,
+          "position": 895
         },
         "name": "shared/rendering/JuiceOrchestrator.ts",
-        "start": 19,
+        "start": 20,
         "startLoc": {
           "column": 12,
-          "line": 19,
-          "position": 510
+          "line": 20,
+          "position": 671
         }
       },
       "format": "typescript",
@@ -2833,406 +2907,406 @@
       "isNew": false,
       "lines": 13,
       "secondFile": {
-        "end": 44,
+        "end": 45,
         "endLoc": {
           "column": 6,
-          "line": 44,
-          "position": 1016
+          "line": 45,
+          "position": 1177
         },
         "name": "shared/rendering/JuiceOrchestrator.ts",
-        "start": 32,
+        "start": 33,
         "startLoc": {
           "column": 32,
-          "line": 32,
-          "position": 792
+          "line": 33,
+          "position": 953
         }
       },
       "tokens": 50
     },
     {
       "firstFile": {
-        "end": 388,
+        "end": 389,
         "endLoc": {
           "column": 12,
-          "line": 388,
-          "position": 16434
+          "line": 389,
+          "position": 16593
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 374,
+        "start": 375,
         "startLoc": {
-          "column": 23,
-          "line": 374,
-          "position": 16194
+          "column": 19,
+          "line": 375,
+          "position": 16353
         }
       },
       "format": "typescript",
-      "fragment": "    addComp(flashEntity, {\n      type: \"Transform\",\n      x,\n      y,\n      rotation: 0,\n      scaleX: 1,\n      scaleY: 1,\n      worldX: x,\n      worldY: y,\n      worldRotation: 0,\n      worldScaleX: 1,\n      worldScaleY: 1,\n      dirty: true\n    });\n    addComp(flashEntity, {",
+      "fragment": "addComp(flashEntity, {\n      type: \"Transform\",\n      x,\n      y,\n      rotation: 0,\n      scaleX: 1,\n      scaleY: 1,\n      worldX: x,\n      worldY: y,\n      worldRotation: 0,\n      worldScaleX: 1,\n      worldScaleY: 1,\n      dirty: true\n    });\n    addComp(flashEntity, {",
       "isNew": false,
       "lines": 15,
       "secondFile": {
-        "end": 424,
+        "end": 425,
         "endLoc": {
           "column": 12,
-          "line": 424,
-          "position": 17180
+          "line": 425,
+          "position": 17339
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 410,
+        "start": 411,
         "startLoc": {
           "column": 23,
-          "line": 410,
-          "position": 16940
+          "line": 411,
+          "position": 17099
         }
       },
       "tokens": 50
     },
     {
       "firstFile": {
-        "end": 711,
+        "end": 713,
         "endLoc": {
           "column": 29,
-          "line": 711,
-          "position": 28294
+          "line": 713,
+          "position": 28612
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 706,
+        "start": 708,
         "startLoc": {
-          "column": 4,
-          "line": 706,
-          "position": 28064
+          "column": 0,
+          "line": 708,
+          "position": 28382
         }
       },
       "format": "typescript",
-      "fragment": "    const { width, height, state } = getScreenAndVFXState(world);\n    if (state.lowStimulationMode) return;\n    const timePhase = state.timePhase;\n    const isGlitching = Math.sin(timePhase * 17) > 0.85;\n\n    if (!isGlitching) return;",
+      "fragment": "const { width, height, state } = getScreenAndVFXState(world);\n    if (state.lowStimulationMode) return;\n    const timePhase = state.timePhase;\n    const isGlitching = Math.sin(timePhase * 17) > 0.85;\n\n    if (!isGlitching) return;",
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 730,
+        "end": 732,
         "endLoc": {
           "column": 29,
-          "line": 730,
-          "position": 28918
+          "line": 732,
+          "position": 29236
         },
         "name": "shared/rendering/SharedVFX.ts",
-        "start": 725,
+        "start": 727,
         "startLoc": {
           "column": 4,
-          "line": 725,
-          "position": 28688
+          "line": 727,
+          "position": 29006
         }
       },
       "tokens": 50
     },
     {
       "firstFile": {
-        "end": 52,
+        "end": 53,
         "endLoc": {
           "column": 71,
-          "line": 52,
-          "position": 1659
+          "line": 53,
+          "position": 1833
         },
         "name": "shared/rendering/layers/DriftingNebulaLayer.ts",
-        "start": 47,
+        "start": 48,
         "startLoc": {
-          "column": 12,
-          "line": 47,
-          "position": 1412
+          "column": 8,
+          "line": 48,
+          "position": 1586
         }
       },
       "format": "typescript",
-      "fragment": "    ctx.save();\n\n    for (let i = 0; i < NEBULA_CLOUD_COUNT; i++) {\n      const neb = nebulae[i];\n      const { posX, offsetAngle } = advanceNebulaCloud(neb, state.timePhase, i, offsetX);\n      const nebColorHex = resolveNebulaCloudColor(theme, i, neb.color);",
+      "fragment": "ctx.save();\n\n    for (let i = 0; i < NEBULA_CLOUD_COUNT; i++) {\n      const neb = nebulae[i];\n      const { posX, offsetAngle } = advanceNebulaCloud(neb, state.timePhase, i, offsetX);\n      const nebColorHex = resolveNebulaCloudColor(theme, i, neb.color);",
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 88,
+        "end": 89,
         "endLoc": {
           "column": 71,
-          "line": 88,
-          "position": 2828
+          "line": 89,
+          "position": 3002
         },
         "name": "shared/rendering/layers/DriftingNebulaLayer.ts",
-        "start": 83,
+        "start": 84,
         "startLoc": {
           "column": 28,
-          "line": 83,
-          "position": 2581
+          "line": 84,
+          "position": 2755
         }
       },
       "tokens": 60
     },
     {
       "firstFile": {
-        "end": 36,
+        "end": 37,
         "endLoc": {
           "column": 72,
-          "line": 36,
-          "position": 1377
+          "line": 37,
+          "position": 1552
         },
         "name": "shared/rendering/layers/RingingPlanetLayer.ts",
-        "start": 31,
+        "start": 32,
         "startLoc": {
-          "column": 4,
-          "line": 31,
-          "position": 1055
+          "column": 0,
+          "line": 32,
+          "position": 1230
         }
       },
       "format": "typescript",
-      "fragment": "    const theme = getActiveVisualContext(world);\n    const layerCtx = resolveLayerFrame(world, \"ringing_planet\", ringingPlanetLayer);\n    if (!layerCtx) return;\n    const { width, height, state, layerState: planet, offsetX, wrapCoordinate } = layerCtx;\n\n    const posX = resolvePlanetPosition(planet, offsetX, wrapCoordinate);",
+      "fragment": "const theme = getActiveVisualContext(world);\n    const layerCtx = resolveLayerFrame(world, \"ringing_planet\", ringingPlanetLayer);\n    if (!layerCtx) return;\n    const { width, height, state, layerState: planet, offsetX, wrapCoordinate } = layerCtx;\n\n    const posX = resolvePlanetPosition(planet, offsetX, wrapCoordinate);",
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 146,
+        "end": 147,
         "endLoc": {
           "column": 72,
-          "line": 146,
-          "position": 4764
+          "line": 147,
+          "position": 4939
         },
         "name": "shared/rendering/layers/RingingPlanetLayer.ts",
-        "start": 141,
+        "start": 142,
         "startLoc": {
           "column": 4,
-          "line": 141,
-          "position": 4442
+          "line": 142,
+          "position": 4617
         }
       },
       "tokens": 58
     },
     {
       "firstFile": {
-        "end": 45,
+        "end": 46,
         "endLoc": {
           "column": 70,
-          "line": 45,
-          "position": 1609
+          "line": 46,
+          "position": 1787
         },
         "name": "shared/rendering/layers/ScrollingStarfieldLayer.ts",
-        "start": 39,
+        "start": 40,
         "startLoc": {
-          "column": 4,
-          "line": 39,
-          "position": 1271
+          "column": 0,
+          "line": 40,
+          "position": 1449
         }
       },
       "format": "typescript",
-      "fragment": "    const theme = getActiveVisualContext(world);\n    const layerCtx = resolveLayerFrame(world, \"starfield\", starfieldLayer);\n    if (!layerCtx) return;\n    const { layerState: stars, offsetX, wrapCoordinate } = layerCtx;\n\n    const starSpeedMult = theme.starSpeed || 1.0;\n    const activeStarCount = resolveActiveStarCount(theme.starDensity);",
+      "fragment": "const theme = getActiveVisualContext(world);\n    const layerCtx = resolveLayerFrame(world, \"starfield\", starfieldLayer);\n    if (!layerCtx) return;\n    const { layerState: stars, offsetX, wrapCoordinate } = layerCtx;\n\n    const starSpeedMult = theme.starSpeed || 1.0;\n    const activeStarCount = resolveActiveStarCount(theme.starDensity);",
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 70,
+        "end": 71,
         "endLoc": {
           "column": 70,
-          "line": 70,
-          "position": 2450
+          "line": 71,
+          "position": 2628
         },
         "name": "shared/rendering/layers/ScrollingStarfieldLayer.ts",
-        "start": 64,
+        "start": 65,
         "startLoc": {
           "column": 4,
-          "line": 64,
-          "position": 2112
+          "line": 65,
+          "position": 2290
         }
       },
       "tokens": 59
     },
     {
       "firstFile": {
-        "end": 706,
+        "end": 707,
         "endLoc": {
           "column": 20,
-          "line": 706,
-          "position": 30126
+          "line": 707,
+          "position": 30289
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 700,
+        "start": 701,
         "startLoc": {
-          "column": 31,
-          "line": 700,
-          "position": 29897
+          "column": 27,
+          "line": 701,
+          "position": 30060
         }
       },
       "format": "typescript",
-      "fragment": "    this.isMultiplayer = active;\n  }\n\n  public override setInputState(input: Partial<InputState> | CanonicalInputState | Record<string, unknown>): void {\n    const world = this.getWorld();\n    const playerEntity = world.query(\"Player\")[0];\n    if (playerEntity !== undefined) {",
+      "fragment": "this.isMultiplayer = active;\n  }\n\n  public override setInputState(input: Partial<InputState> | CanonicalInputState | Record<string, unknown>): void {\n    const world = this.getWorld();\n    const playerEntity = world.query(\"Player\")[0];\n    if (playerEntity !== undefined) {",
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 404,
+        "end": 406,
         "endLoc": {
           "column": 20,
-          "line": 404,
-          "position": 13980
+          "line": 406,
+          "position": 14312
         },
         "name": "tower-defense/TowerDefenseGame.ts",
-        "start": 396,
+        "start": 398,
         "startLoc": {
-          "column": 41,
-          "line": 396,
-          "position": 13743
+          "column": 37,
+          "line": 398,
+          "position": 14075
         }
       },
       "tokens": 50
     },
     {
       "firstFile": {
-        "end": 49,
+        "end": 50,
         "endLoc": {
           "column": 50,
-          "line": 49,
-          "position": 1747
+          "line": 50,
+          "position": 1925
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 44,
+        "start": 45,
         "startLoc": {
-          "column": 5,
-          "line": 44,
-          "position": 1526
+          "column": 3,
+          "line": 45,
+          "position": 1704
         }
       },
       "format": "typescript",
-      "fragment": "  ctx.save();\n  for (let i = 0; i < EXPLOSION_PARTICLE_POOL.length; i++) {\n    const data = resolveExplosionParticleData(EXPLOSION_PARTICLE_POOL[i]);\n    if (!data) continue;\n\n    const { ratio, type, x, y, radius, size, color } = data;",
+      "fragment": "ctx.save();\n  for (let i = 0; i < EXPLOSION_PARTICLE_POOL.length; i++) {\n    const data = resolveExplosionParticleData(EXPLOSION_PARTICLE_POOL[i]);\n    if (!data) continue;\n\n    const { ratio, type, x, y, radius, size, color } = data;",
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 52,
+        "end": 53,
         "endLoc": {
           "column": 50,
-          "line": 52,
-          "position": 1792
+          "line": 53,
+          "position": 1972
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 47,
+        "start": 48,
         "startLoc": {
-          "column": 8,
-          "line": 47,
-          "position": 1571
+          "column": 6,
+          "line": 48,
+          "position": 1751
         }
       },
       "tokens": 55
     },
     {
       "firstFile": {
-        "end": 432,
+        "end": 434,
         "endLoc": {
           "column": 46,
-          "line": 432,
-          "position": 12955
+          "line": 434,
+          "position": 13315
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 427,
+        "start": 429,
         "startLoc": {
-          "column": 29,
-          "line": 427,
-          "position": 12761
+          "column": 25,
+          "line": 429,
+          "position": 13121
         }
       },
       "format": "typescript",
-      "fragment": "    ctx.fillStyle = glowColor;\n    for (let i = 1; i < points.length; i++) {\n      const pt = points[i];\n      const relX = pt.x - currentX;\n      const relY = pt.y - currentY;\n      const pointWidth = size * pt.widthScale;",
+      "fragment": "ctx.fillStyle = glowColor;\n    for (let i = 1; i < points.length; i++) {\n      const pt = points[i];\n      const relX = pt.x - currentX;\n      const relY = pt.y - currentY;\n      const pointWidth = size * pt.widthScale;",
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 413,
+        "end": 415,
         "endLoc": {
           "column": 46,
-          "line": 413,
-          "position": 14429
+          "line": 415,
+          "position": 14793
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 408,
+        "start": 410,
         "startLoc": {
-          "column": 42,
-          "line": 408,
-          "position": 14235
+          "column": 38,
+          "line": 410,
+          "position": 14599
         }
       },
       "tokens": 53
     },
     {
       "firstFile": {
-        "end": 478,
+        "end": 481,
         "endLoc": {
           "column": 17,
-          "line": 478,
-          "position": 14144
+          "line": 481,
+          "position": 14686
         },
         "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
-        "start": 459,
+        "start": 462,
         "startLoc": {
-          "column": 54,
-          "line": 459,
-          "position": 13818
+          "column": 50,
+          "line": 462,
+          "position": 14360
         }
       },
       "format": "typescript",
-      "fragment": "    const render = world.getComponent(entity, \"Render\");\n    if (!render) return;\n\n    const bossState = resolveBossVisualState(world, entity, render);\n    const {\n      hpRatio,\n      phase,\n      baseColor,\n      accentColor,\n      scaleMultiplier,\n      scale,\n      shakeX,\n      shakeY,\n      vibX,\n      vibY,\n      s,\n      coreRadius,\n    } = bossState;\n\n    const flash = applyHitFlash(render, baseColor);",
+      "fragment": "const render = world.getComponent(entity, \"Render\");\n    if (!render) return;\n\n    const bossState = resolveBossVisualState(world, entity, render);\n    const {\n      hpRatio,\n      phase,\n      baseColor,\n      accentColor,\n      scaleMultiplier,\n      scale,\n      shakeX,\n      shakeY,\n      vibX,\n      vibY,\n      s,\n      coreRadius,\n    } = bossState;\n\n    const flash = applyHitFlash(render, baseColor);",
       "isNew": false,
       "lines": 20,
       "secondFile": {
-        "end": 456,
+        "end": 459,
         "endLoc": {
           "column": 17,
-          "line": 456,
-          "position": 15643
+          "line": 459,
+          "position": 16191
         },
         "name": "space-invaders/rendering/SpaceInvadersSkiaVisuals.ts",
-        "start": 437,
+        "start": 440,
         "startLoc": {
-          "column": 55,
-          "line": 437,
-          "position": 15317
+          "column": 51,
+          "line": 440,
+          "position": 15865
         }
       },
       "tokens": 54
     },
     {
       "firstFile": {
-        "end": 285,
+        "end": 286,
         "endLoc": {
           "column": 28,
-          "line": 285,
-          "position": 9460
+          "line": 286,
+          "position": 9627
         },
         "name": "tower-defense/TowerDefenseGame.ts",
-        "start": 280,
+        "start": 281,
         "startLoc": {
-          "column": 80,
-          "line": 280,
-          "position": 9261
+          "column": 76,
+          "line": 281,
+          "position": 9428
         }
       },
       "format": "typescript",
-      "fragment": "    this.world.addSystem(new WaveSpawnSystem(), { phase: SystemPhase.Simulation });\n\n    this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });\n    this.world.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });\n\n    this.world.addSystem(new CreepDeathSystem(), { phase: SystemPhase.GameRules });",
+      "fragment": "this.world.addSystem(new WaveSpawnSystem(), { phase: SystemPhase.Simulation });\n\n    this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });\n    this.world.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });\n\n    this.world.addSystem(new CreepDeathSystem(), { phase: SystemPhase.GameRules });",
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 54,
+        "end": 55,
         "endLoc": {
           "column": 28,
-          "line": 54,
-          "position": 3179
+          "line": 55,
+          "position": 3342
         },
         "name": "vertical-shmup/scenes/ShmupGameScene.ts",
-        "start": 51,
+        "start": 52,
         "startLoc": {
-          "column": 89,
-          "line": 51,
-          "position": 2982
+          "column": 85,
+          "line": 52,
+          "position": 3145
         }
       },
       "tokens": 50
     },
     {
       "firstFile": {
-        "end": 113,
+        "end": 114,
         "endLoc": {
           "column": 38,
-          "line": 113,
-          "position": 3548
+          "line": 114,
+          "position": 3726
         },
         "name": "tower-defense/rendering/TowerDefenseCanvasVisuals.ts",
-        "start": 108,
+        "start": 109,
         "startLoc": {
           "column": 27,
-          "line": 108,
-          "position": 3240
+          "line": 109,
+          "position": 3418
         }
       },
       "format": "typescript",
@@ -3240,110 +3314,110 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 122,
+        "end": 123,
         "endLoc": {
           "column": 38,
-          "line": 122,
-          "position": 3961
+          "line": 123,
+          "position": 4139
         },
         "name": "tower-defense/rendering/TowerDefenseCanvasVisuals.ts",
-        "start": 117,
+        "start": 118,
         "startLoc": {
           "column": 26,
-          "line": 117,
-          "position": 3653
+          "line": 118,
+          "position": 3831
         }
       },
       "tokens": 63
     },
     {
       "firstFile": {
-        "end": 197,
+        "end": 199,
         "endLoc": {
           "column": 52,
-          "line": 197,
-          "position": 6935
+          "line": 199,
+          "position": 7293
         },
         "name": "tower-defense/rendering/TowerDefenseCanvasVisuals.ts",
-        "start": 186,
+        "start": 188,
         "startLoc": {
-          "column": 28,
-          "line": 186,
-          "position": 6416
+          "column": 24,
+          "line": 188,
+          "position": 6774
         }
       },
       "format": "typescript",
-      "fragment": "    if (!layout || !tileGrid) return;\n\n    for (let row = 0; row < tileGrid.rows; row++) {\n      for (let col = 0; col < tileGrid.cols; col++) {\n        const tile = tileGrid.tiles[row]?.[col];\n        const x = layout.offsetX + col * layout.stepX;\n        const y = layout.offsetY + row * layout.stepY;\n        let color = \"#0f0f1a\";\n        if (tile === \"path\") color = \"#2a2a4a\";\n        else if (tile === \"buildable\") color = \"#16213e\";\n        else if (tile === \"spawn\") color = \"#3d1a1a\";\n        else if (tile === \"base\") color = \"#1a3d1a\";",
+      "fragment": "if (!layout || !tileGrid) return;\n\n    for (let row = 0; row < tileGrid.rows; row++) {\n      for (let col = 0; col < tileGrid.cols; col++) {\n        const tile = tileGrid.tiles[row]?.[col];\n        const x = layout.offsetX + col * layout.stepX;\n        const y = layout.offsetY + row * layout.stepY;\n        let color = \"#0f0f1a\";\n        if (tile === \"path\") color = \"#2a2a4a\";\n        else if (tile === \"buildable\") color = \"#16213e\";\n        else if (tile === \"spawn\") color = \"#3d1a1a\";\n        else if (tile === \"base\") color = \"#1a3d1a\";",
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 180,
+        "end": 182,
         "endLoc": {
           "column": 52,
-          "line": 180,
-          "position": 6341
+          "line": 182,
+          "position": 6703
         },
         "name": "tower-defense/rendering/TowerDefenseSkiaVisuals.ts",
-        "start": 169,
+        "start": 171,
         "startLoc": {
-          "column": 14,
-          "line": 169,
-          "position": 5822
+          "column": 10,
+          "line": 171,
+          "position": 6184
         }
       },
       "tokens": 125
     },
     {
       "firstFile": {
-        "end": 115,
+        "end": 116,
         "endLoc": {
           "column": 30,
-          "line": 115,
-          "position": 4026
+          "line": 116,
+          "position": 4206
         },
         "name": "tower-defense/rendering/TowerDefenseSkiaVisuals.ts",
-        "start": 108,
+        "start": 109,
         "startLoc": {
-          "column": 41,
-          "line": 108,
-          "position": 3824
+          "column": 37,
+          "line": 109,
+          "position": 4004
         }
       },
       "format": "typescript",
-      "fragment": "    drawSkiaCreep(canvas, size, \"#c62828\");\n    if (!Skia) return;\n    const paint = getPaint();\n    if (!paint) return;\n    paint.reset();\n    paint.setStyle(Skia.PaintStyle.Stroke);\n    paint.setStrokeWidth(3);\n    paint.setColor(Skia.Color(\"#e53935\"));",
+      "fragment": "drawSkiaCreep(canvas, size, \"#c62828\");\n    if (!Skia) return;\n    const paint = getPaint();\n    if (!paint) return;\n    paint.reset();\n    paint.setStyle(Skia.PaintStyle.Stroke);\n    paint.setStrokeWidth(3);\n    paint.setColor(Skia.Color(\"#e53935\"));",
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 145,
+        "end": 146,
         "endLoc": {
           "column": 30,
-          "line": 145,
-          "position": 5031
+          "line": 146,
+          "position": 5211
         },
         "name": "tower-defense/rendering/TowerDefenseSkiaVisuals.ts",
-        "start": 138,
+        "start": 139,
         "startLoc": {
           "column": 41,
-          "line": 138,
-          "position": 4829
+          "line": 139,
+          "position": 5009
         }
       },
       "tokens": 55
     },
     {
       "firstFile": {
-        "end": 19,
+        "end": 20,
         "endLoc": {
           "column": 33,
-          "line": 19,
-          "position": 747
+          "line": 20,
+          "position": 919
         },
         "name": "tower-defense/systems/SlowOnHitSystem.ts",
-        "start": 8,
+        "start": 9,
         "startLoc": {
           "column": 40,
-          "line": 8,
-          "position": 406
+          "line": 9,
+          "position": 578
         }
       },
       "format": "typescript",
@@ -3351,36 +3425,36 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 30,
+        "end": 31,
         "endLoc": {
           "column": 33,
-          "line": 30,
-          "position": 1052
+          "line": 31,
+          "position": 1215
         },
         "name": "tower-defense/systems/TowerDefenseAudioSystem.ts",
-        "start": 19,
+        "start": 20,
         "startLoc": {
           "column": 43,
-          "line": 19,
-          "position": 711
+          "line": 20,
+          "position": 874
         }
       },
       "tokens": 68
     },
     {
       "firstFile": {
-        "end": 10,
+        "end": 11,
         "endLoc": {
           "column": 20,
-          "line": 10,
-          "position": 395
+          "line": 11,
+          "position": 565
         },
         "name": "vertical-shmup/rendering/ShmupCanvasVisuals.ts",
-        "start": 4,
+        "start": 5,
         "startLoc": {
           "column": 28,
-          "line": 4,
-          "position": 144
+          "line": 5,
+          "position": 314
         }
       },
       "format": "typescript",
@@ -3388,36 +3462,36 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 30,
+        "end": 31,
         "endLoc": {
           "column": 20,
-          "line": 30,
-          "position": 970
+          "line": 31,
+          "position": 1140
         },
         "name": "vertical-shmup/rendering/ShmupCanvasVisuals.ts",
-        "start": 24,
+        "start": 25,
         "startLoc": {
           "column": 27,
-          "line": 24,
-          "position": 719
+          "line": 25,
+          "position": 889
         }
       },
       "tokens": 56
     },
     {
       "firstFile": {
-        "end": 50,
+        "end": 52,
         "endLoc": {
           "column": 35,
-          "line": 50,
-          "position": 1592
+          "line": 52,
+          "position": 1932
         },
         "name": "vertical-shmup/rendering/ShmupCanvasVisuals.ts",
-        "start": 45,
+        "start": 47,
         "startLoc": {
           "column": 34,
-          "line": 45,
-          "position": 1343
+          "line": 47,
+          "position": 1683
         }
       },
       "format": "typescript",
@@ -3425,50 +3499,50 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 62,
+        "end": 64,
         "endLoc": {
           "column": 35,
-          "line": 62,
-          "position": 2011
+          "line": 64,
+          "position": 2351
         },
         "name": "vertical-shmup/rendering/ShmupCanvasVisuals.ts",
-        "start": 57,
+        "start": 59,
         "startLoc": {
           "column": 33,
-          "line": 57,
-          "position": 1762
+          "line": 59,
+          "position": 2102
         }
       },
       "tokens": 54
     }
   ],
   "statistics": {
-    "detectionDate": "2026-10-10T05:53:53.738Z",
+    "detectionDate": "2026-10-10T13:36:02.571Z",
     "formats": {
       "typescript": {
-        "clones": 93,
-        "duplicatedLines": 793,
-        "duplicatedTokens": 6473,
-        "lines": 89158,
+        "clones": 95,
+        "duplicatedLines": 817,
+        "duplicatedTokens": 6624,
+        "lines": 89694,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.8894322438816483,
-        "percentageTokens": 1.3335036350489171,
-        "sources": 549,
-        "tokens": 485413
+        "percentage": 0.9108747519343546,
+        "percentageTokens": 1.3582816424873123,
+        "sources": 551,
+        "tokens": 487675
       }
     },
     "total": {
-      "clones": 93,
-      "duplicatedLines": 793,
-      "duplicatedTokens": 6473,
-      "lines": 89158,
+      "clones": 95,
+      "duplicatedLines": 817,
+      "duplicatedTokens": 6624,
+      "lines": 89694,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.8894322438816483,
-      "percentageTokens": 1.3335036350489171,
-      "sources": 549,
-      "tokens": 485413
+      "percentage": 0.9108747519343546,
+      "percentageTokens": 1.3582816424873123,
+      "sources": 551,
+      "tokens": 487675
     }
   }
 }

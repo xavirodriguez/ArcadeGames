@@ -330,7 +330,8 @@ export class GeometryWarsGame extends BaseGame<
           createRenderComponent({ shape: "gw_bullet", size: 4, color: colors.gold, rotation: state.angle, order: 2 })
         );
       },
-      sync: () => {}
+      sync:       // TODO(refactor): código duplicado detectado (función) con space-invaders/SpaceInvadersGame.ts:784-795. Considerar extraer a función compartida. Ref: bd80e9b8
+() => {}
     }
   ];
 

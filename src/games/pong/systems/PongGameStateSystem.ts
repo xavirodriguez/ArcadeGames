@@ -48,7 +48,8 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
         if (gs.scoreFreezeRemaining <= 0) {
           const scorer = gs.lastScorer;
           balls.forEach(ball => {
-            world.mutateComponent(ball, "Transform", (t: TransformComponent) => {
+                        // TODO(refactor): código duplicado detectado (bloque) con pong/systems/PongGameStateSystem.ts:173-178. Considerar extraer a función compartida. Ref: 0530b0ab
+world.mutateComponent(ball, "Transform", (t: TransformComponent) => {
               t.x = this.config.worldWidth / 2;
               t.y = this.config.worldHeight / 2;
             });

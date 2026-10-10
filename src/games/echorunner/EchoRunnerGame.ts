@@ -121,7 +121,8 @@ class EchoRunnerAttackSystem extends System<CoreComponentRegistry> {
  * System that handles damage when player overlaps an enemy or spikes.
  */
 class EchoRunnerDamageSystem extends System<CoreComponentRegistry> {
-  public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
+    // TODO(refactor): código duplicado detectado (método) con hitandrun/HitAndRunGame.ts:92-106. Considerar extraer a función compartida. Ref: 110122ca
+public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     updatePlayerInvulnerabilityAndContactDamage(world, deltaTime, {
       contactDistance: 20,
       invulnerabilityDuration: 1.0,
@@ -155,7 +156,8 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
       seed: config.seed,
       audio: new WebAudioPlayer()
     });
-    this.baseConfig = ConfigService.load<EchoRunnerConfigType>(
+        // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:95-103. Considerar extraer a función compartida. Ref: 0716a3de
+this.baseConfig = ConfigService.load<EchoRunnerConfigType>(
       this.gameId,
       EchoRunnerConfigSchema,
       config.gameOptions?.rawConfig ?? {}
@@ -241,7 +243,8 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
       }
     });
 
-    registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_ECHO_RUNNER_CONFIG);
+        // TODO(refactor): código duplicado detectado (bloque) con hitandrun/HitAndRunGame.ts:183-188. Considerar extraer a función compartida. Ref: 94a0e390
+registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_ECHO_RUNNER_CONFIG);
 
     registerCollectibleTriggerBlueprint(this.blueprints, "collectible_fragment", "fragment", 10, 16, 10, "fragment", false, false);
     registerCollectibleTriggerBlueprint(this.blueprints, "collectible_core", "core", 100, 24, 12, "core", true, true);
@@ -350,7 +353,8 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
 
   protected override async onInitializeEntities(): Promise<void> {
     try {
-      const tileDefinitions = {
+            // TODO(refactor): código duplicado detectado (bloque) con hitandrun/HitAndRunGame.ts:216-224. Considerar extraer a función compartida. Ref: 2e267ea9
+const tileDefinitions = {
         1: { solid: true, kind: "normal" as const },
         2: { solid: true, kind: "ice" as const },
         3: { solid: true, kind: "bounce" as const, bounce: 1.5 },
@@ -358,7 +362,8 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
         5: { solid: true, oneWay: true, kind: "normal" as const }
       };
 
-      const rawData = this.customLevelData ?? defaultLevelData;
+            // TODO(refactor): código duplicado detectado (bloque) con hitandrun/HitAndRunGame.ts:224-233. Considerar extraer a función compartida. Ref: 29f93505
+const rawData = this.customLevelData ?? defaultLevelData;
       const runnerSeed = this.getSeed() || 41873;
       this.levelPlan = SegmentGenerator.generatePlan(
         rawData.templates as SegmentTemplate[],
@@ -400,7 +405,8 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
     }
   }
 
-  public override update(dt: number): void {
+    // TODO(refactor): código duplicado detectado (método) con hitandrun/HitAndRunGame.ts:133-144. Considerar extraer a función compartida. Ref: f8661966
+public override update(dt: number): void {
     const runState = this.world.getResource<RunState>("RunState");
     if (runState) {
       runState.elapsedTime += dt;

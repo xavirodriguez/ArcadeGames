@@ -170,7 +170,8 @@ export const drawSkiaAsteroidsUfo: ShapeDrawer<any, AsteroidsComponentRegistry> 
  */
 export const drawSkiaAsteroidsAsteroid: ShapeDrawer<any, AsteroidsComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = getVisibleSkiaRender(world, entity);
+        // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsCanvasVisuals.ts:178-187. Considerar extraer a función compartida. Ref: b4b40449
+const render = getVisibleSkiaRender(world, entity);
     const collider = world.getComponent(entity, "Collider");
     if (!render) return;
 

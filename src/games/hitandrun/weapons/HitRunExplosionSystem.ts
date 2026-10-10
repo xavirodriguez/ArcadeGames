@@ -41,7 +41,8 @@ export class HitRunExplosionSystem extends System<CoreComponentRegistry> {
   // Scratch para queries de enemigos (reutilizado)
   private scratchTargets: number[] = [];
 
-  public subscribe(eventBus: EventBus): void {
+    // TODO(refactor): código duplicado detectado (método) con hitandrun/hurt/HitRunHurtSystem.ts:29-35. Considerar extraer a función compartida. Ref: cefe2a6c
+public subscribe(eventBus: EventBus): void {
     if (this.subscribed) return;
     this.subscribed = true;
 

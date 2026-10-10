@@ -19,7 +19,8 @@ import type { RacingParticlePool } from "../systems/RacingParticleSystem";
 
 export const drawSkiaTrackSurface: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {
   draw(canvas, world) {
-    if (!Skia) return;
+        // TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingCanvasVisuals.ts:32-40. Considerar extraer a función compartida. Ref: 4b0cab2d
+if (!Skia) return;
     const skin = getRacingSkin(world);
     const palette = skin.palette;
     const trackSpec = world.getResource<TrackSpec>("ActiveTrackSpec");
@@ -55,7 +56,8 @@ export const drawSkiaTrackSurface: ShapeDrawer<SkCanvas, RacingComponentRegistry
 export const drawSkiaTrackRibbon: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    const skin = getRacingSkin(world);
+        // TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingCanvasVisuals.ts:115-121. Considerar extraer a función compartida. Ref: afe949ab
+const skin = getRacingSkin(world);
     const palette = skin.palette;
     const trackSpec = world.getResource<TrackSpec>("ActiveTrackSpec");
     if (!trackSpec || trackSpec.waypoints.length < 3) return;
@@ -94,6 +96,7 @@ export const drawSkiaTrackRibbon: ShapeDrawer<SkCanvas, RacingComponentRegistry>
   }
 };
 
+// TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingSkiaVisuals.ts:119-125. Considerar extraer a función compartida. Ref: 465d2e50
 export const drawSkiaSkidMarks: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
@@ -165,7 +168,8 @@ export const drawSkiaCheckpoint: ShapeDrawer<SkCanvas, RacingComponentRegistry> 
     if (!Skia) return;
     const skin = getRacingSkin(world);
     const checkpoint = world.getComponent(entity, "Checkpoint");
-    if (!checkpoint) return;
+        // TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingCanvasVisuals.ts:242-254. Considerar extraer a función compartida. Ref: 5f514a71
+if (!checkpoint) return;
 
     if (checkpoint.isFinish) {
       const halfW = checkpoint.width / 2;

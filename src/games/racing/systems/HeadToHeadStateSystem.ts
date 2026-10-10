@@ -84,7 +84,8 @@ export class HeadToHeadStateSystem extends System<RacingComponentRegistry, Racin
         for (let j = 0; j < trackSpec.zones.length; j++) {
           const zone = trackSpec.zones[j]!;
           if (zone.surface === "deadly_edge") {
-            const halfW = zone.width / 2;
+                        // TODO(refactor): código duplicado detectado (bloque) con racing/systems/RacingSurfaceSystem.ts:25-32. Considerar extraer a función compartida. Ref: fee52f4e
+const halfW = zone.width / 2;
             const halfH = zone.height / 2;
             if (
               transform.x >= zone.x - halfW &&

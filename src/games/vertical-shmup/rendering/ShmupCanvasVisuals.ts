@@ -1,6 +1,7 @@
 import { ShapeDrawer } from "@tiny-aster/core";
 import type { ShmupComponentRegistry } from "../types/ShmupTypes";
 
+// TODO(refactor): código duplicado detectado (bloque) con vertical-shmup/rendering/ShmupCanvasVisuals.ts:24-30. Considerar extraer a función compartida. Ref: 24b4917a
 export const drawShmupPlayer: ShapeDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
@@ -42,6 +43,7 @@ export const drawShmupEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupComponen
   }
 };
 
+// TODO(refactor): código duplicado detectado (bloque) con vertical-shmup/rendering/ShmupCanvasVisuals.ts:57-62. Considerar extraer a función compartida. Ref: 3409df9c
 export const drawShmupPlayerBullet: ShapeDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");

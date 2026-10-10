@@ -105,6 +105,7 @@ function drawCreepBody(
   ctx.fill();
 }
 
+// TODO(refactor): código duplicado detectado (bloque) con tower-defense/rendering/TowerDefenseCanvasVisuals.ts:117-122. Considerar extraer a función compartida. Ref: 41514af0
 export const drawCreepGrunt: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
@@ -183,7 +184,8 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
   draw(ctx, world: TDWorld) {
     const layout = world.getResource<GridLayout>("GridLayout");
     const tileGrid = world.getResource<TileGrid>("TileGrid");
-    if (!layout || !tileGrid) return;
+        // TODO(refactor): código duplicado detectado (bloque) con tower-defense/rendering/TowerDefenseSkiaVisuals.ts:169-180. Considerar extraer a función compartida. Ref: 493978f3
+if (!layout || !tileGrid) return;
 
     for (let row = 0; row < tileGrid.rows; row++) {
       for (let col = 0; col < tileGrid.cols; col++) {

@@ -277,7 +277,8 @@ export class TowerDefenseGame extends BaseGame<
     this.world.addSystem(new HierarchySystem(), { phase: SystemPhase.Transform });
     this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new BoundarySystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new WaveSpawnSystem(), { phase: SystemPhase.Simulation });
+        // TODO(refactor): código duplicado detectado (bloque) con vertical-shmup/scenes/ShmupGameScene.ts:51-54. Considerar extraer a función compartida. Ref: 87a4f2aa
+this.world.addSystem(new WaveSpawnSystem(), { phase: SystemPhase.Simulation });
 
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
     this.world.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });
@@ -393,7 +394,8 @@ export class TowerDefenseGame extends BaseGame<
         r.registerBackgroundEffect("td_map", drawSkiaTdMapBackground);
       },
     });
-    SharedVFX.registerSharedVFX(renderer);
+        // TODO(refactor): código duplicado detectado (bloque) con space-invaders/SpaceInvadersGame.ts:700-706. Considerar extraer a función compartida. Ref: d4e2faf8
+SharedVFX.registerSharedVFX(renderer);
   }
 
   public override setInputState(

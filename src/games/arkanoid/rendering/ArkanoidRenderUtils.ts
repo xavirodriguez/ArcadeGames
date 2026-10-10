@@ -10,6 +10,7 @@ export interface ArkanoidBallContext {
   color: string;
 }
 
+// TODO(refactor): código duplicado detectado (bloque) con pong/rendering/PongRenderUtils.ts:25-32. Considerar extraer a función compartida. Ref: b21f1b8a
 export function resolveArkanoidBallContext(
   world: World<ArkanoidComponentRegistry>,
   entity: number

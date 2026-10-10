@@ -139,7 +139,8 @@ export function registerHitRunStateMachines(
             data.attackCooldownRemaining = Math.max(0, cd - 0.016);
           }
 
-          const patrol = world.getComponent(entity, "Patrol") as
+                    // TODO(refactor): código duplicado detectado (bloque) con hitandrun/ai/hitRunStateMachines.ts:260-269. Considerar extraer a función compartida. Ref: bceffe16
+const patrol = world.getComponent(entity, "Patrol") as
             | { direction: number; startX: number; endX: number }
             | undefined;
           const gd = world.getComponent(entity, "GroundDetector") as
@@ -149,7 +150,8 @@ export function registerHitRunStateMachines(
             | { detectedPlayerEntity?: number }
             | undefined;
           const trans = world.getComponent(entity, "Transform");
-          const speed = (data.patrolSpeed as number) ?? 60;
+                    // TODO(refactor): código duplicado detectado (bloque) con hitandrun/ai/hitRunStateMachines.ts:269-277. Considerar extraer a función compartida. Ref: aa981fe7
+const speed = (data.patrolSpeed as number) ?? 60;
 
           if (patrol) {
             if (gd && (gd.hasWallAhead || gd.hasGroundAhead === false)) {
@@ -167,14 +169,16 @@ export function registerHitRunStateMachines(
                 const mp = world.getMutableComponent(entity, "Patrol") as
                   | { direction: number }
                   | undefined;
-                if (mp) mp.direction = -1;
+                                // TODO(refactor): código duplicado detectado (bloque) con hitandrun/ai/hitRunStateMachines.ts:277-289. Considerar extraer a función compartida. Ref: ed2a50af
+if (mp) mp.direction = -1;
               }
             }
 
             const cur = world.getComponent(entity, "Patrol") as
               | { direction: number }
               | undefined;
-            const targetVx = (cur?.direction ?? 1) * speed;
+                        // TODO(refactor): código duplicado detectado (bloque) con hitandrun/ai/hitRunStateMachines.ts:582-588. Considerar extraer a función compartida. Ref: 7db838f7
+const targetVx = (cur?.direction ?? 1) * speed;
             const vel = world.getComponent(entity, "Velocity");
             if (vel && vel.vx !== targetVx) {
               const mv = world.getMutableComponent(entity, "Velocity");
@@ -191,7 +195,8 @@ export function registerHitRunStateMachines(
             return "Anticipation";
           }
 
-          if (playerDetected(sensor) && sensor?.detectedPlayerEntity !== undefined) {
+                    // TODO(refactor): código duplicado detectado (bloque) con hitandrun/ai/hitRunStateMachines.ts:410-419. Considerar extraer a función compartida. Ref: 9b1bdb28
+if (playerDetected(sensor) && sensor?.detectedPlayerEntity !== undefined) {
             if (canTakeDamage(world, sensor.detectedPlayerEntity)) {
               return "Alert";
             }
@@ -325,7 +330,8 @@ export function registerHitRunStateMachines(
   };
 
   // ─── hr_hop ─────────────────────────────────────────────────
-  registry["hr_hop"] = {
+    // TODO(refactor): código duplicado detectado (bloque) con hitandrun/ai/hitRunStateMachines.ts:519-529. Considerar extraer a función compartida. Ref: f7910ca2
+registry["hr_hop"] = {
     states: {
       Idle: {
         onEnter(world, entity) {
@@ -531,7 +537,8 @@ export function registerHitRunStateMachines(
             tryEnemyShoot(world, entity, data);
             return data.useFlank ? "Alert" : "Alert";
           }
-          return timed(data, "idleDuration", 1.0, elapsed, "Idle");
+                    // TODO(refactor): código duplicado detectado (bloque) con hitandrun/ai/hitRunStateMachines.ts:589-599. Considerar extraer a función compartida. Ref: 4da0a38c
+return timed(data, "idleDuration", 1.0, elapsed, "Idle");
         }
       },
       ...alertWindup,
@@ -544,7 +551,8 @@ export function registerHitRunStateMachines(
         onUpdate(world, entity, data, elapsed) {
           facePlayer(world, entity);
           tryEnemyShoot(world, entity, data);
-          return timed(data, "attackDuration", 0.5, elapsed, "Recovery");
+                    // TODO(refactor): código duplicado detectado (bloque) con hitandrun/ai/hitRunStateMachines.ts:600-609. Considerar extraer a función compartida. Ref: 14a44eba
+return timed(data, "attackDuration", 0.5, elapsed, "Recovery");
         }
       },
       Recovery: {

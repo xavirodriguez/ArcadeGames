@@ -11,6 +11,7 @@ import type {
  * Moves traffic / rival racers in race coordinates and resolves simple collisions
  * with the player. All logic stays in (z, lateralX) space.
  */
+// TODO(refactor): código duplicado detectado (bloque) con outrun/systems/RacerInputSystem.ts:10-26. Considerar extraer a función compartida. Ref: 10f66340
 export class TrafficSystem extends System<OutrunComponentRegistry, OutrunEventRegistry> {
   public override update(
     world: World<OutrunComponentRegistry, OutrunEventRegistry>,

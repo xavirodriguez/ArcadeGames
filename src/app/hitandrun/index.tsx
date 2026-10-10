@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
-import { GestureActionButton } from "@/components/controls/GestureActionButton";
-import { VirtualJoystick } from "@/components/controls/VirtualJoystick";
+import { TouchActionButton, TouchVirtualJoystick } from "@/components/controls";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
@@ -28,7 +27,6 @@ import { DEATH_FLOW_RESOURCE } from "../../games/hitandrun/systems/HitRunDeathFl
 import type { HitRunDeathFlowState } from "../../games/hitandrun/systems/HitRunDeathFlowSystem";
 import { resolveHitRunAim } from "../../games/hitandrun/input/resolveHitRunAim";
 
-/** Write aimX/aimY + fire flags onto the player so HitRunWeaponSystem can shoot 8-way. */
 function applyAimToPlayer(
   game: { getWorld: () => { query: (...t: string[]) => ReadonlyArray<number>; getComponent: (e: number, t: string) => unknown; mutateComponent: (e: number, t: string, fn: (c: any) => void) => void; hasComponent: (e: number, t: string) => boolean } },
   keys: {
@@ -148,7 +146,6 @@ function HitAndRunContent() {
     const updateInput = () => {
       const moveLeft = activeKeys.has("ArrowLeft") || activeKeys.has("KeyA");
       const moveRight = activeKeys.has("ArrowRight") || activeKeys.has("KeyD");
-      // Space / W = jump — ArrowUp is aim, never jump
       const jump = activeKeys.has("Space") || activeKeys.has("KeyW");
       const aimUp = activeKeys.has("ArrowUp");
       const aimDown = activeKeys.has("ArrowDown") || activeKeys.has("KeyS");
@@ -199,8 +196,6 @@ function HitAndRunContent() {
   }) => {
     if (!game) return;
     game.setInputState(partial);
-    // Re-read current component state is incomplete for multi-button — build from last known
-    // Touch path: merge via successive setInputState; apply aim with best-effort flags
     const world = game.getWorld();
     const player = world.query("BeltInput")[0];
     if (player === undefined) return;
@@ -212,7 +207,6 @@ function HitAndRunContent() {
     } | undefined;
     const moveLeft = partial.moveLeft ?? (inp?.moveDir !== undefined && inp.moveDir < 0);
     const moveRight = partial.moveRight ?? (inp?.moveDir !== undefined && inp.moveDir > 0);
-    // For aim flags on touch we track via partial only when provided — store on resource
     let aimBag = world.getResource("HitRunTouchAim") as { up: boolean; down: boolean } | undefined;
     if (!aimBag) {
       aimBag = { up: false, down: false };
@@ -325,9 +319,7 @@ function HitAndRunContent() {
         {isTouchDevice && (
           <View style={styles.touchControlsContainer} pointerEvents="box-none">
             <View style={styles.leftZone} pointerEvents="box-none">
-              <VirtualJoystick
-                joystickId="hitrun_move"
-                type="movement"
+              <TouchVirtualJoystick
                 floating={true}
                 onMove={(x, y) => {
                   handleTouchLeft(x < -0.2);
@@ -341,10 +333,11 @@ function HitAndRunContent() {
                   handleTouchAimUp(false);
                   handleTouchAimDown(false);
                 }}
+                accessibilityLabel="Movement Joystick"
               />
             </View>
             <View style={styles.actions} pointerEvents="box-none">
-              <GestureActionButton
+              <TouchActionButton
                 label="MELEE"
                 size={64}
                 color="rgba(30, 41, 59, 0.7)"
@@ -357,7 +350,7 @@ function HitAndRunContent() {
                 accessibilityLabel="Melee"
                 style={{ marginHorizontal: spacing.sm }}
               />
-              <GestureActionButton
+              <TouchActionButton
                 label="FIRE"
                 size={72}
                 color="rgba(30, 41, 59, 0.7)"
@@ -370,7 +363,7 @@ function HitAndRunContent() {
                 accessibilityLabel="Hold to fire"
                 style={{ marginHorizontal: spacing.sm }}
               />
-              <GestureActionButton
+              <TouchActionButton
                 label="JUMP"
                 size={70}
                 color="rgba(30, 41, 59, 0.7)"

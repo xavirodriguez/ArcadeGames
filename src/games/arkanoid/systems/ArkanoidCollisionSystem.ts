@@ -247,7 +247,8 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
             world.mutateComponent(ballEntity, "Ball", (b) => {
               b.isAttached = true;
               b.attachedOffsetX = offsetX;
-              b.speed = newSpeed;
+                            // TODO(refactor): código duplicado detectado (bloque) con arkanoid/systems/ArkanoidCollisionSystem.ts:409-417. Considerar extraer a función compartida. Ref: 024e3b8e
+b.speed = newSpeed;
               b.stuckBounces = 0;
             });
             world.mutateComponent(ballEntity, "Velocity", (v) => {

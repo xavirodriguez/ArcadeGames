@@ -697,7 +697,8 @@ export class SpaceInvadersGame
   }
 
   public setMultiplayerMode(active: boolean) {
-    this.isMultiplayer = active;
+        // TODO(refactor): código duplicado detectado (bloque) con tower-defense/TowerDefenseGame.ts:396-404. Considerar extraer a función compartida. Ref: d4e2faf8
+this.isMultiplayer = active;
   }
 
   public override setInputState(input: Partial<InputState> | CanonicalInputState | Record<string, unknown>): void {
@@ -781,7 +782,8 @@ export class SpaceInvadersGame
       spawn: (world, entity, state) => {
         const item = state as { x: number; y: number; ownerId: string };
         const bpName = item.ownerId === "player" ? "player_bullet" : "enemy_bullet";
-        this.blueprints.get(bpName)?.spawn(world, entity, { x: item.x, y: item.y });
+                // TODO(refactor): código duplicado detectado (bloque) con geometrywars/GeometryWarsGame.ts:331-341. Considerar extraer a función compartida. Ref: bd80e9b8
+this.blueprints.get(bpName)?.spawn(world, entity, { x: item.x, y: item.y });
       },
       sync: () => {}
     }

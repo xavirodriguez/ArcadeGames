@@ -3,4 +3,6 @@ export * from "./InputMapper";
 export * from "./InputSystem";
 export * from "./NullInputSystem";
 export * from "./UnifiedInputSystem";
+export * from "./TouchInputState";
+export * from "./TouchInputUtils";
 export * from "./providers";

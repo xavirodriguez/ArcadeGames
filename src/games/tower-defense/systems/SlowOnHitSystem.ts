@@ -4,6 +4,7 @@ import type { TowerDefenseComponentRegistry, TowerDefenseEventRegistry } from ".
 /**
  * On combat:hit, if the attacker is a frost projectile, apply slow to the creep.
  */
+// TODO(refactor): código duplicado detectado (bloque) con tower-defense/systems/TowerDefenseAudioSystem.ts:19-30. Considerar extraer a función compartida. Ref: 962c52b6
 export class SlowOnHitSystem extends System<TowerDefenseComponentRegistry, TowerDefenseEventRegistry> {
   readonly phase = SystemPhase.GameRules;
   private bound = false;

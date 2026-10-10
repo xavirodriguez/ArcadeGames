@@ -224,7 +224,8 @@ export class PhysicsQuery {
    * @param options - Optional filter predicate.
    * @returns Array of detailed `RaycastHit` objects sorted by distance.
    */
-  public static raycastAll<
+    // TODO(refactor): código duplicado detectado (método) con physics/query/PhysicsQuery.ts:321-333. Considerar extraer a función compartida. Ref: bb70b096
+public static raycastAll<
     TComponents extends ComponentRegistry = ComponentRegistry,
     TEvents extends EventRegistry = EventRegistry,
     TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>

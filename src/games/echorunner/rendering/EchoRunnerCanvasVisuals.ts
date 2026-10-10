@@ -631,7 +631,8 @@ export const drawCharger: ShapeDrawer<CanvasRenderingContext2D, CoreComponentReg
     if (isStunned) {
       const elapsed = world.tick * 0.1;
       ctx.strokeStyle = ECHO_PALETTE.restorationGold;
-      ctx.lineWidth = 1.5;
+            // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:641-646. Considerar extraer a función compartida. Ref: 1f6c9725
+ctx.lineWidth = 1.5;
       for (let i = 0; i < 3; i++) {
         const angle = elapsed + (i * Math.PI * 2) / 3;
         const sx = Math.cos(angle) * (size * 0.6);

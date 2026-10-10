@@ -41,7 +41,8 @@ function getBulletTrailBuffer(render: any): CircularPositionBuffer {
 }
 
 export function drawExplosionParticlesCanvas(ctx: CanvasRenderingContext2D): void {
-  ctx.save();
+    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:47-52. Considerar extraer a función compartida. Ref: 0b6a9ef2
+ctx.save();
   for (let i = 0; i < EXPLOSION_PARTICLE_POOL.length; i++) {
     const data = resolveExplosionParticleData(EXPLOSION_PARTICLE_POOL[i]);
     if (!data) continue;
@@ -424,7 +425,8 @@ export const drawSpaceInvadersBullet: ShapeDrawer<CanvasRenderingContext2D, Spac
 
     ctx.save();
 
-    ctx.fillStyle = glowColor;
+        // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:408-413. Considerar extraer a función compartida. Ref: 6c726b50
+ctx.fillStyle = glowColor;
     for (let i = 1; i < points.length; i++) {
       const pt = points[i];
       const relX = pt.x - currentX;
@@ -456,7 +458,8 @@ export const drawSpaceInvadersBullet: ShapeDrawer<CanvasRenderingContext2D, Spac
  */
 export const drawSpaceInvadersBoss: ShapeDrawer<CanvasRenderingContext2D, SpaceInvadersComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
+        // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:437-456. Considerar extraer a función compartida. Ref: 75c8043c
+const render = world.getComponent(entity, "Render");
     if (!render) return;
 
     const bossState = resolveBossVisualState(world, entity, render);

@@ -18,7 +18,8 @@ export { GEOMETRY_WARS_PARTICLE_POOL, spawnVisualParticle, resetVisualState };
 
 function drawCanvasVisualParticles(ctx: CanvasRenderingContext2D): void {
   const particles = getActiveParticles();
-  ctx.save();
+    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:32-37. Considerar extraer a función compartida. Ref: 349bb253
+ctx.save();
   for (let i = 0; i < particles.length; i++) {
     const p = particles[i];
     if (!p.active) continue;

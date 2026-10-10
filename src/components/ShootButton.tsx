@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 import { useTranslation } from "../hooks/useTranslation";
-import { GestureActionButton } from "./controls/GestureActionButton";
+import { TouchActionButton } from "./controls/TouchActionButton";
 
 export interface ShootButtonProps {
   onPressIn: () => void;
@@ -13,7 +13,7 @@ export interface ShootButtonProps {
 /**
  * Pure UI component for shooting.
  * Circular button, min 84x84px, semi-transparent red tint.
- * Uses GestureActionButton for low-latency touch handling.
+ * Uses TouchActionButton for low-latency touch handling and TouchInputState compatibility.
  */
 export function ShootButton({
   onPressIn,
@@ -28,7 +28,7 @@ export function ShootButton({
   const hint = accessibilityHint || t?.accessibility?.shoot_button_hint || "Fires primary weapon";
 
   return (
-    <GestureActionButton
+    <TouchActionButton
       label="FIRE"
       size={84}
       color="rgba(255, 80, 80, 0.4)"

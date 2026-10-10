@@ -371,7 +371,8 @@ export function spawnLayeredExplosion<
   // Layer 1: Core Flash entity (suppressed in Low Stimulation mode)
   if (!state.lowStimulationMode) {
     const flashEntity = createEntity();
-    addComp(flashEntity, {
+        // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:410-424. Considerar extraer a función compartida. Ref: 90ac4653
+addComp(flashEntity, {
       type: "Transform",
       x,
       y,
@@ -703,7 +704,8 @@ export const SkiaMatrixDigitalRainEffect: EffectDrawer<RenderContext, CoreCompon
 // -------------------------------------------------------------
 export const CRTGlitchShudderEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
-    const { width, height, state } = getScreenAndVFXState(world);
+        // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SharedVFX.ts:725-730. Considerar extraer a función compartida. Ref: 5a554bfc
+const { width, height, state } = getScreenAndVFXState(world);
     if (state.lowStimulationMode) return;
     const timePhase = state.timePhase;
     const isGlitching = Math.sin(timePhase * 17) > 0.85;

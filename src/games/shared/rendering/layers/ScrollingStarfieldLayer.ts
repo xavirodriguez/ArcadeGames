@@ -36,7 +36,8 @@ const starfieldLayer = createParallaxLayer<Star[]>({
 
 export const ScrollingStarfieldEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
-    const theme = getActiveVisualContext(world);
+        // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/layers/ScrollingStarfieldLayer.ts:64-70. Considerar extraer a función compartida. Ref: 2c1ba5e7
+const theme = getActiveVisualContext(world);
     const layerCtx = resolveLayerFrame(world, "starfield", starfieldLayer);
     if (!layerCtx) return;
     const { layerState: stars, offsetX, wrapCoordinate } = layerCtx;

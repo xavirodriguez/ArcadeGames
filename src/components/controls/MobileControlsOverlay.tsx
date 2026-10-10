@@ -2,8 +2,8 @@ import { useCallback, useEffect, useRef } from "react";
 import { Platform, StyleSheet, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "../../hooks/useTranslation";
-import { VirtualJoystick } from "./VirtualJoystick";
-import { ActionButton } from "./ActionButton";
+import { TouchVirtualJoystick } from "./TouchVirtualJoystick";
+import { TouchActionButton } from "./TouchActionButton";
 
 export const DEFAULT_ROTATE_THRESHOLD = 0.25;
 export const DEFAULT_THRUST_THRESHOLD = -0.25; // negative Y = up on screen
@@ -38,10 +38,9 @@ export interface MobileControlsOverlayProps {
  * Only mounts on iOS/Android. Cleans up all overrides on unmount.
  *
  * Design Decision:
- * Left zone uses VirtualJoystick for direction / rotation / thrust.
- * Right zone uses individual GestureActionButton components with pointerEvents="box-none" on parent View,
- * enabling simultaneous multi-touch interactions (e.g. thrusting with left joystick while firing with right action button)
- * without requiring explicit Gesture.Simultaneous composition across distinct spatial regions.
+ * Left zone uses TouchVirtualJoystick for direction / rotation / thrust.
+ * Right zone uses individual TouchActionButton components with pointerEvents="box-none" on parent View,
+ * enabling simultaneous multi-touch interactions without requiring explicit Gesture.Simultaneous composition across distinct spatial regions.
  */
 export function MobileControlsOverlay({
   adapter,
@@ -60,7 +59,6 @@ export function MobileControlsOverlay({
   );
 }
 
-// Inner component so hooks are only called on native
 function MobileControlsOverlayInner({
   adapter,
   discreteMapping,
@@ -70,27 +68,28 @@ function MobileControlsOverlayInner({
   const { width, height } = useWindowDimensions();
   const isTablet = Math.min(width, height) >= 600;
 
-  // Keep a stable ref to avoid stale closures in gesture callbacks
   const adapterRef = useRef(adapter);
   adapterRef.current = adapter;
 
-  // Clean up all overrides when the overlay unmounts
   useEffect(() => {
     return () => {
       adapterRef.current.reset();
     };
   }, []);
 
-  const handleJoystickMove = useCallback((x: number, y: number) => {
-    const a = adapterRef.current;
-    if (discreteMapping) {
-      a.setRotateLeft(x < -DEFAULT_ROTATE_THRESHOLD);
-      a.setRotateRight(x > DEFAULT_ROTATE_THRESHOLD);
-      a.setThrust(y < DEFAULT_THRUST_THRESHOLD);
-    } else {
-      a.setMoveAxis(x, y);
-    }
-  }, [discreteMapping]);
+  const handleJoystickMove = useCallback(
+    (x: number, y: number) => {
+      const a = adapterRef.current;
+      if (discreteMapping) {
+        a.setRotateLeft(x < -DEFAULT_ROTATE_THRESHOLD);
+        a.setRotateRight(x > DEFAULT_ROTATE_THRESHOLD);
+        a.setThrust(y < DEFAULT_THRUST_THRESHOLD);
+      } else {
+        a.setMoveAxis(x, y);
+      }
+    },
+    [discreteMapping]
+  );
 
   const handleJoystickRelease = useCallback(() => {
     const a = adapterRef.current;
@@ -104,7 +103,6 @@ function MobileControlsOverlayInner({
   }, [discreteMapping]);
 
   const { t } = useTranslation();
-
   const zoneSize = isTablet ? 200 : 160;
 
   return (
@@ -121,17 +119,17 @@ function MobileControlsOverlayInner({
     >
       {/* Left zone — joystick */}
       <View style={[styles.leftZone, { width: zoneSize, height: zoneSize }]}>
-        <VirtualJoystick
-          type="movement"
+        <TouchVirtualJoystick
           floating={floatingJoystick}
           onMove={handleJoystickMove}
           onRelease={handleJoystickRelease}
+          accessibilityLabel="Movement Joystick"
         />
       </View>
 
       {/* Right zone — action buttons */}
       <View style={styles.rightZone}>
-        <ActionButton
+        <TouchActionButton
           label="🔥"
           accessibilityLabel={t?.accessibility?.shoot_button_label || "Fire weapon"}
           accessibilityHint={t?.accessibility?.shoot_button_hint || "Fires primary weapon"}
@@ -139,7 +137,7 @@ function MobileControlsOverlayInner({
           onPressOut={() => adapterRef.current.setShoot(false)}
           color="rgba(255,80,80,0.25)"
         />
-        <ActionButton
+        <TouchActionButton
           label="⚡"
           accessibilityLabel={t?.accessibility?.hyperspace_button_label || "Hyperspace jump"}
           accessibilityHint={t?.accessibility?.hyperspace_button_hint || "Teleports ship to a random location"}

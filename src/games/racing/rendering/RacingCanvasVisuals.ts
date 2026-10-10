@@ -29,7 +29,8 @@ export function clearStaticRacingCache(): void {
 
 export const drawTrackSurface: ShapeDrawer<CanvasRenderingContext2D, RacingComponentRegistry> = {
   draw(ctx, world) {
-    const start = typeof performance !== "undefined" ? performance.now() : 0;
+        // TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingSkiaVisuals.ts:22-31. Considerar extraer a función compartida. Ref: 4b0cab2d
+const start = typeof performance !== "undefined" ? performance.now() : 0;
     const skin = getRacingSkin(world);
     const palette = skin.palette;
     const trackSpec = world.getResource<TrackSpec>("ActiveTrackSpec");
@@ -112,7 +113,8 @@ export const drawTrackSurface: ShapeDrawer<CanvasRenderingContext2D, RacingCompo
 
 export const drawTrackRibbon: ShapeDrawer<CanvasRenderingContext2D, RacingComponentRegistry> = {
   draw(ctx, world) {
-    const skin = getRacingSkin(world);
+        // TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingSkiaVisuals.ts:58-64. Considerar extraer a función compartida. Ref: afe949ab
+const skin = getRacingSkin(world);
     const palette = skin.palette;
     const trackSpec = world.getResource<TrackSpec>("ActiveTrackSpec");
     if (!trackSpec || trackSpec.waypoints.length < 3) return;
@@ -161,6 +163,7 @@ export const drawTrackRibbon: ShapeDrawer<CanvasRenderingContext2D, RacingCompon
   }
 };
 
+// TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingCanvasVisuals.ts:191-196. Considerar extraer a función compartida. Ref: 658d61dd
 export const drawSkidMarks: ShapeDrawer<CanvasRenderingContext2D, RacingComponentRegistry> = {
   draw(ctx, world) {
     const skin = getRacingSkin(world);
@@ -239,7 +242,8 @@ export const drawCheckpoint: ShapeDrawer<CanvasRenderingContext2D, RacingCompone
     const checkpoint = world.getComponent(entity, "Checkpoint");
     if (!checkpoint) return;
 
-    ctx.save();
+        // TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingSkiaVisuals.ts:168-181. Considerar extraer a función compartida. Ref: 5f514a71
+ctx.save();
     if (checkpoint.isFinish) {
       const halfW = checkpoint.width / 2;
       const halfH = checkpoint.height / 2;

@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
-import { GestureActionButton } from "@/components/controls/GestureActionButton";
+import { TouchActionButton, TouchHoldButton } from "@/components/controls";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
@@ -44,7 +44,7 @@ function EchoRunnerContent() {
   };
   const isTouchDevice = useTouchDevice();
 
-  const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } =
+  const { game, gameState, isReady, togglePause, highScore } =
     useEchoRunnerGame(started, initialSeed);
 
   // Keyboard controls for Web platforms (mapping move, jump, and pulse attack)
@@ -113,11 +113,9 @@ function EchoRunnerContent() {
 
   const handleTouchPulse = () => {
     game?.setInputState({ pulse: true });
-    // Clear trigger after 50ms
     setTimeout(() => game?.setInputState({ pulse: false }), 50);
   };
 
-  // Helper to format elapsed time
   const formatTime = (timeInSecs: number) => {
     const mins = Math.floor(timeInSecs / 60);
     const secs = Math.floor(timeInSecs % 60);
@@ -212,28 +210,26 @@ function EchoRunnerContent() {
             <View style={styles.touchControlsContainer} pointerEvents="box-none">
               {/* Left D-Pad */}
               <View style={styles.dpad} pointerEvents="box-none">
-                <GestureActionButton
+                <TouchHoldButton
                   label="◀"
                   size={65}
                   color="rgba(30, 41, 59, 0.7)"
                   borderColor={colors.borderLight}
                   pressedColor="rgba(30, 41, 59, 0.9)"
-                  pressedBorderColor={colors.white}
-                  onPressIn={() => handleTouchLeft(true)}
-                  onPressOut={() => handleTouchLeft(false)}
+                  onHoldStart={() => handleTouchLeft(true)}
+                  onHoldEnd={() => handleTouchLeft(false)}
                   accessibilityLabel={t?.accessibility?.move_left_label || "Move left"}
                   accessibilityHint={t?.accessibility?.move_left_hint || "Moves runner to the left"}
                   style={{ marginHorizontal: spacing.sm }}
                 />
-                <GestureActionButton
+                <TouchHoldButton
                   label="▶"
                   size={65}
                   color="rgba(30, 41, 59, 0.7)"
                   borderColor={colors.borderLight}
                   pressedColor="rgba(30, 41, 59, 0.9)"
-                  pressedBorderColor={colors.white}
-                  onPressIn={() => handleTouchRight(true)}
-                  onPressOut={() => handleTouchRight(false)}
+                  onHoldStart={() => handleTouchRight(true)}
+                  onHoldEnd={() => handleTouchRight(false)}
                   accessibilityLabel={t?.accessibility?.move_right_label || "Move right"}
                   accessibilityHint={t?.accessibility?.move_right_hint || "Moves runner to the right"}
                   style={{ marginHorizontal: spacing.sm }}
@@ -242,7 +238,7 @@ function EchoRunnerContent() {
 
               {/* Right Action buttons */}
               <View style={styles.actions} pointerEvents="box-none">
-                <GestureActionButton
+                <TouchActionButton
                   label="PULSE"
                   size={70}
                   color="rgba(30, 41, 59, 0.7)"
@@ -255,7 +251,7 @@ function EchoRunnerContent() {
                   accessibilityHint={t?.accessibility?.pulse_button_hint || "Emits an acoustic pulse wave"}
                   style={{ marginHorizontal: spacing.sm }}
                 />
-                <GestureActionButton
+                <TouchActionButton
                   label="JUMP"
                   size={75}
                   color="rgba(30, 41, 59, 0.7)"
@@ -375,40 +371,6 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: "row",
     alignItems: "flex-end",
-  },
-  touchButton: {
-    backgroundColor: "rgba(30, 41, 59, 0.7)",
-    borderWidth: 1.5,
-    borderColor: colors.borderLight,
-    width: 65,
-    height: 65,
-    borderRadius: 35,
-    justifyContent: "center",
-    alignItems: "center",
-    marginHorizontal: spacing.sm,
-    userSelect: "none",
-  },
-  touchButtonPressed: {
-    transform: [{ scale: 0.92 }],
-    backgroundColor: "rgba(30, 41, 59, 0.9)",
-    borderColor: colors.white,
-  },
-  touchButtonText: {
-    color: colors.white,
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.bold,
-    fontFamily: typography.game,
-    userSelect: "none",
-  },
-  jumpButton: {
-    borderColor: colors.cyan,
-    width: 75,
-    height: 75,
-  },
-  pulseButton: {
-    borderColor: colors.pink,
-    width: 70,
-    height: 70,
   },
   gameOverOverlay: {
     ...StyleSheet.absoluteFillObject,

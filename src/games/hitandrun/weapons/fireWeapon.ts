@@ -53,6 +53,11 @@ export function fireWeapon(args: FireWeaponArgs): number {
   const spread = weapon.spreadRadians;
   const baseAngle = Math.atan2(dirY, dirX);
 
+  const shooterElevation = world.getComponent(shooterEntity, "BeltElevation") as
+    | { z?: number }
+    | undefined;
+  const shooterZ = shooterElevation?.z ?? 0;
+
   let spawned = 0;
 
   for (let i = 0; i < count; i++) {
@@ -75,6 +80,7 @@ export function fireWeapon(args: FireWeaponArgs): number {
       y: my,
       dx: vx,
       dy: vy,
+      z: shooterZ + 16,
       size: weapon.projectileSize,
       color: weapon.projectileColor,
       ttl: weapon.projectileTtl,

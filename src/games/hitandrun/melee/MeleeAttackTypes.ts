@@ -22,8 +22,8 @@ export const MELEE_HITBOX_OFFSET_Y = 0;
 
 /** Horizontal knockback applied to victims (px/s impulse magnitude). */
 export const MELEE_KNOCKBACK_X = 180;
-/** Small upward impulse on victims (px/s). */
-export const MELEE_KNOCKBACK_Y = 60;
+/** Vertical upward impulse on victims (px/s along elevation Z axis). */
+export const MELEE_KNOCKBACK_Y = 160;
 
 /** Max distinct enemies tracked as hit during one swing (fixed buffer, no heap growth). */
 export const MELEE_MAX_HITS_PER_SWING = 8;
@@ -37,6 +37,7 @@ export interface MeleeAttackConfig {
   hitboxHeight: number;
   hitboxOffsetX: number;
   hitboxOffsetY: number;
+  halfDepth: number;
   knockbackX: number;
   knockbackY: number;
   /** DamageComponent.category → juice profiles. */
@@ -52,6 +53,7 @@ export const DEFAULT_MELEE_ATTACK_CONFIG: MeleeAttackConfig = {
   hitboxHeight: MELEE_HITBOX_HEIGHT,
   hitboxOffsetX: MELEE_HITBOX_OFFSET_X,
   hitboxOffsetY: MELEE_HITBOX_OFFSET_Y,
+  halfDepth: 20,
   knockbackX: MELEE_KNOCKBACK_X,
   knockbackY: MELEE_KNOCKBACK_Y,
   damageCategory: "melee"

@@ -1,7 +1,7 @@
 /**
  * BeltMovementSystem — free X + depth movement for belt-scroll beat'em-up.
  * Replaces PlatformerGravity + PlatformerMovement for the player.
- * Supports short hop on BeltElevationComponent without modifying Transform.y.
+ * Triggers hop impulse on BeltElevationComponent without modifying Transform.y.
  */
 
 import {
@@ -15,10 +15,12 @@ import {
   DEFAULT_BELT_MOVEMENT_CONFIG,
   type BeltInputComponent,
   type BeltMovementComponent,
-  type BeltMovementConfig,
-  type BeltElevationComponent,
-  createBeltElevationComponent
+  type BeltMovementConfig
 } from "./BeltMovementTypes";
+import {
+  createBeltElevationComponent,
+  type BeltElevationComponent
+} from "./BeltElevationComponent";
 
 function moveTowards(current: number, target: number, maxDelta: number): number {
   if (Math.abs(target - current) <= maxDelta) return target;
@@ -98,7 +100,7 @@ export class BeltMovementSystem extends System<CoreComponentRegistry> {
       if (vel.vy > 0) vel.vy = 0;
     }
 
-    // Elevation vertical movement (Z axis)
+    // Elevation vertical movement trigger (Z axis)
     let elevation = world.getMutableComponent(entity, "BeltElevation") as
       | BeltElevationComponent
       | undefined;
@@ -117,17 +119,10 @@ export class BeltMovementSystem extends System<CoreComponentRegistry> {
       elevation.grounded = false;
     }
 
-    if (belt.isHopping || !elevation.grounded || elevation.z > 0) {
+    if (belt.isHopping) {
       belt.hopElapsed += dt;
-      elevation.vz -= config.hopGravity * dt;
-      elevation.z += elevation.vz * dt;
-
-      if (elevation.z <= 0 || belt.hopElapsed >= config.hopMaxAirSeconds) {
-        elevation.z = 0;
-        elevation.vz = 0;
-        elevation.grounded = true;
+      if (belt.hopElapsed >= config.hopMaxAirSeconds) {
         belt.isHopping = false;
-        belt.hopElapsed = 0;
       }
     }
   }

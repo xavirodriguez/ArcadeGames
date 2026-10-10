@@ -25,6 +25,26 @@ function getElevationZ(world: import("@tiny-aster/core").World<CoreComponentRegi
   return elevation?.z ?? 0;
 }
 
+function getLandingSquash(
+  world: import("@tiny-aster/core").World<CoreComponentRegistry>,
+  entity: number,
+  k = 0.18,
+  duration = 0.15
+): { scaleX: number; scaleY: number } {
+  const elevation = world.getComponent(entity, "BeltElevation") as
+    | BeltElevationComponent
+    | undefined;
+  const timer = elevation?.landTimer ?? 0;
+  if (timer <= 0) return { scaleX: 1, scaleY: 1 };
+  const progress = Math.min(1, Math.max(0, timer / duration));
+  const easeOut = 1 - (1 - progress) * (1 - progress);
+  const squash = 1 + k * easeOut;
+  return {
+    scaleX: squash,
+    scaleY: 1 / squash
+  };
+}
+
 function drawGroundShadow(
   ctx: CanvasRenderingContext2D,
   size: number,
@@ -82,6 +102,11 @@ export const drawHitRunPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreCompone
     // 2. Draw character body translated by elevation z and facing direction
     ctx.save();
     ctx.translate(0, -z);
+
+    const { scaleX: sqX, scaleY: sqY } = getLandingSquash(world, entity, 0.2, 0.15);
+    if (sqX !== 1 || sqY !== 1) {
+      ctx.scale(sqX, sqY);
+    }
 
     const bob = grounded?.isGrounded ? 0 : Math.sin(tick * 0.35) * 1.5;
     const lean = Math.max(-0.2, Math.min(0.2, (vel?.vx ?? 0) * 0.002));
@@ -183,6 +208,11 @@ export const drawHitRunPopcorn: ShapeDrawer<CanvasRenderingContext2D, CoreCompon
     ctx.save();
     ctx.translate(0, -z);
 
+    const { scaleX: sqX, scaleY: sqY } = getLandingSquash(world, entity, 0.2, 0.15);
+    if (sqX !== 1 || sqY !== 1) {
+      ctx.scale(sqX, sqY);
+    }
+
     if ((render.hitFlashFrames ?? 0) > 0) {
       ctx.fillStyle = "#ffffff";
       ctx.beginPath();
@@ -234,6 +264,11 @@ export const drawHitRunWallTrooper: ShapeDrawer<CanvasRenderingContext2D, CoreCo
     ctx.save();
     ctx.translate(0, -z);
 
+    const { scaleX: sqX, scaleY: sqY } = getLandingSquash(world, entity, 0.18, 0.15);
+    if (sqX !== 1 || sqY !== 1) {
+      ctx.scale(sqX, sqY);
+    }
+
     if ((render.hitFlashFrames ?? 0) > 0) {
       ctx.fillStyle = "#fff";
       ctx.fillRect(-size * 0.4, -size, size * 0.8, size);
@@ -264,7 +299,6 @@ export const drawHitRunHopper: ShapeDrawer<CanvasRenderingContext2D, CoreCompone
     const render = world.getComponent(entity, "Render");
     if (!render?.visible) return;
     const size = render.size || 12;
-    const tick = world.tick ?? 0;
     const z = getElevationZ(world, entity);
 
     ctx.save();
@@ -276,6 +310,11 @@ export const drawHitRunHopper: ShapeDrawer<CanvasRenderingContext2D, CoreCompone
     ctx.save();
     ctx.translate(0, -z);
 
+    const { scaleX: sqX, scaleY: sqY } = getLandingSquash(world, entity, 0.26, 0.15);
+    if (sqX !== 1 || sqY !== 1) {
+      ctx.scale(sqX, sqY);
+    }
+
     if ((render.hitFlashFrames ?? 0) > 0) {
       ctx.fillStyle = "#fff";
       ctx.beginPath();
@@ -286,8 +325,6 @@ export const drawHitRunHopper: ShapeDrawer<CanvasRenderingContext2D, CoreCompone
       return;
     }
 
-    const squash = 1 + Math.sin(tick * 0.5) * 0.08;
-    ctx.scale(1 / squash, squash);
     ctx.fillStyle = render.color || "#a855f7";
     ctx.shadowColor = "#a855f7";
     ctx.shadowBlur = 10;
@@ -327,6 +364,11 @@ export const drawHitRunCharger: ShapeDrawer<CanvasRenderingContext2D, CoreCompon
     // 2. Body translated by elevation z
     ctx.save();
     ctx.translate(0, -z);
+
+    const { scaleX: sqX, scaleY: sqY } = getLandingSquash(world, entity, 0.2, 0.15);
+    if (sqX !== 1 || sqY !== 1) {
+      ctx.scale(sqX, sqY);
+    }
 
     if ((render.hitFlashFrames ?? 0) > 0) {
       ctx.fillStyle = "#fff";
@@ -381,6 +423,11 @@ export const drawHitRunElite: ShapeDrawer<CanvasRenderingContext2D, CoreComponen
     ctx.save();
     ctx.translate(0, -z);
 
+    const { scaleX: sqX, scaleY: sqY } = getLandingSquash(world, entity, 0.22, 0.15);
+    if (sqX !== 1 || sqY !== 1) {
+      ctx.scale(sqX, sqY);
+    }
+
     if ((render.hitFlashFrames ?? 0) > 0) {
       ctx.fillStyle = "#fff";
       ctx.beginPath();
@@ -424,7 +471,15 @@ export const drawHitRunBullet: ShapeDrawer<CanvasRenderingContext2D, CoreCompone
     if (!render?.visible) return;
     const size = render.size || 3;
     const color = render.color || "#fbbf24";
+    const z = getElevationZ(world, entity);
+
     ctx.save();
+    // 1. Small shadow on ground plane
+    drawGroundShadow(ctx, size * 1.5, z, 0.4, 0.12);
+
+    // 2. Projectile translated by flight height z
+    ctx.save();
+    ctx.translate(0, -z);
     ctx.shadowColor = color;
     ctx.shadowBlur = 8;
     const grad = ctx.createLinearGradient(-size * 2, 0, size * 2, 0);
@@ -436,6 +491,7 @@ export const drawHitRunBullet: ShapeDrawer<CanvasRenderingContext2D, CoreCompone
     ctx.ellipse(0, 0, size * 2.2, size * 0.7, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
+    ctx.restore();
   }
 };
 
@@ -444,7 +500,15 @@ export const drawHitRunRocket: ShapeDrawer<CanvasRenderingContext2D, CoreCompone
     const render = world.getComponent(entity, "Render");
     if (!render?.visible) return;
     const size = render.size || 7;
+    const z = getElevationZ(world, entity);
+
     ctx.save();
+    // 1. Shadow on ground plane
+    drawGroundShadow(ctx, size * 1.5, z, 0.5, 0.15);
+
+    // 2. Rocket graphic translated by flight height z
+    ctx.save();
+    ctx.translate(0, -z);
     ctx.fillStyle = "#ef4444";
     ctx.shadowColor = "#ef4444";
     ctx.shadowBlur = 10;
@@ -463,6 +527,7 @@ export const drawHitRunRocket: ShapeDrawer<CanvasRenderingContext2D, CoreCompone
     ctx.lineTo(-size * 1.4, size * 0.25);
     ctx.closePath();
     ctx.fill();
+    ctx.restore();
     ctx.restore();
   }
 };

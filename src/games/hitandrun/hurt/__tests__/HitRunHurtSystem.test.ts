@@ -62,6 +62,12 @@ describe("HitRunHurtSystem (Paso C)", () => {
       angularVelocity: 0
     });
     world.addComponent(p, {
+      type: "BeltElevation",
+      z: 0,
+      vz: 0,
+      grounded: true
+    });
+    world.addComponent(p, {
       type: "PlatformerInput",
       moveDir: 0,
       jumpPressed: false,
@@ -163,8 +169,9 @@ describe("HitRunHurtSystem (Paso C)", () => {
     hurt.update(world, 0);
 
     const vel = world.getComponent(player, "Velocity") as { vx: number; vy: number };
+    const elev = world.getComponent(player, "BeltElevation") as { vz: number } | undefined;
     expect(vel.vx).toBeGreaterThan(0);
-    expect(vel.vy).toBeLessThan(0);
+    expect(elev?.vz).toBeGreaterThan(0);
   });
 
   it("enemy receives knockback without invulnerability", () => {

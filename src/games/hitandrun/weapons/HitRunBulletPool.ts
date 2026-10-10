@@ -1,8 +1,7 @@
 import {
   World,
   Entity,
-  ProjectilePool,
-  type ProjectileParams
+  ProjectilePool
 } from "@tiny-aster/core";
 import { createProjectilePoolConfig } from "@tiny-aster/gameplay-kit";
 import type { HitRunBulletParams, ExplosivePayloadComponent } from "./HitRunWeaponTypes";
@@ -74,7 +73,23 @@ export class HitRunBulletPool extends ProjectilePool<any, HitRunBulletParams> {
    * Adquiere un proyectil con parámetros de arma completos.
    */
   public acquireBullet(world: World, params: HitRunBulletParams): Entity {
-    return this.acquire(world, params);
+    const entity = this.acquire(world, params);
+
+    const z = params.z ?? 16;
+    const elev = {
+      type: "BeltElevation",
+      z,
+      vz: 0,
+      grounded: true
+    };
+
+    if (world.isUpdating) {
+      world.commands.addComponent(entity, elev as any);
+    } else {
+      world.addComponent(entity, elev as any);
+    }
+
+    return entity;
   }
 }
 

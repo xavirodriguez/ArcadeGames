@@ -1,9 +1,11 @@
 import { World, CoreComponentRegistry } from "@tiny-aster/core";
 import {
   BeltMovementSystem,
+  BeltElevationSystem,
   createBeltInputComponent,
   createBeltMovementComponent,
   createBeltElevationComponent,
+  type BeltElevationComponent,
   depthT
 } from "../index";
 
@@ -16,9 +18,10 @@ describe("BeltElevation and Depth Model", () => {
     expect(depthT(600, 280, 520)).toBe(1);
   });
 
-  it("hop integrates elevation.z without altering Transform.y", () => {
+  it("hop integrates elevation.z without altering Transform.y and sets landTimer on landing", () => {
     const world = new World<CoreComponentRegistry>();
     const movementSystem = new BeltMovementSystem();
+    const elevationSystem = new BeltElevationSystem();
 
     const entity = world.createEntity();
     world.addComponent(entity, {
@@ -48,24 +51,32 @@ describe("BeltElevation and Depth Model", () => {
 
     // Tick 1: trigger jump
     movementSystem.update(world, 0.016);
+    elevationSystem.update(world, 0.016);
     world.mutateComponent(entity, "BeltInput", (c) => {
       c.jumpPressed = false;
     });
 
     const transform = world.getComponent(entity, "Transform")!;
-    const elevation = world.getComponent(entity, "BeltElevation")!;
+    const elevation = world.getComponent(entity, "BeltElevation") as BeltElevationComponent;
 
     expect(transform.y).toBe(initialY); // Transform.y MUST stay on ground line
     expect(elevation.z).toBeGreaterThan(0);
     expect(elevation.grounded).toBe(false);
 
     // Simulate airborne frames until landing
+    let landed = false;
     for (let i = 0; i < 40; i++) {
       movementSystem.update(world, 0.016);
+      elevationSystem.update(world, 0.016);
       expect(transform.y).toBe(initialY); // Transform.y MUST NEVER change from hop
+      const current = world.getComponent(entity, "BeltElevation") as BeltElevationComponent;
+      if (current.grounded && current.landTimer! > 0) {
+        landed = true;
+      }
     }
 
-    const finalElevation = world.getComponent(entity, "BeltElevation")!;
+    const finalElevation = world.getComponent(entity, "BeltElevation") as BeltElevationComponent;
+    expect(landed).toBe(true);
     expect(transform.y).toBe(initialY);
     expect(finalElevation.z).toBe(0);
     expect(finalElevation.grounded).toBe(true);

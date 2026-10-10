@@ -38,8 +38,9 @@ export const DEFAULT_COMBO_MELEE_CONFIG: ComboMeleeConfig = {
     hitboxWidth: 26,
     hitboxHeight: 18,
     hitboxOffsetX: 20,
+    halfDepth: 20,
     knockbackX: 120,
-    knockbackY: 40
+    knockbackY: 100
   },
   jab2: {
     ...DEFAULT_MELEE_ATTACK_CONFIG,
@@ -50,8 +51,9 @@ export const DEFAULT_COMBO_MELEE_CONFIG: ComboMeleeConfig = {
     hitboxWidth: 28,
     hitboxHeight: 20,
     hitboxOffsetX: 22,
+    halfDepth: 20,
     knockbackX: 140,
-    knockbackY: 50
+    knockbackY: 120
   },
   finisher: {
     ...DEFAULT_MELEE_ATTACK_CONFIG,
@@ -62,13 +64,14 @@ export const DEFAULT_COMBO_MELEE_CONFIG: ComboMeleeConfig = {
     hitboxWidth: 34,
     hitboxHeight: 24,
     hitboxOffsetX: 26,
+    halfDepth: 22,
     knockbackX: 260,
-    knockbackY: 90
+    knockbackY: 200
   },
   throwRange: 28,
   throwDamage: 2,
   throwKnockbackX: 320,
-  throwKnockbackY: 120,
+  throwKnockbackY: 220,
   throwIFramesSeconds: 0.35,
   specialDamage: 4,
   specialRadius: 72,

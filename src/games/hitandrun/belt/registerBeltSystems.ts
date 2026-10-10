@@ -1,5 +1,5 @@
 /**
- * Registers belt-scroll movement + camera + input edge systems and default resources.
+ * Registers belt-scroll movement + camera + elevation + depth scale + input edge systems and default resources.
  */
 
 import {
@@ -8,6 +8,8 @@ import {
   CoreComponentRegistry
 } from "@tiny-aster/core";
 import { BeltMovementSystem } from "./BeltMovementSystem";
+import { BeltElevationSystem } from "./BeltElevationSystem";
+import { BeltDepthScaleSystem } from "./BeltDepthScaleSystem";
 import { BeltInputSystem } from "./BeltInputSystem";
 import {
   BELT_MOVEMENT_CONFIG_RESOURCE,
@@ -64,6 +66,17 @@ export function registerBeltSystems(
     phase: SystemPhase.Simulation,
     priority: 10
   });
+
+  world.addSystem(new BeltElevationSystem(), {
+    phase: SystemPhase.Simulation,
+    priority: 15
+  });
+
+  world.addSystem(new BeltDepthScaleSystem(), {
+    phase: SystemPhase.Simulation,
+    priority: 85
+  });
+
   world.addSystem(new BeltCameraSystem(), {
     phase: SystemPhase.Simulation,
     priority: 80
@@ -72,6 +85,8 @@ export function registerBeltSystems(
 
 export * from "./BeltMovementTypes";
 export * from "./BeltMovementSystem";
+export * from "./BeltElevationSystem";
+export * from "./BeltDepthScaleSystem";
 export * from "./BeltCameraTypes";
 export * from "./BeltCameraSystem";
 export * from "./BeltInputSystem";

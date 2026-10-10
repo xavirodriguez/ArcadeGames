@@ -33,6 +33,7 @@ export interface HitRunBulletParams {
   size: number;
   color: string;
   ttl: number;
+  z?: number;
   shape?: string;
   layer?: number;
   mask?: number;

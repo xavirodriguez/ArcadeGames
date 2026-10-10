@@ -2518,447 +2518,225 @@
     },
     {
       "firstFile": {
-        "end": 29,
+        "end": 40,
         "endLoc": {
           "column": 9,
-          "line": 29,
-          "position": 1180
+          "line": 40,
+          "position": 1292
         },
         "name": "racing/rendering/RacingCanvasVisuals.ts",
-        "start": 22,
+        "start": 32,
         "startLoc": {
           "column": 76,
-          "line": 22,
-          "position": 838
+          "line": 32,
+          "position": 988
         }
       },
       "format": "typescript",
-      "fragment": "    const start = typeof performance !== \"undefined\" ? performance.now() : 0;\n    const palette = getRacingPalette(world as unknown as World<RacingComponentRegistry, RacingEventRegistry>);\n    const trackSpec = world.getResource<TrackSpec>(\"ActiveTrackSpec\");\n    const width = trackSpec?.width ?? 1600;\n    const height = trackSpec?.height ?? 1000;\n    const halfW = width / 2;\n    const halfH = height / 2;\n    const cacheKey = `${trackSpec?.id ?? \"default\"}:${trackSpec?.theme ?? \"breakfast\"}`;",
-      "isNew": false,
-      "lines": 8,
-      "secondFile": {
-        "end": 20,
-        "endLoc": {
-          "column": 9,
-          "line": 20,
-          "position": 991
-        },
-        "name": "racing/rendering/RacingSkiaVisuals.ts",
-        "start": 12,
-        "startLoc": {
-          "column": 21,
-          "line": 12,
-          "position": 648
-        }
-      },
-      "tokens": 64
-    },
-    {
-      "firstFile": {
-        "end": 100,
-        "endLoc": {
-          "column": 56,
-          "line": 100,
-          "position": 3657
-        },
-        "name": "racing/rendering/RacingCanvasVisuals.ts",
-        "start": 95,
-        "startLoc": {
-          "column": 4,
-          "line": 95,
-          "position": 3293
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const palette = getRacingPalette(world as unknown as World<RacingComponentRegistry, RacingEventRegistry>);\n    const trackSpec = world.getResource<TrackSpec>(\"ActiveTrackSpec\");\n    if (!trackSpec || trackSpec.waypoints.length < 3) return;\n\n    const { left, right } = buildTrackRibbon(trackSpec.waypoints);\n    if (left.length === 0 || right.length === 0) return;",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 52,
-        "endLoc": {
-          "column": 56,
-          "line": 52,
-          "position": 2269
-        },
-        "name": "racing/rendering/RacingSkiaVisuals.ts",
-        "start": 47,
-        "startLoc": {
-          "column": 4,
-          "line": 47,
-          "position": 1905
-        }
-      },
-      "tokens": 75
-    },
-    {
-      "firstFile": {
-        "end": 207,
-        "endLoc": {
-          "column": 62,
-          "line": 207,
-          "position": 6971
-        },
-        "name": "racing/rendering/RacingCanvasVisuals.ts",
-        "start": 194,
-        "startLoc": {
-          "column": 4,
-          "line": 194,
-          "position": 6248
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const palette = getRacingPalette(world as unknown as World<RacingComponentRegistry, RacingEventRegistry>);\n    const render = world.getComponent(entity, \"Render\");\n    const transform = world.getComponent(entity, \"Transform\");\n    if (!render) return;\n\n    const size = render.size ?? 16;\n    const isPlayer = world.hasComponent(entity, \"LocalPlayer\");\n    const bodyColor = isPlayer ? palette.player : palette.rival;\n    const highlightColor = isPlayer ? palette.playerHighlight : palette.rivalHighlight;\n    const rotation = transform?.rotation ?? 0;\n\n    const input = world.getComponent(entity, \"Input\");\n    const boosting = input?.actions.boost === true;\n    const time = world.getResource<number>(\"RacingTime\") ?? 0;",
-      "isNew": false,
-      "lines": 14,
-      "secondFile": {
-        "end": 142,
-        "endLoc": {
-          "column": 62,
-          "line": 142,
-          "position": 5624
-        },
-        "name": "racing/rendering/RacingSkiaVisuals.ts",
-        "start": 129,
-        "startLoc": {
-          "column": 4,
-          "line": 129,
-          "position": 4901
-        }
-      },
-      "tokens": 142
-    },
-    {
-      "firstFile": {
-        "end": 333,
-        "endLoc": {
-          "column": 20,
-          "line": 333,
-          "position": 11113
-        },
-        "name": "racing/rendering/RacingCanvasVisuals.ts",
-        "start": 326,
-        "startLoc": {
-          "column": 4,
-          "line": 326,
-          "position": 10766
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const palette = getRacingPalette(world as unknown as World<RacingComponentRegistry, RacingEventRegistry>);\n    const render = world.getComponent(entity, \"Render\");\n    const wall = world.getComponent(entity, \"RacingWall\");\n    if (!render || !wall) return;\n\n    const halfW = wall.width / 2;\n    const halfH = wall.height / 2;\n    const depth = 5;",
-      "isNew": false,
-      "lines": 8,
-      "secondFile": {
-        "end": 263,
-        "endLoc": {
-          "column": 20,
-          "line": 263,
-          "position": 10437
-        },
-        "name": "racing/rendering/RacingSkiaVisuals.ts",
-        "start": 256,
-        "startLoc": {
-          "column": 4,
-          "line": 256,
-          "position": 10090
-        }
-      },
-      "tokens": 74
-    },
-    {
-      "firstFile": {
-        "end": 388,
-        "endLoc": {
-          "column": 43,
-          "line": 388,
-          "position": 12885
-        },
-        "name": "racing/rendering/RacingCanvasVisuals.ts",
-        "start": 373,
-        "startLoc": {
-          "column": 14,
-          "line": 373,
-          "position": 12302
-        }
-      },
-      "format": "typescript",
-      "fragment": "    ctx.save();\n    if (checkpoint.isFinish) {\n      const halfW = checkpoint.width / 2;\n      const halfH = checkpoint.height / 2;\n      const cols = 8;\n      const rows = 2;\n      const colW = checkpoint.width / cols;\n      const rowH = checkpoint.height / rows;\n\n      const trackSpec = world.getResource<TrackSpec>(\"ActiveTrackSpec\");\n      const isBilliard = trackSpec?.theme === \"billiard\";\n      const color1 = isBilliard ? \"#FFFFF0\" : \"#FFFFFF\";\n      const color2 = isBilliard ? \"#1B5E20\" : \"#5D4037\";\n\n      for (let r = 0; r < rows; r += 1) {\n        for (let c = 0; c < cols; c += 1) {",
-      "isNew": false,
-      "lines": 16,
-      "secondFile": {
-        "end": 314,
-        "endLoc": {
-          "column": 43,
-          "line": 314,
-          "position": 12433
-        },
-        "name": "racing/rendering/RacingSkiaVisuals.ts",
-        "start": 298,
-        "startLoc": {
-          "column": 27,
-          "line": 298,
-          "position": 11849
-        }
-      },
-      "tokens": 126
-    },
-    {
-      "firstFile": {
-        "end": 418,
-        "endLoc": {
-          "column": 29,
-          "line": 418,
-          "position": 14033
-        },
-        "name": "racing/rendering/RacingCanvasVisuals.ts",
-        "start": 409,
-        "startLoc": {
-          "column": 4,
-          "line": 409,
-          "position": 13590
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const palette = getRacingPalette(world as unknown as World<RacingComponentRegistry, RacingEventRegistry>);\n    const data = world.getComponent(entity, \"TrackZoneData\");\n    const render = world.getComponent(entity, \"Render\");\n    if (!data && !render) return;\n\n    const width = data?.width ?? 140;\n    const height = data?.height ?? 140;\n    const surface = data?.surface ?? \"water\";\n    const halfW = width / 2;\n    const halfH = height / 2;",
-      "isNew": false,
-      "lines": 10,
-      "secondFile": {
-        "end": 349,
-        "endLoc": {
-          "column": 29,
-          "line": 349,
-          "position": 13951
-        },
-        "name": "racing/rendering/RacingSkiaVisuals.ts",
-        "start": 340,
-        "startLoc": {
-          "column": 4,
-          "line": 340,
-          "position": 13508
-        }
-      },
-      "tokens": 92
-    },
-    {
-      "firstFile": {
-        "end": 494,
-        "endLoc": {
-          "column": 9,
-          "line": 494,
-          "position": 16350
-        },
-        "name": "racing/rendering/RacingCanvasVisuals.ts",
-        "start": 487,
-        "startLoc": {
-          "column": 4,
-          "line": 487,
-          "position": 15982
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const palette = getRacingPalette(world as unknown as World<RacingComponentRegistry, RacingEventRegistry>);\n    const data = world.getComponent(entity, \"TrackObstacleData\");\n    const render = world.getComponent(entity, \"Render\");\n    if (!data && !render) return;\n\n    const radius = data?.radius ?? render?.size ?? 30;\n    const kind = data?.kind ?? \"bowl\";\n    const id = data?.id ?? \"\";",
-      "isNew": false,
-      "lines": 8,
-      "secondFile": {
-        "end": 389,
-        "endLoc": {
-          "column": 9,
-          "line": 389,
-          "position": 15527
-        },
-        "name": "racing/rendering/RacingSkiaVisuals.ts",
-        "start": 380,
-        "startLoc": {
-          "column": 4,
-          "line": 380,
-          "position": 15139
-        }
-      },
-      "tokens": 74
-    },
-    {
-      "firstFile": {
-        "end": 515,
-        "endLoc": {
-          "column": 21,
-          "line": 515,
-          "position": 16817
-        },
-        "name": "racing/rendering/RacingCanvasVisuals.ts",
-        "start": 507,
-        "startLoc": {
-          "column": 31,
-          "line": 507,
-          "position": 16621
-        }
-      },
-      "format": "typescript",
-      "fragment": "      ctx.fillStyle = \"#F8FAFC\";\n      ctx.strokeStyle = palette.outline;\n      ctx.lineWidth = 2;\n      ctx.beginPath();\n      ctx.arc(0, 0, radius, 0, Math.PI * 2);\n      ctx.fill();\n      ctx.stroke();\n\n      ctx.fillStyle = \"#FFFEE0\";",
+      "fragment": "    const start = typeof performance !== \"undefined\" ? performance.now() : 0;\n    const skin = getRacingSkin(world);\n    const palette = skin.palette;\n    const trackSpec = world.getResource<TrackSpec>(\"ActiveTrackSpec\");\n    const width = trackSpec?.width ?? 1600;\n    const height = trackSpec?.height ?? 1000;\n    const halfW = width / 2;\n    const halfH = height / 2;\n    const cacheKey = `${trackSpec?.id ?? \"default\"}:${skin.id}`;",
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 569,
+        "end": 31,
         "endLoc": {
-          "column": 21,
-          "line": 569,
-          "position": 18454
+          "column": 9,
+          "line": 31,
+          "position": 1101
         },
-        "name": "racing/rendering/RacingCanvasVisuals.ts",
-        "start": 561,
+        "name": "racing/rendering/RacingSkiaVisuals.ts",
+        "start": 22,
         "startLoc": {
-          "column": 80,
-          "line": 561,
-          "position": 18258
+          "column": 21,
+          "line": 22,
+          "position": 796
         }
       },
-      "tokens": 56
+      "tokens": 62
     },
     {
       "firstFile": {
-        "end": 567,
+        "end": 121,
         "endLoc": {
-          "column": 19,
-          "line": 567,
-          "position": 18431
+          "column": 56,
+          "line": 121,
+          "position": 4202
         },
         "name": "racing/rendering/RacingCanvasVisuals.ts",
-        "start": 561,
+        "start": 115,
         "startLoc": {
-          "column": 64,
-          "line": 561,
-          "position": 18242
+          "column": 4,
+          "line": 115,
+          "position": 3876
         }
       },
       "format": "typescript",
-      "fragment": "      ctx.fillStyle = isCue ? \"#FFFFFF\" : isEight ? \"#111827\" : palette.obstacle;\n      ctx.strokeStyle = palette.outline;\n      ctx.lineWidth = 2;\n      ctx.beginPath();\n      ctx.arc(0, 0, radius, 0, Math.PI * 2);\n      ctx.fill();\n      ctx.stroke();",
+      "fragment": "    const skin = getRacingSkin(world);\n    const palette = skin.palette;\n    const trackSpec = world.getResource<TrackSpec>(\"ActiveTrackSpec\");\n    if (!trackSpec || trackSpec.waypoints.length < 3) return;\n\n    const { left, right } = buildTrackRibbon(trackSpec.waypoints);\n    if (left.length === 0 || right.length === 0) return;",
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 595,
+        "end": 64,
         "endLoc": {
-          "column": 19,
-          "line": 595,
-          "position": 19252
+          "column": 56,
+          "line": 64,
+          "position": 2367
+        },
+        "name": "racing/rendering/RacingSkiaVisuals.ts",
+        "start": 58,
+        "startLoc": {
+          "column": 4,
+          "line": 58,
+          "position": 2041
+        }
+      },
+      "tokens": 73
+    },
+    {
+      "firstFile": {
+        "end": 169,
+        "endLoc": {
+          "column": 22,
+          "line": 169,
+          "position": 5460
         },
         "name": "racing/rendering/RacingCanvasVisuals.ts",
-        "start": 589,
-        "startLoc": {
-          "column": 22,
-          "line": 589,
-          "position": 19063
-        }
-      },
-      "tokens": 55
-    },
-    {
-      "firstFile": {
-        "end": 15,
-        "endLoc": {
-          "column": 9,
-          "line": 15,
-          "position": 841
-        },
-        "name": "racing/rendering/RacingSkiaVisuals.ts",
-        "start": 10,
-        "startLoc": {
-          "column": 33,
-          "line": 10,
-          "position": 550
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const drawSkiaTrackSurface: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {\n  draw(canvas, world) {\n    if (!Skia) return;\n    const palette = getRacingPalette(world as unknown as World<RacingComponentRegistry, RacingEventRegistry>);\n    const trackSpec = world.getResource<TrackSpec>(\"ActiveTrackSpec\");\n    const width = trackSpec?.width ?? 1600;",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 49,
-        "endLoc": {
-          "column": 6,
-          "line": 49,
-          "position": 2089
-        },
-        "name": "racing/rendering/RacingSkiaVisuals.ts",
-        "start": 44,
-        "startLoc": {
-          "column": 32,
-          "line": 44,
-          "position": 1801
-        }
-      },
-      "tokens": 53
-    },
-    {
-      "firstFile": {
-        "end": 90,
-        "endLoc": {
-          "column": 22,
-          "line": 90,
-          "position": 3580
-        },
-        "name": "racing/rendering/RacingSkiaVisuals.ts",
-        "start": 85,
-        "startLoc": {
-          "column": 30,
-          "line": 85,
-          "position": 3272
-        }
-      },
-      "format": "typescript",
-      "fragment": "export const drawSkiaSkidMarks: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {\n  draw(canvas, world) {\n    if (!Skia) return;\n    const palette = getRacingPalette(world as unknown as World<RacingComponentRegistry, RacingEventRegistry>);\n    const pool = world.getResource<RacingParticlePool>(\"RacingParticles\");\n    if (!pool || pool.skidMarks.length === 0) return;",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 111,
-        "endLoc": {
-          "column": 22,
-          "line": 111,
-          "position": 4359
-        },
-        "name": "racing/rendering/RacingSkiaVisuals.ts",
-        "start": 106,
+        "start": 164,
         "startLoc": {
           "column": 26,
-          "line": 106,
-          "position": 4051
-        }
-      },
-      "tokens": 60
-    },
-    {
-      "firstFile": {
-        "end": 131,
-        "endLoc": {
-          "column": 9,
-          "line": 131,
-          "position": 5074
-        },
-        "name": "racing/rendering/RacingSkiaVisuals.ts",
-        "start": 126,
-        "startLoc": {
-          "column": 30,
-          "line": 126,
-          "position": 4789
+          "line": 164,
+          "position": 5200
         }
       },
       "format": "typescript",
-      "fragment": "export const drawSkiaRacingCar: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {\n  draw(canvas, world, entity) {\n    if (!Skia) return;\n    const palette = getRacingPalette(world as unknown as World<RacingComponentRegistry, RacingEventRegistry>);\n    const render = world.getComponent(entity, \"Render\");\n    const transform = world.getComponent(entity, \"Transform\");",
+      "fragment": "export const drawSkidMarks: ShapeDrawer<CanvasRenderingContext2D, RacingComponentRegistry> = {\n  draw(ctx, world) {\n    const skin = getRacingSkin(world);\n    const palette = skin.palette;\n    const pool = world.getResource<RacingParticlePool>(\"RacingParticles\");\n    if (!pool || pool.skidMarks.length === 0) return;",
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 258,
+        "end": 196,
         "endLoc": {
-          "column": 9,
-          "line": 258,
-          "position": 10263
+          "column": 22,
+          "line": 196,
+          "position": 6203
         },
-        "name": "racing/rendering/RacingSkiaVisuals.ts",
-        "start": 253,
+        "name": "racing/rendering/RacingCanvasVisuals.ts",
+        "start": 191,
         "startLoc": {
-          "column": 30,
-          "line": 253,
-          "position": 9978
+          "column": 22,
+          "line": 191,
+          "position": 5943
         }
       },
-      "tokens": 55
+      "tokens": 51
+    },
+    {
+      "firstFile": {
+        "end": 254,
+        "endLoc": {
+          "column": 43,
+          "line": 254,
+          "position": 7968
+        },
+        "name": "racing/rendering/RacingCanvasVisuals.ts",
+        "start": 242,
+        "startLoc": {
+          "column": 14,
+          "line": 242,
+          "position": 7552
+        }
+      },
+      "format": "typescript",
+      "fragment": "    ctx.save();\n    if (checkpoint.isFinish) {\n      const halfW = checkpoint.width / 2;\n      const halfH = checkpoint.height / 2;\n      const cols = 8;\n      const rows = 2;\n      const colW = checkpoint.width / cols;\n      const rowH = checkpoint.height / rows;\n\n      const [color1, color2] = skin.finishCheckers ?? [\"#FFFFFF\", \"#5D4037\"];\n\n      for (let r = 0; r < rows; r += 1) {\n        for (let c = 0; c < cols; c += 1) {",
+      "isNew": false,
+      "lines": 13,
+      "secondFile": {
+        "end": 181,
+        "endLoc": {
+          "column": 43,
+          "line": 181,
+          "position": 6188
+        },
+        "name": "racing/rendering/RacingSkiaVisuals.ts",
+        "start": 168,
+        "startLoc": {
+          "column": 27,
+          "line": 168,
+          "position": 5771
+        }
+      },
+      "tokens": 103
+    },
+    {
+      "firstFile": {
+        "end": 25,
+        "endLoc": {
+          "column": 70,
+          "line": 25,
+          "position": 941
+        },
+        "name": "racing/rendering/RacingSkiaVisuals.ts",
+        "start": 20,
+        "startLoc": {
+          "column": 33,
+          "line": 20,
+          "position": 698
+        }
+      },
+      "format": "typescript",
+      "fragment": "export const drawSkiaTrackSurface: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {\n  draw(canvas, world) {\n    if (!Skia) return;\n    const skin = getRacingSkin(world);\n    const palette = skin.palette;\n    const trackSpec = world.getResource<TrackSpec>(\"ActiveTrackSpec\");",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 60,
+        "endLoc": {
+          "column": 70,
+          "line": 60,
+          "position": 2180
+        },
+        "name": "racing/rendering/RacingSkiaVisuals.ts",
+        "start": 55,
+        "startLoc": {
+          "column": 32,
+          "line": 55,
+          "position": 1937
+        }
+      },
+      "tokens": 51
+    },
+    {
+      "firstFile": {
+        "end": 103,
+        "endLoc": {
+          "column": 22,
+          "line": 103,
+          "position": 3640
+        },
+        "name": "racing/rendering/RacingSkiaVisuals.ts",
+        "start": 97,
+        "startLoc": {
+          "column": 30,
+          "line": 97,
+          "position": 3370
+        }
+      },
+      "format": "typescript",
+      "fragment": "export const drawSkiaSkidMarks: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {\n  draw(canvas, world) {\n    if (!Skia) return;\n    const skin = getRacingSkin(world);\n    const palette = skin.palette;\n    const pool = world.getResource<RacingParticlePool>(\"RacingParticles\");\n    if (!pool || pool.skidMarks.length === 0) return;",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 125,
+        "endLoc": {
+          "column": 22,
+          "line": 125,
+          "position": 4381
+        },
+        "name": "racing/rendering/RacingSkiaVisuals.ts",
+        "start": 119,
+        "startLoc": {
+          "column": 26,
+          "line": 119,
+          "position": 4111
+        }
+      },
+      "tokens": 58
     },
     {
       "firstFile": {
@@ -3665,32 +3443,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-10-09T21:36:40.708Z",
+    "detectionDate": "2026-10-10T05:53:53.738Z",
     "formats": {
       "typescript": {
         "clones": 93,
-        "duplicatedLines": 849,
-        "duplicatedTokens": 6804,
-        "lines": 88068,
+        "duplicatedLines": 793,
+        "duplicatedTokens": 6473,
+        "lines": 89158,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.964027796702548,
-        "percentageTokens": 1.429459813775253,
-        "sources": 547,
-        "tokens": 475984
+        "percentage": 0.8894322438816483,
+        "percentageTokens": 1.3335036350489171,
+        "sources": 549,
+        "tokens": 485413
       }
     },
     "total": {
       "clones": 93,
-      "duplicatedLines": 849,
-      "duplicatedTokens": 6804,
-      "lines": 88068,
+      "duplicatedLines": 793,
+      "duplicatedTokens": 6473,
+      "lines": 89158,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.964027796702548,
-      "percentageTokens": 1.429459813775253,
-      "sources": 547,
-      "tokens": 475984
+      "percentage": 0.8894322438816483,
+      "percentageTokens": 1.3335036350489171,
+      "sources": 549,
+      "tokens": 485413
     }
   }
 }

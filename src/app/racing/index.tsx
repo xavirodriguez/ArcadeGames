@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Pressable } from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming, withSequence } from "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -14,6 +14,7 @@ import { GameLayoutShell, GameScreen, GameTitle, GameInstructions, BackButton, N
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { useTranslation } from "@/hooks/useTranslation";
 import { hapticSelection } from "@/utils/haptics";
+import { getRacingSkin } from "@/games/racing/rendering/RacingSkin";
 
 export default function RacingScreen() {
   const { t } = useTranslation();
@@ -22,6 +23,10 @@ export default function RacingScreen() {
 
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
+
+  const skin = game && isReady ? getRacingSkin(game.getWorld()) : undefined;
+  const glowColor = skin?.ui?.glowColor ?? "#00e5ff";
+  const accentColor = skin?.ui?.accentColor ?? "#F2C94C";
 
   const countdownVal = Math.ceil(gameState.countdownRemaining);
   const isCountdownActive = gameState.phase === "countdown" || (gameState.phase === "racing" && gameState.raceTime < 1.0);
@@ -68,7 +73,7 @@ export default function RacingScreen() {
     return (
       <GameScreen>
         <BackButton label={t.common.menu} />
-        <GameTitle glowColor="#00e5ff">MICRO RACERS</GameTitle>
+        <GameTitle glowColor={glowColor}>MICRO RACERS</GameTitle>
         <GameInstructions>
           WASD / arrows: steer and accelerate · Space: boost · R: restart
         </GameInstructions>
@@ -95,21 +100,21 @@ export default function RacingScreen() {
             </TouchableOpacity>
           }
           centerHudSlot={
-            <View style={styles.hud}>
+            <View style={[styles.hud, { borderColor: glowColor }]}>
               <View style={styles.h2hRow}>
-                <Text style={[styles.hudText, { color: "#00e5ff" }]}>P1</Text>
+                <Text style={[styles.hudText, { color: glowColor }]}>P1</Text>
                 <View style={styles.pearlsRow}>
                   {[...Array(5)].map((_, i) => (
                     <View
                       key={`p1_${i}`}
                       style={[
                         styles.pearl,
-                        { backgroundColor: i < (game?.getWorld().getSingleton("HeadToHeadState")?.scores.player_1 ?? 0) ? "#00e5ff" : "#1e293b" }
+                        { backgroundColor: i < (game?.getWorld().getSingleton("HeadToHeadState")?.scores.player_1 ?? 0) ? glowColor : "#1e293b" }
                       ]}
                     />
                   ))}
                 </View>
-                <Text style={styles.vsText}>VS</Text>
+                <Text style={[styles.vsText, { color: accentColor }]}>VS</Text>
                 <View style={styles.pearlsRow}>
                   {[...Array(5)].map((_, i) => (
                     <View
@@ -160,7 +165,7 @@ export default function RacingScreen() {
                   onPressOut={() => input({ boost: false })}
                   haptic="heavy"
                   color="rgba(242,201,76,0.25)"
-                  borderColor="#F2C94C"
+                  borderColor={accentColor}
                 />
               </View>
             </View>
@@ -173,7 +178,7 @@ export default function RacingScreen() {
                   <Animated.Text
                     style={[
                       styles.countdownText,
-                      countdownVal === 0 ? styles.goText : styles.numberText,
+                      countdownVal === 0 ? [styles.goText, { color: glowColor }] : [styles.numberText, { color: accentColor }],
                       animatedCountdownStyle
                     ]}
                   >
@@ -183,7 +188,7 @@ export default function RacingScreen() {
               )}
               {gameState.isGameOver && (
                 <View style={styles.finished}>
-                  <Text style={styles.finishedTitle}>FINISH!</Text>
+                  <Text style={[styles.finishedTitle, { color: accentColor }]}>FINISH!</Text>
                   <Text style={styles.text}>TIME {gameState.raceTime.toFixed(2)}s</Text>
                   <NeonButton variant="cyan" onPress={() => game.restart()}>RETRY</NeonButton>
                 </View>
@@ -197,24 +202,22 @@ export default function RacingScreen() {
 }
 
 const styles = StyleSheet.create({
-  hud: { padding: 10, borderWidth: 1, borderColor: "#55C9CE", backgroundColor: "rgba(0,0,0,0.8)", borderRadius: 10, alignItems: "center", gap: 6 },
+  hud: { padding: 10, borderWidth: 1, backgroundColor: "rgba(0,0,0,0.8)", borderRadius: 10, alignItems: "center", gap: 6 },
   h2hRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   pearlsRow: { flexDirection: "row", gap: 4 },
   pearl: { width: 10, height: 10, borderRadius: 5, borderWidth: 1, borderColor: "#475569" },
-  vsText: { color: "#F2C94C", fontFamily: "monospace", fontWeight: "bold", fontSize: 12 },
+  vsText: { fontFamily: "monospace", fontWeight: "bold", fontSize: 12 },
   lapHudText: { color: "#FFFFFF", fontFamily: "monospace", fontSize: 22, fontWeight: "bold" },
-  hudText: { color: "#55C9CE", fontFamily: "monospace", fontWeight: "bold" },
+  hudText: { fontFamily: "monospace", fontWeight: "bold" },
   controls: { ...StyleSheet.absoluteFillObject, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end" },
   leftControlArea: { flex: 1, height: "100%" },
   rightControlArea: { width: 140, height: "100%", justifyContent: "flex-end", alignItems: "center", paddingBottom: 40, paddingRight: 20 },
-  boost: { width: 80, height: 58, borderRadius: 12, borderWidth: 2, borderColor: "#F2C94C", backgroundColor: "rgba(242,201,76,0.25)", justifyContent: "center", alignItems: "center" },
-  buttonText: { color: "#fff", fontFamily: "monospace", fontWeight: "bold" },
   instructions: { marginBottom: 24 },
   text: { color: "#fff", fontFamily: "monospace", textAlign: "center" },
   countdownContainer: { ...StyleSheet.absoluteFillObject, justifyContent: "center", alignItems: "center" },
   countdownText: { fontFamily: "monospace", fontWeight: "bold", textShadowColor: "rgba(0, 0, 0, 0.8)", textShadowOffset: { width: 2, height: 2 }, textShadowRadius: 6 },
-  numberText: { fontSize: 80, color: "#F2C94C" },
-  goText: { fontSize: 96, color: "#55C9CE" },
+  numberText: { fontSize: 80 },
+  goText: { fontSize: 96 },
   finished: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.82)", justifyContent: "center", alignItems: "center", gap: 18 },
-  finishedTitle: { color: "#F2C94C", fontSize: 40, fontWeight: "bold", fontFamily: "monospace" }
+  finishedTitle: { fontSize: 40, fontWeight: "bold", fontFamily: "monospace" }
 });

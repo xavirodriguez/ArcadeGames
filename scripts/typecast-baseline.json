@@ -804,16 +804,6 @@
     "unknownCount": 1,
     "total": 1
   },
-  "src/games/racing/rendering/RacingCanvasVisuals.ts": {
-    "anyCount": 0,
-    "unknownCount": 9,
-    "total": 9
-  },
-  "src/games/racing/rendering/RacingSkiaVisuals.ts": {
-    "anyCount": 0,
-    "unknownCount": 9,
-    "total": 9
-  },
   "src/games/shared/CaptureSystem.ts": {
     "anyCount": 7,
     "unknownCount": 0,

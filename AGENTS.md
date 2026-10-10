@@ -160,3 +160,30 @@ To create a new game without breaking core invariants, follow this process:
 - **Headless Server Simulation**: Client instances must not be trusted. All state updates, collisions, damage, and scoring are validated on the headless Colyseus server (`/server`).
 - **Inputs & Desynchronization**: The client sends compressed inputs (`CompactInputFrame`) rather than authoritative entity positions. The server applies inputs to its isolated simulation state to prevent client-side manipulation.
 - **Pure State Separation**: Code inside `/server` is strictly isolated from platform UI packages (`@tiny-aster/react-native`, `@tiny-aster/renderer-skia`). Importing UI dependencies into the server runtime is forbidden by linter rules.
+
+---
+
+## 6. Touch Controls Module (`src/components/controls/`) & Input Pattern
+
+### Module Overview
+
+The Touch Controls module provides high-performance, platform-decoupled touch input components built with `react-native-gesture-handler` and `react-native-reanimated`.
+
+| Component / Utility | Location | Key Usage / Responsibility |
+| --- | --- | --- |
+| **`TouchInputState`** | `packages/core/src/input/TouchInputState.ts` | Mutable state container tracking normalized axes (`moveX`, `moveY`, `aimX`, `aimY`), named buttons (`buttons`), paddle/pointer positions, and discrete event queues (`taps`, `flings`, `laneShifts`). |
+| **`TouchVirtualJoystick`** | `src/components/controls/TouchVirtualJoystick.tsx` | Directional joystick supporting floating/anchored modes, deadzone filtering (`applyDeadzone2D`), and direction-change haptic feedback. Writes directly to `touchState.moveX`/`moveY` or `aimX`/`aimY`. |
+| **`TouchActionButton`** | `src/components/controls/TouchActionButton.tsx` | Low-latency tap button target (min 48px). Triggers haptics and sets `touchState.buttons[buttonName]` on press begin/finalize. |
+| **`TouchHoldButton`** | `src/components/controls/TouchHoldButton.tsx` | Continuous press/hold button target for gas, thrust, or charging mechanics. Sets `touchState.buttons[buttonName]`. |
+| **`TouchDragZone`** | `src/components/controls/TouchDragZone.tsx` | Spatial drag area mapping touch coordinates to `touchState.paddle` or `touchState.pointer`. Supports gesture isolation parameters (`activeOffsetX`, `failOffsetY`). |
+| **`TouchTapZone`** | `src/components/controls/TouchTapZone.tsx` | Discrete gesture area pushing taps or long-press events to `touchState.pushTap(...)`. |
+| **`useGestureHandlerRootViewCheck`** | `src/components/controls/useGestureHandlerRootViewCheck.ts` | Development environment (`__DEV__`) non-blocking safety hook logging a warning if a control component is mounted without an ancestor `GestureHandlerRootView`. |
+
+### Zero `setState` Re-render Architecture
+
+To prevent React component re-renders during high-frequency touch interactions (60–120Hz), touch controls **never call React `setState`**. Instead:
+
+1. **Direct Mutable Writes**: Gesture event callbacks invoke `touchState.setMoveAxis(...)`, `touchState.setButton(...)`, or `touchState.setPaddle(...)` directly on a shared `TouchInputState` instance.
+2. **ECS Resource Registration**: The screen attaches `touchState` as a world resource: `game.getWorld().setResource("TouchInputState", touchState)`.
+3. **System Polling**: Game input systems (`PongInputSystem`, `FlappyBirdInputSystem`, `AsteroidInputSystem`, `ArkanoidInputSystem`, `SpaceInvadersInputSystem`, `ShmupInputSystem`, `RacingInputSystem`, `PlatformerInputSystem`) sample `TouchInputState` during frame updates alongside standard `InputSystem` (keyboard/gamepad) state.
+4. **Coexistence**: Keyboard, gamepad, and touch controls operate simultaneously without conflicts or state fragmentation.

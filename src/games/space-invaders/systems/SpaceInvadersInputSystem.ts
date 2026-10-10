@@ -1,4 +1,4 @@
-import { World, Juice, CoreComponentRegistry, createEmitter, PhysicsUtils } from "@tiny-aster/core";
+import { World, Juice, CoreComponentRegistry, createEmitter, PhysicsUtils, TouchInputState } from "@tiny-aster/core";
 import { TransformComponent, VelocityComponent, WorldUtils } from "@tiny-aster/core";
 import { InputComponent, SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { PlayerBulletPool } from "../EntityPool";
@@ -103,6 +103,14 @@ export class SpaceInvadersInputSystem extends GameSystem {
           const horizontal = InputUtils.getAxis(inputState, "horizontal");
           if (horizontal < -0.35) nextMoveLeft = true;
           if (horizontal > 0.35) nextMoveRight = true;
+        }
+
+        const touchState = world.getResource<TouchInputState>("TouchInputState");
+        if (touchState) {
+          if (touchState.moveX < -0.25 || touchState.getButton("moveLeft")) nextMoveLeft = true;
+          if (touchState.moveX > 0.25 || touchState.getButton("moveRight")) nextMoveRight = true;
+          if (touchState.getButton("shoot") || touchState.getButton("fire")) nextShoot = true;
+          if (touchState.getButton("emp")) empActiveTrigger = true;
         }
 
         // EMP Ability Trigger Logic

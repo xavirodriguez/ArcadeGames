@@ -1,4 +1,4 @@
-import { World, System, Entity, CoreComponentRegistry } from "@tiny-aster/core";
+import { World, System, Entity, CoreComponentRegistry, TouchInputState } from "@tiny-aster/core";
 
 /**
  * System that maps game actions to platformer horizontal movement,
@@ -19,6 +19,7 @@ export class PlatformerInputSystem extends System<CoreComponentRegistry> {
 
     const entities = world.query(inputType, jumperType, groundStateType, gravityConfigType, velocityType);
     const len = entities.length;
+    const touchState = world.getResource<TouchInputState>("TouchInputState");
 
     for (let i = 0; i < len; i++) {
       const entity = entities[i];
@@ -29,6 +30,24 @@ export class PlatformerInputSystem extends System<CoreComponentRegistry> {
       const vel = world.getMutableComponent(entity, velocityType) as any;
 
       if (!input || !jumper || !groundState || !gravityConfig || !vel) continue;
+
+      if (touchState) {
+        if (touchState.moveX < -0.2 || touchState.getButton("moveLeft")) {
+          input.moveDir = -1;
+        } else if (touchState.moveX > 0.2 || touchState.getButton("moveRight")) {
+          input.moveDir = 1;
+        } else if (touchState.paddle.active) {
+          const transform = world.getComponent(entity, "Transform") as any;
+          if (transform) {
+            if (touchState.paddle.x < transform.x - 5) input.moveDir = -1;
+            else if (touchState.paddle.x > transform.x + 5) input.moveDir = 1;
+          }
+        }
+
+        if (touchState.getButton("jump") || touchState.consumeTaps().length > 0) {
+          input.jumpHeld = true;
+        }
+      }
 
       const lastJumpState = this.lastJumpStates.get(entity) || false;
       const isJumpHeldNow = input.jumpHeld;

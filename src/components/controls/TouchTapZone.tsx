@@ -3,6 +3,7 @@ import { StyleProp, StyleSheet, ViewStyle } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { TouchInputState } from "@tiny-aster/core";
 import Animated from "react-native-reanimated";
+import { useGestureHandlerRootViewCheck } from "./useGestureHandlerRootViewCheck";
 
 export interface TouchTapZoneProps {
   /** TouchInputState reference. */
@@ -30,6 +31,7 @@ export function TouchTapZone({
   style,
   children,
 }: TouchTapZoneProps) {
+  useGestureHandlerRootViewCheck();
   const handleTap = (x: number, y: number) => {
     if (touchState) {
       touchState.pushTap({ x, y, timestamp: Date.now() });

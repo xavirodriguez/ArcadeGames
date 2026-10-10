@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback, FC } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Platform, useWindowDimensions } from "react-native";
+import { useState, useEffect, useCallback, useRef, FC } from "react";
+import { StyleSheet, View, Text, TouchableOpacity, Platform } from "react-native";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { GestureDetector, Gesture } from "react-native-gesture-handler";
-import { useSharedValue, useFrameCallback, runOnJS } from "react-native-reanimated";
+import { TouchVirtualJoystick, TouchActionButton } from "@/components/controls";
+import { TouchInputState } from "@tiny-aster/core";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { ComboDisplay } from "@/components/ComboDisplay";
 import { SpaceInvadersUI } from "@/components/SpaceInvadersUI";
@@ -60,6 +60,17 @@ export default function SpaceInvadersScreen() {
   const [isMulti, setIsMulti] = useState(false);
   const [isDaily, setIsDaily] = useState(false);
   const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useSpaceInvadersGame(started, isMulti && started, initialSeed);
+
+  const touchStateRef = useRef<TouchInputState | null>(null);
+  if (!touchStateRef.current) {
+    touchStateRef.current = new TouchInputState();
+  }
+
+  useEffect(() => {
+    if (game && touchStateRef.current) {
+      game.getWorld().setResource("TouchInputState", touchStateRef.current);
+    }
+  }, [game]);
 
   const [activeMutators, setActiveMutators] = useState<Mutator[]>([]);
 
@@ -223,10 +234,36 @@ export default function SpaceInvadersScreen() {
         }
         controlsSlot={
           !gameState?.isGameOver ? (
-            <SpaceInvadersTouchControls
-              game={game}
-              handleMultiplayerInput={handleMultiplayerInput}
-            />
+            <View style={styles.controls} pointerEvents="box-none">
+              <View style={{ flex: 1, height: '100%' }} pointerEvents="box-none">
+                <TouchVirtualJoystick
+                  touchState={touchStateRef.current ?? undefined}
+                  floating={true}
+                  onMove={(x, y) => {
+                    handleMultiplayerInput({
+                      moveLeft: x < -0.25,
+                      moveRight: x > 0.25,
+                    });
+                  }}
+                  onRelease={() => {
+                    handleMultiplayerInput({
+                      moveLeft: false,
+                      moveRight: false,
+                    });
+                  }}
+                />
+              </View>
+              <View style={{ width: 120, height: '100%', justifyContent: 'flex-end', alignItems: 'center' }} pointerEvents="box-none">
+                <TouchActionButton
+                  label="🔥"
+                  buttonName="shoot"
+                  touchState={touchStateRef.current ?? undefined}
+                  size={80}
+                  onPressIn={() => handleMultiplayerInput({ shoot: true })}
+                  onPressOut={() => handleMultiplayerInput({ shoot: false })}
+                />
+              </View>
+            </View>
           ) : null
         }
         debugSlot={<DebugOverlay game={game} room={room} />}
@@ -390,91 +427,3 @@ const styles = StyleSheet.create({
     width: 20,
   },
 });
-
-function SpaceInvadersTouchControls({
-  game,
-  handleMultiplayerInput,
-}: {
-  game: any;
-  handleMultiplayerInput: (input: Partial<InputState>) => void;
-}) {
-  const { width: screenWidth } = useWindowDimensions();
-  const worldWidth = 800;
-  const shipWidth = 60;
-  const halfShip = shipWidth / 2;
-
-  const shipX = useSharedValue(worldWidth / 2);
-  const touchStartX = useSharedValue(0);
-  const shipStartX = useSharedValue(worldWidth / 2);
-  const shouldFire = useSharedValue(0);
-
-  const panGesture = Gesture.Pan()
-    .minDistance(0)
-    .shouldCancelWhenOutside(false)
-    .runOnJS(false)
-    .onBegin((e) => {
-      touchStartX.value = e.x;
-      shipStartX.value = shipX.value;
-    })
-    .onUpdate((e) => {
-      const scale = screenWidth > 0 ? worldWidth / screenWidth : 1;
-      const deltaX = e.translationX * scale;
-      let nextX = shipStartX.value + deltaX;
-
-      if (nextX < halfShip) nextX = halfShip;
-      if (nextX > worldWidth - halfShip) nextX = worldWidth - halfShip;
-
-      shipX.value = nextX;
-    });
-
-  const tapGesture = Gesture.Tap()
-    .runOnJS(false)
-    .onEnd(() => {
-      shouldFire.value = 1;
-    });
-
-  const simultaneousGestures = Gesture.Simultaneous(panGesture, tapGesture);
-
-  const lastState = useSharedValue<string>("");
-
-  useFrameCallback(() => {
-    if (!game) return;
-    const world = game.getWorld?.();
-    if (!world) return;
-
-    const playerEntities = world.query("Player", "Transform");
-    if (playerEntities && playerEntities.length > 0) {
-      const pEntity = playerEntities[0];
-      const transform = world.getComponent(pEntity, "Transform");
-      if (transform) {
-        const targetX = shipX.value;
-        const diff = targetX - transform.x;
-
-        const moveLeft = diff < -3;
-        const moveRight = diff > 3;
-
-        let shoot = false;
-        if (shouldFire.value === 1) {
-          shoot = true;
-          shouldFire.value = 0;
-        }
-
-        const stateKey = `${moveLeft ? "L" : ""}_${moveRight ? "R" : ""}_${shoot ? "S" : ""}`;
-        if (stateKey !== lastState.value) {
-          lastState.value = stateKey;
-          runOnJS(handleMultiplayerInput)({
-            moveLeft,
-            moveRight,
-            shoot,
-          });
-        }
-      }
-    }
-  });
-
-  return (
-    <GestureDetector gesture={simultaneousGestures}>
-      <View style={StyleSheet.absoluteFillObject} pointerEvents="box-none" />
-    </GestureDetector>
-  );
-}

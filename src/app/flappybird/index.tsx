@@ -27,6 +27,7 @@ import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { hapticSelection } from "../../utils/haptics";
 import { useTranslation } from "../../hooks/useTranslation";
 import { colors } from "../../theme";
+import { TouchInputState } from "@tiny-aster/core";
 import {
   GameScreen,
   GameTitle,
@@ -61,6 +62,17 @@ export default function FlappyBirdScreen() {
   const [isMulti, setIsMulti] = useState(false);
   const [isDaily, setIsDaily] = useState(false);
   const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useFlappyBirdGame(started, isMulti && started);
+
+  const touchStateRef = useRef<TouchInputState | null>(null);
+  if (!touchStateRef.current) {
+    touchStateRef.current = new TouchInputState();
+  }
+
+  useEffect(() => {
+    if (game && touchStateRef.current) {
+      game.getWorld().setResource("TouchInputState", touchStateRef.current);
+    }
+  }, [game]);
 
   // Activate keyboard controls for Web
   useKeyboardControls(game, isReady);
@@ -257,11 +269,17 @@ export default function FlappyBirdScreen() {
                 joystickId="movement_joystick"
                 type="movement"
                 onMove={(x, y) => {
+                  if (touchStateRef.current) {
+                    touchStateRef.current.setMoveAxis(x, y);
+                  }
                   handleInputState({
                     flap: y < -0.25,
                   });
                 }}
                 onRelease={() => {
+                  if (touchStateRef.current) {
+                    touchStateRef.current.setMoveAxis(0, 0);
+                  }
                   handleInputState({
                     flap: false,
                   });
@@ -269,8 +287,18 @@ export default function FlappyBirdScreen() {
               />
             </View>
             <ShootButton
-              onPressIn={handleShootPress}
-              onPressOut={handleShootRelease}
+              onPressIn={() => {
+                if (touchStateRef.current) {
+                  touchStateRef.current.setButton("flap", true);
+                }
+                handleShootPress();
+              }}
+              onPressOut={() => {
+                if (touchStateRef.current) {
+                  touchStateRef.current.setButton("flap", false);
+                }
+                handleShootRelease();
+              }}
             />
           </View>
         }

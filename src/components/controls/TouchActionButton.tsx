@@ -14,6 +14,7 @@ import {
   hapticImpactMedium,
   hapticImpactHeavy,
 } from "@/utils/haptics";
+import { useGestureHandlerRootViewCheck } from "./useGestureHandlerRootViewCheck";
 
 export type TouchHapticType = "selection" | "light" | "medium" | "heavy" | "none";
 
@@ -73,6 +74,7 @@ export function TouchActionButton({
   accessibilityHint,
   disabled = false,
 }: TouchActionButtonProps) {
+  useGestureHandlerRootViewCheck();
   const finalSize = Math.max(48, size);
   const isPressed = useSharedValue(false);
   const scale = useSharedValue(1);

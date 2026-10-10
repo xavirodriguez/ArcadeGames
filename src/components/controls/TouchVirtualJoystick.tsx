@@ -18,6 +18,7 @@ import Animated, {
 import { TouchInputState, applyDeadzone2D } from "@tiny-aster/core";
 import { colors } from "@/theme/colors";
 import { hapticImpactLight } from "@/utils/haptics";
+import { useGestureHandlerRootViewCheck } from "./useGestureHandlerRootViewCheck";
 
 export interface TouchVirtualJoystickProps {
   /** Reference to mutable TouchInputState instance. */
@@ -63,6 +64,7 @@ export function TouchVirtualJoystick({
   onRelease,
   accessibilityLabel = "Virtual Joystick",
 }: TouchVirtualJoystickProps) {
+  useGestureHandlerRootViewCheck();
   const { width, height } = useWindowDimensions();
   const isTablet = Math.min(width, height) >= 600;
 

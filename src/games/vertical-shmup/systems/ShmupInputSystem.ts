@@ -1,4 +1,4 @@
-import { System, World, PhysicsUtils, Juice, CoreComponentRegistry } from "@tiny-aster/core";
+import { System, World, PhysicsUtils, Juice, CoreComponentRegistry, TouchInputState } from "@tiny-aster/core";
 import { ShmupComponentRegistry, ShmupEventRegistry } from "../types/ShmupTypes";
 import { ShmupConfig } from "../types/ShmupConfigSchema";
 import { createPlayerBullet } from "../EntityFactory";
@@ -11,6 +11,7 @@ export class ShmupInputSystem extends System<ShmupComponentRegistry, ShmupEventR
     const pool = world.getResource<PlayerBulletPool>("PlayerBulletPool");
     if (!config || !pool) return;
     const inputState = world.getSingleton("InputState") as { axes?: Record<string, number>; buttons?: Record<string, boolean> } | undefined;
+    const touchState = world.getResource<TouchInputState>("TouchInputState");
 
     for (const entity of world.query("ShmupPlayer", "Input", "Transform", "Velocity")) {
       const input = world.getComponent(entity, "Input");
@@ -18,14 +19,22 @@ export class ShmupInputSystem extends System<ShmupComponentRegistry, ShmupEventR
       const velocity = world.getMutableComponent(entity, "Velocity");
       if (!input || !transform || !velocity) continue;
 
-      const moveX = Math.max(-1, Math.min(1, inputState?.axes?.moveX ?? input.axes.moveX ?? 0));
-      const moveY = Math.max(-1, Math.min(1, inputState?.axes?.moveY ?? input.axes.moveY ?? 0));
+      let moveX = Math.max(-1, Math.min(1, inputState?.axes?.moveX ?? input.axes.moveX ?? 0));
+      let moveY = Math.max(-1, Math.min(1, inputState?.axes?.moveY ?? input.axes.moveY ?? 0));
+      if (touchState && (touchState.moveX !== 0 || touchState.moveY !== 0)) {
+        moveX = touchState.moveX;
+        moveY = touchState.moveY;
+      }
+
       const hasAction = (actions: unknown): boolean => {
         if (actions instanceof Set) return actions.has("shoot");
         if (Array.isArray(actions)) return actions.includes("shoot");
         return false;
       };
-      const shooting = inputState?.buttons?.shoot ?? hasAction(input.actions);
+      let shooting = inputState?.buttons?.shoot ?? hasAction(input.actions);
+      if (touchState && (touchState.getButton("shoot") || touchState.getButton("fire"))) {
+        shooting = true;
+      }
 
       velocity.vx = moveX * config.PLAYER_SPEED;
       velocity.vy = moveY * config.PLAYER_SPEED;

@@ -224,7 +224,8 @@ export class PhysicsQuery {
    * @param options - Optional filter predicate.
    * @returns Array of detailed `RaycastHit` objects sorted by distance.
    */
-  public static raycastAll<
+    // TODO(refactor): código duplicado detectado (método) con physics/query/PhysicsQuery.ts:321-333. Considerar extraer a función compartida. Ref: bb70b096
+public static raycastAll<
     TComponents extends ComponentRegistry = ComponentRegistry,
     TEvents extends EventRegistry = EventRegistry,
     TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
@@ -358,7 +359,8 @@ function rayIntersectsAABB(
   } else {
     const invD = 1 / dx;
     let t1 = (minX - ox) * invD;
-    let t2 = (maxX - ox) * invD;
+        // TODO(refactor): código duplicado detectado (bloque) con physics/query/PhysicsQuery.ts:377-386. Considerar extraer a función compartida. Ref: 90bd7885
+let t2 = (maxX - ox) * invD;
     if (t1 > t2) {
       const tmp = t1;
       t1 = t2;

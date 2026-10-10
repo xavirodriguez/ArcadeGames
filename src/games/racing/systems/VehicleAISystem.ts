@@ -15,7 +15,8 @@ export class VehicleAISystem extends System<RacingComponentRegistry, RacingEvent
     const len = aiCars.length;
     for (let i = 0; i < len; i++) {
       const entity = aiCars[i];
-      if (world.hasComponent(entity, "LocalPlayer")) continue;
+            // TODO(refactor): código duplicado detectado (bloque) con physics/vehicles/VehicleWaypointSystem.ts:20-36. Considerar extraer a función compartida. Ref: 469377f3
+if (world.hasComponent(entity, "LocalPlayer")) continue;
 
       const waypointsComp = world.getComponent(entity, "VehicleWaypoint") as VehicleWaypointComponent | undefined;
       const vehicle = world.getMutableComponent(entity, "VehicleSteering") as VehicleSteeringComponent | undefined;
@@ -34,7 +35,8 @@ export class VehicleAISystem extends System<RacingComponentRegistry, RacingEvent
       if (dist <= waypointsComp.targetRadius) {
         const nextIdx = (idx + 1) % waypointsComp.waypoints.length;
         world.mutateComponent(entity, "VehicleWaypoint", (m: VehicleWaypointComponent) => {
-          m.currentWaypointIndex = nextIdx;
+                    // TODO(refactor): código duplicado detectado (bloque) con physics/vehicles/VehicleWaypointSystem.ts:46-55. Considerar extraer a función compartida. Ref: 1d2896d6
+m.currentWaypointIndex = nextIdx;
         });
       }
 

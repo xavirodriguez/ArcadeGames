@@ -28,7 +28,8 @@ export class HitRunHurtSystem extends System<CoreComponentRegistry> {
   private subscribed = false;
   private pendingHits: CombatHitPayload[] = [];
 
-  public subscribe(eventBus: EventBus): void {
+    // TODO(refactor): código duplicado detectado (método) con hitandrun/weapons/HitRunExplosionSystem.ts:42-49. Considerar extraer a función compartida. Ref: cefe2a6c
+public subscribe(eventBus: EventBus): void {
     if (this.subscribed) return;
     this.subscribed = true;
     eventBus.on("combat:hit", (payload: unknown) => {

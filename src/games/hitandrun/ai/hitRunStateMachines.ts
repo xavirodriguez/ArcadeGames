@@ -124,6 +124,7 @@ const alertWindup = {
   }
 };
 
+// TODO(refactor): código duplicado detectado (bloque) con systems/EnemyBehaviorRegistry.ts:16-21. Considerar extraer a función compartida. Ref: e44d2212
 export function registerHitRunStateMachines(
   world: World<CoreComponentRegistry>
 ): void {

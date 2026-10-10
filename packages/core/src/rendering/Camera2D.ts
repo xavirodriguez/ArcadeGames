@@ -25,7 +25,8 @@ interface WorldSizeConfig {
  */
 export class Camera2DSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
-    const cameras = world.query("Camera2D");
+        // TODO(refactor): código duplicado detectado (bloque) con rendering/Camera2D.ts:196-203. Considerar extraer a función compartida. Ref: b2c4c966
+const cameras = world.query("Camera2D");
     const gameConfig = world.getResource<WorldSizeConfig>("GameConfig");
     const screenConfig = world.getResource<{ width: number; height: number }>("ScreenConfig");
     const viewportWidth = gameConfig?.viewportWidth ?? screenConfig?.width ?? 800;

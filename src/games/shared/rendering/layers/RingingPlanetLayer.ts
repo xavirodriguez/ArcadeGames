@@ -28,7 +28,8 @@ const ringingPlanetLayer = createParallaxLayer<RingingPlanetState | undefined>({
 
 export const RingingPlanetBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
-    const theme = getActiveVisualContext(world);
+        // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/layers/RingingPlanetLayer.ts:141-146. Considerar extraer a función compartida. Ref: b598787d
+const theme = getActiveVisualContext(world);
     const layerCtx = resolveLayerFrame(world, "ringing_planet", ringingPlanetLayer);
     if (!layerCtx) return;
     const { width, height, state, layerState: planet, offsetX, wrapCoordinate } = layerCtx;

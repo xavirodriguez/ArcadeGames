@@ -14,6 +14,7 @@ export type SharedVFXPrimitiveName =
   | "screen_border_glow"
   | "warp_lines";
 
+// TODO(refactor): código duplicado detectado (bloque) con shared/rendering/JuiceOrchestrator.ts:32-44. Considerar extraer a función compartida. Ref: 1fa91b1e
 export interface JuiceSpawnOptions {
   x?: number;
   y?: number;

@@ -128,7 +128,8 @@ export class HitRunWaveSystem extends System<CoreComponentRegistry> {
       if (this.telegraphedEventKeys.has(key)) continue;
       this.telegraphedEventKeys.add(key);
 
-      const count = Math.max(1, ev.count ?? 1);
+            // TODO(refactor): código duplicado detectado (bloque) con hitandrun/waves/HitRunWaveSystem.ts:173-178. Considerar extraer a función compartida. Ref: b5b55d6e
+const count = Math.max(1, ev.count ?? 1);
       const formation = (ev.formation ?? "point") as WaveFormation;
       const spacing = ev.spacing ?? 24;
       const baseX = ev.x ?? this.cfg.defaultSpawnX + this.cfg.offscreenOffsetX;

@@ -29,7 +29,8 @@ function drawVisualParticles(canvas: any): void {
   const paint = getPaint();
 
   const particles = getActiveParticles();
-  canvas.save();
+    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:21-26. Considerar extraer a función compartida. Ref: 349bb253
+canvas.save();
   for (let i = 0; i < particles.length; i++) {
     const p = particles[i];
     if (!p.active) continue;

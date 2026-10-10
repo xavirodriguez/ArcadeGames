@@ -13,6 +13,7 @@ import {
  * Registers state machines for the three main enemy archetypes into the StateMachineRegistry.
  * @public
  */
+// TODO(refactor): código duplicado detectado (bloque) con hitandrun/ai/hitRunStateMachines.ts:127-136. Considerar extraer a función compartida. Ref: e44d2212
 export function registerEnemyStateMachines(world: World<CoreComponentRegistry>): void {
   let registry = world.getResource<Record<string, StateMachineDefinition>>("StateMachineRegistry");
   if (!registry) {

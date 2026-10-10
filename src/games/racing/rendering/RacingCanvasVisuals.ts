@@ -19,7 +19,8 @@ export function clearStaticRacingCache(): void {
 
 export const drawTrackSurface: ShapeDrawer<CanvasRenderingContext2D, RacingComponentRegistry> = {
   draw(ctx, world) {
-    const start = typeof performance !== "undefined" ? performance.now() : 0;
+        // TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingSkiaVisuals.ts:12-20. Considerar extraer a función compartida. Ref: c81fa891
+const start = typeof performance !== "undefined" ? performance.now() : 0;
     const palette = getRacingPalette(world as unknown as World<RacingComponentRegistry, RacingEventRegistry>);
     const trackSpec = world.getResource<TrackSpec>("ActiveTrackSpec");
     const width = trackSpec?.width ?? 1600;
@@ -92,7 +93,8 @@ export const drawTrackSurface: ShapeDrawer<CanvasRenderingContext2D, RacingCompo
 
 export const drawTrackRibbon: ShapeDrawer<CanvasRenderingContext2D, RacingComponentRegistry> = {
   draw(ctx, world) {
-    const palette = getRacingPalette(world as unknown as World<RacingComponentRegistry, RacingEventRegistry>);
+        // TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingSkiaVisuals.ts:47-52. Considerar extraer a función compartida. Ref: 76014589
+const palette = getRacingPalette(world as unknown as World<RacingComponentRegistry, RacingEventRegistry>);
     const trackSpec = world.getResource<TrackSpec>("ActiveTrackSpec");
     if (!trackSpec || trackSpec.waypoints.length < 3) return;
 
@@ -370,7 +372,8 @@ export const drawCheckpoint: ShapeDrawer<CanvasRenderingContext2D, RacingCompone
     const checkpoint = world.getComponent(entity, "Checkpoint");
     if (!checkpoint) return;
 
-    ctx.save();
+        // TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingSkiaVisuals.ts:298-314. Considerar extraer a función compartida. Ref: 5f514a71
+ctx.save();
     if (checkpoint.isFinish) {
       const halfW = checkpoint.width / 2;
       const halfH = checkpoint.height / 2;
@@ -504,7 +507,8 @@ export const drawTrackObstacle: ShapeDrawer<CanvasRenderingContext2D, RacingComp
     ctx.globalAlpha = 1.0;
 
     if (kind === "bowl") {
-      ctx.fillStyle = "#F8FAFC";
+            // TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingCanvasVisuals.ts:561-569. Considerar extraer a función compartida. Ref: 941183e7
+ctx.fillStyle = "#F8FAFC";
       ctx.strokeStyle = palette.outline;
       ctx.lineWidth = 2;
       ctx.beginPath();
@@ -558,7 +562,8 @@ export const drawTrackObstacle: ShapeDrawer<CanvasRenderingContext2D, RacingComp
       const isEight = id.includes("eight") || id.includes("8");
       const isCue = id.includes("cue");
 
-      ctx.fillStyle = isCue ? "#FFFFFF" : isEight ? "#111827" : palette.obstacle;
+            // TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingCanvasVisuals.ts:589-595. Considerar extraer a función compartida. Ref: cd1cf08b
+ctx.fillStyle = isCue ? "#FFFFFF" : isEight ? "#111827" : palette.obstacle;
       ctx.strokeStyle = palette.outline;
       ctx.lineWidth = 2;
       ctx.beginPath();

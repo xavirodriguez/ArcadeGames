@@ -17,7 +17,8 @@ export class VehicleWaypointSystem extends System<CoreComponentRegistry> {
     const len = entities.length;
 
     for (let i = 0; i < len; i++) {
-      const entity = entities[i];
+            // TODO(refactor): código duplicado detectado (bloque) con racing/systems/VehicleAISystem.ts:18-35. Considerar extraer a función compartida. Ref: 469377f3
+const entity = entities[i];
       const waypointsComp = world.getComponent(entity, "VehicleWaypoint") as VehicleWaypointComponent | undefined;
       const vehicle = world.getMutableComponent(entity, "VehicleSteering") as VehicleSteeringComponent | undefined;
       const transform = world.getComponent(entity, "Transform");
@@ -45,7 +46,8 @@ export class VehicleWaypointSystem extends System<CoreComponentRegistry> {
         }
       }
 
-      const desiredAngle = Math.atan2(dy, dx);
+            // TODO(refactor): código duplicado detectado (bloque) con racing/systems/VehicleAISystem.ts:39-47. Considerar extraer a función compartida. Ref: 1d2896d6
+const desiredAngle = Math.atan2(dy, dx);
       let diffAngle = desiredAngle - (transform.rotation ?? 0);
 
       while (diffAngle > Math.PI) diffAngle -= Math.PI * 2;

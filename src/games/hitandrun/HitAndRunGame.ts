@@ -89,7 +89,8 @@ import { drawPlatformerTilemap } from "../platformer/rendering/PlatformerCanvasV
 export type HitAndRunConfig = EchoRunnerConfig;
 
 class HitRunDamageSystem extends System<CoreComponentRegistry> {
-  public update(world: import("@tiny-aster/core").World<CoreComponentRegistry>, deltaTime: number): void {
+    // TODO(refactor): código duplicado detectado (método) con echorunner/EchoRunnerGame.ts:124-137. Considerar extraer a función compartida. Ref: 110122ca
+public update(world: import("@tiny-aster/core").World<CoreComponentRegistry>, deltaTime: number): void {
     updatePlayerInvulnerabilityAndContactDamage(world, deltaTime, {
       contactDistance: 20,
       invulnerabilityDuration: 1.0,
@@ -130,7 +131,8 @@ export class HitAndRunGame extends PlatformerArcadeGame<
         | undefined);
   }
 
-  public update(dt: number): void {
+    // TODO(refactor): código duplicado detectado (método) con echorunner/EchoRunnerGame.ts:403-417. Considerar extraer a función compartida. Ref: f8661966
+public update(dt: number): void {
     const runState = this.world.getResource<RunState>("RunState");
     if (runState) {
       runState.elapsedTime += dt;
@@ -183,7 +185,8 @@ export class HitAndRunGame extends PlatformerArcadeGame<
   }
 
   protected override async onRegisterSystems(): Promise<void> {
-    await super.onRegisterSystems();
+        // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:242-249. Considerar extraer a función compartida. Ref: 94a0e390
+await super.onRegisterSystems();
 
     registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_ECHO_RUNNER_CONFIG);
     registerCollectibleTriggerBlueprint(this.blueprints, "collectible_fragment", "fragment", 10, 16, 10, "fragment", false, false);
@@ -216,7 +219,8 @@ export class HitAndRunGame extends PlatformerArcadeGame<
   protected override async onInitializeEntities(): Promise<void> {
     registerBeltPlayerBlueprint(this.blueprints);
 
-    const tileDefinitions = {
+        // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:353-361. Considerar extraer a función compartida. Ref: 2e267ea9
+const tileDefinitions = {
       1: { solid: true, kind: "normal" as const },
       2: { solid: true, kind: "ice" as const },
       3: { solid: true, kind: "bounce" as const, bounce: 1.5 },
@@ -224,7 +228,8 @@ export class HitAndRunGame extends PlatformerArcadeGame<
       5: { solid: true, oneWay: true, kind: "normal" as const }
     };
 
-    const rawData = this.customLevelData ?? hitRunLevelData;
+        // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:361-372. Considerar extraer a función compartida. Ref: 29f93505
+const rawData = this.customLevelData ?? hitRunLevelData;
     const runnerSeed = this.getSeed() || 41873;
     this.levelPlan = SegmentGenerator.generatePlan(
       rawData.templates as SegmentTemplate[],

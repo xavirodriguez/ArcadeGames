@@ -15,6 +15,7 @@ function play(world: World, name: string): void {
 /**
  * Maps TD domain events to shared arcade SFX ids.
  */
+// TODO(refactor): código duplicado detectado (bloque) con tower-defense/systems/SlowOnHitSystem.ts:8-19. Considerar extraer a función compartida. Ref: 962c52b6
 export class TowerDefenseAudioSystem extends System<TowerDefenseComponentRegistry, TowerDefenseEventRegistry> {
   readonly phase = SystemPhase.Presentation;
   private bound = false;

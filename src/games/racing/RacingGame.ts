@@ -350,7 +350,8 @@ export class RacingGame extends BaseGame<
   }
 
   public isGameOver(): boolean {
-    return this.getGameState().isGameOver;
+        // TODO(refactor): código duplicado detectado (bloque) con hitandrun/HitAndRunGame.ts:146-157. Considerar extraer a función compartida. Ref: b5a7504a
+return this.getGameState().isGameOver;
   }
 
   protected override async onPreloadAssets(): Promise<void> {

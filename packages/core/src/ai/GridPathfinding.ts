@@ -99,7 +99,8 @@ export class GridPathfinding {
    * @param options - Pathfinding configuration options.
    * @returns Array of grid points representing the path, or empty array if no path exists.
    */
-  public static bfs(
+    // TODO(refactor): código duplicado detectado (método) con ai/GridPathfinding.ts:177-194. Considerar extraer a función compartida. Ref: fc94060c
+public static bfs(
     grid: GridPassabilityMap,
     start: GridPoint,
     target: GridPoint,
@@ -437,7 +438,8 @@ function getAvailableDirections(
       continue;
     }
 
-    const nx = x + d.x;
+        // TODO(refactor): código duplicado detectado (bloque) con ai/GridPathfinding.ts:457-464. Considerar extraer a función compartida. Ref: 6446b210
+const nx = x + d.x;
     const ny = y + d.y;
     if (nx >= 0 && nx < grid.width && ny >= 0 && ny < grid.height && grid.isWalkable(nx, ny)) {
       result.push(d);

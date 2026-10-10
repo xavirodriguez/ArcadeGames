@@ -105,7 +105,8 @@ export const drawSkiaCreepBoss: ShapeDrawer<any, TowerDefenseComponentRegistry> 
   draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
     const size = render?.size ?? 28;
-    drawSkiaCreep(canvas, size, "#c62828");
+        // TODO(refactor): código duplicado detectado (bloque) con tower-defense/rendering/TowerDefenseSkiaVisuals.ts:138-145. Considerar extraer a función compartida. Ref: f95aa196
+drawSkiaCreep(canvas, size, "#c62828");
     if (!Skia) return;
     const paint = getPaint();
     if (!paint) return;
@@ -166,7 +167,8 @@ export const drawSkiaTdMapBackground: EffectDrawer<any, TowerDefenseComponentReg
     if (!layout || !tileGrid) return;
 
     const paint = getPaint();
-    if (!paint) return;
+        // TODO(refactor): código duplicado detectado (bloque) con tower-defense/rendering/TowerDefenseCanvasVisuals.ts:186-197. Considerar extraer a función compartida. Ref: 493978f3
+if (!paint) return;
 
     for (let row = 0; row < tileGrid.rows; row++) {
       for (let col = 0; col < tileGrid.cols; col++) {

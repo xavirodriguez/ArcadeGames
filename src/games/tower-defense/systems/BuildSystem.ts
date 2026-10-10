@@ -76,7 +76,8 @@ export class BuildSystem extends System<TowerDefenseComponentRegistry, TowerDefe
       });
     }
 
-    if (input.sell) {
+        // TODO(refactor): código duplicado detectado (bloque) con tower-defense/systems/BuildSystem.ts:98-104. Considerar extraer a función compartida. Ref: ed76935f
+if (input.sell) {
       const towerAtCell = world.query("Tower").find((e) => {
         const t = world.getComponent(e, "Tower");
         return t && t.col === cell.col && t.row === cell.row;
@@ -96,7 +97,8 @@ export class BuildSystem extends System<TowerDefenseComponentRegistry, TowerDefe
     }
 
     if (input.upgrade) {
-      const towerAtCell = world.query("Tower").find((e) => {
+            // TODO(refactor): código duplicado detectado (bloque) con tower-defense/systems/BuildSystem.ts:80-86. Considerar extraer a función compartida. Ref: c2403674
+const towerAtCell = world.query("Tower").find((e) => {
         const t = world.getComponent(e, "Tower");
         return t && t.col === cell.col && t.row === cell.row;
       });

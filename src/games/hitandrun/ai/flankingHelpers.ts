@@ -128,7 +128,8 @@ export function steerTowardFlank(
   const dx = target.x - sx;
   const absDx = dx < 0 ? -dx : dx;
 
-  if (absDx <= arriveRadius) {
+    // TODO(refactor): código duplicado detectado (bloque) con hitandrun/ai/flankingHelpers.ts:167-175. Considerar extraer a función compartida. Ref: fbd8d85d
+if (absDx <= arriveRadius) {
     const vel = world.getComponent(entity, "Velocity");
     if (vel && vel.vx !== 0) {
       const mv = world.getMutableComponent(entity, "Velocity");

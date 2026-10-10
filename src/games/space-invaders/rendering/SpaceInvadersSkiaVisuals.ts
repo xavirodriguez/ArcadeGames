@@ -44,7 +44,8 @@ export function drawExplosionParticlesSkia(canvas: any): void {
   if (!Skia) return;
   const paint = getPaint();
 
-  canvas.save();
+    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersCanvasVisuals.ts:44-49. Considerar extraer a función compartida. Ref: 0b6a9ef2
+canvas.save();
   for (let i = 0; i < EXPLOSION_PARTICLE_POOL.length; i++) {
     const data = resolveExplosionParticleData(EXPLOSION_PARTICLE_POOL[i]);
     if (!data) continue;
@@ -405,7 +406,8 @@ export const drawSkiaSpaceInvadersBullet: ShapeDrawer<any, SpaceInvadersComponen
     paint.reset();
     paint.setStyle(Skia!.PaintStyle.Fill);
 
-    paint.setColor(Skia!.Color(glowColor));
+        // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersCanvasVisuals.ts:427-432. Considerar extraer a función compartida. Ref: 6c726b50
+paint.setColor(Skia!.Color(glowColor));
     for (let i = 1; i < points.length; i++) {
       const pt = points[i];
       const relX = pt.x - currentX;
@@ -434,7 +436,8 @@ export const drawSkiaSpaceInvadersBullet: ShapeDrawer<any, SpaceInvadersComponen
  */
 export const drawSkiaSpaceInvadersBoss: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = safeGetRenderComponent(world, entity);
+        // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersCanvasVisuals.ts:459-478. Considerar extraer a función compartida. Ref: 75c8043c
+const render = safeGetRenderComponent(world, entity);
     if (!render) return;
 
     const bossState = resolveBossVisualState(world, entity, render);

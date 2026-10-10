@@ -110,7 +110,8 @@ export class Schedule<
       }
     } catch (error: unknown) {
       const err = normalizeError(error);
-      if (this.errorReporter) {
+            // TODO(refactor): código duplicado detectado (bloque) con ecs/Schedule.ts:165-173. Considerar extraer a función compartida. Ref: fc5be21c
+if (this.errorReporter) {
         this.errorReporter.report({
           timestamp: Date.now(),
           error: err,

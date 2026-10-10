@@ -182,6 +182,7 @@ export const drawHitRunPopcorn: ShapeDrawer<CanvasRenderingContext2D, CoreCompon
   }
 };
 
+// TODO(refactor): código duplicado detectado (bloque) con hitandrun/rendering/HitRunCanvasVisuals.ts:247-255. Considerar extraer a función compartida. Ref: a1b5eeea
 export const drawHitRunWallTrooper: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");

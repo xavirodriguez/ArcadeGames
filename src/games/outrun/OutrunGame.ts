@@ -139,7 +139,8 @@ export class OutrunGame extends BaseGame<
         angularVelocity: 0,
         hitFlashFrames: 0
       });
-      this.world.addComponent(roadEntity, {
+            // TODO(refactor): código duplicado detectado (bloque) con outrun/OutrunGame.ts:169-184. Considerar extraer a función compartida. Ref: 6b94ad6a
+this.world.addComponent(roadEntity, {
         type: "Transform",
         x: 0,
         y: 0,

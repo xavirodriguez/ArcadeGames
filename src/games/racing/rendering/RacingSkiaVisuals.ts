@@ -9,7 +9,8 @@ import type { RacingParticlePool } from "../systems/RacingParticleSystem";
 
 export const drawSkiaTrackSurface: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {
   draw(canvas, world) {
-    if (!Skia) return;
+        // TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingCanvasVisuals.ts:22-29. Considerar extraer a función compartida. Ref: c81fa891
+if (!Skia) return;
     const palette = getRacingPalette(world as unknown as World<RacingComponentRegistry, RacingEventRegistry>);
     const trackSpec = world.getResource<TrackSpec>("ActiveTrackSpec");
     const width = trackSpec?.width ?? 1600;
@@ -44,7 +45,8 @@ export const drawSkiaTrackSurface: ShapeDrawer<SkCanvas, RacingComponentRegistry
 export const drawSkiaTrackRibbon: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    const palette = getRacingPalette(world as unknown as World<RacingComponentRegistry, RacingEventRegistry>);
+        // TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingCanvasVisuals.ts:95-100. Considerar extraer a función compartida. Ref: 76014589
+const palette = getRacingPalette(world as unknown as World<RacingComponentRegistry, RacingEventRegistry>);
     const trackSpec = world.getResource<TrackSpec>("ActiveTrackSpec");
     if (!trackSpec || trackSpec.waypoints.length < 3) return;
 
@@ -82,6 +84,7 @@ export const drawSkiaTrackRibbon: ShapeDrawer<SkCanvas, RacingComponentRegistry>
   }
 };
 
+// TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingSkiaVisuals.ts:106-111. Considerar extraer a función compartida. Ref: 465d2e50
 export const drawSkiaSkidMarks: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
@@ -123,6 +126,7 @@ export const drawSkiaSmoke: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {
   }
 };
 
+// TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingSkiaVisuals.ts:253-258. Considerar extraer a función compartida. Ref: 8dfbea98
 export const drawSkiaRacingCar: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
@@ -295,7 +299,8 @@ export const drawSkiaCheckpoint: ShapeDrawer<SkCanvas, RacingComponentRegistry> 
     if (!Skia) return;
     const palette = getRacingPalette(world as unknown as World<RacingComponentRegistry, RacingEventRegistry>);
     const checkpoint = world.getComponent(entity, "Checkpoint");
-    if (!checkpoint) return;
+        // TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingCanvasVisuals.ts:373-388. Considerar extraer a función compartida. Ref: 5f514a71
+if (!checkpoint) return;
 
     if (checkpoint.isFinish) {
       const halfW = checkpoint.width / 2;

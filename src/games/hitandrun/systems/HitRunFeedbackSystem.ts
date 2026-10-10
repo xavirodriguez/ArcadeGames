@@ -42,7 +42,8 @@ export class HitRunFeedbackSystem extends System<CoreComponentRegistry> {
     };
   }
 
-  public subscribe(eventBus: EventBus): void {
+    // TODO(refactor): código duplicado detectado (método) con hitandrun/hurt/HitRunHurtSystem.ts:31-36. Considerar extraer a función compartida. Ref: a5b7b380
+public subscribe(eventBus: EventBus): void {
     if (this.subscribed) return;
     this.subscribed = true;
 

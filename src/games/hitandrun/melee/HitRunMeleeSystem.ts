@@ -227,7 +227,8 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
     },
     config: MeleeAttackConfig
   ): Entity {
-    const ox = transform.worldX ?? transform.x;
+        // TODO(refactor): código duplicado detectado (bloque) con hitandrun/melee/HitRunMeleeSystem.ts:322-328. Considerar extraer a función compartida. Ref: 27691a5e
+const ox = transform.worldX ?? transform.x;
     const oy = transform.worldY ?? transform.y;
     const face = melee.facing >= 0 ? 1 : -1;
     const hx = ox + face * config.hitboxOffsetX;

@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
-import { GestureActionButton } from "@/components/controls/GestureActionButton";
-import { VirtualJoystick } from "@/components/controls/VirtualJoystick";
+import { TouchDragZone } from "@/components/controls/TouchDragZone";
+import { TouchActionButton } from "@/components/controls/TouchActionButton";
+import { TouchHoldButton } from "@/components/controls/TouchHoldButton";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
@@ -44,7 +45,7 @@ function PlatformerContent() {
   };
   const isTouchDevice = useTouchDevice();
 
-  const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } =
+  const { game, gameState, isReady, togglePause, highScore } =
     usePlatformerGame(started, initialSeed);
 
   // Keyboard controls for Web platforms
@@ -198,48 +199,37 @@ function PlatformerContent() {
           isTouchDevice ? (
             <View style={styles.touchControlsContainer} pointerEvents="box-none">
               <View style={styles.leftZone} pointerEvents="box-none">
-                <VirtualJoystick
-                  joystickId="platformer_move"
-                  type="movement"
-                  floating={false}
-                  onMove={(x) => {
-                    handleTouchLeft(x < -0.2);
-                    handleTouchRight(x > 0.2);
-                  }}
-                  onRelease={() => {
-                    handleTouchLeft(false);
-                    handleTouchRight(false);
+                <TouchDragZone
+                  mode="relative"
+                  paddleWidth={60}
+                  activeOffsetX={[-10, 10]}
+                  failOffsetY={[-10, 10]}
+                  onPaddleMove={(normPos: number) => {
+                    const moveLeft = normPos < 0.4;
+                    const moveRight = normPos > 0.6;
+                    handleTouchLeft(moveLeft);
+                    handleTouchRight(moveRight);
                   }}
                 />
               </View>
 
               <View style={styles.actions} pointerEvents="box-none">
-                <GestureActionButton
+                <TouchActionButton
+                  name="dash"
                   label="DASH"
                   size={65}
-                  color="rgba(30, 41, 59, 0.7)"
-                  borderColor={colors.gold}
-                  pressedColor="rgba(30, 41, 59, 0.9)"
-                  pressedBorderColor={colors.white}
-                  haptic="medium"
-                  onPressIn={() => handleTouchDash()}
-                  onPressOut={() => {}}
-                  accessibilityLabel={"Dash"}
-                  accessibilityHint={"Performs a rapid forward dash"}
+                  color={colors.gold}
+                  onPress={() => handleTouchDash()}
+                  accessibilityLabel="Dash"
                   style={{ marginHorizontal: spacing.sm }}
                 />
-                <GestureActionButton
+                <TouchHoldButton
+                  name="jump"
                   label="JUMP"
                   size={75}
-                  color="rgba(30, 41, 59, 0.7)"
-                  borderColor={colors.cyan}
-                  pressedColor="rgba(30, 41, 59, 0.9)"
-                  pressedBorderColor={colors.white}
-                  haptic="medium"
-                  onPressIn={() => handleTouchJump(true)}
-                  onPressOut={() => handleTouchJump(false)}
-                  accessibilityLabel={t?.accessibility?.jump_button_label || "Jump"}
-                  accessibilityHint={t?.accessibility?.jump_button_hint || "Jumps"}
+                  color={colors.cyan}
+                  onHoldChange={(active: boolean) => handleTouchJump(active)}
+                  accessibilityLabel="Jump"
                   style={{ marginHorizontal: spacing.sm }}
                 />
               </View>
@@ -339,40 +329,6 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: "row",
     alignItems: "flex-end",
-  },
-  touchButton: {
-    backgroundColor: "rgba(30, 41, 59, 0.7)",
-    borderWidth: 1.5,
-    borderColor: colors.borderLight,
-    width: 65,
-    height: 65,
-    borderRadius: 35,
-    justifyContent: "center",
-    alignItems: "center",
-    marginHorizontal: spacing.sm,
-    userSelect: "none",
-  },
-  touchButtonPressed: {
-    transform: [{ scale: 0.92 }],
-    backgroundColor: "rgba(30, 41, 59, 0.9)",
-    borderColor: colors.white,
-  },
-  touchButtonText: {
-    color: colors.white,
-    fontSize: typography.sizes.md,
-    fontWeight: typography.weights.bold,
-    fontFamily: typography.game,
-    userSelect: "none",
-  },
-  jumpButton: {
-    borderColor: colors.cyan,
-    width: 75,
-    height: 75,
-  },
-  dashButton: {
-    borderColor: colors.gold,
-    width: 65,
-    height: 65,
   },
   gameOverOverlay: {
     ...StyleSheet.absoluteFillObject,

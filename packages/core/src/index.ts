@@ -64,6 +64,8 @@ export * from "./input/NullInputSystem";
 export * from "./input/UnifiedInputSystem";
 export * from "./input/CanonicalInput";
 export * from "./input/InputMapper";
+export * from "./input/TouchInputState";
+export * from "./input/TouchInputUtils";
 export * from "./input/providers";
 
 // Loop & Runtime

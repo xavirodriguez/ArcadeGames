@@ -121,7 +121,25 @@ For shared mechanics within specific genres (e.g., platformers), an intermediate
 
 ---
 
-## 4. Testing & Extension Guidelines
+## 4. Shared Touch Input Module & Gesture Controls
+
+### Pure Input Logic (`packages/core`)
+
+- **`TouchInputState`**: A platform-decoupled, mutable state container in `@tiny-aster/core` managing continuous axes (`moveX`, `moveY`, `aimX`, `aimY`, `paddlePosition`, `pointerX`, `pointerY`), active button flags (`buttons`), and frame-consumable discrete queues (`taps`, `flings`, `laneShifts`).
+- **`TouchInputUtils`**: Pure mathematical functions for deadzone calculation (`applyDeadzone`), vector normalization (`normalizeVector`), cardinal/diagonal snapping (`snapDirection`), bounding (`clamp`), and finger-to-paddle center mapping (`mapTouchToPaddlePosition`).
+
+### React Native Control Components (`src/components/controls/`)
+
+- **Components**: `TouchVirtualJoystick`, `TouchActionButton`, `TouchHoldButton`, `TouchDragZone`, `TouchTapZone`.
+- **Zero-setState Invariant**: Gestures write directly to `TouchInputState` via `.runOnJS(true)` or direct input callbacks. Never invoke React `setState` per touch event.
+- **Isolated Spatial Zones**: Use individual `GestureDetector` boundaries per spatial area (e.g. left movement zone, right action zone) rather than full-screen `Gesture.Simultaneous` composition.
+- **Ancestor Guard Check**: Non-blocking `useGestureHandlerRootViewCheck` logs a warning in `__DEV__` mode if mounted without a `GestureHandlerRootView` ancestor.
+- **SafeArea & Color System**: Respects safe area insets via `react-native-safe-area-context` and consumes semantic color tokens from `src/theme/colors.ts`.
+- **Haptic Throttling**: Haptics via `expo-haptics` fire strictly on action button presses and joystick direction changes (throttled >= 100ms), never per tick frame.
+
+---
+
+## 5. Testing & Extension Guidelines
 
 ### Adding a New Game to the Monorepo
 
@@ -155,7 +173,7 @@ To create a new game without breaking core invariants, follow this process:
 
 ---
 
-## 5. Security Considerations
+## 6. Security Considerations
 
 - **Headless Server Simulation**: Client instances must not be trusted. All state updates, collisions, damage, and scoring are validated on the headless Colyseus server (`/server`).
 - **Inputs & Desynchronization**: The client sends compressed inputs (`CompactInputFrame`) rather than authoritative entity positions. The server applies inputs to its isolated simulation state to prevent client-side manipulation.

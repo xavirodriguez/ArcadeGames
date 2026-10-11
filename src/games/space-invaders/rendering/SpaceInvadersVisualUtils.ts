@@ -1,4 +1,4 @@
-import { HealthComponent, RenderComponent, World } from "@tiny-aster/core";
+import { HealthComponent, RenderComponent, World, THEME_RESOURCE_KEY, Theme } from "@tiny-aster/core";
 import { InvaderComponent, SpaceInvadersComponentRegistry, GAME_CONFIG } from "../types/SpaceInvadersTypes";
 import { EnemyTagComponent } from "../components/EnemyTagComponent";
 import { resolveHitFlash, HitFlashState } from "../../shared/rendering/RenderUtils";
@@ -242,7 +242,8 @@ export function resolveBossVisualState(
   const maxHp = health ? health.max : boss ? boss.maxHp : 50;
   const hpRatio = calculateShieldHpRatio(currentHp, maxHp);
 
-  const { phase, baseColor, accentColor, scaleMultiplier } = calculateBossPhase(hpRatio);
+  const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+  const { phase, baseColor, accentColor, scaleMultiplier } = calculateBossPhase(hpRatio, theme);
 
   const scale = phase === 3 ? 1.3 : phase === 2 ? 1.15 : 1.0;
   const tick = world.tick;

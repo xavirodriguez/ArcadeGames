@@ -1,9 +1,11 @@
-import { EffectDrawer, ShapeDrawer, World, ShapeType, CircleShape, ColliderComponent, RenderComponent, SHIP_FORWARD_AXIS } from "@tiny-aster/core";
+import { EffectDrawer, ShapeDrawer, World, ShapeType, CircleShape, ColliderComponent, RenderComponent, SHIP_FORWARD_AXIS, THEME_RESOURCE_KEY, Theme } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import { colors } from "../../../theme/colors";
-import { computeAsteroidSilhouette, computeThrustFlame } from "../../shared/rendering/ProceduralShapeUtils";
+import { computeAsteroidSilhouette, computeThrustFlame, computeMotionSecondaryEffect } from "../../shared/rendering/ProceduralShapeUtils";
 import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 import { drawSkiaAsteroidsMissionHUD } from "./AsteroidsSkiaMissionHUD";
+import { SkiaDrawAdapter } from "../../shared/rendering/DrawAdapter";
+import { drawFromGeometryProfileAdapter } from "../../shared/rendering/GenericEntityDrawer";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 import { getVisibleSkiaRender } from "../../shared/rendering/renderingUtils";
@@ -43,14 +45,18 @@ function setupAsteroidStrokePaint(
 
 /**
  * Procedural player ship shape drawer for React Native Skia.
- * Renders a glowing, sleek retro spacecraft with animated thruster plumes.
+ * Supports Concept Pack parametric geometry override if available in active Theme.
  */
 export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = getVisibleSkiaRender(world, entity);
     if (!render) return;
 
+    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+    const customGeom = theme?.visualTheme?.shapeTokens?.playerGeometry;
+
     const size = render.size || 15;
+    const tick = Math.floor((world.tick * 5) / 12);
 
     canvas.save();
 
@@ -65,17 +71,48 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentReg
       }
     }
 
+    const input = world.getComponent(entity, "Input");
+    const isThrusting = Boolean(input && input.actions && input.actions["thrust"]);
+
+    if (customGeom) {
+      const motionEffect = customGeom.motionEffect || "flame";
+      if (isThrusting && motionEffect !== "none") {
+        const motionData = computeMotionSecondaryEffect(motionEffect, size, tick, world.renderRandom);
+        const pPaint = getPaint();
+        pPaint.reset();
+        pPaint.setAntiAlias(true);
+        pPaint.setStyle(Skia.PaintStyle.Fill);
+
+        for (let i = 0; i < motionData.particles.length; i++) {
+          const p = motionData.particles[i];
+          pPaint.setColor(Skia.Color(p.color));
+          pPaint.setAlphaf(p.alpha * opacity);
+          canvas.drawCircle(p.offsetX, p.offsetY, Math.max(0.5, p.radius), pPaint);
+        }
+      }
+
+      const adapter = new SkiaDrawAdapter(canvas);
+      drawFromGeometryProfileAdapter(adapter, customGeom, {
+        size,
+        baseColor: colorStr,
+        globalAlpha: opacity,
+        isThrusting,
+        tick,
+      });
+
+      canvas.restore();
+      return;
+    }
+
     const paint = getPaint();
     paint.reset();
     paint.setAntiAlias(true);
 
-    // Draw Thrust Flame if thrust is active (ephemeral flame can use a pooled/reusable path or direct line drawing)
-    const input = world.getComponent(entity, "Input");
-    if (input && input.actions && input.actions["thrust"]) {
+    if (isThrusting) {
       const { flameLen, sparks } = computeThrustFlame(size, world.renderRandom);
 
       paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color(colors.gold)); // Neon yellow core
+      paint.setColor(Skia.Color(colors.gold));
       paint.setAlphaf(opacity * 0.7);
 
       const flamePath = Skia.Path.Make();
@@ -86,12 +123,11 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentReg
       canvas.drawPath(flamePath, paint);
 
       paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(Skia.Color(colors.orangeDark)); // Neon orange outline
+      paint.setColor(Skia.Color(colors.orangeDark));
       paint.setStrokeWidth(2);
       paint.setAlphaf(opacity);
       canvas.drawPath(flamePath, paint);
 
-      // Lingering Hot Plasma Exhaust Sparks
       paint.setStyle(Skia.PaintStyle.Fill);
       paint.setColor(Skia.Color("#ffffff"));
       paint.setAlphaf(opacity);
@@ -101,16 +137,14 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentReg
       }
     }
 
-    // Retrieve or pre-build static ship paths
     let shipGeom = cachedShipPaths.get(render);
     if (!shipGeom) {
       const shipPath = Skia.Path.Make();
-      // Ship nose points along SHIP_FORWARD_AXIS (+X, 0)
       shipPath.moveTo(size * SHIP_FORWARD_AXIS.x, size * SHIP_FORWARD_AXIS.y);
-      shipPath.lineTo(-size * 0.7, size * 0.7); // Right back
-      shipPath.lineTo(-size * 0.5, size * 0.3); // Center back indent
-      shipPath.lineTo(-size * 0.5, -size * 0.3); // Center back indent
-      shipPath.lineTo(-size * 0.7, -size * 0.7); // Left back
+      shipPath.lineTo(-size * 0.7, size * 0.7);
+      shipPath.lineTo(-size * 0.5, size * 0.3);
+      shipPath.lineTo(-size * 0.5, -size * 0.3);
+      shipPath.lineTo(-size * 0.7, -size * 0.7);
       shipPath.close();
 
       const cockpitPath = Skia.Path.Make();
@@ -123,14 +157,12 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentReg
       cachedShipPaths.set(render, shipGeom);
     }
 
-    // Draw Main Ship Body
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setColor(Skia.Color(colorStr));
     paint.setStrokeWidth(2);
     paint.setAlphaf(opacity);
     canvas.drawPath(shipGeom.ship, paint);
 
-    // Inner detail (cockpit line)
     canvas.drawPath(shipGeom.cockpit, paint);
 
     canvas.restore();
@@ -166,14 +198,16 @@ export const drawSkiaAsteroidsUfo: ShapeDrawer<any, AsteroidsComponentRegistry> 
 
 /**
  * Procedural detailed jagged Asteroid Shape Drawer for React Native Skia.
- * Caches paths deterministically inside a WeakMap to eliminate GC allocations per frame.
+ * Supports Concept Pack parametric enemy geometry override if available in active Theme.
  */
 export const drawSkiaAsteroidsAsteroid: ShapeDrawer<any, AsteroidsComponentRegistry> = {
   draw(canvas, world, entity) {
-        // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsCanvasVisuals.ts:178-187. Considerar extraer a función compartida. Ref: b4b40449
-const render = getVisibleSkiaRender(world, entity);
+    const render = getVisibleSkiaRender(world, entity);
     const collider = world.getComponent(entity, "Collider");
     if (!render) return;
+
+    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+    const customGeom = theme?.visualTheme?.shapeTokens?.enemyGeometry;
 
     let radius = 25;
     if (collider && collider.enabled && collider.shape.type === ShapeType.Circle) {
@@ -184,9 +218,19 @@ const render = getVisibleSkiaRender(world, entity);
 
     canvas.save();
 
-    const { paint } = setupAsteroidStrokePaint(render, colors.pink, 2);
+    const { opacity, colorStr, paint } = setupAsteroidStrokePaint(render, colors.pink, 2);
 
-    // Retrieve or generate path once per asteroid lifecycle
+    if (customGeom) {
+      const adapter = new SkiaDrawAdapter(canvas);
+      drawFromGeometryProfileAdapter(adapter, customGeom, {
+        size: radius * 2,
+        baseColor: colorStr,
+        globalAlpha: opacity,
+      });
+      canvas.restore();
+      return;
+    }
+
     let astPath = cachedAsteroidPaths.get(render);
     if (!astPath) {
       astPath = Skia.Path.Make();
@@ -211,18 +255,32 @@ const render = getVisibleSkiaRender(world, entity);
 
 /**
  * Glowing laser bullet shape drawer for React Native Skia.
- * Creates a high-fidelity bullet with a bright white core.
+ * Supports Concept Pack parametric projectile geometry override if available in active Theme.
  */
 export const drawSkiaAsteroidsBullet: ShapeDrawer<any, AsteroidsComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = getVisibleSkiaRender(world, entity);
     if (!render) return;
 
+    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+    const customGeom = theme?.visualTheme?.shapeTokens?.projectileGeometry;
+
     const size = render.size || 2;
-    const colorStr = render.color || colors.green; // Glowing laser green
-    const length = size * 4;
+    const colorStr = render.color || colors.green;
 
     canvas.save();
+
+    if (customGeom) {
+      const adapter = new SkiaDrawAdapter(canvas);
+      drawFromGeometryProfileAdapter(adapter, customGeom, {
+        size: size * 4,
+        baseColor: colorStr,
+      });
+      canvas.restore();
+      return;
+    }
+
+    const length = size * 4;
 
     const paint = getPaint();
     paint.reset();
@@ -230,12 +288,10 @@ export const drawSkiaAsteroidsBullet: ShapeDrawer<any, AsteroidsComponentRegistr
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setStrokeCap(Skia.StrokeCap.Round);
 
-    // Laser glow line (aligned to +X direction/horizontally)
     paint.setColor(Skia.Color(colorStr));
     paint.setStrokeWidth(3);
     canvas.drawLine(-length / 2, 0, length / 2, 0, paint);
 
-    // White core line for brightness
     paint.setColor(Skia.Color(colors.white));
     paint.setStrokeWidth(1);
     canvas.drawLine(-length / 2, 0, length / 2, 0, paint);

@@ -1,6 +1,7 @@
 import { VisualTheme } from "./VisualTheme";
 
 export * from "./VisualTheme";
+export * from "./GeometryProfile";
 
 /**
  * Resource key string used to store and access the `Theme` instance in the `World`.
@@ -9,21 +10,22 @@ export * from "./VisualTheme";
 export const THEME_RESOURCE_KEY = "Theme";
 
 /**
- * Interface representing visual skin, asset mappings, and narrative lore configuration
- * injected into the game world as a transversal ECS resource.
- *
- * @remarks
- * The `Theme` resource decouples asset keys, color palettes, and text strings from underlying
- * game systems and mechanics. Entity factories read from this resource to resolve `assetKey`,
- * `color`, and lore texts, allowing game reskinning without altering simulation code.
- *
- * To create a custom lore pack:
- * 1. Construct a `Theme` object with your custom `spriteMap`, `colorMap`, and optional `lore`.
- * 2. Pass it in `BaseGameConfig.theme` when creating a game session or set it directly on the `World`
- *    via `world.setResource("Theme", customTheme)`.
- *
+ * Concept Pack configuration interface for complete narrative, visual, and text reskins.
  * @public
  */
+export interface ConceptPackConfig {
+  /** Unique concept pack identifier (e.g. "ww2_dogfight", "zombie_survival"). */
+  id: string;
+  /** Human readable display title. */
+  name: string;
+  /** Overrides for mission titles and descriptions by mission ID. */
+  missionOverrides?: Record<string, { title?: string; description?: string }>;
+  /** Overrides for story node graph dialogues/encounters by encounter or beat ID. */
+  storyOverrides?: Record<string, { title?: string; text?: string }>;
+  /** Overrides for logical role labels shown on UI / HUD (e.g., "HUNTER" -> "SQUADRON LEADER"). */
+  roleLabels?: Record<string, string>;
+}
+
 /**
  * Generic base role keys shared across games.
  * @public
@@ -101,16 +103,6 @@ export interface GameVisualProfile {
  * Interface representing visual skin, asset mappings, and narrative lore configuration
  * injected into the game world as a transversal ECS resource.
  *
- * @remarks
- * The `Theme` resource decouples asset keys, color palettes, and text strings from underlying
- * game systems and mechanics. Entity factories read from this resource to resolve `assetKey`,
- * `color`, and lore texts, allowing game reskinning without altering simulation code.
- *
- * To create a custom lore pack:
- * 1. Construct a `Theme` object with your custom `spriteMap`, `colorMap`, and optional `lore`.
- * 2. Pass it in `BaseGameConfig.theme` when creating a game session or set it directly on the `World`
- *    via `world.setResource("Theme", customTheme)`.
- *
  * @typeParam TRole - Specific role key union for strict colorMap and spriteMap typing.
  *
  * @public
@@ -142,6 +134,33 @@ export interface Theme<TRole extends string = string> {
    * Optional formalized visual theme contract for unified design system tokens.
    */
   visualTheme?: VisualTheme;
+
+  /**
+   * Optional concept pack specification for complete thematic/narrative reskinning.
+   */
+  conceptPack?: ConceptPackConfig;
+}
+
+/**
+ * Helper to get a mission title from active theme conceptPack or fall back to default string.
+ * @public
+ */
+export function getMissionTitle(theme: Theme | undefined, missionId: string, fallbackTitle: string): string {
+  if (theme?.conceptPack?.missionOverrides?.[missionId]?.title) {
+    return theme.conceptPack.missionOverrides[missionId].title!;
+  }
+  return fallbackTitle;
+}
+
+/**
+ * Helper to get a mission description from active theme conceptPack or fall back to default string.
+ * @public
+ */
+export function getMissionDescription(theme: Theme | undefined, missionId: string, fallbackDescription: string): string {
+  if (theme?.conceptPack?.missionOverrides?.[missionId]?.description) {
+    return theme.conceptPack.missionOverrides[missionId].description!;
+  }
+  return fallbackDescription;
 }
 
 /**

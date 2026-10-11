@@ -1,7 +1,7 @@
 import { EntityBuilder, ShapeType, CircleShape, BoxShape, World, BlueprintRegistry, spawnBlueprintEntity, createVehicleSteering, createVehicleWaypoint } from "@tiny-aster/core";
 import type { RacingComponentRegistry, RacingEventRegistry, RacingBlueprintMap } from "./types/RacingRegistry";
 import type { RacingConfig } from "./types/RacingConfigSchema";
-import type { TrackSpec } from "./types/TrackSpecSchema";
+import type { TrackSpec, VehicleSpec } from "./types/TrackSpecSchema";
 import { getRacingPalette } from "./rendering/RacingPalette";
 import { RACING_RENDER_ORDERS } from "./rendering/RacingRenderOrders";
 
@@ -17,21 +17,43 @@ export function registerRacingBlueprints(
     throw new Error("[Racing] BlueprintRegistry resource is not set on world and no registry was provided.");
   }
   targetRegistry.register("car", {
-    spawn: (w: World<RacingComponentRegistry, RacingEventRegistry>, entity: number, args: { x: number; y: number; rotation?: number; isAI?: boolean; color?: string }) => {
+    spawn: (
+      w: World<RacingComponentRegistry, RacingEventRegistry>,
+      entity: number,
+      args: { x: number; y: number; rotation?: number; isAI?: boolean; color?: string; vehicleSpec?: VehicleSpec }
+    ) => {
       const config = w.getResource<RacingConfig>("GameConfig");
       const palette = getRacingPalette(w);
       const isAI = args.isAI === true;
+      const spec = args.vehicleSpec;
+
       const defaultColor = isAI ? palette.rival : palette.player;
-      const color = args.color ?? defaultColor;
+      const color = args.color ?? spec?.color ?? defaultColor;
+      const shape = spec?.drawerKey ?? "racing_car";
+
+      const acceleration = spec?.acceleration ?? config?.CAR_ACCELERATION ?? 360;
+      const maxSpeed = spec?.maxSpeed ?? config?.CAR_MAX_SPEED ?? 420;
+      const turnRate = spec?.steeringRate ?? config?.CAR_TURN_RATE ?? 3.4;
+      const grip = spec?.traction ?? config?.CAR_GRIP ?? 9;
+      const drift = spec?.driftFactor ?? config?.CAR_DRIFT ?? 0.45;
 
       EntityBuilder.fromEntity(w, entity)
         .withTransform({ x: args.x, y: args.y, rotation: args.rotation ?? 0, dirty: true })
         .withVelocity()
-        .withRender({ shape: "racing_car", size: config?.CAR_RADIUS ?? 16, color, order: RACING_RENDER_ORDERS.cars })
+        .withRender({ shape, size: config?.CAR_RADIUS ?? 16, color, order: RACING_RENDER_ORDERS.cars })
         .withCollider({ shape: { type: ShapeType.Circle, radius: config?.CAR_RADIUS ?? 16 } as CircleShape, layer: PLAYER_LAYER, mask: TRACK_LAYER })
         .withCollisionEvents();
 
-      w.addComponent(entity, { type: "Car", acceleration: config?.CAR_ACCELERATION ?? 360, maxSpeed: config?.CAR_MAX_SPEED ?? 420, grip: config?.CAR_GRIP ?? 9, drift: config?.CAR_DRIFT ?? 0.45, turnRate: config?.CAR_TURN_RATE ?? 3.4, boostMultiplier: config?.CAR_BOOST_MULTIPLIER ?? 1.35, boostRemaining: 0 });
+      w.addComponent(entity, {
+        type: "Car",
+        acceleration,
+        maxSpeed,
+        grip,
+        drift,
+        turnRate,
+        boostMultiplier: config?.CAR_BOOST_MULTIPLIER ?? 1.35,
+        boostRemaining: 0
+      });
       w.addComponent(entity, { type: "Lap", currentLap: 1, lastCheckpoint: -1, lapStartedAt: 0, lastLapTime: 0, bestLapTime: null });
 
       if (isAI) {
@@ -40,11 +62,11 @@ export function registerRacingBlueprints(
         w.addComponent(
           entity,
           createVehicleSteering({
-            acceleration: config?.CAR_ACCELERATION ?? 360,
-            maxSpeed: config?.CAR_MAX_SPEED ?? 420,
-            steeringRate: config?.CAR_TURN_RATE ?? 3.4,
-            traction: config?.CAR_GRIP ?? 9,
-            driftFactor: config?.CAR_DRIFT ?? 0.45
+            acceleration,
+            maxSpeed,
+            steeringRate: turnRate,
+            traction: grip,
+            driftFactor: drift
           })
         );
         w.addComponent(entity, createVehicleWaypoint(waypoints, 60, true));

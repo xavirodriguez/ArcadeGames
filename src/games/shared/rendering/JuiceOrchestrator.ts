@@ -14,10 +14,11 @@ export type SharedVFXPrimitiveName =
   | "screen_border_glow"
   | "warp_lines";
 
-// TODO(refactor): código duplicado detectado (bloque) con shared/rendering/JuiceOrchestrator.ts:32-44. Considerar extraer a función compartida. Ref: 1fa91b1e
-export interface JuiceSpawnOptions {
-  x?: number;
-  y?: number;
+/**
+ * Base configuration options shared across Juice spawn calls and catalog profiles.
+ * @public
+ */
+export interface BaseJuiceOptions {
   tint?: string;
   scale?: number;
   intensity?: number;
@@ -29,17 +30,21 @@ export interface JuiceSpawnOptions {
   shakeDurationMs?: number;
 }
 
-export interface JuiceProfile {
+/**
+ * Runtime options passed when spawning a visual juice effect.
+ * @public
+ */
+export interface JuiceSpawnOptions extends BaseJuiceOptions {
+  x?: number;
+  y?: number;
+}
+
+/**
+ * Catalog profile definition binding a juice effect primitive with default options.
+ * @public
+ */
+export interface JuiceProfile extends BaseJuiceOptions {
   effect: SharedVFXPrimitiveName;
-  tint?: string;
-  scale?: number;
-  intensity?: number;
-  ttl?: number;
-  text?: string;
-  hitStopMs?: number;
-  hitStopPriority?: HitStopPriority | number;
-  shakeIntensity?: number;
-  shakeDurationMs?: number;
 }
 
 export type SupportedGameId =

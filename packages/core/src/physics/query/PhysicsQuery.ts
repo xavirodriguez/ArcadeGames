@@ -24,6 +24,15 @@ export interface RaycastHit {
 }
 
 /**
+ * Options configuring physics raycast execution.
+ * @public
+ */
+export interface RaycastOptions {
+  /** Optional filter predicate to include/exclude candidate entities. */
+  filter?: (entity: Entity) => boolean;
+}
+
+/**
  * Utility for performing physics-based spatial queries on the ECS world.
  *
  * @remarks
@@ -221,11 +230,10 @@ export class PhysicsQuery {
    * @param origin - World-space origin coordinate `{ x, y }` of the ray.
    * @param direction - Direction vector `{ x, y }` of the ray (will be normalized automatically).
    * @param maxDistance - Maximum reach distance of the ray.
-   * @param options - Optional filter predicate.
+   * @param options - Optional filter predicate or RaycastOptions.
    * @returns Array of detailed `RaycastHit` objects sorted by distance.
    */
-    // TODO(refactor): código duplicado detectado (método) con physics/query/PhysicsQuery.ts:321-333. Considerar extraer a función compartida. Ref: bb70b096
-public static raycastAll<
+  public static raycastAll<
     TComponents extends ComponentRegistry = ComponentRegistry,
     TEvents extends EventRegistry = EventRegistry,
     TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
@@ -234,9 +242,7 @@ public static raycastAll<
     origin: { x: number; y: number },
     direction: { x: number; y: number },
     maxDistance: number,
-    options?: {
-      filter?: (entity: Entity) => boolean;
-    }
+    options?: RaycastOptions
   ): RaycastHit[] {
     const dirLen = Math.sqrt(direction.x * direction.x + direction.y * direction.y);
     if (dirLen < 1e-9) {
@@ -316,7 +322,7 @@ public static raycastAll<
    * @param origin - World-space origin coordinate `{ x, y }` of the ray.
    * @param direction - Direction vector `{ x, y }` of the ray (normalized automatically).
    * @param maxDistance - Maximum reach distance of the ray.
-   * @param options - Optional filter predicate.
+   * @param options - Optional filter predicate or RaycastOptions.
    * @returns Nearest `RaycastHit` object or `null` if no collider was hit.
    */
   public static raycast<
@@ -328,18 +334,13 @@ public static raycastAll<
     origin: { x: number; y: number },
     direction: { x: number; y: number },
     maxDistance: number,
-    options?: {
-      filter?: (entity: Entity) => boolean;
-    }
+    options?: RaycastOptions
   ): RaycastHit | null {
     const hits = PhysicsQuery.raycastAll(world, origin, direction, maxDistance, options);
     return hits[0] ?? null;
   }
 }
 
-/**
- * Fast ray-AABB intersection check used as broadphase pre-filter for raycasts.
- */
 /**
  * Evaluates axis interval intersection for a ray against slab boundaries.
  */

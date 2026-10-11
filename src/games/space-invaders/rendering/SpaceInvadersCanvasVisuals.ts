@@ -15,7 +15,7 @@ import {
   resolveParticleState,
   resolveExplosionParticleData,
 } from "./SpaceInvadersVisualUtils";
-import { calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVisual } from "../../shared/rendering/spaceInvadersMath";
+import { calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVisual, calculateShieldCrackCoords } from "../../shared/rendering/spaceInvadersMath";
 import { EXPLOSION_PARTICLE_POOL, spawnLayeredExplosion, updateExplosionParticles } from "./ExplosionParticlePool";
 import { CircularPositionBuffer } from "../../shared/rendering/SharedVFX";
 import { drawFromGeometryProfileCanvas } from "../../shared/rendering/GenericEntityDrawer";
@@ -636,15 +636,13 @@ export const drawSpaceInvadersShield: ShapeDrawer<CanvasRenderingContext2D, Spac
       ctx.globalAlpha = 1.0;
       ctx.beginPath();
 
-      const seed1 = (entity * 17) % size;
-      const seed2 = (entity * 41) % size;
-      ctx.moveTo(-size / 2 + seed1, -size / 2);
-      ctx.lineTo(size / 2 - seed2, size / 2);
+      const coords = calculateShieldCrackCoords(entity, size);
+      ctx.moveTo(coords.x1, coords.y1);
+      ctx.lineTo(coords.x2, coords.y2);
 
       if (ratio < 0.4) {
-        const seed3 = (entity * 97) % size;
-        ctx.moveTo(size / 2, -size / 2 + seed3);
-        ctx.lineTo(-size / 2, size / 2 - seed3);
+        ctx.moveTo(coords.x3, coords.y3);
+        ctx.lineTo(coords.x4, coords.y4);
       }
       ctx.stroke();
     }

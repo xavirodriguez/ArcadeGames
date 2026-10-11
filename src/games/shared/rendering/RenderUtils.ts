@@ -49,6 +49,20 @@ export function resolveHitFlash(
   };
 }
 
+/** Resolves hit flash opacity, color, and flashing state for Asteroid shape drawers. */
+export function resolveAsteroidHitFlash(
+  render: RenderLike | undefined | null,
+  defaultColor: string
+): { opacity: number; colorStr: string; isHitFlashing: boolean } {
+  const baseColor = (render as any)?.color || defaultColor;
+  const flashState = resolveHitFlash(render, baseColor, 1.0);
+  return {
+    opacity: flashState.isFlashing ? flashState.opacity : 1.0,
+    colorStr: flashState.isFlashing ? flashState.color : baseColor,
+    isHitFlashing: flashState.isFlashing
+  };
+}
+
 /**
  * Result structure returned by resolveInvulnerabilityPulse.
  * @public

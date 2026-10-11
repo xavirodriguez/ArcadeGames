@@ -10,6 +10,34 @@ export function calculateShieldHpRatio(hp: number, maxHp: number): number {
   return Math.max(0, Math.min(1.0, hp / maxHp));
 }
 
+export interface ShieldCrackCoords {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  x3: number;
+  y3: number;
+  x4: number;
+  y4: number;
+}
+
+export function calculateShieldCrackCoords(entity: number, size: number): ShieldCrackCoords {
+  const half = size / 2;
+  const seed1 = (entity * 17) % size;
+  const seed2 = (entity * 41) % size;
+  const seed3 = (entity * 97) % size;
+  return {
+    x1: -half + seed1,
+    y1: -half,
+    x2: half - seed2,
+    y2: half,
+    x3: half,
+    y3: -half + seed3,
+    x4: -half,
+    y4: half - seed3
+  };
+}
+
 export interface BossPhaseState {
   phase: number;
   baseColor: string;

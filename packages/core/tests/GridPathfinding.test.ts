@@ -117,6 +117,58 @@ describe("GridPathfinding Tests", () => {
     });
   });
 
+  describe("Edge cases and diagonal options", () => {
+    it("should return empty array if start tile is non-walkable", () => {
+      grid.obstacles.add("0,0");
+      expect(GridPathfinding.bfs(grid, { x: 0, y: 0 }, { x: 2, y: 2 })).toEqual([]);
+      expect(GridPathfinding.aStar(grid, { x: 0, y: 0 }, { x: 2, y: 2 })).toEqual([]);
+    });
+
+    it("should handle start === target correctly with and without includeStart", () => {
+      expect(GridPathfinding.bfs(grid, { x: 2, y: 2 }, { x: 2, y: 2 })).toEqual([{ x: 2, y: 2 }]);
+      expect(GridPathfinding.bfs(grid, { x: 2, y: 2 }, { x: 2, y: 2 }, { includeStart: false })).toEqual([]);
+
+      expect(GridPathfinding.aStar(grid, { x: 2, y: 2 }, { x: 2, y: 2 })).toEqual([{ x: 2, y: 2 }]);
+      expect(GridPathfinding.aStar(grid, { x: 2, y: 2 }, { x: 2, y: 2 }, { includeStart: false })).toEqual([]);
+    });
+
+    it("should respect maxNodes limit and stop expansion early", () => {
+      const path = GridPathfinding.aStar(
+        grid,
+        { x: 0, y: 0 },
+        { x: 8, y: 8 },
+        { maxNodes: 2 }
+      );
+      expect(path).toEqual([]);
+    });
+
+    it("should allow diagonal movement when allowDiagonal is enabled", () => {
+      const pathBfs = GridPathfinding.bfs(
+        grid,
+        { x: 0, y: 0 },
+        { x: 2, y: 2 },
+        { allowDiagonal: true }
+      );
+      expect(pathBfs).toEqual([
+        { x: 0, y: 0 },
+        { x: 1, y: 1 },
+        { x: 2, y: 2 },
+      ]);
+
+      const pathAStar = GridPathfinding.aStar(
+        grid,
+        { x: 0, y: 0 },
+        { x: 2, y: 2 },
+        { allowDiagonal: true }
+      );
+      expect(pathAStar).toEqual([
+        { x: 0, y: 0 },
+        { x: 1, y: 1 },
+        { x: 2, y: 2 },
+      ]);
+    });
+  });
+
   describe("Pac-Man Style getNextIntersectionTarget", () => {
     it("should find the end of a straight corridor", () => {
       // Maze grid: 5x1 corridor along y = 2 (x from 0 to 4)

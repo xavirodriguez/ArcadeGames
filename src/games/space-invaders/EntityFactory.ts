@@ -1,4 +1,4 @@
-import { World, Entity, Component, createDeferredEntity, spawnBlueprintEntity } from "@tiny-aster/core";
+import { World, Entity, Component, createDeferredEntity, spawnBlueprintEntity, resolveThemeColorWithFallback } from "@tiny-aster/core";
 import { SpaceInvadersConfig } from "./types/SpaceInvadersConfigSchema";
 import { GAME_CONFIG, SpaceInvadersComponentRegistry } from "./types/SpaceInvadersTypes";
 import { PlayerBulletPool, EnemyBulletPool, ParticlePool } from "./EntityPool";
@@ -64,13 +64,11 @@ export function createInvader(world: World<SpaceInvadersComponentRegistry>, x: n
 
 /**
  * Creates a player bullet using the pool.
- * @remarks Unlike asteroids' `createBullet` (which resolves its pool implicitly
- * from a world resource), this factory requires the pool to be passed explicitly
- * by the caller — the two games use different pooling patterns, this is not a bug.
- * Color is hardcoded ("#00FF00") rather than theme-driven.
+ * Color is unified using Theme resource resolution with fallback.
  */
 export function createPlayerBullet(world: World<SpaceInvadersComponentRegistry>, x: number, y: number, pool: PlayerBulletPool): Entity {
   const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
+  const bulletColor = resolveThemeColorWithFallback(world, getGameplayColor("PlayerProjectile", world), "player-bullet", "bullet", "secondary");
   return pool.acquire(
     world,
     {
@@ -79,7 +77,7 @@ export function createPlayerBullet(world: World<SpaceInvadersComponentRegistry>,
         dx: 0,
         dy: -config.PLAYER_BULLET_SPEED,
         size: config.PLAYER_BULLET_SIZE,
-        color: getGameplayColor("PlayerProjectile", world),
+        color: bulletColor,
         ttl: config.PLAYER_BULLET_TTL
     }
   );
@@ -87,10 +85,11 @@ export function createPlayerBullet(world: World<SpaceInvadersComponentRegistry>,
 
 /**
  * Creates an enemy bullet using the pool.
- * @remarks See createPlayerBullet for the explicit-pool pattern used here.
+ * Color is unified using Theme resource resolution with fallback.
  */
 export function createEnemyBullet(world: World<SpaceInvadersComponentRegistry>, x: number, y: number, pool: EnemyBulletPool): Entity {
   const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
+  const enemyBulletColor = resolveThemeColorWithFallback(world, getGameplayColor("EnemyProjectile", world), "enemy", "bullet", "accent");
   return pool.acquire(
     world,
     {
@@ -99,7 +98,7 @@ export function createEnemyBullet(world: World<SpaceInvadersComponentRegistry>, 
         dx: 0,
         dy: config.ENEMY_BULLET_SPEED,
         size: config.ENEMY_BULLET_SIZE,
-        color: getGameplayColor("EnemyProjectile", world),
+        color: enemyBulletColor,
         ttl: config.ENEMY_BULLET_TTL
     }
   );

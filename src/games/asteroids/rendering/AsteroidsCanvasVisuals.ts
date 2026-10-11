@@ -1,9 +1,10 @@
-import { ShapeDrawer, ShapeType, CircleShape, SHIP_FORWARD_AXIS } from "@tiny-aster/core";
+import { ShapeDrawer, ShapeType, CircleShape, SHIP_FORWARD_AXIS, THEME_RESOURCE_KEY, Theme } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import { drawNeonShape } from "../../shared/rendering/CanvasNeonUtils";
 import { colors } from "../../../theme/colors";
-import { computeAsteroidSilhouette, computeThrustFlame } from "../../shared/rendering/ProceduralShapeUtils";
+import { computeAsteroidSilhouette, computeThrustFlame, computeMotionSecondaryEffect } from "../../shared/rendering/ProceduralShapeUtils";
 import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
+import { drawFromGeometryProfileCanvas } from "../../shared/rendering/GenericEntityDrawer";
 
 function applyAsteroidHitFlashStroke(
   ctx: CanvasRenderingContext2D,
@@ -27,12 +28,15 @@ function applyAsteroidHitFlashStroke(
 
 /**
  * Procedural player ship shape drawer for HTML5 Canvas.
- * Renders a glowing, sleek retro spacecraft with neon effects and animated thruster plumes.
+ * Supports Concept Pack parametric geometry override if available in active Theme.
  */
 export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, AsteroidsComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render) return;
+
+    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+    const customGeom = theme?.visualTheme?.shapeTokens?.playerGeometry;
 
     const size = render.size || 15;
     let baseColor = render.color || colors.cyan;
@@ -57,12 +61,42 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
       }
     }
 
-    // Thrust check & breathing glow (R8)
     const input = world.getComponent(entity, "Input");
     const isThrusting = Boolean(input && input.actions && input.actions["thrust"]);
+
+    if (customGeom) {
+      // Data-driven Concept Pack geometry rendering
+      const motionEffect = customGeom.motionEffect || "flame";
+      if (isThrusting && motionEffect !== "none") {
+        const motionData = computeMotionSecondaryEffect(motionEffect, size, tick, world.renderRandom);
+        for (let i = 0; i < motionData.particles.length; i++) {
+          const p = motionData.particles[i];
+          ctx.save();
+          ctx.fillStyle = p.color;
+          ctx.globalAlpha = p.alpha;
+          ctx.beginPath();
+          ctx.arc(p.offsetX, p.offsetY, Math.max(0.5, p.radius), 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+
+      drawFromGeometryProfileCanvas(ctx, customGeom, {
+        size,
+        baseColor,
+        isHitFlashing,
+        hitFlashColor: colors.white,
+        isThrusting,
+        tick,
+      });
+
+      ctx.restore();
+      return;
+    }
+
+    // Fallback default Asteroids ship rendering
     const breath = isThrusting ? 1.0 : (0.85 + 0.15 * Math.sin(tick / 15));
 
-    // Draw Thrust Flame if thrust is active
     if (isThrusting) {
       const { flameLen, sparks } = computeThrustFlame(size, world.renderRandom);
 
@@ -80,7 +114,6 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
       ctx.fill();
       ctx.stroke();
 
-      // Lingering Hot Plasma Exhaust Sparks
       ctx.fillStyle = "#ffffff";
       for (let i = 0; i < sparks.length; i++) {
         const { sparkOffset, sparkY, sparkRadius } = sparks[i];
@@ -90,7 +123,6 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
       }
     }
 
-    // Neon Ship Body via drawNeonShape pattern (R7 & R11)
     drawNeonShape(
       ctx,
       tick,
@@ -98,12 +130,11 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
       isHitFlashing ? "rgba(255, 255, 255, 0.4)" : "rgba(0, 240, 255, 0.15)",
       (c, widthScale) => {
         const s = size * breath * widthScale;
-        // Ship nose points along SHIP_FORWARD_AXIS (+X, 0)
         c.moveTo(s * SHIP_FORWARD_AXIS.x, s * SHIP_FORWARD_AXIS.y);
-        c.lineTo(-s * 0.7, s * 0.7); // Right back
-        c.lineTo(-s * 0.5, s * 0.3); // Center back indent
-        c.lineTo(-s * 0.5, -s * 0.3); // Center back indent
-        c.lineTo(-s * 0.7, -s * 0.7); // Left back
+        c.lineTo(-s * 0.7, s * 0.7);
+        c.lineTo(-s * 0.5, s * 0.3);
+        c.lineTo(-s * 0.5, -s * 0.3);
+        c.lineTo(-s * 0.7, -s * 0.7);
         c.closePath();
       },
       (c) => {
@@ -115,7 +146,6 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
       }
     );
 
-    // Apply intense white hit flash glow if hit flashing (R11)
     if (isHitFlashing) {
       ctx.strokeStyle = colors.white;
       ctx.shadowColor = colors.white;
@@ -152,14 +182,12 @@ export const drawAsteroidsUfo: ShapeDrawer<CanvasRenderingContext2D, AsteroidsCo
 
     const { isHitFlashing } = applyAsteroidHitFlashStroke(ctx, render, baseColor, 2);
 
-    // Draw main saucer body
     ctx.beginPath();
     ctx.ellipse(0, 0, radius, radius * 0.4, 0, 0, Math.PI * 2);
     ctx.fillStyle = isHitFlashing ? "rgba(255, 255, 255, 0.4)" : "rgba(0, 240, 255, 0.15)";
     ctx.fill();
     ctx.stroke();
 
-    // Draw top dome
     ctx.beginPath();
     ctx.arc(0, -radius * 0.2, radius * 0.45, Math.PI, 0);
     ctx.stroke();
@@ -168,17 +196,18 @@ export const drawAsteroidsUfo: ShapeDrawer<CanvasRenderingContext2D, AsteroidsCo
   }
 };
 
-
 /**
  * Procedural detailed jagged Asteroid Shape Drawer for HTML5 Canvas.
- * Renders jagged rock forms with zero allocation per frame (inline deterministic LCG).
+ * Supports Concept Pack parametric enemy geometry override if available in active Theme.
  */
 export const drawAsteroidsAsteroid: ShapeDrawer<CanvasRenderingContext2D, AsteroidsComponentRegistry> = {
   draw(ctx, world, entity) {
-        // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsSkiaVisuals.ts:173-182. Considerar extraer a función compartida. Ref: b4b40449
-const render = world.getComponent(entity, "Render");
+    const render = world.getComponent(entity, "Render");
     const collider = world.getComponent(entity, "Collider");
     if (!render) return;
+
+    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+    const customGeom = theme?.visualTheme?.shapeTokens?.enemyGeometry;
 
     let radius = 25;
     if (collider && collider.enabled && collider.shape.type === ShapeType.Circle) {
@@ -187,13 +216,24 @@ const render = world.getComponent(entity, "Render");
       radius = render.size / 2;
     }
 
-    const baseColor = render.color || colors.pink; // Neon pink default (R9)
+    const baseColor = render.color || colors.pink;
     ctx.save();
 
     const { isHitFlashing } = applyAsteroidHitFlashStroke(ctx, render, baseColor, 2);
+
+    if (customGeom) {
+      drawFromGeometryProfileCanvas(ctx, customGeom, {
+        size: radius * 2,
+        baseColor,
+        isHitFlashing,
+        hitFlashColor: colors.white,
+      });
+      ctx.restore();
+      return;
+    }
+
     ctx.lineJoin = "round";
 
-    // Geometry points based on radius (R12)
     const numPoints = radius > 30 ? 14 : radius > 18 ? 10 : 7;
     const points = computeAsteroidSilhouette(entity, radius, numPoints);
 
@@ -207,7 +247,6 @@ const render = world.getComponent(entity, "Render");
     }
     ctx.closePath();
 
-    // Body fill (R9)
     ctx.fillStyle = isHitFlashing ? "rgba(255, 255, 255, 0.4)" : "rgba(255, 0, 85, 0.12)";
     ctx.fill();
     ctx.stroke();
@@ -218,20 +257,32 @@ const render = world.getComponent(entity, "Render");
 
 /**
  * Glowing laser bullet shape drawer for HTML5 Canvas.
- * Creates a high-fidelity bullet with a bright white core and halo (R10).
+ * Supports Concept Pack parametric projectile geometry override if available in active Theme.
  */
 export const drawAsteroidsBullet: ShapeDrawer<CanvasRenderingContext2D, AsteroidsComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render) return;
 
+    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+    const customGeom = theme?.visualTheme?.shapeTokens?.projectileGeometry;
+
     const size = render.size || 2;
-    const color = render.color || colors.green; // Glowing laser green
-    const length = size * 4;
+    const color = render.color || colors.green;
 
     ctx.save();
 
-    // Laser outer glow line with halo (R10)
+    if (customGeom) {
+      drawFromGeometryProfileCanvas(ctx, customGeom, {
+        size: size * 4,
+        baseColor: color,
+      });
+      ctx.restore();
+      return;
+    }
+
+    const length = size * 4;
+
     ctx.strokeStyle = color;
     ctx.shadowColor = color;
     ctx.shadowBlur = 8;
@@ -242,7 +293,6 @@ export const drawAsteroidsBullet: ShapeDrawer<CanvasRenderingContext2D, Asteroid
     ctx.lineTo(length / 2, 0);
     ctx.stroke();
 
-    // White core line for brightness
     ctx.shadowBlur = 0;
     ctx.strokeStyle = colors.white;
     ctx.lineWidth = 1.5;

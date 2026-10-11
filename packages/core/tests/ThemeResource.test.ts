@@ -1,7 +1,10 @@
-import { World, Theme, THEME_RESOURCE_KEY, RenderComponent, SpriteComponent, BlueprintRegistry } from "../src";
+import { World, Theme, THEME_RESOURCE_KEY, RenderComponent, SpriteComponent, BlueprintRegistry, getMissionTitle, getMissionDescription } from "../src";
 import { registerAsteroidsBlueprints } from "../../../src/games/asteroids/EntityFactory";
 import { createThemeFromGameAccents } from "../../../src/theme/gameAccents";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../../../src/games/asteroids/types/AsteroidRegistry";
+import { ww2DogfightConceptPack } from "../../../src/theme/conceptPacks/ww2DogfightConceptPack";
+import { zombieSurvivalConceptPack } from "../../../src/theme/conceptPacks/zombieSurvivalConceptPack";
+import { resolvePlayerRoleVisual, calculateBossPhase } from "../../../src/games/shared/rendering/spaceInvadersMath";
 
 describe("Theme Resource & Entity Factory Integration", () => {
   it("should validate Theme resource shape in development mode", () => {
@@ -109,5 +112,55 @@ describe("Theme Resource & Entity Factory Integration", () => {
     expect(theme.spriteMap["player-ship"]).toBe("hero_ship");
     expect(theme.colorMap["player"]).toBeDefined();
     expect(theme.colorMap["enemy"]).toBeDefined();
+  });
+
+  describe("Concept Pack System Verification", () => {
+    it("should resolve parametric geometry, custom role labels, and mission overrides for WW2 Dogfight pack", () => {
+      const theme = ww2DogfightConceptPack;
+      expect(theme.visualTheme?.shapeTokens?.playerGeometry?.motionEffect).toBe("exhaust_smoke");
+      expect(theme.visualTheme?.shapeTokens?.playerGeometry?.subPaths.length).toBeGreaterThan(0);
+
+      // Mission title override
+      const title = getMissionTitle(theme, "rey_del_caos", "Rey del Caos");
+      expect(title).toBe("Reina del Humo");
+
+      // Mission description override
+      const desc = getMissionDescription(theme, "rey_del_caos", "Default desc");
+      expect(desc).toContain("bombardero pesado");
+
+      // Role visual resolution
+      const roleVisual = resolvePlayerRoleVisual("hunter", theme);
+      expect(roleVisual.name).toBe("LÍDER DE ESCUADRÓN");
+      expect(roleVisual.roleColor).toBe("#FF5500");
+    });
+
+    it("should resolve parametric geometry, role visuals, and mission overrides for Zombie Survival pack", () => {
+      const theme = zombieSurvivalConceptPack;
+      expect(theme.visualTheme?.shapeTokens?.playerGeometry?.motionEffect).toBe("dust_trail");
+
+      // Mission title override
+      const title = getMissionTitle(theme, "rey_del_caos", "Rey del Caos");
+      expect(title).toBe("Zona de Contagio");
+
+      // Role visual resolution
+      const roleVisual = resolvePlayerRoleVisual("hunter", theme);
+      expect(roleVisual.name).toBe("SUPERVIVIENTE BERSERKER");
+      expect(roleVisual.roleColor).toBe("#E76F51");
+    });
+
+    it("should fall back to default mission strings and original role visuals when no concept pack is present", () => {
+      const defaultTheme = createThemeFromGameAccents("asteroids");
+
+      const title = getMissionTitle(defaultTheme, "rey_del_caos", "Rey del Caos");
+      expect(title).toBe("Rey del Caos");
+
+      const roleVisual = resolvePlayerRoleVisual("hunter", defaultTheme);
+      expect(roleVisual.name).toBe("HUNTER");
+      expect(roleVisual.roleColor).toBe("#FF006E");
+
+      const phaseVisual = calculateBossPhase(0.2, defaultTheme);
+      expect(phaseVisual.phase).toBe(3);
+      expect(phaseVisual.baseColor).toBe("#FF4444");
+    });
   });
 });

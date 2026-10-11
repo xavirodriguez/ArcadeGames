@@ -1,4 +1,4 @@
-import { ShapeDrawer, EffectDrawer, World } from "@tiny-aster/core";
+import { ShapeDrawer, EffectDrawer, World, THEME_RESOURCE_KEY, Theme } from "@tiny-aster/core";
 import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { colors } from "../../../theme/colors";
 import {
@@ -18,6 +18,7 @@ import {
 import { calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVisual } from "../../shared/rendering/spaceInvadersMath";
 import { EXPLOSION_PARTICLE_POOL, spawnLayeredExplosion, updateExplosionParticles } from "./ExplosionParticlePool";
 import { CircularPositionBuffer } from "../../shared/rendering/SharedVFX";
+import { drawFromGeometryProfileCanvas } from "../../shared/rendering/GenericEntityDrawer";
 
 export { EXPLOSION_PARTICLE_POOL, spawnLayeredExplosion, updateExplosionParticles };
 
@@ -41,8 +42,7 @@ function getBulletTrailBuffer(render: any): CircularPositionBuffer {
 }
 
 export function drawExplosionParticlesCanvas(ctx: CanvasRenderingContext2D): void {
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:47-52. Considerar extraer a función compartida. Ref: 0b6a9ef2
-ctx.save();
+  ctx.save();
   for (let i = 0; i < EXPLOSION_PARTICLE_POOL.length; i++) {
     const data = resolveExplosionParticleData(EXPLOSION_PARTICLE_POOL[i]);
     if (!data) continue;
@@ -88,7 +88,7 @@ export const drawExplosionBackgroundEffect: EffectDrawer<CanvasRenderingContext2
 };
 
 /**
- * Visuals for the player ship.
+ * Visuals for the player ship. Supports Concept Pack geometry overrides.
  */
 export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, SpaceInvadersComponentRegistry> = {
   draw(ctx, world, entity) {
@@ -96,9 +96,12 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
     if (!render) return;
     const { size = 40 } = render;
 
+    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+    const customGeom = theme?.visualTheme?.shapeTokens?.playerGeometry;
+
     const playerComp = world.getComponent(entity, "Player");
     const role = playerComp?.role || "pioneer";
-    const { roleColor } = resolvePlayerRoleVisual(role);
+    const { roleColor } = resolvePlayerRoleVisual(role, theme);
 
     const flash = applyHitFlash(render, render.color || roleColor);
     const color = flash.color;
@@ -113,7 +116,31 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
       ctx.rotate(tilt);
     }
 
-    // Role-specific visual aura / range feedback
+    if (customGeom) {
+      drawFromGeometryProfileCanvas(ctx, customGeom, {
+        size,
+        baseColor: color,
+        isHitFlashing: flash.opacity < 1.0,
+      });
+      ctx.restore();
+
+      // Defensive neon shield if invulnerable
+      const health = world.getComponent(entity, "Health");
+      const shieldState = resolveShieldPulseState(health, size, world.tick);
+      if (shieldState.isInvulnerable) {
+        const { shieldAlpha, radius } = shieldState;
+        ctx.save();
+        ctx.strokeStyle = colors.cyan;
+        ctx.lineWidth = 3;
+        ctx.globalAlpha = shieldAlpha;
+        ctx.beginPath();
+        ctx.arc(0, 0, radius, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+      return;
+    }
+
     const tick = world.tick;
     if (role === "hunter") {
       const auraRadius = size * 1.8 + Math.sin(tick * 0.15) * 4;
@@ -143,10 +170,8 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
       ctx.stroke();
     }
 
-    // 2. Flickering dual-stage thruster plume tail (at the bottom)
     const plumeLength = calculateThrusterPlumeLength(tick, size);
 
-    // Outer plasma flame
     ctx.fillStyle = colors.orangeDark;
     ctx.beginPath();
     ctx.moveTo(-size / 5, size / 4);
@@ -155,7 +180,6 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
     ctx.closePath();
     ctx.fill();
 
-    // Inner hotter core flame
     ctx.fillStyle = colors.gold;
     ctx.beginPath();
     ctx.moveTo(-size / 8, size / 4);
@@ -164,10 +188,8 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
     ctx.closePath();
     ctx.fill();
 
-    // 3. Futuristic high-fidelity cockpit, body wings, and neon trims
     ctx.fillStyle = color;
 
-    // Main central chassis
     ctx.beginPath();
     ctx.moveTo(0, -size / 2);
     ctx.lineTo(size / 4, -size / 6);
@@ -181,7 +203,6 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
     ctx.closePath();
     ctx.fill();
 
-    // Neon Wingtips / Cannons
     ctx.strokeStyle = colors.cyan;
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -191,12 +212,10 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
     ctx.lineTo(size / 3, -size / 3);
     ctx.stroke();
 
-    // Cannons white cores
     ctx.fillStyle = colors.white;
     ctx.fillRect(-size / 3 - 1, -size / 3, 2, size / 4);
     ctx.fillRect(size / 3 - 1, -size / 3, 2, size / 4);
 
-    // Dynamic Muzzle Fire Recoil & Energetic Tip Flares / Muzzle Flash
     const isShooting = isPlayerShooting(world, entity);
     const { flashSize, muzzleFlashFrames, shouldDrawFlash } = resolveMuzzleFlashState(render, isShooting, tick);
     if (shouldDrawFlash) {
@@ -224,7 +243,6 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
       ctx.shadowColor = "transparent";
     }
 
-    // High-energy cockpit glass canopy (Cyan)
     ctx.fillStyle = colors.cyan;
     ctx.beginPath();
     ctx.moveTo(0, -size / 3);
@@ -235,7 +253,6 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
     ctx.closePath();
     ctx.fill();
 
-    // Inner bright white cockpit reflection
     ctx.fillStyle = colors.white;
     ctx.beginPath();
     ctx.moveTo(-size / 12, -size / 5);
@@ -246,7 +263,6 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
 
     ctx.restore();
 
-    // 4. Glowing defensive neon invulnerability bubble shield
     const health = world.getComponent(entity, "Health");
     const shieldState = resolveShieldPulseState(health, size, tick);
     if (shieldState.isInvulnerable) {
@@ -281,7 +297,7 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
 };
 
 /**
- * Visuals for an invader.
+ * Visuals for an invader. Supports Concept Pack enemy geometry overrides.
  */
 export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, SpaceInvadersComponentRegistry> = {
   draw(ctx, world, entity) {
@@ -289,12 +305,26 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
     if (!render) return;
     const { size = 15 } = render;
 
+    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+    const customGeom = theme?.visualTheme?.shapeTokens?.enemyGeometry;
+
     const invaderComp = world.getComponent(entity, "Invader");
     const enemyTag = world.getComponent(entity, "EnemyTag");
     const { baseColor, isTeleporter } = resolveInvaderColor(render, invaderComp, enemyTag);
 
     const flash = applyHitFlash(render, baseColor);
     const tick = world.tick;
+
+    if (customGeom) {
+      ctx.save();
+      drawFromGeometryProfileCanvas(ctx, customGeom, {
+        size: size * 1.8,
+        baseColor: flash.color,
+        globalAlpha: flash.opacity,
+      });
+      ctx.restore();
+      return;
+    }
 
     const shimmerAlpha = calculateTeleporterShimmer(isTeleporter, tick);
     if (isTeleporter) {
@@ -308,16 +338,13 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
     const s = size / 11;
     const animPhase = Math.floor(tick / 15) % 2 === 0;
 
-    // Head/Antennae
     ctx.fillRect(-s * 4, -s * 5, s, s);
     ctx.fillRect(s * 3, -s * 5, s, s);
     ctx.fillRect(-s * 3, -s * 4, s, s);
     ctx.fillRect(s * 2, -s * 4, s, s);
 
-    // Main Face
     ctx.fillRect(-s * 4, -s * 3, s * 8, s * 4);
 
-    // Tentacles/Legs that animate!
     if (animPhase) {
       ctx.fillRect(-s * 5, -s, s, s * 3);
       ctx.fillRect(s * 4, -s, s, s * 3);
@@ -334,7 +361,6 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
       ctx.fillRect(s * 1, s, s * 2, s);
     }
 
-    // Glowing alien cyber-cores/eyes
     const eyePulse = (1.0 + Math.sin(tick * 0.3)) * 0.5;
     ctx.fillStyle = colors.redHot;
     ctx.shadowColor = colors.redHot;
@@ -344,7 +370,6 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
 
     ctx.shadowBlur = 0;
 
-    // Draw telegraphing laser line or warning column indicator for kamikaze
     const kamiAim = resolveKamikazeAimVector(world, entity);
     if (kamiAim) {
       const { phase, relTargetX, relTargetY, blinkAlpha, pulse, bottomRelY } = kamiAim;
@@ -400,12 +425,25 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
 };
 
 /**
- * Visuals for bullets using CircularPositionBuffer for historical motion trails.
+ * Visuals for bullets using CircularPositionBuffer or Concept Pack geometry.
  */
 export const drawSpaceInvadersBullet: ShapeDrawer<CanvasRenderingContext2D, SpaceInvadersComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render) return;
+
+    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+    const customGeom = theme?.visualTheme?.shapeTokens?.projectileGeometry;
+
+    if (customGeom) {
+      ctx.save();
+      drawFromGeometryProfileCanvas(ctx, customGeom, {
+        size: (render.size || 6) * 2,
+        baseColor: render.color || colors.gold,
+      });
+      ctx.restore();
+      return;
+    }
 
     const trail = getBulletTrailBuffer(render);
     const bulletContext = resolveBulletTrailContext(world, entity, render, trail);
@@ -425,8 +463,7 @@ export const drawSpaceInvadersBullet: ShapeDrawer<CanvasRenderingContext2D, Spac
 
     ctx.save();
 
-        // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:408-413. Considerar extraer a función compartida. Ref: 6c726b50
-ctx.fillStyle = glowColor;
+    ctx.fillStyle = glowColor;
     for (let i = 1; i < points.length; i++) {
       const pt = points[i];
       const relX = pt.x - currentX;
@@ -454,13 +491,15 @@ ctx.fillStyle = glowColor;
 };
 
 /**
- * Visuals for the Boss flagship.
+ * Visuals for the Boss flagship. Supports Concept Pack boss geometry overrides.
  */
 export const drawSpaceInvadersBoss: ShapeDrawer<CanvasRenderingContext2D, SpaceInvadersComponentRegistry> = {
   draw(ctx, world, entity) {
-        // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:437-456. Considerar extraer a función compartida. Ref: 75c8043c
-const render = world.getComponent(entity, "Render");
+    const render = world.getComponent(entity, "Render");
     if (!render) return;
+
+    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+    const customGeom = theme?.visualTheme?.shapeTokens?.bossGeometry;
 
     const bossState = resolveBossVisualState(world, entity, render);
     const {
@@ -489,6 +528,15 @@ const render = world.getComponent(entity, "Render");
 
     ctx.translate(vibX, vibY);
     ctx.scale(scaleMultiplier, scaleMultiplier);
+
+    if (customGeom) {
+      drawFromGeometryProfileCanvas(ctx, customGeom, {
+        size: (render.size || 80),
+        baseColor: flash.color,
+      });
+      ctx.restore();
+      return;
+    }
 
     if (phase === 3) {
       const auraPulse = 1.0 + 0.25 * Math.sin(world.tick * 0.5);

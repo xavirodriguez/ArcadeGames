@@ -1,4 +1,5 @@
 import { colors } from "../../../theme/colors";
+import type { Theme } from "@tiny-aster/core";
 
 /**
  * Pure math helpers for Space Invaders visual calculations.
@@ -18,35 +19,37 @@ export interface BossPhaseState {
   scaleMultiplier: number;
 }
 
-export function calculateBossPhase(hpRatio: number): BossPhaseState {
+export function calculateBossPhase(hpRatio: number, theme?: Theme): BossPhaseState {
+  let phaseIndex = 1;
+  let defaultBaseColor: string = colors.gold;
+  let defaultAccentColor: string = colors.cyan;
+  let defaultAuraColor: string = "rgba(255, 215, 0, 0.25)";
+  let defaultScale = 1.0;
+
   if (hpRatio <= 0.33) {
-    return {
-      phase: 3,
-      baseColor: "#FF4444",
-      accentColor: "#FF0055",
-      auraColor: "rgba(255, 68, 68, 0.7)",
-      healthBarColor: "#FF4444",
-      scaleMultiplier: 1.25
-    };
+    phaseIndex = 3;
+    defaultBaseColor = "#FF4444";
+    defaultAccentColor = "#FF0055";
+    defaultAuraColor = "rgba(255, 68, 68, 0.7)";
+    defaultScale = 1.25;
   } else if (hpRatio <= 0.66) {
-    return {
-      phase: 2,
-      baseColor: colors.gold,
-      accentColor: "#F97316",
-      auraColor: "rgba(249, 115, 22, 0.45)",
-      healthBarColor: "#F97316",
-      scaleMultiplier: 1.2
-    };
-  } else {
-    return {
-      phase: 1,
-      baseColor: colors.gold,
-      accentColor: colors.cyan,
-      auraColor: "rgba(255, 215, 0, 0.25)",
-      healthBarColor: colors.gold,
-      scaleMultiplier: 1.0
-    };
+    phaseIndex = 2;
+    defaultBaseColor = colors.gold;
+    defaultAccentColor = "#F97316";
+    defaultAuraColor = "rgba(249, 115, 22, 0.45)";
+    defaultScale = 1.2;
   }
+
+  const phaseSpec = theme?.visualTheme?.phaseVisuals?.[phaseIndex];
+
+  return {
+    phase: phaseIndex,
+    baseColor: phaseSpec?.color || defaultBaseColor,
+    accentColor: phaseSpec?.accentColor || defaultAccentColor,
+    auraColor: phaseSpec?.auraColor || defaultAuraColor,
+    healthBarColor: phaseSpec?.color || defaultBaseColor,
+    scaleMultiplier: defaultScale,
+  };
 }
 
 export function calculateBossVibrato(phase: number, tick: number): { vibX: number; vibY: number } {
@@ -67,11 +70,23 @@ export function calculateTeleporterShimmer(isTeleporter: boolean, tick: number):
   return 0.625 + 0.375 * Math.sin((tick / 36) * Math.PI * 2);
 }
 
-export function resolvePlayerRoleVisual(role?: string): { roleColor: string; shapeIcon: string; name: string } {
-  if (role === "hunter") return { roleColor: "#FF006E", shapeIcon: "◆", name: "HUNTER" };
-  if (role === "sentinel") return { roleColor: "#00D9FF", shapeIcon: "△", name: "SENTINEL" };
-  if (role === "support") return { roleColor: "#FFD700", shapeIcon: "⬠", name: "SUPPORT" };
-  return { roleColor: colors.green, shapeIcon: "▓", name: "PIONEER" };
+export function resolvePlayerRoleVisual(role?: string, theme?: Theme): { roleColor: string; shapeIcon: string; name: string } {
+  const normRole = role || "pioneer";
+  const roleSpec = theme?.visualTheme?.roleVisuals?.[normRole];
+  const roleLabelOverride = theme?.conceptPack?.roleLabels?.[normRole];
+
+  if (roleSpec) {
+    return {
+      roleColor: roleSpec.color || colors.green,
+      shapeIcon: roleSpec.icon || "▓",
+      name: roleLabelOverride || roleSpec.name || normRole.toUpperCase(),
+    };
+  }
+
+  if (normRole === "hunter") return { roleColor: "#FF006E", shapeIcon: "◆", name: roleLabelOverride || "HUNTER" };
+  if (normRole === "sentinel") return { roleColor: "#00D9FF", shapeIcon: "△", name: roleLabelOverride || "SENTINEL" };
+  if (normRole === "support") return { roleColor: "#FFD700", shapeIcon: "⬠", name: roleLabelOverride || "SUPPORT" };
+  return { roleColor: colors.green, shapeIcon: "▓", name: roleLabelOverride || "PIONEER" };
 }
 
 export function calculateBulletProximity(world: any, entity: number, isPlayerBullet: boolean): number {

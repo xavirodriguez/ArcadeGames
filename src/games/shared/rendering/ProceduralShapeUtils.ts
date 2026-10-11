@@ -11,14 +11,6 @@ const DISPLACED_COORD = { x: 0, y: 0 };
 /**
  * Calculates real-time neon grid point displacement based on player and bullets coordinates.
  * Pure mathematical computation shared between Canvas and Skia renderers.
- *
- * @param x - Grid point X coordinate
- * @param y - Grid point Y coordinate
- * @param px - Player X coordinate
- * @param py - Player Y coordinate
- * @param bulletCoords - Array of active bullet coordinates
- * @param bulletCount - Count of active bullets
- * @returns Displaced coordinate object (reused instance)
  */
 export function getDisplacedPoint(
   x: number,
@@ -64,11 +56,6 @@ export function getDisplacedPoint(
 
 /**
  * Computes procedural jagged asteroid silhouette vertices deterministically using LCG.
- *
- * @param entitySeed - Unique entity seed identifier
- * @param radius - Base radius of the asteroid
- * @param numPoints - Number of perimeter vertices to calculate
- * @returns Array of relative 2D point offsets \{ x, y \}
  */
 export function computeAsteroidSilhouette(
   entitySeed: number,
@@ -103,10 +90,6 @@ export interface ThrustFlameData {
 
 /**
  * Computes thruster flame length and lingering hot plasma exhaust spark positions deterministically.
- *
- * @param size - Ship size parameter
- * @param rng - Deterministic random number generator instance (world.renderRandom)
- * @returns ThrustFlameData object with flame length and array of sparks
  */
 export function computeThrustFlame(
   size: number,
@@ -126,6 +109,88 @@ export function computeThrustFlame(
   return { flameLen, sparks };
 }
 
+/** Motion secondary particle structure for Concept Pack exhaust and movement trail rendering */
+export interface MotionParticle {
+  offsetX: number;
+  offsetY: number;
+  radius: number;
+  alpha: number;
+  color: string;
+}
+
+/** Data packet for generalized secondary motion effects (flame, exhaust_smoke, dust_trail) */
+export interface MotionEffectData {
+  effectType: "flame" | "exhaust_smoke" | "dust_trail" | "none";
+  length: number;
+  particles: MotionParticle[];
+}
+
+/**
+ * Generalizes secondary movement effects across concept packs ("flame", "exhaust_smoke", "dust_trail").
+ */
+export function computeMotionSecondaryEffect(
+  effectType: "flame" | "exhaust_smoke" | "dust_trail" | "none",
+  size: number,
+  tick: number,
+  rng?: { next: () => number; nextRange: (min: number, max: number) => number }
+): MotionEffectData {
+  if (effectType === "none") {
+    return { effectType: "none", length: 0, particles: [] };
+  }
+
+  const nextRng = rng?.next ? rng.next : () => Math.random();
+  const flicker = 0.85 + 0.3 * (nextRng() - 0.5);
+  const length = size * 1.4 * flicker;
+  const particles: MotionParticle[] = [];
+
+  if (effectType === "exhaust_smoke") {
+    // Heavy engine exhaust puff clouds
+    for (let i = 0; i < 4; i++) {
+      const offsetX = -size * 0.5 - (i * length * 0.3);
+      const offsetY = ((nextRng() - 0.5) * size * 0.4);
+      const radius = Math.max(1.5, (i + 1) * 2.2);
+      const alpha = Math.max(0.1, 0.7 - i * 0.15);
+      particles.push({
+        offsetX,
+        offsetY,
+        radius,
+        alpha,
+        color: i === 0 ? "#FF9900" : "#888888",
+      });
+    }
+  } else if (effectType === "dust_trail") {
+    // Footstep ground dust trail clouds
+    for (let i = 0; i < 3; i++) {
+      const offsetX = -size * 0.3 - (i * length * 0.25);
+      const offsetY = ((nextRng() - 0.5) * size * 0.5);
+      const radius = Math.max(1.0, (i + 1) * 1.8);
+      const alpha = Math.max(0.1, 0.5 - i * 0.15);
+      particles.push({
+        offsetX,
+        offsetY,
+        radius,
+        alpha,
+        color: "#8B7D6B",
+      });
+    }
+  } else {
+    // Default neon thruster flame
+    const flameData = computeThrustFlame(size, rng || { next: () => 0.5, nextRange: (a, b) => (a + b) / 2 });
+    for (let i = 0; i < flameData.sparks.length; i++) {
+      const s = flameData.sparks[i];
+      particles.push({
+        offsetX: -(size * 0.4 + s.sparkOffset),
+        offsetY: s.sparkY,
+        radius: s.sparkRadius,
+        alpha: 0.8,
+        color: "#FFD700",
+      });
+    }
+  }
+
+  return { effectType, length, particles };
+}
+
 /** Calculated FlappyBird thruster flame dimensions */
 export interface FlappyThrusterFlameData {
   flameLength: number;
@@ -134,11 +199,6 @@ export interface FlappyThrusterFlameData {
 
 /**
  * Computes FlappyBird thermonuclear reactive thruster flame length and width based on velocity and tick flicker.
- *
- * @param size - Ship size parameter
- * @param vy - Vertical velocity of the ship (vy < 0 means boosting)
- * @param tick - World simulation tick
- * @returns FlappyThrusterFlameData with flameLength and flameWidth
  */
 export function computeFlappyThrusterFlame(
   size: number,
@@ -154,9 +214,6 @@ export function computeFlappyThrusterFlame(
 
 /**
  * Calculates the standard neon glow pulsing scale factor deterministically based on tick count.
- *
- * @param tick - World simulation tick
- * @returns Pulse scale factor (around 1.0 with 8% sinusoidal variance)
  */
 export function computeNeonPulse(tick: number): number {
   return 1.0 + 0.08 * Math.sin(tick / 6);

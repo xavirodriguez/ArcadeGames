@@ -27,6 +27,7 @@ import { AttractModeController } from "@tiny-aster/gameplay-kit";
 import { useTranslation } from "@/hooks/useTranslation";
 import { hapticSelection } from "@/utils/haptics";
 import { colors, neonTextGlow } from "../../theme";
+import { GameThemeProvider } from "@/context/GameThemeProvider";
 import {
   GameScreen,
   GameTitle,
@@ -170,32 +171,34 @@ export default function SpaceInvadersScreen() {
 
   if (!started) {
     return (
-      <StartScreen
-        title="SPACE INVADERS"
-        highScore={highScore}
-        onStart={() => {
-          hapticSelection();
-          setIsMulti(false);
-          setStarted(true);
-        }}
-        onStartMulti={() => {
-          hapticSelection();
-          setIsMulti(true);
-          setStarted(true);
-        }}
-        playerName={playerName}
-        onPlayerNameChange={handlePlayerNameChange}
-        instructions={Platform.OS === "web" ? t["space-invaders"].instructions : t.common.touch_controls}
-        onSeedChange={setInitialSeed}
-        onStartDaily={(dailySeed) => {
-          hapticSelection();
-          setInitialSeed(dailySeed);
-          setIsDaily(true);
-          setIsMulti(false);
-          setStarted(true);
-        }}
-        activeMutators={activeMutators}
-      />
+      <GameThemeProvider gameKey="space-invaders">
+        <StartScreen
+          title="SPACE INVADERS"
+          highScore={highScore}
+          onStart={() => {
+            hapticSelection();
+            setIsMulti(false);
+            setStarted(true);
+          }}
+          onStartMulti={() => {
+            hapticSelection();
+            setIsMulti(true);
+            setStarted(true);
+          }}
+          playerName={playerName}
+          onPlayerNameChange={handlePlayerNameChange}
+          instructions={Platform.OS === "web" ? t["space-invaders"].instructions : t.common.touch_controls}
+          onSeedChange={setInitialSeed}
+          onStartDaily={(dailySeed) => {
+            hapticSelection();
+            setInitialSeed(dailySeed);
+            setIsDaily(true);
+            setIsMulti(false);
+            setStarted(true);
+          }}
+          activeMutators={activeMutators}
+        />
+      </GameThemeProvider>
     );
   }
 
@@ -203,104 +206,106 @@ export default function SpaceInvadersScreen() {
 
   return (
     <GameErrorBoundary gameId="space-invaders">
-    <SafeAreaProvider>
-      <GameLayoutShell
-        style={sharedScreenStyles.container}
-        backgroundSlot={<RadialBackground />}
-        topLeftSlot={<BackButton label={t.common.menu} />}
-        hudSlot={
-          <>
-            <ComboDisplay multiplier={gameState?.multiplier || 1} isActive={true} />
-            <SpaceInvadersUI
-              gameState={gameState}
-              onRestart={() => isMulti ? room?.send("start_game") : game.restart()}
-              onPause={() => togglePause()}
-              isPaused={isPaused}
-              highScore={highScore}
-              seed={seed}
-              onSetSeed={restartWithSeed}
-              onContinue={() => {
-                game.getEventBus().emit("player:continue", {});
-              }}
-            />
-          </>
-        }
-        canvasSlot={
-          <CanvasRenderer
-            world={() => game.getWorld()}
-            gameLoop={game.getGameLoop()}
-            onInitialize={(renderer) => game.initializeRenderer(renderer)}
-          />
-        }
-        controlsSlot={
-          !gameState?.isGameOver ? (
-            <View style={styles.controls} pointerEvents="box-none">
-              <View style={{ flex: 1, height: '100%' }} pointerEvents="box-none">
-                <TouchVirtualJoystick
-                  touchState={touchStateRef.current ?? undefined}
-                  floating={true}
-                  onMove={(x, y) => {
-                    handleMultiplayerInput({
-                      moveLeft: x < -0.25,
-                      moveRight: x > 0.25,
-                    });
-                  }}
-                  onRelease={() => {
-                    handleMultiplayerInput({
-                      moveLeft: false,
-                      moveRight: false,
-                    });
-                  }}
-                />
-              </View>
-              <View style={{ width: 120, height: '100%', justifyContent: 'flex-end', alignItems: 'center' }} pointerEvents="box-none">
-                <TouchActionButton
-                  label="🔥"
-                  buttonName="shoot"
-                  touchState={touchStateRef.current ?? undefined}
-                  size={80}
-                  onPressIn={() => handleMultiplayerInput({ shoot: true })}
-                  onPressOut={() => handleMultiplayerInput({ shoot: false })}
-                />
-              </View>
-            </View>
-          ) : null
-        }
-        debugSlot={<DebugOverlay game={game} room={room} />}
-        overlaySlot={
-          <>
-            {isAttractMode && (
-              <TouchableOpacity
-                style={styles.attractOverlay}
-                activeOpacity={1}
-                onPress={() => {
-                  setIsAttractMode(false);
-                  setStarted(false);
-                }}
-              >
-                <Text style={styles.attractTitle}>DEMO MODE</Text>
-                <Text style={styles.attractSubtitle}>TAP ANYWHERE TO PLAY</Text>
-              </TouchableOpacity>
-            )}
-            {isMulti && !connected && (
-              <View style={sharedScreenStyles.overlay}>
-                <Text style={sharedScreenStyles.overlayText}>{t.common.connecting}</Text>
-              </View>
-            )}
-            {showDailyResults && seed !== undefined && (
-              <View style={sharedScreenStyles.overlay}>
-                <DailyResultsOverlay
-                  gameId="space-invaders"
-                  score={gameState.score}
+      <SafeAreaProvider>
+        <GameThemeProvider gameKey="space-invaders">
+          <GameLayoutShell
+            style={sharedScreenStyles.container}
+            backgroundSlot={<RadialBackground />}
+            topLeftSlot={<BackButton label={t.common.menu} />}
+            hudSlot={
+              <>
+                <ComboDisplay multiplier={gameState?.multiplier || 1} isActive={true} />
+                <SpaceInvadersUI
+                  gameState={gameState}
+                  onRestart={() => isMulti ? room?.send("start_game") : game.restart()}
+                  onPause={() => togglePause()}
+                  isPaused={isPaused}
+                  highScore={highScore}
                   seed={seed}
-                  onClose={() => setShowDailyResults(false)}
+                  onSetSeed={restartWithSeed}
+                  onContinue={() => {
+                    game.getEventBus().emit("player:continue", {});
+                  }}
                 />
-              </View>
-            )}
-          </>
-        }
-      />
-    </SafeAreaProvider>
+              </>
+            }
+            canvasSlot={
+              <CanvasRenderer
+                world={() => game.getWorld()}
+                gameLoop={game.getGameLoop()}
+                onInitialize={(renderer) => game.initializeRenderer(renderer)}
+              />
+            }
+            controlsSlot={
+              !gameState?.isGameOver ? (
+                <View style={styles.controls} pointerEvents="box-none">
+                  <View style={{ flex: 1, height: '100%' }} pointerEvents="box-none">
+                    <TouchVirtualJoystick
+                      touchState={touchStateRef.current ?? undefined}
+                      floating={true}
+                      onMove={(x, y) => {
+                        handleMultiplayerInput({
+                          moveLeft: x < -0.25,
+                          moveRight: x > 0.25,
+                        });
+                      }}
+                      onRelease={() => {
+                        handleMultiplayerInput({
+                          moveLeft: false,
+                          moveRight: false,
+                        });
+                      }}
+                    />
+                  </View>
+                  <View style={{ width: 120, height: '100%', justifyContent: 'flex-end', alignItems: 'center' }} pointerEvents="box-none">
+                    <TouchActionButton
+                      label="🔥"
+                      buttonName="shoot"
+                      touchState={touchStateRef.current ?? undefined}
+                      size={80}
+                      onPressIn={() => handleMultiplayerInput({ shoot: true })}
+                      onPressOut={() => handleMultiplayerInput({ shoot: false })}
+                    />
+                  </View>
+                </View>
+              ) : null
+            }
+            debugSlot={<DebugOverlay game={game} room={room} />}
+            overlaySlot={
+              <>
+                {isAttractMode && (
+                  <TouchableOpacity
+                    style={styles.attractOverlay}
+                    activeOpacity={1}
+                    onPress={() => {
+                      setIsAttractMode(false);
+                      setStarted(false);
+                    }}
+                  >
+                    <Text style={styles.attractTitle}>DEMO MODE</Text>
+                    <Text style={styles.attractSubtitle}>TAP ANYWHERE TO PLAY</Text>
+                  </TouchableOpacity>
+                )}
+                {isMulti && !connected && (
+                  <View style={sharedScreenStyles.overlay}>
+                    <Text style={sharedScreenStyles.overlayText}>{t.common.connecting}</Text>
+                  </View>
+                )}
+                {showDailyResults && seed !== undefined && (
+                  <View style={sharedScreenStyles.overlay}>
+                    <DailyResultsOverlay
+                      gameId="space-invaders"
+                      score={gameState.score}
+                      seed={seed}
+                      onClose={() => setShowDailyResults(false)}
+                    />
+                  </View>
+                )}
+              </>
+            }
+          />
+        </GameThemeProvider>
+      </SafeAreaProvider>
     </GameErrorBoundary>
   );
 }

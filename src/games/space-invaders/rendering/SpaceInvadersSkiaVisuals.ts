@@ -14,7 +14,7 @@ import {
   resolveParticleState,
   resolveExplosionParticleData,
 } from "./SpaceInvadersVisualUtils";
-import { calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVisual } from "../../shared/rendering/spaceInvadersMath";
+import { calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVisual, calculateShieldCrackCoords } from "../../shared/rendering/spaceInvadersMath";
 import { safeGetRenderComponent, getRenderFlash } from "./RenderHelper";
 import { EXPLOSION_PARTICLE_POOL, updateExplosionParticles } from "./ExplosionParticlePool";
 
@@ -630,16 +630,7 @@ export const drawSkiaSpaceInvadersShield: ShapeDrawer<any, SpaceInvadersComponen
 
       let coords = cachedShieldCracks.get(render);
       if (!coords) {
-        const x1 = -size / 2 + ((entity * 17) % size);
-        const y1 = -size / 2;
-        const x2 = size / 2 - ((entity * 41) % size);
-        const y2 = size / 2;
-        const x3 = size / 2;
-        const y3 = -size / 2 + ((entity * 97) % size);
-        const x4 = -size / 2;
-        const y4 = size / 2 - ((entity * 97) % size);
-
-        coords = { x1, y1, x2, y2, x3, y3, x4, y4 };
+        coords = calculateShieldCrackCoords(entity, size);
         cachedShieldCracks.set(render, coords);
       }
 

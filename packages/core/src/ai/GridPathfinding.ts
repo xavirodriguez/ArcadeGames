@@ -106,17 +106,10 @@ public static bfs(
     target: GridPoint,
     options?: PathfindingOptions
   ): GridPoint[] {
-    if (!grid.isWalkable(start.x, start.y) || !grid.isWalkable(target.x, target.y)) {
-      return [];
-    }
+    const prep = preparePathfinding(grid, start, target, options);
+    if (prep.earlyExit) return prep.initialPath!;
 
-    if (start.x === target.x && start.y === target.y) {
-      return options?.includeStart !== false ? [{ x: start.x, y: start.y }] : [];
-    }
-
-    const directions = options?.allowDiagonal ? EIGHT_DIRECTIONS : CARDINAL_DIRECTIONS;
-    const maxNodes = options?.maxNodes ?? 10000;
-    const includeStart = options?.includeStart !== false;
+    const { directions, maxNodes, includeStart } = prep;
 
     const queue: GridPoint[] = [start];
     const visited = new Set<string>();
@@ -142,11 +135,7 @@ public static bfs(
         const nx = current.x + dir.x;
         const ny = current.y + dir.y;
 
-        if (nx < 0 || nx >= grid.width || ny < 0 || ny >= grid.height) {
-          continue;
-        }
-
-        if (!grid.isWalkable(nx, ny)) {
+        if (!isTileWalkableInBounds(grid, nx, ny)) {
           continue;
         }
 
@@ -181,17 +170,10 @@ public static bfs(
     target: GridPoint,
     options?: PathfindingOptions
   ): GridPoint[] {
-    if (!grid.isWalkable(start.x, start.y) || !grid.isWalkable(target.x, target.y)) {
-      return [];
-    }
+    const prep = preparePathfinding(grid, start, target, options);
+    if (prep.earlyExit) return prep.initialPath!;
 
-    if (start.x === target.x && start.y === target.y) {
-      return options?.includeStart !== false ? [{ x: start.x, y: start.y }] : [];
-    }
-
-    const directions = options?.allowDiagonal ? EIGHT_DIRECTIONS : CARDINAL_DIRECTIONS;
-    const maxNodes = options?.maxNodes ?? 10000;
-    const includeStart = options?.includeStart !== false;
+    const { directions, maxNodes, includeStart } = prep;
     const random = options?.random;
 
     interface ANode {
@@ -263,11 +245,7 @@ public static bfs(
         const nx = current.point.x + dir.x;
         const ny = current.point.y + dir.y;
 
-        if (nx < 0 || nx >= grid.width || ny < 0 || ny >= grid.height) {
-          continue;
-        }
-
-        if (!grid.isWalkable(nx, ny)) {
+        if (!isTileWalkableInBounds(grid, nx, ny)) {
           continue;
         }
 
@@ -340,8 +318,7 @@ public static bfs(
         // At the start tile (distance == 0), we move forward.
         // On subsequent tiles:
         // If there are multiple choices (junction) OR zero choices (dead end) OR forward path is blocked:
-        const forwardIsWalkable =
-          nextX >= 0 && nextX < grid.width && nextY >= 0 && nextY < grid.height && grid.isWalkable(nextX, nextY);
+        const forwardIsWalkable = isTileWalkableInBounds(grid, nextX, nextY);
 
         if (available.length > 1 || available.length === 0 || !forwardIsWalkable) {
           // Reached intersection / decision point / corner
@@ -378,6 +355,49 @@ public static bfs(
       }
     }
   }
+}
+
+/**
+ * Helper preparing pathfinding execution by checking walkability and same-start-target edge cases.
+ */
+function preparePathfinding(
+  grid: GridPassabilityMap,
+  start: GridPoint,
+  target: GridPoint,
+  options?: PathfindingOptions
+): {
+  earlyExit: boolean;
+  initialPath?: GridPoint[];
+  directions: ReadonlyArray<GridPoint>;
+  maxNodes: number;
+  includeStart: boolean;
+} {
+  const includeStart = options?.includeStart !== false;
+  const directions = options?.allowDiagonal ? EIGHT_DIRECTIONS : CARDINAL_DIRECTIONS;
+  const maxNodes = options?.maxNodes ?? 10000;
+
+  if (!grid.isWalkable(start.x, start.y) || !grid.isWalkable(target.x, target.y)) {
+    return { earlyExit: true, initialPath: [], directions, maxNodes, includeStart };
+  }
+
+  if (start.x === target.x && start.y === target.y) {
+    return {
+      earlyExit: true,
+      initialPath: includeStart ? [{ x: start.x, y: start.y }] : [],
+      directions,
+      maxNodes,
+      includeStart,
+    };
+  }
+
+  return { earlyExit: false, directions, maxNodes, includeStart };
+}
+
+/**
+ * Checks if coordinate (nx, ny) is within grid bounds and walkable.
+ */
+function isTileWalkableInBounds(grid: GridPassabilityMap, nx: number, ny: number): boolean {
+  return nx >= 0 && nx < grid.width && ny >= 0 && ny < grid.height && grid.isWalkable(nx, ny);
 }
 
 /**
@@ -438,10 +458,9 @@ function getAvailableDirections(
       continue;
     }
 
-        // TODO(refactor): código duplicado detectado (bloque) con ai/GridPathfinding.ts:457-464. Considerar extraer a función compartida. Ref: 6446b210
-const nx = x + d.x;
+    const nx = x + d.x;
     const ny = y + d.y;
-    if (nx >= 0 && nx < grid.width && ny >= 0 && ny < grid.height && grid.isWalkable(nx, ny)) {
+    if (isTileWalkableInBounds(grid, nx, ny)) {
       result.push(d);
     }
   }
@@ -458,7 +477,7 @@ function getWalkableDirections(grid: GridPassabilityMap, x: number, y: number): 
     const d = CARDINAL_DIRECTIONS[i];
     const nx = x + d.x;
     const ny = y + d.y;
-    if (nx >= 0 && nx < grid.width && ny >= 0 && ny < grid.height && grid.isWalkable(nx, ny)) {
+    if (isTileWalkableInBounds(grid, nx, ny)) {
       result.push(d);
     }
   }

@@ -150,18 +150,18 @@
     },
     {
       "firstFile": {
-        "end": 92,
+        "end": 112,
         "endLoc": {
           "column": 68,
-          "line": 92,
-          "position": 3324
+          "line": 112,
+          "position": 3941
         },
         "name": "physics/vehicles/VehicleWaypointSystem.ts",
-        "start": 85,
+        "start": 105,
         "startLoc": {
           "column": 32,
-          "line": 85,
-          "position": 2894
+          "line": 105,
+          "position": 3511
         }
       },
       "format": "typescript",
@@ -173,165 +173,17 @@
         "endLoc": {
           "column": 68,
           "line": 26,
-          "position": 1426
+          "position": 1449
         },
         "name": "racing/systems/VehicleAISystem.ts",
         "start": 18,
         "startLoc": {
           "column": 61,
           "line": 18,
-          "position": 995
+          "position": 1018
         }
       },
       "tokens": 67
-    },
-    {
-      "firstFile": {
-        "end": 101,
-        "endLoc": {
-          "column": 43,
-          "line": 101,
-          "position": 3671
-        },
-        "name": "physics/vehicles/VehicleWaypointSystem.ts",
-        "start": 92,
-        "startLoc": {
-          "column": 72,
-          "line": 92,
-          "position": 3328
-        }
-      },
-      "format": "typescript",
-      "fragment": "      const steerRes = steerTowardWaypoint(transform, waypointsComp, 0.3);\n      if (!steerRes) continue;\n\n      if (steerRes.reachedTarget && steerRes.nextIndex !== waypointsComp.currentWaypointIndex) {\n        world.mutateComponent(entity, \"VehicleWaypoint\", (m: VehicleWaypointComponent) => {\n          m.currentWaypointIndex = steerRes.nextIndex;\n        });\n      }\n\n      vehicle.steering = steerRes.steering;",
-      "isNew": false,
-      "lines": 10,
-      "secondFile": {
-        "end": 35,
-        "endLoc": {
-          "column": 43,
-          "line": 35,
-          "position": 1773
-        },
-        "name": "racing/systems/VehicleAISystem.ts",
-        "start": 26,
-        "startLoc": {
-          "column": 72,
-          "line": 26,
-          "position": 1430
-        }
-      },
-      "tokens": 59
-    },
-    {
-      "firstFile": {
-        "end": 190,
-        "endLoc": {
-          "column": 36,
-          "line": 190,
-          "position": 7974
-        },
-        "name": "utils/Juice.ts",
-        "start": 183,
-        "startLoc": {
-          "column": 26,
-          "line": 183,
-          "position": 7642
-        }
-      },
-      "format": "typescript",
-      "fragment": "public static playHitJuice<\n    TComponents extends CoreComponentRegistry = CoreComponentRegistry,\n    TEvents extends EventRegistry = EventRegistry,\n    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>\n  >(\n    world: World<TComponents, TEvents, TBlueprints>,\n    entity: Entity,\n    config?: { flashFrames?: number; squashDuration?: number; shakeIntensity?: number; shakeDuration?: number }",
-      "isNew": false,
-      "lines": 8,
-      "secondFile": {
-        "end": 212,
-        "endLoc": {
-          "column": 36,
-          "line": 212,
-          "position": 8902
-        },
-        "name": "utils/Juice.ts",
-        "start": 205,
-        "startLoc": {
-          "column": 30,
-          "line": 205,
-          "position": 8570
-        }
-      },
-      "tokens": 50
-    },
-    {
-      "firstFile": {
-        "end": 192,
-        "endLoc": {
-          "column": 21,
-          "line": 192,
-          "position": 8083
-        },
-        "name": "utils/Juice.ts",
-        "start": 183,
-        "startLoc": {
-          "column": 26,
-          "line": 183,
-          "position": 7642
-        }
-      },
-      "format": "typescript",
-      "fragment": "public static playHitJuice<\n    TComponents extends CoreComponentRegistry = CoreComponentRegistry,\n    TEvents extends EventRegistry = EventRegistry,\n    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>\n  >(\n    world: World<TComponents, TEvents, TBlueprints>,\n    entity: Entity,\n    config?: { flashFrames?: number; squashDuration?: number; shakeIntensity?: number; shakeDuration?: number }\n  ): void {\n    const flashFrames = config?.flashFrames ?? 5;",
-      "isNew": false,
-      "lines": 10,
-      "secondFile": {
-        "end": 235,
-        "endLoc": {
-          "column": 46,
-          "line": 235,
-          "position": 9840
-        },
-        "name": "utils/Juice.ts",
-        "start": 226,
-        "startLoc": {
-          "column": 31,
-          "line": 226,
-          "position": 9399
-        }
-      },
-      "tokens": 71
-    },
-    {
-      "firstFile": {
-        "end": 40,
-        "endLoc": {
-          "column": 25,
-          "line": 40,
-          "position": 1575
-        },
-        "name": "arkanoid/rendering/ArkanoidCanvasVisuals.ts",
-        "start": 32,
-        "startLoc": {
-          "column": 15,
-          "line": 32,
-          "position": 1179
-        }
-      },
-      "format": "typescript",
-      "fragment": "      glowColor,\n            // TODO(refactor): código duplicado detectado (función) con pong/rendering/PongCanvasVisuals.ts:80-87. Considerar extraer a función compartida. Ref: c2fd39d3\n(ctx, widthScale, heightScale) => {\n        const pw = w * widthScale;\n        const ph = h * heightScale;\n        canvasRoundRectPath(ctx, -pw / 2, -ph / 2, pw, ph, 4);\n      },\n      (ctx) => {\n        const coreW = w * 0.6;",
-      "isNew": false,
-      "lines": 9,
-      "secondFile": {
-        "end": 88,
-        "endLoc": {
-          "column": 25,
-          "line": 88,
-          "position": 2959
-        },
-        "name": "pong/rendering/PongCanvasVisuals.ts",
-        "start": 80,
-        "startLoc": {
-          "column": 20,
-          "line": 80,
-          "position": 2555
-        }
-      },
-      "tokens": 57
     },
     {
       "firstFile": {
@@ -406,80 +258,6 @@
         }
       },
       "tokens": 55
-    },
-    {
-      "firstFile": {
-        "end": 115,
-        "endLoc": {
-          "column": 37,
-          "line": 115,
-          "position": 4471
-        },
-        "name": "arkanoid/systems/ArkanoidEnemySystems.ts",
-        "start": 108,
-        "startLoc": {
-          "column": 41,
-          "line": 108,
-          "position": 4233
-        }
-      },
-      "format": "typescript",
-      "fragment": "const events = world.getComponent(eEntity, \"CollisionEvents\");\n      if (!events) continue;\n\n      for (const col of events.collisions) {\n        const other = col.otherEntity;\n        if (!WorldUtils.isEntityActive(world, other)) continue;\n\n        if (world.hasComponent(other, \"Ball\") || world.hasComponent(other, \"Paddle\")) {",
-      "isNew": false,
-      "lines": 8,
-      "secondFile": {
-        "end": 217,
-        "endLoc": {
-          "column": 37,
-          "line": 217,
-          "position": 8458
-        },
-        "name": "arkanoid/systems/ArkanoidPowerUpSystems.ts",
-        "start": 210,
-        "startLoc": {
-          "column": 41,
-          "line": 210,
-          "position": 8220
-        }
-      },
-      "tokens": 50
-    },
-    {
-      "firstFile": {
-        "end": 16,
-        "endLoc": {
-          "column": 9,
-          "line": 16,
-          "position": 988
-        },
-        "name": "arkanoid/systems/ArkanoidGameStateSystem.ts",
-        "start": 9,
-        "startLoc": {
-          "column": 37,
-          "line": 9,
-          "position": 608
-        }
-      },
-      "format": "typescript",
-      "fragment": "export class ArkanoidGameStateSystem extends System<ArkanoidComponentRegistry, ArkanoidEventRegistry> {\n  private config?: ArkanoidConfig;\n\n  public override update(world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>, _deltaTime: number): void {\n    if (world.getResource(\"IsPaused\") === true) return;\n    this.config = world.getResource<ArkanoidConfig>(\"GameConfig\") || DEFAULT_ARKANOID_CONFIG;\n\n    const state = world.getSingleton(\"ArkanoidState\");",
-      "isNew": false,
-      "lines": 8,
-      "secondFile": {
-        "end": 71,
-        "endLoc": {
-          "column": 9,
-          "line": 71,
-          "position": 2902
-        },
-        "name": "arkanoid/systems/ArkanoidPowerUpSystems.ts",
-        "start": 64,
-        "startLoc": {
-          "column": 41,
-          "line": 64,
-          "position": 2522
-        }
-      },
-      "tokens": 64
     },
     {
       "firstFile": {
@@ -798,58 +576,21 @@
       "isNew": false,
       "lines": 8,
       "secondFile": {
-        "end": 180,
+        "end": 170,
         "endLoc": {
           "column": 61,
-          "line": 180,
-          "position": 6008
+          "line": 170,
+          "position": 5788
         },
         "name": "hitandrun/HitAndRunGame.ts",
-        "start": 175,
+        "start": 165,
         "startLoc": {
           "column": 34,
-          "line": 175,
-          "position": 5607
+          "line": 165,
+          "position": 5387
         }
       },
       "tokens": 64
-    },
-    {
-      "firstFile": {
-        "end": 396,
-        "endLoc": {
-          "column": 5,
-          "line": 396,
-          "position": 14854
-        },
-        "name": "echorunner/EchoRunnerGame.ts",
-        "start": 382,
-        "startLoc": {
-          "column": 2,
-          "line": 382,
-          "position": 14504
-        }
-      },
-      "format": "typescript",
-      "fragment": "  }\n\n  public override update(dt: number): void {\n    const isComplete = updateRunProgress(\n      this.world,\n      dt,\n      (rs) => rs.collectedPermanentIds.includes(\"archive_core_1\")\n    );\n\n    if (isComplete && !this.gameOver) {\n      this.gameOver = true;\n      this.eventBus.emit(\"game:over\", {\n        state: this.getGameState()\n      });\n    }",
-      "isNew": false,
-      "lines": 15,
-      "secondFile": {
-        "end": 136,
-        "endLoc": {
-          "column": 5,
-          "line": 136,
-          "position": 4555
-        },
-        "name": "hitandrun/HitAndRunGame.ts",
-        "start": 124,
-        "startLoc": {
-          "column": 2,
-          "line": 124,
-          "position": 4219
-        }
-      },
-      "tokens": 73
     },
     {
       "firstFile": {
@@ -1149,40 +890,40 @@
     },
     {
       "firstFile": {
-        "end": 342,
+        "end": 341,
         "endLoc": {
           "column": 34,
-          "line": 342,
-          "position": 12178
+          "line": 341,
+          "position": 12025
         },
         "name": "geometrywars/GeometryWarsGame.ts",
         "start": 331,
         "startLoc": {
           "column": 8,
           "line": 331,
-          "position": 11762
+          "position": 11776
         }
       },
       "format": "typescript",
-      "fragment": "        );\n      },\n      sync:       // TODO(refactor): código duplicado detectado (función) con space-invaders/SpaceInvadersGame.ts:784-795. Considerar extraer a función compartida. Ref: bd80e9b8\n() => {}\n    }\n  ];\n\n  public updateFromServer(state: Record<string, unknown>, localSessionId?: string) {\n    if (!this.isMultiplayer || !state) return;\n    const world = this.getWorld();\n\n    const gs = world.getSingleton(\"GeometryWarsState\");",
+      "fragment": "        );\n      },\n      sync: NO_OP_SYNC\n    }\n  ];\n\n  public updateFromServer(state: Record<string, unknown>, localSessionId?: string) {\n    if (!this.isMultiplayer || !state) return;\n    const world = this.getWorld();\n\n    const gs = world.getSingleton(\"GeometryWarsState\");",
       "isNew": false,
-      "lines": 12,
+      "lines": 11,
       "secondFile": {
-        "end": 797,
+        "end": 796,
         "endLoc": {
           "column": 34,
-          "line": 797,
-          "position": 34141
+          "line": 796,
+          "position": 33991
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
-        "start": 786,
+        "start": 785,
         "startLoc": {
-          "column": 74,
-          "line": 786,
-          "position": 33816
+          "column": 82,
+          "line": 785,
+          "position": 33664
         }
       },
-      "tokens": 60
+      "tokens": 56
     },
     {
       "firstFile": {
@@ -1464,18 +1205,18 @@
       "isNew": false,
       "lines": 10,
       "secondFile": {
-        "end": 421,
+        "end": 401,
         "endLoc": {
           "column": 27,
-          "line": 421,
-          "position": 11958
+          "line": 401,
+          "position": 11891
         },
         "name": "hitandrun/melee/HitRunMeleeSystem.ts",
-        "start": 412,
+        "start": 392,
         "startLoc": {
           "column": 50,
-          "line": 412,
-          "position": 11611
+          "line": 392,
+          "position": 11544
         }
       },
       "tokens": 65
@@ -1486,14 +1227,14 @@
         "endLoc": {
           "column": 9,
           "line": 238,
-          "position": 6910
+          "position": 6950
         },
         "name": "hitandrun/melee/HitRunMeleeSystem.ts",
         "start": 233,
         "startLoc": {
           "column": 0,
           "line": 233,
-          "position": 6673
+          "position": 6713
         }
       },
       "format": "typescript",
@@ -1501,55 +1242,18 @@
       "isNew": false,
       "lines": 6,
       "secondFile": {
-        "end": 331,
+        "end": 311,
         "endLoc": {
           "column": 9,
-          "line": 331,
-          "position": 8986
+          "line": 311,
+          "position": 8919
         },
         "name": "hitandrun/melee/HitRunMeleeSystem.ts",
-        "start": 325,
+        "start": 305,
         "startLoc": {
           "column": 4,
-          "line": 325,
-          "position": 8748
-        }
-      },
-      "tokens": 57
-    },
-    {
-      "firstFile": {
-        "end": 271,
-        "endLoc": {
-          "column": 11,
-          "line": 271,
-          "position": 7571
-        },
-        "name": "hitandrun/melee/HitRunMeleeSystem.ts",
-        "start": 253,
-        "startLoc": {
-          "column": 16,
-          "line": 253,
-          "position": 7306
-        }
-      },
-      "format": "typescript",
-      "fragment": "      worldY: hy,\n      rotation: 0,\n      worldRotation: 0,\n      scaleX: 1,\n      scaleY: 1,\n      worldScaleX: 1,\n      worldScaleY: 1,\n      dirty: true\n    });\n\n    add({\n      type: \"Velocity\",\n      vx: 0,\n      vy: 0,\n      angularVelocity: 0\n    });\n\n    add({\n      type: \"Collider2D\",",
-      "isNew": false,
-      "lines": 19,
-      "secondFile": {
-        "end": 63,
-        "endLoc": {
-          "column": 11,
-          "line": 63,
-          "position": 1578
-        },
-        "name": "hitandrun/waves/HitRunEnemyPool.ts",
-        "start": 45,
-        "startLoc": {
-          "column": 22,
-          "line": 45,
-          "position": 1313
+          "line": 305,
+          "position": 8681
         }
       },
       "tokens": 57
@@ -2370,77 +2074,40 @@
     },
     {
       "firstFile": {
-        "end": 22,
+        "end": 16,
         "endLoc": {
-          "column": 77,
-          "line": 22,
-          "position": 1064
+          "column": 27,
+          "line": 16,
+          "position": 688
         },
         "name": "outrun/systems/RacerInputSystem.ts",
-        "start": 11,
+        "start": 9,
         "startLoc": {
           "column": 30,
-          "line": 11,
-          "position": 628
+          "line": 9,
+          "position": 401
         }
       },
       "format": "typescript",
-      "fragment": "export class RacerInputSystem extends System<OutrunComponentRegistry, OutrunEventRegistry> {\n  public override update(\n    world: World<OutrunComponentRegistry, OutrunEventRegistry>,\n    deltaTime: number\n  ): void {\n    if (world.getResource(\"IsPaused\") === true) return;\n\n    const state = world.getSingleton(\"RaceState\");\n    if (!state || state.isGameOver) return;\n\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;",
+      "fragment": "export class RacerInputSystem extends System<OutrunComponentRegistry, OutrunEventRegistry> {\n  public override update(\n    world: World<OutrunComponentRegistry, OutrunEventRegistry>,\n    deltaTime: number\n  ): void {\n    const ctx = resolveOutrunSystemContext(world);\n    if (!ctx) return;\n    const { config } = ctx;",
       "isNew": false,
-      "lines": 12,
+      "lines": 8,
       "secondFile": {
-        "end": 26,
+        "end": 20,
         "endLoc": {
-          "column": 77,
-          "line": 26,
-          "position": 1077
+          "column": 27,
+          "line": 20,
+          "position": 702
         },
         "name": "outrun/systems/RoadAdvanceSystem.ts",
-        "start": 15,
+        "start": 13,
         "startLoc": {
           "column": 31,
-          "line": 15,
-          "position": 641
+          "line": 13,
+          "position": 415
         }
       },
-      "tokens": 77
-    },
-    {
-      "firstFile": {
-        "end": 27,
-        "endLoc": {
-          "column": 13,
-          "line": 27,
-          "position": 1152
-        },
-        "name": "outrun/systems/RacerInputSystem.ts",
-        "start": 11,
-        "startLoc": {
-          "column": 30,
-          "line": 11,
-          "position": 628
-        }
-      },
-      "format": "typescript",
-      "fragment": "export class RacerInputSystem extends System<OutrunComponentRegistry, OutrunEventRegistry> {\n  public override update(\n    world: World<OutrunComponentRegistry, OutrunEventRegistry>,\n    deltaTime: number\n  ): void {\n    if (world.getResource(\"IsPaused\") === true) return;\n\n    const state = world.getSingleton(\"RaceState\");\n    if (!state || state.isGameOver) return;\n\n    const config =\n      world.getResource<OutrunConfig>(\"GameConfig\") ?? DEFAULT_OUTRUN_CONFIG;\n\n    let accelerate = false;\n    let brake = false;\n    let left = false;\n    let right = false;",
-      "isNew": false,
-      "lines": 17,
-      "secondFile": {
-        "end": 28,
-        "endLoc": {
-          "column": 17,
-          "line": 28,
-          "position": 1143
-        },
-        "name": "outrun/systems/TrafficSystem.ts",
-        "start": 15,
-        "startLoc": {
-          "column": 27,
-          "line": 15,
-          "position": 627
-        }
-      },
-      "tokens": 94
+      "tokens": 50
     },
     {
       "firstFile": {
@@ -2740,18 +2407,18 @@
     },
     {
       "firstFile": {
-        "end": 59,
+        "end": 76,
         "endLoc": {
           "column": 82,
-          "line": 59,
-          "position": 1807
+          "line": 76,
+          "position": 2195
         },
         "name": "shared/rendering/CanvasNeonUtils.ts",
-        "start": 52,
+        "start": 69,
         "startLoc": {
           "column": 0,
-          "line": 52,
-          "position": 1522
+          "line": 69,
+          "position": 1910
         }
       },
       "format": "typescript",
@@ -2774,43 +2441,6 @@
         }
       },
       "tokens": 74
-    },
-    {
-      "firstFile": {
-        "end": 97,
-        "endLoc": {
-          "column": 59,
-          "line": 97,
-          "position": 3094
-        },
-        "name": "shared/rendering/GenericEntityDrawer.ts",
-        "start": 89,
-        "startLoc": {
-          "column": 31,
-          "line": 89,
-          "position": 2746
-        }
-      },
-      "format": "typescript",
-      "fragment": "  ctx: CanvasRenderingContext2D,\n  profile: EntityGeometryProfile,\n  options: GenericDrawerOptions = {}\n): void {\n  const size = options.size || 20;\n  const scale = (size / 2) * (profile.scaleMultiplier || 1.0);\n  const baseColor = options.baseColor || \"#00E5FF\";\n  const isHitFlashing = Boolean(options.isHitFlashing);\n  const hitFlashColor = options.hitFlashColor || \"#FFFFFF\";",
-      "isNew": false,
-      "lines": 9,
-      "secondFile": {
-        "end": 128,
-        "endLoc": {
-          "column": 59,
-          "line": 128,
-          "position": 4007
-        },
-        "name": "shared/rendering/GenericEntityDrawer.ts",
-        "start": 120,
-        "startLoc": {
-          "column": 23,
-          "line": 120,
-          "position": 3659
-        }
-      },
-      "tokens": 69
     },
     {
       "firstFile": {
@@ -3003,14 +2633,14 @@
         "endLoc": {
           "column": 20,
           "line": 707,
-          "position": 30289
+          "position": 30301
         },
         "name": "space-invaders/SpaceInvadersGame.ts",
         "start": 701,
         "startLoc": {
           "column": 27,
           "line": 701,
-          "position": 30060
+          "position": 30072
         }
       },
       "format": "typescript",
@@ -3665,32 +3295,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-10-11T13:00:28.728Z",
+    "detectionDate": "2026-10-11T14:44:04.168Z",
     "formats": {
       "typescript": {
-        "clones": 99,
-        "duplicatedLines": 795,
-        "duplicatedTokens": 6665,
-        "lines": 91432,
+        "clones": 89,
+        "duplicatedLines": 687,
+        "duplicatedTokens": 5990,
+        "lines": 91503,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.8694986438008574,
-        "percentageTokens": 1.3389072588259399,
-        "sources": 564,
-        "tokens": 497794
+        "percentage": 0.7507950558998066,
+        "percentageTokens": 1.2024297512034334,
+        "sources": 566,
+        "tokens": 498158
       }
     },
     "total": {
-      "clones": 99,
-      "duplicatedLines": 795,
-      "duplicatedTokens": 6665,
-      "lines": 91432,
+      "clones": 89,
+      "duplicatedLines": 687,
+      "duplicatedTokens": 5990,
+      "lines": 91503,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.8694986438008574,
-      "percentageTokens": 1.3389072588259399,
-      "sources": 564,
-      "tokens": 497794
+      "percentage": 0.7507950558998066,
+      "percentageTokens": 1.2024297512034334,
+      "sources": 566,
+      "tokens": 498158
     }
   }
 }

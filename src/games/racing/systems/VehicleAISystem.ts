@@ -1,4 +1,4 @@
-import { System, World, VehicleWaypointComponent, VehicleSteeringComponent, steerTowardWaypoint } from "@tiny-aster/core";
+import { System, World, VehicleWaypointComponent, VehicleSteeringComponent, steerTowardWaypoint, applyWaypointSteering } from "@tiny-aster/core";
 import type { RacingComponentRegistry, RacingEventRegistry } from "../types/RacingRegistry";
 
 export class VehicleAISystem extends System<RacingComponentRegistry, RacingEventRegistry> {
@@ -26,13 +26,7 @@ export class VehicleAISystem extends System<RacingComponentRegistry, RacingEvent
       const steerRes = steerTowardWaypoint(transform, waypointsComp, 0.4);
       if (!steerRes) continue;
 
-      if (steerRes.reachedTarget && steerRes.nextIndex !== waypointsComp.currentWaypointIndex) {
-        world.mutateComponent(entity, "VehicleWaypoint", (m: VehicleWaypointComponent) => {
-          m.currentWaypointIndex = steerRes.nextIndex;
-        });
-      }
-
-      vehicle.steering = steerRes.steering;
+      applyWaypointSteering(world, entity, waypointsComp, vehicle, steerRes);
       let throttle = steerRes.throttle;
 
       // Rubber-banding adjustments relative to human player

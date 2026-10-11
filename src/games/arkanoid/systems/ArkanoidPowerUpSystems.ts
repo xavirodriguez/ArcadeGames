@@ -1,8 +1,9 @@
 import { System, World, WorldUtils, Juice, CoreComponentRegistry, Entity, EntityBuilder, ShapeType, BoxShape } from "@tiny-aster/core";
 import { ArkanoidComponentRegistry, ArkanoidEventRegistry, CapsuleType } from "../types/ArkanoidTypes";
-import { ArkanoidConfig, DEFAULT_ARKANOID_CONFIG } from "../types/ArkanoidConfigSchema";
+import { ArkanoidConfig } from "../types/ArkanoidConfigSchema";
 import { ArkanoidEntityFactory } from "../EntityFactory";
 import { applyBrickDamage } from "./ArkanoidCollisionSystem";
+import { resolveArkanoidSystemContext, forEachActiveCollision } from "./ArkanoidSystemUtils";
 
 export class ArkanoidPowerUpSpawnSystem extends System<ArkanoidComponentRegistry, ArkanoidEventRegistry> {
   public override onRegister(world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>): void {
@@ -60,13 +61,13 @@ export class ArkanoidPowerUpSpawnSystem extends System<ArkanoidComponentRegistry
   public override update(_world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>, _deltaTime: number): void {}
 }
 
-// TODO(refactor): código duplicado detectado (bloque) con arkanoid/systems/ArkanoidGameStateSystem.ts:8-15. Considerar extraer a función compartida. Ref: 2965ba31
 export class ArkanoidActivePowerUpSystem extends System<ArkanoidComponentRegistry, ArkanoidEventRegistry> {
   private config?: ArkanoidConfig;
 
   public override update(world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>, _deltaTime: number): void {
-    if (world.getResource("IsPaused") === true) return;
-    this.config = world.getResource<ArkanoidConfig>("GameConfig") || DEFAULT_ARKANOID_CONFIG;
+    const ctx = resolveArkanoidSystemContext(world, false);
+    if (!ctx) return;
+    this.config = ctx.config;
 
     const capsules = world.query("Capsule", "Transform", "Velocity");
     const paddles = world.query("Paddle", "Transform");
@@ -206,27 +207,20 @@ export class ArkanoidLaserSystem extends System<ArkanoidComponentRegistry, Arkan
         continue;
       }
 
-            // TODO(refactor): código duplicado detectado (bloque) con arkanoid/systems/ArkanoidEnemySystems.ts:107-114. Considerar extraer a función compartida. Ref: e60760da
-const events = world.getComponent(lEntity, "CollisionEvents");
-      if (!events) continue;
-
-      for (const col of events.collisions) {
-        const other = col.otherEntity;
-        if (!WorldUtils.isEntityActive(world, other)) continue;
-
+      forEachActiveCollision(world, lEntity, (other) => {
         if (world.hasComponent(other, "Brick")) {
           applyBrickDamage(world, other, lEntity);
           world.getCommandBuffer().removeEntity(lEntity);
-          break;
+          return true;
         } else if (world.hasComponent(other, "Enemy")) {
           const eventBus = world.getEventBus();
           if (eventBus) {
             eventBus.emitDeferred("combat:death", { entity: other, sourceEntity: lEntity });
           }
           world.getCommandBuffer().removeEntity(lEntity);
-          break;
+          return true;
         }
-      }
+      });
     }
   }
 }

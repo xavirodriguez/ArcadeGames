@@ -382,18 +382,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
   }
 
   public override update(dt: number): void {
-    const isComplete = updateRunProgress(
-      this.world,
-      dt,
-      (rs) => rs.collectedPermanentIds.includes("archive_core_1")
-    );
-
-    if (isComplete && !this.gameOver) {
-      this.gameOver = true;
-      this.eventBus.emit("game:over", {
-        state: this.getGameState()
-      });
-    }
+    this.gameOver = this.checkRunProgressGameOver(dt, this.gameOver);
 
     if (process.env.NODE_ENV !== "test") {
       this.dbgFrames = (this.dbgFrames ?? 0) + 1;

@@ -31,6 +31,23 @@ export function canvasRoundRectPath(
 }
 
 /**
+ * Draws a scaled rounded rectangle path centered at origin.
+ * @public
+ */
+export function drawCenteredScaledRoundRectPath(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  widthScale: number,
+  heightScale: number,
+  radius: number = 4
+): void {
+  const pw = w * widthScale;
+  const ph = h * heightScale;
+  canvasRoundRectPath(ctx, -pw / 2, -ph / 2, pw, ph, radius);
+}
+
+/**
  * Zero-allocation, high-performance motion trail tracker and renderer for Canvas.
  * Delegates buffer tracking and update logic to MotionTrailBuffer.
  */

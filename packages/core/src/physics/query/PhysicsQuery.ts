@@ -490,55 +490,23 @@ function rayIntersectBox(
   let normalY = 0;
 
   // X slab
-  if (Math.abs(ldx) < 1e-9) {
-    if (lox < -halfW || lox > halfW) return null;
-  } else {
-    let t1 = (-halfW - lox) / ldx;
-    let t2 = (halfW - lox) / ldx;
-    let nx1 = -1;
-    let nx2 = 1;
-    if (t1 > t2) {
-      const tmpT = t1;
-      t1 = t2;
-      t2 = tmpT;
-      nx1 = 1;
-      nx2 = -1;
-    }
-    if (t1 > tNear) {
-      tNear = t1;
-      normalX = nx1;
-      normalY = 0;
-    }
-    if (t2 < tFar) {
-      tFar = t2;
-    }
-    if (tNear > tFar) return null;
+  const slabX = checkObbSlabAxis(ldx, lox, halfW, tNear, tFar, 0);
+  if (!slabX) return null;
+  tNear = slabX.tNear;
+  tFar = slabX.tFar;
+  if (slabX.hasNewNormal) {
+    normalX = slabX.normalX;
+    normalY = slabX.normalY;
   }
 
   // Y slab
-  if (Math.abs(ldy) < 1e-9) {
-    if (loy < -halfH || loy > halfH) return null;
-  } else {
-    let t1 = (-halfH - loy) / ldy;
-    let t2 = (halfH - loy) / ldy;
-    let ny1 = -1;
-    let ny2 = 1;
-    if (t1 > t2) {
-      const tmpT = t1;
-      t1 = t2;
-      t2 = tmpT;
-      ny1 = 1;
-      ny2 = -1;
-    }
-    if (t1 > tNear) {
-      tNear = t1;
-      normalX = 0;
-      normalY = ny1;
-    }
-    if (t2 < tFar) {
-      tFar = t2;
-    }
-    if (tNear > tFar) return null;
+  const slabY = checkObbSlabAxis(ldy, loy, halfH, tNear, tFar, 1);
+  if (!slabY) return null;
+  tNear = slabY.tNear;
+  tFar = slabY.tFar;
+  if (slabY.hasNewNormal) {
+    normalX = slabY.normalX;
+    normalY = slabY.normalY;
   }
 
   let tHit = tNear;
@@ -576,6 +544,48 @@ function rayIntersectBox(
     normal: { x: normWorldX, y: normWorldY },
     distance: tHit,
   };
+}
+
+/**
+ * Evaluates axis interval intersection for a ray against slab boundaries for OBB.
+ */
+function checkObbSlabAxis(
+  ld: number,
+  lo: number,
+  halfSize: number,
+  tNear: number,
+  tFar: number,
+  axis: 0 | 1
+): { tNear: number; tFar: number; normalX: number; normalY: number; hasNewNormal: boolean } | null {
+  if (Math.abs(ld) < 1e-9) {
+    if (lo < -halfSize || lo > halfSize) return null;
+    return { tNear, tFar, normalX: 0, normalY: 0, hasNewNormal: false };
+  }
+  let t1 = (-halfSize - lo) / ld;
+  let t2 = (halfSize - lo) / ld;
+  let n1 = -1;
+  let n2 = 1;
+  if (t1 > t2) {
+    const tmpT = t1;
+    t1 = t2;
+    t2 = tmpT;
+    n1 = 1;
+    n2 = -1;
+  }
+  let hasNewNormal = false;
+  let nx = 0;
+  let ny = 0;
+  if (t1 > tNear) {
+    tNear = t1;
+    hasNewNormal = true;
+    if (axis === 0) nx = n1;
+    else ny = n1;
+  }
+  if (t2 < tFar) {
+    tFar = t2;
+  }
+  if (tNear > tFar) return null;
+  return { tNear, tFar, normalX: nx, normalY: ny, hasNewNormal };
 }
 
 /**

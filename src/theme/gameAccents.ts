@@ -33,6 +33,11 @@ export const GAME_ACCENTS = {
     secondary: 'gold' as const,
     accent: 'pink' as const,
   },
+  echorunner: {
+    primary: 'cyan' as const,
+    secondary: 'gold' as const,
+    accent: 'pink' as const,
+  },
   geometrywars: {
     primary: 'cyan' as const,
     secondary: 'gold' as const,
@@ -128,6 +133,13 @@ export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<
       particleShape: "circle",
       backgroundLayers: ["starfield", "distant_space_station"],
     },
+    echorunner: {
+      starDensity: 0.8,
+      starSpeed: 0.4,
+      ambientGlow: 0.4,
+      particleShape: "shard",
+      backgroundLayers: ["echo_bg", "grid", "data_pillars"],
+    },
     arkanoid: {
       starDensity: 0.5,
       starSpeed: 0.2,
@@ -193,6 +205,35 @@ export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<
     log: accentColors.secondary,
     turtle: accentColors.secondary,
     "track-wall": accentColors.accent,
+
+    // Echo Runner "The Archive" role tokens
+    restorationCyan: "#00f0ff",
+    restorationCyanGlow: "rgba(0, 240, 255, 0.4)",
+    restorationCyanFade: "rgba(0, 240, 255, 0.08)",
+    restorationGold: "#fbbf24",
+    restorationGoldGlow: "rgba(251, 191, 36, 0.5)",
+    restorationWhite: "#ffffff",
+    corruptionCrimson: "#ff0055",
+    corruptionCrimsonGlow: "rgba(255, 0, 85, 0.4)",
+    corruptionAmber: "#f97316",
+    corruptionPurple: "#a855f7",
+    corruptionPurpleGlow: "rgba(168, 85, 247, 0.4)",
+    archiveVoidDark: "#060913",
+    archiveSlate: "#1e293b",
+    archiveBorderDark: "#0f172a",
+    archiveBorderLight: "#334155",
+    archiveGridLine: "rgba(0, 240, 255, 0.05)",
+    archiveGridLineSecondary: "rgba(168, 85, 247, 0.03)",
+    archiveDataStream: "rgba(255, 0, 85, 0.06)",
+    archiveNodeActive: "#10b981",
+    archiveNodeInactive: "#ef4444",
+    sentinel: "#a855f7",
+    hopper: "#10b981",
+    watcher: "#3b82f6",
+    charger: "#ff0055",
+    fragment: "#00f0ff",
+    core: "#fbbf24",
+    node: "#10b981",
   };
 
   const visualTheme: VisualTheme = createVisualTheme(

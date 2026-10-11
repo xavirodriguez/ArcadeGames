@@ -3,6 +3,8 @@ import { CanvasRenderer } from "@tiny-aster/renderer-canvas";
 import { EchoRunnerGame } from "../EchoRunnerGame";
 import { EchoRunnerArcadeAdapter } from "../story/EchoRunnerEncounter";
 import { EchoRunnerConfigSchema, EchoRunnerConfig } from "../types/EchoRunnerConfigSchema";
+import { createThemeFromGameAccents } from "../../../theme/gameAccents";
+import { resolveEchoRunnerPalette } from "../rendering/EchoRunnerVisualUtils";
 
 class TestEchoRunnerAdapter extends EchoRunnerArcadeAdapter {
   public getGame(): EchoRunnerGame | null {
@@ -664,6 +666,71 @@ describe("Echo Runner Game Simulation Tests", () => {
       expect(testGame.getGameState().cores).toBe(1);
     } finally {
       testGame.destroy();
+    }
+  });
+
+  it("should create echorunner theme via createThemeFromGameAccents with valid vfxProfile and colorMap", () => {
+    const theme = createThemeFromGameAccents("echorunner");
+    expect(theme).toBeDefined();
+    expect(theme.vfxProfile?.backgroundLayers).toEqual(["echo_bg", "grid", "data_pillars"]);
+    expect(theme.colorMap?.restorationCyan).toBe("#00f0ff");
+    expect(theme.colorMap?.corruptionCrimson).toBe("#ff0055");
+    expect(theme.colorMap?.archiveVoidDark).toBe("#060913");
+  });
+
+  it("should resolve theme colors dynamically from custom injected Theme without using default ECHO_PALETTE", async () => {
+    const customTheme = createThemeFromGameAccents("echorunner", {
+      colorMap: {
+        player: "#ff0000",
+        restorationCyan: "#ff0000",
+        archiveVoidDark: "#112233",
+        corruptionCrimson: "#990000"
+      }
+    });
+
+    const themedGame = new EchoRunnerGame({ seed: 41873, theme: customTheme });
+    try {
+      await themedGame.init();
+      const themedWorld = themedGame.getWorld();
+
+      const palette = resolveEchoRunnerPalette(themedWorld);
+      expect(palette.restorationCyan).toBe("#ff0000");
+      expect(palette.archiveVoidDark).toBe("#112233");
+      expect(palette.corruptionCrimson).toBe("#990000");
+
+      // Verify rendering with custom theme executes without error
+      const renderer = new CanvasRenderer();
+      themedGame.initializeRenderer(renderer as Renderer<CoreComponentRegistry, RenderContext>);
+
+      const mockCtx: Partial<CanvasRenderingContext2D> = {
+        canvas: { width: 800, height: 600 } as HTMLCanvasElement,
+        clearRect: jest.fn(),
+        save: jest.fn(),
+        restore: jest.fn(),
+        translate: jest.fn(),
+        rotate: jest.fn(),
+        scale: jest.fn(),
+        beginPath: jest.fn(),
+        moveTo: jest.fn(),
+        lineTo: jest.fn(),
+        stroke: jest.fn(),
+        fill: jest.fn(),
+        fillRect: jest.fn(),
+        strokeRect: jest.fn(),
+        rect: jest.fn(),
+        clip: jest.fn(),
+        arc: jest.fn(),
+        ellipse: jest.fn(),
+        closePath: jest.fn(),
+        createLinearGradient: jest.fn().mockReturnValue({ addColorStop: jest.fn() }),
+        createRadialGradient: jest.fn().mockReturnValue({ addColorStop: jest.fn() }),
+        roundRect: jest.fn(),
+      };
+
+      renderer.render(themedWorld, mockCtx as CanvasRenderingContext2D);
+      expect(mockCtx.fillRect).toHaveBeenCalledWith(0, 0, 800, 600);
+    } finally {
+      themedGame.destroy();
     }
   });
 });

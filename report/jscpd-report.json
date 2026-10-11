@@ -559,16 +559,16 @@
       "firstFile": {
         "end": 39,
         "endLoc": {
-          "column": 12,
-          "line": 138,
-          "position": 5588
+          "column": 71,
+          "line": 39,
+          "position": 1744
         },
         "name": "asteroids/rendering/AsteroidsCanvasVisuals.ts",
         "start": 33,
         "startLoc": {
-          "column": 21,
-          "line": 125,
-          "position": 5239
+          "column": 102,
+          "line": 33,
+          "position": 1491
         }
       },
       "format": "typescript",
@@ -576,18 +576,18 @@
       "isNew": false,
       "lines": 7,
       "secondFile": {
-        "end": 108,
+        "end": 436,
         "endLoc": {
-          "column": 12,
-          "line": 108,
-          "position": 3830
+          "column": 75,
+          "line": 436,
+          "position": 13224
         },
-        "name": "hitandrun/HitAndRunGame.ts",
-        "start": 94,
+        "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
+        "start": 430,
         "startLoc": {
-          "column": 48,
-          "line": 94,
-          "position": 3480
+          "column": 106,
+          "line": 430,
+          "position": 12967
         }
       },
       "tokens": 55
@@ -596,16 +596,16 @@
       "firstFile": {
         "end": 71,
         "endLoc": {
-          "column": 17,
-          "line": 170,
-          "position": 6909
+          "column": 102,
+          "line": 71,
+          "position": 2951
         },
         "name": "asteroids/rendering/AsteroidsCanvasVisuals.ts",
         "start": 60,
         "startLoc": {
-          "column": 28,
-          "line": 162,
-          "position": 6590
+          "column": 24,
+          "line": 60,
+          "position": 2484
         }
       },
       "format": "typescript",
@@ -633,16 +633,16 @@
       "firstFile": {
         "end": 217,
         "endLoc": {
-          "column": 61,
-          "line": 252,
-          "position": 10272
+          "column": 5,
+          "line": 217,
+          "position": 7283
         },
         "name": "asteroids/rendering/AsteroidsCanvasVisuals.ts",
         "start": 205,
         "startLoc": {
-          "column": 5,
-          "line": 244,
-          "position": 9713
+          "column": 54,
+          "line": 205,
+          "position": 6830
         }
       },
       "format": "typescript",
@@ -650,36 +650,110 @@
       "isNew": false,
       "lines": 13,
       "secondFile": {
-        "end": 192,
+        "end": 217,
         "endLoc": {
-          "column": 61,
-          "line": 192,
-          "position": 6722
+          "column": 5,
+          "line": 217,
+          "position": 7940
         },
-        "name": "hitandrun/HitAndRunGame.ts",
-        "start": 187,
+        "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
+        "start": 205,
         "startLoc": {
-          "column": 30,
-          "line": 187,
-          "position": 6321
+          "column": 53,
+          "line": 205,
+          "position": 7487
         }
       },
       "tokens": 99
     },
     {
       "firstFile": {
-        "end": 406,
+        "end": 270,
         "endLoc": {
-          "column": 5,
-          "line": 406,
-          "position": 15610
+          "column": 9,
+          "line": 270,
+          "position": 8748
+        },
+        "name": "asteroids/rendering/AsteroidsCanvasVisuals.ts",
+        "start": 263,
+        "startLoc": {
+          "column": 6,
+          "line": 263,
+          "position": 8492
+        }
+      },
+      "format": "typescript",
+      "fragment": "  draw(ctx, world, entity) {\n    const render = world.getComponent(entity, \"Render\");\n    if (!render) return;\n\n    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);\n    const customGeom = theme?.visualTheme?.shapeTokens?.projectileGeometry;\n\n    const size = render.size || 2;",
+      "isNew": false,
+      "lines": 8,
+      "secondFile": {
+        "end": 438,
+        "endLoc": {
+          "column": 6,
+          "line": 438,
+          "position": 13232
+        },
+        "name": "space-invaders/rendering/SpaceInvadersCanvasVisuals.ts",
+        "start": 431,
+        "startLoc": {
+          "column": 6,
+          "line": 431,
+          "position": 12979
+        }
+      },
+      "tokens": 51
+    },
+    {
+      "firstFile": {
+        "end": 56,
+        "endLoc": {
+          "column": 56,
+          "line": 56,
+          "position": 2555
+        },
+        "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
+        "start": 50,
+        "startLoc": {
+          "column": 40,
+          "line": 50,
+          "position": 2270
+        }
+      },
+      "format": "typescript",
+      "fragment": "export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentRegistry> = {\n  draw(canvas, world, entity) {\n    const render = getVisibleSkiaRender(world, entity);\n    if (!render) return;\n\n    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);\n    const customGeom = theme?.visualTheme?.shapeTokens?.playerGeometry;",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 266,
+        "endLoc": {
+          "column": 56,
+          "line": 266,
+          "position": 9341
+        },
+        "name": "asteroids/rendering/AsteroidsSkiaVisuals.ts",
+        "start": 260,
+        "startLoc": {
+          "column": 36,
+          "line": 260,
+          "position": 9056
+        }
+      },
+      "tokens": 57
+    },
+    {
+      "firstFile": {
+        "end": 164,
+        "endLoc": {
+          "column": 17,
+          "line": 164,
+          "position": 6578
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 392,
+        "start": 156,
         "startLoc": {
-          "column": 16,
-          "line": 392,
-          "position": 15167
+          "column": 28,
+          "line": 156,
+          "position": 6259
         }
       },
       "format": "typescript",
@@ -687,36 +761,36 @@
       "isNew": false,
       "lines": 9,
       "secondFile": {
-        "end": 147,
+        "end": 104,
         "endLoc": {
-          "column": 5,
-          "line": 147,
-          "position": 5111
+          "column": 17,
+          "line": 104,
+          "position": 4222
         },
-        "name": "hitandrun/HitAndRunGame.ts",
-        "start": 136,
+        "name": "platformer/PlatformerGame.ts",
+        "start": 96,
         "startLoc": {
-          "column": 7,
-          "line": 136,
-          "position": 4731
+          "column": 28,
+          "line": 96,
+          "position": 3903
         }
       },
       "tokens": 68
     },
     {
       "firstFile": {
-        "end": 241,
+        "end": 245,
         "endLoc": {
           "column": 61,
-          "line": 241,
-          "position": 9618
+          "line": 245,
+          "position": 9785
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 234,
+        "start": 238,
         "startLoc": {
           "column": 5,
-          "line": 234,
-          "position": 9215
+          "line": 238,
+          "position": 9382
         }
       },
       "format": "typescript",
@@ -742,18 +816,18 @@
     },
     {
       "firstFile": {
-        "end": 392,
+        "end": 396,
         "endLoc": {
           "column": 5,
-          "line": 392,
-          "position": 14687
+          "line": 396,
+          "position": 14854
         },
         "name": "echorunner/EchoRunnerGame.ts",
-        "start": 378,
+        "start": 382,
         "startLoc": {
           "column": 2,
-          "line": 378,
-          "position": 14337
+          "line": 382,
+          "position": 14504
         }
       },
       "format": "typescript",
@@ -779,40 +853,77 @@
     },
     {
       "firstFile": {
-        "end": 640,
+        "end": 27,
         "endLoc": {
-          "column": 11,
-          "line": 640,
-          "position": 19610
+          "column": 1,
+          "line": 27,
+          "position": 763
         },
         "name": "echorunner/rendering/EchoRunnerCanvasVisuals.ts",
-        "start": 635,
+        "start": 20,
         "startLoc": {
-          "column": 19,
-          "line": 635,
-          "position": 19391
+          "column": 0,
+          "line": 20,
+          "position": 527
         }
       },
       "format": "typescript",
-      "fragment": "ctx.lineWidth = 1.5;\n      for (let i = 0; i < 3; i++) {\n        const angle = elapsed + (i * Math.PI * 2) / 3;\n        const sx = Math.cos(angle) * (size * 0.6);\n        const sy = Math.sin(angle) * (size * 0.2) - size * 0.5;\n        ctx.beginPath();",
+      "fragment": "function drawCanvasHitFlashCircle(ctx: CanvasRenderingContext2D, radius: number, color: string): true {\n  ctx.fillStyle = color;\n  ctx.beginPath();\n  ctx.arc(0, 0, radius, 0, Math.PI * 2);\n  ctx.fill();\n  ctx.restore();\n  return true;\n}",
       "isNew": false,
-      "lines": 6,
+      "lines": 8,
       "secondFile": {
-        "end": 647,
+        "end": 61,
         "endLoc": {
-          "column": 14,
-          "line": 647,
-          "position": 22659
+          "column": 1,
+          "line": 61,
+          "position": 2146
         },
-        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
-        "start": 642,
+        "name": "shared/rendering/PlatformerSharedVisuals.ts",
+        "start": 54,
         "startLoc": {
-          "column": 25,
-          "line": 642,
-          "position": 22437
+          "column": 0,
+          "line": 54,
+          "position": 1910
         }
       },
-      "tokens": 69
+      "tokens": 65
+    },
+    {
+      "firstFile": {
+        "end": 29,
+        "endLoc": {
+          "column": 1,
+          "line": 29,
+          "position": 924
+        },
+        "name": "echorunner/rendering/EchoRunnerSkiaVisuals.ts",
+        "start": 21,
+        "startLoc": {
+          "column": 0,
+          "line": 21,
+          "position": 628
+        }
+      },
+      "format": "typescript",
+      "fragment": "function drawSkiaHitFlashCircle(canvas: any, paint: any, radius: number, color: string): true {\n  paint.reset();\n  paint.setAntiAlias(true);\n  paint.setStyle(Skia.PaintStyle.Fill);\n  paint.setColor(Skia.Color(color));\n  canvas.drawCircle(0, 0, radius, paint);\n  canvas.restore();\n  return true;\n}",
+      "isNew": false,
+      "lines": 9,
+      "secondFile": {
+        "end": 80,
+        "endLoc": {
+          "column": 1,
+          "line": 80,
+          "position": 2691
+        },
+        "name": "shared/rendering/PlatformerSharedVisuals.ts",
+        "start": 72,
+        "startLoc": {
+          "column": 0,
+          "line": 72,
+          "position": 2395
+        }
+      },
+      "tokens": 81
     },
     {
       "firstFile": {
@@ -1408,92 +1519,18 @@
     },
     {
       "firstFile": {
-        "end": 109,
+        "end": 271,
         "endLoc": {
-          "column": 5,
-          "line": 109,
-          "position": 3833
+          "column": 11,
+          "line": 271,
+          "position": 7571
         },
-        "name": "hitandrun/rendering/HitRunCanvasVisuals.ts",
-        "start": 100,
+        "name": "hitandrun/melee/HitRunMeleeSystem.ts",
+        "start": 253,
         "startLoc": {
-          "column": 45,
-          "line": 100,
-          "position": 3558
-        }
-      },
-      "format": "typescript",
-      "fragment": "    drawGroundShadow(ctx, size, z, 0.45, 0.14);\n\n    // 2. Draw character body translated by elevation z and facing direction\n    ctx.save();\n    ctx.translate(0, -z);\n\n    const { scaleX: sqX, scaleY: sqY } = getLandingSquash(world, entity, 0.2, 0.15);\n    if (sqX !== 1 || sqY !== 1) {\n      ctx.scale(sqX, sqY);\n    }",
-      "isNew": false,
-      "lines": 10,
-      "secondFile": {
-        "end": 214,
-        "endLoc": {
-          "column": 5,
-          "line": 214,
-          "position": 7256
-        },
-        "name": "hitandrun/rendering/HitRunCanvasVisuals.ts",
-        "start": 205,
-        "startLoc": {
-          "column": 45,
-          "line": 205,
-          "position": 7017
-        }
-      },
-      "tokens": 61
-    },
-    {
-      "firstFile": {
-        "end": 111,
-        "endLoc": {
-          "column": 64,
-          "line": 111,
-          "position": 3899
-        },
-        "name": "hitandrun/rendering/HitRunCanvasVisuals.ts",
-        "start": 100,
-        "startLoc": {
-          "column": 45,
-          "line": 100,
-          "position": 3558
-        }
-      },
-      "format": "typescript",
-      "fragment": "    drawGroundShadow(ctx, size, z, 0.45, 0.14);\n\n    // 2. Draw character body translated by elevation z and facing direction\n    ctx.save();\n    ctx.translate(0, -z);\n\n    const { scaleX: sqX, scaleY: sqY } = getLandingSquash(world, entity, 0.2, 0.15);\n    if (sqX !== 1 || sqY !== 1) {\n      ctx.scale(sqX, sqY);\n    }\n\n    const bob = grounded?.isGrounded ? 0 : Math.sin(tick * 0.35) * 1.5;",
-      "isNew": false,
-      "lines": 12,
-      "secondFile": {
-        "end": 376,
-        "endLoc": {
-          "column": 15,
-          "line": 376,
-          "position": 12175
-        },
-        "name": "hitandrun/rendering/HitRunCanvasVisuals.ts",
-        "start": 363,
-        "startLoc": {
-          "column": 44,
-          "line": 363,
-          "position": 11695
-        }
-      },
-      "tokens": 78
-    },
-    {
-      "firstFile": {
-        "end": 262,
-        "endLoc": {
-          "column": 34,
-          "line": 262,
-          "position": 8773
-        },
-        "name": "hitandrun/rendering/HitRunCanvasVisuals.ts",
-        "start": 252,
-        "startLoc": {
-          "column": 34,
-          "line": 252,
-          "position": 8421
+          "column": 16,
+          "line": 253,
+          "position": 7306
         }
       },
       "format": "typescript",
@@ -1501,110 +1538,36 @@
       "isNew": false,
       "lines": 19,
       "secondFile": {
-        "end": 363,
+        "end": 63,
         "endLoc": {
-          "column": 34,
-          "line": 363,
-          "position": 11685
+          "column": 11,
+          "line": 63,
+          "position": 1578
         },
-        "name": "hitandrun/rendering/HitRunCanvasVisuals.ts",
-        "start": 353,
+        "name": "hitandrun/waves/HitRunEnemyPool.ts",
+        "start": 45,
         "startLoc": {
-          "column": 30,
-          "line": 353,
-          "position": 11333
+          "column": 22,
+          "line": 45,
+          "position": 1313
         }
       },
       "tokens": 57
     },
     {
       "firstFile": {
-        "end": 322,
+        "end": 327,
         "endLoc": {
-          "column": 10,
-          "line": 322,
-          "position": 10480
+          "column": 31,
+          "line": 327,
+          "position": 10090
         },
         "name": "hitandrun/rendering/HitRunCanvasVisuals.ts",
-        "start": 314,
+        "start": 316,
         "startLoc": {
-          "column": 77,
-          "line": 314,
-          "position": 10296
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const { scaleX: sqX, scaleY: sqY } = getLandingSquash(world, entity, 0.26, 0.15);\n    if (sqX !== 1 || sqY !== 1) {\n      ctx.scale(sqX, sqY);\n    }\n\n    if ((render.hitFlashFrames ?? 0) > 0) {\n      ctx.fillStyle = \"#fff\";\n      ctx.beginPath();\n      ctx.ellipse(0, -size * 0.55, size * 0.5, size * 0.35, 0, 0, Math.PI * 2);",
-      "isNew": false,
-      "lines": 9,
-      "secondFile": {
-        "end": 378,
-        "endLoc": {
-          "column": 10,
-          "line": 378,
-          "position": 12217
-        },
-        "name": "hitandrun/rendering/HitRunCanvasVisuals.ts",
-        "start": 369,
-        "startLoc": {
-          "column": 76,
-          "line": 369,
-          "position": 11859
-        }
-      },
-      "tokens": 52
-    },
-    {
-      "firstFile": {
-        "end": 322,
-        "endLoc": {
-          "column": 10,
-          "line": 322,
-          "position": 10480
-        },
-        "name": "hitandrun/rendering/HitRunCanvasVisuals.ts",
-        "start": 314,
-        "startLoc": {
-          "column": 77,
-          "line": 314,
-          "position": 10296
-        }
-      },
-      "format": "typescript",
-      "fragment": "    const { scaleX: sqX, scaleY: sqY } = getLandingSquash(world, entity, 0.26, 0.15);\n    if (sqX !== 1 || sqY !== 1) {\n      ctx.scale(sqX, sqY);\n    }\n\n    if ((render.hitFlashFrames ?? 0) > 0) {\n      ctx.fillStyle = \"#fff\";\n      ctx.beginPath();\n      ctx.ellipse(0, -size * 0.55, size * 0.5, size * 0.35, 0, 0, Math.PI * 2);",
-      "isNew": false,
-      "lines": 9,
-      "secondFile": {
-        "end": 436,
-        "endLoc": {
-          "column": 10,
-          "line": 436,
-          "position": 13802
-        },
-        "name": "hitandrun/rendering/HitRunCanvasVisuals.ts",
-        "start": 428,
-        "startLoc": {
-          "column": 77,
-          "line": 428,
-          "position": 13618
-        }
-      },
-      "tokens": 52
-    },
-    {
-      "firstFile": {
-        "end": 384,
-        "endLoc": {
-          "column": 10,
-          "line": 384,
-          "position": 12430
-        },
-        "name": "hitandrun/rendering/HitRunCanvasVisuals.ts",
-        "start": 376,
-        "startLoc": {
-          "column": 22,
-          "line": 376,
-          "position": 12182
+          "column": 34,
+          "line": 316,
+          "position": 9725
         }
       },
       "format": "typescript",
@@ -1612,136 +1575,62 @@
       "isNew": false,
       "lines": 12,
       "secondFile": {
-        "end": 401,
+        "end": 406,
         "endLoc": {
-          "column": 8,
-          "line": 401,
-          "position": 12820
+          "column": 31,
+          "line": 406,
+          "position": 12596
         },
         "name": "hitandrun/rendering/HitRunCanvasVisuals.ts",
-        "start": 391,
+        "start": 395,
         "startLoc": {
-          "column": 23,
-          "line": 391,
-          "position": 12586
+          "column": 30,
+          "line": 395,
+          "position": 12231
         }
       },
       "tokens": 73
     },
     {
       "firstFile": {
+        "end": 415,
+        "endLoc": {
+          "column": 21,
+          "line": 415,
+          "position": 12984
+        },
+        "name": "hitandrun/rendering/HitRunCanvasVisuals.ts",
+        "start": 409,
+        "startLoc": {
+          "column": 10,
+          "line": 409,
+          "position": 12731
+        }
+      },
+      "format": "typescript",
+      "fragment": "          ctx.beginPath();\n          ctx.moveTo(size * 0.65, -size * 0.42);\n          ctx.lineTo(-size * 0.45, -size * 0.84);\n          ctx.lineTo(-size * 0.25, -size * 0.42);\n          ctx.lineTo(-size * 0.45, 0);\n          ctx.closePath();\n          ctx.fill();",
+      "isNew": false,
+      "lines": 7,
+      "secondFile": {
+        "end": 430,
+        "endLoc": {
+          "column": 19,
+          "line": 430,
+          "position": 13395
+        },
+        "name": "hitandrun/rendering/HitRunCanvasVisuals.ts",
+        "start": 424,
+        "startLoc": {
+          "column": 8,
+          "line": 424,
+          "position": 13154
+        }
+      },
+      "tokens": 74
+    },
+    {
+      "firstFile": {
         "end": 28,
-        "endLoc": {
-          "column": 11,
-          "line": 28,
-          "position": 826
-        },
-        "name": "hitandrun/systems/HitRunCombatSystem.ts",
-        "start": 19,
-        "startLoc": {
-          "column": 46,
-          "line": 19,
-          "position": 579
-        }
-      },
-      "format": "typescript",
-      "fragment": "    if (world.getResource(\"IsPaused\") === true) return;\n\n    const entitiesWithEvents = world.query(\"CollisionEvents\");\n    this.destroyedEntities.clear();\n\n    const len = entitiesWithEvents.length;\n\n    for (let i = 0; i < len; i++) {\n      const entityA = entitiesWithEvents[i];\n      const colComp = world.getComponent(entityA, \"CollisionEvents\") as",
-      "isNew": false,
-      "lines": 10,
-      "secondFile": {
-        "end": 312,
-        "endLoc": {
-          "column": 11,
-          "line": 312,
-          "position": 12406
-        },
-        "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
-        "start": 303,
-        "startLoc": {
-          "column": 42,
-          "line": 303,
-          "position": 12039
-        }
-      },
-      "tokens": 52
-    },
-    {
-      "firstFile": {
-        "end": 45,
-        "endLoc": {
-          "column": 12,
-          "line": 45,
-          "position": 1550
-        },
-        "name": "hitandrun/systems/HitRunCombatSystem.ts",
-        "start": 40,
-        "startLoc": {
-          "column": 47,
-          "line": 40,
-          "position": 1265
-        }
-      },
-      "format": "typescript",
-      "fragment": "          const entityB = colComp.collisions[j].otherEntity;\n          if (entityA >= entityB) continue;\n          if (!WorldUtils.isEntityActive(world, entityA) || !WorldUtils.isEntityActive(world, entityB)) continue;\n          if (this.destroyedEntities.has(entityA) || this.destroyedEntities.has(entityB)) continue;\n\n          if (!depthZOverlap(entityA, entityB, world, { halfDepth: 20 })) continue;",
-      "isNew": false,
-      "lines": 6,
-      "secondFile": {
-        "end": 327,
-        "endLoc": {
-          "column": 12,
-          "line": 327,
-          "position": 13081
-        },
-        "name": "space-invaders/systems/SpaceInvadersCollisionSystem.ts",
-        "start": 316,
-        "startLoc": {
-          "column": 29,
-          "line": 316,
-          "position": 12582
-        }
-      },
-      "tokens": 57
-    },
-    {
-      "firstFile": {
-        "end": 50,
-        "endLoc": {
-          "column": 7,
-          "line": 50,
-          "position": 1768
-        },
-        "name": "hitandrun/systems/HitRunCombatSystem.ts",
-        "start": 41,
-        "startLoc": {
-          "column": 42,
-          "line": 41,
-          "position": 1321
-        }
-      },
-      "format": "typescript",
-      "fragment": "          if (entityA >= entityB) continue;\n          if (!WorldUtils.isEntityActive(world, entityA) || !WorldUtils.isEntityActive(world, entityB)) continue;\n          if (this.destroyedEntities.has(entityA) || this.destroyedEntities.has(entityB)) continue;\n\n          if (!depthZOverlap(entityA, entityB, world, { halfDepth: 20 })) continue;\n\n          this.resolveDamageDirection(world, entityA, entityB);\n          this.resolveDamageDirection(world, entityB, entityA);\n        }\n      }",
-      "isNew": false,
-      "lines": 10,
-      "secondFile": {
-        "end": 65,
-        "endLoc": {
-          "column": 7,
-          "line": 65,
-          "position": 2481
-        },
-        "name": "hitandrun/systems/HitRunCombatSystem.ts",
-        "start": 56,
-        "startLoc": {
-          "column": 52,
-          "line": 56,
-          "position": 2034
-        }
-      },
-      "tokens": 91
-    },
-    {
-      "firstFile": {
-        "end": 137,
         "endLoc": {
           "column": 11,
           "line": 28,
@@ -2559,14 +2448,14 @@
         "endLoc": {
           "column": 47,
           "line": 184,
-          "position": 7183
+          "position": 7179
         },
         "name": "platformer/PlatformerGame.ts",
         "start": 179,
         "startLoc": {
           "column": 27,
           "line": 179,
-          "position": 6925
+          "position": 6921
         }
       },
       "format": "typescript",
@@ -2578,14 +2467,14 @@
         "endLoc": {
           "column": 45,
           "line": 206,
-          "position": 7887
+          "position": 7883
         },
         "name": "platformer/PlatformerGame.ts",
         "start": 201,
         "startLoc": {
           "column": 35,
           "line": 201,
-          "position": 7639
+          "position": 7635
         }
       },
       "tokens": 61
@@ -2890,16 +2779,109 @@
       "firstFile": {
         "end": 97,
         "endLoc": {
-          "column": 6,
-          "line": 45,
-          "position": 1177
+          "column": 59,
+          "line": 97,
+          "position": 3094
         },
-        "name": "shared/rendering/JuiceOrchestrator.ts",
-        "start": 33,
+        "name": "shared/rendering/GenericEntityDrawer.ts",
+        "start": 89,
         "startLoc": {
-          "column": 32,
-          "line": 33,
-          "position": 953
+          "column": 31,
+          "line": 89,
+          "position": 2746
+        }
+      },
+      "format": "typescript",
+      "fragment": "  ctx: CanvasRenderingContext2D,\n  profile: EntityGeometryProfile,\n  options: GenericDrawerOptions = {}\n): void {\n  const size = options.size || 20;\n  const scale = (size / 2) * (profile.scaleMultiplier || 1.0);\n  const baseColor = options.baseColor || \"#00E5FF\";\n  const isHitFlashing = Boolean(options.isHitFlashing);\n  const hitFlashColor = options.hitFlashColor || \"#FFFFFF\";",
+      "isNew": false,
+      "lines": 9,
+      "secondFile": {
+        "end": 128,
+        "endLoc": {
+          "column": 59,
+          "line": 128,
+          "position": 4007
+        },
+        "name": "shared/rendering/GenericEntityDrawer.ts",
+        "start": 120,
+        "startLoc": {
+          "column": 23,
+          "line": 120,
+          "position": 3659
+        }
+      },
+      "tokens": 69
+    },
+    {
+      "firstFile": {
+        "end": 481,
+        "endLoc": {
+          "column": 11,
+          "line": 481,
+          "position": 14543
+        },
+        "name": "shared/rendering/PlatformerSharedVisuals.ts",
+        "start": 476,
+        "startLoc": {
+          "column": 25,
+          "line": 476,
+          "position": 14324
+        }
+      },
+      "format": "typescript",
+      "fragment": "      ctx.lineWidth = 1.5;\n      for (let i = 0; i < 3; i++) {\n        const angle = elapsed + (i * Math.PI * 2) / 3;\n        const sx = Math.cos(angle) * (size * 0.6);\n        const sy = Math.sin(angle) * (size * 0.2) - size * 0.5;\n        ctx.beginPath();",
+      "isNew": false,
+      "lines": 6,
+      "secondFile": {
+        "end": 931,
+        "endLoc": {
+          "column": 14,
+          "line": 931,
+          "position": 29598
+        },
+        "name": "shared/rendering/PlatformerSharedVisuals.ts",
+        "start": 926,
+        "startLoc": {
+          "column": 31,
+          "line": 926,
+          "position": 29376
+        }
+      },
+      "tokens": 69
+    },
+    {
+      "firstFile": {
+        "end": 745,
+        "endLoc": {
+          "column": 56,
+          "line": 745,
+          "position": 23045
+        },
+        "name": "shared/rendering/PlatformerSharedVisuals.ts",
+        "start": 737,
+        "startLoc": {
+          "column": 60,
+          "line": 737,
+          "position": 22829
+        }
+      },
+      "format": "typescript",
+      "fragment": "    const drawCtx = resolveEchoDrawContext(world, entity, 24);\n    if (!drawCtx) return;\n    const { size, isHitFlash, state, palette } = drawCtx;\n\n    const paint = getPaint();\n    canvas.save();\n\n    if (isHitFlash) {\n      return drawSkiaHitFlashRect(canvas, paint, -size * 0.4, -size * 0.4, size * 0.8, size * 0.8, palette.restorationWhite);",
+      "isNew": false,
+      "lines": 9,
+      "secondFile": {
+        "end": 872,
+        "endLoc": {
+          "column": 56,
+          "line": 872,
+          "position": 27328
+        },
+        "name": "shared/rendering/PlatformerSharedVisuals.ts",
+        "start": 864,
+        "startLoc": {
+          "column": 60,
+          "line": 864,
+          "position": 27112
         }
       },
       "tokens": 50
@@ -3683,32 +3665,32 @@
     }
   ],
   "statistics": {
-    "detectionDate": "2026-10-11T12:23:00.872Z",
+    "detectionDate": "2026-10-11T13:00:28.728Z",
     "formats": {
       "typescript": {
-        "clones": 98,
-        "duplicatedLines": 836,
-        "duplicatedTokens": 6822,
-        "lines": 90496,
+        "clones": 99,
+        "duplicatedLines": 795,
+        "duplicatedTokens": 6665,
+        "lines": 91432,
         "newClones": 0,
         "newDuplicatedLines": 0,
-        "percentage": 0.9237977369165488,
-        "percentageTokens": 1.3855968607761535,
-        "sources": 559,
-        "tokens": 492351
+        "percentage": 0.8694986438008574,
+        "percentageTokens": 1.3389072588259399,
+        "sources": 564,
+        "tokens": 497794
       }
     },
     "total": {
-      "clones": 98,
-      "duplicatedLines": 836,
-      "duplicatedTokens": 6822,
-      "lines": 90496,
+      "clones": 99,
+      "duplicatedLines": 795,
+      "duplicatedTokens": 6665,
+      "lines": 91432,
       "newClones": 0,
       "newDuplicatedLines": 0,
-      "percentage": 0.9237977369165488,
-      "percentageTokens": 1.3855968607761535,
-      "sources": 559,
-      "tokens": 492351
+      "percentage": 0.8694986438008574,
+      "percentageTokens": 1.3389072588259399,
+      "sources": 564,
+      "tokens": 497794
     }
   }
 }

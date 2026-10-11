@@ -1,4 +1,4 @@
-import { World } from "@tiny-aster/core";
+import { World, resolveThemeColorWithFallback } from "@tiny-aster/core";
 import { ECHO_PALETTE } from "./EchoRunnerPalette";
 
 export interface RenderComponentLike {
@@ -40,6 +40,66 @@ export interface RunStateResource {
 }
 
 /**
+ * Resolved theme color palette contract for EchoRunner and shared platformer visual drawers.
+ * @public
+ */
+export interface EchoRunnerResolvedPalette {
+  restorationCyan: string;
+  restorationCyanGlow: string;
+  restorationCyanFade: string;
+  restorationGold: string;
+  restorationGoldGlow: string;
+  restorationWhite: string;
+
+  corruptionCrimson: string;
+  corruptionCrimsonGlow: string;
+  corruptionAmber: string;
+  corruptionPurple: string;
+  corruptionPurpleGlow: string;
+
+  archiveVoidDark: string;
+  archiveSlate: string;
+  archiveBorderDark: string;
+  archiveBorderLight: string;
+  archiveGridLine: string;
+  archiveGridLineSecondary: string;
+  archiveDataStream: string;
+  archiveNodeActive: string;
+  archiveNodeInactive: string;
+}
+
+/**
+ * Resolves theme colors from the active `World` resource `Theme` with fallbacks to `ECHO_PALETTE`.
+ * @public
+ */
+export function resolveEchoRunnerPalette(world: World): EchoRunnerResolvedPalette {
+  return {
+    restorationCyan: resolveThemeColorWithFallback(world, ECHO_PALETTE.restorationCyan, "restorationCyan", "player", "primary"),
+    restorationCyanGlow: resolveThemeColorWithFallback(world, ECHO_PALETTE.restorationCyanGlow, "restorationCyanGlow", "primaryGlow"),
+    restorationCyanFade: resolveThemeColorWithFallback(world, ECHO_PALETTE.restorationCyanFade, "restorationCyanFade"),
+    restorationGold: resolveThemeColorWithFallback(world, ECHO_PALETTE.restorationGold, "restorationGold", "secondary"),
+    restorationGoldGlow: resolveThemeColorWithFallback(world, ECHO_PALETTE.restorationGoldGlow, "restorationGoldGlow", "secondaryGlow"),
+    restorationWhite: resolveThemeColorWithFallback(world, ECHO_PALETTE.restorationWhite, "restorationWhite", "white"),
+
+    corruptionCrimson: resolveThemeColorWithFallback(world, ECHO_PALETTE.corruptionCrimson, "corruptionCrimson", "enemy", "accent"),
+    corruptionCrimsonGlow: resolveThemeColorWithFallback(world, ECHO_PALETTE.corruptionCrimsonGlow, "corruptionCrimsonGlow", "accentGlow"),
+    corruptionAmber: resolveThemeColorWithFallback(world, ECHO_PALETTE.corruptionAmber, "corruptionAmber", "amber"),
+    corruptionPurple: resolveThemeColorWithFallback(world, ECHO_PALETTE.corruptionPurple, "corruptionPurple", "purple"),
+    corruptionPurpleGlow: resolveThemeColorWithFallback(world, ECHO_PALETTE.corruptionPurpleGlow, "corruptionPurpleGlow", "purpleGlow"),
+
+    archiveVoidDark: resolveThemeColorWithFallback(world, ECHO_PALETTE.archiveVoidDark, "archiveVoidDark", "background"),
+    archiveSlate: resolveThemeColorWithFallback(world, ECHO_PALETTE.archiveSlate, "archiveSlate", "surface", "world"),
+    archiveBorderDark: resolveThemeColorWithFallback(world, ECHO_PALETTE.archiveBorderDark, "archiveBorderDark", "borderDark"),
+    archiveBorderLight: resolveThemeColorWithFallback(world, ECHO_PALETTE.archiveBorderLight, "archiveBorderLight", "borderLight"),
+    archiveGridLine: resolveThemeColorWithFallback(world, ECHO_PALETTE.archiveGridLine, "archiveGridLine", "gridLine"),
+    archiveGridLineSecondary: resolveThemeColorWithFallback(world, ECHO_PALETTE.archiveGridLineSecondary, "archiveGridLineSecondary", "gridLineSecondary"),
+    archiveDataStream: resolveThemeColorWithFallback(world, ECHO_PALETTE.archiveDataStream, "archiveDataStream", "dataStream"),
+    archiveNodeActive: resolveThemeColorWithFallback(world, ECHO_PALETTE.archiveNodeActive, "archiveNodeActive", "nodeActive"),
+    archiveNodeInactive: resolveThemeColorWithFallback(world, ECHO_PALETTE.archiveNodeInactive, "archiveNodeInactive", "nodeInactive"),
+  };
+}
+
+/**
  * Common draw context helper for EchoRunner entity drawers.
  * @public
  */
@@ -48,6 +108,7 @@ export interface EchoDrawContext {
   size: number;
   isHitFlash: boolean;
   state: string;
+  palette: EchoRunnerResolvedPalette;
 }
 
 export function resolveEchoDrawContext(
@@ -62,8 +123,9 @@ export function resolveEchoDrawContext(
   const sm = world.getComponent(entity, "StateMachine") as StateMachineComponentLike | undefined;
   const state = sm && typeof sm === "object" && "currentState" in sm && typeof sm.currentState === "string" ? sm.currentState : "Idle";
   const isHitFlash = render.hitFlashFrames !== undefined && render.hitFlashFrames > 0;
+  const palette = resolveEchoRunnerPalette(world);
 
-  return { render, size, isHitFlash, state };
+  return { render, size, isHitFlash, state, palette };
 }
 
 export interface EchoPlayerPose {
@@ -129,10 +191,10 @@ export interface HopperVisualState {
 /**
  * Resolves visual state and squash/stretch scaling for Hopper enemies.
  */
-export function resolveHopperVisualState(state: string): HopperVisualState {
+export function resolveHopperVisualState(state: string, palette: EchoRunnerResolvedPalette): HopperVisualState {
   const isAlert = state === "Alert" || state === "Windup" || state === "Compress";
   const isAttack = state === "Attack";
-  const glowColor = isAttack ? ECHO_PALETTE.restorationCyan : (isAlert ? ECHO_PALETTE.corruptionAmber : "#10b981");
+  const glowColor = isAttack ? palette.restorationCyan : (isAlert ? palette.corruptionAmber : palette.archiveNodeActive);
 
   let scaleX = 1;
   let scaleY = 1;
@@ -157,10 +219,10 @@ export interface SentinelVisualState {
 /**
  * Resolves visual state and glow color for Sentinel enemies.
  */
-export function resolveSentinelVisualState(state: string): SentinelVisualState {
+export function resolveSentinelVisualState(state: string, palette: EchoRunnerResolvedPalette): SentinelVisualState {
   const isAlert = state === "Alert" || state === "Windup";
   const isAttack = state === "Attack";
-  const glowColor = isAlert ? ECHO_PALETTE.corruptionAmber : (isAttack ? ECHO_PALETTE.corruptionCrimson : ECHO_PALETTE.corruptionPurple);
+  const glowColor = isAlert ? palette.corruptionAmber : (isAttack ? palette.corruptionCrimson : palette.corruptionPurple);
   return { isAlert, isAttack, glowColor };
 }
 
@@ -173,10 +235,10 @@ export interface WatcherVisualState {
 /**
  * Resolves visual state and glow color for Watcher enemies.
  */
-export function resolveWatcherVisualState(state: string): WatcherVisualState {
+export function resolveWatcherVisualState(state: string, palette: EchoRunnerResolvedPalette): WatcherVisualState {
   const isAlert = state === "Alert" || state === "Windup";
   const isAttack = state === "Attack";
-  const glowColor = isAttack ? ECHO_PALETTE.corruptionCrimson : (isAlert ? ECHO_PALETTE.corruptionAmber : "#3b82f6");
+  const glowColor = isAttack ? palette.corruptionCrimson : (isAlert ? palette.corruptionAmber : "#3b82f6");
   return { isAlert, isAttack, glowColor };
 }
 
@@ -190,21 +252,21 @@ export interface ChargerVisualState {
 /**
  * Resolves visual state and glow color for Charger enemies.
  */
-export function resolveChargerVisualState(state: string): ChargerVisualState {
+export function resolveChargerVisualState(state: string, palette: EchoRunnerResolvedPalette): ChargerVisualState {
   const isStunned = state === "Recovery" || state === "Stunned";
   const isAlert = state === "Alert" || state === "Windup";
   const isAttack = state === "Attack";
-  const glowColor = isStunned ? ECHO_PALETTE.restorationGold : (isAlert ? ECHO_PALETTE.corruptionAmber : ECHO_PALETTE.corruptionCrimson);
+  const glowColor = isStunned ? palette.restorationGold : (isAlert ? palette.corruptionAmber : palette.corruptionCrimson);
   return { isStunned, isAlert, isAttack, glowColor };
 }
 
 /**
  * Resolves palette colors for memory fragment collectibles based on collected count progression.
  */
-export function resolveMemoryFragmentColors(collectedCount: number): { strokeColor: string; fillColor: string } {
+export function resolveMemoryFragmentColors(collectedCount: number, palette: EchoRunnerResolvedPalette): { strokeColor: string; fillColor: string } {
   const isRestoredProgression = collectedCount >= 5;
-  const strokeColor = isRestoredProgression ? ECHO_PALETTE.restorationCyan : ECHO_PALETTE.corruptionPurple;
-  const fillColor = isRestoredProgression ? ECHO_PALETTE.restorationCyanGlow : ECHO_PALETTE.corruptionPurpleGlow;
+  const strokeColor = isRestoredProgression ? palette.restorationCyan : palette.corruptionPurple;
+  const fillColor = isRestoredProgression ? palette.restorationCyanGlow : palette.corruptionPurpleGlow;
   return { strokeColor, fillColor };
 }
 
@@ -218,6 +280,7 @@ export interface EchoPlayerDrawContext {
   isInvulnerable: boolean;
   isHitFlash: boolean;
   health?: HealthComponentLike;
+  palette: EchoRunnerResolvedPalette;
 }
 
 export function resolveEchoPlayerDrawContext(
@@ -239,6 +302,7 @@ export function resolveEchoPlayerDrawContext(
   const isAttacking = Boolean(input && input.pulseCooldown !== undefined && input.pulseCooldown > 0.25);
   const isInvulnerable = Boolean(health && health.invulnerableRemaining && health.invulnerableRemaining > 0);
   const isHitFlash = Boolean(render.hitFlashFrames !== undefined && render.hitFlashFrames > 0);
+  const palette = resolveEchoRunnerPalette(world);
 
   return {
     render,
@@ -250,6 +314,7 @@ export function resolveEchoPlayerDrawContext(
     isInvulnerable,
     isHitFlash,
     health,
+    palette,
   };
 }
 
@@ -260,6 +325,7 @@ export interface EchoMemoryFragmentDrawContext {
   hoverOffset: number;
   strokeColor: string;
   fillColor: string;
+  palette: EchoRunnerResolvedPalette;
 }
 
 export function resolveEchoMemoryFragmentDrawContext(
@@ -274,7 +340,8 @@ export function resolveEchoMemoryFragmentDrawContext(
 
   const runState = world.getResource<RunStateResource>("RunState");
   const collectedCount = runState?.collectedTemporalIds?.length || 0;
-  const { strokeColor, fillColor } = resolveMemoryFragmentColors(collectedCount);
+  const palette = resolveEchoRunnerPalette(world);
+  const { strokeColor, fillColor } = resolveMemoryFragmentColors(collectedCount, palette);
 
   return {
     render,
@@ -283,6 +350,7 @@ export function resolveEchoMemoryFragmentDrawContext(
     hoverOffset,
     strokeColor,
     fillColor,
+    palette,
   };
 }
 
@@ -291,6 +359,7 @@ export interface EchoCollectibleDrawContext {
   size: number;
   elapsed: number;
   hoverOffset: number;
+  palette: EchoRunnerResolvedPalette;
 }
 
 export function resolveEchoCollectibleDrawContext(
@@ -303,12 +372,14 @@ export function resolveEchoCollectibleDrawContext(
   const size = render.size || defaultSize;
   const elapsed = world.tick * 0.016;
   const hoverOffset = Math.sin(elapsed * 4) * 6;
+  const palette = resolveEchoRunnerPalette(world);
 
   return {
     render,
     size,
     elapsed,
     hoverOffset,
+    palette,
   };
 }
 
@@ -316,6 +387,7 @@ export interface EchoCheckpointDrawContext {
   render: RenderComponentLike;
   size: number;
   isActive: boolean;
+  palette: EchoRunnerResolvedPalette;
 }
 
 export function resolveEchoCheckpointDrawContext(
@@ -328,11 +400,13 @@ export function resolveEchoCheckpointDrawContext(
   const respawnPoint = world.getComponent(entity, "RespawnPoint") as RespawnPointComponentLike | undefined;
   const runState = world.getResource<RunStateResource>("RunState");
   const isActive = Boolean(runState && respawnPoint && runState.activeCheckpoint === respawnPoint.checkpointId);
+  const palette = resolveEchoRunnerPalette(world);
 
   return {
     render,
     size,
     isActive,
+    palette,
   };
 }
 
@@ -340,6 +414,7 @@ export interface EchoBackgroundContext {
   width: number;
   height: number;
   elapsed: number;
+  palette: EchoRunnerResolvedPalette;
 }
 
 export function resolveEchoBackgroundContext(world: World): EchoBackgroundContext {
@@ -348,6 +423,7 @@ export function resolveEchoBackgroundContext(world: World): EchoBackgroundContex
   const height = screenConfig.height;
   const runState = world.getResource<RunStateResource>("RunState");
   const elapsed = runState?.elapsedTime || (world.tick * 0.016);
+  const palette = resolveEchoRunnerPalette(world);
 
-  return { width, height, elapsed };
+  return { width, height, elapsed, palette };
 }

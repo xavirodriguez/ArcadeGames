@@ -57,10 +57,32 @@ export type PongRoleKey = CommonRoleKey | "ball" | "paddle" | "left" | "right";
 export type FlappyBirdRoleKey = CommonRoleKey | "bird" | "pipe" | "ground";
 
 /**
- * Role keys for Platformer.
+ * Role keys for Platformer and Echo Runner.
  * @public
  */
-export type PlatformerRoleKey = CommonRoleKey | "sentinel" | "hopper" | "charger" | "fragment" | "coin" | "goal" | "tilemap";
+export type PlatformerRoleKey =
+  | CommonRoleKey
+  | "sentinel"
+  | "hopper"
+  | "charger"
+  | "watcher"
+  | "fragment"
+  | "core"
+  | "node"
+  | "coin"
+  | "goal"
+  | "tilemap"
+  | "restorationCyan"
+  | "restorationGold"
+  | "corruptionCrimson"
+  | "corruptionAmber"
+  | "corruptionPurple"
+  | "archiveVoidDark"
+  | "archiveSlate"
+  | "archiveBorderDark"
+  | "archiveBorderLight"
+  | "archiveGridLine"
+  | "archiveDataStream";
 
 /**
  * Role keys for Geometry Wars.

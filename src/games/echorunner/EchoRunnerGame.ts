@@ -27,7 +27,8 @@ import {
   LevelPlan,
   EntityBuilder,
   preloadSharedAudioManifest,
-  SHARED_AUDIO_MANIFEST
+  SHARED_AUDIO_MANIFEST,
+  Theme
 } from "@tiny-aster/core";
 import { drawEchoBackground, drawEchoPlayer, drawMemoryFragment, drawMemoryCore, drawCheckpointNode, drawPulseAttack, drawSentinel, drawHopper, drawWatcher, drawCharger } from "./rendering/EchoRunnerCanvasVisuals";
 import { EchoRunnerInput, EchoRunnerInputComponent, EchoRunnerGameState, EchoRunnerEventRegistry, ECHO_CONFIG } from "./types/EchoRunnerTypes";
@@ -37,11 +38,13 @@ import { PlatformerInputSystem } from "../platformer/systems/PlatformerInputSyst
 import { resolveAndApplyMutators } from "../../config/MutatorConfig";
 import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, registerPlatformerEnvironmentBlueprints, mutatePlatformerInputState, registerCommonPlatformerSystems, updatePlayerInvulnerabilityAndContactDamage, updateRunProgress } from "@tiny-aster/gameplay-kit";
 import { setupPlatformerMovementComponents, registerPlatformerTilemapBlueprint, createMainCamera2D, registerPresentationSystems, generateAndInstantiatePlatformerLevel, registerCollectibleTriggerBlueprint } from "../shared/componentBuilders";
+import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import defaultLevelData from "./levels/level-01.json";
 
 export interface EchoRunnerConfig {
   seed?: number;
   gameOptions?: Record<string, unknown>;
+  theme?: Theme;
   levelData?: { templates: SegmentTemplate[]; grammar: string[] };
 }
 
@@ -145,6 +148,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
       restartKey: "KeyR",
       gameOptions: config.gameOptions,
       seed: config.seed,
+      theme: config.theme ?? createThemeFromGameAccents("echorunner"),
       audio: new WebAudioPlayer()
     });
     this.baseConfig = ConfigService.load<EchoRunnerConfigType>(

@@ -1,38 +1,29 @@
 import { ShapeDrawer, EffectDrawer, CoreComponentRegistry } from "@tiny-aster/core";
-import { ECHO_PALETTE } from "./EchoRunnerPalette";
 import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
-
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 import {
   calculateEchoPlayerPose,
-  resolveHopperVisualState,
-  resolveSentinelVisualState,
-  resolveWatcherVisualState,
-  resolveChargerVisualState,
-  resolveEchoDrawContext,
   resolveEchoPlayerDrawContext,
-  resolveEchoMemoryFragmentDrawContext,
-  resolveEchoCollectibleDrawContext,
-  resolveEchoCheckpointDrawContext,
   resolveEchoBackgroundContext,
 } from "./EchoRunnerVisualUtils";
 
-function drawSkiaHitFlashCircle(canvas: any, paint: any, radius: number): true {
-  paint.reset();
-  paint.setAntiAlias(true);
-  paint.setStyle(Skia.PaintStyle.Fill);
-  paint.setColor(Skia.Color(ECHO_PALETTE.restorationWhite));
-  canvas.drawCircle(0, 0, radius, paint);
-  canvas.restore();
-  return true;
-}
+export {
+  drawSkiaMemoryFragment,
+  drawSkiaMemoryCore,
+  drawSkiaCheckpointNode,
+  drawSkiaPulseAttack,
+  drawSkiaSentinel,
+  drawSkiaHopper,
+  drawSkiaWatcher,
+  drawSkiaCharger,
+} from "../../shared/rendering/PlatformerSharedVisuals";
 
-function drawSkiaHitFlashRect(canvas: any, paint: any, x: number, y: number, w: number, h: number): true {
+function drawSkiaHitFlashCircle(canvas: any, paint: any, radius: number, color: string): true {
   paint.reset();
   paint.setAntiAlias(true);
   paint.setStyle(Skia.PaintStyle.Fill);
-  paint.setColor(Skia.Color(ECHO_PALETTE.restorationWhite));
-  canvas.drawRect(Skia.XYWHRect(x, y, w, h), paint);
+  paint.setColor(Skia.Color(color));
+  canvas.drawCircle(0, 0, radius, paint);
   canvas.restore();
   return true;
 }
@@ -40,12 +31,12 @@ function drawSkiaHitFlashRect(canvas: any, paint: any, x: number, y: number, w: 
 export const drawSkiaEchoBackground: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    const { width, height, elapsed } = resolveEchoBackgroundContext(world);
+    const { width, height, elapsed, palette } = resolveEchoBackgroundContext(world);
 
     const paint = getPaint();
 
     paint.reset();
-    paint.setColor(Skia.Color(ECHO_PALETTE.archiveVoidDark));
+    paint.setColor(Skia.Color(palette.archiveVoidDark));
     canvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
 
     const bgGridSize = 80;
@@ -54,7 +45,7 @@ export const drawSkiaEchoBackground: EffectDrawer<any, CoreComponentRegistry> = 
 
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(ECHO_PALETTE.archiveGridLineSecondary));
+    paint.setColor(Skia.Color(palette.archiveGridLineSecondary));
     paint.setStrokeWidth(1.0);
 
     for (let x = bgOffsetX; x < width; x += bgGridSize) {
@@ -64,7 +55,7 @@ export const drawSkiaEchoBackground: EffectDrawer<any, CoreComponentRegistry> = 
       canvas.drawLine(0, y, width, y, paint);
     }
 
-    paint.setColor(Skia.Color(ECHO_PALETTE.archiveGridLine));
+    paint.setColor(Skia.Color(palette.archiveGridLine));
     const gridSize = 40;
     const offsetX = (elapsed * 15) % gridSize;
     const offsetY = (elapsed * 10) % gridSize;
@@ -78,7 +69,7 @@ export const drawSkiaEchoBackground: EffectDrawer<any, CoreComponentRegistry> = 
 
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(ECHO_PALETTE.archiveDataStream));
+    paint.setColor(Skia.Color(palette.archiveDataStream));
     for (let i = 0; i < 4; i++) {
       const px = (i * 210 + elapsed * 20) % width;
       const py = ((i * 150 + elapsed * 35) % (height + 100)) - 50;
@@ -88,7 +79,7 @@ export const drawSkiaEchoBackground: EffectDrawer<any, CoreComponentRegistry> = 
     for (let i = 0; i < 6; i++) {
       const px = (i * 143 + elapsed * 8) % width;
       const py = (i * 187 + elapsed * 12) % height;
-      paint.setColor(Skia.Color(i % 2 === 0 ? ECHO_PALETTE.restorationCyanGlow : ECHO_PALETTE.corruptionPurpleGlow));
+      paint.setColor(Skia.Color(i % 2 === 0 ? palette.restorationCyanGlow : palette.corruptionPurpleGlow));
       canvas.drawCircle(px, py, 2 + (i % 3), paint);
     }
   }
@@ -99,14 +90,14 @@ export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {
     const playerCtx = resolveEchoPlayerDrawContext(world, entity);
     if (!playerCtx) return;
 
-    const { render, size, vx, vy, isGrounded, isAttacking, health } = playerCtx;
+    const { render, size, vx, vy, isGrounded, isAttacking, health, palette } = playerCtx;
 
     const paint = getPaint();
     canvas.save();
 
-    const flashState = resolveHitFlash(render, render.color || "cyan", 1.0);
+    const flashState = resolveHitFlash(render, render.color || palette.restorationCyan, 1.0);
     if (flashState.isFlashing) {
-      return drawSkiaHitFlashCircle(canvas, paint, size * 0.65);
+      return drawSkiaHitFlashCircle(canvas, paint, size * 0.65, palette.restorationWhite);
     }
 
     let alpha = 1.0;
@@ -130,7 +121,7 @@ export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {
       paint.reset();
       paint.setAntiAlias(true);
       paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(Skia.Color(ECHO_PALETTE.restorationCyan));
+      paint.setColor(Skia.Color(palette.restorationCyan));
       paint.setStrokeWidth(2.0);
       paint.setAlphaf(alpha);
       canvas.drawCircle(0, 0, size * 0.85, paint);
@@ -139,7 +130,7 @@ export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {
     paint.reset();
     paint.setAntiAlias(true);
     paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(ECHO_PALETTE.corruptionCrimson));
+    paint.setColor(Skia.Color(palette.corruptionCrimson));
     paint.setStrokeWidth(1.5);
     paint.setAlphaf(alpha);
     canvas.drawLine(-size * 0.22, -size * 0.5, -size * 0.32, -size * 0.85, paint);
@@ -154,498 +145,54 @@ export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {
     paint.reset();
     paint.setAntiAlias(true);
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(ECHO_PALETTE.archiveSlate));
+    paint.setColor(Skia.Color(palette.archiveSlate));
     paint.setAlphaf(alpha);
     canvas.drawPath(headPath, paint);
 
     paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(ECHO_PALETTE.restorationCyan));
+    paint.setColor(Skia.Color(palette.restorationCyan));
     paint.setStrokeWidth(2.0);
     canvas.drawPath(headPath, paint);
 
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(ECHO_PALETTE.corruptionCrimson));
+    paint.setColor(Skia.Color(palette.corruptionCrimson));
     canvas.drawOval(Skia.XYWHRect(size * 0.08 - size * 0.24, -size * 0.45 - size * 0.07, size * 0.48, size * 0.14), paint);
 
     paint.reset();
     paint.setAntiAlias(true);
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(ECHO_PALETTE.archiveBorderDark));
+    paint.setColor(Skia.Color(palette.archiveBorderDark));
     paint.setAlphaf(alpha);
     canvas.drawRoundRect(Skia.RRectXY(Skia.XYWHRect(-size * 0.3, -size * 0.15, size * 0.6, size * 0.6), 4, 4), paint);
 
     paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(ECHO_PALETTE.restorationCyan));
+    paint.setColor(Skia.Color(palette.restorationCyan));
     paint.setStrokeWidth(2.0);
     canvas.drawRoundRect(Skia.RRectXY(Skia.XYWHRect(-size * 0.3, -size * 0.15, size * 0.6, size * 0.6), 4, 4), paint);
 
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(isAttacking ? ECHO_PALETTE.restorationWhite : ECHO_PALETTE.restorationCyan));
+    paint.setColor(Skia.Color(isAttacking ? palette.restorationWhite : palette.restorationCyan));
     canvas.drawCircle(0, size * 0.1, isAttacking ? size * 0.16 : size * 0.12, paint);
 
     if (isAttacking) {
-      paint.setColor(Skia.Color(ECHO_PALETTE.restorationCyan));
+      paint.setColor(Skia.Color(palette.restorationCyan));
       canvas.drawRect(Skia.XYWHRect(size * 0.1, -size * 0.05, size * 0.4, size * 0.18), paint);
-      paint.setColor(Skia.Color(ECHO_PALETTE.restorationWhite));
+      paint.setColor(Skia.Color(palette.restorationWhite));
       canvas.drawCircle(size * 0.5, size * 0.04, 3, paint);
     }
 
-    paint.setColor(Skia.Color(ECHO_PALETTE.archiveBorderLight));
+    paint.setColor(Skia.Color(palette.archiveBorderLight));
     canvas.drawCircle(leftLegX, leftLegY, size * 0.08, paint);
     canvas.drawCircle(rightLegX, rightLegY, size * 0.08, paint);
 
     if (!isGrounded && vy < -20) {
-      paint.setColor(Skia.Color(ECHO_PALETTE.restorationCyan));
+      paint.setColor(Skia.Color(palette.restorationCyan));
       const flamePath = Skia.Path.Make();
       flamePath.moveTo(-size * 0.15, leftLegY);
       flamePath.lineTo(0, leftLegY + size * 0.35);
       flamePath.lineTo(size * 0.15, rightLegY);
       flamePath.close();
       canvas.drawPath(flamePath, paint);
-    }
-
-    canvas.restore();
-  }
-};
-
-export const drawSkiaMemoryFragment: ShapeDrawer<any, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
-    const fragCtx = resolveEchoMemoryFragmentDrawContext(world, entity);
-    if (!fragCtx) return;
-
-    const { size, elapsed, hoverOffset, strokeColor, fillColor } = fragCtx;
-
-    const paint = getPaint();
-    canvas.save();
-
-    canvas.translate(0, hoverOffset);
-    canvas.rotate((elapsed * 1.5 * 180) / Math.PI, 0, 0);
-
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(fillColor));
-
-    const path = Skia.Path.Make();
-    path.moveTo(0, -size * 0.6);
-    path.lineTo(size * 0.45, 0);
-    path.lineTo(0, size * 0.6);
-    path.lineTo(-size * 0.45, 0);
-    path.close();
-
-    canvas.drawPath(path, paint);
-
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(strokeColor));
-    paint.setStrokeWidth(2.0);
-    canvas.drawPath(path, paint);
-
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(ECHO_PALETTE.restorationWhite));
-
-    const corePath = Skia.Path.Make();
-    corePath.moveTo(0, -size * 0.25);
-    corePath.lineTo(size * 0.18, 0);
-    corePath.lineTo(0, size * 0.25);
-    corePath.lineTo(-size * 0.18, 0);
-    corePath.close();
-
-    canvas.drawPath(corePath, paint);
-
-    canvas.restore();
-  }
-};
-
-export const drawSkiaMemoryCore: ShapeDrawer<any, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
-    const coreCtx = resolveEchoCollectibleDrawContext(world, entity, 24);
-    if (!coreCtx) return;
-
-    const { size, elapsed, hoverOffset } = coreCtx;
-
-    const paint = getPaint();
-    canvas.save();
-
-    canvas.translate(0, hoverOffset);
-
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(ECHO_PALETTE.restorationGoldGlow));
-    paint.setStrokeWidth(1.5);
-
-    canvas.save();
-    canvas.rotate((elapsed * 2 * 180) / Math.PI, 0, 0);
-    canvas.drawOval(Skia.XYWHRect(-size * 0.8, -size * 0.3, size * 1.6, size * 0.6), paint);
-    canvas.restore();
-
-    canvas.save();
-    canvas.rotate((-elapsed * 1.5 * 180) / Math.PI, 0, 0);
-    canvas.drawOval(Skia.XYWHRect(-size * 0.8, -size * 0.3, size * 1.6, size * 0.6), paint);
-    canvas.restore();
-
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(ECHO_PALETTE.corruptionAmber));
-    canvas.drawCircle(0, 0, size * 0.45, paint);
-
-    paint.setColor(Skia.Color(ECHO_PALETTE.restorationGold));
-    canvas.drawCircle(0, 0, size * 0.25, paint);
-
-    paint.setColor(Skia.Color(ECHO_PALETTE.restorationWhite));
-    canvas.drawCircle(0, 0, size * 0.1, paint);
-
-    canvas.restore();
-  }
-};
-
-export const drawSkiaCheckpointNode: ShapeDrawer<any, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
-    const cpCtx = resolveEchoCheckpointDrawContext(world, entity);
-    if (!cpCtx) return;
-
-    const { size, isActive } = cpCtx;
-
-    const paint = getPaint();
-    canvas.save();
-
-    const statusColor = isActive ? ECHO_PALETTE.archiveNodeActive : ECHO_PALETTE.archiveNodeInactive;
-
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(ECHO_PALETTE.archiveSlate));
-    canvas.drawRect(Skia.XYWHRect(-size * 0.4, size * 0.3, size * 0.8, size * 0.2), paint);
-
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(ECHO_PALETTE.archiveBorderLight));
-    paint.setStrokeWidth(2.0);
-    canvas.drawRect(Skia.XYWHRect(-size * 0.4, size * 0.3, size * 0.8, size * 0.2), paint);
-
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(ECHO_PALETTE.archiveBorderDark));
-    canvas.drawRect(Skia.XYWHRect(-size * 0.25, -size * 0.5, size * 0.5, size * 0.8), paint);
-
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(ECHO_PALETTE.archiveBorderLight));
-    canvas.drawRect(Skia.XYWHRect(-size * 0.25, -size * 0.5, size * 0.5, size * 0.8), paint);
-
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(statusColor));
-    canvas.drawRect(Skia.XYWHRect(-size * 0.18, -size * 0.4, size * 0.36, size * 0.35), paint);
-
-    paint.setColor(Skia.Color(statusColor));
-    if (isActive) {
-      canvas.drawCircle(0, -size * 0.22, size * 0.08, paint);
-    } else {
-      canvas.drawRect(Skia.XYWHRect(-size * 0.04, -size * 0.3, size * 0.08, size * 0.16), paint);
-    }
-
-    canvas.restore();
-  }
-};
-
-export const drawSkiaPulseAttack: ShapeDrawer<any, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
-    const size = render.size || 35;
-
-    const paint = getPaint();
-    canvas.save();
-
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(ECHO_PALETTE.restorationCyanGlow));
-
-    const path = Skia.Path.Make();
-    path.moveTo(0, 0);
-    path.addArc(Skia.XYWHRect(-size, -size, size * 2, size * 2), -63, 126);
-    path.close();
-
-    canvas.drawPath(path, paint);
-
-    paint.setColor(Skia.Color("rgba(255, 255, 255, 0.8)"));
-    const innerPath = Skia.Path.Make();
-    innerPath.moveTo(0, 0);
-    innerPath.addArc(Skia.XYWHRect(-size * 0.5, -size * 0.5, size, size), -50, 100);
-    innerPath.close();
-
-    canvas.drawPath(innerPath, paint);
-
-    canvas.restore();
-  }
-};
-
-export const drawSkiaSentinel: ShapeDrawer<any, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
-    if (!Skia) return;
-    const drawCtx = resolveEchoDrawContext(world, entity, 22);
-    if (!drawCtx) return;
-    const { size, isHitFlash, state } = drawCtx;
-
-    const paint = getPaint();
-    canvas.save();
-
-    if (isHitFlash) {
-      return drawSkiaHitFlashCircle(canvas, paint, size * 0.5);
-    }
-
-    const { isAlert, isAttack, glowColor } = resolveSentinelVisualState(state);
-
-    if (isAlert) {
-      const pulse = Math.sin(world.tick * 0.5) * 3;
-      paint.reset();
-      paint.setAntiAlias(true);
-      paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color(ECHO_PALETTE.corruptionAmber));
-
-      const chevron = Skia.Path.Make();
-      chevron.moveTo(0, -size * 0.8 - pulse);
-      chevron.lineTo(size * 0.18, -size * 1.1 - pulse);
-      chevron.lineTo(-size * 0.18, -size * 1.1 - pulse);
-      chevron.close();
-      canvas.drawPath(chevron, paint);
-
-      paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(Skia.Color("rgba(249, 115, 22, 0.6)"));
-      paint.setStrokeWidth(1.5);
-      const ringRadius = size * (0.8 + 0.3 * Math.sin(world.tick * 0.3));
-      canvas.drawCircle(0, 0, ringRadius, paint);
-    } else if (isAttack) {
-      paint.reset();
-      paint.setAntiAlias(true);
-      paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(Skia.Color(ECHO_PALETTE.corruptionCrimson));
-      paint.setStrokeWidth(2.0);
-      canvas.drawCircle(0, 0, size * 0.85, paint);
-    }
-
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(ECHO_PALETTE.archiveBorderDark));
-    canvas.drawCircle(0, 0, size * 0.45, paint);
-
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(glowColor));
-    paint.setStrokeWidth(2.0);
-    canvas.drawCircle(0, 0, size * 0.45, paint);
-
-    const eyeColor = isAlert && Math.floor(world.tick / 4) % 2 === 0 ? ECHO_PALETTE.restorationWhite : glowColor;
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(eyeColor));
-    canvas.drawCircle(0, -size * 0.05, size * 0.15, paint);
-
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(ECHO_PALETTE.archiveBorderLight));
-    canvas.drawLine(-size * 0.45, size * 0.1, -size * 0.6, size * 0.3, paint);
-    canvas.drawLine(size * 0.45, size * 0.1, size * 0.6, size * 0.3, paint);
-
-    canvas.restore();
-  }
-};
-
-export const drawSkiaHopper: ShapeDrawer<any, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
-    if (!Skia) return;
-    const drawCtx = resolveEchoDrawContext(world, entity, 24);
-    if (!drawCtx) return;
-    const { size, isHitFlash, state } = drawCtx;
-
-    const paint = getPaint();
-    canvas.save();
-
-    if (isHitFlash) {
-      return drawSkiaHitFlashRect(canvas, paint, -size * 0.4, -size * 0.4, size * 0.8, size * 0.8);
-    }
-
-    const { isAlert, isAttack, glowColor, scaleX, scaleY } = resolveHopperVisualState(state);
-
-    if (isAlert) {
-      paint.reset();
-      paint.setAntiAlias(true);
-      paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color(ECHO_PALETTE.corruptionAmber));
-
-      const path = Skia.Path.Make();
-      path.moveTo(0, -size * 0.7);
-      path.lineTo(-size * 0.2, -size * 0.95);
-      path.lineTo(size * 0.2, -size * 0.95);
-      path.close();
-      canvas.drawPath(path, paint);
-    }
-
-    canvas.scale(scaleX, scaleY);
-
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(glowColor));
-    paint.setStrokeWidth(2.0);
-
-    const legPath = Skia.Path.Make();
-    legPath.moveTo(0, 0);
-    legPath.lineTo(-size * 0.15, size * 0.3);
-    legPath.lineTo(size * 0.15, size * 0.3);
-    legPath.close();
-
-    canvas.drawPath(legPath, paint);
-
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(ECHO_PALETTE.archiveSlate));
-    canvas.drawRoundRect(Skia.RRectXY(Skia.XYWHRect(-size * 0.35, -size * 0.4, size * 0.7, size * 0.45), 3, 3), paint);
-
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(glowColor));
-    canvas.drawRoundRect(Skia.RRectXY(Skia.XYWHRect(-size * 0.35, -size * 0.4, size * 0.7, size * 0.45), 3, 3), paint);
-
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(glowColor));
-    canvas.drawRect(Skia.XYWHRect(-size * 0.2, -size * 0.28, size * 0.4, size * 0.1), paint);
-
-    canvas.restore();
-  }
-};
-
-export const drawSkiaWatcher: ShapeDrawer<any, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
-    if (!Skia) return;
-    const drawCtx = resolveEchoDrawContext(world, entity, 26);
-    if (!drawCtx) return;
-    const { size, isHitFlash, state } = drawCtx;
-
-    const paint = getPaint();
-    canvas.save();
-
-    if (isHitFlash) {
-      return drawSkiaHitFlashCircle(canvas, paint, size * 0.4);
-    }
-
-    const { isAlert, isAttack, glowColor } = resolveWatcherVisualState(state);
-
-    if (isAlert || isAttack) {
-      paint.reset();
-      paint.setAntiAlias(true);
-      paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color(isAttack ? ECHO_PALETTE.corruptionCrimsonGlow : "rgba(249, 115, 22, 0.15)"));
-
-      const conePath = Skia.Path.Make();
-      conePath.moveTo(0, -size * 0.05);
-      conePath.addArc(Skia.XYWHRect(-size * 2.2, -size * 2.25, size * 4.4, size * 4.4), -36, 72);
-      conePath.close();
-
-      canvas.drawPath(conePath, paint);
-    }
-
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(ECHO_PALETTE.archiveBorderDark));
-
-    const bracketPath = Skia.Path.Make();
-    bracketPath.addArc(Skia.XYWHRect(-size * 0.3, 0, size * 0.6, size * 0.6), 180, 180);
-    bracketPath.close();
-
-    canvas.drawPath(bracketPath, paint);
-
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(glowColor));
-    paint.setStrokeWidth(2.0);
-    canvas.drawPath(bracketPath, paint);
-
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(ECHO_PALETTE.archiveSlate));
-    canvas.drawCircle(0, -size * 0.05, size * 0.32, paint);
-
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(glowColor));
-    canvas.drawCircle(0, -size * 0.05, size * 0.32, paint);
-
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(isAlert || isAttack ? glowColor : "rgba(59, 130, 246, 0.4)"));
-    canvas.drawCircle(0, -size * 0.05, size * 0.18, paint);
-
-    paint.setColor(Skia.Color(isAlert && Math.floor(world.tick / 3) % 2 === 0 ? ECHO_PALETTE.restorationWhite : "#60a5fa"));
-    canvas.drawCircle(0, -size * 0.05, size * 0.08, paint);
-
-    canvas.restore();
-  }
-};
-
-export const drawSkiaCharger: ShapeDrawer<any, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
-    if (!Skia) return;
-    const drawCtx = resolveEchoDrawContext(world, entity, 28);
-    if (!drawCtx) return;
-    const { size, isHitFlash, state } = drawCtx;
-
-    const paint = getPaint();
-    canvas.save();
-
-    if (isHitFlash) {
-      return drawSkiaHitFlashRect(canvas, paint, -size * 0.5, -size * 0.3, size, size * 0.7);
-    }
-
-    const { isStunned, isAlert, isAttack, glowColor } = resolveChargerVisualState(state);
-
-    if (isAlert) {
-      paint.reset();
-      paint.setAntiAlias(true);
-      paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(Skia.Color(ECHO_PALETTE.corruptionAmber));
-      paint.setStrokeWidth(1.5);
-
-      const pulse = (world.tick % 8) * 2;
-      canvas.drawLine(size * 0.5 + pulse, -size * 0.1, size * 0.7 + pulse, 0, paint);
-      canvas.drawLine(size * 0.7 + pulse, 0, size * 0.5 + pulse, size * 0.1, paint);
-    } else if (isAttack) {
-      paint.reset();
-      paint.setAntiAlias(true);
-      paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(Skia.Color(ECHO_PALETTE.corruptionCrimsonGlow));
-      paint.setStrokeWidth(2.0);
-
-      canvas.drawLine(-size * 0.6, -size * 0.2, -size * 0.9, -size * 0.2, paint);
-      canvas.drawLine(-size * 0.5, size * 0.1, -size * 0.85, size * 0.1, paint);
-    }
-
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(ECHO_PALETTE.archiveSlate));
-
-    const bodyPath = Skia.Path.Make();
-    bodyPath.moveTo(-size * 0.5, -size * 0.3);
-    bodyPath.lineTo(size * 0.5, -size * 0.3);
-    bodyPath.lineTo(size * 0.4, size * 0.4);
-    bodyPath.lineTo(-size * 0.4, size * 0.4);
-    bodyPath.close();
-
-    canvas.drawPath(bodyPath, paint);
-
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(glowColor));
-    paint.setStrokeWidth(2.0);
-    canvas.drawPath(bodyPath, paint);
-
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(glowColor));
-    canvas.drawRect(Skia.XYWHRect(-size * 0.25, -size * 0.1, size * 0.1, size * 0.3), paint);
-    canvas.drawRect(Skia.XYWHRect(size * 0.15, -size * 0.1, size * 0.1, size * 0.3), paint);
-
-    if (isStunned) {
-      const elapsed = world.tick * 0.1;
-      paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(Skia.Color(ECHO_PALETTE.restorationGold));
-            // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:634-639. Considerar extraer a función compartida. Ref: 1f6c9725
-paint.setStrokeWidth(1.5);
-      for (let i = 0; i < 3; i++) {
-        const angle = elapsed + (i * Math.PI * 2) / 3;
-        const sx = Math.cos(angle) * (size * 0.6);
-        const sy = Math.sin(angle) * (size * 0.2) - size * 0.5;
-        canvas.drawCircle(sx, sy, 2, paint);
-      }
     }
 
     canvas.restore();

@@ -1,4 +1,4 @@
-import { ShapeDrawer, THEME_RESOURCE_KEY, Theme } from "@tiny-aster/core";
+import { ShapeDrawer } from "@tiny-aster/core";
 import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { colors } from "../../../theme/colors";
 import {
@@ -12,16 +12,19 @@ import {
   resolveBulletTrailContext,
   resolveBossVisualState,
   resolveParticleState,
-  resolveExplosionParticleData,
+  getBossPolygonPoints,
+  drawShieldAdapter,
+  drawParticleAdapter,
+  drawExplosionParticlesAdapter,
 } from "./SpaceInvadersVisualUtils";
-import { calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVisual } from "../../shared/rendering/spaceInvadersMath";
+import { calculateTeleporterShimmer, resolvePlayerRoleVisual } from "../../shared/rendering/spaceInvadersMath";
 import { safeGetRenderComponent, getRenderFlash } from "./RenderHelper";
 import { EXPLOSION_PARTICLE_POOL, updateExplosionParticles } from "./ExplosionParticlePool";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 import { CircularPositionBuffer } from "../../shared/rendering/SharedVFX";
 import { SkiaDrawAdapter } from "../../shared/rendering/DrawAdapter";
-import { drawFromGeometryProfileAdapter } from "../../shared/rendering/GenericEntityDrawer";
+import { tryDrawCustomGeometryAdapter } from "../../shared/rendering/GenericEntityDrawer";
 
 const bulletSkiaTrailMap = new WeakMap<any, CircularPositionBuffer>();
 
@@ -43,44 +46,7 @@ function getBulletSkiaTrailBuffer(render: any): CircularPositionBuffer {
 }
 
 export function drawExplosionParticlesSkia(canvas: any): void {
-  if (!Skia) return;
-  const paint = getPaint();
-
-  canvas.save();
-  for (let i = 0; i < EXPLOSION_PARTICLE_POOL.length; i++) {
-    const data = resolveExplosionParticleData(EXPLOSION_PARTICLE_POOL[i]);
-    if (!data) continue;
-
-    const { ratio, type, x, y, radius, size, color, skColor } = data;
-
-    if (type === "ring") {
-      paint.reset();
-      paint.setAntiAlias(true);
-      paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(skColor || Skia.Color(color));
-      paint.setStrokeWidth(2.5 * ratio);
-      paint.setAlphaf(ratio * 0.8);
-      canvas.drawCircle(x, y, Math.max(0.1, radius), paint);
-    } else if (type === "debris") {
-      paint.reset();
-      paint.setAntiAlias(true);
-      paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(skColor || Skia.Color(color));
-      paint.setAlphaf(ratio);
-      canvas.drawRect(
-        Skia.XYWHRect(x - size / 2, y - size / 2, size, size),
-        paint
-      );
-    } else if (type === "smoke") {
-      paint.reset();
-      paint.setAntiAlias(true);
-      paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(skColor || Skia.Color(color));
-      paint.setAlphaf(ratio * 0.35);
-      canvas.drawCircle(x, y, Math.max(0.1, size), paint);
-    }
-  }
-  canvas.restore();
+  drawExplosionParticlesAdapter(new SkiaDrawAdapter(canvas));
 }
 
 /**
@@ -94,7 +60,6 @@ export const drawSkiaExplosionBackgroundEffect = {
 };
 
 const cachedPlayerPaths = new WeakMap<any, { chassis: any; cockpit: any; reflection: any }>();
-const cachedShieldCracks = new WeakMap<any, { x1: number; y1: number; x2: number; y2: number; x3: number; y3: number; x4: number; y4: number }>();
 
 /**
  * Visuals for the player ship using React Native Skia. Supports Concept Pack geometry overrides.
@@ -104,14 +69,11 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
     const render = safeGetRenderComponent(world, entity);
     if (!render) return;
 
-    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-    const customGeom = theme?.visualTheme?.shapeTokens?.playerGeometry;
-
     const playerComp = world.getComponent(entity, "Player");
     const role = playerComp?.role || "pioneer";
-    const { roleColor } = resolvePlayerRoleVisual(role, theme);
+    const roleInfo = resolvePlayerRoleVisual(role, world.getResource("Theme"));
 
-    const flash = getRenderFlash(render, roleColor, 40);
+    const flash = getRenderFlash(render, roleInfo.roleColor, 40);
     const size = flash.size;
     const colorStr = flash.color;
     const opacity = flash.opacity;
@@ -120,23 +82,16 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
 
     const velocity = world.getComponent(entity, "Velocity");
     if (velocity) {
-      const tilt = calculatePlayerTilt(velocity.vx);
-      canvas.rotate((tilt * 180) / Math.PI, 0, 0);
+      canvas.rotate((calculatePlayerTilt(velocity.vx) * 180) / Math.PI, 0, 0);
     }
 
-    if (customGeom) {
-      const adapter = new SkiaDrawAdapter(canvas);
-      drawFromGeometryProfileAdapter(adapter, customGeom, {
-        size,
-        baseColor: colorStr,
-        globalAlpha: opacity,
-      });
+    const adapter = new SkiaDrawAdapter(canvas);
+    if (tryDrawCustomGeometryAdapter(adapter, world, "player", { size, baseColor: colorStr, globalAlpha: opacity })) {
       canvas.restore();
 
       const health = world.getComponent(entity, "Health");
       const shieldState = resolveShieldPulseState(health, size, world.tick);
       if (shieldState.isInvulnerable) {
-        const { shieldAlpha, radius } = shieldState;
         canvas.save();
         const paint = getPaint();
         paint.reset();
@@ -144,8 +99,8 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
         paint.setStyle(Skia!.PaintStyle.Stroke);
         paint.setColor(Skia!.Color(colors.cyan));
         paint.setStrokeWidth(3);
-        paint.setAlphaf(shieldAlpha);
-        canvas.drawCircle(0, 0, radius, paint);
+        paint.setAlphaf(shieldState.shieldAlpha);
+        canvas.drawCircle(0, 0, shieldState.radius, paint);
         canvas.restore();
       }
       return;
@@ -157,11 +112,10 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
 
     const tick = world.tick;
     if (role === "hunter") {
-      const auraRadius = size * 1.8 + Math.sin(tick * 0.15) * 4;
       paint.setStyle(Skia!.PaintStyle.Stroke);
       paint.setColor(Skia!.Color("rgba(255, 0, 110, 0.4)"));
       paint.setStrokeWidth(1.5);
-      canvas.drawCircle(0, 0, auraRadius, paint);
+      canvas.drawCircle(0, 0, size * 1.8 + Math.sin(tick * 0.15) * 4, paint);
     } else if (role === "sentinel") {
       paint.setStyle(Skia!.PaintStyle.Stroke);
       paint.setColor(Skia!.Color("rgba(0, 217, 255, 0.5)"));
@@ -273,27 +227,25 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
     const health = world.getComponent(entity, "Health");
     const shieldState = resolveShieldPulseState(health, size, tick);
     if (shieldState.isInvulnerable) {
-      const { shieldAlpha, radius } = shieldState;
-
       canvas.save();
 
       paint.reset();
       paint.setAntiAlias(true);
       paint.setStyle(Skia!.PaintStyle.Fill);
       paint.setColor(Skia!.Color("rgba(0, 240, 255, 0.08)"));
-      paint.setAlphaf(shieldAlpha * 0.5);
-      canvas.drawCircle(0, 0, radius, paint);
+      paint.setAlphaf(shieldState.shieldAlpha * 0.5);
+      canvas.drawCircle(0, 0, shieldState.radius, paint);
 
       paint.setStyle(Skia!.PaintStyle.Stroke);
       paint.setColor(Skia!.Color(colors.cyan));
       paint.setStrokeWidth(3);
-      paint.setAlphaf(shieldAlpha);
-      canvas.drawCircle(0, 0, radius, paint);
+      paint.setAlphaf(shieldState.shieldAlpha);
+      canvas.drawCircle(0, 0, shieldState.radius, paint);
 
       paint.setColor(Skia!.Color(colors.blue));
       paint.setStrokeWidth(1.5);
-      paint.setAlphaf(shieldAlpha * 0.6);
-      canvas.drawCircle(0, 0, radius * 0.82, paint);
+      paint.setAlphaf(shieldState.shieldAlpha * 0.6);
+      canvas.drawCircle(0, 0, shieldState.radius * 0.82, paint);
 
       canvas.restore();
     }
@@ -308,9 +260,6 @@ export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersCompone
     const render = safeGetRenderComponent(world, entity);
     if (!render) return;
 
-    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-    const customGeom = theme?.visualTheme?.shapeTokens?.enemyGeometry;
-
     const invaderComp = world.getComponent(entity, "Invader");
     const enemyTag = world.getComponent(entity, "EnemyTag");
     const { baseColor, isTeleporter } = resolveInvaderColor(render, invaderComp, enemyTag);
@@ -323,15 +272,8 @@ export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersCompone
     const shimmerAlpha = calculateTeleporterShimmer(isTeleporter, tick);
     const opacity = flash.opacity * shimmerAlpha;
 
-    if (customGeom) {
-      canvas.save();
-      const adapter = new SkiaDrawAdapter(canvas);
-      drawFromGeometryProfileAdapter(adapter, customGeom, {
-        size: size * 1.8,
-        baseColor: colorStr,
-        globalAlpha: opacity,
-      });
-      canvas.restore();
+    const adapter = new SkiaDrawAdapter(canvas);
+    if (tryDrawCustomGeometryAdapter(adapter, world, "enemy", { size: size * 1.8, baseColor: colorStr, globalAlpha: opacity })) {
       return;
     }
 
@@ -431,17 +373,8 @@ export const drawSkiaSpaceInvadersBullet: ShapeDrawer<any, SpaceInvadersComponen
     const render = safeGetRenderComponent(world, entity);
     if (!render) return;
 
-    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-    const customGeom = theme?.visualTheme?.shapeTokens?.projectileGeometry;
-
-    if (customGeom) {
-      canvas.save();
-      const adapter = new SkiaDrawAdapter(canvas);
-      drawFromGeometryProfileAdapter(adapter, customGeom, {
-        size: (render.size || 6) * 2,
-        baseColor: render.color || colors.gold,
-      });
-      canvas.restore();
+    const skAdapter = new SkiaDrawAdapter(canvas);
+    if (tryDrawCustomGeometryAdapter(skAdapter, world, "projectile", { size: (render.size || 6) * 2, baseColor: render.color || colors.gold })) {
       return;
     }
 
@@ -498,9 +431,6 @@ export const drawSkiaSpaceInvadersBoss: ShapeDrawer<any, SpaceInvadersComponentR
     const render = safeGetRenderComponent(world, entity);
     if (!render) return;
 
-    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-    const customGeom = theme?.visualTheme?.shapeTokens?.bossGeometry;
-
     const bossState = resolveBossVisualState(world, entity, render);
     const {
       hpRatio,
@@ -529,13 +459,8 @@ export const drawSkiaSpaceInvadersBoss: ShapeDrawer<any, SpaceInvadersComponentR
     canvas.translate(vibX, vibY);
     canvas.scale(scaleMultiplier, scaleMultiplier);
 
-    if (customGeom) {
-      const adapter = new SkiaDrawAdapter(canvas);
-      drawFromGeometryProfileAdapter(adapter, customGeom, {
-        size: (render.size || 80),
-        baseColor: flash.color,
-        globalAlpha: opacity,
-      });
+    const adapter = new SkiaDrawAdapter(canvas);
+    if (tryDrawCustomGeometryAdapter(adapter, world, "boss", { size: (render.size || 80), baseColor: flash.color, globalAlpha: opacity })) {
       canvas.restore();
       return;
     }
@@ -548,18 +473,11 @@ export const drawSkiaSpaceInvadersBoss: ShapeDrawer<any, SpaceInvadersComponentR
     paint.setAlphaf(opacity);
 
     const hull = Skia!.Path.Make();
-    hull.moveTo(0, -s * 8);
-    hull.lineTo(s * 4, -s * 4);
-    hull.lineTo(s * 10, -s * 2);
-    hull.lineTo(s * 9, s * 4);
-    hull.lineTo(s * 6, s * 8);
-    hull.lineTo(s * 3, s * 6);
-    hull.lineTo(0, s * 7);
-    hull.lineTo(-s * 3, s * 6);
-    hull.lineTo(-s * 6, s * 8);
-    hull.lineTo(-s * 9, s * 4);
-    hull.lineTo(-s * 10, -s * 2);
-    hull.lineTo(-s * 4, -s * 4);
+    const poly = getBossPolygonPoints(s);
+    hull.moveTo(poly[0].x, poly[0].y);
+    for (let i = 1; i < poly.length; i++) {
+      hull.lineTo(poly[i].x, poly[i].y);
+    }
     hull.close();
 
     canvas.drawPath(hull, paint);
@@ -596,61 +514,10 @@ export const drawSkiaSpaceInvadersShield: ShapeDrawer<any, SpaceInvadersComponen
   draw(canvas, world, entity) {
     const render = safeGetRenderComponent(world, entity);
     if (!render) return;
-
     const flash = getRenderFlash(render, colors.green, 15);
-    const size = flash.size;
-    const colorStr = flash.color;
-    const opacity = flash.opacity;
-
-    const shield = world.getComponent(entity, "Shield");
-    const hp = shield ? shield.hp : 3;
-    const maxHp = shield ? shield.maxHp : 3;
-    const ratio = calculateShieldHpRatio(hp, maxHp);
-
-    canvas.save();
-
-    const paint = getPaint();
-    paint.reset();
-    paint.setAntiAlias(true);
-
-    paint.setStyle(Skia!.PaintStyle.Fill);
-    paint.setColor(Skia!.Color(colorStr));
-    paint.setAlphaf(opacity * (0.15 + 0.5 * ratio));
-    canvas.drawRect(Skia!.XYWHRect(-size / 2, -size / 2, size, size), paint);
-
-    paint.setStyle(Skia!.PaintStyle.Stroke);
-    paint.setStrokeWidth(1.5);
-    paint.setAlphaf(opacity * (0.3 + 0.7 * ratio));
-    canvas.drawRect(Skia!.XYWHRect(-size / 2, -size / 2, size, size), paint);
-
-    if (ratio < 1.0) {
-      paint.setColor(Skia!.Color("rgba(0,0,0,0.85)"));
-      paint.setStrokeWidth(1.5);
-      paint.setAlphaf(opacity);
-
-      let coords = cachedShieldCracks.get(render);
-      if (!coords) {
-        const x1 = -size / 2 + ((entity * 17) % size);
-        const y1 = -size / 2;
-        const x2 = size / 2 - ((entity * 41) % size);
-        const y2 = size / 2;
-        const x3 = size / 2;
-        const y3 = -size / 2 + ((entity * 97) % size);
-        const x4 = -size / 2;
-        const y4 = size / 2 - ((entity * 97) % size);
-
-        coords = { x1, y1, x2, y2, x3, y3, x4, y4 };
-        cachedShieldCracks.set(render, coords);
-      }
-
-      canvas.drawLine(coords.x1, coords.y1, coords.x2, coords.y2, paint);
-
-      if (ratio < 0.4) {
-        canvas.drawLine(coords.x3, coords.y3, coords.x4, coords.y4, paint);
-      }
-    }
-
-    canvas.restore();
+    const shieldComp = world.getComponent(entity, "Shield");
+    const skAdapter = new SkiaDrawAdapter(canvas);
+    drawShieldAdapter(skAdapter, entity, flash.size, flash.color, flash.opacity, shieldComp ? shieldComp.hp : 3, shieldComp ? shieldComp.maxHp : 3);
   }
 };
 
@@ -663,19 +530,6 @@ export const drawSkiaSpaceInvadersParticle: ShapeDrawer<any, SpaceInvadersCompon
     if (!render) return;
 
     const particleState = resolveParticleState(world, entity, render);
-    const { progress, particleColor, currentSize } = particleState;
-
-    canvas.save();
-
-    const paint = getPaint();
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia!.PaintStyle.Fill);
-    paint.setColor(Skia!.Color(particleColor));
-    paint.setAlphaf(1.0 - progress);
-
-    canvas.drawCircle(0, 0, currentSize / 2, paint);
-
-    canvas.restore();
+    drawParticleAdapter(new SkiaDrawAdapter(canvas), particleState);
   }
 };

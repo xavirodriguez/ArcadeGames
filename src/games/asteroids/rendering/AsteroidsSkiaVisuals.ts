@@ -1,18 +1,17 @@
-import { EffectDrawer, ShapeDrawer, World, ShapeType, CircleShape, ColliderComponent, RenderComponent, SHIP_FORWARD_AXIS, THEME_RESOURCE_KEY, Theme } from "@tiny-aster/core";
+import { EffectDrawer, ShapeDrawer, World, ShapeType, CircleShape, ColliderComponent, RenderComponent, SHIP_FORWARD_AXIS } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import { colors } from "../../../theme/colors";
-import { computeAsteroidSilhouette, computeThrustFlame, computeMotionSecondaryEffect } from "../../shared/rendering/ProceduralShapeUtils";
+import { computeAsteroidSilhouette, computeThrustFlame } from "../../shared/rendering/ProceduralShapeUtils";
 import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 import { drawSkiaAsteroidsMissionHUD } from "./AsteroidsSkiaMissionHUD";
 import { SkiaDrawAdapter } from "../../shared/rendering/DrawAdapter";
-import { drawFromGeometryProfileAdapter } from "../../shared/rendering/GenericEntityDrawer";
+import { tryDrawCustomGeometryAdapter, drawAsteroidsBulletAdapter } from "../../shared/rendering/GenericEntityDrawer";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 import { getVisibleSkiaRender } from "../../shared/rendering/renderingUtils";
 
 export { drawSkiaAsteroidsMissionHUD };
 
-// Memory-safe WeakMaps keyed by render components for zero-allocation Skia Path caching
 const cachedShipPaths = new WeakMap<any, { ship: any; cockpit: any }>();
 const cachedAsteroidPaths = new WeakMap<any, any>();
 
@@ -52,9 +51,6 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentReg
     const render = getVisibleSkiaRender(world, entity);
     if (!render) return;
 
-    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-    const customGeom = theme?.visualTheme?.shapeTokens?.playerGeometry;
-
     const size = render.size || 15;
     const tick = Math.floor((world.tick * 5) / 12);
 
@@ -62,7 +58,6 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentReg
 
     let { opacity, colorStr } = resolveAsteroidOpacityAndColor(render, colors.cyan);
 
-    // Invulnerability Pulse
     if (world.hasComponent(entity, "Invulnerable")) {
       const inv = world.getComponent(entity, "Invulnerable");
       const invState = resolveInvulnerabilityPulse(inv?.remaining, opacity, { mode: "time" });
@@ -74,32 +69,14 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentReg
     const input = world.getComponent(entity, "Input");
     const isThrusting = Boolean(input && input.actions && input.actions["thrust"]);
 
-    if (customGeom) {
-      const motionEffect = customGeom.motionEffect || "flame";
-      if (isThrusting && motionEffect !== "none") {
-        const motionData = computeMotionSecondaryEffect(motionEffect, size, tick, world.renderRandom);
-        const pPaint = getPaint();
-        pPaint.reset();
-        pPaint.setAntiAlias(true);
-        pPaint.setStyle(Skia.PaintStyle.Fill);
-
-        for (let i = 0; i < motionData.particles.length; i++) {
-          const p = motionData.particles[i];
-          pPaint.setColor(Skia.Color(p.color));
-          pPaint.setAlphaf(p.alpha * opacity);
-          canvas.drawCircle(p.offsetX, p.offsetY, Math.max(0.5, p.radius), pPaint);
-        }
-      }
-
-      const adapter = new SkiaDrawAdapter(canvas);
-      drawFromGeometryProfileAdapter(adapter, customGeom, {
-        size,
-        baseColor: colorStr,
-        globalAlpha: opacity,
-        isThrusting,
-        tick,
-      });
-
+    if (tryDrawCustomGeometryAdapter(new SkiaDrawAdapter(canvas), world, "player", {
+      size,
+      baseColor: colorStr,
+      globalAlpha: opacity,
+      isThrusting,
+      tick,
+      rng: world.renderRandom,
+    })) {
       canvas.restore();
       return;
     }
@@ -206,9 +183,6 @@ export const drawSkiaAsteroidsAsteroid: ShapeDrawer<any, AsteroidsComponentRegis
     const collider = world.getComponent(entity, "Collider");
     if (!render) return;
 
-    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-    const customGeom = theme?.visualTheme?.shapeTokens?.enemyGeometry;
-
     let radius = 25;
     if (collider && collider.enabled && collider.shape.type === ShapeType.Circle) {
       radius = (collider.shape as CircleShape).radius;
@@ -220,13 +194,11 @@ export const drawSkiaAsteroidsAsteroid: ShapeDrawer<any, AsteroidsComponentRegis
 
     const { opacity, colorStr, paint } = setupAsteroidStrokePaint(render, colors.pink, 2);
 
-    if (customGeom) {
-      const adapter = new SkiaDrawAdapter(canvas);
-      drawFromGeometryProfileAdapter(adapter, customGeom, {
-        size: radius * 2,
-        baseColor: colorStr,
-        globalAlpha: opacity,
-      });
+    if (tryDrawCustomGeometryAdapter(new SkiaDrawAdapter(canvas), world, "enemy", {
+      size: radius * 2,
+      baseColor: colorStr,
+      globalAlpha: opacity,
+    })) {
       canvas.restore();
       return;
     }
@@ -261,41 +233,6 @@ export const drawSkiaAsteroidsBullet: ShapeDrawer<any, AsteroidsComponentRegistr
   draw(canvas, world, entity) {
     const render = getVisibleSkiaRender(world, entity);
     if (!render) return;
-
-    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-    const customGeom = theme?.visualTheme?.shapeTokens?.projectileGeometry;
-
-    const size = render.size || 2;
-    const colorStr = render.color || colors.green;
-
-    canvas.save();
-
-    if (customGeom) {
-      const adapter = new SkiaDrawAdapter(canvas);
-      drawFromGeometryProfileAdapter(adapter, customGeom, {
-        size: size * 4,
-        baseColor: colorStr,
-      });
-      canvas.restore();
-      return;
-    }
-
-    const length = size * 4;
-
-    const paint = getPaint();
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setStrokeCap(Skia.StrokeCap.Round);
-
-    paint.setColor(Skia.Color(colorStr));
-    paint.setStrokeWidth(3);
-    canvas.drawLine(-length / 2, 0, length / 2, 0, paint);
-
-    paint.setColor(Skia.Color(colors.white));
-    paint.setStrokeWidth(1);
-    canvas.drawLine(-length / 2, 0, length / 2, 0, paint);
-
-    canvas.restore();
+    drawAsteroidsBulletAdapter(new SkiaDrawAdapter(canvas), world, render.size || 2, render.color || colors.green);
   }
 };

@@ -1,6 +1,6 @@
-import { EntityGeometryProfile, GeometrySubPath } from "@tiny-aster/core";
-import { IDrawAdapter, CanvasDrawAdapter, SkiaDrawAdapter } from "./DrawAdapter";
-import type { SkCanvas } from "@shopify/react-native-skia";
+import { EntityGeometryProfile, GeometrySubPath, THEME_RESOURCE_KEY, Theme } from "@tiny-aster/core";
+import { IDrawAdapter, CanvasDrawAdapter } from "./DrawAdapter";
+import { computeMotionSecondaryEffect } from "./ProceduralShapeUtils";
 
 /**
  * Options for generic parametric geometry drawer.
@@ -15,102 +15,24 @@ export interface GenericDrawerOptions {
   rotation?: number;
   isThrusting?: boolean;
   tick?: number;
+  rng?: { next: () => number; nextRange: (min: number, max: number) => number };
 }
 
 /**
- * Executes canvas path drawing commands for a single GeometrySubPath using HTML5 CanvasRenderingContext2D.
+ * Retrieves custom parametric geometry from active World Theme resource.
  */
-export function drawSubPathCanvas(
-  ctx: CanvasRenderingContext2D,
-  subPath: GeometrySubPath,
-  scale: number,
-  defaultColor: string,
-  isHitFlashing: boolean,
-  hitFlashColor: string
-): void {
-  ctx.save();
-
-  if (subPath.alpha !== undefined) {
-    ctx.globalAlpha *= subPath.alpha;
-  }
-
-  const fillColor = isHitFlashing ? hitFlashColor : subPath.fillColor || defaultColor;
-  const strokeColor = isHitFlashing ? hitFlashColor : subPath.strokeColor || fillColor;
-  const lineWidth = (subPath.lineWidth || 1) * scale;
-
-  ctx.fillStyle = fillColor;
-  ctx.strokeStyle = strokeColor;
-  ctx.lineWidth = Math.max(1, lineWidth);
-
-  const subType = subPath.type || "polyline";
-
-  if (subType === "ellipse") {
-    const rx = (subPath.ellipseRadiusX ?? 1) * scale;
-    const ry = (subPath.ellipseRadiusY ?? 1) * scale;
-    const center = subPath.points[0] || { x: 0, y: 0 };
-    ctx.beginPath();
-    ctx.ellipse(center.x * scale, center.y * scale, Math.max(0.1, rx), Math.max(0.1, ry), 0, 0, Math.PI * 2);
-    if (subPath.fillColor) ctx.fill();
-    ctx.stroke();
-  } else if (subType === "arc") {
-    const r = (subPath.arcRadius ?? 1) * scale;
-    const start = subPath.startAngle ?? 0;
-    const end = subPath.endAngle ?? Math.PI * 2;
-    const center = subPath.points[0] || { x: 0, y: 0 };
-    ctx.beginPath();
-    ctx.arc(center.x * scale, center.y * scale, Math.max(0.1, r), start, end);
-    if (subPath.fillColor) ctx.fill();
-    ctx.stroke();
-  } else {
-    // polyline / polygon
-    if (subPath.points.length > 0) {
-      ctx.beginPath();
-      ctx.moveTo(subPath.points[0].x * scale, subPath.points[0].y * scale);
-      for (let i = 1; i < subPath.points.length; i++) {
-        ctx.lineTo(subPath.points[i].x * scale, subPath.points[i].y * scale);
-      }
-      if (subPath.closed !== false) {
-        ctx.closePath();
-      }
-      if (subPath.fillColor) {
-        ctx.fill();
-      }
-      ctx.stroke();
-    }
-  }
-
-  ctx.restore();
-}
-
-/**
- * Parametrically renders an entity profile onto an HTML5 Canvas 2D context.
- */
-export function drawFromGeometryProfileCanvas(
-  ctx: CanvasRenderingContext2D,
-  profile: EntityGeometryProfile,
-  options: GenericDrawerOptions = {}
-): void {
-  const size = options.size || 20;
-  const scale = (size / 2) * (profile.scaleMultiplier || 1.0);
-  const baseColor = options.baseColor || "#00E5FF";
-  const isHitFlashing = Boolean(options.isHitFlashing);
-  const hitFlashColor = options.hitFlashColor || "#FFFFFF";
-
-  ctx.save();
-
-  if (options.globalAlpha !== undefined) {
-    ctx.globalAlpha = options.globalAlpha;
-  }
-
-  if (options.rotation !== undefined && options.rotation !== 0) {
-    ctx.rotate(options.rotation);
-  }
-
-  for (let i = 0; i < profile.subPaths.length; i++) {
-    drawSubPathCanvas(ctx, profile.subPaths[i], scale, baseColor, isHitFlashing, hitFlashColor);
-  }
-
-  ctx.restore();
+export function getCustomGeometryFromWorld(
+  world: { getResource: <T>(key: string) => T | undefined },
+  type: "player" | "enemy" | "projectile" | "boss"
+): EntityGeometryProfile | undefined {
+  const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+  const shapeTokens = theme?.visualTheme?.shapeTokens;
+  if (!shapeTokens) return undefined;
+  if (type === "player") return shapeTokens.playerGeometry;
+  if (type === "enemy") return shapeTokens.enemyGeometry;
+  if (type === "projectile") return shapeTokens.projectileGeometry;
+  if (type === "boss") return shapeTokens.bossGeometry;
+  return undefined;
 }
 
 /**
@@ -130,6 +52,21 @@ export function drawFromGeometryProfileAdapter(
 
   adapter.save();
 
+  // Draw secondary motion particles if thrusting/moving
+  const motionEffect = profile.motionEffect || "flame";
+  if (options.isThrusting && motionEffect !== "none") {
+    const motionData = computeMotionSecondaryEffect(
+      motionEffect,
+      size,
+      options.tick || 0,
+      options.rng
+    );
+    for (let i = 0; i < motionData.particles.length; i++) {
+      const p = motionData.particles[i];
+      adapter.fillCircle(p.offsetX, p.offsetY, Math.max(0.5, p.radius), p.color, alpha * p.alpha);
+    }
+  }
+
   for (let i = 0; i < profile.subPaths.length; i++) {
     const sub = profile.subPaths[i];
     const subAlpha = sub.alpha !== undefined ? alpha * sub.alpha : alpha;
@@ -140,7 +77,6 @@ export function drawFromGeometryProfileAdapter(
 
     if (subType === "ellipse") {
       const rx = (sub.ellipseRadiusX ?? 1) * scale;
-      const ry = (sub.ellipseRadiusY ?? 1) * scale;
       const center = sub.points[0] || { x: 0, y: 0 };
       if (sub.fillColor) {
         adapter.fillCircle(center.x * scale, center.y * scale, rx, fillColor, subAlpha);
@@ -169,4 +105,79 @@ export function drawFromGeometryProfileAdapter(
   }
 
   adapter.restore();
+}
+
+/**
+ * Parametrically renders an entity profile onto an HTML5 Canvas 2D context.
+ */
+export function drawFromGeometryProfileCanvas(
+  ctx: CanvasRenderingContext2D,
+  profile: EntityGeometryProfile,
+  options: GenericDrawerOptions = {}
+): void {
+  const adapter = new CanvasDrawAdapter(ctx);
+  if (options.rotation !== undefined && options.rotation !== 0) {
+    ctx.save();
+    ctx.rotate(options.rotation);
+    drawFromGeometryProfileAdapter(adapter, profile, options);
+    ctx.restore();
+  } else {
+    drawFromGeometryProfileAdapter(adapter, profile, options);
+  }
+}
+
+/**
+ * Attempts to draw custom parametric geometry for a given role from active theme via IDrawAdapter.
+ */
+export function tryDrawCustomGeometryAdapter(
+  adapter: IDrawAdapter,
+  world: { getResource: <T>(key: string) => T | undefined },
+  type: "player" | "enemy" | "projectile" | "boss",
+  options: GenericDrawerOptions = {}
+): boolean {
+  const profile = getCustomGeometryFromWorld(world, type);
+  if (!profile) return false;
+  drawFromGeometryProfileAdapter(adapter, profile, options);
+  return true;
+}
+
+/**
+ * Attempts to draw custom parametric geometry for a given role from active theme onto Canvas2D.
+ */
+export function tryDrawCustomGeometryCanvas(
+  ctx: CanvasRenderingContext2D,
+  world: { getResource: <T>(key: string) => T | undefined },
+  type: "player" | "enemy" | "projectile" | "boss",
+  options: GenericDrawerOptions = {}
+): boolean {
+  return tryDrawCustomGeometryAdapter(new CanvasDrawAdapter(ctx), world, type, options);
+}
+
+/**
+ * Renders default high-contrast laser bullet geometry via IDrawAdapter.
+ */
+export function drawDefaultLaserBulletAdapter(
+  adapter: IDrawAdapter,
+  size: number,
+  color: string
+): void {
+  const length = size * 4;
+  adapter.save();
+  adapter.drawLine(-length / 2, 0, length / 2, 0, color, 3);
+  adapter.drawLine(-length / 2, 0, length / 2, 0, "#FFFFFF", 1.5);
+  adapter.restore();
+}
+
+/**
+ * Renders Asteroids laser bullet via IDrawAdapter.
+ */
+export function drawAsteroidsBulletAdapter(
+  adapter: IDrawAdapter,
+  world: { getResource: <T>(key: string) => T | undefined },
+  size: number,
+  color: string
+): void {
+  if (!tryDrawCustomGeometryAdapter(adapter, world, "projectile", { size: size * 4, baseColor: color })) {
+    drawDefaultLaserBulletAdapter(adapter, size, color);
+  }
 }

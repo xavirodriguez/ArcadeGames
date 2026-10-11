@@ -1,10 +1,11 @@
-import { ShapeDrawer, ShapeType, CircleShape, SHIP_FORWARD_AXIS, THEME_RESOURCE_KEY, Theme } from "@tiny-aster/core";
+import { ShapeDrawer, ShapeType, CircleShape, SHIP_FORWARD_AXIS } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import { drawNeonShape } from "../../shared/rendering/CanvasNeonUtils";
 import { colors } from "../../../theme/colors";
-import { computeAsteroidSilhouette, computeThrustFlame, computeMotionSecondaryEffect } from "../../shared/rendering/ProceduralShapeUtils";
+import { computeAsteroidSilhouette, computeThrustFlame } from "../../shared/rendering/ProceduralShapeUtils";
 import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
-import { drawFromGeometryProfileCanvas } from "../../shared/rendering/GenericEntityDrawer";
+import { tryDrawCustomGeometryCanvas, drawAsteroidsBulletAdapter } from "../../shared/rendering/GenericEntityDrawer";
+import { CanvasDrawAdapter } from "../../shared/rendering/DrawAdapter";
 
 function applyAsteroidHitFlashStroke(
   ctx: CanvasRenderingContext2D,
@@ -35,16 +36,12 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
     const render = world.getComponent(entity, "Render");
     if (!render) return;
 
-    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-    const customGeom = theme?.visualTheme?.shapeTokens?.playerGeometry;
-
     const size = render.size || 15;
     let baseColor = render.color || colors.cyan;
     const tick = Math.floor((world.tick * 5) / 12);
 
     ctx.save();
 
-    // Hit Flash Transparency Pulse & Glow (R11)
     const flashState = resolveHitFlash(render, baseColor, 1.0);
     const isHitFlashing = flashState.isFlashing;
     if (isHitFlashing) {
@@ -52,7 +49,6 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
       baseColor = flashState.color;
     }
 
-    // Invulnerability Pulse
     if (world.hasComponent(entity, "Invulnerable")) {
       const inv = world.getComponent(entity, "Invulnerable");
       const invState = resolveInvulnerabilityPulse(inv?.remaining, ctx.globalAlpha, { mode: "time" });
@@ -64,37 +60,19 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
     const input = world.getComponent(entity, "Input");
     const isThrusting = Boolean(input && input.actions && input.actions["thrust"]);
 
-    if (customGeom) {
-      // Data-driven Concept Pack geometry rendering
-      const motionEffect = customGeom.motionEffect || "flame";
-      if (isThrusting && motionEffect !== "none") {
-        const motionData = computeMotionSecondaryEffect(motionEffect, size, tick, world.renderRandom);
-        for (let i = 0; i < motionData.particles.length; i++) {
-          const p = motionData.particles[i];
-          ctx.save();
-          ctx.fillStyle = p.color;
-          ctx.globalAlpha = p.alpha;
-          ctx.beginPath();
-          ctx.arc(p.offsetX, p.offsetY, Math.max(0.5, p.radius), 0, Math.PI * 2);
-          ctx.fill();
-          ctx.restore();
-        }
-      }
-
-      drawFromGeometryProfileCanvas(ctx, customGeom, {
-        size,
-        baseColor,
-        isHitFlashing,
-        hitFlashColor: colors.white,
-        isThrusting,
-        tick,
-      });
-
+    if (tryDrawCustomGeometryCanvas(ctx, world, "player", {
+      size,
+      baseColor,
+      isHitFlashing,
+      hitFlashColor: colors.white,
+      isThrusting,
+      tick,
+      rng: world.renderRandom,
+    })) {
       ctx.restore();
       return;
     }
 
-    // Fallback default Asteroids ship rendering
     const breath = isThrusting ? 1.0 : (0.85 + 0.15 * Math.sin(tick / 15));
 
     if (isThrusting) {
@@ -206,9 +184,6 @@ export const drawAsteroidsAsteroid: ShapeDrawer<CanvasRenderingContext2D, Astero
     const collider = world.getComponent(entity, "Collider");
     if (!render) return;
 
-    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-    const customGeom = theme?.visualTheme?.shapeTokens?.enemyGeometry;
-
     let radius = 25;
     if (collider && collider.enabled && collider.shape.type === ShapeType.Circle) {
       radius = (collider.shape as CircleShape).radius;
@@ -221,13 +196,12 @@ export const drawAsteroidsAsteroid: ShapeDrawer<CanvasRenderingContext2D, Astero
 
     const { isHitFlashing } = applyAsteroidHitFlashStroke(ctx, render, baseColor, 2);
 
-    if (customGeom) {
-      drawFromGeometryProfileCanvas(ctx, customGeom, {
-        size: radius * 2,
-        baseColor,
-        isHitFlashing,
-        hitFlashColor: colors.white,
-      });
+    if (tryDrawCustomGeometryCanvas(ctx, world, "enemy", {
+      size: radius * 2,
+      baseColor,
+      isHitFlashing,
+      hitFlashColor: colors.white,
+    })) {
       ctx.restore();
       return;
     }
@@ -263,44 +237,6 @@ export const drawAsteroidsBullet: ShapeDrawer<CanvasRenderingContext2D, Asteroid
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render) return;
-
-    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-    const customGeom = theme?.visualTheme?.shapeTokens?.projectileGeometry;
-
-    const size = render.size || 2;
-    const color = render.color || colors.green;
-
-    ctx.save();
-
-    if (customGeom) {
-      drawFromGeometryProfileCanvas(ctx, customGeom, {
-        size: size * 4,
-        baseColor: color,
-      });
-      ctx.restore();
-      return;
-    }
-
-    const length = size * 4;
-
-    ctx.strokeStyle = color;
-    ctx.shadowColor = color;
-    ctx.shadowBlur = 8;
-    ctx.lineWidth = 3;
-    ctx.lineCap = "round";
-    ctx.beginPath();
-    ctx.moveTo(-length / 2, 0);
-    ctx.lineTo(length / 2, 0);
-    ctx.stroke();
-
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = colors.white;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(-length / 2, 0);
-    ctx.lineTo(length / 2, 0);
-    ctx.stroke();
-
-    ctx.restore();
+    drawAsteroidsBulletAdapter(new CanvasDrawAdapter(ctx), world, render.size || 2, render.color || colors.green);
   }
 };

@@ -29,17 +29,17 @@
         "logLevel": "none"
       },
       "ae-missing-release-tag": {
-        "logLevel": "warning"
+        "logLevel": "none"
       }
     },
     "compilerMessageReporting": {
       "default": {
-        "logLevel": "warning"
+        "logLevel": "none"
       }
     },
     "tsdocMessageReporting": {
       "default": {
-        "logLevel": "warning"
+        "logLevel": "none"
       }
     }
   }

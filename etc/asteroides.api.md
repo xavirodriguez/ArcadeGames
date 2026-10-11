@@ -74,6 +74,15 @@ export interface AoSWorldSnapshot extends BaseWorldSnapshot {
 }
 
 // @public
+export function applyDeadzone(value: number, deadzone: number): number;
+
+// @public
+export function applyDeadzone2D(x: number, y: number, deadzone: number): {
+    x: number;
+    y: number;
+};
+
+// @public
 export function applyInputFrameToEntity<TComponents extends ComponentRegistry = ComponentRegistry>(world: World<TComponents>, entityId: number, input: Pick<InputFrame, "actions" | "axes">): void;
 
 // @public
@@ -554,6 +563,41 @@ export interface BaseWorldSnapshot {
 }
 
 // @public
+export interface BeltElevationComponent extends Component {
+    grounded: boolean;
+    type: "BeltElevation";
+    vz: number;
+    z: number;
+}
+
+// @public
+export interface BeltInputComponent extends Component {
+    // (undocumented)
+    attackHeld: boolean;
+    // (undocumented)
+    attackPressed: boolean;
+    // (undocumented)
+    fireHeld: boolean;
+    // (undocumented)
+    firePressed: boolean;
+    // (undocumented)
+    jumpHeld: boolean;
+    // (undocumented)
+    jumpPressed: boolean;
+    // (undocumented)
+    moveX: number;
+    // (undocumented)
+    moveY: number;
+    // (undocumented)
+    _prevHeldMask: number;
+    // (undocumented)
+    specialHeld: boolean;
+    // (undocumented)
+    specialPressed: boolean;
+    type: "BeltInput";
+}
+
+// @public
 export class BinaryCompression {
     // (undocumented)
     static pack(packet: unknown): Uint8Array;
@@ -822,6 +866,9 @@ export interface CircleShape extends BaseShape {
 }
 
 // @public
+export function clamp(value: number, min: number, max: number): number;
+
+// @public
 export class ClientAckTracker {
     // (undocumented)
     getIdleTime(sessionId: string): number;
@@ -1073,6 +1120,21 @@ export function computeShipPhysics(transform: {
 };
 
 // @public
+export interface ConceptPackConfig {
+    id: string;
+    missionOverrides?: Record<string, {
+        title?: string;
+        description?: string;
+    }>;
+    name: string;
+    roleLabels?: Record<string, string>;
+    storyOverrides?: Record<string, {
+        title?: string;
+        text?: string;
+    }>;
+}
+
+// @public
 export const cond: {
     flag: (key: string, value?: boolean) => StoryCondition;
     variable: (key: string, operator: NonNullable<StoryCondition["operator"]>, value: number | string | boolean) => StoryCondition;
@@ -1102,9 +1164,11 @@ export interface ConvexPolygonShape extends BaseShape {
     }>;
 }
 
-// @public
+// @public (undocumented)
 export interface CoreComponentRegistry extends ComponentRegistry {
     Animator: AnimatorComponent;
+    BeltElevation: BeltElevationComponent;
+    BeltInput: BeltInputComponent;
     Boundary: BoundaryComponent;
     Camera2D: Camera2DComponent;
     Collectible: CollectibleComponent;
@@ -1651,6 +1715,38 @@ export interface DialogueNodeBuilder extends CommonNodeBuilderMethods<DialogueNo
     setDialogue(dialogue: Dialogue): DialogueNodeBuilder;
 }
 
+// @public (undocumented)
+export interface DiscreteFlingEvent {
+    // (undocumented)
+    direction: "up" | "down" | "left" | "right";
+    // (undocumented)
+    timestamp: number;
+    // (undocumented)
+    velocityX: number;
+    // (undocumented)
+    velocityY: number;
+}
+
+// @public (undocumented)
+export interface DiscreteLaneShiftEvent {
+    // (undocumented)
+    direction: -1 | 1 | "left" | "right";
+    // (undocumented)
+    timestamp: number;
+}
+
+// @public
+export interface DiscreteTapEvent {
+    // (undocumented)
+    id?: string;
+    // (undocumented)
+    timestamp: number;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
 // @public
 export interface DistanceJointOptions {
     damping?: number;
@@ -1799,6 +1895,16 @@ export class EntityBuilder<TComponents extends ComponentRegistry = CoreComponent
     withVelocity(config?: Partial<Omit<VelocityComponent, "type">>): this;
     // (undocumented)
     protected readonly world: World<TComponents, TEvents, TBlueprints>;
+}
+
+// @public
+export interface EntityGeometryProfile {
+    exhaustOffset?: Point2D;
+    forwardAxis?: Point2D;
+    motionEffect?: "flame" | "exhaust_smoke" | "dust_trail" | "none";
+    muzzleOffset?: Point2D;
+    scaleMultiplier?: number;
+    subPaths: GeometrySubPath[];
 }
 
 // @public
@@ -2207,6 +2313,25 @@ export interface GameVisualProfile {
 export function generateBackdrop(config: BackdropConfig): BackdropSpec;
 
 // @public
+export interface GeometrySubPath {
+    alpha?: number;
+    arcRadius?: number;
+    closed?: boolean;
+    ellipseRadiusX?: number;
+    // (undocumented)
+    ellipseRadiusY?: number;
+    // (undocumented)
+    endAngle?: number;
+    fillColor?: string;
+    lineWidth?: number;
+    points: Point2D[];
+    // (undocumented)
+    startAngle?: number;
+    strokeColor?: string;
+    type?: "polyline" | "ellipse" | "arc";
+}
+
+// @public
 export type GeometryWarsRoleKey = CommonRoleKey | "chaser" | "evader" | "grunt" | "seeker" | "fast_seeker";
 
 // @public
@@ -2246,6 +2371,12 @@ export function getGameplaySystemContextAndEntities<TRegistry extends CoreCompon
 
 // @public
 export function getHorizontalDirectionToPlayer(world: World, entity: Entity, sensor?: PlayerSensorComponent, trans?: TransformComponent): number;
+
+// @public
+export function getMissionDescription(theme: Theme | undefined, missionId: string, fallbackDescription: string): string;
+
+// @public
+export function getMissionTitle(theme: Theme | undefined, missionId: string, fallbackTitle: string): string;
 
 // @public
 export function getOrCreateStateMachineRegistry(world: World<CoreComponentRegistry>): Record<string, StateMachineDefinition>;
@@ -2769,6 +2900,17 @@ export class LocalPredictionSystem<TRegistry extends MultiplayerRegistry = Multi
 
 // @public
 export type MacroZoneType = "mountain" | "valley" | "plain" | "lake";
+
+// @public
+export function mapFingerToPaddle(fingerX: number, fingerY: number, bounds: {
+    minX: number;
+    maxX: number;
+    minY?: number;
+    maxY?: number;
+}): {
+    x: number;
+    y: number;
+};
 
 // @public
 export function maskOf(...layers: number[]): number;
@@ -3398,6 +3540,9 @@ export interface NetworkTransport<TServerEvents extends Record<string, unknown> 
 export function normalizeAngle(angle: number): number;
 
 // @public
+export function normalizeAxis(value: number, min: number, max: number): number;
+
+// @public
 export function normalizeError(error: unknown): Error;
 
 // @public
@@ -3595,6 +3740,16 @@ export interface PatrolComponent extends Component {
 }
 
 // @public
+export interface PhaseVisualSpec {
+    // (undocumented)
+    accentColor?: string;
+    // (undocumented)
+    auraColor?: string;
+    // (undocumented)
+    color?: string;
+}
+
+// @public
 export class PhysicsIntegrateSystem<TRegistry extends ComponentRegistry & {
     Transform: TransformComponent;
     Velocity: VelocityComponent;
@@ -3777,6 +3932,14 @@ export interface PlayfieldMaskConfig {
     opacity: number;
     // (undocumented)
     width: number;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
+// @public
+export interface Point2D {
     // (undocumented)
     x: number;
     // (undocumented)
@@ -4061,6 +4224,7 @@ export interface RenderComponent extends Component {
     angularVelocity: number;
     color?: string;
     dangerPulseIntensity?: number;
+    depthSort?: boolean;
     hitFlashFrames: number;
     muzzleFlashFrames?: number;
     opacity: number;
@@ -4273,6 +4437,18 @@ export interface RiverSpec {
     colorToken: string;
     path: BackdropPoint[];
     width: number;
+}
+
+// @public
+export interface RoleVisualSpec {
+    // (undocumented)
+    auraStyle?: string;
+    // (undocumented)
+    color?: string;
+    // (undocumented)
+    icon?: string;
+    // (undocumented)
+    name?: string;
 }
 
 // @public
@@ -4551,6 +4727,12 @@ export interface Simulation {
 }
 
 // @public
+export function snapDirections(x: number, y: number, count: 4 | 8): {
+    x: number;
+    y: number;
+};
+
+// @public
 export class SnapshotBuffer {
     constructor(capacity?: number);
     clear(): void;
@@ -4753,6 +4935,25 @@ export interface SteeringComponent extends Component {
 // @public
 export class SteeringSystem<TRegistry extends ComponentRegistry = CoreComponentRegistry> extends System<TRegistry> {
     update(world: World<TRegistry>, deltaTime: number): void;
+}
+
+// @public
+export function steerTowardWaypoint(transform: {
+    x: number;
+    y: number;
+    rotation?: number;
+}, waypointsComp: VehicleWaypointComponent, minPositiveThrottle?: number): SteerWaypointResult | null;
+
+// @public (undocumented)
+export interface SteerWaypointResult {
+    // (undocumented)
+    nextIndex: number;
+    // (undocumented)
+    reachedTarget: boolean;
+    // (undocumented)
+    steering: number;
+    // (undocumented)
+    throttle: number;
 }
 
 // @public
@@ -5264,6 +5465,7 @@ export class TestTransport<TServerEvents extends Record<string, unknown> = Recor
 // @public
 export interface Theme<TRole extends string = string> {
     colorMap: Partial<Record<TRole, string>>;
+    conceptPack?: ConceptPackConfig;
     lore?: Record<string, string>;
     spriteMap: Partial<Record<TRole, string>>;
     vfxProfile?: GameVisualProfile;
@@ -5329,6 +5531,67 @@ export function toShapeDefinition(collider2D: Readonly<Collider2DComponent>): Co
 
 // @public
 export function toTransformComponent(x: number, y: number, rotation?: number): TransformComponent;
+
+// @public (undocumented)
+export class TouchInputState {
+    aimX: number;
+    aimY: number;
+    buttons: Record<string, boolean>;
+    consumeEvents(): {
+        taps: DiscreteTapEvent[];
+        flings: DiscreteFlingEvent[];
+        laneShifts: DiscreteLaneShiftEvent[];
+    };
+    consumeFlings(): DiscreteFlingEvent[];
+    consumeLaneShifts(): DiscreteLaneShiftEvent[];
+    consumeTaps(): DiscreteTapEvent[];
+    // (undocumented)
+    getButton(name: string): boolean;
+    moveX: number;
+    moveY: number;
+    paddle: TouchPointerState;
+    pointer: TouchPointerState;
+    // (undocumented)
+    pushFling(fling: {
+        direction: "up" | "down" | "left" | "right";
+        velocityX?: number;
+        velocityY?: number;
+        timestamp?: number;
+    }): void;
+    // (undocumented)
+    pushLaneShift(laneShift: {
+        direction: -1 | 1 | "left" | "right";
+        timestamp?: number;
+    }): void;
+    // (undocumented)
+    pushTap(tap: {
+        x: number;
+        y: number;
+        id?: string;
+        timestamp?: number;
+    }): void;
+    reset(): void;
+    // (undocumented)
+    setAimAxis(x: number, y: number): void;
+    // (undocumented)
+    setButton(name: string, pressed: boolean): void;
+    // (undocumented)
+    setMoveAxis(x: number, y: number): void;
+    // (undocumented)
+    setPaddle(x: number, y: number, active?: boolean): void;
+    // (undocumented)
+    setPointer(x: number, y: number, active?: boolean): void;
+}
+
+// @public (undocumented)
+export interface TouchPointerState {
+    // (undocumented)
+    active: boolean;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
 
 // @public
 export interface TrailComponent extends Component {
@@ -5568,6 +5831,8 @@ export interface VisualTheme {
         accent: string;
         neutral: string;
     };
+    phaseVisuals?: Record<number, PhaseVisualSpec>;
+    roleVisuals?: Record<string, RoleVisualSpec>;
     shapeTokens?: VisualThemeShapeTokens;
 }
 
@@ -5583,9 +5848,18 @@ export interface VisualThemeContrastHierarchy {
 
 // @public
 export interface VisualThemeShapeTokens {
+    // (undocumented)
+    bossGeometry?: EntityGeometryProfile;
+    // (undocumented)
+    customGeometries?: Record<string, EntityGeometryProfile>;
+    // (undocumented)
+    enemyGeometry?: EntityGeometryProfile;
     enemyShape?: string;
     particleShape?: "circle" | "polygon" | "shard";
+    playerGeometry?: EntityGeometryProfile;
     playerShape?: string;
+    // (undocumented)
+    projectileGeometry?: EntityGeometryProfile;
     projectileShape?: string;
 }
 

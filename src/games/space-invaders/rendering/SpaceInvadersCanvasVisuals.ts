@@ -1,4 +1,4 @@
-import { ShapeDrawer, EffectDrawer, World, THEME_RESOURCE_KEY, Theme } from "@tiny-aster/core";
+import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
 import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { colors } from "../../../theme/colors";
 import {
@@ -13,12 +13,16 @@ import {
   resolveBulletTrailContext,
   resolveBossVisualState,
   resolveParticleState,
-  resolveExplosionParticleData,
+  getBossPolygonPoints,
+  drawShieldAdapter,
+  drawParticleAdapter,
+  drawExplosionParticlesAdapter,
 } from "./SpaceInvadersVisualUtils";
 import { calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVisual } from "../../shared/rendering/spaceInvadersMath";
 import { EXPLOSION_PARTICLE_POOL, spawnLayeredExplosion, updateExplosionParticles } from "./ExplosionParticlePool";
 import { CircularPositionBuffer } from "../../shared/rendering/SharedVFX";
-import { drawFromGeometryProfileCanvas } from "../../shared/rendering/GenericEntityDrawer";
+import { tryDrawCustomGeometryCanvas } from "../../shared/rendering/GenericEntityDrawer";
+import { CanvasDrawAdapter } from "../../shared/rendering/DrawAdapter";
 
 export { EXPLOSION_PARTICLE_POOL, spawnLayeredExplosion, updateExplosionParticles };
 
@@ -42,39 +46,7 @@ function getBulletTrailBuffer(render: any): CircularPositionBuffer {
 }
 
 export function drawExplosionParticlesCanvas(ctx: CanvasRenderingContext2D): void {
-  ctx.save();
-  for (let i = 0; i < EXPLOSION_PARTICLE_POOL.length; i++) {
-    const data = resolveExplosionParticleData(EXPLOSION_PARTICLE_POOL[i]);
-    if (!data) continue;
-
-    const { ratio, type, x, y, radius, size, color } = data;
-
-    if (type === "ring") {
-      ctx.save();
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2.5 * ratio;
-      ctx.globalAlpha = ratio * 0.8;
-      ctx.beginPath();
-      ctx.arc(x, y, Math.max(0.1, radius), 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.restore();
-    } else if (type === "debris") {
-      ctx.save();
-      ctx.fillStyle = color;
-      ctx.globalAlpha = ratio;
-      ctx.fillRect(x - size / 2, y - size / 2, size, size);
-      ctx.restore();
-    } else if (type === "smoke") {
-      ctx.save();
-      ctx.fillStyle = color;
-      ctx.globalAlpha = ratio * 0.35;
-      ctx.beginPath();
-      ctx.arc(x, y, Math.max(0.1, size), 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    }
-  }
-  ctx.restore();
+  drawExplosionParticlesAdapter(new CanvasDrawAdapter(ctx));
 }
 
 /**
@@ -94,37 +66,30 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render) return;
-    const { size = 40 } = render;
-
-    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-    const customGeom = theme?.visualTheme?.shapeTokens?.playerGeometry;
+    const size = render.size || 40;
 
     const playerComp = world.getComponent(entity, "Player");
     const role = playerComp?.role || "pioneer";
-    const { roleColor } = resolvePlayerRoleVisual(role, theme);
+    const roleInfo = resolvePlayerRoleVisual(role, world.getResource("Theme"));
 
-    const flash = applyHitFlash(render, render.color || roleColor);
+    const flash = applyHitFlash(render, render.color || roleInfo.roleColor);
     const color = flash.color;
 
     ctx.save();
     ctx.globalAlpha = flash.opacity;
 
-    // 1. Dynamic tilt/lean based on horizontal velocity
     const velocity = world.getComponent(entity, "Velocity");
     if (velocity) {
-      const tilt = calculatePlayerTilt(velocity.vx);
-      ctx.rotate(tilt);
+      ctx.rotate(calculatePlayerTilt(velocity.vx));
     }
 
-    if (customGeom) {
-      drawFromGeometryProfileCanvas(ctx, customGeom, {
-        size,
-        baseColor: color,
-        isHitFlashing: flash.opacity < 1.0,
-      });
+    if (tryDrawCustomGeometryCanvas(ctx, world, "player", {
+      size,
+      baseColor: color,
+      isHitFlashing: flash.opacity < 1.0,
+    })) {
       ctx.restore();
 
-      // Defensive neon shield if invulnerable
       const health = world.getComponent(entity, "Health");
       const shieldState = resolveShieldPulseState(health, size, world.tick);
       if (shieldState.isInvulnerable) {
@@ -143,11 +108,10 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
 
     const tick = world.tick;
     if (role === "hunter") {
-      const auraRadius = size * 1.8 + Math.sin(tick * 0.15) * 4;
       ctx.strokeStyle = "rgba(255, 0, 110, 0.4)";
       ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.arc(0, 0, auraRadius, 0, Math.PI * 2);
+      ctx.arc(0, 0, size * 1.8 + Math.sin(tick * 0.15) * 4, 0, Math.PI * 2);
       ctx.stroke();
     } else if (role === "sentinel") {
       ctx.strokeStyle = "rgba(0, 217, 255, 0.5)";
@@ -305,9 +269,6 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
     if (!render) return;
     const { size = 15 } = render;
 
-    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-    const customGeom = theme?.visualTheme?.shapeTokens?.enemyGeometry;
-
     const invaderComp = world.getComponent(entity, "Invader");
     const enemyTag = world.getComponent(entity, "EnemyTag");
     const { baseColor, isTeleporter } = resolveInvaderColor(render, invaderComp, enemyTag);
@@ -315,14 +276,11 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
     const flash = applyHitFlash(render, baseColor);
     const tick = world.tick;
 
-    if (customGeom) {
-      ctx.save();
-      drawFromGeometryProfileCanvas(ctx, customGeom, {
-        size: size * 1.8,
-        baseColor: flash.color,
-        globalAlpha: flash.opacity,
-      });
-      ctx.restore();
+    if (tryDrawCustomGeometryCanvas(ctx, world, "enemy", {
+      size: size * 1.8,
+      baseColor: flash.color,
+      globalAlpha: flash.opacity,
+    })) {
       return;
     }
 
@@ -432,16 +390,10 @@ export const drawSpaceInvadersBullet: ShapeDrawer<CanvasRenderingContext2D, Spac
     const render = world.getComponent(entity, "Render");
     if (!render) return;
 
-    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-    const customGeom = theme?.visualTheme?.shapeTokens?.projectileGeometry;
-
-    if (customGeom) {
-      ctx.save();
-      drawFromGeometryProfileCanvas(ctx, customGeom, {
-        size: (render.size || 6) * 2,
-        baseColor: render.color || colors.gold,
-      });
-      ctx.restore();
+    if (tryDrawCustomGeometryCanvas(ctx, world, "projectile", {
+      size: (render.size || 6) * 2,
+      baseColor: render.color || colors.gold,
+    })) {
       return;
     }
 
@@ -498,9 +450,6 @@ export const drawSpaceInvadersBoss: ShapeDrawer<CanvasRenderingContext2D, SpaceI
     const render = world.getComponent(entity, "Render");
     if (!render) return;
 
-    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-    const customGeom = theme?.visualTheme?.shapeTokens?.bossGeometry;
-
     const bossState = resolveBossVisualState(world, entity, render);
     const {
       hpRatio,
@@ -529,19 +478,17 @@ export const drawSpaceInvadersBoss: ShapeDrawer<CanvasRenderingContext2D, SpaceI
     ctx.translate(vibX, vibY);
     ctx.scale(scaleMultiplier, scaleMultiplier);
 
-    if (customGeom) {
-      drawFromGeometryProfileCanvas(ctx, customGeom, {
-        size: (render.size || 80),
-        baseColor: flash.color,
-      });
+    if (tryDrawCustomGeometryCanvas(ctx, world, "boss", {
+      size: (render.size || 80),
+      baseColor: flash.color,
+    })) {
       ctx.restore();
       return;
     }
 
     if (phase === 3) {
-      const auraPulse = 1.0 + 0.25 * Math.sin(world.tick * 0.5);
       ctx.shadowColor = "#FF4444";
-      ctx.shadowBlur = 20 * auraPulse;
+      ctx.shadowBlur = 20 * (1.0 + 0.25 * Math.sin(world.tick * 0.5));
     } else if (phase === 2) {
       ctx.shadowColor = "#F97316";
       ctx.shadowBlur = 12;
@@ -552,18 +499,11 @@ export const drawSpaceInvadersBoss: ShapeDrawer<CanvasRenderingContext2D, SpaceI
 
     ctx.fillStyle = flash.color;
     ctx.beginPath();
-    ctx.moveTo(0, -s * 8);
-    ctx.lineTo(s * 4, -s * 4);
-    ctx.lineTo(s * 10, -s * 2);
-    ctx.lineTo(s * 9, s * 4);
-    ctx.lineTo(s * 6, s * 8);
-    ctx.lineTo(s * 3, s * 6);
-    ctx.lineTo(0, s * 7);
-    ctx.lineTo(-s * 3, s * 6);
-    ctx.lineTo(-s * 6, s * 8);
-    ctx.lineTo(-s * 9, s * 4);
-    ctx.lineTo(-s * 10, -s * 2);
-    ctx.lineTo(-s * 4, -s * 4);
+    const poly = getBossPolygonPoints(s);
+    ctx.moveTo(poly[0].x, poly[0].y);
+    for (let i = 1; i < poly.length; i++) {
+      ctx.lineTo(poly[i].x, poly[i].y);
+    }
     ctx.closePath();
     ctx.fill();
 
@@ -609,48 +549,9 @@ export const drawSpaceInvadersShield: ShapeDrawer<CanvasRenderingContext2D, Spac
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render) return;
-    const { size = 15 } = render;
-
     const flash = applyHitFlash(render, render.color || colors.green);
-    const color = flash.color;
-
     const shield = world.getComponent(entity, "Shield");
-    const hp = shield ? shield.hp : 3;
-    const maxHp = shield ? shield.maxHp : 3;
-    const ratio = calculateShieldHpRatio(hp, maxHp);
-
-    ctx.save();
-
-    ctx.fillStyle = color;
-    ctx.globalAlpha = flash.opacity * (0.15 + 0.5 * ratio);
-    ctx.fillRect(-size / 2, -size / 2, size, size);
-
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 1.5;
-    ctx.globalAlpha = flash.opacity * (0.3 + 0.7 * ratio);
-    ctx.strokeRect(-size / 2, -size / 2, size, size);
-
-    if (ratio < 1.0) {
-      ctx.strokeStyle = "rgba(0, 0, 0, 0.85)";
-      ctx.lineWidth = 1.5;
-      ctx.globalAlpha = 1.0;
-      ctx.beginPath();
-
-      const seed1 = (entity * 17) % size;
-      const seed2 = (entity * 41) % size;
-      ctx.moveTo(-size / 2 + seed1, -size / 2);
-      ctx.lineTo(size / 2 - seed2, size / 2);
-
-      if (ratio < 0.4) {
-        const seed3 = (entity * 97) % size;
-        ctx.moveTo(size / 2, -size / 2 + seed3);
-        ctx.lineTo(-size / 2, size / 2 - seed3);
-      }
-      ctx.stroke();
-    }
-
-    ctx.restore();
-    ctx.globalAlpha = 1.0;
+    drawShieldAdapter(new CanvasDrawAdapter(ctx), entity, render.size || 15, flash.color, flash.opacity, shield?.hp ?? 3, shield?.maxHp ?? 3);
   }
 };
 
@@ -661,24 +562,7 @@ export const drawSpaceInvadersParticle: ShapeDrawer<CanvasRenderingContext2D, Sp
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render) return;
-
-    const particleState = resolveParticleState(world, entity, render);
-    const { progress, particleColor, currentSize } = particleState;
-
-    ctx.save();
-    ctx.globalAlpha = 1.0 - progress;
-    ctx.fillStyle = particleColor;
-
-    if (progress < 0.5) {
-      ctx.shadowColor = particleColor;
-      ctx.shadowBlur = 6 * (1.0 - progress);
-    }
-
-    ctx.beginPath();
-    ctx.arc(0, 0, currentSize / 2, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.restore();
+    drawParticleAdapter(new CanvasDrawAdapter(ctx), resolveParticleState(world, entity, render));
   }
 };
 

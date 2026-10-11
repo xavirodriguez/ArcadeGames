@@ -6,6 +6,7 @@ import { colors } from "../../../theme/colors";
  */
 export interface RenderLike {
   hitFlashFrames?: number;
+  color?: string;
 }
 
 /**
@@ -54,7 +55,7 @@ export function resolveAsteroidHitFlash(
   render: RenderLike | undefined | null,
   defaultColor: string
 ): { opacity: number; colorStr: string; isHitFlashing: boolean } {
-  const baseColor = (render as any)?.color || defaultColor;
+  const baseColor = render?.color || defaultColor;
   const flashState = resolveHitFlash(render, baseColor, 1.0);
   return {
     opacity: flashState.isFlashing ? flashState.opacity : 1.0,

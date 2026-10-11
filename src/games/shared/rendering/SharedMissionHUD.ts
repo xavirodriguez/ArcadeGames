@@ -1,4 +1,4 @@
-import { EffectDrawer, ComponentRegistry } from "@tiny-aster/core";
+import { EffectDrawer, ComponentRegistry, THEME_RESOURCE_KEY, Theme, getMissionTitle } from "@tiny-aster/core";
 import { ActiveMissionState } from "../missions/MissionTypes";
 import { colors } from "../../../theme/colors";
 import { Skia, getPaint } from "./SkiaContext";
@@ -34,19 +34,23 @@ const DEFAULT_HUD_OPTIONS: Required<MissionHudOptions> = {
 
 /**
  * Pure function that resolves active mission state into HUD view model parameters.
+ * Supports theme mission title overrides.
  * @param activeMission - The active mission state retrieved from World resource.
+ * @param theme - Active Theme resource from world if available.
  * @public
  */
-export function resolveMissionHudModel(activeMission: ActiveMissionState): MissionHudViewModel {
+export function resolveMissionHudModel(activeMission: ActiveMissionState, theme?: Theme): MissionHudViewModel {
+  const displayTitle = getMissionTitle(theme, activeMission.id, activeMission.title);
+
   let statusColor: string = colors.cyan;
-  let statusText = `🎯 ${activeMission.title.toUpperCase()}`;
+  let statusText = `🎯 ${displayTitle.toUpperCase()}`;
 
   if (activeMission.completed) {
     statusColor = colors.green;
-    statusText = `★ ${activeMission.title.toUpperCase()} (COMPLETADA)`;
+    statusText = `★ ${displayTitle.toUpperCase()} (COMPLETADA)`;
   } else if (activeMission.failed) {
     statusColor = colors.pink;
-    statusText = `✕ ${activeMission.title.toUpperCase()} (FALLIDA)`;
+    statusText = `✕ ${displayTitle.toUpperCase()} (FALLIDA)`;
   }
 
   let progressStr = `${activeMission.currentCount} / ${activeMission.targetCount}`;
@@ -83,7 +87,8 @@ export function createCanvasMissionHUD<TComponents extends ComponentRegistry = C
       const activeMission = world.getResource<ActiveMissionState>("ActiveMission");
       if (!activeMission) return;
 
-      const model = resolveMissionHudModel(activeMission);
+      const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+      const model = resolveMissionHudModel(activeMission, theme);
 
       ctx.save();
 
@@ -139,7 +144,8 @@ export function createSkiaMissionHUD<TComponents extends ComponentRegistry = Com
       const activeMission = world.getResource<ActiveMissionState>("ActiveMission");
       if (!activeMission) return;
 
-      const model = resolveMissionHudModel(activeMission);
+      const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+      const model = resolveMissionHudModel(activeMission, theme);
 
       canvas.save();
       const paint = getPaint();

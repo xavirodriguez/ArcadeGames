@@ -29,9 +29,17 @@ export function attachEnemyAI(
     resolved.data.visionRange = opts.visionRange;
   }
 
+  const addComp = (component: any) => {
+    if (world.isUpdating) {
+      world.getCommandBuffer().addComponent(entity, component);
+    } else {
+      world.addComponent(entity, component);
+    }
+  };
+
   // PlayerSensor
   if (resolved.needsPlayerSensor) {
-    world.addComponent(entity, {
+    addComp({
       type: "PlayerSensor",
       visionRange: (resolved.data.visionRange as number) ?? 180,
       detectedPlayerEntity: undefined
@@ -43,14 +51,14 @@ export function attachEnemyAI(
     const tr = world.getComponent(entity, "Transform");
     const x = tr?.x ?? 0;
     const half = opts.patrolHalfWidth ?? 64;
-    world.addComponent(entity, {
+    addComp({
       type: "Patrol",
       startX: x - half,
       endX: x + half,
       direction: 1,
       patrolSpeed: (resolved.data.patrolSpeed as number) ?? arch?.speed ?? 60
     });
-    world.addComponent(entity, {
+    addComp({
       type: "GroundDetector",
       sensorOffsetX: 10,
       sensorOffsetY: 14,
@@ -61,7 +69,7 @@ export function attachEnemyAI(
 
   // Charger también se beneficia de GroundDetector en Attack
   if (resolved.machineId === "hr_charge" && !world.hasComponent(entity, "GroundDetector")) {
-    world.addComponent(entity, {
+    addComp({
       type: "GroundDetector",
       sensorOffsetX: 12,
       sensorOffsetY: 14,
@@ -71,7 +79,7 @@ export function attachEnemyAI(
   }
 
   // StateMachine
-  world.addComponent(entity, {
+  addComp({
     type: "StateMachine",
     machineId: resolved.machineId,
     currentState: resolved.initialState,

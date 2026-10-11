@@ -2,29 +2,24 @@ import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
 import type { OutrunComponentRegistry } from "../types/OutrunTypes";
 import type { OutrunConfig } from "../types/OutrunConfigSchema";
 import { DEFAULT_OUTRUN_CONFIG } from "../types/OutrunConfigSchema";
-import type { RoadData, ProjectedSegment, RoadSegmentSprite } from "../types/OutrunTypes";
-import { projectRoad, createProjectionBuffer } from "./RoadProjection";
+import type { RoadData, RoadSegmentSprite } from "../types/OutrunTypes";
+import { projectRoad } from "./RoadProjection";
 import {
   COAST_PALETTE,
   ScenarioPalette,
   scenarioHash,
-  getScenarioPaletteAtZ,
-  applyDayPhase
+  getScenarioPaletteAtZ
 } from "./OutrunPalettes";
 import { computePlayerCarGeometry, computeRacerProjection } from "./OutrunVisualHelpers";
-
-/** Module-level reusable buffer — avoids per-frame allocations. */
-// TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:18-29. Considerar extraer a función compartida. Ref: d9cd5a2c
-const PROJECTION_CAPACITY = 400;
-const projectionBuffer: ProjectedSegment[] = createProjectionBuffer(PROJECTION_CAPACITY);
-
-function rumbleColor(index: number, rumbleLength: number, dark: string, light: string): string {
-  return Math.floor(index / rumbleLength) % 2 === 0 ? dark : light;
-}
-
-function roadColor(index: number, rumbleLength: number, palette: ScenarioPalette): string {
-  return Math.floor(index / rumbleLength) % 2 === 0 ? palette.roadDark : palette.roadLight;
-}
+import {
+  PROJECTION_CAPACITY,
+  projectionBuffer,
+  rumbleColor,
+  roadColor,
+  resolveOutrunRoadContext,
+  resolveRacerRenderContext,
+  iterateOutrunSprites
+} from "./OutrunRenderShared";
 
 function fillTrapezoid(
   ctx: CanvasRenderingContext2D,
@@ -72,8 +67,7 @@ function drawCanvasSprite(
     ctx.stroke();
 
     // Smooth triangular fronds
-        // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:84-90. Considerar extraer a función compartida. Ref: b17015f3
-ctx.fillStyle = "#00b4d8";
+    ctx.fillStyle = "#00b4d8";
     const topX = sp.side * 10;
     const topY = -80;
     for (let f = 0; f < 6; f++) {
@@ -223,22 +217,10 @@ ctx.fillStyle = "#00b4d8";
 
 export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunComponentRegistry> = {
   draw(ctx, world, _entity) {
-        // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:237-247. Considerar extraer a función compartida. Ref: ecacb7f6
-const state = world.getSingleton("RaceState");
-    const roadData = world.getResource<RoadData>("RoadData");
-    const config =
-      world.getResource<OutrunConfig>("GameConfig") ?? DEFAULT_OUTRUN_CONFIG;
+    const roadCtx = resolveOutrunRoadContext(world);
+    if (!roadCtx) return;
 
-    if (!state || !roadData || roadData.segments.length === 0) return;
-
-    const screenW = config.WIDTH;
-    const screenH = config.HEIGHT;
-        // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:247-255. Considerar extraer a función compartida. Ref: a72c88fe
-const rumbleLength = config.rumbleLength;
-
-    const basePalette = getScenarioPaletteAtZ(state.playerZ, roadData);
-    const progress = state.playerZ / roadData.trackLength;
-    const palette = applyDayPhase(basePalette, progress);
+    const { state, roadData, config, screenW, screenH, rumbleLength, palette } = roadCtx;
 
     // PASS 1: Sky Multi-Band Gradient
     const bandHeight = (screenH * 0.45) / palette.skyBands.length;
@@ -258,8 +240,7 @@ const rumbleLength = config.rumbleLength;
 
     // PASS 2.5: Parallax Clouds
     const cloudCount = 8;
-        // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:278-287. Considerar extraer a función compartida. Ref: d6906a8d
-ctx.fillStyle = palette.cloudColor;
+    ctx.fillStyle = palette.cloudColor;
     for (let c = 0; c < cloudCount; c++) {
       const h1 = scenarioHash("cloud_x", c);
       const h2 = scenarioHash("cloud_y", c);
@@ -282,8 +263,7 @@ ctx.fillStyle = palette.cloudColor;
       const hazeY = screenH * 0.45;
       const numLines = 18;
       ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
-            // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:302-307. Considerar extraer a función compartida. Ref: ae0c6b64
-ctx.lineWidth = 2;
+      ctx.lineWidth = 2;
       for (let h = 0; h < numLines; h++) {
         const hRatio = h / numLines;
         const baseX = hRatio * screenW + (state.playerX * 12);
@@ -293,8 +273,7 @@ ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(x, hazeY - 22);
         ctx.lineTo(x + waveOffset * 0.5, hazeY - 2);
-                // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:312-329. Considerar extraer a función compartida. Ref: 2c10404f
-ctx.stroke();
+        ctx.stroke();
       }
     }
 
@@ -343,8 +322,7 @@ ctx.stroke();
       // Brutalist building & wind turbine silhouettes
       const spacing = screenW / 6;
       const horizonOffset = ((state.playerZ * 0.0001) % spacing) + state.playerX * 20;
-            // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:359-364. Considerar extraer a función compartida. Ref: 540c546e
-ctx.fillStyle = palette.mountainBase;
+      ctx.fillStyle = palette.mountainBase;
       for (let b = -2; b < 8; b++) {
         const bx = b * spacing - horizonOffset;
         const bw = 18 + scenarioHash("coast_b", b) * 20;
@@ -377,8 +355,7 @@ ctx.fillStyle = palette.mountainBase;
       // Mountain concrete cliffs and contemporary skyline
       const spacing = screenW / 5;
       const offset = ((state.playerZ * 0.00015) % spacing) + state.playerX * 25;
-            // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:389-394. Considerar extraer a función compartida. Ref: 74cdc27f
-ctx.fillStyle = palette.mountainBase;
+      ctx.fillStyle = palette.mountainBase;
       for (let m = -2; m < 7; m++) {
         const mx = m * spacing - offset;
         const mh = 35 + scenarioHash("mtn_h", m) * 55;
@@ -394,8 +371,7 @@ ctx.fillStyle = palette.mountainBase;
         ctx.closePath();
         ctx.fill();
 
-                // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:404-421. Considerar extraer a función compartida. Ref: ee7bddfd
-ctx.fillStyle = palette.mountainBase;
+        ctx.fillStyle = palette.mountainBase;
       }
     }
 
@@ -438,15 +414,13 @@ ctx.fillStyle = palette.mountainBase;
     }
 
     // Road segments pass
-    for (    // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:423-428. Considerar extraer a función compartida. Ref: a554f6b8
-let i = 0; i < count; i++) {
+    for (let i = 0; i < count; i++) {
       const p = projectionBuffer[i];
       if (p.p1z <= 0 && p.p2z <= 0) continue;
       if (p.y2 >= maxy) continue;
 
       const grass = rumbleColor(p.index, rumbleLength, palette.groundDark, palette.groundLight);
-            // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:429-434. Considerar extraer a función compartida. Ref: a0f14136
-fillTrapezoid(ctx, p.x1, p.y1, screenW, p.x2, Math.min(p.y2, maxy), screenW, grass);
+      fillTrapezoid(ctx, p.x1, p.y1, screenW, p.x2, Math.min(p.y2, maxy), screenW, grass);
 
       const rumbleW1 = p.w1 * 1.15;
       const rumbleW2 = p.w2 * 1.15;
@@ -454,16 +428,14 @@ fillTrapezoid(ctx, p.x1, p.y1, screenW, p.x2, Math.min(p.y2, maxy), screenW, gra
       fillTrapezoid(ctx, p.x1, p.y1, rumbleW1, p.x2, Math.min(p.y2, maxy), rumbleW2, rumble);
 
       const road = roadColor(p.index, rumbleLength, palette);
-            // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:437-443. Considerar extraer a función compartida. Ref: 705b767e
-fillTrapezoid(ctx, p.x1, p.y1, p.w1, p.x2, Math.min(p.y2, maxy), p.w2, road);
+      fillTrapezoid(ctx, p.x1, p.y1, p.w1, p.x2, Math.min(p.y2, maxy), p.w2, road);
 
       // Wet road / center asphalt reflection layer
       if (palette.reflectionAlpha > 0) {
         const reflW1 = p.w1 * 0.35;
         const reflW2 = p.w2 * 0.35;
         const reflColor = `rgba(255, 255, 255, ${palette.reflectionAlpha.toFixed(3)})`;
-                // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:444-450. Considerar extraer a función compartida. Ref: 223df211
-fillTrapezoid(ctx, p.x1, p.y1, reflW1, p.x2, Math.min(p.y2, maxy), reflW2, reflColor);
+        fillTrapezoid(ctx, p.x1, p.y1, reflW1, p.x2, Math.min(p.y2, maxy), reflW2, reflColor);
       }
 
       // Inner curve asphalt darkening
@@ -495,46 +467,36 @@ fillTrapezoid(ctx, p.x1, p.y1, reflW1, p.x2, Math.min(p.y2, maxy), reflW2, reflC
         ctx.lineTo(p.x2 + p.w2 * 1.2, Math.min(p.y2, maxy));
         ctx.lineTo(p.x2 - p.w2 * 1.2, Math.min(p.y2, maxy));
         ctx.closePath();
-                // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:468-488. Considerar extraer a función compartida. Ref: d1feb5e3
-ctx.fill();
+        ctx.fill();
       }
 
       maxy = p.y2;
     }
 
     // Sprites Pass (Render back-to-front with ridge occlusion clipping)
-    for (let i = count - 1; i >= 0; i--) {
-      const p = projectionBuffer[i];
-      const seg = roadData.segments[p.index];
-      if (!seg || !seg.sprites || seg.sprites.length === 0) continue;
+    iterateOutrunSprites(
+      ctx,
+      count,
+      roadData,
+      config,
+      palette.lightsOn,
+      (c, sp, sx, sy, sw, roadW, lights, clipY) => {
+        c.save();
+        c.beginPath();
+        c.rect(0, 0, screenW, clipY);
+        c.clip();
 
-      for (const sp of seg.sprites) {
-        let sx = p.x1;
-        if (sp.kind !== "arch" && sp.kind !== "banner") {
-          sx = p.x1 + sp.side * (p.w1 * sp.offset);
-        }
-        const sy = p.y1;
-        const sw = p.w1;
+        drawCanvasSprite(c, sp, sx, sy, sw, roadW, lights);
 
-        if (sy >= p.clip || sw < 2) continue;
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(0, 0, screenW, p.clip);
-        ctx.clip();
-
-        drawCanvasSprite(ctx, sp, sx, sy, sw, config.roadWidth, palette.lightsOn);
-
-        ctx.restore();
+        c.restore();
       }
-    }
+    );
   }
 };
 
 export const drawOutrunCar: ShapeDrawer<CanvasRenderingContext2D, OutrunComponentRegistry> = {
   draw(ctx, world, entity) {
-        // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:505-515. Considerar extraer a función compartida. Ref: a5089423
-const render = world.getComponent(entity, "Render");
+    const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
 
     const state = world.getSingleton("RaceState");
@@ -552,15 +514,13 @@ const render = world.getComponent(entity, "Render");
     ctx.fillStyle = "rgba(0, 0, 0, 0.42)";
     ctx.beginPath();
     ctx.ellipse(geom.baseX, geom.baseY + 10, 34 * geom.carScale, 10 * geom.carScale, 0, 0, Math.PI * 2);
-        // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:525-531. Considerar extraer a función compartida. Ref: 690755e3
-ctx.fill();
+    ctx.fill();
 
     // Off-track Dust
     if (geom.isOffroad && state.speed > 0) {
       const roadData = world.getResource<RoadData>("RoadData");
       const basePal = roadData ? getScenarioPaletteAtZ(state.playerZ, roadData) : COAST_PALETTE;
-            // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:533-538. Considerar extraer a función compartida. Ref: 5f35fca5
-const dustColor = basePal.id === "coast" ? "#e2dfc8" : basePal.id === "desert" ? "#d0a67a" : "#8d99ae";
+      const dustColor = basePal.id === "coast" ? "#e2dfc8" : basePal.id === "desert" ? "#d0a67a" : "#8d99ae";
 
       for (let d = 0; d < 12; d++) {
         const h1 = scenarioHash("dust_x", d + Math.floor(state.playerZ * 0.1));
@@ -611,16 +571,10 @@ const dustColor = basePal.id === "coast" ? "#e2dfc8" : basePal.id === "desert" ?
 
 export const drawOutrunRacer: ShapeDrawer<CanvasRenderingContext2D, OutrunComponentRegistry> = {
   draw(ctx, world, entity) {
-        // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:581-602. Considerar extraer a función compartida. Ref: 700bcb00
-const racer = world.getComponent(entity, "Racer");
-    const render = world.getComponent(entity, "Render");
-    if (!racer || !racer.active || !render || !render.visible) return;
+    const ctxPayload = resolveRacerRenderContext(world, entity);
+    if (!ctxPayload) return;
 
-    const state = world.getSingleton("RaceState");
-    const roadData = world.getResource<RoadData>("RoadData");
-    const config =
-      world.getResource<OutrunConfig>("GameConfig") ?? DEFAULT_OUTRUN_CONFIG;
-    if (!state || !roadData) return;
+    const { racer, state, roadData, config } = ctxPayload;
 
     const proj = computeRacerProjection(
       racer,
@@ -647,8 +601,7 @@ const racer = world.getComponent(entity, "Racer");
 
 export const drawOutrunHud: EffectDrawer<CanvasRenderingContext2D, OutrunComponentRegistry> = {
   draw(ctx, world) {
-        // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:624-632. Considerar extraer a función compartida. Ref: 1404043b
-const state = world.getSingleton("RaceState");
+    const state = world.getSingleton("RaceState");
     if (!state) return;
 
     const config =

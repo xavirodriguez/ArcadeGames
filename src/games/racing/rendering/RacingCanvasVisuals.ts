@@ -13,6 +13,7 @@ import {
   extractObstacleParams
 } from "./RacingSkin";
 import { buildTrackRibbon } from "./TrackRibbonGeometry";
+import { extractTrackDimensions, computeCheckpointGrid } from "./RacingVisualHelpers";
 import type { RacingParticlePool } from "../systems/RacingParticleSystem";
 
 interface StaticCacheEntry {
@@ -29,15 +30,8 @@ export function clearStaticRacingCache(): void {
 
 export const drawTrackSurface: ShapeDrawer<CanvasRenderingContext2D, RacingComponentRegistry> = {
   draw(ctx, world) {
-        // TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingSkiaVisuals.ts:22-31. Considerar extraer a función compartida. Ref: 4b0cab2d
-const start = typeof performance !== "undefined" ? performance.now() : 0;
-    const skin = getRacingSkin(world);
-    const palette = skin.palette;
-    const trackSpec = world.getResource<TrackSpec>("ActiveTrackSpec");
-    const width = trackSpec?.width ?? 1600;
-    const height = trackSpec?.height ?? 1000;
-    const halfW = width / 2;
-    const halfH = height / 2;
+    const start = typeof performance !== "undefined" ? performance.now() : 0;
+    const { width, height, halfW, halfH, skin, palette, trackSpec } = extractTrackDimensions(world);
     const cacheKey = `${trackSpec?.id ?? "default"}:${skin.id}`;
 
     ctx.save();
@@ -242,23 +236,15 @@ export const drawCheckpoint: ShapeDrawer<CanvasRenderingContext2D, RacingCompone
     const checkpoint = world.getComponent(entity, "Checkpoint");
     if (!checkpoint) return;
 
-        // TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingSkiaVisuals.ts:168-181. Considerar extraer a función compartida. Ref: 5f514a71
-ctx.save();
+    ctx.save();
     if (checkpoint.isFinish) {
-      const halfW = checkpoint.width / 2;
-      const halfH = checkpoint.height / 2;
-      const cols = 8;
-      const rows = 2;
-      const colW = checkpoint.width / cols;
-      const rowH = checkpoint.height / rows;
-
+      const { cells, halfW, halfH } = computeCheckpointGrid(checkpoint.width, checkpoint.height);
       const [color1, color2] = skin.finishCheckers ?? ["#FFFFFF", "#5D4037"];
 
-      for (let r = 0; r < rows; r += 1) {
-        for (let c = 0; c < cols; c += 1) {
-          ctx.fillStyle = (r + c) % 2 === 0 ? color1 : color2;
-          ctx.fillRect(-halfW + c * colW, -halfH + r * rowH, colW, rowH);
-        }
+      for (let i = 0; i < cells.length; i += 1) {
+        const cell = cells[i]!;
+        ctx.fillStyle = cell.colorIndex === 0 ? color1 : color2;
+        ctx.fillRect(cell.x, cell.y, cell.w, cell.h);
       }
       ctx.strokeStyle = skin.palette.outline;
       ctx.lineWidth = 2;

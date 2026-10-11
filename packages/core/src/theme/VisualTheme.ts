@@ -1,3 +1,5 @@
+import { EntityGeometryProfile } from "./GeometryProfile";
+
 /**
  * Contrast hierarchy tokens defining background, gameplay world, entities, and visual effects depth.
  * @public
@@ -30,6 +32,34 @@ export interface VisualThemeShapeTokens {
   projectileShape?: string;
   /** Particle geometry variant for procedural VFX. */
   particleShape?: "circle" | "polygon" | "shard";
+
+  /** Parametric geometry profiles for data-driven reskins. */
+  playerGeometry?: EntityGeometryProfile;
+  enemyGeometry?: EntityGeometryProfile;
+  projectileGeometry?: EntityGeometryProfile;
+  bossGeometry?: EntityGeometryProfile;
+  customGeometries?: Record<string, EntityGeometryProfile>;
+}
+
+/**
+ * Role-based visual presentation specs (data-driven role styling).
+ * @public
+ */
+export interface RoleVisualSpec {
+  color?: string;
+  auraStyle?: string;
+  icon?: string;
+  name?: string;
+}
+
+/**
+ * Phase-based visual presentation specs (data-driven boss/stage phase styling).
+ * @public
+ */
+export interface PhaseVisualSpec {
+  color?: string;
+  accentColor?: string;
+  auraColor?: string;
 }
 
 /**
@@ -56,6 +86,10 @@ export interface VisualTheme {
   contrastHierarchy: VisualThemeContrastHierarchy;
   /** Basic shape tokens for entity factory defaults. */
   shapeTokens?: VisualThemeShapeTokens;
+  /** Data-driven role visual definitions (e.g., hunter, sentinel, pioneer, support). */
+  roleVisuals?: Record<string, RoleVisualSpec>;
+  /** Data-driven phase visual definitions (e.g., boss phase 1, 2, 3). */
+  phaseVisuals?: Record<number, PhaseVisualSpec>;
 }
 
 /**

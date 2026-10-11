@@ -23,6 +23,7 @@ describe("Hit & Run Game Systems", () => {
       expect(state.type).toBe("HitAndRunGameState");
       expect(state.score).toBe(0);
       expect(state.isGameOver).toBe(false);
+      game.destroy();
     });
 
     it("creates exactly one main Camera2D entity after initialization", async () => {
@@ -35,6 +36,7 @@ describe("Hit & Run Game Systems", () => {
 
       const camComp = gameWorld.getComponent(cameras[0], "Camera2D") as { isMain?: boolean } | undefined;
       expect(camComp?.isMain).toBe(true);
+      game.destroy();
     });
 
     it("registers canvas shapes and effects during initializeRenderer", () => {
@@ -63,6 +65,7 @@ describe("Hit & Run Game Systems", () => {
 
       expect(effectsRegistered.has("hit_run_procedural_backdrop")).toBe(true);
       expect(effectsRegistered.has("hit_run_hud")).toBe(true);
+      game.destroy();
     });
 
     it("generates and instantiates level plan and backdrop resource on init", async () => {
@@ -79,6 +82,7 @@ describe("Hit & Run Game Systems", () => {
 
       const backdrop = gameWorld.getResource("HitRunBackdropSpec");
       expect(backdrop).toBeDefined();
+      game.destroy();
     });
 
     it("registers wave director and death flow resources on init", async () => {
@@ -91,6 +95,7 @@ describe("Hit & Run Game Systems", () => {
 
       const deathFlow = gameWorld.getResource("HitRunDeathFlow");
       expect(deathFlow).toBeDefined();
+      game.destroy();
     });
   });
 
@@ -255,6 +260,7 @@ describe("Hit & Run Game Systems", () => {
 
       const enemyHealth = gameWorld.getComponent(enemy, "Health") as { current: number } | undefined;
       expect(enemyHealth?.current).toBeLessThan(10);
+      game.destroy();
     });
 
     it("strictly separates attack (melee) and fire (ranged weapon)", async () => {
@@ -286,6 +292,7 @@ describe("Hit & Run Game Systems", () => {
       };
       expect(beltInput.attackHeld).toBe(false);
       expect(beltInput.fireHeld).toBe(true);
+      game.destroy();
     });
 
     it("verifies firePressed edge is computed by BeltInputSystem from fireHeld", async () => {
@@ -314,6 +321,7 @@ describe("Hit & Run Game Systems", () => {
         firePressed: boolean;
       };
       expect(beltInput.fireHeld).toBe(true);
+      game.destroy();
     });
 
     it("supports 8-directional diagonal aim hitting an enemy at vertical offset (y=340)", async () => {
@@ -400,6 +408,7 @@ describe("Hit & Run Game Systems", () => {
 
       const enemyHealth = gameWorld.getComponent(enemy, "Health") as { current: number } | undefined;
       expect(enemyHealth?.current).toBeLessThan(10);
+      game.destroy();
     });
   });
 });

@@ -1,4 +1,4 @@
-import { ShapeDrawer } from "@tiny-aster/core";
+import { ShapeDrawer, THEME_RESOURCE_KEY, Theme } from "@tiny-aster/core";
 import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { colors } from "../../../theme/colors";
 import {
@@ -20,6 +20,8 @@ import { EXPLOSION_PARTICLE_POOL, updateExplosionParticles } from "./ExplosionPa
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 import { CircularPositionBuffer } from "../../shared/rendering/SharedVFX";
+import { SkiaDrawAdapter } from "../../shared/rendering/DrawAdapter";
+import { drawFromGeometryProfileAdapter } from "../../shared/rendering/GenericEntityDrawer";
 
 const bulletSkiaTrailMap = new WeakMap<any, CircularPositionBuffer>();
 
@@ -44,8 +46,7 @@ export function drawExplosionParticlesSkia(canvas: any): void {
   if (!Skia) return;
   const paint = getPaint();
 
-    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersCanvasVisuals.ts:44-49. Considerar extraer a función compartida. Ref: 0b6a9ef2
-canvas.save();
+  canvas.save();
   for (let i = 0; i < EXPLOSION_PARTICLE_POOL.length; i++) {
     const data = resolveExplosionParticleData(EXPLOSION_PARTICLE_POOL[i]);
     if (!data) continue;
@@ -96,16 +97,19 @@ const cachedPlayerPaths = new WeakMap<any, { chassis: any; cockpit: any; reflect
 const cachedShieldCracks = new WeakMap<any, { x1: number; y1: number; x2: number; y2: number; x3: number; y3: number; x4: number; y4: number }>();
 
 /**
- * Visuals for the player ship using React Native Skia.
+ * Visuals for the player ship using React Native Skia. Supports Concept Pack geometry overrides.
  */
 export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = safeGetRenderComponent(world, entity);
     if (!render) return;
 
+    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+    const customGeom = theme?.visualTheme?.shapeTokens?.playerGeometry;
+
     const playerComp = world.getComponent(entity, "Player");
     const role = playerComp?.role || "pioneer";
-    const { roleColor } = resolvePlayerRoleVisual(role);
+    const { roleColor } = resolvePlayerRoleVisual(role, theme);
 
     const flash = getRenderFlash(render, roleColor, 40);
     const size = flash.size;
@@ -118,6 +122,33 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
     if (velocity) {
       const tilt = calculatePlayerTilt(velocity.vx);
       canvas.rotate((tilt * 180) / Math.PI, 0, 0);
+    }
+
+    if (customGeom) {
+      const adapter = new SkiaDrawAdapter(canvas);
+      drawFromGeometryProfileAdapter(adapter, customGeom, {
+        size,
+        baseColor: colorStr,
+        globalAlpha: opacity,
+      });
+      canvas.restore();
+
+      const health = world.getComponent(entity, "Health");
+      const shieldState = resolveShieldPulseState(health, size, world.tick);
+      if (shieldState.isInvulnerable) {
+        const { shieldAlpha, radius } = shieldState;
+        canvas.save();
+        const paint = getPaint();
+        paint.reset();
+        paint.setAntiAlias(true);
+        paint.setStyle(Skia!.PaintStyle.Stroke);
+        paint.setColor(Skia!.Color(colors.cyan));
+        paint.setStrokeWidth(3);
+        paint.setAlphaf(shieldAlpha);
+        canvas.drawCircle(0, 0, radius, paint);
+        canvas.restore();
+      }
+      return;
     }
 
     const paint = getPaint();
@@ -270,12 +301,15 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
 };
 
 /**
- * Visuals for an invader using React Native Skia.
+ * Visuals for an invader using React Native Skia. Supports Concept Pack enemy geometry.
  */
 export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = safeGetRenderComponent(world, entity);
     if (!render) return;
+
+    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+    const customGeom = theme?.visualTheme?.shapeTokens?.enemyGeometry;
 
     const invaderComp = world.getComponent(entity, "Invader");
     const enemyTag = world.getComponent(entity, "EnemyTag");
@@ -288,6 +322,18 @@ export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersCompone
     const tick = world.tick;
     const shimmerAlpha = calculateTeleporterShimmer(isTeleporter, tick);
     const opacity = flash.opacity * shimmerAlpha;
+
+    if (customGeom) {
+      canvas.save();
+      const adapter = new SkiaDrawAdapter(canvas);
+      drawFromGeometryProfileAdapter(adapter, customGeom, {
+        size: size * 1.8,
+        baseColor: colorStr,
+        globalAlpha: opacity,
+      });
+      canvas.restore();
+      return;
+    }
 
     const s = size / 11;
     const animPhase = Math.floor(tick / 15) % 2 === 0;
@@ -378,12 +424,26 @@ export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersCompone
 };
 
 /**
- * Visuals for bullets using React Native Skia.
+ * Visuals for bullets using React Native Skia. Supports Concept Pack projectile geometry.
  */
 export const drawSkiaSpaceInvadersBullet: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = safeGetRenderComponent(world, entity);
     if (!render) return;
+
+    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+    const customGeom = theme?.visualTheme?.shapeTokens?.projectileGeometry;
+
+    if (customGeom) {
+      canvas.save();
+      const adapter = new SkiaDrawAdapter(canvas);
+      drawFromGeometryProfileAdapter(adapter, customGeom, {
+        size: (render.size || 6) * 2,
+        baseColor: render.color || colors.gold,
+      });
+      canvas.restore();
+      return;
+    }
 
     const trail = getBulletSkiaTrailBuffer(render);
     const bulletContext = resolveBulletTrailContext(world, entity, render, trail);
@@ -406,8 +466,7 @@ export const drawSkiaSpaceInvadersBullet: ShapeDrawer<any, SpaceInvadersComponen
     paint.reset();
     paint.setStyle(Skia!.PaintStyle.Fill);
 
-        // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersCanvasVisuals.ts:427-432. Considerar extraer a función compartida. Ref: 6c726b50
-paint.setColor(Skia!.Color(glowColor));
+    paint.setColor(Skia!.Color(glowColor));
     for (let i = 1; i < points.length; i++) {
       const pt = points[i];
       const relX = pt.x - currentX;
@@ -432,13 +491,15 @@ paint.setColor(Skia!.Color(glowColor));
 };
 
 /**
- * Visuals for the Boss flagship using React Native Skia.
+ * Visuals for the Boss flagship using React Native Skia. Supports Concept Pack boss geometry.
  */
 export const drawSkiaSpaceInvadersBoss: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
   draw(canvas, world, entity) {
-        // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersCanvasVisuals.ts:459-478. Considerar extraer a función compartida. Ref: 75c8043c
-const render = safeGetRenderComponent(world, entity);
+    const render = safeGetRenderComponent(world, entity);
     if (!render) return;
+
+    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+    const customGeom = theme?.visualTheme?.shapeTokens?.bossGeometry;
 
     const bossState = resolveBossVisualState(world, entity, render);
     const {
@@ -467,6 +528,17 @@ const render = safeGetRenderComponent(world, entity);
 
     canvas.translate(vibX, vibY);
     canvas.scale(scaleMultiplier, scaleMultiplier);
+
+    if (customGeom) {
+      const adapter = new SkiaDrawAdapter(canvas);
+      drawFromGeometryProfileAdapter(adapter, customGeom, {
+        size: (render.size || 80),
+        baseColor: flash.color,
+        globalAlpha: opacity,
+      });
+      canvas.restore();
+      return;
+    }
 
     const paint = getPaint();
     paint.reset();

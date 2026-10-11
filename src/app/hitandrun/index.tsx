@@ -119,6 +119,11 @@ function HitAndRunContent() {
         restartWithSeed?.();
         return;
       }
+      if (e.code === "Backquote" || e.code === "F3") {
+        const current = game.getWorld().getResource<boolean>("HitRunDebugOverlayEnabled");
+        game.getWorld().setResource("HitRunDebugOverlayEnabled", !current);
+        return;
+      }
       if (
         e.code === "ArrowUp" ||
         e.code === "ArrowDown" ||

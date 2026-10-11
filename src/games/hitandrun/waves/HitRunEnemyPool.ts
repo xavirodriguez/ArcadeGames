@@ -1,7 +1,8 @@
 import {
   World,
   Entity,
-  CoreComponentRegistry
+  CoreComponentRegistry,
+  createDeferredEntity
 } from "@tiny-aster/core";
 import { getEnemyArchetype } from "./HitRunEnemyArchetypes";
 import type {
@@ -24,7 +25,7 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
     params: HitRunEnemySpawnParams
   ): Entity {
     const arch = getEnemyArchetype(params.archetypeId);
-    const entity = world.createEntity();
+    const { entity, add } = createDeferredEntity(world);
 
     const size = arch?.size ?? 12;
     const color = arch?.color ?? "#ef4444";
@@ -36,7 +37,7 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
       ...(arch?.behaviorTags ?? [])
     ];
 
-    world.addComponent(entity, {
+    add({
       type: "Transform",
       x: params.x,
       y: params.y,
@@ -51,36 +52,36 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
       dirty: true
     });
 
-    world.addComponent(entity, {
+    add({
       type: "Velocity",
       vx: 0,
       vy: 0,
       angularVelocity: 0
     });
 
-    world.addComponent(entity, {
+    add({
       type: "BeltElevation",
       z: 0,
       vz: 0,
       grounded: true
     });
 
-    world.addComponent(entity, {
+    add({
       type: "Health",
       current: health,
       max: health
     });
 
-    world.addComponent(entity, {
+    add({
       type: "Faction",
       value: faction
     });
 
-    world.addComponent(entity, {
+    add({
       type: "Hurtbox"
     });
 
-    world.addComponent(entity, {
+    add({
       type: "Collider2D",
       shape: { type: "aabb", halfWidth: size * 0.5, halfHeight: size * 0.5 },
       layer: HIT_RUN_ENEMY_LAYER,
@@ -91,7 +92,7 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
       enabled: true
     });
 
-    world.addComponent(entity, {
+    add({
       type: "CollisionEvents",
       collisions: [],
       activeTriggers: [],
@@ -99,7 +100,7 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
       triggersExited: []
     });
 
-    world.addComponent(entity, {
+    add({
       type: "Render",
       shape,
       size,
@@ -113,13 +114,13 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
       hitFlashFrames: 0
     });
 
-    world.addComponent(entity, {
+    add({
       type: "Tag",
       tags: ["Enemy", params.archetypeId, ...(params.tags ?? []), ...(arch?.behaviorTags ?? [])]
     });
 
     const enemyKind = (params.archetypeId === "charger" ? "charger" : "patrol") as "patrol" | "jumper" | "charger";
-    world.addComponent(entity, {
+    add({
       type: "Enemy",
       kind: enemyKind,
       archetypeId: params.archetypeId,

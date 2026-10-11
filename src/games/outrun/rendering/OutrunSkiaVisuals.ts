@@ -19,11 +19,7 @@ import {
   roadColor,
   resolveOutrunRoadContext,
   resolveRacerRenderContext,
-  iterateOutrunSprites,
-  projectOutrunRoad,
-  computeFacetedPeaks,
-  computeOffroadDust,
-  RACER_COLORS
+  iterateOutrunSprites
 } from "./OutrunRenderShared";
 
 function fillTrapezoidSkia(
@@ -308,24 +304,32 @@ export const drawSkiaOutrunRoad: ShapeDrawer<RenderContext, OutrunComponentRegis
     const horizonStyle = palette.horizonStyle ?? (palette.id.startsWith("classic_") ? "faceted_peaks" : "coast_sea");
 
     if (horizonStyle === "faceted_peaks") {
-      const peaks = computeFacetedPeaks(screenW, horizonY, state.playerZ, state.playerX, palette.id);
-      for (const p of peaks) {
+      const numPeaks = 12;
+      const peakSpacing = screenW / 4;
+      const mountainOffsetX = ((state.playerZ * 0.00015) % peakSpacing) + state.playerX * 25;
+
+      for (let m = -2; m < numPeaks + 2; m++) {
+        const h1 = scenarioHash(palette.id, m);
+        const h2 = scenarioHash(palette.id, m + 100);
+        const px = m * peakSpacing - mountainOffsetX;
+        const peakY = horizonY - 40 - h1 * 60;
+
         paint.reset();
         paint.setAntiAlias(true);
         paint.setStyle(Skia.PaintStyle.Fill);
         paint.setColor(Skia.Color(palette.mountainBase));
         const path1 = Skia.Path.Make();
-        path1.moveTo(p.px - p.peakSpacing * 0.6, horizonY);
-        path1.lineTo(p.px, p.peakY);
-        path1.lineTo(p.px + p.peakSpacing * 0.6, horizonY);
+        path1.moveTo(px - peakSpacing * 0.6, horizonY);
+        path1.lineTo(px, peakY);
+        path1.lineTo(px + peakSpacing * 0.6, horizonY);
         path1.close();
         canvas.drawPath(path1, paint);
 
         paint.setColor(Skia.Color(palette.mountainFacet));
         const path2 = Skia.Path.Make();
-        path2.moveTo(p.px, p.peakY);
-        path2.lineTo(p.px + p.peakSpacing * 0.6, horizonY);
-        path2.lineTo(p.px + (p.h2 - 0.5) * 20, horizonY);
+        path2.moveTo(px, peakY);
+        path2.lineTo(px + peakSpacing * 0.6, horizonY);
+        path2.lineTo(px + (h2 - 0.5) * 20, horizonY);
         path2.close();
         canvas.drawPath(path2, paint);
       }
@@ -387,13 +391,17 @@ export const drawSkiaOutrunRoad: ShapeDrawer<RenderContext, OutrunComponentRegis
       }
     }
 
-    const count = projectOutrunRoad(
+    const count = projectRoad(
       roadData.segments,
       state.playerZ,
       state.playerX,
-      config,
+      config.cameraHeight,
+      config.cameraDepth,
+      config.roadWidth,
+      Math.min(config.drawDistance, PROJECTION_CAPACITY),
       screenW,
-      screenH
+      screenH,
+      projectionBuffer
     );
 
     let maxy = screenH;
@@ -499,12 +507,15 @@ export const drawSkiaOutrunCar: ShapeDrawer<RenderContext, OutrunComponentRegist
       const roadData = world.getResource<RoadData>("RoadData");
       const basePal = roadData ? getScenarioPaletteAtZ(state.playerZ, roadData) : COAST_PALETTE;
       const dustColor = basePal.id === "coast" ? "#e2dfc8" : basePal.id === "desert" ? "#d0a67a" : "#8d99ae";
-      const particles = computeOffroadDust(state.playerZ, geom.speedRatio);
 
       paint.setColor(Skia.Color(dustColor));
-      for (const p of particles) {
-        paint.setAlphaf(p.alpha);
-        canvas.drawCircle(geom.baseX + (p.isLeft ? -22 : 22) + p.dx, geom.baseY + p.dy, p.radius, paint);
+      for (let d = 0; d < 12; d++) {
+        const h1 = scenarioHash("dust_x", d + Math.floor(state.playerZ * 0.1));
+        const h2 = scenarioHash("dust_y", d + Math.floor(state.playerZ * 0.1));
+        const dx = (h1 - 0.5) * 45;
+        const dy = h2 * 25 + 5;
+
+        canvas.drawCircle(geom.baseX + (d % 2 === 0 ? -22 : 22) + dx, geom.baseY + dy, 2 + h1 * 2, paint);
       }
     }
 
@@ -560,7 +571,8 @@ export const drawSkiaOutrunRacer: ShapeDrawer<RenderContext, OutrunComponentRegi
     );
     if (!proj) return;
 
-    const bodyColor = RACER_COLORS[racer.colorIndex % RACER_COLORS.length];
+    const colors = ["#457b9d", "#2a9d8f", "#e9c46a", "#f4a261", "#e76f51"];
+    const bodyColor = colors[racer.colorIndex % colors.length];
     const paint = getPaint();
 
     canvas.save();

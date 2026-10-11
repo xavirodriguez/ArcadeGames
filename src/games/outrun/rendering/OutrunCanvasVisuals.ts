@@ -18,11 +18,7 @@ import {
   roadColor,
   resolveOutrunRoadContext,
   resolveRacerRenderContext,
-  iterateOutrunSprites,
-  projectOutrunRoad,
-  computeFacetedPeaks,
-  computeOffroadDust,
-  RACER_COLORS
+  iterateOutrunSprites
 } from "./OutrunRenderShared";
 
 function fillTrapezoid(
@@ -286,21 +282,29 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
     const horizonStyle = palette.horizonStyle ?? (palette.id.startsWith("classic_") ? "faceted_peaks" : "coast_sea");
 
     if (horizonStyle === "faceted_peaks") {
-      const peaks = computeFacetedPeaks(screenW, horizonY, state.playerZ, state.playerX, palette.id);
-      for (const p of peaks) {
+      const numPeaks = 12;
+      const peakSpacing = screenW / 4;
+      const mountainOffsetX = ((state.playerZ * 0.00015) % peakSpacing) + state.playerX * 25;
+
+      for (let m = -2; m < numPeaks + 2; m++) {
+        const h1 = scenarioHash(palette.id, m);
+        const h2 = scenarioHash(palette.id, m + 100);
+        const px = m * peakSpacing - mountainOffsetX;
+        const peakY = horizonY - 40 - h1 * 60;
+
         ctx.fillStyle = palette.mountainBase;
         ctx.beginPath();
-        ctx.moveTo(p.px - p.peakSpacing * 0.6, horizonY);
-        ctx.lineTo(p.px, p.peakY);
-        ctx.lineTo(p.px + p.peakSpacing * 0.6, horizonY);
+        ctx.moveTo(px - peakSpacing * 0.6, horizonY);
+        ctx.lineTo(px, peakY);
+        ctx.lineTo(px + peakSpacing * 0.6, horizonY);
         ctx.closePath();
         ctx.fill();
 
         ctx.fillStyle = palette.mountainFacet;
         ctx.beginPath();
-        ctx.moveTo(p.px, p.peakY);
-        ctx.lineTo(p.px + p.peakSpacing * 0.6, horizonY);
-        ctx.lineTo(p.px + (p.h2 - 0.5) * 20, horizonY);
+        ctx.moveTo(px, peakY);
+        ctx.lineTo(px + peakSpacing * 0.6, horizonY);
+        ctx.lineTo(px + (h2 - 0.5) * 20, horizonY);
         ctx.closePath();
         ctx.fill();
       }
@@ -371,13 +375,17 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
       }
     }
 
-    const count = projectOutrunRoad(
+    const count = projectRoad(
       roadData.segments,
       state.playerZ,
       state.playerX,
-      config,
+      config.cameraHeight,
+      config.cameraDepth,
+      config.roadWidth,
+      Math.min(config.drawDistance, PROJECTION_CAPACITY),
       screenW,
-      screenH
+      screenH,
+      projectionBuffer
     );
 
     let maxy = screenH;
@@ -513,13 +521,18 @@ export const drawOutrunCar: ShapeDrawer<CanvasRenderingContext2D, OutrunComponen
       const roadData = world.getResource<RoadData>("RoadData");
       const basePal = roadData ? getScenarioPaletteAtZ(state.playerZ, roadData) : COAST_PALETTE;
       const dustColor = basePal.id === "coast" ? "#e2dfc8" : basePal.id === "desert" ? "#d0a67a" : "#8d99ae";
-      const particles = computeOffroadDust(state.playerZ, geom.speedRatio);
 
-      for (const p of particles) {
+      for (let d = 0; d < 12; d++) {
+        const h1 = scenarioHash("dust_x", d + Math.floor(state.playerZ * 0.1));
+        const h2 = scenarioHash("dust_y", d + Math.floor(state.playerZ * 0.1));
+        const dx = (h1 - 0.5) * 45;
+        const dy = h2 * 25 + 5;
+        const alpha = (1 - h2) * 0.6 * Math.min(1, geom.speedRatio * 1.5);
+
         ctx.fillStyle = dustColor;
-        ctx.globalAlpha = p.alpha;
+        ctx.globalAlpha = alpha;
         ctx.beginPath();
-        ctx.arc(geom.baseX + (p.isLeft ? -22 : 22) + p.dx, geom.baseY + p.dy, p.radius, 0, Math.PI * 2);
+        ctx.arc(geom.baseX + (d % 2 === 0 ? -22 : 22) + dx, geom.baseY + dy, 2 + h1 * 2, 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.globalAlpha = 1.0;
@@ -573,7 +586,8 @@ export const drawOutrunRacer: ShapeDrawer<CanvasRenderingContext2D, OutrunCompon
     );
     if (!proj) return;
 
-    const bodyColor = RACER_COLORS[racer.colorIndex % RACER_COLORS.length];
+    const colors = ["#457b9d", "#2a9d8f", "#e9c46a", "#f4a261", "#e76f51"];
+    const bodyColor = colors[racer.colorIndex % colors.length];
 
     ctx.save();
     ctx.translate(proj.sx + proj.lateral, proj.sy);

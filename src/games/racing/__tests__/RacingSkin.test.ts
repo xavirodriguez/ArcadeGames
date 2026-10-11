@@ -134,7 +134,7 @@ describe("RacingSkin System", () => {
 
   describe("interpretCanvas", () => {
     it("executes without errors on canvas mock context", () => {
-      const dummyCtx: Partial<CanvasRenderingContext2D> = {
+      const dummyCtx = {
         save: jest.fn(),
         restore: jest.fn(),
         fillRect: jest.fn(),
@@ -151,7 +151,7 @@ describe("RacingSkin System", () => {
         translate: jest.fn(),
         rotate: jest.fn(),
         scale: jest.fn()
-      };
+      } as never as CanvasRenderingContext2D;
 
       const primitives = spaceshipActorDrawer({
         size: 16,
@@ -161,7 +161,7 @@ describe("RacingSkin System", () => {
         palette: SKIN_REGISTRY.space.palette
       });
 
-      expect(() => interpretCanvas(dummyCtx as CanvasRenderingContext2D, primitives)).not.toThrow();
+      expect(() => interpretCanvas(dummyCtx, primitives)).not.toThrow();
       expect(dummyCtx.save).toHaveBeenCalled();
       expect(dummyCtx.restore).toHaveBeenCalled();
     });

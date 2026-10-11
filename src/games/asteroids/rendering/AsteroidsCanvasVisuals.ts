@@ -3,24 +3,27 @@ import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import { drawNeonShape } from "../../shared/rendering/CanvasNeonUtils";
 import { colors } from "../../../theme/colors";
 import { computeAsteroidSilhouette, computeThrustFlame, computeMotionSecondaryEffect } from "../../shared/rendering/ProceduralShapeUtils";
-import { resolveHitFlash, resolveInvulnerabilityPulse, resolveAsteroidHitFlash } from "../../shared/rendering/RenderUtils";
+import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 import { drawFromGeometryProfileCanvas } from "../../shared/rendering/GenericEntityDrawer";
 
 function applyAsteroidHitFlashStroke(
   ctx: CanvasRenderingContext2D,
   render: any,
-  defaultColor: string,
+  baseColor: string,
   lineWidth = 2
 ): { color: string; isHitFlashing: boolean } {
-  const { opacity, colorStr, isHitFlashing } = resolveAsteroidHitFlash(render, defaultColor);
+  const flashState = resolveHitFlash(render, baseColor, 1.0);
+  const isHitFlashing = flashState.isFlashing;
+  let color = baseColor;
   if (isHitFlashing) {
-    ctx.globalAlpha = opacity;
+    ctx.globalAlpha = flashState.opacity;
+    color = flashState.color;
   }
-  ctx.strokeStyle = colorStr;
-  ctx.shadowColor = isHitFlashing ? colors.white : colorStr;
+  ctx.strokeStyle = color;
+  ctx.shadowColor = isHitFlashing ? colors.white : color;
   ctx.shadowBlur = isHitFlashing ? 20 : 10;
   ctx.lineWidth = lineWidth;
-  return { color: colorStr, isHitFlashing };
+  return { color, isHitFlashing };
 }
 
 /**

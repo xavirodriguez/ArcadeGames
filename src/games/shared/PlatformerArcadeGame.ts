@@ -6,6 +6,8 @@ import {
   BlueprintRegistryMap,
   RunState,
   CoreComponentRegistry,
+  CoreEvents,
+  EventBus,
   World
 } from "@tiny-aster/core";
 import { updateRunProgress } from "@tiny-aster/gameplay-kit";
@@ -24,7 +26,7 @@ import { updateRunProgress } from "@tiny-aster/gameplay-kit";
 export abstract class PlatformerArcadeGame<
   TState = unknown,
   TInput extends object = Record<string, unknown>,
-  TComponents extends ComponentRegistry = ComponentRegistry,
+  TComponents extends CoreComponentRegistry = CoreComponentRegistry,
   TEvents extends EventRegistry = EventRegistry,
   TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
 > extends BaseGame<TState, TInput, TComponents, TEvents, TBlueprints> {
@@ -44,9 +46,9 @@ export abstract class PlatformerArcadeGame<
     currentlyGameOver: boolean,
     predicate: (rs: RunState) => boolean = (rs) => rs.collectedPermanentIds.includes("archive_core_1")
   ): boolean {
-    const isComplete = updateRunProgress(this.world as unknown as World<CoreComponentRegistry>, dt, predicate);
+    const isComplete = updateRunProgress(this.world, dt, predicate);
     if (isComplete && !currentlyGameOver) {
-      (this.eventBus as unknown as { emit: (event: string, payload: unknown) => void }).emit("game:over", {
+      (this.eventBus as EventBus<CoreEvents & Record<string, unknown>>).emit("game:over", {
         state: this.getGameState()
       });
       return true;

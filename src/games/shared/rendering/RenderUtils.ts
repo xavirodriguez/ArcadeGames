@@ -6,7 +6,6 @@ import { colors } from "../../../theme/colors";
  */
 export interface RenderLike {
   hitFlashFrames?: number;
-  color?: string;
 }
 
 /**
@@ -47,20 +46,6 @@ export function resolveHitFlash(
     color: baseColor,
     opacity: baseOpacity,
     isFlashing: false
-  };
-}
-
-/** Resolves hit flash opacity, color, and flashing state for Asteroid shape drawers. */
-export function resolveAsteroidHitFlash(
-  render: RenderLike | undefined | null,
-  defaultColor: string
-): { opacity: number; colorStr: string; isHitFlashing: boolean } {
-  const baseColor = render?.color || defaultColor;
-  const flashState = resolveHitFlash(render, baseColor, 1.0);
-  return {
-    opacity: flashState.isFlashing ? flashState.opacity : 1.0,
-    colorStr: flashState.isFlashing ? flashState.color : baseColor,
-    isHitFlashing: flashState.isFlashing
   };
 }
 

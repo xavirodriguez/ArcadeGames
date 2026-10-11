@@ -110,6 +110,44 @@ export function applyPatrolVelocity(
   }
 }
 
+/** Parameterized state factories for AI state machines */
+function createRangedAttackState(defaultDuration: number, shootOnUpdate: boolean) {
+  return {
+    onEnter(world: World<CoreComponentRegistry>, entity: number, data: Record<string, unknown>) {
+      zeroVx(world, entity);
+      facePlayer(world, entity);
+      tryEnemyShoot(world, entity, data);
+    },
+    onUpdate(
+      world: World<CoreComponentRegistry>,
+      entity: number,
+      data: Record<string, unknown>,
+      elapsed: number
+    ) {
+      facePlayer(world, entity);
+      if (shootOnUpdate) tryEnemyShoot(world, entity, data);
+      return timed(data, "attackDuration", defaultDuration, elapsed, "Recovery");
+    }
+  };
+}
+
+function createIdleRecoveryState(defaultDuration: number, nextState = "Idle") {
+  return {
+    onEnter(world: World<CoreComponentRegistry>, entity: number, data: Record<string, unknown>) {
+      zeroVx(world, entity);
+      if (data.useFlank) flipFlankSide(data);
+    },
+    onUpdate(
+      _w: World<CoreComponentRegistry>,
+      _e: number,
+      data: Record<string, unknown>,
+      elapsed: number
+    ) {
+      return timed(data, "recoveryDuration", defaultDuration, elapsed, nextState);
+    }
+  };
+}
+
 /** Estados Alert / Windup compartidos */
 const alertWindup = {
   Alert: {
@@ -526,33 +564,14 @@ export function registerHitRunStateMachines(
           if (playerDetected(sensor)) {
             facePlayer(world, entity);
             tryEnemyShoot(world, entity, data);
-            return data.useFlank ? "Alert" : "Alert";
+            return "Alert";
           }
           return timed(data, "idleDuration", 1.0, elapsed, "Idle");
         }
       },
       ...alertWindup,
-      Attack: {
-        onEnter(world, entity, data) {
-          zeroVx(world, entity);
-          facePlayer(world, entity);
-          tryEnemyShoot(world, entity, data);
-        },
-        onUpdate(world, entity, data, elapsed) {
-          facePlayer(world, entity);
-          tryEnemyShoot(world, entity, data);
-          return timed(data, "attackDuration", 0.5, elapsed, "Recovery");
-        }
-      },
-      Recovery: {
-        onEnter(world, entity, data) {
-          zeroVx(world, entity);
-          if (data.useFlank) flipFlankSide(data);
-        },
-        onUpdate(_w, _e, data, elapsed) {
-          return timed(data, "recoveryDuration", 0.6, elapsed, "Idle");
-        }
-      }
+      Attack: createRangedAttackState(0.5, true),
+      Recovery: createIdleRecoveryState(0.6)
     }
   };
 
@@ -576,26 +595,8 @@ export function registerHitRunStateMachines(
         }
       },
       ...alertWindup,
-      Attack: {
-        onEnter(world, entity, data) {
-          zeroVx(world, entity);
-          facePlayer(world, entity);
-          tryEnemyShoot(world, entity, data);
-        },
-        onUpdate(world, entity, data, elapsed) {
-          facePlayer(world, entity);
-          return timed(data, "attackDuration", 0.15, elapsed, "Recovery");
-        }
-      },
-      Recovery: {
-        onEnter(world, entity, data) {
-          zeroVx(world, entity);
-          if (data.useFlank) flipFlankSide(data);
-        },
-        onUpdate(_w, _e, data, elapsed) {
-          return timed(data, "recoveryDuration", 0.8, elapsed, "Idle");
-        }
-      }
+      Attack: createRangedAttackState(0.15, false),
+      Recovery: createIdleRecoveryState(0.8)
     }
   };
 }

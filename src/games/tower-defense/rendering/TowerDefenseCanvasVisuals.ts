@@ -7,6 +7,7 @@ import type {
   TowerCatalog,
 } from "../types/TowerDefenseTypes";
 import type { GridLayout } from "../../shared/grid/GridTypes";
+import { getTileTypeColor } from "../MapUtils";
 
 type TDWorld = World<TowerDefenseComponentRegistry>;
 
@@ -192,14 +193,7 @@ if (!layout || !tileGrid) return;
         const tile = tileGrid.tiles[row]?.[col];
         const x = layout.offsetX + col * layout.stepX;
         const y = layout.offsetY + row * layout.stepY;
-        let color = "#0f0f1a";
-        if (tile === "path") color = "#2a2a4a";
-        else if (tile === "buildable") color = "#16213e";
-        else if (tile === "spawn") color = "#3d1a1a";
-        else if (tile === "base") color = "#1a3d1a";
-        else if (tile === "blocked") color = "#0a0a12";
-
-        ctx.fillStyle = color;
+        ctx.fillStyle = getTileTypeColor(tile);
         ctx.fillRect(x, y, layout.stepX - 1, layout.stepY - 1);
 
         if (tile === "spawn") {

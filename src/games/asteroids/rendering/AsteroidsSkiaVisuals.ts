@@ -2,7 +2,7 @@ import { EffectDrawer, ShapeDrawer, World, ShapeType, CircleShape, ColliderCompo
 import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import { colors } from "../../../theme/colors";
 import { computeAsteroidSilhouette, computeThrustFlame, computeMotionSecondaryEffect } from "../../shared/rendering/ProceduralShapeUtils";
-import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
+import { resolveHitFlash, resolveInvulnerabilityPulse, resolveAsteroidHitFlash } from "../../shared/rendering/RenderUtils";
 import { drawSkiaAsteroidsMissionHUD } from "./AsteroidsSkiaMissionHUD";
 import { SkiaDrawAdapter } from "../../shared/rendering/DrawAdapter";
 import { drawFromGeometryProfileAdapter } from "../../shared/rendering/GenericEntityDrawer";
@@ -17,14 +17,7 @@ const cachedShipPaths = new WeakMap<any, { ship: any; cockpit: any }>();
 const cachedAsteroidPaths = new WeakMap<any, any>();
 
 function resolveAsteroidOpacityAndColor(render: RenderComponent, defaultColor: string): { opacity: number; colorStr: string } {
-  let colorStr = render.color || defaultColor;
-  let opacity = 1.0;
-  const flashState = resolveHitFlash(render, colorStr, 1.0);
-  if (flashState.isFlashing) {
-    opacity = flashState.opacity;
-    colorStr = flashState.color;
-  }
-  return { opacity, colorStr };
+  return resolveAsteroidHitFlash(render, defaultColor);
 }
 
 function setupAsteroidStrokePaint(

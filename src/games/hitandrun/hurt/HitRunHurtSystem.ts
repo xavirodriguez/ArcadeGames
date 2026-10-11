@@ -185,6 +185,8 @@ export class HitRunHurtSystem extends CombatHitListenerSystem<CombatHitPayload> 
     entity: Entity,
     hitstunSeconds: number
   ): void {
+    if (!world.hasEntity(entity) || world.hasComponent(entity, "Dead")) return;
+
     if (world.hasComponent(entity, "HitReaction")) {
       const mut = world.getMutableComponent(entity, "HitReaction") as
         | HitReactionComponent

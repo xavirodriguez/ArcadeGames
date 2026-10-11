@@ -13,7 +13,12 @@ import {
   BoxShape,
   Component
 } from "@tiny-aster/core";
-import { CollisionLayers, ArcadeEntityBuilder } from "@tiny-aster/gameplay-kit";
+import {
+  CollisionLayers,
+  ArcadeEntityBuilder,
+  registerPlatformerEnemyBlueprints,
+  registerPlatformerEnvironmentBlueprints
+} from "@tiny-aster/gameplay-kit";
 
 /**
  * Audit of Player Blueprints Across Games:
@@ -228,6 +233,24 @@ export function registerPlatformerTilemapBlueprint(
       setupTilemapEntity(world, entity, config.TILE_SIZE, args.data, args.tileDefinitions);
     }
   });
+}
+
+/**
+ * Helper that registers common blueprints for tilemaps, collectibles, environment and enemies.
+ *
+ * @param blueprints - Blueprint registry.
+ * @param defaultConfig - Fallback config containing default TILE_SIZE.
+ * @public
+ */
+export function registerPlatformerCommonBlueprints(
+  blueprints: RegistrableBlueprintRegistry,
+  defaultConfig: { TILE_SIZE: number }
+): void {
+  registerPlatformerTilemapBlueprint(blueprints, defaultConfig);
+  registerCollectibleTriggerBlueprint(blueprints, "collectible_fragment", "fragment", 10, 16, 10, "fragment", false, false);
+  registerCollectibleTriggerBlueprint(blueprints, "collectible_core", "core", 100, 24, 12, "core", true, true);
+  registerPlatformerEnvironmentBlueprints(blueprints as never);
+  registerPlatformerEnemyBlueprints(blueprints as never);
 }
 
 /**

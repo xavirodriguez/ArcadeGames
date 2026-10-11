@@ -15,6 +15,7 @@ import {
   resolveEchoCollectibleDrawContext,
   resolveEchoCheckpointDrawContext,
   resolveEchoBackgroundContext,
+  computeEchoSparkOrbitPosition,
 } from "./EchoRunnerVisualUtils";
 
 function drawSkiaHitFlashCircle(canvas: any, paint: any, radius: number): true {
@@ -641,9 +642,7 @@ export const drawSkiaCharger: ShapeDrawer<any, CoreComponentRegistry> = {
             // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:634-639. Considerar extraer a función compartida. Ref: 1f6c9725
 paint.setStrokeWidth(1.5);
       for (let i = 0; i < 3; i++) {
-        const angle = elapsed + (i * Math.PI * 2) / 3;
-        const sx = Math.cos(angle) * (size * 0.6);
-        const sy = Math.sin(angle) * (size * 0.2) - size * 0.5;
+        const { sx, sy } = computeEchoSparkOrbitPosition(i, 3, elapsed, size);
         canvas.drawCircle(sx, sy, 2, paint);
       }
     }

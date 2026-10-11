@@ -8,6 +8,36 @@ import { applyStandardEncounterModifiers } from "../helpers/encounterHelpers";
 
 type AnyBaseGame = BaseGame<any, any, any, any, any>;
 
+export interface CommonEncounterResultPayload {
+  score: number;
+  completed: boolean;
+  durationMs: number;
+  secretsFound: string[];
+}
+
+export function extractCommonResultData(
+  game: { getGameState?: () => { score?: number } } | null,
+  context: MiniGameRunContext,
+  payload: Record<string, unknown> | undefined,
+  defaultDurationMs: number,
+  defaultTargetScore: number,
+  secretFlagName?: string,
+  secretId?: string
+): CommonEncounterResultPayload {
+  const score = (payload?.score as number | undefined) ?? (game as { getScore?: () => number })?.getScore?.() ?? 0;
+  const completed = (payload?.completed as boolean | undefined) ?? (score >= (context.config.targetScore ?? defaultTargetScore));
+  const durationMs = (payload?.durationMs as number | undefined) ?? defaultDurationMs;
+  const secretsFound: string[] = Array.isArray(payload?.secretsFound)
+    ? (payload.secretsFound as string[])
+    : [];
+
+  if (secretFlagName && secretId && payload?.[secretFlagName]) {
+    secretsFound.push(secretId);
+  }
+
+  return { score, completed, durationMs, secretsFound };
+}
+
 /**
  * Abstract base class for ArcadeGameAdapter implementations in story/campaign encounters.
  * Encapsulates minigame initialization, modifier application, completion listener binding, and teardown.

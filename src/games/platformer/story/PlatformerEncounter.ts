@@ -115,39 +115,38 @@ export const platformerRunEncounter: MiniGameEncounter = {
 /**
  * ArcadeGameAdapter implementation for Platformer encounters.
  */
-import { BaseArcadeAdapter } from "../../shared/story/adapters/BaseArcadeAdapter";
+import { BaseArcadeAdapter, extractCommonResultData } from "../../shared/story/adapters/BaseArcadeAdapter";
 
 /**
  * ArcadeGameAdapter implementation for Platformer encounters.
  */
 export class PlatformerArcadeAdapter extends BaseArcadeAdapter<PlatformerGame> {
-  protected createGame(_context: MiniGameRunContext): PlatformerGame {
-        // TODO(refactor): código duplicado detectado (bloque) con flappybird/story/FlappyBirdEncounter.ts:126-131. Considerar extraer a función compartida. Ref: 825a8f96
-return new PlatformerGame();
+  protected createGame(context: MiniGameRunContext): PlatformerGame {
+    return new PlatformerGame({ gameOptions: { seed: context.seed } });
   }
 
-  protected buildResult(context: MiniGameRunContext, payload?: any): MiniGameResult {
-    const score = payload?.score ?? (this.game as any)?.getScore?.() ?? 0;
-    const completed = payload?.completed ?? (score >= (context.config.targetScore ?? 1000));
-    const durationMs = payload?.durationMs ?? 40000;
-    const coinsCollected = payload?.coinsCollected ?? 0;
-    const secretsFound: string[] = payload?.secretsFound ?? [];
-
-    if (payload?.foundRelicCache) {
-      secretsFound.push("ancient_relic_cache");
-    }
+  protected buildResult(context: MiniGameRunContext, payload?: Record<string, unknown>): MiniGameResult {
+    const common = extractCommonResultData(
+      this.game,
+      context,
+      payload,
+      40000,
+      1000,
+      "foundRelicCache",
+      "ancient_relic_cache"
+    );
 
     return {
       runId: context.runId,
       gameId: context.gameId,
-      score,
-      completed,
-      durationMs,
+      score: common.score,
+      completed: common.completed,
+      durationMs: common.durationMs,
       metrics: {
-        coinsCollected,
-        enemiesDefeated: payload?.enemiesDefeated ?? 0
+        coinsCollected: (payload?.coinsCollected as number | undefined) ?? 0,
+        enemiesDefeated: (payload?.enemiesDefeated as number | undefined) ?? 0
       },
-      secretsFound
+      secretsFound: common.secretsFound
     };
   }
 }

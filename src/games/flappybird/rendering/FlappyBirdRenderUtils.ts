@@ -1,4 +1,4 @@
-import { World, TransformComponent, RenderComponent, HealthComponent, ComboComponent } from "@tiny-aster/core";
+import { World, TransformComponent, RenderComponent, HealthComponent, ComboComponent, CoreComponentRegistry } from "@tiny-aster/core";
 import {
   FlappyBirdComponentRegistry,
   BirdComponent,
@@ -13,6 +13,7 @@ import {
 import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 import { VisualParticlePool } from "../../shared/rendering/VisualParticlePool";
 import { processFlappyBirdParticleEvents } from "./particleEvents";
+import { spawnVisualParticle } from "./FlappyBirdParticles";
 
 /**
  * Common draw context resolved for Flappy Bird player ship rendering.
@@ -163,6 +164,33 @@ export function resolveFlappyPipeDrawContext(
     capHalfWidth,
     beaconPulse,
   };
+}
+
+/**
+ * Spawns laser gate sparks deterministically every 4 ticks using `world.renderRandom`.
+ */
+export function maybeSpawnLaserGateSparks(
+  world: World<CoreComponentRegistry>,
+  posX: number,
+  capYOffset: number,
+  capHeight: number,
+  gapSize: number
+): void {
+  if (world.tick % 4 === 0) {
+    const sparkY = capYOffset + capHeight + world.renderRandom.next() * gapSize;
+    const sparkAngle = world.renderRandom.next() * Math.PI * 2;
+    const sparkSpeed = world.renderRandom.nextRange(20, 60);
+    spawnVisualParticle(
+      "spark",
+      posX,
+      sparkY,
+      Math.cos(sparkAngle) * sparkSpeed,
+      Math.sin(sparkAngle) * sparkSpeed,
+      0.25,
+      2.5,
+      "#00F3FF"
+    );
+  }
 }
 
 /**
@@ -332,4 +360,46 @@ export function resolveBackgroundWarpState(
     lineCount,
     maxR
   };
+}
+
+export interface NebulaeDrawData {
+  nx: number;
+  ny: number;
+  radius: number;
+  colorHex: string;
+}
+
+export function computeNebulaeDrawData(
+  nebulae: Array<{ xRatio: number; yRatio: number; radius: number; colorHex: string }>,
+  width: number,
+  height: number,
+  tick: number
+): NebulaeDrawData[] {
+  const result: NebulaeDrawData[] = [];
+  for (let n = 0; n < nebulae.length; n++) {
+    const neb = nebulae[n];
+    const nx = width * neb.xRatio + Math.sin(tick * 0.01 + n) * 15;
+    const ny = height * neb.yRatio + Math.cos(tick * 0.008 + n * 2) * 10;
+    result.push({ nx, ny, radius: neb.radius, colorHex: neb.colorHex });
+  }
+  return result;
+}
+
+export interface WarpLineGeometry {
+  angle: number;
+  innerR: number;
+  outerR: number;
+}
+
+export function computeWarpLineGeometry(
+  l: number,
+  lineCount: number,
+  tick: number,
+  maxR: number,
+  warpFactor: number
+): WarpLineGeometry {
+  const angle = (l / lineCount) * Math.PI * 2 + tick * 0.02;
+  const innerR = 40 + (l * 17 + tick * 8) % (maxR * 0.5);
+  const outerR = innerR + 40 * warpFactor;
+  return { angle, innerR, outerR };
 }

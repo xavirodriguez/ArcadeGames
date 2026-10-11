@@ -42,6 +42,32 @@ export function computeMotionTrailSegment(
   return { ratio, alpha, trailSize };
 }
 
+export interface MotionTrailDrawItem {
+  p: TrailPoint;
+  alpha: number;
+  trailSize: number;
+}
+
+export function computeMotionTrailDrawItems(
+  trail: TrailPoint[],
+  length: number,
+  maxPoints: number,
+  size: number
+): MotionTrailDrawItem[] {
+  const drawLength = Math.min(length, maxPoints);
+  const items: MotionTrailDrawItem[] = [];
+
+  for (let i = drawLength - 1; i >= 0; i--) {
+    const p = trail[i];
+    if (!p || !p.active) continue;
+
+    const { alpha, trailSize } = computeMotionTrailSegment(i, drawLength, size);
+    items.push({ p, alpha, trailSize });
+  }
+
+  return items;
+}
+
 /**
  * Reusable motion trail buffer manager.
  * Stores circular position buffers per entity ID to track spatial motion history without GC allocations.

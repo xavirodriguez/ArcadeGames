@@ -3,6 +3,7 @@ import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import { colors } from "../../../theme/colors";
 import { computeAsteroidSilhouette, computeThrustFlame } from "../../shared/rendering/ProceduralShapeUtils";
 import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
+import { resolveAsteroidRadius } from "./AsteroidRenderUtils";
 import { drawSkiaAsteroidsMissionHUD } from "./AsteroidsSkiaMissionHUD";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
@@ -170,17 +171,11 @@ export const drawSkiaAsteroidsUfo: ShapeDrawer<any, AsteroidsComponentRegistry> 
  */
 export const drawSkiaAsteroidsAsteroid: ShapeDrawer<any, AsteroidsComponentRegistry> = {
   draw(canvas, world, entity) {
-        // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsCanvasVisuals.ts:178-187. Considerar extraer a función compartida. Ref: b4b40449
 const render = getVisibleSkiaRender(world, entity);
     const collider = world.getComponent(entity, "Collider");
     if (!render) return;
 
-    let radius = 25;
-    if (collider && collider.enabled && collider.shape.type === ShapeType.Circle) {
-      radius = (collider.shape as CircleShape).radius;
-    } else if (render.size) {
-      radius = render.size / 2;
-    }
+    const radius = resolveAsteroidRadius(render, collider);
 
     canvas.save();
 

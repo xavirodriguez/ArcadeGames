@@ -27,7 +27,10 @@ import {
   maybeSpawnBackgroundDebris,
   resolveGlideEnergyState,
   resolveSectorEventInfo,
-  resolveBackgroundWarpState
+  resolveBackgroundWarpState,
+  maybeSpawnLaserGateSparks,
+  computeNebulaeDrawData,
+  computeWarpLineGeometry
 } from "./FlappyBirdRenderUtils";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
@@ -458,12 +461,7 @@ const pipeCtx = resolveFlappyPipeDrawContext(world, entity);
                 // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:459-467. Considerar extraer a función compartida. Ref: 33e66ed4
 skCanvas.drawLine(0, capYOffset + capHeight, 0, capYOffset + capHeight + pipe.gapSize, paint);
 
-        if (world.tick % 4 === 0) {
-          const sparkY = capYOffset + capHeight + world.renderRandom.next() * pipe.gapSize;
-          const sparkAngle = world.renderRandom.next() * Math.PI * 2;
-          const sparkSpeed = world.renderRandom.nextRange(20, 60);
-          spawnVisualParticle("spark", pos.x, sparkY, Math.cos(sparkAngle) * sparkSpeed, Math.sin(sparkAngle) * sparkSpeed, 0.25, 2.5, "#00F3FF");
-        }
+        maybeSpawnLaserGateSparks(world, pos.x, capYOffset, capHeight, pipe.gapSize);
       } else {
         paint.setColor(Skia.Color("#FF0000"));
         paint.setAlphaf(0.25);
@@ -662,19 +660,17 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<RenderContext, FlappyBi
 skCanvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
 
     const scenarioTheme = getThemeForScenario(gameState.currentScenario);
-    const nebulae = scenarioTheme.nebulae;
+    const nebulaeData = computeNebulaeDrawData(scenarioTheme.nebulae, width, height, world.tick);
 
-    for (let n = 0; n < nebulae.length; n++) {
-      const neb = nebulae[n];
-      const nx = width * neb.xRatio + Math.sin(world.tick * 0.01 + n) * 15;
-      const ny = height * neb.yRatio + Math.cos(world.tick * 0.008 + n * 2) * 10;
+    for (let n = 0; n < nebulaeData.length; n++) {
+      const { nx, ny, radius, colorHex } = nebulaeData[n];
       const nebShader = getCachedSkiaShader(`neb_${n}_${width}_${height}_${scenarioTheme.megaIndex}`, () =>
         Skia.Shader.MakeTwoPointConicalGradient(
           Skia.Point(nx, ny),
           10,
           Skia.Point(nx, ny),
-          neb.radius,
-          [Skia.Color(neb.colorHex), Skia.Color(neb.colorHex), Skia.Color("#050510")],
+          radius,
+          [Skia.Color(colorHex), Skia.Color(colorHex), Skia.Color("#050510")],
           [0, 0.6, 1.0],
           Skia.TileMode.Clamp
         )
@@ -731,9 +727,7 @@ skCanvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
 paint.setStrokeWidth(1.2);
 
       for (let l = 0; l < lineCount; l++) {
-        const angle = (l / lineCount) * Math.PI * 2 + (tick * 0.02);
-        const innerR = 40 + (l * 17 + tick * 8) % (maxR * 0.5);
-        const outerR = innerR + 40 * warpFactor;
+        const { angle, innerR, outerR } = computeWarpLineGeometry(l, lineCount, tick, maxR, warpFactor);
         skCanvas.drawLine(
           cx + Math.cos(angle) * innerR,
           cy + Math.sin(angle) * innerR,

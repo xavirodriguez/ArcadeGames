@@ -1,4 +1,4 @@
-import { EffectDrawer, CoreComponentRegistry } from "@tiny-aster/core";
+import { EffectDrawer, CoreComponentRegistry, World } from "@tiny-aster/core";
 import { Skia } from "../SkiaContext";
 import { COSMIC_ARCADE_PALETTE, hexToRgba, getSkiaColor } from "../CosmicPalette";
 import { getPlanetTheme } from "../CelestialBodiesSystem";
@@ -26,15 +26,19 @@ const ringingPlanetLayer = createParallaxLayer<RingingPlanetState | undefined>({
   getState: (state) => state.planet
 });
 
+export function resolveRingingPlanetLayerFrame(world: World<CoreComponentRegistry>) {
+  const theme = getActiveVisualContext(world);
+  const layerCtx = resolveLayerFrame(world, "ringing_planet", ringingPlanetLayer);
+  if (!layerCtx || !layerCtx.layerState) return null;
+  const posX = resolvePlanetPosition(layerCtx.layerState, layerCtx.offsetX, layerCtx.wrapCoordinate);
+  return { theme, ...layerCtx, layerState: layerCtx.layerState, posX };
+}
+
 export const RingingPlanetBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
-        // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/layers/RingingPlanetLayer.ts:141-146. Considerar extraer a función compartida. Ref: b598787d
-const theme = getActiveVisualContext(world);
-    const layerCtx = resolveLayerFrame(world, "ringing_planet", ringingPlanetLayer);
-    if (!layerCtx) return;
-    const { width, height, state, layerState: planet, offsetX, wrapCoordinate } = layerCtx;
-
-    const posX = resolvePlanetPosition(planet, offsetX, wrapCoordinate);
+    const frame = resolveRingingPlanetLayerFrame(world);
+    if (!frame) return;
+    const { theme, width, height, state, layerState: planet, posX } = frame;
 
     ctx.save();
     const planetTheme = getPlanetTheme(theme.planetProfile || "purple");
@@ -139,12 +143,9 @@ const theme = getActiveVisualContext(world);
 export const SkiaRingingPlanetBackgroundEffect: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    const theme = getActiveVisualContext(world);
-    const layerCtx = resolveLayerFrame(world, "ringing_planet", ringingPlanetLayer);
-    if (!layerCtx) return;
-    const { width, height, state, layerState: planet, offsetX, wrapCoordinate } = layerCtx;
-
-    const posX = resolvePlanetPosition(planet, offsetX, wrapCoordinate);
+    const frame = resolveRingingPlanetLayerFrame(world);
+    if (!frame) return;
+    const { theme, width, height, state, layerState: planet, posX } = frame;
     const planetTheme = getPlanetTheme(theme.planetProfile || "purple");
 
     canvas.save();

@@ -20,6 +20,28 @@ import {
 
 const MELEE_CONFIG_RESOURCE = "MeleeAttackConfig";
 
+export interface MeleeHitboxCoords {
+  hx: number;
+  hy: number;
+  halfW: number;
+  halfH: number;
+}
+
+export function computeMeleeHitbox(
+  transform: { x: number; y: number; worldX?: number; worldY?: number },
+  melee: { facing: number },
+  config: { hitboxOffsetX: number; hitboxOffsetY: number; hitboxWidth: number; hitboxHeight: number }
+): MeleeHitboxCoords {
+  const ox = transform.worldX ?? transform.x;
+  const oy = transform.worldY ?? transform.y;
+  const face = melee.facing >= 0 ? 1 : -1;
+  const hx = ox + face * config.hitboxOffsetX;
+  const hy = oy + config.hitboxOffsetY;
+  const halfW = config.hitboxWidth * 0.5;
+  const halfH = config.hitboxHeight * 0.5;
+  return { hx, hy, halfW, halfH };
+}
+
 export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
@@ -229,14 +251,7 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
     },
     config: MeleeAttackConfig
   ): Entity {
-        // TODO(refactor): código duplicado detectado (bloque) con hitandrun/melee/HitRunMeleeSystem.ts:322-328. Considerar extraer a función compartida. Ref: 27691a5e
-const ox = transform.worldX ?? transform.x;
-    const oy = transform.worldY ?? transform.y;
-    const face = melee.facing >= 0 ? 1 : -1;
-    const hx = ox + face * config.hitboxOffsetX;
-    const hy = oy + config.hitboxOffsetY;
-    const halfW = config.hitboxWidth * 0.5;
-    const halfH = config.hitboxHeight * 0.5;
+    const { hx, hy, halfW, halfH } = computeMeleeHitbox(transform, melee, config);
 
     const ownerFaction =
       melee.ownerFaction ??
@@ -322,11 +337,7 @@ const ox = transform.worldX ?? transform.x;
   ): void {
     if (melee.hitboxEntity < 0 || !world.hasEntity(melee.hitboxEntity)) return;
 
-    const ox = transform.worldX ?? transform.x;
-    const oy = transform.worldY ?? transform.y;
-    const face = melee.facing >= 0 ? 1 : -1;
-    const hx = ox + face * config.hitboxOffsetX;
-    const hy = oy + config.hitboxOffsetY;
+    const { hx, hy } = computeMeleeHitbox(transform, melee, config);
 
     const ht = world.getComponent(melee.hitboxEntity, "Transform");
     if (!ht || (ht.x === hx && ht.y === hy)) return;

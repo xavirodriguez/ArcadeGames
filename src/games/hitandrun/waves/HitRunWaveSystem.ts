@@ -35,6 +35,26 @@ export interface HitRunWaveSystemConfig {
   telegraphLead: number;
 }
 
+export interface ResolvedWaveSpawn {
+  count: number;
+  formation: WaveFormation;
+  spacing: number;
+  baseX: number;
+  baseY: number;
+}
+
+export function resolveWaveSpawn(
+  ev: WaveEvent,
+  cfg: { defaultSpawnX: number; defaultSpawnY: number; offscreenOffsetX: number }
+): ResolvedWaveSpawn {
+  const count = Math.max(1, ev.count ?? 1);
+  const formation = (ev.formation ?? "point") as WaveFormation;
+  const spacing = ev.spacing ?? 24;
+  const baseX = ev.x ?? cfg.defaultSpawnX + cfg.offscreenOffsetX;
+  const baseY = ev.y ?? cfg.defaultSpawnY;
+  return { count, formation, spacing, baseX, baseY };
+}
+
 const DEFAULT_CFG: HitRunWaveSystemConfig = {
   defaultSpawnX: 400,
   defaultSpawnY: 200,
@@ -129,11 +149,7 @@ export class HitRunWaveSystem extends System<CoreComponentRegistry> {
       this.telegraphedEventKeys.add(key);
 
             // TODO(refactor): código duplicado detectado (bloque) con hitandrun/waves/HitRunWaveSystem.ts:173-178. Considerar extraer a función compartida. Ref: b5b55d6e
-const count = Math.max(1, ev.count ?? 1);
-      const formation = (ev.formation ?? "point") as WaveFormation;
-      const spacing = ev.spacing ?? 24;
-      const baseX = ev.x ?? this.cfg.defaultSpawnX + this.cfg.offscreenOffsetX;
-      const baseY = ev.y ?? this.cfg.defaultSpawnY;
+      const { count, formation, spacing, baseX, baseY } = resolveWaveSpawn(ev, this.cfg);
       const slots = computeFormationSlots(formation, count, baseX, baseY, spacing);
       for (let s = 0; s < slots.length; s++) {
         pushTelegraph(telegraphs, slots[s].x, slots[s].y, lead);
@@ -171,11 +187,7 @@ const count = Math.max(1, ev.count ?? 1);
     ev: WaveEvent,
     eventIndex: number
   ): void {
-    const count = Math.max(1, ev.count ?? 1);
-    const formation = (ev.formation ?? "point") as WaveFormation;
-    const spacing = ev.spacing ?? 24;
-    const baseX = ev.x ?? this.cfg.defaultSpawnX + this.cfg.offscreenOffsetX;
-    const baseY = ev.y ?? this.cfg.defaultSpawnY;
+    const { count, formation, spacing, baseX, baseY } = resolveWaveSpawn(ev, this.cfg);
     const interval = ev.interval ?? 0;
 
     if (interval > 0 && count > 1) {

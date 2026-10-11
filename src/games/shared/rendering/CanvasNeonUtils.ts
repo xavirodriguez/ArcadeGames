@@ -6,7 +6,7 @@
 import { colors } from "../../../theme/colors";
 import { computeNeonPulse } from "./ProceduralShapeUtils";
 import { COSMIC_ARCADE_PALETTE, hexToRgba } from "./CosmicPalette";
-import { MotionTrailBase, computeMotionTrailSegment, TrailPoint } from "./MotionTrailBuffer";
+import { MotionTrailBase, computeMotionTrailDrawItems, TrailPoint } from "./MotionTrailBuffer";
 
 export { TrailPoint };
 
@@ -50,13 +50,10 @@ export class CanvasMotionTrail extends MotionTrailBase {
   ): void {
         // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SkiaNeonUtils.ts:114-121. Considerar extraer a función compartida. Ref: 93a5763f
 const trail = this.getTrail(entityId);
-    const drawLength = Math.min(length, this.maxPoints);
+    const items = computeMotionTrailDrawItems(trail, length, this.maxPoints, size);
 
-    for (let i = drawLength - 1; i >= 0; i--) {
-      const p = trail[i];
-      if (!p.active) continue;
-
-      const { alpha, trailSize } = computeMotionTrailSegment(i, drawLength, size);
+    for (let i = 0; i < items.length; i++) {
+      const { p, alpha, trailSize } = items[i];
 
       ctx.save();
       ctx.translate(p.x - currentX, p.y - currentY);

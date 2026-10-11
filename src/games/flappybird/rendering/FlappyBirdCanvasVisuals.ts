@@ -26,7 +26,10 @@ import {
   maybeSpawnBackgroundDebris,
   resolveGlideEnergyState,
   resolveSectorEventInfo,
-  resolveBackgroundWarpState
+  resolveBackgroundWarpState,
+  maybeSpawnLaserGateSparks,
+  computeNebulaeDrawData,
+  computeWarpLineGeometry
 } from "./FlappyBirdRenderUtils";
 
 export { FLAPPY_PARTICLE_POOL as FLAPPY_CANVAS_PARTICLE_POOL, spawnVisualParticle };
@@ -461,12 +464,7 @@ const pipeCtx = resolveFlappyPipeDrawContext(world, entity);
                 // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:456-464. Considerar extraer a función compartida. Ref: 33e66ed4
 ctx.stroke();
 
-        if (world.tick % 4 === 0) {
-          const sparkY = capYOffset + capHeight + world.renderRandom.next() * pipe.gapSize;
-          const sparkAngle = world.renderRandom.next() * Math.PI * 2;
-          const sparkSpeed = world.renderRandom.nextRange(20, 60);
-          spawnVisualParticle("spark", pos.x, sparkY, Math.cos(sparkAngle) * sparkSpeed, Math.sin(sparkAngle) * sparkSpeed, 0.25, 2.5, "#00F3FF");
-        }
+        maybeSpawnLaserGateSparks(world, pos.x, capYOffset, capHeight, pipe.gapSize);
       } else {
         ctx.strokeStyle = "rgba(255, 0, 0, 0.25)";
         ctx.lineWidth = 1.0;
@@ -678,16 +676,14 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
 ctx.fillRect(0, 0, width, height);
 
     const scenarioTheme = getThemeForScenario(gameState.currentScenario);
-    const nebulae = scenarioTheme.nebulae;
+    const nebulaeData = computeNebulaeDrawData(scenarioTheme.nebulae, width, height, world.tick);
 
-    for (let n = 0; n < nebulae.length; n++) {
-      const neb = nebulae[n];
-      const nx = width * neb.xRatio + Math.sin(world.tick * 0.01 + n) * 15;
-      const ny = height * neb.yRatio + Math.cos(world.tick * 0.008 + n * 2) * 10;
+    for (let n = 0; n < nebulaeData.length; n++) {
+      const { nx, ny, radius, colorHex } = nebulaeData[n];
       const nebGrad = getCachedCanvasGradient(ctx, `neb_${n}_${width}_${height}_${scenarioTheme.megaIndex}`, () => {
-        const g = ctx.createRadialGradient(nx, ny, 10, nx, ny, neb.radius);
-        g.addColorStop(0, neb.colorHex);
-        g.addColorStop(0.6, neb.colorHex + "66");
+        const g = ctx.createRadialGradient(nx, ny, 10, nx, ny, radius);
+        g.addColorStop(0, colorHex);
+        g.addColorStop(0.6, colorHex + "66");
         g.addColorStop(1, "#05051000");
         return g;
       });
@@ -738,9 +734,7 @@ ctx.fillRect(0, 0, width, height);
 ctx.lineWidth = 1.2;
 
       for (let l = 0; l < lineCount; l++) {
-        const angle = (l / lineCount) * Math.PI * 2 + (tick * 0.02);
-        const innerR = 40 + (l * 17 + tick * 8) % (maxR * 0.5);
-        const outerR = innerR + 40 * warpFactor;
+        const { angle, innerR, outerR } = computeWarpLineGeometry(l, lineCount, tick, maxR, warpFactor);
         ctx.beginPath();
         ctx.moveTo(cx + Math.cos(angle) * innerR, cy + Math.sin(angle) * innerR);
         ctx.lineTo(cx + Math.cos(angle) * outerR, cy + Math.sin(angle) * outerR);

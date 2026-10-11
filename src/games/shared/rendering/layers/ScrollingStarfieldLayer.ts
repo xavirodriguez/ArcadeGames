@@ -1,4 +1,4 @@
-import { EffectDrawer, CoreComponentRegistry } from "@tiny-aster/core";
+import { EffectDrawer, CoreComponentRegistry, World } from "@tiny-aster/core";
 import { Skia } from "../SkiaContext";
 import { COSMIC_ARCADE_PALETTE } from "../CosmicPalette";
 import {
@@ -34,16 +34,20 @@ const starfieldLayer = createParallaxLayer<Star[]>({
   getState: (state) => state.stars
 });
 
+export function resolveScrollingStarfieldLayerFrame(world: World<CoreComponentRegistry>) {
+  const theme = getActiveVisualContext(world);
+  const layerCtx = resolveLayerFrame(world, "starfield", starfieldLayer);
+  if (!layerCtx) return null;
+  const starSpeedMult = theme.starSpeed || 1.0;
+  const activeStarCount = resolveActiveStarCount(theme.starDensity);
+  return { theme, ...layerCtx, starSpeedMult, activeStarCount };
+}
+
 export const ScrollingStarfieldEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
-        // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/layers/ScrollingStarfieldLayer.ts:64-70. Considerar extraer a función compartida. Ref: 2c1ba5e7
-const theme = getActiveVisualContext(world);
-    const layerCtx = resolveLayerFrame(world, "starfield", starfieldLayer);
-    if (!layerCtx) return;
-    const { layerState: stars, offsetX, wrapCoordinate } = layerCtx;
-
-    const starSpeedMult = theme.starSpeed || 1.0;
-    const activeStarCount = resolveActiveStarCount(theme.starDensity);
+    const frame = resolveScrollingStarfieldLayerFrame(world);
+    if (!frame) return;
+    const { layerState: stars, offsetX, wrapCoordinate, starSpeedMult, activeStarCount } = frame;
 
     ctx.save();
 
@@ -62,13 +66,9 @@ const theme = getActiveVisualContext(world);
 export const SkiaScrollingStarfieldEffect: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    const theme = getActiveVisualContext(world);
-    const layerCtx = resolveLayerFrame(world, "starfield", starfieldLayer);
-    if (!layerCtx) return;
-    const { layerState: stars, offsetX, wrapCoordinate } = layerCtx;
-
-    const starSpeedMult = theme.starSpeed || 1.0;
-    const activeStarCount = resolveActiveStarCount(theme.starDensity);
+    const frame = resolveScrollingStarfieldLayerFrame(world);
+    if (!frame) return;
+    const { layerState: stars, offsetX, wrapCoordinate, starSpeedMult, activeStarCount } = frame;
 
     canvas.save();
     const paint = Skia.Paint();

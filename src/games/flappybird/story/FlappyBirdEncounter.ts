@@ -116,39 +116,39 @@ export const flappyBirdEscapeEncounter: MiniGameEncounter = {
 /**
  * ArcadeGameAdapter implementation for Flappy Bird encounters.
  */
-import { BaseArcadeAdapter } from "../../shared/story/adapters/BaseArcadeAdapter";
+import { BaseArcadeAdapter, extractCommonResultData } from "../../shared/story/adapters/BaseArcadeAdapter";
 
 /**
  * ArcadeGameAdapter implementation for Flappy Bird encounters.
  */
 export class FlappyBirdArcadeAdapter extends BaseArcadeAdapter<FlappyBirdGame> {
   protected createGame(context: MiniGameRunContext): FlappyBirdGame {
-        // TODO(refactor): código duplicado detectado (bloque) con platformer/story/PlatformerEncounter.ts:125-130. Considerar extraer a función compartida. Ref: 825a8f96
-return new FlappyBirdGame({ seed: context.seed });
+    return new FlappyBirdGame({ seed: context.seed });
   }
 
-  protected buildResult(context: MiniGameRunContext, payload?: any): MiniGameResult {
-    const score = payload?.score ?? (this.game as any)?.getScore?.() ?? 0;
-    const completed = payload?.completed ?? (score >= (context.config.targetScore ?? 10));
-    const durationMs = payload?.durationMs ?? 20000;
-    const pipesCleared = payload?.pipesCleared ?? score;
-    const secretsFound: string[] = payload?.secretsFound ?? [];
-
-    if (payload?.foundFeather) {
-      secretsFound.push("golden_feather_artifact");
-    }
+  protected buildResult(context: MiniGameRunContext, payload?: Record<string, unknown>): MiniGameResult {
+    const common = extractCommonResultData(
+      this.game,
+      context,
+      payload,
+      20000,
+      10,
+      "foundFeather",
+      "golden_feather_artifact"
+    );
+    const pipesCleared = (payload?.pipesCleared as number | undefined) ?? common.score;
 
     return {
       runId: context.runId,
       gameId: context.gameId,
-      score,
-      completed,
-      durationMs,
+      score: common.score,
+      completed: common.completed,
+      durationMs: common.durationMs,
       metrics: {
         pipesCleared,
-        nearMisses: payload?.nearMisses ?? 0
+        nearMisses: (payload?.nearMisses as number | undefined) ?? 0
       },
-      secretsFound
+      secretsFound: common.secretsFound
     };
   }
 }

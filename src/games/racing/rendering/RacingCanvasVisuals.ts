@@ -13,7 +13,11 @@ import {
   extractObstacleParams
 } from "./RacingSkin";
 import { buildTrackRibbon } from "./TrackRibbonGeometry";
-import type { RacingParticlePool } from "../systems/RacingParticleSystem";
+import {
+  resolveRacingTrackFrame,
+  resolveRacingSkinAndParticles,
+  computeCheckeredFinishGrid
+} from "./RacingRenderUtils";
 
 interface StaticCacheEntry {
   key: string;
@@ -29,15 +33,8 @@ export function clearStaticRacingCache(): void {
 
 export const drawTrackSurface: ShapeDrawer<CanvasRenderingContext2D, RacingComponentRegistry> = {
   draw(ctx, world) {
-        // TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingSkiaVisuals.ts:22-31. Considerar extraer a función compartida. Ref: 4b0cab2d
 const start = typeof performance !== "undefined" ? performance.now() : 0;
-    const skin = getRacingSkin(world);
-    const palette = skin.palette;
-    const trackSpec = world.getResource<TrackSpec>("ActiveTrackSpec");
-    const width = trackSpec?.width ?? 1600;
-    const height = trackSpec?.height ?? 1000;
-    const halfW = width / 2;
-    const halfH = height / 2;
+    const { skin, palette, trackSpec, width, height, halfW, halfH } = resolveRacingTrackFrame(world);
     const cacheKey = `${trackSpec?.id ?? "default"}:${skin.id}`;
 
     ctx.save();
@@ -113,10 +110,7 @@ const start = typeof performance !== "undefined" ? performance.now() : 0;
 
 export const drawTrackRibbon: ShapeDrawer<CanvasRenderingContext2D, RacingComponentRegistry> = {
   draw(ctx, world) {
-        // TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingSkiaVisuals.ts:58-64. Considerar extraer a función compartida. Ref: afe949ab
-const skin = getRacingSkin(world);
-    const palette = skin.palette;
-    const trackSpec = world.getResource<TrackSpec>("ActiveTrackSpec");
+    const { palette, trackSpec } = resolveRacingTrackFrame(world);
     if (!trackSpec || trackSpec.waypoints.length < 3) return;
 
     const { left, right } = buildTrackRibbon(trackSpec.waypoints);
@@ -166,9 +160,7 @@ const skin = getRacingSkin(world);
 // TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingCanvasVisuals.ts:191-196. Considerar extraer a función compartida. Ref: 658d61dd
 export const drawSkidMarks: ShapeDrawer<CanvasRenderingContext2D, RacingComponentRegistry> = {
   draw(ctx, world) {
-    const skin = getRacingSkin(world);
-    const palette = skin.palette;
-    const pool = world.getResource<RacingParticlePool>("RacingParticles");
+    const { palette, pool } = resolveRacingSkinAndParticles(world);
     if (!pool || pool.skidMarks.length === 0) return;
 
     ctx.save();
@@ -193,9 +185,7 @@ export const drawSkidMarks: ShapeDrawer<CanvasRenderingContext2D, RacingComponen
 
 export const drawSmoke: ShapeDrawer<CanvasRenderingContext2D, RacingComponentRegistry> = {
   draw(ctx, world) {
-    const skin = getRacingSkin(world);
-    const palette = skin.palette;
-    const pool = world.getResource<RacingParticlePool>("RacingParticles");
+    const { palette, pool } = resolveRacingSkinAndParticles(world);
     if (!pool || pool.smokeParticles.length === 0) return;
 
     ctx.save();
@@ -247,18 +237,13 @@ ctx.save();
     if (checkpoint.isFinish) {
       const halfW = checkpoint.width / 2;
       const halfH = checkpoint.height / 2;
-      const cols = 8;
-      const rows = 2;
-      const colW = checkpoint.width / cols;
-      const rowH = checkpoint.height / rows;
-
       const [color1, color2] = skin.finishCheckers ?? ["#FFFFFF", "#5D4037"];
+      const cells = computeCheckeredFinishGrid(checkpoint.width, checkpoint.height, 8, 2, color1, color2);
 
-      for (let r = 0; r < rows; r += 1) {
-        for (let c = 0; c < cols; c += 1) {
-          ctx.fillStyle = (r + c) % 2 === 0 ? color1 : color2;
-          ctx.fillRect(-halfW + c * colW, -halfH + r * rowH, colW, rowH);
-        }
+      for (let i = 0; i < cells.length; i++) {
+        const cell = cells[i];
+        ctx.fillStyle = cell.color;
+        ctx.fillRect(cell.x, cell.y, cell.colW, cell.rowH);
       }
       ctx.strokeStyle = skin.palette.outline;
       ctx.lineWidth = 2;

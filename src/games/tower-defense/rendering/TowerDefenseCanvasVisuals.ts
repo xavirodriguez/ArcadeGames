@@ -7,6 +7,7 @@ import type {
   TowerCatalog,
 } from "../types/TowerDefenseTypes";
 import type { GridLayout } from "../../shared/grid/GridTypes";
+import { resolveTileColor } from "./TowerDefenseRenderUtils";
 
 type TDWorld = World<TowerDefenseComponentRegistry>;
 
@@ -105,22 +106,34 @@ function drawCreepBody(
   ctx.fill();
 }
 
-// TODO(refactor): código duplicado detectado (bloque) con tower-defense/rendering/TowerDefenseCanvasVisuals.ts:117-122. Considerar extraer a función compartida. Ref: 41514af0
+function drawVariantCreep(
+  ctx: CanvasRenderingContext2D,
+  world: World<TowerDefenseComponentRegistry>,
+  entity: any,
+  defaultSize: number,
+  normalFill: string,
+  normalStroke: string
+): void {
+  const render = world.getComponent(entity, "Render");
+  const creep = world.getComponent(entity, "Creep");
+  const slowed = (creep?.slowRemainingMs ?? 0) > 0;
+  drawCreepBody(
+    ctx,
+    render?.size ?? defaultSize,
+    slowed ? "#80deea" : normalFill,
+    slowed ? "#e0f7fa" : normalStroke
+  );
+}
+
 export const drawCreepGrunt: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    const creep = world.getComponent(entity, "Creep");
-    const slowed = (creep?.slowRemainingMs ?? 0) > 0;
-    drawCreepBody(ctx, render?.size ?? 12, slowed ? "#80deea" : "#ff7043", slowed ? "#e0f7fa" : "#ffab91");
+    drawVariantCreep(ctx, world, entity, 12, "#ff7043", "#ffab91");
   },
 };
 
 export const drawCreepFast: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    const creep = world.getComponent(entity, "Creep");
-    const slowed = (creep?.slowRemainingMs ?? 0) > 0;
-    drawCreepBody(ctx, render?.size ?? 10, slowed ? "#80deea" : "#29b6f6", slowed ? "#e0f7fa" : "#81d4fa");
+    drawVariantCreep(ctx, world, entity, 10, "#29b6f6", "#81d4fa");
   },
 };
 
@@ -192,12 +205,7 @@ if (!layout || !tileGrid) return;
         const tile = tileGrid.tiles[row]?.[col];
         const x = layout.offsetX + col * layout.stepX;
         const y = layout.offsetY + row * layout.stepY;
-        let color = "#0f0f1a";
-        if (tile === "path") color = "#2a2a4a";
-        else if (tile === "buildable") color = "#16213e";
-        else if (tile === "spawn") color = "#3d1a1a";
-        else if (tile === "base") color = "#1a3d1a";
-        else if (tile === "blocked") color = "#0a0a12";
+        const color = resolveTileColor(tile);
 
         ctx.fillStyle = color;
         ctx.fillRect(x, y, layout.stepX - 1, layout.stepY - 1);

@@ -4,28 +4,33 @@ import type { OutrunComponentRegistry } from "../types/OutrunTypes";
 import type { OutrunConfig } from "../types/OutrunConfigSchema";
 import { DEFAULT_OUTRUN_CONFIG } from "../types/OutrunConfigSchema";
 import type { RoadData, ProjectedSegment, RoadSegmentSprite } from "../types/OutrunTypes";
-import { projectRoad, createProjectionBuffer } from "./RoadProjection";
+import { projectRoad } from "./RoadProjection";
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 import {
   COAST_PALETTE,
-  ScenarioPalette,
   scenarioHash,
-  getScenarioPaletteAtZ,
-  applyDayPhase
+  getScenarioPaletteAtZ
 } from "./OutrunPalettes";
-import { computePlayerCarGeometry, computeRacerProjection } from "./OutrunVisualHelpers";
-
-// TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunCanvasVisuals.ts:17-28. Considerar extraer a función compartida. Ref: d9cd5a2c
-const PROJECTION_CAPACITY = 400;
-const projectionBuffer: ProjectedSegment[] = createProjectionBuffer(PROJECTION_CAPACITY);
-
-function rumbleColor(index: number, rumbleLength: number, dark: string, light: string): string {
-  return Math.floor(index / rumbleLength) % 2 === 0 ? dark : light;
-}
-
-function roadColor(index: number, rumbleLength: number, palette: ScenarioPalette): string {
-  return Math.floor(index / rumbleLength) % 2 === 0 ? palette.roadDark : palette.roadLight;
-}
+import {
+  PROJECTION_CAPACITY,
+  projectionBuffer,
+  rumbleColor,
+  roadColor,
+  resolveOutrunFrame,
+  resolveOutrunCarFrame,
+  resolveOutrunRacerFrame,
+  resolveOutrunHudFrame,
+  computeOutrunCloudGeometry,
+  computeOutrunHeatHazeGeometry,
+  computeOutrunFacetedPeakGeometry,
+  computeOutrunCoastBuildingGeometry,
+  computeOutrunDesertHillGeometry,
+  computeOutrunMountainCliffGeometry,
+  computeOutrunPalmFrondGeometry,
+  computeSegmentBands,
+  computeSpriteDrawPosition,
+  computeOffroadDustParticle
+} from "./OutrunVisualHelpers";
 
 function fillTrapezoidSkia(
   canvas: import("@shopify/react-native-skia").SkCanvas,
@@ -82,14 +87,11 @@ function drawSkiaSprite(
     canvas.drawPath(trunk, paint);
 
     paint.setStyle(Skia.PaintStyle.Fill);
-        // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunCanvasVisuals.ts:74-80. Considerar extraer a función compartida. Ref: b17015f3
-paint.setColor(Skia.Color("#00b4d8"));
+    paint.setColor(Skia.Color("#00b4d8"));
     const topX = sp.side * 10;
     const topY = -80;
     for (let f = 0; f < 6; f++) {
-      const angle = (f / 6) * Math.PI * 2;
-      const fx = topX + Math.cos(angle) * 35;
-      const fy = topY + Math.sin(angle) * 20;
+      const { angle, fx, fy } = computeOutrunPalmFrondGeometry(f, 6, topX, topY);
       const frond = Skia.Path.Make();
       frond.moveTo(topX, topY);
       frond.lineTo(fx, fy);
@@ -236,23 +238,11 @@ paint.setColor(Skia.Color("#00b4d8"));
 export const drawSkiaOutrunRoad: ShapeDrawer<RenderContext, OutrunComponentRegistry> = {
   draw(ctx, world, _entity) {
     const canvas = ctx as unknown as SkCanvas;
-        // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunCanvasVisuals.ts:224-235. Considerar extraer a función compartida. Ref: ecacb7f6
-const state = world.getSingleton("RaceState");
-    const roadData = world.getResource<RoadData>("RoadData");
-    const config =
-      world.getResource<OutrunConfig>("GameConfig") ?? DEFAULT_OUTRUN_CONFIG;
+    const frame = resolveOutrunFrame(world);
+    if (!frame) return;
 
-    if (!state || !roadData || roadData.segments.length === 0) return;
-
-    const screenW = config.WIDTH;
-    const screenH = config.HEIGHT;
-    const rumbleLength = config.rumbleLength;
-        // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunCanvasVisuals.ts:233-241. Considerar extraer a función compartida. Ref: a72c88fe
+    const { state, roadData, config, screenW, screenH, rumbleLength, palette } = frame;
 const paint = getPaint();
-
-    const basePalette = getScenarioPaletteAtZ(state.playerZ, roadData);
-    const progress = state.playerZ / roadData.trackLength;
-    const palette = applyDayPhase(basePalette, progress);
 
     // PASS 1: Sky Multi-Band Gradient
     const bandHeight = (screenH * 0.45) / palette.skyBands.length;
@@ -279,17 +269,9 @@ const paint = getPaint();
     paint.reset();
     paint.setAntiAlias(true);
     paint.setStyle(Skia.PaintStyle.Fill);
-        // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunCanvasVisuals.ts:257-266. Considerar extraer a función compartida. Ref: d6906a8d
-paint.setColor(Skia.Color(palette.cloudColor));
+    paint.setColor(Skia.Color(palette.cloudColor));
     for (let c = 0; c < cloudCount; c++) {
-      const h1 = scenarioHash("cloud_x", c);
-      const h2 = scenarioHash("cloud_y", c);
-      const h3 = scenarioHash("cloud_w", c);
-      const baseCloudX = h1 * screenW;
-      const cloudY = screenH * 0.08 + h2 * (screenH * 0.2);
-      const cloudW = 50 + h3 * 60;
-      const cloudH = cloudW * 0.35;
-      const cloudX = ((baseCloudX + state.playerZ * 0.00005 * (c + 1) + state.playerX * 15) % screenW + screenW) % screenW;
+      const { cloudX, cloudY, cloudW, cloudH } = computeOutrunCloudGeometry(c, screenW, screenH, state.playerZ, state.playerX);
 
       canvas.drawCircle(cloudX - cloudW * 0.2, cloudY, cloudH * 0.8, paint);
       canvas.drawCircle(cloudX, cloudY - cloudH * 0.2, cloudH, paint);
@@ -304,19 +286,14 @@ paint.setColor(Skia.Color(palette.cloudColor));
       paint.setAntiAlias(true);
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setStrokeWidth(2);
-            // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunCanvasVisuals.ts:280-285. Considerar extraer a función compartida. Ref: ae0c6b64
-paint.setColor(Skia.Color("rgba(255, 255, 255, 0.15)"));
+      paint.setColor(Skia.Color("rgba(255, 255, 255, 0.15)"));
       for (let h = 0; h < numLines; h++) {
-        const hRatio = h / numLines;
-        const baseX = hRatio * screenW + (state.playerX * 12);
-        const waveOffset = Math.sin((state.playerZ * 0.02) + h * 0.8) * 4;
-        const x = ((baseX + waveOffset) % screenW + screenW) % screenW;
+        const { x, waveOffset } = computeOutrunHeatHazeGeometry(h, numLines, screenW, state.playerX, state.playerZ);
 
         const hazeLine = Skia.Path.Make();
         hazeLine.moveTo(x, hazeY - 22);
         hazeLine.lineTo(x + waveOffset * 0.5, hazeY - 2);
-                // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunCanvasVisuals.ts:290-307. Considerar extraer a función compartida. Ref: 2c10404f
-canvas.drawPath(hazeLine, paint);
+        canvas.drawPath(hazeLine, paint);
       }
     }
 
@@ -330,10 +307,7 @@ canvas.drawPath(hazeLine, paint);
       const mountainOffsetX = ((state.playerZ * 0.00015) % peakSpacing) + state.playerX * 25;
 
       for (let m = -2; m < numPeaks + 2; m++) {
-        const h1 = scenarioHash(palette.id, m);
-        const h2 = scenarioHash(palette.id, m + 100);
-        const px = m * peakSpacing - mountainOffsetX;
-        const peakY = horizonY - 40 - h1 * 60;
+        const { px, peakY, h2 } = computeOutrunFacetedPeakGeometry(m, peakSpacing, mountainOffsetX, horizonY, palette.id);
 
         paint.reset();
         paint.setAntiAlias(true);
@@ -363,12 +337,9 @@ canvas.drawPath(hazeLine, paint);
 
       const spacing = screenW / 6;
       const horizonOffset = ((state.playerZ * 0.0001) % spacing) + state.playerX * 20;
-            // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunCanvasVisuals.ts:339-344. Considerar extraer a función compartida. Ref: 540c546e
-paint.setColor(Skia.Color(palette.mountainBase));
+      paint.setColor(Skia.Color(palette.mountainBase));
       for (let b = -2; b < 8; b++) {
-        const bx = b * spacing - horizonOffset;
-        const bw = 18 + scenarioHash("coast_b", b) * 20;
-        const bh = 15 + scenarioHash("coast_bh", b) * 35;
+        const { bx, bw, bh } = computeOutrunCoastBuildingGeometry(b, spacing, horizonOffset);
         canvas.drawRect(Skia.XYWHRect(bx, horizonY - bh, bw, bh), paint);
       }
     } else if (palette.id === "desert") {
@@ -382,8 +353,7 @@ paint.setColor(Skia.Color(palette.mountainBase));
       const path = Skia.Path.Make();
       path.moveTo(0, horizonY);
       for (let h = -2; h < 6; h++) {
-        const hx = h * hillSpacing - hillOffset;
-        const hHeight = 30 + scenarioHash("desert_h", h) * 45;
+        const { hx, hHeight } = computeOutrunDesertHillGeometry(h, hillSpacing, hillOffset);
         path.quadTo(hx + hillSpacing * 0.5, horizonY - hHeight, hx + hillSpacing, horizonY);
       }
       path.lineTo(screenW, horizonY);
@@ -394,12 +364,9 @@ paint.setColor(Skia.Color(palette.mountainBase));
       const offset = ((state.playerZ * 0.00015) % spacing) + state.playerX * 25;
       paint.reset();
       paint.setAntiAlias(true);
-            // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunCanvasVisuals.ts:372-377. Considerar extraer a función compartida. Ref: 74cdc27f
-paint.setStyle(Skia.PaintStyle.Fill);
+      paint.setStyle(Skia.PaintStyle.Fill);
       for (let m = -2; m < 7; m++) {
-        const mx = m * spacing - offset;
-        const mh = 35 + scenarioHash("mtn_h", m) * 55;
-        const mw = 30 + scenarioHash("mtn_w", m) * 25;
+        const { mx, mh, mw } = computeOutrunMountainCliffGeometry(m, spacing, offset);
         paint.setColor(Skia.Color(palette.mountainBase));
         canvas.drawRect(Skia.XYWHRect(mx, horizonY - mh, mw, mh), paint);
 
@@ -410,8 +377,7 @@ paint.setStyle(Skia.PaintStyle.Fill);
         path.lineTo(mx + mw + 15, horizonY);
         path.lineTo(mx + mw, horizonY);
         path.close();
-                // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunCanvasVisuals.ts:388-405. Considerar extraer a función compartida. Ref: ee7bddfd
-canvas.drawPath(path, paint);
+        canvas.drawPath(path, paint);
       }
     }
 
@@ -430,57 +396,38 @@ canvas.drawPath(path, paint);
 
     let maxy = screenH;
 
-    for (    // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunCanvasVisuals.ts:431-436. Considerar extraer a función compartida. Ref: a554f6b8
-let i = 0; i < count; i++) {
+    // Road segments pass
+    for (let i = 0; i < count; i++) {
       const p = projectionBuffer[i];
       if (p.p1z <= 0 && p.p2z <= 0) continue;
       if (p.y2 >= maxy) continue;
 
-      const grass = rumbleColor(p.index, rumbleLength, palette.groundDark, palette.groundLight);
-            // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunCanvasVisuals.ts:437-442. Considerar extraer a función compartida. Ref: a0f14136
-fillTrapezoidSkia(canvas, paint, p.x1, p.y1, screenW, p.x2, Math.min(p.y2, maxy), screenW, grass);
+      const bands = computeSegmentBands(p, palette, rumbleLength, maxy);
+      fillTrapezoidSkia(canvas, paint, p.x1, p.y1, screenW, p.x2, bands.y2Clipped, screenW, bands.grassColor);
+      fillTrapezoidSkia(canvas, paint, p.x1, p.y1, bands.rumbleW1, p.x2, bands.y2Clipped, bands.rumbleW2, bands.rumbleColorVal);
+      fillTrapezoidSkia(canvas, paint, p.x1, p.y1, p.w1, p.x2, bands.y2Clipped, p.w2, bands.roadColorVal);
 
-      const rumbleW1 = p.w1 * 1.15;
-      const rumbleW2 = p.w2 * 1.15;
-      const rumble = rumbleColor(p.index, rumbleLength, palette.rumbleDark, palette.rumbleLight);
-      fillTrapezoidSkia(canvas, paint, p.x1, p.y1, rumbleW1, p.x2, Math.min(p.y2, maxy), rumbleW2, rumble);
-
-      const road = roadColor(p.index, rumbleLength, palette);
-            // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunCanvasVisuals.ts:445-451. Considerar extraer a función compartida. Ref: 705b767e
-fillTrapezoidSkia(canvas, paint, p.x1, p.y1, p.w1, p.x2, Math.min(p.y2, maxy), p.w2, road);
-
-      // Wet road / center asphalt reflection layer
-      if (palette.reflectionAlpha > 0) {
-        const reflW1 = p.w1 * 0.35;
-        const reflW2 = p.w2 * 0.35;
-        const reflColor = `rgba(255, 255, 255, ${palette.reflectionAlpha.toFixed(3)})`;
-                // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunCanvasVisuals.ts:452-458. Considerar extraer a función compartida. Ref: 223df211
-fillTrapezoidSkia(canvas, paint, p.x1, p.y1, reflW1, p.x2, Math.min(p.y2, maxy), reflW2, reflColor);
+      if (bands.hasReflection) {
+        fillTrapezoidSkia(canvas, paint, p.x1, p.y1, bands.reflW1, p.x2, bands.y2Clipped, bands.reflW2, bands.reflColorVal);
       }
 
-      // Inner curve asphalt darkening
-      if (Math.abs(p.curve) > 1.5) {
-        const innerSide = p.curve > 0 ? 1 : -1;
-        const darkAlpha = Math.min(0.25, (Math.abs(p.curve) - 1.5) * 0.08);
+      if (bands.hasInnerDarkening) {
         paint.reset();
         paint.setAntiAlias(true);
         paint.setStyle(Skia.PaintStyle.Fill);
-        paint.setColor(Skia.Color(`rgba(0, 0, 0, ${darkAlpha})`));
+        paint.setColor(Skia.Color(`rgba(0, 0, 0, ${bands.innerDarkAlpha})`));
 
         const darkPath = Skia.Path.Make();
         darkPath.moveTo(p.x1, p.y1);
-        darkPath.lineTo(p.x1 + innerSide * p.w1, p.y1);
-        darkPath.lineTo(p.x2 + innerSide * p.w2, Math.min(p.y2, maxy));
-        darkPath.lineTo(p.x2, Math.min(p.y2, maxy));
+        darkPath.lineTo(p.x1 + bands.innerSide * p.w1, p.y1);
+        darkPath.lineTo(p.x2 + bands.innerSide * p.w2, bands.y2Clipped);
+        darkPath.lineTo(p.x2, bands.y2Clipped);
         darkPath.close();
         canvas.drawPath(darkPath, paint);
       }
 
-      if (Math.floor(p.index / rumbleLength) % 2 === 0) {
-        const laneW1 = p.w1 * 0.04;
-        const laneW2 = p.w2 * 0.04;
-                // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunCanvasVisuals.ts:484-504. Considerar extraer a función compartida. Ref: d1feb5e3
-fillTrapezoidSkia(canvas, paint, p.x1, p.y1, laneW1, p.x2, Math.min(p.y2, maxy), laneW2, palette.lane);
+      if (bands.hasLaneMarking) {
+        fillTrapezoidSkia(canvas, paint, p.x1, p.y1, bands.laneW1, p.x2, bands.y2Clipped, bands.laneW2, palette.lane);
       }
 
       maxy = p.y2;
@@ -493,14 +440,8 @@ fillTrapezoidSkia(canvas, paint, p.x1, p.y1, laneW1, p.x2, Math.min(p.y2, maxy),
       if (!seg || !seg.sprites || seg.sprites.length === 0) continue;
 
       for (const sp of seg.sprites) {
-        let sx = p.x1;
-        if (sp.kind !== "arch" && sp.kind !== "banner") {
-          sx = p.x1 + sp.side * (p.w1 * sp.offset);
-        }
-        const sy = p.y1;
-        const sw = p.w1;
-
-        if (sy >= p.clip || sw < 2) continue;
+        const { sx, sy, sw, visible } = computeSpriteDrawPosition(sp, p);
+        if (!visible) continue;
 
         canvas.save();
         const clipRect = Skia.XYWHRect(0, 0, screenW, p.clip);
@@ -517,18 +458,10 @@ fillTrapezoidSkia(canvas, paint, p.x1, p.y1, laneW1, p.x2, Math.min(p.y2, maxy),
 export const drawSkiaOutrunCar: ShapeDrawer<RenderContext, OutrunComponentRegistry> = {
   draw(ctx, world, entity) {
     const canvas = ctx as unknown as SkCanvas;
-        // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunCanvasVisuals.ts:521-531. Considerar extraer a función compartida. Ref: a5089423
-const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
+    const frame = resolveOutrunCarFrame(world, entity);
+    if (!frame) return;
 
-    const state = world.getSingleton("RaceState");
-    if (!state) return;
-
-    const config =
-      world.getResource<OutrunConfig>("GameConfig") ?? DEFAULT_OUTRUN_CONFIG;
-
-    const visualOffset = world.getComponent(entity, "VisualOffset");
-    const geom = computePlayerCarGeometry(state, config, visualOffset);
+    const { state, geom } = frame;
     const paint = getPaint();
 
     canvas.save();
@@ -547,15 +480,11 @@ canvas.drawOval(Skia.XYWHRect(geom.baseX - 34 * geom.carScale, geom.baseY, 68 * 
       const basePal = roadData ? getScenarioPaletteAtZ(state.playerZ, roadData) : COAST_PALETTE;
       const dustColor = basePal.id === "coast" ? "#e2dfc8" : basePal.id === "desert" ? "#d0a67a" : "#8d99ae";
 
-            // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunCanvasVisuals.ts:545-551. Considerar extraer a función compartida. Ref: 5f35fca5
-paint.setColor(Skia.Color(dustColor));
+      paint.setColor(Skia.Color(dustColor));
       for (let d = 0; d < 12; d++) {
-        const h1 = scenarioHash("dust_x", d + Math.floor(state.playerZ * 0.1));
-        const h2 = scenarioHash("dust_y", d + Math.floor(state.playerZ * 0.1));
-        const dx = (h1 - 0.5) * 45;
-        const dy = h2 * 25 + 5;
+        const { dx, dy, radius } = computeOffroadDustParticle(d, state.playerZ, geom.speedRatio);
 
-        canvas.drawCircle(geom.baseX + (d % 2 === 0 ? -22 : 22) + dx, geom.baseY + dy, 2 + h1 * 2, paint);
+        canvas.drawCircle(geom.baseX + (d % 2 === 0 ? -22 : 22) + dx, geom.baseY + dy, radius, paint);
       }
     }
 
@@ -596,26 +525,10 @@ paint.setColor(Skia.Color(dustColor));
 export const drawSkiaOutrunRacer: ShapeDrawer<RenderContext, OutrunComponentRegistry> = {
   draw(ctx, world, entity) {
     const canvas = ctx as unknown as SkCanvas;
-        // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunCanvasVisuals.ts:596-617. Considerar extraer a función compartida. Ref: 700bcb00
-const racer = world.getComponent(entity, "Racer");
-    const render = world.getComponent(entity, "Render");
-    if (!racer || !racer.active || !render || !render.visible) return;
+    const frame = resolveOutrunRacerFrame(world, entity);
+    if (!frame) return;
 
-    const state = world.getSingleton("RaceState");
-    const roadData = world.getResource<RoadData>("RoadData");
-    const config =
-      world.getResource<OutrunConfig>("GameConfig") ?? DEFAULT_OUTRUN_CONFIG;
-    if (!state || !roadData) return;
-
-    const proj = computeRacerProjection(
-      racer,
-      state,
-      roadData,
-      config,
-      projectionBuffer,
-      PROJECTION_CAPACITY
-    );
-    if (!proj) return;
+    const { proj, racer } = frame;
 
     const colors = ["#457b9d", "#2a9d8f", "#e9c46a", "#f4a261", "#e76f51"];
     const bodyColor = colors[racer.colorIndex % colors.length];
@@ -640,16 +553,10 @@ const racer = world.getComponent(entity, "Racer");
 export const drawSkiaOutrunHud: EffectDrawer<RenderContext, OutrunComponentRegistry> = {
   draw(ctx, world) {
     const canvas = ctx as unknown as SkCanvas;
-        // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunCanvasVisuals.ts:631-639. Considerar extraer a función compartida. Ref: 1404043b
-const state = world.getSingleton("RaceState");
-    if (!state) return;
+    const frame = resolveOutrunHudFrame(world);
+    if (!frame) return;
 
-    const config =
-      world.getResource<OutrunConfig>("GameConfig") ?? DEFAULT_OUTRUN_CONFIG;
-
-    const speedKmh = Math.round((state.speed / config.maxSpeed) * 280);
-    const timeStr = state.lapTime.toFixed(1);
-    const phase = state.racePhase ?? "racing";
+    const { state, config, speedKmh, timeStr, phase } = frame;
     const paint = getPaint();
 
     canvas.save();

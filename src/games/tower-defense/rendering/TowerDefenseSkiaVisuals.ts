@@ -2,6 +2,7 @@ import type { ShapeDrawer, EffectDrawer, World } from "@tiny-aster/core";
 import type { TowerDefenseComponentRegistry, GameStateComponent, TileGrid } from "../types/TowerDefenseTypes";
 import type { GridLayout } from "../../shared/grid/GridTypes";
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
+import { resolveTileColor } from "./TowerDefenseRenderUtils";
 import { drawGlowOrbSkia } from "../../shared/rendering/SkiaNeonUtils";
 
 type TDWorld = World<TowerDefenseComponentRegistry>;
@@ -101,34 +102,50 @@ export const drawSkiaTowerFrost: ShapeDrawer<any, TowerDefenseComponentRegistry>
   },
 };
 
+function drawSkiaVariantCreep(
+  canvas: any,
+  world: World<TowerDefenseComponentRegistry>,
+  entity: any,
+  defaultSize: number,
+  normalFill: string
+): void {
+  const render = world.getComponent(entity, "Render");
+  const creep = world.getComponent(entity, "Creep");
+  const slowed = (creep?.slowRemainingMs ?? 0) > 0;
+  drawSkiaCreep(
+    canvas,
+    render?.size ?? defaultSize,
+    slowed ? "#80deea" : normalFill
+  );
+}
+
 export const drawSkiaCreepBoss: ShapeDrawer<any, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
     const size = render?.size ?? 28;
-        // TODO(refactor): código duplicado detectado (bloque) con tower-defense/rendering/TowerDefenseSkiaVisuals.ts:138-145. Considerar extraer a función compartida. Ref: f95aa196
-drawSkiaCreep(canvas, size, "#c62828");
+    const creep = world.getComponent(entity, "Creep");
+    const slowed = (creep?.slowRemainingMs ?? 0) > 0;
+    drawSkiaCreep(canvas, size, slowed ? "#80deea" : "#c62828");
     if (!Skia) return;
     const paint = getPaint();
     if (!paint) return;
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setStrokeWidth(3);
-    paint.setColor(Skia.Color("#e53935"));
+    paint.setColor(Skia.Color(slowed ? "#e0f7fa" : "#e53935"));
     canvas.drawCircle(0, 0, size * 0.55, paint);
   },
 };
 
 export const drawSkiaCreepGrunt: ShapeDrawer<any, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    drawSkiaCreep(canvas, render?.size ?? 12, "#ff7043");
+    drawSkiaVariantCreep(canvas, world, entity, 12, "#ff7043");
   },
 };
 
 export const drawSkiaCreepFast: ShapeDrawer<any, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    drawSkiaCreep(canvas, render?.size ?? 10, "#29b6f6");
+    drawSkiaVariantCreep(canvas, world, entity, 10, "#29b6f6");
   },
 };
 
@@ -175,11 +192,7 @@ if (!paint) return;
         const tile = tileGrid.tiles[row]?.[col];
         const x = layout.offsetX + col * layout.stepX;
         const y = layout.offsetY + row * layout.stepY;
-        let color = "#0f0f1a";
-        if (tile === "path") color = "#2a2a4a";
-        else if (tile === "buildable") color = "#16213e";
-        else if (tile === "spawn") color = "#3d1a1a";
-        else if (tile === "base") color = "#1a3d1a";
+        const color = resolveTileColor(tile);
 
         paint.reset();
         paint.setStyle(Skia.PaintStyle.Fill);

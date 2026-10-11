@@ -3,6 +3,7 @@ import { ArkanoidComponentRegistry, ArkanoidEventRegistry, CapsuleType } from ".
 import { ArkanoidConfig, DEFAULT_ARKANOID_CONFIG } from "../types/ArkanoidConfigSchema";
 import { ArkanoidEntityFactory } from "../EntityFactory";
 import { applyBrickDamage } from "./ArkanoidCollisionSystem";
+import { forEachActiveCollision } from "../utils/ArkanoidUtils";
 
 export class ArkanoidPowerUpSpawnSystem extends System<ArkanoidComponentRegistry, ArkanoidEventRegistry> {
   public override onRegister(world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>): void {
@@ -207,26 +208,20 @@ export class ArkanoidLaserSystem extends System<ArkanoidComponentRegistry, Arkan
       }
 
             // TODO(refactor): código duplicado detectado (bloque) con arkanoid/systems/ArkanoidEnemySystems.ts:107-114. Considerar extraer a función compartida. Ref: e60760da
-const events = world.getComponent(lEntity, "CollisionEvents");
-      if (!events) continue;
-
-      for (const col of events.collisions) {
-        const other = col.otherEntity;
-        if (!WorldUtils.isEntityActive(world, other)) continue;
-
+      forEachActiveCollision(world, lEntity, (other) => {
         if (world.hasComponent(other, "Brick")) {
           applyBrickDamage(world, other, lEntity);
           world.getCommandBuffer().removeEntity(lEntity);
-          break;
+          return true;
         } else if (world.hasComponent(other, "Enemy")) {
           const eventBus = world.getEventBus();
           if (eventBus) {
             eventBus.emitDeferred("combat:death", { entity: other, sourceEntity: lEntity });
           }
           world.getCommandBuffer().removeEntity(lEntity);
-          break;
+          return true;
         }
-      }
+      });
     }
   }
 }

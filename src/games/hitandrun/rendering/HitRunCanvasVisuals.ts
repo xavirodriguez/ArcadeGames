@@ -192,6 +192,15 @@ export const drawHitRunPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreCompone
   }
 };
 
+function drawDiamondShape(ctx: CanvasRenderingContext2D, size: number): void {
+  ctx.beginPath();
+  ctx.moveTo(size * 0.65, -size * 0.42);
+  ctx.lineTo(-size * 0.45, -size * 0.84);
+  ctx.lineTo(-size * 0.25, -size * 0.42);
+  ctx.lineTo(-size * 0.45, 0);
+  ctx.closePath();
+}
+
 export const drawHitRunPopcorn: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
@@ -372,14 +381,8 @@ export const drawHitRunCharger: ShapeDrawer<CanvasRenderingContext2D, CoreCompon
     }
 
     if ((render.hitFlashFrames ?? 0) > 0) {
-            // TODO(refactor): código duplicado detectado (bloque) con hitandrun/rendering/HitRunCanvasVisuals.ts:347-357. Considerar extraer a función compartida. Ref: 73e312af
-ctx.fillStyle = "#fff";
-      ctx.beginPath();
-      ctx.moveTo(size * 0.65, -size * 0.42);
-      ctx.lineTo(-size * 0.45, -size * 0.84);
-      ctx.lineTo(-size * 0.25, -size * 0.42);
-      ctx.lineTo(-size * 0.45, 0);
-      ctx.closePath();
+      ctx.fillStyle = "#fff";
+      drawDiamondShape(ctx, size);
       ctx.fill();
       ctx.restore();
       ctx.restore();
@@ -390,12 +393,7 @@ ctx.fillStyle = "#fff";
     ctx.shadowColor = "#ef4444";
     ctx.shadowBlur = 12;
 
-    ctx.beginPath();
-    ctx.moveTo(size * 0.65, -size * 0.42);
-    ctx.lineTo(-size * 0.45, -size * 0.84);
-    ctx.lineTo(-size * 0.25, -size * 0.42);
-    ctx.lineTo(-size * 0.45, 0);
-    ctx.closePath();
+    drawDiamondShape(ctx, size);
     ctx.fill();
 
     ctx.fillStyle = "#fca5a5";

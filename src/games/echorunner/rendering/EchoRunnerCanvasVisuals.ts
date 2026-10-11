@@ -13,6 +13,7 @@ import {
   resolveEchoCollectibleDrawContext,
   resolveEchoCheckpointDrawContext,
   resolveEchoBackgroundContext,
+  computeEchoSparkOrbitPosition,
 } from "./EchoRunnerVisualUtils";
 
 const gradientCache = new Map<number, CanvasGradient>();
@@ -634,9 +635,7 @@ export const drawCharger: ShapeDrawer<CanvasRenderingContext2D, CoreComponentReg
             // TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:641-646. Considerar extraer a función compartida. Ref: 1f6c9725
 ctx.lineWidth = 1.5;
       for (let i = 0; i < 3; i++) {
-        const angle = elapsed + (i * Math.PI * 2) / 3;
-        const sx = Math.cos(angle) * (size * 0.6);
-        const sy = Math.sin(angle) * (size * 0.2) - size * 0.5;
+        const { sx, sy } = computeEchoSparkOrbitPosition(i, 3, elapsed, size);
         ctx.beginPath();
         ctx.arc(sx, sy, 2, 0, Math.PI * 2);
         ctx.stroke();

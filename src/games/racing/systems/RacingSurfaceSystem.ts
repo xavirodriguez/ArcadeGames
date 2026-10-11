@@ -2,6 +2,7 @@ import { System, World } from "@tiny-aster/core";
 import type { RacingComponentRegistry, RacingEventRegistry } from "../types/RacingRegistry";
 import type { RacingConfig } from "../types/RacingConfigSchema";
 import type { TrackSpec } from "../types/TrackSpecSchema";
+import { isPointInZone } from "../utils/RacingUtils";
 
 export class RacingSurfaceSystem extends System<RacingComponentRegistry, RacingEventRegistry> {
   constructor(private readonly config: RacingConfig) { super(); }
@@ -22,15 +23,7 @@ export class RacingSurfaceSystem extends System<RacingComponentRegistry, RacingE
       if (trackSpec && trackSpec.zones) {
         for (let j = 0; j < trackSpec.zones.length; j++) {
           const zone = trackSpec.zones[j];
-                    // TODO(refactor): código duplicado detectado (bloque) con racing/systems/HeadToHeadStateSystem.ts:87-94. Considerar extraer a función compartida. Ref: fee52f4e
-const halfW = zone.width / 2;
-          const halfH = zone.height / 2;
-          if (
-            transform.x >= zone.x - halfW &&
-            transform.x <= zone.x + halfW &&
-            transform.y >= zone.y - halfH &&
-            transform.y <= zone.y + halfH
-          ) {
+          if (isPointInZone(transform.x, transform.y, zone)) {
             gripMult *= zone.gripModifier;
             speedMult *= zone.speedModifier;
           }

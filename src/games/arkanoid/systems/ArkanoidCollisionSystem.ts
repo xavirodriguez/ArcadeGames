@@ -244,22 +244,7 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
           const offsetX = transform.x - paddlePos.x;
 
           if (paddleComp.isCatchActive) {
-            world.mutateComponent(ballEntity, "Ball", (b) => {
-              b.isAttached = true;
-              b.attachedOffsetX = offsetX;
-                            // TODO(refactor): código duplicado detectado (bloque) con arkanoid/systems/ArkanoidCollisionSystem.ts:409-417. Considerar extraer a función compartida. Ref: 024e3b8e
-b.speed = newSpeed;
-              b.stuckBounces = 0;
-            });
-            world.mutateComponent(ballEntity, "Velocity", (v) => {
-              v.vx = 0;
-              v.vy = 0;
-            });
-            world.mutateComponent(ballEntity, "Transform", (t) => {
-              t.x = paddlePos.x + offsetX;
-              t.y = paddlePos.y - pHalfH - radius;
-              t.dirty = true;
-            });
+            this.attachBallToPaddle(world, ballEntity, paddlePos, offsetX, pHalfH, radius, newSpeed);
             Juice.squash(world as World<CoreComponentRegistry>, paddleEntity, 1.2, 0.8, 100);
             this.playSFX(world, "hit");
           } else {
@@ -351,6 +336,34 @@ b.speed = newSpeed;
     }
   }
 
+  private attachBallToPaddle(
+    world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>,
+    ballEntity: Entity,
+    paddlePos: { x: number; y: number },
+    offsetX: number,
+    pHalfH: number,
+    radius: number,
+    newSpeed?: number
+  ): void {
+    world.mutateComponent(ballEntity, "Ball", (b) => {
+      b.isAttached = true;
+      b.attachedOffsetX = offsetX;
+      if (newSpeed !== undefined) {
+        b.speed = newSpeed;
+      }
+      b.stuckBounces = 0;
+    });
+    world.mutateComponent(ballEntity, "Velocity", (v) => {
+      v.vx = 0;
+      v.vy = 0;
+    });
+    world.mutateComponent(ballEntity, "Transform", (t) => {
+      t.x = paddlePos.x + offsetX;
+      t.y = paddlePos.y - pHalfH - radius;
+      t.dirty = true;
+    });
+  }
+
   private handleBallLost(world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>, ballEntity: Entity): void {
     const state = world.getSingleton("ArkanoidState");
     if (!state || state.isGameOver) return;
@@ -405,20 +418,7 @@ b.speed = newSpeed;
       const pHalfH = (this.config?.PADDLE_HEIGHT ?? 16) / 2;
       const ballRadius = this.config?.BALL_SIZE ?? 8;
 
-      world.mutateComponent(ballEntity, "Ball", (b) => {
-        b.isAttached = true;
-        b.attachedOffsetX = 0;
-        b.stuckBounces = 0;
-      });
-      world.mutateComponent(ballEntity, "Velocity", (v) => {
-        v.vx = 0;
-        v.vy = 0;
-      });
-      world.mutateComponent(ballEntity, "Transform", (t) => {
-        t.x = paddleX;
-        t.y = paddleY - pHalfH - ballRadius;
-        t.dirty = true;
-      });
+      this.attachBallToPaddle(world, ballEntity, { x: paddleX, y: paddleY }, 0, pHalfH, ballRadius);
 
       if (eventBus && !world.isReSimulating) {
         eventBus.emitDeferred("PlaySFX", { name: "hit" });

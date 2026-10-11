@@ -4,6 +4,7 @@ import { drawNeonShape } from "../../shared/rendering/CanvasNeonUtils";
 import { colors } from "../../../theme/colors";
 import { computeAsteroidSilhouette, computeThrustFlame } from "../../shared/rendering/ProceduralShapeUtils";
 import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
+import { resolveAsteroidRadius } from "./AsteroidRenderUtils";
 
 function applyAsteroidHitFlashStroke(
   ctx: CanvasRenderingContext2D,
@@ -175,17 +176,11 @@ export const drawAsteroidsUfo: ShapeDrawer<CanvasRenderingContext2D, AsteroidsCo
  */
 export const drawAsteroidsAsteroid: ShapeDrawer<CanvasRenderingContext2D, AsteroidsComponentRegistry> = {
   draw(ctx, world, entity) {
-        // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsSkiaVisuals.ts:173-182. Considerar extraer a función compartida. Ref: b4b40449
 const render = world.getComponent(entity, "Render");
     const collider = world.getComponent(entity, "Collider");
     if (!render) return;
 
-    let radius = 25;
-    if (collider && collider.enabled && collider.shape.type === ShapeType.Circle) {
-      radius = (collider.shape as CircleShape).radius;
-    } else if (render.size) {
-      radius = render.size / 2;
-    }
+    const radius = resolveAsteroidRadius(render, collider);
 
     const baseColor = render.color || colors.pink; // Neon pink default (R9)
     ctx.save();

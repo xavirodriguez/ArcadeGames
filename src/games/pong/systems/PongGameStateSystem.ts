@@ -48,18 +48,7 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
         if (gs.scoreFreezeRemaining <= 0) {
           const scorer = gs.lastScorer;
           balls.forEach(ball => {
-                        // TODO(refactor): código duplicado detectado (bloque) con pong/systems/PongGameStateSystem.ts:173-178. Considerar extraer a función compartida. Ref: 0530b0ab
-world.mutateComponent(ball, "Transform", (t: TransformComponent) => {
-              t.x = this.config.worldWidth / 2;
-              t.y = this.config.worldHeight / 2;
-            });
-            world.mutateComponent(ball, "Velocity", (v: VelocityComponent) => {
-              v.vx = scorer === "p1" ? -this.config.BALL_SPEED_START : this.config.BALL_SPEED_START;
-              v.vy = this.config.BALL_SPEED_START * (world.gameplayRandom.next() > 0.5 ? 1 : -1);
-            });
-            world.mutateComponent(ball, "Ball", (b: BallComponent) => {
-              b.spinFactor = 0;
-            });
+            this.resetBall(world, ball, scorer);
           });
           gs.lastScorer = null;
         }
@@ -184,6 +173,20 @@ world.mutateComponent(ball, "Transform", (t: TransformComponent) => {
         }
       });
 
+    });
+  }
+
+  private resetBall(world: World<PongComponentRegistry>, ball: number, scorer: "p1" | "p2" | null | undefined): void {
+    world.mutateComponent(ball, "Transform", (t: TransformComponent) => {
+      t.x = this.config.worldWidth / 2;
+      t.y = this.config.worldHeight / 2;
+    });
+    world.mutateComponent(ball, "Velocity", (v: VelocityComponent) => {
+      v.vx = scorer === "p1" ? -this.config.BALL_SPEED_START : this.config.BALL_SPEED_START;
+      v.vy = this.config.BALL_SPEED_START * (world.gameplayRandom.next() > 0.5 ? 1 : -1);
+    });
+    world.mutateComponent(ball, "Ball", (b: BallComponent) => {
+      b.spinFactor = 0;
     });
   }
 

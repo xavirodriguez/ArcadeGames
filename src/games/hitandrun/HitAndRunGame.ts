@@ -40,11 +40,10 @@ import {
 } from "@tiny-aster/gameplay-kit";
 import {
   setupPlatformerMovementComponents,
-  registerPlatformerTilemapBlueprint,
   createMainCamera2D,
   registerPresentationSystems,
   syncLevelWorldDimensions,
-  registerCollectibleTriggerBlueprint
+  registerPlatformerCommonBlueprints
 } from "../shared/componentBuilders";
 import { DEFAULT_ECHO_RUNNER_CONFIG } from "../echorunner/types/EchoRunnerConfigSchema";
 import hitRunLevelData from "./levels/level-01.json";
@@ -183,13 +182,9 @@ public update(dt: number): void {
   }
 
   protected override async onRegisterSystems(): Promise<void> {
-        // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:242-249. Considerar extraer a función compartida. Ref: 94a0e390
-await super.onRegisterSystems();
+    await super.onRegisterSystems();
 
-    registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_ECHO_RUNNER_CONFIG);
-    registerCollectibleTriggerBlueprint(this.blueprints, "collectible_fragment", "fragment", 10, 16, 10, "fragment", false, false);
-    registerCollectibleTriggerBlueprint(this.blueprints, "collectible_core", "core", 100, 24, 12, "core", true, true);
-    registerPlatformerEnvironmentBlueprints(this.blueprints);
+    registerPlatformerCommonBlueprints(this.blueprints, DEFAULT_ECHO_RUNNER_CONFIG);
 
     registerBeltSystems(this.world);
 

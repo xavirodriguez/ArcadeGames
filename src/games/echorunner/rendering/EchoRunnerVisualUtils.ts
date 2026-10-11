@@ -351,3 +351,20 @@ export function resolveEchoBackgroundContext(world: World): EchoBackgroundContex
 
   return { width, height, elapsed };
 }
+
+export interface SparkOrbitPosition {
+  sx: number;
+  sy: number;
+}
+
+export function computeEchoSparkOrbitPosition(
+  i: number,
+  totalSparks: number,
+  elapsed: number,
+  size: number
+): SparkOrbitPosition {
+  const angle = elapsed + (i * Math.PI * 2) / totalSparks;
+  const sx = Math.cos(angle) * (size * 0.6);
+  const sy = Math.sin(angle) * (size * 0.2) - size * 0.5;
+  return { sx, sy };
+}

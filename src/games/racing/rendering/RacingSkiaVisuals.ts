@@ -15,19 +15,16 @@ import {
   extractObstacleParams
 } from "./RacingSkin";
 import { buildTrackRibbon } from "./TrackRibbonGeometry";
-import type { RacingParticlePool } from "../systems/RacingParticleSystem";
+import {
+  resolveRacingTrackFrame,
+  resolveRacingSkinAndParticles,
+  computeCheckeredFinishGrid
+} from "./RacingRenderUtils";
 
 export const drawSkiaTrackSurface: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {
   draw(canvas, world) {
-        // TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingCanvasVisuals.ts:32-40. Considerar extraer a función compartida. Ref: 4b0cab2d
 if (!Skia) return;
-    const skin = getRacingSkin(world);
-    const palette = skin.palette;
-    const trackSpec = world.getResource<TrackSpec>("ActiveTrackSpec");
-    const width = trackSpec?.width ?? 1600;
-    const height = trackSpec?.height ?? 1000;
-    const halfW = width / 2;
-    const halfH = height / 2;
+    const { skin, palette, width, height, halfW, halfH } = resolveRacingTrackFrame(world);
 
     const fillPaint = Skia.Paint();
     fillPaint.setColor(Skia.Color(palette.surface));
@@ -56,10 +53,7 @@ if (!Skia) return;
 export const drawSkiaTrackRibbon: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-        // TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingCanvasVisuals.ts:115-121. Considerar extraer a función compartida. Ref: afe949ab
-const skin = getRacingSkin(world);
-    const palette = skin.palette;
-    const trackSpec = world.getResource<TrackSpec>("ActiveTrackSpec");
+    const { palette, trackSpec } = resolveRacingTrackFrame(world);
     if (!trackSpec || trackSpec.waypoints.length < 3) return;
 
     const { left, right } = buildTrackRibbon(trackSpec.waypoints);
@@ -100,9 +94,7 @@ const skin = getRacingSkin(world);
 export const drawSkiaSkidMarks: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    const skin = getRacingSkin(world);
-    const palette = skin.palette;
-    const pool = world.getResource<RacingParticlePool>("RacingParticles");
+    const { palette, pool } = resolveRacingSkinAndParticles(world);
     if (!pool || pool.skidMarks.length === 0) return;
 
     for (let i = 0; i < pool.skidMarks.length; i += 1) {
@@ -122,9 +114,7 @@ export const drawSkiaSkidMarks: ShapeDrawer<SkCanvas, RacingComponentRegistry> =
 export const drawSkiaSmoke: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    const skin = getRacingSkin(world);
-    const palette = skin.palette;
-    const pool = world.getResource<RacingParticlePool>("RacingParticles");
+    const { palette, pool } = resolveRacingSkinAndParticles(world);
     if (!pool || pool.smokeParticles.length === 0) return;
 
     for (let i = 0; i < pool.smokeParticles.length; i += 1) {
@@ -168,26 +158,20 @@ export const drawSkiaCheckpoint: ShapeDrawer<SkCanvas, RacingComponentRegistry> 
     if (!Skia) return;
     const skin = getRacingSkin(world);
     const checkpoint = world.getComponent(entity, "Checkpoint");
-        // TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingCanvasVisuals.ts:242-254. Considerar extraer a función compartida. Ref: 5f514a71
 if (!checkpoint) return;
 
     if (checkpoint.isFinish) {
       const halfW = checkpoint.width / 2;
       const halfH = checkpoint.height / 2;
-      const cols = 8;
-      const rows = 2;
-      const colW = checkpoint.width / cols;
-      const rowH = checkpoint.height / rows;
-
       const [color1, color2] = skin.finishCheckers ?? ["#FFFFFF", "#5D4037"];
+      const cells = computeCheckeredFinishGrid(checkpoint.width, checkpoint.height, 8, 2, color1, color2);
 
-      for (let r = 0; r < rows; r += 1) {
-        for (let c = 0; c < cols; c += 1) {
-          const tilePaint = Skia.Paint();
-          tilePaint.setColor(Skia.Color((r + c) % 2 === 0 ? color1 : color2));
-          tilePaint.setStyle(Skia.PaintStyle.Fill);
-          canvas.drawRect(Skia.XYWHRect(-halfW + c * colW, -halfH + r * rowH, colW, rowH), tilePaint);
-        }
+      for (let i = 0; i < cells.length; i++) {
+        const cell = cells[i];
+        const tilePaint = Skia.Paint();
+        tilePaint.setColor(Skia.Color(cell.color));
+        tilePaint.setStyle(Skia.PaintStyle.Fill);
+        canvas.drawRect(Skia.XYWHRect(cell.x, cell.y, cell.colW, cell.rowH), tilePaint);
       }
       const strokePaint = Skia.Paint();
       strokePaint.setColor(Skia.Color(skin.palette.outline));

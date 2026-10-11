@@ -18,7 +18,18 @@ export function createPlayer(world: World<ShmupComponentRegistry>, x: number, y:
   world.addComponent(e, { type: "Input", axes: {}, actions: new Set<string>(), shootCooldownRemaining: 0 });
   world.addComponent(e, { type: "Health", current: 3, max: 3, invulnerableRemaining: 0 });
   world.addComponent(e, { type: "Faction", faction: "player", value: "player" });
-  world.addComponent(e, { type: "Boundary", width: c.WORLD_WIDTH - c.PLAYER_SIZE, height: c.WORLD_HEIGHT - c.PLAYER_SIZE, mode: "bounce" } as BoundaryComponent);
+  world.addComponent(e, {
+    type: "Boundary",
+    minX: c.PLAYER_SIZE,
+    maxX: c.WORLD_WIDTH - c.PLAYER_SIZE,
+    minY: c.PLAYER_SIZE,
+    maxY: c.WORLD_HEIGHT - c.PLAYER_SIZE,
+    width: c.WORLD_WIDTH,
+    height: c.WORLD_HEIGHT,
+    mode: "bounce",
+    bounceX: false,
+    bounceY: false
+  } as BoundaryComponent);
   world.addComponent(e, { type: "LocalPlayer" });
   return e;
 }
@@ -36,6 +47,12 @@ export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: 
   world.addComponent(e, { type: "Health", current: c.ENEMY_HP, max: c.ENEMY_HP });
   world.addComponent(e, { type: "Faction", faction: "enemy", value: "enemy" });
   world.addComponent(e, { type: "EnemyPath", kind, elapsed: 0, duration: 8, speed: c.ENEMY_SPEED, amplitude: 90, frequency: 1.8, originX: x, originY: y });
+  world.addComponent(e, {
+    type: "Boundary",
+    width: c.WORLD_WIDTH,
+    height: c.WORLD_HEIGHT + c.OFFSCREEN_MARGIN,
+    mode: "destroy"
+  } as BoundaryComponent);
   return e;
 }
 
@@ -43,6 +60,7 @@ export function createPlayerBullet(world: World<ShmupComponentRegistry>, x: numb
   const c = world.getResource<ShmupConfig>("GameConfig");
   return pool.acquireBullet(world, { x, y, dx: 0, dy: -(c?.PLAYER_BULLET_SPEED ?? 650), size: c?.PLAYER_BULLET_SIZE ?? 4, color: getGameplayColor("PlayerProjectile", world), ttl: c?.PLAYER_BULLET_TTL ?? 2 });
 }
+
 export function createEnemyBullet(world: World<ShmupComponentRegistry>, x: number, y: number, dx: number, dy: number, pool: EnemyBulletPool): Entity {
   const c = world.getResource<ShmupConfig>("GameConfig");
   return pool.acquireBullet(world, { x, y, dx, dy, size: c?.ENEMY_BULLET_SIZE ?? 4, color: getGameplayColor("EnemyProjectile", world), ttl: c?.ENEMY_BULLET_TTL ?? 5 });

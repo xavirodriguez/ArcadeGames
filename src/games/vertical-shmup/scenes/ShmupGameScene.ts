@@ -27,10 +27,20 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
     this.world.setResource("EnemyBulletPool", this.enemyPool);
 
     const state = this.world.createEntity();
-    this.world.addComponent(state, { type: "ShmupGameState", score: 0, wave: 1, scrollDistance: 0, isGameOver: false, spawnTimer: 0 });
+    this.world.addComponent(state, { type: "ShmupGameState", score: 0, wave: 1, lives: 3, scrollDistance: 0, isGameOver: false, spawnTimer: 0 });
     const player = createPlayer(this.world, this.config.WORLD_WIDTH / 2, this.config.WORLD_HEIGHT - 100);
     this.world.setResource("ScreenConfig", { width: this.config.WORLD_WIDTH, height: this.config.WORLD_HEIGHT });
-    createMainCamera2D(this.world, player, { smoothingX: 5, smoothingY: 5 });
+
+    // Fixed camera locked at (0,0) for stable fixed-screen vertical shmup view
+    const cam = createMainCamera2D(this.world, player, { smoothingX: 0, smoothingY: 0 });
+    this.world.mutateComponent(cam, "Camera2D", c => {
+      c.x = 0;
+      c.y = 0;
+      c.targetX = 0;
+      c.targetY = 0;
+      c.followEntity = undefined;
+    });
+
     this.registerSystems();
 
     runWithUnlockedRandomAndMutators(this.world, this.gameOptions, () => {
@@ -48,8 +58,7 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
     this.world.addSystem(new ScrollSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new BoundarySystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
-        // TODO(refactor): código duplicado detectado (bloque) con tower-defense/TowerDefenseGame.ts:280-285. Considerar extraer a función compartida. Ref: 87a4f2aa
-this.world.addSystem(new SpatialPartitioningSystem(), { phase: SystemPhase.Collision });
+    this.world.addSystem(new SpatialPartitioningSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
     this.world.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new ShmupBulletPatternSystem(), { phase: SystemPhase.Simulation });

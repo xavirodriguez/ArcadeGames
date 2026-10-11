@@ -4,7 +4,7 @@ import { VerticalShmupGame } from "../games/vertical-shmup";
 import type { ShmupGameStateComponent, ShmupInputState } from "../games/vertical-shmup";
 
 const INITIAL_STATE: ShmupGameStateComponent = {
-  type: "ShmupGameState", score: 0, wave: 1, scrollDistance: 0, isGameOver: false, spawnTimer: 0
+  type: "ShmupGameState", score: 0, wave: 1, lives: 3, scrollDistance: 0, isGameOver: false, spawnTimer: 0
 };
 
 export function useVerticalShmupGame(started: boolean, seed?: number) {

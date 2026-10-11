@@ -1,4 +1,4 @@
-import { World, PhysicsUtils, CoreComponentRegistry } from "@tiny-aster/core";
+import { World, PhysicsUtils, CoreComponentRegistry, RunState } from "@tiny-aster/core";
 
 export interface ContactDamageConfig {
   contactDistance?: number;
@@ -8,6 +8,36 @@ export interface ContactDamageConfig {
   screenShakeIntensity?: number;
   screenShakeDuration?: number;
   sfxName?: string;
+}
+
+/** Default configuration for contact damage and invulnerability. */
+export const DEFAULT_CONTACT_DAMAGE_CONFIG: ContactDamageConfig = {
+  contactDistance: 20,
+  invulnerabilityDuration: 1.0,
+  damageAmount: 1,
+  hitFlashFrames: 8,
+  screenShakeIntensity: 12,
+  screenShakeDuration: 0.25,
+  sfxName: "hit"
+};
+
+/**
+ * Helper to update run elapsed time and evaluate level completion.
+ * Returns true if the run is complete.
+ */
+export function updateRunProgress(
+  world: World<CoreComponentRegistry>,
+  dt: number,
+  completionCondition?: (runState: RunState) => boolean
+): boolean {
+  const runState = world.getResource<RunState>("RunState");
+  if (!runState) return false;
+
+  runState.elapsedTime += dt;
+  if (completionCondition) {
+    return completionCondition(runState);
+  }
+  return false;
 }
 
 /**
@@ -21,12 +51,12 @@ export interface ContactDamageConfig {
 export function updatePlayerInvulnerabilityAndContactDamage(
   world: World<CoreComponentRegistry>,
   deltaTime: number,
-  config?: ContactDamageConfig
+  config: ContactDamageConfig = DEFAULT_CONTACT_DAMAGE_CONFIG
 ): void {
-  const contactDist = config?.contactDistance ?? 20;
-  const invDuration = config?.invulnerabilityDuration ?? 1.0;
-  const damageAmount = config?.damageAmount ?? 1;
-  const hitFlash = config?.hitFlashFrames ?? 8;
+  const contactDist = config.contactDistance ?? 20;
+  const invDuration = config.invulnerabilityDuration ?? 1.0;
+  const damageAmount = config.damageAmount ?? 1;
+  const hitFlash = config.hitFlashFrames ?? 8;
 
   const players = world.query("PlatformerInput", "Health", "Transform");
   const enemies = world.query("Enemy", "Transform");
@@ -75,7 +105,7 @@ export function updatePlayerInvulnerabilityAndContactDamage(
         });
       }
 
-      if (config?.screenShakeIntensity) {
+      if (config.screenShakeIntensity) {
         const cameras = world.query("Camera2D");
         for (let c = 0; c < cameras.length; c++) {
           world.commands.addComponent(cameras[c], {
@@ -89,11 +119,11 @@ export function updatePlayerInvulnerabilityAndContactDamage(
 
       const audio = world.getResource<any>("AudioPlayer") || (world as any).audio;
       if (audio) {
-        audio.playSFX(config?.sfxName ?? "hit");
+        audio.playSFX(config.sfxName ?? "hit");
       } else {
         const eventBus = world.getEventBus();
         if (eventBus) {
-          eventBus.emit("PlaySFX", { name: config?.sfxName ?? "hit" });
+          eventBus.emit("PlaySFX", { name: config.sfxName ?? "hit" });
         }
       }
     }

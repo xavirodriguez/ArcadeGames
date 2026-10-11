@@ -1,5 +1,4 @@
 import { getOrCreateStateMachineRegistry, type World, type CoreComponentRegistry } from "@tiny-aster/core";
-import type { StateMachineDefinition } from "@tiny-aster/core";
 import { tryEnemyShoot } from "./enemyShoot";
 import {
   DEFAULT_FLANK,
@@ -19,7 +18,6 @@ import {
   dirToPlayer,
   playerDetected,
   isEnemyInHitstun,
-  restoreEnemyColor,
   facePlayer,
   shouldStartTelegraphedAttack,
   enterAnticipationState,
@@ -46,6 +44,70 @@ function flankConfigFromData(data: Record<string, unknown>): FlankConfig {
     maxDuration: (data.flankMaxDuration as number) ?? DEFAULT_FLANK.maxDuration,
     speedMult: (data.flankSpeedMult as number) ?? DEFAULT_FLANK.speedMult
   };
+}
+
+/** Reads common patrol components and updates direction upon obstacle detection. */
+export function readPatrolContext(
+  world: World<CoreComponentRegistry>,
+  entity: number,
+  data: Record<string, unknown>,
+  speedOverride?: number
+): { direction: number; speed: number; sensor: { detectedPlayerEntity?: number } | undefined } {
+  const patrol = world.getComponent(entity, "Patrol") as
+    | { direction: number; startX: number; endX: number }
+    | undefined;
+  const gd = world.getComponent(entity, "GroundDetector") as
+    | { hasWallAhead?: boolean; hasGroundAhead?: boolean }
+    | undefined;
+  const sensor = world.getComponent(entity, "PlayerSensor") as
+    | { detectedPlayerEntity?: number }
+    | undefined;
+  const trans = world.getComponent(entity, "Transform");
+  const speed = speedOverride ?? ((data.patrolSpeed as number) ?? 60);
+
+  if (patrol) {
+    if (gd && (gd.hasWallAhead || gd.hasGroundAhead === false)) {
+      const mp = world.getMutableComponent(entity, "Patrol") as
+        | { direction: number }
+        | undefined;
+      if (mp) mp.direction = -mp.direction;
+    } else if (trans) {
+      if (trans.x <= patrol.startX && patrol.direction < 0) {
+        const mp = world.getMutableComponent(entity, "Patrol") as
+          | { direction: number }
+          | undefined;
+        if (mp) mp.direction = 1;
+      } else if (trans.x >= patrol.endX && patrol.direction > 0) {
+        const mp = world.getMutableComponent(entity, "Patrol") as
+          | { direction: number }
+          | undefined;
+        if (mp) mp.direction = -1;
+      }
+    }
+  }
+
+  const cur = world.getComponent(entity, "Patrol") as
+    | { direction: number }
+    | undefined;
+
+  return {
+    direction: cur?.direction ?? 1,
+    speed,
+    sensor
+  };
+}
+
+/** Sets velocity vx to targetVx only if changed to avoid unnecessary component mutation calls. */
+export function applyPatrolVelocity(
+  world: World<CoreComponentRegistry>,
+  entity: number,
+  targetVx: number
+): void {
+  const vel = world.getComponent(entity, "Velocity");
+  if (vel && vel.vx !== targetVx) {
+    const mv = world.getMutableComponent(entity, "Velocity");
+    if (mv) mv.vx = targetVx;
+  }
 }
 
 /** Estados Alert / Windup compartidos */
@@ -139,52 +201,8 @@ export function registerHitRunStateMachines(
             data.attackCooldownRemaining = Math.max(0, cd - 0.016);
           }
 
-                    // TODO(refactor): código duplicado detectado (bloque) con hitandrun/ai/hitRunStateMachines.ts:260-269. Considerar extraer a función compartida. Ref: bceffe16
-const patrol = world.getComponent(entity, "Patrol") as
-            | { direction: number; startX: number; endX: number }
-            | undefined;
-          const gd = world.getComponent(entity, "GroundDetector") as
-            | { hasWallAhead?: boolean; hasGroundAhead?: boolean }
-            | undefined;
-          const sensor = world.getComponent(entity, "PlayerSensor") as
-            | { detectedPlayerEntity?: number }
-            | undefined;
-          const trans = world.getComponent(entity, "Transform");
-                    // TODO(refactor): código duplicado detectado (bloque) con hitandrun/ai/hitRunStateMachines.ts:269-277. Considerar extraer a función compartida. Ref: aa981fe7
-const speed = (data.patrolSpeed as number) ?? 60;
-
-          if (patrol) {
-            if (gd && (gd.hasWallAhead || gd.hasGroundAhead === false)) {
-              const mp = world.getMutableComponent(entity, "Patrol") as
-                | { direction: number }
-                | undefined;
-              if (mp) mp.direction = -mp.direction;
-            } else if (trans) {
-              if (trans.x <= patrol.startX && patrol.direction < 0) {
-                const mp = world.getMutableComponent(entity, "Patrol") as
-                  | { direction: number }
-                  | undefined;
-                if (mp) mp.direction = 1;
-              } else if (trans.x >= patrol.endX && patrol.direction > 0) {
-                const mp = world.getMutableComponent(entity, "Patrol") as
-                  | { direction: number }
-                  | undefined;
-                                // TODO(refactor): código duplicado detectado (bloque) con hitandrun/ai/hitRunStateMachines.ts:277-289. Considerar extraer a función compartida. Ref: ed2a50af
-if (mp) mp.direction = -1;
-              }
-            }
-
-            const cur = world.getComponent(entity, "Patrol") as
-              | { direction: number }
-              | undefined;
-                        // TODO(refactor): código duplicado detectado (bloque) con hitandrun/ai/hitRunStateMachines.ts:582-588. Considerar extraer a función compartida. Ref: 7db838f7
-const targetVx = (cur?.direction ?? 1) * speed;
-            const vel = world.getComponent(entity, "Velocity");
-            if (vel && vel.vx !== targetVx) {
-              const mv = world.getMutableComponent(entity, "Velocity");
-              if (mv) mv.vx = targetVx;
-            }
-          }
+          const { direction, speed, sensor } = readPatrolContext(world, entity, data);
+          applyPatrolVelocity(world, entity, direction * speed);
 
           if (data.canShoot && playerDetected(sensor)) {
             tryEnemyShoot(world, entity, data);
@@ -195,8 +213,7 @@ const targetVx = (cur?.direction ?? 1) * speed;
             return "Anticipation";
           }
 
-                    // TODO(refactor): código duplicado detectado (bloque) con hitandrun/ai/hitRunStateMachines.ts:410-419. Considerar extraer a función compartida. Ref: 9b1bdb28
-if (playerDetected(sensor) && sensor?.detectedPlayerEntity !== undefined) {
+          if (playerDetected(sensor) && sensor?.detectedPlayerEntity !== undefined) {
             if (canTakeDamage(world, sensor.detectedPlayerEntity)) {
               return "Alert";
             }
@@ -262,34 +279,9 @@ if (playerDetected(sensor) && sensor?.detectedPlayerEntity !== undefined) {
     states: {
       Patrol: {
         onUpdate(world, entity, data) {
-          const patrol = world.getComponent(entity, "Patrol") as
-            | { direction: number; startX: number; endX: number }
-            | undefined;
-          const gd = world.getComponent(entity, "GroundDetector") as
-            | { hasWallAhead?: boolean; hasGroundAhead?: boolean }
-            | undefined;
-          const sensor = world.getComponent(entity, "PlayerSensor") as
-            | { detectedPlayerEntity?: number }
-            | undefined;
-          const speed = ((data.patrolSpeed as number) ?? 70) * 0.85;
-
-          if (patrol) {
-            if (gd && (gd.hasWallAhead || gd.hasGroundAhead === false)) {
-              const mp = world.getMutableComponent(entity, "Patrol") as
-                | { direction: number }
-                | undefined;
-              if (mp) mp.direction = -mp.direction;
-            }
-            const cur = world.getComponent(entity, "Patrol") as
-              | { direction: number }
-              | undefined;
-            const targetVx = (cur?.direction ?? 1) * speed;
-            const vel = world.getComponent(entity, "Velocity");
-            if (vel && vel.vx !== targetVx) {
-              const mv = world.getMutableComponent(entity, "Velocity");
-              if (mv) mv.vx = targetVx;
-            }
-          }
+          const speedOverride = ((data.patrolSpeed as number) ?? 70) * 0.85;
+          const { direction, speed, sensor } = readPatrolContext(world, entity, data, speedOverride);
+          applyPatrolVelocity(world, entity, direction * speed);
 
           if (playerDetected(sensor)) return "Alert";
         }
@@ -330,8 +322,7 @@ if (playerDetected(sensor) && sensor?.detectedPlayerEntity !== undefined) {
   };
 
   // ─── hr_hop ─────────────────────────────────────────────────
-    // TODO(refactor): código duplicado detectado (bloque) con hitandrun/ai/hitRunStateMachines.ts:519-529. Considerar extraer a función compartida. Ref: f7910ca2
-registry["hr_hop"] = {
+  registry["hr_hop"] = {
     states: {
       Idle: {
         onEnter(world, entity) {
@@ -537,8 +528,7 @@ registry["hr_hop"] = {
             tryEnemyShoot(world, entity, data);
             return data.useFlank ? "Alert" : "Alert";
           }
-                    // TODO(refactor): código duplicado detectado (bloque) con hitandrun/ai/hitRunStateMachines.ts:589-599. Considerar extraer a función compartida. Ref: 4da0a38c
-return timed(data, "idleDuration", 1.0, elapsed, "Idle");
+          return timed(data, "idleDuration", 1.0, elapsed, "Idle");
         }
       },
       ...alertWindup,
@@ -551,8 +541,7 @@ return timed(data, "idleDuration", 1.0, elapsed, "Idle");
         onUpdate(world, entity, data, elapsed) {
           facePlayer(world, entity);
           tryEnemyShoot(world, entity, data);
-                    // TODO(refactor): código duplicado detectado (bloque) con hitandrun/ai/hitRunStateMachines.ts:600-609. Considerar extraer a función compartida. Ref: 14a44eba
-return timed(data, "attackDuration", 0.5, elapsed, "Recovery");
+          return timed(data, "attackDuration", 0.5, elapsed, "Recovery");
         }
       },
       Recovery: {
@@ -582,18 +571,8 @@ return timed(data, "attackDuration", 0.5, elapsed, "Recovery");
             facePlayer(world, entity);
             return "Alert";
           }
-          const patrol = world.getComponent(entity, "Patrol") as
-            | { direction: number }
-            | undefined;
-          const speed = ((data.patrolSpeed as number) ?? 40) * 0.5;
-          if (patrol) {
-            const targetVx = patrol.direction * speed;
-            const vel = world.getComponent(entity, "Velocity");
-            if (vel && vel.vx !== targetVx) {
-              const mv = world.getMutableComponent(entity, "Velocity");
-              if (mv) mv.vx = targetVx;
-            }
-          }
+          const { direction, speed } = readPatrolContext(world, entity, data, ((data.patrolSpeed as number) ?? 40) * 0.5);
+          applyPatrolVelocity(world, entity, direction * speed);
         }
       },
       ...alertWindup,

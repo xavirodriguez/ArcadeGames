@@ -36,7 +36,8 @@ import {
   registerPlatformerEnvironmentBlueprints,
   mutatePlatformerInputState,
   registerCommonPlatformerSystems,
-  updatePlayerInvulnerabilityAndContactDamage
+  updatePlayerInvulnerabilityAndContactDamage,
+  updateRunProgress
 } from "@tiny-aster/gameplay-kit";
 import {
   setupPlatformerMovementComponents,
@@ -90,20 +91,10 @@ import { drawPlatformerTilemap } from "../platformer/rendering/PlatformerCanvasV
 export type HitAndRunConfig = EchoRunnerConfig;
 
 class HitRunDamageSystem extends System<CoreComponentRegistry> {
-    // TODO(refactor): código duplicado detectado (método) con echorunner/EchoRunnerGame.ts:124-137. Considerar extraer a función compartida. Ref: 110122ca
-public update(world: import("@tiny-aster/core").World<CoreComponentRegistry>, deltaTime: number): void {
-    updatePlayerInvulnerabilityAndContactDamage(world, deltaTime, {
-      contactDistance: 20,
-      invulnerabilityDuration: 1.0,
-      damageAmount: 1,
-      hitFlashFrames: 8,
-      screenShakeIntensity: 12,
-      screenShakeDuration: 0.25,
-      sfxName: "hit"
-    });
+  public update(world: import("@tiny-aster/core").World<CoreComponentRegistry>, deltaTime: number): void {
+    updatePlayerInvulnerabilityAndContactDamage(world, deltaTime);
   }
 }
-
 
 export class HitAndRunGame extends PlatformerArcadeGame<
   HitAndRunGameState,
@@ -132,18 +123,16 @@ export class HitAndRunGame extends PlatformerArcadeGame<
         | undefined);
   }
 
-    // TODO(refactor): código duplicado detectado (método) con echorunner/EchoRunnerGame.ts:403-417. Considerar extraer a función compartida. Ref: f8661966
-public update(dt: number): void {
-    const runState = this.world.getResource<RunState>("RunState");
-    if (runState) {
-      runState.elapsedTime += dt;
-    }
+  public override update(dt: number): void {
+    const isComplete = updateRunProgress(
+      this.world,
+      dt,
+      (rs) => rs.collectedPermanentIds.includes("archive_core_1")
+    );
 
-    if (runState && runState.collectedPermanentIds.includes("archive_core_1")) {
-      if (!this.gameOver) {
-        this.gameOver = true;
-        this.eventBus.emit("game:over", { state: this.getGameState() });
-      }
+    if (isComplete && !this.gameOver) {
+      this.gameOver = true;
+      this.eventBus.emit("game:over", { state: this.getGameState() });
     }
 
     this.world.update(dt);
@@ -183,8 +172,7 @@ public update(dt: number): void {
   }
 
   protected override async onRegisterSystems(): Promise<void> {
-        // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:242-249. Considerar extraer a función compartida. Ref: 94a0e390
-await super.onRegisterSystems();
+    await super.onRegisterSystems();
 
     registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_ECHO_RUNNER_CONFIG);
     registerCollectibleTriggerBlueprint(this.blueprints, "collectible_fragment", "fragment", 10, 16, 10, "fragment", false, false);

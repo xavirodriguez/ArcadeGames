@@ -35,7 +35,7 @@ import { EchoRunnerConfigSchema, EchoRunnerConfig as EchoRunnerConfigType, DEFAU
 import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
 import { PlatformerInputSystem } from "../platformer/systems/PlatformerInputSystem";
 import { resolveAndApplyMutators } from "../../config/MutatorConfig";
-import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, registerPlatformerEnvironmentBlueprints, mutatePlatformerInputState, registerCommonPlatformerSystems, updatePlayerInvulnerabilityAndContactDamage } from "@tiny-aster/gameplay-kit";
+import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, registerPlatformerEnvironmentBlueprints, mutatePlatformerInputState, registerCommonPlatformerSystems, updatePlayerInvulnerabilityAndContactDamage, updateRunProgress } from "@tiny-aster/gameplay-kit";
 import { setupPlatformerMovementComponents, registerPlatformerTilemapBlueprint, createMainCamera2D, registerPresentationSystems, generateAndInstantiatePlatformerLevel, registerCollectibleTriggerBlueprint } from "../shared/componentBuilders";
 import defaultLevelData from "./levels/level-01.json";
 
@@ -121,17 +121,8 @@ class EchoRunnerAttackSystem extends System<CoreComponentRegistry> {
  * System that handles damage when player overlaps an enemy or spikes.
  */
 class EchoRunnerDamageSystem extends System<CoreComponentRegistry> {
-    // TODO(refactor): código duplicado detectado (método) con hitandrun/HitAndRunGame.ts:92-106. Considerar extraer a función compartida. Ref: 110122ca
-public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
-    updatePlayerInvulnerabilityAndContactDamage(world, deltaTime, {
-      contactDistance: 20,
-      invulnerabilityDuration: 1.0,
-      damageAmount: 1,
-      hitFlashFrames: 8,
-      screenShakeIntensity: 12,
-      screenShakeDuration: 0.25,
-      sfxName: "hit"
-    });
+  public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
+    updatePlayerInvulnerabilityAndContactDamage(world, deltaTime);
   }
 }
 
@@ -156,8 +147,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
       seed: config.seed,
       audio: new WebAudioPlayer()
     });
-        // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:95-103. Considerar extraer a función compartida. Ref: 0716a3de
-this.baseConfig = ConfigService.load<EchoRunnerConfigType>(
+    this.baseConfig = ConfigService.load<EchoRunnerConfigType>(
       this.gameId,
       EchoRunnerConfigSchema,
       config.gameOptions?.rawConfig ?? {}
@@ -243,8 +233,7 @@ this.baseConfig = ConfigService.load<EchoRunnerConfigType>(
       }
     });
 
-        // TODO(refactor): código duplicado detectado (bloque) con hitandrun/HitAndRunGame.ts:183-188. Considerar extraer a función compartida. Ref: 94a0e390
-registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_ECHO_RUNNER_CONFIG);
+    registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_ECHO_RUNNER_CONFIG);
 
     registerCollectibleTriggerBlueprint(this.blueprints, "collectible_fragment", "fragment", 10, 16, 10, "fragment", false, false);
     registerCollectibleTriggerBlueprint(this.blueprints, "collectible_core", "core", 100, 24, 12, "core", true, true);
@@ -388,26 +377,24 @@ registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_ECHO_RUNNER_CONFIG);
     }
   }
 
-    // TODO(refactor): código duplicado detectado (método) con hitandrun/HitAndRunGame.ts:133-144. Considerar extraer a función compartida. Ref: f8661966
-public override update(dt: number): void {
-    const runState = this.world.getResource<RunState>("RunState");
-    if (runState) {
-      runState.elapsedTime += dt;
-    }
+  public override update(dt: number): void {
+    const isComplete = updateRunProgress(
+      this.world,
+      dt,
+      (rs) => rs.collectedPermanentIds.includes("archive_core_1")
+    );
 
-    // Check level complete (Core collected)
-    if (runState && runState.collectedPermanentIds.includes("archive_core_1")) {
-      if (!this.gameOver) {
-        this.gameOver = true;
-        this.eventBus.emit("game:over", {
-          state: this.getGameState()
-        });
-      }
+    if (isComplete && !this.gameOver) {
+      this.gameOver = true;
+      this.eventBus.emit("game:over", {
+        state: this.getGameState()
+      });
     }
 
     if (process.env.NODE_ENV !== "test") {
       this.dbgFrames = (this.dbgFrames ?? 0) + 1;
       if (this.dbgFrames % 30 === 0) {
+        const runState = this.world.getResource<RunState>("RunState");
         const player = this.world.query("Tag").find(e =>
           this.world.getComponent(e, "Tag")?.tags?.includes("Player")
         );

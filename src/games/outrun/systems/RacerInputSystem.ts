@@ -1,25 +1,19 @@
 import { System, World } from "@tiny-aster/core";
-import type { OutrunConfig } from "../types/OutrunConfigSchema";
-import { DEFAULT_OUTRUN_CONFIG } from "../types/OutrunConfigSchema";
 import type { OutrunComponentRegistry, OutrunEventRegistry } from "../types/OutrunTypes";
+import { resolveOutrunSystemContext } from "./OutrunSystemUtils";
 
 /**
  * Reads player input (accelerate / brake / steer) and updates RaceState.
  * Runs in Input phase. Simulation systems consume the resulting speed / playerX.
  */
-// TODO(refactor): código duplicado detectado (bloque) con outrun/systems/RoadAdvanceSystem.ts:14-25. Considerar extraer a función compartida. Ref: e704905e
 export class RacerInputSystem extends System<OutrunComponentRegistry, OutrunEventRegistry> {
   public override update(
     world: World<OutrunComponentRegistry, OutrunEventRegistry>,
     deltaTime: number
   ): void {
-    if (world.getResource("IsPaused") === true) return;
-
-    const state = world.getSingleton("RaceState");
-    if (!state || state.isGameOver) return;
-
-    const config =
-      world.getResource<OutrunConfig>("GameConfig") ?? DEFAULT_OUTRUN_CONFIG;
+    const ctx = resolveOutrunSystemContext(world);
+    if (!ctx) return;
+    const { config } = ctx;
 
     let accelerate = false;
     let brake = false;

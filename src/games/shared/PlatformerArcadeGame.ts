@@ -4,8 +4,11 @@ import {
   ComponentRegistry,
   EventRegistry,
   BlueprintRegistryMap,
-  RunState
+  RunState,
+  CoreComponentRegistry,
+  World
 } from "@tiny-aster/core";
+import { updateRunProgress } from "@tiny-aster/gameplay-kit";
 
 /**
  * Abstract base class for platformer and runner minigames sharing common arcade resource setup.
@@ -33,6 +36,24 @@ export abstract class PlatformerArcadeGame<
    * Common system registration setup for platformer games.
    * Initializes screen resources, death plane Y boundary, RunState, and AudioPlayer resource.
    */
+  /**
+   * Helper to check run progress and emit `game:over` if completed.
+   */
+  protected checkRunProgressGameOver(
+    dt: number,
+    currentlyGameOver: boolean,
+    predicate: (rs: RunState) => boolean = (rs) => rs.collectedPermanentIds.includes("archive_core_1")
+  ): boolean {
+    const isComplete = updateRunProgress(this.world as unknown as World<CoreComponentRegistry>, dt, predicate);
+    if (isComplete && !currentlyGameOver) {
+      (this.eventBus as unknown as { emit: (event: string, payload: unknown) => void }).emit("game:over", {
+        state: this.getGameState()
+      });
+      return true;
+    }
+    return currentlyGameOver;
+  }
+
   protected override async onRegisterSystems(): Promise<void> {
     await super.onRegisterSystems();
 

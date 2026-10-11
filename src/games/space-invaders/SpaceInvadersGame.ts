@@ -20,7 +20,7 @@ import { ISpaceInvadersGame } from "./types/GameInterfaces";
 import { PlayerBulletPool, EnemyBulletPool, ParticlePool } from "./EntityPool";
 import { SpaceInvadersGameScene } from "./scenes/SpaceInvadersGameScene";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
-import { markLocalPlayerEntity } from "../shared/networkUtils";
+import { markLocalPlayerEntity, NO_OP_SYNC } from "../shared/networkUtils";
 import spaceInvadersConfigRaw from "./config/space-invaders.json";
 
 const __DEV__ = process.env.NODE_ENV !== "production";
@@ -774,7 +774,7 @@ this.isMultiplayer = active;
         const item = state as { x: number; y: number };
         this.blueprints.get("invader")?.spawn(world, entity, { x: item.x, y: item.y, row: 0, col: 0 });
       },
-      sync: () => {}
+      sync: NO_OP_SYNC
     },
     {
       serverIdPrefix: "bullet",
@@ -782,10 +782,9 @@ this.isMultiplayer = active;
       spawn: (world, entity, state) => {
         const item = state as { x: number; y: number; ownerId: string };
         const bpName = item.ownerId === "player" ? "player_bullet" : "enemy_bullet";
-                // TODO(refactor): código duplicado detectado (bloque) con geometrywars/GeometryWarsGame.ts:331-341. Considerar extraer a función compartida. Ref: bd80e9b8
-this.blueprints.get(bpName)?.spawn(world, entity, { x: item.x, y: item.y });
+        this.blueprints.get(bpName)?.spawn(world, entity, { x: item.x, y: item.y });
       },
-      sync: () => {}
+      sync: NO_OP_SYNC
     }
   ];
 

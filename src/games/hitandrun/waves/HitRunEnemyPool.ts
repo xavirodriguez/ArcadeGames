@@ -1,9 +1,9 @@
 import {
   World,
   Entity,
-  CoreComponentRegistry,
-  createDeferredEntity
+  CoreComponentRegistry
 } from "@tiny-aster/core";
+import { ArcadeEntityBuilder } from "@tiny-aster/gameplay-kit";
 import { getEnemyArchetype } from "./HitRunEnemyArchetypes";
 import type {
   HitRunEnemySpawnParams,
@@ -25,7 +25,6 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
     params: HitRunEnemySpawnParams
   ): Entity {
     const arch = getEnemyArchetype(params.archetypeId);
-    const { entity, add } = createDeferredEntity(world);
 
     const size = arch?.size ?? 12;
     const color = arch?.color ?? "#ef4444";
@@ -37,90 +36,64 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
       ...(arch?.behaviorTags ?? [])
     ];
 
-    add({
-      type: "Transform",
-      x: params.x,
-      y: params.y,
-      worldX: params.x,
-      worldY: params.y,
-      rotation: 0,
-      worldRotation: 0,
-      scaleX: 1,
-      scaleY: 1,
-      worldScaleX: 1,
-      worldScaleY: 1,
-      dirty: true
-    });
+    const builder = world.isUpdating
+      ? ArcadeEntityBuilder.createDeferred(world)
+      : ArcadeEntityBuilder.create(world);
 
-    add({
-      type: "Velocity",
-      vx: 0,
-      vy: 0,
-      angularVelocity: 0
-    });
+    const entity = builder
+      .withTransform({ x: params.x, y: params.y, worldX: params.x, worldY: params.y })
+      .withVelocity()
+      .withCollider2D({
+        shape: { type: "aabb", halfWidth: size * 0.5, halfHeight: size * 0.5 },
+        layer: HIT_RUN_ENEMY_LAYER,
+        mask: 0xffff,
+        isTrigger: false
+      })
+      .withCollisionEvents()
+      .withRender({
+        shape,
+        size,
+        color,
+        visible: true,
+        opacity: 1,
+        order: 2,
+        depthSort: true
+      })
+      .build();
 
-    add({
+    const addComp = (comp: unknown) => {
+      if (world.isUpdating) {
+        world.getCommandBuffer().addComponent(entity, comp as never);
+      } else {
+        world.addComponent(entity, comp as never);
+      }
+    };
+
+    addComp({
+      type: "Tag",
+      tags: ["Enemy", params.archetypeId, ...(params.tags ?? []), ...(arch?.behaviorTags ?? [])]
+    });
+    addComp({
       type: "BeltElevation",
       z: 0,
       vz: 0,
       grounded: true
     });
-
-    add({
+    addComp({
       type: "Health",
       current: health,
       max: health
     });
-
-    add({
+    addComp({
       type: "Faction",
       value: faction
     });
-
-    add({
+    addComp({
       type: "Hurtbox"
     });
 
-    add({
-      type: "Collider2D",
-      shape: { type: "aabb", halfWidth: size * 0.5, halfHeight: size * 0.5 },
-      layer: HIT_RUN_ENEMY_LAYER,
-      mask: 0xffff,
-      offsetX: 0,
-      offsetY: 0,
-      isTrigger: false,
-      enabled: true
-    });
-
-    add({
-      type: "CollisionEvents",
-      collisions: [],
-      activeTriggers: [],
-      triggersEntered: [],
-      triggersExited: []
-    });
-
-    add({
-      type: "Render",
-      shape,
-      size,
-      color,
-      visible: true,
-      opacity: 1,
-      order: 2,
-      depthSort: true,
-      rotation: 0,
-      angularVelocity: 0,
-      hitFlashFrames: 0
-    });
-
-    add({
-      type: "Tag",
-      tags: ["Enemy", params.archetypeId, ...(params.tags ?? []), ...(arch?.behaviorTags ?? [])]
-    });
-
     const enemyKind = (params.archetypeId === "charger" ? "charger" : "patrol") as "patrol" | "jumper" | "charger";
-    add({
+    addComp({
       type: "Enemy",
       kind: enemyKind,
       archetypeId: params.archetypeId,

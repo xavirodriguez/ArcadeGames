@@ -2,6 +2,7 @@ import { System, World, WorldUtils } from "@tiny-aster/core";
 import { ArkanoidComponentRegistry, ArkanoidEventRegistry } from "../types/ArkanoidTypes";
 import { ArkanoidConfig, DEFAULT_ARKANOID_CONFIG } from "../types/ArkanoidConfigSchema";
 import { ArkanoidEnemyFactory } from "../enemies/ArkanoidEnemyFactory";
+import { forEachActiveCollision } from "./ArkanoidSystemUtils";
 
 export class EnemySpawnSystem extends System<ArkanoidComponentRegistry, ArkanoidEventRegistry> {
   private spawnCooldown = 12.0;
@@ -104,22 +105,15 @@ export class EnemyRulesSystem extends System<ArkanoidComponentRegistry, Arkanoid
       const eEntity = enemies[i];
       if (!WorldUtils.isEntityActive(world, eEntity)) continue;
 
-            // TODO(refactor): código duplicado detectado (bloque) con arkanoid/systems/ArkanoidPowerUpSystems.ts:208-215. Considerar extraer a función compartida. Ref: e60760da
-const events = world.getComponent(eEntity, "CollisionEvents");
-      if (!events) continue;
-
-      for (const col of events.collisions) {
-        const other = col.otherEntity;
-        if (!WorldUtils.isEntityActive(world, other)) continue;
-
+      forEachActiveCollision(world, eEntity, (other) => {
         if (world.hasComponent(other, "Ball") || world.hasComponent(other, "Paddle")) {
           const eventBus = world.getEventBus();
           if (eventBus) {
             eventBus.emitDeferred("combat:death", { entity: eEntity, sourceEntity: other });
           }
-          break;
+          return true;
         }
-      }
+      });
     }
   }
 }

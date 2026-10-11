@@ -70,6 +70,26 @@ export function steerTowardWaypoint(
 }
 
 /**
+ * Applies calculated waypoint steering results to vehicle components.
+ * @public
+ */
+export function applyWaypointSteering(
+  world: World<any>,
+  entity: number,
+  waypointsComp: VehicleWaypointComponent,
+  vehicle: VehicleSteeringComponent,
+  steerRes: SteerWaypointResult
+): void {
+  if (steerRes.reachedTarget && steerRes.nextIndex !== waypointsComp.currentWaypointIndex) {
+    world.mutateComponent(entity, "VehicleWaypoint", (m: VehicleWaypointComponent) => {
+      m.currentWaypointIndex = steerRes.nextIndex;
+    });
+  }
+  vehicle.steering = steerRes.steering;
+  vehicle.throttle = steerRes.throttle;
+}
+
+/**
  * System driving AI vehicle steering and throttle toward active waypoint nodes.
  *
  * @public
@@ -92,14 +112,7 @@ export class VehicleWaypointSystem extends System<CoreComponentRegistry> {
       const steerRes = steerTowardWaypoint(transform, waypointsComp, 0.3);
       if (!steerRes) continue;
 
-      if (steerRes.reachedTarget && steerRes.nextIndex !== waypointsComp.currentWaypointIndex) {
-        world.mutateComponent(entity, "VehicleWaypoint", (m: VehicleWaypointComponent) => {
-          m.currentWaypointIndex = steerRes.nextIndex;
-        });
-      }
-
-      vehicle.steering = steerRes.steering;
-      vehicle.throttle = steerRes.throttle;
+      applyWaypointSteering(world, entity, waypointsComp, vehicle, steerRes);
     }
   }
 }

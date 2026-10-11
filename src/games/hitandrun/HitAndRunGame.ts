@@ -124,17 +124,7 @@ export class HitAndRunGame extends PlatformerArcadeGame<
   }
 
   public override update(dt: number): void {
-    const isComplete = updateRunProgress(
-      this.world,
-      dt,
-      (rs) => rs.collectedPermanentIds.includes("archive_core_1")
-    );
-
-    if (isComplete && !this.gameOver) {
-      this.gameOver = true;
-      this.eventBus.emit("game:over", { state: this.getGameState() });
-    }
-
+    this.gameOver = this.checkRunProgressGameOver(dt, this.gameOver);
     this.world.update(dt);
   }
 

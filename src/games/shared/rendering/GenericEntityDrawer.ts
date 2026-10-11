@@ -85,16 +85,39 @@ export function drawSubPathCanvas(
 /**
  * Parametrically renders an entity profile onto an HTML5 Canvas 2D context.
  */
-export function drawFromGeometryProfileCanvas(
-  ctx: CanvasRenderingContext2D,
+export interface GenericDrawerPreamble {
+  size: number;
+  scale: number;
+  baseColor: string;
+  isHitFlashing: boolean;
+  hitFlashColor: string;
+}
+
+/**
+ * Resolves drawing parameters for parametric geometry profile rendering.
+ * @public
+ */
+export function resolveGenericDrawerPreamble(
   profile: EntityGeometryProfile,
   options: GenericDrawerOptions = {}
-): void {
+): GenericDrawerPreamble {
   const size = options.size || 20;
   const scale = (size / 2) * (profile.scaleMultiplier || 1.0);
   const baseColor = options.baseColor || "#00E5FF";
   const isHitFlashing = Boolean(options.isHitFlashing);
   const hitFlashColor = options.hitFlashColor || "#FFFFFF";
+  return { size, scale, baseColor, isHitFlashing, hitFlashColor };
+}
+
+/**
+ * Parametrically renders an entity profile onto an HTML5 Canvas 2D context.
+ */
+export function drawFromGeometryProfileCanvas(
+  ctx: CanvasRenderingContext2D,
+  profile: EntityGeometryProfile,
+  options: GenericDrawerOptions = {}
+): void {
+  const { scale, baseColor, isHitFlashing, hitFlashColor } = resolveGenericDrawerPreamble(profile, options);
 
   ctx.save();
 
@@ -121,11 +144,7 @@ export function drawFromGeometryProfileAdapter(
   profile: EntityGeometryProfile,
   options: GenericDrawerOptions = {}
 ): void {
-  const size = options.size || 20;
-  const scale = (size / 2) * (profile.scaleMultiplier || 1.0);
-  const baseColor = options.baseColor || "#00E5FF";
-  const isHitFlashing = Boolean(options.isHitFlashing);
-  const hitFlashColor = options.hitFlashColor || "#FFFFFF";
+  const { scale, baseColor, isHitFlashing, hitFlashColor } = resolveGenericDrawerPreamble(profile, options);
   const alpha = options.globalAlpha ?? 1.0;
 
   adapter.save();

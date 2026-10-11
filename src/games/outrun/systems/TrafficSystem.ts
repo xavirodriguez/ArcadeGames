@@ -1,29 +1,23 @@
 import { System, World } from "@tiny-aster/core";
-import type { OutrunConfig } from "../types/OutrunConfigSchema";
-import { DEFAULT_OUTRUN_CONFIG } from "../types/OutrunConfigSchema";
 import type {
   OutrunComponentRegistry,
   OutrunEventRegistry,
   RoadData
 } from "../types/OutrunTypes";
+import { resolveOutrunSystemContext } from "./OutrunSystemUtils";
 
 /**
  * Moves traffic / rival racers in race coordinates and resolves simple collisions
  * with the player. All logic stays in (z, lateralX) space.
  */
-// TODO(refactor): código duplicado detectado (bloque) con outrun/systems/RacerInputSystem.ts:10-26. Considerar extraer a función compartida. Ref: 10f66340
 export class TrafficSystem extends System<OutrunComponentRegistry, OutrunEventRegistry> {
   public override update(
     world: World<OutrunComponentRegistry, OutrunEventRegistry>,
     deltaTime: number
   ): void {
-    if (world.getResource("IsPaused") === true) return;
-
-    const state = world.getSingleton("RaceState");
-    if (!state || state.isGameOver) return;
-
-    const config =
-      world.getResource<OutrunConfig>("GameConfig") ?? DEFAULT_OUTRUN_CONFIG;
+    const ctx = resolveOutrunSystemContext(world);
+    if (!ctx) return;
+    const { state, config } = ctx;
     const roadData = world.getResource<RoadData>("RoadData");
     if (!roadData) return;
 

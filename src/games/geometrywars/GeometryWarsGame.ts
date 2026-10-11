@@ -39,7 +39,7 @@ import { GeometryWarsConfig, GeometryWarsConfigSchema, DEFAULT_CONFIG } from "./
 import { GeometryWarsGameScene } from "./scenes/GeometryWarsGameScene";
 import { colors } from "../../theme/colors";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
-import { markLocalPlayerEntity } from "../shared/networkUtils";
+import { markLocalPlayerEntity, NO_OP_SYNC } from "../shared/networkUtils";
 
 function createTransformComponent(x: number, y: number, rotation: number): TransformComponent {
   return {
@@ -316,7 +316,7 @@ export class GeometryWarsGame extends BaseGame<
           createRenderComponent({ shape: state.type || "gw_seeker", size: 12, color: colors.pink, rotation: state.angle, order: 1 })
         );
       },
-      sync: () => {}
+      sync: NO_OP_SYNC
     },
     {
       serverIdPrefix: "bullet",
@@ -330,8 +330,7 @@ export class GeometryWarsGame extends BaseGame<
           createRenderComponent({ shape: "gw_bullet", size: 4, color: colors.gold, rotation: state.angle, order: 2 })
         );
       },
-      sync:       // TODO(refactor): código duplicado detectado (función) con space-invaders/SpaceInvadersGame.ts:784-795. Considerar extraer a función compartida. Ref: bd80e9b8
-() => {}
+      sync: NO_OP_SYNC
     }
   ];
 

@@ -12,3 +12,9 @@ export function markLocalPlayerEntity(world: World, entity: Entity): void {
     commands.addComponent(entity, { type: "LocalPlayer" } as never);
   }
 }
+
+/**
+ * Reusable no-op synchronization handler for entity sync descriptors.
+ * @public
+ */
+export const NO_OP_SYNC = (): void => {};

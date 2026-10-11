@@ -3,6 +3,32 @@ import { EventRegistry } from "../events/EventBus";
 import { Entity } from "../ecs/Entity";
 import { RenderComponent, JuiceComponent, CoreComponentRegistry, ScreenShakeComponent } from "../ecs/CoreComponents";
 
+export interface ShootJuiceConfig {
+  muzzleFrames?: number;
+  recoilPx?: number;
+  shakeIntensity?: number;
+  shakeDuration?: number;
+}
+
+export interface HitJuiceConfig {
+  flashFrames?: number;
+  squashDuration?: number;
+  shakeIntensity?: number;
+  shakeDuration?: number;
+}
+
+export interface DeathJuiceConfig {
+  flashFrames?: number;
+  shakeIntensity?: number;
+  shakeDuration?: number;
+}
+
+export interface PickupJuiceConfig {
+  flashFrames?: number;
+  shakeIntensity?: number;
+  shakeDuration?: number;
+}
+
 /**
  * Static utility for applying juice effects (squash, stretch, shake, flash).
  * Works in tandem with the JuiceSystem.
@@ -158,7 +184,7 @@ export class Juice {
   >(
     world: World<TComponents, TEvents, TBlueprints>,
     entity: Entity,
-    config?: { muzzleFrames?: number; recoilPx?: number; shakeIntensity?: number; shakeDuration?: number }
+    config?: ShootJuiceConfig
   ): void {
     const coreWorld = world as unknown as World<CoreComponentRegistry>;
     const muzzleFrames = config?.muzzleFrames ?? 3;
@@ -179,15 +205,14 @@ export class Juice {
   /**
    * Reusable juice helper for entity impact feedback (hit flash, squash pulse, screen shake).
    */
-    // TODO(refactor): código duplicado detectado (método) con utils/Juice.ts:204-211. Considerar extraer a función compartida. Ref: 9c620182
-public static playHitJuice<
+  public static playHitJuice<
     TComponents extends CoreComponentRegistry = CoreComponentRegistry,
     TEvents extends EventRegistry = EventRegistry,
     TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
   >(
     world: World<TComponents, TEvents, TBlueprints>,
     entity: Entity,
-    config?: { flashFrames?: number; squashDuration?: number; shakeIntensity?: number; shakeDuration?: number }
+    config?: HitJuiceConfig
   ): void {
     const flashFrames = config?.flashFrames ?? 5;
     const squashDuration = config?.squashDuration ?? 100;
@@ -209,7 +234,7 @@ public static playHitJuice<
   >(
     world: World<TComponents, TEvents, TBlueprints>,
     entity: Entity,
-    config?: { flashFrames?: number; shakeIntensity?: number; shakeDuration?: number }
+    config?: DeathJuiceConfig
   ): void {
     const flashFrames = config?.flashFrames ?? 8;
     const intensity = config?.shakeIntensity ?? 5.0;
@@ -230,7 +255,7 @@ public static playHitJuice<
   >(
     world: World<TComponents, TEvents, TBlueprints>,
     entity: Entity,
-    config?: { flashFrames?: number; shakeIntensity?: number; shakeDuration?: number }
+    config?: PickupJuiceConfig
   ): void {
     const flashFrames = config?.flashFrames ?? 4;
     const intensity = config?.shakeIntensity ?? 1.0;

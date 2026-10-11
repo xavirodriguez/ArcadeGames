@@ -2,9 +2,9 @@ import {
   System,
   World,
   CoreComponentRegistry,
-  Entity,
-  createDeferredEntity
+  Entity
 } from "@tiny-aster/core";
+import { ArcadeEntityBuilder } from "@tiny-aster/gameplay-kit";
 import { isSimulationFrozen } from "../systems/HitRunFeedbackSystem";
 import { isPlayerControlLocked } from "../hurt/HitRunHurtSystem";
 import { depthZOverlap } from "../combat/HitVolume";
@@ -243,55 +243,35 @@ const ox = transform.worldX ?? transform.x;
       (world.getComponent(owner, "Faction") as { value?: string } | undefined)?.value ??
       "player";
 
-    const { entity: e, add } = createDeferredEntity(world);
+    const builder = world.isUpdating
+      ? ArcadeEntityBuilder.createDeferred(world)
+      : ArcadeEntityBuilder.create(world);
 
-    add({
-      type: "Transform",
-      x: hx,
-      y: hy,
-      worldX: hx,
-      worldY: hy,
-      rotation: 0,
-      worldRotation: 0,
-      scaleX: 1,
-      scaleY: 1,
-      worldScaleX: 1,
-      worldScaleY: 1,
-      dirty: true
-    });
+    const e = builder
+      .withTransform({ x: hx, y: hy, worldX: hx, worldY: hy })
+      .withVelocity()
+      .withCollider2D({
+        shape: { type: "aabb", halfWidth: halfW, halfHeight: halfH },
+        layer: ownerFaction === "player" ? 1 << 3 : 1 << 4,
+        mask: 0xffff,
+        isTrigger: true
+      })
+      .withCollisionEvents()
+      .build();
 
-    add({
-      type: "Velocity",
-      vx: 0,
-      vy: 0,
-      angularVelocity: 0
-    });
+    const addComp = (comp: unknown) => {
+      if (world.isUpdating) {
+        world.getCommandBuffer().addComponent(e, comp as never);
+      } else {
+        world.addComponent(e, comp as never);
+      }
+    };
 
-    add({
-      type: "Collider2D",
-      shape: { type: "aabb", halfWidth: halfW, halfHeight: halfH },
-      layer: ownerFaction === "player" ? 1 << 3 : 1 << 4,
-      mask: 0xffff,
-      offsetX: 0,
-      offsetY: 0,
-      isTrigger: true,
-      enabled: true
-    });
-
-    add({
-      type: "CollisionEvents",
-      collisions: [],
-      activeTriggers: [],
-      triggersEntered: [],
-      triggersExited: []
-    });
-
-    add({
+    addComp({
       type: "Faction",
       value: ownerFaction
     });
-
-    add({
+    addComp({
       type: "Tag",
       tags: ["MeleeHitbox"]
     });

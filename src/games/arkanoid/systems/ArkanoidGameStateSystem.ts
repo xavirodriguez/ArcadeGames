@@ -4,17 +4,16 @@ import { ArkanoidConfig, DEFAULT_ARKANOID_CONFIG } from "../types/ArkanoidConfig
 import { ArkanoidEntityFactory } from "../EntityFactory";
 import { LevelCatalog } from "../domain/LevelCatalog";
 import { DohFactory } from "../boss/DohFactory";
+import { resolveArkanoidSystemContext } from "./ArkanoidSystemUtils";
 
-// TODO(refactor): código duplicado detectado (bloque) con arkanoid/systems/ArkanoidPowerUpSystems.ts:63-70. Considerar extraer a función compartida. Ref: 2965ba31
 export class ArkanoidGameStateSystem extends System<ArkanoidComponentRegistry, ArkanoidEventRegistry> {
   private config?: ArkanoidConfig;
 
   public override update(world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>, _deltaTime: number): void {
-    if (world.getResource("IsPaused") === true) return;
-    this.config = world.getResource<ArkanoidConfig>("GameConfig") || DEFAULT_ARKANOID_CONFIG;
-
-    const state = world.getSingleton("ArkanoidState");
-    if (!state || state.isGameOver) return;
+    const ctx = resolveArkanoidSystemContext(world);
+    if (!ctx || !ctx.state) return;
+    this.config = ctx.config;
+    const state = ctx.state;
 
     if (state.level === 33) return;
 

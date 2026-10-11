@@ -1,7 +1,7 @@
 import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
 import { PongComponentRegistry } from "../types";
 import { PongConfig } from "../types/PongConfigSchema";
-import { CanvasMotionTrail, drawNeonShape, drawProceduralGrid, canvasRoundRectPath } from "../../shared/rendering/CanvasNeonUtils";
+import { CanvasMotionTrail, drawNeonShape, drawProceduralGrid, canvasRoundRectPath, drawCenteredScaledRoundRectPath } from "../../shared/rendering/CanvasNeonUtils";
 import { colors } from "../../../theme/colors";
 import { resolvePongBallContext, resolvePongPaddleContext } from "./PongRenderUtils";
 
@@ -78,16 +78,11 @@ export const drawPongPaddle: ShapeDrawer<CanvasRenderingContext2D, PongComponent
       world.tick,
       color,
       glowAlphaColor,
-            // TODO(refactor): código duplicado detectado (función) con arkanoid/rendering/ArkanoidCanvasVisuals.ts:32-39. Considerar extraer a función compartida. Ref: c2fd39d3
-(ctx, widthScale, heightScale) => {
-        const pw = w * widthScale;
-        const ph = h * heightScale;
-        canvasRoundRectPath(ctx, -pw / 2, -ph / 2, pw, ph, 4);
-      },
-      (ctx) => {
+      (c, widthScale, heightScale) => drawCenteredScaledRoundRectPath(c, w, h, widthScale, heightScale, 4),
+      (c) => {
         const coreW = w * 0.4;
         const coreH = h * 0.9;
-        canvasRoundRectPath(ctx, -coreW / 2, -coreH / 2, coreW, coreH, 2);
+        canvasRoundRectPath(c, -coreW / 2, -coreH / 2, coreW, coreH, 2);
       }
     );
   }

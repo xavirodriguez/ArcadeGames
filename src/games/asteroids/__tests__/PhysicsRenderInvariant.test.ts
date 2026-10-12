@@ -38,6 +38,7 @@ describe("Physics and Render Cross-Invariant Test", () => {
         return undefined;
       },
       hasComponent: () => false,
+      getResource: () => undefined,
       tick: 0,
       renderRandom: { next: () => 0.5 }
     };

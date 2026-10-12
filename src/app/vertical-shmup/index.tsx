@@ -72,9 +72,9 @@ export default function VerticalShmupScreen() {
                 <TouchVirtualJoystick
                   touchState={touchStateRef.current ?? undefined}
                   floating={true}
-                  onMove={(x, y) => setInput({ moveX: x, moveY: y, shoot: true })}
-                  onRelease={() => setInput({ moveX: 0, moveY: 0, shoot: false })}
-                  accessibilityLabel="Movement and Fire Joystick"
+                  onMove={(x, y) => setInput({ moveX: x, moveY: y })}
+                  onRelease={() => setInput({ moveX: 0, moveY: 0 })}
+                  accessibilityLabel="Movement Joystick"
                 />
               </View>
               <View style={styles.rightControlArea} pointerEvents="box-none">

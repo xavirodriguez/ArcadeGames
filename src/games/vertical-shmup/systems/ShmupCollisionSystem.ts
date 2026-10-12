@@ -1,13 +1,27 @@
 import { System, World, WorldUtils, Juice } from "@tiny-aster/core";
 import { ShmupComponentRegistry, ShmupEventRegistry } from "../types/ShmupTypes";
-import { ShmupConfig } from "../types/ShmupConfigSchema";
 import { spawnLayeredExplosion } from "../../shared/rendering/SharedVFX";
-import { createEnemy } from "../EntityFactory";
 
 export class ShmupCollisionSystem extends System<ShmupComponentRegistry, ShmupEventRegistry> {
+  private subscribed = false;
+
   update(world: World<ShmupComponentRegistry, ShmupEventRegistry>, deltaTime: number): void {
-    const config = world.getResource<ShmupConfig>("GameConfig");
-    const worldWidth = config?.WORLD_WIDTH ?? 480;
+    if (!this.subscribed) {
+      this.subscribed = true;
+      world.getEventBus()?.on("combat:hit", (event) => {
+        if (!event || typeof event.targetEntity !== "number") return;
+        const player = world.getComponent(event.targetEntity, "ShmupPlayer");
+        if (player) {
+          world.mutateComponent(event.targetEntity, "Health", (health) => {
+            health.invulnerableRemaining = 1.5;
+          });
+          world.mutateComponent(event.targetEntity, "Render", (render) => {
+            render.hitFlashFrames = 10;
+          });
+          Juice.playHitJuice(world, event.targetEntity, { shakeIntensity: 4.0, shakeDuration: 120 });
+        }
+      });
+    }
 
     // 1. Process Enemy Destruction
     for (const entity of world.query("ShmupEnemy", "Health")) {
@@ -49,33 +63,5 @@ export class ShmupCollisionSystem extends System<ShmupComponentRegistry, ShmupEv
       }
     }
 
-    // 3. Wave Progression & Enemy Spawning
-    const activeEnemies = world.query("ShmupEnemy");
-    const state = world.getSingleton("ShmupGameState");
-
-    if (state && !state.isGameOver) {
-      if (activeEnemies.length === 0) {
-        // All wave enemies cleared -> advance wave
-        const nextWave = state.wave + 1;
-        world.mutateSingleton("ShmupGameState", (s) => {
-          s.wave = nextWave;
-          s.spawnTimer = 0;
-        });
-
-        world.getEventBus()?.emitDeferred("shmup:wave_complete", { wave: nextWave });
-        world.getEventBus()?.emitDeferred("PlaySFX", { name: "level_complete" });
-
-        // Spawn new enemy wave above screen
-        const enemyCount = 5 + Math.min(10, nextWave * 2);
-        const rng = world.gameplayRandom;
-
-        for (let i = 0; i < enemyCount; i++) {
-          const kind = i % 3 === 0 ? "sine" : i % 2 === 0 ? "arc" : "straight";
-          const startX = 50 + rng.next() * (worldWidth - 100);
-          const startY = -40 - i * 50;
-          createEnemy(world, startX, startY, kind);
-        }
-      }
-    }
   }
 }

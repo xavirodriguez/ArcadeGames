@@ -55,7 +55,12 @@ export class BoundarySystem extends System<CoreComponentRegistry> {
           }
         }
       } else if (b.mode === "destroy") {
-        if (t.x < 0 || t.x > b.width || t.y < 0 || t.y > b.height) {
+        const minX = b.minX ?? 0;
+        const maxX = b.maxX ?? b.width;
+        const minY = b.minY ?? 0;
+        const maxY = b.maxY ?? b.height;
+
+        if (t.x < minX || t.x > maxX || t.y < minY || t.y > maxY) {
           world.reclaimEntity(entity);
         }
       } else if (b.mode === "bounce") {

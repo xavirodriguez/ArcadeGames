@@ -6,13 +6,20 @@ export class ScrollSystem extends System<ShmupComponentRegistry, ShmupEventRegis
   update(world: World<ShmupComponentRegistry, ShmupEventRegistry>, deltaTime: number): void {
     const config = world.getResource<ShmupConfig>("GameConfig");
     if (!config) return;
+
     world.mutateSingleton("ShmupGameState", (state) => {
       state.scrollDistance += config.SCROLL_SPEED * deltaTime;
     });
+
     const camera = world.query("Camera2D")[0];
     if (camera !== undefined) {
       const c = world.getMutableComponent(camera, "Camera2D");
-      if (c) { c.targetY += config.SCROLL_SPEED * deltaTime; }
+      if (c) {
+        c.x = 0;
+        c.y = 0;
+        c.targetX = 0;
+        c.targetY = 0;
+      }
     }
   }
 }

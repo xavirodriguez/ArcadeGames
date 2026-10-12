@@ -87,6 +87,7 @@ import { drawHitRunHud } from "./rendering/HitRunHudCanvas";
 import { drawHitRunDebugOverlay } from "./rendering/HitRunDebugOverlay";
 import { drawPlatformerTilemap } from "../shared/rendering/PlatformerSharedVisuals";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
+import { runWithUnlockedRandomAndMutators } from "../shared/configHelper";
 
 export interface HitAndRunConfig {
   seed?: number;
@@ -201,41 +202,43 @@ export class HitAndRunGame extends PlatformerArcadeGame<
   }
 
   protected override async onInitializeEntities(): Promise<void> {
-    registerBeltPlayerBlueprint(this.blueprints);
+    runWithUnlockedRandomAndMutators(this.world, this._config.gameOptions, () => {
+      registerBeltPlayerBlueprint(this.blueprints);
 
-    this.levelPlan = generateAndInstantiatePlatformerLevel(
-      this.world,
-      this.customLevelData,
-      hitRunLevelData,
-      this.getSeed() || 41873,
-      DEFAULT_HIT_AND_RUN_CONFIG,
-      DEFAULT_BELT_PLAYER_SPAWN
-    );
+      this.levelPlan = generateAndInstantiatePlatformerLevel(
+        this.world,
+        this.customLevelData,
+        hitRunLevelData,
+        this.getSeed() || 41873,
+        DEFAULT_HIT_AND_RUN_CONFIG,
+        DEFAULT_BELT_PLAYER_SPAWN
+      );
 
-    const playerEntity = this.world.createEntity();
-    const playerBp = this.blueprints.get("player");
-    if (playerBp) {
-      playerBp.spawn(this.world, playerEntity, {
-        x: DEFAULT_BELT_PLAYER_SPAWN.x,
-        y: DEFAULT_BELT_PLAYER_SPAWN.y,
-        weaponId: "longbow",
-        health: 5
-      } as import("./belt/registerBeltPlayerBlueprint").BeltPlayerSpawnArgs);
-    } else {
-      throw new Error("[HitAndRunGame] Blueprint 'player' is not registered.");
-    }
+      const playerEntity = this.world.createEntity();
+      const playerBp = this.blueprints.get("player");
+      if (playerBp) {
+        playerBp.spawn(this.world, playerEntity, {
+          x: DEFAULT_BELT_PLAYER_SPAWN.x,
+          y: DEFAULT_BELT_PLAYER_SPAWN.y,
+          weaponId: "longbow",
+          health: 5
+        } as import("./belt/registerBeltPlayerBlueprint").BeltPlayerSpawnArgs);
+      } else {
+        throw new Error("[HitAndRunGame] Blueprint 'player' is not registered.");
+      }
 
-    createMainCamera2D(this.world, playerEntity, {
-      lookAheadX: 60,
-      smoothingX: 5.0,
-      smoothingY: 5.0,
-      verticalDeadzone: 40
+      createMainCamera2D(this.world, playerEntity, {
+        lookAheadX: 60,
+        smoothingX: 5.0,
+        smoothingY: 5.0,
+        verticalDeadzone: 40
+      });
+
+      const gameConfig = this.world.getResource<{ viewportWidth?: number; viewportHeight?: number }>("GameConfig");
+      this.installProceduralBackdrop(gameConfig?.viewportWidth ?? 800, gameConfig?.viewportHeight ?? 600);
+
+      this.world.flush();
     });
-
-    const gameConfig = this.world.getResource<{ viewportWidth?: number; viewportHeight?: number }>("GameConfig");
-    this.installProceduralBackdrop(gameConfig?.viewportWidth ?? 800, gameConfig?.viewportHeight ?? 600);
-
-    this.world.flush();
   }
 
   public override setInputState(input: Partial<HitAndRunInput>): void {

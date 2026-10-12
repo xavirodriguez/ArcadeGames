@@ -4,6 +4,7 @@ import { ShmupComponentRegistry } from "./types/ShmupTypes";
 import { ShmupConfig } from "./types/ShmupConfigSchema";
 import { PlayerBulletPool, EnemyBulletPool } from "./EntityPool";
 import { getGameplayColor } from "../../theme/GameplayColorMap";
+import { attachEnemyDefaults } from "../shared/enemyHelpers";
 
 export function createPlayer(world: World<ShmupComponentRegistry>, x: number, y: number): Entity {
   const c = world.getResource<ShmupConfig>("GameConfig")!;
@@ -44,8 +45,12 @@ export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: 
     .withCollider({ shape: { type: ShapeType.Circle, radius: c.ENEMY_COLLIDER_RADIUS } as CircleShape, layer: CollisionLayers.ENEMY, mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE })
     .withCollisionEvents();
   world.addComponent(e, { type: "ShmupEnemy", score: c.ENEMY_SCORE });
-  world.addComponent(e, { type: "Health", current: c.ENEMY_HP, max: c.ENEMY_HP });
-  world.addComponent(e, { type: "Faction", faction: "enemy", value: "enemy" });
+  attachEnemyDefaults(world, e, {
+    currentHp: c.ENEMY_HP,
+    maxHp: c.ENEMY_HP,
+    faction: "enemy",
+    includeLootTable: false
+  });
   world.addComponent(e, { type: "EnemyPath", kind, elapsed: 0, duration: 8, speed: c.ENEMY_SPEED, amplitude: 90, frequency: 1.8, originX: x, originY: y });
   world.addComponent(e, {
     type: "Boundary",

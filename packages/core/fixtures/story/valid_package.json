@@ -1,0 +1,40 @@
+{
+  "manifest": {
+    "id": "fixture_valid_package",
+    "title": "Valid Story Package Fixture",
+    "contentVersion": "1.0.0",
+    "schemaVersion": 3,
+    "entryGraph": "fixture_graph_1"
+  },
+  "graphs": {
+    "fixture_graph_1": {
+      "id": "fixture_graph_1",
+      "title": "Fixture Graph 1",
+      "entryNodeId": "node_start",
+      "nodes": {
+        "node_start": {
+          "id": "node_start",
+          "type": "dialogue",
+          "dialogue": {
+            "id": "diag_1",
+            "lines": [{ "textKey": "fixture.hello" }]
+          },
+          "transitions": [
+            {
+              "targetNodeId": "node_end",
+              "condition": { "type": "event", "key": "dialogue:completed" }
+            }
+          ]
+        },
+        "node_end": {
+          "id": "node_end",
+          "type": "cutscene",
+          "isEndNode": true,
+          "cutscene": {
+            "id": "cs_end"
+          }
+        }
+      }
+    }
+  }
+}

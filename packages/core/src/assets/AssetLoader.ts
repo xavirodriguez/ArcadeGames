@@ -125,6 +125,15 @@ export class AssetLoader {
   constructor(private provider?: IAssetProvider) {}
 
   /**
+   * Retrieves the currently registered platform asset provider.
+   *
+   * @returns The registered {@link IAssetProvider} or `undefined`.
+   */
+  public getProvider(): IAssetProvider | undefined {
+    return this.provider;
+  }
+
+  /**
    * Assigns or updates the platform asset provider.
    *
    * @param provider - Platform resource loader implementing {@link IAssetProvider}.

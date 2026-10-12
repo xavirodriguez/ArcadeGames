@@ -12,7 +12,9 @@ import {
   resolveChargerVisualState,
   resolveEchoRunnerPalette,
   EchoRunnerResolvedPalette
-} from "../../echorunner/rendering/EchoRunnerVisualUtils";
+} from "./PlatformerSharedVisualUtils";
+
+export { drawPlatformerTilemap } from "./PlatformerSharedTilemap";
 
 const gradientCache = new Map<string, CanvasGradient>();
 let lastCtx: CanvasRenderingContext2D | null = null;

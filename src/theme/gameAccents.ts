@@ -38,6 +38,11 @@ export const GAME_ACCENTS = {
     secondary: 'gold' as const,
     accent: 'pink' as const,
   },
+  hitandrun: {
+    primary: 'cyan' as const,
+    secondary: 'gold' as const,
+    accent: 'pink' as const,
+  },
   geometrywars: {
     primary: 'cyan' as const,
     secondary: 'gold' as const,
@@ -56,6 +61,11 @@ export const GAME_ACCENTS = {
   racing: {
     primary: 'cyan' as const,
     secondary: 'gold' as const,
+    accent: 'pink' as const,
+  },
+  outrun: {
+    primary: 'cyan' as const,
+    secondary: 'magentaHot' as const,
     accent: 'pink' as const,
   },
   'vertical-shmup': {
@@ -140,6 +150,13 @@ export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<
       particleShape: "shard",
       backgroundLayers: ["echo_bg", "grid", "data_pillars"],
     },
+    hitandrun: {
+      starDensity: 0.8,
+      starSpeed: 0.4,
+      ambientGlow: 0.4,
+      particleShape: "shard",
+      backgroundLayers: ["hit_run_procedural_backdrop"],
+    },
     arkanoid: {
       starDensity: 0.5,
       starSpeed: 0.2,
@@ -155,6 +172,13 @@ export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<
       backgroundLayers: ["starfield"],
     },
     racing: {
+      starDensity: 0.1,
+      starSpeed: 0.0,
+      ambientGlow: 0.3,
+      particleShape: "circle",
+      backgroundLayers: [],
+    },
+    outrun: {
       starDensity: 0.1,
       starSpeed: 0.0,
       ambientGlow: 0.3,
@@ -205,6 +229,50 @@ export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<
     log: accentColors.secondary,
     turtle: accentColors.secondary,
     "track-wall": accentColors.accent,
+
+    // Frogger role tokens
+    home_slot: "#00AA44",
+    home_slot_occupied: "#39FF14",
+    water: "#051C33",
+    water_grid: "rgba(0, 243, 255, 0.15)",
+    frogger_grass: "#0B2B16",
+    frogger_road: "#121218",
+
+    // Tower Defense role tokens
+    tower_basic: "#4fc3f7",
+    tower_basic_accent: "#81d4fa",
+    tower_sniper: "#ab47bc",
+    tower_sniper_accent: "#ce93d8",
+    tower_rapid: "#66bb6a",
+    tower_rapid_accent: "#a5d6a7",
+    tower_frost: "#4dd0e1",
+    tower_frost_accent: "#b2ebf2",
+    tower_base_bg: "#1a2332",
+    creep_grunt: "#ff7043",
+    creep_grunt_stroke: "#ffab91",
+    creep_fast: "#29b6f6",
+    creep_fast_stroke: "#81d4fa",
+    creep_tank: "#8d6e63",
+    creep_tank_stroke: "#bcaaa4",
+    creep_boss: "#c62828",
+    creep_boss_stroke: "#ef9a9a",
+    creep_slowed: "#80deea",
+    creep_slowed_stroke: "#e0f7fa",
+    tower_projectile: "#ffee58",
+    tower_projectile_frost: "#4dd0e1",
+
+    // Platformer role tokens
+    goal: "#fbbf24",
+    tile_slate: "#1e293b",
+    tile_border: "#334155",
+    tile_cyan: "#00f0ff",
+    tile_gold: "#fbbf24",
+    tile_danger: "#ef4444",
+
+    // Outrun role tokens
+    outrun_car: "#e63946",
+    outrun_hud_bg: "rgba(15, 23, 42, 0.85)",
+    outrun_hud_accent: "#00f0ff",
 
     // Echo Runner "The Archive" role tokens
     restorationCyan: "#00f0ff",

@@ -5,6 +5,7 @@ import { ShmupConfig } from "./types/ShmupConfigSchema";
 import { PlayerBulletPool, EnemyBulletPool } from "./EntityPool";
 import { getGameplayColor } from "../../theme/GameplayColorMap";
 import type { BulletPatternConfig } from "../shared/BulletPatternSystem";
+import { attachEnemyDefaults } from "../shared/enemyHelpers";
 
 export function createPlayer(world: World<ShmupComponentRegistry>, x: number, y: number): Entity {
   const c = world.getResource<ShmupConfig>("GameConfig")!;

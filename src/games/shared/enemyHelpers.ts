@@ -10,10 +10,11 @@ export interface EnemyDefaultsOptions {
   maxHp?: number;
   faction?: string;
   tableId?: string;
+  includeLootTable?: boolean;
 }
 
 /**
- * Helper function to attach standard enemy default components (`Health`, `Faction`, `LootTable`)
+ * Helper function to attach standard enemy default components (`Health`, `Faction`, and optionally `LootTable`)
  * to a given entity in the ECS world.
  *
  * @param world - Target ECS World instance.
@@ -30,6 +31,7 @@ export function attachEnemyDefaults(
   const maxHp = options.maxHp ?? 1;
   const factionName = options.faction ?? "enemy";
   const tableId = options.tableId ?? "default";
+  const includeLootTable = options.includeLootTable ?? true;
 
   world.addComponent(entity, {
     type: "Health",
@@ -43,8 +45,10 @@ export function attachEnemyDefaults(
     value: factionName
   } as FactionComponent);
 
-  world.addComponent(entity, {
-    type: "LootTable",
-    tableId
-  } as LootTableComponent);
+  if (includeLootTable) {
+    world.addComponent(entity, {
+      type: "LootTable",
+      tableId
+    } as LootTableComponent);
+  }
 }

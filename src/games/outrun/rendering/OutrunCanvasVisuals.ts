@@ -1,4 +1,4 @@
-import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
+import { ShapeDrawer, EffectDrawer, resolveThemeColorWithFallback } from "@tiny-aster/core";
 import type { OutrunComponentRegistry } from "../types/OutrunTypes";
 import type { OutrunConfig } from "../types/OutrunConfigSchema";
 import { DEFAULT_OUTRUN_CONFIG } from "../types/OutrunConfigSchema";
@@ -497,6 +497,8 @@ export const drawOutrunCar: ShapeDrawer<CanvasRenderingContext2D, OutrunComponen
     const config =
       world.getResource<OutrunConfig>("GameConfig") ?? DEFAULT_OUTRUN_CONFIG;
 
+    const carColor = resolveThemeColorWithFallback(world, render.color || "#e63946", "outrun_car", "player", "primary");
+
     const visualOffset = world.getComponent(entity, "VisualOffset");
     const geom = computePlayerCarGeometry(state, config, visualOffset);
 
@@ -529,7 +531,7 @@ export const drawOutrunCar: ShapeDrawer<CanvasRenderingContext2D, OutrunComponen
     ctx.rotate(geom.tiltAngle);
     ctx.scale(geom.carScale, geom.carScale);
 
-    ctx.fillStyle = "#ff5252";
+    ctx.fillStyle = carColor;
     ctx.beginPath();
     ctx.moveTo(-28, 10);
     ctx.lineTo(-22, -18);
@@ -597,12 +599,15 @@ export const drawOutrunHud: EffectDrawer<CanvasRenderingContext2D, OutrunCompone
     const timeStr = state.lapTime.toFixed(1);
     const phase = state.racePhase ?? "racing";
 
+    const hudBg = resolveThemeColorWithFallback(world, "rgba(15, 23, 42, 0.85)", "outrun_hud_bg");
+    const hudAccent = resolveThemeColorWithFallback(world, "#00f0ff", "outrun_hud_accent", "primary");
+
     ctx.save();
 
     const drawHudCard = (x: number, y: number, w: number, h: number, text: string, align: "left" | "right" = "left") => {
-      ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+      ctx.fillStyle = hudBg;
       ctx.fillRect(x, y, w, h);
-      ctx.strokeStyle = "#00f0ff";
+      ctx.strokeStyle = hudAccent;
       ctx.lineWidth = 1.5;
       ctx.strokeRect(x, y, w, h);
 
@@ -627,7 +632,7 @@ export const drawOutrunHud: EffectDrawer<CanvasRenderingContext2D, OutrunCompone
       ctx.strokeRect(config.WIDTH / 2 - 90, config.HEIGHT / 2 - 50, 180, 100);
 
       ctx.font = "bold 42px monospace";
-      ctx.fillStyle = "#00f0ff";
+      ctx.fillStyle = hudAccent;
       ctx.textAlign = "center";
       ctx.fillText(cdText, config.WIDTH / 2, config.HEIGHT / 2 + 14);
     } else if (phase === "finished" || state.isGameOver) {

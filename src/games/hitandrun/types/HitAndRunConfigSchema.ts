@@ -7,11 +7,14 @@ import {
   JumpPhysicsSchema
 } from "@tiny-aster/gameplay-kit";
 
-import { EchoRunnerConfigSchema } from "../../echorunner/types/EchoRunnerConfigSchema";
-
-export const HitAndRunConfigSchema = EchoRunnerConfigSchema.extend({
-  // Additional configuration parameters specific to Hit & Run (if any)
-});
+export const HitAndRunConfigSchema = BaseConfigSchema
+  .merge(ScreenDimensionsSchema)
+  .merge(TileGridSchema)
+  .merge(PlayerMovementSchema)
+  .merge(JumpPhysicsSchema)
+  .extend({
+    // Additional configuration parameters specific to Hit & Run (if any)
+  });
 
 export type HitAndRunConfig = z.infer<typeof HitAndRunConfigSchema>;
 

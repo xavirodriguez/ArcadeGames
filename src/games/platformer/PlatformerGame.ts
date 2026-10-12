@@ -28,7 +28,7 @@ import {
   preloadSharedAudioManifest,
   SHARED_AUDIO_MANIFEST
 } from "@tiny-aster/core";
-import { setupPlatformerMovementComponents, registerPlatformerTilemapBlueprint, createMainCamera2D, syncLevelWorldDimensions, registerCollectibleTriggerBlueprint } from "../shared/componentBuilders";
+import { setupPlatformerMovementComponents, registerPlatformerTilemapBlueprint, createMainCamera2D, syncLevelWorldDimensions, registerCollectibleTriggerBlueprint, registerPowerUpTriggerBlueprint } from "../shared/componentBuilders";
 import { PlatformerInputSystem } from "./systems/PlatformerInputSystem";
 import { resolveAndApplyMutators } from "../../config/MutatorConfig";
 import { PlatformerGoalSystem, LevelGoalComponent } from "./systems/PlatformerGoalSystem";
@@ -171,32 +171,8 @@ this.baseConfig = ConfigService.load<PlatformerConfigType>(
     registerPlatformerEnvironmentBlueprints(this.blueprints);
     registerPlatformerEnemyBlueprints(this.blueprints);
 
-    const registerPowerUpBlueprint = (
-      id: string,
-      powerUpKind: string
-    ) => {
-            // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:199-204. Considerar extraer a función compartida. Ref: 564e71c2
-this.blueprints.register(id, {
-        spawn: (world, entity, args: { x: number; y: number }) => {
-          ArcadeEntityBuilder.fromEntity(world, entity)
-            .withTransform({ x: args.x, y: args.y })
-            .withCollider2D({
-              shape: { type: "aabb", halfWidth: 12, halfHeight: 12 },
-              isTrigger: true
-            })
-            .withCollisionEvents()
-            .withPowerUp(powerUpKind)
-            .withRender({
-              shape: "fragment",
-              size: 18,
-              order: 1
-            });
-        }
-      });
-    };
-
-    registerPowerUpBlueprint("powerup_double_jump", "double_jump");
-    registerPowerUpBlueprint("powerup_dash", "dash_unlock");
+    registerPowerUpTriggerBlueprint(this.blueprints, "powerup_double_jump", "double_jump");
+    registerPowerUpTriggerBlueprint(this.blueprints, "powerup_dash", "dash_unlock");
 
     this.blueprints.register("goal", {
       spawn: (world, entity, args: { x: number; y: number }) => {

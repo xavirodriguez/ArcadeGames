@@ -1,5 +1,4 @@
 import type { ShapeDrawer, EffectDrawer, RenderContext } from "@tiny-aster/core";
-import { resolveThemeColorWithFallback } from "@tiny-aster/core";
 import type { SkCanvas } from "@shopify/react-native-skia";
 import type { OutrunComponentRegistry } from "../types/OutrunTypes";
 import type { OutrunConfig } from "../types/OutrunConfigSchema";
@@ -482,8 +481,6 @@ export const drawSkiaOutrunCar: ShapeDrawer<RenderContext, OutrunComponentRegist
     const config =
       world.getResource<OutrunConfig>("GameConfig") ?? DEFAULT_OUTRUN_CONFIG;
 
-    const carColor = resolveThemeColorWithFallback(world, render.color || "#e63946", "outrun_car", "player", "primary");
-
     const visualOffset = world.getComponent(entity, "VisualOffset");
     const geom = computePlayerCarGeometry(state, config, visualOffset);
     const paint = getPaint();
@@ -518,7 +515,7 @@ export const drawSkiaOutrunCar: ShapeDrawer<RenderContext, OutrunComponentRegist
     paint.reset();
     paint.setAntiAlias(true);
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(carColor));
+    paint.setColor(Skia.Color("#ff5252"));
     const body = Skia.Path.Make();
     body.moveTo(-28, 10);
     body.lineTo(-22, -18);
@@ -596,21 +593,18 @@ export const drawSkiaOutrunHud: EffectDrawer<RenderContext, OutrunComponentRegis
     const phase = state.racePhase ?? "racing";
     const paint = getPaint();
 
-    const hudBg = resolveThemeColorWithFallback(world, "rgba(15, 23, 42, 0.85)", "outrun_hud_bg");
-    const hudAccent = resolveThemeColorWithFallback(world, "#00f0ff", "outrun_hud_accent", "primary");
-
     canvas.save();
 
     const drawSkiaCard = (x: number, y: number, w: number, h: number, _text: string) => {
       paint.reset();
       paint.setAntiAlias(true);
       paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color(hudBg));
+      paint.setColor(Skia.Color("rgba(15, 23, 42, 0.85)"));
       canvas.drawRect(Skia.XYWHRect(x, y, w, h), paint);
 
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setStrokeWidth(1.5);
-      paint.setColor(Skia.Color(hudAccent));
+      paint.setColor(Skia.Color("#00f0ff"));
       canvas.drawRect(Skia.XYWHRect(x, y, w, h), paint);
     };
 
@@ -633,7 +627,7 @@ export const drawSkiaOutrunHud: EffectDrawer<RenderContext, OutrunComponentRegis
       paint.reset();
       paint.setAntiAlias(true);
       paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color(hudBg));
+      paint.setColor(Skia.Color("rgba(15, 23, 42, 0.85)"));
       canvas.drawRect(Skia.XYWHRect(config.WIDTH / 2 - 120, config.HEIGHT / 2 - 50, 240, 100), paint);
 
       paint.setStyle(Skia.PaintStyle.Stroke);

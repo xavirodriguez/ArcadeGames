@@ -16,13 +16,13 @@ describe("VerticalShmup Rendering & Parity", () => {
       type: "canvas",
       registerShape: (name: string) => registeredCanvasShapes.add(name),
       registerBackgroundEffect: (name: string) => registeredCanvasEffects.add(name)
-    } as unknown as Renderer<ShmupComponentRegistry, unknown>;
+    } as Renderer<ShmupComponentRegistry, unknown>;
 
     const mockSkiaRenderer = {
       type: "skia",
       registerShape: (name: string) => registeredSkiaShapes.add(name),
       registerBackgroundEffect: (name: string) => registeredSkiaEffects.add(name)
-    } as unknown as Renderer<ShmupComponentRegistry, unknown>;
+    } as Renderer<ShmupComponentRegistry, unknown>;
 
     game.initializeRenderer(mockCanvasRenderer);
     game.initializeRenderer(mockSkiaRenderer);

@@ -1,4 +1,5 @@
-import { ShapeDrawer, CoreComponentRegistry, TilemapComponent, resolveThemeColorWithFallback } from "@tiny-aster/core";
+import { ShapeDrawer, World, CoreComponentRegistry, TilemapComponent } from "@tiny-aster/core";
+import { colors } from "../../../theme/colors";
 import { resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 
 export const drawPlatformerTilemap: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
@@ -15,13 +16,6 @@ export const drawPlatformerTilemap: ShapeDrawer<CanvasRenderingContext2D, CoreCo
     const minY = range ? Math.max(0, range.minY) : 0;
     const maxY = range ? Math.min(data.length - 1, range.maxY) : data.length - 1;
 
-    const slateColor = resolveThemeColorWithFallback(world, "#1e293b", "tile_slate", "archiveSlate");
-    const borderColor = resolveThemeColorWithFallback(world, "#334155", "tile_border", "archiveBorderLight");
-    const cyanColor = resolveThemeColorWithFallback(world, "#00f0ff", "tile_cyan", "restorationCyan", "primary");
-    const goldColor = resolveThemeColorWithFallback(world, "#fbbf24", "tile_gold", "restorationGold", "secondary");
-    const dangerColor = resolveThemeColorWithFallback(world, "#ef4444", "tile_danger", "corruptionCrimson", "accent");
-    const whiteColor = resolveThemeColorWithFallback(world, "#ffffff", "restorationWhite");
-
     ctx.save();
 
     for (let r = minY; r <= maxY; r++) {
@@ -36,31 +30,31 @@ export const drawPlatformerTilemap: ShapeDrawer<CanvasRenderingContext2D, CoreCo
 
         switch (tileId) {
           case 1:
-            ctx.fillStyle = slateColor;
-            ctx.strokeStyle = borderColor;
+            ctx.fillStyle = colors.slate;
+            ctx.strokeStyle = colors.borderLight;
             ctx.lineWidth = 1;
             ctx.fillRect(0, 0, tileSize, tileSize);
             ctx.strokeRect(0, 0, tileSize, tileSize);
-            ctx.fillStyle = cyanColor;
+            ctx.fillStyle = colors.cyan;
             ctx.fillRect(0, 0, tileSize, 3);
             break;
           case 2:
             ctx.fillStyle = "rgba(0, 240, 255, 0.25)";
-            ctx.strokeStyle = cyanColor;
+            ctx.strokeStyle = colors.cyan;
             ctx.lineWidth = 1.5;
             ctx.fillRect(0, 0, tileSize, tileSize);
             ctx.strokeRect(0, 0, tileSize, tileSize);
             break;
           case 3:
             ctx.fillStyle = "rgba(234, 179, 8, 0.3)";
-            ctx.strokeStyle = goldColor;
+            ctx.strokeStyle = colors.gold;
             ctx.lineWidth = 2;
             ctx.fillRect(0, 0, tileSize, tileSize);
             ctx.strokeRect(0, 0, tileSize, tileSize);
             break;
           case 4:
-            ctx.fillStyle = dangerColor;
-            ctx.strokeStyle = whiteColor;
+            ctx.fillStyle = colors.danger;
+            ctx.strokeStyle = colors.white;
             ctx.lineWidth = 1;
             for (let s = 0; s < 3; s++) {
               ctx.beginPath();
@@ -73,11 +67,11 @@ export const drawPlatformerTilemap: ShapeDrawer<CanvasRenderingContext2D, CoreCo
             }
             break;
           case 5:
-            ctx.fillStyle = cyanColor;
+            ctx.fillStyle = colors.cyan;
             ctx.fillRect(0, 0, tileSize, 6);
             break;
           default:
-            ctx.fillStyle = slateColor;
+            ctx.fillStyle = colors.slate;
             ctx.fillRect(0, 0, tileSize, tileSize);
             break;
         }
@@ -96,9 +90,6 @@ export const drawPlatformerPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreCom
     if (!render || !render.visible) return;
     const size = render.size || 20;
 
-    const playerColor = resolveThemeColorWithFallback(world, render.color || "#00f0ff", "player", "primary");
-    const whiteColor = resolveThemeColorWithFallback(world, "#ffffff", "restorationWhite");
-
     const health = world.getComponent(entity, "Health");
     const invState = resolveInvulnerabilityPulse(health?.invulnerableRemaining, 1.0, { mode: "tick", tick: world.tick, pulseDivisor: 4, dimOpacity: 0 });
     if (invState.isInvulnerable && invState.opacity === 0) {
@@ -106,11 +97,11 @@ export const drawPlatformerPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreCom
     }
 
     ctx.save();
-    ctx.shadowColor = playerColor;
+    ctx.shadowColor = colors.cyan;
     ctx.shadowBlur = 10;
 
-    ctx.fillStyle = playerColor;
-    ctx.strokeStyle = whiteColor;
+    ctx.fillStyle = colors.cyan;
+    ctx.strokeStyle = colors.white;
     ctx.lineWidth = 2;
 
     ctx.beginPath();
@@ -123,7 +114,7 @@ export const drawPlatformerPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreCom
     ctx.stroke();
 
     // Visor
-    ctx.fillStyle = whiteColor;
+    ctx.fillStyle = colors.white;
     ctx.fillRect(-size * 0.2, -size * 0.4, size * 0.5, size * 0.2);
 
     ctx.restore();
@@ -136,14 +127,11 @@ export const drawPlatformerGoal: ShapeDrawer<CanvasRenderingContext2D, CoreCompo
     if (!render || !render.visible) return;
     const size = render.size || 32;
 
-    const goalColor = resolveThemeColorWithFallback(world, "#fbbf24", "goal", "secondary");
-    const whiteColor = resolveThemeColorWithFallback(world, "#ffffff", "restorationWhite");
-
     ctx.save();
-    ctx.shadowColor = goalColor;
+    ctx.shadowColor = colors.gold;
     ctx.shadowBlur = 12;
 
-    ctx.fillStyle = goalColor;
+    ctx.fillStyle = colors.gold;
     ctx.beginPath();
     ctx.moveTo(-size * 0.3, size * 0.5);
     ctx.lineTo(-size * 0.3, -size * 0.5);
@@ -153,7 +141,7 @@ export const drawPlatformerGoal: ShapeDrawer<CanvasRenderingContext2D, CoreCompo
     ctx.fill();
 
     // Pole
-    ctx.strokeStyle = whiteColor;
+    ctx.strokeStyle = colors.white;
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(-size * 0.3, size * 0.5);

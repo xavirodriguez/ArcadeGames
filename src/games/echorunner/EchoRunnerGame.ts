@@ -34,7 +34,7 @@ import { drawEchoBackground, drawEchoPlayer, drawMemoryFragment, drawMemoryCore,
 import { EchoRunnerInput, EchoRunnerInputComponent, EchoRunnerGameState, EchoRunnerEventRegistry, ECHO_CONFIG } from "./types/EchoRunnerTypes";
 import { EchoRunnerConfigSchema, EchoRunnerConfig as EchoRunnerConfigType, DEFAULT_ECHO_RUNNER_CONFIG } from "./types/EchoRunnerConfigSchema";
 import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
-import { PlatformerInputSystem } from "../shared/systems/PlatformerInputSystem";
+import { PlatformerInputSystem } from "../platformer/systems/PlatformerInputSystem";
 import { resolveAndApplyMutators } from "../../config/MutatorConfig";
 import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, registerPlatformerEnvironmentBlueprints, mutatePlatformerInputState, registerCommonPlatformerSystems, updatePlayerInvulnerabilityAndContactDamage, updateRunProgress } from "@tiny-aster/gameplay-kit";
 import { setupPlatformerMovementComponents, registerPlatformerTilemapBlueprint, createMainCamera2D, registerPresentationSystems, generateAndInstantiatePlatformerLevel, registerCollectibleTriggerBlueprint } from "../shared/componentBuilders";
@@ -444,7 +444,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
         drawCharger
       } = require("./rendering/EchoRunnerCanvasVisuals");
 
-      const { drawPlatformerTilemap } = require("../shared/rendering/PlatformerSharedVisuals");
+      const { drawPlatformerTilemap } = require("../platformer/rendering/PlatformerCanvasVisuals");
 
       renderer.registerBackgroundEffect("echo_bg", drawEchoBackground);
       renderer.registerShape("tilemap", drawPlatformerTilemap);

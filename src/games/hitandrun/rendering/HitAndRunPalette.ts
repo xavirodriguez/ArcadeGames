@@ -3,10 +3,10 @@
  * Tuned for a cinematic dusk battlefield / high-action platformer look.
  */
 import type { BackdropThemeTokens } from "@tiny-aster/core";
-import { DEFAULT_ECHO_PALETTE } from "../../shared/rendering/PlatformerSharedVisualUtils";
+import { ECHO_PALETTE } from "../../echorunner/rendering/EchoRunnerPalette";
 
 export const HIT_PALETTE = {
-  ...DEFAULT_ECHO_PALETTE,
+  ...ECHO_PALETTE,
   hitRunRed: "#ff2244",
   hitRunYellow: "#ffcc00",
   hitRunSmoke: "rgba(255, 255, 255, 0.2)"

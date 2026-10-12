@@ -11,7 +11,6 @@ import type {
 import type { TowerDefenseConfig, CreepDefinition, TowerDefinition } from "./types/TowerDefenseConfigSchema";
 import { cellCenter } from "./MapUtils";
 import type { GridLayout } from "../shared/grid/GridTypes";
-import { attachEnemyDefaults } from "../shared/enemyHelpers";
 
 export function createInputComponent(): InputComponent {
   return {
@@ -65,12 +64,16 @@ export function populateCreep(
     slowFactor: 1,
   } as CreepComponent);
 
-  attachEnemyDefaults(world, entity, {
-    currentHp: def.hp,
-    maxHp: def.hp,
+  world.addComponent(entity, {
+    type: "Health",
+    current: def.hp,
+    max: def.hp,
+  } as HealthComponent);
+
+  world.addComponent(entity, {
+    type: "Faction",
     faction: "enemy",
-    includeLootTable: false
-  });
+  } as FactionComponent);
 
   return entity;
 }

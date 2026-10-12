@@ -44,9 +44,9 @@ export abstract class PlatformerArcadeGame<
     currentlyGameOver: boolean,
     predicate: (rs: RunState) => boolean = (rs) => rs.collectedPermanentIds.includes("archive_core_1")
   ): boolean {
-    const isComplete = updateRunProgress(this.world as unknown as World<CoreComponentRegistry>, dt, predicate);
+    const isComplete = updateRunProgress(this.world as World<CoreComponentRegistry>, dt, predicate);
     if (isComplete && !currentlyGameOver) {
-      (this.eventBus as unknown as { emit: (event: string, payload: unknown) => void }).emit("game:over", {
+      (this.eventBus as { emit: (event: string, payload: unknown) => void }).emit("game:over", {
         state: this.getGameState()
       });
       return true;

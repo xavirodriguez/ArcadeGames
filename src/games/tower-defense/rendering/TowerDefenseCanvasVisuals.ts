@@ -1,4 +1,4 @@
-import { ShapeDrawer, EffectDrawer, World, resolveThemeColorWithFallback } from "@tiny-aster/core";
+import type { ShapeDrawer, EffectDrawer, World } from "@tiny-aster/core";
 import type {
   TowerDefenseComponentRegistry,
   GameStateComponent,
@@ -12,20 +12,13 @@ import { getTileTypeColor } from "../MapUtils";
 type TDWorld = World<TowerDefenseComponentRegistry>;
 
 function drawTowerBase(
-  world: TDWorld,
   ctx: CanvasRenderingContext2D,
   size: number,
-  primaryKey: string,
-  accentKey: string,
-  fallbackPrimary: string,
-  fallbackAccent: string
+  primary: string,
+  accent: string
 ): void {
-  const primary = resolveThemeColorWithFallback(world, fallbackPrimary, primaryKey, "primary");
-  const accent = resolveThemeColorWithFallback(world, fallbackAccent, accentKey, "accent");
-  const baseBg = resolveThemeColorWithFallback(world, "#1a2332", "tower_base_bg");
-
   const s = size;
-  ctx.fillStyle = baseBg;
+  ctx.fillStyle = "#1a2332";
   ctx.fillRect(-s * 0.45, -s * 0.15, s * 0.9, s * 0.4);
   ctx.fillStyle = primary;
   ctx.beginPath();
@@ -47,7 +40,7 @@ function drawTowerBase(
 export const drawTowerBasic: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
-    drawTowerBase(world, ctx, render?.size ?? 28, "tower_basic", "tower_basic_accent", "#4fc3f7", "#81d4fa");
+    drawTowerBase(ctx, render?.size ?? 28, "#4fc3f7", "#81d4fa");
   },
 };
 
@@ -55,9 +48,8 @@ export const drawTowerSniper: ShapeDrawer<CanvasRenderingContext2D, TowerDefense
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     const size = render?.size ?? 28;
-    drawTowerBase(world, ctx, size, "tower_sniper", "tower_sniper_accent", "#ab47bc", "#ce93d8");
-    const barrelColor = resolveThemeColorWithFallback(world, "#e1bee7", "tower_sniper_barrel");
-    ctx.fillStyle = barrelColor;
+    drawTowerBase(ctx, size, "#ab47bc", "#ce93d8");
+    ctx.fillStyle = "#e1bee7";
     ctx.fillRect(-2, -size * 0.7, 4, size * 0.35);
   },
 };
@@ -66,9 +58,8 @@ export const drawTowerRapid: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseC
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     const size = render?.size ?? 28;
-    drawTowerBase(world, ctx, size, "tower_rapid", "tower_rapid_accent", "#66bb6a", "#a5d6a7");
-    const barrelColor = resolveThemeColorWithFallback(world, "#c8e6c9", "tower_rapid_barrel");
-    ctx.fillStyle = barrelColor;
+    drawTowerBase(ctx, size, "#66bb6a", "#a5d6a7");
+    ctx.fillStyle = "#c8e6c9";
     ctx.fillRect(-size * 0.18, -size * 0.5, 3, size * 0.25);
     ctx.fillRect(size * 0.08, -size * 0.5, 3, size * 0.25);
   },
@@ -78,9 +69,8 @@ export const drawTowerFrost: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseC
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     const size = render?.size ?? 28;
-    drawTowerBase(world, ctx, size, "tower_frost", "tower_frost_accent", "#4dd0e1", "#b2ebf2");
-    const flakeColor = resolveThemeColorWithFallback(world, "#e0f7fa", "tower_frost_flake");
-    ctx.strokeStyle = flakeColor;
+    drawTowerBase(ctx, size, "#4dd0e1", "#b2ebf2");
+    ctx.strokeStyle = "#e0f7fa";
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(0, -size * 0.55);
@@ -116,18 +106,13 @@ function drawCreepBody(
   ctx.fill();
 }
 
+// TODO(refactor): código duplicado detectado (bloque) con tower-defense/rendering/TowerDefenseCanvasVisuals.ts:117-122. Considerar extraer a función compartida. Ref: 41514af0
 export const drawCreepGrunt: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     const creep = world.getComponent(entity, "Creep");
     const slowed = (creep?.slowRemainingMs ?? 0) > 0;
-    const fill = slowed
-      ? resolveThemeColorWithFallback(world, "#80deea", "creep_slowed")
-      : resolveThemeColorWithFallback(world, "#ff7043", "creep_grunt", "enemy");
-    const stroke = slowed
-      ? resolveThemeColorWithFallback(world, "#e0f7fa", "creep_slowed_stroke")
-      : resolveThemeColorWithFallback(world, "#ffab91", "creep_grunt_stroke");
-    drawCreepBody(ctx, render?.size ?? 12, fill, stroke);
+    drawCreepBody(ctx, render?.size ?? 12, slowed ? "#80deea" : "#ff7043", slowed ? "#e0f7fa" : "#ffab91");
   },
 };
 
@@ -136,13 +121,7 @@ export const drawCreepFast: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
     const render = world.getComponent(entity, "Render");
     const creep = world.getComponent(entity, "Creep");
     const slowed = (creep?.slowRemainingMs ?? 0) > 0;
-    const fill = slowed
-      ? resolveThemeColorWithFallback(world, "#80deea", "creep_slowed")
-      : resolveThemeColorWithFallback(world, "#29b6f6", "creep_fast", "enemy");
-    const stroke = slowed
-      ? resolveThemeColorWithFallback(world, "#e0f7fa", "creep_slowed_stroke")
-      : resolveThemeColorWithFallback(world, "#81d4fa", "creep_fast_stroke");
-    drawCreepBody(ctx, render?.size ?? 10, fill, stroke);
+    drawCreepBody(ctx, render?.size ?? 10, slowed ? "#80deea" : "#29b6f6", slowed ? "#e0f7fa" : "#81d4fa");
   },
 };
 
@@ -152,14 +131,8 @@ export const drawCreepTank: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
     const size = render?.size ?? 18;
     const creep = world.getComponent(entity, "Creep");
     const slowed = (creep?.slowRemainingMs ?? 0) > 0;
-    const fill = slowed
-      ? resolveThemeColorWithFallback(world, "#80deea", "creep_slowed")
-      : resolveThemeColorWithFallback(world, "#8d6e63", "creep_tank", "enemy");
-    const stroke = slowed
-      ? resolveThemeColorWithFallback(world, "#e0f7fa", "creep_slowed_stroke")
-      : resolveThemeColorWithFallback(world, "#bcaaa4", "creep_tank_stroke");
-    drawCreepBody(ctx, size, fill, stroke);
-    ctx.strokeStyle = resolveThemeColorWithFallback(world, "#5d4037", "creep_tank_plate");
+    drawCreepBody(ctx, size, slowed ? "#80deea" : "#8d6e63", slowed ? "#e0f7fa" : "#bcaaa4");
+    ctx.strokeStyle = "#5d4037";
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.arc(0, 0, size * 0.55, 0.2, Math.PI - 0.2);
@@ -173,23 +146,13 @@ export const drawCreepBoss: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
     const size = render?.size ?? 28;
     const creep = world.getComponent(entity, "Creep");
     const slowed = (creep?.slowRemainingMs ?? 0) > 0;
-    const fill = slowed
-      ? resolveThemeColorWithFallback(world, "#4dd0e1", "creep_slowed")
-      : resolveThemeColorWithFallback(world, "#c62828", "creep_boss", "boss");
-    const stroke = slowed
-      ? resolveThemeColorWithFallback(world, "#80deea", "creep_slowed_stroke")
-      : resolveThemeColorWithFallback(world, "#e53935", "creep_boss_stroke");
-    const innerStroke = slowed
-      ? resolveThemeColorWithFallback(world, "#e0f7fa", "creep_slowed_stroke")
-      : resolveThemeColorWithFallback(world, "#ef9a9a", "creep_boss_inner_stroke");
-
-    ctx.strokeStyle = stroke;
+    ctx.strokeStyle = slowed ? "#80deea" : "#e53935";
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.arc(0, 0, size * 0.55, 0, Math.PI * 2);
     ctx.stroke();
-    drawCreepBody(ctx, size, fill, innerStroke);
-    ctx.fillStyle = resolveThemeColorWithFallback(world, "#ffd54f", "creep_boss_crown");
+    drawCreepBody(ctx, size, slowed ? "#4dd0e1" : "#c62828", slowed ? "#e0f7fa" : "#ef9a9a");
+    ctx.fillStyle = "#ffd54f";
     ctx.beginPath();
     ctx.moveTo(-size * 0.3, -size * 0.35);
     ctx.lineTo(-size * 0.15, -size * 0.6);
@@ -207,14 +170,10 @@ export const drawTowerProjectile: ShapeDrawer<CanvasRenderingContext2D, TowerDef
     const proj = world.getComponent(entity, "TowerProjectile");
     const size = render?.size ?? 4;
     const frost = !!(proj?.slowFactor && proj.slowFactor < 1);
-    const color = frost
-      ? resolveThemeColorWithFallback(world, "#4dd0e1", "tower_projectile_frost")
-      : resolveThemeColorWithFallback(world, "#ffee58", "tower_projectile", "bullet");
-
     ctx.save();
     ctx.shadowBlur = 8;
-    ctx.shadowColor = color;
-    ctx.fillStyle = color;
+    ctx.shadowColor = frost ? "#4dd0e1" : "#ffee58";
+    ctx.fillStyle = frost ? "#4dd0e1" : "#ffee58";
     ctx.beginPath();
     ctx.arc(0, 0, size / 2, 0, Math.PI * 2);
     ctx.fill();
@@ -226,7 +185,8 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
   draw(ctx, world: TDWorld) {
     const layout = world.getResource<GridLayout>("GridLayout");
     const tileGrid = world.getResource<TileGrid>("TileGrid");
-    if (!layout || !tileGrid) return;
+        // TODO(refactor): código duplicado detectado (bloque) con tower-defense/rendering/TowerDefenseSkiaVisuals.ts:169-180. Considerar extraer a función compartida. Ref: 493978f3
+if (!layout || !tileGrid) return;
 
     for (let row = 0; row < tileGrid.rows; row++) {
       for (let col = 0; col < tileGrid.cols; col++) {
@@ -237,13 +197,13 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
         ctx.fillRect(x, y, layout.stepX - 1, layout.stepY - 1);
 
         if (tile === "spawn") {
-          ctx.fillStyle = resolveThemeColorWithFallback(world, "#e53935", "map_spawn", "accent");
+          ctx.fillStyle = "#e53935";
           ctx.font = "bold 10px monospace";
           ctx.textAlign = "center";
           ctx.fillText("S", x + layout.stepX / 2, y + layout.stepY / 2 + 3);
         }
         if (tile === "base") {
-          ctx.fillStyle = resolveThemeColorWithFallback(world, "#43a047", "map_base", "primary");
+          ctx.fillStyle = "#43a047";
           ctx.font = "bold 10px monospace";
           ctx.textAlign = "center";
           ctx.fillText("BASE", x + layout.stepX / 2, y + layout.stepY / 2 + 3);
@@ -294,13 +254,13 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
           ctx.globalAlpha = 0.45;
           const ghostColor =
             towerType === "sniper"
-              ? resolveThemeColorWithFallback(world, "#ab47bc", "tower_sniper")
+              ? "#ab47bc"
               : towerType === "rapid"
-                ? resolveThemeColorWithFallback(world, "#66bb6a", "tower_rapid")
+                ? "#66bb6a"
                 : towerType === "frost"
-                  ? resolveThemeColorWithFallback(world, "#4dd0e1", "tower_frost")
-                  : resolveThemeColorWithFallback(world, "#4fc3f7", "tower_basic");
-          drawTowerBase(world, ctx, layout.stepX * 0.65, `tower_${towerType}`, `tower_${towerType}_accent`, ghostColor, ghostColor);
+                  ? "#4dd0e1"
+                  : "#4fc3f7";
+          drawTowerBase(ctx, layout.stepX * 0.65, ghostColor, ghostColor);
           ctx.restore();
 
           if (!canAfford && buildable) {

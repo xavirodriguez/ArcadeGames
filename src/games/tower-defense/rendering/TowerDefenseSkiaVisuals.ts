@@ -1,4 +1,4 @@
-import { ShapeDrawer, EffectDrawer, World, resolveThemeColorWithFallback } from "@tiny-aster/core";
+import type { ShapeDrawer, EffectDrawer, World } from "@tiny-aster/core";
 import type { TowerDefenseComponentRegistry, GameStateComponent, TileGrid } from "../types/TowerDefenseTypes";
 import type { GridLayout } from "../../shared/grid/GridTypes";
 import { getTileTypeColor } from "../MapUtils";
@@ -8,27 +8,20 @@ import { drawGlowOrbSkia } from "../../shared/rendering/SkiaNeonUtils";
 type TDWorld = World<TowerDefenseComponentRegistry>;
 
 function drawSkiaTower(
-  world: TDWorld,
   canvas: any,
   size: number,
-  primaryKey: string,
-  accentKey: string,
-  fallbackPrimary: string,
-  fallbackAccent: string
+  primary: string,
+  accent: string
 ): void {
   if (!Skia) return;
   const paint = getPaint();
   if (!paint) return;
 
-  const primary = resolveThemeColorWithFallback(world, fallbackPrimary, primaryKey, "primary");
-  const accent = resolveThemeColorWithFallback(world, fallbackAccent, accentKey, "accent");
-  const baseBg = resolveThemeColorWithFallback(world, "#1a2332", "tower_base_bg");
-
   const s = size;
   paint.reset();
   paint.setAntiAlias(true);
   paint.setStyle(Skia.PaintStyle.Fill);
-  paint.setColor(Skia.Color(baseBg));
+  paint.setColor(Skia.Color("#1a2332"));
   canvas.drawRect(Skia.XYWHRect(-s * 0.45, -s * 0.15, s * 0.9, s * 0.4), paint);
 
   paint.setColor(Skia.Color(primary));
@@ -52,7 +45,7 @@ function drawSkiaTower(
 export const drawSkiaTowerBasic: ShapeDrawer<any, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
-    drawSkiaTower(world, canvas, render?.size ?? 28, "tower_basic", "tower_basic_accent", "#4fc3f7", "#81d4fa");
+    drawSkiaTower(canvas, render?.size ?? 28, "#4fc3f7", "#81d4fa");
   },
 };
 
@@ -60,14 +53,13 @@ export const drawSkiaTowerSniper: ShapeDrawer<any, TowerDefenseComponentRegistry
   draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
     const size = render?.size ?? 28;
-    drawSkiaTower(world, canvas, size, "tower_sniper", "tower_sniper_accent", "#ab47bc", "#ce93d8");
+    drawSkiaTower(canvas, size, "#ab47bc", "#ce93d8");
     if (!Skia) return;
     const paint = getPaint();
     if (!paint) return;
-    const barrelColor = resolveThemeColorWithFallback(world, "#e1bee7", "tower_sniper_barrel");
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(barrelColor));
+    paint.setColor(Skia.Color("#e1bee7"));
     canvas.drawRect(Skia.XYWHRect(-2, -size * 0.7, 4, size * 0.35), paint);
   },
 };
@@ -76,14 +68,13 @@ export const drawSkiaTowerRapid: ShapeDrawer<any, TowerDefenseComponentRegistry>
   draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
     const size = render?.size ?? 28;
-    drawSkiaTower(world, canvas, size, "tower_rapid", "tower_rapid_accent", "#66bb6a", "#a5d6a7");
+    drawSkiaTower(canvas, size, "#66bb6a", "#a5d6a7");
     if (!Skia) return;
     const paint = getPaint();
     if (!paint) return;
-    const barrelColor = resolveThemeColorWithFallback(world, "#c8e6c9", "tower_rapid_barrel");
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(barrelColor));
+    paint.setColor(Skia.Color("#c8e6c9"));
     canvas.drawRect(Skia.XYWHRect(-size * 0.18, -size * 0.5, 3, size * 0.25), paint);
     canvas.drawRect(Skia.XYWHRect(size * 0.08, -size * 0.5, 3, size * 0.25), paint);
   },
@@ -107,7 +98,7 @@ function drawSkiaCreep(canvas: any, size: number, fill: string): void {
 export const drawSkiaTowerFrost: ShapeDrawer<any, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
-    drawSkiaTower(world, canvas, render?.size ?? 28, "tower_frost", "tower_frost_accent", "#4dd0e1", "#b2ebf2");
+    drawSkiaTower(canvas, render?.size ?? 28, "#4dd0e1", "#b2ebf2");
   },
 };
 
@@ -115,23 +106,15 @@ export const drawSkiaCreepBoss: ShapeDrawer<any, TowerDefenseComponentRegistry> 
   draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
     const size = render?.size ?? 28;
-    const creep = world.getComponent(entity, "Creep");
-    const slowed = (creep?.slowRemainingMs ?? 0) > 0;
-    const fill = slowed
-      ? resolveThemeColorWithFallback(world, "#4dd0e1", "creep_slowed")
-      : resolveThemeColorWithFallback(world, "#c62828", "creep_boss", "boss");
-    const stroke = slowed
-      ? resolveThemeColorWithFallback(world, "#80deea", "creep_slowed_stroke")
-      : resolveThemeColorWithFallback(world, "#e53935", "creep_boss_stroke");
-
-    drawSkiaCreep(canvas, size, fill);
+        // TODO(refactor): código duplicado detectado (bloque) con tower-defense/rendering/TowerDefenseSkiaVisuals.ts:138-145. Considerar extraer a función compartida. Ref: f95aa196
+drawSkiaCreep(canvas, size, "#c62828");
     if (!Skia) return;
     const paint = getPaint();
     if (!paint) return;
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setStrokeWidth(3);
-    paint.setColor(Skia.Color(stroke));
+    paint.setColor(Skia.Color("#e53935"));
     canvas.drawCircle(0, 0, size * 0.55, paint);
   },
 };
@@ -139,24 +122,14 @@ export const drawSkiaCreepBoss: ShapeDrawer<any, TowerDefenseComponentRegistry> 
 export const drawSkiaCreepGrunt: ShapeDrawer<any, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
-    const creep = world.getComponent(entity, "Creep");
-    const slowed = (creep?.slowRemainingMs ?? 0) > 0;
-    const fill = slowed
-      ? resolveThemeColorWithFallback(world, "#80deea", "creep_slowed")
-      : resolveThemeColorWithFallback(world, "#ff7043", "creep_grunt", "enemy");
-    drawSkiaCreep(canvas, render?.size ?? 12, fill);
+    drawSkiaCreep(canvas, render?.size ?? 12, "#ff7043");
   },
 };
 
 export const drawSkiaCreepFast: ShapeDrawer<any, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
-    const creep = world.getComponent(entity, "Creep");
-    const slowed = (creep?.slowRemainingMs ?? 0) > 0;
-    const fill = slowed
-      ? resolveThemeColorWithFallback(world, "#80deea", "creep_slowed")
-      : resolveThemeColorWithFallback(world, "#29b6f6", "creep_fast", "enemy");
-    drawSkiaCreep(canvas, render?.size ?? 10, fill);
+    drawSkiaCreep(canvas, render?.size ?? 10, "#29b6f6");
   },
 };
 
@@ -164,21 +137,14 @@ export const drawSkiaCreepTank: ShapeDrawer<any, TowerDefenseComponentRegistry> 
   draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
     const size = render?.size ?? 18;
-    const creep = world.getComponent(entity, "Creep");
-    const slowed = (creep?.slowRemainingMs ?? 0) > 0;
-    const fill = slowed
-      ? resolveThemeColorWithFallback(world, "#80deea", "creep_slowed")
-      : resolveThemeColorWithFallback(world, "#8d6e63", "creep_tank", "enemy");
-    const stroke = resolveThemeColorWithFallback(world, "#5d4037", "creep_tank_plate");
-
-    drawSkiaCreep(canvas, size, fill);
+    drawSkiaCreep(canvas, size, "#8d6e63");
     if (!Skia) return;
     const paint = getPaint();
     if (!paint) return;
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setStrokeWidth(3);
-    paint.setColor(Skia.Color(stroke));
+    paint.setColor(Skia.Color("#5d4037"));
     canvas.drawCircle(0, 0, size * 0.55, paint);
   },
 };
@@ -186,17 +152,11 @@ export const drawSkiaCreepTank: ShapeDrawer<any, TowerDefenseComponentRegistry> 
 export const drawSkiaTowerProjectile: ShapeDrawer<any, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
-    const proj = world.getComponent(entity, "TowerProjectile");
     const size = render?.size ?? 4;
-    const frost = !!(proj?.slowFactor && proj.slowFactor < 1);
-    const color = frost
-      ? resolveThemeColorWithFallback(world, "#4dd0e1", "tower_projectile_frost")
-      : resolveThemeColorWithFallback(world, "#ffee58", "tower_projectile", "bullet");
-
     if (!Skia) return;
     const paint = getPaint();
     if (!paint) return;
-    drawGlowOrbSkia(canvas, paint, size, color, 0.5, 1.5);
+    drawGlowOrbSkia(canvas, paint, size, "#ffee58", 0.5, 1.5);
   },
 };
 
@@ -208,7 +168,8 @@ export const drawSkiaTdMapBackground: EffectDrawer<any, TowerDefenseComponentReg
     if (!layout || !tileGrid) return;
 
     const paint = getPaint();
-    if (!paint) return;
+        // TODO(refactor): código duplicado detectado (bloque) con tower-defense/rendering/TowerDefenseCanvasVisuals.ts:186-197. Considerar extraer a función compartida. Ref: 493978f3
+if (!paint) return;
 
     for (let row = 0; row < tileGrid.rows; row++) {
       for (let col = 0; col < tileGrid.cols; col++) {

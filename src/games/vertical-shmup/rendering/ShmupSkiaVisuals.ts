@@ -19,7 +19,7 @@ export const drawSkiaShmupPlayer: ShapeDrawer<RenderContext, ShmupComponentRegis
 
     const size = render.size ?? 22;
     const primaryColor = render.color ?? "#00e5ff";
-    const skCanvas = canvas as any;
+    const skCanvas = canvas as RenderContext & Record<string, Function>;
     const paint = getPaint();
 
     skCanvas.save();
@@ -104,7 +104,7 @@ export const drawSkiaShmupEnemy: ShapeDrawer<RenderContext, ShmupComponentRegist
     const enemyColor = render.color ?? "#ff2a6d";
     const time = world.tick * 0.016;
 
-    const skCanvas = canvas as any;
+    const skCanvas = canvas as RenderContext & Record<string, Function>;
     const paint = getPaint();
 
     skCanvas.save();
@@ -150,7 +150,7 @@ export const drawSkiaShmupPlayerBullet: ShapeDrawer<RenderContext, ShmupComponen
     const size = render.size ?? 4;
     const color = render.color ?? "#ffe600";
 
-    const skCanvas = canvas as any;
+    const skCanvas = canvas as RenderContext & Record<string, Function>;
     const paint = getPaint();
 
     skCanvas.save();
@@ -178,7 +178,7 @@ export const drawSkiaShmupEnemyBullet: ShapeDrawer<RenderContext, ShmupComponent
     const size = render.size ?? 5;
     const color = render.color ?? "#ff5a5a";
 
-    const skCanvas = canvas as any;
+    const skCanvas = canvas as RenderContext & Record<string, Function>;
     const paint = getPaint();
 
     skCanvas.save();
@@ -209,7 +209,7 @@ export const drawSkiaShmupStarfield: EffectDrawer<RenderContext, ShmupComponentR
     const scroll = state?.scrollDistance ?? (time * (config?.SCROLL_SPEED ?? 80));
 
     const starCount = config?.STAR_COUNT ?? 80;
-    const skCanvas = canvas as any;
+    const skCanvas = canvas as RenderContext & Record<string, Function>;
     const paint = getPaint();
 
     skCanvas.save();

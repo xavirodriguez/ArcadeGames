@@ -1,4 +1,4 @@
-import { ShapeDrawer, EffectDrawer, resolveThemeColor, resolveThemeColorWithFallback } from "@tiny-aster/core";
+import { ShapeDrawer, EffectDrawer, resolveThemeColor } from "@tiny-aster/core";
 import { FroggerComponentRegistry } from "../types/FroggerTypes";
 import { DEFAULT_FROGGER_CONFIG } from "../types/FroggerConfigSchema";
 import { Skia } from "../../shared/rendering/SkiaContext";
@@ -52,7 +52,7 @@ export const drawCarSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
     if (!render) return;
 
     const width = render.size || 48;
-    const carColor = resolveThemeColorWithFallback(world, render.color || "#00F3FF", "car", "secondary");
+    const carColor = resolveThemeColor(world, "car", "secondary") || render.color || "#00F3FF";
     drawSkiaRoundedBox(canvas, width, 30, carColor, 6, 6);
   },
 };
@@ -67,7 +67,7 @@ export const drawTruckSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
     const halfW = width / 2;
     const halfH = height / 2;
 
-    const truckColor = resolveThemeColorWithFallback(world, "#FF2A6D", "truck", "accent");
+    const truckColor = resolveThemeColor(world, "truck", "accent") || "#FF2A6D";
     const paintTrailer = Skia.Paint();
     paintTrailer.setColor(Skia.Color(truckColor));
     canvas.drawRect(Skia.XYWHRect(-halfW, -halfH, width * 0.7, height), paintTrailer);
@@ -84,8 +84,7 @@ export const drawLogSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
     if (!render) return;
 
     const width = render.size || 120;
-    const logColor = resolveThemeColorWithFallback(world, "#8B5A2B", "log", "secondary");
-    drawSkiaRoundedBox(canvas, width, 30, logColor, 10, 10);
+    drawSkiaRoundedBox(canvas, width, 30, "#8B5A2B", 10, 10);
   },
 };
 
@@ -97,9 +96,8 @@ export const drawTurtleSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
     const width = render.size || 80;
     const segments = resolveFroggerShellSegments(width);
 
-    const turtleColor = resolveThemeColorWithFallback(world, "#00D2FF", "turtle", "secondary");
     const paintOuter = Skia.Paint();
-    paintOuter.setColor(Skia.Color(turtleColor));
+    paintOuter.setColor(Skia.Color("#00D2FF"));
 
     for (let i = 0; i < segments.length; i++) {
       canvas.drawCircle(segments[i].segX, 0, 14, paintOuter);
@@ -115,11 +113,8 @@ export const drawLilyPadSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
 
     const { half, occupied } = goalCtx;
 
-    const slotColor = resolveThemeColorWithFallback(world, "#00AA44", "home_slot", "secondary");
-    const occupiedColor = resolveThemeColorWithFallback(world, "#39FF14", "home_slot_occupied", "primary");
-
     const paint = Skia.Paint();
-    paint.setColor(Skia.Color(occupied ? occupiedColor : slotColor));
+    paint.setColor(Skia.Color(occupied ? "#39FF14" : "#00AA44"));
     canvas.drawCircle(0, 0, half, paint);
   },
 };
@@ -131,18 +126,14 @@ export const froggerBackgroundSkiaEffect: EffectDrawer<any, FroggerComponentRegi
     const w = config.worldWidth;
     const grid = config.GRID_SIZE;
 
-    const grassColor = resolveThemeColorWithFallback(world, "#0B2B16", "frogger_grass", "secondary");
-    const waterColor = resolveThemeColorWithFallback(world, "#051C33", "water", "secondary");
-    const roadColor = resolveThemeColorWithFallback(world, "#121218", "frogger_road");
-
     const grassPaint = Skia.Paint();
-    grassPaint.setColor(Skia.Color(grassColor));
+    grassPaint.setColor(Skia.Color("#0B2B16"));
 
     const waterPaint = Skia.Paint();
-    waterPaint.setColor(Skia.Color(waterColor));
+    waterPaint.setColor(Skia.Color("#051C33"));
 
     const roadPaint = Skia.Paint();
-    roadPaint.setColor(Skia.Color(roadColor));
+    roadPaint.setColor(Skia.Color("#121218"));
 
     canvas.drawRect(Skia.XYWHRect(0, 0, w, grid), grassPaint);
     canvas.drawRect(Skia.XYWHRect(0, grid * 1, w, grid * 5), waterPaint);

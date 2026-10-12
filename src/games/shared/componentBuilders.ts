@@ -48,7 +48,6 @@ import { CollisionLayers, ArcadeEntityBuilder } from "@tiny-aster/gameplay-kit";
 /**
  * Creates a standard Transform component object initialized with default spatial properties.
  *
- * @deprecated Use `EntityBuilder.fromEntity(...).withTransform(...)` or `ArcadeEntityBuilder.fromEntity(...).withTransform(...)` instead.
  * @param x - Initial X position in world space. Defaults to 0.
  * @param y - Initial Y position in world space. Defaults to 0.
  * @param options - Optional rotation (radians) and scale factors.
@@ -83,7 +82,6 @@ export function createStandardTransform(
 /**
  * Creates a standard Velocity component object initialized with default or given 2D velocity vectors.
  *
- * @deprecated Use `EntityBuilder.fromEntity(...).withVelocity(...)` or `ArcadeEntityBuilder.fromEntity(...).withVelocity(...)` instead.
  * @param vx - Linear velocity along X axis. Defaults to 0.
  * @param vy - Linear velocity along Y axis. Defaults to 0.
  * @param angularVelocity - Angular velocity in radians per second. Defaults to 0.
@@ -231,44 +229,6 @@ export function registerPlatformerTilemapBlueprint(
     spawn: (world: World<CoreComponentRegistry>, entity: Entity, args: { data: number[][]; tileDefinitions: Record<number, unknown> }) => {
       const config = world.getResource<{ TILE_SIZE: number }>("GameConfig") || defaultConfig;
       setupTilemapEntity(world, entity, config.TILE_SIZE, args.data, args.tileDefinitions);
-    }
-  });
-}
-
-/**
- * Helper to register power-up blueprints with trigger colliders in a blueprint registry.
- *
- * @param blueprints - Blueprint registry instance.
- * @param id - Blueprint ID name.
- * @param powerUpKind - Power-up kind identifier.
- * @param halfSize - Trigger collider AABB half size (defaults to 12).
- * @param renderShape - Render shape (defaults to "fragment").
- * @param renderSize - Render size (defaults to 18).
- * @public
- */
-export function registerPowerUpTriggerBlueprint(
-  blueprints: RegistrableBlueprintRegistry,
-  id: string,
-  powerUpKind: string,
-  halfSize = 12,
-  renderShape = "fragment",
-  renderSize = 18
-): void {
-  blueprints.register(id, {
-    spawn: (world: World<CoreComponentRegistry>, entity: Entity, args: { x: number; y: number }) => {
-      ArcadeEntityBuilder.fromEntity(world, entity)
-        .withTransform({ x: args.x, y: args.y })
-        .withCollider2D({
-          shape: { type: "aabb", halfWidth: halfSize, halfHeight: halfSize },
-          isTrigger: true
-        })
-        .withCollisionEvents()
-        .withPowerUp(powerUpKind)
-        .withRender({
-          shape: renderShape,
-          size: renderSize,
-          order: 1
-        });
     }
   });
 }

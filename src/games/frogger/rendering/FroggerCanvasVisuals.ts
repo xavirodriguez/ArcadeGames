@@ -1,4 +1,4 @@
-import { ShapeDrawer, EffectDrawer, resolveThemeColor, resolveThemeColorWithFallback } from "@tiny-aster/core";
+import { ShapeDrawer, EffectDrawer, resolveThemeColor } from "@tiny-aster/core";
 import { FroggerComponentRegistry } from "../types/FroggerTypes";
 import { DEFAULT_FROGGER_CONFIG } from "../types/FroggerConfigSchema";
 import {
@@ -70,7 +70,7 @@ export const drawCarCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCompone
     const halfW = width / 2;
     const halfH = height / 2;
 
-    const carColor = resolveThemeColorWithFallback(world, render.color || "#00F3FF", "car", "secondary");
+    const carColor = resolveThemeColor(world, "car", "secondary") || render.color || "#00F3FF";
     ctx.save();
     ctx.fillStyle = carColor;
     ctx.shadowColor = carColor;
@@ -99,7 +99,7 @@ export const drawTruckCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCompo
 
     ctx.save();
 
-    const truckColor = resolveThemeColorWithFallback(world, "#FF2A6D", "truck", "accent");
+    const truckColor = resolveThemeColor(world, "truck", "accent") || "#FF2A6D";
     ctx.save();
     ctx.fillStyle = truckColor;
     ctx.shadowColor = truckColor;
@@ -123,10 +123,8 @@ export const drawLogCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCompone
     const halfW = width / 2;
     const halfH = height / 2;
 
-    const logColor = resolveThemeColorWithFallback(world, "#8B5A2B", "log", "secondary");
-
     ctx.save();
-    ctx.fillStyle = logColor;
+    ctx.fillStyle = "#8B5A2B";
     ctx.beginPath();
     ctx.roundRect(-halfW, -halfH, width, height, 10);
     ctx.fill();
@@ -150,21 +148,18 @@ export const drawTurtleCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComp
     const width = render.size || 80;
     const segments = resolveFroggerShellSegments(width);
 
-    const turtleColor = resolveThemeColorWithFallback(world, "#00D2FF", "turtle", "secondary");
-    const innerColor = resolveThemeColorWithFallback(world, "#0088CC", "turtle_inner", "secondary");
-
     ctx.save();
 
     for (let i = 0; i < segments.length; i++) {
       const segX = segments[i].segX;
-      ctx.fillStyle = turtleColor;
-      ctx.shadowColor = turtleColor;
+      ctx.fillStyle = "#00D2FF";
+      ctx.shadowColor = "#00D2FF";
       ctx.shadowBlur = 6;
       ctx.beginPath();
       ctx.arc(segX, 0, 14, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.fillStyle = innerColor;
+      ctx.fillStyle = "#0088CC";
       ctx.shadowBlur = 0;
       ctx.beginPath();
       ctx.arc(segX, 0, 8, 0, Math.PI * 2);
@@ -182,12 +177,9 @@ export const drawLilyPadCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCom
 
     const { half, occupied } = goalCtx;
 
-    const slotColor = resolveThemeColorWithFallback(world, "#00AA44", "home_slot", "secondary");
-    const occupiedColor = resolveThemeColorWithFallback(world, "#39FF14", "home_slot_occupied", "primary");
-
     ctx.save();
 
-    ctx.fillStyle = occupied ? occupiedColor : slotColor;
+    ctx.fillStyle = occupied ? "#39FF14" : "#00AA44";
     ctx.beginPath();
     ctx.arc(0, 0, half, 0.2, Math.PI * 1.8);
     ctx.lineTo(0, 0);
@@ -195,14 +187,14 @@ export const drawLilyPadCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCom
     ctx.fill();
 
     if (occupied) {
-      ctx.fillStyle = occupiedColor;
-      ctx.shadowColor = occupiedColor;
+      ctx.fillStyle = "#39FF14";
+      ctx.shadowColor = "#39FF14";
       ctx.shadowBlur = 10;
       ctx.beginPath();
       ctx.arc(0, 0, half * 0.6, 0, Math.PI * 2);
       ctx.fill();
     } else {
-      ctx.fillStyle = resolveThemeColorWithFallback(world, "#FF007F", "home_slot_flower", "accent");
+      ctx.fillStyle = "#FF007F";
       ctx.beginPath();
       ctx.arc(0, 0, 4, 0, Math.PI * 2);
       ctx.fill();
@@ -218,18 +210,13 @@ export const froggerBackgroundCanvasEffect: EffectDrawer<CanvasRenderingContext2
     const w = config.worldWidth;
     const grid = config.GRID_SIZE;
 
-    const grassColor = resolveThemeColorWithFallback(world, "#0B2B16", "frogger_grass", "secondary");
-    const waterColor = resolveThemeColorWithFallback(world, "#051C33", "water", "secondary");
-    const waterGridColor = resolveThemeColorWithFallback(world, "rgba(0, 243, 255, 0.15)", "water_grid");
-    const roadColor = resolveThemeColorWithFallback(world, "#121218", "frogger_road");
-
-    ctx.fillStyle = grassColor;
+    ctx.fillStyle = "#0B2B16";
     ctx.fillRect(0, 0, w, grid);
 
-    ctx.fillStyle = waterColor;
+    ctx.fillStyle = "#051C33";
     ctx.fillRect(0, grid * 1, w, grid * 5);
 
-    ctx.strokeStyle = waterGridColor;
+    ctx.strokeStyle = "rgba(0, 243, 255, 0.15)";
     ctx.lineWidth = 1;
     const offset = (world.tick * 1.5) % 40;
     for (let r = 1; r <= 5; r++) {
@@ -239,10 +226,10 @@ export const froggerBackgroundCanvasEffect: EffectDrawer<CanvasRenderingContext2
       ctx.stroke();
     }
 
-    ctx.fillStyle = grassColor;
+    ctx.fillStyle = "#0B2B16";
     ctx.fillRect(0, grid * 6, w, grid);
 
-    ctx.fillStyle = roadColor;
+    ctx.fillStyle = "#121218";
     ctx.fillRect(0, grid * 7, w, grid * 5);
 
     ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
@@ -256,7 +243,7 @@ export const froggerBackgroundCanvasEffect: EffectDrawer<CanvasRenderingContext2
     }
     ctx.setLineDash([]);
 
-    ctx.fillStyle = grassColor;
+    ctx.fillStyle = "#0B2B16";
     ctx.fillRect(0, grid * 12, w, grid * 3);
   },
 };

@@ -19,15 +19,17 @@ import {
   SegmentGenerator,
   LevelPlan,
   preloadSharedAudioWithTimeout,
-  generateBackdrop,
-  BlueprintDefinition,
-  Theme
+  generateBackdrop
 } from "@tiny-aster/core";
+import { EchoRunnerDefinition } from "../echorunner/EchoRunnerGame";
+import type { EchoRunnerConfig } from "../echorunner/EchoRunnerGame";
+import { EchoRunnerBlueprintMap } from "../echorunner/EchoRunnerGame";
 import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
 import type {
   HitAndRunGameState,
   HitAndRunInput
 } from "./types/HitAndRunTypes";
+import { PlatformerInputSystem } from "../platformer/systems/PlatformerInputSystem";
 import {
   ArcadeEntityBuilder,
   registerPlatformerEnemyBlueprints,
@@ -37,7 +39,6 @@ import {
   updatePlayerInvulnerabilityAndContactDamage,
   updateRunProgress
 } from "@tiny-aster/gameplay-kit";
-import { PlatformerInputSystem } from "../shared/systems/PlatformerInputSystem";
 import {
   setupPlatformerMovementComponents,
   registerPlatformerTilemapBlueprint,
@@ -46,7 +47,7 @@ import {
   generateAndInstantiatePlatformerLevel,
   registerCollectibleTriggerBlueprint
 } from "../shared/componentBuilders";
-import { DEFAULT_HIT_AND_RUN_CONFIG, HitAndRunConfig as HitAndRunConfigType } from "./types/HitAndRunConfigSchema";
+import { DEFAULT_ECHO_RUNNER_CONFIG } from "../echorunner/types/EchoRunnerConfigSchema";
 import hitRunLevelData from "./levels/level-01.json";
 import { registerHitRunMelee } from "./melee/registerHitRunMelee";
 import { registerHitRunFeedback } from "./systems/registerHitRunFeedback";
@@ -85,18 +86,9 @@ import {
 } from "./rendering/HitRunCanvasVisuals";
 import { drawHitRunHud } from "./rendering/HitRunHudCanvas";
 import { drawHitRunDebugOverlay } from "./rendering/HitRunDebugOverlay";
-import { drawPlatformerTilemap } from "../shared/rendering/PlatformerSharedVisuals";
-import { createThemeFromGameAccents } from "../../theme/gameAccents";
-import { runWithUnlockedRandomAndMutators } from "../shared/configHelper";
+import { drawPlatformerTilemap } from "../platformer/rendering/PlatformerCanvasVisuals";
 
-export interface HitAndRunConfig {
-  seed?: number;
-  gameOptions?: Record<string, unknown>;
-  levelData?: { templates: SegmentTemplate[]; grammar: string[] };
-  theme?: Theme;
-}
-
-export type HitAndRunBlueprintMap = Record<string, BlueprintDefinition<CoreComponentRegistry, EventRegistry, unknown>>;
+export type HitAndRunConfig = EchoRunnerConfig;
 
 class HitRunDamageSystem extends System<CoreComponentRegistry> {
   public update(world: import("@tiny-aster/core").World<CoreComponentRegistry>, deltaTime: number): void {
@@ -109,7 +101,7 @@ export class HitAndRunGame extends PlatformerArcadeGame<
   HitAndRunInput,
   CoreComponentRegistry,
   EventRegistry,
-  HitAndRunBlueprintMap
+  EchoRunnerBlueprintMap
 > {
   public readonly gameId = "hitandrun";
   private gameOver = false;
@@ -122,7 +114,6 @@ export class HitAndRunGame extends PlatformerArcadeGame<
       restartKey: "KeyR",
       gameOptions: config.gameOptions,
       seed: config.seed,
-      theme: config.theme ?? createThemeFromGameAccents("hitandrun"),
       audio: new WebAudioPlayer()
     });
     this.customLevelData =
@@ -173,7 +164,7 @@ export class HitAndRunGame extends PlatformerArcadeGame<
   protected override async onRegisterSystems(): Promise<void> {
     await super.onRegisterSystems();
 
-    registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_HIT_AND_RUN_CONFIG);
+    registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_ECHO_RUNNER_CONFIG);
     registerCollectibleTriggerBlueprint(this.blueprints, "collectible_fragment", "fragment", 10, 16, 10, "fragment", false, false);
     registerCollectibleTriggerBlueprint(this.blueprints, "collectible_core", "core", 100, 24, 12, "core", true, true);
     registerPlatformerEnvironmentBlueprints(this.blueprints);
@@ -202,43 +193,41 @@ export class HitAndRunGame extends PlatformerArcadeGame<
   }
 
   protected override async onInitializeEntities(): Promise<void> {
-    runWithUnlockedRandomAndMutators(this.world, this._config.gameOptions, () => {
-      registerBeltPlayerBlueprint(this.blueprints);
+    registerBeltPlayerBlueprint(this.blueprints);
 
-      this.levelPlan = generateAndInstantiatePlatformerLevel(
-        this.world,
-        this.customLevelData,
-        hitRunLevelData,
-        this.getSeed() || 41873,
-        DEFAULT_HIT_AND_RUN_CONFIG,
-        DEFAULT_BELT_PLAYER_SPAWN
-      );
+    this.levelPlan = generateAndInstantiatePlatformerLevel(
+      this.world,
+      this.customLevelData,
+      hitRunLevelData,
+      this.getSeed() || 41873,
+      DEFAULT_ECHO_RUNNER_CONFIG,
+      DEFAULT_BELT_PLAYER_SPAWN
+    );
 
-      const playerEntity = this.world.createEntity();
-      const playerBp = this.blueprints.get("player");
-      if (playerBp) {
-        playerBp.spawn(this.world, playerEntity, {
-          x: DEFAULT_BELT_PLAYER_SPAWN.x,
-          y: DEFAULT_BELT_PLAYER_SPAWN.y,
-          weaponId: "longbow",
-          health: 5
-        } as import("./belt/registerBeltPlayerBlueprint").BeltPlayerSpawnArgs);
-      } else {
-        throw new Error("[HitAndRunGame] Blueprint 'player' is not registered.");
-      }
+    const playerEntity = this.world.createEntity();
+    const playerBp = this.blueprints.get("player");
+    if (playerBp) {
+      playerBp.spawn(this.world, playerEntity, {
+        x: DEFAULT_BELT_PLAYER_SPAWN.x,
+        y: DEFAULT_BELT_PLAYER_SPAWN.y,
+        weaponId: "longbow",
+        health: 5
+      } as import("./belt/registerBeltPlayerBlueprint").BeltPlayerSpawnArgs);
+    } else {
+      throw new Error("[HitAndRunGame] Blueprint 'player' is not registered.");
+    }
 
-      createMainCamera2D(this.world, playerEntity, {
-        lookAheadX: 60,
-        smoothingX: 5.0,
-        smoothingY: 5.0,
-        verticalDeadzone: 40
-      });
-
-      const gameConfig = this.world.getResource<{ viewportWidth?: number; viewportHeight?: number }>("GameConfig");
-      this.installProceduralBackdrop(gameConfig?.viewportWidth ?? 800, gameConfig?.viewportHeight ?? 600);
-
-      this.world.flush();
+    createMainCamera2D(this.world, playerEntity, {
+      lookAheadX: 60,
+      smoothingX: 5.0,
+      smoothingY: 5.0,
+      verticalDeadzone: 40
     });
+
+    const gameConfig = this.world.getResource<{ viewportWidth?: number; viewportHeight?: number }>("GameConfig");
+    this.installProceduralBackdrop(gameConfig?.viewportWidth ?? 800, gameConfig?.viewportHeight ?? 600);
+
+    this.world.flush();
   }
 
   public override setInputState(input: Partial<HitAndRunInput>): void {
@@ -331,10 +320,7 @@ export const HitAndRunDefinition = {
       "special"
     ]
   },
-  assets: {
-    sprites: [],
-    sounds: []
-  }
+  assets: EchoRunnerDefinition.assets
 };
 
 export type { HitAndRunGameState, HitAndRunInput };

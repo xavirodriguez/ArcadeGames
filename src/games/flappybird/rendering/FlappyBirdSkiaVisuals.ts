@@ -27,7 +27,8 @@ import {
   maybeSpawnBackgroundDebris,
   resolveGlideEnergyState,
   resolveSectorEventInfo,
-  resolveBackgroundWarpState
+  resolveBackgroundWarpState,
+  computeWarpLines
 } from "./FlappyBirdRenderUtils";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
@@ -85,7 +86,6 @@ function getShardPolyPath(): SkPath | null {
   return shardPolyPath;
 }
 
-// TODO(refactor): código duplicado detectado (función) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:34-40. Considerar extraer a función compartida. Ref: 7ed8697b
 function drawSkiaVisualParticles(canvas: SkCanvas, paint: SkPaint): void {
   const particles = FLAPPY_PARTICLE_POOL.getActiveParticles();
   for (let i = 0; i < particles.length; i++) {
@@ -263,7 +263,7 @@ export const drawSkiaFlappyBird: ShapeDrawer<RenderContext, FlappyBirdComponentR
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setColor(Skia.Color("rgba(0, 0, 0, 0.7)"));
     paint.setStrokeWidth(0.8);
-    skCanvas.drawOval(Skia.XYWHRect(-size * 0.2, -size * 0.23, size * 0.7, size * 0.36), paint);
+    skCanvas.drawOval(Skia.XYWHRect(-size * 0.2, -size * 0.23, size * 0.36, size * 0.36), paint);
 
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color("#FFFFFF"));
@@ -291,8 +291,7 @@ export const drawSkiaFlappyPipe: ShapeDrawer<RenderContext, FlappyBirdComponentR
   draw(canvas, world, entity) {
     if (!Skia) return;
     const skCanvas = canvas as unknown as SkCanvas;
-        // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:288-306. Considerar extraer a función compartida. Ref: def9af8b
-const pipeCtx = resolveFlappyPipeDrawContext(world, entity);
+    const pipeCtx = resolveFlappyPipeDrawContext(world, entity);
     if (!pipeCtx) return;
 
     const {
@@ -455,8 +454,7 @@ const pipeCtx = resolveFlappyPipeDrawContext(world, entity);
         paint.setColor(Skia.Color("#00F3FF"));
         paint.setAlphaf(0.7 + 0.3 * laserPulse);
         paint.setStrokeWidth(3.0);
-                // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:459-467. Considerar extraer a función compartida. Ref: 33e66ed4
-skCanvas.drawLine(0, capYOffset + capHeight, 0, capYOffset + capHeight + pipe.gapSize, paint);
+        skCanvas.drawLine(0, capYOffset + capHeight, 0, capYOffset + capHeight + pipe.gapSize, paint);
 
         if (world.tick % 4 === 0) {
           const sparkY = capYOffset + capHeight + world.renderRandom.next() * pipe.gapSize;
@@ -658,8 +656,7 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<RenderContext, FlappyBi
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color("#050510"));
-        // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:674-683. Considerar extraer a función compartida. Ref: 60951bb4
-skCanvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
+    skCanvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
 
     const scenarioTheme = getThemeForScenario(gameState.currentScenario);
     const nebulae = scenarioTheme.nebulae;
@@ -727,20 +724,12 @@ skCanvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setColor(Skia.Color("#00F3FF"));
       paint.setAlphaf(0.15 * intensity);
-            // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdCanvasVisuals.ts:733-738. Considerar extraer a función compartida. Ref: b47c3db0
-paint.setStrokeWidth(1.2);
+      paint.setStrokeWidth(1.2);
 
-      for (let l = 0; l < lineCount; l++) {
-        const angle = (l / lineCount) * Math.PI * 2 + (tick * 0.02);
-        const innerR = 40 + (l * 17 + tick * 8) % (maxR * 0.5);
-        const outerR = innerR + 40 * warpFactor;
-        skCanvas.drawLine(
-          cx + Math.cos(angle) * innerR,
-          cy + Math.sin(angle) * innerR,
-          cx + Math.cos(angle) * outerR,
-          cy + Math.sin(angle) * outerR,
-          paint
-        );
+      const lines = computeWarpLines(lineCount, tick, cx, cy, maxR, warpFactor);
+      for (let l = 0; l < lines.length; l++) {
+        const line = lines[l];
+        skCanvas.drawLine(line.x1, line.y1, line.x2, line.y2, paint);
       }
       skCanvas.restore();
     }

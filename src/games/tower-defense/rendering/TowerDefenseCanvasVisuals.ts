@@ -8,6 +8,7 @@ import type {
 } from "../types/TowerDefenseTypes";
 import type { GridLayout } from "../../shared/grid/GridTypes";
 import { getTileTypeColor } from "../MapUtils";
+import { resolveCreepVisualState } from "./TowerDefenseVisualHelpers";
 
 type TDWorld = World<TowerDefenseComponentRegistry>;
 
@@ -118,46 +119,21 @@ function drawCreepBody(
 
 export const drawCreepGrunt: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    const creep = world.getComponent(entity, "Creep");
-    const slowed = (creep?.slowRemainingMs ?? 0) > 0;
-    const fill = slowed
-      ? resolveThemeColorWithFallback(world, "#80deea", "creep_slowed")
-      : resolveThemeColorWithFallback(world, "#ff7043", "creep_grunt", "enemy");
-    const stroke = slowed
-      ? resolveThemeColorWithFallback(world, "#e0f7fa", "creep_slowed_stroke")
-      : resolveThemeColorWithFallback(world, "#ffab91", "creep_grunt_stroke");
-    drawCreepBody(ctx, render?.size ?? 12, fill, stroke);
+    const { size, fill, stroke } = resolveCreepVisualState(world, entity, 12, "grunt");
+    drawCreepBody(ctx, size, fill, stroke);
   },
 };
 
 export const drawCreepFast: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    const creep = world.getComponent(entity, "Creep");
-    const slowed = (creep?.slowRemainingMs ?? 0) > 0;
-    const fill = slowed
-      ? resolveThemeColorWithFallback(world, "#80deea", "creep_slowed")
-      : resolveThemeColorWithFallback(world, "#29b6f6", "creep_fast", "enemy");
-    const stroke = slowed
-      ? resolveThemeColorWithFallback(world, "#e0f7fa", "creep_slowed_stroke")
-      : resolveThemeColorWithFallback(world, "#81d4fa", "creep_fast_stroke");
-    drawCreepBody(ctx, render?.size ?? 10, fill, stroke);
+    const { size, fill, stroke } = resolveCreepVisualState(world, entity, 10, "fast");
+    drawCreepBody(ctx, size, fill, stroke);
   },
 };
 
 export const drawCreepTank: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    const size = render?.size ?? 18;
-    const creep = world.getComponent(entity, "Creep");
-    const slowed = (creep?.slowRemainingMs ?? 0) > 0;
-    const fill = slowed
-      ? resolveThemeColorWithFallback(world, "#80deea", "creep_slowed")
-      : resolveThemeColorWithFallback(world, "#8d6e63", "creep_tank", "enemy");
-    const stroke = slowed
-      ? resolveThemeColorWithFallback(world, "#e0f7fa", "creep_slowed_stroke")
-      : resolveThemeColorWithFallback(world, "#bcaaa4", "creep_tank_stroke");
+    const { size, fill, stroke } = resolveCreepVisualState(world, entity, 18, "tank");
     drawCreepBody(ctx, size, fill, stroke);
     ctx.strokeStyle = resolveThemeColorWithFallback(world, "#5d4037", "creep_tank_plate");
     ctx.lineWidth = 3;
@@ -169,26 +145,14 @@ export const drawCreepTank: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
 
 export const drawCreepBoss: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    const size = render?.size ?? 28;
-    const creep = world.getComponent(entity, "Creep");
-    const slowed = (creep?.slowRemainingMs ?? 0) > 0;
-    const fill = slowed
-      ? resolveThemeColorWithFallback(world, "#4dd0e1", "creep_slowed")
-      : resolveThemeColorWithFallback(world, "#c62828", "creep_boss", "boss");
-    const stroke = slowed
-      ? resolveThemeColorWithFallback(world, "#80deea", "creep_slowed_stroke")
-      : resolveThemeColorWithFallback(world, "#e53935", "creep_boss_stroke");
-    const innerStroke = slowed
-      ? resolveThemeColorWithFallback(world, "#e0f7fa", "creep_slowed_stroke")
-      : resolveThemeColorWithFallback(world, "#ef9a9a", "creep_boss_inner_stroke");
+    const { size, fill, stroke, innerStroke } = resolveCreepVisualState(world, entity, 28, "boss");
 
     ctx.strokeStyle = stroke;
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.arc(0, 0, size * 0.55, 0, Math.PI * 2);
     ctx.stroke();
-    drawCreepBody(ctx, size, fill, innerStroke);
+    drawCreepBody(ctx, size, fill, innerStroke ?? stroke);
     ctx.fillStyle = resolveThemeColorWithFallback(world, "#ffd54f", "creep_boss_crown");
     ctx.beginPath();
     ctx.moveTo(-size * 0.3, -size * 0.35);

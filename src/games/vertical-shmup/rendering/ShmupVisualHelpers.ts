@@ -1,0 +1,56 @@
+import type { World } from "@tiny-aster/core";
+import type { ShmupComponentRegistry } from "../types/ShmupTypes";
+import type { ShmupConfig } from "../types/ShmupConfigSchema";
+
+export interface ShmupStarData {
+  rawX: number;
+  y: number;
+  layer: number;
+  color: string;
+  w: number;
+  h: number;
+}
+
+export interface ShmupStarfieldParams {
+  width: number;
+  height: number;
+  starCount: number;
+  stars: ShmupStarData[];
+}
+
+export function computeShmupStarfield(
+  world: World<ShmupComponentRegistry>
+): ShmupStarfieldParams {
+  const config = world.getResource<ShmupConfig>("GameConfig");
+  const width = config?.WORLD_WIDTH ?? 480;
+  const height = config?.WORLD_HEIGHT ?? 854;
+  const state = world.getSingleton("ShmupGameState");
+  const time = world.tick * 0.016;
+  const scroll = state?.scrollDistance ?? time * (config?.SCROLL_SPEED ?? 80);
+  const starCount = config?.STAR_COUNT ?? 80;
+
+  const stars: ShmupStarData[] = [];
+
+  for (let i = 0; i < starCount; i++) {
+    const seedX = (i * 127.1 + 311.7) % 1;
+    const seedY = (i * 269.5 + 183.3) % 1;
+
+    const layer = i % 3;
+    const speedMult = layer === 0 ? 0.4 : layer === 1 ? 1.0 : 1.8;
+    const starSpeed = (config?.STAR_SPEED ?? 35) * speedMult;
+
+    const rawX = seedX * width;
+    const rawY = (seedY * height + scroll * (starSpeed / 35)) % height;
+    const y = rawY < 0 ? rawY + height : rawY;
+
+    if (layer === 0) {
+      stars.push({ rawX, y, layer, color: "rgba(200, 220, 255, 0.35)", w: 1, h: 1 });
+    } else if (layer === 1) {
+      stars.push({ rawX, y, layer, color: "rgba(0, 229, 255, 0.65)", w: 1.5, h: 2 });
+    } else {
+      stars.push({ rawX, y, layer, color: "rgba(255, 255, 255, 0.9)", w: 2, h: 4 });
+    }
+  }
+
+  return { width, height, starCount, stars };
+}

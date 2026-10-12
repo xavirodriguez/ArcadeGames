@@ -12,7 +12,8 @@ export class EnemyPathSystem extends System<ShmupComponentRegistry, ShmupEventRe
       if (path.kind === "sine") {
         transform.x = path.originX + Math.sin(t * path.frequency) * path.amplitude;
       } else if (path.kind === "arc") {
-        const progress = Math.min(1, t / path.duration);
+        const duration = path.duration > 0 ? path.duration : 8;
+        const progress = Math.min(1, Math.max(0, t / duration));
         transform.x = path.originX + Math.sin(progress * Math.PI) * path.amplitude;
       }
       transform.dirty = true;

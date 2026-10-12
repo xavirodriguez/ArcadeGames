@@ -10,8 +10,21 @@ const config = (player: boolean): PrefabConfig<ProjectileComponents, ProjectileP
   damageCategory: player ? "shmup_player_bullet" : "shmup_enemy_bullet",
   faction: player ? "player" : "enemy",
   order: 10,
-  extraComponents: (data: Record<string, unknown>) => {
-    data.boundary = { type: "Boundary", width: 480, height: 854, mode: "destroy" } as BoundaryComponent;
+  extraComponents: (data: Record<string, unknown>, _params: unknown, world?: World) => {
+    const gameConfig = world?.getResource<{ WORLD_WIDTH?: number; WORLD_HEIGHT?: number; OFFSCREEN_MARGIN?: number }>("GameConfig");
+    const width = gameConfig?.WORLD_WIDTH ?? 480;
+    const height = gameConfig?.WORLD_HEIGHT ?? 854;
+    const margin = gameConfig?.OFFSCREEN_MARGIN ?? 60;
+    data.boundary = {
+      type: "Boundary",
+      minX: -margin,
+      maxX: width + margin,
+      minY: -margin,
+      maxY: height + margin,
+      width: width + margin,
+      height: height + margin,
+      mode: "destroy"
+    } as BoundaryComponent;
   }
 }) as never;
 

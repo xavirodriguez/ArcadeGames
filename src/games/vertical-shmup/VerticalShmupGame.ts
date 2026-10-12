@@ -45,7 +45,7 @@ export class VerticalShmupGame extends BaseGame<ShmupGameStateComponent, ShmupIn
   }
 
   public getGameState(): ShmupGameStateComponent {
-    return this.world.getSingleton("ShmupGameState") ?? { type: "ShmupGameState", score: 0, wave: 1, scrollDistance: 0, isGameOver: false, spawnTimer: 0 };
+    return this.world.getSingleton("ShmupGameState") ?? { type: "ShmupGameState", score: 0, wave: 1, lives: 3, scrollDistance: 0, isGameOver: false, spawnTimer: 0 };
   }
 
   public isGameOver(): boolean { return this.getGameState().isGameOver; }
@@ -63,7 +63,7 @@ export class VerticalShmupGame extends BaseGame<ShmupGameStateComponent, ShmupIn
 export class NullVerticalShmupGame extends NullBaseGame<ShmupGameStateComponent, ShmupInputState, ShmupComponentRegistry> {
   public readonly gameId = "vertical-shmup";
   public getGameState(): ShmupGameStateComponent {
-    return { type: "ShmupGameState", score: 0, wave: 1, scrollDistance: 0, isGameOver: false, spawnTimer: 0 };
+    return { type: "ShmupGameState", score: 0, wave: 1, lives: 3, scrollDistance: 0, isGameOver: false, spawnTimer: 0 };
   }
 }
 

@@ -49,13 +49,22 @@ export default function VerticalShmupScreen() {
 
   if (!game || !isReady) return null;
 
+  const lives = gameState?.lives ?? 3;
+  const livesDisplay = "❤️".repeat(Math.max(0, lives));
+
   return (
     <GameErrorBoundary gameId="vertical-shmup">
       <SafeAreaProvider>
         <GameLayoutShell
           style={sharedScreenStyles.container}
           topLeftSlot={<BackButton label="Menu" />}
-          centerHudSlot={<View style={styles.hud}><Text style={styles.hudText}>SCORE {gameState?.score ?? 0} · WAVE {gameState?.wave ?? 1}</Text></View>}
+          centerHudSlot={
+            <View style={styles.hud}>
+              <Text style={styles.hudText}>
+                SCORE {gameState?.score ?? 0} · WAVE {gameState?.wave ?? 1} · LIVES {livesDisplay || "0"}
+              </Text>
+            </View>
+          }
           canvasSlot={<CanvasRenderer world={game.getWorld()} gameLoop={game.getGameLoop()} onInitialize={(renderer) => game.initializeRenderer(renderer)} />}
           controlsSlot={
             <View style={styles.controls} pointerEvents="box-none">

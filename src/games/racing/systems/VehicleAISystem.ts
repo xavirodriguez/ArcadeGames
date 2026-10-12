@@ -15,7 +15,8 @@ export class VehicleAISystem extends System<RacingComponentRegistry, RacingEvent
     const len = aiCars.length;
     for (let i = 0; i < len; i++) {
       const entity = aiCars[i];
-      if (world.hasComponent(entity, "LocalPlayer")) continue;
+            // TODO(refactor): código duplicado detectado (bloque) con physics/vehicles/VehicleWaypointSystem.ts:105-112. Considerar extraer a función compartida. Ref: 469377f3
+if (world.hasComponent(entity, "LocalPlayer")) continue;
 
       const waypointsComp = world.getComponent(entity, "VehicleWaypoint") as VehicleWaypointComponent | undefined;
       const vehicle = world.getMutableComponent(entity, "VehicleSteering") as VehicleSteeringComponent | undefined;

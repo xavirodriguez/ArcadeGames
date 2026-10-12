@@ -80,6 +80,7 @@ export function getVisibleSkiaRender<TRegistry extends Record<string, any> = Rec
  * otherwise null. Works for Canvas rendering contexts.
  * @public
  */
+// TODO(refactor): código duplicado detectado (bloque) con shared/rendering/BallRenderUtils.ts:15-20. Considerar extraer a función compartida. Ref: 0bc709f9
 export function getVisibleCanvasRenderAndTransform<TRegistry extends Record<string, any> = Record<string, any>>(
   world: World<TRegistry>,
   entity: Entity

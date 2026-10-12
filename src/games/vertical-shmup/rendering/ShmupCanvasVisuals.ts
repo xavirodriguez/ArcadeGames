@@ -4,7 +4,8 @@ import type { ShmupConfig } from "../types/ShmupConfigSchema";
 
 export const drawShmupPlayer: ShapeDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
+        // TODO(refactor): código duplicado detectado (bloque) con vertical-shmup/rendering/ShmupSkiaVisuals.ts:9-21. Considerar extraer a función compartida. Ref: bef31d8f
+const render = world.getComponent(entity, "Render");
     if (!render) return;
     const health = world.getComponent(entity, "Health");
     const invulnerable = (health?.invulnerableRemaining ?? 0) > 0;
@@ -102,7 +103,8 @@ export const drawShmupPlayer: ShapeDrawer<CanvasRenderingContext2D, ShmupCompone
 
 export const drawShmupEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
+        // TODO(refactor): código duplicado detectado (bloque) con vertical-shmup/rendering/ShmupSkiaVisuals.ts:100-105. Considerar extraer a función compartida. Ref: 7139b235
+const render = world.getComponent(entity, "Render");
     if (!render) return;
     const path = world.getComponent(entity, "EnemyPath");
     const size = render.size ?? 24;
@@ -201,7 +203,8 @@ export const drawShmupEnemyBullet: ShapeDrawer<CanvasRenderingContext2D, ShmupCo
 
 export const drawShmupStarfield: EffectDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
   draw(ctx, world) {
-    const config = world.getResource<ShmupConfig>("GameConfig");
+        // TODO(refactor): código duplicado detectado (bloque) con vertical-shmup/rendering/ShmupSkiaVisuals.ts:204-211. Considerar extraer a función compartida. Ref: c4bf9b9c
+const config = world.getResource<ShmupConfig>("GameConfig");
     const width = config?.WORLD_WIDTH ?? 480;
     const height = config?.WORLD_HEIGHT ?? 854;
     const state = world.getSingleton("ShmupGameState");
@@ -212,7 +215,8 @@ export const drawShmupStarfield: EffectDrawer<CanvasRenderingContext2D, ShmupCom
 
     ctx.save();
     ctx.fillStyle = "#070a14";
-    ctx.fillRect(0, 0, width, height);
+        // TODO(refactor): código duplicado detectado (bloque) con vertical-shmup/rendering/ShmupSkiaVisuals.ts:221-235. Considerar extraer a función compartida. Ref: fe5a4286
+ctx.fillRect(0, 0, width, height);
 
     for (let i = 0; i < starCount; i++) {
       const seedX = (i * 127.1 + 311.7) % 1;

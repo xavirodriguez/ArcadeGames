@@ -16,7 +16,8 @@ export class HitRunCombatSystem extends System<CoreComponentRegistry> {
   private destroyedEntities = new Set<number>();
 
   public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
-    if (world.getResource("IsPaused") === true) return;
+        // TODO(refactor): código duplicado detectado (bloque) con space-invaders/systems/SpaceInvadersCollisionSystem.ts:303-312. Considerar extraer a función compartida. Ref: 207aa4a2
+if (world.getResource("IsPaused") === true) return;
 
     const entitiesWithEvents = world.query("CollisionEvents");
     this.destroyedEntities.clear();
@@ -37,7 +38,8 @@ export class HitRunCombatSystem extends System<CoreComponentRegistry> {
       if (colComp.collisions) {
         const cLen = colComp.collisions.length;
         for (let j = 0; j < cLen; j++) {
-          const entityB = colComp.collisions[j].otherEntity;
+                    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/systems/SpaceInvadersCollisionSystem.ts:316-327. Considerar extraer a función compartida. Ref: 872e7161
+const entityB = colComp.collisions[j].otherEntity;
           if (entityA >= entityB) continue;
           if (!WorldUtils.isEntityActive(world, entityA) || !WorldUtils.isEntityActive(world, entityB)) continue;
           if (this.destroyedEntities.has(entityA) || this.destroyedEntities.has(entityB)) continue;
@@ -53,7 +55,8 @@ export class HitRunCombatSystem extends System<CoreComponentRegistry> {
       if (colComp.triggersEntered) {
         const tLen = colComp.triggersEntered.length;
         for (let j = 0; j < tLen; j++) {
-          const entityB = colComp.triggersEntered[j];
+                    // TODO(refactor): código duplicado detectado (bloque) con hitandrun/systems/HitRunCombatSystem.ts:41-50. Considerar extraer a función compartida. Ref: c0c50c5c
+const entityB = colComp.triggersEntered[j];
           if (!WorldUtils.isEntityActive(world, entityA) || !WorldUtils.isEntityActive(world, entityB)) continue;
           if (this.destroyedEntities.has(entityA) || this.destroyedEntities.has(entityB)) continue;
 

@@ -11,6 +11,7 @@ import {
 } from "./BeltMovementTypes";
 import type { BeltElevationComponent } from "./BeltElevationComponent";
 
+// TODO(refactor): código duplicado detectado (bloque) con hitandrun/belt/BeltMovementSystem.ts:30-38. Considerar extraer a función compartida. Ref: 63ceeff2
 export class BeltElevationSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;

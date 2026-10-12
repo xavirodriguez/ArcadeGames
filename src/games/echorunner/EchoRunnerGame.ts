@@ -151,7 +151,8 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
       theme: config.theme ?? createThemeFromGameAccents("echorunner"),
       audio: new WebAudioPlayer()
     });
-    this.baseConfig = ConfigService.load<EchoRunnerConfigType>(
+        // TODO(refactor): código duplicado detectado (bloque) con platformer/PlatformerGame.ts:96-104. Considerar extraer a función compartida. Ref: 0716a3de
+this.baseConfig = ConfigService.load<EchoRunnerConfigType>(
       this.gameId,
       EchoRunnerConfigSchema,
       config.gameOptions?.rawConfig ?? {}
@@ -237,7 +238,8 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
       }
     });
 
-    registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_ECHO_RUNNER_CONFIG);
+        // TODO(refactor): código duplicado detectado (bloque) con hitandrun/HitAndRunGame.ts:175-178. Considerar extraer a función compartida. Ref: c45b92d8
+registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_ECHO_RUNNER_CONFIG);
 
     registerCollectibleTriggerBlueprint(this.blueprints, "collectible_fragment", "fragment", 10, 16, 10, "fragment", false, false);
     registerCollectibleTriggerBlueprint(this.blueprints, "collectible_core", "core", 100, 24, 12, "core", true, true);

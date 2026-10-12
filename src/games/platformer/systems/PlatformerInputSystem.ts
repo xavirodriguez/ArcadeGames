@@ -6,6 +6,7 @@ import { World, System, Entity, CoreComponentRegistry, TouchInputState } from "@
  * and variable jump height (short hop clamping).
  * @public
  */
+// TODO(refactor): código duplicado detectado (bloque) con shared/systems/PlatformerInputSystem.ts:9-26. Considerar extraer a función compartida. Ref: ed2edb16
 export class PlatformerInputSystem extends System<CoreComponentRegistry> {
   private lastJumpStates = new Map<Entity, boolean>();
 

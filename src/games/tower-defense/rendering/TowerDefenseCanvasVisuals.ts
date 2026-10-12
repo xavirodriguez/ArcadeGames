@@ -116,6 +116,7 @@ function drawCreepBody(
   ctx.fill();
 }
 
+// TODO(refactor): código duplicado detectado (bloque) con tower-defense/rendering/TowerDefenseCanvasVisuals.ts:134-141. Considerar extraer a función compartida. Ref: 41514af0
 export const drawCreepGrunt: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
@@ -133,7 +134,8 @@ export const drawCreepGrunt: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseC
 
 export const drawCreepFast: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
+        // TODO(refactor): código duplicado detectado (bloque) con tower-defense/rendering/TowerDefenseSkiaVisuals.ts:153-159. Considerar extraer a función compartida. Ref: 589c05b2
+const render = world.getComponent(entity, "Render");
     const creep = world.getComponent(entity, "Creep");
     const slowed = (creep?.slowRemainingMs ?? 0) > 0;
     const fill = slowed
@@ -147,7 +149,8 @@ export const drawCreepFast: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
 };
 
 export const drawCreepTank: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
-  draw(ctx, world, entity) {
+    // TODO(refactor): código duplicado detectado (método) con tower-defense/rendering/TowerDefenseSkiaVisuals.ts:164-172. Considerar extraer a función compartida. Ref: 75877384
+draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     const size = render?.size ?? 18;
     const creep = world.getComponent(entity, "Creep");
@@ -202,7 +205,8 @@ export const drawCreepBoss: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
 };
 
 export const drawTowerProjectile: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
-  draw(ctx, world, entity) {
+    // TODO(refactor): código duplicado detectado (método) con tower-defense/rendering/TowerDefenseSkiaVisuals.ts:187-194. Considerar extraer a función compartida. Ref: fc082c14
+draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     const proj = world.getComponent(entity, "TowerProjectile");
     const size = render?.size ?? 4;
@@ -226,7 +230,8 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
   draw(ctx, world: TDWorld) {
     const layout = world.getResource<GridLayout>("GridLayout");
     const tileGrid = world.getResource<TileGrid>("TileGrid");
-    if (!layout || !tileGrid) return;
+        // TODO(refactor): código duplicado detectado (bloque) con tower-defense/rendering/TowerDefenseSkiaVisuals.ts:211-217. Considerar extraer a función compartida. Ref: 493978f3
+if (!layout || !tileGrid) return;
 
     for (let row = 0; row < tileGrid.rows; row++) {
       for (let col = 0; col < tileGrid.cols; col++) {

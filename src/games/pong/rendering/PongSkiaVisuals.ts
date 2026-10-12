@@ -93,6 +93,7 @@ export const drawSkiaPongPaddle: ShapeDrawer<any, PongComponentRegistry> = {
  * Procedural retro space-grid background effect drawer for React Native Skia.
  * @public
  */
+// TODO(refactor): código duplicado detectado (bloque) con arkanoid/rendering/ArkanoidSkiaVisuals.ts:106-114. Considerar extraer a función compartida. Ref: 1e568801
 export const drawSkiaPongBackground: EffectDrawer<any, PongComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;

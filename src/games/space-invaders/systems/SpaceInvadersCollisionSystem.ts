@@ -300,7 +300,8 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
         this.config = world.getResource<SpaceInvadersConfig>("GameConfig")!;
     }
     const gameState = world.getSingleton("GameState");
-    if (!gameState || gameState.isGameOver) return;
+        // TODO(refactor): código duplicado detectado (bloque) con hitandrun/systems/HitRunCombatSystem.ts:19-28. Considerar extraer a función compartida. Ref: 207aa4a2
+if (!gameState || gameState.isGameOver) return;
 
     const entitiesWithEvents = world.query("CollisionEvents");
     // Safe for determinism/rollback. Reusing instance Set avoids per-tick heap allocations during collision resolution.
@@ -313,7 +314,8 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
       if (!eventsComp) continue;
 
       for (const event of eventsComp.collisions) {
-        const entityB = event.otherEntity;
+                // TODO(refactor): código duplicado detectado (bloque) con hitandrun/systems/HitRunCombatSystem.ts:40-45. Considerar extraer a función compartida. Ref: 872e7161
+const entityB = event.otherEntity;
 
         // Double Security A: Process each pair exactly once
         if (entityA >= entityB) continue;

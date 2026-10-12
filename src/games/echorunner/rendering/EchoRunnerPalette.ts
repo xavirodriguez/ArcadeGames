@@ -4,6 +4,7 @@ import { Theme, createVisualTheme } from "@tiny-aster/core";
  * EchoRunner "The Archive" Color Palette
  * Distinguishes Corrupted vs Restored Archive data and environments.
  */
+// TODO(refactor): código duplicado detectado (bloque) con shared/rendering/PlatformerSharedVisualUtils.ts:41-61. Considerar extraer a función compartida. Ref: 47d6edc7
 export const ECHO_PALETTE = {
   // Restoration & Restored Data (Player, Core, Active Pulse, Restored Nodes)
   restorationCyan: "#00f0ff",

@@ -166,7 +166,8 @@ export class HitRunHurtSystem extends CombatHitListenerSystem<CombatHitPayload> 
       }
     }
 
-    const elev = world.getMutableComponent(target, "BeltElevation") as
+        // TODO(refactor): código duplicado detectado (bloque) con hitandrun/melee/HitRunMeleeSystem.ts:392-401. Considerar extraer a función compartida. Ref: 4cd23756
+const elev = world.getMutableComponent(target, "BeltElevation") as
       | BeltElevationComponent
       | undefined;
     if (elev) {

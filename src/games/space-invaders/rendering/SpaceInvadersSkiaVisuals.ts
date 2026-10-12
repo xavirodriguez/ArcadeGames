@@ -46,7 +46,8 @@ export function drawExplosionParticlesSkia(canvas: any): void {
   if (!Skia) return;
   const paint = getPaint();
 
-  canvas.save();
+    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersCanvasVisuals.ts:45-50. Considerar extraer a función compartida. Ref: 0b6a9ef2
+canvas.save();
   for (let i = 0; i < EXPLOSION_PARTICLE_POOL.length; i++) {
     const data = resolveExplosionParticleData(EXPLOSION_PARTICLE_POOL[i]);
     if (!data) continue;
@@ -102,7 +103,8 @@ const cachedShieldCracks = new WeakMap<any, { x1: number; y1: number; x2: number
 export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = safeGetRenderComponent(world, entity);
-    if (!render) return;
+        // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersCanvasVisuals.ts:97-106. Considerar extraer a función compartida. Ref: 78b2329a
+if (!render) return;
 
     const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
     const customGeom = theme?.visualTheme?.shapeTokens?.playerGeometry;
@@ -140,7 +142,8 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
         canvas.save();
         const paint = getPaint();
         paint.reset();
-        paint.setAntiAlias(true);
+                // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:285-291. Considerar extraer a función compartida. Ref: 1bbfed8d
+paint.setAntiAlias(true);
         paint.setStyle(Skia!.PaintStyle.Stroke);
         paint.setColor(Skia!.Color(colors.cyan));
         paint.setStrokeWidth(3);
@@ -306,7 +309,8 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
 export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = safeGetRenderComponent(world, entity);
-    if (!render) return;
+        // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersCanvasVisuals.ts:306-315. Considerar extraer a función compartida. Ref: 6dd5bc46
+if (!render) return;
 
     const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
     const customGeom = theme?.visualTheme?.shapeTokens?.enemyGeometry;
@@ -426,6 +430,7 @@ export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersCompone
 /**
  * Visuals for bullets using React Native Skia. Supports Concept Pack projectile geometry.
  */
+// TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:102-108. Considerar extraer a función compartida. Ref: d30640a5
 export const drawSkiaSpaceInvadersBullet: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = safeGetRenderComponent(world, entity);
@@ -495,7 +500,8 @@ export const drawSkiaSpaceInvadersBullet: ShapeDrawer<any, SpaceInvadersComponen
  */
 export const drawSkiaSpaceInvadersBoss: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = safeGetRenderComponent(world, entity);
+        // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersCanvasVisuals.ts:498-520. Considerar extraer a función compartida. Ref: 49246066
+const render = safeGetRenderComponent(world, entity);
     if (!render) return;
 
     const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);

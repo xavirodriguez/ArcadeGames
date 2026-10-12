@@ -53,6 +53,7 @@ function getPulseAttackGradient(ctx: CanvasRenderingContext2D, size: number, pal
   return grad;
 }
 
+// TODO(refactor): código duplicado detectado (función) con echorunner/rendering/EchoRunnerCanvasVisuals.ts:20-27. Considerar extraer a función compartida. Ref: 8f9b0344
 function drawCanvasHitFlashCircle(ctx: CanvasRenderingContext2D, radius: number, color: string): true {
   ctx.fillStyle = color;
   ctx.beginPath();
@@ -71,6 +72,7 @@ function drawCanvasHitFlashRect(ctx: CanvasRenderingContext2D, x: number, y: num
   return true;
 }
 
+// TODO(refactor): código duplicado detectado (función) con echorunner/rendering/EchoRunnerSkiaVisuals.ts:21-29. Considerar extraer a función compartida. Ref: 04763e38
 function drawSkiaHitFlashCircle(canvas: any, paint: any, radius: number, color: string): true {
   paint.reset();
   paint.setAntiAlias(true);
@@ -475,7 +477,8 @@ export const drawCharger: ShapeDrawer<CanvasRenderingContext2D, CoreComponentReg
     if (isStunned) {
       const elapsed = world.tick * 0.1;
       ctx.strokeStyle = palette.restorationGold;
-      ctx.lineWidth = 1.5;
+            // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/PlatformerSharedVisuals.ts:928-933. Considerar extraer a función compartida. Ref: cf5f5f2f
+ctx.lineWidth = 1.5;
       for (let i = 0; i < 3; i++) {
         const angle = elapsed + (i * Math.PI * 2) / 3;
         const sx = Math.cos(angle) * (size * 0.6);
@@ -736,7 +739,8 @@ export const drawSkiaSentinel: ShapeDrawer<any, CoreComponentRegistry> = {
 export const drawSkiaHopper: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    const drawCtx = resolveEchoDrawContext(world, entity, 24);
+        // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/PlatformerSharedVisuals.ts:866-874. Considerar extraer a función compartida. Ref: 50876859
+const drawCtx = resolveEchoDrawContext(world, entity, 24);
     if (!drawCtx) return;
     const { size, isHitFlash, state, palette } = drawCtx;
 

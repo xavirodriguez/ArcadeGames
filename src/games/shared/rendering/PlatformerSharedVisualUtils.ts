@@ -1,5 +1,6 @@
 import { World, resolveThemeColorWithFallback } from "@tiny-aster/core";
 
+// TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerVisualUtils.ts:4-46. Considerar extraer a función compartida. Ref: ec6ae7ed
 export interface RenderComponentLike {
   visible?: boolean;
   size?: number;
@@ -38,6 +39,7 @@ export interface RunStateResource {
   elapsedTime?: number;
 }
 
+// TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerPalette.ts:7-32. Considerar extraer a función compartida. Ref: 47d6edc7
 export const DEFAULT_ECHO_PALETTE = {
   restorationCyan: "#00f0ff",
   restorationCyanGlow: "rgba(0, 240, 255, 0.4)",
@@ -61,6 +63,7 @@ export const DEFAULT_ECHO_PALETTE = {
   archiveNodeInactive: "#ef4444",
 } as const;
 
+// TODO(refactor): código duplicado detectado (bloque) con echorunner/rendering/EchoRunnerVisualUtils.ts:46-77. Considerar extraer a función compartida. Ref: 7cef9e3a
 export interface EchoRunnerResolvedPalette {
   restorationCyan: string;
   restorationCyanGlow: string;

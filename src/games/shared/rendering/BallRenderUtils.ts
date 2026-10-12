@@ -6,6 +6,7 @@ export interface BasicBallContext {
   size: number;
 }
 
+// TODO(refactor): código duplicado detectado (bloque) con shared/rendering/renderingUtils.ts:86-91. Considerar extraer a función compartida. Ref: 0bc709f9
 export function resolveBasicBallContext<
   TRegistry extends ComponentRegistry = ComponentRegistry
 >(

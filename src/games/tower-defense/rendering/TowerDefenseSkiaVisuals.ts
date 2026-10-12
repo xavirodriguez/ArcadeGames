@@ -124,7 +124,8 @@ export const drawSkiaCreepBoss: ShapeDrawer<any, TowerDefenseComponentRegistry> 
       ? resolveThemeColorWithFallback(world, "#80deea", "creep_slowed_stroke")
       : resolveThemeColorWithFallback(world, "#e53935", "creep_boss_stroke");
 
-    drawSkiaCreep(canvas, size, fill);
+        // TODO(refactor): código duplicado detectado (bloque) con tower-defense/rendering/TowerDefenseSkiaVisuals.ts:172-186. Considerar extraer a función compartida. Ref: d7a34c03
+drawSkiaCreep(canvas, size, fill);
     if (!Skia) return;
     const paint = getPaint();
     if (!paint) return;
@@ -137,7 +138,8 @@ export const drawSkiaCreepBoss: ShapeDrawer<any, TowerDefenseComponentRegistry> 
 };
 
 export const drawSkiaCreepGrunt: ShapeDrawer<any, TowerDefenseComponentRegistry> = {
-  draw(canvas, world, entity) {
+    // TODO(refactor): código duplicado detectado (método) con tower-defense/rendering/TowerDefenseCanvasVisuals.ts:120-126. Considerar extraer a función compartida. Ref: bc7e12d4
+draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
     const creep = world.getComponent(entity, "Creep");
     const slowed = (creep?.slowRemainingMs ?? 0) > 0;
@@ -150,7 +152,8 @@ export const drawSkiaCreepGrunt: ShapeDrawer<any, TowerDefenseComponentRegistry>
 
 export const drawSkiaCreepFast: ShapeDrawer<any, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = world.getComponent(entity, "Render");
+        // TODO(refactor): código duplicado detectado (bloque) con tower-defense/rendering/TowerDefenseCanvasVisuals.ts:136-142. Considerar extraer a función compartida. Ref: 589c05b2
+const render = world.getComponent(entity, "Render");
     const creep = world.getComponent(entity, "Creep");
     const slowed = (creep?.slowRemainingMs ?? 0) > 0;
     const fill = slowed
@@ -161,7 +164,8 @@ export const drawSkiaCreepFast: ShapeDrawer<any, TowerDefenseComponentRegistry> 
 };
 
 export const drawSkiaCreepTank: ShapeDrawer<any, TowerDefenseComponentRegistry> = {
-  draw(canvas, world, entity) {
+    // TODO(refactor): código duplicado detectado (método) con tower-defense/rendering/TowerDefenseCanvasVisuals.ts:150-158. Considerar extraer a función compartida. Ref: 75877384
+draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
     const size = render?.size ?? 18;
     const creep = world.getComponent(entity, "Creep");
@@ -184,7 +188,8 @@ export const drawSkiaCreepTank: ShapeDrawer<any, TowerDefenseComponentRegistry> 
 };
 
 export const drawSkiaTowerProjectile: ShapeDrawer<any, TowerDefenseComponentRegistry> = {
-  draw(canvas, world, entity) {
+    // TODO(refactor): código duplicado detectado (método) con tower-defense/rendering/TowerDefenseCanvasVisuals.ts:205-212. Considerar extraer a función compartida. Ref: fc082c14
+draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
     const proj = world.getComponent(entity, "TowerProjectile");
     const size = render?.size ?? 4;
@@ -208,7 +213,8 @@ export const drawSkiaTdMapBackground: EffectDrawer<any, TowerDefenseComponentReg
     if (!layout || !tileGrid) return;
 
     const paint = getPaint();
-    if (!paint) return;
+        // TODO(refactor): código duplicado detectado (bloque) con tower-defense/rendering/TowerDefenseCanvasVisuals.ts:229-235. Considerar extraer a función compartida. Ref: 493978f3
+if (!paint) return;
 
     for (let row = 0; row < tileGrid.rows; row++) {
       for (let col = 0; col < tileGrid.cols; col++) {

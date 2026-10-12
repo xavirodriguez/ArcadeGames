@@ -389,7 +389,8 @@ const ox = transform.worldX ?? transform.x;
         }
       }
 
-      const elev = world.getMutableComponent(other, "BeltElevation") as
+            // TODO(refactor): código duplicado detectado (bloque) con hitandrun/hurt/HitRunHurtSystem.ts:169-178. Considerar extraer a función compartida. Ref: 4cd23756
+const elev = world.getMutableComponent(other, "BeltElevation") as
         | BeltElevationComponent
         | undefined;
       if (elev) {

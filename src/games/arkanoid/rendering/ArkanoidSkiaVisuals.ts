@@ -68,7 +68,8 @@ function drawFilledSkiaRoundRect(
   rx: number,
   ry: number
 ): void {
-  const paint = getPaint();
+    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:146-152. Considerar extraer a función compartida. Ref: e6367210
+const paint = getPaint();
   canvas.save();
   paint.reset();
   paint.setAntiAlias(true);
@@ -103,6 +104,7 @@ export const drawSkiaArkanoidBrick: ShapeDrawer<any, ArkanoidComponentRegistry> 
   }
 };
 
+// TODO(refactor): código duplicado detectado (bloque) con pong/rendering/PongSkiaVisuals.ts:96-105. Considerar extraer a función compartida. Ref: 1e568801
 export const drawSkiaArkanoidBackground: EffectDrawer<any, ArkanoidComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;

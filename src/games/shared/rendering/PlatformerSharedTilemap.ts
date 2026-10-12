@@ -1,5 +1,6 @@
 import { ShapeDrawer, CoreComponentRegistry, TilemapComponent, resolveThemeColorWithFallback } from "@tiny-aster/core";
 
+// TODO(refactor): código duplicado detectado (bloque) con platformer/rendering/PlatformerCanvasVisuals.ts:4-91. Considerar extraer a función compartida. Ref: f164834e
 export const drawPlatformerTilemap: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
     const tilemap = world.getComponent(entity, "Tilemap") as TilemapComponent | undefined;

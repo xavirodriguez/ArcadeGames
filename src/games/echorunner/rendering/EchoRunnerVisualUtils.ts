@@ -1,6 +1,7 @@
 import { World, resolveThemeColorWithFallback } from "@tiny-aster/core";
 import { ECHO_PALETTE } from "./EchoRunnerPalette";
 
+// TODO(refactor): código duplicado detectado (bloque) con shared/rendering/PlatformerSharedVisualUtils.ts:3-41. Considerar extraer a función compartida. Ref: ec6ae7ed
 export interface RenderComponentLike {
   visible?: boolean;
   size?: number;
@@ -43,6 +44,7 @@ export interface RunStateResource {
  * Resolved theme color palette contract for EchoRunner and shared platformer visual drawers.
  * @public
  */
+// TODO(refactor): código duplicado detectado (bloque) con shared/rendering/PlatformerSharedVisualUtils.ts:64-91. Considerar extraer a función compartida. Ref: 7cef9e3a
 export interface EchoRunnerResolvedPalette {
   restorationCyan: string;
   restorationCyanGlow: string;

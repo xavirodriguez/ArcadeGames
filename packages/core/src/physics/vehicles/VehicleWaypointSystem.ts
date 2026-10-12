@@ -102,7 +102,8 @@ export class VehicleWaypointSystem extends System<CoreComponentRegistry> {
     const len = entities.length;
 
     for (let i = 0; i < len; i++) {
-      const entity = entities[i];
+            // TODO(refactor): código duplicado detectado (bloque) con racing/systems/VehicleAISystem.ts:18-26. Considerar extraer a función compartida. Ref: 469377f3
+const entity = entities[i];
       const waypointsComp = world.getComponent(entity, "VehicleWaypoint") as VehicleWaypointComponent | undefined;
       const vehicle = world.getMutableComponent(entity, "VehicleSteering") as VehicleSteeringComponent | undefined;
       const transform = world.getComponent(entity, "Transform");

@@ -40,6 +40,7 @@ function setupAsteroidStrokePaint(
  * Procedural player ship shape drawer for React Native Skia.
  * Supports Concept Pack parametric geometry override if available in active Theme.
  */
+// TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsSkiaVisuals.ts:253-259. Considerar extraer a función compartida. Ref: 76dcb8d9
 export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = getVisibleSkiaRender(world, entity);
@@ -195,7 +196,8 @@ export const drawSkiaAsteroidsUfo: ShapeDrawer<any, AsteroidsComponentRegistry> 
  */
 export const drawSkiaAsteroidsAsteroid: ShapeDrawer<any, AsteroidsComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = getVisibleSkiaRender(world, entity);
+        // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsCanvasVisuals.ts:202-214. Considerar extraer a función compartida. Ref: b4b40449
+const render = getVisibleSkiaRender(world, entity);
     const collider = world.getComponent(entity, "Collider");
     if (!render) return;
 

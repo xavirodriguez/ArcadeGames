@@ -325,7 +325,8 @@ export class GeometryWarsGame extends BaseGame<
         const state = rawState as { x: number; y: number; angle: number };
         const commands = world.getCommandBuffer();
         commands.addComponent(entity, createTransformComponent(state.x, state.y, state.angle));
-        commands.addComponent(
+                // TODO(refactor): código duplicado detectado (bloque) con space-invaders/SpaceInvadersGame.ts:785-796. Considerar extraer a función compartida. Ref: 37e899ab
+commands.addComponent(
           entity,
           createRenderComponent({ shape: "gw_bullet", size: 4, color: colors.gold, rotation: state.angle, order: 2 })
         );

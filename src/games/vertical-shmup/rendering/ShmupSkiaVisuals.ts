@@ -6,7 +6,8 @@ import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 export const drawSkiaShmupPlayer: ShapeDrawer<RenderContext, ShmupComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
+        // TODO(refactor): código duplicado detectado (bloque) con vertical-shmup/rendering/ShmupCanvasVisuals.ts:7-19. Considerar extraer a función compartida. Ref: bef31d8f
+const render = world.getComponent(entity, "Render");
     if (!render) return;
     const health = world.getComponent(entity, "Health");
     const invulnerable = (health?.invulnerableRemaining ?? 0) > 0;
@@ -97,7 +98,8 @@ export const drawSkiaShmupPlayer: ShapeDrawer<RenderContext, ShmupComponentRegis
 export const drawSkiaShmupEnemy: ShapeDrawer<RenderContext, ShmupComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
+        // TODO(refactor): código duplicado detectado (bloque) con vertical-shmup/rendering/ShmupCanvasVisuals.ts:105-110. Considerar extraer a función compartida. Ref: 7139b235
+const render = world.getComponent(entity, "Render");
     if (!render) return;
     const path = world.getComponent(entity, "EnemyPath");
     const size = render.size ?? 24;
@@ -142,6 +144,7 @@ export const drawSkiaShmupEnemy: ShapeDrawer<RenderContext, ShmupComponentRegist
   }
 };
 
+// TODO(refactor): código duplicado detectado (bloque) con vertical-shmup/rendering/ShmupSkiaVisuals.ts:173-178. Considerar extraer a función compartida. Ref: fc4d1233
 export const drawSkiaShmupPlayerBullet: ShapeDrawer<RenderContext, ShmupComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
@@ -201,7 +204,8 @@ export const drawSkiaShmupEnemyBullet: ShapeDrawer<RenderContext, ShmupComponent
 export const drawSkiaShmupStarfield: EffectDrawer<RenderContext, ShmupComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    const config = world.getResource<ShmupConfig>("GameConfig");
+        // TODO(refactor): código duplicado detectado (bloque) con vertical-shmup/rendering/ShmupCanvasVisuals.ts:204-211. Considerar extraer a función compartida. Ref: c4bf9b9c
+const config = world.getResource<ShmupConfig>("GameConfig");
     const width = config?.WORLD_WIDTH ?? 480;
     const height = config?.WORLD_HEIGHT ?? 854;
     const state = world.getSingleton("ShmupGameState");
@@ -218,7 +222,8 @@ export const drawSkiaShmupStarfield: EffectDrawer<RenderContext, ShmupComponentR
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color("#070a14"));
-    skCanvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
+        // TODO(refactor): código duplicado detectado (bloque) con vertical-shmup/rendering/ShmupCanvasVisuals.ts:215-229. Considerar extraer a función compartida. Ref: fe5a4286
+skCanvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
 
     for (let i = 0; i < starCount; i++) {
       const seedX = (i * 127.1 + 311.7) % 1;

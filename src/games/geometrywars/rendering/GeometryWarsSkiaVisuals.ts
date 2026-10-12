@@ -29,7 +29,8 @@ function drawVisualParticles(canvas: any): void {
   const paint = getPaint();
 
   const particles = getActiveParticles();
-  canvas.save();
+    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsCanvasVisuals.ts:22-27. Considerar extraer a función compartida. Ref: 349bb253
+canvas.save();
   for (let i = 0; i < particles.length; i++) {
     const p = particles[i];
     if (!p.active) continue;
@@ -134,6 +135,7 @@ export const drawSkiaPlayerShip: ShapeDrawer<any, GeometryWarsComponentRegistry>
  * Skia shape drawer for particle.
  * @public
  */
+// TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:161-167. Considerar extraer a función compartida. Ref: 1864307d
 export const drawSkiaParticle: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!ensureSkiaAvailable()) return;
@@ -220,7 +222,8 @@ export const drawSkiaGrunt: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
     if (!render) return;
 
     const size = render.size ?? 10;
-    const color = resolveThemeColorWithFallback(world, render.color ?? "#00ffff", "grunt", "enemy", "accent");
+        // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:322-330. Considerar extraer a función compartida. Ref: 671d937c
+const color = resolveThemeColorWithFallback(world, render.color ?? "#00ffff", "grunt", "enemy", "accent");
 
     const paint = getPaint();
     canvas.save();

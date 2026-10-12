@@ -782,7 +782,8 @@ this.isMultiplayer = active;
       spawn: (world, entity, state) => {
         const item = state as { x: number; y: number; ownerId: string };
         const bpName = item.ownerId === "player" ? "player_bullet" : "enemy_bullet";
-        this.blueprints.get(bpName)?.spawn(world, entity, { x: item.x, y: item.y });
+                // TODO(refactor): código duplicado detectado (bloque) con geometrywars/GeometryWarsGame.ts:331-341. Considerar extraer a función compartida. Ref: 37e899ab
+this.blueprints.get(bpName)?.spawn(world, entity, { x: item.x, y: item.y });
       },
       sync: NO_OP_SYNC
     }

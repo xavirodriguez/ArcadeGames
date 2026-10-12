@@ -27,6 +27,7 @@ function applyAsteroidHitFlashStroke(
  * Procedural player ship shape drawer for HTML5 Canvas.
  * Supports Concept Pack parametric geometry override if available in active Theme.
  */
+// TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsCanvasVisuals.ts:259-265. Considerar extraer a función compartida. Ref: 42774506
 export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, AsteroidsComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
@@ -199,7 +200,8 @@ export const drawAsteroidsUfo: ShapeDrawer<CanvasRenderingContext2D, AsteroidsCo
  */
 export const drawAsteroidsAsteroid: ShapeDrawer<CanvasRenderingContext2D, AsteroidsComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
+        // TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsSkiaVisuals.ts:198-210. Considerar extraer a función compartida. Ref: b4b40449
+const render = world.getComponent(entity, "Render");
     const collider = world.getComponent(entity, "Collider");
     if (!render) return;
 
@@ -257,7 +259,8 @@ export const drawAsteroidsAsteroid: ShapeDrawer<CanvasRenderingContext2D, Astero
  * Supports Concept Pack parametric projectile geometry override if available in active Theme.
  */
 export const drawAsteroidsBullet: ShapeDrawer<CanvasRenderingContext2D, AsteroidsComponentRegistry> = {
-  draw(ctx, world, entity) {
+    // TODO(refactor): código duplicado detectado (método) con space-invaders/rendering/SpaceInvadersCanvasVisuals.ts:431-438. Considerar extraer a función compartida. Ref: 367245d7
+draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render) return;
 

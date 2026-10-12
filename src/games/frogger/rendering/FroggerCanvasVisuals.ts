@@ -177,7 +177,8 @@ export const drawTurtleCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComp
 
 export const drawLilyPadCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComponentRegistry> = {
   draw(ctx, world, entity) {
-    const goalCtx = resolveFroggerGoalContext(world, entity);
+        // TODO(refactor): código duplicado detectado (bloque) con frogger/rendering/FroggerSkiaVisuals.ts:113-119. Considerar extraer a función compartida. Ref: 060845db
+const goalCtx = resolveFroggerGoalContext(world, entity);
     if (!goalCtx) return;
 
     const { half, occupied } = goalCtx;
@@ -214,7 +215,8 @@ export const drawLilyPadCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCom
 
 export const froggerBackgroundCanvasEffect: EffectDrawer<CanvasRenderingContext2D, FroggerComponentRegistry> = {
   draw(ctx, world) {
-    const config = world.getResource<typeof DEFAULT_FROGGER_CONFIG>("GameConfig") || DEFAULT_FROGGER_CONFIG;
+        // TODO(refactor): código duplicado detectado (bloque) con frogger/rendering/FroggerSkiaVisuals.ts:130-136. Considerar extraer a función compartida. Ref: 39cfdf8c
+const config = world.getResource<typeof DEFAULT_FROGGER_CONFIG>("GameConfig") || DEFAULT_FROGGER_CONFIG;
     const w = config.worldWidth;
     const grid = config.GRID_SIZE;
 

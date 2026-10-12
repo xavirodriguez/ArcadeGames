@@ -27,6 +27,7 @@ function moveTowards(current: number, target: number, maxDelta: number): number 
   return current + Math.sign(target - current) * maxDelta;
 }
 
+// TODO(refactor): código duplicado detectado (bloque) con hitandrun/belt/BeltElevationSystem.ts:14-22. Considerar extraer a función compartida. Ref: 63ceeff2
 export class BeltMovementSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;

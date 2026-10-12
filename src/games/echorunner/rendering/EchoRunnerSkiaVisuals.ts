@@ -18,6 +18,7 @@ export {
   drawSkiaCharger,
 } from "../../shared/rendering/PlatformerSharedVisuals";
 
+// TODO(refactor): código duplicado detectado (función) con shared/rendering/PlatformerSharedVisuals.ts:74-82. Considerar extraer a función compartida. Ref: 04763e38
 function drawSkiaHitFlashCircle(canvas: any, paint: any, radius: number, color: string): true {
   paint.reset();
   paint.setAntiAlias(true);

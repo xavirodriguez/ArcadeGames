@@ -32,6 +32,7 @@ import {
 export { FLAPPY_PARTICLE_POOL as FLAPPY_CANVAS_PARTICLE_POOL, spawnVisualParticle };
 
 /** Draws active visual particles for Canvas2D renderer. */
+// TODO(refactor): código duplicado detectado (función) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:89-95. Considerar extraer a función compartida. Ref: 7ed8697b
 function drawCanvasVisualParticles(ctx: CanvasRenderingContext2D): void {
   const particles = FLAPPY_PARTICLE_POOL.getActiveParticles();
   for (let i = 0; i < particles.length; i++) {
@@ -286,7 +287,8 @@ function drawArrowheadPath(ctx: CanvasRenderingContext2D, size: number) {
  */
 export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdComponentRegistry> = {
   draw(ctx, world, entity) {
-    const pipeCtx = resolveFlappyPipeDrawContext(world, entity);
+        // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:295-313. Considerar extraer a función compartida. Ref: def9af8b
+const pipeCtx = resolveFlappyPipeDrawContext(world, entity);
     if (!pipeCtx) return;
 
     const {
@@ -457,7 +459,8 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
         ctx.beginPath();
         ctx.moveTo(0, capYOffset + capHeight);
         ctx.lineTo(0, capYOffset + capHeight + pipe.gapSize);
-        ctx.stroke();
+                // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:459-467. Considerar extraer a función compartida. Ref: 33e66ed4
+ctx.stroke();
 
         if (world.tick % 4 === 0) {
           const sparkY = capYOffset + capHeight + world.renderRandom.next() * pipe.gapSize;
@@ -672,7 +675,8 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
     updateVisualParticles();
 
     ctx.fillStyle = "#050510";
-    ctx.fillRect(0, 0, width, height);
+        // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:662-671. Considerar extraer a función compartida. Ref: 60951bb4
+ctx.fillRect(0, 0, width, height);
 
     const scenarioTheme = getThemeForScenario(gameState.currentScenario);
     const nebulae = scenarioTheme.nebulae;
@@ -731,7 +735,8 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
     if (showWarpLines) {
       ctx.save();
       ctx.strokeStyle = "rgba(0, 243, 255, " + (0.15 * intensity).toFixed(3) + ")";
-      ctx.lineWidth = 1.2;
+            // TODO(refactor): código duplicado detectado (bloque) con flappybird/rendering/FlappyBirdSkiaVisuals.ts:731-736. Considerar extraer a función compartida. Ref: b47c3db0
+ctx.lineWidth = 1.2;
 
       for (let l = 0; l < lineCount; l++) {
         const angle = (l / lineCount) * Math.PI * 2 + (tick * 0.02);

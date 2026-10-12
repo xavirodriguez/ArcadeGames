@@ -6,6 +6,7 @@ import { resolveOutrunSystemContext } from "./OutrunSystemUtils";
  * Reads player input (accelerate / brake / steer) and updates RaceState.
  * Runs in Input phase. Simulation systems consume the resulting speed / playerX.
  */
+// TODO(refactor): código duplicado detectado (bloque) con outrun/systems/RoadAdvanceSystem.ts:13-20. Considerar extraer a función compartida. Ref: e704905e
 export class RacerInputSystem extends System<OutrunComponentRegistry, OutrunEventRegistry> {
   public override update(
     world: World<OutrunComponentRegistry, OutrunEventRegistry>,

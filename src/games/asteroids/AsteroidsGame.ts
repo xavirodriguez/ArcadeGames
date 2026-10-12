@@ -75,7 +75,7 @@ import { AsteroidConfigSchema, AsteroidConfig } from "./types/AsteroidConfigSche
 import { GameStateComponent, InputState } from "./types/AsteroidTypes";
 import { getStoryBeatForLevel } from "./story/StoryBeats";
 import { registerMutatorHook } from "../../utils/MutatorRegistry";
-import { loadAndMutateConfig } from "../shared/configHelper";
+import { loadAndMutateConfig, runWithUnlockedRandomAndMutators } from "../shared/configHelper";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import asteroidsConfigRaw from "./config/asteroids.json";
 
@@ -263,56 +263,47 @@ export class AsteroidsGame
   protected override async onInitializeEntities(): Promise<void> {
     if (this.isMultiplayer) return;
 
-    // Temporarily unlock gameplayRandom for spawning initialization
-    this.world.gameplayRandom.unlock();
+    runWithUnlockedRandomAndMutators(this.world, this._config.gameOptions, () => {
+      // Create GameState entity
+      const gameStateEntity = this.world.createEntity();
+      const beat = this.mode === "story" ? getStoryBeatForLevel(1) : null;
+      this.world.addComponent(gameStateEntity, {
+        type: "GameState",
+        score: 0,
+        level: 1,
+        lives: 3,
+        isGameOver: false,
+        mode: this.mode,
+        readyRemaining: this.mode === "story" ? 3.0 : 0,
+        intermissionRemaining: 0,
+        storyBeatText: beat ? beat.readyText : undefined
+      } as GameStateComponent);
 
-    try {
-        // Create GameState entity
-        const gameStateEntity = this.world.createEntity();
-        const beat = this.mode === "story" ? getStoryBeatForLevel(1) : null;
-        this.world.addComponent(gameStateEntity, {
-            type: "GameState",
-            score: 0,
-            level: 1,
-            lives: 3,
-            isGameOver: false,
-            mode: this.mode,
-            readyRemaining: this.mode === "story" ? 3.0 : 0,
-            intermissionRemaining: 0,
-            storyBeatText: beat ? beat.readyText : undefined
-        } as GameStateComponent);
+      // Create Player Ship
+      const screen = this.world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
+      const ship = createShip({
+        world: this.world,
+        x: screen.width / 2,
+        y: screen.height / 2
+      });
 
-        // Create Player Ship
-        const screen = this.world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
-        const ship = createShip({
-            world: this.world,
-            x: screen.width / 2,
-            y: screen.height / 2
-        });
+      // Add LocalPlayer and Input components to the ship
+      this.world.addComponent(ship, { type: "LocalPlayer" });
+      this.world.addComponent(ship, {
+        type: "Input",
+        actions: {},
+        axes: {}
+      });
 
-        // Add LocalPlayer and Input components to the ship
-        this.world.addComponent(ship, { type: "LocalPlayer" });
-        this.world.addComponent(ship, {
-            type: "Input",
-            actions: {},
-            axes: {}
-        });
+      // Spawn first wave
+      spawnAsteroidWave(this.world, 1);
 
-        // Note: The "Combo" component is already successfully instantiated and attached
-        // to the ship entity via the "ship" blueprint in registerAsteroidsBlueprints (EntityFactory.ts).
-        // This ensures the ComboSystem has a target to process and update during gameplay.
-
-        // Spawn first wave
-        spawnAsteroidWave(this.world, 1);
-
-        // Initialize active minimission for Level 1
-        if (this.missionSystem) {
-          const selectedMission = ASTEROIDS_MINI_MISSIONS[0];
-          this.missionSystem.setActiveMission(this.world, selectedMission);
-        }
-    } finally {
-        this.world.gameplayRandom.lock();
-    }
+      // Initialize active minimission for Level 1
+      if (this.missionSystem) {
+        const selectedMission = ASTEROIDS_MINI_MISSIONS[0];
+        this.missionSystem.setActiveMission(this.world, selectedMission);
+      }
+    });
   }
 
   public update(dt: number): void {

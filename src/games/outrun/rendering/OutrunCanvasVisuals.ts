@@ -71,7 +71,8 @@ function drawCanvasSprite(
     ctx.stroke();
 
     // Smooth triangular fronds
-    ctx.fillStyle = "#00b4d8";
+        // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:85-91. Considerar extraer a función compartida. Ref: b17015f3
+ctx.fillStyle = "#00b4d8";
     const topX = sp.side * 10;
     const topY = -80;
     for (let f = 0; f < 6; f++) {
@@ -244,7 +245,8 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
 
     // PASS 2.5: Parallax Clouds
     const cloudCount = 8;
-    ctx.fillStyle = palette.cloudColor;
+        // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:269-278. Considerar extraer a función compartida. Ref: d6906a8d
+ctx.fillStyle = palette.cloudColor;
     for (let c = 0; c < cloudCount; c++) {
       const h1 = scenarioHash("cloud_x", c);
       const h2 = scenarioHash("cloud_y", c);
@@ -267,7 +269,8 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
       const hazeY = screenH * 0.45;
       const numLines = 18;
       ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
-      ctx.lineWidth = 2;
+            // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:293-298. Considerar extraer a función compartida. Ref: ae0c6b64
+ctx.lineWidth = 2;
       for (let h = 0; h < numLines; h++) {
         const hRatio = h / numLines;
         const baseX = hRatio * screenW + (state.playerX * 12);
@@ -277,7 +280,8 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
         ctx.beginPath();
         ctx.moveTo(x, hazeY - 22);
         ctx.lineTo(x + waveOffset * 0.5, hazeY - 2);
-        ctx.stroke();
+                // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:303-313. Considerar extraer a función compartida. Ref: 2c10404f
+ctx.stroke();
       }
     }
 
@@ -318,7 +322,8 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
       // Brutalist building & wind turbine silhouettes
       const spacing = screenW / 6;
       const horizonOffset = ((state.playerZ * 0.0001) % spacing) + state.playerX * 20;
-      ctx.fillStyle = palette.mountainBase;
+            // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:342-347. Considerar extraer a función compartida. Ref: 540c546e
+ctx.fillStyle = palette.mountainBase;
       for (let b = -2; b < 8; b++) {
         const bx = b * spacing - horizonOffset;
         const bw = 18 + scenarioHash("coast_b", b) * 20;
@@ -351,7 +356,8 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
       // Mountain concrete cliffs and contemporary skyline
       const spacing = screenW / 5;
       const offset = ((state.playerZ * 0.00015) % spacing) + state.playerX * 25;
-      ctx.fillStyle = palette.mountainBase;
+            // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:372-377. Considerar extraer a función compartida. Ref: 74cdc27f
+ctx.fillStyle = palette.mountainBase;
       for (let m = -2; m < 7; m++) {
         const mx = m * spacing - offset;
         const mh = 35 + scenarioHash("mtn_h", m) * 55;
@@ -406,13 +412,15 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
     }
 
     // Road segments pass
-    for (let i = 0; i < count; i++) {
+    for (    // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:402-407. Considerar extraer a función compartida. Ref: a554f6b8
+let i = 0; i < count; i++) {
       const p = projectionBuffer[i];
       if (p.p1z <= 0 && p.p2z <= 0) continue;
       if (p.y2 >= maxy) continue;
 
       const grass = rumbleColor(p.index, rumbleLength, palette.groundDark, palette.groundLight);
-      fillTrapezoid(ctx, p.x1, p.y1, screenW, p.x2, Math.min(p.y2, maxy), screenW, grass);
+            // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:408-413. Considerar extraer a función compartida. Ref: a0f14136
+fillTrapezoid(ctx, p.x1, p.y1, screenW, p.x2, Math.min(p.y2, maxy), screenW, grass);
 
       const rumbleW1 = p.w1 * 1.15;
       const rumbleW2 = p.w2 * 1.15;
@@ -420,14 +428,16 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
       fillTrapezoid(ctx, p.x1, p.y1, rumbleW1, p.x2, Math.min(p.y2, maxy), rumbleW2, rumble);
 
       const road = roadColor(p.index, rumbleLength, palette);
-      fillTrapezoid(ctx, p.x1, p.y1, p.w1, p.x2, Math.min(p.y2, maxy), p.w2, road);
+            // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:416-422. Considerar extraer a función compartida. Ref: 705b767e
+fillTrapezoid(ctx, p.x1, p.y1, p.w1, p.x2, Math.min(p.y2, maxy), p.w2, road);
 
       // Wet road / center asphalt reflection layer
       if (palette.reflectionAlpha > 0) {
         const reflW1 = p.w1 * 0.35;
         const reflW2 = p.w2 * 0.35;
         const reflColor = `rgba(255, 255, 255, ${palette.reflectionAlpha.toFixed(3)})`;
-        fillTrapezoid(ctx, p.x1, p.y1, reflW1, p.x2, Math.min(p.y2, maxy), reflW2, reflColor);
+                // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:423-429. Considerar extraer a función compartida. Ref: 223df211
+fillTrapezoid(ctx, p.x1, p.y1, reflW1, p.x2, Math.min(p.y2, maxy), reflW2, reflColor);
       }
 
       // Inner curve asphalt darkening
@@ -488,7 +498,8 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
 
 export const drawOutrunCar: ShapeDrawer<CanvasRenderingContext2D, OutrunComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
+        // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:476-488. Considerar extraer a función compartida. Ref: a5089423
+const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
 
     const state = world.getSingleton("RaceState");
@@ -508,7 +519,8 @@ export const drawOutrunCar: ShapeDrawer<CanvasRenderingContext2D, OutrunComponen
     ctx.fillStyle = "rgba(0, 0, 0, 0.42)";
     ctx.beginPath();
     ctx.ellipse(geom.baseX, geom.baseY + 10, 34 * geom.carScale, 10 * geom.carScale, 0, 0, Math.PI * 2);
-    ctx.fill();
+        // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:498-505. Considerar extraer a función compartida. Ref: 690755e3
+ctx.fill();
 
     // Off-track Dust
     if (geom.isOffroad && state.speed > 0) {
@@ -560,7 +572,8 @@ export const drawOutrunCar: ShapeDrawer<CanvasRenderingContext2D, OutrunComponen
 
 export const drawOutrunRacer: ShapeDrawer<CanvasRenderingContext2D, OutrunComponentRegistry> = {
   draw(ctx, world, entity) {
-    const ctxPayload = resolveRacerRenderContext(world, entity);
+        // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:551-566. Considerar extraer a función compartida. Ref: 5f3ba4cd
+const ctxPayload = resolveRacerRenderContext(world, entity);
     if (!ctxPayload) return;
 
     const { racer, state, roadData, config } = ctxPayload;
@@ -589,7 +602,8 @@ export const drawOutrunRacer: ShapeDrawer<CanvasRenderingContext2D, OutrunCompon
 
 export const drawOutrunHud: EffectDrawer<CanvasRenderingContext2D, OutrunComponentRegistry> = {
   draw(ctx, world) {
-    const state = world.getSingleton("RaceState");
+        // TODO(refactor): código duplicado detectado (bloque) con outrun/rendering/OutrunSkiaVisuals.ts:588-597. Considerar extraer a función compartida. Ref: 1404043b
+const state = world.getSingleton("RaceState");
     if (!state) return;
 
     const config =

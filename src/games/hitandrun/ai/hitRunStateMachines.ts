@@ -251,7 +251,8 @@ export function registerHitRunStateMachines(
             return "Anticipation";
           }
 
-          if (playerDetected(sensor) && sensor?.detectedPlayerEntity !== undefined) {
+                    // TODO(refactor): código duplicado detectado (bloque) con hitandrun/ai/hitRunStateMachines.ts:445-454. Considerar extraer a función compartida. Ref: 9b1bdb28
+if (playerDetected(sensor) && sensor?.detectedPlayerEntity !== undefined) {
             if (canTakeDamage(world, sensor.detectedPlayerEntity)) {
               return "Alert";
             }
@@ -360,7 +361,8 @@ export function registerHitRunStateMachines(
   };
 
   // ─── hr_hop ─────────────────────────────────────────────────
-  registry["hr_hop"] = {
+    // TODO(refactor): código duplicado detectado (bloque) con hitandrun/ai/hitRunStateMachines.ts:554-564. Considerar extraer a función compartida. Ref: f7910ca2
+registry["hr_hop"] = {
     states: {
       Idle: {
         onEnter(world, entity) {

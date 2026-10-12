@@ -10,6 +10,7 @@ import { resolveOutrunSystemContext } from "./OutrunSystemUtils";
  * Advances playerZ by current speed and applies centrifugal force from road curve.
  * Runs in Simulation phase after input has updated speed / playerX.
  */
+// TODO(refactor): código duplicado detectado (bloque) con outrun/systems/RacerInputSystem.ts:9-16. Considerar extraer a función compartida. Ref: e704905e
 export class RoadAdvanceSystem extends System<OutrunComponentRegistry, OutrunEventRegistry> {
   public override update(
     world: World<OutrunComponentRegistry, OutrunEventRegistry>,

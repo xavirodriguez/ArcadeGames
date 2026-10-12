@@ -17,6 +17,7 @@ export {
   drawCharger,
 } from "../../shared/rendering/PlatformerSharedVisuals";
 
+// TODO(refactor): código duplicado detectado (función) con shared/rendering/PlatformerSharedVisuals.ts:56-63. Considerar extraer a función compartida. Ref: 8f9b0344
 function drawCanvasHitFlashCircle(ctx: CanvasRenderingContext2D, radius: number, color: string): true {
   ctx.fillStyle = color;
   ctx.beginPath();

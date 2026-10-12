@@ -236,7 +236,8 @@ export const drawCheckpoint: ShapeDrawer<CanvasRenderingContext2D, RacingCompone
     const checkpoint = world.getComponent(entity, "Checkpoint");
     if (!checkpoint) return;
 
-    ctx.save();
+        // TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingSkiaVisuals.ts:165-172. Considerar extraer a función compartida. Ref: 5bb7d204
+ctx.save();
     if (checkpoint.isFinish) {
       const { cells, halfW, halfH } = computeCheckpointGrid(checkpoint.width, checkpoint.height);
       const [color1, color2] = skin.finishCheckers ?? ["#FFFFFF", "#5D4037"];

@@ -42,7 +42,8 @@ function getBulletTrailBuffer(render: any): CircularPositionBuffer {
 }
 
 export function drawExplosionParticlesCanvas(ctx: CanvasRenderingContext2D): void {
-  ctx.save();
+    // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:49-54. Considerar extraer a función compartida. Ref: 0b6a9ef2
+ctx.save();
   for (let i = 0; i < EXPLOSION_PARTICLE_POOL.length; i++) {
     const data = resolveExplosionParticleData(EXPLOSION_PARTICLE_POOL[i]);
     if (!data) continue;
@@ -94,7 +95,8 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render) return;
-    const { size = 40 } = render;
+        // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:105-114. Considerar extraer a función compartida. Ref: 78b2329a
+const { size = 40 } = render;
 
     const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
     const customGeom = theme?.visualTheme?.shapeTokens?.playerGeometry;
@@ -303,7 +305,8 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render) return;
-    const { size = 15 } = render;
+        // TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersSkiaVisuals.ts:309-318. Considerar extraer a función compartida. Ref: 6dd5bc46
+const { size = 15 } = render;
 
     const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
     const customGeom = theme?.visualTheme?.shapeTokens?.enemyGeometry;
@@ -427,6 +430,7 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
 /**
  * Visuals for bullets using CircularPositionBuffer or Concept Pack geometry.
  */
+// TODO(refactor): código duplicado detectado (bloque) con asteroids/rendering/AsteroidsCanvasVisuals.ts:30-36. Considerar extraer a función compartida. Ref: a958be93
 export const drawSpaceInvadersBullet: ShapeDrawer<CanvasRenderingContext2D, SpaceInvadersComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
@@ -493,6 +497,7 @@ export const drawSpaceInvadersBullet: ShapeDrawer<CanvasRenderingContext2D, Spac
 /**
  * Visuals for the Boss flagship. Supports Concept Pack boss geometry overrides.
  */
+// TODO(refactor): código duplicado detectado (bloque) con space-invaders/rendering/SpaceInvadersCanvasVisuals.ts:430-436. Considerar extraer a función compartida. Ref: 360dce05
 export const drawSpaceInvadersBoss: ShapeDrawer<CanvasRenderingContext2D, SpaceInvadersComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");

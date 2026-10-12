@@ -839,6 +839,11 @@
     "unknownCount": 0,
     "total": 2
   },
+  "src/games/shared/PlatformerArcadeGame.ts": {
+    "anyCount": 0,
+    "unknownCount": 2,
+    "total": 2
+  },
   "src/games/shared/__tests__/GameSmokeTest.test.ts": {
     "anyCount": 1,
     "unknownCount": 0,
@@ -998,6 +1003,16 @@
     "anyCount": 1,
     "unknownCount": 0,
     "total": 1
+  },
+  "src/games/vertical-shmup/__tests__/VerticalShmupRendering.test.ts": {
+    "anyCount": 0,
+    "unknownCount": 2,
+    "total": 2
+  },
+  "src/games/vertical-shmup/rendering/ShmupSkiaVisuals.ts": {
+    "anyCount": 5,
+    "unknownCount": 0,
+    "total": 5
   },
   "src/hooks/useKeyboardControls.ts": {
     "anyCount": 1,

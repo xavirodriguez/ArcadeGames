@@ -19,17 +19,15 @@ import {
   SegmentGenerator,
   LevelPlan,
   preloadSharedAudioWithTimeout,
-  generateBackdrop
+  generateBackdrop,
+  BlueprintDefinition,
+  Theme
 } from "@tiny-aster/core";
-import { EchoRunnerDefinition } from "../echorunner/EchoRunnerGame";
-import type { EchoRunnerConfig } from "../echorunner/EchoRunnerGame";
-import { EchoRunnerBlueprintMap } from "../echorunner/EchoRunnerGame";
 import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
 import type {
   HitAndRunGameState,
   HitAndRunInput
 } from "./types/HitAndRunTypes";
-import { PlatformerInputSystem } from "../platformer/systems/PlatformerInputSystem";
 import {
   ArcadeEntityBuilder,
   registerPlatformerEnemyBlueprints,
@@ -39,6 +37,7 @@ import {
   updatePlayerInvulnerabilityAndContactDamage,
   updateRunProgress
 } from "@tiny-aster/gameplay-kit";
+import { PlatformerInputSystem } from "../shared/systems/PlatformerInputSystem";
 import {
   setupPlatformerMovementComponents,
   registerPlatformerTilemapBlueprint,
@@ -47,7 +46,7 @@ import {
   generateAndInstantiatePlatformerLevel,
   registerCollectibleTriggerBlueprint
 } from "../shared/componentBuilders";
-import { DEFAULT_ECHO_RUNNER_CONFIG } from "../echorunner/types/EchoRunnerConfigSchema";
+import { DEFAULT_HIT_AND_RUN_CONFIG, HitAndRunConfig as HitAndRunConfigType } from "./types/HitAndRunConfigSchema";
 import hitRunLevelData from "./levels/level-01.json";
 import { registerHitRunMelee } from "./melee/registerHitRunMelee";
 import { registerHitRunFeedback } from "./systems/registerHitRunFeedback";
@@ -86,9 +85,17 @@ import {
 } from "./rendering/HitRunCanvasVisuals";
 import { drawHitRunHud } from "./rendering/HitRunHudCanvas";
 import { drawHitRunDebugOverlay } from "./rendering/HitRunDebugOverlay";
-import { drawPlatformerTilemap } from "../platformer/rendering/PlatformerCanvasVisuals";
+import { drawPlatformerTilemap } from "../shared/rendering/PlatformerSharedVisuals";
+import { createThemeFromGameAccents } from "../../theme/gameAccents";
 
-export type HitAndRunConfig = EchoRunnerConfig;
+export interface HitAndRunConfig {
+  seed?: number;
+  gameOptions?: Record<string, unknown>;
+  levelData?: { templates: SegmentTemplate[]; grammar: string[] };
+  theme?: Theme;
+}
+
+export type HitAndRunBlueprintMap = Record<string, BlueprintDefinition<CoreComponentRegistry, EventRegistry, unknown>>;
 
 class HitRunDamageSystem extends System<CoreComponentRegistry> {
   public update(world: import("@tiny-aster/core").World<CoreComponentRegistry>, deltaTime: number): void {
@@ -101,7 +108,7 @@ export class HitAndRunGame extends PlatformerArcadeGame<
   HitAndRunInput,
   CoreComponentRegistry,
   EventRegistry,
-  EchoRunnerBlueprintMap
+  HitAndRunBlueprintMap
 > {
   public readonly gameId = "hitandrun";
   private gameOver = false;
@@ -114,6 +121,7 @@ export class HitAndRunGame extends PlatformerArcadeGame<
       restartKey: "KeyR",
       gameOptions: config.gameOptions,
       seed: config.seed,
+      theme: config.theme ?? createThemeFromGameAccents("hitandrun"),
       audio: new WebAudioPlayer()
     });
     this.customLevelData =
@@ -164,7 +172,7 @@ export class HitAndRunGame extends PlatformerArcadeGame<
   protected override async onRegisterSystems(): Promise<void> {
     await super.onRegisterSystems();
 
-    registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_ECHO_RUNNER_CONFIG);
+    registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_HIT_AND_RUN_CONFIG);
     registerCollectibleTriggerBlueprint(this.blueprints, "collectible_fragment", "fragment", 10, 16, 10, "fragment", false, false);
     registerCollectibleTriggerBlueprint(this.blueprints, "collectible_core", "core", 100, 24, 12, "core", true, true);
     registerPlatformerEnvironmentBlueprints(this.blueprints);
@@ -200,7 +208,7 @@ export class HitAndRunGame extends PlatformerArcadeGame<
       this.customLevelData,
       hitRunLevelData,
       this.getSeed() || 41873,
-      DEFAULT_ECHO_RUNNER_CONFIG,
+      DEFAULT_HIT_AND_RUN_CONFIG,
       DEFAULT_BELT_PLAYER_SPAWN
     );
 
@@ -320,7 +328,10 @@ export const HitAndRunDefinition = {
       "special"
     ]
   },
-  assets: EchoRunnerDefinition.assets
+  assets: {
+    sprites: [],
+    sounds: []
+  }
 };
 
 export type { HitAndRunGameState, HitAndRunInput };

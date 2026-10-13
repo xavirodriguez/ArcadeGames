@@ -147,11 +147,7 @@ export class GridPathfinding {
       }
     }
 
-    if (!found) {
-      return [];
-    }
-
-    return reconstructPath(parentMap, start, target, includeStart);
+    return finalizePath(found, parentMap, start, target, includeStart);
   }
 
   /**
@@ -397,6 +393,22 @@ function preparePathfinding(
  */
 function isTileWalkableInBounds(grid: GridPassabilityMap, nx: number, ny: number): boolean {
   return nx >= 0 && nx < grid.width && ny >= 0 && ny < grid.height && grid.isWalkable(nx, ny);
+}
+
+/**
+ * Finalizes search result, returning reconstructed path if found, or empty array.
+ */
+function finalizePath(
+  found: boolean,
+  parentMap: Map<string, GridPoint>,
+  start: GridPoint,
+  target: GridPoint,
+  includeStart: boolean
+): GridPoint[] {
+  if (!found) {
+    return [];
+  }
+  return reconstructPath(parentMap, start, target, includeStart);
 }
 
 /**

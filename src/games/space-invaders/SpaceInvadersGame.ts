@@ -20,7 +20,7 @@ import { ISpaceInvadersGame } from "./types/GameInterfaces";
 import { PlayerBulletPool, EnemyBulletPool, ParticlePool } from "./EntityPool";
 import { SpaceInvadersGameScene } from "./scenes/SpaceInvadersGameScene";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
-import { markLocalPlayerEntity, NO_OP_SYNC } from "../shared/networkUtils";
+import { markLocalPlayerEntity, NO_OP_SYNC, applyServerGameStateFields } from "../shared/networkUtils";
 import spaceInvadersConfigRaw from "./config/space-invaders.json";
 
 const __DEV__ = process.env.NODE_ENV !== "production";
@@ -796,12 +796,7 @@ this.isMultiplayer = active;
     const gs = world.getSingleton("GameState");
     if (gs) {
       world.mutateSingleton("GameState", (currentGs) => {
-        if (state.score !== undefined) {
-          currentGs.score = Number(state.score);
-        }
-        if (state.gameOver !== undefined) {
-          currentGs.isGameOver = !!state.gameOver;
-        }
+        applyServerGameStateFields(currentGs, state);
       });
     }
 

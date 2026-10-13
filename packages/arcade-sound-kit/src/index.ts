@@ -3,7 +3,8 @@ export * from './core/random';
 export * from './design/recipe';
 export * from './effects/primitives';
 export * from './design/pack';
-export { DEFAULT_SAMPLE_RATE } from './core/render';
+export * from './core/validation';
+export { DEFAULT_SAMPLE_RATE, RENDER_VERSION, polyBlep } from './core/render';
 
 import path from 'node:path';
 import {
@@ -15,6 +16,7 @@ import {
 import { render, DEFAULT_SAMPLE_RATE } from './core/render';
 import { writeWav, writeManifest, recipeToManifestEntry } from './export/wav';
 import { RNG } from './core/random';
+import { validateRecipe, RecipeValidationError } from './core/validation';
 
 export async function generateSound(
   recipe: SoundRecipe,
@@ -26,13 +28,18 @@ export async function generateSound(
   const variants = Math.max(1, options.variants ?? 1);
   const baseSeed = options.seed ?? 42;
 
+  const issues = validateRecipe(recipe, sampleRate);
+  if (issues.length > 0) {
+    throw new RecipeValidationError(issues);
+  }
+
   let lastFile = '';
   for (let v = 0; v < variants; v++) {
     const rng = new RNG(baseSeed + v * 9973);
     const samples = await render(recipe, options, rng);
     const suffix = variants > 1 ? `_${v + 1}` : '';
     const file = path.join(out, recipe.category, `${recipe.name}${suffix}.wav`);
-    writeWav(samples, file, sampleRate, options.peakDb ?? -1, bitDepth);
+    writeWav(samples, file, sampleRate, options.peakDb ?? -1, bitDepth, rng);
     lastFile = file;
   }
   return lastFile;

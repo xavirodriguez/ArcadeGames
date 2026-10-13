@@ -3,6 +3,7 @@ import path from 'node:path';
 import { WaveFile } from 'wavefile';
 import { ManifestEntry, SoundManifest, SoundRecipe } from '../core/types';
 import { DEFAULT_SAMPLE_RATE } from '../core/render';
+import { RNG } from '../core/random';
 
 /**
  * Write mono PCM16 WAV (default) after peak-normalizing to peakDb.
@@ -13,7 +14,8 @@ export function writeWav(
   file: string,
   sampleRate = DEFAULT_SAMPLE_RATE,
   peakDb = -1,
-  bitDepth: 16 | 32 = 16
+  bitDepth: 16 | 32 = 16,
+  seed: number | RNG = 42
 ) {
   let peak = 0;
   for (const x of samples) peak = Math.max(peak, Math.abs(x));
@@ -27,11 +29,16 @@ export function writeWav(
     for (let i = 0; i < samples.length; i++) out[i] = samples[i] * gain;
     wav.fromScratch(1, sampleRate, '32f', [out]);
   } else {
-    // 16-bit signed PCM
+    // 16-bit signed PCM with TPDF dither
+    const ditherRng = (seed instanceof RNG ? seed : new RNG(seed)).fork('dither');
     const out = new Int16Array(samples.length);
     for (let i = 0; i < samples.length; i++) {
       const x = Math.max(-1, Math.min(1, samples[i] * gain));
-      out[i] = x < 0 ? Math.round(x * 0x8000) : Math.round(x * 0x7fff);
+      const scale = x < 0 ? 0x8000 : 0x7fff;
+      const tpdf = ditherRng.next() - ditherRng.next();
+      const scaled = x * scale + tpdf;
+      const clamped = Math.max(-0x8000, Math.min(0x7fff, scaled));
+      out[i] = Math.round(clamped);
     }
     wav.fromScratch(1, sampleRate, '16', [out]);
   }

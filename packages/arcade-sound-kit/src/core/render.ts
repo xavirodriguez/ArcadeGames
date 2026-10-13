@@ -1,6 +1,9 @@
 import { SoundRecipe, GenerateOptions, LayerSpec, Wave } from './types';
 import { RNG } from './random';
 
+/** Render engine version used for cache invalidation and determinism. */
+export const RENDER_VERSION = '0.2.0';
+
 /** Default offline sample rate — half of CD audio, plenty for arcade SFX. */
 export const DEFAULT_SAMPLE_RATE = 22050;
 
@@ -8,15 +11,35 @@ function dbToLinear(db: number): number {
   return Math.pow(10, db / 20);
 }
 
-function evalWave(wave: Wave, phase: number): number {
+export function polyBlep(t: number, dt: number): number {
+  if (dt <= 0 || dt >= 0.5) return 0;
+  const p = t - Math.floor(t);
+  if (p < dt) {
+    const x = p / dt;
+    return x + x - x * x - 1;
+  }
+  if (p > 1 - dt) {
+    const x = (p - 1) / dt;
+    return x * x + x + x + 1;
+  }
+  return 0;
+}
+
+function evalWave(wave: Wave, phase: number, dt = 0): number {
   const p = phase - Math.floor(phase);
   switch (wave) {
     case 'sine':
       return Math.sin(2 * Math.PI * p);
-    case 'square':
-      return p < 0.5 ? 1 : -1;
-    case 'sawtooth':
-      return 2 * p - 1;
+    case 'square': {
+      const naive = p < 0.5 ? 1 : -1;
+      if (dt <= 0 || dt >= 0.5) return naive;
+      return naive + polyBlep(p, dt) - polyBlep((p + 0.5) % 1, dt);
+    }
+    case 'sawtooth': {
+      const naive = 2 * p - 1;
+      if (dt <= 0 || dt >= 0.5) return naive;
+      return naive - polyBlep(p, dt);
+    }
     case 'triangle':
       return 2 * Math.abs(2 * (p - Math.floor(p + 0.5))) - 1;
     default:
@@ -175,10 +198,13 @@ export async function render(
   const totalSamples = Math.ceil(duration * sampleRate);
   let samples = new Float32Array(totalSamples);
 
-  for (const original of recipe.layers) {
-    const levelJitter = rng.centered(recipe.variation?.levelDb ?? 0);
-    const durJitter = 1 + rng.centered(recipe.variation?.duration ?? 0);
-    const pitchJitter = 1 + rng.centered(recipe.variation?.pitch ?? 0);
+  for (let layerIndex = 0; layerIndex < recipe.layers.length; layerIndex++) {
+    const original = recipe.layers[layerIndex];
+    const layerRng = rng.fork(layerIndex);
+
+    const levelJitter = layerRng.centered(recipe.variation?.levelDb ?? 0);
+    const durJitter = 1 + layerRng.centered(recipe.variation?.duration ?? 0);
+    const pitchJitter = 1 + layerRng.centered(recipe.variation?.pitch ?? 0);
 
     const defaultLevel =
       original.kind === 'noise' || original.kind === 'whoosh' ? -12 : -10;
@@ -207,26 +233,49 @@ export async function render(
     );
 
     if (l.kind === 'noise' || l.kind === 'whoosh') {
-      const filter = new BiquadFilter();
-      const filterType = l.filter?.type ?? 'lowpass';
       const isWhoosh = l.kind === 'whoosh';
-      const startF = (l.filter?.minHz ?? (isWhoosh ? 400 : 4000)) * pitchJitter;
-      const endF =
-        (l.filter?.maxHz ?? l.filter?.minHz ?? (isWhoosh ? 4000 : startF)) *
-        pitchJitter;
+      const minHz = l.filter?.minHz ?? (isWhoosh ? 400 : 800);
+      const maxHz = l.filter?.maxHz ?? (isWhoosh ? 4000 : 8000);
+
+      const hpFilter = minHz != null ? new BiquadFilter() : null;
+      const lpFilter = maxHz != null ? new BiquadFilter() : null;
+      const Q = 0.7071067811865475;
+
+      const startF = (l.pitch?.startHz ?? minHz) * pitchJitter;
+      const endF = (l.pitch?.endHz ?? maxHz) * pitchJitter;
 
       for (let i = sampleStart; i < sampleEnd; i++) {
         const tRel = (i - sampleStart) / sampleRate;
-        const n = rng.centered(1);
+        const n = layerRng.centered(1);
 
-        let fFilter = startF;
+        let filtered = n;
+
         if (isWhoosh) {
           const p = dur > 0 ? Math.min(1, Math.max(0, tRel / dur)) : 1;
-          fFilter = startF + (endF - startF) * p;
+          const sweepF = startF + (endF - startF) * p;
+          if (hpFilter) {
+            const hpf = Math.max(10, Math.min(sweepF * 0.5, sampleRate / 2 - 10));
+            hpFilter.update('highpass', hpf, sampleRate, Q);
+            filtered = hpFilter.process(filtered);
+          }
+          if (lpFilter) {
+            const lpf = Math.max(10, Math.min(sweepF, sampleRate / 2 - 10));
+            lpFilter.update('lowpass', lpf, sampleRate, Q);
+            filtered = lpFilter.process(filtered);
+          }
+        } else {
+          if (hpFilter) {
+            const hpHz = Math.max(10, Math.min(minHz * pitchJitter, sampleRate / 2 - 10));
+            hpFilter.update('highpass', hpHz, sampleRate, Q);
+            filtered = hpFilter.process(filtered);
+          }
+          if (lpFilter) {
+            const lpHz = Math.max(10, Math.min(maxHz * pitchJitter, sampleRate / 2 - 10));
+            lpFilter.update('lowpass', lpHz, sampleRate, Q);
+            filtered = lpFilter.process(filtered);
+          }
         }
 
-        filter.update(filterType, fFilter, sampleRate);
-        const filtered = filter.process(n);
         const env = computeEnvelope(tRel, attack, decay, sustain, release, dur);
         samples[i] += filtered * env * gainLinear;
       }
@@ -244,8 +293,9 @@ export async function render(
         let mix = 0;
         for (let k = 0; k < freqs.length; k++) {
           const hz = Math.max(10, Math.min(freqs[k], sampleRate / 2 - 10));
-          phases[k] = (phases[k] + hz / sampleRate) % 1;
-          mix += evalWave(wave, phases[k]);
+          const dt = hz / sampleRate;
+          phases[k] = (phases[k] + dt) % 1;
+          mix += evalWave(wave, phases[k], dt);
         }
         samples[i] += mix * env * gainLinear;
       }
@@ -275,24 +325,41 @@ export async function render(
       }
 
       f = Math.max(10, Math.min(f, sampleRate / 2 - 10));
-      phase = (phase + f / sampleRate) % 1;
+      const dt = f / sampleRate;
+      phase = (phase + dt) % 1;
 
-      const osc = evalWave(wave, phase);
+      const osc = evalWave(wave, phase, dt);
       const env = computeEnvelope(tRel, attack, decay, sustain, release, dur);
       samples[i] += osc * env * gainLinear;
     }
   }
 
-  // Soft edges for loop recipes so engines can crossfade cleanly.
+  // Constant-power crossfade for seamless loop recipes.
   if (recipe.loop) {
-    const fadeSamples = Math.min(
-      Math.floor(sampleRate * 0.012),
-      Math.floor(samples.length / 8)
+    const maxCrossfadeSamples = Math.floor(sampleRate * 0.015);
+    const C = Math.min(
+      maxCrossfadeSamples,
+      Math.floor(samples.length * 0.25)
     );
-    for (let i = 0; i < fadeSamples; i++) {
-      const g = i / fadeSamples;
-      samples[i] *= g;
-      samples[samples.length - 1 - i] *= g;
+    if (C > 0) {
+      const outLength = samples.length - C;
+      const outSamples = new Float32Array(outLength);
+
+      for (let i = 0; i < C; i++) {
+        const p = i / C;
+        const angle = p * Math.PI * 0.5;
+        const headWeight = Math.sin(angle);
+        const tailWeight = Math.cos(angle);
+        const headSample = samples[i];
+        const tailSample = samples[samples.length - C + i];
+        outSamples[i] = headSample * headWeight + tailSample * tailWeight;
+      }
+
+      for (let i = C; i < outLength; i++) {
+        outSamples[i] = samples[i];
+      }
+
+      samples = outSamples;
     }
   }
 

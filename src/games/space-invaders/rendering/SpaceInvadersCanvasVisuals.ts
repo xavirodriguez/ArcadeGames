@@ -10,7 +10,7 @@ import {
   resolveShieldPulseState,
   resolveInvaderColor,
   resolveKamikazeAimVector,
-  resolveBulletTrailContext,
+  resolveBulletDrawSetup,
   resolveBossVisualState,
   resolveBossRenderSetup,
   resolveInvaderRenderSetup,
@@ -421,24 +421,24 @@ export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, Spa
  */
 export const drawSpaceInvadersBullet: ShapeDrawer<CanvasRenderingContext2D, SpaceInvadersComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render) return;
+    const renderComp = world.getComponent(entity, "Render");
+    if (!renderComp) return;
 
-    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-    const customGeom = theme?.visualTheme?.shapeTokens?.projectileGeometry;
+    const trail = getBulletTrailBuffer(renderComp);
+    const setup = resolveBulletDrawSetup(world, entity, trail);
+    if (!setup) return;
+
+    const { customGeom, customGeomSize, render, bulletContext } = setup;
 
     if (customGeom) {
       ctx.save();
       drawFromGeometryProfileCanvas(ctx, customGeom, {
-        size: (render.size || 6) * 2,
+        size: customGeomSize,
         baseColor: render.color || colors.gold,
       });
       ctx.restore();
       return;
     }
-
-    const trail = getBulletTrailBuffer(render);
-    const bulletContext = resolveBulletTrailContext(world, entity, render, trail);
 
     const {
       size,

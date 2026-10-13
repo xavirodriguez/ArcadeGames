@@ -9,7 +9,7 @@ import {
   resolveShieldPulseState,
   resolveInvaderColor,
   resolveKamikazeAimVector,
-  resolveBulletTrailContext,
+  resolveBulletDrawSetup,
   resolveBossVisualState,
   resolveBossRenderSetup,
   resolveInvaderRenderSetup,
@@ -450,25 +450,25 @@ export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersCompone
  */
 export const drawSkiaSpaceInvadersBullet: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = safeGetRenderComponent(world, entity);
-    if (!render) return;
+    const renderComp = safeGetRenderComponent(world, entity);
+    if (!renderComp) return;
 
-    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-    const customGeom = theme?.visualTheme?.shapeTokens?.projectileGeometry;
+    const trail = getBulletSkiaTrailBuffer(renderComp);
+    const setup = resolveBulletDrawSetup(world, entity, trail, safeGetRenderComponent);
+    if (!setup) return;
+
+    const { customGeom, customGeomSize, render, bulletContext } = setup;
 
     if (customGeom) {
       canvas.save();
       const adapter = new SkiaDrawAdapter(canvas);
       drawFromGeometryProfileAdapter(adapter, customGeom, {
-        size: (render.size || 6) * 2,
+        size: customGeomSize,
         baseColor: render.color || colors.gold,
       });
       canvas.restore();
       return;
     }
-
-    const trail = getBulletSkiaTrailBuffer(render);
-    const bulletContext = resolveBulletTrailContext(world, entity, render, trail);
 
     const {
       size,

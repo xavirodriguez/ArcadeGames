@@ -409,3 +409,33 @@ export function resolveExplosionParticleData(p: {
     skColor: p.skColor,
   };
 }
+
+export interface BulletDrawSetup {
+  customGeom?: any;
+  customGeomSize: number;
+  render: RenderComponent;
+  bulletContext: BulletTrailContext;
+}
+
+export function resolveBulletDrawSetup<W extends World<any> = World<SpaceInvadersComponentRegistry>>(
+  world: W,
+  entity: number,
+  trailBuffer: CircularPositionBuffer,
+  getRender: (world: W, entity: number) => RenderComponent | undefined | null = (w, e) => w.getComponent(e, "Render")
+): BulletDrawSetup | null {
+  const render = getRender(world, entity);
+  if (!render) return null;
+
+  const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+  const customGeom = theme?.visualTheme?.shapeTokens?.projectileGeometry;
+  const customGeomSize = (render.size || 6) * 2;
+
+  const bulletContext = resolveBulletTrailContext(world, entity, render, trailBuffer);
+
+  return {
+    customGeom,
+    customGeomSize,
+    render,
+    bulletContext,
+  };
+}

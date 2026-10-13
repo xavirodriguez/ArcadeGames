@@ -12,6 +12,8 @@ import {
   resolveKamikazeAimVector,
   resolveBulletTrailContext,
   resolveBossVisualState,
+  resolveBossRenderSetup,
+  resolveInvaderRenderSetup,
   resolveParticleState,
   resolveExplosionParticleData,
 } from "./SpaceInvadersVisualUtils";
@@ -301,19 +303,9 @@ export const drawSpaceInvadersPlayer: ShapeDrawer<CanvasRenderingContext2D, Spac
  */
 export const drawSpaceInvadersInvader: ShapeDrawer<CanvasRenderingContext2D, SpaceInvadersComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render) return;
-    const { size = 15 } = render;
-
-    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-    const customGeom = theme?.visualTheme?.shapeTokens?.enemyGeometry;
-
-    const invaderComp = world.getComponent(entity, "Invader");
-    const enemyTag = world.getComponent(entity, "EnemyTag");
-    const { baseColor, isTeleporter } = resolveInvaderColor(render, invaderComp, enemyTag);
-
-    const flash = applyHitFlash(render, baseColor);
-    const tick = world.tick;
+    const setup = resolveInvaderRenderSetup(world, entity);
+    if (!setup) return;
+    const { size, customGeom, isTeleporter, flash, tick } = setup;
 
     if (customGeom) {
       ctx.save();
@@ -495,17 +487,13 @@ export const drawSpaceInvadersBullet: ShapeDrawer<CanvasRenderingContext2D, Spac
  */
 export const drawSpaceInvadersBoss: ShapeDrawer<CanvasRenderingContext2D, SpaceInvadersComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render) return;
+    const setup = resolveBossRenderSetup(world, entity);
+    if (!setup) return;
 
-    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-    const customGeom = theme?.visualTheme?.shapeTokens?.bossGeometry;
-
-    const bossState = resolveBossVisualState(world, entity, render);
+    const { render, customGeom, bossState, flash } = setup;
     const {
       hpRatio,
       phase,
-      baseColor,
       accentColor,
       scaleMultiplier,
       scale,
@@ -516,8 +504,6 @@ export const drawSpaceInvadersBoss: ShapeDrawer<CanvasRenderingContext2D, SpaceI
       s,
       coreRadius,
     } = bossState;
-
-    const flash = applyHitFlash(render, baseColor);
 
     ctx.save();
     ctx.globalAlpha = flash.opacity;

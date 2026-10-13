@@ -22,6 +22,7 @@ import {
   rumbleColor,
   roadColor,
   resolveOutrunRoadContext,
+  resolveOutrunCarContext,
   resolveRacerRenderContext,
   iterateOutrunSprites,
   projectOutrunRoad,
@@ -456,19 +457,10 @@ export const drawSkiaOutrunRoad: ShapeDrawer<RenderContext, OutrunComponentRegis
 export const drawSkiaOutrunCar: ShapeDrawer<RenderContext, OutrunComponentRegistry> = {
   draw(ctx, world, entity) {
     const canvas = ctx as unknown as SkCanvas;
-    const render = world.getComponent(entity, "Render");
-    if (!render || !render.visible) return;
+    const carCtx = resolveOutrunCarContext(world, entity);
+    if (!carCtx) return;
 
-    const state = world.getSingleton("RaceState");
-    if (!state) return;
-
-    const config =
-      world.getResource<OutrunConfig>("GameConfig") ?? DEFAULT_OUTRUN_CONFIG;
-
-    const carColor = resolveThemeColorWithFallback(world, render.color || "#e63946", "outrun_car", "player", "primary");
-
-    const visualOffset = world.getComponent(entity, "VisualOffset");
-    const geom = computePlayerCarGeometry(state, config, visualOffset);
+    const { state, carColor, geom } = carCtx;
     const paint = getPaint();
 
     canvas.save();

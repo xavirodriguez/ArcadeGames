@@ -13,6 +13,8 @@ import {
 import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 import { VisualParticlePool } from "../../shared/rendering/VisualParticlePool";
 import { processFlappyBirdParticleEvents } from "./particleEvents";
+import { getThemeForScenario } from "./FlappyBirdBackgroundData";
+import { spawnVisualParticle } from "./FlappyBirdParticles";
 
 /**
  * Common draw context resolved for Flappy Bird player ship rendering.
@@ -339,6 +341,41 @@ export interface WarpLine {
   y1: number;
   x2: number;
   y2: number;
+}
+
+export interface FlappyBackgroundSetup {
+  gameState: any;
+  width: number;
+  height: number;
+  scenarioTheme: ReturnType<typeof getThemeForScenario>;
+  nebulae: ReturnType<typeof getThemeForScenario>["nebulae"];
+}
+
+export function resolveFlappyBackgroundSetup(
+  world: World<FlappyBirdComponentRegistry>
+): FlappyBackgroundSetup | null {
+  const gameState = world.getSingleton("FlappyState");
+  if (!gameState) return null;
+  const { width = 400, height = 600 } = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 400, height: 600 };
+  const scenarioTheme = getThemeForScenario(gameState.currentScenario);
+  const nebulae = scenarioTheme.nebulae;
+  return { gameState, width, height, scenarioTheme, nebulae };
+}
+
+export function maybeSpawnLaserGateSparks(
+  world: World<FlappyBirdComponentRegistry>,
+  capYOffset: number,
+  capHeight: number,
+  gapSize: number,
+  posX: number,
+  spawnParticleFn: typeof spawnVisualParticle
+): void {
+  if (world.tick % 4 === 0) {
+    const sparkY = capYOffset + capHeight + world.renderRandom.next() * gapSize;
+    const sparkAngle = world.renderRandom.next() * Math.PI * 2;
+    const sparkSpeed = world.renderRandom.nextRange(20, 60);
+    spawnParticleFn("spark", posX, sparkY, Math.cos(sparkAngle) * sparkSpeed, Math.sin(sparkAngle) * sparkSpeed, 0.25, 2.5, "#00F3FF");
+  }
 }
 
 export function computeWarpLines(

@@ -1,24 +1,20 @@
 import { ShapeDrawer, EffectDrawer, RenderContext } from "@tiny-aster/core";
 import type { ShmupComponentRegistry } from "../types/ShmupTypes";
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
-import { computeShmupStarfield } from "./ShmupVisualHelpers";
+import {
+  computeShmupStarfield,
+  resolveShmupPlayerDrawContext,
+  resolveShmupEnemyDrawContext,
+  resolveShmupBulletDrawContext,
+} from "./ShmupVisualHelpers";
 
 export const drawSkiaShmupPlayer: ShapeDrawer<RenderContext, ShmupComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
-    if (!render) return;
-    const health = world.getComponent(entity, "Health");
-    const invulnerable = (health?.invulnerableRemaining ?? 0) > 0;
-    const time = world.tick * 0.016;
+    const pCtx = resolveShmupPlayerDrawContext(world, entity);
+    if (!pCtx || pCtx.shouldBlink) return;
 
-    // Blink effect when invulnerable
-    if (invulnerable && Math.floor(time * 20) % 2 === 0) {
-      return;
-    }
-
-    const size = render.size ?? 22;
-    const primaryColor = render.color ?? "#00e5ff";
+    const { invulnerable, time, size, primaryColor } = pCtx;
     const skCanvas = canvas as any;
     const paint = getPaint();
 
@@ -97,13 +93,10 @@ export const drawSkiaShmupPlayer: ShapeDrawer<RenderContext, ShmupComponentRegis
 export const drawSkiaShmupEnemy: ShapeDrawer<RenderContext, ShmupComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
-    if (!render) return;
-    const path = world.getComponent(entity, "EnemyPath");
-    const size = render.size ?? 24;
-    const enemyColor = render.color ?? "#ff2a6d";
-    const time = world.tick * 0.016;
+    const eCtx = resolveShmupEnemyDrawContext(world, entity);
+    if (!eCtx) return;
 
+    const { path, size, enemyColor, time } = eCtx;
     const skCanvas = canvas as any;
     const paint = getPaint();
 
@@ -145,11 +138,10 @@ export const drawSkiaShmupEnemy: ShapeDrawer<RenderContext, ShmupComponentRegist
 export const drawSkiaShmupPlayerBullet: ShapeDrawer<RenderContext, ShmupComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
-    if (!render) return;
-    const size = render.size ?? 4;
-    const color = render.color ?? "#ffe600";
+    const bCtx = resolveShmupBulletDrawContext(world, entity, 4, "#ffe600");
+    if (!bCtx) return;
 
+    const { size, color } = bCtx;
     const skCanvas = canvas as any;
     const paint = getPaint();
 
@@ -173,11 +165,10 @@ export const drawSkiaShmupPlayerBullet: ShapeDrawer<RenderContext, ShmupComponen
 export const drawSkiaShmupEnemyBullet: ShapeDrawer<RenderContext, ShmupComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    const render = world.getComponent(entity, "Render");
-    if (!render) return;
-    const size = render.size ?? 5;
-    const color = render.color ?? "#ff5a5a";
+    const bCtx = resolveShmupBulletDrawContext(world, entity, 5, "#ff5a5a");
+    if (!bCtx) return;
 
+    const { size, color } = bCtx;
     const skCanvas = canvas as any;
     const paint = getPaint();
 

@@ -1,22 +1,18 @@
 import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
 import type { ShmupComponentRegistry } from "../types/ShmupTypes";
-import { computeShmupStarfield } from "./ShmupVisualHelpers";
+import {
+  computeShmupStarfield,
+  resolveShmupPlayerDrawContext,
+  resolveShmupEnemyDrawContext,
+  resolveShmupBulletDrawContext,
+} from "./ShmupVisualHelpers";
 
 export const drawShmupPlayer: ShapeDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render) return;
-    const health = world.getComponent(entity, "Health");
-    const invulnerable = (health?.invulnerableRemaining ?? 0) > 0;
-    const time = world.tick * 0.016;
+    const pCtx = resolveShmupPlayerDrawContext(world, entity);
+    if (!pCtx || pCtx.shouldBlink) return;
 
-    // Blink effect when invulnerable
-    if (invulnerable && Math.floor(time * 20) % 2 === 0) {
-      return;
-    }
-
-    const size = render.size ?? 22;
-    const primaryColor = render.color ?? "#00e5ff";
+    const { invulnerable, time, size, primaryColor } = pCtx;
 
     ctx.save();
 
@@ -102,12 +98,10 @@ export const drawShmupPlayer: ShapeDrawer<CanvasRenderingContext2D, ShmupCompone
 
 export const drawShmupEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render) return;
-    const path = world.getComponent(entity, "EnemyPath");
-    const size = render.size ?? 24;
-    const enemyColor = render.color ?? "#ff2a6d";
-    const time = world.tick * 0.016;
+    const eCtx = resolveShmupEnemyDrawContext(world, entity);
+    if (!eCtx) return;
+
+    const { path, size, enemyColor, time } = eCtx;
 
     ctx.save();
     ctx.shadowBlur = 10;
@@ -151,10 +145,9 @@ export const drawShmupEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupComponen
 
 export const drawShmupPlayerBullet: ShapeDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render) return;
-    const size = render.size ?? 4;
-    const color = render.color ?? "#ffe600";
+    const bCtx = resolveShmupBulletDrawContext(world, entity, 4, "#ffe600");
+    if (!bCtx) return;
+    const { size, color } = bCtx;
 
     ctx.save();
     ctx.shadowBlur = 10;
@@ -174,10 +167,9 @@ export const drawShmupPlayerBullet: ShapeDrawer<CanvasRenderingContext2D, ShmupC
 
 export const drawShmupEnemyBullet: ShapeDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render) return;
-    const size = render.size ?? 5;
-    const color = render.color ?? "#ff5a5a";
+    const bCtx = resolveShmupBulletDrawContext(world, entity, 5, "#ff5a5a");
+    if (!bCtx) return;
+    const { size, color } = bCtx;
 
     ctx.save();
     ctx.shadowBlur = 8;

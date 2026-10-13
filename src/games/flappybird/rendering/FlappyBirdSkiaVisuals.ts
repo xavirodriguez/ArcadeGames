@@ -28,6 +28,8 @@ import {
   resolveGlideEnergyState,
   resolveSectorEventInfo,
   resolveBackgroundWarpState,
+  resolveFlappyBackgroundSetup,
+  maybeSpawnLaserGateSparks,
   computeWarpLines
 } from "./FlappyBirdRenderUtils";
 
@@ -456,12 +458,7 @@ export const drawSkiaFlappyPipe: ShapeDrawer<RenderContext, FlappyBirdComponentR
         paint.setStrokeWidth(3.0);
         skCanvas.drawLine(0, capYOffset + capHeight, 0, capYOffset + capHeight + pipe.gapSize, paint);
 
-        if (world.tick % 4 === 0) {
-          const sparkY = capYOffset + capHeight + world.renderRandom.next() * pipe.gapSize;
-          const sparkAngle = world.renderRandom.next() * Math.PI * 2;
-          const sparkSpeed = world.renderRandom.nextRange(20, 60);
-          spawnVisualParticle("spark", pos.x, sparkY, Math.cos(sparkAngle) * sparkSpeed, Math.sin(sparkAngle) * sparkSpeed, 0.25, 2.5, "#00F3FF");
-        }
+        maybeSpawnLaserGateSparks(world, capYOffset, capHeight, pipe.gapSize, pos.x, spawnVisualParticle);
       } else {
         paint.setColor(Skia.Color("#FF0000"));
         paint.setAlphaf(0.25);
@@ -644,11 +641,11 @@ function drawSkiaMegastructure(canvas: SkCanvas, paint: SkPaint, data: Megastruc
 export const scrollingSkiaBackgroundEffect: EffectDrawer<RenderContext, FlappyBirdComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    const skCanvas = canvas as unknown as SkCanvas;
-    const gameState = world.getSingleton("FlappyState");
-    if (!gameState) return;
-    const { width = 400, height = 600 } = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 400, height: 600 };
+    const bgSetup = resolveFlappyBackgroundSetup(world);
+    if (!bgSetup) return;
 
+    const { gameState, width, height, scenarioTheme, nebulae } = bgSetup;
+    const skCanvas = canvas as unknown as SkCanvas;
     const paint = getPaint();
 
     updateVisualParticles();
@@ -657,9 +654,6 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<RenderContext, FlappyBi
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color("#050510"));
     skCanvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
-
-    const scenarioTheme = getThemeForScenario(gameState.currentScenario);
-    const nebulae = scenarioTheme.nebulae;
 
     for (let n = 0; n < nebulae.length; n++) {
       const neb = nebulae[n];

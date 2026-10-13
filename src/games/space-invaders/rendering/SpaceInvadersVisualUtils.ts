@@ -229,6 +229,76 @@ export interface BossVisualState {
   pulseSpeed: number;
 }
 
+export interface BossRenderSetup {
+  render: RenderComponent;
+  theme: Theme | undefined;
+  customGeom: any;
+  bossState: BossVisualState;
+  flash: HitFlashState;
+}
+
+export function resolveBossRenderSetup(
+  world: World<SpaceInvadersComponentRegistry>,
+  entity: number
+): BossRenderSetup | null {
+  const render = world.getComponent(entity, "Render");
+  if (!render) return null;
+
+  const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+  const customGeom = theme?.visualTheme?.shapeTokens?.bossGeometry;
+  const bossState = resolveBossVisualState(world, entity, render);
+  const flash = applyHitFlash(render, bossState.baseColor);
+
+  return {
+    render,
+    theme,
+    customGeom,
+    bossState,
+    flash,
+  };
+}
+
+export interface InvaderRenderSetup {
+  render: RenderComponent;
+  size: number;
+  theme: Theme | undefined;
+  customGeom: any;
+  baseColor: string;
+  isTeleporter: boolean;
+  flash: HitFlashState;
+  tick: number;
+}
+
+export function resolveInvaderRenderSetup(
+  world: World<SpaceInvadersComponentRegistry>,
+  entity: number
+): InvaderRenderSetup | null {
+  const render = world.getComponent(entity, "Render");
+  if (!render) return null;
+  const { size = 15 } = render;
+
+  const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+  const customGeom = theme?.visualTheme?.shapeTokens?.enemyGeometry;
+
+  const invaderComp = world.getComponent(entity, "Invader");
+  const enemyTag = world.getComponent(entity, "EnemyTag");
+  const { baseColor, isTeleporter } = resolveInvaderColor(render, invaderComp, enemyTag);
+
+  const flash = applyHitFlash(render, baseColor);
+  const tick = world.tick;
+
+  return {
+    render,
+    size,
+    theme,
+    customGeom,
+    baseColor,
+    isTeleporter,
+    flash,
+    tick,
+  };
+}
+
 export function resolveBossVisualState(
   world: World<SpaceInvadersComponentRegistry>,
   entity: number,

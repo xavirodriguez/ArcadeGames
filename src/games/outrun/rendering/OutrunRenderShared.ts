@@ -1,9 +1,11 @@
-import type { World, CoreComponentRegistry } from "@tiny-aster/core";
+import type { World, CoreComponentRegistry, RenderComponent } from "@tiny-aster/core";
+import { resolveThemeColorWithFallback } from "@tiny-aster/core";
 import type { OutrunComponentRegistry, RoadData, ProjectedSegment, RaceStateComponent, RacerComponent } from "../types/OutrunTypes";
 import type { OutrunConfig } from "../types/OutrunConfigSchema";
 import { DEFAULT_OUTRUN_CONFIG } from "../types/OutrunConfigSchema";
 import { createProjectionBuffer, projectRoad } from "./RoadProjection";
 import { getScenarioPaletteAtZ, applyDayPhase, scenarioHash, type ScenarioPalette, type ModulatedPalette } from "./OutrunPalettes";
+import { computePlayerCarGeometry } from "./OutrunVisualHelpers";
 
 /** Standard racer vehicle body color options. */
 export const RACER_COLORS = ["#457b9d", "#2a9d8f", "#e9c46a", "#f4a261", "#e76f51"] as const;
@@ -209,6 +211,41 @@ export interface OutrunRacerRenderContext {
 }
 
 /** Resolves racer component, race state, and road data for racer entity drawers. */
+export interface OutrunCarRenderContext {
+  render: RenderComponent;
+  state: RaceStateComponent;
+  config: OutrunConfig;
+  carColor: string;
+  geom: ReturnType<typeof computePlayerCarGeometry>;
+}
+
+export function resolveOutrunCarContext(
+  world: World<OutrunComponentRegistry>,
+  entity: number
+): OutrunCarRenderContext | null {
+  const render = world.getComponent(entity, "Render");
+  if (!render || !render.visible) return null;
+
+  const state = world.getSingleton("RaceState");
+  if (!state) return null;
+
+  const config =
+    world.getResource<OutrunConfig>("GameConfig") ?? DEFAULT_OUTRUN_CONFIG;
+
+  const carColor = resolveThemeColorWithFallback(
+    world,
+    render.color || "#e63946",
+    "outrun_car",
+    "player",
+    "primary"
+  );
+
+  const visualOffset = world.getComponent(entity, "VisualOffset");
+  const geom = computePlayerCarGeometry(state, config, visualOffset);
+
+  return { render, state, config, carColor, geom };
+}
+
 export function resolveRacerRenderContext(
   world: World<OutrunComponentRegistry>,
   entity: number

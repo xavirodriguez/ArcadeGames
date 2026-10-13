@@ -38,29 +38,26 @@ export class BoundarySystem extends System<CoreComponentRegistry> {
       const t = world.getComponent(entity, "Transform")!;
 
       // Safe for determinism/rollback. By fetching read-only Transform first, we keep stateVersion updates and callback allocations to exactly zero for all entities that are safely in bounds.
-      if (b.mode === "wrap") {
+      if (b.mode === "wrap" || b.mode === "destroy") {
         const minX = b.minX ?? 0;
         const maxX = b.maxX ?? b.width;
         const minY = b.minY ?? 0;
         const maxY = b.maxY ?? b.height;
 
-        if (t.x < minX || t.x > maxX || t.y < minY || t.y > maxY) {
-          const mt = world.getMutableComponent(entity, "Transform");
-          if (mt) {
-            if (mt.x < minX) mt.x = maxX;
-            else if (mt.x > maxX) mt.x = minX;
+        const isOutOfBounds = t.x < minX || t.x > maxX || t.y < minY || t.y > maxY;
 
-            if (mt.y < minY) mt.y = maxY;
-            else if (mt.y > maxY) mt.y = minY;
+        if (b.mode === "wrap") {
+          if (isOutOfBounds) {
+            const mt = world.getMutableComponent(entity, "Transform");
+            if (mt) {
+              if (mt.x < minX) mt.x = maxX;
+              else if (mt.x > maxX) mt.x = minX;
+
+              if (mt.y < minY) mt.y = maxY;
+              else if (mt.y > maxY) mt.y = minY;
+            }
           }
-        }
-      } else if (b.mode === "destroy") {
-        const minX = b.minX ?? 0;
-        const maxX = b.maxX ?? b.width;
-        const minY = b.minY ?? 0;
-        const maxY = b.maxY ?? b.height;
-
-        if (t.x < minX || t.x > maxX || t.y < minY || t.y > maxY) {
+        } else if (isOutOfBounds) {
           world.reclaimEntity(entity);
         }
       } else if (b.mode === "bounce") {

@@ -39,13 +39,7 @@ export class HitRunCombatSystem extends System<CoreComponentRegistry> {
         for (let j = 0; j < cLen; j++) {
           const entityB = colComp.collisions[j].otherEntity;
           if (entityA >= entityB) continue;
-          if (!WorldUtils.isEntityActive(world, entityA) || !WorldUtils.isEntityActive(world, entityB)) continue;
-          if (this.destroyedEntities.has(entityA) || this.destroyedEntities.has(entityB)) continue;
-
-          if (!depthZOverlap(entityA, entityB, world, { halfDepth: 20 })) continue;
-
-          this.resolveDamageDirection(world, entityA, entityB);
-          this.resolveDamageDirection(world, entityB, entityA);
+          this.processContactPair(world, entityA, entityB);
         }
       }
 
@@ -54,16 +48,24 @@ export class HitRunCombatSystem extends System<CoreComponentRegistry> {
         const tLen = colComp.triggersEntered.length;
         for (let j = 0; j < tLen; j++) {
           const entityB = colComp.triggersEntered[j];
-          if (!WorldUtils.isEntityActive(world, entityA) || !WorldUtils.isEntityActive(world, entityB)) continue;
-          if (this.destroyedEntities.has(entityA) || this.destroyedEntities.has(entityB)) continue;
-
-          if (!depthZOverlap(entityA, entityB, world, { halfDepth: 20 })) continue;
-
-          this.resolveDamageDirection(world, entityA, entityB);
-          this.resolveDamageDirection(world, entityB, entityA);
+          this.processContactPair(world, entityA, entityB);
         }
       }
     }
+  }
+
+  private processContactPair(
+    world: World<CoreComponentRegistry>,
+    entityA: Entity,
+    entityB: Entity
+  ): void {
+    if (!WorldUtils.isEntityActive(world, entityA) || !WorldUtils.isEntityActive(world, entityB)) return;
+    if (this.destroyedEntities.has(entityA) || this.destroyedEntities.has(entityB)) return;
+
+    if (!depthZOverlap(entityA, entityB, world, { halfDepth: 20 })) return;
+
+    this.resolveDamageDirection(world, entityA, entityB);
+    this.resolveDamageDirection(world, entityB, entityA);
   }
 
   private resolveDamageDirection(

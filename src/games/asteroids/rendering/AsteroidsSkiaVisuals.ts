@@ -1,4 +1,4 @@
-import { EffectDrawer, ShapeDrawer, World, ShapeType, CircleShape, ColliderComponent, RenderComponent, SHIP_FORWARD_AXIS, THEME_RESOURCE_KEY, Theme } from "@tiny-aster/core";
+import { EffectDrawer, ShapeDrawer, World, RenderComponent, SHIP_FORWARD_AXIS, THEME_RESOURCE_KEY, Theme } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import { colors } from "../../../theme/colors";
 import { computeAsteroidSilhouette, computeThrustFlame, computeMotionSecondaryEffect } from "../../shared/rendering/ProceduralShapeUtils";
@@ -9,6 +9,7 @@ import { drawFromGeometryProfileAdapter } from "../../shared/rendering/GenericEn
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 import { getVisibleSkiaRender } from "../../shared/rendering/renderingUtils";
+import { resolveAsteroidRadius } from "./AsteroidsVisualHelpers";
 
 export { drawSkiaAsteroidsMissionHUD };
 
@@ -202,12 +203,7 @@ export const drawSkiaAsteroidsAsteroid: ShapeDrawer<any, AsteroidsComponentRegis
     const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
     const customGeom = theme?.visualTheme?.shapeTokens?.enemyGeometry;
 
-    let radius = 25;
-    if (collider && collider.enabled && collider.shape.type === ShapeType.Circle) {
-      radius = (collider.shape as CircleShape).radius;
-    } else if (render.size) {
-      radius = render.size / 2;
-    }
+    const radius = resolveAsteroidRadius(render, collider);
 
     canvas.save();
 

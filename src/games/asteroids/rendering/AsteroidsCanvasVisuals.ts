@@ -1,10 +1,11 @@
-import { ShapeDrawer, ShapeType, CircleShape, SHIP_FORWARD_AXIS, THEME_RESOURCE_KEY, Theme } from "@tiny-aster/core";
+import { ShapeDrawer, SHIP_FORWARD_AXIS, THEME_RESOURCE_KEY, Theme } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import { drawNeonShape } from "../../shared/rendering/CanvasNeonUtils";
 import { colors } from "../../../theme/colors";
 import { computeAsteroidSilhouette, computeThrustFlame, computeMotionSecondaryEffect } from "../../shared/rendering/ProceduralShapeUtils";
 import { resolveHitFlash, resolveInvulnerabilityPulse, resolveAsteroidHitFlash } from "../../shared/rendering/RenderUtils";
 import { drawFromGeometryProfileCanvas } from "../../shared/rendering/GenericEntityDrawer";
+import { resolveAsteroidRadius } from "./AsteroidsVisualHelpers";
 
 function applyAsteroidHitFlashStroke(
   ctx: CanvasRenderingContext2D,
@@ -206,12 +207,7 @@ export const drawAsteroidsAsteroid: ShapeDrawer<CanvasRenderingContext2D, Astero
     const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
     const customGeom = theme?.visualTheme?.shapeTokens?.enemyGeometry;
 
-    let radius = 25;
-    if (collider && collider.enabled && collider.shape.type === ShapeType.Circle) {
-      radius = (collider.shape as CircleShape).radius;
-    } else if (render.size) {
-      radius = render.size / 2;
-    }
+    const radius = resolveAsteroidRadius(render, collider);
 
     const baseColor = render.color || colors.pink;
     ctx.save();

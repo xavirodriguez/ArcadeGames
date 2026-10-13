@@ -25,6 +25,8 @@ import {
   iterateOutrunSprites,
   projectOutrunRoad,
   computeFacetedPeaks,
+  computeCoastalBuildings,
+  computeMountainCliffs,
   computeOffroadDust,
   RACER_COLORS
 } from "./OutrunRenderShared";
@@ -306,13 +308,9 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
       ctx.stroke();
 
       // Brutalist building & wind turbine silhouettes
-      const spacing = screenW / 6;
-      const horizonOffset = ((state.playerZ * 0.0001) % spacing) + state.playerX * 20;
+      const { buildings } = computeCoastalBuildings(screenW, horizonY, state.playerZ, state.playerX);
       ctx.fillStyle = palette.mountainBase;
-      for (let b = -2; b < 8; b++) {
-        const bx = b * spacing - horizonOffset;
-        const bw = 18 + scenarioHash("coast_b", b) * 20;
-        const bh = 15 + scenarioHash("coast_bh", b) * 35;
+      for (const { bx, bw, bh } of buildings) {
         ctx.fillRect(bx, horizonY - bh, bw, bh);
 
         if (palette.lightsOn) {
@@ -339,13 +337,9 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
       ctx.fill();
     } else {
       // Mountain concrete cliffs and contemporary skyline
-      const spacing = screenW / 5;
-      const offset = ((state.playerZ * 0.00015) % spacing) + state.playerX * 25;
+      const { cliffs } = computeMountainCliffs(screenW, horizonY, state.playerZ, state.playerX);
       ctx.fillStyle = palette.mountainBase;
-      for (let m = -2; m < 7; m++) {
-        const mx = m * spacing - offset;
-        const mh = 35 + scenarioHash("mtn_h", m) * 55;
-        const mw = 30 + scenarioHash("mtn_w", m) * 25;
+      for (const { mx, mw, mh } of cliffs) {
         ctx.fillRect(mx, horizonY - mh, mw, mh);
 
         ctx.fillStyle = palette.mountainFacet;

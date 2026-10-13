@@ -26,6 +26,8 @@ import {
   iterateOutrunSprites,
   projectOutrunRoad,
   computeFacetedPeaks,
+  computeCoastalBuildings,
+  computeMountainCliffs,
   computeOffroadDust,
   RACER_COLORS
 } from "./OutrunRenderShared";
@@ -326,13 +328,9 @@ export const drawSkiaOutrunRoad: ShapeDrawer<RenderContext, OutrunComponentRegis
       paint.setColor(Skia.Color("#00b4d8"));
       canvas.drawRect(Skia.XYWHRect(0, horizonY - 18, screenW, 18), paint);
 
-      const spacing = screenW / 6;
-      const horizonOffset = ((state.playerZ * 0.0001) % spacing) + state.playerX * 20;
+      const { buildings } = computeCoastalBuildings(screenW, horizonY, state.playerZ, state.playerX);
       paint.setColor(Skia.Color(palette.mountainBase));
-      for (let b = -2; b < 8; b++) {
-        const bx = b * spacing - horizonOffset;
-        const bw = 18 + scenarioHash("coast_b", b) * 20;
-        const bh = 15 + scenarioHash("coast_bh", b) * 35;
+      for (const { bx, bw, bh } of buildings) {
         canvas.drawRect(Skia.XYWHRect(bx, horizonY - bh, bw, bh), paint);
       }
     } else if (palette.id === "desert") {
@@ -354,15 +352,11 @@ export const drawSkiaOutrunRoad: ShapeDrawer<RenderContext, OutrunComponentRegis
       path.close();
       canvas.drawPath(path, paint);
     } else {
-      const spacing = screenW / 5;
-      const offset = ((state.playerZ * 0.00015) % spacing) + state.playerX * 25;
+      const { cliffs } = computeMountainCliffs(screenW, horizonY, state.playerZ, state.playerX);
       paint.reset();
       paint.setAntiAlias(true);
       paint.setStyle(Skia.PaintStyle.Fill);
-      for (let m = -2; m < 7; m++) {
-        const mx = m * spacing - offset;
-        const mh = 35 + scenarioHash("mtn_h", m) * 55;
-        const mw = 30 + scenarioHash("mtn_w", m) * 25;
+      for (const { mx, mw, mh } of cliffs) {
         paint.setColor(Skia.Color(palette.mountainBase));
         canvas.drawRect(Skia.XYWHRect(mx, horizonY - mh, mw, mh), paint);
 

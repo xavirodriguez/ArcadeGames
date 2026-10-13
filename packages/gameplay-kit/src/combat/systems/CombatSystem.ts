@@ -19,7 +19,8 @@ export class CombatSystem<
 
   public update(world: World<TComponents, TEvents>, _deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
-    const entitiesWithEvents = world.query("CollisionEvents" as any);
+    const colEventsKey = "CollisionEvents" as Extract<keyof TComponents, string>;
+    const entitiesWithEvents = world.query(colEventsKey);
     this.destroyedEntities.clear();
 
     // Step 1: Iterate over collision pairs (both physical collisions and trigger entry overlaps)
@@ -27,7 +28,10 @@ export class CombatSystem<
     // Safe for determinism/rollback. Sequential indexed loop eliminates per-tick iterator allocations.
     for (let i = 0; i < len; i++) {
       const entityA = entitiesWithEvents[i];
-      const colComp = world.getComponent(entityA, "CollisionEvents" as any) as any;
+      const colComp = world.getComponent(entityA, colEventsKey) as unknown as {
+        collisions?: Array<{ otherEntity: Entity }>;
+        triggersEntered?: Entity[];
+      } | undefined;
       if (!colComp) continue;
 
       // Process physical collisions
@@ -81,14 +85,23 @@ export class CombatSystem<
   ): void {
     if (destroyedEntities.has(attacker) || destroyedEntities.has(target)) return;
 
-    const damageComp = world.getComponent(attacker, "Damage" as any) as any as DamageComponent | undefined;
-    const healthComp = world.getComponent(target, "Health" as any) as any as any; // Cast as any to read core Health
+    const damageKey = "Damage" as Extract<keyof TComponents, string>;
+    const healthKey = "Health" as Extract<keyof TComponents, string>;
+    const factionKey = "Faction" as Extract<keyof TComponents, string>;
+    const deadKey = "Dead" as Extract<keyof TComponents, string>;
+
+    const damageComp = world.getComponent(attacker, damageKey) as unknown as DamageComponent | undefined;
+    const healthComp = world.getComponent(target, healthKey) as unknown as {
+      current: number;
+      max: number;
+      invulnerableRemaining?: number;
+    } | undefined;
 
     if (!damageComp || !healthComp) return;
 
     // 1. Faction Check (Friendly Fire prevention)
-    const factionA = world.getComponent(attacker, "Faction" as any) as any as FactionComponent | undefined;
-    const factionB = world.getComponent(target, "Faction" as any) as any as FactionComponent | undefined;
+    const factionA = world.getComponent(attacker, factionKey) as unknown as FactionComponent | undefined;
+    const factionB = world.getComponent(target, factionKey) as unknown as FactionComponent | undefined;
 
     if (factionA && factionB && factionA.faction === factionB.faction) {
       // Friendly fire: deny damage unless friendlyFire is explicitly true
@@ -103,7 +116,7 @@ export class CombatSystem<
     }
 
     // 3. Skip if target is already marked dead
-    if (world.hasComponent(target, "Dead" as any)) {
+    if (world.hasComponent(target, deadKey)) {
       return;
     }
 
@@ -115,7 +128,6 @@ export class CombatSystem<
     const nextHealth = Math.max(0, prevHealth - dmgAmount);
 
     // Safe for determinism/rollback. Fetching getMutableComponent directly avoids per-hit callback closure allocations.
-    const healthKey = "Health" as Extract<keyof TComponents, string>;
     const mutableHealth = world.getMutableComponent(target, healthKey) as { current: number } | undefined;
     if (mutableHealth) {
       mutableHealth.current = nextHealth;
@@ -136,7 +148,7 @@ export class CombatSystem<
 
     // Emit combat:death if target died
     if (nextHealth <= 0) {
-      world.getCommandBuffer().addComponent(target, { type: "Dead" } as any);
+      world.getCommandBuffer().addComponent(target, { type: deadKey } as any);
 
       if (eventBus) {
         eventBus.emitDeferred("combat:death", {
@@ -153,7 +165,7 @@ export class CombatSystem<
       this.reclaimAndDestroy(world, attacker);
       destroyedEntities.add(attacker);
     } else if (policy === "remove-component") {
-      world.getCommandBuffer().removeComponent(attacker, "Damage" as any);
+      world.getCommandBuffer().removeComponent(attacker, damageKey);
     }
   }
 

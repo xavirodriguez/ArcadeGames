@@ -28,7 +28,10 @@ import { getGameplayColor } from "../../theme/GameplayColorMap";
  * @param world - Optional World instance to resolve theme tokens.
  * @returns The hex color used to tint the power-up's visual bubble.
  */
-function getPowerUpColor(lootType: string, world?: World<any, any, any>): string {
+function getPowerUpColor(
+  lootType: string,
+  world?: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>
+): string {
   if (world) {
     const resolved = resolveThemeColor(world, `powerup-${lootType}`);
     if (resolved) return resolved;
@@ -51,7 +54,7 @@ interface MovingCircularEnemyParams {
 }
 
 function buildMovingCircularEnemy(
-  w: World<any, any, any>,
+  w: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>,
   entity: number,
   params: MovingCircularEnemyParams
 ): void {
@@ -97,8 +100,8 @@ export function registerAsteroidsBlueprints(
   const registry = customRegistry || world.getResource<BlueprintRegistry<AsteroidsComponentRegistry, AsteroidsEventRegistry, any>>("BlueprintRegistry") || new BlueprintRegistry<AsteroidsComponentRegistry, AsteroidsEventRegistry, any>();
 
   registry.register("ship", {
-    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number }) => {
-      const gameConfig = w.getResource<any>("GameConfig");
+    spawn: (w: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, entity: number, args: { x: number; y: number }) => {
+      const gameConfig = w.getResource<AsteroidConfig>("GameConfig");
       const worldWidth = gameConfig?.worldWidth ?? 800;
       const worldHeight = gameConfig?.worldHeight ?? 600;
       const theme = w.getResource<Theme>("Theme");
@@ -168,9 +171,9 @@ export function registerAsteroidsBlueprints(
   });
 
   registry.register("bullet", {
-    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; vx: number; vy: number; rotation?: number; ownerId?: string; ttl?: number }) => {
+    spawn: (w: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, entity: number, args: { x: number; y: number; vx: number; vy: number; rotation?: number; ownerId?: string; ttl?: number }) => {
       const tint = resolveThemeColor(w, "bullet", "player-bullet") ?? getGameplayColor("PlayerProjectile", w);
-      const gameConfig = w.getResource<any>("GameConfig");
+      const gameConfig = w.getResource<AsteroidConfig>("GameConfig");
 
       EntityBuilder.fromEntity(w, entity)
         .withTransform({
@@ -229,8 +232,8 @@ export function registerAsteroidsBlueprints(
   });
 
   registry.register("asteroid", {
-    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; size: string; vx?: number; vy?: number; angularVelocity?: number }) => {
-      const gameConfig = w.getResource<any>("GameConfig");
+    spawn: (w: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, entity: number, args: { x: number; y: number; size: string; vx?: number; vy?: number; angularVelocity?: number }) => {
+      const gameConfig = w.getResource<AsteroidConfig>("GameConfig");
       const worldWidth = gameConfig?.worldWidth ?? 800;
       const worldHeight = gameConfig?.worldHeight ?? 600;
       const randVx = (w.gameplayRandom.next() - 0.5) * 100;
@@ -290,7 +293,7 @@ export function registerAsteroidsBlueprints(
   });
 
   registry.register("powerup", {
-    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; lootType: string }) => {
+    spawn: (w: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, entity: number, args: { x: number; y: number; lootType: string }) => {
       EntityBuilder.fromEntity(w, entity)
         .withTransform({
           x: args.x,
@@ -321,8 +324,8 @@ export function registerAsteroidsBlueprints(
   });
 
   registry.register("ufo", {
-    spawn: (w: World<any, any, any>, entity: number, args: { x: number; y: number; size?: "large" | "small"; vx?: number; vy?: number }) => {
-      const gameConfig = w.getResource<any>("GameConfig");
+    spawn: (w: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, entity: number, args: { x: number; y: number; size?: "large" | "small"; vx?: number; vy?: number }) => {
+      const gameConfig = w.getResource<AsteroidConfig>("GameConfig");
       const worldWidth = gameConfig?.worldWidth ?? 800;
       const worldHeight = gameConfig?.worldHeight ?? 600;
       const tint = resolveThemeColor(w, "ufo", "enemy") ?? getGameplayColor("Enemy", w);

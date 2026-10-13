@@ -5,6 +5,7 @@ import {
   EventBus,
   BaseGame,
   StoryGraph,
+  StoryGraphRegistry,
   StoryChoice,
   GameDefinitionRegistry,
   CampaignSaveManager,
@@ -48,6 +49,8 @@ import { spacing } from "../src/theme/spacing";
 export interface CampaignScreenProps {
   /** Initial StoryGraph asset to start campaign. */
   graph?: StoryGraph;
+  /** Optional ID of StoryGraph to resolve from StoryGraphRegistry. */
+  graphId?: string;
   /** Storage slot ID for persistence operations (defaults to "default_slot"). */
   slotId?: string;
   /** Custom initial game ID to start if graph entry does not specify sceneToLoad. */
@@ -68,6 +71,7 @@ export interface CampaignScreenProps {
  */
 export const CampaignScreen: React.FC<CampaignScreenProps> = ({
   graph,
+  graphId,
   slotId = "default_slot",
   defaultGameId = "echorunner",
   metaService: customMetaService,
@@ -339,12 +343,14 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
     onGameOver: handleGameplayResult
   });
 
+  const activeGraph = graph || (graphId ? StoryGraphRegistry.getInstance().getGraph(graphId) : undefined);
+
   // Initial graph loading lifecycle setup
   useEffect(() => {
     const runtime = runtimeRef.current!;
 
-    if (graph) {
-      runtime.loadGraph(graph, true);
+    if (activeGraph) {
+      runtime.loadGraph(activeGraph, true);
       const entryNode = runtime.getCurrentNode();
       const sceneFromMeta = typeof entryNode?.meta?.sceneToLoad === "string" ? entryNode.meta.sceneToLoad : undefined;
       const initialScene = entryNode?.sceneToLoad || sceneFromMeta;
@@ -365,7 +371,7 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
         currentGameRef.current = null;
       }
     };
-  }, [graph, defaultGameId, switchGame]);
+  }, [activeGraph, defaultGameId, switchGame]);
 
   // Choice selection handler
   const handleSelectChoice = useCallback((choiceId: string) => {
@@ -375,14 +381,14 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
 
   // Restart campaign handler
   const handleRestartCampaign = useCallback(() => {
-    if (graph && runtimeRef.current) {
+    if (activeGraph && runtimeRef.current) {
       arcadeOrchestratorRef.current?.reset();
       if (currentGameRef.current) {
         currentGameRef.current.destroy();
         currentGameRef.current = null;
         setActiveGame(null);
       }
-      runtimeRef.current.loadGraph(graph, true);
+      runtimeRef.current.loadGraph(activeGraph, true);
       const entryNode = runtimeRef.current.getCurrentNode();
       const sceneFromMeta = typeof entryNode?.meta?.sceneToLoad === "string" ? entryNode.meta.sceneToLoad : undefined;
       const initialScene = entryNode?.sceneToLoad || sceneFromMeta;

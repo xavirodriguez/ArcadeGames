@@ -16,6 +16,7 @@ import {
   resolveInvaderRenderSetup,
   resolveParticleState,
   resolveExplosionParticleData,
+  computeBossHullPoints,
 } from "./SpaceInvadersVisualUtils";
 import { calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVisual, calculateShieldCrackCoords } from "../../shared/rendering/spaceInvadersMath";
 import { EXPLOSION_PARTICLE_POOL, spawnLayeredExplosion, updateExplosionParticles } from "./ExplosionParticlePool";
@@ -538,18 +539,11 @@ export const drawSpaceInvadersBoss: ShapeDrawer<CanvasRenderingContext2D, SpaceI
 
     ctx.fillStyle = flash.color;
     ctx.beginPath();
-    ctx.moveTo(0, -s * 8);
-    ctx.lineTo(s * 4, -s * 4);
-    ctx.lineTo(s * 10, -s * 2);
-    ctx.lineTo(s * 9, s * 4);
-    ctx.lineTo(s * 6, s * 8);
-    ctx.lineTo(s * 3, s * 6);
-    ctx.lineTo(0, s * 7);
-    ctx.lineTo(-s * 3, s * 6);
-    ctx.lineTo(-s * 6, s * 8);
-    ctx.lineTo(-s * 9, s * 4);
-    ctx.lineTo(-s * 10, -s * 2);
-    ctx.lineTo(-s * 4, -s * 4);
+    const hullPts = computeBossHullPoints(s);
+    ctx.moveTo(hullPts[0][0], hullPts[0][1]);
+    for (let i = 1; i < hullPts.length; i++) {
+      ctx.lineTo(hullPts[i][0], hullPts[i][1]);
+    }
     ctx.closePath();
     ctx.fill();
 

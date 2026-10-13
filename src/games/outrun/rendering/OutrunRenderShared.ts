@@ -5,7 +5,7 @@ import type { OutrunConfig } from "../types/OutrunConfigSchema";
 import { DEFAULT_OUTRUN_CONFIG } from "../types/OutrunConfigSchema";
 import { createProjectionBuffer, projectRoad } from "./RoadProjection";
 import { COAST_PALETTE, getScenarioPaletteAtZ, applyDayPhase, scenarioHash, type ScenarioPalette, type ModulatedPalette } from "./OutrunPalettes";
-import { computePlayerCarGeometry } from "./OutrunVisualHelpers";
+import { computePlayerCarGeometry, computeRacerProjection } from "./OutrunVisualHelpers";
 
 /** Standard racer vehicle body color options. */
 export const RACER_COLORS = ["#457b9d", "#2a9d8f", "#e9c46a", "#f4a261", "#e76f51"] as const;
@@ -292,6 +292,64 @@ export function resolveRacerRenderContext(
   if (!state || !roadData) return null;
 
   return { racer, state, roadData, config };
+}
+
+export interface OutrunHudContext {
+  state: RaceStateComponent;
+  config: OutrunConfig;
+  speedKmh: number;
+  timeStr: string;
+  phase: string;
+  hudBg: string;
+  hudAccent: string;
+}
+
+export function resolveOutrunHudContext(
+  world: World<OutrunComponentRegistry>
+): OutrunHudContext | null {
+  const state = world.getSingleton("RaceState");
+  if (!state) return null;
+
+  const config =
+    world.getResource<OutrunConfig>("GameConfig") ?? DEFAULT_OUTRUN_CONFIG;
+
+  const speedKmh = Math.round((state.speed / config.maxSpeed) * 280);
+  const timeStr = state.lapTime.toFixed(1);
+  const phase = state.racePhase ?? "racing";
+
+  const hudBg = resolveThemeColorWithFallback(world, "rgba(15, 23, 42, 0.85)", "outrun_hud_bg");
+  const hudAccent = resolveThemeColorWithFallback(world, "#00f0ff", "outrun_hud_accent", "primary");
+
+  return { state, config, speedKmh, timeStr, phase, hudBg, hudAccent };
+}
+
+export interface OutrunRacerDrawContext {
+  proj: NonNullable<ReturnType<typeof computeRacerProjection>>;
+  bodyColor: string;
+}
+
+export function resolveOutrunRacerDrawContext(
+  world: World<OutrunComponentRegistry>,
+  entity: number
+): OutrunRacerDrawContext | null {
+  const ctxPayload = resolveRacerRenderContext(world, entity);
+  if (!ctxPayload) return null;
+
+  const { racer, state, roadData, config } = ctxPayload;
+
+  const proj = computeRacerProjection(
+    racer,
+    state,
+    roadData,
+    config,
+    projectionBuffer,
+    PROJECTION_CAPACITY
+  );
+  if (!proj) return null;
+
+  const bodyColor = RACER_COLORS[racer.colorIndex % RACER_COLORS.length];
+
+  return { proj, bodyColor };
 }
 
 /** Visitor callback signature for back-to-front sprite passes. */

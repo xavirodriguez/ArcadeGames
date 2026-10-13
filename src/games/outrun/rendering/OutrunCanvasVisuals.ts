@@ -23,6 +23,8 @@ import {
   resolveOutrunRoadContext,
   resolveOutrunCarContext,
   resolveRacerRenderContext,
+  resolveOutrunHudContext,
+  resolveOutrunRacerDrawContext,
   iterateOutrunSprites,
   projectOutrunRoad,
   computeFacetedPeaks,
@@ -527,22 +529,10 @@ export const drawOutrunCar: ShapeDrawer<CanvasRenderingContext2D, OutrunComponen
 
 export const drawOutrunRacer: ShapeDrawer<CanvasRenderingContext2D, OutrunComponentRegistry> = {
   draw(ctx, world, entity) {
-    const ctxPayload = resolveRacerRenderContext(world, entity);
-    if (!ctxPayload) return;
+    const racerCtx = resolveOutrunRacerDrawContext(world, entity);
+    if (!racerCtx) return;
 
-    const { racer, state, roadData, config } = ctxPayload;
-
-    const proj = computeRacerProjection(
-      racer,
-      state,
-      roadData,
-      config,
-      projectionBuffer,
-      PROJECTION_CAPACITY
-    );
-    if (!proj) return;
-
-    const bodyColor = RACER_COLORS[racer.colorIndex % RACER_COLORS.length];
+    const { proj, bodyColor } = racerCtx;
 
     ctx.save();
     ctx.translate(proj.sx + proj.lateral, proj.sy);
@@ -556,18 +546,10 @@ export const drawOutrunRacer: ShapeDrawer<CanvasRenderingContext2D, OutrunCompon
 
 export const drawOutrunHud: EffectDrawer<CanvasRenderingContext2D, OutrunComponentRegistry> = {
   draw(ctx, world) {
-    const state = world.getSingleton("RaceState");
-    if (!state) return;
+    const hudCtx = resolveOutrunHudContext(world);
+    if (!hudCtx) return;
 
-    const config =
-      world.getResource<OutrunConfig>("GameConfig") ?? DEFAULT_OUTRUN_CONFIG;
-
-    const speedKmh = Math.round((state.speed / config.maxSpeed) * 280);
-    const timeStr = state.lapTime.toFixed(1);
-    const phase = state.racePhase ?? "racing";
-
-    const hudBg = resolveThemeColorWithFallback(world, "rgba(15, 23, 42, 0.85)", "outrun_hud_bg");
-    const hudAccent = resolveThemeColorWithFallback(world, "#00f0ff", "outrun_hud_accent", "primary");
+    const { state, config, speedKmh, timeStr, phase, hudBg, hudAccent } = hudCtx;
 
     ctx.save();
 

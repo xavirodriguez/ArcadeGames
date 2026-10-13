@@ -63,3 +63,38 @@ export function resolveCreepVisualState(
 
   return { size, slowed, fill, stroke, innerStroke };
 }
+
+export interface TowerProjectileDrawSetup {
+  size: number;
+  frost: boolean;
+  color: string;
+}
+
+export function resolveTowerProjectileDrawSetup(
+  world: World<TowerDefenseComponentRegistry>,
+  entity: number
+): TowerProjectileDrawSetup {
+  const render = world.getComponent(entity, "Render");
+  const proj = world.getComponent(entity, "TowerProjectile");
+  const size = render?.size ?? 4;
+  const frost = !!(proj?.slowFactor && proj.slowFactor < 1);
+  const color = frost
+    ? resolveThemeColorWithFallback(world, "#4dd0e1", "tower_projectile_frost")
+    : resolveThemeColorWithFallback(world, "#ffee58", "tower_projectile", "bullet");
+
+  return { size, frost, color };
+}
+
+export interface TdMapBackgroundContext {
+  layout: import("../../shared/grid/GridTypes").GridLayout;
+  tileGrid: import("../types/TowerDefenseTypes").TileGrid;
+}
+
+export function resolveTdMapBackgroundContext(
+  world: World<TowerDefenseComponentRegistry>
+): TdMapBackgroundContext | null {
+  const layout = world.getResource<import("../../shared/grid/GridTypes").GridLayout>("GridLayout");
+  const tileGrid = world.getResource<import("../types/TowerDefenseTypes").TileGrid>("TileGrid");
+  if (!layout || !tileGrid) return null;
+  return { layout, tileGrid };
+}

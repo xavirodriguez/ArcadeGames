@@ -105,6 +105,17 @@ function drawSkiaCreep(canvas: any, size: number, fill: string): void {
   canvas.drawCircle(size * 0.18, -size * 0.1, size * 0.06, paint);
 }
 
+function drawSkiaCreepStrokedOutline(canvas: any, radius: number, strokeColor: string, strokeWidth = 3): void {
+  if (!Skia) return;
+  const paint = getPaint();
+  if (!paint) return;
+  paint.reset();
+  paint.setStyle(Skia.PaintStyle.Stroke);
+  paint.setStrokeWidth(strokeWidth);
+  paint.setColor(Skia.Color(strokeColor));
+  canvas.drawCircle(0, 0, radius, paint);
+}
+
 export const drawSkiaTowerFrost: ShapeDrawer<any, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
@@ -117,14 +128,7 @@ export const drawSkiaCreepBoss: ShapeDrawer<any, TowerDefenseComponentRegistry> 
     const { size, fill, stroke } = resolveCreepVisualState(world, entity, 28, "boss");
 
     drawSkiaCreep(canvas, size, fill);
-    if (!Skia) return;
-    const paint = getPaint();
-    if (!paint) return;
-    paint.reset();
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setStrokeWidth(3);
-    paint.setColor(Skia.Color(stroke));
-    canvas.drawCircle(0, 0, size * 0.55, paint);
+    drawSkiaCreepStrokedOutline(canvas, size * 0.55, stroke, 3);
   },
 };
 
@@ -148,14 +152,7 @@ export const drawSkiaCreepTank: ShapeDrawer<any, TowerDefenseComponentRegistry> 
     const stroke = resolveThemeColorWithFallback(world, "#5d4037", "creep_tank_plate");
 
     drawSkiaCreep(canvas, size, fill);
-    if (!Skia) return;
-    const paint = getPaint();
-    if (!paint) return;
-    paint.reset();
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setStrokeWidth(3);
-    paint.setColor(Skia.Color(stroke));
-    canvas.drawCircle(0, 0, size * 0.55, paint);
+    drawSkiaCreepStrokedOutline(canvas, size * 0.55, stroke, 3);
   },
 };
 

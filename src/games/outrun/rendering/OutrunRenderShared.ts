@@ -79,6 +79,62 @@ export function computeFacetedPeaks(
   return peaks;
 }
 
+export interface CoastalBuilding {
+  bx: number;
+  bw: number;
+  bh: number;
+  bIndex: number;
+}
+
+/** Computes coastal building rectangle parameters along the horizon. */
+export function computeCoastalBuildings(
+  screenW: number,
+  horizonY: number,
+  playerZ: number,
+  playerX: number
+): { spacing: number; horizonOffset: number; buildings: CoastalBuilding[] } {
+  const spacing = screenW / 6;
+  const horizonOffset = ((playerZ * 0.0001) % spacing) + playerX * 20;
+  const buildings: CoastalBuilding[] = [];
+
+  for (let b = -2; b < 8; b++) {
+    const bx = b * spacing - horizonOffset;
+    const bw = 18 + scenarioHash("coast_b", b) * 20;
+    const bh = 15 + scenarioHash("coast_bh", b) * 35;
+    buildings.push({ bx, bw, bh, bIndex: b });
+  }
+
+  return { spacing, horizonOffset, buildings };
+}
+
+export interface MountainCliff {
+  mx: number;
+  mw: number;
+  mh: number;
+  mIndex: number;
+}
+
+/** Computes mountain cliff silhouette parameters along the horizon. */
+export function computeMountainCliffs(
+  screenW: number,
+  horizonY: number,
+  playerZ: number,
+  playerX: number
+): { spacing: number; offset: number; cliffs: MountainCliff[] } {
+  const spacing = screenW / 5;
+  const offset = ((playerZ * 0.00015) % spacing) + playerX * 25;
+  const cliffs: MountainCliff[] = [];
+
+  for (let m = -2; m < 7; m++) {
+    const mx = m * spacing - offset;
+    const mh = 35 + scenarioHash("mtn_h", m) * 55;
+    const mw = 30 + scenarioHash("mtn_w", m) * 25;
+    cliffs.push({ mx, mw, mh, mIndex: m });
+  }
+
+  return { spacing, offset, cliffs };
+}
+
 export interface OffroadDustParticle {
   dx: number;
   dy: number;

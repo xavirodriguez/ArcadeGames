@@ -99,22 +99,52 @@ const cachedShieldCracks = new WeakMap<any, { x1: number; y1: number; x2: number
 /**
  * Visuals for the player ship using React Native Skia. Supports Concept Pack geometry overrides.
  */
+export interface SkiaPlayerRenderSetup {
+  render: any;
+  theme: Theme | undefined;
+  customGeom: any;
+  role: string;
+  size: number;
+  colorStr: string;
+  opacity: number;
+}
+
+export function resolveSkiaPlayerRenderSetup(
+  world: any,
+  entity: number
+): SkiaPlayerRenderSetup | null {
+  const render = safeGetRenderComponent(world, entity);
+  if (!render) return null;
+
+  const theme = world.getResource(THEME_RESOURCE_KEY) as Theme | undefined;
+  const customGeom = theme?.visualTheme?.shapeTokens?.playerGeometry;
+
+  const playerComp = world.getComponent(entity, "Player");
+  const role = playerComp?.role || "pioneer";
+  const { roleColor } = resolvePlayerRoleVisual(role, theme);
+
+  const flash = getRenderFlash(render, roleColor, 40);
+
+  return {
+    render,
+    theme,
+    customGeom,
+    role,
+    size: flash.size,
+    colorStr: flash.color,
+    opacity: flash.opacity,
+  };
+}
+
+/**
+ * Visuals for the player ship using React Native Skia. Supports Concept Pack geometry overrides.
+ */
 export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = safeGetRenderComponent(world, entity);
-    if (!render) return;
+    const setup = resolveSkiaPlayerRenderSetup(world, entity);
+    if (!setup) return;
 
-    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-    const customGeom = theme?.visualTheme?.shapeTokens?.playerGeometry;
-
-    const playerComp = world.getComponent(entity, "Player");
-    const role = playerComp?.role || "pioneer";
-    const { roleColor } = resolvePlayerRoleVisual(role, theme);
-
-    const flash = getRenderFlash(render, roleColor, 40);
-    const size = flash.size;
-    const colorStr = flash.color;
-    const opacity = flash.opacity;
+    const { render, customGeom, role, size, colorStr, opacity } = setup;
 
     canvas.save();
 

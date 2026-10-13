@@ -99,8 +99,7 @@ export class GridPathfinding {
    * @param options - Pathfinding configuration options.
    * @returns Array of grid points representing the path, or empty array if no path exists.
    */
-    // TODO(refactor): código duplicado detectado (método) con ai/GridPathfinding.ts:177-194. Considerar extraer a función compartida. Ref: fc94060c
-public static bfs(
+  public static bfs(
     grid: GridPassabilityMap,
     start: GridPoint,
     target: GridPoint,

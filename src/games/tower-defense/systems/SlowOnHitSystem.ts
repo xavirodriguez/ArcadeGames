@@ -1,22 +1,14 @@
-import { System, SystemPhase, World } from "@tiny-aster/core";
+import { SystemPhase, World } from "@tiny-aster/core";
 import type { TowerDefenseComponentRegistry, TowerDefenseEventRegistry } from "../types/TowerDefenseTypes";
+import { TowerDefenseEventBindingSystem } from "./TowerDefenseSystemUtils";
 
 /**
  * On combat:hit, if the attacker is a frost projectile, apply slow to the creep.
  */
-// TODO(refactor): código duplicado detectado (bloque) con tower-defense/systems/TowerDefenseAudioSystem.ts:19-30. Considerar extraer a función compartida. Ref: 962c52b6
-export class SlowOnHitSystem extends System<TowerDefenseComponentRegistry, TowerDefenseEventRegistry> {
+export class SlowOnHitSystem extends TowerDefenseEventBindingSystem {
   readonly phase = SystemPhase.GameRules;
-  private bound = false;
 
-  update(world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>, _dt: number): void {
-    if (!this.bound) {
-      this.bind(world);
-      this.bound = true;
-    }
-  }
-
-  private bind(world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>): void {
+  protected override bindEvents(world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>): void {
     const bus = world.getEventBus();
     if (!bus?.on) return;
 

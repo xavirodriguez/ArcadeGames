@@ -26,9 +26,10 @@ import {
   iterateOutrunSprites,
   projectOutrunRoad,
   computeFacetedPeaks,
+  getFacetedPeakPolygons,
   computeCoastalBuildings,
   computeMountainCliffs,
-  computeOffroadDust,
+  resolveOffroadDustParams,
   RACER_COLORS
 } from "./OutrunRenderShared";
 
@@ -281,19 +282,21 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
     if (horizonStyle === "faceted_peaks") {
       const peaks = computeFacetedPeaks(screenW, horizonY, state.playerZ, state.playerX, palette.id);
       for (const p of peaks) {
+        const { base, facet } = getFacetedPeakPolygons(p);
+
         ctx.fillStyle = palette.mountainBase;
         ctx.beginPath();
-        ctx.moveTo(p.px - p.peakSpacing * 0.6, horizonY);
-        ctx.lineTo(p.px, p.peakY);
-        ctx.lineTo(p.px + p.peakSpacing * 0.6, horizonY);
+        ctx.moveTo(base[0][0], base[0][1]);
+        ctx.lineTo(base[1][0], base[1][1]);
+        ctx.lineTo(base[2][0], base[2][1]);
         ctx.closePath();
         ctx.fill();
 
         ctx.fillStyle = palette.mountainFacet;
         ctx.beginPath();
-        ctx.moveTo(p.px, p.peakY);
-        ctx.lineTo(p.px + p.peakSpacing * 0.6, horizonY);
-        ctx.lineTo(p.px + (p.h2 - 0.5) * 20, horizonY);
+        ctx.moveTo(facet[0][0], facet[0][1]);
+        ctx.lineTo(facet[1][0], facet[1][1]);
+        ctx.lineTo(facet[2][0], facet[2][1]);
         ctx.closePath();
         ctx.fill();
       }
@@ -479,10 +482,7 @@ export const drawOutrunCar: ShapeDrawer<CanvasRenderingContext2D, OutrunComponen
 
     // Off-track Dust
     if (geom.isOffroad && state.speed > 0) {
-      const roadData = world.getResource<RoadData>("RoadData");
-      const basePal = roadData ? getScenarioPaletteAtZ(state.playerZ, roadData) : COAST_PALETTE;
-      const dustColor = basePal.id === "coast" ? "#e2dfc8" : basePal.id === "desert" ? "#d0a67a" : "#8d99ae";
-      const particles = computeOffroadDust(state.playerZ, geom.speedRatio);
+      const { dustColor, particles } = resolveOffroadDustParams(world, state.playerZ, geom.speedRatio);
 
       for (const p of particles) {
         ctx.fillStyle = dustColor;

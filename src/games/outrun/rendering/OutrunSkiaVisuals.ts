@@ -27,9 +27,10 @@ import {
   iterateOutrunSprites,
   projectOutrunRoad,
   computeFacetedPeaks,
+  getFacetedPeakPolygons,
   computeCoastalBuildings,
   computeMountainCliffs,
-  computeOffroadDust,
+  resolveOffroadDustParams,
   RACER_COLORS
 } from "./OutrunRenderShared";
 
@@ -303,22 +304,24 @@ export const drawSkiaOutrunRoad: ShapeDrawer<RenderContext, OutrunComponentRegis
     if (horizonStyle === "faceted_peaks") {
       const peaks = computeFacetedPeaks(screenW, horizonY, state.playerZ, state.playerX, palette.id);
       for (const p of peaks) {
+        const { base, facet } = getFacetedPeakPolygons(p);
+
         paint.reset();
         paint.setAntiAlias(true);
         paint.setStyle(Skia.PaintStyle.Fill);
         paint.setColor(Skia.Color(palette.mountainBase));
         const path1 = Skia.Path.Make();
-        path1.moveTo(p.px - p.peakSpacing * 0.6, horizonY);
-        path1.lineTo(p.px, p.peakY);
-        path1.lineTo(p.px + p.peakSpacing * 0.6, horizonY);
+        path1.moveTo(base[0][0], base[0][1]);
+        path1.lineTo(base[1][0], base[1][1]);
+        path1.lineTo(base[2][0], base[2][1]);
         path1.close();
         canvas.drawPath(path1, paint);
 
         paint.setColor(Skia.Color(palette.mountainFacet));
         const path2 = Skia.Path.Make();
-        path2.moveTo(p.px, p.peakY);
-        path2.lineTo(p.px + p.peakSpacing * 0.6, horizonY);
-        path2.lineTo(p.px + (p.h2 - 0.5) * 20, horizonY);
+        path2.moveTo(facet[0][0], facet[0][1]);
+        path2.lineTo(facet[1][0], facet[1][1]);
+        path2.lineTo(facet[2][0], facet[2][1]);
         path2.close();
         canvas.drawPath(path2, paint);
       }
@@ -474,10 +477,7 @@ export const drawSkiaOutrunCar: ShapeDrawer<RenderContext, OutrunComponentRegist
 
     // Off-track Dust
     if (geom.isOffroad && state.speed > 0) {
-      const roadData = world.getResource<RoadData>("RoadData");
-      const basePal = roadData ? getScenarioPaletteAtZ(state.playerZ, roadData) : COAST_PALETTE;
-      const dustColor = basePal.id === "coast" ? "#e2dfc8" : basePal.id === "desert" ? "#d0a67a" : "#8d99ae";
-      const particles = computeOffroadDust(state.playerZ, geom.speedRatio);
+      const { dustColor, particles } = resolveOffroadDustParams(world, state.playerZ, geom.speedRatio);
 
       paint.setColor(Skia.Color(dustColor));
       for (const p of particles) {

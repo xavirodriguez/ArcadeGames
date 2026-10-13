@@ -521,20 +521,7 @@ export const drawSkiaSpaceInvadersBoss: ShapeDrawer<any, SpaceInvadersComponentR
     const setup = resolveBossRenderSetup(world, entity);
     if (!setup) return;
 
-    const { render, customGeom, bossState, flash } = setup;
-    const {
-      hpRatio,
-      phase,
-      accentColor,
-      scaleMultiplier,
-      scale,
-      shakeX,
-      shakeY,
-      vibX,
-      vibY,
-      s,
-      coreRadius,
-    } = bossState;
+    const { render, customGeom, flash, phase, accentColor, scaleMultiplier, scale, shakeX, shakeY, vibX, vibY, s, coreRadius, hpRatio } = setup;
     const opacity = flash.opacity;
 
     canvas.save();

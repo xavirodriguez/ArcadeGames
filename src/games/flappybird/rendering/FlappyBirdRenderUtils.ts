@@ -117,6 +117,11 @@ export interface FlappyPipeDrawContext {
   capWidth: number;
   capHalfWidth: number;
   beaconPulse: number;
+  isTopPipe: boolean;
+  pipeY: number;
+  pipeHeight: number;
+  capYOffset: number;
+  beaconY: number;
 }
 
 /**
@@ -164,6 +169,11 @@ export function resolveFlappyPipeDrawContext(
     capWidth,
     capHalfWidth,
     beaconPulse,
+    isTopPipe: geometry.isTopPipe,
+    pipeY: geometry.pipeY,
+    pipeHeight: geometry.pipeHeight,
+    capYOffset: geometry.capYOffset,
+    beaconY: geometry.beaconY,
   };
 }
 

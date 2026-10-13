@@ -491,20 +491,7 @@ export const drawSpaceInvadersBoss: ShapeDrawer<CanvasRenderingContext2D, SpaceI
     const setup = resolveBossRenderSetup(world, entity);
     if (!setup) return;
 
-    const { render, customGeom, bossState, flash } = setup;
-    const {
-      hpRatio,
-      phase,
-      accentColor,
-      scaleMultiplier,
-      scale,
-      shakeX,
-      shakeY,
-      vibX,
-      vibY,
-      s,
-      coreRadius,
-    } = bossState;
+    const { render, customGeom, flash, phase, accentColor, scaleMultiplier, scale, shakeX, shakeY, vibX, vibY, s, coreRadius, hpRatio } = setup;
 
     ctx.save();
     ctx.globalAlpha = flash.opacity;

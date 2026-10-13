@@ -296,20 +296,7 @@ export const drawSkiaFlappyPipe: ShapeDrawer<RenderContext, FlappyBirdComponentR
     const pipeCtx = resolveFlappyPipeDrawContext(world, entity);
     if (!pipeCtx) return;
 
-    const {
-      pos,
-      pipe,
-      width,
-      halfWidth,
-      variant,
-      geometry,
-      capHeight,
-      capWidth,
-      capHalfWidth,
-      beaconPulse,
-    } = pipeCtx;
-
-    const { isTopPipe, pipeY, pipeHeight, capYOffset, beaconY } = geometry;
+    const { pos, pipe, width, halfWidth, variant, capHeight, capWidth, capHalfWidth, beaconPulse, isTopPipe, pipeY, pipeHeight, capYOffset, beaconY } = pipeCtx;
 
     const paint = getPaint();
 

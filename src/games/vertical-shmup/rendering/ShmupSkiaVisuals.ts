@@ -1,7 +1,7 @@
 import { ShapeDrawer, EffectDrawer, RenderContext } from "@tiny-aster/core";
 import type { ShmupComponentRegistry } from "../types/ShmupTypes";
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
-import { computeStarfieldLayout } from "./ShmupVisualHelpers";
+import { computeShmupStarfield } from "./ShmupVisualHelpers";
 
 export const drawSkiaShmupPlayer: ShapeDrawer<RenderContext, ShmupComponentRegistry> = {
   draw(canvas, world, entity) {
@@ -201,7 +201,7 @@ export const drawSkiaShmupEnemyBullet: ShapeDrawer<RenderContext, ShmupComponent
 export const drawSkiaShmupStarfield: EffectDrawer<RenderContext, ShmupComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    const { width, height, stars } = computeStarfieldLayout(world);
+    const { width, height, stars } = computeShmupStarfield(world);
     const skCanvas = canvas as any;
     const paint = getPaint();
 
@@ -214,9 +214,9 @@ export const drawSkiaShmupStarfield: EffectDrawer<RenderContext, ShmupComponentR
     skCanvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
 
     for (let i = 0; i < stars.length; i++) {
-      const s = stars[i];
-      paint.setColor(Skia.Color(s.color));
-      skCanvas.drawRect(Skia.XYWHRect(s.x, s.y, s.w, s.h), paint);
+      const star = stars[i]!;
+      paint.setColor(Skia.Color(star.color));
+      skCanvas.drawRect(Skia.XYWHRect(star.rawX, star.y, star.w, star.h), paint);
     }
 
     skCanvas.restore();

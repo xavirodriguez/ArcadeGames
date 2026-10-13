@@ -1,0 +1,17 @@
+{
+  "manifest": {
+    "id": "fixture_invalid_package",
+    "title": "Invalid Story Package Fixture",
+    "contentVersion": "1.0.0",
+    "schemaVersion": 3,
+    "entryGraph": "non_existent_graph"
+  },
+  "graphs": {
+    "fixture_graph_broken": {
+      "id": "fixture_graph_broken",
+      "title": "Broken Graph",
+      "entryNodeId": "missing_node",
+      "nodes": {}
+    }
+  }
+}

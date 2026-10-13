@@ -110,6 +110,17 @@ export function applyPatrolVelocity(
   }
 }
 
+function checkTargetDamageableAlert(
+  world: World<CoreComponentRegistry>,
+  sensor: { detectedPlayerEntity?: number } | undefined
+): "Alert" | void {
+  if (playerDetected(sensor) && sensor?.detectedPlayerEntity !== undefined) {
+    if (canTakeDamage(world, sensor.detectedPlayerEntity)) {
+      return "Alert";
+    }
+  }
+}
+
 /** Parameterized state factories for AI state machines */
 function createRangedAttackState(defaultDuration: number, shootOnUpdate: boolean) {
   return {
@@ -251,11 +262,7 @@ export function registerHitRunStateMachines(
             return "Anticipation";
           }
 
-          if (playerDetected(sensor) && sensor?.detectedPlayerEntity !== undefined) {
-            if (canTakeDamage(world, sensor.detectedPlayerEntity)) {
-              return "Alert";
-            }
-          }
+          return checkTargetDamageableAlert(world, sensor);
         }
       },
       Anticipation: {
@@ -442,11 +449,8 @@ export function registerHitRunStateMachines(
           const sensor = world.getComponent(entity, "PlayerSensor") as
             | { detectedPlayerEntity?: number }
             | undefined;
-          if (playerDetected(sensor) && sensor?.detectedPlayerEntity !== undefined) {
-            if (canTakeDamage(world, sensor.detectedPlayerEntity)) {
-              return "Alert";
-            }
-          }
+
+          return checkTargetDamageableAlert(world, sensor);
         }
       },
       Anticipation: {

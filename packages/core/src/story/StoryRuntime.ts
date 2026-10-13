@@ -13,6 +13,7 @@ import {
   StoryObjective
 } from "./StoryTypes";
 import { RelationshipEngine } from "./RelationshipEngine";
+import { StoryGraphRegistry } from "./StoryGraphRegistry";
 
 /**
  * Deep clones a `StoryState` snapshot without using `JSON.stringify`, preserving
@@ -138,11 +139,11 @@ export class StoryRuntime {
   /**
    * Constructs a new `StoryRuntime` instance.
    *
-   * @param graph - Optional initial `StoryGraph` asset to load on initialization.
+   * @param graph - Optional initial `StoryGraph` asset or graph ID string to load on initialization.
    */
-  constructor(graph?: StoryGraph) {
+  constructor(graph?: StoryGraph | string) {
     this.state = {
-      graphId: graph?.id || null,
+      graphId: typeof graph === "string" ? graph : graph?.id || null,
       currentNodeId: null,
       flags: {},
       variables: {},
@@ -412,19 +413,30 @@ export class StoryRuntime {
   /**
    * Loads a new `StoryGraph` asset into the runtime and sets entry node if configured.
    *
-   * @param graph - The narrative graph asset definition.
+   * @param graph - The narrative graph asset definition or graph ID string registered in {@link StoryGraphRegistry}.
    * @param startAtEntry - Whether to automatically navigate to `graph.entryNodeId` on load (defaults to `true`).
    */
-  public loadGraph(graph: StoryGraph, startAtEntry: boolean = true): void {
-    this.graph = graph;
-    this.state.graphId = graph.id;
+  public loadGraph(graph: StoryGraph | string, startAtEntry: boolean = true): void {
+    let targetGraph: StoryGraph | undefined;
+
+    if (typeof graph === "string") {
+      targetGraph = StoryGraphRegistry.getInstance().getGraph(graph);
+      if (!targetGraph) {
+        throw new Error(`StoryRuntime.loadGraph: Story graph with ID '${graph}' not found in StoryGraphRegistry.`);
+      }
+    } else {
+      targetGraph = graph;
+    }
+
+    this.graph = targetGraph;
+    this.state.graphId = targetGraph.id;
 
     if (this.eventBus) {
       this.bindEventBus(this.eventBus);
     }
 
-    if (startAtEntry && graph.entryNodeId && graph.nodes[graph.entryNodeId]) {
-      this.navigateToNode(graph.entryNodeId);
+    if (startAtEntry && targetGraph.entryNodeId && targetGraph.nodes[targetGraph.entryNodeId]) {
+      this.navigateToNode(targetGraph.entryNodeId);
     } else {
       this.emitStateChanged();
     }

@@ -1,4 +1,4 @@
-import { ShapeDrawer, EffectDrawer, resolveThemeColor, resolveThemeColorWithFallback } from "@tiny-aster/core";
+import { ShapeDrawer, EffectDrawer, resolveThemeColorWithFallback } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry } from "../types/GeometryWarsRegistry";
 import { getDisplacedPoint, BULLET_COORDS } from "../../shared/rendering/ProceduralShapeUtils";
 import { resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
@@ -60,6 +60,27 @@ function setupSkiaStrokePaint(paint: any, color: string, strokeWidth = 1.5, opac
   paint.setStrokeWidth(strokeWidth);
   paint.setColor(Skia.Color(color));
   paint.setAlphaf(opacity);
+}
+
+function resolveSkiaShapeSetup(
+  world: any,
+  entity: number,
+  defaultSize: number,
+  colorKey: string,
+  fallbackColor: string,
+  strokeWidth = 1.5
+) {
+  if (!ensureSkiaAvailable()) return null;
+  const render = getRenderGuard(world, entity);
+  if (!render) return null;
+
+  const size = render.size ?? defaultSize;
+  const color = resolveThemeColorWithFallback(world, render.color ?? fallbackColor, colorKey, "enemy", "accent");
+
+  const paint = getPaint();
+  setupSkiaStrokePaint(paint, color, strokeWidth);
+
+  return { render, size, color, paint };
 }
 
 /**
@@ -160,16 +181,11 @@ export const drawSkiaParticle: ShapeDrawer<any, GeometryWarsComponentRegistry> =
  */
 export const drawSkiaChaser: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!ensureSkiaAvailable()) return;
-    const render = getRenderGuard(world, entity);
-    if (!render) return;
+    const setup = resolveSkiaShapeSetup(world, entity, 14, "chaser", "#ff00ff", 2.0);
+    if (!setup) return;
+    const { size, paint } = setup;
 
-    const size = render.size ?? 14;
-    const color = resolveThemeColorWithFallback(world, render.color ?? "#ff00ff", "chaser", "enemy", "accent");
-
-    const paint = getPaint();
     canvas.save();
-    setupSkiaStrokePaint(paint, color, 2.0);
 
     const path = Skia.Path.Make();
     path.moveTo(0, -size);
@@ -188,16 +204,11 @@ export const drawSkiaChaser: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
  */
 export const drawSkiaEvader: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!ensureSkiaAvailable()) return;
-    const render = getRenderGuard(world, entity);
-    if (!render) return;
+    const setup = resolveSkiaShapeSetup(world, entity, 14, "evader", "#ffaa00", 2.0);
+    if (!setup) return;
+    const { size, paint } = setup;
 
-    const size = render.size ?? 14;
-    const color = resolveThemeColorWithFallback(world, render.color ?? "#ffaa00", "evader", "enemy", "accent");
-
-    const paint = getPaint();
     canvas.save();
-    setupSkiaStrokePaint(paint, color, 2.0);
 
     const path = Skia.Path.Make();
     path.moveTo(size, 0);
@@ -215,16 +226,11 @@ export const drawSkiaEvader: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
  */
 export const drawSkiaGrunt: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!ensureSkiaAvailable()) return;
-    const render = getRenderGuard(world, entity);
-    if (!render) return;
+    const setup = resolveSkiaShapeSetup(world, entity, 10, "grunt", "#00ffff", 1.5);
+    if (!setup) return;
+    const { size, paint } = setup;
 
-    const size = render.size ?? 10;
-    const color = resolveThemeColorWithFallback(world, render.color ?? "#00ffff", "grunt", "enemy", "accent");
-
-    const paint = getPaint();
     canvas.save();
-    setupSkiaStrokePaint(paint, color, 1.5);
 
     const path = Skia.Path.Make();
     path.moveTo(size, 0);
@@ -264,16 +270,11 @@ export const drawSkiaBullet: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
  */
 export const drawSkiaEnemySeeker: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!ensureSkiaAvailable()) return;
-    const render = getRenderGuard(world, entity);
-    if (!render) return;
+    const setup = resolveSkiaShapeSetup(world, entity, 12, "seeker", "#ff00ff", 1.5);
+    if (!setup) return;
+    const { size, paint } = setup;
 
-    const size = render.size ?? 12;
-    const color = resolveThemeColorWithFallback(world, render.color ?? "#ff00ff", "seeker", "enemy", "accent");
-
-    const paint = getPaint();
     canvas.save();
-    setupSkiaStrokePaint(paint, color, 1.5);
 
     const path = Skia.Path.Make();
     path.moveTo(0, -size);
@@ -292,16 +293,11 @@ export const drawSkiaEnemySeeker: ShapeDrawer<any, GeometryWarsComponentRegistry
  */
 export const drawSkiaEnemyEvader: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!ensureSkiaAvailable()) return;
-    const render = getRenderGuard(world, entity);
-    if (!render) return;
+    const setup = resolveSkiaShapeSetup(world, entity, 12, "evader", "#00ff00", 1.5);
+    if (!setup) return;
+    const { size, paint } = setup;
 
-    const size = render.size ?? 12;
-    const color = resolveThemeColorWithFallback(world, render.color ?? "#00ff00", "evader", "enemy", "accent");
-
-    const paint = getPaint();
     canvas.save();
-    setupSkiaStrokePaint(paint, color, 1.5);
 
     canvas.drawRect(Skia.XYWHRect(-size / 2, -size / 2, size, size), paint);
     canvas.restore();
@@ -314,16 +310,11 @@ export const drawSkiaEnemyEvader: ShapeDrawer<any, GeometryWarsComponentRegistry
  */
 export const drawSkiaEnemyFastSeeker: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!ensureSkiaAvailable()) return;
-    const render = getRenderGuard(world, entity);
-    if (!render) return;
+    const setup = resolveSkiaShapeSetup(world, entity, 8, "fast_seeker", "#ff0000", 1.5);
+    if (!setup) return;
+    const { size, paint } = setup;
 
-    const size = render.size ?? 8;
-    const color = resolveThemeColorWithFallback(world, render.color ?? "#ff0000", "fast_seeker", "enemy", "accent");
-
-    const paint = getPaint();
     canvas.save();
-    setupSkiaStrokePaint(paint, color, 1.5);
 
     const path = Skia.Path.Make();
     path.moveTo(size, 0);

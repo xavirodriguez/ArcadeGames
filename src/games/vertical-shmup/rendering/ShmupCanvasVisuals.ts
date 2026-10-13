@@ -1,6 +1,6 @@
 import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
 import type { ShmupComponentRegistry } from "../types/ShmupTypes";
-import { computeStarfieldLayout } from "./ShmupVisualHelpers";
+import { computeShmupStarfield } from "./ShmupVisualHelpers";
 
 export const drawShmupPlayer: ShapeDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
   draw(ctx, world, entity) {
@@ -201,16 +201,16 @@ export const drawShmupEnemyBullet: ShapeDrawer<CanvasRenderingContext2D, ShmupCo
 
 export const drawShmupStarfield: EffectDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
   draw(ctx, world) {
-    const { width, height, stars } = computeStarfieldLayout(world);
+    const { width, height, stars } = computeShmupStarfield(world);
 
     ctx.save();
     ctx.fillStyle = "#070a14";
     ctx.fillRect(0, 0, width, height);
 
     for (let i = 0; i < stars.length; i++) {
-      const s = stars[i];
-      ctx.fillStyle = s.color;
-      ctx.fillRect(s.x, s.y, s.w, s.h);
+      const star = stars[i]!;
+      ctx.fillStyle = star.color;
+      ctx.fillRect(star.rawX, star.y, star.w, star.h);
     }
 
     ctx.restore();

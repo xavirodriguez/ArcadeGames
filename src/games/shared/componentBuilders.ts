@@ -236,6 +236,32 @@ export function registerPlatformerTilemapBlueprint(
 }
 
 /**
+ * Internal helper establishing a 2D AABB trigger entity with transform and collision events.
+ */
+function setupTriggerEntity(
+  world: World<CoreComponentRegistry>,
+  entity: Entity,
+  x: number,
+  y: number,
+  halfSize: number,
+  renderShape: string,
+  renderSize: number
+): void {
+  ArcadeEntityBuilder.fromEntity(world, entity)
+    .withTransform({ x, y })
+    .withCollider2D({
+      shape: { type: "aabb", halfWidth: halfSize, halfHeight: halfSize },
+      isTrigger: true
+    })
+    .withCollisionEvents()
+    .withRender({
+      shape: renderShape,
+      size: renderSize,
+      order: 1
+    });
+}
+
+/**
  * Helper to register power-up blueprints with trigger colliders in a blueprint registry.
  *
  * @param blueprints - Blueprint registry instance.
@@ -256,19 +282,11 @@ export function registerPowerUpTriggerBlueprint(
 ): void {
   blueprints.register(id, {
     spawn: (world: World<CoreComponentRegistry>, entity: Entity, args: { x: number; y: number }) => {
-      ArcadeEntityBuilder.fromEntity(world, entity)
-        .withTransform({ x: args.x, y: args.y })
-        .withCollider2D({
-          shape: { type: "aabb", halfWidth: halfSize, halfHeight: halfSize },
-          isTrigger: true
-        })
-        .withCollisionEvents()
-        .withPowerUp(powerUpKind)
-        .withRender({
-          shape: renderShape,
-          size: renderSize,
-          order: 1
-        });
+      setupTriggerEntity(world, entity, args.x, args.y, halfSize, renderShape, renderSize);
+      world.addComponent(entity, {
+        type: "PowerUp",
+        kind: powerUpKind
+      } as { type: string; [key: string]: unknown });
     }
   });
 }
@@ -449,14 +467,7 @@ export function registerCollectibleTriggerBlueprint(
 ): void {
   blueprints.register(id, {
     spawn: (world: World<CoreComponentRegistry>, entity: Entity, args: { x: number; y: number; id: string }) => {
-      ArcadeEntityBuilder.fromEntity(world, entity)
-        .withTransform({ x: args.x, y: args.y })
-        .withCollider2D({
-          shape: { type: "aabb", halfWidth: halfSize, halfHeight: halfSize },
-          isTrigger: true
-        })
-        .withCollisionEvents()
-        .withRender({ shape, size, order: 1 });
+      setupTriggerEntity(world, entity, args.x, args.y, halfSize, shape, size);
 
       world.addComponent(entity, {
         type: "Collectible",

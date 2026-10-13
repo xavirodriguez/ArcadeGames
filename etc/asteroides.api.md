@@ -188,6 +188,7 @@ export const AssetDescriptorSchema: z.ZodObject<{
 export class AssetLoader {
     constructor(provider?: IAssetProvider | undefined);
     get<T>(id: string): T;
+    getProvider(): IAssetProvider | undefined;
     hasProvider(): boolean;
     load(assets: AssetDescriptor[]): Promise<void>;
     loadAll(): Promise<void>;
@@ -4130,6 +4131,16 @@ export interface ReconciledInput<TInput = InputPayload> {
 }
 
 // @public
+export interface RegisteredGraphEntry {
+    encounters?: unknown[];
+    getGraph: () => StoryGraph;
+    id: string;
+    isDynamic?: boolean;
+    options?: StoryGraphValidationOptions;
+    source: string;
+}
+
+// @public
 export function registerEnemyStateMachines(world: World<CoreComponentRegistry>): void;
 
 // @public
@@ -5133,6 +5144,20 @@ export class StoryGraphBuildError extends Error {
 }
 
 // @public
+export class StoryGraphRegistry {
+    clear(): void;
+    getDynamicPackages(): StoryPackage[];
+    getGraph(graphId: string): StoryGraph | undefined;
+    static getInstance(): StoryGraphRegistry;
+    getPackage(packageId: string): StoryPackage | undefined;
+    getStaticEntries(): RegisteredGraphEntry[];
+    registerDynamicPackage(pkg: StoryPackage): void;
+    registerStaticGraph(graph: StoryGraph, sourceFile?: string, options?: StoryGraphValidationOptions, encounters?: unknown[]): void;
+    static resetInstance(): void;
+    unregisterDynamicPackage(packageId: string): void;
+}
+
+// @public
 export interface StoryGraphValidationError {
     message: string;
     nodeId?: string;
@@ -5261,6 +5286,29 @@ export interface StoryPackage {
 }
 
 // @public
+export class StoryPackageLoader {
+    constructor(providerOrLoader?: IAssetProvider | AssetLoader);
+    load(source: string | unknown): Promise<StoryPackageLoadResult>;
+    setProvider(provider: IAssetProvider): void;
+}
+
+// @public
+export class StoryPackageLoadError extends Error {
+    constructor(message: string, causeType: StoryPackageLoadErrorCause, validationResult?: StoryPackageValidationResult);
+    readonly causeType: StoryPackageLoadErrorCause;
+    readonly validationResult?: StoryPackageValidationResult;
+}
+
+// @public
+export type StoryPackageLoadErrorCause = "fetch" | "migration" | "validation";
+
+// @public
+export interface StoryPackageLoadResult {
+    package: StoryPackage;
+    validation: StoryPackageValidationResult;
+}
+
+// @public
 export interface StoryPackageValidationResult {
     errors: string[];
     valid: boolean;
@@ -5282,7 +5330,7 @@ export interface StoryRandomWalkOptions {
 
 // @public
 export class StoryRuntime {
-    constructor(graph?: StoryGraph);
+    constructor(graph?: StoryGraph | string);
     applyEffect(effect: StoryEffect): void;
     applyEffects(effects?: readonly StoryEffect[]): void;
     bindDeductionEngine(engine: DeductionEngine): void;
@@ -5333,7 +5381,7 @@ export class StoryRuntime {
     getVariable(key: string): number | string | boolean | undefined;
     getVersion(): number;
     handleEvent(eventName: string, payload: unknown): void;
-    loadGraph(graph: StoryGraph, startAtEntry?: boolean): void;
+    loadGraph(graph: StoryGraph | string, startAtEntry?: boolean): void;
     navigateToNode(nodeId: string): boolean;
     rewind(targetNodeId: string): boolean;
     saveCheckpoint(nodeId?: string): StoryStateCheckpoint;

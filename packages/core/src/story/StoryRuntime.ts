@@ -814,7 +814,11 @@ export class StoryRuntime {
 
       case "flag":
         if (!condition.key) return false;
+        const hasFlag = condition.key in this.state.flags;
         const flagVal = !!this.state.flags[condition.key];
+        if (condition.value === false && !hasFlag) {
+          return false;
+        }
         return condition.value !== undefined ? flagVal === condition.value : flagVal;
 
       case "variable":

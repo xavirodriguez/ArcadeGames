@@ -41,6 +41,8 @@ import { useCampaignPersistence } from "../src/hooks/campaign/useCampaignPersist
 import { NarrativeDashboard } from "../src/ui/narrative/NarrativeDashboard";
 import { applyEndingRewards } from "../src/games/shared/story/EndingRewards";
 import { DialogueBoxComponent } from "../src/components/ui/DialogueBoxComponent";
+import { CutsceneTransitionOverlay } from "../src/components/ui/CutsceneTransitionOverlay";
+import { MinigameIntroOverlay } from "../src/components/ui/MinigameIntroOverlay";
 import { NeonButton } from "../src/components/ui/NeonButton";
 import { colors } from "../src/theme/colors";
 import { spacing } from "../src/theme/spacing";
@@ -157,11 +159,15 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
 
   const [activeGame, setActiveGame] = useState<BaseGame | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isIntro, setIsIntro] = useState<boolean>(false);
   const [statusMessage, setStatusMessage] = useState<string>("Initializing Campaign...");
   const [showDashboard, setShowDashboard] = useState<boolean>(false);
   const [loadError, setLoadError] = useState<{ error: Error; gameId: string; seed?: number } | null>(null);
   const [lastResult, setLastResult] = useState<MiniGameResult | null>(null);
   const [lastAppliedEffects, setLastAppliedEffects] = useState<StoryEffect[] | null>(null);
+
+  const pendingGameRef = useRef<BaseGame | null>(null);
+  const introConfigRef = useRef<{ gameId: string; title?: string; introEffect?: string }>({ gameId: "" });
 
   // Connect keyboard controls to active campaign minigame
   useKeyboardControls(activeGame as any, !isLoading);
@@ -312,7 +318,16 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
         }
       }
 
-      setActiveGame(newGame);
+      const introEffectMeta = typeof activeNode?.meta?.introEffect === "string" ? activeNode.meta.introEffect : undefined;
+      const introTitleMeta = typeof activeNode?.meta?.introTitle === "string" ? activeNode.meta.introTitle : undefined;
+
+      introConfigRef.current = {
+        gameId,
+        title: introTitleMeta,
+        introEffect: introEffectMeta
+      };
+      pendingGameRef.current = newGame;
+      setIsIntro(true);
     } catch (err: unknown) {
       console.error("[CampaignScreen] Failed to switch game:", err);
       const errorObj = err instanceof Error ? err : new Error(String(err));
@@ -393,6 +408,14 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
       }
     }
   }, [graph, switchGame]);
+
+  const handleIntroComplete = useCallback(() => {
+    setIsIntro(false);
+    if (pendingGameRef.current) {
+      setActiveGame(pendingGameRef.current);
+      pendingGameRef.current = null;
+    }
+  }, []);
 
   // Retry minigame handler with checkpoint restoration
   const handleRetryMinigame = useCallback(() => {
@@ -500,11 +523,15 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
 
       {/* Typewriter Dialogue Box for Cutscene */}
       {activeCutsceneQueue && activeCutsceneQueue.length > 0 && (
-        <DialogueBoxComponent
-          dialogueQueue={activeCutsceneQueue}
-          getLocalizedText={getLocalizedText}
-          onComplete={() => runtimeRef.current?.evaluateTransitions()}
-        />
+        <CutsceneTransitionOverlay
+          effectName={currentNode?.cutscene?.transitionEffect}
+        >
+          <DialogueBoxComponent
+            dialogueQueue={activeCutsceneQueue}
+            getLocalizedText={getLocalizedText}
+            onComplete={() => runtimeRef.current?.evaluateTransitions()}
+          />
+        </CutsceneTransitionOverlay>
       )}
 
       {/* Typewriter Dialogue Box for Dialogue */}
@@ -588,6 +615,16 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
           <ActivityIndicator size="large" color={colors.cyan} />
           <Text style={styles.loadingText}>{statusMessage}</Text>
         </View>
+      )}
+
+      {/* Minigame Intro Overlay */}
+      {isIntro && !isLoading && (
+        <MinigameIntroOverlay
+          gameId={introConfigRef.current.gameId}
+          title={introConfigRef.current.title}
+          introEffect={introConfigRef.current.introEffect}
+          onComplete={handleIntroComplete}
+        />
       )}
 
       {/* Error Retry Overlay */}

@@ -16,6 +16,7 @@ export const AsteroidConfigSchema = BaseConfigSchema.extend({
   BULLET_TTL: z.number().default(2.0),
   SHIP_SHOOT_COOLDOWN: z.number().default(0.25),
   BULLET_SPEED: z.number().default(300),
+  BULLET_BOUNDARY_BEHAVIOR: z.enum(["destroy", "wrap", "bounce"]).optional(),
   ...ComboConfigSchema.shape,
   HYPERSPACE_COOLDOWN: z.number().default(5.0),
   HYPERSPACE_PREP_TIME: z.number().default(0.5),

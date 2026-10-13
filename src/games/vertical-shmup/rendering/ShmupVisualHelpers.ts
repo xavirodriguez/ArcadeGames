@@ -1,6 +1,81 @@
-import type { World } from "@tiny-aster/core";
-import type { ShmupComponentRegistry } from "../types/ShmupTypes";
+import type { World, RenderComponent, HealthComponent } from "@tiny-aster/core";
+import type { ShmupComponentRegistry, EnemyPathComponent } from "../types/ShmupTypes";
 import type { ShmupConfig } from "../types/ShmupConfigSchema";
+
+export interface ShmupPlayerDrawContext {
+  render: RenderComponent;
+  health?: HealthComponent;
+  invulnerable: boolean;
+  time: number;
+  shouldBlink: boolean;
+  size: number;
+  primaryColor: string;
+}
+
+export function resolveShmupPlayerDrawContext(
+  world: World<ShmupComponentRegistry>,
+  entity: number
+): ShmupPlayerDrawContext | null {
+  const render = world.getComponent(entity, "Render");
+  if (!render) return null;
+  const health = world.getComponent(entity, "Health");
+  const invulnerable = (health?.invulnerableRemaining ?? 0) > 0;
+  const time = world.tick * 0.016;
+  const shouldBlink = invulnerable && Math.floor(time * 20) % 2 === 0;
+  const size = render.size ?? 22;
+  const primaryColor = render.color ?? "#00e5ff";
+
+  return {
+    render,
+    health,
+    invulnerable,
+    time,
+    shouldBlink,
+    size,
+    primaryColor,
+  };
+}
+
+export interface ShmupEnemyDrawContext {
+  render: RenderComponent;
+  path?: EnemyPathComponent;
+  size: number;
+  enemyColor: string;
+  time: number;
+}
+
+export function resolveShmupEnemyDrawContext(
+  world: World<ShmupComponentRegistry>,
+  entity: number
+): ShmupEnemyDrawContext | null {
+  const render = world.getComponent(entity, "Render");
+  if (!render) return null;
+  const path = world.getComponent(entity, "EnemyPath");
+  const size = render.size ?? 24;
+  const enemyColor = render.color ?? "#ff2a6d";
+  const time = world.tick * 0.016;
+
+  return { render, path, size, enemyColor, time };
+}
+
+export interface ShmupBulletDrawContext {
+  render: RenderComponent;
+  size: number;
+  color: string;
+}
+
+export function resolveShmupBulletDrawContext(
+  world: World<ShmupComponentRegistry>,
+  entity: number,
+  defaultSize: number,
+  defaultColor: string
+): ShmupBulletDrawContext | null {
+  const render = world.getComponent(entity, "Render");
+  if (!render) return null;
+  const size = render.size ?? defaultSize;
+  const color = render.color ?? defaultColor;
+  return { render, size, color };
+}
 
 export interface ShmupStarData {
   rawX: number;

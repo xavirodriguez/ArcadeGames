@@ -27,6 +27,8 @@ import {
   resolveGlideEnergyState,
   resolveSectorEventInfo,
   resolveBackgroundWarpState,
+  resolveFlappyBackgroundSetup,
+  maybeSpawnLaserGateSparks,
   computeWarpLines
 } from "./FlappyBirdRenderUtils";
 
@@ -460,12 +462,7 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
         ctx.lineTo(0, capYOffset + capHeight + pipe.gapSize);
         ctx.stroke();
 
-        if (world.tick % 4 === 0) {
-          const sparkY = capYOffset + capHeight + world.renderRandom.next() * pipe.gapSize;
-          const sparkAngle = world.renderRandom.next() * Math.PI * 2;
-          const sparkSpeed = world.renderRandom.nextRange(20, 60);
-          spawnVisualParticle("spark", pos.x, sparkY, Math.cos(sparkAngle) * sparkSpeed, Math.sin(sparkAngle) * sparkSpeed, 0.25, 2.5, "#00F3FF");
-        }
+        maybeSpawnLaserGateSparks(world, capYOffset, capHeight, pipe.gapSize, pos.x, spawnVisualParticle);
       } else {
         ctx.strokeStyle = "rgba(255, 0, 0, 0.25)";
         ctx.lineWidth = 1.0;
@@ -662,9 +659,10 @@ let staticStars: StarfieldStar[] | null = null;
 
 export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, FlappyBirdComponentRegistry> = {
   draw(ctx, world) {
-    const gameState = world.getSingleton("FlappyState");
-    if (!gameState) return;
-    const { width = 400, height = 600 } = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 400, height: 600 };
+    const bgSetup = resolveFlappyBackgroundSetup(world);
+    if (!bgSetup) return;
+
+    const { gameState, width, height, scenarioTheme, nebulae } = bgSetup;
 
     if (!staticStars) {
       staticStars = generateStarfield(width, height);
@@ -674,9 +672,6 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
 
     ctx.fillStyle = "#050510";
     ctx.fillRect(0, 0, width, height);
-
-    const scenarioTheme = getThemeForScenario(gameState.currentScenario);
-    const nebulae = scenarioTheme.nebulae;
 
     for (let n = 0; n < nebulae.length; n++) {
       const neb = nebulae[n];

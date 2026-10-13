@@ -135,57 +135,57 @@ export const drawSkiaShmupEnemy: ShapeDrawer<RenderContext, ShmupComponentRegist
   }
 };
 
+function drawSkiaShmupBulletShape(
+  canvas: any,
+  world: any,
+  entity: number,
+  defaultSize: number,
+  fallbackColor: string,
+  drawShape: (skCanvas: any, paint: any, size: number, color: string) => void
+): void {
+  if (!Skia) return;
+  const bCtx = resolveShmupBulletDrawContext(world, entity, defaultSize, fallbackColor);
+  if (!bCtx) return;
+
+  const { size, color } = bCtx;
+  const skCanvas = canvas as any;
+  const paint = getPaint();
+
+  skCanvas.save();
+  paint.reset();
+  paint.setAntiAlias(true);
+  paint.setStyle(Skia.PaintStyle.Fill);
+
+  drawShape(skCanvas, paint, size, color);
+
+  skCanvas.restore();
+}
+
 export const drawSkiaShmupPlayerBullet: ShapeDrawer<RenderContext, ShmupComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!Skia) return;
-    const bCtx = resolveShmupBulletDrawContext(world, entity, 4, "#ffe600");
-    if (!bCtx) return;
+    drawSkiaShmupBulletShape(canvas, world, entity, 4, "#ffe600", (skCanvas, paint, size, color) => {
+      // Outer plasma aura
+      paint.setColor(Skia.Color(color));
+      skCanvas.drawRect(Skia.XYWHRect(-size * 0.75, -size * 2.5, size * 1.5, size * 5), paint);
 
-    const { size, color } = bCtx;
-    const skCanvas = canvas as any;
-    const paint = getPaint();
-
-    skCanvas.save();
-
-    // Outer plasma aura
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(color));
-    skCanvas.drawRect(Skia.XYWHRect(-size * 0.75, -size * 2.5, size * 1.5, size * 5), paint);
-
-    // Core laser beam
-    paint.setColor(Skia.Color("#ffffff"));
-    skCanvas.drawRect(Skia.XYWHRect(-size * 0.35, -size * 2, size * 0.7, size * 4), paint);
-
-    skCanvas.restore();
+      // Core laser beam
+      paint.setColor(Skia.Color("#ffffff"));
+      skCanvas.drawRect(Skia.XYWHRect(-size * 0.35, -size * 2, size * 0.7, size * 4), paint);
+    });
   }
 };
 
 export const drawSkiaShmupEnemyBullet: ShapeDrawer<RenderContext, ShmupComponentRegistry> = {
   draw(canvas, world, entity) {
-    if (!Skia) return;
-    const bCtx = resolveShmupBulletDrawContext(world, entity, 5, "#ff5a5a");
-    if (!bCtx) return;
+    drawSkiaShmupBulletShape(canvas, world, entity, 5, "#ff5a5a", (skCanvas, paint, size, color) => {
+      // Hazard plasma orb
+      paint.setColor(Skia.Color(color));
+      skCanvas.drawCircle(0, 0, size, paint);
 
-    const { size, color } = bCtx;
-    const skCanvas = canvas as any;
-    const paint = getPaint();
-
-    skCanvas.save();
-
-    // Hazard plasma orb
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(color));
-    skCanvas.drawCircle(0, 0, size, paint);
-
-    // Core
-    paint.setColor(Skia.Color("#ffffff"));
-    skCanvas.drawCircle(0, 0, size * 0.45, paint);
-
-    skCanvas.restore();
+      // Core
+      paint.setColor(Skia.Color("#ffffff"));
+      skCanvas.drawCircle(0, 0, size * 0.45, paint);
+    });
   }
 };
 

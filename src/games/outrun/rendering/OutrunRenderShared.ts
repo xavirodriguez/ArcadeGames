@@ -4,7 +4,7 @@ import type { OutrunComponentRegistry, RoadData, ProjectedSegment, RaceStateComp
 import type { OutrunConfig } from "../types/OutrunConfigSchema";
 import { DEFAULT_OUTRUN_CONFIG } from "../types/OutrunConfigSchema";
 import { createProjectionBuffer, projectRoad } from "./RoadProjection";
-import { getScenarioPaletteAtZ, applyDayPhase, scenarioHash, type ScenarioPalette, type ModulatedPalette } from "./OutrunPalettes";
+import { COAST_PALETTE, getScenarioPaletteAtZ, applyDayPhase, scenarioHash, type ScenarioPalette, type ModulatedPalette } from "./OutrunPalettes";
 import { computePlayerCarGeometry } from "./OutrunVisualHelpers";
 
 /** Standard racer vehicle body color options. */
@@ -79,6 +79,25 @@ export function computeFacetedPeaks(
     peaks.push({ px, peakY, peakSpacing, horizonY, h1, h2 });
   }
   return peaks;
+}
+
+/** Returns 2D polygon vertex coordinates for faceted peak base and facet triangles. */
+export function getFacetedPeakPolygons(p: FacetedPeak): {
+  base: [number, number][];
+  facet: [number, number][];
+} {
+  return {
+    base: [
+      [p.px - p.peakSpacing * 0.6, p.horizonY],
+      [p.px, p.peakY],
+      [p.px + p.peakSpacing * 0.6, p.horizonY]
+    ],
+    facet: [
+      [p.px, p.peakY],
+      [p.px + p.peakSpacing * 0.6, p.horizonY],
+      [p.px + (p.h2 - 0.5) * 20, p.horizonY]
+    ]
+  };
 }
 
 export interface CoastalBuilding {
@@ -164,6 +183,19 @@ export function computeOffroadDust(playerZ: number, speedRatio: number = 1.0): O
     });
   }
   return particles;
+}
+
+/** Resolves dust color and offroad particle list from active World and vehicle state. */
+export function resolveOffroadDustParams(
+  world: World<OutrunComponentRegistry>,
+  playerZ: number,
+  speedRatio: number
+): { dustColor: string; particles: OffroadDustParticle[] } {
+  const roadData = world.getResource<RoadData>("RoadData");
+  const basePal = roadData ? getScenarioPaletteAtZ(playerZ, roadData) : COAST_PALETTE;
+  const dustColor = basePal.id === "coast" ? "#e2dfc8" : basePal.id === "desert" ? "#d0a67a" : "#8d99ae";
+  const particles = computeOffroadDust(playerZ, speedRatio);
+  return { dustColor, particles };
 }
 
 /** Resolved Outrun road render context payload. */

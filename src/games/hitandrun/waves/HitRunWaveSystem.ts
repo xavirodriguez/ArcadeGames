@@ -111,6 +111,22 @@ export class HitRunWaveSystem extends System<CoreComponentRegistry> {
     }
   }
 
+  private resolveEventFormationParams(ev: WaveEvent): {
+    count: number;
+    formation: WaveFormation;
+    spacing: number;
+    baseX: number;
+    baseY: number;
+  } {
+    return {
+      count: Math.max(1, ev.count ?? 1),
+      formation: (ev.formation ?? "point") as WaveFormation,
+      spacing: ev.spacing ?? 24,
+      baseX: ev.x ?? this.cfg.defaultSpawnX + this.cfg.offscreenOffsetX,
+      baseY: ev.y ?? this.cfg.defaultSpawnY
+    };
+  }
+
   private queueTelegraphs(
     world: World<CoreComponentRegistry>,
     state: WaveDirectorState,
@@ -128,12 +144,7 @@ export class HitRunWaveSystem extends System<CoreComponentRegistry> {
       if (this.telegraphedEventKeys.has(key)) continue;
       this.telegraphedEventKeys.add(key);
 
-            // TODO(refactor): código duplicado detectado (bloque) con hitandrun/waves/HitRunWaveSystem.ts:173-178. Considerar extraer a función compartida. Ref: b5b55d6e
-const count = Math.max(1, ev.count ?? 1);
-      const formation = (ev.formation ?? "point") as WaveFormation;
-      const spacing = ev.spacing ?? 24;
-      const baseX = ev.x ?? this.cfg.defaultSpawnX + this.cfg.offscreenOffsetX;
-      const baseY = ev.y ?? this.cfg.defaultSpawnY;
+      const { count, formation, spacing, baseX, baseY } = this.resolveEventFormationParams(ev);
       const slots = computeFormationSlots(formation, count, baseX, baseY, spacing);
       for (let s = 0; s < slots.length; s++) {
         pushTelegraph(telegraphs, slots[s].x, slots[s].y, lead);
@@ -171,11 +182,7 @@ const count = Math.max(1, ev.count ?? 1);
     ev: WaveEvent,
     eventIndex: number
   ): void {
-    const count = Math.max(1, ev.count ?? 1);
-    const formation = (ev.formation ?? "point") as WaveFormation;
-    const spacing = ev.spacing ?? 24;
-    const baseX = ev.x ?? this.cfg.defaultSpawnX + this.cfg.offscreenOffsetX;
-    const baseY = ev.y ?? this.cfg.defaultSpawnY;
+    const { count, formation, spacing, baseX, baseY } = this.resolveEventFormationParams(ev);
     const interval = ev.interval ?? 0;
 
     if (interval > 0 && count > 1) {

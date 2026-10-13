@@ -15,6 +15,7 @@ import {
   resolveInvaderRenderSetup,
   resolveParticleState,
   resolveExplosionParticleData,
+  computeBossHullPoints,
 } from "./SpaceInvadersVisualUtils";
 import { calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVisual, calculateShieldCrackCoords } from "../../shared/rendering/spaceInvadersMath";
 import { safeGetRenderComponent, getRenderFlash } from "./RenderHelper";
@@ -564,18 +565,11 @@ export const drawSkiaSpaceInvadersBoss: ShapeDrawer<any, SpaceInvadersComponentR
     paint.setAlphaf(opacity);
 
     const hull = Skia!.Path.Make();
-    hull.moveTo(0, -s * 8);
-    hull.lineTo(s * 4, -s * 4);
-    hull.lineTo(s * 10, -s * 2);
-    hull.lineTo(s * 9, s * 4);
-    hull.lineTo(s * 6, s * 8);
-    hull.lineTo(s * 3, s * 6);
-    hull.lineTo(0, s * 7);
-    hull.lineTo(-s * 3, s * 6);
-    hull.lineTo(-s * 6, s * 8);
-    hull.lineTo(-s * 9, s * 4);
-    hull.lineTo(-s * 10, -s * 2);
-    hull.lineTo(-s * 4, -s * 4);
+    const hullPts = computeBossHullPoints(s);
+    hull.moveTo(hullPts[0][0], hullPts[0][1]);
+    for (let i = 1; i < hullPts.length; i++) {
+      hull.lineTo(hullPts[i][0], hullPts[i][1]);
+    }
     hull.close();
 
     canvas.drawPath(hull, paint);

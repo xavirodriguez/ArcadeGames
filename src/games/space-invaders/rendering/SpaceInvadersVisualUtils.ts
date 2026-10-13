@@ -384,6 +384,23 @@ export function resolveParticleState(
   };
 }
 
+export function computeBossHullPoints(s: number): [number, number][] {
+  return [
+    [0, -s * 8],
+    [s * 4, -s * 4],
+    [s * 10, -s * 2],
+    [s * 9, s * 4],
+    [s * 6, s * 8],
+    [s * 3, s * 6],
+    [0, s * 7],
+    [-s * 3, s * 6],
+    [-s * 6, s * 8],
+    [-s * 9, s * 4],
+    [-s * 10, -s * 2],
+    [-s * 4, -s * 4],
+  ];
+}
+
 export function resolveExplosionParticleData(p: {
   active: boolean;
   life: number;

@@ -8,7 +8,11 @@ import type {
 } from "../types/TowerDefenseTypes";
 import type { GridLayout } from "../../shared/grid/GridTypes";
 import { getTileTypeColor } from "../MapUtils";
-import { resolveCreepVisualState } from "./TowerDefenseVisualHelpers";
+import {
+  resolveCreepVisualState,
+  resolveTowerProjectileDrawSetup,
+  resolveTdMapBackgroundContext,
+} from "./TowerDefenseVisualHelpers";
 
 type TDWorld = World<TowerDefenseComponentRegistry>;
 
@@ -167,13 +171,7 @@ export const drawCreepBoss: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
 
 export const drawTowerProjectile: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    const proj = world.getComponent(entity, "TowerProjectile");
-    const size = render?.size ?? 4;
-    const frost = !!(proj?.slowFactor && proj.slowFactor < 1);
-    const color = frost
-      ? resolveThemeColorWithFallback(world, "#4dd0e1", "tower_projectile_frost")
-      : resolveThemeColorWithFallback(world, "#ffee58", "tower_projectile", "bullet");
+    const { size, color } = resolveTowerProjectileDrawSetup(world, entity);
 
     ctx.save();
     ctx.shadowBlur = 8;
@@ -188,9 +186,9 @@ export const drawTowerProjectile: ShapeDrawer<CanvasRenderingContext2D, TowerDef
 
 export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
   draw(ctx, world: TDWorld) {
-    const layout = world.getResource<GridLayout>("GridLayout");
-    const tileGrid = world.getResource<TileGrid>("TileGrid");
-    if (!layout || !tileGrid) return;
+    const bgCtx = resolveTdMapBackgroundContext(world);
+    if (!bgCtx) return;
+    const { layout, tileGrid } = bgCtx;
 
     for (let row = 0; row < tileGrid.rows; row++) {
       for (let col = 0; col < tileGrid.cols; col++) {

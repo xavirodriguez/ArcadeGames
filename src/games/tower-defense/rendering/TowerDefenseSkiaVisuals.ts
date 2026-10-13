@@ -4,7 +4,11 @@ import type { GridLayout } from "../../shared/grid/GridTypes";
 import { getTileTypeColor } from "../MapUtils";
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 import { drawGlowOrbSkia } from "../../shared/rendering/SkiaNeonUtils";
-import { resolveCreepVisualState } from "./TowerDefenseVisualHelpers";
+import {
+  resolveCreepVisualState,
+  resolveTowerProjectileDrawSetup,
+  resolveTdMapBackgroundContext,
+} from "./TowerDefenseVisualHelpers";
 
 type TDWorld = World<TowerDefenseComponentRegistry>;
 
@@ -158,13 +162,7 @@ export const drawSkiaCreepTank: ShapeDrawer<any, TowerDefenseComponentRegistry> 
 
 export const drawSkiaTowerProjectile: ShapeDrawer<any, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    const proj = world.getComponent(entity, "TowerProjectile");
-    const size = render?.size ?? 4;
-    const frost = !!(proj?.slowFactor && proj.slowFactor < 1);
-    const color = frost
-      ? resolveThemeColorWithFallback(world, "#4dd0e1", "tower_projectile_frost")
-      : resolveThemeColorWithFallback(world, "#ffee58", "tower_projectile", "bullet");
+    const { size, color } = resolveTowerProjectileDrawSetup(world, entity);
 
     if (!Skia) return;
     const paint = getPaint();
@@ -176,9 +174,9 @@ export const drawSkiaTowerProjectile: ShapeDrawer<any, TowerDefenseComponentRegi
 export const drawSkiaTdMapBackground: EffectDrawer<any, TowerDefenseComponentRegistry> = {
   draw(canvas, world: TDWorld) {
     if (!Skia) return;
-    const layout = world.getResource<GridLayout>("GridLayout");
-    const tileGrid = world.getResource<TileGrid>("TileGrid");
-    if (!layout || !tileGrid) return;
+    const bgCtx = resolveTdMapBackgroundContext(world);
+    if (!bgCtx) return;
+    const { layout, tileGrid } = bgCtx;
 
     const paint = getPaint();
     if (!paint) return;

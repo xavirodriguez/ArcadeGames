@@ -3,14 +3,18 @@ import type { OutrunComponentRegistry } from "../types/OutrunTypes";
 import type { OutrunConfig } from "../types/OutrunConfigSchema";
 import { DEFAULT_OUTRUN_CONFIG } from "../types/OutrunConfigSchema";
 import type { RoadData, RoadSegmentSprite } from "../types/OutrunTypes";
-import { projectRoad } from "./RoadProjection";
 import {
   COAST_PALETTE,
-  ScenarioPalette,
   scenarioHash,
   getScenarioPaletteAtZ
 } from "./OutrunPalettes";
-import { computePlayerCarGeometry, computeRacerProjection } from "./OutrunVisualHelpers";
+import {
+  computePlayerCarGeometry,
+  computeRacerProjection,
+  computeCloudParams,
+  computeHeatHazeLines,
+  computeSpeedLines
+} from "./OutrunVisualHelpers";
 import {
   PROJECTION_CAPACITY,
   projectionBuffer,
@@ -243,18 +247,10 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
     ctx.fill();
 
     // PASS 2.5: Parallax Clouds
-    const cloudCount = 8;
+    const clouds = computeCloudParams(screenW, screenH, state.playerZ, state.playerX);
     ctx.fillStyle = palette.cloudColor;
-    for (let c = 0; c < cloudCount; c++) {
-      const h1 = scenarioHash("cloud_x", c);
-      const h2 = scenarioHash("cloud_y", c);
-      const h3 = scenarioHash("cloud_w", c);
-      const baseCloudX = h1 * screenW;
-      const cloudY = screenH * 0.08 + h2 * (screenH * 0.2);
-      const cloudW = 50 + h3 * 60;
-      const cloudH = cloudW * 0.35;
-      const cloudX = ((baseCloudX + state.playerZ * 0.00005 * (c + 1) + state.playerX * 15) % screenW + screenW) % screenW;
-
+    for (const cloud of clouds) {
+      const { cloudX, cloudY, cloudW, cloudH } = cloud;
       ctx.beginPath();
       ctx.arc(cloudX - cloudW * 0.2, cloudY, cloudH * 0.8, 0, Math.PI * 2);
       ctx.arc(cloudX, cloudY - cloudH * 0.2, cloudH, 0, Math.PI * 2);
@@ -264,19 +260,13 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
 
     // PASS 2.8: Midday Horizon Heat Haze
     if (palette.dayPhase === "day") {
-      const hazeY = screenH * 0.45;
-      const numLines = 18;
+      const hazeLines = computeHeatHazeLines(screenW, screenH, state.playerZ, state.playerX);
       ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
       ctx.lineWidth = 2;
-      for (let h = 0; h < numLines; h++) {
-        const hRatio = h / numLines;
-        const baseX = hRatio * screenW + (state.playerX * 12);
-        const waveOffset = Math.sin((state.playerZ * 0.02) + h * 0.8) * 4;
-        const x = ((baseX + waveOffset) % screenW + screenW) % screenW;
-
+      for (const hl of hazeLines) {
         ctx.beginPath();
-        ctx.moveTo(x, hazeY - 22);
-        ctx.lineTo(x + waveOffset * 0.5, hazeY - 2);
+        ctx.moveTo(hl.x, hl.hazeY - 22);
+        ctx.lineTo(hl.x + hl.waveOffset * 0.5, hl.hazeY - 2);
         ctx.stroke();
       }
     }
@@ -384,23 +374,14 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
 
     // PASS 4: Speed lines
     const speedRatio = state.speed / config.maxSpeed;
-    if (speedRatio > 0.7) {
-      const lineCount = 12;
-      const alpha = (speedRatio - 0.7) * 2.5;
-      ctx.strokeStyle = `rgba(255, 255, 255, ${Math.min(0.6, alpha)})`;
+    const speedLines = computeSpeedLines(screenW, screenH, horizonY, state.playerZ, speedRatio);
+    if (speedLines) {
       ctx.lineWidth = 2;
-      const t = state.playerZ * 0.05;
-
-      for (let sl = 0; sl < lineCount; sl++) {
-        const angle = (sl / lineCount) * Math.PI * 2 + (sl % 2 === 0 ? t : -t) * 0.1;
-        const x1 = screenW / 2 + Math.cos(angle) * (screenW * 0.2);
-        const y1 = horizonY + Math.sin(angle) * (screenH * 0.15);
-        const x2 = screenW / 2 + Math.cos(angle) * (screenW * 0.55);
-        const y2 = horizonY + Math.sin(angle) * (screenH * 0.45);
-
+      for (const line of speedLines) {
+        ctx.strokeStyle = `rgba(255, 255, 255, ${line.alpha})`;
         ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
+        ctx.moveTo(line.x1, line.y1);
+        ctx.lineTo(line.x2, line.y2);
         ctx.stroke();
       }
     }

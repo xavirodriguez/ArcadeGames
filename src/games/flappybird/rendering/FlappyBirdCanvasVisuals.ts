@@ -26,7 +26,8 @@ import {
   maybeSpawnBackgroundDebris,
   resolveGlideEnergyState,
   resolveSectorEventInfo,
-  resolveBackgroundWarpState
+  resolveBackgroundWarpState,
+  computeWarpLines
 } from "./FlappyBirdRenderUtils";
 
 export { FLAPPY_PARTICLE_POOL as FLAPPY_CANVAS_PARTICLE_POOL, spawnVisualParticle };
@@ -733,13 +734,12 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
       ctx.strokeStyle = "rgba(0, 243, 255, " + (0.15 * intensity).toFixed(3) + ")";
       ctx.lineWidth = 1.2;
 
-      for (let l = 0; l < lineCount; l++) {
-        const angle = (l / lineCount) * Math.PI * 2 + (tick * 0.02);
-        const innerR = 40 + (l * 17 + tick * 8) % (maxR * 0.5);
-        const outerR = innerR + 40 * warpFactor;
+      const lines = computeWarpLines(lineCount, tick, cx, cy, maxR, warpFactor);
+      for (let l = 0; l < lines.length; l++) {
+        const line = lines[l];
         ctx.beginPath();
-        ctx.moveTo(cx + Math.cos(angle) * innerR, cy + Math.sin(angle) * innerR);
-        ctx.lineTo(cx + Math.cos(angle) * outerR, cy + Math.sin(angle) * outerR);
+        ctx.moveTo(line.x1, line.y1);
+        ctx.lineTo(line.x2, line.y2);
         ctx.stroke();
       }
       ctx.restore();

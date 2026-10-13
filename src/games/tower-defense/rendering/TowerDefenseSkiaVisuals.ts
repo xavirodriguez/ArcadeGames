@@ -1,9 +1,10 @@
 import { ShapeDrawer, EffectDrawer, World, resolveThemeColorWithFallback } from "@tiny-aster/core";
-import type { TowerDefenseComponentRegistry, GameStateComponent, TileGrid } from "../types/TowerDefenseTypes";
+import type { TowerDefenseComponentRegistry, TileGrid } from "../types/TowerDefenseTypes";
 import type { GridLayout } from "../../shared/grid/GridTypes";
 import { getTileTypeColor } from "../MapUtils";
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 import { drawGlowOrbSkia } from "../../shared/rendering/SkiaNeonUtils";
+import { resolveCreepVisualState } from "./TowerDefenseVisualHelpers";
 
 type TDWorld = World<TowerDefenseComponentRegistry>;
 
@@ -113,16 +114,7 @@ export const drawSkiaTowerFrost: ShapeDrawer<any, TowerDefenseComponentRegistry>
 
 export const drawSkiaCreepBoss: ShapeDrawer<any, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    const size = render?.size ?? 28;
-    const creep = world.getComponent(entity, "Creep");
-    const slowed = (creep?.slowRemainingMs ?? 0) > 0;
-    const fill = slowed
-      ? resolveThemeColorWithFallback(world, "#4dd0e1", "creep_slowed")
-      : resolveThemeColorWithFallback(world, "#c62828", "creep_boss", "boss");
-    const stroke = slowed
-      ? resolveThemeColorWithFallback(world, "#80deea", "creep_slowed_stroke")
-      : resolveThemeColorWithFallback(world, "#e53935", "creep_boss_stroke");
+    const { size, fill, stroke } = resolveCreepVisualState(world, entity, 28, "boss");
 
     drawSkiaCreep(canvas, size, fill);
     if (!Skia) return;
@@ -138,37 +130,21 @@ export const drawSkiaCreepBoss: ShapeDrawer<any, TowerDefenseComponentRegistry> 
 
 export const drawSkiaCreepGrunt: ShapeDrawer<any, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    const creep = world.getComponent(entity, "Creep");
-    const slowed = (creep?.slowRemainingMs ?? 0) > 0;
-    const fill = slowed
-      ? resolveThemeColorWithFallback(world, "#80deea", "creep_slowed")
-      : resolveThemeColorWithFallback(world, "#ff7043", "creep_grunt", "enemy");
-    drawSkiaCreep(canvas, render?.size ?? 12, fill);
+    const { size, fill } = resolveCreepVisualState(world, entity, 12, "grunt");
+    drawSkiaCreep(canvas, size, fill);
   },
 };
 
 export const drawSkiaCreepFast: ShapeDrawer<any, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    const creep = world.getComponent(entity, "Creep");
-    const slowed = (creep?.slowRemainingMs ?? 0) > 0;
-    const fill = slowed
-      ? resolveThemeColorWithFallback(world, "#80deea", "creep_slowed")
-      : resolveThemeColorWithFallback(world, "#29b6f6", "creep_fast", "enemy");
-    drawSkiaCreep(canvas, render?.size ?? 10, fill);
+    const { size, fill } = resolveCreepVisualState(world, entity, 10, "fast");
+    drawSkiaCreep(canvas, size, fill);
   },
 };
 
 export const drawSkiaCreepTank: ShapeDrawer<any, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    const size = render?.size ?? 18;
-    const creep = world.getComponent(entity, "Creep");
-    const slowed = (creep?.slowRemainingMs ?? 0) > 0;
-    const fill = slowed
-      ? resolveThemeColorWithFallback(world, "#80deea", "creep_slowed")
-      : resolveThemeColorWithFallback(world, "#8d6e63", "creep_tank", "enemy");
+    const { size, fill } = resolveCreepVisualState(world, entity, 18, "tank");
     const stroke = resolveThemeColorWithFallback(world, "#5d4037", "creep_tank_plate");
 
     drawSkiaCreep(canvas, size, fill);

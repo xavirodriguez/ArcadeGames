@@ -333,3 +333,33 @@ export function resolveBackgroundWarpState(
     maxR
   };
 }
+
+export interface WarpLine {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
+
+export function computeWarpLines(
+  lineCount: number,
+  tick: number,
+  cx: number,
+  cy: number,
+  maxR: number,
+  warpFactor: number
+): WarpLine[] {
+  const lines: WarpLine[] = [];
+  for (let l = 0; l < lineCount; l++) {
+    const angle = (l / lineCount) * Math.PI * 2 + tick * 0.02;
+    const innerR = 40 + ((l * 17 + tick * 8) % (maxR * 0.5));
+    const outerR = innerR + 40 * warpFactor;
+    lines.push({
+      x1: cx + Math.cos(angle) * innerR,
+      y1: cy + Math.sin(angle) * innerR,
+      x2: cx + Math.cos(angle) * outerR,
+      y2: cy + Math.sin(angle) * outerR,
+    });
+  }
+  return lines;
+}

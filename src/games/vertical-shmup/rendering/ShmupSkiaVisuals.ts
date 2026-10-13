@@ -1,7 +1,7 @@
 import { ShapeDrawer, EffectDrawer, RenderContext } from "@tiny-aster/core";
 import type { ShmupComponentRegistry } from "../types/ShmupTypes";
-import type { ShmupConfig } from "../types/ShmupConfigSchema";
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
+import { computeShmupStarfield } from "./ShmupVisualHelpers";
 
 export const drawSkiaShmupPlayer: ShapeDrawer<RenderContext, ShmupComponentRegistry> = {
   draw(canvas, world, entity) {
@@ -201,14 +201,7 @@ export const drawSkiaShmupEnemyBullet: ShapeDrawer<RenderContext, ShmupComponent
 export const drawSkiaShmupStarfield: EffectDrawer<RenderContext, ShmupComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    const config = world.getResource<ShmupConfig>("GameConfig");
-    const width = config?.WORLD_WIDTH ?? 480;
-    const height = config?.WORLD_HEIGHT ?? 854;
-    const state = world.getSingleton("ShmupGameState");
-    const time = world.tick * 0.016;
-    const scroll = state?.scrollDistance ?? (time * (config?.SCROLL_SPEED ?? 80));
-
-    const starCount = config?.STAR_COUNT ?? 80;
+    const { width, height, stars } = computeShmupStarfield(world);
     const skCanvas = canvas as any;
     const paint = getPaint();
 
@@ -220,28 +213,10 @@ export const drawSkiaShmupStarfield: EffectDrawer<RenderContext, ShmupComponentR
     paint.setColor(Skia.Color("#070a14"));
     skCanvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
 
-    for (let i = 0; i < starCount; i++) {
-      const seedX = (i * 127.1 + 311.7) % 1;
-      const seedY = (i * 269.5 + 183.3) % 1;
-
-      const layer = i % 3;
-      const speedMult = layer === 0 ? 0.4 : layer === 1 ? 1.0 : 1.8;
-      const starSpeed = (config?.STAR_SPEED ?? 35) * speedMult;
-
-      const rawX = seedX * width;
-      const rawY = (seedY * height + scroll * (starSpeed / 35)) % height;
-      const y = rawY < 0 ? rawY + height : rawY;
-
-      if (layer === 0) {
-        paint.setColor(Skia.Color("rgba(200, 220, 255, 0.35)"));
-        skCanvas.drawRect(Skia.XYWHRect(rawX, y, 1, 1), paint);
-      } else if (layer === 1) {
-        paint.setColor(Skia.Color("rgba(0, 229, 255, 0.65)"));
-        skCanvas.drawRect(Skia.XYWHRect(rawX, y, 1.5, 2), paint);
-      } else {
-        paint.setColor(Skia.Color("rgba(255, 255, 255, 0.9)"));
-        skCanvas.drawRect(Skia.XYWHRect(rawX, y, 2, 4), paint);
-      }
+    for (let i = 0; i < stars.length; i++) {
+      const star = stars[i]!;
+      paint.setColor(Skia.Color(star.color));
+      skCanvas.drawRect(Skia.XYWHRect(star.rawX, star.y, star.w, star.h), paint);
     }
 
     skCanvas.restore();

@@ -1,18 +1,21 @@
 import type { ShapeDrawer, EffectDrawer, RenderContext } from "@tiny-aster/core";
 import { resolveThemeColorWithFallback } from "@tiny-aster/core";
 import type { SkCanvas } from "@shopify/react-native-skia";
-import type { OutrunComponentRegistry } from "../types/OutrunTypes";
+import type { OutrunComponentRegistry, RoadData, RoadSegmentSprite } from "../types/OutrunTypes";
 import type { OutrunConfig } from "../types/OutrunConfigSchema";
 import { DEFAULT_OUTRUN_CONFIG } from "../types/OutrunConfigSchema";
-import type { RoadData, RoadSegmentSprite } from "../types/OutrunTypes";
-import { projectRoad } from "./RoadProjection";
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 import {
   COAST_PALETTE,
   scenarioHash,
   getScenarioPaletteAtZ
 } from "./OutrunPalettes";
-import { computePlayerCarGeometry, computeRacerProjection } from "./OutrunVisualHelpers";
+import {
+  computePlayerCarGeometry,
+  computeRacerProjection,
+  computeCloudParams,
+  computeHeatHazeLines
+} from "./OutrunVisualHelpers";
 import {
   PROJECTION_CAPACITY,
   projectionBuffer,
@@ -262,21 +265,13 @@ export const drawSkiaOutrunRoad: ShapeDrawer<RenderContext, OutrunComponentRegis
     canvas.drawCircle(sunX, sunY, sunRadius, paint);
 
     // PASS 2.5: Parallax Clouds
-    const cloudCount = 8;
+    const clouds = computeCloudParams(screenW, screenH, state.playerZ, state.playerX);
     paint.reset();
     paint.setAntiAlias(true);
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color(palette.cloudColor));
-    for (let c = 0; c < cloudCount; c++) {
-      const h1 = scenarioHash("cloud_x", c);
-      const h2 = scenarioHash("cloud_y", c);
-      const h3 = scenarioHash("cloud_w", c);
-      const baseCloudX = h1 * screenW;
-      const cloudY = screenH * 0.08 + h2 * (screenH * 0.2);
-      const cloudW = 50 + h3 * 60;
-      const cloudH = cloudW * 0.35;
-      const cloudX = ((baseCloudX + state.playerZ * 0.00005 * (c + 1) + state.playerX * 15) % screenW + screenW) % screenW;
-
+    for (const cloud of clouds) {
+      const { cloudX, cloudY, cloudW, cloudH } = cloud;
       canvas.drawCircle(cloudX - cloudW * 0.2, cloudY, cloudH * 0.8, paint);
       canvas.drawCircle(cloudX, cloudY - cloudH * 0.2, cloudH, paint);
       canvas.drawCircle(cloudX + cloudW * 0.2, cloudY, cloudH * 0.7, paint);
@@ -284,22 +279,16 @@ export const drawSkiaOutrunRoad: ShapeDrawer<RenderContext, OutrunComponentRegis
 
     // PASS 2.8: Midday Horizon Heat Haze
     if (palette.dayPhase === "day") {
-      const hazeY = screenH * 0.45;
-      const numLines = 18;
+      const hazeLines = computeHeatHazeLines(screenW, screenH, state.playerZ, state.playerX);
       paint.reset();
       paint.setAntiAlias(true);
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setStrokeWidth(2);
       paint.setColor(Skia.Color("rgba(255, 255, 255, 0.15)"));
-      for (let h = 0; h < numLines; h++) {
-        const hRatio = h / numLines;
-        const baseX = hRatio * screenW + (state.playerX * 12);
-        const waveOffset = Math.sin((state.playerZ * 0.02) + h * 0.8) * 4;
-        const x = ((baseX + waveOffset) % screenW + screenW) % screenW;
-
+      for (const hl of hazeLines) {
         const hazeLine = Skia.Path.Make();
-        hazeLine.moveTo(x, hazeY - 22);
-        hazeLine.lineTo(x + waveOffset * 0.5, hazeY - 2);
+        hazeLine.moveTo(hl.x, hl.hazeY - 22);
+        hazeLine.lineTo(hl.x + hl.waveOffset * 0.5, hl.hazeY - 2);
         canvas.drawPath(hazeLine, paint);
       }
     }

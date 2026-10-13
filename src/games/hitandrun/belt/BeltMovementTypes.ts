@@ -92,6 +92,10 @@ export function createBeltMovementComponent(
 
 export const BELT_MOVEMENT_CONFIG_RESOURCE = "BeltMovementConfig";
 
+export function getBeltMovementConfig(world: { getResource<T>(key: string): T | undefined }): BeltMovementConfig {
+  return world.getResource<BeltMovementConfig>(BELT_MOVEMENT_CONFIG_RESOURCE) ?? DEFAULT_BELT_MOVEMENT_CONFIG;
+}
+
 export interface BeltInputPartial {
   moveLeft?: boolean;
   moveRight?: boolean;

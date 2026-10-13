@@ -11,8 +11,7 @@ import {
   Entity
 } from "@tiny-aster/core";
 import {
-  BELT_MOVEMENT_CONFIG_RESOURCE,
-  DEFAULT_BELT_MOVEMENT_CONFIG,
+  getBeltMovementConfig,
   type BeltInputComponent,
   type BeltMovementComponent,
   type BeltMovementConfig
@@ -31,9 +30,7 @@ export class BeltMovementSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
 
-    const config =
-      world.getResource<BeltMovementConfig>(BELT_MOVEMENT_CONFIG_RESOURCE) ??
-      DEFAULT_BELT_MOVEMENT_CONFIG;
+    const config = getBeltMovementConfig(world);
 
     const entities = world.query("BeltMovement", "BeltInput", "Velocity", "Transform");
     const len = entities.length;

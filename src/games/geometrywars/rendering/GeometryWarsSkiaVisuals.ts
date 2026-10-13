@@ -83,6 +83,29 @@ function resolveSkiaShapeSetup(
   return { render, size, color, paint };
 }
 
+function drawSkiaPathShape(
+  canvas: any,
+  world: any,
+  entity: number,
+  defaultSize: number,
+  colorKey: string,
+  fallbackColor: string,
+  strokeWidth: number,
+  buildPath: (path: any, size: number) => void
+): void {
+  const setup = resolveSkiaShapeSetup(world, entity, defaultSize, colorKey, fallbackColor, strokeWidth);
+  if (!setup) return;
+  const { size, paint } = setup;
+
+  canvas.save();
+
+  const path = Skia.Path.Make();
+  buildPath(path, size);
+  canvas.drawPath(path, paint);
+
+  canvas.restore();
+}
+
 /**
  * Skia shape drawer for the player ship.
  * @public
@@ -181,20 +204,13 @@ export const drawSkiaParticle: ShapeDrawer<any, GeometryWarsComponentRegistry> =
  */
 export const drawSkiaChaser: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
   draw(canvas, world, entity) {
-    const setup = resolveSkiaShapeSetup(world, entity, 14, "chaser", "#ff00ff", 2.0);
-    if (!setup) return;
-    const { size, paint } = setup;
-
-    canvas.save();
-
-    const path = Skia.Path.Make();
-    path.moveTo(0, -size);
-    path.lineTo(size, 0);
-    path.lineTo(0, size);
-    path.lineTo(-size, 0);
-    path.close();
-    canvas.drawPath(path, paint);
-    canvas.restore();
+    drawSkiaPathShape(canvas, world, entity, 14, "chaser", "#ff00ff", 2.0, (path, size) => {
+      path.moveTo(0, -size);
+      path.lineTo(size, 0);
+      path.lineTo(0, size);
+      path.lineTo(-size, 0);
+      path.close();
+    });
   }
 };
 
@@ -204,19 +220,12 @@ export const drawSkiaChaser: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
  */
 export const drawSkiaEvader: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
   draw(canvas, world, entity) {
-    const setup = resolveSkiaShapeSetup(world, entity, 14, "evader", "#ffaa00", 2.0);
-    if (!setup) return;
-    const { size, paint } = setup;
-
-    canvas.save();
-
-    const path = Skia.Path.Make();
-    path.moveTo(size, 0);
-    path.lineTo(-size / 2, -size / 2);
-    path.lineTo(-size / 2, size / 2);
-    path.close();
-    canvas.drawPath(path, paint);
-    canvas.restore();
+    drawSkiaPathShape(canvas, world, entity, 14, "evader", "#ffaa00", 2.0, (path, size) => {
+      path.moveTo(size, 0);
+      path.lineTo(-size / 2, -size / 2);
+      path.lineTo(-size / 2, size / 2);
+      path.close();
+    });
   }
 };
 
@@ -226,19 +235,12 @@ export const drawSkiaEvader: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
  */
 export const drawSkiaGrunt: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
   draw(canvas, world, entity) {
-    const setup = resolveSkiaShapeSetup(world, entity, 10, "grunt", "#00ffff", 1.5);
-    if (!setup) return;
-    const { size, paint } = setup;
-
-    canvas.save();
-
-    const path = Skia.Path.Make();
-    path.moveTo(size, 0);
-    path.lineTo(-size, -size * 0.7);
-    path.lineTo(-size, size * 0.7);
-    path.close();
-    canvas.drawPath(path, paint);
-    canvas.restore();
+    drawSkiaPathShape(canvas, world, entity, 10, "grunt", "#00ffff", 1.5, (path, size) => {
+      path.moveTo(size, 0);
+      path.lineTo(-size, -size * 0.7);
+      path.lineTo(-size, size * 0.7);
+      path.close();
+    });
   }
 };
 
@@ -270,20 +272,13 @@ export const drawSkiaBullet: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
  */
 export const drawSkiaEnemySeeker: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
   draw(canvas, world, entity) {
-    const setup = resolveSkiaShapeSetup(world, entity, 12, "seeker", "#ff00ff", 1.5);
-    if (!setup) return;
-    const { size, paint } = setup;
-
-    canvas.save();
-
-    const path = Skia.Path.Make();
-    path.moveTo(0, -size);
-    path.lineTo(size / 2, 0);
-    path.lineTo(0, size);
-    path.lineTo(-size / 2, 0);
-    path.close();
-    canvas.drawPath(path, paint);
-    canvas.restore();
+    drawSkiaPathShape(canvas, world, entity, 12, "seeker", "#ff00ff", 1.5, (path, size) => {
+      path.moveTo(0, -size);
+      path.lineTo(size / 2, 0);
+      path.lineTo(0, size);
+      path.lineTo(-size / 2, 0);
+      path.close();
+    });
   }
 };
 
@@ -310,20 +305,13 @@ export const drawSkiaEnemyEvader: ShapeDrawer<any, GeometryWarsComponentRegistry
  */
 export const drawSkiaEnemyFastSeeker: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
   draw(canvas, world, entity) {
-    const setup = resolveSkiaShapeSetup(world, entity, 8, "fast_seeker", "#ff0000", 1.5);
-    if (!setup) return;
-    const { size, paint } = setup;
-
-    canvas.save();
-
-    const path = Skia.Path.Make();
-    path.moveTo(size, 0);
-    path.lineTo(-size, -size / 2);
-    path.lineTo(-size / 2, 0);
-    path.lineTo(-size, size / 2);
-    path.close();
-    canvas.drawPath(path, paint);
-    canvas.restore();
+    drawSkiaPathShape(canvas, world, entity, 8, "fast_seeker", "#ff0000", 1.5, (path, size) => {
+      path.moveTo(size, 0);
+      path.lineTo(-size, -size / 2);
+      path.lineTo(-size / 2, 0);
+      path.lineTo(-size, size / 2);
+      path.close();
+    });
   }
 };
 

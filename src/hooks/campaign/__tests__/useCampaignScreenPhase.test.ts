@@ -1,5 +1,11 @@
 import { deriveCampaignScreenPhase } from "../useCampaignScreenPhase";
-import type { StoryNode } from "@tiny-aster/core";
+import { NullBaseGame, type StoryNode } from "@tiny-aster/core";
+
+class MockTestGame extends NullBaseGame {
+  public override getGameState(): Record<string, unknown> {
+    return {};
+  }
+}
 
 describe("useCampaignScreenPhase Phase Transition Tests", () => {
   const dummyGameplayNode: StoryNode = {
@@ -55,12 +61,13 @@ describe("useCampaignScreenPhase Phase Transition Tests", () => {
   });
 
   it("derives 'gameplay' phase when active game is loaded and running", () => {
+    const activeGame = new MockTestGame();
     const phase = deriveCampaignScreenPhase({
       isLoading: false,
       isIntro: false,
       loadError: null,
       currentNode: dummyGameplayNode,
-      activeGame: {} as any,
+      activeGame: activeGame,
       targetGameId: "asteroids"
     });
 

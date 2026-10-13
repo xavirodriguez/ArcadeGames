@@ -1,4 +1,4 @@
-import type { StoryNode, BaseGame } from "@tiny-aster/core";
+import type { StoryNode, BaseGame, IGame } from "@tiny-aster/core";
 
 /**
  * Discriminated union representing the high-level UI phase of the CampaignScreen.
@@ -36,7 +36,7 @@ export function deriveCampaignScreenPhase(params: {
   isIntro: boolean;
   loadError: { error: Error; gameId: string; seed?: number } | null;
   currentNode: StoryNode | null;
-  activeGame: BaseGame | null;
+  activeGame: BaseGame | IGame | null;
   targetGameId?: string;
   introTitle?: string;
   introEffect?: string;

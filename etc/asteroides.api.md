@@ -3776,7 +3776,7 @@ export class PhysicsQuery {
         distance: number;
     } | null;
     static pointCast<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, x: number, y: number): Entity[];
-    static raycast<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, origin: {
+    static raycast<TC extends ComponentRegistry = ComponentRegistry, TE extends EventRegistry = EventRegistry, TB extends BlueprintRegistryMap<TC> = BlueprintRegistryMap<TC>>(world: World<TC, TE, TB>, origin: {
         x: number;
         y: number;
     }, direction: {

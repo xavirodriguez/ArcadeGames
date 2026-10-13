@@ -326,11 +326,11 @@ export class PhysicsQuery {
    * @returns Nearest `RaycastHit` object or `null` if no collider was hit.
    */
   public static raycast<
-    TComponents extends ComponentRegistry = ComponentRegistry,
-    TEvents extends EventRegistry = EventRegistry,
-    TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
+    TC extends ComponentRegistry = ComponentRegistry,
+    TE extends EventRegistry = EventRegistry,
+    TB extends BlueprintRegistryMap<TC> = BlueprintRegistryMap<TC>
   >(
-    world: World<TComponents, TEvents, TBlueprints>,
+    world: World<TC, TE, TB>,
     origin: { x: number; y: number },
     direction: { x: number; y: number },
     maxDistance: number,

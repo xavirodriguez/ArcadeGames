@@ -39,7 +39,7 @@ import { GeometryWarsConfig, GeometryWarsConfigSchema, DEFAULT_CONFIG } from "./
 import { GeometryWarsGameScene } from "./scenes/GeometryWarsGameScene";
 import { colors } from "../../theme/colors";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
-import { markLocalPlayerEntity, NO_OP_SYNC } from "../shared/networkUtils";
+import { markLocalPlayerEntity, NO_OP_SYNC, applyServerGameStateFields } from "../shared/networkUtils";
 
 function createTransformComponent(x: number, y: number, rotation: number): TransformComponent {
   return {
@@ -341,18 +341,7 @@ export class GeometryWarsGame extends BaseGame<
     const gs = world.getSingleton("GeometryWarsState");
     if (gs) {
       world.mutateSingleton("GeometryWarsState", (currentGs) => {
-        if (state.score !== undefined) {
-          currentGs.score = Number(state.score);
-        }
-        if (state.gameOver !== undefined) {
-          currentGs.isGameOver = !!state.gameOver;
-        }
-        if (state.wave !== undefined) {
-          currentGs.wave = Number(state.wave);
-        }
-        if (state.bombs !== undefined) {
-          currentGs.bombs = Number(state.bombs);
-        }
+        applyServerGameStateFields(currentGs, state);
       });
     }
 

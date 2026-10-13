@@ -235,6 +235,17 @@ export interface BossRenderSetup {
   customGeom: any;
   bossState: BossVisualState;
   flash: HitFlashState;
+  hpRatio: number;
+  phase: number;
+  accentColor: string;
+  scaleMultiplier: number;
+  scale: number;
+  shakeX: number;
+  shakeY: number;
+  vibX: number;
+  vibY: number;
+  s: number;
+  coreRadius: number;
 }
 
 export function resolveBossRenderSetup(
@@ -255,6 +266,7 @@ export function resolveBossRenderSetup(
     customGeom,
     bossState,
     flash,
+    ...bossState,
   };
 }
 

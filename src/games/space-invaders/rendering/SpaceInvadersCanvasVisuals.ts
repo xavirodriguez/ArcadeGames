@@ -53,28 +53,22 @@ export function drawExplosionParticlesCanvas(ctx: CanvasRenderingContext2D): voi
     const { ratio, type, x, y, radius, size, color } = data;
 
     if (type === "ring") {
-      ctx.save();
       ctx.strokeStyle = color;
       ctx.lineWidth = 2.5 * ratio;
       ctx.globalAlpha = ratio * 0.8;
       ctx.beginPath();
       ctx.arc(x, y, Math.max(0.1, radius), 0, Math.PI * 2);
       ctx.stroke();
-      ctx.restore();
     } else if (type === "debris") {
-      ctx.save();
       ctx.fillStyle = color;
       ctx.globalAlpha = ratio;
       ctx.fillRect(x - size / 2, y - size / 2, size, size);
-      ctx.restore();
     } else if (type === "smoke") {
-      ctx.save();
       ctx.fillStyle = color;
       ctx.globalAlpha = ratio * 0.35;
       ctx.beginPath();
       ctx.arc(x, y, Math.max(0.1, size), 0, Math.PI * 2);
       ctx.fill();
-      ctx.restore();
     }
   }
   ctx.restore();

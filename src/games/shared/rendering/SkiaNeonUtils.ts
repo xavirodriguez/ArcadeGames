@@ -1,16 +1,19 @@
 import { colors } from "../../../theme/colors";
 import { computeNeonPulse } from "./ProceduralShapeUtils";
 import { Skia } from "./SkiaContext";
+import type { SkCanvas, SkPaint } from "./SkiaContext";
 import { MotionTrailBase, computeMotionTrailSegment, TrailPoint } from "./MotionTrailBuffer";
 
 export { TrailPoint };
 
-function initSkiaPaint(style: any, colorStr: string, alpha: number = 1.0, existingPaint?: any): any {
+function initSkiaPaint(style: unknown, colorStr: string, alpha = 1.0, existingPaint?: SkPaint | null): SkPaint | undefined {
   if (!Skia) return undefined;
   const paint = existingPaint || Skia.Paint();
   paint.reset();
   paint.setAntiAlias(true);
-  paint.setStyle(style);
+  if (style !== undefined) {
+    paint.setStyle(style);
+  }
   paint.setColor(Skia.Color(colorStr));
   if (alpha < 1.0) {
     paint.setAlphaf(alpha);
@@ -27,7 +30,7 @@ function initSkiaPaint(style: any, colorStr: string, alpha: number = 1.0, existi
  * @returns Configured Skia Paint object.
  * @public
  */
-export function makeFillPaint(colorStr: string, alpha: number = 1.0, existingPaint?: any): any {
+export function makeFillPaint(colorStr: string, alpha = 1.0, existingPaint?: SkPaint | null): SkPaint | undefined {
   return initSkiaPaint(Skia?.PaintStyle.Fill, colorStr, alpha, existingPaint);
 }
 
@@ -41,7 +44,7 @@ export function makeFillPaint(colorStr: string, alpha: number = 1.0, existingPai
  * @returns Configured Skia Paint object.
  * @public
  */
-export function makeStrokePaint(colorStr: string, strokeWidth: number = 1.0, alpha: number = 1.0, existingPaint?: any): any {
+export function makeStrokePaint(colorStr: string, strokeWidth = 1.0, alpha = 1.0, existingPaint?: SkPaint | null): SkPaint | undefined {
   const paint = initSkiaPaint(Skia?.PaintStyle.Stroke, colorStr, alpha, existingPaint);
   if (paint) {
     paint.setStrokeWidth(strokeWidth);
@@ -63,13 +66,13 @@ export function makeStrokePaint(colorStr: string, strokeWidth: number = 1.0, alp
  * @public
  */
 export function drawNeonShapeSkia(
-  canvas: any,
-  paint: any,
+  canvas: SkCanvas,
+  paint: SkPaint,
   tick: number,
   color: string,
   glowAlphaColor: string,
-  drawOutline: (canvas: any, paint: any, widthScale: number, heightScale: number) => void,
-  drawCore: (canvas: any, paint: any) => void
+  drawOutline: (canvas: SkCanvas, paint: SkPaint, widthScale: number, heightScale: number) => void,
+  drawCore: (canvas: SkCanvas, paint: SkPaint) => void
 ): void {
   if (!Skia) return;
 
@@ -100,8 +103,8 @@ export function drawNeonShapeSkia(
  */
 export class SkiaMotionTrail extends MotionTrailBase {
   public drawSkia(
-    canvas: any,
-    paint: any,
+    canvas: SkCanvas,
+    paint: SkPaint,
     entityId: number,
     currentX: number,
     currentY: number,
@@ -112,7 +115,7 @@ export class SkiaMotionTrail extends MotionTrailBase {
   ): void {
     if (!Skia) return;
         // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/CanvasNeonUtils.ts:51-58. Considerar extraer a función compartida. Ref: 93a5763f
-const trail = this.getTrail(entityId);
+    const trail = this.getTrail(entityId);
     const drawLength = Math.min(length, this.maxPoints);
 
     for (let i = drawLength - 1; i >= 0; i--) {
@@ -143,12 +146,12 @@ const trail = this.getTrail(entityId);
  * @public
  */
 export function drawGlowOrbSkia(
-  canvas: any,
-  paint: any,
+  canvas: SkCanvas,
+  paint: SkPaint,
   size: number,
   color: string,
-  coreScale: number = 0.4,
-  strokeWidth: number = 2.0
+  coreScale = 0.4,
+  strokeWidth = 2.0
 ): void {
   if (!Skia) return;
   canvas.save();
@@ -167,14 +170,14 @@ export function drawGlowOrbSkia(
  * @public
  */
 export function drawSkiaBackgroundGrid(
-  canvas: any,
-  paint: any,
+  canvas: SkCanvas,
+  paint: SkPaint,
   width: number,
   height: number,
   tick: number,
-  gridSize: number = 40,
-  scrollSpeed: number = 0.3,
-  gridColorStr: string = "rgba(0, 240, 255, 0.04)",
+  gridSize = 40,
+  scrollSpeed = 0.3,
+  gridColorStr = "rgba(0, 240, 255, 0.04)",
   bgColorStr: string = colors.background
 ): void {
   if (!Skia) return;

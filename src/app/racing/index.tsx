@@ -156,6 +156,18 @@ export default function RacingScreen() {
               touchState={touchStateRef.current ?? undefined}
               target="paddle"
               mode="relative"
+              onDrag={(x, y, active) => {
+                if (touchStateRef.current) {
+                  if (active) {
+                    const steerX = Math.max(-1, Math.min(1, x / 60));
+                    touchStateRef.current.setMoveAxis(steerX, touchStateRef.current.moveY);
+                    input({ moveX: steerX });
+                  } else {
+                    touchStateRef.current.setMoveAxis(0, touchStateRef.current.moveY);
+                    input({ moveX: 0 });
+                  }
+                }
+              }}
               style={styles.controls}
             >
               <View style={styles.rightControlArea} pointerEvents="box-none">

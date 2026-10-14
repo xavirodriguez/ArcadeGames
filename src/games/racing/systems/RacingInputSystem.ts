@@ -23,15 +23,14 @@ export class RacingInputSystem extends System<RacingComponentRegistry, RacingEve
       let moveY = input.axes.moveY ?? 0;
 
       if (touchState) {
-        if (touchState.paddle.active) {
-          if (touchState.paddle.x < transform.x - 5) moveX = -1;
-          else if (touchState.paddle.x > transform.x + 5) moveX = 1;
-        } else if (touchState.moveX !== 0) {
+        if (touchState.moveX !== 0) {
           moveX = touchState.moveX;
         }
 
         if (touchState.getButton("thrust") || touchState.getButton("gas") || touchState.moveY < -0.2) {
           moveY = -1;
+        } else if (touchState.getButton("brake") || touchState.moveY > 0.2) {
+          moveY = 1;
         }
       }
 

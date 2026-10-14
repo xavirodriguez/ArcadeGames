@@ -68,9 +68,17 @@ function ArkanoidContent() {
   useKeyboardControls(game, isReady);
 
   const handleInputState = useCallback(
-    (input: Partial<{ left: boolean; right: boolean; launch: boolean }>) => {
-      handleInput(input);
-      game?.setInputState?.(input);
+    (input: Partial<{ left: boolean; right: boolean; launch: boolean; p1Launch?: boolean; p1Left?: boolean; p1Right?: boolean }>) => {
+      const fullInput = {
+        p1Left: Boolean(input.left ?? input.p1Left),
+        p1Right: Boolean(input.right ?? input.p1Right),
+        p1Launch: Boolean(input.launch ?? input.p1Launch),
+        launch: Boolean(input.launch ?? input.p1Launch),
+        left: Boolean(input.left ?? input.p1Left),
+        right: Boolean(input.right ?? input.p1Right),
+      };
+      handleInput(fullInput);
+      game?.setInputState?.(fullInput);
     },
     [handleInput, game]
   );

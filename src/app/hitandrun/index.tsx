@@ -35,6 +35,8 @@ function applyAimToPlayer(
     aimUp: boolean;
     aimDown: boolean;
     attack: boolean;
+    axisX?: number;
+    axisY?: number;
   }
 ) {
   const world = game.getWorld();
@@ -48,6 +50,8 @@ function applyAimToPlayer(
     moveRight: keys.moveRight,
     aimUp: keys.aimUp,
     aimDown: keys.aimDown,
+    axisX: keys.axisX,
+    axisY: keys.axisY,
     lastFacingX: transform?.scaleX ?? 1
   });
 
@@ -198,6 +202,8 @@ function HitAndRunContent() {
     aimUp?: boolean;
     aimDown?: boolean;
     pulse?: boolean;
+    axisX?: number;
+    axisY?: number;
   }) => {
     if (!game) return;
     game.setInputState(partial);
@@ -226,7 +232,9 @@ function HitAndRunContent() {
       moveRight: !!moveRight,
       aimUp: aimBag.up,
       aimDown: aimBag.down,
-      attack
+      attack,
+      axisX: partial.axisX,
+      axisY: partial.axisY,
     });
   };
 
@@ -327,16 +335,24 @@ function HitAndRunContent() {
               <TouchVirtualJoystick
                 floating={true}
                 onMove={(x, y) => {
-                  handleTouchLeft(x < -0.2);
-                  handleTouchRight(x > 0.2);
-                  handleTouchAimUp(y < -0.2);
-                  handleTouchAimDown(y > 0.2);
+                  pushTouch({
+                    moveLeft: x < -0.2,
+                    moveRight: x > 0.2,
+                    aimUp: y < -0.2,
+                    aimDown: y > 0.2,
+                    axisX: x,
+                    axisY: y,
+                  });
                 }}
                 onRelease={() => {
-                  handleTouchLeft(false);
-                  handleTouchRight(false);
-                  handleTouchAimUp(false);
-                  handleTouchAimDown(false);
+                  pushTouch({
+                    moveLeft: false,
+                    moveRight: false,
+                    aimUp: false,
+                    aimDown: false,
+                    axisX: 0,
+                    axisY: 0,
+                  });
                 }}
                 accessibilityLabel="Movement Joystick"
               />

@@ -1,4 +1,5 @@
 import { getForwardVector } from "./ForwardVector";
+import { rotateTowardsAngle } from "../../input/TouchInputUtils";
 
 /**
  * Pure function computing ship rotation, thrust acceleration, and friction decay.
@@ -21,7 +22,7 @@ import { getForwardVector } from "./ForwardVector";
 export function computeShipPhysics(
   transform: { rotation: number },
   velocity: { vx: number; vy: number },
-  input: { actions: Set<string> | string[] | Record<string, boolean>; axes: Record<string, number>; rotationAmount?: number; rotateLeft?: boolean; rotateRight?: boolean; thrust?: boolean },
+  input: { actions: Set<string> | string[] | Record<string, boolean>; axes: Record<string, number>; rotationAmount?: number; targetAngle?: number; rotateLeft?: boolean; rotateRight?: boolean; thrust?: boolean },
   config: { SHIP_THRUST: number; SHIP_ROTATION_SPEED: number; SHIP_FRICTION: number },
   deltaTimeSec: number
 ): { vx: number; vy: number; rotation: number } {
@@ -46,12 +47,16 @@ export function computeShipPhysics(
   const axes = input.axes || {};
 
   const rotationAmount = axes["rotate_x"] ?? axes["horizontal"] ?? input.rotationAmount;
+  const targetAngle = input.targetAngle ?? axes["target_angle"];
   const rotateLeft = actionsSet.has("rotateLeft") || input.rotateLeft === true;
   const rotateRight = actionsSet.has("rotateRight") || input.rotateRight === true;
   const thrust = actionsSet.has("thrust") || input.thrust === true;
 
   // 1. Rotation handling
-  if (rotationAmount !== undefined && rotationAmount !== 0) {
+  if (targetAngle !== undefined) {
+    const maxRotationStep = config.SHIP_ROTATION_SPEED * deltaTimeSec;
+    rotation = rotateTowardsAngle(rotation, targetAngle, maxRotationStep);
+  } else if (rotationAmount !== undefined && rotationAmount !== 0) {
     rotation += rotationAmount * config.SHIP_ROTATION_SPEED * deltaTimeSec;
   } else {
     if (rotateLeft) {

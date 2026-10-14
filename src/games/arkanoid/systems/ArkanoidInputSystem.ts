@@ -19,21 +19,21 @@ export class ArkanoidInputSystem extends System<ArkanoidComponentRegistry, Arkan
     const inputSys = world.getResource<any>("InputSystem") || world.getResource<any>("UnifiedInput");
     if (inputSys) {
       if (typeof inputSys.getAction === "function") {
-        leftInput = !!inputSys.getAction("p1Left");
-        rightInput = !!inputSys.getAction("p1Right");
-        launchInput = !!inputSys.getAction("p1Launch");
+        leftInput = !!inputSys.getAction("p1Left") || !!inputSys.getAction("left");
+        rightInput = !!inputSys.getAction("p1Right") || !!inputSys.getAction("right");
+        launchInput = !!inputSys.getAction("p1Launch") || !!inputSys.getAction("launch");
       } else if (typeof inputSys.isActionActive === "function") {
-        leftInput = !!inputSys.isActionActive("p1Left");
-        rightInput = !!inputSys.isActionActive("p1Right");
-        launchInput = !!inputSys.isActionActive("p1Launch");
+        leftInput = !!inputSys.isActionActive("p1Left") || !!inputSys.isActionActive("left");
+        rightInput = !!inputSys.isActionActive("p1Right") || !!inputSys.isActionActive("right");
+        launchInput = !!inputSys.isActionActive("p1Launch") || !!inputSys.isActionActive("launch");
       }
     }
 
     const touchState = world.getResource<TouchInputState>("TouchInputState");
     if (touchState) {
-      if (touchState.getButton("p1Left") || touchState.moveX < -0.2) leftInput = true;
-      if (touchState.getButton("p1Right") || touchState.moveX > 0.2) rightInput = true;
-      if (touchState.getButton("p1Launch") || touchState.consumeTaps().length > 0) launchInput = true;
+      if (touchState.getButton("p1Left") || touchState.getButton("left") || touchState.moveX < -0.2) leftInput = true;
+      if (touchState.getButton("p1Right") || touchState.getButton("right") || touchState.moveX > 0.2) rightInput = true;
+      if (touchState.getButton("p1Launch") || touchState.getButton("launch") || touchState.consumeTaps().length > 0) launchInput = true;
 
       const pEntity = paddleEntities[0];
       if (touchState.paddle.active && pEntity !== undefined) {
@@ -156,25 +156,18 @@ export class ArkanoidInputSystem extends System<ArkanoidComponentRegistry, Arkan
           const ballRadius = config.BALL_SIZE;
           clampedBallX = Math.max(ballRadius, Math.min(config.worldWidth - ballRadius, clampedBallX));
 
-          world.mutateComponent(ballEntity, "Transform", (t) => {
-            t.x = clampedBallX;
-            t.y = transform.y - config.PADDLE_HEIGHT / 2 - config.BALL_SIZE;
-            t.dirty = true;
-          });
-          world.mutateComponent(ballEntity, "Velocity", (v) => {
-            v.vx = 0;
-            v.vy = 0;
-          });
-
           if (launchInput) {
             world.mutateComponent(ballEntity, "Ball", (b) => {
               b.isAttached = false;
             });
             const pHalfW = (paddleComp.isExpanded ? config.PADDLE_WIDTH * 1.5 : config.PADDLE_WIDTH) / 2;
             const normOffset = Math.max(-0.9, Math.min(0.9, offsetX / pHalfW));
-            const angleOffset = normOffset * (Math.PI / 3) + currentVx * 0.001;
-            const baseAngle = -Math.PI / 2 + angleOffset;
-            const speed = ball.speed || config.BALL_SPEED_START;
+            // Clamp launch angle between -120° and -60° relative to horizontal
+            const rawAngleOffset = normOffset * (Math.PI / 6) + currentVx * 0.0005;
+            const clampedAngleOffset = Math.max(-Math.PI / 6, Math.min(Math.PI / 6, rawAngleOffset));
+            const baseAngle = -Math.PI / 2 + clampedAngleOffset;
+            let speed = ball.speed || config.BALL_SPEED_START;
+            if (!speed || isNaN(speed)) speed = config.BALL_SPEED_START;
 
             world.mutateComponent(ballEntity, "Velocity", (v) => {
               v.vx = Math.cos(baseAngle) * speed;
@@ -184,6 +177,16 @@ export class ArkanoidInputSystem extends System<ArkanoidComponentRegistry, Arkan
             if (eventBus && !world.isReSimulating) {
               eventBus.emitDeferred("PlaySFX", { name: "launch" });
             }
+          } else {
+            world.mutateComponent(ballEntity, "Transform", (t) => {
+              t.x = clampedBallX;
+              t.y = transform.y - config.PADDLE_HEIGHT / 2 - config.BALL_SIZE;
+              t.dirty = true;
+            });
+            world.mutateComponent(ballEntity, "Velocity", (v) => {
+              v.vx = 0;
+              v.vy = 0;
+            });
           }
         }
       }

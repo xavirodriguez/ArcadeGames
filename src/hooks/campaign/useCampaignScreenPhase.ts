@@ -73,3 +73,23 @@ export function deriveCampaignScreenPhase(params: {
 
   return { kind: "narrative_intro", node: currentNode };
 }
+
+/**
+ * Hook wrapping deriveCampaignScreenPhase to track active CampaignScreenPhase state.
+ *
+ * @param params - Runtime state parameters.
+ * @returns Derived CampaignScreenPhase object.
+ * @public
+ */
+export function useCampaignScreenPhase(params: {
+  isLoading: boolean;
+  isIntro: boolean;
+  loadError: { error: Error; gameId: string; seed?: number } | null;
+  currentNode: StoryNode | null;
+  activeGame: BaseGame | IGame | null;
+  targetGameId?: string;
+  introTitle?: string;
+  introEffect?: string;
+}): CampaignScreenPhase {
+  return deriveCampaignScreenPhase(params);
+}

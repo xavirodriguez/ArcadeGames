@@ -39,6 +39,7 @@ import { useKeyboardControls } from "../src/hooks/useKeyboardControls";
 import { CanvasRenderer } from "./CanvasRenderer";
 import { useStoryEventBridge } from "../src/hooks/campaign/useStoryEventBridge";
 import { useCampaignPersistence } from "../src/hooks/campaign/useCampaignPersistence";
+import { useCampaignScreenPhase } from "../src/hooks/campaign/useCampaignScreenPhase";
 import { NarrativeDashboard } from "../src/ui/narrative/NarrativeDashboard";
 import { applyEndingRewards } from "../src/games/shared/story/EndingRewards";
 import { DialogueBoxComponent } from "../src/components/ui/DialogueBoxComponent";
@@ -459,6 +460,18 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
     onError
   });
 
+  // Explicitly derive campaign execution phase for structured UI orchestration
+  const campaignPhase = useCampaignScreenPhase({
+    isLoading,
+    isIntro,
+    loadError,
+    currentNode,
+    activeGame,
+    targetGameId: activeGameIdRef.current || introConfigRef.current.gameId,
+    introTitle: introConfigRef.current.title,
+    introEffect: introConfigRef.current.introEffect
+  });
+
   // Cutscene or dialogue queue assembly
   const activeCutsceneQueue = currentNode?.type === "cutscene"
     ? currentNode.cutscene?.dialogueQueue
@@ -616,7 +629,7 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
       ) : null}
 
       {/* Loading Overlay */}
-      {isLoading && (
+      {campaignPhase.kind === "loading" && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color={colors.cyan} />
           <Text style={styles.loadingText}>{statusMessage}</Text>
@@ -624,22 +637,22 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
       )}
 
       {/* Minigame Intro Overlay */}
-      {isIntro && !isLoading && (
+      {campaignPhase.kind === "intro" && (
         <MinigameIntroOverlay
-          gameId={introConfigRef.current.gameId}
-          title={introConfigRef.current.title}
-          introEffect={introConfigRef.current.introEffect}
+          gameId={campaignPhase.targetGameId}
+          title={campaignPhase.title}
+          introEffect={campaignPhase.introEffect}
           onComplete={handleIntroComplete}
         />
       )}
 
       {/* Error Retry Overlay */}
-      {loadError && !isLoading && (
+      {campaignPhase.kind === "error" && (
         <View style={styles.errorOverlay}>
           <Text style={styles.errorTitle}>
             ⚠️ {getLocalizedText("campaign.error_loading") || "Error loading minigame"}
           </Text>
-          <Text style={styles.errorMessage}>{loadError.error.message}</Text>
+          <Text style={styles.errorMessage}>{campaignPhase.error.message}</Text>
           <NeonButton
             variant="pink"
             onPress={handleRetryMinigame}

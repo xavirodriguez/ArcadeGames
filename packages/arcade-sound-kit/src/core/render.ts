@@ -1,7 +1,7 @@
 import { SoundRecipe, GenerateOptions, LayerSpec, Wave } from './types';
 import { RNG } from './random';
 
-export const RENDER_VERSION = '0.2.0';
+export const RENDER_VERSION = '0.3.0';
 
 /** Default offline sample rate — half of CD audio, plenty for arcade SFX. */
 export const DEFAULT_SAMPLE_RATE = 22050;

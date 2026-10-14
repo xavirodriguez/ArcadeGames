@@ -1,5 +1,6 @@
-import { World, Entity, RenderComponent, TransformComponent, ShapeDrawer, ComponentRegistry } from "@tiny-aster/core";
+import { World, Entity, RenderComponent, TransformComponent, ShapeDrawer, ComponentRegistry, CoreComponentRegistry } from "@tiny-aster/core";
 import { Skia, getPaint } from "./SkiaContext";
+import type { SkCanvas, SkPaint } from "./SkiaContext";
 
 export interface SkiaShapeConfig {
   defaultSize: number;
@@ -12,19 +13,19 @@ export interface SkiaShapeConfig {
  * Higher-order factory function to generate zero-allocation Skia shape drawers.
  * @public
  */
-export function defineSkiaShape<TReg extends ComponentRegistry = ComponentRegistry>(
+export function defineSkiaShape<TReg extends ComponentRegistry = CoreComponentRegistry>(
   config: SkiaShapeConfig,
   drawPath: (
-    canvas: any,
-    paint: any,
+    canvas: SkCanvas,
+    paint: SkPaint,
     size: number,
     color: string,
     world: World<TReg>,
     entity: Entity
   ) => void
-): ShapeDrawer<any, TReg> {
+): ShapeDrawer<SkCanvas, TReg> {
   return {
-    draw(canvas, world, entity) {
+    draw(canvas: SkCanvas, world: World<TReg>, entity: Entity) {
       if (!ensureSkiaAvailable()) return;
 
       const render = getRenderGuard(world, entity);
@@ -34,6 +35,8 @@ export function defineSkiaShape<TReg extends ComponentRegistry = ComponentRegist
       const color = render.color ?? config.defaultColor ?? "#ffffff";
 
       const paint = getPaint();
+      if (!paint) return;
+
       canvas.save();
 
       paint.reset();
@@ -65,7 +68,7 @@ export function ensureSkiaAvailable(): boolean {
  * Returns the RenderComponent if present and visible and Skia is available, otherwise null.
  * @public
  */
-export function getVisibleSkiaRender<TRegistry extends Record<string, any> = Record<string, any>>(
+export function getVisibleSkiaRender<TRegistry extends ComponentRegistry = CoreComponentRegistry>(
   world: World<TRegistry>,
   entity: Entity
 ): RenderComponent | null {
@@ -80,7 +83,7 @@ export function getVisibleSkiaRender<TRegistry extends Record<string, any> = Rec
  * otherwise null. Works for Canvas rendering contexts.
  * @public
  */
-export function getVisibleCanvasRenderAndTransform<TRegistry extends Record<string, any> = Record<string, any>>(
+export function getVisibleCanvasRenderAndTransform<TRegistry extends ComponentRegistry = CoreComponentRegistry>(
   world: World<TRegistry>,
   entity: Entity
 ): { render: RenderComponent; transform: TransformComponent } | null {
@@ -98,7 +101,7 @@ export function getVisibleCanvasRenderAndTransform<TRegistry extends Record<stri
  * Agnostic of rendering context (works for Canvas2D and Skia).
  * @public
  */
-export function getRenderGuard<TRegistry extends Record<string, any> = Record<string, any>>(
+export function getRenderGuard<TRegistry extends ComponentRegistry = CoreComponentRegistry>(
   world: World<TRegistry>,
   entity: Entity
 ): RenderComponent | null {
@@ -113,7 +116,7 @@ export function getRenderGuard<TRegistry extends Record<string, any> = Record<st
  * Returns the TransformComponent if present on entity, otherwise null.
  * @public
  */
-export function getDrawableTransform<TRegistry extends Record<string, any> = Record<string, any>>(
+export function getDrawableTransform<TRegistry extends ComponentRegistry = CoreComponentRegistry>(
   world: World<TRegistry>,
   entity: Entity
 ): TransformComponent | null {
@@ -126,10 +129,10 @@ export function getDrawableTransform<TRegistry extends Record<string, any> = Rec
  * Also retrieves size and color from the render component or returns default values.
  * @public
  */
-export function getDrawable<TRegistry extends Record<string, any>>(
+export function getDrawable<TRegistry extends ComponentRegistry = CoreComponentRegistry>(
   world: World<TRegistry>,
   entity: Entity,
-  defaultSize: number = 10,
+  defaultSize = 10,
   defaultColor?: string
 ): { render: RenderComponent; size: number; color: string } | null {
   const render = getRenderGuard(world, entity);

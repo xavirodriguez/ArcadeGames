@@ -4,7 +4,7 @@ import { EnemyTagComponent } from "../components/EnemyTagComponent";
 import { resolveHitFlash, HitFlashState } from "../../shared/rendering/RenderUtils";
 import { colors } from "../../../theme/colors";
 import { computeSinePulse } from "./shared/SpaceInvadersPulseUtils";
-import { calculateBulletProximity, calculateBossPhase, calculateBossVibrato, calculateParticleHeatColor, calculateShieldHpRatio } from "../../shared/rendering/spaceInvadersMath";
+import { calculateBulletProximity, calculateBossPhase, calculateBossVibrato, calculateParticleHeatColor, calculateShieldHpRatio, calculateShieldCrackCoords } from "../../shared/rendering/spaceInvadersMath";
 import { CircularPositionBuffer } from "../../shared/rendering/SharedVFX";
 
 export type { HitFlashState };
@@ -411,6 +411,20 @@ export function computeBossHullPoints(s: number): [number, number][] {
     [-s * 10, -s * 2],
     [-s * 4, -s * 4],
   ];
+}
+
+export function getOrComputeShieldCrackCoords(
+  cacheMap: WeakMap<RenderComponent, { x1: number; y1: number; x2: number; y2: number; x3: number; y3: number; x4: number; y4: number }>,
+  render: RenderComponent,
+  entity: number,
+  size: number
+) {
+  let coords = cacheMap.get(render);
+  if (!coords) {
+    coords = calculateShieldCrackCoords(entity, size);
+    cacheMap.set(render, coords);
+  }
+  return coords;
 }
 
 export function resolveExplosionParticleData(p: {

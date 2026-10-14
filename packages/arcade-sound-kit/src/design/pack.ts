@@ -7,6 +7,8 @@ import {
   whoosh,
   subBoom,
   chord,
+  arp,
+  sequence,
 } from '../effects/primitives';
 import { SoundRecipe } from '../core/types';
 
@@ -312,6 +314,23 @@ export function arcadePack(): SoundRecipe[] {
       ],
       { tags: ['reward', 'special'] }
     ),
+    d(
+      'level_up_jingle',
+      'progression',
+      0.4,
+      [
+        sequence(
+          [
+            { frequency: 523.25, stepDuration: 0.08, envelope: { attack: 0.002, decay: 0.06 } },
+            { frequency: 659.25, stepDuration: 0.08, envelope: { attack: 0.002, decay: 0.06 } },
+            { frequency: 783.99, stepDuration: 0.08, envelope: { attack: 0.002, decay: 0.06 } },
+            { frequency: 1046.50, stepDuration: 0.16, envelope: { attack: 0.002, decay: 0.14 } },
+          ],
+          { wave: 'triangle', level: -8 }
+        ),
+      ],
+      { tags: ['reward', 'jingle'] }
+    ),
 
     // ── UI / Game state ─────────────────────────────────────
     d(
@@ -360,6 +379,23 @@ export function arcadePack(): SoundRecipe[] {
       0.22,
       [chord([330, 415, 523], { level: -12, duration: 0.15 })],
       { tags: ['ui'] }
+    ),
+    d(
+      'game_over_jingle',
+      'ui',
+      0.6,
+      [
+        sequence(
+          [
+            { frequency: 329.63, stepDuration: 0.12, envelope: { attack: 0.005, decay: 0.1 } },
+            { frequency: 261.63, stepDuration: 0.12, envelope: { attack: 0.005, decay: 0.1 } },
+            { frequency: 220.00, stepDuration: 0.12, envelope: { attack: 0.005, decay: 0.1 } },
+            { frequency: 174.61, stepDuration: 0.24, envelope: { attack: 0.005, decay: 0.22 } },
+          ],
+          { wave: 'sawtooth', level: -10 }
+        ),
+      ],
+      { tags: ['state', 'jingle'] }
     ),
   ];
 }

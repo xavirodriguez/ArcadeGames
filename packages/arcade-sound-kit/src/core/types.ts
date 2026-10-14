@@ -23,8 +23,19 @@ export type Variation = {
   duration?: number;
 };
 
+export interface SequenceNote {
+  /** Frequency in Hz. */
+  frequency: number;
+  /** Duration of this step in seconds. */
+  stepDuration: number;
+  /** Optional level offset in dB for this note. */
+  level?: number;
+  /** Optional envelope for this specific note. */
+  envelope?: Envelope;
+}
+
 export interface LayerSpec {
-  kind: 'tone' | 'noise' | 'click' | 'zap' | 'whoosh' | 'subBoom' | 'chord';
+  kind: 'tone' | 'noise' | 'click' | 'zap' | 'whoosh' | 'subBoom' | 'chord' | 'sequence';
   level?: number;
   start?: number;
   duration?: number;
@@ -32,6 +43,8 @@ export interface LayerSpec {
   frequency?: number;
   pitch?: PitchCurve;
   frequencies?: number[];
+  notes?: SequenceNote[];
+  loopCount?: number;
   envelope?: Envelope;
   filter?: FilterSpec;
   /** Optional FM-ish harmonicity hint (future use) */
@@ -74,6 +87,10 @@ export interface GenerateOptions {
   sampleRate?: number;
   seed?: number;
   normalize?: boolean;
+  /** Target loudness in dBFS RMS measured over active samples (|x| >= 0.001). */
+  targetRmsDb?: number;
+  /** Maximum allowable peak level in dBFS when targetRmsDb is set (default -1). */
+  peakCeilingDb?: number;
   peakDb?: number;
   /** Apply light saturation / soft clip on the master. */
   arcadeColor?: boolean;
@@ -81,6 +98,8 @@ export interface GenerateOptions {
   variants?: number;
   /** Write a manifest.json next to the sounds. */
   manifest?: boolean;
+  /** Bypass cache if true. */
+  force?: boolean;
   /** WAV bit depth: 16 (default, smaller) or 32 (float). */
   bitDepth?: 16 | 32;
   /** Optional progress callback (used by the CLI for live status). */
@@ -95,6 +114,9 @@ export interface ManifestEntry {
   tags: string[];
   file: string;
   variants?: number;
+  hash?: string;
+  gainDb?: number;
+  limitedByPeak?: boolean;
 }
 
 export interface SoundManifest {

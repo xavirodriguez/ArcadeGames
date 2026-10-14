@@ -1,5 +1,7 @@
 export * from "./combat";
 export * from "./spawn";
+export * from "./spawn/EntityBlueprintSchema";
+export * from "./spawn/BlueprintInterpreter";
 export * from "./arcade";
 export * from "./types/CollisionLayers";
 export * from "./pooling/ProjectilePoolConfig";

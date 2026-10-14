@@ -4394,6 +4394,9 @@ export function resolveThemeColorWithFallback<TRole extends string = GameRoleKey
 export function resolveTransitionEffect(effect?: string | ITransitionEffect): ITransitionEffect | undefined;
 
 // @public
+export function resolveVehicleWaypointSteering(world: World<any>, entity: number, minPositiveThrottle?: number): VehicleWaypointSteeringContext | null;
+
+// @public
 export function resolveViewportDimensions(gameConfig?: {
     worldWidth?: number;
     worldHeight?: number;
@@ -5837,6 +5840,22 @@ export interface VehicleWaypointNode {
     x: number;
     // (undocumented)
     y: number;
+}
+
+// @public (undocumented)
+export interface VehicleWaypointSteeringContext {
+    // (undocumented)
+    steerRes: SteerWaypointResult;
+    // (undocumented)
+    transform: {
+        x: number;
+        y: number;
+        rotation?: number;
+    };
+    // (undocumented)
+    vehicle: VehicleSteeringComponent;
+    // (undocumented)
+    waypointsComp: VehicleWaypointComponent;
 }
 
 // @public

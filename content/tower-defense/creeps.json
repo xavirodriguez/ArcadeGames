@@ -1,0 +1,5 @@
+[
+  { "id": "grunt", "name": "Grunt", "hp": 40, "speed": 60, "reward": 10, "size": 12 },
+  { "id": "fast", "name": "Scout", "hp": 25, "speed": 110, "reward": 15, "size": 10 },
+  { "id": "tank", "name": "Tank", "hp": 120, "speed": 35, "reward": 30, "size": 18 }
+]

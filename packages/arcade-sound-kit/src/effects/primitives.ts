@@ -1,4 +1,4 @@
-import { LayerSpec, Wave, Envelope } from '../core/types';
+import { LayerSpec, Wave, Envelope, SequenceNote } from '../core/types';
 
 const env = (e: Envelope = {}): Envelope => ({
   attack: 0.005,
@@ -128,3 +128,42 @@ export const chord = (
   wave: o.wave ?? 'sine',
   envelope: env({ decay: o.duration ?? 0.15 }),
 });
+
+export const sequence = (
+  notes: SequenceNote[],
+  o: {
+    wave?: Wave;
+    level?: number;
+    loopCount?: number;
+    envelope?: Envelope;
+  } = {}
+): LayerSpec => {
+  const totalDur = notes.reduce((sum, n) => sum + n.stepDuration, 0) * (o.loopCount ?? 1);
+  return {
+    kind: 'sequence',
+    wave: o.wave ?? 'triangle',
+    level: o.level ?? -8,
+    duration: totalDur,
+    notes,
+    loopCount: o.loopCount,
+    envelope: o.envelope,
+  };
+};
+
+export const arp = (
+  frequencies: number[],
+  stepDuration: number,
+  o: {
+    wave?: Wave;
+    level?: number;
+    loopCount?: number;
+    noteEnvelope?: Envelope;
+  } = {}
+): LayerSpec => {
+  const notes: SequenceNote[] = frequencies.map((freq) => ({
+    frequency: freq,
+    stepDuration,
+    envelope: o.noteEnvelope,
+  }));
+  return sequence(notes, o);
+};

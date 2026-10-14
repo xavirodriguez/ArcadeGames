@@ -1,8 +1,98 @@
 import { SoundRecipe, GenerateOptions, LayerSpec, Wave } from './types';
 import { RNG } from './random';
 
+export const RENDER_VERSION = '0.2.0';
+
 /** Default offline sample rate — half of CD audio, plenty for arcade SFX. */
 export const DEFAULT_SAMPLE_RATE = 22050;
+
+export interface NormalizationResult {
+  gainDb: number;
+  limitedByPeak: boolean;
+}
+
+/**
+ * Calculates RMS over active region (|x| >= 0.001 / -60 dBFS).
+ * Returns RMS in linear scale float [0, 1].
+ */
+export function computeActiveRms(samples: Float32Array): number {
+  const ACTIVE_THRESHOLD = 0.001;
+  let first = -1;
+  let last = -1;
+
+  for (let i = 0; i < samples.length; i++) {
+    if (Math.abs(samples[i]) >= ACTIVE_THRESHOLD) {
+      if (first === -1) first = i;
+      last = i;
+    }
+  }
+
+  if (first === -1) return 0;
+
+  let sumSq = 0;
+  for (let i = first; i <= last; i++) {
+    sumSq += samples[i] * samples[i];
+  }
+
+  const count = last - first + 1;
+  return Math.sqrt(sumSq / count);
+}
+
+/**
+ * Normalizes Float32Array samples in-place to targetRmsDb.
+ * Resets gain if peak would exceed peakCeilingDb (-1 dBFS by default).
+ */
+export function applyLoudnessNormalization(
+  samples: Float32Array,
+  targetRmsDb?: number,
+  peakCeilingDb = -1
+): NormalizationResult {
+  if (targetRmsDb === undefined) {
+    return { gainDb: 0, limitedByPeak: false };
+  }
+
+  const targetLinear = Math.pow(10, targetRmsDb / 20);
+  const ceilingLinear = Math.pow(10, peakCeilingDb / 20);
+
+  let totalGain = 1.0;
+  let limitedByPeak = false;
+
+  for (let iter = 0; iter < 3; iter++) {
+    const rms = computeActiveRms(samples);
+    if (rms === 0 || !Number.isFinite(rms)) break;
+
+    const desiredStepGain = targetLinear / rms;
+    let stepGain = desiredStepGain;
+
+    let peak = 0;
+    for (let i = 0; i < samples.length; i++) {
+      const absX = Math.abs(samples[i]);
+      if (absX > peak) peak = absX;
+    }
+
+    const maxStepGain = peak > 0 ? ceilingLinear / peak : Infinity;
+    if (stepGain > maxStepGain) {
+      stepGain = maxStepGain;
+      limitedByPeak = true;
+    }
+
+    for (let i = 0; i < samples.length; i++) {
+      samples[i] *= stepGain;
+    }
+
+    totalGain *= stepGain;
+
+    if (limitedByPeak || Math.abs(20 * Math.log10(desiredStepGain)) < 0.001) {
+      break;
+    }
+  }
+
+  const gainDb = 20 * Math.log10(totalGain);
+  return {
+    gainDb: Number.isFinite(gainDb) ? gainDb : 0,
+    limitedByPeak,
+  };
+}
 
 function dbToLinear(db: number): number {
   return Math.pow(10, db / 20);
@@ -172,7 +262,7 @@ export async function render(
   );
   const duration = recipe.loop ? Math.max(baseDuration, 0.35) : baseDuration;
 
-  const totalSamples = Math.ceil(duration * sampleRate);
+  const totalSamples = Math.round(duration * sampleRate);
   let samples = new Float32Array(totalSamples);
 
   for (const original of recipe.layers) {
@@ -229,6 +319,44 @@ export async function render(
         const filtered = filter.process(n);
         const env = computeEnvelope(tRel, attack, decay, sustain, release, dur);
         samples[i] += filtered * env * gainLinear;
+      }
+      continue;
+    }
+
+    if (l.kind === 'sequence' && l.notes && l.notes.length > 0) {
+      const wave = l.wave ?? 'triangle';
+      const loopCount = Math.max(1, l.loopCount ?? 1);
+      let currentTime = at;
+
+      for (let rep = 0; rep < loopCount; rep++) {
+        for (const note of l.notes) {
+          const hz = Math.max(10, Math.min(note.frequency * pitchJitter, sampleRate / 2 - 10));
+          const noteDur = Math.max(0.001, note.stepDuration * durJitter);
+          const noteGainDb = levelVal + (note.level ?? 0);
+          const noteGainLinear = dbToLinear(noteGainDb);
+
+          const noteAttack = note.envelope?.attack ?? l.envelope?.attack ?? 0.002;
+          const noteDecay = note.envelope?.decay ?? l.envelope?.decay ?? (noteDur * 0.8);
+          const noteSustain = note.envelope?.sustain ?? l.envelope?.sustain ?? 0;
+          const noteRelease = note.envelope?.release ?? l.envelope?.release ?? (noteDur * 0.2);
+
+          const noteStartSample = Math.floor(currentTime * sampleRate);
+          const noteEndSample = Math.min(
+            samples.length,
+            Math.floor((currentTime + noteDur + noteRelease) * sampleRate)
+          );
+
+          let phase = 0;
+          for (let i = noteStartSample; i < noteEndSample; i++) {
+            const tRel = (i - noteStartSample) / sampleRate;
+            phase = (phase + hz / sampleRate) % 1;
+            const osc = evalWave(wave, phase);
+            const env = computeEnvelope(tRel, noteAttack, noteDecay, noteSustain, noteRelease, noteDur);
+            samples[i] += osc * env * noteGainLinear;
+          }
+
+          currentTime += noteDur;
+        }
       }
       continue;
     }

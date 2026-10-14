@@ -3,6 +3,28 @@ import { World } from "../ecs/World";
 import { VisualOffsetComponent, RenderComponent, CoreComponentRegistry } from "../ecs/CoreComponents";
 
 /**
+ * Helper to safely extract a numeric property from a generic object without `any` or `unknown`.
+ */
+function getNumericProperty<T extends object>(obj: T, prop: string): number {
+    if (prop in obj) {
+        const val = Reflect.get(obj, prop);
+        if (typeof val === "number") {
+            return val;
+        }
+    }
+    return 0;
+}
+
+/**
+ * Helper to safely assign a numeric property onto a generic object without `any` or `unknown`.
+ */
+function setNumericProperty<T extends object>(obj: T, prop: string, value: number): void {
+    if (prop in obj) {
+        Reflect.set(obj, prop, value);
+    }
+}
+
+/**
  * System that manages procedural "juice" visual animations (e.g., scale bounces, hit flashes, visual offsets).
  *
  * @remarks
@@ -81,19 +103,22 @@ export class JuiceSystem extends System<CoreComponentRegistry> {
         render?: import("../index").DeepReadonly<RenderComponent>
     ): number {
         if (componentType) {
-            const comp = world.getComponent(entity, componentType as any);
-            if (comp) {
-                return (comp as unknown as Record<string, number>)[prop] ?? 0;
+            const registryKey = componentType as Extract<keyof CoreComponentRegistry, string>;
+            if (world.hasComponent(entity, registryKey)) {
+                const comp = world.getComponent(entity, registryKey);
+                if (comp && typeof comp === "object") {
+                    return getNumericProperty(comp, prop);
+                }
             }
             return 0;
         }
 
         if (offset && (prop === "offsetX" || prop === "offsetY" || prop === "x" || prop === "y" || prop === "scaleX" || prop === "scaleY")) {
             const key = (prop === "x" || prop === "y") ? (prop === "x" ? "offsetX" : "offsetY") : prop;
-            return (offset as unknown as Record<string, number>)[key] ?? 0;
+            return getNumericProperty(offset, key);
         }
         if (render && (prop === "opacity" || prop === "rotation")) {
-            return (render as unknown as Record<string, number>)[prop] ?? 0;
+            return getNumericProperty(render, prop);
         }
         return 0;
     }
@@ -106,41 +131,44 @@ export class JuiceSystem extends System<CoreComponentRegistry> {
         componentType?: string
     ): void {
         if (componentType) {
-            const comp = world.getComponent(entity, componentType as any);
-            if (comp) {
-                const currentVal = (comp as unknown as Record<string, number>)[prop] ?? 0;
-                if (Math.abs(currentVal - value) > 0.0001) {
-                    const mutComp = world.getMutableComponent(entity, componentType as any);
-                    if (mutComp) {
-                        (mutComp as unknown as Record<string, number>)[prop] = value;
+            const registryKey = componentType as Extract<keyof CoreComponentRegistry, string>;
+            if (world.hasComponent(entity, registryKey)) {
+                const comp = world.getComponent(entity, registryKey);
+                if (comp && typeof comp === "object") {
+                    const currentVal = getNumericProperty(comp, prop);
+                    if (Math.abs(currentVal - value) > 0.0001) {
+                        const mutComp = world.getMutableComponent(entity, registryKey);
+                        if (mutComp && typeof mutComp === "object") {
+                            setNumericProperty(mutComp, prop, value);
+                        }
                     }
                 }
             }
             return;
         }
 
-        if (prop === "scaleX" || prop === "scaleY" || prop === "x" || prop === "y") {
+        if (prop === "scaleX" || prop === "scaleY" || prop === "x" || prop === "y" || prop === "offsetX" || prop === "offsetY") {
             const key = (prop === "x" || prop === "y") ? (prop === "x" ? "offsetX" : "offsetY") : prop;
             const currentOffset = world.getComponent(entity, "VisualOffset");
             if (currentOffset) {
-                const currentVal = (currentOffset as unknown as Record<string, number>)[key] ?? 0;
+                const currentVal = getNumericProperty(currentOffset, key);
                 // Safe for determinism/rollback. Gate mutable access on actual value change to prevent unnecessary stateVersion increments.
                 if (Math.abs(currentVal - value) > 0.0001) {
-                    const o = world.getMutableComponent(entity, "VisualOffset");
-                    if (o) {
-                        (o as unknown as Record<string, number>)[key] = value;
+                    const mutOffset = world.getMutableComponent(entity, "VisualOffset");
+                    if (mutOffset) {
+                        setNumericProperty(mutOffset, key, value);
                     }
                 }
             }
         } else if (prop === "opacity" || prop === "rotation") {
             const currentRender = world.getComponent(entity, "Render");
             if (currentRender) {
-                const currentVal = (currentRender as unknown as Record<string, number>)[prop] ?? 0;
+                const currentVal = getNumericProperty(currentRender, prop);
                 // Safe for determinism/rollback. Gate mutable access on actual value change to prevent unnecessary stateVersion increments.
                 if (Math.abs(currentVal - value) > 0.0001) {
-                    const r = world.getMutableComponent(entity, "Render");
-                    if (r) {
-                        (r as unknown as Record<string, number>)[prop] = value;
+                    const mutRender = world.getMutableComponent(entity, "Render");
+                    if (mutRender) {
+                        setNumericProperty(mutRender, prop, value);
                     }
                 }
             }

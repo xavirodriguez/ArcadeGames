@@ -45,10 +45,20 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
             axes: input.axes,
           };
           if (touchState) {
-            if (touchState.moveX !== 0) {
+            if (touchState.moveY !== 0) {
+              const dist = Math.hypot(touchState.moveX, touchState.moveY);
+              if (dist > 0.15) {
+                effectiveInput.targetAngle = Math.atan2(touchState.moveY, touchState.moveX);
+                if (touchState.moveY < -0.25 || dist > 0.5 || touchState.getButton("thrust")) {
+                  effectiveInput.thrust = true;
+                }
+              }
+            } else if (touchState.moveX !== 0) {
               effectiveInput.rotationAmount = touchState.moveX;
-            }
-            if (touchState.moveY < -0.25 || touchState.getButton("thrust")) {
+              if (touchState.getButton("thrust")) {
+                effectiveInput.thrust = true;
+              }
+            } else if (touchState.getButton("thrust")) {
               effectiveInput.thrust = true;
             }
           }

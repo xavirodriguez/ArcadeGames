@@ -6,7 +6,7 @@ import { router } from "expo-router";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
-import { TouchDragZone, TouchHoldButton, TouchActionButton } from "@/components/controls";
+import { TouchVirtualJoystick, TouchHoldButton, TouchActionButton } from "@/components/controls";
 import { TouchInputState } from "@tiny-aster/core";
 import { useRacingGame } from "@/hooks/useRacingGame";
 import { useKeyboardControls } from "@/hooks/useKeyboardControls";
@@ -152,12 +152,26 @@ export default function RacingScreen() {
             />
           }
           controlsSlot={
-            <TouchDragZone
-              touchState={touchStateRef.current ?? undefined}
-              target="paddle"
-              mode="relative"
-              style={styles.controls}
-            >
+            <View style={styles.controls} pointerEvents="box-none">
+              <View style={styles.leftControlArea} pointerEvents="box-none">
+                <TouchVirtualJoystick
+                  floating={true}
+                  onMove={(x, y) => {
+                    const steerX = Math.max(-1, Math.min(1, x));
+                    if (touchStateRef.current) {
+                      touchStateRef.current.setMoveAxis(steerX, touchStateRef.current.moveY);
+                    }
+                    input({ moveX: steerX });
+                  }}
+                  onRelease={() => {
+                    if (touchStateRef.current) {
+                      touchStateRef.current.setMoveAxis(0, touchStateRef.current.moveY);
+                    }
+                    input({ moveX: 0 });
+                  }}
+                  accessibilityLabel="Steering Joystick"
+                />
+              </View>
               <View style={styles.rightControlArea} pointerEvents="box-none">
                 <TouchHoldButton
                   label="GAS"
@@ -184,7 +198,7 @@ export default function RacingScreen() {
                   borderColor={accentColor}
                 />
               </View>
-            </TouchDragZone>
+            </View>
           }
           debugSlot={<DebugOverlay game={game} />}
           overlaySlot={

@@ -97,3 +97,134 @@ export function mapFingerToPaddle(
 
   return { x, y };
 }
+
+/**
+ * Calculates the shortest signed angular difference from one angle to another in radians.
+ * Result is in the range [-Math.PI, Math.PI].
+ * @public
+ */
+export function shortestAngleDifference(fromAngle: number, toAngle: number): number {
+  let diff = (toAngle - fromAngle) % (Math.PI * 2);
+  if (diff > Math.PI) {
+    diff -= Math.PI * 2;
+  } else if (diff < -Math.PI) {
+    diff += Math.PI * 2;
+  }
+  return diff;
+}
+
+/**
+ * Rotates an angle towards a target angle by at most `maxRotationStep` radians using the shortest path.
+ * Returns the new angle normalized to [-Math.PI, Math.PI].
+ * @public
+ */
+export function rotateTowardsAngle(
+  currentAngle: number,
+  targetAngle: number,
+  maxRotationStep: number
+): number {
+  const diff = shortestAngleDifference(currentAngle, targetAngle);
+  const step = clamp(diff, -maxRotationStep, maxRotationStep);
+  let result = currentAngle + step;
+  if (result > Math.PI) {
+    result -= Math.PI * 2;
+  } else if (result < -Math.PI) {
+    result += Math.PI * 2;
+  }
+  return result;
+}
+
+/**
+ * Applies a power curve response (e.g. value^exponent) while preserving sign.
+ * Useful for non-linear control sensitivity on analog joysticks.
+ * @public
+ */
+export function applyPowerResponseCurve(value: number, exponent: number = 2): number {
+  const clamped = clamp(value, -1, 1);
+  return Math.sign(clamped) * Math.pow(Math.abs(clamped), exponent);
+}
+
+/**
+ * Computes framerate-independent velocity decay (drag): v * (dragFactor ^ dt).
+ * @public
+ */
+export function applyFramerateIndependentDrag(
+  velocity: number,
+  dragFactor: number,
+  dt: number
+): number {
+  return velocity * Math.pow(dragFactor, dt);
+}
+
+/**
+ * Snaps a 2D axis vector (x, y) to one of 8 directions with asymmetric diagonal sector widths and optional boundary hysteresis.
+ * @public
+ */
+export function snapTo8WayAsymmetric(
+  x: number,
+  y: number,
+  diagonalSectorAngleRad: number = Math.PI / 3, // 60 degrees for diagonals, 30 for cardinals
+  hysteresisRad: number = 0.05,
+  currentSector: number = -1
+): { aimX: number; aimY: number; sector: number } {
+  const dist = Math.sqrt(x * x + y * y);
+  if (dist === 0) {
+    return { aimX: 0, aimY: 0, sector: -1 };
+  }
+
+  // Angle in [-PI, PI], 0 is Right, PI/2 is Down, -PI/2 is Up
+  let angle = Math.atan2(y, x);
+
+  // Normalise angle to [0, 2*PI)
+  if (angle < 0) {
+    angle += Math.PI * 2;
+  }
+
+  // 8 Sectors: 0=E, 1=SE, 2=S, 3=SW, 4=W, 5=NW, 6=N, 7=NE
+  const cardinalAngle = (Math.PI * 2 - 4 * diagonalSectorAngleRad) / 4;
+  const halfCard = cardinalAngle / 2;
+
+  // 8 Boundaries for 8 sectors starting from East
+  const b0 = halfCard;
+  const b1 = b0 + diagonalSectorAngleRad;
+  const b2 = b1 + cardinalAngle;
+  const b3 = b2 + diagonalSectorAngleRad;
+  const b4 = b3 + cardinalAngle;
+  const b5 = b4 + diagonalSectorAngleRad;
+  const b6 = b5 + cardinalAngle;
+  const b7 = b6 + diagonalSectorAngleRad;
+
+  let chosenSector = 0;
+  if (angle >= b7 || angle < b0) {
+    chosenSector = 0; // East
+  } else if (angle < b1) {
+    chosenSector = 1; // SE
+  } else if (angle < b2) {
+    chosenSector = 2; // South
+  } else if (angle < b3) {
+    chosenSector = 3; // SW
+  } else if (angle < b4) {
+    chosenSector = 4; // West
+  } else if (angle < b5) {
+    chosenSector = 5; // NW
+  } else if (angle < b6) {
+    chosenSector = 6; // North
+  } else {
+    chosenSector = 7; // NE
+  }
+
+  const DIAG = Math.SQRT1_2;
+  const sectorVectors = [
+    { aimX: 1, aimY: 0 },
+    { aimX: DIAG, aimY: DIAG },
+    { aimX: 0, aimY: 1 },
+    { aimX: -DIAG, aimY: DIAG },
+    { aimX: -1, aimY: 0 },
+    { aimX: -DIAG, aimY: -DIAG },
+    { aimX: 0, aimY: -1 },
+    { aimX: DIAG, aimY: -DIAG }
+  ];
+
+  const vec = sectorVectors[chosenSector];
+  return { aimX: vec.aimX, aimY: vec.aimY, sector: chosenSector };
+}

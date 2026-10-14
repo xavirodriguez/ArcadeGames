@@ -83,7 +83,13 @@ export function applyDeadzone2D(x: number, y: number, deadzone: number): {
 };
 
 // @public
+export function applyFramerateIndependentDrag(velocity: number, dragFactor: number, dt: number): number;
+
+// @public
 export function applyInputFrameToEntity<TComponents extends ComponentRegistry = ComponentRegistry>(world: World<TComponents>, entityId: number, input: Pick<InputFrame, "actions" | "axes">): void;
+
+// @public
+export function applyPowerResponseCurve(value: number, exponent?: number): number;
 
 // @public
 export function applyServerState<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends Record<string, unknown> = Record<string, unknown>, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, networkManager: NetworkManager<TComponents>, descriptors: EntitySyncDescriptor<Record<string, unknown>, unknown, TComponents, any, any>[], state: Record<string, unknown>, entries: InterpolationSnapshotEntry[], localSessionId?: string): void;
@@ -1110,6 +1116,7 @@ export function computeShipPhysics(transform: {
     actions: Set<string> | string[] | Record<string, boolean>;
     axes: Record<string, number>;
     rotationAmount?: number;
+    targetAngle?: number;
     rotateLeft?: boolean;
     rotateRight?: boolean;
     thrust?: boolean;
@@ -4491,6 +4498,9 @@ export class RollbackSimulation {
 }
 
 // @public
+export function rotateTowardsAngle(currentAngle: number, targetAngle: number, maxRotationStep: number): number;
+
+// @public
 export interface RunState {
     activeCheckpoint: string | null;
     attempt: number;
@@ -4758,6 +4768,9 @@ export interface ShootJuiceConfig {
 }
 
 // @public
+export function shortestAngleDifference(fromAngle: number, toAngle: number): number;
+
+// @public
 export interface Simulation {
     applyServerStateUpdate?(update: WorldSnapshot | {
         resources?: Record<string, unknown>;
@@ -4812,6 +4825,14 @@ export class SnapshotSerializer {
 export class SnapshotSerializerSoA {
     static snapshot<TComponents extends ComponentRegistry>(world: World<TComponents>): SoAWorldSnapshot;
 }
+
+// @public
+export function snapTo8WayAsymmetric(x: number, y: number, diagonalSectorAngleRad?: number, // 60 degrees for diagonals, 30 for cardinals
+hysteresisRad?: number, currentSector?: number): {
+    aimX: number;
+    aimY: number;
+    sector: number;
+};
 
 // @public
 export interface SoAComponentBlock {

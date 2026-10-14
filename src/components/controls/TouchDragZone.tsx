@@ -2,7 +2,7 @@ import React from "react";
 import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { TouchInputState, mapFingerToPaddle } from "@tiny-aster/core";
-import Animated, { useSharedValue } from "react-native-reanimated";
+import Animated, { useSharedValue, runOnJS } from "react-native-reanimated";
 import { useGestureHandlerRootViewCheck } from "./useGestureHandlerRootViewCheck";
 
 export interface TouchDragZoneProps {
@@ -42,6 +42,13 @@ export function TouchDragZone({
   const startY = useSharedValue(0);
   const currentX = useSharedValue(0);
   const currentY = useSharedValue(0);
+  const startTime = useSharedValue(0);
+
+  const handleTapDetected = (x: number, y: number) => {
+    if (touchState) {
+      touchState.pushTap({ x, y, timestamp: Date.now() });
+    }
+  };
 
   const updatePosition = (rawX: number, rawY: number, active: boolean) => {
     let finalX = rawX;
@@ -80,6 +87,7 @@ export function TouchDragZone({
   panGesture = panGesture
     .onBegin((e) => {
       'worklet';
+      startTime.value = Date.now();
       if (mode === "relative") {
         startX.value = e.x;
         startY.value = e.y;
@@ -104,6 +112,15 @@ export function TouchDragZone({
     })
     .onFinalize(() => {
       'worklet';
+      const duration = Date.now() - startTime.value;
+      const dx = currentX.value - startX.value;
+      const dy = currentY.value - startY.value;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (duration < 250 && dist < 10) {
+        runOnJS(handleTapDetected)(currentX.value, currentY.value);
+      }
+
       updatePosition(currentX.value, currentY.value, false);
     });
 

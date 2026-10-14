@@ -6,6 +6,8 @@
  * - No aim keys → last facing on X, Y=0
  */
 
+import { snapTo8WayAsymmetric } from "@tiny-aster/core";
+
 const DIAG = Math.SQRT1_2; // ≈ 0.707
 
 export interface AimAxes {
@@ -18,9 +20,19 @@ export function resolveHitRunAim(opts: {
   moveRight: boolean;
   aimUp: boolean;
   aimDown: boolean;
+  axisX?: number;
+  axisY?: number;
   /** Fallback when no direction keys (usually transform.scaleX). */
   lastFacingX?: number;
 }): AimAxes {
+  if (opts.axisX !== undefined && opts.axisY !== undefined) {
+    const dist = Math.hypot(opts.axisX, opts.axisY);
+    if (dist > 0.2) {
+      const snapped = snapTo8WayAsymmetric(opts.axisX, opts.axisY, Math.PI / 3);
+      return { aimX: snapped.aimX, aimY: snapped.aimY };
+    }
+  }
+
   let x = 0;
   let y = 0;
 
@@ -30,9 +42,6 @@ export function resolveHitRunAim(opts: {
   if (opts.aimUp && !opts.aimDown) y = -1;
   else if (opts.aimDown && !opts.aimUp) y = 1;
 
-  // No horizontal from move: pure vertical aims stay (0, ±1)
-  // No vertical: pure horizontal
-  // Both: 45° diagonal
   if (x !== 0 && y !== 0) {
     return { aimX: x * DIAG, aimY: y * DIAG };
   }

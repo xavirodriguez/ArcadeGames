@@ -108,6 +108,13 @@ export class HitRunCameraScrollSystem extends System<CoreComponentRegistry> {
   }
 
   private drivePushScroll(world: World<CoreComponentRegistry>, dt: number): void {
+    if (
+      world.getResource("BeltCameraState") !== undefined ||
+      world.query("BeltMovement").length > 0
+    ) {
+      return;
+    }
+
     const cfg = world.getResource<GameConfigLike>("GameConfig");
     const vpW = cfg?.viewportWidth ?? 800;
     const vpH = cfg?.viewportHeight ?? 600;

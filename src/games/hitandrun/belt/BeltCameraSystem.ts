@@ -5,7 +5,8 @@
 import {
   System,
   World,
-  CoreComponentRegistry
+  CoreComponentRegistry,
+  Camera2DComponent
 } from "@tiny-aster/core";
 import {
   BELT_CAMERA_CONFIG_RESOURCE,
@@ -93,5 +94,19 @@ export class BeltCameraSystem extends System<CoreComponentRegistry> {
 
     world.setResource("CameraX", state.cameraX);
     world.setResource(BELT_CAMERA_STATE_RESOURCE, state);
+
+    const cams = world.query("Camera2D");
+    for (let i = 0; i < cams.length; i++) {
+      const camComp = world.getComponent(cams[i], "Camera2D") as
+        | Camera2DComponent
+        | undefined;
+      if (!camComp?.isMain) continue;
+      world.mutateComponent(cams[i], "Camera2D", (c: Camera2DComponent) => {
+        c.followEntity = undefined;
+        c.x = state.cameraX;
+        c.targetX = state.cameraX;
+      });
+      break;
+    }
   }
 }

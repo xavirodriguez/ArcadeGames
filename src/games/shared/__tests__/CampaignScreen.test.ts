@@ -1,4 +1,17 @@
 import React from "react";
+
+jest.mock("react-native-reanimated", () => ({
+  useSharedValue: (val: any) => ({ value: val }),
+  useAnimatedStyle: (fn: any) => (typeof fn === "function" ? fn() : fn),
+  withTiming: (val: any) => val,
+  withSpring: (val: any) => val,
+  runOnJS: (fn: any) => fn,
+  default: {
+    View: "AnimatedView",
+    Text: "AnimatedText",
+  },
+}));
+
 import { CampaignScreen } from "../../../components/CampaignScreen";
 import { GameDefinitionRegistry, CampaignGameResolver, BaseGame } from "@tiny-aster/core";
 import { registerDefaultCampaignGames } from "../../../services/CampaignGameRegistryService";

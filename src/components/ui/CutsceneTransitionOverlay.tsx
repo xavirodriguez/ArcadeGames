@@ -47,7 +47,7 @@ export const CutsceneTransitionOverlay: React.FC<CutsceneTransitionOverlayProps>
   const progress = useSharedValue(0);
 
   useEffect(() => {
-    if (reduceMotion || targetDuration <= 0) {
+    if (reduceMotion || targetDuration <= 0 || !effectName) {
       opacity.value = 0;
       progress.value = 1;
       if (onComplete) {

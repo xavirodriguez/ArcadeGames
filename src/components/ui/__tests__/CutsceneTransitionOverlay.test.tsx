@@ -1,5 +1,19 @@
 import React from "react";
+
+jest.mock("react-native-reanimated", () => ({
+  useSharedValue: (val: any) => ({ value: val }),
+  useAnimatedStyle: (fn: any) => (typeof fn === "function" ? fn() : fn),
+  withTiming: (val: any) => val,
+  withSpring: (val: any) => val,
+  runOnJS: (fn: any) => fn,
+  default: {
+    View: "AnimatedView",
+    Text: "AnimatedText",
+  },
+}));
+
 import { TransitionRegistry } from "@tiny-aster/core";
+import { CutsceneTransitionOverlay } from "../CutsceneTransitionOverlay";
 import {
   CUTSCENE_TRANSITION_MAP,
   resolveCutsceneTransitionProfile,
@@ -49,5 +63,33 @@ describe("CutsceneTransitionMap & Overlay Tests", () => {
     const unknownProfile2 = resolveCutsceneTransitionProfile("UnknownGlitch3000");
     expect(unknownProfile2.key).toBe("fade");
     expect(warnSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("instantiates CutsceneTransitionOverlay with valid effect, unknown effect, and absent effect", () => {
+    const onComplete = jest.fn();
+
+    // Valid effect
+    const validElement = React.createElement(CutsceneTransitionOverlay, {
+      effectName: "CRTGlitchTransition",
+      onComplete
+    });
+    expect(validElement).toBeTruthy();
+    expect(validElement.props.effectName).toBe("CRTGlitchTransition");
+
+    // Absent effect
+    const absentElement = React.createElement(CutsceneTransitionOverlay, {
+      effectName: undefined,
+      onComplete
+    });
+    expect(absentElement).toBeTruthy();
+    expect(absentElement.props.effectName).toBeUndefined();
+
+    // Unknown effect
+    const unknownElement = React.createElement(CutsceneTransitionOverlay, {
+      effectName: "NonExistentEffectX",
+      onComplete
+    });
+    expect(unknownElement).toBeTruthy();
+    expect(unknownElement.props.effectName).toBe("NonExistentEffectX");
   });
 });

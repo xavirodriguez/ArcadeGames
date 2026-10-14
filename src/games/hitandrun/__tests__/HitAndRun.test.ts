@@ -39,6 +39,38 @@ describe("Hit & Run Game Systems", () => {
       game.destroy();
     });
 
+    it("updates main Camera2D x position when player moves right", async () => {
+      const game = new HitAndRunGame({ seed: 12345 });
+      await game.init();
+
+      const gameWorld = game.getWorld();
+      const cameras = gameWorld.query("Camera2D");
+      expect(cameras.length).toBe(1);
+      const initialCam = gameWorld.getComponent(cameras[0], "Camera2D") as { x: number };
+      const initialCamX = initialCam.x;
+
+      const players = gameWorld.query("BeltMovement", "Transform");
+      expect(players.length).toBe(1);
+      const initialPlayerTransform = gameWorld.getComponent(players[0], "Transform") as { x: number };
+      const initialPlayerX = initialPlayerTransform.x;
+
+      // Simulate holding right
+      game.setInputState({ right: true });
+
+      // Run multiple ticks for the player to move far right
+      for (let i = 0; i < 60; i++) {
+        game.update(0.016);
+      }
+
+      const updatedPlayerTransform = gameWorld.getComponent(players[0], "Transform") as { x: number };
+      expect(updatedPlayerTransform.x).toBeGreaterThan(initialPlayerX + 50);
+
+      const updatedCam = gameWorld.getComponent(cameras[0], "Camera2D") as { x: number };
+      expect(updatedCam.x).toBeGreaterThan(initialCamX);
+
+      game.destroy();
+    });
+
     it("registers canvas shapes and effects during initializeRenderer", () => {
       const game = new HitAndRunGame({ seed: 12345 });
       const shapesRegistered = new Set<string>();

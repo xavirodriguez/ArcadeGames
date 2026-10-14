@@ -1,13 +1,13 @@
 import { System, World, WorldUtils } from "@tiny-aster/core";
 import { ArkanoidComponentRegistry, ArkanoidEventRegistry } from "../types/ArkanoidTypes";
-import { ArkanoidConfig, DEFAULT_ARKANOID_CONFIG } from "../types/ArkanoidConfigSchema";
+import { resolveArkanoidSystemContext } from "./ArkanoidSystemUtils";
 
-// TODO(refactor): código duplicado detectado (bloque) con arkanoid/systems/ArkanoidInputSystem.ts:5-10. Considerar extraer a función compartida. Ref: 11390147
 export class ArkanoidSpinSystem extends System<ArkanoidComponentRegistry, ArkanoidEventRegistry> {
   public override update(world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>, deltaTime: number): void {
-    if (world.getResource("IsPaused") === true) return;
+    const ctx = resolveArkanoidSystemContext(world, false);
+    if (!ctx) return;
+    const { config } = ctx;
 
-    const config = world.getResource<ArkanoidConfig>("GameConfig") || DEFAULT_ARKANOID_CONFIG;
     const ballEntities = world.query("Ball", "Velocity");
 
     for (let i = 0; i < ballEntities.length; i++) {

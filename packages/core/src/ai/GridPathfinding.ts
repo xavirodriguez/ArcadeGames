@@ -108,8 +108,6 @@ export class GridPathfinding {
     const prep = preparePathfinding(grid, start, target, options);
     if (prep.earlyExit) return prep.initialPath!;
 
-    const { directions, maxNodes, includeStart } = prep;
-
     const queue: GridPoint[] = [start];
     const visited = new Set<string>();
     const parentMap = new Map<string, GridPoint>();
@@ -120,7 +118,7 @@ export class GridPathfinding {
     let nodesExpanded = 0;
     let found = false;
 
-    while (queue.length > 0 && nodesExpanded < maxNodes) {
+    while (queue.length > 0 && nodesExpanded < prep.maxNodes) {
       const current = queue.shift()!;
       nodesExpanded++;
 
@@ -129,8 +127,8 @@ export class GridPathfinding {
         break;
       }
 
-      for (let i = 0; i < directions.length; i++) {
-        const dir = directions[i];
+      for (let i = 0; i < prep.directions.length; i++) {
+        const dir = prep.directions[i];
         const nx = current.x + dir.x;
         const ny = current.y + dir.y;
 
@@ -147,7 +145,7 @@ export class GridPathfinding {
       }
     }
 
-    return finalizePath(found, parentMap, start, target, includeStart);
+    return finalizePath(found, parentMap, start, target, prep.includeStart);
   }
 
   /**
@@ -168,7 +166,6 @@ export class GridPathfinding {
     const prep = preparePathfinding(grid, start, target, options);
     if (prep.earlyExit) return prep.initialPath!;
 
-    const { directions, maxNodes, includeStart } = prep;
     const random = options?.random;
 
     interface ANode {
@@ -199,7 +196,7 @@ export class GridPathfinding {
     let nodesExpanded = 0;
     let found = false;
 
-    while (openSet.length > 0 && nodesExpanded < maxNodes) {
+    while (openSet.length > 0 && nodesExpanded < prep.maxNodes) {
       // Find node with minimum f, with deterministic tie-breaking
       let bestIdx = 0;
       for (let i = 1; i < openSet.length; i++) {
@@ -235,8 +232,8 @@ export class GridPathfinding {
         break;
       }
 
-      for (let i = 0; i < directions.length; i++) {
-        const dir = directions[i];
+      for (let i = 0; i < prep.directions.length; i++) {
+        const dir = prep.directions[i];
         const nx = current.point.x + dir.x;
         const ny = current.point.y + dir.y;
 
@@ -276,7 +273,7 @@ export class GridPathfinding {
       return [];
     }
 
-    return reconstructPath(parentMap, start, target, includeStart);
+    return reconstructPath(parentMap, start, target, prep.includeStart);
   }
 
   /**

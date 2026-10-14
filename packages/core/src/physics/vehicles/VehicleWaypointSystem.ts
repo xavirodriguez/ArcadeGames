@@ -22,6 +22,34 @@ export interface SteerWaypointResult {
   reachedTarget: boolean;
 }
 
+export interface VehicleWaypointSteeringContext {
+  waypointsComp: VehicleWaypointComponent;
+  vehicle: VehicleSteeringComponent;
+  transform: { x: number; y: number; rotation?: number };
+  steerRes: SteerWaypointResult;
+}
+
+/**
+ * Resolves waypoint steering components and calculates steering result for an entity.
+ * @public
+ */
+export function resolveVehicleWaypointSteering(
+  world: World<any>,
+  entity: number,
+  minPositiveThrottle = 0.3
+): VehicleWaypointSteeringContext | null {
+  const waypointsComp = world.getComponent(entity, "VehicleWaypoint") as VehicleWaypointComponent | undefined;
+  const vehicle = world.getMutableComponent(entity, "VehicleSteering") as VehicleSteeringComponent | undefined;
+  const transform = world.getComponent(entity, "Transform");
+
+  if (!waypointsComp || !vehicle || !transform) return null;
+
+  const steerRes = steerTowardWaypoint(transform, waypointsComp, minPositiveThrottle);
+  if (!steerRes) return null;
+
+  return { waypointsComp, vehicle, transform, steerRes };
+}
+
 /**
  * Computes normalized steering and base throttle inputs for a vehicle traveling toward its active waypoint.
  *
@@ -103,15 +131,10 @@ export class VehicleWaypointSystem extends System<CoreComponentRegistry> {
 
     for (let i = 0; i < len; i++) {
       const entity = entities[i];
-      const waypointsComp = world.getComponent(entity, "VehicleWaypoint") as VehicleWaypointComponent | undefined;
-      const vehicle = world.getMutableComponent(entity, "VehicleSteering") as VehicleSteeringComponent | undefined;
-      const transform = world.getComponent(entity, "Transform");
+      const ctx = resolveVehicleWaypointSteering(world, entity, 0.3);
+      if (!ctx) continue;
 
-      if (!waypointsComp || !vehicle || !transform) continue;
-
-      const steerRes = steerTowardWaypoint(transform, waypointsComp, 0.3);
-      if (!steerRes) continue;
-
+      const { waypointsComp, vehicle, steerRes } = ctx;
       applyWaypointSteering(world, entity, waypointsComp, vehicle, steerRes);
     }
   }

@@ -3,7 +3,13 @@ export * from './core/random';
 export * from './design/recipe';
 export * from './effects/primitives';
 export * from './design/pack';
-export * from './design/validator';
+export {
+  RecipeValidationError,
+  SoundRecipeValidationError,
+  validateRecipe,
+  assertValidRecipe,
+  type RecipeValidationIssue,
+} from './design/validator';
 export {
   DEFAULT_SAMPLE_RATE,
   RENDER_VERSION,

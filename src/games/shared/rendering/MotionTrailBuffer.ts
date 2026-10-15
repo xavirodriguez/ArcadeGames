@@ -159,4 +159,26 @@ export class MotionTrailBase {
   public update(entityId: number, x: number, y: number, minDistanceSq: number = 4): void {
     this.trailBuffer.update(entityId, x, y, minDistanceSq);
   }
+
+  /**
+   * Iterates active trail points from oldest to newest with computed segment alpha and size.
+   * @public
+   */
+  public iterateTrail(
+    entityId: number,
+    length: number,
+    size: number,
+    fn: (p: TrailPoint, alpha: number, trailSize: number) => void
+  ): void {
+    const trail = this.getTrail(entityId);
+    const drawLength = Math.min(length, this.maxPoints);
+
+    for (let i = drawLength - 1; i >= 0; i--) {
+      const p = trail[i];
+      if (!p.active) continue;
+
+      const { alpha, trailSize } = computeMotionTrailSegment(i, drawLength, size);
+      fn(p, alpha, trailSize);
+    }
+  }
 }

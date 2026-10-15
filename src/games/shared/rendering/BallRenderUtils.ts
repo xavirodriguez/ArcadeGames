@@ -1,4 +1,5 @@
 import { World, RenderComponent, TransformComponent, ComponentRegistry } from "@tiny-aster/core";
+import { getVisibleCanvasRenderAndTransform } from "./renderingUtils";
 
 export interface BasicBallContext {
   render: RenderComponent;
@@ -13,12 +14,7 @@ export function resolveBasicBallContext<
   entity: number,
   defaultSize = 8
 ): BasicBallContext | null {
-  const render = world.getComponent(entity, "Render" as Extract<keyof TRegistry, string>) as RenderComponent | undefined;
-  if (!render || !render.visible) return null;
-
-  const transform = world.getComponent(entity, "Transform" as Extract<keyof TRegistry, string>) as TransformComponent | undefined;
-  if (!transform) return null;
-
-  const size = render.size ?? defaultSize;
-  return { render, transform, size };
+  const ctx = getVisibleCanvasRenderAndTransform(world, entity);
+  if (!ctx) return null;
+  return { render: ctx.render, transform: ctx.transform, size: ctx.render.size ?? defaultSize };
 }

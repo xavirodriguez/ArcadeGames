@@ -78,12 +78,12 @@ export const drawSkiaPongPaddle: ShapeDrawer<any, PongComponentRegistry> = {
       (c, p, widthScale, heightScale) => {
         const pw = w * widthScale;
         const ph = h * heightScale;
-        c.drawRoundRect(Skia.RRectXY(Skia.XYWHRect(-pw / 2, -ph / 2, pw, ph), 4, 4), p);
+        c.drawRRect(Skia.RRectXY(Skia.XYWHRect(-pw / 2, -ph / 2, pw, ph), 4, 4), p);
       },
       (c, p) => {
         const coreW = w * 0.4;
         const coreH = h * 0.9;
-        c.drawRoundRect(Skia.RRectXY(Skia.XYWHRect(-coreW / 2, -coreH / 2, coreW, coreH), 2, 2), p);
+        c.drawRRect(Skia.RRectXY(Skia.XYWHRect(-coreW / 2, -coreH / 2, coreW, coreH), 2, 2), p);
       }
     );
   }

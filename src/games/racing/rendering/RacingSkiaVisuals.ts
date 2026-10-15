@@ -15,7 +15,7 @@ import {
   extractObstacleParams
 } from "./RacingSkin";
 import { buildTrackRibbon } from "./TrackRibbonGeometry";
-import { extractTrackDimensions, computeCheckpointGrid } from "./RacingVisualHelpers";
+import { extractTrackDimensions, computeCheckpointGrid, resolveTrackRibbonContext, resolveRacingParticlePoolContext } from "./RacingVisualHelpers";
 import type { RacingParticlePool } from "../systems/RacingParticleSystem";
 
 export const drawSkiaTrackSurface: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {
@@ -50,14 +50,10 @@ export const drawSkiaTrackSurface: ShapeDrawer<SkCanvas, RacingComponentRegistry
 export const drawSkiaTrackRibbon: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-        // TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingCanvasVisuals.ts:115-121. Considerar extraer a función compartida. Ref: afe949ab
-const skin = getRacingSkin(world);
-    const palette = skin.palette;
-    const trackSpec = world.getResource<TrackSpec>("ActiveTrackSpec");
-    if (!trackSpec || trackSpec.waypoints.length < 3) return;
+    const ribbonCtx = resolveTrackRibbonContext(world);
+    if (!ribbonCtx) return;
 
-    const { left, right } = buildTrackRibbon(trackSpec.waypoints);
-    if (left.length === 0 || right.length === 0) return;
+    const { palette, left, right } = ribbonCtx;
 
     const path = Skia.Path.Make();
     path.moveTo(left[0]!.x, left[0]!.y);
@@ -90,14 +86,13 @@ const skin = getRacingSkin(world);
   }
 };
 
-// TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingSkiaVisuals.ts:119-125. Considerar extraer a función compartida. Ref: 465d2e50
 export const drawSkiaSkidMarks: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    const skin = getRacingSkin(world);
-    const palette = skin.palette;
-    const pool = world.getResource<RacingParticlePool>("RacingParticles");
-    if (!pool || pool.skidMarks.length === 0) return;
+    const pCtx = resolveRacingParticlePoolContext(world);
+    if (!pCtx || pCtx.pool.skidMarks.length === 0) return;
+
+    const { palette, pool } = pCtx;
 
     for (let i = 0; i < pool.skidMarks.length; i += 1) {
       const seg = pool.skidMarks[i]!;
@@ -116,10 +111,10 @@ export const drawSkiaSkidMarks: ShapeDrawer<SkCanvas, RacingComponentRegistry> =
 export const drawSkiaSmoke: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    const skin = getRacingSkin(world);
-    const palette = skin.palette;
-    const pool = world.getResource<RacingParticlePool>("RacingParticles");
-    if (!pool || pool.smokeParticles.length === 0) return;
+    const pCtx = resolveRacingParticlePoolContext(world);
+    if (!pCtx || pCtx.pool.smokeParticles.length === 0) return;
+
+    const { palette, pool } = pCtx;
 
     for (let i = 0; i < pool.smokeParticles.length; i += 1) {
       const p = pool.smokeParticles[i]!;

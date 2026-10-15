@@ -3,6 +3,46 @@ import type { RacingComponentRegistry } from "../types/RacingRegistry";
 import type { TrackSpec } from "../types/TrackSpecSchema";
 import { getRacingSkin, type RacingSkin } from "./RacingSkin";
 import type { RacingPalette } from "./RacingPalette";
+import { buildTrackRibbon } from "./TrackRibbonGeometry";
+import type { RacingParticlePool } from "../systems/RacingParticleSystem";
+
+export interface TrackRibbonContext {
+  skin: RacingSkin;
+  palette: RacingPalette;
+  trackSpec: TrackSpec;
+  left: { x: number; y: number }[];
+  right: { x: number; y: number }[];
+}
+
+export function resolveTrackRibbonContext(
+  world: World<RacingComponentRegistry, any>
+): TrackRibbonContext | null {
+  const skin = getRacingSkin(world);
+  const palette = skin.palette;
+  const trackSpec = world.getResource<TrackSpec>("ActiveTrackSpec");
+  if (!trackSpec || trackSpec.waypoints.length < 3) return null;
+
+  const { left, right } = buildTrackRibbon(trackSpec.waypoints);
+  if (left.length === 0 || right.length === 0) return null;
+
+  return { skin, palette, trackSpec, left, right };
+}
+
+export interface RacingParticlePoolContext {
+  skin: RacingSkin;
+  palette: RacingPalette;
+  pool: RacingParticlePool;
+}
+
+export function resolveRacingParticlePoolContext(
+  world: World<RacingComponentRegistry, any>
+): RacingParticlePoolContext | null {
+  const skin = getRacingSkin(world);
+  const palette = skin.palette;
+  const pool = world.getResource<RacingParticlePool>("RacingParticles");
+  if (!pool) return null;
+  return { skin, palette, pool };
+}
 
 export interface TrackVisualDimensions {
   width: number;

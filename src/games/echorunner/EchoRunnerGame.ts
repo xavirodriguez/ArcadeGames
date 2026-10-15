@@ -33,7 +33,7 @@ import {
 import { drawEchoBackground, drawEchoPlayer, drawMemoryFragment, drawMemoryCore, drawCheckpointNode, drawPulseAttack, drawSentinel, drawHopper, drawWatcher, drawCharger } from "./rendering/EchoRunnerCanvasVisuals";
 import { EchoRunnerInput, EchoRunnerInputComponent, EchoRunnerGameState, EchoRunnerEventRegistry, ECHO_CONFIG } from "./types/EchoRunnerTypes";
 import { EchoRunnerConfigSchema, EchoRunnerConfig as EchoRunnerConfigType, DEFAULT_ECHO_RUNNER_CONFIG } from "./types/EchoRunnerConfigSchema";
-import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
+import { PlatformerArcadeGame, loadPlatformerArcadeConfig } from "../shared/PlatformerArcadeGame";
 import { PlatformerInputSystem } from "../shared/systems/PlatformerInputSystem";
 import { resolveAndApplyMutators } from "../../config/MutatorConfig";
 import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, registerPlatformerEnvironmentBlueprints, mutatePlatformerInputState, registerCommonPlatformerSystems, updatePlayerInvulnerabilityAndContactDamage, updateRunProgress } from "@tiny-aster/gameplay-kit";
@@ -151,13 +151,15 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
       theme: config.theme ?? createThemeFromGameAccents("echorunner"),
       audio: new WebAudioPlayer()
     });
-    this.baseConfig = ConfigService.load<EchoRunnerConfigType>(
+    const loaded = loadPlatformerArcadeConfig<EchoRunnerConfigType>(
       this.gameId,
       EchoRunnerConfigSchema,
-      config.gameOptions?.rawConfig ?? {}
+      config.gameOptions,
+      config.levelData
     );
-    this.config = this.baseConfig;
-    this.customLevelData = config.levelData ?? (config.gameOptions?.levelData as { templates: SegmentTemplate[]; grammar: string[] } | undefined);
+    this.baseConfig = loaded.baseConfig;
+    this.config = loaded.baseConfig;
+    this.customLevelData = loaded.customLevelData;
   }
 
   protected override async onRegisterSystems(): Promise<void> {

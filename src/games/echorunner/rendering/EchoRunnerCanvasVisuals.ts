@@ -6,6 +6,8 @@ import {
   resolveEchoBackgroundContext,
 } from "./EchoRunnerVisualUtils";
 
+import { drawCanvasHitFlashCircle } from "../../shared/rendering/PlatformerSharedVisuals";
+
 export {
   drawMemoryFragment,
   drawMemoryCore,
@@ -16,15 +18,6 @@ export {
   drawWatcher,
   drawCharger,
 } from "../../shared/rendering/PlatformerSharedVisuals";
-
-function drawCanvasHitFlashCircle(ctx: CanvasRenderingContext2D, radius: number, color: string): true {
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.arc(0, 0, radius, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-  return true;
-}
 
 export const drawEchoBackground: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {

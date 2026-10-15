@@ -6,8 +6,29 @@ import {
   BlueprintRegistryMap,
   RunState,
   CoreComponentRegistry,
+  ConfigService,
   World
 } from "@tiny-aster/core";
+import { z } from "zod";
+
+/**
+ * Loads and initializes base arcade game configuration and level data.
+ * @public
+ */
+export function loadPlatformerArcadeConfig<TConfig, TSchema extends z.ZodTypeAny = z.ZodTypeAny>(
+  gameId: string,
+  schema: TSchema,
+  gameOptions?: Record<string, unknown>,
+  levelDataOverride?: { templates: unknown[]; grammar: string[] }
+): { baseConfig: TConfig; customLevelData?: { templates: any[]; grammar: string[] } } {
+  const baseConfig = ConfigService.load<TConfig>(
+    gameId,
+    schema,
+    gameOptions?.rawConfig ?? {}
+  );
+  const customLevelData = levelDataOverride ?? (gameOptions?.levelData as { templates: any[]; grammar: string[] } | undefined);
+  return { baseConfig, customLevelData };
+}
 import { updateRunProgress } from "@tiny-aster/gameplay-kit";
 
 /**

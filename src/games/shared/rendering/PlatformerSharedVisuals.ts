@@ -53,7 +53,7 @@ function getPulseAttackGradient(ctx: CanvasRenderingContext2D, size: number, pal
   return grad;
 }
 
-function drawCanvasHitFlashCircle(ctx: CanvasRenderingContext2D, radius: number, color: string): true {
+export function drawCanvasHitFlashCircle(ctx: CanvasRenderingContext2D, radius: number, color: string): true {
   ctx.fillStyle = color;
   ctx.beginPath();
   ctx.arc(0, 0, radius, 0, Math.PI * 2);
@@ -62,7 +62,7 @@ function drawCanvasHitFlashCircle(ctx: CanvasRenderingContext2D, radius: number,
   return true;
 }
 
-function drawCanvasHitFlashRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, color: string): true {
+export function drawCanvasHitFlashRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, color: string): true {
   ctx.fillStyle = color;
   ctx.beginPath();
   ctx.rect(x, y, w, h);
@@ -71,7 +71,7 @@ function drawCanvasHitFlashRect(ctx: CanvasRenderingContext2D, x: number, y: num
   return true;
 }
 
-function drawSkiaHitFlashCircle(canvas: any, paint: any, radius: number, color: string): true {
+export function drawSkiaHitFlashCircle(canvas: any, paint: any, radius: number, color: string): true {
   paint.reset();
   paint.setAntiAlias(true);
   paint.setStyle(Skia.PaintStyle.Fill);
@@ -81,7 +81,7 @@ function drawSkiaHitFlashCircle(canvas: any, paint: any, radius: number, color: 
   return true;
 }
 
-function drawSkiaHitFlashRect(canvas: any, paint: any, x: number, y: number, w: number, h: number, color: string): true {
+export function drawSkiaHitFlashRect(canvas: any, paint: any, x: number, y: number, w: number, h: number, color: string): true {
   paint.reset();
   paint.setAntiAlias(true);
   paint.setStyle(Skia.PaintStyle.Fill);

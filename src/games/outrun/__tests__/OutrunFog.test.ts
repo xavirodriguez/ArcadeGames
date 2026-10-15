@@ -2,7 +2,9 @@ import {
   smoothstep,
   fogIntensity,
   hexToRgb,
-  resolveSegmentFog,
+  resolveSegmentFog
+} from "../rendering/OutrunFog";
+import {
   COAST_PALETTE,
   DESERT_PALETTE,
   MOUNTAIN_PALETTE

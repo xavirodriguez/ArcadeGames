@@ -2,6 +2,35 @@ import { OutrunGame, OutrunDefinition } from "../OutrunGame";
 import type { RoadData } from "../types/OutrunTypes";
 import { OUTRUN_PALETTES, scenarioHash } from "../rendering/OutrunPalettes";
 import {
+  drawOutrunRoad,
+  drawOutrunCar,
+  drawOutrunRacer,
+  drawOutrunHud
+} from "../rendering/OutrunCanvasVisuals";
+
+const mockPaint = {
+  setColor: jest.fn(),
+  setStyle: jest.fn(),
+  setAlphaf: jest.fn(),
+};
+
+jest.mock("@shopify/react-native-skia", () => ({
+  Skia: {
+    Paint: jest.fn(() => mockPaint),
+    Color: jest.fn((c) => c),
+    PaintStyle: { Fill: 0, Stroke: 1 },
+    XYWHRect: jest.fn((x, y, w, h) => ({ x, y, w, h })),
+    RRectXY: jest.fn((rect, rx, ry) => ({ rect, rx, ry })),
+    Path: {
+      Make: jest.fn(() => ({
+        moveTo: jest.fn(),
+        lineTo: jest.fn(),
+        close: jest.fn(),
+      })),
+    },
+  },
+}));
+import {
   drawSkiaOutrunRoad,
   drawSkiaOutrunCar,
   drawSkiaOutrunRacer,
@@ -253,6 +282,46 @@ describe("OutrunGameplay", () => {
 
     expect(drawSkiaOutrunHud).toBeDefined();
     expect(typeof drawSkiaOutrunHud.draw).toBe("function");
+  });
+
+  it("draws road segments correctly with Canvas and Skia road drawers", async () => {
+    const game = new OutrunGame({ seed: 100, headless: true });
+    await game.init();
+    const world = game.getWorld();
+
+    let canvasPathDrawn = false;
+    const mockCanvasCtx: any = {
+      save: jest.fn(),
+      restore: jest.fn(),
+      fillRect: jest.fn(),
+      strokeRect: jest.fn(),
+      beginPath: jest.fn(() => { canvasPathDrawn = true; }),
+      moveTo: jest.fn(),
+      lineTo: jest.fn(),
+      closePath: jest.fn(),
+      fill: jest.fn(),
+      stroke: jest.fn(),
+      arc: jest.fn(),
+      ellipse: jest.fn(),
+      fillText: jest.fn(),
+    };
+
+    drawOutrunRoad.draw(mockCanvasCtx, world, 0);
+    expect(mockCanvasCtx.save).toHaveBeenCalled();
+    expect(mockCanvasCtx.fillRect).toHaveBeenCalled();
+    expect(canvasPathDrawn).toBe(true);
+
+    let skiaPathDrawn = false;
+    const mockSkiaCanvas: any = {
+      drawRect: jest.fn(),
+      drawCircle: jest.fn(),
+      drawOval: jest.fn(),
+      drawPath: jest.fn(() => { skiaPathDrawn = true; }),
+    };
+
+    drawSkiaOutrunRoad.draw(mockSkiaCanvas, world, 0);
+    expect(mockSkiaCanvas.drawRect).toHaveBeenCalled();
+    expect(skiaPathDrawn).toBe(true);
   });
 
   it("decrements countdown timer and transitions racePhase from countdown to racing", async () => {

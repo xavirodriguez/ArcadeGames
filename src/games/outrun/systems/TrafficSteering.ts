@@ -86,9 +86,10 @@ export function centrifugalDelta(
   centrifugalForce: number,
   deltaTime: number
 ): number {
-  if (maxSpeed <= 0) return 0;
+  if (maxSpeed <= 0 || curve === 0) return 0;
   const speedRatio = speed / maxSpeed;
-  return -(curve * centrifugalForce * speedRatio * speedRatio * deltaTime);
+  const res = -(curve * centrifugalForce * speedRatio * speedRatio * deltaTime);
+  return res === 0 ? 0 : res;
 }
 
 export function maxRelativeTravelPerFrame(

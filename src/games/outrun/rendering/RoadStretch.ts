@@ -51,7 +51,8 @@ export function buildEasedCurveStretch(
 
   // Jake: easeIn(0, curve, n/enter) for n in [0, enter)
   for (let n = 0; n < e; n++) {
-    out.push(easeIn(0, targetCurve, e === 0 ? 1 : n / e));
+    const val = easeIn(0, targetCurve, e === 0 ? 1 : n / e);
+    out.push(val === 0 && targetCurve < 0 ? -0 : val);
   }
   for (let n = 0; n < h; n++) {
     out.push(targetCurve);

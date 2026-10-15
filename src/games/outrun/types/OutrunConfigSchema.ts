@@ -30,8 +30,10 @@ export const OutrunConfigSchema = BaseConfigSchema.extend({
   trafficAvoidRadius: z.number().positive().default(0.35),
   /** Max lateral units/sec when steering around slower traffic. */
   trafficSteerSpeed: z.number().positive().default(1.5),
-  /** Collision detection substeps per frame (anti-tunneling at high relative speed). */
+  /** Minimum collision detection substeps per frame (anti-tunneling). */
   trafficCollisionSubsteps: z.number().int().positive().default(4),
+  /** Cap on adaptive substeps when deltaTime approaches engine maxDelta (0.25s). */
+  trafficCollisionSubstepsMax: z.number().int().positive().default(32),
   WIDTH: z.number().positive().default(800),
   HEIGHT: z.number().positive().default(600)
 });

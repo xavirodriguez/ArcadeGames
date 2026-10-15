@@ -12,7 +12,7 @@
 | Cielo / sol / nubes | `resolveOutrunRoadContext` → `getScenarioPaletteAtZ` + `applyDayPhase` | igual | **No** | Sin cambio (ya unificado) |
 | Horizonte / montañas | misma `palette` | igual | **No** | Sin cambio |
 | Césped / rumble / road / lane | `rumbleColor` / `roadColor` + `palette` | igual | **No** | Sin cambio |
-| Imports muertos | `COAST_PALETTE`, `getScenarioPaletteAtZ` no usados en drawer | igual | n/a | Eliminados |
+| Imports muertos | `COAST_PALETTE`, `getScenarioPaletteAtZ` no usados en drawer | igual | n/a | Eliminados (via patch) |
 | H5 sesión 1 (“Canvas fija COAST”) | **Obsoleta** | — | — | Ambos ya usan contexto compartido |
 
 ### Fog
@@ -34,27 +34,33 @@ La hipótesis H5 de “Canvas fijo” ya no aplica: ambos drawers consumen `reso
 
 | Opción | Motivo |
 |--------|--------|
-| No copiar fog exponencial verde de javascript-racer | OUTRUN_ART prioriza tokens de escenario 2049, no el look arcade 80s hardcodeado |
-| smoothstep vs umbral 0.4 | evita salto visual; near-road permanece legible |
-| maxAlpha 0.55 | cue de profundidad sin blanquear la pista lejana |
-| Color = última sky-band | respeta tokens; cambia con coast/desert/mountain automáticamente |
-| Capas = strip de segmento | misma decisión en Canvas y Skia; sprites sin fog para silueta |
+| No copiar fog exponencial verde de javascript-racer | OUTRUN_ART prioriza tokens de escenario 2049 |
+| smoothstep vs umbral 0.4 | evita salto visual; near-road legible |
+| maxAlpha 0.55 | cue de profundidad sin blanquear |
+| Color = última sky-band | respeta tokens por escenario |
+| Capas = strip de segmento | misma decisión Canvas/Skia |
 
-Fuente única: `resolveSegmentFog(distanceFog, palette)` en `OutrunPalettes.ts`.
+Fuente única: `resolveSegmentFog(distanceFog, palette)` en `OutrunFog.ts`.
 
 ## Residuales intencionales
 
 - Rasterización Canvas vs Skia (AA, gamma) — no pixel-perfect.
-- Sprites y horizonte sin fog — legibilidad; puede revisarse en sesión posterior.
-- `p.fog` sigue siendo lineal en el buffer; solo la **curva de intensidad** es shared.
+- Sprites y horizonte sin fog — legibilidad.
+- `p.fog` lineal en buffer; la curva de intensidad es shared.
 
-## Archivos
+## Nota de integración de renderers
 
-- `OutrunPalettes.ts` — `smoothstep`, `fogIntensity`, `hexToRgb`, `resolveSegmentFog`
-- `OutrunCanvasVisuals.ts` — usa shared fog; imports muertos fuera
-- `OutrunSkiaVisuals.ts` — añade shared fog
-- `__tests__/OutrunFog.test.ts`
-- este informe
+Aplicar el patch incluido en la rama (los drawers son ~20KB y el push del cuerpo completo puede fallar en el canal MCP):
+
+```bash
+git checkout feat/outrun-session3-palette-fog-parity
+# Restaurar drawers desde la base si hace falta, luego:
+git show feat/outrun-session2-eased-stretch-builder:src/games/outrun/rendering/OutrunCanvasVisuals.ts > src/games/outrun/rendering/OutrunCanvasVisuals.ts
+git show feat/outrun-session2-eased-stretch-builder:src/games/outrun/rendering/OutrunSkiaVisuals.ts > src/games/outrun/rendering/OutrunSkiaVisuals.ts
+patch -p1 < docs/session3_renderers.patch
+```
+
+El módulo `OutrunFog.ts` y los tests ya están en la rama.
 
 ## No tocado
 

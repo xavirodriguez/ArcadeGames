@@ -98,15 +98,34 @@ function dbToLinear(db: number): number {
   return Math.pow(10, db / 20);
 }
 
-function evalWave(wave: Wave, phase: number): number {
+export function polyBlep(t: number, dt: number): number {
+  if (dt >= 0.5) return 0;
+  if (t < dt) {
+    const x = t / dt;
+    return x + x - x * x - 1;
+  }
+  if (t > 1 - dt) {
+    const x = (t - 1) / dt;
+    return x * x + x + x + 1;
+  }
+  return 0;
+}
+
+function evalWave(wave: Wave, phase: number, dt = 0): number {
   const p = phase - Math.floor(phase);
   switch (wave) {
     case 'sine':
       return Math.sin(2 * Math.PI * p);
-    case 'square':
-      return p < 0.5 ? 1 : -1;
-    case 'sawtooth':
-      return 2 * p - 1;
+    case 'square': {
+      const naive = p < 0.5 ? 1 : -1;
+      if (dt <= 0 || dt >= 0.5) return naive;
+      return naive + polyBlep(p, dt) - polyBlep((p + 0.5) % 1, dt);
+    }
+    case 'sawtooth': {
+      const naive = 2 * p - 1;
+      if (dt <= 0 || dt >= 0.5) return naive;
+      return naive - polyBlep(p, dt);
+    }
     case 'triangle':
       return 2 * Math.abs(2 * (p - Math.floor(p + 0.5))) - 1;
     default:
@@ -162,12 +181,13 @@ class BiquadFilter {
   private lastFreq = -1;
   private lastType = '';
 
-  update(type: 'lowpass' | 'highpass' | 'bandpass', freq: number, sampleRate: number, Q = 1.0) {
+  update(type: 'lowpass' | 'highpass', freq: number, sampleRate: number, Q = 0.7071067811865475) {
     if (freq === this.lastFreq && type === this.lastType) return;
     this.lastFreq = freq;
     this.lastType = type;
 
-    const f0 = Math.max(10, Math.min(freq, sampleRate / 2 - 10));
+    const nyquist = sampleRate / 2;
+    const f0 = Math.max(10, Math.min(freq, nyquist - 20));
     const omega0 = (2 * Math.PI * f0) / sampleRate;
     const cosW = Math.cos(omega0);
     const sinW = Math.sin(omega0);
@@ -184,13 +204,6 @@ class BiquadFilter {
       b0 = (1 + cosW) / 2;
       b1 = -(1 + cosW);
       b2 = (1 + cosW) / 2;
-      a0 = 1 + alpha;
-      a1 = -2 * cosW;
-      a2 = 1 - alpha;
-    } else if (type === 'bandpass') {
-      b0 = alpha;
-      b1 = 0;
-      b2 = -alpha;
       a0 = 1 + alpha;
       a1 = -2 * cosW;
       a2 = 1 - alpha;
@@ -265,10 +278,13 @@ export async function render(
   const totalSamples = Math.round(duration * sampleRate);
   let samples = new Float32Array(totalSamples);
 
-  for (const original of recipe.layers) {
-    const levelJitter = rng.centered(recipe.variation?.levelDb ?? 0);
-    const durJitter = 1 + rng.centered(recipe.variation?.duration ?? 0);
-    const pitchJitter = 1 + rng.centered(recipe.variation?.pitch ?? 0);
+  for (let layerIndex = 0; layerIndex < recipe.layers.length; layerIndex++) {
+    const original = recipe.layers[layerIndex];
+    const layerRng = rng.fork(layerIndex);
+
+    const levelJitter = layerRng.centered(recipe.variation?.levelDb ?? 0);
+    const durJitter = 1 + layerRng.centered(recipe.variation?.duration ?? 0);
+    const pitchJitter = 1 + layerRng.centered(recipe.variation?.pitch ?? 0);
 
     const defaultLevel =
       original.kind === 'noise' || original.kind === 'whoosh' ? -12 : -10;
@@ -297,28 +313,59 @@ export async function render(
     );
 
     if (l.kind === 'noise' || l.kind === 'whoosh') {
-      const filter = new BiquadFilter();
-      const filterType = l.filter?.type ?? 'lowpass';
       const isWhoosh = l.kind === 'whoosh';
-      const startF = (l.filter?.minHz ?? (isWhoosh ? 400 : 4000)) * pitchJitter;
-      const endF =
-        (l.filter?.maxHz ?? l.filter?.minHz ?? (isWhoosh ? 4000 : startF)) *
-        pitchJitter;
+      const hpFilter = new BiquadFilter();
+      const lpFilter = new BiquadFilter();
+
+      const filterType = l.filter?.type ?? 'bandpass';
+      const minHz = l.filter?.minHz;
+      const maxHz = l.filter?.maxHz;
 
       for (let i = sampleStart; i < sampleEnd; i++) {
         const tRel = (i - sampleStart) / sampleRate;
-        const n = rng.centered(1);
+        const n = layerRng.centered(1);
+        let sampleVal = n;
 
-        let fFilter = startF;
         if (isWhoosh) {
+          const startF = (minHz ?? 400) * pitchJitter;
+          const endF = (maxHz ?? minHz ?? 4000) * pitchJitter;
           const p = dur > 0 ? Math.min(1, Math.max(0, tRel / dur)) : 1;
-          fFilter = startF + (endF - startF) * p;
+          const fFilter = startF + (endF - startF) * p;
+
+          if (filterType === 'highpass') {
+            hpFilter.update('highpass', fFilter, sampleRate);
+            sampleVal = hpFilter.process(sampleVal);
+          } else {
+            lpFilter.update('lowpass', fFilter, sampleRate);
+            sampleVal = lpFilter.process(sampleVal);
+          }
+        } else {
+          // Noise layer: apply HPF for minHz, LPF for maxHz, or both in cascade
+          const minCutoff = minHz !== undefined && minHz > 0 ? minHz : undefined;
+          const maxCutoff = maxHz !== undefined && maxHz > 0 ? maxHz : undefined;
+          const targetCutoff = maxCutoff ?? minCutoff;
+
+          if (filterType === 'highpass' && minCutoff !== undefined) {
+            hpFilter.update('highpass', minCutoff * pitchJitter, sampleRate);
+            sampleVal = hpFilter.process(sampleVal);
+          } else if (filterType === 'lowpass' && targetCutoff !== undefined) {
+            lpFilter.update('lowpass', targetCutoff * pitchJitter, sampleRate);
+            sampleVal = lpFilter.process(sampleVal);
+          } else {
+            // Bandpass or default cascade
+            if (minCutoff !== undefined) {
+              hpFilter.update('highpass', minCutoff * pitchJitter, sampleRate);
+              sampleVal = hpFilter.process(sampleVal);
+            }
+            if (maxCutoff !== undefined && (minCutoff === undefined || maxCutoff > minCutoff)) {
+              lpFilter.update('lowpass', maxCutoff * pitchJitter, sampleRate);
+              sampleVal = lpFilter.process(sampleVal);
+            }
+          }
         }
 
-        filter.update(filterType, fFilter, sampleRate);
-        const filtered = filter.process(n);
         const env = computeEnvelope(tRel, attack, decay, sustain, release, dur);
-        samples[i] += filtered * env * gainLinear;
+        samples[i] += sampleVal * env * gainLinear;
       }
       continue;
     }
@@ -349,8 +396,9 @@ export async function render(
           let phase = 0;
           for (let i = noteStartSample; i < noteEndSample; i++) {
             const tRel = (i - noteStartSample) / sampleRate;
-            phase = (phase + hz / sampleRate) % 1;
-            const osc = evalWave(wave, phase);
+            const dt = hz / sampleRate;
+            phase = (phase + dt) % 1;
+            const osc = evalWave(wave, phase, dt);
             const env = computeEnvelope(tRel, noteAttack, noteDecay, noteSustain, noteRelease, noteDur);
             samples[i] += osc * env * noteGainLinear;
           }
@@ -372,8 +420,9 @@ export async function render(
         let mix = 0;
         for (let k = 0; k < freqs.length; k++) {
           const hz = Math.max(10, Math.min(freqs[k], sampleRate / 2 - 10));
-          phases[k] = (phases[k] + hz / sampleRate) % 1;
-          mix += evalWave(wave, phases[k]);
+          const dt = hz / sampleRate;
+          phases[k] = (phases[k] + dt) % 1;
+          mix += evalWave(wave, phases[k], dt);
         }
         samples[i] += mix * env * gainLinear;
       }
@@ -403,24 +452,37 @@ export async function render(
       }
 
       f = Math.max(10, Math.min(f, sampleRate / 2 - 10));
-      phase = (phase + f / sampleRate) % 1;
+      const dt = f / sampleRate;
+      phase = (phase + dt) % 1;
 
-      const osc = evalWave(wave, phase);
+      const osc = evalWave(wave, phase, dt);
       const env = computeEnvelope(tRel, attack, decay, sustain, release, dur);
       samples[i] += osc * env * gainLinear;
     }
   }
 
-  // Soft edges for loop recipes so engines can crossfade cleanly.
+  // Constant-power crossfade for seamless loop recipes
   if (recipe.loop) {
-    const fadeSamples = Math.min(
-      Math.floor(sampleRate * 0.012),
-      Math.floor(samples.length / 8)
+    const crossfadeSamples = Math.min(
+      Math.round(sampleRate * 0.015),
+      Math.floor(samples.length * 0.25)
     );
-    for (let i = 0; i < fadeSamples; i++) {
-      const g = i / fadeSamples;
-      samples[i] *= g;
-      samples[samples.length - 1 - i] *= g;
+    if (crossfadeSamples > 0 && samples.length > crossfadeSamples) {
+      const outputLength = samples.length - crossfadeSamples;
+      const looped = new Float32Array(outputLength);
+
+      for (let i = 0; i < crossfadeSamples; i++) {
+        const theta = (i / crossfadeSamples) * (Math.PI / 2);
+        const wHead = Math.sin(theta);
+        const wTail = Math.cos(theta);
+        looped[i] = samples[i] * wHead + samples[outputLength + i] * wTail;
+      }
+
+      for (let i = crossfadeSamples; i < outputLength; i++) {
+        looped[i] = samples[i];
+      }
+
+      samples = looped;
     }
   }
 

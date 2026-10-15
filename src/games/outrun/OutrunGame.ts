@@ -27,6 +27,7 @@ import { RacerInputSystem } from "./systems/RacerInputSystem";
 import { RoadAdvanceSystem } from "./systems/RoadAdvanceSystem";
 import { TrafficSystem } from "./systems/TrafficSystem";
 import { scenarioHash } from "./rendering/OutrunPalettes";
+import { expandStretch, type StretchDescriptor } from "./rendering/RoadStretch";
 import {
   drawOutrunRoad,
   drawOutrunCar,
@@ -212,6 +213,10 @@ export class OutrunGame extends BaseGame<
     const segLen = config.segmentLength;
     const rng = world.gameplayRandom;
 
+    /**
+     * Abrupt stretch — constant curve/hill on every segment.
+     * Use for straights, plateaus, and intentionally hard transitions.
+     */
     const add = (count: number, curve: number, hill: number) => {
       for (let i = 0; i < count; i++) {
         segments.push({
@@ -223,22 +228,43 @@ export class OutrunGame extends BaseGame<
       }
     };
 
+    /**
+     * Eased stretch — bakes enter/hold/leave curve (and optional hill) values
+     * via RoadStretch.expandStretch. Prefer for medium/long bends.
+     */
+    const addStretch = (desc: StretchDescriptor) => {
+      const { curves, hills } = expandStretch(desc);
+      for (let i = 0; i < curves.length; i++) {
+        segments.push({
+          index: segments.length,
+          length: segLen,
+          curve: curves[i],
+          hill: hills[i]
+        });
+      }
+    };
+
+    // --- Fixed layout: straights stay abrupt; bends use eased stretches ---
     add(40, 0, 0);
-    add(30, 2, 0);
+    addStretch({ enter: 8, hold: 14, leave: 8, curve: 2 });
     add(25, 0, 1.5);
-    add(35, -3, -1);
+    addStretch({ enter: 10, hold: 15, leave: 10, curve: -3, hill: -1 });
     add(20, 0, 0);
-    add(20, 4, 0);
-    add(20, -4, 0);
+    addStretch({ enter: 5, hold: 10, leave: 5, curve: 4 });
+    addStretch({ enter: 5, hold: 10, leave: 5, curve: -4 });
     add(30, 0, 3);
-    add(25, 2, -2);
+    addStretch({ enter: 6, hold: 13, leave: 6, curve: 2, hill: -2 });
     add(50, 0, 0);
 
+    // --- Random bends: highest visual impact — always eased ---
     for (let k = 0; k < 4; k++) {
       const curve = (rng.next() - 0.5) * 6;
       const hill = (rng.next() - 0.5) * 4;
       const len = 15 + Math.floor(rng.next() * 25);
-      add(len, curve, hill);
+      const enter = Math.max(0, Math.floor(len * 0.25));
+      const leave = Math.max(0, Math.floor(len * 0.25));
+      const hold = Math.max(1, len - enter - leave);
+      addStretch({ enter, hold, leave, curve, hill });
       add(10 + Math.floor(rng.next() * 15), 0, 0);
     }
 
@@ -249,7 +275,6 @@ export class OutrunGame extends BaseGame<
       const seg = segments[i];
       seg.index = i;
 
-      // Assign scenario zones: classic_coast -> coast -> classic_desert -> desert -> classic_mountain -> mountain
       let scenarioId: import("./types/OutrunTypes").RoadSegment["scenarioId"] = "classic_coast";
       const ratio = i / total;
       if (ratio >= 0.83) {
@@ -269,30 +294,25 @@ export class OutrunGame extends BaseGame<
 
       const sprites: import("./types/OutrunTypes").RoadSegmentSprite[] = [];
 
-      // Start/Finish Arch at segment 0
       if (i === 0) {
         sprites.push({ offset: 0, side: 1, kind: "arch", text: "OUT RUN 2049" });
       }
 
-      // Checkpoint Banners
       if (i > 0 && cpInterval > 0 && i % cpInterval === 0 && i < total - 10) {
         sprites.push({ offset: 0, side: 1, kind: "banner", text: "CHECKPOINT" });
       }
 
-      // Curve Chevron signs on the outside of sharp curves
       if (Math.abs(seg.curve) >= 2.0 && i % 2 === 0) {
         const outerSide: -1 | 1 = seg.curve > 0 ? -1 : 1;
         sprites.push({ offset: 1.35, side: outerSide, kind: "chevron" });
       }
 
-      // Sparse Billboards
       if (i === 18 || i === Math.floor(total * 0.48) || i === Math.floor(total * 0.82)) {
         const words = ["DRIFT", "NORTH", "2049", "SPEED"];
         const text = words[i % words.length];
         sprites.push({ offset: 2.2, side: 1, kind: "billboard", text });
       }
 
-      // Scenario Side Sprites spaced every ~3-4 segments
       if (i % 4 === 0 && i !== 0) {
         const side: -1 | 1 = scenarioHash(scenarioId, i * 7) > 0.5 ? 1 : -1;
         const offset = 1.4 + scenarioHash(scenarioId, i * 11) * 1.5;

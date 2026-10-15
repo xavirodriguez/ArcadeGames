@@ -197,7 +197,7 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
 
     for (let i = count - 1; i >= 0; i--) {
       const p = projectionBuffer[i]!;
-      if (p.y1 <= p.y2 || p.y1 >= p.clip) continue;
+      if (p.y1 <= p.y2 || p.y2 >= p.clip) continue;
 
       const grassCol = rumbleColor(p.index, rumbleLength, palette.groundDark, palette.groundLight);
       const rumbleCol = rumbleColor(p.index, rumbleLength, palette.rumbleDark, palette.rumbleLight);

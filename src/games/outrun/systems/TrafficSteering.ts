@@ -1,6 +1,8 @@
 /**
  * Pure traffic steering helpers (Session 4).
  * Deterministic, allocation-light, no ECS / Math.random.
+ *
+ * Session 5 adds collisionSubstepsForFrame + findSegmentIndexAtZ.
  */
 
 export interface TrafficObstacle {
@@ -94,4 +96,48 @@ export function maxRelativeTravelPerFrame(
   deltaTime: number
 ): number {
   return Math.abs(maxSpeed) * Math.max(0, deltaTime);
+}
+
+/**
+ * Adaptive collision substeps so a frame at engine maxDelta cannot tunnel
+ * through the player-racer collision sphere.
+ *
+ * Engine: GameLoop clamps deltaTime to maxDelta (default 0.25s, BaseGame).
+ * d_frame_max = maxSpeed * maxDelta; need ceil(d_frame / collisionZ) samples.
+ */
+export function collisionSubstepsForFrame(
+  maxSpeed: number,
+  deltaTime: number,
+  collisionZ: number,
+  minSubsteps = 4,
+  maxSubsteps = 32
+): number {
+  const minS = Math.max(1, Math.floor(minSubsteps));
+  const maxS = Math.max(minS, Math.floor(maxSubsteps));
+  if (collisionZ <= 0 || deltaTime <= 0 || maxSpeed <= 0) return minS;
+  const travel = maxSpeed * deltaTime;
+  const needed = Math.ceil(travel / collisionZ);
+  return Math.min(maxS, Math.max(minS, needed));
+}
+
+/**
+ * Resolve segment index for absolute Z on a circular track (linear scan).
+ * Correct for multi-segment jumps; O(n) over segment count.
+ */
+export function findSegmentIndexAtZ(
+  segments: readonly { length: number }[],
+  playerZ: number,
+  trackLength: number
+): number {
+  const n = segments.length;
+  if (n === 0 || trackLength <= 0) return 0;
+  let z = playerZ % trackLength;
+  if (z < 0) z += trackLength;
+  let accum = 0;
+  for (let i = 0; i < n; i++) {
+    const len = segments[i].length;
+    if (accum + len > z) return i;
+    accum += len;
+  }
+  return n - 1;
 }

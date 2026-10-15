@@ -5,6 +5,7 @@ import type {
   RoadData
 } from "../types/OutrunTypes";
 import { resolveOutrunSystemContext } from "./OutrunSystemUtils";
+import { findSegmentIndexAtZ } from "./TrafficSteering";
 
 /**
  * Advances playerZ by current speed and applies centrifugal force from road curve.
@@ -46,18 +47,8 @@ export class RoadAdvanceSystem extends System<OutrunComponentRegistry, OutrunEve
 
       s.lapTime += deltaTime;
 
-      let z = s.playerZ % trackLength;
-      if (z < 0) z += trackLength;
-      let accum = 0;
-      let segIndex = 0;
-      for (let i = 0; i < roadData.segments.length; i++) {
-        const len = roadData.segments[i].length;
-        if (accum + len > z) {
-          segIndex = i;
-          break;
-        }
-        accum += len;
-      }
+      // Multi-segment jumps are safe: findSegmentIndexAtZ scans the full track
+      const segIndex = findSegmentIndexAtZ(roadData.segments, s.playerZ, trackLength);
       s.currentSegment = segIndex;
 
       const curve = roadData.segments[segIndex].curve;

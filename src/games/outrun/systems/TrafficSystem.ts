@@ -9,6 +9,7 @@ import {
   circularDeltaZ,
   clampLateralX,
   computeTrafficSteerDelta,
+  collisionSubstepsForFrame,
   type TrafficObstacle
 } from "./TrafficSteering";
 
@@ -43,7 +44,17 @@ export class TrafficSystem extends System<OutrunComponentRegistry, OutrunEventRe
     const lookaheadDist = lookaheadSegments * config.segmentLength;
     const avoidRadius = config.trafficAvoidRadius ?? 0.35;
     const steerSpeed = config.trafficSteerSpeed ?? 1.5;
-    const substeps = Math.max(1, Math.floor(config.trafficCollisionSubsteps ?? 4));
+    // Adaptive substeps: Session 4 fixed default was enough at 60fps but not at
+    // engine maxDelta (0.25s) where d_frame = maxSpeed*0.25 can exceed collisionZ.
+    const minSub = config.trafficCollisionSubsteps ?? 4;
+    const maxSub = config.trafficCollisionSubstepsMax ?? 32;
+    const substeps = collisionSubstepsForFrame(
+      config.maxSpeed,
+      deltaTime,
+      collisionZ,
+      minSub,
+      maxSub
+    );
 
     const activeEntities: number[] = [];
     const snapZ: number[] = [];

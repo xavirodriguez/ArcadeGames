@@ -18,9 +18,9 @@ export function isEntityInvulnerable(
 }
 
 export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
-  private game: BaseGame<any, any, any, any, any>;
+  private game: BaseGame;
 
-  constructor(game: BaseGame<any, any, any, any, any>) {
+  constructor(game: BaseGame) {
     super();
     this.game = game;
   }

@@ -98,9 +98,8 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
     bullet?: number
   ): { newScore: number; scoreGain: number; nextMultiplier: number } {
     const config = world.getResource<any>("GameConfig") || {};
-    let points = config.ASTEROID_SCORE_LARGE ?? 20;
-    if (size === "medium") points = config.ASTEROID_SCORE_MEDIUM ?? 50;
-    else if (size === "small") points = config.ASTEROID_SCORE_SMALL ?? 100;
+    const tier = config.ASTEROID_TIERS?.find((t: any) => t.size === size);
+    let points = tier ? tier.score : (size === "medium" ? (config.ASTEROID_SCORE_MEDIUM ?? 50) : size === "small" ? (config.ASTEROID_SCORE_SMALL ?? 100) : (config.ASTEROID_SCORE_LARGE ?? 20));
 
     let nextCombo = 0;
     let nextMultiplier = 1;

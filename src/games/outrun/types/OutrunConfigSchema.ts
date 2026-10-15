@@ -24,6 +24,14 @@ export const OutrunConfigSchema = BaseConfigSchema.extend({
   playerZOffset: z.number().default(0),
   laneWidth: z.number().positive().default(0.3),
   trafficDensity: z.number().min(0).max(1).default(0.02),
+  /** Max segments each rival inspects ahead for steering (Session 4). */
+  trafficLookaheadSegments: z.number().int().positive().default(20),
+  /** Lateral overlap radius for treating another car as a blocking threat. */
+  trafficAvoidRadius: z.number().positive().default(0.35),
+  /** Max lateral units/sec when steering around slower traffic. */
+  trafficSteerSpeed: z.number().positive().default(1.5),
+  /** Collision detection substeps per frame (anti-tunneling at high relative speed). */
+  trafficCollisionSubsteps: z.number().int().positive().default(4),
   WIDTH: z.number().positive().default(800),
   HEIGHT: z.number().positive().default(600)
 });

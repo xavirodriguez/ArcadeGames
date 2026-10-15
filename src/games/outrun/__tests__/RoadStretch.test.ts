@@ -84,7 +84,14 @@ describe("buildEasedCurveStretch", () => {
   it("symmetric left/right sign", () => {
     const right = buildEasedCurveStretch(5, 5, 5, 3);
     const left = buildEasedCurveStretch(5, 5, 5, -3);
-    expect(left).toEqual(right.map((c) => -c));
+    expect(left).toEqual(right.map((c) => (c === 0 ? 0 : -c)));
+  });
+
+  it("endpoints and intermediate samples maintain canonical +0 representation", () => {
+    const v = buildEasedCurveStretch(5, 2, 5, -3);
+    expect(v[0]).toBe(0);
+    expect(Object.is(v[0], 0)).toBe(true);
+    expect(Object.is(v[0], -0)).toBe(false);
   });
 });
 

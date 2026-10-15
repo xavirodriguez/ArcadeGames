@@ -7,9 +7,11 @@ import { SpawnDirectorComponent, WaveDefinition, SpawnRequest } from "../compone
  * Runs deterministically in the Simulation phase.
  * @public
  */
+import { EventRegistry } from "@tiny-aster/core";
+
 export class SpawnDirectorSystem<
   TComponents extends ComponentRegistry = ComponentRegistry,
-  TEvents extends Record<string, any> = Record<string, any>
+  TEvents extends EventRegistry = EventRegistry
 > extends System<TComponents, TEvents> {
 
   constructor() {

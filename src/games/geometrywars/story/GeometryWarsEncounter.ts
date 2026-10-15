@@ -118,32 +118,34 @@ export class GeometryWarsArcadeAdapter extends BaseMiniGameEncounter<GeometryWar
     const game = new GeometryWarsGame({ seed: context.seed });
     this.game = game;
 
+    const gameObj = game as unknown as Record<string, unknown>;
     for (const modifier of context.modifiers) {
       if (modifier.targetProperty === "bombCount" && typeof modifier.value === "number") {
-        (game as any).bombCount = modifier.value;
+        gameObj.bombCount = modifier.value;
       } else if (modifier.targetProperty === "multiplierBoost" && typeof modifier.value === "number") {
-        (game as any).multiplierBoost = modifier.value;
+        gameObj.multiplierBoost = modifier.value;
       } else if (modifier.targetProperty === "playerSpeedMultiplier" && typeof modifier.value === "number") {
-        (game as any).playerSpeedMultiplier = modifier.value;
+        gameObj.playerSpeedMultiplier = modifier.value;
       }
     }
 
     game.start();
 
-    const eventBus = (game as any).eventBus || (game as any).getEventBus?.();
+    const eventBus = game.getEventBus();
     if (eventBus) {
-      eventBus.on("game:over" as any, (payload: any) => {
-        this.emitResult(context, payload);
+      eventBus.on("game:over", (payload: unknown) => {
+        this.emitResult(context, payload as Record<string, unknown>);
       });
-      eventBus.on("level:completed" as any, (payload: any) => {
-        this.emitResult(context, payload);
+      eventBus.on("level:completed", (payload: unknown) => {
+        this.emitResult(context, payload as Record<string, unknown>);
       });
     }
   }
 
-  protected buildResultPayload(context: MiniGameRunContext, payload?: any) {
-    const maxMultiplier = payload?.maxMultiplier ?? (this.game as any)?.maxMultiplier ?? 1;
-    const secretsFound: string[] = payload?.secretsFound ?? [];
+  protected buildResultPayload(context: MiniGameRunContext, payload?: Record<string, unknown>) {
+    const gameObj = this.game as unknown as Record<string, unknown> | undefined;
+    const maxMultiplier = (typeof payload?.maxMultiplier === "number" ? payload.maxMultiplier : undefined) ?? (typeof gameObj?.maxMultiplier === "number" ? gameObj.maxMultiplier : 1);
+    const secretsFound: string[] = Array.isArray(payload?.secretsFound) ? (payload.secretsFound as string[]) : [];
 
     if (payload?.foundQuantumCore) {
       secretsFound.push("quantum_singularity_core");
@@ -152,7 +154,7 @@ export class GeometryWarsArcadeAdapter extends BaseMiniGameEncounter<GeometryWar
     return {
       metrics: {
         maxMultiplier,
-        geomsCollected: payload?.geomsCollected ?? 0
+        geomsCollected: (typeof payload?.geomsCollected === "number" ? payload.geomsCollected : 0)
       },
       secretsFound
     };

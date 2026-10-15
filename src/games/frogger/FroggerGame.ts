@@ -100,7 +100,7 @@ export class FroggerGame extends BaseGame<
       this.world.addSystem(this.unifiedInput as System<FroggerComponentRegistry>, { phase: SystemPhase.Input });
     }
 
-    this.gameStateSystem = new FroggerGameStateSystem(this);
+    this.gameStateSystem = new FroggerGameStateSystem(this as unknown as BaseGame);
 
     this.world.addSystem(new FroggerInputSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new MovementSystem() as System<FroggerComponentRegistry>, { phase: SystemPhase.Simulation });

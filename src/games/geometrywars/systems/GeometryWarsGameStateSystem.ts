@@ -62,7 +62,7 @@ export class GeometryWarsGameStateSystem extends System<GeometryWarsComponentReg
 
       if (!world.isReSimulating) {
         Juice.shake(world, 14, 0.5);
-        const audio = world.getResource<any>("Audio") || (world as any).audio;
+        const audio = world.getResource<{ playSFX: (sfx: string) => void }>("Audio") || (world as unknown as { audio?: { playSFX: (sfx: string) => void } }).audio;
         if (audio) {
           audio.playSFX("explosion2");
         }
@@ -85,7 +85,7 @@ export class GeometryWarsGameStateSystem extends System<GeometryWarsComponentReg
       const lives = world.getComponent(stateEntity, "GeometryWarsState")?.lives ?? 0;
       if (lives > 0) {
         // Remove dead component to revive
-        world.getCommandBuffer().removeComponent(deadEntity, "Dead" as any);
+        world.getCommandBuffer().removeComponent(deadEntity, "Dead");
         world.mutateComponent(deadEntity, "Health", (h) => {
           h.current = h.max;
           h.invulnerableRemaining = 2.0; // 2s invulnerability
@@ -104,10 +104,10 @@ export class GeometryWarsGameStateSystem extends System<GeometryWarsComponentReg
     }
 
     // 2. Enemy death logic (increment score & combo)
-    const isEnemy = world.hasComponent(deadEntity, "Steering" as any) || (world.hasComponent(deadEntity, "Faction" as any) && (world.getComponent(deadEntity, "Faction" as any) as any).faction === "enemy");
+    const isEnemy = world.hasComponent(deadEntity, "Steering") || (world.hasComponent(deadEntity, "Faction") && world.getComponent(deadEntity, "Faction")?.faction === "enemy");
     if (isEnemy) {
-      const render = world.getComponent(deadEntity, "Render" as any) as any;
-      const transform = world.getComponent(deadEntity, "Transform" as any) as any;
+      const render = world.getComponent(deadEntity, "Render");
+      const transform = world.getComponent(deadEntity, "Transform");
 
       let baseScore = 50;
       if (render) {
@@ -148,7 +148,7 @@ export class GeometryWarsGameStateSystem extends System<GeometryWarsComponentReg
         }
 
         // Play SFX
-        const audio = world.getResource<any>("Audio") || (world as any).audio;
+        const audio = world.getResource<{ playSFX: (sfx: string) => void }>("Audio") || (world as unknown as { audio?: { playSFX: (sfx: string) => void } }).audio;
         if (audio) {
           audio.playSFX("explosion");
         }
@@ -158,7 +158,7 @@ export class GeometryWarsGameStateSystem extends System<GeometryWarsComponentReg
         if (particlePool && transform) {
           const px = transform.worldX ?? transform.x;
           const py = transform.worldY ?? transform.y;
-          const color = render ? render.color : "#ffffff";
+          const color = render?.color ?? "#ffffff";
 
           const rand = world.gameplayRandom;
           const initialStatus = rand.isLocked();

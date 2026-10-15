@@ -72,7 +72,7 @@ export class GeometryWarsGameScene extends Scene<GeometryWarsComponentRegistry> 
     // Ensure EventBus is registered on this scene's world
     if (!this.gworld.getResource("EventBus")) {
       const sceneManager = this.world.getResource<SceneManager>("SceneManager");
-      const eventBus = sceneManager ? (sceneManager as any).eventBus : new EventBus();
+      const eventBus = sceneManager ? (sceneManager as unknown as { eventBus?: EventBus }).eventBus : new EventBus();
       this.gworld.setResource("EventBus", eventBus || new EventBus());
     }
 
@@ -80,7 +80,7 @@ export class GeometryWarsGameScene extends Scene<GeometryWarsComponentRegistry> 
     registerGeometryWarsBlueprints(this.gworld);
 
     // 3. Register systems
-    this.gworld.addSystem(new HitStopSystem() as any, { phase: SystemPhase.Simulation, priority: 100 });
+    this.gworld.addSystem(new HitStopSystem() as unknown as System<GeometryWarsComponentRegistry>, { phase: SystemPhase.Simulation, priority: 100 });
     this.gworld.addSystem(new GeometryWarsInputSystem(), { phase: SystemPhase.Simulation });
     this.gworld.addSystem(new GeometryWarsAISystem(), { phase: SystemPhase.Simulation });
     this.gworld.addSystem(new SteeringSystem() as unknown as System<GeometryWarsComponentRegistry>, { phase: SystemPhase.Simulation });
@@ -94,12 +94,12 @@ export class GeometryWarsGameScene extends Scene<GeometryWarsComponentRegistry> 
     this.gworld.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });
     this.gworld.addSystem(new GeometryWarsGameStateSystem(), { phase: SystemPhase.GameRules });
     this.gworld.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
-    this.gworld.addSystem(new KineticFlowSystem() as any, { phase: SystemPhase.Presentation, priority: 50 });
+    this.gworld.addSystem(new KineticFlowSystem() as unknown as System<GeometryWarsComponentRegistry>, { phase: SystemPhase.Presentation, priority: 50 });
 
     if (!this.isHeadless) {
-      this.gworld.addSystem(new Camera2DSystem() as any, { phase: SystemPhase.Presentation });
-      this.gworld.addSystem(new JuiceSystem() as any, { phase: SystemPhase.Presentation });
-      this.gworld.addSystem(new ScreenShakeSystem() as any, { phase: SystemPhase.Presentation });
+      this.gworld.addSystem(new Camera2DSystem() as unknown as System<GeometryWarsComponentRegistry>, { phase: SystemPhase.Presentation });
+      this.gworld.addSystem(new JuiceSystem() as unknown as System<GeometryWarsComponentRegistry>, { phase: SystemPhase.Presentation });
+      this.gworld.addSystem(new ScreenShakeSystem() as unknown as System<GeometryWarsComponentRegistry>, { phase: SystemPhase.Presentation });
       this.gworld.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation });
     }
 
@@ -185,7 +185,7 @@ export class GeometryWarsGameScene extends Scene<GeometryWarsComponentRegistry> 
       x: this.config.worldWidth / 2,
       y: this.config.worldHeight / 2,
       isMain: true
-    } as any);
+    } as GeometryWarsComponentRegistry["Camera2D"]);
 
     // Initialize ScreenShake singleton entity
     const shakeEntity = this.gworld.createEntity();
@@ -194,7 +194,7 @@ export class GeometryWarsGameScene extends Scene<GeometryWarsComponentRegistry> 
       intensity: 0,
       duration: 0,
       remaining: 0
-    } as any);
+    } as GeometryWarsComponentRegistry["ScreenShake"]);
 
     // Initialize Wave definitions and SpawnDirector
     const waves = generateGeometryWarsWaves(this.config.worldWidth, this.config.worldHeight);
@@ -209,7 +209,7 @@ export class GeometryWarsGameScene extends Scene<GeometryWarsComponentRegistry> 
       waveElapsedTime: 0,
       enemiesRemaining: 0,
       status: "idle"
-    } as any);
+    } as GeometryWarsComponentRegistry["SpawnDirector"]);
   }
 
   public override onExit(): void {

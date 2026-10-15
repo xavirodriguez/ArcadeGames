@@ -58,8 +58,8 @@ export class GeometryWarsGameScene extends Scene<GeometryWarsComponentRegistry> 
   /**
    * Helper to access the world with correct TS generic typings.
    */
-  private get gworld(): World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any> {
-    return this.world as any;
+  private get gworld(): World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry> {
+    return this.world as World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>;
   }
 
   public onEnter(): void {

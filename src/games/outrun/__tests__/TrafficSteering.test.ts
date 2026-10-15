@@ -135,7 +135,16 @@ describe("centrifugalDelta (T4.3)", () => {
   const dt = 1 / 60;
 
   it("is zero on a straight (curve = 0)", () => {
-    expect(centrifugalDelta(0, maxSpeed, maxSpeed, force, dt)).toBe(0);
+    const res = centrifugalDelta(0, maxSpeed, maxSpeed, force, dt);
+    expect(res).toBe(0);
+    expect(Object.is(res, 0)).toBe(true);
+    expect(Object.is(res, -0)).toBe(false);
+  });
+
+  it("is zero when speed, force, or dt is zero", () => {
+    expect(Object.is(centrifugalDelta(2, 0, maxSpeed, force, dt), 0)).toBe(true);
+    expect(Object.is(centrifugalDelta(2, maxSpeed, maxSpeed, 0, dt), 0)).toBe(true);
+    expect(Object.is(centrifugalDelta(2, maxSpeed, maxSpeed, force, 0), 0)).toBe(true);
   });
 
   it("positive curve pushes playerX negative", () => {

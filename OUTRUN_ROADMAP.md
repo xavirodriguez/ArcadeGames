@@ -37,6 +37,7 @@ Norte visual: «Una postal japonesa de verano que cobra vida a 200 km/h.» Out R
 - [x] F10 Skia y paridad — commit: `feat(outrun): F10 — skia y paridad` — Gate F: drawers Skia en OutrunSkiaVisuals.ts con paridad visual total respecto a Canvas
 - [x] F11 Cierre — commit: `feat(outrun): F11 — cierre de proyecto` — gate: aceptacion completa de pseudo-3D Out Run racer, cero allocations en hot path, pnpm build y tests verdes
 - [x] F12 ★ Decorado arquitectónico OUT RUN 2049 — commit: `feat(outrun): F12 — decorado arquitectonico out run 2049` — gate: sprites por segmento con oclusion por crestas, paletas por escenario, nubes parallax, chevrones, billboards, horizontes contemporaneos, sombras, polvo y ciclo de luz
+- [x] F13 ★ Reparación final e integración — commit: `fix(outrun): reparacion de renderers y normalizacion de float zero en tests` — gate: 70 tests verdes en 6 suites, typecheck limpio, pattern checks aprobados, `-0` normalizado a `+0` en steering y stretch builder, fog y paletas integrados en Canvas y Skia.
 
 ---
 

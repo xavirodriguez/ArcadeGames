@@ -34,7 +34,7 @@ interface EnemyParams {
 }
 
 function spawnEnemyEntity(
-  w: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>,
+  w: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>,
   entity: number,
   params: EnemyParams
 ): void {
@@ -166,7 +166,7 @@ const ENEMY_CONFIGS: Record<string, Omit<EnemyParams, "x" | "y">> = {
  * Factory helper to register a simple enemy blueprint in the BlueprintRegistry.
  */
 export function registerSimpleEnemy(
-  registry: BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>,
+  registry: BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>,
   id: string,
   config: Omit<EnemyParams, "x" | "y">
 ): void {
@@ -178,12 +178,12 @@ export function registerSimpleEnemy(
  * @public
  */
 export function registerGeometryWarsBlueprints(
-  world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>
+  world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>
 ): void {
-  const registry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>>("BlueprintRegistry") || new BlueprintRegistry();
+  const registry = world.getResource<BlueprintRegistry<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>>("BlueprintRegistry") || new BlueprintRegistry();
 
   registry.register("player", {
-    spawn: (w: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, entity: number, args: { x: number; y: number }) => {
+    spawn: (w: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>, entity: number, args: { x: number; y: number }) => {
       const config = w.getResource<GeometryWarsConfig>("GameConfig");
       const tint = resolveThemeColor(w, "player");
 
@@ -241,7 +241,7 @@ export function registerGeometryWarsBlueprints(
   });
 
   registry.register("bullet", {
-    spawn: (w: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, entity: number, args: { x: number; y: number; vx: number; vy: number; rotation: number }) => {
+    spawn: (w: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>, entity: number, args: { x: number; y: number; vx: number; vy: number; rotation: number }) => {
       const config = w.getResource<GeometryWarsConfig>("GameConfig");
       const tint = resolveThemeColor(w, "bullet", "secondary");
 
@@ -274,7 +274,7 @@ export function registerGeometryWarsBlueprints(
   }
 
   registry.register("spawn_director", {
-    spawn: (w: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, entity: number) => {
+    spawn: (w: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>, entity: number) => {
       w.addComponent(entity, {
         type: "SpawnDirector",
         waveIndex: 0,
@@ -288,7 +288,7 @@ export function registerGeometryWarsBlueprints(
   });
 
   registry.register("state", {
-    spawn: (w: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, entity: number) => {
+    spawn: (w: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>, entity: number) => {
       const config = w.getResource<GeometryWarsConfig>("GameConfig");
       w.addComponent(entity, {
         type: "GeometryWarsState",
@@ -310,31 +310,31 @@ export function registerGeometryWarsBlueprints(
  * @public
  */
 export class GeometryWarsEntityFactory {
-  public static createSeeker(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {
+  public static createSeeker(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>, x: number, y: number): number {
     return spawnBlueprintEntity(world, "seeker", { x, y });
   }
 
-  public static createEvader(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {
+  public static createEvader(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>, x: number, y: number): number {
     return spawnBlueprintEntity(world, "evader", { x, y });
   }
 
-  public static createFastSeeker(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {
+  public static createFastSeeker(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>, x: number, y: number): number {
     return spawnBlueprintEntity(world, "fast_seeker", { x, y });
   }
 
-  public static createPlayer(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number): number {
+  public static createPlayer(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>, x: number, y: number): number {
     return spawnBlueprintEntity(world, "player", { x, y });
   }
 
-  public static createBullet(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>, x: number, y: number, vx: number, vy: number, rotation: number): number {
+  public static createBullet(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>, x: number, y: number, vx: number, vy: number, rotation: number): number {
     return spawnBlueprintEntity(world, "bullet", { x, y, vx, vy, rotation });
   }
 
-  public static createSpawnDirector(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>): number {
+  public static createSpawnDirector(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>): number {
     return spawnBlueprintEntity(world, "spawn_director", {});
   }
 
-  public static createGameState(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry, any>): number {
+  public static createGameState(world: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>): number {
     return spawnBlueprintEntity(world, "state", {});
   }
 }

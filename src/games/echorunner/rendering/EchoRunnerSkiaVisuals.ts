@@ -7,6 +7,8 @@ import {
   resolveEchoBackgroundContext,
 } from "./EchoRunnerVisualUtils";
 
+import { drawSkiaHitFlashCircle } from "../../shared/rendering/PlatformerSharedVisuals";
+
 export {
   drawSkiaMemoryFragment,
   drawSkiaMemoryCore,
@@ -17,16 +19,6 @@ export {
   drawSkiaWatcher,
   drawSkiaCharger,
 } from "../../shared/rendering/PlatformerSharedVisuals";
-
-function drawSkiaHitFlashCircle(canvas: any, paint: any, radius: number, color: string): true {
-  paint.reset();
-  paint.setAntiAlias(true);
-  paint.setStyle(Skia.PaintStyle.Fill);
-  paint.setColor(Skia.Color(color));
-  canvas.drawCircle(0, 0, radius, paint);
-  canvas.restore();
-  return true;
-}
 
 export const drawSkiaEchoBackground: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {

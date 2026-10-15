@@ -13,7 +13,7 @@ import {
   extractObstacleParams
 } from "./RacingSkin";
 import { buildTrackRibbon } from "./TrackRibbonGeometry";
-import { extractTrackDimensions, computeCheckpointGrid } from "./RacingVisualHelpers";
+import { extractTrackDimensions, computeCheckpointGrid, resolveTrackRibbonContext, resolveRacingParticlePoolContext } from "./RacingVisualHelpers";
 import type { RacingParticlePool } from "../systems/RacingParticleSystem";
 
 interface StaticCacheEntry {
@@ -107,14 +107,10 @@ export const drawTrackSurface: ShapeDrawer<CanvasRenderingContext2D, RacingCompo
 
 export const drawTrackRibbon: ShapeDrawer<CanvasRenderingContext2D, RacingComponentRegistry> = {
   draw(ctx, world) {
-        // TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingSkiaVisuals.ts:58-64. Considerar extraer a función compartida. Ref: afe949ab
-const skin = getRacingSkin(world);
-    const palette = skin.palette;
-    const trackSpec = world.getResource<TrackSpec>("ActiveTrackSpec");
-    if (!trackSpec || trackSpec.waypoints.length < 3) return;
+    const ribbonCtx = resolveTrackRibbonContext(world);
+    if (!ribbonCtx) return;
 
-    const { left, right } = buildTrackRibbon(trackSpec.waypoints);
-    if (left.length === 0 || right.length === 0) return;
+    const { palette, left, right } = ribbonCtx;
 
     ctx.save();
 
@@ -157,13 +153,12 @@ const skin = getRacingSkin(world);
   }
 };
 
-// TODO(refactor): código duplicado detectado (bloque) con racing/rendering/RacingCanvasVisuals.ts:191-196. Considerar extraer a función compartida. Ref: 658d61dd
 export const drawSkidMarks: ShapeDrawer<CanvasRenderingContext2D, RacingComponentRegistry> = {
   draw(ctx, world) {
-    const skin = getRacingSkin(world);
-    const palette = skin.palette;
-    const pool = world.getResource<RacingParticlePool>("RacingParticles");
-    if (!pool || pool.skidMarks.length === 0) return;
+    const pCtx = resolveRacingParticlePoolContext(world);
+    if (!pCtx || pCtx.pool.skidMarks.length === 0) return;
+
+    const { palette, pool } = pCtx;
 
     ctx.save();
     ctx.strokeStyle = palette.outline;
@@ -187,10 +182,10 @@ export const drawSkidMarks: ShapeDrawer<CanvasRenderingContext2D, RacingComponen
 
 export const drawSmoke: ShapeDrawer<CanvasRenderingContext2D, RacingComponentRegistry> = {
   draw(ctx, world) {
-    const skin = getRacingSkin(world);
-    const palette = skin.palette;
-    const pool = world.getResource<RacingParticlePool>("RacingParticles");
-    if (!pool || pool.smokeParticles.length === 0) return;
+    const pCtx = resolveRacingParticlePoolContext(world);
+    if (!pCtx || pCtx.pool.smokeParticles.length === 0) return;
+
+    const { palette, pool } = pCtx;
 
     ctx.save();
     ctx.fillStyle = palette.text;

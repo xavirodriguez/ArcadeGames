@@ -65,16 +65,7 @@ export class CanvasMotionTrail extends MotionTrailBase {
     outerColor: string,
     innerColor: string
   ): void {
-        // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/SkiaNeonUtils.ts:114-121. Considerar extraer a función compartida. Ref: 93a5763f
-const trail = this.getTrail(entityId);
-    const drawLength = Math.min(length, this.maxPoints);
-
-    for (let i = drawLength - 1; i >= 0; i--) {
-      const p = trail[i];
-      if (!p.active) continue;
-
-      const { alpha, trailSize } = computeMotionTrailSegment(i, drawLength, size);
-
+    this.iterateTrail(entityId, length, size, (p, alpha, trailSize) => {
       ctx.save();
       ctx.translate(p.x - currentX, p.y - currentY);
 
@@ -90,7 +81,7 @@ const trail = this.getTrail(entityId);
       ctx.fill();
 
       ctx.restore();
-    }
+    });
   }
 }
 

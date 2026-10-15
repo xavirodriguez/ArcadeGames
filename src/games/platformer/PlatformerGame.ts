@@ -41,7 +41,7 @@ import { drawMemoryFragment, drawCheckpointNode, drawSentinel, drawHopper, drawC
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import defaultLevelData from "./levels/level-01.json";
 import { PlatformerConfigSchema, PlatformerConfig as PlatformerConfigType, DEFAULT_PLATFORMER_CONFIG } from "./types/PlatformerConfigSchema";
-import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
+import { PlatformerArcadeGame, loadPlatformerArcadeConfig } from "../shared/PlatformerArcadeGame";
 
 export interface PlatformerConfig {
   seed?: number;
@@ -90,14 +90,15 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
       theme: config.theme ?? createThemeFromGameAccents("platformer"),
       audio: new WebAudioPlayer()
     });
-        // TODO(refactor): código duplicado detectado (bloque) con echorunner/EchoRunnerGame.ts:160-168. Considerar extraer a función compartida. Ref: 0716a3de
-this.baseConfig = ConfigService.load<PlatformerConfigType>(
+    const loaded = loadPlatformerArcadeConfig<PlatformerConfigType>(
       this.gameId,
       PlatformerConfigSchema,
-      config.gameOptions?.rawConfig ?? {}
+      config.gameOptions,
+      config.levelData
     );
-    this.config = this.baseConfig;
-    this.customLevelData = config.levelData ?? (config.gameOptions?.levelData as { templates: SegmentTemplate[]; grammar: string[] } | undefined);
+    this.baseConfig = loaded.baseConfig;
+    this.config = loaded.baseConfig;
+    this.customLevelData = loaded.customLevelData;
   }
 
   protected override async onRegisterSystems(): Promise<void> {

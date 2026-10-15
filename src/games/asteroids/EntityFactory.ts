@@ -240,11 +240,9 @@ export function registerAsteroidsBlueprints(
       const randVy = (w.gameplayRandom.next() - 0.5) * 100;
       const randAng = (w.gameplayRandom.next() - 0.5) * 2;
 
-      // Radius by size tier — also drives collision shape and render size.
-      // large=40, medium=20, small=10 (halved on each fragmentation step; see fragmentAsteroid).
-      let radius = 40;
-      if (args.size === "medium") radius = 20;
-      else if (args.size === "small") radius = 10;
+      // Radius by size tier — queried from ASTEROID_TIERS table
+      const tier = gameConfig?.ASTEROID_TIERS?.find((t) => t.size === args.size);
+      const radius = tier ? tier.radius : (args.size === "medium" ? 20 : args.size === "small" ? 10 : 40);
 
       const logicalRole = args.size === "large" ? "asteroid-large" : args.size === "medium" ? "asteroid-medium" : "asteroid-small";
       const tint = resolveThemeColor(w, logicalRole, "asteroid", "enemy") ?? getGameplayColor("Enemy", w);
@@ -533,27 +531,30 @@ export const fragmentAsteroid = (world: World<AsteroidsComponentRegistry, Astero
     const velocity = world.getComponent(parentAsteroid, "Velocity");
     if (!asteroid || !transform) return;
 
-    let nextSize: string | null = null;
-    if (asteroid.size === "large") nextSize = "medium";
-    else if (asteroid.size === "medium") nextSize = "small";
+    const config = world.getResource<AsteroidConfig>("GameConfig");
+    const tiers = config?.ASTEROID_TIERS ?? [
+      { size: "large", radius: 40, score: 20, splitsInto: "medium", splitCount: 2, speedRange: [-50, 50] },
+      { size: "medium", radius: 20, score: 50, splitsInto: "small", splitCount: 2, speedRange: [-50, 50] },
+      { size: "small", radius: 10, score: 100, splitsInto: null, splitCount: 0, speedRange: [-50, 50] }
+    ];
+
+    const currentTier = tiers.find((t) => t.size === asteroid.size);
+    const nextSize = currentTier ? currentTier.splitsInto : (asteroid.size === "large" ? "medium" : asteroid.size === "medium" ? "small" : null);
 
     if (nextSize) {
-        const config = world.getResource<AsteroidConfig>("GameConfig");
         const maxAsteroids = config?.MAX_ASTEROIDS ?? 50;
         const currentAsteroidsCount = world.query("Asteroid").length;
         if (currentAsteroidsCount >= maxAsteroids) {
             return;
         }
 
-        // Create 2 children in opposite directions (+Math.PI angle offset)
-        // Use gameplayRandom for determinism
+        const splitCount = currentTier ? currentTier.splitCount : 2;
         const rand = world.gameplayRandom;
-        const angle1 = rand.next() * Math.PI * 2;
-        const angle2 = angle1 + Math.PI; // opposite directions
-
+        const baseAngle = rand.next() * Math.PI * 2;
         const speed = config?.FRAGMENT_IMPULSE_SPEED ?? 80;
 
-        for (const angle of [angle1, angle2]) {
+        for (let i = 0; i < splitCount; i++) {
+            const angle = baseAngle + (i * Math.PI * 2) / splitCount;
             const vx = (velocity ? velocity.vx : 0) + Math.cos(angle) * speed;
             const vy = (velocity ? velocity.vy : 0) + Math.sin(angle) * speed;
 

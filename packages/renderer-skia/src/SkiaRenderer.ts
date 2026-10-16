@@ -98,15 +98,28 @@ export class SkiaRenderer<TRegistry extends CoreComponentRegistry = CoreComponen
 
     canvas.save();
 
+    let camX = 0;
+    let camY = 0;
+    let camZoom = 1;
+    let camVoX = 0;
+    let camVoY = 0;
+    let hasMainCamera = false;
+
     if (mainCameraEntity !== undefined) {
       const cam = world.getComponent(mainCameraEntity, cameraType) as Camera2DComponent | undefined;
       if (cam) {
+        hasMainCamera = true;
+        camX = cam.x;
+        camY = cam.y;
+        camZoom = cam.zoom;
         // Center camera and apply zoom
         canvas.translate(-cam.x, -cam.y);
         canvas.scale(cam.zoom, cam.zoom);
 
         const visualOffset = world.getComponent(mainCameraEntity, visualOffsetType) as VisualOffsetComponent | undefined;
         if (visualOffset) {
+          camVoX = visualOffset.offsetX;
+          camVoY = visualOffset.offsetY;
           canvas.translate(-visualOffset.offsetX, -visualOffset.offsetY);
         }
       }
@@ -152,6 +165,16 @@ export class SkiaRenderer<TRegistry extends CoreComponentRegistry = CoreComponen
       if (!render || !transform || !render.visible || render.opacity === 0) continue;
 
       canvas.save();
+
+      if (hasMainCamera && render.ignoreCamera) {
+        if (camVoX !== 0 || camVoY !== 0) {
+          canvas.translate(camVoX, camVoY);
+        }
+        if (camZoom !== 0 && camZoom !== 1) {
+          canvas.scale(1 / camZoom, 1 / camZoom);
+        }
+        canvas.translate(camX, camY);
+      }
 
       const visualOffset = world.getComponent(entity, visualOffsetType) as unknown as { offsetX: number; offsetY: number; scaleX?: number; scaleY?: number } | undefined;
       const offsetX = visualOffset?.offsetX ?? 0;

@@ -94,7 +94,13 @@ export class OutrunGame extends BaseGame<
     runWithUnlockedRandomAndMutators(this.world, this._config.gameOptions, () => {
       segments = this.generateRoad(this.config, this.world);
     });
+    if (!segments || segments.length === 0) {
+      throw new Error("[OutrunGame] Failed to generate road segments: segments array is empty.");
+    }
     const trackLength = segments.reduce((sum, s) => sum + s.length, 0);
+    if (trackLength <= 0) {
+      throw new Error(`[OutrunGame] Invalid track length calculated: ${trackLength}. Must be greater than 0.`);
+    }
     const roadData: RoadData = { segments, trackLength };
     this.world.setResource("RoadData", roadData);
 
@@ -154,7 +160,8 @@ export class OutrunGame extends BaseGame<
         opacity: 1,
         rotation: 0,
         angularVelocity: 0,
-        hitFlashFrames: 0
+        hitFlashFrames: 0,
+        ignoreCamera: true
       });
       this.world.addComponent(roadEntity, createDefaultTransform());
 
@@ -168,12 +175,16 @@ export class OutrunGame extends BaseGame<
         rotation: 0,
         angularVelocity: 0,
         hitFlashFrames: 0,
-        color: "#e63946"
+        color: "#e63946",
+        ignoreCamera: true
       });
       this.world.addComponent(carEntity, createDefaultTransform());
 
       const rng = this.world.gameplayRandom;
-      const roadData = this.world.getResource<RoadData>("RoadData")!;
+      const roadData = this.world.getResource<RoadData>("RoadData");
+      if (!roadData) {
+        throw new Error("[OutrunGame] RoadData resource not found during entity initialization.");
+      }
       const numTraffic = 8;
       for (let i = 0; i < numTraffic; i++) {
         const z = (i + 1) * (roadData.trackLength / (numTraffic + 2));
@@ -198,7 +209,8 @@ export class OutrunGame extends BaseGame<
           opacity: 1,
           rotation: 0,
           angularVelocity: 0,
-          hitFlashFrames: 0
+          hitFlashFrames: 0,
+          ignoreCamera: true
         });
         this.world.addComponent(ent, createDefaultTransform());
       }

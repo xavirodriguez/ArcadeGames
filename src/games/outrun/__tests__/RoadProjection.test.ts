@@ -96,4 +96,62 @@ describe("projectRoad", () => {
       expect(out1[i].index).toBe(out2[i].index);
     }
   });
+
+  it("handles near-plane straddling segments (p1z <= 0 < p2z) cleanly without non-finite coordinates (T0.2 fixture 5 / T1.1)", () => {
+    const segments = makeStraightRoad(10, 200);
+    const out = createProjectionBuffer(10);
+    // Camera placed mid-segment so segment 0 has rawP1z = -100 and rawP2z = 100
+    const playerZ = 100;
+    const count = projectRoad(
+      segments, playerZ, 0, cameraHeight, cameraDepth, roadWidth, 10, screenW, screenH, out
+    );
+    expect(count).toBe(10);
+    const straddling = out[0];
+    expect(straddling.p1z).toBeGreaterThan(0); // Clipped to NEAR_PLANE (0.5)
+    expect(Number.isFinite(straddling.x1)).toBe(true);
+    expect(Number.isFinite(straddling.y1)).toBe(true);
+    expect(Number.isFinite(straddling.w1)).toBe(true);
+    expect(Number.isFinite(straddling.x2)).toBe(true);
+    expect(Number.isFinite(straddling.y2)).toBe(true);
+    expect(Number.isFinite(straddling.w2)).toBe(true);
+  });
+
+  it("tracks hill crest horizon occlusion clipY (T0.2 fixture 4 / T1.2)", () => {
+    const segments: RoadSegment[] = [];
+    // Up-hill section followed by down-hill section (crest)
+    for (let i = 0; i < 20; i++) segments.push({ index: i, length: 200, curve: 0, hill: 4 });
+    for (let i = 20; i < 40; i++) segments.push({ index: i, length: 200, curve: 0, hill: -4 });
+
+    const out = createProjectionBuffer(40);
+    const count = projectRoad(
+      segments, 0, 0, cameraHeight, cameraDepth, roadWidth, 40, screenW, screenH, out
+    );
+    expect(count).toBe(40);
+
+    // Verify clip is updated at the crest
+    let minClip = screenH;
+    for (let i = 0; i < count; i++) {
+      expect(out[i].clip).toBeLessThanOrEqual(minClip);
+      if (out[i].clip < minClip) {
+        minClip = out[i].clip;
+      }
+    }
+    expect(minClip).toBeLessThan(screenH);
+  });
+
+  it("maintains continuous lateral displacement across segment boundaries in curve (T0.2 fixture 6 / T2.3)", () => {
+    const segments: RoadSegment[] = [];
+    for (let i = 0; i < 20; i++) segments.push({ index: i, length: 200, curve: 3, hill: 0 });
+
+    const out1 = createProjectionBuffer(10);
+    const out2 = createProjectionBuffer(10);
+
+    // Compare playerZ = 190 (near end of seg 0) and playerZ = 210 (just inside seg 1)
+    projectRoad(segments, 190, 0, cameraHeight, cameraDepth, roadWidth, 10, screenW, screenH, out1);
+    projectRoad(segments, 210, 0, cameraHeight, cameraDepth, roadWidth, 10, screenW, screenH, out2);
+
+    // Delta between adjacent steps (20 world units of Z advancement)
+    const deltaX = Math.abs(out1[0].x1 - out2[0].x1);
+    expect(deltaX).toBeLessThan(50); // Continuous movement, no abrupt jump
+  });
 });

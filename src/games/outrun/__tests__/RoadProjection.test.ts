@@ -96,4 +96,96 @@ describe("projectRoad", () => {
       expect(out1[i].index).toBe(out2[i].index);
     }
   });
+
+  it("handles near-plane straddling segments (p1z <= 0 < p2z) cleanly without non-finite coordinates (T0.2 fixture 5 / T1.1)", () => {
+    const segments = makeStraightRoad(10, 200);
+    const out = createProjectionBuffer(10);
+    // Camera placed mid-segment so segment 0 has rawP1z = -100 and rawP2z = 100
+    const playerZ = 100;
+    const count = projectRoad(
+      segments, playerZ, 0, cameraHeight, cameraDepth, roadWidth, 10, screenW, screenH, out
+    );
+    expect(count).toBe(10);
+    const straddling = out[0];
+    expect(straddling.p1z).toBeGreaterThan(0); // Clipped to NEAR_PLANE (0.5)
+    expect(Number.isFinite(straddling.x1)).toBe(true);
+    expect(Number.isFinite(straddling.y1)).toBe(true);
+    expect(Number.isFinite(straddling.w1)).toBe(true);
+    expect(Number.isFinite(straddling.x2)).toBe(true);
+    expect(Number.isFinite(straddling.y2)).toBe(true);
+    expect(Number.isFinite(straddling.w2)).toBe(true);
+  });
+
+  it("tracks hill crest horizon occlusion clipY (T0.2 fixture 4 / T1.2)", () => {
+    const segments: RoadSegment[] = [];
+    // Up-hill section followed by down-hill section (crest)
+    for (let i = 0; i < 20; i++) segments.push({ index: i, length: 200, curve: 0, hill: 4 });
+    for (let i = 20; i < 40; i++) segments.push({ index: i, length: 200, curve: 0, hill: -4 });
+
+    const out = createProjectionBuffer(40);
+    const count = projectRoad(
+      segments, 0, 0, cameraHeight, cameraDepth, roadWidth, 40, screenW, screenH, out
+    );
+    expect(count).toBe(40);
+
+    // Verify clip is updated at the crest
+    let minClip = screenH;
+    for (let i = 0; i < count; i++) {
+      expect(out[i].clip).toBeLessThanOrEqual(minClip);
+      if (out[i].clip < minClip) {
+        minClip = out[i].clip;
+      }
+    }
+    expect(minClip).toBeLessThan(screenH);
+  });
+
+  it("maintains continuous lateral displacement across segment boundaries in curve (T0.2 fixture 6 / T2.3)", () => {
+    const segments: RoadSegment[] = [];
+    for (let i = 0; i < 20; i++) segments.push({ index: i, length: 200, curve: 3, hill: 0 });
+
+    const out1 = createProjectionBuffer(10);
+    const out2 = createProjectionBuffer(10);
+
+    // Compare playerZ = 190 (near end of seg 0) and playerZ = 210 (just inside seg 1)
+    projectRoad(segments, 190, 0, cameraHeight, cameraDepth, roadWidth, 10, screenW, screenH, out1);
+    projectRoad(segments, 210, 0, cameraHeight, cameraDepth, roadWidth, 10, screenW, screenH, out2);
+
+    // Delta between adjacent steps (20 world units of Z advancement)
+    const deltaX = Math.abs(out1[0].x1 - out2[0].x1);
+    expect(deltaX).toBeLessThan(50); // Continuous movement, no abrupt jump
+  });
+
+  it("geometric baseline: verifies fixed projected segment coordinates (T0.3)", () => {
+    const segments: RoadSegment[] = [
+      { index: 0, length: 200, curve: 0, hill: 0 },
+      { index: 1, length: 200, curve: 2, hill: 1 },
+      { index: 2, length: 200, curve: 4, hill: -1 },
+      { index: 3, length: 200, curve: 0, hill: 0 },
+      { index: 4, length: 200, curve: -2, hill: 0 },
+      { index: 5, length: 200, curve: 0, hill: 0 }
+    ];
+    const out = createProjectionBuffer(6);
+    const count = projectRoad(segments, 0, 0, cameraHeight, cameraDepth, roadWidth, 6, screenW, screenH, out);
+
+    expect(count).toBe(6);
+    const baseline = out.slice(0, 6).map((p) => ({
+      index: p.index,
+      x1: Math.round(p.x1),
+      y1: Math.round(p.y1),
+      w1: Math.round(p.w1),
+      x2: Math.round(p.x2),
+      y2: Math.round(p.y2),
+      w2: Math.round(p.w2),
+      clip: Math.round(p.clip)
+    }));
+
+    expect(baseline).toEqual([
+      { index: 0, x1: 400, y1: 504300, w1: 672, x2: 400, y2: 1560, w2: 2, clip: 600 },
+      { index: 1, x1: 400, y1: 1560, w1: 2, x2: 400, y2: 930, w2: 1, clip: 600 },
+      { index: 2, x1: 400, y1: 930, w1: 1, x2: 400, y2: 720, w2: 1, clip: 600 },
+      { index: 3, x1: 400, y1: 720, w1: 1, x2: 400, y2: 615, w2: 0, clip: 600 },
+      { index: 4, x1: 400, y1: 615, w1: 0, x2: 400, y2: 552, w2: 0, clip: 600 },
+      { index: 5, x1: 400, y1: 552, w1: 0, x2: 400, y2: 510, w2: 0, clip: 552 }
+    ]);
+  });
 });

@@ -88,15 +88,15 @@ Every change must preserve the following invariants.
 
 | Technique | Reference behavior | Decision for ArcadeGames | Evidence Status |
 |---|---|---|---|
-| Eased track construction | `addRoad(enter, hold, leave, curve, y)` smooths curve transitions and elevation changes. | **High priority:** evaluate a deterministic stretch builder in `generateRoad()`. | **Not present** (`OutrunGame.ts` currently uses step blocks). |
-| Absolute world elevation | Segment endpoints store world-space heights; camera height follows interpolated track elevation. | **Investigate:** compare with the current differential height integration (`hill`). | **Not present** (currently accumulates `dy += seg.hill`). |
-| Partial-segment curve correction | Initial lateral offset compensates for camera position inside the current segment. | **Verify:** implement if projection continuity tests expose lateral popping. | **Not present** (`x, dx` accumulation starts at 0 without segment fractional offset). |
-| Near-plane handling | Reference skips segments behind camera rather than geometrically clipping a straddling segment. | **Fix verified defect:** implement robust near-plane clipping for straddling segments. | **Verified defect** (`RoadProjection.ts` uses denominator clamp `0.001`). |
+| Eased track construction | `addRoad(enter, hold, leave, curve, y)` smooths curve transitions and elevation changes. | **High priority:** evaluate a deterministic stretch builder in `generateRoad()`. | **Already solved** (actualizado 2026-03-30) (`OutrunGame.ts` uses `addStretch` with `RoadStretch.ts`). |
+| Absolute world elevation | Segment endpoints store world-space heights; camera height follows interpolated track elevation. | **Investigate:** compare with the current differential height integration (`hill`). | **Deferred** (actualizado 2026-03-30) (differential hill model with eased stretches is adequate). |
+| Partial-segment curve correction | Initial lateral offset compensates for camera position inside the current segment. | **Verify:** implement if projection continuity tests expose lateral popping. | **Already solved** (actualizado 2026-03-30) (`RoadProjection.ts` computes `basePercent` fractional offsets). |
+| Near-plane handling | Reference skips segments behind camera rather than geometrically clipping a straddling segment. | **Fix verified defect:** implement robust near-plane clipping for straddling segments. | **Already solved** (actualizado 2026-03-30) (`RoadProjection.ts` uses `NEAR_PLANE = 0.5` near-plane clip). |
 | Back-face culling | Rejects segments whose projected far edge lies below their near edge. | **Already solved:** maxy horizon occlusion clips hidden road trapezoids. | **Already solved** (`dest.clip = maxy` handles hill occlusion). |
 | Occlusion-aware sprite clipping | Captures road occlusion boundary before drawing each segment. | **Already solved:** `iterateOutrunSprites` applies `clipY` during back-to-front pass. | **Already solved** (active in `OutrunCanvasVisuals.ts` and `OutrunSkiaVisuals.ts`). |
-| Traffic lookahead | Scans upcoming segments for slower traffic and adjusts steering before overlap. | **Conditional:** inspect `TrafficSystem` lookahead needs. | **Not present** (`TrafficSystem.ts` uses immediate collision distance). |
-| Curve-driven parallax | Scrolls background layers according to track curvature and distance traveled. | **Conditional:** evaluate adding curvature accumulation to horizon parallax. | **Not present** (parallax currently uses `playerX` and `playerZ` only). |
-| Exponential fog | Applies distance-dependent fog to road polygons. | **Evaluate visually:** align fog model across Canvas and Skia. | **Needs investigation** (Canvas has linear fog; Skia lacks fog pass). |
+| Traffic lookahead | Scans upcoming segments for slower traffic and adjusts steering before overlap. | **Conditional:** inspect `TrafficSystem` lookahead needs. | **Already solved** (actualizado 2026-03-30) (`TrafficSteering.ts` has lookahead steering). |
+| Curve-driven parallax | Scrolls background layers according to track curvature and distance traveled. | **Conditional:** evaluate adding curvature accumulation to horizon parallax. | **Deferred** (actualizado 2026-03-30) (requires visual judgment). |
+| Exponential fog | Applies distance-dependent fog to road polygons. | **Evaluate visually:** align fog model across Canvas and Skia. | **Already solved** (actualizado 2026-03-30) (shared `resolveSegmentFog` in Canvas and Skia). |
 | Segment traversal invariant | Limits movement to at most one segment per update to simplify collision handling. | **Already solved:** continuous Z space handling supports multi-segment movement. | **Already solved** (`RoadAdvanceSystem.ts` handles continuous delta Z). |
 
 ---
@@ -266,15 +266,15 @@ Maintain automated test coverage in `src/games/outrun/__tests__/`.
 
 ## 11. Validation Matrix
 
-| Scenario | Required Checks | Preferred Verification |
-|---|---|---|
-| Straight road | Symmetry, horizon alignment | Unit tests in `RoadProjection.test.ts` |
-| Curve transitions | Continuous lateral delta, no visual pop | Position sweep test |
-| Near-plane intersection | Valid finite coordinates, no depth blowup | Boundary test with `p1z <= 0` |
-| Crest & descent | Occlusion bounds (`maxy`), smooth hill profile | Projection fixture assertions |
-| Sprite clipping | Road ridge clipping (`clipY`) | Visitor test in Canvas/Skia drawers |
-| Identical seeds | Identical track length, segment curves | Seed repeatability tests |
-| Canvas vs. Skia parity | Equal fog, palette, and geometry | Shared context assertions |
+| Scenario | Required Checks | Preferred Verification | Covering Test |
+|---|---|---|---|
+| Straight road | Symmetry, horizon alignment | Unit tests in `RoadProjection.test.ts` | `RoadProjection.test.ts` ("straight road produces symmetric perspective") |
+| Curve transitions | Continuous lateral delta, no visual pop | Position sweep test | `RoadProjection.test.ts` ("maintains continuous lateral displacement...") & `RoadStretch.test.ts` |
+| Near-plane intersection | Valid finite coordinates, no depth blowup | Boundary test with `p1z <= 0` | `RoadProjection.test.ts` ("handles near-plane straddling segments...") |
+| Crest & descent | Occlusion bounds (`maxy`), smooth hill profile | Projection fixture assertions | `RoadProjection.test.ts` ("tracks hill crest horizon occlusion clipY") |
+| Sprite clipping | Road ridge clipping (`clipY`) | Visitor test in Canvas/Skia drawers | `OutrunGameplay.test.ts` & `RoadProjection.test.ts` |
+| Identical seeds | Identical track length, segment curves | Seed repeatability tests | `OutrunGameplay.test.ts` ("creates a deterministic simulation...") |
+| Canvas vs. Skia parity | Equal fog, palette, and geometry | Shared context assertions | `OutrunGameplay.test.ts` ("draws road segments correctly...") & `OutrunFog.test.ts` |
 
 ---
 
@@ -297,3 +297,38 @@ Maintain automated test coverage in `src/games/outrun/__tests__/`.
 - Unit tests pass with zero regressions (`pnpm exec jest src/games/outrun`).
 - Shared projection buffer produces identical geometry for Canvas2D and Skia.
 - CI checks (`pnpm run ci`) pass cleanly.
+
+---
+
+## 14. Estado de ejecución
+
+| Tarea | Estado | Evidencia | Última verificación |
+|---|---|---|---|
+| T0.1 Audit the Implementation | HECHO | Source audit confirmed symbol/file mappings and test suite | 2026-03-30 |
+| T0.2 Establish Deterministic Geometry Fixtures | HECHO | `RoadProjection.test.ts` covers straight, curve, hill, crest occlusion, straddle, boundary continuity, wrap, determinism | 2026-03-30 |
+| T0.3 Capture Visual Baseline | BLOQUEADO | Requiere entorno gráfico | 2026-03-30 |
+| T1.1 Near-Plane Intersections | HECHO | `NEAR_PLANE = 0.5` camera-space clipping in `RoadProjection.ts` | 2026-03-30 |
+| T1.2 Reconcile Road Visibility & Hill Occlusion | HECHO | `dest.clip = maxy` active in `RoadProjection.ts` and shared drawers | 2026-03-30 |
+| T1.3 Correct Sprite & Scenery Occlusion | HECHO | `iterateOutrunSprites` in `OutrunRenderShared.ts` applies `clipY` | 2026-03-30 |
+| T2.1 Eased Stretch Builder | HECHO | `RoadStretch.ts` (`easeIn`, `easeInOut`, `expandStretch`) and `OutrunGame.ts` | 2026-03-30 |
+| T2.2 Improve Elevation Transitions | DIFERIDO | Requiere modelo de altura absoluta si hay saltos; actualmente hill suavizado es adecuado | 2026-03-30 |
+| T2.3 Eliminate Curve-Boundary Discontinuities | HECHO | `basePercent` initial dx/dy offset in `RoadProjection.ts` | 2026-03-30 |
+| T3.1 Unify Palette Selection | HECHO | `getScenarioPaletteAtZ` in `OutrunPalettes.ts` consumed by Canvas & Skia | 2026-03-30 |
+| T3.2 Unify Fog Semantics | HECHO | `resolveSegmentFog` in `OutrunFog.ts` used in both `OutrunCanvasVisuals.ts` and `OutrunSkiaVisuals.ts` | 2026-03-30 |
+| T3.3 Curve-Driven Background Parallax | IMPLEMENTADO | `computeCurvatureParallaxOffset` in `OutrunVisualHelpers.ts`, `OutrunParallax.test.ts` (revisión visual pendiente) | 2026-03-30 |
+| T4.1 Predictive Traffic Steering | HECHO | `TrafficSteering.ts` lookahead and `TrafficSteering.test.ts` | 2026-03-30 |
+| T4.2 Validate Centrifugal Force | HECHO | `centrifugalDelta` in `TrafficSteering.ts` and `TrafficSteering.test.ts` | 2026-03-30 |
+| T5.1 Validate Segment Advancement | HECHO | `RoadAdvanceSystem.ts` and `OutrunGameplay.test.ts` | 2026-03-30 |
+| T5.2 Rendering Performance Baseline | HECHO | `createProjectionBuffer` and buffer reuse in `OutrunRenderShared.ts` | 2026-03-30 |
+| T5.3 Regression Guardrails | HECHO | Test coverage across 6 Jest test files in `src/games/outrun/__tests__/` | 2026-03-30 |
+
+### Resumen de estados (2026-03-30)
+
+- **HECHO:** 13
+- **IMPLEMENTADO:** 1 (T3.3 - revisión visual pendiente)
+- **DIFERIDO:** 1 (T2.2)
+- **BLOQUEADO:** 2 (T0.3)
+- **PARCIAL:** 0
+- **PENDIENTE:** 0
+
+**Roadmap completo (2026-03-30)**

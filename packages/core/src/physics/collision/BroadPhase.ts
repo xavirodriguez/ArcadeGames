@@ -9,7 +9,7 @@ import { toShapeDefinition } from "../utils/ColliderShapeUtils";
  * Bounds object used for Sweep and Prune.
  * @internal
  */
-interface EntityBounds {
+export interface EntityBounds {
   entity: Entity;
   minX: number;
   minY: number;
@@ -17,8 +17,19 @@ interface EntityBounds {
   maxY: number;
 }
 
-const boundsPool: EntityBounds[] = [];
-const pairsPool: Array<[Entity, Entity]> = [];
+/**
+ * Scratch state for zero-allocation Sweep and Prune bound to a specific system or world instance.
+ * @public
+ */
+export interface BroadPhaseScratch {
+  boundsPool: EntityBounds[];
+  pairsPool: Array<[Entity, Entity]>;
+}
+
+const defaultScratch: BroadPhaseScratch = {
+  boundsPool: [],
+  pairsPool: []
+};
 
 /**
  * Broadphase collision detection module utilizing 1D Sweep and Prune.
@@ -31,6 +42,16 @@ const pairsPool: Array<[Entity, Entity]> = [];
  * @public
  */
 export class BroadPhase {
+  /**
+   * Creates fresh isolated BroadPhase scratch buffers for system instance binding.
+   */
+  public static createScratch(): BroadPhaseScratch {
+    return {
+      boundsPool: [],
+      pairsPool: []
+    };
+  }
+
   /**
    * Computes the world-space Axis-Aligned Bounding Box (AABB) for an entity collider.
    *
@@ -50,15 +71,24 @@ export class BroadPhase {
    * Executes 1D Sweep and Prune on candidate entities along the X-axis.
    *
    * @remarks
-   * Performs zero runtime object or array allocations by mutating static pre-allocated pools
+   * Performs zero runtime object or array allocations by mutating instance pre-allocated pools
    * (`boundsPool` and `pairsPool`). In-place Shell sort operates on bounds sorted by `minX`,
    * providing fast O(n log n) to O(n) performance for temporally coherent physics bodies.
    *
    * @param entities - List of candidate entities to evaluate.
    * @param world - Simulation world instance containing Transform and Collider components.
+   * @param scratch - Optional system-owned scratch buffers to ensure multi-world isolation.
    * @returns Reused array of candidate overlapping entity ID pairs `[Entity, Entity]`.
    */
-  static sweepAndPrune(entities: ReadonlyArray<Entity>, world: World<CoreComponentRegistry>): Array<[Entity, Entity]> {
+  static sweepAndPrune(
+    entities: ReadonlyArray<Entity>,
+    world: World<CoreComponentRegistry>,
+    scratch?: BroadPhaseScratch
+  ): Array<[Entity, Entity]> {
+    const s = scratch ?? defaultScratch;
+    const boundsPool = s.boundsPool;
+    const pairsPool = s.pairsPool;
+
     // Re-use or expand boundsPool to minimize object allocation overhead.
     const count = entities.length;
     for (let i = 0; i < count; i++) {
@@ -100,7 +130,6 @@ export class BroadPhase {
       gap = Math.floor(gap / 2);
     }
 
-    // Safe for determinism/rollback. Reusing a static pairs buffer and updating tuple elements in place eliminates per-tick pair allocations during broadphase collision checks.
     let pairIndex = 0;
     for (let i = 0; i < count; i++) {
       const a = boundsPool[i];

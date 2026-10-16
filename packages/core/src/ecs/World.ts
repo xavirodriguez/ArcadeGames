@@ -639,9 +639,20 @@ export class World<
     return true;
   }
 
+  private getQueryKey<K extends ComponentType<TComponents>>(componentTypes: K[]): string {
+    const len = componentTypes.length;
+    if (len === 1) return componentTypes[0] as string;
+    if (len === 2) {
+      const a = componentTypes[0] as string;
+      const b = componentTypes[1] as string;
+      return a < b ? `${a},${b}` : `${b},${a}`;
+    }
+    return [...componentTypes].sort().join(",");
+  }
+
   /** Retrieves or creates a cached Query instance matching entities with componentTypes. */
   getQuery<K extends ComponentType<TComponents>>(...componentTypes: K[]): Query<TComponents> {
-    const key = [...componentTypes].sort().join(",");
+    const key = this.getQueryKey(componentTypes);
     let query = this.queries.get(key);
     if (!query) {
       query = new Query<TComponents>(componentTypes as string[]);

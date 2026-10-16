@@ -41,6 +41,8 @@ function setNumericProperty<T extends object>(obj: T, prop: string, value: numbe
  * @public
  */
 export class JuiceSystem extends System<CoreComponentRegistry> {
+    public override runsWhileFrozen = true;
+
     /**
      * Updates elapsed animation timers, evaluates easing curves, and applies interpolated component properties.
      *
@@ -58,7 +60,6 @@ export class JuiceSystem extends System<CoreComponentRegistry> {
             const jCheck = world.getComponent(entity, "Juice");
             if (!jCheck || jCheck.animations.length === 0) continue;
 
-            // Safe for determinism/rollback. Fetch mutable Juice only when there are active animations to update, keeping stateVersion resting-state overhead to exactly zero.
             const j = world.getMutableComponent(entity, "Juice")!;
             const offset = world.getComponent(entity, "VisualOffset");
             const render = world.getComponent(entity, "Render");
@@ -152,7 +153,6 @@ export class JuiceSystem extends System<CoreComponentRegistry> {
             const currentOffset = world.getComponent(entity, "VisualOffset");
             if (currentOffset) {
                 const currentVal = getNumericProperty(currentOffset, key);
-                // Safe for determinism/rollback. Gate mutable access on actual value change to prevent unnecessary stateVersion increments.
                 if (Math.abs(currentVal - value) > 0.0001) {
                     const mutOffset = world.getMutableComponent(entity, "VisualOffset");
                     if (mutOffset) {
@@ -164,7 +164,6 @@ export class JuiceSystem extends System<CoreComponentRegistry> {
             const currentRender = world.getComponent(entity, "Render");
             if (currentRender) {
                 const currentVal = getNumericProperty(currentRender, prop);
-                // Safe for determinism/rollback. Gate mutable access on actual value change to prevent unnecessary stateVersion increments.
                 if (Math.abs(currentVal - value) > 0.0001) {
                     const mutRender = world.getMutableComponent(entity, "Render");
                     if (mutRender) {

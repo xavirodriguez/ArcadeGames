@@ -3,20 +3,15 @@ import { System } from "../../ecs/System";
 import { ComponentRegistry } from "../../ecs/Component";
 import { Entity } from "../../ecs/Entity";
 import { CollisionManifold } from "./CollisionTypes";
-import { BroadPhase } from "./BroadPhase";
+import { BroadPhase, BroadPhaseScratch } from "./BroadPhase";
 import { NarrowPhase } from "./NarrowPhase";
-import { CoreComponentRegistry } from "../../ecs/CoreComponents";
+import { CoreComponentRegistry, CollisionEventsComponent } from "../../ecs/CoreComponents";
 import { ShapeType } from "../shapes/Shapes";
 import { SpatialCullingSystem } from "../../systems/SpatialCullingSystem";
 import { toShapeDefinition } from "../utils/ColliderShapeUtils";
 
 /**
  * Signature for a callback invoked when a physical collision occurs between two entities.
- *
- * @param world - The ECS world instance containing both entities.
- * @param entityA - The first entity involved in the collision.
- * @param entityB - The second entity involved in the collision.
- * @param manifold - Detailed collision data including contact points, normals, and penetration depth.
  * @public
  */
 export type CollisionCallback<
@@ -30,10 +25,6 @@ export type CollisionCallback<
 
 /**
  * Signature for a callback invoked when a trigger boundary is entered or exited.
- *
- * @param world - The ECS world instance containing both entities.
- * @param entityA - The entity that owns or entered the trigger volume.
- * @param entityB - The other entity involved in the trigger interaction.
  * @public
  */
 export type TriggerCallback<
@@ -42,10 +33,6 @@ export type TriggerCallback<
 
 /**
  * Detects and resolves 2D collisions between entities using a broad-phase / narrow-phase pipeline.
- *
- * Supports both `Collider` and `Collider2D` components (arcade platformer uses Collider2D).
- * Populates `CollisionEvents` on entities that carry that component.
- *
  * @public
  */
 export class CollisionSystem2D<
@@ -58,13 +45,9 @@ export class CollisionSystem2D<
   private currentFramePairs = new Set<string>();
   private candidateEntities: Entity[] | null = null;
   private tempQuery: Entity[] = [];
+  private seenEntities = new Set<Entity>();
+  private broadPhaseScratch: BroadPhaseScratch = BroadPhase.createScratch();
 
-  /**
- * Registers a callback invoked whenever a physical collision is detected.
-   *
-   * @param callback - Function receiving world, both entities, and the collision manifold.
-   * @returns Unsubscribe function that removes this callback when invoked.
-   */
   public onCollision(callback: CollisionCallback<TRegistry>): () => void {
     this.onCollisionCallbacks.push(callback);
     return () => {
@@ -72,12 +55,6 @@ export class CollisionSystem2D<
     };
   }
 
-  /**
-   * Registers a callback invoked when an entity first enters a trigger volume.
-   *
-   * @param callback - Function receiving world and both entities.
-   * @returns Unsubscribe function that removes this callback when invoked.
-   */
   public onTriggerEnter(callback: TriggerCallback<TRegistry>): () => void {
     this.onTriggerEnterCallbacks.push(callback);
     return () => {
@@ -85,12 +62,6 @@ export class CollisionSystem2D<
     };
   }
 
-  /**
-   * Registers a callback invoked when an entity exits a trigger volume.
-   *
-   * @param callback - Function receiving world and both entities.
-   * @returns Unsubscribe function that removes this callback when invoked.
-   */
   public onTriggerExit(callback: TriggerCallback<TRegistry>): () => void {
     this.onTriggerExitCallbacks.push(callback);
     return () => {
@@ -98,9 +69,6 @@ export class CollisionSystem2D<
     };
   }
 
-  /**
-   * Releases all registered callbacks and clears internal pair tracking state.
-   */
   public override dispose(): void {
     this.onCollisionCallbacks = [];
     this.onTriggerEnterCallbacks = [];
@@ -108,27 +76,10 @@ export class CollisionSystem2D<
     this.activePairs.clear();
   }
 
-  /**
-   * Restricts collision detection to a specific set of candidate entities.
-   * Pass `null` to restore full-world queries.
-   *
-   * @param entities - Candidate entity list, or `null` for unrestricted queries.
-   */
   public setCandidates(entities: Entity[] | null): void {
     this.candidateEntities = entities;
   }
 
-  /**
-   * Executes one frame of collision detection and event population.
-   *
-   * @precondition Entities must possess both `Transform` and a collider component
-   *               (`Collider` or `Collider2D`) to participate.
-   * @invariant Active collision pair set is updated to match the current frame.
-   *
-   * @param world - ECS world to process.
-   * @param _deltaTime - Frame delta (unused; collision is frame-based).
-   * @param candidatesOverride - Optional per-call candidate list overriding setCandidates.
-   */
   public update(
     world: World<TRegistry>,
     _deltaTime: number,
@@ -165,22 +116,21 @@ export class CollisionSystem2D<
       }
       query = this.tempQuery;
     } else {
-      // Merge Collider + Collider2D entities (arcade platformer uses Collider2D)
       const withCollider = w.query("Transform", "Collider");
       const withCollider2D = w.query("Transform", "Collider2D");
       this.tempQuery.length = 0;
-      const seen = new Set<Entity>();
+      this.seenEntities.clear();
       for (let i = 0; i < withCollider.length; i++) {
         const e = withCollider[i];
-        if (!seen.has(e)) {
-          seen.add(e);
+        if (!this.seenEntities.has(e)) {
+          this.seenEntities.add(e);
           this.tempQuery.push(e);
         }
       }
       for (let i = 0; i < withCollider2D.length; i++) {
         const e = withCollider2D[i];
-        if (!seen.has(e)) {
-          seen.add(e);
+        if (!this.seenEntities.has(e)) {
+          this.seenEntities.add(e);
           this.tempQuery.push(e);
         }
       }
@@ -189,12 +139,11 @@ export class CollisionSystem2D<
 
     this.currentFramePairs.clear();
 
-    // Synchronize activePairs from CollisionEvents activeTriggers to remain robust across snapshot restores
     const eventQuery = w.query("CollisionEvents");
     const eqLen = eventQuery.length;
     for (let i = 0; i < eqLen; i++) {
       const entity = eventQuery[i];
-      const component = w.getComponent(entity, "CollisionEvents");
+      const component = w.getComponent(entity, "CollisionEvents") as CollisionEventsComponent | undefined;
       if (component) {
         if (component.activeTriggers.length > 0) {
           for (let j = 0; j < component.activeTriggers.length; j++) {
@@ -209,17 +158,14 @@ export class CollisionSystem2D<
           component.triggersEntered.length > 0 ||
           component.triggersExited.length > 0
         ) {
-          const mutable = w.getMutableComponent(entity, "CollisionEvents");
-          if (mutable) {
-            mutable.collisions.length = 0;
-            mutable.triggersEntered.length = 0;
-            mutable.triggersExited.length = 0;
-          }
+          (component.collisions as unknown[]).length = 0;
+          (component.triggersEntered as unknown[]).length = 0;
+          (component.triggersExited as unknown[]).length = 0;
         }
       }
     }
 
-    const broadPhasePairs = BroadPhase.sweepAndPrune(query, w);
+    const broadPhasePairs = BroadPhase.sweepAndPrune(query, w, this.broadPhaseScratch);
     const bpLen = broadPhasePairs.length;
     for (let i = 0; i < bpLen; i++) {
       const [entityA, entityB] = broadPhasePairs[i];
@@ -259,7 +205,6 @@ export class CollisionSystem2D<
       }
     }
 
-    // Trigger exits for pairs that were active last frame but not this frame
     for (const pairId of this.activePairs) {
       if (!this.currentFramePairs.has(pairId)) {
         const commaIdx = pairId.indexOf(",");
@@ -275,17 +220,10 @@ export class CollisionSystem2D<
     }
   }
 
-  /**
-   * Returns true if the entity has either a `Collider` or `Collider2D` component.
-   */
   private hasAnyCollider(world: World<CoreComponentRegistry>, entity: Entity): boolean {
     return world.hasComponent(entity, "Collider") || world.hasComponent(entity, "Collider2D");
   }
 
-  /**
-   * Resolves a normalized collider view from either `Collider` or `Collider2D`.
-   * Collider2D shapes (`aabb` / `circle`) are converted to NarrowPhase `Shape` format.
-   */
   private resolveCollider(
     world: World<CoreComponentRegistry>,
     entity: Entity
@@ -325,15 +263,6 @@ export class CollisionSystem2D<
     return null;
   }
 
-  /**
-   * Evaluates bitwise layer and mask filtering to determine whether two entities should collide.
-   *
-   * @param layerA - Collision layer bitmask of entity A.
-   * @param maskB - Collision mask bitmask of entity B.
-   * @param layerB - Collision layer bitmask of entity B.
-   * @param maskA - Collision mask bitmask of entity A.
-   * @returns `true` if bitwise AND operation between layer and mask is non-zero in both directions.
-   */
   private shouldCollide(
     layerA: number,
     maskB: number,
@@ -343,16 +272,10 @@ export class CollisionSystem2D<
     return (layerA & maskB) !== 0 && (layerB & maskA) !== 0;
   }
 
-  /**
-   * Produces a stable, order-independent pair identifier for two entities.
-   */
   private getPairId(a: Entity, b: Entity): string {
     return a < b ? `${a},${b}` : `${b},${a}`;
   }
 
-  /**
-   * Writes collision data into the CollisionEvents component of both entities.
-   */
   private notifyCollisionEvent(
     world: World<CoreComponentRegistry>,
     a: Entity,
@@ -363,9 +286,6 @@ export class CollisionSystem2D<
     this.addCollisionToComponent(world, b, a, manifold, true);
   }
 
-  /**
-   * Appends a single collision record to an entity's CollisionEvents buffer.
-   */
   private addCollisionToComponent(
     world: World<CoreComponentRegistry>,
     entity: Entity,
@@ -373,9 +293,9 @@ export class CollisionSystem2D<
     manifold: CollisionManifold,
     flipNormal: boolean
   ): void {
-    const eComp = world.getMutableComponent(entity, "CollisionEvents");
+    const eComp = world.getComponent(entity, "CollisionEvents") as CollisionEventsComponent | undefined;
     if (eComp) {
-      eComp.collisions.push({
+      (eComp.collisions as unknown[]).push({
         otherEntity: other,
         normalX: flipNormal ? -manifold.normalX : manifold.normalX,
         normalY: flipNormal ? -manifold.normalY : manifold.normalY,
@@ -385,9 +305,6 @@ export class CollisionSystem2D<
     }
   }
 
-  /**
-   * Writes trigger enter/exit data into the CollisionEvents component of both entities.
-   */
   private notifyTriggerEvent(
     world: World<CoreComponentRegistry>,
     a: Entity,
@@ -398,27 +315,24 @@ export class CollisionSystem2D<
     this.addTriggerToComponent(world, b, a, phase);
   }
 
-  /**
-   * Appends a single trigger enter or exit record to an entity's CollisionEvents buffer.
-   */
   private addTriggerToComponent(
     world: World<CoreComponentRegistry>,
     entity: Entity,
     other: Entity,
     phase: "enter" | "exit"
   ): void {
-    const eComp = world.getMutableComponent(entity, "CollisionEvents");
+    const eComp = world.getComponent(entity, "CollisionEvents") as CollisionEventsComponent | undefined;
     if (eComp) {
       if (phase === "enter") {
-        eComp.triggersEntered.push(other);
+        (eComp.triggersEntered as Entity[]).push(other);
         if (!eComp.activeTriggers.includes(other)) {
-          eComp.activeTriggers.push(other);
+          (eComp.activeTriggers as Entity[]).push(other);
         }
       } else {
-        eComp.triggersExited.push(other);
+        (eComp.triggersExited as Entity[]).push(other);
         const idx = eComp.activeTriggers.indexOf(other);
         if (idx !== -1) {
-          eComp.activeTriggers.splice(idx, 1);
+          (eComp.activeTriggers as Entity[]).splice(idx, 1);
         }
       }
     }
@@ -427,10 +341,6 @@ export class CollisionSystem2D<
 
 /**
  * Continuous Collision Detection system for fast-moving entities.
- *
- * Performs raycast-style swept tests between the previous and current positions
- * of entities that carry Velocity + Collider, against static colliders.
- *
  * @public
  */
 export class CCDSystem<
@@ -440,23 +350,10 @@ export class CCDSystem<
   private _cachedQueryArray: Entity[] = [];
   private _cachedCollidablesArray: Entity[] = [];
 
-  /**
-   * Restricts CCD queries to a specific set of candidate entities.
-   * Pass `null` to restore full-world queries.
-   *
-   * @param entities - Candidate entity list, or `null` for unrestricted queries.
-   */
   public setCandidates(entities: Entity[] | null): void {
     this.candidateEntities = entities;
   }
 
-  /**
-   * Executes one frame of continuous collision detection.
-   *
-   * @precondition Fast-moving entities require `Transform`, `Velocity`, and `Collider`.
-   * @param world - ECS world to process.
-   * @param deltaTime - Frame delta used to extrapolate swept positions.
-   */
   public update(world: World<TRegistry>, deltaTime: number): void {
     const w = world as unknown as World<CoreComponentRegistry>;
     const resourceCandidates = world.getResource<Entity[]>("SpatialCullingCandidates");
@@ -554,9 +451,6 @@ export class CCDSystem<
     }
   }
 
-  /**
-   * Evaluates bitwise layer and mask filtering.
-   */
   private shouldCollide(
     layerA: number,
     maskB: number,
@@ -566,9 +460,6 @@ export class CCDSystem<
     return (layerA & maskB) !== 0 && (layerB & maskA) !== 0;
   }
 
-  /**
-   * Tests whether a line segment intersects a circle.
-   */
   private rayIntersectsCircle(
     p0x: number,
     p0y: number,
@@ -589,9 +480,6 @@ export class CCDSystem<
     return (closestX - cx) ** 2 + (closestY - cy) ** 2 <= radius * radius;
   }
 
-  /**
-   * Tests whether a line segment intersects an axis-aligned box.
-   */
   private rayIntersectsBox(
     p0x: number,
     p0y: number,
@@ -633,17 +521,14 @@ export class CCDSystem<
     return tmax >= tmin && tmax >= 0 && tmin <= 1;
   }
 
-  /**
-   * Records a CCD hit into CollisionEvents on both entities.
-   */
   private notifyCollision(
     world: World<CoreComponentRegistry>,
     entityA: Entity,
     entityB: Entity
   ): void {
-    const compA = world.getMutableComponent(entityA, "CollisionEvents");
+    const compA = world.getComponent(entityA, "CollisionEvents") as CollisionEventsComponent | undefined;
     if (compA) {
-      compA.collisions.push({
+      (compA.collisions as unknown[]).push({
         otherEntity: entityB,
         normalX: 0,
         normalY: 0,
@@ -651,9 +536,9 @@ export class CCDSystem<
         contactPoints: []
       });
     }
-    const compB = world.getMutableComponent(entityB, "CollisionEvents");
+    const compB = world.getComponent(entityB, "CollisionEvents") as CollisionEventsComponent | undefined;
     if (compB) {
-      compB.collisions.push({
+      (compB.collisions as unknown[]).push({
         otherEntity: entityA,
         normalX: 0,
         normalY: 0,

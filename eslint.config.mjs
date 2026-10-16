@@ -34,6 +34,7 @@ export default tseslint.config(
   {
     files: ["**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
     plugins: {
+      "react": pluginReact,
       "react-hooks": pluginReactHooks,
       "unused-imports": unusedImports,
       "import": pluginImport,
@@ -46,7 +47,7 @@ export default tseslint.config(
     },
     settings: {
       react: {
-        version: "detect",
+        version: "19.0",
       },
     },
     rules: {

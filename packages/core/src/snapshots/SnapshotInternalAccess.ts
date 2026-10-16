@@ -2,6 +2,7 @@ import { World } from "../ecs/World";
 import { WorldSnapshot } from "./WorldSnapshot";
 import { ComponentRegistry } from "../ecs/Component";
 import { Query } from "../ecs/Query";
+import { ComponentStorage, MapStorage, SparseSetStorage } from "../ecs/storage";
 
 /**
  * Internal access interface exposing World metadata and index properties for snapshot restoration.
@@ -16,10 +17,11 @@ export interface InternalWorldAccess<TComponents extends ComponentRegistry = Com
   _stateVersion: number;
   _tick: number;
   entityComponentSets: Map<number, Set<string>>;
-  componentMaps: Map<string, Map<number, unknown>>;
+  componentMaps: Map<string, ComponentStorage<unknown>>;
   componentIndex: Map<string, Set<number>>;
   componentVersions: Map<string, Map<number, number>>;
   queries: Query<TComponents>[];
+  useSparseSetStorage?: boolean;
 }
 
 /**
@@ -39,6 +41,7 @@ export function restoreWorldMetadata<TComponents extends ComponentRegistry>(
   internal._structureVersion = state.structureVersion;
   internal._stateVersion = state.stateVersion;
   internal._tick = state.tick;
+  internal.useSparseSetStorage = world.getResource("UseSparseSetStorage") === true;
 
   if (state.rngState !== undefined) {
     world.gameplayRandom.setSeed(state.rngState);
@@ -75,11 +78,13 @@ export function restoreComponentStorage(
   internal: InternalWorldAccess,
   type: string
 ): {
-  storage: Map<number, unknown>;
+  storage: ComponentStorage<unknown>;
   index: Set<number>;
   versions: Map<number, number>;
 } {
-  const storage = new Map<number, unknown>();
+  const storage = internal.useSparseSetStorage
+    ? new SparseSetStorage<unknown>()
+    : new MapStorage<unknown>();
   const index = new Set<number>();
   const versions = new Map<number, number>();
 

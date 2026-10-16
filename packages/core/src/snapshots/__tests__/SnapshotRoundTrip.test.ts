@@ -7,8 +7,11 @@ import { SnapshotRestoreSoA } from "../SnapshotRestoreSoA";
 import { hashAoS, hashSoA } from "../SnapshotHash";
 import { ShapeType, CircleShape } from "../../physics/shapes/Shapes";
 
-function setupWorld(): World {
+function setupWorld(useSparseSet = false): World {
   const world = new World();
+  if (useSparseSet) {
+    world.setResource("UseSparseSetStorage", true);
+  }
   world.addSystem(new CollisionSystem2D());
 
   for (let i = 0; i < 15; i++) {
@@ -44,31 +47,36 @@ function setupWorld(): World {
 }
 
 describe("Snapshot Round-Trip Tests", () => {
-  it("should maintain identical state hash after AoS snapshot -> restore -> snapshot round-trip", () => {
-    const world = setupWorld();
+  describe.each([
+    ["MapStorage", false],
+    ["SparseSetStorage", true]
+  ])("Storage Mode: %s", (_name, useSparseSet) => {
+    it("should maintain identical state hash after AoS snapshot -> restore -> snapshot round-trip", () => {
+      const world = setupWorld(useSparseSet);
 
-    const snap1 = SnapshotSerializer.snapshot(world);
-    const hash1 = hashAoS(snap1);
+      const snap1 = SnapshotSerializer.snapshot(world);
+      const hash1 = hashAoS(snap1);
 
-    SnapshotRestore.restore(world, snap1);
+      SnapshotRestore.restore(world, snap1);
 
-    const snap2 = SnapshotSerializer.snapshot(world);
-    const hash2 = hashAoS(snap2);
+      const snap2 = SnapshotSerializer.snapshot(world);
+      const hash2 = hashAoS(snap2);
 
-    expect(hash2).toBe(hash1);
-  });
+      expect(hash2).toBe(hash1);
+    });
 
-  it("should maintain identical state hash after SoA snapshot -> restore -> snapshot round-trip", () => {
-    const world = setupWorld();
+    it("should maintain identical state hash after SoA snapshot -> restore -> snapshot round-trip", () => {
+      const world = setupWorld(useSparseSet);
 
-    const snap1 = SnapshotSerializerSoA.snapshot(world);
-    const hash1 = hashSoA(snap1);
+      const snap1 = SnapshotSerializerSoA.snapshot(world);
+      const hash1 = hashSoA(snap1);
 
-    SnapshotRestoreSoA.restore(world, snap1);
+      SnapshotRestoreSoA.restore(world, snap1);
 
-    const snap2 = SnapshotSerializerSoA.snapshot(world);
-    const hash2 = hashSoA(snap2);
+      const snap2 = SnapshotSerializerSoA.snapshot(world);
+      const hash2 = hashSoA(snap2);
 
-    expect(hash2).toBe(hash1);
+      expect(hash2).toBe(hash1);
+    });
   });
 });

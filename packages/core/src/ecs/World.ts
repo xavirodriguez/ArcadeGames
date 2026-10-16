@@ -14,6 +14,7 @@ import { SnapshotRestoreSoA } from "../snapshots/SnapshotRestoreSoA";
 import { WorldCommandBuffer } from "./WorldCommandBuffer";
 import { BlueprintDefinition } from "./BlueprintRegistry";
 import { ComponentCloner } from "./ComponentCloner";
+import { ComponentStorage, MapStorage, SparseSetStorage } from "./storage";
 import type { InternalWorldAccess } from "../snapshots/SnapshotInternalAccess";
 
 declare const __DEV__: boolean;
@@ -82,7 +83,35 @@ export class World<
    * Internal component storage.
    * @internal
    */
-  private componentMaps = new Map<string, Map<Entity, unknown>>();
+  private componentMaps = new Map<string, ComponentStorage<unknown>>();
+
+  private getStorage(type: string): ComponentStorage<unknown> | undefined {
+    let storage = this.componentMaps.get(type);
+    if (!storage) return undefined;
+    const useSparse = this.getResource("UseSparseSetStorage") === true;
+    if (useSparse && !(storage instanceof SparseSetStorage)) {
+      const newStorage = new SparseSetStorage<unknown>();
+      storage.forEach((val, ent) => newStorage.set(ent, val));
+      this.componentMaps.set(type, newStorage);
+      return newStorage;
+    } else if (!useSparse && !(storage instanceof MapStorage)) {
+      const newStorage = new MapStorage<unknown>();
+      storage.forEach((val, ent) => newStorage.set(ent, val));
+      this.componentMaps.set(type, newStorage);
+      return newStorage;
+    }
+    return storage;
+  }
+
+  private getOrCreateStorage(type: string): ComponentStorage<unknown> {
+    let storage = this.getStorage(type);
+    if (!storage) {
+      const useSparse = this.getResource("UseSparseSetStorage") === true;
+      storage = useSparse ? new SparseSetStorage<unknown>() : new MapStorage<unknown>();
+      this.componentMaps.set(type, storage);
+    }
+    return storage;
+  }
 
   /**
    * Internal entity index by component type.
@@ -450,12 +479,12 @@ export class World<
       return;
     }
     const type = component.type as string;
-    if (!this.componentMaps.has(type)) {
-      this.componentMaps.set(type, new Map());
+    const storage = this.getOrCreateStorage(type);
+    if (!this.componentIndex.has(type)) {
       this.componentIndex.set(type, new Set());
     }
 
-    this.componentMaps.get(type)!.set(entity, component);
+    storage.set(entity, component);
     this.componentIndex.get(type)!.add(entity);
 
     let componentSet = this.entityComponentSets.get(entity);
@@ -506,9 +535,8 @@ export class World<
     type: K
   ): TComponents[K] | undefined {
     if (!this.isAlive(entity)) return undefined;
-    const component = this.componentMaps
-      .get(type as string)
-      ?.get(entity) as TComponents[K] | undefined;
+    const storage = this.getStorage(type as string);
+    const component = storage?.get(entity) as TComponents[K] | undefined;
 
     if (isDev && component !== undefined) {
       return Object.freeze(component) as TComponents[K];
@@ -557,11 +585,12 @@ export class World<
    */
   getMutableComponent<K extends ComponentType<TComponents>>(entity: Entity, type: K): TComponents[K] | undefined {
     if (!this.isAlive(entity)) return undefined;
-    let component = this.componentMaps.get(type as string)?.get(entity) as TComponents[K] | undefined;
+    const storage = this.getStorage(type as string);
+    let component = storage?.get(entity) as TComponents[K] | undefined;
     if (component) {
       if (Object.isFrozen(component)) {
         component = ComponentCloner.cloneComponent(component);
-        this.componentMaps.get(type as string)!.set(entity, component);
+        storage!.set(entity, component);
       }
       this.markStateChanged();
       this.updateComponentVersion(entity, type as string);
@@ -593,8 +622,8 @@ export class World<
       }
       return;
     }
-    const map = this.componentMaps.get(type as string);
-    if (map && map.delete(entity)) {
+    const storage = this.getStorage(type as string);
+    if (storage && storage.delete(entity)) {
       this.componentIndex.get(type as string)?.delete(entity);
       this.componentVersions.get(type as string)?.delete(entity);
       const set = this.entityComponentSets.get(entity);
@@ -901,6 +930,11 @@ function assertResourceShape(name: string, value: unknown): void {
     case "UseSoASnapshots":
       if (typeof value !== "boolean") {
         throw new Error(`[World] Resource "UseSoASnapshots" must be a boolean.`);
+      }
+      break;
+    case "UseSparseSetStorage":
+      if (typeof value !== "boolean") {
+        throw new Error(`[World] Resource "UseSparseSetStorage" must be a boolean.`);
       }
       break;
     case "ScreenShake":

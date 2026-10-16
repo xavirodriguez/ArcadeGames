@@ -4,8 +4,11 @@ import { SnapshotSerializerSoA } from "../../snapshots/SnapshotSerializerSoA";
 import { hashSoA } from "../../snapshots/SnapshotHash";
 import { ShapeType, CircleShape } from "../../physics/shapes/Shapes";
 
-function simulateRun(seed: number, steps: number): string[] {
+function simulateRun(seed: number, steps: number, useSparseSet = false): string[] {
   const world = new World();
+  if (useSparseSet) {
+    world.setResource("UseSparseSetStorage", true);
+  }
   world.gameplayRandom.setSeed(seed);
   world.addSystem(new CollisionSystem2D());
 
@@ -54,11 +57,21 @@ function simulateRun(seed: number, steps: number): string[] {
 }
 
 describe("Golden Determinism Test", () => {
-  it("should produce identical hashes tick-by-tick across two identical runs", () => {
-    const run1 = simulateRun(12345, 30);
-    const run2 = simulateRun(12345, 30);
+  it.each([
+    ["MapStorage", false],
+    ["SparseSetStorage", true]
+  ])("should produce identical hashes tick-by-tick across two identical runs (%s)", (_name, useSparseSet) => {
+    const run1 = simulateRun(12345, 30, useSparseSet);
+    const run2 = simulateRun(12345, 30, useSparseSet);
 
     expect(run1).toEqual(run2);
     expect(run1.length).toBe(30);
+  });
+
+  it("should produce identical hashes tick-by-tick BETWEEN MapStorage and SparseSetStorage modes", () => {
+    const runMap = simulateRun(12345, 30, false);
+    const runSparse = simulateRun(12345, 30, true);
+
+    expect(runSparse).toEqual(runMap);
   });
 });

@@ -5,6 +5,7 @@ import { SnapshotSerializerSoA } from "../snapshots/SnapshotSerializerSoA";
 import { ShapeType, CircleShape } from "../physics/shapes/Shapes";
 
 export interface BenchmarkMetrics {
+  storageMode: string;
   entityCount: number;
   msPerTick: number;
   snapshotAoSMs: number;
@@ -12,8 +13,11 @@ export interface BenchmarkMetrics {
   residentMemoryMB: number;
 }
 
-export function runWorldBenchmark(entityCount: number, ticks = 50): BenchmarkMetrics {
+export function runWorldBenchmark(entityCount: number, ticks = 50, useSparseSet = false): BenchmarkMetrics {
   const world = new World();
+  if (useSparseSet) {
+    world.setResource("UseSparseSetStorage", true);
+  }
   world.addSystem(new CollisionSystem2D());
 
   for (let i = 0; i < entityCount; i++) {
@@ -65,6 +69,7 @@ export function runWorldBenchmark(entityCount: number, ticks = 50): BenchmarkMet
   const memUsage = process.memoryUsage?.().rss ?? 0;
 
   return {
+    storageMode: useSparseSet ? "SparseSetStorage" : "MapStorage",
     entityCount,
     msPerTick,
     snapshotAoSMs: endAoS - startAoS,
@@ -74,11 +79,14 @@ export function runWorldBenchmark(entityCount: number, ticks = 50): BenchmarkMet
 }
 
 if (require.main === module) {
-  console.log("=== ECS Tick & Snapshot Benchmark ===");
+  console.log("=== ECS Storage Benchmark Comparison (MapStorage vs SparseSetStorage) ===");
   for (const count of [100, 1000, 5000]) {
-    const res = runWorldBenchmark(count);
+    const resMap = runWorldBenchmark(count, 50, false);
+    const resSparse = runWorldBenchmark(count, 50, true);
     console.log(
-      `[${res.entityCount} entities] ms/tick: ${res.msPerTick.toFixed(3)}ms | Snapshot AoS: ${res.snapshotAoSMs.toFixed(3)}ms | Snapshot SoA: ${res.snapshotSoAMs.toFixed(3)}ms | RSS: ${res.residentMemoryMB.toFixed(2)}MB`
+      `[${count} entities]` +
+      ` MapStorage: ${resMap.msPerTick.toFixed(3)}ms/tick (AoS: ${resMap.snapshotAoSMs.toFixed(3)}ms, SoA: ${resMap.snapshotSoAMs.toFixed(3)}ms)` +
+      ` | SparseSetStorage: ${resSparse.msPerTick.toFixed(3)}ms/tick (AoS: ${resSparse.snapshotAoSMs.toFixed(3)}ms, SoA: ${resSparse.snapshotSoAMs.toFixed(3)}ms)`
     );
   }
 }

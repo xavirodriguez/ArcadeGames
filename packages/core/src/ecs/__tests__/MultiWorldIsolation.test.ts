@@ -3,9 +3,16 @@ import { CollisionSystem2D } from "../../physics/collision/CollisionSystems";
 import { ShapeType, CircleShape } from "../../physics/shapes/Shapes";
 
 describe("Multi-World Isolation Test", () => {
-  it("should run two parallel worlds with collision systems without cross-talk or state contamination", () => {
+  it.each([
+    ["Both MapStorage", false, false],
+    ["Both SparseSetStorage", true, true],
+    ["Mixed Map and SparseSet", false, true]
+  ])("should run two parallel worlds without cross-talk or state contamination (%s)", (_name, sparseA, sparseB) => {
     const worldA = new World();
     const worldB = new World();
+
+    if (sparseA) worldA.setResource("UseSparseSetStorage", true);
+    if (sparseB) worldB.setResource("UseSparseSetStorage", true);
 
     const systemA = new CollisionSystem2D();
     const systemB = new CollisionSystem2D();

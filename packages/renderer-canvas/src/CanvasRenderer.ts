@@ -224,15 +224,28 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
 
     ctx.save();                          // ← save de cámara (NUEVO)
 
+    let camX = 0;
+    let camY = 0;
+    let camZoom = 1;
+    let camVoX = 0;
+    let camVoY = 0;
+    let hasMainCamera = false;
+
     if (mainCameraEntity !== undefined) {
       const cam = world.getComponent(mainCameraEntity, cameraType) as Camera2DComponent | undefined;
       if (cam) {
+        hasMainCamera = true;
+        camX = cam.x;
+        camY = cam.y;
+        camZoom = cam.zoom;
         ctx.translate(-cam.x, -cam.y);
         ctx.scale(cam.zoom, cam.zoom);
 
         const visualOffsetType = "VisualOffset" as Extract<keyof TRegistry, string>;
         const visualOffset = world.getComponent(mainCameraEntity, visualOffsetType) as VisualOffsetComponent | undefined;
         if (visualOffset) {
+          camVoX = visualOffset.offsetX;
+          camVoY = visualOffset.offsetY;
           ctx.translate(-visualOffset.offsetX, -visualOffset.offsetY);
         }
       }
@@ -246,6 +259,16 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
       if (!transform) continue;
 
       ctx.save();
+
+      if (hasMainCamera && render.ignoreCamera) {
+        if (camVoX !== 0 || camVoY !== 0) {
+          ctx.translate(camVoX, camVoY);
+        }
+        if (camZoom !== 0 && camZoom !== 1) {
+          ctx.scale(1 / camZoom, 1 / camZoom);
+        }
+        ctx.translate(camX, camY);
+      }
 
       const visualOffsetType = "VisualOffset" as Extract<keyof TRegistry, string>;
       const visualOffset = world.getComponent(entity, visualOffsetType) as unknown as { offsetX: number; offsetY: number; scaleX?: number; scaleY?: number } | undefined;

@@ -28,6 +28,18 @@ export function resolveArkanoidSystemContext(
 }
 
 /**
+ * Resolves Arkanoid system config, or undefined if invalid context.
+ * @public
+ */
+export function resolveArkanoidSystemConfig(
+  world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>,
+  requireActiveState = false
+): ArkanoidConfig | undefined {
+  const ctx = resolveArkanoidSystemContext(world, requireActiveState);
+  return ctx?.config;
+}
+
+/**
  * Iterates active collisions for an entity, executing callback for each active target entity.
  * @public
  */

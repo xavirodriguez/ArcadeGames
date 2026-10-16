@@ -21,7 +21,7 @@ import { Theme } from "../theme/Theme";
 import { MiniGameResult } from "../story/ArcadeIntegrationTypes";
 import { createDeferredEntity } from "../ecs/EntityHelpers";
 import { computeDebugManager, DebugManager } from "./DebugManager";
-import { calculateScreenConfig } from "./GamePresentationShell";
+import { calculateScreenConfig, bindWindowResizeListener, unbindWindowResizeListener } from "./GamePresentationShell";
 import {
   enterGameplayFreeze,
   exitGameplayFreeze,
@@ -692,22 +692,14 @@ export abstract class BaseGame<
    * Attaches a window resize event listener that delegates to `handleScreenResize()`.
    */
   protected registerResizeListener(): void {
-    // React Native exposes a partial `window` global without the DOM event API,
-    // so checking only `typeof window !== "undefined"` would still call an
-    // undefined `addEventListener`. Require the actual function to be present.
-    if (typeof window === "undefined" || typeof window.addEventListener !== "function") return;
-    this.unregisterResizeListener();
-    this.resizeListenerBound = () => this.handleScreenResize();
-    window.addEventListener("resize", this.resizeListenerBound);
+    this.resizeListenerBound = bindWindowResizeListener(this.resizeListenerBound, () => this.handleScreenResize());
   }
 
   /**
    * Removes the window resize event listener if previously registered.
    */
   protected unregisterResizeListener(): void {
-    if (typeof window !== "undefined" && typeof window.removeEventListener === "function" && this.resizeListenerBound) {
-      window.removeEventListener("resize", this.resizeListenerBound);
-    }
+    unbindWindowResizeListener(this.resizeListenerBound);
     this.resizeListenerBound = undefined;
   }
 

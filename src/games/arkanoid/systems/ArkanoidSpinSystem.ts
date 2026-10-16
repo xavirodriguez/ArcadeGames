@@ -1,12 +1,11 @@
 import { System, World, WorldUtils } from "@tiny-aster/core";
 import { ArkanoidComponentRegistry, ArkanoidEventRegistry } from "../types/ArkanoidTypes";
-import { resolveArkanoidSystemContext } from "./ArkanoidSystemUtils";
+import { resolveArkanoidSystemConfig } from "./ArkanoidSystemUtils";
 
 export class ArkanoidSpinSystem extends System<ArkanoidComponentRegistry, ArkanoidEventRegistry> {
   public override update(world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>, deltaTime: number): void {
-    const ctx = resolveArkanoidSystemContext(world, false);
-    if (!ctx) return;
-    const { config } = ctx;
+    const config = resolveArkanoidSystemConfig(world, false);
+    if (!config) return;
 
     const ballEntities = world.query("Ball", "Velocity");
 

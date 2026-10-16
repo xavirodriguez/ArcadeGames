@@ -388,6 +388,24 @@ export function maybeSpawnLaserGateSparks(
   }
 }
 
+export interface FlappyNebulaPos {
+  nx: number;
+  ny: number;
+}
+
+export function computeFlappyNebulaPos(
+  neb: { xRatio: number; yRatio: number },
+  tick: number,
+  width: number,
+  height: number,
+  index: number
+): FlappyNebulaPos {
+  return {
+    nx: width * neb.xRatio + Math.sin(tick * 0.01 + index) * 15,
+    ny: height * neb.yRatio + Math.cos(tick * 0.008 + index * 2) * 10
+  };
+}
+
 export function computeWarpLines(
   lineCount: number,
   tick: number,

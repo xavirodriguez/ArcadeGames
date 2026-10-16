@@ -269,11 +269,7 @@ export class GridPathfinding {
       }
     }
 
-    if (!found) {
-      return [];
-    }
-
-    return reconstructPath(parentMap, start, target, prep.includeStart);
+    return finalizePath(found, parentMap, start, target, prep.includeStart);
   }
 
   /**

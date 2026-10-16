@@ -52,6 +52,7 @@ import {
 import type { GridLayout } from "../shared/grid/GridTypes";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import { runWithUnlockedRandomAndMutators } from "../shared/configHelper";
+import { queryPlayerEntity } from "../shared/networkUtils";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
 import towerDefenseConfigRaw from "./config/tower-defense.json";
 
@@ -402,7 +403,7 @@ SharedVFX.registerSharedVFX(renderer);
     input: Partial<InputState> | CanonicalInputState | Record<string, unknown>
   ): void {
     const world = this.getWorld();
-    const playerEntity = world.query("Player")[0];
+    const playerEntity = queryPlayerEntity(world);
     if (playerEntity === undefined) return;
 
     if (!world.hasComponent(playerEntity, "Input")) {

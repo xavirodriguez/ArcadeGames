@@ -11,6 +11,31 @@ import { IAudioPlayer, NullAudioPlayer } from "../audio/IAudioPlayer";
  * @returns Screen configuration object `{ width, height, pixelRatio }`.
  * @public
  */
+/**
+ * Safe window resize event listener registration helper.
+ * @internal
+ */
+export function bindWindowResizeListener(
+  currentBound: (() => void) | undefined,
+  onResize: () => void
+): (() => void) | undefined {
+  if (typeof window === "undefined" || typeof window.addEventListener !== "function") return undefined;
+  unbindWindowResizeListener(currentBound);
+  const listener = () => onResize();
+  window.addEventListener("resize", listener);
+  return listener;
+}
+
+/**
+ * Safe window resize event listener cleanup helper.
+ * @internal
+ */
+export function unbindWindowResizeListener(listener?: () => void): void {
+  if (typeof window !== "undefined" && typeof window.removeEventListener === "function" && listener) {
+    window.removeEventListener("resize", listener);
+  }
+}
+
 export function calculateScreenConfig(canvas?: HTMLCanvasElement): { width: number; height: number; pixelRatio: number } {
   let width = 800;
   let height = 600;
@@ -104,22 +129,14 @@ export class GamePresentationShell<
    * Attaches a window resize event listener that delegates to `handleScreenResize()`.
    */
   public registerResizeListener(): void {
-    // React Native exposes a partial `window` global without the DOM event API,
-    // so checking only `typeof window !== "undefined"` would still call an
-    // undefined `addEventListener`. Require the actual function to be present.
-    if (typeof window === "undefined" || typeof window.addEventListener !== "function") return;
-    this.unregisterResizeListener();
-    this.resizeListenerBound = () => this.handleScreenResize();
-    window.addEventListener("resize", this.resizeListenerBound);
+    this.resizeListenerBound = bindWindowResizeListener(this.resizeListenerBound, () => this.handleScreenResize());
   }
 
   /**
    * Removes the window resize event listener if previously registered.
    */
   public unregisterResizeListener(): void {
-    if (typeof window !== "undefined" && typeof window.removeEventListener === "function" && this.resizeListenerBound) {
-      window.removeEventListener("resize", this.resizeListenerBound);
-    }
+    unbindWindowResizeListener(this.resizeListenerBound);
     this.resizeListenerBound = undefined;
   }
 

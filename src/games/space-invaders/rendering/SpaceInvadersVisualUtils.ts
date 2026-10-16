@@ -427,6 +427,25 @@ export function getOrComputeShieldCrackCoords(
   return coords;
 }
 
+export interface TrailPointOffset {
+  relX: number;
+  relY: number;
+  pointWidth: number;
+}
+
+export function computeTrailPointOffset(
+  pt: { x: number; y: number; widthScale: number },
+  currentX: number,
+  currentY: number,
+  size: number
+): TrailPointOffset {
+  return {
+    relX: pt.x - currentX,
+    relY: pt.y - currentY,
+    pointWidth: size * pt.widthScale,
+  };
+}
+
 export function resolveExplosionParticleData(p: {
   active: boolean;
   life: number;

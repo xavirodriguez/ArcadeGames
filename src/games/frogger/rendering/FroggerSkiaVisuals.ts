@@ -7,6 +7,7 @@ import {
   resolveFroggerPlayerDrawContext,
   resolveFroggerShellSegments,
   resolveFroggerGoalContext,
+  resolveFroggerBackgroundContext,
 } from "./FroggerRenderUtils";
 
 function drawSkiaRoundedBox(
@@ -127,13 +128,7 @@ export const drawLilyPadSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
 export const froggerBackgroundSkiaEffect: EffectDrawer<any, FroggerComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    const config = world.getResource<typeof DEFAULT_FROGGER_CONFIG>("GameConfig") || DEFAULT_FROGGER_CONFIG;
-    const w = config.worldWidth;
-    const grid = config.GRID_SIZE;
-
-    const grassColor = resolveThemeColorWithFallback(world, "#0B2B16", "frogger_grass", "secondary");
-    const waterColor = resolveThemeColorWithFallback(world, "#051C33", "water", "secondary");
-    const roadColor = resolveThemeColorWithFallback(world, "#121218", "frogger_road");
+    const { w, grid, grassColor, waterColor, roadColor } = resolveFroggerBackgroundContext(world);
 
     const grassPaint = Skia.Paint();
     grassPaint.setColor(Skia.Color(grassColor));

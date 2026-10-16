@@ -618,6 +618,11 @@ export class BinaryCompression {
 // @public
 export type BindingSet<TExtra extends string = never> = InputBinding<TExtra>[];
 
+// Warning: (ae-internal-missing-underscore) The name "bindWindowResizeListener" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export function bindWindowResizeListener(currentBound: (() => void) | undefined, onResize: () => void): (() => void) | undefined;
+
 // @public
 export type BlueprintArgs<TBlueprints, TId extends keyof TBlueprints> = TBlueprints[TId] extends BlueprintDefinition<ComponentRegistry, EventRegistry, infer TArgs> ? TArgs : never;
 
@@ -709,7 +714,7 @@ export function buildSnapshotMetadata<TComponents extends ComponentRegistry>(wor
     isSoA: true;
 };
 
-// @public
+// @public (undocumented)
 export function calculateScreenConfig(canvas?: HTMLCanvasElement): {
     width: number;
     height: number;
@@ -5928,6 +5933,11 @@ export class TTLSystem extends System<CoreComponentRegistry> {
     runsWhileFrozen: boolean;
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
 }
+
+// Warning: (ae-internal-missing-underscore) The name "unbindWindowResizeListener" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export function unbindWindowResizeListener(listener?: () => void): void;
 
 // @public @deprecated
 export class UnifiedInputSystem extends System<ComponentRegistry> implements InputSystem {

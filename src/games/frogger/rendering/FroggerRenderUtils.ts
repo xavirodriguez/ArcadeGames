@@ -1,5 +1,6 @@
-import { World, RenderComponent, resolveThemeColor } from "@tiny-aster/core";
+import { World, RenderComponent, resolveThemeColor, resolveThemeColorWithFallback } from "@tiny-aster/core";
 import { FroggerComponentRegistry, GoalLilyPadComponent } from "../types/FroggerTypes";
+import { DEFAULT_FROGGER_CONFIG } from "../types/FroggerConfigSchema";
 
 export function shouldSkipFroggerRenderDueToInvulnerability(
   world: World<FroggerComponentRegistry>,
@@ -104,4 +105,27 @@ export function resolveFroggerGoalContext(
     half,
     occupied,
   };
+}
+
+export interface FroggerBackgroundContext {
+  config: typeof DEFAULT_FROGGER_CONFIG;
+  w: number;
+  grid: number;
+  grassColor: string;
+  waterColor: string;
+  roadColor: string;
+}
+
+export function resolveFroggerBackgroundContext(
+  world: World<FroggerComponentRegistry, any>
+): FroggerBackgroundContext {
+  const config = world.getResource<typeof DEFAULT_FROGGER_CONFIG>("GameConfig") || DEFAULT_FROGGER_CONFIG;
+  const w = config.worldWidth;
+  const grid = config.GRID_SIZE;
+
+  const grassColor = resolveThemeColorWithFallback(world, "#0B2B16", "frogger_grass", "secondary");
+  const waterColor = resolveThemeColorWithFallback(world, "#051C33", "water", "secondary");
+  const roadColor = resolveThemeColorWithFallback(world, "#121218", "frogger_road");
+
+  return { config, w, grid, grassColor, waterColor, roadColor };
 }

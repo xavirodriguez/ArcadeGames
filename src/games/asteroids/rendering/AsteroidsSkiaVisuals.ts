@@ -10,7 +10,7 @@ import { drawFromGeometryProfileAdapter } from "../../shared/rendering/GenericEn
 import { Skia, getPaint, SkCanvas, SkPaint } from "../../shared/rendering/SkiaContext";
 import type { SkPath } from "@shopify/react-native-skia";
 import { getVisibleSkiaRender } from "../../shared/rendering/renderingUtils";
-import { resolveAsteroidRadius } from "./AsteroidsVisualHelpers";
+import { resolveAsteroidSaucerSetup, resolveAsteroidDrawSetup } from "./AsteroidsVisualHelpers";
 
 export { drawSkiaAsteroidsMissionHUD };
 
@@ -169,11 +169,10 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<SkCanvas, AsteroidsCompone
  */
 export const drawSkiaAsteroidsUfo: ShapeDrawer<SkCanvas, AsteroidsComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = getVisibleSkiaRender(world, entity);
-    if (!render) return;
+    const setup = resolveAsteroidSaucerSetup(getVisibleSkiaRender(world, entity), colors.cyan);
+    if (!setup) return;
 
-    const size = render.size || 36;
-    const radius = size / 2;
+    const { render, radius } = setup;
 
     canvas.save();
 
@@ -197,14 +196,10 @@ export const drawSkiaAsteroidsUfo: ShapeDrawer<SkCanvas, AsteroidsComponentRegis
  */
 export const drawSkiaAsteroidsAsteroid: ShapeDrawer<SkCanvas, AsteroidsComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = getVisibleSkiaRender(world, entity);
-    const collider = world.getComponent(entity, "Collider");
-    if (!render) return;
+    const setup = resolveAsteroidDrawSetup(world, getVisibleSkiaRender(world, entity), entity);
+    if (!setup) return;
 
-    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-    const customGeom = theme?.visualTheme?.shapeTokens?.enemyGeometry;
-
-    const radius = resolveAsteroidRadius(render, collider);
+    const { render, radius, customGeom } = setup;
 
     canvas.save();
 

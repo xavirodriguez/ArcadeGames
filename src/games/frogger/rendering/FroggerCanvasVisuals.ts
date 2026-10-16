@@ -5,6 +5,7 @@ import {
   resolveFroggerPlayerDrawContext,
   resolveFroggerShellSegments,
   resolveFroggerGoalContext,
+  resolveFroggerBackgroundContext,
 } from "./FroggerRenderUtils";
 
 export const drawFroggerCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComponentRegistry> = {
@@ -214,14 +215,8 @@ export const drawLilyPadCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCom
 
 export const froggerBackgroundCanvasEffect: EffectDrawer<CanvasRenderingContext2D, FroggerComponentRegistry> = {
   draw(ctx, world) {
-    const config = world.getResource<typeof DEFAULT_FROGGER_CONFIG>("GameConfig") || DEFAULT_FROGGER_CONFIG;
-    const w = config.worldWidth;
-    const grid = config.GRID_SIZE;
-
-    const grassColor = resolveThemeColorWithFallback(world, "#0B2B16", "frogger_grass", "secondary");
-    const waterColor = resolveThemeColorWithFallback(world, "#051C33", "water", "secondary");
+    const { w, grid, grassColor, waterColor, roadColor } = resolveFroggerBackgroundContext(world);
     const waterGridColor = resolveThemeColorWithFallback(world, "rgba(0, 243, 255, 0.15)", "water_grid");
-    const roadColor = resolveThemeColorWithFallback(world, "#121218", "frogger_road");
 
     ctx.fillStyle = grassColor;
     ctx.fillRect(0, 0, w, grid);

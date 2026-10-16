@@ -20,7 +20,7 @@ import { ISpaceInvadersGame } from "./types/GameInterfaces";
 import { PlayerBulletPool, EnemyBulletPool, ParticlePool } from "./EntityPool";
 import { SpaceInvadersGameScene } from "./scenes/SpaceInvadersGameScene";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
-import { markLocalPlayerEntity, NO_OP_SYNC, applyServerGameStateFields } from "../shared/networkUtils";
+import { markLocalPlayerEntity, NO_OP_SYNC, applyServerGameStateFields, collectGroupInterpolationEntries, queryPlayerEntity } from "../shared/networkUtils";
 import spaceInvadersConfigRaw from "./config/space-invaders.json";
 
 const __DEV__ = process.env.NODE_ENV !== "production";
@@ -697,13 +697,12 @@ export class SpaceInvadersGame
   }
 
   public setMultiplayerMode(active: boolean) {
-        // TODO(refactor): código duplicado detectado (bloque) con tower-defense/TowerDefenseGame.ts:396-404. Considerar extraer a función compartida. Ref: d4e2faf8
-this.isMultiplayer = active;
+    this.isMultiplayer = active;
   }
 
   public override setInputState(input: Partial<InputState> | CanonicalInputState | Record<string, unknown>): void {
     const world = this.getWorld();
-    const playerEntity = world.query("Player")[0];
+    const playerEntity = queryPlayerEntity(world);
     if (playerEntity !== undefined) {
       ensureInputComponent(world, playerEntity);
       world.mutateComponent(playerEntity, "Input", (inputComp: InputComponent) => {
@@ -801,27 +800,11 @@ this.isMultiplayer = active;
     }
 
     const replicator = this.networkManager.getReplicator();
-    const entries: InterpolationSnapshotEntry[] = [];
-    if (state.players && typeof state.players === "object") {
-      Object.entries(state.players as Record<string, { x: number; y: number }>).forEach(([sessionId, p]) => {
-        const entityId = replicator.getLocalId(`player_${sessionId}`);
-        if (entityId !== undefined && p) entries.push({ entityId, x: p.x, y: p.y });
-      });
-    }
-    if (state.invaders && typeof state.invaders === "object") {
-      Object.entries(state.invaders as Record<string, { x: number; y: number; alive: boolean }>).forEach(([id, p]) => {
-        if (!p || !p.alive) return;
-        const entityId = replicator.getLocalId(`invader_${id}`);
-        if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y });
-      });
-    }
-    if (state.bullets && typeof state.bullets === "object") {
-      Object.entries(state.bullets as Record<string, { x: number; y: number }>).forEach(([id, p]) => {
-        if (!p) return;
-        const entityId = replicator.getLocalId(`bullet_${id}`);
-        if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y });
-      });
-    }
+    const entries: InterpolationSnapshotEntry[] = [
+      ...collectGroupInterpolationEntries(state.players as Record<string, { x: number; y: number }>, "player", replicator),
+      ...collectGroupInterpolationEntries(state.invaders as Record<string, { x: number; y: number; alive: boolean }>, "invader", replicator, true),
+      ...collectGroupInterpolationEntries(state.bullets as Record<string, { x: number; y: number }>, "bullet", replicator)
+    ];
 
     applyServerState(
       world,

@@ -15,6 +15,8 @@ import { EventRegistry } from "../events/EventBus";
  * @public
  */
 export class TTLSystem extends System<CoreComponentRegistry> {
+  public override runsWhileFrozen = true;
+
   /**
    * Decrements entity remaining lifetime and removes or reclaims entities whose TTL has expired.
    *

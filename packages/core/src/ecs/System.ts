@@ -72,6 +72,11 @@ export abstract class System<
   TEvents extends EventRegistry = EventRegistry
 > {
   /**
+   * Indicates whether this system should continue running when simulation freeze/pause is active.
+   */
+  public runsWhileFrozen?: boolean;
+
+  /**
    * Executes the system's logic for a single tick step.
    *
    * @param world - The active `World` instance containing entities and components.

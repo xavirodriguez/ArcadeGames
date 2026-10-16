@@ -674,8 +674,19 @@ export interface BranchNodeBuilder extends CommonNodeBuilderMethods<BranchNodeBu
 
 // @public
 export class BroadPhase {
+    static createScratch(): BroadPhaseScratch;
     static getShapeBounds(transform: Readonly<TransformComponent>, collider: Readonly<ColliderComponent>): AABB;
-    static sweepAndPrune(entities: ReadonlyArray<Entity>, world: World<CoreComponentRegistry>): Array<[Entity, Entity]>;
+    static sweepAndPrune(entities: ReadonlyArray<Entity>, world: World<CoreComponentRegistry>, scratch?: BroadPhaseScratch): Array<[Entity, Entity]>;
+}
+
+// @public
+export interface BroadPhaseScratch {
+    // Warning: (ae-incompatible-release-tags) The symbol "boundsPool" is marked as @public, but its signature references "EntityBounds" which is marked as @internal
+    //
+    // (undocumented)
+    boundsPool: EntityBounds[];
+    // (undocumented)
+    pairsPool: Array<[Entity, Entity]>;
 }
 
 // @public
@@ -816,7 +827,9 @@ export const CARDINAL_DIRECTIONS: ReadonlyArray<GridPoint>;
 
 // @public
 export class CCDSystem<TRegistry extends CoreComponentRegistry = CoreComponentRegistry> extends System<TRegistry> {
+    // (undocumented)
     setCandidates(entities: Entity[] | null): void;
+    // (undocumented)
     update(world: World<TRegistry>, deltaTime: number): void;
 }
 
@@ -994,11 +1007,17 @@ export type CollisionMask = number;
 
 // @public
 export class CollisionSystem2D<TRegistry extends CoreComponentRegistry = CoreComponentRegistry> extends System<TRegistry> {
+    // (undocumented)
     dispose(): void;
+    // (undocumented)
     onCollision(callback: CollisionCallback<TRegistry>): () => void;
+    // (undocumented)
     onTriggerEnter(callback: TriggerCallback<TRegistry>): () => void;
+    // (undocumented)
     onTriggerExit(callback: TriggerCallback<TRegistry>): () => void;
+    // (undocumented)
     setCandidates(entities: Entity[] | null): void;
+    // (undocumented)
     update(world: World<TRegistry>, _deltaTime: number, candidatesOverride?: Entity[]): void;
 }
 
@@ -1462,7 +1481,7 @@ export function createDistanceJoint(entityA: Entity, entityB: Entity, anchorA: {
 // @public
 export const createDistanceLimitJoint: typeof createRopeJoint;
 
-// @public
+// @public (undocumented)
 export function createEmitter<TComponents extends CoreComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, config: ParticleEmitterConfig): Entity;
 
 // @public
@@ -1894,6 +1913,22 @@ export function enterGameplayFreeze(world: World, duration?: number): void;
 
 // @public
 export type Entity = number;
+
+// Warning: (ae-internal-missing-underscore) The name "EntityBounds" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export interface EntityBounds {
+    // (undocumented)
+    entity: Entity;
+    // (undocumented)
+    maxX: number;
+    // (undocumented)
+    maxY: number;
+    // (undocumented)
+    minX: number;
+    // (undocumented)
+    minY: number;
+}
 
 // @public
 export class EntityBuilder<TComponents extends ComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>> {
@@ -2729,6 +2764,7 @@ export interface IPredictionModel<TRegistry extends MultiplayerRegistry = Multip
 
 // @public
 export interface IPrefabPool<TParams> {
+    // (undocumented)
     acquire(world: World, params: TParams): Entity;
 }
 
@@ -2822,6 +2858,8 @@ export interface JuiceComponent extends Component {
 
 // @public
 export class JuiceSystem extends System<CoreComponentRegistry> {
+    // (undocumented)
+    runsWhileFrozen: boolean;
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
 }
 
@@ -3733,7 +3771,11 @@ export interface ParticleParams {
 // @public
 export class ParticleSystem extends System<CoreComponentRegistry> {
     constructor(particlePool: IPrefabPool<ParticleParams>);
+    // (undocumented)
     emit<TComponents extends CoreComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, config: ParticleEmitterConfig): Entity;
+    // (undocumented)
+    runsWhileFrozen: boolean;
+    // (undocumented)
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
 }
 
@@ -4605,11 +4647,15 @@ export enum SceneState {
 // @public
 export class Schedule<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents, TEvents> = BlueprintRegistryMap<TComponents, TEvents>> {
     constructor(phases?: string[]);
+    // (undocumented)
     addSystem(system: System<TComponents, TEvents>, config: SystemConfig | undefined, world: World<TComponents, TEvents, TBlueprints>): void;
+    // (undocumented)
     clearSystems(): void;
     // (undocumented)
     getSystems(): System<TComponents, TEvents>[];
+    // (undocumented)
     setErrorReporter(reporter: GameErrorReporter, context?: ScheduleErrorContext): void;
+    // (undocumented)
     update(world: World<TComponents, TEvents, TBlueprints>, deltaTime: number): void;
 }
 
@@ -5494,6 +5540,7 @@ export function syncEntitiesFromServer<TServerState = Record<string, unknown>, T
 export abstract class System<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry> {
     dispose(): void;
     onRegister(_world: World<TComponents, TEvents>): void;
+    runsWhileFrozen?: boolean;
     abstract update(world: World<TComponents, TEvents>, deltaTime: number): void;
 }
 
@@ -5792,6 +5839,8 @@ export interface TTLComponent extends Component {
 
 // @public
 export class TTLSystem extends System<CoreComponentRegistry> {
+    // (undocumented)
+    runsWhileFrozen: boolean;
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
 }
 

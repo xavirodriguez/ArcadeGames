@@ -17,6 +17,7 @@ import {
   resolveParticleState,
   resolveExplosionParticleData,
   computeBossHullPoints,
+  computeTrailPointOffset,
 } from "./SpaceInvadersVisualUtils";
 import { calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVisual, calculateShieldCrackCoords } from "../../shared/rendering/spaceInvadersMath";
 import { EXPLOSION_PARTICLE_POOL, spawnLayeredExplosion, updateExplosionParticles } from "./ExplosionParticlePool";
@@ -453,9 +454,7 @@ export const drawSpaceInvadersBullet: ShapeDrawer<CanvasRenderingContext2D, Spac
     ctx.fillStyle = glowColor;
     for (let i = 1; i < points.length; i++) {
       const pt = points[i];
-      const relX = pt.x - currentX;
-      const relY = pt.y - currentY;
-      const pointWidth = size * pt.widthScale;
+      const { relX, relY, pointWidth } = computeTrailPointOffset(pt, currentX, currentY, size);
 
       ctx.globalAlpha = baseTrailAlpha * pt.alpha;
       ctx.fillRect(relX - pointWidth / 2, relY - pointWidth, pointWidth, pointWidth * 2);

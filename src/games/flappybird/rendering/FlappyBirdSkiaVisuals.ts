@@ -30,7 +30,8 @@ import {
   resolveBackgroundWarpState,
   resolveFlappyBackgroundSetup,
   maybeSpawnLaserGateSparks,
-  computeWarpLines
+  computeWarpLines,
+  computeFlappyNebulaPos
 } from "./FlappyBirdRenderUtils";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
@@ -644,8 +645,7 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<RenderContext, FlappyBi
 
     for (let n = 0; n < nebulae.length; n++) {
       const neb = nebulae[n];
-      const nx = width * neb.xRatio + Math.sin(world.tick * 0.01 + n) * 15;
-      const ny = height * neb.yRatio + Math.cos(world.tick * 0.008 + n * 2) * 10;
+      const { nx, ny } = computeFlappyNebulaPos(neb, world.tick, width, height, n);
       const nebShader = getCachedSkiaShader(`neb_${n}_${width}_${height}_${scenarioTheme.megaIndex}`, () =>
         Skia.Shader.MakeTwoPointConicalGradient(
           Skia.Point(nx, ny),

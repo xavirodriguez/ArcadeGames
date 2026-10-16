@@ -220,6 +220,9 @@ export interface OutrunRoadRenderContext {
 }
 
 export interface OutrunHorizonContext {
+  horizonY: number;
+  bands: string[];
+  bandHeight: number;
   curveParallax: number;
   scenarioId: string;
   clouds: CloudParam[] | null;
@@ -233,6 +236,8 @@ export function resolveOutrunHorizonContext(
 ): OutrunHorizonContext {
   const { state, roadData, screenW, screenH, palette } = roadCtx;
   const horizonY = screenH * 0.45;
+  const bands = palette.skyBands;
+  const bandHeight = horizonY / Math.max(1, bands.length);
   const curveParallax = computeCurvatureParallaxOffset(
     roadData.segments,
     state.playerZ,
@@ -256,7 +261,26 @@ export function resolveOutrunHorizonContext(
     hazeLines = computeHeatHazeLines(screenW, screenH, state.playerZ, state.playerX);
   }
 
-  return { curveParallax, scenarioId, clouds, peaks, buildings, hazeLines };
+  return { horizonY, bands, bandHeight, curveParallax, scenarioId, clouds, peaks, buildings, hazeLines };
+}
+
+export interface OutrunSegmentColors {
+  grassCol: string;
+  rumbleCol: string;
+  roadCol: string;
+}
+
+/** Computes grass, rumble strip, and road colors for a projected segment. */
+export function computeRoadSegmentColors(
+  pIndex: number,
+  rumbleLength: number,
+  palette: ScenarioPalette & { groundDark: string; groundLight: string; rumbleDark: string; rumbleLight: string }
+): OutrunSegmentColors {
+  return {
+    grassCol: rumbleColor(pIndex, rumbleLength, palette.groundDark, palette.groundLight),
+    rumbleCol: rumbleColor(pIndex, rumbleLength, palette.rumbleDark, palette.rumbleLight),
+    roadCol: roadColor(pIndex, rumbleLength, palette)
+  };
 }
 
 /** Resolves race state, road data, and scenario palette context for road drawers. */

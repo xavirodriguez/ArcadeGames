@@ -37,15 +37,26 @@ const driftingNebulaLayer = createParallaxLayer<NebulaCloud[]>({
   getState: (state) => state.nebulae
 });
 
+export interface DriftingNebulaSetup {
+  theme: ReturnType<typeof getActiveVisualContext>;
+  layerCtx: NonNullable<ReturnType<typeof resolveLayerFrame<NebulaCloud[]>>>;
+}
+
+export function resolveDriftingNebulaSetup(world: any): DriftingNebulaSetup | null {
+  const theme = getActiveVisualContext(world);
+  const layerCtx = resolveLayerFrame(world, "drifting_nebula", driftingNebulaLayer);
+  if (!layerCtx) return null;
+  return { theme, layerCtx };
+}
+
 export const DriftingNebulaBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
-    const theme = getActiveVisualContext(world);
-    const layerCtx = resolveLayerFrame(world, "drifting_nebula", driftingNebulaLayer);
-    if (!layerCtx) return;
+    const setup = resolveDriftingNebulaSetup(world);
+    if (!setup) return;
+    const { theme, layerCtx } = setup;
     const { layerState: nebulae, state, offsetX } = layerCtx;
 
-        // TODO(refactor): código duplicado detectado (bloque) con shared/rendering/layers/DriftingNebulaLayer.ts:83-88. Considerar extraer a función compartida. Ref: 7aee7d37
-ctx.save();
+    ctx.save();
 
     for (let i = 0; i < NEBULA_CLOUD_COUNT; i++) {
       const neb = nebulae[i];
@@ -75,9 +86,9 @@ ctx.save();
 export const SkiaDriftingNebulaBackgroundEffect: EffectDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    const theme = getActiveVisualContext(world);
-    const layerCtx = resolveLayerFrame(world, "drifting_nebula", driftingNebulaLayer);
-    if (!layerCtx) return;
+    const setup = resolveDriftingNebulaSetup(world);
+    if (!setup) return;
+    const { theme, layerCtx } = setup;
     const { layerState: nebulae, state, offsetX } = layerCtx;
 
     canvas.save();

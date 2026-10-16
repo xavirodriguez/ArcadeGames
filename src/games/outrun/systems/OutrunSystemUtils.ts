@@ -26,3 +26,14 @@ export function resolveOutrunSystemContext(
 
   return { state, config };
 }
+
+/**
+ * Resolves Outrun system context and returns config, or undefined if invalid context.
+ * @public
+ */
+export function resolveOutrunSystemConfig(
+  world: World<OutrunComponentRegistry, OutrunEventRegistry>
+): OutrunConfig | undefined {
+  const ctx = resolveOutrunSystemContext(world);
+  return ctx?.config;
+}

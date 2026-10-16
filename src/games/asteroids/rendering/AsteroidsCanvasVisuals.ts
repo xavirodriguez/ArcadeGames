@@ -5,7 +5,7 @@ import { colors } from "../../../theme/colors";
 import { computeAsteroidSilhouette, computeThrustFlame, computeMotionSecondaryEffect } from "../../shared/rendering/ProceduralShapeUtils";
 import { resolveHitFlash, resolveInvulnerabilityPulse, resolveAsteroidHitFlash } from "../../shared/rendering/RenderUtils";
 import { drawFromGeometryProfileCanvas } from "../../shared/rendering/GenericEntityDrawer";
-import { resolveAsteroidRadius } from "./AsteroidsVisualHelpers";
+import { resolveAsteroidSaucerSetup, resolveAsteroidDrawSetup } from "./AsteroidsVisualHelpers";
 
 function applyAsteroidHitFlashStroke(
   ctx: CanvasRenderingContext2D,
@@ -169,12 +169,10 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
  */
 export const drawAsteroidsUfo: ShapeDrawer<CanvasRenderingContext2D, AsteroidsComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render) return;
+    const setup = resolveAsteroidSaucerSetup(world.getComponent(entity, "Render"), colors.cyan);
+    if (!setup) return;
 
-    const size = render.size || 36;
-    const radius = size / 2;
-    const baseColor = render.color || colors.cyan;
+    const { render, radius, baseColor } = setup;
 
     ctx.save();
 
@@ -200,14 +198,10 @@ export const drawAsteroidsUfo: ShapeDrawer<CanvasRenderingContext2D, AsteroidsCo
  */
 export const drawAsteroidsAsteroid: ShapeDrawer<CanvasRenderingContext2D, AsteroidsComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    const collider = world.getComponent(entity, "Collider");
-    if (!render) return;
+    const setup = resolveAsteroidDrawSetup(world, world.getComponent(entity, "Render"), entity);
+    if (!setup) return;
 
-    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-    const customGeom = theme?.visualTheme?.shapeTokens?.enemyGeometry;
-
-    const radius = resolveAsteroidRadius(render, collider);
+    const { render, radius, customGeom } = setup;
 
     const baseColor = render.color || colors.pink;
     ctx.save();

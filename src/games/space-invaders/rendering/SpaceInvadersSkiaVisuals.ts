@@ -17,6 +17,7 @@ import {
   resolveParticleState,
   resolveExplosionParticleData,
   computeBossHullPoints,
+  computeTrailPointOffset,
 } from "./SpaceInvadersVisualUtils";
 import { calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVisual, calculateShieldCrackCoords } from "../../shared/rendering/spaceInvadersMath";
 import { safeGetRenderComponent, getRenderFlash } from "./RenderHelper";
@@ -493,9 +494,7 @@ export const drawSkiaSpaceInvadersBullet: ShapeDrawer<SkCanvas, SpaceInvadersCom
     paint.setColor(Skia!.Color(glowColor));
     for (let i = 1; i < points.length; i++) {
       const pt = points[i];
-      const relX = pt.x - currentX;
-      const relY = pt.y - currentY;
-      const pointWidth = size * pt.widthScale;
+      const { relX, relY, pointWidth } = computeTrailPointOffset(pt, currentX, currentY, size);
 
       paint.setAlphaf(baseTrailAlpha * pt.alpha);
       canvas.drawRect(Skia!.XYWHRect(relX - pointWidth / 2, relY - pointWidth, pointWidth, pointWidth * 2), paint);

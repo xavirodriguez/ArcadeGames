@@ -1,6 +1,7 @@
 import { System, World, Camera2DSystem } from "@tiny-aster/core";
 import type { RacingComponentRegistry, RacingEventRegistry } from "../types/RacingRegistry";
 import type { TrackSpec } from "../types/TrackSpecSchema";
+import { isPointInZone } from "./RacingSystemHelpers";
 
 export class HeadToHeadStateSystem extends System<RacingComponentRegistry, RacingEventRegistry> {
   public update(world: World<RacingComponentRegistry, RacingEventRegistry>, deltaTime: number): void {
@@ -83,19 +84,9 @@ export class HeadToHeadStateSystem extends System<RacingComponentRegistry, Racin
       if (trackSpec && trackSpec.zones) {
         for (let j = 0; j < trackSpec.zones.length; j++) {
           const zone = trackSpec.zones[j]!;
-          if (zone.surface === "deadly_edge") {
-                        // TODO(refactor): código duplicado detectado (bloque) con racing/systems/RacingSurfaceSystem.ts:25-32. Considerar extraer a función compartida. Ref: fee52f4e
-const halfW = zone.width / 2;
-            const halfH = zone.height / 2;
-            if (
-              transform.x >= zone.x - halfW &&
-              transform.x <= zone.x + halfW &&
-              transform.y >= zone.y - halfH &&
-              transform.y <= zone.y + halfH
-            ) {
-              inDeadlyZone = true;
-              break;
-            }
+          if (zone.surface === "deadly_edge" && isPointInZone(transform.x, transform.y, zone)) {
+            inDeadlyZone = true;
+            break;
           }
         }
       }

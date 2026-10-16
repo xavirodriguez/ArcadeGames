@@ -4,7 +4,7 @@ import type {
   OutrunEventRegistry,
   RoadData
 } from "../types/OutrunTypes";
-import { resolveOutrunSystemContext } from "./OutrunSystemUtils";
+import { resolveOutrunSystemConfig } from "./OutrunSystemUtils";
 import { findSegmentIndexAtZ } from "./TrafficSteering";
 
 /**
@@ -16,9 +16,8 @@ export class RoadAdvanceSystem extends System<OutrunComponentRegistry, OutrunEve
     world: World<OutrunComponentRegistry, OutrunEventRegistry>,
     deltaTime: number
   ): void {
-    const ctx = resolveOutrunSystemContext(world);
-    if (!ctx) return;
-    const { config } = ctx;
+    const config = resolveOutrunSystemConfig(world);
+    if (!config) return;
     const roadData = world.getResource<RoadData>("RoadData");
     if (!roadData || roadData.segments.length === 0) return;
 

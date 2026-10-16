@@ -6,8 +6,7 @@ import {
   resolveOutrunHorizonContext,
   projectOutrunRoad,
   projectionBuffer,
-  rumbleColor,
-  roadColor,
+  computeRoadSegmentColors,
   getFacetedPeakPolygons,
   iterateOutrunSprites,
   resolveOutrunCarContext,
@@ -119,12 +118,10 @@ export const drawSkiaOutrunRoad: ShapeDrawer<any, OutrunComponentRegistry> = {
     if (!roadCtx) return;
 
     const { state, roadData, config, screenW, screenH, rumbleLength, palette } = roadCtx;
-    const horizonY = screenH * 0.45;
     const horizonCtx = resolveOutrunHorizonContext(roadCtx);
+    const { horizonY, bands, bandHeight } = horizonCtx;
 
     // 1. Sky Bands
-    const bands = palette.skyBands;
-    const bandHeight = horizonY / Math.max(1, bands.length);
     for (let i = 0; i < bands.length; i++) {
       const paint = Skia.Paint();
       paint.setColor(Skia.Color(bands[i]!));
@@ -212,9 +209,7 @@ export const drawSkiaOutrunRoad: ShapeDrawer<any, OutrunComponentRegistry> = {
       const p = projectionBuffer[i]!;
       if (p.y1 <= p.y2 || p.y2 >= p.clip) continue;
 
-      const grassCol = rumbleColor(p.index, rumbleLength, palette.groundDark, palette.groundLight);
-      const rumbleCol = rumbleColor(p.index, rumbleLength, palette.rumbleDark, palette.rumbleLight);
-      const roadCol = roadColor(p.index, rumbleLength, palette);
+      const { grassCol, rumbleCol, roadCol } = computeRoadSegmentColors(p.index, rumbleLength, palette);
 
       // Grass Strip
       const gPaint = Skia.Paint();

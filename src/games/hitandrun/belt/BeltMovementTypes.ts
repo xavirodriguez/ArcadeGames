@@ -82,6 +82,13 @@ export function getBeltMovementConfig(world: {
   );
 }
 
+export function resolveBeltSystemConfig(world: {
+  getResource: <T>(key: string) => T | undefined;
+}): BeltMovementConfig | undefined {
+  if (world.getResource<boolean>("IsPaused") === true) return undefined;
+  return getBeltMovementConfig(world);
+}
+
 export interface BeltInputPartial {
   moveLeft?: boolean;
   moveRight?: boolean;

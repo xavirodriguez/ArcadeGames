@@ -4,16 +4,15 @@ import {
   CoreComponentRegistry
 } from "@tiny-aster/core";
 import {
-  getBeltMovementConfig,
+  resolveBeltSystemConfig,
   type BeltMovementComponent
 } from "./BeltMovementTypes";
 import type { BeltElevationComponent } from "./BeltElevationComponent";
 
 export class BeltElevationSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
-    if (world.getResource("IsPaused") === true) return;
-
-    const config = getBeltMovementConfig(world);
+    const config = resolveBeltSystemConfig(world);
+    if (!config) return;
 
     const entities = world.query("BeltElevation");
     const len = entities.length;

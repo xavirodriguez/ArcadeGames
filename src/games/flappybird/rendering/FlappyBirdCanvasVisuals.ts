@@ -29,7 +29,8 @@ import {
   resolveBackgroundWarpState,
   resolveFlappyBackgroundSetup,
   maybeSpawnLaserGateSparks,
-  computeWarpLines
+  computeWarpLines,
+  computeFlappyNebulaPos
 } from "./FlappyBirdRenderUtils";
 
 export { FLAPPY_PARTICLE_POOL as FLAPPY_CANVAS_PARTICLE_POOL, spawnVisualParticle };
@@ -662,8 +663,7 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
 
     for (let n = 0; n < nebulae.length; n++) {
       const neb = nebulae[n];
-      const nx = width * neb.xRatio + Math.sin(world.tick * 0.01 + n) * 15;
-      const ny = height * neb.yRatio + Math.cos(world.tick * 0.008 + n * 2) * 10;
+      const { nx, ny } = computeFlappyNebulaPos(neb, world.tick, width, height, n);
       const nebGrad = getCachedCanvasGradient(ctx, `neb_${n}_${width}_${height}_${scenarioTheme.megaIndex}`, () => {
         const g = ctx.createRadialGradient(nx, ny, 10, nx, ny, neb.radius);
         g.addColorStop(0, neb.colorHex);

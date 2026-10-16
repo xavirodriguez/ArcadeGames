@@ -39,7 +39,7 @@ import { GeometryWarsConfig, GeometryWarsConfigSchema, DEFAULT_CONFIG } from "./
 import { GeometryWarsGameScene } from "./scenes/GeometryWarsGameScene";
 import { colors } from "../../theme/colors";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
-import { markLocalPlayerEntity, NO_OP_SYNC, applyServerGameStateFields } from "../shared/networkUtils";
+import { markLocalPlayerEntity, NO_OP_SYNC, applyServerGameStateFields, collectGroupInterpolationEntries } from "../shared/networkUtils";
 
 function createTransformComponent(x: number, y: number, rotation: number): TransformComponent {
   return {
@@ -346,27 +346,11 @@ export class GeometryWarsGame extends BaseGame<
     }
 
     const replicator = this.networkManager.getReplicator();
-    const entries: InterpolationSnapshotEntry[] = [];
-    if (state.players) {
-      Object.entries(state.players as Record<string, { x: number; y: number; angle: number }>).forEach(([sessionId, p]) => {
-        const entityId = replicator.getLocalId(`player_${sessionId}`);
-        if (entityId !== undefined && p) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });
-      });
-    }
-    if (state.enemies) {
-      Object.entries(state.enemies as Record<string, { x: number; y: number; angle: number }>).forEach(([id, p]) => {
-        if (!p) return;
-        const entityId = replicator.getLocalId(`enemy_${id}`);
-        if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });
-      });
-    }
-    if (state.bullets) {
-      Object.entries(state.bullets as Record<string, { x: number; y: number; angle: number }>).forEach(([id, p]) => {
-        if (!p) return;
-        const entityId = replicator.getLocalId(`bullet_${id}`);
-        if (entityId !== undefined) entries.push({ entityId, x: p.x, y: p.y, rotation: p.angle });
-      });
-    }
+    const entries: InterpolationSnapshotEntry[] = [
+      ...collectGroupInterpolationEntries(state.players as Record<string, { x: number; y: number; angle: number }>, "player", replicator),
+      ...collectGroupInterpolationEntries(state.enemies as Record<string, { x: number; y: number; angle: number }>, "enemy", replicator),
+      ...collectGroupInterpolationEntries(state.bullets as Record<string, { x: number; y: number; angle: number }>, "bullet", replicator)
+    ];
 
     applyServerState(
       world,

@@ -1106,6 +1106,32 @@ export interface ComponentSetReleaseContext<T extends Record<string, Component>,
     container?: T;
 }
 
+// Warning: (ae-internal-missing-underscore) The name "ComponentStorage" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export interface ComponentStorage<T> {
+    // (undocumented)
+    clear(): void;
+    // (undocumented)
+    delete(entity: Entity): boolean;
+    // (undocumented)
+    entities(): Iterable<Entity>;
+    // (undocumented)
+    entries(): Iterable<[Entity, T]>;
+    // (undocumented)
+    forEach(callback: (value: T, entity: Entity) => void): void;
+    // (undocumented)
+    get(entity: Entity): T | undefined;
+    // (undocumented)
+    has(entity: Entity): boolean;
+    // (undocumented)
+    set(entity: Entity, component: T): void;
+    // (undocumented)
+    readonly size: number;
+    // (undocumented)
+    values(): Iterable<T>;
+}
+
 // @public
 export type ComponentType<TRegistry extends ComponentRegistry> = Extract<keyof TRegistry, string>;
 
@@ -2964,6 +2990,32 @@ export function mapFingerToPaddle(fingerX: number, fingerY: number, bounds: {
     x: number;
     y: number;
 };
+
+// Warning: (ae-internal-missing-underscore) The name "MapStorage" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export class MapStorage<T> implements ComponentStorage<T> {
+    // (undocumented)
+    clear(): void;
+    // (undocumented)
+    delete(entity: Entity): boolean;
+    // (undocumented)
+    entities(): Iterable<Entity>;
+    // (undocumented)
+    entries(): Iterable<[Entity, T]>;
+    // (undocumented)
+    forEach(callback: (value: T, entity: Entity) => void): void;
+    // (undocumented)
+    get(entity: Entity): T | undefined;
+    // (undocumented)
+    has(entity: Entity): boolean;
+    // (undocumented)
+    set(entity: Entity, component: T): void;
+    // (undocumented)
+    get size(): number;
+    // (undocumented)
+    values(): Iterable<T>;
+}
 
 // @public
 export function maskOf(...layers: number[]): number;
@@ -4925,6 +4977,39 @@ export const SOLAR_GARDEN_PALETTE: {
 
 // @public
 export type SpaceInvadersRoleKey = CommonRoleKey | "invader" | "invader_commander" | "invader_scout" | "commander" | "scout" | "ufo";
+
+// Warning: (ae-internal-missing-underscore) The name "SparseSetStorage" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export class SparseSetStorage<T> implements ComponentStorage<T> {
+    constructor(initialCapacity?: number);
+    // (undocumented)
+    clear(): void;
+    // (undocumented)
+    delete(entity: Entity): boolean;
+    // (undocumented)
+    dense: T[];
+    // (undocumented)
+    denseEntities: Entity[];
+    // (undocumented)
+    entities(): Iterable<Entity>;
+    // (undocumented)
+    entries(): IterableIterator<[Entity, T]>;
+    // (undocumented)
+    forEach(callback: (value: T, entity: Entity) => void): void;
+    // (undocumented)
+    get(entity: Entity): T | undefined;
+    // (undocumented)
+    has(entity: Entity): boolean;
+    // (undocumented)
+    set(entity: Entity, component: T): void;
+    // (undocumented)
+    get size(): number;
+    // (undocumented)
+    sparse: Int32Array;
+    // (undocumented)
+    values(): Iterable<T>;
+}
 
 // @public
 export class SpatialCullingSystem extends System<CoreComponentRegistry> {

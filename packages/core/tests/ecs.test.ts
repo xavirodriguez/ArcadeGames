@@ -65,7 +65,7 @@ describe.each([
 
     world.addComponent(entity, transform);
 
-    const retrievedTransform = world.getComponent(entity, "Transform") as any;
+    const retrievedTransform = world.getComponent(entity, "Transform") as { x: number };
     expect(retrievedTransform).toBeDefined();
 
     expect(() => {
@@ -89,22 +89,22 @@ describe.each([
       data: { value: 10, list: [1, 2, 3] }
     };
 
-    world.addComponent(entity, nested as any);
+    world.addComponent(entity, nested);
 
-    const retrieved = world.getComponent(entity, "Nested" as any) as any;
+    const retrieved = world.getComponent(entity, "Nested");
     expect(retrieved).toBeDefined();
 
-    world.mutateComponent(entity, "Nested" as any, (n: any) => {
+    world.mutateComponent(entity, "Nested", (n) => {
       n.data.value = 42;
       n.data.list.push(4);
     });
 
-    const mutated = world.getComponent(entity, "Nested" as any) as any;
-    expect(mutated.data.value).toBe(42);
-    expect(mutated.data.list).toEqual([1, 2, 3, 4]);
+    const mutated = world.getComponent(entity, "Nested");
+    expect(mutated!.data.value).toBe(42);
+    expect(mutated!.data.list).toEqual([1, 2, 3, 4]);
 
-    expect(retrieved.data.value).toBe(10);
-    expect(retrieved.data.list).toEqual([1, 2, 3]);
+    expect(retrieved!.data.value).toBe(10);
+    expect(retrieved!.data.list).toEqual([1, 2, 3]);
   });
 
   it("should execute queries correctly", () => {
@@ -132,7 +132,7 @@ describe.each([
     const t: TransformComponent = { type: "Transform", x: 0, y: 0, rotation: 0, scaleX: 1, scaleY: 1, worldX: 0, worldY: 0, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false };
     world.addComponent(entity, t);
 
-    const readResult = world.readComponent(entity, "Transform") as any;
+    const readResult = world.readComponent(entity, "Transform") as { x: number };
     expect(readResult).toBeDefined();
     expect(() => {
       readResult.x = 123;
@@ -233,7 +233,7 @@ describe.each([
       expect(world.getResource("ScreenConfig")).toEqual({ width: 800, height: 600 });
 
       expect(() => {
-        world.setResource("ScreenConfig", { width: "800", height: 600 } as any);
+        world.setResource("ScreenConfig", { width: "800", height: 600 } as never);
       }).toThrow(/ScreenConfig.*shape/);
 
       const validBus = { emit: () => {}, on: () => {} };
@@ -241,21 +241,21 @@ describe.each([
       expect(world.getResource("EventBus")).toBe(validBus);
 
       expect(() => {
-        world.setResource("EventBus", { emit: () => {} } as any);
+        world.setResource("EventBus", { emit: () => {} } as never);
       }).toThrow(/EventBus.*match/);
 
       world.setResource("SpatialCullingMargin", 150);
       expect(world.getResource("SpatialCullingMargin")).toBe(150);
 
       expect(() => {
-        world.setResource("SpatialCullingMargin", "150" as any);
+        world.setResource("SpatialCullingMargin", "150" as never);
       }).toThrow(/SpatialCullingMargin.*must be/);
 
       world.setResource("UseSparseSetStorage", true);
       expect(world.getResource("UseSparseSetStorage")).toBe(true);
 
       expect(() => {
-        world.setResource("UseSparseSetStorage", "true" as any);
+        world.setResource("UseSparseSetStorage", "true" as never);
       }).toThrow(/UseSparseSetStorage.*must be/);
     });
   });

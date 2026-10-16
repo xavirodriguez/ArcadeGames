@@ -289,6 +289,7 @@ describe("Echo Runner Game Simulation Tests", () => {
       drawOval: jest.fn(),
       drawPath: jest.fn(),
       drawRoundRect: jest.fn(),
+      drawRRect: jest.fn(),
     };
 
     // 1. Execute Skia Background Effect

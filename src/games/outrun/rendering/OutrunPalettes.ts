@@ -3,6 +3,8 @@
  * Strict adherence to OUTRUN_ART.md visual specification (~12 tokens per scenario).
  */
 
+import { hexToRgb } from "./OutrunFog";
+
 export interface ScenarioPalette {
   id: "coast" | "desert" | "mountain" | "classic_coast" | "classic_desert" | "classic_mountain";
   horizonStyle?: "faceted_peaks" | "coast_sea" | "desert_dunes" | "mountain_cliffs";
@@ -216,24 +218,9 @@ export function scenarioHash(scenarioId: string, index: number): number {
  */
 export function interpolateHexColor(c1: string, c2: string, t: number): string {
   const clampT = Math.max(0, Math.min(1, t));
-  const parseHex = (hex: string) => {
-    const h = hex.replace("#", "");
-    if (h.length === 3) {
-      return [
-        parseInt(h[0] + h[0], 16),
-        parseInt(h[1] + h[1], 16),
-        parseInt(h[2] + h[2], 16)
-      ];
-    }
-    return [
-      parseInt(h.substring(0, 2), 16),
-      parseInt(h.substring(2, 4), 16),
-      parseInt(h.substring(4, 6), 16)
-    ];
-  };
 
-  const [r1, g1, b1] = parseHex(c1);
-  const [r2, g2, b2] = parseHex(c2);
+  const [r1, g1, b1] = hexToRgb(c1);
+  const [r2, g2, b2] = hexToRgb(c2);
 
   const r = Math.round(r1 + (r2 - r1) * clampT);
   const g = Math.round(g1 + (g2 - g1) * clampT);

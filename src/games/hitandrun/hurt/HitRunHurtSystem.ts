@@ -6,7 +6,7 @@ import {
 } from "@tiny-aster/core";
 import type { EventBus } from "@tiny-aster/core";
 import type { CombatHitPayload } from "../systems/HitRunFeedbackTypes";
-import type { BeltElevationComponent } from "../belt/BeltElevationComponent";
+import { applyBeltElevationKnockback } from "../belt/BeltElevationComponent";
 import {
   DEFAULT_HIT_REACTION_CONFIG,
   HIT_REACTION_CONFIG_RESOURCE,
@@ -166,18 +166,7 @@ export class HitRunHurtSystem extends CombatHitListenerSystem<CombatHitPayload> 
       }
     }
 
-    const elev = world.getMutableComponent(target, "BeltElevation") as
-      | BeltElevationComponent
-      | undefined;
-    if (elev) {
-      const currentJuggle = elev.juggleCount ?? 0;
-      if (!elev.grounded) {
-        elev.juggleCount = currentJuggle + 1;
-      }
-      const juggleDiminish = elev.juggleCount && elev.juggleCount > 4 ? 0.3 : 1.0;
-      elev.vz = Math.abs(knockY) * juggleDiminish;
-      elev.grounded = false;
-    }
+    applyBeltElevationKnockback(world, target, knockY);
   }
 
   private ensureHitReaction(

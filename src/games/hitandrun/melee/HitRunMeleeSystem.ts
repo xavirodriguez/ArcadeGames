@@ -8,7 +8,7 @@ import { ArcadeEntityBuilder } from "@tiny-aster/gameplay-kit";
 import { isSimulationFrozen } from "../systems/HitRunFeedbackSystem";
 import { isPlayerControlLocked } from "../hurt/HitRunHurtSystem";
 import { depthZOverlap } from "../combat/HitVolume";
-import type { BeltElevationComponent } from "../belt/BeltElevationComponent";
+import { applyBeltElevationKnockback } from "../belt/BeltElevationComponent";
 import {
   DEFAULT_MELEE_ATTACK_CONFIG,
   MELEE_MAX_HITS_PER_SWING,
@@ -229,12 +229,7 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
     },
     config: MeleeAttackConfig
   ): Entity {
-        // TODO(refactor): código duplicado detectado (bloque) con hitandrun/melee/HitRunMeleeSystem.ts:322-328. Considerar extraer a función compartida. Ref: 27691a5e
-const ox = transform.worldX ?? transform.x;
-    const oy = transform.worldY ?? transform.y;
-    const face = melee.facing >= 0 ? 1 : -1;
-    const hx = ox + face * config.hitboxOffsetX;
-    const hy = oy + config.hitboxOffsetY;
+    const { hx, hy } = resolveHitboxPosition(transform, melee, config);
     const halfW = config.hitboxWidth * 0.5;
     const halfH = config.hitboxHeight * 0.5;
 
@@ -302,11 +297,7 @@ const ox = transform.worldX ?? transform.x;
   ): void {
     if (melee.hitboxEntity < 0 || !world.hasEntity(melee.hitboxEntity)) return;
 
-    const ox = transform.worldX ?? transform.x;
-    const oy = transform.worldY ?? transform.y;
-    const face = melee.facing >= 0 ? 1 : -1;
-    const hx = ox + face * config.hitboxOffsetX;
-    const hy = oy + config.hitboxOffsetY;
+    const { hx, hy } = resolveHitboxPosition(transform, melee, config);
 
     const ht = world.getComponent(melee.hitboxEntity, "Transform");
     if (!ht || (ht.x === hx && ht.y === hy)) return;
@@ -389,18 +380,7 @@ const ox = transform.worldX ?? transform.x;
         }
       }
 
-      const elev = world.getMutableComponent(other, "BeltElevation") as
-        | BeltElevationComponent
-        | undefined;
-      if (elev) {
-        const currentJuggle = elev.juggleCount ?? 0;
-        if (!elev.grounded) {
-          elev.juggleCount = currentJuggle + 1;
-        }
-        const juggleDiminish = elev.juggleCount && elev.juggleCount > 4 ? 0.3 : 1.0;
-        elev.vz = Math.abs(config.knockbackY) * juggleDiminish;
-        elev.grounded = false;
-      }
+      applyBeltElevationKnockback(world, other, config.knockbackY);
 
       const bus = world.getEventBus();
       if (bus) {
@@ -474,5 +454,19 @@ export function createMeleeAttackComponent(): MeleeAttackComponent {
     hitCount: 0,
     hitEntityIds: new Array<number>(MELEE_MAX_HITS_PER_SWING).fill(-1),
     facing: 1
+  };
+}
+
+export function resolveHitboxPosition(
+  transform: { x: number; y: number; worldX?: number; worldY?: number },
+  melee: { facing: number },
+  config: { hitboxOffsetX: number; hitboxOffsetY: number }
+): { hx: number; hy: number } {
+  const ox = transform.worldX ?? transform.x;
+  const oy = transform.worldY ?? transform.y;
+  const face = melee.facing >= 0 ? 1 : -1;
+  return {
+    hx: ox + face * config.hitboxOffsetX,
+    hy: oy + config.hitboxOffsetY
   };
 }

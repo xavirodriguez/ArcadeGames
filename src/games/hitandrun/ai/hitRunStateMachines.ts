@@ -142,6 +142,37 @@ function createRangedAttackState(defaultDuration: number, shootOnUpdate: boolean
   };
 }
 
+function createSensorIdleState(
+  defaultDuration: number,
+  nextState = "Windup",
+  onDetect?: (
+    world: World<CoreComponentRegistry>,
+    entity: number,
+    data: Record<string, unknown>
+  ) => void
+) {
+  return {
+    onEnter(world: World<CoreComponentRegistry>, entity: number) {
+      zeroVx(world, entity);
+    },
+    onUpdate(
+      world: World<CoreComponentRegistry>,
+      entity: number,
+      data: Record<string, unknown>,
+      elapsed: number
+    ) {
+      const sensor = world.getComponent(entity, "PlayerSensor") as
+        | { detectedPlayerEntity?: number }
+        | undefined;
+      if (playerDetected(sensor)) {
+        if (onDetect) onDetect(world, entity, data);
+        return "Alert";
+      }
+      return timed(data, "idleDuration", defaultDuration, elapsed, nextState);
+    }
+  };
+}
+
 function createIdleRecoveryState(defaultDuration: number, nextState = "Idle") {
   return {
     onEnter(world: World<CoreComponentRegistry>, entity: number, data: Record<string, unknown>) {
@@ -369,18 +400,7 @@ export function registerHitRunStateMachines(
   // ─── hr_hop ─────────────────────────────────────────────────
   registry["hr_hop"] = {
     states: {
-      Idle: {
-        onEnter(world, entity) {
-          zeroVx(world, entity);
-        },
-        onUpdate(world, entity, data, elapsed) {
-          const sensor = world.getComponent(entity, "PlayerSensor") as
-            | { detectedPlayerEntity?: number }
-            | undefined;
-          if (playerDetected(sensor)) return "Alert";
-          return timed(data, "idleDuration", 0.8, elapsed, "Windup");
-        }
-      },
+      Idle: createSensorIdleState(0.8, "Windup"),
       Alert: alertWindup.Alert,
       Windup: alertWindup.Windup,
       Attack: {
@@ -557,22 +577,10 @@ export function registerHitRunStateMachines(
   // ─── hr_shooter ─────────────────────────────────────────────
   registry["hr_shooter"] = {
     states: {
-      Idle: {
-        onEnter(world, entity) {
-          zeroVx(world, entity);
-        },
-        onUpdate(world, entity, data, elapsed) {
-          const sensor = world.getComponent(entity, "PlayerSensor") as
-            | { detectedPlayerEntity?: number }
-            | undefined;
-          if (playerDetected(sensor)) {
-            facePlayer(world, entity);
-            tryEnemyShoot(world, entity, data);
-            return "Alert";
-          }
-          return timed(data, "idleDuration", 1.0, elapsed, "Idle");
-        }
-      },
+      Idle: createSensorIdleState(1.0, "Idle", (world, entity, data) => {
+        facePlayer(world, entity);
+        tryEnemyShoot(world, entity, data);
+      }),
       ...alertWindup,
       Attack: createRangedAttackState(0.5, true),
       Recovery: createIdleRecoveryState(0.6)

@@ -162,17 +162,20 @@ export interface ArcadeSkillProfile {
     readonly survival: number;
 }
 
+// @public (undocumented)
+export const ArcadeState: {
+    readonly BOOT: "BOOT";
+    readonly LOADING: "LOADING";
+    readonly TITLE: "TITLE";
+    readonly MENU: "MENU";
+    readonly PLAYING: "PLAYING";
+    readonly PAUSED: "PAUSED";
+    readonly GAME_OVER: "GAME_OVER";
+    readonly STORY: "STORY";
+};
+
 // @public
-export enum ArcadeState {
-    BOOT = "BOOT",
-    GAME_OVER = "GAME_OVER",
-    LOADING = "LOADING",
-    MENU = "MENU",
-    PAUSED = "PAUSED",
-    PLAYING = "PLAYING",
-    STORY = "STORY",
-    TITLE = "TITLE"
-}
+export type ArcadeState = typeof ArcadeState[keyof typeof ArcadeState];
 
 // @public
 export type AssetDescriptor = z.infer<typeof AssetDescriptorSchema>;
@@ -669,7 +672,7 @@ export class BoundarySystem extends System<CoreComponentRegistry> {
 // @public
 export interface BoxShape extends BaseShape {
     height: number;
-    type: ShapeType.Box;
+    type: typeof ShapeType.Box;
     width: number;
 }
 
@@ -890,7 +893,7 @@ export interface ChunkSpec {
 // @public
 export interface CircleShape extends BaseShape {
     radius: number;
-    type: ShapeType.Circle;
+    type: typeof ShapeType.Circle;
 }
 
 // @public
@@ -1218,7 +1221,7 @@ export class ConsoleGameErrorReporter implements GameErrorReporter {
 
 // @public
 export interface ConvexPolygonShape extends BaseShape {
-    type: ShapeType.Polygon;
+    type: typeof ShapeType.Polygon;
     vertices: Array<{
         x: number;
         y: number;
@@ -2237,16 +2240,19 @@ export interface GameErrorReporter {
 // @public
 export type GameId = "asteroids" | "echorunner" | "space-invaders" | "flappybird" | "pong" | "geometrywars" | "platformer" | "frogger" | "racing" | "vertical-shmup";
 
+// @public (undocumented)
+export const GameLifecycleState: {
+    readonly UNINITIALIZED: "UNINITIALIZED";
+    readonly READY: "READY";
+    readonly RUNNING: "RUNNING";
+    readonly PAUSED: "PAUSED";
+    readonly STOPPED: "STOPPED";
+    readonly DESTROYED: "DESTROYED";
+    readonly ERROR: "ERROR";
+};
+
 // @public
-export enum GameLifecycleState {
-    DESTROYED = "DESTROYED",
-    ERROR = "ERROR",
-    PAUSED = "PAUSED",
-    READY = "READY",
-    RUNNING = "RUNNING",
-    STOPPED = "STOPPED",
-    UNINITIALIZED = "UNINITIALIZED"
-}
+export type GameLifecycleState = typeof GameLifecycleState[keyof typeof GameLifecycleState];
 
 // @public
 export class GameLoop {
@@ -4313,16 +4319,16 @@ export type RenderCallback = (alpha: number) => void;
 
 // @public
 export type RenderCommand = {
-    type: RenderCommandType.DrawSprite | "DrawSprite";
+    type: typeof RenderCommandType.DrawSprite | "DrawSprite";
     data: DrawSpritePayload;
 } | {
-    type: RenderCommandType.DrawCircle | "DrawCircle";
+    type: typeof RenderCommandType.DrawCircle | "DrawCircle";
     data: DrawCirclePayload;
 } | {
-    type: RenderCommandType.DrawLine | "DrawLine";
+    type: typeof RenderCommandType.DrawLine | "DrawLine";
     data: DrawLinePayload;
 } | {
-    type: RenderCommandType.DrawText | "DrawText";
+    type: typeof RenderCommandType.DrawText | "DrawText";
     data: DrawTextPayload;
 } | {
     type: string;
@@ -4346,13 +4352,16 @@ export class RenderCommandBufferImpl implements RenderCommandBuffer {
     push(command: RenderCommand): void;
 }
 
+// @public (undocumented)
+export const RenderCommandType: {
+    readonly DrawSprite: "DrawSprite";
+    readonly DrawCircle: "DrawCircle";
+    readonly DrawLine: "DrawLine";
+    readonly DrawText: "DrawText";
+};
+
 // @public
-export enum RenderCommandType {
-    DrawCircle = "DrawCircle",
-    DrawLine = "DrawLine",
-    DrawSprite = "DrawSprite",
-    DrawText = "DrawText"
-}
+export type RenderCommandType = typeof RenderCommandType[keyof typeof RenderCommandType];
 
 // @public
 export interface RenderComponent extends Component {
@@ -4693,13 +4702,16 @@ export class SceneManager<TComponents extends ComponentRegistry = CoreComponentR
     update(deltaTime: number): void;
 }
 
+// @public (undocumented)
+export const SceneState: {
+    readonly IDLE: "IDLE";
+    readonly LOADING: "LOADING";
+    readonly ACTIVE: "ACTIVE";
+    readonly UNLOADING: "UNLOADING";
+};
+
 // @public
-export enum SceneState {
-    ACTIVE = "ACTIVE",
-    IDLE = "IDLE",
-    LOADING = "LOADING",
-    UNLOADING = "UNLOADING"
-}
+export type SceneState = typeof SceneState[keyof typeof SceneState];
 
 // @public
 export class Schedule<TComponents extends ComponentRegistry = ComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents, TEvents> = BlueprintRegistryMap<TComponents, TEvents>> {
@@ -4842,12 +4854,18 @@ export interface ShapeDrawer<TContext = RenderContext, TRegistry extends Compone
     draw(context: TContext, world: World<TRegistry>, entity: number): void;
 }
 
+// @public (undocumented)
+export const ShapeType: {
+    readonly Circle: 0;
+    readonly Box: 1;
+    readonly Polygon: 2;
+    readonly 0: "Circle";
+    readonly 1: "Box";
+    readonly 2: "Polygon";
+};
+
 // @public
-export enum ShapeType {
-    Box = 1,
-    Circle = 0,
-    Polygon = 2
-}
+export type ShapeType = typeof ShapeType.Circle | typeof ShapeType.Box | typeof ShapeType.Polygon;
 
 // @public
 export const SHARED_AUDIO_MANIFEST: AudioAssetDefinition[];
@@ -5641,15 +5659,18 @@ export interface SystemConfig {
     priority?: number;
 }
 
+// @public (undocumented)
+export const SystemPhase: {
+    readonly Input: "Input";
+    readonly Simulation: "Simulation";
+    readonly Transform: "Transform";
+    readonly Collision: "Collision";
+    readonly GameRules: "GameRules";
+    readonly Presentation: "Presentation";
+};
+
 // @public
-export enum SystemPhase {
-    Collision = "Collision",
-    GameRules = "GameRules",
-    Input = "Input",
-    Presentation = "Presentation",
-    Simulation = "Simulation",
-    Transform = "Transform"
-}
+export type SystemPhase = typeof SystemPhase[keyof typeof SystemPhase];
 
 // @public
 export interface TagComponent extends Component {

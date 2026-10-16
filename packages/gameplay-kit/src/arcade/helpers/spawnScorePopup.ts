@@ -1,4 +1,4 @@
-import { World, TransformComponent, RenderComponent, TTLComponent, Entity } from "@tiny-aster/core";
+import { World, ComponentRegistry, CoreComponentRegistry, TransformComponent, RenderComponent, TTLComponent, Entity } from "@tiny-aster/core";
 
 /**
  * Spawns a floating score or combo popup text at (x, y) coordinates.
@@ -11,29 +11,30 @@ import { World, TransformComponent, RenderComponent, TTLComponent, Entity } from
  * @param color The text color (default: "#FFFF00").
  * @public
  */
-export function spawnScorePopup(
-  world: World<any>,
+export function spawnScorePopup<TComponents extends ComponentRegistry = CoreComponentRegistry>(
+  world: World<TComponents>,
   x: number,
   y: number,
   text: string,
   color: string = "#FFFF00"
 ): Entity {
   const isUpdating = world.isUpdating;
-  const commands = world.getCommandBuffer();
+  const coreWorld = world as unknown as World<CoreComponentRegistry>;
+  const commands = coreWorld.getCommandBuffer();
 
   let popup: Entity;
   if (isUpdating) {
-    popup = world.reserveEntityId();
+    popup = coreWorld.reserveEntityId();
     commands.createEntity(popup);
   } else {
-    popup = world.createEntity();
+    popup = coreWorld.createEntity();
   }
 
-  const addComp = (comp: any) => {
+  const addComp = (comp: unknown) => {
     if (isUpdating) {
-      commands.addComponent(popup, comp);
+      commands.addComponent(popup, comp as CoreComponentRegistry[keyof CoreComponentRegistry]);
     } else {
-      world.addComponent(popup, comp);
+      coreWorld.addComponent(popup, comp as CoreComponentRegistry[keyof CoreComponentRegistry]);
     }
   };
 
@@ -72,7 +73,7 @@ export function spawnScorePopup(
     content: text,
     wordWrap: false,
     maxLines: 1
-  } as any);
+  });
 
   addComp({
     type: "TTL",

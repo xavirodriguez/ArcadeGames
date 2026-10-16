@@ -80,7 +80,7 @@ describe("PhysicsQuery and SpatialPartitioningSystem Tests", () => {
 
   it("should detect convex polygon collisions using SAT", () => {
     const polyA = {
-      type: ShapeType.Polygon as const,
+      type: ShapeType.Polygon,
       vertices: [
         { x: -10, y: -10 },
         { x: 10, y: -10 },
@@ -90,7 +90,7 @@ describe("PhysicsQuery and SpatialPartitioningSystem Tests", () => {
     };
 
     const polyB = {
-      type: ShapeType.Polygon as const,
+      type: ShapeType.Polygon,
       vertices: [
         { x: -5, y: -5 },
         { x: 5, y: -5 },

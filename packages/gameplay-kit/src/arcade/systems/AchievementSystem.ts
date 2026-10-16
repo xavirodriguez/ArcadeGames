@@ -110,10 +110,11 @@ export class AchievementSystem<TComponents extends ComponentRegistry = Component
         }
 
         // Check if player has achieved a combo >= 10
-        const combos = world.query("Combo" as any);
+        const comboKey = "Combo" as Extract<keyof TComponents, string>;
+        const combos = world.query(comboKey);
         for (const entity of combos) {
-          const c = world.getComponent(entity, "Combo" as any) as any;
-          if (c && c.combo >= 10) {
+          const c = world.getComponent(entity, comboKey) as { combo?: number } | undefined;
+          if (c && typeof c.combo === "number" && c.combo >= 10) {
             this.unlock(world, "combo_king");
           }
         }
@@ -129,7 +130,7 @@ export class AchievementSystem<TComponents extends ComponentRegistry = Component
       });
 
       // 4. Listen to story:beat_reached
-      eventBus.on("story:beat_reached", (event: any) => {
+      eventBus.on("story:beat_reached", (event: { beatId?: string }) => {
         if (world.isReSimulating) return;
         if (event && event.beatId === "boss_defeated") {
           this.unlock(world, "story_boss_defeated");
@@ -137,11 +138,12 @@ export class AchievementSystem<TComponents extends ComponentRegistry = Component
       });
 
       // 5. Listen to CollectiblePickedUp
-      eventBus.on("CollectiblePickedUp", (event: any) => {
+      eventBus.on("CollectiblePickedUp", (event: unknown) => {
         if (world.isReSimulating) return;
-        if (event && event.collectible && event.collectible.kind === "story_fragment") {
-          if (!this.collectedFragments.includes(event.collectible.id)) {
-            this.collectedFragments.push(event.collectible.id);
+        const e = event as { collectible?: { kind?: string; id?: string } } | undefined;
+        if (e && e.collectible && e.collectible.kind === "story_fragment" && e.collectible.id) {
+          if (!this.collectedFragments.includes(e.collectible.id)) {
+            this.collectedFragments.push(e.collectible.id);
           }
           if (this.collectedFragments.length >= 3) {
             this.unlock(world, "story_all_fragments_c1");

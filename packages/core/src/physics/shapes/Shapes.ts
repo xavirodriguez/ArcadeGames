@@ -1,15 +1,23 @@
+export const ShapeType = {
+  /** Circular geometry defined by a central radius. */
+  Circle: 0,
+  /** Axis-aligned or rotated box defined by width and height. */
+  Box: 1,
+  /** Arbitrary convex polygon defined by ordered local-space vertices. */
+  Polygon: 2,
+  0: "Circle",
+  1: "Box",
+  2: "Polygon"
+} as const;
+
 /**
  * Primitive geometric shape discriminators supported by the physics collision pipeline.
  * @public
  */
-export enum ShapeType {
-  /** Circular geometry defined by a central radius. */
-  Circle,
-  /** Axis-aligned or rotated box defined by width and height. */
-  Box,
-  /** Arbitrary convex polygon defined by ordered local-space vertices. */
-  Polygon
-}
+export type ShapeType =
+  | typeof ShapeType.Circle
+  | typeof ShapeType.Box
+  | typeof ShapeType.Polygon;
 
 /**
  * Base primitive shape contract containing the shape discriminator.
@@ -26,7 +34,7 @@ export interface BaseShape {
  */
 export interface CircleShape extends BaseShape {
   /** Circle discriminator type. */
-  type: ShapeType.Circle;
+  type: typeof ShapeType.Circle;
   /** Radial extent of the circle. */
   radius: number;
 }
@@ -37,7 +45,7 @@ export interface CircleShape extends BaseShape {
  */
 export interface BoxShape extends BaseShape {
   /** Box discriminator type. */
-  type: ShapeType.Box;
+  type: typeof ShapeType.Box;
   /** Total horizontal width. */
   width: number;
   /** Total vertical height. */
@@ -50,7 +58,7 @@ export interface BoxShape extends BaseShape {
  */
 export interface ConvexPolygonShape extends BaseShape {
   /** Polygon discriminator type. */
-  type: ShapeType.Polygon;
+  type: typeof ShapeType.Polygon;
   /** Ordered array of local vertex coordinates forming a convex hull. */
   vertices: Array<{ x: number; y: number }>;
 }

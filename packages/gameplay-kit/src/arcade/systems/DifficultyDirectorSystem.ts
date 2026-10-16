@@ -9,12 +9,14 @@ export class DifficultyDirectorSystem<TComponents extends ComponentRegistry = Co
   public update(world: World<TComponents>, _deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
     // 1. Read performance metrics
-    const comboEntity = world.query("Combo" as any)[0];
+    const comboKey = "Combo" as Extract<keyof TComponents, string>;
+    const comboEntity = world.query(comboKey)[0];
     const comboComp = comboEntity !== undefined
-      ? (world.getComponent(comboEntity, "Combo" as any) as any)
+      ? (world.getComponent(comboEntity, comboKey) as { multiplier?: number } | undefined)
       : undefined;
 
-    const gameState = world.getSingleton("GameState" as any) as any;
+    const stateKey = "GameState" as Extract<keyof TComponents, string>;
+    const gameState = world.getSingleton(stateKey) as { isGameOver?: boolean; lives?: number; level?: number } | undefined;
     if (!gameState || gameState.isGameOver) return;
 
     const multiplier = comboComp?.multiplier ?? 1;

@@ -1,17 +1,19 @@
+export const RenderCommandType = {
+  /** Command to render a textured sprite primitive. */
+  DrawSprite: "DrawSprite",
+  /** Command to render a filled circle primitive. */
+  DrawCircle: "DrawCircle",
+  /** Command to render a line segment primitive. */
+  DrawLine: "DrawLine",
+  /** Command to render text string content. */
+  DrawText: "DrawText"
+} as const;
+
 /**
  * Enum defining all structured render command types.
  * @public
  */
-export enum RenderCommandType {
-  /** Command to render a textured sprite primitive. */
-  DrawSprite = "DrawSprite",
-  /** Command to render a filled circle primitive. */
-  DrawCircle = "DrawCircle",
-  /** Command to render a line segment primitive. */
-  DrawLine = "DrawLine",
-  /** Command to render text string content. */
-  DrawText = "DrawText"
-}
+export type RenderCommandType = typeof RenderCommandType[keyof typeof RenderCommandType];
 
 /**
  * Payload for drawing a sprite.
@@ -85,10 +87,10 @@ export interface DrawTextPayload {
  * @public
  */
 export type RenderCommand =
-  | { type: RenderCommandType.DrawSprite | "DrawSprite"; data: DrawSpritePayload }
-  | { type: RenderCommandType.DrawCircle | "DrawCircle"; data: DrawCirclePayload }
-  | { type: RenderCommandType.DrawLine | "DrawLine"; data: DrawLinePayload }
-  | { type: RenderCommandType.DrawText | "DrawText"; data: DrawTextPayload }
+  | { type: typeof RenderCommandType.DrawSprite | "DrawSprite"; data: DrawSpritePayload }
+  | { type: typeof RenderCommandType.DrawCircle | "DrawCircle"; data: DrawCirclePayload }
+  | { type: typeof RenderCommandType.DrawLine | "DrawLine"; data: DrawLinePayload }
+  | { type: typeof RenderCommandType.DrawText | "DrawText"; data: DrawTextPayload }
   | { type: string; data: Record<string, unknown> | unknown };
 
 /**

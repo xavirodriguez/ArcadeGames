@@ -39,10 +39,11 @@ export const COMMON_POWERUP_EFFECTS: Record<string, IPowerUpEffect> = {
   },
   extra_life: {
     apply(w: World<CoreComponentRegistry>, _player: number) {
-      if (w.getSingleton("GameState" as any)) {
-        w.mutateSingleton("GameState" as any, (state: any) => {
-          if (typeof state.lives === "number") {
-            state.lives = Math.min(5, state.lives + 1);
+      if (w.getSingleton("GameState")) {
+        w.mutateSingleton("GameState", (state) => {
+          const s = state as unknown as { lives?: number };
+          if (typeof s.lives === "number") {
+            s.lives = Math.min(5, s.lives + 1);
           }
         });
       }
@@ -50,10 +51,11 @@ export const COMMON_POWERUP_EFFECTS: Record<string, IPowerUpEffect> = {
   },
   score_multiplier: {
     apply(w: World<CoreComponentRegistry>, _player: number) {
-      if (w.getSingleton("GameState" as any)) {
-        w.mutateSingleton("GameState" as any, (state: any) => {
-          if (typeof state.score === "number") {
-            state.score += 500;
+      if (w.getSingleton("GameState")) {
+        w.mutateSingleton("GameState", (state) => {
+          const s = state as unknown as { score?: number };
+          if (typeof s.score === "number") {
+            s.score += 500;
           }
         });
       }

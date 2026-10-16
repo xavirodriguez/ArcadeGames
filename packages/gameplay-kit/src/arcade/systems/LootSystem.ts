@@ -20,11 +20,12 @@ export class LootSystem extends System<CoreComponentRegistry & { LootTable: Loot
 
     for (const entity of entities) {
       const loot = world.getComponent(entity, lootType) as LootTableComponent | undefined;
-      const transform = world.getComponent(entity, transformType) as any;
+      const transform = world.getComponent(entity, transformType) as { x: number; y: number } | undefined;
 
       if (!loot || !transform) continue;
 
-      const isDead = world.hasComponent(entity, "Dead" as any);
+      const deadKey = "Dead" as Extract<keyof (CoreComponentRegistry & { LootTable: LootTableComponent }), string>;
+      const isDead = world.hasComponent(entity, deadKey);
       const ttl = world.getComponent(entity, "TTL");
       const isTTLExpired = ttl !== undefined && ttl.remaining <= 0;
 
@@ -32,7 +33,7 @@ export class LootSystem extends System<CoreComponentRegistry & { LootTable: Loot
         const config = world.getResource<Record<string, unknown>>("GameConfig");
         const lootMultiplier = typeof config?.LOOT_DROP_MULTIPLIER === "number" ? config.LOOT_DROP_MULTIPLIER : 1.0;
 
-        const customDrops = (loot as any).drops as Array<{ type: string; chance: number; config?: Record<string, unknown> }> | undefined;
+        const customDrops = loot.drops as Array<{ type: string; chance: number; config?: Record<string, unknown> }> | undefined;
         if (customDrops && Array.isArray(customDrops) && customDrops.length > 0) {
           for (const drop of customDrops) {
             const effectiveChance = drop.chance * lootMultiplier;

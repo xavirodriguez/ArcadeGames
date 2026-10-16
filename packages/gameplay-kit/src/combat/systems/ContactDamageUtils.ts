@@ -1,4 +1,4 @@
-import { World, PhysicsUtils, CoreComponentRegistry, RunState } from "@tiny-aster/core";
+import { World, PhysicsUtils, CoreComponentRegistry, RunState, IAudioPlayer } from "@tiny-aster/core";
 
 export interface ContactDamageConfig {
   contactDistance?: number;
@@ -117,7 +117,7 @@ export function updatePlayerInvulnerabilityAndContactDamage(
         }
       }
 
-      const audio = world.getResource<any>("AudioPlayer") || (world as any).audio;
+      const audio = world.getResource<IAudioPlayer>("AudioPlayer") || world.getResource<IAudioPlayer>("Audio");
       if (audio) {
         audio.playSFX(config.sfxName ?? "hit");
       } else {

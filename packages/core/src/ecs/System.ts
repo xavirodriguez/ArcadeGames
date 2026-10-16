@@ -11,24 +11,26 @@ export interface GameplayFreeze {
   remaining?: number;
 }
 
+export const SystemPhase = {
+  /** Input processing and gathering. */
+  Input: "Input",
+  /** Core game logic and simulation. */
+  Simulation: "Simulation",
+  /** Coordinate transformations and hierarchy updates. */
+  Transform: "Transform",
+  /** Collision detection and resolution. */
+  Collision: "Collision",
+  /** Higher-level game rules and state transitions. */
+  GameRules: "GameRules",
+  /** Preparation for rendering and visual feedback. */
+  Presentation: "Presentation"
+} as const;
+
 /**
  * Execution phases for systems within the World update loop.
  * @public
  */
-export enum SystemPhase {
-  /** Input processing and gathering. */
-  Input = "Input",
-  /** Core game logic and simulation. */
-  Simulation = "Simulation",
-  /** Coordinate transformations and hierarchy updates. */
-  Transform = "Transform",
-  /** Collision detection and resolution. */
-  Collision = "Collision",
-  /** Higher-level game rules and state transitions. */
-  GameRules = "GameRules",
-  /** Preparation for rendering and visual feedback. */
-  Presentation = "Presentation"
-}
+export type SystemPhase = typeof SystemPhase[keyof typeof SystemPhase];
 
 /**
  * Configuration options for system registration within a {@link Schedule}.

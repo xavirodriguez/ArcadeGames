@@ -113,7 +113,7 @@ export const MissionSelector = React.memo(function MissionSelector({
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(6, 16, 15, 0.95)",
     paddingTop: spacing.xxl,
     paddingHorizontal: spacing.lg,

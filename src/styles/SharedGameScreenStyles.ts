@@ -143,7 +143,7 @@ export const sharedScreenStyles = StyleSheet.create({
     userSelect: "none",
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: colors.overlay,
     justifyContent: "center",
     alignItems: "center",

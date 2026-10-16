@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
     userSelect: "none",
   },
   gameOverOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(0, 0, 0, 0.85)",
     justifyContent: "center",
     alignItems: "center",
@@ -468,7 +468,7 @@ function FroggerTouchControls({
 
   return (
     <GestureDetector gesture={flingGesture}>
-      <View style={StyleSheet.absoluteFillObject} pointerEvents="box-none">
+      <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
         <View style={styles.dpadContainer} pointerEvents="box-none">
           <GestureActionButton
             label="▲"

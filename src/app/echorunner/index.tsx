@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
   gameOverOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(10, 10, 20, 0.95)",
     justifyContent: "center",
     alignItems: "center",

@@ -416,7 +416,7 @@ const StartScreen: FC<{
 
 const styles = StyleSheet.create({
   controls: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     flexDirection: "row",
     alignItems: "flex-end",
     justifyContent: "space-between",

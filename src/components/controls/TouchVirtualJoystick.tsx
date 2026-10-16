@@ -249,7 +249,7 @@ export function TouchVirtualJoystick({
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "transparent",
   },
   base: {

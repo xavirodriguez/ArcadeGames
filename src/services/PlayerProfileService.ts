@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { z } from "zod";
 import { LEVEL_THRESHOLDS, PALETTE_UNLOCKS, TRAIL_UNLOCKS } from "../config/PassportConfig";
+import { generateUuid } from "../utils/uuid";
 
 /**
  * Schema for the global player profile.
@@ -47,25 +48,48 @@ export class PlayerProfileService {
   private static profile: PlayerProfile | null = null;
 
   /**
+   * In-flight initialization promise. Concurrent `getProfile()` calls share a
+   * single load so two parallel callers cannot each generate and persist a
+   * different `playerId`.
+   */
+  private static loadPromise: Promise<PlayerProfile> | null = null;
+
+  /**
    * Recupera el perfil del jugador desde el almacenamiento persistente.
    * Si no existe, inicializa un perfil por defecto.
    */
   public static async getProfile(): Promise<PlayerProfile> {
     if (this.profile) return this.profile;
+    if (this.loadPromise) return this.loadPromise;
 
+    const pending = this.loadProfile().finally(() => {
+      this.loadPromise = null;
+    });
+    this.loadPromise = pending;
+    return pending;
+  }
+
+  /**
+   * Loads the persisted profile or creates and persists a default one.
+   *
+   * @remarks
+   * Kept private so `getProfile()` remains the single, deduplicated entry point.
+   */
+  private static async loadProfile(): Promise<PlayerProfile> {
     const data = await AsyncStorage.getItem(PROFILE_KEY);
     if (data) {
       try {
-        this.profile = PlayerProfileSchema.parse(JSON.parse(data));
-        return this.profile!;
+        const parsed = PlayerProfileSchema.parse(JSON.parse(data));
+        this.profile = parsed;
+        return parsed;
       } catch (_err) {
         console.error("Failed to parse player profile", _err);
       }
     }
 
     // Initialize default profile
-    this.profile = {
-      playerId: crypto.randomUUID(),
+    const profile: PlayerProfile = {
+      playerId: await generateUuid(),
       displayName: "Jugador",
       xp: 0,
       level: 1,
@@ -86,8 +110,9 @@ export class PlayerProfileService {
       storyChapterUnlocked: 1,
       storyFragmentsCollected: []
     };
+    this.profile = profile;
     await this.saveProfile();
-    return this.profile!;
+    return profile;
   }
 
   /**

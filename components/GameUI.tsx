@@ -931,7 +931,7 @@ const GameOverOverlay: React.FC<{
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     zIndex: 1000,
     pointerEvents: "box-none",
   },
@@ -1311,7 +1311,7 @@ const styles = StyleSheet.create({
 
   // Shared overlays ---------------------------------------------------------
   centerOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(0, 6, 6, 0.56)",
@@ -1636,7 +1636,7 @@ const styles = StyleSheet.create({
 
   // Continue ----------------------------------------------------------------
   continueOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(0, 5, 5, 0.9)",
@@ -1736,7 +1736,7 @@ const styles = StyleSheet.create({
 
   // Level up ----------------------------------------------------------------
   levelUpOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "transparent",
@@ -1766,7 +1766,7 @@ const styles = StyleSheet.create({
 
   // GAME OVER ---------------------------------------------------------------
   gameOverOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.7)",

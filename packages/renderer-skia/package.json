@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@tiny-aster/core": "workspace:*",
-    "@shopify/react-native-skia": "2.4.18"
+    "@shopify/react-native-skia": "2.6.2"
   },
   "devDependencies": {
     "tsup": "^8.0.0",

@@ -94,7 +94,7 @@ export const MinigameIntroOverlay: React.FC<MinigameIntroOverlayProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(6, 16, 15, 0.88)",
     justifyContent: "center",
     alignItems: "center",

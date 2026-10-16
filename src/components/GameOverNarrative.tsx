@@ -164,7 +164,7 @@ export const GameOverNarrative: React.FC<GameOverNarrativeProps> = ({
 
 const styles = StyleSheet.create({
   gameOverOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.75)",

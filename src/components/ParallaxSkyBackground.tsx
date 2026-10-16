@@ -127,11 +127,11 @@ export const ParallaxSkyBackground: React.FC<ParallaxSkyBackgroundProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     overflow: "hidden",
   },
   gradientBg: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   radialGlow: {
     position: "absolute",
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     left: -SCREEN_WIDTH * 0.25,
   },
   starLayer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   star: {
     position: "absolute",
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   gridOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "transparent",
     borderWidth: 0,
     opacity: 0.05,

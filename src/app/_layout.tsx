@@ -42,7 +42,7 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ReducedMotionConfig mode={ReduceMotion.Never} />
+      <ReducedMotionConfig mode={ReduceMotion.System} />
       <GameServicesProvider audioService={AudioSettingsService}>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="index" options={{ title: "Arcade" }} />

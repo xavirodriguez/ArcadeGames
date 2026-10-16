@@ -115,11 +115,11 @@ const styles = StyleSheet.create({
     overflow: "hidden"
   },
   stageHost: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "transparent"
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(10, 10, 20, 0.9)",
     justifyContent: "center",
     alignItems: "center",

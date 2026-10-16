@@ -55,7 +55,7 @@ export const DraftOverlayUI: React.FC<DraftOverlayUIProps> = ({ options, onSelec
 
 const styles = StyleSheet.create({
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(10, 14, 39, 0.92)",
     alignItems: "center",
     justifyContent: "center",

@@ -71,7 +71,7 @@ export const DailyResultsOverlay: React.FC<DailyResultsOverlayProps> = ({
 
 const styles = StyleSheet.create({
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: colors.overlay,
     justifyContent: "center",
     alignItems: "center",

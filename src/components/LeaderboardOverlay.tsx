@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
   },
   container: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: colors.overlay,
     justifyContent: 'center',
     alignItems: 'center',

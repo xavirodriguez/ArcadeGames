@@ -4,6 +4,10 @@
  */
 
 import type { Component } from "@tiny-aster/core";
+import {
+  DEFAULT_BELT_MOVEMENT_CONFIG,
+  type BeltMovementConfig
+} from "./BeltMovementConfig";
 
 /**
  * Normalized input for belt movement (8-dir capable).
@@ -42,30 +46,7 @@ export function createBeltInputComponent(): BeltInputComponent {
   };
 }
 
-export interface BeltMovementConfig {
-  maxSpeedX: number;
-  maxSpeedY: number;
-  acceleration: number;
-  deceleration: number;
-  hopImpulse: number;
-  hopGravity: number;
-  hopMaxAirSeconds: number;
-  depthMin: number;
-  depthMax: number;
-}
-
-export const DEFAULT_BELT_MOVEMENT_CONFIG: BeltMovementConfig = {
-  maxSpeedX: 160,
-  maxSpeedY: 110,
-  acceleration: 900,
-  deceleration: 1100,
-  hopImpulse: -220,
-  hopGravity: 980,
-  hopMaxAirSeconds: 0.45,
-  depthMin: 280,
-  depthMax: 520
-};
-
+export * from "./BeltMovementConfig";
 export * from "./BeltElevationComponent";
 export * from "./BeltDepth";
 

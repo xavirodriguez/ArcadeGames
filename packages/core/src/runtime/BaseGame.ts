@@ -692,7 +692,10 @@ export abstract class BaseGame<
    * Attaches a window resize event listener that delegates to `handleScreenResize()`.
    */
   protected registerResizeListener(): void {
-    if (typeof window === "undefined") return;
+    // React Native exposes a partial `window` global without the DOM event API,
+    // so checking only `typeof window !== "undefined"` would still call an
+    // undefined `addEventListener`. Require the actual function to be present.
+    if (typeof window === "undefined" || typeof window.addEventListener !== "function") return;
     this.unregisterResizeListener();
     this.resizeListenerBound = () => this.handleScreenResize();
     window.addEventListener("resize", this.resizeListenerBound);
@@ -702,10 +705,10 @@ export abstract class BaseGame<
    * Removes the window resize event listener if previously registered.
    */
   protected unregisterResizeListener(): void {
-    if (typeof window !== "undefined" && this.resizeListenerBound) {
+    if (typeof window !== "undefined" && typeof window.removeEventListener === "function" && this.resizeListenerBound) {
       window.removeEventListener("resize", this.resizeListenerBound);
-      this.resizeListenerBound = undefined;
     }
+    this.resizeListenerBound = undefined;
   }
 
   /**

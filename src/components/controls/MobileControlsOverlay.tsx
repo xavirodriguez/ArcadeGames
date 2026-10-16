@@ -152,7 +152,7 @@ function MobileControlsOverlayInner({
 
 const styles = StyleSheet.create({
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     flexDirection: "row",
     alignItems: "flex-end",
     justifyContent: "space-between",

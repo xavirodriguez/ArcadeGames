@@ -251,7 +251,7 @@ export function VirtualJoystick({
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "transparent",
   },
   base: {

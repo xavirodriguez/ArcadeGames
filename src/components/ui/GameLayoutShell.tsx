@@ -109,10 +109,10 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   layerFill: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   hudSurfaceLayer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   headerSlotsLayer: {
     position: "absolute",
@@ -136,6 +136,6 @@ const styles = StyleSheet.create({
     alignItems: "flex-end",
   },
   controlsLayer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
 });

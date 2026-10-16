@@ -4,21 +4,16 @@
     "slug": "asteroids",
     "version": "1.0.0",
     "orientation": "landscape",
-    "icon": "./assets/images/icon.png",
+    "icon": "./public/images/icon.png",
     "scheme": "asteroides",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/images/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.ensable.asteroids"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./public/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.ensable.asteroids"
@@ -26,14 +21,23 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./public/images/favicon.png"
     },
     "plugins": [
       "expo-router",
       "expo-asset",
       "expo-secure-store",
       "expo-audio",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./public/images/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

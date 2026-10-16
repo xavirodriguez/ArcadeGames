@@ -412,14 +412,14 @@ const styles = StyleSheet.create({
     textShadowRadius: 8,
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: colors.overlay,
     justifyContent: "center",
     alignItems: "center",
     zIndex: 100,
   },
   multiOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(0,0,0,0.7)",
     justifyContent: "center",
     alignItems: "center",

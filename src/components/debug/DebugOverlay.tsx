@@ -631,7 +631,7 @@ const EntityItem = ({ entity }: { entity: { id: number; components: Record<strin
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     zIndex: 9999,
   },
   toggleButton: {

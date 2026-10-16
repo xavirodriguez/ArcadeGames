@@ -99,6 +99,44 @@ export function computePlayerCarGeometry(
   return { baseX, baseY, carScale, tiltAngle, isOffroad, speedRatio };
 }
 
+/**
+ * Pure curvature-driven background parallax offset (T3.3).
+ *
+ * Computes accumulated horizon parallax shift driven by track curvature up to `playerZ`.
+ */
+export function computeCurvatureParallaxOffset(
+  segments: readonly { length: number; curve: number }[],
+  playerZ: number,
+  trackLength: number,
+  layerFactor = 0.05
+): number {
+  const n = segments.length;
+  if (n === 0 || trackLength <= 0 || layerFactor === 0) return 0;
+
+  let z = playerZ % trackLength;
+  if (z < 0) z += trackLength;
+
+  let accumZ = 0;
+  let accumCurve = 0;
+
+  for (let i = 0; i < n; i++) {
+    const segLen = segments[i].length;
+    const curve = segments[i].curve;
+
+    if (accumZ + segLen >= z) {
+      const frac = segLen > 0 ? (z - accumZ) / segLen : 0;
+      accumCurve += curve * frac;
+      break;
+    }
+
+    accumCurve += curve;
+    accumZ += segLen;
+  }
+
+  const offset = accumCurve * layerFactor;
+  return offset === 0 ? 0 : offset;
+}
+
 export interface CloudParam {
   cloudX: number;
   cloudY: number;
@@ -106,7 +144,14 @@ export interface CloudParam {
   cloudH: number;
 }
 
-export function computeCloudParams(screenW: number, screenH: number, playerZ: number, playerX: number, cloudCount = 8): CloudParam[] {
+export function computeCloudParams(
+  screenW: number,
+  screenH: number,
+  playerZ: number,
+  playerX: number,
+  cloudCount = 8,
+  curveParallax = 0
+): CloudParam[] {
   const clouds: CloudParam[] = [];
   for (let c = 0; c < cloudCount; c++) {
     const h1 = scenarioHash("cloud_x", c);
@@ -116,7 +161,7 @@ export function computeCloudParams(screenW: number, screenH: number, playerZ: nu
     const cloudY = screenH * 0.08 + h2 * (screenH * 0.2);
     const cloudW = 50 + h3 * 60;
     const cloudH = cloudW * 0.35;
-    const cloudX = ((baseCloudX + playerZ * 0.00005 * (c + 1) + playerX * 15) % screenW + screenW) % screenW;
+    const cloudX = ((baseCloudX + playerZ * 0.00005 * (c + 1) + playerX * 15 + curveParallax) % screenW + screenW) % screenW;
     clouds.push({ cloudX, cloudY, cloudW, cloudH });
   }
   return clouds;

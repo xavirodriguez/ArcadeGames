@@ -154,4 +154,38 @@ describe("projectRoad", () => {
     const deltaX = Math.abs(out1[0].x1 - out2[0].x1);
     expect(deltaX).toBeLessThan(50); // Continuous movement, no abrupt jump
   });
+
+  it("geometric baseline: verifies fixed projected segment coordinates (T0.3)", () => {
+    const segments: RoadSegment[] = [
+      { index: 0, length: 200, curve: 0, hill: 0 },
+      { index: 1, length: 200, curve: 2, hill: 1 },
+      { index: 2, length: 200, curve: 4, hill: -1 },
+      { index: 3, length: 200, curve: 0, hill: 0 },
+      { index: 4, length: 200, curve: -2, hill: 0 },
+      { index: 5, length: 200, curve: 0, hill: 0 }
+    ];
+    const out = createProjectionBuffer(6);
+    const count = projectRoad(segments, 0, 0, cameraHeight, cameraDepth, roadWidth, 6, screenW, screenH, out);
+
+    expect(count).toBe(6);
+    const baseline = out.slice(0, 6).map((p) => ({
+      index: p.index,
+      x1: Math.round(p.x1),
+      y1: Math.round(p.y1),
+      w1: Math.round(p.w1),
+      x2: Math.round(p.x2),
+      y2: Math.round(p.y2),
+      w2: Math.round(p.w2),
+      clip: Math.round(p.clip)
+    }));
+
+    expect(baseline).toEqual([
+      { index: 0, x1: 400, y1: 504300, w1: 672, x2: 400, y2: 1560, w2: 2, clip: 600 },
+      { index: 1, x1: 400, y1: 1560, w1: 2, x2: 400, y2: 930, w2: 1, clip: 600 },
+      { index: 2, x1: 400, y1: 930, w1: 1, x2: 400, y2: 720, w2: 1, clip: 600 },
+      { index: 3, x1: 400, y1: 720, w1: 1, x2: 400, y2: 615, w2: 0, clip: 600 },
+      { index: 4, x1: 400, y1: 615, w1: 0, x2: 400, y2: 552, w2: 0, clip: 600 },
+      { index: 5, x1: 400, y1: 552, w1: 0, x2: 400, y2: 510, w2: 0, clip: 552 }
+    ]);
+  });
 });

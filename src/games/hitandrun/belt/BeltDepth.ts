@@ -1,4 +1,4 @@
-import { DEFAULT_BELT_MOVEMENT_CONFIG } from "./BeltMovementTypes";
+import { DEFAULT_BELT_MOVEMENT_CONFIG } from "./BeltMovementConfig";
 
 /**
  * Calculates normalized depth t in [0, 1] between depthMin and depthMax.

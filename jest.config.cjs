@@ -12,6 +12,7 @@ module.exports = {
     "<rootDir>/src/games/pong/jest.config.cjs",
     "<rootDir>/src/games/geometrywars/jest.config.cjs",
     "<rootDir>/src/games/shared/jest.config.cjs",
+    "<rootDir>/src/services/jest.config.cjs",
     "<rootDir>/src/games/echorunner/jest.config.cjs",
     "<rootDir>/src/games/platformer/jest.config.cjs",
     "<rootDir>/src/games/frogger/jest.config.cjs",

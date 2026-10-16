@@ -33,6 +33,16 @@ export type TriggerCallback<
 
 /**
  * Detects and resolves 2D collisions between entities using a broad-phase / narrow-phase pipeline.
+ *
+ * @remarks
+ * **Reconstructible Cache Contract ("Reconstructible in 1 tick")**:
+ * Fields `activePairs`, `currentFramePairs`, `candidateEntities`, `tempQuery`, `seenEntities`, and `broadPhaseScratch`
+ * are ephemeral scratch buffers and transient tracking sets used strictly for frame-local contact evaluation.
+ * They are deliberately excluded from `WorldSnapshot` state serialization.
+ * Following a `world.restore(snapshot)` call, `CollisionSystem2D` completely clears and rebuilds these transient
+ * scratch structures within a single update tick using canonical entity component state (`Transform`, `Collider`, `CollisionEvents`),
+ * producing identical contact manifolds and state hashes between restored and fresh worlds.
+ *
  * @public
  */
 export class CollisionSystem2D<
@@ -341,6 +351,14 @@ export class CollisionSystem2D<
 
 /**
  * Continuous Collision Detection system for fast-moving entities.
+ *
+ * @remarks
+ * **Reconstructible Cache Contract ("Reconstructible in 1 tick")**:
+ * Fields `candidateEntities`, `_cachedQueryArray`, and `_cachedCollidablesArray` are ephemeral query buffers used
+ * for raycast allocation reduction during high-velocity updates. They are un-serialized transient caches.
+ * Upon `world.restore()`, these scratch arrays are re-populated on the next frame update based on active `Velocity`
+ * and `Collider` components without affecting state determinism.
+ *
  * @public
  */
 export class CCDSystem<

@@ -39,20 +39,22 @@ export interface SceneEventRegistry extends Record<string, unknown> {
   "scene:warning": { message: string };
 }
 
+export const SceneState = {
+  /** No scene active or transition pending. */
+  IDLE: "IDLE",
+  /** `onEnter` is currently executing for a new scene. */
+  LOADING: "LOADING",
+  /** Scene is active and receiving updates. */
+  ACTIVE: "ACTIVE",
+  /** `onExit` is executing for the current scene. */
+  UNLOADING: "UNLOADING",
+} as const;
+
 /**
  * Operational states for the Scene Manager.
  * @public
  */
-export enum SceneState {
-  /** No scene active or transition pending. */
-  IDLE = "IDLE",
-  /** `onEnter` is currently executing for a new scene. */
-  LOADING = "LOADING",
-  /** Scene is active and receiving updates. */
-  ACTIVE = "ACTIVE",
-  /** `onExit` is executing for the current scene. */
-  UNLOADING = "UNLOADING",
-}
+export type SceneState = typeof SceneState[keyof typeof SceneState];
 
 /**
  * Context payload required to execute a unified scene transition pipeline.

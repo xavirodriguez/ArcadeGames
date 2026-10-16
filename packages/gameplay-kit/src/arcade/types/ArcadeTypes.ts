@@ -9,6 +9,8 @@ export interface LootTableComponent extends Component {
   type: "LootTable";
   /** Identifier matching a loot drop table definition. */
   tableId: string;
+  /** Optional custom drop entries override. */
+  drops?: Array<{ type: string; chance: number; config?: Record<string, unknown> }>;
 }
 
 /**

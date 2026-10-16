@@ -8,7 +8,7 @@ import { DamageComponent, FactionComponent } from "../components/CombatComponent
  */
 export class CombatSystem<
   TComponents extends CoreComponentRegistry = CoreComponentRegistry,
-  TEvents extends Record<string, any> = Record<string, any>
+  TEvents extends Record<string, unknown> = Record<string, unknown>
 > extends System<TComponents, TEvents> {
   // Safe for determinism/rollback. Reusable Set avoids per-tick heap allocations during combat resolution.
   private destroyedEntities = new Set<number>();
@@ -148,7 +148,7 @@ export class CombatSystem<
 
     // Emit combat:death if target died
     if (nextHealth <= 0) {
-      world.getCommandBuffer().addComponent(target, { type: deadKey } as any);
+      world.getCommandBuffer().addComponent(target, { type: deadKey } as unknown as Parameters<ReturnType<typeof world.getCommandBuffer>["addComponent"]>[1]);
 
       if (eventBus) {
         eventBus.emitDeferred("combat:death", {

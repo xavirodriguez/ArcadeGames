@@ -1,5 +1,24 @@
 import { EventBus } from "../events/EventBus";
 
+export const ArcadeState = {
+  /** Initial engine boot and resource initialization state. */
+  BOOT: "BOOT",
+  /** Asynchronous asset or scene loading state. */
+  LOADING: "LOADING",
+  /** Retro splash / title screen presentation state. */
+  TITLE: "TITLE",
+  /** Main game selector or options menu state. */
+  MENU: "MENU",
+  /** Active deterministic gameplay simulation state. */
+  PLAYING: "PLAYING",
+  /** Paused gameplay simulation state. */
+  PAUSED: "PAUSED",
+  /** End-of-session game over state displaying final score and stats. */
+  GAME_OVER: "GAME_OVER",
+  /** Narrative or choose-your-own-adventure dialogue state. */
+  STORY: "STORY"
+} as const;
+
 /**
  * Representation of the high-level application and session flow states in the Arcade Kernel.
  *
@@ -16,24 +35,7 @@ import { EventBus } from "../events/EventBus";
  *
  * @public
  */
-export enum ArcadeState {
-  /** Initial engine boot and resource initialization state. */
-  BOOT = "BOOT",
-  /** Asynchronous asset or scene loading state. */
-  LOADING = "LOADING",
-  /** Retro splash / title screen presentation state. */
-  TITLE = "TITLE",
-  /** Main game selector or options menu state. */
-  MENU = "MENU",
-  /** Active deterministic gameplay simulation state. */
-  PLAYING = "PLAYING",
-  /** Paused gameplay simulation state. */
-  PAUSED = "PAUSED",
-  /** End-of-session game over state displaying final score and stats. */
-  GAME_OVER = "GAME_OVER",
-  /** Narrative or choose-your-own-adventure dialogue state. */
-  STORY = "STORY"
-}
+export type ArcadeState = typeof ArcadeState[keyof typeof ArcadeState];
 
 /**
  * Valid transitions definition map to enforce flow determinism.

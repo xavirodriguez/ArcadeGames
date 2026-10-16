@@ -20,15 +20,17 @@ export class SpawnDirectorSystem<
 
   public update(world: World<TComponents, TEvents>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
-    const gameState = world.getSingleton("GameState" as any) as any;
-    if (gameState && (gameState.readyRemaining > 0 || gameState.intermissionRemaining > 0 || gameState.continueCountdownRemaining > 0)) return;
+    const stateKey = "GameState" as Extract<keyof TComponents, string>;
+    const gameState = world.getSingleton(stateKey) as { readyRemaining?: number; intermissionRemaining?: number; continueCountdownRemaining?: number; phase?: string } | undefined;
+    if (gameState && ((gameState.readyRemaining ?? 0) > 0 || (gameState.intermissionRemaining ?? 0) > 0 || (gameState.continueCountdownRemaining ?? 0) > 0)) return;
     if (gameState && gameState.phase !== undefined && gameState.phase !== "PLAYING") return;
 
-    const directorEntity = world.query("SpawnDirector" as any)[0];
+    const directorKey = "SpawnDirector" as Extract<keyof TComponents, string>;
+    const directorEntity = world.query(directorKey)[0];
     if (directorEntity === undefined) return;
 
     // Load active director state
-    const director = world.getComponent(directorEntity, "SpawnDirector" as any) as any as SpawnDirectorComponent;
+    const director = world.getComponent(directorEntity, directorKey) as unknown as SpawnDirectorComponent | undefined;
     if (!director) return;
 
     const waveDefinitions = world.getResource<WaveDefinition[]>("WaveDefinitions") || [];
@@ -82,7 +84,7 @@ export class SpawnDirectorSystem<
             type: "WaveMember",
             waveIndex,
             waveId: activeWaveId || ""
-          } as any);
+          } as unknown as Parameters<ReturnType<typeof world.getCommandBuffer>["addComponent"]>[1]);
         } else {
           remainingSpawns.push(spawn);
         }
@@ -97,7 +99,8 @@ export class SpawnDirectorSystem<
 
     if (status === "active" && initialStatus === "active") {
       // Query remaining wave members
-      const activeMembers = world.query("WaveMember" as any);
+      const waveMemberKey = "WaveMember" as Extract<keyof TComponents, string>;
+      const activeMembers = world.query(waveMemberKey);
       enemiesRemaining = activeMembers.length;
 
       if (enemiesRemaining === 0) {
@@ -125,14 +128,15 @@ export class SpawnDirectorSystem<
     }
 
     // Mutate state back into director component
-    world.mutateComponent(directorEntity, "SpawnDirector" as any, (d: any) => {
-      d.waveIndex = waveIndex;
-      d.status = status;
-      d.cooldownRemaining = cooldownRemaining;
-      d.waveElapsedTime = waveElapsedTime;
-      d.pendingSpawns = pendingSpawns;
-      d.activeWaveId = activeWaveId;
-      d.enemiesRemaining = enemiesRemaining;
+    world.mutateComponent(directorEntity, directorKey, (d: unknown) => {
+      const sd = d as SpawnDirectorComponent;
+      sd.waveIndex = waveIndex;
+      sd.status = status;
+      sd.cooldownRemaining = cooldownRemaining;
+      sd.waveElapsedTime = waveElapsedTime;
+      sd.pendingSpawns = pendingSpawns;
+      sd.activeWaveId = activeWaveId;
+      sd.enemiesRemaining = enemiesRemaining;
     });
   }
 }

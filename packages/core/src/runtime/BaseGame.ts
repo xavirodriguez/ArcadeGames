@@ -36,26 +36,28 @@ import {
   GameErrorPhase
 } from "../diagnostics";
 
+export const GameLifecycleState = {
+  /** Uninitialized game instance before `init()` execution. */
+  UNINITIALIZED: "UNINITIALIZED",
+  /** Initialization completed and ready to run. */
+  READY: "READY",
+  /** Active running state with game loop ticker running. */
+  RUNNING: "RUNNING",
+  /** Paused state with game loop paused. */
+  PAUSED: "PAUSED",
+  /** Game loop stopped. */
+  STOPPED: "STOPPED",
+  /** All systems destroyed and event handlers cleared. */
+  DESTROYED: "DESTROYED",
+  /** Initialization timed out or threw an unhandled error. */
+  ERROR: "ERROR"
+} as const;
+
 /**
  * Enumeration of lifecycle execution states for a `BaseGame` instance.
  * @public
  */
-export enum GameLifecycleState {
-  /** Uninitialized game instance before `init()` execution. */
-  UNINITIALIZED = "UNINITIALIZED",
-  /** Initialization completed and ready to run. */
-  READY = "READY",
-  /** Active running state with game loop ticker running. */
-  RUNNING = "RUNNING",
-  /** Paused state with game loop paused. */
-  PAUSED = "PAUSED",
-  /** Game loop stopped. */
-  STOPPED = "STOPPED",
-  /** All systems destroyed and event handlers cleared. */
-  DESTROYED = "DESTROYED",
-  /** Initialization timed out or threw an unhandled error. */
-  ERROR = "ERROR"
-}
+export type GameLifecycleState = typeof GameLifecycleState[keyof typeof GameLifecycleState];
 
 /**
  * Configuration options for initializing a `BaseGame` instance.

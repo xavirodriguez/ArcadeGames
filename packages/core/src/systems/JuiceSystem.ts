@@ -24,6 +24,21 @@ function setNumericProperty<T extends object>(obj: T, prop: string, value: numbe
     }
 }
 
+function resolveComponentObject(
+    world: World<CoreComponentRegistry>,
+    entity: number,
+    componentType: string
+): object | null {
+    const registryKey = componentType as Extract<keyof CoreComponentRegistry, string>;
+    if (world.hasComponent(entity, registryKey)) {
+        const comp = world.getComponent(entity, registryKey);
+        if (comp && typeof comp === "object") {
+            return comp as object;
+        }
+    }
+    return null;
+}
+
 /**
  * System that manages procedural "juice" visual animations (e.g., scale bounces, hit flashes, visual offsets).
  *
@@ -103,12 +118,9 @@ export class JuiceSystem extends System<CoreComponentRegistry> {
         render?: import("../index").DeepReadonly<RenderComponent>
     ): number {
         if (componentType) {
-            const registryKey = componentType as Extract<keyof CoreComponentRegistry, string>;
-            if (world.hasComponent(entity, registryKey)) {
-                const comp = world.getComponent(entity, registryKey);
-                if (comp && typeof comp === "object") {
-                    return getNumericProperty(comp, prop);
-                }
+            const comp = resolveComponentObject(world, entity, componentType);
+            if (comp) {
+                return getNumericProperty(comp, prop);
             }
             return 0;
         }
@@ -131,16 +143,14 @@ export class JuiceSystem extends System<CoreComponentRegistry> {
         componentType?: string
     ): void {
         if (componentType) {
-            const registryKey = componentType as Extract<keyof CoreComponentRegistry, string>;
-            if (world.hasComponent(entity, registryKey)) {
-                const comp = world.getComponent(entity, registryKey);
-                if (comp && typeof comp === "object") {
-                    const currentVal = getNumericProperty(comp, prop);
-                    if (Math.abs(currentVal - value) > 0.0001) {
-                        const mutComp = world.getMutableComponent(entity, registryKey);
-                        if (mutComp && typeof mutComp === "object") {
-                            setNumericProperty(mutComp, prop, value);
-                        }
+            const comp = resolveComponentObject(world, entity, componentType);
+            if (comp) {
+                const currentVal = getNumericProperty(comp, prop);
+                if (Math.abs(currentVal - value) > 0.0001) {
+                    const registryKey = componentType as Extract<keyof CoreComponentRegistry, string>;
+                    const mutComp = world.getMutableComponent(entity, registryKey);
+                    if (mutComp && typeof mutComp === "object") {
+                        setNumericProperty(mutComp, prop, value);
                     }
                 }
             }

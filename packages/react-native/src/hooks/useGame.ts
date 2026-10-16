@@ -20,10 +20,10 @@ export interface GameOptions<TState> {
 }
 
 // Constructor type - accepts any class that extends BaseGame
-type GameConstructor<TGame extends BaseGame<TState, TInput, any, any, any>, TState, TInput extends Record<string, any>> =
-  new (config: any) => TGame;
+type GameConstructor<TGame extends BaseGame<TState, TInput, any, any, any>, TState, TInput extends object = Record<string, unknown>> =
+  new (config: BaseGameConfig<any, any, any, any>) => TGame;
 
-export interface UseGameResult<TGame extends BaseGame<TState, TInput, any, any, any>, TState, TInput extends Record<string, any>> {
+export interface UseGameResult<TGame extends BaseGame<TState, TInput, any, any, any>, TState, TInput extends object = Record<string, unknown>> {
   game: TGame | null;
   gameState: TState | null;
   isPaused: boolean;
@@ -51,7 +51,7 @@ export interface UseGameResult<TGame extends BaseGame<TState, TInput, any, any, 
 export function useGame<
   TGame extends BaseGame<TState, TInput, any, any, any>,
   TState,
-  TInput extends Record<string, any>
+  TInput extends object = Record<string, unknown>
 >(
   GameClass: GameConstructor<TGame, TState, TInput> | null,
   isMultiplayer: boolean = false,
@@ -202,7 +202,7 @@ export function useGame<
       game.setInputState(input);
     } else {
       Object.entries(input).forEach(([action, pressed]) => {
-        game.getInputSystem().setOverride(action, !!pressed);
+        game.getInputSystem().setOverride(action as keyof TInput & string, !!pressed);
       });
     }
   }, [game]);

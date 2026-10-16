@@ -5,15 +5,16 @@ import { ComponentRegistry } from "../ecs/Component";
  * Callback function for registering renderer elements.
  * @public
  */
-export type RendererRegistrationCallback = (renderer: Renderer<ComponentRegistry, RenderContext>) => void;
+export type RendererRegistrationCallback<TReg extends ComponentRegistry = ComponentRegistry, TContext = unknown> =
+  (renderer: Renderer<TReg, TContext>) => void;
 
 /**
  * Configuration for registration callbacks across different rendering pipelines.
  * @public
  */
-export interface RendererRegistrationConfig {
-  canvas?: RendererRegistrationCallback;
-  skia?: RendererRegistrationCallback;
+export interface RendererRegistrationConfig<TReg extends ComponentRegistry = ComponentRegistry> {
+  canvas?: (renderer: Renderer<TReg, CanvasRenderingContext2D>) => void;
+  skia?: (renderer: Renderer<TReg, unknown>) => void;
 }
 
 /**
@@ -27,8 +28,8 @@ export class RendererUtils {
    * en las clases de los juegos.
    */
   public static registerAssets<T extends ComponentRegistry>(
-    renderer: Renderer<T, RenderContext>,
-    config: RendererRegistrationConfig
+    renderer: Renderer<T, unknown>,
+    config: RendererRegistrationConfig<T>
   ): void {
     const rendererType = (renderer as unknown as { type?: string }).type;
 

@@ -1,4 +1,5 @@
-import { ShapeDrawer, THEME_RESOURCE_KEY, Theme } from "@tiny-aster/core";
+import { ShapeDrawer, RenderContext, THEME_RESOURCE_KEY, Theme, World, RenderComponent, EntityGeometryProfile } from "@tiny-aster/core";
+import type { SkPath } from "@shopify/react-native-skia";
 import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { colors } from "../../../theme/colors";
 import {
@@ -21,14 +22,14 @@ import { calculateShieldHpRatio, calculateTeleporterShimmer, resolvePlayerRoleVi
 import { safeGetRenderComponent, getRenderFlash } from "./RenderHelper";
 import { EXPLOSION_PARTICLE_POOL, updateExplosionParticles } from "./ExplosionParticlePool";
 
-import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
+import { Skia, getPaint, SkCanvas } from "../../shared/rendering/SkiaContext";
 import { CircularPositionBuffer } from "../../shared/rendering/SharedVFX";
 import { SkiaDrawAdapter } from "../../shared/rendering/DrawAdapter";
 import { drawFromGeometryProfileAdapter } from "../../shared/rendering/GenericEntityDrawer";
 
-const bulletSkiaTrailMap = new WeakMap<any, CircularPositionBuffer>();
+const bulletSkiaTrailMap = new WeakMap<object, CircularPositionBuffer>();
 
-function getBulletSkiaTrailBuffer(render: any): CircularPositionBuffer {
+function getBulletSkiaTrailBuffer(render: object): CircularPositionBuffer {
   let buf = bulletSkiaTrailMap.get(render);
   if (!buf) {
     buf = new CircularPositionBuffer({
@@ -45,7 +46,7 @@ function getBulletSkiaTrailBuffer(render: any): CircularPositionBuffer {
   return buf;
 }
 
-export function drawExplosionParticlesSkia(canvas: any): void {
+export function drawExplosionParticlesSkia(canvas: SkCanvas): void {
   if (!Skia) return;
   const paint = getPaint();
 
@@ -90,22 +91,22 @@ export function drawExplosionParticlesSkia(canvas: any): void {
  * Background drawer for Skia layered visual explosion particles.
  */
 export const drawSkiaExplosionBackgroundEffect = {
-  draw(canvas: any) {
+  draw(canvas: SkCanvas) {
     updateExplosionParticles();
     drawExplosionParticlesSkia(canvas);
   }
 };
 
-const cachedPlayerPaths = new WeakMap<any, { chassis: any; cockpit: any; reflection: any }>();
-const cachedShieldCracks = new WeakMap<any, { x1: number; y1: number; x2: number; y2: number; x3: number; y3: number; x4: number; y4: number }>();
+const cachedPlayerPaths = new WeakMap<object, { chassis: SkPath; cockpit: SkPath; reflection: SkPath }>();
+const cachedShieldCracks = new WeakMap<object, { x1: number; y1: number; x2: number; y2: number; x3: number; y3: number; x4: number; y4: number }>();
 
 /**
  * Visuals for the player ship using React Native Skia. Supports Concept Pack geometry overrides.
  */
 export interface SkiaPlayerRenderSetup {
-  render: any;
+  render: RenderComponent;
   theme: Theme | undefined;
-  customGeom: any;
+  customGeom: EntityGeometryProfile | undefined;
   role: string;
   size: number;
   colorStr: string;
@@ -113,7 +114,7 @@ export interface SkiaPlayerRenderSetup {
 }
 
 export function resolveSkiaPlayerRenderSetup(
-  world: any,
+  world: World<SpaceInvadersComponentRegistry>,
   entity: number
 ): SkiaPlayerRenderSetup | null {
   const render = safeGetRenderComponent(world, entity);
@@ -142,7 +143,7 @@ export function resolveSkiaPlayerRenderSetup(
 /**
  * Visuals for the player ship using React Native Skia. Supports Concept Pack geometry overrides.
  */
-export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
+export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<SkCanvas, SpaceInvadersComponentRegistry> = {
   draw(canvas, world, entity) {
     const setup = resolveSkiaPlayerRenderSetup(world, entity);
     if (!setup) return;
@@ -336,7 +337,7 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<any, SpaceInvadersComponen
 /**
  * Visuals for an invader using React Native Skia. Supports Concept Pack enemy geometry.
  */
-export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
+export const drawSkiaSpaceInvadersInvader: ShapeDrawer<SkCanvas, SpaceInvadersComponentRegistry> = {
   draw(canvas, world, entity) {
     const setup = resolveInvaderRenderSetup(world, entity);
     if (!setup) return;
@@ -449,7 +450,7 @@ export const drawSkiaSpaceInvadersInvader: ShapeDrawer<any, SpaceInvadersCompone
 /**
  * Visuals for bullets using React Native Skia. Supports Concept Pack projectile geometry.
  */
-export const drawSkiaSpaceInvadersBullet: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
+export const drawSkiaSpaceInvadersBullet: ShapeDrawer<SkCanvas, SpaceInvadersComponentRegistry> = {
   draw(canvas, world, entity) {
     const renderComp = safeGetRenderComponent(world, entity);
     if (!renderComp) return;
@@ -516,7 +517,7 @@ export const drawSkiaSpaceInvadersBullet: ShapeDrawer<any, SpaceInvadersComponen
 /**
  * Visuals for the Boss flagship using React Native Skia. Supports Concept Pack boss geometry.
  */
-export const drawSkiaSpaceInvadersBoss: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
+export const drawSkiaSpaceInvadersBoss: ShapeDrawer<SkCanvas, SpaceInvadersComponentRegistry> = {
   draw(canvas, world, entity) {
     const setup = resolveBossRenderSetup(world, entity);
     if (!setup) return;
@@ -589,7 +590,7 @@ export const drawSkiaSpaceInvadersBoss: ShapeDrawer<any, SpaceInvadersComponentR
 /**
  * Visuals for shield blocks using React Native Skia.
  */
-export const drawSkiaSpaceInvadersShield: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
+export const drawSkiaSpaceInvadersShield: ShapeDrawer<SkCanvas, SpaceInvadersComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = safeGetRenderComponent(world, entity);
     if (!render) return;
@@ -645,7 +646,7 @@ export const drawSkiaSpaceInvadersShield: ShapeDrawer<any, SpaceInvadersComponen
 /**
  * Visuals for particles using React Native Skia.
  */
-export const drawSkiaSpaceInvadersParticle: ShapeDrawer<any, SpaceInvadersComponentRegistry> = {
+export const drawSkiaSpaceInvadersParticle: ShapeDrawer<SkCanvas, SpaceInvadersComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = safeGetRenderComponent(world, entity);
     if (!render) return;

@@ -1,4 +1,4 @@
-import { EffectDrawer, ShapeDrawer, World, RenderComponent, SHIP_FORWARD_AXIS, THEME_RESOURCE_KEY, Theme } from "@tiny-aster/core";
+import { EffectDrawer, ShapeDrawer, RenderContext, World, RenderComponent, SHIP_FORWARD_AXIS, THEME_RESOURCE_KEY, Theme } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import { colors } from "../../../theme/colors";
 import { computeAsteroidSilhouette, computeThrustFlame, computeMotionSecondaryEffect } from "../../shared/rendering/ProceduralShapeUtils";
@@ -7,15 +7,16 @@ import { drawSkiaAsteroidsMissionHUD } from "./AsteroidsSkiaMissionHUD";
 import { SkiaDrawAdapter } from "../../shared/rendering/DrawAdapter";
 import { drawFromGeometryProfileAdapter } from "../../shared/rendering/GenericEntityDrawer";
 
-import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
+import { Skia, getPaint, SkCanvas, SkPaint } from "../../shared/rendering/SkiaContext";
+import type { SkPath } from "@shopify/react-native-skia";
 import { getVisibleSkiaRender } from "../../shared/rendering/renderingUtils";
 import { resolveAsteroidRadius } from "./AsteroidsVisualHelpers";
 
 export { drawSkiaAsteroidsMissionHUD };
 
 // Memory-safe WeakMaps keyed by render components for zero-allocation Skia Path caching
-const cachedShipPaths = new WeakMap<any, { ship: any; cockpit: any }>();
-const cachedAsteroidPaths = new WeakMap<any, any>();
+const cachedShipPaths = new WeakMap<object, { ship: SkPath; cockpit: SkPath }>();
+const cachedAsteroidPaths = new WeakMap<object, SkPath>();
 
 function resolveAsteroidOpacityAndColor(render: RenderComponent, defaultColor: string): { opacity: number; colorStr: string } {
   return resolveAsteroidHitFlash(render, defaultColor);
@@ -25,7 +26,7 @@ function setupAsteroidStrokePaint(
   render: RenderComponent,
   defaultColor: string,
   strokeWidth = 2
-): { opacity: number; colorStr: string; paint: any } {
+): { opacity: number; colorStr: string; paint: SkPaint } {
   const { opacity, colorStr } = resolveAsteroidOpacityAndColor(render, defaultColor);
   const paint = getPaint();
   paint.reset();
@@ -41,7 +42,7 @@ function setupAsteroidStrokePaint(
  * Procedural player ship shape drawer for React Native Skia.
  * Supports Concept Pack parametric geometry override if available in active Theme.
  */
-export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentRegistry> = {
+export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<SkCanvas, AsteroidsComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = getVisibleSkiaRender(world, entity);
     if (!render) return;
@@ -166,7 +167,7 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<any, AsteroidsComponentReg
 /**
  * Procedural retro saucer UFO shape drawer for React Native Skia.
  */
-export const drawSkiaAsteroidsUfo: ShapeDrawer<any, AsteroidsComponentRegistry> = {
+export const drawSkiaAsteroidsUfo: ShapeDrawer<SkCanvas, AsteroidsComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = getVisibleSkiaRender(world, entity);
     if (!render) return;
@@ -194,7 +195,7 @@ export const drawSkiaAsteroidsUfo: ShapeDrawer<any, AsteroidsComponentRegistry> 
  * Procedural detailed jagged Asteroid Shape Drawer for React Native Skia.
  * Supports Concept Pack parametric enemy geometry override if available in active Theme.
  */
-export const drawSkiaAsteroidsAsteroid: ShapeDrawer<any, AsteroidsComponentRegistry> = {
+export const drawSkiaAsteroidsAsteroid: ShapeDrawer<SkCanvas, AsteroidsComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = getVisibleSkiaRender(world, entity);
     const collider = world.getComponent(entity, "Collider");
@@ -222,21 +223,24 @@ export const drawSkiaAsteroidsAsteroid: ShapeDrawer<any, AsteroidsComponentRegis
 
     let astPath = cachedAsteroidPaths.get(render);
     if (!astPath) {
-      astPath = Skia.Path.Make();
+      const createdPath = Skia.Path.Make();
       const points = computeAsteroidSilhouette(entity, radius, 11);
 
       for (let i = 0; i < points.length; i++) {
         if (i === 0) {
-          astPath.moveTo(points[i].x, points[i].y);
+          createdPath.moveTo(points[i].x, points[i].y);
         } else {
-          astPath.lineTo(points[i].x, points[i].y);
+          createdPath.lineTo(points[i].x, points[i].y);
         }
       }
-      astPath.close();
-      cachedAsteroidPaths.set(render, astPath);
+      createdPath.close();
+      cachedAsteroidPaths.set(render, createdPath);
+      astPath = createdPath;
     }
 
-    canvas.drawPath(astPath, paint);
+    if (astPath) {
+      canvas.drawPath(astPath, paint);
+    }
 
     canvas.restore();
   }
@@ -246,7 +250,7 @@ export const drawSkiaAsteroidsAsteroid: ShapeDrawer<any, AsteroidsComponentRegis
  * Glowing laser bullet shape drawer for React Native Skia.
  * Supports Concept Pack parametric projectile geometry override if available in active Theme.
  */
-export const drawSkiaAsteroidsBullet: ShapeDrawer<any, AsteroidsComponentRegistry> = {
+export const drawSkiaAsteroidsBullet: ShapeDrawer<SkCanvas, AsteroidsComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = getVisibleSkiaRender(world, entity);
     if (!render) return;

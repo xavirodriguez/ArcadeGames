@@ -205,10 +205,10 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({ game, room }) => {
     }
 
     // Network stats
-    const net = metrics.network || {};
-    const compression = metrics.compression || {};
-    const mem = metrics.memory || {};
-    const gc = metrics.gc || {};
+    const net = (metrics?.network as Record<string, unknown> | undefined) || {};
+    const compression = (metrics?.compression as Record<string, unknown> | undefined) || {};
+    const mem = (metrics?.memory as Record<string, unknown> | undefined) || {};
+    const gc = (metrics?.gc as Record<string, unknown> | undefined) || {};
 
     // Calculate latency indicator color
     let latencyColor = '#00ff00';
@@ -226,8 +226,8 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({ game, room }) => {
     }
 
     // Memory usage percentage
-    const heapUsed = mem.heapUsedBytes || 0;
-    const heapTotal = mem.heapTotalBytes || 0;
+    const heapUsed = Number(mem.heapUsedBytes || 0);
+    const heapTotal = Number(mem.heapTotalBytes || 0);
     const heapPercent = heapTotal > 0 ? (heapUsed / heapTotal) * 100 : 0;
 
     return (
@@ -245,22 +245,22 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({ game, room }) => {
 
           <View style={styles.metricRow}>
             <Text style={styles.metricLabel}>Clientes Conectados:</Text>
-            <Text style={styles.metricValue}>{net.activeClients ?? 1}</Text>
+            <Text style={styles.metricValue}>{String(net.activeClients ?? 1)}</Text>
           </View>
 
           <View style={styles.metricRow}>
             <Text style={styles.metricLabel}>Entidades Activas:</Text>
-            <Text style={styles.metricValue}>{net.activeEntities ?? 0}</Text>
+            <Text style={styles.metricValue}>{String(net.activeEntities ?? 0)}</Text>
           </View>
 
           <View style={styles.metricRow}>
             <Text style={styles.metricLabel}>Velocidad de Transferencia (Avg):</Text>
-            <Text style={styles.metricValue}>{formatBytes(net.avgBytesPerTick ?? 0)} / tick</Text>
+            <Text style={styles.metricValue}>{formatBytes(Number(net.avgBytesPerTick ?? 0))} / tick</Text>
           </View>
 
           <View style={styles.metricRow}>
             <Text style={styles.metricLabel}>Transferencia Total:</Text>
-            <Text style={styles.metricValue}>{formatBytes(net.totalBytesSent ?? 0)} ({net.totalTicks ?? 0} ticks)</Text>
+            <Text style={styles.metricValue}>{formatBytes(Number(net.totalBytesSent ?? 0))} ({String(net.totalTicks ?? 0)} ticks)</Text>
           </View>
 
           <View style={styles.metricRow}>
@@ -281,14 +281,14 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({ game, room }) => {
           <View style={styles.metricRow}>
             <Text style={styles.metricLabel}>Ratio de Compresión:</Text>
             <Text style={[styles.metricValue, { color: '#00ff00', fontWeight: 'bold' }]}>
-              {compression.compressionRatio ?? 0}x
+              {String(compression.compressionRatio ?? 0)}x
             </Text>
           </View>
 
           <View style={styles.metricRow}>
             <Text style={styles.metricLabel}>Espacio Ahorrado en Red:</Text>
             <Text style={[styles.metricValue, { color: '#00ff00', fontWeight: 'bold' }]}>
-              {compression.percentSpaceSaved ?? '0%'}
+              {String(compression.percentSpaceSaved ?? '0%')}
             </Text>
           </View>
 
@@ -300,12 +300,12 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({ game, room }) => {
 
           <View style={styles.metricRow}>
             <Text style={styles.metricLabel}>Tamaño Total Binario (SoA):</Text>
-            <Text style={styles.metricValue}>{formatBytes(compression.totalSoABytes ?? 0)}</Text>
+            <Text style={styles.metricValue}>{formatBytes(Number(compression.totalSoABytes ?? 0))}</Text>
           </View>
 
           <View style={styles.metricRow}>
             <Text style={styles.metricLabel}>Tamaño Equivalente JSON (AoS):</Text>
-            <Text style={styles.metricValue}>{formatBytes(compression.totalAoSBytes ?? 0)}</Text>
+            <Text style={styles.metricValue}>{formatBytes(Number(compression.totalAoSBytes ?? 0))}</Text>
           </View>
 
           <Text style={[styles.statLabel, { fontSize: 10, fontStyle: 'italic', marginTop: 4, lineHeight: 12 }]}>
@@ -319,27 +319,27 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({ game, room }) => {
 
           <View style={styles.metricRow}>
             <Text style={styles.metricLabel}>Número de Pausas del GC:</Text>
-            <Text style={styles.metricValue}>{gc.gcPauseCount ?? 0}</Text>
+            <Text style={styles.metricValue}>{String(gc.gcPauseCount ?? 0)}</Text>
           </View>
 
           <View style={styles.metricRow}>
             <Text style={styles.metricLabel}>Frecuencia (Pausas / 1k ticks):</Text>
-            <Text style={styles.metricValue}>{gc.gcPausesPer1000Ticks ?? 0}</Text>
+            <Text style={styles.metricValue}>{String(gc.gcPausesPer1000Ticks ?? 0)}</Text>
           </View>
 
           <View style={styles.metricRow}>
             <Text style={styles.metricLabel}>Pausa Máxima Detectada:</Text>
-            <Text style={[styles.metricValue, { color: '#ff4444' }]}>{gc.gcMaxPauseMs ?? 0} ms</Text>
+            <Text style={[styles.metricValue, { color: '#ff4444' }]}>{String(gc.gcMaxPauseMs ?? 0)} ms</Text>
           </View>
 
           <View style={styles.metricRow}>
             <Text style={styles.metricLabel}>Pausa Total del GC:</Text>
-            <Text style={styles.metricValue}>{gc.gcTotalPauseMs ?? 0} ms</Text>
+            <Text style={styles.metricValue}>{String(gc.gcTotalPauseMs ?? 0)} ms</Text>
           </View>
 
           <View style={styles.metricRow}>
             <Text style={styles.metricLabel}>Ratio de Pausa GC:</Text>
-            <Text style={styles.metricValue}>{gc.gcPauseRatePercent ?? '0%'}</Text>
+            <Text style={styles.metricValue}>{String(gc.gcPauseRatePercent ?? '0%')}</Text>
           </View>
         </View>
 
@@ -362,17 +362,17 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({ game, room }) => {
 
           <View style={styles.metricRow}>
             <Text style={styles.metricLabel}>Límite Máximo del Heap:</Text>
-            <Text style={styles.metricValue}>{formatBytes(mem.heapLimitBytes ?? 0)}</Text>
+            <Text style={styles.metricValue}>{formatBytes(Number(mem.heapLimitBytes ?? 0))}</Text>
           </View>
 
           <View style={styles.metricRow}>
             <Text style={styles.metricLabel}>Asignación Total Histórica:</Text>
-            <Text style={[styles.metricValue, { color: '#4a90e2' }]}>{formatBytes(mem.totalAllocatedBytes ?? 0)}</Text>
+            <Text style={[styles.metricValue, { color: '#4a90e2' }]}>{formatBytes(Number(mem.totalAllocatedBytes ?? 0))}</Text>
           </View>
 
           <View style={styles.metricRow}>
             <Text style={styles.metricLabel}>Liberación Total Histórica:</Text>
-            <Text style={[styles.metricValue, { color: '#00ff00' }]}>{formatBytes(mem.totalFreedBytes ?? 0)}</Text>
+            <Text style={[styles.metricValue, { color: '#00ff00' }]}>{formatBytes(Number(mem.totalFreedBytes ?? 0))}</Text>
           </View>
         </View>
       </ScrollView>
@@ -545,13 +545,15 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({ game, room }) => {
                   />
                 );
               } else if (c.type === 'aabb') {
+                const hw = c.shape.halfWidth ?? 0;
+                const hh = c.shape.halfHeight ?? 0;
                 return (
                   <Rect
                     key={i}
-                    x={c.x - c.shape.halfWidth}
-                    y={c.y - c.shape.halfHeight}
-                    width={c.shape.halfWidth * 2}
-                    height={c.shape.halfHeight * 2}
+                    x={c.x - hw}
+                    y={c.y - hh}
+                    width={hw * 2}
+                    height={hh * 2}
                     stroke={color}
                     strokeWidth="2"
                     fill="transparent"

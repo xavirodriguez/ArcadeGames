@@ -213,7 +213,7 @@ export function setupTilemapEntity(
  * @public
  */
 export interface RegistrableBlueprintRegistry {
-  register(name: string, definition: any): void;
+  register(name: string, definition: unknown): void;
 }
 
 /**

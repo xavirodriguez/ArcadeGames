@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
   subHudText: { color: "#94a3b8", fontSize: 13, marginTop: 2 },
   paused: { color: "#fbbf24", fontWeight: "700", marginTop: 4 },
   controls: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-end",
@@ -216,7 +216,7 @@ function OutrunTouchControls({
 
   return (
     <GestureDetector gesture={combinedGestures}>
-      <View style={StyleSheet.absoluteFillObject} pointerEvents="box-none">
+      <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
         <View style={styles.controls} pointerEvents="box-none">
           <View style={styles.leftControlArea} pointerEvents="box-none">
             <VirtualJoystick

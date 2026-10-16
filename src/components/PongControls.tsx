@@ -96,7 +96,7 @@ export const PongControls: React.FC<PongControlsProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     flexDirection: "row",
     justifyContent: "space-between",
     padding: 40,

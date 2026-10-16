@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   blockingOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(6, 16, 15, 0.96)",
     justifyContent: "center",
     alignItems: "center",

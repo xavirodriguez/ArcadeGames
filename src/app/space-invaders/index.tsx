@@ -397,7 +397,7 @@ const StartScreen: FC<{
 
 const styles = StyleSheet.create({
   controls: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     flexDirection: "row",
     alignItems: "flex-end",
     justifyContent: "space-between",
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   attractOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.4)",

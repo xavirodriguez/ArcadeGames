@@ -73,7 +73,7 @@ export const TitleScreen = React.memo(function TitleScreen({
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: semanticColors.background.dark,
     justifyContent: "center",
     alignItems: "center",
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   scanlines: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(0, 232, 210, 0.03)",
     borderWidth: 1,
     borderColor: "rgba(0, 232, 210, 0.12)",

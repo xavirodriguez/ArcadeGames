@@ -576,7 +576,7 @@ const styles = StyleSheet.create({
     zIndex: 15,
   },
   controls: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     flexDirection: "row",
     justifyContent: "space-between",
     zIndex: 10,

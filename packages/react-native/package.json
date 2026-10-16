@@ -26,19 +26,19 @@
     "@tiny-aster/network-colyseus": "workspace:*"
   },
   "peerDependencies": {
-    "expo-asset": "~55.0.18",
-    "expo-audio": "~55.0.16",
-    "expo-keep-awake": "~55.0.8",
+    "expo-asset": "~57.0.20",
+    "expo-audio": "~57.0.5",
+    "expo-keep-awake": "~57.0.2",
     "react": ">=18",
     "react-native": "*"
   },
   "devDependencies": {
     "@types/react": "~19.2.10",
-    "expo-asset": "~55.0.18",
-    "expo-audio": "~55.0.16",
-    "expo-keep-awake": "~55.0.8",
-    "react": "19.2.0",
-    "react-native": "0.83.10",
+    "expo-asset": "~57.0.20",
+    "expo-audio": "~57.0.5",
+    "expo-keep-awake": "~57.0.2",
+    "react": "19.2.3",
+    "react-native": "0.86.3",
     "tsup": "^8.0.0",
     "typescript": "^5.0.0"
   }

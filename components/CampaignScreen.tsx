@@ -769,7 +769,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: colors.overlay,
     justifyContent: "center",
     alignItems: "center",
@@ -927,7 +927,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   errorOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(30, 5, 5, 0.95)",
     justifyContent: "center",
     alignItems: "center",

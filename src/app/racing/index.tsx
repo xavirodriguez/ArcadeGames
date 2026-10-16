@@ -239,15 +239,15 @@ const styles = StyleSheet.create({
   vsText: { fontFamily: "monospace", fontWeight: "bold", fontSize: 12 },
   lapHudText: { color: "#FFFFFF", fontFamily: "monospace", fontSize: 22, fontWeight: "bold" },
   hudText: { fontFamily: "monospace", fontWeight: "bold" },
-  controls: { ...StyleSheet.absoluteFillObject, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end" },
+  controls: { ...StyleSheet.absoluteFill, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end" },
   leftControlArea: { flex: 1, height: "100%" },
   rightControlArea: { width: 140, height: "100%", justifyContent: "flex-end", alignItems: "center", paddingBottom: 40, paddingRight: 20 },
   instructions: { marginBottom: 24 },
   text: { color: "#fff", fontFamily: "monospace", textAlign: "center" },
-  countdownContainer: { ...StyleSheet.absoluteFillObject, justifyContent: "center", alignItems: "center" },
+  countdownContainer: { ...StyleSheet.absoluteFill, justifyContent: "center", alignItems: "center" },
   countdownText: { fontFamily: "monospace", fontWeight: "bold", textShadowColor: "rgba(0, 0, 0, 0.8)", textShadowOffset: { width: 2, height: 2 }, textShadowRadius: 6 },
   numberText: { fontSize: 80 },
   goText: { fontSize: 96 },
-  finished: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(0,0,0,0.82)", justifyContent: "center", alignItems: "center", gap: 18 },
+  finished: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(0,0,0,0.82)", justifyContent: "center", alignItems: "center", gap: 18 },
   finishedTitle: { fontSize: 40, fontWeight: "bold", fontFamily: "monospace" }
 });

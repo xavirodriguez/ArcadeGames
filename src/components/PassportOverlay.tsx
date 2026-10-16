@@ -149,7 +149,7 @@ const StatRow: React.FC<{ label: string; value: number }> = ({ label, value }) =
 
 const styles = StyleSheet.create({
   container: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: colors.overlay,
     justifyContent: 'center',
     alignItems: 'center',

@@ -499,7 +499,7 @@ const styles = StyleSheet.create({
   leftZone: { width: 140, height: 140 },
   actions: { flexDirection: "row", alignItems: "flex-end" },
   gameOverOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(10, 10, 20, 0.95)",
     justifyContent: "center",
     alignItems: "center",

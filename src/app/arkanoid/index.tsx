@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   controls: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     flexDirection: "row",
     justifyContent: "space-between",
     zIndex: 10,

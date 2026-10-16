@@ -103,7 +103,7 @@ export const CutsceneTransitionOverlay: React.FC<CutsceneTransitionOverlayProps>
     <View style={styles.container}>
       <Animated.View
         style={[
-          StyleSheet.absoluteFillObject,
+          StyleSheet.absoluteFill,
           styles.overlayBase,
           { backgroundColor: profile.primaryColor },
           overlayAnimatedStyle,

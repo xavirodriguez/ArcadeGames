@@ -4,6 +4,7 @@ import crypto from 'node:crypto';
 import { WaveFile } from 'wavefile';
 import { ManifestEntry, SoundManifest, SoundRecipe, GenerateOptions } from '../core/types';
 import { DEFAULT_SAMPLE_RATE, RENDER_VERSION } from '../core/render';
+import { RNG } from '../core/random';
 
 function isObjectRecord(val: unknown): val is Record<string, unknown> {
   return typeof val === 'object' && val !== null && !Array.isArray(val);
@@ -121,7 +122,8 @@ export function writeWav(
   file: string,
   sampleRate = DEFAULT_SAMPLE_RATE,
   peakDb?: number,
-  bitDepth: 16 | 32 = 16
+  bitDepth: 16 | 32 = 16,
+  seed = 42
 ) {
   let gain = 1;
   if (peakDb !== undefined && peakDb !== null) {
@@ -138,11 +140,16 @@ export function writeWav(
     for (let i = 0; i < samples.length; i++) out[i] = samples[i] * gain;
     wav.fromScratch(1, sampleRate, '32f', [out]);
   } else {
-    // 16-bit signed PCM
+    // 16-bit signed PCM with TPDF dither
+    const ditherRng = new RNG(seed).fork('tpdf_dither');
     const out = new Int16Array(samples.length);
     for (let i = 0; i < samples.length; i++) {
-      const x = Math.max(-1, Math.min(1, samples[i] * gain));
-      out[i] = x < 0 ? Math.round(x * 0x8000) : Math.round(x * 0x7fff);
+      const scaled = samples[i] * gain;
+      const ditherLsb = ditherRng.next() - ditherRng.next();
+      const lsbScale = scaled < 0 ? 0x8000 : 0x7fff;
+      const ditheredLsb = scaled * lsbScale + ditherLsb;
+      const clampedInt16 = Math.max(-0x8000, Math.min(0x7fff, Math.round(ditheredLsb)));
+      out[i] = clampedInt16;
     }
     wav.fromScratch(1, sampleRate, '16', [out]);
   }

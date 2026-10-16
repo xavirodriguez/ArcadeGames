@@ -319,14 +319,15 @@ function validateLayer(
 
     const attackVal = env.attack ?? 0.005;
     const decayVal = env.decay ?? 0.08;
-    if (attackVal + decayVal > layerDur + 0.01) {
+    const releaseVal = env.release ?? 0.01;
+    if (attackVal + decayVal + releaseVal > layerDur + 0.01) {
       issues.push({
         recipe: recipeName,
         layerIndex: lIdx,
         field: `layers[${lIdx}].envelope`,
         path: `layers[${lIdx}].envelope`,
-        value: { attack: attackVal, decay: decayVal, layerDur },
-        message: `Active envelope time (attack + decay = ${(attackVal + decayVal).toFixed(3)}s) exceeds layer duration (${layerDur.toFixed(3)}s)`,
+        value: { attack: attackVal, decay: decayVal, release: releaseVal, layerDur },
+        message: `Active envelope time (attack + decay + release = ${(attackVal + decayVal + releaseVal).toFixed(3)}s) exceeds layer duration (${layerDur.toFixed(3)}s)`,
       });
     }
   }

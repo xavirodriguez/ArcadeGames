@@ -2,24 +2,19 @@ import type { ShapeDrawer } from "@tiny-aster/core";
 import type { OutrunComponentRegistry, RoadSegmentSprite } from "../types/OutrunTypes";
 import {
   resolveOutrunRoadContext,
+  resolveOutrunHorizonContext,
   projectOutrunRoad,
   projectionBuffer,
   rumbleColor,
   roadColor,
-  computeFacetedPeaks,
   getFacetedPeakPolygons,
-  computeCoastalBuildings,
   iterateOutrunSprites,
   resolveOutrunCarContext,
   resolveOutrunRacerDrawContext,
   resolveOutrunHudContext,
   resolveOffroadDustParams
 } from "./OutrunRenderShared";
-import {
-  computeCloudParams,
-  computeHeatHazeLines,
-  computeSpeedLines
-} from "./OutrunVisualHelpers";
+import { computeSpeedLines } from "./OutrunVisualHelpers";
 import { resolveSegmentFog } from "./OutrunFog";
 
 function drawRoadSpriteCanvas(
@@ -121,6 +116,7 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
     ctx.save();
 
     const horizonY = screenH * 0.45;
+    const horizonCtx = resolveOutrunHorizonContext(roadCtx);
 
     // 1. Sky Bands
     const bands = palette.skyBands;
@@ -140,10 +136,9 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
     }
 
     // Clouds
-    if (palette.cloudColor) {
-      const clouds = computeCloudParams(screenW, screenH, state.playerZ, state.playerX);
+    if (palette.cloudColor && horizonCtx.clouds) {
       ctx.fillStyle = palette.cloudColor;
-      for (const c of clouds) {
+      for (const c of horizonCtx.clouds) {
         ctx.beginPath();
         ctx.ellipse(c.cloudX, c.cloudY, c.cloudW / 2, c.cloudH / 2, 0, 0, Math.PI * 2);
         ctx.fill();
@@ -151,10 +146,8 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
     }
 
     // Horizon Scenery
-    const scenarioId = roadData.segments[0]?.scenarioId ?? palette.id;
-    if (scenarioId.includes("mountain")) {
-      const peaks = computeFacetedPeaks(screenW, horizonY, state.playerZ, state.playerX, palette.id);
-      for (const p of peaks) {
+    if (horizonCtx.peaks) {
+      for (const p of horizonCtx.peaks) {
         const poly = getFacetedPeakPolygons(p);
         ctx.fillStyle = palette.mountainBase;
         ctx.beginPath();
@@ -172,17 +165,15 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
         ctx.closePath();
         ctx.fill();
       }
-    } else if (scenarioId.includes("coast")) {
-      const { buildings } = computeCoastalBuildings(screenW, horizonY, state.playerZ, state.playerX);
+    } else if (horizonCtx.buildings) {
       ctx.fillStyle = palette.mountainBase;
-      for (const b of buildings) {
+      for (const b of horizonCtx.buildings) {
         ctx.fillRect(b.bx, horizonY - b.bh, b.bw, b.bh);
       }
-    } else if (scenarioId.includes("desert")) {
-      const hazeLines = computeHeatHazeLines(screenW, screenH, state.playerZ, state.playerX);
+    } else if (horizonCtx.hazeLines) {
       ctx.fillStyle = palette.sun || "#ffe066";
       ctx.globalAlpha = 0.2;
-      for (const h of hazeLines) {
+      for (const h of horizonCtx.hazeLines) {
         ctx.fillRect(h.x, h.hazeY, 20, 2);
       }
       ctx.globalAlpha = 1.0;

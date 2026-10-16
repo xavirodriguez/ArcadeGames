@@ -5,7 +5,15 @@ import type { OutrunConfig } from "../types/OutrunConfigSchema";
 import { DEFAULT_OUTRUN_CONFIG } from "../types/OutrunConfigSchema";
 import { createProjectionBuffer, projectRoad } from "./RoadProjection";
 import { COAST_PALETTE, getScenarioPaletteAtZ, applyDayPhase, scenarioHash, type ScenarioPalette, type ModulatedPalette } from "./OutrunPalettes";
-import { computePlayerCarGeometry, computeRacerProjection } from "./OutrunVisualHelpers";
+import {
+  computePlayerCarGeometry,
+  computeRacerProjection,
+  computeCurvatureParallaxOffset,
+  computeCloudParams,
+  computeHeatHazeLines,
+  type CloudParam,
+  type HeatHazeLine
+} from "./OutrunVisualHelpers";
 
 /** Standard racer vehicle body color options. */
 export const RACER_COLORS = ["#457b9d", "#2a9d8f", "#e9c46a", "#f4a261", "#e76f51"] as const;
@@ -64,11 +72,12 @@ export function computeFacetedPeaks(
   horizonY: number,
   playerZ: number,
   playerX: number,
-  paletteId: string
+  paletteId: string,
+  curveParallax = 0
 ): FacetedPeak[] {
   const numPeaks = 12;
   const peakSpacing = screenW / 4;
-  const mountainOffsetX = ((playerZ * 0.00015) % peakSpacing) + playerX * 25;
+  const mountainOffsetX = ((playerZ * 0.00015) % peakSpacing) + playerX * 25 + curveParallax;
   const peaks: FacetedPeak[] = [];
 
   for (let m = -2; m < numPeaks + 2; m++) {
@@ -112,10 +121,11 @@ export function computeCoastalBuildings(
   screenW: number,
   horizonY: number,
   playerZ: number,
-  playerX: number
+  playerX: number,
+  curveParallax = 0
 ): { spacing: number; horizonOffset: number; buildings: CoastalBuilding[] } {
   const spacing = screenW / 6;
-  const horizonOffset = ((playerZ * 0.0001) % spacing) + playerX * 20;
+  const horizonOffset = ((playerZ * 0.0001) % spacing) + playerX * 20 + curveParallax;
   const buildings: CoastalBuilding[] = [];
 
   for (let b = -2; b < 8; b++) {
@@ -207,6 +217,46 @@ export interface OutrunRoadRenderContext {
   screenH: number;
   rumbleLength: number;
   palette: ModulatedPalette;
+}
+
+export interface OutrunHorizonContext {
+  curveParallax: number;
+  scenarioId: string;
+  clouds: CloudParam[] | null;
+  peaks: FacetedPeak[] | null;
+  buildings: CoastalBuilding[] | null;
+  hazeLines: HeatHazeLine[] | null;
+}
+
+export function resolveOutrunHorizonContext(
+  roadCtx: OutrunRoadRenderContext
+): OutrunHorizonContext {
+  const { state, roadData, screenW, screenH, palette } = roadCtx;
+  const horizonY = screenH * 0.45;
+  const curveParallax = computeCurvatureParallaxOffset(
+    roadData.segments,
+    state.playerZ,
+    roadData.trackLength
+  );
+
+  const clouds = palette.cloudColor
+    ? computeCloudParams(screenW, screenH, state.playerZ, state.playerX, 8, curveParallax * 0.4)
+    : null;
+
+  const scenarioId = roadData.segments[0]?.scenarioId ?? palette.id;
+  let peaks: FacetedPeak[] | null = null;
+  let buildings: CoastalBuilding[] | null = null;
+  let hazeLines: HeatHazeLine[] | null = null;
+
+  if (scenarioId.includes("mountain")) {
+    peaks = computeFacetedPeaks(screenW, horizonY, state.playerZ, state.playerX, palette.id, curveParallax);
+  } else if (scenarioId.includes("coast")) {
+    buildings = computeCoastalBuildings(screenW, horizonY, state.playerZ, state.playerX, curveParallax).buildings;
+  } else if (scenarioId.includes("desert")) {
+    hazeLines = computeHeatHazeLines(screenW, screenH, state.playerZ, state.playerX);
+  }
+
+  return { curveParallax, scenarioId, clouds, peaks, buildings, hazeLines };
 }
 
 /** Resolves race state, road data, and scenario palette context for road drawers. */

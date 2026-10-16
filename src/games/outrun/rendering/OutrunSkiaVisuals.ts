@@ -3,24 +3,19 @@ import type { OutrunComponentRegistry, RoadSegmentSprite } from "../types/Outrun
 import { Skia } from "../../shared/rendering/SkiaContext";
 import {
   resolveOutrunRoadContext,
+  resolveOutrunHorizonContext,
   projectOutrunRoad,
   projectionBuffer,
   rumbleColor,
   roadColor,
-  computeFacetedPeaks,
   getFacetedPeakPolygons,
-  computeCoastalBuildings,
   iterateOutrunSprites,
   resolveOutrunCarContext,
   resolveOutrunRacerDrawContext,
   resolveOutrunHudContext,
   resolveOffroadDustParams
 } from "./OutrunRenderShared";
-import {
-  computeCloudParams,
-  computeHeatHazeLines,
-  computeSpeedLines
-} from "./OutrunVisualHelpers";
+import { computeSpeedLines } from "./OutrunVisualHelpers";
 import { resolveSegmentFog } from "./OutrunFog";
 
 function drawRoadSpriteSkia(
@@ -125,6 +120,7 @@ export const drawSkiaOutrunRoad: ShapeDrawer<any, OutrunComponentRegistry> = {
 
     const { state, roadData, config, screenW, screenH, rumbleLength, palette } = roadCtx;
     const horizonY = screenH * 0.45;
+    const horizonCtx = resolveOutrunHorizonContext(roadCtx);
 
     // 1. Sky Bands
     const bands = palette.skyBands;
@@ -146,13 +142,12 @@ export const drawSkiaOutrunRoad: ShapeDrawer<any, OutrunComponentRegistry> = {
     }
 
     // Clouds
-    if (palette.cloudColor) {
-      const clouds = computeCloudParams(screenW, screenH, state.playerZ, state.playerX);
+    if (palette.cloudColor && horizonCtx.clouds) {
       const cloudPaint = Skia.Paint();
       cloudPaint.setColor(Skia.Color(palette.cloudColor));
       cloudPaint.setStyle(Skia.PaintStyle.Fill);
 
-      for (const c of clouds) {
+      for (const c of horizonCtx.clouds) {
         canvas.drawOval(
           Skia.XYWHRect(c.cloudX - c.cloudW / 2, c.cloudY - c.cloudH / 2, c.cloudW, c.cloudH),
           cloudPaint
@@ -161,10 +156,8 @@ export const drawSkiaOutrunRoad: ShapeDrawer<any, OutrunComponentRegistry> = {
     }
 
     // Horizon Scenery
-    const scenarioId = roadData.segments[0]?.scenarioId ?? palette.id;
-    if (scenarioId.includes("mountain")) {
-      const peaks = computeFacetedPeaks(screenW, horizonY, state.playerZ, state.playerX, palette.id);
-      for (const p of peaks) {
+    if (horizonCtx.peaks) {
+      for (const p of horizonCtx.peaks) {
         const poly = getFacetedPeakPolygons(p);
 
         const basePath = Skia.Path.Make();
@@ -189,21 +182,19 @@ export const drawSkiaOutrunRoad: ShapeDrawer<any, OutrunComponentRegistry> = {
         facetPaint.setStyle(Skia.PaintStyle.Fill);
         canvas.drawPath(facetPath, facetPaint);
       }
-    } else if (scenarioId.includes("coast")) {
-      const { buildings } = computeCoastalBuildings(screenW, horizonY, state.playerZ, state.playerX);
+    } else if (horizonCtx.buildings) {
       const bPaint = Skia.Paint();
       bPaint.setColor(Skia.Color(palette.mountainBase));
       bPaint.setStyle(Skia.PaintStyle.Fill);
-      for (const b of buildings) {
+      for (const b of horizonCtx.buildings) {
         canvas.drawRect(Skia.XYWHRect(b.bx, horizonY - b.bh, b.bw, b.bh), bPaint);
       }
-    } else if (scenarioId.includes("desert")) {
-      const hazeLines = computeHeatHazeLines(screenW, screenH, state.playerZ, state.playerX);
+    } else if (horizonCtx.hazeLines) {
       const hazePaint = Skia.Paint();
       hazePaint.setColor(Skia.Color(palette.sun || "#ffe066"));
       hazePaint.setAlphaf(0.2);
       hazePaint.setStyle(Skia.PaintStyle.Fill);
-      for (const h of hazeLines) {
+      for (const h of horizonCtx.hazeLines) {
         canvas.drawRect(Skia.XYWHRect(h.x, h.hazeY, 20, 2), hazePaint);
       }
     }

@@ -3,6 +3,8 @@ import {
   MovementSystem,
   BoundarySystem,
   AssetLoader,
+  IAssetProvider,
+  IAudioPlayer,
   CollisionSystem2D,
   ConfigService,
   SystemPhase,
@@ -19,6 +21,7 @@ import {
   EntityBuilder,
   ParticleSystem,
   Renderer,
+  RenderContext,
   RendererUtils,
   preloadSharedAudioManifest,
   SHARED_AUDIO_MANIFEST
@@ -58,11 +61,11 @@ import {
 
 import arkanoidConfigRaw from "./config/arkanoid.json";
 
-export interface ArkanoidBlueprintMap extends Record<string, BlueprintDefinition<ArkanoidComponentRegistry, any, any>> {
-  ball: BlueprintDefinition<ArkanoidComponentRegistry, any, {}>;
-  paddle: BlueprintDefinition<ArkanoidComponentRegistry, any, {}>;
-  brick: BlueprintDefinition<ArkanoidComponentRegistry, any, { x: number; y: number; kind: BrickKind; color?: BrickColorName; hp?: number; points?: number; powerUp?: CapsuleType }>;
-  state: BlueprintDefinition<ArkanoidComponentRegistry, any, {}>;
+export interface ArkanoidBlueprintMap extends Record<string, BlueprintDefinition<ArkanoidComponentRegistry, ArkanoidEventRegistry, any>> {
+  ball: BlueprintDefinition<ArkanoidComponentRegistry, ArkanoidEventRegistry, Record<string, never>>;
+  paddle: BlueprintDefinition<ArkanoidComponentRegistry, ArkanoidEventRegistry, Record<string, never>>;
+  brick: BlueprintDefinition<ArkanoidComponentRegistry, ArkanoidEventRegistry, { x: number; y: number; kind: BrickKind; color?: BrickColorName; hp?: number; points?: number; powerUp?: CapsuleType }>;
+  state: BlueprintDefinition<ArkanoidComponentRegistry, ArkanoidEventRegistry, Record<string, never>>;
 }
 
 export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput, ArkanoidComponentRegistry, ArkanoidEventRegistry, ArkanoidBlueprintMap> {
@@ -73,7 +76,7 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
   private baseConfig: ArkanoidConfig;
   private config!: ArkanoidConfig;
 
-  constructor(options: { seed?: number; headless?: boolean; gameOptions?: Record<string, unknown>; assetProvider?: any; audio?: any; theme?: Theme } = {}) {
+  constructor(options: { seed?: number; headless?: boolean; gameOptions?: Record<string, unknown>; assetProvider?: IAssetProvider; audio?: IAudioPlayer; theme?: Theme } = {}) {
     const seed = options.seed ?? (options.gameOptions?.seed as number | undefined);
     const theme = options.theme ?? createThemeFromGameAccents("arkanoid");
 
@@ -299,7 +302,7 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
     this.world.update(dt);
   }
 
-  public initializeRenderer(renderer: Renderer<ArkanoidComponentRegistry, any>): void {
+  public initializeRenderer(renderer: Renderer<ArkanoidComponentRegistry, RenderContext>): void {
     RendererUtils.registerAssets(renderer, {
       canvas: (r) => {
         /* eslint-disable @typescript-eslint/no-require-imports */

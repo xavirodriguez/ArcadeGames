@@ -1,8 +1,8 @@
-import { ShapeDrawer, EffectDrawer, World, resolveThemeColorWithFallback } from "@tiny-aster/core";
+import { ShapeDrawer, EffectDrawer, RenderContext, World, resolveThemeColorWithFallback } from "@tiny-aster/core";
 import type { TowerDefenseComponentRegistry, TileGrid } from "../types/TowerDefenseTypes";
 import type { GridLayout } from "../../shared/grid/GridTypes";
 import { getTileTypeColor } from "../MapUtils";
-import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
+import { Skia, getPaint, SkCanvas } from "../../shared/rendering/SkiaContext";
 import { drawGlowOrbSkia } from "../../shared/rendering/SkiaNeonUtils";
 import {
   resolveCreepVisualState,
@@ -14,7 +14,7 @@ type TDWorld = World<TowerDefenseComponentRegistry>;
 
 function drawSkiaTower(
   world: TDWorld,
-  canvas: any,
+  canvas: SkCanvas,
   size: number,
   primaryKey: string,
   accentKey: string,
@@ -54,14 +54,14 @@ function drawSkiaTower(
   canvas.drawRect(Skia.XYWHRect(-s * 0.45, -s * 0.15, s * 0.9, s * 0.4), paint);
 }
 
-export const drawSkiaTowerBasic: ShapeDrawer<any, TowerDefenseComponentRegistry> = {
+export const drawSkiaTowerBasic: ShapeDrawer<SkCanvas, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
     drawSkiaTower(world, canvas, render?.size ?? 28, "tower_basic", "tower_basic_accent", "#4fc3f7", "#81d4fa");
   },
 };
 
-export const drawSkiaTowerSniper: ShapeDrawer<any, TowerDefenseComponentRegistry> = {
+export const drawSkiaTowerSniper: ShapeDrawer<SkCanvas, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
     const size = render?.size ?? 28;
@@ -77,7 +77,7 @@ export const drawSkiaTowerSniper: ShapeDrawer<any, TowerDefenseComponentRegistry
   },
 };
 
-export const drawSkiaTowerRapid: ShapeDrawer<any, TowerDefenseComponentRegistry> = {
+export const drawSkiaTowerRapid: ShapeDrawer<SkCanvas, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
     const size = render?.size ?? 28;
@@ -94,7 +94,7 @@ export const drawSkiaTowerRapid: ShapeDrawer<any, TowerDefenseComponentRegistry>
   },
 };
 
-function drawSkiaCreep(canvas: any, size: number, fill: string): void {
+function drawSkiaCreep(canvas: SkCanvas, size: number, fill: string): void {
   if (!Skia) return;
   const paint = getPaint();
   if (!paint) return;
@@ -109,7 +109,7 @@ function drawSkiaCreep(canvas: any, size: number, fill: string): void {
   canvas.drawCircle(size * 0.18, -size * 0.1, size * 0.06, paint);
 }
 
-function drawSkiaCreepStrokedOutline(canvas: any, radius: number, strokeColor: string, strokeWidth = 3): void {
+function drawSkiaCreepStrokedOutline(canvas: SkCanvas, radius: number, strokeColor: string, strokeWidth = 3): void {
   if (!Skia) return;
   const paint = getPaint();
   if (!paint) return;
@@ -120,14 +120,14 @@ function drawSkiaCreepStrokedOutline(canvas: any, radius: number, strokeColor: s
   canvas.drawCircle(0, 0, radius, paint);
 }
 
-export const drawSkiaTowerFrost: ShapeDrawer<any, TowerDefenseComponentRegistry> = {
+export const drawSkiaTowerFrost: ShapeDrawer<SkCanvas, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
     drawSkiaTower(world, canvas, render?.size ?? 28, "tower_frost", "tower_frost_accent", "#4dd0e1", "#b2ebf2");
   },
 };
 
-export const drawSkiaCreepBoss: ShapeDrawer<any, TowerDefenseComponentRegistry> = {
+export const drawSkiaCreepBoss: ShapeDrawer<SkCanvas, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
     const { size, fill, stroke } = resolveCreepVisualState(world, entity, 28, "boss");
 
@@ -136,21 +136,21 @@ export const drawSkiaCreepBoss: ShapeDrawer<any, TowerDefenseComponentRegistry> 
   },
 };
 
-export const drawSkiaCreepGrunt: ShapeDrawer<any, TowerDefenseComponentRegistry> = {
+export const drawSkiaCreepGrunt: ShapeDrawer<SkCanvas, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
     const { size, fill } = resolveCreepVisualState(world, entity, 12, "grunt");
     drawSkiaCreep(canvas, size, fill);
   },
 };
 
-export const drawSkiaCreepFast: ShapeDrawer<any, TowerDefenseComponentRegistry> = {
+export const drawSkiaCreepFast: ShapeDrawer<SkCanvas, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
     const { size, fill } = resolveCreepVisualState(world, entity, 10, "fast");
     drawSkiaCreep(canvas, size, fill);
   },
 };
 
-export const drawSkiaCreepTank: ShapeDrawer<any, TowerDefenseComponentRegistry> = {
+export const drawSkiaCreepTank: ShapeDrawer<SkCanvas, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
     const { size, fill } = resolveCreepVisualState(world, entity, 18, "tank");
     const stroke = resolveThemeColorWithFallback(world, "#5d4037", "creep_tank_plate");
@@ -160,7 +160,7 @@ export const drawSkiaCreepTank: ShapeDrawer<any, TowerDefenseComponentRegistry> 
   },
 };
 
-export const drawSkiaTowerProjectile: ShapeDrawer<any, TowerDefenseComponentRegistry> = {
+export const drawSkiaTowerProjectile: ShapeDrawer<SkCanvas, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
     const { size, color } = resolveTowerProjectileDrawSetup(world, entity);
 
@@ -171,7 +171,7 @@ export const drawSkiaTowerProjectile: ShapeDrawer<any, TowerDefenseComponentRegi
   },
 };
 
-export const drawSkiaTdMapBackground: EffectDrawer<any, TowerDefenseComponentRegistry> = {
+export const drawSkiaTdMapBackground: EffectDrawer<SkCanvas, TowerDefenseComponentRegistry> = {
   draw(canvas, world: TDWorld) {
     if (!Skia) return;
     const bgCtx = resolveTdMapBackgroundContext(world);

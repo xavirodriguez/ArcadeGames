@@ -1,4 +1,4 @@
-import { ShapeDrawer, EffectDrawer, resolveThemeColorWithFallback } from "@tiny-aster/core";
+import { ShapeDrawer, EffectDrawer, RenderContext, World, resolveThemeColorWithFallback } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry } from "../types/GeometryWarsRegistry";
 import { getDisplacedPoint, BULLET_COORDS } from "../../shared/rendering/ProceduralShapeUtils";
 import { resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
@@ -12,7 +12,7 @@ import {
   resetVisualState
 } from "./GeometryWarsVisualLogic";
 
-import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
+import { Skia, getPaint, SkCanvas, SkPaint } from "../../shared/rendering/SkiaContext";
 
 // For backwards compatibility if imported elsewhere
 export {
@@ -24,7 +24,7 @@ export {
 /**
  * Draws all active particles with neon glow.
  */
-function drawVisualParticles(canvas: any): void {
+function drawVisualParticles(canvas: SkCanvas): void {
   if (!ensureSkiaAvailable()) return;
   const paint = getPaint();
 
@@ -53,7 +53,7 @@ function drawVisualParticles(canvas: any): void {
 // HIGH-FIDELITY SHAPE DRAWERS
 // ============================================================================
 
-function setupSkiaStrokePaint(paint: any, color: string, strokeWidth = 1.5, opacity = 1.0): void {
+function setupSkiaStrokePaint(paint: SkPaint, color: string, strokeWidth = 1.5, opacity = 1.0): void {
   paint.reset();
   paint.setAntiAlias(true);
   paint.setStyle(Skia.PaintStyle.Stroke);
@@ -63,7 +63,7 @@ function setupSkiaStrokePaint(paint: any, color: string, strokeWidth = 1.5, opac
 }
 
 function resolveSkiaShapeSetup(
-  world: any,
+  world: World<GeometryWarsComponentRegistry>,
   entity: number,
   defaultSize: number,
   colorKey: string,
@@ -84,8 +84,8 @@ function resolveSkiaShapeSetup(
 }
 
 function drawSkiaPathShape(
-  canvas: any,
-  setup: { size: number; paint: any } | null,
+  canvas: SkCanvas,
+  setup: { size: number; paint: SkPaint } | null,
   getPoints: (size: number) => Array<[number, number]>
 ): void {
   if (!setup) return;
@@ -108,7 +108,7 @@ function drawSkiaPathShape(
  * Skia shape drawer for the player ship.
  * @public
  */
-export const drawSkiaPlayerShip: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
+export const drawSkiaPlayerShip: ShapeDrawer<SkCanvas, GeometryWarsComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!ensureSkiaAvailable()) return;
 
@@ -176,7 +176,7 @@ export const drawSkiaPlayerShip: ShapeDrawer<any, GeometryWarsComponentRegistry>
  * Skia shape drawer for particle.
  * @public
  */
-export const drawSkiaParticle: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
+export const drawSkiaParticle: ShapeDrawer<SkCanvas, GeometryWarsComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!ensureSkiaAvailable()) return;
     const render = getRenderGuard(world, entity);
@@ -200,7 +200,7 @@ export const drawSkiaParticle: ShapeDrawer<any, GeometryWarsComponentRegistry> =
  * Skia shape drawer for the Chaser enemy.
  * @public
  */
-export const drawSkiaChaser: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
+export const drawSkiaChaser: ShapeDrawer<SkCanvas, GeometryWarsComponentRegistry> = {
   draw(canvas, world, entity) {
     drawSkiaPathShape(
       canvas,
@@ -214,7 +214,7 @@ export const drawSkiaChaser: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
  * Skia shape drawer for the Evader enemy.
  * @public
  */
-export const drawSkiaEvader: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
+export const drawSkiaEvader: ShapeDrawer<SkCanvas, GeometryWarsComponentRegistry> = {
   draw(canvas, world, entity) {
     drawSkiaPathShape(
       canvas,
@@ -228,7 +228,7 @@ export const drawSkiaEvader: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
  * Skia shape drawer for the Grunt enemy.
  * @public
  */
-export const drawSkiaGrunt: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
+export const drawSkiaGrunt: ShapeDrawer<SkCanvas, GeometryWarsComponentRegistry> = {
   draw(canvas, world, entity) {
     drawSkiaPathShape(
       canvas,
@@ -242,7 +242,7 @@ export const drawSkiaGrunt: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
  * Skia shape drawer for the bullets.
  * @public
  */
-export const drawSkiaBullet: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
+export const drawSkiaBullet: ShapeDrawer<SkCanvas, GeometryWarsComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!ensureSkiaAvailable()) return;
     const render = getRenderGuard(world, entity);
@@ -264,7 +264,7 @@ export const drawSkiaBullet: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
  * Skia shape drawer for enemy seeker (neon diamond/star).
  * @public
  */
-export const drawSkiaEnemySeeker: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
+export const drawSkiaEnemySeeker: ShapeDrawer<SkCanvas, GeometryWarsComponentRegistry> = {
   draw(canvas, world, entity) {
     drawSkiaPathShape(
       canvas,
@@ -278,7 +278,7 @@ export const drawSkiaEnemySeeker: ShapeDrawer<any, GeometryWarsComponentRegistry
  * Skia shape drawer for enemy evader (neon square).
  * @public
  */
-export const drawSkiaEnemyEvader: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
+export const drawSkiaEnemyEvader: ShapeDrawer<SkCanvas, GeometryWarsComponentRegistry> = {
   draw(canvas, world, entity) {
     const setup = resolveSkiaShapeSetup(world, entity, 12, "evader", "#00ff00", 1.5);
     if (!setup) return;
@@ -295,7 +295,7 @@ export const drawSkiaEnemyEvader: ShapeDrawer<any, GeometryWarsComponentRegistry
  * Skia shape drawer for enemy fast seeker (neon arrow/triangle).
  * @public
  */
-export const drawSkiaEnemyFastSeeker: ShapeDrawer<any, GeometryWarsComponentRegistry> = {
+export const drawSkiaEnemyFastSeeker: ShapeDrawer<SkCanvas, GeometryWarsComponentRegistry> = {
   draw(canvas, world, entity) {
     drawSkiaPathShape(
       canvas,
@@ -310,14 +310,14 @@ export const drawSkiaEnemyFastSeeker: ShapeDrawer<any, GeometryWarsComponentRegi
 // ============================================================================
 
 function drawDisplacedGridLines(
-  canvas: any,
+  canvas: SkCanvas,
   width: number,
   height: number,
   isVertical: boolean,
   playerX: number,
   playerY: number,
   bulletCount: number,
-  paint: any
+  paint: SkPaint
 ): void {
   const outerMax = isVertical ? width : height;
   const innerMax = isVertical ? height : width;
@@ -349,7 +349,7 @@ function drawDisplacedGridLines(
  * Skia-based high-fidelity deforming glowing neon blue background grid.
  * @public
  */
-export const drawSkiaGeometryWarsBackground: EffectDrawer<any, GeometryWarsComponentRegistry> = {
+export const drawSkiaGeometryWarsBackground: EffectDrawer<SkCanvas, GeometryWarsComponentRegistry> = {
   draw(canvas, world) {
     if (!ensureSkiaAvailable()) return;
     const screen = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };

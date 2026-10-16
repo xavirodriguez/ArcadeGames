@@ -4291,19 +4291,19 @@ export interface Renderer<TRegistry extends ComponentRegistry = ComponentRegistr
 }
 
 // @public
-export type RendererRegistrationCallback = (renderer: Renderer<ComponentRegistry, RenderContext>) => void;
+export type RendererRegistrationCallback<TReg extends ComponentRegistry = ComponentRegistry, TContext = unknown> = (renderer: Renderer<TReg, TContext>) => void;
 
 // @public
-export interface RendererRegistrationConfig {
+export interface RendererRegistrationConfig<TReg extends ComponentRegistry = ComponentRegistry> {
     // (undocumented)
-    canvas?: RendererRegistrationCallback;
+    canvas?: (renderer: Renderer<TReg, CanvasRenderingContext2D>) => void;
     // (undocumented)
-    skia?: RendererRegistrationCallback;
+    skia?: (renderer: Renderer<TReg, unknown>) => void;
 }
 
 // @public
 export class RendererUtils {
-    static registerAssets<T extends ComponentRegistry>(renderer: Renderer<T, RenderContext>, config: RendererRegistrationConfig): void;
+    static registerAssets<T extends ComponentRegistry>(renderer: Renderer<T, unknown>, config: RendererRegistrationConfig<T>): void;
 }
 
 // @public

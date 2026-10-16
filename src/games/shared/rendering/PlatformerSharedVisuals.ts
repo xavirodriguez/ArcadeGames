@@ -1,6 +1,6 @@
-import { ShapeDrawer, CoreComponentRegistry } from "@tiny-aster/core";
+import { ShapeDrawer, RenderContext, CoreComponentRegistry } from "@tiny-aster/core";
 import { resolveHitFlash } from "./RenderUtils";
-import { Skia, getPaint } from "./SkiaContext";
+import { Skia, getPaint, SkCanvas, SkPaint } from "./SkiaContext";
 import {
   resolveEchoDrawContext,
   resolveEchoMemoryFragmentDrawContext,
@@ -71,7 +71,7 @@ export function drawCanvasHitFlashRect(ctx: CanvasRenderingContext2D, x: number,
   return true;
 }
 
-export function drawSkiaHitFlashCircle(canvas: any, paint: any, radius: number, color: string): true {
+export function drawSkiaHitFlashCircle(canvas: SkCanvas, paint: SkPaint, radius: number, color: string): true {
   paint.reset();
   paint.setAntiAlias(true);
   paint.setStyle(Skia.PaintStyle.Fill);
@@ -81,7 +81,7 @@ export function drawSkiaHitFlashCircle(canvas: any, paint: any, radius: number, 
   return true;
 }
 
-export function drawSkiaHitFlashRect(canvas: any, paint: any, x: number, y: number, w: number, h: number, color: string): true {
+export function drawSkiaHitFlashRect(canvas: SkCanvas, paint: SkPaint, x: number, y: number, w: number, h: number, color: string): true {
   paint.reset();
   paint.setAntiAlias(true);
   paint.setStyle(Skia.PaintStyle.Fill);
@@ -494,7 +494,7 @@ export const drawCharger: ShapeDrawer<CanvasRenderingContext2D, CoreComponentReg
 // SKIA SHAPE DRAWERS
 // ==========================================
 
-export const drawSkiaMemoryFragment: ShapeDrawer<any, CoreComponentRegistry> = {
+export const drawSkiaMemoryFragment: ShapeDrawer<SkCanvas, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     const fragCtx = resolveEchoMemoryFragmentDrawContext(world, entity);
     if (!fragCtx) return;
@@ -542,7 +542,7 @@ export const drawSkiaMemoryFragment: ShapeDrawer<any, CoreComponentRegistry> = {
   }
 };
 
-export const drawSkiaMemoryCore: ShapeDrawer<any, CoreComponentRegistry> = {
+export const drawSkiaMemoryCore: ShapeDrawer<SkCanvas, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     const coreCtx = resolveEchoCollectibleDrawContext(world, entity, 24);
     if (!coreCtx) return;
@@ -584,7 +584,7 @@ export const drawSkiaMemoryCore: ShapeDrawer<any, CoreComponentRegistry> = {
   }
 };
 
-export const drawSkiaCheckpointNode: ShapeDrawer<any, CoreComponentRegistry> = {
+export const drawSkiaCheckpointNode: ShapeDrawer<SkCanvas, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     const cpCtx = resolveEchoCheckpointDrawContext(world, entity);
     if (!cpCtx) return;
@@ -630,7 +630,7 @@ export const drawSkiaCheckpointNode: ShapeDrawer<any, CoreComponentRegistry> = {
   }
 };
 
-export const drawSkiaPulseAttack: ShapeDrawer<any, CoreComponentRegistry> = {
+export const drawSkiaPulseAttack: ShapeDrawer<SkCanvas, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
     if (!render || !render.visible) return;
@@ -664,7 +664,7 @@ export const drawSkiaPulseAttack: ShapeDrawer<any, CoreComponentRegistry> = {
   }
 };
 
-export const drawSkiaSentinel: ShapeDrawer<any, CoreComponentRegistry> = {
+export const drawSkiaSentinel: ShapeDrawer<SkCanvas, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
     const drawCtx = resolveEchoDrawContext(world, entity, 22);
@@ -733,7 +733,7 @@ export const drawSkiaSentinel: ShapeDrawer<any, CoreComponentRegistry> = {
   }
 };
 
-export const drawSkiaHopper: ShapeDrawer<any, CoreComponentRegistry> = {
+export const drawSkiaHopper: ShapeDrawer<SkCanvas, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
     const drawCtx = resolveEchoDrawContext(world, entity, 24);
@@ -781,11 +781,11 @@ export const drawSkiaHopper: ShapeDrawer<any, CoreComponentRegistry> = {
 
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color(palette.archiveSlate));
-    canvas.drawRoundRect(Skia.RRectXY(Skia.XYWHRect(-size * 0.35, -size * 0.4, size * 0.7, size * 0.45), 3, 3), paint);
+    canvas.drawRRect(Skia.RRectXY(Skia.XYWHRect(-size * 0.35, -size * 0.4, size * 0.7, size * 0.45), 3, 3), paint);
 
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setColor(Skia.Color(glowColor));
-    canvas.drawRoundRect(Skia.RRectXY(Skia.XYWHRect(-size * 0.35, -size * 0.4, size * 0.7, size * 0.45), 3, 3), paint);
+    canvas.drawRRect(Skia.RRectXY(Skia.XYWHRect(-size * 0.35, -size * 0.4, size * 0.7, size * 0.45), 3, 3), paint);
 
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color(glowColor));
@@ -795,7 +795,7 @@ export const drawSkiaHopper: ShapeDrawer<any, CoreComponentRegistry> = {
   }
 };
 
-export const drawSkiaWatcher: ShapeDrawer<any, CoreComponentRegistry> = {
+export const drawSkiaWatcher: ShapeDrawer<SkCanvas, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
     const drawCtx = resolveEchoDrawContext(world, entity, 26);
@@ -860,7 +860,7 @@ export const drawSkiaWatcher: ShapeDrawer<any, CoreComponentRegistry> = {
   }
 };
 
-export const drawSkiaCharger: ShapeDrawer<any, CoreComponentRegistry> = {
+export const drawSkiaCharger: ShapeDrawer<SkCanvas, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
     const drawCtx = resolveEchoDrawContext(world, entity, 28);

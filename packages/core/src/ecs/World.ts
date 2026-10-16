@@ -86,7 +86,7 @@ export class World<
   private componentMaps = new Map<string, ComponentStorage<unknown>>();
 
   private getStorage(type: string): ComponentStorage<unknown> | undefined {
-    let storage = this.componentMaps.get(type);
+    const storage = this.componentMaps.get(type);
     if (!storage) return undefined;
     const useSparse = this.getResource("UseSparseSetStorage") === true;
     if (useSparse && !(storage instanceof SparseSetStorage)) {

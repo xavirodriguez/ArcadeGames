@@ -392,7 +392,7 @@ export const drawOutrunRacer: ShapeDrawer<CanvasRenderingContext2D, OutrunCompon
 };
 
 export const drawOutrunHud = {
-  draw(ctx: CanvasRenderingContext2D, world: import("@tiny-aster/core").World<OutrunComponentRegistry, unknown, unknown>): void {
+  draw(ctx: CanvasRenderingContext2D, world: import("@tiny-aster/core").World<OutrunComponentRegistry>): void {
     const hudCtx = resolveOutrunHudContext(world);
     if (!hudCtx) return;
 

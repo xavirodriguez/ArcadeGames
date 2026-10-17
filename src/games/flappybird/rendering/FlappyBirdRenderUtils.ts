@@ -1,6 +1,7 @@
 import { World, TransformComponent, RenderComponent, HealthComponent, ComboComponent } from "@tiny-aster/core";
 import {
   FlappyBirdComponentRegistry,
+  FlappyBirdState,
   BirdComponent,
   PipeComponent
 } from "../types/FlappyBirdTypes";
@@ -355,7 +356,7 @@ export interface WarpLine {
 }
 
 export interface FlappyBackgroundSetup {
-  gameState: Record<string, unknown>;
+  gameState: FlappyBirdState;
   width: number;
   height: number;
   scenarioTheme: ReturnType<typeof getThemeForScenario>;

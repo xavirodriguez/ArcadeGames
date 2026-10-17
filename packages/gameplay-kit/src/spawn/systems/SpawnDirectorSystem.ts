@@ -1,4 +1,4 @@
-import { System, World, ComponentRegistry, EventBus } from "@tiny-aster/core";
+import { System, World, ComponentRegistry, EventBus, WorldCommandBuffer } from "@tiny-aster/core";
 import { SpawnDirectorComponent, WaveDefinition, SpawnRequest } from "../components/SpawnComponents";
 
 /**
@@ -30,7 +30,7 @@ export class SpawnDirectorSystem<
     if (directorEntity === undefined) return;
 
     // Load active director state
-    const director = world.getComponent(directorEntity, directorKey) as unknown as SpawnDirectorComponent | undefined;
+    const director = world.getComponent(directorEntity, directorKey) as SpawnDirectorComponent | undefined;
     if (!director) return;
 
     const waveDefinitions = world.getResource<WaveDefinition[]>("WaveDefinitions") || [];
@@ -77,14 +77,18 @@ export class SpawnDirectorSystem<
           // Time to spawn!
           const entityId = world.reserveEntityId();
           world.getCommandBuffer().createEntity(entityId);
-          world.getCommandBuffer().spawnFromBlueprintForEntity(entityId, spawn.blueprintId as any, spawn.args as any);
+          world.getCommandBuffer().spawnFromBlueprintForEntity(
+            entityId,
+            spawn.blueprintId as Extract<keyof TComponents, string>,
+            spawn.args as any
+          );
 
           // Attach WaveMember component to identify it belongs to the wave
           world.getCommandBuffer().addComponent(entityId, {
             type: "WaveMember",
             waveIndex,
             waveId: activeWaveId || ""
-          } as unknown as Parameters<ReturnType<typeof world.getCommandBuffer>["addComponent"]>[1]);
+          } as unknown as Parameters<WorldCommandBuffer<TComponents>["addComponent"]>[1]);
         } else {
           remainingSpawns.push(spawn);
         }

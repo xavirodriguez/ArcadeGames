@@ -1,5 +1,5 @@
 import { World } from "@tiny-aster/core";
-import { FlappyBirdComponentRegistry, ScenarioId } from "../types/FlappyBirdTypes";
+import { ScenarioId, FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
 import { colors } from "../../../theme/colors";
 
 /**

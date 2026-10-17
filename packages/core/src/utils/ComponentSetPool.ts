@@ -8,10 +8,12 @@ import { createDeferredEntity } from "../ecs/EntityHelpers";
  * Generic ComponentSetPool that manages a pool of component sets.
  *
  * @remarks
- * Aims to reduce garbage collector pressure by reusing component objects across
- * entities in high-churn scenarios.
+ * **Reconstructible Cache Contract ("Reconstructible in 1 tick")**:
+ * The internal `pool` (ObjectPool) and `activeEntities` tracking set are un-serialized transient memory structures
+ * designed to minimize GC pressure during high-frequency entity lifecycle operations.
+ * Upon `world.restore(snapshot)`, active entities with `Reclaimable` components automatically re-register
+ * into `activeEntities` during their next release cycle without throwing double-release errors or producing state hash divergence.
  *
- * Type parameter T: T - A record of component types that form the pooled entity.
  * @public
  */
 export class ComponentSetPool<T extends Record<string, Component>> {

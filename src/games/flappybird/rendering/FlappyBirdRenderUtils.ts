@@ -3,7 +3,8 @@ import {
   FlappyBirdComponentRegistry,
   FlappyBirdState,
   BirdComponent,
-  PipeComponent
+  PipeComponent,
+  FlappyBirdState
 } from "../types/FlappyBirdTypes";
 import {
   calculateBirdTiltAngle,

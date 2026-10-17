@@ -380,9 +380,9 @@
     "total": 25
   },
   "packages/gameplay-kit/src/spawn/systems/SpawnDirectorSystem.ts": {
-    "anyCount": 2,
-    "unknownCount": 2,
-    "total": 4
+    "anyCount": 1,
+    "unknownCount": 1,
+    "total": 2
   },
   "packages/gameplay-kit/src/story/BaseMiniGameEncounter.ts": {
     "anyCount": 5,

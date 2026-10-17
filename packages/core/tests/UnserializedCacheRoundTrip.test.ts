@@ -22,6 +22,9 @@ function computeWorldHash(world: World): string {
   });
 }
 
+/**
+ * Unserialized Cache Contract Round-Trip Tests (Task 4.4)
+ */
 describe("Unserialized Cache Contract Round-Trip Tests (Task 4.4)", () => {
   it("should produce identical state hash after snapshot() -> restore() in systems with transient caches", () => {
     const world1 = new World<CoreComponentRegistry>();

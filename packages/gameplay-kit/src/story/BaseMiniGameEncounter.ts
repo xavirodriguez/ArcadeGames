@@ -30,7 +30,7 @@ export abstract class BaseMiniGameEncounter<TGame = unknown> implements ArcadeGa
     payload?: unknown
   ): { metrics?: Record<string, number>; secretsFound?: string[] };
 
-  public emitResult(context: MiniGameRunContext, payload?: { score?: number; completed?: boolean; durationMs?: number }): void {
+  public emitResult(context: MiniGameRunContext, payload?: { score?: number; completed?: boolean; durationMs?: number; [key: string]: unknown }): void {
     if (!this.resultCallback) return;
 
     const gameInst = this.game as PlayableGameInstance | null;

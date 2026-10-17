@@ -1478,6 +1478,38 @@ export interface CoreComponentRegistry extends ComponentRegistry {
   VehicleSteering: VehicleSteeringComponent;
   /** VehicleWaypoint component. */
   VehicleWaypoint: VehicleWaypointComponent;
+  /** LapTracker component. */
+  LapTracker: LapTrackerComponent;
+  /** Generic GameState component. */
+  GameState: Component & { mode?: unknown };
+  /** LevelGoal component. */
+  LevelGoal: LevelGoalComponent;
+}
+
+/**
+ * Component marking level finish line or goal area.
+ * @public
+ */
+export interface LevelGoalComponent extends Component {
+  type: "LevelGoal";
+  reached: boolean;
+}
+
+/**
+ * Component tracking lap counts, current/best lap times, checkpoint progression, and completion status.
+ * @public
+ */
+export interface LapTrackerComponent extends Component {
+  type: "LapTracker";
+  currentLap: number;
+  totalLaps: number;
+  currentLapTime: number;
+  bestLapTime?: number;
+  lastLapTime?: number;
+  nextCheckpointIndex: number;
+  totalCheckpoints: number;
+  totalRaceTime: number;
+  isFinished: boolean;
 }
 
 /**

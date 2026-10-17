@@ -138,9 +138,9 @@ export function createPlatformerMovementConfig(config: {
   PLAYER_DECEL: number;
   PLAYER_AIR_ACCEL: number;
   PLAYER_AIR_DECEL: number;
-}): Component & { type: string; [key: string]: unknown } {
+}) {
   return {
-    type: "PlatformerMovementConfig",
+    type: "PlatformerMovementConfig" as const,
     acceleration: config.PLAYER_ACCEL,
     maxSpeed: config.PLAYER_SPEED,
     deceleration: config.PLAYER_DECEL,
@@ -171,12 +171,12 @@ export function setupPlatformerMovementComponents(
     minJumpVelocity: config.PLAYER_MIN_JUMP_VEL,
     ...(config.APEX_THRESHOLD !== undefined ? { apexThreshold: config.APEX_THRESHOLD } : {}),
     ...(config.APEX_GRAVITY_MULTIPLIER !== undefined ? { apexGravityMultiplier: config.APEX_GRAVITY_MULTIPLIER } : {})
-  } as { type: string; [key: string]: unknown });
+  });
   world.addComponent(entity, {
     type: "PlatformerGroundState",
     isGrounded: false,
     iceMultiplier: 1.0
-  } as { type: string; [key: string]: unknown });
+  });
 }
 
 /**
@@ -194,7 +194,7 @@ export function setupTilemapEntity(
   entity: Entity,
   tileSize: number,
   data: number[][],
-  tileDefinitions: unknown
+  tileDefinitions: Record<number, TileDefinition>
 ): void {
   EntityBuilder.fromEntity(world, entity)
     .withTransform({ x: 0, y: 0 })
@@ -205,7 +205,7 @@ export function setupTilemapEntity(
     data,
     tileSize,
     tileDefinitions
-  } as { type: string; [key: string]: unknown });
+  });
 }
 
 /**
@@ -228,7 +228,7 @@ export function registerPlatformerTilemapBlueprint(
   defaultConfig: { TILE_SIZE: number }
 ): void {
   blueprints.register("tilemap", {
-    spawn: (world: World<CoreComponentRegistry>, entity: Entity, args: { data: number[][]; tileDefinitions: Record<number, unknown> }) => {
+    spawn: (world: World<CoreComponentRegistry>, entity: Entity, args: { data: number[][]; tileDefinitions: Record<number, TileDefinition> }) => {
       const config = world.getResource<{ TILE_SIZE: number }>("GameConfig") || defaultConfig;
       setupTilemapEntity(world, entity, config.TILE_SIZE, args.data, args.tileDefinitions);
     }
@@ -331,7 +331,7 @@ export function createMainCamera2D(
     smoothingX: options.smoothingX ?? 3.5,
     smoothingY: options.smoothingY ?? 3.5,
     verticalDeadzone: options.verticalDeadzone ?? 45
-  } as { type: string; [key: string]: unknown });
+  });
   return cameraEntity;
 }
 
@@ -476,7 +476,7 @@ export function registerCollectibleTriggerBlueprint(
         persistent,
         collectOnce,
         id: args.id
-      } as { type: string; [key: string]: unknown });
+      });
     }
   });
 }

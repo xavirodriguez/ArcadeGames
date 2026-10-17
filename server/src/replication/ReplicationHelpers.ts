@@ -1,31 +1,59 @@
 import { ReplicationResult } from "./ReplicationStrategy";
 
+export interface ReplicationClient {
+  sessionId: string;
+  send: (event: string, payload: unknown) => void;
+}
+
+export interface ReplicationRoom {
+  world: {
+    entities: { length: number };
+    getResource: <T = unknown>(name: string) => T | undefined;
+  };
+  newClients: Set<string>;
+  ackTracker: {
+    nextSequence: (sessionId: string) => number;
+    getLastAckedSequence: (sessionId: string) => number;
+    getIdleTime: (sessionId: string) => number;
+  };
+  deltaSystem: {
+    generateDelta: (
+      world: unknown,
+      sessionId: string,
+      sequence: number,
+      baselineAck: number,
+      interestIds: Set<number>,
+      forceFull: boolean
+    ) => unknown;
+  };
+}
+
 export interface ReplicationClientContext {
-  client: any;
+  client: ReplicationClient;
   interestIds: Set<number>;
   isNew: boolean;
 }
 
 export interface CommonReplicationOptions {
-  room: any;
-  clients: any[];
-  state: any;
+  room: ReplicationRoom;
+  clients: ReplicationClient[];
+  state: { protocolVersion?: number; [key: string]: unknown };
   tick: number;
-  getInterestIds: (client: any, interest: any[]) => Set<number>;
-  serializeAndSend: (client: any, isNew: boolean, interestIds: Set<number>) => { serializationMs: number; bytesSent: number };
+  getInterestIds: (client: ReplicationClient, interest: unknown[]) => Set<number>;
+  serializeAndSend: (client: ReplicationClient, isNew: boolean, interestIds: Set<number>) => { serializationMs: number; bytesSent: number };
 }
 
 export function executeReplicationLoop(options: CommonReplicationOptions): ReplicationResult {
-  const { room, clients, state, tick, getInterestIds, serializeAndSend } = options;
+  const { room, clients, getInterestIds, serializeAndSend } = options;
 
   let totalBytesSentThisTick = 0;
   let totalSerializationMs = 0;
   let totalEntitiesFiltered = 0;
   const totalEntitiesInWorld = room.world.entities.length;
 
-  const detailedInterestMap = room.world.getResource("DetailedInterestMap");
+  const detailedInterestMap = room.world.getResource<Map<string, unknown[]>>("DetailedInterestMap");
 
-  clients.forEach((client: any) => {
+  clients.forEach((client: ReplicationClient) => {
     const isNew = room.newClients.has(client.sessionId);
     const interest = detailedInterestMap?.get(client.sessionId) || [];
     const interestIds = getInterestIds(client, interest);
@@ -49,9 +77,9 @@ export function executeReplicationLoop(options: CommonReplicationOptions): Repli
 }
 
 export function sendDeltaState(
-  room: any,
-  client: any,
-  state: any,
+  room: ReplicationRoom,
+  client: ReplicationClient,
+  state: { protocolVersion?: number; [key: string]: unknown },
   tick: number,
   interestIds: Set<number>
 ): { serializationMs: number; bytesSent: number } {

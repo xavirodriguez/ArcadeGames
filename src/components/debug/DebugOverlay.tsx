@@ -15,10 +15,14 @@ import {
 import { BaseGame } from "@tiny-aster/core";
 import Svg, { Circle, Rect } from 'react-native-svg';
 
+function isRecord(val: unknown): val is Record<string, unknown> {
+  return typeof val === "object" && val !== null;
+}
+
 export interface EventLogEntry {
   timestamp: number;
   event: string;
-  payload: any;
+  payload: unknown;
 }
 
 export interface FrameStats {
@@ -33,12 +37,15 @@ export interface ColliderShapeInfo {
   x: number;
   y: number;
   isTrigger: boolean;
-  shape: any;
+  shape: { radius?: number; halfWidth?: number; halfHeight?: number };
 }
 
 interface DebugOverlayProps {
   game: BaseGame<any, any, any, any, any> | null;
-  room?: any;
+  room?: {
+    onMessage?: (type: string, cb: (data: unknown) => void) => (() => void) | { clear?: () => void } | void;
+    send?: (type: string, data?: unknown) => void;
+  } | null;
 }
 
 type TabType = 'Frame' | 'Systems' | 'Entities' | 'Events' | 'Colliders' | 'Replay' | 'Metrics';
@@ -78,7 +85,7 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({ game, room }) => {
   const [entityFilter, setEntityFilter] = useState('');
 
   // Telemetry states
-  const [metrics, setMetrics] = useState<any>(null);
+  const [metrics, setMetrics] = useState<Record<string, unknown> | null>(null);
   const [latency, setLatency] = useState<number | null>(null);
   const lastRequestTimeRef = useRef<number>(0);
 
@@ -86,16 +93,20 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({ game, room }) => {
   useEffect(() => {
     if (!room || !isOpen || activeTab !== 'Metrics') return;
 
-    const handleMetrics = (data: any) => {
-      setMetrics(data);
+    const handleMetrics = (data: unknown) => {
+      if (isRecord(data)) {
+        setMetrics(data);
+      }
       if (lastRequestTimeRef.current > 0) {
         setLatency(Date.now() - lastRequestTimeRef.current);
       }
     };
 
-    let listener: any = null;
+    let listener: (() => void) | { clear?: () => void } | void = undefined;
     try {
-      listener = room.onMessage("metrics", handleMetrics);
+      if (typeof room.onMessage === "function") {
+        listener = room.onMessage("metrics", handleMetrics);
+      }
     } catch (e) {
       console.warn("[DebugOverlay] Failed to register metrics message handler:", e);
     }
@@ -103,7 +114,9 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({ game, room }) => {
     // Request metrics immediately
     lastRequestTimeRef.current = Date.now();
     try {
-      room.send("metrics");
+      if (typeof room.send === "function") {
+        room.send("metrics");
+      }
     } catch (e) {
       console.warn("[DebugOverlay] Failed to send metrics request:", e);
     }
@@ -112,7 +125,9 @@ export const DebugOverlay: React.FC<DebugOverlayProps> = ({ game, room }) => {
     const interval = setInterval(() => {
       lastRequestTimeRef.current = Date.now();
       try {
-        room.send("metrics");
+        if (typeof room.send === "function") {
+          room.send("metrics");
+        }
       } catch (e) {
         // Ignore send errors if connection is closed/closing
       }

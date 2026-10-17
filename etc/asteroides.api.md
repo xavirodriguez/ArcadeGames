@@ -1244,6 +1244,9 @@ export interface CoreComponentRegistry extends ComponentRegistry {
     Enemy: EnemyComponent;
     Faction: FactionComponent;
     Friction: FrictionComponent;
+    GameState: Component & {
+        mode?: unknown;
+    };
     GroundDetector: GroundDetectorComponent;
     HapticRequest: HapticRequestComponent<string>;
     Health: HealthComponent;
@@ -1254,6 +1257,8 @@ export interface CoreComponentRegistry extends ComponentRegistry {
     Joint: JointComponent;
     Juice: JuiceComponent;
     KineticAccumulator: KineticAccumulatorComponent;
+    LapTracker: LapTrackerComponent;
+    LevelGoal: LevelGoalComponent;
     MovingPlatform: MovingPlatformComponent;
     ParticleEmitter: ParticleEmitterComponent;
     Patrol: PatrolComponent;
@@ -1294,6 +1299,12 @@ export interface CoreEvents {
     "arcade:state_changed": {
         from: string;
         to: string;
+    };
+    "checkpoint:passed": {
+        entity?: Entity;
+        checkpointIndex: number;
+        nextCheckpointIndex?: number;
+        [key: string]: unknown;
     };
     "cutscene:completed": Record<string, unknown>;
     "cutscene:line_advanced": {
@@ -2943,7 +2954,39 @@ export class KineticAccumulatorSystem extends System<CoreComponentRegistry> {
 }
 
 // @public
+export interface LapTrackerComponent extends Component {
+    // (undocumented)
+    bestLapTime?: number;
+    // (undocumented)
+    currentLap: number;
+    // (undocumented)
+    currentLapTime: number;
+    // (undocumented)
+    isFinished: boolean;
+    // (undocumented)
+    lastLapTime?: number;
+    // (undocumented)
+    nextCheckpointIndex: number;
+    // (undocumented)
+    totalCheckpoints: number;
+    // (undocumented)
+    totalLaps: number;
+    // (undocumented)
+    totalRaceTime: number;
+    // (undocumented)
+    type: "LapTracker";
+}
+
+// @public
 export function layer(bit: number): number;
+
+// @public
+export interface LevelGoalComponent extends Component {
+    // (undocumented)
+    reached: boolean;
+    // (undocumented)
+    type: "LevelGoal";
+}
 
 // @public
 export interface LevelPlan {

@@ -1,6 +1,8 @@
 import { Theme, createVisualTheme } from "@tiny-aster/core";
 import { DEFAULT_ECHO_PALETTE } from "../../shared/rendering/PlatformerSharedVisualUtils";
 
+export type EchoRunnerSkinId = "dark" | "light" | "sunset";
+
 /**
  * EchoRunner "The Archive" Color Palette
  * Distinguishes Corrupted vs Restored Archive data and environments.
@@ -91,6 +93,7 @@ export function createArchiveTheme(customTheme?: Partial<Theme>): Theme {
       fragment: ECHO_PALETTE.restorationCyan,
       core: ECHO_PALETTE.restorationGold,
       node: ECHO_PALETTE.archiveNodeActive,
+      shadowColor: "rgba(0, 0, 0, 0.35)",
       ...customTheme?.colorMap
     },
     lore: {
@@ -116,4 +119,112 @@ export function createArchiveTheme(customTheme?: Partial<Theme>): Theme {
         },
     visualTheme: customTheme?.visualTheme ?? visualTheme
   };
+}
+
+/**
+ * Creates a Theme for Echo Runner corresponding to the specified visual skin.
+ *
+ * @param skin - Visual skin identifier ("dark" | "light" | "sunset")
+ * @returns Configured Theme for Echo Runner
+ */
+export function createEchoRunnerTheme(skin: EchoRunnerSkinId): Theme {
+  if (skin === "light") {
+    return createArchiveTheme({
+      colorMap: {
+        archiveVoidDark: "#f1f5f9",
+        archiveSlate: "#e2e8f0",
+        archiveBorderDark: "#64748b",
+        archiveBorderLight: "#94a3b8",
+
+        restorationCyan: "#0284c7",
+        player: "#0284c7",
+        primary: "#0284c7",
+        fragment: "#0284c7",
+
+        corruptionCrimson: "#e11d48",
+        enemy: "#e11d48",
+        charger: "#e11d48",
+        accent: "#e11d48",
+
+        restorationGold: "#d97706",
+        secondary: "#d97706",
+        core: "#d97706",
+
+        corruptionPurple: "#7e22ce",
+        sentinel: "#7e22ce",
+
+        watcher: "#0284c7",
+        shadowColor: "rgba(15, 23, 42, 0.15)",
+
+        restorationCyanGlow: "rgba(2, 132, 199, 0.25)",
+        restorationCyanFade: "rgba(2, 132, 199, 0.08)",
+        restorationGoldGlow: "rgba(217, 119, 6, 0.25)",
+        corruptionCrimsonGlow: "rgba(225, 29, 72, 0.25)",
+        corruptionPurpleGlow: "rgba(126, 34, 206, 0.25)",
+
+        archiveGridLine: "rgba(15, 23, 42, 0.08)",
+        archiveGridLineSecondary: "rgba(15, 23, 42, 0.04)",
+        archiveDataStream: "rgba(225, 29, 72, 0.06)",
+
+        archiveNodeActive: "#059669",
+        archiveNodeInactive: "#dc2626",
+        hopper: "#059669",
+        node: "#059669",
+      },
+      lore: {
+        subtitle: "Daylight Spectrum Active",
+      },
+    });
+  }
+
+  if (skin === "sunset") {
+    return createArchiveTheme({
+      colorMap: {
+        archiveVoidDark: "#fdf6e3",
+        archiveSlate: "#fef3c7",
+        archiveBorderDark: "#b45309",
+        archiveBorderLight: "#d97706",
+
+        restorationCyan: "#e11d48",
+        player: "#e11d48",
+        primary: "#e11d48",
+        fragment: "#e11d48",
+
+        corruptionCrimson: "#c026d3",
+        enemy: "#c026d3",
+        charger: "#c026d3",
+        accent: "#c026d3",
+
+        restorationGold: "#ea580c",
+        secondary: "#ea580c",
+        core: "#ea580c",
+
+        corruptionPurple: "#8f12fd",
+        sentinel: "#8f12fd",
+
+        watcher: "#e11d48",
+        shadowColor: "rgba(67, 20, 7, 0.18)",
+
+        restorationCyanGlow: "rgba(225, 29, 72, 0.25)",
+        restorationCyanFade: "rgba(225, 29, 72, 0.08)",
+        restorationGoldGlow: "rgba(234, 88, 12, 0.25)",
+        corruptionCrimsonGlow: "rgba(192, 38, 211, 0.25)",
+        corruptionPurpleGlow: "rgba(143, 18, 253, 0.25)",
+
+        archiveGridLine: "rgba(180, 83, 9, 0.10)",
+        archiveGridLineSecondary: "rgba(180, 83, 9, 0.05)",
+        archiveDataStream: "rgba(225, 29, 72, 0.06)",
+
+        archiveNodeActive: "#10b981",
+        archiveNodeInactive: "#e11d48",
+        hopper: "#10b981",
+        node: "#10b981",
+      },
+      lore: {
+        subtitle: "Sunset Horizon Active",
+      },
+    });
+  }
+
+  return createArchiveTheme();
 }

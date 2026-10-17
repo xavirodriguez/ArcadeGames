@@ -41,11 +41,11 @@ function getPulseAttackGradient(ctx: CanvasRenderingContext2D, size: number, pal
     lastCtx = ctx;
     gradientCache.clear();
   }
-  const key = `pulse_${size}_${palette.restorationCyanGlow}`;
+  const key = `pulse_${size}_${palette.restorationCyanGlow}_${palette.restorationWhite}`;
   let grad = gradientCache.get(key);
   if (!grad) {
     grad = ctx.createRadialGradient(0, 0, size * 0.2, 0, 0, size);
-    grad.addColorStop(0, "rgba(255, 255, 255, 0.95)");
+    grad.addColorStop(0, palette.restorationWhite);
     grad.addColorStop(0.4, palette.restorationCyanGlow);
     grad.addColorStop(1, "rgba(0, 240, 255, 0)");
     gradientCache.set(key, grad);
@@ -402,12 +402,12 @@ export const drawWatcher: ShapeDrawer<CanvasRenderingContext2D, CoreComponentReg
     ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = isAlert || isAttack ? glowColor : "rgba(59, 130, 246, 0.4)";
+    ctx.fillStyle = isAlert || isAttack ? glowColor : palette.watcher;
     ctx.beginPath();
     ctx.arc(0, -size * 0.05, size * 0.18, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = isAlert && Math.floor(world.tick / 3) % 2 === 0 ? palette.restorationWhite : "#60a5fa";
+    ctx.fillStyle = isAlert && Math.floor(world.tick / 3) % 2 === 0 ? palette.restorationWhite : palette.watcher;
     ctx.beginPath();
     ctx.arc(0, -size * 0.05, size * 0.08, 0, Math.PI * 2);
     ctx.fill();
@@ -850,10 +850,10 @@ export const drawSkiaWatcher: ShapeDrawer<SkCanvas, CoreComponentRegistry> = {
     canvas.drawCircle(0, -size * 0.05, size * 0.32, paint);
 
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(isAlert || isAttack ? glowColor : "rgba(59, 130, 246, 0.4)"));
+    paint.setColor(Skia.Color(isAlert || isAttack ? glowColor : palette.watcher));
     canvas.drawCircle(0, -size * 0.05, size * 0.18, paint);
 
-    paint.setColor(Skia.Color(isAlert && Math.floor(world.tick / 3) % 2 === 0 ? palette.restorationWhite : "#60a5fa"));
+    paint.setColor(Skia.Color(isAlert && Math.floor(world.tick / 3) % 2 === 0 ? palette.restorationWhite : palette.watcher));
     canvas.drawCircle(0, -size * 0.05, size * 0.08, paint);
 
     canvas.restore();

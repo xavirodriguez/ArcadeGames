@@ -215,6 +215,12 @@ export const es = {
     elapsed_time: "Tiempo Transcurrido",
     return_repo: "VOLVER AL REPOSITORIO",
     syncing_files: "Sincronizando Archivos de Memoria...",
+    skin_select: "SKIN VISUAL",
+    skins: {
+      dark: "ARCHIVO OSCURO",
+      light: "ESPECTRO CLARO",
+      sunset: "HORIZONTE OCASO"
+    }
   },
   platformer: {
     instructions: "A/D o Flechas: Mover  |  W/Espacio/Flecha Arriba: Saltar",

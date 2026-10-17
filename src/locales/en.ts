@@ -172,6 +172,12 @@ export const en = {
     elapsed_time: "Elapsed Time",
     return_repo: "RETURN TO REPOSITORY",
     syncing_files: "Syncing Memory Files...",
+    skin_select: "VISUAL SKIN",
+    skins: {
+      dark: "DARK ARCHIVE",
+      light: "LIGHT SPECTRUM",
+      sunset: "SUNSET HORIZON"
+    }
   },
   platformer: {
     instructions: "A/D or Arrows: Move  |  W/Space/Up Arrow: Jump",

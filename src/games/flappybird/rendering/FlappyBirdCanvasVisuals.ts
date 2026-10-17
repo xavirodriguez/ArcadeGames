@@ -285,6 +285,19 @@ function drawArrowheadPath(ctx: CanvasRenderingContext2D, size: number) {
   ctx.closePath();
 }
 
+function applyPipeGradientStops(
+  g: CanvasGradient,
+  variant: string,
+  [s1, s2, s3]: [number, number, number]
+): void {
+  const isRusted = variant === "rusted";
+  g.addColorStop(0, colors.surface);
+  g.addColorStop(s1, colors.borderDark);
+  g.addColorStop(s2, isRusted ? colors.orange : colors.slate);
+  g.addColorStop(s3, colors.borderDark);
+  g.addColorStop(1.0, isRusted ? colors.surface : colors.backgroundDark);
+}
+
 /**
  * Containment Towers (Obstacles) Shape Drawer.
  */
@@ -297,25 +310,7 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
 
     const pillarGrad = getCachedCanvasGradient(ctx, `pillar_${halfWidth}_${variant}`, () => {
       const g = ctx.createLinearGradient(-halfWidth, 0, halfWidth, 0);
-      if (variant === "damaged") {
-        g.addColorStop(0, colors.surface);
-        g.addColorStop(0.25, colors.borderDark);
-        g.addColorStop(0.5, colors.slate);
-        g.addColorStop(0.75, colors.borderDark);
-        g.addColorStop(1.0, colors.backgroundDark);
-      } else if (variant === "rusted") {
-        g.addColorStop(0, colors.surface);
-        g.addColorStop(0.25, colors.borderDark);
-        g.addColorStop(0.5, colors.orange);
-        g.addColorStop(0.75, colors.borderDark);
-        g.addColorStop(1.0, colors.surface);
-      } else {
-        g.addColorStop(0, colors.surface);
-        g.addColorStop(0.25, colors.borderDark);
-        g.addColorStop(0.5, colors.slate);
-        g.addColorStop(0.75, colors.borderDark);
-        g.addColorStop(1.0, colors.backgroundDark);
-      }
+      applyPipeGradientStops(g, variant, [0.25, 0.5, 0.75]);
       return g;
     });
 
@@ -350,25 +345,7 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
 
     const collarGrad = getCachedCanvasGradient(ctx, `collar_${capHalfWidth}_${variant}`, () => {
       const g = ctx.createLinearGradient(-capHalfWidth, 0, capHalfWidth, 0);
-      if (variant === "damaged") {
-        g.addColorStop(0, colors.surface);
-        g.addColorStop(0.3, colors.borderDark);
-        g.addColorStop(0.55, colors.slate);
-        g.addColorStop(0.8, colors.borderDark);
-        g.addColorStop(1.0, colors.backgroundDark);
-      } else if (variant === "rusted") {
-        g.addColorStop(0, colors.surface);
-        g.addColorStop(0.3, colors.borderDark);
-        g.addColorStop(0.55, colors.orange);
-        g.addColorStop(0.8, colors.borderDark);
-        g.addColorStop(1.0, colors.surface);
-      } else {
-        g.addColorStop(0, colors.surface);
-        g.addColorStop(0.3, colors.borderDark);
-        g.addColorStop(0.55, colors.slate);
-        g.addColorStop(0.8, colors.borderDark);
-        g.addColorStop(1.0, colors.backgroundDark);
-      }
+      applyPipeGradientStops(g, variant, [0.3, 0.55, 0.8]);
       return g;
     });
 

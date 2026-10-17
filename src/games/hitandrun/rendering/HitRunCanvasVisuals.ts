@@ -141,6 +141,24 @@ export function withCharacterTransform(
   ctx.restore(); // restore main save
 }
 
+/** Wraps projectile rendering with ground shadow and elevation translation. */
+function withProjectileTransform(
+  ctx: CanvasRenderingContext2D,
+  size: number,
+  z: number,
+  shadowRxRatio: number,
+  shadowRyRatio: number,
+  drawProj: () => void
+): void {
+  ctx.save();
+  drawGroundShadow(ctx, size, z, shadowRxRatio, shadowRyRatio);
+  ctx.save();
+  ctx.translate(0, -z);
+  drawProj();
+  ctx.restore();
+  ctx.restore();
+}
+
 /** Armed platformer runner with HMG silhouette + muzzle flash. */
 export const drawHitRunPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
@@ -490,25 +508,18 @@ export const drawHitRunBullet: ShapeDrawer<CanvasRenderingContext2D, CoreCompone
     const color = render.color || "#fbbf24";
     const z = getElevationZ(world, entity);
 
-    ctx.save();
-    // 1. Small shadow on ground plane
-    drawGroundShadow(ctx, size * 1.5, z, 0.4, 0.12);
-
-    // 2. Projectile translated by flight height z
-    ctx.save();
-    ctx.translate(0, -z);
-    ctx.shadowColor = color;
-    ctx.shadowBlur = 8;
-    const grad = ctx.createLinearGradient(-size * 2, 0, size * 2, 0);
-    grad.addColorStop(0, "rgba(255,255,255,0)");
-    grad.addColorStop(0.4, color);
-    grad.addColorStop(1, "#ffffff");
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.ellipse(0, 0, size * 2.2, size * 0.7, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-    ctx.restore();
+    withProjectileTransform(ctx, size * 1.5, z, 0.4, 0.12, () => {
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 8;
+      const grad = ctx.createLinearGradient(-size * 2, 0, size * 2, 0);
+      grad.addColorStop(0, "rgba(255,255,255,0)");
+      grad.addColorStop(0.4, color);
+      grad.addColorStop(1, "#ffffff");
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, size * 2.2, size * 0.7, 0, 0, Math.PI * 2);
+      ctx.fill();
+    });
   }
 };
 
@@ -519,30 +530,23 @@ export const drawHitRunRocket: ShapeDrawer<CanvasRenderingContext2D, CoreCompone
     const size = render.size || 7;
     const z = getElevationZ(world, entity);
 
-    ctx.save();
-    // 1. Shadow on ground plane
-    drawGroundShadow(ctx, size * 1.5, z, 0.5, 0.15);
-
-    // 2. Rocket graphic translated by flight height z
-    ctx.save();
-    ctx.translate(0, -z);
-    setupGlowFill(ctx, "#ef4444", 10);
-    ctx.beginPath();
-    ctx.moveTo(size * 1.2, 0);
-    ctx.lineTo(-size * 0.8, -size * 0.5);
-    ctx.lineTo(-size * 0.5, 0);
-    ctx.lineTo(-size * 0.8, size * 0.5);
-    ctx.closePath();
-    ctx.fill();
-    // Exhaust
-    ctx.fillStyle = "#fbbf24";
-    ctx.beginPath();
-    ctx.moveTo(-size * 0.5, 0);
-    ctx.lineTo(-size * 1.4, -size * 0.25);
-    ctx.lineTo(-size * 1.4, size * 0.25);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-    ctx.restore();
+    withProjectileTransform(ctx, size * 1.5, z, 0.5, 0.15, () => {
+      setupGlowFill(ctx, "#ef4444", 10);
+      ctx.beginPath();
+      ctx.moveTo(size * 1.2, 0);
+      ctx.lineTo(-size * 0.8, -size * 0.5);
+      ctx.lineTo(-size * 0.5, 0);
+      ctx.lineTo(-size * 0.8, size * 0.5);
+      ctx.closePath();
+      ctx.fill();
+      // Exhaust
+      ctx.fillStyle = "#fbbf24";
+      ctx.beginPath();
+      ctx.moveTo(-size * 0.5, 0);
+      ctx.lineTo(-size * 1.4, -size * 0.25);
+      ctx.lineTo(-size * 1.4, size * 0.25);
+      ctx.closePath();
+      ctx.fill();
+    });
   }
 };

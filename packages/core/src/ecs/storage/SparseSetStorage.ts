@@ -42,21 +42,22 @@ export class SparseSetStorage<T> implements ComponentStorage<T> {
     }
   }
 
-  public get(entity: Entity): T | undefined {
+  private getDenseIndex(entity: Entity): number {
     const idx = unpackEntityIndex(entity);
-    if (idx >= this.sparse.length) return undefined;
+    if (idx >= this.sparse.length) return -1;
     const denseIdx = this.sparse[idx];
-    if (denseIdx < 0 || denseIdx >= this.denseEntities.length) return undefined;
-    if (this.denseEntities[denseIdx] !== entity) return undefined;
-    return this.dense[denseIdx];
+    if (denseIdx < 0 || denseIdx >= this.denseEntities.length) return -1;
+    if (this.denseEntities[denseIdx] !== entity) return -1;
+    return denseIdx;
+  }
+
+  public get(entity: Entity): T | undefined {
+    const denseIdx = this.getDenseIndex(entity);
+    return denseIdx >= 0 ? this.dense[denseIdx] : undefined;
   }
 
   public has(entity: Entity): boolean {
-    const idx = unpackEntityIndex(entity);
-    if (idx >= this.sparse.length) return false;
-    const denseIdx = this.sparse[idx];
-    if (denseIdx < 0 || denseIdx >= this.denseEntities.length) return false;
-    return this.denseEntities[denseIdx] === entity;
+    return this.getDenseIndex(entity) >= 0;
   }
 
   public set(entity: Entity, component: T): void {
@@ -93,12 +94,10 @@ export class SparseSetStorage<T> implements ComponentStorage<T> {
   }
 
   public delete(entity: Entity): boolean {
-    const idx = unpackEntityIndex(entity);
-    if (idx >= this.sparse.length) return false;
-    const denseIdx = this.sparse[idx];
-    if (denseIdx < 0 || denseIdx >= this.denseEntities.length) return false;
-    if (this.denseEntities[denseIdx] !== entity) return false;
+    const denseIdx = this.getDenseIndex(entity);
+    if (denseIdx < 0) return false;
 
+    const idx = unpackEntityIndex(entity);
     this.denseEntities.splice(denseIdx, 1);
     this.dense.splice(denseIdx, 1);
     this.sparse[idx] = -1;

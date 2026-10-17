@@ -6238,6 +6238,7 @@ export class World<TComponents extends ComponentRegistry = CoreComponentRegistry
     mutateComponent<K extends ComponentType<TComponents>>(entity: Entity, type: K, updater: (component: TComponents[K]) => void): boolean;
     mutateSingleton<K extends ComponentType<TComponents>>(type: K, mutator: (component: TComponents[K]) => void): void;
     query<K extends ComponentType<TComponents>>(...componentTypes: K[]): ReadonlyArray<Entity>;
+    // (undocumented)
     readComponent<K extends ComponentType<TComponents>>(entity: Entity, type: K): DeepReadonly<TComponents[K]> | undefined;
     reclaimEntity(entity: Entity): void;
     registerComponentMetadata(type: string, options: {

@@ -146,8 +146,8 @@ export function applyDayPhase(palette: ScenarioPalette, progress: number): Modul
   const { phase, phaseT, lightsOn, timeOfDay } = getDayPhase(progress);
 
   let cloudColor = hexToRgba(colors.white, 0.25);
-  let sunColor = palette.sun;
-  let laneColor = colors.white; // Day: warm white
+  let sunColor: string = palette.sun;
+  let laneColor: string = colors.white; // Day: warm white
   let reflectionAlpha = 0.06; // Soft daytime wet reflection
 
   if (phase === "dawn") {

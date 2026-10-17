@@ -1,5 +1,6 @@
 import { ShapeDrawer, EffectDrawer, RenderContext, World, resolveThemeColorWithFallback } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry } from "../types/GeometryWarsRegistry";
+import { colors } from "../../../theme/colors";
 import { getDisplacedPoint, BULLET_COORDS } from "../../shared/rendering/ProceduralShapeUtils";
 import { resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 import { ensureSkiaAvailable, getRenderGuard, getDrawableTransform } from "../../shared/rendering/renderingUtils";

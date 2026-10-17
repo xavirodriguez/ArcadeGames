@@ -70,7 +70,7 @@ export interface RacingSkin {
 }
 
 export function extractActorParams(
-  world: World<RacingComponentRegistry, unknown>,
+  world: World<RacingComponentRegistry>,
   entity: number,
   palette: RacingPalette
 ): ActorDrawerParams | null {
@@ -90,7 +90,7 @@ export function extractActorParams(
 }
 
 export function extractWallParams(
-  world: World<RacingComponentRegistry, unknown>,
+  world: World<RacingComponentRegistry>,
   entity: number,
   palette: RacingPalette
 ): WallDrawerParams | null {
@@ -101,7 +101,7 @@ export function extractWallParams(
 }
 
 export function extractZoneParams(
-  world: World<RacingComponentRegistry, unknown>,
+  world: World<RacingComponentRegistry>,
   entity: number,
   palette: RacingPalette
 ): { width: number; height: number; surface: string; palette: RacingPalette } | null {
@@ -117,7 +117,7 @@ export function extractZoneParams(
 }
 
 export function extractObstacleParams(
-  world: World<RacingComponentRegistry, unknown>,
+  world: World<RacingComponentRegistry>,
   entity: number,
   palette: RacingPalette
 ): { radius: number; id: string; kind: string; time: number; palette: RacingPalette } | null {
@@ -640,7 +640,7 @@ export const SKIN_REGISTRY: Record<string, RacingSkin> = {
   tabletop: breakfastSkin
 };
 
-export function getRacingSkin(world: World<RacingComponentRegistry, unknown>): RacingSkin {
+export function getRacingSkin(world: World<RacingComponentRegistry>): RacingSkin {
   const trackSpec = world.getResource<TrackSpec>("ActiveTrackSpec");
   const skinKey = trackSpec?.skin ?? trackSpec?.theme ?? "breakfast";
   return SKIN_REGISTRY[skinKey] ?? SKIN_REGISTRY.breakfast;

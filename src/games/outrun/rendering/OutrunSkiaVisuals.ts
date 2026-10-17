@@ -1,4 +1,5 @@
-import type { ShapeDrawer, RenderContext } from "@tiny-aster/core";
+import type { ShapeDrawer } from "@tiny-aster/core";
+import type { SkCanvas } from "@shopify/react-native-skia";
 import type { OutrunComponentRegistry, RoadSegmentSprite } from "../types/OutrunTypes";
 import { Skia } from "../../shared/rendering/SkiaContext";
 import {
@@ -20,7 +21,7 @@ import { colors } from "../../../theme/colors";
 import { hexToRgba } from "../../shared/rendering/CosmicPalette";
 
 function drawRoadSpriteSkia(
-  canvas: unknown,
+  canvas: SkCanvas,
   sp: RoadSegmentSprite,
   sx: number,
   sy: number,
@@ -113,7 +114,7 @@ function drawRoadSpriteSkia(
   }
 }
 
-export const drawSkiaOutrunRoad: ShapeDrawer<RenderContext, OutrunComponentRegistry> = {
+export const drawSkiaOutrunRoad: ShapeDrawer<SkCanvas, OutrunComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
     const roadCtx = resolveOutrunRoadContext(world);
@@ -288,7 +289,7 @@ export const drawSkiaOutrunRoad: ShapeDrawer<RenderContext, OutrunComponentRegis
   }
 };
 
-export const drawSkiaOutrunCar: ShapeDrawer<RenderContext, OutrunComponentRegistry> = {
+export const drawSkiaOutrunCar: ShapeDrawer<SkCanvas, OutrunComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia || entity === undefined) return;
     const carCtx = resolveOutrunCarContext(world, entity);
@@ -377,7 +378,7 @@ export const drawSkiaOutrunCar: ShapeDrawer<RenderContext, OutrunComponentRegist
   }
 };
 
-export const drawSkiaOutrunRacer: ShapeDrawer<RenderContext, OutrunComponentRegistry> = {
+export const drawSkiaOutrunRacer: ShapeDrawer<SkCanvas, OutrunComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia || entity === undefined) return;
     const racerCtx = resolveOutrunRacerDrawContext(world, entity);
@@ -423,7 +424,7 @@ export const drawSkiaOutrunRacer: ShapeDrawer<RenderContext, OutrunComponentRegi
 };
 
 export const drawSkiaOutrunHud = {
-  draw(canvas: RenderContext, world: import("@tiny-aster/core").World<OutrunComponentRegistry, unknown, unknown>): void {
+  draw(canvas: SkCanvas, world: import("@tiny-aster/core").World<OutrunComponentRegistry>): void {
     if (!Skia) return;
     const hudCtx = resolveOutrunHudContext(world);
     if (!hudCtx) return;

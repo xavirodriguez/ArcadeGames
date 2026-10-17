@@ -52,7 +52,7 @@ export const DEFAULT_ECHO_PALETTE = {
   corruptionAmber: colors.orange,
   corruptionPurple: colors.purple,
   corruptionPurpleGlow: hexToRgba(colors.purple, 0.4),
-  archiveVoidDark: colors.backgroundDark,
+  archiveVoidDark: "#060913",
   archiveSlate: colors.slate,
   archiveBorderDark: colors.borderDark,
   archiveBorderLight: colors.borderLight,
@@ -61,6 +61,8 @@ export const DEFAULT_ECHO_PALETTE = {
   archiveDataStream: hexToRgba(colors.pink, 0.06),
   archiveNodeActive: colors.green,
   archiveNodeInactive: colors.red,
+  watcher: colors.blue,
+  shadowColor: hexToRgba(colors.surface, 0.4),
 } as const;
 
 export interface EchoRunnerResolvedPalette {

@@ -21,6 +21,7 @@ import {
   type WaveBannerState
 } from "../waves/HitRunWavePresentation";
 import { HIT_PALETTE } from "./HitAndRunPalette";
+import { colors } from "../../../theme/colors";
 import type { HitRunDeathFlowState } from "../systems/HitRunDeathFlowSystem";
 import { DEATH_FLOW_RESOURCE } from "../systems/HitRunDeathFlowSystem";
 
@@ -99,8 +100,8 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
 
     const barH = 36;
     const topGrad = ctx.createLinearGradient(0, 0, 0, barH + 12);
-    topGrad.addColorStop(0, "rgba(5,4,12,0.75)");
-    topGrad.addColorStop(1, "rgba(5,4,12,0)");
+    topGrad.addColorStop(0, colors.panelStrong);
+    topGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
     ctx.fillStyle = topGrad;
     ctx.fillRect(0, 0, w, barH + 16);
 
@@ -112,8 +113,8 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
     const pipY = 14;
     for (let i = 0; i < maxHp; i++) {
       const x = startX + i * (pipW + 6);
-      ctx.fillStyle = i < curHp ? HIT_PALETTE.hitRunRed : "rgba(80,40,50,0.5)";
-      ctx.strokeStyle = "rgba(255,255,255,0.25)";
+      ctx.fillStyle = i < curHp ? HIT_PALETTE.hitRunRed : colors.surface;
+      ctx.strokeStyle = colors.border;
       ctx.lineWidth = 1;
       ctx.beginPath();
       if (ctx.roundRect) ctx.roundRect(x, pipY, pipW, pipH, 2);
@@ -129,24 +130,24 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
     ctx.fillStyle = HIT_PALETTE.hitRunYellow;
     ctx.fillText(weaponId, startX + maxHp * (pipW + 6) + 16, 22);
     if (cd > 0.02) {
-      ctx.fillStyle = "rgba(255,255,255,0.35)";
+      ctx.fillStyle = colors.textMuted;
       ctx.fillRect(startX + maxHp * (pipW + 6) + 16, 26, 40 * Math.min(1, cd / 0.2), 3);
     }
 
     ctx.textAlign = "center";
-    ctx.fillStyle = "rgba(255,255,255,0.85)";
+    ctx.fillStyle = colors.neutral[100];
     const waveName = script?.name ?? wave?.scriptId ?? "—";
     const waveT = wave?.elapsed != null ? wave.elapsed.toFixed(1) : "0.0";
     ctx.fillText(`WAVE  ${waveName}  ·  ${waveT}s`, w * 0.5, 20);
     if (wave) {
       ctx.font = "10px 'Share Tech Mono', monospace";
-      ctx.fillStyle = "rgba(255,180,180,0.7)";
+      ctx.fillStyle = colors.textMuted;
       ctx.fillText(`SPAWNED ${wave.totalSpawned}`, w * 0.5, 34);
     }
 
     ctx.textAlign = "right";
     ctx.font = "bold 14px 'Share Tech Mono', monospace";
-    ctx.fillStyle = "#e8e4f0";
+    ctx.fillStyle = colors.neutral[200];
     ctx.fillText(String(score).padStart(6, "0"), w - 16, 22);
 
     if (banner && banner.remaining > 0) {
@@ -161,7 +162,7 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
       if (banner.sub) {
         ctx.shadowBlur = 0;
         ctx.font = "14px 'Share Tech Mono', monospace";
-        ctx.fillStyle = "rgba(255,255,255,0.7)";
+        ctx.fillStyle = colors.textSecondary;
         ctx.fillText(banner.sub, w * 0.5, h * 0.38 + 28);
       }
       ctx.globalAlpha = 1;
@@ -169,7 +170,7 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
     }
 
     if (death?.active) {
-      ctx.fillStyle = "rgba(80,0,20,0.25)";
+      ctx.fillStyle = colors.overlay;
       ctx.fillRect(0, 0, w, h);
       ctx.textAlign = "center";
       ctx.font = "bold 28px 'Share Tech Mono', monospace";
@@ -179,7 +180,7 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
 
     ctx.textAlign = "left";
     ctx.font = "10px 'Share Tech Mono', monospace";
-    ctx.fillStyle = "rgba(255,255,255,0.28)";
+    ctx.fillStyle = colors.textMuted;
     ctx.fillText("←→ MOVE  ↑↓ AIM  SPACE JUMP  F MELEE  C/X FIRE", 16, h - 12);
 
     ctx.restore();

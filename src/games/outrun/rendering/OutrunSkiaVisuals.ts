@@ -1,4 +1,4 @@
-import type { ShapeDrawer } from "@tiny-aster/core";
+import type { ShapeDrawer, RenderContext } from "@tiny-aster/core";
 import type { OutrunComponentRegistry, RoadSegmentSprite } from "../types/OutrunTypes";
 import { Skia } from "../../shared/rendering/SkiaContext";
 import {
@@ -16,9 +16,11 @@ import {
 } from "./OutrunRenderShared";
 import { computeSpeedLines } from "./OutrunVisualHelpers";
 import { resolveSegmentFog } from "./OutrunFog";
+import { colors } from "../../../theme/colors";
+import { hexToRgba } from "../../shared/rendering/CosmicPalette";
 
 function drawRoadSpriteSkia(
-  canvas: any,
+  canvas: unknown,
   sp: RoadSegmentSprite,
   sx: number,
   sy: number,
@@ -36,13 +38,13 @@ function drawRoadSpriteSkia(
     const archH = sw * 1.2;
 
     const pillarPaint = Skia.Paint();
-    pillarPaint.setColor(Skia.Color("#334155"));
+    pillarPaint.setColor(Skia.Color(colors.slate));
     pillarPaint.setStyle(Skia.PaintStyle.Fill);
     canvas.drawRect(Skia.XYWHRect(sx - archW / 2, sy - archH, archW * 0.1, archH), pillarPaint);
     canvas.drawRect(Skia.XYWHRect(sx + archW / 2 - archW * 0.1, sy - archH, archW * 0.1, archH), pillarPaint);
 
     const bannerPaint = Skia.Paint();
-    bannerPaint.setColor(Skia.Color(sp.kind === "arch" ? "#e11d48" : "#2563eb"));
+    bannerPaint.setColor(Skia.Color(sp.kind === "arch" ? colors.pink : colors.blue));
     bannerPaint.setStyle(Skia.PaintStyle.Fill);
     canvas.drawRect(Skia.XYWHRect(sx - archW / 2, sy - archH, archW, archH * 0.35), bannerPaint);
   } else if (sp.kind === "billboard") {
@@ -50,12 +52,12 @@ function drawRoadSpriteSkia(
     const bh = size * 1.0;
 
     const postPaint = Skia.Paint();
-    postPaint.setColor(Skia.Color("#1e293b"));
+    postPaint.setColor(Skia.Color(colors.borderDark));
     postPaint.setStyle(Skia.PaintStyle.Fill);
     canvas.drawRect(Skia.XYWHRect(sx - 4, sy - bh, 8, bh), postPaint);
 
     const boardPaint = Skia.Paint();
-    boardPaint.setColor(Skia.Color("#0284c7"));
+    boardPaint.setColor(Skia.Color(colors.blueLight));
     boardPaint.setStyle(Skia.PaintStyle.Fill);
     canvas.drawRect(Skia.XYWHRect(sx - bw / 2, sy - bh - bh * 0.8, bw, bh), boardPaint);
   } else if (sp.kind === "chevron") {
@@ -69,27 +71,27 @@ function drawRoadSpriteSkia(
     path.close();
 
     const paint = Skia.Paint();
-    paint.setColor(Skia.Color("#f59e0b"));
+    paint.setColor(Skia.Color(colors.amber));
     paint.setStyle(Skia.PaintStyle.Fill);
     canvas.drawPath(path, paint);
   } else if (sp.kind === "palm") {
     const trunkPaint = Skia.Paint();
-    trunkPaint.setColor(Skia.Color("#78350f"));
+    trunkPaint.setColor(Skia.Color(colors.orangeDark));
     trunkPaint.setStyle(Skia.PaintStyle.Fill);
     canvas.drawRect(Skia.XYWHRect(sx - size * 0.08, sy - h, size * 0.16, h), trunkPaint);
 
     const topPaint = Skia.Paint();
-    topPaint.setColor(Skia.Color("#15803d"));
+    topPaint.setColor(Skia.Color(colors.green));
     topPaint.setStyle(Skia.PaintStyle.Fill);
     canvas.drawCircle(sx, sy - h, size * 0.6, topPaint);
   } else if (sp.kind === "lamp") {
     const postPaint = Skia.Paint();
-    postPaint.setColor(Skia.Color("#64748b"));
+    postPaint.setColor(Skia.Color(colors.slate));
     postPaint.setStyle(Skia.PaintStyle.Fill);
     canvas.drawRect(Skia.XYWHRect(sx - 2, sy - h, 4, h), postPaint);
 
     const lightPaint = Skia.Paint();
-    lightPaint.setColor(Skia.Color(palette.lightsOn ? "#fef08a" : "#94a3b8"));
+    lightPaint.setColor(Skia.Color(palette.lightsOn ? colors.yellow : colors.borderLight));
     lightPaint.setStyle(Skia.PaintStyle.Fill);
     canvas.drawCircle(sx, sy - h, size * 0.25, lightPaint);
   } else if (sp.kind === "cypress") {
@@ -100,18 +102,18 @@ function drawRoadSpriteSkia(
     path.close();
 
     const paint = Skia.Paint();
-    paint.setColor(Skia.Color("#14532d"));
+    paint.setColor(Skia.Color(colors.green));
     paint.setStyle(Skia.PaintStyle.Fill);
     canvas.drawPath(path, paint);
   } else {
     const paint = Skia.Paint();
-    paint.setColor(Skia.Color("#166534"));
+    paint.setColor(Skia.Color(colors.green));
     paint.setStyle(Skia.PaintStyle.Fill);
     canvas.drawCircle(sx, sy - size * 0.3, size * 0.4, paint);
   }
 }
 
-export const drawSkiaOutrunRoad: ShapeDrawer<any, OutrunComponentRegistry> = {
+export const drawSkiaOutrunRoad: ShapeDrawer<RenderContext, OutrunComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
     const roadCtx = resolveOutrunRoadContext(world);
@@ -188,7 +190,7 @@ export const drawSkiaOutrunRoad: ShapeDrawer<any, OutrunComponentRegistry> = {
       }
     } else if (horizonCtx.hazeLines) {
       const hazePaint = Skia.Paint();
-      hazePaint.setColor(Skia.Color(palette.sun || "#ffe066"));
+      hazePaint.setColor(Skia.Color(palette.sun || colors.yellow));
       hazePaint.setAlphaf(0.2);
       hazePaint.setStyle(Skia.PaintStyle.Fill);
       for (const h of horizonCtx.hazeLines) {
@@ -271,13 +273,13 @@ export const drawSkiaOutrunRoad: ShapeDrawer<any, OutrunComponentRegistry> = {
     }
 
     // 3. Roadside Sprites Pass
-    iterateOutrunSprites(canvas, count, roadData, config, palette.lightsOn, (c, sp, sx, sy, sw, roadW, lightsOn, clipY) => {
-      drawRoadSpriteSkia(c, sp, sx, sy, sw, clipY, palette);
+    iterateOutrunSprites(canvas, count, roadData, config, palette.lightsOn, (c, sp, sx, sy, _sw, _roadW, _lightsOn, clipY) => {
+      drawRoadSpriteSkia(c, sp, sx, sy, _sw, clipY, palette);
     });
   }
 };
 
-export const drawSkiaOutrunCar: ShapeDrawer<any, OutrunComponentRegistry> = {
+export const drawSkiaOutrunCar: ShapeDrawer<RenderContext, OutrunComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia || entity === undefined) return;
     const carCtx = resolveOutrunCarContext(world, entity);
@@ -305,7 +307,7 @@ export const drawSkiaOutrunCar: ShapeDrawer<any, OutrunComponentRegistry> = {
     if (speedLines) {
       for (const line of speedLines) {
         const linePaint = Skia.Paint();
-        linePaint.setColor(Skia.Color("#ffffff"));
+        linePaint.setColor(Skia.Color(colors.white));
         linePaint.setAlphaf(line.alpha);
         linePaint.setStyle(Skia.PaintStyle.Stroke);
         linePaint.setStrokeWidth(2);
@@ -319,13 +321,13 @@ export const drawSkiaOutrunCar: ShapeDrawer<any, OutrunComponentRegistry> = {
 
     // Shadow
     const shadowPaint = Skia.Paint();
-    shadowPaint.setColor(Skia.Color("rgba(0, 0, 0, 0.4)"));
+    shadowPaint.setColor(Skia.Color(hexToRgba(colors.surface, 0.4)));
     shadowPaint.setStyle(Skia.PaintStyle.Fill);
     canvas.drawOval(Skia.XYWHRect(-36, 6, 72, 20), shadowPaint);
 
     // Tires
     const tirePaint = Skia.Paint();
-    tirePaint.setColor(Skia.Color("#111111"));
+    tirePaint.setColor(Skia.Color(colors.surface));
     tirePaint.setStyle(Skia.PaintStyle.Fill);
     canvas.drawRect(Skia.XYWHRect(-32, 2, 10, 16), tirePaint);
     canvas.drawRect(Skia.XYWHRect(22, 2, 10, 16), tirePaint);
@@ -338,7 +340,7 @@ export const drawSkiaOutrunCar: ShapeDrawer<any, OutrunComponentRegistry> = {
 
     // Bumper
     const bumperPaint = Skia.Paint();
-    bumperPaint.setColor(Skia.Color("#1c1c1c"));
+    bumperPaint.setColor(Skia.Color(colors.backgroundDark));
     bumperPaint.setStyle(Skia.PaintStyle.Fill);
     canvas.drawRect(Skia.XYWHRect(-28, 4, 56, 8), bumperPaint);
 
@@ -351,13 +353,13 @@ export const drawSkiaOutrunCar: ShapeDrawer<any, OutrunComponentRegistry> = {
     glassPath.close();
 
     const glassPaint = Skia.Paint();
-    glassPaint.setColor(Skia.Color("#22252a"));
+    glassPaint.setColor(Skia.Color(colors.borderDark));
     glassPaint.setStyle(Skia.PaintStyle.Fill);
     canvas.drawPath(glassPath, glassPaint);
 
     // Tail Lights
     const tailPaint = Skia.Paint();
-    tailPaint.setColor(Skia.Color("#ff2233"));
+    tailPaint.setColor(Skia.Color(colors.red));
     tailPaint.setStyle(Skia.PaintStyle.Fill);
     canvas.drawRect(Skia.XYWHRect(-26, -6, 12, 6), tailPaint);
     canvas.drawRect(Skia.XYWHRect(14, -6, 12, 6), tailPaint);
@@ -366,14 +368,14 @@ export const drawSkiaOutrunCar: ShapeDrawer<any, OutrunComponentRegistry> = {
   }
 };
 
-export const drawSkiaOutrunRacer: ShapeDrawer<any, OutrunComponentRegistry> = {
+export const drawSkiaOutrunRacer: ShapeDrawer<RenderContext, OutrunComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia || entity === undefined) return;
     const racerCtx = resolveOutrunRacerDrawContext(world, entity);
     if (!racerCtx) return;
 
     const { proj, bodyColor } = racerCtx;
-    const { sx, sy, sw, lateral, carW, carH, bestClip } = proj;
+    const { sx, sy, lateral, carW, carH, bestClip } = proj;
 
     const cx = sx + lateral;
     const cy = sy;
@@ -384,7 +386,7 @@ export const drawSkiaOutrunRacer: ShapeDrawer<any, OutrunComponentRegistry> = {
 
     // Shadow
     const shadowPaint = Skia.Paint();
-    shadowPaint.setColor(Skia.Color("rgba(0, 0, 0, 0.35)"));
+    shadowPaint.setColor(Skia.Color(hexToRgba(colors.surface, 0.35)));
     shadowPaint.setStyle(Skia.PaintStyle.Fill);
     canvas.drawOval(Skia.XYWHRect(cx - carW * 0.5, cy + carH * 0.15, carW, carH * 0.5), shadowPaint);
 
@@ -396,13 +398,13 @@ export const drawSkiaOutrunRacer: ShapeDrawer<any, OutrunComponentRegistry> = {
 
     // Windshield
     const glassPaint = Skia.Paint();
-    glassPaint.setColor(Skia.Color("#111827"));
+    glassPaint.setColor(Skia.Color(colors.surface));
     glassPaint.setStyle(Skia.PaintStyle.Fill);
     canvas.drawRect(Skia.XYWHRect(cx - carW * 0.3, cy - carH * 0.4, carW * 0.6, carH * 0.35), glassPaint);
 
     // Tail Lights
     const tailPaint = Skia.Paint();
-    tailPaint.setColor(Skia.Color("#ef4444"));
+    tailPaint.setColor(Skia.Color(colors.red));
     tailPaint.setStyle(Skia.PaintStyle.Fill);
     canvas.drawRect(Skia.XYWHRect(cx - carW * 0.4, cy, carW * 0.2, carH * 0.2), tailPaint);
     canvas.drawRect(Skia.XYWHRect(cx + carW * 0.2, cy, carW * 0.2, carH * 0.2), tailPaint);
@@ -412,7 +414,7 @@ export const drawSkiaOutrunRacer: ShapeDrawer<any, OutrunComponentRegistry> = {
 };
 
 export const drawSkiaOutrunHud = {
-  draw(canvas: any, world: import("@tiny-aster/core").World<OutrunComponentRegistry, any, any>): void {
+  draw(canvas: RenderContext, world: import("@tiny-aster/core").World<OutrunComponentRegistry, unknown, unknown>): void {
     if (!Skia) return;
     const hudCtx = resolveOutrunHudContext(world);
     if (!hudCtx) return;
@@ -434,7 +436,7 @@ export const drawSkiaOutrunHud = {
 
     if (state.isGameOver) {
       const overPaint = Skia.Paint();
-      overPaint.setColor(Skia.Color("rgba(0, 0, 0, 0.6)"));
+      overPaint.setColor(Skia.Color(hexToRgba(colors.surface, 0.6)));
       overPaint.setStyle(Skia.PaintStyle.Fill);
       canvas.drawRect(Skia.XYWHRect(0, 0, config.WIDTH, config.HEIGHT), overPaint);
     }

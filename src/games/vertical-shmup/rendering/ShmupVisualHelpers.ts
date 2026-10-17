@@ -1,6 +1,7 @@
 import type { World, RenderComponent, HealthComponent } from "@tiny-aster/core";
 import type { ShmupComponentRegistry, EnemyPathComponent } from "../types/ShmupTypes";
 import type { ShmupConfig } from "../types/ShmupConfigSchema";
+import { colors } from "../../../theme/colors";
 
 export interface ShmupPlayerDrawContext {
   render: RenderComponent;
@@ -23,7 +24,7 @@ export function resolveShmupPlayerDrawContext(
   const time = world.tick * 0.016;
   const shouldBlink = invulnerable && Math.floor(time * 20) % 2 === 0;
   const size = render.size ?? 22;
-  const primaryColor = render.color ?? "#00e5ff";
+  const primaryColor = render.color ?? colors.cyan;
 
   return {
     render,
@@ -52,7 +53,7 @@ export function resolveShmupEnemyDrawContext(
   if (!render) return null;
   const path = world.getComponent(entity, "EnemyPath");
   const size = render.size ?? 24;
-  const enemyColor = render.color ?? "#ff2a6d";
+  const enemyColor = render.color ?? colors.enemy;
   const time = world.tick * 0.016;
 
   return { render, path, size, enemyColor, time };
@@ -119,11 +120,11 @@ export function computeShmupStarfield(
     const y = rawY < 0 ? rawY + height : rawY;
 
     if (layer === 0) {
-      stars.push({ rawX, y, layer, color: "rgba(200, 220, 255, 0.35)", w: 1, h: 1 });
+      stars.push({ rawX, y, layer, color: colors.slate, w: 1, h: 1 });
     } else if (layer === 1) {
-      stars.push({ rawX, y, layer, color: "rgba(0, 229, 255, 0.65)", w: 1.5, h: 2 });
+      stars.push({ rawX, y, layer, color: colors.cyan, w: 1.5, h: 2 });
     } else {
-      stars.push({ rawX, y, layer, color: "rgba(255, 255, 255, 0.9)", w: 2, h: 4 });
+      stars.push({ rawX, y, layer, color: colors.white, w: 2, h: 4 });
     }
   }
 

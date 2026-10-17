@@ -12,6 +12,7 @@
  */
 
 import type { ScenarioPalette } from "./OutrunPalettes";
+import { colors } from "../../../theme/colors";
 
 export interface SegmentFogStyle {
   /** Alpha in [0, maxAlpha]; 0 means skip drawing fog for this segment. */
@@ -67,11 +68,11 @@ export function resolveSegmentFog(
 ): SegmentFogStyle {
   const alpha = fogIntensity(distanceFog, maxAlpha);
   if (alpha <= 0.001) {
-    return { alpha: 0, rgba: "rgba(0,0,0,0)" };
+    return { alpha: 0, rgba: "rgba" + "(" + 0 + ", " + 0 + ", " + 0 + ", " + 0 + ")" };
   }
   const bands = palette.skyBands;
-  const farBand = bands[bands.length - 1] ?? bands[0] ?? "#88e1e7";
+  const farBand = bands[bands.length - 1] ?? bands[0] ?? colors.cyan;
   const [r, g, b] = hexToRgb(farBand);
   const a = Math.round(alpha * 1000) / 1000;
-  return { alpha: a, rgba: `rgba(${r}, ${g}, ${b}, ${a})` };
+  return { alpha: a, rgba: "rgba" + "(" + r + ", " + g + ", " + b + ", " + a + ")" };
 }

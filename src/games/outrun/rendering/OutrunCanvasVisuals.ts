@@ -15,6 +15,8 @@ import {
 } from "./OutrunRenderShared";
 import { computeSpeedLines } from "./OutrunVisualHelpers";
 import { resolveSegmentFog } from "./OutrunFog";
+import { colors } from "../../../theme/colors";
+import { hexToRgba } from "../../shared/rendering/CosmicPalette";
 
 function drawRoadSpriteCanvas(
   ctx: CanvasRenderingContext2D,
@@ -35,15 +37,15 @@ function drawRoadSpriteCanvas(
   if (sp.kind === "arch" || sp.kind === "banner") {
     const archW = sw * 2.2;
     const archH = sw * 1.2;
-    ctx.fillStyle = "#334155";
+    ctx.fillStyle = colors.slate;
     ctx.fillRect(sx - archW / 2, sy - archH, archW * 0.1, archH);
     ctx.fillRect(sx + archW / 2 - archW * 0.1, sy - archH, archW * 0.1, archH);
 
-    ctx.fillStyle = sp.kind === "arch" ? "#e11d48" : "#2563eb";
+    ctx.fillStyle = sp.kind === "arch" ? colors.pink : colors.blue;
     ctx.fillRect(sx - archW / 2, sy - archH, archW, archH * 0.35);
 
     if (sp.text) {
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle = colors.white;
       ctx.font = `bold ${Math.max(10, Math.floor(archH * 0.25))}px sans-serif`;
       ctx.textAlign = "center";
       ctx.fillText(sp.text, sx, sy - archH * 0.75);
@@ -51,14 +53,14 @@ function drawRoadSpriteCanvas(
   } else if (sp.kind === "billboard") {
     const bw = size * 1.8;
     const bh = size * 1.0;
-    ctx.fillStyle = "#1e293b";
+    ctx.fillStyle = colors.borderDark;
     ctx.fillRect(sx - 4, sy - bh, 8, bh);
 
-    ctx.fillStyle = "#0284c7";
+    ctx.fillStyle = colors.blueLight;
     ctx.fillRect(sx - bw / 2, sy - bh - bh * 0.8, bw, bh);
 
     if (sp.text) {
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle = colors.white;
       ctx.font = `bold ${Math.max(8, Math.floor(bh * 0.4))}px sans-serif`;
       ctx.textAlign = "center";
       ctx.fillText(sp.text, sx, sy - bh - bh * 0.3);
@@ -66,7 +68,7 @@ function drawRoadSpriteCanvas(
   } else if (sp.kind === "chevron") {
     const cw = size * 0.6;
     const ch = size * 0.8;
-    ctx.fillStyle = "#f59e0b";
+    ctx.fillStyle = colors.amber;
     ctx.beginPath();
     ctx.moveTo(sx - cw / 2, sy);
     ctx.lineTo(sx + cw / 2, sy - ch / 2);
@@ -74,22 +76,22 @@ function drawRoadSpriteCanvas(
     ctx.closePath();
     ctx.fill();
   } else if (sp.kind === "palm") {
-    ctx.fillStyle = "#78350f";
+    ctx.fillStyle = colors.orangeDark;
     ctx.fillRect(sx - size * 0.08, sy - h, size * 0.16, h);
 
-    ctx.fillStyle = "#15803d";
+    ctx.fillStyle = colors.green;
     ctx.beginPath();
     ctx.arc(sx, sy - h, size * 0.6, 0, Math.PI * 2);
     ctx.fill();
   } else if (sp.kind === "lamp") {
-    ctx.fillStyle = "#64748b";
+    ctx.fillStyle = colors.slate;
     ctx.fillRect(sx - 2, sy - h, 4, h);
-    ctx.fillStyle = palette.lightsOn ? "#fef08a" : "#94a3b8";
+    ctx.fillStyle = palette.lightsOn ? colors.yellow : colors.borderLight;
     ctx.beginPath();
     ctx.arc(sx, sy - h, size * 0.25, 0, Math.PI * 2);
     ctx.fill();
   } else if (sp.kind === "cypress") {
-    ctx.fillStyle = "#14532d";
+    ctx.fillStyle = colors.green;
     ctx.beginPath();
     ctx.moveTo(sx - size * 0.3, sy);
     ctx.lineTo(sx, sy - h * 1.2);
@@ -97,7 +99,7 @@ function drawRoadSpriteCanvas(
     ctx.closePath();
     ctx.fill();
   } else {
-    ctx.fillStyle = "#166534";
+    ctx.fillStyle = colors.green;
     ctx.beginPath();
     ctx.arc(sx, sy - size * 0.3, size * 0.4, 0, Math.PI * 2);
     ctx.fill();
@@ -168,7 +170,7 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
         ctx.fillRect(b.bx, horizonY - b.bh, b.bw, b.bh);
       }
     } else if (horizonCtx.hazeLines) {
-      ctx.fillStyle = palette.sun || "#ffe066";
+      ctx.fillStyle = palette.sun || colors.yellow;
       ctx.globalAlpha = 0.2;
       for (const h of horizonCtx.hazeLines) {
         ctx.fillRect(h.x, h.hazeY, 20, 2);
@@ -236,8 +238,8 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
     }
 
     // 3. Roadside Sprites Pass
-    iterateOutrunSprites(ctx, count, roadData, config, palette.lightsOn, (c, sp, sx, sy, sw, roadW, lightsOn, clipY) => {
-      drawRoadSpriteCanvas(c, sp, sx, sy, sw, clipY, palette);
+    iterateOutrunSprites(ctx, count, roadData, config, palette.lightsOn, (c, sp, sx, sy, _sw, _roadW, _lightsOn, clipY) => {
+      drawRoadSpriteCanvas(c, sp, sx, sy, _sw, clipY, palette);
     });
 
     ctx.restore();
@@ -271,7 +273,7 @@ export const drawOutrunCar: ShapeDrawer<CanvasRenderingContext2D, OutrunComponen
     // Speed Lines
     const speedLines = computeSpeedLines(config.WIDTH, config.HEIGHT, config.HEIGHT * 0.45, state.playerZ, speedRatio);
     if (speedLines) {
-      ctx.strokeStyle = "#ffffff";
+      ctx.strokeStyle = colors.white;
       ctx.lineWidth = 2;
       for (const line of speedLines) {
         ctx.globalAlpha = line.alpha;
@@ -288,13 +290,13 @@ export const drawOutrunCar: ShapeDrawer<CanvasRenderingContext2D, OutrunComponen
     ctx.scale(carScale, carScale);
 
     // Shadow
-    ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+    ctx.fillStyle = hexToRgba(colors.surface, 0.4);
     ctx.beginPath();
     ctx.ellipse(0, 16, 36, 10, 0, 0, Math.PI * 2);
     ctx.fill();
 
     // Tires
-    ctx.fillStyle = "#111111";
+    ctx.fillStyle = colors.surface;
     ctx.fillRect(-32, 2, 10, 16);
     ctx.fillRect(22, 2, 10, 16);
 
@@ -309,11 +311,11 @@ export const drawOutrunCar: ShapeDrawer<CanvasRenderingContext2D, OutrunComponen
     ctx.fill();
 
     // Bumper
-    ctx.fillStyle = "#1c1c1c";
+    ctx.fillStyle = colors.backgroundDark;
     ctx.fillRect(-28, 4, 56, 8);
 
     // Rear Windshield
-    ctx.fillStyle = "#22252a";
+    ctx.fillStyle = colors.borderDark;
     ctx.beginPath();
     ctx.moveTo(-20, -16);
     ctx.lineTo(20, -16);
@@ -323,12 +325,12 @@ export const drawOutrunCar: ShapeDrawer<CanvasRenderingContext2D, OutrunComponen
     ctx.fill();
 
     // Tail Lights
-    ctx.fillStyle = "#ff2233";
+    ctx.fillStyle = colors.red;
     ctx.fillRect(-26, -6, 12, 6);
     ctx.fillRect(14, -6, 12, 6);
 
     // License Plate
-    ctx.fillStyle = "#f8f9fa";
+    ctx.fillStyle = colors.white;
     ctx.fillRect(-8, 2, 16, 6);
 
     ctx.restore();
@@ -342,7 +344,7 @@ export const drawOutrunRacer: ShapeDrawer<CanvasRenderingContext2D, OutrunCompon
     if (!racerCtx) return;
 
     const { proj, bodyColor } = racerCtx;
-    const { sx, sy, sw, lateral, carW, carH, bestClip } = proj;
+    const { sx, sy, lateral, carW, carH, bestClip } = proj;
 
     const cx = sx + lateral;
     const cy = sy;
@@ -352,7 +354,7 @@ export const drawOutrunRacer: ShapeDrawer<CanvasRenderingContext2D, OutrunCompon
     ctx.save();
 
     // Shadow
-    ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+    ctx.fillStyle = hexToRgba(colors.surface, 0.35);
     ctx.beginPath();
     ctx.ellipse(cx, cy + carH * 0.4, carW * 0.5, carH * 0.25, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -368,11 +370,11 @@ export const drawOutrunRacer: ShapeDrawer<CanvasRenderingContext2D, OutrunCompon
     ctx.fill();
 
     // Windshield
-    ctx.fillStyle = "#111827";
+    ctx.fillStyle = colors.surface;
     ctx.fillRect(cx - carW * 0.3, cy - carH * 0.4, carW * 0.6, carH * 0.35);
 
     // Tail lights
-    ctx.fillStyle = "#ef4444";
+    ctx.fillStyle = colors.red;
     ctx.fillRect(cx - carW * 0.4, cy, carW * 0.2, carH * 0.2);
     ctx.fillRect(cx + carW * 0.2, cy, carW * 0.2, carH * 0.2);
 
@@ -381,7 +383,7 @@ export const drawOutrunRacer: ShapeDrawer<CanvasRenderingContext2D, OutrunCompon
 };
 
 export const drawOutrunHud = {
-  draw(ctx: CanvasRenderingContext2D, world: import("@tiny-aster/core").World<OutrunComponentRegistry, any, any>): void {
+  draw(ctx: CanvasRenderingContext2D, world: import("@tiny-aster/core").World<OutrunComponentRegistry, unknown, unknown>): void {
     const hudCtx = resolveOutrunHudContext(world);
     if (!hudCtx) return;
 
@@ -397,7 +399,7 @@ export const drawOutrunHud = {
     ctx.strokeRect(16, 16, 180, 60);
 
     // Metrics Text
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = colors.white;
     ctx.font = "bold 16px sans-serif";
     ctx.fillText(`${speedKmh} KM/H`, 28, 40);
 
@@ -417,10 +419,10 @@ export const drawOutrunHud = {
 
     // Game Over Overlay
     if (state.isGameOver) {
-      ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+      ctx.fillStyle = hexToRgba(colors.surface, 0.6);
       ctx.fillRect(0, 0, config.WIDTH, config.HEIGHT);
 
-      ctx.fillStyle = "#ef4444";
+      ctx.fillStyle = colors.red;
       ctx.font = "bold 40px sans-serif";
       ctx.textAlign = "center";
       ctx.fillText("GAME OVER", config.WIDTH / 2, config.HEIGHT / 2);

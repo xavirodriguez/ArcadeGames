@@ -6,4 +6,4 @@ import { createSkiaMissionHUD } from "../../shared/rendering/SharedMissionHUD";
  * Overlay shape drawer for React Native Skia Mission HUD in Flappy Bird.
  * @public
  */
-export const drawSkiaFlappyBirdMissionHUD: EffectDrawer<any, FlappyBirdComponentRegistry> = createSkiaMissionHUD();
+export const drawSkiaFlappyBirdMissionHUD: EffectDrawer<unknown, FlappyBirdComponentRegistry> = createSkiaMissionHUD();

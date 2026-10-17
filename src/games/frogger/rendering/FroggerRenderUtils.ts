@@ -1,6 +1,7 @@
 import { World, RenderComponent, resolveThemeColor, resolveThemeColorWithFallback } from "@tiny-aster/core";
 import { FroggerComponentRegistry, GoalLilyPadComponent } from "../types/FroggerTypes";
 import { DEFAULT_FROGGER_CONFIG } from "../types/FroggerConfigSchema";
+import { colors } from "../../../theme/colors";
 
 export function shouldSkipFroggerRenderDueToInvulnerability(
   world: World<FroggerComponentRegistry>,
@@ -49,7 +50,7 @@ export function resolveFroggerPlayerDrawContext(
   const isInvuln = isFroggerInvulnerable(world, entity);
   const size = render.size || 32;
   const half = size / 2;
-  const primaryColor = resolveThemeColor(world, "frogger", "player") || "#39FF14";
+  const primaryColor = resolveThemeColor(world, "frogger", "player") || colors.green;
 
   return {
     render,
@@ -123,9 +124,9 @@ export function resolveFroggerBackgroundContext(
   const w = config.worldWidth;
   const grid = config.GRID_SIZE;
 
-  const grassColor = resolveThemeColorWithFallback(world, "#0B2B16", "frogger_grass", "secondary");
-  const waterColor = resolveThemeColorWithFallback(world, "#051C33", "water", "secondary");
-  const roadColor = resolveThemeColorWithFallback(world, "#121218", "frogger_road");
+  const grassColor = resolveThemeColorWithFallback(world, colors.backgroundDark, "frogger_grass", "secondary");
+  const waterColor = resolveThemeColorWithFallback(world, colors.backgroundSlate, "water", "secondary");
+  const roadColor = resolveThemeColorWithFallback(world, colors.surface, "frogger_road");
 
   return { config, w, grid, grassColor, waterColor, roadColor };
 }

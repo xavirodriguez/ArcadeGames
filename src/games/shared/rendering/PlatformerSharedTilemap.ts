@@ -1,4 +1,6 @@
 import { ShapeDrawer, CoreComponentRegistry, TilemapComponent, resolveThemeColorWithFallback } from "@tiny-aster/core";
+import { colors } from "../../../theme/colors";
+import { hexToRgba } from "./CosmicPalette";
 
 export const drawPlatformerTilemap: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
@@ -14,12 +16,12 @@ export const drawPlatformerTilemap: ShapeDrawer<CanvasRenderingContext2D, CoreCo
     const minY = range ? Math.max(0, range.minY) : 0;
     const maxY = range ? Math.min(data.length - 1, range.maxY) : data.length - 1;
 
-    const slateColor = resolveThemeColorWithFallback(world, "#1e293b", "tile_slate", "archiveSlate");
-    const borderColor = resolveThemeColorWithFallback(world, "#334155", "tile_border", "archiveBorderLight");
-    const cyanColor = resolveThemeColorWithFallback(world, "#00f0ff", "tile_cyan", "restorationCyan", "primary");
-    const goldColor = resolveThemeColorWithFallback(world, "#fbbf24", "tile_gold", "restorationGold", "secondary");
-    const dangerColor = resolveThemeColorWithFallback(world, "#ef4444", "tile_danger", "corruptionCrimson", "accent");
-    const whiteColor = resolveThemeColorWithFallback(world, "#ffffff", "restorationWhite");
+    const slateColor = resolveThemeColorWithFallback(world, colors.slate, "tile_slate", "archiveSlate");
+    const borderColor = resolveThemeColorWithFallback(world, colors.borderLight, "tile_border", "archiveBorderLight");
+    const cyanColor = resolveThemeColorWithFallback(world, colors.cyan, "tile_cyan", "restorationCyan", "primary");
+    const goldColor = resolveThemeColorWithFallback(world, colors.gold, "tile_gold", "restorationGold", "secondary");
+    const dangerColor = resolveThemeColorWithFallback(world, colors.red, "tile_danger", "corruptionCrimson", "accent");
+    const whiteColor = resolveThemeColorWithFallback(world, colors.white, "restorationWhite");
 
     ctx.save();
 
@@ -44,14 +46,14 @@ export const drawPlatformerTilemap: ShapeDrawer<CanvasRenderingContext2D, CoreCo
             ctx.fillRect(0, 0, tileSize, 3);
             break;
           case 2:
-            ctx.fillStyle = "rgba(0, 240, 255, 0.25)";
+            ctx.fillStyle = hexToRgba(colors.cyan, 0.25);
             ctx.strokeStyle = cyanColor;
             ctx.lineWidth = 1.5;
             ctx.fillRect(0, 0, tileSize, tileSize);
             ctx.strokeRect(0, 0, tileSize, tileSize);
             break;
           case 3:
-            ctx.fillStyle = "rgba(234, 179, 8, 0.3)";
+            ctx.fillStyle = hexToRgba(colors.yellow, 0.3);
             ctx.strokeStyle = goldColor;
             ctx.lineWidth = 2;
             ctx.fillRect(0, 0, tileSize, tileSize);

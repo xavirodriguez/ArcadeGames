@@ -4,6 +4,8 @@
  */
 
 import { hexToRgb } from "./OutrunFog";
+import { colors } from "../../../theme/colors";
+import { hexToRgba } from "../../shared/rendering/CosmicPalette";
 
 export interface ScenarioPalette {
   id: "coast" | "desert" | "mountain" | "classic_coast" | "classic_desert" | "classic_mountain";
@@ -24,97 +26,97 @@ export interface ScenarioPalette {
 export const COAST_PALETTE: ScenarioPalette = {
   id: "coast",
   horizonStyle: "coast_sea",
-  skyBands: ["#ff6b6b", "#ff9e7d", "#88e1e7", "#38b6ff", "#00f0ff"],
-  sun: "#ff5252",
-  mountainBase: "#00b4d8",
-  mountainFacet: "#90e0ef",
-  groundDark: "#e2dfc8",
-  groundLight: "#d1ceb2",
-  roadDark: "#2a2e37",
-  roadLight: "#353a45",
-  rumbleDark: "#e0564c",
-  rumbleLight: "#1a1c20",
-  lane: "#f7f2eb"
+  skyBands: [colors.red, colors.orange, colors.cyan, colors.blueLight, colors.cyan],
+  sun: colors.redHot,
+  mountainBase: colors.blue,
+  mountainFacet: colors.blueLight,
+  groundDark: colors.amber,
+  groundLight: colors.yellow,
+  roadDark: colors.slate,
+  roadLight: colors.borderLight,
+  rumbleDark: colors.red,
+  rumbleLight: colors.surface,
+  lane: colors.white
 };
 
 export const DESERT_PALETTE: ScenarioPalette = {
   id: "desert",
   horizonStyle: "desert_dunes",
-  skyBands: ["#1d1829", "#3a233b", "#692a4a", "#9e3d4c", "#d96b52"],
-  sun: "#ff9e7d",
-  mountainBase: "#5c3d42",
-  mountainFacet: "#8d5b4c",
-  groundDark: "#d0a67a",
-  groundLight: "#ba8f62",
-  roadDark: "#2b2321",
-  roadLight: "#382e2b",
-  rumbleDark: "#e0564c",
-  rumbleLight: "#1a1c20",
-  lane: "#f7f2eb"
+  skyBands: [colors.borderDark, colors.violetDark, colors.purple, colors.pink, colors.orange],
+  sun: colors.orange,
+  mountainBase: colors.slate,
+  mountainFacet: colors.orangeDark,
+  groundDark: colors.amber,
+  groundLight: colors.yellow,
+  roadDark: colors.surface,
+  roadLight: colors.borderDark,
+  rumbleDark: colors.red,
+  rumbleLight: colors.surface,
+  lane: colors.white
 };
 
 export const MOUNTAIN_PALETTE: ScenarioPalette = {
   id: "mountain",
   horizonStyle: "mountain_cliffs",
-  skyBands: ["#120e26", "#251b47", "#4b2b5e", "#7e4075", "#b8b5ff"],
-  sun: "#b8b5ff",
-  mountainBase: "#2b2d42",
-  mountainFacet: "#4a4e69",
-  groundDark: "#8d99ae",
-  groundLight: "#788596",
-  roadDark: "#20242b",
-  roadLight: "#2a2f38",
-  rumbleDark: "#e0564c",
-  rumbleLight: "#1a1c20",
-  lane: "#f7f2eb"
+  skyBands: [colors.backgroundDark, colors.violetDark, colors.purple, colors.magenta, colors.violet],
+  sun: colors.violet,
+  mountainBase: colors.borderDark,
+  mountainFacet: colors.slate,
+  groundDark: colors.slate,
+  groundLight: colors.borderLight,
+  roadDark: colors.backgroundDark,
+  roadLight: colors.surface,
+  rumbleDark: colors.red,
+  rumbleLight: colors.surface,
+  lane: colors.white
 };
 
 export const CLASSIC_COAST_PALETTE: ScenarioPalette = {
   id: "classic_coast",
   horizonStyle: "faceted_peaks",
-  skyBands: ["#1a2a6c", "#5c258d", "#b21f1f", "#fdbb2d", "#ffe066"],
-  sun: "#ff4e50",
-  mountainBase: "#2b580c",
-  mountainFacet: "#639a67",
-  groundDark: "#f7f06d",
-  groundLight: "#d4a373",
-  roadDark: "#3a3d40",
-  roadLight: "#484b4e",
-  rumbleDark: "#e63946",
-  rumbleLight: "#f1faee",
-  lane: "#ffffff"
+  skyBands: [colors.blue, colors.purple, colors.red, colors.amber, colors.yellow],
+  sun: colors.redHot,
+  mountainBase: colors.green,
+  mountainFacet: colors.green,
+  groundDark: colors.yellow,
+  groundLight: colors.orange,
+  roadDark: colors.slate,
+  roadLight: colors.borderLight,
+  rumbleDark: colors.red,
+  rumbleLight: colors.white,
+  lane: colors.white
 };
 
 export const CLASSIC_DESERT_PALETTE: ScenarioPalette = {
   id: "classic_desert",
   horizonStyle: "faceted_peaks",
-  skyBands: ["#0f0c29", "#201c4e", "#302b63", "#24243e", "#4b2a5e"],
-  sun: "#f8ffae",
-  mountainBase: "#4a154b",
-  mountainFacet: "#6c2257",
-  groundDark: "#2c003e",
-  groundLight: "#3d0c5a",
-  roadDark: "#1f1f2e",
-  roadLight: "#28283d",
-  rumbleDark: "#ff007f",
-  rumbleLight: "#00f0ff",
-  lane: "#ffffff"
+  skyBands: [colors.backgroundDark, colors.violetDark, colors.purple, colors.slate, colors.violet],
+  sun: colors.yellow,
+  mountainBase: colors.purple,
+  mountainFacet: colors.magenta,
+  groundDark: colors.violetDark,
+  groundLight: colors.purple,
+  roadDark: colors.surface,
+  roadLight: colors.borderDark,
+  rumbleDark: colors.pink,
+  rumbleLight: colors.cyan,
+  lane: colors.white
 };
 
 export const CLASSIC_MOUNTAIN_PALETTE: ScenarioPalette = {
   id: "classic_mountain",
   horizonStyle: "faceted_peaks",
-  skyBands: ["#1c2833", "#2c3e50", "#7f8c8d", "#bdc3c7", "#ecf0f1"],
-  sun: "#e74c3c",
-  mountainBase: "#8e44ad",
-  mountainFacet: "#d35400",
-  groundDark: "#e67e22",
-  groundLight: "#f39c12",
-  roadDark: "#2c3e50",
-  roadLight: "#34495e",
-  rumbleDark: "#e74c3c",
-  rumbleLight: "#ecf0f1",
-  lane: "#ffffff"
+  skyBands: [colors.slate, colors.borderDark, colors.borderLight, colors.neutral, colors.white],
+  sun: colors.red,
+  mountainBase: colors.purple,
+  mountainFacet: colors.orange,
+  groundDark: colors.orange,
+  groundLight: colors.yellow,
+  roadDark: colors.borderDark,
+  roadLight: colors.borderLight,
+  rumbleDark: colors.red,
+  rumbleLight: colors.neutral,
+  lane: colors.white
 };
 
 export type DayPhase = "dawn" | "day" | "sunset" | "blue_hour";
@@ -143,38 +145,38 @@ export function getDayPhase(progress: number): { phase: DayPhase; phaseT: number
 export function applyDayPhase(palette: ScenarioPalette, progress: number): ModulatedPalette {
   const { phase, phaseT, lightsOn, timeOfDay } = getDayPhase(progress);
 
-  let cloudColor = "rgba(255, 255, 255, 0.25)";
+  let cloudColor = hexToRgba(colors.white, 0.25);
   let sunColor = palette.sun;
-  let laneColor = "#f7f2eb"; // Day: warm white
+  let laneColor = colors.white; // Day: warm white
   let reflectionAlpha = 0.06; // Soft daytime wet reflection
 
   if (phase === "dawn") {
-    cloudColor = "rgba(255, 218, 185, 0.3)";
-    sunColor = "#ff9e7d";
-    laneColor = interpolateHexColor("#f7f2eb", "#f8a89d", phaseT);
+    cloudColor = hexToRgba(colors.yellow, 0.3);
+    sunColor = colors.orange;
+    laneColor = interpolateHexColor(colors.white, colors.pink, phaseT);
     reflectionAlpha = 0.08 + phaseT * 0.04;
   } else if (phase === "day") {
-    cloudColor = "rgba(255, 255, 255, 0.35)";
-    sunColor = "#fff8e7";
-    laneColor = "#f7f2eb";
+    cloudColor = hexToRgba(colors.white, 0.35);
+    sunColor = colors.yellow;
+    laneColor = colors.white;
     reflectionAlpha = 0.06;
   } else if (phase === "sunset") {
-    cloudColor = "rgba(230, 150, 210, 0.3)";
-    sunColor = "#ff3b5c";
-    laneColor = interpolateHexColor("#f7f2eb", "#f8a89d", phaseT);
+    cloudColor = hexToRgba(colors.pink, 0.3);
+    sunColor = colors.red;
+    laneColor = interpolateHexColor(colors.white, colors.orange, phaseT);
     reflectionAlpha = 0.12 + phaseT * 0.08;
   } else {
-    cloudColor = "rgba(100, 200, 255, 0.25)";
-    sunColor = "#00f0ff";
-    laneColor = interpolateHexColor("#f8a89d", "#d0e8ff", phaseT);
+    cloudColor = hexToRgba(colors.cyan, 0.25);
+    sunColor = colors.cyan;
+    laneColor = interpolateHexColor(colors.orange, colors.blueLight, phaseT);
     reflectionAlpha = 0.22;
   }
 
   let groundDark = palette.groundDark;
   let groundLight = palette.groundLight;
   if (phase === "blue_hour") {
-    groundDark = interpolateHexColor(palette.groundDark, "#0d1117", 0.4);
-    groundLight = interpolateHexColor(palette.groundLight, "#161b22", 0.4);
+    groundDark = interpolateHexColor(palette.groundDark, colors.backgroundDark, 0.4);
+    groundLight = interpolateHexColor(palette.groundLight, colors.surface, 0.4);
   }
 
   return {

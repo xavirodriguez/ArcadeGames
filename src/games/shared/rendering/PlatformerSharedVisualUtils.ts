@@ -1,4 +1,6 @@
 import { World, resolveThemeColorWithFallback } from "@tiny-aster/core";
+import { colors } from "../../../theme/colors";
+import { hexToRgba } from "./CosmicPalette";
 
 export interface RenderComponentLike {
   visible?: boolean;
@@ -39,26 +41,26 @@ export interface RunStateResource {
 }
 
 export const DEFAULT_ECHO_PALETTE = {
-  restorationCyan: "#00f0ff",
-  restorationCyanGlow: "rgba(0, 240, 255, 0.4)",
-  restorationCyanFade: "rgba(0, 240, 255, 0.08)",
-  restorationGold: "#fbbf24",
-  restorationGoldGlow: "rgba(251, 191, 36, 0.5)",
-  restorationWhite: "#ffffff",
-  corruptionCrimson: "#ff0055",
-  corruptionCrimsonGlow: "rgba(255, 0, 85, 0.4)",
-  corruptionAmber: "#f97316",
-  corruptionPurple: "#a855f7",
-  corruptionPurpleGlow: "rgba(168, 85, 247, 0.4)",
-  archiveVoidDark: "#060913",
-  archiveSlate: "#1e293b",
-  archiveBorderDark: "#0f172a",
-  archiveBorderLight: "#334155",
-  archiveGridLine: "rgba(0, 240, 255, 0.05)",
-  archiveGridLineSecondary: "rgba(168, 85, 247, 0.03)",
-  archiveDataStream: "rgba(255, 0, 85, 0.06)",
-  archiveNodeActive: "#10b981",
-  archiveNodeInactive: "#ef4444",
+  restorationCyan: colors.cyan,
+  restorationCyanGlow: hexToRgba(colors.cyan, 0.4),
+  restorationCyanFade: hexToRgba(colors.cyan, 0.08),
+  restorationGold: colors.gold,
+  restorationGoldGlow: hexToRgba(colors.gold, 0.5),
+  restorationWhite: colors.white,
+  corruptionCrimson: colors.pink,
+  corruptionCrimsonGlow: hexToRgba(colors.pink, 0.4),
+  corruptionAmber: colors.orange,
+  corruptionPurple: colors.purple,
+  corruptionPurpleGlow: hexToRgba(colors.purple, 0.4),
+  archiveVoidDark: colors.backgroundDark,
+  archiveSlate: colors.slate,
+  archiveBorderDark: colors.borderDark,
+  archiveBorderLight: colors.borderLight,
+  archiveGridLine: hexToRgba(colors.cyan, 0.05),
+  archiveGridLineSecondary: hexToRgba(colors.purple, 0.03),
+  archiveDataStream: hexToRgba(colors.pink, 0.06),
+  archiveNodeActive: colors.green,
+  archiveNodeInactive: colors.red,
 } as const;
 
 export interface EchoRunnerResolvedPalette {
@@ -236,7 +238,7 @@ export interface WatcherVisualState {
 export function resolveWatcherVisualState(state: string, palette: EchoRunnerResolvedPalette): WatcherVisualState {
   const isAlert = state === "Alert" || state === "Windup";
   const isAttack = state === "Attack";
-  const glowColor = isAttack ? palette.corruptionCrimson : (isAlert ? palette.corruptionAmber : "#3b82f6");
+  const glowColor = isAttack ? palette.corruptionCrimson : (isAlert ? palette.corruptionAmber : colors.blue);
   return { isAlert, isAttack, glowColor };
 }
 

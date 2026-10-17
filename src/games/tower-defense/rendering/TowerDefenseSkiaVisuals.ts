@@ -1,9 +1,9 @@
-import { ShapeDrawer, EffectDrawer, RenderContext, World, resolveThemeColorWithFallback } from "@tiny-aster/core";
-import type { TowerDefenseComponentRegistry, TileGrid } from "../types/TowerDefenseTypes";
-import type { GridLayout } from "../../shared/grid/GridTypes";
+import { ShapeDrawer, EffectDrawer, World, resolveThemeColorWithFallback } from "@tiny-aster/core";
+import type { TowerDefenseComponentRegistry } from "../types/TowerDefenseTypes";
 import { getTileTypeColor } from "../MapUtils";
 import { Skia, getPaint, SkCanvas } from "../../shared/rendering/SkiaContext";
 import { drawGlowOrbSkia } from "../../shared/rendering/SkiaNeonUtils";
+import { colors } from "../../../theme/colors";
 import {
   resolveCreepVisualState,
   resolveTowerProjectileDrawSetup,
@@ -27,7 +27,7 @@ function drawSkiaTower(
 
   const primary = resolveThemeColorWithFallback(world, fallbackPrimary, primaryKey, "primary");
   const accent = resolveThemeColorWithFallback(world, fallbackAccent, accentKey, "accent");
-  const baseBg = resolveThemeColorWithFallback(world, "#1a2332", "tower_base_bg");
+  const baseBg = resolveThemeColorWithFallback(world, colors.backgroundSlate, "tower_base_bg");
 
   const s = size;
   paint.reset();
@@ -57,7 +57,7 @@ function drawSkiaTower(
 export const drawSkiaTowerBasic: ShapeDrawer<SkCanvas, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
-    drawSkiaTower(world, canvas, render?.size ?? 28, "tower_basic", "tower_basic_accent", "#4fc3f7", "#81d4fa");
+    drawSkiaTower(world, canvas, render?.size ?? 28, "tower_basic", "tower_basic_accent", colors.cyan, colors.blueLight);
   },
 };
 
@@ -65,11 +65,11 @@ export const drawSkiaTowerSniper: ShapeDrawer<SkCanvas, TowerDefenseComponentReg
   draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
     const size = render?.size ?? 28;
-    drawSkiaTower(world, canvas, size, "tower_sniper", "tower_sniper_accent", "#ab47bc", "#ce93d8");
+    drawSkiaTower(world, canvas, size, "tower_sniper", "tower_sniper_accent", colors.purple, colors.violet);
     if (!Skia) return;
     const paint = getPaint();
     if (!paint) return;
-    const barrelColor = resolveThemeColorWithFallback(world, "#e1bee7", "tower_sniper_barrel");
+    const barrelColor = resolveThemeColorWithFallback(world, colors.violet, "tower_sniper_barrel");
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color(barrelColor));
@@ -81,11 +81,11 @@ export const drawSkiaTowerRapid: ShapeDrawer<SkCanvas, TowerDefenseComponentRegi
   draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
     const size = render?.size ?? 28;
-    drawSkiaTower(world, canvas, size, "tower_rapid", "tower_rapid_accent", "#66bb6a", "#a5d6a7");
+    drawSkiaTower(world, canvas, size, "tower_rapid", "tower_rapid_accent", colors.green, colors.primary);
     if (!Skia) return;
     const paint = getPaint();
     if (!paint) return;
-    const barrelColor = resolveThemeColorWithFallback(world, "#c8e6c9", "tower_rapid_barrel");
+    const barrelColor = resolveThemeColorWithFallback(world, colors.green, "tower_rapid_barrel");
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color(barrelColor));
@@ -103,9 +103,9 @@ function drawSkiaCreep(canvas: SkCanvas, size: number, fill: string): void {
   paint.setStyle(Skia.PaintStyle.Fill);
   paint.setColor(Skia.Color(fill));
   canvas.drawCircle(0, 0, size / 2, paint);
-  paint.setColor(Skia.Color("#ffffff"));
+  paint.setColor(Skia.Color(colors.white));
   canvas.drawCircle(size * 0.15, -size * 0.1, size * 0.12, paint);
-  paint.setColor(Skia.Color("#111111"));
+  paint.setColor(Skia.Color(colors.neutral[800]));
   canvas.drawCircle(size * 0.18, -size * 0.1, size * 0.06, paint);
 }
 
@@ -123,7 +123,7 @@ function drawSkiaCreepStrokedOutline(canvas: SkCanvas, radius: number, strokeCol
 export const drawSkiaTowerFrost: ShapeDrawer<SkCanvas, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
-    drawSkiaTower(world, canvas, render?.size ?? 28, "tower_frost", "tower_frost_accent", "#4dd0e1", "#b2ebf2");
+    drawSkiaTower(world, canvas, render?.size ?? 28, "tower_frost", "tower_frost_accent", colors.cyan, colors.tertiary);
   },
 };
 
@@ -153,7 +153,7 @@ export const drawSkiaCreepFast: ShapeDrawer<SkCanvas, TowerDefenseComponentRegis
 export const drawSkiaCreepTank: ShapeDrawer<SkCanvas, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
     const { size, fill } = resolveCreepVisualState(world, entity, 18, "tank");
-    const stroke = resolveThemeColorWithFallback(world, "#5d4037", "creep_tank_plate");
+    const stroke = resolveThemeColorWithFallback(world, colors.slate, "creep_tank_plate");
 
     drawSkiaCreep(canvas, size, fill);
     drawSkiaCreepStrokedOutline(canvas, size * 0.55, stroke, 3);
@@ -207,7 +207,7 @@ export const drawSkiaTdMapBackground: EffectDrawer<SkCanvas, TowerDefenseCompone
           paint.reset();
           paint.setStyle(Skia.PaintStyle.Stroke);
           paint.setStrokeWidth(1.5);
-          paint.setColor(Skia.Color("rgba(79, 195, 247, 0.35)"));
+          paint.setColor(Skia.Color(colors.border));
           canvas.drawCircle(cx, cy, def.range, paint);
         }
       }

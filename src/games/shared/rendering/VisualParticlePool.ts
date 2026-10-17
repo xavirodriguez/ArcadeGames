@@ -17,7 +17,7 @@ export interface VisualParticle {
   type?: string;
   angle?: number;
   angularVelocity?: number;
-  skColor?: any;
+  skColor?: unknown;
 }
 
 /**
@@ -66,7 +66,7 @@ export class VisualParticlePool {
         p.type = extra?.type;
         p.angle = extra?.angle ?? 0;
         p.angularVelocity = extra?.angularVelocity ?? 0;
-        p.skColor = Skia ? Skia.Color(color) : null;
+        p.skColor = Skia ? (Skia as { Color: (c: string) => unknown }).Color(color) : null;
         break;
       }
     }

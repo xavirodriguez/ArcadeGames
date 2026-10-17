@@ -1,4 +1,4 @@
-import { World, EffectDrawer, ShapeDrawer, ComponentRegistry, CoreComponentRegistry, RenderComponent, TTLComponent, Renderer, RendererUtils, RenderContext, EventRegistry, BlueprintRegistryMap, Entity, RandomService, Theme, THEME_RESOURCE_KEY } from "@tiny-aster/core";
+import { World, ComponentRegistry, CoreComponentRegistry, RenderComponent, RandomService, Theme, THEME_RESOURCE_KEY } from "@tiny-aster/core";
 import type { SkColor, SkPath, SkShader } from "@shopify/react-native-skia";
 import { Skia } from "./SkiaContext";
 import { computeAsteroidSilhouette } from "./ProceduralShapeUtils";
@@ -246,7 +246,7 @@ export function getVFXState<TComponents extends ComponentRegistry = ComponentReg
       lastWidth: 0,
       lastHeight: 0
     };
-    worldStateMap.set(world, state);
+    worldStateMap.set(world as World<ComponentRegistry>, state);
   }
   return state;
 }
@@ -371,7 +371,7 @@ export function createParallaxLayer<TState>(options: ParallaxLayerOptions<TState
   ): ParallaxLayerContext<TState> | null => {
     const { width, height, state } = getScreenAndVFXState(world);
     if (!options.isInitialized(state)) {
-      options.initialize(world, state);
+      options.initialize(world as unknown as World<ComponentRegistry>, state);
     }
     const layerState = options.getState(state);
     if (!layerState) return null;
@@ -574,14 +574,15 @@ export function initializeDistantAsteroids(world: World<ComponentRegistry>, stat
     const seed = rng.nextInt(0, 100000);
     const points = computeAsteroidSilhouette(seed, radius, 9);
 
-    let skPath: any = null;
+    let skPath: unknown = null;
     if (Skia && points.length > 0) {
-      skPath = Skia.Path.Make();
-      skPath.moveTo(points[0].x, points[0].y);
-      for (let p = 1; p < points.length; p++) {
-        skPath.lineTo(points[p].x, points[p].y);
+      const p = Skia.Path.Make();
+      p.moveTo(points[0].x, points[0].y);
+      for (let pIdx = 1; pIdx < points.length; pIdx++) {
+        p.lineTo(points[pIdx].x, points[pIdx].y);
       }
-      skPath.close();
+      p.close();
+      skPath = p;
     }
 
     state.distantAsteroids.push({
@@ -595,7 +596,7 @@ export function initializeDistantAsteroids(world: World<ComponentRegistry>, stat
       points,
       color,
       skColor,
-      skPath
+      skPath: skPath as SkPath
     });
   }
   state.distantAsteroidsInitialized = true;

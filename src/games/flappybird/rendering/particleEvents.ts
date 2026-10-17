@@ -1,6 +1,7 @@
 import { World } from "@tiny-aster/core";
 import { FLAPPY_CONFIG, FlappyBirdComponentRegistry, BirdComponent } from "../types/FlappyBirdTypes";
 import { VisualParticlePool } from "../../shared/rendering/VisualParticlePool";
+import { colors } from "../../../theme/colors";
 
 export interface InterceptorRenderState {
   lastVy: number;
@@ -53,7 +54,7 @@ export function processFlappyBirdParticleEvents(
       const pVy = Math.sin(angleVal) * speedVal;
       const lifeVal = world.renderRandom.nextRange(0.25, 0.45);
       const sizeVal = world.renderRandom.nextRange(2, 4);
-      pool.spawn(x, y, pVx, pVy, lifeVal, sizeVal, "#00F3FF", { type: "spark", angle: angleVal });
+      pool.spawn(x, y, pVx, pVy, lifeVal, sizeVal, colors.cyan, { type: "spark", angle: angleVal });
     }
   }
 
@@ -69,7 +70,7 @@ export function processFlappyBirdParticleEvents(
       const pVy = Math.sin(angleVal) * speedVal;
       const lifeVal = world.renderRandom.nextRange(0.2, 0.45);
       const sizeVal = world.renderRandom.nextRange(2, 4);
-      const randColor = world.renderRandom.next() > 0.5 ? "#FFFFFF" : "#FFC000";
+      const randColor = world.renderRandom.next() > 0.5 ? colors.white : colors.yellow;
       pool.spawn(x - size * 0.5, y, pVx, pVy, lifeVal, sizeVal, randColor, { type: "spark", angle: angleVal });
     }
   }
@@ -85,7 +86,7 @@ export function processFlappyBirdParticleEvents(
       const pVy = Math.sin(angleVal) * speedVal;
       const lifeVal = world.renderRandom.nextRange(0.6, 1.1);
       const sizeVal = world.renderRandom.nextRange(3, 6);
-      pool.spawn(x, y, pVx, pVy, lifeVal, sizeVal, "#5A6173", {
+      pool.spawn(x, y, pVx, pVy, lifeVal, sizeVal, colors.slate, {
         type: "shard",
         angle: angleVal,
         angularVelocity: world.renderRandom.nextRange(-4, 4)
@@ -98,7 +99,7 @@ export function processFlappyBirdParticleEvents(
       const pVy = Math.sin(angleVal) * speedVal;
       const lifeVal = world.renderRandom.nextRange(0.25, 0.5);
       const sizeVal = world.renderRandom.nextRange(2, 5);
-      pool.spawn(x, y, pVx, pVy, lifeVal, sizeVal, "#FF3300", { type: "spark", angle: angleVal });
+      pool.spawn(x, y, pVx, pVy, lifeVal, sizeVal, colors.redHot, { type: "spark", angle: angleVal });
     }
   }
 
@@ -112,7 +113,7 @@ export function processFlappyBirdParticleEvents(
 /**
  * Shared physics tick for FlappyBird particles (drag on sparks, gravity on shards).
  */
-export function applyFlappyParticlePhysics(p: any, dt: number): void {
+export function applyFlappyParticlePhysics(p: { type?: string; vx: number; vy: number }, dt: number): void {
   if (p.type === "spark") {
     p.vx *= 0.96;
     p.vy *= 0.96;

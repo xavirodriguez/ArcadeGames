@@ -43,7 +43,7 @@ export function resolveArkanoidPaddleContext(
   const h = config.PADDLE_HEIGHT;
 
   const primaryColor = render.color || colors.cyan;
-  const glowColor = "rgba(0, 243, 255, 0.25)";
+  const glowColor = colors.border;
 
   return { render, w, h, primaryColor, glowColor };
 }

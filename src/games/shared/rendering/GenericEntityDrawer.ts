@@ -1,6 +1,6 @@
 import { EntityGeometryProfile, GeometrySubPath } from "@tiny-aster/core";
-import { IDrawAdapter, CanvasDrawAdapter, SkiaDrawAdapter } from "./DrawAdapter";
-import type { SkCanvas } from "@shopify/react-native-skia";
+import { IDrawAdapter } from "./DrawAdapter";
+import { colors } from "../../../theme/colors";
 
 /**
  * Options for generic parametric geometry drawer.
@@ -103,9 +103,9 @@ export function resolveGenericDrawerPreamble(
 ): GenericDrawerPreamble {
   const size = options.size || 20;
   const scale = (size / 2) * (profile.scaleMultiplier || 1.0);
-  const baseColor = options.baseColor || "#00E5FF";
+  const baseColor = options.baseColor || colors.cyan;
   const isHitFlashing = Boolean(options.isHitFlashing);
-  const hitFlashColor = options.hitFlashColor || "#FFFFFF";
+  const hitFlashColor = options.hitFlashColor || colors.white;
   return { size, scale, baseColor, isHitFlashing, hitFlashColor };
 }
 

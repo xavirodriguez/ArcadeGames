@@ -89,7 +89,7 @@ export const drawArkanoidBrick: ShapeDrawer<CanvasRenderingContext2D, ArkanoidCo
     ctx.fill();
 
     ctx.shadowBlur = 0;
-    ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+    ctx.fillStyle = colors.textMuted;
     ctx.fillRect(-w / 2 + 2, -h / 2 + 2, w - 4, 3);
 
     ctx.restore();

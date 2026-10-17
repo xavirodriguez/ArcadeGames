@@ -1,4 +1,4 @@
-import { World, CoreComponentRegistry, SystemPhase, ReplayRecorder, ReplayPlayer } from "@tiny-aster/core";
+import { World, CoreComponentRegistry } from "@tiny-aster/core";
 import { JuiceOrchestrator, JUICE_CATALOG } from "../JuiceOrchestrator";
 import { HitStopSystem, HitStopPriority, requestHitStop, isHitStopActive } from "../HitStopSystem";
 import { KineticFlowSystem } from "../KineticFlowSystem";
@@ -6,6 +6,7 @@ import { getVFXState } from "../SharedVFXInternal";
 import { AsteroidsGame } from "../../../asteroids/AsteroidsGame";
 import { GeometryWarsGame } from "../../../geometrywars/GeometryWarsGame";
 import { SpaceInvadersGame } from "../../../space-invaders/SpaceInvadersGame";
+import { colors } from "../../../../theme/colors";
 
 describe("JuiceOrchestrator Unit Tests & Golden Replays", () => {
   let world: World<CoreComponentRegistry>;
@@ -19,7 +20,7 @@ describe("JuiceOrchestrator Unit Tests & Golden Replays", () => {
 
   describe("FR-1: juice.spawn API", () => {
     it("should spawn visual primitives with single-line call and TTL components", () => {
-      const entity = juice.spawn("shockwave", { x: 100, y: 150, tint: "#ff0055", scale: 1.5, ttl: 0.5 });
+      const entity = juice.spawn("shockwave", { x: 100, y: 150, tint: colors.pink, scale: 1.5, ttl: 0.5 });
       expect(entity).not.toBeNull();
 
       if (entity !== null) {
@@ -28,7 +29,7 @@ describe("JuiceOrchestrator Unit Tests & Golden Replays", () => {
         const transform = world.getComponent(entity, "Transform");
 
         expect(render?.shape).toBe("shockwave");
-        expect(render?.color).toBe("#ff0055");
+        expect(render?.color).toBe(colors.pink);
         expect(transform?.x).toBe(100);
         expect(transform?.y).toBe(150);
         expect(transform?.scaleX).toBe(1.5);
@@ -40,7 +41,7 @@ describe("JuiceOrchestrator Unit Tests & Golden Replays", () => {
       const entity = juice.spawn("floating_text", { x: 200, y: 300, text: "+500" });
       expect(entity).not.toBeNull();
       if (entity !== null) {
-        const render = world.getComponent(entity, "Render") as any;
+        const render = world.getComponent(entity, "Render") as { text?: string } | undefined;
         expect(render?.text).toBe("+500");
       }
     });
@@ -154,7 +155,7 @@ describe("JuiceOrchestrator Unit Tests & Golden Replays", () => {
         isBurstReady: false,
         isBurstActive: false,
         overdriveRemaining: 0
-      } as any);
+      } as unknown as import("@tiny-aster/core").Component);
 
       flowSys.update(world, 0.016);
       expect(getVFXState(world).kineticCharge).toBe(0.75);

@@ -4,24 +4,25 @@
  */
 import type { BackdropThemeTokens } from "@tiny-aster/core";
 import { DEFAULT_ECHO_PALETTE } from "../../shared/rendering/PlatformerSharedVisualUtils";
+import { colors, semanticColors } from "../../../theme/colors";
 
 export const HIT_PALETTE = {
   ...DEFAULT_ECHO_PALETTE,
-  hitRunRed: "#ff2244",
-  hitRunYellow: "#ffcc00",
-  hitRunSmoke: "rgba(255, 255, 255, 0.2)"
+  hitRunRed: colors.redHot,
+  hitRunYellow: colors.gold,
+  hitRunSmoke: colors.overlay
 } as const;
 
 /** Theme for generateBackdrop — dusk horizon, warm accent, cool depths. */
 export const HIT_RUN_BACKDROP_THEME: BackdropThemeTokens = {
-  skyGradientTop: "#07060f",
-  skyGradientBottom: "#2a1838",
-  mountainFar: "#1e1528",
-  mountainMid: "#2c2038",
-  hills: "#3a2a44",
-  river: "#3a7a9a",
-  waterfall: "#8fd4ff",
-  accentGlow: "#ff5a7a",
-  fogColor: "rgba(12, 8, 22, 0.55)",
-  maskColor: "#05040a"
+  skyGradientTop: semanticColors.background.dark,
+  skyGradientBottom: semanticColors.background.slate,
+  mountainFar: colors.surface,
+  mountainMid: colors.borderDark,
+  hills: colors.slate,
+  river: colors.blue,
+  waterfall: colors.blueLight,
+  accentGlow: colors.pink,
+  fogColor: colors.overlay,
+  maskColor: semanticColors.background.dark
 };

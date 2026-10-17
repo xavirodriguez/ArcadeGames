@@ -169,6 +169,24 @@ export default tseslint.config(
       ],
     },
   },
+  // Regla de Inviolabilidad: Prohibidos literales de color (#hex, rgb, rgba, hsl, hsla) en renderers
+  {
+    files: ["src/games/**/rendering/**/*.{ts,tsx}"],
+    ignores: ["src/games/**/rendering/**/__tests__/**"],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "Literal[value=/^#(?:[0-9a-fA-F]{3,8})$|^rgba?\\(|^hsla?\\(/i]",
+          message: "💥 REGLA DE INVIOLABILIDAD: Prohibido usar literales de color (#hex, rgb, rgba, hsl, hsla) en archivos de renderizado. Usa tokens semánticos resueltos desde el Tema."
+        },
+        {
+          selector: "TemplateElement[value.raw=/#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})\\b|rgba?\\(|hsla?\\(/i]",
+          message: "💥 REGLA DE INVIOLABILIDAD: Prohibido usar literales de color en plantillas de cadenas dentro de renderizado. Usa tokens semánticos resueltos desde el Tema."
+        }
+      ]
+    }
+  },
   // Regla no-hardcoded-zindex en componentes/pantallas de juegos
   {
     files: ["src/app/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],

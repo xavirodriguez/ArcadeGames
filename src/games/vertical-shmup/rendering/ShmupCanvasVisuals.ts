@@ -1,5 +1,6 @@
 import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
 import type { ShmupComponentRegistry } from "../types/ShmupTypes";
+import { colors } from "../../../theme/colors";
 import {
   computeShmupStarfield,
   resolveShmupPlayerDrawContext,
@@ -19,10 +20,10 @@ export const drawShmupPlayer: ShapeDrawer<CanvasRenderingContext2D, ShmupCompone
     // Invulnerability shield aura
     if (invulnerable) {
       ctx.save();
-      ctx.strokeStyle = "#00ffff";
+      ctx.strokeStyle = colors.cyan;
       ctx.lineWidth = 2;
       ctx.shadowBlur = 15;
-      ctx.shadowColor = "#00ffff";
+      ctx.shadowColor = colors.cyan;
       ctx.beginPath();
       ctx.arc(0, 0, size * 1.35, 0, Math.PI * 2);
       ctx.stroke();
@@ -33,9 +34,9 @@ export const drawShmupPlayer: ShapeDrawer<CanvasRenderingContext2D, ShmupCompone
     const flicker = 0.8 + 0.4 * Math.sin(time * 30);
     const plumeLength = size * 0.9 * flicker;
     ctx.save();
-    ctx.fillStyle = "#ffaa00";
+    ctx.fillStyle = colors.orange;
     ctx.shadowBlur = 12;
-    ctx.shadowColor = "#ffaa00";
+    ctx.shadowColor = colors.orange;
     ctx.beginPath();
     ctx.moveTo(-size * 0.25, size * 0.5);
     ctx.lineTo(size * 0.25, size * 0.5);
@@ -44,7 +45,7 @@ export const drawShmupPlayer: ShapeDrawer<CanvasRenderingContext2D, ShmupCompone
     ctx.fill();
 
     // Thruster core
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = colors.white;
     ctx.beginPath();
     ctx.moveTo(-size * 0.15, size * 0.5);
     ctx.lineTo(size * 0.15, size * 0.5);
@@ -75,7 +76,7 @@ export const drawShmupPlayer: ShapeDrawer<CanvasRenderingContext2D, ShmupCompone
     ctx.fill();
 
     // Wing panels / accent lines
-    ctx.strokeStyle = "#ffffff";
+    ctx.strokeStyle = colors.white;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(0, -size * 0.7);
@@ -85,9 +86,9 @@ export const drawShmupPlayer: ShapeDrawer<CanvasRenderingContext2D, ShmupCompone
     ctx.stroke();
 
     // Cockpit Glass Canopy
-    ctx.fillStyle = "#e0ffff";
+    ctx.fillStyle = colors.cyan;
     ctx.shadowBlur = 8;
-    ctx.shadowColor = "#ffffff";
+    ctx.shadowColor = colors.white;
     ctx.beginPath();
     ctx.ellipse(0, -size * 0.2, size * 0.22, size * 0.45, 0, 0, Math.PI * 2);
     ctx.fill();
@@ -109,7 +110,7 @@ export const drawShmupEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupComponen
 
     // Engine glow at top
     const pulse = 0.8 + 0.3 * Math.sin(time * 20 + entity);
-    ctx.fillStyle = "#ff9900";
+    ctx.fillStyle = colors.orange;
     ctx.beginPath();
     ctx.arc(0, -size * 0.5, size * 0.25 * pulse, 0, Math.PI * 2);
     ctx.fill();
@@ -127,14 +128,14 @@ export const drawShmupEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupComponen
     ctx.fill();
 
     // Cannons on wingtips
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = colors.white;
     ctx.fillRect(size * 0.8, -size * 0.2, size * 0.12, size * 0.6);
     ctx.fillRect(-size * 0.92, -size * 0.2, size * 0.12, size * 0.6);
 
     // Glowing Central Core
     ctx.shadowBlur = 12;
-    ctx.shadowColor = "#ffff00";
-    ctx.fillStyle = path?.kind === "sine" ? "#ffe600" : "#ffffff";
+    ctx.shadowColor = colors.yellow;
+    ctx.fillStyle = path?.kind === "sine" ? colors.amber : colors.white;
     ctx.beginPath();
     ctx.arc(0, 0, size * 0.28, 0, Math.PI * 2);
     ctx.fill();
@@ -145,7 +146,7 @@ export const drawShmupEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupComponen
 
 export const drawShmupPlayerBullet: ShapeDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
   draw(ctx, world, entity) {
-    const bCtx = resolveShmupBulletDrawContext(world, entity, 4, "#ffe600");
+    const bCtx = resolveShmupBulletDrawContext(world, entity, 4, colors.amber);
     if (!bCtx) return;
     const { size, color } = bCtx;
 
@@ -158,7 +159,7 @@ export const drawShmupPlayerBullet: ShapeDrawer<CanvasRenderingContext2D, ShmupC
     ctx.fillRect(-size * 0.75, -size * 2.5, size * 1.5, size * 5);
 
     // Core laser beam
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = colors.white;
     ctx.fillRect(-size * 0.35, -size * 2, size * 0.7, size * 4);
 
     ctx.restore();
@@ -167,7 +168,7 @@ export const drawShmupPlayerBullet: ShapeDrawer<CanvasRenderingContext2D, ShmupC
 
 export const drawShmupEnemyBullet: ShapeDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
   draw(ctx, world, entity) {
-    const bCtx = resolveShmupBulletDrawContext(world, entity, 5, "#ff5a5a");
+    const bCtx = resolveShmupBulletDrawContext(world, entity, 5, colors.danger);
     if (!bCtx) return;
     const { size, color } = bCtx;
 
@@ -182,7 +183,7 @@ export const drawShmupEnemyBullet: ShapeDrawer<CanvasRenderingContext2D, ShmupCo
     ctx.fill();
 
     // White energy core
-    ctx.fillStyle = "#ffffff";
+    ctx.fillStyle = colors.white;
     ctx.beginPath();
     ctx.arc(0, 0, size * 0.45, 0, Math.PI * 2);
     ctx.fill();
@@ -196,7 +197,7 @@ export const drawShmupStarfield: EffectDrawer<CanvasRenderingContext2D, ShmupCom
     const { width, height, stars } = computeShmupStarfield(world);
 
     ctx.save();
-    ctx.fillStyle = "#070a14";
+    ctx.fillStyle = colors.backgroundDark;
     ctx.fillRect(0, 0, width, height);
 
     for (let i = 0; i < stars.length; i++) {

@@ -1,5 +1,6 @@
 import { World, resolveThemeColorWithFallback } from "@tiny-aster/core";
 import type { TowerDefenseComponentRegistry } from "../types/TowerDefenseTypes";
+import { colors } from "../../../theme/colors";
 
 export interface CreepVisualState {
   size: number;
@@ -22,44 +23,44 @@ export function resolveCreepVisualState(
 
   if (type === "grunt") {
     const fill = slowed
-      ? resolveThemeColorWithFallback(world, "#80deea", "creep_slowed")
-      : resolveThemeColorWithFallback(world, "#ff7043", "creep_grunt", "enemy");
+      ? resolveThemeColorWithFallback(world, colors.cyan, "creep_slowed")
+      : resolveThemeColorWithFallback(world, colors.orange, "creep_grunt", "enemy");
     const stroke = slowed
-      ? resolveThemeColorWithFallback(world, "#e0f7fa", "creep_slowed_stroke")
-      : resolveThemeColorWithFallback(world, "#ffab91", "creep_grunt_stroke");
+      ? resolveThemeColorWithFallback(world, colors.cyan, "creep_slowed_stroke")
+      : resolveThemeColorWithFallback(world, colors.amber, "creep_grunt_stroke");
     return { size, slowed, fill, stroke };
   }
 
   if (type === "fast") {
     const fill = slowed
-      ? resolveThemeColorWithFallback(world, "#80deea", "creep_slowed")
-      : resolveThemeColorWithFallback(world, "#29b6f6", "creep_fast", "enemy");
+      ? resolveThemeColorWithFallback(world, colors.cyan, "creep_slowed")
+      : resolveThemeColorWithFallback(world, colors.blue, "creep_fast", "enemy");
     const stroke = slowed
-      ? resolveThemeColorWithFallback(world, "#e0f7fa", "creep_slowed_stroke")
-      : resolveThemeColorWithFallback(world, "#81d4fa", "creep_fast_stroke");
+      ? resolveThemeColorWithFallback(world, colors.cyan, "creep_slowed_stroke")
+      : resolveThemeColorWithFallback(world, colors.blueLight, "creep_fast_stroke");
     return { size, slowed, fill, stroke };
   }
 
   if (type === "tank") {
     const fill = slowed
-      ? resolveThemeColorWithFallback(world, "#80deea", "creep_slowed")
-      : resolveThemeColorWithFallback(world, "#8d6e63", "creep_tank", "enemy");
+      ? resolveThemeColorWithFallback(world, colors.cyan, "creep_slowed")
+      : resolveThemeColorWithFallback(world, colors.slate, "creep_tank", "enemy");
     const stroke = slowed
-      ? resolveThemeColorWithFallback(world, "#e0f7fa", "creep_slowed_stroke")
-      : resolveThemeColorWithFallback(world, "#bcaaa4", "creep_tank_stroke");
+      ? resolveThemeColorWithFallback(world, colors.cyan, "creep_slowed_stroke")
+      : resolveThemeColorWithFallback(world, colors.neutral, "creep_tank_stroke");
     return { size, slowed, fill, stroke };
   }
 
   // Boss
   const fill = slowed
-    ? resolveThemeColorWithFallback(world, "#4dd0e1", "creep_slowed")
-    : resolveThemeColorWithFallback(world, "#c62828", "creep_boss", "boss");
+    ? resolveThemeColorWithFallback(world, colors.cyan, "creep_slowed")
+    : resolveThemeColorWithFallback(world, colors.red, "creep_boss", "boss");
   const stroke = slowed
-    ? resolveThemeColorWithFallback(world, "#80deea", "creep_slowed_stroke")
-    : resolveThemeColorWithFallback(world, "#e53935", "creep_boss_stroke");
+    ? resolveThemeColorWithFallback(world, colors.cyan, "creep_slowed_stroke")
+    : resolveThemeColorWithFallback(world, colors.danger, "creep_boss_stroke");
   const innerStroke = slowed
-    ? resolveThemeColorWithFallback(world, "#e0f7fa", "creep_slowed_stroke")
-    : resolveThemeColorWithFallback(world, "#ef9a9a", "creep_boss_inner_stroke");
+    ? resolveThemeColorWithFallback(world, colors.cyan, "creep_slowed_stroke")
+    : resolveThemeColorWithFallback(world, colors.pink, "creep_boss_inner_stroke");
 
   return { size, slowed, fill, stroke, innerStroke };
 }
@@ -79,8 +80,8 @@ export function resolveTowerProjectileDrawSetup(
   const size = render?.size ?? 4;
   const frost = !!(proj?.slowFactor && proj.slowFactor < 1);
   const color = frost
-    ? resolveThemeColorWithFallback(world, "#4dd0e1", "tower_projectile_frost")
-    : resolveThemeColorWithFallback(world, "#ffee58", "tower_projectile", "bullet");
+    ? resolveThemeColorWithFallback(world, colors.cyan, "tower_projectile_frost")
+    : resolveThemeColorWithFallback(world, colors.yellow, "tower_projectile", "bullet");
 
   return { size, frost, color };
 }

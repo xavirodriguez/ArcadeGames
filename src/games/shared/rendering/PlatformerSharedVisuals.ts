@@ -1,5 +1,4 @@
-import { ShapeDrawer, RenderContext, CoreComponentRegistry } from "@tiny-aster/core";
-import { resolveHitFlash } from "./RenderUtils";
+import { ShapeDrawer, CoreComponentRegistry } from "@tiny-aster/core";
 import { Skia, getPaint, SkCanvas, SkPaint } from "./SkiaContext";
 import {
   resolveEchoDrawContext,
@@ -13,6 +12,8 @@ import {
   resolveEchoRunnerPalette,
   EchoRunnerResolvedPalette
 } from "./PlatformerSharedVisualUtils";
+import { colors } from "../../../theme/colors";
+import { hexToRgba } from "./CosmicPalette";
 
 export { drawPlatformerTilemap } from "./PlatformerSharedTilemap";
 
@@ -45,9 +46,9 @@ function getPulseAttackGradient(ctx: CanvasRenderingContext2D, size: number, pal
   let grad = gradientCache.get(key);
   if (!grad) {
     grad = ctx.createRadialGradient(0, 0, size * 0.2, 0, 0, size);
-    grad.addColorStop(0, "rgba(255, 255, 255, 0.95)");
+    grad.addColorStop(0, hexToRgba(colors.white, 0.95));
     grad.addColorStop(0.4, palette.restorationCyanGlow);
-    grad.addColorStop(1, "rgba(0, 240, 255, 0)");
+    grad.addColorStop(1, hexToRgba(colors.cyan, 0));
     gradientCache.set(key, grad);
   }
   return grad;
@@ -343,7 +344,7 @@ export const drawHopper: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegi
     ctx.stroke();
 
     ctx.beginPath();
-    if (ctx.roundRect) {
+    if (typeof ctx.roundRect === "function") {
       ctx.roundRect(-size * 0.35, -size * 0.4, size * 0.7, size * 0.45, 3);
     } else {
       ctx.rect(-size * 0.35, -size * 0.4, size * 0.7, size * 0.45);
@@ -376,7 +377,7 @@ export const drawWatcher: ShapeDrawer<CanvasRenderingContext2D, CoreComponentReg
     ctx.shadowBlur = 10;
 
     if (isAlert || isAttack) {
-      ctx.fillStyle = isAttack ? palette.corruptionCrimsonGlow : "rgba(249, 115, 22, 0.15)";
+      ctx.fillStyle = isAttack ? palette.corruptionCrimsonGlow : hexToRgba(colors.orange, 0.15);
       ctx.strokeStyle = isAttack ? palette.corruptionCrimson : palette.corruptionAmber;
       ctx.lineWidth = 1;
       ctx.beginPath();
@@ -402,12 +403,12 @@ export const drawWatcher: ShapeDrawer<CanvasRenderingContext2D, CoreComponentReg
     ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = isAlert || isAttack ? glowColor : "rgba(59, 130, 246, 0.4)";
+    ctx.fillStyle = isAlert || isAttack ? glowColor : hexToRgba(colors.blue, 0.4);
     ctx.beginPath();
     ctx.arc(0, -size * 0.05, size * 0.18, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = isAlert && Math.floor(world.tick / 3) % 2 === 0 ? palette.restorationWhite : "#60a5fa";
+    ctx.fillStyle = isAlert && Math.floor(world.tick / 3) % 2 === 0 ? palette.restorationWhite : colors.blueLight;
     ctx.beginPath();
     ctx.arc(0, -size * 0.05, size * 0.08, 0, Math.PI * 2);
     ctx.fill();
@@ -652,7 +653,7 @@ export const drawSkiaPulseAttack: ShapeDrawer<SkCanvas, CoreComponentRegistry> =
 
     canvas.drawPath(path, paint);
 
-    paint.setColor(Skia.Color("rgba(255, 255, 255, 0.8)"));
+    paint.setColor(Skia.Color(hexToRgba(colors.white, 0.8)));
     const innerPath = Skia.Path.Make();
     innerPath.moveTo(0, 0);
     innerPath.addArc(Skia.XYWHRect(-size * 0.5, -size * 0.5, size, size), -50, 100);
@@ -695,7 +696,7 @@ export const drawSkiaSentinel: ShapeDrawer<SkCanvas, CoreComponentRegistry> = {
       canvas.drawPath(chevron, paint);
 
       paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(Skia.Color("rgba(249, 115, 22, 0.6)"));
+      paint.setColor(Skia.Color(hexToRgba(colors.orange, 0.6)));
       paint.setStrokeWidth(1.5);
       const ringRadius = size * (0.8 + 0.3 * Math.sin(world.tick * 0.3));
       canvas.drawCircle(0, 0, ringRadius, paint);
@@ -815,7 +816,7 @@ export const drawSkiaWatcher: ShapeDrawer<SkCanvas, CoreComponentRegistry> = {
       paint.reset();
       paint.setAntiAlias(true);
       paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color(isAttack ? palette.corruptionCrimsonGlow : "rgba(249, 115, 22, 0.15)"));
+      paint.setColor(Skia.Color(isAttack ? palette.corruptionCrimsonGlow : hexToRgba(colors.orange, 0.15)));
 
       const conePath = Skia.Path.Make();
       conePath.moveTo(0, -size * 0.05);
@@ -850,10 +851,10 @@ export const drawSkiaWatcher: ShapeDrawer<SkCanvas, CoreComponentRegistry> = {
     canvas.drawCircle(0, -size * 0.05, size * 0.32, paint);
 
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(isAlert || isAttack ? glowColor : "rgba(59, 130, 246, 0.4)"));
+    paint.setColor(Skia.Color(isAlert || isAttack ? glowColor : hexToRgba(colors.blue, 0.4)));
     canvas.drawCircle(0, -size * 0.05, size * 0.18, paint);
 
-    paint.setColor(Skia.Color(isAlert && Math.floor(world.tick / 3) % 2 === 0 ? palette.restorationWhite : "#60a5fa"));
+    paint.setColor(Skia.Color(isAlert && Math.floor(world.tick / 3) % 2 === 0 ? palette.restorationWhite : colors.blueLight));
     canvas.drawCircle(0, -size * 0.05, size * 0.08, paint);
 
     canvas.restore();

@@ -1,5 +1,5 @@
 import { World } from "@tiny-aster/core";
-import { ScenarioId } from "../types/FlappyBirdTypes";
+import { ScenarioId, FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
 import { colors } from "../../../theme/colors";
 
 /**
@@ -18,7 +18,7 @@ export interface MegastructureData {
 /**
  * Calculates warp factor based on combo multiplier in world.
  */
-export function calculateWarpFactor(world: World<unknown>): number {
+export function calculateWarpFactor(world: World<FlappyBirdComponentRegistry>): number {
   const comboEntities = world.query("Combo");
   if (comboEntities.length > 0) {
     const combo = world.getComponent(comboEntities[0], "Combo");

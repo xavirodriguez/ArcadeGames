@@ -160,7 +160,7 @@ describe("Theme Resource & Entity Factory Integration", () => {
 
       const phaseVisual = calculateBossPhase(0.2, defaultTheme);
       expect(phaseVisual.phase).toBe(3);
-      expect(phaseVisual.baseColor).toBe("#FF4444");
+      expect(phaseVisual.baseColor).toBe("#EF4444");
     });
   });
 });

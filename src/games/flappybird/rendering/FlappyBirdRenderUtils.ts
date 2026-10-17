@@ -2,7 +2,8 @@ import { World, TransformComponent, RenderComponent, HealthComponent, ComboCompo
 import {
   FlappyBirdComponentRegistry,
   BirdComponent,
-  PipeComponent
+  PipeComponent,
+  FlappyBirdState
 } from "../types/FlappyBirdTypes";
 import {
   calculateBirdTiltAngle,
@@ -355,7 +356,7 @@ export interface WarpLine {
 }
 
 export interface FlappyBackgroundSetup {
-  gameState: Record<string, unknown>;
+  gameState: FlappyBirdState;
   width: number;
   height: number;
   scenarioTheme: ReturnType<typeof getThemeForScenario>;

@@ -80,7 +80,7 @@ export class SpawnDirectorSystem<
           world.getCommandBuffer().spawnFromBlueprintForEntity(
             entityId,
             spawn.blueprintId as Extract<keyof TComponents, string>,
-            spawn.args as Record<string, any>
+            spawn.args as any
           );
 
           // Attach WaveMember component to identify it belongs to the wave
@@ -88,7 +88,7 @@ export class SpawnDirectorSystem<
             type: "WaveMember",
             waveIndex,
             waveId: activeWaveId || ""
-          } as Parameters<WorldCommandBuffer<TComponents>["addComponent"]>[1]);
+          } as unknown as Parameters<WorldCommandBuffer<TComponents>["addComponent"]>[1]);
         } else {
           remainingSpawns.push(spawn);
         }

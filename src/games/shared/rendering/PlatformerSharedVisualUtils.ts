@@ -61,6 +61,8 @@ export const DEFAULT_ECHO_PALETTE = {
   archiveDataStream: hexToRgba(colors.pink, 0.06),
   archiveNodeActive: colors.green,
   archiveNodeInactive: colors.red,
+  watcher: colors.blue,
+  shadowColor: colors.slate,
 } as const;
 
 export interface EchoRunnerResolvedPalette {

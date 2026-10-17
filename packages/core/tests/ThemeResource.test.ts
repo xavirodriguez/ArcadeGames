@@ -5,6 +5,7 @@ import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../../../src
 import { ww2DogfightConceptPack } from "../../../src/theme/conceptPacks/ww2DogfightConceptPack";
 import { zombieSurvivalConceptPack } from "../../../src/theme/conceptPacks/zombieSurvivalConceptPack";
 import { resolvePlayerRoleVisual, calculateBossPhase } from "../../../src/games/shared/rendering/spaceInvadersMath";
+import { colors } from "../../../src/theme/colors";
 
 describe("Theme Resource & Entity Factory Integration", () => {
   it("should validate Theme resource shape in development mode", () => {
@@ -160,7 +161,7 @@ describe("Theme Resource & Entity Factory Integration", () => {
 
       const phaseVisual = calculateBossPhase(0.2, defaultTheme);
       expect(phaseVisual.phase).toBe(3);
-      expect(phaseVisual.baseColor).toBe("#FF4444");
+      expect(phaseVisual.baseColor).toBe(colors.red);
     });
   });
 });

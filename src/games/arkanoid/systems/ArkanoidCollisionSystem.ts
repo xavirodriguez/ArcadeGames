@@ -11,6 +11,35 @@ import { spawnScorePopup, CombatHitEvent, CombatDeathEvent, subscribeToCombatEve
 import { ArkanoidComponentRegistry, ArkanoidEventRegistry } from "../types/ArkanoidTypes";
 import { ArkanoidConfig, DEFAULT_ARKANOID_CONFIG } from "../types/ArkanoidConfigSchema";
 
+function attachBallToPaddle(
+  world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>,
+  ballEntity: Entity,
+  paddleX: number,
+  paddleY: number,
+  pHalfH: number,
+  radius: number,
+  offsetX: number,
+  speed?: number
+): void {
+  world.mutateComponent(ballEntity, "Ball", (b) => {
+    b.isAttached = true;
+    b.attachedOffsetX = offsetX;
+    if (speed !== undefined) {
+      b.speed = speed;
+    }
+    b.stuckBounces = 0;
+  });
+  world.mutateComponent(ballEntity, "Velocity", (v) => {
+    v.vx = 0;
+    v.vy = 0;
+  });
+  world.mutateComponent(ballEntity, "Transform", (t) => {
+    t.x = paddleX + offsetX;
+    t.y = paddleY - pHalfH - radius;
+    t.dirty = true;
+  });
+}
+
 export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, ArkanoidEventRegistry> {
   private config?: ArkanoidConfig;
   private processedPairs = new Set<string>();
@@ -244,22 +273,7 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
           const offsetX = transform.x - paddlePos.x;
 
           if (paddleComp.isCatchActive) {
-            world.mutateComponent(ballEntity, "Ball", (b) => {
-              b.isAttached = true;
-              b.attachedOffsetX = offsetX;
-                            // TODO(refactor): código duplicado detectado (bloque) con arkanoid/systems/ArkanoidCollisionSystem.ts:409-417. Considerar extraer a función compartida. Ref: 024e3b8e
-b.speed = newSpeed;
-              b.stuckBounces = 0;
-            });
-            world.mutateComponent(ballEntity, "Velocity", (v) => {
-              v.vx = 0;
-              v.vy = 0;
-            });
-            world.mutateComponent(ballEntity, "Transform", (t) => {
-              t.x = paddlePos.x + offsetX;
-              t.y = paddlePos.y - pHalfH - radius;
-              t.dirty = true;
-            });
+            attachBallToPaddle(world, ballEntity, paddlePos.x, paddlePos.y, pHalfH, radius, offsetX, newSpeed);
             Juice.squash(world as World<CoreComponentRegistry>, paddleEntity, 1.2, 0.8, 100);
             this.playSFX(world, "hit");
           } else {
@@ -405,20 +419,7 @@ b.speed = newSpeed;
       const pHalfH = (this.config?.PADDLE_HEIGHT ?? 16) / 2;
       const ballRadius = this.config?.BALL_SIZE ?? 8;
 
-      world.mutateComponent(ballEntity, "Ball", (b) => {
-        b.isAttached = true;
-        b.attachedOffsetX = 0;
-        b.stuckBounces = 0;
-      });
-      world.mutateComponent(ballEntity, "Velocity", (v) => {
-        v.vx = 0;
-        v.vy = 0;
-      });
-      world.mutateComponent(ballEntity, "Transform", (t) => {
-        t.x = paddleX;
-        t.y = paddleY - pHalfH - ballRadius;
-        t.dirty = true;
-      });
+      attachBallToPaddle(world, ballEntity, paddleX, paddleY, pHalfH, ballRadius, 0);
 
       if (eventBus && !world.isReSimulating) {
         eventBus.emitDeferred("PlaySFX", { name: "hit" });

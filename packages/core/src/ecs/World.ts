@@ -487,11 +487,7 @@ export class World<
     storage.set(entity, component);
     this.componentIndex.get(type)!.add(entity);
 
-    let componentSet = this.entityComponentSets.get(entity);
-    if (!componentSet) {
-      componentSet = new Set();
-      this.entityComponentSets.set(entity, componentSet);
-    }
+    const componentSet = this.getOrCreateEntityComponentSet(entity);
     const isNew = !componentSet.has(type);
     componentSet.add(type);
 
@@ -555,6 +551,15 @@ export class World<
    * @param type - El tipo del componente.
    * @returns El componente de solo lectura o `undefined`.
    */
+  private getOrCreateEntityComponentSet(entity: Entity): Set<string> {
+    let set = this.entityComponentSets.get(entity);
+    if (!set) {
+      set = new Set();
+      this.entityComponentSets.set(entity, set);
+    }
+    return set;
+  }
+
   public readComponent<K extends ComponentType<TComponents>>(
     entity: Entity,
     type: K

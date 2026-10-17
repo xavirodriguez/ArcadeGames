@@ -48,18 +48,13 @@ export class PongGameStateSystem extends BaseGameStateSystem<PongState, PongComp
         if (gs.scoreFreezeRemaining <= 0) {
           const scorer = gs.lastScorer;
           balls.forEach(ball => {
-                        // TODO(refactor): código duplicado detectado (bloque) con pong/systems/PongGameStateSystem.ts:173-178. Considerar extraer a función compartida. Ref: 0530b0ab
-world.mutateComponent(ball, "Transform", (t: TransformComponent) => {
-              t.x = this.config.worldWidth / 2;
-              t.y = this.config.worldHeight / 2;
-            });
-            world.mutateComponent(ball, "Velocity", (v: VelocityComponent) => {
-              v.vx = scorer === "p1" ? -this.config.BALL_SPEED_START : this.config.BALL_SPEED_START;
-              v.vy = this.config.BALL_SPEED_START * (world.gameplayRandom.next() > 0.5 ? 1 : -1);
-            });
-            world.mutateComponent(ball, "Ball", (b: BallComponent) => {
-              b.spinFactor = 0;
-            });
+            this.resetBallToCenter(
+              world,
+              ball,
+              scorer === "p1" ? -this.config.BALL_SPEED_START : this.config.BALL_SPEED_START,
+              this.config.BALL_SPEED_START * (world.gameplayRandom.next() > 0.5 ? 1 : -1),
+              0
+            );
           });
           gs.lastScorer = null;
         }
@@ -171,14 +166,7 @@ world.mutateComponent(ball, "Transform", (t: TransformComponent) => {
               gs.lastScorer = scorer;
 
               // Move ball to center during freeze
-              world.mutateComponent(ball, "Transform", (t: TransformComponent) => {
-                t.x = this.config.worldWidth / 2;
-                t.y = this.config.worldHeight / 2;
-              });
-              world.mutateComponent(ball, "Velocity", (v: VelocityComponent) => {
-                v.vx = 0;
-                v.vy = 0;
-              });
+              this.resetBallToCenter(world, ball, 0, 0);
             }
           }
         }
@@ -202,6 +190,28 @@ world.mutateComponent(ball, "Transform", (t: TransformComponent) => {
         state.scoreP1 = 0;
         state.scoreP2 = 0;
         state.isGameOver = false;
+      });
+    }
+  }
+
+  private resetBallToCenter(
+    world: World<PongComponentRegistry>,
+    ball: number,
+    vx: number,
+    vy: number,
+    spinFactor?: number
+  ): void {
+    world.mutateComponent(ball, "Transform", (t: TransformComponent) => {
+      t.x = this.config.worldWidth / 2;
+      t.y = this.config.worldHeight / 2;
+    });
+    world.mutateComponent(ball, "Velocity", (v: VelocityComponent) => {
+      v.vx = vx;
+      v.vy = vy;
+    });
+    if (spinFactor !== undefined) {
+      world.mutateComponent(ball, "Ball", (b: BallComponent) => {
+        b.spinFactor = spinFactor;
       });
     }
   }

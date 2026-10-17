@@ -122,6 +122,23 @@ export interface GameVisualProfile {
 }
 
 /**
+ * Post-FX and visual shader token properties for scanlines, vignettes, and ambient glow effects.
+ * @public
+ */
+export interface ThemeEffects {
+  /** Scanline line stroke color token or CSS string. */
+  scanlineColor?: string;
+  /** Vertical pixel spacing between scanlines. */
+  scanlineSpacing?: number;
+  /** Radial vignette inner transparent color token or CSS string. */
+  vignetteInnerColor?: string;
+  /** Radial vignette outer shadow color token or CSS string. */
+  vignetteOuterColor?: string;
+  /** Ambient lighting glow intensity scalar or color token. */
+  ambientGlow?: string | number;
+}
+
+/**
  * Interface representing visual skin, asset mappings, and narrative lore configuration
  * injected into the game world as a transversal ECS resource.
  *
@@ -141,6 +158,11 @@ export interface Theme<TRole extends string = string> {
    * to color hexadecimal strings or color tokens.
    */
   colorMap: Partial<Record<TRole, string>>;
+
+  /**
+   * Optional post-FX and visual effect tokens (scanlines, vignettes, glow).
+   */
+  effects?: ThemeEffects;
 
   /**
    * Optional lore or narrative HUD texts indexed by logical key (e.g., `"title"`, `"subtitle"`).

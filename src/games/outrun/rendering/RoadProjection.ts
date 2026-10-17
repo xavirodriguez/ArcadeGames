@@ -108,8 +108,8 @@ export function projectRoad(
     dx += seg.curve;
     dy += seg.hill;
 
-    let camX2 = x - cameraX;
-    let camY2 = y - cameraHeight;
+    const camX2 = x - cameraX;
+    const camY2 = y - cameraHeight;
 
     const dest = out[count];
     dest.curve = seg.curve;

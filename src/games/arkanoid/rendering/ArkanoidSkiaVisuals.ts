@@ -111,6 +111,6 @@ export const drawSkiaArkanoidBackground: EffectDrawer<any, ArkanoidComponentRegi
     const height = config?.worldHeight ?? 600;
     const paint = getPaint();
 
-    drawSkiaBackgroundGrid(canvas, paint, width, height, world.tick, 50, 0.25, "rgba(0, 240, 255, 0.05)");
+    drawSkiaBackgroundGrid(canvas, paint, width, height, world.tick, 50, 0.25, colors.border);
   }
 };

@@ -1,4 +1,5 @@
 import { World, CoreComponentRegistry, Entity, Juice } from "@tiny-aster/core";
+import { colors } from "../../../theme/colors";
 import { getVFXState, VFXWorldState } from "./SharedVFXInternal";
 import { requestHitStop, HitStopPriority } from "./HitStopSystem";
 
@@ -60,49 +61,49 @@ export type SupportedGameId =
 
 export const JUICE_CATALOG: Record<SupportedGameId, Record<string, JuiceProfile>> = {
   pong: {
-    "ball:rally": { effect: "warp_lines", tint: "#00f3ff", intensity: 1.0, scale: 1.0 },
-    "paddle:hit": { effect: "shockwave", tint: "#00f3ff", scale: 0.8, ttl: 0.2, hitStopMs: 30, hitStopPriority: HitStopPriority.LOW, shakeIntensity: 1.5, shakeDurationMs: 40 },
-    "goal:scored": { effect: "shockwave", tint: "#ff0055", scale: 1.5, ttl: 0.5, hitStopMs: 100, hitStopPriority: HitStopPriority.HIGH, shakeIntensity: 4.0, shakeDurationMs: 120 }
+    "ball:rally": { effect: "warp_lines", tint: colors.cyan, intensity: 1.0, scale: 1.0 },
+    "paddle:hit": { effect: "shockwave", tint: colors.cyan, scale: 0.8, ttl: 0.2, hitStopMs: 30, hitStopPriority: HitStopPriority.LOW, shakeIntensity: 1.5, shakeDurationMs: 40 },
+    "goal:scored": { effect: "shockwave", tint: colors.danger, scale: 1.5, ttl: 0.5, hitStopMs: 100, hitStopPriority: HitStopPriority.HIGH, shakeIntensity: 4.0, shakeDurationMs: 120 }
   },
   asteroids: {
-    "rock:destroyed": { effect: "shockwave", tint: "#ffaa00", scale: 1.2, ttl: 0.4, hitStopMs: 40, hitStopPriority: HitStopPriority.NORMAL, shakeIntensity: 2.5, shakeDurationMs: 80 },
-    "ship:damage": { effect: "screen_border_glow", tint: "#ff0000", scale: 1.0, ttl: 0.3, hitStopMs: 150, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 5.0, shakeDurationMs: 150 },
-    "ship:fire": { effect: "thruster_flame", tint: "#00f3ff", scale: 0.7, ttl: 0.15 }
+    "rock:destroyed": { effect: "shockwave", tint: colors.warning, scale: 1.2, ttl: 0.4, hitStopMs: 40, hitStopPriority: HitStopPriority.NORMAL, shakeIntensity: 2.5, shakeDurationMs: 80 },
+    "ship:damage": { effect: "screen_border_glow", tint: colors.danger, scale: 1.0, ttl: 0.3, hitStopMs: 150, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 5.0, shakeDurationMs: 150 },
+    "ship:fire": { effect: "thruster_flame", tint: colors.cyan, scale: 0.7, ttl: 0.15 }
   },
   "space-invaders": {
-    "shield:degraded": { effect: "hologram_glitch", tint: "#39ff14", scale: 1.0, ttl: 0.3, hitStopMs: 30, hitStopPriority: HitStopPriority.LOW },
-    "alien:destroyed": { effect: "shockwave", tint: "#ff00ff", scale: 1.0, ttl: 0.3, hitStopMs: 40, hitStopPriority: HitStopPriority.NORMAL, shakeIntensity: 2.0, shakeDurationMs: 60 },
-    "ufo:destroyed": { effect: "shockwave", tint: "#ffff00", scale: 1.8, ttl: 0.6, hitStopMs: 120, hitStopPriority: HitStopPriority.HIGH, shakeIntensity: 4.5, shakeDurationMs: 140 }
+    "shield:degraded": { effect: "hologram_glitch", tint: colors.green, scale: 1.0, ttl: 0.3, hitStopMs: 30, hitStopPriority: HitStopPriority.LOW },
+    "alien:destroyed": { effect: "shockwave", tint: colors.magenta, scale: 1.0, ttl: 0.3, hitStopMs: 40, hitStopPriority: HitStopPriority.NORMAL, shakeIntensity: 2.0, shakeDurationMs: 60 },
+    "ufo:destroyed": { effect: "shockwave", tint: colors.yellow, scale: 1.8, ttl: 0.6, hitStopMs: 120, hitStopPriority: HitStopPriority.HIGH, shakeIntensity: 4.5, shakeDurationMs: 140 }
   },
   arkanoid: {
-    "brick:shatter": { effect: "shockwave", tint: "#ff0055", scale: 0.8, ttl: 0.25, hitStopMs: 30, hitStopPriority: HitStopPriority.NORMAL, shakeIntensity: 1.5, shakeDurationMs: 50 },
-    "paddle:bounce": { effect: "shield_bubble", tint: "#00f3ff", scale: 0.9, ttl: 0.2 },
-    "boss:hit": { effect: "hologram_glitch", tint: "#ff3300", scale: 1.5, ttl: 0.4, hitStopMs: 80, hitStopPriority: HitStopPriority.HIGH, shakeIntensity: 3.5, shakeDurationMs: 100 }
+    "brick:shatter": { effect: "shockwave", tint: colors.danger, scale: 0.8, ttl: 0.25, hitStopMs: 30, hitStopPriority: HitStopPriority.NORMAL, shakeIntensity: 1.5, shakeDurationMs: 50 },
+    "paddle:bounce": { effect: "shield_bubble", tint: colors.cyan, scale: 0.9, ttl: 0.2 },
+    "boss:hit": { effect: "hologram_glitch", tint: colors.redHot, scale: 1.5, ttl: 0.4, hitStopMs: 80, hitStopPriority: HitStopPriority.HIGH, shakeIntensity: 3.5, shakeDurationMs: 100 }
   },
   flappybird: {
-    "pipe:passed": { effect: "floating_text", tint: "#ffff00", scale: 1.0, ttl: 0.5, text: "+1" },
-    "bird:flap": { effect: "comet_trail", tint: "#00f3ff", scale: 0.6, ttl: 0.2 },
-    "bird:crash": { effect: "shockwave", tint: "#ff0000", scale: 1.4, ttl: 0.4, hitStopMs: 150, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 5.0, shakeDurationMs: 150 }
+    "pipe:passed": { effect: "floating_text", tint: colors.yellow, scale: 1.0, ttl: 0.5, text: "+1" },
+    "bird:flap": { effect: "comet_trail", tint: colors.cyan, scale: 0.6, ttl: 0.2 },
+    "bird:crash": { effect: "shockwave", tint: colors.danger, scale: 1.4, ttl: 0.4, hitStopMs: 150, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 5.0, shakeDurationMs: 150 }
   },
   frogger: {
-    "goal:reached": { effect: "shield_bubble", tint: "#00f3ff", scale: 1.4, ttl: 0.6, hitStopMs: 80, hitStopPriority: HitStopPriority.HIGH },
-    "frog:hop": { effect: "comet_trail", tint: "#39ff14", scale: 0.5, ttl: 0.15 },
-    "frog:splat": { effect: "shockwave", tint: "#ff0000", scale: 1.2, ttl: 0.4, hitStopMs: 150, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 4.0, shakeDurationMs: 120 }
+    "goal:reached": { effect: "shield_bubble", tint: colors.cyan, scale: 1.4, ttl: 0.6, hitStopMs: 80, hitStopPriority: HitStopPriority.HIGH },
+    "frog:hop": { effect: "comet_trail", tint: colors.green, scale: 0.5, ttl: 0.15 },
+    "frog:splat": { effect: "shockwave", tint: colors.danger, scale: 1.2, ttl: 0.4, hitStopMs: 150, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 4.0, shakeDurationMs: 120 }
   },
   "geometry-wars": {
-    "enemy:destroyed": { effect: "shockwave", tint: "#ff00ff", scale: 1.5, ttl: 0.4, hitStopMs: 50, hitStopPriority: HitStopPriority.NORMAL, shakeIntensity: 3.0, shakeDurationMs: 80 },
-    "bomb:trigger": { effect: "singularity", tint: "#00f3ff", scale: 2.5, ttl: 0.8, hitStopMs: 200, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 7.0, shakeDurationMs: 200 },
-    "player:death": { effect: "shockwave", tint: "#ff0000", scale: 2.0, ttl: 0.6, hitStopMs: 250, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 8.0, shakeDurationMs: 250 }
+    "enemy:destroyed": { effect: "shockwave", tint: colors.magenta, scale: 1.5, ttl: 0.4, hitStopMs: 50, hitStopPriority: HitStopPriority.NORMAL, shakeIntensity: 3.0, shakeDurationMs: 80 },
+    "bomb:trigger": { effect: "singularity", tint: colors.cyan, scale: 2.5, ttl: 0.8, hitStopMs: 200, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 7.0, shakeDurationMs: 200 },
+    "player:death": { effect: "shockwave", tint: colors.danger, scale: 2.0, ttl: 0.6, hitStopMs: 250, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 8.0, shakeDurationMs: 250 }
   },
   platformer: {
-    "player:damage": { effect: "screen_border_glow", tint: "#ff0000", scale: 1.0, ttl: 0.3, hitStopMs: 120, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 4.0, shakeDurationMs: 120 },
-    "coin:collected": { effect: "floating_text", tint: "#ffff00", scale: 0.9, ttl: 0.4, text: "+10" },
-    "enemy:stomp": { effect: "shockwave", tint: "#39ff14", scale: 1.0, ttl: 0.3, hitStopMs: 40, hitStopPriority: HitStopPriority.NORMAL, shakeIntensity: 2.0, shakeDurationMs: 60 }
+    "player:damage": { effect: "screen_border_glow", tint: colors.danger, scale: 1.0, ttl: 0.3, hitStopMs: 120, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 4.0, shakeDurationMs: 120 },
+    "coin:collected": { effect: "floating_text", tint: colors.yellow, scale: 0.9, ttl: 0.4, text: "+10" },
+    "enemy:stomp": { effect: "shockwave", tint: colors.green, scale: 1.0, ttl: 0.3, hitStopMs: 40, hitStopPriority: HitStopPriority.NORMAL, shakeIntensity: 2.0, shakeDurationMs: 60 }
   },
   "echo-runner": {
-    "echo:ghost": { effect: "hologram_glitch", tint: "#00f3ff", scale: 1.0, ttl: 0.3 },
-    "dash:boost": { effect: "comet_trail", tint: "#ff00ff", scale: 1.2, ttl: 0.25 },
-    "obstacle:hit": { effect: "screen_border_glow", tint: "#ff0000", scale: 1.0, ttl: 0.3, hitStopMs: 100, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 3.5, shakeDurationMs: 100 }
+    "echo:ghost": { effect: "hologram_glitch", tint: colors.cyan, scale: 1.0, ttl: 0.3 },
+    "dash:boost": { effect: "comet_trail", tint: colors.magenta, scale: 1.2, ttl: 0.25 },
+    "obstacle:hit": { effect: "screen_border_glow", tint: colors.danger, scale: 1.0, ttl: 0.3, hitStopMs: 100, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 3.5, shakeDurationMs: 100 }
   }
 };
 

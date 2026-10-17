@@ -4,6 +4,8 @@ import type { RacingComponentRegistry } from "../types/RacingRegistry";
 import type { TrackSpec } from "../types/TrackSpecSchema";
 import { RACING_PALETTES, type RacingPalette } from "./RacingPalette";
 import { Skia } from "../../shared/rendering/SkiaContext";
+import { colors } from "../../../theme/colors";
+import { hexToRgba } from "../../shared/rendering/CosmicPalette";
 
 export type RenderPrimitive =
   | { type: "rect"; x: number; y: number; w: number; h: number; fill?: string; stroke?: string; strokeWidth?: number; alpha?: number }
@@ -68,7 +70,7 @@ export interface RacingSkin {
 }
 
 export function extractActorParams(
-  world: World<RacingComponentRegistry, any>,
+  world: World<RacingComponentRegistry, unknown>,
   entity: number,
   palette: RacingPalette
 ): ActorDrawerParams | null {
@@ -88,7 +90,7 @@ export function extractActorParams(
 }
 
 export function extractWallParams(
-  world: World<RacingComponentRegistry, any>,
+  world: World<RacingComponentRegistry, unknown>,
   entity: number,
   palette: RacingPalette
 ): WallDrawerParams | null {
@@ -99,7 +101,7 @@ export function extractWallParams(
 }
 
 export function extractZoneParams(
-  world: World<RacingComponentRegistry, any>,
+  world: World<RacingComponentRegistry, unknown>,
   entity: number,
   palette: RacingPalette
 ): { width: number; height: number; surface: string; palette: RacingPalette } | null {
@@ -115,7 +117,7 @@ export function extractZoneParams(
 }
 
 export function extractObstacleParams(
-  world: World<RacingComponentRegistry, any>,
+  world: World<RacingComponentRegistry, unknown>,
   entity: number,
   palette: RacingPalette
 ): { radius: number; id: string; kind: string; time: number; palette: RacingPalette } | null {
@@ -285,8 +287,8 @@ export const defaultCarActorDrawer: DrawerSpec<ActorDrawerParams> = (params) => 
 // Spaceship Actor Drawer (for Space theme)
 export const spaceshipActorDrawer: DrawerSpec<ActorDrawerParams> = (params) => {
   const { size, isPlayer, boosting, time, palette } = params;
-  const mainColor = params.color ?? (isPlayer ? "#ff007f" : "#ffe600");
-  const glowColor = isPlayer ? "#00f0ff" : "#00ffcc";
+  const mainColor = params.color ?? (isPlayer ? colors.pink : colors.yellow);
+  const glowColor = isPlayer ? colors.cyan : colors.green;
   const primitives: RenderPrimitive[] = [];
 
   if (boosting) {
@@ -300,7 +302,7 @@ export const spaceshipActorDrawer: DrawerSpec<ActorDrawerParams> = (params) => {
           { x: -size * 0.8 - flameLen, y: size * 0.3 }
         ],
         closed: true,
-        fill: "#ff2a6d"
+        fill: colors.pink
       },
       {
         type: "path",
@@ -310,7 +312,7 @@ export const spaceshipActorDrawer: DrawerSpec<ActorDrawerParams> = (params) => {
           { x: -size * 0.8 - flameLen * 0.6, y: size * 0.15 }
         ],
         closed: true,
-        fill: "#00f0ff"
+        fill: colors.cyan
       }
     );
   }
@@ -362,8 +364,8 @@ export const spaceshipActorDrawer: DrawerSpec<ActorDrawerParams> = (params) => {
 export const bowlObstacleDrawer: DrawerSpec<ObstacleDrawerParams> = ({ radius, palette }) => {
   const primitives: RenderPrimitive[] = [
     { type: "circle", cx: 4, cy: 5, r: radius, fill: palette.shadow, alpha: 0.32 },
-    { type: "circle", cx: 0, cy: 0, r: radius, fill: "#F8FAFC", stroke: palette.outline, strokeWidth: 2 },
-    { type: "circle", cx: 0, cy: 0, r: radius * 0.8, fill: "#FFFEE0" }
+    { type: "circle", cx: 0, cy: 0, r: radius, fill: colors.white, stroke: palette.outline, strokeWidth: 2 },
+    { type: "circle", cx: 0, cy: 0, r: radius * 0.8, fill: colors.yellow }
   ];
   const numRings = 5;
   for (let i = 0; i < numRings; i += 1) {
@@ -380,25 +382,25 @@ export const mugObstacleDrawer: DrawerSpec<ObstacleDrawerParams> = ({ radius, pa
   { type: "circle", cx: 4, cy: 5, r: radius, fill: palette.shadow, alpha: 0.32 },
   { type: "circle", cx: radius * 0.95, cy: 0, r: radius * 0.35, fill: palette.obstacle, stroke: palette.outline, strokeWidth: 2 },
   { type: "circle", cx: 0, cy: 0, r: radius, fill: palette.obstacle, stroke: palette.outline, strokeWidth: 2 },
-  { type: "circle", cx: 0, cy: 0, r: radius * 0.78, fill: "#3D2314" },
-  { type: "arc", cx: -radius * 0.2, cy: -radius * 0.2, r: radius * 0.3, startAngle: 0.4, endAngle: Math.PI * 1.2, stroke: "#8C5638", strokeWidth: 1.5 }
+  { type: "circle", cx: 0, cy: 0, r: radius * 0.78, fill: colors.surface },
+  { type: "arc", cx: -radius * 0.2, cy: -radius * 0.2, r: radius * 0.3, startAngle: 0.4, endAngle: Math.PI * 1.2, stroke: colors.slate, strokeWidth: 1.5 }
 ];
 
 export const billiardBallObstacleDrawer: DrawerSpec<ObstacleDrawerParams> = ({ radius, id, palette }) => {
   const isEight = id.includes("eight") || id.includes("8");
   const isCue = id.includes("cue");
-  const baseColor = isCue ? "#FFFFFF" : isEight ? "#111827" : palette.obstacle;
+  const baseColor = isCue ? colors.white : isEight ? colors.surface : palette.obstacle;
 
   const primitives: RenderPrimitive[] = [
     { type: "circle", cx: 4, cy: 5, r: radius, fill: palette.shadow, alpha: 0.32 },
     { type: "circle", cx: 0, cy: 0, r: radius, fill: baseColor, stroke: palette.outline, strokeWidth: 2 },
-    { type: "circle", cx: -radius * 0.3, cy: -radius * 0.3, r: radius * 0.35, fill: "#FFFFFF", alpha: 0.4 }
+    { type: "circle", cx: -radius * 0.3, cy: -radius * 0.3, r: radius * 0.35, fill: colors.white, alpha: 0.4 }
   ];
 
   if (!isCue) {
     primitives.push(
-      { type: "circle", cx: 0, cy: 0, r: radius * 0.4, fill: "#FFFFFF" },
-      { type: "text", x: 0, y: 0, text: isEight ? "8" : "1", fontSize: Math.round(radius * 0.55), fill: "#000000", align: "center", baseline: "middle" }
+      { type: "circle", cx: 0, cy: 0, r: radius * 0.4, fill: colors.white },
+      { type: "text", x: 0, y: 0, text: isEight ? "8" : "1", fontSize: Math.round(radius * 0.55), fill: colors.surface, align: "center", baseline: "middle" }
     );
   }
 
@@ -420,12 +422,12 @@ export const asteroidObstacleDrawer: DrawerSpec<ObstacleDrawerParams> = ({ radiu
       { x: -radius * 0.6, y: -radius * 0.8 }
     ],
     closed: true,
-    fill: "#4a4e69",
-    stroke: "#9a8c98",
+    fill: colors.slate,
+    stroke: colors.borderLight,
     strokeWidth: 2
   },
-  { type: "circle", cx: -radius * 0.3, cy: -radius * 0.3, r: radius * 0.2, fill: "#22223b" },
-  { type: "circle", cx: radius * 0.3, cy: radius * 0.2, r: radius * 0.25, fill: "#22223b" }
+  { type: "circle", cx: -radius * 0.3, cy: -radius * 0.3, r: radius * 0.2, fill: colors.surface },
+  { type: "circle", cx: radius * 0.3, cy: radius * 0.2, r: radius * 0.25, fill: colors.surface }
 ];
 
 export const defaultObstacleDrawer: DrawerSpec<ObstacleDrawerParams> = ({ radius, palette }) => [
@@ -438,8 +440,8 @@ export const waterZoneDrawer: DrawerSpec<ZoneDrawerParams> = ({ width, height, p
   const halfW = width / 2;
   const halfH = height / 2;
   return [
-    { type: "ellipse", cx: 0, cy: 0, rx: halfW, ry: halfH, fill: "#FFFDF0", stroke: palette.player, strokeWidth: 2 },
-    { type: "arc", cx: -halfW * 0.3, cy: -halfH * 0.3, r: halfW * 0.3, startAngle: 0.2, endAngle: Math.PI * 0.9, stroke: "#FFFFFF", strokeWidth: 1.5, alpha: 0.7 }
+    { type: "ellipse", cx: 0, cy: 0, rx: halfW, ry: halfH, fill: colors.yellow, stroke: palette.player, strokeWidth: 2 },
+    { type: "arc", cx: -halfW * 0.3, cy: -halfH * 0.3, r: halfW * 0.3, startAngle: 0.2, endAngle: Math.PI * 0.9, stroke: colors.white, strokeWidth: 1.5, alpha: 0.7 }
   ];
 };
 
@@ -447,9 +449,9 @@ export const oilZoneDrawer: DrawerSpec<ZoneDrawerParams> = ({ width, height }) =
   const halfW = width / 2;
   const halfH = height / 2;
   return [
-    { type: "ellipse", cx: 0, cy: 0, rx: halfW, ry: halfH, rotation: 0.2, fill: "rgba(25, 25, 30, 0.75)" },
-    { type: "arc", cx: -halfW * 0.1, cy: -halfH * 0.1, r: halfW * 0.4, startAngle: 0, endAngle: Math.PI, stroke: "#00e5ff", strokeWidth: 2, alpha: 0.5 },
-    { type: "arc", cx: halfW * 0.1, cy: halfH * 0.1, r: halfW * 0.3, startAngle: Math.PI, endAngle: Math.PI * 2, stroke: "#ff2a6d", strokeWidth: 2 }
+    { type: "ellipse", cx: 0, cy: 0, rx: halfW, ry: halfH, rotation: 0.2, fill: hexToRgba(colors.surface, 0.75) },
+    { type: "arc", cx: -halfW * 0.1, cy: -halfH * 0.1, r: halfW * 0.4, startAngle: 0, endAngle: Math.PI, stroke: colors.cyan, strokeWidth: 2, alpha: 0.5 },
+    { type: "arc", cx: halfW * 0.1, cy: halfH * 0.1, r: halfW * 0.3, startAngle: Math.PI, endAngle: Math.PI * 2, stroke: colors.pink, strokeWidth: 2 }
   ];
 };
 
@@ -479,8 +481,8 @@ export const lavaZoneDrawer: DrawerSpec<ZoneDrawerParams> = ({ width, height }) 
   const halfW = width / 2;
   const halfH = height / 2;
   return [
-    { type: "ellipse", cx: 0, cy: 0, rx: halfW, ry: halfH, fill: "rgba(255, 60, 0, 0.65)", stroke: "#ff0000", strokeWidth: 2 },
-    { type: "ellipse", cx: 0, cy: 0, rx: halfW * 0.6, ry: halfH * 0.6, fill: "rgba(255, 200, 0, 0.8)" }
+    { type: "ellipse", cx: 0, cy: 0, rx: halfW, ry: halfH, fill: hexToRgba(colors.orange, 0.65), stroke: colors.red, strokeWidth: 2 },
+    { type: "ellipse", cx: 0, cy: 0, rx: halfW * 0.6, ry: halfH * 0.6, fill: hexToRgba(colors.yellow, 0.8) }
   ];
 };
 
@@ -513,12 +515,12 @@ export const defaultWallDrawer: DrawerSpec<WallDrawerParams> = ({ width, height,
   ];
 };
 
-export const spaceWallDrawer: DrawerSpec<WallDrawerParams> = ({ width, height, palette }) => {
+export const spaceWallDrawer: DrawerSpec<WallDrawerParams> = ({ width, height }) => {
   const halfW = width / 2;
   const halfH = height / 2;
   return [
-    { type: "rect", x: -halfW, y: -halfH, w: width, h: height, fill: "#181c33", stroke: "#00f0ff", strokeWidth: 2 },
-    { type: "rect", x: -halfW, y: -halfH, w: width, h: Math.min(height, 4), fill: "#ff007f" }
+    { type: "rect", x: -halfW, y: -halfH, w: width, h: height, fill: colors.borderDark, stroke: colors.cyan, strokeWidth: 2 },
+    { type: "rect", x: -halfW, y: -halfH, w: width, h: Math.min(height, 4), fill: colors.pink }
   ];
 };
 
@@ -549,8 +551,8 @@ export const breakfastSkin: RacingSkin = {
   },
   wallDrawer: defaultWallDrawer,
   actorDrawer: defaultCarActorDrawer,
-  finishCheckers: ["#FFFFFF", "#5D4037"],
-  ui: { glowColor: "#55C9CE", accentColor: "#F2C94C" }
+  finishCheckers: [colors.white, colors.slate],
+  ui: { glowColor: colors.cyan, accentColor: colors.gold }
 };
 
 export const billiardSkin: RacingSkin = {
@@ -565,8 +567,8 @@ export const billiardSkin: RacingSkin = {
   },
   wallDrawer: defaultWallDrawer,
   actorDrawer: defaultCarActorDrawer,
-  finishCheckers: ["#FFFFF0", "#1B5E20"],
-  ui: { glowColor: "#53C8C2", accentColor: "#F2C94C" }
+  finishCheckers: [colors.white, colors.green],
+  ui: { glowColor: colors.cyan, accentColor: colors.gold }
 };
 
 export const deskSkin: RacingSkin = {
@@ -577,8 +579,8 @@ export const deskSkin: RacingSkin = {
   zoneDrawers: commonTabletopZones,
   wallDrawer: defaultWallDrawer,
   actorDrawer: defaultCarActorDrawer,
-  finishCheckers: ["#FFFFFF", "#5D4037"],
-  ui: { glowColor: "#4FA7D8", accentColor: "#F2C94C" }
+  finishCheckers: [colors.white, colors.slate],
+  ui: { glowColor: colors.blue, accentColor: colors.gold }
 };
 
 export const gardenSkin: RacingSkin = {
@@ -589,28 +591,28 @@ export const gardenSkin: RacingSkin = {
   zoneDrawers: commonTabletopZones,
   wallDrawer: defaultWallDrawer,
   actorDrawer: defaultCarActorDrawer,
-  finishCheckers: ["#FFFFFF", "#5D4037"],
-  ui: { glowColor: "#58BBA0", accentColor: "#F2C94C" }
+  finishCheckers: [colors.white, colors.slate],
+  ui: { glowColor: colors.cyan, accentColor: colors.gold }
 };
 
 export const spaceSkin: RacingSkin = {
   id: "space",
   palette: {
-    surface: "#0b0d19",
-    surfaceDetail: "#181c33",
-    track: "#2a1b4e",
-    trackEdge: "#5c248b",
-    player: "#ff007f",
-    playerHighlight: "#ff66b3",
-    rival: "#ffe600",
-    rivalHighlight: "#ffff80",
-    obstacle: "#4a4e69",
-    obstacleHighlight: "#9a8c98",
-    danger: "#ff2a6d",
-    shadow: "#05060a",
-    accent: "#00f0ff",
-    outline: "#0d0e15",
-    text: "#ffffff"
+    surface: colors.backgroundDark,
+    surfaceDetail: colors.borderDark,
+    track: colors.violetDark,
+    trackEdge: colors.purple,
+    player: colors.pink,
+    playerHighlight: colors.pink,
+    rival: colors.yellow,
+    rivalHighlight: colors.yellow,
+    obstacle: colors.slate,
+    obstacleHighlight: colors.borderLight,
+    danger: colors.red,
+    shadow: colors.backgroundDark,
+    accent: colors.cyan,
+    outline: colors.surface,
+    text: colors.white
   },
   surfacePattern: "starfield",
   obstacleDrawers: {
@@ -625,8 +627,8 @@ export const spaceSkin: RacingSkin = {
   },
   wallDrawer: spaceWallDrawer,
   actorDrawer: spaceshipActorDrawer,
-  finishCheckers: ["#00f0ff", "#ff007f"],
-  ui: { glowColor: "#00f0ff", accentColor: "#ff007f" }
+  finishCheckers: [colors.cyan, colors.pink],
+  ui: { glowColor: colors.cyan, accentColor: colors.pink }
 };
 
 export const SKIN_REGISTRY: Record<string, RacingSkin> = {
@@ -638,7 +640,7 @@ export const SKIN_REGISTRY: Record<string, RacingSkin> = {
   tabletop: breakfastSkin
 };
 
-export function getRacingSkin(world: World<RacingComponentRegistry, any>): RacingSkin {
+export function getRacingSkin(world: World<RacingComponentRegistry, unknown>): RacingSkin {
   const trackSpec = world.getResource<TrackSpec>("ActiveTrackSpec");
   const skinKey = trackSpec?.skin ?? trackSpec?.theme ?? "breakfast";
   return SKIN_REGISTRY[skinKey] ?? SKIN_REGISTRY.breakfast;
@@ -680,7 +682,11 @@ export function interpretCanvas(ctx: CanvasRenderingContext2D, primitives: Rende
     } else {
       ctx.beginPath();
       if (p.type === "roundRect") {
-        typeof ctx.roundRect === "function" ? ctx.roundRect(p.x, p.y, p.w, p.h, p.r) : ctx.rect(p.x, p.y, p.w, p.h);
+        if (typeof ctx.roundRect === "function") {
+          ctx.roundRect(p.x, p.y, p.w, p.h, p.r);
+        } else {
+          ctx.rect(p.x, p.y, p.w, p.h);
+        }
       } else if (p.type === "circle") {
         ctx.arc(p.cx, p.cy, p.r, 0, Math.PI * 2);
       } else if (p.type === "ellipse") {

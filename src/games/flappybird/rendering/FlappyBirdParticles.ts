@@ -32,7 +32,7 @@ export interface ActiveFlappyParticleData {
   y: number;
   size: number;
   color: string;
-  skColor?: any;
+  skColor?: unknown;
   angle?: number;
   ratio: number;
 }
@@ -44,7 +44,7 @@ export function resolveFlappyParticleData(p: {
   y: number;
   size: number;
   color: string;
-  skColor?: any;
+  skColor?: unknown;
   angle?: number;
   life: number;
   maxLife: number;

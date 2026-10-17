@@ -15,6 +15,7 @@ import { VisualParticlePool } from "../../shared/rendering/VisualParticlePool";
 import { processFlappyBirdParticleEvents } from "./particleEvents";
 import { getThemeForScenario } from "./FlappyBirdBackgroundData";
 import { spawnVisualParticle } from "./FlappyBirdParticles";
+import { colors } from "../../../theme/colors";
 
 /**
  * Common draw context resolved for Flappy Bird player ship rendering.
@@ -63,7 +64,7 @@ export function resolveFlappyBirdDrawContext(
   const vy = birdComp.velocityY;
   const isAlive = birdComp.isAlive;
 
-  const flashState = resolveHitFlash(render, render.color || "yellow", 1.0, 0.35);
+  const flashState = resolveHitFlash(render, render.color || colors.yellow, 1.0, 0.35);
   const invState = resolveInvulnerabilityPulse(health?.invulnerableRemaining, 1.0, {
     mode: "interval",
     multiplier: 0.01,
@@ -211,7 +212,7 @@ export function maybeSpawnBackgroundDebris(
       vy,
       world.renderRandom.nextRange(1.0, 2.0),
       world.renderRandom.nextRange(1.5, 3.0),
-      "#5A6173",
+      colors.slate,
       angle
     );
   }
@@ -251,7 +252,7 @@ export function resolveGlideEnergyState(
   const bx = (width - barW) / 2;
   const by = height - 25;
   const ratio = Math.max(0, Math.min(1, energy.currentEnergy / energy.maxEnergy));
-  const fillColor = energy.isOverheated ? "#FF3300" : ratio < 0.3 ? "#FFC000" : "#00F3FF";
+  const fillColor = energy.isOverheated ? colors.red : ratio < 0.3 ? colors.yellow : colors.cyan;
 
   return {
     currentEnergy: energy.currentEnergy,
@@ -290,10 +291,10 @@ export function resolveSectorEventInfo(sectorEvent: string): FlappySectorEventIn
 
   const textColor =
     sectorEvent === "solar_flare"
-      ? "#FFC000"
+      ? colors.yellow
       : sectorEvent === "asteroid_storm"
-      ? "#D3D9E2"
-      : "#00F3FF";
+      ? colors.neutral
+      : colors.cyan;
 
   return { sectorEvent, bannerText, textColor };
 }
@@ -354,7 +355,7 @@ export interface WarpLine {
 }
 
 export interface FlappyBackgroundSetup {
-  gameState: any;
+  gameState: Record<string, unknown>;
   width: number;
   height: number;
   scenarioTheme: ReturnType<typeof getThemeForScenario>;
@@ -384,7 +385,7 @@ export function maybeSpawnLaserGateSparks(
     const sparkY = capYOffset + capHeight + world.renderRandom.next() * gapSize;
     const sparkAngle = world.renderRandom.next() * Math.PI * 2;
     const sparkSpeed = world.renderRandom.nextRange(20, 60);
-    spawnParticleFn("spark", posX, sparkY, Math.cos(sparkAngle) * sparkSpeed, Math.sin(sparkAngle) * sparkSpeed, 0.25, 2.5, "#00F3FF");
+    spawnParticleFn("spark", posX, sparkY, Math.cos(sparkAngle) * sparkSpeed, Math.sin(sparkAngle) * sparkSpeed, 0.25, 2.5, colors.cyan);
   }
 }
 

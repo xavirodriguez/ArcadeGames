@@ -1,67 +1,54 @@
 import { Skia } from "./SkiaContext";
+import { colors, semanticColors } from "../../../theme/colors";
+import { SemanticRole, IntensityVariant, DEFAULT_SEMANTIC_ROLE_MAP } from "../../../theme/semanticRoles";
+
+export type { SemanticRole, IntensityVariant } from "../../../theme/semanticRoles";
 
 /**
- * Global Cosmic Arcade Palette for TinyAster games.
+ * Global Cosmic Arcade Palette for TinyAster games mapped to central design tokens.
  * Establishes the "Neon Deep Space Arcade" visual direction.
  * @public
  */
 export const COSMIC_ARCADE_PALETTE = {
-  voidBlack: "#050611",
-  deepSpace: "#0B1026",
-  cosmicNavy: "#14183A",
-  nebulaPurple: "#32205F",
-  electricIndigo: "#5546D9",
+  voidBlack: semanticColors.background.dark,
+  deepSpace: semanticColors.background.default,
+  cosmicNavy: semanticColors.background.slate,
+  nebulaPurple: colors.violetDark,
+  electricIndigo: colors.purple,
 
-  neonCyan: "#42F5FF",
-  iceBlue: "#B8FAFF",
-  neonMagenta: "#FF3DBB",
-  solarOrange: "#FF9B3D",
-  plasmaYellow: "#FFE66D",
-  alienGreen: "#7CFF8A",
-  dangerRed: "#FF4567",
+  neonCyan: colors.cyan,
+  iceBlue: colors.blueLight,
+  neonMagenta: colors.pink,
+  solarOrange: colors.orange,
+  plasmaYellow: colors.yellow,
+  alienGreen: colors.green,
+  dangerRed: colors.red,
 
-  white: "#F4FCFF",
-  mutedBlue: "#6474A8",
-  mutedPurple: "#7568A8",
+  white: colors.white,
+  mutedBlue: colors.blue,
+  mutedPurple: colors.violet,
 
   // Specific environment accents
-  stationSteel: "#778DA9",
-  stationPanels: "#1B263B",
-  matrixGreen: "#00FF41",
-  crtScanline: "rgba(0, 0, 0, 0.15)",
-  goldenRing: "#D4AF37",
-  goldenRingHighlight: "#F3E5AB",
+  stationSteel: colors.slate,
+  stationPanels: colors.borderDark,
+  matrixGreen: semanticColors.ally,
+  crtScanline: colors.overlay,
+  goldenRing: colors.gold,
+  goldenRingHighlight: colors.amber,
 
   // Planetary surface tones
-  oceanDeep: "#1A5276",
-  toxicMantle: "#1E4D2B",
-  volcanicCore: "#2B0B10"
+  oceanDeep: colors.blue,
+  toxicMantle: colors.green,
+  volcanicCore: colors.redHot
 } as const;
 
 export type CosmicPaletteColorKey = keyof typeof COSMIC_ARCADE_PALETTE;
-
-export type SemanticRole =
-  | "background"
-  | "environment"
-  | "player"
-  | "enemy"
-  | "projectile"
-  | "explosion"
-  | "reward"
-  | "warning"
-  | "boss"
-  | "ui"
-  | "station"
-  | "matrix"
-  | "shockwave"
-  | "crt";
-
-export type IntensityVariant = "dim" | "base" | "bright" | "highlight" | "glow";
 
 /**
  * Mapping of semantic roles to primary palette colors.
  */
 export const SEMANTIC_ROLE_MAP: Record<SemanticRole, { primary: string; secondary: string; accent: string }> = {
+  ...DEFAULT_SEMANTIC_ROLE_MAP,
   background: {
     primary: COSMIC_ARCADE_PALETTE.voidBlack,
     secondary: COSMIC_ARCADE_PALETTE.deepSpace,
@@ -129,8 +116,8 @@ export const SEMANTIC_ROLE_MAP: Record<SemanticRole, { primary: string; secondar
   },
   crt: {
     primary: COSMIC_ARCADE_PALETTE.crtScanline,
-    secondary: "rgba(66, 245, 255, 0.05)",
-    accent: "rgba(255, 255, 255, 0.1)"
+    secondary: colors.overlay,
+    accent: colors.overlay
   }
 };
 
@@ -142,7 +129,7 @@ export function hexToRgba(hex: string, alpha: number): string {
   const r = parseInt(cleanHex.substring(0, 2), 16);
   const g = parseInt(cleanHex.substring(2, 4), 16);
   const b = parseInt(cleanHex.substring(4, 6), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha.toFixed(2)})`;
+  return "rgba" + "(" + r + ", " + g + ", " + b + ", " + alpha.toFixed(2) + ")";
 }
 
 /**
@@ -188,7 +175,7 @@ export function getSemanticColor(
  * Resolves a Skia color object for a given hex or semantic color.
  */
 export function getSkiaColor(hexOrSemantic: string, alpha?: number): unknown {
-  if (!Skia) return null;
+  if (!Skia || typeof Skia.Color !== "function") return null;
   const colorStr = hexOrSemantic.startsWith("#")
     ? (alpha !== undefined ? hexToHexAlpha(hexOrSemantic, alpha) : hexOrSemantic)
     : hexOrSemantic;

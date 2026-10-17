@@ -1,5 +1,6 @@
 import { Theme, createVisualTheme } from "@tiny-aster/core";
 import { DEFAULT_ECHO_PALETTE } from "../../shared/rendering/PlatformerSharedVisualUtils";
+import { colors } from "../../../theme/colors";
 
 export type EchoRunnerSkinId = "dark" | "light" | "sunset";
 
@@ -14,28 +15,6 @@ export const ECHO_PALETTE = DEFAULT_ECHO_PALETTE;
  *
  * Echo Runner visual drawers read entity and environment colors dynamically from the active `Theme`
  * resource registered on the ECS `World` (via `resolveEchoRunnerPalette`).
- *
- * To instantiate Echo Runner with a custom theme:
- * ```ts
- * const marioTheme: Theme = {
- *   colorMap: {
- *     player: "#ff0000",          // Mario Red
- *     primary: "#0000ff",         // Overalls Blue
- *     secondary: "#facc15",       // Coin Yellow
- *     archiveVoidDark: "#5c94fc", // Mushroom Kingdom Sky Blue
- *     archiveSlate: "#d04800",    // Brick Red
- *     fragment: "#facc15",        // Question Block Yellow
- *     sentinel: "#00a800",        // Koopa Green
- *     hopper: "#804000",          // Goomba Brown
- *   },
- *   vfxProfile: {
- *     particleShape: "circle",
- *     backgroundLayers: ["sky", "clouds"],
- *   }
- * };
- *
- * const game = new EchoRunnerGame({ theme: marioTheme });
- * ```
  *
  * Role Keys & Contrast Hierarchy Guidelines (`VisualThemeContrastHierarchy`):
  * - `player` / `primary` / `restorationCyan`: Main playable character visor and aura accents.
@@ -88,7 +67,7 @@ export function createArchiveTheme(customTheme?: Partial<Theme>): Theme {
       enemy: ECHO_PALETTE.corruptionCrimson,
       sentinel: ECHO_PALETTE.corruptionPurple,
       hopper: ECHO_PALETTE.archiveNodeActive,
-      watcher: "#3b82f6",
+      watcher: colors.blue,
       charger: ECHO_PALETTE.corruptionCrimson,
       fragment: ECHO_PALETTE.restorationCyan,
       core: ECHO_PALETTE.restorationGold,

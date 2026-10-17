@@ -1,4 +1,4 @@
-import type { World, CoreComponentRegistry, RenderComponent } from "@tiny-aster/core";
+import type { World, RenderComponent } from "@tiny-aster/core";
 import { resolveThemeColorWithFallback } from "@tiny-aster/core";
 import type { OutrunComponentRegistry, RoadData, ProjectedSegment, RaceStateComponent, RacerComponent } from "../types/OutrunTypes";
 import type { OutrunConfig } from "../types/OutrunConfigSchema";
@@ -14,9 +14,10 @@ import {
   type CloudParam,
   type HeatHazeLine
 } from "./OutrunVisualHelpers";
+import { colors } from "../../../theme/colors";
 
 /** Standard racer vehicle body color options. */
-export const RACER_COLORS = ["#457b9d", "#2a9d8f", "#e9c46a", "#f4a261", "#e76f51"] as const;
+export const RACER_COLORS = [colors.blue, colors.cyan, colors.gold, colors.orange, colors.red] as const;
 
 /** Capacity of module-level projection buffer. */
 export const PROJECTION_CAPACITY = 400;
@@ -203,7 +204,7 @@ export function resolveOffroadDustParams(
 ): { dustColor: string; particles: OffroadDustParticle[] } {
   const roadData = world.getResource<RoadData>("RoadData");
   const basePal = roadData ? getScenarioPaletteAtZ(playerZ, roadData) : COAST_PALETTE;
-  const dustColor = basePal.id === "coast" ? "#e2dfc8" : basePal.id === "desert" ? "#d0a67a" : "#8d99ae";
+  const dustColor = basePal.id === "coast" ? colors.amber : basePal.id === "desert" ? colors.yellow : colors.slate;
   const particles = computeOffroadDust(playerZ, speedRatio);
   return { dustColor, particles };
 }
@@ -345,7 +346,7 @@ export function resolveOutrunCarContext(
 
   const carColor = resolveThemeColorWithFallback(
     world,
-    render.color || "#e63946",
+    render.color || colors.red,
     "outrun_car",
     "player",
     "primary"
@@ -396,8 +397,8 @@ export function resolveOutrunHudContext(
   const timeStr = state.lapTime.toFixed(1);
   const phase = state.racePhase ?? "racing";
 
-  const hudBg = resolveThemeColorWithFallback(world, "rgba(15, 23, 42, 0.85)", "outrun_hud_bg");
-  const hudAccent = resolveThemeColorWithFallback(world, "#00f0ff", "outrun_hud_accent", "primary");
+  const hudBg = resolveThemeColorWithFallback(world, colors.panel, "outrun_hud_bg");
+  const hudAccent = resolveThemeColorWithFallback(world, colors.cyan, "outrun_hud_accent", "primary");
 
   return { state, config, speedKmh, timeStr, phase, hudBg, hudAccent };
 }

@@ -1,5 +1,6 @@
 import { World } from "@tiny-aster/core";
 import { ScenarioId } from "../types/FlappyBirdTypes";
+import { colors } from "../../../theme/colors";
 
 /**
  * Shared data structures and pure calculations for Flappy Bird background rendering across Canvas and Skia.
@@ -17,7 +18,7 @@ export interface MegastructureData {
 /**
  * Calculates warp factor based on combo multiplier in world.
  */
-export function calculateWarpFactor(world: World<any>): number {
+export function calculateWarpFactor(world: World<unknown>): number {
   const comboEntities = world.query("Combo");
   if (comboEntities.length > 0) {
     const combo = world.getComponent(comboEntities[0], "Combo");
@@ -91,9 +92,9 @@ export interface NebulaData {
 }
 
 export const BACKGROUND_NEBULAE: NebulaData[] = [
-  { xRatio: 0.25, yRatio: 0.3, radius: 180, colorHex: "#2A0044" },
-  { xRatio: 0.75, yRatio: 0.65, radius: 210, colorHex: "#002838" },
-  { xRatio: 0.5, yRatio: 0.45, radius: 150, colorHex: "#1C0033" },
+  { xRatio: 0.25, yRatio: 0.3, radius: 180, colorHex: colors.violetDark },
+  { xRatio: 0.75, yRatio: 0.65, radius: 210, colorHex: colors.slate },
+  { xRatio: 0.5, yRatio: 0.45, radius: 150, colorHex: colors.purple },
 ];
 
 export interface ScenarioThemeData {
@@ -109,39 +110,39 @@ export interface ScenarioThemeData {
 export const SCENARIO_THEMES: Record<ScenarioId, ScenarioThemeData> = {
   open_space: {
     nebulae: [
-      { xRatio: 0.25, yRatio: 0.3, radius: 180, colorHex: "#2A0044" },
-      { xRatio: 0.75, yRatio: 0.65, radius: 210, colorHex: "#002838" },
-      { xRatio: 0.5, yRatio: 0.45, radius: 150, colorHex: "#1C0033" },
+      { xRatio: 0.25, yRatio: 0.3, radius: 180, colorHex: colors.violetDark },
+      { xRatio: 0.75, yRatio: 0.65, radius: 210, colorHex: colors.slate },
+      { xRatio: 0.5, yRatio: 0.45, radius: 150, colorHex: colors.purple },
     ],
     megaIndex: 0,
-    palette: { textColor: "#00F3FF", bannerBg: "rgba(0, 243, 255, 0.15)", primaryGlow: "#00F3FF" }
+    palette: { textColor: colors.cyan, bannerBg: colors.border, primaryGlow: colors.cyan }
   },
   asteroid_belt: {
     nebulae: [
-      { xRatio: 0.2, yRatio: 0.4, radius: 220, colorHex: "#3A1C08" },
-      { xRatio: 0.8, yRatio: 0.3, radius: 190, colorHex: "#221008" },
-      { xRatio: 0.5, yRatio: 0.7, radius: 170, colorHex: "#482612" },
+      { xRatio: 0.2, yRatio: 0.4, radius: 220, colorHex: colors.orangeDark },
+      { xRatio: 0.8, yRatio: 0.3, radius: 190, colorHex: colors.surface },
+      { xRatio: 0.5, yRatio: 0.7, radius: 170, colorHex: colors.amber },
     ],
     megaIndex: 1,
-    palette: { textColor: "#D3D9E2", bannerBg: "rgba(211, 217, 226, 0.15)", primaryGlow: "#8B93A5" }
+    palette: { textColor: colors.neutral, bannerBg: colors.border, primaryGlow: colors.slate }
   },
   solar_storm: {
     nebulae: [
-      { xRatio: 0.3, yRatio: 0.2, radius: 200, colorHex: "#441C00" },
-      { xRatio: 0.7, yRatio: 0.5, radius: 230, colorHex: "#330800" },
-      { xRatio: 0.4, yRatio: 0.8, radius: 160, colorHex: "#552800" },
+      { xRatio: 0.3, yRatio: 0.2, radius: 200, colorHex: colors.orangeDark },
+      { xRatio: 0.7, yRatio: 0.5, radius: 230, colorHex: colors.redHot },
+      { xRatio: 0.4, yRatio: 0.8, radius: 160, colorHex: colors.orange },
     ],
     megaIndex: 2,
-    palette: { textColor: "#FFC000", bannerBg: "rgba(255, 192, 0, 0.15)", primaryGlow: "#FF3300" }
+    palette: { textColor: colors.yellow, bannerBg: colors.border, primaryGlow: colors.red }
   },
   warp_corridor: {
     nebulae: [
-      { xRatio: 0.15, yRatio: 0.5, radius: 240, colorHex: "#001A44" },
-      { xRatio: 0.85, yRatio: 0.4, radius: 200, colorHex: "#003366" },
-      { xRatio: 0.5, yRatio: 0.2, radius: 180, colorHex: "#000D22" },
+      { xRatio: 0.15, yRatio: 0.5, radius: 240, colorHex: colors.blue },
+      { xRatio: 0.85, yRatio: 0.4, radius: 200, colorHex: colors.blueLight },
+      { xRatio: 0.5, yRatio: 0.2, radius: 180, colorHex: colors.backgroundDark },
     ],
     megaIndex: 3,
-    palette: { textColor: "#00F3FF", bannerBg: "rgba(0, 243, 255, 0.2)", primaryGlow: "#00F3FF" }
+    palette: { textColor: colors.cyan, bannerBg: colors.border, primaryGlow: colors.cyan }
   }
 };
 

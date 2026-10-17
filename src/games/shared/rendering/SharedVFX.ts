@@ -1,13 +1,9 @@
-import { World, EffectDrawer, ShapeDrawer, ComponentRegistry, CoreComponentRegistry, RenderComponent, TTLComponent, Renderer, RendererUtils, RenderContext, EventRegistry, BlueprintRegistryMap, Entity, RandomService, EntityBuilder, Juice } from "@tiny-aster/core";
-import type { SkCanvas, SkColor } from "@shopify/react-native-skia";
+import { World, EffectDrawer, ShapeDrawer, ComponentRegistry, CoreComponentRegistry, RenderComponent, Renderer, RendererUtils, RenderContext, EventRegistry, BlueprintRegistryMap, Entity, RandomService, Juice } from "@tiny-aster/core";
 import { Skia } from "./SkiaContext";
-import { COSMIC_ARCADE_PALETTE, getSemanticColor, hexToRgba, getSkiaColor } from "./CosmicPalette";
-import { GlowIntensity, GlowStyle, GLOW_PRESETS, getGlowStyle, renderCanvasGlow, renderSkiaGlow } from "./GlowSystem";
-import { ParallaxLayerName, PARALLAX_FACTORS, computeParallaxOffset, wrapParallaxCoordinate } from "./ParallaxSystem";
-import { ExplosionType, ExplosionProfile, EXPLOSION_PROFILES, computeExplosionState } from "./ExplosionSystem";
-import { PlanetType, PlanetTheme, PLANET_THEMES, getPlanetTheme } from "./CelestialBodiesSystem";
-import { MotionTrailParams, computeTrailParameters, getThrusterFlameColors, CircularPositionBuffer, CircularPositionBufferConfig, TrailBufferPoint } from "./MotionTrailSystem";
-import { LevelThemeName, LevelVisualTheme, LEVEL_THEME_PRESETS, getLevelTheme } from "./LevelThemeSystem";
+import { COSMIC_ARCADE_PALETTE } from "./CosmicPalette";
+import { getGlowStyle, renderCanvasGlow, renderSkiaGlow } from "./GlowSystem";
+import { ExplosionType, EXPLOSION_PROFILES } from "./ExplosionSystem";
+import { computeTrailParameters, getThrusterFlameColors } from "./MotionTrailSystem";
 import { IDrawAdapter, CanvasDrawAdapter, SkiaDrawAdapter } from "./DrawAdapter";
 
 import {
@@ -360,11 +356,11 @@ export function spawnLayeredExplosion<
     return coreWorld.createEntity();
   };
 
-  const addComp = (entity: number, comp: any): void => {
+  const addComp = (entity: number, comp: unknown): void => {
     if (isUpdating) {
-      coreWorld.getCommandBuffer().addComponent(entity, comp);
+      coreWorld.getCommandBuffer().addComponent(entity, comp as any);
     } else {
-      coreWorld.addComponent(entity, comp);
+      coreWorld.addComponent(entity, comp as any);
     }
   };
 
@@ -432,7 +428,7 @@ export function spawnLayeredExplosion<
   }
 
   // Layer 3 & 4: Particle Burst & Debris Shards
-  const particlePool = world.getResource<any>("ParticlePool");
+  const particlePool = world.getResource<unknown>("ParticlePool") as { acquire: (world: World<TComponents, TEvents, TBlueprints>, params: { x: number; y: number; dx?: number; dy?: number; vx?: number; vy?: number; size: number; color: string; ttl: number }) => number } | undefined;
   if (particlePool) {
     const rng = world.gameplayRandom;
     const count = Math.round(profile.particleCount * juiceScale);

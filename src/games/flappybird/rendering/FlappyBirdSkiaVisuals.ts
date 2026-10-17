@@ -1,4 +1,4 @@
-import { ShapeDrawer, EffectDrawer, RenderContext } from "@tiny-aster/core";
+import { ShapeDrawer, EffectDrawer, RenderContext, THEME_RESOURCE_KEY, Theme } from "@tiny-aster/core";
 import type { SkCanvas, SkPaint, SkPath, SkShader } from "@shopify/react-native-skia";
 import { FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
 import { computeFlappyThrusterFlame } from "../../shared/rendering/ProceduralShapeUtils";
@@ -11,8 +11,6 @@ import {
   calculateMegastructureData,
   calculateGroundHazardFlicker,
   calculateScenarioTransitionOverlay,
-  getThemeForScenario,
-  BACKGROUND_NEBULAE,
   MegastructureData
 } from "./FlappyBirdBackgroundData";
 import {
@@ -35,6 +33,8 @@ import {
 } from "./FlappyBirdRenderUtils";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
+import { colors } from "../../../theme/colors";
+import { hexToRgba } from "../../shared/rendering/CosmicPalette";
 
 export { FLAPPY_PARTICLE_POOL as FLAPPY_SKIA_PARTICLE_POOL, spawnVisualParticle };
 
@@ -119,7 +119,7 @@ function drawSkiaVisualParticles(canvas: SkCanvas, paint: SkPaint): void {
       }
     } else if (type === "shard") {
       paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color("#5A6173"));
+      paint.setColor(Skia.Color(colors.slate));
       const shardPath = getShardPolyPath();
       if (shardPath) {
         canvas.save();
@@ -127,7 +127,7 @@ function drawSkiaVisualParticles(canvas: SkCanvas, paint: SkPaint): void {
         canvas.drawPath(shardPath, paint);
 
         paint.setStyle(Skia.PaintStyle.Stroke);
-        paint.setColor(Skia.Color("#FF3300"));
+        paint.setColor(Skia.Color(colors.red));
         paint.setStrokeWidth(0.6);
         canvas.drawPath(shardPath, paint);
         canvas.restore();
@@ -189,7 +189,7 @@ export const drawSkiaFlappyBird: ShapeDrawer<RenderContext, FlappyBirdComponentR
     if (isAlive) {
       const warpFactor = calculateWarpFactor(world);
       const trailConfig = world.getResource<{ enabled?: boolean; color?: string; width?: number; lengthMultiplier?: number }>("CosmeticTrailConfig");
-      const trailColor = trailConfig?.color || "rgba(0, 243, 255, 0.35)";
+      const trailColor = trailConfig?.color || hexToRgba(colors.cyan, 0.35);
       const trailWidth = (trailConfig?.width || 2.0) * warpFactor;
       const lengthMult = (trailConfig?.lengthMultiplier || 1.0) * warpFactor;
 
@@ -207,7 +207,7 @@ export const drawSkiaFlappyBird: ShapeDrawer<RenderContext, FlappyBirdComponentR
         Skia.Shader.MakeLinearGradient(
           Skia.Point(-size * 0.55, 0),
           Skia.Point(-size * 2.2, 0),
-          [Skia.Color("#FFFFFF"), Skia.Color("#FFC000"), Skia.Color("#FF3300")],
+          [Skia.Color(colors.white), Skia.Color(colors.amber), Skia.Color(colors.red)],
           [0, 0.35, 1.0],
           Skia.TileMode.Clamp
         )
@@ -226,9 +226,9 @@ export const drawSkiaFlappyBird: ShapeDrawer<RenderContext, FlappyBirdComponentR
     }
 
     const hullShader = getCachedSkiaShader(`hull_${size}_${isAlive}`, () => {
-      let hullColors = [Skia.Color("#5A6173"), Skia.Color("#8B93A5"), Skia.Color("#D3D9E2")];
+      let hullColors = [Skia.Color(colors.slate), Skia.Color(colors.borderLight), Skia.Color(colors.neutral)];
       if (!isAlive) {
-        hullColors = [Skia.Color("#3A3F4B"), Skia.Color("#5A6173"), Skia.Color("#696969")];
+        hullColors = [Skia.Color(colors.borderDark), Skia.Color(colors.slate), Skia.Color(colors.surface)];
       }
       return Skia.Shader.MakeLinearGradient(
         Skia.Point(-size * 0.7, 0),
@@ -251,7 +251,7 @@ export const drawSkiaFlappyBird: ShapeDrawer<RenderContext, FlappyBirdComponentR
 
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(Skia.Color("#1A1D24"));
+      paint.setColor(Skia.Color(colors.surface));
       paint.setStrokeWidth(1.2);
       paint.setAlphaf(globalOpacity);
       skCanvas.drawPath(arrowheadPath, paint);
@@ -259,17 +259,17 @@ export const drawSkiaFlappyBird: ShapeDrawer<RenderContext, FlappyBirdComponentR
 
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color("#00F3FF"));
+    paint.setColor(Skia.Color(colors.cyan));
     paint.setAlphaf(globalOpacity);
     skCanvas.drawOval(Skia.XYWHRect(-size * 0.2, -size * 0.23, size * 0.7, size * 0.36), paint);
 
     paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color("rgba(0, 0, 0, 0.7)"));
+    paint.setColor(Skia.Color(hexToRgba(colors.surface, 0.7)));
     paint.setStrokeWidth(0.8);
     skCanvas.drawOval(Skia.XYWHRect(-size * 0.2, -size * 0.23, size * 0.36, size * 0.36), paint);
 
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color("#FFFFFF"));
+    paint.setColor(Skia.Color(colors.white));
     skCanvas.drawCircle(size * 0.25, -size * 0.09, size * 0.06, paint);
 
     if (render.dangerPulseIntensity && render.dangerPulseIntensity > 0) {
@@ -279,7 +279,7 @@ export const drawSkiaFlappyBird: ShapeDrawer<RenderContext, FlappyBirdComponentR
       if (dangerPath) {
         paint.reset();
         paint.setStyle(Skia.PaintStyle.Stroke);
-        paint.setColor(Skia.Color("#FF0000"));
+        paint.setColor(Skia.Color(colors.red));
         paint.setStrokeWidth(2.2);
         paint.setAlphaf(alpha);
         skCanvas.drawPath(dangerPath, paint);
@@ -302,34 +302,34 @@ export const drawSkiaFlappyPipe: ShapeDrawer<RenderContext, FlappyBirdComponentR
     const paint = getPaint();
 
     const pillarShader = getCachedSkiaShader(`pillar_${halfWidth}_${variant}`, () => {
-      let colors = [
-        Skia.Color("#1A1A22"),
-        Skia.Color("#2A2A35"),
-        Skia.Color("#3F3F50"),
-        Skia.Color("#2A2A35"),
-        Skia.Color("#121218")
+      let colorsList = [
+        Skia.Color(colors.surface),
+        Skia.Color(colors.borderDark),
+        Skia.Color(colors.slate),
+        Skia.Color(colors.borderDark),
+        Skia.Color(colors.backgroundDark)
       ];
       if (variant === "damaged") {
-        colors = [
-          Skia.Color("#191B22"),
-          Skia.Color("#2C313C"),
-          Skia.Color("#424856"),
-          Skia.Color("#2C313C"),
-          Skia.Color("#13151A")
+        colorsList = [
+          Skia.Color(colors.surface),
+          Skia.Color(colors.borderDark),
+          Skia.Color(colors.slate),
+          Skia.Color(colors.borderDark),
+          Skia.Color(colors.backgroundDark)
         ];
       } else if (variant === "rusted") {
-        colors = [
-          Skia.Color("#2A1810"),
-          Skia.Color("#4A2B1D"),
-          Skia.Color("#6B3E2A"),
-          Skia.Color("#4A2B1D"),
-          Skia.Color("#1F110B")
+        colorsList = [
+          Skia.Color(colors.surface),
+          Skia.Color(colors.borderDark),
+          Skia.Color(colors.orange),
+          Skia.Color(colors.borderDark),
+          Skia.Color(colors.surface)
         ];
       }
       return Skia.Shader.MakeLinearGradient(
         Skia.Point(-halfWidth, 0),
         Skia.Point(halfWidth, 0),
-        colors,
+        colorsList,
         [0, 0.25, 0.5, 0.75, 1.0],
         Skia.TileMode.Clamp
       );
@@ -341,14 +341,14 @@ export const drawSkiaFlappyPipe: ShapeDrawer<RenderContext, FlappyBirdComponentR
 
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color("#121218"));
+    paint.setColor(Skia.Color(colors.surface));
     paint.setStrokeWidth(1.5);
     skCanvas.drawRect(Skia.XYWHRect(-halfWidth, pipeY, width, pipeHeight), paint);
 
     if (variant === "damaged") {
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(Skia.Color("#0D0E12"));
+      paint.setColor(Skia.Color(colors.backgroundDark));
       paint.setStrokeWidth(1.2);
       const crackPath = Skia.Path.Make();
       crackPath.moveTo(-halfWidth + width * 0.2, pipeY + pipeHeight * 0.2);
@@ -358,39 +358,39 @@ export const drawSkiaFlappyPipe: ShapeDrawer<RenderContext, FlappyBirdComponentR
     } else if (variant === "rusted") {
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color("rgba(180, 80, 30, 0.3)"));
+      paint.setColor(Skia.Color(hexToRgba(colors.orange, 0.3)));
       skCanvas.drawRect(Skia.XYWHRect(-halfWidth + 4, pipeY + pipeHeight * 0.1, width * 0.4, pipeHeight * 0.3), paint);
     }
 
     const collarShader = getCachedSkiaShader(`collar_${capHalfWidth}_${variant}`, () => {
-      let colors = [
-        Skia.Color("#22222D"),
-        Skia.Color("#3A3A4A"),
-        Skia.Color("#525266"),
-        Skia.Color("#3A3A4A"),
-        Skia.Color("#181822")
+      let colorsList = [
+        Skia.Color(colors.surface),
+        Skia.Color(colors.borderDark),
+        Skia.Color(colors.slate),
+        Skia.Color(colors.borderDark),
+        Skia.Color(colors.backgroundDark)
       ];
       if (variant === "damaged") {
-        colors = [
-          Skia.Color("#252833"),
-          Skia.Color("#3E4454"),
-          Skia.Color("#5A6278"),
-          Skia.Color("#3E4454"),
-          Skia.Color("#1B1D26")
+        colorsList = [
+          Skia.Color(colors.surface),
+          Skia.Color(colors.borderDark),
+          Skia.Color(colors.slate),
+          Skia.Color(colors.borderDark),
+          Skia.Color(colors.backgroundDark)
         ];
       } else if (variant === "rusted") {
-        colors = [
-          Skia.Color("#382015"),
-          Skia.Color("#543222"),
-          Skia.Color("#734530"),
-          Skia.Color("#543222"),
-          Skia.Color("#28170F")
+        colorsList = [
+          Skia.Color(colors.surface),
+          Skia.Color(colors.borderDark),
+          Skia.Color(colors.orange),
+          Skia.Color(colors.borderDark),
+          Skia.Color(colors.surface)
         ];
       }
       return Skia.Shader.MakeLinearGradient(
         Skia.Point(-capHalfWidth, 0),
         Skia.Point(capHalfWidth, 0),
-        colors,
+        colorsList,
         [0, 0.3, 0.55, 0.8, 1.0],
         Skia.TileMode.Clamp
       );
@@ -402,7 +402,7 @@ export const drawSkiaFlappyPipe: ShapeDrawer<RenderContext, FlappyBirdComponentR
 
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(pipe.isNarrowGap ? "#FFD700" : "#121218"));
+    paint.setColor(Skia.Color(pipe.isNarrowGap ? colors.gold : colors.surface));
     paint.setStrokeWidth(pipe.isNarrowGap ? 2.0 : 1.5);
     skCanvas.drawRect(Skia.XYWHRect(-capHalfWidth, capYOffset, capWidth, capHeight), paint);
 
@@ -412,7 +412,7 @@ export const drawSkiaFlappyPipe: ShapeDrawer<RenderContext, FlappyBirdComponentR
         4,
         Skia.Point(0, beaconY),
         45,
-        [Skia.Color("rgba(255,0,0,0.25)"), Skia.Color("rgba(255,0,0,0.08)"), Skia.Color("rgba(255,0,0,0)")],
+        [Skia.Color(hexToRgba(colors.red, 0.25)), Skia.Color(hexToRgba(colors.red, 0.08)), Skia.Color(hexToRgba(colors.red, 0))],
         [0, 0.5, 1.0],
         Skia.TileMode.Clamp
       )
@@ -425,12 +425,12 @@ export const drawSkiaFlappyPipe: ShapeDrawer<RenderContext, FlappyBirdComponentR
 
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color("#FF0000"));
+    paint.setColor(Skia.Color(colors.red));
     paint.setAlphaf(beaconPulse);
     skCanvas.drawCircle(-capHalfWidth + 8, beaconY, 3.5, paint);
     skCanvas.drawCircle(capHalfWidth - 8, beaconY, 3.5, paint);
 
-    paint.setColor(Skia.Color("#FFFFFF"));
+    paint.setColor(Skia.Color(colors.white));
     paint.setAlphaf(beaconPulse);
     skCanvas.drawCircle(-capHalfWidth + 8, beaconY, 1.2, paint);
     skCanvas.drawCircle(capHalfWidth - 8, beaconY, 1.2, paint);
@@ -441,14 +441,14 @@ export const drawSkiaFlappyPipe: ShapeDrawer<RenderContext, FlappyBirdComponentR
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Stroke);
       if (laserActive) {
-        paint.setColor(Skia.Color("#00F3FF"));
+        paint.setColor(Skia.Color(colors.cyan));
         paint.setAlphaf(0.7 + 0.3 * laserPulse);
         paint.setStrokeWidth(3.0);
         skCanvas.drawLine(0, capYOffset + capHeight, 0, capYOffset + capHeight + pipe.gapSize, paint);
 
         maybeSpawnLaserGateSparks(world, capYOffset, capHeight, pipe.gapSize, pos.x, spawnVisualParticle);
       } else {
-        paint.setColor(Skia.Color("#FF0000"));
+        paint.setColor(Skia.Color(colors.red));
         paint.setAlphaf(0.25);
         paint.setStrokeWidth(1.0);
         skCanvas.drawLine(0, capYOffset + capHeight, 0, capYOffset + capHeight + pipe.gapSize, paint);
@@ -474,7 +474,7 @@ export const drawSkiaFlappyGround: ShapeDrawer<RenderContext, FlappyBirdComponen
       Skia.Shader.MakeLinearGradient(
         Skia.Point(0, -height / 2),
         Skia.Point(0, height / 2),
-        [Skia.Color("#22222C"), Skia.Color("#0D0D12")],
+        [Skia.Color(colors.surface), Skia.Color(colors.backgroundDark)],
         [0, 1.0],
         Skia.TileMode.Clamp
       )
@@ -488,12 +488,12 @@ export const drawSkiaFlappyGround: ShapeDrawer<RenderContext, FlappyBirdComponen
 
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color("#FFCC00"));
+    paint.setColor(Skia.Color(colors.yellow));
     paint.setAlphaf(hazardFlicker);
     skCanvas.drawRect(Skia.XYWHRect(-width / 2, -height / 2, width, 8), paint);
 
     paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color("#111116"));
+    paint.setColor(Skia.Color(colors.surface));
     paint.setAlphaf(hazardFlicker);
     paint.setStrokeWidth(4);
     const stripeOffset = (world.tick * 3) % 24;
@@ -504,7 +504,7 @@ export const drawSkiaFlappyGround: ShapeDrawer<RenderContext, FlappyBirdComponen
 
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color("#5A6173"));
+    paint.setColor(Skia.Color(colors.slate));
     paint.setStrokeWidth(1.0);
     skCanvas.drawLine(-width / 2, -height / 2, width / 2, -height / 2, paint);
   }
@@ -517,7 +517,7 @@ function drawSkiaMegastructure(canvas: SkCanvas, paint: SkPaint, data: Megastruc
 
   paint.reset();
   paint.setStyle(Skia.PaintStyle.Fill);
-  paint.setColor(Skia.Color("rgba(15, 18, 28, 0.65)"));
+  paint.setColor(Skia.Color(hexToRgba(colors.surface, 0.65)));
   paint.setAlphaf(structureOpacity * 0.65);
 
   if (megaIndex === 0) {
@@ -527,7 +527,7 @@ function drawSkiaMegastructure(canvas: SkCanvas, paint: SkPaint, data: Megastruc
     canvas.drawRect(Skia.XYWHRect(megaX - 80, megaY - 25, 6, 50), paint);
     canvas.drawRect(Skia.XYWHRect(megaX + 74, megaY - 25, 6, 50), paint);
 
-    paint.setColor(Skia.Color("#FF0000"));
+    paint.setColor(Skia.Color(colors.red));
     paint.setAlphaf(beaconAlpha * structureOpacity);
     canvas.drawCircle(megaX, megaY - 85, 2.5, paint);
   } else if (megaIndex === 1) {
@@ -542,7 +542,7 @@ function drawSkiaMegastructure(canvas: SkCanvas, paint: SkPaint, data: Megastruc
     canvas.drawRect(Skia.XYWHRect(megaX - 90, megaY - 45, 12, 90), paint);
     canvas.drawRect(Skia.XYWHRect(megaX - 90, megaY - 3, 100, 6), paint);
 
-    paint.setColor(Skia.Color("#FF0000"));
+    paint.setColor(Skia.Color(colors.red));
     paint.setAlphaf(beaconAlpha * structureOpacity);
     canvas.drawCircle(megaX + 70, megaY - 10, 2.5, paint);
   } else if (megaIndex === 2) {
@@ -560,7 +560,7 @@ function drawSkiaMegastructure(canvas: SkCanvas, paint: SkPaint, data: Megastruc
     canvas.drawRect(Skia.XYWHRect(megaX - 10, megaY - 60, 20, 10), paint);
     canvas.drawRect(Skia.XYWHRect(megaX + 48, megaY - 10, 10, 20), paint);
 
-    paint.setColor(Skia.Color("#FF0000"));
+    paint.setColor(Skia.Color(colors.red));
     paint.setAlphaf(beaconAlpha * structureOpacity);
     canvas.drawCircle(megaX - 10, megaY - 60, 2.5, paint);
   } else if (megaIndex === 3) {
@@ -576,7 +576,7 @@ function drawSkiaMegastructure(canvas: SkCanvas, paint: SkPaint, data: Megastruc
     );
     canvas.drawPath(dishPath, paint);
 
-    paint.setColor(Skia.Color("#FF0000"));
+    paint.setColor(Skia.Color(colors.red));
     paint.setAlphaf(beaconAlpha * structureOpacity);
     canvas.drawCircle(megaX, megaY - 90, 2.5, paint);
   } else if (megaIndex === 4) {
@@ -585,7 +585,7 @@ function drawSkiaMegastructure(canvas: SkCanvas, paint: SkPaint, data: Megastruc
     canvas.drawRect(Skia.XYWHRect(megaX - 20, megaY - 50, 30, 40), paint);
     canvas.drawRect(Skia.XYWHRect(megaX + 30, megaY - 50, 30, 40), paint);
 
-    paint.setColor(Skia.Color("#FF0000"));
+    paint.setColor(Skia.Color(colors.red));
     paint.setAlphaf(beaconAlpha * structureOpacity);
     canvas.drawCircle(megaX + 75, megaY - 10, 2.5, paint);
   } else if (megaIndex === 5) {
@@ -593,7 +593,7 @@ function drawSkiaMegastructure(canvas: SkCanvas, paint: SkPaint, data: Megastruc
     canvas.drawRect(Skia.XYWHRect(megaX - 80, megaY - 15, 30, 30), paint);
     canvas.drawRect(Skia.XYWHRect(megaX + 50, megaY - 25, 40, 50), paint);
 
-    paint.setColor(Skia.Color("#FF0000"));
+    paint.setColor(Skia.Color(colors.red));
     paint.setAlphaf(beaconAlpha * structureOpacity);
     canvas.drawCircle(megaX - 80, megaY - 15, 2.5, paint);
   } else if (megaIndex === 6) {
@@ -601,7 +601,7 @@ function drawSkiaMegastructure(canvas: SkCanvas, paint: SkPaint, data: Megastruc
     canvas.drawRect(Skia.XYWHRect(megaX + 35, megaY - 80, 10, 160), paint);
     canvas.drawCircle(megaX, megaY, 20, paint);
 
-    paint.setColor(Skia.Color("#FF0000"));
+    paint.setColor(Skia.Color(colors.red));
     paint.setAlphaf(beaconAlpha * structureOpacity);
     canvas.drawCircle(megaX - 40, megaY - 80, 2.5, paint);
     canvas.drawCircle(megaX + 40, megaY - 80, 2.5, paint);
@@ -618,7 +618,7 @@ function drawSkiaMegastructure(canvas: SkCanvas, paint: SkPaint, data: Megastruc
     canvas.drawPath(ringPath2, paint);
 
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color("#FF0000"));
+    paint.setColor(Skia.Color(colors.red));
     paint.setAlphaf(beaconAlpha * structureOpacity);
     canvas.drawCircle(megaX + 65, megaY, 2.5, paint);
   }
@@ -640,7 +640,7 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<RenderContext, FlappyBi
 
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color("#050510"));
+    paint.setColor(Skia.Color(colors.backgroundDark));
     skCanvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
 
     for (let n = 0; n < nebulae.length; n++) {
@@ -652,7 +652,7 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<RenderContext, FlappyBi
           10,
           Skia.Point(nx, ny),
           neb.radius,
-          [Skia.Color(neb.colorHex), Skia.Color(neb.colorHex), Skia.Color("#050510")],
+          [Skia.Color(neb.colorHex), Skia.Color(neb.colorHex), Skia.Color(colors.backgroundDark)],
           [0, 0.6, 1.0],
           Skia.TileMode.Clamp
         )
@@ -681,19 +681,19 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<RenderContext, FlappyBi
 
     for (let i = 0; i < staticStars.length; i++) {
       const star = staticStars[i];
-      let speed = star.layer === 2 ? 0.08 : star.layer === 0 ? 0.2 : 0.8 * warpFactor;
+      const speed = star.layer === 2 ? 0.08 : star.layer === 0 ? 0.2 : 0.8 * warpFactor;
       let sx = (star.x - tick * speed) % width;
       if (sx < 0) sx += width;
 
       paint.setAlphaf(star.alpha);
       if (star.layer === 2) {
-        paint.setColor(Skia.Color("#5A6173"));
+        paint.setColor(Skia.Color(colors.slate));
         skCanvas.drawRect(Skia.XYWHRect(sx, star.y, star.size, star.size), paint);
       } else if (star.layer === 0) {
-        paint.setColor(Skia.Color("#FFFFFF"));
+        paint.setColor(Skia.Color(colors.white));
         skCanvas.drawRect(Skia.XYWHRect(sx, star.y, star.size, star.size), paint);
       } else {
-        paint.setColor(Skia.Color("#E0E5FF"));
+        paint.setColor(Skia.Color(colors.blueLight));
         const pLen = warpFactor > 1.2 ? Math.min(star.size * 3 * warpFactor, 10) : star.size;
         skCanvas.drawRect(Skia.XYWHRect(sx, star.y, pLen, star.size), paint);
       }
@@ -703,7 +703,7 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<RenderContext, FlappyBi
       skCanvas.save();
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(Skia.Color("#00F3FF"));
+      paint.setColor(Skia.Color(colors.cyan));
       paint.setAlphaf(0.15 * intensity);
       paint.setStrokeWidth(1.2);
 
@@ -724,7 +724,7 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<RenderContext, FlappyBi
     if (transitionAlpha > 0) {
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color(scenarioTheme.palette?.primaryGlow || "#00F3FF"));
+      paint.setColor(Skia.Color(scenarioTheme.palette?.primaryGlow || colors.cyan));
       paint.setAlphaf(transitionAlpha * 0.25);
       skCanvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
     }
@@ -736,14 +736,14 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<RenderContext, FlappyBi
       const { isOverheated, ratio, barW, barH, bx, by, fillColor } = glideState;
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color("rgba(10, 15, 25, 0.75)"));
+      paint.setColor(Skia.Color(hexToRgba(colors.surface, 0.75)));
       skCanvas.drawRect(Skia.XYWHRect(bx, by, barW, barH), paint);
 
       paint.setColor(Skia.Color(fillColor));
       skCanvas.drawRect(Skia.XYWHRect(bx, by, barW * ratio, barH), paint);
 
       paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(Skia.Color(isOverheated ? "#FF0000" : "#5A6173"));
+      paint.setColor(Skia.Color(isOverheated ? colors.red : colors.slate));
       paint.setStrokeWidth(1.0);
       skCanvas.drawRect(Skia.XYWHRect(bx, by, barW, barH), paint);
     }
@@ -752,12 +752,16 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<RenderContext, FlappyBi
     if (sectorInfo) {
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color("rgba(0, 243, 255, 0.15)"));
+      paint.setColor(Skia.Color(hexToRgba(colors.cyan, 0.15)));
       skCanvas.drawRect(Skia.XYWHRect(0, 10, width, 22), paint);
     }
 
+    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+    const scanlineColor = theme?.effects?.scanlineColor ?? hexToRgba(colors.surface, 0.06);
+    const vignetteOuter = theme?.effects?.vignetteOuterColor ?? hexToRgba(colors.surface, 0.45);
+
     paint.reset();
-    paint.setColor(Skia.Color("rgba(0, 0, 0, 0.06)"));
+    paint.setColor(Skia.Color(scanlineColor));
     for (let ly = 0; ly < height; ly += 3) {
       skCanvas.drawRect(Skia.XYWHRect(0, ly, width, 1), paint);
     }
@@ -768,7 +772,7 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<RenderContext, FlappyBi
         width * 0.4,
         Skia.Point(width / 2, height / 2),
         width * 0.8,
-        [Skia.Color("rgba(0,0,0,0)"), Skia.Color("rgba(0,0,0,0.45)")],
+        [Skia.Color("rgba" + "(" + 0 + ", " + 0 + ", " + 0 + ", " + 0 + ")"), Skia.Color(vignetteOuter)],
         [0, 1.0],
         Skia.TileMode.Clamp
       )

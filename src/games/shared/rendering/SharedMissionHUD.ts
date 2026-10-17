@@ -2,6 +2,7 @@ import { EffectDrawer, ComponentRegistry, THEME_RESOURCE_KEY, Theme, getMissionT
 import { ActiveMissionState } from "../missions/MissionTypes";
 import { colors } from "../../../theme/colors";
 import { Skia, getPaint } from "./SkiaContext";
+import { hexToRgba } from "./CosmicPalette";
 
 /**
  * View model representing the processed data required to draw a mission HUD.
@@ -92,7 +93,7 @@ export function createCanvasMissionHUD<TComponents extends ComponentRegistry = C
 
       ctx.save();
 
-      ctx.fillStyle = "rgba(10, 14, 39, 0.85)";
+      ctx.fillStyle = hexToRgba(colors.background, 0.85);
       ctx.fillRect(x, y, width, height);
 
       ctx.strokeStyle = model.statusColor;
@@ -117,7 +118,7 @@ export function createCanvasMissionHUD<TComponents extends ComponentRegistry = C
       const barW = width - 140;
       const barH = 8;
 
-      ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+      ctx.fillStyle = hexToRgba(colors.white, 0.2);
       ctx.fillRect(barX, barY, barW, barH);
 
       ctx.fillStyle = model.statusColor;
@@ -135,7 +136,7 @@ export function createCanvasMissionHUD<TComponents extends ComponentRegistry = C
  */
 export function createSkiaMissionHUD<TComponents extends ComponentRegistry = ComponentRegistry>(
   options?: MissionHudOptions
-): EffectDrawer<any, TComponents> {
+): EffectDrawer<unknown, TComponents> {
   const { x, y, width, height } = { ...DEFAULT_HUD_OPTIONS, ...options };
 
   return {
@@ -147,22 +148,23 @@ export function createSkiaMissionHUD<TComponents extends ComponentRegistry = Com
       const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
       const model = resolveMissionHudModel(activeMission, theme);
 
-      canvas.save();
+      const skCanvas = canvas as any;
+      skCanvas.save();
       const paint = getPaint();
       paint.reset();
       paint.setAntiAlias(true);
 
       paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color("rgba(10, 14, 39, 0.85)"));
+      paint.setColor(Skia.Color(hexToRgba(colors.background, 0.85)));
       const rect = Skia.XYWHRect(x, y, width, height);
-      canvas.drawRect(rect, paint);
+      skCanvas.drawRect(rect, paint);
 
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setColor(Skia.Color(model.statusColor));
       paint.setStrokeWidth(1.5);
-      canvas.drawRect(rect, paint);
+      skCanvas.drawRect(rect, paint);
 
-      canvas.restore();
+      skCanvas.restore();
     },
   };
 }
@@ -177,4 +179,4 @@ export const drawCanvasMissionHUD: EffectDrawer<CanvasRenderingContext2D, Compon
  * Default shared Skia Mission HUD EffectDrawer instance.
  * @public
  */
-export const drawSkiaMissionHUD: EffectDrawer<any, ComponentRegistry> = createSkiaMissionHUD();
+export const drawSkiaMissionHUD: EffectDrawer<unknown, ComponentRegistry> = createSkiaMissionHUD();

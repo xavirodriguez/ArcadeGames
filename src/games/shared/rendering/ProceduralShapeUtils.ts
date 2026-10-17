@@ -3,6 +3,8 @@
  * Shared pure mathematical helpers for procedural shape rendering across Canvas and Skia backends.
  */
 
+import { colors } from "../../../theme/colors";
+
 /** Pre-allocated bullet coordinate pool for zero-allocation grid displacement */
 export const BULLET_COORDS: { x: number; y: number }[] = Array.from({ length: 100 }, () => ({ x: 0, y: 0 }));
 
@@ -155,7 +157,7 @@ export function computeMotionSecondaryEffect(
         offsetY,
         radius,
         alpha,
-        color: i === 0 ? "#FF9900" : "#888888",
+        color: i === 0 ? colors.orange : colors.slate,
       });
     }
   } else if (effectType === "dust_trail") {
@@ -170,7 +172,7 @@ export function computeMotionSecondaryEffect(
         offsetY,
         radius,
         alpha,
-        color: "#8B7D6B",
+        color: colors.amber,
       });
     }
   } else {
@@ -183,7 +185,7 @@ export function computeMotionSecondaryEffect(
         offsetY: s.sparkY,
         radius: s.sparkRadius,
         alpha: 0.8,
-        color: "#FFD700",
+        color: colors.gold,
       });
     }
   }

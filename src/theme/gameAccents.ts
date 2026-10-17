@@ -1,5 +1,5 @@
-import { colors } from './colors';
-import type { Theme, GameVisualProfile } from '@tiny-aster/core';
+import { colors, semanticColors } from './colors';
+import type { Theme, GameVisualProfile, ThemeEffects } from '@tiny-aster/core';
 import { createVisualTheme, VisualTheme } from './VisualTheme';
 import { DEFAULT_ECHO_PALETTE } from '../games/shared/rendering/PlatformerSharedVisualUtils';
 
@@ -197,7 +197,22 @@ export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<
 
   const defaultVfx = defaultVfxProfiles[game];
 
+  const defaultEffects: ThemeEffects = {
+    scanlineColor: "rgba(0, 0, 0, 0.15)",
+    scanlineSpacing: 2,
+    vignetteInnerColor: "rgba(0, 0, 0, 0)",
+    vignetteOuterColor: "rgba(0, 0, 0, 0.75)",
+    ambientGlow: defaultVfx?.ambientGlow ?? 0.3,
+  };
+
   const defaultColorMap: Record<string, string> = {
+    // System & HUD
+    system: semanticColors.system,
+    warning: semanticColors.warning,
+    success: semanticColors.success,
+    danger: semanticColors.danger,
+
+    // Entities
     primary: accentColors.primary,
     secondary: accentColors.secondary,
     accent: accentColors.accent,
@@ -230,6 +245,18 @@ export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<
     log: accentColors.secondary,
     turtle: accentColors.secondary,
     "track-wall": accentColors.accent,
+
+    // Environment & Post-FX
+    road: "#121218",
+    sky_top: "#000005",
+    sky_bottom: "#0a0e27",
+    terrain: "#0f172a",
+    horizon: "#00f0ff",
+    grid: "rgba(0, 240, 255, 0.15)",
+    vignette: "rgba(0, 0, 0, 0.75)",
+    scanline: "rgba(0, 0, 0, 0.15)",
+    glow: "rgba(0, 240, 255, 0.25)",
+    ambient: "rgba(10, 14, 39, 0.5)",
 
     // Frogger role tokens
     home_slot: "#00AA44",
@@ -274,6 +301,28 @@ export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<
     outrun_car: "#e63946",
     outrun_hud_bg: "rgba(15, 23, 42, 0.85)",
     outrun_hud_accent: "#00f0ff",
+    outrun_grass_light: "#10b981",
+    outrun_grass_dark: "#047857",
+    outrun_rumble_white: "#f8fafc",
+    outrun_rumble_red: "#ef4444",
+    outrun_lane: "#f8fafc",
+    outrun_road_dark: "#334155",
+    outrun_road_light: "#475569",
+
+    // Hit & Run role tokens
+    hitrun_pavement: "#1e293b",
+    hitrun_lane: "#334155",
+    hitrun_shoulder: "#0f172a",
+    hitrun_building_a: "#0f172a",
+    hitrun_building_b: "#1e293b",
+    hitrun_window_glow: "#00f0ff",
+
+    // Racing role tokens
+    racing_asphalt: "#1e293b",
+    racing_grass: "#065f46",
+    racing_kerb_red: "#ef4444",
+    racing_kerb_white: "#f8fafc",
+    racing_line: "#f8fafc",
 
     // Echo Runner "The Archive" role tokens
     ...DEFAULT_ECHO_PALETTE,
@@ -296,6 +345,7 @@ export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<
   return {
     spriteMap: { ...customTheme?.spriteMap },
     colorMap: { ...defaultColorMap, ...customTheme?.colorMap },
+    effects: { ...defaultEffects, ...customTheme?.effects },
     lore: { ...customTheme?.lore },
     vfxProfile: customTheme?.vfxProfile
       ? { ...defaultVfx, ...customTheme.vfxProfile }

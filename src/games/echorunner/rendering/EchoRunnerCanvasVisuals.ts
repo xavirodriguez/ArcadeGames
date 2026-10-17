@@ -111,7 +111,7 @@ export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
     ctx.translate(0, hoverY);
     ctx.rotate(tiltAngle);
 
-    ctx.fillStyle = palette.shadowColor;
+    ctx.fillStyle = palette.archiveVoidDark;
     ctx.beginPath();
     ctx.ellipse(0, size * 0.7 - hoverY, size * 0.5, size * 0.15, 0, 0, Math.PI * 2);
     ctx.fill();

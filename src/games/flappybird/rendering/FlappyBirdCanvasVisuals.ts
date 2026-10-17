@@ -1,4 +1,4 @@
-import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
+import { ShapeDrawer, EffectDrawer, THEME_RESOURCE_KEY, Theme } from "@tiny-aster/core";
 import { FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
 import { computeFlappyThrusterFlame } from "../../shared/rendering/ProceduralShapeUtils";
 import {
@@ -10,8 +10,6 @@ import {
   calculateMegastructureData,
   calculateGroundHazardFlicker,
   calculateScenarioTransitionOverlay,
-  getThemeForScenario,
-  BACKGROUND_NEBULAE,
   MegastructureData
 } from "./FlappyBirdBackgroundData";
 import {
@@ -32,6 +30,8 @@ import {
   computeWarpLines,
   computeFlappyNebulaPos
 } from "./FlappyBirdRenderUtils";
+import { colors } from "../../../theme/colors";
+import { hexToRgba } from "../../shared/rendering/CosmicPalette";
 
 export { FLAPPY_PARTICLE_POOL as FLAPPY_CANVAS_PARTICLE_POOL, spawnVisualParticle };
 
@@ -62,7 +62,7 @@ function drawCanvasVisualParticles(ctx: CanvasRenderingContext2D): void {
       ctx.closePath();
       ctx.fill();
     } else if (type === "shard") {
-      ctx.fillStyle = "#5A6173";
+      ctx.fillStyle = colors.slate;
       const sz = size;
       ctx.beginPath();
       ctx.moveTo(sz * 0.4, -sz * 0.3);
@@ -72,7 +72,7 @@ function drawCanvasVisualParticles(ctx: CanvasRenderingContext2D): void {
       ctx.closePath();
       ctx.fill();
 
-      ctx.strokeStyle = "#FF3300";
+      ctx.strokeStyle = colors.red;
       ctx.lineWidth = 0.6;
       ctx.stroke();
     } else if (type === "star") {
@@ -140,14 +140,14 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     if (isDyingGlitch) {
       ctx.save();
       ctx.translate(-3, -1);
-      ctx.fillStyle = "rgba(255, 0, 0, 0.6)";
+      ctx.fillStyle = hexToRgba(colors.red, 0.6);
       drawArrowheadPath(ctx, size);
       ctx.fill();
       ctx.restore();
 
       ctx.save();
       ctx.translate(3, 1);
-      ctx.fillStyle = "rgba(0, 243, 255, 0.6)";
+      ctx.fillStyle = hexToRgba(colors.cyan, 0.6);
       drawArrowheadPath(ctx, size);
       ctx.fill();
       ctx.restore();
@@ -156,12 +156,12 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     if (isAlive) {
       const warpFactor = calculateWarpFactor(world);
       const trailConfig = world.getResource<{ enabled?: boolean; color?: string; width?: number; lengthMultiplier?: number }>("CosmeticTrailConfig");
-      const trailColor = trailConfig?.color || "#00F3FF";
+      const trailColor = trailConfig?.color || colors.cyan;
       const trailWidth = (trailConfig?.width || 2.0) * warpFactor;
       const lengthMult = (trailConfig?.lengthMultiplier || 1.0) * warpFactor;
 
       ctx.save();
-      ctx.strokeStyle = trailConfig?.enabled ? trailColor : "rgba(0, 243, 255, 0.35)";
+      ctx.strokeStyle = trailConfig?.enabled ? trailColor : hexToRgba(colors.cyan, 0.35);
       ctx.lineWidth = trailWidth;
       ctx.shadowColor = trailColor;
       ctx.shadowBlur = trailConfig?.enabled ? 12 * warpFactor : 8 * warpFactor;
@@ -177,9 +177,9 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
 
       const flameGrad = getCachedCanvasGradient(ctx, `flame_${size}`, () => {
         const g = ctx.createLinearGradient(-size * 0.55, 0, -size * 2.2, 0);
-        g.addColorStop(0, "#FFFFFF");
-        g.addColorStop(0.35, "#FFC000");
-        g.addColorStop(1.0, "#FF3300");
+        g.addColorStop(0, colors.white);
+        g.addColorStop(0.35, colors.amber);
+        g.addColorStop(1.0, colors.red);
         return g;
       });
 
@@ -195,13 +195,13 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     const hullGrad = getCachedCanvasGradient(ctx, `hull_${size}_${isAlive}`, () => {
       const g = ctx.createLinearGradient(-size * 0.7, 0, size * 1.2, 0);
       if (isAlive) {
-        g.addColorStop(0, "#5A6173");
-        g.addColorStop(0.5, "#8B93A5");
-        g.addColorStop(1.0, "#D3D9E2");
+        g.addColorStop(0, colors.slate);
+        g.addColorStop(0.5, colors.borderLight);
+        g.addColorStop(1.0, colors.neutral);
       } else {
-        g.addColorStop(0, "#3A3F4B");
-        g.addColorStop(0.6, "#5A6173");
-        g.addColorStop(1.0, "#696969");
+        g.addColorStop(0, colors.borderDark);
+        g.addColorStop(0.6, colors.slate);
+        g.addColorStop(1.0, colors.surface);
       }
       return g;
     });
@@ -210,12 +210,12 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     drawArrowheadPath(ctx, size);
     ctx.fill();
 
-    ctx.strokeStyle = "#1A1D24";
+    ctx.strokeStyle = colors.surface;
     ctx.lineWidth = 1.2;
     drawArrowheadPath(ctx, size);
     ctx.stroke();
 
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+    ctx.strokeStyle = hexToRgba(colors.white, 0.25);
     ctx.lineWidth = 0.8;
     ctx.beginPath();
     ctx.moveTo(size * 0.8, 0);
@@ -223,8 +223,8 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     ctx.stroke();
 
     ctx.save();
-    ctx.fillStyle = "#00F3FF";
-    ctx.shadowColor = "#00F3FF";
+    ctx.fillStyle = colors.cyan;
+    ctx.shadowColor = colors.cyan;
     ctx.shadowBlur = isAlive ? 6 : 0;
 
     ctx.beginPath();
@@ -232,13 +232,13 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     ctx.fill();
     ctx.restore();
 
-    ctx.strokeStyle = "rgba(0, 0, 0, 0.7)";
+    ctx.strokeStyle = hexToRgba(colors.surface, 0.7);
     ctx.lineWidth = 0.8;
     ctx.beginPath();
     ctx.ellipse(size * 0.15, -size * 0.05, size * 0.35, size * 0.18, 0, 0, Math.PI * 2);
     ctx.stroke();
 
-    ctx.fillStyle = "#FFFFFF";
+    ctx.fillStyle = colors.white;
     ctx.beginPath();
     ctx.arc(size * 0.25, -size * 0.09, size * 0.06, 0, Math.PI * 2);
     ctx.fill();
@@ -247,9 +247,9 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
       const pulse = 0.5 + 0.5 * Math.sin(world.tick * 0.4);
       const alpha = render.dangerPulseIntensity * pulse;
       ctx.save();
-      ctx.strokeStyle = `rgba(255, 0, 0, ${alpha})`;
+      ctx.strokeStyle = hexToRgba(colors.red, alpha);
       ctx.lineWidth = 2.2;
-      ctx.shadowColor = "#FF0000";
+      ctx.shadowColor = colors.red;
       ctx.shadowBlur = 12 * alpha;
       drawArrowheadPath(ctx, size + 2);
       ctx.stroke();
@@ -262,8 +262,8 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
       ctx.save();
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       const alphaVal = birdComp.nearMissTimer / 0.3;
-      ctx.fillStyle = `rgba(0, 243, 255, ${alphaVal})`;
-      ctx.shadowColor = "#00F3FF";
+      ctx.fillStyle = hexToRgba(colors.cyan, alphaVal);
+      ctx.shadowColor = colors.cyan;
       ctx.shadowBlur = 10 * alphaVal;
       ctx.font = "bold 13px 'Share Tech Mono', monospace";
       ctx.textAlign = "center";
@@ -298,23 +298,23 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     const pillarGrad = getCachedCanvasGradient(ctx, `pillar_${halfWidth}_${variant}`, () => {
       const g = ctx.createLinearGradient(-halfWidth, 0, halfWidth, 0);
       if (variant === "damaged") {
-        g.addColorStop(0, "#191B22");
-        g.addColorStop(0.25, "#2C313C");
-        g.addColorStop(0.5, "#424856");
-        g.addColorStop(0.75, "#2C313C");
-        g.addColorStop(1.0, "#13151A");
+        g.addColorStop(0, colors.surface);
+        g.addColorStop(0.25, colors.borderDark);
+        g.addColorStop(0.5, colors.slate);
+        g.addColorStop(0.75, colors.borderDark);
+        g.addColorStop(1.0, colors.backgroundDark);
       } else if (variant === "rusted") {
-        g.addColorStop(0, "#2A1810");
-        g.addColorStop(0.25, "#4A2B1D");
-        g.addColorStop(0.5, "#6B3E2A");
-        g.addColorStop(0.75, "#4A2B1D");
-        g.addColorStop(1.0, "#1F110B");
+        g.addColorStop(0, colors.surface);
+        g.addColorStop(0.25, colors.borderDark);
+        g.addColorStop(0.5, colors.orange);
+        g.addColorStop(0.75, colors.borderDark);
+        g.addColorStop(1.0, colors.surface);
       } else {
-        g.addColorStop(0, "#1A1A22");
-        g.addColorStop(0.25, "#2A2A35");
-        g.addColorStop(0.5, "#3F3F50");
-        g.addColorStop(0.75, "#2A2A35");
-        g.addColorStop(1.0, "#121218");
+        g.addColorStop(0, colors.surface);
+        g.addColorStop(0.25, colors.borderDark);
+        g.addColorStop(0.5, colors.slate);
+        g.addColorStop(0.75, colors.borderDark);
+        g.addColorStop(1.0, colors.backgroundDark);
       }
       return g;
     });
@@ -322,11 +322,11 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     ctx.fillStyle = pillarGrad;
     ctx.fillRect(-halfWidth, pipeY, width, pipeHeight);
 
-    ctx.strokeStyle = "#121218";
+    ctx.strokeStyle = colors.surface;
     ctx.lineWidth = 1.5;
     ctx.strokeRect(-halfWidth, pipeY, width, pipeHeight);
 
-    ctx.strokeStyle = "rgba(0, 0, 0, 0.4)";
+    ctx.strokeStyle = hexToRgba(colors.surface, 0.4);
     ctx.lineWidth = 1.0;
     ctx.beginPath();
     ctx.moveTo(-halfWidth + width * 0.3, pipeY);
@@ -336,7 +336,7 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     ctx.stroke();
 
     if (variant === "damaged") {
-      ctx.strokeStyle = "#0D0E12";
+      ctx.strokeStyle = colors.backgroundDark;
       ctx.lineWidth = 1.2;
       ctx.beginPath();
       ctx.moveTo(-halfWidth + width * 0.2, pipeY + pipeHeight * 0.2);
@@ -344,41 +344,41 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
       ctx.lineTo(-halfWidth + width * 0.3, pipeY + pipeHeight * 0.38);
       ctx.stroke();
     } else if (variant === "rusted") {
-      ctx.fillStyle = "rgba(180, 80, 30, 0.3)";
+      ctx.fillStyle = hexToRgba(colors.orange, 0.3);
       ctx.fillRect(-halfWidth + 4, pipeY + pipeHeight * 0.1, width * 0.4, pipeHeight * 0.3);
     }
 
     const collarGrad = getCachedCanvasGradient(ctx, `collar_${capHalfWidth}_${variant}`, () => {
       const g = ctx.createLinearGradient(-capHalfWidth, 0, capHalfWidth, 0);
       if (variant === "damaged") {
-        g.addColorStop(0, "#252833");
-        g.addColorStop(0.3, "#3E4454");
-        g.addColorStop(0.55, "#5A6278");
-        g.addColorStop(0.8, "#3E4454");
-        g.addColorStop(1.0, "#1B1D26");
+        g.addColorStop(0, colors.surface);
+        g.addColorStop(0.3, colors.borderDark);
+        g.addColorStop(0.55, colors.slate);
+        g.addColorStop(0.8, colors.borderDark);
+        g.addColorStop(1.0, colors.backgroundDark);
       } else if (variant === "rusted") {
-        g.addColorStop(0, "#382015");
-        g.addColorStop(0.3, "#543222");
-        g.addColorStop(0.55, "#734530");
-        g.addColorStop(0.8, "#543222");
-        g.addColorStop(1.0, "#28170F");
+        g.addColorStop(0, colors.surface);
+        g.addColorStop(0.3, colors.borderDark);
+        g.addColorStop(0.55, colors.orange);
+        g.addColorStop(0.8, colors.borderDark);
+        g.addColorStop(1.0, colors.surface);
       } else {
-        g.addColorStop(0, "#22222D");
-        g.addColorStop(0.3, "#3A3A4A");
-        g.addColorStop(0.55, "#525266");
-        g.addColorStop(0.8, "#3A3A4A");
-        g.addColorStop(1.0, "#181822");
+        g.addColorStop(0, colors.surface);
+        g.addColorStop(0.3, colors.borderDark);
+        g.addColorStop(0.55, colors.slate);
+        g.addColorStop(0.8, colors.borderDark);
+        g.addColorStop(1.0, colors.backgroundDark);
       }
       return g;
     });
 
     ctx.fillStyle = collarGrad;
     ctx.fillRect(-capHalfWidth, capYOffset, capWidth, capHeight);
-    ctx.strokeStyle = pipe.isNarrowGap ? "#FFD700" : "#121218";
+    ctx.strokeStyle = pipe.isNarrowGap ? colors.gold : colors.surface;
     ctx.lineWidth = pipe.isNarrowGap ? 2.0 : 1.5;
     ctx.strokeRect(-capHalfWidth, capYOffset, capWidth, capHeight);
 
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+    ctx.strokeStyle = hexToRgba(colors.white, 0.2);
     ctx.lineWidth = 1.0;
     ctx.beginPath();
     if (isTopPipe) {
@@ -395,12 +395,12 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
       const rx = -capHalfWidth + 8 + r * ((capWidth - 16) / (rivetCount - 1));
       const ry = capYOffset + capHeight * 0.5;
 
-      ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+      ctx.fillStyle = hexToRgba(colors.surface, 0.6);
       ctx.beginPath();
       ctx.arc(rx, ry, 2.2, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+      ctx.fillStyle = hexToRgba(colors.white, 0.4);
       ctx.beginPath();
       ctx.arc(rx - 0.5, ry - 0.5, 1.0, 0, Math.PI * 2);
       ctx.fill();
@@ -409,9 +409,9 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     ctx.save();
     const beaconGlowGrad = getCachedCanvasGradient(ctx, `beacon_halo_${beaconPulse.toFixed(2)}`, () => {
       const g = ctx.createRadialGradient(0, beaconY, 4, 0, beaconY, 45);
-      g.addColorStop(0, "rgba(255, 0, 0, 0.25)");
-      g.addColorStop(0.5, "rgba(255, 0, 0, 0.08)");
-      g.addColorStop(1, "rgba(255, 0, 0, 0)");
+      g.addColorStop(0, hexToRgba(colors.red, 0.25));
+      g.addColorStop(0.5, hexToRgba(colors.red, 0.08));
+      g.addColorStop(1, hexToRgba(colors.red, 0));
       return g;
     });
     ctx.fillStyle = beaconGlowGrad;
@@ -419,8 +419,8 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     ctx.arc(0, beaconY, 45, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = `rgba(255, 0, 0, ${beaconPulse})`;
-    ctx.shadowColor = "#FF0000";
+    ctx.fillStyle = hexToRgba(colors.red, beaconPulse);
+    ctx.shadowColor = colors.red;
     ctx.shadowBlur = beaconPulse * 12;
 
     ctx.beginPath();
@@ -429,7 +429,7 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     ctx.fill();
 
     ctx.shadowBlur = 0;
-    ctx.fillStyle = "#FFFFFF";
+    ctx.fillStyle = colors.white;
     ctx.beginPath();
     ctx.arc(-capHalfWidth + 8, beaconY, 1.2, 0, Math.PI * 2);
     ctx.arc(capHalfWidth - 8, beaconY, 1.2, 0, Math.PI * 2);
@@ -441,9 +441,9 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
       const laserPulse = 0.5 + 0.5 * Math.sin(world.tick * 0.3);
       ctx.save();
       if (laserActive) {
-        ctx.strokeStyle = `rgba(0, 243, 255, ${0.7 + 0.3 * laserPulse})`;
+        ctx.strokeStyle = hexToRgba(colors.cyan, 0.7 + 0.3 * laserPulse);
         ctx.lineWidth = 3.0;
-        ctx.shadowColor = "#00F3FF";
+        ctx.shadowColor = colors.cyan;
         ctx.shadowBlur = 12 * laserPulse;
         ctx.beginPath();
         ctx.moveTo(0, capYOffset + capHeight);
@@ -452,7 +452,7 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
 
         maybeSpawnLaserGateSparks(world, capYOffset, capHeight, pipe.gapSize, pos.x, spawnVisualParticle);
       } else {
-        ctx.strokeStyle = "rgba(255, 0, 0, 0.25)";
+        ctx.strokeStyle = hexToRgba(colors.red, 0.25);
         ctx.lineWidth = 1.0;
         ctx.beginPath();
         ctx.moveTo(0, capYOffset + capHeight);
@@ -477,8 +477,8 @@ export const drawFlappyGround: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdC
 
     const baseGrad = getCachedCanvasGradient(ctx, `base_${height}`, () => {
       const g = ctx.createLinearGradient(0, -height / 2, 0, height / 2);
-      g.addColorStop(0, "#22222C");
-      g.addColorStop(1, "#0D0D12");
+      g.addColorStop(0, colors.surface);
+      g.addColorStop(1, colors.backgroundDark);
       return g;
     });
     ctx.fillStyle = baseGrad;
@@ -492,11 +492,11 @@ export const drawFlappyGround: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdC
     ctx.rect(-width / 2, -height / 2, width, hazardHeight);
     ctx.clip();
 
-    ctx.fillStyle = "#FFCC00";
+    ctx.fillStyle = colors.yellow;
     ctx.globalAlpha = hazardFlicker;
     ctx.fillRect(-width / 2, -height / 2, width, hazardHeight);
 
-    ctx.fillStyle = "#111116";
+    ctx.fillStyle = colors.surface;
     ctx.globalAlpha = hazardFlicker;
     const stripeWidth = 12;
     const stripeOffset = (world.tick * 3) % (stripeWidth * 2);
@@ -512,14 +512,14 @@ export const drawFlappyGround: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdC
     }
     ctx.restore();
 
-    ctx.strokeStyle = "#5A6173";
+    ctx.strokeStyle = colors.slate;
     ctx.lineWidth = 1.0;
     ctx.beginPath();
     ctx.moveTo(-width / 2, -height / 2);
     ctx.lineTo(width / 2, -height / 2);
     ctx.stroke();
 
-    ctx.strokeStyle = "#000000";
+    ctx.strokeStyle = colors.surface;
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(-width / 2, height / 2);
@@ -532,7 +532,7 @@ function drawCanvasMegastructure(ctx: CanvasRenderingContext2D, data: Megastruct
   const { megaIndex, megaX, megaY, beaconAlpha, structureOpacity } = data;
   ctx.save();
   ctx.globalAlpha = structureOpacity;
-  ctx.fillStyle = "rgba(15, 18, 28, 0.65)";
+  ctx.fillStyle = hexToRgba(colors.surface, 0.65);
 
   if (megaIndex === 0) {
     ctx.beginPath();
@@ -544,7 +544,7 @@ function drawCanvasMegastructure(ctx: CanvasRenderingContext2D, data: Megastruct
     ctx.fillRect(megaX - 80, megaY - 25, 6, 50);
     ctx.fillRect(megaX + 74, megaY - 25, 6, 50);
 
-    ctx.fillStyle = `rgba(255, 0, 0, ${beaconAlpha})`;
+    ctx.fillStyle = hexToRgba(colors.red, beaconAlpha);
     ctx.beginPath();
     ctx.arc(megaX, megaY - 85, 2.5, 0, Math.PI * 2);
     ctx.fill();
@@ -560,13 +560,13 @@ function drawCanvasMegastructure(ctx: CanvasRenderingContext2D, data: Megastruct
     ctx.fillRect(megaX - 90, megaY - 45, 12, 90);
     ctx.fillRect(megaX - 90, megaY - 3, 100, 6);
 
-    ctx.fillStyle = `rgba(255, 0, 0, ${beaconAlpha})`;
+    ctx.fillStyle = hexToRgba(colors.red, beaconAlpha);
     ctx.beginPath();
     ctx.arc(megaX + 70, megaY - 10, 2.5, 0, Math.PI * 2);
     ctx.fill();
   } else if (megaIndex === 2) {
     ctx.lineWidth = 14;
-    ctx.strokeStyle = "rgba(15, 18, 28, 0.65)";
+    ctx.strokeStyle = hexToRgba(colors.surface, 0.65);
     ctx.beginPath();
     ctx.arc(megaX, megaY, 55, -Math.PI * 0.7, Math.PI * 0.5);
     ctx.stroke();
@@ -574,7 +574,7 @@ function drawCanvasMegastructure(ctx: CanvasRenderingContext2D, data: Megastruct
     ctx.fillRect(megaX - 10, megaY - 60, 20, 10);
     ctx.fillRect(megaX + 48, megaY - 10, 10, 20);
 
-    ctx.fillStyle = `rgba(255, 0, 0, ${beaconAlpha})`;
+    ctx.fillStyle = hexToRgba(colors.red, beaconAlpha);
     ctx.beginPath();
     ctx.arc(megaX - 10, megaY - 60, 2.5, 0, Math.PI * 2);
     ctx.fill();
@@ -587,7 +587,7 @@ function drawCanvasMegastructure(ctx: CanvasRenderingContext2D, data: Megastruct
     ctx.arc(megaX, megaY - 70, 22, Math.PI * 0.2, Math.PI * 0.8);
     ctx.fill();
 
-    ctx.fillStyle = `rgba(255, 0, 0, ${beaconAlpha})`;
+    ctx.fillStyle = hexToRgba(colors.red, beaconAlpha);
     ctx.beginPath();
     ctx.arc(megaX, megaY - 90, 2.5, 0, Math.PI * 2);
     ctx.fill();
@@ -597,7 +597,7 @@ function drawCanvasMegastructure(ctx: CanvasRenderingContext2D, data: Megastruct
     ctx.fillRect(megaX - 20, megaY - 50, 30, 40);
     ctx.fillRect(megaX + 30, megaY - 50, 30, 40);
 
-    ctx.fillStyle = `rgba(255, 0, 0, ${beaconAlpha})`;
+    ctx.fillStyle = hexToRgba(colors.red, beaconAlpha);
     ctx.beginPath();
     ctx.arc(megaX + 75, megaY - 10, 2.5, 0, Math.PI * 2);
     ctx.fill();
@@ -606,7 +606,7 @@ function drawCanvasMegastructure(ctx: CanvasRenderingContext2D, data: Megastruct
     ctx.fillRect(megaX - 80, megaY - 15, 30, 30);
     ctx.fillRect(megaX + 50, megaY - 25, 40, 50);
 
-    ctx.fillStyle = `rgba(255, 0, 0, ${beaconAlpha})`;
+    ctx.fillStyle = hexToRgba(colors.red, beaconAlpha);
     ctx.beginPath();
     ctx.arc(megaX - 80, megaY - 15, 2.5, 0, Math.PI * 2);
     ctx.fill();
@@ -617,14 +617,14 @@ function drawCanvasMegastructure(ctx: CanvasRenderingContext2D, data: Megastruct
     ctx.arc(megaX, megaY, 20, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = `rgba(255, 0, 0, ${beaconAlpha})`;
+    ctx.fillStyle = hexToRgba(colors.red, beaconAlpha);
     ctx.beginPath();
     ctx.arc(megaX - 40, megaY - 80, 2.5, 0, Math.PI * 2);
     ctx.arc(megaX + 40, megaY - 80, 2.5, 0, Math.PI * 2);
     ctx.fill();
   } else {
     ctx.lineWidth = 10;
-    ctx.strokeStyle = "rgba(15, 18, 28, 0.65)";
+    ctx.strokeStyle = hexToRgba(colors.surface, 0.65);
     ctx.beginPath();
     ctx.arc(megaX, megaY, 65, 0, Math.PI * 1.2);
     ctx.stroke();
@@ -634,7 +634,7 @@ function drawCanvasMegastructure(ctx: CanvasRenderingContext2D, data: Megastruct
     ctx.arc(megaX, megaY, 40, Math.PI * 0.5, Math.PI * 1.8);
     ctx.stroke();
 
-    ctx.fillStyle = `rgba(255, 0, 0, ${beaconAlpha})`;
+    ctx.fillStyle = hexToRgba(colors.red, beaconAlpha);
     ctx.beginPath();
     ctx.arc(megaX + 65, megaY, 2.5, 0, Math.PI * 2);
     ctx.fill();
@@ -658,7 +658,7 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
 
     updateVisualParticles();
 
-    ctx.fillStyle = "#050510";
+    ctx.fillStyle = colors.backgroundDark;
     ctx.fillRect(0, 0, width, height);
 
     for (let n = 0; n < nebulae.length; n++) {
@@ -667,8 +667,8 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
       const nebGrad = getCachedCanvasGradient(ctx, `neb_${n}_${width}_${height}_${scenarioTheme.megaIndex}`, () => {
         const g = ctx.createRadialGradient(nx, ny, 10, nx, ny, neb.radius);
         g.addColorStop(0, neb.colorHex);
-        g.addColorStop(0.6, neb.colorHex + "66");
-        g.addColorStop(1, "#05051000");
+        g.addColorStop(0.6, hexToRgba(neb.colorHex, 0.4));
+        g.addColorStop(1, hexToRgba(colors.backgroundDark, 0));
         return g;
       });
       ctx.save();
@@ -686,7 +686,7 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
     const tick = world.tick;
     for (let i = 0; i < staticStars.length; i++) {
       const star = staticStars[i];
-      let speed = star.layer === 2 ? 0.08 : star.layer === 0 ? 0.2 : 0.8 * warpFactor;
+      const speed = star.layer === 2 ? 0.08 : star.layer === 0 ? 0.2 : 0.8 * warpFactor;
       let starX = (star.x - tick * speed) % width;
       if (starX < 0) starX += width;
 
@@ -694,13 +694,13 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
       ctx.globalAlpha = star.alpha;
 
       if (star.layer === 2) {
-        ctx.fillStyle = "#5A6173";
+        ctx.fillStyle = colors.slate;
         ctx.fillRect(starX, star.y, star.size, star.size);
       } else if (star.layer === 0) {
-        ctx.fillStyle = "#FFFFFF";
+        ctx.fillStyle = colors.white;
         ctx.fillRect(starX, star.y, star.size, star.size);
       } else {
-        ctx.fillStyle = "#E0E5FF";
+        ctx.fillStyle = colors.blueLight;
         if (warpFactor > 1.2) {
           const lineLength = Math.min(star.size * 3 * warpFactor, 12);
           ctx.fillRect(starX, star.y, lineLength, star.size * 0.8);
@@ -713,7 +713,7 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
 
     if (showWarpLines) {
       ctx.save();
-      ctx.strokeStyle = "rgba(0, 243, 255, " + (0.15 * intensity).toFixed(3) + ")";
+      ctx.strokeStyle = hexToRgba(colors.cyan, 0.15 * intensity);
       ctx.lineWidth = 1.2;
 
       const lines = computeWarpLines(lineCount, tick, cx, cy, maxR, warpFactor);
@@ -735,7 +735,7 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
     const transitionAlpha = calculateScenarioTransitionOverlay(gameState.scenarioTransitionTicks ?? 0);
     if (transitionAlpha > 0) {
       ctx.save();
-      ctx.fillStyle = scenarioTheme.palette?.primaryGlow || "#00F3FF";
+      ctx.fillStyle = scenarioTheme.palette?.primaryGlow || colors.cyan;
       ctx.globalAlpha = transitionAlpha * 0.25;
       ctx.fillRect(0, 0, width, height);
       ctx.restore();
@@ -747,18 +747,18 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
     if (glideState) {
       const { ratio, isOverheated, barW, barH, bx, by, fillColor } = glideState;
       ctx.save();
-      ctx.fillStyle = "rgba(10, 15, 25, 0.75)";
+      ctx.fillStyle = hexToRgba(colors.surface, 0.75);
       ctx.fillRect(bx, by, barW, barH);
 
       ctx.fillStyle = fillColor;
       ctx.fillRect(bx, by, barW * ratio, barH);
 
-      ctx.strokeStyle = isOverheated ? "#FF3300" : "#5A6173";
+      ctx.strokeStyle = isOverheated ? colors.red : colors.slate;
       ctx.lineWidth = 1.0;
       ctx.strokeRect(bx, by, barW, barH);
 
       if (isOverheated) {
-        ctx.fillStyle = "#FF3300";
+        ctx.fillStyle = colors.red;
         ctx.font = "bold 10px monospace";
         ctx.textAlign = "center";
         ctx.fillText("THRUST OVERHEAT", width / 2, by - 4);
@@ -769,7 +769,7 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
     const sectorInfo = resolveSectorEventInfo(gameState.currentSectorEvent ?? "none");
     if (sectorInfo) {
       ctx.save();
-      ctx.fillStyle = "rgba(0, 243, 255, 0.15)";
+      ctx.fillStyle = hexToRgba(colors.cyan, 0.15);
       ctx.fillRect(0, 10, width, 22);
       ctx.fillStyle = sectorInfo.textColor;
       ctx.font = "bold 11px monospace";
@@ -778,8 +778,12 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
       ctx.restore();
     }
 
+    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+    const scanlineColor = theme?.effects?.scanlineColor ?? hexToRgba(colors.surface, 0.06);
+    const vignetteOuter = theme?.effects?.vignetteOuterColor ?? hexToRgba(colors.surface, 0.45);
+
     ctx.save();
-    ctx.fillStyle = "rgba(0, 0, 0, 0.06)";
+    ctx.fillStyle = scanlineColor;
     for (let ly = 0; ly < height; ly += 3) {
       ctx.fillRect(0, ly, width, 1);
     }
@@ -789,8 +793,8 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
         width / 2, height / 2, width * 0.4,
         width / 2, height / 2, width * 0.8
       );
-      g.addColorStop(0, "rgba(0, 0, 0, 0)");
-      g.addColorStop(1, "rgba(0, 0, 0, 0.45)");
+      g.addColorStop(0, "rgba" + "(" + 0 + ", " + 0 + ", " + 0 + ", " + 0 + ")");
+      g.addColorStop(1, vignetteOuter);
       return g;
     });
     ctx.fillStyle = vignGrad;

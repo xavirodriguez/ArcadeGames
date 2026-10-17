@@ -1,5 +1,6 @@
 import { colors } from "../../../theme/colors";
 import type { Theme } from "@tiny-aster/core";
+import { hexToRgba } from "./CosmicPalette";
 
 /**
  * Pure math helpers for Space Invaders visual calculations.
@@ -51,20 +52,20 @@ export function calculateBossPhase(hpRatio: number, theme?: Theme): BossPhaseSta
   let phaseIndex = 1;
   let defaultBaseColor: string = colors.gold;
   let defaultAccentColor: string = colors.cyan;
-  let defaultAuraColor: string = "rgba(255, 215, 0, 0.25)";
+  let defaultAuraColor: string = hexToRgba(colors.gold, 0.25);
   let defaultScale = 1.0;
 
   if (hpRatio <= 0.33) {
     phaseIndex = 3;
-    defaultBaseColor = "#FF4444";
-    defaultAccentColor = "#FF0055";
-    defaultAuraColor = "rgba(255, 68, 68, 0.7)";
+    defaultBaseColor = colors.red;
+    defaultAccentColor = colors.pink;
+    defaultAuraColor = hexToRgba(colors.red, 0.7);
     defaultScale = 1.25;
   } else if (hpRatio <= 0.66) {
     phaseIndex = 2;
     defaultBaseColor = colors.gold;
-    defaultAccentColor = "#F97316";
-    defaultAuraColor = "rgba(249, 115, 22, 0.45)";
+    defaultAccentColor = colors.orange;
+    defaultAuraColor = hexToRgba(colors.orange, 0.45);
     defaultScale = 1.2;
   }
 
@@ -111,16 +112,16 @@ export function resolvePlayerRoleVisual(role?: string, theme?: Theme): { roleCol
     };
   }
 
-  if (normRole === "hunter") return { roleColor: "#FF006E", shapeIcon: "◆", name: roleLabelOverride || "HUNTER" };
-  if (normRole === "sentinel") return { roleColor: "#00D9FF", shapeIcon: "△", name: roleLabelOverride || "SENTINEL" };
-  if (normRole === "support") return { roleColor: "#FFD700", shapeIcon: "⬠", name: roleLabelOverride || "SUPPORT" };
+  if (normRole === "hunter") return { roleColor: colors.pink, shapeIcon: "◆", name: roleLabelOverride || "HUNTER" };
+  if (normRole === "sentinel") return { roleColor: colors.cyan, shapeIcon: "△", name: roleLabelOverride || "SENTINEL" };
+  if (normRole === "support") return { roleColor: colors.gold, shapeIcon: "⬠", name: roleLabelOverride || "SUPPORT" };
   return { roleColor: colors.green, shapeIcon: "▓", name: roleLabelOverride || "PIONEER" };
 }
 
-export function calculateBulletProximity(world: any, entity: number, isPlayerBullet: boolean): number {
+export function calculateBulletProximity(world: { getComponent: (e: number, type: string) => unknown }, entity: number, isPlayerBullet: boolean): number {
   if (isPlayerBullet) return 0;
-  const pos = world.getComponent(entity, "Transform");
-  const ttl = world.getComponent(entity, "TTL");
+  const pos = world.getComponent(entity, "Transform") as { y: number } | undefined;
+  const ttl = world.getComponent(entity, "TTL") as { remaining: number; timeLeft: number } | undefined;
 
   let distFactor = 0;
   if (pos) {

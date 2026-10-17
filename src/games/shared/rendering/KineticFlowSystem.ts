@@ -1,4 +1,4 @@
-import { System, SystemPhase, World, CoreComponentRegistry } from "@tiny-aster/core";
+import { System, World, CoreComponentRegistry } from "@tiny-aster/core";
 import { getVFXState } from "./SharedVFXInternal";
 
 export class KineticFlowSystem extends System<CoreComponentRegistry> {
@@ -6,7 +6,7 @@ export class KineticFlowSystem extends System<CoreComponentRegistry> {
     super();
   }
 
-  public update(world: World<CoreComponentRegistry>, dt: number): void {
+  public update(world: World<CoreComponentRegistry>, _dt: number): void {
     const state = getVFXState(world);
     const accumulators = world.query("KineticAccumulator");
 

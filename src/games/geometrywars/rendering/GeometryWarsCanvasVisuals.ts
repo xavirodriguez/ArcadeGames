@@ -176,7 +176,7 @@ export const drawEvader: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCompo
     const drawable = getDrawable(world, entity, 14);
     if (!drawable) return;
     const { render, size } = drawable;
-    const color = render.color ?? "#ffaa00";
+    const color = render.color ?? colors.warning;
 
     applyNeonStroke(ctx, color, 2, 10);
 
@@ -341,7 +341,7 @@ export const drawGeometryWarsBackground: EffectDrawer<CanvasRenderingContext2D, 
 
     // 3. Draw Deforming Grid Lines
     ctx.save();
-    ctx.strokeStyle = "rgba(0, 160, 255, 0.16)"; // Translucent neon blue
+    ctx.strokeStyle = colors.border; // Translucent neon grid border
     ctx.lineWidth = 0.8;
 
     // Draw horizontal grid lines

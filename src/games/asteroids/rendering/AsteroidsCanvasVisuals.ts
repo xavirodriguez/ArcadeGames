@@ -112,7 +112,7 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle = colors.white;
       for (let i = 0; i < sparks.length; i++) {
         const { sparkOffset, sparkY, sparkRadius } = sparks[i];
         ctx.beginPath();
@@ -125,7 +125,7 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
       ctx,
       tick,
       baseColor,
-      isHitFlashing ? "rgba(255, 255, 255, 0.4)" : "rgba(0, 240, 255, 0.15)",
+      isHitFlashing ? colors.overlay : colors.border,
       (c, widthScale) => {
         const s = size * breath * widthScale;
         c.moveTo(s * SHIP_FORWARD_AXIS.x, s * SHIP_FORWARD_AXIS.y);
@@ -180,7 +180,7 @@ export const drawAsteroidsUfo: ShapeDrawer<CanvasRenderingContext2D, AsteroidsCo
 
     ctx.beginPath();
     ctx.ellipse(0, 0, radius, radius * 0.4, 0, 0, Math.PI * 2);
-    ctx.fillStyle = isHitFlashing ? "rgba(255, 255, 255, 0.4)" : "rgba(0, 240, 255, 0.15)";
+    ctx.fillStyle = isHitFlashing ? colors.overlay : colors.border;
     ctx.fill();
     ctx.stroke();
 
@@ -234,7 +234,7 @@ export const drawAsteroidsAsteroid: ShapeDrawer<CanvasRenderingContext2D, Astero
     }
     ctx.closePath();
 
-    ctx.fillStyle = isHitFlashing ? "rgba(255, 255, 255, 0.4)" : "rgba(255, 0, 85, 0.12)";
+    ctx.fillStyle = isHitFlashing ? colors.overlay : colors.border;
     ctx.fill();
     ctx.stroke();
 

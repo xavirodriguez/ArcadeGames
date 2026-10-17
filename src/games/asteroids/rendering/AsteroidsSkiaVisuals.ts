@@ -124,7 +124,7 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<SkCanvas, AsteroidsCompone
       canvas.drawPath(flamePath, paint);
 
       paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color("#ffffff"));
+      paint.setColor(Skia.Color(colors.white));
       paint.setAlphaf(opacity);
       for (let i = 0; i < sparks.length; i++) {
         const { sparkOffset, sparkY, sparkRadius } = sparks[i];

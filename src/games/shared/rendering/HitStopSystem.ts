@@ -1,12 +1,14 @@
 import { System, SystemPhase, World, CoreComponentRegistry } from "@tiny-aster/core";
 import { getVFXState, VFXWorldState } from "./SharedVFXInternal";
 
-export enum HitStopPriority {
-  LOW = 5,
-  NORMAL = 10,
-  HIGH = 20,
-  CRITICAL = 30
-}
+export const HitStopPriority = {
+  LOW: 5,
+  NORMAL: 10,
+  HIGH: 20,
+  CRITICAL: 30,
+} as const;
+
+export type HitStopPriority = (typeof HitStopPriority)[keyof typeof HitStopPriority];
 
 export function isHitStopActive<TComponents extends CoreComponentRegistry = CoreComponentRegistry>(
   world: World<TComponents>

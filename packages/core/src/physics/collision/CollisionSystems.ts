@@ -36,7 +36,7 @@ export type TriggerCallback<
  *
  * @remarks
  * **Reconstructible Cache Contract ("Reconstructible in 1 tick")**:
- * Fields `activePairs`, `currentFramePairs`, `candidateEntities`, `tempQuery`, `seenEntities`, and `broadPhaseScratch`
+ * Internal fields `activePairs`, `currentFramePairs`, `candidateEntities`, `tempQuery`, `seenEntities`, and `broadPhaseScratch`
  * are ephemeral scratch buffers and transient tracking sets used strictly for frame-local contact evaluation.
  * They are deliberately excluded from `WorldSnapshot` state serialization.
  * Following a `world.restore(snapshot)` call, `CollisionSystem2D` completely clears and rebuilds these transient

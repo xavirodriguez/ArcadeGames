@@ -7,7 +7,7 @@ import { CoreComponentRegistry } from "../ecs/CoreComponents";
  *
  * @remarks
  * **Reconstructible Cache Contract ("Reconstructible in 1 tick")**:
- * Spatial grid cell indices (`SpatialNode` component state and internal cell calculations) represent derived,
+ * Spatial grid cell indices (`SpatialNode` component state and internal cell calculations) represent derived
  * ephemeral spatial partitioning indices. These transient caches are not serialized in snapshots.
  * Upon `world.restore(snapshot)`, spatial partitioning indices automatically re-synchronize on the subsequent
  * system update tick based strictly on canonical `Transform` coordinates, guaranteeing 100% state hash parity

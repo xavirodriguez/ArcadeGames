@@ -1,4 +1,4 @@
-import { System, World, Entity, EventBus, CoreComponentRegistry, WorldUtils } from "@tiny-aster/core";
+import { System, World, Entity, EventBus, CoreComponentRegistry, WorldUtils, WorldCommandBuffer } from "@tiny-aster/core";
 import { DamageComponent, FactionComponent } from "../components/CombatComponents";
 
 /**
@@ -148,7 +148,7 @@ export class CombatSystem<
 
     // Emit combat:death if target died
     if (nextHealth <= 0) {
-      world.getCommandBuffer().addComponent(target, { type: deadKey } as unknown as Parameters<ReturnType<typeof world.getCommandBuffer>["addComponent"]>[1]);
+      world.getCommandBuffer().addComponent(target, { type: deadKey } as unknown as Parameters<WorldCommandBuffer<TComponents>["addComponent"]>[1]);
 
       if (eventBus) {
         eventBus.emitDeferred("combat:death", {

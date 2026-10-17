@@ -35,6 +35,7 @@ const defaultScratch: BroadPhaseScratch = {
  * Broadphase collision detection module utilizing 1D Sweep and Prune.
  *
  * @remarks
+ * **Reconstructible Cache Contract ("Reconstructible in 1 tick")**:
  * Filters out non-overlapping entity pairs prior to expensive narrowphase SAT calculations.
  * Employs zero-allocation object pools (`boundsPool` and `pairsPool`) and in-place Shell sort
  * on the X-axis to eliminate runtime heap allocations during tick processing.

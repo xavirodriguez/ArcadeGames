@@ -127,22 +127,14 @@ export class GridPathfinding {
         break;
       }
 
-      for (let i = 0; i < prep.directions.length; i++) {
-        const dir = prep.directions[i];
-        const nx = current.x + dir.x;
-        const ny = current.y + dir.y;
-
-        if (!isTileWalkableInBounds(grid, nx, ny)) {
-          continue;
-        }
-
+      forEachWalkableNeighbor(grid, current, prep.directions, (nx, ny) => {
         const key = `${nx},${ny}`;
         if (!visited.has(key)) {
           visited.add(key);
           parentMap.set(key, current);
           queue.push({ x: nx, y: ny });
         }
-      }
+      });
     }
 
     return finalizePath(found, parentMap, start, target, prep.includeStart);
@@ -232,15 +224,7 @@ export class GridPathfinding {
         break;
       }
 
-      for (let i = 0; i < prep.directions.length; i++) {
-        const dir = prep.directions[i];
-        const nx = current.point.x + dir.x;
-        const ny = current.point.y + dir.y;
-
-        if (!isTileWalkableInBounds(grid, nx, ny)) {
-          continue;
-        }
-
+      forEachWalkableNeighbor(grid, current.point, prep.directions, (nx, ny) => {
         const stepCost = grid.getCost ? grid.getCost(nx, ny) : 1;
         const tentativeG = current.g + stepCost;
         const nKey = `${nx},${ny}`;
@@ -266,7 +250,7 @@ export class GridPathfinding {
             openSet.push(newNode);
           }
         }
-      }
+      });
     }
 
     return finalizePath(found, parentMap, start, target, prep.includeStart);
@@ -386,6 +370,26 @@ function preparePathfinding(
  */
 function isTileWalkableInBounds(grid: GridPassabilityMap, nx: number, ny: number): boolean {
   return nx >= 0 && nx < grid.width && ny >= 0 && ny < grid.height && grid.isWalkable(nx, ny);
+}
+
+/**
+ * Iterates through all walkable neighbor grid coordinates of pt along given directions.
+ */
+function forEachWalkableNeighbor(
+  grid: GridPassabilityMap,
+  pt: GridPoint,
+  directions: ReadonlyArray<GridPoint>,
+  fn: (nx: number, ny: number) => void
+): void {
+  for (let i = 0; i < directions.length; i++) {
+    const dir = directions[i];
+    const nx = pt.x + dir.x;
+    const ny = pt.y + dir.y;
+
+    if (isTileWalkableInBounds(grid, nx, ny)) {
+      fn(nx, ny);
+    }
+  }
 }
 
 /**

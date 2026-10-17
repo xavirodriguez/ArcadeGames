@@ -45,6 +45,12 @@ function getLandingSquash(
   };
 }
 
+function setupGlowFill(ctx: CanvasRenderingContext2D, color: string, shadowBlur = 10): void {
+  ctx.fillStyle = color;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = shadowBlur;
+}
+
 function drawGroundShadow(
   ctx: CanvasRenderingContext2D,
   size: number,
@@ -289,9 +295,7 @@ export const drawHitRunPopcorn: ShapeDrawer<CanvasRenderingContext2D, CoreCompon
           return;
         }
 
-        ctx.shadowColor = render.color || "#f97316";
-        ctx.shadowBlur = 8;
-        ctx.fillStyle = render.color || "#f97316";
+        setupGlowFill(ctx, render.color || "#f97316", 8);
 
         // Grunt blob
         ctx.beginPath();
@@ -369,9 +373,7 @@ export const drawHitRunHopper: ShapeDrawer<CanvasRenderingContext2D, CoreCompone
           return;
         }
 
-        ctx.fillStyle = render.color || "#a855f7";
-        ctx.shadowColor = "#a855f7";
-        ctx.shadowBlur = 10;
+        setupGlowFill(ctx, render.color || "#a855f7", 10);
 
         // Body ellipse
         ctx.beginPath();
@@ -421,9 +423,7 @@ export const drawHitRunCharger: ShapeDrawer<CanvasRenderingContext2D, CoreCompon
           return;
         }
 
-        ctx.fillStyle = render.color || "#ef4444";
-        ctx.shadowColor = "#ef4444";
-        ctx.shadowBlur = 12;
+        setupGlowFill(ctx, render.color || "#ef4444", 12);
 
         drawChargerPolygon(ctx, size);
 
@@ -465,9 +465,7 @@ export const drawHitRunElite: ShapeDrawer<CanvasRenderingContext2D, CoreComponen
         ctx.arc(0, -size * 0.5, size * (0.7 + pulse * 0.1), 0, Math.PI * 2);
         ctx.stroke();
 
-        ctx.fillStyle = render.color || "#eab308";
-        ctx.shadowColor = "#eab308";
-        ctx.shadowBlur = 14;
+        setupGlowFill(ctx, render.color || "#eab308", 14);
         ctx.beginPath();
         ctx.arc(0, -size * 0.5, size * 0.42, 0, Math.PI * 2);
         ctx.fill();
@@ -528,9 +526,7 @@ export const drawHitRunRocket: ShapeDrawer<CanvasRenderingContext2D, CoreCompone
     // 2. Rocket graphic translated by flight height z
     ctx.save();
     ctx.translate(0, -z);
-    ctx.fillStyle = "#ef4444";
-    ctx.shadowColor = "#ef4444";
-    ctx.shadowBlur = 10;
+    setupGlowFill(ctx, "#ef4444", 10);
     ctx.beginPath();
     ctx.moveTo(size * 1.2, 0);
     ctx.lineTo(-size * 0.8, -size * 0.5);

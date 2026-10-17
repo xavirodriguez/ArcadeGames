@@ -98,6 +98,15 @@ export const drawSkiaExplosionBackgroundEffect = {
   }
 };
 
+function setupSkiaStroke(paint: any, color: string, strokeWidth = 1, alpha = 1.0): void {
+  paint.setStyle(Skia!.PaintStyle.Stroke);
+  paint.setColor(Skia!.Color(color));
+  paint.setStrokeWidth(strokeWidth);
+  if (alpha < 1.0) {
+    paint.setAlphaf(alpha);
+  }
+}
+
 const cachedPlayerPaths = new WeakMap<object, { chassis: SkPath; cockpit: SkPath; reflection: SkPath }>();
 const cachedShieldCracks = new WeakMap<object, { x1: number; y1: number; x2: number; y2: number; x3: number; y3: number; x4: number; y4: number }>();
 
@@ -198,9 +207,7 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<SkCanvas, SpaceInvadersCom
       paint.setStrokeWidth(1.5);
       canvas.drawCircle(0, 0, auraRadius, paint);
     } else if (role === "sentinel") {
-      paint.setStyle(Skia!.PaintStyle.Stroke);
-      paint.setColor(Skia!.Color("rgba(0, 217, 255, 0.5)"));
-      paint.setStrokeWidth(1);
+      setupSkiaStroke(paint, "rgba(0, 217, 255, 0.5)", 1);
       canvas.drawLine(0, -size / 2, 0, -size * 3, paint);
     } else if (role === "pioneer") {
       paint.setStyle(Skia!.PaintStyle.Stroke);
@@ -274,9 +281,7 @@ export const drawSkiaSpaceInvadersPlayer: ShapeDrawer<SkCanvas, SpaceInvadersCom
     paint.setAlphaf(opacity);
     canvas.drawPath(paths.chassis, paint);
 
-    paint.setStyle(Skia!.PaintStyle.Stroke);
-    paint.setColor(Skia!.Color(colors.cyan));
-    paint.setStrokeWidth(2);
+    setupSkiaStroke(paint, colors.cyan, 2);
     canvas.drawLine(-size / 3, size / 6, -size / 3, -size / 3, paint);
     canvas.drawLine(size / 3, size / 6, size / 3, -size / 3, paint);
 

@@ -9,6 +9,7 @@ import {
   resolveHopperVisualState,
   resolveWatcherVisualState,
   resolveChargerVisualState,
+  computeChargerBodyPoints,
   resolveEchoRunnerPalette,
   EchoRunnerResolvedPalette
 } from "./PlatformerSharedVisualUtils";
@@ -460,11 +461,12 @@ export const drawCharger: ShapeDrawer<CanvasRenderingContext2D, CoreComponentReg
     ctx.strokeStyle = glowColor;
     ctx.lineWidth = 2;
 
+    const bodyPts = computeChargerBodyPoints(size);
     ctx.beginPath();
-    ctx.moveTo(-size * 0.5, -size * 0.3);
-    ctx.lineTo(size * 0.5, -size * 0.3);
-    ctx.lineTo(size * 0.4, size * 0.4);
-    ctx.lineTo(-size * 0.4, size * 0.4);
+    ctx.moveTo(bodyPts[0][0], bodyPts[0][1]);
+    for (let i = 1; i < bodyPts.length; i++) {
+      ctx.lineTo(bodyPts[i][0], bodyPts[i][1]);
+    }
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
@@ -904,10 +906,11 @@ export const drawSkiaCharger: ShapeDrawer<SkCanvas, CoreComponentRegistry> = {
     paint.setColor(Skia.Color(palette.archiveSlate));
 
     const bodyPath = Skia.Path.Make();
-    bodyPath.moveTo(-size * 0.5, -size * 0.3);
-    bodyPath.lineTo(size * 0.5, -size * 0.3);
-    bodyPath.lineTo(size * 0.4, size * 0.4);
-    bodyPath.lineTo(-size * 0.4, size * 0.4);
+    const bodyPts = computeChargerBodyPoints(size);
+    bodyPath.moveTo(bodyPts[0][0], bodyPts[0][1]);
+    for (let i = 1; i < bodyPts.length; i++) {
+      bodyPath.lineTo(bodyPts[i][0], bodyPts[i][1]);
+    }
     bodyPath.close();
 
     canvas.drawPath(bodyPath, paint);

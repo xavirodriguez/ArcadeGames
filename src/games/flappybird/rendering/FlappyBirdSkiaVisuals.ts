@@ -38,6 +38,25 @@ import { hexToRgba } from "../../shared/rendering/CosmicPalette";
 
 export { FLAPPY_PARTICLE_POOL as FLAPPY_SKIA_PARTICLE_POOL, spawnVisualParticle };
 
+function resolvePipeGradientColors(variant: string) {
+  if (variant === "rusted") {
+    return [
+      Skia.Color(colors.surface),
+      Skia.Color(colors.borderDark),
+      Skia.Color(colors.orange),
+      Skia.Color(colors.borderDark),
+      Skia.Color(colors.surface)
+    ];
+  }
+  return [
+    Skia.Color(colors.surface),
+    Skia.Color(colors.borderDark),
+    Skia.Color(colors.slate),
+    Skia.Color(colors.borderDark),
+    Skia.Color(colors.backgroundDark)
+  ];
+}
+
 // Zero-allocation shader cache for React Native Skia bridge
 const skiaShaderCache = new Map<string, SkShader>();
 let staticStars: StarfieldStar[] | null = null;
@@ -302,30 +321,7 @@ export const drawSkiaFlappyPipe: ShapeDrawer<RenderContext, FlappyBirdComponentR
     const paint = getPaint();
 
     const pillarShader = getCachedSkiaShader(`pillar_${halfWidth}_${variant}`, () => {
-      let colorsList = [
-        Skia.Color(colors.surface),
-        Skia.Color(colors.borderDark),
-        Skia.Color(colors.slate),
-        Skia.Color(colors.borderDark),
-        Skia.Color(colors.backgroundDark)
-      ];
-      if (variant === "damaged") {
-        colorsList = [
-          Skia.Color(colors.surface),
-          Skia.Color(colors.borderDark),
-          Skia.Color(colors.slate),
-          Skia.Color(colors.borderDark),
-          Skia.Color(colors.backgroundDark)
-        ];
-      } else if (variant === "rusted") {
-        colorsList = [
-          Skia.Color(colors.surface),
-          Skia.Color(colors.borderDark),
-          Skia.Color(colors.orange),
-          Skia.Color(colors.borderDark),
-          Skia.Color(colors.surface)
-        ];
-      }
+      const colorsList = resolvePipeGradientColors(variant);
       return Skia.Shader.MakeLinearGradient(
         Skia.Point(-halfWidth, 0),
         Skia.Point(halfWidth, 0),
@@ -363,30 +359,7 @@ export const drawSkiaFlappyPipe: ShapeDrawer<RenderContext, FlappyBirdComponentR
     }
 
     const collarShader = getCachedSkiaShader(`collar_${capHalfWidth}_${variant}`, () => {
-      let colorsList = [
-        Skia.Color(colors.surface),
-        Skia.Color(colors.borderDark),
-        Skia.Color(colors.slate),
-        Skia.Color(colors.borderDark),
-        Skia.Color(colors.backgroundDark)
-      ];
-      if (variant === "damaged") {
-        colorsList = [
-          Skia.Color(colors.surface),
-          Skia.Color(colors.borderDark),
-          Skia.Color(colors.slate),
-          Skia.Color(colors.borderDark),
-          Skia.Color(colors.backgroundDark)
-        ];
-      } else if (variant === "rusted") {
-        colorsList = [
-          Skia.Color(colors.surface),
-          Skia.Color(colors.borderDark),
-          Skia.Color(colors.orange),
-          Skia.Color(colors.borderDark),
-          Skia.Color(colors.surface)
-        ];
-      }
+      const colorsList = resolvePipeGradientColors(variant);
       return Skia.Shader.MakeLinearGradient(
         Skia.Point(-capHalfWidth, 0),
         Skia.Point(capHalfWidth, 0),

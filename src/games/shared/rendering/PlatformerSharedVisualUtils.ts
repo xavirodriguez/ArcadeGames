@@ -263,6 +263,15 @@ export function resolveChargerVisualState(state: string, palette: EchoRunnerReso
   return { isStunned, isAlert, isAttack, glowColor };
 }
 
+export function computeChargerBodyPoints(size: number): [number, number][] {
+  return [
+    [-size * 0.5, -size * 0.3],
+    [size * 0.5, -size * 0.3],
+    [size * 0.4, size * 0.4],
+    [-size * 0.4, size * 0.4],
+  ];
+}
+
 export function resolveMemoryFragmentColors(collectedCount: number, palette: EchoRunnerResolvedPalette): { strokeColor: string; fillColor: string } {
   const isRestoredProgression = collectedCount >= 5;
   const strokeColor = isRestoredProgression ? palette.restorationCyan : palette.corruptionPurple;

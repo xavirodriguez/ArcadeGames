@@ -139,6 +139,39 @@ describe("TowerDefense BuildInput System", () => {
     expect(input?.upgrade).toBe(false);
   });
 
+  it("emits failure events on invalid build or upgrade attempts", () => {
+    const world = game.getWorld();
+    const bus = game.getEventBus();
+    const buildFailures: any[] = [];
+    const upgradeFailures: any[] = [];
+
+    bus.on("tower:build_failed", (ev) => buildFailures.push(ev));
+    bus.on("tower:upgrade_failed", (ev) => upgradeFailures.push(ev));
+
+    // Attempt to build out of bounds (col -2, row -1)
+    game.setInputState({
+      cursorX: 0,
+      cursorY: 0,
+      selectedTowerType: "basic",
+      build: true,
+    });
+    game.update(1 / 60);
+
+    expect(buildFailures.length).toBe(1);
+    expect(buildFailures[0].reason).toBe("out_of_bounds");
+
+    // Attempt to upgrade empty cell
+    game.setInputState({
+      cursorX: 180,
+      cursorY: 140,
+      upgrade: true,
+    });
+    game.update(1 / 60);
+
+    expect(upgradeFailures.length).toBe(1);
+    expect(upgradeFailures[0].reason).toBe("no_tower_at_cell");
+  });
+
   it("successfully builds on a valid buildable cell and deducts gold", () => {
     const world = game.getWorld();
     const initialGold = (world.getSingleton("GameState") as GameStateComponent).gold;

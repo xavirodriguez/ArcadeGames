@@ -13,7 +13,7 @@ import { World, Entity } from "@tiny-aster/core";
  * @public
  */
 export function queryPlayerEntity(world: World): Entity | undefined {
-  return world.query("Player")[0];
+  return world.query("Player")[0] ?? world.query("LocalPlayer")[0];
 }
 
 export function markLocalPlayerEntity(world: World, entity: Entity): void {

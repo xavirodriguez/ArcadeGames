@@ -1,4 +1,4 @@
-import { World, Renderer, CoreComponentRegistry, Entity, ShapeDrawer, EffectDrawer, ShapeType, RenderComponent, TransformComponent, ColliderComponent, Camera2DComponent, VisualOffsetComponent, SceneManager, SceneState, resolveViewportDimensions } from "@tiny-aster/core";
+import { World, Renderer, CoreComponentRegistry, Entity, ShapeDrawer, EffectDrawer, ShapeType, RenderComponent, TransformComponent, ColliderComponent, Camera2DComponent, VisualOffsetComponent, SceneManager, SceneState, resolveViewportDimensions, sortEntitiesByRenderOrder } from "@tiny-aster/core";
 import { CanvasCircleDrawer, CanvasBoxDrawer, CanvasPolygonDrawer } from "./CanvasShapeDrawers";
 import { CanvasSpriteDrawer } from "./CanvasSpriteDrawer";
 
@@ -201,26 +201,7 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
       }
     }
 
-    this.sortedEntities.sort((a, b) => {
-      const renderA = world.getComponent(a, renderType) as RenderComponent | undefined;
-      const renderB = world.getComponent(b, renderType) as RenderComponent | undefined;
-      const orderA = renderA?.order || 0;
-      const orderB = renderB?.order || 0;
-
-      if (orderA !== orderB) {
-        return orderA - orderB;
-      }
-
-      if (renderA?.depthSort && renderB?.depthSort) {
-        const transformA = world.getComponent(a, transformType) as TransformComponent | undefined;
-        const transformB = world.getComponent(b, transformType) as TransformComponent | undefined;
-        const yA = transformA ? (transformA.worldY ?? transformA.y) : 0;
-        const yB = transformB ? (transformB.worldY ?? transformB.y) : 0;
-        return yA - yB;
-      }
-
-      return 0;
-    });
+    sortEntitiesByRenderOrder(this.sortedEntities, world, renderType, transformType);
 
     ctx.save();                          // ← save de cámara (NUEVO)
 

@@ -1,4 +1,4 @@
-import { World, Renderer, CoreComponentRegistry, Entity, ShapeDrawer, EffectDrawer, ShapeType, RenderComponent, TransformComponent, ColliderComponent, Camera2DComponent, VisualOffsetComponent, SceneManager, SceneState, resolveViewportDimensions } from "@tiny-aster/core";
+import { World, Renderer, CoreComponentRegistry, Entity, ShapeDrawer, EffectDrawer, ShapeType, RenderComponent, TransformComponent, ColliderComponent, Camera2DComponent, VisualOffsetComponent, SceneManager, SceneState, resolveViewportDimensions, sortEntitiesByRenderOrder } from "@tiny-aster/core";
 import { CanvasCircleDrawer, CanvasBoxDrawer, CanvasPolygonDrawer } from "./CanvasShapeDrawers";
 import { CanvasSpriteDrawer } from "./CanvasSpriteDrawer";
 
@@ -201,38 +201,32 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
       }
     }
 
-    this.sortedEntities.sort((a, b) => {
-      const renderA = world.getComponent(a, renderType) as RenderComponent | undefined;
-      const renderB = world.getComponent(b, renderType) as RenderComponent | undefined;
-      const orderA = renderA?.order || 0;
-      const orderB = renderB?.order || 0;
-
-      if (orderA !== orderB) {
-        return orderA - orderB;
-      }
-
-      if (renderA?.depthSort && renderB?.depthSort) {
-        const transformA = world.getComponent(a, transformType) as TransformComponent | undefined;
-        const transformB = world.getComponent(b, transformType) as TransformComponent | undefined;
-        const yA = transformA ? (transformA.worldY ?? transformA.y) : 0;
-        const yB = transformB ? (transformB.worldY ?? transformB.y) : 0;
-        return yA - yB;
-      }
-
-      return 0;
-    });
+    sortEntitiesByRenderOrder(this.sortedEntities, world, renderType, transformType);
 
     ctx.save();                          // ← save de cámara (NUEVO)
+
+    let camX = 0;
+    let camY = 0;
+    let camZoom = 1;
+    let camVoX = 0;
+    let camVoY = 0;
+    let hasMainCamera = false;
 
     if (mainCameraEntity !== undefined) {
       const cam = world.getComponent(mainCameraEntity, cameraType) as Camera2DComponent | undefined;
       if (cam) {
+        hasMainCamera = true;
+        camX = cam.x;
+        camY = cam.y;
+        camZoom = cam.zoom;
         ctx.translate(-cam.x, -cam.y);
         ctx.scale(cam.zoom, cam.zoom);
 
         const visualOffsetType = "VisualOffset" as Extract<keyof TRegistry, string>;
         const visualOffset = world.getComponent(mainCameraEntity, visualOffsetType) as VisualOffsetComponent | undefined;
         if (visualOffset) {
+          camVoX = visualOffset.offsetX;
+          camVoY = visualOffset.offsetY;
           ctx.translate(-visualOffset.offsetX, -visualOffset.offsetY);
         }
       }
@@ -246,6 +240,16 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
       if (!transform) continue;
 
       ctx.save();
+
+      if (hasMainCamera && render.ignoreCamera) {
+        if (camVoX !== 0 || camVoY !== 0) {
+          ctx.translate(camVoX, camVoY);
+        }
+        if (camZoom !== 0 && camZoom !== 1) {
+          ctx.scale(1 / camZoom, 1 / camZoom);
+        }
+        ctx.translate(camX, camY);
+      }
 
       const visualOffsetType = "VisualOffset" as Extract<keyof TRegistry, string>;
       const visualOffset = world.getComponent(entity, visualOffsetType) as unknown as { offsetX: number; offsetY: number; scaleX?: number; scaleY?: number } | undefined;

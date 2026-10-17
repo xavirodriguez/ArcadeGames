@@ -42,7 +42,7 @@ function getPulseAttackGradient(ctx: CanvasRenderingContext2D, size: number, pal
     lastCtx = ctx;
     gradientCache.clear();
   }
-  const key = `pulse_${size}_${palette.restorationCyanGlow}`;
+  const key = `pulse_${size}_${palette.restorationCyanGlow}_${palette.restorationWhite}`;
   let grad = gradientCache.get(key);
   if (!grad) {
     grad = ctx.createRadialGradient(0, 0, size * 0.2, 0, 0, size);

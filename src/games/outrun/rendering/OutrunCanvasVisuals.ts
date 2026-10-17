@@ -184,10 +184,15 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
 
     // 2. Road Segments Pass
     const count = projectOutrunRoad(roadData.segments, state.playerZ, state.playerX, config, screenW, screenH);
+    if (count === 0) {
+      console.warn("[drawOutrunRoad] projectOutrunRoad returned 0 projected segments.");
+    }
 
+    let renderedCount = 0;
     for (let i = count - 1; i >= 0; i--) {
       const p = projectionBuffer[i]!;
       if (p.y1 <= p.y2 || p.y2 >= p.clip) continue;
+      renderedCount++;
 
       const { grassCol, rumbleCol, roadCol } = computeRoadSegmentColors(p.index, rumbleLength, palette);
 
@@ -235,6 +240,10 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
         ctx.fillStyle = fog.rgba;
         ctx.fillRect(0, p.y2, screenW, p.y1 - p.y2);
       }
+    }
+
+    if (count > 0 && renderedCount === 0) {
+      console.warn("[drawOutrunRoad] 100% of projected road segments were clipped or discarded.");
     }
 
     // 3. Roadside Sprites Pass

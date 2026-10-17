@@ -292,7 +292,12 @@ export function resolveOutrunRoadContext(
   const roadData = world.getResource<RoadData>("RoadData");
   const config = world.getResource<OutrunConfig>("GameConfig") ?? DEFAULT_OUTRUN_CONFIG;
 
-  if (!state || !roadData || roadData.segments.length === 0) return null;
+  if (!state || !roadData || !roadData.segments || roadData.segments.length === 0) {
+    if (!state) console.warn("[resolveOutrunRoadContext] Missing 'RaceState' singleton.");
+    if (!roadData) console.warn("[resolveOutrunRoadContext] Missing 'RoadData' resource.");
+    else if (!roadData.segments || roadData.segments.length === 0) console.warn("[resolveOutrunRoadContext] 'RoadData' contains zero segments.");
+    return null;
+  }
 
   const basePalette = getScenarioPaletteAtZ(state.playerZ, roadData);
   const progress = state.playerZ / roadData.trackLength;

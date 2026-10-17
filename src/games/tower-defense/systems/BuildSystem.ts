@@ -8,6 +8,7 @@ import type {
 } from "../types/TowerDefenseTypes";
 import type { GridLayout } from "../../shared/grid/GridTypes";
 import { isBuildable, worldToCellCoords } from "../MapUtils";
+import { queryPlayerEntity } from "../../shared/networkUtils";
 
 /**
  * Handles build / sell / upgrade from Input.
@@ -35,13 +36,39 @@ export class BuildSystem extends System<TowerDefenseComponentRegistry, TowerDefe
     catalog: TowerCatalog,
     gs: GameStateComponent
   ): boolean {
-    if (!selectedTowerType) return false;
+    const bus = world.getEventBus();
+    if (!selectedTowerType) {
+      bus?.emit("tower:build_failed", { reason: "no_tower_selected", col: cell.col, row: cell.row });
+      return false;
+    }
     const def = catalog[selectedTowerType];
-    if (!def) return false;
-    if (!isBuildable(tileGrid, cell.col, cell.row)) return false;
+    if (!def) {
+      bus?.emit("tower:build_failed", { reason: "invalid_tower_type", col: cell.col, row: cell.row });
+      return false;
+    }
+    if (cell.col < 0 || cell.row < 0 || cell.col >= tileGrid.cols || cell.row >= tileGrid.rows) {
+      bus?.emit("tower:build_failed", { reason: "out_of_bounds", col: cell.col, row: cell.row });
+      return false;
+    }
+    if (!isBuildable(tileGrid, cell.col, cell.row)) {
+      bus?.emit("tower:build_failed", { reason: "not_buildable", col: cell.col, row: cell.row });
+      return false;
+    }
 
-    if (this.getTowerAtCell(world, cell.col, cell.row) !== undefined) return false;
-    if (gs.gold < def.cost) return false;
+    if (this.getTowerAtCell(world, cell.col, cell.row) !== undefined) {
+      bus?.emit("tower:build_failed", { reason: "cell_occupied", col: cell.col, row: cell.row });
+      return false;
+    }
+    if (gs.gold < def.cost) {
+      bus?.emit("tower:build_failed", {
+        reason: "insufficient_gold",
+        col: cell.col,
+        row: cell.row,
+        cost: def.cost,
+        gold: gs.gold,
+      });
+      return false;
+    }
 
     world.mutateSingleton("GameState", (g: GameStateComponent) => {
       g.gold -= def.cost;
@@ -53,7 +80,7 @@ export class BuildSystem extends System<TowerDefenseComponentRegistry, TowerDefe
       row: cell.row,
     });
 
-    world.getEventBus()?.emit("tower:built", {
+    bus?.emit("tower:built", {
       entity: 0,
       towerType: def.id,
       col: cell.col,
@@ -64,7 +91,7 @@ export class BuildSystem extends System<TowerDefenseComponentRegistry, TowerDefe
   }
 
   update(world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>, _dt: number): void {
-    const playerEntity = world.query("Player")[0];
+    const playerEntity = queryPlayerEntity(world);
     if (playerEntity === undefined) return;
 
     const input = world.getComponent(playerEntity, "Input");
@@ -106,6 +133,12 @@ export class BuildSystem extends System<TowerDefenseComponentRegistry, TowerDefe
         });
         world.getEventBus()?.emit("tower:sold", { entity: towerAtCell, refund });
         world.commands.removeEntity(towerAtCell);
+      } else {
+        world.getEventBus()?.emit("tower:sell_failed", {
+          reason: "no_tower_at_cell",
+          col: cell.col,
+          row: cell.row,
+        });
       }
       world.mutateComponent(playerEntity, "Input", (i) => {
         i.sell = false;
@@ -114,11 +147,32 @@ export class BuildSystem extends System<TowerDefenseComponentRegistry, TowerDefe
 
     if (input.upgrade) {
       const towerAtCell = this.getTowerAtCell(world, cell.col, cell.row);
-      if (towerAtCell !== undefined) {
+      if (towerAtCell === undefined) {
+        world.getEventBus()?.emit("tower:upgrade_failed", {
+          reason: "no_tower_at_cell",
+          col: cell.col,
+          row: cell.row,
+        });
+      } else {
         const tower = world.getComponent(towerAtCell, "Tower")!;
-        if (tower.level < tower.maxLevel) {
+        if (tower.level >= tower.maxLevel) {
+          world.getEventBus()?.emit("tower:upgrade_failed", {
+            reason: "max_level_reached",
+            col: cell.col,
+            row: cell.row,
+            level: tower.level,
+          });
+        } else {
           const upgradeCost = Math.floor(tower.cost * 0.8 * tower.level);
-          if (gs.gold >= upgradeCost) {
+          if (gs.gold < upgradeCost) {
+            world.getEventBus()?.emit("tower:upgrade_failed", {
+              reason: "insufficient_gold",
+              col: cell.col,
+              row: cell.row,
+              upgradeCost,
+              gold: gs.gold,
+            });
+          } else {
             world.mutateSingleton("GameState", (g: GameStateComponent) => {
               g.gold -= upgradeCost;
             });

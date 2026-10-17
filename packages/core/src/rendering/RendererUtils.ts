@@ -1,5 +1,8 @@
 import { Renderer, RenderContext } from "./Renderer";
 import { ComponentRegistry } from "../ecs/Component";
+import { Entity } from "../ecs/Entity";
+import { World } from "../ecs/World";
+import { RenderComponent, TransformComponent } from "../ecs/CoreComponents";
 
 /**
  * Callback function for registering renderer elements.
@@ -53,4 +56,36 @@ export function resolveViewportDimensions(
   const viewportWidth = gameConfig?.viewportWidth ?? (gameConfig?.worldWidth && gameConfig.worldWidth < 2000 ? gameConfig.worldWidth : 800);
   const viewportHeight = gameConfig?.viewportHeight ?? (gameConfig?.worldHeight && gameConfig.worldHeight < 2000 ? gameConfig.worldHeight : 600);
   return { viewportWidth, viewportHeight };
+}
+
+/**
+ * Sorts entities in-place based on render layer order and depth-sort Y position.
+ * @public
+ */
+export function sortEntitiesByRenderOrder<TRegistry extends ComponentRegistry>(
+  sortedEntities: Entity[],
+  world: World<TRegistry>,
+  renderType: Extract<keyof TRegistry, string>,
+  transformType: Extract<keyof TRegistry, string>
+): void {
+  sortedEntities.sort((a, b) => {
+    const renderA = world.getComponent(a, renderType) as RenderComponent | undefined;
+    const renderB = world.getComponent(b, renderType) as RenderComponent | undefined;
+    const orderA = renderA?.order || 0;
+    const orderB = renderB?.order || 0;
+
+    if (orderA !== orderB) {
+      return orderA - orderB;
+    }
+
+    if (renderA?.depthSort && renderB?.depthSort) {
+      const transformA = world.getComponent(a, transformType) as TransformComponent | undefined;
+      const transformB = world.getComponent(b, transformType) as TransformComponent | undefined;
+      const yA = transformA ? (transformA.worldY ?? transformA.y) : 0;
+      const yB = transformB ? (transformB.worldY ?? transformB.y) : 0;
+      return yA - yB;
+    }
+
+    return 0;
+  });
 }

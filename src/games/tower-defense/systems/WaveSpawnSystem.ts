@@ -78,7 +78,30 @@ export class WaveSpawnSystem extends System<TowerDefenseComponentRegistry, Tower
   ): void {
     const waves = world.getResource<WaveDefinitions>("WaveDefinitions");
     const waypoints = world.getResource<WaypointList>("WaypointList");
-    if (!waves || waveIndex >= waves.length || !waypoints || waypoints.points.length === 0) return;
+    const gs = world.getSingleton("GameState") as GameStateComponent | undefined;
+
+    if (!waves || waveIndex >= waves.length) {
+      if (waves && waveIndex >= waves.length && gs) {
+        world.mutateSingleton("GameState", (g: GameStateComponent) => {
+          g.phase = "victory";
+        });
+        world.getEventBus()?.emit("game:over", { completed: true, score: gs.score, phase: "victory" });
+      } else if (gs) {
+        world.mutateSingleton("GameState", (g: GameStateComponent) => {
+          g.phase = "build";
+        });
+      }
+      return;
+    }
+
+    if (!waypoints || waypoints.points.length === 0) {
+      if (gs) {
+        world.mutateSingleton("GameState", (g: GameStateComponent) => {
+          g.phase = "build";
+        });
+      }
+      return;
+    }
 
     const def = waves[waveIndex];
     const startPos = waypoints.points[0];

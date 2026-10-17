@@ -86,6 +86,8 @@ export interface EchoRunnerResolvedPalette {
   archiveDataStream: string;
   archiveNodeActive: string;
   archiveNodeInactive: string;
+  watcher: string;
+  shadowColor: string;
 }
 
 export function resolveEchoRunnerPalette(world: World): EchoRunnerResolvedPalette {
@@ -112,6 +114,8 @@ export function resolveEchoRunnerPalette(world: World): EchoRunnerResolvedPalett
     archiveDataStream: resolveThemeColorWithFallback(world, DEFAULT_ECHO_PALETTE.archiveDataStream, "archiveDataStream", "dataStream"),
     archiveNodeActive: resolveThemeColorWithFallback(world, DEFAULT_ECHO_PALETTE.archiveNodeActive, "archiveNodeActive", "nodeActive"),
     archiveNodeInactive: resolveThemeColorWithFallback(world, DEFAULT_ECHO_PALETTE.archiveNodeInactive, "archiveNodeInactive", "nodeInactive"),
+    watcher: resolveThemeColorWithFallback(world, DEFAULT_ECHO_PALETTE.watcher, "watcher", "blue"),
+    shadowColor: resolveThemeColorWithFallback(world, DEFAULT_ECHO_PALETTE.shadowColor, "shadowColor", "shadow"),
   };
 }
 

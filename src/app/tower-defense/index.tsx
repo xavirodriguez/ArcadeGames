@@ -61,9 +61,59 @@ export default function TowerDefenseScreen() {
 function TowerDefensePlay({ initialSeed }: { initialSeed?: number }) {
   const { t } = useTranslation();
   const [selectedTower, setSelectedTower] = useState<string>("basic");
+  const [feedback, setFeedback] = useState<string | null>(null);
 
   const { game, gameState, handleInput, isReady, restartWithSeed } =
     useTowerDefenseGame(true, initialSeed);
+
+  useEffect(() => {
+    if (!game) return;
+    const bus = game.getEventBus();
+    if (!bus) return;
+
+    let timerId: ReturnType<typeof setTimeout> | undefined;
+    const showMsg = (msg: string) => {
+      setFeedback(msg);
+      if (timerId) clearTimeout(timerId);
+      timerId = setTimeout(() => setFeedback(null), 2500);
+    };
+
+    const unsubBuildFailed = bus.on("tower:build_failed", (ev: unknown) => {
+      const payload = ev as { reason?: string };
+      if (payload?.reason === "out_of_bounds") showMsg("Toca una celda del mapa primero");
+      else if (payload?.reason === "not_buildable") showMsg("Celda no construible (solo celdas B)");
+      else if (payload?.reason === "cell_occupied") showMsg("Esa celda ya tiene una torre");
+      else if (payload?.reason === "insufficient_gold") showMsg("Oro insuficiente");
+      else showMsg("No se pudo construir la torre");
+    });
+
+    const unsubUpgradeFailed = bus.on("tower:upgrade_failed", (ev: unknown) => {
+      const payload = ev as { reason?: string };
+      if (payload?.reason === "no_tower_at_cell") showMsg("Toca la torre que deseas mejorar");
+      else if (payload?.reason === "max_level_reached") showMsg("Torre en nivel máximo");
+      else if (payload?.reason === "insufficient_gold") showMsg("Oro insuficiente para mejorar");
+      else showMsg("No se pudo mejorar la torre");
+    });
+
+    const unsubSellFailed = bus.on("tower:sell_failed", (ev: unknown) => {
+      const payload = ev as { reason?: string };
+      if (payload?.reason === "no_tower_at_cell") showMsg("Toca la torre que deseas vender");
+    });
+
+    const unsubBuilt = bus.on("tower:built", () => showMsg("¡Torre construida!"));
+    const unsubUpgraded = bus.on("tower:upgraded", () => showMsg("¡Torre mejorada!"));
+    const unsubSold = bus.on("tower:sold", () => showMsg("Torre vendida"));
+
+    return () => {
+      if (timerId) clearTimeout(timerId);
+      unsubBuildFailed();
+      unsubUpgradeFailed();
+      unsubSellFailed();
+      unsubBuilt();
+      unsubUpgraded();
+      unsubSold();
+    };
+  }, [game]);
 
   const [canvasLayout, setCanvasLayout] = useState<{ width: number; height: number }>({
     width: towerDefenseConfigRaw.worldWidth,
@@ -112,7 +162,19 @@ function TowerDefensePlay({ initialSeed }: { initialSeed?: number }) {
 
   const handleCanvasTouch = (e: GestureResponderEvent) => {
     if (!game || !isReady) return;
-    const { locationX, locationY } = e.nativeEvent;
+    const nativeEv = e.nativeEvent;
+    const locationX =
+      "locationX" in nativeEv && typeof (nativeEv as { locationX?: unknown }).locationX === "number"
+        ? (nativeEv as { locationX: number }).locationX
+        : "offsetX" in nativeEv && typeof (nativeEv as { offsetX?: unknown }).offsetX === "number"
+          ? (nativeEv as { offsetX: number }).offsetX
+          : 0;
+    const locationY =
+      "locationY" in nativeEv && typeof (nativeEv as { locationY?: unknown }).locationY === "number"
+        ? (nativeEv as { locationY: number }).locationY
+        : "offsetY" in nativeEv && typeof (nativeEv as { offsetY?: unknown }).offsetY === "number"
+          ? (nativeEv as { offsetY: number }).offsetY
+          : 0;
     // Map touch coordinates to cell world position
     const layout = {
       stepX: towerDefenseConfigRaw.CELL_SIZE,
@@ -207,6 +269,11 @@ function TowerDefensePlay({ initialSeed }: { initialSeed?: number }) {
         debugSlot={<DebugOverlay game={game} />}
         overlaySlot={
           <>
+            {feedback && (
+              <View style={styles.toastContainer}>
+                <Text style={styles.toastText}>{feedback}</Text>
+              </View>
+            )}
             {(gameState?.phase === "game_over" || gameState?.phase === "victory") && (
               <View style={styles.overlay}>
                 <Text style={styles.overlayTitle}>
@@ -344,5 +411,24 @@ const styles = StyleSheet.create({
     fontFamily: typography.game,
     fontSize: typography.sizes.xl,
     marginTop: spacing.xl,
+  },
+  toastContainer: {
+    position: "absolute",
+    bottom: 90,
+    alignSelf: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.85)",
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.xs,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.cyan,
+    zIndex: 90,
+  },
+  toastText: {
+    color: colors.cyan,
+    fontFamily: typography.game,
+    fontSize: typography.sizes.sm,
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });

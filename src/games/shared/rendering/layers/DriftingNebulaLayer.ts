@@ -30,6 +30,18 @@ export function resolveNebulaCloudColor(
   return theme.nebulaPalette[index % theme.nebulaPalette.length] || defaultColor;
 }
 
+export function computeNebulaLobePosition(
+  posX: number,
+  posY: number,
+  offsetAngle: number,
+  radius: number
+): { lobeX: number; lobeY: number } {
+  return {
+    lobeX: posX + Math.cos(offsetAngle) * (radius * 0.25),
+    lobeY: posY + Math.sin(offsetAngle) * (radius * 0.25),
+  };
+}
+
 const driftingNebulaLayer = createParallaxLayer<NebulaCloud[]>({
   layerName: "layer1_nebula",
   isInitialized: (state) => state.nebulaeInitialized,
@@ -71,8 +83,7 @@ export const DriftingNebulaBackgroundEffect: EffectDrawer<CanvasRenderingContext
         ctx.arc(posX, neb.y, r, 0, Math.PI * 2);
         ctx.fill();
 
-        const lobeX = posX + Math.cos(offsetAngle) * (r * 0.25);
-        const lobeY = neb.y + Math.sin(offsetAngle) * (r * 0.25);
+        const { lobeX, lobeY } = computeNebulaLobePosition(posX, neb.y, offsetAngle, r);
         ctx.beginPath();
         ctx.arc(lobeX, lobeY, r * 0.7, 0, Math.PI * 2);
         ctx.fill();
@@ -105,8 +116,7 @@ export const SkiaDriftingNebulaBackgroundEffect: EffectDrawer<any, CoreComponent
       for (let r = neb.radius; r > 10; r -= 20) {
         canvas.drawCircle(posX, neb.y, r, paint);
 
-        const lobeX = posX + Math.cos(offsetAngle) * (r * 0.25);
-        const lobeY = neb.y + Math.sin(offsetAngle) * (r * 0.25);
+        const { lobeX, lobeY } = computeNebulaLobePosition(posX, neb.y, offsetAngle, r);
         canvas.drawCircle(lobeX, lobeY, r * 0.7, paint);
       }
     }

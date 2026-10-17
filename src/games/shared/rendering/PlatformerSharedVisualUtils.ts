@@ -52,7 +52,7 @@ export const DEFAULT_ECHO_PALETTE = {
   corruptionAmber: colors.orange,
   corruptionPurple: colors.purple,
   corruptionPurpleGlow: hexToRgba(colors.purple, 0.4),
-  archiveVoidDark: colors.backgroundDark,
+  archiveVoidDark: "#060913",
   archiveSlate: colors.slate,
   archiveBorderDark: colors.borderDark,
   archiveBorderLight: colors.borderLight,
@@ -62,7 +62,7 @@ export const DEFAULT_ECHO_PALETTE = {
   archiveNodeActive: colors.green,
   archiveNodeInactive: colors.red,
   watcher: colors.blue,
-  shadowColor: colors.slate,
+  shadowColor: hexToRgba(colors.surface, 0.4),
 } as const;
 
 export interface EchoRunnerResolvedPalette {
@@ -261,6 +261,15 @@ export function resolveChargerVisualState(state: string, palette: EchoRunnerReso
   const isAttack = state === "Attack";
   const glowColor = isStunned ? palette.restorationGold : (isAlert ? palette.corruptionAmber : palette.corruptionCrimson);
   return { isStunned, isAlert, isAttack, glowColor };
+}
+
+export function computeChargerBodyPoints(size: number): [number, number][] {
+  return [
+    [-size * 0.5, -size * 0.3],
+    [size * 0.5, -size * 0.3],
+    [size * 0.4, size * 0.4],
+    [-size * 0.4, size * 0.4],
+  ];
 }
 
 export function resolveMemoryFragmentColors(collectedCount: number, palette: EchoRunnerResolvedPalette): { strokeColor: string; fillColor: string } {

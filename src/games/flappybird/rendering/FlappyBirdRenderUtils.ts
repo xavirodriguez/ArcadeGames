@@ -1,6 +1,7 @@
 import { World, TransformComponent, RenderComponent, HealthComponent, ComboComponent } from "@tiny-aster/core";
 import {
   FlappyBirdComponentRegistry,
+  FlappyBirdState,
   BirdComponent,
   PipeComponent,
   FlappyBirdState

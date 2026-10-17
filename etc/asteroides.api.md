@@ -4370,6 +4370,7 @@ export interface RenderComponent extends Component {
     dangerPulseIntensity?: number;
     depthSort?: boolean;
     hitFlashFrames: number;
+    ignoreCamera?: boolean;
     muzzleFlashFrames?: number;
     opacity: number;
     order: number;
@@ -4997,6 +4998,9 @@ export const SOLAR_GARDEN_PALETTE: {
     readonly neutral: "#778DA9";
     readonly ui: "#42F5FF";
 };
+
+// @public
+export function sortEntitiesByRenderOrder<TRegistry extends ComponentRegistry>(sortedEntities: Entity[], world: World<TRegistry>, renderType: Extract<keyof TRegistry, string>, transformType: Extract<keyof TRegistry, string>): void;
 
 // @public
 export type SpaceInvadersRoleKey = CommonRoleKey | "invader" | "invader_commander" | "invader_scout" | "commander" | "scout" | "ufo";
@@ -5726,6 +5730,7 @@ export class TestTransport<TServerEvents extends Record<string, unknown> = Recor
 export interface Theme<TRole extends string = string> {
     colorMap: Partial<Record<TRole, string>>;
     conceptPack?: ConceptPackConfig;
+    effects?: ThemeEffects;
     lore?: Record<string, string>;
     spriteMap: Partial<Record<TRole, string>>;
     vfxProfile?: GameVisualProfile;
@@ -5734,6 +5739,15 @@ export interface Theme<TRole extends string = string> {
 
 // @public
 export const THEME_RESOURCE_KEY = "Theme";
+
+// @public
+export interface ThemeEffects {
+    ambientGlow?: string | number;
+    scanlineColor?: string;
+    scanlineSpacing?: number;
+    vignetteInnerColor?: string;
+    vignetteOuterColor?: string;
+}
 
 // @public
 export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreComponentRegistry> extends System<TRegistry> {

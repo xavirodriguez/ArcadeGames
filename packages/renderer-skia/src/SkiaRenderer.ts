@@ -1,4 +1,4 @@
-import { World, Renderer, CoreComponentRegistry, ShapeType, ShapeDrawer, EffectDrawer, Entity, Camera2DComponent, RenderComponent, TransformComponent, VisualOffsetComponent, ColliderComponent, resolveViewportDimensions } from "@tiny-aster/core";
+import { World, Renderer, CoreComponentRegistry, ShapeType, ShapeDrawer, EffectDrawer, Entity, Camera2DComponent, RenderComponent, TransformComponent, VisualOffsetComponent, ColliderComponent, resolveViewportDimensions, sortEntitiesByRenderOrder } from "@tiny-aster/core";
 import { SkCanvas, SkPaint, Skia, PaintStyle, ClipOp } from "@shopify/react-native-skia";
 import { SkiaCircleDrawer, SkiaBoxDrawer } from "./SkiaShapeDrawers";
 import { SkiaSpriteDrawer } from "./SkiaSpriteDrawer";
@@ -135,27 +135,7 @@ export class SkiaRenderer<TRegistry extends CoreComponentRegistry = CoreComponen
       }
     }
 
-    // Sort by order to handle layering directly in-place
-    this.sortedEntities.sort((a, b) => {
-      const renderA = world.getComponent(a, renderType) as RenderComponent | undefined;
-      const renderB = world.getComponent(b, renderType) as RenderComponent | undefined;
-      const orderA = renderA?.order || 0;
-      const orderB = renderB?.order || 0;
-
-      if (orderA !== orderB) {
-        return orderA - orderB;
-      }
-
-      if (renderA?.depthSort && renderB?.depthSort) {
-        const transformA = world.getComponent(a, transformType) as TransformComponent | undefined;
-        const transformB = world.getComponent(b, transformType) as TransformComponent | undefined;
-        const yA = transformA ? (transformA.worldY ?? transformA.y) : 0;
-        const yB = transformB ? (transformB.worldY ?? transformB.y) : 0;
-        return yA - yB;
-      }
-
-      return 0;
-    });
+    sortEntitiesByRenderOrder(this.sortedEntities, world, renderType, transformType);
 
     for (let i = 0; i < this.sortedEntities.length; i++) {
       const entity = this.sortedEntities[i];

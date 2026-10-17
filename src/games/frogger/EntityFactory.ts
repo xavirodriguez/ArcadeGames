@@ -1,14 +1,14 @@
-import { World, EntityBuilder, ShapeType, CircleShape, BoxShape, HealthComponent, BoundaryComponent, BlueprintDefinition } from "@tiny-aster/core";
+import { World, EntityBuilder, ShapeType, CircleShape, BoxShape, HealthComponent, BoundaryComponent, BlueprintDefinition, BlueprintRegistry, EventRegistry } from "@tiny-aster/core";
 import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 import { FroggerComponentRegistry } from "./types/FroggerTypes";
 import { FroggerConfig, DEFAULT_FROGGER_CONFIG } from "./types/FroggerConfigSchema";
 
-export interface FroggerBlueprintMap extends Record<string, BlueprintDefinition<FroggerComponentRegistry, any, any>> {
-  frogger: BlueprintDefinition<FroggerComponentRegistry, any, { gridX: number; gridY: number }>;
-  vehicle: BlueprintDefinition<FroggerComponentRegistry, any, { row: number; x: number; speed: number; direction: number; vehicleType: "car" | "truck" }>;
-  log: BlueprintDefinition<FroggerComponentRegistry, any, { row: number; x: number; speed: number; direction: number; length: number; logType: "log" | "turtle" }>;
-  lily_pad: BlueprintDefinition<FroggerComponentRegistry, any, { padIndex: number; x: number }>;
-  state: BlueprintDefinition<FroggerComponentRegistry, any, {}>;
+export interface FroggerBlueprintMap extends Record<string, BlueprintDefinition<FroggerComponentRegistry, EventRegistry, unknown>> {
+  frogger: BlueprintDefinition<FroggerComponentRegistry, EventRegistry, { gridX: number; gridY: number }>;
+  vehicle: BlueprintDefinition<FroggerComponentRegistry, EventRegistry, { row: number; x: number; speed: number; direction: number; vehicleType: "car" | "truck" }>;
+  log: BlueprintDefinition<FroggerComponentRegistry, EventRegistry, { row: number; x: number; speed: number; direction: number; length: number; logType: "log" | "turtle" }>;
+  lily_pad: BlueprintDefinition<FroggerComponentRegistry, EventRegistry, { padIndex: number; x: number }>;
+  state: BlueprintDefinition<FroggerComponentRegistry, EventRegistry, Record<string, never>>;
 }
 
 interface MovingGridObstacleParams {
@@ -60,7 +60,7 @@ function spawnMovingGridObstacle(
   } as BoundaryComponent);
 }
 
-export function registerFroggerBlueprints(world: World<FroggerComponentRegistry>, blueprints: any) {
+export function registerFroggerBlueprints(world: World<FroggerComponentRegistry>, blueprints: BlueprintRegistry<FroggerComponentRegistry, EventRegistry, FroggerBlueprintMap>) {
   blueprints.register("frogger", {
     spawn: (w: World<FroggerComponentRegistry>, entity: number, args: { gridX: number; gridY: number }) => {
       const config = w.getResource<FroggerConfig>("GameConfig") || DEFAULT_FROGGER_CONFIG;

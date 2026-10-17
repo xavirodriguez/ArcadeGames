@@ -1,47 +1,6 @@
-import { System, World, CoreComponentRegistry, Component, Entity } from "@tiny-aster/core";
+import { System, World, CoreComponentRegistry, Entity, LapTrackerComponent } from "@tiny-aster/core";
 
-/**
- * Component tracking lap counts, current/best lap times, checkpoint progression, and completion status.
- *
- * @example
- * ```ts
- * const tracker: LapTrackerComponent = {
- *   type: "LapTracker",
- *   currentLap: 1,
- *   totalLaps: 3,
- *   currentLapTime: 0,
- *   nextCheckpointIndex: 0,
- *   totalCheckpoints: 4,
- *   totalRaceTime: 0,
- *   isFinished: false
- * };
- * world.addComponent(entity, tracker);
- * ```
- *
- * @public
- */
-export interface LapTrackerComponent extends Component {
-  /** Component discriminator type. */
-  type: "LapTracker";
-  /** Current lap index (1-based). */
-  currentLap: number;
-  /** Total target laps for race completion. */
-  totalLaps: number;
-  /** Current lap elapsed duration in seconds. */
-  currentLapTime: number;
-  /** Fastest completed lap duration in seconds, if any. */
-  bestLapTime?: number;
-  /** Last completed lap duration in seconds, if any. */
-  lastLapTime?: number;
-  /** Index of next required checkpoint in sequence (0..totalCheckpoints - 1). */
-  nextCheckpointIndex: number;
-  /** Total checkpoint count per lap. */
-  totalCheckpoints: number;
-  /** Total accumulated race duration across all laps in seconds. */
-  totalRaceTime: number;
-  /** Whether all required laps have been completed. */
-  isFinished: boolean;
-}
+export { LapTrackerComponent };
 
 /**
  * Creates a new {@link LapTrackerComponent}.
@@ -86,7 +45,7 @@ export class LapTimerSystem extends System<CoreComponentRegistry> {
     racerEntity: Entity,
     checkpointIndex: number
   ): boolean {
-    const tracker = world.getMutableComponent(racerEntity, "LapTracker" as any) as LapTrackerComponent | undefined;
+    const tracker = world.getMutableComponent(racerEntity, "LapTracker");
     if (!tracker || tracker.isFinished) return false;
 
     if (checkpointIndex !== tracker.nextCheckpointIndex) {
@@ -99,7 +58,7 @@ export class LapTimerSystem extends System<CoreComponentRegistry> {
     tracker.nextCheckpointIndex = (tracker.nextCheckpointIndex + 1) % tracker.totalCheckpoints;
 
     if (eventBus) {
-      eventBus.emit("checkpoint:passed" as any, {
+      eventBus.emit("checkpoint:passed", {
         entity: racerEntity,
         checkpointIndex,
         nextCheckpointIndex: tracker.nextCheckpointIndex,
@@ -118,7 +77,7 @@ export class LapTimerSystem extends System<CoreComponentRegistry> {
       }
 
       if (eventBus) {
-        eventBus.emit("lap:completed" as any, {
+        eventBus.emit("lap:completed", {
           entity: racerEntity,
           lap: tracker.currentLap,
           lapTime: completedLapTime,
@@ -133,7 +92,7 @@ export class LapTimerSystem extends System<CoreComponentRegistry> {
       if (tracker.currentLap > tracker.totalLaps) {
         tracker.isFinished = true;
         if (eventBus) {
-          eventBus.emit("race:finished" as any, {
+          eventBus.emit("race:finished", {
             entity: racerEntity,
             totalRaceTime: tracker.totalRaceTime,
             bestLapTime: tracker.bestLapTime,
@@ -154,12 +113,12 @@ export class LapTimerSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true || deltaTime <= 0) return;
 
-    const entities = world.query("LapTracker" as any);
+    const entities = world.query("LapTracker");
     const len = entities.length;
 
     for (let i = 0; i < len; i++) {
       const entity = entities[i];
-      const tracker = world.getMutableComponent(entity, "LapTracker" as any) as LapTrackerComponent | undefined;
+      const tracker = world.getMutableComponent(entity, "LapTracker");
       if (!tracker || tracker.isFinished) continue;
 
       tracker.currentLapTime += deltaTime;

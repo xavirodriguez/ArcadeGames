@@ -1,9 +1,6 @@
-import { System, World, CoreComponentRegistry, Component } from "@tiny-aster/core";
+import { System, World, CoreComponentRegistry, LevelGoalComponent } from "@tiny-aster/core";
 
-export interface LevelGoalComponent extends Component {
-  type: "LevelGoal";
-  reached: boolean;
-}
+export { LevelGoalComponent };
 
 export class PlatformerGoalSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
@@ -24,20 +21,20 @@ export class PlatformerGoalSystem extends System<CoreComponentRegistry> {
       let triggeredBy: number | null = null;
 
       // 1. Check goal's CollisionEvents
-      if (world.hasComponent(goalEntity, "CollisionEvents" as any)) {
-        const events = world.getComponent(goalEntity, "CollisionEvents" as any) as any;
-        if (events.activeTriggers) {
-          for (let j = 0; j < events.activeTriggers.length; j++) {
-            const other = events.activeTriggers[j];
+      const goalEvents = world.getComponent(goalEntity, "CollisionEvents");
+      if (goalEvents) {
+        if (goalEvents.activeTriggers) {
+          for (let j = 0; j < goalEvents.activeTriggers.length; j++) {
+            const other = goalEvents.activeTriggers[j];
             if (singlePlayer !== null ? other === singlePlayer : players.indexOf(other) !== -1) {
               triggeredBy = other;
               break;
             }
           }
         }
-        if (!triggeredBy && events.collisions) {
-          for (let j = 0; j < events.collisions.length; j++) {
-            const other = events.collisions[j].otherEntity;
+        if (!triggeredBy && goalEvents.collisions) {
+          for (let j = 0; j < goalEvents.collisions.length; j++) {
+            const other = goalEvents.collisions[j].otherEntity;
             if (singlePlayer !== null ? other === singlePlayer : players.indexOf(other) !== -1) {
               triggeredBy = other;
               break;
@@ -50,20 +47,20 @@ export class PlatformerGoalSystem extends System<CoreComponentRegistry> {
       if (!triggeredBy) {
         for (let p = 0; p < players.length; p++) {
           const playerEntity = players[p];
-          if (world.hasComponent(playerEntity, "CollisionEvents" as any)) {
-            const events = world.getComponent(playerEntity, "CollisionEvents" as any) as any;
+          const playerEvents = world.getComponent(playerEntity, "CollisionEvents");
+          if (playerEvents) {
             let found = false;
-            if (events.activeTriggers) {
-              for (let j = 0; j < events.activeTriggers.length; j++) {
-                if (events.activeTriggers[j] === goalEntity) {
+            if (playerEvents.activeTriggers) {
+              for (let j = 0; j < playerEvents.activeTriggers.length; j++) {
+                if (playerEvents.activeTriggers[j] === goalEntity) {
                   found = true;
                   break;
                 }
               }
             }
-            if (!found && events.collisions) {
-              for (let j = 0; j < events.collisions.length; j++) {
-                if (events.collisions[j].otherEntity === goalEntity) {
+            if (!found && playerEvents.collisions) {
+              for (let j = 0; j < playerEvents.collisions.length; j++) {
+                if (playerEvents.collisions[j].otherEntity === goalEntity) {
                   found = true;
                   break;
                 }
@@ -96,7 +93,7 @@ export class PlatformerGoalSystem extends System<CoreComponentRegistry> {
       }
 
       if (triggeredBy !== null) {
-        world.mutateComponent(goalEntity, "LevelGoal" as any, (gComp: any) => {
+        world.mutateComponent(goalEntity, "LevelGoal", (gComp) => {
           gComp.reached = true;
         });
 

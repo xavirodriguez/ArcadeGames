@@ -19,7 +19,7 @@ export const PhysicsSafetySchema = z.object({
   PIPE_SPEED: z.number().min(0).max(5000).optional(),
   INVADER_SPEED: z.number().min(0).max(5000).optional(),
   GLOBAL_SPEED_MULTIPLIER: z.number().min(0).max(10).optional(),
-}).catchall(z.any());
+}).catchall(z.unknown());
 
 export interface Mutator {
   id: string;
@@ -132,9 +132,9 @@ export const MUTATORS: Mutator[] = rawMutators.map(mutator => ({
  * @returns Mutated configuration object.
  * @public
  */
-export function applyMutators<TConfig extends Record<string, any>>(
+export function applyMutators<TConfig extends Record<string, unknown>>(
   baseConfig: TConfig,
-  mutators?: Array<{ apply: (cfg: any) => any }> | null
+  mutators?: Array<{ apply: (cfg: TConfig) => TConfig }> | null
 ): TConfig {
   if (!mutators || mutators.length === 0) {
     return { ...baseConfig };
@@ -150,9 +150,9 @@ export function applyMutators<TConfig extends Record<string, any>>(
  * @returns Mutated configuration object.
  * @public
  */
-export function resolveAndApplyMutators<TConfig extends Record<string, any>>(
+export function resolveAndApplyMutators<TConfig extends Record<string, unknown>>(
   baseConfig: TConfig,
-  gameOptions?: { mutators?: any[]; activeMutators?: any[] } | null
+  gameOptions?: { mutators?: Array<{ apply: (cfg: TConfig) => TConfig }>; activeMutators?: Array<{ apply: (cfg: TConfig) => TConfig }> } | null
 ): TConfig {
   const mutators = gameOptions?.mutators || gameOptions?.activeMutators || [];
   return applyMutators(baseConfig, mutators);

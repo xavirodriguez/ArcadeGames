@@ -6,7 +6,13 @@ import { ArcadeGameAdapter, MiniGameResult, MiniGameRunContext } from "@tiny-ast
  *
  * @public
  */
-export abstract class BaseMiniGameEncounter<TGame = any> implements ArcadeGameAdapter {
+interface PlayableGameInstance {
+  getScore?: () => number;
+  destroy?: () => void;
+  stop?: () => void;
+}
+
+export abstract class BaseMiniGameEncounter<TGame = unknown> implements ArcadeGameAdapter {
   protected game: TGame | null = null;
   protected resultCallback: ((result: MiniGameResult) => void) | null = null;
 
@@ -21,13 +27,14 @@ export abstract class BaseMiniGameEncounter<TGame = any> implements ArcadeGameAd
    */
   protected abstract buildResultPayload(
     context: MiniGameRunContext,
-    payload?: any
+    payload?: unknown
   ): { metrics?: Record<string, number>; secretsFound?: string[] };
 
-  public emitResult(context: MiniGameRunContext, payload?: any): void {
+  public emitResult(context: MiniGameRunContext, payload?: { score?: number; completed?: boolean; durationMs?: number }): void {
     if (!this.resultCallback) return;
 
-    const score = payload?.score ?? (this.game as any)?.getScore?.() ?? 0;
+    const gameInst = this.game as PlayableGameInstance | null;
+    const score = payload?.score ?? gameInst?.getScore?.() ?? 0;
     const completed = payload?.completed ?? (score >= (context.config.targetScore ?? 1000));
     const durationMs = payload?.durationMs ?? 60000;
 
@@ -48,10 +55,11 @@ export abstract class BaseMiniGameEncounter<TGame = any> implements ArcadeGameAd
 
   public dispose(): void {
     if (this.game) {
-      if (typeof (this.game as any).destroy === "function") {
-        (this.game as any).destroy();
-      } else if (typeof (this.game as any).stop === "function") {
-        (this.game as any).stop();
+      const gameInst = this.game as PlayableGameInstance;
+      if (typeof gameInst.destroy === "function") {
+        gameInst.destroy();
+      } else if (typeof gameInst.stop === "function") {
+        gameInst.stop();
       }
       this.game = null;
     }

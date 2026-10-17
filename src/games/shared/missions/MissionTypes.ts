@@ -50,7 +50,7 @@ export interface MissionDefinition {
    * Callback invoked when a subscribed event fires.
    */
   onEvent?: (
-    world: World<any, any, any>,
+    world: World<any>,
     state: ActiveMissionState,
     eventName: string,
     payload: any
@@ -59,7 +59,7 @@ export interface MissionDefinition {
    * Callback invoked every frame tick for continuous state or time checks.
    */
   onUpdate?: (
-    world: World<any, any, any>,
+    world: World<any>,
     state: ActiveMissionState,
     deltaTime: number
   ) => void;
@@ -67,7 +67,7 @@ export interface MissionDefinition {
    * Callback invoked when the mission is initialized/activated.
    */
   onInit?: (
-    world: World<any, any, any>,
+    world: World<any>,
     state: ActiveMissionState
   ) => void;
 }

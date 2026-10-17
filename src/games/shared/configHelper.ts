@@ -2,11 +2,11 @@ import { ConfigService, World } from "@tiny-aster/core";
 import { z } from "zod";
 import { BENEFICIAL_MUTATORS } from "../../utils/MutatorRegistry";
 
-export interface MutatorLike {
-  apply: (cfg: any) => any;
+export interface MutatorLike<T = Record<string, unknown>> {
+  apply: (cfg: T) => T;
 }
 
-export type MutatorsParam = MutatorLike[] | { mutators?: MutatorLike[]; activeMutators?: MutatorLike[] } | null | undefined;
+export type MutatorsParam<T = Record<string, unknown>> = MutatorLike<T>[] | { mutators?: MutatorLike<T>[]; activeMutators?: MutatorLike<T>[] } | null | undefined;
 
 /**
  * Applies mutators sequentially to a base configuration if present, preserving
@@ -17,11 +17,11 @@ export type MutatorsParam = MutatorLike[] | { mutators?: MutatorLike[]; activeMu
  * @returns Mutated configuration object.
  * @public
  */
-export function applyMutators<T extends Record<string, any>>(
+export function applyMutators<T extends Record<string, unknown>>(
   baseConfig: T,
-  mutatorsParam?: MutatorsParam
+  mutatorsParam?: MutatorsParam<T>
 ): T {
-  let mutators: MutatorLike[] | undefined;
+  let mutators: MutatorLike<T>[] | undefined;
 
   if (Array.isArray(mutatorsParam)) {
     mutators = mutatorsParam;
@@ -46,11 +46,11 @@ export function applyMutators<T extends Record<string, any>>(
  * @returns Loaded and mutated configuration object.
  * @public
  */
-export function loadAndMutateConfig<T extends Record<string, any>>(
+export function loadAndMutateConfig<T extends Record<string, unknown>>(
   gameId: string,
   schema: z.ZodSchema<T>,
   rawConfig: unknown,
-  mutatorsParam?: MutatorsParam
+  mutatorsParam?: MutatorsParam<T>
 ): T {
   const baseConfig = ConfigService.load<T>(gameId, schema, rawConfig);
   return applyMutators(baseConfig, mutatorsParam);
@@ -67,7 +67,7 @@ export function loadAndMutateConfig<T extends Record<string, any>>(
  * @public
  */
 export function runWithUnlockedRandomAndMutators(
-  world: World<any, any, any>,
+  world: World,
   gameOptions: Record<string, unknown> | undefined,
   initFn: () => void
 ): void {

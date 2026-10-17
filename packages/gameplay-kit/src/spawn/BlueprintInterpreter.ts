@@ -1,17 +1,21 @@
 import { World } from "@tiny-aster/core";
 import { EntityBlueprintDef } from "./EntityBlueprintSchema";
 
+function isRecord(val: unknown): val is Record<string, unknown> {
+  return typeof val === "object" && val !== null;
+}
+
 /**
  * Resolves expression strings such as "$args.x", "$config.BULLET_SPEED", or "$random(10, 50)".
  * Uses world.gameplayRandom for deterministic pseudorandom evaluation.
  */
-export function evaluateExpression(value: unknown, world: World<any, any>, args: Record<string, any> = {}): any {
+export function evaluateExpression(value: unknown, world: World, args: Record<string, unknown> = {}): unknown {
   if (typeof value !== "string") {
     if (Array.isArray(value)) {
       return value.map((item) => evaluateExpression(item, world, args));
     }
-    if (value !== null && typeof value === "object") {
-      const res: Record<string, any> = {};
+    if (isRecord(value)) {
+      const res: Record<string, unknown> = {};
       for (const [k, v] of Object.entries(value)) {
         res[k] = evaluateExpression(v, world, args);
       }
@@ -25,9 +29,9 @@ export function evaluateExpression(value: unknown, world: World<any, any>, args:
   // Handle $args.<prop>
   if (str.startsWith("$args.")) {
     const propPath = str.slice(6).split(".");
-    let curr = args;
+    let curr: unknown = args;
     for (const key of propPath) {
-      if (curr == null) return undefined;
+      if (!isRecord(curr)) return undefined;
       curr = curr[key];
     }
     return curr;
@@ -35,11 +39,11 @@ export function evaluateExpression(value: unknown, world: World<any, any>, args:
 
   // Handle $config.<prop>
   if (str.startsWith("$config.")) {
-    const config = (world.getResource("GameConfig") || {}) as Record<string, any>;
+    const config = world.getResource<Record<string, unknown>>("GameConfig") || {};
     const propPath = str.slice(8).split(".");
-    let curr: any = config;
+    let curr: unknown = config;
     for (const key of propPath) {
-      if (curr == null) return undefined;
+      if (!isRecord(curr)) return undefined;
       curr = curr[key];
     }
     return curr;
@@ -60,11 +64,12 @@ export function evaluateExpression(value: unknown, world: World<any, any>, args:
  * Evaluates conditional "when" predicate strings.
  * Examples: "mode === 'story'", "args.hasShield", "config.USE_SPRITES"
  */
-export function evaluateCondition(when: string | undefined, world: World<any, any>, args: Record<string, any> = {}): boolean {
+export function evaluateCondition(when: string | undefined, world: World, args: Record<string, unknown> = {}): boolean {
   if (!when) return true;
 
-  const gameState = world.getSingleton("GameState") || {};
-  const config = world.getResource("GameConfig") || {};
+  const rawState = world.getSingleton("GameState");
+  const gameState: Record<string, unknown> = isRecord(rawState) ? rawState : {};
+  const config = world.getResource<Record<string, unknown>>("GameConfig") || {};
 
   const context = {
     mode: gameState.mode,
@@ -89,9 +94,9 @@ export function evaluateCondition(when: string | undefined, world: World<any, an
  * @public
  */
 export function spawnFromBlueprint(
-  world: World<any, any>,
+  world: World,
   def: EntityBlueprintDef,
-  args: Record<string, any> = {},
+  args: Record<string, unknown> = {},
   existingEntity?: number
 ): number {
   const entity = existingEntity ?? world.createEntity();

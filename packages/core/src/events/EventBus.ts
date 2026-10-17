@@ -54,6 +54,8 @@ export interface CoreEvents {
   "hitbox:hit": { attacker?: Entity; defender?: Entity; damage?: number; [key: string]: unknown };
   /** Emitted when a checkpoint is activated. */
   "CheckpointActivated": { checkpointEntity: Entity; playerEntity: Entity; checkpointId?: string; x?: number; y?: number; position?: { x: number; y: number }; [key: string]: unknown };
+  /** Emitted when a racer crosses a checkpoint. */
+  "checkpoint:passed": { entity?: Entity; checkpointIndex: number; nextCheckpointIndex?: number; [key: string]: unknown };
   /** Emitted when a collectible item is picked up. */
   "CollectiblePickedUp": { collectibleEntity?: Entity; playerEntity?: Entity; value?: number; collectibleType?: string; [key: string]: unknown };
   /** Emitted to spawn loot items. */

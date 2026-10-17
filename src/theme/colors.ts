@@ -65,8 +65,8 @@ export const colors = {
   tertiary: "#00D9FF",
   neutral: "#E8E8E8",
 
-  cyan: "#00f0ff",
-  pink: "#ff0055",
+  cyan: "#00D9FF",
+  pink: "#FF006E",
   green: "#00FF41",
   gold: "#FFD700",
 

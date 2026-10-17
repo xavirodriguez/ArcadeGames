@@ -59,6 +59,8 @@ export const DEFAULT_ECHO_PALETTE = {
   archiveDataStream: "rgba(255, 0, 85, 0.06)",
   archiveNodeActive: "#10b981",
   archiveNodeInactive: "#ef4444",
+  watcher: "#3b82f6",
+  shadowColor: "rgba(0, 0, 0, 0.35)",
 } as const;
 
 export interface EchoRunnerResolvedPalette {
@@ -84,6 +86,8 @@ export interface EchoRunnerResolvedPalette {
   archiveDataStream: string;
   archiveNodeActive: string;
   archiveNodeInactive: string;
+  watcher: string;
+  shadowColor: string;
 }
 
 export function resolveEchoRunnerPalette(world: World): EchoRunnerResolvedPalette {
@@ -110,6 +114,8 @@ export function resolveEchoRunnerPalette(world: World): EchoRunnerResolvedPalett
     archiveDataStream: resolveThemeColorWithFallback(world, DEFAULT_ECHO_PALETTE.archiveDataStream, "archiveDataStream", "dataStream"),
     archiveNodeActive: resolveThemeColorWithFallback(world, DEFAULT_ECHO_PALETTE.archiveNodeActive, "archiveNodeActive", "nodeActive"),
     archiveNodeInactive: resolveThemeColorWithFallback(world, DEFAULT_ECHO_PALETTE.archiveNodeInactive, "archiveNodeInactive", "nodeInactive"),
+    watcher: resolveThemeColorWithFallback(world, DEFAULT_ECHO_PALETTE.watcher, "watcher", "blue"),
+    shadowColor: resolveThemeColorWithFallback(world, DEFAULT_ECHO_PALETTE.shadowColor, "shadowColor", "shadow"),
   };
 }
 
@@ -236,7 +242,7 @@ export interface WatcherVisualState {
 export function resolveWatcherVisualState(state: string, palette: EchoRunnerResolvedPalette): WatcherVisualState {
   const isAlert = state === "Alert" || state === "Windup";
   const isAttack = state === "Attack";
-  const glowColor = isAttack ? palette.corruptionCrimson : (isAlert ? palette.corruptionAmber : "#3b82f6");
+  const glowColor = isAttack ? palette.corruptionCrimson : (isAlert ? palette.corruptionAmber : palette.watcher);
   return { isAlert, isAttack, glowColor };
 }
 

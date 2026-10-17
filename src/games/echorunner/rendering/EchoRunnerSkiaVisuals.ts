@@ -105,7 +105,7 @@ export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {
 
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color("rgba(0, 0, 0, 0.35)"));
+    paint.setColor(Skia.Color(palette.shadowColor));
     paint.setAlphaf(alpha);
     canvas.drawOval(Skia.XYWHRect(-size * 0.5, size * 0.7 - hoverY - size * 0.15, size, size * 0.3), paint);
 

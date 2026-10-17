@@ -148,7 +148,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
       restartKey: "KeyR",
       gameOptions: config.gameOptions,
       seed: config.seed,
-      theme: config.theme ?? createThemeFromGameAccents("echorunner"),
+      theme: config.theme ?? (config.gameOptions?.theme as Theme | undefined) ?? createThemeFromGameAccents("echorunner"),
       audio: new WebAudioPlayer()
     });
     const loaded = loadPlatformerArcadeConfig<EchoRunnerConfigType>(

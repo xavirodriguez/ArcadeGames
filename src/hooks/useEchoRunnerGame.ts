@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useGame } from "@tiny-aster/react-native";
 import { useHighScore } from "./useHighScore";
 import { EchoRunnerGame, EchoRunnerGameState, EchoRunnerInput } from "../games/echorunner";
+import { createEchoRunnerTheme, EchoRunnerSkinId } from "../games/echorunner/rendering/EchoRunnerPalette";
 
 const INITIAL_ECHO_STATE: EchoRunnerGameState = {
   type: "EchoRunnerGameState",
@@ -15,14 +16,18 @@ const INITIAL_ECHO_STATE: EchoRunnerGameState = {
   elapsedTime: 0
 };
 
-const EMPTY_GAME_OPTIONS = {};
+export function useEchoRunnerGame(started: boolean, seed?: number, skin?: EchoRunnerSkinId) {
+  const gameOptions = useMemo(() => {
+    return {
+      theme: createEchoRunnerTheme(skin ?? "dark")
+    };
+  }, [skin]);
 
-export function useEchoRunnerGame(started: boolean, seed?: number) {
   const { game, gameState, isPaused, isReady, handleInput, togglePause, restart } =
     useGame<EchoRunnerGame, EchoRunnerGameState, EchoRunnerInput>(
       started ? EchoRunnerGame : null,
       false,
-      { gameOptions: EMPTY_GAME_OPTIONS, initialState: INITIAL_ECHO_STATE, seed }
+      { gameOptions, initialState: INITIAL_ECHO_STATE, seed }
     );
 
   const { highScore, updateHighScore } = useHighScore("echorunner-high-score");

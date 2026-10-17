@@ -5,6 +5,7 @@ import { EchoRunnerArcadeAdapter } from "../story/EchoRunnerEncounter";
 import { EchoRunnerConfigSchema, EchoRunnerConfig } from "../types/EchoRunnerConfigSchema";
 import { createThemeFromGameAccents } from "../../../theme/gameAccents";
 import { resolveEchoRunnerPalette } from "../rendering/EchoRunnerVisualUtils";
+import { createEchoRunnerTheme } from "../rendering/EchoRunnerPalette";
 
 class TestEchoRunnerAdapter extends EchoRunnerArcadeAdapter {
   public getGame(): EchoRunnerGame | null {
@@ -732,6 +733,47 @@ describe("Echo Runner Game Simulation Tests", () => {
       expect(mockCtx.fillRect).toHaveBeenCalledWith(0, 0, 800, 600);
     } finally {
       themedGame.destroy();
+    }
+  });
+
+  it("should create distinct themes for dark, light, and sunset skins and resolve palette colors correctly", async () => {
+    const darkTheme = createEchoRunnerTheme("dark");
+    const lightTheme = createEchoRunnerTheme("light");
+    const sunsetTheme = createEchoRunnerTheme("sunset");
+
+    expect(darkTheme.colorMap?.archiveVoidDark).toBe("#060913");
+    expect(lightTheme.colorMap?.archiveVoidDark).toBe("#f1f5f9");
+    expect(sunsetTheme.colorMap?.archiveVoidDark).toBe("#fdf6e3");
+
+    expect(darkTheme.lore?.subtitle).toBe("Restoration Protocol Active");
+    expect(lightTheme.lore?.subtitle).toBe("Daylight Spectrum Active");
+    expect(sunsetTheme.lore?.subtitle).toBe("Sunset Horizon Active");
+
+    // Test light skin game instance
+    const lightGame = new EchoRunnerGame({ seed: 41873, theme: lightTheme });
+    try {
+      await lightGame.init();
+      const palette = resolveEchoRunnerPalette(lightGame.getWorld());
+      expect(palette.archiveVoidDark).toBe("#f1f5f9");
+      expect(palette.archiveSlate).toBe("#e2e8f0");
+      expect(palette.restorationCyan).toBe("#0284c7");
+      expect(palette.shadowColor).toBe("rgba(15, 23, 42, 0.15)");
+      expect(palette.watcher).toBe("#0284c7");
+    } finally {
+      lightGame.destroy();
+    }
+
+    // Test sunset skin game instance
+    const sunsetGame = new EchoRunnerGame({ seed: 41873, theme: sunsetTheme });
+    try {
+      await sunsetGame.init();
+      const palette = resolveEchoRunnerPalette(sunsetGame.getWorld());
+      expect(palette.archiveVoidDark).toBe("#fdf6e3");
+      expect(palette.archiveSlate).toBe("#fef3c7");
+      expect(palette.restorationCyan).toBe("#e11d48");
+      expect(palette.corruptionCrimson).toBe("#c026d3");
+    } finally {
+      sunsetGame.destroy();
     }
   });
 });

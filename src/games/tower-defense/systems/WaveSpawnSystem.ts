@@ -81,6 +81,7 @@ export class WaveSpawnSystem extends System<TowerDefenseComponentRegistry, Tower
     const gs = world.getSingleton("GameState") as GameStateComponent | undefined;
 
     if (!waves || waveIndex >= waves.length) {
+      console.warn(`[TD WaveSpawnSystem] Cannot start wave: waves resource missing (${!waves}) or waveIndex ${waveIndex} >= ${waves?.length}`);
       if (waves && waveIndex >= waves.length && gs) {
         world.mutateSingleton("GameState", (g: GameStateComponent) => {
           g.phase = "victory";
@@ -95,6 +96,7 @@ export class WaveSpawnSystem extends System<TowerDefenseComponentRegistry, Tower
     }
 
     if (!waypoints || waypoints.points.length === 0) {
+      console.warn(`[TD WaveSpawnSystem] Cannot start wave: WaypointList resource missing (${!waypoints}) or points empty (${waypoints?.points?.length})`);
       if (gs) {
         world.mutateSingleton("GameState", (g: GameStateComponent) => {
           g.phase = "build";
@@ -105,6 +107,7 @@ export class WaveSpawnSystem extends System<TowerDefenseComponentRegistry, Tower
 
     const def = waves[waveIndex];
     if (!def || !def.creeps || def.creeps.length === 0) {
+      console.warn(`[TD WaveSpawnSystem] Cannot start wave: wave definition for index ${waveIndex} missing or has no creeps`);
       if (gs) {
         world.mutateSingleton("GameState", (g: GameStateComponent) => {
           g.phase = "build";

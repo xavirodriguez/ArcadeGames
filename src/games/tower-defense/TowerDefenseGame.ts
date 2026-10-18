@@ -194,8 +194,7 @@ export class TowerDefenseGame extends BaseGame<
     this.world.setResource<WaveDefinitions>("WaveDefinitions", this.config.WAVES);
 
     this.blueprints.register("gameState", {
-      spawn: (world) => {
-        const entity = world.createEntity();
+      spawn: (world, entity) => {
         world.addComponent(entity, {
           ...INITIAL_GAME_STATE,
           gold: this.config.STARTING_GOLD,
@@ -207,8 +206,7 @@ export class TowerDefenseGame extends BaseGame<
     });
 
     this.blueprints.register("player", {
-      spawn: (world) => {
-        const entity = world.createEntity();
+      spawn: (world, entity) => {
         world.addComponent(
           entity,
           createPlayerComponent(this.config.TOWERS[0]?.id ?? "basic")
@@ -404,7 +402,10 @@ SharedVFX.registerSharedVFX(renderer);
   ): void {
     const world = this.getWorld();
     const playerEntity = queryPlayerEntity(world);
-    if (playerEntity === undefined) return;
+    if (playerEntity === undefined) {
+      console.warn("[TowerDefenseGame] setInputState called but no Player or LocalPlayer entity exists.");
+      return;
+    }
 
     if (!world.hasComponent(playerEntity, "Input")) {
       world.addComponent(playerEntity, createInputComponent());
@@ -423,10 +424,10 @@ SharedVFX.registerSharedVFX(renderer);
             : Array.isArray(actions)
               ? actions.includes(a)
               : false;
-        inputComp.build = has("build");
-        inputComp.sell = has("sell");
-        inputComp.upgrade = has("upgrade");
-        inputComp.startWave = has("startWave");
+        if (has("build")) inputComp.build = true;
+        if (has("sell")) inputComp.sell = true;
+        if (has("upgrade")) inputComp.upgrade = true;
+        if (has("startWave")) inputComp.startWave = true;
       } else if (inp) {
         if (typeof inp.cursorX === "number") inputComp.cursorX = inp.cursorX;
         if (typeof inp.cursorY === "number") inputComp.cursorY = inp.cursorY;

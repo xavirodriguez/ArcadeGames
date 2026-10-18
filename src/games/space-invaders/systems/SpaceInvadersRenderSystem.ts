@@ -1,4 +1,4 @@
-import { System, World } from "@tiny-aster/core";
+import { System, World, resolveThemeColor } from "@tiny-aster/core";
 import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 
 /**
@@ -35,11 +35,11 @@ export class SpaceInvadersRenderSystem extends System<SpaceInvadersComponentRegi
             r.visible = true;
           });
         }
-        const defaultColor = "#00FF00";
-        if (render.shape === "player_ship" && render.color !== defaultColor) {
-          // Mutación segura mediante mutateComponent
+        const themeColor = resolveThemeColor(world, "player", "player-ship");
+        const targetColor = themeColor ?? "#00FF00";
+        if (render.shape === "player_ship" && render.color !== targetColor) {
           world.mutateComponent(entity, "Render", r => {
-            r.color = defaultColor;
+            r.color = targetColor;
           });
         }
       }

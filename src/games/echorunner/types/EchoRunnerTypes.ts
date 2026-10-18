@@ -1,8 +1,9 @@
 import { Component, CoreEvents } from "@tiny-aster/core";
+import type { CollectibleKind } from "../../shared/componentBuilders";
 
 export interface EchoRunnerEventRegistry extends CoreEvents, Record<string, unknown> {}
 
-export type EchoRunnerCollectibleKind = "fragment" | "core" | "coin";
+export type EchoRunnerCollectibleKind = CollectibleKind;
 
 export interface EchoRunnerCollectibleProgress {
   kindsById: Record<string, EchoRunnerCollectibleKind>;

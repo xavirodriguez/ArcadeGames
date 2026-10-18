@@ -26,6 +26,7 @@ import {
   type BeltCameraConfig,
   type BeltCameraState
 } from "../belt/BeltCameraTypes";
+import { BELT_ALIVE_ENEMIES_RESOURCE } from "../belt/BeltCameraSystem";
 import { HIT_PALETTE } from "./HitAndRunPalette";
 import { colors } from "../../../theme/colors";
 import type { HitRunDeathFlowState } from "../systems/HitRunDeathFlowSystem";
@@ -59,7 +60,6 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
   draw(ctx, world) {
     const { w, h } = resolveViewport(world);
     const cam = mainCam(world);
-    // Belt player uses BeltInput (not PlatformerInput)
     let players = world.query("BeltInput", "Health");
     if (players.length === 0) {
       players = world.query("PlatformerInput", "Health");
@@ -79,6 +79,7 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
     const death = world.getResource(DEATH_FLOW_RESOURCE) as HitRunDeathFlowState | undefined;
     const camState = world.getResource(BELT_CAMERA_STATE_RESOURCE) as BeltCameraState | undefined;
     const camCfg = world.getResource(BELT_CAMERA_CONFIG_RESOURCE) as BeltCameraConfig | undefined;
+    const aliveEnemies = (world.getResource(BELT_ALIVE_ENEMIES_RESOURCE) as number | undefined) ?? 0;
     const section =
       camState && camCfg
         ? camCfg.sections[camState.currentSectionIndex]
@@ -150,7 +151,6 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
       ctx.fillRect(startX + maxHp * (pipW + 6) + 16, 26, 40 * Math.min(1, cd / 0.2), 3);
     }
 
-    // Center: section + wave
     ctx.textAlign = "center";
     ctx.font = "bold 12px 'Share Tech Mono', monospace";
     const sectionLabel = section?.id
@@ -158,7 +158,7 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
       : "—";
     const waveName = script?.name ?? wave?.scriptId ?? "—";
     const gateTag = camState?.gateLocked
-      ? "GATE LOCKED"
+      ? `GATE LOCKED · ${aliveEnemies} LEFT`
       : camState?.sectionCleared
         ? "GATE OPEN"
         : "";

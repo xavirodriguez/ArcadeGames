@@ -20,6 +20,29 @@ import {
   type WaveDirectorState
 } from "../waves/HitRunWaveTypes";
 
+/** Resource: living enemy count used by HUD / debug. */
+export const BELT_ALIVE_ENEMIES_RESOURCE = "BeltAliveEnemies";
+
+function isPlayerEntity(world: World<CoreComponentRegistry>, e: number): boolean {
+  return (
+    world.hasComponent(e, "BeltInput") ||
+    world.hasComponent(e, "PlatformerInput") ||
+    world.hasComponent(e, "MeleeAttack")
+  );
+}
+
+function isEnemyFaction(world: World<CoreComponentRegistry>, e: number): boolean {
+  if (world.hasComponent(e, "Enemy")) return true;
+  const faction = world.getComponent(e, "Faction") as
+    | { value?: string; faction?: string }
+    | undefined;
+  const f = faction?.value ?? faction?.faction;
+  if (f === "enemy") return true;
+  const tag = world.getComponent(e, "Tag") as { tags?: string[] } | undefined;
+  if (tag?.tags?.includes("Enemy")) return true;
+  return false;
+}
+
 export class BeltCameraSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
@@ -45,20 +68,20 @@ export class BeltCameraSystem extends System<CoreComponentRegistry> {
 
     const sectionIndex = state.currentSectionIndex;
 
-    // Prefer Enemy+Health — reliable even if BeltSectionEnemy is not in the
-    // component registry (query by unregistered type can always return []).
-    const enemies = world.query("Enemy", "Health");
+    // Broad scan: Health entities that look like enemies (not the player).
+    const withHealth = world.query("Health");
     let aliveInSection = 0;
 
-    for (let i = 0; i < enemies.length; i++) {
-      const e = enemies[i];
+    for (let i = 0; i < withHealth.length; i++) {
+      const e = withHealth[i];
+      if (isPlayerEntity(world, e)) continue;
       if (world.hasComponent(e, "Dead")) continue;
+      if (!isEnemyFaction(world, e)) continue;
 
-      const tag = world.getComponent(e, "BeltSectionEnemy") as
+      const sectionTag = world.getComponent(e, "BeltSectionEnemy") as
         | { sectionIndex: number }
         | undefined;
-      // If tagged for another section, skip; untagged counts for current section
-      if (tag && tag.sectionIndex !== sectionIndex) continue;
+      if (sectionTag && sectionTag.sectionIndex !== sectionIndex) continue;
 
       const health = world.getComponent(e, "Health") as
         | { current?: number; hp?: number }
@@ -67,48 +90,43 @@ export class BeltCameraSystem extends System<CoreComponentRegistry> {
       if (hp > 0) aliveInSection++;
     }
 
+    world.setResource(BELT_ALIVE_ENEMIES_RESOURCE, aliveInSection);
+
     if (aliveInSection > 0) {
       state.hadEnemiesThisSection = true;
     }
 
-    // Wave director may have spawned even if we missed the first frame of HP>0
     const wave = world.getResource<WaveDirectorState>(WAVE_DIRECTOR_RESOURCE);
     if (wave && wave.totalSpawned > 0) {
       state.hadEnemiesThisSection = true;
     }
 
-    const waveFinished =
-      !!wave &&
-      wave.active &&
-      wave.nextEventIndex >= (world.getResource<{ events?: unknown[] }>("WaveScript")?.events?.length ?? 0) &&
-      (wave.pendingStaggers?.length ?? 0) === 0;
+    // Gate opens as soon as the section has seen enemies and none remain alive.
+    // Pending wave events may spawn more later (gate re-locks); that is intentional.
+    const spawning =
+      (wave?.pendingStaggers?.length ?? 0) > 0;
 
-    // Clear when every enemy is dead after the section has seen spawns.
-    // If the wave script is fully drained and nothing is alive, force clear.
     state.sectionCleared =
-      state.hadEnemiesThisSection &&
-      aliveInSection === 0 &&
-      (waveFinished || !wave?.active || (wave?.pendingStaggers?.length ?? 0) === 0);
-
-    // Keep gate locked while live enemies remain OR while staggers are mid-spawn
-    if (aliveInSection > 0 || (wave?.pendingStaggers?.length ?? 0) > 0) {
-      state.sectionCleared = false;
-    }
-
+      state.hadEnemiesThisSection && aliveInSection === 0 && !spawning;
     state.gateLocked = !state.sectionCleared;
 
     const section = config.sections[sectionIndex];
     const gateX = section?.gateX ?? Number.POSITIVE_INFINITY;
 
     const players = world.query("BeltMovement", "Transform");
-    if (players.length === 0) return;
+    if (players.length === 0) {
+      world.setResource(BELT_CAMERA_STATE_RESOURCE, state);
+      return;
+    }
     const player = players[0];
     const transform = world.getMutableComponent(player, "Transform") as
       | { x: number; worldX?: number }
       | undefined;
-    if (!transform) return;
+    if (!transform) {
+      world.setResource(BELT_CAMERA_STATE_RESOURCE, state);
+      return;
+    }
 
-    // While the gate is locked, the player cannot walk past it (or off-screen).
     if (state.gateLocked && Number.isFinite(gateX)) {
       const maxPlayerX = gateX - 24;
       if (transform.x > maxPlayerX) {
@@ -146,6 +164,7 @@ export class BeltCameraSystem extends System<CoreComponentRegistry> {
       state.sectionCleared = false;
       state.gateLocked = true;
       state.hadEnemiesThisSection = false;
+      world.setResource(BELT_ALIVE_ENEMIES_RESOURCE, 0);
       const bus = world.getResource<{ emit?: (event: string, payload: unknown) => void }>("EventBus");
       bus?.emit?.("belt:section_advanced", {
         sectionIndex: state.currentSectionIndex

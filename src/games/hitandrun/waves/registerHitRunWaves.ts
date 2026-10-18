@@ -1,5 +1,6 @@
 import { SystemPhase, World, CoreComponentRegistry } from "@tiny-aster/core";
 import { HitRunWaveSystem, startWaveScript } from "./HitRunWaveSystem";
+import { HitRunSectionWaveSystem } from "./HitRunSectionWaveSystem";
 import { registerHitRunEnemyPool } from "./HitRunEnemyPool";
 import type { WaveScript } from "./HitRunWaveTypes";
 import { WAVE_OPENING } from "./sampleWaves";
@@ -7,14 +8,19 @@ import { WAVE_OPENING } from "./sampleWaves";
 export interface RegisterWavesOptions {
   /** Script inicial (default: WAVE_OPENING). */
   script?: WaveScript;
-  /** No arrancar automáticamente. */
+  /**
+   * Auto-start a script on register.
+   * Belt mode should pass false and rely on HitRunSectionWaveSystem.
+   */
   autoStart?: boolean;
+  /** Drive waves from belt section waveId (default true). */
+  sectionDriven?: boolean;
   defaultSpawnX?: number;
   defaultSpawnY?: number;
 }
 
 /**
- * Registra pool de enemigos + HitRunWaveSystem y opcionalmente arranca un script.
+ * Registra pool de enemigos + HitRunWaveSystem (+ opcional SectionWaveSystem).
  */
 export function registerHitRunWaves(
   world: World<CoreComponentRegistry>,
@@ -29,7 +35,17 @@ export function registerHitRunWaves(
 
   world.addSystem(waveSys, { phase: SystemPhase.Simulation, priority: 5 });
 
-  const autoStart = opts.autoStart !== false;
+  const sectionDriven = opts.sectionDriven !== false;
+  if (sectionDriven) {
+    world.addSystem(new HitRunSectionWaveSystem(), {
+      phase: SystemPhase.Simulation,
+      priority: 4 // before wave director ticks events
+    });
+  }
+
+  // When section-driven, SectionWaveSystem starts the first script on first tick.
+  // autoStart only for non-belt / tests.
+  const autoStart = opts.autoStart === true || (!sectionDriven && opts.autoStart !== false);
   if (autoStart) {
     startWaveScript(world, opts.script ?? WAVE_OPENING);
   }

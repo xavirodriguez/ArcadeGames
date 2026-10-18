@@ -59,7 +59,7 @@ export const drawEchoStateGate: ShapeDrawer<CanvasRenderingContext2D, CoreCompon
     ctx.lineWidth = 2;
     ctx.strokeStyle = gate.isOpen ? palette.restorationCyan : palette.corruptionCrimson;
     ctx.fillStyle = palette.archiveVoidDark;
-    ctx.shadowColor = ctx.strokeStyle;
+    ctx.shadowColor = gate.isOpen ? palette.restorationCyan : palette.corruptionCrimson;
     ctx.shadowBlur = gate.isOpen ? 4 : 12;
 
     if (gate.isOpen) {

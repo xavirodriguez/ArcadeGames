@@ -104,6 +104,15 @@ export class WaveSpawnSystem extends System<TowerDefenseComponentRegistry, Tower
     }
 
     const def = waves[waveIndex];
+    if (!def || !def.creeps || def.creeps.length === 0) {
+      if (gs) {
+        world.mutateSingleton("GameState", (g: GameStateComponent) => {
+          g.phase = "build";
+        });
+      }
+      return;
+    }
+
     const startPos = waypoints.points[0];
 
     const pendingSpawns: SpawnRequest[] = [];

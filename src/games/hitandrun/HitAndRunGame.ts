@@ -22,8 +22,7 @@ import type {
   HitAndRunInput
 } from "./types/HitAndRunTypes";
 import {
-  registerPlatformerEnvironmentBlueprints,
-  updatePlayerInvulnerabilityAndContactDamage
+  registerPlatformerEnvironmentBlueprints
 } from "@tiny-aster/gameplay-kit";
 import {
   registerPlatformerTilemapBlueprint,
@@ -143,8 +142,6 @@ export class HitAndRunGame extends PlatformerArcadeGame<
 
   public override update(dt: number): void {
     this.gameOver = this.checkRunProgressGameOver(dt, this.gameOver);
-    // Contact invuln still shared with platformer kit
-    updatePlayerInvulnerabilityAndContactDamage(this.world, dt);
     this.world.update(dt);
   }
 

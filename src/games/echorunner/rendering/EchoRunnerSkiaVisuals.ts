@@ -2,7 +2,6 @@ import { ShapeDrawer, EffectDrawer, CoreComponentRegistry } from "@tiny-aster/co
 import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 import {
-  calculateEchoPlayerPose,
   resolveEchoPlayerDrawContext,
   resolveEchoBackgroundContext,
 } from "./EchoRunnerVisualUtils";

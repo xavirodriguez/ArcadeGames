@@ -17,6 +17,13 @@ import { computeSpeedLines } from "./OutrunVisualHelpers";
 import { resolveSegmentFog } from "./OutrunFog";
 import { colors } from "../../../theme/colors";
 import { hexToRgba } from "../../shared/rendering/CosmicPalette";
+import {
+  OUTRUN_PLAYER_PIXEL_SPRITE,
+  OUTRUN_TRAFFIC_PIXEL_SPRITE,
+  getOutrunAnimationFrame,
+  resolveOutrunPixelColor,
+  visitOutrunPixelRuns
+} from "./OutrunPixelSprites";
 
 function drawRoadSpriteCanvas(
   ctx: CanvasRenderingContext2D,
@@ -304,43 +311,17 @@ export const drawOutrunCar: ShapeDrawer<CanvasRenderingContext2D, OutrunComponen
     ctx.ellipse(0, 16, 36, 10, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Tires
-    ctx.fillStyle = colors.surface;
-    ctx.fillRect(-32, 2, 10, 16);
-    ctx.fillRect(22, 2, 10, 16);
+    // Crisp pixel shadow keeps the sprite aligned with the arcade art direction.
+    ctx.fillStyle = hexToRgba(colors.surface, 0.4);
+    ctx.fillRect(-24, 18, 48, 4);
+    ctx.fillRect(-16, 22, 32, 4);
 
-    // Car Body
-    ctx.fillStyle = carColor;
-    ctx.beginPath();
-    if (typeof ctx.roundRect === "function") {
-      ctx.roundRect(-30, -18, 60, 30, 6);
-    } else {
-      ctx.rect(-30, -18, 60, 30);
-    }
-    ctx.fill();
-
-    // Bumper
-    ctx.fillStyle = colors.backgroundDark;
-    ctx.fillRect(-28, 4, 56, 8);
-
-    // Rear Windshield
-    ctx.fillStyle = colors.borderDark;
-    ctx.beginPath();
-    ctx.moveTo(-20, -16);
-    ctx.lineTo(20, -16);
-    ctx.lineTo(16, -2);
-    ctx.lineTo(-16, -2);
-    ctx.closePath();
-    ctx.fill();
-
-    // Tail Lights
-    ctx.fillStyle = colors.red;
-    ctx.fillRect(-26, -6, 12, 6);
-    ctx.fillRect(14, -6, 12, 6);
-
-    // License Plate
-    ctx.fillStyle = colors.white;
-    ctx.fillRect(-8, 2, 16, 6);
+    const playerFrame = getOutrunAnimationFrame(state.playerZ);
+    const playerSprite = OUTRUN_PLAYER_PIXEL_SPRITE.frames[playerFrame]!;
+    visitOutrunPixelRuns(playerSprite, -32, -18, 4, (pixel, x, y, width, height) => {
+      ctx.fillStyle = resolveOutrunPixelColor(pixel, carColor);
+      ctx.fillRect(x, y, width, height);
+    });
 
     ctx.restore();
   }
@@ -362,30 +343,24 @@ export const drawOutrunRacer: ShapeDrawer<CanvasRenderingContext2D, OutrunCompon
 
     ctx.save();
 
-    // Shadow
+    const pixelSize = carW / OUTRUN_TRAFFIC_PIXEL_SPRITE.width;
+    const spriteWidth = pixelSize * OUTRUN_TRAFFIC_PIXEL_SPRITE.width;
+    const spriteHeight = pixelSize * OUTRUN_TRAFFIC_PIXEL_SPRITE.height;
+
     ctx.fillStyle = hexToRgba(colors.surface, 0.35);
-    ctx.beginPath();
-    ctx.ellipse(cx, cy + carH * 0.4, carW * 0.5, carH * 0.25, 0, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.fillRect(cx - spriteWidth * 0.35, cy + spriteHeight * 0.4, spriteWidth * 0.7, Math.max(1, pixelSize));
 
-    // Body
-    ctx.fillStyle = bodyColor;
-    ctx.beginPath();
-    if (typeof ctx.roundRect === "function") {
-      ctx.roundRect(cx - carW / 2, cy - carH / 2, carW, carH, Math.max(2, carH * 0.15));
-    } else {
-      ctx.rect(cx - carW / 2, cy - carH / 2, carW, carH);
-    }
-    ctx.fill();
-
-    // Windshield
-    ctx.fillStyle = colors.surface;
-    ctx.fillRect(cx - carW * 0.3, cy - carH * 0.4, carW * 0.6, carH * 0.35);
-
-    // Tail lights
-    ctx.fillStyle = colors.red;
-    ctx.fillRect(cx - carW * 0.4, cy, carW * 0.2, carH * 0.2);
-    ctx.fillRect(cx + carW * 0.2, cy, carW * 0.2, carH * 0.2);
+    const trafficSprite = OUTRUN_TRAFFIC_PIXEL_SPRITE.frames[racerCtx.frame]!;
+    visitOutrunPixelRuns(
+      trafficSprite,
+      cx - spriteWidth / 2,
+      cy - spriteHeight / 2,
+      pixelSize,
+      (pixel, x, y, width, height) => {
+        ctx.fillStyle = resolveOutrunPixelColor(pixel, bodyColor);
+        ctx.fillRect(x, y, width, height);
+      }
+    );
 
     ctx.restore();
   }

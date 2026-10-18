@@ -72,6 +72,35 @@ export const drawSkiaEchoBackground: EffectDrawer<any, CoreComponentRegistry> = 
       canvas.drawRect(Skia.XYWHRect(px, py, 12 + (i % 2) * 8, 40 + (i % 3) * 30), paint);
     }
 
+    // Procedural Archive ruins and pixel flora add depth without external assets.
+    paint.reset();
+    paint.setStyle(Skia.PaintStyle.Fill);
+    paint.setColor(Skia.Color(palette.archiveSlate));
+    paint.setAlphaf(0.2);
+    const ruinBaseY = height * 0.78;
+    for (let i = 0; i < 5; i++) {
+      const ruinX = i * (width / 5) + 12;
+      const ruinWidth = 18 + (i % 3) * 8;
+      const ruinHeight = 28 + (i % 4) * 11;
+      canvas.drawRect(Skia.XYWHRect(ruinX, ruinBaseY - ruinHeight, ruinWidth, ruinHeight), paint);
+      canvas.drawRect(Skia.XYWHRect(ruinX - 4, ruinBaseY - ruinHeight, ruinWidth + 8, 4), paint);
+    }
+
+    paint.setAlphaf(0.85);
+    for (let i = 0; i < 9; i++) {
+      const plantX = (i * 131 + elapsed * 4) % width;
+      const baseY = height - 8 - (i % 3) * 5;
+      const stemHeight = 14 + (i % 4) * 5;
+      paint.setColor(Skia.Color(i % 3 === 0 ? palette.restorationGoldGlow : palette.restorationCyanGlow));
+      canvas.drawRect(Skia.XYWHRect(plantX, baseY - stemHeight, 2, stemHeight), paint);
+      canvas.drawRect(Skia.XYWHRect(plantX - 3, baseY - stemHeight + 4, 4, 3), paint);
+      canvas.drawRect(Skia.XYWHRect(plantX + 1, baseY - stemHeight + 9, 4, 3), paint);
+      if (i % 2 === 0) {
+        paint.setColor(Skia.Color(palette.restorationGold));
+        canvas.drawRect(Skia.XYWHRect(plantX - 1, baseY - stemHeight - 2, 3, 3), paint);
+      }
+    }
+
     for (let i = 0; i < 6; i++) {
       const px = (i * 143 + elapsed * 8) % width;
       const py = (i * 187 + elapsed * 12) % height;

@@ -441,16 +441,22 @@ export function syncLevelWorldDimensions(
 }
 
 /**
+ * Collectible categories supported by shared platformer blueprints.
+ * @public
+ */
+export type CollectibleKind = "fragment" | "core" | "coin";
+
+/**
  * Configuration options for registering a collectible trigger blueprint.
  * @public
  */
 export interface CollectibleBlueprintOptions {
   readonly id: string;
-  readonly kind: string;
+  readonly kind: CollectibleKind;
   readonly value: number;
   readonly size: number;
   readonly halfSize: number;
-  readonly shape: "fragment" | "core" | "coin" | string;
+  readonly shape: "fragment" | "core";
   readonly persistent?: boolean;
   readonly collectOnce?: boolean;
 }

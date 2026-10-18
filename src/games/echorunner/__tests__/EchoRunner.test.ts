@@ -640,6 +640,9 @@ describe("Echo Runner Game Simulation Tests", () => {
     const checkpointActivated = jest.fn();
     game.getEventBus().on("CheckpointActivated", checkpointActivated);
 
+    // CollisionSystem2D populates trigger overlaps after the Simulation phase;
+    // CheckpointSystem consumes that overlap on the next frame.
+    game.update(0.016);
     game.update(0.016);
 
     const runState = world.getResource<RunState>("RunState");

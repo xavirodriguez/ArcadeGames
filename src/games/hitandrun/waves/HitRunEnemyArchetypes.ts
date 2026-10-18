@@ -4,14 +4,15 @@ import type {
 } from "./HitRunWaveTypes";
 
 /**
- * Catálogo data-driven de enemigos.
+ * Catálogo data-driven de enemigos (fantasy belt).
  * behaviorTags impulsan FSM + flanqueo.
+ * Colores alineados con dusk / emerald / bone / iron palette.
  */
 export const HIT_RUN_ENEMY_ARCHETYPES: Record<
   string,
   EnemyArchetypeDefinition
 > = {
-  /** Carne de cañón — flanqueo en grupo (pinza por indexInGroup). */
+  /** Goblin fodder — flanqueo en grupo. */
   popcorn: {
     id: "popcorn",
     poolId: "enemy_popcorn",
@@ -19,12 +20,12 @@ export const HIT_RUN_ENEMY_ARCHETYPES: Record<
     faction: "enemy",
     shape: "popcorn",
     size: 10,
-    color: "#f97316",
+    color: "#3d8b4f", // goblin green
     speed: 60,
     behaviorTags: ["walk", "shoot_slow", "flank"]
   },
 
-  /** Muro denso — avanza en bloque, poco flanqueo. */
+  /** Orc wall — avanza en bloque. */
   wall: {
     id: "wall",
     poolId: "enemy_wall",
@@ -32,12 +33,12 @@ export const HIT_RUN_ENEMY_ARCHETYPES: Record<
     faction: "enemy",
     shape: "wall_trooper",
     size: 14,
-    color: "#78716c",
+    color: "#5c6b4a", // iron-moss orc
     speed: 40,
     behaviorTags: ["walk", "block"]
   },
 
-  /** Hopper con sesgo lateral al saltar. */
+  /** Wraith hopper. */
   hopper: {
     id: "hopper",
     poolId: "enemy_hopper",
@@ -45,12 +46,12 @@ export const HIT_RUN_ENEMY_ARCHETYPES: Record<
     faction: "enemy",
     shape: "hopper",
     size: 12,
-    color: "#a855f7",
+    color: "#7c6bb0", // wraith violet
     speed: 80,
     behaviorTags: ["hop", "flank"]
   },
 
-  /** Carga directa; flanqueo breve opcional. */
+  /** Skeleton charger. */
   charger: {
     id: "charger",
     poolId: "enemy_charger",
@@ -58,12 +59,12 @@ export const HIT_RUN_ENEMY_ARCHETYPES: Record<
     faction: "enemy",
     shape: "charger",
     size: 14,
-    color: "#ef4444",
+    color: "#c4b59a", // bone
     speed: 140,
     behaviorTags: ["charge"]
   },
 
-  /** Elite: ángulo lateral + disparo pesado. */
+  /** Citadel elite / warlock. */
   elite: {
     id: "elite",
     poolId: "enemy_elite",
@@ -71,7 +72,7 @@ export const HIT_RUN_ENEMY_ARCHETYPES: Record<
     faction: "enemy",
     shape: "elite",
     size: 22,
-    color: "#eab308",
+    color: "#c9a227", // cursed gold
     speed: 50,
     behaviorTags: ["shoot_heavy", "tank", "flank"]
   }

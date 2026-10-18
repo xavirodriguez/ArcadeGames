@@ -15,34 +15,13 @@ import {
   type BeltCameraState
 } from "../belt/BeltCameraTypes";
 import { startWaveScript } from "./HitRunWaveSystem";
-import {
-  SAMPLE_WAVE_SCRIPTS,
-  WAVE_OPENING,
-  WAVE_PRESSURE,
-  WAVE_BOSS_LEAD
-} from "./sampleWaves";
+import { SECTION_WAVE_SCRIPTS, WAVE_GOBLINS } from "./sectionWaves";
 import type { WaveScript } from "./HitRunWaveTypes";
 import { WAVE_DIRECTOR_RESOURCE, type WaveDirectorState } from "./HitRunWaveTypes";
 
-/** Map BeltSection.waveId → sample script (extend as content grows). */
-const SECTION_WAVE_MAP: Record<string, WaveScript> = {
-  wave_goblins: WAVE_OPENING,
-  opening: WAVE_OPENING,
-  wave_skeletons: WAVE_PRESSURE,
-  pressure: WAVE_PRESSURE,
-  wave_orcs: {
-    ...WAVE_PRESSURE,
-    id: "orcs",
-    name: "ORCS"
-  },
-  wave_boss: WAVE_BOSS_LEAD,
-  boss_lead: WAVE_BOSS_LEAD,
-  ...SAMPLE_WAVE_SCRIPTS
-};
-
 function resolveSectionScript(waveId: string | undefined): WaveScript {
-  if (waveId && SECTION_WAVE_MAP[waveId]) return SECTION_WAVE_MAP[waveId];
-  return WAVE_OPENING;
+  if (waveId && SECTION_WAVE_SCRIPTS[waveId]) return SECTION_WAVE_SCRIPTS[waveId];
+  return WAVE_GOBLINS;
 }
 
 /**

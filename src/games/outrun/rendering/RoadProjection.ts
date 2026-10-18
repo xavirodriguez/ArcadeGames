@@ -29,7 +29,7 @@ const NEAR_PLANE = 0.5;
  * @param playerX - Player lateral position (-1..1)
  * @param cameraHeight - Camera Y
  * @param cameraDepth - Perspective depth factor
- * @param roadWidth - Full road width in world units
+ * @param roadWidth - Road lateral half-width in world units
  * @param drawDistance - Max segments to project
  * @param screenW - Viewport width
  * @param screenH - Viewport height
@@ -145,13 +145,13 @@ export function projectRoad(
     const scale1 = cameraDepth / p1z;
     const scale2 = cameraDepth / rawP2z;
 
-    const projX1 = (1 + (camX1 * scale1) / roadWidth) * (screenW / 2);
+    const projX1 = (1 + camX1 * scale1) * (screenW / 2);
     const projY1 = screenH / 2 - scale1 * camY1 * (screenH / 2);
-    const projW1 = (scale1 * screenW) / 2;
+    const projW1 = scale1 * roadWidth * (screenW / 2);
 
-    const projX2 = (1 + (camX2 * scale2) / roadWidth) * (screenW / 2);
+    const projX2 = (1 + camX2 * scale2) * (screenW / 2);
     const projY2 = screenH / 2 - scale2 * camY2 * (screenH / 2);
-    const projW2 = (scale2 * screenW) / 2;
+    const projW2 = scale2 * roadWidth * (screenW / 2);
 
     dest.x1 = projX1;
     dest.y1 = projY1;

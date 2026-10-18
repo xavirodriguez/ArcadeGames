@@ -1,6 +1,7 @@
 import { World, CoreComponentRegistry, EventRegistry, MiniGameRunContext, RunState, ConfigService, Renderer, RenderContext } from "@tiny-aster/core";
 import { CanvasRenderer } from "@tiny-aster/renderer-canvas";
 import { EchoRunnerGame } from "../EchoRunnerGame";
+import { PlatformerInputSystem } from "../../shared/systems/PlatformerInputSystem";
 import { EchoRunnerArcadeAdapter } from "../story/EchoRunnerEncounter";
 import { EchoRunnerConfigSchema, EchoRunnerConfig } from "../types/EchoRunnerConfigSchema";
 import { createThemeFromGameAccents } from "../../../theme/gameAccents";
@@ -82,6 +83,13 @@ describe("Echo Runner Game Simulation Tests", () => {
     expect(() => {
       ConfigService.load("echorunner", EchoRunnerConfigSchema, { PLAYER_JUMP_VEL: "super_high" });
     }).toThrow(/Configuration validation failed for game "echorunner"/);
+
+    expect(() => {
+      ConfigService.load("echorunner", EchoRunnerConfigSchema, {
+        PLAYER_JUMP_VEL: 200,
+        PLAYER_MIN_JUMP_VEL: 250
+      });
+    }).toThrow(/Configuration validation failed for game "echorunner"/);
   });
 
   it("should correctly parse and apply valid config overrides when loaded via ConfigService.load", () => {
@@ -138,6 +146,65 @@ describe("Echo Runner Game Simulation Tests", () => {
     game.setInputState({ moveRight: false });
     inputComp = world.getComponent(playerEntity, "PlatformerInput") as any;
     expect(inputComp.moveDir).toBe(0);
+  });
+
+  it("should spend the grounded jump before preserving the remaining multi-jump budget and support short hops", () => {
+    const playerEntity = world.query("PlatformerInput")[0];
+    const inputSystem = new PlatformerInputSystem();
+
+    world.mutateComponent(playerEntity, "PlatformerJumper", (jumper) => {
+      jumper.maxJumps = 2;
+      jumper.jumpsRemaining = 2;
+      jumper.coyoteTimer = 0;
+      jumper.jumpBufferTimer = 0;
+    });
+    world.mutateComponent(playerEntity, "PlatformerGroundState", (ground) => {
+      ground.isGrounded = true;
+    });
+    world.mutateComponent(playerEntity, "PlatformerInput", (input) => {
+      input.jumpHeld = true;
+    });
+
+    inputSystem.update(world, 1 / 60);
+
+    const jumperAfterJump = world.getComponent(playerEntity, "PlatformerJumper")!;
+    const groundAfterJump = world.getComponent(playerEntity, "PlatformerGroundState")!;
+    const velocityAfterJump = world.getComponent(playerEntity, "Velocity")!;
+    const gravity = world.getComponent(playerEntity, "PlatformerGravityConfig")!;
+
+    expect(groundAfterJump.isGrounded).toBe(false);
+    expect(jumperAfterJump.jumpsRemaining).toBe(1);
+    expect(velocityAfterJump.vy).toBe(-gravity.jumpVelocity);
+
+    world.mutateComponent(playerEntity, "PlatformerInput", (input) => {
+      input.jumpHeld = false;
+    });
+    inputSystem.update(world, 1 / 60);
+
+    expect(world.getComponent(playerEntity, "Velocity")!.vy).toBe(-gravity.minJumpVelocity);
+    expect(world.getComponent(playerEntity, "PlatformerJumper")!.jumpsRemaining).toBe(1);
+  });
+
+  it("should discard a Pulse press during cooldown rather than firing it later", () => {
+    const playerEntity = world.query("EchoRunnerInput")[0];
+
+    world.mutateComponent(playerEntity, "EchoRunnerInput", (input) => {
+      input.pulseCooldown = 0.2;
+      input.pulsePressed = false;
+    });
+
+    game.setInputState({ pulse: true });
+    game.update(0.016);
+
+    expect(world.getComponent(playerEntity, "EchoRunnerInput")!.pulsePressed).toBe(false);
+    expect(world.query("Hitbox")).toHaveLength(0);
+
+    for (let frame = 0; frame < 20; frame++) {
+      game.update(0.016);
+    }
+
+    expect(world.getComponent(playerEntity, "EchoRunnerInput")!.pulseCooldown).toBe(0);
+    expect(world.query("Hitbox")).toHaveLength(0);
   });
 
   it("should trigger a Pulse attack on input, spawning a Hitbox child entity with TTL", () => {

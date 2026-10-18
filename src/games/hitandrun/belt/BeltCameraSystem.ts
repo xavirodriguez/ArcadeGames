@@ -25,9 +25,7 @@ export const BELT_ALIVE_ENEMIES_RESOURCE = "BeltAliveEnemies";
 
 function isPlayerEntity(world: World<CoreComponentRegistry>, e: number): boolean {
   return (
-    world.hasComponent(e, "BeltInput") ||
-    world.hasComponent(e, "PlatformerInput") ||
-    world.hasComponent(e, "MeleeAttack")
+    world.hasComponent(e, "BeltInput") || world.hasComponent(e, "PlatformerInput")
   );
 }
 
@@ -68,7 +66,6 @@ export class BeltCameraSystem extends System<CoreComponentRegistry> {
 
     const sectionIndex = state.currentSectionIndex;
 
-    // Broad scan: Health entities that look like enemies (not the player).
     const withHealth = world.query("Health");
     let aliveInSection = 0;
 
@@ -101,10 +98,7 @@ export class BeltCameraSystem extends System<CoreComponentRegistry> {
       state.hadEnemiesThisSection = true;
     }
 
-    // Gate opens as soon as the section has seen enemies and none remain alive.
-    // Pending wave events may spawn more later (gate re-locks); that is intentional.
-    const spawning =
-      (wave?.pendingStaggers?.length ?? 0) > 0;
+    const spawning = (wave?.pendingStaggers?.length ?? 0) > 0;
 
     state.sectionCleared =
       state.hadEnemiesThisSection && aliveInSection === 0 && !spawning;

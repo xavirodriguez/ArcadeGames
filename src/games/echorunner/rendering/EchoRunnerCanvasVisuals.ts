@@ -3,6 +3,7 @@ import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rende
 import {
   resolveEchoPlayerDrawContext,
   resolveEchoBackgroundContext,
+  resolveEchoRunnerPalette,
 } from "./EchoRunnerVisualUtils";
 import {
   getEchoRunnerSpriteFrame,
@@ -11,6 +12,104 @@ import {
 } from "./EchoRunnerPixelArt";
 
 import { drawCanvasHitFlashCircle } from "../../shared/rendering/PlatformerSharedVisuals";
+
+export const drawEchoStateSwitch: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
+  draw(ctx, world, entity) {
+    const trigger = world.getComponent(entity, "StateTrigger");
+    const render = world.getComponent(entity, "Render");
+    if (!trigger || !render) return;
+
+    const palette = resolveEchoRunnerPalette(world);
+    const size = render.size ?? 26;
+    const color = trigger.activated ? palette.restorationCyan : palette.corruptionCrimson;
+    ctx.save();
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = palette.archiveVoidDark;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, -size * 0.5);
+    ctx.lineTo(size * 0.5, 0);
+    ctx.lineTo(0, size * 0.5);
+    ctx.lineTo(-size * 0.5, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = color;
+    const coreSize = trigger.activated ? size * 0.26 : size * 0.16;
+    ctx.fillRect(-coreSize * 0.5, -coreSize * 0.5, coreSize, coreSize);
+    ctx.restore();
+  }
+};
+
+export const drawEchoStateGate: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
+  draw(ctx, world, entity) {
+    const gate = world.getComponent(entity, "StateGate");
+    const render = world.getComponent(entity, "Render");
+    if (!gate || !render) return;
+
+    const palette = resolveEchoRunnerPalette(world);
+    const size = render.size ?? 60;
+    const width = size * 0.42;
+    const height = size;
+    ctx.save();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = gate.isOpen ? palette.restorationCyan : palette.corruptionCrimson;
+    ctx.fillStyle = palette.archiveVoidDark;
+    ctx.shadowColor = ctx.strokeStyle;
+    ctx.shadowBlur = gate.isOpen ? 4 : 12;
+
+    if (gate.isOpen) {
+      ctx.globalAlpha = 0.28;
+      ctx.strokeRect(-width * 0.5, -height * 0.5, width, height);
+      ctx.beginPath();
+      ctx.moveTo(-width * 0.28, -height * 0.36);
+      ctx.lineTo(-width * 0.28, height * 0.36);
+      ctx.moveTo(width * 0.28, -height * 0.36);
+      ctx.lineTo(width * 0.28, height * 0.36);
+      ctx.stroke();
+    } else {
+      ctx.fillRect(-width * 0.5, -height * 0.5, width, height);
+      ctx.strokeRect(-width * 0.5, -height * 0.5, width, height);
+      for (let bar = -1; bar <= 1; bar++) {
+        ctx.beginPath();
+        ctx.moveTo(bar * width * 0.22, -height * 0.42);
+        ctx.lineTo(bar * width * 0.22, height * 0.42);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+};
+
+export const drawEchoDeathZone: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
+  draw(ctx, world, entity) {
+    const render = world.getComponent(entity, "Render");
+    const collider = world.getComponent(entity, "Collider2D");
+    if (!render || !collider || collider.shape.type !== "aabb") return;
+
+    const palette = resolveEchoRunnerPalette(world);
+    const width = collider.shape.halfWidth * 2;
+    const height = collider.shape.halfHeight * 2;
+    ctx.save();
+    ctx.globalAlpha = 0.34;
+    ctx.fillStyle = palette.corruptionCrimson;
+    ctx.fillRect(-width * 0.5, -height * 0.5, width, height);
+    ctx.globalAlpha = 0.9;
+    ctx.strokeStyle = palette.corruptionAmber;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let x = -width * 0.5; x < width * 0.5; x += 10) {
+      ctx.moveTo(x, height * 0.5);
+      ctx.lineTo(Math.min(x + height, width * 0.5), -height * 0.5);
+    }
+    ctx.stroke();
+    ctx.restore();
+  }
+};
 
 export {
   drawMemoryFragment,

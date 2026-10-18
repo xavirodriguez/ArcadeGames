@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef, FC } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Platform, TextInput } from "react-native";
+import { useState, useEffect, useCallback, useRef, useMemo, FC } from "react";
+import { StyleSheet, View, Text, TouchableOpacity, Platform } from "react-native";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
@@ -26,7 +26,7 @@ import { RadialBackground } from "@/components/RadialBackground";
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { hapticSelection } from "../../utils/haptics";
 import { useTranslation } from "../../hooks/useTranslation";
-import { colors } from "../../theme";
+import { officePaperTheme, createThemeFromGameAccents } from "../../theme";
 import { TouchInputState } from "@tiny-aster/core";
 import {
   GameScreen,
@@ -46,6 +46,13 @@ export default function FlappyBirdScreen() {
   const [initialSeed, setInitialSeed] = useState<number | undefined>();
   const [isBooting, setIsBooting] = useState(false);
   const sessionBootedRef = useRef(false);
+  const [selectedThemeKey, setSelectedThemeKey] = useState<"neon" | "office">("neon");
+
+  const selectedTheme = useMemo(() => {
+    return selectedThemeKey === "office"
+      ? officePaperTheme
+      : createThemeFromGameAccents("flappy-bird");
+  }, [selectedThemeKey]);
 
   // Sync player name from profile
   useEffect(() => {
@@ -61,7 +68,7 @@ export default function FlappyBirdScreen() {
   const [started, setStarted] = useState(false);
   const [isMulti, setIsMulti] = useState(false);
   const [isDaily, setIsDaily] = useState(false);
-  const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useFlappyBirdGame(started, isMulti && started);
+  const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useFlappyBirdGame(started, isMulti && started, initialSeed, selectedTheme);
 
   const touchStateRef = useRef<TouchInputState | null>(null);
   if (!touchStateRef.current) {
@@ -172,6 +179,8 @@ export default function FlappyBirdScreen() {
       <StartScreen
         title="NEON VOID"
         highScore={highScore}
+        selectedThemeKey={selectedThemeKey}
+        onThemeChange={setSelectedThemeKey}
         onStart={() => {
           hapticSelection();
           if (initialSeed !== undefined) {
@@ -331,6 +340,8 @@ export default function FlappyBirdScreen() {
 const StartScreen: FC<{
   title: string;
   highScore: number;
+  selectedThemeKey: "neon" | "office";
+  onThemeChange: (theme: "neon" | "office") => void;
   onStart: () => void;
   onStartMulti: () => void;
   playerName: string;
@@ -342,6 +353,8 @@ const StartScreen: FC<{
 }> = ({
   title,
   highScore,
+  selectedThemeKey,
+  onThemeChange,
   onStart,
   onStartMulti,
   playerName,
@@ -364,6 +377,54 @@ const StartScreen: FC<{
         onChangeText={onPlayerNameChange}
         placeholder={t?.common?.your_name || "Your name"}
       />
+
+      <View style={styles.themeSelectorContainer}>
+        <Text style={styles.themeSelectorLabel}>THEME:</Text>
+        <View style={styles.themeSelectorRow}>
+          <TouchableOpacity
+            style={[
+              styles.themeOptionButton,
+              selectedThemeKey === "neon" && styles.themeOptionActive,
+            ]}
+            onPress={() => {
+              hapticSelection();
+              onThemeChange("neon");
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Neon Void"
+          >
+            <Text
+              style={[
+                styles.themeOptionText,
+                selectedThemeKey === "neon" && styles.themeOptionTextActive,
+              ]}
+            >
+              Neon Void
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.themeOptionButton,
+              selectedThemeKey === "office" && styles.themeOptionActive,
+            ]}
+            onPress={() => {
+              hapticSelection();
+              onThemeChange("office");
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Oficina 8:47"
+          >
+            <Text
+              style={[
+                styles.themeOptionText,
+                selectedThemeKey === "office" && styles.themeOptionTextActive,
+              ]}
+            >
+              Oficina 8:47
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
       <GameInstructions>{instructions}</GameInstructions>
       <HighScoreText label={t?.common?.record || "Record"} score={highScore} />
@@ -465,5 +526,43 @@ const styles = StyleSheet.create({
     marginTop: -20,
     marginBottom: 20,
     textAlign: "center",
+  },
+  themeSelectorContainer: {
+    marginVertical: 12,
+    alignItems: "center",
+  },
+  themeSelectorLabel: {
+    fontFamily: "monospace",
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#8B93A5",
+    letterSpacing: 1.5,
+    marginBottom: 8,
+  },
+  themeSelectorRow: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  themeOptionButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#334155",
+    backgroundColor: "rgba(15, 23, 42, 0.6)",
+  },
+  themeOptionActive: {
+    borderColor: "#00F3FF",
+    backgroundColor: "rgba(0, 243, 255, 0.15)",
+  },
+  themeOptionText: {
+    fontFamily: "monospace",
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#94A3B8",
+  },
+  themeOptionTextActive: {
+    color: "#00F3FF",
+    fontWeight: "bold",
   },
 });

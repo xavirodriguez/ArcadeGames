@@ -13,6 +13,7 @@ export type GameConfig = BaseGameConfig & {
 
 export interface GameOptions<TState> {
   seed?: number;
+  theme?: Theme;
   gameOptions?: Record<string, unknown>;
   initialState?: TState | null;
   assetProvider?: IAssetProvider;
@@ -58,7 +59,7 @@ export function useGame<
   isMultiplayer: boolean = false,
   options: GameOptions<TState> = {}
 ): UseGameResult<TGame, TState, TInput> {
-  const { seed, gameOptions, initialState = null } = options;
+  const { seed, theme, gameOptions, initialState = null } = options;
 
   const serializedGameOptions = useMemo(() => {
     try {

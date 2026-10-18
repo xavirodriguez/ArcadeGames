@@ -58,7 +58,7 @@ export function useGame<
   isMultiplayer: boolean = false,
   options: GameOptions<TState> = {}
 ): UseGameResult<TGame, TState, TInput> {
-  const { seed, theme, gameOptions, initialState = null } = options;
+  const { seed, gameOptions, initialState = null } = options;
 
   const serializedGameOptions = useMemo(() => {
     try {

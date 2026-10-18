@@ -268,10 +268,9 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
     // Listen to Hit Detection events
     const eventBus = this.world.getEventBus();
     if (eventBus) {
-      eventBus.on("hitbox:hit", (event: unknown) => {
-        const payload = event as { victim?: number; attacker?: number } | undefined;
-        const victim = payload?.victim;
-        const attacker = payload?.attacker;
+      eventBus.on("hitbox:hit", (payload) => {
+        const victim = payload.victim;
+        const attacker = payload.attacker;
 
         // If player hits an enemy
         if (attacker && (this.world.hasComponent(attacker, "PlatformerInput") || this.world.hasComponent(attacker, "EchoRunnerInput")) && victim && this.world.hasComponent(victim, "Enemy")) {

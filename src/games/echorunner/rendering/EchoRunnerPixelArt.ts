@@ -13,36 +13,40 @@ export type EchoRunnerSpritePalette = {
 };
 
 const IDLE_FRAME = [
-  "....RR......", "...RKKR.....", "...KWWWK....", "...KWCKK....",
-  "....KK......", "..KKKKKK....", "..KCCCCK....", "..KCCWCK....",
-  "..KCCCCK....", "...KCCK.....", "...KCCK.....", "..KK..KK....",
-  "..K....K....", "..K....K....", ".KK....KK...", "............",
+  "......RR........", ".....RRKR.......", "....RKKKKR......", "....KWWWWK......",
+  "....KWCCWK......", "....KCCCCK......", ".....KKKK.......", "...KKKKKKKK.....",
+  "..KCCCCCCCCK....", ".KCCCWCCCCCCK...", "..KCCCCCCCCCCK..", "..KCCCGGCCCK....",
+  "..KCCCCCCCCK....", "...KKCCCCKK.....", "....KKCCKK......", ".....K..K.......",
+  ".....K..K.......", "....KK..KK......", "...KK....KK.....", "...KK....KK.....",
 ] as const;
 const RUN_FRAME_A = [
-  "....RR......", "...RKKR.....", "...KWWWK....", "...KWCKK....",
-  "....KK......", "..KKKKKK....", "..KCCCCK....", "..KCCWCK....",
-  "..KCCCCK....", "...KCCK.....", "...KCCK.....", "..KK..KK....",
-  ".KK....K....", "...K...K....", "..KK..KK....", "............",
+  "......RR........", ".....RRKR.......", "....RKKKKR......", "....KWWWWK......",
+  "....KWCCWK......", "....KCCCCK......", ".....KKKK.......", "...KKKKKKKK.....",
+  "..KCCCCCCCCK....", ".KCCCWCCCCCCK...", "..KCCCCCCCCCCK..", "..KCCCGGCCCK....",
+  "..KCCCCCCCCK....", "...KKCCCCKK.....", "....K....K......", "...KK....KK.....",
+  "..KK......KK....", "....KK..KK......", ".....K..K.......", "................",
 ] as const;
 const RUN_FRAME_B = [
-  "....RR......", "...RKKR.....", "...KWWWK....", "...KWCKK....",
-  "....KK......", "..KKKKKK....", "..KCCCCK....", "..KCCWCK....",
-  "..KCCCCK....", "...KCCK.....", "...KCCK.....", "..KK..KK....",
-  "...K....KK..", "...K...K....", "..KK..KK....", "............",
+  "......RR........", ".....RRKR.......", "....RKKKKR......", "....KWWWWK......",
+  "....KWCCWK......", "....KCCCCK......", ".....KKKK.......", "...KKKKKKKK.....",
+  "..KCCCCCCCCK....", ".KCCCWCCCCCCK...", "..KCCCCCCCCCCK..", "..KCCCGGCCCK....",
+  "..KCCCCCCCCK....", "...KKCCCCKK.....", "......K....K....", ".....KK....KK...",
+  "....KK......KK..", "....KK..KK......", ".....K..K.......", "................",
 ] as const;
 const JUMP_FRAME = [
-  "....RR......", "...RKKR.....", "...KWWWK....", "...KWCKK....",
-  "....KK......", "..KKKKKK....", "..KCCCCK....", "..KCCWCK....",
-  "..KCCCCK....", "...KCCK.....", "..KK..KK....", ".KK....KK...",
-  "............", "............", "............", "............",
+  "......RR........", ".....RRKR.......", "....RKKKKR......", "....KWWWWK......",
+  "....KWCCWK......", "....KCCCCK......", ".....KKKK.......", "...KKKKKKKK.....",
+  "..KCCCCCCCCK....", ".KCCCWCCCCCCK...", "..KCCCCCCCCCCK..", "..KCCCGGCCCK....",
+  "..KCCCCCCCCK....", "...KKCCCCKK.....", "....KK..KK......", "...KK....KK.....",
+  "..KK......KK....", "................", "................", "................",
 ] as const;
 const ATTACK_FRAME = [
-  "....RR......", "...RKKR.....", "...KWWWK....", "...KWCKK....",
-  "....KK......", "..KKKKKK....", "..KCCCCKGG..", "..KCCWCKGG..",
-  "..KCCCCKWW..", "...KCCK.....", "...KCCK.....", "..KK..KK....",
-  "..K....K....", "..K....K....", ".KK....KK...", "............",
+  "......RR........", ".....RRKR.......", "....RKKKKR......", "....KWWWWK......",
+  "....KWCCWK......", "....KCCCCK......", ".....KKKK.......", "...KKKKKKKK.....",
+  "..KCCCCCCCCK....", ".KCCCWCCCCCCK...", "..KCCCCCCCCKGG..", "..KCCCCGGCCKGGW.",
+  "..KCCCCCCCCK.GG.", "...KKCCCCKK.....", "....KKCCKK......", ".....K..K.......",
+  ".....K..K.......", "....KK..KK......", "...KK....KK.....", "...KK....KK.....",
 ] as const;
-
 const SPRITE_FRAMES: Record<EchoRunnerSpriteMotion, readonly (readonly string[])[]> = {
   idle: [IDLE_FRAME],
   run: [RUN_FRAME_A, RUN_FRAME_B],

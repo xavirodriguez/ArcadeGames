@@ -167,4 +167,46 @@ describe("TowerDefense headless - Phase 2 (Playable Headless)", () => {
     expect(gs.phase).toBe("build");
     expect(gs.wave).toBe(1);
   });
+
+  it("2.7 App-level input: setInputState({ startWave: true }) triggers wave transition and spawns creeps", async () => {
+    game = new TowerDefenseGame({ headless: true, gameOptions: { seed: 42 } });
+    await game.init();
+
+    expect(game.getGameState().phase).toBe("build");
+
+    // Trigger startWave and send follow-up cursor input before frame tick to test latching
+    game.setInputState({ startWave: true });
+    game.setInputState({ cursorX: 200, cursorY: 150 });
+
+    // Tick 1: GameStateSystem sets phase = "wave", resets input.startWave = false
+    game.update(1 / 60);
+    expect(game.getGameState().phase).toBe("wave");
+
+    // Tick 2: WaveSpawnSystem sees phase === "wave" && status === "idle" -> enqueues spawns
+    game.update(1 / 60);
+
+    // Tick 3: WaveSpawnSystem processes pendingSpawns -> creates creep entity
+    game.update(1 / 60);
+
+    const creeps = game.getWorld().query("Creep");
+    expect(creeps.length).toBeGreaterThan(0);
+
+    const creepEntity = creeps[0];
+    const transform = game.getWorld().getComponent(creepEntity, "Transform");
+    const render = game.getWorld().getComponent(creepEntity, "Render");
+    const creepComp = game.getWorld().getComponent(creepEntity, "Creep");
+
+    expect(transform).toBeDefined();
+    expect(transform!.x).toBeGreaterThan(0);
+    expect(transform!.x).toBeLessThan(800);
+    expect(transform!.y).toBeGreaterThan(0);
+    expect(transform!.y).toBeLessThan(600);
+
+    expect(render).toBeDefined();
+    expect(render!.visible).toBe(true);
+    expect(render!.shape).toBe("creep_grunt");
+
+    expect(creepComp).toBeDefined();
+    expect(creepComp!.creepType).toBe("grunt");
+  });
 });

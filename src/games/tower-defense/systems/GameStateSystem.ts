@@ -45,11 +45,30 @@ export class GameStateSystem extends System<TowerDefenseComponentRegistry, Tower
       });
     }
 
-    const playerEntity = world.query("Player")[0];
-    if (playerEntity !== undefined && (gs.phase === "build" || gs.phase === "intermission")) {
+    const playerEntity = world.query("Player")[0] ?? world.query("LocalPlayer")[0];
+    if (playerEntity === undefined) {
+      const gsInput = (world.query("Input")[0]);
+      if (gsInput) {
+        const inp = world.getComponent(gsInput, "Input");
+        if (inp?.startWave) {
+          console.warn("[TD GameStateSystem] startWave input ignored because no Player or LocalPlayer entity exists.");
+        }
+      }
+      return;
+    }
+
+    if (gs.phase === "build" || gs.phase === "intermission") {
       const input = world.getComponent(playerEntity, "Input");
       if (input?.startWave) {
         this.beginWave(world);
+        world.mutateComponent(playerEntity, "Input", (i) => {
+          i.startWave = false;
+        });
+      }
+    } else {
+      const input = world.getComponent(playerEntity, "Input");
+      if (input?.startWave) {
+        console.warn(`[TD GameStateSystem] Ignored startWave input because gs.phase is '${gs.phase}' (expected 'build' or 'intermission').`);
         world.mutateComponent(playerEntity, "Input", (i) => {
           i.startWave = false;
         });

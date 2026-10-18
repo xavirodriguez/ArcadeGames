@@ -1,7 +1,6 @@
 import { ShapeDrawer, EffectDrawer, CoreComponentRegistry } from "@tiny-aster/core";
 import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 import {
-  calculateEchoPlayerPose,
   resolveEchoPlayerDrawContext,
   resolveEchoBackgroundContext,
 } from "./EchoRunnerVisualUtils";

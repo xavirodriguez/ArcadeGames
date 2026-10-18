@@ -360,6 +360,58 @@ describe("Platformer Level 3 - Content & Design Tests", () => {
       expect(runState.collectedTemporalIds).toContain("temp_coin_1");
       expect(world.hasEntity(temporalColl)).toBe(false);
     });
+
+    it("should suppress a once-only temporal collectible duplicated within the same run", () => {
+      const collSys = new CollectibleSystem();
+      const player = world.createEntity();
+      world.addComponent(player, {
+        type: "PlatformerInput",
+        moveDir: 0,
+        jumpPressed: false,
+        jumpHeld: false,
+        jumpReleased: false
+      });
+      world.addComponent(player, {
+        type: "CollisionEvents",
+        collisions: [],
+        activeTriggers: [],
+        triggersEntered: [],
+        triggersExited: []
+      });
+
+      const createOnceOnlyCollectible = () => {
+        const entity = world.createEntity();
+        world.addComponent(entity, {
+          type: "Collectible",
+          kind: "memory_key",
+          value: 25,
+          persistent: false,
+          collectOnce: true,
+          id: "temp_once_1"
+        });
+        return entity;
+      };
+
+      const first = createOnceOnlyCollectible();
+      world.mutateComponent(player, "CollisionEvents", (events) => {
+        events.activeTriggers = [first];
+      });
+      collSys.update(world, 0.1);
+      world.flush();
+
+      expect(runState.collectedTemporalIds).toContain("temp_once_1");
+      expect(world.hasEntity(first)).toBe(false);
+
+      const duplicate = createOnceOnlyCollectible();
+      world.mutateComponent(player, "CollisionEvents", (events) => {
+        events.activeTriggers = [duplicate];
+      });
+      collSys.update(world, 0.1);
+      world.flush();
+
+      expect(world.hasEntity(duplicate)).toBe(false);
+      expect(runState.collectedTemporalIds.filter((id) => id === "temp_once_1")).toHaveLength(1);
+    });
   });
 
   describe("Enemies, Sensors & State Machines", () => {

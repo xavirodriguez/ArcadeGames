@@ -1452,6 +1452,9 @@ export interface CoreComponentRegistry extends ComponentRegistry {
   Hurtbox: HurtboxComponent;
   /** Respawn point component. */
   RespawnPoint: RespawnPointComponent;
+  StateTrigger: StateTriggerComponent;
+  StateGate: StateGateComponent;
+  DeathZone: DeathZoneComponent;
   /** Respawnable component. */
   Respawnable: RespawnableComponent;
   /** Collectible component. */
@@ -1528,6 +1531,32 @@ export interface LapTrackerComponent extends Component {
  *
  * @public
  */
+export interface StateTriggerComponent extends Component {
+  type: "StateTrigger";
+  /** Stable ID used for authored interaction events. */
+  id: string;
+  /** ID shared with one or more state gates. */
+  targetId: string;
+  /** Whether this trigger has already activated during the current attempt. */
+  activated: boolean;
+}
+
+export interface StateGateComponent extends Component {
+  type: "StateGate";
+  /** Stable ID for the gate entity. */
+  id: string;
+  /** State trigger target ID that opens this gate. */
+  targetId: string;
+  /** Whether the gate is open and its collider is disabled. */
+  isOpen: boolean;
+}
+
+export interface DeathZoneComponent extends Component {
+  type: "DeathZone";
+  /** Stable ID for level-authoring and event diagnostics. */
+  id: string;
+}
+
 export interface RespawnPointComponent extends Component {
   /** Component discriminator type. */
   type: "RespawnPoint";

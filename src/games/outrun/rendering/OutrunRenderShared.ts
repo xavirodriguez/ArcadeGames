@@ -2,6 +2,7 @@ import type { World, RenderComponent } from "@tiny-aster/core";
 import { resolveThemeColorWithFallback } from "@tiny-aster/core";
 import type { OutrunComponentRegistry, RoadData, ProjectedSegment, RaceStateComponent, RacerComponent } from "../types/OutrunTypes";
 import type { OutrunConfig } from "../types/OutrunConfigSchema";
+import { getOutrunAnimationFrame } from "./OutrunPixelSprites";
 import { DEFAULT_OUTRUN_CONFIG } from "../types/OutrunConfigSchema";
 import { createProjectionBuffer, projectRoad } from "./RoadProjection";
 import { COAST_PALETTE, getScenarioPaletteAtZ, applyDayPhase, scenarioHash, type ScenarioPalette, type ModulatedPalette } from "./OutrunPalettes";
@@ -406,6 +407,7 @@ export function resolveOutrunHudContext(
 export interface OutrunRacerDrawContext {
   proj: NonNullable<ReturnType<typeof computeRacerProjection>>;
   bodyColor: string;
+  frame: number;
 }
 
 export function resolveOutrunRacerDrawContext(
@@ -429,7 +431,7 @@ export function resolveOutrunRacerDrawContext(
 
   const bodyColor = RACER_COLORS[racer.colorIndex % RACER_COLORS.length];
 
-  return { proj, bodyColor };
+  return { proj, bodyColor, frame: getOutrunAnimationFrame(racer.z) };
 }
 
 /** Visitor callback signature for back-to-front sprite passes. */

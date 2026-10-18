@@ -341,4 +341,74 @@ describe("OutrunGameplay", () => {
     expect(game.getGameState().racePhase).toBe("racing");
     expect(game.getGameState().countdownTime).toBe(0);
   });
+
+  it("renders matching pixel-run counts for player and traffic cars in Canvas and Skia", async () => {
+    const game = new OutrunGame({ seed: 404, headless: true });
+    await game.init();
+    const world = game.getWorld();
+
+    const carEntity = world.query("Render").find(
+      (entity) => world.getComponent(entity, "Render")?.shape === "outrun_car"
+    );
+    expect(carEntity).toBeDefined();
+
+    world.mutateSingleton("RaceState", (state) => {
+      state.playerZ = 400;
+      state.speed = 0;
+    });
+
+    const canvasCar = {
+      save: jest.fn(),
+      restore: jest.fn(),
+      translate: jest.fn(),
+      rotate: jest.fn(),
+      scale: jest.fn(),
+      fillRect: jest.fn()
+    };
+    const skiaCar = {
+      save: jest.fn(),
+      restore: jest.fn(),
+      translate: jest.fn(),
+      rotate: jest.fn(),
+      scale: jest.fn(),
+      drawRect: jest.fn()
+    };
+
+    drawOutrunCar.draw(canvasCar as never, world, carEntity!);
+    drawSkiaOutrunCar.draw(skiaCar as never, world, carEntity!);
+
+    expect(canvasCar.fillRect).toHaveBeenCalledTimes(skiaCar.drawRect.mock.calls.length);
+    expect(canvasCar.fillRect).toHaveBeenCalled();
+    expect(skiaCar.drawRect).toHaveBeenCalled();
+
+    const racerEntity = world.query("Racer")[0];
+    expect(racerEntity).toBeDefined();
+    world.mutateComponent(racerEntity!, "Racer", (racer) => {
+      racer.z = 200;
+      racer.lateralX = 0;
+      racer.active = true;
+    });
+    world.mutateSingleton("RaceState", (state) => {
+      state.playerZ = 0;
+    });
+
+    const canvasTraffic = {
+      save: jest.fn(),
+      restore: jest.fn(),
+      fillRect: jest.fn()
+    };
+    const skiaTraffic = {
+      save: jest.fn(),
+      restore: jest.fn(),
+      drawRect: jest.fn()
+    };
+
+    drawOutrunRacer.draw(canvasTraffic as never, world, racerEntity!);
+    drawSkiaOutrunRacer.draw(skiaTraffic as never, world, racerEntity!);
+
+    expect(canvasTraffic.fillRect).toHaveBeenCalled();
+    expect(skiaTraffic.drawRect).toHaveBeenCalled();
+    expect(canvasTraffic.fillRect).toHaveBeenCalledTimes(skiaTraffic.drawRect.mock.calls.length);
+  });
+
 });

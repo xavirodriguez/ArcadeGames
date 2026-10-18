@@ -1,9 +1,9 @@
 import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
 import { PongComponentRegistry } from "../types";
-import { PongConfig } from "../types/PongConfigSchema";
 import { colors } from "../../../theme/colors";
 import { drawNeonShapeSkia, SkiaMotionTrail, drawSkiaBackgroundGrid } from "../../shared/rendering/SkiaNeonUtils";
-import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
+import { Skia, getPaint, SkCanvas } from "../../shared/rendering/SkiaContext";
+import { fillSkiaPaint } from "../../shared/rendering/renderingUtils";
 import { resolvePongBallContext, resolvePongPaddleContext } from "./PongRenderUtils";
 
 export { TrailPoint } from "../../shared/rendering/CanvasNeonUtils";
@@ -15,7 +15,7 @@ const ballSkiaMotionTrail = new SkiaMotionTrail(30);
  * Upgraded, high-fidelity Skia ball shape drawer.
  * @public
  */
-export const drawSkiaPongBall: ShapeDrawer<any, PongComponentRegistry> = {
+export const drawSkiaPongBall: ShapeDrawer<SkCanvas, PongComponentRegistry> = {
   draw(canvas, world, entity) {
     const ballCtx = resolvePongBallContext(world, entity);
     if (!ballCtx) return;
@@ -31,15 +31,10 @@ export const drawSkiaPongBall: ShapeDrawer<any, PongComponentRegistry> = {
 
     canvas.rotate((swirlRotation * 180) / Math.PI, 0, 0);
 
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(ballColor));
-    paint.setStrokeWidth(2.0);
+    fillSkiaPaint(paint, "stroke", ballColor, 2.0);
     canvas.drawCircle(0, 0, size, paint);
 
-    paint.setColor(Skia.Color(colors.white));
-    paint.setStrokeWidth(1.5);
+    fillSkiaPaint(paint, "stroke", colors.white, 1.5);
     const swirlPath = Skia.Path.Make();
     swirlPath.moveTo(0, -size);
     swirlPath.quadTo(size * spin * 1.5, 0, 0, size);
@@ -47,9 +42,7 @@ export const drawSkiaPongBall: ShapeDrawer<any, PongComponentRegistry> = {
     swirlPath.quadTo(0, size * spin * 1.5, size, 0);
     canvas.drawPath(swirlPath, paint);
 
-    paint.reset();
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(colors.white));
+    fillSkiaPaint(paint, "fill", colors.white);
     canvas.drawCircle(0, 0, size * 0.4, paint);
 
     canvas.restore();
@@ -60,7 +53,7 @@ export const drawSkiaPongBall: ShapeDrawer<any, PongComponentRegistry> = {
  * Upgraded, high-fidelity Skia paddle shape drawer.
  * @public
  */
-export const drawSkiaPongPaddle: ShapeDrawer<any, PongComponentRegistry> = {
+export const drawSkiaPongPaddle: ShapeDrawer<SkCanvas, PongComponentRegistry> = {
   draw(canvas, world, entity) {
     const paddleCtx = resolvePongPaddleContext(world, entity);
     if (!paddleCtx) return;
@@ -93,7 +86,7 @@ export const drawSkiaPongPaddle: ShapeDrawer<any, PongComponentRegistry> = {
  * Procedural retro space-grid background effect drawer for React Native Skia.
  * @public
  */
-export const drawSkiaPongBackground: EffectDrawer<any, PongComponentRegistry> = {
+export const drawSkiaPongBackground: EffectDrawer<SkCanvas, PongComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
     const config = world.getResource<{ worldWidth?: number; worldHeight?: number }>("GameConfig");
@@ -151,12 +144,12 @@ export const drawSkiaPongBackground: EffectDrawer<any, PongComponentRegistry> = 
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setColor(Skia.Color(neonColor));
       paint.setStrokeWidth(3.0);
-      canvas.drawRoundRect(Skia.RRectXY(Skia.XYWHRect(width / 2 - gw / 2, height / 2 - gh / 2, gw, gh), 8, 8), paint);
+      canvas.drawRRect(Skia.RRectXY(Skia.XYWHRect(width / 2 - gw / 2, height / 2 - gh / 2, gw, gh), 8, 8), paint);
 
       paint.setStyle(Skia.PaintStyle.Fill);
       paint.setColor(Skia.Color(neonColor));
       paint.setAlphaf(0.12);
-      canvas.drawRoundRect(Skia.RRectXY(Skia.XYWHRect(width / 2 - gw / 2, height / 2 - gh / 2, gw, gh), 8, 8), paint);
+      canvas.drawRRect(Skia.RRectXY(Skia.XYWHRect(width / 2 - gw / 2, height / 2 - gh / 2, gw, gh), 8, 8), paint);
 
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Fill);

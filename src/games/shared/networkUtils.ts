@@ -1,4 +1,4 @@
-import { World, Entity } from "@tiny-aster/core";
+import { World, Entity, EntitySyncDescriptor, InterpolationSnapshotEntry, NetworkManager, ComponentRegistry, EventRegistry, BlueprintRegistryMap, applyServerState } from "@tiny-aster/core";
 
 /**
  * Ensures an entity carries a LocalPlayer component in network sync descriptors.
@@ -92,4 +92,87 @@ export function collectGroupInterpolationEntries(
     });
   }
   return entries;
+}
+
+/**
+ * Group descriptor configuration for applyServerSnapshot.
+ * @public
+ */
+export interface ServerSnapshotGroupConfig {
+  stateKey: string;
+  prefix: string;
+  requireAlive?: boolean;
+}
+
+/**
+ * Options configuration for applyServerSnapshot.
+ * @public
+ */
+export interface ApplyServerSnapshotOptions<
+  TRegistry extends ComponentRegistry = ComponentRegistry,
+  TEventRegistry extends EventRegistry = EventRegistry,
+  TBlueprintMap extends BlueprintRegistryMap<TRegistry> = BlueprintRegistryMap<TRegistry>
+> {
+  gameStateSingletonKey?: string;
+  descriptors: EntitySyncDescriptor<Record<string, unknown>, unknown, TRegistry, TEventRegistry, TBlueprintMap>[];
+  groups: ServerSnapshotGroupConfig[];
+  localSessionId?: string;
+}
+
+/**
+ * Orchestrates global GameState mutation, entity interpolation entries collection,
+ * and entity sync application for incoming server state snapshots.
+ * @public
+ */
+export function applyServerSnapshot<
+  TRegistry extends ComponentRegistry = ComponentRegistry,
+  TEventRegistry extends EventRegistry = EventRegistry,
+  TBlueprintMap extends BlueprintRegistryMap<TRegistry> = BlueprintRegistryMap<TRegistry>
+>(
+  world: World<TRegistry>,
+  networkManager: NetworkManager<TRegistry>,
+  state: Record<string, unknown>,
+  options: ApplyServerSnapshotOptions<TRegistry, TEventRegistry, TBlueprintMap>
+): void {
+  if (!state) return;
+
+  if (options.gameStateSingletonKey) {
+    const key = options.gameStateSingletonKey as Extract<keyof TRegistry, string>;
+    const gs = world.getSingleton(key);
+    if (gs && typeof gs === "object") {
+      world.mutateSingleton(key, (currentGs) => {
+        if (currentGs && typeof currentGs === "object") {
+          applyServerGameStateFields(currentGs, state);
+        }
+      });
+    }
+  }
+
+  const replicator = networkManager.getReplicator();
+  const entries: InterpolationSnapshotEntry[] = [];
+
+  for (let i = 0; i < options.groups.length; i++) {
+    const groupCfg = options.groups[i];
+    const groupObj = state[groupCfg.stateKey] as Record<string, { x: number; y: number; angle?: number; rotation?: number; alive?: boolean }> | undefined;
+    if (groupObj) {
+      const groupEntries = collectGroupInterpolationEntries(
+        groupObj,
+        groupCfg.prefix,
+        replicator,
+        groupCfg.requireAlive ?? false
+      );
+      for (let j = 0; j < groupEntries.length; j++) {
+        entries.push(groupEntries[j]);
+      }
+    }
+  }
+
+  applyServerState(
+    world,
+    networkManager,
+    options.descriptors,
+    state,
+    entries,
+    options.localSessionId
+  );
 }

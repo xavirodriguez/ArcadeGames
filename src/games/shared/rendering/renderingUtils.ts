@@ -2,6 +2,63 @@ import { World, Entity, RenderComponent, TransformComponent, ShapeDrawer, Compon
 import { Skia, getPaint } from "./SkiaContext";
 import type { SkCanvas, SkPaint } from "./SkiaContext";
 
+/**
+ * Resets paint, enables anti-aliasing, and configures style and color for Skia rendering.
+ *
+ * @param paint - Target SkPaint instance to fill.
+ * @param style - "fill" or "stroke".
+ * @param color - Color string hex or CSS color name.
+ * @param strokeWidth - Stroke width if style is "stroke" (defaults to 1.5).
+ * @public
+ */
+export function fillSkiaPaint(
+  paint: SkPaint,
+  style: "fill" | "stroke",
+  color: string,
+  strokeWidth = 1.5
+): void {
+  paint.reset();
+  paint.setAntiAlias(true);
+  if (style === "fill") {
+    paint.setStyle(Skia.PaintStyle.Fill);
+  } else {
+    paint.setStyle(Skia.PaintStyle.Stroke);
+    paint.setStrokeWidth(strokeWidth);
+  }
+  paint.setColor(Skia.Color(color));
+}
+
+/**
+ * Shared zero-allocation helper drawing a filled rounded rectangle with Skia.
+ *
+ * @param canvas - Skia canvas.
+ * @param width - Rectangle width.
+ * @param height - Rectangle height.
+ * @param color - Color string hex or CSS color name.
+ * @param rx - Corner radius X.
+ * @param ry - Corner radius Y.
+ * @public
+ */
+export function drawSkiaFilledRoundRect(
+  canvas: SkCanvas,
+  width: number,
+  height: number,
+  color: string,
+  rx: number,
+  ry: number
+): void {
+  const paint = getPaint();
+  if (!paint || !ensureSkiaAvailable()) return;
+
+  canvas.save();
+  fillSkiaPaint(paint, "fill", color);
+  canvas.drawRRect(
+    Skia.RRectXY(Skia.XYWHRect(-width / 2, -height / 2, width, height), rx, ry),
+    paint
+  );
+  canvas.restore();
+}
+
 export interface SkiaShapeConfig {
   defaultSize: number;
   defaultColor?: string;

@@ -37,7 +37,7 @@ import { PlatformerArcadeGame, loadPlatformerArcadeConfig } from "../shared/Plat
 import { PlatformerInputSystem } from "../shared/systems/PlatformerInputSystem";
 import { resolveAndApplyMutators } from "../../config/MutatorConfig";
 import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, registerPlatformerEnvironmentBlueprints, mutatePlatformerInputState, registerCommonPlatformerSystems, updatePlayerInvulnerabilityAndContactDamage, updateRunProgress } from "@tiny-aster/gameplay-kit";
-import { setupPlatformerMovementComponents, registerPlatformerTilemapBlueprint, createMainCamera2D, registerPresentationSystems, generateAndInstantiatePlatformerLevel, registerCollectibleTriggerBlueprint } from "../shared/componentBuilders";
+import { setupPlatformerMovementComponents, registerPlatformerTilemapBlueprint, createMainCamera2D, registerPresentationSystems, generateAndInstantiatePlatformerLevel, registerStandardPlatformerCollectibles } from "../shared/componentBuilders";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import defaultLevelData from "./levels/level-01.json";
 
@@ -241,8 +241,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
 
     registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_ECHO_RUNNER_CONFIG);
 
-    registerCollectibleTriggerBlueprint(this.blueprints, "collectible_fragment", "fragment", 10, 16, 10, "fragment", false, false);
-    registerCollectibleTriggerBlueprint(this.blueprints, "collectible_core", "core", 100, 24, 12, "core", true, true);
+    registerStandardPlatformerCollectibles(this.blueprints);
 
     registerPlatformerEnvironmentBlueprints(this.blueprints);
     registerPlatformerEnemyBlueprints(this.blueprints);

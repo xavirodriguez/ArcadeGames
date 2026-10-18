@@ -3,7 +3,7 @@ import { GeometryWarsComponentRegistry } from "../types/GeometryWarsRegistry";
 import { colors } from "../../../theme/colors";
 import { getDisplacedPoint, BULLET_COORDS } from "../../shared/rendering/ProceduralShapeUtils";
 import { resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
-import { ensureSkiaAvailable, getRenderGuard, getDrawableTransform } from "../../shared/rendering/renderingUtils";
+import { ensureSkiaAvailable, getRenderGuard, getDrawableTransform, fillSkiaPaint } from "../../shared/rendering/renderingUtils";
 import {
   getActiveParticles,
   updatePlayerShipVisuals,
@@ -36,10 +36,7 @@ function drawVisualParticles(canvas: SkCanvas): void {
     if (!p.active) continue;
 
     const ratio = p.life / p.maxLife;
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(p.skColor || Skia.Color(p.color));
+    fillSkiaPaint(paint, "fill", p.color);
     paint.setAlphaf(ratio);
 
     canvas.drawRect(
@@ -55,11 +52,7 @@ function drawVisualParticles(canvas: SkCanvas): void {
 // ============================================================================
 
 function setupSkiaStrokePaint(paint: SkPaint, color: string, strokeWidth = 1.5, opacity = 1.0): void {
-  paint.reset();
-  paint.setAntiAlias(true);
-  paint.setStyle(Skia.PaintStyle.Stroke);
-  paint.setStrokeWidth(strokeWidth);
-  paint.setColor(Skia.Color(color));
+  fillSkiaPaint(paint, "stroke", color, strokeWidth);
   paint.setAlphaf(opacity);
 }
 
@@ -154,10 +147,7 @@ export const drawSkiaPlayerShip: ShapeDrawer<SkCanvas, GeometryWarsComponentRegi
     canvas.drawPath(path, paint);
 
     // 2. Draw white inner hot core
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(colors.white));
+    fillSkiaPaint(paint, "fill", colors.white);
     paint.setAlphaf(visualOpacity);
 
     const corePath = Skia.Path.Make();
@@ -188,10 +178,7 @@ export const drawSkiaParticle: ShapeDrawer<SkCanvas, GeometryWarsComponentRegist
 
     const paint = getPaint();
     canvas.save();
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(color));
+    fillSkiaPaint(paint, "fill", color);
     canvas.drawRect(Skia.XYWHRect(-size / 2, -size / 2, size, size), paint);
     canvas.restore();
   }
@@ -364,11 +351,7 @@ export const drawSkiaGeometryWarsBackground: EffectDrawer<SkCanvas, GeometryWars
 
     // 3. Draw Deforming Grid Lines via Skia DrawLine
     const paint = getPaint();
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(colors.border));
-    paint.setStrokeWidth(0.8);
+    fillSkiaPaint(paint, "stroke", colors.border, 0.8);
 
     canvas.save();
 

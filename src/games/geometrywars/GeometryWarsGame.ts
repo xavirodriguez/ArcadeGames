@@ -39,7 +39,7 @@ import { GeometryWarsConfig, GeometryWarsConfigSchema, DEFAULT_CONFIG } from "./
 import { GeometryWarsGameScene } from "./scenes/GeometryWarsGameScene";
 import { colors } from "../../theme/colors";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
-import { markLocalPlayerEntity, NO_OP_SYNC, applyServerGameStateFields, collectGroupInterpolationEntries } from "../shared/networkUtils";
+import { markLocalPlayerEntity, NO_OP_SYNC, applyServerSnapshot } from "../shared/networkUtils";
 
 function createTransformComponent(x: number, y: number, rotation: number): TransformComponent {
   return {
@@ -336,29 +336,20 @@ export class GeometryWarsGame extends BaseGame<
 
   public updateFromServer(state: Record<string, unknown>, localSessionId?: string) {
     if (!this.isMultiplayer || !state) return;
-    const world = this.getWorld();
-
-    const gs = world.getSingleton("GeometryWarsState");
-    if (gs) {
-      world.mutateSingleton("GeometryWarsState", (currentGs) => {
-        applyServerGameStateFields(currentGs, state);
-      });
-    }
-
-    const replicator = this.networkManager.getReplicator();
-    const entries: InterpolationSnapshotEntry[] = [
-      ...collectGroupInterpolationEntries(state.players as Record<string, { x: number; y: number; angle: number }>, "player", replicator),
-      ...collectGroupInterpolationEntries(state.enemies as Record<string, { x: number; y: number; angle: number }>, "enemy", replicator),
-      ...collectGroupInterpolationEntries(state.bullets as Record<string, { x: number; y: number; angle: number }>, "bullet", replicator)
-    ];
-
-    applyServerState(
-      world,
+    applyServerSnapshot(
+      this.getWorld(),
       this.networkManager,
-      this.ENTITY_SYNC_DESCRIPTORS,
       state,
-      entries,
-      localSessionId
+      {
+        gameStateSingletonKey: "GeometryWarsState",
+        descriptors: this.ENTITY_SYNC_DESCRIPTORS,
+        groups: [
+          { stateKey: "players", prefix: "player" },
+          { stateKey: "enemies", prefix: "enemy" },
+          { stateKey: "bullets", prefix: "bullet" }
+        ],
+        localSessionId
+      }
     );
   }
 

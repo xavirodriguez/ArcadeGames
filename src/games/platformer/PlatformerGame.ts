@@ -166,8 +166,26 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
     // Register state machines
     registerEnemyStateMachines(this.world);
 
-    registerCollectibleTriggerBlueprint(this.blueprints, "collectible_fragment", "fragment", 10, 16, 10, "fragment", false, false);
-    registerCollectibleTriggerBlueprint(this.blueprints, "collectible_coin", "coin", 20, 16, 10, "fragment", false, false);
+    registerCollectibleTriggerBlueprint(this.blueprints, {
+      id: "collectible_fragment",
+      kind: "fragment",
+      value: 10,
+      size: 16,
+      halfSize: 10,
+      shape: "fragment",
+      persistent: false,
+      collectOnce: false
+    });
+    registerCollectibleTriggerBlueprint(this.blueprints, {
+      id: "collectible_coin",
+      kind: "coin",
+      value: 20,
+      size: 16,
+      halfSize: 10,
+      shape: "fragment",
+      persistent: false,
+      collectOnce: false
+    });
 
     registerPlatformerEnvironmentBlueprints(this.blueprints);
     registerPlatformerEnemyBlueprints(this.blueprints);

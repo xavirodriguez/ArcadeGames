@@ -51,6 +51,7 @@ class MockAudioContext {
   public createBuffer = mockCreateBuffer;
 }
 
+const mockAudioSources: string[] = [];
 const mockPlay = jest.fn().mockResolvedValue(undefined);
 const mockPause = jest.fn();
 
@@ -61,7 +62,9 @@ class MockAudio {
   public play = mockPlay;
   public pause = mockPause;
 
-  constructor(public src: string) {}
+  constructor(public src: string) {
+    mockAudioSources.push(src);
+  }
 }
 
 describe("WebAudioPlayer", () => {
@@ -91,6 +94,7 @@ describe("WebAudioPlayer", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockAudioSources.length = 0;
   });
 
   test("initializes AudioContext and GainNodes correctly", () => {
@@ -165,6 +169,14 @@ describe("WebAudioPlayer", () => {
     const player = new WebAudioPlayer();
     player.playBGM("music", "/audio/music.mp3");
 
+    expect(mockPlay).toHaveBeenCalled();
+  });
+
+  test("playBGM resolves shared manifest IDs to their asset paths", () => {
+    const player = new WebAudioPlayer();
+    player.playBGM("dark_atmosphere");
+
+    expect(mockAudioSources).toContain("/assets/audio/dark-atmosphere.wav");
     expect(mockPlay).toHaveBeenCalled();
   });
 

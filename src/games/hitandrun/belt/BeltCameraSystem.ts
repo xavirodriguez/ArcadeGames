@@ -29,16 +29,16 @@ function isPlayerEntity(world: World<CoreComponentRegistry>, e: number): boolean
   );
 }
 
-function isEnemyFaction(world: World<CoreComponentRegistry>, e: number): boolean {
-  if (world.hasComponent(e, "Enemy")) return true;
-  const faction = world.getComponent(e, "Faction") as
-    | { value?: string; faction?: string }
-    | undefined;
-  const f = faction?.value ?? faction?.faction;
-  if (f === "enemy") return true;
-  const tag = world.getComponent(e, "Tag") as { tags?: string[] } | undefined;
-  if (tag?.tags?.includes("Enemy")) return true;
-  return false;
+/**
+ * Only count real, hittable wave enemies — not white-dot orphans / missing colliders.
+ */
+function isHittableEnemy(world: World<CoreComponentRegistry>, e: number): boolean {
+  if (!world.hasComponent(e, "Enemy")) return false;
+  if (!world.hasComponent(e, "Collider2D")) return false;
+  if (world.hasComponent(e, "Dead")) return false;
+  const render = world.getComponent(e, "Render") as { size?: number } | undefined;
+  if (render && (render.size ?? 0) > 0 && (render.size ?? 0) < 5) return false;
+  return true;
 }
 
 export class BeltCameraSystem extends System<CoreComponentRegistry> {
@@ -72,8 +72,7 @@ export class BeltCameraSystem extends System<CoreComponentRegistry> {
     for (let i = 0; i < withHealth.length; i++) {
       const e = withHealth[i];
       if (isPlayerEntity(world, e)) continue;
-      if (world.hasComponent(e, "Dead")) continue;
-      if (!isEnemyFaction(world, e)) continue;
+      if (!isHittableEnemy(world, e)) continue;
 
       const sectionTag = world.getComponent(e, "BeltSectionEnemy") as
         | { sectionIndex: number }

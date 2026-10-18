@@ -19,6 +19,13 @@ import { computeSpeedLines } from "./OutrunVisualHelpers";
 import { resolveSegmentFog } from "./OutrunFog";
 import { colors } from "../../../theme/colors";
 import { hexToRgba } from "../../shared/rendering/CosmicPalette";
+import {
+  OUTRUN_PLAYER_PIXEL_SPRITE,
+  OUTRUN_TRAFFIC_PIXEL_SPRITE,
+  getOutrunAnimationFrame,
+  resolveOutrunPixelColor,
+  visitOutrunPixelRuns
+} from "./OutrunPixelSprites";
 
 function drawRoadSpriteSkia(
   canvas: SkCanvas,
@@ -335,44 +342,21 @@ export const drawSkiaOutrunCar: ShapeDrawer<SkCanvas, OutrunComponentRegistry> =
     shadowPaint.setStyle(Skia.PaintStyle.Fill);
     canvas.drawOval(Skia.XYWHRect(-36, 6, 72, 20), shadowPaint);
 
-    // Tires
-    const tirePaint = Skia.Paint();
-    tirePaint.setColor(Skia.Color(colors.surface));
-    tirePaint.setStyle(Skia.PaintStyle.Fill);
-    canvas.drawRect(Skia.XYWHRect(-32, 2, 10, 16), tirePaint);
-    canvas.drawRect(Skia.XYWHRect(22, 2, 10, 16), tirePaint);
+    // Crisp pixel shadow keeps the sprite aligned with the arcade art direction.
+    const shadowPaint = Skia.Paint();
+    shadowPaint.setColor(Skia.Color(hexToRgba(colors.surface, 0.4)));
+    shadowPaint.setStyle(Skia.PaintStyle.Fill);
+    canvas.drawRect(Skia.XYWHRect(-24, 18, 48, 4), shadowPaint);
+    canvas.drawRect(Skia.XYWHRect(-16, 22, 32, 4), shadowPaint);
 
-    // Body
-    const bodyPaint = Skia.Paint();
-    bodyPaint.setColor(Skia.Color(carColor));
-    bodyPaint.setStyle(Skia.PaintStyle.Fill);
-    canvas.drawRRect(Skia.RRectXY(Skia.XYWHRect(-30, -18, 60, 30), 6, 6), bodyPaint);
-
-    // Bumper
-    const bumperPaint = Skia.Paint();
-    bumperPaint.setColor(Skia.Color(colors.backgroundDark));
-    bumperPaint.setStyle(Skia.PaintStyle.Fill);
-    canvas.drawRect(Skia.XYWHRect(-28, 4, 56, 8), bumperPaint);
-
-    // Windshield
-    const glassPath = Skia.Path.Make();
-    glassPath.moveTo(-20, -16);
-    glassPath.lineTo(20, -16);
-    glassPath.lineTo(16, -2);
-    glassPath.lineTo(-16, -2);
-    glassPath.close();
-
-    const glassPaint = Skia.Paint();
-    glassPaint.setColor(Skia.Color(colors.borderDark));
-    glassPaint.setStyle(Skia.PaintStyle.Fill);
-    canvas.drawPath(glassPath, glassPaint);
-
-    // Tail Lights
-    const tailPaint = Skia.Paint();
-    tailPaint.setColor(Skia.Color(colors.red));
-    tailPaint.setStyle(Skia.PaintStyle.Fill);
-    canvas.drawRect(Skia.XYWHRect(-26, -6, 12, 6), tailPaint);
-    canvas.drawRect(Skia.XYWHRect(14, -6, 12, 6), tailPaint);
+    const playerFrame = getOutrunAnimationFrame(state.playerZ);
+    const playerSprite = OUTRUN_PLAYER_PIXEL_SPRITE.frames[playerFrame]!;
+    const pixelPaint = Skia.Paint();
+    pixelPaint.setStyle(Skia.PaintStyle.Fill);
+    visitOutrunPixelRuns(playerSprite, -32, -18, 4, (pixel, x, y, width, height) => {
+      pixelPaint.setColor(Skia.Color(resolveOutrunPixelColor(pixel, carColor)));
+      canvas.drawRect(Skia.XYWHRect(x, y, width, height), pixelPaint);
+    });
 
     canvas.restore();
   }
@@ -394,30 +378,36 @@ export const drawSkiaOutrunRacer: ShapeDrawer<SkCanvas, OutrunComponentRegistry>
 
     canvas.save();
 
-    // Shadow
+    const pixelSize = carW / OUTRUN_TRAFFIC_PIXEL_SPRITE.width;
+    const spriteWidth = pixelSize * OUTRUN_TRAFFIC_PIXEL_SPRITE.width;
+    const spriteHeight = pixelSize * OUTRUN_TRAFFIC_PIXEL_SPRITE.height;
+
     const shadowPaint = Skia.Paint();
     shadowPaint.setColor(Skia.Color(hexToRgba(colors.surface, 0.35)));
     shadowPaint.setStyle(Skia.PaintStyle.Fill);
-    canvas.drawOval(Skia.XYWHRect(cx - carW * 0.5, cy + carH * 0.15, carW, carH * 0.5), shadowPaint);
+    canvas.drawRect(
+      Skia.XYWHRect(
+        cx - spriteWidth * 0.35,
+        cy + spriteHeight * 0.4,
+        spriteWidth * 0.7,
+        Math.max(1, pixelSize)
+      ),
+      shadowPaint
+    );
 
-    // Body
-    const bodyPaint = Skia.Paint();
-    bodyPaint.setColor(Skia.Color(bodyColor));
-    bodyPaint.setStyle(Skia.PaintStyle.Fill);
-    canvas.drawRect(Skia.XYWHRect(cx - carW / 2, cy - carH / 2, carW, carH), bodyPaint);
-
-    // Windshield
-    const glassPaint = Skia.Paint();
-    glassPaint.setColor(Skia.Color(colors.surface));
-    glassPaint.setStyle(Skia.PaintStyle.Fill);
-    canvas.drawRect(Skia.XYWHRect(cx - carW * 0.3, cy - carH * 0.4, carW * 0.6, carH * 0.35), glassPaint);
-
-    // Tail Lights
-    const tailPaint = Skia.Paint();
-    tailPaint.setColor(Skia.Color(colors.red));
-    tailPaint.setStyle(Skia.PaintStyle.Fill);
-    canvas.drawRect(Skia.XYWHRect(cx - carW * 0.4, cy, carW * 0.2, carH * 0.2), tailPaint);
-    canvas.drawRect(Skia.XYWHRect(cx + carW * 0.2, cy, carW * 0.2, carH * 0.2), tailPaint);
+    const trafficSprite = OUTRUN_TRAFFIC_PIXEL_SPRITE.frames[racerCtx.frame]!;
+    const pixelPaint = Skia.Paint();
+    pixelPaint.setStyle(Skia.PaintStyle.Fill);
+    visitOutrunPixelRuns(
+      trafficSprite,
+      cx - spriteWidth / 2,
+      cy - spriteHeight / 2,
+      pixelSize,
+      (pixel, x, y, width, height) => {
+        pixelPaint.setColor(Skia.Color(resolveOutrunPixelColor(pixel, bodyColor)));
+        canvas.drawRect(Skia.XYWHRect(x, y, width, height), pixelPaint);
+      }
+    );
 
     canvas.restore();
   }

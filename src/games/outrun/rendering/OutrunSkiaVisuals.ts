@@ -372,7 +372,7 @@ export const drawSkiaOutrunRacer: ShapeDrawer<SkCanvas, OutrunComponentRegistry>
 
     canvas.save();
 
-    const pixelSize = carW / OUTRUN_TRAFFIC_PIXEL_SPRITE.width;
+    //    const pixelSize = carW / OUTRUN_TRAFFIC_PIXEL_SPRITE.width;
     const spriteWidth = pixelSize * OUTRUN_TRAFFIC_PIXEL_SPRITE.width;
     const spriteHeight = pixelSize * OUTRUN_TRAFFIC_PIXEL_SPRITE.height;
 
@@ -403,7 +403,7 @@ export const drawSkiaOutrunRacer: ShapeDrawer<SkCanvas, OutrunComponentRegistry>
       }
     );
 
-    canvas.restore();
+nvas.restore();
   }
 };
 

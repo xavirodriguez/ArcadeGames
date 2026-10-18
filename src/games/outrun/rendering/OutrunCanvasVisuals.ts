@@ -337,7 +337,7 @@ export const drawOutrunRacer: ShapeDrawer<CanvasRenderingContext2D, OutrunCompon
 
     ctx.save();
 
-    const pixelSize = carW / OUTRUN_TRAFFIC_PIXEL_SPRITE.width;
+    //    const pixelSize = carW / OUTRUN_TRAFFIC_PIXEL_SPRITE.width;
     const spriteWidth = pixelSize * OUTRUN_TRAFFIC_PIXEL_SPRITE.width;
     const spriteHeight = pixelSize * OUTRUN_TRAFFIC_PIXEL_SPRITE.height;
 
@@ -356,7 +356,7 @@ export const drawOutrunRacer: ShapeDrawer<CanvasRenderingContext2D, OutrunCompon
       }
     );
 
-    ctx.restore();
+x.restore();
   }
 };
 

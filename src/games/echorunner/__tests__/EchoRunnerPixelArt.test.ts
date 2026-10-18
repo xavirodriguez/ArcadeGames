@@ -18,12 +18,12 @@ describe("EchoRunnerPixelArt", () => {
     expect(getEchoRunnerSpriteFrame("run", 0)).toEqual(getEchoRunnerSpriteFrame("run", 8));
   });
 
-  it("keeps every sprite frame on a consistent 12 by 16 pixel grid", () => {
+  it("keeps every sprite frame on a consistent 16 by 20 pixel grid", () => {
     const motions = ["idle", "run", "jump", "fall", "attack"] as const;
     for (const motion of motions) {
       const frame = getEchoRunnerSpriteFrame(motion, 0);
-      expect(frame).toHaveLength(16);
-      expect(frame.every((row) => row.length === 12)).toBe(true);
+      expect(frame).toHaveLength(20);
+      expect(frame.every((row) => row.length === 16)).toBe(true);
     }
   });
 });

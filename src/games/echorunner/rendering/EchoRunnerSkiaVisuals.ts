@@ -4,6 +4,7 @@ import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 import {
   resolveEchoPlayerDrawContext,
   resolveEchoBackgroundContext,
+  resolveEchoRunnerPalette,
 } from "./EchoRunnerVisualUtils";
 import {
   getEchoRunnerSpriteFrame,
@@ -12,6 +13,105 @@ import {
 } from "./EchoRunnerPixelArt";
 
 import { drawSkiaHitFlashCircle } from "../../shared/rendering/PlatformerSharedVisuals";
+
+export const drawSkiaEchoStateSwitch: ShapeDrawer<SkCanvas, CoreComponentRegistry> = {
+  draw(canvas, world, entity) {
+    if (!Skia) return;
+    const trigger = world.getComponent(entity, "StateTrigger");
+    const render = world.getComponent(entity, "Render");
+    if (!trigger || !render) return;
+
+    const palette = resolveEchoRunnerPalette(world);
+    const size = render.size ?? 26;
+    const color = trigger.activated ? palette.restorationCyan : palette.corruptionCrimson;
+    const paint = getPaint();
+    canvas.save();
+
+    paint.reset();
+    paint.setAntiAlias(true);
+    paint.setStyle(Skia.PaintStyle.Fill);
+    paint.setColor(Skia.Color(palette.archiveVoidDark));
+    canvas.drawRect(Skia.XYWHRect(-size * 0.5, -size * 0.5, size, size), paint);
+
+    paint.setStyle(Skia.PaintStyle.Stroke);
+    paint.setColor(Skia.Color(color));
+    paint.setStrokeWidth(2);
+    canvas.drawRect(Skia.XYWHRect(-size * 0.5, -size * 0.5, size, size), paint);
+
+    paint.setStyle(Skia.PaintStyle.Fill);
+    canvas.drawRect(
+      Skia.XYWHRect(-size * 0.12, -size * 0.12, size * 0.24, size * 0.24),
+      paint
+    );
+    canvas.restore();
+  }
+};
+
+export const drawSkiaEchoStateGate: ShapeDrawer<SkCanvas, CoreComponentRegistry> = {
+  draw(canvas, world, entity) {
+    if (!Skia) return;
+    const gate = world.getComponent(entity, "StateGate");
+    const render = world.getComponent(entity, "Render");
+    if (!gate || !render) return;
+
+    const palette = resolveEchoRunnerPalette(world);
+    const size = render.size ?? 60;
+    const width = size * 0.42;
+    const paint = getPaint();
+    canvas.save();
+
+    paint.reset();
+    paint.setAntiAlias(true);
+    paint.setStyle(gate.isOpen ? Skia.PaintStyle.Stroke : Skia.PaintStyle.Fill);
+    paint.setColor(Skia.Color(palette.archiveVoidDark));
+    canvas.drawRect(Skia.XYWHRect(-width * 0.5, -size * 0.5, width, size), paint);
+
+    paint.setStyle(Skia.PaintStyle.Stroke);
+    paint.setColor(Skia.Color(gate.isOpen ? palette.restorationCyan : palette.corruptionCrimson));
+    paint.setStrokeWidth(2);
+    paint.setAlphaf(gate.isOpen ? 0.35 : 1);
+    canvas.drawRect(Skia.XYWHRect(-width * 0.5, -size * 0.5, width, size), paint);
+
+    if (!gate.isOpen) {
+      for (let bar = -1; bar <= 1; bar++) {
+        const x = bar * width * 0.22;
+        canvas.drawLine(x, -size * 0.42, x, size * 0.42, paint);
+      }
+    }
+    canvas.restore();
+  }
+};
+
+export const drawSkiaEchoDeathZone: ShapeDrawer<SkCanvas, CoreComponentRegistry> = {
+  draw(canvas, world, entity) {
+    if (!Skia) return;
+    const render = world.getComponent(entity, "Render");
+    const collider = world.getComponent(entity, "Collider2D");
+    if (!render || !collider || collider.shape.type !== "aabb") return;
+
+    const palette = resolveEchoRunnerPalette(world);
+    const width = collider.shape.halfWidth * 2;
+    const height = collider.shape.halfHeight * 2;
+    const paint = getPaint();
+    canvas.save();
+
+    paint.reset();
+    paint.setAntiAlias(true);
+    paint.setStyle(Skia.PaintStyle.Fill);
+    paint.setColor(Skia.Color(palette.corruptionCrimson));
+    paint.setAlphaf(0.34);
+    canvas.drawRect(Skia.XYWHRect(-width * 0.5, -height * 0.5, width, height), paint);
+
+    paint.setStyle(Skia.PaintStyle.Stroke);
+    paint.setColor(Skia.Color(palette.corruptionAmber));
+    paint.setStrokeWidth(2);
+    paint.setAlphaf(0.9);
+    for (let x = -width * 0.5; x < width * 0.5; x += 10) {
+      canvas.drawLine(x, height * 0.5, Math.min(x + height, width * 0.5), -height * 0.5, paint);
+    }
+    canvas.restore();
+  }
+};
 
 export {
   drawSkiaMemoryFragment,

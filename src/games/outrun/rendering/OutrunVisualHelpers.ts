@@ -2,6 +2,27 @@ import type { RaceStateComponent, RacerComponent, RoadData, ProjectedSegment } f
 import type { OutrunConfig } from "../types/OutrunConfigSchema";
 import { projectRoad } from "./RoadProjection";
 import { scenarioHash } from "./OutrunPalettes";
+import { OUTRUN_PLAYER_PIXEL_SPRITE } from "./OutrunPixelSprites";
+
+/** Vehicle width as a fraction of the projected full road width. */
+export const OUTRUN_CAR_ROAD_WIDTH_RATIO = 0.28;
+
+/**
+ * Resolve the player's sprite pixel size from the projected road width at the
+ * player's baseline. This keeps the player and traffic sizing on one road-relative
+ * scale instead of using a viewport-independent hard-coded pixel size.
+ */
+export function computeOutrunPlayerPixelSize(config: OutrunConfig): number {
+  const halfScreenHeight = config.HEIGHT / 2;
+  const baselineY = config.HEIGHT - 80;
+  if (config.cameraHeight <= 0 || halfScreenHeight <= 0 || config.roadWidth <= 0) return 1;
+
+  const perspectiveScale = Math.max(0, baselineY - halfScreenHeight) /
+    (config.cameraHeight * halfScreenHeight);
+  const projectedRoadWidth = perspectiveScale * config.roadWidth * config.WIDTH;
+  const targetCarWidth = projectedRoadWidth * OUTRUN_CAR_ROAD_WIDTH_RATIO;
+  return Math.max(1, targetCarWidth / OUTRUN_PLAYER_PIXEL_SPRITE.width);
+}
 
 export interface RacerProjectionResult {
   sx: number;
@@ -56,7 +77,7 @@ export function computeRacerProjection(
   const sw = best.w1 + (best.w2 - best.w1) * t;
 
   const lateral = racer.lateralX * sw;
-  const carW = sw * 0.35;
+  const carW = sw * 2 * OUTRUN_CAR_ROAD_WIDTH_RATIO;
   const carH = carW * 0.6;
 
   if (sy > config.HEIGHT || sy >= best.clip || carW < 2) return null;

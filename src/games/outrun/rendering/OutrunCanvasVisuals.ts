@@ -13,7 +13,7 @@ import {
   resolveOutrunHudContext,
   resolveOffroadDustParams
 } from "./OutrunRenderShared";
-import { computeSpeedLines } from "./OutrunVisualHelpers";
+import { computeSpeedLines, computeOutrunPlayerPixelSize } from "./OutrunVisualHelpers";
 import { resolveRoadFogColor } from "./OutrunFog";
 import { colors } from "../../../theme/colors";
 import { hexToRgba } from "../../shared/rendering/CosmicPalette";
@@ -306,14 +306,23 @@ export const drawOutrunCar: ShapeDrawer<CanvasRenderingContext2D, OutrunComponen
     ctx.rotate(tiltAngle);
     ctx.scale(carScale, carScale);
 
-    // Crisp pixel shadow keeps the sprite aligned with the arcade art direction.
+    const pixelSize = computeOutrunPlayerPixelSize(config);
+    const spriteWidth = OUTRUN_PLAYER_PIXEL_SPRITE.width * pixelSize;
+    const spriteHeight = OUTRUN_PLAYER_PIXEL_SPRITE.height * pixelSize;
+
+    // Scale the crisp shadow with the same road-relative sprite dimensions.
     ctx.fillStyle = hexToRgba(colors.surface, 0.4);
-    ctx.fillRect(-24, 18, 48, 4);
-    ctx.fillRect(-16, 22, 32, 4);
+    ctx.fillRect(-spriteWidth * 0.375, spriteHeight / 2, spriteWidth * 0.75, pixelSize);
+    ctx.fillRect(-spriteWidth * 0.25, spriteHeight / 2 + pixelSize, spriteWidth * 0.5, pixelSize);
 
     const playerFrame = getOutrunAnimationFrame(state.playerZ);
     const playerSprite = OUTRUN_PLAYER_PIXEL_SPRITE.frames[playerFrame]!;
-    visitOutrunPixelRuns(playerSprite, -32, -18, 4, (pixel, x, y, width, height) => {
+    visitOutrunPixelRuns(
+      playerSprite,
+      -spriteWidth / 2,
+      -spriteHeight / 2,
+      pixelSize,
+      (pixel, x, y, width, height) => {
       ctx.fillStyle = resolveOutrunPixelColor(pixel, carColor);
       ctx.fillRect(x, y, width, height);
     });

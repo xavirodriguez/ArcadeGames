@@ -15,7 +15,7 @@ import {
   resolveOutrunHudContext,
   resolveOffroadDustParams
 } from "./OutrunRenderShared";
-import { computeSpeedLines } from "./OutrunVisualHelpers";
+import { computeSpeedLines, computeOutrunPlayerPixelSize } from "./OutrunVisualHelpers";
 import { resolveRoadFogColor } from "./OutrunFog";
 import { colors } from "../../../theme/colors";
 import { hexToRgba } from "../../shared/rendering/CosmicPalette";
@@ -348,18 +348,33 @@ export const drawSkiaOutrunCar: ShapeDrawer<SkCanvas, OutrunComponentRegistry> =
     canvas.rotate((tiltAngle * 180) / Math.PI, 0, 0);
     canvas.scale(carScale, carScale);
 
-    // Crisp pixel shadow keeps the sprite aligned with the arcade art direction.
+    const pixelSize = computeOutrunPlayerPixelSize(config);
+    const spriteWidth = OUTRUN_PLAYER_PIXEL_SPRITE.width * pixelSize;
+    const spriteHeight = OUTRUN_PLAYER_PIXEL_SPRITE.height * pixelSize;
+
+    // Keep shadow proportions identical to Canvas and the road-relative sprite.
     const shadowPaint = Skia.Paint();
     shadowPaint.setColor(Skia.Color(hexToRgba(colors.surface, 0.4)));
     shadowPaint.setStyle(Skia.PaintStyle.Fill);
-    canvas.drawRect(Skia.XYWHRect(-24, 18, 48, 4), shadowPaint);
-    canvas.drawRect(Skia.XYWHRect(-16, 22, 32, 4), shadowPaint);
+    canvas.drawRect(
+      Skia.XYWHRect(-spriteWidth * 0.375, spriteHeight / 2, spriteWidth * 0.75, pixelSize),
+      shadowPaint
+    );
+    canvas.drawRect(
+      Skia.XYWHRect(-spriteWidth * 0.25, spriteHeight / 2 + pixelSize, spriteWidth * 0.5, pixelSize),
+      shadowPaint
+    );
 
     const playerFrame = getOutrunAnimationFrame(state.playerZ);
     const playerSprite = OUTRUN_PLAYER_PIXEL_SPRITE.frames[playerFrame]!;
     const pixelPaint = Skia.Paint();
     pixelPaint.setStyle(Skia.PaintStyle.Fill);
-    visitOutrunPixelRuns(playerSprite, -32, -18, 4, (pixel, x, y, width, height) => {
+    visitOutrunPixelRuns(
+      playerSprite,
+      -spriteWidth / 2,
+      -spriteHeight / 2,
+      pixelSize,
+      (pixel, x, y, width, height) => {
       pixelPaint.setColor(Skia.Color(resolveOutrunPixelColor(pixel, carColor)));
       canvas.drawRect(Skia.XYWHRect(x, y, width, height), pixelPaint);
     });

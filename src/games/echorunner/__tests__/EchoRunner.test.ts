@@ -603,6 +603,46 @@ describe("Echo Runner Game Simulation Tests", () => {
     }
   });
 
+  it("should activate an overlapping checkpoint and use it for the next respawn", () => {
+    const playerEntity = world.query("PlatformerInput")[0];
+    const checkpointEntity = world.createEntity();
+    const checkpointId = "echorunner_contract_checkpoint";
+    const respawnPosition = { x: 280, y: 315 };
+
+    world.addComponent(checkpointEntity, {
+      type: "RespawnPoint",
+      checkpointId,
+      ...respawnPosition
+    });
+    world.addComponent(checkpointEntity, {
+      type: "CollisionEvents",
+      collisions: [],
+      activeTriggers: [playerEntity],
+      triggersEntered: [],
+      triggersExited: []
+    });
+
+    const checkpointActivated = jest.fn();
+    game.getEventBus().on("CheckpointActivated", checkpointActivated);
+
+    game.update(0.016);
+
+    const runState = world.getResource<RunState>("RunState");
+    expect(runState?.activeCheckpoint).toBe(checkpointId);
+    expect(checkpointActivated).toHaveBeenCalledTimes(1);
+
+    world.mutateComponent(playerEntity, "Health", (health) => {
+      health.current = 0;
+    });
+    game.update(0.016);
+    game.update(0.016);
+
+    const transform = world.getComponent(playerEntity, "Transform")!;
+    expect(transform.x).toBe(respawnPosition.x);
+    expect(transform.y).toBe(respawnPosition.y);
+    expect(world.hasComponent(playerEntity, "Dead")).toBe(false);
+  });
+
   it("should trigger death when falling below DeathPlaneY and respawn player at default start position", async () => {
     const lifecycleGame = new EchoRunnerGame({ seed: 41873 });
     try {
@@ -732,6 +772,20 @@ describe("Echo Runner Game Simulation Tests", () => {
 
       expect(testWorld.isAlive(coreEntity)).toBe(false);
       expect(runState.collectedPermanentIds).toContain("archive_core_1");
+      expect(testGame.getGameState().cores).toBe(1);
+
+      // Re-spawning a permanent collectible with the same ID must remain idempotent.
+      const duplicateCoreEntity = testWorld.createEntity();
+      testGame.blueprints.get("collectible_core")?.spawn(testWorld, duplicateCoreEntity, {
+        x: playerTrans.x,
+        y: playerTrans.y,
+        id: "archive_core_1"
+      });
+      testWorld.flush();
+      testGame.update(0.016);
+
+      expect(testWorld.isAlive(duplicateCoreEntity)).toBe(false);
+      expect(runState.collectedPermanentIds.filter((id) => id === "archive_core_1")).toHaveLength(1);
       expect(testGame.getGameState().cores).toBe(1);
     } finally {
       testGame.destroy();

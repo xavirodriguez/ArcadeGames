@@ -18,7 +18,6 @@ export interface GameOptions<TState> {
   initialState?: TState | null;
   assetProvider?: IAssetProvider;
   audio?: IAudioPlayer;
-  theme?: Theme;
 }
 
 // Constructor type - accepts any class that extends BaseGame

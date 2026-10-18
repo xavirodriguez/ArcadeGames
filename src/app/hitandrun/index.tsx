@@ -153,11 +153,13 @@ function HitAndRunContent() {
     };
 
     const updateInput = () => {
+      // Option A: vertical keys drive depth (moveY), not aim.
+      // Jump is Space-only so W/S can own depth movement.
       const moveLeft = activeKeys.has("ArrowLeft") || activeKeys.has("KeyA");
       const moveRight = activeKeys.has("ArrowRight") || activeKeys.has("KeyD");
-      const jump = activeKeys.has("Space") || activeKeys.has("KeyW");
-      const aimUp = activeKeys.has("ArrowUp");
-      const aimDown = activeKeys.has("ArrowDown") || activeKeys.has("KeyS");
+      const moveUp = activeKeys.has("ArrowUp") || activeKeys.has("KeyW");
+      const moveDown = activeKeys.has("ArrowDown") || activeKeys.has("KeyS");
+      const jump = activeKeys.has("Space");
       const pulse =
         activeKeys.has("KeyF") ||
         activeKeys.has("KeyJ") ||
@@ -173,14 +175,21 @@ function HitAndRunContent() {
       game.setInputState({
         moveLeft,
         moveRight,
+        moveUp,
+        moveDown,
         jump,
         pulse,
         attack,
-        aimUp,
-        aimDown
       });
 
-      applyAimToPlayer(game, { moveLeft, moveRight, aimUp, aimDown, attack });
+      // Facing / fire aim still derive from horizontal movement only (no vertical aim keys).
+      applyAimToPlayer(game, {
+        moveLeft,
+        moveRight,
+        aimUp: false,
+        aimDown: false,
+        attack,
+      });
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -197,10 +206,10 @@ function HitAndRunContent() {
   const pushTouch = (partial: {
     moveLeft?: boolean;
     moveRight?: boolean;
+    moveUp?: boolean;
+    moveDown?: boolean;
     jump?: boolean;
     attack?: boolean;
-    aimUp?: boolean;
-    aimDown?: boolean;
     pulse?: boolean;
     axisX?: number;
     axisY?: number;
@@ -218,23 +227,17 @@ function HitAndRunContent() {
     } | undefined;
     const moveLeft = partial.moveLeft ?? (inp?.moveDir !== undefined && inp.moveDir < 0);
     const moveRight = partial.moveRight ?? (inp?.moveDir !== undefined && inp.moveDir > 0);
-    let aimBag = world.getResource("HitRunTouchAim") as { up: boolean; down: boolean } | undefined;
-    if (!aimBag) {
-      aimBag = { up: false, down: false };
-      world.setResource("HitRunTouchAim", aimBag);
-    }
-    if (partial.aimUp !== undefined) aimBag.up = partial.aimUp;
-    if (partial.aimDown !== undefined) aimBag.down = partial.aimDown;
     const attack =
       partial.attack !== undefined ? partial.attack : !!inp?.fireHeld;
+    // Option A: stick Y is depth movement; aim vertical stays neutral.
     applyAimToPlayer(game, {
       moveLeft: !!moveLeft,
       moveRight: !!moveRight,
-      aimUp: aimBag.up,
-      aimDown: aimBag.down,
+      aimUp: false,
+      aimDown: false,
       attack,
       axisX: partial.axisX,
-      axisY: partial.axisY,
+      axisY: 0,
     });
   };
 
@@ -246,8 +249,6 @@ function HitAndRunContent() {
     setTimeout(() => game?.setInputState({ pulse: false }), 50);
   };
   const handleTouchFire = (pressed: boolean) => pushTouch({ attack: pressed });
-  const handleTouchAimUp = (pressed: boolean) => pushTouch({ aimUp: pressed });
-  const handleTouchAimDown = (pressed: boolean) => pushTouch({ aimDown: pressed });
 
   const formatTime = (timeInSecs: number) => {
     const mins = Math.floor(timeInSecs / 60);
@@ -269,7 +270,7 @@ function HitAndRunContent() {
         />
         <GameInstructions>
           {Platform.OS === "web"
-            ? "←→/AD move · ↑↓ aim · Space jump · F melee · C/X fire · R restart"
+            ? "←→/AD move · ↑↓/WS depth · Space jump · F melee · C/X fire · R restart"
             : t.common.touch_controls}
         </GameInstructions>
         <HighScoreText label={t.common.record} score={highScore} />
@@ -338,8 +339,8 @@ function HitAndRunContent() {
                   pushTouch({
                     moveLeft: x < -0.2,
                     moveRight: x > 0.2,
-                    aimUp: y < -0.2,
-                    aimDown: y > 0.2,
+                    moveUp: y < -0.2,
+                    moveDown: y > 0.2,
                     axisX: x,
                     axisY: y,
                   });
@@ -348,8 +349,8 @@ function HitAndRunContent() {
                   pushTouch({
                     moveLeft: false,
                     moveRight: false,
-                    aimUp: false,
-                    aimDown: false,
+                    moveUp: false,
+                    moveDown: false,
                     axisX: 0,
                     axisY: 0,
                   });

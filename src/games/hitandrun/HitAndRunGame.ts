@@ -44,7 +44,7 @@ import {
   createMainCamera2D,
   registerPresentationSystems,
   generateAndInstantiatePlatformerLevel,
-  registerCollectibleTriggerBlueprint
+  registerStandardPlatformerCollectibles
 } from "../shared/componentBuilders";
 import { DEFAULT_HIT_AND_RUN_CONFIG, HitAndRunConfig as HitAndRunConfigType } from "./types/HitAndRunConfigSchema";
 import hitRunLevelData from "./levels/level-01.json";
@@ -175,8 +175,7 @@ export class HitAndRunGame extends PlatformerArcadeGame<
     await super.onRegisterSystems();
 
     registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_HIT_AND_RUN_CONFIG);
-    registerCollectibleTriggerBlueprint(this.blueprints, "collectible_fragment", "fragment", 10, 16, 10, "fragment", false, false);
-    registerCollectibleTriggerBlueprint(this.blueprints, "collectible_core", "core", 100, 24, 12, "core", true, true);
+    registerStandardPlatformerCollectibles(this.blueprints);
     registerPlatformerEnvironmentBlueprints(this.blueprints);
 
     registerBeltSystems(this.world);

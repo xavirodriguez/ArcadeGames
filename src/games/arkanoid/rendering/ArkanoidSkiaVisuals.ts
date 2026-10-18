@@ -1,18 +1,17 @@
 import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
 import { ArkanoidComponentRegistry } from "../types/ArkanoidTypes";
-import { ArkanoidConfig } from "../types/ArkanoidConfigSchema";
 import { colors } from "../../../theme/colors";
 import { computeNeonPulse } from "../../shared/rendering/ProceduralShapeUtils";
 import { drawGlowOrbSkia, drawSkiaBackgroundGrid } from "../../shared/rendering/SkiaNeonUtils";
-import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
-import { getVisibleSkiaRender } from "../../shared/rendering/renderingUtils";
+import { Skia, getPaint, type SkCanvas } from "../../shared/rendering/SkiaContext";
+import { getVisibleSkiaRender, drawSkiaFilledRoundRect, fillSkiaPaint } from "../../shared/rendering/renderingUtils";
 import {
   resolveArkanoidBallContext,
   resolveArkanoidPaddleContext,
   resolveArkanoidBrickContext,
 } from "./ArkanoidRenderUtils";
 
-export const drawSkiaArkanoidBall: ShapeDrawer<any, ArkanoidComponentRegistry> = {
+export const drawSkiaArkanoidBall: ShapeDrawer<SkCanvas, ArkanoidComponentRegistry> = {
   draw(canvas, world, entity) {
     const ballCtx = resolveArkanoidBallContext(world, entity);
     if (!ballCtx) return;
@@ -22,7 +21,7 @@ export const drawSkiaArkanoidBall: ShapeDrawer<any, ArkanoidComponentRegistry> =
   }
 };
 
-export const drawSkiaArkanoidPaddle: ShapeDrawer<any, ArkanoidComponentRegistry> = {
+export const drawSkiaArkanoidPaddle: ShapeDrawer<SkCanvas, ArkanoidComponentRegistry> = {
   draw(canvas, world, entity) {
     const paddleCtx = resolveArkanoidPaddleContext(world, entity);
     if (!paddleCtx) return;
@@ -36,22 +35,16 @@ export const drawSkiaArkanoidPaddle: ShapeDrawer<any, ArkanoidComponentRegistry>
     const pw = w * pulseFactor;
     const ph = h;
 
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color(primaryColor));
-    paint.setStrokeWidth(2.0);
-    canvas.drawRoundRect(
+    fillSkiaPaint(paint, "stroke", primaryColor, 2.0);
+    canvas.drawRRect(
       Skia.RRectXY(Skia.XYWHRect(-pw / 2, -ph / 2, pw, ph), 4, 4),
       paint
     );
 
-    paint.reset();
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(colors.white));
+    fillSkiaPaint(paint, "fill", colors.white);
     const coreW = w * 0.6;
     const coreH = h * 0.5;
-    canvas.drawRoundRect(
+    canvas.drawRRect(
       Skia.RRectXY(Skia.XYWHRect(-coreW / 2, -coreH / 2, coreW, coreH), 2, 2),
       paint
     );
@@ -60,50 +53,27 @@ export const drawSkiaArkanoidPaddle: ShapeDrawer<any, ArkanoidComponentRegistry>
   }
 };
 
-function drawFilledSkiaRoundRect(
-  canvas: any,
-  w: number,
-  h: number,
-  color: string,
-  rx: number,
-  ry: number
-): void {
-  const paint = getPaint();
-  canvas.save();
-  paint.reset();
-  paint.setAntiAlias(true);
-  paint.setStyle(Skia.PaintStyle.Fill);
-  paint.setColor(Skia.Color(color));
-
-  canvas.drawRoundRect(
-    Skia.RRectXY(Skia.XYWHRect(-w / 2, -h / 2, w, h), rx, ry),
-    paint
-  );
-
-  canvas.restore();
-}
-
-export const drawSkiaArkanoidCapsule: ShapeDrawer<any, ArkanoidComponentRegistry> = {
+export const drawSkiaArkanoidCapsule: ShapeDrawer<SkCanvas, ArkanoidComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = getVisibleSkiaRender(world, entity);
     if (!render) return;
 
     const capsuleColor = render.color || colors.cyan;
-    drawFilledSkiaRoundRect(canvas, 24, 14, capsuleColor, 7, 7);
+    drawSkiaFilledRoundRect(canvas, 24, 14, capsuleColor, 7, 7);
   }
 };
 
-export const drawSkiaArkanoidBrick: ShapeDrawer<any, ArkanoidComponentRegistry> = {
+export const drawSkiaArkanoidBrick: ShapeDrawer<SkCanvas, ArkanoidComponentRegistry> = {
   draw(canvas, world, entity) {
     const brickCtx = resolveArkanoidBrickContext(world, entity);
     if (!brickCtx) return;
 
     const { w, h, brickColor } = brickCtx;
-    drawFilledSkiaRoundRect(canvas, w, h, brickColor, 3, 3);
+    drawSkiaFilledRoundRect(canvas, w, h, brickColor, 3, 3);
   }
 };
 
-export const drawSkiaArkanoidBackground: EffectDrawer<any, ArkanoidComponentRegistry> = {
+export const drawSkiaArkanoidBackground: EffectDrawer<SkCanvas, ArkanoidComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
     const config = world.getResource<{ worldWidth?: number; worldHeight?: number }>("GameConfig");

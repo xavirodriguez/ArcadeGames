@@ -441,30 +441,42 @@ export function syncLevelWorldDimensions(
 }
 
 /**
+ * Configuration options for registering a collectible trigger blueprint.
+ * @public
+ */
+export interface CollectibleBlueprintOptions {
+  readonly id: string;
+  readonly kind: string;
+  readonly value: number;
+  readonly size: number;
+  readonly halfSize: number;
+  readonly shape: "fragment" | "core" | "coin" | string;
+  readonly persistent?: boolean;
+  readonly collectOnce?: boolean;
+}
+
+/**
  * Helper to register collectible blueprints with trigger colliders in a blueprint registry.
  *
  * @param blueprints - Blueprint registry instance.
- * @param id - Blueprint ID name.
- * @param kind - Collectible kind identifier.
- * @param value - Score value.
- * @param size - Render size.
- * @param halfSize - Trigger collider AABB half size.
- * @param shape - Render shape.
- * @param persistent - Whether collectible persists across sessions.
- * @param collectOnce - Whether collectible can only be collected once.
+ * @param options - Collectible blueprint options configuration object.
  * @public
  */
 export function registerCollectibleTriggerBlueprint(
   blueprints: RegistrableBlueprintRegistry,
-  id: string,
-  kind: string,
-  value: number,
-  size: number,
-  halfSize: number,
-  shape: string,
-  persistent = false,
-  collectOnce = false
+  options: CollectibleBlueprintOptions
 ): void {
+  const {
+    id,
+    kind,
+    value,
+    size,
+    halfSize,
+    shape,
+    persistent = false,
+    collectOnce = false
+  } = options;
+
   blueprints.register(id, {
     spawn: (world: World<CoreComponentRegistry>, entity: Entity, args: { x: number; y: number; id: string }) => {
       setupTriggerEntity(world, entity, args.x, args.y, halfSize, shape, size);
@@ -478,5 +490,36 @@ export function registerCollectibleTriggerBlueprint(
         id: args.id
       });
     }
+  });
+}
+
+/**
+ * Registers standard platformer collectibles (collectible_fragment and collectible_core) on a blueprint registry.
+ * @param blueprints - Target blueprint registry.
+ * @public
+ */
+export function registerStandardPlatformerCollectibles(
+  blueprints: RegistrableBlueprintRegistry
+): void {
+  registerCollectibleTriggerBlueprint(blueprints, {
+    id: "collectible_fragment",
+    kind: "fragment",
+    value: 10,
+    size: 16,
+    halfSize: 10,
+    shape: "fragment",
+    persistent: false,
+    collectOnce: false
+  });
+
+  registerCollectibleTriggerBlueprint(blueprints, {
+    id: "collectible_core",
+    kind: "core",
+    value: 100,
+    size: 24,
+    halfSize: 12,
+    shape: "core",
+    persistent: true,
+    collectOnce: true
   });
 }

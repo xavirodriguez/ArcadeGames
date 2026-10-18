@@ -380,12 +380,16 @@ export class AsteroidsGame
       renderer.registerBackgroundEffect("distant_asteroid_belt", SharedVFX.DistantAsteroidBeltBackgroundEffect);
       renderer.registerBackgroundEffect("ringing_planet", SharedVFX.RingingPlanetBackgroundEffect);
     } else if (renderer.type === "skia") {
-      renderer.registerBackgroundEffect("diffuse_milky_way", SharedVFX.SkiaDiffuseMilkyWayBackgroundEffect);
-      renderer.registerBackgroundEffect("drifting_nebula", SharedVFX.SkiaDriftingNebulaBackgroundEffect);
-      renderer.registerBackgroundEffect("starfield", SharedVFX.SkiaScrollingStarfieldEffect);
-      renderer.registerBackgroundEffect("distant_space_station", SharedVFX.SkiaDistantSpaceStationBackgroundEffect);
-      renderer.registerBackgroundEffect("distant_asteroid_belt", SharedVFX.SkiaDistantAsteroidBeltBackgroundEffect);
-      renderer.registerBackgroundEffect("ringing_planet", SharedVFX.SkiaRingingPlanetBackgroundEffect);
+      RendererUtils.registerAssets(renderer, {
+        skia: (r) => {
+          r.registerBackgroundEffect("diffuse_milky_way", SharedVFX.SkiaDiffuseMilkyWayBackgroundEffect);
+          r.registerBackgroundEffect("drifting_nebula", SharedVFX.SkiaDriftingNebulaBackgroundEffect);
+          r.registerBackgroundEffect("starfield", SharedVFX.SkiaScrollingStarfieldEffect);
+          r.registerBackgroundEffect("distant_space_station", SharedVFX.SkiaDistantSpaceStationBackgroundEffect);
+          r.registerBackgroundEffect("distant_asteroid_belt", SharedVFX.SkiaDistantAsteroidBeltBackgroundEffect);
+          r.registerBackgroundEffect("ringing_planet", SharedVFX.SkiaRingingPlanetBackgroundEffect);
+        }
+      });
     }
   }
 

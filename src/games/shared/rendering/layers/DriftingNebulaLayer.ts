@@ -1,5 +1,5 @@
-import { EffectDrawer, CoreComponentRegistry } from "@tiny-aster/core";
-import { Skia } from "../SkiaContext";
+import { EffectDrawer, CoreComponentRegistry, World } from "@tiny-aster/core";
+import { Skia, SkCanvas } from "../SkiaContext";
 import {
   createParallaxLayer,
   NebulaCloud,
@@ -54,7 +54,7 @@ export interface DriftingNebulaSetup {
   layerCtx: NonNullable<ReturnType<typeof resolveLayerFrame<NebulaCloud[]>>>;
 }
 
-export function resolveDriftingNebulaSetup(world: any): DriftingNebulaSetup | null {
+export function resolveDriftingNebulaSetup(world: World<CoreComponentRegistry>): DriftingNebulaSetup | null {
   const theme = getActiveVisualContext(world);
   const layerCtx = resolveLayerFrame(world, "drifting_nebula", driftingNebulaLayer);
   if (!layerCtx) return null;
@@ -94,7 +94,7 @@ export const DriftingNebulaBackgroundEffect: EffectDrawer<CanvasRenderingContext
   }
 };
 
-export const SkiaDriftingNebulaBackgroundEffect: EffectDrawer<any, CoreComponentRegistry> = {
+export const SkiaDriftingNebulaBackgroundEffect: EffectDrawer<SkCanvas, CoreComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
     const setup = resolveDriftingNebulaSetup(world);

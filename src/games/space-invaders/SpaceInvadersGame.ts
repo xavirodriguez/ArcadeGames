@@ -20,7 +20,7 @@ import { ISpaceInvadersGame } from "./types/GameInterfaces";
 import { PlayerBulletPool, EnemyBulletPool, ParticlePool } from "./EntityPool";
 import { SpaceInvadersGameScene } from "./scenes/SpaceInvadersGameScene";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
-import { markLocalPlayerEntity, NO_OP_SYNC, applyServerGameStateFields, collectGroupInterpolationEntries, queryPlayerEntity } from "../shared/networkUtils";
+import { markLocalPlayerEntity, NO_OP_SYNC, applyServerSnapshot, queryPlayerEntity } from "../shared/networkUtils";
 import spaceInvadersConfigRaw from "./config/space-invaders.json";
 
 const __DEV__ = process.env.NODE_ENV !== "production";
@@ -789,30 +789,20 @@ export class SpaceInvadersGame
 
   public updateFromServer(state: Record<string, unknown>, localSessionId?: string) {
     if (!this.isMultiplayer || !state) return;
-    const world = this.getWorld();
-
-    // Synchronize global GameState singleton on the client from server state
-    const gs = world.getSingleton("GameState");
-    if (gs) {
-      world.mutateSingleton("GameState", (currentGs) => {
-        applyServerGameStateFields(currentGs, state);
-      });
-    }
-
-    const replicator = this.networkManager.getReplicator();
-    const entries: InterpolationSnapshotEntry[] = [
-      ...collectGroupInterpolationEntries(state.players as Record<string, { x: number; y: number }>, "player", replicator),
-      ...collectGroupInterpolationEntries(state.invaders as Record<string, { x: number; y: number; alive: boolean }>, "invader", replicator, true),
-      ...collectGroupInterpolationEntries(state.bullets as Record<string, { x: number; y: number }>, "bullet", replicator)
-    ];
-
-    applyServerState(
-      world,
+    applyServerSnapshot(
+      this.getWorld(),
       this.networkManager,
-      this.ENTITY_SYNC_DESCRIPTORS,
       state,
-      entries,
-      localSessionId
+      {
+        gameStateSingletonKey: "GameState",
+        descriptors: this.ENTITY_SYNC_DESCRIPTORS,
+        groups: [
+          { stateKey: "players", prefix: "player" },
+          { stateKey: "invaders", prefix: "invader", requireAlive: true },
+          { stateKey: "bullets", prefix: "bullet" }
+        ],
+        localSessionId
+      }
     );
   }
 

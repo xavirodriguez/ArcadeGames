@@ -575,14 +575,20 @@ export function initializeDistantAsteroids(world: World<ComponentRegistry>, stat
     const points = computeAsteroidSilhouette(seed, radius, 9);
 
     let skPath: unknown = null;
-    if (Skia && points.length > 0) {
-      const p = Skia.Path.Make();
-      p.moveTo(points[0].x, points[0].y);
-      for (let pIdx = 1; pIdx < points.length; pIdx++) {
-        p.lineTo(points[pIdx].x, points[pIdx].y);
+    if (Skia && Skia.Path && typeof Skia.Path.Make === "function" && points.length > 0) {
+      try {
+        const p = Skia.Path.Make();
+        if (p) {
+          p.moveTo(points[0].x, points[0].y);
+          for (let pIdx = 1; pIdx < points.length; pIdx++) {
+            p.lineTo(points[pIdx].x, points[pIdx].y);
+          }
+          p.close();
+          skPath = p;
+        }
+      } catch {
+        skPath = null;
       }
-      p.close();
-      skPath = p;
     }
 
     state.distantAsteroids.push({

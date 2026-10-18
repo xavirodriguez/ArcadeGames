@@ -100,6 +100,7 @@ describe("Echo Runner Game Simulation Tests", () => {
 
     expect(loaded.PLAYER_SPEED).toBe(350);
     expect(loaded.TILE_SIZE).toBe(32);
+    expect(loaded.DEATH_PLANE_Y).toBe(650);
     expect(loaded.worldWidth).toBe(800); // verify Zod defaults are merged
   });
 
@@ -659,6 +660,29 @@ describe("Echo Runner Game Simulation Tests", () => {
     expect(transform.x).toBe(respawnPosition.x);
     expect(transform.y).toBe(respawnPosition.y);
     expect(world.hasComponent(playerEntity, "Dead")).toBe(false);
+  });
+
+  it("should apply a configured death plane to the shared death system", async () => {
+    const lifecycleGame = new EchoRunnerGame({
+      seed: 41873,
+      gameOptions: { DEATH_PLANE_Y: 700 }
+    });
+    try {
+      await lifecycleGame.init();
+      const testWorld = lifecycleGame.getWorld();
+      const playerEntity = testWorld.query("PlatformerInput")[0];
+
+      expect(testWorld.getResource<number>("DeathPlaneY")).toBe(700);
+
+      testWorld.mutateComponent(playerEntity, "Transform", (transform) => {
+        transform.y = 701;
+      });
+
+      lifecycleGame.update(0.016);
+      expect(lifecycleGame.getGameState().deaths).toBe(1);
+    } finally {
+      lifecycleGame.destroy();
+    }
   });
 
   it("should trigger death when falling below DeathPlaneY and respawn player at default start position", async () => {

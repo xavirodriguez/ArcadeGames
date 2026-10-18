@@ -50,7 +50,8 @@ export function registerBeltSystems(
     cameraX: cameraConfig.minCameraX,
     currentSectionIndex: 0,
     sectionCleared: false,
-    gateLocked: true
+    gateLocked: true,
+    hadEnemiesThisSection: false
   };
   world.setResource(BELT_CAMERA_STATE_RESOURCE, cameraState);
   world.setResource("CameraX", cameraState.cameraX);

@@ -12,6 +12,7 @@ import {
   resolveCreepVisualState,
   resolveTowerProjectileDrawSetup,
   resolveTdMapBackgroundContext,
+  forEachTileGridCell,
 } from "./TowerDefenseVisualHelpers";
 
 type TDWorld = World<TowerDefenseComponentRegistry>;
@@ -190,28 +191,23 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
     if (!bgCtx) return;
     const { layout, tileGrid } = bgCtx;
 
-    for (let row = 0; row < tileGrid.rows; row++) {
-      for (let col = 0; col < tileGrid.cols; col++) {
-        const tile = tileGrid.tiles[row]?.[col];
-        const x = layout.offsetX + col * layout.stepX;
-        const y = layout.offsetY + row * layout.stepY;
-        ctx.fillStyle = getTileTypeColor(tile);
-        ctx.fillRect(x, y, layout.stepX - 1, layout.stepY - 1);
+    forEachTileGridCell(bgCtx, (tile, x, y) => {
+      ctx.fillStyle = getTileTypeColor(tile);
+      ctx.fillRect(x, y, layout.stepX - 1, layout.stepY - 1);
 
-        if (tile === "spawn") {
-          ctx.fillStyle = resolveThemeColorWithFallback(world, "#e53935", "map_spawn", "accent");
-          ctx.font = "bold 10px monospace";
-          ctx.textAlign = "center";
-          ctx.fillText("S", x + layout.stepX / 2, y + layout.stepY / 2 + 3);
-        }
-        if (tile === "base") {
-          ctx.fillStyle = resolveThemeColorWithFallback(world, "#43a047", "map_base", "primary");
-          ctx.font = "bold 10px monospace";
-          ctx.textAlign = "center";
-          ctx.fillText("BASE", x + layout.stepX / 2, y + layout.stepY / 2 + 3);
-        }
+      if (tile === "spawn") {
+        ctx.fillStyle = resolveThemeColorWithFallback(world, "#e53935", "map_spawn", "accent");
+        ctx.font = "bold 10px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText("S", x + layout.stepX / 2, y + layout.stepY / 2 + 3);
       }
-    }
+      if (tile === "base") {
+        ctx.fillStyle = resolveThemeColorWithFallback(world, "#43a047", "map_base", "primary");
+        ctx.font = "bold 10px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText("BASE", x + layout.stepX / 2, y + layout.stepY / 2 + 3);
+      }
+    });
 
     const playerEntity = world.query("Player")[0];
     const catalog = world.getResource<TowerCatalog>("TowerCatalog");

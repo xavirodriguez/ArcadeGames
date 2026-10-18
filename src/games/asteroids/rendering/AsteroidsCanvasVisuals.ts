@@ -2,10 +2,10 @@ import { ShapeDrawer, SHIP_FORWARD_AXIS, THEME_RESOURCE_KEY, Theme } from "@tiny
 import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import { drawNeonShape } from "../../shared/rendering/CanvasNeonUtils";
 import { colors } from "../../../theme/colors";
-import { computeAsteroidSilhouette, computeThrustFlame, computeMotionSecondaryEffect } from "../../shared/rendering/ProceduralShapeUtils";
+import { computeAsteroidSilhouette, computeThrustFlame } from "../../shared/rendering/ProceduralShapeUtils";
 import { resolveHitFlash, resolveInvulnerabilityPulse, resolveAsteroidHitFlash } from "../../shared/rendering/RenderUtils";
 import { drawFromGeometryProfileCanvas } from "../../shared/rendering/GenericEntityDrawer";
-import { resolveAsteroidSaucerSetup, resolveAsteroidDrawSetup } from "./AsteroidsVisualHelpers";
+import { resolveAsteroidSaucerSetup, resolveAsteroidDrawSetup, resolvePlayerShipSetup, resolveCustomMotionData } from "./AsteroidsVisualHelpers";
 
 function applyAsteroidHitFlashStroke(
   ctx: CanvasRenderingContext2D,
@@ -30,15 +30,11 @@ function applyAsteroidHitFlashStroke(
  */
 export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, AsteroidsComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render) return;
+    const setup = resolvePlayerShipSetup(world, world.getComponent(entity, "Render"), entity);
+    if (!setup) return;
 
-    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-    const customGeom = theme?.visualTheme?.shapeTokens?.playerGeometry;
-
-    const size = render.size || 15;
+    const { render, customGeom, size, tick, isThrusting } = setup;
     let baseColor = render.color || colors.cyan;
-    const tick = Math.floor((world.tick * 5) / 12);
 
     ctx.save();
 
@@ -59,14 +55,10 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
       }
     }
 
-    const input = world.getComponent(entity, "Input");
-    const isThrusting = Boolean(input && input.actions && input.actions["thrust"]);
-
     if (customGeom) {
       // Data-driven Concept Pack geometry rendering
-      const motionEffect = customGeom.motionEffect || "flame";
-      if (isThrusting && motionEffect !== "none") {
-        const motionData = computeMotionSecondaryEffect(motionEffect, size, tick, world.renderRandom);
+      const motionData = resolveCustomMotionData(customGeom, isThrusting, size, tick, world.renderRandom);
+      if (motionData) {
         for (let i = 0; i < motionData.particles.length; i++) {
           const p = motionData.particles[i];
           ctx.save();

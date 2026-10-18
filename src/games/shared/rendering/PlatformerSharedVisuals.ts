@@ -55,6 +55,19 @@ function getPulseAttackGradient(ctx: CanvasRenderingContext2D, size: number, pal
   return grad;
 }
 
+export function drawOrbitingSparkles(
+  elapsed: number,
+  size: number,
+  drawSparkle: (sx: number, sy: number) => void
+): void {
+  for (let i = 0; i < 3; i++) {
+    const angle = elapsed + (i * Math.PI * 2) / 3;
+    const sx = Math.cos(angle) * (size * 0.6);
+    const sy = Math.sin(angle) * (size * 0.2) - size * 0.5;
+    drawSparkle(sx, sy);
+  }
+}
+
 export function drawCanvasHitFlashCircle(ctx: CanvasRenderingContext2D, radius: number, color: string): true {
   ctx.fillStyle = color;
   ctx.beginPath();
@@ -479,14 +492,11 @@ export const drawCharger: ShapeDrawer<CanvasRenderingContext2D, CoreComponentReg
       const elapsed = world.tick * 0.1;
       ctx.strokeStyle = palette.restorationGold;
       ctx.lineWidth = 1.5;
-      for (let i = 0; i < 3; i++) {
-        const angle = elapsed + (i * Math.PI * 2) / 3;
-        const sx = Math.cos(angle) * (size * 0.6);
-        const sy = Math.sin(angle) * (size * 0.2) - size * 0.5;
+      drawOrbitingSparkles(elapsed, size, (sx, sy) => {
         ctx.beginPath();
         ctx.arc(sx, sy, 2, 0, Math.PI * 2);
         ctx.stroke();
-      }
+      });
     }
 
     ctx.restore();
@@ -930,12 +940,9 @@ export const drawSkiaCharger: ShapeDrawer<SkCanvas, CoreComponentRegistry> = {
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setColor(Skia.Color(palette.restorationGold));
       paint.setStrokeWidth(1.5);
-      for (let i = 0; i < 3; i++) {
-        const angle = elapsed + (i * Math.PI * 2) / 3;
-        const sx = Math.cos(angle) * (size * 0.6);
-        const sy = Math.sin(angle) * (size * 0.2) - size * 0.5;
+      drawOrbitingSparkles(elapsed, size, (sx, sy) => {
         canvas.drawCircle(sx, sy, 2, paint);
-      }
+      });
     }
 
     canvas.restore();

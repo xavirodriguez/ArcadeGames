@@ -8,6 +8,7 @@ import {
   resolveCreepVisualState,
   resolveTowerProjectileDrawSetup,
   resolveTdMapBackgroundContext,
+  forEachTileGridCell,
 } from "./TowerDefenseVisualHelpers";
 
 type TDWorld = World<TowerDefenseComponentRegistry>;
@@ -176,22 +177,17 @@ export const drawSkiaTdMapBackground: EffectDrawer<SkCanvas, TowerDefenseCompone
     if (!Skia) return;
     const bgCtx = resolveTdMapBackgroundContext(world);
     if (!bgCtx) return;
-    const { layout, tileGrid } = bgCtx;
+    const { layout } = bgCtx;
 
     const paint = getPaint();
     if (!paint) return;
 
-    for (let row = 0; row < tileGrid.rows; row++) {
-      for (let col = 0; col < tileGrid.cols; col++) {
-        const tile = tileGrid.tiles[row]?.[col];
-        const x = layout.offsetX + col * layout.stepX;
-        const y = layout.offsetY + row * layout.stepY;
-        paint.reset();
-        paint.setStyle(Skia.PaintStyle.Fill);
-        paint.setColor(Skia.Color(getTileTypeColor(tile)));
-        canvas.drawRect(Skia.XYWHRect(x, y, layout.stepX - 1, layout.stepY - 1), paint);
-      }
-    }
+    forEachTileGridCell(bgCtx, (tile, x, y) => {
+      paint.reset();
+      paint.setStyle(Skia.PaintStyle.Fill);
+      paint.setColor(Skia.Color(getTileTypeColor(tile)));
+      canvas.drawRect(Skia.XYWHRect(x, y, layout.stepX - 1, layout.stepY - 1), paint);
+    });
 
     const playerEntity = world.query("Player")[0];
     if (playerEntity !== undefined) {

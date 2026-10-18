@@ -99,3 +99,18 @@ export function resolveTdMapBackgroundContext(
   if (!layout || !tileGrid) return null;
   return { layout, tileGrid };
 }
+
+export function forEachTileGridCell(
+  bgCtx: TdMapBackgroundContext,
+  callback: (tile: any, x: number, y: number, row: number, col: number) => void
+): void {
+  const { layout, tileGrid } = bgCtx;
+  for (let row = 0; row < tileGrid.rows; row++) {
+    for (let col = 0; col < tileGrid.cols; col++) {
+      const tile = tileGrid.tiles[row]?.[col];
+      const x = layout.offsetX + col * layout.stepX;
+      const y = layout.offsetY + row * layout.stepY;
+      callback(tile, x, y, row, col);
+    }
+  }
+}

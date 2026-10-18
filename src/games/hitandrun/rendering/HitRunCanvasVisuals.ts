@@ -141,6 +141,29 @@ export function withCharacterTransform(
   ctx.restore(); // restore main save
 }
 
+/** Helper to draw character entity with standard render guard and elevation transform. */
+function drawCharacterEntity(
+  ctx: CanvasRenderingContext2D,
+  world: import("@tiny-aster/core").World<CoreComponentRegistry>,
+  entity: number,
+  defaultSize: number,
+  opts: Omit<CharacterTransformOptions, "size" | "z">,
+  drawBody: (size: number, render: any) => void
+): void {
+  const render = world.getComponent(entity, "Render");
+  if (!render?.visible) return;
+  const size = render.size || defaultSize;
+  const z = getElevationZ(world, entity);
+
+  withCharacterTransform(
+    ctx,
+    world,
+    entity,
+    { size, z, ...opts },
+    () => drawBody(size, render)
+  );
+}
+
 /** Wraps projectile rendering with ground shadow and elevation translation. */
 function withProjectileTransform(
   ctx: CanvasRenderingContext2D,
@@ -294,17 +317,13 @@ export const drawHitRunPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreCompone
 
 export const drawHitRunPopcorn: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render?.visible) return;
-    const size = render.size || 10;
-    const z = getElevationZ(world, entity);
-
-    withCharacterTransform(
+    drawCharacterEntity(
       ctx,
       world,
       entity,
-      { size, z, shadowRxRatio: 0.45, shadowRyRatio: 0.15, squashK: 0.2 },
-      () => {
+      10,
+      { shadowRxRatio: 0.45, shadowRyRatio: 0.15, squashK: 0.2 },
+      (size, render) => {
         if (drawHitFlashEllipse(ctx, render.hitFlashFrames, () => {
           ctx.beginPath();
           ctx.arc(0, -size * 0.45, size * 0.45, 0, Math.PI * 2);
@@ -337,17 +356,13 @@ export const drawHitRunPopcorn: ShapeDrawer<CanvasRenderingContext2D, CoreCompon
 
 export const drawHitRunWallTrooper: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render?.visible) return;
-    const size = render.size || 14;
-    const z = getElevationZ(world, entity);
-
-    withCharacterTransform(
+    drawCharacterEntity(
       ctx,
       world,
       entity,
-      { size, z, shadowRxRatio: 0.5, shadowRyRatio: 0.16, squashK: 0.18 },
-      () => {
+      14,
+      { shadowRxRatio: 0.5, shadowRyRatio: 0.16, squashK: 0.18 },
+      (size, render) => {
         if (drawHitFlashEllipse(ctx, render.hitFlashFrames, () => {
           ctx.fillRect(-size * 0.4, -size, size * 0.8, size);
         })) {
@@ -372,17 +387,13 @@ export const drawHitRunWallTrooper: ShapeDrawer<CanvasRenderingContext2D, CoreCo
 
 export const drawHitRunHopper: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render?.visible) return;
-    const size = render.size || 12;
-    const z = getElevationZ(world, entity);
-
-    withCharacterTransform(
+    drawCharacterEntity(
       ctx,
       world,
       entity,
-      { size, z, shadowRxRatio: 0.5, shadowRyRatio: 0.15, squashK: 0.26 },
-      () => {
+      12,
+      { shadowRxRatio: 0.5, shadowRyRatio: 0.15, squashK: 0.26 },
+      (size, render) => {
         if (drawHitFlashEllipse(ctx, render.hitFlashFrames, () => {
           ctx.beginPath();
           ctx.ellipse(0, -size * 0.55, size * 0.5, size * 0.35, 0, 0, Math.PI * 2);
@@ -424,17 +435,13 @@ function drawChargerPolygon(ctx: CanvasRenderingContext2D, size: number): void {
 
 export const drawHitRunCharger: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render?.visible) return;
-    const size = render.size || 14;
-    const z = getElevationZ(world, entity);
-
-    withCharacterTransform(
+    drawCharacterEntity(
       ctx,
       world,
       entity,
-      { size, z, shadowRxRatio: 0.6, shadowRyRatio: 0.16, squashK: 0.2 },
-      () => {
+      14,
+      { shadowRxRatio: 0.6, shadowRyRatio: 0.16, squashK: 0.2 },
+      (size, render) => {
         if (drawHitFlashEllipse(ctx, render.hitFlashFrames, () => {
           drawChargerPolygon(ctx, size);
         })) {

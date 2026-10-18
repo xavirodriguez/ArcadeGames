@@ -12,16 +12,14 @@ import {
 } from "./EchoRunnerPixelArt";
 
 import { drawCanvasHitFlashCircle } from "../../shared/rendering/PlatformerSharedVisuals";
+import { resolveEchoRunnerDeathZoneDrawData, resolveEchoRunnerStateGateDrawData, resolveEchoRunnerStateSwitchDrawData } from "./EchoRunnerInteractionVisualUtils";
 
 export const drawEchoStateSwitch: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const trigger = world.getComponent(entity, "StateTrigger");
-    const render = world.getComponent(entity, "Render");
-    if (!trigger || !render) return;
+    const state = resolveEchoRunnerStateSwitchDrawData(world, entity);
+    if (!state) return;
 
-    const palette = resolveEchoRunnerPalette(world);
-    const size = render.size ?? 26;
-    const color = trigger.activated ? palette.restorationCyan : palette.corruptionCrimson;
+    const { palette, size, color, activated } = state;
     ctx.save();
     ctx.shadowColor = color;
     ctx.shadowBlur = 10;
@@ -39,7 +37,7 @@ export const drawEchoStateSwitch: ShapeDrawer<CanvasRenderingContext2D, CoreComp
 
     ctx.shadowBlur = 0;
     ctx.fillStyle = color;
-    const coreSize = trigger.activated ? size * 0.26 : size * 0.16;
+    const coreSize = activated ? size * 0.26 : size * 0.16;
     ctx.fillRect(-coreSize * 0.5, -coreSize * 0.5, coreSize, coreSize);
     ctx.restore();
   }
@@ -47,37 +45,33 @@ export const drawEchoStateSwitch: ShapeDrawer<CanvasRenderingContext2D, CoreComp
 
 export const drawEchoStateGate: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const gate = world.getComponent(entity, "StateGate");
-    const render = world.getComponent(entity, "Render");
-    if (!gate || !render) return;
+    const state = resolveEchoRunnerStateGateDrawData(world, entity);
+    if (!state) return;
 
-    const palette = resolveEchoRunnerPalette(world);
-    const size = render.size ?? 60;
-    const width = size * 0.42;
-    const height = size;
+    const { palette, size, width, color, isOpen } = state;
     ctx.save();
     ctx.lineWidth = 2;
-    ctx.strokeStyle = gate.isOpen ? palette.restorationCyan : palette.corruptionCrimson;
+    ctx.strokeStyle = color;
     ctx.fillStyle = palette.archiveVoidDark;
-    ctx.shadowColor = gate.isOpen ? palette.restorationCyan : palette.corruptionCrimson;
-    ctx.shadowBlur = gate.isOpen ? 4 : 12;
+    ctx.shadowColor = color;
+    ctx.shadowBlur = isOpen ? 4 : 12;
 
-    if (gate.isOpen) {
+    if (isOpen) {
       ctx.globalAlpha = 0.28;
-      ctx.strokeRect(-width * 0.5, -height * 0.5, width, height);
+      ctx.strokeRect(-width * 0.5, -size * 0.5, width, size);
       ctx.beginPath();
-      ctx.moveTo(-width * 0.28, -height * 0.36);
-      ctx.lineTo(-width * 0.28, height * 0.36);
-      ctx.moveTo(width * 0.28, -height * 0.36);
-      ctx.lineTo(width * 0.28, height * 0.36);
+      ctx.moveTo(-width * 0.28, -size * 0.36);
+      ctx.lineTo(-width * 0.28, size * 0.36);
+      ctx.moveTo(width * 0.28, -size * 0.36);
+      ctx.lineTo(width * 0.28, size * 0.36);
       ctx.stroke();
     } else {
-      ctx.fillRect(-width * 0.5, -height * 0.5, width, height);
-      ctx.strokeRect(-width * 0.5, -height * 0.5, width, height);
+      ctx.fillRect(-width * 0.5, -size * 0.5, width, size);
+      ctx.strokeRect(-width * 0.5, -size * 0.5, width, size);
       for (let bar = -1; bar <= 1; bar++) {
         ctx.beginPath();
-        ctx.moveTo(bar * width * 0.22, -height * 0.42);
-        ctx.lineTo(bar * width * 0.22, height * 0.42);
+        ctx.moveTo(bar * width * 0.22, -size * 0.42);
+        ctx.lineTo(bar * width * 0.22, size * 0.42);
         ctx.stroke();
       }
     }
@@ -87,13 +81,10 @@ export const drawEchoStateGate: ShapeDrawer<CanvasRenderingContext2D, CoreCompon
 
 export const drawEchoDeathZone: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    const collider = world.getComponent(entity, "Collider2D");
-    if (!render || !collider || collider.shape.type !== "aabb") return;
+    const zone = resolveEchoRunnerDeathZoneDrawData(world, entity);
+    if (!zone) return;
 
-    const palette = resolveEchoRunnerPalette(world);
-    const width = collider.shape.halfWidth * 2;
-    const height = collider.shape.halfHeight * 2;
+    const { palette, width, height } = zone;
     ctx.save();
     ctx.globalAlpha = 0.34;
     ctx.fillStyle = palette.corruptionCrimson;

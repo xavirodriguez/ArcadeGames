@@ -1,10 +1,14 @@
 import { ShapeDrawer, EffectDrawer, CoreComponentRegistry } from "@tiny-aster/core";
 import { resolveHitFlash, resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 import {
-  calculateEchoPlayerPose,
   resolveEchoPlayerDrawContext,
   resolveEchoBackgroundContext,
 } from "./EchoRunnerVisualUtils";
+import {
+  getEchoRunnerSpriteFrame,
+  resolveEchoRunnerSpriteColor,
+  resolveEchoRunnerSpriteMotion,
+} from "./EchoRunnerPixelArt";
 
 import { drawCanvasHitFlashCircle } from "../../shared/rendering/PlatformerSharedVisuals";
 
@@ -75,6 +79,34 @@ export const drawEchoBackground: EffectDrawer<CanvasRenderingContext2D, CoreComp
       ctx.fillRect(px, py, 12 + (i % 2) * 8, 40 + (i % 3) * 30);
     }
 
+    // Procedural Archive ruins and pixel flora add depth without external assets.
+    ctx.save();
+    ctx.globalAlpha = 0.2;
+    ctx.fillStyle = palette.archiveSlate;
+    const ruinBaseY = height * 0.78;
+    for (let i = 0; i < 5; i++) {
+      const ruinX = i * (width / 5) + 12;
+      const ruinWidth = 18 + (i % 3) * 8;
+      const ruinHeight = 28 + (i % 4) * 11;
+      ctx.fillRect(ruinX, ruinBaseY - ruinHeight, ruinWidth, ruinHeight);
+      ctx.fillRect(ruinX - 4, ruinBaseY - ruinHeight, ruinWidth + 8, 4);
+    }
+    ctx.restore();
+
+    for (let i = 0; i < 9; i++) {
+      const plantX = (i * 131 + elapsed * 4) % width;
+      const baseY = height - 8 - (i % 3) * 5;
+      const stemHeight = 14 + (i % 4) * 5;
+      ctx.fillStyle = i % 3 === 0 ? palette.restorationGoldGlow : palette.restorationCyanGlow;
+      ctx.fillRect(plantX, baseY - stemHeight, 2, stemHeight);
+      ctx.fillRect(plantX - 3, baseY - stemHeight + 4, 4, 3);
+      ctx.fillRect(plantX + 1, baseY - stemHeight + 9, 4, 3);
+      if (i % 2 === 0) {
+        ctx.fillStyle = palette.restorationGold;
+        ctx.fillRect(plantX - 1, baseY - stemHeight - 2, 3, 3);
+      }
+    }
+
     // Ambient particles
     for (let i = 0; i < 6; i++) {
       const px = ((i * 143 + elapsed * 8) % width);
@@ -93,108 +125,68 @@ export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
     if (!playerCtx) return;
 
     const { render, size, vx, vy, isGrounded, isAttacking, health, palette } = playerCtx;
-
-    ctx.save();
-
     const flashState = resolveHitFlash(render, render.color || palette.restorationCyan, 1.0);
     if (flashState.isFlashing) {
-      return drawCanvasHitFlashCircle(ctx, size * 0.65, palette.restorationWhite);
+      drawCanvasHitFlashCircle(ctx, size * 0.65, palette.restorationWhite);
+      return;
     }
 
-    const invState = resolveInvulnerabilityPulse(health?.invulnerableRemaining, 1.0, { mode: "tick", tick: world.tick, pulseDivisor: 4, dimOpacity: 0.3 });
-    if (invState.isInvulnerable) {
-      ctx.globalAlpha = invState.opacity;
+    const invState = resolveInvulnerabilityPulse(health?.invulnerableRemaining, 1.0, {
+      mode: "tick",
+      tick: world.tick,
+      pulseDivisor: 4,
+      dimOpacity: 0.3,
+    });
+    const transform = world.getComponent(entity, "Transform");
+    const facingLeft = (transform?.scaleX ?? 1) < 0;
+    const motion = resolveEchoRunnerSpriteMotion(vx, vy, isGrounded, isAttacking);
+    const frame = getEchoRunnerSpriteFrame(motion, world.tick);
+    const pixelSize = size / 12;
+    const originX = -size / 2;
+    const originY = -size * 0.8;
+
+    ctx.save();
+    ctx.globalAlpha = invState.isInvulnerable ? invState.opacity : 1;
+    ctx.translate(0, 0);
+    if (facingLeft) {
+      ctx.scale(-1, 1);
     }
-
-    const { tiltAngle, hoverY, leftLegX, leftLegY, rightLegX, rightLegY } = calculateEchoPlayerPose(size, isGrounded, vx, vy, world.tick);
-
-    ctx.translate(0, hoverY);
-    ctx.rotate(tiltAngle);
 
     ctx.fillStyle = palette.archiveVoidDark;
     ctx.beginPath();
-    ctx.ellipse(0, size * 0.7 - hoverY, size * 0.5, size * 0.15, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, size * 0.66, size * 0.48, size * 0.13, 0, 0, Math.PI * 2);
     ctx.fill();
 
     if (isAttacking) {
       ctx.strokeStyle = palette.restorationCyan;
-      ctx.lineWidth = 2;
-      ctx.shadowColor = palette.restorationCyan;
-      ctx.shadowBlur = 12;
+      ctx.lineWidth = Math.max(1, pixelSize);
+      ctx.globalAlpha *= 0.8;
       ctx.beginPath();
-      ctx.arc(0, 0, size * 0.85, 0, Math.PI * 2);
+      ctx.arc(0, 0, size * 0.72, -Math.PI * 0.8, Math.PI * 0.8);
       ctx.stroke();
+      ctx.globalAlpha = invState.isInvulnerable ? invState.opacity : 1;
     }
 
-    ctx.shadowColor = palette.restorationCyan;
-    ctx.shadowBlur = 10;
-
-    ctx.strokeStyle = palette.corruptionCrimson;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(-size * 0.22, -size * 0.5);
-    ctx.lineTo(-size * 0.32, -size * 0.85);
-    ctx.stroke();
-
-    ctx.fillStyle = palette.corruptionCrimson;
-    ctx.beginPath();
-    ctx.arc(-size * 0.32, -size * 0.85, 2, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = palette.archiveSlate;
-    ctx.strokeStyle = palette.restorationCyan;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(0, -size * 0.4, size * 0.35, Math.PI, 0);
-    ctx.lineTo(0, -size * 0.4);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.shadowColor = palette.corruptionCrimson;
-    ctx.fillStyle = palette.corruptionCrimson;
-    ctx.beginPath();
-    ctx.ellipse(size * 0.08, -size * 0.45, size * 0.24, size * 0.07, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.shadowColor = palette.restorationCyan;
-    ctx.fillStyle = palette.archiveBorderDark;
-    ctx.beginPath();
-    if (ctx.roundRect) {
-      ctx.roundRect(-size * 0.3, -size * 0.15, size * 0.6, size * 0.6, 4);
-    } else {
-      ctx.rect(-size * 0.3, -size * 0.15, size * 0.6, size * 0.6);
-    }
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = isAttacking ? palette.restorationWhite : palette.restorationCyan;
-    ctx.beginPath();
-    ctx.arc(0, size * 0.1, isAttacking ? size * 0.16 : size * 0.12, 0, Math.PI * 2);
-    ctx.fill();
-
-    if (isAttacking) {
-      ctx.fillStyle = palette.restorationCyan;
-      ctx.fillRect(size * 0.1, -size * 0.05, size * 0.4, size * 0.18);
-      ctx.fillStyle = palette.restorationWhite;
-      ctx.beginPath();
-      ctx.arc(size * 0.5, size * 0.04, 3, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    ctx.fillStyle = palette.archiveBorderLight;
-    ctx.beginPath();
-    ctx.arc(leftLegX, leftLegY, size * 0.08, 0, Math.PI * 2);
-    ctx.arc(rightLegX, rightLegY, size * 0.08, 0, Math.PI * 2);
-    ctx.fill();
-
-    if (!isGrounded && vy < -20) {
-      ctx.fillStyle = palette.restorationCyan;
-      ctx.beginPath();
-      ctx.moveTo(-size * 0.15, leftLegY);
-      ctx.lineTo(0, leftLegY + size * 0.35);
-      ctx.lineTo(size * 0.15, rightLegY);
-      ctx.closePath();
-      ctx.fill();
+    for (let y = 0; y < frame.length; y++) {
+      const row = frame[y] ?? "";
+      let x = 0;
+      while (x < row.length) {
+        const token = row[x] ?? ".";
+        if (token === ".") {
+          x++;
+          continue;
+        }
+        let runLength = 1;
+        while (x + runLength < row.length && row[x + runLength] === token) {
+          runLength++;
+        }
+        const color = resolveEchoRunnerSpriteColor(token, palette);
+        if (color) {
+          ctx.fillStyle = color;
+          ctx.fillRect(originX + x * pixelSize, originY + y * pixelSize, runLength * pixelSize, pixelSize);
+        }
+        x += runLength;
+      }
     }
 
     ctx.restore();

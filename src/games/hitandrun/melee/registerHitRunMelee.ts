@@ -1,5 +1,6 @@
 import { SystemPhase, World, CoreComponentRegistry } from "@tiny-aster/core";
 import { HitRunMeleeSystem } from "./HitRunMeleeSystem";
+import { ComboMeleeSystem } from "./ComboMeleeSystem";
 import {
   DEFAULT_MELEE_ATTACK_CONFIG,
   type MeleeAttackConfig
@@ -8,7 +9,7 @@ import {
 const MELEE_CONFIG_RESOURCE = "MeleeAttackConfig";
 
 /**
- * Registers melee config resource + HitRunMeleeSystem.
+ * Registers melee config resource + ComboMeleeSystem + HitRunMeleeSystem.
  * Call from HitAndRunGame.onRegisterSystems().
  */
 export function registerHitRunMelee(
@@ -21,9 +22,13 @@ export function registerHitRunMelee(
   };
   world.setResource(MELEE_CONFIG_RESOURCE, merged);
 
+  // Combo resolves jab/throw/special and sets customConfig before the swing
+  world.addSystem(new ComboMeleeSystem(), {
+    phase: SystemPhase.Simulation,
+    priority: 28
+  });
+
   const system = new HitRunMeleeSystem();
-  // After collision broadphase/narrowphase typically; before or after CombatSystem
-  // we resolve melee hits inside this system (one-hit guarantee).
   world.addSystem(system, { phase: SystemPhase.Simulation, priority: 30 });
   return system;
 }

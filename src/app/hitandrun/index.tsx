@@ -153,8 +153,6 @@ function HitAndRunContent() {
     };
 
     const updateInput = () => {
-      // Option A: vertical keys drive depth (moveY), not aim.
-      // Jump is Space-only so W/S can own depth movement.
       const moveLeft = activeKeys.has("ArrowLeft") || activeKeys.has("KeyA");
       const moveRight = activeKeys.has("ArrowRight") || activeKeys.has("KeyD");
       const moveUp = activeKeys.has("ArrowUp") || activeKeys.has("KeyW");
@@ -171,6 +169,9 @@ function HitAndRunContent() {
         activeKeys.has("KeyK") ||
         activeKeys.has("ControlLeft") ||
         activeKeys.has("ControlRight");
+      const special =
+        activeKeys.has("KeyQ") ||
+        activeKeys.has("KeyG");
 
       game.setInputState({
         moveLeft,
@@ -180,9 +181,9 @@ function HitAndRunContent() {
         jump,
         pulse,
         attack,
+        special,
       });
 
-      // Facing / fire aim still derive from horizontal movement only (no vertical aim keys).
       applyAimToPlayer(game, {
         moveLeft,
         moveRight,
@@ -211,6 +212,7 @@ function HitAndRunContent() {
     jump?: boolean;
     attack?: boolean;
     pulse?: boolean;
+    special?: boolean;
     axisX?: number;
     axisY?: number;
   }) => {
@@ -229,7 +231,6 @@ function HitAndRunContent() {
     const moveRight = partial.moveRight ?? (inp?.moveDir !== undefined && inp.moveDir > 0);
     const attack =
       partial.attack !== undefined ? partial.attack : !!inp?.fireHeld;
-    // Option A: stick Y is depth movement; aim vertical stays neutral.
     applyAimToPlayer(game, {
       moveLeft: !!moveLeft,
       moveRight: !!moveRight,
@@ -249,6 +250,10 @@ function HitAndRunContent() {
     setTimeout(() => game?.setInputState({ pulse: false }), 50);
   };
   const handleTouchFire = (pressed: boolean) => pushTouch({ attack: pressed });
+  const handleTouchSpecial = () => {
+    game?.setInputState({ special: true });
+    setTimeout(() => game?.setInputState({ special: false }), 50);
+  };
 
   const formatTime = (timeInSecs: number) => {
     const mins = Math.floor(timeInSecs / 60);
@@ -270,7 +275,7 @@ function HitAndRunContent() {
         />
         <GameInstructions>
           {Platform.OS === "web"
-            ? "←→/AD move · ↑↓/WS depth · Space jump · F melee · C/X fire · R restart"
+            ? "←→/AD move · ↑↓/WS depth · Space jump · F melee · Q special · C/X fire · R restart"
             : t.common.touch_controls}
         </GameInstructions>
         <HighScoreText label={t.common.record} score={highScore} />
@@ -370,6 +375,19 @@ function HitAndRunContent() {
                 onPressIn={() => handleTouchPulse()}
                 onPressOut={() => {}}
                 accessibilityLabel="Melee"
+                style={{ marginHorizontal: spacing.sm }}
+              />
+              <TouchActionButton
+                label="SPCL"
+                size={56}
+                color="rgba(30, 41, 59, 0.7)"
+                borderColor={colors.violet}
+                pressedColor="rgba(30, 41, 59, 0.9)"
+                pressedBorderColor={colors.white}
+                haptic="heavy"
+                onPressIn={() => handleTouchSpecial()}
+                onPressOut={() => {}}
+                accessibilityLabel="Special"
                 style={{ marginHorizontal: spacing.sm }}
               />
               <TouchActionButton

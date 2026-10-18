@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { StyleSheet, View, Animated, Easing, Dimensions } from "react-native";
+import { StyleSheet, View, Animated, Easing, Dimensions, Platform } from "react-native";
 import { COLORS } from "../theme";
 
 interface ParallaxSkyBackgroundProps {
@@ -26,7 +26,7 @@ export const ParallaxSkyBackground: React.FC<ParallaxSkyBackgroundProps> = ({
         toValue: 1,
         duration: 20000,
         easing: Easing.linear,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== "web",
       })
     );
     const loop2 = Animated.loop(
@@ -34,7 +34,7 @@ export const ParallaxSkyBackground: React.FC<ParallaxSkyBackgroundProps> = ({
         toValue: 1,
         duration: 35000,
         easing: Easing.linear,
-        useNativeDriver: true,
+        useNativeDriver: Platform.OS !== "web",
       })
     );
 

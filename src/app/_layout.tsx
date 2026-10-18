@@ -19,7 +19,10 @@ export default function RootLayout() {
     (async () => {
       try {
         const { LoadSkiaWeb } = await import("@shopify/react-native-skia/lib/module/web");
-        await LoadSkiaWeb();
+        await Promise.race([
+          LoadSkiaWeb(),
+          new Promise((resolve) => setTimeout(resolve, 3000))
+        ]);
       } catch (e) {
         console.warn("[RootLayout] LoadSkiaWeb failed or not required:", e);
       } finally {

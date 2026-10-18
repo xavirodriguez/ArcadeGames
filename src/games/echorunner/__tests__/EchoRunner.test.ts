@@ -635,7 +635,7 @@ describe("Echo Runner Game Simulation Tests", () => {
     });
     world.flush();
 
-    expect(world.hasComponent(checkpointEntity, "Collider")).toBe(true);
+    expect(world.hasComponent(checkpointEntity, "Collider2D")).toBe(true);
     expect(world.hasComponent(checkpointEntity, "CollisionEvents")).toBe(true);
 
     const checkpointActivated = jest.fn();

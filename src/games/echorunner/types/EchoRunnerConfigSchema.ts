@@ -26,7 +26,13 @@ export const EchoRunnerConfigSchema = BaseConfigSchema.extend({
   COYOTE_TIME_MAX: z.number().min(0).default(0.15),
   JUMP_BUFFER_MAX: z.number().min(0).default(0.1),
   TILE_SIZE: z.number().gt(0).default(40)
-});
+}).refine(
+  (config) => config.PLAYER_MIN_JUMP_VEL <= config.PLAYER_JUMP_VEL,
+  {
+    message: "PLAYER_MIN_JUMP_VEL must be less than or equal to PLAYER_JUMP_VEL",
+    path: ["PLAYER_MIN_JUMP_VEL"]
+  }
+);
 
 export type EchoRunnerConfig = z.infer<typeof EchoRunnerConfigSchema>;
 

@@ -24,7 +24,7 @@ export const OUTRUN_PLAYER_PIXEL_SPRITE: OutrunPixelSprite = {
       "tbbhhhhhhhhhhbbt",
       "tbbggggggggggbbt",
       "tbbggggggggggbbt",
-      "ttbbrrbbbbrrbbtt",
+      "ttbbrrbbppbbrrtt",
       "..ttddddddddtt.."
     ],
     [
@@ -35,7 +35,7 @@ export const OUTRUN_PLAYER_PIXEL_SPRITE: OutrunPixelSprite = {
       "tbbhhhhhhhhhhbbt",
       "tbbggggggggggbbt",
       "tbbggggggggggbbt",
-      "ttbbRRbbbbRRbbtt",
+      "ttbbRRbbppbbRRtt",
       "..ttddddddddtt.."
     ]
   ]

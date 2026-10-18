@@ -1241,6 +1241,7 @@ export interface CoreComponentRegistry extends ComponentRegistry {
     CollisionEvents: CollisionEventsComponent;
     Combo: ComboComponent;
     Dead: DeadComponent;
+    DeathZone: DeathZoneComponent;
     Enemy: EnemyComponent;
     Faction: FactionComponent;
     Friction: FrictionComponent;
@@ -1276,7 +1277,9 @@ export interface CoreComponentRegistry extends ComponentRegistry {
     ScreenShake: ScreenShakeComponent;
     SpatialNode: SpatialNodeComponent;
     Sprite: SpriteComponent;
+    StateGate: StateGateComponent;
     StateMachine: StateMachineComponent;
+    StateTrigger: StateTriggerComponent;
     Steering: SteeringComponent;
     Tag: TagComponent;
     Tilemap: TilemapComponent;
@@ -1481,10 +1484,16 @@ export interface CoreEvents {
     };
     "CollectiblePickedUp": {
         collectibleEntity?: Entity;
+        collectibleId?: string;
         playerEntity?: Entity;
         value?: number;
         collectibleType?: string;
         [key: string]: unknown;
+    };
+    "DeathZoneEntered": {
+        zoneEntity: Entity;
+        zoneId: string;
+        playerEntity: Entity;
     };
     "PlayerDied": {
         playerEntity?: Entity;
@@ -1502,6 +1511,12 @@ export interface CoreEvents {
         cooldownMs?: number;
         detune?: number;
         playbackRate?: number;
+    };
+    "StateTriggerActivated": {
+        triggerEntity: Entity;
+        triggerId: string;
+        targetId: string;
+        attacker?: Entity;
     };
 }
 
@@ -1677,6 +1692,12 @@ export interface DeathJuiceConfig {
 // @public
 export class DeathSystem extends System<CoreComponentRegistry> {
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
+}
+
+// @public
+export interface DeathZoneComponent extends Component {
+    id: string;
+    type: "DeathZone";
 }
 
 // @public
@@ -5170,6 +5191,14 @@ export interface StateDefinition {
 }
 
 // @public
+export interface StateGateComponent extends Component {
+    id: string;
+    isOpen: boolean;
+    targetId: string;
+    type: "StateGate";
+}
+
+// @public
 export interface StateMachineComponent extends Component {
     currentState: string;
     data: Record<string, unknown>;
@@ -5178,6 +5207,14 @@ export interface StateMachineComponent extends Component {
     machineId: string;
     previousState?: string;
     type: "StateMachine";
+}
+
+// @public
+export interface StateTriggerComponent extends Component {
+    activated: boolean;
+    id: string;
+    targetId: string;
+    type: "StateTrigger";
 }
 
 // @public

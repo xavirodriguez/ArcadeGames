@@ -31,13 +31,13 @@ import {
   Theme
 } from "@tiny-aster/core";
 import { drawEchoBackground, drawEchoPlayer, drawMemoryFragment, drawMemoryCore, drawCheckpointNode, drawPulseAttack, drawSentinel, drawHopper, drawWatcher, drawCharger } from "./rendering/EchoRunnerCanvasVisuals";
-import { EchoRunnerInput, EchoRunnerInputComponent, EchoRunnerGameState, EchoRunnerEventRegistry, ECHO_CONFIG } from "./types/EchoRunnerTypes";
+import { EchoRunnerInput, EchoRunnerInputComponent, EchoRunnerGameState, EchoRunnerEventRegistry, EchoRunnerCollectibleProgress, EchoRunnerCollectibleKind, toEchoRunnerCollectibleKind, ECHO_CONFIG } from "./types/EchoRunnerTypes";
 import { EchoRunnerConfigSchema, EchoRunnerConfig as EchoRunnerConfigType, DEFAULT_ECHO_RUNNER_CONFIG } from "./types/EchoRunnerConfigSchema";
 import { PlatformerArcadeGame, loadPlatformerArcadeConfig } from "../shared/PlatformerArcadeGame";
 import { PlatformerInputSystem } from "../shared/systems/PlatformerInputSystem";
 import { resolveAndApplyMutators } from "../../config/MutatorConfig";
 import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, registerPlatformerEnvironmentBlueprints, mutatePlatformerInputState, registerCommonPlatformerSystems, updatePlayerInvulnerabilityAndContactDamage, updateRunProgress } from "@tiny-aster/gameplay-kit";
-import { setupPlatformerMovementComponents, registerPlatformerTilemapBlueprint, createMainCamera2D, registerPresentationSystems, generateAndInstantiatePlatformerLevel, registerStandardPlatformerCollectibles } from "../shared/componentBuilders";
+import { setupPlatformerMovementComponents, registerPlatformerTilemapBlueprint, createMainCamera2D, registerPresentationSystems, generateAndInstantiatePlatformerLevel, registerStandardPlatformerCollectibles, registerCollectibleTriggerBlueprint } from "../shared/componentBuilders";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import defaultLevelData from "./levels/level-01.json";
 
@@ -54,6 +54,10 @@ export interface EchoRunnerBlueprintMap extends Record<string, BlueprintDefiniti
   tilemap: BlueprintDefinition<CoreComponentRegistry, EventRegistry, { data: number[][]; tileDefinitions: Record<number, unknown> }>;
   collectible_fragment: BlueprintDefinition<CoreComponentRegistry, EventRegistry, { x: number; y: number; id: string }>;
   collectible_core: BlueprintDefinition<CoreComponentRegistry, EventRegistry, { x: number; y: number; id: string }>;
+  collectible_coin: BlueprintDefinition<CoreComponentRegistry, EventRegistry, { x: number; y: number; id: string }>;
+  state_switch: BlueprintDefinition<CoreComponentRegistry, EventRegistry, { x: number; y: number; id: string; targetId: string }>;
+  state_gate: BlueprintDefinition<CoreComponentRegistry, EventRegistry, { x: number; y: number; id: string; targetId: string }>;
+  death_zone: BlueprintDefinition<CoreComponentRegistry, EventRegistry, { x: number; y: number; id: string; halfWidth?: number; halfHeight?: number }>;
 }
 
 /**
@@ -127,6 +131,42 @@ class EchoRunnerAttackSystem extends System<CoreComponentRegistry> {
 /**
  * System that handles damage when player overlaps an enemy or spikes.
  */
+class EchoRunnerDeathZoneSystem extends System<CoreComponentRegistry> {
+  public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
+    if (world.getResource("IsPaused") === true) return;
+
+    const zones = world.query("DeathZone", "CollisionEvents");
+    const players = world.query("PlatformerInput", "Health", "CollisionEvents");
+    const eventBus = world.getEventBus();
+
+    for (const zoneEntity of zones) {
+      const zone = world.getComponent(zoneEntity, "DeathZone");
+      const zoneEvents = world.getComponent(zoneEntity, "CollisionEvents");
+      if (!zone || !zoneEvents) continue;
+
+      for (const playerEntity of players) {
+        const playerEvents = world.getComponent(playerEntity, "CollisionEvents");
+        const health = world.getComponent(playerEntity, "Health");
+        if (!playerEvents || !health || health.current <= 0) continue;
+
+        const enteredZone =
+          zoneEvents.triggersEntered.includes(playerEntity) ||
+          playerEvents.triggersEntered.includes(zoneEntity);
+        if (!enteredZone) continue;
+
+        world.mutateComponent(playerEntity, "Health", (mutableHealth) => {
+          mutableHealth.current = 0;
+        });
+        eventBus.emitDeferred("DeathZoneEntered", {
+          zoneEntity,
+          zoneId: zone.id,
+          playerEntity
+        });
+      }
+    }
+  }
+}
+
 class EchoRunnerDamageSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     updatePlayerInvulnerabilityAndContactDamage(world, deltaTime);
@@ -172,6 +212,11 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
     // Keep the shared death system configurable per game without changing the
     // platformer defaults used by other games.
     this.world.setResource("DeathPlaneY", this.config.DEATH_PLANE_Y);
+    const collectibleProgress: EchoRunnerCollectibleProgress = {
+      kindsById: {},
+      valuesById: {}
+    };
+    this.world.setResource("EchoRunnerCollectibleProgress", collectibleProgress);
 
     // Register blueprints
     this.blueprints.register("pulse_hitbox", {
@@ -249,6 +294,80 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
     registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_ECHO_RUNNER_CONFIG);
 
     registerStandardPlatformerCollectibles(this.blueprints);
+    registerCollectibleTriggerBlueprint(this.blueprints, {
+      id: "collectible_coin",
+      kind: "coin",
+      value: 20,
+      size: 16,
+      halfSize: 10,
+      shape: "fragment",
+      persistent: false,
+      collectOnce: false
+    });
+
+    this.blueprints.register("state_switch", {
+      spawn: (world, entity, args: { x: number; y: number; id: string; targetId: string }) => {
+        ArcadeEntityBuilder.fromEntity(world, entity)
+          .withTransform({ x: args.x, y: args.y })
+          .withCollider2D({
+            shape: { type: "aabb", halfWidth: 13, halfHeight: 13 },
+            layer: 1 << 4,
+            mask: 1 << 3,
+            isTrigger: true
+          })
+          .withCollisionEvents()
+          .withRender({ shape: "state_switch", size: 26, order: 3 });
+        world.addComponent(entity, {
+          type: "StateTrigger",
+          id: args.id,
+          targetId: args.targetId,
+          activated: false
+        });
+        world.addComponent(entity, { type: "Hurtbox" });
+      }
+    });
+
+    this.blueprints.register("state_gate", {
+      spawn: (world, entity, args: { x: number; y: number; id: string; targetId: string }) => {
+        ArcadeEntityBuilder.fromEntity(world, entity)
+          .withTransform({ x: args.x, y: args.y })
+          .withCollider2D({
+            shape: { type: "aabb", halfWidth: 12, halfHeight: 30 },
+            layer: 1,
+            mask: 1,
+            isTrigger: false
+          })
+          .withRender({ shape: "state_gate", size: 60, order: 2 });
+        world.addComponent(entity, {
+          type: "StateGate",
+          id: args.id,
+          targetId: args.targetId,
+          isOpen: false
+        });
+      }
+    });
+
+    this.blueprints.register("death_zone", {
+      spawn: (world, entity, args: { x: number; y: number; id: string; halfWidth?: number; halfHeight?: number }) => {
+        const halfWidth = args.halfWidth ?? 28;
+        const halfHeight = args.halfHeight ?? 18;
+        ArcadeEntityBuilder.fromEntity(world, entity)
+          .withTransform({ x: args.x, y: args.y })
+          .withCollider2D({
+            shape: { type: "aabb", halfWidth, halfHeight },
+            layer: 1 << 5,
+            mask: 1,
+            isTrigger: true
+          })
+          .withCollisionEvents()
+          .withRender({
+            shape: "death_zone",
+            size: Math.max(halfWidth * 2, halfHeight * 2),
+            order: 1
+          });
+        world.addComponent(entity, { type: "DeathZone", id: args.id });
+      }
+    });
 
     registerPlatformerEnvironmentBlueprints(this.blueprints);
     registerPlatformerEnemyBlueprints(this.blueprints);
@@ -262,6 +381,10 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
 
     // Common platformer / runner systems
     registerCommonPlatformerSystems(this.world, { includeMovingPlatforms: true });
+    this.world.addSystem(new EchoRunnerDeathZoneSystem(), {
+      phase: SystemPhase.Collision,
+      priority: 10
+    });
 
     // Game-specific simulation systems
     this.world.addSystem(new EchoRunnerDamageSystem(), { phase: SystemPhase.Simulation });
@@ -275,6 +398,44 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
       eventBus.on("hitbox:hit", (payload) => {
         const victim = payload.victim;
         const attacker = payload.attacker;
+
+        // Pulse can activate authored state triggers. Every matching gate opens,
+        // and its collider is disabled so the interaction changes gameplay state.
+        if (
+          victim !== undefined &&
+          attacker !== undefined &&
+          (this.world.hasComponent(attacker, "PlatformerInput") || this.world.hasComponent(attacker, "EchoRunnerInput")) &&
+          this.world.hasComponent(victim, "StateTrigger")
+        ) {
+          const trigger = this.world.getComponent(victim, "StateTrigger");
+          if (trigger && !trigger.activated) {
+            this.world.mutateComponent(victim, "StateTrigger", (stateTrigger) => {
+              stateTrigger.activated = true;
+            });
+
+            const gates = this.world.query("StateGate");
+            for (const gateEntity of gates) {
+              const gate = this.world.getComponent(gateEntity, "StateGate");
+              if (!gate || gate.targetId !== trigger.targetId || gate.isOpen) continue;
+
+              this.world.mutateComponent(gateEntity, "StateGate", (stateGate) => {
+                stateGate.isOpen = true;
+              });
+              if (this.world.hasComponent(gateEntity, "Collider2D")) {
+                this.world.mutateComponent(gateEntity, "Collider2D", (collider) => {
+                  collider.enabled = false;
+                });
+              }
+            }
+
+            eventBus.emit("StateTriggerActivated", {
+              triggerEntity: victim,
+              triggerId: trigger.id,
+              targetId: trigger.targetId,
+              attacker
+            });
+          }
+        }
 
         // If player hits an enemy
         if (attacker && (this.world.hasComponent(attacker, "PlatformerInput") || this.world.hasComponent(attacker, "EchoRunnerInput")) && victim && this.world.hasComponent(victim, "Enemy")) {
@@ -310,9 +471,21 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
         }
       });
 
-      // Listen for collectible pickup to play score sound
-      eventBus.on("CollectiblePickedUp", () => {
+      // Track typed collectible metadata for accurate score and HUD counts.
+      eventBus.on("CollectiblePickedUp", (event) => {
         this.audio.playSFX("score");
+        const progress = this.world.getResource<EchoRunnerCollectibleProgress>("EchoRunnerCollectibleProgress");
+        const kind: EchoRunnerCollectibleKind | null = toEchoRunnerCollectibleKind(event.collectibleType);
+        if (
+          progress &&
+          event.collectibleId &&
+          kind !== null &&
+          typeof event.value === "number" &&
+          Number.isFinite(event.value)
+        ) {
+          progress.kindsById[event.collectibleId] = kind;
+          progress.valuesById[event.collectibleId] = event.value;
+        }
       });
 
       // Listen for player died to play game over/death sound
@@ -415,6 +588,9 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
       renderer.registerShape("hopper", drawHopper);
       renderer.registerShape("watcher", drawWatcher);
       renderer.registerShape("charger", drawCharger);
+      renderer.registerShape("state_switch", require("./rendering/EchoRunnerCanvasVisuals").drawEchoStateSwitch);
+      renderer.registerShape("state_gate", require("./rendering/EchoRunnerCanvasVisuals").drawEchoStateGate);
+      renderer.registerShape("death_zone", require("./rendering/EchoRunnerCanvasVisuals").drawEchoDeathZone);
     } else if (renderer.type === "skia") {
       const {
         drawSkiaEchoBackground,
@@ -439,12 +615,27 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
       renderer.registerShape("hopper", drawSkiaHopper);
       renderer.registerShape("watcher", drawSkiaWatcher);
       renderer.registerShape("charger", drawSkiaCharger);
+      renderer.registerShape("state_switch", require("./rendering/EchoRunnerSkiaVisuals").drawSkiaEchoStateSwitch);
+      renderer.registerShape("state_gate", require("./rendering/EchoRunnerSkiaVisuals").drawSkiaEchoStateGate);
+      renderer.registerShape("death_zone", require("./rendering/EchoRunnerSkiaVisuals").drawSkiaEchoDeathZone);
     }
   }
 
   public getGameState(): EchoRunnerGameState {
     const runState = this.world.getResource<RunState>("RunState");
-    const score = runState ? runState.collectedTemporalIds.length * 10 + runState.collectedPermanentIds.length * 100 : 0;
+    const temporalIds = runState?.collectedTemporalIds ?? [];
+    const permanentIds = runState?.collectedPermanentIds ?? [];
+    const progress = this.world.getResource<EchoRunnerCollectibleProgress>("EchoRunnerCollectibleProgress");
+    const kindForId = (id: string, fallback: EchoRunnerCollectibleKind): EchoRunnerCollectibleKind =>
+      progress?.kindsById[id] ?? fallback;
+    const valueForId = (id: string, fallback: number): number =>
+      progress?.valuesById[id] ?? fallback;
+
+    const score =
+      temporalIds.reduce((total, id) => total + valueForId(id, 10), 0) +
+      permanentIds.reduce((total, id) => total + valueForId(id, 100), 0);
+    const fragments = temporalIds.filter((id) => kindForId(id, "fragment") === "fragment").length;
+    const coins = temporalIds.filter((id) => kindForId(id, "fragment") === "coin").length;
 
     return {
       type: "EchoRunnerGameState",
@@ -452,8 +643,9 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
       isGameOver: this.gameOver,
       attempts: runState ? runState.attempt : 1,
       deaths: runState ? runState.deaths : 0,
-      fragments: runState ? runState.collectedTemporalIds.length : 0,
-      cores: runState ? runState.collectedPermanentIds.length : 0,
+      fragments,
+      coins,
+      cores: permanentIds.length,
       activeCheckpoint: runState ? runState.activeCheckpoint : null,
       elapsedTime: runState ? runState.elapsedTime : 0
     };

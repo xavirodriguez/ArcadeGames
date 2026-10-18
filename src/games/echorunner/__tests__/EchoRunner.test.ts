@@ -208,6 +208,50 @@ describe("Echo Runner Game Simulation Tests", () => {
     expect(world.query("Hitbox")).toHaveLength(0);
   });
 
+  it("should activate a matching state gate once when Pulse hits a state trigger", () => {
+    const playerEntity = world.query("PlatformerInput")[0];
+    const playerTransform = world.getComponent(playerEntity, "Transform")!;
+    const switchEntity = world.createEntity();
+    const gateEntity = world.createEntity();
+
+    game.blueprints.get("state_switch")?.spawn(world, switchEntity, {
+      x: playerTransform.x + 30,
+      y: playerTransform.y,
+      id: "test_switch",
+      targetId: "test_gate"
+    });
+    game.blueprints.get("state_gate")?.spawn(world, gateEntity, {
+      x: playerTransform.x + 80,
+      y: playerTransform.y,
+      id: "test_gate",
+      targetId: "test_gate"
+    });
+    world.flush();
+
+    const activated = jest.fn();
+    game.getEventBus().on("StateTriggerActivated", activated);
+
+    expect(world.getComponent(gateEntity, "StateGate")!.isOpen).toBe(false);
+    expect(world.getComponent(gateEntity, "Collider2D")!.enabled).toBe(true);
+
+    game.getEventBus().emit("hitbox:hit", {
+      attacker: playerEntity,
+      victim: switchEntity
+    });
+
+    expect(world.getComponent(switchEntity, "StateTrigger")!.activated).toBe(true);
+    expect(world.getComponent(gateEntity, "StateGate")!.isOpen).toBe(true);
+    expect(world.getComponent(gateEntity, "Collider2D")!.enabled).toBe(false);
+    expect(activated).toHaveBeenCalledTimes(1);
+
+    // Repeated hit events must not reactivate an already-used trigger.
+    game.getEventBus().emit("hitbox:hit", {
+      attacker: playerEntity,
+      victim: switchEntity
+    });
+    expect(activated).toHaveBeenCalledTimes(1);
+  });
+
   it("should trigger a Pulse attack on input, spawning a Hitbox child entity with TTL", () => {
     const playerEntity = world.query("PlatformerInput")[0];
 
@@ -431,6 +475,10 @@ describe("Echo Runner Game Simulation Tests", () => {
 
       const collectibles = prodWorld.query("Collectible");
       expect(collectibles.length).toBeGreaterThan(0);
+      expect(collectibles.some((entity) => prodWorld.getComponent(entity, "Collectible")?.kind === "coin")).toBe(true);
+      expect(prodWorld.query("StateTrigger").length).toBeGreaterThan(0);
+      expect(prodWorld.query("StateGate").length).toBeGreaterThan(0);
+      expect(prodWorld.query("DeathZone").length).toBeGreaterThan(0);
 
       // Simulate 2 frames of gameplay update
       prodGame.update(0.016);
@@ -618,6 +666,38 @@ describe("Echo Runner Game Simulation Tests", () => {
       expect(health.current).toBe(health.max);
     } finally {
       lifecycleGame.destroy();
+    }
+  });
+
+  it("should kill the player when entering an authored death zone and emit the zone event once", async () => {
+    const zoneGame = new EchoRunnerGame({ seed: 41873 });
+    try {
+      await zoneGame.init();
+      const zoneWorld = zoneGame.getWorld();
+      const playerEntity = zoneWorld.query("PlatformerInput")[0];
+      const transform = zoneWorld.getComponent(playerEntity, "Transform")!;
+      const zoneEntity = zoneWorld.createEntity();
+
+      zoneGame.blueprints.get("death_zone")?.spawn(zoneWorld, zoneEntity, {
+        x: transform.x,
+        y: transform.y,
+        id: "test_death_zone",
+        halfWidth: 24,
+        halfHeight: 24
+      });
+      zoneWorld.flush();
+
+      const enteredZone = jest.fn();
+      zoneGame.getEventBus().on("DeathZoneEntered", enteredZone);
+
+      zoneGame.update(0.016);
+      expect(zoneWorld.getComponent(playerEntity, "Health")!.current).toBe(0);
+      expect(enteredZone).toHaveBeenCalledTimes(1);
+
+      zoneGame.update(0.016);
+      expect(zoneGame.getGameState().deaths).toBe(1);
+    } finally {
+      zoneGame.destroy();
     }
   });
 
@@ -843,6 +923,26 @@ describe("Echo Runner Game Simulation Tests", () => {
       expect(testWorld.isAlive(duplicateCoreEntity)).toBe(false);
       expect(runState.collectedPermanentIds.filter((id) => id === "archive_core_1")).toHaveLength(1);
       expect(testGame.getGameState().cores).toBe(1);
+
+      const currentPlayerTransform = testWorld.getComponent(playerEntity, "Transform")!;
+      const coinEntity = testWorld.createEntity();
+      testGame.blueprints.get("collectible_coin")?.spawn(testWorld, coinEntity, {
+        x: currentPlayerTransform.x,
+        y: currentPlayerTransform.y,
+        id: "coin_test_1"
+      });
+      testWorld.flush();
+      testGame.update(0.016);
+
+      expect(testWorld.isAlive(coinEntity)).toBe(false);
+      expect(testGame.getGameState().coins).toBe(1);
+      expect(testGame.getGameState().fragments).toBe(1);
+      expect(testGame.getGameState().score).toBe(130);
+      expect(pickupEvents).toContainEqual({
+        value: 20,
+        collectibleType: "coin",
+        playerEntity
+      });
     } finally {
       testGame.destroy();
     }

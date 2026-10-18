@@ -50,6 +50,10 @@ export interface CoreEvents {
   "game:over": { state?: unknown; score?: number; level?: number; [key: string]: unknown };
   /** Emitted when an entity contacts spike hazards. */
   "spike:hit": { entity: Entity };
+  /** Emitted when a player enters a lethal level-authored zone. */
+  "DeathZoneEntered": { zoneEntity: Entity; zoneId: string; playerEntity: Entity };
+  /** Emitted when a Pulse attack activates a state trigger. */
+  "StateTriggerActivated": { triggerEntity: Entity; triggerId: string; targetId: string; attacker?: Entity };
   /** Emitted when a hitbox hits a hurtbox. */
   "hitbox:hit": {
     hitboxEntity?: Entity;
@@ -66,7 +70,7 @@ export interface CoreEvents {
   /** Emitted when a racer crosses a checkpoint. */
   "checkpoint:passed": { entity?: Entity; checkpointIndex: number; nextCheckpointIndex?: number; [key: string]: unknown };
   /** Emitted when a collectible item is picked up. */
-  "CollectiblePickedUp": { collectibleEntity?: Entity; playerEntity?: Entity; value?: number; collectibleType?: string; [key: string]: unknown };
+  "CollectiblePickedUp": { collectibleEntity?: Entity; collectibleId?: string; playerEntity?: Entity; value?: number; collectibleType?: string; [key: string]: unknown };
   /** Emitted to spawn loot items. */
   "loot:spawn": { x: number; y: number; lootType?: string; [key: string]: unknown };
   /** Emitted when a wave starts. */

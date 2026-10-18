@@ -1,6 +1,7 @@
 import { World, CoreComponentRegistry, EventRegistry, MiniGameRunContext, RunState, ConfigService, Renderer, RenderContext } from "@tiny-aster/core";
 import { CanvasRenderer } from "@tiny-aster/renderer-canvas";
 import { EchoRunnerGame } from "../EchoRunnerGame";
+import { PlatformerInputSystem } from "../../shared/systems/PlatformerInputSystem";
 import { EchoRunnerArcadeAdapter } from "../story/EchoRunnerEncounter";
 import { EchoRunnerConfigSchema, EchoRunnerConfig } from "../types/EchoRunnerConfigSchema";
 import { createThemeFromGameAccents } from "../../../theme/gameAccents";
@@ -82,6 +83,13 @@ describe("Echo Runner Game Simulation Tests", () => {
     expect(() => {
       ConfigService.load("echorunner", EchoRunnerConfigSchema, { PLAYER_JUMP_VEL: "super_high" });
     }).toThrow(/Configuration validation failed for game "echorunner"/);
+
+    expect(() => {
+      ConfigService.load("echorunner", EchoRunnerConfigSchema, {
+        PLAYER_JUMP_VEL: 200,
+        PLAYER_MIN_JUMP_VEL: 250
+      });
+    }).toThrow(/Configuration validation failed for game "echorunner"/);
   });
 
   it("should correctly parse and apply valid config overrides when loaded via ConfigService.load", () => {
@@ -92,6 +100,7 @@ describe("Echo Runner Game Simulation Tests", () => {
 
     expect(loaded.PLAYER_SPEED).toBe(350);
     expect(loaded.TILE_SIZE).toBe(32);
+    expect(loaded.DEATH_PLANE_Y).toBe(650);
     expect(loaded.worldWidth).toBe(800); // verify Zod defaults are merged
   });
 
@@ -140,6 +149,65 @@ describe("Echo Runner Game Simulation Tests", () => {
     expect(inputComp.moveDir).toBe(0);
   });
 
+  it("should spend the grounded jump before preserving the remaining multi-jump budget and support short hops", () => {
+    const playerEntity = world.query("PlatformerInput")[0];
+    const inputSystem = new PlatformerInputSystem();
+
+    world.mutateComponent(playerEntity, "PlatformerJumper", (jumper) => {
+      jumper.maxJumps = 2;
+      jumper.jumpsRemaining = 2;
+      jumper.coyoteTimer = 0;
+      jumper.jumpBufferTimer = 0;
+    });
+    world.mutateComponent(playerEntity, "PlatformerGroundState", (ground) => {
+      ground.isGrounded = true;
+    });
+    world.mutateComponent(playerEntity, "PlatformerInput", (input) => {
+      input.jumpHeld = true;
+    });
+
+    inputSystem.update(world, 1 / 60);
+
+    const jumperAfterJump = world.getComponent(playerEntity, "PlatformerJumper")!;
+    const groundAfterJump = world.getComponent(playerEntity, "PlatformerGroundState")!;
+    const velocityAfterJump = world.getComponent(playerEntity, "Velocity")!;
+    const gravity = world.getComponent(playerEntity, "PlatformerGravityConfig")!;
+
+    expect(groundAfterJump.isGrounded).toBe(false);
+    expect(jumperAfterJump.jumpsRemaining).toBe(1);
+    expect(velocityAfterJump.vy).toBe(-gravity.jumpVelocity);
+
+    world.mutateComponent(playerEntity, "PlatformerInput", (input) => {
+      input.jumpHeld = false;
+    });
+    inputSystem.update(world, 1 / 60);
+
+    expect(world.getComponent(playerEntity, "Velocity")!.vy).toBe(-gravity.minJumpVelocity);
+    expect(world.getComponent(playerEntity, "PlatformerJumper")!.jumpsRemaining).toBe(1);
+  });
+
+  it("should discard a Pulse press during cooldown rather than firing it later", () => {
+    const playerEntity = world.query("EchoRunnerInput")[0];
+
+    world.mutateComponent(playerEntity, "EchoRunnerInput", (input) => {
+      input.pulseCooldown = 0.2;
+      input.pulsePressed = false;
+    });
+
+    game.setInputState({ pulse: true });
+    game.update(0.016);
+
+    expect(world.getComponent(playerEntity, "EchoRunnerInput")!.pulsePressed).toBe(false);
+    expect(world.query("Hitbox")).toHaveLength(0);
+
+    for (let frame = 0; frame < 20; frame++) {
+      game.update(0.016);
+    }
+
+    expect(world.getComponent(playerEntity, "EchoRunnerInput")!.pulseCooldown).toBe(0);
+    expect(world.query("Hitbox")).toHaveLength(0);
+  });
+
   it("should trigger a Pulse attack on input, spawning a Hitbox child entity with TTL", () => {
     const playerEntity = world.query("PlatformerInput")[0];
 
@@ -160,6 +228,23 @@ describe("Echo Runner Game Simulation Tests", () => {
 
     const trans = world.getComponent(hitboxEntity, "Transform")!;
     expect(trans.parentEntity).toBe(playerEntity);
+  });
+
+  it("should damage enemies from the core hitbox event victim payload", () => {
+    const playerEntity = world.query("PlatformerInput")[0];
+    const enemyEntity = world.query("Enemy", "Health")[0];
+    expect(playerEntity).toBeDefined();
+    expect(enemyEntity).toBeDefined();
+
+    const enemyHealth = world.getComponent(enemyEntity, "Health")!;
+    const healthBefore = enemyHealth.current;
+
+    game.getEventBus().emit("hitbox:hit", {
+      attacker: playerEntity,
+      victim: enemyEntity
+    });
+
+    expect(world.getComponent(enemyEntity, "Health")!.current).toBe(healthBefore - 1);
   });
 
   it("should decrease player health on contact with enemies unless invulnerable", () => {
@@ -536,6 +621,70 @@ describe("Echo Runner Game Simulation Tests", () => {
     }
   });
 
+  it("should activate an overlapping checkpoint and use it for the next respawn", () => {
+    const playerEntity = world.query("PlatformerInput")[0];
+    const playerTransform = world.getComponent(playerEntity, "Transform")!;
+    const checkpointEntity = world.createEntity();
+    const checkpointId = "echorunner_contract_checkpoint";
+    const checkpointNodePosition = { x: playerTransform.x, y: playerTransform.y };
+    const respawnPosition = { x: checkpointNodePosition.x, y: checkpointNodePosition.y - 10 };
+
+    game.blueprints.get("checkpoint_node")?.spawn(world, checkpointEntity, {
+      ...checkpointNodePosition,
+      id: checkpointId
+    });
+    world.flush();
+
+    expect(world.hasComponent(checkpointEntity, "Collider2D")).toBe(true);
+    expect(world.hasComponent(checkpointEntity, "CollisionEvents")).toBe(true);
+
+    const checkpointActivated = jest.fn();
+    game.getEventBus().on("CheckpointActivated", checkpointActivated);
+
+    // CollisionSystem2D populates trigger overlaps after the Simulation phase;
+    // CheckpointSystem consumes that overlap on the next frame.
+    game.update(0.016);
+    game.update(0.016);
+
+    const runState = world.getResource<RunState>("RunState");
+    expect(runState?.activeCheckpoint).toBe(checkpointId);
+    expect(checkpointActivated).toHaveBeenCalledTimes(1);
+
+    world.mutateComponent(playerEntity, "Health", (health) => {
+      health.current = 0;
+    });
+    game.update(0.016);
+    game.update(0.016);
+
+    const transform = world.getComponent(playerEntity, "Transform")!;
+    expect(transform.x).toBe(respawnPosition.x);
+    expect(transform.y).toBe(respawnPosition.y);
+    expect(world.hasComponent(playerEntity, "Dead")).toBe(false);
+  });
+
+  it("should apply a configured death plane to the shared death system", async () => {
+    const lifecycleGame = new EchoRunnerGame({
+      seed: 41873,
+      gameOptions: { rawConfig: { DEATH_PLANE_Y: 700 } }
+    });
+    try {
+      await lifecycleGame.init();
+      const testWorld = lifecycleGame.getWorld();
+      const playerEntity = testWorld.query("PlatformerInput")[0];
+
+      expect(testWorld.getResource<number>("DeathPlaneY")).toBe(700);
+
+      testWorld.mutateComponent(playerEntity, "Transform", (transform) => {
+        transform.y = 701;
+      });
+
+      lifecycleGame.update(0.016);
+      expect(lifecycleGame.getGameState().deaths).toBe(1);
+    } finally {
+      lifecycleGame.destroy();
+    }
+  });
+
   it("should trigger death when falling below DeathPlaneY and respawn player at default start position", async () => {
     const lifecycleGame = new EchoRunnerGame({ seed: 41873 });
     try {
@@ -628,6 +777,15 @@ describe("Echo Runner Game Simulation Tests", () => {
       const playerEntity = testWorld.query("PlatformerInput")[0];
       const playerTrans = testWorld.getComponent(playerEntity, "Transform")!;
 
+      const pickupEvents: Array<{ value?: number; collectibleType?: string; playerEntity?: number }> = [];
+      testGame.getEventBus().on("CollectiblePickedUp", (event) => {
+        pickupEvents.push({
+          value: event.value,
+          collectibleType: event.collectibleType,
+          playerEntity: event.playerEntity
+        });
+      });
+
       // Spawn a collectible fragment directly at player's position
       const fragEntity = testWorld.createEntity();
       testGame.blueprints.get("collectible_fragment")?.spawn(testWorld, fragEntity, {
@@ -649,6 +807,11 @@ describe("Echo Runner Game Simulation Tests", () => {
       const runState = testWorld.getResource<any>("RunState");
       expect(runState.collectedTemporalIds).toContain("test_frag_1");
       expect(testGame.getGameState().fragments).toBeGreaterThan(0);
+      expect(pickupEvents).toContainEqual({
+        value: 10,
+        collectibleType: "fragment",
+        playerEntity
+      });
 
       // Now spawn a collectible core at player's position
       const coreEntity = testWorld.createEntity();
@@ -665,6 +828,20 @@ describe("Echo Runner Game Simulation Tests", () => {
 
       expect(testWorld.isAlive(coreEntity)).toBe(false);
       expect(runState.collectedPermanentIds).toContain("archive_core_1");
+      expect(testGame.getGameState().cores).toBe(1);
+
+      // Re-spawning a permanent collectible with the same ID must remain idempotent.
+      const duplicateCoreEntity = testWorld.createEntity();
+      testGame.blueprints.get("collectible_core")?.spawn(testWorld, duplicateCoreEntity, {
+        x: playerTrans.x,
+        y: playerTrans.y,
+        id: "archive_core_1"
+      });
+      testWorld.flush();
+      testGame.update(0.016);
+
+      expect(testWorld.isAlive(duplicateCoreEntity)).toBe(false);
+      expect(runState.collectedPermanentIds.filter((id) => id === "archive_core_1")).toHaveLength(1);
       expect(testGame.getGameState().cores).toBe(1);
     } finally {
       testGame.destroy();

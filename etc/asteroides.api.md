@@ -1345,7 +1345,11 @@ export interface CoreEvents {
         message: string;
     };
     "hitbox:hit": {
+        hitboxEntity?: Entity;
+        hurtboxEntity?: Entity;
         attacker?: Entity;
+        victim?: Entity;
+        // @deprecated
         defender?: Entity;
         damage?: number;
         [key: string]: unknown;

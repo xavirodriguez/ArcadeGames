@@ -51,7 +51,16 @@ export interface CoreEvents {
   /** Emitted when an entity contacts spike hazards. */
   "spike:hit": { entity: Entity };
   /** Emitted when a hitbox hits a hurtbox. */
-  "hitbox:hit": { attacker?: Entity; defender?: Entity; damage?: number; [key: string]: unknown };
+  "hitbox:hit": {
+    hitboxEntity?: Entity;
+    hurtboxEntity?: Entity;
+    attacker?: Entity;
+    victim?: Entity;
+    /** @deprecated The hit detection system emits `victim`; use it instead. */
+    defender?: Entity;
+    damage?: number;
+    [key: string]: unknown;
+  };
   /** Emitted when a checkpoint is activated. */
   "CheckpointActivated": { checkpointEntity: Entity; playerEntity: Entity; checkpointId?: string; x?: number; y?: number; position?: { x: number; y: number }; [key: string]: unknown };
   /** Emitted when a racer crosses a checkpoint. */

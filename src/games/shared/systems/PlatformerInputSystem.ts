@@ -83,6 +83,12 @@ export class PlatformerInputSystem extends System<CoreComponentRegistry> {
       const maxJumps = jumper.maxJumps ?? 1;
       const jumpsRemaining = jumper.jumpsRemaining ?? 1;
 
+      // Refresh the jump budget before processing this frame's jump input.
+      // Doing this afterwards would overwrite maxJumps - 1 and grant an extra air jump.
+      if (isGrounded) {
+        jumper.jumpsRemaining = maxJumps;
+      }
+
       // 1. If jump pressed:
       if (jumpPressed) {
         if (isGrounded || coyoteTimer > 0) {
@@ -111,11 +117,6 @@ export class PlatformerInputSystem extends System<CoreComponentRegistry> {
           // In the air, but no coyote time or double jumps left -> store in jump buffer
           jumper.jumpBufferTimer = jumper.jumpBufferMax ?? 0;
         }
-      }
-
-      // Reset jumps remaining on ground
-      if (isGrounded) {
-        jumper.jumpsRemaining = maxJumps;
       }
 
       // 2. Variable jump height (short hop):

@@ -28,8 +28,16 @@ export class CollectibleSystem extends System<CoreComponentRegistry> {
       const collectible = world.getComponent(collEntity, "Collectible");
       if (!collectible) continue;
 
-      // If already permanently collected, we should not collect it again
-      if (runState && runState.collectedPermanentIds.includes(collectible.id)) {
+      // Never respawn a permanently collected item. A temporal item marked
+      // collectOnce is also suppressed after its first pickup in the current run.
+      const alreadyCollectedPermanently =
+        runState?.collectedPermanentIds.includes(collectible.id) ?? false;
+      const alreadyCollectedOnceThisRun =
+        collectible.collectOnce &&
+        !collectible.persistent &&
+        (runState?.collectedTemporalIds.includes(collectible.id) ?? false);
+
+      if (alreadyCollectedPermanently || alreadyCollectedOnceThisRun) {
         world.commands.removeEntity(collEntity);
         continue;
       }
@@ -54,6 +62,8 @@ export class CollectibleSystem extends System<CoreComponentRegistry> {
           eventBus.emitDeferred("CollectiblePickedUp", {
             collectibleEntity: collEntity,
             collectible,
+            collectibleType: collectible.kind,
+            value: collectible.value,
             playerEntity: collectedBy
           });
         }

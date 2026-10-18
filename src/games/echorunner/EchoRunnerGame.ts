@@ -106,6 +106,10 @@ class EchoRunnerAttackSystem extends System<CoreComponentRegistry> {
 
         // Clear pulse trigger
         newPulsePressed = false;
+      } else if (newPulsePressed) {
+        // Pulse is a one-shot action, not a queued request. A press during cooldown
+        // must be discarded rather than firing later when the cooldown reaches zero.
+        newPulsePressed = false;
       }
 
       // Merge component mutations into a single mutateComponent call
@@ -133,7 +137,6 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
   public readonly gameId = "echorunner";
   private gameOver = false;
   private levelPlan!: LevelPlan;
-  private dbgFrames = 0;
   private customLevelData?: { templates: SegmentTemplate[]; grammar: string[] };
   private baseConfig: EchoRunnerConfigType;
   private config: EchoRunnerConfigType;
@@ -165,6 +168,10 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
   protected override async onRegisterSystems(): Promise<void> {
     this.config = this.setupArcadeGameConfig(this.baseConfig, resolveAndApplyMutators);
     await super.onRegisterSystems();
+
+    // Keep the shared death system configurable per game without changing the
+    // platformer defaults used by other games.
+    this.world.setResource("DeathPlaneY", this.config.DEATH_PLANE_Y);
 
     // Register blueprints
     this.blueprints.register("pulse_hitbox", {
@@ -265,10 +272,9 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
     // Listen to Hit Detection events
     const eventBus = this.world.getEventBus();
     if (eventBus) {
-      eventBus.on("hitbox:hit", (event: unknown) => {
-        const payload = event as { victim?: number; attacker?: number } | undefined;
-        const victim = payload?.victim;
-        const attacker = payload?.attacker;
+      eventBus.on("hitbox:hit", (payload) => {
+        const victim = payload.victim;
+        const attacker = payload.attacker;
 
         // If player hits an enemy
         if (attacker && (this.world.hasComponent(attacker, "PlatformerInput") || this.world.hasComponent(attacker, "EchoRunnerInput")) && victim && this.world.hasComponent(victim, "Enemy")) {
@@ -315,34 +321,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
       });
     }
 
-    console.log("[EchoDebug] sistemas registrados:", [
-      "PauseSystem",
-      "InputBridgeSystem",
-      "ArcadeControlSystem",
-      "AudioSystem",
-      "ParticleSystem",
-      "PlatformerInputSystem",
-      "EchoRunnerAttackSystem",
-      "PlatformerMovementSystem",
-      "PlatformerGravitySystem",
-      "PlatformerCoyoteSystem",
-      "MovingPlatformSystem",
-      "PlatformCarrySystem",
-      "EnemySensorSystem",
-      "StateMachineSystem",
-      "CheckpointSystem",
-      "DeathSystem",
-      "RespawnSystem",
-      "PhysicsIntegrateSystem",
-      "TileCollisionSystem",
-      "CollectibleSystem",
-      "HitDetectionSystem",
-      "Camera2DSystem",
-      "TilemapRenderSystem",
-      "EchoRunnerDamageSystem",
-      "SpriteRenderSystem",
-      "DebugRenderSystem"
-    ]);
+
   }
 
   protected override async onInitializeEntities(): Promise<void> {
@@ -384,28 +363,6 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
 
   public override update(dt: number): void {
     this.gameOver = this.checkRunProgressGameOver(dt, this.gameOver);
-
-    if (process.env.NODE_ENV !== "test") {
-      this.dbgFrames = (this.dbgFrames ?? 0) + 1;
-      if (this.dbgFrames % 30 === 0) {
-        const runState = this.world.getResource<RunState>("RunState");
-        const player = this.world.query("Tag").find(e =>
-          this.world.getComponent(e, "Tag")?.tags?.includes("Player")
-        );
-        console.log("[EchoDebug]", {
-          frame: this.dbgFrames,
-          dt,
-          paused: this.isPausedState?.(),
-          elapsed: runState?.elapsedTime,
-          playerEntity: player,
-          transform: player ? this.world.getComponent(player, "Transform") : null,
-          velocity: player ? this.world.getComponent(player, "Velocity") : null,
-          grounded: player ? this.world.getComponent(player, "PlatformerGroundState") : null,
-          input: player ? this.world.getComponent(player, "PlatformerInput") : null
-        });
-      }
-    }
-
     this.world.update(dt);
   }
 

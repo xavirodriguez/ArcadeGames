@@ -336,12 +336,6 @@ export const drawSkiaOutrunCar: ShapeDrawer<SkCanvas, OutrunComponentRegistry> =
     canvas.rotate((tiltAngle * 180) / Math.PI, 0, 0);
     canvas.scale(carScale, carScale);
 
-    // Shadow
-    const shadowPaint = Skia.Paint();
-    shadowPaint.setColor(Skia.Color(hexToRgba(colors.surface, 0.4)));
-    shadowPaint.setStyle(Skia.PaintStyle.Fill);
-    canvas.drawOval(Skia.XYWHRect(-36, 6, 72, 20), shadowPaint);
-
     // Crisp pixel shadow keeps the sprite aligned with the arcade art direction.
     const shadowPaint = Skia.Paint();
     shadowPaint.setColor(Skia.Color(hexToRgba(colors.surface, 0.4)));
@@ -369,7 +363,7 @@ export const drawSkiaOutrunRacer: ShapeDrawer<SkCanvas, OutrunComponentRegistry>
     if (!racerCtx) return;
 
     const { proj, bodyColor } = racerCtx;
-    const { sx, sy, lateral, carW, carH, bestClip } = proj;
+    const { sx, sy, lateral, carW, bestClip } = proj;
 
     const cx = sx + lateral;
     const cy = sy;

@@ -38,7 +38,8 @@
       "spawnPoints": [
         { "x": 5, "y": 10, "type": "collectible_fragment", "args": { "id": "frag_01" } },
         { "x": 10, "y": 10, "type": "collectible_fragment", "args": { "id": "frag_02" } },
-        { "x": 15, "y": 10, "type": "collectible_fragment", "args": { "id": "frag_03" } }
+        { "x": 15, "y": 10, "type": "collectible_fragment", "args": { "id": "frag_03" } },
+        { "x": 18, "y": 10, "type": "collectible_coin", "args": { "id": "coin_01" } }
       ]
     },
     {
@@ -117,10 +118,11 @@
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [1,1,1,1,0,0,4,4,4,0,0,5,5,5,0,0,1,1,1,1],
-        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+        [1,1,1,1,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
       ],
       "spawnPoints": [
-        { "x": 13, "y": 10, "type": "collectible_fragment", "args": { "id": "frag_09" } }
+        { "x": 13, "y": 10, "type": "collectible_fragment", "args": { "id": "frag_09" } },
+        { "x": 5, "y": 12, "type": "death_zone", "args": { "id": "pit_01", "halfWidth": 28, "halfHeight": 18 } }
       ]
     },
     {
@@ -280,7 +282,9 @@
         [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
       ],
       "spawnPoints": [
-        { "x": 10, "y": 10, "type": "collectible_core", "args": { "id": "archive_core_1" } }
+        { "x": 6, "y": 10, "type": "state_switch", "args": { "id": "archive_switch_1", "targetId": "archive_gate_1" } },
+        { "x": 14, "y": 10, "type": "state_gate", "args": { "id": "archive_gate_1", "targetId": "archive_gate_1" } },
+        { "x": 17, "y": 10, "type": "collectible_core", "args": { "id": "archive_core_1" } }
       ]
     }
   ]

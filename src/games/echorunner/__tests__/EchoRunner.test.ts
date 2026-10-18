@@ -229,6 +229,23 @@ describe("Echo Runner Game Simulation Tests", () => {
     expect(trans.parentEntity).toBe(playerEntity);
   });
 
+  it("should damage enemies from the core hitbox event victim payload", () => {
+    const playerEntity = world.query("PlatformerInput")[0];
+    const enemyEntity = world.query("Enemy", "Health")[0];
+    expect(playerEntity).toBeDefined();
+    expect(enemyEntity).toBeDefined();
+
+    const enemyHealth = world.getComponent(enemyEntity, "Health")!;
+    const healthBefore = enemyHealth.current;
+
+    game.getEventBus().emit("hitbox:hit", {
+      attacker: playerEntity,
+      victim: enemyEntity
+    });
+
+    expect(world.getComponent(enemyEntity, "Health")!.current).toBe(healthBefore - 1);
+  });
+
   it("should decrease player health on contact with enemies unless invulnerable", () => {
     const playerEntity = world.query("PlatformerInput", "Health")[0];
     const enemyEntity = world.query("Enemy")[0];

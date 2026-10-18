@@ -622,22 +622,20 @@ describe("Echo Runner Game Simulation Tests", () => {
 
   it("should activate an overlapping checkpoint and use it for the next respawn", () => {
     const playerEntity = world.query("PlatformerInput")[0];
+    const playerTransform = world.getComponent(playerEntity, "Transform")!;
     const checkpointEntity = world.createEntity();
     const checkpointId = "echorunner_contract_checkpoint";
-    const respawnPosition = { x: 280, y: 315 };
+    const checkpointNodePosition = { x: playerTransform.x, y: playerTransform.y };
+    const respawnPosition = { x: checkpointNodePosition.x, y: checkpointNodePosition.y - 10 };
 
-    world.addComponent(checkpointEntity, {
-      type: "RespawnPoint",
-      checkpointId,
-      ...respawnPosition
+    game.blueprints.get("checkpoint_node")?.spawn(world, checkpointEntity, {
+      ...checkpointNodePosition,
+      id: checkpointId
     });
-    world.addComponent(checkpointEntity, {
-      type: "CollisionEvents",
-      collisions: [],
-      activeTriggers: [playerEntity],
-      triggersEntered: [],
-      triggersExited: []
-    });
+    world.flush();
+
+    expect(world.hasComponent(checkpointEntity, "Collider")).toBe(true);
+    expect(world.hasComponent(checkpointEntity, "CollisionEvents")).toBe(true);
 
     const checkpointActivated = jest.fn();
     game.getEventBus().on("CheckpointActivated", checkpointActivated);

@@ -106,6 +106,10 @@ class EchoRunnerAttackSystem extends System<CoreComponentRegistry> {
 
         // Clear pulse trigger
         newPulsePressed = false;
+      } else if (newPulsePressed) {
+        // Pulse is a one-shot action, not a queued request. A press during cooldown
+        // must be discarded rather than firing later when the cooldown reaches zero.
+        newPulsePressed = false;
       }
 
       // Merge component mutations into a single mutateComponent call
@@ -133,7 +137,6 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
   public readonly gameId = "echorunner";
   private gameOver = false;
   private levelPlan!: LevelPlan;
-  private dbgFrames = 0;
   private customLevelData?: { templates: SegmentTemplate[]; grammar: string[] };
   private baseConfig: EchoRunnerConfigType;
   private config: EchoRunnerConfigType;
@@ -315,34 +318,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
       });
     }
 
-    console.log("[EchoDebug] sistemas registrados:", [
-      "PauseSystem",
-      "InputBridgeSystem",
-      "ArcadeControlSystem",
-      "AudioSystem",
-      "ParticleSystem",
-      "PlatformerInputSystem",
-      "EchoRunnerAttackSystem",
-      "PlatformerMovementSystem",
-      "PlatformerGravitySystem",
-      "PlatformerCoyoteSystem",
-      "MovingPlatformSystem",
-      "PlatformCarrySystem",
-      "EnemySensorSystem",
-      "StateMachineSystem",
-      "CheckpointSystem",
-      "DeathSystem",
-      "RespawnSystem",
-      "PhysicsIntegrateSystem",
-      "TileCollisionSystem",
-      "CollectibleSystem",
-      "HitDetectionSystem",
-      "Camera2DSystem",
-      "TilemapRenderSystem",
-      "EchoRunnerDamageSystem",
-      "SpriteRenderSystem",
-      "DebugRenderSystem"
-    ]);
+
   }
 
   protected override async onInitializeEntities(): Promise<void> {
@@ -384,28 +360,6 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
 
   public override update(dt: number): void {
     this.gameOver = this.checkRunProgressGameOver(dt, this.gameOver);
-
-    if (process.env.NODE_ENV !== "test") {
-      this.dbgFrames = (this.dbgFrames ?? 0) + 1;
-      if (this.dbgFrames % 30 === 0) {
-        const runState = this.world.getResource<RunState>("RunState");
-        const player = this.world.query("Tag").find(e =>
-          this.world.getComponent(e, "Tag")?.tags?.includes("Player")
-        );
-        console.log("[EchoDebug]", {
-          frame: this.dbgFrames,
-          dt,
-          paused: this.isPausedState?.(),
-          elapsed: runState?.elapsedTime,
-          playerEntity: player,
-          transform: player ? this.world.getComponent(player, "Transform") : null,
-          velocity: player ? this.world.getComponent(player, "Velocity") : null,
-          grounded: player ? this.world.getComponent(player, "PlatformerGroundState") : null,
-          input: player ? this.world.getComponent(player, "PlatformerInput") : null
-        });
-      }
-    }
-
     this.world.update(dt);
   }
 

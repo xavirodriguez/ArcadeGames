@@ -26,4 +26,15 @@ export {
   createMeleeAttackComponent
 } from "./HitRunMeleeSystem";
 
+export { ComboMeleeSystem } from "./ComboMeleeSystem";
+export {
+  DEFAULT_COMBO_MELEE_CONFIG,
+  COMBO_MELEE_CONFIG_RESOURCE
+} from "./ComboMeleeTypes";
+export type {
+  ComboStep,
+  ComboMeleeConfig,
+  ComboMeleeComponent
+} from "./ComboMeleeTypes";
+
 export { registerHitRunMelee } from "./registerHitRunMelee";

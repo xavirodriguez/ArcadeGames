@@ -5,6 +5,11 @@ import {
   resolveEchoPlayerDrawContext,
   resolveEchoBackgroundContext,
 } from "./EchoRunnerVisualUtils";
+import {
+  getEchoRunnerSpriteFrame,
+  resolveEchoRunnerSpriteColor,
+  resolveEchoRunnerSpriteMotion,
+} from "./EchoRunnerPixelArt";
 
 import { drawCanvasHitFlashCircle } from "../../shared/rendering/PlatformerSharedVisuals";
 
@@ -93,108 +98,68 @@ export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
     if (!playerCtx) return;
 
     const { render, size, vx, vy, isGrounded, isAttacking, health, palette } = playerCtx;
-
-    ctx.save();
-
     const flashState = resolveHitFlash(render, render.color || palette.restorationCyan, 1.0);
     if (flashState.isFlashing) {
-      return drawCanvasHitFlashCircle(ctx, size * 0.65, palette.restorationWhite);
+      drawCanvasHitFlashCircle(ctx, size * 0.65, palette.restorationWhite);
+      return;
     }
 
-    const invState = resolveInvulnerabilityPulse(health?.invulnerableRemaining, 1.0, { mode: "tick", tick: world.tick, pulseDivisor: 4, dimOpacity: 0.3 });
-    if (invState.isInvulnerable) {
-      ctx.globalAlpha = invState.opacity;
+    const invState = resolveInvulnerabilityPulse(health?.invulnerableRemaining, 1.0, {
+      mode: "tick",
+      tick: world.tick,
+      pulseDivisor: 4,
+      dimOpacity: 0.3,
+    });
+    const transform = world.getComponent(entity, "Transform");
+    const facingLeft = (transform?.scaleX ?? 1) < 0;
+    const motion = resolveEchoRunnerSpriteMotion(vx, vy, isGrounded, isAttacking);
+    const frame = getEchoRunnerSpriteFrame(motion, world.tick);
+    const pixelSize = size / 12;
+    const originX = -size / 2;
+    const originY = -size * 0.8;
+
+    ctx.save();
+    ctx.globalAlpha = invState.isInvulnerable ? invState.opacity : 1;
+    ctx.translate(0, 0);
+    if (facingLeft) {
+      ctx.scale(-1, 1);
     }
-
-    const { tiltAngle, hoverY, leftLegX, leftLegY, rightLegX, rightLegY } = calculateEchoPlayerPose(size, isGrounded, vx, vy, world.tick);
-
-    ctx.translate(0, hoverY);
-    ctx.rotate(tiltAngle);
 
     ctx.fillStyle = palette.archiveVoidDark;
     ctx.beginPath();
-    ctx.ellipse(0, size * 0.7 - hoverY, size * 0.5, size * 0.15, 0, 0, Math.PI * 2);
+    ctx.ellipse(0, size * 0.66, size * 0.48, size * 0.13, 0, 0, Math.PI * 2);
     ctx.fill();
 
     if (isAttacking) {
       ctx.strokeStyle = palette.restorationCyan;
-      ctx.lineWidth = 2;
-      ctx.shadowColor = palette.restorationCyan;
-      ctx.shadowBlur = 12;
+      ctx.lineWidth = Math.max(1, pixelSize);
+      ctx.globalAlpha *= 0.8;
       ctx.beginPath();
-      ctx.arc(0, 0, size * 0.85, 0, Math.PI * 2);
+      ctx.arc(0, 0, size * 0.72, -Math.PI * 0.8, Math.PI * 0.8);
       ctx.stroke();
+      ctx.globalAlpha = invState.isInvulnerable ? invState.opacity : 1;
     }
 
-    ctx.shadowColor = palette.restorationCyan;
-    ctx.shadowBlur = 10;
-
-    ctx.strokeStyle = palette.corruptionCrimson;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(-size * 0.22, -size * 0.5);
-    ctx.lineTo(-size * 0.32, -size * 0.85);
-    ctx.stroke();
-
-    ctx.fillStyle = palette.corruptionCrimson;
-    ctx.beginPath();
-    ctx.arc(-size * 0.32, -size * 0.85, 2, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = palette.archiveSlate;
-    ctx.strokeStyle = palette.restorationCyan;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(0, -size * 0.4, size * 0.35, Math.PI, 0);
-    ctx.lineTo(0, -size * 0.4);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.shadowColor = palette.corruptionCrimson;
-    ctx.fillStyle = palette.corruptionCrimson;
-    ctx.beginPath();
-    ctx.ellipse(size * 0.08, -size * 0.45, size * 0.24, size * 0.07, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.shadowColor = palette.restorationCyan;
-    ctx.fillStyle = palette.archiveBorderDark;
-    ctx.beginPath();
-    if (ctx.roundRect) {
-      ctx.roundRect(-size * 0.3, -size * 0.15, size * 0.6, size * 0.6, 4);
-    } else {
-      ctx.rect(-size * 0.3, -size * 0.15, size * 0.6, size * 0.6);
-    }
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.fillStyle = isAttacking ? palette.restorationWhite : palette.restorationCyan;
-    ctx.beginPath();
-    ctx.arc(0, size * 0.1, isAttacking ? size * 0.16 : size * 0.12, 0, Math.PI * 2);
-    ctx.fill();
-
-    if (isAttacking) {
-      ctx.fillStyle = palette.restorationCyan;
-      ctx.fillRect(size * 0.1, -size * 0.05, size * 0.4, size * 0.18);
-      ctx.fillStyle = palette.restorationWhite;
-      ctx.beginPath();
-      ctx.arc(size * 0.5, size * 0.04, 3, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    ctx.fillStyle = palette.archiveBorderLight;
-    ctx.beginPath();
-    ctx.arc(leftLegX, leftLegY, size * 0.08, 0, Math.PI * 2);
-    ctx.arc(rightLegX, rightLegY, size * 0.08, 0, Math.PI * 2);
-    ctx.fill();
-
-    if (!isGrounded && vy < -20) {
-      ctx.fillStyle = palette.restorationCyan;
-      ctx.beginPath();
-      ctx.moveTo(-size * 0.15, leftLegY);
-      ctx.lineTo(0, leftLegY + size * 0.35);
-      ctx.lineTo(size * 0.15, rightLegY);
-      ctx.closePath();
-      ctx.fill();
+    for (let y = 0; y < frame.length; y++) {
+      const row = frame[y] ?? "";
+      let x = 0;
+      while (x < row.length) {
+        const token = row[x] ?? ".";
+        if (token === ".") {
+          x++;
+          continue;
+        }
+        let runLength = 1;
+        while (x + runLength < row.length && row[x + runLength] === token) {
+          runLength++;
+        }
+        const color = resolveEchoRunnerSpriteColor(token, palette);
+        if (color) {
+          ctx.fillStyle = color;
+          ctx.fillRect(originX + x * pixelSize, originY + y * pixelSize, runLength * pixelSize, pixelSize);
+        }
+        x += runLength;
+      }
     }
 
     ctx.restore();

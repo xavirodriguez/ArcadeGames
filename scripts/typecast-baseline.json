@@ -384,11 +384,6 @@
     "unknownCount": 1,
     "total": 2
   },
-  "packages/gameplay-kit/src/story/BaseMiniGameEncounter.ts": {
-    "anyCount": 5,
-    "unknownCount": 0,
-    "total": 5
-  },
   "packages/renderer-canvas/src/CanvasRenderer.ts": {
     "anyCount": 0,
     "unknownCount": 7,
@@ -739,11 +734,6 @@
     "unknownCount": 0,
     "total": 2
   },
-  "src/games/platformer/systems/PlatformerGoalSystem.ts": {
-    "anyCount": 7,
-    "unknownCount": 0,
-    "total": 7
-  },
   "src/games/platformer/systems/PlatformerWallJumpSystem.ts": {
     "anyCount": 4,
     "unknownCount": 0,
@@ -798,11 +788,6 @@
     "anyCount": 7,
     "unknownCount": 0,
     "total": 7
-  },
-  "src/games/shared/LapTimerSystem.ts": {
-    "anyCount": 6,
-    "unknownCount": 0,
-    "total": 6
   },
   "src/games/shared/PathPatternsSystem.ts": {
     "anyCount": 2,

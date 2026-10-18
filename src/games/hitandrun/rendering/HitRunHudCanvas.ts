@@ -1,5 +1,5 @@
 /**
- * Combat HUD — health, weapon, wave, score, telegraphs, CLEAR banner.
+ * Combat HUD — health, weapon, section/wave, score, telegraphs, CLEAR banner.
  */
 import type {
   EffectDrawer,
@@ -20,6 +20,12 @@ import {
   type WaveTelegraphMarker,
   type WaveBannerState
 } from "../waves/HitRunWavePresentation";
+import {
+  BELT_CAMERA_CONFIG_RESOURCE,
+  BELT_CAMERA_STATE_RESOURCE,
+  type BeltCameraConfig,
+  type BeltCameraState
+} from "../belt/BeltCameraTypes";
 import { HIT_PALETTE } from "./HitAndRunPalette";
 import { colors } from "../../../theme/colors";
 import type { HitRunDeathFlowState } from "../systems/HitRunDeathFlowSystem";
@@ -53,7 +59,11 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
   draw(ctx, world) {
     const { w, h } = resolveViewport(world);
     const cam = mainCam(world);
-    const players = world.query("PlatformerInput", "Health");
+    // Belt player uses BeltInput (not PlatformerInput)
+    let players = world.query("BeltInput", "Health");
+    if (players.length === 0) {
+      players = world.query("PlatformerInput", "Health");
+    }
     const player = players[0];
     const health = player !== undefined
       ? (world.getComponent(player, "Health") as HealthComponent | undefined)
@@ -67,6 +77,12 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
     const telegraphs = world.getResource(WAVE_TELEGRAPHS_RESOURCE) as WaveTelegraphMarker[] | undefined;
     const banner = world.getResource(WAVE_BANNER_RESOURCE) as WaveBannerState | null | undefined;
     const death = world.getResource(DEATH_FLOW_RESOURCE) as HitRunDeathFlowState | undefined;
+    const camState = world.getResource(BELT_CAMERA_STATE_RESOURCE) as BeltCameraState | undefined;
+    const camCfg = world.getResource(BELT_CAMERA_CONFIG_RESOURCE) as BeltCameraConfig | undefined;
+    const section =
+      camState && camCfg
+        ? camCfg.sections[camState.currentSectionIndex]
+        : undefined;
 
     const score = rs
       ? rs.collectedTemporalIds.length * 10 + rs.collectedPermanentIds.length * 100
@@ -123,7 +139,7 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
       ctx.stroke();
     }
 
-    const weaponId = (weapon?.weaponId ?? "hmg").toUpperCase();
+    const weaponId = (weapon?.weaponId ?? "longbow").toUpperCase();
     const cd = weapon?.cooldownRemaining ?? 0;
     ctx.font = "bold 12px 'Share Tech Mono', monospace";
     ctx.textAlign = "left";
@@ -134,15 +150,26 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
       ctx.fillRect(startX + maxHp * (pipW + 6) + 16, 26, 40 * Math.min(1, cd / 0.2), 3);
     }
 
+    // Center: section + wave
     ctx.textAlign = "center";
-    ctx.fillStyle = colors.neutral[100];
+    ctx.font = "bold 12px 'Share Tech Mono', monospace";
+    const sectionLabel = section?.id
+      ? section.id.replace(/_/g, " ").toUpperCase()
+      : "—";
     const waveName = script?.name ?? wave?.scriptId ?? "—";
-    const waveT = wave?.elapsed != null ? wave.elapsed.toFixed(1) : "0.0";
-    ctx.fillText(`WAVE  ${waveName}  ·  ${waveT}s`, w * 0.5, 20);
+    const gateTag = camState?.gateLocked
+      ? "GATE LOCKED"
+      : camState?.sectionCleared
+        ? "GATE OPEN"
+        : "";
+    ctx.fillStyle = colors.neutral[100];
+    ctx.fillText(`${sectionLabel}  ·  ${waveName}`, w * 0.5, 16);
+    ctx.font = "10px 'Share Tech Mono', monospace";
+    ctx.fillStyle = camState?.gateLocked ? HIT_PALETTE.hitRunRed : HIT_PALETTE.hitRunYellow;
+    if (gateTag) ctx.fillText(gateTag, w * 0.5, 30);
     if (wave) {
-      ctx.font = "10px 'Share Tech Mono', monospace";
       ctx.fillStyle = colors.textMuted;
-      ctx.fillText(`SPAWNED ${wave.totalSpawned}`, w * 0.5, 34);
+      ctx.fillText(`SPAWNED ${wave.totalSpawned}`, w * 0.5, 42);
     }
 
     ctx.textAlign = "right";
@@ -155,7 +182,8 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
       ctx.globalAlpha = a;
       ctx.textAlign = "center";
       ctx.font = "bold 42px 'Share Tech Mono', monospace";
-      ctx.fillStyle = banner.text === "CLEAR" ? HIT_PALETTE.hitRunYellow : HIT_PALETTE.hitRunRed;
+      ctx.fillStyle =
+        banner.text === "CLEAR" ? HIT_PALETTE.hitRunYellow : HIT_PALETTE.hitRunRed;
       ctx.shadowColor = ctx.fillStyle;
       ctx.shadowBlur = 18;
       ctx.fillText(banner.text, w * 0.5, h * 0.38);
@@ -181,7 +209,7 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
     ctx.textAlign = "left";
     ctx.font = "10px 'Share Tech Mono', monospace";
     ctx.fillStyle = colors.textMuted;
-    ctx.fillText("←→ MOVE  ↑↓ AIM  SPACE JUMP  F MELEE  C/X FIRE", 16, h - 12);
+    ctx.fillText("←→ MOVE  ↑↓ DEPTH  SPACE JUMP  F MELEE  Q SPECIAL  C/X FIRE", 16, h - 12);
 
     ctx.restore();
   }

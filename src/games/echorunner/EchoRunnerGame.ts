@@ -169,6 +169,10 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
     this.config = this.setupArcadeGameConfig(this.baseConfig, resolveAndApplyMutators);
     await super.onRegisterSystems();
 
+    // Keep the shared death system configurable per game without changing the
+    // platformer defaults used by other games.
+    this.world.setResource("DeathPlaneY", this.config.DEATH_PLANE_Y);
+
     // Register blueprints
     this.blueprints.register("pulse_hitbox", {
       spawn: (world, entity, args: { dir: number; x: number; y: number; parent: number }) => {

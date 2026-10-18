@@ -27,13 +27,13 @@ export const ComboDisplay: React.FC<ComboDisplayProps> = ({
       Animated.sequence([
         Animated.spring(scaleAnim, {
           toValue: 1.5,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
           tension: 100,
           friction: 3,
         }),
         Animated.spring(scaleAnim, {
           toValue: 1,
-          useNativeDriver: true,
+          useNativeDriver: Platform.OS !== 'web',
         }),
       ]).start();
     }
@@ -46,12 +46,12 @@ export const ComboDisplay: React.FC<ComboDisplayProps> = ({
           Animated.timing(pulseAnim, {
             toValue: 1.35,
             duration: 150,
-            useNativeDriver: true,
+            useNativeDriver: Platform.OS !== 'web',
           }),
           Animated.timing(pulseAnim, {
             toValue: 1,
             duration: 150,
-            useNativeDriver: true,
+            useNativeDriver: Platform.OS !== 'web',
           }),
         ])
       );

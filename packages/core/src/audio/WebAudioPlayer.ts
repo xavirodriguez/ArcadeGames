@@ -1,4 +1,5 @@
 import { IAudioPlayer } from "./IAudioPlayer";
+import { SHARED_AUDIO_MANIFEST } from "./AudioEventMap";
 
 /**
  * A standard implementation of IAudioPlayer utilizing the HTML5 Web Audio API
@@ -232,7 +233,8 @@ export class WebAudioPlayer implements IAudioPlayer {
     this.resumeContext();
     if (typeof window === "undefined") return;
 
-    const url = typeof options === "string" ? options : id;
+    const manifestAsset = SHARED_AUDIO_MANIFEST.find((asset) => asset.id === id);
+    const url = typeof options === "string" ? options : manifestAsset?.path ?? id;
     if (this.currentBgmUrl === url && this.bgmAudio) {
       this.bgmAudio.play().catch(() => {});
       return;

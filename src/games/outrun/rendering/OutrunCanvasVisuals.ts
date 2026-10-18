@@ -305,12 +305,6 @@ export const drawOutrunCar: ShapeDrawer<CanvasRenderingContext2D, OutrunComponen
     ctx.rotate(tiltAngle);
     ctx.scale(carScale, carScale);
 
-    // Shadow
-    ctx.fillStyle = hexToRgba(colors.surface, 0.4);
-    ctx.beginPath();
-    ctx.ellipse(0, 16, 36, 10, 0, 0, Math.PI * 2);
-    ctx.fill();
-
     // Crisp pixel shadow keeps the sprite aligned with the arcade art direction.
     ctx.fillStyle = hexToRgba(colors.surface, 0.4);
     ctx.fillRect(-24, 18, 48, 4);
@@ -334,7 +328,7 @@ export const drawOutrunRacer: ShapeDrawer<CanvasRenderingContext2D, OutrunCompon
     if (!racerCtx) return;
 
     const { proj, bodyColor } = racerCtx;
-    const { sx, sy, lateral, carW, carH, bestClip } = proj;
+    const { sx, sy, lateral, carW, bestClip } = proj;
 
     const cx = sx + lateral;
     const cy = sy;

@@ -32,6 +32,24 @@ describe("projectRoad", () => {
     }
   });
 
+  it("projects road width and curvature in world-space units", () => {
+    const segments = makeStraightRoad(40);
+    segments[0].curve = 4;
+    const out = createProjectionBuffer(40);
+    const count = projectRoad(
+      segments, 0, 0, cameraHeight, cameraDepth, roadWidth, 40, screenW, screenH, out
+    );
+
+    expect(count).toBe(40);
+
+    // At z=1200, half-width = (cameraDepth / z) * roadWidth * screenW / 2.
+    expect(out[6].w1).toBeCloseTo((cameraDepth / 1200) * roadWidth * (screenW / 2), 8);
+    expect(out[6].w1).toBeGreaterThan(out[20].w1);
+
+    // Curve offsets are world-space values too; they must not be divided by roadWidth.
+    expect(out[2].x1).toBeGreaterThan(screenW / 2 + 1);
+  });
+
   it("curve produces progressive horizontal displacement", () => {
     const segments: RoadSegment[] = [];
     for (let i = 0; i < 100; i++) {
@@ -150,8 +168,10 @@ describe("projectRoad", () => {
     projectRoad(segments, 190, 0, cameraHeight, cameraDepth, roadWidth, 10, screenW, screenH, out1);
     projectRoad(segments, 210, 0, cameraHeight, cameraDepth, roadWidth, 10, screenW, screenH, out2);
 
-    // Delta between adjacent steps (20 world units of Z advancement)
-    const deltaX = Math.abs(out1[0].x1 - out2[0].x1);
+    // Compare the same world-space segment boundary before and after the camera crosses
+    // the base segment. The clipped near-plane endpoint is intentionally not compared:
+    // perspective magnifies points almost at the camera and is not a stable continuity sample.
+    const deltaX = Math.abs(out1[2].x1 - out2[1].x1);
     expect(deltaX).toBeLessThan(50); // Continuous movement, no abrupt jump
   });
 
@@ -180,12 +200,12 @@ describe("projectRoad", () => {
     }));
 
     expect(baseline).toEqual([
-      { index: 0, x1: 400, y1: 504300, w1: 672, x2: 400, y2: 1560, w2: 2, clip: 600 },
-      { index: 1, x1: 400, y1: 1560, w1: 2, x2: 400, y2: 930, w2: 1, clip: 600 },
-      { index: 2, x1: 400, y1: 930, w1: 1, x2: 400, y2: 720, w2: 1, clip: 600 },
-      { index: 3, x1: 400, y1: 720, w1: 1, x2: 400, y2: 615, w2: 0, clip: 600 },
-      { index: 4, x1: 400, y1: 615, w1: 0, x2: 400, y2: 552, w2: 0, clip: 600 },
-      { index: 5, x1: 400, y1: 552, w1: 0, x2: 400, y2: 510, w2: 0, clip: 552 }
+      { index: 0, x1: 400, y1: 504300, w1: 1344000, x2: 400, y2: 1560, w2: 3360, clip: 600 },
+      { index: 1, x1: 400, y1: 1560, w1: 3360, x2: 400, y2: 930, w2: 1680, clip: 600 },
+      { index: 2, x1: 400, y1: 930, w1: 1680, x2: 401, y2: 720, w2: 1120, clip: 600 },
+      { index: 3, x1: 401, y1: 720, w1: 1120, x2: 403, y2: 615, w2: 840, clip: 600 },
+      { index: 4, x1: 403, y1: 615, w1: 840, x2: 405, y2: 552, w2: 672, clip: 600 },
+      { index: 5, x1: 405, y1: 552, w1: 672, x2: 405, y2: 510, w2: 560, clip: 552 }
     ]);
   });
 });

@@ -2,6 +2,24 @@ import { Component, CoreEvents } from "@tiny-aster/core";
 
 export interface EchoRunnerEventRegistry extends CoreEvents, Record<string, unknown> {}
 
+export type EchoRunnerCollectibleKind = "fragment" | "core" | "coin";
+
+export interface EchoRunnerCollectibleProgress {
+  kindsById: Record<string, EchoRunnerCollectibleKind>;
+  valuesById: Record<string, number>;
+}
+
+export function toEchoRunnerCollectibleKind(value: string | undefined): EchoRunnerCollectibleKind | null {
+  switch (value) {
+    case "fragment":
+    case "core":
+    case "coin":
+      return value;
+    default:
+      return null;
+  }
+}
+
 export interface EchoRunnerInput {
   moveLeft: boolean;
   moveRight: boolean;
@@ -23,6 +41,7 @@ export interface EchoRunnerGameState extends Component {
   attempts: number;
   deaths: number;
   fragments: number;
+  coins: number;
   cores: number;
   activeCheckpoint: string | null;
   elapsedTime: number;

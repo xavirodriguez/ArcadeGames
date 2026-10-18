@@ -665,7 +665,7 @@ describe("Echo Runner Game Simulation Tests", () => {
   it("should apply a configured death plane to the shared death system", async () => {
     const lifecycleGame = new EchoRunnerGame({
       seed: 41873,
-      gameOptions: { DEATH_PLANE_Y: 700 }
+      gameOptions: { rawConfig: { DEATH_PLANE_Y: 700 } }
     });
     try {
       await lifecycleGame.init();

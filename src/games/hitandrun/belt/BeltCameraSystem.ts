@@ -30,9 +30,13 @@ export class BeltCameraSystem extends System<CoreComponentRegistry> {
         cameraX: config.minCameraX,
         currentSectionIndex: 0,
         sectionCleared: false,
-        gateLocked: true
+        gateLocked: true,
+        hadEnemiesThisSection: false
       };
       world.setResource(BELT_CAMERA_STATE_RESOURCE, state);
+    }
+    if (state.hadEnemiesThisSection === undefined) {
+      state.hadEnemiesThisSection = false;
     }
 
     const sectionEnemies = world.query("BeltSectionEnemy", "Health");
@@ -51,7 +55,14 @@ export class BeltCameraSystem extends System<CoreComponentRegistry> {
       if (hp > 0) aliveInSection++;
     }
 
-    state.sectionCleared = aliveInSection === 0;
+    if (aliveInSection > 0) {
+      state.hadEnemiesThisSection = true;
+    }
+
+    // Only clear after the section has actually seen enemies (avoids unlocked
+    // gate + free camera scroll before the first wave, then snap-back).
+    state.sectionCleared =
+      state.hadEnemiesThisSection && aliveInSection === 0;
     state.gateLocked = !state.sectionCleared;
 
     const section = config.sections[sectionIndex];
@@ -60,18 +71,35 @@ export class BeltCameraSystem extends System<CoreComponentRegistry> {
     const players = world.query("BeltMovement", "Transform");
     if (players.length === 0) return;
     const player = players[0];
-    const transform = world.getComponent(player, "Transform") as
-      | { x: number }
+    const transform = world.getMutableComponent(player, "Transform") as
+      | { x: number; worldX?: number }
       | undefined;
     if (!transform) return;
+
+    // While the gate is locked, the player cannot walk past it (or off-screen).
+    if (state.gateLocked && Number.isFinite(gateX)) {
+      const maxPlayerX = gateX - 24;
+      if (transform.x > maxPlayerX) {
+        transform.x = maxPlayerX;
+        if (transform.worldX !== undefined) transform.worldX = maxPlayerX;
+        const vel = world.getMutableComponent(player, "Velocity") as
+          | { vx: number }
+          | undefined;
+        if (vel && vel.vx > 0) vel.vx = 0;
+      }
+    }
 
     let desired =
       transform.x - config.viewportWidth * 0.35 + config.lookAhead;
     desired = Math.max(config.minCameraX, desired);
 
-    if (state.gateLocked) {
-      const maxCam = gateX - config.viewportWidth * 0.85;
-      desired = Math.min(desired, Math.max(config.minCameraX, maxCam));
+    if (state.gateLocked && Number.isFinite(gateX)) {
+      // Keep the gate near the right side of the view; never pull camera left of min.
+      const maxCam = Math.max(
+        config.minCameraX,
+        gateX - config.viewportWidth * 0.75
+      );
+      desired = Math.min(desired, maxCam);
     }
 
     const t = 1 - Math.exp(-config.followSpeed * deltaTime);
@@ -86,6 +114,7 @@ export class BeltCameraSystem extends System<CoreComponentRegistry> {
       state.currentSectionIndex = sectionIndex + 1;
       state.sectionCleared = false;
       state.gateLocked = true;
+      state.hadEnemiesThisSection = false;
       const bus = world.getResource<{ emit?: (event: string, payload: unknown) => void }>("EventBus");
       bus?.emit?.("belt:section_advanced", {
         sectionIndex: state.currentSectionIndex

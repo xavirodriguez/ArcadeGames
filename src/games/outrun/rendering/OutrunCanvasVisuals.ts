@@ -13,8 +13,8 @@ import {
   resolveOutrunHudContext,
   resolveOffroadDustParams
 } from "./OutrunRenderShared";
-import { computeSpeedLines } from "./OutrunVisualHelpers";
-import { resolveSegmentFog } from "./OutrunFog";
+import { computeSpeedLines, computeOutrunPlayerPixelSize } from "./OutrunVisualHelpers";
+import { resolveRoadFogColor } from "./OutrunFog";
 import { colors } from "../../../theme/colors";
 import { hexToRgba } from "../../shared/rendering/CosmicPalette";
 import {
@@ -241,13 +241,14 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
         ctx.fill();
       }
 
-      // Fog Pass
-      const fog = resolveSegmentFog(p.fog, palette);
-      if (fog.alpha > 0) {
-        ctx.fillStyle = fog.rgba;
-        ctx.fillRect(0, p.y2, screenW, p.y1 - p.y2);
-      }
     }
+
+    // One continuous fog gradient avoids visible bands at segment boundaries.
+    const fogGradient = ctx.createLinearGradient(0, horizonY, 0, screenH);
+    fogGradient.addColorStop(0, resolveRoadFogColor(palette, 0.55));
+    fogGradient.addColorStop(1, resolveRoadFogColor(palette, 0));
+    ctx.fillStyle = fogGradient;
+    ctx.fillRect(0, horizonY, screenW, Math.max(0, screenH - horizonY));
 
     if (count > 0 && renderedCount === 0) {
       console.warn("[drawOutrunRoad] 100% of projected road segments were clipped or discarded.");
@@ -305,14 +306,23 @@ export const drawOutrunCar: ShapeDrawer<CanvasRenderingContext2D, OutrunComponen
     ctx.rotate(tiltAngle);
     ctx.scale(carScale, carScale);
 
-    // Crisp pixel shadow keeps the sprite aligned with the arcade art direction.
+    const pixelSize = computeOutrunPlayerPixelSize(config);
+    const spriteWidth = OUTRUN_PLAYER_PIXEL_SPRITE.width * pixelSize;
+    const spriteHeight = OUTRUN_PLAYER_PIXEL_SPRITE.height * pixelSize;
+
+    // Scale the crisp shadow with the same road-relative sprite dimensions.
     ctx.fillStyle = hexToRgba(colors.surface, 0.4);
-    ctx.fillRect(-24, 18, 48, 4);
-    ctx.fillRect(-16, 22, 32, 4);
+    ctx.fillRect(-spriteWidth * 0.375, spriteHeight / 2, spriteWidth * 0.75, pixelSize);
+    ctx.fillRect(-spriteWidth * 0.25, spriteHeight / 2 + pixelSize, spriteWidth * 0.5, pixelSize);
 
     const playerFrame = getOutrunAnimationFrame(state.playerZ);
     const playerSprite = OUTRUN_PLAYER_PIXEL_SPRITE.frames[playerFrame]!;
-    visitOutrunPixelRuns(playerSprite, -32, -18, 4, (pixel, x, y, width, height) => {
+    visitOutrunPixelRuns(
+      playerSprite,
+      -spriteWidth / 2,
+      -spriteHeight / 2,
+      pixelSize,
+      (pixel, x, y, width, height) => {
       ctx.fillStyle = resolveOutrunPixelColor(pixel, carColor);
       ctx.fillRect(x, y, width, height);
     });

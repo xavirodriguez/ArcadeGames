@@ -60,6 +60,7 @@ import {
   DEFAULT_BELT_PLAYER_SPAWN
 } from "./belt/registerBeltPlayerBlueprint";
 import { mutateBeltInputState } from "./belt/mutateBeltInputState";
+import { registerHitRunAI } from "./ai/registerHitRunAI";
 import {
   DEFAULT_COMBO_MELEE_CONFIG,
   COMBO_MELEE_CONFIG_RESOURCE
@@ -180,13 +181,16 @@ export class HitAndRunGame extends PlatformerArcadeGame<
 
     registerBeltSystems(this.world);
 
+    // FSMs + sensors must be registered before waves spawn enemies with attachEnemyAI
+    registerHitRunAI(this.world);
+
     registerHitRunFeedback(this.world);
     registerHitRunHurt(this.world);
     registerHitRunMelee(this.world);
     registerHitRunWeapons(this.world);
     registerHitRunWaves(this.world, {
-      defaultSpawnX: 850,
-      defaultSpawnY: 420
+      defaultSpawnX: 350,
+      defaultSpawnY: 400
     });
     registerHitRunDeathFlow(this.world);
 
@@ -278,7 +282,8 @@ export class HitAndRunGame extends PlatformerArcadeGame<
     const rs = this.world.getResource<RunState>("RunState");
     const wave = this.world.getResource<WaveDirectorState>(WAVE_DIRECTOR_RESOURCE);
     const script = this.world.getResource<WaveScript>(WAVE_SCRIPT_RESOURCE);
-    const players = this.world.query("PlatformerInput", "Health");
+    // Belt player uses BeltInput, not PlatformerInput
+    const players = this.world.query("BeltInput", "Health");
     const player = players[0];
     const health = player !== undefined
       ? (this.world.getComponent(player, "Health") as HealthComponent | undefined)

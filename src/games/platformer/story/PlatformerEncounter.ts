@@ -126,12 +126,9 @@ export class PlatformerArcadeAdapter extends BaseArcadeAdapter<PlatformerGame> {
 return new PlatformerGame();
   }
 
-  protected buildResult(context: MiniGameRunContext, payload?: any): MiniGameResult {
-    const score = payload?.score ?? (this.game as any)?.getScore?.() ?? 0;
-    const completed = payload?.completed ?? (score >= (context.config.targetScore ?? 1000));
-    const durationMs = payload?.durationMs ?? 40000;
-    const coinsCollected = payload?.coinsCollected ?? 0;
-    const secretsFound: string[] = payload?.secretsFound ?? [];
+  protected buildResult(context: MiniGameRunContext, payload?: Record<string, unknown>): MiniGameResult {
+    const { score, completed, durationMs, secretsFound } = this.buildBaseEncounterResult(context, payload, 1000, 40000);
+    const coinsCollected = typeof payload?.coinsCollected === "number" ? payload.coinsCollected : 0;
 
     if (payload?.foundRelicCache) {
       secretsFound.push("ancient_relic_cache");
@@ -145,7 +142,7 @@ return new PlatformerGame();
       durationMs,
       metrics: {
         coinsCollected,
-        enemiesDefeated: payload?.enemiesDefeated ?? 0
+        enemiesDefeated: typeof payload?.enemiesDefeated === "number" ? payload.enemiesDefeated : 0
       },
       secretsFound
     };

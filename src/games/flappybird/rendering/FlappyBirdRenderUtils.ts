@@ -1,4 +1,5 @@
-import { World, TransformComponent, RenderComponent, HealthComponent, ComboComponent } from "@tiny-aster/core";
+import { World, TransformComponent, RenderComponent, HealthComponent, ComboComponent, THEME_RESOURCE_KEY, Theme } from "@tiny-aster/core";
+import { hexToRgba } from "../../shared/rendering/CosmicPalette";
 import {
   FlappyBirdComponentRegistry,
   FlappyBirdState,
@@ -429,4 +430,16 @@ export function computeWarpLines(
     });
   }
   return lines;
+}
+
+export interface FlappyVfxColors {
+  scanlineColor: string;
+  vignetteOuter: string;
+}
+
+export function resolveFlappyVfxColors(world: World): FlappyVfxColors {
+  const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+  const scanlineColor = theme?.effects?.scanlineColor ?? hexToRgba(colors.surface, 0.06);
+  const vignetteOuter = theme?.effects?.vignetteOuterColor ?? hexToRgba(colors.surface, 0.45);
+  return { scanlineColor, vignetteOuter };
 }

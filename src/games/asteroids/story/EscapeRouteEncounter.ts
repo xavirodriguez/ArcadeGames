@@ -121,12 +121,10 @@ export class AsteroidsArcadeAdapter extends BaseArcadeAdapter<AsteroidsGame> {
     return new AsteroidsGame();
   }
 
-  protected buildResult(context: MiniGameRunContext, payload?: any): MiniGameResult {
-    const collisions = payload?.collisions ?? (this.game as any)?.collisionsCount ?? 0;
-    const score = payload?.score ?? (this.game as any)?.getScore?.() ?? 0;
-    const completed = payload?.completed ?? (score >= (context.config.targetScore ?? 1000));
-    const durationMs = payload?.durationMs ?? 30000;
-    const secretsFound: string[] = payload?.secretsFound ?? [];
+  protected buildResult(context: MiniGameRunContext, payload?: Record<string, unknown>): MiniGameResult {
+    const { score, completed, durationMs, secretsFound } = this.buildBaseEncounterResult(context, payload, 1000, 30000);
+    const gameAsteroids = this.game as unknown as { collisionsCount?: number } | null;
+    const collisions = typeof payload?.collisions === "number" ? payload.collisions : (gameAsteroids?.collisionsCount ?? 0);
 
     if (payload?.foundBlackBox) {
       secretsFound.push("black_box_fragment");
@@ -140,7 +138,7 @@ export class AsteroidsArcadeAdapter extends BaseArcadeAdapter<AsteroidsGame> {
       durationMs,
       metrics: {
         collisions,
-        asteroidsDestroyed: payload?.asteroidsDestroyed ?? 0
+        asteroidsDestroyed: typeof payload?.asteroidsDestroyed === "number" ? payload.asteroidsDestroyed : 0
       },
       secretsFound
     };

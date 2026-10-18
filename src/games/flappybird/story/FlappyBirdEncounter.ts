@@ -127,12 +127,9 @@ export class FlappyBirdArcadeAdapter extends BaseArcadeAdapter<FlappyBirdGame> {
 return new FlappyBirdGame({ seed: context.seed });
   }
 
-  protected buildResult(context: MiniGameRunContext, payload?: any): MiniGameResult {
-    const score = payload?.score ?? (this.game as any)?.getScore?.() ?? 0;
-    const completed = payload?.completed ?? (score >= (context.config.targetScore ?? 10));
-    const durationMs = payload?.durationMs ?? 20000;
-    const pipesCleared = payload?.pipesCleared ?? score;
-    const secretsFound: string[] = payload?.secretsFound ?? [];
+  protected buildResult(context: MiniGameRunContext, payload?: Record<string, unknown>): MiniGameResult {
+    const { score, completed, durationMs, secretsFound } = this.buildBaseEncounterResult(context, payload, 10, 20000);
+    const pipesCleared = typeof payload?.pipesCleared === "number" ? payload.pipesCleared : score;
 
     if (payload?.foundFeather) {
       secretsFound.push("golden_feather_artifact");
@@ -146,7 +143,7 @@ return new FlappyBirdGame({ seed: context.seed });
       durationMs,
       metrics: {
         pipesCleared,
-        nearMisses: payload?.nearMisses ?? 0
+        nearMisses: typeof payload?.nearMisses === "number" ? payload.nearMisses : 0
       },
       secretsFound
     };

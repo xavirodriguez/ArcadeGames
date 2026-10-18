@@ -130,3 +130,14 @@ export function resolveFroggerBackgroundContext(
 
   return { config, w, grid, grassColor, waterColor, roadColor };
 }
+
+export interface FroggerSlotColors {
+  slotColor: string;
+  occupiedColor: string;
+}
+
+export function resolveFroggerSlotColors(world: World<FroggerComponentRegistry>): FroggerSlotColors {
+  const slotColor = resolveThemeColorWithFallback(world, "#00AA44", "home_slot", "secondary");
+  const occupiedColor = resolveThemeColorWithFallback(world, "#39FF14", "home_slot_occupied", "primary");
+  return { slotColor, occupiedColor };
+}

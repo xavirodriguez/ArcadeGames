@@ -6,6 +6,7 @@ import {
   resolveFroggerShellSegments,
   resolveFroggerGoalContext,
   resolveFroggerBackgroundContext,
+  resolveFroggerSlotColors,
 } from "./FroggerRenderUtils";
 
 export const drawFroggerCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComponentRegistry> = {
@@ -183,8 +184,7 @@ export const drawLilyPadCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCom
 
     const { half, occupied } = goalCtx;
 
-    const slotColor = resolveThemeColorWithFallback(world, "#00AA44", "home_slot", "secondary");
-    const occupiedColor = resolveThemeColorWithFallback(world, "#39FF14", "home_slot_occupied", "primary");
+    const { slotColor, occupiedColor } = resolveFroggerSlotColors(world);
 
     ctx.save();
 

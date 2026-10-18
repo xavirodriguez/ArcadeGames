@@ -8,6 +8,7 @@ import {
   resolveFroggerShellSegments,
   resolveFroggerGoalContext,
   resolveFroggerBackgroundContext,
+  resolveFroggerSlotColors,
 } from "./FroggerRenderUtils";
 
 function drawSkiaRoundedBox(
@@ -116,8 +117,7 @@ export const drawLilyPadSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
 
     const { half, occupied } = goalCtx;
 
-    const slotColor = resolveThemeColorWithFallback(world, "#00AA44", "home_slot", "secondary");
-    const occupiedColor = resolveThemeColorWithFallback(world, "#39FF14", "home_slot_occupied", "primary");
+    const { slotColor, occupiedColor } = resolveFroggerSlotColors(world);
 
     const paint = Skia.Paint();
     paint.setColor(Skia.Color(occupied ? occupiedColor : slotColor));

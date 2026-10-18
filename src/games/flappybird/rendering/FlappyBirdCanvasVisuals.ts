@@ -28,7 +28,8 @@ import {
   resolveFlappyBackgroundSetup,
   maybeSpawnLaserGateSparks,
   computeWarpLines,
-  computeFlappyNebulaPos
+  computeFlappyNebulaPos,
+  resolveFlappyVfxColors
 } from "./FlappyBirdRenderUtils";
 import { colors } from "../../../theme/colors";
 import { hexToRgba } from "../../shared/rendering/CosmicPalette";
@@ -963,9 +964,7 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
       ctx.restore();
     }
 
-    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-    const scanlineColor = theme?.effects?.scanlineColor ?? hexToRgba(colors.surface, 0.06);
-    const vignetteOuter = theme?.effects?.vignetteOuterColor ?? hexToRgba(colors.surface, 0.45);
+    const { scanlineColor, vignetteOuter } = resolveFlappyVfxColors(world);
 
     ctx.save();
     ctx.fillStyle = scanlineColor;

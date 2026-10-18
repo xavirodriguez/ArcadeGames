@@ -34,7 +34,7 @@ export abstract class BaseArcadeAdapter<TGame extends AnyBaseGame = AnyBaseGame>
    * @param payload - Optional event payload from game completion events.
    * @returns Formatted MiniGameResult.
    */
-  protected abstract buildResult(context: MiniGameRunContext, payload?: unknown): MiniGameResult;
+  protected abstract buildResult(context: MiniGameRunContext, payload?: Record<string, unknown>): MiniGameResult;
 
   /**
    * Custom hook to apply narrative modifiers to the game instance.
@@ -75,7 +75,8 @@ export abstract class BaseArcadeAdapter<TGame extends AnyBaseGame = AnyBaseGame>
 
   public emitResult(context: MiniGameRunContext, payload?: unknown): void {
     if (!this.resultCallback) return;
-    const result = this.buildResult(context, payload);
+    const payloadRecord = typeof payload === "object" && payload !== null ? (payload as Record<string, unknown>) : undefined;
+    const result = this.buildResult(context, payloadRecord);
     this.resultCallback(result);
   }
 
@@ -85,6 +86,19 @@ export abstract class BaseArcadeAdapter<TGame extends AnyBaseGame = AnyBaseGame>
       this.game = null;
     }
     this.resultCallback = null;
+  }
+
+  protected buildBaseEncounterResult(
+    context: MiniGameRunContext,
+    payload: Record<string, unknown> | undefined,
+    defaultTargetScore: number,
+    defaultDurationMs: number
+  ): { score: number; completed: boolean; durationMs: number; secretsFound: string[] } {
+    const score = typeof payload?.score === "number" ? payload.score : 0;
+    const completed = typeof payload?.completed === "boolean" ? payload.completed : (score >= (context.config.targetScore ?? defaultTargetScore));
+    const durationMs = typeof payload?.durationMs === "number" ? payload.durationMs : defaultDurationMs;
+    const secretsFound: string[] = Array.isArray(payload?.secretsFound) ? (payload.secretsFound as string[]) : [];
+    return { score, completed, durationMs, secretsFound };
   }
 
   protected buildRunnerResult(

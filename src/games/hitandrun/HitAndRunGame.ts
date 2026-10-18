@@ -2,21 +2,14 @@
  * Hit&Run — fantasy belt-scroll beat'em-up (melee + ranged) on @tiny-aster/core.
  */
 import {
-  System,
-  PhysicsUtils,
-  SystemPhase,
   CoreComponentRegistry,
   EventRegistry,
   RenderContext,
   WebAudioPlayer,
-  IAudioPlayer,
   Renderer,
   HealthComponent,
-  TagComponent,
   RunState,
-  registerEnemyStateMachines,
   SegmentTemplate,
-  SegmentGenerator,
   LevelPlan,
   preloadSharedAudioWithTimeout,
   generateBackdrop,
@@ -29,24 +22,16 @@ import type {
   HitAndRunInput
 } from "./types/HitAndRunTypes";
 import {
-  ArcadeEntityBuilder,
-  registerPlatformerEnemyBlueprints,
-  registerPlatformerEnvironmentBlueprints,
-  mutatePlatformerInputState,
-  registerCommonPlatformerSystems,
-  updatePlayerInvulnerabilityAndContactDamage,
-  updateRunProgress
+  registerPlatformerEnvironmentBlueprints
 } from "@tiny-aster/gameplay-kit";
-import { PlatformerInputSystem } from "../shared/systems/PlatformerInputSystem";
 import {
-  setupPlatformerMovementComponents,
   registerPlatformerTilemapBlueprint,
   createMainCamera2D,
   registerPresentationSystems,
   generateAndInstantiatePlatformerLevel,
   registerStandardPlatformerCollectibles
 } from "../shared/componentBuilders";
-import { DEFAULT_HIT_AND_RUN_CONFIG, HitAndRunConfig as HitAndRunConfigType } from "./types/HitAndRunConfigSchema";
+import { DEFAULT_HIT_AND_RUN_CONFIG } from "./types/HitAndRunConfigSchema";
 import hitRunLevelData from "./levels/level-01.json";
 import { registerHitRunMelee } from "./melee/registerHitRunMelee";
 import { registerHitRunFeedback } from "./systems/registerHitRunFeedback";
@@ -97,12 +82,34 @@ export interface HitAndRunConfig {
   theme?: Theme;
 }
 
-export type HitAndRunBlueprintMap = Record<string, BlueprintDefinition<CoreComponentRegistry, EventRegistry, unknown>>;
+export type HitAndRunBlueprintMap = Record<
+  string,
+  BlueprintDefinition<CoreComponentRegistry, EventRegistry, unknown>
+>;
 
-class HitRunDamageSystem extends System<CoreComponentRegistry> {
-  public update(world: import("@tiny-aster/core").World<CoreComponentRegistry>, deltaTime: number): void {
-    updatePlayerInvulnerabilityAndContactDamage(world, deltaTime);
-  }
+function registerHitRunRenderers(
+  renderer: Renderer<CoreComponentRegistry, RenderContext>
+): void {
+  renderer.registerBackgroundEffect("hit_run_procedural_backdrop", drawHitRunProceduralBackdrop);
+  renderer.registerBackgroundEffect("hit_run_hud", drawHitRunHud);
+  renderer.registerBackgroundEffect("hit_run_debug_overlay", drawHitRunDebugOverlay);
+
+  renderer.registerShape("player", drawHitRunPlayer);
+  renderer.registerShape("popcorn", drawHitRunPopcorn);
+  renderer.registerShape("wall_trooper", drawHitRunWallTrooper);
+  renderer.registerShape("hopper", drawHitRunHopper);
+  renderer.registerShape("charger", drawHitRunCharger);
+  renderer.registerShape("elite", drawHitRunElite);
+
+  renderer.registerShape("bullet_hmg", drawHitRunBullet);
+  renderer.registerShape("bullet_shotgun", drawHitRunBullet);
+  renderer.registerShape("bullet_rocket", drawHitRunRocket);
+  renderer.registerShape("enemy_bullet", drawHitRunBullet);
+  renderer.registerShape("arrow", drawHitRunBullet);
+  renderer.registerShape("bolt", drawHitRunBullet);
+  renderer.registerShape("fireball", drawHitRunBullet);
+
+  renderer.registerShape("tilemap", drawPlatformerTilemap);
 }
 
 export class HitAndRunGame extends PlatformerArcadeGame<
@@ -174,15 +181,13 @@ export class HitAndRunGame extends PlatformerArcadeGame<
   protected override async onRegisterSystems(): Promise<void> {
     await super.onRegisterSystems();
 
+    // Tilemap blueprints still used for corridor props until a pure belt level lands
     registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_HIT_AND_RUN_CONFIG);
     registerStandardPlatformerCollectibles(this.blueprints);
     registerPlatformerEnvironmentBlueprints(this.blueprints);
 
     registerBeltSystems(this.world);
-
-    // FSMs + sensors must be registered before waves spawn enemies with attachEnemyAI
     registerHitRunAI(this.world);
-
     registerHitRunFeedback(this.world);
     registerHitRunHurt(this.world);
     registerHitRunMelee(this.world);
@@ -240,6 +245,11 @@ export class HitAndRunGame extends PlatformerArcadeGame<
       const gameConfig = this.world.getResource<{ viewportWidth?: number; viewportHeight?: number }>("GameConfig");
       this.installProceduralBackdrop(gameConfig?.viewportWidth ?? 800, gameConfig?.viewportHeight ?? 600);
 
+      // Belt uses Transform.y as depth — disable platformer death plane if present
+      if (this.world.getResource("DeathPlaneY") !== undefined) {
+        this.world.setResource("DeathPlaneY", Number.POSITIVE_INFINITY);
+      }
+
       this.world.flush();
     });
   }
@@ -251,29 +261,14 @@ export class HitAndRunGame extends PlatformerArcadeGame<
   public initializeRenderer(
     renderer: Renderer<CoreComponentRegistry, RenderContext>
   ): void {
-    if (renderer.type === "canvas") {
-      renderer.registerBackgroundEffect("hit_run_procedural_backdrop", drawHitRunProceduralBackdrop);
-      renderer.registerBackgroundEffect("hit_run_hud", drawHitRunHud);
-      renderer.registerBackgroundEffect("hit_run_debug_overlay", drawHitRunDebugOverlay);
-
-      renderer.registerShape("player", drawHitRunPlayer);
-      renderer.registerShape("popcorn", drawHitRunPopcorn);
-      renderer.registerShape("wall_trooper", drawHitRunWallTrooper);
-      renderer.registerShape("hopper", drawHitRunHopper);
-      renderer.registerShape("charger", drawHitRunCharger);
-      renderer.registerShape("elite", drawHitRunElite);
-
-      renderer.registerShape("bullet_hmg", drawHitRunBullet);
-      renderer.registerShape("bullet_shotgun", drawHitRunBullet);
-      renderer.registerShape("bullet_rocket", drawHitRunRocket);
-      renderer.registerShape("enemy_bullet", drawHitRunBullet);
-      renderer.registerShape("arrow", drawHitRunBullet);
-      renderer.registerShape("bolt", drawHitRunBullet);
-      renderer.registerShape("fireball", drawHitRunBullet);
-
-      renderer.registerShape("tilemap", drawPlatformerTilemap);
-    } else if (renderer.type === "skia") {
-      console.warn("[HitAndRunGame] Skia renderer is not implemented for hitandrun; falling back to canvas.");
+    if (renderer.type === "canvas" || renderer.type === "skia") {
+      // Canvas drawers work as a first Skia parity pass; dedicated Skia art is follow-up.
+      registerHitRunRenderers(renderer);
+      if (renderer.type === "skia") {
+        console.info(
+          "[HitAndRunGame] Skia: using canvas-compatible drawers (Phase 4 parity)."
+        );
+      }
     }
   }
 
@@ -281,15 +276,16 @@ export class HitAndRunGame extends PlatformerArcadeGame<
     const rs = this.world.getResource<RunState>("RunState");
     const wave = this.world.getResource<WaveDirectorState>(WAVE_DIRECTOR_RESOURCE);
     const script = this.world.getResource<WaveScript>(WAVE_SCRIPT_RESOURCE);
-    // Belt player uses BeltInput, not PlatformerInput
     const players = this.world.query("BeltInput", "Health");
     const player = players[0];
-    const health = player !== undefined
-      ? (this.world.getComponent(player, "Health") as HealthComponent | undefined)
-      : undefined;
-    const weapon = player !== undefined
-      ? (this.world.getComponent(player, "HitRunWeapon") as HitRunWeaponState | undefined)
-      : undefined;
+    const health =
+      player !== undefined
+        ? (this.world.getComponent(player, "Health") as HealthComponent | undefined)
+        : undefined;
+    const weapon =
+      player !== undefined
+        ? (this.world.getComponent(player, "HitRunWeapon") as HitRunWeaponState | undefined)
+        : undefined;
 
     return {
       type: "HitAndRunGameState",

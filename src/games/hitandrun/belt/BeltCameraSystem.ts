@@ -15,6 +15,10 @@ import {
   type BeltCameraConfig,
   type BeltCameraState
 } from "./BeltCameraTypes";
+import {
+  WAVE_DIRECTOR_RESOURCE,
+  type WaveDirectorState
+} from "../waves/HitRunWaveTypes";
 
 export class BeltCameraSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
@@ -39,18 +43,26 @@ export class BeltCameraSystem extends System<CoreComponentRegistry> {
       state.hadEnemiesThisSection = false;
     }
 
-    const sectionEnemies = world.query("BeltSectionEnemy", "Health");
-    let aliveInSection = 0;
     const sectionIndex = state.currentSectionIndex;
-    for (let i = 0; i < sectionEnemies.length; i++) {
-      const e = sectionEnemies[i];
+
+    // Prefer Enemy+Health — reliable even if BeltSectionEnemy is not in the
+    // component registry (query by unregistered type can always return []).
+    const enemies = world.query("Enemy", "Health");
+    let aliveInSection = 0;
+
+    for (let i = 0; i < enemies.length; i++) {
+      const e = enemies[i];
+      if (world.hasComponent(e, "Dead")) continue;
+
       const tag = world.getComponent(e, "BeltSectionEnemy") as
         | { sectionIndex: number }
         | undefined;
+      // If tagged for another section, skip; untagged counts for current section
+      if (tag && tag.sectionIndex !== sectionIndex) continue;
+
       const health = world.getComponent(e, "Health") as
         | { current?: number; hp?: number }
         | undefined;
-      if (!tag || tag.sectionIndex !== sectionIndex) continue;
       const hp = health?.current ?? health?.hp ?? 0;
       if (hp > 0) aliveInSection++;
     }
@@ -59,10 +71,30 @@ export class BeltCameraSystem extends System<CoreComponentRegistry> {
       state.hadEnemiesThisSection = true;
     }
 
-    // Only clear after the section has actually seen enemies (avoids unlocked
-    // gate + free camera scroll before the first wave, then snap-back).
+    // Wave director may have spawned even if we missed the first frame of HP>0
+    const wave = world.getResource<WaveDirectorState>(WAVE_DIRECTOR_RESOURCE);
+    if (wave && wave.totalSpawned > 0) {
+      state.hadEnemiesThisSection = true;
+    }
+
+    const waveFinished =
+      !!wave &&
+      wave.active &&
+      wave.nextEventIndex >= (world.getResource<{ events?: unknown[] }>("WaveScript")?.events?.length ?? 0) &&
+      (wave.pendingStaggers?.length ?? 0) === 0;
+
+    // Clear when every enemy is dead after the section has seen spawns.
+    // If the wave script is fully drained and nothing is alive, force clear.
     state.sectionCleared =
-      state.hadEnemiesThisSection && aliveInSection === 0;
+      state.hadEnemiesThisSection &&
+      aliveInSection === 0 &&
+      (waveFinished || !wave?.active || (wave?.pendingStaggers?.length ?? 0) === 0);
+
+    // Keep gate locked while live enemies remain OR while staggers are mid-spawn
+    if (aliveInSection > 0 || (wave?.pendingStaggers?.length ?? 0) > 0) {
+      state.sectionCleared = false;
+    }
+
     state.gateLocked = !state.sectionCleared;
 
     const section = config.sections[sectionIndex];
@@ -94,7 +126,6 @@ export class BeltCameraSystem extends System<CoreComponentRegistry> {
     desired = Math.max(config.minCameraX, desired);
 
     if (state.gateLocked && Number.isFinite(gateX)) {
-      // Keep the gate near the right side of the view; never pull camera left of min.
       const maxCam = Math.max(
         config.minCameraX,
         gateX - config.viewportWidth * 0.75

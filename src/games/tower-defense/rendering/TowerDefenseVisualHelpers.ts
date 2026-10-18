@@ -86,6 +86,11 @@ export function resolveTowerProjectileDrawSetup(
   return { size, frost, color };
 }
 
+export function isPaperDuskTheme(world: World<TowerDefenseComponentRegistry>): boolean {
+  const pdGround = resolveThemeColorWithFallback(world, "", "pd_ground");
+  return Boolean(pdGround);
+}
+
 export interface TdMapBackgroundContext {
   layout: import("../../shared/grid/GridTypes").GridLayout;
   tileGrid: import("../types/TowerDefenseTypes").TileGrid;

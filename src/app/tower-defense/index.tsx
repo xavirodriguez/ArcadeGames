@@ -12,6 +12,8 @@ import { colors, spacing, typography } from "../../theme";
 import { touchToCellCoords, cellCenter, fitContain } from "../../games/tower-defense/MapUtils";
 import towerDefenseConfigRaw from "../../games/tower-defense/config/tower-defense.json";
 import type { TowerDefenseConfig } from "../../games/tower-defense/types/TowerDefenseConfigSchema";
+import { paperDuskConceptPack } from "../../theme/conceptPacks/paperDuskConceptPack";
+import type { Theme } from "@tiny-aster/core";
 
 import {
   GameScreen,
@@ -28,6 +30,7 @@ export default function TowerDefenseScreen() {
   const params = useLocalSearchParams<{ seed?: string }>();
   const [started, setStarted] = useState(false);
   const [initialSeed, setInitialSeed] = useState<number | undefined>();
+  const [selectedThemeKey, setSelectedThemeKey] = useState<"default" | "paper_dusk">("default");
 
   useEffect(() => {
     if (params.seed) {
@@ -38,10 +41,14 @@ export default function TowerDefenseScreen() {
     }
   }, [params.seed]);
 
+  const activeTheme = selectedThemeKey === "paper_dusk" ? paperDuskConceptPack : undefined;
+
   if (!started) {
     return (
       <StartScreen
         title="TOWER DEFENSE"
+        selectedThemeKey={selectedThemeKey}
+        onSelectTheme={(key) => setSelectedThemeKey(key)}
         onStart={() => {
           hapticSelection();
           setStarted(true);
@@ -53,18 +60,18 @@ export default function TowerDefenseScreen() {
 
   return (
     <GameErrorBoundary gameId="tower-defense">
-      <TowerDefensePlay initialSeed={initialSeed} />
+      <TowerDefensePlay initialSeed={initialSeed} theme={activeTheme} />
     </GameErrorBoundary>
   );
 }
 
-function TowerDefensePlay({ initialSeed }: { initialSeed?: number }) {
+function TowerDefensePlay({ initialSeed, theme }: { initialSeed?: number; theme?: Theme }) {
   const { t } = useTranslation();
   const [selectedTower, setSelectedTower] = useState<string>("basic");
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const { game, gameState, handleInput, isReady, restartWithSeed } =
-    useTowerDefenseGame(true, initialSeed);
+    useTowerDefenseGame(true, initialSeed, theme);
 
   useEffect(() => {
     if (!game) return;
@@ -304,15 +311,63 @@ function TowerDefensePlay({ initialSeed }: { initialSeed?: number }) {
 
 const StartScreen: FC<{
   title: string;
+  selectedThemeKey: "default" | "paper_dusk";
+  onSelectTheme: (key: "default" | "paper_dusk") => void;
   onStart: () => void;
   instructions: string;
-}> = ({ title, onStart, instructions }) => {
+}> = ({ title, selectedThemeKey, onSelectTheme, onStart, instructions }) => {
   const { t } = useTranslation();
   return (
     <GameScreen>
       <BackButton label={t.common.menu} />
       <GameTitle glowColor={colors.cyan}>{title}</GameTitle>
       <GameInstructions>{instructions}</GameInstructions>
+
+      <View style={styles.themeSelectorContainer}>
+        <Text style={styles.themeSelectorLabel}>TEMA VISUAL:</Text>
+        <View style={styles.themeButtonRow}>
+          <TouchableOpacity
+            style={[
+              styles.themeOptionButton,
+              selectedThemeKey === "default" && styles.themeOptionSelected,
+            ]}
+            onPress={() => {
+              hapticSelection();
+              onSelectTheme("default");
+            }}
+          >
+            <Text
+              style={[
+                styles.themeOptionText,
+                selectedThemeKey === "default" && styles.themeOptionTextSelected,
+              ]}
+            >
+              Default Neon
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.themeOptionButton,
+              selectedThemeKey === "paper_dusk" && styles.themeOptionSelected,
+            ]}
+            onPress={() => {
+              hapticSelection();
+              onSelectTheme("paper_dusk");
+            }}
+          >
+            <Text
+              style={[
+                styles.themeOptionText,
+                selectedThemeKey === "paper_dusk" && styles.themeOptionTextSelected,
+              ]}
+            >
+              Paper Dusk
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
       <NeonButton variant="cyan" onPress={onStart}>
         JUGAR
       </NeonButton>
@@ -430,5 +485,40 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.sm,
     fontWeight: "bold",
     textAlign: "center",
+  },
+  themeSelectorContainer: {
+    marginVertical: spacing.md,
+    alignItems: "center",
+  },
+  themeSelectorLabel: {
+    color: colors.white,
+    fontFamily: typography.game,
+    fontSize: typography.sizes.xs,
+    marginBottom: spacing.xs,
+  },
+  themeButtonRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+  themeOptionButton: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  themeOptionSelected: {
+    borderColor: colors.cyan,
+    backgroundColor: "rgba(0, 240, 255, 0.2)",
+  },
+  themeOptionText: {
+    color: colors.white,
+    fontFamily: typography.game,
+    fontSize: typography.sizes.xs,
+  },
+  themeOptionTextSelected: {
+    color: colors.cyan,
+    fontWeight: "bold",
   },
 });

@@ -1,5 +1,5 @@
 /**
- * Wire HitRunCombatSystem + remove dead enemies so HMG/weapons actually kill.
+ * Wire HitRunCombatSystem + remove dead enemies so weapons/melee actually kill.
  */
 import {
   System,
@@ -10,16 +10,18 @@ import {
   HierarchySystem
 } from "@tiny-aster/core";
 import { HitRunCombatSystem } from "./HitRunCombatSystem";
+import { HitRunOrphanEnemyCleanupSystem } from "./HitRunOrphanEnemyCleanupSystem";
 
 /**
- * Removes non-player entities marked Dead (HitRunCombatSystem only adds the tag).
+ * Removes non-player entities marked Dead.
  */
 class HitRunDeadCleanupSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, _dt: number): void {
     const dead = world.query("Dead");
     for (let i = 0; i < dead.length; i++) {
       const e = dead[i];
-      if (world.hasComponent(e, "PlatformerInput")) continue; // player: RespawnSystem
+      if (world.hasComponent(e, "PlatformerInput")) continue;
+      if (world.hasComponent(e, "BeltInput")) continue;
       world.commands.removeEntity(e);
     }
   }
@@ -39,7 +41,11 @@ export function registerHitRunCombat(world: World<CoreComponentRegistry>): void 
   });
   world.addSystem(new HitRunCombatSystem(), {
     phase: SystemPhase.Collision,
-    priority: -5 // after CollisionSystem2D / HitDetection
+    priority: -5
+  });
+  world.addSystem(new HitRunOrphanEnemyCleanupSystem(), {
+    phase: SystemPhase.GameRules,
+    priority: 40
   });
   world.addSystem(new HitRunDeadCleanupSystem(), {
     phase: SystemPhase.GameRules,

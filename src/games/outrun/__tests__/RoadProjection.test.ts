@@ -168,8 +168,10 @@ describe("projectRoad", () => {
     projectRoad(segments, 190, 0, cameraHeight, cameraDepth, roadWidth, 10, screenW, screenH, out1);
     projectRoad(segments, 210, 0, cameraHeight, cameraDepth, roadWidth, 10, screenW, screenH, out2);
 
-    // Delta between adjacent steps (20 world units of Z advancement)
-    const deltaX = Math.abs(out1[0].x1 - out2[0].x1);
+    // Compare the same world-space segment boundary before and after the camera crosses
+    // the base segment. The clipped near-plane endpoint is intentionally not compared:
+    // perspective magnifies points almost at the camera and is not a stable continuity sample.
+    const deltaX = Math.abs(out1[2].x1 - out2[1].x1);
     expect(deltaX).toBeLessThan(50); // Continuous movement, no abrupt jump
   });
 

@@ -1,7 +1,7 @@
 import { EffectDrawer, ShapeDrawer, RenderContext, World, RenderComponent, SHIP_FORWARD_AXIS, THEME_RESOURCE_KEY, Theme } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import { colors } from "../../../theme/colors";
-import { computeAsteroidSilhouette, computeThrustFlame, computeMotionSecondaryEffect } from "../../shared/rendering/ProceduralShapeUtils";
+import { computeAsteroidSilhouette, computeThrustFlame } from "../../shared/rendering/ProceduralShapeUtils";
 import { resolveHitFlash, resolveInvulnerabilityPulse, resolveAsteroidHitFlash } from "../../shared/rendering/RenderUtils";
 import { drawSkiaAsteroidsMissionHUD } from "./AsteroidsSkiaMissionHUD";
 import { SkiaDrawAdapter } from "../../shared/rendering/DrawAdapter";
@@ -10,7 +10,7 @@ import { drawFromGeometryProfileAdapter } from "../../shared/rendering/GenericEn
 import { Skia, getPaint, SkCanvas, SkPaint } from "../../shared/rendering/SkiaContext";
 import type { SkPath } from "@shopify/react-native-skia";
 import { getVisibleSkiaRender } from "../../shared/rendering/renderingUtils";
-import { resolveAsteroidSaucerSetup, resolveAsteroidDrawSetup } from "./AsteroidsVisualHelpers";
+import { resolveAsteroidSaucerSetup, resolveAsteroidDrawSetup, resolvePlayerShipSetup, resolveCustomMotionData } from "./AsteroidsVisualHelpers";
 
 export { drawSkiaAsteroidsMissionHUD };
 
@@ -44,14 +44,10 @@ function setupAsteroidStrokePaint(
  */
 export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<SkCanvas, AsteroidsComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = getVisibleSkiaRender(world, entity);
-    if (!render) return;
+    const setup = resolvePlayerShipSetup(world, getVisibleSkiaRender(world, entity), entity);
+    if (!setup) return;
 
-    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-    const customGeom = theme?.visualTheme?.shapeTokens?.playerGeometry;
-
-    const size = render.size || 15;
-    const tick = Math.floor((world.tick * 5) / 12);
+    const { render, customGeom, size, tick, isThrusting } = setup;
 
     canvas.save();
 
@@ -66,13 +62,9 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<SkCanvas, AsteroidsCompone
       }
     }
 
-    const input = world.getComponent(entity, "Input");
-    const isThrusting = Boolean(input && input.actions && input.actions["thrust"]);
-
     if (customGeom) {
-      const motionEffect = customGeom.motionEffect || "flame";
-      if (isThrusting && motionEffect !== "none") {
-        const motionData = computeMotionSecondaryEffect(motionEffect, size, tick, world.renderRandom);
+      const motionData = resolveCustomMotionData(customGeom, isThrusting, size, tick, world.renderRandom);
+      if (motionData) {
         const pPaint = getPaint();
         pPaint.reset();
         pPaint.setAntiAlias(true);

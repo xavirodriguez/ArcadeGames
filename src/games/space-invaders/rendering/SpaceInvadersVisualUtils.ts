@@ -1,4 +1,4 @@
-import { HealthComponent, RenderComponent, World, THEME_RESOURCE_KEY, Theme } from "@tiny-aster/core";
+import { HealthComponent, RenderComponent, World, THEME_RESOURCE_KEY, Theme, resolveThemeColor, EntityGeometryProfile, SpaceInvadersRoleKey } from "@tiny-aster/core";
 import { InvaderComponent, SpaceInvadersComponentRegistry, GAME_CONFIG } from "../types/SpaceInvadersTypes";
 import { EnemyTagComponent } from "../components/EnemyTagComponent";
 import { resolveHitFlash, HitFlashState } from "../../shared/rendering/RenderUtils";
@@ -93,25 +93,76 @@ export interface InvaderColorState {
   isTeleporter: boolean;
 }
 
-export function resolveInvaderColor(
-  render: RenderComponent | undefined,
+export function resolveInvaderRoleKeys(
   invaderComp?: InvaderComponent,
-  enemyTag?: EnemyTagComponent
-): InvaderColorState {
-  let baseColor = render?.color || colors.white;
-  const isTeleporter = enemyTag?.variant === "teleporter" || render?.color === "#00D9FF";
+  enemyTag?: EnemyTagComponent,
+  isTeleporter?: boolean
+): SpaceInvadersRoleKey[] {
+  const archetype = (invaderComp as { archetype?: string } | undefined)?.archetype;
 
-  if (invaderComp && !isTeleporter && render?.color !== "#00D9FF") {
-    const row = invaderComp.row;
-    if (row === 0) {
-      baseColor = colors.magentaHot;
-    } else if (row <= 2) {
-      baseColor = colors.cyan;
-    } else {
-      baseColor = colors.gold;
+  if (enemyTag?.variant === "ufo" || enemyTag?.blueprintId === "ufo" || (invaderComp && invaderComp.row === 0)) {
+    return ["ufo", "enemy"];
+  }
+  if (isTeleporter || enemyTag?.variant === "scout" || archetype === "scout") {
+    return ["invader_scout", "scout", "enemy"];
+  }
+  if (
+    enemyTag?.variant === "commander" ||
+    enemyTag?.variant === "elite" ||
+    archetype === "elite" ||
+    archetype === "commander" ||
+    (invaderComp && invaderComp.row <= 2)
+  ) {
+    return ["invader_commander", "commander", "enemy"];
+  }
+  return ["invader", "enemy"];
+}
+
+export function resolveInvaderColor(
+  worldOrRender: { getResource: <T>(key: string) => T | undefined } | RenderComponent | undefined,
+  renderOrInvaderComp?: RenderComponent | InvaderComponent,
+  invaderCompOrEnemyTag?: InvaderComponent | EnemyTagComponent,
+  maybeEnemyTag?: EnemyTagComponent
+): InvaderColorState {
+  let world: { getResource: <T>(key: string) => T | undefined } | undefined;
+  let render: RenderComponent | undefined;
+  let invaderComp: InvaderComponent | undefined;
+  let enemyTag: EnemyTagComponent | undefined;
+
+  if (worldOrRender && "getResource" in worldOrRender && typeof worldOrRender.getResource === "function") {
+    world = worldOrRender;
+    render = renderOrInvaderComp as RenderComponent | undefined;
+    invaderComp = invaderCompOrEnemyTag as InvaderComponent | undefined;
+    enemyTag = maybeEnemyTag;
+  } else {
+    render = worldOrRender as RenderComponent | undefined;
+    invaderComp = renderOrInvaderComp as InvaderComponent | undefined;
+    enemyTag = invaderCompOrEnemyTag as EnemyTagComponent | undefined;
+  }
+
+  const isTeleporter = enemyTag?.variant === "teleporter" || render?.color === "#00D9FF";
+  const roles = resolveInvaderRoleKeys(invaderComp, enemyTag, isTeleporter);
+
+  let themeColor: string | undefined;
+  if (world) {
+    themeColor = resolveThemeColor(world, ...roles);
+  }
+
+  let baseColor = themeColor || render?.color || colors.white;
+
+  if (!themeColor) {
+    if (invaderComp && !isTeleporter && render?.color !== "#00D9FF") {
+      const row = invaderComp.row;
+      if (row === 0) {
+        baseColor = colors.magentaHot;
+      } else if (row <= 2) {
+        baseColor = colors.cyan;
+      } else {
+        baseColor = colors.gold;
+      }
+    } else if (isTeleporter) {
+      baseColor = "#00D9FF";
     }
-  } else if (isTeleporter) {
-    baseColor = "#00D9FF";
   }
 
   return { baseColor, isTeleporter };
@@ -289,12 +340,32 @@ export function resolveInvaderRenderSetup(
   if (!render) return null;
   const { size = 15 } = render;
 
-  const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-  const customGeom = theme?.visualTheme?.shapeTokens?.enemyGeometry;
-
   const invaderComp = world.getComponent(entity, "Invader");
   const enemyTag = world.getComponent(entity, "EnemyTag");
-  const { baseColor, isTeleporter } = resolveInvaderColor(render, invaderComp, enemyTag);
+  const { baseColor, isTeleporter } = resolveInvaderColor(world, render, invaderComp, enemyTag);
+
+  const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+
+  let customGeom: EntityGeometryProfile | undefined;
+  if (theme?.visualTheme?.shapeTokens) {
+    const shapeTokens = theme.visualTheme.shapeTokens;
+    const customMap = shapeTokens.customGeometries;
+
+    const roles = resolveInvaderRoleKeys(invaderComp, enemyTag, isTeleporter);
+
+    if (customMap) {
+      for (const r of roles) {
+        if (customMap[r]) {
+          customGeom = customMap[r];
+          break;
+        }
+      }
+    }
+
+    if (!customGeom) {
+      customGeom = shapeTokens.enemyGeometry;
+    }
+  }
 
   const flash = applyHitFlash(render, baseColor);
   const tick = world.tick;

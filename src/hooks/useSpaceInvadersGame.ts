@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useGame } from "@tiny-aster/react-native";
+import type { Theme } from "@tiny-aster/core";
 import { useHighScore } from "./useHighScore";
 import { SpaceInvadersGame, INITIAL_GAME_STATE, GameStateComponent, InputState } from "../games/space-invaders";
 import { MutatorService } from "../services/MutatorService";
@@ -9,8 +10,9 @@ import type { Mutator } from "../config/MutatorConfig";
  * Custom hook to manage the lifecycle of the Space Invaders game engine.
  * @param isMultiplayer - Whether to start in multiplayer mode.
  * @param seed - Optional seed intended to support reproducible gameplay.
+ * @param theme - Optional Theme concept pack or reskin config.
  */
-export function useSpaceInvadersGame(started: boolean, isMultiplayer: boolean = false, seed?: number) {
+export function useSpaceInvadersGame(started: boolean, isMultiplayer: boolean = false, seed?: number, theme?: Theme) {
   const [activeMutators, setActiveMutators] = useState<Mutator[]>([]);
 
   useEffect(() => {
@@ -27,7 +29,7 @@ export function useSpaceInvadersGame(started: boolean, isMultiplayer: boolean = 
     useGame<SpaceInvadersGame, GameStateComponent, InputState>(
       started ? SpaceInvadersGame : null,
       isMultiplayer,
-      { gameOptions, initialState: INITIAL_GAME_STATE, seed }
+      { theme, gameOptions, initialState: INITIAL_GAME_STATE, seed }
     );
 
   const { highScore, updateHighScore } = useHighScore("space-invaders-high-score");

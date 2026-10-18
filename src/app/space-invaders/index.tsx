@@ -26,7 +26,7 @@ import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { AttractModeController } from "@tiny-aster/gameplay-kit";
 import { useTranslation } from "@/hooks/useTranslation";
 import { hapticSelection } from "@/utils/haptics";
-import { colors, neonTextGlow } from "../../theme";
+import { colors, neonTextGlow, availableConceptPacks } from "../../theme";
 import { GameThemeProvider } from "@/context/GameThemeProvider";
 import {
   GameScreen,
@@ -60,7 +60,9 @@ export default function SpaceInvadersScreen() {
   const [started, setStarted] = useState(false);
   const [isMulti, setIsMulti] = useState(false);
   const [isDaily, setIsDaily] = useState(false);
-  const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useSpaceInvadersGame(started, isMulti && started, initialSeed);
+  const [selectedThemeId, setSelectedThemeId] = useState<string | null>(null);
+  const selectedTheme = selectedThemeId ? availableConceptPacks[selectedThemeId] : undefined;
+  const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useSpaceInvadersGame(started, isMulti && started, initialSeed, selectedTheme);
 
   const touchStateRef = useRef<TouchInputState | null>(null);
   if (!touchStateRef.current) {
@@ -197,6 +199,8 @@ export default function SpaceInvadersScreen() {
             setStarted(true);
           }}
           activeMutators={activeMutators}
+          selectedThemeId={selectedThemeId}
+          onSelectTheme={setSelectedThemeId}
         />
       </GameThemeProvider>
     );
@@ -321,6 +325,8 @@ const StartScreen: FC<{
   onSeedChange?: (seed: number) => void;
   onStartDaily?: (seed: number) => void;
   activeMutators?: Mutator[];
+  selectedThemeId?: string | null;
+  onSelectTheme?: (id: string | null) => void;
 }> = ({
   title,
   highScore,
@@ -332,6 +338,8 @@ const StartScreen: FC<{
   onSeedChange,
   onStartDaily,
   activeMutators = [],
+  selectedThemeId = null,
+  onSelectTheme,
 }) => {
   const { t } = useTranslation();
   return (
@@ -348,6 +356,36 @@ const StartScreen: FC<{
 
       <GameInstructions>{instructions}</GameInstructions>
       <HighScoreText label={t.common.record} score={highScore} />
+
+      {onSelectTheme && (
+        <View style={styles.themeSelectorContainer}>
+          <Text style={styles.themeSelectorLabel}>TEMA / CONCEPT PACK:</Text>
+          <View style={styles.themeSelectorRow}>
+            <TouchableOpacity
+              style={[styles.themeOptionButton, selectedThemeId === null && styles.themeOptionSelected]}
+              onPress={() => {
+                hapticSelection();
+                onSelectTheme(null);
+              }}
+            >
+              <Text style={[styles.themeOptionText, selectedThemeId === null && styles.themeOptionTextSelected]}>
+                Clásico
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.themeOptionButton, selectedThemeId === "siege_shield_wall" && styles.themeOptionSelected]}
+              onPress={() => {
+                hapticSelection();
+                onSelectTheme("siege_shield_wall");
+              }}
+            >
+              <Text style={[styles.themeOptionText, selectedThemeId === "siege_shield_wall" && styles.themeOptionTextSelected]}>
+                Asedio de la Muralla
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
 
       {onStartDaily && <DailyChallengeBanner gameId="space-invaders" onPlay={onStartDaily} />}
 
@@ -430,5 +468,41 @@ const styles = StyleSheet.create({
   },
   spacerHorizontal20: {
     width: 20,
+  },
+  themeSelectorContainer: {
+    marginVertical: 10,
+    alignItems: "center",
+  },
+  themeSelectorLabel: {
+    color: colors.cyan,
+    fontSize: 12,
+    fontFamily: "monospace",
+    letterSpacing: 1,
+    marginBottom: 6,
+  },
+  themeSelectorRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  themeOptionButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: colors.neutral,
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+  },
+  themeOptionSelected: {
+    borderColor: colors.gold,
+    backgroundColor: "rgba(230, 184, 0, 0.2)",
+  },
+  themeOptionText: {
+    color: colors.white,
+    fontSize: 12,
+    fontFamily: "monospace",
+  },
+  themeOptionTextSelected: {
+    color: colors.gold,
+    fontWeight: "bold",
   },
 });

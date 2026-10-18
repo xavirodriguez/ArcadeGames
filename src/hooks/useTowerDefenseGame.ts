@@ -4,10 +4,11 @@ import { useHighScore } from "./useHighScore";
 import { TowerDefenseGame } from "../games/tower-defense/TowerDefenseGame";
 import type { GameStateComponent, InputState } from "../games/tower-defense/types/TowerDefenseTypes";
 import { ExpoAssetProvider } from "../providers/ExpoAssetProvider";
+import type { Theme } from "@tiny-aster/core";
 
 const expoAssetProvider = new ExpoAssetProvider();
 
-export const useTowerDefenseGame = (started: boolean, seed?: number) => {
+export const useTowerDefenseGame = (started: boolean, seed?: number, theme?: Theme) => {
   const gameOptions = useMemo(() => ({ seed }), [seed]);
 
   const { game, gameState, handleInput, isPaused, isReady, togglePause, restart } =
@@ -17,6 +18,7 @@ export const useTowerDefenseGame = (started: boolean, seed?: number) => {
       {
         gameOptions,
         seed,
+        theme,
         assetProvider: expoAssetProvider,
       }
     );

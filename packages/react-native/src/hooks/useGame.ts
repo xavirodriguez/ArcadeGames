@@ -58,7 +58,7 @@ export function useGame<
   isMultiplayer: boolean = false,
   options: GameOptions<TState> = {}
 ): UseGameResult<TGame, TState, TInput> {
-  const { seed, theme, gameOptions, initialState = null } = options;
+  const { seed, gameOptions, initialState = null } = options;
 
   const serializedGameOptions = useMemo(() => {
     try {
@@ -87,12 +87,12 @@ export function useGame<
   const config = useMemo(() => ({
     isMultiplayer,
     seed,
-    theme,
+    theme: options.theme,
     gameOptions: { ...gameOptions, seed: seed ?? (gameOptions?.seed as number | undefined) },
     assetProvider: options.assetProvider,
     audio: audioPlayer
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [isMultiplayer, seed, theme, serializedGameOptions, options.assetProvider, audioPlayer]);
+  }), [isMultiplayer, seed, options.theme, serializedGameOptions, options.assetProvider, audioPlayer]);
 
   const [game, setGame] = useState<TGame | null>(null);
   const [isReady, setIsReady] = useState(false);

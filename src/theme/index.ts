@@ -8,3 +8,4 @@ export * from "./layers";
 export * from "./gameAccents";
 export * from "./VisualTheme";
 export * from "./GameplayColorMap";
+export * from "./officePaperTheme";

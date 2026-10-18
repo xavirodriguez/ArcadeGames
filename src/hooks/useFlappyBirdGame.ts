@@ -4,11 +4,12 @@ import { useHighScore } from "./useHighScore";
 import { FlappyBirdGame, INITIAL_FLAPPY_STATE, FlappyBirdState, FlappyBirdInput } from "../games/flappybird";
 import { MutatorService } from "../services/MutatorService";
 import type { Mutator } from "../config/MutatorConfig";
+import type { Theme } from "@tiny-aster/core";
 
 /**
  * Custom hook to manage the lifecycle of the Flappy Bird game engine.
  */
-export function useFlappyBirdGame(started: boolean, isMultiplayer: boolean = false, seed?: number) {
+export function useFlappyBirdGame(started: boolean, isMultiplayer: boolean = false, seed?: number, theme?: Theme) {
   const [activeMutators, setActiveMutators] = useState<Mutator[]>([]);
 
   useEffect(() => {
@@ -25,7 +26,7 @@ export function useFlappyBirdGame(started: boolean, isMultiplayer: boolean = fal
     useGame<FlappyBirdGame, FlappyBirdState, FlappyBirdInput>(
       started ? FlappyBirdGame : null,
       isMultiplayer,
-      { gameOptions, initialState: INITIAL_FLAPPY_STATE, seed }
+      { gameOptions, initialState: INITIAL_FLAPPY_STATE, seed, theme }
     );
 
   const { highScore, updateHighScore } = useHighScore("flappy-high-score");

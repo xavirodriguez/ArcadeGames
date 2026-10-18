@@ -4,7 +4,7 @@ import { useKeepAwake } from "./useKeepAwake";
 import { useGameServices } from "../providers/GameServicesProvider";
 import { ExpoAudioPlayer } from "../audio/ExpoAudioPlayer";
 import { WebAudioPlayer } from "@tiny-aster/core";
-import type { BaseGame, BaseGameConfig, IAssetProvider, IAudioPlayer } from "@tiny-aster/core";
+import type { BaseGame, BaseGameConfig, IAssetProvider, IAudioPlayer, Theme } from "@tiny-aster/core";
 
 export type GameConfig = BaseGameConfig & {
   seed?: number;
@@ -13,6 +13,7 @@ export type GameConfig = BaseGameConfig & {
 
 export interface GameOptions<TState> {
   seed?: number;
+  theme?: Theme;
   gameOptions?: Record<string, unknown>;
   initialState?: TState | null;
   assetProvider?: IAssetProvider;
@@ -57,7 +58,7 @@ export function useGame<
   isMultiplayer: boolean = false,
   options: GameOptions<TState> = {}
 ): UseGameResult<TGame, TState, TInput> {
-  const { seed, gameOptions, initialState = null } = options;
+  const { seed, theme, gameOptions, initialState = null } = options;
 
   const serializedGameOptions = useMemo(() => {
     try {
@@ -86,11 +87,12 @@ export function useGame<
   const config = useMemo(() => ({
     isMultiplayer,
     seed,
+    theme,
     gameOptions: { ...gameOptions, seed: seed ?? (gameOptions?.seed as number | undefined) },
     assetProvider: options.assetProvider,
     audio: audioPlayer
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [isMultiplayer, seed, serializedGameOptions, options.assetProvider, audioPlayer]);
+  }), [isMultiplayer, seed, theme, serializedGameOptions, options.assetProvider, audioPlayer]);
 
   const [game, setGame] = useState<TGame | null>(null);
   const [isReady, setIsReady] = useState(false);

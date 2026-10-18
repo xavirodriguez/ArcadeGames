@@ -29,7 +29,8 @@ import {
   resolveFlappyBackgroundSetup,
   maybeSpawnLaserGateSparks,
   computeWarpLines,
-  computeFlappyNebulaPos
+  computeFlappyNebulaPos,
+  resolveFlappyVfxColors
 } from "./FlappyBirdRenderUtils";
 
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
@@ -932,9 +933,7 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<RenderContext, FlappyBi
       skCanvas.drawRect(Skia.XYWHRect(0, 10, width, 22), paint);
     }
 
-    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-    const scanlineColor = theme?.effects?.scanlineColor ?? hexToRgba(colors.surface, 0.06);
-    const vignetteOuter = theme?.effects?.vignetteOuterColor ?? hexToRgba(colors.surface, 0.45);
+    const { scanlineColor, vignetteOuter } = resolveFlappyVfxColors(world);
 
     paint.reset();
     paint.setColor(Skia.Color(scanlineColor));

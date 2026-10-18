@@ -153,9 +153,10 @@ export class SpaceInvadersArcadeAdapter extends BaseMiniGameEncounter<SpaceInvad
     }
   }
 
-  protected buildResultPayload(context: MiniGameRunContext, payload?: any) {
-    const damageTaken = payload?.damageTaken ?? (this.game as any)?.damageTaken ?? 0;
-    const secretsFound: string[] = payload?.secretsFound ?? [];
+  protected buildResultPayload(context: MiniGameRunContext, payload?: Record<string, unknown>) {
+    const gameSI = this.game as unknown as { damageTaken?: number } | null;
+    const damageTaken = typeof payload?.damageTaken === "number" ? payload.damageTaken : (gameSI?.damageTaken ?? 0);
+    const secretsFound: string[] = Array.isArray(payload?.secretsFound) ? (payload.secretsFound as string[]) : [];
 
     if (payload?.foundTransmissions) {
       secretsFound.push("mothership_transmissions");
@@ -164,7 +165,7 @@ export class SpaceInvadersArcadeAdapter extends BaseMiniGameEncounter<SpaceInvad
     return {
       metrics: {
         damageTaken,
-        invadersDestroyed: payload?.invadersDestroyed ?? 0
+        invadersDestroyed: typeof payload?.invadersDestroyed === "number" ? payload.invadersDestroyed : 0
       },
       secretsFound
     };

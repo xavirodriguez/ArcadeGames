@@ -27,16 +27,16 @@ export abstract class BaseMiniGameEncounter<TGame = unknown> implements ArcadeGa
    */
   protected abstract buildResultPayload(
     context: MiniGameRunContext,
-    payload?: unknown
+    payload?: Record<string, unknown>
   ): { metrics?: Record<string, number>; secretsFound?: string[] };
 
-  public emitResult(context: MiniGameRunContext, payload?: { score?: number; completed?: boolean; durationMs?: number; [key: string]: unknown }): void {
+  public emitResult(context: MiniGameRunContext, payload?: Record<string, unknown>): void {
     if (!this.resultCallback) return;
 
     const gameInst = this.game as PlayableGameInstance | null;
-    const score = payload?.score ?? gameInst?.getScore?.() ?? 0;
-    const completed = payload?.completed ?? (score >= (context.config.targetScore ?? 1000));
-    const durationMs = payload?.durationMs ?? 60000;
+    const score = typeof payload?.score === "number" ? payload.score : (gameInst?.getScore?.() ?? 0);
+    const completed = typeof payload?.completed === "boolean" ? payload.completed : (score >= (context.config.targetScore ?? 1000));
+    const durationMs = typeof payload?.durationMs === "number" ? payload.durationMs : 60000;
 
     const extra = this.buildResultPayload(context, payload);
 

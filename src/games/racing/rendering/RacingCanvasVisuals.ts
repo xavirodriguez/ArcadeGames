@@ -13,7 +13,7 @@ import {
   extractObstacleParams
 } from "./RacingSkin";
 import { buildTrackRibbon } from "./TrackRibbonGeometry";
-import { extractTrackDimensions, computeCheckpointGrid, resolveTrackRibbonContext, resolveRacingParticlePoolContext } from "./RacingVisualHelpers";
+import { extractTrackDimensions, computeCheckpointGrid, resolveTrackRibbonContext, resolveRacingParticlePoolContext, resolveFinishCheckers } from "./RacingVisualHelpers";
 import type { RacingParticlePool } from "../systems/RacingParticleSystem";
 
 interface StaticCacheEntry {
@@ -234,7 +234,7 @@ export const drawCheckpoint: ShapeDrawer<CanvasRenderingContext2D, RacingCompone
     ctx.save();
     if (checkpoint.isFinish) {
       const { cells, halfW, halfH } = computeCheckpointGrid(checkpoint.width, checkpoint.height);
-      const [color1, color2] = skin.finishCheckers ?? ["#FFFFFF", "#5D4037"];
+      const [color1, color2] = resolveFinishCheckers(skin);
 
       for (let i = 0; i < cells.length; i += 1) {
         const cell = cells[i]!;

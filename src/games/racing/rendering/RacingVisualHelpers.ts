@@ -104,3 +104,13 @@ export function computeCheckpointGrid(
 
   return { cells, halfW, halfH };
 }
+
+export const DEFAULT_FINISH_CHECKERS: readonly [string, string] = ["#FFFFFF", "#5D4037"] as const;
+
+export function resolveFinishCheckers(skin?: { finishCheckers?: string[] }): [string, string] {
+  const checkers = skin?.finishCheckers;
+  if (Array.isArray(checkers) && checkers.length >= 2) {
+    return [checkers[0], checkers[1]];
+  }
+  return [DEFAULT_FINISH_CHECKERS[0], DEFAULT_FINISH_CHECKERS[1]];
+}

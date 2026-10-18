@@ -18,6 +18,11 @@ export function registerPlatformerEnvironmentBlueprints(
     spawn: (world: World<CoreComponentRegistry>, entity: number, args: { x: number; y: number; id: string }) => {
       ArcadeEntityBuilder.fromEntity(world, entity)
         .withTransform({ x: args.x, y: args.y })
+        .withCollider2D({
+          shape: { type: "aabb", halfWidth: 18, halfHeight: 18 },
+          isTrigger: true
+        })
+        .withCollisionEvents()
         .withRender({ shape: "node", size: 32, order: 1 });
 
       world.addComponent(entity, {

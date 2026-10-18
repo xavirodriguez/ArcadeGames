@@ -351,18 +351,17 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
         ctx.fillStyle = getTileTypeColor(tile);
         ctx.fillRect(x, y, layout.stepX - 1, layout.stepY - 1);
 
-        if (tile === "spawn") {
-          ctx.fillStyle = resolveThemeColorWithFallback(world, "#e53935", "map_spawn", "accent");
-          ctx.font = "bold 10px monospace";
-          ctx.textAlign = "center";
-          ctx.fillText("S", x + layout.stepX / 2, y + layout.stepY / 2 + 3);
-        }
-        if (tile === "base") {
-          ctx.fillStyle = resolveThemeColorWithFallback(world, "#43a047", "map_base", "primary");
-          ctx.font = "bold 10px monospace";
-          ctx.textAlign = "center";
-          ctx.fillText("BASE", x + layout.stepX / 2, y + layout.stepY / 2 + 3);
-        }
+      if (tile === "spawn") {
+        ctx.fillStyle = resolveThemeColorWithFallback(world, "#e53935", "map_spawn", "accent");
+        ctx.font = "bold 10px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText("S", x + layout.stepX / 2, y + layout.stepY / 2 + 3);
+      }
+      if (tile === "base") {
+        ctx.fillStyle = resolveThemeColorWithFallback(world, "#43a047", "map_base", "primary");
+        ctx.font = "bold 10px monospace";
+        ctx.textAlign = "center";
+        ctx.fillText("BASE", x + layout.stepX / 2, y + layout.stepY / 2 + 3);
       }
     });
 

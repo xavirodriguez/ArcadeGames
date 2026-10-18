@@ -11,6 +11,15 @@ import type {
 } from "./HitRunWaveTypes";
 import { ENEMY_POOL_RESOURCE } from "./HitRunWaveTypes";
 import { attachEnemyAI } from "../ai/attachEnemyAI";
+import {
+  BELT_CAMERA_STATE_RESOURCE,
+  type BeltCameraState
+} from "../belt/BeltCameraTypes";
+import {
+  BELT_MOVEMENT_CONFIG_RESOURCE,
+  DEFAULT_BELT_MOVEMENT_CONFIG,
+  type BeltMovementConfig
+} from "../belt/BeltMovementTypes";
 
 /** Layer bit matching HitRunBulletPool mask (1 << 4). */
 export const HIT_RUN_ENEMY_LAYER = 1 << 4;
@@ -36,12 +45,20 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
       ...(arch?.behaviorTags ?? [])
     ];
 
+    // Belt depth axis is Transform.y — keep spawns inside the playable band
+    const moveCfg =
+      world.getResource<BeltMovementConfig>(BELT_MOVEMENT_CONFIG_RESOURCE) ??
+      DEFAULT_BELT_MOVEMENT_CONFIG;
+    const depthMin = moveCfg.depthMin ?? 280;
+    const depthMax = moveCfg.depthMax ?? 520;
+    const spawnY = Math.min(depthMax, Math.max(depthMin, params.y));
+
     const builder = world.isUpdating
       ? ArcadeEntityBuilder.createDeferred(world)
       : ArcadeEntityBuilder.create(world);
 
     const entity = builder
-      .withTransform({ x: params.x, y: params.y, worldX: params.x, worldY: params.y })
+      .withTransform({ x: params.x, y: spawnY, worldX: params.x, worldY: spawnY })
       .withVelocity()
       .withCollider2D({
         shape: { type: "aabb", halfWidth: size * 0.5, halfHeight: size * 0.5 },
@@ -90,6 +107,14 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
     });
     addComp({
       type: "Hurtbox"
+    });
+
+    // Gate camera until this section's enemies are cleared
+    const camState = world.getResource<BeltCameraState>(BELT_CAMERA_STATE_RESOURCE);
+    const sectionIndex = camState?.currentSectionIndex ?? 0;
+    addComp({
+      type: "BeltSectionEnemy",
+      sectionIndex
     });
 
     const enemyKind = (params.archetypeId === "charger" ? "charger" : "patrol") as "patrol" | "jumper" | "charger";

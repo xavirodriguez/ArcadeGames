@@ -49,6 +49,7 @@ export const RingingPlanetBackgroundEffect: EffectDrawer<CanvasRenderingContext2
     const { width, height, state } = layerCtx;
 
     ctx.save();
+    ctx.globalAlpha = 0.5;
     const planetTheme = getPlanetTheme(theme.planetProfile || "purple");
 
     ctx.save();
@@ -57,7 +58,7 @@ export const RingingPlanetBackgroundEffect: EffectDrawer<CanvasRenderingContext2
     ctx.scale(1.0, 0.32);
 
     ctx.strokeStyle = planetTheme.ringColorBase;
-    ctx.globalAlpha = 0.35;
+    ctx.globalAlpha = 0.175;
     ctx.lineWidth = planet.ringOuterRadius - planet.ringInnerRadius;
     const midRingRadius = (planet.ringInnerRadius + planet.ringOuterRadius) / 2;
 
@@ -81,20 +82,20 @@ export const RingingPlanetBackgroundEffect: EffectDrawer<CanvasRenderingContext2
     ctx.translate(posX, planet.y);
 
     ctx.strokeStyle = planetTheme.atmosphereColor;
-    ctx.globalAlpha = 0.25;
+    ctx.globalAlpha = 0.125;
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.arc(0, 0, planet.radius + 2, 0, Math.PI * 2);
     ctx.stroke();
 
     ctx.fillStyle = planetGrad;
-    ctx.globalAlpha = 1.0;
+    ctx.globalAlpha = 0.5;
     ctx.beginPath();
     ctx.arc(0, 0, planet.radius, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.fillStyle = hexToRgba(COSMIC_ARCADE_PALETTE.voidBlack, 0.25);
-    ctx.globalAlpha = 0.25;
+    ctx.globalAlpha = 0.125;
     for (let i = 0; i < planet.craters.length; i++) {
       const crater = planet.craters[i];
       ctx.beginPath();
@@ -109,7 +110,7 @@ export const RingingPlanetBackgroundEffect: EffectDrawer<CanvasRenderingContext2
     ctx.scale(1.0, 0.32);
 
     ctx.strokeStyle = planetTheme.ringColorHighlight;
-    ctx.globalAlpha = 0.6;
+    ctx.globalAlpha = 0.3;
     ctx.lineWidth = planet.ringOuterRadius - planet.ringInnerRadius;
 
     ctx.beginPath();
@@ -117,7 +118,7 @@ export const RingingPlanetBackgroundEffect: EffectDrawer<CanvasRenderingContext2
     ctx.stroke();
 
     ctx.strokeStyle = hexToRgba(COSMIC_ARCADE_PALETTE.voidBlack, 0.8);
-    ctx.globalAlpha = 0.4;
+    ctx.globalAlpha = 0.2;
     ctx.lineWidth = (planet.ringOuterRadius - planet.ringInnerRadius) * 0.15;
     ctx.beginPath();
     ctx.arc(0, 0, midRingRadius * 0.96, 0, Math.PI);
@@ -129,13 +130,13 @@ export const RingingPlanetBackgroundEffect: EffectDrawer<CanvasRenderingContext2
     ctx.translate(planet.moonX, planet.moonY);
 
     ctx.fillStyle = COSMIC_ARCADE_PALETTE.stationSteel;
-    ctx.globalAlpha = 0.85;
+    ctx.globalAlpha = 0.425;
     ctx.beginPath();
     ctx.arc(0, 0, planet.moonRadius, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.fillStyle = COSMIC_ARCADE_PALETTE.cosmicNavy;
-    ctx.globalAlpha = 0.5;
+    ctx.globalAlpha = 0.25;
     for (let i = 0; i < planet.moonCraters.length; i++) {
       const mc = planet.moonCraters[i];
       ctx.beginPath();
@@ -171,7 +172,7 @@ export const SkiaRingingPlanetBackgroundEffect: EffectDrawer<any, CoreComponentR
     backRingPaint.setStyle(Skia.PaintStyle.Stroke);
     backRingPaint.setStrokeWidth(ringThickness);
     backRingPaint.setColor(Skia.Color(planetTheme.ringColorBase));
-    backRingPaint.setAlphaf(0.35);
+    backRingPaint.setAlphaf(0.175);
 
     const backRingPath = Skia.Path.Make();
     backRingPath.addArc(
@@ -188,7 +189,7 @@ export const SkiaRingingPlanetBackgroundEffect: EffectDrawer<any, CoreComponentR
     atmosPaint.setStyle(Skia.PaintStyle.Stroke);
     atmosPaint.setStrokeWidth(3);
     atmosPaint.setColor(Skia.Color(planetTheme.atmosphereColor));
-    atmosPaint.setAlphaf(0.25);
+    atmosPaint.setAlphaf(0.125);
     canvas.drawCircle(0, 0, planet.radius + 2, atmosPaint);
 
     const planetShader = getOrCreateCached(state, "cachedPlanetSkiaShader", width, height, () => {
@@ -207,11 +208,12 @@ export const SkiaRingingPlanetBackgroundEffect: EffectDrawer<any, CoreComponentR
 
     const planetPaint = Skia.Paint();
     planetPaint.setShader(planetShader);
+    planetPaint.setAlphaf(0.5);
     canvas.drawCircle(0, 0, planet.radius, planetPaint);
 
     const craterPaint = Skia.Paint();
     craterPaint.setColor(getSkiaColor(COSMIC_ARCADE_PALETTE.voidBlack, 0.25));
-    craterPaint.setAlphaf(0.25);
+    craterPaint.setAlphaf(0.125);
     for (let i = 0; i < planet.craters.length; i++) {
       const crater = planet.craters[i];
       canvas.drawCircle(crater.x, crater.y, crater.radius, craterPaint);
@@ -227,7 +229,7 @@ export const SkiaRingingPlanetBackgroundEffect: EffectDrawer<any, CoreComponentR
     frontRingPaint.setStyle(Skia.PaintStyle.Stroke);
     frontRingPaint.setStrokeWidth(ringThickness);
     frontRingPaint.setColor(Skia.Color(planetTheme.ringColorHighlight));
-    frontRingPaint.setAlphaf(0.6);
+    frontRingPaint.setAlphaf(0.3);
 
     const frontRingPath = Skia.Path.Make();
     frontRingPath.addArc(
@@ -240,7 +242,7 @@ export const SkiaRingingPlanetBackgroundEffect: EffectDrawer<any, CoreComponentR
     gapPaint.setStyle(Skia.PaintStyle.Stroke);
     gapPaint.setStrokeWidth(ringThickness * 0.15);
     gapPaint.setColor(getSkiaColor(COSMIC_ARCADE_PALETTE.voidBlack, 0.8));
-    gapPaint.setAlphaf(0.4);
+    gapPaint.setAlphaf(0.2);
 
     const gapPath = Skia.Path.Make();
     gapPath.addArc(
@@ -255,12 +257,12 @@ export const SkiaRingingPlanetBackgroundEffect: EffectDrawer<any, CoreComponentR
 
     const moonPaint = Skia.Paint();
     moonPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.stationSteel));
-    moonPaint.setAlphaf(0.85);
+    moonPaint.setAlphaf(0.425);
     canvas.drawCircle(0, 0, planet.moonRadius, moonPaint);
 
     const moonCraterPaint = Skia.Paint();
     moonCraterPaint.setColor(Skia.Color(COSMIC_ARCADE_PALETTE.cosmicNavy));
-    moonCraterPaint.setAlphaf(0.5);
+    moonCraterPaint.setAlphaf(0.25);
     for (let i = 0; i < planet.moonCraters.length; i++) {
       const mc = planet.moonCraters[i];
       canvas.drawCircle(mc.x, mc.y, mc.radius, moonCraterPaint);

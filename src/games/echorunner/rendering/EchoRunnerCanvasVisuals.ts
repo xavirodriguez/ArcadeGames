@@ -79,6 +79,34 @@ export const drawEchoBackground: EffectDrawer<CanvasRenderingContext2D, CoreComp
       ctx.fillRect(px, py, 12 + (i % 2) * 8, 40 + (i % 3) * 30);
     }
 
+    // Procedural Archive ruins and pixel flora add depth without external assets.
+    ctx.save();
+    ctx.globalAlpha = 0.2;
+    ctx.fillStyle = palette.archiveSlate;
+    const ruinBaseY = height * 0.78;
+    for (let i = 0; i < 5; i++) {
+      const ruinX = i * (width / 5) + 12;
+      const ruinWidth = 18 + (i % 3) * 8;
+      const ruinHeight = 28 + (i % 4) * 11;
+      ctx.fillRect(ruinX, ruinBaseY - ruinHeight, ruinWidth, ruinHeight);
+      ctx.fillRect(ruinX - 4, ruinBaseY - ruinHeight, ruinWidth + 8, 4);
+    }
+    ctx.restore();
+
+    for (let i = 0; i < 9; i++) {
+      const plantX = (i * 131 + elapsed * 4) % width;
+      const baseY = height - 8 - (i % 3) * 5;
+      const stemHeight = 14 + (i % 4) * 5;
+      ctx.fillStyle = i % 3 === 0 ? palette.restorationGoldGlow : palette.restorationCyanGlow;
+      ctx.fillRect(plantX, baseY - stemHeight, 2, stemHeight);
+      ctx.fillRect(plantX - 3, baseY - stemHeight + 4, 4, 3);
+      ctx.fillRect(plantX + 1, baseY - stemHeight + 9, 4, 3);
+      if (i % 2 === 0) {
+        ctx.fillStyle = palette.restorationGold;
+        ctx.fillRect(plantX - 1, baseY - stemHeight - 2, 3, 3);
+      }
+    }
+
     // Ambient particles
     for (let i = 0; i < 6; i++) {
       const px = ((i * 143 + elapsed * 8) % width);

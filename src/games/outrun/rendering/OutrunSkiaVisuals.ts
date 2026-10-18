@@ -16,7 +16,7 @@ import {
   resolveOffroadDustParams
 } from "./OutrunRenderShared";
 import { computeSpeedLines } from "./OutrunVisualHelpers";
-import { resolveSegmentFog } from "./OutrunFog";
+import { resolveRoadFogColor } from "./OutrunFog";
 import { colors } from "../../../theme/colors";
 import { hexToRgba } from "../../shared/rendering/CosmicPalette";
 import {
@@ -275,15 +275,27 @@ export const drawSkiaOutrunRoad: ShapeDrawer<SkCanvas, OutrunComponentRegistry> 
         canvas.drawPath(lPath, lPaint);
       }
 
-      // Fog Pass
-      const fog = resolveSegmentFog(p.fog, palette);
-      if (fog.alpha > 0) {
-        const fogPaint = Skia.Paint();
-        fogPaint.setColor(Skia.Color(fog.rgba));
-        fogPaint.setStyle(Skia.PaintStyle.Fill);
-        canvas.drawRect(Skia.XYWHRect(0, p.y2, screenW, p.y1 - p.y2), fogPaint);
-      }
     }
+
+    // Match Canvas with one continuous gradient rather than per-segment fog strips.
+    const fogPaint = Skia.Paint();
+    fogPaint.setStyle(Skia.PaintStyle.Fill);
+    fogPaint.setShader(
+      Skia.Shader.MakeLinearGradient(
+        Skia.Point(0, horizonY),
+        Skia.Point(0, screenH),
+        [
+          Skia.Color(resolveRoadFogColor(palette, 0.55)),
+          Skia.Color(resolveRoadFogColor(palette, 0))
+        ],
+        [0, 1],
+        Skia.TileMode.Clamp
+      )
+    );
+    canvas.drawRect(
+      Skia.XYWHRect(0, horizonY, screenW, Math.max(0, screenH - horizonY)),
+      fogPaint
+    );
 
     if (count > 0 && renderedCount === 0) {
       console.warn("[drawSkiaOutrunRoad] 100% of projected road segments were clipped or discarded.");

@@ -14,7 +14,7 @@ import {
   resolveOffroadDustParams
 } from "./OutrunRenderShared";
 import { computeSpeedLines } from "./OutrunVisualHelpers";
-import { resolveSegmentFog } from "./OutrunFog";
+import { resolveRoadFogColor } from "./OutrunFog";
 import { colors } from "../../../theme/colors";
 import { hexToRgba } from "../../shared/rendering/CosmicPalette";
 import {
@@ -241,13 +241,14 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
         ctx.fill();
       }
 
-      // Fog Pass
-      const fog = resolveSegmentFog(p.fog, palette);
-      if (fog.alpha > 0) {
-        ctx.fillStyle = fog.rgba;
-        ctx.fillRect(0, p.y2, screenW, p.y1 - p.y2);
-      }
     }
+
+    // One continuous fog gradient avoids visible bands at segment boundaries.
+    const fogGradient = ctx.createLinearGradient(0, horizonY, 0, screenH);
+    fogGradient.addColorStop(0, resolveRoadFogColor(palette, 0.55));
+    fogGradient.addColorStop(1, resolveRoadFogColor(palette, 0));
+    ctx.fillStyle = fogGradient;
+    ctx.fillRect(0, horizonY, screenW, Math.max(0, screenH - horizonY));
 
     if (count > 0 && renderedCount === 0) {
       console.warn("[drawOutrunRoad] 100% of projected road segments were clipped or discarded.");

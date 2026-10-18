@@ -53,7 +53,7 @@ export const DEFAULT_MELEE_ATTACK_CONFIG: MeleeAttackConfig = {
   hitboxHeight: MELEE_HITBOX_HEIGHT,
   hitboxOffsetX: MELEE_HITBOX_OFFSET_X,
   hitboxOffsetY: MELEE_HITBOX_OFFSET_Y,
-  halfDepth: 20,
+  halfDepth: 60,
   knockbackX: MELEE_KNOCKBACK_X,
   knockbackY: MELEE_KNOCKBACK_Y,
   damageCategory: "melee"

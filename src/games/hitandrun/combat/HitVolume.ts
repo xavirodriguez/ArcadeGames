@@ -7,12 +7,15 @@ export interface DepthZOverlapOptions {
   targetZHeight?: number;
 }
 
+/** Default belt depth tolerance — lanes span ~280–520; 60px covers adjacent lanes. */
+export const DEFAULT_HALF_DEPTH = 60;
+
 /**
  * Pure function that evaluates belt-scroll depth (Y) and elevation height (Z)
  * collision eligibility between attacker and target entities.
  *
- * Rule 1: Depth difference |yAttacker - yTarget| must be <= halfDepth (default 20px).
- * Rule 2: Elevation height ranges [zA, zA + heightA] and [zB, zB + heightB] must overlap.
+ * Rule 1: Depth difference |yAttacker - yTarget| must be <= halfDepth.
+ * Rule 2: Elevation height ranges must overlap.
  */
 export function depthZOverlap(
   attacker: Entity,
@@ -20,7 +23,7 @@ export function depthZOverlap(
   world: World<CoreComponentRegistry>,
   options: DepthZOverlapOptions = {}
 ): boolean {
-  const halfDepth = options.halfDepth ?? 20;
+  const halfDepth = options.halfDepth ?? DEFAULT_HALF_DEPTH;
 
   const tAttacker = world.getComponent(attacker, "Transform");
   const tTarget = world.getComponent(target, "Transform");
@@ -30,12 +33,10 @@ export function depthZOverlap(
   const yAttacker = tAttacker.worldY ?? tAttacker.y;
   const yTarget = tTarget.worldY ?? tTarget.y;
 
-  // 1. Depth check (Y axis)
   if (Math.abs(yAttacker - yTarget) > halfDepth) {
     return false;
   }
 
-  // 2. Height check (Z axis elevation)
   const eAttacker = world.getComponent(attacker, "BeltElevation") as
     | BeltElevationComponent
     | undefined;
@@ -46,9 +47,7 @@ export function depthZOverlap(
   const zA = eAttacker?.z ?? 0;
   const zB = eTarget?.z ?? 0;
 
-  // Attacker Z height extent
   const heightA = options.attackerZHeight ?? 28;
-  // Target Z height extent
   let heightB = options.targetZHeight;
   if (heightB === undefined) {
     const renderTarget = world.getComponent(target, "Render");

@@ -6,7 +6,7 @@ import {
   EventBus,
   CoreComponentRegistry
 } from "@tiny-aster/core";
-import { depthZOverlap } from "../combat/HitVolume";
+import { depthZOverlap, DEFAULT_HALF_DEPTH } from "../combat/HitVolume";
 
 /**
  * HitRunCombatSystem — processes collision contacts for Hit&Run,
@@ -33,7 +33,6 @@ export class HitRunCombatSystem extends System<CoreComponentRegistry> {
         | undefined;
       if (!colComp) continue;
 
-      // Process physical collisions
       if (colComp.collisions) {
         const cLen = colComp.collisions.length;
         for (let j = 0; j < cLen; j++) {
@@ -43,7 +42,6 @@ export class HitRunCombatSystem extends System<CoreComponentRegistry> {
         }
       }
 
-      // Process trigger entry overlaps (e.g. bullets, rockets, attack triggers)
       if (colComp.triggersEntered) {
         const tLen = colComp.triggersEntered.length;
         for (let j = 0; j < tLen; j++) {
@@ -62,7 +60,7 @@ export class HitRunCombatSystem extends System<CoreComponentRegistry> {
     if (!WorldUtils.isEntityActive(world, entityA) || !WorldUtils.isEntityActive(world, entityB)) return;
     if (this.destroyedEntities.has(entityA) || this.destroyedEntities.has(entityB)) return;
 
-    if (!depthZOverlap(entityA, entityB, world, { halfDepth: 20 })) return;
+    if (!depthZOverlap(entityA, entityB, world, { halfDepth: DEFAULT_HALF_DEPTH })) return;
 
     this.resolveDamageDirection(world, entityA, entityB);
     this.resolveDamageDirection(world, entityB, entityA);
@@ -84,7 +82,6 @@ export class HitRunCombatSystem extends System<CoreComponentRegistry> {
 
     if (!damageComp || !healthComp) return;
 
-    // 1. Faction Check (Friendly Fire prevention)
     const factionA = world.getComponent(attacker, "Faction") as
       | { value?: string; faction?: string }
       | undefined;
@@ -101,17 +98,14 @@ export class HitRunCombatSystem extends System<CoreComponentRegistry> {
       }
     }
 
-    // 2. Invulnerability check
     if (healthComp.invulnerableRemaining !== undefined && healthComp.invulnerableRemaining > 0) {
       return;
     }
 
-    // 3. Skip if target is already marked dead
     if (world.hasComponent(target, "Dead")) {
       return;
     }
 
-    // 4. Calculate and apply damage
     const prevHealth = healthComp.current;
     if (prevHealth <= 0) return;
 
@@ -150,7 +144,6 @@ export class HitRunCombatSystem extends System<CoreComponentRegistry> {
       }
     }
 
-    // 5. Apply Damage Component Consumption Policy
     const policy = damageComp.consumption || "destroy-entity";
     if (policy === "destroy-entity") {
       world.reclaimEntity(attacker);

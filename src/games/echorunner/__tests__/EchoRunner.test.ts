@@ -777,6 +777,15 @@ describe("Echo Runner Game Simulation Tests", () => {
       const playerEntity = testWorld.query("PlatformerInput")[0];
       const playerTrans = testWorld.getComponent(playerEntity, "Transform")!;
 
+      const pickupEvents: Array<{ value?: number; collectibleType?: string; playerEntity?: number }> = [];
+      testGame.getEventBus().on("CollectiblePickedUp", (event) => {
+        pickupEvents.push({
+          value: event.value,
+          collectibleType: event.collectibleType,
+          playerEntity: event.playerEntity
+        });
+      });
+
       // Spawn a collectible fragment directly at player's position
       const fragEntity = testWorld.createEntity();
       testGame.blueprints.get("collectible_fragment")?.spawn(testWorld, fragEntity, {
@@ -798,6 +807,11 @@ describe("Echo Runner Game Simulation Tests", () => {
       const runState = testWorld.getResource<any>("RunState");
       expect(runState.collectedTemporalIds).toContain("test_frag_1");
       expect(testGame.getGameState().fragments).toBeGreaterThan(0);
+      expect(pickupEvents).toContainEqual({
+        value: 10,
+        collectibleType: "fragment",
+        playerEntity
+      });
 
       // Now spawn a collectible core at player's position
       const coreEntity = testWorld.createEntity();

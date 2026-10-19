@@ -91,6 +91,16 @@ describe("Collision pipeline — CollectibleSystem & HitDetectionSystem", () => 
       id: "frag_test_1"
     });
 
+    const pickupEvents: Array<{ collectibleId?: string; collectibleType?: string; value?: number; playerEntity?: number }> = [];
+    eventBus.on("CollectiblePickedUp", (event) => {
+      pickupEvents.push({
+        collectibleId: event.collectibleId,
+        collectibleType: event.collectibleType,
+        value: event.value,
+        playerEntity: event.playerEntity
+      });
+    });
+
     // Run a few frames so CollisionSystem2D populates triggers and CollectibleSystem reacts
     for (let i = 0; i < 3; i++) {
       world.update(1 / 60);
@@ -99,6 +109,12 @@ describe("Collision pipeline — CollectibleSystem & HitDetectionSystem", () => 
 
     expect(runState.collectedTemporalIds).toContain("frag_test_1");
     expect(world.hasEntity(fragment)).toBe(false);
+    expect(pickupEvents).toContainEqual({
+      collectibleId: "frag_test_1",
+      collectibleType: "fragment",
+      value: 10,
+      playerEntity: player
+    });
   });
 
   it("emits hitbox:hit when pulse trigger overlaps enemy Collider2D hurtbox", () => {

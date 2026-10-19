@@ -204,7 +204,7 @@ export const drawSkiaTowerRapid: ShapeDrawer<SkCanvas, TowerDefenseComponentRegi
   draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
     const size = render?.size ?? 28;
-    drawSkiaTower(world, canvas, size, "tower_rapid", "tower_rapid_accent", colors.green, colors.primary);
+    drawSkiaTower(world, canvas, size, "tower_rapid", "tower_rapid_accent", colors.green, colors.primary, "rapid");
     drawSkiaTowerWeapon(canvas, world, entity, size, "rapid");
   },
 };

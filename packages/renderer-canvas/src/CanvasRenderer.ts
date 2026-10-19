@@ -79,7 +79,7 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
   private drawPerfHud(ctx: CanvasRenderingContext2D, stats: FrameTimeStats): void {
     const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
     ctx.save();
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.setTransform?.(dpr, 0, 0, dpr, 0, 0);
     ctx.font = "11px monospace";
     const text = `p50:${stats.p50.toFixed(2)}ms | p95:${stats.p95.toFixed(2)}ms | p99:${stats.p99.toFixed(2)}ms (${stats.count}f)`;
     const metrics = ctx.measureText(text);
@@ -257,7 +257,7 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
       offsetY = (screenConfig.height - viewportHeight * scale) / 2;
     }
 
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.setTransform?.(dpr, 0, 0, dpr, 0, 0);
 
     ctx.fillStyle = "#000000";
     ctx.fillRect(0, 0, logicalWidth, logicalHeight);

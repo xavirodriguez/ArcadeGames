@@ -148,6 +148,15 @@ export function registerRacingBlueprints(
     }
   });
 
+  targetRegistry.register("collision_sparks", {
+    spawn: (w: World<RacingComponentRegistry, RacingEventRegistry>, entity: number) => {
+      const palette = getRacingPalette(w);
+      EntityBuilder.fromEntity(w, entity)
+        .withTransform({ x: 0, y: 0, dirty: true })
+        .withRender({ shape: "collision_sparks", size: 1, color: palette.accent, order: RACING_RENDER_ORDERS.effects });
+    }
+  });
+
   targetRegistry.register("track_zone", {
     spawn: (w: World<RacingComponentRegistry, RacingEventRegistry>, entity: number, args: { id: string; x: number; y: number; width: number; height: number; surface: string }) => {
       EntityBuilder.fromEntity(w, entity)

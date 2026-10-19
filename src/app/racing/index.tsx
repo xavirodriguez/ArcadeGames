@@ -197,7 +197,7 @@ export default function RacingScreen() {
                   color={glowColor}
                   activeColor={glowColor}
                   opacity={0.72}
-                  onMove={(x, y) => {
+                  onMove={(x) => {
                     const steerX = Math.max(-1, Math.min(1, x));
                     if (touchStateRef.current) {
                       touchStateRef.current.setMoveAxis(steerX, touchStateRef.current.moveY);

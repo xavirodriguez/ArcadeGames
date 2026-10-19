@@ -80,6 +80,50 @@ export const drawTrackSurface: ShapeDrawer<CanvasRenderingContext2D, RacingCompo
             offCtx.stroke();
           }
 
+          // Subtle, deterministic surface grain adds material without per-frame cost.
+          if (pattern === "wood") {
+            offCtx.save();
+            offCtx.globalAlpha = 0.16;
+            offCtx.strokeStyle = palette.surfaceDetail;
+            offCtx.lineWidth = 1;
+            for (let i = 0; i < 64; i += 1) {
+              const grainX = Math.abs((Math.sin(i * 12.9898) * 43758.5453) % 1) * width;
+              const grainY = Math.abs((Math.cos(i * 78.233) * 19341.173) % 1) * height;
+              const grainLength = 8 + (i % 6) * 5;
+              offCtx.beginPath();
+              offCtx.moveTo(grainX, grainY);
+              offCtx.lineTo(Math.min(width, grainX + grainLength), grainY + Math.sin(i * 0.7) * 1.5);
+              offCtx.stroke();
+            }
+            for (let i = 0; i < 5; i += 1) {
+              const knotX = width * (0.12 + i * 0.17);
+              const knotY = height * (0.18 + (i % 2) * 0.31);
+              offCtx.beginPath();
+              offCtx.ellipse(knotX, knotY, 7, 2.5, 0, 0, Math.PI * 2);
+              offCtx.stroke();
+              offCtx.beginPath();
+              offCtx.ellipse(knotX, knotY, 3.5, 1.2, 0, 0, Math.PI * 2);
+              offCtx.stroke();
+            }
+            offCtx.restore();
+          } else if (pattern === "starfield") {
+            offCtx.save();
+            offCtx.globalAlpha = 0.55;
+            offCtx.strokeStyle = palette.text;
+            offCtx.lineWidth = 1;
+            for (let i = 0; i < 120; i += 15) {
+              const sx = Math.abs((Math.sin(i * 12.9898) * 43758.5453) % 1) * width;
+              const sy = Math.abs((Math.cos(i * 78.233) * 43758.5453) % 1) * height;
+              offCtx.beginPath();
+              offCtx.moveTo(sx - 3, sy);
+              offCtx.lineTo(sx + 3, sy);
+              offCtx.moveTo(sx, sy - 3);
+              offCtx.lineTo(sx, sy + 3);
+              offCtx.stroke();
+            }
+            offCtx.restore();
+          }
+
           staticCache = { key: cacheKey, canvas: offCanvas };
         }
       }
@@ -149,6 +193,39 @@ export const drawTrackRibbon: ShapeDrawer<CanvasRenderingContext2D, RacingCompon
     ctx.fillStyle = palette.track;
     ctx.fill();
 
+    // Alternating kerbs make the track boundary readable without changing its geometry.
+    for (let i = 0; i < left.length - 1; i += 4) {
+      const end = Math.min(i + 3, left.length - 1);
+      const curbColor = Math.floor(i / 4) % 2 === 0 ? palette.text : palette.accent;
+      ctx.strokeStyle = curbColor;
+      ctx.globalAlpha = 0.88;
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(left[i]!.x, left[i]!.y);
+      ctx.lineTo(left[end]!.x, left[end]!.y);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(right[i]!.x, right[i]!.y);
+      ctx.lineTo(right[end]!.x, right[end]!.y);
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = palette.text;
+    ctx.globalAlpha = 0.24;
+    ctx.lineWidth = 2;
+    for (let i = 0; i < left.length; i += 8) {
+      const start = Math.min(i + 1, left.length - 1);
+      const end = Math.min(i + 5, left.length - 1);
+      const startX = (left[start]!.x + right[start]!.x) / 2;
+      const startY = (left[start]!.y + right[start]!.y) / 2;
+      const endX = (left[end]!.x + right[end]!.x) / 2;
+      const endY = (left[end]!.y + right[end]!.y) / 2;
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(endX, endY);
+      ctx.stroke();
+    }
+
     ctx.restore();
   }
 };
@@ -159,17 +236,24 @@ export const drawSkidMarks: ShapeDrawer<CanvasRenderingContext2D, RacingComponen
     if (!pCtx || pCtx.pool.skidMarks.length === 0) return;
 
     const { palette, pool } = pCtx;
-
     ctx.save();
-    ctx.strokeStyle = palette.outline;
     ctx.lineCap = "round";
 
     for (let i = 0; i < pool.skidMarks.length; i += 1) {
       const seg = pool.skidMarks[i]!;
       if (seg.alpha <= 0) continue;
 
+      ctx.globalAlpha = seg.alpha * 0.42;
+      ctx.strokeStyle = palette.outline;
+      ctx.lineWidth = seg.width + 1.5;
+      ctx.beginPath();
+      ctx.moveTo(seg.x1, seg.y1);
+      ctx.lineTo(seg.x2, seg.y2);
+      ctx.stroke();
+
       ctx.globalAlpha = seg.alpha;
-      ctx.lineWidth = seg.width;
+      ctx.strokeStyle = "#242424";
+      ctx.lineWidth = Math.max(1, seg.width * 0.58);
       ctx.beginPath();
       ctx.moveTo(seg.x1, seg.y1);
       ctx.lineTo(seg.x2, seg.y2);
@@ -185,18 +269,29 @@ export const drawSmoke: ShapeDrawer<CanvasRenderingContext2D, RacingComponentReg
     const pCtx = resolveRacingParticlePoolContext(world);
     if (!pCtx || pCtx.pool.smokeParticles.length === 0) return;
 
-    const { palette, pool } = pCtx;
-
+    const { pool } = pCtx;
     ctx.save();
-    ctx.fillStyle = palette.text;
 
     for (let i = 0; i < pool.smokeParticles.length; i += 1) {
       const p = pool.smokeParticles[i]!;
       if (p.alpha <= 0) continue;
 
-      ctx.globalAlpha = p.alpha;
+      ctx.globalAlpha = p.alpha * 0.18;
+      ctx.fillStyle = "#30343B";
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, p.radius * 1.3, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.globalAlpha = p.alpha * 0.42;
+      ctx.fillStyle = "#B8BEC7";
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius * 0.82, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.globalAlpha = p.alpha * 0.3;
+      ctx.fillStyle = "#FFFFFF";
+      ctx.beginPath();
+      ctx.arc(p.x - p.radius * 0.18, p.y - p.radius * 0.18, p.radius * 0.38, 0, Math.PI * 2);
       ctx.fill();
     }
 

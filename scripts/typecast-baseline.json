@@ -401,8 +401,8 @@
   },
   "packages/renderer-canvas/src/__tests__/CanvasRenderer.test.ts": {
     "anyCount": 0,
-    "unknownCount": 5,
-    "total": 5
+    "unknownCount": 10,
+    "total": 10
   },
   "packages/renderer-canvas/src/__tests__/CanvasSpriteDrawer.test.ts": {
     "anyCount": 0,

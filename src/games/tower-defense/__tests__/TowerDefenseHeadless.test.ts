@@ -217,5 +217,15 @@ describe("TowerDefense headless - Phase 2 (Playable Headless)", () => {
 
     expect(creepComp).toBeDefined();
     expect(creepComp!.creepType).toBe("grunt");
+
+    // Visual hit feedback must not modify health or other simulation values.
+    const healthBeforeHit = game.getWorld().getComponent(creepEntity, "Health")?.current;
+    game.getWorld().getEventBus()?.emit("combat:hit", {
+      targetEntity: creepEntity,
+      amount: 5,
+    });
+    game.update(1 / 60);
+    expect(game.getWorld().getComponent(creepEntity, "Render")?.hitFlashFrames).toBeGreaterThan(0);
+    expect(game.getWorld().getComponent(creepEntity, "Health")?.current).toBe(healthBeforeHit);
   });
 });

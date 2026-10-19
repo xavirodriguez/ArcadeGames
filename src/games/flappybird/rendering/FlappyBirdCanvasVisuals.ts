@@ -33,6 +33,7 @@ import {
 } from "./FlappyBirdRenderUtils";
 import { colors } from "../../../theme/colors";
 import { hexToRgba } from "../../shared/rendering/CosmicPalette";
+import { CanvasGlowCache } from "../../shared/rendering/GlowSystem";
 
 export { FLAPPY_PARTICLE_POOL as FLAPPY_CANVAS_PARTICLE_POOL, spawnVisualParticle };
 
@@ -278,16 +279,28 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
       const trailColor = trailConfig?.color || colors.cyan;
       const trailWidth = (trailConfig?.width || 2.0) * warpFactor;
       const lengthMult = (trailConfig?.lengthMultiplier || 1.0) * warpFactor;
+      const blurVal = trailConfig?.enabled ? Math.round(12 * warpFactor) : Math.round(8 * warpFactor);
+      const trailKey = `flappy_trail_${trailColor}_${trailWidth.toFixed(1)}_${lengthMult.toFixed(1)}_${blurVal}`;
+
+      const trailW = Math.ceil(size * (1.8 * lengthMult) + 40 + blurVal * 2);
+      const trailH = Math.ceil(trailWidth + blurVal * 2 + 16);
+
+      const offscreenTrail = CanvasGlowCache.getInstance().getOrCreate(trailKey, trailW, trailH, (offCtx) => {
+        offCtx.save();
+        offCtx.translate(trailW - blurVal - 5, trailH / 2);
+        offCtx.strokeStyle = trailConfig?.enabled ? trailColor : hexToRgba(colors.cyan, 0.35);
+        offCtx.lineWidth = trailWidth;
+        offCtx.shadowColor = trailColor;
+        offCtx.shadowBlur = blurVal;
+        offCtx.beginPath();
+        offCtx.moveTo(0, 0);
+        offCtx.lineTo(-size * (1.8 * lengthMult) - Math.min(speed * 0.1 * lengthMult, 25), 0);
+        offCtx.stroke();
+        offCtx.restore();
+      });
 
       ctx.save();
-      ctx.strokeStyle = trailConfig?.enabled ? trailColor : hexToRgba(colors.cyan, 0.35);
-      ctx.lineWidth = trailWidth;
-      ctx.shadowColor = trailColor;
-      ctx.shadowBlur = trailConfig?.enabled ? 12 * warpFactor : 8 * warpFactor;
-      ctx.beginPath();
-      ctx.moveTo(-size * 0.55, 0);
-      ctx.lineTo(-size * (1.8 * lengthMult) - Math.min(speed * 0.1 * lengthMult, 25), 0);
-      ctx.stroke();
+      ctx.drawImage(offscreenTrail as CanvasImageSource, -size * 0.55 - (trailW - blurVal - 5), -trailH / 2);
       ctx.restore();
     }
 
@@ -342,13 +355,21 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     ctx.stroke();
 
     ctx.save();
-    ctx.fillStyle = colors.cyan;
-    ctx.shadowColor = colors.cyan;
-    ctx.shadowBlur = isAlive ? 6 : 0;
-
-    ctx.beginPath();
-    ctx.ellipse(size * 0.15, -size * 0.05, size * 0.35, size * 0.18, 0, 0, Math.PI * 2);
-    ctx.fill();
+    const cockpitKey = `flappy_cockpit_${size}_${isAlive}`;
+    const cockW = Math.ceil(size * 1.5 + 20);
+    const cockH = Math.ceil(size * 1.5 + 20);
+    const offscreenCockpit = CanvasGlowCache.getInstance().getOrCreate(cockpitKey, cockW, cockH, (offCtx) => {
+      offCtx.save();
+      offCtx.translate(cockW / 2, cockH / 2);
+      offCtx.fillStyle = colors.cyan;
+      offCtx.shadowColor = colors.cyan;
+      offCtx.shadowBlur = isAlive ? 6 : 0;
+      offCtx.beginPath();
+      offCtx.ellipse(size * 0.15, -size * 0.05, size * 0.35, size * 0.18, 0, 0, Math.PI * 2);
+      offCtx.fill();
+      offCtx.restore();
+    });
+    ctx.drawImage(offscreenCockpit as CanvasImageSource, -cockW / 2, -cockH / 2);
     ctx.restore();
 
     ctx.strokeStyle = hexToRgba(colors.surface, 0.7);
@@ -365,13 +386,26 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     if (render.dangerPulseIntensity && render.dangerPulseIntensity > 0) {
       const pulse = 0.5 + 0.5 * Math.sin(world.tick * 0.4);
       const alpha = render.dangerPulseIntensity * pulse;
+      const alphaQuant = Math.round(alpha * 10) / 10;
+      const pulseKey = `flappy_danger_pulse_${size}_${alphaQuant}`;
+      const padding = 24;
+      const totalW = size * 2.5 + padding * 2;
+      const totalH = size * 2.5 + padding * 2;
+
+      const offscreenPulse = CanvasGlowCache.getInstance().getOrCreate(pulseKey, totalW, totalH, (offCtx) => {
+        offCtx.save();
+        offCtx.translate(totalW / 2, totalH / 2);
+        offCtx.strokeStyle = hexToRgba(colors.red, alphaQuant);
+        offCtx.lineWidth = 2.2;
+        offCtx.shadowColor = colors.red;
+        offCtx.shadowBlur = 12 * alphaQuant;
+        drawArrowheadPath(offCtx, size + 2);
+        offCtx.stroke();
+        offCtx.restore();
+      });
+
       ctx.save();
-      ctx.strokeStyle = hexToRgba(colors.red, alpha);
-      ctx.lineWidth = 2.2;
-      ctx.shadowColor = colors.red;
-      ctx.shadowBlur = 12 * alpha;
-      drawArrowheadPath(ctx, size + 2);
-      ctx.stroke();
+      ctx.drawImage(offscreenPulse as CanvasImageSource, -totalW / 2, -totalH / 2);
       ctx.restore();
     }
 
@@ -543,33 +577,46 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     }
 
     ctx.save();
-    const beaconGlowGrad = getCachedCanvasGradient(ctx, `beacon_halo_${beaconPulse.toFixed(2)}`, () => {
-      const g = ctx.createRadialGradient(0, beaconY, 4, 0, beaconY, 45);
+    const pulseQuant = Math.round(beaconPulse * 10) / 10;
+    const beaconKey = `beacon_halo_${pulseQuant}`;
+    const offscreenBeacon = CanvasGlowCache.getInstance().getOrCreate(beaconKey, 90, 90, (offCtx) => {
+      offCtx.save();
+      offCtx.translate(45, 45);
+      const g = offCtx.createRadialGradient(0, 0, 4, 0, 0, 45);
       g.addColorStop(0, hexToRgba(colors.red, 0.25));
       g.addColorStop(0.5, hexToRgba(colors.red, 0.08));
       g.addColorStop(1, hexToRgba(colors.red, 0));
-      return g;
+      offCtx.fillStyle = g;
+      offCtx.beginPath();
+      offCtx.arc(0, 0, 45, 0, Math.PI * 2);
+      offCtx.fill();
+      offCtx.restore();
     });
-    ctx.fillStyle = beaconGlowGrad;
-    ctx.beginPath();
-    ctx.arc(0, beaconY, 45, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.drawImage(offscreenBeacon as CanvasImageSource, -45, beaconY - 45);
 
-    ctx.fillStyle = hexToRgba(colors.red, beaconPulse);
-    ctx.shadowColor = colors.red;
-    ctx.shadowBlur = beaconPulse * 12;
+    const beaconDotKey = `beacon_dots_${capHalfWidth}_${pulseQuant}`;
+    const dotW = capHalfWidth * 2 + 30;
+    const dotH = 30;
+    const offscreenDots = CanvasGlowCache.getInstance().getOrCreate(beaconDotKey, dotW, dotH, (offCtx) => {
+      offCtx.save();
+      offCtx.translate(dotW / 2, dotH / 2);
+      offCtx.fillStyle = hexToRgba(colors.red, pulseQuant);
+      offCtx.shadowColor = colors.red;
+      offCtx.shadowBlur = pulseQuant * 12;
+      offCtx.beginPath();
+      offCtx.arc(-capHalfWidth + 8, 0, 3.5, 0, Math.PI * 2);
+      offCtx.arc(capHalfWidth - 8, 0, 3.5, 0, Math.PI * 2);
+      offCtx.fill();
 
-    ctx.beginPath();
-    ctx.arc(-capHalfWidth + 8, beaconY, 3.5, 0, Math.PI * 2);
-    ctx.arc(capHalfWidth - 8, beaconY, 3.5, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = colors.white;
-    ctx.beginPath();
-    ctx.arc(-capHalfWidth + 8, beaconY, 1.2, 0, Math.PI * 2);
-    ctx.arc(capHalfWidth - 8, beaconY, 1.2, 0, Math.PI * 2);
-    ctx.fill();
+      offCtx.shadowBlur = 0;
+      offCtx.fillStyle = colors.white;
+      offCtx.beginPath();
+      offCtx.arc(-capHalfWidth + 8, 0, 1.2, 0, Math.PI * 2);
+      offCtx.arc(capHalfWidth - 8, 0, 1.2, 0, Math.PI * 2);
+      offCtx.fill();
+      offCtx.restore();
+    });
+    ctx.drawImage(offscreenDots as CanvasImageSource, -dotW / 2, beaconY - dotH / 2);
     ctx.restore();
 
     if (pipe.movementType === "laser_gate" && isTopPipe) {

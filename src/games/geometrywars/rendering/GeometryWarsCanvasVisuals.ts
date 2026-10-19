@@ -4,6 +4,7 @@ import { colors } from "../../../theme/colors";
 import { getDisplacedPoint, BULLET_COORDS } from "../../shared/rendering/ProceduralShapeUtils";
 import { getDrawable, getDrawableTransform } from "../../shared/rendering/renderingUtils";
 import { resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
+import { CanvasGlowCache } from "../../shared/rendering/GlowSystem";
 import {
   getActiveParticles,
   updatePlayerShipVisuals,
@@ -18,18 +19,30 @@ export { GEOMETRY_WARS_PARTICLE_POOL, spawnVisualParticle, resetVisualState };
 
 function drawCanvasVisualParticles(ctx: CanvasRenderingContext2D): void {
   const particles = getActiveParticles();
-    // TODO(refactor): código duplicado detectado (bloque) con geometrywars/rendering/GeometryWarsSkiaVisuals.ts:32-37. Considerar extraer a función compartida. Ref: 349bb253
-ctx.save();
+  const glowCache = CanvasGlowCache.getInstance();
+  ctx.save();
   for (let i = 0; i < particles.length; i++) {
     const p = particles[i];
     if (!p.active) continue;
 
+    const key = `gw_particle_${p.color}_${p.size}`;
+    const padding = 12;
+    const totalW = p.size + padding;
+    const totalH = p.size + padding;
+
+    const offscreen = glowCache.getOrCreate(key, totalW, totalH, (offCtx) => {
+      offCtx.save();
+      offCtx.translate(totalW / 2, totalH / 2);
+      offCtx.fillStyle = p.color;
+      offCtx.shadowBlur = 6;
+      offCtx.shadowColor = p.color;
+      offCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+      offCtx.restore();
+    });
+
     const ratio = p.life / p.maxLife;
     ctx.globalAlpha = ratio;
-    ctx.fillStyle = p.color;
-    ctx.shadowBlur = 6;
-    ctx.shadowColor = p.color;
-    ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+    ctx.drawImage(offscreen as CanvasImageSource, p.x - totalW / 2, p.y - totalH / 2);
   }
   ctx.restore();
 }
@@ -44,11 +57,30 @@ function applyNeonStroke(
   lineWidth = 1.5,
   shadowBlur = 8
 ): void {
-  ctx.save();
   ctx.strokeStyle = color;
   ctx.lineWidth = lineWidth;
   ctx.shadowBlur = shadowBlur;
   ctx.shadowColor = color;
+}
+
+function drawCachedNeonShape(
+  ctx: CanvasRenderingContext2D,
+  key: string,
+  boundSize: number,
+  drawPathFn: (offCtx: CanvasRenderingContext2D) => void
+): void {
+  const padding = 24;
+  const totalW = boundSize * 2 + padding * 2;
+  const totalH = boundSize * 2 + padding * 2;
+
+  const offscreen = CanvasGlowCache.getInstance().getOrCreate(key, totalW, totalH, (offCtx) => {
+    offCtx.save();
+    offCtx.translate(totalW / 2, totalH / 2);
+    drawPathFn(offCtx);
+    offCtx.restore();
+  });
+
+  ctx.drawImage(offscreen as CanvasImageSource, -totalW / 2, -totalH / 2);
 }
 
 /**
@@ -121,12 +153,22 @@ export const drawParticle: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCom
     const { render, size } = drawable;
     const color = render.color ?? colors.white;
 
-    ctx.save();
-    ctx.fillStyle = color;
-    ctx.shadowBlur = 6;
-    ctx.shadowColor = color;
-    ctx.fillRect(-size / 2, -size / 2, size, size);
-    ctx.restore();
+    const key = `gw_part_${color}_${size}`;
+    const padding = 12;
+    const totalW = size + padding;
+    const totalH = size + padding;
+
+    const offscreen = CanvasGlowCache.getInstance().getOrCreate(key, totalW, totalH, (offCtx) => {
+      offCtx.save();
+      offCtx.translate(totalW / 2, totalH / 2);
+      offCtx.fillStyle = color;
+      offCtx.shadowBlur = 6;
+      offCtx.shadowColor = color;
+      offCtx.fillRect(-size / 2, -size / 2, size, size);
+      offCtx.restore();
+    });
+
+    ctx.drawImage(offscreen as CanvasImageSource, -totalW / 2, -totalH / 2);
   }
 };
 
@@ -143,18 +185,18 @@ function drawDiamondEnemy(
   if (!drawable) return;
   const { render, size } = drawable;
   const color = render.color ?? colors.pink;
+  const key = `gw_diamond_${color}_${size}_${aspectX}_${strokeWidth}_${shadowBlur}`;
 
-  applyNeonStroke(ctx, color, strokeWidth, shadowBlur);
-
-  ctx.beginPath();
-  ctx.moveTo(0, -size);
-  ctx.lineTo(size * aspectX, 0);
-  ctx.lineTo(0, size);
-  ctx.lineTo(-size * aspectX, 0);
-  ctx.closePath();
-  ctx.stroke();
-
-  ctx.restore();
+  drawCachedNeonShape(ctx, key, size, (offCtx) => {
+    applyNeonStroke(offCtx, color, strokeWidth, shadowBlur);
+    offCtx.beginPath();
+    offCtx.moveTo(0, -size);
+    offCtx.lineTo(size * aspectX, 0);
+    offCtx.lineTo(0, size);
+    offCtx.lineTo(-size * aspectX, 0);
+    offCtx.closePath();
+    offCtx.stroke();
+  });
 }
 
 /**
@@ -177,17 +219,17 @@ export const drawEvader: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCompo
     if (!drawable) return;
     const { render, size } = drawable;
     const color = render.color ?? colors.warning;
+    const key = `gw_evader_${color}_${size}`;
 
-    applyNeonStroke(ctx, color, 2, 10);
-
-    ctx.beginPath();
-    ctx.moveTo(size, 0);
-    ctx.lineTo(-size / 2, -size / 2);
-    ctx.lineTo(-size / 2, size / 2);
-    ctx.closePath();
-    ctx.stroke();
-
-    ctx.restore();
+    drawCachedNeonShape(ctx, key, size, (offCtx) => {
+      applyNeonStroke(offCtx, color, 2, 10);
+      offCtx.beginPath();
+      offCtx.moveTo(size, 0);
+      offCtx.lineTo(-size / 2, -size / 2);
+      offCtx.lineTo(-size / 2, size / 2);
+      offCtx.closePath();
+      offCtx.stroke();
+    });
   }
 };
 
@@ -201,17 +243,17 @@ export const drawGrunt: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCompon
     if (!drawable) return;
     const { render, size } = drawable;
     const color = render.color ?? colors.cyan;
+    const key = `gw_grunt_${color}_${size}`;
 
-    applyNeonStroke(ctx, color);
-
-    ctx.beginPath();
-    ctx.moveTo(size, 0);
-    ctx.lineTo(-size, -size * 0.7);
-    ctx.lineTo(-size, size * 0.7);
-    ctx.closePath();
-    ctx.stroke();
-
-    ctx.restore();
+    drawCachedNeonShape(ctx, key, size, (offCtx) => {
+      applyNeonStroke(offCtx, color, 1.5, 8);
+      offCtx.beginPath();
+      offCtx.moveTo(size, 0);
+      offCtx.lineTo(-size, -size * 0.7);
+      offCtx.lineTo(-size, size * 0.7);
+      offCtx.closePath();
+      offCtx.stroke();
+    });
   }
 };
 
@@ -225,16 +267,15 @@ export const drawBullet: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCompo
     if (!drawable) return;
     const { render, size } = drawable;
     const color = render.color ?? colors.gold;
+    const key = `gw_bullet_${color}_${size}`;
 
-    applyNeonStroke(ctx, color);
-
-    // Draw a small bright laser line
-    ctx.beginPath();
-    ctx.moveTo(-size, 0);
-    ctx.lineTo(size, 0);
-    ctx.stroke();
-
-    ctx.restore();
+    drawCachedNeonShape(ctx, key, size, (offCtx) => {
+      applyNeonStroke(offCtx, color, 1.5, 8);
+      offCtx.beginPath();
+      offCtx.moveTo(-size, 0);
+      offCtx.lineTo(size, 0);
+      offCtx.stroke();
+    });
   }
 };
 
@@ -258,14 +299,14 @@ export const drawEnemyEvader: ShapeDrawer<CanvasRenderingContext2D, GeometryWars
     if (!drawable) return;
     const { render, size } = drawable;
     const color = render.color ?? colors.green;
+    const key = `gw_enemy_evader_${color}_${size}`;
 
-    applyNeonStroke(ctx, color);
-
-    ctx.beginPath();
-    ctx.rect(-size / 2, -size / 2, size, size);
-    ctx.stroke();
-
-    ctx.restore();
+    drawCachedNeonShape(ctx, key, size, (offCtx) => {
+      applyNeonStroke(offCtx, color, 1.5, 8);
+      offCtx.beginPath();
+      offCtx.rect(-size / 2, -size / 2, size, size);
+      offCtx.stroke();
+    });
   }
 };
 
@@ -279,18 +320,18 @@ export const drawEnemyFastSeeker: ShapeDrawer<CanvasRenderingContext2D, Geometry
     if (!drawable) return;
     const { render, size } = drawable;
     const color = render.color ?? colors.pink;
+    const key = `gw_fast_seeker_${color}_${size}`;
 
-    applyNeonStroke(ctx, color);
-
-    ctx.beginPath();
-    ctx.moveTo(size, 0);
-    ctx.lineTo(-size, -size / 2);
-    ctx.lineTo(-size / 2, 0);
-    ctx.lineTo(-size, size / 2);
-    ctx.closePath();
-    ctx.stroke();
-
-    ctx.restore();
+    drawCachedNeonShape(ctx, key, size, (offCtx) => {
+      applyNeonStroke(offCtx, color, 1.5, 8);
+      offCtx.beginPath();
+      offCtx.moveTo(size, 0);
+      offCtx.lineTo(-size, -size / 2);
+      offCtx.lineTo(-size / 2, 0);
+      offCtx.lineTo(-size, size / 2);
+      offCtx.closePath();
+      offCtx.stroke();
+    });
   }
 };
 

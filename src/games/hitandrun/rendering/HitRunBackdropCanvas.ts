@@ -77,42 +77,108 @@ function fillSmoothTerrain(
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Sky                                                                        */
+/*  Sky & Pre-sorting Offscreen Cache                                         */
 /* -------------------------------------------------------------------------- */
+
+const sortedLayersCache = new WeakMap<BackdropSpec, BackdropLayerSpec[]>();
+
+function getSortedLayers(spec: BackdropSpec): BackdropLayerSpec[] {
+  let sorted = sortedLayersCache.get(spec);
+  if (!sorted) {
+    sorted = [];
+    for (let c = 0; c < spec.chunks.length; c++) {
+      const chunk = spec.chunks[c];
+      for (let L = 0; L < chunk.layers.length; L++) {
+        sorted.push(chunk.layers[L]);
+      }
+    }
+    sorted.sort((a, b) => a.depth - b.depth);
+    sortedLayersCache.set(spec, sorted);
+  }
+  return sorted;
+}
+
+interface SkyCacheEntry {
+  key: string;
+  canvas: HTMLCanvasElement | { width: number; height: number };
+}
+
+let cachedStaticSky: SkyCacheEntry | null = null;
+
+function getStaticSkyCanvas(
+  spec: BackdropSpec,
+  w: number,
+  h: number
+): HTMLCanvasElement | { width: number; height: number } {
+  const theme = spec.theme;
+  const key = `${theme.skyGradientTop}_${theme.skyGradientBottom}_${theme.accentGlow}_${w}_${h}`;
+
+  if (cachedStaticSky && cachedStaticSky.key === key) {
+    return cachedStaticSky.canvas;
+  }
+
+  if (typeof document === "undefined" || typeof document.createElement !== "function") {
+    return { width: w, height: h };
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const offCtx = canvas.getContext("2d");
+
+  if (offCtx) {
+    // 1. Sky vertical gradient
+    const grad = offCtx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, theme.skyGradientTop);
+    grad.addColorStop(0.35, "#120c1c");
+    grad.addColorStop(0.62, "#1c1228");
+    grad.addColorStop(0.82, theme.skyGradientBottom);
+    grad.addColorStop(1, "#3a2040");
+    offCtx.fillStyle = grad;
+    offCtx.fillRect(0, 0, w, h);
+
+    // 2. Horizon bloom
+    const bloom = offCtx.createRadialGradient(w * 0.5, h * 0.72, 0, w * 0.5, h * 0.72, w * 0.55);
+    bloom.addColorStop(0, "rgba(255, 90, 100, 0.14)");
+    bloom.addColorStop(0.45, "rgba(180, 60, 90, 0.06)");
+    bloom.addColorStop(1, "rgba(0, 0, 0, 0)");
+    offCtx.fillStyle = bloom;
+    offCtx.fillRect(0, 0, w, h);
+
+    // 3. Zenith glow
+    const zenith = offCtx.createRadialGradient(w * 0.35, h * 0.12, 0, w * 0.35, h * 0.12, w * 0.4);
+    zenith.addColorStop(0, "rgba(80, 100, 180, 0.08)");
+    zenith.addColorStop(1, "rgba(0, 0, 0, 0)");
+    offCtx.fillStyle = zenith;
+    offCtx.fillRect(0, 0, w, h);
+
+    // 4. Twin moons static backdrop
+    for (let i = 0; i < spec.skyFeatures.length; i++) {
+      const feat = spec.skyFeatures[i];
+      if (feat.type === "twin_moons") {
+        drawFantasyFeature(offCtx, feat, 0, 0);
+      }
+    }
+  }
+
+  cachedStaticSky = { key, canvas };
+  return canvas;
+}
 
 function drawSky(
   ctx: CanvasRenderingContext2D,
   w: number,
   h: number,
   theme: BackdropSpec["theme"],
-  elapsed: number
+  elapsed: number,
+  spec: BackdropSpec
 ): void {
-  // Deep multi-stop vertical sky
-  const grad = ctx.createLinearGradient(0, 0, 0, h);
-  grad.addColorStop(0, theme.skyGradientTop);
-  grad.addColorStop(0.35, "#120c1c");
-  grad.addColorStop(0.62, "#1c1228");
-  grad.addColorStop(0.82, theme.skyGradientBottom);
-  grad.addColorStop(1, "#3a2040");
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, w, h);
+  const staticSky = getStaticSkyCanvas(spec, w, h);
+  if ("getContext" in staticSky && staticSky.width > 0) {
+    ctx.drawImage(staticSky as CanvasImageSource, 0, 0);
+  }
 
-  // Warm horizon bloom (subtle dusk)
-  const bloom = ctx.createRadialGradient(w * 0.5, h * 0.72, 0, w * 0.5, h * 0.72, w * 0.55);
-  bloom.addColorStop(0, "rgba(255, 90, 100, 0.14)");
-  bloom.addColorStop(0.45, "rgba(180, 60, 90, 0.06)");
-  bloom.addColorStop(1, "rgba(0, 0, 0, 0)");
-  ctx.fillStyle = bloom;
-  ctx.fillRect(0, 0, w, h);
-
-  // Cool upper glow
-  const zenith = ctx.createRadialGradient(w * 0.35, h * 0.12, 0, w * 0.35, h * 0.12, w * 0.4);
-  zenith.addColorStop(0, "rgba(80, 100, 180, 0.08)");
-  zenith.addColorStop(1, "rgba(0, 0, 0, 0)");
-  ctx.fillStyle = zenith;
-  ctx.fillRect(0, 0, w, h);
-
-  // Soft stars (deterministic positions from index)
+  // Soft stars (twinkling overlay)
   ctx.save();
   for (let i = 0; i < 48; i++) {
     const sx = ((i * 97 + 13) % 1000) / 1000 * w;
@@ -583,23 +649,19 @@ export const drawHitRunProceduralBackdrop: EffectDrawer<
     const elapsed = resolveElapsed(world);
     const theme = spec.theme;
 
-    // 1. Sky + stars + horizon bloom
-    drawSky(ctx, w, h, theme, elapsed);
+    // 1. Sky + stars + horizon bloom (static backdrop offscreen + dynamic stars)
+    drawSky(ctx, w, h, theme, elapsed, spec);
 
-    // 2. Sky features (moons / aurora) — very slight parallax
+    // 2. Sky features (aurora / dynamic features) — very slight parallax
     for (let i = 0; i < spec.skyFeatures.length; i++) {
-      drawFantasyFeature(ctx, spec.skyFeatures[i], -camX * 0.04, elapsed);
-    }
-
-    // 3. Terrain layers far → near
-    const layers: BackdropLayerSpec[] = [];
-    for (let c = 0; c < spec.chunks.length; c++) {
-      const chunk = spec.chunks[c];
-      for (let L = 0; L < chunk.layers.length; L++) {
-        layers.push(chunk.layers[L]);
+      const feature = spec.skyFeatures[i];
+      if (feature.type !== "twin_moons") {
+        drawFantasyFeature(ctx, feature, -camX * 0.04, elapsed);
       }
     }
-    layers.sort((a, b) => a.depth - b.depth);
+
+    // 3. Terrain layers far → near (precomputed sorted array)
+    const layers = getSortedLayers(spec);
 
     let prevDepth = 0;
     for (let i = 0; i < layers.length; i++) {

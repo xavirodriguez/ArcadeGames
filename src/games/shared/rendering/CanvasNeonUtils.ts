@@ -182,32 +182,50 @@ export function drawProceduralGrid(
   ctx.fillStyle = colors.background;
   ctx.fillRect(0, 0, width, height);
 
-  // 2. Scrolling cyber-neon grid lines
+  // 2. Scrolling cyber-neon grid lines (batched single stroke)
   const scrollOffset = (tick * scrollSpeed) % gridSize;
 
   ctx.strokeStyle = "rgba(0, 240, 255, 0.04)";
   ctx.lineWidth = 1.0;
 
-  for (let x = 0; x < width; x += gridSize) {
+  if (typeof Path2D !== "undefined") {
+    const gridPath = new Path2D();
+    for (let x = 0; x < width; x += gridSize) {
+      gridPath.moveTo(x, 0);
+      gridPath.lineTo(x, height);
+    }
+    for (let y = scrollOffset; y < height; y += gridSize) {
+      gridPath.moveTo(0, y);
+      gridPath.lineTo(width, y);
+    }
+    ctx.stroke(gridPath);
+  } else {
     ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, height);
+    for (let x = 0; x < width; x += gridSize) {
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+    }
+    for (let y = scrollOffset; y < height; y += gridSize) {
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+    }
     ctx.stroke();
   }
 
-  for (let y = scrollOffset; y < height; y += gridSize) {
-    ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(width, y);
-    ctx.stroke();
-  }
-
-  ctx.restore();
-
-  // 3. Soft procedural CRT scanlines
+  // 3. Soft procedural CRT scanlines (batched path fill)
   ctx.fillStyle = "rgba(0, 0, 0, 0.08)";
-  for (let y = 0; y < height; y += 4) {
-    ctx.fillRect(0, y, width, 1.5);
+  if (typeof Path2D !== "undefined") {
+    const scanlinePath = new Path2D();
+    for (let y = 0; y < height; y += 4) {
+      scanlinePath.rect(0, y, width, 1.5);
+    }
+    ctx.fill(scanlinePath);
+  } else {
+    ctx.beginPath();
+    for (let y = 0; y < height; y += 4) {
+      ctx.rect(0, y, width, 1.5);
+    }
+    ctx.fill();
   }
 
   // 4. Screen Vignette border
@@ -216,6 +234,8 @@ export function drawProceduralGrid(
   ctx.fillRect(0, height - 12, width, 12); // Bottom edge
   ctx.fillRect(0, 0, 12, height); // Left edge
   ctx.fillRect(width - 12, 0, 12, height); // Right edge
+
+  ctx.restore();
 }
 
 /**

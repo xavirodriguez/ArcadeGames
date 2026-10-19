@@ -136,6 +136,26 @@ describe("CanvasRenderer Perf Instrumentation", () => {
     expect(mockCtx.fillText).toHaveBeenCalled();
   });
 
+  it("syncs canvas size only when dimensions or DPR change", () => {
+    const renderer = new CanvasRenderer();
+    const mockCanvas = { width: 0, height: 0 } as HTMLCanvasElement;
+    const screenConfig = { width: 800, height: 600 };
+
+    renderer.syncSize(mockCanvas, screenConfig);
+    expect(mockCanvas.width).toBe(800);
+    expect(mockCanvas.height).toBe(600);
+
+    // Modifying canvas directly to test no redundant reassignment
+    mockCanvas.width = 999;
+    renderer.syncSize(mockCanvas, screenConfig);
+    expect(mockCanvas.width).toBe(999); // should not reassign since screenConfig & dpr are identical
+
+    // Change screenConfig
+    renderer.syncSize(mockCanvas, { width: 1024, height: 768 });
+    expect(mockCanvas.width).toBe(1024);
+    expect(mockCanvas.height).toBe(768);
+  });
+
   it("applies devicePixelRatio setTransform scaling during rendering", () => {
     const originalWindow = globalThis.window;
     try {

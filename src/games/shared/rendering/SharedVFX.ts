@@ -471,12 +471,34 @@ export const RetroCRTScanlinesEffect: EffectDrawer<CanvasRenderingContext2D, Cor
     ctx.strokeStyle = COSMIC_ARCADE_PALETTE.voidBlack;
     ctx.lineWidth = 1;
 
-    for (let i = 0; i < scanlineYs.length; i++) {
-      const y = scanlineYs[i];
-      ctx.globalAlpha = computeCRTScanlineAlpha(timePhase, y);
+    if (typeof Path2D !== "undefined") {
+      const alphaBuckets = [0.10, 0.125, 0.15, 0.175, 0.20];
+      const paths = [new Path2D(), new Path2D(), new Path2D(), new Path2D(), new Path2D()];
+      const counts = [0, 0, 0, 0, 0];
+
+      for (let i = 0; i < scanlineYs.length; i++) {
+        const y = scanlineYs[i];
+        const alpha = computeCRTScanlineAlpha(timePhase, y);
+        const idx = Math.min(4, Math.max(0, Math.floor((alpha - 0.10) / 0.025)));
+        paths[idx].moveTo(0, y);
+        paths[idx].lineTo(width, y);
+        counts[idx]++;
+      }
+
+      for (let b = 0; b < 5; b++) {
+        if (counts[b] > 0) {
+          ctx.globalAlpha = alphaBuckets[b];
+          ctx.stroke(paths[b]);
+        }
+      }
+    } else {
       ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(width, y);
+      for (let i = 0; i < scanlineYs.length; i++) {
+        const y = scanlineYs[i];
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+      }
+      ctx.globalAlpha = computeCRTScanlineAlpha(timePhase, height * 0.5);
       ctx.stroke();
     }
 

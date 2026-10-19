@@ -66,11 +66,58 @@ export class FrameTimeMeter {
 /**
  * Basic 2D Canvas renderer.
  */
+export interface RenderSortEntry {
+  entity: Entity;
+  render?: RenderComponent;
+  transform?: TransformComponent;
+  order: number;
+  depthSort: boolean;
+  y: number;
+  shape?: string;
+  color?: string;
+}
+
 export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreComponentRegistry> implements Renderer<TRegistry, CanvasRenderingContext2D> {
   private sortedEntities: Entity[] = [];
+  private sortEntries: RenderSortEntry[] = [];
   public readonly type = "canvas";
   private readonly backgroundEffects: Map<string, EffectDrawer<CanvasRenderingContext2D, TRegistry>> = new Map();
   private readonly frameTimeMeter = new FrameTimeMeter(300);
+
+  private lastCanvas: HTMLCanvasElement | null = null;
+  private lastScreenConfig: { width: number; height: number } | null = null;
+  private lastScreenWidth = -1;
+  private lastScreenHeight = -1;
+  private lastDpr = -1;
+
+  public syncSize(canvas: HTMLCanvasElement, screenConfig?: { width: number; height: number }): void {
+    const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+    if (!screenConfig) return;
+
+    if (
+      this.lastCanvas === canvas &&
+      this.lastScreenWidth === screenConfig.width &&
+      this.lastScreenHeight === screenConfig.height &&
+      this.lastDpr === dpr
+    ) {
+      return;
+    }
+
+    this.lastCanvas = canvas;
+    this.lastScreenConfig = screenConfig;
+    this.lastScreenWidth = screenConfig.width;
+    this.lastScreenHeight = screenConfig.height;
+    this.lastDpr = dpr;
+
+    const targetWidth = Math.round(screenConfig.width * dpr);
+    const targetHeight = Math.round(screenConfig.height * dpr);
+    if (canvas.width !== targetWidth) {
+      canvas.width = targetWidth;
+    }
+    if (canvas.height !== targetHeight) {
+      canvas.height = targetHeight;
+    }
+  }
 
   public getFrameTimeStats(): FrameTimeStats {
     return this.frameTimeMeter.getStats();
@@ -227,15 +274,8 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
     const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
 
     const screenConfig = world.getResource<{ width: number; height: number }>("ScreenConfig");
-    if (screenConfig) {
-      const targetWidth = Math.round(screenConfig.width * dpr);
-      const targetHeight = Math.round(screenConfig.height * dpr);
-      if (canvas.width !== targetWidth) {
-        canvas.width = targetWidth;
-      }
-      if (canvas.height !== targetHeight) {
-        canvas.height = targetHeight;
-      }
+    if (canvas && screenConfig && (screenConfig !== this.lastScreenConfig || dpr !== this.lastDpr || canvas !== this.lastCanvas)) {
+      this.syncSize(canvas as HTMLCanvasElement, screenConfig);
     }
 
     const logicalWidth = screenConfig?.width ?? (canvas.width / dpr);
@@ -293,15 +333,59 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
 
     const entities = world.query(transformType, renderType);
 
-    if (this.sortedEntities.length !== entities.length) {
-      this.sortedEntities = [...entities];
-    } else {
-      for (let i = 0; i < entities.length; i++) {
-        this.sortedEntities[i] = entities[i];
+    if (this.sortEntries.length !== entities.length) {
+      this.sortEntries = new Array(entities.length);
+    }
+
+    for (let i = 0; i < entities.length; i++) {
+      const entity = entities[i];
+      const render = world.getComponent(entity, renderType) as RenderComponent | undefined;
+      const transform = world.getComponent(entity, transformType) as TransformComponent | undefined;
+
+      const order = render?.order || 0;
+      const depthSort = render?.depthSort === true;
+      const y = transform ? (transform.worldY ?? transform.y) : 0;
+      const shape = render?.shape;
+      const color = render?.color;
+
+      let entry = this.sortEntries[i];
+      if (!entry) {
+        entry = { entity, render, transform, order, depthSort, y, shape, color };
+        this.sortEntries[i] = entry;
+      } else {
+        entry.entity = entity;
+        entry.render = render;
+        entry.transform = transform;
+        entry.order = order;
+        entry.depthSort = depthSort;
+        entry.y = y;
+        entry.shape = shape;
+        entry.color = color;
       }
     }
 
-    sortEntitiesByRenderOrder(this.sortedEntities, world, renderType, transformType);
+    this.sortEntries.sort((a, b) => {
+      if (a.order !== b.order) {
+        return a.order - b.order;
+      }
+      if (a.depthSort && b.depthSort) {
+        return a.y - b.y;
+      }
+      if (a.shape !== b.shape) {
+        return (a.shape ?? "") < (b.shape ?? "") ? -1 : 1;
+      }
+      if (a.color !== b.color) {
+        return (a.color ?? "") < (b.color ?? "") ? -1 : 1;
+      }
+      return a.entity - b.entity;
+    });
+
+    if (this.sortedEntities.length !== this.sortEntries.length) {
+      this.sortedEntities = new Array(this.sortEntries.length);
+    }
+    for (let i = 0; i < this.sortEntries.length; i++) {
+      this.sortedEntities[i] = this.sortEntries[i].entity;
+    }
 
     ctx.save();                          // ← save de cámara (NUEVO)
 
@@ -332,9 +416,13 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
       }
     }
 
-    for (const entity of this.sortedEntities) {
-      const render = world.getComponent(entity, renderType) as RenderComponent | undefined;
-      const transform = world.getComponent(entity, transformType) as TransformComponent | undefined;
+    let lastColor = "";
+
+    for (let i = 0; i < this.sortEntries.length; i++) {
+      const entry = this.sortEntries[i];
+      const entity = entry.entity;
+      const render = entry.render;
+      const transform = entry.transform;
 
       if (!render || !render.visible || render.opacity === 0) continue;
       if (!transform) continue;
@@ -370,8 +458,11 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
       ctx.globalAlpha = render.opacity;
 
       const drawColor = render.color || "white";
-      ctx.fillStyle = drawColor;
-      ctx.strokeStyle = drawColor;
+      if (drawColor !== lastColor) {
+        ctx.fillStyle = drawColor;
+        ctx.strokeStyle = drawColor;
+        lastColor = drawColor;
+      }
 
       // 1. Try custom registered shape drawer
       const customDrawer = render.shape ? this.shapeDrawers.get(render.shape) : undefined;

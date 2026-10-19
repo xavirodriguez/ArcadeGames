@@ -149,23 +149,37 @@ export const drawEchoBackground: EffectDrawer<CanvasRenderingContext2D, CoreComp
       ctx.fillRect(starX, starY, starSize, starSize);
     }
 
-    // Perspective lines converge at the horizon rather than crossing the whole screen uniformly.
+    // Perspective lines converge at the horizon (batched single path)
     const vanishingX = centerX + driftX;
     ctx.globalAlpha = 0.22;
     ctx.strokeStyle = palette.archiveGridLine;
     ctx.lineWidth = 1;
-    for (let i = 0; i <= 14; i++) {
+
+    if (typeof Path2D !== "undefined") {
+      const gridPath = new Path2D();
+      for (let i = 0; i <= 14; i++) {
+        gridPath.moveTo(vanishingX, horizonY);
+        gridPath.lineTo((i / 14) * width, height);
+      }
+      for (let i = 1; i <= 8; i++) {
+        const progress = i / 8;
+        const gridY = horizonY + Math.pow(progress, 1.65) * (height - horizonY);
+        gridPath.moveTo(0, gridY);
+        gridPath.lineTo(width, gridY);
+      }
+      ctx.stroke(gridPath);
+    } else {
       ctx.beginPath();
-      ctx.moveTo(vanishingX, horizonY);
-      ctx.lineTo((i / 14) * width, height);
-      ctx.stroke();
-    }
-    for (let i = 1; i <= 8; i++) {
-      const progress = i / 8;
-      const gridY = horizonY + Math.pow(progress, 1.65) * (height - horizonY);
-      ctx.beginPath();
-      ctx.moveTo(0, gridY);
-      ctx.lineTo(width, gridY);
+      for (let i = 0; i <= 14; i++) {
+        ctx.moveTo(vanishingX, horizonY);
+        ctx.lineTo((i / 14) * width, height);
+      }
+      for (let i = 1; i <= 8; i++) {
+        const progress = i / 8;
+        const gridY = horizonY + Math.pow(progress, 1.65) * (height - horizonY);
+        ctx.moveTo(0, gridY);
+        ctx.lineTo(width, gridY);
+      }
       ctx.stroke();
     }
 

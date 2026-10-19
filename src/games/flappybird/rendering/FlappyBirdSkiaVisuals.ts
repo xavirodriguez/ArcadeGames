@@ -115,6 +115,31 @@ function getShardPolyPath(): SkPath | null {
   return shardPolyPath;
 }
 
+function drawSkiaGlideEnergyBar(
+  skCanvas: SkCanvas,
+  paint: SkPaint,
+  world: World<FlappyBirdComponentRegistry>,
+  width: number,
+  height: number
+): void {
+  const glideState = resolveGlideEnergyState(world, width, height);
+  if (!glideState) return;
+
+  const { isOverheated, ratio, barW, barH, bx, by, fillColor } = glideState;
+  paint.reset();
+  paint.setStyle(Skia.PaintStyle.Fill);
+  paint.setColor(Skia.Color(hexToRgba(colors.surface, 0.75)));
+  skCanvas.drawRect(Skia.XYWHRect(bx, by, barW, barH), paint);
+
+  paint.setColor(Skia.Color(fillColor));
+  skCanvas.drawRect(Skia.XYWHRect(bx, by, barW * ratio, barH), paint);
+
+  paint.setStyle(Skia.PaintStyle.Stroke);
+  paint.setColor(Skia.Color(isOverheated ? colors.red : colors.slate));
+  paint.setStrokeWidth(1.0);
+  skCanvas.drawRect(Skia.XYWHRect(bx, by, barW, barH), paint);
+}
+
 function drawSkiaVisualParticles(canvas: SkCanvas, paint: SkPaint): void {
   const particles = FLAPPY_PARTICLE_POOL.getActiveParticles();
   for (let i = 0; i < particles.length; i++) {
@@ -796,22 +821,7 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<RenderContext, FlappyBi
 
       drawSkiaVisualParticles(skCanvas, paint);
 
-      const glideState = resolveGlideEnergyState(world, width, height);
-      if (glideState) {
-        const { isOverheated, ratio, barW, barH, bx, by, fillColor } = glideState;
-        paint.reset();
-        paint.setStyle(Skia.PaintStyle.Fill);
-        paint.setColor(Skia.Color(hexToRgba(colors.surface, 0.75)));
-        skCanvas.drawRect(Skia.XYWHRect(bx, by, barW, barH), paint);
-
-        paint.setColor(Skia.Color(fillColor));
-        skCanvas.drawRect(Skia.XYWHRect(bx, by, barW * ratio, barH), paint);
-
-        paint.setStyle(Skia.PaintStyle.Stroke);
-        paint.setColor(Skia.Color(isOverheated ? colors.red : colors.slate));
-        paint.setStrokeWidth(1.0);
-        skCanvas.drawRect(Skia.XYWHRect(bx, by, barW, barH), paint);
-      }
+      drawSkiaGlideEnergyBar(skCanvas, paint, world, width, height);
       return;
     }
 
@@ -908,22 +918,7 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<RenderContext, FlappyBi
 
     drawSkiaVisualParticles(skCanvas, paint);
 
-    const glideState = resolveGlideEnergyState(world, width, height);
-    if (glideState) {
-      const { isOverheated, ratio, barW, barH, bx, by, fillColor } = glideState;
-      paint.reset();
-      paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color(hexToRgba(colors.surface, 0.75)));
-      skCanvas.drawRect(Skia.XYWHRect(bx, by, barW, barH), paint);
-
-      paint.setColor(Skia.Color(fillColor));
-      skCanvas.drawRect(Skia.XYWHRect(bx, by, barW * ratio, barH), paint);
-
-      paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(Skia.Color(isOverheated ? colors.red : colors.slate));
-      paint.setStrokeWidth(1.0);
-      skCanvas.drawRect(Skia.XYWHRect(bx, by, barW, barH), paint);
-    }
+    drawSkiaGlideEnergyBar(skCanvas, paint, world, width, height);
 
     const sectorInfo = resolveSectorEventInfo(gameState.currentSectorEvent ?? "none");
     if (sectorInfo) {

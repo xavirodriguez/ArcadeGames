@@ -1,7 +1,7 @@
 import { ShapeDrawer, EffectDrawer, World, resolveThemeColorWithFallback } from "@tiny-aster/core";
 import type { TowerDefenseComponentRegistry } from "../types/TowerDefenseTypes";
 import { getTileTypeColor } from "../MapUtils";
-import { Skia, getPaint, SkCanvas } from "../../shared/rendering/SkiaContext";
+import { Skia, getPaint, SkCanvas, SkPaint } from "../../shared/rendering/SkiaContext";
 import { drawGlowOrbSkia } from "../../shared/rendering/SkiaNeonUtils";
 import { colors } from "../../../theme/colors";
 import {
@@ -154,6 +154,32 @@ export const drawSkiaTowerRapid: ShapeDrawer<SkCanvas, TowerDefenseComponentRegi
   },
 };
 
+function drawSkiaCreepGeometry(
+  canvas: SkCanvas,
+  paint: SkPaint,
+  radius: number,
+  type: "grunt" | "fast" | "tank" | "boss"
+): void {
+  if (type === "fast") {
+    canvas.drawOval(Skia.XYWHRect(-radius * 1.3, -radius * 0.8, radius * 2.6, radius * 1.6), paint);
+  } else if (type === "boss") {
+    const path = Skia.Path.Make();
+    const bumps = 10;
+    for (let i = 0; i <= 100; i++) {
+      const theta = (i / 100) * Math.PI * 2;
+      const r = radius * (1 + 0.07 * Math.sin(theta * bumps));
+      const px = Math.cos(theta) * r;
+      const py = Math.sin(theta) * r;
+      if (i === 0) path.moveTo(px, py);
+      else path.lineTo(px, py);
+    }
+    path.close();
+    canvas.drawPath(path, paint);
+  } else {
+    canvas.drawCircle(0, 0, radius, paint);
+  }
+}
+
 function drawSkiaCreep(
   canvas: SkCanvas,
   size: number,
@@ -180,69 +206,18 @@ function drawSkiaCreep(
     canvas.save();
     canvas.translate(shadowOffset, shadowOffset);
 
-    if (type === "fast") {
-      canvas.drawOval(Skia.XYWHRect(-radius * 1.3, -radius * 0.8, radius * 2.6, radius * 1.6), paint);
-    } else if (type === "boss") {
-      const path = Skia.Path.Make();
-      const bumps = 10;
-      for (let i = 0; i <= 100; i++) {
-        const theta = (i / 100) * Math.PI * 2;
-        const r = radius * (1 + 0.07 * Math.sin(theta * bumps));
-        const px = Math.cos(theta) * r;
-        const py = Math.sin(theta) * r;
-        if (i === 0) path.moveTo(px, py);
-        else path.lineTo(px, py);
-      }
-      path.close();
-      canvas.drawPath(path, paint);
-    } else {
-      canvas.drawCircle(0, 0, radius, paint);
-    }
+    drawSkiaCreepGeometry(canvas, paint, radius, type);
     canvas.restore();
 
     // Body Fill
     paint.setColor(Skia.Color(fill));
-    if (type === "fast") {
-      canvas.drawOval(Skia.XYWHRect(-radius * 1.3, -radius * 0.8, radius * 2.6, radius * 1.6), paint);
-    } else if (type === "boss") {
-      const path = Skia.Path.Make();
-      const bumps = 10;
-      for (let i = 0; i <= 100; i++) {
-        const theta = (i / 100) * Math.PI * 2;
-        const r = radius * (1 + 0.07 * Math.sin(theta * bumps));
-        const px = Math.cos(theta) * r;
-        const py = Math.sin(theta) * r;
-        if (i === 0) path.moveTo(px, py);
-        else path.lineTo(px, py);
-      }
-      path.close();
-      canvas.drawPath(path, paint);
-    } else {
-      canvas.drawCircle(0, 0, radius, paint);
-    }
+    drawSkiaCreepGeometry(canvas, paint, radius, type);
 
     // Ink Stroke
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setStrokeWidth(Math.max(2, size * 0.08));
     paint.setColor(Skia.Color(stroke));
-    if (type === "fast") {
-      canvas.drawOval(Skia.XYWHRect(-radius * 1.3, -radius * 0.8, radius * 2.6, radius * 1.6), paint);
-    } else if (type === "boss") {
-      const path = Skia.Path.Make();
-      const bumps = 10;
-      for (let i = 0; i <= 100; i++) {
-        const theta = (i / 100) * Math.PI * 2;
-        const r = radius * (1 + 0.07 * Math.sin(theta * bumps));
-        const px = Math.cos(theta) * r;
-        const py = Math.sin(theta) * r;
-        if (i === 0) path.moveTo(px, py);
-        else path.lineTo(px, py);
-      }
-      path.close();
-      canvas.drawPath(path, paint);
-    } else {
-      canvas.drawCircle(0, 0, radius, paint);
-    }
+    drawSkiaCreepGeometry(canvas, paint, radius, type);
 
     return;
   }

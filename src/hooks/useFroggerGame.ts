@@ -13,6 +13,7 @@ const INITIAL_FROGGER_STATE: FroggerState = {
   isWin: false,
   occupiedLilyPads: 0,
   totalLilyPads: 5,
+  timeRemaining: 30,
 };
 
 /**

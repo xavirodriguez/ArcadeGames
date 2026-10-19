@@ -22,6 +22,7 @@ export interface RacingBlueprintMap extends Record<string, BlueprintDefinition<R
   track_ribbon: BlueprintDefinition<RacingComponentRegistry, RacingEventRegistry, Record<string, never>>;
   skid_marks: BlueprintDefinition<RacingComponentRegistry, RacingEventRegistry, Record<string, never>>;
   smoke: BlueprintDefinition<RacingComponentRegistry, RacingEventRegistry, Record<string, never>>;
+  collision_sparks: BlueprintDefinition<RacingComponentRegistry, RacingEventRegistry, Record<string, never>>;
   track_zone: BlueprintDefinition<RacingComponentRegistry, RacingEventRegistry, {
     id: string; x: number; y: number; width: number; height: number; surface: string;
   }>;

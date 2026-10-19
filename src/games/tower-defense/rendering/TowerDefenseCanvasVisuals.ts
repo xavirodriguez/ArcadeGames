@@ -12,6 +12,7 @@ import type { GridLayout } from "../../shared/grid/GridTypes";
 import { getTileTypeColor } from "../MapUtils";
 import {
   createPathDirectionMarkers,
+  resolveCreepAnimationState,
   resolveCreepVisualState,
   resolveTowerProjectileDrawSetup,
   resolveTdMapBackgroundContext,
@@ -386,18 +387,32 @@ function drawCreepHealthBar(
 export const drawCreepGrunt: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
   draw(ctx, world, entity) {
     const { size, fill, stroke } = resolveCreepVisualState(world, entity, 12, "grunt");
+    const animation = resolveCreepAnimationState(world, entity, "grunt");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
+
+    ctx.save();
+    ctx.translate(animation.offsetX, animation.offsetY);
+    ctx.rotate(animation.rotation);
+    ctx.scale(animation.scaleX, animation.scaleY);
     drawCreepBody(ctx, size, fill, stroke, isPaperDuskTheme(world), "grunt", hitFlash);
     drawCreepHealthBar(ctx, world, entity, size);
+    ctx.restore();
   },
 };
 
 export const drawCreepFast: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
   draw(ctx, world, entity) {
     const { size, fill, stroke } = resolveCreepVisualState(world, entity, 10, "fast");
+    const animation = resolveCreepAnimationState(world, entity, "fast");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
+
+    ctx.save();
+    ctx.translate(animation.offsetX, animation.offsetY);
+    ctx.rotate(animation.rotation);
+    ctx.scale(animation.scaleX, animation.scaleY);
     drawCreepBody(ctx, size, fill, stroke, isPaperDuskTheme(world), "fast", hitFlash);
     drawCreepHealthBar(ctx, world, entity, size);
+    ctx.restore();
   },
 };
 
@@ -405,7 +420,13 @@ export const drawCreepTank: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
   draw(ctx, world, entity) {
     const { size, fill, stroke } = resolveCreepVisualState(world, entity, 18, "tank");
     const isPaperDusk = isPaperDuskTheme(world);
+    const animation = resolveCreepAnimationState(world, entity, "tank");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
+
+    ctx.save();
+    ctx.translate(animation.offsetX, animation.offsetY);
+    ctx.rotate(animation.rotation);
+    ctx.scale(animation.scaleX, animation.scaleY);
     drawCreepBody(ctx, size, fill, stroke, isPaperDusk, "tank", hitFlash);
     if (!isPaperDusk) {
       ctx.strokeStyle = resolveThemeColorWithFallback(world, "#5d4037", "creep_tank_plate");
@@ -415,6 +436,7 @@ export const drawCreepTank: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
       ctx.stroke();
     }
     drawCreepHealthBar(ctx, world, entity, size);
+    ctx.restore();
   },
 };
 
@@ -422,7 +444,13 @@ export const drawCreepBoss: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
   draw(ctx, world, entity) {
     const { size, fill, stroke, innerStroke } = resolveCreepVisualState(world, entity, 28, "boss");
     const isPaperDusk = isPaperDuskTheme(world);
+    const animation = resolveCreepAnimationState(world, entity, "boss");
+    const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
 
+    ctx.save();
+    ctx.translate(animation.offsetX, animation.offsetY);
+    ctx.rotate(animation.rotation);
+    ctx.scale(animation.scaleX, animation.scaleY);
     if (!isPaperDusk) {
       ctx.strokeStyle = stroke;
       ctx.lineWidth = 3;
@@ -430,7 +458,6 @@ export const drawCreepBoss: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
       ctx.arc(0, 0, size * 0.55, 0, Math.PI * 2);
       ctx.stroke();
     }
-    const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
     drawCreepBody(ctx, size, fill, innerStroke ?? stroke, isPaperDusk, "boss", hitFlash);
     if (!isPaperDusk) {
       ctx.fillStyle = resolveThemeColorWithFallback(world, "#ffd54f", "creep_boss_crown");
@@ -444,6 +471,7 @@ export const drawCreepBoss: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
       ctx.fill();
     }
     drawCreepHealthBar(ctx, world, entity, size);
+    ctx.restore();
   },
 };
 

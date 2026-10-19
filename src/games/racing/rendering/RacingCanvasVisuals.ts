@@ -302,7 +302,7 @@ export const drawSmoke: ShapeDrawer<CanvasRenderingContext2D, RacingComponentReg
 export const drawCollisionSparks: ShapeDrawer<CanvasRenderingContext2D, RacingComponentRegistry> = {
   draw(ctx, world) {
     const pCtx = resolveRacingParticlePoolContext(world);
-    if (!pCtx || pCtx.pool.sparkCount === 0) return;
+    if (!pCtx || pCtx.pool.activeSparkCount === 0) return;
 
     const { palette, pool } = pCtx;
     ctx.save();

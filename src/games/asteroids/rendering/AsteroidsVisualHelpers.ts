@@ -1,4 +1,4 @@
-import { ShapeType, CircleShape, ColliderComponent, RenderComponent, World, Theme, THEME_RESOURCE_KEY } from "@tiny-aster/core";
+import { ShapeType, CircleShape, ColliderComponent, RenderComponent, World, Theme, THEME_RESOURCE_KEY, EntityGeometryProfile, RandomService } from "@tiny-aster/core";
 import type { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import { computeMotionSecondaryEffect } from "../../shared/rendering/ProceduralShapeUtils";
 
@@ -41,7 +41,7 @@ export interface AsteroidDrawSetup {
   render: RenderComponent;
   collider: ColliderComponent | undefined;
   radius: number;
-  customGeom: any;
+  customGeom: EntityGeometryProfile | undefined;
 }
 
 export function resolveAsteroidDrawSetup(
@@ -59,7 +59,7 @@ export function resolveAsteroidDrawSetup(
 
 export interface PlayerShipSetup {
   render: RenderComponent;
-  customGeom: any;
+  customGeom: EntityGeometryProfile | undefined;
   size: number;
   tick: number;
   isThrusting: boolean;
@@ -85,7 +85,7 @@ export function resolveCustomMotionData(
   isThrusting: boolean,
   size: number,
   tick: number,
-  renderRandom: any
+  renderRandom: RandomService
 ) {
   const motionEffect = customGeom.motionEffect || "flame";
   if (!isThrusting || motionEffect === "none") return null;

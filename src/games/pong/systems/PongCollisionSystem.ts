@@ -1,12 +1,11 @@
 import {
   World,
-  ComponentType,
   System,
   TransformComponent,
   VelocityComponent,
   Juice,
   createEmitter,
-  EventBus
+  TTLComponent
 } from "@tiny-aster/core";
 import { PongConfig } from "../types/PongConfigSchema";
 import { type BallComponent, type PongComponentRegistry } from "../types";
@@ -36,18 +35,18 @@ export class PongCollisionSystem extends System<PongComponentRegistry> {
         if (this.processedPairs.has(pairId)) continue;
         this.processedPairs.add(pairId);
 
-        const isBallA = world.hasComponent(entityA, "Ball" as any);
-        const isBallB = world.hasComponent(entityB, "Ball" as any);
+        const isBallA = world.hasComponent(entityA, "Ball");
+        const isBallB = world.hasComponent(entityB, "Ball");
 
         if (isBallA || isBallB) {
           const ballEntity = isBallA ? entityA : entityB;
           const otherEntity = isBallA ? entityB : entityA;
 
-          const isPaddle = world.hasComponent(otherEntity, "Paddle" as any);
+          const isPaddle = world.hasComponent(otherEntity, "Paddle");
 
           if (isPaddle) {
-            const paddleComp = world.getComponent(otherEntity, "Paddle" as any) as any;
-            const ballVel = world.getComponent(ballEntity, "Velocity") as VelocityComponent;
+            const paddleComp = world.getComponent(otherEntity, "Paddle");
+            const ballVel = world.getComponent(ballEntity, "Velocity");
 
             if (ballVel && paddleComp) {
               // Revert X velocity and scale up speed slightly
@@ -104,7 +103,7 @@ export class PongCollisionSystem extends System<PongComponentRegistry> {
               Juice.squash(world, otherEntity, 0.7, 1.3, 200);
 
               // Particle feedback on hit location with side-specific neon colors and inward-directed angles
-              const ballTransform = world.getComponent(ballEntity, "Transform") as TransformComponent;
+              const ballTransform = world.getComponent(ballEntity, "Transform");
               if (ballTransform) {
                 const hitColor = paddleComp.side === "left" ? "#FF00FF" : "#00FFFF";
                 const hitAngle: [number, number] = paddleComp.side === "left" ? [-45, 45] : [135, 225];
@@ -122,7 +121,8 @@ export class PongCollisionSystem extends System<PongComponentRegistry> {
                   size: [2, 5],
                   angle: hitAngle
                 });
-                world.getCommandBuffer().addComponent(emitter, { type: "TTL", ttl: 500, timeLeft: 0.5, remaining: 0.5 } as any);
+                const ttlComp: TTLComponent = { type: "TTL", timeLeft: 0.5, remaining: 0.5 };
+                world.getCommandBuffer().addComponent(emitter, ttlComp);
               }
 
               // Play hit audio

@@ -1,5 +1,5 @@
-import { System, World, VelocityComponent, InputStateComponent, TouchInputState, Juice } from "@tiny-aster/core";
-import { FlappyBirdInputComponent, BirdComponent, FLAPPY_CONFIG, FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
+import { System, World, InputStateComponent, TouchInputState, Juice } from "@tiny-aster/core";
+import { FLAPPY_CONFIG, FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
 
 const InputUtils = {
   isPressed(inputState: InputStateComponent, button: string): boolean {
@@ -13,11 +13,11 @@ const InputUtils = {
 export class InputBufferSystem extends System<FlappyBirdComponentRegistry> {
   private static buffers = new Map<number, Set<string>>();
 
-  public override onRegister(world: World<any>): void {
+  public override onRegister(_world: World<FlappyBirdComponentRegistry>): void {
     InputBufferSystem.buffers.clear();
   }
 
-  public static buffer(world: World<any>, entity: number, action: string): void {
+  public static buffer(_world: World<FlappyBirdComponentRegistry>, entity: number, action: string): void {
     let set = this.buffers.get(entity);
     if (!set) {
       set = new Set();
@@ -26,7 +26,7 @@ export class InputBufferSystem extends System<FlappyBirdComponentRegistry> {
     set.add(action);
   }
 
-  public static consume(world: World<any>, entity: number, action: string): boolean {
+  public static consume(_world: World<FlappyBirdComponentRegistry>, entity: number, action: string): boolean {
     const set = this.buffers.get(entity);
     if (set && set.has(action)) {
       set.delete(action);
@@ -117,14 +117,12 @@ export class FlappyBirdInputSystem extends System<FlappyBirdComponentRegistry> {
           world.mutateComponent(entity, "Velocity", mutableVel => {
             mutableVel.vy = this.config.FLAP_STRENGTH;
           });
-          world.getCommandBuffer().addComponent(entity, { type: "HapticRequest", pattern: "selection" } as any);
+          world.getCommandBuffer().addComponent(entity, { type: "HapticRequest", pattern: "selection" });
           // Juice: Squash al aletear
-          Juice.squash(world as any, entity, 1.2, 0.8, 50);
+          Juice.squash(world, entity, 1.2, 0.8, 50);
 
-          const eventBus = world.getResource<any>("EventBus");
-          if (eventBus) {
-            eventBus.emitDeferred("PlaySFX", { name: "flap" });
-          }
+          const eventBus = world.getEventBus();
+          eventBus.emitDeferred("PlaySFX", { name: "flap" });
         }
 
         // Apply gravity

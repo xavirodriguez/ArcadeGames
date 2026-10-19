@@ -1,5 +1,6 @@
 import { World, Entity, spawnBlueprintEntity } from "@tiny-aster/core";
 import { getScenarioConfig, samplePipeFromRecipe } from "./ScenarioDefinitions";
+import { FlappyBirdComponentRegistry } from "./types/FlappyBirdTypes";
 
 /**
  * Entity factory for the Flappy Bird game domain.
@@ -15,7 +16,7 @@ import { getScenarioConfig, samplePipeFromRecipe } from "./ScenarioDefinitions";
  * Parameters for creating a bird entity.
  */
 export interface CreateBirdParams {
-  world: World<any>;
+  world: World<FlappyBirdComponentRegistry>;
   x: number;
   y: number;
   /** @deprecated Currently unused — spawnBlueprintEntity always spawns immediately. */
@@ -26,7 +27,7 @@ export interface CreateBirdParams {
  * Parameters for creating a pipe entity.
  */
 export interface CreatePipeParams {
-  world: World<any>;
+  world: World<FlappyBirdComponentRegistry>;
   x: number;
   gapY: number;
   visualVariant?: "standard" | "damaged" | "rusted";
@@ -84,13 +85,13 @@ export function createPipe(options: CreatePipeParams): void {
 /**
  * Creates the ground entity.
  */
-export function createGround(world: World<any>, deferred?: boolean): Entity {
+export function createGround(world: World<FlappyBirdComponentRegistry>, _deferred?: boolean): Entity {
   return spawnBlueprintEntity(world, "ground", {});
 }
 
 /**
  * Creates the global game state entity.
  */
-export function createGameState(world: World<any>, deferred?: boolean): Entity {
+export function createGameState(world: World<FlappyBirdComponentRegistry>, _deferred?: boolean): Entity {
   return spawnBlueprintEntity(world, "state", {});
 }

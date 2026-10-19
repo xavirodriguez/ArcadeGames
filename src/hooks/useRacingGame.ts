@@ -16,9 +16,9 @@ const INITIAL_STATE: RacingGameState = {
   position: 1
 };
 
-export function useRacingGame(started: boolean, seed?: number) {
+export function useRacingGame(started: boolean, seed?: number, trackId?: string) {
   const [activeMutators] = useState<readonly never[]>([]);
-  const options = useMemo(() => ({ activeMutators }), [activeMutators]);
+  const options = useMemo(() => ({ activeMutators, trackId }), [activeMutators, trackId]);
   const { game, gameState, handleInput, isPaused, isReady, togglePause, restart } =
     useGame<RacingGame, RacingGameState, RacingInputState>(
       started ? RacingGame : null,

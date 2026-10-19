@@ -15,6 +15,7 @@ import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { useTranslation } from "@/hooks/useTranslation";
 import { hapticSelection } from "@/utils/haptics";
 import { getRacingSkin } from "@/games/racing/rendering/RacingSkin";
+import { TRACK_LIST, DEFAULT_TRACK_ID } from "@/games/racing/config/tracks";
 import { computeRacingSpeedMetrics } from "@/games/racing/RacingHudMetrics";
 
 function formatRaceTime(seconds: number | null | undefined): string {
@@ -30,7 +31,8 @@ function formatRaceTime(seconds: number | null | undefined): string {
 export default function RacingScreen() {
   const { t } = useTranslation();
   const [started, setStarted] = useState(false);
-  const { game, gameState, handleInput, isReady } = useRacingGame(started);
+  const [selectedTrackId, setSelectedTrackId] = useState<string>(DEFAULT_TRACK_ID);
+  const { game, gameState, handleInput, isReady } = useRacingGame(started, undefined, selectedTrackId);
 
   const touchStateRef = useRef<TouchInputState | null>(null);
   if (!touchStateRef.current) {
@@ -118,6 +120,29 @@ export default function RacingScreen() {
         </GameInstructions>
         <View style={styles.instructions}>
           <Text style={styles.text}>3 laps · checkpoints in order · drift through corners</Text>
+        </View>
+        <View style={styles.trackSelectorContainer}>
+          <Text style={styles.trackSelectorLabel}>SELECT TRACK:</Text>
+          <View style={styles.trackButtonsRow}>
+            {TRACK_LIST.map((track) => {
+              const isSelected = selectedTrackId === track.id;
+              return (
+                <NeonButton
+                  key={track.id}
+                  variant={isSelected ? "cyan" : "white"}
+                  bordered={!isSelected}
+                  style={styles.trackButton}
+                  textStyle={styles.trackButtonText}
+                  onPress={() => {
+                    hapticSelection();
+                    setSelectedTrackId(track.id);
+                  }}
+                >
+                  {track.name}
+                </NeonButton>
+              );
+            })}
+          </View>
         </View>
         <NeonButton variant="cyan" onPress={() => { hapticSelection(); setStarted(true); }}>
           RACE
@@ -486,6 +511,34 @@ const styles = StyleSheet.create({
   },
   instructions: {
     marginBottom: 24
+  },
+  trackSelectorContainer: {
+    marginBottom: 24,
+    alignItems: "center",
+    gap: 12
+  },
+  trackSelectorLabel: {
+    color: "#F8F4E8",
+    fontFamily: "monospace",
+    fontSize: 12,
+    fontWeight: "bold",
+    letterSpacing: 1
+  },
+  trackButtonsRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    gap: 8,
+    maxWidth: 600
+  },
+  trackButton: {
+    minWidth: 100,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    minHeight: 38
+  },
+  trackButtonText: {
+    fontSize: 11
   },
   text: {
     color: "#fff",

@@ -34,7 +34,7 @@ import { RacingComponentRegistry, RacingEventRegistry, RacingBlueprintMap } from
 import { RacingGameState, RacingInputState } from "./types/RacingTypes";
 import { TrackSpecSchema, TrackSpec } from "./types/TrackSpecSchema";
 import { registerRacingBlueprints, spawnBlueprint } from "./EntityFactory";
-import breakfastTrackRaw from "./config/tracks/breakfast_table.json";
+import { TRACKS, DEFAULT_TRACK_ID } from "./config/tracks";
 import { RacingInputSystem } from "./systems/RacingInputSystem";
 import { RacingSurfaceSystem } from "./systems/RacingSurfaceSystem";
 import { RacingParticleSystem } from "./systems/RacingParticleSystem";
@@ -170,7 +170,9 @@ export class RacingGame extends BaseGame<
 
   protected override async onInitializeEntities(): Promise<void> {
     const config = this.config;
-    const trackSpec: TrackSpec = TrackSpecSchema.parse(breakfastTrackRaw);
+    const trackId = (this._config.gameOptions?.trackId as string | undefined) ?? DEFAULT_TRACK_ID;
+    const trackData = TRACKS[trackId] ?? TRACKS[DEFAULT_TRACK_ID];
+    const trackSpec: TrackSpec = TrackSpecSchema.parse(trackData);
     this.world.setResource("ActiveTrackSpec", trackSpec);
 
     const state = spawnBlueprint(this.world, "state", {});

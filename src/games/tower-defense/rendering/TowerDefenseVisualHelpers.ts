@@ -2,6 +2,47 @@ import { World, resolveThemeColorWithFallback } from "@tiny-aster/core";
 import type { TowerDefenseComponentRegistry } from "../types/TowerDefenseTypes";
 import { colors } from "../../../theme/colors";
 
+export interface PathDirectionMarker {
+  x: number;
+  y: number;
+  angle: number;
+}
+
+/**
+ * Places subtle directional chevrons along the enemy route.
+ * Excludes the spawn and base endpoints and ignores invalid or duplicate points.
+ */
+export function createPathDirectionMarkers(
+  points: ReadonlyArray<{ x: number; y: number }>,
+  stride = 2
+): PathDirectionMarker[] {
+  if (points.length < 3) return [];
+
+  const interval = Number.isFinite(stride) ? Math.max(1, Math.floor(stride)) : 2;
+  const markers: PathDirectionMarker[] = [];
+
+  for (let index = interval; index < points.length - 1; index += interval) {
+    const current = points[index];
+    const next = points[index + 1];
+    if (!current || !next) continue;
+    if (
+      !Number.isFinite(current.x) ||
+      !Number.isFinite(current.y) ||
+      !Number.isFinite(next.x) ||
+      !Number.isFinite(next.y)
+    ) {
+      continue;
+    }
+
+    const dx = next.x - current.x;
+    const dy = next.y - current.y;
+    if (dx === 0 && dy === 0) continue;
+
+    markers.push({ x: current.x, y: current.y, angle: Math.atan2(dy, dx) });
+  }
+
+  return markers;
+}
 export interface CreepVisualState {
   size: number;
   slowed: boolean;

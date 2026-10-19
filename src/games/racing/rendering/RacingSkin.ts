@@ -141,6 +141,28 @@ export const defaultCarActorDrawer: DrawerSpec<ActorDrawerParams> = (params) => 
   const primitives: RenderPrimitive[] = [];
 
   if (boosting) {
+    // Peripheral streaks reinforce acceleration without obscuring the car or road.
+    const streakPulse = 0.58 + (Math.sin(time * 38) + 1) * 0.08;
+    for (let streakIndex = 0; streakIndex < 4; streakIndex += 1) {
+      const side = (streakIndex - 1.5) * 0.38;
+      const offset = streakIndex % 2;
+      const startX = -size * (1.65 + offset * 0.28);
+      const endX = -size * (1.05 + offset * 0.18);
+      const baseY = side * size;
+
+      primitives.push({
+        type: "line",
+        x1: startX,
+        y1: baseY + Math.sin(time * 30 + streakIndex) * size * 0.04,
+        x2: endX,
+        y2: baseY,
+        stroke: streakIndex % 2 === 0 ? palette.text : palette.accent,
+        strokeWidth: Math.max(1, size * 0.055),
+        alpha: streakPulse * (0.32 + offset * 0.08),
+        lineCap: "round"
+      });
+    }
+
     const oscillation = Math.sin(time * 30) * 0.15 + Math.cos(time * 47) * 0.1;
     const flameLen = size * (1.5 + oscillation);
 

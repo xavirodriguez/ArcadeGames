@@ -15,6 +15,7 @@ import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { useTranslation } from "@/hooks/useTranslation";
 import { hapticSelection } from "@/utils/haptics";
 import { getRacingSkin } from "@/games/racing/rendering/RacingSkin";
+import { computeRacingSpeedMetrics } from "@/games/racing/RacingHudMetrics";
 
 function formatRaceTime(seconds: number | null | undefined): string {
   if (seconds === null || seconds === undefined || !Number.isFinite(seconds) || seconds < 0) {
@@ -53,6 +54,19 @@ export default function RacingScreen() {
   const targetScore = Math.max(1, headToHead?.targetScore ?? 4);
   const scorePlayer1 = headToHead?.scores.player_1 ?? 0;
   const scorePlayer2 = headToHead?.scores.player_2 ?? 0;
+
+  const world = game?.getWorld();
+  const localPlayerEntity = world?.query("LocalPlayer", "Velocity")[0];
+  const playerVelocity = localPlayerEntity === undefined ? undefined : world?.getComponent(localPlayerEntity, "Velocity");
+  const playerInput = localPlayerEntity === undefined ? undefined : world?.getComponent(localPlayerEntity, "Input");
+  const racingConfig = world?.getResource<{ CAR_MAX_SPEED?: number; CAR_BOOST_MULTIPLIER?: number }>("GameConfig");
+  const maxSpeed = (racingConfig?.CAR_MAX_SPEED ?? 420) * (racingConfig?.CAR_BOOST_MULTIPLIER ?? 1.35);
+  const speedMetrics = computeRacingSpeedMetrics(
+    playerVelocity?.vx ?? 0,
+    playerVelocity?.vy ?? 0,
+    maxSpeed
+  );
+  const isBoosting = playerInput?.actions.boost === true;
 
   const countdownVal = Math.ceil(gameState.countdownRemaining);
   const isCountdownActive = gameState.phase === "countdown" || (gameState.phase === "racing" && gameState.raceTime < 1.0);
@@ -179,6 +193,26 @@ export default function RacingScreen() {
                   ))}
                 </View>
                 <Text style={[styles.scoreLabel, { color: "#E87968" }]}>P2</Text>
+              </View>
+              <View style={[styles.speedometer, { borderColor: `${glowColor}66` }]}>
+                <View style={styles.speedReadout}>
+                  <Text style={styles.speedLabel}>SPD</Text>
+                  <Text style={[styles.speedValue, { color: isBoosting ? accentColor : glowColor }]}>
+                    {speedMetrics.display}
+                  </Text>
+                </View>
+                <View style={styles.speedTrack}>
+                  <View
+                    style={[
+                      styles.speedFill,
+                      {
+                        width: `${Math.round(speedMetrics.ratio * 100)}%`,
+                        backgroundColor: isBoosting ? accentColor : glowColor,
+                        opacity: 0.72 + speedMetrics.ratio * 0.28
+                      }
+                    ]}
+                  />
+                </View>
               </View>
             </View>
           }
@@ -381,6 +415,47 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 8,
     marginHorizontal: 1
+  },
+  speedometer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    width: 148,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderWidth: 1,
+    borderRadius: 6,
+    backgroundColor: "rgba(12,18,27,0.76)"
+  },
+  speedReadout: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: 5
+  },
+  speedLabel: {
+    color: "rgba(248,244,232,0.58)",
+    fontFamily: "monospace",
+    fontSize: 8,
+    fontWeight: "bold",
+    letterSpacing: 0.8
+  },
+  speedValue: {
+    minWidth: 25,
+    fontFamily: "monospace",
+    fontSize: 11,
+    fontWeight: "bold",
+    fontVariant: ["tabular-nums"]
+  },
+  speedTrack: {
+    flex: 1,
+    height: 6,
+    borderRadius: 4,
+    overflow: "hidden",
+    backgroundColor: "rgba(248,244,232,0.12)"
+  },
+  speedFill: {
+    height: "100%",
+    borderRadius: 4
   },
   controls: {
     ...StyleSheet.absoluteFill,

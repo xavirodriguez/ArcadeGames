@@ -1,4 +1,4 @@
-import { System, World, CoreComponentRegistry, Component, Entity } from "@tiny-aster/core";
+import { System, World, CoreComponentRegistry, ComponentRegistry, Component, Entity } from "@tiny-aster/core";
 
 /**
  * Capture state discriminator union.
@@ -38,6 +38,10 @@ export interface CapturableComponent extends Component {
   floatVelocityY?: number;
 }
 
+export interface CapturableComponentRegistry extends CoreComponentRegistry {
+  Capturable: CapturableComponent;
+}
+
 /**
  * Creates a new {@link CapturableComponent}.
  *
@@ -63,7 +67,7 @@ export function createCapturable(options?: {
  *
  * @public
  */
-export class CaptureSystem extends System<CoreComponentRegistry> {
+export class CaptureSystem<TRegistry extends ComponentRegistry = CoreComponentRegistry> extends System<TRegistry> {
   /**
    * Traps a target entity inside a capture volume (e.g. bubble or net).
    *
@@ -74,13 +78,13 @@ export class CaptureSystem extends System<CoreComponentRegistry> {
    * @returns `true` if target carried a CapturableComponent and was trapped.
    * @public
    */
-  public static trap(
-    world: World<CoreComponentRegistry>,
+  public static trap<TReg extends ComponentRegistry = CoreComponentRegistry>(
+    world: World<TReg>,
     target: Entity,
     captor?: Entity,
     maxDuration?: number
   ): boolean {
-    const capturable = world.getMutableComponent(target, "Capturable" as any) as CapturableComponent | undefined;
+    const capturable = world.getMutableComponent(target, "Capturable" as Extract<keyof TReg, string>) as CapturableComponent | undefined;
     if (!capturable) return false;
 
     capturable.state = "trapped";
@@ -110,12 +114,12 @@ export class CaptureSystem extends System<CoreComponentRegistry> {
    * @returns `true` if target was in `trapped` state and popped.
    * @public
    */
-  public static pop(
-    world: World<CoreComponentRegistry>,
+  public static pop<TReg extends ComponentRegistry = CoreComponentRegistry>(
+    world: World<TReg>,
     target: Entity,
     source?: Entity
   ): boolean {
-    const capturable = world.getMutableComponent(target, "Capturable" as any) as CapturableComponent | undefined;
+    const capturable = world.getMutableComponent(target, "Capturable" as Extract<keyof TReg, string>) as CapturableComponent | undefined;
     if (!capturable || capturable.state !== "trapped") return false;
 
     capturable.state = "popped";
@@ -138,19 +142,19 @@ export class CaptureSystem extends System<CoreComponentRegistry> {
    * @param world - Simulation world.
    * @param deltaTime - Frame duration in seconds.
    */
-  public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
+  public update(world: World<TRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true || deltaTime <= 0) return;
 
-    const entities = world.query("Capturable" as any);
+    const entities = world.query("Capturable" as Extract<keyof TRegistry, string>);
     const len = entities.length;
 
     for (let i = 0; i < len; i++) {
       const entity = entities[i];
-      const capturable = world.getMutableComponent(entity, "Capturable" as any) as CapturableComponent | undefined;
+      const capturable = world.getMutableComponent(entity, "Capturable" as Extract<keyof TRegistry, string>) as CapturableComponent | undefined;
       if (!capturable || capturable.state !== "trapped") continue;
 
       // Apply floating upward movement while trapped
-      const vel = world.getMutableComponent(entity, "Velocity");
+      const vel = world.getMutableComponent(entity, "Velocity" as Extract<keyof TRegistry, string>) as unknown as { vx: number; vy: number } | undefined;
       if (vel) {
         vel.vx = 0;
         vel.vy = capturable.floatVelocityY ?? -20;

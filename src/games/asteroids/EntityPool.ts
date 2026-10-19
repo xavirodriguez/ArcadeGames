@@ -5,8 +5,6 @@ import {
   VelocityComponent,
   RenderComponent,
   Collider2DComponent,
-  CircleShape,
-  ShapeType,
   ReclaimableComponent,
   BoundaryComponent,
   HealthComponent,
@@ -16,10 +14,12 @@ import {
   ProjectileParams,
   PrefabPool,
   PrefabConfig,
-  Component
+  Component,
+  CoreComponentRegistry
 } from "@tiny-aster/core";
 import { CollisionLayers, createProjectilePoolConfig, SharedParticlePool, FactionComponent, LootTableComponent } from "@tiny-aster/gameplay-kit";
 import { AsteroidsComponentRegistry } from "./types/AsteroidRegistry";
+import { AsteroidConfig } from "./types/AsteroidConfigSchema";
 
 /**
  * Parameters for acquiring an Asteroids bullet from the pool.
@@ -33,7 +33,18 @@ export interface AsteroidsBulletParams extends ProjectileParams {
   ownerId?: string;
 }
 
-function createAsteroidsBulletPoolConfig() {
+export interface PooledBulletComponents extends Record<string, Component> {
+  position: TransformComponent;
+  velocity: VelocityComponent;
+  render: RenderComponent;
+  collider: Collider2DComponent;
+  collisionEvents: CollisionEventsComponent;
+  bullet: AsteroidsComponentRegistry["Bullet"];
+  ttl: CoreComponentRegistry["TTL"];
+  reclaimable: ReclaimableComponent;
+}
+
+function createAsteroidsBulletPoolConfig(): PrefabConfig<PooledBulletComponents, AsteroidsBulletParams> {
   const base = createProjectilePoolConfig<AsteroidsBulletParams>({
     shape: "bullet",
     layer: CollisionLayers.PROJECTILE,
@@ -42,9 +53,9 @@ function createAsteroidsBulletPoolConfig() {
     damageCategory: "player_bullet",
     faction: "player",
     order: 2,
-    extraComponents: (data: any, p: AsteroidsBulletParams, world: World, entity: Entity) => {
+    extraComponents: (data: Record<string, any>, p: AsteroidsBulletParams, world: World, entity: Entity) => {
       const tint = resolveThemeColor(world, "bullet", "player-bullet");
-      const gameConfig = world.getResource<any>("GameConfig");
+      const gameConfig = world.getResource<AsteroidConfig>("GameConfig");
 
       data.position.rotation = p.rotation ?? 0;
       data.render.color = p.color || tint;
@@ -78,13 +89,15 @@ function createAsteroidsBulletPoolConfig() {
   return {
     ...base,
     factory: () => {
-      const obj = baseFactory() as any;
+      const obj = baseFactory() as PooledBulletComponents;
       obj.bullet = { type: "Bullet", ownerId: undefined };
-      (obj.collider.shape as CircleShape).radius = 2;
+      if (obj.collider.shape.type === "circle") {
+        obj.collider.shape.radius = 2;
+      }
       obj.render.size = 2;
       return obj;
     },
-    reset: (data: any) => {
+    reset: (data: PooledBulletComponents) => {
       baseReset(data);
       if (data.bullet) {
         data.bullet.ownerId = undefined;
@@ -98,7 +111,7 @@ function createAsteroidsBulletPoolConfig() {
  * Extends ProjectilePool from @tiny-aster/core.
  * @public
  */
-export class BulletPool extends ProjectilePool<any, AsteroidsBulletParams> {
+export class BulletPool extends ProjectilePool<PooledBulletComponents, AsteroidsBulletParams> {
   constructor() {
     super(createAsteroidsBulletPoolConfig());
   }
@@ -206,7 +219,7 @@ function createAsteroidsPoolConfig(): PrefabConfig<AsteroidComponents, AsteroidP
       }
     },
     initializer: (data: AsteroidComponents, p: AsteroidParams, world: World, entity: Entity) => {
-      const gameConfig = world.getResource<any>("GameConfig");
+      const gameConfig = world.getResource<AsteroidConfig>("GameConfig");
       const worldWidth = gameConfig?.worldWidth ?? 800;
       const worldHeight = gameConfig?.worldHeight ?? 600;
       const randVx = (world.gameplayRandom.next() - 0.5) * 100;

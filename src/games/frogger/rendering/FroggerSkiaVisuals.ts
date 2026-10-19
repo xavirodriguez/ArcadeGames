@@ -1,7 +1,6 @@
-import { ShapeDrawer, EffectDrawer, resolveThemeColor, resolveThemeColorWithFallback } from "@tiny-aster/core";
+import { ShapeDrawer, EffectDrawer, resolveThemeColorWithFallback } from "@tiny-aster/core";
 import { FroggerComponentRegistry } from "../types/FroggerTypes";
-import { DEFAULT_FROGGER_CONFIG } from "../types/FroggerConfigSchema";
-import { Skia } from "../../shared/rendering/SkiaContext";
+import { Skia, type SkCanvas } from "../../shared/rendering/SkiaContext";
 import { getVisibleSkiaRender } from "../../shared/rendering/renderingUtils";
 import {
   resolveFroggerPlayerDrawContext,
@@ -12,7 +11,7 @@ import {
 } from "./FroggerRenderUtils";
 
 function drawSkiaRoundedBox(
-  canvas: any,
+  canvas: SkCanvas,
   width: number,
   height: number,
   color: string,
@@ -25,7 +24,7 @@ function drawSkiaRoundedBox(
   canvas.drawRRect(rect, paint);
 }
 
-export const drawFroggerSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
+export const drawFroggerSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
   draw(canvas, world, entity) {
     const playerCtx = resolveFroggerPlayerDrawContext(world, entity);
     if (!playerCtx) return;
@@ -48,7 +47,7 @@ export const drawFroggerSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
   },
 };
 
-export const drawCarSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
+export const drawCarSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = getVisibleSkiaRender(world, entity);
     if (!render) return;
@@ -59,7 +58,7 @@ export const drawCarSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
   },
 };
 
-export const drawTruckSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
+export const drawTruckSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = getVisibleSkiaRender(world, entity);
     if (!render) return;
@@ -80,7 +79,7 @@ export const drawTruckSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
   },
 };
 
-export const drawLogSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
+export const drawLogSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = getVisibleSkiaRender(world, entity);
     if (!render) return;
@@ -91,7 +90,7 @@ export const drawLogSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
   },
 };
 
-export const drawTurtleSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
+export const drawTurtleSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = getVisibleSkiaRender(world, entity);
     if (!render) return;
@@ -109,7 +108,7 @@ export const drawTurtleSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
   },
 };
 
-export const drawLilyPadSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
+export const drawLilyPadSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
     const goalCtx = resolveFroggerGoalContext(world, entity);
@@ -125,7 +124,7 @@ export const drawLilyPadSkia: ShapeDrawer<any, FroggerComponentRegistry> = {
   },
 };
 
-export const froggerBackgroundSkiaEffect: EffectDrawer<any, FroggerComponentRegistry> = {
+export const froggerBackgroundSkiaEffect: EffectDrawer<SkCanvas, FroggerComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
     const { w, grid, grassColor, waterColor, roadColor } = resolveFroggerBackgroundContext(world);

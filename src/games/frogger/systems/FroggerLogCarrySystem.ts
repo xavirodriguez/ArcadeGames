@@ -15,10 +15,7 @@ export class FroggerLogCarrySystem extends System<FroggerComponentRegistry> {
 
     if (!froggerRead || !transformRead || !froggerRead.isAlive) return;
 
-    // Check invulnerability helper
     const isInvulnerable = isEntityInvulnerable(world, froggerEntity);
-
-    // Check if Frogger is in the river area (rows 1 to 5)
     const isRiverRow = froggerRead.gridY >= 1 && froggerRead.gridY <= 5;
 
     if (!isRiverRow) {
@@ -33,19 +30,15 @@ export class FroggerLogCarrySystem extends System<FroggerComponentRegistry> {
 
     const frogger = world.getMutableComponent(froggerEntity, "Frogger");
     const transform = world.getMutableComponent(froggerEntity, "Transform");
-    if (!frogger || !transform) return;
-
     if (!frogger || !transform || !frogger.isAlive) return;
 
-
-    // Find logs/turtles on the same row as Frogger
     const logEntities = world.query("Log", "Transform", "Velocity");
     let ridingLogEntity: number | undefined = undefined;
     let ridingLogVx = 0;
+    let platformLethal = false;
 
     const froggerX = transform.x;
 
-    // Radius from Frogger collider (FRG-008: eliminate fallback duplication)
     const collider = world.getComponent(froggerEntity, "Collider2D");
     const frogRadius =
       collider && collider.shape && "radius" in collider.shape
@@ -61,6 +54,10 @@ export class FroggerLogCarrySystem extends System<FroggerComponentRegistry> {
       const logVel = world.getComponent(e, "Velocity");
 
       if (log && logTransform && logVel && log.laneY === frogger.gridY) {
+        if (log.logType === "turtle" && log.divePhase === "submerged") {
+          continue;
+        }
+
         const logWidth = config.GRID_SIZE * log.length;
         const halfWidth = logWidth / 2;
         const left = logTransform.x - halfWidth;
@@ -75,27 +72,59 @@ export class FroggerLogCarrySystem extends System<FroggerComponentRegistry> {
         if (overlap >= overlapNeeded) {
           ridingLogEntity = e;
           ridingLogVx = logVel.vx;
+
+          if (log.logType === "crocodile" && log.mouthOpen) {
+            const headFraction = 0.35;
+            const headWidth = logWidth * headFraction;
+            let headLeft: number;
+            let headRight: number;
+            if (log.direction > 0) {
+              headLeft = right - headWidth;
+              headRight = right;
+            } else {
+              headLeft = left;
+              headRight = left + headWidth;
+            }
+            const headOverlap = Math.min(frogRight, headRight) - Math.max(frogLeft, headLeft);
+            if (headOverlap > 0) {
+              platformLethal = true;
+            }
+          }
           break;
         }
       }
     }
 
     if (ridingLogEntity !== undefined) {
+      if (platformLethal && !isInvulnerable) {
+        this.triggerDeath(world, froggerEntity, "crocodile");
+        return;
+      }
+
       frogger.isRiding = true;
       frogger.logEntity = ridingLogEntity;
 
-      // Carry Frogger along with log's horizontal velocity
       transform.x += ridingLogVx * dt;
-      frogger.gridX = Math.max(0, Math.min(config.TOTAL_COLS - 1, Math.floor(transform.x / config.GRID_SIZE)));
+      frogger.gridX = Math.max(
+        0,
+        Math.min(config.TOTAL_COLS - 1, Math.floor(transform.x / config.GRID_SIZE))
+      );
 
-      // Offscreen drift check using physical bounds
       if (transform.x + frogRadius < 0 || transform.x - frogRadius > config.worldWidth) {
         if (!isInvulnerable) {
           this.triggerDeath(world, froggerEntity, "drift");
         }
       }
+
+      const currentLog = world.getComponent(ridingLogEntity, "Log");
+      if (
+        currentLog?.logType === "turtle" &&
+        currentLog.divePhase === "submerged" &&
+        !isInvulnerable
+      ) {
+        this.triggerDeath(world, froggerEntity, "drown");
+      }
     } else {
-      // Frogger is in the river without a log -> DROWNING!
       frogger.isRiding = false;
       frogger.logEntity = undefined;
       if (!isInvulnerable) {
@@ -104,7 +133,11 @@ export class FroggerLogCarrySystem extends System<FroggerComponentRegistry> {
     }
   }
 
-  private triggerDeath(world: World<FroggerComponentRegistry>, froggerEntity: number, reason: "drown" | "drift"): void {
+  private triggerDeath(
+    world: World<FroggerComponentRegistry>,
+    froggerEntity: number,
+    reason: "drown" | "drift" | "crocodile"
+  ): void {
     const frogger = world.getMutableComponent(froggerEntity, "Frogger");
     if (!frogger || !frogger.isAlive) return;
 

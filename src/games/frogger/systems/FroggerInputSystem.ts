@@ -26,22 +26,21 @@ export class FroggerInputSystem extends System<FroggerComponentRegistry> {
     const moveUp = input.moveUp || (unifiedInput ? unifiedInput.getAction("moveUp") : false);
     const moveDown = input.moveDown || (unifiedInput ? unifiedInput.getAction("moveDown") : false);
     const moveLeft = input.moveLeft || (unifiedInput ? unifiedInput.getAction("moveLeft") : false);
-    const moveRight = input.moveRight || (unifiedInput ? unifiedInput.getAction("moveRight") : false);
+    const moveRight =
+      input.moveRight || (unifiedInput ? unifiedInput.getAction("moveRight") : false);
 
-    // Discrete rising edge evaluation: hop only on newly pressed state
     const isUpPressed = moveUp && !input.prevMoveUp;
     const isDownPressed = moveDown && !input.prevMoveDown;
     const isLeftPressed = moveLeft && !input.prevMoveLeft;
     const isRightPressed = moveRight && !input.prevMoveRight;
 
-    // Save current frame inputs as previous
     input.prevMoveUp = moveUp;
     input.prevMoveDown = moveDown;
     input.prevMoveLeft = moveLeft;
     input.prevMoveRight = moveRight;
 
     if (frogger.cooldownRemaining > 0) {
-      frogger.cooldownRemaining -= dt * 60; // Tick countdown based on 60fps
+      frogger.cooldownRemaining -= dt * 60;
       if (frogger.cooldownRemaining < 0) frogger.cooldownRemaining = 0;
     }
 
@@ -66,8 +65,10 @@ export class FroggerInputSystem extends System<FroggerComponentRegistry> {
     }
 
     if (moved) {
+      // Clamp: cannot go below the start row (13). Row 14 is decorative / off-play.
+      const startRow = 13;
       const newGridX = Math.max(0, Math.min(config.TOTAL_COLS - 1, frogger.gridX + dx));
-      const newGridY = Math.max(0, Math.min(config.TOTAL_ROWS - 1, frogger.gridY + dy));
+      const newGridY = Math.max(0, Math.min(startRow, frogger.gridY + dy));
 
       if (newGridX !== frogger.gridX || newGridY !== frogger.gridY) {
         frogger.gridX = newGridX;
@@ -76,11 +77,15 @@ export class FroggerInputSystem extends System<FroggerComponentRegistry> {
         frogger.isRiding = false;
         frogger.logEntity = undefined;
 
-        // Update continuous position centered on target cell
+        // Update facing for visuals
+        if (dy < 0) frogger.facing = "up";
+        else if (dy > 0) frogger.facing = "down";
+        else if (dx < 0) frogger.facing = "left";
+        else if (dx > 0) frogger.facing = "right";
+
         transform.x = frogger.gridX * config.GRID_SIZE + config.GRID_SIZE / 2;
         transform.y = frogger.gridY * config.GRID_SIZE + config.GRID_SIZE / 2;
 
-        // Score bonus for moving forward
         if (dy < 0 && frogger.gridY < frogger.furthestY) {
           frogger.furthestY = frogger.gridY;
           if (stateEntity !== undefined) {

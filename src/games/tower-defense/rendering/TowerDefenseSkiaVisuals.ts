@@ -1,11 +1,13 @@
 import { ShapeDrawer, EffectDrawer, World, resolveThemeColorWithFallback } from "@tiny-aster/core";
-import type { TowerDefenseComponentRegistry, WaypointList } from "../types/TowerDefenseTypes";
+import type { TowerDefenseComponentRegistry, WaypointList, GameStateComponent, TileGrid, TowerDefenseVisualEffects } from "../types/TowerDefenseTypes";
 import { getTileTypeColor } from "../MapUtils";
+import type { GridLayout } from "../../shared/grid/GridTypes";
 import { Skia, getPaint, SkCanvas, SkPaint } from "../../shared/rendering/SkiaContext";
 import { drawGlowOrbSkia } from "../../shared/rendering/SkiaNeonUtils";
 import { colors } from "../../../theme/colors";
 import {
   createPathDirectionMarkers,
+  resolveCreepAnimationState,
   resolveCreepVisualState,
   resolveTowerProjectileDrawSetup,
   resolveTdMapBackgroundContext,
@@ -151,7 +153,17 @@ function drawSkiaTowerWeapon(
     tower.cooldownRemaining >= cooldownDuration * 0.9
   );
 
+  const elapsedSeconds = world.getResource<TowerDefenseVisualEffects>("TowerDefenseVisualEffects")?.elapsedSeconds ?? 0;
+  const pulse = 0.5 + 0.5 * Math.sin(elapsedSeconds * 4.8 + entity * 0.17);
+
   canvas.save();
+  paint.reset();
+  paint.setAntiAlias(true);
+  paint.setStyle(Skia.PaintStyle.Stroke);
+  paint.setStrokeWidth(1);
+  paint.setColor(Skia.Color(barrelColor));
+  paint.setAlphaf(0.18 + pulse * 0.16);
+  canvas.drawCircle(0, 0, size * (0.23 + pulse * 0.025), paint);
   canvas.rotate((angle * 180) / Math.PI, 0, 0);
   paint.reset();
   paint.setAntiAlias(true);
@@ -394,31 +406,51 @@ export const drawSkiaCreepBoss: ShapeDrawer<SkCanvas, TowerDefenseComponentRegis
   draw(canvas, world, entity) {
     const { size, fill, stroke } = resolveCreepVisualState(world, entity, 28, "boss");
     const isPaperDusk = isPaperDuskTheme(world);
+    const animation = resolveCreepAnimationState(world, entity, "boss");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
 
+    canvas.save();
+    canvas.translate(animation.offsetX, animation.offsetY);
+    canvas.rotate((animation.rotation * 180) / Math.PI, 0, 0);
+    canvas.scale(animation.scaleX, animation.scaleY);
     drawSkiaCreep(canvas, size, fill, stroke, isPaperDusk, "boss", hitFlash);
     if (!isPaperDusk) {
       drawSkiaCreepStrokedOutline(canvas, size * 0.55, stroke, 3);
     }
     drawSkiaCreepHealthBar(canvas, world, entity, size);
+    canvas.restore();
   },
 };
 
 export const drawSkiaCreepGrunt: ShapeDrawer<SkCanvas, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
     const { size, fill, stroke } = resolveCreepVisualState(world, entity, 12, "grunt");
+    const animation = resolveCreepAnimationState(world, entity, "grunt");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
+
+    canvas.save();
+    canvas.translate(animation.offsetX, animation.offsetY);
+    canvas.rotate((animation.rotation * 180) / Math.PI, 0, 0);
+    canvas.scale(animation.scaleX, animation.scaleY);
     drawSkiaCreep(canvas, size, fill, stroke, isPaperDuskTheme(world), "grunt", hitFlash);
     drawSkiaCreepHealthBar(canvas, world, entity, size);
+    canvas.restore();
   },
 };
 
 export const drawSkiaCreepFast: ShapeDrawer<SkCanvas, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
     const { size, fill, stroke } = resolveCreepVisualState(world, entity, 10, "fast");
+    const animation = resolveCreepAnimationState(world, entity, "fast");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
+
+    canvas.save();
+    canvas.translate(animation.offsetX, animation.offsetY);
+    canvas.rotate((animation.rotation * 180) / Math.PI, 0, 0);
+    canvas.scale(animation.scaleX, animation.scaleY);
     drawSkiaCreep(canvas, size, fill, stroke, isPaperDuskTheme(world), "fast", hitFlash);
     drawSkiaCreepHealthBar(canvas, world, entity, size);
+    canvas.restore();
   },
 };
 
@@ -426,13 +458,19 @@ export const drawSkiaCreepTank: ShapeDrawer<SkCanvas, TowerDefenseComponentRegis
   draw(canvas, world, entity) {
     const { size, fill, stroke } = resolveCreepVisualState(world, entity, 18, "tank");
     const isPaperDusk = isPaperDuskTheme(world);
+    const animation = resolveCreepAnimationState(world, entity, "tank");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
 
+    canvas.save();
+    canvas.translate(animation.offsetX, animation.offsetY);
+    canvas.rotate((animation.rotation * 180) / Math.PI, 0, 0);
+    canvas.scale(animation.scaleX, animation.scaleY);
     drawSkiaCreep(canvas, size, fill, stroke, isPaperDusk, "tank", hitFlash);
     if (!isPaperDusk) {
       drawSkiaCreepStrokedOutline(canvas, size * 0.55, stroke, 3);
     }
     drawSkiaCreepHealthBar(canvas, world, entity, size);
+    canvas.restore();
   },
 };
 
@@ -467,6 +505,166 @@ export const drawSkiaTowerProjectile: ShapeDrawer<SkCanvas, TowerDefenseComponen
   },
 };
 
+function drawTdAmbientStarSkia(
+  canvas: SkCanvas,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  row: number,
+  col: number,
+  elapsedSeconds: number,
+  isPaperDusk: boolean
+): void {
+  if (!Skia) return;
+  const paint = getPaint();
+  if (!paint) return;
+  const seed = (row * 73 + col * 37 + 19) >>> 0;
+  if (seed % 3 !== 0) return;
+  const starX = x + 5 + (seed % Math.max(1, Math.floor(width - 10)));
+  const starY = y + 5 + ((seed * 13) % Math.max(1, Math.floor(height - 10)));
+  const pulse = 0.25 + 0.55 * (0.5 + 0.5 * Math.sin(elapsedSeconds * 2.6 + seed * 0.17));
+  paint.reset();
+  paint.setAntiAlias(true);
+  paint.setStyle(Skia.PaintStyle.Fill);
+  paint.setColor(Skia.Color(isPaperDusk ? "#fff0d0" : "#75deff"));
+  paint.setAlphaf(pulse * (isPaperDusk ? 0.62 : 0.8));
+  canvas.drawRect(Skia.XYWHRect(starX, starY, seed % 11 === 0 ? 2 : 1, 1), paint);
+  if (seed % 13 === 0) {
+    canvas.drawRect(Skia.XYWHRect(starX, starY - 2, 1, 5), paint);
+    canvas.drawRect(Skia.XYWHRect(starX - 2, starY, 5, 1), paint);
+  }
+}
+
+function drawTowerDefenseVfxSkia(
+  canvas: SkCanvas,
+  world: TDWorld,
+  layout: GridLayout,
+  tileGrid: TileGrid,
+  isPaperDusk: boolean
+): void {
+  if (!Skia) return;
+  const paint = getPaint();
+  if (!paint) return;
+  const state = world.getResource<TowerDefenseVisualEffects>("TowerDefenseVisualEffects");
+  const gameState = world.getSingleton("GameState") as GameStateComponent | undefined;
+  const centerX = layout.offsetX + (tileGrid.cols * layout.stepX) / 2;
+  const bannerY = Math.max(8, layout.offsetY - 10);
+
+  if (state) {
+    for (const effect of state.effects) {
+      const progress = Math.max(0, Math.min(1, effect.ageSeconds / effect.durationSeconds));
+      const fade = progress > 0.68 ? (1 - progress) / 0.32 : 1;
+      canvas.save();
+      paint.reset();
+      paint.setAntiAlias(true);
+
+      if (effect.kind === "enemy-death") {
+        const count = effect.creepType === "boss" ? 16 : effect.creepType === "tank" ? 11 : 8;
+        const radius = 4 + progress * (effect.creepType === "boss" ? 29 : 20);
+        paint.setStyle(Skia.PaintStyle.Stroke);
+        paint.setStrokeWidth(Math.max(1, 2.5 * (1 - progress)));
+        paint.setColor(Skia.Color(effect.color));
+        paint.setAlphaf(fade);
+        canvas.drawCircle(effect.x, effect.y, 4 + progress * 12, paint);
+        paint.setStyle(Skia.PaintStyle.Fill);
+        for (let index = 0; index < count; index++) {
+          const angle = (index / count) * Math.PI * 2 + effect.id * 0.37;
+          const distance = radius * (0.65 + (index % 3) * 0.18);
+          const sparkX = effect.x + Math.cos(angle) * distance;
+          const sparkY = effect.y + Math.sin(angle) * distance;
+          canvas.save();
+          canvas.translate(sparkX, sparkY);
+          canvas.rotate((angle * 180) / Math.PI, 0, 0);
+          paint.setColor(Skia.Color(effect.color));
+          paint.setAlphaf(fade);
+          canvas.drawRect(Skia.XYWHRect(-1.2, -2.1, 2.4, 4.2), paint);
+          canvas.restore();
+        }
+        paint.setColor(Skia.Color("#fff4db"));
+        paint.setAlphaf(fade);
+        canvas.drawCircle(effect.x, effect.y, Math.max(1, 3 * (1 - progress)), paint);
+      } else if (effect.kind === "gold-reward") {
+        const rise = progress * 28;
+        const coinX = effect.x;
+        const coinY = effect.y - rise;
+        paint.setStyle(Skia.PaintStyle.Fill);
+        paint.setColor(Skia.Color("#ffd54f"));
+        paint.setAlphaf(fade);
+        canvas.drawCircle(coinX, coinY, 4.2 * (1 - progress * 0.22), paint);
+        paint.setStyle(Skia.PaintStyle.Stroke);
+        paint.setStrokeWidth(1.4);
+        paint.setColor(Skia.Color("#815f18"));
+        paint.setAlphaf(fade);
+        canvas.drawCircle(coinX, coinY, 4.2 * (1 - progress * 0.22), paint);
+        paint.setStrokeWidth(1);
+        paint.setColor(Skia.Color("#fff1a8"));
+        canvas.drawLine(coinX, coinY - 2, coinX, coinY + 2, paint);
+        paint.setStyle(Skia.PaintStyle.Fill);
+        paint.setColor(Skia.Color("#ffe082"));
+        paint.setAlphaf(fade);
+        paint.setTextSize(12);
+        paint.setFakeBoldText(true);
+        canvas.drawText(`+${effect.amount ?? 0}`, coinX + 7, coinY - 2, paint);
+      } else if (effect.kind === "base-hit") {
+        for (let ring = 0; ring < 2; ring++) {
+          const ringProgress = Math.max(0, Math.min(1, progress - ring * 0.16));
+          paint.setStyle(Skia.PaintStyle.Stroke);
+          paint.setStrokeWidth(3 - ringProgress * 2);
+          paint.setColor(Skia.Color(effect.color));
+          paint.setAlphaf(Math.max(0, (1 - ringProgress) * 0.8));
+          canvas.drawCircle(effect.x, effect.y, 6 + ringProgress * (34 + ring * 9), paint);
+        }
+      } else if (effect.kind === "phase-banner") {
+        const width = Math.min(290, tileGrid.cols * layout.stepX - 20);
+        const height = 28;
+        const left = centerX - width / 2;
+        const top = bannerY - height / 2;
+        paint.setStyle(Skia.PaintStyle.Fill);
+        paint.setColor(Skia.Color(isPaperDusk ? "#F2E9D8" : "#050c1a"));
+        paint.setAlphaf(Math.max(0, Math.min(1, fade)) * (isPaperDusk ? 0.95 : 0.9));
+        canvas.drawRect(Skia.XYWHRect(left, top, width, height), paint);
+        paint.setStyle(Skia.PaintStyle.Stroke);
+        paint.setStrokeWidth(2);
+        paint.setColor(Skia.Color(effect.color));
+        paint.setAlphaf(fade);
+        canvas.drawRect(Skia.XYWHRect(left + 1, top + 1, width - 2, height - 2), paint);
+        paint.setStyle(Skia.PaintStyle.Fill);
+        paint.setColor(Skia.Color(effect.color));
+        paint.setAlphaf(fade);
+        paint.setTextSize(14);
+        paint.setFakeBoldText(true);
+        const text = effect.text ?? "WAVE";
+        const textWidth = paint.measureText(text);
+        canvas.drawText(text, centerX - textWidth / 2, bannerY + 5, paint);
+      }
+      canvas.restore();
+    }
+  }
+
+  if (gameState?.phase === "victory" || gameState?.phase === "game_over") {
+    const color = gameState.phase === "victory" ? "#ffd54f" : "#ff5252";
+    const label = gameState.phase === "victory" ? `VICTORY  ·  SCORE ${gameState.score}` : `GAME OVER  ·  SCORE ${gameState.score}`;
+    const width = Math.min(310, tileGrid.cols * layout.stepX - 16);
+    const left = centerX - width / 2;
+    const top = bannerY - 16;
+    paint.reset();
+    paint.setAntiAlias(true);
+    paint.setStyle(Skia.PaintStyle.Fill);
+    paint.setColor(Skia.Color(isPaperDusk ? "#F2E9D8" : "#050c1a"));
+    paint.setAlphaf(isPaperDusk ? 0.97 : 0.94);
+    canvas.drawRect(Skia.XYWHRect(left, top, width, 32), paint);
+    paint.setStyle(Skia.PaintStyle.Stroke);
+    paint.setStrokeWidth(2);
+    paint.setColor(Skia.Color(color));
+    canvas.drawRect(Skia.XYWHRect(left + 1, top + 1, width - 2, 30), paint);
+    paint.setStyle(Skia.PaintStyle.Fill);
+    paint.setColor(Skia.Color(color));
+    paint.setTextSize(13);
+    paint.setFakeBoldText(true);
+    canvas.drawText(label, centerX - paint.measureText(label) / 2, bannerY + 5, paint);
+  }
+}
 function drawTdLandmarkSkia(
   canvas: SkCanvas,
   world: TDWorld,
@@ -488,6 +686,16 @@ function drawTdLandmarkSkia(
   const outline = isPaperDusk
     ? resolveThemeColorWithFallback(world, "#14161B", "pd_ink")
     : "#101827";
+  const elapsedSeconds = world.getResource<TowerDefenseVisualEffects>("TowerDefenseVisualEffects")?.elapsedSeconds ?? 0;
+  const pulse = 0.5 + 0.5 * Math.sin(elapsedSeconds * 3.4 + (kind === "base" ? 0 : 1.8));
+
+  paint.reset();
+  paint.setAntiAlias(true);
+  paint.setStyle(Skia.PaintStyle.Stroke);
+  paint.setStrokeWidth(1.5);
+  paint.setColor(Skia.Color(kind === "base" ? "#62f6bd" : fill));
+  paint.setAlphaf(isPaperDusk ? 0.2 + pulse * 0.18 : 0.25 + pulse * 0.3);
+  canvas.drawCircle(cx, cy, size * ((kind === "base" ? 0.32 : 0.24) + pulse * 0.035), paint);
 
   paint.reset();
   paint.setAntiAlias(true);
@@ -558,7 +766,8 @@ export const drawSkiaTdMapBackground: EffectDrawer<SkCanvas, TowerDefenseCompone
 
     const isPaperDusk = isPaperDuskTheme(world);
 
-    forEachTileGridCell(bgCtx, (tile, x, y) => {
+    const vfxElapsed = world.getResource<TowerDefenseVisualEffects>("TowerDefenseVisualEffects")?.elapsedSeconds ?? 0;
+    forEachTileGridCell(bgCtx, (tile, x, y, row, col) => {
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Fill);
       if (isPaperDusk) {
@@ -578,6 +787,9 @@ export const drawSkiaTdMapBackground: EffectDrawer<SkCanvas, TowerDefenseCompone
         paint.setColor(Skia.Color(getTileTypeColor(tile)));
       }
       canvas.drawRect(Skia.XYWHRect(x, y, layout.stepX - 1, layout.stepY - 1), paint);
+      if (tile === "blocked") {
+        drawTdAmbientStarSkia(canvas, x, y, layout.stepX, layout.stepY, row, col, vfxElapsed, isPaperDusk);
+      }
       if (tile === "spawn" || tile === "base") {
         drawTdLandmarkSkia(canvas, world, x, y, layout.stepX, tile, isPaperDusk);
       }
@@ -604,5 +816,7 @@ export const drawSkiaTdMapBackground: EffectDrawer<SkCanvas, TowerDefenseCompone
         }
       }
     }
+
+    drawTowerDefenseVfxSkia(canvas, world, layout, bgCtx.tileGrid, isPaperDusk);
   },
 };

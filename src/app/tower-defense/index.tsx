@@ -12,6 +12,7 @@ import { colors, spacing, typography } from "../../theme";
 import { touchToCellCoords, cellCenter, fitContain } from "../../games/tower-defense/MapUtils";
 import towerDefenseConfigRaw from "../../games/tower-defense/config/tower-defense.json";
 import type { TowerDefenseConfig } from "../../games/tower-defense/types/TowerDefenseConfigSchema";
+import type { ThreatInfo } from "../../games/tower-defense/types/TowerDefenseTypes";
 import { paperDuskConceptPack } from "../../theme/conceptPacks/paperDuskConceptPack";
 import type { Theme } from "@tiny-aster/core";
 
@@ -215,6 +216,7 @@ function TowerDefensePlay({ initialSeed, theme }: { initialSeed?: number; theme?
     );
   }
 
+  const aliveEnemies = game.getWorld().getResource<ThreatInfo>("ThreatInfo")?.alive ?? 0;
   const phaseText =
     gameState?.phase === "build"
       ? "CONSTRUCCIÓN"
@@ -232,12 +234,32 @@ function TowerDefensePlay({ initialSeed, theme }: { initialSeed?: number; theme?
         style={styles.container}
         topLeftSlot={<BackButton label={t.common.menu} />}
         centerHudSlot={
-          <View style={styles.hudBoard}>
+          <View
+            style={[
+              styles.hudBoard,
+              (gameState?.lives ?? 0) <= 5 && styles.hudBoardCritical,
+              gameState?.phase === "victory" && styles.hudBoardVictory,
+              gameState?.phase === "game_over" && styles.hudBoardCritical,
+            ]}
+            accessibilityLabel="Estado de la partida"
+          >
             <Text style={styles.hudTextGold}>🪙 {gameState?.gold ?? 0}</Text>
-
-            <Text style={styles.hudTextLives}>❤️ {gameState?.lives ?? 0}</Text>
+            <Text style={[styles.hudTextLives, (gameState?.lives ?? 0) <= 5 && styles.hudTextCritical]}>
+              ❤️ {gameState?.lives ?? 0}
+            </Text>
+            <Text style={styles.hudTextEnemies}>👾 {aliveEnemies}</Text>
             <Text style={styles.hudTextWave}>🌊 Wave {(gameState?.wave ?? 0) + 1}</Text>
-            <Text style={styles.hudTextPhase}>{phaseText}</Text>
+            <Text
+              style={[
+                styles.hudTextPhase,
+                gameState?.phase === "wave" && styles.hudTextPhaseActive,
+                gameState?.phase === "intermission" && styles.hudTextPhaseIntermission,
+                gameState?.phase === "victory" && styles.hudTextPhaseVictory,
+                gameState?.phase === "game_over" && styles.hudTextPhaseDanger,
+              ]}
+            >
+              {phaseText}
+            </Text>
           </View>
         }
         canvasSlot={
@@ -395,6 +417,19 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: colors.border,
+    shadowColor: colors.cyan,
+    shadowOpacity: 0.22,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  hudBoardCritical: {
+    borderColor: "#ff5252",
+    shadowColor: "#ff5252",
+    shadowOpacity: 0.36,
+  },
+  hudBoardVictory: {
+    borderColor: "#62f6bd",
+    shadowColor: "#62f6bd",
   },
   hudTextGold: {
     color: colors.gold,
@@ -408,6 +443,15 @@ const styles = StyleSheet.create({
     fontFamily: typography.game,
     fontWeight: "bold",
   },
+  hudTextEnemies: {
+    color: "#d78bff",
+    fontSize: typography.sizes.md,
+    fontFamily: typography.game,
+    fontWeight: "bold",
+  },
+  hudTextCritical: {
+    color: "#ff5252",
+  },
   hudTextWave: {
     color: colors.cyan,
     fontSize: typography.sizes.md,
@@ -418,6 +462,22 @@ const styles = StyleSheet.create({
     color: colors.white,
     fontSize: typography.sizes.sm,
     fontFamily: typography.game,
+  },
+  hudTextPhaseActive: {
+    color: "#ffb36b",
+    fontWeight: "bold",
+  },
+  hudTextPhaseIntermission: {
+    color: colors.gold,
+    fontWeight: "bold",
+  },
+  hudTextPhaseVictory: {
+    color: "#62f6bd",
+    fontWeight: "bold",
+  },
+  hudTextPhaseDanger: {
+    color: "#ff5252",
+    fontWeight: "bold",
   },
   canvasContainer: {
     flex: 1,

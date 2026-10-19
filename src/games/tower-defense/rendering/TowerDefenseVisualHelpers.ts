@@ -1,5 +1,5 @@
 import { World, resolveThemeColorWithFallback } from "@tiny-aster/core";
-import type { TowerDefenseComponentRegistry } from "../types/TowerDefenseTypes";
+import type { TowerDefenseComponentRegistry, TowerDefenseVisualEffects } from "../types/TowerDefenseTypes";
 import { colors } from "../../../theme/colors";
 
 export interface PathDirectionMarker {
@@ -42,6 +42,38 @@ export function createPathDirectionMarkers(
   }
 
   return markers;
+}
+export type CreepAnimationType = "grunt" | "fast" | "tank" | "boss";
+
+export interface CreepAnimationState {
+  offsetX: number;
+  offsetY: number;
+  scaleX: number;
+  scaleY: number;
+  rotation: number;
+}
+
+/**
+ * Small deterministic presentation animation shared by Canvas and Skia.
+ * It only reads the visual clock and never modifies movement or hitboxes.
+ */
+export function resolveCreepAnimationState(
+  world: World<TowerDefenseComponentRegistry>,
+  entity: number,
+  type: CreepAnimationType
+): CreepAnimationState {
+  const elapsed = world.getResource<TowerDefenseVisualEffects>("TowerDefenseVisualEffects")?.elapsedSeconds ?? 0;
+  const rate = type === "fast" ? 12 : type === "tank" ? 3.4 : type === "boss" ? 2.2 : 6.2;
+  const amplitude = type === "tank" ? 0.55 : type === "boss" ? 1.15 : type === "fast" ? 1.45 : 0.9;
+  const phase = elapsed * rate + entity * 0.73;
+  const bob = Math.sin(phase);
+  return {
+    offsetX: type === "fast" ? Math.cos(phase) * 0.65 : 0,
+    offsetY: bob * amplitude,
+    scaleX: 1 + Math.sin(phase * 0.7) * (type === "boss" ? 0.025 : 0.018),
+    scaleY: 1 - Math.sin(phase * 0.7) * (type === "boss" ? 0.025 : 0.018),
+    rotation: type === "fast" ? bob * 0.025 : type === "boss" ? Math.sin(elapsed * 1.6 + entity) * 0.018 : 0,
+  };
 }
 export interface CreepVisualState {
   size: number;

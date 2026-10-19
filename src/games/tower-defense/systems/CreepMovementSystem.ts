@@ -92,7 +92,12 @@ export class CreepMovementSystem extends System<TowerDefenseComponentRegistry, T
 
   private reachBase(world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>, entity: number): void {
     const bus = world.getEventBus();
-    bus?.emit("creep:reached_base", { entity });
+    const transform = world.getComponent(entity, "Transform");
+    bus?.emit("creep:reached_base", {
+      entity,
+      x: transform?.x,
+      y: transform?.y,
+    });
     if (bus && !(world as any).isReSimulating) {
       bus.emitDeferred?.("PlaySFX", { name: "hit" }) ?? bus.emit?.("PlaySFX", { name: "hit" });
     }

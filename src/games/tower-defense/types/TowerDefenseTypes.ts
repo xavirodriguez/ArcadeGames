@@ -16,8 +16,8 @@ export type { TileType };
 export interface TowerDefenseEventRegistry extends CoreEvents, Record<string, unknown> {
   "combat:hit": { targetEntity: number; sourceEntity?: number; amount: number; remainingHealth?: number; category?: string };
   "combat:death": { entity: number; sourceEntity?: number; category?: string };
-  "creep:killed": { entity: number; reward: number; creepType: string };
-  "creep:reached_base": { entity: number };
+  "creep:killed": { entity: number; reward: number; creepType: string; x?: number; y?: number };
+  "creep:reached_base": { entity: number; x?: number; y?: number };
   "tower:built": { entity: number; towerType: string; col: number; row: number };
   "tower:sold": { entity: number; refund: number };
   "tower:upgraded": { entity: number; level: number };
@@ -153,6 +153,25 @@ export const INITIAL_GAME_STATE: GameStateComponent = {
   selectedTowerType: "basic",
 };
 
+export type TowerDefenseVfxKind = "enemy-death" | "gold-reward" | "base-hit" | "phase-banner";
+
+export interface TowerDefenseVisualEffect {
+  id: number;
+  kind: TowerDefenseVfxKind;
+  x: number;
+  y: number;
+  ageSeconds: number;
+  durationSeconds: number;
+  color: string;
+  amount?: number;
+  creepType?: string;
+  text?: string;
+}
+
+export interface TowerDefenseVisualEffects {
+  elapsedSeconds: number;
+  effects: TowerDefenseVisualEffect[];
+}
 export interface ThreatInfo {
   alive: number;
   remainingInWave: number;

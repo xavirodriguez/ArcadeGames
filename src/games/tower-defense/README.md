@@ -41,7 +41,8 @@ Los sistemas ejecutan la simulación organizados en las siguientes fases:
    - `SlowOnHitSystem`: Aplica la ralentización al recibir impactos de torres heladas.
    - `GameStateSystem`: Gestiona oro, puntuación, vidas restantes, fase de juego (`build`, `wave`, `intermission`, `game_over`, `victory`) y desbloqueo de siguientes oleadas.
 5. **Phase: Presentation**
-   - `JuiceSystem`, `RenderUpdateSystem`, `TowerDefenseAudioSystem`, `ThreatHudSystem`.
+   - `JuiceSystem`, `RenderUpdateSystem`, `TowerDefenseAudioSystem`, `ThreatHudSystem` y `TowerDefenseVfxSystem`.
+   - `TowerDefenseVfxSystem` gestiona únicamente efectos visuales efímeros (impactos, desintegración, recompensas flotantes y avisos de oleada/fin de partida); omite la simulación de efectos durante rollback y no altera daño, movimiento ni colisiones.
 
 ### 4. Controles e Interfaz
 - **Controles táctiles y puntero**: Tocar cualquier celda del mapa proyecta las coordenadas del canvas al mundo determinando la celda objetivo (`touchToCellCoords`).

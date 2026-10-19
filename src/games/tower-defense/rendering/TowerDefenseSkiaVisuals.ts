@@ -7,6 +7,7 @@ import { drawGlowOrbSkia } from "../../shared/rendering/SkiaNeonUtils";
 import { colors } from "../../../theme/colors";
 import {
   createPathDirectionMarkers,
+  resolveCreepAnimationState,
   resolveCreepVisualState,
   resolveTowerProjectileDrawSetup,
   resolveTdMapBackgroundContext,
@@ -405,31 +406,51 @@ export const drawSkiaCreepBoss: ShapeDrawer<SkCanvas, TowerDefenseComponentRegis
   draw(canvas, world, entity) {
     const { size, fill, stroke } = resolveCreepVisualState(world, entity, 28, "boss");
     const isPaperDusk = isPaperDuskTheme(world);
+    const animation = resolveCreepAnimationState(world, entity, "boss");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
 
+    canvas.save();
+    canvas.translate(animation.offsetX, animation.offsetY);
+    canvas.rotate((animation.rotation * 180) / Math.PI, 0, 0);
+    canvas.scale(animation.scaleX, animation.scaleY);
     drawSkiaCreep(canvas, size, fill, stroke, isPaperDusk, "boss", hitFlash);
     if (!isPaperDusk) {
       drawSkiaCreepStrokedOutline(canvas, size * 0.55, stroke, 3);
     }
     drawSkiaCreepHealthBar(canvas, world, entity, size);
+    canvas.restore();
   },
 };
 
 export const drawSkiaCreepGrunt: ShapeDrawer<SkCanvas, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
     const { size, fill, stroke } = resolveCreepVisualState(world, entity, 12, "grunt");
+    const animation = resolveCreepAnimationState(world, entity, "grunt");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
+
+    canvas.save();
+    canvas.translate(animation.offsetX, animation.offsetY);
+    canvas.rotate((animation.rotation * 180) / Math.PI, 0, 0);
+    canvas.scale(animation.scaleX, animation.scaleY);
     drawSkiaCreep(canvas, size, fill, stroke, isPaperDuskTheme(world), "grunt", hitFlash);
     drawSkiaCreepHealthBar(canvas, world, entity, size);
+    canvas.restore();
   },
 };
 
 export const drawSkiaCreepFast: ShapeDrawer<SkCanvas, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
     const { size, fill, stroke } = resolveCreepVisualState(world, entity, 10, "fast");
+    const animation = resolveCreepAnimationState(world, entity, "fast");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
+
+    canvas.save();
+    canvas.translate(animation.offsetX, animation.offsetY);
+    canvas.rotate((animation.rotation * 180) / Math.PI, 0, 0);
+    canvas.scale(animation.scaleX, animation.scaleY);
     drawSkiaCreep(canvas, size, fill, stroke, isPaperDuskTheme(world), "fast", hitFlash);
     drawSkiaCreepHealthBar(canvas, world, entity, size);
+    canvas.restore();
   },
 };
 
@@ -437,13 +458,19 @@ export const drawSkiaCreepTank: ShapeDrawer<SkCanvas, TowerDefenseComponentRegis
   draw(canvas, world, entity) {
     const { size, fill, stroke } = resolveCreepVisualState(world, entity, 18, "tank");
     const isPaperDusk = isPaperDuskTheme(world);
+    const animation = resolveCreepAnimationState(world, entity, "tank");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
 
+    canvas.save();
+    canvas.translate(animation.offsetX, animation.offsetY);
+    canvas.rotate((animation.rotation * 180) / Math.PI, 0, 0);
+    canvas.scale(animation.scaleX, animation.scaleY);
     drawSkiaCreep(canvas, size, fill, stroke, isPaperDusk, "tank", hitFlash);
     if (!isPaperDusk) {
       drawSkiaCreepStrokedOutline(canvas, size * 0.55, stroke, 3);
     }
     drawSkiaCreepHealthBar(canvas, world, entity, size);
+    canvas.restore();
   },
 };
 

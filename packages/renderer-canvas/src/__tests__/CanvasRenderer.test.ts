@@ -184,3 +184,98 @@ describe("CanvasRenderer Perf Instrumentation", () => {
     }
   });
 });
+
+describe("CanvasRenderer Scene Transitions", () => {
+  let mockCtx: MockCanvasCtx;
+
+  beforeEach(() => {
+    mockCtx = {
+      canvas: { width: 800, height: 600 },
+      fillStyle: "",
+      strokeStyle: "",
+      lineWidth: 1,
+      font: "",
+      textBaseline: "",
+      fillRect: jest.fn(),
+      strokeRect: jest.fn(),
+      fillText: jest.fn(),
+      measureText: jest.fn().mockReturnValue({ width: 100 }),
+      save: jest.fn(),
+      restore: jest.fn(),
+      setTransform: jest.fn(),
+      translate: jest.fn(),
+      scale: jest.fn(),
+      beginPath: jest.fn(),
+      rect: jest.fn(),
+      clip: jest.fn(),
+      rotate: jest.fn(),
+      arc: jest.fn(),
+      fill: jest.fn(),
+      stroke: jest.fn(),
+    };
+  });
+
+  it("captures oldScene snapshot only once during drawsBothScenes transition", () => {
+    const mockOffCtx = { ...mockCtx, clearRect: jest.fn() };
+    const mockOffscreenCanvas = {
+      width: 800,
+      height: 600,
+      getContext: jest.fn().mockReturnValue(mockOffCtx),
+    };
+
+    const originalDocument = globalThis.document;
+    try {
+      (globalThis as unknown as { document: unknown }).document = {
+        createElement: jest.fn().mockReturnValue(mockOffscreenCanvas),
+      };
+
+      const renderer = new CanvasRenderer();
+      const oldWorld = new World();
+      oldWorld.setResource("ScreenConfig", { width: 800, height: 600 });
+      const newWorld = new World();
+      newWorld.setResource("ScreenConfig", { width: 800, height: 600 });
+
+      const mockOldScene = { getWorld: () => oldWorld };
+      const mockNewScene = { getWorld: () => newWorld };
+
+      const mockEffect = {
+        drawsBothScenes: true,
+        render: jest.fn(),
+      };
+
+      const mockSceneManager = {
+        getState: () => "UNLOADING",
+        transitionProgress: 0.2,
+        getActiveTransitionEffect: () => mockEffect,
+        getTransitionOptions: () => ({}),
+        getTransitionOldScene: () => mockOldScene,
+        getTransitionNewScene: () => mockNewScene,
+      };
+
+      const mainWorld = new World();
+      mainWorld.setResource("SceneManager", mockSceneManager);
+
+      const renderWorldSpy = jest.spyOn(renderer as unknown as { renderWorld: jest.Mock }, "renderWorld");
+
+      // Frame 1
+      renderer.render(mainWorld, mockCtx as unknown as CanvasRenderingContext2D);
+      expect(mockEffect.render).toHaveBeenCalledTimes(1);
+
+      // Initial frame renders newWorld to ctx, oldWorld to offscreen
+      expect(renderWorldSpy).toHaveBeenCalledWith(newWorld, expect.anything());
+      expect(renderWorldSpy).toHaveBeenCalledWith(oldWorld, expect.anything());
+
+      renderWorldSpy.mockClear();
+
+      // Frame 2
+      renderer.render(mainWorld, mockCtx as unknown as CanvasRenderingContext2D);
+      expect(mockEffect.render).toHaveBeenCalledTimes(2);
+
+      // Frame 2 should render newWorld to ctx, but reuse cached offscreen snapshot for oldWorld (0 calls for oldWorld)
+      expect(renderWorldSpy).toHaveBeenCalledWith(newWorld, expect.anything());
+      expect(renderWorldSpy).not.toHaveBeenCalledWith(oldWorld, expect.anything());
+    } finally {
+      (globalThis as unknown as { document: unknown }).document = originalDocument;
+    }
+  });
+});

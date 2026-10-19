@@ -90,6 +90,11 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
   private lastScreenHeight = -1;
   private lastDpr = -1;
 
+  private transitionSnapshotScene: unknown | null = null;
+  private isTransitionSnapshotCaptured = false;
+  private transitionSnapshotWidth = -1;
+  private transitionSnapshotHeight = -1;
+
   public syncSize(canvas: HTMLCanvasElement, screenConfig?: { width: number; height: number }): void {
     const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
     if (!screenConfig) return;
@@ -201,13 +206,22 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
             // Render old scene onto offscreen canvas for the transition effect
             const canvas = ctx.canvas;
             if (canvas) {
-              // We need an offscreen canvas. We can get it via a simple dynamic creation helper
-              // or let's create a local offscreen canvas inside CanvasRenderer as a helper
               const off = this.getOffscreen(canvas.width, canvas.height);
               const octx = off.getContext("2d");
               if (octx) {
-                octx.clearRect(0, 0, off.width, off.height);
-                this.renderWorld(oldScene.getWorld() as unknown as World<TRegistry>, octx);
+                if (
+                  this.transitionSnapshotScene !== oldScene ||
+                  !this.isTransitionSnapshotCaptured ||
+                  this.transitionSnapshotWidth !== canvas.width ||
+                  this.transitionSnapshotHeight !== canvas.height
+                ) {
+                  octx.clearRect(0, 0, off.width, off.height);
+                  this.renderWorld(oldScene.getWorld() as unknown as World<TRegistry>, octx);
+                  this.transitionSnapshotScene = oldScene;
+                  this.isTransitionSnapshotCaptured = true;
+                  this.transitionSnapshotWidth = canvas.width;
+                  this.transitionSnapshotHeight = canvas.height;
+                }
                 if (!options) {
                   options = {};
                 }
@@ -241,7 +255,13 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
           effect.render(ctx, progress, options);
         }
         return;
+      } else {
+        this.transitionSnapshotScene = null;
+        this.isTransitionSnapshotCaptured = false;
       }
+    } else {
+      this.transitionSnapshotScene = null;
+      this.isTransitionSnapshotCaptured = false;
     }
 
     this.renderWorld(world, ctx);

@@ -1,0 +1,166 @@
+import { World } from "@tiny-aster/core";
+import { CanvasRenderer, FrameTimeMeter } from "../CanvasRenderer";
+
+interface MockCanvasCtx {
+  canvas: { width: number; height: number };
+  fillStyle: string;
+  strokeStyle: string;
+  lineWidth: number;
+  font: string;
+  textBaseline: string;
+  fillRect: jest.Mock;
+  strokeRect: jest.Mock;
+  fillText: jest.Mock;
+  measureText: jest.Mock;
+  save: jest.Mock;
+  restore: jest.Mock;
+  setTransform: jest.Mock;
+  translate: jest.Mock;
+  scale: jest.Mock;
+  beginPath: jest.Mock;
+  rect: jest.Mock;
+  clip: jest.Mock;
+  rotate: jest.Mock;
+  arc: jest.Mock;
+  fill: jest.Mock;
+  stroke: jest.Mock;
+}
+
+describe("FrameTimeMeter", () => {
+  it("computes p50, p95, p99 correctly and wraps around buffer size", () => {
+    const meter = new FrameTimeMeter(100);
+
+    for (let i = 1; i <= 100; i++) {
+      meter.record(i);
+    }
+
+    let stats = meter.getStats();
+    expect(stats.count).toBe(100);
+    expect(stats.p50).toBe(51);
+    expect(stats.p95).toBe(96);
+    expect(stats.p99).toBe(100);
+
+    // Record more to test ring buffer wrap
+    for (let i = 101; i <= 150; i++) {
+      meter.record(i);
+    }
+
+    stats = meter.getStats();
+    expect(stats.count).toBe(100);
+    // Buffer contains 51..150
+    expect(stats.p50).toBe(101);
+    expect(stats.p95).toBe(146);
+    expect(stats.p99).toBe(150);
+  });
+
+  it("handles zero frames gracefully", () => {
+    const meter = new FrameTimeMeter(300);
+    const stats = meter.getStats();
+    expect(stats.count).toBe(0);
+    expect(stats.p50).toBe(0);
+    expect(stats.p95).toBe(0);
+    expect(stats.p99).toBe(0);
+  });
+});
+
+describe("CanvasRenderer Perf Instrumentation", () => {
+  let mockCtx: MockCanvasCtx;
+
+  beforeEach(() => {
+    delete globalThis.__ARCADE_PERF__;
+    mockCtx = {
+      canvas: { width: 800, height: 600 },
+      fillStyle: "",
+      strokeStyle: "",
+      lineWidth: 1,
+      font: "",
+      textBaseline: "",
+      fillRect: jest.fn(),
+      strokeRect: jest.fn(),
+      fillText: jest.fn(),
+      measureText: jest.fn().mockReturnValue({ width: 100 }),
+      save: jest.fn(),
+      restore: jest.fn(),
+      setTransform: jest.fn(),
+      translate: jest.fn(),
+      scale: jest.fn(),
+      beginPath: jest.fn(),
+      rect: jest.fn(),
+      clip: jest.fn(),
+      rotate: jest.fn(),
+      arc: jest.fn(),
+      fill: jest.fn(),
+      stroke: jest.fn(),
+    };
+  });
+
+  it("does not measure or draw HUD when perf flag is inactive", () => {
+    const renderer = new CanvasRenderer();
+    const world = new World();
+    world.setResource("ScreenConfig", { width: 800, height: 600 });
+
+    renderer.render(world, mockCtx as unknown as CanvasRenderingContext2D);
+
+    const stats = renderer.getFrameTimeStats();
+    expect(stats.count).toBe(0);
+    expect(mockCtx.fillText).not.toHaveBeenCalled();
+  });
+
+  it("measures frame time and draws HUD when globalThis.__ARCADE_PERF__ is true", () => {
+    globalThis.__ARCADE_PERF__ = true;
+    const renderer = new CanvasRenderer();
+    const world = new World();
+    world.setResource("ScreenConfig", { width: 800, height: 600 });
+
+    renderer.render(world, mockCtx as unknown as CanvasRenderingContext2D);
+
+    const stats = renderer.getFrameTimeStats();
+    expect(stats.count).toBe(1);
+    expect(mockCtx.fillText).toHaveBeenCalledWith(
+      expect.stringMatching(/^p50:/),
+      expect.any(Number),
+      expect.any(Number)
+    );
+  });
+
+  it("measures frame time and draws HUD when DebugPerf resource is present in world", () => {
+    const renderer = new CanvasRenderer();
+    const world = new World();
+    world.setResource("ScreenConfig", { width: 800, height: 600 });
+    world.setResource("DebugPerf", true);
+
+    renderer.render(world, mockCtx as unknown as CanvasRenderingContext2D);
+
+    const stats = renderer.getFrameTimeStats();
+    expect(stats.count).toBe(1);
+    expect(mockCtx.fillText).toHaveBeenCalled();
+  });
+
+  it("applies devicePixelRatio setTransform scaling during rendering", () => {
+    const originalWindow = globalThis.window;
+    try {
+      const mockWindow = { devicePixelRatio: 2 } as unknown as Window & typeof globalThis;
+      Object.defineProperty(globalThis, "window", {
+        value: mockWindow,
+        writable: true,
+        configurable: true,
+      });
+
+      const renderer = new CanvasRenderer();
+      const world = new World();
+      world.setResource("ScreenConfig", { width: 800, height: 600 });
+
+      renderer.render(world, mockCtx as unknown as CanvasRenderingContext2D);
+
+      expect(mockCtx.canvas.width).toBe(1600);
+      expect(mockCtx.canvas.height).toBe(1200);
+      expect(mockCtx.setTransform).toHaveBeenCalledWith(2, 0, 0, 2, 0, 0);
+    } finally {
+      Object.defineProperty(globalThis, "window", {
+        value: originalWindow,
+        writable: true,
+        configurable: true,
+      });
+    }
+  });
+});

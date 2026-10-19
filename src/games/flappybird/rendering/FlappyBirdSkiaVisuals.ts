@@ -833,7 +833,7 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<RenderContext, FlappyBi
     for (let n = 0; n < nebulae.length; n++) {
       const neb = nebulae[n];
       const { nx, ny } = computeFlappyNebulaPos(neb, world.tick, width, height, n);
-      const nebShader = getCachedSkiaShader(`neb_${n}_${width}_${height}_${scenarioTheme.megaIndex}`, () =>
+      const nebShader = getCachedSkiaShader(`neb_${n}_${Math.round(nx)}_${Math.round(ny)}_${width}_${height}_${scenarioTheme.megaIndex}`, () =>
         Skia.Shader.MakeTwoPointConicalGradient(
           Skia.Point(nx, ny),
           10,

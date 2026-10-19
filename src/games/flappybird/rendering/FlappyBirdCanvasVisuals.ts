@@ -867,7 +867,7 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
     for (let n = 0; n < nebulae.length; n++) {
       const neb = nebulae[n];
       const { nx, ny } = computeFlappyNebulaPos(neb, world.tick, width, height, n);
-      const nebGrad = getCachedCanvasGradient(ctx, `neb_${n}_${width}_${height}_${scenarioTheme.megaIndex}`, () => {
+      const nebGrad = getCachedCanvasGradient(ctx, `neb_${n}_${Math.round(nx)}_${Math.round(ny)}_${width}_${height}_${scenarioTheme.megaIndex}`, () => {
         const g = ctx.createRadialGradient(nx, ny, 10, nx, ny, neb.radius);
         g.addColorStop(0, neb.colorHex);
         g.addColorStop(0.6, hexToRgba(neb.colorHex, 0.4));

@@ -47,6 +47,7 @@ export class RacingParticlePool {
   public readonly sparks: CollisionSpark[];
   public sparkWriteIndex = 0;
   public sparkCount = 0;
+  public activeSparkCount = 0;
 
   constructor(
     skidCapacity: number = 256,
@@ -108,6 +109,7 @@ export class RacingParticlePool {
     maxAge: number = 0.18
   ): void {
     const spark = this.sparks[this.sparkWriteIndex]!;
+    if (spark.alpha <= 0) this.activeSparkCount += 1;
     spark.x = x;
     spark.y = y;
     spark.vx = vx;
@@ -144,11 +146,16 @@ export class RacingParticlePool {
       const spark = this.sparks[i]!;
       if (spark.alpha <= 0) continue;
       spark.age += dt;
+      if (spark.age >= spark.maxAge) {
+        spark.alpha = 0;
+        this.activeSparkCount = Math.max(0, this.activeSparkCount - 1);
+        continue;
+      }
       spark.x += spark.vx * dt;
       spark.y += spark.vy * dt;
       spark.vx *= Math.max(0, 1 - dt * 4.5);
       spark.vy = spark.vy * Math.max(0, 1 - dt * 4.5) + 90 * dt;
-      spark.alpha = spark.age >= spark.maxAge ? 0 : 1 - spark.age / spark.maxAge;
+      spark.alpha = 1 - spark.age / spark.maxAge;
     }
   }
 }

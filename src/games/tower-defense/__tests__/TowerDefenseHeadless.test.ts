@@ -1,7 +1,7 @@
 import { TowerDefenseGame } from "../TowerDefenseGame";
 import { getCreepRenderSize } from "../EntityFactory";
 import { parseLevelLayout, extractWaypoints, createGridLayout } from "../MapUtils";
-import type { GameStateComponent, WaypointList, TileGrid } from "../types/TowerDefenseTypes";
+import type { GameStateComponent, WaypointList, TileGrid, TowerDefenseVisualEffects } from "../types/TowerDefenseTypes";
 import towerDefenseConfigRaw from "../config/tower-defense.json";
 
 describe("TowerDefense headless - Phase 2 (Playable Headless)", () => {
@@ -228,4 +228,32 @@ describe("TowerDefense headless - Phase 2 (Playable Headless)", () => {
     expect(game.getWorld().getComponent(creepEntity, "Render")?.hitFlashFrames).toBeGreaterThan(0);
     expect(game.getWorld().getComponent(creepEntity, "Health")?.current).toBe(healthBeforeHit);
   });
+  it("renders enemy death rewards and wave transition feedback", async () => {
+    game = new TowerDefenseGame({ headless: true, gameOptions: { seed: 42 } });
+    await game.init();
+    game.update(1 / 60); // Bind presentation event handlers before injecting a visual event.
+
+    const world = game.getWorld();
+    world.getEventBus()?.emit("creep:killed", {
+      entity: 9999,
+      reward: 15,
+      creepType: "fast",
+      x: 240,
+      y: 160,
+    });
+    game.update(1 / 60);
+
+    let vfx = world.getResource<TowerDefenseVisualEffects>("TowerDefenseVisualEffects");
+    expect(vfx?.effects.some((effect) => effect.kind === "enemy-death" && effect.x === 240 && effect.y === 160)).toBe(true);
+    expect(vfx?.effects.some((effect) => effect.kind === "gold-reward" && effect.amount === 15)).toBe(true);
+
+    world.mutateSingleton("GameState", (state: GameStateComponent) => {
+      state.phase = "wave";
+    });
+    game.update(1 / 60);
+
+    vfx = world.getResource<TowerDefenseVisualEffects>("TowerDefenseVisualEffects");
+    expect(vfx?.effects.some((effect) => effect.kind === "phase-banner" && effect.text === "WAVE 1 INCOMING")).toBe(true);
+  });
+
 });

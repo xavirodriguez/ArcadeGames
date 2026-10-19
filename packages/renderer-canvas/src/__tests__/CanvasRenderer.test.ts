@@ -1,6 +1,31 @@
 import { World } from "@tiny-aster/core";
 import { CanvasRenderer, FrameTimeMeter } from "../CanvasRenderer";
 
+interface MockCanvasCtx {
+  canvas: { width: number; height: number };
+  fillStyle: string;
+  strokeStyle: string;
+  lineWidth: number;
+  font: string;
+  textBaseline: string;
+  fillRect: jest.Mock;
+  strokeRect: jest.Mock;
+  fillText: jest.Mock;
+  measureText: jest.Mock;
+  save: jest.Mock;
+  restore: jest.Mock;
+  setTransform: jest.Mock;
+  translate: jest.Mock;
+  scale: jest.Mock;
+  beginPath: jest.Mock;
+  rect: jest.Mock;
+  clip: jest.Mock;
+  rotate: jest.Mock;
+  arc: jest.Mock;
+  fill: jest.Mock;
+  stroke: jest.Mock;
+}
+
 describe("FrameTimeMeter", () => {
   it("computes p50, p95, p99 correctly and wraps around buffer size", () => {
     const meter = new FrameTimeMeter(100);
@@ -39,7 +64,7 @@ describe("FrameTimeMeter", () => {
 });
 
 describe("CanvasRenderer Perf Instrumentation", () => {
-  let mockCtx: any;
+  let mockCtx: MockCanvasCtx;
 
   beforeEach(() => {
     delete globalThis.__ARCADE_PERF__;
@@ -74,7 +99,7 @@ describe("CanvasRenderer Perf Instrumentation", () => {
     const world = new World();
     world.setResource("ScreenConfig", { width: 800, height: 600 });
 
-    renderer.render(world, mockCtx);
+    renderer.render(world, mockCtx as unknown as CanvasRenderingContext2D);
 
     const stats = renderer.getFrameTimeStats();
     expect(stats.count).toBe(0);
@@ -87,7 +112,7 @@ describe("CanvasRenderer Perf Instrumentation", () => {
     const world = new World();
     world.setResource("ScreenConfig", { width: 800, height: 600 });
 
-    renderer.render(world, mockCtx);
+    renderer.render(world, mockCtx as unknown as CanvasRenderingContext2D);
 
     const stats = renderer.getFrameTimeStats();
     expect(stats.count).toBe(1);
@@ -104,7 +129,7 @@ describe("CanvasRenderer Perf Instrumentation", () => {
     world.setResource("ScreenConfig", { width: 800, height: 600 });
     world.setResource("DebugPerf", true);
 
-    renderer.render(world, mockCtx);
+    renderer.render(world, mockCtx as unknown as CanvasRenderingContext2D);
 
     const stats = renderer.getFrameTimeStats();
     expect(stats.count).toBe(1);
@@ -112,24 +137,30 @@ describe("CanvasRenderer Perf Instrumentation", () => {
   });
 
   it("applies devicePixelRatio setTransform scaling during rendering", () => {
-    const originalWindow = global.window;
+    const originalWindow = globalThis.window;
     try {
-      // @ts-ignore
-      delete global.window;
-      // @ts-ignore
-      global.window = { devicePixelRatio: 2 } as any;
+      const mockWindow = { devicePixelRatio: 2 } as unknown as Window & typeof globalThis;
+      Object.defineProperty(globalThis, "window", {
+        value: mockWindow,
+        writable: true,
+        configurable: true,
+      });
 
       const renderer = new CanvasRenderer();
       const world = new World();
       world.setResource("ScreenConfig", { width: 800, height: 600 });
 
-      renderer.render(world, mockCtx);
+      renderer.render(world, mockCtx as unknown as CanvasRenderingContext2D);
 
       expect(mockCtx.canvas.width).toBe(1600);
       expect(mockCtx.canvas.height).toBe(1200);
       expect(mockCtx.setTransform).toHaveBeenCalledWith(2, 0, 0, 2, 0, 0);
     } finally {
-      global.window = originalWindow;
+      Object.defineProperty(globalThis, "window", {
+        value: originalWindow,
+        writable: true,
+        configurable: true,
+      });
     }
   });
 });

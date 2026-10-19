@@ -3,9 +3,7 @@ import { CanvasCircleDrawer, CanvasBoxDrawer, CanvasPolygonDrawer } from "./Canv
 import { CanvasSpriteDrawer } from "./CanvasSpriteDrawer";
 
 declare global {
-  /* eslint-disable no-var */
   var __ARCADE_PERF__: boolean | undefined;
-  /* eslint-enable no-var */
 }
 
 export interface FrameTimeStats {

@@ -4,7 +4,7 @@ import {
   clearHtmlImageCache,
   CanvasSpriteDrawer
 } from "../CanvasSpriteDrawer";
-import { World } from "@tiny-aster/core";
+import { World, AssetLoader, SpriteComponent } from "@tiny-aster/core";
 
 describe("CanvasSpriteDrawer Preloading and Caching", () => {
   const originalImage = global.Image;
@@ -23,14 +23,14 @@ describe("CanvasSpriteDrawer Preloading and Caching", () => {
       public complete = false;
       public naturalWidth = 0;
       public onload: (() => void) | null = null;
-      public onerror: ((e?: any) => void) | null = null;
+      public onerror: ((e?: unknown) => void) | null = null;
 
       public decode() {
         return Promise.reject(new Error("decode fail"));
       }
     }
 
-    global.Image = MockImage as any;
+    global.Image = MockImage as unknown as typeof Image;
 
     const entry = getCachedHtmlImageEntry("http://example.com/test.png")!;
     expect(entry.status).toBe("loading");
@@ -50,14 +50,14 @@ describe("CanvasSpriteDrawer Preloading and Caching", () => {
       public complete = false;
       public naturalWidth = 0;
       public onload: (() => void) | null = null;
-      public onerror: ((e?: any) => void) | null = null;
+      public onerror: ((e?: unknown) => void) | null = null;
 
       public decode() {
         return Promise.reject(new Error("decode fail"));
       }
     }
 
-    global.Image = MockImage as any;
+    global.Image = MockImage as unknown as typeof Image;
 
     const entry = getCachedHtmlImageEntry("http://example.com/broken.png")!;
     expect(entry.status).toBe("loading");
@@ -75,14 +75,14 @@ describe("CanvasSpriteDrawer Preloading and Caching", () => {
       public complete = false;
       public naturalWidth = 0;
       public onload: (() => void) | null = null;
-      public onerror: ((e?: any) => void) | null = null;
+      public onerror: ((e?: unknown) => void) | null = null;
 
       public decode() {
         return Promise.resolve();
       }
     }
 
-    global.Image = MockImage as any;
+    global.Image = MockImage as unknown as typeof Image;
 
     const uris = ["http://example.com/a.png", "http://example.com/b.png"];
     const preloadPromise = preloadSprites(uris);
@@ -105,28 +105,33 @@ describe("CanvasSpriteDrawer Preloading and Caching", () => {
       public complete = false;
       public naturalWidth = 0;
       public onload: (() => void) | null = null;
-      public onerror: ((e?: any) => void) | null = null;
+      public onerror: ((e?: unknown) => void) | null = null;
     }
-    global.Image = MockImage as any;
+    global.Image = MockImage as unknown as typeof Image;
 
     const drawer = new CanvasSpriteDrawer();
-    const mockCtx: any = {
+    const drawImageMock = jest.fn();
+    const mockCtx = {
       save: jest.fn(),
       restore: jest.fn(),
-      drawImage: jest.fn(),
-    };
+      drawImage: drawImageMock,
+    } as unknown as CanvasRenderingContext2D;
 
     const world = new World();
     const assetLoader = {
       get: jest.fn().mockReturnValue({ uri: "http://example.com/notready.png" }),
-    };
-    world.setResource("AssetLoader", assetLoader as any);
+    } as unknown as AssetLoader;
+    world.setResource("AssetLoader", assetLoader);
 
     const entity = world.createEntity();
-    world.addComponent(entity, { type: "Sprite", assetKey: "notready" } as any);
+    const spriteComp: SpriteComponent = {
+      type: "Sprite",
+      assetKey: "notready",
+    };
+    world.addComponent(entity, spriteComp);
 
     drawer.draw(mockCtx, world, entity);
 
-    expect(mockCtx.drawImage).not.toHaveBeenCalled();
+    expect(drawImageMock).not.toHaveBeenCalled();
   });
 });

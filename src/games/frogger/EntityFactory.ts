@@ -6,7 +6,7 @@ import { FroggerConfig, DEFAULT_FROGGER_CONFIG } from "./types/FroggerConfigSche
 export interface FroggerBlueprintMap extends Record<string, BlueprintDefinition<FroggerComponentRegistry, EventRegistry, unknown>> {
   frogger: BlueprintDefinition<FroggerComponentRegistry, EventRegistry, { gridX: number; gridY: number }>;
   vehicle: BlueprintDefinition<FroggerComponentRegistry, EventRegistry, { row: number; x: number; speed: number; direction: number; vehicleType: "car" | "truck" }>;
-  log: BlueprintDefinition<FroggerComponentRegistry, EventRegistry, { row: number; x: number; speed: number; direction: number; length: number; logType: "log" | "turtle" }>;
+  log: BlueprintDefinition<FroggerComponentRegistry, EventRegistry, { row: number; x: number; speed: number; direction: number; length: number; logType: "log" | "turtle" | "crocodile" }>;
   lily_pad: BlueprintDefinition<FroggerComponentRegistry, EventRegistry, { padIndex: number; x: number }>;
   state: BlueprintDefinition<FroggerComponentRegistry, EventRegistry, Record<string, never>>;
 }
@@ -87,6 +87,7 @@ export function registerFroggerBlueprints(world: World<FroggerComponentRegistry>
         cooldownRemaining: 0,
         furthestY: args.gridY,
         invulnerableRemaining: 0,
+        facing: "up",
       });
 
       w.addComponent(entity, {
@@ -133,9 +134,16 @@ export function registerFroggerBlueprints(world: World<FroggerComponentRegistry>
   });
 
   blueprints.register("log", {
-    spawn: (w: World<FroggerComponentRegistry>, entity: number, args: { row: number; x: number; speed: number; direction: number; length: number; logType: "log" | "turtle" }) => {
+    spawn: (w: World<FroggerComponentRegistry>, entity: number, args: { row: number; x: number; speed: number; direction: number; length: number; logType: "log" | "turtle" | "crocodile" }) => {
       const config = w.getResource<FroggerConfig>("GameConfig") || DEFAULT_FROGGER_CONFIG;
       const width = config.GRID_SIZE * args.length;
+
+      const shape =
+        args.logType === "turtle" ? "turtle" :
+        args.logType === "crocodile" ? "crocodile" : "log";
+      const color =
+        args.logType === "turtle" ? "#00D2FF" :
+        args.logType === "crocodile" ? "#2E8B57" : "#8B5A2B";
 
       spawnMovingGridObstacle(w, entity, {
         row: args.row,
@@ -143,19 +151,27 @@ export function registerFroggerBlueprints(world: World<FroggerComponentRegistry>
         speed: args.speed,
         direction: args.direction,
         width,
-        shape: args.logType === "turtle" ? "turtle" : "log",
-        color: args.logType === "turtle" ? "#00D2FF" : "#8B5A2B",
+        shape,
+        color,
         order: 4,
       });
 
-      w.addComponent(entity, {
+      const logComp: import("./types/FroggerTypes").LogComponent = {
         type: "Log",
         laneY: args.row,
         speed: args.speed,
         direction: args.direction,
         length: args.length,
         logType: args.logType,
-      });
+      };
+      if (args.logType === "turtle") {
+        logComp.divePhase = "float";
+        logComp.diveTimer = (w.getResource<FroggerConfig>("GameConfig") || DEFAULT_FROGGER_CONFIG).TURTLE_FLOAT_DURATION;
+      } else if (args.logType === "crocodile") {
+        logComp.mouthOpen = false;
+        logComp.mouthTimer = (w.getResource<FroggerConfig>("GameConfig") || DEFAULT_FROGGER_CONFIG).CROCODILE_CLOSED_DURATION;
+      }
+      w.addComponent(entity, logComp);
     },
   });
 
@@ -196,6 +212,10 @@ export function registerFroggerBlueprints(world: World<FroggerComponentRegistry>
         occupiedLilyPads: 0,
         totalLilyPads: config.TOTAL_LILY_PADS,
         respawnTimer: 0,
+        timeRemaining: config.FROG_TIME_LIMIT,
+        trafficSpeedScale: 1,
+        riverSpeedScale: 1,
+        extraLivesAwarded: 0,
       });
     },
   });

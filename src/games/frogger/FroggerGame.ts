@@ -127,8 +127,14 @@ export class FroggerGame extends BaseGame<
     this.eventBus.on("frogger:jump", () => {
       this.audio.playSFX("jump");
     });
-    this.eventBus.on("frogger:died", () => {
-      this.audio.playSFX("drown");
+    this.eventBus.on("frogger:died", (payload: { reason?: string }) => {
+      const reason = payload?.reason ?? "";
+      // Road / snake hits use a sharp impact; water-related deaths use drown.
+      if (reason === "vehicle" || reason === "snake") {
+        this.audio.playSFX("hit");
+      } else {
+        this.audio.playSFX("drown");
+      }
     });
     this.eventBus.on("frogger:goal_reached", () => {
       this.audio.playSFX("goal");
@@ -162,10 +168,10 @@ export class FroggerGame extends BaseGame<
       { x: 500, speed: 90, dir: 1, length: 3, type: "log" },
     ]);
 
-    // Row 3: Long Logs (right, fast)
+    // Row 3: Long Logs + Crocodile (right, fast)
     this.spawnRowEntities("log", 3, config, [
       { x: 200, speed: 150, dir: 1, length: 4, type: "log" },
-      { x: 650, speed: 150, dir: 1, length: 4, type: "log" },
+      { x: 650, speed: 130, dir: 1, length: 3, type: "crocodile" },
     ]);
 
     // Row 4: Turtles (left)
@@ -303,6 +309,7 @@ export class FroggerGame extends BaseGame<
           isWin: state.isWin,
           occupiedLilyPads: state.occupiedLilyPads,
           totalLilyPads: state.totalLilyPads,
+          timeRemaining: state.timeRemaining,
         };
       }
     }
@@ -314,6 +321,7 @@ export class FroggerGame extends BaseGame<
       isWin: false,
       occupiedLilyPads: 0,
       totalLilyPads: this.config.TOTAL_LILY_PADS,
+      timeRemaining: this.config.FROG_TIME_LIMIT ?? 30,
     };
   }
 
@@ -344,6 +352,7 @@ export class NullFroggerGame extends NullBaseGame<FroggerState, FroggerInput, Fr
       isWin: false,
       occupiedLilyPads: 0,
       totalLilyPads: 5,
+      timeRemaining: 30,
     };
   }
 

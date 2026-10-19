@@ -2,6 +2,69 @@ import { World, Renderer, CoreComponentRegistry, Entity, ShapeDrawer, EffectDraw
 import { CanvasCircleDrawer, CanvasBoxDrawer, CanvasPolygonDrawer } from "./CanvasShapeDrawers";
 import { CanvasSpriteDrawer } from "./CanvasSpriteDrawer";
 
+declare global {
+  /* eslint-disable no-var */
+  var __ARCADE_PERF__: boolean | undefined;
+  /* eslint-enable no-var */
+}
+
+export interface FrameTimeStats {
+  p50: number;
+  p95: number;
+  p99: number;
+  count: number;
+  lastFrameMs: number;
+}
+
+export class FrameTimeMeter {
+  private readonly buffer: Float64Array;
+  private pointer = 0;
+  private count = 0;
+
+  constructor(size = 300) {
+    this.buffer = new Float64Array(size);
+  }
+
+  public record(durationMs: number): void {
+    this.buffer[this.pointer] = durationMs;
+    this.pointer = (this.pointer + 1) % this.buffer.length;
+    if (this.count < this.buffer.length) {
+      this.count++;
+    }
+  }
+
+  public getStats(): FrameTimeStats {
+    if (this.count === 0) {
+      return { p50: 0, p95: 0, p99: 0, count: 0, lastFrameMs: 0 };
+    }
+    const samples = new Float64Array(this.count);
+    for (let i = 0; i < this.count; i++) {
+      samples[i] = this.buffer[i];
+    }
+    samples.sort();
+
+    const getPercentile = (p: number): number => {
+      const idx = Math.min(Math.floor(this.count * p), this.count - 1);
+      return samples[idx];
+    };
+
+    const lastIdx = (this.pointer - 1 + this.buffer.length) % this.buffer.length;
+
+    return {
+      p50: getPercentile(0.5),
+      p95: getPercentile(0.95),
+      p99: getPercentile(0.99),
+      count: this.count,
+      lastFrameMs: this.buffer[lastIdx] ?? 0,
+    };
+  }
+
+  public reset(): void {
+    this.pointer = 0;
+    this.count = 0;
+  }
+}
+
 /**
  * Basic 2D Canvas renderer.
  */
@@ -9,6 +72,31 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
   private sortedEntities: Entity[] = [];
   public readonly type = "canvas";
   private readonly backgroundEffects: Map<string, EffectDrawer<CanvasRenderingContext2D, TRegistry>> = new Map();
+  private readonly frameTimeMeter = new FrameTimeMeter(300);
+
+  public getFrameTimeStats(): FrameTimeStats {
+    return this.frameTimeMeter.getStats();
+  }
+
+  private drawPerfHud(ctx: CanvasRenderingContext2D, stats: FrameTimeStats): void {
+    const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+    ctx.save();
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.font = "11px monospace";
+    const text = `p50:${stats.p50.toFixed(2)}ms | p95:${stats.p95.toFixed(2)}ms | p99:${stats.p99.toFixed(2)}ms (${stats.count}f)`;
+    const metrics = ctx.measureText(text);
+    const bgWidth = metrics.width + 12;
+    const bgHeight = 18;
+    ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+    ctx.fillRect(6, 6, bgWidth, bgHeight);
+    ctx.strokeStyle = "rgba(0, 255, 200, 0.8)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(6, 6, bgWidth, bgHeight);
+    ctx.fillStyle = "#00ffc8";
+    ctx.textBaseline = "middle";
+    ctx.fillText(text, 12, 6 + bgHeight / 2);
+    ctx.restore();
+  }
 
   constructor(
     private readonly shapeDrawers: Map<string, ShapeDrawer<CanvasRenderingContext2D, TRegistry>> = new Map()
@@ -131,17 +219,29 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
   }
 
   private renderWorld(world: World<TRegistry>, ctx: CanvasRenderingContext2D): void {
+    const isPerfEnabled = Boolean(
+      (typeof globalThis !== "undefined" && globalThis.__ARCADE_PERF__) ||
+      world.getResource("DebugPerf")
+    );
+    const startMs = isPerfEnabled && typeof performance !== "undefined" ? performance.now() : 0;
+
     const canvas = ctx.canvas;
+    const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
 
     const screenConfig = world.getResource<{ width: number; height: number }>("ScreenConfig");
     if (screenConfig) {
-      if (canvas.width !== screenConfig.width) {
-        canvas.width = screenConfig.width;
+      const targetWidth = Math.round(screenConfig.width * dpr);
+      const targetHeight = Math.round(screenConfig.height * dpr);
+      if (canvas.width !== targetWidth) {
+        canvas.width = targetWidth;
       }
-      if (canvas.height !== screenConfig.height) {
-        canvas.height = screenConfig.height;
+      if (canvas.height !== targetHeight) {
+        canvas.height = targetHeight;
       }
     }
+
+    const logicalWidth = screenConfig?.width ?? (canvas.width / dpr);
+    const logicalHeight = screenConfig?.height ?? (canvas.height / dpr);
 
     const gameConfig = world.getResource<{ worldWidth?: number; worldHeight?: number; viewportWidth?: number; viewportHeight?: number }>("GameConfig");
     const { viewportWidth, viewportHeight } = resolveViewportDimensions(gameConfig);
@@ -159,8 +259,10 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
       offsetY = (screenConfig.height - viewportHeight * scale) / 2;
     }
 
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
     ctx.fillStyle = "#000000";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, logicalWidth, logicalHeight);
 
     ctx.save();
     ctx.translate(offsetX, offsetY);
@@ -299,5 +401,11 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
 
     ctx.restore();                       // ← restore de cámara (NUEVO)
     ctx.restore();                       // ← restore de viewport (letterboxing)
+
+    if (isPerfEnabled && typeof performance !== "undefined") {
+      const durationMs = performance.now() - startMs;
+      this.frameTimeMeter.record(durationMs);
+      this.drawPerfHud(ctx, this.frameTimeMeter.getStats());
+    }
   }
 }

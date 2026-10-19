@@ -1,18 +1,107 @@
 import { World, Entity, SpriteComponent, AssetLoader, ShapeDrawer, CoreComponentRegistry } from "@tiny-aster/core";
 
-const htmlImageCache = new Map<string, HTMLImageElement>();
+export type ImageLoadStatus = "loading" | "ready" | "error";
 
-function getOrCreateCachedHtmlImage(uri: string): HTMLImageElement | null {
+export interface CachedImageEntry {
+  img: HTMLImageElement;
+  status: ImageLoadStatus;
+  promise: Promise<HTMLImageElement>;
+}
+
+const htmlImageCache = new Map<string, CachedImageEntry>();
+
+export function getCachedHtmlImageEntry(uri: string): CachedImageEntry | null {
   if (typeof Image === "undefined") {
     return null;
   }
-  let cached = htmlImageCache.get(uri);
-  if (!cached) {
-    cached = new Image();
-    cached.src = uri;
-    htmlImageCache.set(uri, cached);
+  let entry = htmlImageCache.get(uri);
+  if (!entry) {
+    const img = new Image();
+    let resolvePromise!: (img: HTMLImageElement) => void;
+    let rejectPromise!: (err: unknown) => void;
+
+    const promise = new Promise<HTMLImageElement>((resolve, reject) => {
+      resolvePromise = resolve;
+      rejectPromise = reject;
+    });
+
+    const newEntry: CachedImageEntry = {
+      img,
+      status: "loading",
+      promise,
+    };
+    entry = newEntry;
+    htmlImageCache.set(uri, entry);
+
+    const markReady = () => {
+      if (newEntry.status !== "ready") {
+        newEntry.status = "ready";
+        resolvePromise(img);
+      }
+    };
+
+    const markError = (err?: unknown) => {
+      if (newEntry.status !== "error") {
+        newEntry.status = "error";
+        rejectPromise(err ?? new Error(`Failed to load image: ${uri}`));
+      }
+    };
+
+    img.onload = () => {
+      markReady();
+    };
+
+    img.onerror = (e) => {
+      markError(e);
+    };
+
+    img.src = uri;
+
+    if (typeof img.decode === "function") {
+      img.decode()
+        .then(() => {
+          markReady();
+        })
+        .catch((err) => {
+          if (img.complete && img.naturalWidth > 0) {
+            markReady();
+          } else if (img.complete) {
+            markError(err);
+          }
+        });
+    }
+
+    if (img.complete) {
+      if (img.naturalWidth > 0) {
+        markReady();
+      } else {
+        markError();
+      }
+    }
   }
-  return cached;
+  return entry;
+}
+
+/**
+ * Preloads a list of image URIs and returns a promise that resolves when all images
+ * have finished loading (status 'ready') or encountered an error (status 'error').
+ */
+export async function preloadSprites(uris: string[]): Promise<void> {
+  const promises = uris.map((uri) => {
+    const entry = getCachedHtmlImageEntry(uri);
+    if (!entry) return Promise.resolve();
+    return entry.promise.catch(() => {
+      // Intentionally catch error so preloadSprites completes even if an asset fails to load
+    });
+  });
+  await Promise.all(promises);
+}
+
+/**
+ * Clears the HTML image cache.
+ */
+export function clearHtmlImageCache(): void {
+  htmlImageCache.clear();
 }
 
 interface MiniExpoAsset {
@@ -45,12 +134,19 @@ export class CanvasSpriteDrawer<TRegistry extends CoreComponentRegistry = CoreCo
 
     let img: HTMLImageElementMock | null = null;
     if (typeof HTMLImageElement !== "undefined" && rawImg instanceof HTMLImageElement) {
+      if (!rawImg.complete || rawImg.naturalWidth === 0) {
+        return;
+      }
       img = rawImg as unknown as HTMLImageElementMock;
     } else if (rawImg && typeof rawImg === "object") {
       const miniAsset = rawImg as MiniExpoAsset;
       const uri = miniAsset.localUri || miniAsset.uri;
       if (uri) {
-        img = getOrCreateCachedHtmlImage(uri) as unknown as HTMLImageElementMock;
+        const entry = getCachedHtmlImageEntry(uri);
+        if (!entry || entry.status !== "ready") {
+          return;
+        }
+        img = entry.img as unknown as HTMLImageElementMock;
       } else {
         // Fallback for mock/plain-object HTMLImageElement in node/test environments
         img = rawImg as HTMLImageElementMock;

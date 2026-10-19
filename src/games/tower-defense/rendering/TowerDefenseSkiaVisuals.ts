@@ -1,10 +1,11 @@
 import { ShapeDrawer, EffectDrawer, World, resolveThemeColorWithFallback } from "@tiny-aster/core";
-import type { TowerDefenseComponentRegistry } from "../types/TowerDefenseTypes";
+import type { TowerDefenseComponentRegistry, WaypointList } from "../types/TowerDefenseTypes";
 import { getTileTypeColor } from "../MapUtils";
 import { Skia, getPaint, SkCanvas, SkPaint } from "../../shared/rendering/SkiaContext";
 import { drawGlowOrbSkia } from "../../shared/rendering/SkiaNeonUtils";
 import { colors } from "../../../theme/colors";
 import {
+  createPathDirectionMarkers,
   resolveCreepVisualState,
   resolveTowerProjectileDrawSetup,
   resolveTdMapBackgroundContext,
@@ -384,6 +385,85 @@ export const drawSkiaTowerProjectile: ShapeDrawer<SkCanvas, TowerDefenseComponen
   },
 };
 
+function drawTdLandmarkSkia(
+  canvas: SkCanvas,
+  world: TDWorld,
+  x: number,
+  y: number,
+  size: number,
+  kind: "spawn" | "base",
+  isPaperDusk: boolean
+): void {
+  if (!Skia) return;
+  const paint = getPaint();
+  if (!paint) return;
+
+  const cx = x + size / 2;
+  const cy = y + size / 2;
+  const fill = kind === "spawn"
+    ? resolveThemeColorWithFallback(world, "#ef5350", "map_spawn", "accent")
+    : resolveThemeColorWithFallback(world, "#43a047", "map_base", "primary");
+  const outline = isPaperDusk
+    ? resolveThemeColorWithFallback(world, "#14161B", "pd_ink")
+    : "#101827";
+
+  paint.reset();
+  paint.setAntiAlias(true);
+  paint.setStyle(Skia.PaintStyle.Fill);
+  paint.setColor(Skia.Color(fill));
+  canvas.drawCircle(cx, cy, size * (kind === "spawn" ? 0.2 : 0.28), paint);
+
+  paint.setStyle(Skia.PaintStyle.Stroke);
+  paint.setStrokeWidth(2);
+  paint.setColor(Skia.Color(outline));
+  canvas.drawCircle(cx, cy, size * (kind === "spawn" ? 0.2 : 0.28), paint);
+
+  if (kind === "spawn") {
+    paint.setStyle(Skia.PaintStyle.Fill);
+    paint.setColor(Skia.Color("#fff4db"));
+    canvas.drawCircle(cx, cy, size * 0.075, paint);
+  } else {
+    paint.setStyle(Skia.PaintStyle.Stroke);
+    paint.setStrokeWidth(Math.max(1.5, size * 0.055));
+    paint.setColor(Skia.Color("#fff4db"));
+    canvas.drawCircle(cx, cy, size * 0.16, paint);
+    paint.setStyle(Skia.PaintStyle.Fill);
+    canvas.drawRect(
+      Skia.XYWHRect(cx - size * 0.045, cy - size * 0.045, size * 0.09, size * 0.09),
+      paint
+    );
+  }
+}
+
+function drawPathDirectionMarkersSkia(
+  canvas: SkCanvas,
+  world: TDWorld,
+  isPaperDusk: boolean
+): void {
+  if (!Skia) return;
+  const waypoints = world.getResource<WaypointList>("WaypointList");
+  if (!waypoints) return;
+  const paint = getPaint();
+  if (!paint) return;
+
+  const color = isPaperDusk
+    ? resolveThemeColorWithFallback(world, "#14161B", "pd_pathEdge", "pd_ink")
+    : "rgba(20,30,44,0.72)";
+
+  for (const marker of createPathDirectionMarkers(waypoints.points)) {
+    canvas.save();
+    canvas.translate(marker.x, marker.y);
+    canvas.rotate((marker.angle * 180) / Math.PI, 0, 0);
+    paint.reset();
+    paint.setAntiAlias(true);
+    paint.setStyle(Skia.PaintStyle.Stroke);
+    paint.setStrokeWidth(2.5);
+    paint.setColor(Skia.Color(color));
+    canvas.drawLine(-5, -6, 2, 0, paint);
+    canvas.drawLine(2, 0, -5, 6, paint);
+    canvas.restore();
+  }
+}
 export const drawSkiaTdMapBackground: EffectDrawer<SkCanvas, TowerDefenseComponentRegistry> = {
   draw(canvas, world: TDWorld) {
     if (!Skia) return;
@@ -416,7 +496,12 @@ export const drawSkiaTdMapBackground: EffectDrawer<SkCanvas, TowerDefenseCompone
         paint.setColor(Skia.Color(getTileTypeColor(tile)));
       }
       canvas.drawRect(Skia.XYWHRect(x, y, layout.stepX - 1, layout.stepY - 1), paint);
+      if (tile === "spawn" || tile === "base") {
+        drawTdLandmarkSkia(canvas, world, x, y, layout.stepX, tile, isPaperDusk);
+      }
     });
+
+    drawPathDirectionMarkersSkia(canvas, world, isPaperDusk);
 
     const playerEntity = world.query("Player")[0];
     if (playerEntity !== undefined) {

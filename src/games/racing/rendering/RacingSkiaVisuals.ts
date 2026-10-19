@@ -226,7 +226,7 @@ export const drawSkiaCollisionSparks: ShapeDrawer<SkCanvas, RacingComponentRegis
   draw(canvas, world) {
     if (!Skia) return;
     const pCtx = resolveRacingParticlePoolContext(world);
-    if (!pCtx || pCtx.pool.sparkCount === 0) return;
+    if (!pCtx || pCtx.pool.activeSparkCount === 0) return;
 
     const { palette, pool } = pCtx;
     const sparkPaint = Skia.Paint();

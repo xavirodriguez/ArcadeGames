@@ -1,0 +1,53 @@
+{
+  "id": "space_speedway",
+  "name": "Nebula Speed Ring",
+  "theme": "space",
+  "width": 1600,
+  "height": 1000,
+  "spawnPoints": [
+    { "x": 800, "y": 150, "rotation": 0 },
+    { "x": 800, "y": 180, "rotation": 0 }
+  ],
+  "waypoints": [
+    { "x": 800, "y": 150, "radius": 70 },
+    { "x": 1400, "y": 300, "radius": 70 },
+    { "x": 1400, "y": 700, "radius": 70 },
+    { "x": 800, "y": 850, "radius": 70 },
+    { "x": 200, "y": 700, "radius": 70 },
+    { "x": 200, "y": 300, "radius": 70 }
+  ],
+  "walls": [
+    { "x": 800, "y": 30, "width": 1540, "height": 24 },
+    { "x": 800, "y": 970, "width": 1540, "height": 24 },
+    { "x": 30, "y": 500, "width": 24, "height": 940 },
+    { "x": 1570, "y": 500, "width": 24, "height": 940 }
+  ],
+  "zones": [
+    {
+      "id": "magnetic_boost",
+      "x": 800,
+      "y": 500,
+      "width": 300,
+      "height": 100,
+      "surface": "booster",
+      "gripModifier": 1.0,
+      "speedModifier": 1.4
+    }
+  ],
+  "obstacles": [
+    {
+      "id": "asteroid_left",
+      "x": 500,
+      "y": 500,
+      "radius": 35,
+      "kind": "asteroid"
+    },
+    {
+      "id": "asteroid_right",
+      "x": 1100,
+      "y": 500,
+      "radius": 45,
+      "kind": "asteroid"
+    }
+  ]
+}

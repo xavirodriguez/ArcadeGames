@@ -65,7 +65,7 @@ export class TowerDefenseVfxSystem extends System<TowerDefenseComponentRegistry,
         }
       } else if (this.previousPhase === undefined && (gameState.phase === "victory" || gameState.phase === "game_over")) {
         const banner = this.resolvePhaseBanner(world, gameState, undefined);
-        if (banner) effects.push(this.createEffect(world, {
+        if (banner) effects.push(this.createEffect({
           kind: "phase-banner",
           x: banner.x,
           y: banner.y,
@@ -188,8 +188,10 @@ export class TowerDefenseVfxSystem extends System<TowerDefenseComponentRegistry,
     world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>
   ): { x: number; y: number } {
     const layout = world.getResource<GridLayout>("GridLayout");
+    const grid = world.getResource<TileGrid>("TileGrid");
+    const cols = grid?.cols ?? 16;
     return layout
-      ? { x: layout.offsetX + layout.stepX * 8, y: layout.offsetY + layout.stepY * 0.65 }
+      ? { x: layout.offsetX + layout.stepX * cols / 2, y: layout.offsetY + layout.stepY * 0.65 }
       : { x: 400, y: 64 };
   }
 

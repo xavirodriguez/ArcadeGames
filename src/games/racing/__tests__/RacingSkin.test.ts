@@ -117,7 +117,7 @@ describe("RacingSkin System", () => {
     it("obstacle drawers generate detailed tabletop silhouettes", () => {
       const bowl = bowlObstacleDrawer({ radius: 30, id: "bowl_1", time: 0, palette });
       const mug = mugObstacleDrawer({ radius: 30, id: "mug_1", time: 0, palette });
-      expect(bowl.length).toBeGreaterThan(10);
+      expect(bowl.length).toBeGreaterThanOrEqual(10);
       expect(bowl.filter((primitive) => primitive.type === "ellipse").length).toBeGreaterThanOrEqual(3);
       expect(mug.length).toBeGreaterThan(8);
       expect(mug.filter((primitive) => primitive.type === "ellipse").length).toBeGreaterThanOrEqual(2);

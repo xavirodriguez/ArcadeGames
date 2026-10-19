@@ -1,6 +1,7 @@
 import { ShapeDrawer, EffectDrawer, World, resolveThemeColorWithFallback } from "@tiny-aster/core";
 import type {
   TowerDefenseComponentRegistry,
+  WaypointList,
   GameStateComponent,
   TileGrid,
   ThreatInfo,
@@ -9,6 +10,7 @@ import type {
 import type { GridLayout } from "../../shared/grid/GridTypes";
 import { getTileTypeColor } from "../MapUtils";
 import {
+  createPathDirectionMarkers,
   resolveCreepVisualState,
   resolveTowerProjectileDrawSetup,
   resolveTdMapBackgroundContext,
@@ -377,6 +379,82 @@ export const drawTowerProjectile: ShapeDrawer<CanvasRenderingContext2D, TowerDef
   },
 };
 
+function drawTdLandmarkCanvas(
+  ctx: CanvasRenderingContext2D,
+  world: TDWorld,
+  x: number,
+  y: number,
+  size: number,
+  kind: "spawn" | "base",
+  isPaperDusk: boolean
+): void {
+  const cx = x + size / 2;
+  const cy = y + size / 2;
+  const fill = kind === "spawn"
+    ? resolveThemeColorWithFallback(world, "#ef5350", "map_spawn", "accent")
+    : resolveThemeColorWithFallback(world, "#43a047", "map_base", "primary");
+  const outline = isPaperDusk
+    ? resolveThemeColorWithFallback(world, "#14161B", "pd_ink")
+    : "#101827";
+
+  ctx.save();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = outline;
+  ctx.fillStyle = fill;
+  ctx.beginPath();
+  ctx.arc(cx, cy, size * (kind === "spawn" ? 0.2 : 0.28), 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  if (kind === "spawn") {
+    ctx.fillStyle = "#fff4db";
+    ctx.beginPath();
+    ctx.arc(cx, cy, size * 0.075, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    ctx.strokeStyle = "#fff4db";
+    ctx.lineWidth = Math.max(1.5, size * 0.055);
+    ctx.beginPath();
+    ctx.arc(cx, cy, size * 0.16, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = "#fff4db";
+    ctx.fillRect(cx - size * 0.045, cy - size * 0.045, size * 0.09, size * 0.09);
+  }
+  ctx.restore();
+}
+
+function drawPathDirectionMarkersCanvas(
+  ctx: CanvasRenderingContext2D,
+  world: TDWorld,
+  isPaperDusk: boolean
+): void {
+  const waypoints = world.getResource<WaypointList>("WaypointList");
+  if (!waypoints) return;
+
+  const color = isPaperDusk
+    ? resolveThemeColorWithFallback(world, "#14161B", "pd_pathEdge", "pd_ink")
+    : "rgba(20,30,44,0.72)";
+
+  ctx.save();
+  ctx.globalAlpha = 0.72;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+
+  for (const marker of createPathDirectionMarkers(waypoints.points)) {
+    ctx.save();
+    ctx.translate(marker.x, marker.y);
+    ctx.rotate(marker.angle);
+    ctx.beginPath();
+    ctx.moveTo(-5, -6);
+    ctx.lineTo(2, 0);
+    ctx.lineTo(-5, 6);
+    ctx.stroke();
+    ctx.restore();
+  }
+  ctx.restore();
+}
 export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
   draw(ctx, world: TDWorld) {
     const bgCtx = resolveTdMapBackgroundContext(world);
@@ -418,20 +496,15 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
         ctx.fillStyle = getTileTypeColor(tile);
         ctx.fillRect(x, y, layout.stepX - 1, layout.stepY - 1);
 
-        if (tile === "spawn") {
-          ctx.fillStyle = resolveThemeColorWithFallback(world, "#e53935", "map_spawn", "accent");
-          ctx.font = "bold 10px monospace";
-          ctx.textAlign = "center";
-          ctx.fillText("S", x + layout.stepX / 2, y + layout.stepY / 2 + 3);
-        }
-        if (tile === "base") {
-          ctx.fillStyle = resolveThemeColorWithFallback(world, "#43a047", "map_base", "primary");
-          ctx.font = "bold 10px monospace";
-          ctx.textAlign = "center";
-          ctx.fillText("BASE", x + layout.stepX / 2, y + layout.stepY / 2 + 3);
-        }
+
+      }
+
+      if (tile === "spawn" || tile === "base") {
+        drawTdLandmarkCanvas(ctx, world, x, y, layout.stepX, tile, isPaperDusk);
       }
     });
+
+    drawPathDirectionMarkersCanvas(ctx, world, isPaperDusk);
 
     const playerEntity = world.query("Player")[0];
     const catalog = world.getResource<TowerCatalog>("TowerCatalog");
@@ -495,36 +568,39 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
       }
     }
 
-    const threat = world.getResource<ThreatInfo>("ThreatInfo");
-    ctx.fillStyle = "rgba(0,0,0,0.6)";
-    ctx.fillRect(4, 4, 200, 120);
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "14px monospace";
-    ctx.textAlign = "left";
-    if (gs) {
-      ctx.fillText(`Gold  ${gs.gold}`, 12, 24);
-      ctx.fillText(`Lives ${gs.lives}`, 12, 42);
-      ctx.fillText(`Wave  ${gs.wave + 1}`, 12, 60);
-      ctx.fillText(`Phase ${gs.phase}`, 12, 78);
-      ctx.fillStyle = "#4fc3f7";
-      ctx.fillText(`Tower ${gs.selectedTowerType ?? "basic"}`, 12, 96);
-    }
-    if (threat) {
-      ctx.fillStyle = "#ffab91";
-      ctx.fillText(`Threat ${threat.alive} alive / ${threat.remainingInWave} wave`, 12, 114);
-    }
-
-    if (gs && (gs.phase === "build" || gs.phase === "intermission")) {
-      ctx.fillStyle = "rgba(0,0,0,0.5)";
-      ctx.fillRect(layout.offsetX, 4, 220, 28);
-      ctx.fillStyle = "#ffee58";
-      ctx.font = "bold 13px monospace";
+    // Keep diagnostics available without covering the playfield during normal games.
+    if (world.getResource<boolean>("ShowTowerDefenseDebugHud") === true) {
+      const threat = world.getResource<ThreatInfo>("ThreatInfo");
+      ctx.fillStyle = "rgba(0,0,0,0.6)";
+      ctx.fillRect(4, 4, 200, 120);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "14px monospace";
       ctx.textAlign = "left";
-      const hint =
-        gs.phase === "intermission"
-          ? `Intermission ${Math.ceil(gs.intermissionRemaining)}s`
-          : "START WAVE (Space / button)";
-      ctx.fillText(hint, layout.offsetX + 8, 24);
+      if (gs) {
+        ctx.fillText(`Gold  ${gs.gold}`, 12, 24);
+        ctx.fillText(`Lives ${gs.lives}`, 12, 42);
+        ctx.fillText(`Wave  ${gs.wave + 1}`, 12, 60);
+        ctx.fillText(`Phase ${gs.phase}`, 12, 78);
+        ctx.fillStyle = "#4fc3f7";
+        ctx.fillText(`Tower ${gs.selectedTowerType ?? "basic"}`, 12, 96);
+      }
+      if (threat) {
+        ctx.fillStyle = "#ffab91";
+        ctx.fillText(`Threat ${threat.alive} alive / ${threat.remainingInWave} wave`, 12, 114);
+      }
+  
+      if (gs && (gs.phase === "build" || gs.phase === "intermission")) {
+        ctx.fillStyle = "rgba(0,0,0,0.5)";
+        ctx.fillRect(layout.offsetX, 4, 220, 28);
+        ctx.fillStyle = "#ffee58";
+        ctx.font = "bold 13px monospace";
+        ctx.textAlign = "left";
+        const hint =
+          gs.phase === "intermission"
+            ? `Intermission ${Math.ceil(gs.intermissionRemaining)}s`
+            : "START WAVE (Space / button)";
+        ctx.fillText(hint, layout.offsetX + 8, 24);
+      }
     }
   },
 };

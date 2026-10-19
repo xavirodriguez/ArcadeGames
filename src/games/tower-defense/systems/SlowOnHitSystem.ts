@@ -13,7 +13,13 @@ export class SlowOnHitSystem extends TowerDefenseEventBindingSystem {
     if (!bus?.on) return;
 
     bus.on("combat:hit", (ev) => {
-      if (!ev.sourceEntity) return;
+      if (world.hasComponent(ev.targetEntity, "Creep")) {
+        world.mutateComponent(ev.targetEntity, "Render", (render) => {
+          render.hitFlashFrames = Math.max(render.hitFlashFrames ?? 0, 5);
+        });
+      }
+
+      if (ev.sourceEntity === undefined) return;
       const proj = world.getComponent(ev.sourceEntity, "TowerProjectile");
       if (!proj?.slowFactor || !proj.slowDurationMs) return;
       if (!world.hasComponent(ev.targetEntity, "Creep")) return;

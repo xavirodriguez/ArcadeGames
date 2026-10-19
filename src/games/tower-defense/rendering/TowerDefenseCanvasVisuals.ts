@@ -170,12 +170,25 @@ function drawCreepPath(
   ctx.beginPath();
 
   if (type === "fast") {
-    ctx.ellipse(0, 0, radius * 1.3, radius * 0.8, 0, 0, Math.PI * 2);
+    // Forward-pointing silhouette makes scouts read as fast even at a glance.
+    ctx.moveTo(-radius * 0.95, -radius * 0.42);
+    ctx.lineTo(radius * 0.42, -radius * 0.58);
+    ctx.lineTo(radius, 0);
+    ctx.lineTo(radius * 0.42, radius * 0.58);
+    ctx.lineTo(-radius * 0.95, radius * 0.42);
+    ctx.lineTo(-radius * 0.62, 0);
+  } else if (type === "tank") {
+    ctx.moveTo(-radius * 0.68, -radius * 0.62);
+    ctx.lineTo(radius * 0.68, -radius * 0.62);
+    ctx.lineTo(radius, -radius * 0.08);
+    ctx.lineTo(radius * 0.68, radius * 0.62);
+    ctx.lineTo(-radius * 0.68, radius * 0.62);
+    ctx.lineTo(-radius, -radius * 0.08);
   } else if (type === "boss") {
     const bumps = 10;
     for (let i = 0; i <= 100; i++) {
       const theta = (i / 100) * Math.PI * 2;
-      const r = radius * (1 + 0.07 * Math.sin(theta * bumps));
+      const r = radius * (1 + 0.14 * Math.sin(theta * bumps));
       const px = Math.cos(theta) * r;
       const py = Math.sin(theta) * r;
       if (i === 0) ctx.moveTo(px, py);
@@ -187,6 +200,51 @@ function drawCreepPath(
   ctx.closePath();
 }
 
+function drawCreepDetails(
+  ctx: CanvasRenderingContext2D,
+  size: number,
+  type: "grunt" | "fast" | "tank" | "boss",
+  stroke: string
+): void {
+  const eyeRadius = Math.max(1.2, size * 0.075);
+  const eyeOffset = size * (type === "fast" ? 0.2 : 0.16);
+  const eyeY = -size * 0.07;
+
+  ctx.fillStyle = "#fff4db";
+  for (const side of [-1, 1]) {
+    ctx.beginPath();
+    ctx.arc(side * eyeOffset, eyeY, eyeRadius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.fillStyle = "#18202b";
+  for (const side of [-1, 1]) {
+    ctx.beginPath();
+    ctx.arc(side * eyeOffset + size * 0.018, eyeY, eyeRadius * 0.48, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  if (type === "tank") {
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = Math.max(1.5, size * 0.06);
+    ctx.beginPath();
+    ctx.moveTo(-size * 0.27, size * 0.22);
+    ctx.lineTo(size * 0.27, size * 0.22);
+    ctx.stroke();
+  }
+
+  if (type === "boss") {
+    ctx.fillStyle = "#ffd54f";
+    ctx.beginPath();
+    ctx.moveTo(-size * 0.16, -size * 0.24);
+    ctx.lineTo(0, -size * 0.42);
+    ctx.lineTo(size * 0.16, -size * 0.24);
+    ctx.lineTo(0, -size * 0.1);
+    ctx.closePath();
+    ctx.fill();
+  }
+}
+
 function drawCreepBody(
   ctx: CanvasRenderingContext2D,
   size: number,
@@ -195,54 +253,60 @@ function drawCreepBody(
   isPaperDusk = false,
   type: "grunt" | "fast" | "tank" | "boss" = "grunt"
 ): void {
-  if (isPaperDusk) {
-    const shadowOffset = size * 0.1;
-    const shadowColor = "rgba(0,0,0,0.35)";
+  ctx.save();
 
-    ctx.save();
+  const shadowOffset = size * 0.1;
+  ctx.fillStyle = "rgba(0,0,0,0.38)";
+  ctx.save();
+  ctx.translate(shadowOffset, shadowOffset);
+  drawCreepPath(ctx, size, type);
+  ctx.fill();
+  ctx.restore();
 
-    // Shadow
-    ctx.fillStyle = shadowColor;
-    ctx.save();
-    ctx.translate(shadowOffset, shadowOffset);
-    drawCreepPath(ctx, size, type);
-    ctx.fill();
-    ctx.restore();
-
-    // Fill + Ink stroke
-    drawCreepPath(ctx, size, type);
-    ctx.fillStyle = fill;
-    ctx.fill();
-    ctx.strokeStyle = stroke;
-    ctx.lineWidth = Math.max(2, size * 0.08);
-    ctx.lineJoin = "round";
-    ctx.stroke();
-
-    ctx.restore();
-    return;
-  }
-
+  drawCreepPath(ctx, size, type);
   ctx.fillStyle = fill;
-  ctx.beginPath();
-  ctx.arc(0, 0, size / 2, 0, Math.PI * 2);
   ctx.fill();
   ctx.strokeStyle = stroke;
-  ctx.lineWidth = 2;
+  ctx.lineWidth = Math.max(2, size * (isPaperDusk ? 0.1 : 0.08));
+  ctx.lineJoin = "round";
   ctx.stroke();
-  ctx.fillStyle = "#fff";
-  ctx.beginPath();
-  ctx.arc(size * 0.15, -size * 0.1, size * 0.12, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "#111";
-  ctx.beginPath();
-  ctx.arc(size * 0.18, -size * 0.1, size * 0.06, 0, Math.PI * 2);
-  ctx.fill();
+
+  drawCreepDetails(ctx, size, type, stroke);
+  ctx.restore();
 }
+
+function drawCreepHealthBar(
+  ctx: CanvasRenderingContext2D,
+  world: TDWorld,
+  entity: number,
+  size: number
+): void {
+  const health = world.getComponent(entity, "Health");
+  if (!health || health.max <= 0) return;
+
+  const ratio = Math.max(0, Math.min(1, health.current / health.max));
+  const width = Math.max(20, size * 1.25);
+  const height = Math.max(3, size * 0.12);
+  const x = -width / 2;
+  const y = -size * 0.82 - height;
+
+  ctx.save();
+  ctx.fillStyle = "rgba(8,12,20,0.9)";
+  ctx.fillRect(x, y, width, height);
+  ctx.fillStyle = ratio > 0.5 ? "#65e572" : ratio > 0.25 ? "#ffce4a" : "#ff5252";
+  ctx.fillRect(x + 1, y + 1, Math.max(0, (width - 2) * ratio), Math.max(1, height - 2));
+  ctx.strokeStyle = isPaperDuskTheme(world) ? "#14161b" : "#f4f7ff";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x, y, width, height);
+  ctx.restore();
+}
+
 
 export const drawCreepGrunt: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
   draw(ctx, world, entity) {
     const { size, fill, stroke } = resolveCreepVisualState(world, entity, 12, "grunt");
     drawCreepBody(ctx, size, fill, stroke, isPaperDuskTheme(world), "grunt");
+    drawCreepHealthBar(ctx, world, entity, size);
   },
 };
 
@@ -250,6 +314,7 @@ export const drawCreepFast: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
   draw(ctx, world, entity) {
     const { size, fill, stroke } = resolveCreepVisualState(world, entity, 10, "fast");
     drawCreepBody(ctx, size, fill, stroke, isPaperDuskTheme(world), "fast");
+    drawCreepHealthBar(ctx, world, entity, size);
   },
 };
 
@@ -265,6 +330,7 @@ export const drawCreepTank: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
       ctx.arc(0, 0, size * 0.55, 0.2, Math.PI - 0.2);
       ctx.stroke();
     }
+    drawCreepHealthBar(ctx, world, entity, size);
   },
 };
 
@@ -292,6 +358,7 @@ export const drawCreepBoss: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
       ctx.closePath();
       ctx.fill();
     }
+    drawCreepHealthBar(ctx, world, entity, size);
   },
 };
 

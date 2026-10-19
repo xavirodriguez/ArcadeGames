@@ -6,6 +6,8 @@ import type {
   TileGrid,
   ThreatInfo,
   TowerCatalog,
+  TowerDefenseVisualEffect,
+  TowerDefenseVisualEffects,
 } from "../types/TowerDefenseTypes";
 import type { GridLayout } from "../../shared/grid/GridTypes";
 import { getTileTypeColor } from "../MapUtils";
@@ -144,7 +146,17 @@ function drawTowerWeaponCanvas(
     tower.cooldownRemaining >= cooldownDuration * 0.9
   );
 
+  const elapsedSeconds = world.getResource<TowerDefenseVisualEffects>("TowerDefenseVisualEffects")?.elapsedSeconds ?? 0;
+  const pulse = 0.5 + 0.5 * Math.sin(elapsedSeconds * 4.8 + entity * 0.17);
+
   ctx.save();
+  ctx.globalAlpha = 0.18 + pulse * 0.16;
+  ctx.strokeStyle = barrelColor;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(0, 0, size * (0.23 + pulse * 0.025), 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
   ctx.rotate(angle);
   ctx.lineCap = "round";
   ctx.strokeStyle = inkColor;
@@ -479,6 +491,150 @@ export const drawTowerProjectile: ShapeDrawer<CanvasRenderingContext2D, TowerDef
   },
 };
 
+function drawTdAmbientStarCanvas(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  row: number,
+  col: number,
+  elapsedSeconds: number,
+  isPaperDusk: boolean
+): void {
+  const seed = (row * 73 + col * 37 + 19) >>> 0;
+  if (seed % 3 !== 0) return;
+  const starX = x + 5 + (seed % Math.max(1, Math.floor(width - 10)));
+  const starY = y + 5 + ((seed * 13) % Math.max(1, Math.floor(height - 10)));
+  const pulse = 0.25 + 0.55 * (0.5 + 0.5 * Math.sin(elapsedSeconds * 2.6 + seed * 0.17));
+  ctx.save();
+  ctx.globalAlpha = pulse;
+  ctx.fillStyle = isPaperDusk ? "rgba(255,238,201,0.62)" : "rgba(117,222,255,0.8)";
+  ctx.fillRect(starX, starY, seed % 11 === 0 ? 2 : 1, 1);
+  if (seed % 13 === 0) {
+    ctx.fillRect(starX, starY - 2, 1, 5);
+    ctx.fillRect(starX - 2, starY, 5, 1);
+  }
+  ctx.restore();
+}
+
+function drawTowerDefenseVfxCanvas(
+  ctx: CanvasRenderingContext2D,
+  world: TDWorld,
+  layout: GridLayout,
+  tileGrid: TileGrid,
+  isPaperDusk: boolean
+): void {
+  const state = world.getResource<TowerDefenseVisualEffects>("TowerDefenseVisualEffects");
+  const gameState = world.getSingleton("GameState") as GameStateComponent | undefined;
+  const centerX = layout.offsetX + (tileGrid.cols * layout.stepX) / 2;
+  const bannerY = Math.max(8, layout.offsetY - 10);
+
+  if (state) {
+    for (const effect of state.effects) {
+      const progress = Math.max(0, Math.min(1, effect.ageSeconds / effect.durationSeconds));
+      const fade = progress > 0.68 ? (1 - progress) / 0.32 : 1;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, Math.min(1, fade));
+
+      if (effect.kind === "enemy-death") {
+        const count = effect.creepType === "boss" ? 16 : effect.creepType === "tank" ? 11 : 8;
+        const radius = 4 + progress * (effect.creepType === "boss" ? 29 : 20);
+        ctx.strokeStyle = effect.color;
+        ctx.lineWidth = Math.max(1, 2.5 * (1 - progress));
+        ctx.beginPath();
+        ctx.arc(effect.x, effect.y, 4 + progress * 12, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fillStyle = effect.color;
+        for (let index = 0; index < count; index++) {
+          const angle = (index / count) * Math.PI * 2 + effect.id * 0.37;
+          const distance = radius * (0.65 + (index % 3) * 0.18);
+          const sparkX = effect.x + Math.cos(angle) * distance;
+          const sparkY = effect.y + Math.sin(angle) * distance;
+          ctx.save();
+          ctx.translate(sparkX, sparkY);
+          ctx.rotate(angle);
+          ctx.fillRect(-1.2, -2.1, 2.4, 4.2);
+          ctx.restore();
+        }
+        ctx.fillStyle = "#fff4db";
+        ctx.beginPath();
+        ctx.arc(effect.x, effect.y, Math.max(1, 3 * (1 - progress)), 0, Math.PI * 2);
+        ctx.fill();
+      } else if (effect.kind === "gold-reward") {
+        const rise = progress * 28;
+        const coinX = effect.x;
+        const coinY = effect.y - rise;
+        ctx.fillStyle = "#ffd54f";
+        ctx.strokeStyle = "#815f18";
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.arc(coinX, coinY, 4.2 * (1 - progress * 0.22), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.strokeStyle = "#fff1a8";
+        ctx.beginPath();
+        ctx.moveTo(coinX, coinY - 2);
+        ctx.lineTo(coinX, coinY + 2);
+        ctx.stroke();
+        ctx.fillStyle = "#ffe082";
+        ctx.strokeStyle = isPaperDusk ? "#2a2214" : "#111827";
+        ctx.lineWidth = 2.5;
+        ctx.font = "bold 12px monospace";
+        ctx.textAlign = "left";
+        ctx.strokeText(`+${effect.amount ?? 0}`, coinX + 7, coinY - 2);
+        ctx.fillText(`+${effect.amount ?? 0}`, coinX + 7, coinY - 2);
+      } else if (effect.kind === "base-hit") {
+        for (let ring = 0; ring < 2; ring++) {
+          const ringProgress = Math.max(0, Math.min(1, progress - ring * 0.16));
+          ctx.globalAlpha = Math.max(0, (1 - ringProgress) * 0.8);
+          ctx.strokeStyle = effect.color;
+          ctx.lineWidth = 3 - ringProgress * 2;
+          ctx.beginPath();
+          ctx.arc(effect.x, effect.y, 6 + ringProgress * (34 + ring * 9), 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      } else if (effect.kind === "phase-banner") {
+        const width = Math.min(290, tileGrid.cols * layout.stepX - 20);
+        const height = 28;
+        const left = centerX - width / 2;
+        const top = bannerY - height / 2;
+        ctx.globalAlpha = Math.max(0, Math.min(1, fade));
+        ctx.fillStyle = isPaperDusk ? "rgba(242,233,216,0.95)" : "rgba(5,12,26,0.9)";
+        ctx.fillRect(left, top, width, height);
+        ctx.strokeStyle = effect.color;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(left + 1, top + 1, width - 2, height - 2);
+        ctx.fillStyle = effect.color;
+        ctx.font = "bold 14px monospace";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(effect.text ?? "WAVE", centerX, bannerY);
+      }
+      ctx.restore();
+    }
+  }
+
+  if (gameState?.phase === "victory" || gameState?.phase === "game_over") {
+    const color = gameState.phase === "victory" ? "#ffd54f" : "#ff5252";
+    const label = gameState.phase === "victory" ? `VICTORY  ·  SCORE ${gameState.score}` : `GAME OVER  ·  SCORE ${gameState.score}`;
+    const width = Math.min(310, tileGrid.cols * layout.stepX - 16);
+    const left = centerX - width / 2;
+    const top = bannerY - 16;
+    ctx.save();
+    ctx.fillStyle = isPaperDusk ? "rgba(242,233,216,0.97)" : "rgba(5,12,26,0.94)";
+    ctx.fillRect(left, top, width, 32);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(left + 1, top + 1, width - 2, 30);
+    ctx.fillStyle = color;
+    ctx.font = "bold 13px monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(label, centerX, bannerY);
+    ctx.restore();
+  }
+}
 function drawTdLandmarkCanvas(
   ctx: CanvasRenderingContext2D,
   world: TDWorld,
@@ -497,7 +653,17 @@ function drawTdLandmarkCanvas(
     ? resolveThemeColorWithFallback(world, "#14161B", "pd_ink")
     : "#101827";
 
+  const elapsedSeconds = world.getResource<TowerDefenseVisualEffects>("TowerDefenseVisualEffects")?.elapsedSeconds ?? 0;
+  const pulse = 0.5 + 0.5 * Math.sin(elapsedSeconds * 3.4 + (kind === "base" ? 0 : 1.8));
+
   ctx.save();
+  ctx.globalAlpha = isPaperDusk ? 0.2 + pulse * 0.18 : 0.25 + pulse * 0.3;
+  ctx.strokeStyle = kind === "base" ? "#62f6bd" : fill;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(cx, cy, size * ((kind === "base" ? 0.32 : 0.24) + pulse * 0.035), 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
   ctx.lineWidth = 2;
   ctx.strokeStyle = outline;
   ctx.fillStyle = fill;
@@ -563,7 +729,8 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
 
     const isPaperDusk = isPaperDuskTheme(world);
 
-    forEachTileGridCell(bgCtx, (tile, x, y) => {
+    const vfxElapsed = world.getResource<TowerDefenseVisualEffects>("TowerDefenseVisualEffects")?.elapsedSeconds ?? 0;
+    forEachTileGridCell(bgCtx, (tile, x, y, row, col) => {
       if (isPaperDusk) {
         const pdGround = resolveThemeColorWithFallback(world, "#2B2F36", "pd_ground");
         const pdBuildable = resolveThemeColorWithFallback(world, "#3A4049", "pd_buildable");
@@ -595,8 +762,10 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
       } else {
         ctx.fillStyle = getTileTypeColor(tile);
         ctx.fillRect(x, y, layout.stepX - 1, layout.stepY - 1);
+      }
 
-
+      if (tile === "blocked") {
+        drawTdAmbientStarCanvas(ctx, x, y, layout.stepX, layout.stepY, row, col, vfxElapsed, isPaperDusk);
       }
 
       if (tile === "spawn" || tile === "base") {
@@ -702,5 +871,7 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
         ctx.fillText(hint, layout.offsetX + 8, 24);
       }
     }
+
+    drawTowerDefenseVfxCanvas(ctx, world, layout, tileGrid, isPaperDusk);
   },
 };

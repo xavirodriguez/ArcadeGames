@@ -115,6 +115,15 @@ describe("RacingGame & EntityFactory Blueprint Spawning", () => {
     expect(finalLocalPlayers[0]).toBe(playerEntity);
   });
 
+  it("should initialize track according to trackId in gameOptions", async () => {
+    const game = new RacingGame({ gameOptions: { trackId: "space_demo" } });
+    await game.init();
+
+    const activeTrackSpec = game.world.getResource("ActiveTrackSpec") as { id?: string; skin?: string } | undefined;
+    expect(activeTrackSpec).toBeDefined();
+    expect(activeTrackSpec?.id).toBe("space_demo");
+  });
+
   it("should initialize HeadToHeadState, track zones, and obstacles on game start", async () => {
     const game = new RacingGame();
     await game.init();

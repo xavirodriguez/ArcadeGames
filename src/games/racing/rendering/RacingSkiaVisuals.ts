@@ -256,6 +256,15 @@ export const drawSkiaCheckpoint: ShapeDrawer<SkCanvas, RacingComponentRegistry> 
       const { cells, halfW, halfH } = computeCheckpointGrid(checkpoint.width, checkpoint.height);
       const [color1, color2] = resolveFinishCheckers(skin);
 
+      const shadowPaint = Skia.Paint();
+      shadowPaint.setColor(Skia.Color(skin.palette.shadow));
+      shadowPaint.setAlphaf(0.28);
+      shadowPaint.setStyle(Skia.PaintStyle.Fill);
+      canvas.drawRect(
+        Skia.XYWHRect(-halfW + 4, -halfH + 5, checkpoint.width, checkpoint.height),
+        shadowPaint
+      );
+
       for (let i = 0; i < cells.length; i += 1) {
         const cell = cells[i]!;
         const tilePaint = Skia.Paint();

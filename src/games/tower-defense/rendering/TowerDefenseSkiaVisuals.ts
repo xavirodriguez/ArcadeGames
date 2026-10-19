@@ -161,13 +161,31 @@ function drawSkiaCreepGeometry(
   type: "grunt" | "fast" | "tank" | "boss"
 ): void {
   if (type === "fast") {
-    canvas.drawOval(Skia.XYWHRect(-radius * 1.3, -radius * 0.8, radius * 2.6, radius * 1.6), paint);
+    const path = Skia.Path.Make();
+    path.moveTo(-radius * 0.95, -radius * 0.42);
+    path.lineTo(radius * 0.42, -radius * 0.58);
+    path.lineTo(radius, 0);
+    path.lineTo(radius * 0.42, radius * 0.58);
+    path.lineTo(-radius * 0.95, radius * 0.42);
+    path.lineTo(-radius * 0.62, 0);
+    path.close();
+    canvas.drawPath(path, paint);
+  } else if (type === "tank") {
+    const path = Skia.Path.Make();
+    path.moveTo(-radius * 0.68, -radius * 0.62);
+    path.lineTo(radius * 0.68, -radius * 0.62);
+    path.lineTo(radius, -radius * 0.08);
+    path.lineTo(radius * 0.68, radius * 0.62);
+    path.lineTo(-radius * 0.68, radius * 0.62);
+    path.lineTo(-radius, -radius * 0.08);
+    path.close();
+    canvas.drawPath(path, paint);
   } else if (type === "boss") {
     const path = Skia.Path.Make();
     const bumps = 10;
     for (let i = 0; i <= 100; i++) {
       const theta = (i / 100) * Math.PI * 2;
-      const r = radius * (1 + 0.07 * Math.sin(theta * bumps));
+      const r = radius * (1 + 0.14 * Math.sin(theta * bumps));
       const px = Math.cos(theta) * r;
       const py = Math.sin(theta) * r;
       if (i === 0) path.moveTo(px, py);
@@ -180,58 +198,120 @@ function drawSkiaCreepGeometry(
   }
 }
 
-function drawSkiaCreep(
+function drawSkiaCreepDetails(
   canvas: SkCanvas,
   size: number,
-  fill: string,
-  stroke: string,
-  isPaperDusk = false,
-  type: "grunt" | "fast" | "tank" | "boss" = "grunt"
+  type: "grunt" | "fast" | "tank" | "boss"
 ): void {
   if (!Skia) return;
   const paint = getPaint();
   if (!paint) return;
 
-  if (isPaperDusk) {
-    const shadowOffset = size * 0.1;
-    const shadowColor = "rgba(0,0,0,0.35)";
-    const radius = size / 2;
-
-    paint.reset();
-    paint.setAntiAlias(true);
-
-    // Hard Shadow
-    paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(shadowColor));
-    canvas.save();
-    canvas.translate(shadowOffset, shadowOffset);
-
-    drawSkiaCreepGeometry(canvas, paint, radius, type);
-    canvas.restore();
-
-    // Body Fill
-    paint.setColor(Skia.Color(fill));
-    drawSkiaCreepGeometry(canvas, paint, radius, type);
-
-    // Ink Stroke
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setStrokeWidth(Math.max(2, size * 0.08));
-    paint.setColor(Skia.Color(stroke));
-    drawSkiaCreepGeometry(canvas, paint, radius, type);
-
-    return;
-  }
+  const eyeRadius = Math.max(1.2, size * 0.075);
+  const eyeOffset = size * (type === "fast" ? 0.2 : 0.16);
+  const eyeY = -size * 0.07;
 
   paint.reset();
   paint.setAntiAlias(true);
   paint.setStyle(Skia.PaintStyle.Fill);
-  paint.setColor(Skia.Color(fill));
-  canvas.drawCircle(0, 0, size / 2, paint);
-  paint.setColor(Skia.Color(colors.white));
-  canvas.drawCircle(size * 0.15, -size * 0.1, size * 0.12, paint);
-  paint.setColor(Skia.Color(colors.neutral[800]));
-  canvas.drawCircle(size * 0.18, -size * 0.1, size * 0.06, paint);
+  paint.setColor(Skia.Color("#fff4db"));
+  canvas.drawCircle(-eyeOffset, eyeY, eyeRadius, paint);
+  canvas.drawCircle(eyeOffset, eyeY, eyeRadius, paint);
+
+  paint.setColor(Skia.Color("#18202b"));
+  canvas.drawCircle(-eyeOffset + size * 0.018, eyeY, eyeRadius * 0.48, paint);
+  canvas.drawCircle(eyeOffset + size * 0.018, eyeY, eyeRadius * 0.48, paint);
+
+  if (type === "tank") {
+    paint.reset();
+    paint.setAntiAlias(true);
+    paint.setStyle(Skia.PaintStyle.Stroke);
+    paint.setStrokeWidth(Math.max(1.5, size * 0.06));
+    paint.setColor(Skia.Color("#14161b"));
+    canvas.drawLine(-size * 0.27, size * 0.22, size * 0.27, size * 0.22, paint);
+  }
+
+  if (type === "boss") {
+    const crown = Skia.Path.Make();
+    crown.moveTo(-size * 0.16, -size * 0.24);
+    crown.lineTo(0, -size * 0.42);
+    crown.lineTo(size * 0.16, -size * 0.24);
+    crown.lineTo(0, -size * 0.1);
+    crown.close();
+    paint.reset();
+    paint.setAntiAlias(true);
+    paint.setStyle(Skia.PaintStyle.Fill);
+    paint.setColor(Skia.Color("#ffd54f"));
+    canvas.drawPath(crown, paint);
+  }
 }
+
+function drawSkiaCreep(
+  canvas: SkCanvas,
+  size: number,
+  fill: string,
+  stroke: string,
+  _isPaperDusk = false,
+  type: "grunt" | "fast" | "tank" | "boss" = "grunt"
+): void {
+  if (!Skia) return;
+  const paint = getPaint();
+  if (!paint) return;
+  const radius = size / 2;
+
+  paint.reset();
+  paint.setAntiAlias(true);
+  paint.setStyle(Skia.PaintStyle.Fill);
+  paint.setColor(Skia.Color("rgba(0,0,0,0.38)"));
+  canvas.save();
+  canvas.translate(size * 0.1, size * 0.1);
+  drawSkiaCreepGeometry(canvas, paint, radius, type);
+  canvas.restore();
+
+  paint.setColor(Skia.Color(fill));
+  drawSkiaCreepGeometry(canvas, paint, radius, type);
+
+  paint.setStyle(Skia.PaintStyle.Stroke);
+  paint.setStrokeWidth(Math.max(2, size * 0.08));
+  paint.setColor(Skia.Color(stroke));
+  drawSkiaCreepGeometry(canvas, paint, radius, type);
+
+  drawSkiaCreepDetails(canvas, size, type);
+}
+
+function drawSkiaCreepHealthBar(
+  canvas: SkCanvas,
+  world: TDWorld,
+  entity: number,
+  size: number
+): void {
+  if (!Skia) return;
+  const health = world.getComponent(entity, "Health");
+  if (!health || health.max <= 0) return;
+  const paint = getPaint();
+  if (!paint) return;
+
+  const ratio = Math.max(0, Math.min(1, health.current / health.max));
+  const width = Math.max(20, size * 1.25);
+  const height = Math.max(3, size * 0.12);
+  const x = -width / 2;
+  const y = -size * 0.82 - height;
+
+  paint.reset();
+  paint.setAntiAlias(true);
+  paint.setStyle(Skia.PaintStyle.Fill);
+  paint.setColor(Skia.Color("rgba(8,12,20,0.9)"));
+  canvas.drawRect(Skia.XYWHRect(x, y, width, height), paint);
+
+  paint.setColor(Skia.Color(ratio > 0.5 ? "#65e572" : ratio > 0.25 ? "#ffce4a" : "#ff5252"));
+  canvas.drawRect(Skia.XYWHRect(x + 1, y + 1, Math.max(0, (width - 2) * ratio), Math.max(1, height - 2)), paint);
+
+  paint.setStyle(Skia.PaintStyle.Stroke);
+  paint.setStrokeWidth(1);
+  paint.setColor(Skia.Color("#14161b"));
+  canvas.drawRect(Skia.XYWHRect(x, y, width, height), paint);
+}
+
 
 function drawSkiaCreepStrokedOutline(canvas: SkCanvas, radius: number, strokeColor: string, strokeWidth = 3): void {
   if (!Skia) return;
@@ -260,6 +340,7 @@ export const drawSkiaCreepBoss: ShapeDrawer<SkCanvas, TowerDefenseComponentRegis
     if (!isPaperDusk) {
       drawSkiaCreepStrokedOutline(canvas, size * 0.55, stroke, 3);
     }
+    drawSkiaCreepHealthBar(canvas, world, entity, size);
   },
 };
 
@@ -267,6 +348,7 @@ export const drawSkiaCreepGrunt: ShapeDrawer<SkCanvas, TowerDefenseComponentRegi
   draw(canvas, world, entity) {
     const { size, fill, stroke } = resolveCreepVisualState(world, entity, 12, "grunt");
     drawSkiaCreep(canvas, size, fill, stroke, isPaperDuskTheme(world), "grunt");
+    drawSkiaCreepHealthBar(canvas, world, entity, size);
   },
 };
 
@@ -274,6 +356,7 @@ export const drawSkiaCreepFast: ShapeDrawer<SkCanvas, TowerDefenseComponentRegis
   draw(canvas, world, entity) {
     const { size, fill, stroke } = resolveCreepVisualState(world, entity, 10, "fast");
     drawSkiaCreep(canvas, size, fill, stroke, isPaperDuskTheme(world), "fast");
+    drawSkiaCreepHealthBar(canvas, world, entity, size);
   },
 };
 
@@ -286,6 +369,7 @@ export const drawSkiaCreepTank: ShapeDrawer<SkCanvas, TowerDefenseComponentRegis
     if (!isPaperDusk) {
       drawSkiaCreepStrokedOutline(canvas, size * 0.55, stroke, 3);
     }
+    drawSkiaCreepHealthBar(canvas, world, entity, size);
   },
 };
 

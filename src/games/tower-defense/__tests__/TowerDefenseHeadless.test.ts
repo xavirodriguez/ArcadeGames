@@ -1,5 +1,6 @@
 import { TowerDefenseGame } from "../TowerDefenseGame";
 import { getCreepRenderSize } from "../EntityFactory";
+import { resolveCreepAnimationState } from "../rendering/TowerDefenseVisualHelpers";
 import { parseLevelLayout, extractWaypoints, createGridLayout } from "../MapUtils";
 import type { GameStateComponent, WaypointList, TileGrid, TowerDefenseVisualEffects } from "../types/TowerDefenseTypes";
 import towerDefenseConfigRaw from "../config/tower-defense.json";
@@ -254,6 +255,19 @@ describe("TowerDefense headless - Phase 2 (Playable Headless)", () => {
 
     vfx = world.getResource<TowerDefenseVisualEffects>("TowerDefenseVisualEffects");
     expect(vfx?.effects.some((effect) => effect.kind === "phase-banner" && effect.text === "WAVE 1 INCOMING")).toBe(true);
+
+    world.setResource<TowerDefenseVisualEffects>("TowerDefenseVisualEffects", {
+      elapsedSeconds: 0,
+      effects: [],
+    });
+    const animationAtStart = resolveCreepAnimationState(world, 12, "grunt");
+    world.setResource<TowerDefenseVisualEffects>("TowerDefenseVisualEffects", {
+      elapsedSeconds: 0.1,
+      effects: [],
+    });
+    const animationAfterTick = resolveCreepAnimationState(world, 12, "grunt");
+    expect(Number.isFinite(animationAfterTick.offsetY)).toBe(true);
+    expect(animationAfterTick.offsetY).not.toBe(animationAtStart.offsetY);
   });
 
 });

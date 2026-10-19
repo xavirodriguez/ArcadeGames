@@ -331,6 +331,12 @@ export const drawCheckpoint: ShapeDrawer<CanvasRenderingContext2D, RacingCompone
       const { cells, halfW, halfH } = computeCheckpointGrid(checkpoint.width, checkpoint.height);
       const [color1, color2] = resolveFinishCheckers(skin);
 
+      // Keep the finish strip grounded like other tabletop props.
+      ctx.fillStyle = skin.palette.shadow;
+      ctx.globalAlpha = 0.28;
+      ctx.fillRect(-halfW + 4, -halfH + 5, checkpoint.width, checkpoint.height);
+      ctx.globalAlpha = 1;
+
       for (let i = 0; i < cells.length; i += 1) {
         const cell = cells[i]!;
         ctx.fillStyle = cell.colorIndex === 0 ? color1 : color2;

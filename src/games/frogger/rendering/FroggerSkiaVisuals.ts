@@ -26,10 +26,21 @@ function drawSkiaRoundedBox(
 
 export const drawFroggerSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
   draw(canvas, world, entity) {
+    const frogger = world.getComponent(entity, "Frogger");
     const playerCtx = resolveFroggerPlayerDrawContext(world, entity);
     if (!playerCtx) return;
 
     const { half, isInvuln, primaryColor } = playerCtx;
+
+    const facing = frogger?.facing ?? "up";
+    const facingDeg =
+      facing === "up" ? 0 :
+      facing === "right" ? 90 :
+      facing === "down" ? 180 :
+      -90;
+
+    canvas.save();
+    if (facingDeg !== 0) canvas.rotate(facingDeg, 0, 0);
 
     const paint = Skia.Paint();
     paint.setColor(Skia.Color(isInvuln ? "#A3FF80" : primaryColor));
@@ -44,6 +55,8 @@ export const drawFroggerSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = 
     pupilPaint.setColor(Skia.Color("#000000"));
     canvas.drawCircle(-half * 0.4, -half * 0.55, half * 0.18, pupilPaint);
     canvas.drawCircle(half * 0.4, -half * 0.55, half * 0.18, pupilPaint);
+
+    canvas.restore();
   },
 };
 
@@ -69,13 +82,13 @@ export const drawTruckSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
     const halfH = height / 2;
 
     const truckColor = resolveThemeColorWithFallback(world, "#FF2A6D", "truck", "accent");
-    const paintTrailer = Skia.Paint();
-    paintTrailer.setColor(Skia.Color(truckColor));
-    canvas.drawRect(Skia.XYWHRect(-halfW, -halfH, width * 0.7, height), paintTrailer);
+    const paint = Skia.Paint();
+    paint.setColor(Skia.Color(truckColor));
+    canvas.drawRect(Skia.XYWHRect(-halfW, -halfH, width * 0.7, height), paint);
 
-    const paintCab = Skia.Paint();
-    paintCab.setColor(Skia.Color("#D3D9E2"));
-    canvas.drawRect(Skia.XYWHRect(halfW - width * 0.28, -halfH + 2, width * 0.28, height - 4), paintCab);
+    const cabPaint = Skia.Paint();
+    cabPaint.setColor(Skia.Color("#D3D9E2"));
+    canvas.drawRect(Skia.XYWHRect(halfW - width * 0.28, -halfH + 2, width * 0.28, height - 4), cabPaint);
   },
 };
 
@@ -95,16 +108,55 @@ export const drawTurtleSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
     const render = getVisibleSkiaRender(world, entity);
     if (!render) return;
 
+    const log = world.getComponent(entity, "Log");
+    const divePhase = log?.divePhase ?? "float";
+    if (divePhase === "submerged") return;
+
     const width = render.size || 80;
     const segments = resolveFroggerShellSegments(width);
+    const isWarning = divePhase === "warning";
+    const yOffset = isWarning ? 8 : 0;
 
     const turtleColor = resolveThemeColorWithFallback(world, "#00D2FF", "turtle", "secondary");
     const paintOuter = Skia.Paint();
     paintOuter.setColor(Skia.Color(turtleColor));
+    if (isWarning) paintOuter.setAlphaf(0.45);
 
+    canvas.save();
+    canvas.translate(0, yOffset);
     for (let i = 0; i < segments.length; i++) {
       canvas.drawCircle(segments[i].segX, 0, 14, paintOuter);
     }
+    canvas.restore();
+  },
+};
+
+/** River crocodile (Skia). */
+export const drawCrocodileSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
+  draw(canvas, world, entity) {
+    const render = getVisibleSkiaRender(world, entity);
+    if (!render) return;
+
+    const log = world.getComponent(entity, "Log");
+    const width = render.size || 120;
+    const height = 28;
+    const mouthOpen = !!log?.mouthOpen;
+    const bodyColor = resolveThemeColorWithFallback(world, "#2E8B57", "crocodile", "secondary");
+    const headColor = mouthOpen ? "#1A5C38" : "#3CB371";
+
+    drawSkiaRoundedBox(canvas, width * 0.7, height, bodyColor, 8, 8);
+
+    const headPaint = Skia.Paint();
+    headPaint.setColor(Skia.Color(headColor));
+    const headW = width * 0.3;
+    const dir = log?.direction ?? 1;
+    const headX = dir > 0 ? width / 2 - headW : -width / 2;
+    const headRect = Skia.RRectXY(
+      Skia.XYWHRect(headX, -height / 2 + 2, headW, height - 4),
+      6,
+      6
+    );
+    canvas.drawRRect(headRect, headPaint);
   },
 };
 
@@ -114,13 +166,23 @@ export const drawLilyPadSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = 
     const goalCtx = resolveFroggerGoalContext(world, entity);
     if (!goalCtx) return;
 
-    const { half, occupied } = goalCtx;
+    const { half, occupied, pad } = goalCtx;
 
     const { slotColor, occupiedColor } = resolveFroggerSlotColors(world);
 
     const paint = Skia.Paint();
     paint.setColor(Skia.Color(occupied ? occupiedColor : slotColor));
     canvas.drawCircle(0, 0, half, paint);
+
+    if (!occupied && pad.hasCrocodile) {
+      const crocPaint = Skia.Paint();
+      crocPaint.setColor(Skia.Color("#1A5C38"));
+      canvas.drawCircle(0, 2, half * 0.55, crocPaint);
+    } else if (!occupied && pad.hasFly) {
+      const flyPaint = Skia.Paint();
+      flyPaint.setColor(Skia.Color("#FFD700"));
+      canvas.drawCircle(0, -2, 5, flyPaint);
+    }
   },
 };
 

@@ -1,0 +1,42 @@
+{
+  "id": "desk_labyrinth",
+  "name": "Office Desk Mayhem",
+  "theme": "desk",
+  "width": 1600,
+  "height": 1000,
+  "spawnPoints": [
+    { "x": 200, "y": 800, "rotation": -90 },
+    { "x": 230, "y": 800, "rotation": -90 }
+  ],
+  "waypoints": [
+    { "x": 200, "y": 800, "radius": 70 },
+    { "x": 200, "y": 250, "radius": 70 },
+    { "x": 800, "y": 250, "radius": 70 },
+    { "x": 1400, "y": 250, "radius": 70 },
+    { "x": 1400, "y": 800, "radius": 70 },
+    { "x": 800, "y": 800, "radius": 70 }
+  ],
+  "walls": [
+    { "x": 800, "y": 30, "width": 1540, "height": 24 },
+    { "x": 800, "y": 970, "width": 1540, "height": 24 },
+    { "x": 30, "y": 500, "width": 24, "height": 940 },
+    { "x": 1570, "y": 500, "width": 24, "height": 940 },
+    { "x": 800, "y": 525, "width": 24, "height": 550 }
+  ],
+  "zones": [
+    {
+      "id": "coffee_spill",
+      "x": 800,
+      "y": 800,
+      "width": 180,
+      "height": 180,
+      "surface": "water",
+      "gripModifier": 0.25,
+      "speedModifier": 0.8
+    }
+  ],
+  "obstacles": [
+    { "id": "stapler", "x": 500, "y": 250, "radius": 30, "kind": "stapler" },
+    { "id": "coffee_mug", "x": 1100, "y": 800, "radius": 40, "kind": "mug" }
+  ]
+}

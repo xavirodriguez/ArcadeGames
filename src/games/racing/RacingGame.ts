@@ -191,6 +191,7 @@ export class RacingGame extends BaseGame<
     spawnBlueprint(this.world, "track_ribbon", {});
     spawnBlueprint(this.world, "skid_marks", {});
     spawnBlueprint(this.world, "smoke", {});
+    spawnBlueprint(this.world, "collision_sparks", {});
 
     // Spawn checkpoints from track spec waypoints
     for (let i = 0; i < trackSpec.waypoints.length; i += 1) {

@@ -419,8 +419,8 @@ export const drawCreepBoss: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
       ctx.arc(0, 0, size * 0.55, 0, Math.PI * 2);
       ctx.stroke();
     }
-    drawCreepBody(ctx, size, fill, innerStroke ?? stroke, isPaperDusk, "boss", hitFlash);
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
+    drawCreepBody(ctx, size, fill, innerStroke ?? stroke, isPaperDusk, "boss", hitFlash);
     if (!isPaperDusk) {
       ctx.fillStyle = resolveThemeColorWithFallback(world, "#ffd54f", "creep_boss_crown");
       ctx.beginPath();

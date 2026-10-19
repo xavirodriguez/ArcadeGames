@@ -6,7 +6,6 @@ import type {
   TileGrid,
   ThreatInfo,
   TowerCatalog,
-  TowerDefenseVisualEffect,
   TowerDefenseVisualEffects,
 } from "../types/TowerDefenseTypes";
 import type { GridLayout } from "../../shared/grid/GridTypes";

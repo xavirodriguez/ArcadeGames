@@ -52,9 +52,9 @@ export class TowerDefenseVfxSystem extends System<TowerDefenseComponentRegistry,
     const gameState = world.getSingleton("GameState") as GameStateComponent | undefined;
     if (gameState) {
       if (this.previousPhase !== undefined && this.previousPhase !== gameState.phase) {
-        const banner = this.resolvePhaseBanner(gameState, this.previousPhase);
+        const banner = this.resolvePhaseBanner(world, gameState, this.previousPhase);
         if (banner) {
-          effects.push(this.createEffect(world, {
+          effects.push(this.createEffect({
             kind: "phase-banner",
             x: banner.x,
             y: banner.y,
@@ -64,7 +64,7 @@ export class TowerDefenseVfxSystem extends System<TowerDefenseComponentRegistry,
           }));
         }
       } else if (this.previousPhase === undefined && (gameState.phase === "victory" || gameState.phase === "game_over")) {
-        const banner = this.resolvePhaseBanner(gameState, undefined);
+        const banner = this.resolvePhaseBanner(world, gameState, undefined);
         if (banner) effects.push(this.createEffect(world, {
           kind: "phase-banner",
           x: banner.x,
@@ -155,19 +155,17 @@ export class TowerDefenseVfxSystem extends System<TowerDefenseComponentRegistry,
   }
 
   private createEffect(
-    world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>,
     effect: Omit<TowerDefenseVisualEffect, "id" | "ageSeconds">
   ): TowerDefenseVisualEffect {
     return { ...effect, id: this.nextEffectId++, ageSeconds: 0 };
   }
 
   private resolvePhaseBanner(
+    world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>,
     gameState: GameStateComponent,
     previousPhase: TDPhase | undefined
   ): { x: number; y: number; text: string; color: string; durationSeconds: number } | null {
-    const layout = this.getLayoutCached;
-    const center = this.resolveMapCenter();
-    void layout;
+    const center = this.resolveMapCenter(world);
     if (gameState.phase === "wave") {
       return { ...center, text: `WAVE ${gameState.wave + 1} INCOMING`, color: VFX_COLORS.info, durationSeconds: 1.4 };
     }
@@ -186,10 +184,10 @@ export class TowerDefenseVfxSystem extends System<TowerDefenseComponentRegistry,
     return null;
   }
 
-  private getLayoutCached: GridLayout | undefined;
-
-  private resolveMapCenter(): { x: number; y: number } {
-    const layout = this.getLayoutCached;
+  private resolveMapCenter(
+    world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>
+  ): { x: number; y: number } {
+    const layout = world.getResource<GridLayout>("GridLayout");
     return layout
       ? { x: layout.offsetX + layout.stepX * 8, y: layout.offsetY + layout.stepY * 0.65 }
       : { x: 400, y: 64 };

@@ -620,7 +620,7 @@ export const breakfastSkin: RacingSkin = {
   wallDrawer: defaultWallDrawer,
   actorDrawer: defaultCarActorDrawer,
   finishCheckers: [colors.white, colors.slate],
-  ui: { glowColor: colors.cyan, accentColor: colors.gold }
+  ui: { glowColor: RACING_PALETTES.breakfast.player, accentColor: RACING_PALETTES.breakfast.accent }
 };
 
 export const billiardSkin: RacingSkin = {
@@ -636,7 +636,7 @@ export const billiardSkin: RacingSkin = {
   wallDrawer: defaultWallDrawer,
   actorDrawer: defaultCarActorDrawer,
   finishCheckers: [colors.white, colors.green],
-  ui: { glowColor: colors.cyan, accentColor: colors.gold }
+  ui: { glowColor: RACING_PALETTES.billiard.player, accentColor: RACING_PALETTES.billiard.accent }
 };
 
 export const deskSkin: RacingSkin = {
@@ -648,7 +648,7 @@ export const deskSkin: RacingSkin = {
   wallDrawer: defaultWallDrawer,
   actorDrawer: defaultCarActorDrawer,
   finishCheckers: [colors.white, colors.slate],
-  ui: { glowColor: colors.blue, accentColor: colors.gold }
+  ui: { glowColor: RACING_PALETTES.desk.player, accentColor: RACING_PALETTES.desk.accent }
 };
 
 export const gardenSkin: RacingSkin = {
@@ -660,7 +660,7 @@ export const gardenSkin: RacingSkin = {
   wallDrawer: defaultWallDrawer,
   actorDrawer: defaultCarActorDrawer,
   finishCheckers: [colors.white, colors.slate],
-  ui: { glowColor: colors.cyan, accentColor: colors.gold }
+  ui: { glowColor: RACING_PALETTES.garden.player, accentColor: RACING_PALETTES.garden.accent }
 };
 
 export const spaceSkin: RacingSkin = {

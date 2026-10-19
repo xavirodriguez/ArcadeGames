@@ -43,6 +43,43 @@ export const drawSkiaTrackSurface: ShapeDrawer<SkCanvas, RacingComponentRegistry
       for (let y = -halfH + 25; y < halfH; y += 35) {
         canvas.drawLine(-halfW, y, halfW, y, detailPaint);
       }
+    } else if (pattern === "starfield") {
+      const starPaint = Skia.Paint();
+      starPaint.setColor(Skia.Color(palette.surfaceDetail));
+      starPaint.setStyle(Skia.PaintStyle.Fill);
+      starPaint.setAlphaf(0.55);
+      for (let i = 0; i < 120; i += 1) {
+        const sx = Math.abs((Math.sin(i * 12.9898) * 43758.5453) % 1) * width;
+        const sy = Math.abs((Math.cos(i * 78.233) * 43758.5453) % 1) * height;
+        canvas.drawCircle(-halfW + sx, -halfH + sy, i % 3 === 0 ? 2 : 1, starPaint);
+      }
+    }
+
+    // Match the cached Canvas renderer's deterministic wood grain.
+    if (pattern === "wood") {
+      const grainPaint = Skia.Paint();
+      grainPaint.setColor(Skia.Color(palette.surfaceDetail));
+      grainPaint.setAlphaf(0.16);
+      grainPaint.setStyle(Skia.PaintStyle.Stroke);
+      grainPaint.setStrokeWidth(1);
+      for (let i = 0; i < 64; i += 1) {
+        const grainX = -halfW + Math.abs((Math.sin(i * 12.9898) * 43758.5453) % 1) * width;
+        const grainY = -halfH + Math.abs((Math.cos(i * 78.233) * 19341.173) % 1) * height;
+        const grainLength = 8 + (i % 6) * 5;
+        canvas.drawLine(grainX, grainY, Math.min(halfW, grainX + grainLength), grainY + Math.sin(i * 0.7) * 1.5, grainPaint);
+      }
+
+      for (let i = 0; i < 5; i += 1) {
+        const knotX = -halfW + width * (0.12 + i * 0.17);
+        const knotY = -halfH + height * (0.18 + (i % 2) * 0.31);
+        const knotPaint = Skia.Paint();
+        knotPaint.setColor(Skia.Color(palette.surfaceDetail));
+        knotPaint.setAlphaf(0.16);
+        knotPaint.setStyle(Skia.PaintStyle.Stroke);
+        knotPaint.setStrokeWidth(1);
+        canvas.drawOval(Skia.XYWHRect(knotX - 7, knotY - 2.5, 14, 5), knotPaint);
+        canvas.drawOval(Skia.XYWHRect(knotX - 3.5, knotY - 1.2, 7, 2.4), knotPaint);
+      }
     }
   }
 };
@@ -83,6 +120,40 @@ export const drawSkiaTrackRibbon: ShapeDrawer<SkCanvas, RacingComponentRegistry>
     fillPaint.setColor(Skia.Color(palette.track));
     fillPaint.setStyle(Skia.PaintStyle.Fill);
     canvas.drawPath(path, fillPaint);
+
+    const lightCurbPaint = Skia.Paint();
+    lightCurbPaint.setColor(Skia.Color(palette.text));
+    lightCurbPaint.setStyle(Skia.PaintStyle.Stroke);
+    lightCurbPaint.setStrokeWidth(6);
+    lightCurbPaint.setAlphaf(0.88);
+
+    const accentCurbPaint = Skia.Paint();
+    accentCurbPaint.setColor(Skia.Color(palette.accent));
+    accentCurbPaint.setStyle(Skia.PaintStyle.Stroke);
+    accentCurbPaint.setStrokeWidth(6);
+    accentCurbPaint.setAlphaf(0.88);
+
+    for (let i = 0; i < left.length - 1; i += 4) {
+      const end = Math.min(i + 3, left.length - 1);
+      const curbPaint = Math.floor(i / 4) % 2 === 0 ? lightCurbPaint : accentCurbPaint;
+      canvas.drawLine(left[i]!.x, left[i]!.y, left[end]!.x, left[end]!.y, curbPaint);
+      canvas.drawLine(right[i]!.x, right[i]!.y, right[end]!.x, right[end]!.y, curbPaint);
+    }
+
+    const centerPaint = Skia.Paint();
+    centerPaint.setColor(Skia.Color(palette.text));
+    centerPaint.setStyle(Skia.PaintStyle.Stroke);
+    centerPaint.setStrokeWidth(2);
+    centerPaint.setAlphaf(0.24);
+    for (let i = 0; i < left.length; i += 8) {
+      const start = Math.min(i + 1, left.length - 1);
+      const end = Math.min(i + 5, left.length - 1);
+      const startX = (left[start]!.x + right[start]!.x) / 2;
+      const startY = (left[start]!.y + right[start]!.y) / 2;
+      const endX = (left[end]!.x + right[end]!.x) / 2;
+      const endY = (left[end]!.y + right[end]!.y) / 2;
+      canvas.drawLine(startX, startY, endX, endY, centerPaint);
+    }
   }
 };
 
@@ -93,17 +164,25 @@ export const drawSkiaSkidMarks: ShapeDrawer<SkCanvas, RacingComponentRegistry> =
     if (!pCtx || pCtx.pool.skidMarks.length === 0) return;
 
     const { palette, pool } = pCtx;
+    const softEdgePaint = Skia.Paint();
+    softEdgePaint.setColor(Skia.Color(palette.outline));
+    softEdgePaint.setStyle(Skia.PaintStyle.Stroke);
+
+    const rubberPaint = Skia.Paint();
+    rubberPaint.setColor(Skia.Color("#242424"));
+    rubberPaint.setStyle(Skia.PaintStyle.Stroke);
 
     for (let i = 0; i < pool.skidMarks.length; i += 1) {
       const seg = pool.skidMarks[i]!;
       if (seg.alpha <= 0) continue;
 
-      const paint = Skia.Paint();
-      paint.setColor(Skia.Color(palette.outline));
-      paint.setAlphaf(seg.alpha);
-      paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setStrokeWidth(seg.width);
-      canvas.drawLine(seg.x1, seg.y1, seg.x2, seg.y2, paint);
+      softEdgePaint.setAlphaf(seg.alpha * 0.42);
+      softEdgePaint.setStrokeWidth(seg.width + 1.5);
+      canvas.drawLine(seg.x1, seg.y1, seg.x2, seg.y2, softEdgePaint);
+
+      rubberPaint.setAlphaf(seg.alpha);
+      rubberPaint.setStrokeWidth(Math.max(1, seg.width * 0.58));
+      canvas.drawLine(seg.x1, seg.y1, seg.x2, seg.y2, rubberPaint);
     }
   }
 };
@@ -114,17 +193,31 @@ export const drawSkiaSmoke: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {
     const pCtx = resolveRacingParticlePoolContext(world);
     if (!pCtx || pCtx.pool.smokeParticles.length === 0) return;
 
-    const { palette, pool } = pCtx;
+    const { pool } = pCtx;
+    const shadowPaint = Skia.Paint();
+    shadowPaint.setColor(Skia.Color("#30343B"));
+    shadowPaint.setStyle(Skia.PaintStyle.Fill);
+
+    const bodyPaint = Skia.Paint();
+    bodyPaint.setColor(Skia.Color("#B8BEC7"));
+    bodyPaint.setStyle(Skia.PaintStyle.Fill);
+
+    const highlightPaint = Skia.Paint();
+    highlightPaint.setColor(Skia.Color("#FFFFFF"));
+    highlightPaint.setStyle(Skia.PaintStyle.Fill);
 
     for (let i = 0; i < pool.smokeParticles.length; i += 1) {
       const p = pool.smokeParticles[i]!;
       if (p.alpha <= 0) continue;
 
-      const paint = Skia.Paint();
-      paint.setColor(Skia.Color(palette.text));
-      paint.setAlphaf(p.alpha);
-      paint.setStyle(Skia.PaintStyle.Fill);
-      canvas.drawCircle(p.x, p.y, p.radius, paint);
+      shadowPaint.setAlphaf(p.alpha * 0.18);
+      canvas.drawCircle(p.x, p.y, p.radius * 1.3, shadowPaint);
+
+      bodyPaint.setAlphaf(p.alpha * 0.42);
+      canvas.drawCircle(p.x, p.y, p.radius * 0.82, bodyPaint);
+
+      highlightPaint.setAlphaf(p.alpha * 0.3);
+      canvas.drawCircle(p.x - p.radius * 0.18, p.y - p.radius * 0.18, p.radius * 0.38, highlightPaint);
     }
   }
 };

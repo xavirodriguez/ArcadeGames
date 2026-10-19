@@ -273,6 +273,42 @@ export const defaultCarActorDrawer: DrawerSpec<ActorDrawerParams> = (params) => 
     );
   }
 
+  // Toy-car silhouette details: spoiler, bonnet stripe, wheel hubs and bumper.
+  primitives.push(
+    {
+      type: "roundRect",
+      x: -size * 0.98,
+      y: -size * 0.57,
+      w: size * 0.16,
+      h: size * 1.14,
+      r: size * 0.06,
+      fill: palette.outline
+    },
+    {
+      type: "roundRect",
+      x: size * 0.38,
+      y: -size * 0.31,
+      w: size * 0.25,
+      h: size * 0.62,
+      r: size * 0.06,
+      fill: palette.accent,
+      alpha: 0.9
+    },
+    {
+      type: "roundRect",
+      x: size * 0.75,
+      y: -size * 0.4,
+      w: size * 0.17,
+      h: size * 0.8,
+      r: size * 0.05,
+      fill: palette.outline
+    },
+    { type: "circle", cx: -size * 0.48, cy: -size * 0.49, r: size * 0.09, fill: palette.text },
+    { type: "circle", cx: size * 0.47, cy: -size * 0.49, r: size * 0.09, fill: palette.text },
+    { type: "circle", cx: -size * 0.48, cy: size * 0.49, r: size * 0.09, fill: palette.text },
+    { type: "circle", cx: size * 0.47, cy: size * 0.49, r: size * 0.09, fill: palette.text }
+  );
+
   // Headlights & Taillights
   primitives.push(
     { type: "circle", cx: size * 0.85, cy: -size * 0.3, r: size * 0.12, fill: palette.accent },
@@ -363,27 +399,48 @@ export const spaceshipActorDrawer: DrawerSpec<ActorDrawerParams> = (params) => {
 // Obstacle Drawers
 export const bowlObstacleDrawer: DrawerSpec<ObstacleDrawerParams> = ({ radius, palette }) => {
   const primitives: RenderPrimitive[] = [
-    { type: "circle", cx: 4, cy: 5, r: radius, fill: palette.shadow, alpha: 0.32 },
-    { type: "circle", cx: 0, cy: 0, r: radius, fill: colors.white, stroke: palette.outline, strokeWidth: 2 },
-    { type: "circle", cx: 0, cy: 0, r: radius * 0.8, fill: colors.yellow }
+    { type: "ellipse", cx: 5, cy: 7, rx: radius * 1.04, ry: radius * 0.9, fill: palette.shadow, alpha: 0.34 },
+    { type: "ellipse", cx: 0, cy: 0, rx: radius, ry: radius * 0.88, fill: colors.white, stroke: palette.outline, strokeWidth: 2 },
+    { type: "ellipse", cx: 0, cy: 0, rx: radius * 0.81, ry: radius * 0.69, fill: colors.yellow, stroke: colors.orange, strokeWidth: Math.max(1, radius * 0.045) },
+    { type: "ellipse", cx: -radius * 0.23, cy: -radius * 0.31, rx: radius * 0.24, ry: radius * 0.1, stroke: colors.white, strokeWidth: 2, alpha: 0.72 }
   ];
-  const numRings = 5;
-  for (let i = 0; i < numRings; i += 1) {
-    const angle = (i * Math.PI * 2) / numRings;
-    const dist = radius * 0.45;
-    const cx = Math.cos(angle) * dist;
-    const cy = Math.sin(angle) * dist;
-    primitives.push({ type: "circle", cx, cy, r: radius * 0.15, stroke: palette.accent, strokeWidth: 2.5 });
+
+  const cerealPositions = [
+    { x: -0.42, y: -0.08, r: 0.13 },
+    { x: 0.02, y: -0.36, r: 0.11 },
+    { x: 0.38, y: -0.12, r: 0.14 },
+    { x: -0.16, y: 0.31, r: 0.12 },
+    { x: 0.34, y: 0.34, r: 0.1 },
+    { x: -0.49, y: 0.38, r: 0.08 }
+  ] as const;
+
+  for (let i = 0; i < cerealPositions.length; i += 1) {
+    const cereal = cerealPositions[i]!;
+    primitives.push({
+      type: "circle",
+      cx: radius * cereal.x,
+      cy: radius * cereal.y,
+      r: radius * cereal.r,
+      fill: i % 2 === 0 ? colors.orange : colors.amber,
+      stroke: colors.orangeDark,
+      strokeWidth: Math.max(1, radius * 0.025)
+    });
   }
+
   return primitives;
 };
 
 export const mugObstacleDrawer: DrawerSpec<ObstacleDrawerParams> = ({ radius, palette }) => [
-  { type: "circle", cx: 4, cy: 5, r: radius, fill: palette.shadow, alpha: 0.32 },
-  { type: "circle", cx: radius * 0.95, cy: 0, r: radius * 0.35, fill: palette.obstacle, stroke: palette.outline, strokeWidth: 2 },
-  { type: "circle", cx: 0, cy: 0, r: radius, fill: palette.obstacle, stroke: palette.outline, strokeWidth: 2 },
-  { type: "circle", cx: 0, cy: 0, r: radius * 0.78, fill: colors.surface },
-  { type: "arc", cx: -radius * 0.2, cy: -radius * 0.2, r: radius * 0.3, startAngle: 0.4, endAngle: Math.PI * 1.2, stroke: colors.slate, strokeWidth: 1.5 }
+  // Handle first so the body naturally occludes its inner edge.
+  { type: "circle", cx: radius * 0.82, cy: radius * 0.02, r: radius * 0.4, fill: palette.obstacle, stroke: palette.outline, strokeWidth: 2 },
+  { type: "circle", cx: radius * 0.86, cy: radius * 0.02, r: radius * 0.2, fill: palette.surface, stroke: palette.outline, strokeWidth: 1.5 },
+  { type: "ellipse", cx: 4, cy: 6, rx: radius * 1.03, ry: radius * 0.98, fill: palette.shadow, alpha: 0.34 },
+  { type: "circle", cx: 0, cy: 0, r: radius, fill: palette.obstacle, stroke: palette.outline, strokeWidth: 2.5 },
+  { type: "circle", cx: 0, cy: 0, r: radius * 0.76, fill: colors.backgroundDark, stroke: colors.white, strokeWidth: Math.max(1, radius * 0.07) },
+  { type: "arc", cx: -radius * 0.17, cy: -radius * 0.2, r: radius * 0.34, startAngle: 0.35, endAngle: Math.PI * 1.05, stroke: colors.yellow, strokeWidth: Math.max(1, radius * 0.045), alpha: 0.78 },
+  { type: "circle", cx: radius * 0.21, cy: radius * 0.16, r: radius * 0.075, fill: colors.amber, alpha: 0.9 },
+  { type: "circle", cx: -radius * 0.25, cy: radius * 0.28, r: radius * 0.055, fill: colors.amber, alpha: 0.8 },
+  { type: "ellipse", cx: -radius * 0.3, cy: -radius * 0.35, rx: radius * 0.14, ry: radius * 0.06, fill: colors.white, alpha: 0.55 }
 ];
 
 export const billiardBallObstacleDrawer: DrawerSpec<ObstacleDrawerParams> = ({ radius, id, palette }) => {

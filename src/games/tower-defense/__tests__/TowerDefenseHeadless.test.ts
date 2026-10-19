@@ -217,5 +217,13 @@ describe("TowerDefense headless - Phase 2 (Playable Headless)", () => {
 
     expect(creepComp).toBeDefined();
     expect(creepComp!.creepType).toBe("grunt");
+
+    // A combat hit should trigger a short-lived visual flash without changing gameplay state.
+    game.getWorld().getEventBus()?.emit("combat:hit", {
+      targetEntity: creepEntity,
+      amount: 5,
+    });
+    game.update(1 / 60);
+    expect(game.getWorld().getComponent(creepEntity, "Render")?.hitFlashFrames).toBeGreaterThan(0);
   });
 });

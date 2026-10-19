@@ -399,6 +399,16 @@
     "unknownCount": 3,
     "total": 3
   },
+  "packages/renderer-canvas/src/__tests__/CanvasRenderer.test.ts": {
+    "anyCount": 0,
+    "unknownCount": 10,
+    "total": 10
+  },
+  "packages/renderer-canvas/src/__tests__/CanvasSpriteDrawer.test.ts": {
+    "anyCount": 0,
+    "unknownCount": 9,
+    "total": 9
+  },
   "packages/renderer-skia/src/SkiaRenderer.ts": {
     "anyCount": 0,
     "unknownCount": 1,
@@ -624,6 +634,11 @@
     "unknownCount": 0,
     "total": 3
   },
+  "src/games/frogger/systems/FroggerGameStateSystem.ts": {
+    "anyCount": 1,
+    "unknownCount": 0,
+    "total": 1
+  },
   "src/games/geometrywars/__tests__/GeometricWaves.test.ts": {
     "anyCount": 6,
     "unknownCount": 0,
@@ -799,6 +814,16 @@
     "unknownCount": 0,
     "total": 2
   },
+  "src/games/shared/rendering/CanvasGlowCache.ts": {
+    "anyCount": 0,
+    "unknownCount": 1,
+    "total": 1
+  },
+  "src/games/shared/rendering/GlowSystem.ts": {
+    "anyCount": 0,
+    "unknownCount": 1,
+    "total": 1
+  },
   "src/games/shared/rendering/SharedMissionHUD.ts": {
     "anyCount": 1,
     "unknownCount": 0,
@@ -810,6 +835,11 @@
     "total": 24
   },
   "src/games/shared/rendering/SharedVFXInternal.ts": {
+    "anyCount": 0,
+    "unknownCount": 1,
+    "total": 1
+  },
+  "src/games/shared/rendering/__tests__/CanvasGlowCache.test.ts": {
     "anyCount": 0,
     "unknownCount": 1,
     "total": 1

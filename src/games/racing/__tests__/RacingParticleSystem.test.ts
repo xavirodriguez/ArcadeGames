@@ -17,6 +17,7 @@ describe("RacingParticlePool", () => {
     expect(pool.skidMarks.length).toBe(10);
     expect(pool.sparks.length).toBe(3);
     expect(pool.sparkCount).toBe(3);
+    expect(pool.activeSparkCount).toBe(3);
     expect(pool.sparkWriteIndex).toBe(2);
   });
 
@@ -35,6 +36,7 @@ describe("RacingParticlePool", () => {
     pool.update(0.2);
     expect(pool.skidMarks[0]?.alpha).toBe(0);
     expect(pool.sparks[0]?.alpha).toBe(0);
+    expect(pool.activeSparkCount).toBe(0);
   });
 
   test("drift smoke particles keep their existing fade behaviour", () => {

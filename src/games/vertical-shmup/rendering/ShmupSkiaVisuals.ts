@@ -1,6 +1,6 @@
-import { ShapeDrawer, EffectDrawer, RenderContext } from "@tiny-aster/core";
+import { ShapeDrawer, EffectDrawer, World } from "@tiny-aster/core";
 import type { ShmupComponentRegistry } from "../types/ShmupTypes";
-import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
+import { Skia, getPaint, type SkCanvas, type SkPaint } from "../../shared/rendering/SkiaContext";
 import { colors } from "../../../theme/colors";
 import {
   computeShmupStarfield,
@@ -9,17 +9,16 @@ import {
   resolveShmupBulletDrawContext,
 } from "./ShmupVisualHelpers";
 
-export const drawSkiaShmupPlayer: ShapeDrawer<RenderContext, ShmupComponentRegistry> = {
+export const drawSkiaShmupPlayer: ShapeDrawer<SkCanvas, ShmupComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
     const pCtx = resolveShmupPlayerDrawContext(world, entity);
     if (!pCtx || pCtx.shouldBlink) return;
 
     const { invulnerable, time, size, primaryColor } = pCtx;
-    const skCanvas = canvas as any;
     const paint = getPaint();
 
-    skCanvas.save();
+    canvas.save();
 
     // Invulnerability shield aura
     if (invulnerable) {
@@ -28,7 +27,7 @@ export const drawSkiaShmupPlayer: ShapeDrawer<RenderContext, ShmupComponentRegis
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setColor(Skia.Color(colors.cyan));
       paint.setStrokeWidth(2.5);
-      skCanvas.drawCircle(0, 0, size * 1.35, paint);
+      canvas.drawCircle(0, 0, size * 1.35, paint);
     }
 
     // Engine Thruster Flame
@@ -45,7 +44,7 @@ export const drawSkiaShmupPlayer: ShapeDrawer<RenderContext, ShmupComponentRegis
     flamePath.lineTo(size * 0.25, size * 0.5);
     flamePath.lineTo(0, size * 0.5 + plumeLength);
     flamePath.close();
-    skCanvas.drawPath(flamePath, paint);
+    canvas.drawPath(flamePath, paint);
 
     // Thruster core
     paint.setColor(Skia.Color(colors.white));
@@ -54,7 +53,7 @@ export const drawSkiaShmupPlayer: ShapeDrawer<RenderContext, ShmupComponentRegis
     flameCorePath.lineTo(size * 0.15, size * 0.5);
     flameCorePath.lineTo(0, size * 0.5 + plumeLength * 0.5);
     flameCorePath.close();
-    skCanvas.drawPath(flameCorePath, paint);
+    canvas.drawPath(flameCorePath, paint);
 
     // Main Fighter Hull
     paint.reset();
@@ -70,38 +69,37 @@ export const drawSkiaShmupPlayer: ShapeDrawer<RenderContext, ShmupComponentRegis
     jetPath.lineTo(-size * 0.45, size * 0.45);
     jetPath.lineTo(-size * 0.95, size * 0.75);
     jetPath.close();
-    skCanvas.drawPath(jetPath, paint);
+    canvas.drawPath(jetPath, paint);
 
     // Wing accent lines
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setColor(Skia.Color(colors.white));
     paint.setStrokeWidth(1.5);
 
-    skCanvas.drawLine(0, -size * 0.7, size * 0.6, size * 0.5, paint);
-    skCanvas.drawLine(0, -size * 0.7, -size * 0.6, size * 0.5, paint);
+    canvas.drawLine(0, -size * 0.7, size * 0.6, size * 0.5, paint);
+    canvas.drawLine(0, -size * 0.7, -size * 0.6, size * 0.5, paint);
 
     // Cockpit Glass Canopy
     paint.reset();
     paint.setAntiAlias(true);
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color(colors.cyan));
-    skCanvas.drawOval(Skia.XYWHRect(-size * 0.22, -size * 0.65, size * 0.44, size * 0.9), paint);
+    canvas.drawOval(Skia.XYWHRect(-size * 0.22, -size * 0.65, size * 0.44, size * 0.9), paint);
 
-    skCanvas.restore();
+    canvas.restore();
   }
 };
 
-export const drawSkiaShmupEnemy: ShapeDrawer<RenderContext, ShmupComponentRegistry> = {
+export const drawSkiaShmupEnemy: ShapeDrawer<SkCanvas, ShmupComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
     const eCtx = resolveShmupEnemyDrawContext(world, entity);
     if (!eCtx) return;
 
     const { path, size, enemyColor, time } = eCtx;
-    const skCanvas = canvas as any;
     const paint = getPaint();
 
-    skCanvas.save();
+    canvas.save();
 
     // Engine glow at top
     const pulse = 0.8 + 0.3 * Math.sin(time * 20 + entity);
@@ -109,7 +107,7 @@ export const drawSkiaShmupEnemy: ShapeDrawer<RenderContext, ShmupComponentRegist
     paint.setAntiAlias(true);
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color(colors.orange));
-    skCanvas.drawCircle(0, -size * 0.5, size * 0.25 * pulse, paint);
+    canvas.drawCircle(0, -size * 0.5, size * 0.25 * pulse, paint);
 
     // Main Enemy Silhouette
     paint.setColor(Skia.Color(enemyColor));
@@ -121,48 +119,47 @@ export const drawSkiaShmupEnemy: ShapeDrawer<RenderContext, ShmupComponentRegist
     enemyPath.lineTo(-size * 0.4, -size * 0.85);
     enemyPath.lineTo(-size * 0.9, -size * 0.2);
     enemyPath.close();
-    skCanvas.drawPath(enemyPath, paint);
+    canvas.drawPath(enemyPath, paint);
 
     // Cannons on wingtips
     paint.setColor(Skia.Color(colors.white));
-    skCanvas.drawRect(Skia.XYWHRect(size * 0.8, -size * 0.2, size * 0.12, size * 0.6), paint);
-    skCanvas.drawRect(Skia.XYWHRect(-size * 0.92, -size * 0.2, size * 0.12, size * 0.6), paint);
+    canvas.drawRect(Skia.XYWHRect(size * 0.8, -size * 0.2, size * 0.12, size * 0.6), paint);
+    canvas.drawRect(Skia.XYWHRect(-size * 0.92, -size * 0.2, size * 0.12, size * 0.6), paint);
 
     // Glowing Central Core
     paint.setColor(Skia.Color(path?.kind === "sine" ? colors.amber : colors.white));
-    skCanvas.drawCircle(0, 0, size * 0.28, paint);
+    canvas.drawCircle(0, 0, size * 0.28, paint);
 
-    skCanvas.restore();
+    canvas.restore();
   }
 };
 
 function drawSkiaShmupBulletShape(
-  canvas: any,
-  world: any,
+  canvas: SkCanvas,
+  world: World<ShmupComponentRegistry>,
   entity: number,
   defaultSize: number,
   fallbackColor: string,
-  drawShape: (skCanvas: any, paint: any, size: number, color: string) => void
+  drawShape: (skCanvas: SkCanvas, paint: SkPaint, size: number, color: string) => void
 ): void {
   if (!Skia) return;
   const bCtx = resolveShmupBulletDrawContext(world, entity, defaultSize, fallbackColor);
   if (!bCtx) return;
 
   const { size, color } = bCtx;
-  const skCanvas = canvas as any;
   const paint = getPaint();
 
-  skCanvas.save();
+  canvas.save();
   paint.reset();
   paint.setAntiAlias(true);
   paint.setStyle(Skia.PaintStyle.Fill);
 
-  drawShape(skCanvas, paint, size, color);
+  drawShape(canvas, paint, size, color);
 
-  skCanvas.restore();
+  canvas.restore();
 }
 
-export const drawSkiaShmupPlayerBullet: ShapeDrawer<RenderContext, ShmupComponentRegistry> = {
+export const drawSkiaShmupPlayerBullet: ShapeDrawer<SkCanvas, ShmupComponentRegistry> = {
   draw(canvas, world, entity) {
     drawSkiaShmupBulletShape(canvas, world, entity, 4, colors.amber, (skCanvas, paint, size, color) => {
       // Outer plasma aura
@@ -176,7 +173,7 @@ export const drawSkiaShmupPlayerBullet: ShapeDrawer<RenderContext, ShmupComponen
   }
 };
 
-export const drawSkiaShmupEnemyBullet: ShapeDrawer<RenderContext, ShmupComponentRegistry> = {
+export const drawSkiaShmupEnemyBullet: ShapeDrawer<SkCanvas, ShmupComponentRegistry> = {
   draw(canvas, world, entity) {
     drawSkiaShmupBulletShape(canvas, world, entity, 5, colors.danger, (skCanvas, paint, size, color) => {
       // Hazard plasma orb
@@ -190,27 +187,26 @@ export const drawSkiaShmupEnemyBullet: ShapeDrawer<RenderContext, ShmupComponent
   }
 };
 
-export const drawSkiaShmupStarfield: EffectDrawer<RenderContext, ShmupComponentRegistry> = {
+export const drawSkiaShmupStarfield: EffectDrawer<SkCanvas, ShmupComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
     const { width, height, stars } = computeShmupStarfield(world);
-    const skCanvas = canvas as any;
     const paint = getPaint();
 
-    skCanvas.save();
+    canvas.save();
 
     // Deep space background
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color(colors.backgroundDark));
-    skCanvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
+    canvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
 
     for (let i = 0; i < stars.length; i++) {
       const star = stars[i]!;
       paint.setColor(Skia.Color(star.color));
-      skCanvas.drawRect(Skia.XYWHRect(star.rawX, star.y, star.w, star.h), paint);
+      canvas.drawRect(Skia.XYWHRect(star.rawX, star.y, star.w, star.h), paint);
     }
 
-    skCanvas.restore();
+    canvas.restore();
   }
 };

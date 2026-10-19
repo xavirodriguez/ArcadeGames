@@ -10,11 +10,10 @@ import {
   HealthComponent,
   BoundaryComponent,
   SpriteComponent,
-  createDeferredEntity,
   spawnBlueprintEntity
 } from "@tiny-aster/core";
 import { CollisionLayers } from "@tiny-aster/gameplay-kit";
-import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "./types/AsteroidRegistry";
+import { AsteroidsComponentRegistry, AsteroidsEventRegistry, AsteroidsBlueprintMap } from "./types/AsteroidRegistry";
 import { AsteroidConfig } from "./types/AsteroidConfigSchema";
 import { DamageComponent, FactionComponent } from "@tiny-aster/gameplay-kit";
 import { attachEnemyDefaults } from "../shared/enemyHelpers";
@@ -94,10 +93,10 @@ function buildMovingCircularEnemy(
  * @public
  */
 export function registerAsteroidsBlueprints(
-  world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry, any>,
-  customRegistry?: BlueprintRegistry<AsteroidsComponentRegistry, AsteroidsEventRegistry, any>
+  world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry, AsteroidsBlueprintMap>,
+  customRegistry?: BlueprintRegistry<AsteroidsComponentRegistry, AsteroidsEventRegistry, AsteroidsBlueprintMap>
 ): void {
-  const registry = customRegistry || world.getResource<BlueprintRegistry<AsteroidsComponentRegistry, AsteroidsEventRegistry, any>>("BlueprintRegistry") || new BlueprintRegistry<AsteroidsComponentRegistry, AsteroidsEventRegistry, any>();
+  const registry = customRegistry || world.getResource<BlueprintRegistry<AsteroidsComponentRegistry, AsteroidsEventRegistry, AsteroidsBlueprintMap>>("BlueprintRegistry") || new BlueprintRegistry<AsteroidsComponentRegistry, AsteroidsEventRegistry, AsteroidsBlueprintMap>();
 
   registry.register("ship", {
     spawn: (w: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, entity: number, args: { x: number; y: number }) => {
@@ -285,7 +284,7 @@ export function registerAsteroidsBlueprints(
           persistent: true,
           collectOnce: true,
           id: `asteroid_fragment_${args.size}_${args.x}_${args.y}`
-        } as any);
+        });
       }
     }
   });

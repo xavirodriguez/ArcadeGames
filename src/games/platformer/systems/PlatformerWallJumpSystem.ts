@@ -13,11 +13,11 @@ export class PlatformerWallJumpSystem extends System<CoreComponentRegistry> {
 
     for (let i = 0; i < players.length; i++) {
       const player = players[i];
-      const groundState = world.getComponent(player, "PlatformerGroundState") as any;
-      const input = world.getComponent(player, "PlatformerInput") as any;
+      const groundState = world.getComponent(player, "PlatformerGroundState");
+      const input = world.getComponent(player, "PlatformerInput");
       const vel = world.getMutableComponent(player, "Velocity");
-      const jumper = world.getMutableComponent(player, "PlatformerJumper") as any;
-      const detector = world.getComponent(player, "GroundDetector") as any;
+      const jumper = world.getMutableComponent(player, "PlatformerJumper");
+      const detector = world.getComponent(player, "GroundDetector");
 
       if (!groundState || !input || !vel || !jumper) continue;
 

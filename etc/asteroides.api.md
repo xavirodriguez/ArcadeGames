@@ -1241,6 +1241,7 @@ export interface CoreComponentRegistry extends ComponentRegistry {
     CollisionEvents: CollisionEventsComponent;
     Combo: ComboComponent;
     Dead: DeadComponent;
+    // (undocumented)
     DeathZone: DeathZoneComponent;
     Enemy: EnemyComponent;
     Faction: FactionComponent;
@@ -1277,8 +1278,10 @@ export interface CoreComponentRegistry extends ComponentRegistry {
     ScreenShake: ScreenShakeComponent;
     SpatialNode: SpatialNodeComponent;
     Sprite: SpriteComponent;
+    // (undocumented)
     StateGate: StateGateComponent;
     StateMachine: StateMachineComponent;
+    // (undocumented)
     StateTrigger: StateTriggerComponent;
     Steering: SteeringComponent;
     Tag: TagComponent;
@@ -1352,7 +1355,6 @@ export interface CoreEvents {
         hurtboxEntity?: Entity;
         attacker?: Entity;
         victim?: Entity;
-        // @deprecated
         defender?: Entity;
         damage?: number;
         [key: string]: unknown;
@@ -1694,9 +1696,10 @@ export class DeathSystem extends System<CoreComponentRegistry> {
     update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
 }
 
-// @public
+// @public (undocumented)
 export interface DeathZoneComponent extends Component {
     id: string;
+    // (undocumented)
     type: "DeathZone";
 }
 
@@ -4598,7 +4601,7 @@ export interface RespawnableComponent extends Component {
     type: "Respawnable";
 }
 
-// @public
+// @public (undocumented)
 export interface RespawnPointComponent extends Component {
     checkpointId: string;
     type: "RespawnPoint";
@@ -5190,11 +5193,12 @@ export interface StateDefinition {
     onUpdate?: (world: World<CoreComponentRegistry>, entity: number, data: Record<string, unknown>, elapsed: number) => string | void;
 }
 
-// @public
+// @public (undocumented)
 export interface StateGateComponent extends Component {
     id: string;
     isOpen: boolean;
     targetId: string;
+    // (undocumented)
     type: "StateGate";
 }
 
@@ -5210,14 +5214,6 @@ export interface StateMachineComponent extends Component {
 }
 
 // @public
-export interface StateTriggerComponent extends Component {
-    activated: boolean;
-    id: string;
-    targetId: string;
-    type: "StateTrigger";
-}
-
-// @public
 export interface StateMachineDefinition {
     states: Record<string, StateDefinition>;
 }
@@ -5225,6 +5221,15 @@ export interface StateMachineDefinition {
 // @public
 export class StateMachineSystem extends System<CoreComponentRegistry> {
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
+}
+
+// @public
+export interface StateTriggerComponent extends Component {
+    activated: boolean;
+    id: string;
+    targetId: string;
+    // (undocumented)
+    type: "StateTrigger";
 }
 
 // @public

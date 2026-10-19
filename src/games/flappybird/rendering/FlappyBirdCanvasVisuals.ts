@@ -42,6 +42,37 @@ function isOfficeTheme(world: World<FlappyBirdComponentRegistry>): boolean {
   return Array.isArray(layers) && layers.length === 0;
 }
 
+function drawCanvasGlideEnergyBar(
+  ctx: CanvasRenderingContext2D,
+  world: World<FlappyBirdComponentRegistry>,
+  width: number,
+  height: number,
+  showWarningLabel = false
+): void {
+  const glideState = resolveGlideEnergyState(world, width, height);
+  if (!glideState) return;
+
+  const { ratio, isOverheated, barW, barH, bx, by, fillColor } = glideState;
+  ctx.save();
+  ctx.fillStyle = hexToRgba(colors.surface, 0.75);
+  ctx.fillRect(bx, by, barW, barH);
+
+  ctx.fillStyle = fillColor;
+  ctx.fillRect(bx, by, barW * ratio, barH);
+
+  ctx.strokeStyle = isOverheated ? colors.red : colors.slate;
+  ctx.lineWidth = 1.0;
+  ctx.strokeRect(bx, by, barW, barH);
+
+  if (showWarningLabel && isOverheated) {
+    ctx.fillStyle = colors.red;
+    ctx.font = "bold 10px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("THRUST OVERHEAT", width / 2, by - 4);
+  }
+  ctx.restore();
+}
+
 /** Draws active visual particles for Canvas2D renderer. */
 function drawCanvasVisualParticles(ctx: CanvasRenderingContext2D): void {
   const particles = FLAPPY_PARTICLE_POOL.getActiveParticles();
@@ -821,21 +852,7 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
 
       drawCanvasVisualParticles(ctx);
 
-      const glideState = resolveGlideEnergyState(world, width, height);
-      if (glideState) {
-        const { ratio, isOverheated, barW, barH, bx, by, fillColor } = glideState;
-        ctx.save();
-        ctx.fillStyle = hexToRgba(colors.surface, 0.75);
-        ctx.fillRect(bx, by, barW, barH);
-
-        ctx.fillStyle = fillColor;
-        ctx.fillRect(bx, by, barW * ratio, barH);
-
-        ctx.strokeStyle = isOverheated ? colors.red : colors.slate;
-        ctx.lineWidth = 1.0;
-        ctx.strokeRect(bx, by, barW, barH);
-        ctx.restore();
-      }
+      drawCanvasGlideEnergyBar(ctx, world, width, height);
       return;
     }
 
@@ -929,28 +946,7 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
 
     drawCanvasVisualParticles(ctx);
 
-    const glideState = resolveGlideEnergyState(world, width, height);
-    if (glideState) {
-      const { ratio, isOverheated, barW, barH, bx, by, fillColor } = glideState;
-      ctx.save();
-      ctx.fillStyle = hexToRgba(colors.surface, 0.75);
-      ctx.fillRect(bx, by, barW, barH);
-
-      ctx.fillStyle = fillColor;
-      ctx.fillRect(bx, by, barW * ratio, barH);
-
-      ctx.strokeStyle = isOverheated ? colors.red : colors.slate;
-      ctx.lineWidth = 1.0;
-      ctx.strokeRect(bx, by, barW, barH);
-
-      if (isOverheated) {
-        ctx.fillStyle = colors.red;
-        ctx.font = "bold 10px monospace";
-        ctx.textAlign = "center";
-        ctx.fillText("THRUST OVERHEAT", width / 2, by - 4);
-      }
-      ctx.restore();
-    }
+    drawCanvasGlideEnergyBar(ctx, world, width, height, true);
 
     const sectorInfo = resolveSectorEventInfo(gameState.currentSectorEvent ?? "none");
     if (sectorInfo) {

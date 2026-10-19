@@ -1,6 +1,7 @@
 import { ShapeDrawer, EffectDrawer, World, resolveThemeColorWithFallback } from "@tiny-aster/core";
 import type { TowerDefenseComponentRegistry, WaypointList, GameStateComponent, TileGrid, TowerDefenseVisualEffects } from "../types/TowerDefenseTypes";
 import { getTileTypeColor } from "../MapUtils";
+import type { GridLayout } from "../../shared/grid/GridTypes";
 import { Skia, getPaint, SkCanvas, SkPaint } from "../../shared/rendering/SkiaContext";
 import { drawGlowOrbSkia } from "../../shared/rendering/SkiaNeonUtils";
 import { colors } from "../../../theme/colors";

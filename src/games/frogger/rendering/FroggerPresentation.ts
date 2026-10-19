@@ -15,6 +15,7 @@ import {
   drawTruckSkia,
   drawLogSkia,
   drawTurtleSkia,
+  drawCrocodileSkia,
   drawLilyPadSkia,
   froggerBackgroundSkiaEffect,
 } from "./FroggerSkiaVisuals";
@@ -39,7 +40,7 @@ export function initializeFroggerRenderer(renderer: Renderer<any, any>): void {
     renderer.registerShape("truck", drawTruckSkia);
     renderer.registerShape("log", drawLogSkia);
     renderer.registerShape("turtle", drawTurtleSkia);
-    renderer.registerShape("crocodile", drawTurtleSkia);
+    renderer.registerShape("crocodile", drawCrocodileSkia);
     renderer.registerShape("lily_pad", drawLilyPadSkia);
     renderer.registerBackgroundEffect("froggerBackground", froggerBackgroundSkiaEffect);
   } else {

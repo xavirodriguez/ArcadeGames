@@ -198,16 +198,27 @@ export const defaultCarActorDrawer: DrawerSpec<ActorDrawerParams> = (params) => 
     );
   }
 
-  // Shadow
-  primitives.push({
-    type: "ellipse",
-    cx: 4,
-    cy: 5,
-    rx: size * 1.05,
-    ry: size * 0.6,
-    fill: palette.shadow,
-    alpha: 0.35
-  });
+  // Two offset shadow layers give the toy car lift without blur or GPU filters.
+  primitives.push(
+    {
+      type: "ellipse",
+      cx: size * 0.28,
+      cy: size * 0.38,
+      rx: size * 1.2,
+      ry: size * 0.78,
+      fill: palette.shadow,
+      alpha: 0.18
+    },
+    {
+      type: "ellipse",
+      cx: size * 0.16,
+      cy: size * 0.22,
+      rx: size * 1.04,
+      ry: size * 0.62,
+      fill: palette.shadow,
+      alpha: 0.3
+    }
+  );
 
   // Wheels
   const wW = size * 0.45;
@@ -609,7 +620,7 @@ export const breakfastSkin: RacingSkin = {
   wallDrawer: defaultWallDrawer,
   actorDrawer: defaultCarActorDrawer,
   finishCheckers: [colors.white, colors.slate],
-  ui: { glowColor: colors.cyan, accentColor: colors.gold }
+  ui: { glowColor: RACING_PALETTES.breakfast.player, accentColor: RACING_PALETTES.breakfast.accent }
 };
 
 export const billiardSkin: RacingSkin = {
@@ -625,7 +636,7 @@ export const billiardSkin: RacingSkin = {
   wallDrawer: defaultWallDrawer,
   actorDrawer: defaultCarActorDrawer,
   finishCheckers: [colors.white, colors.green],
-  ui: { glowColor: colors.cyan, accentColor: colors.gold }
+  ui: { glowColor: RACING_PALETTES.billiard.player, accentColor: RACING_PALETTES.billiard.accent }
 };
 
 export const deskSkin: RacingSkin = {
@@ -637,7 +648,7 @@ export const deskSkin: RacingSkin = {
   wallDrawer: defaultWallDrawer,
   actorDrawer: defaultCarActorDrawer,
   finishCheckers: [colors.white, colors.slate],
-  ui: { glowColor: colors.blue, accentColor: colors.gold }
+  ui: { glowColor: RACING_PALETTES.desk.player, accentColor: RACING_PALETTES.desk.accent }
 };
 
 export const gardenSkin: RacingSkin = {
@@ -649,7 +660,7 @@ export const gardenSkin: RacingSkin = {
   wallDrawer: defaultWallDrawer,
   actorDrawer: defaultCarActorDrawer,
   finishCheckers: [colors.white, colors.slate],
-  ui: { glowColor: colors.cyan, accentColor: colors.gold }
+  ui: { glowColor: RACING_PALETTES.garden.player, accentColor: RACING_PALETTES.garden.accent }
 };
 
 export const spaceSkin: RacingSkin = {

@@ -222,6 +222,48 @@ export const drawSkiaSmoke: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {
   }
 };
 
+export const drawSkiaCollisionSparks: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {
+  draw(canvas, world) {
+    if (!Skia) return;
+    const pCtx = resolveRacingParticlePoolContext(world);
+    if (!pCtx || pCtx.pool.activeSparkCount === 0) return;
+
+    const { palette, pool } = pCtx;
+    const sparkPaint = Skia.Paint();
+    sparkPaint.setColor(Skia.Color(palette.danger));
+    sparkPaint.setStyle(Skia.PaintStyle.Stroke);
+    sparkPaint.setStrokeCap(Skia.StrokeCap.Round);
+
+    const corePaint = Skia.Paint();
+    corePaint.setColor(Skia.Color(palette.text));
+    corePaint.setStyle(Skia.PaintStyle.Stroke);
+    corePaint.setStrokeCap(Skia.StrokeCap.Round);
+
+    for (let i = 0; i < pool.sparks.length; i += 1) {
+      const spark = pool.sparks[i]!;
+      if (spark.alpha <= 0) continue;
+
+      const speed = Math.hypot(spark.vx, spark.vy);
+      if (speed <= 0.001) continue;
+      const directionX = spark.vx / speed;
+      const directionY = spark.vy / speed;
+      const halfLength = spark.length * 0.5;
+      const x1 = spark.x - directionX * halfLength;
+      const y1 = spark.y - directionY * halfLength;
+      const x2 = spark.x + directionX * halfLength;
+      const y2 = spark.y + directionY * halfLength;
+
+      sparkPaint.setAlphaf(spark.alpha * 0.82);
+      sparkPaint.setStrokeWidth(3);
+      canvas.drawLine(x1, y1, x2, y2, sparkPaint);
+
+      corePaint.setAlphaf(spark.alpha);
+      corePaint.setStrokeWidth(1.1);
+      canvas.drawLine(x1, y1, x2, y2, corePaint);
+    }
+  }
+};
+
 export const drawSkiaRacingCar: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
@@ -255,6 +297,15 @@ export const drawSkiaCheckpoint: ShapeDrawer<SkCanvas, RacingComponentRegistry> 
     if (checkpoint.isFinish) {
       const { cells, halfW, halfH } = computeCheckpointGrid(checkpoint.width, checkpoint.height);
       const [color1, color2] = resolveFinishCheckers(skin);
+
+      const shadowPaint = Skia.Paint();
+      shadowPaint.setColor(Skia.Color(skin.palette.shadow));
+      shadowPaint.setAlphaf(0.28);
+      shadowPaint.setStyle(Skia.PaintStyle.Fill);
+      canvas.drawRect(
+        Skia.XYWHRect(-halfW + 4, -halfH + 5, checkpoint.width, checkpoint.height),
+        shadowPaint
+      );
 
       for (let i = 0; i < cells.length; i += 1) {
         const cell = cells[i]!;

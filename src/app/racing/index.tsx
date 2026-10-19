@@ -16,6 +16,16 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { hapticSelection } from "@/utils/haptics";
 import { getRacingSkin } from "@/games/racing/rendering/RacingSkin";
 
+function formatRaceTime(seconds: number | null | undefined): string {
+  if (seconds === null || seconds === undefined || !Number.isFinite(seconds) || seconds < 0) {
+    return "--:--.--";
+  }
+
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = (seconds % 60).toFixed(2).padStart(5, "0");
+  return `${String(minutes).padStart(2, "0")}:${remainingSeconds}`;
+}
+
 export default function RacingScreen() {
   const { t } = useTranslation();
   const [started, setStarted] = useState(false);
@@ -36,8 +46,13 @@ export default function RacingScreen() {
   const opacity = useSharedValue(1);
 
   const skin = game && isReady ? getRacingSkin(game.getWorld()) : undefined;
-  const glowColor = skin?.ui?.glowColor ?? "#00e5ff";
-  const accentColor = skin?.ui?.accentColor ?? "#F2C94C";
+  const glowColor = skin?.ui?.glowColor ?? "#0B9EAD";
+  const accentColor = skin?.ui?.accentColor ?? "#E4AB42";
+
+  const headToHead = game?.getWorld().getSingleton("HeadToHeadState");
+  const targetScore = Math.max(1, headToHead?.targetScore ?? 4);
+  const scorePlayer1 = headToHead?.scores.player_1 ?? 0;
+  const scorePlayer2 = headToHead?.scores.player_2 ?? 0;
 
   const countdownVal = Math.ceil(gameState.countdownRemaining);
   const isCountdownActive = gameState.phase === "countdown" || (gameState.phase === "racing" && gameState.raceTime < 1.0);
@@ -51,7 +66,6 @@ export default function RacingScreen() {
       );
       opacity.value = withTiming(1.0, { duration: 100 });
 
-      // Audio feedback on countdown second change
       if (game?.audio) {
         try {
           if (countdownVal > 0) {
@@ -60,7 +74,7 @@ export default function RacingScreen() {
             void game.audio.playSFX("select");
           }
         } catch {
-          // ignore audio playback errors
+          // Audio feedback is optional; a failed device playback must not stop a race.
         }
       }
     } else {
@@ -106,42 +120,66 @@ export default function RacingScreen() {
         <GameLayoutShell
           style={sharedScreenStyles.container}
           topLeftSlot={
-            <TouchableOpacity style={sharedScreenStyles.backButton} onPress={() => router.back()}>
-              <Text style={sharedScreenStyles.backButtonText}>← {t.common.menu}</Text>
+            <TouchableOpacity
+              style={[styles.menuButton, { borderColor: glowColor }]}
+              onPress={() => router.back()}
+              accessibilityRole="button"
+              accessibilityLabel={t.common.menu}
+              hitSlop={8}
+            >
+              <Text style={styles.menuButtonText}>‹  MENU</Text>
             </TouchableOpacity>
           }
           centerHudSlot={
-            <View style={[styles.hud, { borderColor: glowColor }]}>
-              <View style={styles.h2hRow}>
-                <Text style={[styles.hudText, { color: glowColor }]}>P1</Text>
-                <View style={styles.pearlsRow}>
-                  {[...Array(5)].map((_, i) => (
-                    <View
-                      key={`p1_${i}`}
-                      style={[
-                        styles.pearl,
-                        { backgroundColor: i < (game?.getWorld().getSingleton("HeadToHeadState")?.scores.player_1 ?? 0) ? glowColor : "#1e293b" }
-                      ]}
-                    />
-                  ))}
+            <View style={styles.hudWrap} pointerEvents="none">
+              <View style={[styles.hud, { borderColor: `${glowColor}99` }]}>
+                <View style={styles.metric}>
+                  <Text style={styles.metricLabel}>POS</Text>
+                  <Text style={[styles.metricValue, { color: glowColor }]}>P{gameState.position}</Text>
                 </View>
-                <Text style={[styles.vsText, { color: accentColor }]}>VS</Text>
-                <View style={styles.pearlsRow}>
-                  {[...Array(5)].map((_, i) => (
-                    <View
-                      key={`p2_${i}`}
-                      style={[
-                        styles.pearl,
-                        { backgroundColor: i < (game?.getWorld().getSingleton("HeadToHeadState")?.scores.player_2 ?? 0) ? "#f43f5e" : "#1e293b" }
-                      ]}
-                    />
-                  ))}
+                <View style={styles.separator} />
+                <View style={styles.metric}>
+                  <Text style={styles.metricLabel}>LAP</Text>
+                  <Text style={styles.metricValue}>{gameState.currentLap}/{gameState.totalLaps}</Text>
                 </View>
-                <Text style={[styles.hudText, { color: "#f43f5e" }]}>P2</Text>
+                <View style={styles.separator} />
+                <View style={[styles.metric, styles.timeMetric]}>
+                  <Text style={styles.metricLabel}>TIME</Text>
+                  <Text style={[styles.timeValue, { color: glowColor }]}>{formatRaceTime(gameState.raceTime)}</Text>
+                </View>
+                <View style={styles.separator} />
+                <View style={styles.metric}>
+                  <Text style={styles.metricLabel}>BEST</Text>
+                  <Text style={styles.metricValue}>{formatRaceTime(gameState.bestLapTime)}</Text>
+                </View>
               </View>
-              <Text style={styles.lapHudText}>
-                LAP {gameState.currentLap} / {gameState.totalLaps}
-              </Text>
+              <View style={styles.scoreStrip}>
+                <Text style={[styles.scoreLabel, { color: glowColor }]}>P1</Text>
+                <View style={styles.scorePips}>
+                  {Array.from({ length: targetScore }, (_, index) => (
+                    <View
+                      key={`p1-${index}`}
+                      style={[
+                        styles.scorePip,
+                        { backgroundColor: index < scorePlayer1 ? glowColor : "rgba(226,232,240,0.12)", borderColor: glowColor }
+                      ]}
+                    />
+                  ))}
+                </View>
+                <Text style={styles.vsText}>VS</Text>
+                <View style={styles.scorePips}>
+                  {Array.from({ length: targetScore }, (_, index) => (
+                    <View
+                      key={`p2-${index}`}
+                      style={[
+                        styles.scorePip,
+                        { backgroundColor: index < scorePlayer2 ? "#E87968" : "rgba(226,232,240,0.12)", borderColor: "#E87968" }
+                      ]}
+                    />
+                  ))}
+                </View>
+                <Text style={[styles.scoreLabel, { color: "#E87968" }]}>P2</Text>
+              </View>
             </View>
           }
           canvasSlot={
@@ -156,7 +194,10 @@ export default function RacingScreen() {
               <View style={styles.leftControlArea} pointerEvents="box-none">
                 <TouchVirtualJoystick
                   floating={true}
-                  onMove={(x, y) => {
+                  color={glowColor}
+                  activeColor={glowColor}
+                  opacity={0.72}
+                  onMove={(x) => {
                     const steerX = Math.max(-1, Math.min(1, x));
                     if (touchStateRef.current) {
                       touchStateRef.current.setMoveAxis(steerX, touchStateRef.current.moveY);
@@ -169,33 +210,39 @@ export default function RacingScreen() {
                     }
                     input({ moveX: 0 });
                   }}
-                  accessibilityLabel="Steering Joystick"
+                  accessibilityLabel="Steering joystick"
                 />
               </View>
               <View style={styles.rightControlArea} pointerEvents="box-none">
                 <TouchHoldButton
-                  label="GAS"
+                  label={"▲\nGAS"}
                   buttonName="thrust"
                   touchState={touchStateRef.current ?? undefined}
-                  size={72}
-                  color="rgba(0, 232, 210, 0.2)"
+                  size={60}
+                  color="rgba(15,23,42,0.54)"
+                  pressedColor="rgba(15,23,42,0.86)"
                   borderColor={glowColor}
+                  textColor="#FFFDF5"
+                  labelStyle={styles.controlLabel}
                   onHoldStart={() => input({ moveY: -1 })}
                   onHoldEnd={() => input({ moveY: 0 })}
                   accessibilityLabel="Accelerate"
                 />
-                <View style={{ height: 12 }} />
                 <TouchActionButton
-                  label="BOOST"
+                  label={"✦\nBOOST"}
                   buttonName="boost"
                   touchState={touchStateRef.current ?? undefined}
-                  size={64}
+                  size={56}
+                  color="rgba(15,23,42,0.54)"
+                  pressedColor="rgba(15,23,42,0.86)"
+                  borderColor={accentColor}
+                  pressedBorderColor={accentColor}
+                  textColor="#FFFDF5"
+                  labelStyle={styles.controlLabel}
                   accessibilityLabel="Boost nitro"
                   onPressIn={() => input({ boost: true })}
                   onPressOut={() => input({ boost: false })}
                   haptic="heavy"
-                  color="rgba(242,201,76,0.25)"
-                  borderColor={accentColor}
                 />
               </View>
             </View>
@@ -219,7 +266,10 @@ export default function RacingScreen() {
               {gameState.isGameOver && (
                 <View style={styles.finished}>
                   <Text style={[styles.finishedTitle, { color: accentColor }]}>FINISH!</Text>
-                  <Text style={styles.text}>TIME {gameState.raceTime.toFixed(2)}s</Text>
+                  <Text style={styles.text}>TIME {formatRaceTime(gameState.raceTime)}</Text>
+                  {gameState.bestLapTime !== null && (
+                    <Text style={styles.finishedBest}>BEST LAP {formatRaceTime(gameState.bestLapTime)}</Text>
+                  )}
                   <NeonButton variant="cyan" onPress={() => game.restart()}>RETRY</NeonButton>
                 </View>
               )}
@@ -232,22 +282,174 @@ export default function RacingScreen() {
 }
 
 const styles = StyleSheet.create({
-  hud: { padding: 10, borderWidth: 1, backgroundColor: "rgba(0,0,0,0.8)", borderRadius: 10, alignItems: "center", gap: 6 },
-  h2hRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  pearlsRow: { flexDirection: "row", gap: 4 },
-  pearl: { width: 10, height: 10, borderRadius: 5, borderWidth: 1, borderColor: "#475569" },
-  vsText: { fontFamily: "monospace", fontWeight: "bold", fontSize: 12 },
-  lapHudText: { color: "#FFFFFF", fontFamily: "monospace", fontSize: 22, fontWeight: "bold" },
-  hudText: { fontFamily: "monospace", fontWeight: "bold" },
-  controls: { ...StyleSheet.absoluteFill, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end" },
-  leftControlArea: { flex: 1, height: "100%" },
-  rightControlArea: { width: 140, height: "100%", justifyContent: "flex-end", alignItems: "center", paddingBottom: 40, paddingRight: 20 },
-  instructions: { marginBottom: 24 },
-  text: { color: "#fff", fontFamily: "monospace", textAlign: "center" },
-  countdownContainer: { ...StyleSheet.absoluteFill, justifyContent: "center", alignItems: "center" },
-  countdownText: { fontFamily: "monospace", fontWeight: "bold", textShadowColor: "rgba(0, 0, 0, 0.8)", textShadowOffset: { width: 2, height: 2 }, textShadowRadius: 6 },
-  numberText: { fontSize: 80 },
-  goText: { fontSize: 96 },
-  finished: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(0,0,0,0.82)", justifyContent: "center", alignItems: "center", gap: 18 },
-  finishedTitle: { fontSize: 40, fontWeight: "bold", fontFamily: "monospace" }
+  menuButton: {
+    minHeight: 30,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderRadius: 7,
+    backgroundColor: "rgba(12,18,27,0.78)",
+    opacity: 0.9
+  },
+  menuButtonText: {
+    color: "#F8F4E8",
+    fontFamily: "monospace",
+    fontSize: 10,
+    fontWeight: "bold",
+    letterSpacing: 1
+  },
+  hudWrap: {
+    alignItems: "center",
+    gap: 4,
+    maxWidth: 520,
+    alignSelf: "center"
+  },
+  hud: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderRadius: 9,
+    backgroundColor: "rgba(12,18,27,0.84)"
+  },
+  metric: {
+    minWidth: 34,
+    alignItems: "center",
+    justifyContent: "center"
+  },
+  timeMetric: {
+    minWidth: 72
+  },
+  metricLabel: {
+    color: "rgba(248,244,232,0.58)",
+    fontFamily: "monospace",
+    fontSize: 8,
+    fontWeight: "bold",
+    letterSpacing: 1
+  },
+  metricValue: {
+    color: "#F8F4E8",
+    fontFamily: "monospace",
+    fontSize: 11,
+    fontWeight: "bold",
+    marginTop: 2
+  },
+  timeValue: {
+    fontFamily: "monospace",
+    fontSize: 13,
+    fontWeight: "bold",
+    marginTop: 2,
+    fontVariant: ["tabular-nums"]
+  },
+  separator: {
+    width: 1,
+    height: 23,
+    backgroundColor: "rgba(248,244,232,0.16)"
+  },
+  scoreStrip: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 5,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 7,
+    backgroundColor: "rgba(12,18,27,0.70)"
+  },
+  scoreLabel: {
+    fontFamily: "monospace",
+    fontSize: 8,
+    fontWeight: "bold"
+  },
+  scorePips: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2
+  },
+  scorePip: {
+    width: 5,
+    height: 5,
+    borderRadius: 3,
+    borderWidth: 0.6
+  },
+  vsText: {
+    color: "rgba(248,244,232,0.55)",
+    fontFamily: "monospace",
+    fontWeight: "bold",
+    fontSize: 8,
+    marginHorizontal: 1
+  },
+  controls: {
+    ...StyleSheet.absoluteFill,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end"
+  },
+  leftControlArea: {
+    flex: 1,
+    height: "100%"
+  },
+  rightControlArea: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    gap: 9,
+    width: 142,
+    paddingBottom: 24,
+    paddingRight: 14
+  },
+  controlLabel: {
+    fontFamily: "monospace",
+    fontWeight: "bold",
+    fontSize: 10,
+    lineHeight: 12,
+    letterSpacing: 0.6,
+    textAlign: "center"
+  },
+  instructions: {
+    marginBottom: 24
+  },
+  text: {
+    color: "#fff",
+    fontFamily: "monospace",
+    textAlign: "center"
+  },
+  countdownContainer: {
+    ...StyleSheet.absoluteFill,
+    justifyContent: "center",
+    alignItems: "center"
+  },
+  countdownText: {
+    fontFamily: "monospace",
+    fontWeight: "bold",
+    textShadowColor: "rgba(0, 0, 0, 0.8)",
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 6
+  },
+  numberText: {
+    fontSize: 72
+  },
+  goText: {
+    fontSize: 84
+  },
+  finished: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: "rgba(0,0,0,0.82)",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 14
+  },
+  finishedTitle: {
+    fontSize: 36,
+    fontWeight: "bold",
+    fontFamily: "monospace"
+  },
+  finishedBest: {
+    color: "rgba(248,244,232,0.78)",
+    fontSize: 12,
+    fontFamily: "monospace"
+  }
 });

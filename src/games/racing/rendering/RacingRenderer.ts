@@ -5,6 +5,7 @@ import {
   drawTrackRibbon,
   drawSkidMarks,
   drawSmoke,
+  drawCollisionSparks,
   drawRacingCar,
   drawTrackWall,
   drawCheckpoint,
@@ -16,6 +17,7 @@ import {
   drawSkiaTrackRibbon,
   drawSkiaSkidMarks,
   drawSkiaSmoke,
+  drawSkiaCollisionSparks,
   drawSkiaRacingCar,
   drawSkiaTrackWall,
   drawSkiaCheckpoint,
@@ -30,6 +32,7 @@ export function initializeRacingRenderer(renderer: Renderer<RacingComponentRegis
       r.registerShape("track_ribbon", drawTrackRibbon);
       r.registerShape("skid_marks", drawSkidMarks);
       r.registerShape("smoke", drawSmoke);
+      r.registerShape("collision_sparks", drawCollisionSparks);
       r.registerShape("racing_car", drawRacingCar);
       r.registerShape("track_wall", drawTrackWall);
       r.registerShape("checkpoint", drawCheckpoint);
@@ -41,6 +44,7 @@ export function initializeRacingRenderer(renderer: Renderer<RacingComponentRegis
       r.registerShape("track_ribbon", drawSkiaTrackRibbon as never);
       r.registerShape("skid_marks", drawSkiaSkidMarks as never);
       r.registerShape("smoke", drawSkiaSmoke as never);
+      r.registerShape("collision_sparks", drawSkiaCollisionSparks as never);
       r.registerShape("racing_car", drawSkiaRacingCar as never);
       r.registerShape("track_wall", drawSkiaTrackWall as never);
       r.registerShape("checkpoint", drawSkiaCheckpoint as never);

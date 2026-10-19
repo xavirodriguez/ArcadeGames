@@ -2,7 +2,6 @@ import type { World } from "@tiny-aster/core";
 import { resolveThemeColorWithFallback } from "@tiny-aster/core";
 import type { RacingComponentRegistry, RacingEventRegistry } from "../types/RacingRegistry";
 import type { TrackSpec } from "../types/TrackSpecSchema";
-import { colors } from "../../../theme/colors";
 
 export type TrackTheme = "breakfast" | "billiard" | "desk" | "garden";
 
@@ -24,74 +23,79 @@ export interface RacingPalette {
   text: string;
 }
 
+/**
+ * Shared miniature-toy art direction:
+ * warm, low-noise environments; readable road edges; and distinct player/rival
+ * colours. UI accents remain available as separate semantic tokens.
+ */
 export const RACING_PALETTES: Record<TrackTheme, RacingPalette> = {
   breakfast: {
-    surface: colors.amber,
-    surfaceDetail: colors.orange,
-    track: colors.yellow,
-    trackEdge: colors.slate,
-    player: colors.cyan,
-    playerHighlight: colors.blueLight,
-    rival: colors.red,
-    rivalHighlight: colors.pink,
-    obstacle: colors.orange,
-    obstacleHighlight: colors.yellow,
-    danger: colors.redHot,
-    shadow: colors.backgroundDark,
-    accent: colors.gold,
-    outline: colors.surface,
-    text: colors.white
+    surface: "#D8BB86",
+    surfaceDetail: "#B99761",
+    track: "#F0E8D6",
+    trackEdge: "#46505B",
+    player: "#08AFC1",
+    playerHighlight: "#7CE7E5",
+    rival: "#E85D4F",
+    rivalHighlight: "#FFAA7A",
+    obstacle: "#C86A35",
+    obstacleHighlight: "#F4C56A",
+    danger: "#C7372F",
+    shadow: "#3B2D24",
+    accent: "#F1B84B",
+    outline: "#3F3A35",
+    text: "#FFFDF5"
   },
   billiard: {
-    surface: colors.green,
-    surfaceDetail: colors.green,
-    track: colors.yellow,
-    trackEdge: colors.slate,
-    player: colors.cyan,
-    playerHighlight: colors.blueLight,
-    rival: colors.orange,
-    rivalHighlight: colors.yellow,
-    obstacle: colors.orange,
-    obstacleHighlight: colors.yellow,
-    danger: colors.red,
-    shadow: colors.backgroundDark,
-    accent: colors.gold,
-    outline: colors.surface,
-    text: colors.white
+    surface: "#205C45",
+    surfaceDetail: "#34765D",
+    track: "#E4DDBF",
+    trackEdge: "#193F35",
+    player: "#0BB7C9",
+    playerHighlight: "#85E7E0",
+    rival: "#F07B45",
+    rivalHighlight: "#FFD166",
+    obstacle: "#CF7147",
+    obstacleHighlight: "#FFD166",
+    danger: "#E04F4F",
+    shadow: "#102C24",
+    accent: "#EAC35A",
+    outline: "#152F2A",
+    text: "#F7F4E6"
   },
   desk: {
-    surface: colors.slate,
-    surfaceDetail: colors.borderDark,
-    track: colors.neutral,
-    trackEdge: colors.slate,
-    player: colors.blue,
-    playerHighlight: colors.blueLight,
-    rival: colors.red,
-    rivalHighlight: colors.pink,
-    obstacle: colors.gold,
-    obstacleHighlight: colors.yellow,
-    danger: colors.red,
-    shadow: colors.surface,
-    accent: colors.gold,
-    outline: colors.surface,
-    text: colors.white
+    surface: "#807568",
+    surfaceDetail: "#A89A84",
+    track: "#E8E0D2",
+    trackEdge: "#3E444C",
+    player: "#237FBC",
+    playerHighlight: "#9EDAFF",
+    rival: "#DB5247",
+    rivalHighlight: "#FFA08E",
+    obstacle: "#CC9946",
+    obstacleHighlight: "#F4D27E",
+    danger: "#D94343",
+    shadow: "#2F2A28",
+    accent: "#D7A94D",
+    outline: "#3B3531",
+    text: "#FFF9EF"
   },
   garden: {
-    surface: colors.green,
-    surfaceDetail: colors.green,
-    track: colors.yellow,
-    trackEdge: colors.slate,
-    player: colors.cyan,
-    playerHighlight: colors.blueLight,
-    rival: colors.pink,
-    rivalHighlight: colors.pink,
-    obstacle: colors.slate,
-    obstacleHighlight: colors.borderLight,
-    danger: colors.red,
-    shadow: colors.surface,
-    accent: colors.gold,
-    outline: colors.surface,
-    text: colors.white
+    surface: "#47784B",
+    surfaceDetail: "#5D9660",
+    track: "#E8D3A1",
+    trackEdge: "#334B35",
+    player: "#0BB7C9",
+    playerHighlight: "#85E7E0",
+    rival: "#E66B72",
+    rivalHighlight: "#FFB1A9",
+    obstacle: "#657A59",
+    obstacleHighlight: "#CBD6A0",
+    danger: "#D94343",
+    shadow: "#203B25",
+    accent: "#EAC35A",
+    outline: "#2B3B2C",
+    text: "#FFF9EF"
   }
 };
 

@@ -299,6 +299,50 @@ export const drawSmoke: ShapeDrawer<CanvasRenderingContext2D, RacingComponentReg
   }
 };
 
+export const drawCollisionSparks: ShapeDrawer<CanvasRenderingContext2D, RacingComponentRegistry> = {
+  draw(ctx, world) {
+    const pCtx = resolveRacingParticlePoolContext(world);
+    if (!pCtx || pCtx.pool.activeSparkCount === 0) return;
+
+    const { palette, pool } = pCtx;
+    ctx.save();
+    ctx.lineCap = "round";
+
+    for (let i = 0; i < pool.sparks.length; i += 1) {
+      const spark = pool.sparks[i]!;
+      if (spark.alpha <= 0) continue;
+
+      const speed = Math.hypot(spark.vx, spark.vy);
+      if (speed <= 0.001) continue;
+      const directionX = spark.vx / speed;
+      const directionY = spark.vy / speed;
+      const halfLength = spark.length * 0.5;
+      const x1 = spark.x - directionX * halfLength;
+      const y1 = spark.y - directionY * halfLength;
+      const x2 = spark.x + directionX * halfLength;
+      const y2 = spark.y + directionY * halfLength;
+
+      ctx.globalAlpha = spark.alpha * 0.82;
+      ctx.strokeStyle = palette.danger;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      ctx.globalAlpha = spark.alpha;
+      ctx.strokeStyle = palette.text;
+      ctx.lineWidth = 1.1;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }
+};
+
 export const drawRacingCar: ShapeDrawer<CanvasRenderingContext2D, RacingComponentRegistry> = {
   draw(ctx, world, entity) {
     const skin = getRacingSkin(world);
@@ -330,6 +374,12 @@ export const drawCheckpoint: ShapeDrawer<CanvasRenderingContext2D, RacingCompone
     if (checkpoint.isFinish) {
       const { cells, halfW, halfH } = computeCheckpointGrid(checkpoint.width, checkpoint.height);
       const [color1, color2] = resolveFinishCheckers(skin);
+
+      // Keep the finish strip grounded like other tabletop props.
+      ctx.fillStyle = skin.palette.shadow;
+      ctx.globalAlpha = 0.28;
+      ctx.fillRect(-halfW + 4, -halfH + 5, checkpoint.width, checkpoint.height);
+      ctx.globalAlpha = 1;
 
       for (let i = 0; i < cells.length; i += 1) {
         const cell = cells[i]!;

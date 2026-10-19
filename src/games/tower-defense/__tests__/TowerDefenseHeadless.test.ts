@@ -1,4 +1,5 @@
 import { TowerDefenseGame } from "../TowerDefenseGame";
+import { getCreepRenderSize } from "../EntityFactory";
 import { parseLevelLayout, extractWaypoints, createGridLayout } from "../MapUtils";
 import type { GameStateComponent, WaypointList, TileGrid } from "../types/TowerDefenseTypes";
 import towerDefenseConfigRaw from "../config/tower-defense.json";
@@ -168,6 +169,13 @@ describe("TowerDefense headless - Phase 2 (Playable Headless)", () => {
     expect(gs.wave).toBe(1);
   });
 
+  it("keeps all creep silhouettes readable without changing configured sizes", () => {
+    expect(getCreepRenderSize("grunt", 12)).toBe(18);
+    expect(getCreepRenderSize("fast", 10)).toBe(16);
+    expect(getCreepRenderSize("tank", 18)).toBeCloseTo(26.1);
+    expect(getCreepRenderSize("boss", 28)).toBe(38);
+  });
+
   it("2.7 App-level input: setInputState({ startWave: true }) triggers wave transition and spawns creeps", async () => {
     game = new TowerDefenseGame({ headless: true, gameOptions: { seed: 42 } });
     await game.init();
@@ -205,6 +213,7 @@ describe("TowerDefense headless - Phase 2 (Playable Headless)", () => {
     expect(render).toBeDefined();
     expect(render!.visible).toBe(true);
     expect(render!.shape).toBe("creep_grunt");
+    expect(render!.size).toBeGreaterThanOrEqual(18);
 
     expect(creepComp).toBeDefined();
     expect(creepComp!.creepType).toBe("grunt");

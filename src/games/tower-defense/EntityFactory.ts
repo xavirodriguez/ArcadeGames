@@ -35,6 +35,30 @@ export function createPlayerComponent(selectedTowerType: string | null = "basic"
   };
 }
 
+const CREEP_MIN_RENDER_SIZES: Readonly<Record<string, number>> = {
+  grunt: 18,
+  fast: 16,
+  tank: 26,
+  boss: 36,
+};
+
+const CREEP_MAX_RENDER_SIZES: Readonly<Record<string, number>> = {
+  grunt: 24,
+  fast: 22,
+  tank: 32,
+  boss: 38,
+};
+
+/** Keeps enemies readable on a 40px path tile without inflating their colliders. */
+export function getCreepRenderSize(creepType: string, configuredSize: number): number {
+  const minimum = CREEP_MIN_RENDER_SIZES[creepType] ?? 18;
+  const maximum = CREEP_MAX_RENDER_SIZES[creepType] ?? 30;
+  const scaledSize = Number.isFinite(configuredSize) && configuredSize > 0
+    ? configuredSize * 1.45
+    : minimum;
+  return Math.min(maximum, Math.max(minimum, scaledSize));
+}
+
 export function populateCreep(
   world: World<TowerDefenseComponentRegistry>,
   entity: number,
@@ -45,7 +69,7 @@ export function populateCreep(
   EntityBuilder.fromEntity(world, entity)
     .withTransform({ x, y })
     .withVelocity({ vx: 0, vy: 0 })
-    .withRender({ shape: `creep_${def.id}`, size: def.size, color: "orange", order: 5 })
+    .withRender({ shape: `creep_${def.id}`, size: getCreepRenderSize(def.id, def.size), color: "orange", order: 5 })
     .withCollider({
       shape: { type: ShapeType.Circle, radius: def.size * 0.6 } as CircleShape,
       layer: CollisionLayers.ENEMY,

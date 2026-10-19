@@ -67,6 +67,7 @@ import { CreepDeathSystem } from "./systems/CreepDeathSystem";
 import { SlowOnHitSystem } from "./systems/SlowOnHitSystem";
 import { TowerDefenseAudioSystem } from "./systems/TowerDefenseAudioSystem";
 import { ThreatHudSystem } from "./systems/ThreatHudSystem";
+import { TowerDefenseVfxSystem } from "./systems/TowerDefenseVfxSystem";
 
 export interface TowerDefenseBlueprintMap
   extends Record<
@@ -290,6 +291,7 @@ this.world.addSystem(new WaveSpawnSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new TowerDefenseAudioSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new ThreatHudSystem(), { phase: SystemPhase.Presentation });
+    this.world.addSystem(new TowerDefenseVfxSystem(), { phase: SystemPhase.Presentation });
   }
 
   protected override async onInitializeEntities(): Promise<void> {
@@ -320,6 +322,11 @@ this.world.addSystem(new WaveSpawnSystem(), { phase: SystemPhase.Simulation });
       .getSystems()
       .find((s) => s instanceof CreepDeathSystem) as CreepDeathSystem | undefined;
     creepDeathSystem?.reset();
+
+    const vfxSystem = this.world.schedule
+      .getSystems()
+      .find((s) => s instanceof TowerDefenseVfxSystem) as TowerDefenseVfxSystem | undefined;
+    vfxSystem?.reset();
   }
 
   public override update(dt: number): void {

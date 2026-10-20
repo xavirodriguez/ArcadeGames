@@ -11,9 +11,9 @@ Estado inicial de la sesión:
 | 3 | Correcciones menores | hecho | pending | Reemplazado RNG fork en variantes, dither seed derivado en writeWav, silencios en sequence, whoosh bandpass corregido y RENDER_VERSION bump a 0.3.1. |
 | 4 | Pipeline puro y entrada sin Node | hecho | pending | Creada función pura `renderFinal`, encoder puro `encodeWav`, subpata `./core` en package.json y test de análisis de imports en `core_imports.test.mjs`. |
 | 5 | Refactor de la voz | hecho | pending | Extraído DSP en `core/dsp/` (biquad, envelope, oscillators, voice), `renderVoice` reutilizable y registro `Record<LayerKind, LayerRenderer>` sin alterar golden tests. |
-| 6 | Filtros | pendiente | | |
-| 7 | Modulación (LFO) | pendiente | | |
-| 8 | Envolventes y pitch envelope | pendiente | | |
+| 6 | Filtros | hecho | pending | `BiquadFilter.update` evalúa Q/sampleRate. Implementados `bandpass` (RBJ) y `notch`. Integrado filtro en `renderVoice` con recálculo cada 16 muestras en barridos. Medido render 5x pack: 506 ms. |
+| 7 | Modulación (LFO) | hecho | pending | Añadidos `LfoSpec` y `ModulationSpec` (pitch, amp, filter). Onda `sampleAndHold` determinista por RNG. Creado `examplesPack()` con sirena, powerup vibrato y filtro modulado. |
+| 8 | Envolventes y pitch envelope | hecho | pending | Curvas exponenciales `curve: 'exp'` con suelo a 0.001 (-60 dBFS) y rampa anti-click. Envolventes multipunto `points`. Creadas variantes exponenciales (`_exp`) en `examplesPack()` y documentadas mediciones en `docs/sound-kit-listening.md`. |
 | 9 | Paleta chip | pendiente | | |
 | 10 | FM y unison | pendiente | | |
 | 11 | Cadena de efectos | pendiente | | |
@@ -36,7 +36,7 @@ Estado inicial de la sesión:
 ### Punto 1: Verificar premisas (solo lectura)
 **Diseño / Explicación:**
 Se realizó un análisis estático de código sin modificar lógica de renderizado ni recetas. Se verificaron las 12 premisas formuladas (a-l) inspeccionando los archivos `packages/arcade-sound-kit/src/core/render.ts`, `export/wav.ts`, `design/pack.ts`, `index.ts`, `package.json`, `packages/core/src/audio/WebAudioPlayer.ts` y `packages/react-native/src/audio/ExpoAudioPlayer.ts`.
-Todas las respuestas, evidencias con archivo y líneas, y ajustes impuestos sobre los puntos 3, 4, 12 y 21 se han documentado de forma exhaustiva en `docs/sound-kit-audit.md`. Se descartó cualquier alternativa de modificación de código en este paso por ser un punto estrictamente de auditoría de solo lectura.
+Todas las respuestas, evidencias con archivo y líneas, y ajustes impuestos sobre los puntos 3, 4, 12 y 21 se han documentado de forma exhaustiva en `docs/sound-kit-audit.md`. Se descartó cualquier alternativa de modificación de código en este paso por ser un punto strictly de auditoría de solo lectura.
 
 ### Punto 2: Red de seguridad: golden tests
 **Diseño / Explicación:**
@@ -48,7 +48,7 @@ Se implementó una red de seguridad basada en snapshots de regression para todas
 Se aplicaron las correcciones confirmadas en el informe de auditoría:
 - 3a: Sustituido `baseSeed + v * 9973` por `new RNG(baseSeed).fork(v)` en la derivación de variantes para garantizar que no existan colisiones de seeds entre combinaciones distintas. Validado en `variant_fork.test.mjs` (100% de unicidad en 5005 combinaciones).
 - 3b: `writeWav` recibe una seed de dither derivada determinísticamente de la del sonido (`rng.fork('dither_seed').next()`), en lugar de fijar 42 para todos los archivos. Validado en `dither_seed.test.mjs`.
-- 3c: `sequence` soporta silencios cuando `frequency === 0` o `rest: true`, avanzando el tiempo sin inyectar tono de 10 Hz. Validado en `sequence_rest.test.mjs`.
+- 3c: `sequence` soporta silencios cuando `frequency === 0` o `rest: true`, advancing el tiempo sin inyectar tono de 10 Hz. Validado en `sequence_rest.test.mjs`.
 - 3d: Se midió el salto máximo entre muestras en onsets de notas de secuencias con attack de 2 ms (medido: 0.4448) frente al resto del pack (medido: 1.1519). Al quedar por debajo del máximo del pack, no se alteró el código de fase por nota y se documentó el resultado.
 - 3e: Corregido el filtro pasa-banda en capas `whoosh` para que cuando `filterType === 'bandpass'` aplique la cascada pasa-alto + pasa-bajo correspondiente al barrido en lugar de actuar únicamente como pasa-bajo. Validado en `whoosh_bandpass.test.mjs`.
 - 3f: Se incrementó `RENDER_VERSION` a `0.3.1` y se actualizaron los snapshots en `golden_hashes.json`.
@@ -69,3 +69,26 @@ Se modularizó la síntesis DSP trasladando las primitivas a `packages/arcade-so
 - `renderers/`: Registro `Record<LayerKind, LayerRenderer>` dividiendo las ramas de `render.ts` en renderizadores especializados (`noiseRenderer`, `sequenceRenderer`, `chordRenderer`, `tonalRenderer`).
 *Alternativas descartadas:* Mantener los bucles `osc * env * gain` duplicados en un único archivo monolítico (descartado por dificultar la reusabilidad y extensibilidad en sintetizadores futuros).
 Se confirmó que el refactor produce resultados idénticos byte por byte mediante los 44 tests de la suite y que no se introduce regresión de duplicación en el proyecto.
+
+### Punto 6: Filtros
+**Diseño / Explicación:**
+Se actualizó `BiquadFilter.update` para que evalúe `Q` y `sampleRate` en la verificación de recálculo de coeficientes. Se añadieron las respuestas pasa-banda (RBJ 0 dB peak gain) y notch en `biquad.ts`. Se añadió `q?: number` en `FilterSpec`, validado en `validator.ts` dentro del rango [0.1, 30] (justificación: Q < 0.1 produce respuesta casi plana sin filtrado, Q > 30 genera resonancia excesiva e inestabilidad cerca de Nyquist). El filtro biquad se integró directamente en la voz sintetizada de `renderVoice` permitiendo filtrado opcional en cualquier capa tonal. En barridos de frecuencia de corte (`minHz` -> `maxHz`), los coeficientes se recalculan cada 16 muestras.
+*Medición de rendimiento:* Renderizar 5 iteraciones completas de `arcadePack()` con la optimización de recálculo cada 16 muestras requirió **506.08 ms** en total (frente a >1200 ms al recalcular por muestra).
+*Alternativas descartadas:* Recalcular coeficientes por cada muestra individual en sweeps (descartado por sobrecoste CPU innecesario sin beneficio audible).
+Validado en `biquad_advanced.test.mjs` (recálculo por Q/sampleRate, atenuación a 4·fc, resonancia Q en fc, estabilidad sin NaN cerca de Nyquist) y `biquad_sweep_perf.test.mjs`.
+
+### Punto 7: Modulación (LFO)
+**Diseño / Explicación:**
+Se definieron las estructuras `LfoSpec` y `ModulationSpec` permitiendo modular pitch (en semitonos), amplitud (0..1) y filtro (en octavas). Se implementó la onda `sampleAndHold` utilizando el generador determinista RNG de la capa por paso. La fase inicial se aleatoriza por variante utilizando el RNG de capa a menos que se fije explícitamente `phase`. La modulación se aplica directamente dentro de `renderVoice`: pitch multiplicativo en escala logarítmica ($2^{S/12}$), amplitud acotada en [0, 1] y filtro en octavas ($2^O$). Se creó `examplesPack()` en `src/design/examplesPack.ts` conteniendo 3 recetas de demostración (`siren`, `powerup_vibrato`, `filter_modulated`).
+*Alternativas descartadas:* Aplicar modulación fuera del bucle de síntesis de voz (descartado porque requiere re-evaluar la frecuencia e índice de filtro por muestra).
+Validado en `lfo_modulation.test.mjs` (comprobando variación de densidad de cruces por cero en vibrato y oscilación de energía en trémolo).
+
+### Punto 8: Envolventes y pitch envelope
+**Diseño / Explicación:**
+Se extendió `computeEnvelope` en `dsp/envelope.ts` para soportar segmentos exponenciales (`curve: 'exp'`). Para evitar tomar logaritmos de 0 durante caídas a cero, se estableció un suelo de atenuación a 0.001 (-60 dBFS) acoplado a una rampa lineal corta de 0.5 ms al final del release para garantizar transiciones suaves sin clicks. Se implementó la evaluación de envolventes multipunto mediante arrays `points: [{ t, level, curve }]`. Se agregaron 3 recetas en `examplesPack()` reescritas con envolvente exponencial (`shoot_exp`, `explosion_small_exp`, `jump_exp`).
+*Mediciones y comparativa de escucha (registradas en `docs/sound-kit-listening.md`):*
+- `shoot` vs `shoot_exp`: Peak = 0.4463 vs 0.5135, RMS = 0.1446 vs 0.1498, Duración efectiva = 104.6 ms vs 104.6 ms (transitorio más incisivo).
+- `explosion_small` vs `explosion_small_exp`: Peak = 0.9074 vs 0.8868, RMS = 0.1806 vs 0.1280, Duración efectiva = 262.4 ms vs 244.5 ms (cuerpo de graves más seco).
+- `jump` vs `jump_exp`: Peak = 0.3054 vs 0.3157, RMS = 0.1654 vs 0.0972, Duración efectiva = 147.2 ms vs 113.3 ms (caída más ligera).
+*Alternativas descartadas:* Envolventes exponenciales puras sin rampa final anti-click (descartado por producir saltos bruscos al término del tiempo de release).
+Validado en `envelope_advanced.test.mjs` (verificando valores en t=0 y final, monotonía en decay y límite de salto entre muestras < 0.5).

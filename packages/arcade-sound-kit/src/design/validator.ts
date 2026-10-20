@@ -316,6 +316,16 @@ function validateLayer(
         });
       }
     }
+    if (env.curve !== undefined && !['linear', 'exp'].includes(env.curve)) {
+      issues.push({
+        recipe: recipeName,
+        layerIndex: lIdx,
+        field: `layers[${lIdx}].envelope.curve`,
+        path: `layers[${lIdx}].envelope.curve`,
+        value: env.curve,
+        message: 'Envelope curve must be "linear" or "exp"',
+      });
+    }
 
     const attackVal = env.attack ?? 0.005;
     const decayVal = env.decay ?? 0.08;
@@ -386,6 +396,65 @@ function validateLayer(
         message: `filter.minHz (${minHz}) must be strictly less than filter.maxHz (${maxHz})`,
       });
     }
+
+    if (layer.filter.q !== undefined) {
+      if (
+        typeof layer.filter.q !== 'number' ||
+        !Number.isFinite(layer.filter.q) ||
+        Number.isNaN(layer.filter.q) ||
+        layer.filter.q < 0.1 ||
+        layer.filter.q > 30
+      ) {
+        issues.push({
+          recipe: recipeName,
+          layerIndex: lIdx,
+          field: `layers[${lIdx}].filter.q`,
+          path: `layers[${lIdx}].filter.q`,
+          value: layer.filter.q,
+          message: 'filter.q must be a finite number in range [0.1, 30]',
+        });
+      }
+    }
+
+    if (layer.filter.curve !== undefined && !['linear', 'exponential'].includes(layer.filter.curve)) {
+      issues.push({
+        recipe: recipeName,
+        layerIndex: lIdx,
+        field: `layers[${lIdx}].filter.curve`,
+        path: `layers[${lIdx}].filter.curve`,
+        value: layer.filter.curve,
+        message: 'Filter curve must be "linear" or "exponential"',
+      });
+    }
+  }
+
+  // 4. Modulation LFO validation
+  if (layer.modulation) {
+    for (const key of ['pitch', 'amp', 'filter', 'pulseWidth'] as const) {
+      const lfo = layer.modulation[key];
+      if (lfo) {
+        if (typeof lfo.rateHz !== 'number' || !Number.isFinite(lfo.rateHz) || Number.isNaN(lfo.rateHz) || lfo.rateHz <= 0) {
+          issues.push({
+            recipe: recipeName,
+            layerIndex: lIdx,
+            field: `layers[${lIdx}].modulation.${key}.rateHz`,
+            path: `layers[${lIdx}].modulation.${key}.rateHz`,
+            value: lfo.rateHz,
+            message: 'LFO rateHz must be a positive finite number (> 0)',
+          });
+        }
+        if (typeof lfo.depth !== 'number' || !Number.isFinite(lfo.depth) || Number.isNaN(lfo.depth) || lfo.depth < 0) {
+          issues.push({
+            recipe: recipeName,
+            layerIndex: lIdx,
+            field: `layers[${lIdx}].modulation.${key}.depth`,
+            path: `layers[${lIdx}].modulation.${key}.depth`,
+            value: lfo.depth,
+            message: 'LFO depth must be a non-negative finite number (>= 0)',
+          });
+        }
+      }
+    }
   }
 }
 
@@ -408,20 +477,22 @@ function validateSequenceNote(
     return;
   }
 
-  if (
-    typeof note.frequency !== 'number' ||
-    !Number.isFinite(note.frequency) ||
-    Number.isNaN(note.frequency) ||
-    note.frequency <= 0
-  ) {
-    issues.push({
-      recipe: recipeName,
-      layerIndex: lIdx,
-      field: `layers[${lIdx}].notes[${nIdx}].frequency`,
-      path: `layers[${lIdx}].notes[${nIdx}].frequency`,
-      value: note.frequency,
-      message: 'Note frequency must be a positive finite number (> 0)',
-    });
+  if (note.rest !== true && note.frequency !== 0) {
+    if (
+      typeof note.frequency !== 'number' ||
+      !Number.isFinite(note.frequency) ||
+      Number.isNaN(note.frequency) ||
+      note.frequency < 0
+    ) {
+      issues.push({
+        recipe: recipeName,
+        layerIndex: lIdx,
+        field: `layers[${lIdx}].notes[${nIdx}].frequency`,
+        path: `layers[${lIdx}].notes[${nIdx}].frequency`,
+        value: note.frequency,
+        message: 'Note frequency must be a non-negative finite number (>= 0)',
+      });
+    }
   }
 
   if (

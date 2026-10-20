@@ -1,6 +1,7 @@
 import { LayerSpec } from '../types';
 import { LayerRendererContext } from './types';
 import { renderVoice } from '../dsp/voice';
+import { computeEnvelope } from '../dsp/envelope';
 
 function dbToLinear(db: number): number {
   return Math.pow(10, db / 20);
@@ -38,7 +39,19 @@ export function renderTonalLayer(
 
   const getFrequency = (tRel: number): number => {
     let f = startHz;
-    if (endHz != null && endHz !== startHz) {
+    if (p?.envelope && endHz != null) {
+      const penv = computeEnvelope(
+        tRel,
+        p.envelope.attack ?? 0.005,
+        p.envelope.decay ?? dur,
+        p.envelope.sustain ?? 0,
+        p.envelope.release ?? 0.01,
+        dur,
+        p.envelope.curve ?? 'linear',
+        p.envelope.points
+      );
+      f = startHz + (endHz - startHz) * penv;
+    } else if (endHz != null && endHz !== startHz) {
       const progress = dur > 0 ? Math.min(1, Math.max(0, tRel / dur)) : 1;
       if (curve === 'linear') {
         f = startHz + (endHz - startHz) * progress;
@@ -67,6 +80,11 @@ export function renderTonalLayer(
       sustain,
       release,
       gainLinear,
+      durJitter,
+      envelope: l.envelope,
+      filter: l.filter,
+      modulation: l.modulation,
+      layerRng: ctx.layerRng,
     }
   );
 }

@@ -62,6 +62,9 @@ export function renderSequenceLayer(
           sustain: noteSustain,
           release: noteRelease,
           gainLinear: noteGainLinear,
+          filter: l.filter,
+          modulation: l.modulation,
+          layerRng: ctx.layerRng,
         }
       );
 

@@ -142,6 +142,31 @@ export type EffectSpec =
   | ChorusEffectSpec
   | BitcrushEffectSpec;
 
+import { RNG } from './random';
+
+export interface MusicTrack {
+  name?: string;
+  layer: LayerSpec;
+  pattern: (barIndex: number, rng: RNG) => SequenceNote[];
+}
+
+export interface MusicSection {
+  id: string;
+  bars: number;
+  tracks: MusicTrack[];
+}
+
+export interface MusicRecipe {
+  name: string;
+  bpm: number;
+  timeSignature?: [number, number];
+  bars: number;
+  key?: string;
+  tracks: MusicTrack[];
+  loop?: boolean;
+  sections?: MusicSection[];
+}
+
 export interface SoundRecipe {
   name: string;
   category: Category;

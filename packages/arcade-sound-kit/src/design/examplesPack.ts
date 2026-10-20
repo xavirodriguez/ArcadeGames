@@ -1,6 +1,8 @@
 import { defineSound } from './recipe';
 import { tone, noiseBurst, subBoom, click, zap } from '../effects/primitives';
-import { SoundRecipe } from '../core/types';
+import { SoundRecipe, MusicRecipe } from '../core/types';
+import { seq, rest } from '../music/sequence';
+import { kickLayer, snareLayer, hihatLayer, gridPattern } from '../music/percussion';
 
 /**
  * Examples pack containing advanced DSP showcase recipes (LFO, modulation, filters, FM, unison, exponential envelopes).
@@ -184,5 +186,72 @@ export function examplesPack(): SoundRecipe[] {
       ],
       tags: ['pad', 'unison', 'example'],
     }),
+  ];
+}
+
+export function musicExamplesPack(): MusicRecipe[] {
+  return [
+    {
+      name: 'music_menu',
+      bpm: 120,
+      timeSignature: [4, 4],
+      bars: 2,
+      loop: true,
+      tracks: [
+        {
+          name: 'kick',
+          layer: kickLayer(-8),
+          pattern: () => gridPattern('x...x...x...x...', { bpm: 120, stepDur: '16n' }),
+        },
+        {
+          name: 'snare',
+          layer: snareLayer(-12),
+          pattern: () => gridPattern('....x.......x...', { bpm: 120, stepDur: '16n' }),
+        },
+        {
+          name: 'lead',
+          layer: { kind: 'sequence', wave: 'square', level: -10 },
+          pattern: () => seq(['C4', 'E4', 'G4', 'B4', 'C5', 'G4', 'E4', 'C4'], { bpm: 120 }),
+        },
+      ],
+    },
+    {
+      name: 'music_tense_level',
+      bpm: 140,
+      timeSignature: [4, 4],
+      bars: 2,
+      loop: true,
+      tracks: [
+        {
+          name: 'kick',
+          layer: kickLayer(-6),
+          pattern: () => gridPattern('x...x...x...x...', { bpm: 140, stepDur: '16n' }),
+        },
+        {
+          name: 'hihat',
+          layer: hihatLayer(-18, true),
+          pattern: () => gridPattern('xxxxxxxxxxxxxxxx', { bpm: 140, stepDur: '16n' }),
+        },
+        {
+          name: 'bass',
+          layer: { kind: 'sequence', wave: 'sawtooth', level: -10 },
+          pattern: () => seq(['A2', 'A2', 'C3', 'A2', 'D3', 'A2', 'Eb3', 'D3'], { bpm: 140 }),
+        },
+      ],
+    },
+    {
+      name: 'music_game_over',
+      bpm: 90,
+      timeSignature: [4, 4],
+      bars: 1,
+      loop: false,
+      tracks: [
+        {
+          name: 'jingle',
+          layer: { kind: 'sequence', wave: 'triangle', level: -8 },
+          pattern: () => seq(['E4', 'Eb4', 'D4', 'Db4'], { bpm: 90 }),
+        },
+      ],
+    },
   ];
 }

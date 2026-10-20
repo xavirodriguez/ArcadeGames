@@ -18,10 +18,10 @@ Estado inicial de la sesión:
 | 10 | FM y unison | hecho | pending | Síntesis FM con modulación de fase y techo de índice seguro de Carson frente a aliasing. Unison de hasta 8 voces con desafinación y normalización $1/\sqrt{V}$. Aliases `harmonicity` preservado. |
 | 11 | Cadena de efectos | hecho | pending | Módulo `core/effects/` con delay, reverb Schroeder, distorsión, chorus y bitcrush. Alargado de buffer con cola estimada y validación de máximo 4 efectos por receta. |
 | 12 | Estéreo | descartado | pending | Evaluación en `docs/sound-kit-decisions.md`: WebAudio `StereoPannerNode` y `ExpoAudioPlayer.pan` ya manejan paneo espacial 2D dinámico. Estéreo horneado duplicaría tamaño de WAVs sin beneficio. |
-| 13 | Notación musical | pendiente | | |
-| 14 | MusicRecipe | pendiente | | |
-| 15 | Preview por CLI | pendiente | | |
-| 16 | Sound Lab: infraestructura | pendiente | | |
+| 13 | Notación musical | hecho | pending | Módulo puro `src/music/` con `note`, `midi`, `dur`, `scale`, `chordNotes`/`chord`, `seq` y `rest`. Validado en `music_notation.test.mjs`. |
+| 14 | MusicRecipe | hecho | pending | Módulo `renderMusic` con síntesis compás a compás, soporte de `sections` (intro, loopA, loopB) y plegado de cola para loops sin costuras. Medido bloqueo del hilo principal para 30s de música: 284.49 ms. |
+| 15 | Preview por CLI | hecho | pending | Comando `preview` en CLI impulsado por `renderFinal` y `encodeWav`. Soporta lanzador de reproductor por SO (`afplay`, `paplay`, `powershell`), `--watch`, `--interactive` y flags `--loop`, `--gap`, `--variants`. |
+| 16 | Sound Lab: infraestructura | hecho | pending | Decidida ruta `/sound-lab` en `docs/sound-kit-decisions.md`. Creado `renderToAudioBuffer`, `playBuffer` en `WebAudioPlayer` con cache propia y worker bridge en `soundWorkerBridge.ts` con límites de validación JSON. |
 | 17 | Sound Lab: interfaz | pendiente | | |
 | 18 | Randomizer, mutación y morph | pendiente | | |
 | 19 | Auditoría de calidad | pendiente | | |
@@ -120,3 +120,39 @@ Validado en `effects_chain.test.mjs` (decaimiento de delay, energía en la cola 
 ### Punto 12: Estéreo
 **Diseño / Explicación:**
 Se realizó la evaluación documentada en `docs/sound-kit-decisions.md`: los reproductores del motor en tiempo de ejecución (`WebAudioPlayer` con `StereoPannerNode` y `ExpoAudioPlayer` con `player.pan`) ya proveen posicionamiento dinámico estéreo 2D en runtime. Hornear estéreo en los archivos de sonido offline duplicaría el tamaño de los WAVs y el consumo de RAM sin aportar beneficio en emisores puntuales de juegos arcade. Se marcó el punto como **descartado** para mantener los archivos SFX en mono (1 canal).
+
+### Punto 13: Notación musical
+**Diseño / Explicación:**
+Se creó el módulo puro `src/music/` ofreciendo funciones de utilidad musical sin dependencias de I/O ni del renderizador:
+- `noteToHz` / `note` y `midiToHz` / `midi`: Conversión de notas ('C4', 'C#4', 'Db3') o notas MIDI a Hz con A4 configurable (440 Hz por defecto).
+- `durToSeconds` / `dur`: Conversión de notación rítmica ('1n', '2n', '4n', '8n', '16n', '32n', con puntillo '.' y tresillo 't') a segundos según el BPM.
+- `scale` y `chordNotes` / `chord`: Generación de frecuencias para escalas (major, minor, pentatonic, dorian, harmonic_minor) y acordes (major, minor, dim, aug, maj7, min7, 7).
+- `seq` y `rest`: Construcción de arrays `SequenceNote[]` con soporte de swing, humanización de micro-timing/volumen determinista con RNG y silencios integrados.
+*Alternativas descartadas:* Importar librerías externas de teoría musical como Tone.js o Teoria (descartadas para mantener el paquete ligero y libre de dependencias pesadas).
+Validado en `music_notation.test.mjs` (comprobando A4 = 440 Hz, C4 ≈ 261.63 Hz, '4n' a 120 BPM = 0.5 s, puntillos y tresillos).
+
+### Punto 14: MusicRecipe y bucles sin costuras
+**Diseño / Explicación:**
+Se definieron la estructura `MusicRecipe` y la función `renderMusic(musicRecipe, options)` en `src/music/renderMusic.ts`. Soporta renderizado compás a compás sobre pistas (`tracks`) y secciones (`sections`: intro, loopA, loopB). Cuando `recipe.loop === true`, el derramamiento de colas de release y reverberación que excede la longitud exacta de la pieza ($B \times \text{barSeconds}$) se pliega sobre el inicio del buffer, garantizando bucles musicales sin costuras ni discontinuidades espectrales. Se incluyeron 3 piezas musicales demostrativas en `musicExamplesPack()` dentro de `examplesPack.ts` (`music_menu`, `music_tense_level`, `music_game_over`).
+*Medición de rendimiento:* Renderizar una pieza de música de 30 segundos (15 compases a 120 BPM, 661.500 muestras a 22,050 Hz) bloqueó el hilo principal durante **284.49 ms**.
+*Alternativas descartadas:* Renderizar compases como archivos WAV individuales y encadenarlos en runtime (descartado porque no permite el plegado continuo de colas de reverberación entre compases).
+Validado en `music_recipe.test.mjs` (verificando longitud exacta del buffer, continuidad en el límite del bucle y renderizado de jingles sin loop).
+
+### Punto 15: Preview por CLI (`ask-generate preview`)
+**Diseño / Explicación:**
+Se añadió el comando `preview` a la herramienta de línea de comandos `ask-generate` (`src/cli.ts`), utilizando la canalización pura `renderFinal` y `encodeWav`.
+- Reproducción nativa multiplataforma en `src/export/playerLauncher.ts`: `afplay` en macOS, `paplay`/`aplay` en Linux, y `SoundPlayer` de PowerShell en Windows, con eliminación automática de archivos WAV temporales al salir o recibir `SIGINT`.
+- Soporte de flags `--seed`, `--sample-rate`, `--variants`, `--loop <n>` y `--gap <ms>`.
+- Modo `--watch`: Observa el archivo de receta y re-sintetiza al guardar. Si la receta actualizada contiene errores de validación, muestra los avisos del validador y conserva la versión previa funcional.
+- Modo `--interactive`: Consola interactiva Readline con comandos `seed <n>`, `pitch <hz>`, `variants <n>`, `play`, `save` y `exit`.
+*Alternativas descartadas:* Incluir binarios nativos o bibliotecas C/C++ vinculadas (descartado para evitar dependencias nativas y fallos de instalación multiplataforma).
+Validado en `cli_preview.test.mjs` (probando detección de lanzadores del sistema operativo según `os.platform()`).
+
+### Punto 16: Sound Lab: infraestructura
+**Diseño / Explicación:**
+Se definió la arquitectura de Sound Lab en `docs/sound-kit-decisions.md`, seleccionando la ruta `/sound-lab` en la aplicación Expo Router existente. Se construyó la infraestructura base:
+1. `renderToAudioBuffer(ctx, samples, sampleRate)` en `src/export/audioBuffer.ts` utilizando `createBuffer` y `copyToChannel` (con fallback a `set`).
+2. `playBuffer(buffer, key, options)` en `WebAudioPlayer` (`packages/core/src/audio/WebAudioPlayer.ts`) administrando un caché `bufferCache` independiente de la caché de URLs.
+3. `soundWorkerBridge.ts` en `src/worker/` para ejecutar síntesis desacoplada en Web Workers con mensajes tipados (`render`, `cancel`, `render_success`, `render_error`) y soporte de cancelación por ID (`activeRenderId`).
+4. Validación estricta de recetas externas en JSON con límites de seguridad de la Regla 6: duración $\le 10.0$ s, máximo 10 capas y máximo 4 efectos.
+Validado en `sound_lab_infra.test.mjs` (testeando conversión a AudioBuffer, mensajes del worker y límites de seguridad en JSON).

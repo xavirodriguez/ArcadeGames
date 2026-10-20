@@ -10,10 +10,6 @@ import {
   BrickColorName,
   CapsuleType
 } from "../domain/LevelCatalog";
-import {
-  BallTrailComponent,
-  PaddleReflectionComponent,
-} from "./ArkanoidVFXTypes";
 
 export type { BrickMaterial, BrickColorName, CapsuleType };
 
@@ -66,8 +62,6 @@ export interface BrickComponent {
   regenDuration: number;
   powerUp?: CapsuleType;
   isDestroyed?: boolean;
-  /** Grid row index (0-based) used by row-gradient palette. */
-  row?: number;
 }
 
 export interface CapsuleComponent {
@@ -127,10 +121,6 @@ export interface ArkanoidStateComponent {
   bricksRemaining: number;
   activePowerUp: CapsuleType | null;
   portalActive: boolean;
-  /** Denominator for level progress bar (set on spawnLevelBricks). */
-  totalBricks?: number;
-  /** Cached high-score from profile service (HUD). */
-  highScore?: number;
 }
 
 export interface ArkanoidComponentRegistry extends CoreComponentRegistry {
@@ -146,8 +136,6 @@ export interface ArkanoidComponentRegistry extends CoreComponentRegistry {
   ArkanoidState: ArkanoidStateComponent;
   PowerUp: PowerUpComponent;
   Tag: { type: "Tag"; tags: string[] };
-  BallTrail: BallTrailComponent;
-  PaddleReflection: PaddleReflectionComponent;
 }
 
 export interface ArkanoidEventRegistry extends EventRegistry {

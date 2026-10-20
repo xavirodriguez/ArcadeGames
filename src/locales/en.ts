@@ -3,7 +3,6 @@ export const en = {
     title: "RETRO ARCADE",
     asteroids: "ASTEROIDS",
     space_invaders: "SPACE INVADERS",
-    galaxian: "GALAXIAN",
     flappybird: "FLAPPY BIRD",
     pong: "PONG",
     geometrywars: "GEOMETRY WARS",
@@ -19,6 +18,7 @@ export const en = {
     campaign: "STORY CAMPAIGN",
     hitandrun: "HIT AND RUN",
     tower_defense: "TOWER DEFENSE",
+    centipede: "CENTIPEDE",
     level: "LEVEL",
   },
   daily: {

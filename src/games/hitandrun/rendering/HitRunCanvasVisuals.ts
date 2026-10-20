@@ -250,14 +250,6 @@ export const drawHitRunPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreCompone
         ctx.lineTo(size * 0.18 + stride, 0);
         ctx.stroke();
 
-        // Heavy field boots and knee guards give the lower silhouette more weight.
-        ctx.fillStyle = "#151b23";
-        ctx.fillRect(-size * 0.29 - stride, -size * 0.08, size * 0.2, size * 0.08);
-        ctx.fillRect(size * 0.09 + stride, -size * 0.08, size * 0.2, size * 0.08);
-        ctx.fillStyle = "#c18b43";
-        ctx.fillRect(-size * 0.22 - stride, -size * 0.31, size * 0.12, size * 0.07);
-        ctx.fillRect(size * 0.1 + stride, -size * 0.31, size * 0.12, size * 0.07);
-
         // Torso
         const bodyGrad = ctx.createLinearGradient(-size * 0.3, -size * 0.85, size * 0.3, -size * 0.35);
         bodyGrad.addColorStop(0, "#3d4a5c");
@@ -275,39 +267,15 @@ export const drawHitRunPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreCompone
         ctx.fill();
         ctx.stroke();
 
-        // Tactical harness, chest plate and utility pouches.
-        ctx.fillStyle = "#222c38";
-        ctx.fillRect(-size * 0.21, -size * 0.77, size * 0.42, size * 0.31);
-        ctx.strokeStyle = "#8793a2";
-        ctx.lineWidth = Math.max(0.8, size * 0.025);
-        ctx.strokeRect(-size * 0.21, -size * 0.77, size * 0.42, size * 0.31);
-        ctx.strokeStyle = "#c18b43";
-        ctx.lineWidth = Math.max(1, size * 0.045);
-        ctx.beginPath();
-        ctx.moveTo(-size * 0.18, -size * 0.81);
-        ctx.lineTo(size * 0.12, -size * 0.48);
-        ctx.moveTo(size * 0.18, -size * 0.81);
-        ctx.lineTo(-size * 0.12, -size * 0.48);
-        ctx.stroke();
-        ctx.fillStyle = "#596575";
-        ctx.fillRect(-size * 0.24, -size * 0.52, size * 0.14, size * 0.13);
-        ctx.fillRect(size * 0.1, -size * 0.52, size * 0.14, size * 0.13);
-        ctx.fillStyle = HIT_PALETTE.hitRunYellow;
-        ctx.fillRect(-size * 0.045, -size * 0.72, size * 0.09, size * 0.08);
-
         // Helmet / head
         ctx.fillStyle = "#1e2430";
         ctx.beginPath();
         ctx.arc(0, -size * 0.98, size * 0.22, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = "#101720";
-        ctx.fillRect(-size * 0.19, -size * 0.94, size * 0.38, size * 0.07);
         ctx.fillStyle = HIT_PALETTE.hitRunYellow;
         ctx.beginPath();
         ctx.ellipse(size * 0.08, -size * 1.0, size * 0.12, size * 0.08, 0, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = "#f7d56a";
-        ctx.fillRect(-size * 0.2, -size * 1.06, size * 0.12, size * 0.035);
 
         // HMG body
         ctx.fillStyle = "#1a1a22";
@@ -336,14 +304,6 @@ export const drawHitRunPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreCompone
           ctx.fill();
           ctx.restore();
         }
-
-        // Weapon receiver, feed cover and grip break up the long barrel silhouette.
-        ctx.fillStyle = "#515b69";
-        ctx.fillRect(size * 0.3, -size * 0.71, size * 0.18, size * 0.2);
-        ctx.fillStyle = "#b6c0cb";
-        ctx.fillRect(size * 0.35, -size * 0.69, size * 0.08, size * 0.035);
-        ctx.fillStyle = "#171c25";
-        ctx.fillRect(size * 0.2, -size * 0.55, size * 0.1, size * 0.15);
 
         // Accent stripe
         ctx.fillStyle = HIT_PALETTE.hitRunRed;
@@ -374,39 +334,16 @@ export const drawHitRunPopcorn: ShapeDrawer<CanvasRenderingContext2D, CoreCompon
 
         setupGlowFill(ctx, render.color || "#f97316", 8);
 
-        // Grasping tendrils break up the otherwise circular silhouette.
-        ctx.strokeStyle = "#7c2d12";
-        ctx.lineWidth = Math.max(1, size * 0.08);
-        ctx.lineCap = "round";
-        ctx.beginPath();
-        ctx.moveTo(-size * 0.31, -size * 0.25);
-        ctx.quadraticCurveTo(-size * 0.55, -size * 0.12, -size * 0.48, size * 0.02);
-        ctx.moveTo(size * 0.31, -size * 0.25);
-        ctx.quadraticCurveTo(size * 0.55, -size * 0.12, size * 0.48, size * 0.02);
-        ctx.stroke();
-
-        // Grunt body with an inked edge and readable highlight.
+        // Grunt blob
         ctx.beginPath();
         ctx.arc(0, -size * 0.45, size * 0.45, 0, Math.PI * 2);
         ctx.fill();
-        ctx.strokeStyle = "#7c2d12";
-        ctx.lineWidth = Math.max(1, size * 0.055);
-        ctx.stroke();
-        ctx.fillStyle = "rgba(255,237,213,0.65)";
-        ctx.beginPath();
-        ctx.ellipse(-size * 0.17, -size * 0.69, size * 0.12, size * 0.055, -0.35, 0, Math.PI * 2);
-        ctx.fill();
 
-        // High-contrast eyes with pupils.
-        ctx.fillStyle = "#fff4db";
-        ctx.beginPath();
-        ctx.arc(-size * 0.12, -size * 0.53, size * 0.115, 0, Math.PI * 2);
-        ctx.arc(size * 0.14, -size * 0.53, size * 0.115, 0, Math.PI * 2);
-        ctx.fill();
+        // Eyes
         ctx.fillStyle = "#1a0a00";
         ctx.beginPath();
-        ctx.arc(-size * 0.1, -size * 0.53, size * 0.06, 0, Math.PI * 2);
-        ctx.arc(size * 0.16, -size * 0.53, size * 0.06, 0, Math.PI * 2);
+        ctx.arc(-size * 0.12, -size * 0.53, size * 0.1, 0, Math.PI * 2);
+        ctx.arc(size * 0.14, -size * 0.53, size * 0.1, 0, Math.PI * 2);
         ctx.fill();
 
         // Mouth band
@@ -438,31 +375,11 @@ export const drawHitRunWallTrooper: ShapeDrawer<CanvasRenderingContext2D, CoreCo
         ctx.fillRect(-size * 0.4, -size, size * 0.8, size);
         ctx.strokeRect(-size * 0.4, -size, size * 0.8, size);
 
-        // Reinforced chest, shoulder plates and helmet slit.
-        ctx.fillStyle = "#44403c";
-        ctx.fillRect(-size * 0.34, -size * 0.76, size * 0.68, size * 0.26);
-        ctx.strokeStyle = "#d6d3d1";
-        ctx.lineWidth = Math.max(1, size * 0.06);
-        ctx.beginPath();
-        ctx.moveTo(-size * 0.28, -size * 0.67);
-        ctx.lineTo(size * 0.28, -size * 0.67);
-        ctx.moveTo(0, -size * 0.74);
-        ctx.lineTo(0, -size * 0.53);
-        ctx.stroke();
-        ctx.fillStyle = "#292524";
-        ctx.fillRect(-size * 0.27, -size * 1.02, size * 0.54, size * 0.23);
-        ctx.fillStyle = "#fca5a5";
-        ctx.fillRect(-size * 0.17, -size * 0.94, size * 0.34, size * 0.055);
-
-        // Shield plate with a readable insignia.
+        // Shield plate
         ctx.fillStyle = "#44403c";
         ctx.fillRect(-size * 0.45, -size * 0.7, size * 0.2, size * 0.55);
-        ctx.strokeStyle = "#a8a29e";
-        ctx.lineWidth = 1;
-        ctx.strokeRect(-size * 0.45, -size * 0.7, size * 0.2, size * 0.55);
         ctx.fillStyle = "#ef4444";
         ctx.fillRect(-size * 0.15, -size * 0.85, size * 0.3, size * 0.12);
-        ctx.fillRect(-size * 0.075, -size * 0.875, size * 0.15, size * 0.17);
       }
     );
   }
@@ -490,26 +407,6 @@ export const drawHitRunHopper: ShapeDrawer<CanvasRenderingContext2D, CoreCompone
         // Body ellipse
         ctx.beginPath();
         ctx.ellipse(0, -size * 0.55, size * 0.5, size * 0.35, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = "#4c1d95";
-        ctx.lineWidth = Math.max(1, size * 0.06);
-        ctx.stroke();
-
-        // Dorsal ridges and a forward-facing luminous eye.
-        ctx.shadowBlur = 0;
-        ctx.strokeStyle = "#d8b4fe";
-        ctx.lineWidth = Math.max(0.8, size * 0.045);
-        ctx.beginPath();
-        ctx.moveTo(-size * 0.18, -size * 0.77);
-        ctx.lineTo(-size * 0.05, -size * 0.88);
-        ctx.lineTo(size * 0.02, -size * 0.76);
-        ctx.moveTo(-size * 0.02, -size * 0.78);
-        ctx.lineTo(size * 0.1, -size * 0.9);
-        ctx.lineTo(size * 0.18, -size * 0.74);
-        ctx.stroke();
-        ctx.fillStyle = "#fff4db";
-        ctx.beginPath();
-        ctx.arc(size * 0.24, -size * 0.57, Math.max(1, size * 0.07), 0, Math.PI * 2);
         ctx.fill();
 
         // Spring legs down to y = 0
@@ -554,21 +451,6 @@ export const drawHitRunCharger: ShapeDrawer<CanvasRenderingContext2D, CoreCompon
         setupGlowFill(ctx, render.color || "#ef4444", 12);
 
         drawChargerPolygon(ctx, size);
-        ctx.strokeStyle = "#7f1d1d";
-        ctx.lineWidth = Math.max(1, size * 0.055);
-        ctx.beginPath();
-        ctx.moveTo(-size * 0.28, -size * 0.61);
-        ctx.lineTo(size * 0.28, -size * 0.47);
-        ctx.moveTo(-size * 0.15, -size * 0.28);
-        ctx.lineTo(size * 0.22, -size * 0.23);
-        ctx.stroke();
-        ctx.fillStyle = "#fecaca";
-        ctx.beginPath();
-        ctx.moveTo(-size * 0.35, -size * 0.76);
-        ctx.lineTo(-size * 0.1, -size * 0.72);
-        ctx.lineTo(-size * 0.27, -size * 0.6);
-        ctx.closePath();
-        ctx.fill();
 
         ctx.fillStyle = "#fca5a5";
         ctx.beginPath();

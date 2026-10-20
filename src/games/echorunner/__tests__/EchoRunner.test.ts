@@ -4,7 +4,6 @@ import { EchoRunnerGame } from "../EchoRunnerGame";
 import { PlatformerInputSystem } from "../../shared/systems/PlatformerInputSystem";
 import { EchoRunnerArcadeAdapter } from "../story/EchoRunnerEncounter";
 import { EchoRunnerConfigSchema, EchoRunnerConfig } from "../types/EchoRunnerConfigSchema";
-import { EchoRunnerInputComponent } from "../types/EchoRunnerTypes";
 import { createThemeFromGameAccents } from "../../../theme/gameAccents";
 import { resolveEchoRunnerPalette } from "../rendering/EchoRunnerVisualUtils";
 import { createEchoRunnerTheme } from "../rendering/EchoRunnerPalette";
@@ -191,21 +190,21 @@ describe("Echo Runner Game Simulation Tests", () => {
     const playerEntity = world.query("EchoRunnerInput")[0];
 
     world.mutateComponent(playerEntity, "EchoRunnerInput", (input) => {
-      (input as EchoRunnerInputComponent).pulseCooldown = 0.2;
-      (input as EchoRunnerInputComponent).pulsePressed = false;
+      input.pulseCooldown = 0.2;
+      input.pulsePressed = false;
     });
 
     game.setInputState({ pulse: true });
     game.update(0.016);
 
-    expect((world.getComponent(playerEntity, "EchoRunnerInput") as EchoRunnerInputComponent)!.pulsePressed).toBe(false);
+    expect(world.getComponent(playerEntity, "EchoRunnerInput")!.pulsePressed).toBe(false);
     expect(world.query("Hitbox")).toHaveLength(0);
 
     for (let frame = 0; frame < 20; frame++) {
       game.update(0.016);
     }
 
-    expect((world.getComponent(playerEntity, "EchoRunnerInput") as EchoRunnerInputComponent)!.pulseCooldown).toBe(0);
+    expect(world.getComponent(playerEntity, "EchoRunnerInput")!.pulseCooldown).toBe(0);
     expect(world.query("Hitbox")).toHaveLength(0);
   });
 
@@ -435,8 +434,9 @@ describe("Echo Runner Game Simulation Tests", () => {
     playerDrawer.draw(mockSkiaCanvas, world, playerEntity);
 
     expect(mockSkiaCanvas.save).toHaveBeenCalled();
-    expect(mockSkiaCanvas.drawOval).toHaveBeenCalled();
-    expect(mockSkiaCanvas.drawRect).toHaveBeenCalled();
+    expect(mockSkiaCanvas.translate).toHaveBeenCalled();
+    expect(mockSkiaCanvas.rotate).toHaveBeenCalled();
+    expect(mockSkiaCanvas.drawPath).toHaveBeenCalled();
     expect(mockSkiaCanvas.restore).toHaveBeenCalled();
 
     // 3. Execute enemy and collectible drawers
@@ -691,7 +691,6 @@ describe("Echo Runner Game Simulation Tests", () => {
       zoneGame.getEventBus().on("DeathZoneEntered", enteredZone);
 
       zoneGame.update(0.016);
-      zoneGame.update(0.016);
       expect(zoneWorld.getComponent(playerEntity, "Health")!.current).toBe(0);
       expect(enteredZone).toHaveBeenCalledTimes(1);
 
@@ -922,7 +921,7 @@ describe("Echo Runner Game Simulation Tests", () => {
       testGame.update(0.016);
 
       expect(testWorld.isAlive(duplicateCoreEntity)).toBe(false);
-      expect(runState.collectedPermanentIds.filter((id: string) => id === "archive_core_1")).toHaveLength(1);
+      expect(runState.collectedPermanentIds.filter((id) => id === "archive_core_1")).toHaveLength(1);
       expect(testGame.getGameState().cores).toBe(1);
 
       const currentPlayerTransform = testWorld.getComponent(playerEntity, "Transform")!;
@@ -953,8 +952,8 @@ describe("Echo Runner Game Simulation Tests", () => {
     const theme = createThemeFromGameAccents("echorunner");
     expect(theme).toBeDefined();
     expect(theme.vfxProfile?.backgroundLayers).toEqual(["echo_bg", "grid", "data_pillars"]);
-    expect(theme.colorMap?.restorationCyan).toBe("#00D9FF");
-    expect(theme.colorMap?.corruptionCrimson).toBe("#FF006E");
+    expect(theme.colorMap?.restorationCyan).toBe("#00f0ff");
+    expect(theme.colorMap?.corruptionCrimson).toBe("#ff0055");
     expect(theme.colorMap?.archiveVoidDark).toBe("#060913");
   });
 

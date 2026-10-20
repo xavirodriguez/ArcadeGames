@@ -676,9 +676,10 @@ function drawTowerDefenseVfxSkia(
         paint.setStyle(Skia.PaintStyle.Fill);
         paint.setColor(Skia.Color("#ffe082"));
         paint.setAlphaf(fade);
-        paint.setTextSize(12);
-        paint.setFakeBoldText(true);
-        canvas.drawText(`+${effect.amount ?? 0}`, coinX + 7, coinY - 2, paint);
+        const font12 = Skia.Font ? Skia.Font(null, 12) : null;
+        if (font12) {
+          canvas.drawText(`+${effect.amount ?? 0}`, coinX + 7, coinY - 2, paint, font12);
+        }
       } else if (effect.kind === "base-hit") {
         for (let ring = 0; ring < 2; ring++) {
           const ringProgress = Math.max(0, Math.min(1, progress - ring * 0.16));
@@ -705,11 +706,12 @@ function drawTowerDefenseVfxSkia(
         paint.setStyle(Skia.PaintStyle.Fill);
         paint.setColor(Skia.Color(effect.color));
         paint.setAlphaf(fade);
-        paint.setTextSize(14);
-        paint.setFakeBoldText(true);
+        const font14 = Skia.Font ? Skia.Font(null, 14) : null;
         const text = effect.text ?? "WAVE";
-        const textWidth = paint.measureText(text);
-        canvas.drawText(text, centerX - textWidth / 2, bannerY + 5, paint);
+        const textWidth = font14 ? (font14.measureText ? font14.measureText(text).width : text.length * 8.4) : text.length * 8.4;
+        if (font14) {
+          canvas.drawText(text, centerX - textWidth / 2, bannerY + 5, paint, font14);
+        }
       }
       canvas.restore();
     }
@@ -733,9 +735,11 @@ function drawTowerDefenseVfxSkia(
     canvas.drawRect(Skia.XYWHRect(left + 1, top + 1, width - 2, 30), paint);
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color(color));
-    paint.setTextSize(13);
-    paint.setFakeBoldText(true);
-    canvas.drawText(label, centerX - paint.measureText(label) / 2, bannerY + 5, paint);
+    const font13 = Skia.Font ? Skia.Font(null, 13) : null;
+    const textWidth = font13 ? (font13.measureText ? font13.measureText(label).width : label.length * 7.8) : label.length * 7.8;
+    if (font13) {
+      canvas.drawText(label, centerX - textWidth / 2, bannerY + 5, paint, font13);
+    }
   }
 }
 function drawTdLandmarkSkia(

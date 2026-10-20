@@ -84,6 +84,11 @@ export const GAME_ACCENTS = {
     secondary: 'gold' as const,
     accent: 'orange' as const,
   },
+  galaxian: {
+    primary: 'cyan' as const,
+    secondary: 'gold' as const,
+    accent: 'pink' as const,
+  },
 } as const;
 
 export type GameKey = keyof typeof GAME_ACCENTS;

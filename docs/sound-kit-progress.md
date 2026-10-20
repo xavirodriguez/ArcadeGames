@@ -6,8 +6,8 @@ Estado inicial de la sesión:
 
 | # | Punto | Estado (pendiente/en curso/hecho/bloqueado/descartado) | Commit | Notas y mediciones |
 |---|---|---|---|---|
-| 1 | Verificar premisas | hecho | pending | Audit completado en `docs/sound-kit-audit.md`. |
-| 2 | Golden tests | pendiente | | |
+| 1 | Verificar premisas | hecho | b7f17ca | Audit completado en `docs/sound-kit-audit.md`. |
+| 2 | Golden tests | hecho | pending | Golden hashes versionados en `tests/snapshots/golden_hashes.json` con cuantización PCM16 y test de DC offset. |
 | 3 | Correcciones menores | pendiente | | |
 | 4 | Pipeline puro y entrada sin Node | pendiente | | |
 | 5 | Refactor de la voz | pendiente | | |
@@ -36,4 +36,9 @@ Estado inicial de la sesión:
 ### Punto 1: Verificar premisas (solo lectura)
 **Diseño / Explicación:**
 Se realizó un análisis estático de código sin modificar lógica de renderizado ni recetas. Se verificaron las 12 premisas formuladas (a-l) inspeccionando los archivos `packages/arcade-sound-kit/src/core/render.ts`, `export/wav.ts`, `design/pack.ts`, `index.ts`, `package.json`, `packages/core/src/audio/WebAudioPlayer.ts` y `packages/react-native/src/audio/ExpoAudioPlayer.ts`.
-Todas las respuestas, evidencias con archivo y líneas, y ajustes impuestos sobre los puntos 3, 4, 12 y 21 se han documentado de forma exhaustiva en `docs/sound-kit-audit.md`. Se descartó cualquier alternativa de modificación de código en este paso por ser un punto estrictamente de auditoría de solo lectura.
+Todas las respuestas, evidencias con archivo y líneas, y ajustes impuestos sobre los puntos 3, 4, 12 y 21 se han documentado de forma exhaustiva en `docs/sound-kit-audit.md`. Se descartó cualquier alternativa de modificación de código en este paso por ser un punto strictly de auditoría de solo lectura.
+
+### Punto 2: Red de seguridad: golden tests
+**Diseño / Explicación:**
+Se implementó una red de seguridad basada en snapshots de regression para todas las recetas de `arcadePack()`. Los buffers sintetizados se cuantizan a PCM Int16 antes de calcular el hash SHA-256 para evitar fluctuaciones de precisión de flotantes entre versiones de V8 o plataformas (Windows vs Linux). Para recetas con `variation`, se prueban 3 variantes (variantIndex 0, 1, 2) deterministas. Los hashes se guardan en `packages/arcade-sound-kit/tests/snapshots/golden_hashes.json` y se actualizan de forma explícita mediante el nuevo script `pnpm sound:golden:update` (`packages/arcade-sound-kit/tests/scripts/update_golden.mjs`). Adicionalmente, se extendió la suite de tests de propiedades en `base_recipes.test.mjs` validando que el offset DC no excede del umbral medido de 0.05 (5%).
+*Alternativas descartadas:* Hashear Float32Array directamente (descartado por variabilidad entre entornos) y permitir que el test sobrescriba los snapshots automáticamente al fallar (descartado para evitar falsos positivos y actualizaciones involuntarias en CI).

@@ -12,6 +12,7 @@
     "build": "tsc",
     "generate": "node dist/cli.js generate --pack",
     "generate:example": "node dist/cli.js generate examples/arcade.js",
+    "golden:update": "node tests/scripts/update_golden.mjs",
     "test": "node --test",
     "typecheck": "tsc --noEmit"
   },

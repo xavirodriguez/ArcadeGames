@@ -1,21 +1,50 @@
 export type Wave = 'sine' | 'triangle' | 'square' | 'sawtooth';
+export type LfoWave = Wave | 'sampleAndHold';
+
+export interface LfoSpec {
+  wave: LfoWave;
+  rateHz: number;
+  depth: number;
+  delay?: number;
+  fadeIn?: number;
+  phase?: number;
+}
+
+export interface ModulationSpec {
+  pitch?: LfoSpec;
+  amp?: LfoSpec;
+  filter?: LfoSpec;
+  pulseWidth?: LfoSpec;
+}
 export type Category = 'combat' | 'movement' | 'progression' | 'ui';
 export type FilterSpec = {
-  type?: 'lowpass' | 'highpass' | 'bandpass';
+  type?: 'lowpass' | 'highpass' | 'bandpass' | 'notch';
   minHz: number;
   maxHz?: number;
+  q?: number;
+  curve?: 'linear' | 'exponential';
 };
+export interface EnvelopePoint {
+  t: number;
+  level: number;
+  curve?: 'linear' | 'exp';
+}
+
 export type Envelope = {
   attack?: number;
   decay?: number;
   sustain?: number;
   release?: number;
+  curve?: 'linear' | 'exp';
+  points?: EnvelopePoint[];
 };
+
 export type PitchCurve = {
   startHz: number;
   endHz: number;
   /** linear | exponential (default exponential for most sweeps) */
   curve?: 'linear' | 'exponential';
+  envelope?: Envelope;
 };
 export type Variation = {
   pitch?: number;
@@ -24,8 +53,10 @@ export type Variation = {
 };
 
 export interface SequenceNote {
-  /** Frequency in Hz. */
+  /** Frequency in Hz (0 indicates a rest / silence). */
   frequency: number;
+  /** Optional rest flag; when true, no tone is generated for this step. */
+  rest?: boolean;
   /** Duration of this step in seconds. */
   stepDuration: number;
   /** Optional level offset in dB for this note. */
@@ -49,6 +80,7 @@ export interface LayerSpec {
   filter?: FilterSpec;
   /** Optional FM-ish harmonicity hint (future use) */
   harmonicity?: number;
+  modulation?: ModulationSpec;
 }
 
 export interface SoundRecipe {

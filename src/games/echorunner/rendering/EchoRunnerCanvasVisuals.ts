@@ -7,8 +7,8 @@ import {
 } from "./EchoRunnerVisualUtils";
 import {
   getEchoRunnerSpriteFrame,
-  resolveEchoRunnerSpriteColor,
   resolveEchoRunnerSpriteMotion,
+  drawRleSpriteFrame,
 } from "./EchoRunnerPixelArt";
 
 import { drawCanvasHitFlashCircle } from "../../shared/rendering/PlatformerSharedVisuals";
@@ -353,27 +353,10 @@ export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
       ctx.globalAlpha = spriteAlpha;
     }
 
-    for (let y = 0; y < frame.length; y++) {
-      const row = frame[y] ?? "";
-      let x = 0;
-      while (x < row.length) {
-        const token = row[x] ?? ".";
-        if (token === ".") {
-          x++;
-          continue;
-        }
-        let runLength = 1;
-        while (x + runLength < row.length && row[x + runLength] === token) {
-          runLength++;
-        }
-        const color = resolveEchoRunnerSpriteColor(token, palette);
-        if (color) {
-          ctx.fillStyle = color;
-          ctx.fillRect(originX + x * pixelSize, originY + y * pixelSize, runLength * pixelSize, pixelSize);
-        }
-        x += runLength;
-      }
-    }
+    drawRleSpriteFrame(frame, palette, (x, y, runLength, color) => {
+      ctx.fillStyle = color;
+      ctx.fillRect(originX + x * pixelSize, originY + y * pixelSize, runLength * pixelSize, pixelSize);
+    });
 
     ctx.restore();
   }

@@ -15,7 +15,7 @@ import {
   extractObstacleParams
 } from "./RacingSkin";
 import { buildTrackRibbon } from "./TrackRibbonGeometry";
-import { extractTrackDimensions, computeCheckpointGrid, resolveTrackRibbonContext, resolveRacingParticlePoolContext, resolveFinishCheckers } from "./RacingVisualHelpers";
+import { extractTrackDimensions, computeCheckpointGrid, resolveTrackRibbonContext, resolveRacingParticlePoolContext, resolveFinishCheckers, computeSparkSegment } from "./RacingVisualHelpers";
 import type { RacingParticlePool } from "../systems/RacingParticleSystem";
 
 export const drawSkiaTrackSurface: ShapeDrawer<SkCanvas, RacingComponentRegistry> = {
@@ -241,25 +241,16 @@ export const drawSkiaCollisionSparks: ShapeDrawer<SkCanvas, RacingComponentRegis
 
     for (let i = 0; i < pool.sparks.length; i += 1) {
       const spark = pool.sparks[i]!;
-      if (spark.alpha <= 0) continue;
+      const seg = computeSparkSegment(spark);
+      if (!seg) continue;
 
-      const speed = Math.hypot(spark.vx, spark.vy);
-      if (speed <= 0.001) continue;
-      const directionX = spark.vx / speed;
-      const directionY = spark.vy / speed;
-      const halfLength = spark.length * 0.5;
-      const x1 = spark.x - directionX * halfLength;
-      const y1 = spark.y - directionY * halfLength;
-      const x2 = spark.x + directionX * halfLength;
-      const y2 = spark.y + directionY * halfLength;
-
-      sparkPaint.setAlphaf(spark.alpha * 0.82);
+      sparkPaint.setAlphaf(seg.alpha * 0.82);
       sparkPaint.setStrokeWidth(3);
-      canvas.drawLine(x1, y1, x2, y2, sparkPaint);
+      canvas.drawLine(seg.x1, seg.y1, seg.x2, seg.y2, sparkPaint);
 
-      corePaint.setAlphaf(spark.alpha);
+      corePaint.setAlphaf(seg.alpha);
       corePaint.setStrokeWidth(1.1);
-      canvas.drawLine(x1, y1, x2, y2, corePaint);
+      canvas.drawLine(seg.x1, seg.y1, seg.x2, seg.y2, corePaint);
     }
   }
 };

@@ -15,6 +15,8 @@ import {
   resolveCreepAnimationState,
   resolveCreepVisualState,
   resolveTowerProjectileDrawSetup,
+  resolveTowerWeaponDrawSetup,
+  resolveTdLandmarkSetup,
   resolveTdMapBackgroundContext,
   forEachTileGridCell,
 } from "./TowerDefenseVisualHelpers";
@@ -117,37 +119,15 @@ function drawTowerWeaponCanvas(
   size: number,
   type: "basic" | "sniper" | "rapid" | "frost"
 ): void {
-  const tower = world.getComponent(entity, "Tower");
-  const transform = world.getComponent(entity, "Transform");
-  const targetTransform = tower && tower.targetEntity !== null
-    ? world.getComponent(tower.targetEntity, "Transform")
-    : undefined;
-  const angle = transform && targetTransform
-    ? Math.atan2(targetTransform.y - transform.y, targetTransform.x - transform.x)
-    : -Math.PI / 2;
-
-  const barrelColor = type === "sniper"
-    ? resolveThemeColorWithFallback(world, "#e1bee7", "tower_sniper_barrel")
-    : type === "rapid"
-      ? resolveThemeColorWithFallback(world, "#c8e6c9", "tower_rapid_barrel")
-      : type === "frost"
-        ? resolveThemeColorWithFallback(world, "#e0f7fa", "tower_frost_flake", "tower_frost_accent")
-        : resolveThemeColorWithFallback(world, "#81d4fa", "tower_basic_accent");
-  const inkColor = isPaperDuskTheme(world)
-    ? resolveThemeColorWithFallback(world, "#14161B", "pd_ink")
-    : "#101827";
-  const barrelLength = size * (type === "sniper" ? 0.62 : type === "rapid" ? 0.5 : 0.54);
-  const barrelWidth = Math.max(3, size * (type === "sniper" ? 0.15 : 0.12));
-  const cooldownDuration = tower && tower.fireRate > 0 ? 1 / tower.fireRate : 0;
-  const firing = Boolean(
-    tower &&
-    cooldownDuration > 0 &&
-    tower.cooldownRemaining > 0 &&
-    tower.cooldownRemaining >= cooldownDuration * 0.9
-  );
-
-  const elapsedSeconds = world.getResource<TowerDefenseVisualEffects>("TowerDefenseVisualEffects")?.elapsedSeconds ?? 0;
-  const pulse = 0.5 + 0.5 * Math.sin(elapsedSeconds * 4.8 + entity * 0.17);
+  const {
+    angle,
+    barrelColor,
+    inkColor,
+    barrelLength,
+    barrelWidth,
+    firing,
+    pulse
+  } = resolveTowerWeaponDrawSetup(world, entity, size, type);
 
   ctx.save();
   ctx.globalAlpha = 0.18 + pulse * 0.16;
@@ -671,17 +651,7 @@ function drawTdLandmarkCanvas(
   kind: "spawn" | "base",
   isPaperDusk: boolean
 ): void {
-  const cx = x + size / 2;
-  const cy = y + size / 2;
-  const fill = kind === "spawn"
-    ? resolveThemeColorWithFallback(world, "#ef5350", "map_spawn", "accent")
-    : resolveThemeColorWithFallback(world, "#43a047", "map_base", "primary");
-  const outline = isPaperDusk
-    ? resolveThemeColorWithFallback(world, "#14161B", "pd_ink")
-    : "#101827";
-
-  const elapsedSeconds = world.getResource<TowerDefenseVisualEffects>("TowerDefenseVisualEffects")?.elapsedSeconds ?? 0;
-  const pulse = 0.5 + 0.5 * Math.sin(elapsedSeconds * 3.4 + (kind === "base" ? 0 : 1.8));
+  const { cx, cy, fill, outline, pulse } = resolveTdLandmarkSetup(world, x, y, size, kind, isPaperDusk);
 
   ctx.save();
   ctx.globalAlpha = isPaperDusk ? 0.2 + pulse * 0.18 : 0.25 + pulse * 0.3;

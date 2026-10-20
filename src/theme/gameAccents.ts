@@ -84,6 +84,11 @@ export const GAME_ACCENTS = {
     secondary: 'gold' as const,
     accent: 'orange' as const,
   },
+  centipede: {
+    primary: 'green' as const,
+    secondary: 'amber' as const,
+    accent: 'red' as const,
+  },
 } as const;
 
 export type GameKey = keyof typeof GAME_ACCENTS;
@@ -323,6 +328,25 @@ export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<
     racing_kerb_red: "#ef4444",
     racing_kerb_white: "#f8fafc",
     racing_line: "#f8fafc",
+
+    // Centipede role tokens
+    soil: "#0A0F1C",
+    playerZone: "#0F182B",
+    hairline: "#1F2D47",
+    mushroomA: "#2DD4BF",
+    mushroomB: "#8B7CF6",
+    stem: "#1E2A3C",
+    lobeOff: "#15283A",
+    centipedeHead: "#FF4D5E",
+    centipedeBody: "#FF8A5B",
+    centipedeShine: "rgba(255, 201, 168, 0.6)",
+    centipedeLegs: "#FFB38A",
+    amber: "#FFC24B",
+    toxin: "#FF5FA2",
+    centipedePlayer: "#E6FBFF",
+    playerAccent: "#7CF3FF",
+    hudText: "#E8F1F2",
+    hudMuted: "#6F819E",
 
     // Echo Runner "The Archive" role tokens
     ...DEFAULT_ECHO_PALETTE,

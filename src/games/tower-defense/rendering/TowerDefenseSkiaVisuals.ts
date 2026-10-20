@@ -102,20 +102,73 @@ function drawSkiaTower(
 
   paint.setColor(Skia.Color(primary));
   const path = Skia.Path.Make();
-  path.moveTo(-s * 0.25, -s * 0.1);
-  path.lineTo(-s * 0.1, -s * 0.45);
-  path.lineTo(s * 0.1, -s * 0.45);
-  path.lineTo(s * 0.25, -s * 0.1);
+  if (towerType === "basic") {
+    path.moveTo(-s * 0.25, -s * 0.1);
+    path.lineTo(-s * 0.1, -s * 0.45);
+    path.lineTo(s * 0.1, -s * 0.45);
+    path.lineTo(s * 0.25, -s * 0.1);
+  } else if (towerType === "rapid") {
+    path.addRect(Skia.XYWHRect(-s * 0.23, -s * 0.34, s * 0.46, s * 0.38));
+  } else if (towerType === "sniper") {
+    path.moveTo(-s * 0.16, -s * 0.1);
+    path.lineTo(-s * 0.1, -s * 0.47);
+    path.lineTo(s * 0.1, -s * 0.47);
+    path.lineTo(s * 0.16, -s * 0.1);
+  } else {
+    path.moveTo(0, -s * 0.42);
+    path.lineTo(s * 0.23, -s * 0.12);
+    path.lineTo(s * 0.14, s * 0.16);
+    path.lineTo(0, s * 0.27);
+    path.lineTo(-s * 0.14, s * 0.16);
+    path.lineTo(-s * 0.23, -s * 0.12);
+  }
   path.close();
   canvas.drawPath(path, paint);
 
+  paint.setStyle(Skia.PaintStyle.Stroke);
+  paint.setStrokeWidth(Math.max(1, s * 0.035));
   paint.setColor(Skia.Color(accent));
-  canvas.drawCircle(0, 0, s * 0.18, paint);
+  canvas.drawPath(path, paint);
+
+  paint.setStyle(Skia.PaintStyle.Fill);
+  paint.setColor(Skia.Color(accent));
+  canvas.drawCircle(0, 0, s * (towerType === "frost" ? 0.1 : 0.085), paint);
+
+  // Mirrors the Canvas-specific visual signatures for each tower type.
+  if (towerType === "rapid") {
+    canvas.drawRect(Skia.XYWHRect(-s * 0.16, -s * 0.04, s * 0.07, s * 0.16), paint);
+    canvas.drawRect(Skia.XYWHRect(s * 0.09, -s * 0.04, s * 0.07, s * 0.16), paint);
+  } else if (towerType === "sniper") {
+    paint.setColor(Skia.Color("#dbeafe"));
+    canvas.drawRect(Skia.XYWHRect(-s * 0.055, -s * 0.3, s * 0.11, s * 0.055), paint);
+  } else if (towerType === "frost") {
+    paint.reset();
+    paint.setAntiAlias(true);
+    paint.setStyle(Skia.PaintStyle.Stroke);
+    paint.setStrokeWidth(Math.max(1, s * 0.035));
+    paint.setColor(Skia.Color("#e0f7fa"));
+    canvas.drawLine(-s * 0.12, -s * 0.1, s * 0.12, s * 0.1, paint);
+    canvas.drawLine(s * 0.12, -s * 0.1, -s * 0.12, s * 0.1, paint);
+    paint.setStyle(Skia.PaintStyle.Fill);
+    paint.setColor(Skia.Color(accent));
+  }
 
   paint.setStyle(Skia.PaintStyle.Stroke);
   paint.setStrokeWidth(1.5);
   paint.setColor(Skia.Color(accent));
   canvas.drawRect(Skia.XYWHRect(-s * 0.45, -s * 0.15, s * 0.9, s * 0.4), paint);
+
+  // Matching highlights, service panel and bolts provide a layered metal finish.
+  paint.reset();
+  paint.setAntiAlias(true);
+  paint.setStyle(Skia.PaintStyle.Fill);
+  paint.setColor(Skia.Color("#dbeafe"));
+  canvas.drawRect(Skia.XYWHRect(-s * 0.32, -s * 0.12, s * 0.64, Math.max(0.8, s * 0.035)), paint);
+  paint.setColor(Skia.Color(baseBg));
+  canvas.drawRect(Skia.XYWHRect(-s * 0.07, s * 0.02, s * 0.14, s * 0.13), paint);
+  paint.setColor(Skia.Color(accent));
+  canvas.drawCircle(-s * 0.36, s * 0.03, Math.max(0.8, s * 0.035), paint);
+  canvas.drawCircle(s * 0.36, s * 0.03, Math.max(0.8, s * 0.035), paint);
 }
 
 function drawSkiaTowerWeapon(
@@ -251,7 +304,8 @@ function drawSkiaCreepGeometry(
 function drawSkiaCreepDetails(
   canvas: SkCanvas,
   size: number,
-  type: "grunt" | "fast" | "tank" | "boss"
+  type: "grunt" | "fast" | "tank" | "boss",
+  stroke: string
 ): void {
   if (!Skia) return;
   const paint = getPaint();
@@ -272,6 +326,34 @@ function drawSkiaCreepDetails(
   canvas.drawCircle(-eyeOffset + size * 0.018, eyeY, eyeRadius * 0.48, paint);
   canvas.drawCircle(eyeOffset + size * 0.018, eyeY, eyeRadius * 0.48, paint);
 
+  // Brow ridges and mouth mirror the Canvas sprite at the same simulation state.
+  paint.reset();
+  paint.setAntiAlias(true);
+  paint.setStyle(Skia.PaintStyle.Stroke);
+  paint.setStrokeWidth(Math.max(1, size * 0.045));
+  paint.setStrokeCap(Skia.StrokeCap.Round);
+  paint.setColor(Skia.Color(stroke));
+  canvas.drawLine(-eyeOffset - eyeRadius * 0.35, eyeY - eyeRadius * 0.8,
+    -eyeOffset + eyeRadius * 0.55, eyeY - eyeRadius * 0.9, paint);
+  canvas.drawLine(eyeOffset - eyeRadius * 0.55, eyeY - eyeRadius * 0.9,
+    eyeOffset + eyeRadius * 0.35, eyeY - eyeRadius * 0.8, paint);
+  canvas.drawLine(-size * 0.09, size * 0.12, size * 0.09, size * 0.12, paint);
+
+  if (type === "fast") {
+    paint.setStyle(Skia.PaintStyle.Fill);
+    paint.setColor(Skia.Color(stroke));
+    const fins = Skia.Path.Make();
+    fins.moveTo(-size * 0.28, -size * 0.12);
+    fins.lineTo(-size * 0.48, -size * 0.27);
+    fins.lineTo(-size * 0.42, -size * 0.02);
+    fins.close();
+    fins.moveTo(-size * 0.28, size * 0.1);
+    fins.lineTo(-size * 0.48, size * 0.25);
+    fins.lineTo(-size * 0.42, size * 0.01);
+    fins.close();
+    canvas.drawPath(fins, paint);
+  }
+
   if (type === "tank") {
     paint.reset();
     paint.setAntiAlias(true);
@@ -279,6 +361,14 @@ function drawSkiaCreepDetails(
     paint.setStrokeWidth(Math.max(1.5, size * 0.06));
     paint.setColor(Skia.Color("#14161b"));
     canvas.drawLine(-size * 0.27, size * 0.22, size * 0.27, size * 0.22, paint);
+    paint.setStyle(Skia.PaintStyle.Fill);
+    paint.setColor(Skia.Color("#d1d5db"));
+    canvas.drawCircle(-size * 0.29, size * 0.22, Math.max(0.8, size * 0.035), paint);
+    canvas.drawCircle(size * 0.29, size * 0.22, Math.max(0.8, size * 0.035), paint);
+    paint.setStyle(Skia.PaintStyle.Stroke);
+    paint.setStrokeWidth(Math.max(1, size * 0.035));
+    paint.setColor(Skia.Color("#f3f4f6"));
+    canvas.drawLine(-size * 0.22, -size * 0.22, size * 0.22, -size * 0.22, paint);
   }
 
   if (type === "boss") {
@@ -328,7 +418,7 @@ function drawSkiaCreep(
   paint.setColor(Skia.Color(stroke));
   drawSkiaCreepGeometry(canvas, paint, radius, type);
 
-  drawSkiaCreepDetails(canvas, size, type);
+  drawSkiaCreepDetails(canvas, size, type, stroke);
 }
 
 function drawSkiaCreepHealthBar(

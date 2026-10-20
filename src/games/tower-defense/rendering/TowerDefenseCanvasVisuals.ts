@@ -97,16 +97,53 @@ function drawTowerBase(
   ctx.fillRect(-s * 0.45, -s * 0.15, s * 0.9, s * 0.4);
   ctx.fillStyle = primary;
   ctx.beginPath();
-  ctx.moveTo(-s * 0.25, -s * 0.1);
-  ctx.lineTo(-s * 0.1, -s * 0.45);
-  ctx.lineTo(s * 0.1, -s * 0.45);
-  ctx.lineTo(s * 0.25, -s * 0.1);
+  if (towerType === "basic") {
+    ctx.moveTo(-s * 0.25, -s * 0.1);
+    ctx.lineTo(-s * 0.1, -s * 0.45);
+    ctx.lineTo(s * 0.1, -s * 0.45);
+    ctx.lineTo(s * 0.25, -s * 0.1);
+  } else if (towerType === "rapid") {
+    ctx.rect(-s * 0.23, -s * 0.34, s * 0.46, s * 0.38);
+  } else if (towerType === "sniper") {
+    ctx.moveTo(-s * 0.16, -s * 0.1);
+    ctx.lineTo(-s * 0.1, -s * 0.47);
+    ctx.lineTo(s * 0.1, -s * 0.47);
+    ctx.lineTo(s * 0.16, -s * 0.1);
+  } else {
+    ctx.moveTo(0, -s * 0.42);
+    ctx.lineTo(s * 0.23, -s * 0.12);
+    ctx.lineTo(s * 0.14, s * 0.16);
+    ctx.lineTo(0, s * 0.27);
+    ctx.lineTo(-s * 0.14, s * 0.16);
+    ctx.lineTo(-s * 0.23, -s * 0.12);
+  }
   ctx.closePath();
   ctx.fill();
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = Math.max(1, s * 0.035);
+  ctx.stroke();
   ctx.fillStyle = accent;
   ctx.beginPath();
-  ctx.arc(0, 0, s * 0.18, 0, Math.PI * 2);
+  ctx.arc(0, 0, s * (towerType === "frost" ? 0.1 : 0.085), 0, Math.PI * 2);
   ctx.fill();
+
+  // Type-specific surface details remain distinct at typical tower sizes.
+  if (towerType === "rapid") {
+    ctx.fillRect(-s * 0.16, -s * 0.04, s * 0.07, s * 0.16);
+    ctx.fillRect(s * 0.09, -s * 0.04, s * 0.07, s * 0.16);
+  } else if (towerType === "sniper") {
+    ctx.fillStyle = "#dbeafe";
+    ctx.fillRect(-s * 0.055, -s * 0.3, s * 0.11, s * 0.055);
+  } else if (towerType === "frost") {
+    ctx.strokeStyle = "#e0f7fa";
+    ctx.lineWidth = Math.max(1, s * 0.035);
+    ctx.beginPath();
+    ctx.moveTo(-s * 0.12, -s * 0.1);
+    ctx.lineTo(s * 0.12, s * 0.1);
+    ctx.moveTo(s * 0.12, -s * 0.1);
+    ctx.lineTo(-s * 0.12, s * 0.1);
+    ctx.stroke();
+  }
   ctx.strokeStyle = accent;
   ctx.lineWidth = 1.5;
   ctx.strokeRect(-s * 0.45, -s * 0.15, s * 0.9, s * 0.4);

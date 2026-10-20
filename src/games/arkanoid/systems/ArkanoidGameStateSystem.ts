@@ -91,6 +91,7 @@ export class ArkanoidGameStateSystem extends System<ArkanoidComponentRegistry, A
       DohFactory.createDoh(world, config.worldWidth / 2, 120);
       world.mutateSingleton("ArkanoidState", (s) => {
         s.bricksRemaining = 999;
+        s.totalBricks = 999;
         s.isVictory = false;
       });
       return;
@@ -114,7 +115,7 @@ export class ArkanoidGameStateSystem extends System<ArkanoidComponentRegistry, A
       const x = startX + cell.col * colWidth + config.BRICK_WIDTH / 2;
       const y = startY + cell.row * rowHeight + config.BRICK_HEIGHT / 2;
 
-      ArkanoidEntityFactory.createBrick(world, x, y, cell.material, cell.color, cell.hp, cell.points, cell.powerUp);
+      ArkanoidEntityFactory.createBrick(world, x, y, cell.material, cell.color, cell.hp, cell.points, cell.powerUp, cell.row);
 
       if (cell.material !== "gold") {
         breakableCount++;
@@ -123,6 +124,7 @@ export class ArkanoidGameStateSystem extends System<ArkanoidComponentRegistry, A
 
     world.mutateSingleton("ArkanoidState", (s) => {
       s.bricksRemaining = breakableCount;
+      s.totalBricks = breakableCount;
       s.isVictory = false;
     });
   }
@@ -135,6 +137,7 @@ export class ArkanoidGameStateSystem extends System<ArkanoidComponentRegistry, A
       s.isGameOver = false;
       s.isVictory = false;
       s.bricksRemaining = 0;
+      s.totalBricks = 0;
       s.activePowerUp = null;
       s.portalActive = false;
     });

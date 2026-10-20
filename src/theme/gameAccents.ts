@@ -88,6 +88,11 @@ export const GAME_ACCENTS = {
     primary: 'green' as const,
     secondary: 'amber' as const,
     accent: 'red' as const,
+    },
+  galaxian: {
+    primary: 'cyan' as const,
+    secondary: 'gold' as const,
+    accent: 'pink' as const,
   },
 } as const;
 

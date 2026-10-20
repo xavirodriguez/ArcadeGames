@@ -1,5 +1,12 @@
 import { useState, useEffect, useCallback, useRef, FC } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  Platform,
+  ActivityIndicator,
+} from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
 import { router } from "expo-router";
@@ -25,6 +32,11 @@ import {
   NeonButton,
   GameLayoutShell,
 } from "../../components/ui";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import {
+  ArkanoidHud,
+  LevelProgressBar,
+} from "./components/ArkanoidHud";
 
 export default function ArkanoidScreen() {
   return (
@@ -116,6 +128,20 @@ function ArkanoidContent() {
     );
   }
 
+  const bricksRemaining = gameState?.bricksRemaining ?? 0;
+  const totalBricks = gameState?.totalBricks ?? bricksRemaining;
+  const progress =
+    totalBricks > 0 ? 1 - bricksRemaining / totalBricks : 0;
+
+  const handleBack = () => {
+    hapticSelection();
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/");
+    }
+  };
+
   return (
     <SafeAreaProvider>
       <GameLayoutShell
@@ -123,26 +149,24 @@ function ArkanoidContent() {
         backgroundSlot={<RadialBackground />}
         topLeftSlot={
           <TouchableOpacity
-            style={sharedScreenStyles.backButton}
-            onPress={() => {
-              hapticSelection();
-              if (router.canGoBack()) {
-                router.back();
-              } else {
-                router.replace("/");
-              }
-            }}
+            style={styles.gearButton}
+            onPress={handleBack}
             accessibilityRole="button"
-            accessibilityLabel={t.accessibility?.close_button ?? "Back"}
+            accessibilityLabel={t.accessibility?.close_button ?? "Settings / Menu"}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
-            <Text style={sharedScreenStyles.backButtonText}>← {t.accessibility?.close_button ?? "Menu"}</Text>
+            <Ionicons name="settings-outline" size={20} color={colors.cyan} />
           </TouchableOpacity>
         }
         centerHudSlot={
-          <View style={styles.hud}>
-            <Text style={styles.hudText}>SCORE {gameState?.score ?? 0}</Text>
-            <Text style={styles.hudText}>LIVES {gameState?.lives ?? 3}</Text>
-            <Text style={styles.hudText}>LVL {gameState?.level ?? 1}</Text>
+          <View style={styles.hudWrap}>
+            <LevelProgressBar progress={progress} />
+            <ArkanoidHud
+              score={gameState?.score ?? 0}
+              highScore={highScore ?? 0}
+              lives={gameState?.lives ?? 3}
+              level={gameState?.level ?? 1}
+            />
           </View>
         }
         canvasSlot={
@@ -164,9 +188,18 @@ function ArkanoidContent() {
                 label="LAUNCH"
                 buttonName="p1Launch"
                 touchState={touchStateRef.current ?? undefined}
-                size={80}
+                size={88}
+                color="rgba(0, 243, 255, 0.18)"
+                borderColor={colors.cyan}
+                pressedColor="rgba(0, 243, 255, 0.55)"
+                pressedBorderColor={colors.white}
+                textColor={colors.cyan}
+                haptic="medium"
+                style={styles.launchButton}
+                labelStyle={styles.launchLabel}
                 onPressIn={() => handleInputState({ launch: true })}
                 onPressOut={() => handleInputState({ launch: false })}
+                accessibilityLabel="Launch ball"
               />
             </View>
           </TouchDragZone>
@@ -235,30 +268,26 @@ const styles = StyleSheet.create({
     fontFamily: "monospace",
     fontSize: 18,
   },
-  hud: {
-    position: "absolute",
-    top: 60,
-    left: 0,
-    right: 0,
-    flexDirection: "row",
-    justifyContent: "space-around",
-    zIndex: 10,
+  hudWrap: {
+    width: "100%",
+    paddingTop: 4,
   },
-  hudText: {
-    color: colors.cyan,
-    fontFamily: "monospace",
-    fontSize: 16,
-    fontWeight: "bold",
+  gearButton: {
+    minWidth: 44,
+    minHeight: 44,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: colors.cyan,
+    borderRadius: 6,
+    backgroundColor: "rgba(0,243,255,0.08)",
+    padding: 10,
   },
   controls: {
-    ...StyleSheet.absoluteFill,
+    ...StyleSheet.absoluteFillObject,
     flexDirection: "row",
     justifyContent: "space-between",
     zIndex: 10,
-  },
-  leftControlArea: {
-    flex: 1,
-    height: "100%",
   },
   rightControlArea: {
     width: 150,
@@ -268,17 +297,30 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     paddingRight: 20,
   },
+  launchButton: {
+    borderRadius: 12,
+    borderBottomWidth: 5,
+    borderBottomColor: "rgba(0, 180, 200, 0.9)",
+    shadowColor: colors.cyan,
+    shadowOpacity: 0.85,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 8,
+  },
+  launchLabel: {
+    fontSize: 14,
+    fontWeight: "800",
+    letterSpacing: 2,
+  },
   restartButton: {
     backgroundColor: colors.white,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 5,
     marginTop: 20,
-    userSelect: "none",
   },
   restartButtonText: {
     color: colors.background,
     fontWeight: "bold",
-    userSelect: "none",
   },
 });

@@ -11,6 +11,7 @@ const INITIAL_ECHO_STATE: EchoRunnerGameState = {
   attempts: 1,
   deaths: 0,
   fragments: 0,
+  coins: 0,
   cores: 0,
   activeCheckpoint: null,
   elapsedTime: 0

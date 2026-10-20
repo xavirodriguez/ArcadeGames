@@ -1,7 +1,12 @@
-import { World, RenderComponent, TransformComponent, CoreComponentRegistry } from "@tiny-aster/core";
+/**
+ * PHASE-2 ArkanoidRenderUtils — row palette + hitFlash / special kind precedence.
+ * Precedence: hitFlash > special kind > row palette > theme default.
+ */
+import { World, RenderComponent, TransformComponent } from "@tiny-aster/core";
 import { ArkanoidComponentRegistry, BrickComponent } from "../types/ArkanoidTypes";
 import { ArkanoidConfig } from "../types/ArkanoidConfigSchema";
 import { colors } from "../../../theme/colors";
+import { resolveRowColor } from "./ArkanoidPalette";
 
 export interface ArkanoidBallContext {
   render: RenderComponent;
@@ -38,7 +43,10 @@ export function resolveArkanoidPaddleContext(
   const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
   if (!render || !render.visible) return null;
 
-  const config = world.getResource<ArkanoidConfig>("GameConfig") || { PADDLE_WIDTH: 100, PADDLE_HEIGHT: 16 };
+  const config = world.getResource<ArkanoidConfig>("GameConfig") || {
+    PADDLE_WIDTH: 100,
+    PADDLE_HEIGHT: 16,
+  };
   const w = config.PADDLE_WIDTH;
   const h = config.PADDLE_HEIGHT;
 
@@ -53,24 +61,34 @@ export interface ArkanoidBrickContext {
   w: number;
   h: number;
   brickColor: string;
+  row: number;
 }
 
+/**
+ * Imp. 9 colour resolution.
+ * Order: hitFlash (white) > special kind > row palette > cyan fallback.
+ */
 export function resolveBrickColor(
   render: RenderComponent,
   brick?: BrickComponent
 ): string {
-  let brickColor: string = colors.cyan;
-  if (brick) {
-    if (brick.kind === "explosive") brickColor = colors.orange;
-    else if (brick.kind === "regenerable") brickColor = colors.green;
-    else if (brick.kind === "gravitational") brickColor = colors.purple;
-  }
-
   if (render.hitFlashFrames && render.hitFlashFrames > 0) {
-    brickColor = colors.white;
+    return colors.white;
   }
 
-  return brickColor;
+  if (brick) {
+    if (brick.kind === "explosive") return colors.orange;
+    if (brick.kind === "regenerable") return colors.green;
+    if (brick.kind === "gravitational") return colors.purple;
+    if (brick.material === "gold") return colors.gold;
+    if (brick.material === "silver") return "#C0C0C0";
+
+    if (typeof brick.row === "number") {
+      return resolveRowColor(brick.row);
+    }
+  }
+
+  return render.color || colors.cyan;
 }
 
 export function resolveArkanoidBrickContext(
@@ -81,11 +99,15 @@ export function resolveArkanoidBrickContext(
   if (!render || !render.visible) return null;
 
   const brick = world.getComponent(entity, "Brick") as BrickComponent | undefined;
-  const config = world.getResource<ArkanoidConfig>("GameConfig") || { BRICK_WIDTH: 70, BRICK_HEIGHT: 20 };
+  const config = world.getResource<ArkanoidConfig>("GameConfig") || {
+    BRICK_WIDTH: 70,
+    BRICK_HEIGHT: 20,
+  };
   const w = config.BRICK_WIDTH;
   const h = config.BRICK_HEIGHT;
 
   const brickColor = resolveBrickColor(render, brick);
+  const row = brick?.row ?? 0;
 
-  return { render, w, h, brickColor };
+  return { render, w, h, brickColor, row };
 }

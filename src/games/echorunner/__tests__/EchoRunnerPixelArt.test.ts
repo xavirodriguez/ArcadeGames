@@ -18,6 +18,10 @@ describe("EchoRunnerPixelArt", () => {
     expect(getEchoRunnerSpriteFrame("run", 0)).toEqual(getEchoRunnerSpriteFrame("run", 8));
   });
 
+  it("uses a dedicated fall pose instead of reusing the idle sprite", () => {
+    expect(getEchoRunnerSpriteFrame("fall", 0)).not.toEqual(getEchoRunnerSpriteFrame("idle", 0));
+  });
+
   it("keeps every sprite frame on a consistent 16 by 20 pixel grid", () => {
     const motions = ["idle", "run", "jump", "fall", "attack"] as const;
     for (const motion of motions) {

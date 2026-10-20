@@ -39,7 +39,7 @@ export class WaveSystem extends System<CentipedeComponentRegistry, CentipedeEven
           if (segments.length === 0) {
             CentipedeEntityFactory.createCentipedeChain(
               world,
-              `chain_wave_${state.level}_${Date.now()}`,
+              `chain_wave_${state.level}_0`,
               config.CENTIPEDE_INITIAL_LENGTH,
               0,
               Math.floor(config.GRID_COLS / 2),
@@ -75,7 +75,7 @@ export class WaveSystem extends System<CentipedeComponentRegistry, CentipedeEven
         const chainLength = Math.min(12, config.CENTIPEDE_INITIAL_LENGTH);
         CentipedeEntityFactory.createCentipedeChain(
           world,
-          `chain_wave_${state.level}_${Date.now()}`,
+          `chain_wave_${state.level}_0`,
           chainLength,
           0,
           Math.floor(config.GRID_COLS / 2),

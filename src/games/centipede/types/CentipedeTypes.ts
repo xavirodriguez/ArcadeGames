@@ -112,6 +112,7 @@ export interface FloatingScoreVisualComponent {
   text: string;
   x: number;
   y: number;
+  offsetY: number;
   timerMs: number;
   maxTimerMs: number;
 }

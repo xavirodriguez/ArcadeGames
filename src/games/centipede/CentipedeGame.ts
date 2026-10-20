@@ -134,9 +134,9 @@ export class CentipedeGame extends BaseGame<
       const maxRows = this.config.GRID_ROWS - this.config.PLAYER_ZONE_ROWS - 2;
 
       for (let i = 0; i < mushroomCount; i++) {
-        const row = Math.floor(Math.random() * maxRows) + 1;
-        const col = Math.floor(Math.random() * this.config.GRID_COLS);
-        CentipedeEntityFactory.createMushroom(this.world, row, col);
+        const row = Math.floor(this.world.gameplayRandom.next() * maxRows) + 1;
+        const col = Math.floor(this.world.gameplayRandom.next() * this.config.GRID_COLS);
+        CentipedeEntityFactory.createMushroom(this.world, row, col, false, 4, 1.0);
       }
 
       // Spawn initial centipede chain

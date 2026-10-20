@@ -25,7 +25,7 @@ export class FleaSystem extends System<CentipedeComponentRegistry, CentipedeEven
         }
 
         if (playerZoneMushrooms < config.FLEA_MUSHROOM_THRESHOLD) {
-          const col = Math.floor(Math.random() * config.GRID_COLS);
+          const col = Math.floor(world.gameplayRandom.next() * config.GRID_COLS);
           CentipedeEntityFactory.createFlea(world, col);
         }
       }
@@ -46,7 +46,7 @@ export class FleaSystem extends System<CentipedeComponentRegistry, CentipedeEven
 
       if (currentRow > flea.lastMushroomRow && currentRow < config.GRID_ROWS - 1) {
         flea.lastMushroomRow = currentRow;
-        if (Math.random() < 0.25) {
+        if (world.gameplayRandom.next() < 0.25) {
           let cellEmpty = true;
           const mushrooms = world.query("Mushroom");
           for (const mEntity of mushrooms) {

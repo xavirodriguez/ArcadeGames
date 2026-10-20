@@ -168,7 +168,7 @@ export class CentipedeEntityFactory {
     attachComponent(world, entity, { type: "Tag", tags: ["Dart"] });
   }
 
-  public static createMushroom(world: CentipedeWorld, row: number, col: number, isPoisoned = false, hp = 4): void {
+  public static createMushroom(world: CentipedeWorld, row: number, col: number, isPoisoned = false, hp = 4, growProgress = 0.0): void {
     const config = world.getResource<CentipedeConfig>("GameConfig") || DEFAULT_CENTIPEDE_CONFIG;
     const pos = gridToWorldCenter(config, row, col);
 
@@ -236,7 +236,7 @@ export class CentipedeEntityFactory {
     });
     attachComponent(world, entity, {
       type: "MushroomVisual",
-      growProgress: 1.0,
+      growProgress,
       flashTimerMs: 0,
     });
     attachComponent(world, entity, {

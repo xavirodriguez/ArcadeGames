@@ -14,8 +14,8 @@ export class ScorpionSystem extends System<CentipedeComponentRegistry, Centipede
       this.spawnTimerMs -= dt * 1000;
       if (this.spawnTimerMs <= 0) {
         this.spawnTimerMs = config.SCORPION_SPAWN_INTERVAL_MS;
-        const dirX = Math.random() > 0.5 ? 1 : -1;
-        const row = Math.floor(Math.random() * (config.GRID_ROWS - config.PLAYER_ZONE_ROWS - 5)) + 3;
+        const dirX = world.gameplayRandom.next() > 0.5 ? 1 : -1;
+        const row = Math.floor(world.gameplayRandom.next() * (config.GRID_ROWS - config.PLAYER_ZONE_ROWS - 5)) + 3;
         CentipedeEntityFactory.createScorpion(world, row, dirX as 1 | -1);
       }
     }

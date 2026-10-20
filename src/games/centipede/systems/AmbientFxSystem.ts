@@ -28,12 +28,12 @@ export class AmbientFxSystem extends System<CentipedeComponentRegistry, Centiped
       const count = 20;
       for (let i = 0; i < count; i++) {
         vis.particles.push({
-          x: Math.random() * config.worldWidth,
-          y: Math.random() * config.worldHeight,
-          vx: (Math.random() - 0.5) * 6,
-          vy: (Math.random() - 0.5) * 6,
-          radius: 1 + Math.random() * 1.5,
-          alpha: 0.15 + Math.random() * 0.2,
+          x: world.renderRandom.next() * config.worldWidth,
+          y: world.renderRandom.next() * config.worldHeight,
+          vx: (world.renderRandom.next() - 0.5) * 6,
+          vy: (world.renderRandom.next() - 0.5) * 6,
+          radius: 1 + world.renderRandom.next() * 1.5,
+          alpha: 0.15 + world.renderRandom.next() * 0.2,
         });
       }
     }

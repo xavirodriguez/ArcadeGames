@@ -13,8 +13,8 @@ export class SpiderSystem extends System<CentipedeComponentRegistry, CentipedeEv
     if (spiders.length === 0) {
       this.spawnTimerMs -= dt * 1000;
       if (this.spawnTimerMs <= 0) {
-        const seed = world.getResource<number>("RandomSeed") ?? Math.random();
-        const startX = (seed % 1) > 0.5 ? 10 : config.worldWidth - 10;
+        const side = world.gameplayRandom.next() > 0.5 ? "left" : "right";
+        const startX = side === "left" ? 10 : config.worldWidth - 10;
         const startY = (config.GRID_ROWS - Math.floor(config.PLAYER_ZONE_ROWS / 2)) * config.CELL_SIZE;
         CentipedeEntityFactory.createSpider(world, startX, startY);
         this.spawnTimerMs = config.SPIDER_SPAWN_INTERVAL_MS;
@@ -34,7 +34,7 @@ export class SpiderSystem extends System<CentipedeComponentRegistry, CentipedeEv
       spider.changeTimer += dt;
       if (spider.changeTimer > 1.2) {
         spider.changeTimer = 0;
-        spider.dirY = Math.random() > 0.5 ? 1 : -1;
+        spider.dirY = world.gameplayRandom.next() > 0.5 ? 1 : -1;
       }
 
       if (transform.y <= playerZoneMinY) {

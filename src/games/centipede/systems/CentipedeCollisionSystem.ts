@@ -62,6 +62,18 @@ export class CentipedeCollisionSystem extends System<CentipedeComponentRegistry,
             state.score += addedScore;
           }
 
+          const scoreVisEntity = world.reserveEntityId();
+          world.commands.createEntity(scoreVisEntity);
+          world.commands.addComponent(scoreVisEntity, {
+            type: "FloatingScoreVisual",
+            text: `+${addedScore}`,
+            x: sTransform.x,
+            y: sTransform.y,
+            offsetY: 0,
+            timerMs: 0,
+            maxTimerMs: 600,
+          });
+
           const sameChainSegments: Array<{ entity: number; seg: CentipedeComponentRegistry["CentipedeSegment"] }> = [];
           for (const otherEntity of world.query("CentipedeSegment")) {
             if (otherEntity === segEntity) continue;
@@ -76,7 +88,7 @@ export class CentipedeCollisionSystem extends System<CentipedeComponentRegistry,
           const splitFollowers = sameChainSegments.filter((item) => item.seg.segmentIndex > deadIndex);
 
           if (splitFollowers.length > 0) {
-            const newChainId = `chain_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+            const newChainId = `chain_${deadRow}_${deadCol}_${Math.floor(world.gameplayRandom.next() * 1000000)}`;
             for (let i = 0; i < splitFollowers.length; i++) {
               const follower = splitFollowers[i];
               follower.seg.chainId = newChainId;
@@ -166,6 +178,17 @@ export class CentipedeCollisionSystem extends System<CentipedeComponentRegistry,
           }
 
           if (state) state.score += pScore;
+          const spiderVisEntity = world.reserveEntityId();
+          world.commands.createEntity(spiderVisEntity);
+          world.commands.addComponent(spiderVisEntity, {
+            type: "FloatingScoreVisual",
+            text: `+${pScore}`,
+            x: spTransform.x,
+            y: spTransform.y,
+            offsetY: 0,
+            timerMs: 0,
+            maxTimerMs: 600,
+          });
           eventBus?.emit("enemy:killed", { type: "spider", score: pScore, x: spTransform.x, y: spTransform.y });
           break;
         }
@@ -190,6 +213,17 @@ export class CentipedeCollisionSystem extends System<CentipedeComponentRegistry,
             if (flea.hp <= 0) {
               world.commands.removeEntity(fEntity);
               if (state) state.score += 200;
+              const fleaVisEntity = world.reserveEntityId();
+              world.commands.createEntity(fleaVisEntity);
+              world.commands.addComponent(fleaVisEntity, {
+                type: "FloatingScoreVisual",
+                text: "+200",
+                x: fTransform.x,
+                y: fTransform.y,
+                offsetY: 0,
+                timerMs: 0,
+                maxTimerMs: 600,
+              });
               eventBus?.emit("enemy:killed", { type: "flea", score: 200, x: fTransform.x, y: fTransform.y });
             }
           }
@@ -211,6 +245,17 @@ export class CentipedeCollisionSystem extends System<CentipedeComponentRegistry,
           dartConsumed = true;
           world.commands.removeEntity(scEntity);
           if (state) state.score += 1000;
+          const scVisEntity = world.reserveEntityId();
+          world.commands.createEntity(scVisEntity);
+          world.commands.addComponent(scVisEntity, {
+            type: "FloatingScoreVisual",
+            text: "+1000",
+            x: scTransform.x,
+            y: scTransform.y,
+            offsetY: 0,
+            timerMs: 0,
+            maxTimerMs: 600,
+          });
           eventBus?.emit("enemy:killed", { type: "scorpion", score: 1000, x: scTransform.x, y: scTransform.y });
           break;
         }

@@ -28,7 +28,7 @@ export const OUTRUN_PLAYER_PIXEL_SPRITE: OutrunPixelSprite = {
       "tbbbbbbbbbbbbbbbbbbt",
       ".ttbbbbbbppbbbbbbtt.",
       ".tbbrrbbbbbbbbrrbbt.",
-      "ttbddttbbbttddttbtt.",
+      "ttbddttbbbbbbttddbtt",
       "....ttddddddddtt...."
     ],
     [
@@ -43,7 +43,7 @@ export const OUTRUN_PLAYER_PIXEL_SPRITE: OutrunPixelSprite = {
       "tbbbbbbbbbbbbbbbbbbt",
       ".ttbbbbbbppbbbbbbtt.",
       ".tbbRRbbbbbbbbRRbbt.",
-      "ttbddttbbbttddttbtt.",
+      "ttbddttbbbbbbttddbtt",
       "....ttddddddddtt...."
     ]
   ]
@@ -64,7 +64,7 @@ export const OUTRUN_TRAFFIC_PIXEL_SPRITE: OutrunPixelSprite = {
       "tbbbbbbbbbbbbbbbbt",
       ".ttbbbbppbbbbtt...",
       "tbbrrbbbbbbbbrrbbt",
-      "ttbddttbbbbttddtt.",
+      "ttbddttbbbbttddbtt",
       "...ttddddddddtt..."
     ],
     [
@@ -78,7 +78,7 @@ export const OUTRUN_TRAFFIC_PIXEL_SPRITE: OutrunPixelSprite = {
       "tbbbbbbbbbbbbbbbbt",
       ".ttbbbbppbbbbtt...",
       "tbbRRbbbbbbbbRRbbt",
-      "ttbddttbbbbttddtt.",
+      "ttbddttbbbbttddbtt",
       "...ttddddddddtt..."
     ]
   ]

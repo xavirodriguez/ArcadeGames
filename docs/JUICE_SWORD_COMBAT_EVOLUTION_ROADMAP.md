@@ -1,130 +1,128 @@
-# Unified Combat Juice Evolution Roadmap (Sword & Fireball Weight & Impact)
+# Unified Combat Juice Evolution Roadmap (Peso e Impacto de Espada y Bola de Fuego)
 
-**Target:** `docs/JUICE_SWORD_COMBAT_EVOLUTION_ROADMAP.md`
-**Repository:** [xavirodriguez/ArcadeGames](https://github.com/xavirodriguez/ArcadeGames)
-**Status:** Implementation Roadmap — Verified against current checkout (`src/games/` and `packages/`).
-
----
-
-## 1. Objective and Core Philosophy
-
-Transform the combat feel across TinyAsterEngine arcade games by making attacks feel weighted, tangible, and visually expressive.
-
-Rather than building isolated systems for sword slashes and fireball projectiles, both attack families derive from a single unified combat lifecycle system (`CombatJuicePipeline`). The pipeline unifies two fundamental feedback paradigms into one single phase-driven engine model:
-
-1. **Impact Punch:** Immediate feedback on contact (White flash, impact sound, directional sparks/particles, impulse knockback, camera shake, freeze/hit-stop).
-2. **Disney Animation Principles:** Telegraphed animation cues (Anticipation, squash & stretch along movement axes, follow-through drag/settling, hit-stop, parabolic arc motion).
-
-Every visual and kinetic feedback effect is driven by explicit lifecycle phase transitions (`anticipation` → `execution` → `contact` → `impact` → `follow_through`), decoupling deterministic simulation from high-fidelity visual rendering.
+**Ruta:** `docs/JUICE_SWORD_COMBAT_EVOLUTION_ROADMAP.md`
+**Repositorio:** `xavirodriguez/ArcadeGames` (TinyAsterEngine: monorepo pnpm, TypeScript estricto, ECS determinista, renderers Canvas2D y Skia)
+**Estado:** Roadmap de Implementación (Versión 1.0 — Verificado contra la base de código actual).
 
 ---
 
-## 2. Verification Status and Codebase Evidence
+## 1. Objetivo y Filosofía del Modelo Unificado
 
-The implementation decisions in this document are strictly based on static code inspection and unit test verification across the repository.
+El objetivo de este roadmap es proporcionar una sensación de combate ("game feel" o "punch") pesada, tangible y expresiva a los ataques de los juegos del motor TinyAsterEngine, unificando dos familias de ataque fundamentales bajo una misma canalización de ciclo de vida de fases (`CombatJuicePipeline`):
 
-### 2.1 Verified Evidence Summary
+1. **Melee (Espada):** Golpe cuerpo a cuerpo con barrido en arco.
+2. **Proyectil (Bola de fuego / Láser):** Se lanza, viaja y estalla al llegar.
 
-- **Engine Timestep & Simulation:**
-  - `BaseGame.ts` (`packages/core/src/runtime/BaseGame.ts`) runs a fixed deterministic 60Hz tick loop (`dt = 1/60`s).
-  - Component storage is managed by `SparseSetStorage.ts` and `MapStorage.ts`. World states and snapshot hashes are binary-deterministic.
-- **Hitbox & Spatial Queries:**
-  - Hitboxes use `BoxColliderComponent` (`packages/core/src/ecs/CoreComponents.ts`) and `SpatialCullingSystem` / `Broadphase`.
-  - Physics/Collision positions read directly from `TransformComponent.x`, `y`, `rotation`.
-  - Hitbox detection is completely independent of visual rendering transformations (`VisualTransformComponent`).
-- **Existing Melee and Projectile Implementations:**
-  - `hitandrun` (`src/games/hitandrun/`): Fully implements both families! Sword melee sweep (`HitRunMeleeSystem.ts`, `ComboMeleeSystem.ts`) and fire/projectile attacks (`HitRunWeaponSystem.ts`, `HitRunBulletPool.ts`).
-  - `platformer` (`src/games/platformer/`): Melee stomps and contact damage, but lacks directional sword sweeps.
-  - `geometrywars` (`src/games/geometrywars/`): Rapid projectile weapons with directional recoil, but no sword melee.
-  - `asteroids`, `space-invaders`, `vertical-shmup`: Projectiles and explosive contact damage.
-  - `tower-defense`: Turret projectiles and slow-on-hit effects.
-- **Visual Effects & Juice Architecture:**
-  - `JuiceOrchestrator.ts` (`src/games/shared/rendering/JuiceOrchestrator.ts`) processes event-driven screen shake, camera rumble, and primitive VFX (`shockwave`, `screen_border_glow`, `hologram_glitch`).
-  - `HitStopSystem.ts` (`src/games/shared/rendering/HitStopSystem.ts`) provides global frame freeze handling with priority queuing (`requestHitStop`).
-  - `VisualParticlePool.ts` (`src/games/shared/rendering/VisualParticlePool.ts`) manages zero-allocation particle pooling.
-  - `CircularPositionBuffer.ts` (`src/games/shared/rendering/CircularPositionBuffer.ts`) provides zero-allocation motion trail position history.
-- **Audio Infrastructure:**
-  - `@tiny-aster/arcade-sound-kit` (`packages/arcade-sound-kit/`) generates procedural 8-bit sound syntheses via `SoundSynthesizer`, `validateRecipe`, and `RecipeValidationError`.
-- **Renderers:**
-  - Dual rendering backend exists across Canvas2D (`CanvasRenderer.ts`) and Skia (`SkiaRenderer.ts`). Visual draw routines inspect entity components and theme tokens.
-
-### 2.2 Evidence Labels
-
-- **Verified:** Inspected in source code and confirmed via executable test or file inspection.
-- **No verificado:** Unconfirmed assumption or pending experimental tuning.
+En lugar de construir dos sistemas paralelos para espada y fuego, ambos derivan del mismo motor de estados por fases. Fusionamos los ingredientes de impacto con punch (flash blanco, sonido de impacto, partículas direccionales, knockback y screen shake + freeze) con los principios de animación de Disney (anticipación con lean back, squash and stretch en el eje de movimiento/impacto, follow-through con arrastre de estela e inercia, y arcos en trayectorias y números de daño flotantes).
 
 ---
 
-## 3. Unified Phase-Driven Lifecycle Model
+## 2. Paso 0: Verificación de la Base de Código (Evidencia e Inventario)
 
-Both Melee (Sword) and Projectile (Fireball) attacks follow a single unified 5-phase timeline. Each effect is bound to one or more specific phases:
+Toda la arquitectura propuesta se valida contra el estado actual del repositorio `xavirodriguez/ArcadeGames`.
+
+### 2.1 Estado de Verificación (Verificado vs No verificado)
+
+- **Simulación y Timestep [VERIFICADO]:**
+  - `BaseGame.ts` (`packages/core/src/runtime/BaseGame.ts`) ejecuta un bucle de tick determinista a 60Hz fijo (`dt = 1/60`s).
+  - El almacenamiento ECS utiliza `SparseSetStorage.ts` y `MapStorage.ts` (`packages/core/src/ecs/storage/`). El estado del mundo y los hashes de snapshot son deterministas a nivel binario.
+- **Hitboxes y Colisiones [VERIFICADO]:**
+  - Las cajas de colisión leen de `BoxColliderComponent` (`packages/core/src/ecs/CoreComponents.ts`) y `SpatialCullingSystem` / `Broadphase`.
+  - Las posiciones para detección de impactos leen directamente de `TransformComponent.x`, `y`, `rotation`.
+  - Las hitboxes de colisión son completamente independientes del renderizado visual y de cualquier transformación cosmética (`VisualTransformComponent`).
+- **Juegos con Ataques Reales [VERIFICADO]:**
+  - `hitandrun` (`src/games/hitandrun/`): ¡Tiene ambas familias de ataque! Barrido melee de espada (`HitRunMeleeSystem.ts`, `ComboMeleeSystem.ts`) y proyectiles/fuego (`HitRunWeaponSystem.ts`, `HitRunBulletPool.ts`, `fireWeapon.ts`).
+  - `platformer` (`src/games/platformer/`): Melee por pisotón/contacto (`PlatformerDamageSystem.ts`), pero carece de barrido de espada direccional.
+  - `geometrywars` (`src/games/geometrywars/`): Armas de proyectiles rápidos con retroceso direccional, sin espada melee.
+  - `space-invaders`, `asteroids`, `vertical-shmup`: Proyectiles y colisiones destructivas.
+  - `tower-defense`: Proyectiles de torre con desaceleración/impacto.
+- **Inventario Reutilizable [VERIFICADO]:**
+  - `SharedVFX.ts` y `SharedVFXInternal.ts` (`src/games/shared/rendering/`): Generación de partículas, destellos y score/textos flotantes.
+  - `VisualParticlePool.ts` (`src/games/shared/rendering/`): Pool de partículas con capacidad máxima acotada y cero asignaciones de memoria dinámicas en runtime.
+  - `CircularPositionBuffer.ts` (`src/games/shared/rendering/`): Historial circular de posiciones para estelas de movimiento ("motion trails").
+  - `HitStopSystem.ts` (`src/games/shared/rendering/`): Sistema global de pausa de frames por prioridad (`requestHitStop`).
+  - `JuiceOrchestrator.ts` (`src/games/shared/rendering/`): Orquestación de screen shake, ruidos de cámara y efectos de borde.
+  - `@tiny-aster/arcade-sound-kit` (`packages/arcade-sound-kit/`): Síntesis procedural de audio de 8 bits con validación estricta de recetas (`validateRecipe`, `RecipeValidationError`).
+- **Dibujo de Personajes y Proyectiles [VERIFICADO]:**
+  - Renderizado dual mediante `CanvasRenderer` (`packages/renderer-canvas/`) y `SkiaRenderer` (`packages/renderer-skia/`).
+  - Se utilizan formas vectoriales (rectángulos, círculos, arcos) y sprites. Aplicar transformaciones visuales mediante `ctx.save() / ctx.scale() / ctx.rotate() / ctx.restore()` o `canvas.save() / canvas.scale() / canvas.rotate() / canvas.restore()` es computacionalmente muy barato (coste $O(1)$ de matriz 2D).
+- **Multijugador y Reconciliación [VERIFICADO]:**
+  - Red usando Colyseus (`packages/network-colyseus/`) con replicación de estados por snapshots y simulación determinista en cliente y servidor (`sendDeltaState`, `executeReplicationLoop`).
+- **No Verificado [NO VERIFICADO]:**
+  - Los valores exactos de duración en ms de la anticipación antes de sentir latencia molesta por parte de los jugadores en pantalla táctil móvil (requiere tuning en sesión con controles táctiles).
+
+---
+
+## 3. Modelo Unificado de Ciclo de Vida (Línea de Tiempo en 5 Fases)
+
+Ambas familias de ataque comparten exactamente la misma secuencia de 5 fases. Cada efecto visual/kinético se cuelga explícitamente de una o más fases:
 
 ```
-+---------------------------------------------------------------------------------------------+
-|                                UNIFIED ATTACK LIFECYCLE TIMELINE                            |
-+-------------------+------------------+-------------------+------------------+---------------+
-| 1. ANTICIPATION   | 2. EXECUTION     | 3. CONTACT        | 4. IMPACT        | 5. FOLLOW-THRU|
-| (Wind-up / Lean)  | (Travel / Arc)   | (Collision Detect)| (Blast / Punch)  | (Settle / Drag)|
-+-------------------+------------------+-------------------+------------------+---------------+
-| Hero leans back   | Arc sweep trail  | Contact trigger   | White Flash      | Body settles  |
-| Fireball charges  | Stretched sphere | Hit stop start    | Knockback impulse| Trail lingers |
-| Threat telegraph  | Parabolic arc    | Sound trigger     | Particle burst   | Burst drifts  |
-|                   |                  |                   | Screen shake     | Arc damage num|
-+-------------------+------------------+-------------------+------------------+---------------+
++---------------------------------------------------------------------------------------------------+
+|                                 LÍNEA DE TIEMPO DEL CICLO DE VIDA DE ATAQUE                       |
++---------------------+--------------------+--------------------+-------------------+---------------+
+| 1. ANTICIPACIÓN     | 2. EJECUCIÓN       | 3. CONTACTO        | 4. IMPACTO        | 5. FOLLOW-THRU|
+| (Carga / Inclinación)| (Barrido / Viaje) | (Detección Golpe)  | (Aplastamiento)   | (Inercia / Asentamiento)|
++---------------------+--------------------+--------------------+-------------------+---------------+
+| Héroe hacia atrás   | Estela en arco     | Evento de contacto | Flash blanco      | Cuerpo asienta|
+| Fuego se comprime   | Proyectil estirado | Inicio hit stop    | Golpe knockback   | Estela disipa |
+| Telegrafiado visual | Trayectoria arco   | Disparo de sonido  | Ráfaga partículas | Texto flotante|
+|                     |                    |                    | Shake de pantalla | Arrastre humo |
++---------------------+--------------------+--------------------+-------------------+---------------+
 ```
 
-### Phase Mapping Table
+### Tabla de Fusión de Efectos
 
-| Phase | Melee (Sword Sweep) | Projectile (Fireball) |
+| Fase | Melee (Espada) | Proyectil (Bola de Fuego) |
 |---|---|---|
-| **1. Anticipation** | Hero leans back (`-15%` x-scale, `-5°` rotation), weapon shines. | Hero leans back, energy ball squashes (`0.7` length, `1.3` width) at hands. |
-| **2. Execution** | Rapid forward arc sweep with motion ribbon trail. | Projectile travels along path (or subtle arc) stretched along velocity vector (`1.4` length, `0.75` width). |
-| **3. Contact** | Sword hitbox intersects enemy collider. Triggers sound & hit stop. | Projectile collider intersects enemy/obstacle. Triggers sound & hit stop. |
-| **4. Impact** | Target flashes white for 3 ticks; directional particle spark burst; knockback impulse applied; camera shake; enemy squashes on impact axis (`0.6` length, `1.4` width). | Target & fireball squash on impact axis; fireball detonate explosion burst; directional debris particles; knockback impulse applied; camera shake. |
-| **5. Follow-through** | Hero body settles back to neutral (`easeInOut`); sword trail fades out over 4 ticks. | Projectile trail lingers and dissolves; fire smoke particles retain inertia drifting outward; floating damage numbers fly in parabolic arcs. |
+| **1. Anticipación** | El héroe se inclina hacia atrás (`scaleX = 0.85`, `rotation = -5°`), brillo de espada. | El héroe se inclina hacia atrás, la bola de energía se comprime (`scaleX = 0.7`, `scaleY = 1.3`) en la mano. |
+| **2. Ejecución** | Barrido rápido en arco con cinta de estela mediante `CircularPositionBuffer`. | Bola viaja estirada a lo largo del vector de velocidad (`scaleX = 1.4`, `scaleY = 0.75`). |
+| **3. Contacto** | La hitbox de la espada intersecta la caja de colisión del enemigo. Dispara sonido e inicio de hit stop. | El proyectil intersecta al enemigo u obstáculo. Dispara sonido e inicio de hit stop. |
+| **4. Impacto** | El objetivo se pinta de blanco (3 ticks); ráfaga de partículas direccionales; impulso de knockback; shake de pantalla; enemigo se aplasta en el eje del golpe (`scaleX = 0.6`, `scaleY = 1.4`). | El objetivo y la bola se aplastan en el eje de impacto; la bola estalla en explosión; partículas direccionales con inercia; knockback; shake de pantalla. |
+| **5. Follow-through** | El cuerpo del héroe vuelve a la posición neutral (`easeInOut`); la estela de la espada se disipa en 4 ticks. | La estela del proyectil se retrasa y disuelve; las partículas de humo conservan inercia; números de daño vuelan en arcos parabólicos. |
 
 ---
 
-## 4. Game × Attack Type × Effect Matrix
+## 4. Matriz Juego × Tipo de Ataque × Efecto
 
-Comprehensive audit across all 15 arcade games currently in `src/games/`.
+Evaluación exhaustiva de los 15 juegos presentes en el repositorio `src/games/`.
 
-| Game | Melee Family | Projectile Family | Applied Effects | Excluded Effects & Justification |
+| Juego | Familia Melee | Familia Proyectil | Efectos Aplicados | Efectos Excluidos y Justificación |
 |---|---|---|---|---|
-| `hitandrun` **(PILOT)** | Sword Slash / Combo Sweep | Fireball / Laser / Shotgun / Grenade | **ALL EFFECTS:** Anticipation, Stretch/Squash, Flash, Sound, Particles, Knockback, Shake, Hit Stop, Arcs, Follow-through. | None. Target pilot game containing full combat mechanics. |
-| `platformer` | Stomp / Kick | Enemy Projectiles | Flash, Sound, Particles, Knockback, Shake, Hit Stop, Squash/Stretch on stomp. | Sword Arc Sweep: Player uses stomps/dashes rather than sword. |
-| `geometrywars` | None | Rapid Plasma / Homing Missiles | Flash, Sound, Directional Particles, Recoil Knockback, Screen Shake, Trail Follow-through. | Melee Anticipation: Hyper-fast twin-stick shooter requires instant input response (0-tick windup). |
-| `space-invaders` | None | Cannon Shot / Alien Plasma | Flash, Sound, Explosion Particles, Hit Stop on Shield/UFO, Screen Shake. | Knockback: Aliens move on fixed grid step matrix; knockback would break grid invaders logic. |
-| `asteroids` | None | Ship Laser / Asteroid Splat | Recoil, Explosive Particles, Screen Shake, Flash, Sound, Hit Stop on large breakup. | Melee Arc Sweep: No melee combat. |
-| `vertical-shmup` | Shield Ram (contact) | Plasma Bullets / Bombs | Flash, Sound, Particle Spray, Screen Shake, Hit Stop on Bosses. | Grid/Position Knockback: Bullet hell movement requires precise position control. |
-| `tower-defense` | None | Arrow / Cannon / Magic / Slow Orb | Sound, Impact Burst Particles, Floating Damage Arcs, Enemy Flash, Target Squash. | Player Anticipation: Towers fire automatically based on range timers. |
-| `arkanoid` | Paddle Deflect (contact) | Laser Powerup / Doh Bullets | Paddle Squash/Stretch, Flash, Sound, Spark Particles, Ball Trail, Screen Shake on Brick Shatter. | Entity Knockback: Bricks are static grid items; ball trajectory is governed by reflection math. |
-| `pong` | Paddle Hit | Ball | Paddle Stretch on impact, Flash, Sound, Particle Spark Burst, Screen Shake on Goal. | Sword/Fireball Anticipation: Pure classic pong physics model. |
-| `echorunner` | Slide Tackle (contact) | Echo Wave | Flash, Sound, Particle Dust, Camera Shake, Hit Stop. | Knockback: Runner game velocity is strictly governed by lane scrolling. |
-| `flappybird` | Pipe Collision (death) | None | Flash, Sound, Feathers Particle Burst, Screen Shake, Hit Stop on crash. | Melee / Fireball attack pipelines (pure avoidance gameplay). |
-| `frogger` | Splat / Water Sink | None | Flash, Sound, Water Splash Particles, Hit Stop. | Attack mechanics (pure river crossing puzzle). |
-| `outrun` | Vehicle Crash | None | Screen Shake, Sound, Smoke/Debris Particles, Speed Penalty. | Combat attacks. |
-| `racing` | Car Collision | None | Tire Smoke Particles, Crash Sound, Camera Shake, Impulsive Collision Bounce. | Combat attacks. |
-| `story` (shared) | Delegates to underlying minigame | Delegates to underlying minigame | Inherits from minigame adapter (`BaseArcadeAdapter`). | N/A |
+| `hitandrun` **(PILOTO)** | Barrido de Espada / Combo | Bola de fuego / Láser / Escopeta / Granada | **TODOS LOS EFECTOS:** Anticipación, Squash/Stretch, Flash, Sonido, Partículas, Knockback, Shake, Hit Stop, Arcos, Follow-through. | Ninguno. Juego piloto principal que reúne ambas mecánicas de combate. |
+| `platformer` | Pisotón / Salto | Proyectiles Enemigos | Flash, Sonido, Partículas, Knockback, Shake, Hit Stop, Squash/Stretch al pisar. | Barrido de espada: El jugador combate mediante saltos/embestidas en vez de espada. |
+| `geometrywars` | Ninguno | Plasma Rápido / Mísiles Teledirigidos | Flash, Sonido, Partículas Direccionales, Knockback de Retroceso, Shake, Estelas. | Anticipación Melee: Shooter twin-stick hiperrápido requiere respuesta instantánea (0 ticks de carga). |
+| `space-invaders` | Ninguno | Cañón / Plasma Alienígena | Flash, Sonido, Partículas de Explosión, Hit Stop en Escudos/UFO, Shake de pantalla. | Knockback: Los marcianos se mueven en un paso de matriz fijo; el knockback rompería la alineación de la cuadrícula. |
+| `asteroids` | Ninguno | Disparo Láser / Ruptura de Asteroide | Retroceso de nave, Partículas Explosivas, Shake, Flash, Sonido, Hit Stop en asteroides grandes. | Barrido de espada: No hay combate cuerpo a cuerpo. |
+| `vertical-shmup` | Embestida con Escudo | Balas de Plasma / Bombas | Flash, Sonido, Spray de Partículas, Shake, Hit Stop en Jefes. | Knockback de posición: El esquive en bullet hell exige control posicional milimétrico sin empujones. |
+| `tower-defense` | Ninguno | Flechas / Cañones / Magia / Fuego | Sonido, Partículas de Impacto, Arcos de Daño Flotante, Flash de Enemigo, Squash de Objetivo. | Anticipación de Jugador: Las torres disparan automáticamente según su cadencia. |
+| `arkanoid` | Impacto con Pala | Láser / Balas de Doh | Squash/Stretch en la pala al rebotar, Flash, Sonido, Chispas, Estela de bola, Shake al romper ladrillos. | Knockback de entidades: Los ladrillos son estáticos; la bola sigue reflejos puramente geométricos. |
+| `pong` | Impacto de Pala | Bola | Stretch de la pala al golpear, Flash, Sonido, Chispas, Shake en gol. | Anticipación de Espada/Fuego: Física clásica de pong. |
+| `echorunner` | Barrida / Slide | Onda de Eco | Flash, Sonido, Polvo de Partículas, Camera Shake, Hit Stop. | Knockback: La velocidad del runner está fija al desplazamiento de los carriles. |
+| `flappybird` | Colisión con Tubería (Muerte) | Ninguno | Flash, Sonido, Ráfaga de Plumas, Shake, Hit Stop al chocar. | Canalizaciones de ataque (juego de esquive puro). |
+| `frogger` | Aplastamiento / Hundimiento | Ninguno | Flash, Sonido, Salpicadura de Agua, Hit Stop. | Mecánicas de ataque (juego de cruzar la calle). |
+| `outrun` | Colisión entre Vehículos | Ninguno | Shake de Pantalla, Sonido, Humo/Debris, Penalización de velocidad. | Ataques de combate. |
+| `racing` | Choque entre Coches | Ninguno | Humo de Neumáticos, Sonido de Impacto, Camera Shake, Rebote elástico. | Ataques de combate. |
+| `story` (compartido) | Delega en el minijuego activo | Delega en el minijuego activo | Hereda del adaptador de minijuego (`BaseArcadeAdapter`). | N/A |
 
 ---
 
-## 5. Key Architecture & Design Decisions
+## 5. Decisiones Arquitectónicas Fundamentales
 
-### 5.1 Simulation vs. Presentation Boundary
+### 5.1 Simulación frente a Presentación
 
-To guarantee deterministic simulation and multiplayer synchronization (Colyseus rollback / snapshot reconciliation):
+Para garantizar el determinismo absoluto del ECS y la sincronización multijugador (Rollback / Snapshots en Colyseus):
 
-- **Pure Presentation (Client-Local / Visual Only):**
-  - Flash (tint overlay), visual particles, audio playback, camera shake, squash & stretch visual scales, cosmetic damage number arcs, visual motion trails.
-  - *Invariant:* Disabling presentation effects alters 0 bytes of simulation state or snapshot output.
-- **Simulation Logic (Deterministic Core):**
-  - Knockback velocity impulse (mutates `VelocityComponent`), hit stop tick counter (when pausing physics simulation), anticipation windup duration (when delaying attack hitbox activation).
-  - *Invariant:* Executed identically across server and client simulation ticks.
+- **Presentación Pura (Local / Cliente):**
+  - Flash (tinte blanco), partículas visuales, reproducción de audio, camera shake, escalas visuales de squash/stretch, arcos de texto flotante cosméticos y estelas de movimiento.
+  - *Invariante:* Desactivar los efectos de presentación altera 0 bytes del estado de simulación o del hash de snapshot.
+- **Lógica de Simulación (Núcleo Determinista):**
+  - Impulso de knockback (modifica `VelocityComponent`), contador de ticks de hit stop (cuando congela la física) y duración de la anticipación (cuando retrasa la activación del collider de ataque).
+  - *Invariante:* Se ejecuta de forma idéntica en el cliente y en el servidor.
 
-### 5.2 Squash & Stretch Without Hitbox Mutation
+### 5.2 Squash and Stretch sin Tocar la Hitbox
 
-- **Component:** `VisualTransformComponent` (`packages/core/src/ecs/CoreComponents.ts` or `src/games/shared/rendering/`).
+- **Componente:** `VisualTransformComponent` (`packages/gameplay-kit/src/combat/components/VisualTransformComponent.ts`).
   ```typescript
   export interface VisualTransformComponent {
     scaleX: number;
@@ -136,50 +134,50 @@ To guarantee deterministic simulation and multiplayer synchronization (Colyseus 
     offsetY: number;
   }
   ```
-- **Hitbox Isolation:** `BoxColliderComponent` and `TransformComponent` store untransformed world bounds `(x, y, width, height)`. Collision systems read `TransformComponent` directly. Renderers multiply canvas/Skia matrix by `VisualTransformComponent` scales without touching physics colliders.
-- **Directional Alignment:**
-  - For Projectiles: Eje de deformación alineado con el vector de velocidad normalizado `(vx, vy)`.
-  - For Melee Hits: Eje de deformación alineado con la normal del impacto `(nx, ny)`.
-- **Canvas / Skia Parity:** Both `CanvasRenderer` and `SkiaRenderer` push matrix, translate to `(x + offsetX, y + offsetY)`, rotate by `rotation + rotationOffset`, scale by `(scaleX, scaleY)`, draw shape/sprite, and pop matrix.
+- **Aislamiento de Hitbox:** `BoxColliderComponent` y `TransformComponent` mantienen las dimensiones del mundo sin deformar `(x, y, width, height)`. Los sistemas de colisión leen `TransformComponent` y `BoxColliderComponent` directamente. Los renderers de Canvas2D y Skia aplican la matriz de `VisualTransformComponent` exclusivamente durante la fase de renderizado.
+- **Alineación de Eje:**
+  - En proyectiles: Eje de deformación alineado con el vector de velocidad normalizado `(vx, vy)`.
+  - En golpes melee: Eje de deformación alineado con la normal del impacto `(nx, ny)`.
+- **Paridad Canvas2D / Skia:** Ambos renderers aplican `ctx.save() / ctx.translate(x + offsetX, y + offsetY) / ctx.rotate(rotation + rotationOffset) / ctx.scale(scaleX, scaleY)` y restituyen la matriz de transformación con `ctx.restore()` o `canvas.restore()`.
 
-### 5.3 Anticipation, Latency, and Network Synchronization
+### 5.3 Anticipación y Latencia
 
-- **Gameplay Impact:** A 6-tick (100ms) anticipation windup delays hitbox creation. In fast arcade games, heavy windups feel unresponsive if unbuffered.
-- **Policy by Attack Family:**
-  - *Light Melee:* 2 ticks (33ms) anticipation. Non-cancelable.
-  - *Heavy Melee / Sword Sweep:* 5 ticks (83ms) anticipation. Cancelable by player roll/dash up to tick 3.
-  - *Fireball Projectile:* 4 ticks (66ms) character cast windup before projectile spawn. Projectile spawns at tick 5.
-- **Multiplayer / Remote Players:** On remote clients, input prediction plays the anticipation animation instantly upon button press. If server reconciles a rollback, the animation smoothly interpolates to correct phase without desyncing hitbox position.
-- **Tuning Range (Initial Ticks at 60Hz):**
-  - Melee: `startupTicks = 4`, `activeTicks = 3`, `recoveryTicks = 8`.
-  - Fireball: `castTicks = 5`, `flyTicks = 30` (max TTL), `detonateTicks = 6`.
+- **Compromiso de Juego:** Un retraso de windup de 6 ticks (100ms) en un arcade puede sentirse lento si no está amortiguado.
+- **Estrategia por Familia de Ataque:**
+  - *Ataque Melee Rápido (Espada Táctica):* 2 ticks (33ms) de anticipación. No cancelable.
+  - *Ataque Melee Pesado (Gran Mandoble):* 5 ticks (83ms) de anticipación. Cancelable por esquive/rodada del jugador hasta el tick 3.
+  - *Proyectil (Bola de Fuego):* 4 ticks (66ms) de anticipación de canalización en las manos del héroe. El proyectil se engendra físicamente en el tick 5.
+- **Valores Iniciales Sugeridos para Tuning (a 60Hz):**
+  - Espada Melee: `anticipationTicks = 3`, `executionTicks = 4`, `contactTicks = 2`, `followThroughTicks = 6`.
+  - Bola de Fuego: `anticipationTicks = 5`, `executionTicks = 30` (tiempo de vuelo máx), `contactTicks = 2`, `followThroughTicks = 8`.
 
 ### 5.4 Arcos (Gameplay vs. Cosméticos)
 
-- **Gameplay Trajectories (Simulation):** Fireballs travel either in a straight line or along a deterministic parabolic arc calculated via fixed gravimetric steps in `MovementSystem` (`vy += gravity * dt`).
-- **Cosméticos (Presentation):**
-  - Directional Sparks & Blood/Ember Particles: Calculated via quadratic Bezier control points:
+- **Trayectorias de Gameplay (Simulación):** Las bolas de fuego viajan en línea recta o en arcos parabólicos deterministas mediante pasos gravimétricos en el `MovementSystem` (`vy += gravity * dt`).
+- **Arcos Cosméticos (Presentación):**
+  - Partículas de Chispas / Fuego: Calculadas con curvas Bezier cuadráticas:
     $$P(t) = (1-t)^2 P_0 + 2(1-t)t P_c + t^2 P_1$$
-    where $P_c$ is perturbed perpendicular to impact normal $N$.
-  - Floating Damage Text: Spawns at impact point $P_0$, arc height $H = 24\text{px}$, velocity $V_x = \text{randomDirection} \times 30\text{px/s}$, dropping down via gravity factor over $0.5\text{s}$.
+    donde $P_c$ se desplaza en dirección perpendicular a la normal de impacto $N$.
+  - Números de Daño Flotante: Nacen en la posición de impacto $P_0$, suben con una parábola de elevación de $24\text{px}$ y caen suavemente mediante un factor de gravedad cosmético durante $0.5\text{s}$.
 
-### 5.5 Follow-Through & Trail Inertia
+### 5.5 Follow-Through e Inercia
 
-- **Motion Trails:** Uses `CircularPositionBuffer` (`capacity = 16`). Each tick stores position `(x, y)`, velocity, and rotation.
-- **Lag / Delay Effect:** Renderers sample position history with a decay curve $A(i) = (i / capacity)^{1.5}$. When hero stops moving, the trail points continue forward along stored velocity vectors for 3 ticks before collapsing.
-- **Particle Inertia:** On fireball explosion or sword hit, particles inherit 30% of projectile/sword velocity vector $\vec{V}_{\text{parent}}$ added to their random explosion radial vector $\vec{V}_{\text{radial}}$.
+- **Estelas de Movimiento:** Se utiliza `CircularPositionBuffer` (`capacidad = 16`). Cada tick guarda las posiciones históricas `(x, y)`, la velocidad y la rotación.
+- **Efecto de Desfase / Arrastre:** El renderer dibuja la estela atenuando la opacidad $A(i) = (i / capacidad)^{1.5}$. Cuando el emisor se detiene, los puntos de la estela continúan moviéndose 3 ticks según su última velocidad almacenada antes de colapsar.
+- **Inercia de Partículas:** Al explotar la bola de fuego o golpear la espada, las partículas heredan el 30% del vector de velocidad del atacante/proyectil $\vec{V}_{\text{padre}}$ sumado a su vector radial de explosión $\vec{V}_{\text{radial}}$.
 
-### 5.6 Unified Hit Stop Architecture
+### 5.6 Hit Stop Unificado por Prioridad
 
-- Uses `HitStopSystem.ts` with explicit `HitStopPriority`:
-  - `LIGHT_HIT` (Weak projectile / light slash): 2 ticks (33ms), priority `LOW`.
-  - `MEDIUM_HIT` (Heavy sword slash / fireball direct hit): 4 ticks (66ms), priority `NORMAL`.
-  - `CRITICAL_HIT` (Kill blow / boss impact / hero damage): 8 ticks (133ms), priority `CRITICAL`.
-- **Freeze Mechanism:** `HitStopSystem` decrements `HitStopRemaining`. While `HitStopRemaining > 0`, positional physics updates (`MovementSystem`, `PhysicsSystem`) skip entity translation for affected entities, while `VisualParticlePool` and rendering loops continue drawing ambient animation and CRT scanlines.
+Utiliza `HitStopSystem.ts` con prioridades estrictas:
+- `LIGHT_HIT` (Proyectil débil / espadazo rápido): 2 ticks (33ms), prioridad `LOW`.
+- `MEDIUM_HIT` (Espadazo pesado / impacto directo bola de fuego): 4 ticks (66ms), prioridad `NORMAL`.
+- `CRITICAL_HIT` (Golpe de gracia / impacto en jefe / daño recibido por el héroe): 8 ticks (133ms), prioridad `CRITICAL`.
 
-### 5.7 Decoupled Event-Driven Architecture
+**Mecanismo:** `HitStopSystem` decrementa `HitStopRemaining`. Mientras `HitStopRemaining > 0`, los sistemas de física de posición (`MovementSystem`, `PhysicsSystem`) pausan la integración del movimiento de las entidades involucradas, mientras que los renderers y las partículas continúan dibujando animaciones ambientales y efectos de pantalla. En multijugador online, la congelación se limita al atacante y al objetivo para evitar que otros jugadores sufran micro-tirones.
 
-Collision and combat systems emit structured events on `world.getEventBus()` instead of calling juice logic inline:
+### 5.7 Eventos Decoplados de Ataque e Impacto
+
+Los sistemas de combate no llaman directamente al código de jugosidad, sino que emiten eventos fuertemente tipados en `world.getEventBus()`:
 
 ```typescript
 export interface CombatAttackPhaseEvent {
@@ -197,17 +195,15 @@ export interface CombatImpactEvent {
   attackFamily: "melee" | "projectile";
   profileId: string;
   position: { x: number; y: number };
-  normal: { x: number; y: number }; // Normalized impact vector (nx, ny)
+  normal: { x: number; y: number }; // Vector normalizado (nx, ny)
   damage: number;
   isFatal: boolean;
 }
 ```
 
-Independent Juice listeners (`CombatJuiceSystem`, `JuiceOrchestrator`) subscribe to these events and trigger visual transforms, particle spawns, sound recipes, and camera rumbles.
+### 5.8 Perfiles Data-Driven de Jugosidad
 
-### 5.8 Data-Driven Combat Juice Profiles
-
-Per-attack feel parameters are stored in typed data schemas:
+Los parámetros de sensación de cada ataque se definen mediante interfaces tipadas sin `any` ni `unknown`:
 
 ```typescript
 export interface CombatJuiceProfile {
@@ -222,13 +218,13 @@ export interface CombatJuiceProfile {
   squashStretch: {
     anticipationScaleX: number;
     anticipationScaleY: number;
-    impactTargetScaleX: number; // e.g. 0.6
-    impactTargetScaleY: number; // e.g. 1.4
+    impactTargetScaleX: number; // Ej. 0.6
+    impactTargetScaleY: number; // Ej. 1.4
     recoveryDurationTicks: number;
   };
   flash: {
     durationTicks: number;
-    colorHex: string; // e.g. "#FFFFFF"
+    colorHex: string;
   };
   particles: {
     count: number;
@@ -257,220 +253,213 @@ export interface CombatJuiceProfile {
 }
 ```
 
-Profiles live in `packages/gameplay-kit/src/combat/profiles/` and are registered in `World` resources, easily overrideable via `Theme` overrides or game blueprints.
+Los perfiles se alojan en `packages/gameplay-kit/src/combat/profiles/` y se registran en los recursos del `World`.
 
-### 5.9 Package and Module Boundaries
+### 5.9 Ubicación de cada Pieza y Límites de Paquetes
 
 - `packages/gameplay-kit/src/combat/`:
-  - `CombatJuicePipeline.ts`: Core system orchestrating attack phases.
-  - `CombatJuiceProfileSchema.ts`: Profile types and validation schemas.
-  - `components/VisualTransformComponent.ts`: Visual transform offsets for squash/stretch.
-  - `systems/VisualSquashStretchSystem.ts`: Smooth spring-damper recovery for visual scale.
+  - `CombatJuicePipeline.ts`: Sistema central que procesa fases de ataque e impactos.
+  - `components/VisualTransformComponent.ts`: Componente ECS para transformaciones visuales.
+  - `systems/VisualSquashStretchSystem.ts`: Recuperación elástica suave hacia escala (1,1).
 - `src/games/shared/rendering/`:
-  - `SharedVFX.ts`: Reusable particle profile spawners and floating text arcs.
-  - `JuiceOrchestrator.ts`: Event bus adapter mapping `CombatImpactEvent` to screen shake and audio.
+  - `SharedVFX.ts`: Generación reutilizable de explosiones, ráfagas direccionales y textos flotantes en arco.
+  - `JuiceOrchestrator.ts`: Conector de eventos hacia shake de pantalla y audio.
 - `@tiny-aster/arcade-sound-kit`:
-  - Sound recipes for sword slashes (`sword_sweep`, `sword_clash`, `sword_flesh_hit`) and fireballs (`fireball_cast`, `fireball_fly_loop`, `fireball_detonate`).
+  - Recetas de audio para espada (`sword_sweep`, `sword_clash`, `sword_flesh_hit`) y fuego (`fireball_cast`, `fireball_fly_loop`, `fireball_detonate`).
 
-### 5.10 Resource Pooling, Caps, and Sound Voice Limits
+### 5.10 Partículas, Knockback, Límites de Sonido y Colisiones
 
-- **Particle Pooling:** `VisualParticlePool` uses preallocated fixed-capacity array (max 256 active particles per game instance). When capacity is reached, oldest low-priority particles are recycled. Max 32 particles spawned per impact frame.
-- **Sound Voice Limits:** Audio system limits concurrent impact sounds to max 4 voices per frame, prioritizing local player impacts over background NPC hits. Pitch is randomized by $\pm 8\%$ (`1 + (random - 0.5) * 0.16`) to eliminate machine-gun repetition.
-- **Knockback Bounds Safety:** Knockback velocities applied to entities check map boundaries and static colliders using `GridRaycast` / `SpatialCulling`. If an impulse pushes an entity into a wall, velocity is clamped and secondary wall-bounce spark particles spawn.
+- **Límite de Partículas:** `VisualParticlePool` mantiene una capacidad máxima fija de 256 partículas. Cada impacto genera un máximo de 24 partículas.
+- **Límite de Voces de Audio:** Máximo 4 voces de impacto por frame con variación aleatoria de pitch de $\pm 8\%$ (`1 + (random - 0.5) * 0.16`).
+- **Knockback e Interacción con Límites:** Los impulsos de knockback verifican colisiones estáticas en el escenario mediante `Broadphase` / `GridRaycast`. Si el knockback empuja al enemigo contra una pared, la velocidad se frena y se engendran chispas secundarias de choque contra el muro.
 
-### 5.11 Global Toggle and Motion Reduction Accessibility
+### 5.11 Interruptor Global y Modo de Reducción de Movimiento
 
-- `Theme` resource and `VFXWorldState` include accessibility flags:
-  ```typescript
-  export interface VFXWorldState {
-    juiceLevel: number;        // 0.0 (off) to 1.0 (full)
-    motionReduction: boolean; // Accessible low-motion mode
-  }
-  ```
-- **When `juiceLevel === 0`:**
-  - All visual squash/stretch, screen shake, flashes, damage numbers, and particles are skipped.
-  - Hit stop duration is forced to 0.
-  - Simulation behavior (knockback impulse and attack phase tick timing) remains 100% unchanged.
-- **When `motionReduction === true`:**
-  - Camera shake intensity scaled to 0.
-  - Screen flashes replaced with subtle outline highlights.
-  - Squash/stretch maximum scale clamped to $\pm 10\%$ max deformation.
+Configurable desde el recurso `Theme` o `VFXWorldState`:
+- **`juiceLevel === 0` (Desactivado):**
+  - Desactiva squash/stretch, shake de cámara, flashes blancos, números de daño y partículas.
+  - La duración de hit stop se reduce a 0.
+  - **Invariante:** La física de la simulación (knockback y duración de ticks) se ejecuta de forma 100% idéntica.
+- **`motionReduction === true` (Accesibilidad de Movimiento Reducido):**
+  - La intensidad de shake de cámara se escala a 0.
+  - El flash de pantalla completa se reemplaza por un borde fino sutil.
+  - Las deformaciones de squash/stretch se limitan a un máximo de $\pm 10\%$.
 
 ---
 
-## 6. Phased Implementation Plan
+## 6. Plan de Implementación por Fases (Dimensionado para Sesiones)
 
-Each phase is sized for a single focused work session with a dedicated git commit.
+Cada fase está dimensionada para una sesión de trabajo enfocada con un commit independiente.
 
 ```
 +-----------------------------------------------------------------------------------+
-|                            PHASED EXECUTION ROADMAP                               |
+|                            HOJA DE RUTA DE EJECUCIÓN                              |
 +-----------------------------------------------------------------------------------+
-| PHASE 1: Core Combat Juice Engine & Visual Transform (packages/gameplay-kit)     |
-+-----------------------------------------------------------------------------------+
-                                         |
-                                         v
-+-----------------------------------------------------------------------------------+
-| PHASE 2: Shared VFX Utilities, Sound Recipes & Floating Damage Arcs               |
+| FASE 1: Motor de Combat Juice & Transform Visual (packages/gameplay-kit)          |
 +-----------------------------------------------------------------------------------+
                                          |
                                          v
 +-----------------------------------------------------------------------------------+
-| PHASE 3: Pilot Integration in Hit & Run (Sword Melee & Fireball Weapons)          |
+| FASE 2: Recetas de Sonido, Utilidades VFX & Textos en Arco                        |
 +-----------------------------------------------------------------------------------+
                                          |
                                          v
 +-----------------------------------------------------------------------------------+
-| PHASE 4: Secondary Game Integrations (Platformer, GeometryWars, TowerDefense)     |
+| FASE 3: Integración Piloto en Hit & Run (Espada Melee y Bola de Fuego)            |
 +-----------------------------------------------------------------------------------+
                                          |
                                          v
 +-----------------------------------------------------------------------------------+
-| PHASE 5: Accessibility, Motion Reduction & Determinism Test Guardrails            |
+| FASE 4: Despliegue en Juegos Secundarios (Platformer, GeometryWars, TowerDefense) |
++-----------------------------------------------------------------------------------+
+                                         |
+                                         v
++-----------------------------------------------------------------------------------+
+| FASE 5: Accesibilidad, Reducción de Movimiento & Guardarraíles de Determinismo    |
 +-----------------------------------------------------------------------------------+
 ```
 
 ---
 
-### Phase 1 — Core Combat Juice Engine & Visual Transform Component
+### Fase 1 — Motor Central de Combat Juice y Componente de Transformación Visual
 
-**Session Goal:** Implement the foundational `VisualTransformComponent`, `VisualSquashStretchSystem`, and data-driven `CombatJuicePipeline` in `packages/gameplay-kit`.
+**Objetivo de la Sesión:** Crear `VisualTransformComponent`, `VisualSquashStretchSystem` y el pipeline por fases `CombatJuicePipeline` en `packages/gameplay-kit`.
 
-- **Target Packages/Files:**
-  - `packages/gameplay-kit/src/combat/components/VisualTransformComponent.ts` (NEW)
-  - `packages/gameplay-kit/src/combat/systems/VisualSquashStretchSystem.ts` (NEW)
-  - `packages/gameplay-kit/src/combat/types/CombatJuiceTypes.ts` (NEW)
-  - `packages/gameplay-kit/src/combat/systems/CombatJuicePipeline.ts` (NEW)
+- **Archivos / Paquetes Involucrados:**
+  - `packages/gameplay-kit/src/combat/components/VisualTransformComponent.ts` (NUEVO)
+  - `packages/gameplay-kit/src/combat/systems/VisualSquashStretchSystem.ts` (NUEVO)
+  - `packages/gameplay-kit/src/combat/types/CombatJuiceTypes.ts` (NUEVO)
+  - `packages/gameplay-kit/src/combat/systems/CombatJuicePipeline.ts` (NUEVO)
   - `packages/renderer-canvas/src/CanvasRenderer.ts`
   - `packages/renderer-skia/src/SkiaRenderer.ts`
-- **Atomic Steps:**
-  1. Create `VisualTransformComponent` definition with `scaleX`, `scaleY`, `rotationOffset`, `offsetX`, `offsetY`.
-  2. Implement `VisualSquashStretchSystem` applying critically damped spring-damper recovery ($k = 300, c = 20$) back to unit scale $(1, 1)$ every tick.
-  3. Update `CanvasRenderer` and `SkiaRenderer` matrix transforms to apply `VisualTransformComponent` offsets without touching `TransformComponent` or `BoxColliderComponent`.
-  4. Implement `CombatJuicePipeline` listening to `combat:attack_phase` and `combat:impact` events.
-- **Acceptance Criteria:**
-  - Unit tests verify that applying visual squash/stretch does not alter `BoxColliderComponent` bounding box or collision detection output.
-  - Dual renderers (Canvas & Skia) render identical visual deformations.
-- **Risks & Mitigations:**
-  - *Risk:* Matrix stack leak in render loops. *Mitigation:* Wrap transform operations in strict `ctx.save()` / `ctx.restore()` or Skia `canvas.save()` / `canvas.restore()` blocks.
+- **Pasos Atómicos:**
+  1. Definir `VisualTransformComponent` con `scaleX`, `scaleY`, `rotationOffset`, `offsetX`, `offsetY`.
+  2. Implementar `VisualSquashStretchSystem` aplicando amortiguación elástica ($k = 300, c = 20$) hacia escala (1,1) cada tick.
+  3. Actualizar `CanvasRenderer` y `SkiaRenderer` para aplicar las transformaciones de `VisualTransformComponent` sin modificar `TransformComponent` ni `BoxColliderComponent`.
+  4. Crear `CombatJuicePipeline` escuchando los eventos de fase e impacto.
+- **Criterio de Aceptación Comprobable:**
+  - Los tests unitarios verifican que aplicar escalas visuales de squash/stretch no cambia los límites de `BoxColliderComponent` ni el resultado de las colisiones.
+  - Los renderers de Canvas2D y Skia aplican las deformaciones visuales de manera idéntica.
+- **Riesgos y Mitigación:**
+  - *Riesgo:* Fugas en la pila de matrices de renderizado. *Mitigación:* Envolver las transformaciones en bloques estrictos `ctx.save()` / `ctx.restore()` y Skia `canvas.save()` / `canvas.restore()`.
 
 ---
 
-### Phase 2 — Shared VFX Utilities, Sound Recipes & Damage Arcs
+### Fase 2 — Recetas de Sonido, Utilidades VFX y Arcos de Daño
 
-**Session Goal:** Expand `@tiny-aster/arcade-sound-kit` with sword/fireball recipes and extend `SharedVFX` with directional particle bursts and parabolic damage text arcs.
+**Objetivo de la Sesión:** Añadir recetas para espada y bola de fuego en `@tiny-aster/arcade-sound-kit` y extender `SharedVFX` con ráfagas direccionales y textos flotantes en arco.
 
-- **Target Packages/Files:**
-  - `packages/arcade-sound-kit/src/recipes/combatRecipes.ts` (NEW)
+- **Archivos / Paquetes Involucrados:**
+  - `packages/arcade-sound-kit/src/recipes/combatRecipes.ts` (NUEVO)
   - `src/games/shared/rendering/SharedVFX.ts`
   - `src/games/shared/rendering/VisualParticlePool.ts`
-- **Atomic Steps:**
-  1. Add 6 procedural sound recipes in `arcade-sound-kit`: `sword_sweep`, `sword_clash`, `sword_flesh_hit`, `fireball_cast`, `fireball_fly_loop`, `fireball_detonate`.
-  2. Add `spawnDirectionalBurst()` to `SharedVFX.ts` taking impact origin $(x, y)$, normal vector $(nx, ny)$, spread angle, and speed.
-  3. Add `spawnParabolicDamageText()` to `SharedVFX.ts` animating floating numbers along Bezier arc trajectories.
-  4. Integrate voice limit caps (max 4 concurrent impact sounds per frame) and particle allocation guards.
-- **Acceptance Criteria:**
-  - `pnpm --filter=@tiny-aster/arcade-sound-kit test` passes with recipe validation.
-  - Particle spawns recycle cleanly when cap (256) is reached without garbage collection allocations.
-- **Risks & Mitigations:**
-  - *Risk:* Audio distortion from overlapping noise bursts. *Mitigation:* Apply soft clipping compressor in `arcade-sound-kit` synthesis buffer.
+- **Pasos Atómicos:**
+  1. Añadir 6 recetas procedurales de audio en `arcade-sound-kit`: `sword_sweep`, `sword_clash`, `sword_flesh_hit`, `fireball_cast`, `fireball_fly_loop`, `fireball_detonate`.
+  2. Añadir la función `spawnDirectionalBurst()` a `SharedVFX.ts` aceptando origen $(x,y)$, vector normal $(nx,ny)$, ángulo de apertura y velocidad.
+  3. Añadir la función `spawnParabolicDamageText()` a `SharedVFX.ts` animando números flotantes en arcos parabólicos Bezier.
+  4. Integrar el límite de 4 voces de audio concurrentes por frame.
+- **Criterio de Aceptación Comprobable:**
+  - `pnpm --filter=@tiny-aster/arcade-sound-kit test` ejecuta y valida todas las recetas.
+  - La generación masiva de partículas recicla elementos limpiamente al llegar al tope de 256 sin asignaciones dinámicas en heap.
+- **Riesgos y Mitigación:**
+  - *Riesgo:* Saturación de sonido por impactos simultáneos. *Mitigación:* Compresor suave en la síntesis de audio de `arcade-sound-kit`.
 
 ---
 
-### Phase 3 — Pilot Integration in Hit & Run (Sword Melee & Fireball Weapons)
+### Fase 3 — Integración Piloto en Hit & Run (Espada Melee y Bola de Fuego)
 
-**Session Goal:** Integrate the complete unified combat juice pipeline into `hitandrun`, validating both Sword Melee and Fireball/Laser weapons in a real game.
+**Objetivo de la Sesión:** Integrar el pipeline unificado de combat juice en el juego piloto `hitandrun`, validando los golpes de espada y los proyectiles de fuego en un juego real.
 
-- **Target Files:**
+- **Archivos Involucrados:**
   - `src/games/hitandrun/melee/HitRunMeleeSystem.ts`
   - `src/games/hitandrun/weapons/HitRunWeaponSystem.ts`
   - `src/games/hitandrun/systems/HitRunCombatSystem.ts`
   - `src/games/hitandrun/systems/registerHitRunFeedback.ts`
   - `src/games/hitandrun/HitAndRunGame.ts`
-  - `src/games/hitandrun/__tests__/HitRunCombatJuice.test.ts` (NEW)
-- **Atomic Steps:**
-  1. Emit `combat:attack_phase` in `HitRunMeleeSystem.ts` during sword windup, active sweep, and follow-through recovery.
-  2. Emit `combat:attack_phase` in `HitRunWeaponSystem.ts` when firing fireball projectiles and upon projectile detonation.
-  3. Emit `combat:impact` in `HitRunCombatSystem.ts` carrying attacker, target, impact normal vector, and damage.
-  4. Register `CombatJuicePipeline` in `registerHitRunFeedback.ts` and attach profiles for `sword_slash` and `fireball_blast`.
-  5. Run integration tests and measure feel across Canvas2D and Skia visual modes.
-- **Acceptance Criteria:**
-  - Sword slash triggers hero windup lean, arc trail, impact flash, sound, directional spark burst, enemy squash, and 4-tick hit stop.
-  - Fireball triggers cast squash, traveling stretched sphere, detonation explosion burst, camera shake, and knockback impulse.
-  - All existing `hitandrun` unit tests continue passing with zero regressions.
-- **Risks & Mitigations:**
-  - *Risk:* Hit stop interfering with weapon cooldown timers. *Mitigation:* Weapon cooldown systems check `isHitStopActive(world)` and pause cooldown decrement during freeze ticks.
+  - `src/games/hitandrun/__tests__/HitRunCombatJuice.test.ts` (NUEVO)
+- **Pasos Atómicos:**
+  1. Emitir `combat:attack_phase` en `HitRunMeleeSystem.ts` durante inclinación de carga, barrido en arco y recuperación.
+  2. Emitir `combat:attack_phase` en `HitRunWeaponSystem.ts` al cargar, lanzar bola de fuego y en la detonación.
+  3. Emitir `combat:impact` en `HitRunCombatSystem.ts` incluyendo la normal del golpe y el daño.
+  4. Registrar `CombatJuicePipeline` en `registerHitRunFeedback.ts` con perfiles para `sword_slash` y `fireball_blast`.
+  5. Ejecutar tests de integración y comprobar la sensación visual en Canvas2D y Skia.
+- **Criterio de Aceptación Comprobable:**
+  - El tajo de espada dispara inclinación del héroe, estela en arco, flash blanco en objetivo, sonido, ráfaga de chispas direccionales, aplastamiento enemigo y hit stop de 4 ticks.
+  - La bola de fuego dispara compresión al cargar, vuelo estirado, explosión en la detonación, shake de pantalla e impulso de knockback.
+  - Todos los tests unitarios existentes en `hitandrun` continúan pasando sin regresiones.
+- **Riesgos y Mitigación:**
+  - *Riesgo:* El hit stop interfiere con los temporizadores de cadencia de tiro. *Mitigación:* Los sistemas de recarga verifican si el mundo está en hit stop antes de restar tiempo de recarga.
 
 ---
 
-### Phase 4 — Secondary Game Integrations (Platformer, Geometry Wars, Tower Defense)
+### Fase 4 — Integración en Juegos Secundarios (Platformer, Geometry Wars, Tower Defense)
 
-**Session Goal:** Roll out the unified combat juice pipeline to `platformer`, `geometrywars`, and `tower-defense`.
+**Objetivo de la Sesión:** Desplegar la canalización de combat juice en `platformer`, `geometrywars` y `tower-defense`.
 
-- **Target Files:**
+- **Archivos Involucrados:**
   - `src/games/platformer/systems/PlatformerDamageSystem.ts`
   - `src/games/geometrywars/systems/`
   - `src/games/tower-defense/systems/`
-- **Atomic Steps:**
-  1. Attach `VisualTransformComponent` to platformer player on stomp and damage impact.
-  2. Wire `geometrywars` plasma impacts and missile detonations to emit `combat:impact` with directional recoil.
-  3. Wire `tower-defense` turret projectile impacts to trigger enemy flash, impact sound, target squash, and floating damage arcs.
-- **Acceptance Criteria:**
-  - Impact feedback works consistently across all 3 games according to the Game × Effect matrix.
-- **Risks & Mitigations:**
-  - *Risk:* Performance slowdown with dense enemy swarms in Geometry Wars or Tower Defense. *Mitigation:* Enforce strict particle caps (max 8 particles per swarm hit) and priority hit stop overrides.
+- **Pasos Atómicos:**
+  1. Vincular `VisualTransformComponent` al jugador en `platformer` durante pisotones y daño.
+  2. Emitir `combat:impact` con retroceso direccional en `geometrywars` para impactos de plasma y detonación de mísiles.
+  3. Emitir `combat:impact` en `tower-defense` al impactar proyectiles de torre para activar flash en enemigo, sonido, aplastamiento y números de daño en arco.
+- **Criterio de Aceptación Comprobable:**
+  - La respuesta al impacto funciona de manera coherente en los 3 juegos respetando la matriz Juego × Efecto.
+- **Riesgos y Mitigación:**
+  - *Riesgo:* Caída de frames en oleadas densas de enemigos en Geometry Wars o Tower Defense. *Mitigación:* Aplicar tope de 8 partículas por impacto en hordas.
 
 ---
 
-### Phase 5 — Accessibility, Motion Reduction & Determinism Test Guardrails
+### Fase 5 — Accesibilidad, Reducción de Movimiento y Tests de Guardarraíl
 
-**Session Goal:** Implement motion reduction controls and comprehensive automated regression test suites.
+**Objetivo de la Sesión:** Implementar controles de accesibilidad de movimiento e implementar la suite de tests automatizados de determinismo y seguridad.
 
-- **Target Files:**
+- **Archivos Involucrados:**
   - `src/games/shared/rendering/JuiceOrchestrator.ts`
   - `packages/core/src/theme/Theme.ts`
-  - `packages/core/tests/CombatDeterminismParity.test.ts` (NEW)
-  - `packages/core/tests/HitboxIsolation.test.ts` (NEW)
-- **Atomic Steps:**
-  1. Implement `juiceLevel` and `motionReduction` toggles in `JuiceOrchestrator`.
-  2. Write determinism test: run 100 combat ticks with `juiceLevel = 1.0` and `juiceLevel = 0.0`; verify resulting `World` snapshot hashes are 100% identical.
-  3. Write hitbox isolation test: apply max squash/stretch deformation $(2.0, 0.5)$; verify `BoxColliderComponent` bounds remain un-deformed.
-  4. Write particle pool bound test: spawn 1000 impact events in a single tick; verify memory allocation does not grow beyond preallocated 256 capacity.
-- **Acceptance Criteria:**
-  - All 3 automated test suites pass cleanly.
-  - `pnpm run ci` passes without typecheck or ratchet errors.
+  - `packages/core/tests/CombatDeterminismParity.test.ts` (NUEVO)
+  - `packages/core/tests/HitboxIsolation.test.ts` (NUEVO)
+- **Pasos Atómicos:**
+  1. Implementar los modificadores `juiceLevel` y `motionReduction` en `JuiceOrchestrator`.
+  2. Escribir test de determinismo: ejecutar 100 ticks de combate con `juiceLevel = 1.0` y con `juiceLevel = 0.0`; comprobar que el hash de snapshot del `World` resultante es 100% idéntico.
+  3. Escribir test de aislamiento de hitbox: aplicar deformación extrema $(2.0, 0.5)$ en `VisualTransformComponent`; verificar que las cajas AABB de `BoxColliderComponent` no sufren alteración.
+  4. Escribir test de límite de memoria en pool de partículas: simular 1000 impactos seguidos; comprobar que la memoria asignada no supera las 256 partículas preasignadas.
+- **Criterio de Aceptación Comprobable:**
+  - Los 3 tests automatizados de guardarraíl se ejecutan y pasan correctamente.
+  - `pnpm run ci` pasa sin errores de tipado o ratchet.
 
 ---
 
-## 7. Required Automated Test Guardrails
+## 7. Pruebas Mínimas de Guardarraíl (Automated Test Guardrails)
 
-1. **Determinism Parity Test (`CombatDeterminismParity.test.ts`):**
-   - *Requirement:* Simulation snapshot hashes after $N$ combat ticks must be binary-identical regardless of whether visual juice is enabled (`juiceLevel = 1.0`) or disabled (`juiceLevel = 0.0`).
-2. **Hitbox Isolation Test (`HitboxIsolation.test.ts`):**
-   - *Requirement:* Mutating `VisualTransformComponent` (scaleX, scaleY, skew, rotationOffset) must not alter spatial culling queries, AABB bounding boxes, or raycast intersections on `BoxColliderComponent`.
-3. **Particle Pool Boundedness Test (`ParticlePoolBoundedness.test.ts`):**
-   - *Requirement:* Spawning continuous combat impacts over 10,000 frames must maintain constant memory footprint with zero heap allocations after initial pool warm-up.
-
----
-
-## 8. Open Questions Requiring User Input
-
-1. **Hit Stop Mechanics in Local Co-op / Multiplayer:**
-   - *Question:* Should hit stop pause physics simulation for ALL entities globally (standard arcade style), or only pause physics for the attacker and target entities (preserving movement for non-involved remote players)?
-   - *Recommendation:* Global freeze for single-player games and local co-op; entity-isolated freeze for Colyseus online multiplayer to prevent remote player stutter.
-2. **Sword Slash Canceling Window:**
-   - *Question:* Should heavy sword melee attacks be cancelable by a dash/roll during the initial anticipation phase (2-3 ticks), or should all melee attacks commit full animation length once button is pressed?
-   - *Recommendation:* Allow dash-canceling during windup for high-skill expression in `hitandrun`.
-3. **Floating Damage Text Visual Style:**
-   - *Question:* Should damage numbers use retro 8-bit bitmap font characters or procedural stroke vectors matching the active game concept pack/theme?
-   - *Recommendation:* Use procedural vector characters derived from the game theme font tokens to maintain theme decoupling parity.
+1. **Test de Paridad y Determinismo (`CombatDeterminismParity.test.ts`):**
+   - *Requisito:* El hash de snapshot del estado del mundo tras $N$ ticks de simulación de combate debe ser exactamente idéntico independientemente de si los efectos visuales están activados (`juiceLevel = 1.0`) o desactivados (`juiceLevel = 0.0`).
+2. **Test de Aislamiento de Hitbox (`HitboxIsolation.test.ts`):**
+   - *Requisito:* Modificar `VisualTransformComponent` (scaleX, scaleY, skew, rotationOffset) no debe alterar las consultas de culling espacial, las cajas AABB ni las intersecciones de `BoxColliderComponent`.
+3. **Test de Límite en Pool de Partículas (`ParticlePoolBoundedness.test.ts`):**
+   - *Requisito:* Engendrar impactos continuos durante 10,000 frames debe mantener un uso de memoria constante sin asignaciones en el heap de JavaScript tras la fase inicial de calentamiento.
 
 ---
 
-## 9. Definition of Done
+## 8. Preguntas Abiertas que Requieren Decisión
 
-- Unified combat juice engine (`CombatJuicePipeline`) implemented in `packages/gameplay-kit`.
-- Dual Canvas2D and Skia renderers support `VisualTransformComponent` squash & stretch without altering physics colliders.
-- Pilot game `hitandrun` exhibits complete weighted feedback for both sword slashes and fireball projectiles.
-- All automated guardrail tests (Determinism, Hitbox Isolation, Particle Cap) pass with 100% coverage.
-- Full workspace verification (`pnpm run ci`) completes with zero errors.
+1. **Comportamiento del Hit Stop en Multijugador Online (Colyseus):**
+   - *Pregunta:* ¿El hit stop debe pausar la simulación de física de forma global para TODAS las entidades (estilo arcade clásico en pantalla compartida), o solo debe pausar la física del atacante y del objetivo impactado (preservando el movimiento fluido de otros jugadores remotos)?
+   - *Recomendación:* Congelación global para juegos single-player y co-op local; congelación aislada por entidad en multijugador online para evitar micro-tirones en clientes remotos.
+2. **Ventana de Cancelación en Ataque Melee (Espada):**
+   - *Pregunta:* ¿Los ataques de espada pesados deben ser cancelables con esquive/rodada durante la fase inicial de anticipación (ticks 1-3), o el ataque debe comprometer toda la animación una vez pulsado el botón?
+   - *Recomendación:* Permitir cancelación por rodada durante la anticipación para favorecer la habilidad técnica del jugador en `hitandrun`.
+3. **Estilo Visual de los Números de Daño Flotantes:**
+   - *Pregunta:* ¿Los números de daño deben utilizar glifos de fuente bitmap retro de 8 bits o deben renderizarse mediante trazados de vectores procedimentales según los tokens del tema activo?
+   - *Recomendación:* Utilizar trazados de vectores procedimentales derivados de los tokens del tema activo para preservar la paridad y desacoplamiento de temas.
+
+---
+
+## 9. Definición de Hecho (Definition of Done)
+
+- Pipeline unificado de combat juice (`CombatJuicePipeline`) implementado en `packages/gameplay-kit`.
+- Renderers Canvas2D y Skia soportan `VisualTransformComponent` para squash & stretch sin afectar a los colliders de física.
+- El juego piloto `hitandrun` presenta golpes con peso e impacto completo tanto para espadas como para bolas de fuego.
+- Todas las pruebas de guardarraíl (Determinismo, Aislamiento de Hitbox, Pool de Partículas) pasan con 100% de cobertura.
+- Verificación completa del repositorio (`pnpm run ci` o typecheck) finaliza sin errores.

@@ -1,6 +1,7 @@
 import { SoundRecipe, GenerateOptions, LayerSpec } from './types';
 import { RNG } from './random';
 import { layerRenderers, LayerRendererContext } from './renderers';
+import { applyEffectsChain, estimateEffectsTailSeconds } from './effects/chain';
 
 export { BiquadFilter } from './dsp/biquad';
 export { computeEnvelope } from './dsp/envelope';
@@ -167,7 +168,10 @@ export async function render(
   );
   const duration = recipe.loop ? Math.max(baseDuration, 0.35) : baseDuration;
 
-  const totalSamples = Math.round(duration * sampleRate);
+  const tailSeconds = estimateEffectsTailSeconds(recipe.effects);
+  const totalDuration = duration + tailSeconds;
+
+  const totalSamples = Math.round(totalDuration * sampleRate);
   let samples = new Float32Array(totalSamples);
 
   for (let layerIndex = 0; layerIndex < recipe.layers.length; layerIndex++) {
@@ -197,6 +201,11 @@ export async function render(
     if (renderer) {
       renderer(samples, l, ctx);
     }
+  }
+
+  // Apply master effects chain
+  if (recipe.effects && recipe.effects.length > 0) {
+    samples = new Float32Array(applyEffectsChain(samples, recipe.effects, sampleRate));
   }
 
   // Constant-power crossfade for seamless loop recipes

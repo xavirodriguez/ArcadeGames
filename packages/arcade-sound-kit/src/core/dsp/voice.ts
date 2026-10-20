@@ -1,4 +1,4 @@
-import { Wave, FilterSpec, ModulationSpec, LfoSpec, Envelope } from '../types';
+import { Wave, FilterSpec, ModulationSpec, LfoSpec, Envelope, FmSpec, UnisonSpec } from '../types';
 import { evalWave } from './oscillators';
 import { computeEnvelope } from './envelope';
 import { BiquadFilter } from './biquad';
@@ -14,10 +14,14 @@ export interface RenderVoiceContext {
   sustain: number;
   release: number;
   gainLinear: number;
+  duty?: number;
   durJitter?: number;
   envelope?: Envelope;
   filter?: FilterSpec;
   modulation?: ModulationSpec;
+  fm?: FmSpec;
+  unison?: UnisonSpec;
+  bitcrush?: { bits?: number; downsample?: number };
   layerRng?: RNG;
 }
 
@@ -54,7 +58,7 @@ function evalLfo(lfo: LfoSpec, tRel: number, initialPhase = 0, rng?: RNG, rateJi
 
 /**
  * Renders a single oscillator voice with time-varying frequency, envelope, gain, LFO modulation,
- * exponential/multipoint envelope curves, and optional biquad filter.
+ * FM phase modulation, Unison detuning, duty cycle, bitcrush, and optional biquad filter.
  */
 export function renderVoice(
   samples: Float32Array,
@@ -62,7 +66,22 @@ export function renderVoice(
   ctx: RenderVoiceContext
 ): void {
   const wave = voice.wave ?? 'sine';
-  let phase = 0;
+  const duty = ctx.duty ?? 0.5;
+
+  const voicesCount = Math.max(1, Math.min(8, ctx.unison?.voices ?? 1));
+  const unisonGainNorm = 1 / Math.sqrt(voicesCount);
+  const detuneCents = ctx.unison?.detuneCents ?? 0;
+
+  const phases = new Float64Array(voicesCount);
+  const modPhases = new Float64Array(voicesCount);
+  const modLastOut = new Float64Array(voicesCount);
+
+  if (ctx.unison && ctx.layerRng) {
+    for (let v = 0; v < voicesCount; v++) {
+      phases[v] = ctx.layerRng.next();
+      modPhases[v] = ctx.layerRng.next();
+    }
+  }
 
   const hasFilter = ctx.filter && ctx.filter.minHz > 0;
   const biquad = hasFilter ? new BiquadFilter() : null;
@@ -81,6 +100,7 @@ export function renderVoice(
   const initFilterPhase = filterLfo?.phase ?? (ctx.layerRng ? ctx.layerRng.next() : 0);
 
   let sampleCount = 0;
+  let lastBitcrushVal = 0;
 
   for (let i = ctx.sampleStart; i < ctx.sampleEnd; i++) {
     const tRel = (i - ctx.sampleStart) / ctx.sampleRate;
@@ -92,11 +112,62 @@ export function renderVoice(
       baseF *= Math.pow(2, semitones / 12);
     }
 
-    const f = Math.max(10, Math.min(baseF, ctx.sampleRate / 2 - 10));
-    const dt = f / ctx.sampleRate;
-    phase = (phase + dt) % 1;
+    const carrierF = Math.max(10, Math.min(baseF, ctx.sampleRate / 2 - 10));
 
-    let osc = evalWave(wave, phase, dt);
+    let oscMix = 0;
+
+    for (let v = 0; v < voicesCount; v++) {
+      let voiceF = carrierF;
+      if (voicesCount > 1 && detuneCents > 0) {
+        const spreadOffset = (v / (voicesCount - 1) - 0.5) * 2; // -1 to +1
+        const centsOffset = spreadOffset * detuneCents;
+        voiceF *= Math.pow(2, centsOffset / 1200);
+      }
+
+      voiceF = Math.max(10, Math.min(voiceF, ctx.sampleRate / 2 - 10));
+      const dt = voiceF / ctx.sampleRate;
+      phases[v] = (phases[v] + dt) % 1;
+
+      let voiceOsc = 0;
+
+      if (ctx.fm) {
+        const fmRatio = ctx.fm.ratio;
+        const indexEnv = ctx.fm.indexEnvelope
+          ? computeEnvelope(
+              tRel,
+              ctx.fm.indexEnvelope.attack ?? 0.005,
+              ctx.fm.indexEnvelope.decay ?? ctx.dur,
+              ctx.fm.indexEnvelope.sustain ?? 0,
+              ctx.fm.indexEnvelope.release ?? 0.01,
+              ctx.dur,
+              ctx.fm.indexEnvelope.curve ?? 'linear',
+              ctx.fm.indexEnvelope.points
+            )
+          : 1.0;
+
+        // Carson's rule safe index ceiling against Nyquist aliasing
+        const maxSafeIndex = Math.max(1, (ctx.sampleRate * 0.45 - voiceF) / Math.max(10, voiceF * fmRatio) - 1);
+        const effectiveIndex = Math.min(ctx.fm.index * indexEnv, maxSafeIndex);
+
+        const modF = Math.max(10, Math.min(voiceF * fmRatio, ctx.sampleRate / 2 - 10));
+        const modDt = modF / ctx.sampleRate;
+        modPhases[v] = (modPhases[v] + modDt) % 1;
+
+        const fb = ctx.fm.feedback ?? 0;
+        const modPhaseWithFb = (modPhases[v] + (fb * modLastOut[v]) / (2 * Math.PI)) % 1;
+        const modSignal = Math.sin(2 * Math.PI * modPhaseWithFb);
+        modLastOut[v] = modSignal;
+
+        const phaseMod = (phases[v] + (effectiveIndex * modSignal) / (2 * Math.PI)) % 1;
+        voiceOsc = evalWave(wave, phaseMod, dt, duty);
+      } else {
+        voiceOsc = evalWave(wave, phases[v], dt, duty);
+      }
+
+      oscMix += voiceOsc * unisonGainNorm;
+    }
+
+    let osc = oscMix;
 
     if (biquad) {
       if (sampleCount % 16 === 0) {
@@ -140,7 +211,25 @@ export function renderVoice(
       ctx.envelope?.points
     );
 
-    samples[i] += osc * env * ctx.gainLinear * ampMod;
+    let val = osc * env * ctx.gainLinear * ampMod;
+
+    if (ctx.bitcrush) {
+      const bits = ctx.bitcrush.bits ?? 8;
+      const downsample = ctx.bitcrush.downsample ?? 1;
+      const step = 1 / Math.pow(2, bits - 1);
+      if (downsample > 1) {
+        if (sampleCount % downsample !== 0) {
+          val = lastBitcrushVal;
+        } else {
+          val = Math.round(val / step) * step;
+          lastBitcrushVal = val;
+        }
+      } else {
+        val = Math.round(val / step) * step;
+      }
+    }
+
+    samples[i] += val;
     sampleCount++;
   }
 }

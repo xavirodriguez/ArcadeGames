@@ -1,4 +1,4 @@
-export type Wave = 'sine' | 'triangle' | 'square' | 'sawtooth';
+export type Wave = 'sine' | 'triangle' | 'square' | 'sawtooth' | 'pulse';
 export type LfoWave = Wave | 'sampleAndHold';
 
 export interface LfoSpec {
@@ -65,12 +65,28 @@ export interface SequenceNote {
   envelope?: Envelope;
 }
 
+export interface FmSpec {
+  ratio: number;
+  index: number;
+  indexEnvelope?: Envelope;
+  feedback?: number;
+}
+
+export interface UnisonSpec {
+  voices: number;
+  detuneCents: number;
+  spread?: number;
+}
+
 export interface LayerSpec {
   kind: 'tone' | 'noise' | 'click' | 'zap' | 'whoosh' | 'subBoom' | 'chord' | 'sequence';
   level?: number;
   start?: number;
   duration?: number;
   wave?: Wave;
+  duty?: number;
+  bitcrush?: { bits?: number; downsample?: number };
+  lfsr?: { bits: 7 | 15; clockHz?: number };
   frequency?: number;
   pitch?: PitchCurve;
   frequencies?: number[];
@@ -78,9 +94,77 @@ export interface LayerSpec {
   loopCount?: number;
   envelope?: Envelope;
   filter?: FilterSpec;
-  /** Optional FM-ish harmonicity hint (future use) */
+  /** @deprecated Use fm.ratio instead. */
   harmonicity?: number;
+  fm?: FmSpec;
+  unison?: UnisonSpec;
   modulation?: ModulationSpec;
+}
+
+export type DelayEffectSpec = {
+  type: 'delay';
+  timeSeconds: number;
+  feedback: number;
+  mix: number;
+  cutoffHz?: number;
+};
+
+export type ReverbEffectSpec = {
+  type: 'reverb';
+  roomSize?: number;
+  dampHz?: number;
+  mix: number;
+};
+
+export type DistortionEffectSpec = {
+  type: 'distortion';
+  drive: number;
+  mix?: number;
+};
+
+export type ChorusEffectSpec = {
+  type: 'chorus';
+  rateHz?: number;
+  depthMs?: number;
+  mix?: number;
+};
+
+export type BitcrushEffectSpec = {
+  type: 'bitcrush';
+  bits?: number;
+  downsample?: number;
+};
+
+export type EffectSpec =
+  | DelayEffectSpec
+  | ReverbEffectSpec
+  | DistortionEffectSpec
+  | ChorusEffectSpec
+  | BitcrushEffectSpec;
+
+import { RNG } from './random';
+
+export interface MusicTrack {
+  name?: string;
+  layer: LayerSpec;
+  pattern: (barIndex: number, rng: RNG) => SequenceNote[];
+}
+
+export interface MusicSection {
+  id: string;
+  bars: number;
+  tracks: MusicTrack[];
+}
+
+export interface MusicRecipe {
+  name: string;
+  bpm: number;
+  timeSignature?: [number, number];
+  bars: number;
+  key?: string;
+  tracks: MusicTrack[];
+  loop?: boolean;
+  sections?: MusicSection[];
 }
 
 export interface SoundRecipe {
@@ -88,6 +172,7 @@ export interface SoundRecipe {
   category: Category;
   duration: number;
   layers: LayerSpec[];
+  effects?: EffectSpec[];
   variation?: Variation;
   tags?: string[];
   /** When true the generated WAV is intended for seamless looping (longer buffer + soft edges). */

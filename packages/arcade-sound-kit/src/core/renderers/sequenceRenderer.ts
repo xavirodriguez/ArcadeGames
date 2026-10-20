@@ -45,6 +45,7 @@ export function renderSequenceLayer(
       );
 
       const hz = note.frequency * pitchJitter;
+      const fmSpec = l.fm ?? (l.harmonicity != null ? { ratio: l.harmonicity, index: 1.0 } : undefined);
 
       renderVoice(
         samples,
@@ -62,8 +63,12 @@ export function renderSequenceLayer(
           sustain: noteSustain,
           release: noteRelease,
           gainLinear: noteGainLinear,
+          duty: l.duty,
+          bitcrush: l.bitcrush,
           filter: l.filter,
           modulation: l.modulation,
+          fm: fmSpec,
+          unison: l.unison,
           layerRng: ctx.layerRng,
         }
       );

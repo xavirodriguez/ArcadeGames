@@ -4,6 +4,7 @@ export * from './design/recipe';
 export * from './effects/primitives';
 export * from './design/pack';
 export * from './design/examplesPack';
+export * from './music';
 export {
   RecipeValidationError,
   SoundRecipeValidationError,

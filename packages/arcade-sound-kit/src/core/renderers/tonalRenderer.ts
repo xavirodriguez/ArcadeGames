@@ -37,6 +37,8 @@ export function renderTonalLayer(
   const endHz = p?.endHz != null ? p.endHz * pitchJitter : undefined;
   const curve = p?.curve ?? 'exponential';
 
+  const fmSpec = l.fm ?? (l.harmonicity != null ? { ratio: l.harmonicity, index: 1.0 } : undefined);
+
   const getFrequency = (tRel: number): number => {
     let f = startHz;
     if (p?.envelope && endHz != null) {
@@ -80,10 +82,14 @@ export function renderTonalLayer(
       sustain,
       release,
       gainLinear,
+      duty: l.duty,
+      bitcrush: l.bitcrush,
       durJitter,
       envelope: l.envelope,
       filter: l.filter,
       modulation: l.modulation,
+      fm: fmSpec,
+      unison: l.unison,
       layerRng: ctx.layerRng,
     }
   );

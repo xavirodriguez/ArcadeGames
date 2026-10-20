@@ -13,7 +13,7 @@ import {
   extractObstacleParams
 } from "./RacingSkin";
 import { buildTrackRibbon } from "./TrackRibbonGeometry";
-import { extractTrackDimensions, computeCheckpointGrid, resolveTrackRibbonContext, resolveRacingParticlePoolContext, resolveFinishCheckers } from "./RacingVisualHelpers";
+import { extractTrackDimensions, computeCheckpointGrid, resolveTrackRibbonContext, resolveRacingParticlePoolContext, resolveFinishCheckers, computeSparkSegment } from "./RacingVisualHelpers";
 import type { RacingParticlePool } from "../systems/RacingParticleSystem";
 
 interface StaticCacheEntry {
@@ -310,32 +310,23 @@ export const drawCollisionSparks: ShapeDrawer<CanvasRenderingContext2D, RacingCo
 
     for (let i = 0; i < pool.sparks.length; i += 1) {
       const spark = pool.sparks[i]!;
-      if (spark.alpha <= 0) continue;
+      const seg = computeSparkSegment(spark);
+      if (!seg) continue;
 
-      const speed = Math.hypot(spark.vx, spark.vy);
-      if (speed <= 0.001) continue;
-      const directionX = spark.vx / speed;
-      const directionY = spark.vy / speed;
-      const halfLength = spark.length * 0.5;
-      const x1 = spark.x - directionX * halfLength;
-      const y1 = spark.y - directionY * halfLength;
-      const x2 = spark.x + directionX * halfLength;
-      const y2 = spark.y + directionY * halfLength;
-
-      ctx.globalAlpha = spark.alpha * 0.82;
+      ctx.globalAlpha = seg.alpha * 0.82;
       ctx.strokeStyle = palette.danger;
       ctx.lineWidth = 3;
       ctx.beginPath();
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x2, y2);
+      ctx.moveTo(seg.x1, seg.y1);
+      ctx.lineTo(seg.x2, seg.y2);
       ctx.stroke();
 
-      ctx.globalAlpha = spark.alpha;
+      ctx.globalAlpha = seg.alpha;
       ctx.strokeStyle = palette.text;
       ctx.lineWidth = 1.1;
       ctx.beginPath();
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x2, y2);
+      ctx.moveTo(seg.x1, seg.y1);
+      ctx.lineTo(seg.x2, seg.y2);
       ctx.stroke();
     }
 

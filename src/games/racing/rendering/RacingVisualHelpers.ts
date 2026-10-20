@@ -107,6 +107,30 @@ export function computeCheckpointGrid(
 
 export const DEFAULT_FINISH_CHECKERS: readonly [string, string] = ["#FFFFFF", "#5D4037"] as const;
 
+export interface SparkSegment {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+  alpha: number;
+}
+
+export function computeSparkSegment(spark: { x: number; y: number; vx: number; vy: number; length: number; alpha: number }): SparkSegment | null {
+  if (spark.alpha <= 0) return null;
+  const speed = Math.hypot(spark.vx, spark.vy);
+  if (speed <= 0.001) return null;
+  const directionX = spark.vx / speed;
+  const directionY = spark.vy / speed;
+  const halfLength = spark.length * 0.5;
+  return {
+    x1: spark.x - directionX * halfLength,
+    y1: spark.y - directionY * halfLength,
+    x2: spark.x + directionX * halfLength,
+    y2: spark.y + directionY * halfLength,
+    alpha: spark.alpha,
+  };
+}
+
 export function resolveFinishCheckers(skin?: { finishCheckers?: string[] }): [string, string] {
   const checkers = skin?.finishCheckers;
   if (Array.isArray(checkers) && checkers.length >= 2) {

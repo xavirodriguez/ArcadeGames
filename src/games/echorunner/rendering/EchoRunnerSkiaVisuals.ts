@@ -9,8 +9,8 @@ import {
 } from "./EchoRunnerVisualUtils";
 import {
   getEchoRunnerSpriteFrame,
-  resolveEchoRunnerSpriteColor,
   resolveEchoRunnerSpriteMotion,
+  drawRleSpriteFrame,
 } from "./EchoRunnerPixelArt";
 
 import { drawSkiaHitFlashCircle } from "../../shared/rendering/PlatformerSharedVisuals";
@@ -353,30 +353,13 @@ export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setAlphaf(alpha);
-    for (let y = 0; y < frame.length; y++) {
-      const row = frame[y] ?? "";
-      let x = 0;
-      while (x < row.length) {
-        const token = row[x] ?? ".";
-        if (token === ".") {
-          x++;
-          continue;
-        }
-        let runLength = 1;
-        while (x + runLength < row.length && row[x + runLength] === token) {
-          runLength++;
-        }
-        const color = resolveEchoRunnerSpriteColor(token, palette);
-        if (color) {
-          paint.setColor(Skia.Color(color));
-          canvas.drawRect(
-            Skia.XYWHRect(originX + x * pixelSize, originY + y * pixelSize, runLength * pixelSize, pixelSize),
-            paint,
-          );
-        }
-        x += runLength;
-      }
-    }
+    drawRleSpriteFrame(frame, palette, (x, y, runLength, color) => {
+      paint.setColor(Skia.Color(color));
+      canvas.drawRect(
+        Skia.XYWHRect(originX + x * pixelSize, originY + y * pixelSize, runLength * pixelSize, pixelSize),
+        paint,
+      );
+    });
 
     canvas.restore();
   }

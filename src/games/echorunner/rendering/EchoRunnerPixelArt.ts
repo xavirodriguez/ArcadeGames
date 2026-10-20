@@ -78,6 +78,37 @@ export function getEchoRunnerSpriteFrame(
 }
 
 /** Maps indexed colours to the active game theme. */
+/**
+ * RLE-scans a sprite frame and invokes a callback for each contiguous color run.
+ * Eliminates duplicate row/character loop implementations in Canvas and Skia drawers.
+ */
+export function drawRleSpriteFrame<TPalette extends EchoRunnerSpritePalette>(
+  frame: readonly string[],
+  palette: TPalette,
+  drawRun: (x: number, y: number, runLength: number, color: string) => void
+): void {
+  for (let y = 0; y < frame.length; y++) {
+    const row = frame[y] ?? "";
+    let x = 0;
+    while (x < row.length) {
+      const token = row[x] ?? ".";
+      if (token === ".") {
+        x++;
+        continue;
+      }
+      let runLength = 1;
+      while (x + runLength < row.length && row[x + runLength] === token) {
+        runLength++;
+      }
+      const color = resolveEchoRunnerSpriteColor(token, palette);
+      if (color) {
+        drawRun(x, y, runLength, color);
+      }
+      x += runLength;
+    }
+  }
+}
+
 export function resolveEchoRunnerSpriteColor(
   token: string,
   palette: EchoRunnerSpritePalette,

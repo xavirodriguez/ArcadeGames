@@ -52,7 +52,7 @@ function CentipedeContent() {
   };
 
   const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } =
-    useCentipedeGame(started, initialSeed);
+    useCentipedeGame(started, false, initialSeed);
 
   const touchStateRef = useRef<TouchInputState | null>(null);
   if (!touchStateRef.current) {

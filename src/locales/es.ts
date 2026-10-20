@@ -18,6 +18,7 @@ export const es = {
     campaign: "CAMPAÑA HISTORIA",
     hitandrun: "HIT AND RUN",
     tower_defense: "TOWER DEFENSE",
+    centipede: "CENTIPEDE",
     level: "NIVEL",
   },
   daily: {

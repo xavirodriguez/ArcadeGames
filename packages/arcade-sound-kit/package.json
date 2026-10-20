@@ -5,6 +5,10 @@
   "type": "commonjs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./core": "./dist/core_entry.js"
+  },
   "bin": {
     "ask-generate": "dist/cli.js"
   },

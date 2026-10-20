@@ -24,8 +24,10 @@ export type Variation = {
 };
 
 export interface SequenceNote {
-  /** Frequency in Hz. */
+  /** Frequency in Hz (0 indicates a rest / silence). */
   frequency: number;
+  /** Optional rest flag; when true, no tone is generated for this step. */
+  rest?: boolean;
   /** Duration of this step in seconds. */
   stepDuration: number;
   /** Optional level offset in dB for this note. */

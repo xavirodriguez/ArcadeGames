@@ -12,8 +12,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const SNAPSHOT_PATH = path.join(__dirname, 'snapshots/golden_hashes.json');
 
-test('RENDER_VERSION is bumped to 0.3.0', () => {
-  assert.equal(RENDER_VERSION, '0.3.0');
+test('RENDER_VERSION is bumped to 0.3.1', () => {
+  assert.equal(RENDER_VERSION, '0.3.1');
 });
 
 test('Golden regression hashes for all arcadePack recipes and variants', async () => {
@@ -33,7 +33,8 @@ test('Golden regression hashes for all arcadePack recipes and variants', async (
     const variantCount = expectedVariants.length;
 
     for (let v = 0; v < variantCount; v++) {
-      const samples = await render(recipe, { sampleRate, seed: baseSeed + v * 9973 });
+      const rng = new RNG(baseSeed).fork(v);
+      const samples = await render(recipe, { sampleRate, seed: baseSeed }, rng);
       const actualHash = computeQuantizedHash(samples);
 
       assert.equal(

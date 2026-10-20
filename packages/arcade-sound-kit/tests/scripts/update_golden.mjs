@@ -41,7 +41,8 @@ export async function generateGoldenHashes() {
     const variantHashes = [];
 
     for (let v = 0; v < variantCount; v++) {
-      const samples = await render(recipe, { sampleRate, seed: baseSeed + v * 9973 });
+      const rng = new RNG(baseSeed).fork(v);
+      const samples = await render(recipe, { sampleRate, seed: baseSeed }, rng);
       variantHashes.push(computeQuantizedHash(samples));
     }
 

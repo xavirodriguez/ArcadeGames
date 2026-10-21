@@ -1,6 +1,6 @@
-import { RNG } from '../core/random.js';
-import type { SoundRecipe, LayerSpec, Wave, Category } from '../core/types.js';
-import { validateRecipe } from './validator.js';
+import { RNG } from '../core/random';
+import type { SoundRecipe, LayerSpec, Wave, Category } from '../core/types';
+import { validateRecipe } from './validator';
 
 export type SoundArchetype =
   | 'laser'

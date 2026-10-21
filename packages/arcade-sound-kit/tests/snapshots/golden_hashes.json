@@ -1,0 +1,254 @@
+{
+  "shoot": {
+    "variants": [
+      "0333e7485aaaf51ac6b60707224faa631fe4c99ebde999d524e3702ca1fc5464",
+      "cc8e4a4c4f22d2d99e2e2c774e038637b73ad7106dd67de38a196e895c2e089f",
+      "f4844ecf461a93dfac4f3cf539413427ce6ac5a1d36b897e67722647c98784c6"
+    ]
+  },
+  "shoot_enemy": {
+    "variants": [
+      "13f29527ce419127f1e537163575f7371e8cd7898610f474e9dc424a617d04d8",
+      "506f47ed48f86e7c0f2657149565b7cc85ae0a8fe1537c29a1ade93ab3f3c0ae",
+      "ff07529beb87a7983a93a961e0dd076d11798c1d812573708d8957d5da6f0839"
+    ]
+  },
+  "hit": {
+    "variants": [
+      "a4e656ec83ea1edc46fef9ad47e98ae38913b772b406eba8cf06b2034b481c13",
+      "0207bd8811938c7fb4c5693092ebfe9c8a5ebe3177e9f7aac54d7c87b6525bd6",
+      "31f7cd5f9f49c07e7749251e60fe39bb76ff399e95004d6017cf4c41cac18944"
+    ]
+  },
+  "hit_critical": {
+    "variants": [
+      "c8b8ab24658fc0f14cf94874cceeb56299df8c5f23149305cdaf966780d148c3",
+      "f3eb41625b52c39258cdb2346ee40a431a0c73ee079f537244bf11b8e91fe606",
+      "80b664ed115f2656fedaa5642c48449078d1eb6f8a501fc79e6df0bc2524166c"
+    ]
+  },
+  "explosion_small": {
+    "variants": [
+      "5fe36a75cb0ebac9001dccf16f554c429414d1e28dc1330c5bdb3b97b2200caa",
+      "739fcee223a0329cffa72fb119a79b921bdc001a96d17502f0bcb544be429d4b",
+      "3cb8efe1166b033e3ab7865d71e0f54ad26359fa982a51291bfb973da2d38884"
+    ]
+  },
+  "explosion_large": {
+    "variants": [
+      "b358966c022a50b82c93db64dacbe474581c72a1feed6629cafea64d714936df",
+      "b122f5039a78f520a0fc17acf31d4b9c521b583abbacee5bebe12fe029355f22",
+      "c2bed54d09d22018d4299b2713a926013864005ceed9dcee639249a3fa71e08e"
+    ]
+  },
+  "shield_hit": {
+    "variants": [
+      "93653858320f3e4db8608fe93902c7a002c0d60d2234000a8f1e078317c854a1",
+      "60ee3209a7b9b011fb79e2c7365f6b031e4dde6e48dae29c9cb23127cb089afb",
+      "fde99b92b3661a442357db8d0a5c947381fc1c5c7b50d863137877d7e8299ded"
+    ]
+  },
+  "shield_break": {
+    "variants": [
+      "ebea5eab526e85d55d1e2158609e248a783bc373ff1e8bcbd92af2e35a174fc9",
+      "d8ee2dd29762d0b1aac4ba8f8a6e5ee7687be465536fd8a6da0a7b251a567eb8",
+      "9cfca3140c4f7faf3abbb443fad69267258e894e5b1f4d5d45d130f4248f9814"
+    ]
+  },
+  "reload": {
+    "variants": [
+      "0b67864198afbcf03120f25cda0bdbdc081651ed8ab66dac8c59efe98471a402",
+      "6cd6f0c5434bd8f029b4200a930ef0223d9078d05ebf12a565e20f1f04b46164",
+      "56095d86d042ae000e391dc7cd15d0f65e118bfa8734aa3673d348880ff21ba2"
+    ]
+  },
+  "cooldown_ready": {
+    "variants": [
+      "1ae9ebe16ee09a08b52f337e3ad9f2cdc858fb3ce182a81c3618677883f16df2",
+      "700e09d3fe1eac16d19f50a9773b8e961303c85669898dabe7564d476df3f3f8",
+      "24bde37c15638401fafa0733f2d2baef8f5c891dd20848b0c2622a2e8157930f"
+    ]
+  },
+  "parry": {
+    "variants": [
+      "73a09b9a8ad1501d7f015160f626af27d67bf5967e477f507f8081d9593c54a8",
+      "dd328019d5b8bafd4d9090105f85099d5251d5fcce4e480f285807864a0c0061",
+      "1691c997b3d7d4fee674c64293027f5ba26f758cc4bbf13a297c68d5c087790b"
+    ]
+  },
+  "jump": {
+    "variants": [
+      "c707a05d51200d6275b47259657470dee950d3ca14749cacbb5485663bfa16f2",
+      "10aecc4eed622e1d01548bd692807a498a3389b52489b749e198761f8a752022",
+      "509ccc88fddeada3cf107ee3fdc4398f8f2b8ed005b29b1d3a957760e6886ff8"
+    ]
+  },
+  "land": {
+    "variants": [
+      "c4c3979ff7a51bc96f7d25051faaa202ad0e033eb660c3dad9c99545f781a9d6",
+      "1425f511c048903b540b2456f91a5e5fc71454d9e8c438b3f73900f9499ef700",
+      "641123626aeaa7b3e13514fbc4412764ea520af94ca291dc545b3313f0339b60"
+    ]
+  },
+  "land_heavy": {
+    "variants": [
+      "d610e6402371b71801c92483413894bb715c50ad742b05ac1c352f2139e36094",
+      "a060aa4dc4f54d34a16d136800acf831c56efa78d19489030b4155e78b4a0d36",
+      "dfba46c83b7f5f09f638d71be3b3d05ef0151a2b9d0af2e135aef32ef667799b"
+    ]
+  },
+  "dash": {
+    "variants": [
+      "e36fcb99ae618316a951c67e192151bb618fc4b1ee799a2f8c89d02ba52fc1de",
+      "9d4f382278cbdd04e215cafd4027d08d5f0d9616260491c590124b30029463d7",
+      "48efaea7dd282454b585da0d45a5d6c701780f1166d1af146f95e262404c9a1d"
+    ]
+  },
+  "wall_slide": {
+    "variants": [
+      "97bfcf3235894e5c50e51bcc0502b4c923c197080371ae8987e1719f913cb839",
+      "68e981f2882eeefc05b0cb6aba0a1747213a2af17ce755bc9c9639b6dce0de0e",
+      "c1efbf9e3d40b87840a5afa57530f425647b38eae3734a3400c04f9220bf1ccb"
+    ]
+  },
+  "bounce": {
+    "variants": [
+      "b1f8809e4026de9f9cdde4d29bb2b37ea08f33d1d6fb0d5f2947c23ade63c38f",
+      "27713d380a86cac94f1d97723f70d2ab5e0cae084a347a18e04155170a6a43bc",
+      "433148891b35daedacd364b8dcce0b0bf00ef6c69e88f8e981adb65ce39c8fdf"
+    ]
+  },
+  "spin_charge": {
+    "variants": [
+      "88783dedd256db4d98e7f388e45c20435213b0510d841f607a17f2a6a61763ed",
+      "3fee0838dbe8513175a23628cf2555c8deadb97c8a8bb4ff2cca98c8d8619a4d",
+      "144490022e8c79613d77402d28da5fced4e328bff584147affb1381bc3f20738"
+    ]
+  },
+  "flap": {
+    "variants": [
+      "4e73cc6be047f297791bfefbac064bfab859621253547371d7b6fceb00230758",
+      "c31c0546eeed3f64a88f4f92fc350fd512da1d51dc43d6402f2043e294b49b75",
+      "bd58b98478f731d48b65924426249094eb2fc587496035ba4bc05f3b2aac1915"
+    ]
+  },
+  "glide_loop": {
+    "variants": [
+      "0a5fa27f83670a02b08b4cd9537f264b4c8b1f900da522ab445447dba6c6064f",
+      "7b725b7cf314b670a21171b844c99bb4a2e0a4ef52a46751afc0b5ffb4c906e6",
+      "8f47c7b33eb20b52554907a28f9a8e50e6a3bca9e7e9c9f2d90f1fabc01df396"
+    ]
+  },
+  "wrap": {
+    "variants": [
+      "4c6f5423c2da97fba3201138c49bb3a7c087810f15a8018a4ba0da9615178528",
+      "cb5a7a84c8501cf8e08c0b3c1a0a33655c53c08a2853895658fe436719980be3",
+      "985b04817c842d915529fc0ee57c0537c1f6fe54bf99bf36e38da81f4970d85b"
+    ]
+  },
+  "thrust_loop": {
+    "variants": [
+      "6d969cde55413bd8446d9523fae23bca5e99d6c02f995b3fac570431872bcae0",
+      "d73b6e119272bee063a307731075a4166be47ede8f21eb484fb05ed30b65d594",
+      "8e568c09377d473714021132b8192d52b98f9b8292afdc17a0a26039f56916b9"
+    ]
+  },
+  "score": {
+    "variants": [
+      "550e576279e46fe91fe7ce67d0c4037cdc67f5ef7feb5adc1323f2317af02402",
+      "cc5af4362648b4db632cf51d9e06c32812b928d344f133eec2637c52ce63b0f8",
+      "84fff171ac476233cb0f3400f64fadfa3c6224fddd791b721b2e62fd135c8902"
+    ]
+  },
+  "combo_up": {
+    "variants": [
+      "d8fb44745856258d74645a5f81858bb58c168bec09c69e0bf4023e0d5b065ff4",
+      "80fd9cf6d1551fda504167e9473a3a4742f4ae3019ee60b53dd439ff303b15bc",
+      "55006648bc62d8053f7f391d2e8d1f6f22eeeb4604982b5b675baa785fc46bfa"
+    ]
+  },
+  "combo_break": {
+    "variants": [
+      "92ef97c3836d5f99f6353d3da0cdaf6e81a6c0c209df93d1b54c51fdd2a2295d",
+      "c9aab7d2aeb9f9d81166ae7bcafbf4a821b06af57c43ab6affc2fa9c5eb848e3",
+      "a917a1fc3087bb7eb751f28d6d8aafd1436f8df6e2649cc3caf14c9637b0fee5"
+    ]
+  },
+  "powerup_pickup": {
+    "variants": [
+      "0fc00e87c2d4ec34a8fc73d6d8373fe04ef44454a2a6e33d120c2b24ebe532cd",
+      "ffa6a7ec0ad06712fe572d5e292b652577cf6b86b20af43f2926fb77caa7bdd7",
+      "fc9347e02803d4b77c571c0e49b60c1c80c7b48f5ec106a79476cfccfce5e023"
+    ]
+  },
+  "powerup_expire": {
+    "variants": [
+      "15e29777e1b7c52119c95c962b4ceabbd765d4d1f59c68d7fa7cf728adff1cc4",
+      "58141e53d074883e1f3540b67a889bebc58dce2671a529d659ba919d76b37bbb",
+      "e4b419dec4fc69767450b28dadf251814bcc2026def329bef82458ed17781b6e"
+    ]
+  },
+  "collectible_pickup": {
+    "variants": [
+      "78f41123e26addf8a09258ebd87156ba618830b9c42a5cd7691c71dbc11c36ac",
+      "6193f8e54979cc12b682ecca69a048648ed5794ea23dbe9ec10886d9d0603864",
+      "b6d0537f2de2b318e2e9374b25d8a7e32f8ed4cc353bb35327d674bc93dfd66c"
+    ]
+  },
+  "achievement_unlock": {
+    "variants": [
+      "68af97808daa1706da8fa1abf962c37025a03c82d4fe11d1edc963d7b8be5cc1",
+      "89e3e31b4a741b1ae5128149d157840dc2d53452f64846c05b8b35fd5611b219",
+      "45c54b906953dde70f079ca220c3316dc7c2763e05883ee30144fe57eab47cf3"
+    ]
+  },
+  "level_up_jingle": {
+    "variants": [
+      "76cdff1f6f8591e6e239e620a430f60c8be5e5644906c2336a48d8e4b7595de6",
+      "0355648599a23b2c1226509011337803daa536eb863077a37d25674ff57ebe6d",
+      "299f891d3ed6244669771d8f7ff3153fc932282e0472d248e83d7863b624f5df"
+    ]
+  },
+  "game_over": {
+    "variants": [
+      "e6645ed45f9d3cf756d4b7f5454bca7c8732e1daac26bfb6c3734e84efb375d3",
+      "b5d497bdfa4291c4428018d3d215cc365fddd85cd5c99fbf32c5da90c7bd0517",
+      "563caf3fffc29c68f46634f940d88d6dee0a189559d0598087ed535d7dbecdc5"
+    ]
+  },
+  "wave_start": {
+    "variants": [
+      "6947f24517c6f0a8fd0a67721cddf6297fa4bb9cfba4b70dc53a41b8af6e4975",
+      "9d384b305d72e5c9bc212e81df9cb2e20ebd8de48c83da20a347843c273a9c47",
+      "1938d57015f5ebb7c71681fda43694477b0a58d35b28ea5fab006e65c937f5ff"
+    ]
+  },
+  "boss_incoming": {
+    "variants": [
+      "37030de3ea9746db87769e233c84c3dde1e1496655016576bbedd3480a3bdbe6",
+      "b0735e74e8fcf3121fffe8e4b67e611748f1b2ad3cbdfcf6103d01ffc6ad9c52",
+      "6135a94f2092c182d5092d9e82e06547b2d68cffed3dd447b252a95ce90225cc"
+    ]
+  },
+  "menu_select": {
+    "variants": [
+      "72ee9e21e40f3e27a3b17fac7bacf60529215ef5f77fa9101373a0188473d97d",
+      "8da641f23edcd0a4f400936b13cf5502e9cfd1edfc5711b553edc2bbaa653d12",
+      "5e29f99cf52ea6d16562ce9414939f5bb7a704bbed2b3d94493fb4a6cfcaa760"
+    ]
+  },
+  "menu_confirm": {
+    "variants": [
+      "599987ec326cc3c1729e05dffe96349f11e0e6b5327a4adba4083fb6f6ea7509",
+      "43c7c7487c19612c93b22428208bf0539b0c060dd3176eaadd9335621b83425b",
+      "f5882268f132aac9af5c89ae58fd5b8bf25f1124a8f859add3b99b3c2d01b681"
+    ]
+  },
+  "game_over_jingle": {
+    "variants": [
+      "8abd97a92595118b930b004feaf6c6b37c8ccb96f6ff24928bf82704f3061fbb",
+      "7e982006188500dc3615cda62849c99cccd263fa1a1862844b566120e4c0f521",
+      "b2a6ea9e39421311bedc189b9c453a7ae315f6610dd89cd7d59108b5085993ad"
+    ]
+  }
+}

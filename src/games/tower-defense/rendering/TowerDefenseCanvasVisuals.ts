@@ -97,68 +97,19 @@ function drawTowerBase(
   ctx.fillRect(-s * 0.45, -s * 0.15, s * 0.9, s * 0.4);
   ctx.fillStyle = primary;
   ctx.beginPath();
-  if (towerType === "basic") {
-    ctx.moveTo(-s * 0.25, -s * 0.1);
-    ctx.lineTo(-s * 0.1, -s * 0.45);
-    ctx.lineTo(s * 0.1, -s * 0.45);
-    ctx.lineTo(s * 0.25, -s * 0.1);
-  } else if (towerType === "rapid") {
-    ctx.rect(-s * 0.23, -s * 0.34, s * 0.46, s * 0.38);
-  } else if (towerType === "sniper") {
-    ctx.moveTo(-s * 0.16, -s * 0.1);
-    ctx.lineTo(-s * 0.1, -s * 0.47);
-    ctx.lineTo(s * 0.1, -s * 0.47);
-    ctx.lineTo(s * 0.16, -s * 0.1);
-  } else {
-    ctx.moveTo(0, -s * 0.42);
-    ctx.lineTo(s * 0.23, -s * 0.12);
-    ctx.lineTo(s * 0.14, s * 0.16);
-    ctx.lineTo(0, s * 0.27);
-    ctx.lineTo(-s * 0.14, s * 0.16);
-    ctx.lineTo(-s * 0.23, -s * 0.12);
-  }
+  ctx.moveTo(-s * 0.25, -s * 0.1);
+  ctx.lineTo(-s * 0.1, -s * 0.45);
+  ctx.lineTo(s * 0.1, -s * 0.45);
+  ctx.lineTo(s * 0.25, -s * 0.1);
   ctx.closePath();
   ctx.fill();
-  ctx.strokeStyle = accent;
-  ctx.lineWidth = Math.max(1, s * 0.035);
-  ctx.stroke();
   ctx.fillStyle = accent;
   ctx.beginPath();
-  ctx.arc(0, 0, s * (towerType === "frost" ? 0.1 : 0.085), 0, Math.PI * 2);
+  ctx.arc(0, 0, s * 0.18, 0, Math.PI * 2);
   ctx.fill();
-
-  // Type-specific surface details remain distinct at typical tower sizes.
-  if (towerType === "rapid") {
-    ctx.fillRect(-s * 0.16, -s * 0.04, s * 0.07, s * 0.16);
-    ctx.fillRect(s * 0.09, -s * 0.04, s * 0.07, s * 0.16);
-  } else if (towerType === "sniper") {
-    ctx.fillStyle = "#dbeafe";
-    ctx.fillRect(-s * 0.055, -s * 0.3, s * 0.11, s * 0.055);
-  } else if (towerType === "frost") {
-    ctx.strokeStyle = "#e0f7fa";
-    ctx.lineWidth = Math.max(1, s * 0.035);
-    ctx.beginPath();
-    ctx.moveTo(-s * 0.12, -s * 0.1);
-    ctx.lineTo(s * 0.12, s * 0.1);
-    ctx.moveTo(s * 0.12, -s * 0.1);
-    ctx.lineTo(-s * 0.12, s * 0.1);
-    ctx.stroke();
-  }
   ctx.strokeStyle = accent;
   ctx.lineWidth = 1.5;
   ctx.strokeRect(-s * 0.45, -s * 0.15, s * 0.9, s * 0.4);
-
-  // Small bolts, an illuminated top edge and a front access panel add material cues.
-  ctx.fillStyle = "#dbeafe";
-  ctx.fillRect(-s * 0.32, -s * 0.12, s * 0.64, Math.max(0.8, s * 0.035));
-  ctx.fillStyle = baseBg;
-  ctx.fillRect(-s * 0.07, s * 0.02, s * 0.14, s * 0.13);
-  ctx.fillStyle = accent;
-  for (const side of [-1, 1]) {
-    ctx.beginPath();
-    ctx.arc(side * s * 0.36, s * 0.03, Math.max(0.8, s * 0.035), 0, Math.PI * 2);
-    ctx.fill();
-  }
 }
 
 function drawTowerWeaponCanvas(
@@ -333,52 +284,12 @@ function drawCreepDetails(
     ctx.fill();
   }
 
-  // Brow ridges and a compact mouth give even the smallest creeps a readable face.
-  ctx.strokeStyle = stroke;
-  ctx.lineWidth = Math.max(1, size * 0.045);
-  ctx.lineCap = "round";
-  ctx.beginPath();
-  ctx.moveTo(-eyeOffset - eyeRadius * 0.35, eyeY - eyeRadius * 0.8);
-  ctx.lineTo(-eyeOffset + eyeRadius * 0.55, eyeY - eyeRadius * 0.9);
-  ctx.moveTo(eyeOffset - eyeRadius * 0.55, eyeY - eyeRadius * 0.9);
-  ctx.lineTo(eyeOffset + eyeRadius * 0.35, eyeY - eyeRadius * 0.8);
-  ctx.moveTo(-size * 0.09, size * 0.12);
-  ctx.lineTo(size * 0.09, size * 0.12);
-  ctx.stroke();
-
-  if (type === "fast") {
-    // Rear fins reinforce forward direction and make scouts distinct from grunt units.
-    ctx.fillStyle = stroke;
-    ctx.beginPath();
-    ctx.moveTo(-size * 0.28, -size * 0.12);
-    ctx.lineTo(-size * 0.48, -size * 0.27);
-    ctx.lineTo(-size * 0.42, -size * 0.02);
-    ctx.closePath();
-    ctx.moveTo(-size * 0.28, size * 0.1);
-    ctx.lineTo(-size * 0.48, size * 0.25);
-    ctx.lineTo(-size * 0.42, size * 0.01);
-    ctx.closePath();
-    ctx.fill();
-  }
-
   if (type === "tank") {
     ctx.strokeStyle = stroke;
     ctx.lineWidth = Math.max(1.5, size * 0.06);
     ctx.beginPath();
     ctx.moveTo(-size * 0.27, size * 0.22);
     ctx.lineTo(size * 0.27, size * 0.22);
-    ctx.stroke();
-    ctx.fillStyle = "#d1d5db";
-    for (const side of [-1, 1]) {
-      ctx.beginPath();
-      ctx.arc(side * size * 0.29, size * 0.22, Math.max(0.8, size * 0.035), 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.strokeStyle = "#f3f4f6";
-    ctx.lineWidth = Math.max(1, size * 0.035);
-    ctx.beginPath();
-    ctx.moveTo(-size * 0.22, -size * 0.22);
-    ctx.lineTo(size * 0.22, -size * 0.22);
     ctx.stroke();
   }
 

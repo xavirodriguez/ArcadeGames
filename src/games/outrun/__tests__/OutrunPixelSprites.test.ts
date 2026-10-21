@@ -25,15 +25,6 @@ describe("OutrunPixelSprites", () => {
     }
   });
 
-  it("uses high-detail car silhouettes while preserving their two-frame light pulse", () => {
-    expect(OUTRUN_PLAYER_PIXEL_SPRITE.width).toBeGreaterThan(16);
-    expect(OUTRUN_PLAYER_PIXEL_SPRITE.height).toBeGreaterThan(9);
-    expect(OUTRUN_TRAFFIC_PIXEL_SPRITE.width).toBeGreaterThan(12);
-    expect(OUTRUN_TRAFFIC_PIXEL_SPRITE.height).toBeGreaterThan(8);
-    expect(OUTRUN_PLAYER_PIXEL_SPRITE.frames[0]).not.toEqual(OUTRUN_PLAYER_PIXEL_SPRITE.frames[1]);
-    expect(OUTRUN_TRAFFIC_PIXEL_SPRITE.frames[0]).not.toEqual(OUTRUN_TRAFFIC_PIXEL_SPRITE.frames[1]);
-  });
-
   it("selects animation frames deterministically from world distance", () => {
     expect(getOutrunAnimationFrame(0)).toBe(0);
     expect(getOutrunAnimationFrame(399.99)).toBe(0);

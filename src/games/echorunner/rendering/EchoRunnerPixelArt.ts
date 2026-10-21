@@ -40,13 +40,6 @@ const JUMP_FRAME = [
   "..KCCCCCCCCK....", "...KKCCCCKK.....", "....KK..KK......", "...KK....KK.....",
   "..KK......KK....", "................", "................", "................",
 ] as const;
-const FALL_FRAME = [
-  "......RR........", ".....RRKR.......", "....RKKKKR......", "....KWWWWK......",
-  "....KWCCWK......", "...K.CCCC.K.....", "..K..KKKK..K....", "...KKKKKKKK.....",
-  "..KCCCCCCCCK....", ".KCCCWCCCCCCK...", "..KCCCCCCCCCCK..", "..KCCCGGCCCK....",
-  "...KCCCCCCK.....", "...K..KK..K.....", "..KK......KK....", "...KK....KK.....",
-  "................", "................", "................", "................",
-] as const;
 const ATTACK_FRAME = [
   "......RR........", ".....RRKR.......", "....RKKKKR......", "....KWWWWK......",
   "....KWCCWK......", "....KCCCCK......", ".....KKKK.......", "...KKKKKKKK.....",
@@ -58,7 +51,7 @@ const SPRITE_FRAMES: Record<EchoRunnerSpriteMotion, readonly (readonly string[])
   idle: [IDLE_FRAME],
   run: [RUN_FRAME_A, RUN_FRAME_B],
   jump: [JUMP_FRAME],
-  fall: [FALL_FRAME],
+  fall: [IDLE_FRAME],
   attack: [ATTACK_FRAME],
 };
 

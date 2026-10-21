@@ -13,73 +13,57 @@ export interface OutrunPixelSprite {
  * renderers rasterize the same authored pixels at runtime to preserve parity.
  */
 export const OUTRUN_PLAYER_PIXEL_SPRITE: OutrunPixelSprite = {
-  width: 20,
-  height: 13,
+  width: 16,
+  height: 9,
   frames: [
     [
-      ".......tttttt.......",
-      ".....ttbbbbbbtt.....",
-      "...ttbbbbbbbbbbtt...",
-      "..tbbbbbbbbbbbbbbt..",
-      ".tbbbbggggggggbbbbt.",
-      "tbbbbbggggggggbbbbbt",
-      "tbbbggghhhhhhgggbbbt",
-      "tbbbgggggggggggbbbbt",
-      "tbbbbbbbbbbbbbbbbbbt",
-      ".ttbbbbbbppbbbbbbtt.",
-      ".tbbrrbbbbbbbbrrbbt.",
-      "ttbddttbbbbbbttddbtt",
-      "....ttddddddddtt...."
+      "....tttttttt....",
+      "..ttbbbbbbbbtt..",
+      ".tbbbbbbbbbbbbt.",
+      "tbbbbbbbbbbbbbbt",
+      "tbbhhhhhhhhhhbbt",
+      "tbbggggggggggbbt",
+      "tbbggggggggggbbt",
+      "ttbbrrbbppbbrrtt",
+      "..ttddddddddtt.."
     ],
     [
-      ".......tttttt.......",
-      ".....ttbbbbbbtt.....",
-      "...ttbbbbbbbbbbtt...",
-      "..tbbbbbbbbbbbbbbt..",
-      ".tbbbbggggggggbbbbt.",
-      "tbbbbbggggggggbbbbbt",
-      "tbbbggghhhhhhgggbbbt",
-      "tbbbgggggggggggbbbbt",
-      "tbbbbbbbbbbbbbbbbbbt",
-      ".ttbbbbbbppbbbbbbtt.",
-      ".tbbRRbbbbbbbbRRbbt.",
-      "ttbddttbbbbbbttddbtt",
-      "....ttddddddddtt...."
+      "....tttttttt....",
+      "..ttbbbbbbbbtt..",
+      ".tbbbbbbbbbbbbt.",
+      "tbbbbbbbbbbbbbbt",
+      "tbbhhhhhhhhhhbbt",
+      "tbbggggggggggbbt",
+      "tbbggggggggggbbt",
+      "ttbbRRbbppbbRRtt",
+      "..ttddddddddtt.."
     ]
   ]
 };
 
 export const OUTRUN_TRAFFIC_PIXEL_SPRITE: OutrunPixelSprite = {
-  width: 18,
-  height: 12,
+  width: 12,
+  height: 8,
   frames: [
     [
-      "......tttttt......",
-      "....ttbbbbbbtt....",
-      "..ttbbbbbbbbbbtt..",
-      ".tbbbbbbbbbbbbbbt.",
-      "tbbbggggggggggbbbt",
-      "tbbgghhhhhhhgggbbt",
-      "tbbggggggggggggbbt",
-      "tbbbbbbbbbbbbbbbbt",
-      ".ttbbbbppbbbbtt...",
-      "tbbrrbbbbbbbbrrbbt",
-      "ttbddttbbbbttddbtt",
-      "...ttddddddddtt..."
+      "...tttttt...",
+      "..ttbbbbtt..",
+      ".tbbbbbbbbt.",
+      "tbbbbbbbbbbt",
+      "tbbhhhhhhbbt",
+      "tbbggggggbbt",
+      "ttbbrrbbrrtt",
+      "..ttddddtt.."
     ],
     [
-      "......tttttt......",
-      "....ttbbbbbbtt....",
-      "..ttbbbbbbbbbbtt..",
-      ".tbbbbbbbbbbbbbbt.",
-      "tbbbggggggggggbbbt",
-      "tbbgghhhhhhhgggbbt",
-      "tbbggggggggggggbbt",
-      "tbbbbbbbbbbbbbbbbt",
-      ".ttbbbbppbbbbtt...",
-      "tbbRRbbbbbbbbRRbbt",
-      "ttbddttbbbbttddbtt",
-      "...ttddddddddtt..."
+      "...tttttt...",
+      "..ttbbbbtt..",
+      ".tbbbbbbbbt.",
+      "tbbbbbbbbbbt",
+      "tbbhhhhhhbbt",
+      "tbbggggggbbt",
+      "ttbbRRbbRRtt",
+      "..ttddddtt.."
     ]
   ]
 };

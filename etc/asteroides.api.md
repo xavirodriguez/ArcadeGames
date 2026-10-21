@@ -6273,6 +6273,11 @@ export class WebAudioPlayer implements IAudioPlayer {
     loadSFX(id: string, options: unknown): Promise<void>;
     pauseBGM(): void;
     playBGM(id: string, options?: unknown): void;
+    playBuffer(buffer: AudioBuffer, key?: string, options?: {
+        gain?: number;
+        rate?: number;
+    }): void;
+    // (undocumented)
     playSFX(id: string, options?: unknown): void;
     playSpatialSFX(id: string, x: number, y: number, listenerX: number, listenerY: number, maxDistance: number): void;
     releaseAll(): void;

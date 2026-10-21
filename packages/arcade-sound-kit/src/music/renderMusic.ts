@@ -11,7 +11,8 @@ export interface RenderMusicResult {
 
 /**
  * Renders a MusicRecipe bar-by-bar across tracks and sections (intro, loopA, loopB),
- * applying seamless loop folding when recipe.loop is true (spilling release/reverb tails back into bar 1).
+ * applying seamless loop tail folding (rendering with spill margin and folding release/reverb tails back into bar 1)
+ * and normalizing peak level <= 0.95 to prevent saturation.
  */
 export async function renderMusic(
   musicRecipe: MusicRecipe,
@@ -83,10 +84,13 @@ export async function renderMusic(
     }
   }
 
+  // Add 1 bar margin so reverb/release tails spill cleanly beyond totalBarSeconds
+  const marginDuration = totalBarSeconds + barSeconds;
+
   const synthesizedRecipe: SoundRecipe = {
     name: musicRecipe.name,
     category: 'progression',
-    duration: totalBarSeconds,
+    duration: marginDuration,
     layers: tempLayers,
   };
 
@@ -95,7 +99,7 @@ export async function renderMusic(
   let finalBuffer = new Float32Array(exactTotalSamples);
 
   if (musicRecipe.loop && rawBuffer.length > exactTotalSamples) {
-    // Seamless loop tail folding: fold tail spill beyond exactTotalSamples back into start
+    // Fold tail spill beyond exactTotalSamples back into start
     for (let i = 0; i < exactTotalSamples; i++) {
       finalBuffer[i] = rawBuffer[i];
     }
@@ -107,6 +111,20 @@ export async function renderMusic(
     const copyLen = Math.min(exactTotalSamples, rawBuffer.length);
     for (let i = 0; i < copyLen; i++) {
       finalBuffer[i] = rawBuffer[i];
+    }
+  }
+
+  // Peak normalize music output <= 0.95 (-0.45 dBFS) to prevent saturation
+  let peak = 0;
+  for (let i = 0; i < finalBuffer.length; i++) {
+    const abs = Math.abs(finalBuffer[i]);
+    if (abs > peak) peak = abs;
+  }
+
+  if (peak > 0.95) {
+    const scale = 0.95 / peak;
+    for (let i = 0; i < finalBuffer.length; i++) {
+      finalBuffer[i] *= scale;
     }
   }
 

@@ -16,6 +16,7 @@ export interface RenderVoiceContext {
   gainLinear: number;
   duty?: number;
   durJitter?: number;
+  rateJitter?: number;
   envelope?: Envelope;
   filter?: FilterSpec;
   modulation?: ModulationSpec;
@@ -56,17 +57,13 @@ function evalLfo(lfo: LfoSpec, tRel: number, initialPhase = 0, rng?: RNG, rateJi
   return val * fade;
 }
 
-/**
- * Renders a single oscillator voice with time-varying frequency, envelope, gain, LFO modulation,
- * FM phase modulation, Unison detuning, duty cycle, bitcrush, and optional biquad filter.
- */
 export function renderVoice(
   samples: Float32Array,
   voice: Voice,
   ctx: RenderVoiceContext
 ): void {
   const wave = voice.wave ?? 'sine';
-  const duty = ctx.duty ?? 0.5;
+  const baseDuty = ctx.duty ?? 0.5;
 
   const voicesCount = Math.max(1, Math.min(8, ctx.unison?.voices ?? 1));
   const unisonGainNorm = 1 / Math.sqrt(voicesCount);
@@ -94,10 +91,15 @@ export function renderVoice(
   const pitchLfo = ctx.modulation?.pitch;
   const ampLfo = ctx.modulation?.amp;
   const filterLfo = ctx.modulation?.filter;
+  const pulseWidthLfo = ctx.modulation?.pulseWidth;
 
-  const initPitchPhase = pitchLfo?.phase ?? (ctx.layerRng ? ctx.layerRng.next() : 0);
-  const initAmpPhase = ampLfo?.phase ?? (ctx.layerRng ? ctx.layerRng.next() : 0);
-  const initFilterPhase = filterLfo?.phase ?? (ctx.layerRng ? ctx.layerRng.next() : 0);
+  const lfoRateJitter = ctx.rateJitter ?? (ctx.layerRng ? 1 + ctx.layerRng.centered(0.05) : 1.0);
+
+  // Consume RNG only if the corresponding LFO is present
+  const initPitchPhase = pitchLfo ? (pitchLfo.phase ?? (ctx.layerRng ? ctx.layerRng.next() : 0)) : 0;
+  const initAmpPhase = ampLfo ? (ampLfo.phase ?? (ctx.layerRng ? ctx.layerRng.next() : 0)) : 0;
+  const initFilterPhase = filterLfo ? (filterLfo.phase ?? (ctx.layerRng ? ctx.layerRng.next() : 0)) : 0;
+  const initPwPhase = pulseWidthLfo ? (pulseWidthLfo.phase ?? (ctx.layerRng ? ctx.layerRng.next() : 0)) : 0;
 
   let sampleCount = 0;
   let lastBitcrushVal = 0;
@@ -107,19 +109,24 @@ export function renderVoice(
     let baseF = voice.getFrequency(tRel);
 
     if (pitchLfo) {
-      const lfoVal = evalLfo(pitchLfo, tRel, initPitchPhase, ctx.layerRng, ctx.durJitter ?? 1.0);
+      const lfoVal = evalLfo(pitchLfo, tRel, initPitchPhase, ctx.layerRng, lfoRateJitter);
       const semitones = lfoVal * pitchLfo.depth;
       baseF *= Math.pow(2, semitones / 12);
     }
 
-    const carrierF = Math.max(10, Math.min(baseF, ctx.sampleRate / 2 - 10));
+    let duty = baseDuty;
+    if (pulseWidthLfo) {
+      const lfoVal = evalLfo(pulseWidthLfo, tRel, initPwPhase, ctx.layerRng, lfoRateJitter);
+      duty = Math.max(0.05, Math.min(0.95, baseDuty + lfoVal * pulseWidthLfo.depth * 0.4));
+    }
 
+    const carrierF = Math.max(10, Math.min(baseF, ctx.sampleRate / 2 - 10));
     let oscMix = 0;
 
     for (let v = 0; v < voicesCount; v++) {
       let voiceF = carrierF;
       if (voicesCount > 1 && detuneCents > 0) {
-        const spreadOffset = (v / (voicesCount - 1) - 0.5) * 2; // -1 to +1
+        const spreadOffset = (v / (voicesCount - 1) - 0.5) * 2;
         const centsOffset = spreadOffset * detuneCents;
         voiceF *= Math.pow(2, centsOffset / 1200);
       }
@@ -145,7 +152,6 @@ export function renderVoice(
             )
           : 1.0;
 
-        // Carson's rule safe index ceiling against Nyquist aliasing
         const maxSafeIndex = Math.max(1, (ctx.sampleRate * 0.45 - voiceF) / Math.max(10, voiceF * fmRatio) - 1);
         const effectiveIndex = Math.min(ctx.fm.index * indexEnv, maxSafeIndex);
 
@@ -184,7 +190,7 @@ export function renderVoice(
         }
 
         if (filterLfo) {
-          const lfoVal = evalLfo(filterLfo, tRel, initFilterPhase, ctx.layerRng, ctx.durJitter ?? 1.0);
+          const lfoVal = evalLfo(filterLfo, tRel, initFilterPhase, ctx.layerRng, lfoRateJitter);
           const octaves = lfoVal * filterLfo.depth;
           fCut *= Math.pow(2, octaves);
         }
@@ -196,8 +202,9 @@ export function renderVoice(
 
     let ampMod = 1.0;
     if (ampLfo) {
-      const lfoVal = evalLfo(ampLfo, tRel, initAmpPhase, ctx.layerRng, ctx.durJitter ?? 1.0);
-      ampMod = Math.max(0, Math.min(1, 1 + lfoVal * ampLfo.depth));
+      const lfoVal = evalLfo(ampLfo, tRel, initAmpPhase, ctx.layerRng, lfoRateJitter);
+      // Smooth sinusoidal tremolo scaling between 1.0 and (1.0 - depth) without top-half clipping
+      ampMod = 1.0 - (ampLfo.depth * 0.5) * (1.0 - lfoVal);
     }
 
     const env = computeEnvelope(

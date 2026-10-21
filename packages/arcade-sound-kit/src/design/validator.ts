@@ -74,14 +74,15 @@ export function validateRecipe(
     typeof recipe.duration !== 'number' ||
     !Number.isFinite(recipe.duration) ||
     Number.isNaN(recipe.duration) ||
-    recipe.duration <= 0
+    recipe.duration <= 0 ||
+    recipe.duration > 10.0
   ) {
     issues.push({
       recipe: recipeName,
       field: 'duration',
       path: 'duration',
       value: recipe.duration,
-      message: 'Recipe duration must be a positive finite number (> 0)',
+      message: 'Recipe duration must be a positive finite number (> 0 and <= 10.0s)',
     });
   }
 
@@ -133,6 +134,14 @@ export function validateRecipe(
       path: 'layers',
       value: recipe.layers,
       message: 'Recipe layers must be a non-empty array',
+    });
+  } else if (recipe.layers.length > 10) {
+    issues.push({
+      recipe: recipeName,
+      field: 'layers',
+      path: 'layers',
+      value: recipe.layers.length,
+      message: 'Maximum 10 layers allowed per recipe',
     });
   } else {
     recipe.layers.forEach((layer, lIdx) => {
@@ -349,6 +358,20 @@ function validateLayer(
         value: env.curve,
         message: 'Envelope curve must be "linear" or "exp"',
       });
+    }
+
+    if (Array.isArray(env.points) && env.points.length > 0) {
+      const lastPoint = env.points[env.points.length - 1];
+      if (lastPoint.level !== 0) {
+        issues.push({
+          recipe: recipeName,
+          layerIndex: lIdx,
+          field: `layers[${lIdx}].envelope.points`,
+          path: `layers[${lIdx}].envelope.points`,
+          value: lastPoint.level,
+          message: 'The final point of a multipoint envelope must have level 0',
+        });
+      }
     }
 
     const attackVal = env.attack ?? 0.005;

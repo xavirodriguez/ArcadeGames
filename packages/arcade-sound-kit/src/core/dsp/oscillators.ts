@@ -33,6 +33,8 @@ export function evalWave(wave: Wave, phase: number, dt = 0, duty = 0.5): number 
     }
     case 'triangle':
       return 2 * Math.abs(2 * (p - Math.floor(p + 0.5))) - 1;
+    case 'noise':
+      return Math.sin(p * 12345.6789) * 43758.5453 % 1;
     default:
       return Math.sin(2 * Math.PI * p);
   }

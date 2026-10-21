@@ -6,6 +6,7 @@ import os from 'node:os';
 import readline from 'node:readline';
 import {
   arcadePack,
+  examplesPack,
   generateSet,
   renderFinal,
   encodeWav,
@@ -15,7 +16,7 @@ import {
   SoundRecipe,
   SoundArchetype,
 } from './index';
-import { playWavFile, registerTempWav } from './export/playerLauncher';
+import { playWavFileAsync, registerTempWav } from './export/playerLauncher';
 
 function formatMs(ms: number): string {
   if (ms < 1000) return `${ms}ms`;
@@ -67,9 +68,18 @@ async function handlePreviewCommand(args: string[]) {
   let recipe: SoundRecipe | null = null;
   let recipeFile: string | null = null;
 
-  if (args.includes('--pack')) {
-    const pack = arcadePack();
-    recipe = targetName ? pack.find((r) => r.name === targetName) ?? pack[0] : pack[0];
+  if (args.includes('--pack') || args.includes('--examples')) {
+    const pack = args.includes('--examples') ? examplesPack() : arcadePack();
+    if (targetName) {
+      const found = pack.find((r) => r.name === targetName);
+      if (!found) {
+        console.error(`Recipe name "${targetName}" not found in pack. Available names: ${pack.map(p => p.name).join(', ')}`);
+        process.exit(1);
+      }
+      recipe = found;
+    } else {
+      recipe = pack[0];
+    }
   } else {
     recipeFile = args.find((a) => !a.startsWith('--') && a !== 'preview') ?? null;
     if (recipeFile) {
@@ -107,7 +117,6 @@ async function handlePreviewCommand(args: string[]) {
 
         const { samples, sampleRate: sr } = await renderFinal(currentRecipe, { sampleRate, seed }, v);
 
-        // Concatenate loop repetitions with silence gap if loopCount > 1
         let finalSamples = samples;
         if (loopCount > 1) {
           const gapSamplesCount = Math.round((gapMs / 1000) * sr);
@@ -119,11 +128,12 @@ async function handlePreviewCommand(args: string[]) {
           }
         }
 
-        const wavBytes = encodeWav(finalSamples, { sampleRate: sr, seed });
+        const soundSeed = seed + v;
+        const wavBytes = encodeWav(finalSamples, { sampleRate: sr, seed: soundSeed });
         fs.writeFileSync(tmpFile, wavBytes);
 
         console.log(`[Preview] Playing "${currentRecipe.name}" (variant ${v + 1}/${variants}, seed=${seed}, sr=${sr}Hz, loop=${loopCount})…`);
-        playWavFile(tmpFile);
+        await playWavFileAsync(tmpFile);
       }
     } catch (err) {
       console.error('Preview render failed:', err);
@@ -222,6 +232,39 @@ async function main() {
 
   if (cmd === 'preview') {
     await handlePreviewCommand(args);
+    return;
+  }
+
+  if (cmd === 'cues') {
+    const outIdx = args.indexOf('--out');
+    const outDir = outIdx >= 0 ? args[outIdx + 1] : './out';
+
+    const { arcadePack } = await import('./design/pack.js');
+    const { generateCueBank } = await import('./export/cues.js');
+
+    const bank = generateCueBank(arcadePack());
+    fs.mkdirSync(outDir, { recursive: true });
+    const cuesPath = path.join(outDir, 'cues.json');
+    fs.writeFileSync(cuesPath, JSON.stringify(bank, null, 2));
+    console.log(`Generated cues bank at ${cuesPath}`);
+    return;
+  }
+
+  if (cmd === 'spritesheet') {
+    const outIdx = args.indexOf('--out');
+    const outDir = outIdx >= 0 ? args[outIdx + 1] : './out';
+
+    const { arcadePack } = await import('./design/pack.js');
+    const { generateSpriteSheet } = await import('./export/spritesheet.js');
+
+    const sheet = await generateSpriteSheet(arcadePack());
+    fs.mkdirSync(outDir, { recursive: true });
+    const jsonPath = path.join(outDir, 'spritesheet.json');
+    const wavPath = path.join(outDir, sheet.audioFile);
+
+    fs.writeFileSync(jsonPath, JSON.stringify({ urls: sheet.urls, sprite: sheet.sprite }, null, 2));
+    fs.writeFileSync(wavPath, sheet.wavBytes);
+    console.log(`Generated sprite sheet audio at ${wavPath} and spec at ${jsonPath}`);
     return;
   }
 
@@ -331,6 +374,8 @@ async function main() {
   ask-generate generate <recipe-file.js> [options]
   ask-generate preview <recipe-file.js> [options]
   ask-generate preview --pack --name <sfx> [options]
+  ask-generate audit [--pack] [--dir out/] [--fail-on]
+  ask-generate random [--archetype laser] [--count 10] [--seed 1]
 
 Flags for generate:
   --pack              Generate the full arcadePack()
@@ -345,6 +390,7 @@ Flags for generate:
 
 Flags for preview:
   --pack --name <sfx> Preview a specific sound from arcadePack()
+  --examples          Preview from examplesPack()
   --seed <n>          Set seed for preview
   --sample-rate <n>   Set sample rate
   --variants <n>      Number of variants to preview
@@ -352,6 +398,16 @@ Flags for preview:
   --gap <ms>          Silence gap between repeats in ms
   --watch             Watch recipe file and auto re-render on save
   --interactive       Interactive CLI control
+
+Flags for audit:
+  --pack              Audit arcadePack() sounds
+  --dir <dir>         Output directory for audit.json & audit.md
+  --fail-on           Exit non-zero if quality rules are violated
+
+Flags for random:
+  --archetype <arch>  Sound archetype (laser|explosion|coin|jump|hit|powerup|ui_blip|error)
+  --count <n>         Number of recipes to generate
+  --seed <n>          Base RNG seed
 `);
     process.exit(cmd ? 1 : 0);
   }

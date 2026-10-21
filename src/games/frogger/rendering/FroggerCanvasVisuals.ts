@@ -177,6 +177,38 @@ export const drawTurtleCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComp
   },
 };
 
+export const drawCrocodileCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComponentRegistry> = {
+  draw(ctx, world, entity) {
+    const render = world.getComponent(entity, "Render");
+    if (!render) return;
+
+    const width = render.size || 100;
+    const height = 30;
+    const halfW = width / 2;
+    const halfH = height / 2;
+
+    const crocColor = resolveThemeColorWithFallback(world, "#2E8B57", "crocodile", "secondary");
+
+    ctx.save();
+    ctx.fillStyle = crocColor;
+    ctx.shadowColor = crocColor;
+    ctx.shadowBlur = 8;
+
+    ctx.beginPath();
+    ctx.roundRect(-halfW, -halfH, width, height, 8);
+    ctx.fill();
+
+    // Eyes
+    ctx.fillStyle = "#FFD700";
+    ctx.shadowBlur = 0;
+    ctx.beginPath();
+    ctx.arc(halfW - 12, -halfH + 8, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  },
+};
+
 export const drawLilyPadCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComponentRegistry> = {
   draw(ctx, world, entity) {
     const goalCtx = resolveFroggerGoalContext(world, entity);

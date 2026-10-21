@@ -71,10 +71,6 @@ exports[`Echo Runner Game Simulation Tests should maintain expected registered p
     "systemName": "HitDetectionSystem",
   },
   {
-    "phase": "Collision",
-    "systemName": "EchoRunnerDeathZoneSystem",
-  },
-  {
     "phase": "Transform",
     "systemName": "HierarchySystem",
   },
@@ -85,6 +81,10 @@ exports[`Echo Runner Game Simulation Tests should maintain expected registered p
   {
     "phase": "Presentation",
     "systemName": "TilemapRenderSystem",
+  },
+  {
+    "phase": "Collision",
+    "systemName": "EchoRunnerDeathZoneSystem",
   },
   {
     "phase": "Simulation",

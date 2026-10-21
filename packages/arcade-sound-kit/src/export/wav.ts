@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { ManifestEntry, SoundManifest, SoundRecipe } from '../core/types';
 import { DEFAULT_SAMPLE_RATE, RENDER_VERSION } from '../core/render';
+import { estimateEffectsTailSeconds } from '../core/effects/chain';
 import { encodeWav } from './encoder';
 
 export * from './encoder';
@@ -110,10 +111,13 @@ export function recipeToManifestEntry(
     limitedByPeak?: boolean;
   }
 ): ManifestEntry {
+  const tailSeconds = estimateEffectsTailSeconds(recipe.effects);
+  const totalDuration = recipe.duration + tailSeconds;
+
   return {
     name: recipe.name,
     category: recipe.category,
-    duration: recipe.duration,
+    duration: Number(totalDuration.toFixed(3)),
     loop: !!recipe.loop,
     tags: recipe.tags ?? [],
     file: relativeFile,

@@ -1,4 +1,4 @@
-export type Wave = 'sine' | 'triangle' | 'square' | 'sawtooth' | 'pulse';
+export type Wave = 'sine' | 'triangle' | 'square' | 'sawtooth' | 'pulse' | 'noise';
 export type LfoWave = Wave | 'sampleAndHold';
 
 export interface LfoSpec {

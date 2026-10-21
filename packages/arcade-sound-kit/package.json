@@ -5,6 +5,16 @@
   "type": "commonjs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./core": {
+      "types": "./dist/core_entry.d.ts",
+      "default": "./dist/core_entry.js"
+    }
+  },
   "bin": {
     "ask-generate": "dist/cli.js"
   },
@@ -12,6 +22,7 @@
     "build": "tsc",
     "generate": "node dist/cli.js generate --pack",
     "generate:example": "node dist/cli.js generate examples/arcade.js",
+    "golden:update": "node tests/scripts/update_golden.mjs",
     "test": "node --test",
     "typecheck": "tsc --noEmit"
   },

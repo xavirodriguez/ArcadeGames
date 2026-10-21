@@ -9,7 +9,7 @@ function hashBuffer(buffer) {
   return crypto.createHash('sha256').update(bytes).digest('hex');
 }
 
-test('base recipe suite: duration, bounds, finite values and determinism', async () => {
+test('base recipe suite: duration, bounds, finite values, DC offset, and determinism', async () => {
   const pack = arcadePack();
   const sampleRate = DEFAULT_SAMPLE_RATE;
 
@@ -34,11 +34,13 @@ test('base recipe suite: duration, bounds, finite values and determinism', async
     );
 
     let rawPeak = 0;
+    let sampleSum = 0;
     for (let i = 0; i < rawSamples.length; i++) {
       const val = rawSamples[i];
       assert.ok(!Number.isNaN(val), `Recipe "${recipe.name}" sample ${i} is NaN`);
       assert.ok(Number.isFinite(val), `Recipe "${recipe.name}" sample ${i} is not finite`);
       if (Math.abs(val) > rawPeak) rawPeak = Math.abs(val);
+      sampleSum += val;
     }
 
     const scale = rawPeak > 1.0 ? 1.0 / rawPeak : 1.0;
@@ -51,6 +53,13 @@ test('base recipe suite: duration, bounds, finite values and determinism', async
     assert.ok(
       normalizedPeak <= 1.0 + 1e-6,
       `Recipe "${recipe.name}" peak (${normalizedPeak}) exceeded [-1, 1] bound`
+    );
+
+    // Measured DC offset threshold: mean amplitude across whole buffer must be < 0.05
+    const dcOffset = Math.abs(sampleSum / rawSamples.length);
+    assert.ok(
+      dcOffset < 0.05,
+      `Recipe "${recipe.name}" DC offset (${dcOffset.toFixed(4)}) exceeded threshold 0.05`
     );
 
     const rawSamples2 = await render(recipe, { sampleRate, seed: 42 });

@@ -4,7 +4,11 @@ export * from './design/recipe';
 export * from './effects/primitives';
 export * from './design/pack';
 export * from './design/examplesPack';
+export * from './design/generator';
 export * from './music';
+export * from './core/analysis';
+export * from './export/cues';
+export * from './export/spritesheet';
 export {
   RecipeValidationError,
   SoundRecipeValidationError,

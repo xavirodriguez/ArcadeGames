@@ -44,3 +44,5 @@ export function chordNotes(
 
 export const musicChord = chordNotes;
 export const chord = chordNotes;
+/** Alias to avoid collision with primitive layer function chord */
+export const chordScale = chordNotes;

@@ -13,6 +13,7 @@ import {
   GenerateProgressEvent,
   DEFAULT_SAMPLE_RATE,
   SoundRecipe,
+  SoundArchetype,
 } from './index';
 import { playWavFile, registerTempWav } from './export/playerLauncher';
 
@@ -221,6 +222,106 @@ async function main() {
 
   if (cmd === 'preview') {
     await handlePreviewCommand(args);
+    return;
+  }
+
+  if (cmd === 'audit') {
+    const packIdx = args.indexOf('--pack');
+    const dirIdx = args.indexOf('--dir');
+    const outDir = dirIdx >= 0 ? args[dirIdx + 1] : './out';
+    const failOnIdx = args.indexOf('--fail-on');
+
+    const { arcadePack } = await import('./design/pack.js');
+    const { renderFinal } = await import('./index.js');
+    const { analyzeAudioBuffer, findSimilarPairs } = await import('./core/analysis.js');
+
+    const recipes = arcadePack();
+    const results = [];
+
+    console.log(`Auditing ${recipes.length} recipes in arcadePack()…`);
+    for (const r of recipes) {
+      const { samples, sampleRate } = await renderFinal(r, { sampleRate: 22050 }, 0);
+      const analysis = analyzeAudioBuffer(r.name, r.category, samples, sampleRate, r.duration, r.loop);
+      results.push(analysis);
+    }
+
+    const similarPairs = findSimilarPairs(results, 0.15);
+
+    fs.mkdirSync(outDir, { recursive: true });
+    const jsonPath = path.join(outDir, 'audit.json');
+    const mdPath = path.join(outDir, 'audit.md');
+
+    fs.writeFileSync(jsonPath, JSON.stringify({ results, similarPairs }, null, 2));
+
+    let md = `# Quality Audit Report\n\nTotal sounds analyzed: ${results.length}\nSimilar sound pairs found: ${similarPairs.length}\n\n`;
+    md += `| Name | Category | Peak | RMS (dB) | LUFS | DC Offset | Clipped | Initial Sil (ms) | Loop Jump | Centroid (Hz) |\n`;
+    md += `|---|---|---|---|---|---|---|---|---|---|\n`;
+
+    let failedRules: string[] = [];
+
+    for (const r of results) {
+      md += `| ${r.name} | ${r.category} | ${r.peak.toFixed(3)} | ${r.rmsDb.toFixed(1)} | ${r.lufs.toFixed(1)} | ${r.dcOffset.toFixed(4)} | ${r.clippedSamples} | ${r.initialSilenceMs.toFixed(1)} | ${r.loopJump.toFixed(3)} | ${Math.round(r.spectralCentroidHz)} |\n`;
+
+      if (r.clippedSamples > 0) failedRules.push(`${r.name}: clipped samples (${r.clippedSamples})`);
+      if (r.dcOffset > 0.05) failedRules.push(`${r.name}: high DC offset (${r.dcOffset.toFixed(4)})`);
+    }
+
+    if (similarPairs.length > 0) {
+      md += `\n## Similar Sound Pairs\n\n`;
+      for (const p of similarPairs) {
+        md += `- **${p.soundA}** & **${p.soundB}** (spectral distance: ${p.distance.toFixed(3)}, dur diff: ${p.durationDiffMs.toFixed(1)}ms)\n`;
+      }
+    }
+
+    fs.writeFileSync(mdPath, md);
+    console.log(`Audit complete. Results written to ${jsonPath} and ${mdPath}`);
+
+    if (failOnIdx >= 0) {
+      if (failedRules.length > 0) {
+        console.error(`Audit CI check failed (${failedRules.length} violation(s)):\n` + failedRules.map(f => `  - ${f}`).join('\n'));
+        process.exit(1);
+      } else {
+        console.log('Audit CI check passed cleanly!');
+      }
+    }
+    return;
+  }
+
+  if (cmd === 'random') {
+    const archIdx = args.indexOf('--archetype');
+    const countIdx = args.indexOf('--count');
+    const seedIdx = args.indexOf('--seed');
+    const outIdx = args.indexOf('--out');
+
+    const rawArch = archIdx >= 0 ? args[archIdx + 1] : 'laser';
+    const VALID_ARCHETYPES: SoundArchetype[] = [
+      'laser',
+      'explosion',
+      'coin',
+      'jump',
+      'hit',
+      'powerup',
+      'ui_blip',
+      'error',
+    ];
+    const archetype: SoundArchetype = VALID_ARCHETYPES.includes(rawArch as SoundArchetype)
+      ? (rawArch as SoundArchetype)
+      : 'laser';
+    const count = countIdx >= 0 ? Number(args[countIdx + 1]) || 10 : 10;
+    const seed = seedIdx >= 0 ? Number(args[seedIdx + 1]) || 1 : 1;
+    const outDir = outIdx >= 0 ? args[outIdx + 1] : './random_sounds';
+
+    const { randomRecipe } = await import('./design/generator.js');
+    const { generateSet } = await import('./index.js');
+
+    const recipes = [];
+    for (let i = 0; i < count; i++) {
+      recipes.push(randomRecipe({ archetype }, seed + i));
+    }
+
+    console.log(`Generating ${count} random "${archetype}" sound(s) starting from seed ${seed}…`);
+    const files = await generateSet(recipes, { outDir, seed });
+    console.log(`Wrote ${files.length} file(s) to ${outDir}`);
     return;
   }
 

@@ -63,6 +63,7 @@ export default function RootLayout() {
           <Stack.Screen name="outrun" options={{ title: "Out Run" }} />
           <Stack.Screen name="vertical-shmup" options={{ title: "1942 // Vertical Shmup" }} />
           <Stack.Screen name="tower-defense" options={{ title: "Tower Defense" }} />
+          <Stack.Screen name="sound-lab" options={{ title: "Sound Lab" }} />
         </Stack>
       </GameServicesProvider>
     </GestureHandlerRootView>

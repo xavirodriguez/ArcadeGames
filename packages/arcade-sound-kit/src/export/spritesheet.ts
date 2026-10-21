@@ -78,7 +78,6 @@ export async function generateSpriteSheet(
     sampleRate,
     urls: [audioFile],
     sprite,
-    sprites: sprite,
     wavBytes,
   };
 }

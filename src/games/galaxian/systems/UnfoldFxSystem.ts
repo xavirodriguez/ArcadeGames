@@ -1,15 +1,15 @@
 import { System, World, createDeferredEntity } from "@tiny-aster/core";
-import { GalaxianComponentRegistry, UnfoldShardComponent } from "../types/GalaxianTypes";
+import { GalaxianComponentRegistry, GalaxianEventRegistry, UnfoldShardComponent } from "../types/GalaxianTypes";
 import { GalaxianConfig } from "../types/GalaxianConfigSchema";
 
-export class UnfoldFxSystem extends System<GalaxianComponentRegistry> {
+export class UnfoldFxSystem extends System<GalaxianComponentRegistry, GalaxianEventRegistry> {
   private listenerBound = false;
 
-  public update(world: World<GalaxianComponentRegistry>, deltaTime: number): void {
+  public update(world: World<GalaxianComponentRegistry, GalaxianEventRegistry>, deltaTime: number): void {
     if (!this.listenerBound) {
       const bus = world.getEventBus();
       if (bus) {
-        bus.on("combat:enemy_hit" as any, (event: any) => {
+        bus.on("combat:enemy_hit", (event) => {
           this.spawnUnfoldShards(world, event.x, event.y, event.enemyType);
         });
         this.listenerBound = true;

@@ -21,6 +21,7 @@ module.exports = {
     "<rootDir>/src/games/vertical-shmup/jest.config.cjs",
     "<rootDir>/src/games/tower-defense/jest.config.cjs",
     "<rootDir>/src/games/hitandrun/jest.config.cjs",
-    "<rootDir>/src/games/outrun/jest.config.cjs"
+    "<rootDir>/src/games/outrun/jest.config.cjs",
+    "<rootDir>/src/games/galaxian/jest.config.cjs"
   ]
 };

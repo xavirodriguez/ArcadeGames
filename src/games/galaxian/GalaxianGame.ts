@@ -69,6 +69,10 @@ export class GalaxianGame extends BaseGame<
     this.config = this.baseConfig;
   }
 
+  public getBulletPool(): BulletPool {
+    return this.bulletPool;
+  }
+
   public isGameOver(): boolean {
     return this.getGameState().isGameOver;
   }
@@ -136,7 +140,7 @@ export class GalaxianGame extends BaseGame<
     if (playerEntities.length === 0) return;
     const playerEntity = playerEntities[0];
 
-    const inputComp = this.world.getMutableComponent(playerEntity, "Input" as any) as GalaxianInputComponent | undefined;
+    const inputComp = this.world.getMutableComponent(playerEntity, "Input") as GalaxianInputComponent | undefined;
     if (!inputComp) return;
 
     const inp = input as Record<string, unknown>;

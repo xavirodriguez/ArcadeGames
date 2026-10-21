@@ -1,5 +1,5 @@
 export * from './notes';
-export * from './scales';
+export { scale, chordNotes, musicChord } from './scales';
 export * from './sequence';
 export * from './percussion';
 export * from './renderMusic';

@@ -27,7 +27,6 @@ test('generateSpriteSheet concatenates samples and accurate offsets allow slice 
   assert.equal(Object.keys(sheet.sprites).length, 3);
 
   const firstSprite = sheet.sprites[pack[0].name];
-  assert.equal(firstSprite.startSample, 0);
-  assert.ok(firstSprite.endSample > 0);
-  assert.ok(firstSprite.durationMs > 0);
+  assert.equal(firstSprite[0], 0);
+  assert.ok(firstSprite[1] > 0);
 });

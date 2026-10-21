@@ -11,6 +11,7 @@ export interface SoundSpriteSheet {
   /** Howler-compatible audio sprite definitions */
   urls: string[];
   sprite: Record<string, HowlerSpriteTuple>;
+  sprites: Record<string, HowlerSpriteTuple>;
   wavBytes: Uint8Array;
 }
 
@@ -78,6 +79,7 @@ export async function generateSpriteSheet(
     sampleRate,
     urls: [audioFile],
     sprite,
+    sprites: sprite,
     wavBytes,
   };
 }

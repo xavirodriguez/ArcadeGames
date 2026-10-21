@@ -42,7 +42,7 @@ export class GalaxianGame extends BaseGame<
   public readonly gameId = "galaxian";
   private baseConfig: GalaxianConfig;
   private config!: GalaxianConfig;
-  private bulletPool!: BulletPool;
+  public bulletPool!: BulletPool;
 
   constructor(config: BaseGameConfig<GalaxianComponentRegistry, GalaxianEventRegistry, GalaxianInputState, GalaxianBlueprintMap> = {}) {
     const seed = (config.gameOptions?.seed as number) || config.seed || 12345;
@@ -136,7 +136,7 @@ export class GalaxianGame extends BaseGame<
     if (playerEntities.length === 0) return;
     const playerEntity = playerEntities[0];
 
-    const inputComp = this.world.getMutableComponent(playerEntity, "Input" as any) as GalaxianInputComponent | undefined;
+    const inputComp = this.world.getMutableComponent(playerEntity, "Input") as GalaxianInputComponent | undefined;
     if (!inputComp) return;
 
     const inp = input as Record<string, unknown>;

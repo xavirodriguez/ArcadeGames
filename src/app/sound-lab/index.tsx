@@ -20,7 +20,7 @@ let sharedAudioContext: AudioContext | null = null;
 function getOrCreateAudioContext(): AudioContext | null {
   if (typeof window === "undefined") return null;
   if (!sharedAudioContext) {
-    const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const AudioCtx = window.AudioContext || (window as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (AudioCtx) {
       sharedAudioContext = new AudioCtx();
     }
@@ -170,7 +170,7 @@ export default function SoundLabScreen() {
     if (!renderedAudio || typeof window === "undefined") return;
     try {
       const wavBytes = encodeWav(renderedAudio.samples, { sampleRate: renderedAudio.sampleRate, seed });
-      const blob = new Blob([wavBytes], { type: "audio/wav" });
+      const blob = new Blob([new Uint8Array(wavBytes)], { type: "audio/wav" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;

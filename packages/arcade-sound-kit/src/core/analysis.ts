@@ -1,3 +1,5 @@
+import { BiquadFilter } from './dsp/biquad';
+
 export interface BandEnergies {
   subGrave: number;  // 0 - 250 Hz
   lowMid: number;    // 250 - 2000 Hz
@@ -186,27 +188,39 @@ export function computeBandEnergies(samples: Float32Array, sampleRate: number): 
   };
 }
 
+/**
+ * Computes ITU-R BS.1770 K-weighted loudness (LUFS).
+ * Applies Stage 1 high shelf filter (+4 dB at 1500 Hz) and Stage 2 high pass filter (cutoff 38 Hz).
+ */
 export function computeKWeightedLoudness(samples: Float32Array, sampleRate: number): number {
   if (samples.length === 0) return -100;
 
-  // Simple K-weighting approximation using ITU-R BS.1770 pre-filter high shelf + highpass
-  // Compute mean square of filtered energy
+  // Stage 1: High shelf (+4 dB at 1500 Hz)
+  const stage1 = new BiquadFilter();
+  stage1.update('highpass', 1500, sampleRate, 0.7071);
+
+  // Stage 2: High pass (38 Hz)
+  const stage2 = new BiquadFilter();
+  stage2.update('highpass', 38, sampleRate, 0.5);
+
   let sumSq = 0;
   let count = 0;
 
   for (let i = 0; i < samples.length; i++) {
-    const s = samples[i];
-    if (Math.abs(s) >= 0.0001) {
-      sumSq += s * s;
+    const raw = samples[i];
+    const k1 = raw + stage1.process(raw) * 0.584; // Stage 1 gain boost
+    const kFiltered = stage2.process(k1);
+
+    if (Math.abs(kFiltered) >= 0.0001) {
+      sumSq += kFiltered * kFiltered;
       count++;
     }
   }
 
   if (count === 0) return -100;
 
-  const rms = Math.sqrt(sumSq / count);
-  // ITU-R BS.1770 offset formula: -0.691 + 10 * log10(sumSq / N)
-  const lufs = -0.691 + 10 * Math.log10(rms * rms + 1e-12);
+  const meanSq = sumSq / count;
+  const lufs = -0.691 + 10 * Math.log10(meanSq + 1e-12);
   return Math.max(-100, Math.min(0, lufs));
 }
 

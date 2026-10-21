@@ -3,8 +3,8 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { arcadePack } from '../../dist/design/pack.js';
-import { render, DEFAULT_SAMPLE_RATE } from '../../dist/core/render.js';
-import { RNG } from '../../dist/core/random.js';
+import { examplesPack, musicExamplesPack } from '../../dist/design/examplesPack.js';
+import { renderFinal, DEFAULT_SAMPLE_RATE } from '../../dist/core/render.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,12 +26,16 @@ export function computeQuantizedHash(samples) {
 }
 
 export async function generateGoldenHashes() {
-  const pack = arcadePack();
+  const allPacks = [
+    ...arcadePack(),
+    ...examplesPack(),
+    ...musicExamplesPack(),
+  ];
   const sampleRate = DEFAULT_SAMPLE_RATE;
   const baseSeed = 42;
   const goldenHashes = {};
 
-  for (const recipe of pack) {
+  for (const recipe of allPacks) {
     const hasVariation = recipe.variation && (
       (recipe.variation.pitch ?? 0) > 0 ||
       (recipe.variation.levelDb ?? 0) > 0 ||
@@ -41,8 +45,7 @@ export async function generateGoldenHashes() {
     const variantHashes = [];
 
     for (let v = 0; v < variantCount; v++) {
-      const rng = new RNG(baseSeed).fork(v);
-      const samples = await render(recipe, { sampleRate, seed: baseSeed }, rng);
+      const { samples } = await renderFinal(recipe, { sampleRate, seed: baseSeed }, v);
       variantHashes.push(computeQuantizedHash(samples));
     }
 

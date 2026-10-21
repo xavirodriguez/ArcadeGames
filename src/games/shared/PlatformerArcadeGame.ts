@@ -15,32 +15,18 @@ import { z } from "zod";
  * Loads and initializes base arcade game configuration and level data.
  * @public
  */
-import { SegmentTemplate } from "@tiny-aster/core";
-
 export function loadPlatformerArcadeConfig<TConfig, TSchema extends z.ZodTypeAny = z.ZodTypeAny>(
   gameId: string,
   schema: TSchema,
   gameOptions?: Record<string, unknown>,
-  levelDataOverride?: { templates: SegmentTemplate[]; grammar: string[] }
-): { baseConfig: TConfig; customLevelData?: { templates: SegmentTemplate[]; grammar: string[] } } {
+  levelDataOverride?: { templates: unknown[]; grammar: string[] }
+): { baseConfig: TConfig; customLevelData?: { templates: any[]; grammar: string[] } } {
   const baseConfig = ConfigService.load<TConfig>(
     gameId,
     schema,
     gameOptions?.rawConfig ?? {}
   );
-  const rawLevelData = gameOptions?.levelData;
-  const isLevelDataObj = typeof rawLevelData === "object" && rawLevelData !== null;
-  const gameOptLevelData = isLevelDataObj
-    ? {
-        templates: Array.isArray((rawLevelData as Record<string, unknown>).templates)
-          ? ((rawLevelData as Record<string, unknown>).templates as SegmentTemplate[])
-          : [],
-        grammar: Array.isArray((rawLevelData as Record<string, unknown>).grammar)
-          ? ((rawLevelData as Record<string, unknown>).grammar as string[])
-          : []
-      }
-    : undefined;
-  const customLevelData = levelDataOverride ?? gameOptLevelData;
+  const customLevelData = levelDataOverride ?? (gameOptions?.levelData as { templates: any[]; grammar: string[] } | undefined);
   return { baseConfig, customLevelData };
 }
 import { updateRunProgress } from "@tiny-aster/gameplay-kit";
@@ -65,18 +51,6 @@ export abstract class PlatformerArcadeGame<
 > extends BaseGame<TState, TInput, TComponents, TEvents, TBlueprints> {
   constructor(config: BaseGameConfig<TComponents, TEvents, TInput, TBlueprints> = {}) {
     super(config);
-  }
-
-  protected loadConfig<TConfig, TSchema extends z.ZodTypeAny = z.ZodTypeAny>(
-    schema: TSchema,
-    levelDataOverride?: { templates: SegmentTemplate[]; grammar: string[] }
-  ): { baseConfig: TConfig; customLevelData?: { templates: SegmentTemplate[]; grammar: string[] } } {
-    return loadPlatformerArcadeConfig<TConfig, TSchema>(
-      this.gameId,
-      schema,
-      this._config.gameOptions,
-      levelDataOverride
-    );
   }
 
   /**

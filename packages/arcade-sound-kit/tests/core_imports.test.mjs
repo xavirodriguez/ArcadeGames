@@ -18,10 +18,17 @@ function scanFileImports(filePath, visited = new Set()) {
   const forbiddenPatterns = [
     /['"]node:fs['"]/,
     /['"]node:path['"]/,
+    /['"]node:crypto['"]/,
+    /['"]node:os['"]/,
+    /['"]node:child_process['"]/,
     /['"]fs['"]/,
     /['"]path['"]/,
+    /['"]crypto['"]/,
+    /['"]os['"]/,
+    /['"]child_process['"]/,
     /require\(['"]fs['"]\)/,
     /require\(['"]path['"]\)/,
+    /require\(['"]crypto['"]\)/,
     /require\(['"]node:/,
   ];
 

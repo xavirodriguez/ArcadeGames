@@ -19,9 +19,10 @@ export class ArkanoidEntityFactory {
     color?: BrickColorName,
     hp?: number,
     points?: number,
-    powerUp?: CapsuleType
+    powerUp?: CapsuleType,
+    row?: number
   ): Entity {
-    return spawnBlueprintEntity(world, "brick", { x, y, kind, color, hp, points, powerUp });
+    return spawnBlueprintEntity(world, "brick", { x, y, kind, color, hp, points, powerUp, row });
   }
 
   public static createGameState(world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry, ArkanoidBlueprintMap>): Entity {

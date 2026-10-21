@@ -58,7 +58,7 @@ export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
       state.timeRemaining -= dt;
       if (state.timeRemaining <= 0) {
         state.timeRemaining = 0;
-        frogger.isAlive = false;
+        world.mutateComponent(froggerEntity, "Frogger", (f) => { f.isAlive = false; });
         const eventBus = world.getEventBus();
         if (eventBus) {
           eventBus.emit("frogger:died", {
@@ -78,7 +78,7 @@ export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
         world.hasComponent(other, "Vehicle")
       );
       if (collidedVehicle !== null) {
-        frogger.isAlive = false;
+        world.mutateComponent(froggerEntity, "Frogger", (f) => { f.isAlive = false; });
         const eventBus = world.getEventBus();
         if (eventBus) {
           eventBus.emit("frogger:died", {
@@ -95,7 +95,7 @@ export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
         world.hasComponent(other, "Snake")
       );
       if (collidedSnake !== null) {
-        frogger.isAlive = false;
+        world.mutateComponent(froggerEntity, "Frogger", (f) => { f.isAlive = false; });
         const eventBus = world.getEventBus();
         if (eventBus) {
           eventBus.emit("frogger:died", {
@@ -134,7 +134,7 @@ export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
 
       if (hitPadEntity !== undefined) {
         if (padHasCroc) {
-          frogger.isAlive = false;
+          world.mutateComponent(froggerEntity, "Frogger", (f) => { f.isAlive = false; });
           const eventBus = world.getEventBus();
           if (eventBus) {
             eventBus.emit("frogger:died", {
@@ -207,7 +207,7 @@ export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
           this.resetFroggerPosition(world, froggerEntity, config, state);
         }
       } else if (!invulnerable) {
-        frogger.isAlive = false;
+        world.mutateComponent(froggerEntity, "Frogger", (f) => { f.isAlive = false; });
         const eventBus = world.getEventBus();
         if (eventBus) {
           eventBus.emit("frogger:died", {

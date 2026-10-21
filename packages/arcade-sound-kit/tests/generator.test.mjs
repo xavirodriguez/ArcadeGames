@@ -15,9 +15,9 @@ const ARCHETYPES = [
   'error',
 ];
 
-test('randomRecipe generates valid, non-silent, non-clipping audio for archetypes across 100 seeds each', async () => {
+test('randomRecipe generates valid, non-silent, non-clipping audio for archetypes across 1000 seeds each', async () => {
   for (const arch of ARCHETYPES) {
-    for (let seed = 1; seed <= 100; seed++) {
+    for (let seed = 1; seed <= 1000; seed++) {
       const recipe = randomRecipe({ archetype: arch }, seed);
       const issues = validateRecipe(recipe);
       assert.equal(issues.length, 0, `Validation issues for archetype ${arch} seed ${seed}: ${JSON.stringify(issues)}`);

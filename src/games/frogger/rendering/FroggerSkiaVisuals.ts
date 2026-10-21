@@ -108,6 +108,17 @@ export const drawTurtleSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
   },
 };
 
+export const drawCrocodileSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
+  draw(canvas, world, entity) {
+    const render = getVisibleSkiaRender(world, entity);
+    if (!render) return;
+
+    const width = render.size || 100;
+    const crocColor = resolveThemeColorWithFallback(world, "#2E8B57", "crocodile", "secondary");
+    drawSkiaRoundedBox(canvas, width, 30, crocColor, 8, 8);
+  },
+};
+
 export const drawLilyPadSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;

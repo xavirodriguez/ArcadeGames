@@ -7,26 +7,40 @@ import {
   randomRecipe,
   mutate,
   renderFinal,
+  encodeWav,
   analyzeAudioBuffer,
   type SoundRecipe,
   type LayerSpec,
   type SoundArchetype,
   type AudioAnalysisResult,
-} from "../../../packages/arcade-sound-kit/src/index";
+} from "../../../packages/arcade-sound-kit/src/core_entry";
+
+let sharedAudioContext: AudioContext | null = null;
+
+function getOrCreateAudioContext(): AudioContext | null {
+  if (typeof window === "undefined") return null;
+  if (!sharedAudioContext) {
+    const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (AudioCtx) {
+      sharedAudioContext = new AudioCtx();
+    }
+  }
+  if (sharedAudioContext && sharedAudioContext.state === "suspended") {
+    sharedAudioContext.resume().catch(() => {});
+  }
+  return sharedAudioContext;
+}
 
 export default function SoundLabScreen() {
   const [recipes] = useState<SoundRecipe[]>(() => [...arcadePack(), ...examplesPack()]);
   const [search, setSearch] = useState("");
   const [selectedRecipe, setSelectedRecipe] = useState<SoundRecipe>(() => arcadePack()[0]);
-  const [recipeA, setRecipeA] = useState<SoundRecipe>(() => arcadePack()[0]);
-  const [recipeB, setRecipeB] = useState<SoundRecipe | null>(null);
-  const [activeAB, setActiveAB] = useState<"A" | "B">("A");
 
   const [history, setHistory] = useState<SoundRecipe[]>([]);
   const [future, setFuture] = useState<SoundRecipe[]>([]);
 
-  const [seed] = useState(42);
-  const [variantIndex] = useState(0);
+  const [seed, setSeed] = useState(42);
+  const [variantIndex, setVariantIndex] = useState(0);
 
   const [renderedAudio, setRenderedAudio] = useState<{
     samples: Float32Array;
@@ -41,8 +55,6 @@ export default function SoundLabScreen() {
     setHistory((prev) => [...prev, selectedRecipe]);
     setFuture([]);
     setSelectedRecipe(newRecipe);
-    if (activeAB === "A") setRecipeA(newRecipe);
-    else setRecipeB(newRecipe);
   };
 
   const handleUndo = () => {
@@ -61,9 +73,10 @@ export default function SoundLabScreen() {
     setSelectedRecipe(next);
   };
 
+  // Debounced rendering
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    const timer = setTimeout(async () => {
       try {
         const { samples, sampleRate } = await renderFinal(selectedRecipe, { sampleRate: 22050, seed }, variantIndex);
         if (cancelled) return;
@@ -79,12 +92,15 @@ export default function SoundLabScreen() {
       } catch (err) {
         console.error("Render failed in SoundLab:", err);
       }
-    })();
+    }, 120);
+
     return () => {
       cancelled = true;
+      clearTimeout(timer);
     };
   }, [selectedRecipe, seed, variantIndex]);
 
+  // Canvas visualizer
   useEffect(() => {
     if (Platform.OS !== "web" || !renderedAudio || !canvasRef.current) return;
     const canvas = canvasRef.current;
@@ -130,11 +146,11 @@ export default function SoundLabScreen() {
   }, [renderedAudio]);
 
   const handlePlayAudio = () => {
-    if (!renderedAudio || typeof window === "undefined") return;
+    if (!renderedAudio) return;
     try {
-      const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      if (!AudioContextClass) return;
-      const audioCtx = new AudioContextClass();
+      const audioCtx = getOrCreateAudioContext();
+      if (!audioCtx) return;
+
       const buffer = audioCtx.createBuffer(1, renderedAudio.samples.length, renderedAudio.sampleRate);
       const channel = buffer.getChannelData(0);
       for (let i = 0; i < renderedAudio.samples.length; i++) {
@@ -147,6 +163,22 @@ export default function SoundLabScreen() {
       source.start();
     } catch (e) {
       console.warn("AudioContext playback error:", e);
+    }
+  };
+
+  const handleDownloadWav = () => {
+    if (!renderedAudio || typeof window === "undefined") return;
+    try {
+      const wavBytes = encodeWav(renderedAudio.samples, { sampleRate: renderedAudio.sampleRate, seed });
+      const blob = new Blob([wavBytes], { type: "audio/wav" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${selectedRecipe.name}.wav`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.warn("WAV download error:", e);
     }
   };
 
@@ -193,7 +225,7 @@ export default function SoundLabScreen() {
 
       <ScrollView contentContainerStyle={styles.mainScroll}>
         <View style={styles.panel}>
-          <Text style={styles.panelTitle}>Procedural Generator & Evolution</Text>
+          <Text style={styles.panelTitle}>Procedural Generator & Seed Controls</Text>
           <View style={styles.row}>
             <TouchableOpacity style={styles.btnPrimary} onPress={handleRandomize}>
               <Text style={styles.btnPrimaryText}>🎲 Randomize ({activeArchetype})</Text>
@@ -201,6 +233,26 @@ export default function SoundLabScreen() {
             <TouchableOpacity style={styles.btnSecondary} onPress={handleMutate}>
               <Text style={styles.btnSecondaryText}>⚡ Mutate (20%)</Text>
             </TouchableOpacity>
+          </View>
+          <View style={[styles.row, { marginTop: 12 }]}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.label}>Seed: {seed}</Text>
+              <TextInput
+                style={styles.input}
+                value={String(seed)}
+                keyboardType="numeric"
+                onChangeText={(v) => setSeed(parseInt(v) || 42)}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.label}>Variant: #{variantIndex + 1}</Text>
+              <TextInput
+                style={styles.input}
+                value={String(variantIndex)}
+                keyboardType="numeric"
+                onChangeText={(v) => setVariantIndex(Math.max(0, parseInt(v) || 0))}
+              />
+            </View>
           </View>
         </View>
 
@@ -210,9 +262,14 @@ export default function SoundLabScreen() {
             <canvas ref={canvasRef} width={600} height={140} style={{ width: "100%", height: 140, borderRadius: 6, marginBottom: 12 }} />
           ) : null}
 
-          <TouchableOpacity style={styles.btnPlay} onPress={handlePlayAudio}>
-            <Text style={styles.btnPlayText}>▶ PLAY SOUND</Text>
-          </TouchableOpacity>
+          <View style={styles.row}>
+            <TouchableOpacity style={[styles.btnPlay, { flex: 2 }]} onPress={handlePlayAudio}>
+              <Text style={styles.btnPlayText}>▶ PLAY SOUND</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.btnSecondary, { flex: 1, height: 48, justifyContent: "center" }]} onPress={handleDownloadWav}>
+              <Text style={styles.btnSecondaryText}>💾 Download WAV</Text>
+            </TouchableOpacity>
+          </View>
 
           {renderedAudio ? (
             <View style={styles.metricsGrid}>
@@ -282,7 +339,7 @@ export default function SoundLabScreen() {
                 keyboardType="numeric"
                 onChangeText={(val) => {
                   const num = parseFloat(val);
-                  if (!isNaN(num) && num > 0) updateCurrentRecipe({ ...selectedRecipe, duration: num });
+                  if (!isNaN(num) && num > 0 && num <= 10.0) updateCurrentRecipe({ ...selectedRecipe, duration: num });
                 }}
               />
             </View>

@@ -90,8 +90,10 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
       theme: config.theme ?? createThemeFromGameAccents("platformer"),
       audio: new WebAudioPlayer()
     });
-    const loaded = this.loadConfig<PlatformerConfigType>(
+    const loaded = loadPlatformerArcadeConfig<PlatformerConfigType>(
+      this.gameId,
       PlatformerConfigSchema,
+      config.gameOptions,
       config.levelData
     );
     this.baseConfig = loaded.baseConfig;
@@ -100,7 +102,9 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
   }
 
   protected override async onRegisterSystems(): Promise<void> {
-    this.config = this.setupArcadeGameConfig(this.baseConfig, resolveAndApplyMutators);
+    this.config = resolveAndApplyMutators(this.baseConfig, this._config.gameOptions);
+
+    this.world.setResource("GameConfig", this.config);
     await super.onRegisterSystems();
 
     // Register PowerUp effects

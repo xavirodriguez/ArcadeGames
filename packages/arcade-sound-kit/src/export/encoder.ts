@@ -1,5 +1,5 @@
-import crypto from 'crypto';
 import { WaveFile } from 'wavefile';
+import { sha256 } from './sha256';
 import { SoundRecipe, GenerateOptions } from '../core/types';
 import { DEFAULT_SAMPLE_RATE, RENDER_VERSION } from '../core/render';
 import { RNG } from '../core/random';
@@ -54,7 +54,7 @@ export function computeRecipeHash(
     variants: options.variants ?? 1,
   };
   const str = canonicalJsonStringify(payload);
-  return crypto.createHash('sha256').update(str).digest('hex');
+  return sha256(str);
 }
 
 export interface EncodeWavOptions {

@@ -1,4 +1,5 @@
-import { SoundRecipe, GenerateOptions, LayerSpec } from './types';
+import { SoundRecipe, MusicRecipe, GenerateOptions, LayerSpec } from './types';
+import { renderMusic } from '../music/renderMusic';
 import { RNG } from './random';
 import { layerRenderers, LayerRendererContext } from './renderers';
 import { applyEffectsChain, estimateEffectsTailSeconds } from './effects/chain';
@@ -29,19 +30,44 @@ export interface RenderFinalResult {
  * and returns Float32Array samples without filesystem, path, or manifest I/O.
  */
 export async function renderFinal(
-  recipe: SoundRecipe,
+  recipe: SoundRecipe | MusicRecipe,
   options: GenerateOptions = {},
   variantIndex = 0
 ): Promise<RenderFinalResult> {
   const baseSeed = options.seed ?? 42;
   const rng = new RNG(baseSeed).fork(variantIndex);
   const sampleRate = options.sampleRate ?? DEFAULT_SAMPLE_RATE;
-  const samples = await render(recipe, options, rng);
+
+  let samples: Float32Array;
+  if ('tracks' in recipe && Array.isArray((recipe as MusicRecipe).tracks)) {
+    const res = await renderMusic(recipe as MusicRecipe, options);
+    samples = res.samples;
+  } else {
+    samples = await render(recipe as SoundRecipe, options, rng);
+  }
+
   const norm = applyLoudnessNormalization(
     samples,
     options.targetRmsDb,
     options.peakCeilingDb
   );
+
+  if (options.targetRmsDb === undefined) {
+    const peakDb = options.peakDb ?? -1;
+    const peakLinear = Math.pow(10, peakDb / 20);
+    let peak = 0;
+    for (let i = 0; i < samples.length; i++) {
+      const abs = Math.abs(samples[i]);
+      if (abs > peak) peak = abs;
+    }
+    if (peak > 0) {
+      const scale = peakLinear / peak;
+      for (let i = 0; i < samples.length; i++) {
+        samples[i] *= scale;
+      }
+    }
+  }
+
   return {
     samples,
     sampleRate,
@@ -197,7 +223,9 @@ export async function render(
       duration,
     };
 
-    const renderer = layerRenderers[l.kind];
+    const renderer = (l.notes && l.notes.length > 0)
+      ? layerRenderers.sequence
+      : layerRenderers[l.kind];
     if (renderer) {
       renderer(samples, l, ctx);
     }

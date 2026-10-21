@@ -174,11 +174,14 @@ export function getSharedSoundBank(): SoundBank {
 
 export async function preloadSharedAudioManifest(audio: IAudioPlayer): Promise<void> {
   if (!audio) return;
-  await Promise.all(
+  const timeoutMs = 2500;
+  const timeoutPromise = new Promise<void>((resolve) => setTimeout(resolve, timeoutMs));
+  const loadPromise = Promise.all(
     SHARED_AUDIO_MANIFEST.map((asset) =>
       audio.loadSFX(asset.id, asset.path).catch((err) => {
         console.warn(`[Audio] Failed to preload asset "${asset.id}":`, err);
       })
     )
   );
+  await Promise.race([loadPromise, timeoutPromise]);
 }

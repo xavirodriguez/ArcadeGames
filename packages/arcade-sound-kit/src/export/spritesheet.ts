@@ -1,6 +1,6 @@
-import { encodeWav } from './encoder.js';
-import type { SoundRecipe } from '../core/types.js';
-import { renderFinal } from '../core/render.js';
+import { encodeWav } from './encoder';
+import type { SoundRecipe } from '../core/types';
+import { renderFinal } from '../core/render';
 
 export interface SpriteOffset {
   name: string;

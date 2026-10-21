@@ -132,7 +132,8 @@ export default function SoundLabScreen() {
   const handlePlayAudio = () => {
     if (!renderedAudio || typeof window === "undefined") return;
     try {
-      const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const win = window as typeof window & { webkitAudioContext?: typeof AudioContext };
+      const AudioContextClass = win.AudioContext || win.webkitAudioContext;
       if (!AudioContextClass) return;
       const audioCtx = new AudioContextClass();
       const buffer = audioCtx.createBuffer(1, renderedAudio.samples.length, renderedAudio.sampleRate);

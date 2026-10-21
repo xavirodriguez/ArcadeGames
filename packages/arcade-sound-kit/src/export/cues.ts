@@ -1,4 +1,4 @@
-import type { SoundRecipe, Category, ManifestEntry } from '../core/types.js';
+import type { SoundRecipe, Category, ManifestEntry } from '../core/types';
 
 export interface CueSpec {
   id: string;

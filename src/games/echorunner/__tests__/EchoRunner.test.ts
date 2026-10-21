@@ -921,7 +921,7 @@ describe("Echo Runner Game Simulation Tests", () => {
       testGame.update(0.016);
 
       expect(testWorld.isAlive(duplicateCoreEntity)).toBe(false);
-      expect(runState.collectedPermanentIds.filter((id) => id === "archive_core_1")).toHaveLength(1);
+      expect(runState.collectedPermanentIds.filter((id: string) => id === "archive_core_1")).toHaveLength(1);
       expect(testGame.getGameState().cores).toBe(1);
 
       const currentPlayerTransform = testWorld.getComponent(playerEntity, "Transform")!;

@@ -5,7 +5,6 @@ import {
   drawTruckCanvas,
   drawLogCanvas,
   drawTurtleCanvas,
-  drawCrocodileCanvas,
   drawLilyPadCanvas,
   froggerBackgroundCanvasEffect,
 } from "./FroggerCanvasVisuals";
@@ -30,7 +29,7 @@ export function initializeFroggerRenderer(renderer: Renderer<any, any>): void {
     renderer.registerShape("truck", drawTruckCanvas);
     renderer.registerShape("log", drawLogCanvas);
     renderer.registerShape("turtle", drawTurtleCanvas);
-    renderer.registerShape("crocodile", drawCrocodileCanvas);
+    renderer.registerShape("crocodile", drawTurtleCanvas);
     renderer.registerShape("lily_pad", drawLilyPadCanvas);
     renderer.registerBackgroundEffect("froggerBackground", froggerBackgroundCanvasEffect);
   } else if (renderer?.type === "skia") {

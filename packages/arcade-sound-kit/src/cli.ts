@@ -274,9 +274,9 @@ async function main() {
     const outDir = dirIdx >= 0 ? args[dirIdx + 1] : './out';
     const failOnIdx = args.indexOf('--fail-on');
 
-    const { arcadePack } = await import('./design/pack.js');
-    const { renderFinal } = await import('./index.js');
-    const { analyzeAudioBuffer, findSimilarPairs } = await import('./core/analysis.js');
+    const { arcadePack } = await import('./design/pack');
+    const { renderFinal } = await import('./index');
+    const { analyzeAudioBuffer, findSimilarPairs } = await import('./core/analysis');
 
     const recipes = arcadePack();
     const results = [];
@@ -354,8 +354,8 @@ async function main() {
     const seed = seedIdx >= 0 ? Number(args[seedIdx + 1]) || 1 : 1;
     const outDir = outIdx >= 0 ? args[outIdx + 1] : './random_sounds';
 
-    const { randomRecipe } = await import('./design/generator.js');
-    const { generateSet } = await import('./index.js');
+    const { randomRecipe } = await import('./design/generator');
+    const { generateSet } = await import('./index');
 
     const recipes = [];
     for (let i = 0; i < count; i++) {

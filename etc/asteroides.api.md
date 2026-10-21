@@ -42,6 +42,18 @@ export interface ActionBinding<TExtra extends string = never> {
     };
 }
 
+// @public (undocumented)
+export interface ActiveVoice {
+    // (undocumented)
+    cueId: string;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    priority: CuePriority;
+    // (undocumented)
+    startTime: number;
+}
+
 // @public
 export interface AnimationDefinition {
     frameRate: number;
@@ -1243,6 +1255,11 @@ export interface CoreComponentRegistry extends ComponentRegistry {
     Dead: DeadComponent;
     // (undocumented)
     DeathZone: DeathZoneComponent;
+    EchoRunnerInput: {
+        type: "EchoRunnerInput";
+        pulsePressed: boolean;
+        pulseCooldown: number;
+    };
     Enemy: EnemyComponent;
     Faction: FactionComponent;
     Friction: FrictionComponent;
@@ -1611,8 +1628,41 @@ export class CRTGlitchTransition extends BaseOffscreenTransitionEffect {
     protected paintOffscreen(ctx: RenderContext, offscreenCanvas: CanvasImageSource | HTMLCanvasElement, progress: number, width: number, height: number, options?: TransitionOptions): void;
 }
 
+// @public (undocumented)
+export interface CueBankData {
+    // (undocumented)
+    cues: Record<string, CueSpec>;
+    // (undocumented)
+    version: string;
+}
+
 // @public
 export type CueInterruptPolicy = "queue" | "interrupt" | "ignore";
+
+// @public (undocumented)
+export type CuePriority = "low" | "normal" | "high" | "critical";
+
+// @public (undocumented)
+export interface CueSpec {
+    // (undocumented)
+    category: string;
+    // (undocumented)
+    cooldownMs?: number;
+    // (undocumented)
+    files: string[];
+    // (undocumented)
+    gainDb?: number;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    loop?: boolean;
+    // (undocumented)
+    pitchJitter?: number;
+    // (undocumented)
+    priority?: CuePriority;
+    // (undocumented)
+    variants: number;
+}
 
 // @public
 export const CURRENT_CAMPAIGN_ENVELOPE_VERSION = 1;
@@ -2512,6 +2562,9 @@ export function getMissionTitle(theme: Theme | undefined, missionId: string, fal
 
 // @public
 export function getOrCreateStateMachineRegistry(world: World<CoreComponentRegistry>): Record<string, StateMachineDefinition>;
+
+// @public (undocumented)
+export function getSharedSoundBank(): SoundBank;
 
 // @public
 export interface GridPassabilityMap {
@@ -4177,7 +4230,7 @@ export class PrefabPool<T extends Record<string, Component>, I> {
     get size(): number;
 }
 
-// @public
+// @public (undocumented)
 export function preloadSharedAudioManifest(audio: IAudioPlayer): Promise<void>;
 
 // @public
@@ -5072,6 +5125,30 @@ export const SOLAR_GARDEN_PALETTE: {
 
 // @public
 export function sortEntitiesByRenderOrder<TRegistry extends ComponentRegistry>(sortedEntities: Entity[], world: World<TRegistry>, renderType: Extract<keyof TRegistry, string>, transformType: Extract<keyof TRegistry, string>): void;
+
+// @public
+export class SoundBank {
+    constructor(config?: SoundBankConfig);
+    // (undocumented)
+    getActiveVoiceCount(): number;
+    loadAllCues(player: IAudioPlayer): Promise<void>;
+    playCue(cueId: string, player: IAudioPlayer): void;
+    registerCueBank(bankData: CueBankData): void;
+}
+
+// @public (undocumented)
+export interface SoundBankConfig {
+    // (undocumented)
+    baseDir?: string;
+    // (undocumented)
+    duckingAmountDb?: number;
+    // (undocumented)
+    duckingDurationMs?: number;
+    // (undocumented)
+    maxCueVoices?: number;
+    // (undocumented)
+    maxGlobalVoices?: number;
+}
 
 // @public
 export type SpaceInvadersRoleKey = CommonRoleKey | "invader" | "invader_commander" | "invader_scout" | "commander" | "scout" | "ufo";
@@ -6273,6 +6350,11 @@ export class WebAudioPlayer implements IAudioPlayer {
     loadSFX(id: string, options: unknown): Promise<void>;
     pauseBGM(): void;
     playBGM(id: string, options?: unknown): void;
+    playBuffer(buffer: AudioBuffer, key?: string, options?: {
+        gain?: number;
+        rate?: number;
+    }): void;
+    // (undocumented)
     playSFX(id: string, options?: unknown): void;
     playSpatialSFX(id: string, x: number, y: number, listenerX: number, listenerY: number, maxDistance: number): void;
     releaseAll(): void;

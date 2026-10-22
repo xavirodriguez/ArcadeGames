@@ -1,7 +1,6 @@
 import { BaseConfigSchema } from "@tiny-aster/core";
 import { z } from "zod";
 import { DEFAULT_OUTRUN_VISUAL_CONFIG } from "../config/visualDefaults";
-import type { OutrunPaletteTokens, OutrunSharedPaletteTokens } from "./OutrunVisualTypes";
 
 const hexColorSchema = z.string().regex(/^#[0-9a-fA-F]{6}$/);
 const paletteTokensSchema = z.object({

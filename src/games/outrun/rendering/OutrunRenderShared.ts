@@ -18,6 +18,7 @@ import {
 import { colors } from "../../../theme/colors";
 import type { OutrunVisualPaletteResource } from "../types/OutrunVisualTypes";
 import { createVisualPaletteResource } from "../utils/palette";
+import { shouldDrawOutrunRoadsideSprite } from "./OutrunRoadsideArtwork";
 
 /** Standard racer vehicle body color options. */
 export const RACER_COLORS = [colors.blue, colors.cyan, colors.gold, colors.orange, colors.red] as const;
@@ -450,7 +451,9 @@ export interface SpritePassVisitor<TCtx> {
     sw: number,
     roadWidth: number,
     lightsOn: boolean,
-    clipY: number
+    clipY: number,
+    depth: number,
+    segmentIndex: number
   ): void;
 }
 
@@ -469,6 +472,7 @@ export function iterateOutrunSprites<TCtx>(
     if (!seg || !seg.sprites || seg.sprites.length === 0) continue;
 
     for (const sp of seg.sprites) {
+      if (!shouldDrawOutrunRoadsideSprite(sp.kind, p.index, config.visual.quality)) continue;
       let sx = p.x1;
       if (sp.kind !== "arch" && sp.kind !== "banner") {
         sx = p.x1 + sp.side * (p.w1 * sp.offset);
@@ -478,7 +482,7 @@ export function iterateOutrunSprites<TCtx>(
 
       if (sy >= p.clip || sw < 2) continue;
 
-      visitor(ctx, sp, sx, sy, sw, config.roadWidth, lightsOn, p.clip);
+      visitor(ctx, sp, sx, sy, sw, config.roadWidth, lightsOn, p.clip, p.fog, p.index);
     }
   }
 }

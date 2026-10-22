@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   controls: {
-    ...StyleSheet.absoluteFill,
+    ...StyleSheet.absoluteFillObject,
     flexDirection: "row",
     justifyContent: "space-between",
     zIndex: 10,

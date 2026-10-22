@@ -48,7 +48,6 @@ export default function RootLayout() {
           <Stack.Screen name="index" options={{ title: "Arcade" }} />
           <Stack.Screen name="asteroids" options={{ title: "Asteroides" }} />
           <Stack.Screen name="space-invaders" options={{ title: "Space Invaders" }} />
-          <Stack.Screen name="centipede" options={{ title: "Centipede" }} />
           <Stack.Screen name="flappybird" options={{ title: "Flappy Bird" }} />
           <Stack.Screen name="pong" options={{ title: "Pong" }} />
           <Stack.Screen name="platformer" options={{ title: "Platformer" }} />

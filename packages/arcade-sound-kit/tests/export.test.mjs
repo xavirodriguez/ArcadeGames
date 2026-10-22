@@ -24,9 +24,9 @@ test('generateSpriteSheet concatenates samples and accurate offsets allow slice 
   const sheet = await generateSpriteSheet(pack, { sampleRate: 22050, paddingMs: 100 });
 
   assert.ok(sheet.wavBytes.length > 0);
-  assert.equal(Object.keys(sheet.sprites).length, 3);
+  assert.equal(Object.keys(sheet.sprite).length, 3);
 
-  const firstSprite = sheet.sprites[pack[0].name];
+  const firstSprite = sheet.sprite[pack[0].name];
   assert.equal(firstSprite[0], 0);
   assert.ok(firstSprite[1] > 0);
 });

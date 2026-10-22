@@ -17,7 +17,7 @@ import { colors, spacing, typography, effects, neonTextGlow, COLORS } from "../t
 
 interface GameEntry {
   id: string;
-  key: "asteroids" | "space_invaders" | "flappybird" | "pong" | "geometrywars" | "echorunner" | "hitandrun" | "platformer" | "frogger" | "cyoa" | "blindstation" | "campaign" | "arkanoid" | "racing" | "tower_defense" | "vertical-shmup" | "outrun" | "galaxian" | "centipede";
+  key: "asteroids" | "space_invaders" | "flappybird" | "pong" | "geometrywars" | "echorunner" | "hitandrun" | "platformer" | "frogger" | "cyoa" | "blindstation" | "campaign" | "arkanoid" | "racing" | "tower_defense" | "vertical-shmup" | "outrun" | "galaxian";
   href: Href;
 }
 
@@ -26,7 +26,6 @@ const GAMES: GameEntry[] = [
   { id: "galaxian", key: "galaxian", href: "/galaxian" },
   { id: "asteroids", key: "asteroids", href: "/asteroids" },
   { id: "space-invaders", key: "space_invaders", href: "/space-invaders" },
-  { id: "centipede", key: "centipede", href: "/centipede" },
   { id: "flappybird", key: "flappybird", href: "/flappybird" },
   { id: "pong", key: "pong", href: "/pong" },
   { id: "arkanoid", key: "arkanoid", href: "/arkanoid" },
@@ -80,7 +79,6 @@ export default function HomeScreen() {
                  gameId === "frogger" ? "/frogger" :
                  gameId === "racing" ? "/racing" :
                  gameId === "vertical-shmup" ? "/vertical-shmup" :
-                 gameId === "centipede" ? "/centipede" :
                  "/space-invaders";
 
       router.push({

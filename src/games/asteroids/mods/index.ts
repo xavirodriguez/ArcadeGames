@@ -23,5 +23,16 @@ export {
 export type { IcebergSize, IcebergVertex } from "./iceberg/IcebergGeometry";
 export { buildFacets, buildFanFacets } from "./iceberg/IcebergFacets";
 export type { IcebergFacet } from "./iceberg/IcebergFacets";
+export {
+  drawIcebergPlayerShip,
+  drawIcebergAsteroid,
+  drawIcebergBullet
+} from "./iceberg/IcebergCanvasVisuals";
+export {
+  drawSkiaIcebergPlayerShip,
+  drawSkiaIcebergAsteroid,
+  drawSkiaIcebergBullet
+} from "./iceberg/IcebergSkiaVisuals";
+export { entitySeededRandom, radiusToIcebergSize, vertsForAsteroidEntity } from "./iceberg/IcebergDrawUtils";
 export { applyVisualMod } from "./applyVisualMod";
 export type { VisualModGameOptions } from "./applyVisualMod";

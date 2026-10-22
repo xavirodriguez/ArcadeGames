@@ -3,21 +3,21 @@ import type { AsteroidsVisualMod } from "../types";
 import { ICEBERG_PALETTE } from "./IcebergPalette";
 import { createIcebergVerts, type IcebergSize } from "./IcebergGeometry";
 import {
-  drawAsteroidsPlayerShip as canvasDrawAsteroidsPlayerShip,
-  drawAsteroidsAsteroid as canvasDrawAsteroidsAsteroid,
-  drawAsteroidsBullet as canvasDrawAsteroidsBullet
-} from "../../rendering/AsteroidsCanvasVisuals";
+  drawIcebergPlayerShip,
+  drawIcebergAsteroid,
+  drawIcebergBullet
+} from "./IcebergCanvasVisuals";
 import {
-  drawSkiaAsteroidsPlayerShip as skiaDrawAsteroidsPlayerShip,
-  drawSkiaAsteroidsAsteroid as skiaDrawAsteroidsAsteroid,
-  drawSkiaAsteroidsBullet as skiaDrawAsteroidsBullet
-} from "../../rendering/AsteroidsSkiaVisuals";
+  drawSkiaIcebergPlayerShip,
+  drawSkiaIcebergAsteroid,
+  drawSkiaIcebergBullet
+} from "./IcebergSkiaVisuals";
 
 /**
  * Iceberg visual mod — Borealis / Cristal Glaciar (ART_ICEBERG.md).
  *
- * Phase 0–1: palette, theme, deterministic iceberg verts.
- * Drawers still classic until Phase 2 (facet shading + icebreaker path).
+ * Phase 0–1: palette, theme, verts.
+ * Phase 2: faceted Canvas + Skia drawers (icebreaker, icebergs, thermal beam).
  *
  * @public
  */
@@ -84,13 +84,12 @@ export const icebergMod: AsteroidsVisualMod = {
   },
 
   registerDrawers(register) {
-    // Phase 2 will replace these with IcebergCanvasVisuals / IcebergSkiaVisuals.
-    register("canvas", "player_ship", canvasDrawAsteroidsPlayerShip as never);
-    register("canvas", "asteroid", canvasDrawAsteroidsAsteroid as never);
-    register("canvas", "bullet", canvasDrawAsteroidsBullet as never);
+    register("canvas", "player_ship", drawIcebergPlayerShip as never);
+    register("canvas", "asteroid", drawIcebergAsteroid as never);
+    register("canvas", "bullet", drawIcebergBullet as never);
 
-    register("skia", "player_ship", skiaDrawAsteroidsPlayerShip as never);
-    register("skia", "asteroid", skiaDrawAsteroidsAsteroid as never);
-    register("skia", "bullet", skiaDrawAsteroidsBullet as never);
+    register("skia", "player_ship", drawSkiaIcebergPlayerShip as never);
+    register("skia", "asteroid", drawSkiaIcebergAsteroid as never);
+    register("skia", "bullet", drawSkiaIcebergBullet as never);
   }
 };

@@ -36,7 +36,10 @@ function linearizeSrgb(channel: number): number {
 
 /** WCAG relative luminance for an opaque sRGB HEX color. */
 export function relativeLuminance(hex: string): number {
-  const [red, green, blue] = parseHexColor(hex).map(linearizeSrgb);
+  const [redChannel, greenChannel, blueChannel] = parseHexColor(hex);
+  const red = linearizeSrgb(redChannel);
+  const green = linearizeSrgb(greenChannel);
+  const blue = linearizeSrgb(blueChannel);
   return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
 }
 

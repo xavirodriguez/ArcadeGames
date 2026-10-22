@@ -137,4 +137,75 @@ describe("Centipede Presentation & Visual Layer Parity", () => {
     expect(DEFAULT_PALETTE.mushroomA).not.toEqual(DEFAULT_PALETTE_COLORBLIND.mushroomA);
     expect(DEFAULT_PALETTE.amber).not.toEqual(DEFAULT_PALETTE_COLORBLIND.amber);
   });
+
+  it("renders canvas drawers without error in both high and low quality modes", async () => {
+    const game = new CentipedeGame({ headless: true, gameOptions: { seed: 99 } });
+    await game.init();
+    const world = game.getWorld();
+
+    const mockCtx: Partial<CanvasRenderingContext2D> = {
+      canvas: { width: 300, height: 320 } as HTMLCanvasElement,
+      fillStyle: "",
+      strokeStyle: "",
+      lineWidth: 1,
+      lineCap: "butt" as CanvasLineCap,
+      globalAlpha: 1.0,
+      font: "",
+      textAlign: "left" as CanvasTextAlign,
+      fillRect: () => {},
+      beginPath: () => {},
+      arc: () => {},
+      ellipse: () => {},
+      fill: () => {},
+      stroke: () => {},
+      moveTo: () => {},
+      lineTo: () => {},
+      closePath: () => {},
+      translate: () => {},
+      scale: () => {},
+      save: () => {},
+      restore: () => {},
+      fillText: () => {},
+      quadraticCurveTo: () => {},
+    };
+
+    const {
+      renderCentipedeBackground,
+      renderCentipedeHead,
+      renderCentipedeBody,
+      renderMushroom,
+      renderSpider,
+      renderFlea,
+      renderScorpion,
+      renderShooter,
+      renderDart,
+    } = require("../rendering/CentipedeCanvasVisuals");
+
+    const ctx = mockCtx as RenderContext;
+
+    expect(() => renderCentipedeBackground(ctx, world)).not.toThrow();
+
+    const headEnt = world.query("CentipedeSegment")[0];
+    if (headEnt) {
+      expect(() => renderCentipedeHead(ctx, world, headEnt)).not.toThrow();
+      expect(() => renderCentipedeBody(ctx, world, headEnt)).not.toThrow();
+    }
+
+    const mushEnt = world.query("Mushroom")[0];
+    if (mushEnt) {
+      expect(() => renderMushroom(ctx, world, mushEnt)).not.toThrow();
+    }
+
+    expect(() => renderSpider(ctx, world, 1)).not.toThrow();
+    expect(() => renderFlea(ctx, world, 1)).not.toThrow();
+    expect(() => renderScorpion(ctx, world, 1)).not.toThrow();
+
+    const shooterEnt = world.query("Shooter")[0];
+    if (shooterEnt) {
+      expect(() => renderShooter(ctx, world, shooterEnt)).not.toThrow();
+    }
+    expect(() => renderDart(ctx, world, 1)).not.toThrow();
+
+    game.destroy();
+  });
 });

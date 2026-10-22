@@ -6,7 +6,6 @@ import {
   resolveOutrunRoadContext,
   projectOutrunRoad,
   projectionBuffer,
-  computeRoadSegmentColors,
   iterateOutrunSprites,
   resolveOutrunCarContext,
   resolveOutrunRacerDrawContext,
@@ -14,8 +13,8 @@ import {
   resolveOffroadDustParams
 } from "./OutrunRenderShared";
 import { computeSpeedLines, computeOutrunPlayerPixelSize } from "./OutrunVisualHelpers";
+import { computeOutrunRoadSpeedLineSegments, resolveOutrunRoadSegmentArtwork } from "./OutrunRoadArtwork";
 import { resolveOutrunSceneryLayout, type OutrunSceneryLayout, type MountainLayerLayout } from "./OutrunScenery";
-import { resolveRoadFogColor } from "./OutrunFog";
 import { colors } from "../../../theme/colors";
 import { hexToRgba } from "../../shared/rendering/CosmicPalette";
 import {
@@ -225,7 +224,7 @@ export const drawSkiaOutrunRoad: ShapeDrawer<SkCanvas, OutrunComponentRegistry> 
     const roadCtx = resolveOutrunRoadContext(world);
     if (!roadCtx) return;
 
-    const { state, roadData, config, screenW, screenH, rumbleLength, palette } = roadCtx;
+    const { state, roadData, config, screenW, screenH, palette, visualPalette } = roadCtx;
     const sceneryLayout = resolveOutrunSceneryLayout(world, state, roadData, config);
     const horizonY = sceneryLayout.horizonY;
     drawOutrunScenerySkia(canvas, sceneryLayout, screenW, screenH);
@@ -242,81 +241,103 @@ export const drawSkiaOutrunRoad: ShapeDrawer<SkCanvas, OutrunComponentRegistry> 
       if (p.y1 <= p.y2 || p.y2 >= p.clip) continue;
       renderedCount++;
 
-      const { grassCol, rumbleCol, roadCol } = computeRoadSegmentColors(p.index, rumbleLength, palette);
+      const artwork = resolveOutrunRoadSegmentArtwork(p.index, p.fog, visualPalette);
 
-      // Grass Strip
-      const gPaint = Skia.Paint();
-      gPaint.setColor(Skia.Color(grassCol));
-      gPaint.setStyle(Skia.PaintStyle.Fill);
-      canvas.drawRect(Skia.XYWHRect(0, p.y2, screenW, p.y1 - p.y2), gPaint);
+      // Depth haze and alternating ground stripe.
+      const groundPaint = Skia.Paint();
+      groundPaint.setColor(Skia.Color(artwork.groundColor));
+      groundPaint.setStyle(Skia.PaintStyle.Fill);
+      canvas.drawRect(Skia.XYWHRect(0, p.y2, screenW, p.y1 - p.y2), groundPaint);
 
-      // Rumble Strips
-      const rPath = Skia.Path.Make();
-      rPath.moveTo(p.x2 - p.w2 * 1.18, p.y2);
-      rPath.lineTo(p.x2 + p.w2 * 1.18, p.y2);
-      rPath.lineTo(p.x1 + p.w1 * 1.18, p.y1);
-      rPath.lineTo(p.x1 - p.w1 * 1.18, p.y1);
-      rPath.close();
+      // Coast: water is restricted to the left side, beyond the outer kerb.
+      if (artwork.waterColor !== null) {
+        const outerW2 = p.w2 * (1 + artwork.kerbWidthRatio);
+        const outerW1 = p.w1 * (1 + artwork.kerbWidthRatio);
+        const waterPath = Skia.Path.Make();
+        waterPath.moveTo(0, p.y2);
+        waterPath.lineTo(p.x2 - outerW2, p.y2);
+        waterPath.lineTo(p.x1 - outerW1, p.y1);
+        waterPath.lineTo(0, p.y1);
+        waterPath.close();
+        const waterPaint = Skia.Paint();
+        waterPaint.setColor(Skia.Color(artwork.waterColor));
+        waterPaint.setStyle(Skia.PaintStyle.Fill);
+        canvas.drawPath(waterPath, waterPaint);
+      }
 
-      const rPaint = Skia.Paint();
-      rPaint.setColor(Skia.Color(rumbleCol));
-      rPaint.setStyle(Skia.PaintStyle.Fill);
-      canvas.drawPath(rPath, rPaint);
+      // Pianos alternate cream and the hour-specific dark token.
+      const outerW2 = p.w2 * (1 + artwork.kerbWidthRatio);
+      const outerW1 = p.w1 * (1 + artwork.kerbWidthRatio);
+      const kerbPath = Skia.Path.Make();
+      kerbPath.moveTo(p.x2 - outerW2, p.y2);
+      kerbPath.lineTo(p.x2 + outerW2, p.y2);
+      kerbPath.lineTo(p.x1 + outerW1, p.y1);
+      kerbPath.lineTo(p.x1 - outerW1, p.y1);
+      kerbPath.close();
+      const kerbPaint = Skia.Paint();
+      kerbPaint.setColor(Skia.Color(artwork.kerbColor));
+      kerbPaint.setStyle(Skia.PaintStyle.Fill);
+      canvas.drawPath(kerbPath, kerbPaint);
 
-      // Road Surface
+      // Road surface uses the configured near/far tokens.
       const roadPath = Skia.Path.Make();
       roadPath.moveTo(p.x2 - p.w2, p.y2);
       roadPath.lineTo(p.x2 + p.w2, p.y2);
       roadPath.lineTo(p.x1 + p.w1, p.y1);
       roadPath.lineTo(p.x1 - p.w1, p.y1);
       roadPath.close();
-
       const roadPaint = Skia.Paint();
-      roadPaint.setColor(Skia.Color(roadCol));
+      roadPaint.setColor(Skia.Color(artwork.roadColor));
       roadPaint.setStyle(Skia.PaintStyle.Fill);
       canvas.drawPath(roadPath, roadPaint);
 
-      // Lane Divider
-      if (Math.floor(p.index / rumbleLength) % 2 === 0) {
-        const lw1 = p.w1 * 0.03;
-        const lw2 = p.w2 * 0.03;
-        const lPath = Skia.Path.Make();
-        lPath.moveTo(p.x2 - lw2, p.y2);
-        lPath.lineTo(p.x2 + lw2, p.y2);
-        lPath.lineTo(p.x1 + lw1, p.y1);
-        lPath.lineTo(p.x1 - lw1, p.y1);
-        lPath.close();
-
-        const lPaint = Skia.Paint();
-        lPaint.setColor(Skia.Color(palette.lane));
-        lPaint.setStyle(Skia.PaintStyle.Fill);
-        canvas.drawPath(lPath, lPaint);
+      // Lane dashes share the even-segment rhythm of the dark kerb.
+      if (artwork.drawLane) {
+        const halfMarkW1 = p.w1 * artwork.laneMarkWidthRatio * 0.5;
+        const halfMarkW2 = p.w2 * artwork.laneMarkWidthRatio * 0.5;
+        const lanePath = Skia.Path.Make();
+        lanePath.moveTo(p.x2 - halfMarkW2, p.y2);
+        lanePath.lineTo(p.x2 + halfMarkW2, p.y2);
+        lanePath.lineTo(p.x1 + halfMarkW1, p.y1);
+        lanePath.lineTo(p.x1 - halfMarkW1, p.y1);
+        lanePath.close();
+        const lanePaint = Skia.Paint();
+        lanePaint.setColor(Skia.Color(artwork.laneColor));
+        lanePaint.setStyle(Skia.PaintStyle.Fill);
+        canvas.drawPath(lanePath, lanePaint);
       }
 
     }
 
-    // Match Canvas with one continuous gradient rather than per-segment fog strips.
-    const fogPaint = Skia.Paint();
-    fogPaint.setStyle(Skia.PaintStyle.Fill);
-    fogPaint.setShader(
-      Skia.Shader.MakeLinearGradient(
-        Skia.Point(0, horizonY),
-        Skia.Point(0, screenH),
-        [
-          Skia.Color(resolveRoadFogColor(palette, 0.55)),
-          Skia.Color(resolveRoadFogColor(palette, 0))
-        ],
-        [0, 1],
-        Skia.TileMode.Clamp
-      )
-    );
-    canvas.drawRect(
-      Skia.XYWHRect(0, horizonY, screenW, Math.max(0, screenH - horizonY)),
-      fogPaint
-    );
 
     if (count > 0 && renderedCount === 0) {
       console.warn("[drawSkiaOutrunRoad] 100% of projected road segments were clipped or discarded.");
+    }
+
+    // Short radial streaks stay on the ground outside the pianos.
+    const speedLines = computeOutrunRoadSpeedLineSegments({
+      projectedSegments: projectionBuffer,
+      count,
+      state,
+      config,
+      visualPalette,
+      screenW,
+      screenH,
+      horizonY
+    });
+    if (speedLines.length > 0) {
+      const speedPaint = Skia.Paint();
+      speedPaint.setColor(Skia.Color(visualPalette.shared.cream));
+      speedPaint.setAlphaf(visualPalette.tuning.road.speedLineAlpha);
+      speedPaint.setStyle(Skia.PaintStyle.Stroke);
+      speedPaint.setStrokeWidth(visualPalette.tuning.road.speedLineWidthPx);
+      speedPaint.setStrokeCap(Skia.StrokeCap.Round);
+      const speedPath = Skia.Path.Make();
+      for (const line of speedLines) {
+        speedPath.moveTo(line.x1, line.y1);
+        speedPath.lineTo(line.x2, line.y2);
+      }
+      canvas.drawPath(speedPath, speedPaint);
     }
 
     // 3. Roadside Sprites Pass

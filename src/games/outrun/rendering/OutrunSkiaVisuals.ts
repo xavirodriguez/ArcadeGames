@@ -728,32 +728,131 @@ export const drawSkiaOutrunRacer: ShapeDrawer<SkCanvas, OutrunComponentRegistry>
   }
 };
 
+function drawOutrunSkiaHudText(
+  canvas: SkCanvas,
+  text: string,
+  x: number,
+  baselineY: number,
+  fontSize: number,
+  color: string,
+  align: "left" | "right" = "left"
+): void {
+  if (!Skia) return;
+  const font = Skia.Font ? Skia.Font(null, fontSize) : null;
+  if (!font) return;
+  const textWidth = font.measureText ? font.measureText(text).width : text.length * fontSize * 0.56;
+  const drawX = align === "right" ? x - textWidth : x;
+  const paint = Skia.Paint();
+  paint.setColor(Skia.Color(color));
+  paint.setStyle(Skia.PaintStyle.Fill);
+  canvas.drawText(text, drawX, baselineY, paint, font);
+}
+
+function drawOutrunSkiaHudPill(
+  canvas: SkCanvas,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+  color: string,
+  alpha: number
+): void {
+  if (!Skia) return;
+  const paint = Skia.Paint();
+  paint.setColor(Skia.Color(color));
+  paint.setAlphaf(alpha);
+  paint.setStyle(Skia.PaintStyle.Fill);
+  canvas.drawRRect(Skia.RRectXY(Skia.XYWHRect(x, y, width, height), radius, radius), paint);
+}
+
 export const drawSkiaOutrunHud = {
   draw(canvas: SkCanvas, world: import("@tiny-aster/core").World<OutrunComponentRegistry>): void {
     if (!Skia) return;
     const hudCtx = resolveOutrunHudContext(world);
     if (!hudCtx) return;
 
-    const { state, config, hudBg, hudAccent } = hudCtx;
-
+    const { state, config, speedKmh, timeStr, phase, progressFraction, visualPalette } = hudCtx;
+    const layout = resolveOutrunHudLayout({ config, progressFraction, speedKmh, timeStr, visualPalette });
+    const shared = visualPalette.shared;
     canvas.save();
 
-    const bgPaint = Skia.Paint();
-    bgPaint.setColor(Skia.Color(hudBg));
-    bgPaint.setStyle(Skia.PaintStyle.Fill);
-    canvas.drawRect(Skia.XYWHRect(16, 16, 180, 60), bgPaint);
+    // Top information blocks.
+    drawOutrunSkiaHudText(canvas, "Tiempo", layout.time.x, layout.time.labelY,
+      layout.time.labelFont, shared.hudMutedText);
+    drawOutrunSkiaHudText(canvas, layout.time.value, layout.time.x, layout.time.valueY,
+      layout.time.valueFont, shared.cream);
+    drawOutrunSkiaHudText(canvas, layout.stage.label, layout.stage.x, layout.stage.labelY,
+      layout.stage.labelFont, shared.hudMutedText, "right");
+    drawOutrunSkiaHudText(canvas, layout.stage.hour, layout.stage.x, layout.stage.hourY,
+      layout.stage.hourFont, shared.cream, "right");
 
-    const borderPaint = Skia.Paint();
-    borderPaint.setColor(Skia.Color(hudAccent));
-    borderPaint.setStyle(Skia.PaintStyle.Stroke);
-    borderPaint.setStrokeWidth(1.5);
-    canvas.drawRect(Skia.XYWHRect(16, 16, 180, 60), borderPaint);
+    // Progress rail, upcoming stage marker and player marker.
+    const progress = layout.progress;
+    const trackPaint = Skia.Paint();
+    trackPaint.setColor(Skia.Color(shared.cream));
+    trackPaint.setAlphaf(progress.trackAlpha);
+    trackPaint.setStyle(Skia.PaintStyle.Fill);
+    canvas.drawRect(Skia.XYWHRect(progress.x, progress.y, progress.width, progress.height), trackPaint);
+    const progressPaint = Skia.Paint();
+    progressPaint.setColor(Skia.Color(shared.cream));
+    progressPaint.setStyle(Skia.PaintStyle.Fill);
+    canvas.drawRect(Skia.XYWHRect(progress.x, progress.y, progress.filledWidth, progress.height), progressPaint);
 
-    if (state.isGameOver) {
+    const markerY = progress.y + progress.height / 2;
+    const branchPaint = Skia.Paint();
+    branchPaint.setColor(Skia.Color(visualPalette.tokens.kerbB));
+    branchPaint.setStyle(Skia.PaintStyle.Fill);
+    canvas.drawCircle(progress.branchMarkerX, markerY, progress.branchMarkerRadius, branchPaint);
+    const playerMarkerPaint = Skia.Paint();
+    playerMarkerPaint.setColor(Skia.Color(shared.car));
+    playerMarkerPaint.setStyle(Skia.PaintStyle.Fill);
+    canvas.drawCircle(progress.carMarkerX, markerY, progress.carMarkerRadius, playerMarkerPaint);
+
+    // Speed pill.
+    const speed = layout.speedPill;
+    drawOutrunSkiaHudPill(canvas, speed.x, speed.y, speed.width, speed.height,
+      speed.radius, shared.shadow, speed.shadowAlpha);
+    drawOutrunSkiaHudText(canvas, speed.value, speed.digitsX, speed.digitsY,
+      speed.digitsFont, shared.cream);
+    drawOutrunSkiaHudText(canvas, "km/h", speed.unitX, speed.unitY,
+      speed.unitFont, shared.hudMutedText, "right");
+
+    // Decorative radio dial.
+    const radio = layout.radioPill;
+    drawOutrunSkiaHudPill(canvas, radio.x, radio.y, radio.width, radio.height,
+      radio.radius, shared.shadow, radio.shadowAlpha);
+    drawOutrunSkiaHudText(canvas, radio.label, radio.labelX, radio.labelY,
+      radio.labelFont, shared.hudMutedText);
+    for (const bar of radio.bars) {
+      fillVehicleRoundedRectSkia(canvas, {
+        x: bar.x, y: bar.y, width: bar.width, height: bar.height,
+        cornerRadius: Math.min(bar.width, bar.height) / 2
+      }, bar.active ? shared.car : shared.hudMutedText);
+    }
+
+    // Countdown and end-of-run overlays remain independent of simulation.
+    if (phase === "countdown") {
+      const countdown = Math.ceil(state.countdownTime ?? 3);
       const overPaint = Skia.Paint();
-      overPaint.setColor(Skia.Color(hexToRgba(colors.surface, 0.6)));
+      overPaint.setColor(Skia.Color(shared.shadow));
+      overPaint.setAlphaf(0.64);
       overPaint.setStyle(Skia.PaintStyle.Fill);
       canvas.drawRect(Skia.XYWHRect(0, 0, config.WIDTH, config.HEIGHT), overPaint);
+      drawOutrunSkiaHudText(canvas, countdown > 0 ? `${countdown}` : "GO!",
+        layout.centerX, layout.centerY, layout.countdownFont, shared.cream, "left");
+    }
+    if (state.isGameOver) {
+      const overPaint = Skia.Paint();
+      overPaint.setColor(Skia.Color(shared.shadow));
+      overPaint.setAlphaf(0.72);
+      overPaint.setStyle(Skia.PaintStyle.Fill);
+      canvas.drawRect(Skia.XYWHRect(0, 0, config.WIDTH, config.HEIGHT), overPaint);
+      const label = "Fin del recorrido";
+      const font = Skia.Font ? Skia.Font(null, layout.resultsFont) : null;
+      const labelWidth = font?.measureText ? font.measureText(label).width : label.length * layout.resultsFont * 0.56;
+      drawOutrunSkiaHudText(canvas, label, layout.centerX - labelWidth / 2,
+        layout.centerY, layout.resultsFont, shared.cream);
     }
 
     canvas.restore();

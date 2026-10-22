@@ -103,5 +103,6 @@ export function shouldDrawOutrunRoadsideSprite(
   if (kind === "arch" || kind === "banner" || kind === "billboard" || kind === "chevron") {
     return true;
   }
-  return Math.abs(Math.floor(segmentIndex / 4) % 2) === 0;
+  const objectGroupIndex = Math.max(0, Math.floor(segmentIndex / 4) - 1);
+  return objectGroupIndex % 2 === 0;
 }

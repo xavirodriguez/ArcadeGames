@@ -17,12 +17,13 @@ import { colors, spacing, typography, effects, neonTextGlow, COLORS } from "../t
 
 interface GameEntry {
   id: string;
-  key: "asteroids" | "space_invaders" | "flappybird" | "pong" | "geometrywars" | "echorunner" | "hitandrun" | "platformer" | "frogger" | "cyoa" | "blindstation" | "campaign" | "arkanoid" | "racing" | "tower_defense" | "vertical-shmup" | "outrun" | "centipede";
+  key: "asteroids" | "space_invaders" | "flappybird" | "pong" | "geometrywars" | "echorunner" | "hitandrun" | "platformer" | "frogger" | "cyoa" | "blindstation" | "campaign" | "arkanoid" | "racing" | "tower_defense" | "vertical-shmup" | "outrun" | "galaxian" | "centipede";
   href: Href;
 }
 
 const GAMES: GameEntry[] = [
   { id: "campaign", key: "campaign", href: "/campaign" },
+  { id: "galaxian", key: "galaxian", href: "/galaxian" },
   { id: "asteroids", key: "asteroids", href: "/asteroids" },
   { id: "space-invaders", key: "space_invaders", href: "/space-invaders" },
   { id: "centipede", key: "centipede", href: "/centipede" },

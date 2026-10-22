@@ -1,6 +1,8 @@
 # OUTRUN_ART.md — Dirección Artística y Reglas Visuales ("OUT RUN 2049")
 
-Norte visual: «Arquitectura contemporánea vectorial y pulcra a 200 km/h.» Estilo vectorial limpio, hormigón blanco/gris claro, negro mate, coral, cian y lavanda ("OUT RUN 2049"). Prohibido pixel art, estética ochentera synthwave y nubes cartoon densas.
+Norte visual: «Arquitectura contemporánea vectorial y pulcra a 200 km/h.» Estilo vectorial limpio, hormigón blanco/gris claro, negro mate, coral, cian y lavanda ("OUT RUN 2049"). Se prohíbe convertir todo el juego en pixel art, adoptar estética ochentera synthwave o usar nubes cartoon densas.
+
+**Excepción controlada para vehículos:** los coches pueden usar una cuadrícula de píxeles pequeña, nítida y dibujada con datos tipados para mantener el coste de renderizado predecible y la paridad Canvas/Skia. Esta técnica de rasterización no redefine la dirección artística global: las siluetas deben leerse como diseño gráfico estilizado, con carrocería, cristal, neumáticos, luces y bandas de material; la carretera, el cielo y el paisaje conservan el lenguaje vectorial/low-poly contemporáneo.
 
 ---
 

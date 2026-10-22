@@ -2,20 +2,25 @@ import { encodeWav } from './encoder';
 import type { SoundRecipe } from '../core/types';
 import { renderFinal } from '../core/render';
 
-export interface SpriteOffset {
-  name: string;
-  category: string;
-  startMs: number;
-  endMs: number;
-  durationMs: number;
+/** Howler audio sprite tuple format: [startMs, durationMs, loop] */
+export type HowlerSpriteTuple = [number, number, boolean];
+
+export interface SpriteEntry {
   startSample: number;
   endSample: number;
+  startMs: number;
+  durationMs: number;
+  loop: boolean;
 }
 
 export interface SoundSpriteSheet {
   audioFile: string;
   sampleRate: number;
-  sprites: Record<string, SpriteOffset>;
+  /** Howler-compatible audio sprite definitions */
+  urls: string[];
+  sprite: Record<string, HowlerSpriteTuple>;
+  /** Detailed sprite entries with sample bounds and durations */
+  sprites: Record<string, SpriteEntry>;
   wavBytes: Uint8Array;
 }
 
@@ -46,7 +51,8 @@ export async function generateSpriteSheet(
   }
 
   const combinedSamples = new Float32Array(totalSamplesCount);
-  const sprites: Record<string, SpriteOffset> = {};
+  const sprite: Record<string, HowlerSpriteTuple> = {};
+  const sprites: Record<string, SpriteEntry> = {};
   let currentSampleOffset = 0;
 
   for (const item of renderedBuffers) {
@@ -55,20 +61,27 @@ export async function generateSpriteSheet(
     const endSample = startSample + item.samples.length;
 
     const startMs = Math.round((startSample / sampleRate) * 1000 * 100) / 100;
-    const endMs = Math.round((endSample / sampleRate) * 1000 * 100) / 100;
     const durationMs = Math.round((item.samples.length / sampleRate) * 1000 * 100) / 100;
+    const loop = item.recipe.loop ?? false;
 
-    sprites[item.recipe.name] = {
-      name: item.recipe.name,
-      category: item.recipe.category,
-      startMs,
-      endMs,
-      durationMs,
-      startSample,
-      endSample,
-    };
+    // Howler format: [startMs, durationMs, loop]
+    sprite[item.recipe.name] = [startMs, durationMs, loop];
+    sprites[item.recipe.name] = { startSample, endSample, startMs, durationMs, loop };
 
     currentSampleOffset = endSample + paddingSamples;
+  }
+
+  // Peak normalize combined sprite sheet samples <= 0.95
+  let maxPeak = 0;
+  for (let i = 0; i < combinedSamples.length; i++) {
+    const abs = Math.abs(combinedSamples[i]);
+    if (abs > maxPeak) maxPeak = abs;
+  }
+  if (maxPeak > 0) {
+    const scale = 0.95 / maxPeak;
+    for (let i = 0; i < combinedSamples.length; i++) {
+      combinedSamples[i] *= scale;
+    }
   }
 
   const wavBytes = encodeWav(combinedSamples, { sampleRate, seed });
@@ -76,6 +89,8 @@ export async function generateSpriteSheet(
   return {
     audioFile,
     sampleRate,
+    urls: [audioFile],
+    sprite,
     sprites,
     wavBytes,
   };

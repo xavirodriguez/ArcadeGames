@@ -211,7 +211,9 @@ export function musicExamplesPack(): MusicRecipe[] {
         {
           name: 'lead',
           layer: { kind: 'sequence', wave: 'square', level: -10 },
-          pattern: () => seq(['C4', 'E4', 'G4', 'B4', 'C5', 'G4', 'E4', 'C4'], { bpm: 120 }),
+          pattern: (bar) => bar === 0
+            ? seq(['C4', 'E4', 'G4', 'B4'], { bpm: 120 })
+            : seq(['C5', 'G4', 'E4', 'C4'], { bpm: 120 }),
         },
       ],
     },
@@ -235,9 +237,48 @@ export function musicExamplesPack(): MusicRecipe[] {
         {
           name: 'bass',
           layer: { kind: 'sequence', wave: 'sawtooth', level: -10 },
-          pattern: () => seq(['A2', 'A2', 'C3', 'A2', 'D3', 'A2', 'Eb3', 'D3'], { bpm: 140 }),
+          pattern: (bar) => bar === 0
+            ? seq(['A2', 'A2', 'C3', 'A2'], { bpm: 140 })
+            : seq(['D3', 'A2', 'Eb3', 'D3'], { bpm: 140 }),
         },
       ],
+    },
+    {
+      name: 'music_sections_demo',
+      bpm: 120,
+      timeSignature: [4, 4],
+      bars: 3,
+      loop: true,
+      sections: [
+        {
+          id: 'intro',
+          bars: 1,
+          tracks: [
+            {
+              name: 'snare_fill',
+              layer: snareLayer(-10),
+              pattern: () => gridPattern('x.x.x.x.xxxxxxxx', { bpm: 120, stepDur: '16n' }),
+            },
+          ],
+        },
+        {
+          id: 'loopA',
+          bars: 2,
+          tracks: [
+            {
+              name: 'kick',
+              layer: kickLayer(-6),
+              pattern: () => gridPattern('x...x...x...x...', { bpm: 120, stepDur: '16n' }),
+            },
+            {
+              name: 'synth',
+              layer: { kind: 'sequence', wave: 'sawtooth', level: -8 },
+              pattern: (b) => seq(b === 0 ? ['C3', 'G3', 'C4', 'E4'] : ['F3', 'A3', 'C4', 'F4'], { bpm: 120 }),
+            },
+          ],
+        },
+      ],
+      tracks: [],
     },
     {
       name: 'music_game_over',

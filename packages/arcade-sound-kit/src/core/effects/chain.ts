@@ -11,11 +11,22 @@ export function estimateEffectsTailSeconds(effects?: EffectSpec[]): number {
 
   for (const fx of effects) {
     if (fx.type === 'delay') {
-      const fb = Math.min(0.95, fx.feedback);
-      totalTail += Math.min(2.0, fx.timeSeconds / Math.max(0.05, 1 - fb));
+      const fb = Math.max(0.01, Math.min(0.99, fx.feedback));
+      // Decay to -60 dBFS (0.001 amplitude ratio): 0.001 = fb^n => n = -3 / log10(fb)
+      const numRepeats = -3 / Math.log10(fb);
+      const delayTail = fx.timeSeconds * numRepeats;
+      totalTail += delayTail;
     } else if (fx.type === 'reverb') {
       const roomSize = fx.roomSize ?? 0.5;
-      totalTail += Math.min(2.0, roomSize * 1.5);
+      // Decay time to -60 dBFS for Schroeder RT60 room model
+      const reverbTail = 0.5 + roomSize * 2.5;
+      totalTail += reverbTail;
+    }
+  }
+
+  if (totalTail > 2.0) {
+    if (typeof console !== 'undefined' && console.warn) {
+      console.warn(`[Effects] Tail decay to -60dBFS (${totalTail.toFixed(2)}s) truncated at maximum 2.0s buffer extension ceiling.`);
     }
   }
 

@@ -1,0 +1,157 @@
+{
+  "worldWidth": 480,
+  "worldHeight": 640,
+  "KEYS": {
+    "LEFT": "ArrowLeft",
+    "RIGHT": "ArrowRight",
+    "SHOOT": "Space",
+    "PAUSE": "KeyP",
+    "RESTART": "KeyR"
+  },
+  "PLAYER_SPEED": 220,
+  "PLAYER_INITIAL_LIVES": 3,
+  "PLAYER_RENDER_WIDTH": 32,
+  "PLAYER_COLLIDER_RADIUS": 12,
+  "PLAYER_BULLET_SPEED": 520,
+  "PLAYER_BULLET_SIZE": 4,
+  "SINGLE_BULLET_MODE": true,
+  "SHOOT_COOLDOWN_MS": 200,
+  "INVULNERABILITY_DURATION_MS": 2000,
+  "ENEMY_BULLET_SPEED": 240,
+  "ENEMY_BULLET_SIZE": 6,
+  "formation": {
+    "startX": 240,
+    "startY": 100,
+    "slotSpacingX": 32,
+    "slotSpacingY": 28,
+    "oscillationAmplitude": 60,
+    "oscillationFrequency": 0.35,
+    "grid": [
+      { "type": "flagship", "row": 0, "count": 2, "pointsFormation": 60, "pointsDive": 150, "bonusEscorted": 800 },
+      { "type": "escort", "row": 1, "count": 6, "pointsFormation": 50, "pointsDive": 100, "bonusEscorted": 0 },
+      { "type": "emissary", "row": 2, "count": 8, "pointsFormation": 40, "pointsDive": 80, "bonusEscorted": 0 },
+      { "type": "drone", "row": 3, "count": 10, "pointsFormation": 30, "pointsDive": 60, "bonusEscorted": 0 },
+      { "type": "drone", "row": 4, "count": 10, "pointsFormation": 30, "pointsDive": 60, "bonusEscorted": 0 },
+      { "type": "drone", "row": 5, "count": 10, "pointsFormation": 30, "pointsDive": 60, "bonusEscorted": 0 }
+    ]
+  },
+  "dive": {
+    "windupMs": 350,
+    "intervalMs": 2200,
+    "maxConcurrentDives": 3,
+    "escortGroupChance": 0.3,
+    "enemyShootChance": 0.6,
+    "enemyShootMaxPerDive": 2,
+    "paths": [
+      {
+        "id": "loop_left",
+        "waypoints": [
+          { "x": 0, "y": 0 },
+          { "x": -60, "y": 80 },
+          { "x": -100, "y": 200 },
+          { "x": -40, "y": 320 },
+          { "x": 40, "y": 420 },
+          { "x": 100, "y": 520 },
+          { "x": 0, "y": 680 }
+        ],
+        "speed": 210
+      },
+      {
+        "id": "loop_right",
+        "waypoints": [
+          { "x": 0, "y": 0 },
+          { "x": 60, "y": 80 },
+          { "x": 100, "y": 200 },
+          { "x": 40, "y": 320 },
+          { "x": -40, "y": 420 },
+          { "x": -100, "y": 520 },
+          { "x": 0, "y": 680 }
+        ],
+        "speed": 210
+      },
+      {
+        "id": "s_curve_center",
+        "waypoints": [
+          { "x": 0, "y": 0 },
+          { "x": 80, "y": 140 },
+          { "x": -80, "y": 300 },
+          { "x": 80, "y": 460 },
+          { "x": 0, "y": 680 }
+        ],
+        "speed": 230
+      }
+    ]
+  },
+  "wave": {
+    "speedMultiplierPerWave": 1.08,
+    "diveIntervalMultiplierPerWave": 0.92,
+    "maxConcurrentDivesCap": 6
+  },
+  "visual": {
+    "quality": "high",
+    "trailLength": 24,
+    "colorblindMode": false,
+    "palette": {
+      "paperNight": "#101A33",
+      "strataFar": "#141F3D",
+      "strataMid": "#1E2F5E",
+      "strataNear": "#1A2A52",
+      "strataShadow": "rgba(11, 18, 38, 0.6)",
+      "strataEdge": "#26396F",
+      "star": "#F4EBD9",
+      "droneLight": "#8CC4FF",
+      "droneMid": "#5AA7FF",
+      "droneDark": "#3B7BD6",
+      "emissaryLight": "#BE9CFF",
+      "emissaryMid": "#9B6BFF",
+      "emissaryDark": "#6E45CC",
+      "escortLight": "#FF8C98",
+      "escortMid": "#FF5B6E",
+      "escortDark": "#D13A4F",
+      "flagshipLight": "#FFDC8A",
+      "flagshipMid": "#FFC145",
+      "flagshipDark": "#E39A1E",
+      "eye": "#FFF6E5",
+      "player": "#FFF6E5",
+      "playerShade": "#E3D3B3",
+      "playerFold": "#BFAE8E",
+      "playerAccent": "#5CF2C0",
+      "enemyFire": "#FF7A45",
+      "enemyFireCore": "#FFF6E5",
+      "trail": "#FFC145",
+      "hudText": "#FFF6E5",
+      "hudMuted": "#8FA3C7"
+    },
+    "paletteColorblind": {
+      "paperNight": "#0A1020",
+      "strataFar": "#121A30",
+      "strataMid": "#1A2648",
+      "strataNear": "#16203E",
+      "strataShadow": "rgba(5, 10, 20, 0.7)",
+      "strataEdge": "#2C3D6A",
+      "star": "#FFFFFF",
+      "droneLight": "#7090C0",
+      "droneMid": "#5070A0",
+      "droneDark": "#305080",
+      "emissaryLight": "#A0B0E0",
+      "emissaryMid": "#8090C0",
+      "emissaryDark": "#6070A0",
+      "escortLight": "#D0C0F0",
+      "escortMid": "#B0A0D0",
+      "escortDark": "#9080B0",
+      "flagshipLight": "#FFFFFF",
+      "flagshipMid": "#E0E0E0",
+      "flagshipDark": "#B0B0B0",
+      "eye": "#FFFFFF",
+      "player": "#FFFFFF",
+      "playerShade": "#D0D0D0",
+      "playerFold": "#A0A0A0",
+      "playerAccent": "#40FFD0",
+      "enemyFire": "#FF9933",
+      "enemyFireCore": "#FFFFFF",
+      "trail": "#FFCC00",
+      "hudText": "#FFFFFF",
+      "hudMuted": "#90A0C0"
+    }
+  }
+}

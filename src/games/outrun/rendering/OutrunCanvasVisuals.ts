@@ -4,7 +4,6 @@ import {
   resolveOutrunRoadContext,
   projectOutrunRoad,
   projectionBuffer,
-  computeRoadSegmentColors,
   iterateOutrunSprites,
   resolveOutrunCarContext,
   resolveOutrunRacerDrawContext,
@@ -12,8 +11,8 @@ import {
   resolveOffroadDustParams
 } from "./OutrunRenderShared";
 import { computeSpeedLines, computeOutrunPlayerPixelSize } from "./OutrunVisualHelpers";
+import { computeOutrunRoadSpeedLineSegments, resolveOutrunRoadSegmentArtwork } from "./OutrunRoadArtwork";
 import { resolveOutrunSceneryLayout, type OutrunSceneryLayout, type MountainLayerLayout } from "./OutrunScenery";
-import { resolveRoadFogColor } from "./OutrunFog";
 import { colors } from "../../../theme/colors";
 import { hexToRgba } from "../../shared/rendering/CosmicPalette";
 import {
@@ -217,7 +216,7 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
     const roadCtx = resolveOutrunRoadContext(world);
     if (!roadCtx) return;
 
-    const { state, roadData, config, screenW, screenH, rumbleLength, palette } = roadCtx;
+    const { state, roadData, config, screenW, screenH, palette, visualPalette } = roadCtx;
     ctx.save();
 
     const sceneryLayout = resolveOutrunSceneryLayout(world, state, roadData, config);
@@ -236,24 +235,40 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
       if (p.y1 <= p.y2 || p.y2 >= p.clip) continue;
       renderedCount++;
 
-      const { grassCol, rumbleCol, roadCol } = computeRoadSegmentColors(p.index, rumbleLength, palette);
+      const artwork = resolveOutrunRoadSegmentArtwork(p.index, p.fog, visualPalette);
 
-      // Grass
-      ctx.fillStyle = grassCol;
+      // Depth haze and the subtle alternating ground stripe.
+      ctx.fillStyle = artwork.groundColor;
       ctx.fillRect(0, p.y2, screenW, p.y1 - p.y2);
 
-      // Rumble Strips
-      ctx.fillStyle = rumbleCol;
+      // The coast keeps the sea on the left and land on the right.
+      if (artwork.waterColor !== null) {
+        const outerW2 = p.w2 * (1 + artwork.kerbWidthRatio);
+        const outerW1 = p.w1 * (1 + artwork.kerbWidthRatio);
+        ctx.fillStyle = artwork.waterColor;
+        ctx.beginPath();
+        ctx.moveTo(0, p.y2);
+        ctx.lineTo(p.x2 - outerW2, p.y2);
+        ctx.lineTo(p.x1 - outerW1, p.y1);
+        ctx.lineTo(0, p.y1);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // Pianos alternate cream and the hour-specific dark token.
+      const outerW2 = p.w2 * (1 + artwork.kerbWidthRatio);
+      const outerW1 = p.w1 * (1 + artwork.kerbWidthRatio);
+      ctx.fillStyle = artwork.kerbColor;
       ctx.beginPath();
-      ctx.moveTo(p.x2 - p.w2 * 1.18, p.y2);
-      ctx.lineTo(p.x2 + p.w2 * 1.18, p.y2);
-      ctx.lineTo(p.x1 + p.w1 * 1.18, p.y1);
-      ctx.lineTo(p.x1 - p.w1 * 1.18, p.y1);
+      ctx.moveTo(p.x2 - outerW2, p.y2);
+      ctx.lineTo(p.x2 + outerW2, p.y2);
+      ctx.lineTo(p.x1 + outerW1, p.y1);
+      ctx.lineTo(p.x1 - outerW1, p.y1);
       ctx.closePath();
       ctx.fill();
 
-      // Road Surface
-      ctx.fillStyle = roadCol;
+      // Road surface uses near/far palette tokens, never a second projection.
+      ctx.fillStyle = artwork.roadColor;
       ctx.beginPath();
       ctx.moveTo(p.x2 - p.w2, p.y2);
       ctx.lineTo(p.x2 + p.w2, p.y2);
@@ -262,31 +277,51 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
       ctx.closePath();
       ctx.fill();
 
-      // Lane Divider
-      if (Math.floor(p.index / rumbleLength) % 2 === 0) {
-        ctx.fillStyle = palette.lane;
-        const lw1 = p.w1 * 0.03;
-        const lw2 = p.w2 * 0.03;
+      // Lane dashes share the even-segment rhythm of the dark kerb.
+      if (artwork.drawLane) {
+        const halfMarkW1 = p.w1 * artwork.laneMarkWidthRatio * 0.5;
+        const halfMarkW2 = p.w2 * artwork.laneMarkWidthRatio * 0.5;
+        ctx.fillStyle = artwork.laneColor;
         ctx.beginPath();
-        ctx.moveTo(p.x2 - lw2, p.y2);
-        ctx.lineTo(p.x2 + lw2, p.y2);
-        ctx.lineTo(p.x1 + lw1, p.y1);
-        ctx.lineTo(p.x1 - lw1, p.y1);
+        ctx.moveTo(p.x2 - halfMarkW2, p.y2);
+        ctx.lineTo(p.x2 + halfMarkW2, p.y2);
+        ctx.lineTo(p.x1 + halfMarkW1, p.y1);
+        ctx.lineTo(p.x1 - halfMarkW1, p.y1);
         ctx.closePath();
         ctx.fill();
       }
 
     }
 
-    // One continuous fog gradient avoids visible bands at segment boundaries.
-    const fogGradient = ctx.createLinearGradient(0, horizonY, 0, screenH);
-    fogGradient.addColorStop(0, resolveRoadFogColor(palette, 0.55));
-    fogGradient.addColorStop(1, resolveRoadFogColor(palette, 0));
-    ctx.fillStyle = fogGradient;
-    ctx.fillRect(0, horizonY, screenW, Math.max(0, screenH - horizonY));
 
     if (count > 0 && renderedCount === 0) {
       console.warn("[drawOutrunRoad] 100% of projected road segments were clipped or discarded.");
+    }
+
+    // Short radial streaks stay on the ground outside the pianos.
+    const speedLines = computeOutrunRoadSpeedLineSegments({
+      projectedSegments: projectionBuffer,
+      count,
+      state,
+      config,
+      visualPalette,
+      screenW,
+      screenH,
+      horizonY
+    });
+    if (speedLines.length > 0) {
+      ctx.save();
+      ctx.globalAlpha = visualPalette.tuning.road.speedLineAlpha;
+      ctx.strokeStyle = visualPalette.shared.cream;
+      ctx.lineWidth = visualPalette.tuning.road.speedLineWidthPx;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      for (const line of speedLines) {
+        ctx.moveTo(line.x1, line.y1);
+        ctx.lineTo(line.x2, line.y2);
+      }
+      ctx.stroke();
+      ctx.restore();
     }
 
     // 3. Roadside Sprites Pass

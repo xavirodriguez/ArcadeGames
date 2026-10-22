@@ -34,5 +34,12 @@ export {
   drawSkiaIcebergBullet
 } from "./iceberg/IcebergSkiaVisuals";
 export { entitySeededRandom, radiusToIcebergSize, vertsForAsteroidEntity } from "./iceberg/IcebergDrawUtils";
+export {
+  PolarOceanBackgroundEffect,
+  GeometricAuroraBackgroundEffect,
+  SkiaPolarOceanBackgroundEffect,
+  SkiaGeometricAuroraBackgroundEffect
+} from "./iceberg/IcebergBackground";
+export { spawnIceShardFracture } from "./iceberg/IcebergFracture";
 export { applyVisualMod } from "./applyVisualMod";
 export type { VisualModGameOptions } from "./applyVisualMod";

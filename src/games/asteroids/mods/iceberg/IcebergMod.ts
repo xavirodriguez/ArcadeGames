@@ -14,8 +14,8 @@ import {
 } from "./IcebergSkiaVisuals";
 import {
   PolarOceanBackgroundEffect,
-  SkiaPolarOceanBackgroundEffect,
   GeometricAuroraBackgroundEffect,
+  SkiaPolarOceanBackgroundEffect,
   SkiaGeometricAuroraBackgroundEffect
 } from "./IcebergBackground";
 
@@ -24,7 +24,7 @@ import {
  *
  * Phase 0–1: palette, theme, verts.
  * Phase 2: faceted Canvas + Skia drawers.
- * Phase 3: polar ocean + geometric aurora backgrounds; iceShard particle hint.
+ * Phase 3: polar ocean, geometric aurora, ice-shard fracture VFX.
  *
  * @public
  */
@@ -63,9 +63,8 @@ export const icebergMod: AsteroidsVisualMod = {
         ...baseTheme.vfxProfile,
         starDensity: 0.2,
         starSpeed: 0.2,
-        ambientGlow: 0.15,
+        ambientGlow: 0.12,
         particleShape: "shard",
-        // polar_ocean first (base fill), then aurora, sparse starfield optional
         backgroundLayers: ["polar_ocean", "geometric_aurora"]
       },
       lore: {
@@ -104,7 +103,6 @@ export const icebergMod: AsteroidsVisualMod = {
   registerBackgroundEffects(register) {
     register("canvas", "polar_ocean", PolarOceanBackgroundEffect as never);
     register("canvas", "geometric_aurora", GeometricAuroraBackgroundEffect as never);
-
     register("skia", "polar_ocean", SkiaPolarOceanBackgroundEffect as never);
     register("skia", "geometric_aurora", SkiaGeometricAuroraBackgroundEffect as never);
   }

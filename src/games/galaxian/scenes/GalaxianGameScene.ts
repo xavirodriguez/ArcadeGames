@@ -13,6 +13,7 @@ export class GalaxianGameScene extends Scene<GalaxianComponentRegistry> {
   }
 
   public override onEnter(): void {
+    this.world.setResource("ScreenConfig", { width: this.config.worldWidth, height: this.config.worldHeight });
     createGameState(this.world);
     createFormationController(this.world);
 

@@ -89,6 +89,7 @@ export class GalaxianGame extends BaseGame<
     );
 
     this.world.setResource("GameConfig", this.config);
+    this.world.setResource("ScreenConfig", { width: this.config.worldWidth, height: this.config.worldHeight });
     this.setupCommonArcadeResources();
     this.world.setResource("IsHeadless", this.isHeadless);
 

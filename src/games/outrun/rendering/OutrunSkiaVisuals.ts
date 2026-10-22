@@ -27,7 +27,8 @@ type RoadsidePoint = { x: number; y: number };
 function fillRoadsidePolygonSkia(
   canvas: SkCanvas,
   points: readonly RoadsidePoint[],
-  color: string
+  color: string,
+  alpha = 1
 ): void {
   if (!Skia || points.length < 3) return;
   const path = Skia.Path.Make();
@@ -39,6 +40,7 @@ function fillRoadsidePolygonSkia(
   path.close();
   const paint = Skia.Paint();
   paint.setColor(Skia.Color(color));
+  paint.setAlphaf(alpha);
   paint.setStyle(Skia.PaintStyle.Fill);
   canvas.drawPath(path, paint);
 }
@@ -633,7 +635,7 @@ export const drawSkiaOutrunRoad: ShapeDrawer<SkCanvas, OutrunComponentRegistry> 
     // Flat headlight cones are night-only and sit beneath roadside sprites.
     const headlightBeams = computeOutrunHeadlightBeams(state, config, visualPalette);
     for (const beam of headlightBeams) {
-      fillRoadsidePolygonSkia(canvas, beam.points, beam.color);
+      fillRoadsidePolygonSkia(canvas, beam.points, beam.color, beam.alpha);
     }
 
     // Short radial streaks stay on the ground outside the pianos.
@@ -735,13 +737,13 @@ function drawOutrunSkiaHudText(
   baselineY: number,
   fontSize: number,
   color: string,
-  align: "left" | "right" = "left"
+  align: "left" | "right" | "center" = "left"
 ): void {
   if (!Skia) return;
   const font = Skia.Font ? Skia.Font(null, fontSize) : null;
   if (!font) return;
   const textWidth = font.measureText ? font.measureText(text).width : text.length * fontSize * 0.56;
-  const drawX = align === "right" ? x - textWidth : x;
+  const drawX = align === "right" ? x - textWidth : align === "center" ? x - textWidth / 2 : x;
   const paint = Skia.Paint();
   paint.setColor(Skia.Color(color));
   paint.setStyle(Skia.PaintStyle.Fill);
@@ -840,7 +842,7 @@ export const drawSkiaOutrunHud = {
       overPaint.setStyle(Skia.PaintStyle.Fill);
       canvas.drawRect(Skia.XYWHRect(0, 0, config.WIDTH, config.HEIGHT), overPaint);
       drawOutrunSkiaHudText(canvas, countdown > 0 ? `${countdown}` : "GO!",
-        layout.centerX, layout.centerY, layout.countdownFont, shared.cream, "left");
+        layout.centerX, layout.centerY, layout.countdownFont, shared.cream, "center");
     }
     if (state.isGameOver) {
       const overPaint = Skia.Paint();

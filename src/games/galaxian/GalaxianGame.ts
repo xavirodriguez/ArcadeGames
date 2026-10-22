@@ -42,7 +42,7 @@ export class GalaxianGame extends BaseGame<
   public readonly gameId = "galaxian";
   private baseConfig: GalaxianConfig;
   private config!: GalaxianConfig;
-  private bulletPool!: BulletPool;
+  public bulletPool!: BulletPool;
 
   constructor(config: BaseGameConfig<GalaxianComponentRegistry, GalaxianEventRegistry, GalaxianInputState, GalaxianBlueprintMap> = {}) {
     const seed = (config.gameOptions?.seed as number) || config.seed || 12345;

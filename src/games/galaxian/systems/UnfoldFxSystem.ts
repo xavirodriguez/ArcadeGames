@@ -37,7 +37,7 @@ export class UnfoldFxSystem extends System<GalaxianComponentRegistry, GalaxianEv
   }
 
   private spawnUnfoldShards(
-    world: World<GalaxianComponentRegistry>,
+    world: World<GalaxianComponentRegistry, GalaxianEventRegistry>,
     x: number,
     y: number,
     enemyType: string

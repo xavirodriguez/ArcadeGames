@@ -12,12 +12,19 @@ import {
   drawSkiaIcebergAsteroid,
   drawSkiaIcebergBullet
 } from "./IcebergSkiaVisuals";
+import {
+  PolarOceanBackgroundEffect,
+  SkiaPolarOceanBackgroundEffect,
+  GeometricAuroraBackgroundEffect,
+  SkiaGeometricAuroraBackgroundEffect
+} from "./IcebergBackground";
 
 /**
  * Iceberg visual mod — Borealis / Cristal Glaciar (ART_ICEBERG.md).
  *
  * Phase 0–1: palette, theme, verts.
- * Phase 2: faceted Canvas + Skia drawers (icebreaker, icebergs, thermal beam).
+ * Phase 2: faceted Canvas + Skia drawers.
+ * Phase 3: polar ocean + geometric aurora backgrounds; iceShard particle hint.
  *
  * @public
  */
@@ -54,11 +61,12 @@ export const icebergMod: AsteroidsVisualMod = {
       },
       vfxProfile: {
         ...baseTheme.vfxProfile,
-        starDensity: 0.35,
-        starSpeed: 0.25,
+        starDensity: 0.2,
+        starSpeed: 0.2,
         ambientGlow: 0.15,
         particleShape: "shard",
-        backgroundLayers: ["starfield"]
+        // polar_ocean first (base fill), then aurora, sparse starfield optional
+        backgroundLayers: ["polar_ocean", "geometric_aurora"]
       },
       lore: {
         ...baseTheme.lore,
@@ -91,5 +99,13 @@ export const icebergMod: AsteroidsVisualMod = {
     register("skia", "player_ship", drawSkiaIcebergPlayerShip as never);
     register("skia", "asteroid", drawSkiaIcebergAsteroid as never);
     register("skia", "bullet", drawSkiaIcebergBullet as never);
+  },
+
+  registerBackgroundEffects(register) {
+    register("canvas", "polar_ocean", PolarOceanBackgroundEffect as never);
+    register("canvas", "geometric_aurora", GeometricAuroraBackgroundEffect as never);
+
+    register("skia", "polar_ocean", SkiaPolarOceanBackgroundEffect as never);
+    register("skia", "geometric_aurora", SkiaGeometricAuroraBackgroundEffect as never);
   }
 };

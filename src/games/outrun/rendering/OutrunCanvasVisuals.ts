@@ -50,7 +50,6 @@ function drawRoadSpriteCanvas(
   sy: number,
   sw: number,
   clipY: number,
-  palette: import("./OutrunPalettes").ModulatedPalette,
   visualPalette: import("../types/OutrunVisualTypes").OutrunVisualPaletteResource,
   depth: number,
   lightsOn: boolean
@@ -61,7 +60,6 @@ function drawRoadSpriteCanvas(
   ctx.lineJoin = "round";
 
   const size = sw * 0.8;
-  const legacyH = size * 1.5;
 
   if (sp.kind === "arch" || sp.kind === "banner") {
     const archW = sw * 2.2;
@@ -514,7 +512,7 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
 
     // 3. Roadside Sprites Pass
     iterateOutrunSprites(ctx, count, roadData, config, palette.lightsOn, (c, sp, sx, sy, _sw, _roadW, lightsOn, clipY, depth) => {
-      drawRoadSpriteCanvas(c, sp, sx, sy, _sw, clipY, palette, visualPalette, depth, lightsOn);
+      drawRoadSpriteCanvas(c, sp, sx, sy, _sw, clipY, visualPalette, depth, lightsOn);
     });
 
     ctx.restore();

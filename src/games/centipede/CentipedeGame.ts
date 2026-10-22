@@ -117,11 +117,11 @@ export class CentipedeGame extends BaseGame<
     this.world.addSystem(new WaveSystem(), { phase: SystemPhase.GameRules });
 
     // Decoupled presentation systems
-    this.world.addSystem(new SegmentChainVisualSystem(), { phase: SystemPhase.GameRules });
-    this.world.addSystem(new SegmentDeathFxSystem(), { phase: SystemPhase.GameRules });
-    this.world.addSystem(new MushroomVisualSystem(), { phase: SystemPhase.GameRules });
-    this.world.addSystem(new AmbientFxSystem(), { phase: SystemPhase.GameRules });
-    this.world.addSystem(new ParticleSystem(this.particlePool) as System<CentipedeComponentRegistry, CentipedeEventRegistry>, { phase: SystemPhase.GameRules });
+    this.world.addSystem(new SegmentChainVisualSystem(), { phase: SystemPhase.Presentation });
+    this.world.addSystem(new SegmentDeathFxSystem(), { phase: SystemPhase.Presentation });
+    this.world.addSystem(new MushroomVisualSystem(), { phase: SystemPhase.Presentation });
+    this.world.addSystem(new AmbientFxSystem(), { phase: SystemPhase.Presentation });
+    this.world.addSystem(new ParticleSystem(this.particlePool) as System<CentipedeComponentRegistry, CentipedeEventRegistry>, { phase: SystemPhase.Presentation });
   }
 
   protected override async onInitializeEntities(): Promise<void> {

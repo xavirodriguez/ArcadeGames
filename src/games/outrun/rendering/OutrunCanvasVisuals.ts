@@ -290,9 +290,7 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
         ctx.closePath();
         ctx.fill();
       }
-
     }
-
 
     if (count > 0 && renderedCount === 0) {
       console.warn("[drawOutrunRoad] 100% of projected road segments were clipped or discarded.");

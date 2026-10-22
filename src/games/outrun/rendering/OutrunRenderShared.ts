@@ -2,7 +2,6 @@ import type { World, RenderComponent } from "@tiny-aster/core";
 import { resolveThemeColorWithFallback } from "@tiny-aster/core";
 import type { OutrunComponentRegistry, RoadData, ProjectedSegment, RaceStateComponent, RacerComponent } from "../types/OutrunTypes";
 import type { OutrunConfig } from "../types/OutrunConfigSchema";
-import { getOutrunAnimationFrame } from "./OutrunPixelSprites";
 import { DEFAULT_OUTRUN_CONFIG } from "../types/OutrunConfigSchema";
 import { createProjectionBuffer, projectRoad } from "./RoadProjection";
 import { COAST_PALETTE, getScenarioPaletteAtZ, applyDayPhase, scenarioHash, type ScenarioPalette, type ModulatedPalette } from "./OutrunPalettes";
@@ -18,10 +17,9 @@ import {
 import { colors } from "../../../theme/colors";
 import type { OutrunVisualPaletteResource } from "../types/OutrunVisualTypes";
 import { createVisualPaletteResource } from "../utils/palette";
+import { shouldDrawOutrunRoadsideSprite } from "./OutrunRoadsideArtwork";
 
 /** Standard racer vehicle body color options. */
-export const RACER_COLORS = [colors.blue, colors.cyan, colors.gold, colors.orange, colors.red] as const;
-
 /** Capacity of module-level projection buffer. */
 export const PROJECTION_CAPACITY = 400;
 
@@ -412,8 +410,7 @@ export function resolveOutrunHudContext(
 
 export interface OutrunRacerDrawContext {
   proj: NonNullable<ReturnType<typeof computeRacerProjection>>;
-  bodyColor: string;
-  frame: number;
+  vehicleStyleIndex: number;
 }
 
 export function resolveOutrunRacerDrawContext(
@@ -435,9 +432,9 @@ export function resolveOutrunRacerDrawContext(
   );
   if (!proj) return null;
 
-  const bodyColor = RACER_COLORS[racer.colorIndex % RACER_COLORS.length];
+  const vehicleStyleIndex = Math.abs(Math.trunc(racer.colorIndex));
 
-  return { proj, bodyColor, frame: getOutrunAnimationFrame(racer.z) };
+  return { proj, vehicleStyleIndex };
 }
 
 /** Visitor callback signature for back-to-front sprite passes. */
@@ -450,7 +447,9 @@ export interface SpritePassVisitor<TCtx> {
     sw: number,
     roadWidth: number,
     lightsOn: boolean,
-    clipY: number
+    clipY: number,
+    depth: number,
+    segmentIndex: number
   ): void;
 }
 
@@ -469,6 +468,7 @@ export function iterateOutrunSprites<TCtx>(
     if (!seg || !seg.sprites || seg.sprites.length === 0) continue;
 
     for (const sp of seg.sprites) {
+      if (!shouldDrawOutrunRoadsideSprite(sp.kind, p.index, config.visual.quality)) continue;
       let sx = p.x1;
       if (sp.kind !== "arch" && sp.kind !== "banner") {
         sx = p.x1 + sp.side * (p.w1 * sp.offset);
@@ -478,7 +478,7 @@ export function iterateOutrunSprites<TCtx>(
 
       if (sy >= p.clip || sw < 2) continue;
 
-      visitor(ctx, sp, sx, sy, sw, config.roadWidth, lightsOn, p.clip);
+      visitor(ctx, sp, sx, sy, sw, config.roadWidth, lightsOn, p.clip, p.fog, p.index);
     }
   }
 }

@@ -1,14 +1,14 @@
 import { System, World, createDeferredEntity } from "@tiny-aster/core";
-import { GalaxianComponentRegistry, ScorePopupComponent } from "../types/GalaxianTypes";
+import { GalaxianComponentRegistry, GalaxianEventRegistry, ScorePopupComponent } from "../types/GalaxianTypes";
 
-export class ScorePopupSystem extends System<GalaxianComponentRegistry> {
+export class ScorePopupSystem extends System<GalaxianComponentRegistry, GalaxianEventRegistry> {
   private listenerBound = false;
 
-  public update(world: World<GalaxianComponentRegistry>, deltaTime: number): void {
+  public update(world: World<GalaxianComponentRegistry, GalaxianEventRegistry>, deltaTime: number): void {
     if (!this.listenerBound) {
       const bus = world.getEventBus();
       if (bus) {
-        bus.on("combat:enemy_hit" as any, (event: any) => {
+        bus.on("combat:enemy_hit", (event) => {
           this.spawnPopup(world, event.x, event.y, event.points);
         });
         this.listenerBound = true;
@@ -33,7 +33,7 @@ export class ScorePopupSystem extends System<GalaxianComponentRegistry> {
     }
   }
 
-  private spawnPopup(world: World<GalaxianComponentRegistry>, x: number, y: number, points: number): void {
+  private spawnPopup(world: World<GalaxianComponentRegistry, GalaxianEventRegistry>, x: number, y: number, points: number): void {
     const life = 0.6;
     const { add } = createDeferredEntity(world, true);
     add({

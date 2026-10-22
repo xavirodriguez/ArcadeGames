@@ -72,11 +72,11 @@ describe("Out Run roadside artwork", () => {
   });
 
   it("thins natural detail in low quality but preserves signs and chevrons", () => {
-    expect(shouldDrawOutrunRoadsideSprite("palm", 2, "low")).toBe(true);
-    expect(shouldDrawOutrunRoadsideSprite("palm", 3, "low")).toBe(false);
-    expect(shouldDrawOutrunRoadsideSprite("palm", 3, "high")).toBe(true);
-    expect(shouldDrawOutrunRoadsideSprite("billboard", 3, "low")).toBe(true);
-    expect(shouldDrawOutrunRoadsideSprite("chevron", 3, "low")).toBe(true);
+    expect(shouldDrawOutrunRoadsideSprite("palm", 4, "low")).toBe(true);
+    expect(shouldDrawOutrunRoadsideSprite("palm", 8, "low")).toBe(false);
+    expect(shouldDrawOutrunRoadsideSprite("palm", 8, "high")).toBe(true);
+    expect(shouldDrawOutrunRoadsideSprite("billboard", 8, "low")).toBe(true);
+    expect(shouldDrawOutrunRoadsideSprite("chevron", 8, "low")).toBe(true);
   });
 
   it("keeps all supported roadside styles finite and visible at distant scales", () => {

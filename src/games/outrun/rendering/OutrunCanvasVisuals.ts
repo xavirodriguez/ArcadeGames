@@ -719,7 +719,6 @@ export const drawOutrunHud = {
     const { state, config, speedKmh, timeStr, phase, progressFraction, visualPalette } = hudCtx;
     const layout = resolveOutrunHudLayout({ config, progressFraction, speedKmh, timeStr, visualPalette });
     const shared = visualPalette.shared;
-    const scale = layout.scale;
     ctx.save();
 
     // Top information blocks.

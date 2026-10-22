@@ -1,4 +1,5 @@
 import type { OutrunConfig } from "../types/OutrunConfigSchema";
+import { DEFAULT_OUTRUN_CONFIG } from "../types/OutrunConfigSchema";
 import type { OutrunSharedPaletteTokens } from "../types/OutrunVisualTypes";
 import { lerpColor } from "../utils/palette";
 
@@ -26,7 +27,8 @@ export interface OutrunTrafficArtworkStyle {
 }
 
 export function resolveOutrunPlayerPalette(config: OutrunConfig): OutrunSharedPaletteTokens {
-  return config.visual.palette.shared;
+  const resolvedConfig = config?.visual ? config : DEFAULT_OUTRUN_CONFIG;
+  return resolvedConfig.visual.palette.shared;
 }
 
 /** Shared dimensional recipe for the three restrained traffic silhouettes. */
@@ -35,8 +37,9 @@ export function resolveOutrunTrafficArtworkStyle(
   styleIndex: number,
   bodyWidth: number
 ): OutrunTrafficArtworkStyle {
-  const tuning = config.visual.tuning.traffic;
-  const shared = config.visual.palette.shared;
+  const resolvedConfig = config?.visual ? config : DEFAULT_OUTRUN_CONFIG;
+  const tuning = resolvedConfig.visual.tuning.traffic;
+  const shared = resolvedConfig.visual.palette.shared;
   const shapeIndex = ((Math.trunc(styleIndex) % 3) + 3) % 3;
   const shape: OutrunTrafficVehicleShape = shapeIndex === 0 ? "coupe" : shapeIndex === 1 ? "van" : "truck";
   const cabinHeightFactor = shape === "coupe" ? 1 : shape === "van" ? 1.32 : 1.5;

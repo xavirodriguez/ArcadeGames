@@ -722,11 +722,11 @@ export const drawSkiaOutrunRacer: ShapeDrawer<SkCanvas, OutrunComponentRegistry>
     const racerCtx = resolveOutrunRacerDrawContext(world, entity);
     if (!racerCtx) return;
 
-    const { proj, vehicleStyleIndex } = racerCtx;
+    const { proj, vehicleStyleIndex, config } = racerCtx;
     const { sx, sy, lateral, carW, bestClip } = proj;
     if (sy >= bestClip || carW < 2) return;
 
-    drawOutrunTrafficVehicleSkia(canvas, racerCtx.config, sx + lateral, sy, carW, vehicleStyleIndex);
+    drawOutrunTrafficVehicleSkia(canvas, config, sx + lateral, sy, carW, vehicleStyleIndex);
   }
 };
 

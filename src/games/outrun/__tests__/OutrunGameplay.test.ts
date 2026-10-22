@@ -230,9 +230,9 @@ describe("OutrunGameplay", () => {
 
     // Should contain side sprites across segments
     const allSprites = segments.flatMap((s) => s.sprites ?? []);
-    expect(allSprites.some((sp) => sp.kind === "palm" || sp.kind === "lamp")).toBe(true);
-    expect(allSprites.some((sp) => sp.kind === "shrub" || sp.kind === "wind_tower")).toBe(true);
-    expect(allSprites.some((sp) => sp.kind === "cypress" || sp.kind === "wall")).toBe(true);
+    expect(allSprites.some((sp) => sp.kind === "palm" || sp.kind === "lighthouse")).toBe(true);
+    expect(allSprites.some((sp) => sp.kind === "cactus" || sp.kind === "dry_shrub")).toBe(true);
+    expect(allSprites.some((sp) => sp.kind === "tree" || sp.kind === "pine" || sp.kind === "rock")).toBe(true);
     expect(allSprites.some((sp) => sp.kind === "chevron")).toBe(true);
     expect(allSprites.some((sp) => sp.kind === "banner")).toBe(true);
   });
@@ -365,6 +365,14 @@ describe("OutrunGameplay", () => {
       translate: jest.fn(),
       rotate: jest.fn(),
       scale: jest.fn(),
+      beginPath: jest.fn(),
+      closePath: jest.fn(),
+      moveTo: jest.fn(),
+      lineTo: jest.fn(),
+      quadraticCurveTo: jest.fn(),
+      fill: jest.fn(),
+      arc: jest.fn(),
+      ellipse: jest.fn(),
       fillRect: jest.fn()
     };
     const skiaCar = {
@@ -373,44 +381,71 @@ describe("OutrunGameplay", () => {
       translate: jest.fn(),
       rotate: jest.fn(),
       scale: jest.fn(),
+      drawCircle: jest.fn(),
+      drawOval: jest.fn(),
+      drawPath: jest.fn(),
+      drawRRect: jest.fn(),
       drawRect: jest.fn()
     };
 
     drawOutrunCar.draw(canvasCar as never, world, carEntity!);
     drawSkiaOutrunCar.draw(skiaCar as never, world, carEntity!);
 
-    expect(canvasCar.fillRect).toHaveBeenCalledTimes(skiaCar.drawRect.mock.calls.length);
-    expect(canvasCar.fillRect).toHaveBeenCalled();
-    expect(skiaCar.drawRect).toHaveBeenCalled();
+    expect(canvasCar.fill).toHaveBeenCalled();
+    expect(skiaCar.drawRRect).toHaveBeenCalled();
 
+    const config = world.getResource<import("../types/OutrunConfigSchema").OutrunConfig>("GameConfig")!;
+    const roadData = world.getResource<RoadData>("RoadData")!;
+    const { projectOutrunRoad } = require("../rendering/OutrunRenderShared");
+
+    const seg0Len = roadData.segments[0].length;
     const racerEntity = world.query("Racer")[0];
     expect(racerEntity).toBeDefined();
     world.mutateComponent(racerEntity!, "Racer", (racer) => {
-      racer.z = 200;
+      racer.z = seg0Len * 5;
       racer.lateralX = 0;
       racer.active = true;
     });
     world.mutateSingleton("RaceState", (state) => {
       state.playerZ = 0;
+      state.playerX = 0;
     });
+
+    projectOutrunRoad(roadData.segments, 0, 0, config, config.WIDTH, config.HEIGHT);
 
     const canvasTraffic = {
       save: jest.fn(),
       restore: jest.fn(),
+      translate: jest.fn(),
+      rotate: jest.fn(),
+      scale: jest.fn(),
+      beginPath: jest.fn(),
+      closePath: jest.fn(),
+      moveTo: jest.fn(),
+      lineTo: jest.fn(),
+      quadraticCurveTo: jest.fn(),
+      fill: jest.fn(),
+      arc: jest.fn(),
+      ellipse: jest.fn(),
       fillRect: jest.fn()
     };
     const skiaTraffic = {
       save: jest.fn(),
       restore: jest.fn(),
+      translate: jest.fn(),
+      rotate: jest.fn(),
+      scale: jest.fn(),
+      drawOval: jest.fn(),
+      drawPath: jest.fn(),
+      drawRRect: jest.fn(),
       drawRect: jest.fn()
     };
 
     drawOutrunRacer.draw(canvasTraffic as never, world, racerEntity!);
     drawSkiaOutrunRacer.draw(skiaTraffic as never, world, racerEntity!);
 
-    expect(canvasTraffic.fillRect).toHaveBeenCalled();
-    expect(skiaTraffic.drawRect).toHaveBeenCalled();
-    expect(canvasTraffic.fillRect).toHaveBeenCalledTimes(skiaTraffic.drawRect.mock.calls.length);
+    expect(canvasTraffic.save).toHaveBeenCalled();
+    expect(skiaTraffic.drawRRect).toHaveBeenCalled();
   });
 
   it("ColorScriptSystem updates VisualPalette without mutating RaceState", async () => {

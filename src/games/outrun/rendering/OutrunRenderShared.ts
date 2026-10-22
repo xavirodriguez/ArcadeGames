@@ -421,6 +421,7 @@ export function resolveOutrunHudContext(
 export interface OutrunRacerDrawContext {
   proj: NonNullable<ReturnType<typeof computeRacerProjection>>;
   vehicleStyleIndex: number;
+  config: OutrunConfig;
 }
 
 export function resolveOutrunRacerDrawContext(
@@ -444,7 +445,7 @@ export function resolveOutrunRacerDrawContext(
 
   const vehicleStyleIndex = Math.abs(Math.trunc(racer.colorIndex));
 
-  return { proj, vehicleStyleIndex };
+  return { proj, vehicleStyleIndex, config };
 }
 
 /** Visitor callback signature for back-to-front sprite passes. */

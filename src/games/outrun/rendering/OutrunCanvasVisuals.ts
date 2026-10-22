@@ -703,11 +703,11 @@ export const drawOutrunRacer: ShapeDrawer<CanvasRenderingContext2D, OutrunCompon
     const racerCtx = resolveOutrunRacerDrawContext(world, entity);
     if (!racerCtx) return;
 
-    const { proj, vehicleStyleIndex } = racerCtx;
+    const { proj, vehicleStyleIndex, config } = racerCtx;
     const { sx, sy, lateral, carW, bestClip } = proj;
     if (sy >= bestClip || carW < 2) return;
 
-    drawOutrunTrafficVehicleCanvas(ctx, racerCtx.config, sx + lateral, sy, carW, vehicleStyleIndex);
+    drawOutrunTrafficVehicleCanvas(ctx, config, sx + lateral, sy, carW, vehicleStyleIndex);
   }
 };
 

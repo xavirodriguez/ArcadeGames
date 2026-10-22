@@ -150,7 +150,7 @@ export function paletteAtProgress(
   const fraction = clamp01(stage.transitionFraction);
   const p = clamp01(progress);
   if (fraction <= 0 || p <= 1 - fraction) return current;
-  const blendProgress = (p - (1 - fraction)) / fraction;
+  const blendProgress = Number(((p - (1 - fraction)) / fraction).toFixed(10));
   return mixPaletteTokens(current, next, easeInOut(blendProgress));
 }
 

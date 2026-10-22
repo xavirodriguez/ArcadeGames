@@ -24,6 +24,7 @@ const visualRectSchema = z.object({
 });
 const visualTuningSchema = z.object({
   referenceWidthPx: z.number().positive(),
+  horizonFraction: z.number().min(0.1).max(0.9),
   skyBandHeights: z.array(z.number().positive()).length(7),
   clouds: z.object({
     highCountMin: z.number().int().nonnegative(), highCountMax: z.number().int().positive(),
@@ -41,7 +42,11 @@ const visualTuningSchema = z.object({
     alphaMin: z.number().min(0).max(1), alphaMax: z.number().min(0).max(1)
   }),
   mountains: z.object({
-    parallax: z.object({ far: z.number().min(0), mid: z.number().min(0), near: z.number().min(0) }),
+    parallax: z.object({
+      far: z.number().min(0), mid: z.number().min(0), near: z.number().min(0),
+      baseDriftPxPerSecond: z.number().nonnegative(), speedDriftPxPerSecond: z.number().nonnegative(),
+      curvatureScale: z.number().nonnegative()
+    }),
     sierraProfile: z.object({
       far: z.array(visualPointSchema).min(2), mid: z.array(visualPointSchema).min(2), near: z.array(visualPointSchema).min(2)
     }),

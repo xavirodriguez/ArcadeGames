@@ -232,7 +232,10 @@ export const DEFAULT_OUTRUN_VISUAL_CONFIG: OutrunVisualConfig = {
       "parallax": {
         "far": 0.2,
         "mid": 0.4,
-        "near": 0.7
+        "near": 0.7,
+        "baseDriftPxPerSecond": 8,
+        "speedDriftPxPerSecond": 42,
+        "curvatureScale": 0.02
       },
       "sierraProfile": {
         "far": [
@@ -560,6 +563,7 @@ export const DEFAULT_OUTRUN_VISUAL_CONFIG: OutrunVisualConfig = {
       "coastAccent": "#2FB8B0",
       "sierraAccent": "#FF8A5B",
       "desertAccent": "#E8B04A"
-    }
+    },
+    "horizonFraction": 0.46
   }
 };

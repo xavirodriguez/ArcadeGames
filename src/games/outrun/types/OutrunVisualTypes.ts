@@ -70,6 +70,7 @@ export interface OutrunVisualRect {
 
 export interface OutrunVisualTuning {
   referenceWidthPx: number;
+  horizonFraction: number;
   skyBandHeights: number[];
   clouds: {
     highCountMin: number; highCountMax: number; lowCount: number;
@@ -79,7 +80,7 @@ export interface OutrunVisualTuning {
   astro: { radiusToFrameWidth: number; haloRadiusMultiplier: number; haloAlpha: number; centerAboveHorizonPx: number };
   stars: { highCountMin: number; highCountMax: number; lowCount: number; diameterPx: number; alphaMin: number; alphaMax: number };
   mountains: {
-    parallax: { far: number; mid: number; near: number };
+    parallax: { far: number; mid: number; near: number; baseDriftPxPerSecond: number; speedDriftPxPerSecond: number; curvatureScale: number };
     sierraProfile: { far: OutrunVisualPoint[]; mid: OutrunVisualPoint[]; near: OutrunVisualPoint[] };
     snowPeakAlpha: number;
   };
@@ -144,4 +145,12 @@ export interface OutrunVisualPaletteResource {
   quality: OutrunVisualQuality;
   paletteMode: OutrunPaletteMode;
   tuning: OutrunVisualTuning;
+}
+
+
+/** Deterministic offsets consumed only by presentation drawers. */
+export interface OutrunParallaxState {
+  farOffsetX: number;
+  midOffsetX: number;
+  nearOffsetX: number;
 }

@@ -8,3 +8,6 @@ export * from "./types/OutrunVisualTypes";
 export * from "./config/visualDefaults";
 export * from "./utils/palette";
 export * from "./systems/ColorScriptSystem";
+
+export * from "./rendering/OutrunScenery";
+export * from "./systems/ParallaxSystem";

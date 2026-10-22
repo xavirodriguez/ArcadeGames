@@ -2,11 +2,9 @@ import type { ShapeDrawer } from "@tiny-aster/core";
 import type { OutrunComponentRegistry, RoadSegmentSprite } from "../types/OutrunTypes";
 import {
   resolveOutrunRoadContext,
-  resolveOutrunHorizonContext,
   projectOutrunRoad,
   projectionBuffer,
   computeRoadSegmentColors,
-  getFacetedPeakPolygons,
   iterateOutrunSprites,
   resolveOutrunCarContext,
   resolveOutrunRacerDrawContext,
@@ -14,6 +12,7 @@ import {
   resolveOffroadDustParams
 } from "./OutrunRenderShared";
 import { computeSpeedLines, computeOutrunPlayerPixelSize } from "./OutrunVisualHelpers";
+import { resolveOutrunSceneryLayout, type OutrunSceneryLayout, type MountainLayerLayout } from "./OutrunScenery";
 import { resolveRoadFogColor } from "./OutrunFog";
 import { colors } from "../../../theme/colors";
 import { hexToRgba } from "../../shared/rendering/CosmicPalette";
@@ -115,6 +114,104 @@ function drawRoadSpriteCanvas(
   ctx.restore();
 }
 
+
+function drawSkyBandsCanvas(ctx: CanvasRenderingContext2D, layout: OutrunSceneryLayout, screenW: number): void {
+  for (const band of layout.skyBands) {
+    ctx.fillStyle = band.color;
+    ctx.fillRect(0, band.y, screenW, band.height + 0.5);
+  }
+}
+function drawStarsCanvas(ctx: CanvasRenderingContext2D, layout: OutrunSceneryLayout): void {
+  ctx.save();
+  for (const star of layout.stars) {
+    ctx.globalAlpha = star.alpha; ctx.fillStyle = layout.creamColor;
+    ctx.fillRect(star.x, star.y, star.diameter, star.diameter);
+  }
+  ctx.restore();
+}
+function drawCloudsCanvas(ctx: CanvasRenderingContext2D, layout: OutrunSceneryLayout): void {
+  ctx.save(); ctx.globalAlpha = layout.cloudAlpha; ctx.fillStyle = layout.creamColor;
+  for (const cloud of layout.clouds) {
+    ctx.beginPath();
+    ctx.ellipse(cloud.x, cloud.y, cloud.width / 2, cloud.height / 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+function drawAstroCanvas(ctx: CanvasRenderingContext2D, layout: OutrunSceneryLayout): void {
+  const astro = layout.astro;
+  ctx.save(); ctx.globalAlpha = astro.haloAlpha; ctx.fillStyle = astro.color;
+  ctx.beginPath(); ctx.arc(astro.x, astro.y, astro.haloRadius, 0, Math.PI * 2); ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.beginPath(); ctx.arc(astro.x, astro.y, astro.radius, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+const canvasMountainPathCache = new Map<string, Path2D>();
+const canvasSnowPathCache = new Map<string, Path2D>();
+function buildCanvasMountainPath(layer: MountainLayerLayout, screenW: number, horizonY: number): Path2D {
+  const path = new Path2D();
+  path.moveTo(0, horizonY);
+  for (const point of layer.profile) path.lineTo(point.x, horizonY - point.height);
+  path.lineTo(screenW, horizonY); path.closePath();
+  return path;
+}
+function buildCanvasSnowPath(layer: MountainLayerLayout, horizonY: number): Path2D {
+  const path = new Path2D();
+  for (const cap of layer.snowCaps) {
+    path.moveTo(cap.x - cap.halfWidth, horizonY - cap.peakHeight + cap.halfWidth * 0.95);
+    path.lineTo(cap.x, horizonY - cap.peakHeight);
+    path.lineTo(cap.x + cap.halfWidth, horizonY - cap.peakHeight + cap.halfWidth * 0.95);
+    path.closePath();
+  }
+  return path;
+}
+function drawMountainFallbackCanvas(
+  ctx: CanvasRenderingContext2D, layer: MountainLayerLayout,
+  layout: OutrunSceneryLayout, screenW: number, color: string
+): void {
+  for (const tileX of [0, screenW, screenW * 2]) {
+    ctx.beginPath(); ctx.moveTo(tileX - layer.offsetX, layout.horizonY);
+    for (const point of layer.profile) ctx.lineTo(tileX - layer.offsetX + point.x, layout.horizonY - point.height);
+    ctx.lineTo(tileX - layer.offsetX + screenW, layout.horizonY); ctx.closePath();
+    ctx.fillStyle = color; ctx.fill();
+  }
+}
+function drawMountainLayersCanvas(
+  ctx: CanvasRenderingContext2D, layout: OutrunSceneryLayout, screenW: number
+): void {
+  for (const layer of layout.mountainLayers) {
+    if (typeof Path2D === "undefined" || typeof ctx.translate !== "function") {
+      drawMountainFallbackCanvas(ctx, layer, layout, screenW, layer.color);
+    } else {
+      let path = canvasMountainPathCache.get(layer.cacheKey);
+      if (!path) { path = buildCanvasMountainPath(layer, screenW, layout.horizonY); canvasMountainPathCache.set(layer.cacheKey, path); }
+      for (const tileX of [0, screenW, screenW * 2]) {
+        ctx.save(); ctx.translate(tileX - layer.offsetX, 0);
+        ctx.fillStyle = layer.color; ctx.fill(path); ctx.restore();
+      }
+    }
+    if (layer.snowCaps.length > 0 && typeof Path2D !== "undefined" && typeof ctx.translate === "function") {
+      let path = canvasSnowPathCache.get(layer.cacheKey);
+      if (!path) { path = buildCanvasSnowPath(layer, layout.horizonY); canvasSnowPathCache.set(layer.cacheKey, path); }
+      for (const tileX of [0, screenW, screenW * 2]) {
+        ctx.save(); ctx.translate(tileX - layer.offsetX, 0);
+        ctx.globalAlpha = layout.snowPeakAlpha; ctx.fillStyle = layout.creamColor; ctx.fill(path); ctx.restore();
+      }
+    }
+  }
+}
+function drawOutrunSceneryCanvas(
+  ctx: CanvasRenderingContext2D, layout: OutrunSceneryLayout, screenW: number, screenH: number
+): void {
+  drawSkyBandsCanvas(ctx, layout, screenW);
+  drawStarsCanvas(ctx, layout);
+  drawCloudsCanvas(ctx, layout);
+  drawAstroCanvas(ctx, layout);
+  drawMountainLayersCanvas(ctx, layout, screenW);
+  ctx.fillStyle = layout.groundColor;
+  ctx.fillRect(0, layout.horizonY, screenW, screenH - layout.horizonY);
+}
+
 export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunComponentRegistry> = {
   draw(ctx, world) {
     const roadCtx = resolveOutrunRoadContext(world);
@@ -123,71 +220,9 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
     const { state, roadData, config, screenW, screenH, rumbleLength, palette } = roadCtx;
     ctx.save();
 
-    const horizonCtx = resolveOutrunHorizonContext(roadCtx);
-    const { horizonY, bands, bandHeight } = horizonCtx;
-
-    // 1. Sky Bands
-    for (let i = 0; i < bands.length; i++) {
-      ctx.fillStyle = bands[i]!;
-      ctx.fillRect(0, i * bandHeight, screenW, bandHeight + 1);
-    }
-
-    // Sun/Moon
-    if (palette.sun) {
-      ctx.fillStyle = palette.sun;
-      const sunX = ((screenW * 0.7 - state.playerX * 15) % screenW + screenW) % screenW;
-      ctx.beginPath();
-      ctx.arc(sunX, horizonY - 35, 20, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // Clouds
-    if (palette.cloudColor && horizonCtx.clouds) {
-      ctx.fillStyle = palette.cloudColor;
-      for (const c of horizonCtx.clouds) {
-        ctx.beginPath();
-        ctx.ellipse(c.cloudX, c.cloudY, c.cloudW / 2, c.cloudH / 2, 0, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    // Horizon Scenery
-    if (horizonCtx.peaks) {
-      for (const p of horizonCtx.peaks) {
-        const poly = getFacetedPeakPolygons(p);
-        ctx.fillStyle = palette.mountainBase;
-        ctx.beginPath();
-        ctx.moveTo(poly.base[0][0], poly.base[0][1]);
-        ctx.lineTo(poly.base[1][0], poly.base[1][1]);
-        ctx.lineTo(poly.base[2][0], poly.base[2][1]);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.fillStyle = palette.mountainFacet;
-        ctx.beginPath();
-        ctx.moveTo(poly.facet[0][0], poly.facet[0][1]);
-        ctx.lineTo(poly.facet[1][0], poly.facet[1][1]);
-        ctx.lineTo(poly.facet[2][0], poly.facet[2][1]);
-        ctx.closePath();
-        ctx.fill();
-      }
-    } else if (horizonCtx.buildings) {
-      ctx.fillStyle = palette.mountainBase;
-      for (const b of horizonCtx.buildings) {
-        ctx.fillRect(b.bx, horizonY - b.bh, b.bw, b.bh);
-      }
-    } else if (horizonCtx.hazeLines) {
-      ctx.fillStyle = palette.sun || colors.yellow;
-      ctx.globalAlpha = 0.2;
-      for (const h of horizonCtx.hazeLines) {
-        ctx.fillRect(h.x, h.hazeY, 20, 2);
-      }
-      ctx.globalAlpha = 1.0;
-    }
-
-    // Ground Base
-    ctx.fillStyle = palette.groundDark;
-    ctx.fillRect(0, horizonY, screenW, screenH - horizonY);
+    const sceneryLayout = resolveOutrunSceneryLayout(world, state, roadData, config);
+    const horizonY = sceneryLayout.horizonY;
+    drawOutrunSceneryCanvas(ctx, sceneryLayout, screenW, screenH);
 
     // 2. Road Segments Pass
     const count = projectOutrunRoad(roadData.segments, state.playerZ, state.playerX, config, screenW, screenH);

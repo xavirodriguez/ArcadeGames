@@ -16,6 +16,8 @@ import { computeSpeedLines, computeOutrunPlayerArtworkScale } from "./OutrunVisu
 import { computeOutrunRoadSpeedLineSegments, resolveOutrunRoadSegmentArtwork } from "./OutrunRoadArtwork";
 import { resolveOutrunRoadsideArtworkStyle } from "./OutrunRoadsideArtwork";
 import { resolveOutrunPlayerPalette, resolveOutrunTrafficArtworkStyle } from "./OutrunVehicleArtwork";
+import { computeOutrunHeadlightBeams } from "./OutrunLighting";
+import { resolveOutrunHudLayout } from "./OutrunHudArtwork";
 import { resolveOutrunSceneryLayout, type OutrunSceneryLayout, type MountainLayerLayout } from "./OutrunScenery";
 import { colors } from "../../../theme/colors";
 import { hexToRgba } from "../../shared/rendering/CosmicPalette";
@@ -626,6 +628,12 @@ export const drawSkiaOutrunRoad: ShapeDrawer<SkCanvas, OutrunComponentRegistry> 
 
     if (count > 0 && renderedCount === 0) {
       console.warn("[drawSkiaOutrunRoad] 100% of projected road segments were clipped or discarded.");
+    }
+
+    // Flat headlight cones are night-only and sit beneath roadside sprites.
+    const headlightBeams = computeOutrunHeadlightBeams(state, config, visualPalette);
+    for (const beam of headlightBeams) {
+      fillRoadsidePolygonSkia(canvas, beam.points, beam.color);
     }
 
     // Short radial streaks stay on the ground outside the pianos.

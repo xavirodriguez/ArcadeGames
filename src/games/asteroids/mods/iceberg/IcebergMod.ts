@@ -1,6 +1,7 @@
 import type { Theme } from "@tiny-aster/core";
 import type { AsteroidsVisualMod } from "../types";
 import { ICEBERG_PALETTE } from "./IcebergPalette";
+import { createIcebergVerts, type IcebergSize } from "./IcebergGeometry";
 import {
   drawAsteroidsPlayerShip as canvasDrawAsteroidsPlayerShip,
   drawAsteroidsAsteroid as canvasDrawAsteroidsAsteroid,
@@ -13,11 +14,10 @@ import {
 } from "../../rendering/AsteroidsSkiaVisuals";
 
 /**
- * Iceberg visual mod — polar / cristal glaciar direction (ART_ICEBERG.md).
+ * Iceberg visual mod — Borealis / Cristal Glaciar (ART_ICEBERG.md).
  *
- * Phase 1 (this PR): palette + theme override. Drawers still use classic
- * shapes so the mod is selectable and safe; facet shading, hard shadows,
- * icebreaker ship, and geometric aurora land in follow-up PRs.
+ * Phase 0–1: palette, theme, deterministic iceberg verts.
+ * Drawers still classic until Phase 2 (facet shading + icebreaker path).
  *
  * @public
  */
@@ -48,7 +48,6 @@ export const icebergMod: AsteroidsVisualMod = {
       },
       effects: {
         ...baseTheme.effects,
-        // Prefer hard geometric look: lower ambient glow / softer CRT
         ambientGlow: 0.15,
         scanlineColor: "rgba(0, 0, 0, 0.08)",
         vignetteOuterColor: "rgba(14, 22, 40, 0.85)"
@@ -80,8 +79,12 @@ export const icebergMod: AsteroidsVisualMod = {
     };
   },
 
+  createAsteroidVerts(size, radius, random) {
+    return createIcebergVerts(size as IcebergSize, radius, random);
+  },
+
   registerDrawers(register) {
-    // Temporary: classic drawers until IcebergCanvasVisuals / IcebergSkiaVisuals land.
+    // Phase 2 will replace these with IcebergCanvasVisuals / IcebergSkiaVisuals.
     register("canvas", "player_ship", canvasDrawAsteroidsPlayerShip as never);
     register("canvas", "asteroid", canvasDrawAsteroidsAsteroid as never);
     register("canvas", "bullet", canvasDrawAsteroidsBullet as never);

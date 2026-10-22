@@ -1,7 +1,7 @@
 import type { World } from "@tiny-aster/core";
 import { scenarioHash } from "./OutrunPalettes";
 import { computeCurvatureParallaxOffset } from "./OutrunVisualHelpers";
-import { createVisualPaletteResource } from "../utils/palette";
+import { createVisualPaletteResource, groundColorAtDepth, lerpColor } from "../utils/palette";
 import type { OutrunConfig } from "../types/OutrunConfigSchema";
 import type {
   OutrunComponentRegistry, OutrunVisualPoint, OutrunVisualPaletteResource, OutrunParallaxState
@@ -210,9 +210,14 @@ export function buildOutrunSceneryLayout(
     };
   });
 
+  const farGround = groundColorAtDepth(visualPalette.tokens, 1, 0, 0);
+  const groundColor = visualPalette.decor === "desert"
+    ? lerpColor(farGround, tuning.decor.desertSandColor, tuning.decor.desertGroundMix)
+    : farGround;
+
   return {
     decor: visualPalette.decor, hour: visualPalette.hour, quality: visualPalette.quality,
-    horizonY, groundColor: visualPalette.tokens.groundNear, creamColor: visualPalette.shared.cream,
+    horizonY, groundColor, creamColor: visualPalette.shared.cream,
     cloudAlpha: tuning.clouds.alpha, skyBands, clouds, stars, astro, mountainLayers: layers,
     snowPeakAlpha: tuning.mountains.snowPeakAlpha
   };

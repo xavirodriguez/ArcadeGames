@@ -1,4 +1,6 @@
 import { OutrunGame, OutrunDefinition } from "../OutrunGame";
+import { ColorScriptSystem } from "../systems/ColorScriptSystem";
+import type { OutrunVisualPaletteResource } from "../types/OutrunVisualTypes";
 import type { RoadData } from "../types/OutrunTypes";
 import { OUTRUN_PALETTES, scenarioHash } from "../rendering/OutrunPalettes";
 import {
@@ -409,6 +411,23 @@ describe("OutrunGameplay", () => {
     expect(canvasTraffic.fillRect).toHaveBeenCalled();
     expect(skiaTraffic.drawRect).toHaveBeenCalled();
     expect(canvasTraffic.fillRect).toHaveBeenCalledTimes(skiaTraffic.drawRect.mock.calls.length);
+  });
+
+  it("ColorScriptSystem updates VisualPalette without mutating RaceState", async () => {
+    const game = new OutrunGame({ seed: 808, headless: true });
+    await game.init();
+    const world = game.getWorld();
+    const before = game.getGameState();
+
+    new ColorScriptSystem().update(world, 1 / 60);
+
+    expect(game.getGameState()).toEqual(before);
+    const visualPalette = world.getResource<OutrunVisualPaletteResource>("VisualPalette");
+    expect(visualPalette).toBeDefined();
+    expect(visualPalette?.stageIndex).toBe(0);
+    expect(visualPalette?.hour).toBe("dawn");
+    expect(visualPalette?.decor).toBe("sierra");
+    expect(visualPalette?.skyBands).toHaveLength(7);
   });
 
 });

@@ -26,6 +26,7 @@ import {
 import { RacerInputSystem } from "./systems/RacerInputSystem";
 import { RoadAdvanceSystem } from "./systems/RoadAdvanceSystem";
 import { TrafficSystem } from "./systems/TrafficSystem";
+import { ColorScriptSystem } from "./systems/ColorScriptSystem";
 import { scenarioHash } from "./rendering/OutrunPalettes";
 import { expandStretch, type StretchDescriptor } from "./rendering/RoadStretch";
 import {
@@ -119,6 +120,7 @@ export class OutrunGame extends BaseGame<
     this.world.addSystem(new RacerInputSystem(), { phase: SystemPhase.Input });
     this.world.addSystem(new RoadAdvanceSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new TrafficSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new ColorScriptSystem(), { phase: SystemPhase.Presentation });
   }
 
   protected override async onInitializeEntities(): Promise<void> {

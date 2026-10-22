@@ -1,4 +1,4 @@
-import { RenderContext, resolveThemeColor, World, Entity } from "@tiny-aster/core";
+import { RenderContext, resolveThemeColor, World, Entity, ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
 import { CentipedeComponentRegistry, CentipedeEventRegistry } from "../types/CentipedeTypes";
 import { CentipedeConfig } from "../types/CentipedeConfigSchema";
 
@@ -14,7 +14,7 @@ interface SkiaContext {
   parseColor?: (colorStr: string) => unknown;
 }
 
-export function drawSkiaCentipedeBackground(ctx: RenderContext, world: CentipedeWorld): void {
+export function renderSkiaCentipedeBackground(ctx: RenderContext, world: CentipedeWorld): void {
   const skCanvas = ctx as SkiaContext;
   if (!skCanvas.drawRect) return;
 
@@ -44,7 +44,13 @@ export function drawSkiaCentipedeBackground(ctx: RenderContext, world: Centipede
   if (skCanvas.drawLine) skCanvas.drawLine(0, zoneY, width, zoneY, paint);
 }
 
-export function drawSkiaCentipedeHead(ctx: RenderContext, world: CentipedeWorld, entity: Entity): void {
+export const drawSkiaCentipedeBackground: EffectDrawer<RenderContext, CentipedeComponentRegistry> = {
+  draw(ctx, world) {
+    renderSkiaCentipedeBackground(ctx, world as CentipedeWorld);
+  }
+};
+
+export function renderSkiaCentipedeHead(ctx: RenderContext, world: CentipedeWorld, entity: Entity): void {
   const skCanvas = ctx as SkiaContext;
   if (!skCanvas.drawCircle) return;
 
@@ -71,7 +77,13 @@ export function drawSkiaCentipedeHead(ctx: RenderContext, world: CentipedeWorld,
   skCanvas.drawCircle(offsetX + 2, offsetY + 2, 1.2, paint);
 }
 
-export function drawSkiaCentipedeBody(ctx: RenderContext, world: CentipedeWorld, entity: Entity): void {
+export const drawSkiaCentipedeHead: ShapeDrawer<RenderContext, CentipedeComponentRegistry> = {
+  draw(ctx, world, entity) {
+    renderSkiaCentipedeHead(ctx, world as CentipedeWorld, entity);
+  }
+};
+
+export function renderSkiaCentipedeBody(ctx: RenderContext, world: CentipedeWorld, entity: Entity): void {
   const skCanvas = ctx as SkiaContext;
   if (!skCanvas.drawCircle) return;
 
@@ -93,7 +105,13 @@ export function drawSkiaCentipedeBody(ctx: RenderContext, world: CentipedeWorld,
   skCanvas.drawCircle(offsetX, offsetY, 4.5, paint);
 }
 
-export function drawSkiaMushroom(ctx: RenderContext, world: CentipedeWorld, entity: Entity): void {
+export const drawSkiaCentipedeBody: ShapeDrawer<RenderContext, CentipedeComponentRegistry> = {
+  draw(ctx, world, entity) {
+    renderSkiaCentipedeBody(ctx, world as CentipedeWorld, entity);
+  }
+};
+
+export function renderSkiaMushroom(ctx: RenderContext, world: CentipedeWorld, entity: Entity): void {
   const skCanvas = ctx as SkiaContext;
   if (!skCanvas.drawRect) return;
 
@@ -127,7 +145,13 @@ export function drawSkiaMushroom(ctx: RenderContext, world: CentipedeWorld, enti
   }
 }
 
-export function drawSkiaSpider(ctx: RenderContext, world: CentipedeWorld, _entity: Entity): void {
+export const drawSkiaMushroom: ShapeDrawer<RenderContext, CentipedeComponentRegistry> = {
+  draw(ctx, world, entity) {
+    renderSkiaMushroom(ctx, world as CentipedeWorld, entity);
+  }
+};
+
+export function renderSkiaSpider(ctx: RenderContext, world: CentipedeWorld, _entity: Entity): void {
   const skCanvas = ctx as SkiaContext;
   if (!skCanvas.drawOval) return;
 
@@ -143,7 +167,13 @@ export function drawSkiaSpider(ctx: RenderContext, world: CentipedeWorld, _entit
   skCanvas.drawOval({ x: -5, y: -3.5, width: 10, height: 7 }, paint);
 }
 
-export function drawSkiaFlea(ctx: RenderContext, world: CentipedeWorld, _entity: Entity): void {
+export const drawSkiaSpider: ShapeDrawer<RenderContext, CentipedeComponentRegistry> = {
+  draw(ctx, world, entity) {
+    renderSkiaSpider(ctx, world as CentipedeWorld, entity);
+  }
+};
+
+export function renderSkiaFlea(ctx: RenderContext, world: CentipedeWorld, _entity: Entity): void {
   const skCanvas = ctx as SkiaContext;
   if (!skCanvas.drawRect) return;
 
@@ -159,7 +189,13 @@ export function drawSkiaFlea(ctx: RenderContext, world: CentipedeWorld, _entity:
   skCanvas.drawRect({ x: -3, y: -4, width: 6, height: 8 }, paint);
 }
 
-export function drawSkiaScorpion(ctx: RenderContext, world: CentipedeWorld, _entity: Entity): void {
+export const drawSkiaFlea: ShapeDrawer<RenderContext, CentipedeComponentRegistry> = {
+  draw(ctx, world, entity) {
+    renderSkiaFlea(ctx, world as CentipedeWorld, entity);
+  }
+};
+
+export function renderSkiaScorpion(ctx: RenderContext, world: CentipedeWorld, _entity: Entity): void {
   const skCanvas = ctx as SkiaContext;
   if (!skCanvas.drawRect) return;
 
@@ -175,7 +211,13 @@ export function drawSkiaScorpion(ctx: RenderContext, world: CentipedeWorld, _ent
   skCanvas.drawRect({ x: -5, y: -2, width: 10, height: 4 }, paint);
 }
 
-export function drawSkiaShooter(ctx: RenderContext, world: CentipedeWorld, _entity: Entity): void {
+export const drawSkiaScorpion: ShapeDrawer<RenderContext, CentipedeComponentRegistry> = {
+  draw(ctx, world, entity) {
+    renderSkiaScorpion(ctx, world as CentipedeWorld, entity);
+  }
+};
+
+export function renderSkiaShooter(ctx: RenderContext, world: CentipedeWorld, _entity: Entity): void {
   const skCanvas = ctx as SkiaContext;
   if (!skCanvas.drawCircle) return;
 
@@ -191,7 +233,13 @@ export function drawSkiaShooter(ctx: RenderContext, world: CentipedeWorld, _enti
   skCanvas.drawCircle(0, 0, 4, paint);
 }
 
-export function drawSkiaDart(ctx: RenderContext, world: CentipedeWorld, _entity: Entity): void {
+export const drawSkiaShooter: ShapeDrawer<RenderContext, CentipedeComponentRegistry> = {
+  draw(ctx, world, entity) {
+    renderSkiaShooter(ctx, world as CentipedeWorld, entity);
+  }
+};
+
+export function renderSkiaDart(ctx: RenderContext, world: CentipedeWorld, _entity: Entity): void {
   const skCanvas = ctx as SkiaContext;
   if (!skCanvas.drawLine) return;
 
@@ -207,3 +255,9 @@ export function drawSkiaDart(ctx: RenderContext, world: CentipedeWorld, _entity:
 
   skCanvas.drawLine(0, -5, 0, 5, paint);
 }
+
+export const drawSkiaDart: ShapeDrawer<RenderContext, CentipedeComponentRegistry> = {
+  draw(ctx, world, entity) {
+    renderSkiaDart(ctx, world as CentipedeWorld, entity);
+  }
+};

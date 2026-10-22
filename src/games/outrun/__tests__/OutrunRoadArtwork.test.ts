@@ -5,8 +5,7 @@ import {
   computeOutrunRoadSpeedLineSegments,
   resolveOutrunRoadSegmentArtwork
 } from "../rendering/OutrunRoadArtwork";
-import { lerpColor } from "../utils/palette";
-import { createVisualPaletteResource } from "../utils/palette";
+import { createVisualPaletteResource, lerpColor } from "../utils/palette";
 
 const roadData: RoadData = {
   trackLength: 600,

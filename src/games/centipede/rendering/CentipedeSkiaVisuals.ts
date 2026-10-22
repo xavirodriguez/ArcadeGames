@@ -1,7 +1,8 @@
-import { ShapeDrawer, EffectDrawer, World, Entity, resolveThemeColor } from "@tiny-aster/core";
+import { ShapeDrawer, EffectDrawer, World, Entity } from "@tiny-aster/core";
 import { CentipedeComponentRegistry, CentipedeEventRegistry } from "../types/CentipedeTypes";
 import { CentipedeConfig } from "../types/CentipedeConfigSchema";
 import { Skia, getPaint, SkCanvas } from "../../shared/rendering/SkiaContext";
+import { getCentipedePalette } from "./CentipedeRenderUtils";
 
 type CentipedeWorld = World<CentipedeComponentRegistry, CentipedeEventRegistry>;
 
@@ -9,24 +10,17 @@ export function renderSkiaCentipedeBackground(canvas: SkCanvas, world: Centipede
   if (!Skia) return;
 
   const config = world.getResource<CentipedeConfig>("GameConfig");
-  const isColorblind = config?.visual?.colorblindMode ?? false;
-  const palette = isColorblind ? config?.visual?.paletteColorblind : config?.visual?.palette;
+  const palette = getCentipedePalette(world);
 
   const width = config?.worldWidth ?? 300;
   const height = config?.worldHeight ?? 320;
-
-  const soil = palette?.soil ?? resolveThemeColor(world, "soil", "soil") ?? "#0A0F1C";
-  const playerZone = palette?.playerZone ?? resolveThemeColor(world, "playerZone", "playerZone") ?? "#0F182B";
-  const hairline = palette?.hairline ?? resolveThemeColor(world, "hairline", "hairline") ?? "#1F2D47";
-  const lightMassA = palette?.mushroomB ?? resolveThemeColor(world, "mushroomB", "mushroomB") ?? "#8B7CF6";
-  const lightMassB = palette?.mushroomA ?? resolveThemeColor(world, "mushroomA", "mushroomA") ?? "#2DD4BF";
 
   const paint = getPaint();
 
   // Soil
   paint.reset();
   paint.setStyle(Skia.PaintStyle.Fill);
-  paint.setColor(Skia.Color(soil));
+  paint.setColor(Skia.Color(palette.soil));
   canvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
 
   if (config?.visual?.quality !== "low") {
@@ -34,14 +28,14 @@ export function renderSkiaCentipedeBackground(canvas: SkCanvas, world: Centipede
     const cx1 = width * 0.3 + Math.sin(time * 0.5) * 15;
     const cy1 = height * 0.3 + Math.cos(time * 0.4) * 15;
 
-    paint.setColor(Skia.Color(lightMassA));
+    paint.setColor(Skia.Color(palette.mushroomB));
     paint.setAlphaf(0.08);
     canvas.drawCircle(cx1, cy1, 70, paint);
 
     const cx2 = width * 0.7 + Math.cos(time * 0.35) * 20;
     const cy2 = height * 0.6 + Math.sin(time * 0.45) * 20;
 
-    paint.setColor(Skia.Color(lightMassB));
+    paint.setColor(Skia.Color(palette.mushroomA));
     paint.setAlphaf(0.08);
     canvas.drawCircle(cx2, cy2, 85, paint);
 
@@ -49,7 +43,7 @@ export function renderSkiaCentipedeBackground(canvas: SkCanvas, world: Centipede
     if (ambientEntity !== undefined) {
       const ambientVis = world.getComponent(ambientEntity, "AmbientParticleVisual");
       if (ambientVis?.particles) {
-        paint.setColor(Skia.Color(palette?.amber ?? "#FFC24B"));
+        paint.setColor(Skia.Color(palette.amber));
         for (const p of ambientVis.particles) {
           paint.setAlphaf(p.alpha);
           canvas.drawCircle(p.x, p.y, p.radius, paint);
@@ -62,12 +56,12 @@ export function renderSkiaCentipedeBackground(canvas: SkCanvas, world: Centipede
   const zoneY = height * (27 / 32);
   paint.reset();
   paint.setStyle(Skia.PaintStyle.Fill);
-  paint.setColor(Skia.Color(playerZone));
+  paint.setColor(Skia.Color(palette.playerZone));
   canvas.drawRect(Skia.XYWHRect(0, zoneY, width, height - zoneY), paint);
 
   paint.setStyle(Skia.PaintStyle.Stroke);
   paint.setStrokeWidth(1);
-  paint.setColor(Skia.Color(hairline));
+  paint.setColor(Skia.Color(palette.hairline));
   canvas.drawLine(0, zoneY, width, zoneY, paint);
 
   // Death expanding rings
@@ -80,7 +74,7 @@ export function renderSkiaCentipedeBackground(canvas: SkCanvas, world: Centipede
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setStrokeWidth(2 * (1 - progress));
-      paint.setColor(Skia.Color(palette?.centipedeBody ?? "#FF8A5B"));
+      paint.setColor(Skia.Color(palette.centipedeBody));
       canvas.drawCircle(vis.x, vis.y, 4 + progress * 10, paint);
     }
   }
@@ -97,12 +91,7 @@ export function renderSkiaCentipedeHead(canvas: SkCanvas, world: CentipedeWorld,
 
   const config = world.getResource<CentipedeConfig>("GameConfig");
   const isColorblind = config?.visual?.colorblindMode ?? false;
-  const palette = isColorblind ? config?.visual?.paletteColorblind : config?.visual?.palette;
-
-  const color = palette?.centipedeHead ?? resolveThemeColor(world, "centipedeHead", "centipedeHead") ?? "#FF4D5E";
-  const amber = palette?.amber ?? resolveThemeColor(world, "amber", "amber") ?? "#FFC24B";
-  const shine = palette?.centipedeShine ?? resolveThemeColor(world, "centipedeShine", "centipedeShine") ?? "rgba(255, 201, 168, 0.6)";
-  const legsColor = palette?.centipedeLegs ?? resolveThemeColor(world, "centipedeLegs", "centipedeLegs") ?? "#FFB38A";
+  const palette = getCentipedePalette(world);
 
   const vis = world.getComponent(entity, "SegmentVisual");
   const transform = world.getComponent(entity, "Transform");
@@ -126,33 +115,33 @@ export function renderSkiaCentipedeHead(canvas: SkCanvas, world: CentipedeWorld,
   paint.reset();
   paint.setStyle(Skia.PaintStyle.Stroke);
   paint.setStrokeWidth(1.5);
-  paint.setColor(Skia.Color(legsColor));
+  paint.setColor(Skia.Color(palette.centipedeLegs));
   canvas.drawLine(0, -r, -2, -r - 4 + legOffset, paint);
   canvas.drawLine(0, r, -2, r + 4 - legOffset, paint);
 
   // Head Circle
   paint.setStyle(Skia.PaintStyle.Fill);
-  paint.setColor(Skia.Color(color));
+  paint.setColor(Skia.Color(palette.centipedeHead));
   canvas.drawCircle(0, 0, r, paint);
 
   // Shine
-  paint.setColor(Skia.Color(shine));
+  paint.setColor(Skia.Color(palette.centipedeShine));
   canvas.drawCircle(-r * 0.3, -r * 0.3, r * 0.35, paint);
 
   // Eyes
-  paint.setColor(Skia.Color("#FFE9D6"));
+  paint.setColor(Skia.Color(palette.hudText));
   canvas.drawCircle(r * 0.6, -r * 0.4, 1.8, paint);
   canvas.drawCircle(r * 0.6, r * 0.4, 1.8, paint);
 
   // Mandibles
-  paint.setColor(Skia.Color(amber));
+  paint.setColor(Skia.Color(palette.amber));
   canvas.drawCircle(r * 0.85, -r * 0.2, 1.4, paint);
   canvas.drawCircle(r * 0.85, r * 0.2, 1.4, paint);
 
   if (isColorblind) {
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setStrokeWidth(1.5);
-    paint.setColor(Skia.Color(palette?.hudText ?? "#FFFFFF"));
+    paint.setColor(Skia.Color(palette.hudText));
     canvas.drawCircle(0, 0, r, paint);
   }
 
@@ -170,11 +159,7 @@ export function renderSkiaCentipedeBody(canvas: SkCanvas, world: CentipedeWorld,
 
   const config = world.getResource<CentipedeConfig>("GameConfig");
   const isColorblind = config?.visual?.colorblindMode ?? false;
-  const palette = isColorblind ? config?.visual?.paletteColorblind : config?.visual?.palette;
-
-  const color = palette?.centipedeBody ?? resolveThemeColor(world, "centipedeBody", "centipedeBody") ?? "#FF8A5B";
-  const shine = palette?.centipedeShine ?? resolveThemeColor(world, "centipedeShine", "centipedeShine") ?? "rgba(255, 201, 168, 0.6)";
-  const legsColor = palette?.centipedeLegs ?? resolveThemeColor(world, "centipedeLegs", "centipedeLegs") ?? "#FFB38A";
+  const palette = getCentipedePalette(world);
 
   const vis = world.getComponent(entity, "SegmentVisual");
   const transform = world.getComponent(entity, "Transform");
@@ -203,23 +188,23 @@ export function renderSkiaCentipedeBody(canvas: SkCanvas, world: CentipedeWorld,
   paint.reset();
   paint.setStyle(Skia.PaintStyle.Stroke);
   paint.setStrokeWidth(1.2);
-  paint.setColor(Skia.Color(legsColor));
+  paint.setColor(Skia.Color(palette.centipedeLegs));
   canvas.drawLine(0, -r, -1.5, -r - 3 + legOffset, paint);
   canvas.drawLine(0, r, -1.5, r + 3 - legOffset, paint);
 
   // Body Circle
   paint.setStyle(Skia.PaintStyle.Fill);
-  paint.setColor(Skia.Color(color));
+  paint.setColor(Skia.Color(palette.centipedeBody));
   canvas.drawCircle(0, 0, r, paint);
 
   // Shine
-  paint.setColor(Skia.Color(shine));
+  paint.setColor(Skia.Color(palette.centipedeShine));
   canvas.drawCircle(-r * 0.3, -r * 0.3, r * 0.35, paint);
 
   if (isColorblind) {
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setStrokeWidth(1.0);
-    paint.setColor(Skia.Color(palette?.hudText ?? "#FFFFFF"));
+    paint.setColor(Skia.Color(palette.hudText));
     canvas.drawCircle(0, 0, r, paint);
   }
 
@@ -236,8 +221,7 @@ export function renderSkiaMushroom(canvas: SkCanvas, world: CentipedeWorld, enti
   if (!Skia) return;
 
   const config = world.getResource<CentipedeConfig>("GameConfig");
-  const isColorblind = config?.visual?.colorblindMode ?? false;
-  const palette = isColorblind ? config?.visual?.paletteColorblind : config?.visual?.palette;
+  const palette = getCentipedePalette(world);
 
   const mushroom = world.getComponent(entity, "Mushroom");
   const vis = world.getComponent(entity, "MushroomVisual");
@@ -247,15 +231,9 @@ export function renderSkiaMushroom(canvas: SkCanvas, world: CentipedeWorld, enti
   const hashSeed = mushroom?.hashSeed ?? 0;
   const scale = vis?.growProgress ?? 1.0;
 
-  const colorA = palette?.mushroomA ?? resolveThemeColor(world, "mushroomA", "mushroomA") ?? "#2DD4BF";
-  const colorB = palette?.mushroomB ?? resolveThemeColor(world, "mushroomB", "mushroomB") ?? "#8B7CF6";
-  const toxin = palette?.toxin ?? resolveThemeColor(world, "toxin", "toxin") ?? "#FF5FA2";
-  const lobeOff = palette?.lobeOff ?? resolveThemeColor(world, "lobeOff", "lobeOff") ?? "#15283A";
-  const stem = palette?.stem ?? resolveThemeColor(world, "stem", "stem") ?? "#1E2A3C";
-
   const baseCapColor = isPoisoned
-    ? toxin
-    : (hashSeed % 2 === 0 ? colorA : colorB);
+    ? palette.toxin
+    : (hashSeed % 2 === 0 ? palette.mushroomA : palette.mushroomB);
 
   canvas.save();
   canvas.scale(scale, scale);
@@ -273,7 +251,7 @@ export function renderSkiaMushroom(canvas: SkCanvas, world: CentipedeWorld, enti
   // Stem
   paint.reset();
   paint.setStyle(Skia.PaintStyle.Fill);
-  paint.setColor(Skia.Color(stem));
+  paint.setColor(Skia.Color(palette.stem));
   canvas.drawRect(Skia.XYWHRect(-1.5, 1, 3, 3.5), paint);
 
   // 4 Lobes
@@ -283,7 +261,7 @@ export function renderSkiaMushroom(canvas: SkCanvas, world: CentipedeWorld, enti
 
   for (let i = 0; i < 4; i++) {
     const isLit = i < hp;
-    const c = isLit ? baseCapColor : lobeOff;
+    const c = isLit ? baseCapColor : palette.lobeOff;
     paint.setColor(Skia.Color(c));
 
     if (isLit && isPoisoned) {
@@ -298,7 +276,7 @@ export function renderSkiaMushroom(canvas: SkCanvas, world: CentipedeWorld, enti
   }
 
   // Highlight dot
-  paint.setColor(Skia.Color(palette?.player ?? "#E6FBFF"));
+  paint.setColor(Skia.Color(palette.player));
   paint.setAlphaf(0.5);
   canvas.drawCircle(-2.5, -2, 0.8, paint);
 
@@ -316,15 +294,13 @@ export function renderSkiaSpider(canvas: SkCanvas, world: CentipedeWorld, _entit
 
   const config = world.getResource<CentipedeConfig>("GameConfig");
   const isColorblind = config?.visual?.colorblindMode ?? false;
-  const palette = isColorblind ? config?.visual?.paletteColorblind : config?.visual?.palette;
-
-  const amber = palette?.amber ?? resolveThemeColor(world, "amber", "amber") ?? "#FFC24B";
+  const palette = getCentipedePalette(world);
 
   const paint = getPaint();
 
   paint.reset();
   paint.setStyle(Skia.PaintStyle.Fill);
-  paint.setColor(Skia.Color(amber));
+  paint.setColor(Skia.Color(palette.amber));
 
   canvas.drawOval(Skia.XYWHRect(-5, -3.5, 10, 7), paint);
 
@@ -341,7 +317,7 @@ export function renderSkiaSpider(canvas: SkCanvas, world: CentipedeWorld, _entit
 
   if (isColorblind) {
     paint.setStrokeWidth(1.5);
-    paint.setColor(Skia.Color(palette?.hudText ?? "#FFFFFF"));
+    paint.setColor(Skia.Color(palette.hudText));
     canvas.drawOval(Skia.XYWHRect(-5, -3.5, 10, 7), paint);
   }
 }
@@ -357,15 +333,13 @@ export function renderSkiaFlea(canvas: SkCanvas, world: CentipedeWorld, _entity:
 
   const config = world.getResource<CentipedeConfig>("GameConfig");
   const isColorblind = config?.visual?.colorblindMode ?? false;
-  const palette = isColorblind ? config?.visual?.paletteColorblind : config?.visual?.palette;
-
-  const amber = palette?.amber ?? resolveThemeColor(world, "amber", "amber") ?? "#FFC24B";
+  const palette = getCentipedePalette(world);
 
   const paint = getPaint();
 
   paint.reset();
   paint.setStyle(Skia.PaintStyle.Fill);
-  paint.setColor(Skia.Color(amber));
+  paint.setColor(Skia.Color(palette.amber));
 
   const fleaPath = Skia.Path.Make();
   fleaPath.moveTo(-3.5, -2);
@@ -384,7 +358,7 @@ export function renderSkiaFlea(canvas: SkCanvas, world: CentipedeWorld, _entity:
   if (isColorblind) {
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setStrokeWidth(1.5);
-    paint.setColor(Skia.Color(palette?.hudText ?? "#FFFFFF"));
+    paint.setColor(Skia.Color(palette.hudText));
     canvas.drawPath(fleaPath, paint);
   }
 }
@@ -400,15 +374,13 @@ export function renderSkiaScorpion(canvas: SkCanvas, world: CentipedeWorld, _ent
 
   const config = world.getResource<CentipedeConfig>("GameConfig");
   const isColorblind = config?.visual?.colorblindMode ?? false;
-  const palette = isColorblind ? config?.visual?.paletteColorblind : config?.visual?.palette;
-
-  const toxin = palette?.toxin ?? resolveThemeColor(world, "toxin", "toxin") ?? "#FF5FA2";
+  const palette = getCentipedePalette(world);
 
   const paint = getPaint();
 
   paint.reset();
   paint.setStyle(Skia.PaintStyle.Fill);
-  paint.setColor(Skia.Color(toxin));
+  paint.setColor(Skia.Color(palette.toxin));
 
   canvas.drawOval(Skia.XYWHRect(-6, -3, 12, 6), paint);
 
@@ -421,7 +393,7 @@ export function renderSkiaScorpion(canvas: SkCanvas, world: CentipedeWorld, _ent
 
   if (isColorblind) {
     paint.setStrokeWidth(1.5);
-    paint.setColor(Skia.Color(palette?.hudText ?? "#FFFFFF"));
+    paint.setColor(Skia.Color(palette.hudText));
     canvas.drawOval(Skia.XYWHRect(-6, -3, 12, 6), paint);
   }
 }
@@ -435,18 +407,13 @@ export const drawSkiaScorpion: ShapeDrawer<SkCanvas, CentipedeComponentRegistry>
 export function renderSkiaShooter(canvas: SkCanvas, world: CentipedeWorld, _entity: Entity): void {
   if (!Skia) return;
 
-  const config = world.getResource<CentipedeConfig>("GameConfig");
-  const isColorblind = config?.visual?.colorblindMode ?? false;
-  const palette = isColorblind ? config?.visual?.paletteColorblind : config?.visual?.palette;
-
-  const playerColor = palette?.player ?? resolveThemeColor(world, "centipedePlayer", "player") ?? "#E6FBFF";
-  const accent = palette?.playerAccent ?? resolveThemeColor(world, "playerAccent", "playerAccent") ?? "#7CF3FF";
+  const palette = getCentipedePalette(world);
 
   const paint = getPaint();
 
   paint.reset();
   paint.setStyle(Skia.PaintStyle.Fill);
-  paint.setColor(Skia.Color(playerColor));
+  paint.setColor(Skia.Color(palette.player));
 
   const shipPath = Skia.Path.Make();
   shipPath.moveTo(0, -6);
@@ -457,7 +424,7 @@ export function renderSkiaShooter(canvas: SkCanvas, world: CentipedeWorld, _enti
 
   canvas.drawPath(shipPath, paint);
 
-  paint.setColor(Skia.Color(accent));
+  paint.setColor(Skia.Color(palette.playerAccent));
   canvas.drawCircle(0, -1, 1.8, paint);
 }
 
@@ -470,18 +437,14 @@ export const drawSkiaShooter: ShapeDrawer<SkCanvas, CentipedeComponentRegistry> 
 export function renderSkiaDart(canvas: SkCanvas, world: CentipedeWorld, _entity: Entity): void {
   if (!Skia) return;
 
-  const config = world.getResource<CentipedeConfig>("GameConfig");
-  const isColorblind = config?.visual?.colorblindMode ?? false;
-  const palette = isColorblind ? config?.visual?.paletteColorblind : config?.visual?.palette;
-
-  const accent = palette?.playerAccent ?? resolveThemeColor(world, "playerAccent", "playerAccent") ?? "#7CF3FF";
+  const palette = getCentipedePalette(world);
 
   const paint = getPaint();
 
   paint.reset();
   paint.setStyle(Skia.PaintStyle.Stroke);
   paint.setStrokeWidth(3);
-  paint.setColor(Skia.Color(accent));
+  paint.setColor(Skia.Color(palette.playerAccent));
 
   canvas.drawLine(0, -5, 0, 5, paint);
 }

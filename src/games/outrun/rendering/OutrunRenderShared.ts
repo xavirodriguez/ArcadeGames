@@ -2,7 +2,6 @@ import type { World, RenderComponent } from "@tiny-aster/core";
 import { resolveThemeColorWithFallback } from "@tiny-aster/core";
 import type { OutrunComponentRegistry, RoadData, ProjectedSegment, RaceStateComponent, RacerComponent } from "../types/OutrunTypes";
 import type { OutrunConfig } from "../types/OutrunConfigSchema";
-import { getOutrunAnimationFrame } from "./OutrunPixelSprites";
 import { DEFAULT_OUTRUN_CONFIG } from "../types/OutrunConfigSchema";
 import { createProjectionBuffer, projectRoad } from "./RoadProjection";
 import { COAST_PALETTE, getScenarioPaletteAtZ, applyDayPhase, scenarioHash, type ScenarioPalette, type ModulatedPalette } from "./OutrunPalettes";
@@ -21,8 +20,6 @@ import { createVisualPaletteResource } from "../utils/palette";
 import { shouldDrawOutrunRoadsideSprite } from "./OutrunRoadsideArtwork";
 
 /** Standard racer vehicle body color options. */
-export const RACER_COLORS = [colors.blue, colors.cyan, colors.gold, colors.orange, colors.red] as const;
-
 /** Capacity of module-level projection buffer. */
 export const PROJECTION_CAPACITY = 400;
 
@@ -413,8 +410,7 @@ export function resolveOutrunHudContext(
 
 export interface OutrunRacerDrawContext {
   proj: NonNullable<ReturnType<typeof computeRacerProjection>>;
-  bodyColor: string;
-  frame: number;
+  vehicleStyleIndex: number;
 }
 
 export function resolveOutrunRacerDrawContext(
@@ -436,9 +432,9 @@ export function resolveOutrunRacerDrawContext(
   );
   if (!proj) return null;
 
-  const bodyColor = RACER_COLORS[racer.colorIndex % RACER_COLORS.length];
+  const vehicleStyleIndex = Math.abs(Math.trunc(racer.colorIndex));
 
-  return { proj, bodyColor, frame: getOutrunAnimationFrame(racer.z) };
+  return { proj, vehicleStyleIndex };
 }
 
 /** Visitor callback signature for back-to-front sprite passes. */

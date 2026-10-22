@@ -64,7 +64,7 @@ import arkanoidConfigRaw from "./config/arkanoid.json";
 export interface ArkanoidBlueprintMap extends Record<string, BlueprintDefinition<ArkanoidComponentRegistry, ArkanoidEventRegistry, any>> {
   ball: BlueprintDefinition<ArkanoidComponentRegistry, ArkanoidEventRegistry, Record<string, never>>;
   paddle: BlueprintDefinition<ArkanoidComponentRegistry, ArkanoidEventRegistry, Record<string, never>>;
-  brick: BlueprintDefinition<ArkanoidComponentRegistry, ArkanoidEventRegistry, { x: number; y: number; kind: BrickKind; color?: BrickColorName; hp?: number; points?: number; powerUp?: CapsuleType; row?: number }>;
+  brick: BlueprintDefinition<ArkanoidComponentRegistry, ArkanoidEventRegistry, { x: number; y: number; kind: BrickKind; color?: BrickColorName; hp?: number; points?: number; powerUp?: CapsuleType }>;
   state: BlueprintDefinition<ArkanoidComponentRegistry, ArkanoidEventRegistry, Record<string, never>>;
 }
 

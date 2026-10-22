@@ -90,6 +90,7 @@ export const drawSkiaGalaxianPlayer: ShapeDrawer<SkCanvas, GalaxianComponentRegi
   draw(canvas, world, entity) {
     if (!Skia) return;
     const render = world.getComponent(entity, "Render");
+    const transform = world.getComponent(entity, "Transform");
     const pose = world.getComponent(entity, "VisualPose") as VisualPoseComponent | undefined;
     const config = world.getResource<GalaxianConfig>("GameConfig");
     const palette = config?.visual.colorblindMode
@@ -99,8 +100,8 @@ export const drawSkiaGalaxianPlayer: ShapeDrawer<SkCanvas, GalaxianComponentRegi
     if (!render || !palette) return;
 
     canvas.save();
-    if (pose) {
-      canvas.rotate((pose.rotation * 180) / Math.PI, 0, 0);
+    if (pose && transform) {
+      canvas.rotate(((pose.rotation - transform.rotation) * 180) / Math.PI, 0, 0);
     }
 
     const paint = getPaint();
@@ -299,6 +300,7 @@ export const drawSkiaGalaxianEnemy: ShapeDrawer<SkCanvas, GalaxianComponentRegis
   draw(canvas, world, entity) {
     if (!Skia) return;
     const enemy = world.getComponent(entity, "GalaxianEnemy") as GalaxianEnemyComponent | undefined;
+    const transform = world.getComponent(entity, "Transform");
     const pose = world.getComponent(entity, "VisualPose") as VisualPoseComponent | undefined;
     const trail = world.getComponent(entity, "DiveTrail") as DiveTrailComponent | undefined;
     const config = world.getResource<GalaxianConfig>("GameConfig");
@@ -310,8 +312,9 @@ export const drawSkiaGalaxianEnemy: ShapeDrawer<SkCanvas, GalaxianComponentRegis
 
     const paint = getPaint();
 
-    if (trail && trail.history.length > 1 && (enemy.state === "diving" || enemy.state === "windup")) {
+    if (trail && trail.history.length > 1 && (enemy.state === "diving" || enemy.state === "windup") && transform) {
       canvas.save();
+      canvas.translate(-transform.x, -transform.y);
       const pts = trail.history;
       const path = Skia.Path.Make();
       path.moveTo(pts[0].x, pts[0].y);
@@ -344,8 +347,8 @@ export const drawSkiaGalaxianEnemy: ShapeDrawer<SkCanvas, GalaxianComponentRegis
     }
 
     canvas.save();
-    if (pose) {
-      canvas.rotate((pose.rotation * 180) / Math.PI, 0, 0);
+    if (pose && transform) {
+      canvas.rotate(((pose.rotation - transform.rotation) * 180) / Math.PI, 0, 0);
       canvas.scale(pose.scaleX, pose.scaleY);
     }
 

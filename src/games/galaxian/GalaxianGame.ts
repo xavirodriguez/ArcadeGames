@@ -42,7 +42,7 @@ export class GalaxianGame extends BaseGame<
   public readonly gameId = "galaxian";
   private baseConfig: GalaxianConfig;
   private config!: GalaxianConfig;
-  public bulletPool!: BulletPool;
+  private bulletPool!: BulletPool;
 
   constructor(config: BaseGameConfig<GalaxianComponentRegistry, GalaxianEventRegistry, GalaxianInputState, GalaxianBlueprintMap> = {}) {
     const seed = (config.gameOptions?.seed as number) || config.seed || 12345;
@@ -69,6 +69,10 @@ export class GalaxianGame extends BaseGame<
     this.config = this.baseConfig;
   }
 
+  public getBulletPool(): BulletPool {
+    return this.bulletPool;
+  }
+
   public isGameOver(): boolean {
     return this.getGameState().isGameOver;
   }
@@ -85,6 +89,7 @@ export class GalaxianGame extends BaseGame<
     );
 
     this.world.setResource("GameConfig", this.config);
+    this.world.setResource("ScreenConfig", { width: this.config.worldWidth, height: this.config.worldHeight });
     this.setupCommonArcadeResources();
     this.world.setResource("IsHeadless", this.isHeadless);
 

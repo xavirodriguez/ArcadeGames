@@ -124,7 +124,7 @@ describe("Galaxian Gameplay Systems (Headless Simulation)", () => {
     expect(state0.lives).toBe(3);
 
     // Spawn an enemy bullet directly at player position using pool
-    game.bulletPool.acquireEnemyBullet(world, pTrans.x, pTrans.y);
+    game.getBulletPool().acquireEnemyBullet(world, pTrans.x, pTrans.y);
 
     game.update(0.01);
 

@@ -5,22 +5,12 @@ import { renderFinal } from '../core/render';
 /** Howler audio sprite tuple format: [startMs, durationMs, loop] */
 export type HowlerSpriteTuple = [number, number, boolean];
 
-export interface SpriteEntry {
-  startSample: number;
-  endSample: number;
-  startMs: number;
-  durationMs: number;
-  loop: boolean;
-}
-
 export interface SoundSpriteSheet {
   audioFile: string;
   sampleRate: number;
   /** Howler-compatible audio sprite definitions */
   urls: string[];
   sprite: Record<string, HowlerSpriteTuple>;
-  /** Detailed sprite entries with sample bounds and durations */
-  sprites: Record<string, SpriteEntry>;
   wavBytes: Uint8Array;
 }
 
@@ -52,7 +42,6 @@ export async function generateSpriteSheet(
 
   const combinedSamples = new Float32Array(totalSamplesCount);
   const sprite: Record<string, HowlerSpriteTuple> = {};
-  const sprites: Record<string, SpriteEntry> = {};
   let currentSampleOffset = 0;
 
   for (const item of renderedBuffers) {
@@ -62,11 +51,9 @@ export async function generateSpriteSheet(
 
     const startMs = Math.round((startSample / sampleRate) * 1000 * 100) / 100;
     const durationMs = Math.round((item.samples.length / sampleRate) * 1000 * 100) / 100;
-    const loop = item.recipe.loop ?? false;
 
     // Howler format: [startMs, durationMs, loop]
-    sprite[item.recipe.name] = [startMs, durationMs, loop];
-    sprites[item.recipe.name] = { startSample, endSample, startMs, durationMs, loop };
+    sprite[item.recipe.name] = [startMs, durationMs, item.recipe.loop ?? false];
 
     currentSampleOffset = endSample + paddingSamples;
   }
@@ -91,7 +78,6 @@ export async function generateSpriteSheet(
     sampleRate,
     urls: [audioFile],
     sprite,
-    sprites,
     wavBytes,
   };
 }

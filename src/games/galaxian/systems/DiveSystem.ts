@@ -1,9 +1,9 @@
-import { System, World, CoreComponentRegistry } from "@tiny-aster/core";
-import { GalaxianComponentRegistry, GalaxianEnemyComponent, FormationComponent, GalaxianStateComponent } from "../types/GalaxianTypes";
+import { System, World } from "@tiny-aster/core";
+import { GalaxianComponentRegistry, GalaxianEventRegistry, GalaxianEnemyComponent, FormationComponent, GalaxianStateComponent } from "../types/GalaxianTypes";
 import { GalaxianConfig } from "../types/GalaxianConfigSchema";
 import { PathPatternsSystem, createPathPattern, PathPatternComponent } from "../../shared/PathPatternsSystem";
 
-export class DiveSystem extends System<GalaxianComponentRegistry> {
+export class DiveSystem extends System<GalaxianComponentRegistry, GalaxianEventRegistry> {
   private pathPatternsSystem: PathPatternsSystem;
 
   constructor() {
@@ -11,7 +11,7 @@ export class DiveSystem extends System<GalaxianComponentRegistry> {
     this.pathPatternsSystem = new PathPatternsSystem();
   }
 
-  public update(world: World<GalaxianComponentRegistry>, deltaTime: number): void {
+  public update(world: World<GalaxianComponentRegistry, GalaxianEventRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true || deltaTime <= 0) return;
 
     const config = world.getResource<GalaxianConfig>("GameConfig");
@@ -114,7 +114,7 @@ export class DiveSystem extends System<GalaxianComponentRegistry> {
     state.activeDivesCount = activeDives;
 
     // 2. Drive waypoints system for diving entities
-    this.pathPatternsSystem.update(world as World<CoreComponentRegistry>, deltaTime);
+    this.pathPatternsSystem.update(world, deltaTime);
 
     // 3. Dive Scheduler: trigger new dives if under max limit
     state.diveTimer -= deltaTime;

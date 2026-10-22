@@ -33,7 +33,7 @@ export class ScorePopupSystem extends System<GalaxianComponentRegistry, Galaxian
     }
   }
 
-  private spawnPopup(world: World<GalaxianComponentRegistry, GalaxianEventRegistry>, x: number, y: number, points: number): void {
+  private spawnPopup(world: World<GalaxianComponentRegistry>, x: number, y: number, points: number): void {
     const life = 0.6;
     const { add } = createDeferredEntity(world, true);
     add({

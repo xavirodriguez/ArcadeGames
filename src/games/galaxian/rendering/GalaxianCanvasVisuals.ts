@@ -83,6 +83,7 @@ export const drawPaperSkyEffect: EffectDrawer<CanvasRenderingContext2D, Galaxian
 export const drawGalaxianPlayerCanvas: ShapeDrawer<CanvasRenderingContext2D, GalaxianComponentRegistry> = {
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
+    const transform = world.getComponent(entity, "Transform");
     const pose = world.getComponent(entity, "VisualPose") as VisualPoseComponent | undefined;
     const config = world.getResource<GalaxianConfig>("GameConfig");
     const palette = config?.visual.colorblindMode
@@ -92,8 +93,8 @@ export const drawGalaxianPlayerCanvas: ShapeDrawer<CanvasRenderingContext2D, Gal
     if (!render || !palette) return;
 
     ctx.save();
-    if (pose) {
-      ctx.rotate(pose.rotation);
+    if (pose && transform) {
+      ctx.rotate(pose.rotation - transform.rotation);
     }
 
     // Left Wing
@@ -287,6 +288,7 @@ export function drawOrigamiBirdCanvas(
 export const drawGalaxianEnemyCanvas: ShapeDrawer<CanvasRenderingContext2D, GalaxianComponentRegistry> = {
   draw(ctx, world, entity) {
     const enemy = world.getComponent(entity, "GalaxianEnemy") as GalaxianEnemyComponent | undefined;
+    const transform = world.getComponent(entity, "Transform");
     const pose = world.getComponent(entity, "VisualPose") as VisualPoseComponent | undefined;
     const trail = world.getComponent(entity, "DiveTrail") as DiveTrailComponent | undefined;
     const config = world.getResource<GalaxianConfig>("GameConfig");
@@ -296,8 +298,9 @@ export const drawGalaxianEnemyCanvas: ShapeDrawer<CanvasRenderingContext2D, Gala
 
     if (!enemy || !palette) return;
 
-    if (trail && trail.history.length > 1 && (enemy.state === "diving" || enemy.state === "windup")) {
+    if (trail && trail.history.length > 1 && (enemy.state === "diving" || enemy.state === "windup") && transform) {
       ctx.save();
+      ctx.translate(-transform.x, -transform.y);
       const pts = trail.history;
 
       ctx.strokeStyle = palette.trail;
@@ -335,8 +338,8 @@ export const drawGalaxianEnemyCanvas: ShapeDrawer<CanvasRenderingContext2D, Gala
     }
 
     ctx.save();
-    if (pose) {
-      ctx.rotate(pose.rotation);
+    if (pose && transform) {
+      ctx.rotate(pose.rotation - transform.rotation);
       ctx.scale(pose.scaleX, pose.scaleY);
     }
 

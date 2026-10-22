@@ -10,19 +10,13 @@ import {
   resolveOutrunHudContext,
   resolveOffroadDustParams
 } from "./OutrunRenderShared";
-import { computeSpeedLines, computeOutrunPlayerPixelSize } from "./OutrunVisualHelpers";
+import { computeSpeedLines, computeOutrunPlayerArtworkScale } from "./OutrunVisualHelpers";
 import { computeOutrunRoadSpeedLineSegments, resolveOutrunRoadSegmentArtwork } from "./OutrunRoadArtwork";
 import { resolveOutrunRoadsideArtworkStyle } from "./OutrunRoadsideArtwork";
+import { resolveOutrunPlayerPalette, resolveOutrunTrafficArtworkStyle } from "./OutrunVehicleArtwork";
 import { resolveOutrunSceneryLayout, type OutrunSceneryLayout, type MountainLayerLayout } from "./OutrunScenery";
 import { colors } from "../../../theme/colors";
 import { hexToRgba } from "../../shared/rendering/CosmicPalette";
-import {
-  OUTRUN_PLAYER_PIXEL_SPRITE,
-  OUTRUN_TRAFFIC_PIXEL_SPRITE,
-  getOutrunAnimationFrame,
-  resolveOutrunPixelColor,
-  visitOutrunPixelRuns
-} from "./OutrunPixelSprites";
 
 type RoadsidePoint = { x: number; y: number };
 
@@ -399,6 +393,129 @@ function drawOutrunSceneryCanvas(
   ctx.fillRect(0, layout.horizonY, screenW, screenH - layout.horizonY);
 }
 
+function fillVehicleRoundedRectCanvas(
+  ctx: CanvasRenderingContext2D,
+  rect: import("../types/OutrunVisualTypes").OutrunVisualRect,
+  color: string
+): void {
+  const radius = Math.min(rect.cornerRadius, rect.width / 2, rect.height / 2);
+  const left = rect.x;
+  const top = rect.y;
+  const right = left + rect.width;
+  const bottom = top + rect.height;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(left + radius, top);
+  ctx.lineTo(right - radius, top);
+  ctx.quadraticCurveTo(right, top, right, top + radius);
+  ctx.lineTo(right, bottom - radius);
+  ctx.quadraticCurveTo(right, bottom, right - radius, bottom);
+  ctx.lineTo(left + radius, bottom);
+  ctx.quadraticCurveTo(left, bottom, left, bottom - radius);
+  ctx.lineTo(left, top + radius);
+  ctx.quadraticCurveTo(left, top, left + radius, top);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function fillVehiclePolygonCanvas(
+  ctx: CanvasRenderingContext2D,
+  points: readonly { x: number; y: number }[],
+  color: string
+): void {
+  fillRoadsidePolygonCanvas(ctx, points, color);
+}
+
+function drawOutrunPlayerVehicleCanvas(
+  ctx: CanvasRenderingContext2D,
+  config: import("../types/OutrunConfigSchema").OutrunConfig
+): void {
+  const tuning = config.visual.tuning.playerCar;
+  const shared = resolveOutrunPlayerPalette(config);
+
+  ctx.save();
+  ctx.globalAlpha = tuning.shadow.alpha;
+  ctx.fillStyle = shared.shadow;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, tuning.shadow.rx, tuning.shadow.ry, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  fillVehicleRoundedRectCanvas(ctx, tuning.wheelLeft, shared.shadow);
+  fillVehicleRoundedRectCanvas(ctx, tuning.wheelRight, shared.shadow);
+  fillVehicleRoundedRectCanvas(ctx, tuning.body, shared.car);
+  fillVehicleRoundedRectCanvas(ctx, tuning.lowerShade, shared.carShade);
+  fillVehiclePolygonCanvas(ctx, tuning.cabin, shared.car);
+  fillVehiclePolygonCanvas(ctx, tuning.roof, shared.carRoof);
+  fillVehiclePolygonCanvas(ctx, tuning.rearWindow, shared.carGlass);
+
+  ctx.save();
+  ctx.globalAlpha = 0.18;
+  fillVehiclePolygonCanvas(ctx, tuning.reflection, shared.cream);
+  ctx.restore();
+
+  fillVehicleRoundedRectCanvas(ctx, tuning.lightBar, shared.carLightBar);
+  fillVehicleRoundedRectCanvas(ctx, tuning.lightEndLeft, shared.carLightEnd);
+  fillVehicleRoundedRectCanvas(ctx, tuning.lightEndRight, shared.carLightEnd);
+  fillVehicleRoundedRectCanvas(ctx, tuning.licensePlate, shared.cream);
+}
+
+function drawOutrunTrafficVehicleCanvas(
+  ctx: CanvasRenderingContext2D,
+  config: import("../types/OutrunConfigSchema").OutrunConfig,
+  centerX: number,
+  baselineY: number,
+  width: number,
+  styleIndex: number
+): void {
+  const style = resolveOutrunTrafficArtworkStyle(config, styleIndex, width);
+  const bodyTop = -style.bodyHeight;
+  const cabinBaseY = bodyTop;
+  const cabinTopY = cabinBaseY - style.cabinHeight;
+
+  ctx.save();
+  ctx.translate(centerX, baselineY);
+  ctx.globalAlpha = style.shadowAlpha;
+  ctx.fillStyle = style.shadowColor;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, style.shadowRadiusX, style.shadowRadiusY, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  fillVehicleRoundedRectCanvas(ctx, {
+    x: -style.bodyWidth / 2, y: bodyTop, width: style.bodyWidth, height: style.bodyHeight,
+    cornerRadius: style.bodyCornerRadius
+  }, style.bodyColor);
+
+  const baseHalf = style.cabinBaseWidth / 2;
+  const roofHalf = style.cabinRoofWidth / 2;
+  fillVehiclePolygonCanvas(ctx, [
+    { x: -baseHalf, y: cabinBaseY },
+    { x: baseHalf, y: cabinBaseY },
+    { x: roofHalf, y: cabinTopY },
+    { x: -roofHalf, y: cabinTopY }
+  ], style.cabinColor);
+
+  const windowBaseHalf = baseHalf * 0.72;
+  const windowRoofHalf = roofHalf * 0.72;
+  fillVehiclePolygonCanvas(ctx, [
+    { x: -windowBaseHalf, y: cabinBaseY - style.cabinHeight * 0.08 },
+    { x: windowBaseHalf, y: cabinBaseY - style.cabinHeight * 0.08 },
+    { x: windowRoofHalf, y: cabinTopY + style.cabinHeight * 0.18 },
+    { x: -windowRoofHalf, y: cabinTopY + style.cabinHeight * 0.18 }
+  ], style.glassColor);
+
+  fillVehicleRoundedRectCanvas(ctx, {
+    x: -style.lightBarWidth / 2,
+    y: bodyTop + style.lightBarTopOffset,
+    width: style.lightBarWidth,
+    height: style.lightBarHeight,
+    cornerRadius: style.lightBarHeight / 2
+  }, style.lightBarColor);
+
+  ctx.restore();
+}
+
 export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunComponentRegistry> = {
   draw(ctx, world) {
     const roadCtx = resolveOutrunRoadContext(world);
@@ -525,7 +642,7 @@ export const drawOutrunCar: ShapeDrawer<CanvasRenderingContext2D, OutrunComponen
     const carCtx = resolveOutrunCarContext(world, entity);
     if (!carCtx) return;
 
-    const { state, config, carColor, geom } = carCtx;
+    const { state, config, geom } = carCtx;
     const { baseX, baseY, carScale, tiltAngle, isOffroad, speedRatio } = geom;
 
     ctx.save();
@@ -558,31 +675,11 @@ export const drawOutrunCar: ShapeDrawer<CanvasRenderingContext2D, OutrunComponen
       ctx.globalAlpha = 1.0;
     }
 
+    const vehicleScale = computeOutrunPlayerArtworkScale(config);
     ctx.translate(baseX, baseY);
     ctx.rotate(tiltAngle);
-    ctx.scale(carScale, carScale);
-
-    const pixelSize = computeOutrunPlayerPixelSize(config);
-    const spriteWidth = OUTRUN_PLAYER_PIXEL_SPRITE.width * pixelSize;
-    const spriteHeight = OUTRUN_PLAYER_PIXEL_SPRITE.height * pixelSize;
-
-    // Scale the crisp shadow with the same road-relative sprite dimensions.
-    ctx.fillStyle = hexToRgba(colors.surface, 0.4);
-    ctx.fillRect(-spriteWidth * 0.375, spriteHeight / 2, spriteWidth * 0.75, pixelSize);
-    ctx.fillRect(-spriteWidth * 0.25, spriteHeight / 2 + pixelSize, spriteWidth * 0.5, pixelSize);
-
-    const playerFrame = getOutrunAnimationFrame(state.playerZ);
-    const playerSprite = OUTRUN_PLAYER_PIXEL_SPRITE.frames[playerFrame]!;
-    visitOutrunPixelRuns(
-      playerSprite,
-      -spriteWidth / 2,
-      -spriteHeight / 2,
-      pixelSize,
-      (pixel, x, y, width, height) => {
-      ctx.fillStyle = resolveOutrunPixelColor(pixel, carColor);
-      ctx.fillRect(x, y, width, height);
-    });
-
+    ctx.scale(carScale * vehicleScale, carScale * vehicleScale);
+    drawOutrunPlayerVehicleCanvas(ctx, config);
     ctx.restore();
   }
 };
@@ -593,36 +690,11 @@ export const drawOutrunRacer: ShapeDrawer<CanvasRenderingContext2D, OutrunCompon
     const racerCtx = resolveOutrunRacerDrawContext(world, entity);
     if (!racerCtx) return;
 
-    const { proj, bodyColor } = racerCtx;
+    const { proj, vehicleStyleIndex } = racerCtx;
     const { sx, sy, lateral, carW, bestClip } = proj;
+    if (sy >= bestClip || carW < 2) return;
 
-    const cx = sx + lateral;
-    const cy = sy;
-
-    if (cy >= bestClip || carW < 2) return;
-
-    ctx.save();
-
-    const pixelSize = carW / OUTRUN_TRAFFIC_PIXEL_SPRITE.width;
-    const spriteWidth = pixelSize * OUTRUN_TRAFFIC_PIXEL_SPRITE.width;
-    const spriteHeight = pixelSize * OUTRUN_TRAFFIC_PIXEL_SPRITE.height;
-
-    ctx.fillStyle = hexToRgba(colors.surface, 0.35);
-    ctx.fillRect(cx - spriteWidth * 0.35, cy + spriteHeight * 0.4, spriteWidth * 0.7, Math.max(1, pixelSize));
-
-    const trafficSprite = OUTRUN_TRAFFIC_PIXEL_SPRITE.frames[racerCtx.frame]!;
-    visitOutrunPixelRuns(
-      trafficSprite,
-      cx - spriteWidth / 2,
-      cy - spriteHeight / 2,
-      pixelSize,
-      (pixel, x, y, width, height) => {
-        ctx.fillStyle = resolveOutrunPixelColor(pixel, bodyColor);
-        ctx.fillRect(x, y, width, height);
-      }
-    );
-
-    ctx.restore();
+    drawOutrunTrafficVehicleCanvas(ctx, racerCtx.config, sx + lateral, sy, carW, vehicleStyleIndex);
   }
 };
 

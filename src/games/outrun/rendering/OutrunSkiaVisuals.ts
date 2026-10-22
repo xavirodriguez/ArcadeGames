@@ -12,19 +12,13 @@ import {
   resolveOutrunHudContext,
   resolveOffroadDustParams
 } from "./OutrunRenderShared";
-import { computeSpeedLines, computeOutrunPlayerPixelSize } from "./OutrunVisualHelpers";
+import { computeSpeedLines, computeOutrunPlayerArtworkScale } from "./OutrunVisualHelpers";
 import { computeOutrunRoadSpeedLineSegments, resolveOutrunRoadSegmentArtwork } from "./OutrunRoadArtwork";
 import { resolveOutrunRoadsideArtworkStyle } from "./OutrunRoadsideArtwork";
+import { resolveOutrunPlayerPalette, resolveOutrunTrafficArtworkStyle } from "./OutrunVehicleArtwork";
 import { resolveOutrunSceneryLayout, type OutrunSceneryLayout, type MountainLayerLayout } from "./OutrunScenery";
 import { colors } from "../../../theme/colors";
 import { hexToRgba } from "../../shared/rendering/CosmicPalette";
-import {
-  OUTRUN_PLAYER_PIXEL_SPRITE,
-  OUTRUN_TRAFFIC_PIXEL_SPRITE,
-  getOutrunAnimationFrame,
-  resolveOutrunPixelColor,
-  visitOutrunPixelRuns
-} from "./OutrunPixelSprites";
 
 type RoadsidePoint = { x: number; y: number };
 
@@ -417,6 +411,129 @@ function drawOutrunScenerySkia(canvas: SkCanvas, layout: OutrunSceneryLayout, sc
   canvas.drawRect(Skia.XYWHRect(0, layout.horizonY, screenW, screenH - layout.horizonY), groundPaint);
 }
 
+function fillVehicleRoundedRectSkia(
+  canvas: SkCanvas,
+  rect: import("../types/OutrunVisualTypes").OutrunVisualRect,
+  color: string
+): void {
+  if (!Skia) return;
+  const paint = Skia.Paint();
+  paint.setColor(Skia.Color(color));
+  paint.setStyle(Skia.PaintStyle.Fill);
+  const radius = Math.min(rect.cornerRadius, rect.width / 2, rect.height / 2);
+  canvas.drawRRect(Skia.RRectXY(Skia.XYWHRect(rect.x, rect.y, rect.width, rect.height), radius, radius), paint);
+}
+
+function fillVehiclePolygonSkia(
+  canvas: SkCanvas,
+  points: readonly { x: number; y: number }[],
+  color: string
+): void {
+  fillRoadsidePolygonSkia(canvas, points, color);
+}
+
+function drawOutrunPlayerVehicleSkia(
+  canvas: SkCanvas,
+  config: import("../types/OutrunConfigSchema").OutrunConfig
+): void {
+  if (!Skia) return;
+  const tuning = config.visual.tuning.playerCar;
+  const shared = resolveOutrunPlayerPalette(config);
+
+  const shadowPaint = Skia.Paint();
+  shadowPaint.setColor(Skia.Color(shared.shadow));
+  shadowPaint.setAlphaf(tuning.shadow.alpha);
+  shadowPaint.setStyle(Skia.PaintStyle.Fill);
+  canvas.drawOval(Skia.XYWHRect(
+    -tuning.shadow.rx, -tuning.shadow.ry,
+    tuning.shadow.rx * 2, tuning.shadow.ry * 2
+  ), shadowPaint);
+
+  fillVehicleRoundedRectSkia(canvas, tuning.wheelLeft, shared.shadow);
+  fillVehicleRoundedRectSkia(canvas, tuning.wheelRight, shared.shadow);
+  fillVehicleRoundedRectSkia(canvas, tuning.body, shared.car);
+  fillVehicleRoundedRectSkia(canvas, tuning.lowerShade, shared.carShade);
+  fillVehiclePolygonSkia(canvas, tuning.cabin, shared.car);
+  fillVehiclePolygonSkia(canvas, tuning.roof, shared.carRoof);
+  fillVehiclePolygonSkia(canvas, tuning.rearWindow, shared.carGlass);
+
+  const reflectionPaint = Skia.Paint();
+  reflectionPaint.setColor(Skia.Color(shared.cream));
+  reflectionPaint.setAlphaf(0.18);
+  reflectionPaint.setStyle(Skia.PaintStyle.Fill);
+  const reflectionPath = Skia.Path.Make();
+  reflectionPath.moveTo(tuning.reflection[0]!.x, tuning.reflection[0]!.y);
+  for (let index = 1; index < tuning.reflection.length; index++) {
+    reflectionPath.lineTo(tuning.reflection[index]!.x, tuning.reflection[index]!.y);
+  }
+  reflectionPath.close();
+  canvas.drawPath(reflectionPath, reflectionPaint);
+
+  fillVehicleRoundedRectSkia(canvas, tuning.lightBar, shared.carLightBar);
+  fillVehicleRoundedRectSkia(canvas, tuning.lightEndLeft, shared.carLightEnd);
+  fillVehicleRoundedRectSkia(canvas, tuning.lightEndRight, shared.carLightEnd);
+  fillVehicleRoundedRectSkia(canvas, tuning.licensePlate, shared.cream);
+}
+
+function drawOutrunTrafficVehicleSkia(
+  canvas: SkCanvas,
+  config: import("../types/OutrunConfigSchema").OutrunConfig,
+  centerX: number,
+  baselineY: number,
+  width: number,
+  styleIndex: number
+): void {
+  if (!Skia) return;
+  const style = resolveOutrunTrafficArtworkStyle(config, styleIndex, width);
+  const bodyTop = -style.bodyHeight;
+  const cabinBaseY = bodyTop;
+  const cabinTopY = cabinBaseY - style.cabinHeight;
+
+  canvas.save();
+  canvas.translate(centerX, baselineY);
+  const shadowPaint = Skia.Paint();
+  shadowPaint.setColor(Skia.Color(style.shadowColor));
+  shadowPaint.setAlphaf(style.shadowAlpha);
+  shadowPaint.setStyle(Skia.PaintStyle.Fill);
+  canvas.drawOval(Skia.XYWHRect(
+    -style.shadowRadiusX, -style.shadowRadiusY,
+    style.shadowRadiusX * 2, style.shadowRadiusY * 2
+  ), shadowPaint);
+
+  fillVehicleRoundedRectSkia(canvas, {
+    x: -style.bodyWidth / 2, y: bodyTop, width: style.bodyWidth, height: style.bodyHeight,
+    cornerRadius: style.bodyCornerRadius
+  }, style.bodyColor);
+
+  const baseHalf = style.cabinBaseWidth / 2;
+  const roofHalf = style.cabinRoofWidth / 2;
+  fillVehiclePolygonSkia(canvas, [
+    { x: -baseHalf, y: cabinBaseY },
+    { x: baseHalf, y: cabinBaseY },
+    { x: roofHalf, y: cabinTopY },
+    { x: -roofHalf, y: cabinTopY }
+  ], style.cabinColor);
+
+  const windowBaseHalf = baseHalf * 0.72;
+  const windowRoofHalf = roofHalf * 0.72;
+  fillVehiclePolygonSkia(canvas, [
+    { x: -windowBaseHalf, y: cabinBaseY - style.cabinHeight * 0.08 },
+    { x: windowBaseHalf, y: cabinBaseY - style.cabinHeight * 0.08 },
+    { x: windowRoofHalf, y: cabinTopY + style.cabinHeight * 0.18 },
+    { x: -windowRoofHalf, y: cabinTopY + style.cabinHeight * 0.18 }
+  ], style.glassColor);
+
+  fillVehicleRoundedRectSkia(canvas, {
+    x: -style.lightBarWidth / 2,
+    y: bodyTop + style.lightBarTopOffset,
+    width: style.lightBarWidth,
+    height: style.lightBarHeight,
+    cornerRadius: style.lightBarHeight / 2
+  }, style.lightBarColor);
+
+  canvas.restore();
+}
+
 export const drawSkiaOutrunRoad: ShapeDrawer<SkCanvas, OutrunComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
@@ -550,7 +667,7 @@ export const drawSkiaOutrunCar: ShapeDrawer<SkCanvas, OutrunComponentRegistry> =
     const carCtx = resolveOutrunCarContext(world, entity);
     if (!carCtx) return;
 
-    const { state, config, carColor, geom } = carCtx;
+    const { state, config, geom } = carCtx;
     const { baseX, baseY, carScale, tiltAngle, isOffroad, speedRatio } = geom;
 
     canvas.save();
@@ -580,41 +697,11 @@ export const drawSkiaOutrunCar: ShapeDrawer<SkCanvas, OutrunComponentRegistry> =
       }
     }
 
+    const vehicleScale = computeOutrunPlayerArtworkScale(config);
     canvas.translate(baseX, baseY);
     canvas.rotate((tiltAngle * 180) / Math.PI, 0, 0);
-    canvas.scale(carScale, carScale);
-
-    const pixelSize = computeOutrunPlayerPixelSize(config);
-    const spriteWidth = OUTRUN_PLAYER_PIXEL_SPRITE.width * pixelSize;
-    const spriteHeight = OUTRUN_PLAYER_PIXEL_SPRITE.height * pixelSize;
-
-    // Keep shadow proportions identical to Canvas and the road-relative sprite.
-    const shadowPaint = Skia.Paint();
-    shadowPaint.setColor(Skia.Color(hexToRgba(colors.surface, 0.4)));
-    shadowPaint.setStyle(Skia.PaintStyle.Fill);
-    canvas.drawRect(
-      Skia.XYWHRect(-spriteWidth * 0.375, spriteHeight / 2, spriteWidth * 0.75, pixelSize),
-      shadowPaint
-    );
-    canvas.drawRect(
-      Skia.XYWHRect(-spriteWidth * 0.25, spriteHeight / 2 + pixelSize, spriteWidth * 0.5, pixelSize),
-      shadowPaint
-    );
-
-    const playerFrame = getOutrunAnimationFrame(state.playerZ);
-    const playerSprite = OUTRUN_PLAYER_PIXEL_SPRITE.frames[playerFrame]!;
-    const pixelPaint = Skia.Paint();
-    pixelPaint.setStyle(Skia.PaintStyle.Fill);
-    visitOutrunPixelRuns(
-      playerSprite,
-      -spriteWidth / 2,
-      -spriteHeight / 2,
-      pixelSize,
-      (pixel, x, y, width, height) => {
-      pixelPaint.setColor(Skia.Color(resolveOutrunPixelColor(pixel, carColor)));
-      canvas.drawRect(Skia.XYWHRect(x, y, width, height), pixelPaint);
-    });
-
+    canvas.scale(carScale * vehicleScale, carScale * vehicleScale);
+    drawOutrunPlayerVehicleSkia(canvas, config);
     canvas.restore();
   }
 };
@@ -625,48 +712,11 @@ export const drawSkiaOutrunRacer: ShapeDrawer<SkCanvas, OutrunComponentRegistry>
     const racerCtx = resolveOutrunRacerDrawContext(world, entity);
     if (!racerCtx) return;
 
-    const { proj, bodyColor } = racerCtx;
+    const { proj, vehicleStyleIndex } = racerCtx;
     const { sx, sy, lateral, carW, bestClip } = proj;
+    if (sy >= bestClip || carW < 2) return;
 
-    const cx = sx + lateral;
-    const cy = sy;
-
-    if (cy >= bestClip || carW < 2) return;
-
-    canvas.save();
-
-    const pixelSize = carW / OUTRUN_TRAFFIC_PIXEL_SPRITE.width;
-    const spriteWidth = pixelSize * OUTRUN_TRAFFIC_PIXEL_SPRITE.width;
-    const spriteHeight = pixelSize * OUTRUN_TRAFFIC_PIXEL_SPRITE.height;
-
-    const shadowPaint = Skia.Paint();
-    shadowPaint.setColor(Skia.Color(hexToRgba(colors.surface, 0.35)));
-    shadowPaint.setStyle(Skia.PaintStyle.Fill);
-    canvas.drawRect(
-      Skia.XYWHRect(
-        cx - spriteWidth * 0.35,
-        cy + spriteHeight * 0.4,
-        spriteWidth * 0.7,
-        Math.max(1, pixelSize)
-      ),
-      shadowPaint
-    );
-
-    const trafficSprite = OUTRUN_TRAFFIC_PIXEL_SPRITE.frames[racerCtx.frame]!;
-    const pixelPaint = Skia.Paint();
-    pixelPaint.setStyle(Skia.PaintStyle.Fill);
-    visitOutrunPixelRuns(
-      trafficSprite,
-      cx - spriteWidth / 2,
-      cy - spriteHeight / 2,
-      pixelSize,
-      (pixel, x, y, width, height) => {
-        pixelPaint.setColor(Skia.Color(resolveOutrunPixelColor(pixel, bodyColor)));
-        canvas.drawRect(Skia.XYWHRect(x, y, width, height), pixelPaint);
-      }
-    );
-
-    canvas.restore();
+    drawOutrunTrafficVehicleSkia(canvas, racerCtx.config, sx + lateral, sy, carW, vehicleStyleIndex);
   }
 };
 

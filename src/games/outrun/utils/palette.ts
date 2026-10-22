@@ -5,8 +5,11 @@ import type {
   OutrunPaletteTokens,
   OutrunTimedPaletteSet,
   OutrunVisualPaletteConfig,
+  OutrunVisualPaletteResource,
   OutrunVisualStage
 } from "../types/OutrunVisualTypes";
+import type { OutrunConfig } from "../types/OutrunConfigSchema";
+import type { RaceStateComponent, RoadData } from "../types/OutrunTypes";
 
 export interface PaletteStageContext {
   current: OutrunVisualStage;
@@ -153,3 +156,30 @@ export function paletteAtProgress(
 
 /** List is exported so parity and visual tests cover every dynamic color token. */
 export const OUTRUN_PALETTE_TOKEN_KEYS = TOKEN_KEYS;
+
+
+/** Purely resolves the visual palette resource from race progress and config. */
+export function createVisualPaletteResource(
+  state: RaceStateComponent,
+  roadData: RoadData,
+  config: OutrunConfig
+): OutrunVisualPaletteResource {
+  const progress = (((state.playerZ % roadData.trackLength) + roadData.trackLength) % roadData.trackLength) /
+    roadData.trackLength;
+  const stagePosition = stageAtProgress(config.visual.stages, progress);
+  const current = stagePosition.stage;
+  const next = config.visual.stages[(stagePosition.stageIndex + 1) % config.visual.stages.length];
+  const tokens = paletteAtProgress({
+    current, next, palette: config.visual.palette,
+    paletteColorblind: config.visual.paletteColorblind,
+    paletteMode: config.visual.paletteMode,
+    transitionFraction: config.visual.transitionFraction
+  }, stagePosition.stageProgress);
+  return {
+    stageIndex: stagePosition.stageIndex, stageProgress: stagePosition.stageProgress,
+    hour: current.hour, decor: current.decor, tokens,
+    shared: config.visual.palette.shared, skyBands: skyBandsForPalette(tokens),
+    quality: config.visual.quality, paletteMode: config.visual.paletteMode,
+    tuning: config.visual.tuning
+  };
+}

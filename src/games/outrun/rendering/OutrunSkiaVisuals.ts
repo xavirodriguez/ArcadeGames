@@ -4,11 +4,9 @@ import type { OutrunComponentRegistry, RoadSegmentSprite } from "../types/Outrun
 import { Skia } from "../../shared/rendering/SkiaContext";
 import {
   resolveOutrunRoadContext,
-  resolveOutrunHorizonContext,
   projectOutrunRoad,
   projectionBuffer,
   computeRoadSegmentColors,
-  getFacetedPeakPolygons,
   iterateOutrunSprites,
   resolveOutrunCarContext,
   resolveOutrunRacerDrawContext,
@@ -16,6 +14,7 @@ import {
   resolveOffroadDustParams
 } from "./OutrunRenderShared";
 import { computeSpeedLines, computeOutrunPlayerPixelSize } from "./OutrunVisualHelpers";
+import { resolveOutrunSceneryLayout, type OutrunSceneryLayout, type MountainLayerLayout } from "./OutrunScenery";
 import { resolveRoadFogColor } from "./OutrunFog";
 import { colors } from "../../../theme/colors";
 import { hexToRgba } from "../../shared/rendering/CosmicPalette";
@@ -121,6 +120,105 @@ function drawRoadSpriteSkia(
   }
 }
 
+
+function drawSkyBandsSkia(canvas: SkCanvas, layout: OutrunSceneryLayout, screenW: number): void {
+  for (const band of layout.skyBands) {
+    const paint = Skia.Paint(); paint.setColor(Skia.Color(band.color)); paint.setStyle(Skia.PaintStyle.Fill);
+    canvas.drawRect(Skia.XYWHRect(0, band.y, screenW, band.height + 0.5), paint);
+  }
+}
+function drawStarsSkia(canvas: SkCanvas, layout: OutrunSceneryLayout): void {
+  for (const star of layout.stars) {
+    const paint = Skia.Paint(); paint.setColor(Skia.Color(layout.creamColor));
+    paint.setAlphaf(star.alpha); paint.setStyle(Skia.PaintStyle.Fill);
+    canvas.drawRect(Skia.XYWHRect(star.x, star.y, star.diameter, star.diameter), paint);
+  }
+}
+function drawCloudsSkia(canvas: SkCanvas, layout: OutrunSceneryLayout): void {
+  for (const cloud of layout.clouds) {
+    const paint = Skia.Paint(); paint.setColor(Skia.Color(layout.creamColor));
+    paint.setAlphaf(layout.cloudAlpha); paint.setStyle(Skia.PaintStyle.Fill);
+    canvas.drawOval(Skia.XYWHRect(cloud.x - cloud.width / 2, cloud.y - cloud.height / 2, cloud.width, cloud.height), paint);
+  }
+}
+function drawAstroSkia(canvas: SkCanvas, layout: OutrunSceneryLayout): void {
+  const astro = layout.astro;
+  const haloPaint = Skia.Paint(); haloPaint.setColor(Skia.Color(astro.color));
+  haloPaint.setAlphaf(astro.haloAlpha); haloPaint.setStyle(Skia.PaintStyle.Fill);
+  canvas.drawCircle(astro.x, astro.y, astro.haloRadius, haloPaint);
+  const diskPaint = Skia.Paint(); diskPaint.setColor(Skia.Color(astro.color)); diskPaint.setStyle(Skia.PaintStyle.Fill);
+  canvas.drawCircle(astro.x, astro.y, astro.radius, diskPaint);
+}
+function createSkiaPath() {
+  if (!Skia) throw new Error("Skia is not initialized.");
+  return Skia.Path.Make();
+}
+type CachedSkiaPath = ReturnType<typeof createSkiaPath>;
+const skiaMountainPathCache = new Map<string, CachedSkiaPath>();
+const skiaSnowPathCache = new Map<string, CachedSkiaPath>();
+function buildSkiaMountainPath(layer: MountainLayerLayout, screenW: number, horizonY: number): CachedSkiaPath {
+  const path = createSkiaPath(); path.moveTo(0, horizonY);
+  for (const point of layer.profile) path.lineTo(point.x, horizonY - point.height);
+  path.lineTo(screenW, horizonY); path.close(); return path;
+}
+function buildSkiaSnowPath(layer: MountainLayerLayout, horizonY: number): CachedSkiaPath {
+  const path = createSkiaPath();
+  for (const cap of layer.snowCaps) {
+    path.moveTo(cap.x - cap.halfWidth, horizonY - cap.peakHeight + cap.halfWidth * 0.95);
+    path.lineTo(cap.x, horizonY - cap.peakHeight);
+    path.lineTo(cap.x + cap.halfWidth, horizonY - cap.peakHeight + cap.halfWidth * 0.95);
+    path.close();
+  }
+  return path;
+}
+function drawMountainFallbackSkia(
+  canvas: SkCanvas, layer: MountainLayerLayout, layout: OutrunSceneryLayout, screenW: number, color: string
+): void {
+  for (const tileX of [0, screenW, screenW * 2]) {
+    const path = createSkiaPath(); path.moveTo(tileX - layer.offsetX, layout.horizonY);
+    for (const point of layer.profile) path.lineTo(tileX - layer.offsetX + point.x, layout.horizonY - point.height);
+    path.lineTo(tileX - layer.offsetX + screenW, layout.horizonY); path.close();
+    const paint = Skia.Paint(); paint.setColor(Skia.Color(color)); paint.setStyle(Skia.PaintStyle.Fill);
+    canvas.drawPath(path, paint);
+  }
+}
+function drawMountainLayersSkia(canvas: SkCanvas, layout: OutrunSceneryLayout, screenW: number): void {
+  for (const layer of layout.mountainLayers) {
+    if (typeof canvas.translate !== "function" || typeof canvas.save !== "function" || typeof canvas.restore !== "function") {
+      drawMountainFallbackSkia(canvas, layer, layout, screenW, layer.color);
+    } else {
+      let path = skiaMountainPathCache.get(layer.cacheKey);
+      if (!path) { path = buildSkiaMountainPath(layer, screenW, layout.horizonY); skiaMountainPathCache.set(layer.cacheKey, path); }
+      const paint = Skia.Paint(); paint.setColor(Skia.Color(layer.color)); paint.setStyle(Skia.PaintStyle.Fill);
+      for (const tileX of [0, screenW, screenW * 2]) {
+        canvas.save(); canvas.translate(tileX - layer.offsetX, 0); canvas.drawPath(path, paint); canvas.restore();
+      }
+    }
+    if (layer.snowCaps.length > 0) {
+      let snowPath = skiaSnowPathCache.get(layer.cacheKey);
+      if (!snowPath) { snowPath = buildSkiaSnowPath(layer, layout.horizonY); skiaSnowPathCache.set(layer.cacheKey, snowPath); }
+      const paint = Skia.Paint(); paint.setColor(Skia.Color(layout.creamColor));
+      paint.setAlphaf(layout.snowPeakAlpha); paint.setStyle(Skia.PaintStyle.Fill);
+      for (const tileX of [0, screenW, screenW * 2]) {
+        if (typeof canvas.save === "function") canvas.save();
+        if (typeof canvas.translate === "function") canvas.translate(tileX - layer.offsetX, 0);
+        canvas.drawPath(snowPath, paint);
+        if (typeof canvas.restore === "function") canvas.restore();
+      }
+    }
+  }
+}
+function drawOutrunScenerySkia(canvas: SkCanvas, layout: OutrunSceneryLayout, screenW: number, screenH: number): void {
+  drawSkyBandsSkia(canvas, layout, screenW);
+  drawStarsSkia(canvas, layout);
+  drawCloudsSkia(canvas, layout);
+  drawAstroSkia(canvas, layout);
+  drawMountainLayersSkia(canvas, layout, screenW);
+  const groundPaint = Skia.Paint(); groundPaint.setColor(Skia.Color(layout.groundColor));
+  groundPaint.setStyle(Skia.PaintStyle.Fill);
+  canvas.drawRect(Skia.XYWHRect(0, layout.horizonY, screenW, screenH - layout.horizonY), groundPaint);
+}
+
 export const drawSkiaOutrunRoad: ShapeDrawer<SkCanvas, OutrunComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
@@ -128,89 +226,9 @@ export const drawSkiaOutrunRoad: ShapeDrawer<SkCanvas, OutrunComponentRegistry> 
     if (!roadCtx) return;
 
     const { state, roadData, config, screenW, screenH, rumbleLength, palette } = roadCtx;
-    const horizonCtx = resolveOutrunHorizonContext(roadCtx);
-    const { horizonY, bands, bandHeight } = horizonCtx;
-
-    // 1. Sky Bands
-    for (let i = 0; i < bands.length; i++) {
-      const paint = Skia.Paint();
-      paint.setColor(Skia.Color(bands[i]!));
-      paint.setStyle(Skia.PaintStyle.Fill);
-      canvas.drawRect(Skia.XYWHRect(0, i * bandHeight, screenW, bandHeight + 1), paint);
-    }
-
-    // Sun/Moon
-    if (palette.sun) {
-      const sunPaint = Skia.Paint();
-      sunPaint.setColor(Skia.Color(palette.sun));
-      sunPaint.setStyle(Skia.PaintStyle.Fill);
-      const sunX = ((screenW * 0.7 - state.playerX * 15) % screenW + screenW) % screenW;
-      canvas.drawCircle(sunX, horizonY - 35, 20, sunPaint);
-    }
-
-    // Clouds
-    if (palette.cloudColor && horizonCtx.clouds) {
-      const cloudPaint = Skia.Paint();
-      cloudPaint.setColor(Skia.Color(palette.cloudColor));
-      cloudPaint.setStyle(Skia.PaintStyle.Fill);
-
-      for (const c of horizonCtx.clouds) {
-        canvas.drawOval(
-          Skia.XYWHRect(c.cloudX - c.cloudW / 2, c.cloudY - c.cloudH / 2, c.cloudW, c.cloudH),
-          cloudPaint
-        );
-      }
-    }
-
-    // Horizon Scenery
-    if (horizonCtx.peaks) {
-      for (const p of horizonCtx.peaks) {
-        const poly = getFacetedPeakPolygons(p);
-
-        const basePath = Skia.Path.Make();
-        basePath.moveTo(poly.base[0][0], poly.base[0][1]);
-        basePath.lineTo(poly.base[1][0], poly.base[1][1]);
-        basePath.lineTo(poly.base[2][0], poly.base[2][1]);
-        basePath.close();
-
-        const basePaint = Skia.Paint();
-        basePaint.setColor(Skia.Color(palette.mountainBase));
-        basePaint.setStyle(Skia.PaintStyle.Fill);
-        canvas.drawPath(basePath, basePaint);
-
-        const facetPath = Skia.Path.Make();
-        facetPath.moveTo(poly.facet[0][0], poly.facet[0][1]);
-        facetPath.lineTo(poly.facet[1][0], poly.facet[1][1]);
-        facetPath.lineTo(poly.facet[2][0], poly.facet[2][1]);
-        facetPath.close();
-
-        const facetPaint = Skia.Paint();
-        facetPaint.setColor(Skia.Color(palette.mountainFacet));
-        facetPaint.setStyle(Skia.PaintStyle.Fill);
-        canvas.drawPath(facetPath, facetPaint);
-      }
-    } else if (horizonCtx.buildings) {
-      const bPaint = Skia.Paint();
-      bPaint.setColor(Skia.Color(palette.mountainBase));
-      bPaint.setStyle(Skia.PaintStyle.Fill);
-      for (const b of horizonCtx.buildings) {
-        canvas.drawRect(Skia.XYWHRect(b.bx, horizonY - b.bh, b.bw, b.bh), bPaint);
-      }
-    } else if (horizonCtx.hazeLines) {
-      const hazePaint = Skia.Paint();
-      hazePaint.setColor(Skia.Color(palette.sun || colors.yellow));
-      hazePaint.setAlphaf(0.2);
-      hazePaint.setStyle(Skia.PaintStyle.Fill);
-      for (const h of horizonCtx.hazeLines) {
-        canvas.drawRect(Skia.XYWHRect(h.x, h.hazeY, 20, 2), hazePaint);
-      }
-    }
-
-    // Ground Fill
-    const grassPaint = Skia.Paint();
-    grassPaint.setColor(Skia.Color(palette.groundDark));
-    grassPaint.setStyle(Skia.PaintStyle.Fill);
-    canvas.drawRect(Skia.XYWHRect(0, horizonY, screenW, screenH - horizonY), grassPaint);
+    const sceneryLayout = resolveOutrunSceneryLayout(world, state, roadData, config);
+    const horizonY = sceneryLayout.horizonY;
+    drawOutrunScenerySkia(canvas, sceneryLayout, screenW, screenH);
 
     // 2. Road Segments Pass
     const count = projectOutrunRoad(roadData.segments, state.playerZ, state.playerX, config, screenW, screenH);

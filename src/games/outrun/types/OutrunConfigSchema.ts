@@ -34,7 +34,8 @@ const visualTuningSchema = z.object({
   }),
   astro: z.object({
     radiusToFrameWidth: z.number().positive(), haloRadiusMultiplier: z.number().positive(),
-    haloAlpha: z.number().min(0).max(1), centerAboveHorizonPx: z.number().nonnegative()
+    haloAlpha: z.number().min(0).max(1), centerAboveHorizonPx: z.number().nonnegative(),
+    horizontalPositionFraction: z.number().min(0).max(1)
   }),
   stars: z.object({
     highCountMin: z.number().int().nonnegative(), highCountMax: z.number().int().positive(),
@@ -50,7 +51,8 @@ const visualTuningSchema = z.object({
     sierraProfile: z.object({
       far: z.array(visualPointSchema).min(2), mid: z.array(visualPointSchema).min(2), near: z.array(visualPointSchema).min(2)
     }),
-    snowPeakAlpha: z.number().min(0).max(1)
+    snowPeakAlpha: z.number().min(0).max(1),
+    snowPeakHalfWidthPx: z.number().positive(), snowPeakMinimumHeightPx: z.number().positive()
   }),
   road: z.object({
     stripeWhiteMix: z.number().min(0).max(1), kerbWidthToRoadHalfWidth: z.number().positive(),
@@ -59,6 +61,7 @@ const visualTuningSchema = z.object({
   }),
   decor: z.object({
     coastLayerHeightMinRatio: z.number().positive(), coastLayerHeightMaxRatio: z.number().positive(),
+    desertLayerHeightRatios: z.object({ far: z.number().positive(), mid: z.number().positive(), near: z.number().positive() }),
     desertGroundMix: z.number().min(0).max(1), desertSandColor: hexColorSchema,
     distantObjectHazeMix: z.number().min(0).max(1), waterNearToken: z.literal("skyMid"), waterFarToken: z.literal("skyLow")
   }),

@@ -77,19 +77,23 @@ export interface OutrunVisualTuning {
     widthMinPx: number; widthMaxPx: number; heightMinPx: number; heightMaxPx: number;
     alpha: number; driftPxPerSecond: number;
   };
-  astro: { radiusToFrameWidth: number; haloRadiusMultiplier: number; haloAlpha: number; centerAboveHorizonPx: number };
+  astro: { radiusToFrameWidth: number; haloRadiusMultiplier: number; haloAlpha: number; centerAboveHorizonPx: number; horizontalPositionFraction: number };
   stars: { highCountMin: number; highCountMax: number; lowCount: number; diameterPx: number; alphaMin: number; alphaMax: number };
   mountains: {
     parallax: { far: number; mid: number; near: number; baseDriftPxPerSecond: number; speedDriftPxPerSecond: number; curvatureScale: number };
     sierraProfile: { far: OutrunVisualPoint[]; mid: OutrunVisualPoint[]; near: OutrunVisualPoint[] };
     snowPeakAlpha: number;
+    snowPeakHalfWidthPx: number;
+    snowPeakMinimumHeightPx: number;
   };
   road: {
     stripeWhiteMix: number; kerbWidthToRoadHalfWidth: number; laneMarkWidthToRoadHalfWidth: number;
     speedLineWidthPx: number; speedLineAlpha: number; speedLineStartSpeedRatio: number;
   };
   decor: {
-    coastLayerHeightMinRatio: number; coastLayerHeightMaxRatio: number; desertGroundMix: number;
+    coastLayerHeightMinRatio: number; coastLayerHeightMaxRatio: number;
+    desertLayerHeightRatios: { far: number; mid: number; near: number };
+    desertGroundMix: number;
     desertSandColor: string; distantObjectHazeMix: number; waterNearToken: "skyMid"; waterFarToken: "skyLow";
   };
   tree: {

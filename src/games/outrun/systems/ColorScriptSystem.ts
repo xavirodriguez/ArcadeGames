@@ -6,7 +6,6 @@ import type {
   RaceStateComponent,
   RoadData
 } from "../types/OutrunTypes";
-import type { OutrunVisualPaletteResource } from "../types/OutrunVisualTypes";
 import { DEFAULT_OUTRUN_CONFIG } from "../types/OutrunConfigSchema";
 import { createVisualPaletteResource } from "../utils/palette";
 

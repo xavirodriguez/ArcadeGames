@@ -39,7 +39,6 @@ export interface OutrunSceneryLayout {
 }
 
 const LAYERS = ["far", "mid", "near"] as const;
-const DESERT_HEIGHT_FACTORS = { far: 0.32, mid: 0.4, near: 0.48 } as const;
 function clamp01(value: number): number { return Math.max(0, Math.min(1, value)); }
 function wrap(value: number, period: number): number {
   if (period <= 0) return 0;
@@ -56,7 +55,7 @@ export function computeParallaxState(
   const speedRatio = config.maxSpeed > 0 ? clamp01(state.speed / config.maxSpeed) : 0;
   const curvatureOffset = computeCurvatureParallaxOffset(
     roadData.segments, state.playerZ, roadData.trackLength, tuning.curvatureScale
-  ) * screenWidth * 0.25;
+  ) * screenWidth;
   // Elapsed race time provides a deterministic phase that doesn't jump at track wrap.
   const distanceOffset = state.lapTime *
     (tuning.baseDriftPxPerSecond + tuning.speedDriftPxPerSecond * speedRatio);
@@ -158,7 +157,7 @@ export function buildOutrunSceneryLayout(
   const astroTuning = tuning.astro;
   const radius = screenW * astroTuning.radiusToFrameWidth;
   const astro: AstroLayout = {
-    x: wrap(screenW * 0.7 - state.playerX * 15 + parallax.farOffsetX * 0.05, screenW),
+    x: wrap(screenW * astroTuning.horizontalPositionFraction - state.playerX * 15 + parallax.farOffsetX * 0.05, screenW),
     y: horizonY - astroTuning.centerAboveHorizonPx * referenceScale,
     radius, haloRadius: radius * astroTuning.haloRadiusMultiplier,
     haloAlpha: astroTuning.haloAlpha, color: visualPalette.tokens.sun
@@ -172,7 +171,7 @@ export function buildOutrunSceneryLayout(
       ratio = tuning.decor.coastLayerHeightMinRatio +
         (tuning.decor.coastLayerHeightMaxRatio - tuning.decor.coastLayerHeightMinRatio) * (layerIndex / 2);
     } else if (visualPalette.decor === "desert") {
-      ratio = DESERT_HEIGHT_FACTORS[layer];
+      ratio = tuning.decor.desertLayerHeightRatios[layer];
     }
     const profile = sourceProfile.map(point => {
       let height = point.height * ratio;
@@ -189,10 +188,10 @@ export function buildOutrunSceneryLayout(
         const previous = sourceProfile[index - 1]!;
         const peak = sourceProfile[index]!;
         const next = sourceProfile[index + 1]!;
-        if (peak.height < previous.height || peak.height < next.height || peak.height < 25) continue;
+        if (peak.height < previous.height || peak.height < next.height || peak.height < tuning.mountains.snowPeakMinimumHeightPx) continue;
         snowCaps.push({
           x: peak.x * referenceScale, peakHeight: peak.height * referenceScale,
-          halfWidth: Math.max(2, referenceScale * 4.5)
+          halfWidth: Math.max(2, referenceScale * tuning.mountains.snowPeakHalfWidthPx)
         });
       }
     }

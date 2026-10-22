@@ -385,6 +385,8 @@ export interface OutrunHudContext {
   speedKmh: number;
   timeStr: string;
   phase: string;
+  progressFraction: number;
+  visualPalette: OutrunVisualPaletteResource;
   hudBg: string;
   hudAccent: string;
 }
@@ -397,15 +399,23 @@ export function resolveOutrunHudContext(
 
   const config =
     world.getResource<OutrunConfig>("GameConfig") ?? DEFAULT_OUTRUN_CONFIG;
+  const roadData = world.getResource<RoadData>("RoadData");
+  if (!roadData || roadData.trackLength <= 0) return null;
 
+  const visualPalette = world.getResource<OutrunVisualPaletteResource>("VisualPalette") ??
+    createVisualPaletteResource(state, roadData, config);
+  const progress = state.playerZ % roadData.trackLength;
+  const progressFraction = ((progress < 0 ? progress + roadData.trackLength : progress) /
+    roadData.trackLength);
   const speedKmh = Math.round((state.speed / config.maxSpeed) * 280);
   const timeStr = state.lapTime.toFixed(1);
   const phase = state.racePhase ?? "racing";
 
-  const hudBg = resolveThemeColorWithFallback(world, colors.panel, "outrun_hud_bg");
-  const hudAccent = resolveThemeColorWithFallback(world, colors.cyan, "outrun_hud_accent", "primary");
-
-  return { state, config, speedKmh, timeStr, phase, hudBg, hudAccent };
+  return {
+    state, config, speedKmh, timeStr, phase, progressFraction, visualPalette,
+    hudBg: visualPalette.shared.branchPanel,
+    hudAccent: visualPalette.shared.cream
+  };
 }
 
 export interface OutrunRacerDrawContext {

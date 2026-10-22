@@ -14,6 +14,8 @@ import { computeSpeedLines, computeOutrunPlayerArtworkScale } from "./OutrunVisu
 import { computeOutrunRoadSpeedLineSegments, resolveOutrunRoadSegmentArtwork } from "./OutrunRoadArtwork";
 import { resolveOutrunRoadsideArtworkStyle } from "./OutrunRoadsideArtwork";
 import { resolveOutrunPlayerPalette, resolveOutrunTrafficArtworkStyle } from "./OutrunVehicleArtwork";
+import { computeOutrunHeadlightBeams } from "./OutrunLighting";
+import { resolveOutrunHudLayout } from "./OutrunHudArtwork";
 import { resolveOutrunSceneryLayout, type OutrunSceneryLayout, type MountainLayerLayout } from "./OutrunScenery";
 import { colors } from "../../../theme/colors";
 import { hexToRgba } from "../../shared/rendering/CosmicPalette";
@@ -601,6 +603,17 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
       console.warn("[drawOutrunRoad] 100% of projected road segments were clipped or discarded.");
     }
 
+    // Flat headlight cones are night-only and sit beneath roadside sprites.
+    const headlightBeams = computeOutrunHeadlightBeams(state, config, visualPalette);
+    if (headlightBeams.length > 0) {
+      ctx.save();
+      for (const beam of headlightBeams) {
+        ctx.globalAlpha = beam.alpha;
+        fillRoadsidePolygonCanvas(ctx, beam.points, beam.color);
+      }
+      ctx.restore();
+    }
+
     // Short radial streaks stay on the ground outside the pianos.
     const speedLines = computeOutrunRoadSpeedLineSegments({
       projectedSegments: projectionBuffer,
@@ -703,45 +716,98 @@ export const drawOutrunHud = {
     const hudCtx = resolveOutrunHudContext(world);
     if (!hudCtx) return;
 
-    const { state, config, speedKmh, timeStr, phase, hudBg, hudAccent } = hudCtx;
+    const { state, config, speedKmh, timeStr, phase, progressFraction, visualPalette } = hudCtx;
+    const layout = resolveOutrunHudLayout({ config, progressFraction, speedKmh, timeStr, visualPalette });
+    const shared = visualPalette.shared;
     ctx.save();
 
-    // Top Panel
-    ctx.fillStyle = hudBg;
-    ctx.fillRect(16, 16, 180, 60);
+    // Top information blocks.
+    ctx.textAlign = "left";
+    ctx.fillStyle = shared.hudMutedText;
+    ctx.font = `${layout.time.labelFont}px sans-serif`;
+    ctx.fillText("Tiempo", layout.time.x, layout.time.labelY);
+    ctx.fillStyle = shared.cream;
+    ctx.font = `${layout.time.valueFont}px sans-serif`;
+    ctx.fillText(layout.time.value, layout.time.x, layout.time.valueY);
 
-    ctx.strokeStyle = hudAccent;
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(16, 16, 180, 60);
+    ctx.textAlign = "right";
+    ctx.fillStyle = shared.hudMutedText;
+    ctx.font = `${layout.stage.labelFont}px sans-serif`;
+    ctx.fillText(layout.stage.label, layout.stage.x, layout.stage.labelY);
+    ctx.fillStyle = shared.cream;
+    ctx.font = `${layout.stage.hourFont}px sans-serif`;
+    ctx.fillText(layout.stage.hour, layout.stage.x, layout.stage.hourY);
+    ctx.textAlign = "left";
 
-    // Metrics Text
-    ctx.fillStyle = colors.white;
-    ctx.font = "bold 16px sans-serif";
-    ctx.fillText(`${speedKmh} KM/H`, 28, 40);
+    // Progress rail, upcoming stage marker and player marker.
+    const progress = layout.progress;
+    ctx.fillStyle = shared.cream;
+    ctx.globalAlpha = progress.trackAlpha;
+    ctx.fillRect(progress.x, progress.y, progress.width, progress.height);
+    ctx.globalAlpha = 1;
+    ctx.fillRect(progress.x, progress.y, progress.filledWidth, progress.height);
 
-    ctx.fillStyle = hudAccent;
-    ctx.font = "14px sans-serif";
-    ctx.fillText(`TIME: ${timeStr}s`, 28, 62);
+    ctx.fillStyle = visualPalette.tokens.kerbB;
+    ctx.beginPath();
+    ctx.arc(progress.branchMarkerX, progress.y + progress.height / 2, progress.branchMarkerRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = shared.car;
+    ctx.beginPath();
+    ctx.arc(progress.carMarkerX, progress.y + progress.height / 2, progress.carMarkerRadius, 0, Math.PI * 2);
+    ctx.fill();
 
-    // Countdown Overlay
-    if (phase === "countdown") {
-      const cd = Math.ceil(state.countdownTime ?? 3);
-      const text = cd > 0 ? `${cd}` : "GO!";
-      ctx.fillStyle = hudAccent;
-      ctx.font = "bold 48px sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText(text, config.WIDTH / 2, config.HEIGHT / 2);
+    // Speed pill.
+    const speed = layout.speedPill;
+    ctx.save();
+    ctx.globalAlpha = speed.shadowAlpha;
+    fillVehicleRoundedRectCanvas(ctx, {
+      x: speed.x, y: speed.y, width: speed.width, height: speed.height, cornerRadius: speed.radius
+    }, shared.shadow);
+    ctx.restore();
+    ctx.fillStyle = shared.cream;
+    ctx.font = `${speed.digitsFont}px sans-serif`;
+    ctx.textAlign = "left";
+    ctx.fillText(speed.value, speed.digitsX, speed.digitsY);
+    ctx.fillStyle = shared.hudMutedText;
+    ctx.font = `${speed.unitFont}px sans-serif`;
+    ctx.textAlign = "right";
+    ctx.fillText("km/h", speed.unitX, speed.unitY);
+
+    // Decorative radio dial: five bars; the active one uses the car accent.
+    const radio = layout.radioPill;
+    ctx.save();
+    ctx.globalAlpha = radio.shadowAlpha;
+    fillVehicleRoundedRectCanvas(ctx, {
+      x: radio.x, y: radio.y, width: radio.width, height: radio.height, cornerRadius: radio.radius
+    }, shared.shadow);
+    ctx.restore();
+    ctx.textAlign = "left";
+    ctx.fillStyle = shared.hudMutedText;
+    ctx.font = `${radio.labelFont}px sans-serif`;
+    ctx.fillText(radio.label, radio.labelX, radio.labelY);
+    for (const bar of radio.bars) {
+      fillVehicleRoundedRectCanvas(ctx, {
+        x: bar.x, y: bar.y, width: bar.width, height: bar.height, cornerRadius: Math.min(bar.width, bar.height) / 2
+      }, bar.active ? shared.car : shared.hudMutedText);
     }
 
-    // Game Over Overlay
-    if (state.isGameOver) {
-      ctx.fillStyle = hexToRgba(colors.surface, 0.6);
+    // Countdown and end-of-run overlays remain independent of the simulation.
+    if (phase === "countdown") {
+      const countdown = Math.ceil(state.countdownTime ?? 3);
+      ctx.fillStyle = hexToRgba(shared.shadow, 0.64);
       ctx.fillRect(0, 0, config.WIDTH, config.HEIGHT);
-
-      ctx.fillStyle = colors.red;
-      ctx.font = "bold 40px sans-serif";
+      ctx.fillStyle = shared.cream;
+      ctx.font = `${layout.countdownFont}px sans-serif`;
       ctx.textAlign = "center";
-      ctx.fillText("GAME OVER", config.WIDTH / 2, config.HEIGHT / 2);
+      ctx.fillText(countdown > 0 ? `${countdown}` : "GO!", layout.centerX, layout.centerY);
+    }
+    if (state.isGameOver) {
+      ctx.fillStyle = hexToRgba(shared.shadow, 0.72);
+      ctx.fillRect(0, 0, config.WIDTH, config.HEIGHT);
+      ctx.fillStyle = shared.cream;
+      ctx.font = `${layout.resultsFont}px sans-serif`;
+      ctx.textAlign = "center";
+      ctx.fillText("Fin del recorrido", layout.centerX, layout.centerY);
     }
 
     ctx.restore();

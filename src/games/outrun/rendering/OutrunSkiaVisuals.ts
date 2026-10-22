@@ -306,9 +306,7 @@ export const drawSkiaOutrunRoad: ShapeDrawer<SkCanvas, OutrunComponentRegistry> 
         lanePaint.setStyle(Skia.PaintStyle.Fill);
         canvas.drawPath(lanePath, lanePaint);
       }
-
     }
-
 
     if (count > 0 && renderedCount === 0) {
       console.warn("[drawSkiaOutrunRoad] 100% of projected road segments were clipped or discarded.");

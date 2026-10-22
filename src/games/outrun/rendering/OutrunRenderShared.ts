@@ -16,6 +16,8 @@ import {
   type HeatHazeLine
 } from "./OutrunVisualHelpers";
 import { colors } from "../../../theme/colors";
+import type { OutrunVisualPaletteResource } from "../types/OutrunVisualTypes";
+import { createVisualPaletteResource } from "../utils/palette";
 
 /** Standard racer vehicle body color options. */
 export const RACER_COLORS = [colors.blue, colors.cyan, colors.gold, colors.orange, colors.red] as const;
@@ -219,6 +221,7 @@ export interface OutrunRoadRenderContext {
   screenH: number;
   rumbleLength: number;
   palette: ModulatedPalette;
+  visualPalette: OutrunVisualPaletteResource;
 }
 
 export interface OutrunHorizonContext {
@@ -303,6 +306,8 @@ export function resolveOutrunRoadContext(
   const basePalette = getScenarioPaletteAtZ(state.playerZ, roadData);
   const progress = state.playerZ / roadData.trackLength;
   const palette = applyDayPhase(basePalette, progress);
+  const visualPalette = world.getResource<OutrunVisualPaletteResource>("VisualPalette") ??
+    createVisualPaletteResource(state, roadData, config);
 
   return {
     state,
@@ -311,7 +316,8 @@ export function resolveOutrunRoadContext(
     screenW: config.WIDTH,
     screenH: config.HEIGHT,
     rumbleLength: config.rumbleLength,
-    palette
+    palette,
+    visualPalette
   };
 }
 

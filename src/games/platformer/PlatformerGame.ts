@@ -90,13 +90,14 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
       theme: config.theme ?? createThemeFromGameAccents("platformer"),
       audio: new WebAudioPlayer()
     });
-    const loaded = this.loadConfig<PlatformerConfigType>(
+    const { baseConfig, customLevelData } = this.loadConfig<PlatformerConfigType>(
       PlatformerConfigSchema,
+      config.gameOptions,
       config.levelData
     );
-    this.baseConfig = loaded.baseConfig;
-    this.config = loaded.baseConfig;
-    this.customLevelData = loaded.customLevelData;
+    this.baseConfig = baseConfig;
+    this.config = baseConfig;
+    this.customLevelData = customLevelData;
   }
 
   protected override async onRegisterSystems(): Promise<void> {

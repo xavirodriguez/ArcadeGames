@@ -3,6 +3,12 @@ export * from './core/random';
 export * from './design/recipe';
 export * from './effects/primitives';
 export * from './design/pack';
+export * from './design/examplesPack';
+export * from './design/generator';
+export * from './music';
+export * from './core/analysis';
+export * from './export/cues';
+export * from './export/spritesheet';
 export {
   RecipeValidationError,
   SoundRecipeValidationError,
@@ -14,15 +20,19 @@ export {
   DEFAULT_SAMPLE_RATE,
   RENDER_VERSION,
   render,
+  renderFinal,
   applyLoudnessNormalization,
   computeActiveRms,
   type NormalizationResult,
+  type RenderFinalResult,
 } from './core/render';
 export {
   canonicalJsonStringify,
   computeRecipeHash,
+  encodeWav,
   readManifest,
   findOrphanWavs,
+  type EncodeWavOptions,
 } from './export/wav';
 
 import path from 'node:path';
@@ -34,13 +44,12 @@ import {
   GenerateProgressEvent,
 } from './core/types';
 import {
-  render,
+  renderFinal,
   DEFAULT_SAMPLE_RATE,
-  applyLoudnessNormalization,
   NormalizationResult,
 } from './core/render';
 import {
-  writeWav,
+  encodeWav,
   writeManifest,
   recipeToManifestEntry,
   computeRecipeHash,
@@ -114,17 +123,20 @@ export async function generateSoundDetailed(
       };
     } else {
       allCached = false;
-      const rng = new RNG(baseSeed + v * 9973);
-      const samples = await render(recipe, options, rng);
-      const norm = applyLoudnessNormalization(
-        samples,
-        options.targetRmsDb,
-        options.peakCeilingDb
-      );
+      const { samples, norm } = await renderFinal(recipe, options, v);
       lastNorm = norm;
 
       const peakDb = options.targetRmsDb !== undefined ? undefined : (options.peakDb ?? -1);
-      writeWav(samples, file, sampleRate, peakDb, bitDepth);
+      const soundSeed = new RNG(baseSeed).fork(v).fork('dither_seed').next();
+      const wavBytes = encodeWav(samples, {
+        sampleRate,
+        bitDepth,
+        peakDb,
+        seed: soundSeed,
+      });
+
+      fs.mkdirSync(path.dirname(file), { recursive: true });
+      fs.writeFileSync(file, wavBytes);
       lastFile = file;
     }
   }

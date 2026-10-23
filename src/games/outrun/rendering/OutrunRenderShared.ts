@@ -2,7 +2,6 @@ import type { World, RenderComponent } from "@tiny-aster/core";
 import { resolveThemeColorWithFallback } from "@tiny-aster/core";
 import type { OutrunComponentRegistry, RoadData, ProjectedSegment, RaceStateComponent, RacerComponent } from "../types/OutrunTypes";
 import type { OutrunConfig } from "../types/OutrunConfigSchema";
-import { getOutrunAnimationFrame } from "./OutrunPixelSprites";
 import { DEFAULT_OUTRUN_CONFIG } from "../types/OutrunConfigSchema";
 import { createProjectionBuffer, projectRoad } from "./RoadProjection";
 import { COAST_PALETTE, getScenarioPaletteAtZ, applyDayPhase, scenarioHash, type ScenarioPalette, type ModulatedPalette } from "./OutrunPalettes";
@@ -16,10 +15,11 @@ import {
   type HeatHazeLine
 } from "./OutrunVisualHelpers";
 import { colors } from "../../../theme/colors";
+import type { OutrunVisualPaletteResource } from "../types/OutrunVisualTypes";
+import { createVisualPaletteResource } from "../utils/palette";
+import { shouldDrawOutrunRoadsideSprite } from "./OutrunRoadsideArtwork";
 
 /** Standard racer vehicle body color options. */
-export const RACER_COLORS = [colors.blue, colors.cyan, colors.gold, colors.orange, colors.red] as const;
-
 /** Capacity of module-level projection buffer. */
 export const PROJECTION_CAPACITY = 400;
 
@@ -219,6 +219,7 @@ export interface OutrunRoadRenderContext {
   screenH: number;
   rumbleLength: number;
   palette: ModulatedPalette;
+  visualPalette: OutrunVisualPaletteResource;
 }
 
 export interface OutrunHorizonContext {
@@ -303,6 +304,8 @@ export function resolveOutrunRoadContext(
   const basePalette = getScenarioPaletteAtZ(state.playerZ, roadData);
   const progress = state.playerZ / roadData.trackLength;
   const palette = applyDayPhase(basePalette, progress);
+  const visualPalette = world.getResource<OutrunVisualPaletteResource>("VisualPalette") ??
+    createVisualPaletteResource(state, roadData, config);
 
   return {
     state,
@@ -311,7 +314,8 @@ export function resolveOutrunRoadContext(
     screenW: config.WIDTH,
     screenH: config.HEIGHT,
     rumbleLength: config.rumbleLength,
-    palette
+    palette,
+    visualPalette
   };
 }
 
@@ -381,6 +385,8 @@ export interface OutrunHudContext {
   speedKmh: number;
   timeStr: string;
   phase: string;
+  progressFraction: number;
+  visualPalette: OutrunVisualPaletteResource;
   hudBg: string;
   hudAccent: string;
 }
@@ -393,21 +399,29 @@ export function resolveOutrunHudContext(
 
   const config =
     world.getResource<OutrunConfig>("GameConfig") ?? DEFAULT_OUTRUN_CONFIG;
+  const roadData = world.getResource<RoadData>("RoadData");
+  if (!roadData || roadData.trackLength <= 0) return null;
 
+  const visualPalette = world.getResource<OutrunVisualPaletteResource>("VisualPalette") ??
+    createVisualPaletteResource(state, roadData, config);
+  const progress = state.playerZ % roadData.trackLength;
+  const progressFraction = ((progress < 0 ? progress + roadData.trackLength : progress) /
+    roadData.trackLength);
   const speedKmh = Math.round((state.speed / config.maxSpeed) * 280);
   const timeStr = state.lapTime.toFixed(1);
   const phase = state.racePhase ?? "racing";
 
-  const hudBg = resolveThemeColorWithFallback(world, colors.panel, "outrun_hud_bg");
-  const hudAccent = resolveThemeColorWithFallback(world, colors.cyan, "outrun_hud_accent", "primary");
-
-  return { state, config, speedKmh, timeStr, phase, hudBg, hudAccent };
+  return {
+    state, config, speedKmh, timeStr, phase, progressFraction, visualPalette,
+    hudBg: visualPalette.shared.branchPanel,
+    hudAccent: visualPalette.shared.cream
+  };
 }
 
 export interface OutrunRacerDrawContext {
   proj: NonNullable<ReturnType<typeof computeRacerProjection>>;
-  bodyColor: string;
-  frame: number;
+  vehicleStyleIndex: number;
+  config: OutrunConfig;
 }
 
 export function resolveOutrunRacerDrawContext(
@@ -429,9 +443,9 @@ export function resolveOutrunRacerDrawContext(
   );
   if (!proj) return null;
 
-  const bodyColor = RACER_COLORS[racer.colorIndex % RACER_COLORS.length];
+  const vehicleStyleIndex = Math.abs(Math.trunc(racer.colorIndex));
 
-  return { proj, bodyColor, frame: getOutrunAnimationFrame(racer.z) };
+  return { proj, vehicleStyleIndex, config };
 }
 
 /** Visitor callback signature for back-to-front sprite passes. */
@@ -444,7 +458,9 @@ export interface SpritePassVisitor<TCtx> {
     sw: number,
     roadWidth: number,
     lightsOn: boolean,
-    clipY: number
+    clipY: number,
+    depth: number,
+    segmentIndex: number
   ): void;
 }
 
@@ -463,6 +479,7 @@ export function iterateOutrunSprites<TCtx>(
     if (!seg || !seg.sprites || seg.sprites.length === 0) continue;
 
     for (const sp of seg.sprites) {
+      if (!shouldDrawOutrunRoadsideSprite(sp.kind, p.index, config.visual.quality)) continue;
       let sx = p.x1;
       if (sp.kind !== "arch" && sp.kind !== "banner") {
         sx = p.x1 + sp.side * (p.w1 * sp.offset);
@@ -472,7 +489,7 @@ export function iterateOutrunSprites<TCtx>(
 
       if (sy >= p.clip || sw < 2) continue;
 
-      visitor(ctx, sp, sx, sy, sw, config.roadWidth, lightsOn, p.clip);
+      visitor(ctx, sp, sx, sy, sw, config.roadWidth, lightsOn, p.clip, p.fog, p.index);
     }
   }
 }

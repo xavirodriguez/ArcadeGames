@@ -1,6 +1,7 @@
 {
   "path": [
     "packages/core/src",
+    "packages/arcade-sound-kit/src",
     "src/games"
   ],
   "pattern": "**/*.ts",

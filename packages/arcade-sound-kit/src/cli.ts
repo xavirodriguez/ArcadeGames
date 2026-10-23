@@ -1,12 +1,22 @@
 #!/usr/bin/env node
 import { pathToFileURL } from 'node:url';
 import path from 'node:path';
+import fs from 'node:fs';
+import os from 'node:os';
+import readline from 'node:readline';
 import {
   arcadePack,
+  examplesPack,
   generateSet,
+  renderFinal,
+  encodeWav,
+  validateRecipe,
   GenerateProgressEvent,
   DEFAULT_SAMPLE_RATE,
+  SoundRecipe,
+  SoundArchetype,
 } from './index';
+import { playWavFileAsync, registerTempWav } from './export/playerLauncher';
 
 function formatMs(ms: number): string {
   if (ms < 1000) return `${ms}ms`;
@@ -37,16 +47,337 @@ function renderProgressLine(ev: GenerateProgressEvent, verbose: boolean): string
   return line;
 }
 
+async function handlePreviewCommand(args: string[]) {
+  const seedIdx = args.indexOf('--seed');
+  const sampleRateIdx = args.indexOf('--sample-rate');
+  const variantsIdx = args.indexOf('--variants');
+  const nameIdx = args.indexOf('--name');
+  const loopIdx = args.indexOf('--loop');
+  const gapIdx = args.indexOf('--gap');
+
+  let seed = seedIdx >= 0 ? Number(args[seedIdx + 1]) : 42;
+  let sampleRate = sampleRateIdx >= 0 ? Number(args[sampleRateIdx + 1]) : DEFAULT_SAMPLE_RATE;
+  let variants = variantsIdx >= 0 ? Number(args[variantsIdx + 1]) : 1;
+  const targetName = nameIdx >= 0 ? args[nameIdx + 1] : undefined;
+  const loopCount = loopIdx >= 0 ? Math.max(1, Number(args[loopIdx + 1])) : 1;
+  const gapMs = gapIdx >= 0 ? Math.max(0, Number(args[gapIdx + 1])) : 100;
+
+  const isWatch = args.includes('--watch');
+  const isInteractive = args.includes('--interactive');
+
+  let recipe: SoundRecipe | null = null;
+  let recipeFile: string | null = null;
+
+  if (args.includes('--pack') || args.includes('--examples')) {
+    const pack = args.includes('--examples') ? examplesPack() : arcadePack();
+    if (targetName) {
+      const found = pack.find((r) => r.name === targetName);
+      if (!found) {
+        console.error(`Recipe name "${targetName}" not found in pack. Available names: ${pack.map(p => p.name).join(', ')}`);
+        process.exit(1);
+      }
+      recipe = found;
+    } else {
+      recipe = pack[0];
+    }
+  } else {
+    recipeFile = args.find((a) => !a.startsWith('--') && a !== 'preview') ?? null;
+    if (recipeFile) {
+      try {
+        const resolved = path.resolve(recipeFile);
+        const mod = await import(pathToFileURL(resolved).href);
+        const loaded = mod.default ?? mod.recipe ?? mod;
+        recipe = Array.isArray(loaded) ? loaded[0] : loaded;
+      } catch (err: unknown) {
+        console.error(`Failed to load recipe file "${recipeFile}":`, err);
+        process.exit(1);
+      }
+    }
+  }
+
+  if (!recipe) {
+    console.error('No recipe specified for preview. Use preview --pack --name <sfx> or preview <recipe-file.js>');
+    process.exit(1);
+  }
+
+  const issues = validateRecipe(recipe, sampleRate);
+  if (issues.length > 0) {
+    console.error(`Recipe validation error for "${recipe.name}":`, issues.map((i) => i.message).join(', '));
+    process.exit(1);
+  }
+
+  const renderAndPlay = async (currentRecipe: SoundRecipe) => {
+    try {
+      const tmpDir = os.tmpdir();
+
+      for (let v = 0; v < variants; v++) {
+        const suffix = variants > 1 ? `_v${v + 1}` : '';
+        const tmpFile = path.join(tmpDir, `ask_preview_${currentRecipe.name}${suffix}_${Date.now()}.wav`);
+        registerTempWav(tmpFile);
+
+        const { samples, sampleRate: sr } = await renderFinal(currentRecipe, { sampleRate, seed }, v);
+
+        let finalSamples = samples;
+        if (loopCount > 1) {
+          const gapSamplesCount = Math.round((gapMs / 1000) * sr);
+          const singleLen = samples.length + gapSamplesCount;
+          const totalLen = singleLen * loopCount;
+          finalSamples = new Float32Array(totalLen);
+          for (let l = 0; l < loopCount; l++) {
+            finalSamples.set(samples, l * singleLen);
+          }
+        }
+
+        const soundSeed = seed + v;
+        const wavBytes = encodeWav(finalSamples, { sampleRate: sr, seed: soundSeed });
+        fs.writeFileSync(tmpFile, wavBytes);
+
+        console.log(`[Preview] Playing "${currentRecipe.name}" (variant ${v + 1}/${variants}, seed=${seed}, sr=${sr}Hz, loop=${loopCount})…`);
+        await playWavFileAsync(tmpFile);
+      }
+    } catch (err) {
+      console.error('Preview render failed:', err);
+    }
+  };
+
+  await renderAndPlay(recipe);
+
+  if (isWatch && recipeFile) {
+    const resolvedPath = path.resolve(recipeFile);
+    let debounceTimer: NodeJS.Timeout | null = null;
+    let currentValidRecipe = recipe;
+
+    console.log(`[Watch] Watching ${recipeFile} for changes…`);
+    fs.watch(resolvedPath, (event) => {
+      if (event === 'change') {
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(async () => {
+          try {
+            const mod = await import(`${pathToFileURL(resolvedPath).href}?update=${Date.now()}`);
+            const updated = mod.default ?? mod.recipe ?? mod;
+            const newRecipe = Array.isArray(updated) ? updated[0] : updated;
+
+            const errs = validateRecipe(newRecipe, sampleRate);
+            if (errs.length > 0) {
+              console.error(`[Watch] Invalid recipe update: ${errs.map((e) => e.message).join('; ')}. Retaining previous version.`);
+            } else {
+              currentValidRecipe = newRecipe;
+              console.log(`[Watch] File changed. Re-rendering ${currentValidRecipe.name}…`);
+              await renderAndPlay(currentValidRecipe);
+            }
+          } catch (e) {
+            console.error('[Watch] Error reloading recipe:', e);
+          }
+        }, 150);
+      }
+    });
+  }
+
+  if (isInteractive) {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+      prompt: 'preview> ',
+    });
+
+    console.log(`Interactive preview mode active. Commands:
+  seed <n>       Set RNG seed
+  pitch <hz>     Set base pitch/frequency
+  variants <n>   Set variant count
+  play           Render and play
+  save           Save WAV to current directory
+  exit           Quit interactive mode
+`);
+    rl.prompt();
+
+    rl.on('line', async (line) => {
+      const [cmd, val] = line.trim().split(/\s+/);
+      if (cmd === 'seed' && val) {
+        seed = Number(val) || 42;
+        console.log(`Seed set to ${seed}`);
+      } else if (cmd === 'pitch' && val && recipe) {
+        const pitchHz = Number(val);
+        if (Number.isFinite(pitchHz) && pitchHz > 0) {
+          recipe = {
+            ...recipe,
+            layers: recipe.layers.map((l) => ({ ...l, frequency: pitchHz })),
+          };
+          console.log(`Base pitch set to ${pitchHz} Hz`);
+        }
+      } else if (cmd === 'variants' && val) {
+        variants = Math.max(1, Number(val) || 1);
+        console.log(`Variants set to ${variants}`);
+      } else if (cmd === 'play') {
+        if (recipe) await renderAndPlay(recipe);
+      } else if (cmd === 'save') {
+        if (recipe) {
+          const { samples, sampleRate: sr } = await renderFinal(recipe, { sampleRate, seed }, 0);
+          const wavBytes = encodeWav(samples, { sampleRate: sr, seed });
+          const outFile = `./${recipe.name}.wav`;
+          fs.writeFileSync(outFile, wavBytes);
+          console.log(`Saved ${outFile}`);
+        }
+      } else if (cmd === 'exit' || cmd === 'quit') {
+        rl.close();
+        process.exit(0);
+      }
+      rl.prompt();
+    });
+  }
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const cmd = args[0];
+
+  if (cmd === 'preview') {
+    await handlePreviewCommand(args);
+    return;
+  }
+
+  if (cmd === 'cues') {
+    const outIdx = args.indexOf('--out');
+    const outDir = outIdx >= 0 ? args[outIdx + 1] : './out';
+
+    const { arcadePack } = await import('./design/pack.js');
+    const { generateCueBank } = await import('./export/cues.js');
+
+    const bank = generateCueBank(arcadePack());
+    fs.mkdirSync(outDir, { recursive: true });
+    const cuesPath = path.join(outDir, 'cues.json');
+    fs.writeFileSync(cuesPath, JSON.stringify(bank, null, 2));
+    console.log(`Generated cues bank at ${cuesPath}`);
+    return;
+  }
+
+  if (cmd === 'spritesheet') {
+    const outIdx = args.indexOf('--out');
+    const outDir = outIdx >= 0 ? args[outIdx + 1] : './out';
+
+    const { arcadePack } = await import('./design/pack.js');
+    const { generateSpriteSheet } = await import('./export/spritesheet.js');
+
+    const sheet = await generateSpriteSheet(arcadePack());
+    fs.mkdirSync(outDir, { recursive: true });
+    const jsonPath = path.join(outDir, 'spritesheet.json');
+    const wavPath = path.join(outDir, sheet.audioFile);
+
+    fs.writeFileSync(jsonPath, JSON.stringify({ urls: sheet.urls, sprite: sheet.sprite }, null, 2));
+    fs.writeFileSync(wavPath, sheet.wavBytes);
+    console.log(`Generated sprite sheet audio at ${wavPath} and spec at ${jsonPath}`);
+    return;
+  }
+
+  if (cmd === 'audit') {
+    const packIdx = args.indexOf('--pack');
+    const dirIdx = args.indexOf('--dir');
+    const outDir = dirIdx >= 0 ? args[dirIdx + 1] : './out';
+    const failOnIdx = args.indexOf('--fail-on');
+
+    const { arcadePack } = await import('./design/pack');
+    const { renderFinal } = await import('./index');
+    const { analyzeAudioBuffer, findSimilarPairs } = await import('./core/analysis');
+
+    const recipes = arcadePack();
+    const results = [];
+
+    console.log(`Auditing ${recipes.length} recipes in arcadePack()…`);
+    for (const r of recipes) {
+      const { samples, sampleRate } = await renderFinal(r, { sampleRate: 22050 }, 0);
+      const analysis = analyzeAudioBuffer(r.name, r.category, samples, sampleRate, r.duration, r.loop);
+      results.push(analysis);
+    }
+
+    const similarPairs = findSimilarPairs(results, 0.15);
+
+    fs.mkdirSync(outDir, { recursive: true });
+    const jsonPath = path.join(outDir, 'audit.json');
+    const mdPath = path.join(outDir, 'audit.md');
+
+    fs.writeFileSync(jsonPath, JSON.stringify({ results, similarPairs }, null, 2));
+
+    let md = `# Quality Audit Report\n\nTotal sounds analyzed: ${results.length}\nSimilar sound pairs found: ${similarPairs.length}\n\n`;
+    md += `| Name | Category | Peak | RMS (dB) | LUFS | DC Offset | Clipped | Initial Sil (ms) | Loop Jump | Centroid (Hz) |\n`;
+    md += `|---|---|---|---|---|---|---|---|---|---|\n`;
+
+    let failedRules: string[] = [];
+
+    for (const r of results) {
+      md += `| ${r.name} | ${r.category} | ${r.peak.toFixed(3)} | ${r.rmsDb.toFixed(1)} | ${r.lufs.toFixed(1)} | ${r.dcOffset.toFixed(4)} | ${r.clippedSamples} | ${r.initialSilenceMs.toFixed(1)} | ${r.loopJump.toFixed(3)} | ${Math.round(r.spectralCentroidHz)} |\n`;
+
+      if (r.clippedSamples > 0) failedRules.push(`${r.name}: clipped samples (${r.clippedSamples})`);
+      if (r.dcOffset > 0.05) failedRules.push(`${r.name}: high DC offset (${r.dcOffset.toFixed(4)})`);
+    }
+
+    if (similarPairs.length > 0) {
+      md += `\n## Similar Sound Pairs\n\n`;
+      for (const p of similarPairs) {
+        md += `- **${p.soundA}** & **${p.soundB}** (spectral distance: ${p.distance.toFixed(3)}, dur diff: ${p.durationDiffMs.toFixed(1)}ms)\n`;
+      }
+    }
+
+    fs.writeFileSync(mdPath, md);
+    console.log(`Audit complete. Results written to ${jsonPath} and ${mdPath}`);
+
+    if (failOnIdx >= 0) {
+      if (failedRules.length > 0) {
+        console.error(`Audit CI check failed (${failedRules.length} violation(s)):\n` + failedRules.map(f => `  - ${f}`).join('\n'));
+        process.exit(1);
+      } else {
+        console.log('Audit CI check passed cleanly!');
+      }
+    }
+    return;
+  }
+
+  if (cmd === 'random') {
+    const archIdx = args.indexOf('--archetype');
+    const countIdx = args.indexOf('--count');
+    const seedIdx = args.indexOf('--seed');
+    const outIdx = args.indexOf('--out');
+
+    const rawArch = archIdx >= 0 ? args[archIdx + 1] : 'laser';
+    const VALID_ARCHETYPES: SoundArchetype[] = [
+      'laser',
+      'explosion',
+      'coin',
+      'jump',
+      'hit',
+      'powerup',
+      'ui_blip',
+      'error',
+    ];
+    const archetype: SoundArchetype = VALID_ARCHETYPES.includes(rawArch as SoundArchetype)
+      ? (rawArch as SoundArchetype)
+      : 'laser';
+    const count = countIdx >= 0 ? Number(args[countIdx + 1]) || 10 : 10;
+    const seed = seedIdx >= 0 ? Number(args[seedIdx + 1]) || 1 : 1;
+    const outDir = outIdx >= 0 ? args[outIdx + 1] : './random_sounds';
+
+    const { randomRecipe } = await import('./design/generator');
+    const { generateSet } = await import('./index');
+
+    const recipes = [];
+    for (let i = 0; i < count; i++) {
+      recipes.push(randomRecipe({ archetype }, seed + i));
+    }
+
+    console.log(`Generating ${count} random "${archetype}" sound(s) starting from seed ${seed}…`);
+    const files = await generateSet(recipes, { outDir, seed });
+    console.log(`Wrote ${files.length} file(s) to ${outDir}`);
+    return;
+  }
 
   if (cmd !== 'generate') {
     console.log(`Usage:
   ask-generate generate --pack [options]
   ask-generate generate <recipe-file.js> [options]
+  ask-generate preview <recipe-file.js> [options]
+  ask-generate preview --pack --name <sfx> [options]
+  ask-generate audit [--pack] [--dir out/] [--fail-on]
+  ask-generate random [--archetype laser] [--count 10] [--seed 1]
 
-Flags:
+Flags for generate:
   --pack              Generate the full arcadePack()
   --out <dir>         Output directory (default: ./sounds)
   --seed <n>          Deterministic seed (default: 42)
@@ -57,11 +388,26 @@ Flags:
   --quiet             Suppress progress (only final summary)
   --verbose           Print full path of each written file
 
-Examples:
-  ask-generate generate --pack
-  ask-generate generate --pack --sample-rate 44100 --bit-depth 32
-  ask-generate generate --pack --out ./sounds --arcade-color
-  ask-generate generate examples/arcade.js --out ./custom-sounds
+Flags for preview:
+  --pack --name <sfx> Preview a specific sound from arcadePack()
+  --examples          Preview from examplesPack()
+  --seed <n>          Set seed for preview
+  --sample-rate <n>   Set sample rate
+  --variants <n>      Number of variants to preview
+  --loop <n>          Repeat preview <n> times
+  --gap <ms>          Silence gap between repeats in ms
+  --watch             Watch recipe file and auto re-render on save
+  --interactive       Interactive CLI control
+
+Flags for audit:
+  --pack              Audit arcadePack() sounds
+  --dir <dir>         Output directory for audit.json & audit.md
+  --fail-on           Exit non-zero if quality rules are violated
+
+Flags for random:
+  --archetype <arch>  Sound archetype (laser|explosion|coin|jump|hit|powerup|ui_blip|error)
+  --count <n>         Number of recipes to generate
+  --seed <n>          Base RNG seed
 `);
     process.exit(cmd ? 1 : 0);
   }

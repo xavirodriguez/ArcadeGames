@@ -125,12 +125,13 @@ export class PongArcadeAdapter extends BaseArcadeAdapter<PongGame> {
     return new PongGame({ seed: context.seed });
   }
 
-  protected buildResult(context: MiniGameRunContext, payload?: any): MiniGameResult {
-    const playerScore = payload?.playerScore ?? (this.game as any)?.playerScore ?? 0;
-    const opponentScore = payload?.opponentScore ?? (this.game as any)?.opponentScore ?? 0;
-    const completed = payload?.completed ?? (playerScore > opponentScore && playerScore >= (context.config.targetScore ?? 5));
-    const durationMs = payload?.durationMs ?? 30000;
-    const secretsFound: string[] = payload?.secretsFound ?? [];
+  protected buildResult(context: MiniGameRunContext, payload?: Record<string, unknown>): MiniGameResult {
+    const gamePong = this.game as unknown as { playerScore?: number; opponentScore?: number } | null;
+    const playerScore = typeof payload?.playerScore === "number" ? payload.playerScore : (gamePong?.playerScore ?? 0);
+    const opponentScore = typeof payload?.opponentScore === "number" ? payload.opponentScore : (gamePong?.opponentScore ?? 0);
+    const completed = typeof payload?.completed === "boolean" ? payload.completed : (playerScore > opponentScore && playerScore >= (context.config.targetScore ?? 5));
+    const durationMs = typeof payload?.durationMs === "number" ? payload.durationMs : 30000;
+    const secretsFound = Array.isArray(payload?.secretsFound) ? (payload.secretsFound as string[]) : [];
 
     if (payload?.foundSchematic) {
       secretsFound.push("prototype_paddle_schematic");
@@ -145,7 +146,7 @@ export class PongArcadeAdapter extends BaseArcadeAdapter<PongGame> {
       metrics: {
         playerScore,
         opponentScore,
-        rallyReps: payload?.rallyReps ?? 0
+        rallyReps: typeof payload?.rallyReps === "number" ? payload.rallyReps : 0
       },
       secretsFound
     };

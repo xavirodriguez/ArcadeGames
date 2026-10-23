@@ -1,4 +1,5 @@
 import { IAudioPlayer } from "./IAudioPlayer";
+import { SoundBank } from "./SoundBank";
 
 /**
  * Definition of an audio asset entry in the central audio registry.
@@ -159,13 +160,28 @@ export const SHARED_AUDIO_MANIFEST: AudioAssetDefinition[] = [
  * @returns A promise that resolves when all shared sound effects are preloaded.
  * @public
  */
+let sharedSoundBankInstance: SoundBank | null = null;
+
+export function getSharedSoundBank(): SoundBank {
+  if (!sharedSoundBankInstance) {
+    sharedSoundBankInstance = new SoundBank({
+      maxGlobalVoices: 16,
+      maxCueVoices: 4,
+    });
+  }
+  return sharedSoundBankInstance;
+}
+
 export async function preloadSharedAudioManifest(audio: IAudioPlayer): Promise<void> {
   if (!audio) return;
-  await Promise.all(
+  const timeoutMs = 2500;
+  const timeoutPromise = new Promise<void>((resolve) => setTimeout(resolve, timeoutMs));
+  const loadPromise = Promise.all(
     SHARED_AUDIO_MANIFEST.map((asset) =>
       audio.loadSFX(asset.id, asset.path).catch((err) => {
         console.warn(`[Audio] Failed to preload asset "${asset.id}":`, err);
       })
     )
   );
+  await Promise.race([loadPromise, timeoutPromise]);
 }

@@ -3,6 +3,7 @@ export const en = {
     title: "RETRO ARCADE",
     asteroids: "ASTEROIDS",
     space_invaders: "SPACE INVADERS",
+    galaxian: "GALAXIAN",
     flappybird: "FLAPPY BIRD",
     pong: "PONG",
     geometrywars: "GEOMETRY WARS",

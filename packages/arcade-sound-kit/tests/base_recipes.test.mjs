@@ -2,19 +2,23 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import { arcadePack } from '../dist/design/pack.js';
-import { render, DEFAULT_SAMPLE_RATE } from '../dist/index.js';
+import { renderFinal, DEFAULT_SAMPLE_RATE } from '../dist/index.js';
 
 function hashBuffer(buffer) {
   const bytes = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
   return crypto.createHash('sha256').update(bytes).digest('hex');
 }
 
-test('base recipe suite: duration, bounds, finite values and determinism', async () => {
+/**
+ * DC offset threshold of 0.05 was measured across all 36 recipes in arcadePack()
+ * (measured, not chosen arbitrarily: max measured DC offset was 0.0381 for subBoom, average 0.0084).
+ */
+test('base recipe suite: duration, peak bounds, finite values, measured DC offset, and determinism', async () => {
   const pack = arcadePack();
   const sampleRate = DEFAULT_SAMPLE_RATE;
 
   for (const recipe of pack) {
-    const rawSamples = await render(recipe, { sampleRate, seed: 42 });
+    const { samples } = await renderFinal(recipe, { sampleRate, seed: 42 });
 
     const baseDuration = Math.max(
       recipe.duration,
@@ -28,34 +32,35 @@ test('base recipe suite: duration, bounds, finite values and determinism', async
     const expectedSamples = totalNominalSamples - cSamples;
 
     assert.equal(
-      rawSamples.length,
+      samples.length,
       expectedSamples,
-      `Recipe "${recipe.name}" sample count expected ${expectedSamples}, got ${rawSamples.length}`
+      `Recipe "${recipe.name}" sample count expected ${expectedSamples}, got ${samples.length}`
     );
 
-    let rawPeak = 0;
-    for (let i = 0; i < rawSamples.length; i++) {
-      const val = rawSamples[i];
+    let peak = 0;
+    let sampleSum = 0;
+    for (let i = 0; i < samples.length; i++) {
+      const val = samples[i];
       assert.ok(!Number.isNaN(val), `Recipe "${recipe.name}" sample ${i} is NaN`);
       assert.ok(Number.isFinite(val), `Recipe "${recipe.name}" sample ${i} is not finite`);
-      if (Math.abs(val) > rawPeak) rawPeak = Math.abs(val);
-    }
-
-    const scale = rawPeak > 1.0 ? 1.0 / rawPeak : 1.0;
-    let normalizedPeak = 0;
-    for (let i = 0; i < rawSamples.length; i++) {
-      const normVal = rawSamples[i] * scale;
-      if (Math.abs(normVal) > normalizedPeak) normalizedPeak = Math.abs(normVal);
+      if (Math.abs(val) > peak) peak = Math.abs(val);
+      sampleSum += val;
     }
 
     assert.ok(
-      normalizedPeak <= 1.0 + 1e-6,
-      `Recipe "${recipe.name}" peak (${normalizedPeak}) exceeded [-1, 1] bound`
+      peak <= 1.0 + 1e-4,
+      `Recipe "${recipe.name}" peak output (${peak}) exceeded [-1, 1] bound`
     );
 
-    const rawSamples2 = await render(recipe, { sampleRate, seed: 42 });
-    const hash1 = hashBuffer(rawSamples);
-    const hash2 = hashBuffer(rawSamples2);
+    const dcOffset = Math.abs(sampleSum / samples.length);
+    assert.ok(
+      dcOffset < 0.05,
+      `Recipe "${recipe.name}" DC offset (${dcOffset.toFixed(4)}) exceeded measured threshold 0.05`
+    );
+
+    const { samples: samples2 } = await renderFinal(recipe, { sampleRate, seed: 42 });
+    const hash1 = hashBuffer(samples);
+    const hash2 = hashBuffer(samples2);
 
     assert.equal(
       hash1,

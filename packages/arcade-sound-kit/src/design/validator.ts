@@ -1,4 +1,4 @@
-import { SoundRecipe, Category, LayerSpec, SequenceNote } from '../core/types';
+import { SoundRecipe, Category, LayerSpec, SequenceNote, EffectSpec } from '../core/types';
 import { DEFAULT_SAMPLE_RATE } from '../core/render';
 
 export interface RecipeValidationIssue {
@@ -74,14 +74,15 @@ export function validateRecipe(
     typeof recipe.duration !== 'number' ||
     !Number.isFinite(recipe.duration) ||
     Number.isNaN(recipe.duration) ||
-    recipe.duration <= 0
+    recipe.duration <= 0 ||
+    recipe.duration > 10.0
   ) {
     issues.push({
       recipe: recipeName,
       field: 'duration',
       path: 'duration',
       value: recipe.duration,
-      message: 'Recipe duration must be a positive finite number (> 0)',
+      message: 'Recipe duration must be a positive finite number (> 0 and <= 10.0s)',
     });
   }
 
@@ -102,6 +103,30 @@ export function validateRecipe(
     }
   }
 
+  if (recipe.effects) {
+    if (!Array.isArray(recipe.effects)) {
+      issues.push({
+        recipe: recipeName,
+        field: 'effects',
+        path: 'effects',
+        value: recipe.effects,
+        message: 'Effects must be an array of EffectSpec',
+      });
+    } else if (recipe.effects.length > 4) {
+      issues.push({
+        recipe: recipeName,
+        field: 'effects',
+        path: 'effects',
+        value: recipe.effects.length,
+        message: 'Maximum 4 effects allowed per recipe',
+      });
+    } else {
+      recipe.effects.forEach((fx, fxIdx) => {
+        validateEffect(fx, fxIdx, recipeName, issues);
+      });
+    }
+  }
+
   if (!Array.isArray(recipe.layers) || recipe.layers.length === 0) {
     issues.push({
       recipe: recipeName,
@@ -109,6 +134,14 @@ export function validateRecipe(
       path: 'layers',
       value: recipe.layers,
       message: 'Recipe layers must be a non-empty array',
+    });
+  } else if (recipe.layers.length > 10) {
+    issues.push({
+      recipe: recipeName,
+      field: 'layers',
+      path: 'layers',
+      value: recipe.layers.length,
+      message: 'Maximum 10 layers allowed per recipe',
     });
   } else {
     recipe.layers.forEach((layer, lIdx) => {
@@ -316,6 +349,30 @@ function validateLayer(
         });
       }
     }
+    if (env.curve !== undefined && !['linear', 'exp'].includes(env.curve)) {
+      issues.push({
+        recipe: recipeName,
+        layerIndex: lIdx,
+        field: `layers[${lIdx}].envelope.curve`,
+        path: `layers[${lIdx}].envelope.curve`,
+        value: env.curve,
+        message: 'Envelope curve must be "linear" or "exp"',
+      });
+    }
+
+    if (Array.isArray(env.points) && env.points.length > 0) {
+      const lastPoint = env.points[env.points.length - 1];
+      if (lastPoint.level !== 0) {
+        issues.push({
+          recipe: recipeName,
+          layerIndex: lIdx,
+          field: `layers[${lIdx}].envelope.points`,
+          path: `layers[${lIdx}].envelope.points`,
+          value: lastPoint.level,
+          message: 'The final point of a multipoint envelope must have level 0',
+        });
+      }
+    }
 
     const attackVal = env.attack ?? 0.005;
     const decayVal = env.decay ?? 0.08;
@@ -386,6 +443,122 @@ function validateLayer(
         message: `filter.minHz (${minHz}) must be strictly less than filter.maxHz (${maxHz})`,
       });
     }
+
+    if (layer.filter.q !== undefined) {
+      if (
+        typeof layer.filter.q !== 'number' ||
+        !Number.isFinite(layer.filter.q) ||
+        Number.isNaN(layer.filter.q) ||
+        layer.filter.q < 0.1 ||
+        layer.filter.q > 30
+      ) {
+        issues.push({
+          recipe: recipeName,
+          layerIndex: lIdx,
+          field: `layers[${lIdx}].filter.q`,
+          path: `layers[${lIdx}].filter.q`,
+          value: layer.filter.q,
+          message: 'filter.q must be a finite number in range [0.1, 30]',
+        });
+      }
+    }
+
+    if (layer.filter.curve !== undefined && !['linear', 'exponential'].includes(layer.filter.curve)) {
+      issues.push({
+        recipe: recipeName,
+        layerIndex: lIdx,
+        field: `layers[${lIdx}].filter.curve`,
+        path: `layers[${lIdx}].filter.curve`,
+        value: layer.filter.curve,
+        message: 'Filter curve must be "linear" or "exponential"',
+      });
+    }
+  }
+
+  // 4. FM and Unison validation
+  if (layer.fm) {
+    if (typeof layer.fm.ratio !== 'number' || !Number.isFinite(layer.fm.ratio) || Number.isNaN(layer.fm.ratio) || layer.fm.ratio <= 0) {
+      issues.push({
+        recipe: recipeName,
+        layerIndex: lIdx,
+        field: `layers[${lIdx}].fm.ratio`,
+        path: `layers[${lIdx}].fm.ratio`,
+        value: layer.fm.ratio,
+        message: 'FM ratio must be a positive finite number (> 0)',
+      });
+    }
+    if (typeof layer.fm.index !== 'number' || !Number.isFinite(layer.fm.index) || Number.isNaN(layer.fm.index) || layer.fm.index < 0) {
+      issues.push({
+        recipe: recipeName,
+        layerIndex: lIdx,
+        field: `layers[${lIdx}].fm.index`,
+        path: `layers[${lIdx}].fm.index`,
+        value: layer.fm.index,
+        message: 'FM index must be a non-negative finite number (>= 0)',
+      });
+    }
+  }
+
+  if (layer.unison) {
+    if (
+      typeof layer.unison.voices !== 'number' ||
+      !Number.isInteger(layer.unison.voices) ||
+      layer.unison.voices < 1 ||
+      layer.unison.voices > 8
+    ) {
+      issues.push({
+        recipe: recipeName,
+        layerIndex: lIdx,
+        field: `layers[${lIdx}].unison.voices`,
+        path: `layers[${lIdx}].unison.voices`,
+        value: layer.unison.voices,
+        message: 'Unison voices must be an integer in range [1, 8]',
+      });
+    }
+    if (
+      typeof layer.unison.detuneCents !== 'number' ||
+      !Number.isFinite(layer.unison.detuneCents) ||
+      Number.isNaN(layer.unison.detuneCents) ||
+      layer.unison.detuneCents < 0
+    ) {
+      issues.push({
+        recipe: recipeName,
+        layerIndex: lIdx,
+        field: `layers[${lIdx}].unison.detuneCents`,
+        path: `layers[${lIdx}].unison.detuneCents`,
+        value: layer.unison.detuneCents,
+        message: 'Unison detuneCents must be a non-negative finite number (>= 0)',
+      });
+    }
+  }
+
+  // 5. Modulation LFO validation
+  if (layer.modulation) {
+    for (const key of ['pitch', 'amp', 'filter', 'pulseWidth'] as const) {
+      const lfo = layer.modulation[key];
+      if (lfo) {
+        if (typeof lfo.rateHz !== 'number' || !Number.isFinite(lfo.rateHz) || Number.isNaN(lfo.rateHz) || lfo.rateHz <= 0) {
+          issues.push({
+            recipe: recipeName,
+            layerIndex: lIdx,
+            field: `layers[${lIdx}].modulation.${key}.rateHz`,
+            path: `layers[${lIdx}].modulation.${key}.rateHz`,
+            value: lfo.rateHz,
+            message: 'LFO rateHz must be a positive finite number (> 0)',
+          });
+        }
+        if (typeof lfo.depth !== 'number' || !Number.isFinite(lfo.depth) || Number.isNaN(lfo.depth) || lfo.depth < 0) {
+          issues.push({
+            recipe: recipeName,
+            layerIndex: lIdx,
+            field: `layers[${lIdx}].modulation.${key}.depth`,
+            path: `layers[${lIdx}].modulation.${key}.depth`,
+            value: lfo.depth,
+            message: 'LFO depth must be a non-negative finite number (>= 0)',
+          });
+        }
+      }
+    }
   }
 }
 
@@ -408,20 +581,22 @@ function validateSequenceNote(
     return;
   }
 
-  if (
-    typeof note.frequency !== 'number' ||
-    !Number.isFinite(note.frequency) ||
-    Number.isNaN(note.frequency) ||
-    note.frequency <= 0
-  ) {
-    issues.push({
-      recipe: recipeName,
-      layerIndex: lIdx,
-      field: `layers[${lIdx}].notes[${nIdx}].frequency`,
-      path: `layers[${lIdx}].notes[${nIdx}].frequency`,
-      value: note.frequency,
-      message: 'Note frequency must be a positive finite number (> 0)',
-    });
+  if (note.rest !== true && note.frequency !== 0) {
+    if (
+      typeof note.frequency !== 'number' ||
+      !Number.isFinite(note.frequency) ||
+      Number.isNaN(note.frequency) ||
+      note.frequency < 0
+    ) {
+      issues.push({
+        recipe: recipeName,
+        layerIndex: lIdx,
+        field: `layers[${lIdx}].notes[${nIdx}].frequency`,
+        path: `layers[${lIdx}].notes[${nIdx}].frequency`,
+        value: note.frequency,
+        message: 'Note frequency must be a non-negative finite number (>= 0)',
+      });
+    }
   }
 
   if (
@@ -449,6 +624,77 @@ function validateSequenceNote(
       value: note.level,
       message: 'Note level must be a finite number',
     });
+  }
+}
+
+function validateEffect(
+  fx: EffectSpec,
+  fxIdx: number,
+  recipeName: string,
+  issues: RecipeValidationIssue[]
+) {
+  if (!fx || typeof fx !== 'object') {
+    issues.push({
+      recipe: recipeName,
+      field: `effects[${fxIdx}]`,
+      path: `effects[${fxIdx}]`,
+      value: fx,
+      message: 'Effect must be a valid object',
+    });
+    return;
+  }
+
+  const validTypes = ['delay', 'reverb', 'distortion', 'chorus', 'bitcrush'];
+  if (!validTypes.includes(fx.type)) {
+    issues.push({
+      recipe: recipeName,
+      field: `effects[${fxIdx}].type`,
+      path: `effects[${fxIdx}].type`,
+      value: fx.type,
+      message: `Effect type must be one of: ${validTypes.join(', ')}`,
+    });
+  }
+
+  if (fx.type === 'delay') {
+    if (typeof fx.timeSeconds !== 'number' || !Number.isFinite(fx.timeSeconds) || fx.timeSeconds <= 0 || fx.timeSeconds > 2.0) {
+      issues.push({
+        recipe: recipeName,
+        field: `effects[${fxIdx}].timeSeconds`,
+        path: `effects[${fxIdx}].timeSeconds`,
+        value: fx.timeSeconds,
+        message: 'Delay timeSeconds must be in range (0, 2.0]',
+      });
+    }
+    if (typeof fx.feedback !== 'number' || !Number.isFinite(fx.feedback) || fx.feedback < 0 || fx.feedback >= 1.0) {
+      issues.push({
+        recipe: recipeName,
+        field: `effects[${fxIdx}].feedback`,
+        path: `effects[${fxIdx}].feedback`,
+        value: fx.feedback,
+        message: 'Delay feedback must be in range [0, 1.0)',
+      });
+    }
+    if (typeof fx.mix !== 'number' || !Number.isFinite(fx.mix) || fx.mix < 0 || fx.mix > 1.0) {
+      issues.push({
+        recipe: recipeName,
+        field: `effects[${fxIdx}].mix`,
+        path: `effects[${fxIdx}].mix`,
+        value: fx.mix,
+        message: 'Delay mix must be in range [0, 1.0]',
+      });
+    }
+  }
+
+  if (fx.type === 'reverb') {
+    if (typeof fx.mix !== 'number' || !Number.isFinite(fx.mix) || fx.mix < 0 || fx.mix > 1.0) {
+      issues.push({
+        recipe: recipeName,
+        field: `effects[${fxIdx}].mix`,
+        path: `effects[${fxIdx}].mix`,
+        value: fx.mix,
+        message: 'Reverb mix must be in range [0, 1.0]',
+      });
+    }
   }
 }
 

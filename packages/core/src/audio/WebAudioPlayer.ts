@@ -13,6 +13,7 @@ import { SHARED_AUDIO_MANIFEST } from "./AudioEventMap";
 export class WebAudioPlayer implements IAudioPlayer {
   private ctx: AudioContext | null = null;
   private sfxCache = new Map<string, AudioBuffer>();
+  private bufferCache = new Map<string, AudioBuffer>();
   private sfxLastPlayTime = new Map<string, number>();
   private bgmAudio: HTMLAudioElement | null = null;
   private currentBgmUrl: string | null = null;
@@ -165,6 +166,47 @@ export class WebAudioPlayer implements IAudioPlayer {
   /**
    * Plays a cached sound effect with low latency, optional rate-limiting, pitch variation, and volume scaling.
    */
+  /**
+   * Plays an in-memory AudioBuffer directly with optional key caching and gain/rate options.
+   * Separate from the URL-based sfxCache.
+   */
+  public playBuffer(
+    buffer: AudioBuffer,
+    key?: string,
+    options?: { gain?: number; rate?: number }
+  ): void {
+    this.resumeContext();
+    if (!this.ctx || this.ctx.state === "closed" || !this.sfxVolumeNode) return;
+
+    if (key) {
+      this.bufferCache.set(key, buffer);
+    }
+
+    try {
+      const source = this.ctx.createBufferSource();
+      source.buffer = buffer;
+
+      const rate = options?.rate ?? 1.0;
+      if (source.playbackRate) {
+        source.playbackRate.setValueAtTime(rate, this.ctx.currentTime);
+      }
+
+      const gainVal = options?.gain ?? 1.0;
+      if (gainVal < 1.0) {
+        const gainNode = this.ctx.createGain();
+        gainNode.gain.setValueAtTime(Math.max(0, Math.min(1, gainVal)), this.ctx.currentTime);
+        source.connect(gainNode);
+        gainNode.connect(this.sfxVolumeNode);
+      } else {
+        source.connect(this.sfxVolumeNode);
+      }
+
+      source.start();
+    } catch (e) {
+      console.warn("[WebAudioPlayer] Error playing buffer:", e);
+    }
+  }
+
   public playSFX(id: string, options?: unknown): void {
     this.resumeContext();
     if (!this.ctx || this.ctx.state === "closed" || !this.sfxVolumeNode) return;

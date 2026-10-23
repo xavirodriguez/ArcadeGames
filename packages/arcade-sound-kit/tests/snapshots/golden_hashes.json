@@ -1,0 +1,324 @@
+{
+  "shoot": {
+    "variants": [
+      "957223ec532e88d127c2f1d1796359eba4835220eed7cf3b4064976fbceb6265",
+      "50b040f9f47df86c06ce52da5b5fb0861ec0cbb995fb94cfdbacfef5da73b9fa",
+      "00e3a5dad4e9e23b882c83bb193b8cc9f48121a4a32b4d017ceda1c2a4dcbea3"
+    ]
+  },
+  "shoot_enemy": {
+    "variants": [
+      "4946ad2e586706a27986623cd23cbe8102833d6da37880ad0a6d0fc85f601e5b",
+      "c99176bf1d752084f73ae94a5b43c90a6eb9710762b8f1cec88868fb527ab816",
+      "795831e876c8a8c5d4e6ff344f5a472318809ce7ec26492e1e0c0b3eca3f5588"
+    ]
+  },
+  "hit": {
+    "variants": [
+      "7299f065bf4ec20452fcddcba41622f8ce90a72810c53069e77c6df0e9099ae8",
+      "7991696d594f635eb3b6c518b8d665b70ec83a33b6621f19eec36de98c9ea3ed",
+      "1c027f2f269a90cb8f5b7a0ed8892305a6a8e83e96fe243b9b5d41b328bae6eb"
+    ]
+  },
+  "hit_critical": {
+    "variants": [
+      "dca7afdac26b952bda06596f69d509e0997d542805b4e091d730962eed1ad5a4",
+      "ee756063653cdfd03a745842e589eab974d62b4f168b8b92a7b05a03a93d13a2",
+      "e448b959f54780eb332b7565256f60bd504e2f1b83785d9782b16d24f3fda112"
+    ]
+  },
+  "explosion_small": {
+    "variants": [
+      "55f453c7092f5a7441de68787f8857d235b7a54164afb3b4140b30da8f9baeb0",
+      "c62ba0d135c905f3c7cf57ad02311a3a58536824c231c54a788d87ae0be9f414",
+      "611cbb8f0e7b7c5edbe166fafe594205feb0fd9c1c77bb6011a59fa24598f96c"
+    ]
+  },
+  "explosion_large": {
+    "variants": [
+      "344b22b3d7087f1c9380e4c91cc0fc18ff164f51dde9e76368d5acc502f6aaf2",
+      "0253bd22f8f53ab70fc45f89e073dc31bec0f1b6370e825d2dce270f860badb3",
+      "a79aedc98fb62982bff3250757a16bac539e7522606d1dcc6b725f35687158b1"
+    ]
+  },
+  "shield_hit": {
+    "variants": [
+      "36b9e38c817acaffd02afc1169e6a39acf80768b86c517b4206a992b15850c09",
+      "658229ab74f26b7078d0673dd075134125c65a0e907d2be0334b04c1d5a75201",
+      "4f5037240b83f3f2d42c1e75db3ba80cfb2178f459e1ff0258c3f8830827c8ce"
+    ]
+  },
+  "shield_break": {
+    "variants": [
+      "ce64cae2c14b022da581233c396b5e492ec4942b77d3cf0bac804e1163e33b32",
+      "a24ce1155356e39cf6e23e185cc2416dd9f6b55b0d800a51cf6ccfbf669f2cfc",
+      "5893cc744ae7cc80fa486bfa487e99764d9088d547056b3320f112a1a7937ebd"
+    ]
+  },
+  "reload": {
+    "variants": [
+      "e6ef0a4eb1e03370b69ae1602b2ec2b892c49ce43c2abb3e32b63a33ad3078d5",
+      "b44e344bc95b9f2d5bc189a3d655f9fa50535e3139e083ac9f4556c51d68a070",
+      "9f5e14e8de360c6e083571c74cdbb0c3aaf29aa831d82b16536a981519125485"
+    ]
+  },
+  "cooldown_ready": {
+    "variants": [
+      "ed0aa7c1178e180f473d52af312c085a1c155165f9870ec34b620de2f2faa2cc",
+      "9f366b1117a99ef90c0f6d2f9099481525c825afda0d1e468efad6cf182c6d0f",
+      "975f91eb9e0181cd70c913035df8511c40f523277575accc723ec22b23e08c23"
+    ]
+  },
+  "parry": {
+    "variants": [
+      "46fc57199efaf9387dad1bd71036da2cc23e5315244f189ec0508562618ef90f",
+      "82c464049c21c8a072203bdd5fc953551fae2baf674011575be15991cff46ec4",
+      "e84cc504e70a9e03341a5d08242c6c28e9b197eaa470e030db5b6cab5b1ead3f"
+    ]
+  },
+  "jump": {
+    "variants": [
+      "3db0020dadacf74db147035918824fd310a400e3009e01e3dcfebdc8d2218c8c",
+      "120992364a228699553cd52b60602c3ee7ecba2d53c8d7fe312a0198447e7421",
+      "ebba80e43f90a6e4c7683564b3252cfe591e1c09e45da985402db5651f5f4135"
+    ]
+  },
+  "land": {
+    "variants": [
+      "279bbaba873c35c51db9ca794924c33b764a22a5a28f4590fa1cd73a2be09126",
+      "7415b9ec007dc435c2d95dcaad3d3cdccd7e1734ab06c4587ece9373584a01ce",
+      "c37b9539ccbd5b52549dd4d586d254af2eed93f19f6d96cdde188b19b4762c61"
+    ]
+  },
+  "land_heavy": {
+    "variants": [
+      "13c3482367a35462450268288d8318699f10379c4ad15f0e881c2efb9fc43816",
+      "7a24743283987eec62e835fbd715adea6dbdaf43c5ef3d050d6fab30e752301f",
+      "5de027839197bd6c97a07c6d1afd0c7d0551fa3651f61bdb2e0f4f89ac2994db"
+    ]
+  },
+  "dash": {
+    "variants": [
+      "347f282b340f399a3ea7fd6db75b6c4ac90590ecacbc67ca9b769df7bafc0df7",
+      "493358cabd370b119086dccddef98c7eb7ed1ca311083f756439e0762d5368c0",
+      "b013fc6e55f7d1a7491a64697f94b8d9648633d6df6b7a99966ca252b2e59278"
+    ]
+  },
+  "wall_slide": {
+    "variants": [
+      "705d7eb8b6e372826c2f75406f21e24f405f696954e9157c57a9ccfcd31cd98a",
+      "053c557bbb5dacd88c1053b6deb30d6609a9742af1e5f8de7baa5fc932b2cc45",
+      "672421b43e67c5e408725e0b338201cf972b6cd75298919707bcb33a02d62973"
+    ]
+  },
+  "bounce": {
+    "variants": [
+      "aabe0c1dd03c6567d5a68e48737f8597face491abf0208bc3d1e1167ff95e8b4",
+      "98cc040cdae8a2746a424dc09ef1f17ae829777ef01ccba8d1c9632dee2b8fde",
+      "ae2ccf7746234b96d587feb57733302983d0cedd77d8484845175f1cc8c4fbc4"
+    ]
+  },
+  "spin_charge": {
+    "variants": [
+      "096cc5f627347f593ac52c06c9bccb2867af2be08909b04fc11a9da1ad4ea52e",
+      "16576b574967d9bdb49c4c5a6cb5226a217183e05bcd9cffe892cfc11b1625f2",
+      "ca32722974b6ecdd277937a1a310d78d733e7762f4f0cc6a633cc14b5f361ed3"
+    ]
+  },
+  "flap": {
+    "variants": [
+      "2d9754589a89f6232acbb1c1e081d011dc0451c305e381b17e10aa0e3cbf8e3c",
+      "6e1e873e348ccf6ddc3728d929df7adb741b09d1109f1cacfdddc9dab3a26c30",
+      "3456a2515789b8c16ed1cecae35f9a47a315ba19561022e5cc778be9157ffde7"
+    ]
+  },
+  "glide_loop": {
+    "variants": [
+      "26d162eb748a5220f7441cdd98c17c9cdce8908ecfc204a3662eb9691c0d09a7",
+      "dd2bab6cc3a2722290acf71ec9f3b1c06e58bbc0f283d3ba205c50368661d4d3",
+      "f28d546de12483a14ccbc340efca8cfdd9055ac0d1e8d88d39b9f7bc851db184"
+    ]
+  },
+  "wrap": {
+    "variants": [
+      "4b8fc76353bd156cd4652acfce1ab6babd8189bfa49fd08093b69199bc61ba42",
+      "1f7163b16c1c298f4360b7e5d68c148c19147469c00c9ff10fe9ff3324f87159",
+      "e0f768452244431f024d568f96da23b6551e381890022404c3fc00959197aac0"
+    ]
+  },
+  "thrust_loop": {
+    "variants": [
+      "d1974a5f8f9b38dbff96b2d7a24f92df4d588e7a1597625ae7bb9763e8a4ac6e",
+      "069d384b21abe8b8d716facaabe6a97af272355224e09016e3e07a25650179cf",
+      "50ce408c6131f9ed2914946dff2a5b619c7f4709cc54955b491fb571a8c6b4a4"
+    ]
+  },
+  "score": {
+    "variants": [
+      "4377f04f34e89208df07923ccfe826fd716cb151f97302a9c03328cdeab246ff",
+      "f3833f91698e43d4aef8b7e1af036b885cd449601321d1e42d537c7572fe3397",
+      "9e5cdf1f11213a33b04319e1eba1329492c4914af30fccece62af2cb05a352fa"
+    ]
+  },
+  "combo_up": {
+    "variants": [
+      "ddf76f52885cf3dd701a40326f7ee1329a8e43843a1d5f991e3187793f383e6a",
+      "c73d076d00e6581de49c157b6721fd0e9b74a059c390a4af4c0f0ebfb42a2764",
+      "870e0a2031e570aefa221b6bfd917ea61cc4cfad1ec9c74ca3b9c8ceccea8652"
+    ]
+  },
+  "combo_break": {
+    "variants": [
+      "0a4f539464c6bf67ffd511b422d475932214be25ea39dc2dee4d2d53c0cd5baf",
+      "603237ff7d093cb865256817202fb8558b84778d04dc27413dc0c7630c726588",
+      "910bf260a5fed9d40dc92a527bffa01674b1ad40dc5d56883deb5c82ec276aef"
+    ]
+  },
+  "powerup_pickup": {
+    "variants": [
+      "d02e0a89f294622286635279e59a9e8b2e7f63d876f9a3bd826f949726fba605",
+      "76e73aa2c4daae92a8d08c8d7ba2b1063e2520e4f693912af01a1b2f561bf8ef",
+      "c6f21fa6d538061648a01ccada890e5296ee29e5f1c62735f5172b066c3218d3"
+    ]
+  },
+  "powerup_expire": {
+    "variants": [
+      "edfc0453b1447199733f2b93992661198e30cebbd25088357e55f3ce985b8550",
+      "5727a88b83641c34d646d72594549d271078fd15ff5228fc8207149c6831ed22",
+      "4dbdf8b75ead75714aecc5e6fed01a8b6297a0ee9ddee599a00bcde196bb2697"
+    ]
+  },
+  "collectible_pickup": {
+    "variants": [
+      "54098a284e2d10bfca57e9cba15282ea585754fb213ed661f3c37483994699ba",
+      "666c3190ebb79c0fcc9eca7fcb5589875e038abbbd7683901c9baaf3d0ac0a53",
+      "50ab70b63c2f075dd0ee95e598421efc5938c9b99830ed9a4f56731906d77015"
+    ]
+  },
+  "achievement_unlock": {
+    "variants": [
+      "feb793d2a3293bbba5367dddf8992946e7d0373a1ac7bf9280f8fe03f05d19e5",
+      "7d0adea46824603b3fc5a59515d6c72112f15fc21ba35bdb5d5923b67d26ff33",
+      "51b6b2ab2a529854d3a7368eda52023a369e0c2a2b06791fc58c651f1bbb4e02"
+    ]
+  },
+  "level_up_jingle": {
+    "variants": [
+      "d3a5204804079541aca190565b17c35e3b2565f709f077cbdb3c181784231b28",
+      "347e20a416c67ec9ae355bd69ebe38f0efd5be174e7bef1abef68cd7653e661f",
+      "5f60f99a4199c8c52fb79c5b138f9b2750dda0e53654dd99626e40098ea42e99"
+    ]
+  },
+  "game_over": {
+    "variants": [
+      "2f1a4ac20d354518e3094aedd71236a151cd3f3cfc536fa412e703ba9d95d95d",
+      "87e4bb6c990a5b4e8c8e318cc41efc21c44572d0e88258203d78c24841d323e5",
+      "47de21f71d9e34a5a4da6b1d923813feeefd3df98e59cc34a02da592ca95cfb1"
+    ]
+  },
+  "wave_start": {
+    "variants": [
+      "86bce68638f7fd2a28f0624ed598109c2828effbea05860345e98ae4d7439b7f",
+      "6ecb12f3856b8b5c0c435d5214109902065074ec94d8d2370416e0fcf271ea3f",
+      "fa61ec3e25bfdc3eb8a6ddc987700815a072817ed345b43f963194483b5fb35a"
+    ]
+  },
+  "boss_incoming": {
+    "variants": [
+      "a40e4294a091fb4d3ee4be4bf1f2bbf5f795ab72d6ff6be6a643f9c074e536f8",
+      "9196d51ef5b5cb7c36ea386fc2b1c2e5e5e828eeaf042a01a8427fb0f2230360",
+      "b84c606d5b692b4497342fddc1b842af317acefa098ae24fa720903f6bb37a33"
+    ]
+  },
+  "menu_select": {
+    "variants": [
+      "a6b3a4b5afd9e1d5481ee1511f476f4b8f09305f6240a6b77ff413e6d2b9bdce",
+      "3da2a1c16c0538d28c20390e3d56d89a13803774ab8cb3141efdf7804ee49f1f",
+      "4f57d33822d19fb887ea7c800e3eaa4c32a77f150432b5d5c807381bb02e737c"
+    ]
+  },
+  "menu_confirm": {
+    "variants": [
+      "941657e5d9db6fb90e3061c57baaa0ce386f4ad759f2be74e3f18734ccae3671",
+      "015d814c40ca21cc6f86f4fa03173bc3f71bf2084644ab8775b9b49baa05870a",
+      "e0b8a2dc0f7187f3ef86559975d9841f6ac9e47683a64149a18159f1cbd31b41"
+    ]
+  },
+  "game_over_jingle": {
+    "variants": [
+      "231108cce6131a01ebada82337349d94c32ec327a6a30d114ea30e998318ff06",
+      "0f2c1a78aa2ad9f884f365632cafb19c9567a7d4005771b326f5d2ae2c89dab2",
+      "d8ab1c6fcac1c16a9372dc01e396df62b9324df7424b4f464c658bfab9c72783"
+    ]
+  },
+  "siren": {
+    "variants": [
+      "efebd48107ee4e0b3fa22a4a010a32d6e7ae1c209c25f76db080d8a248e0120e"
+    ]
+  },
+  "powerup_vibrato": {
+    "variants": [
+      "2b6406b034a55198be0104d3ccdb04405355e9ab4c9cd74ac1e6da60dbfee8fd"
+    ]
+  },
+  "filter_modulated": {
+    "variants": [
+      "095b24e3742a68c6904450b2e17317cbcdc801f213892e843f55ec2e577ea37a"
+    ]
+  },
+  "shoot_exp": {
+    "variants": [
+      "69591622be8042449addb8c5fb11b3410785d1c93a7d242fc72bc441b2ad6d44"
+    ]
+  },
+  "explosion_small_exp": {
+    "variants": [
+      "487d94df524cada476265d6831be5c2b05c894650959f5475db3edd4b081aeac"
+    ]
+  },
+  "jump_exp": {
+    "variants": [
+      "94c806005621b7ce523bfd9f3470bb3257a2373f80d0cbf37e4cd700065b7d4c"
+    ]
+  },
+  "coin_fm": {
+    "variants": [
+      "5dbe1b379d7f1ae9a4c96511baa699fecbbcca36e5a3ca7194d5fb8d02be50c6"
+    ]
+  },
+  "bell_fm": {
+    "variants": [
+      "037a6d6b34c7be9b405ef2282cc914df4b5a4b6d1ecb8ea6a438f9301579b0e5"
+    ]
+  },
+  "metallic_hit_fm": {
+    "variants": [
+      "7491a05c394d55af91161452fdc626b61e8510283cbf543816f0fbd6d4242856"
+    ]
+  },
+  "short_pad_unison": {
+    "variants": [
+      "c79223a293858a98a25e59ec0d6ef151000ced12c339fd19ad3a9884f2ffb474"
+    ]
+  },
+  "music_menu": {
+    "variants": [
+      "e8e3e7b8d7e0b79ed3330db481a6a8c3cf87b3761817358dae8c025728a0e6bc"
+    ]
+  },
+  "music_tense_level": {
+    "variants": [
+      "58ec2a6446ead9f0d908617d5acf102637be54cf12e619be77a67c7e2e03287f"
+    ]
+  },
+  "music_sections_demo": {
+    "variants": [
+      "50d74ff65139655c23b7d5795ac27e61f94c6a9eab3f793d058e9f2abacd2d62"
+    ]
+  },
+  "music_game_over": {
+    "variants": [
+      "3b6bbb1ff8ae1f9ebd390d2f304722d3b14422cbee15a87c652157b7e73539f9"
+    ]
+  }
+}

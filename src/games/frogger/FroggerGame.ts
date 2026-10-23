@@ -303,6 +303,7 @@ export class FroggerGame extends BaseGame<
           isWin: state.isWin,
           occupiedLilyPads: state.occupiedLilyPads,
           totalLilyPads: state.totalLilyPads,
+          timeRemaining: state.timeRemaining,
         };
       }
     }
@@ -314,6 +315,7 @@ export class FroggerGame extends BaseGame<
       isWin: false,
       occupiedLilyPads: 0,
       totalLilyPads: this.config.TOTAL_LILY_PADS,
+      timeRemaining: this.config.FROG_TIME_LIMIT ?? 30,
     };
   }
 

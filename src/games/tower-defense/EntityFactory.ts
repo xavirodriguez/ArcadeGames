@@ -36,25 +36,26 @@ export function createPlayerComponent(selectedTowerType: string | null = "basic"
 }
 
 const CREEP_MIN_RENDER_SIZES: Readonly<Record<string, number>> = {
-  grunt: 18,
-  fast: 16,
-  tank: 26,
-  boss: 36,
+  grunt: 28,
+  fast: 26,
+  tank: 34,
+  boss: 44,
 };
 
 const CREEP_MAX_RENDER_SIZES: Readonly<Record<string, number>> = {
-  grunt: 24,
-  fast: 22,
-  tank: 32,
-  boss: 38,
+  grunt: 34,
+  fast: 32,
+  tank: 40,
+  boss: 52,
 };
 
 /** Keeps enemies readable on a 40px path tile without inflating their colliders. */
 export function getCreepRenderSize(creepType: string, configuredSize: number): number {
-  const minimum = CREEP_MIN_RENDER_SIZES[creepType] ?? 18;
-  const maximum = CREEP_MAX_RENDER_SIZES[creepType] ?? 30;
+  const minimum = CREEP_MIN_RENDER_SIZES[creepType] ?? 28;
+  const maximum = CREEP_MAX_RENDER_SIZES[creepType] ?? 36;
+  // Stronger scale so creeps stay visible on dark path + space debris.
   const scaledSize = Number.isFinite(configuredSize) && configuredSize > 0
-    ? configuredSize * 1.45
+    ? configuredSize * 2.15
     : minimum;
   return Math.min(maximum, Math.max(minimum, scaledSize));
 }

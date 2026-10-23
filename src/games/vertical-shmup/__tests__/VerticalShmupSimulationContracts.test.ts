@@ -90,8 +90,9 @@ describe("Vertical Shmup simulation contracts (P0)", () => {
     const inputAfterRelease = game.world.getComponent(player, "Input");
     if (!inputAfterRelease) throw new Error("Expected player input after key release");
     expect(inputAfterRelease.actions).not.toContain("shoot");
-    expect(inputAfterRelease.axes.moveX).toBe(1);
-    expect(inputAfterRelease.axes.moveY).toBe(-1);
+    // ShmupInputSystem stores the normalized diagonal back into the ECS input component.
+    expect(inputAfterRelease.axes.moveX).toBeCloseTo(1 / Math.sqrt(2), 8);
+    expect(inputAfterRelease.axes.moveY).toBeCloseTo(-1 / Math.sqrt(2), 8);
   });
 
   it("exposes the vertical world dimensions to the renderer viewport contract", async () => {

@@ -14,7 +14,7 @@ import { HitRunCombatSystem } from "./HitRunCombatSystem";
 import { HitRunOrphanEnemyCleanupSystem } from "./HitRunOrphanEnemyCleanupSystem";
 
 /**
- * Removes non-player entities marked Dead.
+ * Processes explicit EnemyDeathState phase on dead non-player entities before removing or reclaiming.
  */
 class HitRunDeadCleanupSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, _dt: number): void {
@@ -23,7 +23,43 @@ class HitRunDeadCleanupSystem extends System<CoreComponentRegistry> {
       const e = dead[i];
       if (world.hasComponent(e, "PlatformerInput")) continue;
       if (world.hasComponent(e, "BeltInput")) continue;
-      world.commands.removeEntity(e);
+      if (world.hasComponent(e, "HitRunPow")) continue;
+
+      if (!world.hasComponent(e, "EnemyDeathState")) {
+        world.getCommandBuffer().addComponent(e, {
+          type: "EnemyDeathState",
+          timer: 0.35,
+          phase: "dying"
+        } as never);
+        if (world.hasComponent(e, "Collider2D")) {
+          world.mutateComponent(e, "Collider2D", (c) => {
+            c.enabled = false;
+          });
+        }
+        if (world.hasComponent(e, "Hurtbox")) {
+          world.getCommandBuffer().removeComponent(e, "Hurtbox");
+        }
+      } else {
+        const deathState = world.getMutableComponent(e, "EnemyDeathState") as
+          | { timer: number; phase: string }
+          | undefined;
+        if (deathState) {
+          deathState.timer -= _dt;
+          if (deathState.timer <= 0) {
+            const reclaimable = world.getComponent(e, "Reclaimable");
+            if (reclaimable) {
+              const pool = world.getResource<{ releaseEnemy: (w: World<CoreComponentRegistry>, entity: number) => void }>(
+                reclaimable.poolId
+              );
+              if (pool) {
+                pool.releaseEnemy(world, e);
+                continue;
+              }
+            }
+            world.commands.removeEntity(e);
+          }
+        }
+      }
     }
   }
 }

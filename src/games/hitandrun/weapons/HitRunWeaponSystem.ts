@@ -87,6 +87,20 @@ export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
       });
 
       if (spawned > 0) {
+        if (
+          weaponState.ammoCurrent !== undefined &&
+          weaponState.ammoCurrent !== Number.POSITIVE_INFINITY
+        ) {
+          weaponState.ammoCurrent = Math.max(0, weaponState.ammoCurrent - 1);
+          if (weaponState.ammoCurrent <= 0) {
+            const fallback = weaponState.fallbackWeaponId ?? "longbow";
+            const fallbackDef = getWeaponDefinition(fallback);
+            weaponState.weaponId = fallback;
+            weaponState.ammoMax = fallbackDef.ammoMax ?? Number.POSITIVE_INFINITY;
+            weaponState.ammoCurrent = weaponState.ammoMax;
+          }
+        }
+
         applyRecoil(world, entity, dirX, dirY, def.recoilImpulse);
         weaponState.cooldownRemaining = def.cooldownDuration;
         weaponState.muzzleFlashRemaining = 0.06;

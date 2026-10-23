@@ -192,6 +192,65 @@ describe("Vertical Shmup simulation contracts (P0)", () => {
     expect(result.projectileAlive).toBe(false);
   });
 
+  it("uses seeded gameplay randomness for enemy pattern cooldowns", async () => {
+    const createSeededGame = async (): Promise<VerticalShmupGame> => {
+      const game = new VerticalShmupGame({ headless: true, manualLoop: true, gameOptions: { seed: 731 } });
+      games.push(game);
+      await game.init();
+      return game;
+    };
+
+    const firstGame = await createSeededGame();
+    const secondGame = await createSeededGame();
+    const firstEnemy = createEnemy(firstGame.world, 100, 100, "straight", 1);
+    const secondEnemy = createEnemy(secondGame.world, 100, 100, "straight", 1);
+    const firstPattern = firstGame.world.getComponent(firstEnemy, "BulletPattern");
+    const secondPattern = secondGame.world.getComponent(secondEnemy, "BulletPattern");
+
+    expect(firstPattern?.cooldownRemaining).toBe(secondPattern?.cooldownRemaining);
+    expect(firstPattern?.cooldownRemaining).toBeGreaterThanOrEqual(0.8);
+    expect(firstPattern?.cooldownRemaining).toBeLessThan(1.3);
+  });
+
+  it("limits a player to one enemy-projectile hit per simulation tick", async () => {
+    const game = await createGame();
+    const world = game.world;
+    const player = requirePlayer(game);
+    const config = world.getResource<ShmupConfig>("GameConfig");
+    const pool = world.getResource<EnemyBulletPool>("EnemyBulletPool");
+    const transform = world.getMutableComponent(player, "Transform");
+    if (!config || !pool || !transform) throw new Error("Expected player and game configuration");
+
+    transform.x = config.WORLD_WIDTH / 2;
+    transform.y = config.WORLD_HEIGHT / 2;
+    transform.dirty = true;
+    createEnemyBullet(world, transform.x, transform.y, 0, 0, pool);
+    createEnemyBullet(world, transform.x + 1, transform.y, 0, 0, pool);
+
+    game.update(0);
+
+    expect(world.getComponent(player, "Health")?.current).toBe(2);
+    expect(world.getComponent(player, "Health")?.invulnerableRemaining).toBe(1.5);
+  });
+
+  it("does not repeat death effects or allow movement after Game Over", async () => {
+    const game = await createGame();
+    const world = game.world;
+    const player = requirePlayer(game);
+    world.mutateComponent(player, "Health", health => {
+      health.current = 0;
+    });
+    game.setInputState({ moveX: 1, moveY: -1, shoot: true });
+    game.update(0);
+
+    expect(game.getGameState().isGameOver).toBe(true);
+    const entityCountAfterDeath = world.entities.length;
+
+    game.update(0);
+    expect(world.entities.length).toBe(entityCountAfterDeath);
+    expect(world.getComponent(player, "Velocity")).toMatchObject({ vx: 0, vy: 0 });
+  });
+
   it("fires on the 150 ms cadence without losing elapsed time at variable frame rates", async () => {
     const runForOneSecond = async (steps: number[]): Promise<number> => {
       const game = await createGame();

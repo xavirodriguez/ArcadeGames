@@ -43,7 +43,7 @@ describe("Iceberg atmosphere (Phase 3)", () => {
   it("polar ocean fills when iceberg theme is active", () => {
     const world = new World();
     world.setResource("Theme", icebergMod.createTheme(createThemeFromGameAccents("asteroids")));
-    (world as { tick: number }).tick = 12;
+    Object.defineProperty(world, "tick", { value: 12, configurable: true });
 
     const { ctx, drawCalls } = createMockContext();
     PolarOceanBackgroundEffect.draw(ctx, world as never);
@@ -57,7 +57,7 @@ describe("Iceberg atmosphere (Phase 3)", () => {
   it("aurora draws polygonal ribbons", () => {
     const world = new World();
     world.setResource("Theme", icebergMod.createTheme(createThemeFromGameAccents("asteroids")));
-    (world as { tick: number }).tick = 40;
+    Object.defineProperty(world, "tick", { value: 40, configurable: true });
 
     const { ctx, drawCalls } = createMockContext();
     GeometricAuroraBackgroundEffect.draw(ctx, world as never);

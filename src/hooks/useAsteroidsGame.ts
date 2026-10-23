@@ -19,7 +19,13 @@ const expoAssetProvider = new ExpoAssetProvider();
  * y configuración del modo multijugador.
  */
 
-export function useAsteroidsGame(started: boolean, isMultiplayer: boolean = false, seed?: number, mode: "deathmatch" | "story" = "deathmatch") {
+export function useAsteroidsGame(
+  started: boolean,
+  isMultiplayer: boolean = false,
+  seed?: number,
+  mode: "deathmatch" | "story" = "deathmatch",
+  visualMod: "classic" | "iceberg" = "classic"
+) {
   const [mutators, setMutators] = useState<Mutator[] | null>(null);
 
   useEffect(() => {
@@ -33,8 +39,9 @@ export function useAsteroidsGame(started: boolean, isMultiplayer: boolean = fals
 
   const memoizedGameOptions = useMemo(() => ({
     mutators: mutators || [],
-    mode
-  }), [mutators, mode]);
+    mode,
+    mod: visualMod
+  }), [mutators, mode, visualMod]);
 
   const { game, gameState, isPaused, isReady, handleInput, togglePause, restart } =
     useGame<AsteroidsGame, GameStateComponent, InputState>(

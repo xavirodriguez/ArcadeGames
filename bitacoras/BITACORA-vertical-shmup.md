@@ -126,3 +126,6 @@ Después de corregir fallos, ejecutar la suite completa mediante `pnpm test:ci`.
 - Para evitar una suite sin ejecución automática, se añadió al workflow `.github/workflows/ci.yml` un paso dedicado: `pnpm exec jest --config src/games/vertical-shmup/jest.config.cjs --runInBand`.
 - El PR #860 activó CI; la etapa de build general había terminado correctamente en la primera ejecución. La prueba directa del juego se ejecutará en la nueva ejecución desencadenada por este cambio.
 - **Estado final de Jest:** pendiente de la traza de GitHub Actions. No declarar la suite verde hasta que termine el paso dedicado.
+
+
+- Afinación del comando de CI: el paso usa el filtro `--testPathPattern='src/games/vertical-shmup/__tests__'` para ejecutar la suite de este juego y no iniciar accidentalmente todos los tests del monorepo con su configuración parcial de alias.

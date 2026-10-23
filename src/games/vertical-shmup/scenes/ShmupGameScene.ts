@@ -8,6 +8,7 @@ import { ShmupPlayerBoundarySystem } from "../systems/ShmupPlayerBoundarySystem"
 import { ScrollSystem } from "../systems/ScrollSystem";
 import { EnemyPathSystem } from "../systems/EnemyPathSystem";
 import { ShmupCollisionSystem } from "../systems/ShmupCollisionSystem";
+import { ShmupSingleHitGuardSystem } from "../systems/ShmupSingleHitGuardSystem";
 import { ShmupBulletPatternSystem } from "../systems/BulletPatternSystem";
 import { ShmupSpawnSystem } from "../systems/ShmupSpawnSystem";
 import { createPlayer, createEnemy } from "../EntityFactory";
@@ -71,6 +72,7 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
     this.world.addSystem(new HierarchySystem() as System<ShmupComponentRegistry>, { phase: SystemPhase.Transform });
     this.world.addSystem(new SpatialPartitioningSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
+    this.world.addSystem(new ShmupSingleHitGuardSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new ShmupBulletPatternSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new ShmupCollisionSystem(), { phase: SystemPhase.GameRules });

@@ -179,7 +179,7 @@ describe("Vertical Shmup simulation contracts (P0)", () => {
           collider.enabled = false;
         });
       }
-      game.setInputState({ actions: new Set(["shoot"]) });
+      game.setInputState({ actions: ["shoot"] });
 
       for (const deltaTime of steps) game.update(deltaTime);
       return acquireBullet.mock.calls.length;

@@ -39,4 +39,4 @@ jobs:
         run: pnpm exec turbo run test
 
       - name: Run vertical-shmup P0 TDD integration tests
-        run: pnpm exec jest --config src/games/vertical-shmup/jest.config.cjs --runInBand
+        run: pnpm exec jest --config src/games/vertical-shmup/jest.config.cjs --runInBand --testPathPattern='src/games/vertical-shmup/__tests__'

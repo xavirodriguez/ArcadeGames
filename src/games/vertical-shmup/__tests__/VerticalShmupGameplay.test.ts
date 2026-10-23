@@ -1,6 +1,7 @@
 import { VerticalShmupGame } from "../VerticalShmupGame";
 import { createEnemy } from "../EntityFactory";
 import { BoundarySystem } from "@tiny-aster/core";
+import type { ShmupConfig } from "../types/ShmupConfigSchema";
 
 describe("VerticalShmup Gameplay Systems & Mechanics", () => {
   let game: VerticalShmupGame;
@@ -72,7 +73,9 @@ describe("VerticalShmup Gameplay Systems & Mechanics", () => {
 
   it("reclaims offscreen enemies passing boundary max bounds", () => {
     const world = game.getWorld();
-    const enemy = createEnemy(world, 200, 1000, "straight", 1); // Placed far below WORLD_HEIGHT (854)
+    const config = world.getResource<ShmupConfig>("GameConfig")!;
+    const maxY = (config.WORLD_HEIGHT ?? 1280) + (config.OFFSCREEN_MARGIN ?? 80) * 2;
+    const enemy = createEnemy(world, 200, maxY, "straight", 1);
 
     expect(world.hasEntity(enemy)).toBe(true);
 

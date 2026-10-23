@@ -362,6 +362,29 @@ export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<
     fragment: "#00f0ff",
     core: "#fbbf24",
     node: "#10b981",
+
+    // Vertical Shmup ("Fantasía aérea anime") role tokens
+    shmup_sky_deep: "#14294F",
+    shmup_sky_mid: "#3477B8",
+    shmup_sky_light: "#8FD6F5",
+    shmup_cloud_shadow: "#777FBE",
+    shmup_cloud_light: "#FFF4E6",
+    shmup_foliage_deep: "#235A58",
+    shmup_foliage_mid: "#4BAA91",
+    shmup_foliage_light: "#A4E5B6",
+    shmup_blossom: "#F5A6D2",
+    shmup_architecture: "#394A70",
+    shmup_gold_sunlight: "#FFD18A",
+    shmup_player_primary: "#55E8FF",
+    shmup_player_core: "#F3FCFF",
+    shmup_player_secondary: "#3F8DFF",
+    shmup_enemy_primary: "#302B72",
+    shmup_enemy_accent: "#F25DBB",
+    shmup_bullet_warm: "#FF6B65",
+    shmup_bullet_hot: "#FFAA45",
+    shmup_bullet_special: "#FF4FBF",
+    shmup_warning: "#FFD166",
+    shmup_pickup: "#76F7C5",
   };
 
   const visualTheme: VisualTheme = createVisualTheme(

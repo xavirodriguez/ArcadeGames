@@ -17,7 +17,7 @@ export function createPlayer(world: World<ShmupComponentRegistry>, x: number, y:
     .withCollider({ shape: { type: ShapeType.Circle, radius: c.PLAYER_COLLIDER_RADIUS } as CircleShape, layer: CollisionLayers.PLAYER, mask: CollisionLayers.ENEMY })
     .withCollisionEvents();
   world.addComponent(e, { type: "ShmupPlayer" });
-  world.addComponent(e, { type: "Input", axes: {}, actions: new Set<string>(), shootCooldownRemaining: 0 });
+  world.addComponent(e, { type: "Input", axes: {}, actions: [], shootCooldownRemaining: 0 });
   world.addComponent(e, { type: "Health", current: 3, max: 3, invulnerableRemaining: 0 });
   world.addComponent(e, { type: "Faction", faction: "player", value: "player" });
   world.addComponent(e, {

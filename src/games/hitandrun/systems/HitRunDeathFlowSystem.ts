@@ -8,6 +8,7 @@ import {
   CoreComponentRegistry,
   RunState
 } from "@tiny-aster/core";
+import { getWeaponDefinition } from "../weapons/HitRunWeaponCatalog";
 import type { EventBus } from "@tiny-aster/core";
 
 export interface HitRunDeathFlowState {
@@ -46,6 +47,21 @@ export class HitRunDeathFlowSystem extends System<CoreComponentRegistry> {
       flow.remaining = SLOW_MO_DURATION;
       flow.requestRestart = false;
       world.setResource("TimeScale", SLOW_MO_SCALE);
+
+      // Reset player weapon to fallback upon death (G3.1)
+      const players = world.query("HitRunWeapon");
+      for (let p = 0; p < players.length; p++) {
+        const weaponState = world.getMutableComponent(players[p], "HitRunWeapon") as
+          | import("../weapons/HitRunWeaponTypes").HitRunWeaponState
+          | undefined;
+        if (weaponState) {
+          const fallback = weaponState.fallbackWeaponId ?? "longbow";
+          const fallbackDef = getWeaponDefinition(fallback);
+          weaponState.weaponId = fallback;
+          weaponState.ammoMax = fallbackDef.ammoMax ?? Number.POSITIVE_INFINITY;
+          weaponState.ammoCurrent = weaponState.ammoMax;
+        }
+      }
 
       const rs = world.getResource<RunState>("RunState");
       if (rs) rs.deaths = (rs.deaths ?? 0) + 1;

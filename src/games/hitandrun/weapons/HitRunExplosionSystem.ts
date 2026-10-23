@@ -73,9 +73,14 @@ export class HitRunExplosionSystem extends CombatHitListenerSystem<CombatHitLike
         mut.detonated = true;
       }
 
+      const sourceElev = world.getComponent(source, "BeltElevation") as
+        | { z?: number }
+        | undefined;
+
       const explosion: CombatExplosionPayload = {
         x: transform.worldX ?? transform.x,
         y: transform.worldY ?? transform.y,
+        z: sourceElev?.z ?? 0,
         radius: payload.radius,
         damage: payload.damage,
         sourceEntity: source,
@@ -123,11 +128,20 @@ export class HitRunExplosionSystem extends CombatHitListenerSystem<CombatHitLike
         const tr = world.getComponent(entity, "Transform");
         if (!tr) continue;
 
+        const targetElev = world.getComponent(entity, "BeltElevation") as
+          | { z?: number }
+          | undefined;
+
         const ex = tr.worldX ?? tr.x;
         const ey = tr.worldY ?? tr.y;
+        const ez = targetElev?.z ?? 0;
+        const bz = boom.z ?? 0;
+
         const dx = ex - boom.x;
         const dy = ey - boom.y;
-        if (dx * dx + dy * dy > r2) continue;
+        const dz = ez - bz;
+
+        if (dx * dx + dy * dy + dz * dz > r2) continue;
 
         this.scratchTargets.push(entity);
       }

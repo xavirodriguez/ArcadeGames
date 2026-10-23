@@ -23,6 +23,7 @@ export interface HitRunWeaponDefinition {
   explosionRadius: number;
   explosionDamage: number;
   recoilImpulse: number;
+  ammoMax?: number;
 }
 
 export interface HitRunBulletParams {
@@ -58,6 +59,7 @@ export interface ExplosivePayloadComponent {
 export interface CombatExplosionPayload {
   x: number;
   y: number;
+  z?: number;
   radius: number;
   damage: number;
   sourceEntity?: Entity;
@@ -69,6 +71,9 @@ export interface HitRunWeaponState {
   type: "HitRunWeapon";
   weaponId: HitRunWeaponId;
   cooldownRemaining: number;
+  ammoCurrent?: number;
+  ammoMax?: number;
+  fallbackWeaponId?: HitRunWeaponId;
   /** Presentación: frames restantes de muzzle flash (no afecta sim neta). */
   muzzleFlashRemaining?: number;
 }

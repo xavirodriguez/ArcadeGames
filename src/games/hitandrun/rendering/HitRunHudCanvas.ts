@@ -179,10 +179,14 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
 
     const weaponId = (weapon?.weaponId ?? "longbow").toUpperCase();
     const cd = weapon?.cooldownRemaining ?? 0;
+    const ammoCur = weapon?.ammoCurrent ?? Number.POSITIVE_INFINITY;
+    const ammoMax = weapon?.ammoMax ?? Number.POSITIVE_INFINITY;
+    const ammoText = ammoCur === Number.POSITIVE_INFINITY ? "∞" : `${ammoCur}/${ammoMax}`;
+
     ctx.font = "bold 12px 'Share Tech Mono', monospace";
     ctx.textAlign = "left";
     ctx.fillStyle = HIT_PALETTE.hitRunYellow;
-    ctx.fillText(weaponId, startX + maxHp * (pipW + 6) + 16, 22);
+    ctx.fillText(`${weaponId} [${ammoText}]`, startX + maxHp * (pipW + 6) + 16, 22);
     if (cd > 0.02) {
       ctx.fillStyle = colors.textMuted;
       ctx.fillRect(startX + maxHp * (pipW + 6) + 16, 26, 40 * Math.min(1, cd / 0.2), 3);
@@ -210,10 +214,41 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
       ctx.fillText(`SPAWNED ${wave.totalSpawned}`, w * 0.5, 42);
     }
 
+    const scoreState = world.getResource("HitRunScoreState") as
+      | { score: number; comboMultiplier: number; popups: Array<any> }
+      | undefined;
+    const displayScore = scoreState?.score ?? score;
+    const comboMult = scoreState?.comboMultiplier ?? 1;
+
     ctx.textAlign = "right";
     ctx.font = "bold 14px 'Share Tech Mono', monospace";
     ctx.fillStyle = colors.neutral[200];
-    ctx.fillText(String(score).padStart(6, "0"), w - 16, 22);
+    ctx.fillText(String(displayScore).padStart(6, "0"), w - 16, 22);
+
+    if (comboMult > 1) {
+      ctx.font = "bold 11px 'Share Tech Mono', monospace";
+      ctx.fillStyle = HIT_PALETTE.hitRunRed;
+      ctx.fillText(`COMBO x${comboMult.toFixed(1)}`, w - 16, 36);
+    }
+
+    // Floating score popups
+    const popupPool = (scoreState as any)?.popupPool;
+    if (popupPool && popupPool.length > 0) {
+      ctx.save();
+      ctx.textAlign = "center";
+      ctx.font = "bold 13px 'Share Tech Mono', monospace";
+      for (let i = 0; i < popupPool.length; i++) {
+        const p = popupPool[i];
+        if (!p.active) continue;
+        const sx = p.x - cam.x;
+        const sy = p.y - cam.y;
+        if (sx < -50 || sx > w + 50 || sy < -50 || sy > h + 50) continue;
+        ctx.globalAlpha = p.opacity;
+        ctx.fillStyle = p.color;
+        ctx.fillText(p.text, sx, sy);
+      }
+      ctx.restore();
+    }
 
     if (banner && banner.remaining > 0) {
       const a = Math.min(1, banner.remaining / 0.35);

@@ -4,6 +4,7 @@ import { ShmupComponentRegistry } from "./types/ShmupTypes";
 import { ShmupConfig } from "./types/ShmupConfigSchema";
 import { PlayerBulletPool, EnemyBulletPool } from "./EntityPool";
 import { getGameplayColor } from "../../theme/GameplayColorMap";
+import { SHMUP_COLOR_TOKENS } from "./rendering/ShmupColorTokens";
 import type { BulletPatternConfig } from "../shared/BulletPatternSystem";
 
 function nextGameplayRandom(world: World<ShmupComponentRegistry>): number {
@@ -17,14 +18,13 @@ function nextGameplayRandom(world: World<ShmupComponentRegistry>): number {
   }
 }
 
-
 export function createPlayer(world: World<ShmupComponentRegistry>, x: number, y: number): Entity {
   const c = world.getResource<ShmupConfig>("GameConfig")!;
   const e = world.createEntity();
   EntityBuilder.fromEntity(world, e)
     .withTransform({ x, y })
     .withVelocity()
-    .withRender({ shape: "shmup_player", size: c.PLAYER_SIZE, color: getGameplayColor("Player", world), order: 5 })
+    .withRender({ shape: "shmup_player", size: c.PLAYER_SIZE, color: SHMUP_COLOR_TOKENS.player.primary, order: 5 })
     .withCollider({ shape: { type: ShapeType.Circle, radius: c.PLAYER_COLLIDER_RADIUS } as CircleShape, layer: CollisionLayers.PLAYER, mask: CollisionLayers.ENEMY })
     .withCollisionEvents();
   world.addComponent(e, { type: "ShmupPlayer" });
@@ -62,7 +62,7 @@ export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: 
   }
 
   const waveMult = 1 + (wave - 1) * 0.15;
-  const baseBulletSpeed = c.ENEMY_BULLET_SPEED ?? 250;
+  const baseBulletSpeed = c.ENEMY_BULLET_SPEED ?? 280;
   const patternConfigs: Record<string, BulletPatternConfig> = {
     straight: { kind: "aimed", bulletCount: 1, speed: baseBulletSpeed * Math.min(1.5, waveMult), ratePerSec: 0.8 * waveMult },
     sine: { kind: "spread", bulletCount: 3, speed: baseBulletSpeed * 0.9 * Math.min(1.5, waveMult), ratePerSec: 0.6 * waveMult, arcDegrees: 45 },
@@ -109,7 +109,7 @@ export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: 
     muzzleFlashFrames: 0,
     shape: "shmup_enemy",
     size: c.ENEMY_SIZE,
-    color: getGameplayColor("Enemy", world)
+    color: SHMUP_COLOR_TOKENS.enemy.primary
   });
   add({
     type: "Collider",
@@ -131,7 +131,7 @@ export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: 
   add({ type: "ShmupEnemy", score: scaledScore });
   add({ type: "Health", current: scaledHp, max: scaledHp });
   add({ type: "Faction", faction: "enemy", value: "enemy" });
-  add({ type: "EnemyPath", kind, elapsed: 0, duration: pathDuration, speed: enemySpeed, amplitude: 90, frequency: 1.8, originX: x, originY: y });
+  add({ type: "EnemyPath", kind, elapsed: 0, duration: pathDuration, speed: enemySpeed, amplitude: 120, frequency: 1.8, originX: x, originY: y });
   add({
     type: "Boundary",
     minX: -c.OFFSCREEN_MARGIN,
@@ -154,10 +154,35 @@ export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: 
 
 export function createPlayerBullet(world: World<ShmupComponentRegistry>, x: number, y: number, pool: PlayerBulletPool): Entity {
   const c = world.getResource<ShmupConfig>("GameConfig");
-  return pool.acquireBullet(world, { x, y, dx: 0, dy: -(c?.PLAYER_BULLET_SPEED ?? 650), size: c?.PLAYER_BULLET_SIZE ?? 4, color: getGameplayColor("PlayerProjectile", world), ttl: c?.PLAYER_BULLET_TTL ?? 2 });
+  return pool.acquireBullet(world, {
+    x,
+    y,
+    dx: 0,
+    dy: -(c?.PLAYER_BULLET_SPEED ?? 850),
+    size: c?.PLAYER_BULLET_SIZE ?? 6,
+    color: SHMUP_COLOR_TOKENS.player.primary,
+    ttl: c?.PLAYER_BULLET_TTL ?? 2.5
+  });
 }
 
-export function createEnemyBullet(world: World<ShmupComponentRegistry>, x: number, y: number, dx: number, dy: number, pool: EnemyBulletPool): Entity {
+export function createEnemyBullet(
+  world: World<ShmupComponentRegistry>,
+  x: number,
+  y: number,
+  dx: number,
+  dy: number,
+  pool: EnemyBulletPool,
+  colorOverride?: string
+): Entity {
   const c = world.getResource<ShmupConfig>("GameConfig");
-  return pool.acquireBullet(world, { x, y, dx, dy, size: c?.ENEMY_BULLET_SIZE ?? 4, color: getGameplayColor("EnemyProjectile", world), ttl: c?.ENEMY_BULLET_TTL ?? 5 });
+  const bulletColor = colorOverride ?? SHMUP_COLOR_TOKENS.bullet.warm;
+  return pool.acquireBullet(world, {
+    x,
+    y,
+    dx,
+    dy,
+    size: c?.ENEMY_BULLET_SIZE ?? 6,
+    color: bulletColor,
+    ttl: c?.ENEMY_BULLET_TTL ?? 6
+  });
 }

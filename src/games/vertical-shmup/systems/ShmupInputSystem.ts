@@ -22,7 +22,6 @@ export class ShmupInputSystem extends System<ShmupComponentRegistry, ShmupEventR
 
       if (!input || !transform || !velocity) continue;
 
-      // Update invulnerability remaining duration
       if (health && health.invulnerableRemaining !== undefined && health.invulnerableRemaining > 0) {
         health.invulnerableRemaining = Math.max(0, health.invulnerableRemaining - deltaTime);
       }
@@ -32,6 +31,13 @@ export class ShmupInputSystem extends System<ShmupComponentRegistry, ShmupEventR
       if (touchState && (touchState.moveX !== 0 || touchState.moveY !== 0)) {
         moveX = touchState.moveX;
         moveY = touchState.moveY;
+      }
+
+      // Keep the same top speed in all directions, including keyboard and touch diagonals.
+      const inputMagnitude = Math.hypot(moveX, moveY);
+      if (inputMagnitude > 1) {
+        moveX /= inputMagnitude;
+        moveY /= inputMagnitude;
       }
 
       const hasAction = (actions: unknown): boolean => {
@@ -47,7 +53,6 @@ export class ShmupInputSystem extends System<ShmupComponentRegistry, ShmupEventR
       velocity.vx = moveX * config.PLAYER_SPEED;
       velocity.vy = moveY * config.PLAYER_SPEED;
 
-      // Clamp player strictly inside world boundaries to prevent rubber-banding
       const minX = config.PLAYER_SIZE;
       const maxX = config.WORLD_WIDTH - config.PLAYER_SIZE;
       const minY = config.PLAYER_SIZE;

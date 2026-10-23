@@ -22,6 +22,12 @@ export class ShmupInputSystem extends System<ShmupComponentRegistry, ShmupEventR
 
       if (!input || !transform || !velocity) continue;
 
+      if (world.getSingleton("ShmupGameState")?.isGameOver === true) {
+        velocity.vx = 0;
+        velocity.vy = 0;
+        continue;
+      }
+
       if (health && health.invulnerableRemaining !== undefined && health.invulnerableRemaining > 0) {
         health.invulnerableRemaining = Math.max(0, health.invulnerableRemaining - deltaTime);
       }

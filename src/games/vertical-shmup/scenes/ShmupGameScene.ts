@@ -4,7 +4,6 @@ import { ShmupComponentRegistry } from "../types/ShmupTypes";
 import { ShmupConfig } from "../types/ShmupConfigSchema";
 import { PlayerBulletPool, EnemyBulletPool } from "../EntityPool";
 import { ShmupInputSystem } from "../systems/ShmupInputSystem";
-import { ShmupPlayerBoundarySystem } from "../systems/ShmupPlayerBoundarySystem";
 import { ScrollSystem } from "../systems/ScrollSystem";
 import { EnemyPathSystem } from "../systems/EnemyPathSystem";
 import { ShmupCollisionSystem } from "../systems/ShmupCollisionSystem";
@@ -62,7 +61,6 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
   private registerSystems(): void {
     this.world.addSystem(new ShmupInputSystem(), { phase: SystemPhase.Input });
     this.world.addSystem(new MovementSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new ShmupPlayerBoundarySystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new EnemyPathSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new ShmupSpawnSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new ScrollSystem(), { phase: SystemPhase.Simulation });

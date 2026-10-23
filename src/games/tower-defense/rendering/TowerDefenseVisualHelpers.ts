@@ -64,15 +64,16 @@ export function resolveCreepAnimationState(
 ): CreepAnimationState {
   const elapsed = world.getResource<TowerDefenseVisualEffects>("TowerDefenseVisualEffects")?.elapsedSeconds ?? 0;
   const rate = type === "fast" ? 12 : type === "tank" ? 3.4 : type === "boss" ? 2.2 : 6.2;
-  const amplitude = type === "tank" ? 0.55 : type === "boss" ? 1.15 : type === "fast" ? 1.45 : 0.9;
+  // Slightly stronger bob so motion reads clearly even on busy backgrounds.
+  const amplitude = type === "tank" ? 0.9 : type === "boss" ? 1.6 : type === "fast" ? 2.0 : 1.35;
   const phase = elapsed * rate + entity * 0.73;
   const bob = Math.sin(phase);
   return {
-    offsetX: type === "fast" ? Math.cos(phase) * 0.65 : 0,
+    offsetX: type === "fast" ? Math.cos(phase) * 0.9 : 0,
     offsetY: bob * amplitude,
-    scaleX: 1 + Math.sin(phase * 0.7) * (type === "boss" ? 0.025 : 0.018),
-    scaleY: 1 - Math.sin(phase * 0.7) * (type === "boss" ? 0.025 : 0.018),
-    rotation: type === "fast" ? bob * 0.025 : type === "boss" ? Math.sin(elapsed * 1.6 + entity) * 0.018 : 0,
+    scaleX: 1 + Math.sin(phase * 0.7) * (type === "boss" ? 0.04 : 0.028),
+    scaleY: 1 - Math.sin(phase * 0.7) * (type === "boss" ? 0.04 : 0.028),
+    rotation: type === "fast" ? bob * 0.04 : type === "boss" ? Math.sin(elapsed * 1.6 + entity) * 0.028 : 0,
   };
 }
 export interface CreepVisualState {
@@ -94,46 +95,47 @@ export function resolveCreepVisualState(
   const size = render?.size ?? defaultSize;
   const slowed = (creep?.slowRemainingMs ?? 0) > 0;
 
+  // High-contrast fallbacks so creeps never blend into the dark path / space debris.
   if (type === "grunt") {
     const fill = slowed
-      ? resolveThemeColorWithFallback(world, colors.cyan, "creep_slowed")
-      : resolveThemeColorWithFallback(world, colors.orange, "creep_grunt", "enemy");
+      ? resolveThemeColorWithFallback(world, "#5eead4", "creep_slowed")
+      : resolveThemeColorWithFallback(world, "#ff8a3d", "creep_grunt", "enemy");
     const stroke = slowed
-      ? resolveThemeColorWithFallback(world, colors.cyan, "creep_slowed_stroke")
-      : resolveThemeColorWithFallback(world, colors.amber, "creep_grunt_stroke");
+      ? resolveThemeColorWithFallback(world, "#99f6e4", "creep_slowed_stroke")
+      : resolveThemeColorWithFallback(world, "#ffe566", "creep_grunt_stroke");
     return { size, slowed, fill, stroke };
   }
 
   if (type === "fast") {
     const fill = slowed
-      ? resolveThemeColorWithFallback(world, colors.cyan, "creep_slowed")
-      : resolveThemeColorWithFallback(world, colors.blue, "creep_fast", "enemy");
+      ? resolveThemeColorWithFallback(world, "#5eead4", "creep_slowed")
+      : resolveThemeColorWithFallback(world, "#4fc3f7", "creep_fast", "enemy");
     const stroke = slowed
-      ? resolveThemeColorWithFallback(world, colors.cyan, "creep_slowed_stroke")
-      : resolveThemeColorWithFallback(world, colors.blueLight, "creep_fast_stroke");
+      ? resolveThemeColorWithFallback(world, "#99f6e4", "creep_slowed_stroke")
+      : resolveThemeColorWithFallback(world, "#e0f7fa", "creep_fast_stroke");
     return { size, slowed, fill, stroke };
   }
 
   if (type === "tank") {
     const fill = slowed
-      ? resolveThemeColorWithFallback(world, colors.cyan, "creep_slowed")
-      : resolveThemeColorWithFallback(world, colors.slate, "creep_tank", "enemy");
+      ? resolveThemeColorWithFallback(world, "#5eead4", "creep_slowed")
+      : resolveThemeColorWithFallback(world, "#94a3b8", "creep_tank", "enemy");
     const stroke = slowed
-      ? resolveThemeColorWithFallback(world, colors.cyan, "creep_slowed_stroke")
-      : resolveThemeColorWithFallback(world, colors.neutral, "creep_tank_stroke");
+      ? resolveThemeColorWithFallback(world, "#99f6e4", "creep_slowed_stroke")
+      : resolveThemeColorWithFallback(world, "#f1f5f9", "creep_tank_stroke");
     return { size, slowed, fill, stroke };
   }
 
   // Boss
   const fill = slowed
-    ? resolveThemeColorWithFallback(world, colors.cyan, "creep_slowed")
-    : resolveThemeColorWithFallback(world, colors.red, "creep_boss", "boss");
+    ? resolveThemeColorWithFallback(world, "#5eead4", "creep_slowed")
+    : resolveThemeColorWithFallback(world, "#ef4444", "creep_boss", "boss");
   const stroke = slowed
-    ? resolveThemeColorWithFallback(world, colors.cyan, "creep_slowed_stroke")
-    : resolveThemeColorWithFallback(world, colors.danger, "creep_boss_stroke");
+    ? resolveThemeColorWithFallback(world, "#99f6e4", "creep_slowed_stroke")
+    : resolveThemeColorWithFallback(world, "#fecaca", "creep_boss_stroke");
   const innerStroke = slowed
-    ? resolveThemeColorWithFallback(world, colors.cyan, "creep_slowed_stroke")
-    : resolveThemeColorWithFallback(world, colors.pink, "creep_boss_inner_stroke");
+    ? resolveThemeColorWithFallback(world, "#99f6e4", "creep_slowed_stroke")
+    : resolveThemeColorWithFallback(world, "#f9a8d4", "creep_boss_inner_stroke");
 
   return { size, slowed, fill, stroke, innerStroke };
 }

@@ -15,6 +15,17 @@ describe("Out Run vehicle artwork", () => {
     expect(wider).toBeGreaterThan(normal);
   });
 
+  it("keeps the player car low and wide to preserve forward visibility", () => {
+    const tuning = DEFAULT_OUTRUN_CONFIG.visual.tuning.playerCar;
+    const roofTopY = Math.min(...tuning.roof.map(point => point.y));
+
+    expect(roofTopY).toBe(-36);
+    expect(Math.abs(roofTopY) / tuning.referenceWidthPx).toBeLessThan(0.6);
+    expect(tuning.body.width).toBe(64);
+    expect(tuning.body.height).toBe(17);
+    expect(tuning.widthToRoadHalfWidth).toBe(0.47);
+  });
+
   it("uses three distinct traffic silhouettes with restrained colors", () => {
     const config = DEFAULT_OUTRUN_CONFIG;
     const coupe = resolveOutrunTrafficArtworkStyle(config, 0, 100);
@@ -31,6 +42,12 @@ describe("Out Run vehicle artwork", () => {
     expect(van.cabinHeight).toBeGreaterThan(coupe.cabinHeight);
     expect(truck.cabinHeight).toBeGreaterThan(van.cabinHeight);
     expect(truck.bodyHeight).toBeGreaterThan(coupe.bodyHeight);
+
+    // All three profiles are shorter than 53% of their width; the truck
+    // remains distinguishable without returning to a tall, visibility-blocking shape.
+    for (const vehicle of [coupe, van, truck]) {
+      expect((vehicle.bodyHeight + vehicle.cabinHeight) / vehicle.bodyWidth).toBeLessThan(0.53);
+    }
   });
 
   it("shares the art-bible light, glass, shadow and cabin color rules", () => {

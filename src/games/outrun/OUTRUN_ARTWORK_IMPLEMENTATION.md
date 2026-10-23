@@ -9,19 +9,20 @@ La fuente visual sigue siendo [`OUTRUN_ARTWORK.md`](./OUTRUN_ARTWORK.md). Este d
 | 1 | Base visual previa: preparación del sistema visual y sus contratos. | #838 |
 | 2 | Cielo en franjas, astro, nubes, estrellas, montañas y parallax. | #839 (integrada) |
 | 3 | Colores de suelo/carretera por profundidad, pianos, marcas, agua costera, arena desértica y rayas de velocidad. | #840 |
-| 4 | Árboles, pinos, rocas, palmeras, faros, cactus, arbustos y torres; bruma por profundidad y menor densidad en calidad baja. | #849 (promoción a master; #843 quedó en rama intermedia) |
-| 5 | Coupé del jugador y tráfico procedural con siluetas de coupé, furgoneta y camión. | #848 (promoción a master; #844 quedó en rama intermedia) |
-| 6 | Haces de faros nocturnos y HUD responsive con tiempo, tramo/hora, progreso, velocímetro y dial de radio. | #845 |
-| 7 | Auditoría WCAG de contraste, pruebas de contratos visuales y guía de los controles de calidad pendientes. | En esta rama |
+| 4 | Árboles, pinos, rocas, palmeras, faros, cactus, arbustos y torres; bruma por profundidad y menor densidad en calidad baja. | #849 (integrada) |
+| 5 | Coupé del jugador y tráfico procedural con siluetas de coupé, furgoneta y camión. | #848 (integrada) |
+| 6 | Haces de faros nocturnos y HUD responsive con tiempo, tramo/hora, progreso, velocímetro y dial de radio. | #845 (integrada) |
+| 7 | Auditoría WCAG de contraste, pruebas de contratos visuales y guía de los controles de calidad pendientes. | #846 (integrada) |
+| 8 | Corrección de proporciones: coche del jugador un tercio más bajo, carrocerías/cabinas de tráfico aplanadas y tests que protegen la visibilidad. | #856 (abierta) |
 
-Las fases 3–7 se deben integrar en este orden: #849 → #848 → #845 → #846. Las PR #843 y #844 se cerraron como integradas en ramas intermedias, pero no trasladaron esas fases a `master`; por eso existen las promociones #849 y #848. No deben considerarse integradas en el producto hasta que las promociones lleguen a `master`.
+Las fases 2–7 ya están integradas en `master`. Esta fase 8 es una corrección de dirección de arte solicitada tras revisar las proporciones en conjunto; no cambia las reglas de conducción, la escala relativa a la anchura de carretera ni la geometría de proyección.
 
 ## Pruebas automáticas incluidas
 
 - `OutrunScenery.test.ts`: número de bandas, reducción de detalle, determinismo y parallax.
 - `OutrunRoadArtwork.test.ts`: transición near/far, alternancia, agua costera, arena y rayas de velocidad.
 - `OutrunRoadsideArtwork.test.ts`: tipos de objeto, proporciones, bruma atmosférica y densidad en calidad baja.
-- `OutrunVehicleArtwork.test.ts`: escala relativa a carretera y diferencias entre tráfico.
+- `OutrunVehicleArtwork.test.ts`: escala relativa a carretera, perfiles bajos del coche del jugador y límites de altura para las tres siluetas de tráfico.
 - `OutrunLighting.test.ts`: haces deterministas solo de noche.
 - `OutrunHudArtwork.test.ts`: geometría responsive y contenido del HUD.
 - `OutrunPaletteAudit.test.ts`: luminancia WCAG y contraste coche/carretera en los cinco momentos del día y los modos normal/para daltónicos.

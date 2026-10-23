@@ -552,6 +552,7 @@ export const DEFAULT_OUTRUN_VISUAL_CONFIG: OutrunVisualConfig = {
         "widthPx": 80,
         "heightPx": 36,
         "cornerRadiusPx": 12,
+        "shadowAlpha": 0.6,
         "labelFontPx": 12,
         "barWidthPx": 2,
         "barHeightMinPx": 8,

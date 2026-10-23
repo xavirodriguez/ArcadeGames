@@ -105,7 +105,7 @@ const visualTuningSchema = z.object({
     }),
     radioPill: z.object({
       marginPx: z.number().nonnegative(), widthPx: z.number().positive(), heightPx: z.number().positive(),
-      cornerRadiusPx: z.number().nonnegative(), labelFontPx: z.number().positive(), barWidthPx: z.number().positive(),
+      cornerRadiusPx: z.number().nonnegative(), shadowAlpha: z.number().min(0).max(1).default(0.6), labelFontPx: z.number().positive(), barWidthPx: z.number().positive(),
       barHeightMinPx: z.number().positive(), barHeightMaxPx: z.number().positive(),
       activeBarHeightPx: z.number().positive(), activeBarWidthPx: z.number().positive()
     })

@@ -120,7 +120,7 @@ export interface OutrunVisualTuning {
     stageLabelFontPx: number; hourFontPx: number; progressHeightPx: number; progressTrackAlpha: number;
     carMarkerRadiusPx: number; branchMarkerRadiusPx: number;
     speedPill: { marginPx: number; widthPx: number; heightPx: number; cornerRadiusPx: number; shadowAlpha: number; digitsFontPx: number; unitFontPx: number };
-    radioPill: { marginPx: number; widthPx: number; heightPx: number; cornerRadiusPx: number; labelFontPx: number; barWidthPx: number; barHeightMinPx: number; barHeightMaxPx: number; activeBarHeightPx: number; activeBarWidthPx: number };
+    radioPill: { marginPx: number; widthPx: number; heightPx: number; cornerRadiusPx: number; shadowAlpha: number; labelFontPx: number; barWidthPx: number; barHeightMinPx: number; barHeightMaxPx: number; activeBarHeightPx: number; activeBarWidthPx: number };
   };
   branchGate: {
     panelBackground: string; borderWidthPx: number; arrowAngleDegrees: number; distanceFontPx: number; decorNameFontPx: number;

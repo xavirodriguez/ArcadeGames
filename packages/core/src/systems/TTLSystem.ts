@@ -32,6 +32,19 @@ export class TTLSystem extends System<CoreComponentRegistry> {
 
     for (let i = 0; i < len; i++) {
       const entity = entities[i];
+      const reclaimableBeforeTick = world.getComponent(entity, "Reclaimable");
+
+      // Boundary/collision systems can reclaim an entity earlier in this same ECS tick.
+      // Its removal is deferred until the command buffer flushes, so TTLSystem may still
+      // see it in the current query. Do not release the same pooled entity twice.
+      if (
+        reclaimableBeforeTick &&
+        "_released" in reclaimableBeforeTick &&
+        reclaimableBeforeTick._released === true
+      ) {
+        continue;
+      }
+
       const ttl = world.getMutableComponent(entity, "TTL");
       if (!ttl) continue;
 

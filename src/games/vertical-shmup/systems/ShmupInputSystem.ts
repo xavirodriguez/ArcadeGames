@@ -53,27 +53,6 @@ export class ShmupInputSystem extends System<ShmupComponentRegistry, ShmupEventR
       velocity.vx = moveX * config.PLAYER_SPEED;
       velocity.vy = moveY * config.PLAYER_SPEED;
 
-      const minX = config.PLAYER_SIZE;
-      const maxX = config.WORLD_WIDTH - config.PLAYER_SIZE;
-      const minY = config.PLAYER_SIZE;
-      const maxY = config.WORLD_HEIGHT - config.PLAYER_SIZE;
-
-      if (transform.x < minX) {
-        transform.x = minX;
-        if (velocity.vx < 0) velocity.vx = 0;
-      } else if (transform.x > maxX) {
-        transform.x = maxX;
-        if (velocity.vx > 0) velocity.vx = 0;
-      }
-
-      if (transform.y < minY) {
-        transform.y = minY;
-        if (velocity.vy < 0) velocity.vy = 0;
-      } else if (transform.y > maxY) {
-        transform.y = maxY;
-        if (velocity.vy > 0) velocity.vy = 0;
-      }
-
       const fire = (): void => {
         createPlayerBullet(world, transform.x, transform.y - config.PLAYER_SIZE, pool);
         Juice.playShootJuice(world, entity, {

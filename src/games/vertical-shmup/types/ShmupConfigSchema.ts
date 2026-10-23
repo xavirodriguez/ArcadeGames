@@ -5,7 +5,7 @@ export const ShmupConfigSchema = z.object({
   WORLD_HEIGHT: z.number().positive().default(854),
   PLAYER_SPEED: z.number().positive().default(300),
   PLAYER_SIZE: z.number().positive().default(22),
-  PLAYER_COLLIDER_RADIUS: z.number().positive().default(12),
+  PLAYER_COLLIDER_RADIUS: z.number().positive().default(2.5),
   PLAYER_SHOOT_COOLDOWN: z.number().nonnegative().default(120),
   PLAYER_BULLET_SPEED: z.number().positive().default(650),
   PLAYER_BULLET_SIZE: z.number().positive().default(4),

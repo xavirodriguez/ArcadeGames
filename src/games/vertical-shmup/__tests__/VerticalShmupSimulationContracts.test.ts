@@ -3,6 +3,7 @@ import { resolveViewportDimensions } from "@tiny-aster/core";
 import { createEnemy, createEnemyBullet } from "../EntityFactory";
 import type { EnemyBulletPool, PlayerBulletPool } from "../EntityPool";
 import type { ShmupConfig } from "../types/ShmupConfigSchema";
+import type { ShmupInputUpdate } from "../types/ShmupTypes";
 
 describe("Vertical Shmup simulation contracts (P0)", () => {
   const games: VerticalShmupGame[] = [];
@@ -19,6 +20,18 @@ describe("Vertical Shmup simulation contracts (P0)", () => {
     await game.init();
     // Register event subscriptions (notably combat:hit) before an integration
     // test starts creating collisions. A zero-delta tick leaves gameplay time unchanged.
+    game.update(0);
+    return game;
+  }
+
+  async function createSeededGame(seed: number): Promise<VerticalShmupGame> {
+    const game = new VerticalShmupGame({
+      headless: true,
+      manualLoop: true,
+      gameOptions: { seed }
+    });
+    games.push(game);
+    await game.init();
     game.update(0);
     return game;
   }
@@ -196,16 +209,33 @@ describe("Vertical Shmup simulation contracts (P0)", () => {
     expect(result.projectileAlive).toBe(false);
   });
 
-  it("uses seeded gameplay randomness for enemy pattern cooldowns", async () => {
-    const createSeededGame = async (): Promise<VerticalShmupGame> => {
-      const game = new VerticalShmupGame({ headless: true, manualLoop: true, gameOptions: { seed: 731 } });
-      games.push(game);
-      await game.init();
-      return game;
-    };
+  it("replays the same input trace from a fixed seed with identical snapshot hashes", async () => {
+    const firstGame = await createSeededGame(731);
+    const secondGame = await createSeededGame(731);
+    const inputTrace: ShmupInputUpdate[] = [
+      { moveX: -1, moveY: 0, shoot: false },
+      { moveX: 0, moveY: -1, shoot: true },
+      { moveX: 1, moveY: 1, shoot: true },
+      { moveX: 0, moveY: 0, shoot: false },
+      { axes: { moveX: 0.4, moveY: -0.7 }, actions: ["shoot"] },
+      { moveX: -1, moveY: -1, shoot: true },
+      { moveX: 0, moveY: 1, shoot: false },
+      { moveX: 0, moveY: 0, shoot: false }
+    ];
 
-    const firstGame = await createSeededGame();
-    const secondGame = await createSeededGame();
+    expect(firstGame.hash()).toBe(secondGame.hash());
+    for (const input of inputTrace) {
+      firstGame.setInputState(input);
+      secondGame.setInputState(input);
+      firstGame.update(1 / 60);
+      secondGame.update(1 / 60);
+      expect(firstGame.hash()).toBe(secondGame.hash());
+    }
+  });
+
+  it("uses seeded gameplay randomness for enemy pattern cooldowns", async () => {
+    const firstGame = await createSeededGame(731);
+    const secondGame = await createSeededGame(731);
     const firstEnemy = createEnemy(firstGame.world, 100, 100, "straight", 1);
     const secondEnemy = createEnemy(secondGame.world, 100, 100, "straight", 1);
     const firstPattern = firstGame.world.getComponent(firstEnemy, "BulletPattern");

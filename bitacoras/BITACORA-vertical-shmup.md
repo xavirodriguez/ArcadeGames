@@ -191,3 +191,11 @@ No marcar H1–H3 ni las nuevas pruebas P0 como validadas solo por inspección e
 - Build, lint, typecheck y tests generales de Turbo: PASS. La traza reporta 120 suites, 613 tests y 1 snapshot superados.
 - Suite específica de shmup: no recopiló todos los tests debido a un import ausente de `createEnemy` en `VerticalShmupSimulationContracts.test.ts`. El import está corregido en `4dcafebda1715977e5301d8034910625dacca926`; esa nueva ejecución queda pendiente.
 - El ECS Core Sentinel sigue fallando el ratchet de duplicación: 1.312 líneas duplicadas frente al baseline 1.135 (+177). El nuevo diagnóstico muestra los clones más grandes en rutas de Centipede, Galaxian y core DSP, sin coincidencia con los filtros de rutas modificadas por esta auditoría. Se trata de una hipótesis de deuda/baseline anterior, no de una causa ya confirmada. El check global permanece fallido y no se ha alterado su baseline para forzar un PASS.
+
+
+## Actualización de investigación — 2026-10-23, contrato de ejes y determinismo
+
+- En SHA `4dcafebda1715977e5301d8034910625dacca926`, build/lint/typecheck y los tests de Turbo pasaron (120 suites, 613 tests y 1 snapshot). La suite dedicada del shmup dio 19/20: la única expectativa fallida asumía que los ejes internos continuaban en 1/-1 tras un movimiento diagonal. El sistema los normaliza y escribe `±1/√2` de vuelta. Expectativa corregida en `8877517034fea3fc2b60f1e6571938e090673954`.
+- Añadida en `c4370ddc933e6d86e0ea98cc0d76f5050ea4416b` una comparación de `game.hash()` a lo largo de una misma traza de entradas con semilla fija, para sustituir la afirmación histórica no respaldada. Resultado pendiente de la ejecución actual.
+- En SHA `c4370ddc933e6d86e0ea98cc0d76f5050ea4416b`, build y lint ya pasaban; typecheck seguía en curso, por lo que aún no había resultado final de la prueba de hash ni de la suite shmup.
+- El ECS Core Sentinel continúa fallando el ratchet global de duplicación. Los clones principales reportados están en rutas heredadas distintas de los archivos modificados, pero no se da el check por resuelto ni se modifica el baseline.

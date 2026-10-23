@@ -161,3 +161,26 @@ Después de corregir fallos, ejecutar la suite completa mediante `pnpm test:ci`.
 - Tests genéricos de Turbo y la suite P0 específica: en curso al registrar esta anotación; todavía no hay una traza final verificada para los tests específicos.
 - No marcar `Red-Green` como cerrado hasta revisar el resultado de Jest de esta versión. Si vuelve a fallar, anotar primero el mensaje y la causa raíz; no cambiar la expectativa para hacer pasar el test sin evidencia.
 
+
+
+---
+
+# Integración del informe de auditoría — 2026-10-23
+
+Informe consolidado: `docs/audit/2026-10-23-vertical-shmup-internal-structure-audit.md`.
+
+El informe recibido analizaba el commit base `e383d626`. En esta rama, las correcciones de transformaciones ECS, viewport e input plano están añadidas, al igual que cambios de serialización de acciones, RNG sembrado, guardia de impactos simultáneos y manejo de efectos tras Game Over. Todas estas correcciones quedan **pendientes de validación CI/manual** hasta que existan trazas de la punta de rama.
+
+## Corrección de afirmaciones históricas
+
+La frase anterior `InputFrame[0..N] -> snapshot hash: MATCH` no se puede respaldar con una aserción visible en `VerticalShmupInit.test.ts`. Esa suite únicamente demuestra inicialización y bloqueo de `RandomService`; la afirmación sobre hashes debe considerarse no verificada hasta añadir un test explícito de reproducción determinista.
+
+## Nueva fuente de hallazgos
+
+La auditoría consolida P0–P3 y distingue:
+- correcciones implementadas y aún no verificadas;
+- comportamiento que precisa validación manual (viewport, controles, Game Over);
+- trabajo pendiente de diseño/implementación (UI de pausa y Game Over, daño por contacto, mutadores, profiling);
+- fallos reales ya observados en ejecuciones previas de CI (cadencia, liberación doble, error TS2588 y regresión temporal del ratchet de duplicación).
+
+No marcar H1–H3 ni las nuevas pruebas P0 como validadas solo por inspección estática. Las filas deben actualizarse a PASS únicamente con una traza de CI o QA reproducible.

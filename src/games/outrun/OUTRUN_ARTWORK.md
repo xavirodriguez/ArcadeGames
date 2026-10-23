@@ -307,28 +307,32 @@ fondo igual que el suelo.
 
 ## 8. Coche del jugador
 
-Vista trasera. Geometría de referencia en unidades del tablero (origen en el
-centro de la base del coche, `y` hacia abajo, ancho total 64):
+Vista trasera de un **coupé deportivo muy bajo y ancho**, con proporciones inspiradas
+en un Ferrari moderno: techo bajo, cabina corta y una carrocería que ocupa más ancho
+que alto. La silueta no debe tapar innecesariamente la carretera que queda delante.
+Geometría de referencia en unidades del tablero (origen en el centro de la base del
+coche, `y` hacia arriba en el dibujo; ancho total 64):
 
 ```
-sombra       elipse (0,0)  rx 42  ry 6                     shadow @55 %
-ruedas       rect x -33,y -14,w 10,h 14,rx 3               shadow
-             rect x  23,y -14,w 10,h 14,rx 3               shadow
-carrocería   rect x -32,y -30,w 64,h 26,rx 9               car
-sombra baja  rect x -32,y -16,w 64,h 12,rx 6               carShade
-cabina       polígono (-20,-30)(20,-30)(14,-50)(-14,-50)   car
-techo        polígono (-14,-50)(14,-50)(12,-54)(-12,-54)   carRoof
-luneta       polígono (-17,-32)(17,-32)(12,-47)(-12,-47)   carGlass
-reflejo      polígono (-12,-32)(-4,-32)(4,-47)(-4,-47)     cream @18 %
-barra luz    rect x -28,y -26,w 56,h 5,rx 2.5              carLightBar
-extremos     rect x -28,y -26,w 10,h 5,rx 2.5              carLightEnd
-             rect x  18,y -26,w 10,h 5,rx 2.5              carLightEnd
-matrícula    rect x -9,y -16,w 18,h 7,rx 1.5               cream
+sombra       elipse (0,0)  rx 42  ry 4.5                   shadow @55 %
+ruedas       rect x -33,y -9,w 10,h 9,rx 2                 shadow
+             rect x  23,y -9,w 10,h 9,rx 2                 shadow
+carrocería   rect x -32,y -20,w 64,h 17,rx 7               car
+sombra baja  rect x -32,y -11,w 64,h 8,rx 4.5              carShade
+cabina       polígono (-20,-20)(20,-20)(14,-33)(-14,-33)   car
+techo        polígono (-14,-33)(14,-33)(12,-36)(-12,-36)   carRoof
+luneta       polígono (-17,-21)(17,-21)(12,-31)(-12,-31)   carGlass
+reflejo      polígono (-12,-21)(-4,-21)(4,-31)(-4,-31)     cream @18 %
+barra luz    rect x -28,y -17,w 56,h 4,rx 2                carLightBar
+extremos     rect x -28,y -17,w 10,h 4,rx 2                carLightEnd
+             rect x  18,y -17,w 10,h 4,rx 2                carLightEnd
+matrícula    rect x -9,y -11,w 18,h 5,rx 1.2              cream
 ```
 
-Escala: se dibuja a un ancho de ≈ 0.47 × `hw`. La silueta es un coupé bajo y
-ancho con una barra de luz continua, que es lo que hace reconocible el coche
-de lejos.
+La altura máxima del perfil se reduce de 54 a 36 unidades (un tercio menos), sin
+reducir su ancho de 64. La escala en pantalla conserva el objetivo de ≈ 0.47 × `hw`
+de ancho. La cabina, las ruedas y la barra luminosa también se aplanan; la prioridad
+es una silueta deportiva legible que preserve visibilidad hacia el horizonte.
 
 ### 8.1 Estados *(propuesta sin probar)*
 
@@ -344,22 +348,22 @@ de lejos.
 
 ## 9. Tráfico
 
-Coches vistos por detrás, con receta proporcional al ancho `w` (para `w` = 27, el
-valor del tablero):
+Vehículos vistos por detrás, con dimensiones en función del ancho `w` (para
+`w` = 27, el valor del tablero). Las tres variantes se mantienen bajas y anchas;
+furgoneta y camión se distinguen con cambios moderados en la cabina, no con techos
+exageradamente altos.
 
 ```
 sombra       elipse rx 0.55·w, ry 0.07·w, shadow @40 %
-carrocería   rect de ancho w y alto w/3, rx 0.07·w
-cabina       trapecio: base 0.74·w, techo 0.56·w, alto 0.26·w, encima de la carrocería
+carrocería   rect de ancho w y alto 0.27·w, rx 0.07·w
+cabina       trapecio: base 0.74·w, techo 0.56·w, alto base 0.16·w, encima de la carrocería
 luneta       trapecio inscrito en la cabina, en carGlass
 barra luz    rect de ancho 0.89·w y alto 0.074·w, a 0.15·w del borde superior de la carrocería, en #FFE0D8
 ```
 
-Colores: carrocería en `trafficA/B/C`; cabina un 12 % más oscura.
-
-*Propuesta sin dibujar:* tres siluetas (coupé, furgoneta, camión) con el mismo
-sistema de color. La furgoneta y el camión son más altos y menos anchos de
-cabina.
+Colores: carrocería en `trafficA/B/C`; cabina un 12 % más oscura. La furgoneta
+y el camión siguen teniendo cabinas proporcionalmente algo más altas que el coupé,
+pero todas las variantes deben conservar una altura total inferior a 0.53 × su ancho.
 
 ---
 

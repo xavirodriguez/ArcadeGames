@@ -1,7 +1,10 @@
 import {
   System,
   World,
-  CoreComponentRegistry
+  CoreComponentRegistry,
+  enterGameplayFreeze,
+  getGameplayFreezeRemaining,
+  isGameplayFrozen
 } from "@tiny-aster/core";
 import type { EventBus } from "@tiny-aster/core";
 import {
@@ -16,8 +19,7 @@ import {
 /**
  * HitRunFeedbackSystem — combat juice (Paso B).
  *
- * - Hit-stop: resource "HitStopRemaining" (sim reads via isSimulationFrozen).
- *   Always decremented; applied on combat:hit / combat:death.
+ * - Hit-stop canónico: utiliza `GameplayFreeze` del motor core vía `enterGameplayFreeze`.
  * - Screen shake: presentation only — skipped when world.isReSimulating.
  *   Writes HitRunScreenShake resource AND core ScreenShake on main Camera2D
  *   so ScreenShakeSystem can drive VisualOffset.
@@ -59,7 +61,6 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     const reSim = world.isReSimulating === true;
 
-    this.tickHitStop(world, deltaTime);
     this.tickScreenShakeResource(world, deltaTime);
 
     if (this.pendingHits.length > 0) {
@@ -72,26 +73,14 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
     }
   }
 
-  private tickHitStop(world: World<CoreComponentRegistry>, dt: number): void {
-    const remaining = world.getResource<number>("HitStopRemaining");
-    if (remaining === undefined || remaining === null) {
-      world.setResource("HitStopRemaining", 0);
-      return;
-    }
-    if (remaining > 0) {
-      const next = remaining - dt;
-      world.setResource("HitStopRemaining", next > 0 ? next : 0);
-    }
-  }
-
   private applyHitStop(world: World<CoreComponentRegistry>, seconds: number): void {
     if (seconds <= 0) return;
-    const current = world.getResource<number>("HitStopRemaining") ?? 0;
+    const current = getGameplayFreezeRemaining(world) ?? 0;
     const next = Math.min(
       this.config.maxHitStopSeconds,
       Math.max(current, seconds)
     );
-    world.setResource("HitStopRemaining", next);
+    enterGameplayFreeze(world, next);
   }
 
   private tickScreenShakeResource(
@@ -109,10 +98,6 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
     }
   }
 
-  /**
-   * Presentation-only. Must not run meaningful camera writes during re-sim
-   * (caller skips). Bridges to core ScreenShake for ScreenShakeSystem.
-   */
   private applyScreenShake(
     world: World<CoreComponentRegistry>,
     intensity: number,
@@ -250,7 +235,5 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
 }
 
 export function isSimulationFrozen(world: World<CoreComponentRegistry>): boolean {
-  if (world.getResource("IsPaused") === true) return true;
-  const hitStop = world.getResource<number>("HitStopRemaining");
-  return typeof hitStop === "number" && hitStop > 0;
+  return isGameplayFrozen(world);
 }

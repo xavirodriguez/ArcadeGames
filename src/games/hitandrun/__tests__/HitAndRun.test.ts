@@ -1,11 +1,15 @@
 import { World, CoreComponentRegistry, EventBus } from "@tiny-aster/core";
 import { HitAndRunGame } from "../HitAndRunGame";
 import { HIT_RUN_WEAPON_CATALOG, getWeaponDefinition } from "../weapons/HitRunWeaponCatalog";
-import { registerPlayerBulletPool, HitRunBulletPool } from "../weapons/HitRunBulletPool";
+import { registerPlayerBulletPool } from "../weapons/HitRunBulletPool";
 import { fireWeapon } from "../weapons/fireWeapon";
-import { HitRunWaveSystem } from "../waves/HitRunWaveSystem";
+import { startWaveScript } from "../waves/HitRunWaveSystem";
 import { registerHitRunEnemyPool } from "../waves/HitRunEnemyPool";
 import { HitRunFeedbackSystem } from "../systems/HitRunFeedbackSystem";
+import { HitRunExplosionSystem } from "../weapons/HitRunExplosionSystem";
+import { WAVE_OPENING } from "../waves/sampleWaves";
+import { tryEnemyShoot } from "../ai/enemyShoot";
+import type { BeltInputComponent } from "../belt/BeltMovementTypes";
 
 describe("Hit & Run Game Systems", () => {
   let world: World<CoreComponentRegistry>;
@@ -54,10 +58,8 @@ describe("Hit & Run Game Systems", () => {
       const initialPlayerTransform = gameWorld.getComponent(players[0], "Transform") as { x: number };
       const initialPlayerX = initialPlayerTransform.x;
 
-      // Simulate holding right
       game.setInputState({ right: true });
 
-      // Run multiple ticks for the player to move far right
       for (let i = 0; i < 60; i++) {
         game.update(0.016);
       }
@@ -117,11 +119,13 @@ describe("Hit & Run Game Systems", () => {
       game.destroy();
     });
 
-    it("registers wave director and death flow resources on init", async () => {
+    it("registers wave director state upon starting wave script and death flow resources on init", async () => {
       const game = new HitAndRunGame({ seed: 12345 });
       await game.init();
 
       const gameWorld = game.getWorld();
+      startWaveScript(gameWorld, WAVE_OPENING);
+
       const waveState = gameWorld.getResource("WaveDirectorState");
       expect(waveState).toBeDefined();
 
@@ -131,7 +135,7 @@ describe("Hit & Run Game Systems", () => {
     });
   });
 
-  describe("Weapon System", () => {
+  describe("Weapon System & Explosions", () => {
     it("has valid weapon catalog entries", () => {
       expect(HIT_RUN_WEAPON_CATALOG.hmg).toBeDefined();
       expect(HIT_RUN_WEAPON_CATALOG.shotgun).toBeDefined();
@@ -175,6 +179,130 @@ describe("Hit & Run Game Systems", () => {
 
       expect(count).toBe(1);
     });
+
+    it("prevents player self-damage from player rocket explosions", () => {
+      const bus = new EventBus();
+      world.setResource("EventBus", bus);
+
+      const explosionSys = new HitRunExplosionSystem();
+      explosionSys.subscribe(bus);
+
+      const player = world.createEntity();
+      world.addComponent(player, {
+        type: "Transform",
+        x: 100,
+        y: 100,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: 100,
+        worldY: 100,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: true
+      });
+      world.addComponent(player, {
+        type: "Health",
+        current: 5,
+        max: 5
+      });
+      world.addComponent(player, {
+        type: "Faction",
+        value: "player"
+      });
+
+      const enemy = world.createEntity();
+      world.addComponent(enemy, {
+        type: "Transform",
+        x: 120,
+        y: 100,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: 120,
+        worldY: 100,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: true
+      });
+      world.addComponent(enemy, {
+        type: "Health",
+        current: 5,
+        max: 5
+      });
+      world.addComponent(enemy, {
+        type: "Faction",
+        value: "enemy"
+      });
+
+      bus.emit("combat:explosion", {
+        x: 110,
+        y: 100,
+        radius: 50,
+        damage: 3,
+        sourceEntity: player,
+        category: "explosive"
+      });
+
+      explosionSys.update(world, 0.016);
+
+      const playerHealth = world.getComponent(player, "Health") as { current: number };
+      const enemyHealth = world.getComponent(enemy, "Health") as { current: number };
+
+      expect(playerHealth.current).toBe(5);
+      expect(enemyHealth.current).toBe(2);
+    });
+
+    it("emits exactly 1 damage hit event per target in explosion AOE", () => {
+      const bus = new EventBus();
+      world.setResource("EventBus", bus);
+
+      const hitEvents: unknown[] = [];
+      bus.on("combat:hit", (payload) => hitEvents.push(payload));
+
+      const explosionSys = new HitRunExplosionSystem();
+      explosionSys.subscribe(bus);
+
+      const enemy = world.createEntity();
+      world.addComponent(enemy, {
+        type: "Transform",
+        x: 110,
+        y: 100,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: 110,
+        worldY: 100,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: true
+      });
+      world.addComponent(enemy, {
+        type: "Health",
+        current: 10,
+        max: 10
+      });
+      world.addComponent(enemy, {
+        type: "Faction",
+        value: "enemy"
+      });
+
+      bus.emit("combat:explosion", {
+        x: 100,
+        y: 100,
+        radius: 50,
+        damage: 4,
+        category: "explosive"
+      });
+
+      explosionSys.update(world, 0.016);
+      bus.flushDeferred();
+
+      expect(hitEvents.length).toBe(1);
+    });
   });
 
   describe("Wave System", () => {
@@ -194,16 +322,77 @@ describe("Hit & Run Game Systems", () => {
     });
   });
 
+  describe("Enemy Combat & Damage", () => {
+    it("verifies enemy bullets deal actual damage to player", async () => {
+      const game = new HitAndRunGame({ seed: 12345 });
+      await game.init();
+
+      const gameWorld = game.getWorld();
+
+      const players = gameWorld.query("BeltInput", "Health", "Transform");
+      expect(players.length).toBe(1);
+      const player = players[0];
+
+      gameWorld.mutateComponent(player, "Transform", (t: { x: number; y: number; worldX: number; worldY: number }) => {
+        t.x = 100;
+        t.y = 400;
+        t.worldX = 100;
+        t.worldY = 400;
+      });
+
+      const initialHealth = (gameWorld.getComponent(player, "Health") as { current: number }).current;
+
+      const enemy = gameWorld.createEntity();
+      gameWorld.addComponent(enemy, {
+        type: "Transform",
+        x: 200,
+        y: 400,
+        worldX: 200,
+        worldY: 400,
+        rotation: 0,
+        worldRotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: true
+      });
+      gameWorld.addComponent(enemy, {
+        type: "PlayerSensor",
+        visionRange: 300,
+        detectedPlayerEntity: player
+      });
+
+      const shot = tryEnemyShoot(gameWorld, enemy, {
+        canShoot: true,
+        shootCooldownRemaining: 0,
+        shootSpeed: 300,
+        shootDamage: 1,
+        shootCategory: "enemy_bullet",
+        shootCooldown: 1.0
+      });
+      expect(shot).toBe(true);
+
+      for (let i = 0; i < 20; i++) {
+        game.update(0.016);
+      }
+
+      const currentHealth = (gameWorld.getComponent(player, "Health") as { current: number }).current;
+      expect(currentHealth).toBeLessThan(initialHealth);
+
+      game.destroy();
+    });
+  });
+
   describe("Feedback System", () => {
     it("subscribes to combat events and handles hit-stop", () => {
       const feedback = new HitRunFeedbackSystem();
       const eventBus = new EventBus();
       feedback.subscribe(eventBus);
 
-      world.setResource("HitStopRemaining", 0);
       feedback.update(world, 0.016);
 
-      expect(world.getResource<number>("HitStopRemaining")).toBe(0);
+      expect(world.getResource("GameplayFreeze")).toBeUndefined();
     });
   });
 
@@ -226,7 +415,6 @@ describe("Hit & Run Game Systems", () => {
         t.scaleX = 1;
       });
 
-      // Spawn an enemy in path of bullet at x = 200, y = 400
       const enemy = gameWorld.createEntity();
       gameWorld.addComponent(enemy, {
         type: "Transform",
@@ -251,7 +439,7 @@ describe("Hit & Run Game Systems", () => {
       gameWorld.addComponent(enemy, {
         type: "Collider2D",
         shape: { type: "aabb", halfWidth: 16, halfHeight: 16 },
-        layer: 1 << 4, // Enemy layer
+        layer: 1 << 4,
         mask: 0xffff,
         offsetX: 0,
         offsetY: 0,
@@ -276,16 +464,13 @@ describe("Hit & Run Game Systems", () => {
         value: "enemy"
       } as any);
 
-      // Press fire button
       game.setInputState({ fire: true });
 
-      // Run 1 tick: BeltInputSystem processes fire edge, HitRunWeaponSystem spawns projectile
       game.update(0.016);
 
       const bulletsBefore = gameWorld.query("PlayerBullet");
       expect(bulletsBefore.length).toBeGreaterThan(0);
 
-      // Run ticks so projectile moves from x=116 to x=200 and collides
       for (let i = 0; i < 15; i++) {
         game.update(0.016);
       }
@@ -303,7 +488,6 @@ describe("Hit & Run Game Systems", () => {
       const players = gameWorld.query("BeltInput");
       const player = players[0];
 
-      // 1. Send attack only
       game.setInputState({ attack: true, fire: false });
       game.update(0.016);
 
@@ -314,7 +498,6 @@ describe("Hit & Run Game Systems", () => {
       expect(beltInput.attackHeld).toBe(true);
       expect(beltInput.fireHeld).toBe(false);
 
-      // 2. Send fire only
       game.setInputState({ attack: false, fire: true });
       game.update(0.016);
 
@@ -335,7 +518,6 @@ describe("Hit & Run Game Systems", () => {
       const players = gameWorld.query("BeltInput");
       const player = players[0];
 
-      // setInputState passes fire: true -> sets fireHeld = true
       game.setInputState({ fire: true });
 
       let beltInput = gameWorld.getComponent(player, "BeltInput") as unknown as {
@@ -345,7 +527,6 @@ describe("Hit & Run Game Systems", () => {
       expect(beltInput.fireHeld).toBe(true);
       expect(beltInput.firePressed).toBe(false);
 
-      // SystemPhase.Input runs BeltInputSystem, which computes firePressed edge = true
       game.update(0.016);
 
       beltInput = gameWorld.getComponent(player, "BeltInput") as unknown as {
@@ -356,7 +537,7 @@ describe("Hit & Run Game Systems", () => {
       game.destroy();
     });
 
-    it("supports 8-directional diagonal aim hitting an enemy at vertical offset (y=340)", async () => {
+    it("supports 8-directional diagonal aim hitting an enemy at vertical offset (y=340) and registers aimY in input component", async () => {
       const game = new HitAndRunGame({ seed: 12345 });
       await game.init();
 
@@ -372,7 +553,6 @@ describe("Hit & Run Game Systems", () => {
         t.scaleX = 1;
       });
 
-      // Spawn enemy diagonally up-right at x = 180, y = 320
       const enemy = gameWorld.createEntity();
       gameWorld.addComponent(enemy, {
         type: "Transform",
@@ -422,18 +602,14 @@ describe("Hit & Run Game Systems", () => {
         value: "enemy"
       } as any);
 
-      // Aim up-right and fire
       game.setInputState({ moveRight: true, aimUp: true, fire: true });
-      gameWorld.mutateComponent(player, "BeltInput", (inp: unknown) => {
-        const c = inp as { aimX?: number; aimY?: number };
-        c.aimX = Math.SQRT1_2;
-        c.aimY = -Math.SQRT1_2;
-      });
 
-      // Update tick 1: fires bullet with diagonal trajectory
+      const inputComp = gameWorld.getComponent(player, "BeltInput") as BeltInputComponent;
+      expect(inputComp.aimY).toBeLessThan(0);
+      expect(inputComp.aimX).toBeGreaterThan(0);
+
       game.update(0.016);
 
-      // Update ticks so bullet travels diagonally and hits enemy
       for (let i = 0; i < 15; i++) {
         game.update(0.016);
       }

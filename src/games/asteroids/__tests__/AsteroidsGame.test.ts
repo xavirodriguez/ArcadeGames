@@ -165,3 +165,14 @@ describe("AsteroidsGame PowerUp & Blueprint Tests", () => {
     expect(render?.color).toBe(colors.orange);
   });
 });
+
+describe("AsteroidsGame Visual Mod Options", () => {
+  it("should initialize AsteroidsGame with Iceberg mod when mod option is passed", async () => {
+    const game = new AsteroidsGame({ headless: true, gameOptions: { mod: "iceberg" } });
+    await game.init();
+    const world = game.getWorld();
+    const visualMod = world.getResource<{ id: string }>("VisualMod");
+    expect(visualMod?.id).toBe("iceberg");
+    game.destroy();
+  });
+});

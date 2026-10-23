@@ -1,23 +1,35 @@
 import type { Theme } from "@tiny-aster/core";
 import type { AsteroidsVisualMod } from "../types";
 import { ICEBERG_PALETTE } from "./IcebergPalette";
+import { createIcebergVerts, type IcebergSize } from "./IcebergGeometry";
 import {
-  drawAsteroidsPlayerShip as canvasDrawAsteroidsPlayerShip,
-  drawAsteroidsAsteroid as canvasDrawAsteroidsAsteroid,
-  drawAsteroidsBullet as canvasDrawAsteroidsBullet
-} from "../../rendering/AsteroidsCanvasVisuals";
+  drawIcebergPlayerShip,
+  drawIcebergAsteroid,
+  drawIcebergBullet
+} from "./IcebergCanvasVisuals";
 import {
-  drawSkiaAsteroidsPlayerShip as skiaDrawAsteroidsPlayerShip,
-  drawSkiaAsteroidsAsteroid as skiaDrawAsteroidsAsteroid,
-  drawSkiaAsteroidsBullet as skiaDrawAsteroidsBullet
-} from "../../rendering/AsteroidsSkiaVisuals";
+  drawSkiaIcebergPlayerShip,
+  drawSkiaIcebergAsteroid,
+  drawSkiaIcebergBullet
+} from "./IcebergSkiaVisuals";
+import {
+  drawIcebergParticle,
+  drawSkiaIcebergParticle
+} from "./IcebergParticleVisuals";
+import {
+  PolarOceanBackgroundEffect,
+  GeometricAuroraBackgroundEffect,
+  SkiaPolarOceanBackgroundEffect,
+  SkiaGeometricAuroraBackgroundEffect
+} from "./IcebergBackground";
 
 /**
- * Iceberg visual mod — polar / cristal glaciar direction (ART_ICEBERG.md).
+ * Iceberg visual mod — Borealis / Cristal Glaciar (ART_ICEBERG.md).
  *
- * Phase 1 (this PR): palette + theme override. Drawers still use classic
- * shapes so the mod is selectable and safe; facet shading, hard shadows,
- * icebreaker ship, and geometric aurora land in follow-up PRs.
+ * Phase 0–1: palette, theme, verts.
+ * Phase 2: faceted Canvas + Skia drawers.
+ * Phase 3: polar ocean, geometric aurora, ice-shard fracture VFX.
+ * Phase 4: diamond particle drawer, fracture ring polish.
  *
  * @public
  */
@@ -48,18 +60,17 @@ export const icebergMod: AsteroidsVisualMod = {
       },
       effects: {
         ...baseTheme.effects,
-        // Prefer hard geometric look: lower ambient glow / softer CRT
         ambientGlow: 0.15,
         scanlineColor: "rgba(0, 0, 0, 0.08)",
         vignetteOuterColor: "rgba(14, 22, 40, 0.85)"
       },
       vfxProfile: {
         ...baseTheme.vfxProfile,
-        starDensity: 0.35,
-        starSpeed: 0.25,
-        ambientGlow: 0.15,
+        starDensity: 0.2,
+        starSpeed: 0.2,
+        ambientGlow: 0.12,
         particleShape: "shard",
-        backgroundLayers: ["starfield"]
+        backgroundLayers: ["polar_ocean", "geometric_aurora"]
       },
       lore: {
         ...baseTheme.lore,
@@ -80,14 +91,26 @@ export const icebergMod: AsteroidsVisualMod = {
     };
   },
 
-  registerDrawers(register) {
-    // Temporary: classic drawers until IcebergCanvasVisuals / IcebergSkiaVisuals land.
-    register("canvas", "player_ship", canvasDrawAsteroidsPlayerShip as never);
-    register("canvas", "asteroid", canvasDrawAsteroidsAsteroid as never);
-    register("canvas", "bullet", canvasDrawAsteroidsBullet as never);
+  createAsteroidVerts(size, radius, random) {
+    return createIcebergVerts(size as IcebergSize, radius, random);
+  },
 
-    register("skia", "player_ship", skiaDrawAsteroidsPlayerShip as never);
-    register("skia", "asteroid", skiaDrawAsteroidsAsteroid as never);
-    register("skia", "bullet", skiaDrawAsteroidsBullet as never);
+  registerDrawers(register) {
+    register("canvas", "player_ship", drawIcebergPlayerShip as never);
+    register("canvas", "asteroid", drawIcebergAsteroid as never);
+    register("canvas", "bullet", drawIcebergBullet as never);
+    register("canvas", "particle", drawIcebergParticle as never);
+
+    register("skia", "player_ship", drawSkiaIcebergPlayerShip as never);
+    register("skia", "asteroid", drawSkiaIcebergAsteroid as never);
+    register("skia", "bullet", drawSkiaIcebergBullet as never);
+    register("skia", "particle", drawSkiaIcebergParticle as never);
+  },
+
+  registerBackgroundEffects(register) {
+    register("canvas", "polar_ocean", PolarOceanBackgroundEffect as never);
+    register("canvas", "geometric_aurora", GeometricAuroraBackgroundEffect as never);
+    register("skia", "polar_ocean", SkiaPolarOceanBackgroundEffect as never);
+    register("skia", "geometric_aurora", SkiaGeometricAuroraBackgroundEffect as never);
   }
 };

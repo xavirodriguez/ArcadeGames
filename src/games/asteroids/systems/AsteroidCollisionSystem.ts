@@ -5,6 +5,7 @@ import { CombatDeathEvent } from "@tiny-aster/gameplay-kit";
 import { fragmentAsteroid } from "../EntityFactory";
 import { spawnScorePopup } from "@tiny-aster/gameplay-kit";
 import { createSharedParticle, EXPLOSION_PROFILES, spawnLayeredExplosion } from "../../shared/rendering/SharedVFX";
+import { spawnIceShardFracture } from "../mods/iceberg/IcebergFracture";
 import { getLogsForLevel } from "../story/StoryBeats";
 import { colors } from "../../../theme/colors";
 import { applyComboKill } from "../../shared/arcade/ComboUtils";
@@ -150,6 +151,12 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
     transform: { x: number; y: number },
     size: "large" | "medium" | "small" | "ship"
   ): void {
+    // Borealis skin: crystalline fracture instead of neon explosion
+    const visualMod = world.getResource<{ particleStyle?: string }>("VisualMod");
+    if (visualMod?.particleStyle === "iceShard") {
+      spawnIceShardFracture(world, transform.x, transform.y, size);
+      return;
+    }
     const explosionType = size === "ship" ? "ship" : size === "large" ? "enemy" : "small";
     spawnLayeredExplosion(world, transform.x, transform.y, { type: explosionType });
   }

@@ -1254,8 +1254,13 @@ export interface CoreComponentRegistry extends ComponentRegistry {
     Collider2D: Collider2DComponent;
     CollisionEvents: CollisionEventsComponent;
     Combo: ComboComponent;
-    // Warning: (ae-forgotten-export) The symbol "DamageComponent" needs to be exported by the entry point index.d.ts
-    Damage: DamageComponent;
+    Damage: Component & {
+        amount: number;
+        sourceEntity?: Entity;
+        category?: string;
+        friendlyFire?: boolean;
+        consumption?: unknown;
+    };
     Dead: DeadComponent;
     // (undocumented)
     DeathZone: DeathZoneComponent;

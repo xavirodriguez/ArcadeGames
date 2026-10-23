@@ -1493,8 +1493,8 @@ export interface CoreComponentRegistry extends ComponentRegistry {
   GameState: Component & { mode?: unknown };
   /** LevelGoal component. */
   LevelGoal: LevelGoalComponent;
-  /** Damage component for combat/collision damage dealing. */
-  Damage: import("@tiny-aster/gameplay-kit").DamageComponent;
+  /** Generic Damage component for combat/collision damage dealing. */
+  Damage: Component & { amount: number; sourceEntity?: Entity; category?: string; friendlyFire?: boolean; consumption?: unknown };
 }
 
 /**

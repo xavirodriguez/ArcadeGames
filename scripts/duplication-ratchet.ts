@@ -202,6 +202,26 @@ if (isRegression) {
   }
   console.error(`  - Porcentaje de duplicación: ${currentData.percentage}% vs baseline=${baseline.percentage}%.`);
   console.error(`\nFavor de evitar duplicar bloques de código o refactorizar el nuevo duplicado.`);
+  const auditPaths = [
+    "src/games/vertical-shmup/",
+    "packages/core/src/physics/systems/BoundarySystem.ts",
+    "packages/core/src/ecs/CoreComponents.ts",
+    "packages/core/src/systems/TTLSystem.ts",
+    "packages/gameplay-kit/src/pooling/ProjectilePoolConfig.ts"
+  ];
+  const auditClones = report.duplicates
+    .filter((clone) => auditPaths.some((file) => clone.firstFile.name.includes(file) || clone.secondFile.name.includes(file)))
+    .sort((left, right) => right.lines - left.lines)
+    .slice(0, 25);
+  if (auditClones.length > 0) {
+    console.error("\\nClones touching Vertical Shmup / shared-boundary audit paths:");
+    for (const clone of auditClones) {
+      const first = `${clone.firstFile.name}:${clone.firstFile.start}-${clone.firstFile.end}`;
+      const second = `${clone.secondFile.name}:${clone.secondFile.start}-${clone.secondFile.end}`;
+      const fragment = clone.fragment.replace(/\\s+/g, " ").slice(0, 180);
+      console.error(`  - ${clone.lines} lines: ${first} <-> ${second} | ${fragment}`);
+    }
+  }
   process.exit(1);
 }
 

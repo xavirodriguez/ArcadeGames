@@ -4,25 +4,40 @@ import {
   resolveOutrunRoadContext,
   projectOutrunRoad,
   projectionBuffer,
-  computeRoadSegmentColors,
   iterateOutrunSprites,
   resolveOutrunCarContext,
   resolveOutrunRacerDrawContext,
   resolveOutrunHudContext,
   resolveOffroadDustParams
 } from "./OutrunRenderShared";
-import { computeSpeedLines, computeOutrunPlayerPixelSize } from "./OutrunVisualHelpers";
+import { computeSpeedLines, computeOutrunPlayerArtworkScale } from "./OutrunVisualHelpers";
+import { computeOutrunRoadSpeedLineSegments, resolveOutrunRoadSegmentArtwork } from "./OutrunRoadArtwork";
+import { resolveOutrunRoadsideArtworkStyle } from "./OutrunRoadsideArtwork";
+import { resolveOutrunPlayerPalette, resolveOutrunTrafficArtworkStyle } from "./OutrunVehicleArtwork";
+import { computeOutrunHeadlightBeams } from "./OutrunLighting";
+import { resolveOutrunHudLayout } from "./OutrunHudArtwork";
 import { resolveOutrunSceneryLayout, type OutrunSceneryLayout, type MountainLayerLayout } from "./OutrunScenery";
-import { resolveRoadFogColor } from "./OutrunFog";
 import { colors } from "../../../theme/colors";
 import { hexToRgba } from "../../shared/rendering/CosmicPalette";
-import {
-  OUTRUN_PLAYER_PIXEL_SPRITE,
-  OUTRUN_TRAFFIC_PIXEL_SPRITE,
-  getOutrunAnimationFrame,
-  resolveOutrunPixelColor,
-  visitOutrunPixelRuns
-} from "./OutrunPixelSprites";
+
+type RoadsidePoint = { x: number; y: number };
+
+function fillRoadsidePolygonCanvas(
+  ctx: CanvasRenderingContext2D,
+  points: readonly RoadsidePoint[],
+  color: string
+): void {
+  if (points.length < 3) return;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(points[0]!.x, points[0]!.y);
+  for (let index = 1; index < points.length; index++) {
+    const point = points[index]!;
+    ctx.lineTo(point.x, point.y);
+  }
+  ctx.closePath();
+  ctx.fill();
+}
 
 function drawRoadSpriteCanvas(
   ctx: CanvasRenderingContext2D,
@@ -31,14 +46,16 @@ function drawRoadSpriteCanvas(
   sy: number,
   sw: number,
   clipY: number,
-  palette: import("./OutrunPalettes").ModulatedPalette
+  visualPalette: import("../types/OutrunVisualTypes").OutrunVisualPaletteResource,
+  depth: number,
+  lightsOn: boolean
 ): void {
   if (sy >= clipY || sw < 2) return;
 
   ctx.save();
+  ctx.lineJoin = "round";
 
   const size = sw * 0.8;
-  const h = size * 1.5;
 
   if (sp.kind === "arch" || sp.kind === "banner") {
     const archW = sw * 2.2;
@@ -46,10 +63,8 @@ function drawRoadSpriteCanvas(
     ctx.fillStyle = colors.slate;
     ctx.fillRect(sx - archW / 2, sy - archH, archW * 0.1, archH);
     ctx.fillRect(sx + archW / 2 - archW * 0.1, sy - archH, archW * 0.1, archH);
-
     ctx.fillStyle = sp.kind === "arch" ? colors.pink : colors.blue;
     ctx.fillRect(sx - archW / 2, sy - archH, archW, archH * 0.35);
-
     if (sp.text) {
       ctx.fillStyle = colors.white;
       ctx.font = `bold ${Math.max(10, Math.floor(archH * 0.25))}px sans-serif`;
@@ -58,13 +73,11 @@ function drawRoadSpriteCanvas(
     }
   } else if (sp.kind === "billboard") {
     const bw = size * 1.8;
-    const bh = size * 1.0;
+    const bh = size;
     ctx.fillStyle = colors.borderDark;
     ctx.fillRect(sx - 4, sy - bh, 8, bh);
-
     ctx.fillStyle = colors.blueLight;
     ctx.fillRect(sx - bw / 2, sy - bh - bh * 0.8, bw, bh);
-
     if (sp.text) {
       ctx.fillStyle = colors.white;
       ctx.font = `bold ${Math.max(8, Math.floor(bh * 0.4))}px sans-serif`;
@@ -74,46 +87,216 @@ function drawRoadSpriteCanvas(
   } else if (sp.kind === "chevron") {
     const cw = size * 0.6;
     const ch = size * 0.8;
-    ctx.fillStyle = colors.amber;
-    ctx.beginPath();
-    ctx.moveTo(sx - cw / 2, sy);
-    ctx.lineTo(sx + cw / 2, sy - ch / 2);
-    ctx.lineTo(sx - cw / 2, sy - ch);
-    ctx.closePath();
-    ctx.fill();
-  } else if (sp.kind === "palm") {
-    ctx.fillStyle = colors.orangeDark;
-    ctx.fillRect(sx - size * 0.08, sy - h, size * 0.16, h);
-
-    ctx.fillStyle = colors.green;
-    ctx.beginPath();
-    ctx.arc(sx, sy - h, size * 0.6, 0, Math.PI * 2);
-    ctx.fill();
-  } else if (sp.kind === "lamp") {
-    ctx.fillStyle = colors.slate;
-    ctx.fillRect(sx - 2, sy - h, 4, h);
-    ctx.fillStyle = palette.lightsOn ? colors.yellow : colors.borderLight;
-    ctx.beginPath();
-    ctx.arc(sx, sy - h, size * 0.25, 0, Math.PI * 2);
-    ctx.fill();
-  } else if (sp.kind === "cypress") {
-    ctx.fillStyle = colors.green;
-    ctx.beginPath();
-    ctx.moveTo(sx - size * 0.3, sy);
-    ctx.lineTo(sx, sy - h * 1.2);
-    ctx.lineTo(sx + size * 0.3, sy);
-    ctx.closePath();
-    ctx.fill();
+    fillRoadsidePolygonCanvas(ctx, [
+      { x: sx - cw / 2, y: sy },
+      { x: sx + cw / 2, y: sy - ch / 2 },
+      { x: sx - cw / 2, y: sy - ch }
+    ], colors.amber);
   } else {
-    ctx.fillStyle = colors.green;
-    ctx.beginPath();
-    ctx.arc(sx, sy - size * 0.3, size * 0.4, 0, Math.PI * 2);
-    ctx.fill();
+    const style = resolveOutrunRoadsideArtworkStyle(sp, visualPalette, depth, sw, lightsOn);
+    const h = style.height;
+    const trunkH = h * visualPalette.tuning.tree.trunkHeightToHeight;
+    const trunkW = h * visualPalette.tuning.tree.trunkWidthToHeight;
+    const crownX = sx;
+    const crownY = sy - h * 0.645;
+
+    switch (style.kind) {
+      case "tree": {
+        ctx.fillStyle = style.trunkColor;
+        ctx.fillRect(sx - trunkW / 2, sy - trunkH, trunkW, trunkH);
+        const radiusX = h * visualPalette.tuning.tree.canopyRadiusXToHeight;
+        const radiusY = h * visualPalette.tuning.tree.canopyRadiusYToHeight;
+        ctx.fillStyle = style.foliageColor;
+        ctx.beginPath();
+        ctx.ellipse(crownX, crownY, radiusX, radiusY, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.save();
+        ctx.globalAlpha = style.highlightAlpha;
+        ctx.fillStyle = style.foliageLightColor;
+        ctx.beginPath();
+        ctx.ellipse(
+          crownX - radiusX * visualPalette.tuning.tree.highlightOffsetX,
+          crownY - radiusY * visualPalette.tuning.tree.highlightOffsetY,
+          radiusX * visualPalette.tuning.tree.highlightScale,
+          radiusY * visualPalette.tuning.tree.highlightScale,
+          0, 0, Math.PI * 2
+        );
+        ctx.fill();
+        ctx.restore();
+        break;
+      }
+      case "pine": {
+        const tiers = [
+          { top: h * 0.48, bottom: h * 0.16, halfWidth: h * 0.34 },
+          { top: h * 0.73, bottom: h * 0.39, halfWidth: h * 0.26 },
+          { top: h * 0.98, bottom: h * 0.65, halfWidth: h * 0.18 }
+        ];
+        for (const tier of tiers) {
+          const topY = sy - tier.top;
+          const bottomY = sy - tier.bottom;
+          fillRoadsidePolygonCanvas(ctx, [
+            { x: sx, y: topY },
+            { x: sx, y: bottomY },
+            { x: sx - tier.halfWidth, y: bottomY }
+          ], style.foliageLightColor);
+          fillRoadsidePolygonCanvas(ctx, [
+            { x: sx, y: topY },
+            { x: sx + tier.halfWidth, y: bottomY },
+            { x: sx, y: bottomY }
+          ], style.foliageColor);
+        }
+        ctx.fillStyle = style.trunkColor;
+        ctx.fillRect(sx - trunkW * 0.4, sy - trunkH, trunkW * 0.8, trunkH);
+        break;
+      }
+      case "rock": {
+        const w = style.width;
+        fillRoadsidePolygonCanvas(ctx, [
+          { x: sx - w * 0.5, y: sy },
+          { x: sx - w * 0.43, y: sy - h * 0.18 },
+          { x: sx - w * 0.12, y: sy - h * 0.34 },
+          { x: sx + w * 0.2, y: sy - h * 0.29 },
+          { x: sx + w * 0.48, y: sy - h * 0.08 },
+          { x: sx + w * 0.45, y: sy }
+        ], style.rockBaseColor);
+        fillRoadsidePolygonCanvas(ctx, [
+          { x: sx - w * 0.43, y: sy - h * 0.18 },
+          { x: sx - w * 0.12, y: sy - h * 0.34 },
+          { x: sx + w * 0.2, y: sy - h * 0.29 },
+          { x: sx + w * 0.02, y: sy - h * 0.12 },
+          { x: sx - w * 0.27, y: sy - h * 0.1 }
+        ], style.rockShadeColor);
+        break;
+      }
+      case "palm": {
+        const crownTopY = sy - h * 0.86;
+        const crownTopX = sx + h * 0.06;
+        ctx.strokeStyle = style.trunkColor;
+        ctx.lineWidth = Math.max(1, h * 0.055);
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.quadraticCurveTo(sx - h * 0.04, sy - h * 0.45, crownTopX, crownTopY);
+        ctx.stroke();
+        const leafAngles = [-2.85, -2.35, -1.8, -1.25, -0.65];
+        leafAngles.forEach((angle, index) => {
+          const length = h * (index === 2 ? 0.42 : 0.36);
+          const tip = {
+            x: crownTopX + Math.cos(angle) * length,
+            y: crownTopY + Math.sin(angle) * length * 0.72
+          };
+          const side = {
+            x: crownTopX + Math.cos(angle + Math.PI / 2) * h * 0.07,
+            y: crownTopY + Math.sin(angle + Math.PI / 2) * h * 0.07
+          };
+          fillRoadsidePolygonCanvas(ctx, [
+            { x: crownTopX, y: crownTopY }, tip, side
+          ], index % 2 === 0 ? style.foliageLightColor : style.foliageColor);
+        });
+        break;
+      }
+      case "lighthouse": {
+        const w = style.width;
+        const topY = sy - h * 0.84;
+        const topW = w * 0.34;
+        const bottomW = w * 0.7;
+        fillRoadsidePolygonCanvas(ctx, [
+          { x: sx - topW / 2, y: topY },
+          { x: sx + topW / 2, y: topY },
+          { x: sx + bottomW / 2, y: sy },
+          { x: sx - bottomW / 2, y: sy }
+        ], style.creamColor);
+        for (const band of [0.28, 0.55, 0.79]) {
+          const bandY = sy - h * band;
+          const t = (sy - bandY) / Math.max(1, sy - topY);
+          const bandW = topW + (bottomW - topW) * t;
+          fillRoadsidePolygonCanvas(ctx, [
+            { x: sx - bandW / 2, y: bandY - h * 0.055 },
+            { x: sx + bandW / 2, y: bandY - h * 0.055 },
+            { x: sx + bandW / 2, y: bandY + h * 0.015 },
+            { x: sx - bandW / 2, y: bandY + h * 0.015 }
+          ], style.darkAccentColor);
+        }
+        ctx.fillStyle = style.darkAccentColor;
+        ctx.fillRect(sx - w * 0.25, topY - h * 0.06, w * 0.5, h * 0.07);
+        ctx.fillStyle = style.lightColor;
+        ctx.fillRect(sx - w * 0.13, topY - h * 0.18, w * 0.26, h * 0.12);
+        break;
+      }
+      case "cactus": {
+        ctx.strokeStyle = style.foliageColor;
+        ctx.lineWidth = Math.max(1, h * 0.14);
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(sx, sy - h * 0.82);
+        ctx.moveTo(sx, sy - h * 0.4);
+        ctx.lineTo(sx - h * 0.21, sy - h * 0.4);
+        ctx.lineTo(sx - h * 0.21, sy - h * 0.59);
+        ctx.moveTo(sx, sy - h * 0.58);
+        ctx.lineTo(sx + h * 0.2, sy - h * 0.58);
+        ctx.lineTo(sx + h * 0.2, sy - h * 0.74);
+        ctx.stroke();
+        ctx.strokeStyle = style.foliageLightColor;
+        ctx.lineWidth = Math.max(1, h * 0.045);
+        ctx.beginPath();
+        ctx.moveTo(sx + h * 0.04, sy - h * 0.08);
+        ctx.lineTo(sx + h * 0.04, sy - h * 0.72);
+        ctx.stroke();
+        break;
+      }
+      case "dry_shrub": {
+        ctx.strokeStyle = style.foliageColor;
+        ctx.lineCap = "round";
+        ctx.lineWidth = Math.max(1, h * 0.1);
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(sx - h * 0.24, sy - h * 0.35);
+        ctx.lineTo(sx - h * 0.32, sy - h * 0.55);
+        ctx.moveTo(sx - h * 0.15, sy - h * 0.22);
+        ctx.lineTo(sx + h * 0.07, sy - h * 0.42);
+        ctx.lineTo(sx + h * 0.2, sy - h * 0.52);
+        ctx.moveTo(sx + h * 0.01, sy - h * 0.18);
+        ctx.lineTo(sx + h * 0.26, sy - h * 0.32);
+        ctx.stroke();
+        ctx.strokeStyle = style.foliageLightColor;
+        ctx.lineWidth = Math.max(1, h * 0.055);
+        ctx.beginPath();
+        ctx.moveTo(sx - h * 0.2, sy - h * 0.31);
+        ctx.lineTo(sx - h * 0.3, sy - h * 0.46);
+        ctx.moveTo(sx + h * 0.1, sy - h * 0.32);
+        ctx.lineTo(sx + h * 0.22, sy - h * 0.42);
+        ctx.stroke();
+        break;
+      }
+      case "wind_tower": {
+        const topY = sy - h * 0.82;
+        ctx.strokeStyle = style.rockShadeColor;
+        ctx.lineWidth = Math.max(1, h * 0.045);
+        ctx.beginPath();
+        ctx.moveTo(sx - h * 0.15, sy);
+        ctx.lineTo(sx, topY);
+        ctx.lineTo(sx + h * 0.15, sy);
+        ctx.moveTo(sx, topY);
+        ctx.lineTo(sx, topY - h * 0.13);
+        ctx.stroke();
+        ctx.fillStyle = style.creamColor;
+        ctx.beginPath();
+        ctx.arc(sx, topY - h * 0.13, Math.max(1, h * 0.045), 0, Math.PI * 2);
+        ctx.fill();
+        for (const angle of [0, (2 * Math.PI) / 3, (4 * Math.PI) / 3]) {
+          ctx.beginPath();
+          ctx.moveTo(sx, topY - h * 0.13);
+          ctx.lineTo(sx + Math.cos(angle) * h * 0.2, topY - h * 0.13 + Math.sin(angle) * h * 0.2);
+          ctx.stroke();
+        }
+        break;
+      }
+    }
   }
 
   ctx.restore();
 }
-
 
 function drawSkyBandsCanvas(ctx: CanvasRenderingContext2D, layout: OutrunSceneryLayout, screenW: number): void {
   for (const band of layout.skyBands) {
@@ -212,12 +395,135 @@ function drawOutrunSceneryCanvas(
   ctx.fillRect(0, layout.horizonY, screenW, screenH - layout.horizonY);
 }
 
+function fillVehicleRoundedRectCanvas(
+  ctx: CanvasRenderingContext2D,
+  rect: import("../types/OutrunVisualTypes").OutrunVisualRect,
+  color: string
+): void {
+  const radius = Math.min(rect.cornerRadius, rect.width / 2, rect.height / 2);
+  const left = rect.x;
+  const top = rect.y;
+  const right = left + rect.width;
+  const bottom = top + rect.height;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(left + radius, top);
+  ctx.lineTo(right - radius, top);
+  ctx.quadraticCurveTo(right, top, right, top + radius);
+  ctx.lineTo(right, bottom - radius);
+  ctx.quadraticCurveTo(right, bottom, right - radius, bottom);
+  ctx.lineTo(left + radius, bottom);
+  ctx.quadraticCurveTo(left, bottom, left, bottom - radius);
+  ctx.lineTo(left, top + radius);
+  ctx.quadraticCurveTo(left, top, left + radius, top);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function fillVehiclePolygonCanvas(
+  ctx: CanvasRenderingContext2D,
+  points: readonly { x: number; y: number }[],
+  color: string
+): void {
+  fillRoadsidePolygonCanvas(ctx, points, color);
+}
+
+function drawOutrunPlayerVehicleCanvas(
+  ctx: CanvasRenderingContext2D,
+  config: import("../types/OutrunConfigSchema").OutrunConfig
+): void {
+  const tuning = config.visual.tuning.playerCar;
+  const shared = resolveOutrunPlayerPalette(config);
+
+  ctx.save();
+  ctx.globalAlpha = tuning.shadow.alpha;
+  ctx.fillStyle = shared.shadow;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, tuning.shadow.rx, tuning.shadow.ry, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  fillVehicleRoundedRectCanvas(ctx, tuning.wheelLeft, shared.shadow);
+  fillVehicleRoundedRectCanvas(ctx, tuning.wheelRight, shared.shadow);
+  fillVehicleRoundedRectCanvas(ctx, tuning.body, shared.car);
+  fillVehicleRoundedRectCanvas(ctx, tuning.lowerShade, shared.carShade);
+  fillVehiclePolygonCanvas(ctx, tuning.cabin, shared.car);
+  fillVehiclePolygonCanvas(ctx, tuning.roof, shared.carRoof);
+  fillVehiclePolygonCanvas(ctx, tuning.rearWindow, shared.carGlass);
+
+  ctx.save();
+  ctx.globalAlpha = 0.18;
+  fillVehiclePolygonCanvas(ctx, tuning.reflection, shared.cream);
+  ctx.restore();
+
+  fillVehicleRoundedRectCanvas(ctx, tuning.lightBar, shared.carLightBar);
+  fillVehicleRoundedRectCanvas(ctx, tuning.lightEndLeft, shared.carLightEnd);
+  fillVehicleRoundedRectCanvas(ctx, tuning.lightEndRight, shared.carLightEnd);
+  fillVehicleRoundedRectCanvas(ctx, tuning.licensePlate, shared.cream);
+}
+
+function drawOutrunTrafficVehicleCanvas(
+  ctx: CanvasRenderingContext2D,
+  config: import("../types/OutrunConfigSchema").OutrunConfig,
+  centerX: number,
+  baselineY: number,
+  width: number,
+  styleIndex: number
+): void {
+  const style = resolveOutrunTrafficArtworkStyle(config, styleIndex, width);
+  const bodyTop = -style.bodyHeight;
+  const cabinBaseY = bodyTop;
+  const cabinTopY = cabinBaseY - style.cabinHeight;
+
+  ctx.save();
+  ctx.translate(centerX, baselineY);
+  ctx.globalAlpha = style.shadowAlpha;
+  ctx.fillStyle = style.shadowColor;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, style.shadowRadiusX, style.shadowRadiusY, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  fillVehicleRoundedRectCanvas(ctx, {
+    x: -style.bodyWidth / 2, y: bodyTop, width: style.bodyWidth, height: style.bodyHeight,
+    cornerRadius: style.bodyCornerRadius
+  }, style.bodyColor);
+
+  const baseHalf = style.cabinBaseWidth / 2;
+  const roofHalf = style.cabinRoofWidth / 2;
+  fillVehiclePolygonCanvas(ctx, [
+    { x: -baseHalf, y: cabinBaseY },
+    { x: baseHalf, y: cabinBaseY },
+    { x: roofHalf, y: cabinTopY },
+    { x: -roofHalf, y: cabinTopY }
+  ], style.cabinColor);
+
+  const windowBaseHalf = baseHalf * 0.72;
+  const windowRoofHalf = roofHalf * 0.72;
+  fillVehiclePolygonCanvas(ctx, [
+    { x: -windowBaseHalf, y: cabinBaseY - style.cabinHeight * 0.08 },
+    { x: windowBaseHalf, y: cabinBaseY - style.cabinHeight * 0.08 },
+    { x: windowRoofHalf, y: cabinTopY + style.cabinHeight * 0.18 },
+    { x: -windowRoofHalf, y: cabinTopY + style.cabinHeight * 0.18 }
+  ], style.glassColor);
+
+  fillVehicleRoundedRectCanvas(ctx, {
+    x: -style.lightBarWidth / 2,
+    y: bodyTop + style.lightBarTopOffset,
+    width: style.lightBarWidth,
+    height: style.lightBarHeight,
+    cornerRadius: style.lightBarHeight / 2
+  }, style.lightBarColor);
+
+  ctx.restore();
+}
+
 export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunComponentRegistry> = {
   draw(ctx, world) {
     const roadCtx = resolveOutrunRoadContext(world);
     if (!roadCtx) return;
 
-    const { state, roadData, config, screenW, screenH, rumbleLength, palette } = roadCtx;
+    const { state, roadData, config, screenW, screenH, palette, visualPalette } = roadCtx;
     ctx.save();
 
     const sceneryLayout = resolveOutrunSceneryLayout(world, state, roadData, config);
@@ -236,24 +542,40 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
       if (p.y1 <= p.y2 || p.y2 >= p.clip) continue;
       renderedCount++;
 
-      const { grassCol, rumbleCol, roadCol } = computeRoadSegmentColors(p.index, rumbleLength, palette);
+      const artwork = resolveOutrunRoadSegmentArtwork(p.index, p.fog, visualPalette);
 
-      // Grass
-      ctx.fillStyle = grassCol;
+      // Depth haze and the subtle alternating ground stripe.
+      ctx.fillStyle = artwork.groundColor;
       ctx.fillRect(0, p.y2, screenW, p.y1 - p.y2);
 
-      // Rumble Strips
-      ctx.fillStyle = rumbleCol;
+      // The coast keeps the sea on the left and land on the right.
+      if (artwork.waterColor !== null) {
+        const outerW2 = p.w2 * (1 + artwork.kerbWidthRatio);
+        const outerW1 = p.w1 * (1 + artwork.kerbWidthRatio);
+        ctx.fillStyle = artwork.waterColor;
+        ctx.beginPath();
+        ctx.moveTo(0, p.y2);
+        ctx.lineTo(p.x2 - outerW2, p.y2);
+        ctx.lineTo(p.x1 - outerW1, p.y1);
+        ctx.lineTo(0, p.y1);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // Pianos alternate cream and the hour-specific dark token.
+      const outerW2 = p.w2 * (1 + artwork.kerbWidthRatio);
+      const outerW1 = p.w1 * (1 + artwork.kerbWidthRatio);
+      ctx.fillStyle = artwork.kerbColor;
       ctx.beginPath();
-      ctx.moveTo(p.x2 - p.w2 * 1.18, p.y2);
-      ctx.lineTo(p.x2 + p.w2 * 1.18, p.y2);
-      ctx.lineTo(p.x1 + p.w1 * 1.18, p.y1);
-      ctx.lineTo(p.x1 - p.w1 * 1.18, p.y1);
+      ctx.moveTo(p.x2 - outerW2, p.y2);
+      ctx.lineTo(p.x2 + outerW2, p.y2);
+      ctx.lineTo(p.x1 + outerW1, p.y1);
+      ctx.lineTo(p.x1 - outerW1, p.y1);
       ctx.closePath();
       ctx.fill();
 
-      // Road Surface
-      ctx.fillStyle = roadCol;
+      // Road surface uses near/far palette tokens, never a second projection.
+      ctx.fillStyle = artwork.roadColor;
       ctx.beginPath();
       ctx.moveTo(p.x2 - p.w2, p.y2);
       ctx.lineTo(p.x2 + p.w2, p.y2);
@@ -262,36 +584,65 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
       ctx.closePath();
       ctx.fill();
 
-      // Lane Divider
-      if (Math.floor(p.index / rumbleLength) % 2 === 0) {
-        ctx.fillStyle = palette.lane;
-        const lw1 = p.w1 * 0.03;
-        const lw2 = p.w2 * 0.03;
+      // Lane dashes share the even-segment rhythm of the dark kerb.
+      if (artwork.drawLane) {
+        const halfMarkW1 = p.w1 * artwork.laneMarkWidthRatio * 0.5;
+        const halfMarkW2 = p.w2 * artwork.laneMarkWidthRatio * 0.5;
+        ctx.fillStyle = artwork.laneColor;
         ctx.beginPath();
-        ctx.moveTo(p.x2 - lw2, p.y2);
-        ctx.lineTo(p.x2 + lw2, p.y2);
-        ctx.lineTo(p.x1 + lw1, p.y1);
-        ctx.lineTo(p.x1 - lw1, p.y1);
+        ctx.moveTo(p.x2 - halfMarkW2, p.y2);
+        ctx.lineTo(p.x2 + halfMarkW2, p.y2);
+        ctx.lineTo(p.x1 + halfMarkW1, p.y1);
+        ctx.lineTo(p.x1 - halfMarkW1, p.y1);
         ctx.closePath();
         ctx.fill();
       }
-
     }
-
-    // One continuous fog gradient avoids visible bands at segment boundaries.
-    const fogGradient = ctx.createLinearGradient(0, horizonY, 0, screenH);
-    fogGradient.addColorStop(0, resolveRoadFogColor(palette, 0.55));
-    fogGradient.addColorStop(1, resolveRoadFogColor(palette, 0));
-    ctx.fillStyle = fogGradient;
-    ctx.fillRect(0, horizonY, screenW, Math.max(0, screenH - horizonY));
 
     if (count > 0 && renderedCount === 0) {
       console.warn("[drawOutrunRoad] 100% of projected road segments were clipped or discarded.");
     }
 
+    // Flat headlight cones are night-only and sit beneath roadside sprites.
+    const headlightBeams = computeOutrunHeadlightBeams(state, config, visualPalette);
+    if (headlightBeams.length > 0) {
+      ctx.save();
+      for (const beam of headlightBeams) {
+        ctx.globalAlpha = beam.alpha;
+        fillRoadsidePolygonCanvas(ctx, beam.points, beam.color);
+      }
+      ctx.restore();
+    }
+
+    // Short radial streaks stay on the ground outside the pianos.
+    const speedLines = computeOutrunRoadSpeedLineSegments({
+      projectedSegments: projectionBuffer,
+      count,
+      state,
+      config,
+      visualPalette,
+      screenW,
+      screenH,
+      horizonY
+    });
+    if (speedLines.length > 0) {
+      ctx.save();
+      ctx.globalAlpha = visualPalette.tuning.road.speedLineAlpha;
+      ctx.strokeStyle = visualPalette.shared.cream;
+      ctx.lineWidth = visualPalette.tuning.road.speedLineWidthPx;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      for (const line of speedLines) {
+        ctx.moveTo(line.x1, line.y1);
+        ctx.lineTo(line.x2, line.y2);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+
     // 3. Roadside Sprites Pass
-    iterateOutrunSprites(ctx, count, roadData, config, palette.lightsOn, (c, sp, sx, sy, _sw, _roadW, _lightsOn, clipY) => {
-      drawRoadSpriteCanvas(c, sp, sx, sy, _sw, clipY, palette);
+    iterateOutrunSprites(ctx, count, roadData, config, palette.lightsOn, (c, sp, sx, sy, _sw, _roadW, lightsOn, clipY, depth) => {
+      drawRoadSpriteCanvas(c, sp, sx, sy, _sw, clipY, visualPalette, depth, lightsOn);
     });
 
     ctx.restore();
@@ -304,7 +655,7 @@ export const drawOutrunCar: ShapeDrawer<CanvasRenderingContext2D, OutrunComponen
     const carCtx = resolveOutrunCarContext(world, entity);
     if (!carCtx) return;
 
-    const { state, config, carColor, geom } = carCtx;
+    const { state, config, geom } = carCtx;
     const { baseX, baseY, carScale, tiltAngle, isOffroad, speedRatio } = geom;
 
     ctx.save();
@@ -337,31 +688,11 @@ export const drawOutrunCar: ShapeDrawer<CanvasRenderingContext2D, OutrunComponen
       ctx.globalAlpha = 1.0;
     }
 
+    const vehicleScale = computeOutrunPlayerArtworkScale(config);
     ctx.translate(baseX, baseY);
     ctx.rotate(tiltAngle);
-    ctx.scale(carScale, carScale);
-
-    const pixelSize = computeOutrunPlayerPixelSize(config);
-    const spriteWidth = OUTRUN_PLAYER_PIXEL_SPRITE.width * pixelSize;
-    const spriteHeight = OUTRUN_PLAYER_PIXEL_SPRITE.height * pixelSize;
-
-    // Scale the crisp shadow with the same road-relative sprite dimensions.
-    ctx.fillStyle = hexToRgba(colors.surface, 0.4);
-    ctx.fillRect(-spriteWidth * 0.375, spriteHeight / 2, spriteWidth * 0.75, pixelSize);
-    ctx.fillRect(-spriteWidth * 0.25, spriteHeight / 2 + pixelSize, spriteWidth * 0.5, pixelSize);
-
-    const playerFrame = getOutrunAnimationFrame(state.playerZ);
-    const playerSprite = OUTRUN_PLAYER_PIXEL_SPRITE.frames[playerFrame]!;
-    visitOutrunPixelRuns(
-      playerSprite,
-      -spriteWidth / 2,
-      -spriteHeight / 2,
-      pixelSize,
-      (pixel, x, y, width, height) => {
-      ctx.fillStyle = resolveOutrunPixelColor(pixel, carColor);
-      ctx.fillRect(x, y, width, height);
-    });
-
+    ctx.scale(carScale * vehicleScale, carScale * vehicleScale);
+    drawOutrunPlayerVehicleCanvas(ctx, config);
     ctx.restore();
   }
 };
@@ -372,36 +703,11 @@ export const drawOutrunRacer: ShapeDrawer<CanvasRenderingContext2D, OutrunCompon
     const racerCtx = resolveOutrunRacerDrawContext(world, entity);
     if (!racerCtx) return;
 
-    const { proj, bodyColor } = racerCtx;
+    const { proj, vehicleStyleIndex, config } = racerCtx;
     const { sx, sy, lateral, carW, bestClip } = proj;
+    if (sy >= bestClip || carW < 2) return;
 
-    const cx = sx + lateral;
-    const cy = sy;
-
-    if (cy >= bestClip || carW < 2) return;
-
-    ctx.save();
-
-    const pixelSize = carW / OUTRUN_TRAFFIC_PIXEL_SPRITE.width;
-    const spriteWidth = pixelSize * OUTRUN_TRAFFIC_PIXEL_SPRITE.width;
-    const spriteHeight = pixelSize * OUTRUN_TRAFFIC_PIXEL_SPRITE.height;
-
-    ctx.fillStyle = hexToRgba(colors.surface, 0.35);
-    ctx.fillRect(cx - spriteWidth * 0.35, cy + spriteHeight * 0.4, spriteWidth * 0.7, Math.max(1, pixelSize));
-
-    const trafficSprite = OUTRUN_TRAFFIC_PIXEL_SPRITE.frames[racerCtx.frame]!;
-    visitOutrunPixelRuns(
-      trafficSprite,
-      cx - spriteWidth / 2,
-      cy - spriteHeight / 2,
-      pixelSize,
-      (pixel, x, y, width, height) => {
-        ctx.fillStyle = resolveOutrunPixelColor(pixel, bodyColor);
-        ctx.fillRect(x, y, width, height);
-      }
-    );
-
-    ctx.restore();
+    drawOutrunTrafficVehicleCanvas(ctx, config, sx + lateral, sy, carW, vehicleStyleIndex);
   }
 };
 
@@ -410,45 +716,98 @@ export const drawOutrunHud = {
     const hudCtx = resolveOutrunHudContext(world);
     if (!hudCtx) return;
 
-    const { state, config, speedKmh, timeStr, phase, hudBg, hudAccent } = hudCtx;
+    const { state, config, speedKmh, timeStr, phase, progressFraction, visualPalette } = hudCtx;
+    const layout = resolveOutrunHudLayout({ config, progressFraction, speedKmh, timeStr, visualPalette });
+    const shared = visualPalette.shared;
     ctx.save();
 
-    // Top Panel
-    ctx.fillStyle = hudBg;
-    ctx.fillRect(16, 16, 180, 60);
+    // Top information blocks.
+    ctx.textAlign = "left";
+    ctx.fillStyle = shared.hudMutedText;
+    ctx.font = `${layout.time.labelFont}px sans-serif`;
+    ctx.fillText("Tiempo", layout.time.x, layout.time.labelY);
+    ctx.fillStyle = shared.cream;
+    ctx.font = `${layout.time.valueFont}px sans-serif`;
+    ctx.fillText(layout.time.value, layout.time.x, layout.time.valueY);
 
-    ctx.strokeStyle = hudAccent;
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(16, 16, 180, 60);
+    ctx.textAlign = "right";
+    ctx.fillStyle = shared.hudMutedText;
+    ctx.font = `${layout.stage.labelFont}px sans-serif`;
+    ctx.fillText(layout.stage.label, layout.stage.x, layout.stage.labelY);
+    ctx.fillStyle = shared.cream;
+    ctx.font = `${layout.stage.hourFont}px sans-serif`;
+    ctx.fillText(layout.stage.hour, layout.stage.x, layout.stage.hourY);
+    ctx.textAlign = "left";
 
-    // Metrics Text
-    ctx.fillStyle = colors.white;
-    ctx.font = "bold 16px sans-serif";
-    ctx.fillText(`${speedKmh} KM/H`, 28, 40);
+    // Progress rail, upcoming stage marker and player marker.
+    const progress = layout.progress;
+    ctx.fillStyle = shared.cream;
+    ctx.globalAlpha = progress.trackAlpha;
+    ctx.fillRect(progress.x, progress.y, progress.width, progress.height);
+    ctx.globalAlpha = 1;
+    ctx.fillRect(progress.x, progress.y, progress.filledWidth, progress.height);
 
-    ctx.fillStyle = hudAccent;
-    ctx.font = "14px sans-serif";
-    ctx.fillText(`TIME: ${timeStr}s`, 28, 62);
+    ctx.fillStyle = visualPalette.tokens.kerbB;
+    ctx.beginPath();
+    ctx.arc(progress.branchMarkerX, progress.y + progress.height / 2, progress.branchMarkerRadius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = shared.car;
+    ctx.beginPath();
+    ctx.arc(progress.carMarkerX, progress.y + progress.height / 2, progress.carMarkerRadius, 0, Math.PI * 2);
+    ctx.fill();
 
-    // Countdown Overlay
-    if (phase === "countdown") {
-      const cd = Math.ceil(state.countdownTime ?? 3);
-      const text = cd > 0 ? `${cd}` : "GO!";
-      ctx.fillStyle = hudAccent;
-      ctx.font = "bold 48px sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText(text, config.WIDTH / 2, config.HEIGHT / 2);
+    // Speed pill.
+    const speed = layout.speedPill;
+    ctx.save();
+    ctx.globalAlpha = speed.shadowAlpha;
+    fillVehicleRoundedRectCanvas(ctx, {
+      x: speed.x, y: speed.y, width: speed.width, height: speed.height, cornerRadius: speed.radius
+    }, shared.shadow);
+    ctx.restore();
+    ctx.fillStyle = shared.cream;
+    ctx.font = `${speed.digitsFont}px sans-serif`;
+    ctx.textAlign = "left";
+    ctx.fillText(speed.value, speed.digitsX, speed.digitsY);
+    ctx.fillStyle = shared.hudMutedText;
+    ctx.font = `${speed.unitFont}px sans-serif`;
+    ctx.textAlign = "right";
+    ctx.fillText("km/h", speed.unitX, speed.unitY);
+
+    // Decorative radio dial: five bars; the active one uses the car accent.
+    const radio = layout.radioPill;
+    ctx.save();
+    ctx.globalAlpha = radio.shadowAlpha;
+    fillVehicleRoundedRectCanvas(ctx, {
+      x: radio.x, y: radio.y, width: radio.width, height: radio.height, cornerRadius: radio.radius
+    }, shared.shadow);
+    ctx.restore();
+    ctx.textAlign = "left";
+    ctx.fillStyle = shared.hudMutedText;
+    ctx.font = `${radio.labelFont}px sans-serif`;
+    ctx.fillText(radio.label, radio.labelX, radio.labelY);
+    for (const bar of radio.bars) {
+      fillVehicleRoundedRectCanvas(ctx, {
+        x: bar.x, y: bar.y, width: bar.width, height: bar.height, cornerRadius: Math.min(bar.width, bar.height) / 2
+      }, bar.active ? shared.car : shared.hudMutedText);
     }
 
-    // Game Over Overlay
-    if (state.isGameOver) {
-      ctx.fillStyle = hexToRgba(colors.surface, 0.6);
+    // Countdown and end-of-run overlays remain independent of the simulation.
+    if (phase === "countdown") {
+      const countdown = Math.ceil(state.countdownTime ?? 3);
+      ctx.fillStyle = hexToRgba(shared.shadow, 0.64);
       ctx.fillRect(0, 0, config.WIDTH, config.HEIGHT);
-
-      ctx.fillStyle = colors.red;
-      ctx.font = "bold 40px sans-serif";
+      ctx.fillStyle = shared.cream;
+      ctx.font = `${layout.countdownFont}px sans-serif`;
       ctx.textAlign = "center";
-      ctx.fillText("GAME OVER", config.WIDTH / 2, config.HEIGHT / 2);
+      ctx.fillText(countdown > 0 ? `${countdown}` : "GO!", layout.centerX, layout.centerY);
+    }
+    if (state.isGameOver) {
+      ctx.fillStyle = hexToRgba(shared.shadow, 0.72);
+      ctx.fillRect(0, 0, config.WIDTH, config.HEIGHT);
+      ctx.fillStyle = shared.cream;
+      ctx.font = `${layout.resultsFont}px sans-serif`;
+      ctx.textAlign = "center";
+      ctx.fillText("Fin del recorrido", layout.centerX, layout.centerY);
     }
 
     ctx.restore();

@@ -334,13 +334,13 @@ export class OutrunGame extends BaseGame<
         const offset = 1.4 + scenarioHash(scenarioId, i * 11) * 1.5;
         const val = scenarioHash(scenarioId, i * 13);
 
-        let kind = "palm";
+        let kind = "tree";
         if (scenarioId === "coast" || scenarioId === "classic_coast") {
-          kind = val > 0.35 ? "palm" : "lamp";
+          kind = val > 0.35 ? "palm" : "lighthouse";
         } else if (scenarioId === "desert" || scenarioId === "classic_desert") {
-          kind = val > 0.35 ? "shrub" : "wind_tower";
+          kind = val > 0.42 ? "cactus" : "dry_shrub";
         } else if (scenarioId === "mountain" || scenarioId === "classic_mountain") {
-          kind = val > 0.35 ? "cypress" : "wall";
+          kind = val > 0.66 ? "tree" : val > 0.33 ? "pine" : "rock";
         }
 
         sprites.push({ offset, side, kind });

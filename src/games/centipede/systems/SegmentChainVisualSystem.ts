@@ -42,5 +42,39 @@ export class SegmentChainVisualSystem extends System<CentipedeComponentRegistry,
         vis.angle = seg.dirX >= 0 ? 0 : Math.PI;
       }
     }
+
+    // Distance constraint per chain to prevent chain stretching or bunching
+    const chainGroups = new Map<string, Array<{ entity: number; segIndex: number }>>();
+    for (const entity of segments) {
+      const seg = world.getComponent(entity, "CentipedeSegment");
+      if (seg) {
+        if (!chainGroups.has(seg.chainId)) chainGroups.set(seg.chainId, []);
+        chainGroups.get(seg.chainId)!.push({ entity, segIndex: seg.segmentIndex });
+      }
+    }
+
+    const targetDistance = config.CELL_SIZE * 0.8;
+    for (const [_, chain] of chainGroups) {
+      chain.sort((a, b) => a.segIndex - b.segIndex);
+      for (let i = 1; i < chain.length; i++) {
+        const prevVis = world.getComponent(chain[i - 1].entity, "SegmentVisual");
+        const currVis = world.getMutableComponent(chain[i].entity, "SegmentVisual");
+        if (!prevVis || !currVis) continue;
+
+        const dx = currVis.visualX - prevVis.visualX;
+        const dy = currVis.visualY - prevVis.visualY;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist > 0.001) {
+          const desiredDist = targetDistance;
+          // Clamp distance constraint tightly
+          if (dist > desiredDist * 1.25 || dist < desiredDist * 0.6) {
+            const scale = desiredDist / dist;
+            currVis.visualX = prevVis.visualX + dx * scale;
+            currVis.visualY = prevVis.visualY + dy * scale;
+          }
+        }
+      }
+    }
   }
 }

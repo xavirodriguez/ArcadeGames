@@ -377,136 +377,136 @@ export const DEFAULT_OUTRUN_VISUAL_CONFIG: OutrunVisualConfig = {
       "referenceWidthPx": 64,
       "shadow": {
         "rx": 42,
-        "ry": 6,
+        "ry": 4.5,
         "alpha": 0.55
       },
       "wheelLeft": {
         "x": -33,
-        "y": -14,
+        "y": -9,
         "width": 10,
-        "height": 14,
-        "cornerRadius": 3
+        "height": 9,
+        "cornerRadius": 2
       },
       "wheelRight": {
         "x": 23,
-        "y": -14,
+        "y": -9,
         "width": 10,
-        "height": 14,
-        "cornerRadius": 3
+        "height": 9,
+        "cornerRadius": 2
       },
       "body": {
         "x": -32,
-        "y": -30,
+        "y": -20,
         "width": 64,
-        "height": 26,
-        "cornerRadius": 9
+        "height": 17,
+        "cornerRadius": 7
       },
       "lowerShade": {
         "x": -32,
-        "y": -16,
+        "y": -11,
         "width": 64,
-        "height": 12,
-        "cornerRadius": 6
+        "height": 8,
+        "cornerRadius": 4.5
       },
       "cabin": [
         {
           "x": -20,
-          "y": -30
+          "y": -20
         },
         {
           "x": 20,
-          "y": -30
+          "y": -20
         },
         {
           "x": 14,
-          "y": -50
+          "y": -33
         },
         {
           "x": -14,
-          "y": -50
+          "y": -33
         }
       ],
       "roof": [
         {
           "x": -14,
-          "y": -50
+          "y": -33
         },
         {
           "x": 14,
-          "y": -50
+          "y": -33
         },
         {
           "x": 12,
-          "y": -54
+          "y": -36
         },
         {
           "x": -12,
-          "y": -54
+          "y": -36
         }
       ],
       "rearWindow": [
         {
           "x": -17,
-          "y": -32
+          "y": -21
         },
         {
           "x": 17,
-          "y": -32
+          "y": -21
         },
         {
           "x": 12,
-          "y": -47
+          "y": -31
         },
         {
           "x": -12,
-          "y": -47
+          "y": -31
         }
       ],
       "reflection": [
         {
           "x": -12,
-          "y": -32
+          "y": -21
         },
         {
           "x": -4,
-          "y": -32
+          "y": -21
         },
         {
           "x": 4,
-          "y": -47
+          "y": -31
         },
         {
           "x": -4,
-          "y": -47
+          "y": -31
         }
       ],
       "lightBar": {
         "x": -28,
-        "y": -26,
+        "y": -17,
         "width": 56,
-        "height": 5,
-        "cornerRadius": 2.5
+        "height": 4,
+        "cornerRadius": 2
       },
       "lightEndLeft": {
         "x": -28,
-        "y": -26,
+        "y": -17,
         "width": 10,
-        "height": 5,
-        "cornerRadius": 2.5
+        "height": 4,
+        "cornerRadius": 2
       },
       "lightEndRight": {
         "x": 18,
-        "y": -26,
+        "y": -17,
         "width": 10,
-        "height": 5,
-        "cornerRadius": 2.5
+        "height": 4,
+        "cornerRadius": 2
       },
       "licensePlate": {
         "x": -9,
-        "y": -16,
+        "y": -11,
         "width": 18,
-        "height": 7,
-        "cornerRadius": 1.5
+        "height": 5,
+        "cornerRadius": 1.2
       },
       "curveTiltDegrees": 4,
       "offRoadVibrationPx": 2,
@@ -517,11 +517,11 @@ export const DEFAULT_OUTRUN_VISUAL_CONFIG: OutrunVisualConfig = {
       "shadowRadiusXToWidth": 0.55,
       "shadowRadiusYToWidth": 0.07,
       "shadowAlpha": 0.4,
-      "bodyHeightToWidth": 0.3333333333333333,
+      "bodyHeightToWidth": 0.27,
       "bodyCornerRadiusToWidth": 0.07,
       "cabinBaseToBodyWidth": 0.74,
       "cabinRoofToBodyWidth": 0.56,
-      "cabinHeightToBodyWidth": 0.26,
+      "cabinHeightToBodyWidth": 0.16,
       "lightBarWidthToBodyWidth": 0.89,
       "lightBarHeightToBodyWidth": 0.074,
       "lightBarTopOffsetToBodyWidth": 0.15,
@@ -552,6 +552,7 @@ export const DEFAULT_OUTRUN_VISUAL_CONFIG: OutrunVisualConfig = {
         "widthPx": 80,
         "heightPx": 36,
         "cornerRadiusPx": 12,
+        "shadowAlpha": 0.6,
         "labelFontPx": 12,
         "barWidthPx": 2,
         "barHeightMinPx": 8,

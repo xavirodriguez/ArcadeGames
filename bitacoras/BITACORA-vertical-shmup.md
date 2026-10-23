@@ -184,3 +184,10 @@ La auditoría consolida P0–P3 y distingue:
 - fallos reales ya observados en ejecuciones previas de CI (cadencia, liberación doble, error TS2588 y regresión temporal del ratchet de duplicación).
 
 No marcar H1–H3 ni las nuevas pruebas P0 como validadas solo por inspección estática. Las filas deben actualizarse a PASS únicamente con una traza de CI o QA reproducible.
+
+
+## Actualización de CI — 2026-10-23, SHA `889ad261f80aad4d27682b3318ca1ef0c270e2f7`
+
+- Build, lint, typecheck y tests generales de Turbo: PASS. La traza reporta 120 suites, 613 tests y 1 snapshot superados.
+- Suite específica de shmup: no recopiló todos los tests debido a un import ausente de `createEnemy` en `VerticalShmupSimulationContracts.test.ts`. El import está corregido en `4dcafebda1715977e5301d8034910625dacca926`; esa nueva ejecución queda pendiente.
+- El ECS Core Sentinel sigue fallando el ratchet de duplicación: 1.312 líneas duplicadas frente al baseline 1.135 (+177). El nuevo diagnóstico muestra los clones más grandes en rutas de Centipede, Galaxian y core DSP, sin coincidencia con los filtros de rutas modificadas por esta auditoría. Se trata de una hipótesis de deuda/baseline anterior, no de una causa ya confirmada. El check global permanece fallido y no se ha alterado su baseline para forzar un PASS.

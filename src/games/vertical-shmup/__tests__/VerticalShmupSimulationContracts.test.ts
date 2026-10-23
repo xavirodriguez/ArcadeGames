@@ -1,4 +1,5 @@
 import { VerticalShmupGame } from "../VerticalShmupGame";
+import { resolveViewportDimensions } from "@tiny-aster/core";
 import { createEnemyBullet } from "../EntityFactory";
 import type { EnemyBulletPool, PlayerBulletPool } from "../EntityPool";
 import type { ShmupConfig } from "../types/ShmupConfigSchema";
@@ -68,6 +69,37 @@ describe("Vertical Shmup simulation contracts (P0)", () => {
       projectileAlive: world.isAlive(projectile)
     };
   }
+
+  it("adapts the flat keyboard payload and preserves partial state updates", async () => {
+    const game = await createGame();
+    const player = requirePlayer(game);
+    game.setInputState({ moveX: 1, moveY: -1, shoot: true });
+    game.update(0);
+
+    const velocity = game.world.getComponent(player, "Velocity");
+    const input = game.world.getComponent(player, "Input");
+    if (!velocity || !input) throw new Error("Expected player movement and input state");
+    expect(Math.hypot(velocity.vx, velocity.vy)).toBeCloseTo(300, 8);
+    expect(input.actions).toContain("shoot");
+
+    game.setInputState({ shoot: false });
+    game.update(0);
+    const inputAfterRelease = game.world.getComponent(player, "Input");
+    if (!inputAfterRelease) throw new Error("Expected player input after key release");
+    expect(inputAfterRelease.actions).not.toContain("shoot");
+    expect(inputAfterRelease.axes.moveX).toBe(1);
+    expect(inputAfterRelease.axes.moveY).toBe(-1);
+  });
+
+  it("exposes the vertical world dimensions to the renderer viewport contract", async () => {
+    const game = await createGame();
+    const config = game.world.getResource<ShmupConfig & { worldWidth?: number; worldHeight?: number }>("GameConfig");
+    if (!config) throw new Error("Expected renderer and gameplay configuration");
+    expect(resolveViewportDimensions(config)).toEqual({
+      viewportWidth: config.WORLD_WIDTH,
+      viewportHeight: config.WORLD_HEIGHT
+    });
+  });
 
   it("normalizes diagonal input so total speed never exceeds PLAYER_SPEED", async () => {
     const game = await createGame();

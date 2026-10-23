@@ -4,6 +4,7 @@ import { ShmupComponentRegistry } from "../types/ShmupTypes";
 import { ShmupConfig } from "../types/ShmupConfigSchema";
 import { PlayerBulletPool, EnemyBulletPool } from "../EntityPool";
 import { ShmupInputSystem } from "../systems/ShmupInputSystem";
+import { ShmupPlayerBoundarySystem } from "../systems/ShmupPlayerBoundarySystem";
 import { ScrollSystem } from "../systems/ScrollSystem";
 import { EnemyPathSystem } from "../systems/EnemyPathSystem";
 import { ShmupCollisionSystem } from "../systems/ShmupCollisionSystem";
@@ -32,7 +33,6 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
     const player = createPlayer(this.world, this.config.WORLD_WIDTH / 2, this.config.WORLD_HEIGHT - 100);
     this.world.setResource("ScreenConfig", { width: this.config.WORLD_WIDTH, height: this.config.WORLD_HEIGHT });
 
-    // Fixed camera locked at (0,0) for stable fixed-screen vertical shmup view
     const cam = createMainCamera2D(this.world, player, { smoothingX: 0, smoothingY: 0 });
     this.world.mutateComponent(cam, "Camera2D", c => {
       c.x = 0;
@@ -55,6 +55,7 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
   private registerSystems(): void {
     this.world.addSystem(new ShmupInputSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new MovementSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new ShmupPlayerBoundarySystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new EnemyPathSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new ShmupSpawnSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new ScrollSystem(), { phase: SystemPhase.Simulation });

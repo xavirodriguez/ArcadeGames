@@ -138,6 +138,10 @@ export interface BoundaryComponent extends Component {
   bounceX?: boolean;
   /** Whether to bounce on the Y axis when mode is "bounce". Defaults to true. */
   bounceY?: boolean;
+  /** Clamp X to minX/maxX while mode is "bounce", without reflecting velocity. */
+  clampX?: boolean;
+  /** Clamp Y to minY/maxY while mode is "bounce", without reflecting velocity. */
+  clampY?: boolean;
   /** Minimum X boundary coordinate for wrap/destroy modes. */
   minX?: number;
   /** Maximum X boundary coordinate for wrap/destroy modes. */

@@ -1,6 +1,6 @@
 import { VerticalShmupGame } from "../VerticalShmupGame";
 import { createEnemyBullet } from "../EntityFactory";
-import type { EnemyBulletPool } from "../EntityPool";
+import type { EnemyBulletPool, PlayerBulletPool } from "../EntityPool";
 import type { ShmupConfig } from "../types/ShmupConfigSchema";
 
 describe("Vertical Shmup simulation contracts (P0)", () => {
@@ -25,14 +25,6 @@ describe("Vertical Shmup simulation contracts (P0)", () => {
       throw new Error("Expected initialized vertical-shmup player");
     }
     return player;
-  }
-
-  function countPlayerBullets(game: VerticalShmupGame): number {
-    const world = game.world;
-    return world.query("TTL", "Render", "Faction").filter((entity) => {
-      const render = world.getComponent(entity, "Render");
-      return render?.shape === "shmup_player_bullet";
-    }).length;
   }
 
   async function resolveEnemyBulletAtOffset(offsetX: number): Promise<{
@@ -173,7 +165,9 @@ describe("Vertical Shmup simulation contracts (P0)", () => {
       const game = await createGame();
       const world = game.world;
       const config = world.getResource<ShmupConfig>("GameConfig");
-      if (!config) throw new Error("Expected game configuration");
+      const playerPool = world.getResource<PlayerBulletPool>("PlayerBulletPool");
+      if (!config || !playerPool) throw new Error("Expected game configuration and player bullet pool");
+      const acquireBullet = jest.spyOn(playerPool, "acquireBullet");
       world.setResource("GameConfig", {
         ...config,
         PLAYER_SHOOT_COOLDOWN: 150,
@@ -188,7 +182,7 @@ describe("Vertical Shmup simulation contracts (P0)", () => {
       game.setInputState({ actions: new Set(["shoot"]) });
 
       for (const deltaTime of steps) game.update(deltaTime);
-      return countPlayerBullets(game);
+      return acquireBullet.mock.calls.length;
     };
 
     const at60Fps = await runForOneSecond(Array.from({ length: 60 }, () => 1 / 60));

@@ -64,7 +64,7 @@ import arkanoidConfigRaw from "./config/arkanoid.json";
 export interface ArkanoidBlueprintMap extends Record<string, BlueprintDefinition<ArkanoidComponentRegistry, ArkanoidEventRegistry, any>> {
   ball: BlueprintDefinition<ArkanoidComponentRegistry, ArkanoidEventRegistry, Record<string, never>>;
   paddle: BlueprintDefinition<ArkanoidComponentRegistry, ArkanoidEventRegistry, Record<string, never>>;
-  brick: BlueprintDefinition<ArkanoidComponentRegistry, ArkanoidEventRegistry, { x: number; y: number; kind: BrickKind; color?: BrickColorName; hp?: number; points?: number; powerUp?: CapsuleType }>;
+  brick: BlueprintDefinition<ArkanoidComponentRegistry, ArkanoidEventRegistry, { x: number; y: number; kind: BrickKind; color?: BrickColorName; hp?: number; points?: number; powerUp?: CapsuleType; row?: number }>;
   state: BlueprintDefinition<ArkanoidComponentRegistry, ArkanoidEventRegistry, Record<string, never>>;
 }
 
@@ -172,7 +172,7 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
     });
 
     this.blueprints.register("brick", {
-      spawn: (world, entity, args: { x: number; y: number; kind: BrickKind; color?: BrickColorName; hp?: number; points?: number; powerUp?: CapsuleType }) => {
+      spawn: (world, entity, args: { x: number; y: number; kind: BrickKind; color?: BrickColorName; hp?: number; points?: number; powerUp?: CapsuleType; row?: number }) => {
         const config = world.getResource<ArkanoidConfig>("GameConfig") || DEFAULT_ARKANOID_CONFIG;
         const tint = resolveThemeColor(world, "brick", "accent");
 
@@ -213,7 +213,8 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
           maxHp: hp,
           regenTimer: 0,
           regenDuration: 5.0,
-          powerUp: args.powerUp
+          powerUp: args.powerUp,
+          row: args.row
         });
         world.addComponent(entity, { type: "Tag", tags: ["Brick", material] });
       }

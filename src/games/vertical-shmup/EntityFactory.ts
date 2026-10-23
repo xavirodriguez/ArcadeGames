@@ -1,11 +1,10 @@
-import { World, Entity, EntityBuilder, ShapeType, CircleShape, BoundaryComponent, createDeferredEntity } from "@tiny-aster/core";
+import { World, Entity, EntityBuilder, ShapeType, CircleShape, BoundaryComponent } from "@tiny-aster/core";
 import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 import { ShmupComponentRegistry } from "./types/ShmupTypes";
 import { ShmupConfig } from "./types/ShmupConfigSchema";
 import { PlayerBulletPool, EnemyBulletPool } from "./EntityPool";
 import { getGameplayColor } from "../../theme/GameplayColorMap";
 import type { BulletPatternConfig } from "../shared/BulletPatternSystem";
-import { attachEnemyDefaults } from "../shared/enemyHelpers";
 
 function nextGameplayRandom(world: World<ShmupComponentRegistry>): number {
   const random = world.gameplayRandom;

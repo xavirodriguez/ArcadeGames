@@ -1493,6 +1493,8 @@ export interface CoreComponentRegistry extends ComponentRegistry {
   GameState: Component & { mode?: unknown };
   /** LevelGoal component. */
   LevelGoal: LevelGoalComponent;
+  /** Generic Damage component for combat/collision damage dealing. */
+  Damage: Component & { amount: number; sourceEntity?: Entity; category?: string; friendlyFire?: boolean; consumption?: unknown };
 }
 
 /**

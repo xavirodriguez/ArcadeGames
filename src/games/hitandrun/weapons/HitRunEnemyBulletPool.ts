@@ -61,9 +61,9 @@ export class HitRunEnemyBulletPool extends ProjectilePool<any, HitRunBulletParam
     };
 
     if (world.isUpdating) {
-      world.commands.addComponent(entity, elev as any);
+      world.commands.addComponent(entity, elev);
     } else {
-      world.addComponent(entity, elev as any);
+      world.addComponent(entity, elev);
     }
 
     return entity;

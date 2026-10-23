@@ -16,7 +16,7 @@ export interface ShmupKeyboardInputState {
   shoot?: boolean;
 }
 export type ShmupInputUpdate = Partial<ShmupInputState> | ShmupKeyboardInputState;
-export interface ShmupInputComponent extends Component { type:"Input"; axes:Record<string,number>; actions:string[]; shootCooldownRemaining:number; }
+export interface ShmupInputComponent extends Component { type:"Input"; axes:Record<string,number>; actions:any; shootCooldownRemaining:number; }
 export interface ShmupPlayerComponent extends Component { type:"ShmupPlayer"; }
 export interface ShmupEnemyComponent extends Component { type:"ShmupEnemy"; score:number; }
 export interface ShmupPlayerBulletComponent extends Component { type:"ShmupPlayerBullet"; }

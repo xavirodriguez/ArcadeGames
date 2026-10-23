@@ -44,7 +44,7 @@ export class ShmupInputSystem extends System<ShmupComponentRegistry, ShmupEventR
         if (Array.isArray(actions)) return actions.includes("shoot");
         return false;
       };
-      const shooting = Boolean(inputState?.buttons?.shoot) || hasAction(input.actions);
+      let shooting = Boolean(inputState?.buttons?.shoot) || hasAction(input.actions);
       if (touchState && (touchState.getButton("shoot") || touchState.getButton("fire"))) {
         shooting = true;
       }

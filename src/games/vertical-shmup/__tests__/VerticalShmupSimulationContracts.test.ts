@@ -35,6 +35,48 @@ describe("Vertical Shmup simulation contracts (P0)", () => {
     }).length;
   }
 
+  async function resolveEnemyBulletAtOffset(offsetX: number): Promise<{
+    collisionRecorded: boolean;
+    healthBefore: number;
+    healthAfter: number;
+    projectileAlive: boolean;
+  }> {
+    const game = await createGame();
+    const world = game.getWorld();
+    const player = requirePlayer(game);
+    const config = world.getResource<ShmupConfig>("GameConfig");
+    const pool = world.getResource<EnemyBulletPool>("EnemyBulletPool");
+    const playerTransform = world.getMutableComponent(player, "Transform");
+    const playerHealth = world.getComponent(player, "Health");
+    if (!config || !pool || !playerTransform || !playerHealth) {
+      throw new Error("Expected player transform, health, game configuration, and enemy projectile pool");
+    }
+
+    playerTransform.x = config.WORLD_WIDTH / 2;
+    playerTransform.y = config.WORLD_HEIGHT / 2;
+    playerTransform.dirty = true;
+
+    const projectile = createEnemyBullet(
+      world,
+      playerTransform.x + offsetX,
+      playerTransform.y,
+      0,
+      0,
+      pool
+    );
+    const healthBefore = playerHealth.current;
+    game.update(0);
+
+    const collisions = world.getComponent(player, "CollisionEvents")?.collisions ?? [];
+    const healthAfter = world.getComponent(player, "Health")?.current ?? healthBefore;
+    return {
+      collisionRecorded: collisions.some((collision) => collision.otherEntity === projectile),
+      healthBefore,
+      healthAfter,
+      projectileAlive: world.isAlive(projectile)
+    };
+  }
+
   it("normalizes diagonal input so total speed never exceeds PLAYER_SPEED", async () => {
     const game = await createGame();
     const world = game.getWorld();
@@ -88,6 +130,7 @@ describe("Vertical Shmup simulation contracts (P0)", () => {
 
     const maxX = config.WORLD_WIDTH - config.PLAYER_SIZE;
     transform.x = maxX - 1;
+    transform.dirty = true;
     game.setInputState({ axes: { moveX: 1, moveY: 0 } });
     game.update(1 / 60);
 
@@ -109,6 +152,22 @@ describe("Vertical Shmup simulation contracts (P0)", () => {
     expect(collider.shape).toMatchObject({ radius: 2.5 });
   });
 
+  it("ignores enemy bullet overlaps with the sprite exterior but outside the hitbox", async () => {
+    const result = await resolveEnemyBulletAtOffset(8);
+
+    expect(result.collisionRecorded).toBe(false);
+    expect(result.healthAfter).toBe(result.healthBefore);
+    expect(result.projectileAlive).toBe(true);
+  });
+
+  it("records a collision and damages the player when an enemy bullet intersects the hitbox", async () => {
+    const result = await resolveEnemyBulletAtOffset(5);
+
+    expect(result.collisionRecorded).toBe(true);
+    expect(result.healthAfter).toBeLessThan(result.healthBefore);
+    expect(result.projectileAlive).toBe(false);
+  });
+
   it("fires on the 150 ms cadence without losing elapsed time at variable frame rates", async () => {
     const runForOneSecond = async (steps: number[]): Promise<number> => {
       const game = await createGame();
@@ -125,7 +184,6 @@ describe("Vertical Shmup simulation contracts (P0)", () => {
     const at60Fps = await runForOneSecond(Array.from({ length: 60 }, () => 1 / 60));
     const atIrregularSteps = await runForOneSecond([0.07, 0.13, 0.21, 0.09, 0.16, 0.14, 0.2]);
 
-    // Immediate first shot, then at 150, 300, 450, 600, 750 and 900 ms.
     expect(at60Fps).toBe(7);
     expect(atIrregularSteps).toBe(7);
   });

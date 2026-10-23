@@ -122,3 +122,17 @@ pnpm run check:ratchet
 ## 7. Corrección explícita de la bitácora histórica
 
 La frase histórica `InputFrame[0..N] -> snapshot hash: MATCH` no está respaldada por una aserción visible en `VerticalShmupInit.test.ts`. Debe considerarse **una afirmación histórica no verificable**, no un resultado aceptado. Una nueva prueba de determinismo deberá crear dos instancias con la misma semilla, aplicar los mismos frames de entrada y comparar hashes de snapshots en cada tick antes de marcar este contrato como validado.
+
+
+## 8. Actualización de CI — revisión posterior (SHA `889ad261f80aad4d27682b3318ca1ef0c270e2f7`)
+
+- Build: PASS.
+- Lint: PASS.
+- Typecheck: PASS.
+- Tests de Turbo: PASS; la traza reportó 120 suites, 613 tests y 1 snapshot superados.
+- Suite de integración shmup: la recopilación falló antes de ejecutar los contratos nuevos porque faltaba importar `createEnemy` en `VerticalShmupSimulationContracts.test.ts`. Ese import se añadió en el SHA `4dcafebda1715977e5301d8034910625dacca926`; su ejecución CI estaba pendiente al registrar esta actualización.
+- Documentation CI del SHA `889ad261`: PASS.
+
+### Alcance del fallo de duplicación
+
+El ECS Core Sentinel sigue fallando por `check:duplication`: 1.312 líneas duplicadas frente a baseline de 1.135 (+177, 1,12%). Se amplió el diagnóstico para imprimir los clones detectados. Los 15 mayores clones que mostró la traza consultada corresponden a rutas heredadas como `centipede/EntityFactory.ts`, `centipede/rendering/CentipedeCanvasVisuals.ts`, `centipede/rendering/CentipedeSkiaVisuals.ts`, `galaxian/EntityPool.ts` y módulos `core/dsp`; no se encontraron clones que coincidieran con los filtros de archivos modificados por esta auditoría. Esto apunta a una discrepancia de baseline o deuda preexistente fuera del ámbito del shmup, pero el check global continúa fallando y debe mantenerse señalado. No se ha actualizado el baseline para ocultar la regresión.

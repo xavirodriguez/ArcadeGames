@@ -42,9 +42,9 @@ export function resolveOutrunTrafficArtworkStyle(
   const shared = resolvedConfig.visual.palette.shared;
   const shapeIndex = ((Math.trunc(styleIndex) % 3) + 3) % 3;
   const shape: OutrunTrafficVehicleShape = shapeIndex === 0 ? "coupe" : shapeIndex === 1 ? "van" : "truck";
-  const cabinHeightFactor = shape === "coupe" ? 1 : shape === "van" ? 1.32 : 1.5;
+  const cabinHeightFactor = shape === "coupe" ? 1 : shape === "van" ? 1.2 : 1.35;
   const cabinWidthFactor = shape === "coupe" ? 1 : shape === "van" ? 0.88 : 0.82;
-  const bodyHeightFactor = shape === "truck" ? 1.15 : 1;
+  const bodyHeightFactor = shape === "truck" ? 1.08 : 1;
 
   const trafficColors = [shared.trafficA, shared.trafficB, shared.trafficC] as const;
   const bodyColor = trafficColors[shapeIndex] ?? shared.trafficA;

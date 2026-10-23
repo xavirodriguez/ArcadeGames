@@ -17,6 +17,9 @@ describe("Vertical Shmup simulation contracts (P0)", () => {
     const game = new VerticalShmupGame({ headless: true, manualLoop: true });
     games.push(game);
     await game.init();
+    // Register event subscriptions (notably combat:hit) before an integration
+    // test starts creating collisions. A zero-delta tick leaves gameplay time unchanged.
+    game.update(0);
     return game;
   }
 

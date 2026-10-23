@@ -118,3 +118,11 @@ Después de corregir fallos, ejecutar la suite completa mediante `pnpm test:ci`.
 2. Añadir pruebas unitarias puras para ángulos de abanico, secuencias deterministas y rendijas de escape (P1).
 3. Investigar y eliminar `Math.random()` del factory solo después de confirmar el mecanismo reproducible correcto del motor.
 4. Definir contratos ECS explícitos para graze y bombas (P2–P3) antes de implementar esas mecánicas.
+
+
+### Actualización de CI — 2026-10-23
+
+- El pipeline existente ejecutaba `pnpm exec turbo run test`, que no garantiza incluir pruebas dentro de `src/games/vertical-shmup`, ya que esa ruta no figura como workspace en `pnpm-workspace.yaml` (los workspaces declarados son `packages/*` y `server`).
+- Para evitar una suite sin ejecución automática, se añadió al workflow `.github/workflows/ci.yml` un paso dedicado: `pnpm exec jest --config src/games/vertical-shmup/jest.config.cjs --runInBand`.
+- El PR #860 activó CI; la etapa de build general había terminado correctamente en la primera ejecución. La prueba directa del juego se ejecutará en la nueva ejecución desencadenada por este cambio.
+- **Estado final de Jest:** pendiente de la traza de GitHub Actions. No declarar la suite verde hasta que termine el paso dedicado.

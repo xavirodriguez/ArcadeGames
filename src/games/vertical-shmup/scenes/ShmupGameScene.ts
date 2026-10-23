@@ -24,7 +24,13 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
   ) { super(world); }
 
   public onEnter(): void {
-    this.world.setResource("GameConfig", this.config);
+    this.world.setResource("GameConfig", {
+      ...this.config,
+      // RendererUtils consumes camelCase world dimensions. Keep the game-facing
+      // UPPER_SNAKE_CASE config while exposing the renderer contract explicitly.
+      worldWidth: this.config.WORLD_WIDTH,
+      worldHeight: this.config.WORLD_HEIGHT
+    });
     this.world.setResource("PlayerBulletPool", this.playerPool);
     this.world.setResource("EnemyBulletPool", this.enemyPool);
 

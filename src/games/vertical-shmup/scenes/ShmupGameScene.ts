@@ -1,4 +1,4 @@
-import { Scene, World, SystemPhase, MovementSystem, BoundarySystem, TTLSystem, CollisionSystem2D, Camera2DSystem, RenderUpdateSystem, JuiceSystem, SpatialPartitioningSystem } from "@tiny-aster/core";
+import { Scene, World, SystemPhase, MovementSystem, BoundarySystem, TTLSystem, CollisionSystem2D, Camera2DSystem, RenderUpdateSystem, JuiceSystem, SpatialPartitioningSystem, HierarchySystem } from "@tiny-aster/core";
 import { CombatSystem } from "@tiny-aster/gameplay-kit";
 import { ShmupComponentRegistry } from "../types/ShmupTypes";
 import { ShmupConfig } from "../types/ShmupConfigSchema";
@@ -53,7 +53,7 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
   }
 
   private registerSystems(): void {
-    this.world.addSystem(new ShmupInputSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new ShmupInputSystem(), { phase: SystemPhase.Input });
     this.world.addSystem(new MovementSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new ShmupPlayerBoundarySystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new EnemyPathSystem(), { phase: SystemPhase.Simulation });
@@ -61,6 +61,8 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
     this.world.addSystem(new ScrollSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new BoundarySystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
+    // Physics integration mutates local x/y. Refresh world-space coordinates before broad/narrow phase.
+    this.world.addSystem(new HierarchySystem(), { phase: SystemPhase.Transform });
     this.world.addSystem(new SpatialPartitioningSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
     this.world.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });

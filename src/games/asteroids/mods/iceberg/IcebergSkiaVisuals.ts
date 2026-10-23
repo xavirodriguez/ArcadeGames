@@ -1,12 +1,12 @@
 import type { ShapeDrawer, RenderComponent } from "@tiny-aster/core";
-import { resolveHitFlash, resolveInvulnerabilityPulse, resolveAsteroidHitFlash } from "../../shared/rendering/RenderUtils";
+import { resolveHitFlash, resolveInvulnerabilityPulse, resolveAsteroidHitFlash } from "../../../shared/rendering/RenderUtils";
 import {
   resolveAsteroidDrawSetup,
   resolvePlayerShipSetup
 } from "../../rendering/AsteroidsVisualHelpers";
-import { Skia, getPaint, type SkCanvas } from "../../shared/rendering/SkiaContext";
+import { Skia, getPaint, type SkCanvas } from "../../../shared/rendering/SkiaContext";
 import type { SkPath } from "@shopify/react-native-skia";
-import { getVisibleSkiaRender } from "../../shared/rendering/renderingUtils";
+import { getVisibleSkiaRender } from "../../../shared/rendering/renderingUtils";
 import type { AsteroidsComponentRegistry } from "../../types/AsteroidRegistry";
 import {
   ICEBERG_PALETTE,

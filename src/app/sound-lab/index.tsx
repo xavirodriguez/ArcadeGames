@@ -170,7 +170,7 @@ export default function SoundLabScreen() {
     if (!renderedAudio || typeof window === "undefined") return;
     try {
       const wavBytes = encodeWav(renderedAudio.samples, { sampleRate: renderedAudio.sampleRate, seed });
-      const blob = new Blob([wavBytes], { type: "audio/wav" });
+      const blob = new Blob([wavBytes.buffer as ArrayBuffer], { type: "audio/wav" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;

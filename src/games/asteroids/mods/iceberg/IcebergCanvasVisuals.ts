@@ -1,5 +1,5 @@
 import type { ShapeDrawer } from "@tiny-aster/core";
-import { resolveHitFlash, resolveInvulnerabilityPulse, resolveAsteroidHitFlash } from "../../shared/rendering/RenderUtils";
+import { resolveHitFlash, resolveInvulnerabilityPulse, resolveAsteroidHitFlash } from "../../../shared/rendering/RenderUtils";
 import {
   resolveAsteroidDrawSetup,
   resolvePlayerShipSetup

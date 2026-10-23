@@ -35,7 +35,7 @@ const createMockContext = () => {
     },
     fillStyle: "",
     globalAlpha: 1
-  } as unknown as CanvasRenderingContext2D;
+  } as never as CanvasRenderingContext2D;
   return { ctx, drawCalls };
 };
 
@@ -80,7 +80,7 @@ describe("Iceberg atmosphere (Phase 3)", () => {
         return acquired.length;
       }
     });
-    world.gameplayRandom = { next: () => 0.5, nextInt: () => 0, nextRange: (a: number) => a };
+    Object.assign(world.gameplayRandom, { next: () => 0.5, nextInt: () => 0, nextRange: (a: number) => a });
 
     spawnIceShardFracture(world as never, 50, 50, "large");
 

@@ -7,6 +7,18 @@ import { getGameplayColor } from "../../theme/GameplayColorMap";
 import type { BulletPatternConfig } from "../shared/BulletPatternSystem";
 import { attachEnemyDefaults } from "../shared/enemyHelpers";
 
+function nextGameplayRandom(world: World<ShmupComponentRegistry>): number {
+  const random = world.gameplayRandom;
+  const wasLocked = random.isLocked();
+  if (wasLocked) random.unlock();
+  try {
+    return random.next();
+  } finally {
+    if (wasLocked) random.lock();
+  }
+}
+
+
 export function createPlayer(world: World<ShmupComponentRegistry>, x: number, y: number): Entity {
   const c = world.getResource<ShmupConfig>("GameConfig")!;
   const e = world.createEntity();
@@ -132,7 +144,7 @@ export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: 
   add({
     type: "BulletPattern",
     config: patternConfig,
-    cooldownRemaining: 0.8 + Math.random() * 0.5,
+    cooldownRemaining: 0.8 + nextGameplayRandom(world) * 0.5,
     phase: 0
   });
 

@@ -1,5 +1,5 @@
 import type { World } from "@tiny-aster/core";
-import { createSharedParticle } from "../../shared/rendering/SharedVFX";
+import { createSharedParticle } from "../../../shared/rendering/SharedVFX";
 import { ICEBERG_PALETTE } from "./IcebergPalette";
 
 const ICE_SHARD_COLORS = [

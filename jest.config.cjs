@@ -22,6 +22,7 @@ module.exports = {
     "<rootDir>/src/games/tower-defense/jest.config.cjs",
     "<rootDir>/src/games/hitandrun/jest.config.cjs",
     "<rootDir>/src/games/outrun/jest.config.cjs",
-    "<rootDir>/src/games/galaxian/jest.config.cjs"
+    "<rootDir>/src/games/galaxian/jest.config.cjs",
+    "<rootDir>/src/games/centipede/jest.config.cjs"
   ]
 };

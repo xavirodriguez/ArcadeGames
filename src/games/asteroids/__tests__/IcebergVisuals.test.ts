@@ -48,7 +48,7 @@ const createMockContext = () => {
     globalAlpha: 1,
     lineJoin: "",
     lineCap: ""
-  } as unknown as CanvasRenderingContext2D & { strokeStyle: string; fillStyle: string };
+  } as never as CanvasRenderingContext2D & { strokeStyle: string; fillStyle: string };
   return { ctx, drawCalls };
 };
 

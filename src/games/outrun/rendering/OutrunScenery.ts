@@ -4,9 +4,9 @@ import { computeCurvatureParallaxOffset } from "./OutrunVisualHelpers";
 import { createVisualPaletteResource } from "../utils/palette";
 import type { OutrunConfig } from "../types/OutrunConfigSchema";
 import type {
-  OutrunComponentRegistry, OutrunVisualPoint, OutrunVisualPaletteResource, OutrunParallaxState
+  OutrunVisualPoint, OutrunVisualPaletteResource, OutrunParallaxState
 } from "../types/OutrunVisualTypes";
-import type { RaceStateComponent, RoadData } from "../types/OutrunTypes";
+import type { OutrunComponentRegistry, RaceStateComponent, RoadData } from "../types/OutrunTypes";
 
 export interface SkyBandLayout { y: number; height: number; color: string; }
 export interface CloudLayout { x: number; y: number; width: number; height: number; }

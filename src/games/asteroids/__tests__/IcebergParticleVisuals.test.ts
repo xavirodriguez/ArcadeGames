@@ -38,7 +38,7 @@ const createMockContext = () => {
     strokeStyle: "",
     lineWidth: 1,
     globalAlpha: 1
-  } as unknown as CanvasRenderingContext2D;
+  } as never as CanvasRenderingContext2D;
   return { ctx, drawCalls };
 };
 
@@ -91,7 +91,7 @@ describe("Iceberg particle polish (Phase 4)", () => {
         return acquired.length;
       }
     });
-    world.gameplayRandom = { next: () => 0.4, nextInt: () => 0, nextRange: (a: number) => a };
+    Object.assign(world.gameplayRandom, { next: () => 0.4, nextInt: () => 0, nextRange: (a: number) => a });
 
     spawnIceShardFracture(world as never, 0, 0, "large");
 

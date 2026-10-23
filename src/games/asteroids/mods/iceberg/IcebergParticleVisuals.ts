@@ -1,7 +1,7 @@
 import type { ShapeDrawer } from "@tiny-aster/core";
 import type { AsteroidsComponentRegistry } from "../../types/AsteroidRegistry";
-import { Skia, getPaint, type SkCanvas } from "../../shared/rendering/SkiaContext";
-import { getVisibleSkiaRender } from "../../shared/rendering/renderingUtils";
+import { Skia, getPaint, type SkCanvas } from "../../../shared/rendering/SkiaContext";
+import { getVisibleSkiaRender } from "../../../shared/rendering/renderingUtils";
 import { ICEBERG_PALETTE } from "./IcebergPalette";
 
 /**

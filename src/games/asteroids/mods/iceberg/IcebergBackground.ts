@@ -1,6 +1,6 @@
 import type { EffectDrawer } from "@tiny-aster/core";
 import type { CoreComponentRegistry } from "@tiny-aster/core";
-import { Skia, getPaint, type SkCanvas } from "../../shared/rendering/SkiaContext";
+import { Skia, getPaint, type SkCanvas } from "../../../shared/rendering/SkiaContext";
 import { ICEBERG_PALETTE } from "./IcebergPalette";
 
 function isIcebergTheme(world: { getResource: (k: string) => unknown }): boolean {

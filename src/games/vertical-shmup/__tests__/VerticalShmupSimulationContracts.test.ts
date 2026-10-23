@@ -1,6 +1,6 @@
 import { VerticalShmupGame } from "../VerticalShmupGame";
 import { createEnemyBullet } from "../EntityFactory";
-import { EnemyBulletPool } from "../EntityPool";
+import type { EnemyBulletPool } from "../EntityPool";
 import type { ShmupConfig } from "../types/ShmupConfigSchema";
 
 describe("Vertical Shmup simulation contracts (P0)", () => {
@@ -20,7 +20,7 @@ describe("Vertical Shmup simulation contracts (P0)", () => {
   }
 
   function requirePlayer(game: VerticalShmupGame): number {
-    const player = game.getWorld().query("ShmupPlayer", "Input", "Transform", "Velocity")[0];
+    const player = game.world.query("ShmupPlayer", "Input", "Transform", "Velocity")[0];
     if (player === undefined) {
       throw new Error("Expected initialized vertical-shmup player");
     }
@@ -28,7 +28,7 @@ describe("Vertical Shmup simulation contracts (P0)", () => {
   }
 
   function countPlayerBullets(game: VerticalShmupGame): number {
-    const world = game.getWorld();
+    const world = game.world;
     return world.query("TTL", "Render", "Faction").filter((entity) => {
       const render = world.getComponent(entity, "Render");
       return render?.shape === "shmup_player_bullet";
@@ -42,7 +42,7 @@ describe("Vertical Shmup simulation contracts (P0)", () => {
     projectileAlive: boolean;
   }> {
     const game = await createGame();
-    const world = game.getWorld();
+    const world = game.world;
     const player = requirePlayer(game);
     const config = world.getResource<ShmupConfig>("GameConfig");
     const pool = world.getResource<EnemyBulletPool>("EnemyBulletPool");
@@ -79,7 +79,7 @@ describe("Vertical Shmup simulation contracts (P0)", () => {
 
   it("normalizes diagonal input so total speed never exceeds PLAYER_SPEED", async () => {
     const game = await createGame();
-    const world = game.getWorld();
+    const world = game.world;
     const player = requirePlayer(game);
 
     game.setInputState({ axes: { moveX: 1, moveY: -1 } });
@@ -97,7 +97,7 @@ describe("Vertical Shmup simulation contracts (P0)", () => {
   it("travels the same distance for 30 FPS, 60 FPS, and irregular time steps", async () => {
     const runForOneSecond = async (steps: number[]): Promise<number> => {
       const game = await createGame();
-      const world = game.getWorld();
+      const world = game.world;
       const player = requirePlayer(game);
       const start = world.getComponent(player, "Transform");
       if (!start) throw new Error("Expected player transform");
@@ -122,7 +122,7 @@ describe("Vertical Shmup simulation contracts (P0)", () => {
 
   it("clamps the player to the exact playfield edge after movement integration", async () => {
     const game = await createGame();
-    const world = game.getWorld();
+    const world = game.world;
     const player = requirePlayer(game);
     const config = world.getResource<ShmupConfig>("GameConfig");
     const transform = world.getMutableComponent(player, "Transform");
@@ -144,7 +144,7 @@ describe("Vertical Shmup simulation contracts (P0)", () => {
 
   it("uses a small circular vulnerability hitbox independent of the sprite size", async () => {
     const game = await createGame();
-    const world = game.getWorld();
+    const world = game.world;
     const player = requirePlayer(game);
     const collider = world.getComponent(player, "Collider");
     if (!collider) throw new Error("Expected player collider");
@@ -171,7 +171,7 @@ describe("Vertical Shmup simulation contracts (P0)", () => {
   it("fires on the 150 ms cadence without losing elapsed time at variable frame rates", async () => {
     const runForOneSecond = async (steps: number[]): Promise<number> => {
       const game = await createGame();
-      const world = game.getWorld();
+      const world = game.world;
       const config = world.getResource<ShmupConfig>("GameConfig");
       if (!config) throw new Error("Expected game configuration");
       world.setResource("GameConfig", { ...config, PLAYER_SHOOT_COOLDOWN: 150 });
@@ -190,7 +190,7 @@ describe("Vertical Shmup simulation contracts (P0)", () => {
 
   it("reclaims enemy projectiles once they cross the configured off-screen margin", async () => {
     const game = await createGame();
-    const world = game.getWorld();
+    const world = game.world;
     const config = world.getResource<ShmupConfig>("GameConfig");
     const pool = world.getResource<EnemyBulletPool>("EnemyBulletPool");
     if (!config || !pool) throw new Error("Expected game config and enemy projectile pool");

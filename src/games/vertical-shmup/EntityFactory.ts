@@ -42,7 +42,9 @@ export function createPlayer(world: World<ShmupComponentRegistry>, x: number, y:
     height: c.WORLD_HEIGHT,
     mode: "bounce",
     bounceX: false,
-    bounceY: false
+    bounceY: false,
+    clampX: true,
+    clampY: true
   } as BoundaryComponent);
   world.addComponent(e, { type: "LocalPlayer" });
   return e;

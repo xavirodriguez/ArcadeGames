@@ -103,8 +103,21 @@ export default function VerticalShmupScreen() {
 }
 
 const styles = StyleSheet.create({
-  hud: { padding: 8, borderWidth: 1, borderColor: "#00e5ff", backgroundColor: "rgba(0,0,0,.7)" },
-  hudText: { color: "#00e5ff", fontFamily: "monospace", fontWeight: "bold" },
+  hud: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: "rgba(0, 229, 255, 0.6)",
+    borderRadius: 8,
+    backgroundColor: "rgba(12, 22, 45, 0.85)",
+  },
+  hudText: {
+    color: "#55e8ff",
+    fontFamily: "monospace",
+    fontWeight: "bold",
+    fontSize: 14,
+    letterSpacing: 1,
+  },
   controls: { ...StyleSheet.absoluteFill, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", padding: 24 },
   leftControlArea: { flex: 1, height: "100%" },
   rightControlArea: { width: 120, height: "100%", justifyContent: "flex-end", alignItems: "center", paddingBottom: 20 },

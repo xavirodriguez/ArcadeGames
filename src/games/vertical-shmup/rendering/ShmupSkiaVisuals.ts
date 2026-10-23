@@ -1,4 +1,4 @@
-import { ShapeDrawer, EffectDrawer, World } from "@tiny-aster/core";
+import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
 import type { ShmupComponentRegistry } from "../types/ShmupTypes";
 import { Skia, getPaint, type SkCanvas } from "../../shared/rendering/SkiaContext";
 import { SHMUP_COLOR_TOKENS } from "./ShmupColorTokens";
@@ -30,42 +30,62 @@ export const drawSkiaShmupPlayer: ShapeDrawer<SkCanvas, ShmupComponentRegistry> 
       canvas.drawCircle(0, 0, size * 1.35, paint);
     }
 
-    // Outer Energy Separation Halo
+    // Outer Energy Separation Halo (Dark outline + cyan energy ring)
     paint.reset();
     paint.setAntiAlias(true);
     paint.setStyle(Skia.PaintStyle.Stroke);
+    paint.setColor(Skia.Color("rgba(0, 20, 40, 0.6)"));
+    paint.setStrokeWidth(3.5);
+    canvas.drawCircle(0, 0, size * 1.1, paint);
+
     paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.primary));
-    paint.setStrokeWidth(2.0);
-    canvas.drawCircle(0, 0, size * 1.08, paint);
+    paint.setStrokeWidth(1.8);
+    canvas.drawCircle(0, 0, size * 1.1, paint);
 
     // Banking tilt
     const bankAngle = moveX * 0.22;
     canvas.rotate(bankAngle * (180 / Math.PI), 0, 0);
 
-    // Thruster Plume
-    const flicker = 0.85 + 0.3 * Math.sin(time * 32);
+    // Twin Thruster Plumes
+    const flicker = 0.85 + 0.28 * Math.sin(time * 36);
     const plumeLength = size * 0.95 * flicker;
 
     paint.reset();
     paint.setAntiAlias(true);
     paint.setStyle(Skia.PaintStyle.Fill);
+
+    // Left Plume
     paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.secondary));
+    const leftPlume = Skia.Path.Make();
+    leftPlume.moveTo(-size * 0.35, size * 0.45);
+    leftPlume.lineTo(-size * 0.15, size * 0.45);
+    leftPlume.lineTo(-size * 0.25, size * 0.45 + plumeLength);
+    leftPlume.close();
+    canvas.drawPath(leftPlume, paint);
 
-    const flamePath = Skia.Path.Make();
-    flamePath.moveTo(-size * 0.25, size * 0.5);
-    flamePath.lineTo(size * 0.25, size * 0.5);
-    flamePath.lineTo(0, size * 0.5 + plumeLength);
-    flamePath.close();
-    canvas.drawPath(flamePath, paint);
+    // Right Plume
+    const rightPlume = Skia.Path.Make();
+    rightPlume.moveTo(size * 0.15, size * 0.45);
+    rightPlume.lineTo(size * 0.35, size * 0.45);
+    rightPlume.lineTo(size * 0.25, size * 0.45 + plumeLength);
+    rightPlume.close();
+    canvas.drawPath(rightPlume, paint);
 
-    // Thruster Core
+    // Core Plumes
     paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.core));
-    const flameCorePath = Skia.Path.Make();
-    flameCorePath.moveTo(-size * 0.14, size * 0.5);
-    flameCorePath.lineTo(size * 0.14, size * 0.5);
-    flameCorePath.lineTo(0, size * 0.5 + plumeLength * 0.55);
-    flameCorePath.close();
-    canvas.drawPath(flameCorePath, paint);
+    const leftCore = Skia.Path.Make();
+    leftCore.moveTo(-size * 0.3, size * 0.45);
+    leftCore.lineTo(-size * 0.2, size * 0.45);
+    leftCore.lineTo(-size * 0.25, size * 0.45 + plumeLength * 0.55);
+    leftCore.close();
+    canvas.drawPath(leftCore, paint);
+
+    const rightCore = Skia.Path.Make();
+    rightCore.moveTo(size * 0.2, size * 0.45);
+    rightCore.lineTo(size * 0.3, size * 0.45);
+    rightCore.lineTo(size * 0.25, size * 0.45 + plumeLength * 0.55);
+    rightCore.close();
+    canvas.drawPath(rightCore, paint);
 
     // Main Fighter Jet Hull
     paint.reset();
@@ -74,34 +94,39 @@ export const drawSkiaShmupPlayer: ShapeDrawer<SkCanvas, ShmupComponentRegistry> 
     paint.setColor(Skia.Color(primaryColor));
 
     const jetPath = Skia.Path.Make();
-    jetPath.moveTo(0, -size * 1.15);
-    jetPath.lineTo(size * 0.95, size * 0.75);
-    jetPath.lineTo(size * 0.42, size * 0.48);
-    jetPath.lineTo(0, size * 0.68);
-    jetPath.lineTo(-size * 0.42, size * 0.48);
-    jetPath.lineTo(-size * 0.95, size * 0.75);
+    jetPath.moveTo(0, -size * 1.2);
+    jetPath.lineTo(size * 0.25, -size * 0.4);
+    jetPath.lineTo(size * 1.05, size * 0.4);
+    jetPath.lineTo(size * 0.82, size * 0.72);
+    jetPath.lineTo(size * 0.42, size * 0.45);
+    jetPath.lineTo(size * 0.22, size * 0.65);
+    jetPath.lineTo(0, size * 0.5);
+    jetPath.lineTo(-size * 0.22, size * 0.65);
+    jetPath.lineTo(-size * 0.42, size * 0.45);
+    jetPath.lineTo(-size * 0.82, size * 0.72);
+    jetPath.lineTo(-size * 1.05, size * 0.4);
+    jetPath.lineTo(-size * 0.25, -size * 0.4);
     jetPath.close();
     canvas.drawPath(jetPath, paint);
 
-    // Wing accent lines
+    // Inner wing panel lines
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.core));
-    paint.setStrokeWidth(1.8);
-
-    canvas.drawLine(0, -size * 0.75, size * 0.65, size * 0.5, paint);
-    canvas.drawLine(0, -size * 0.75, -size * 0.65, size * 0.5, paint);
+    paint.setStrokeWidth(1.6);
+    canvas.drawLine(0, -size * 0.85, size * 0.75, size * 0.38, paint);
+    canvas.drawLine(0, -size * 0.85, -size * 0.75, size * 0.38, paint);
 
     // Cockpit Glass Canopy
     paint.reset();
     paint.setAntiAlias(true);
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.core));
-    canvas.drawOval(Skia.XYWHRect(-size * 0.22, -size * 0.6, size * 0.44, size * 0.84), paint);
+    canvas.drawOval(Skia.XYWHRect(-size * 0.2, -size * 0.57, size * 0.4, size * 0.84), paint);
 
     if (isShooting) {
       paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.core));
-      canvas.drawCircle(size * 0.7, -size * 0.1, 4.5, paint);
-      canvas.drawCircle(-size * 0.7, -size * 0.1, 4.5, paint);
+      canvas.drawCircle(size * 0.85, -size * 0.05, 4.5, paint);
+      canvas.drawCircle(-size * 0.85, -size * 0.05, 4.5, paint);
     }
 
     canvas.restore();
@@ -125,7 +150,7 @@ export const drawSkiaShmupEnemy: ShapeDrawer<SkCanvas, ShmupComponentRegistry> =
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.warning));
       paint.setStrokeWidth(2.5);
-      const pulse = 1.1 + 0.2 * Math.sin(time * 25);
+      const pulse = 1.12 + 0.18 * Math.sin(time * 25);
       canvas.drawCircle(0, 0, size * pulse, paint);
     }
 
@@ -137,42 +162,50 @@ export const drawSkiaShmupEnemy: ShapeDrawer<SkCanvas, ShmupComponentRegistry> =
       paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.enemy.primary));
       const path = Skia.Path.Make();
       path.moveTo(0, size * 1.1);
-      path.lineTo(size * 0.85, -size * 0.3);
-      path.lineTo(size * 0.35, -size * 0.85);
+      path.lineTo(size * 0.9, -size * 0.25);
+      path.lineTo(size * 0.4, -size * 0.85);
       path.lineTo(0, -size * 0.5);
-      path.lineTo(-size * 0.35, -size * 0.85);
-      path.lineTo(-size * 0.85, -size * 0.3);
+      path.lineTo(-size * 0.4, -size * 0.85);
+      path.lineTo(-size * 0.9, -size * 0.25);
       path.close();
       canvas.drawPath(path, paint);
 
       paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.primary));
-      canvas.drawCircle(size * 0.75, -size * 0.25, 3.5, paint);
-      canvas.drawCircle(-size * 0.75, -size * 0.25, 3.5, paint);
+      canvas.drawCircle(size * 0.8, -size * 0.2, 3.5, paint);
+      canvas.drawCircle(-size * 0.8, -size * 0.2, 3.5, paint);
 
       paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.enemy.accent));
-      canvas.drawCircle(0, 0, size * 0.26, paint);
+      canvas.drawCircle(0, 0, size * 0.28, paint);
 
     } else if (archetype === "interceptor") {
       paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.enemy.primary));
       const path = Skia.Path.Make();
       path.moveTo(0, size * 1.25);
-      path.lineTo(size * 0.65, -size * 0.5);
-      path.lineTo(0, -size * 0.9);
-      path.lineTo(-size * 0.65, -size * 0.5);
+      path.lineTo(size * 0.7, -size * 0.45);
+      path.lineTo(size * 0.2, -size * 0.85);
+      path.lineTo(0, -size * 0.6);
+      path.lineTo(-size * 0.2, -size * 0.85);
+      path.lineTo(-size * 0.7, -size * 0.45);
       path.close();
       canvas.drawPath(path, paint);
 
+      paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.enemy.accent));
+      paint.setStrokeWidth(2.0);
+      canvas.drawLine(0, size * 0.8, size * 0.55, -size * 0.3, paint);
+      canvas.drawLine(0, size * 0.8, -size * 0.55, -size * 0.3, paint);
+
+      paint.setStyle(Skia.PaintStyle.Fill);
       canvas.drawCircle(0, -size * 0.1, size * 0.28, paint);
 
     } else if (archetype === "armored") {
       paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.architecture));
       const path = Skia.Path.Make();
-      path.moveTo(0, size * 0.9);
-      path.lineTo(size * 1.1, size * 0.3);
-      path.lineTo(size * 0.9, -size * 0.8);
-      path.lineTo(-size * 0.9, -size * 0.8);
-      path.lineTo(-size * 1.1, size * 0.3);
+      path.moveTo(0, size * 0.95);
+      path.lineTo(size * 1.15, size * 0.25);
+      path.lineTo(size * 0.85, -size * 0.85);
+      path.lineTo(-size * 0.85, -size * 0.85);
+      path.lineTo(-size * 1.15, size * 0.25);
       path.close();
       canvas.drawPath(path, paint);
 
@@ -195,17 +228,17 @@ export const drawSkiaShmupEnemy: ShapeDrawer<SkCanvas, ShmupComponentRegistry> =
     } else {
       paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.enemy.primary));
       const path = Skia.Path.Make();
-      path.moveTo(0, size * 1.1);
-      path.lineTo(size * 1.2, -size * 0.4);
-      path.lineTo(size * 0.6, -size * 1.0);
-      path.lineTo(-size * 0.6, -size * 1.0);
-      path.lineTo(-size * 1.2, -size * 0.4);
+      path.moveTo(0, size * 1.15);
+      path.lineTo(size * 1.25, -size * 0.35);
+      path.lineTo(size * 0.7, -size * 1.0);
+      path.lineTo(-size * 0.7, -size * 1.0);
+      path.lineTo(-size * 1.25, -size * 0.35);
       path.close();
       canvas.drawPath(path, paint);
 
       const corePulse = 0.85 + 0.3 * Math.sin(time * 10);
       paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.gold.sunlight));
-      canvas.drawCircle(0, 0, size * 0.4 * corePulse, paint);
+      canvas.drawCircle(0, 0, size * 0.42 * corePulse, paint);
     }
 
     canvas.restore();
@@ -250,9 +283,9 @@ export const drawSkiaShmupEnemyBullet: ShapeDrawer<SkCanvas, ShmupComponentRegis
     canvas.save();
     paint.reset();
     paint.setAntiAlias(true);
-    paint.setStyle(Skia.PaintStyle.Fill);
 
     if (kind === "hot") {
+      paint.setStyle(Skia.PaintStyle.Fill);
       paint.setColor(Skia.Color(color));
       const path = Skia.Path.Make();
       path.moveTo(0, size * 1.8);
@@ -262,20 +295,42 @@ export const drawSkiaShmupEnemyBullet: ShapeDrawer<SkCanvas, ShmupComponentRegis
       path.close();
       canvas.drawPath(path, paint);
 
+      // Dark rim
+      paint.setStyle(Skia.PaintStyle.Stroke);
+      paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.enemy.primary));
+      paint.setStrokeWidth(1.8);
+      canvas.drawPath(path, paint);
+
+      // White core
+      paint.setStyle(Skia.PaintStyle.Fill);
       paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.core));
       canvas.drawCircle(0, 0, size * 0.4, paint);
 
     } else if (kind === "special") {
+      paint.setStyle(Skia.PaintStyle.Fill);
       paint.setColor(Skia.Color(color));
       canvas.drawCircle(0, 0, size * 1.35, paint);
 
+      paint.setStyle(Skia.PaintStyle.Stroke);
+      paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.enemy.primary));
+      paint.setStrokeWidth(1.8);
+      canvas.drawCircle(0, 0, size * 1.35, paint);
+
+      paint.setStyle(Skia.PaintStyle.Fill);
       paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.core));
       canvas.drawCircle(0, 0, size * 0.55, paint);
 
     } else {
+      paint.setStyle(Skia.PaintStyle.Fill);
       paint.setColor(Skia.Color(color));
       canvas.drawCircle(0, 0, size, paint);
 
+      paint.setStyle(Skia.PaintStyle.Stroke);
+      paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.enemy.primary));
+      paint.setStrokeWidth(1.8);
+      canvas.drawCircle(0, 0, size, paint);
+
+      paint.setStyle(Skia.PaintStyle.Fill);
       paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.core));
       canvas.drawCircle(0, 0, size * 0.45, paint);
     }
@@ -299,20 +354,24 @@ export const drawSkiaShmupStarfield: EffectDrawer<SkCanvas, ShmupComponentRegist
     canvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
 
     // Layer 2: Volumetric Clouds
-    paint.setColor(Skia.Color(biome.cloudLight));
     for (const cloud of clouds) {
-      canvas.drawOval(Skia.XYWHRect(cloud.x - cloud.rx, cloud.y - cloud.ry, cloud.rx * 2, cloud.ry * 2), paint);
+      paint.setColor(Skia.Color(biome.cloudShadow));
+      canvas.drawOval(Skia.XYWHRect(cloud.x - cloud.rx * 1.1, cloud.y - cloud.ry * 0.85 + cloud.ry * 0.2, cloud.rx * 2.2, cloud.ry * 1.7), paint);
+
+      paint.setColor(Skia.Color(biome.cloudLight));
+      canvas.drawCircle(cloud.x - cloud.rx * 0.35, cloud.y, cloud.ry * 0.75, paint);
+      canvas.drawCircle(cloud.x, cloud.y - cloud.ry * 0.25, cloud.ry * 0.95, paint);
+      canvas.drawCircle(cloud.x + cloud.rx * 0.35, cloud.y, cloud.ry * 0.75, paint);
     }
 
     // Layer 3: Floating Islands
-    paint.setColor(Skia.Color(biome.islandColor));
     for (const island of islands) {
-      canvas.drawRect(Skia.XYWHRect(island.x, island.y, island.width, island.height), paint);
-    }
+      paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.architecture));
+      canvas.drawRect(Skia.XYWHRect(island.x, island.y + island.height * 0.3, island.width, island.height * 0.7), paint);
 
-    // Central mist overlay
-    paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.sky.mid));
-    canvas.drawRect(Skia.XYWHRect(width * 0.15, 0, width * 0.7, height), paint);
+      paint.setColor(Skia.Color(island.color));
+      canvas.drawRect(Skia.XYWHRect(island.x - 4, island.y, island.width + 8, island.height * 0.55), paint);
+    }
 
     // Layer 4: Near Decor Particles
     for (const p of particles) {

@@ -22,12 +22,79 @@ import {
 
 /** Layer bit matching HitRunBulletPool mask (1 << 4). */
 export const HIT_RUN_ENEMY_LAYER = 1 << 4;
+export const HIT_RUN_ENEMY_POOL_FREE_LIST = "HitRunEnemyPoolFreeList";
 
 /**
- * Pool / factory de enemigos para Hit&Run.
+ * Pool / factory de enemigos para Hit&Run con reciclaje real.
  * Faction uses both `faction` and `value` so CombatSystem friendly-fire checks work.
  */
 export class HitRunEnemyPool implements IHitRunEnemyPool {
+  private getFreeList(world: World<CoreComponentRegistry>): number[] {
+    let freeList = world.getResource<number[]>(HIT_RUN_ENEMY_POOL_FREE_LIST);
+    if (!freeList) {
+      freeList = [];
+      world.setResource(HIT_RUN_ENEMY_POOL_FREE_LIST, freeList);
+    }
+    return freeList;
+  }
+
+  public prewarm(world: World<CoreComponentRegistry>, count = 16): void {
+    const freeList = this.getFreeList(world);
+    for (let i = 0; i < count; i++) {
+      const entity = world.createEntity();
+      this.deactivateEntity(world, entity);
+      freeList.push(entity);
+    }
+  }
+
+  public release(ctx: { world: World<CoreComponentRegistry>; entity: Entity }): void {
+    this.releaseEnemy(ctx.world, ctx.entity);
+  }
+
+  public releaseEnemy(world: World<CoreComponentRegistry>, entity: Entity): void {
+    if (!world.hasEntity(entity)) return;
+    this.deactivateEntity(world, entity);
+    const freeList = this.getFreeList(world);
+    if (!freeList.includes(entity)) {
+      freeList.push(entity);
+    }
+  }
+
+  private deactivateEntity(world: World<CoreComponentRegistry>, entity: Entity): void {
+    const isUpdating = world.isUpdating;
+    const cmd = world.getCommandBuffer();
+
+    if (world.hasComponent(entity, "Render")) {
+      world.mutateComponent(entity, "Render", (r) => {
+        r.visible = false;
+        r.opacity = 0;
+      });
+    }
+    if (world.hasComponent(entity, "Collider2D")) {
+      world.mutateComponent(entity, "Collider2D", (c) => {
+        c.enabled = false;
+      });
+    }
+    if (world.hasComponent(entity, "Velocity")) {
+      world.mutateComponent(entity, "Velocity", (v) => {
+        v.vx = 0;
+        v.vy = 0;
+      });
+    }
+
+    if (isUpdating) {
+      cmd.removeComponent(entity, "Hurtbox");
+      cmd.removeComponent(entity, "Dead");
+      cmd.removeComponent(entity, "HitReaction");
+      cmd.removeComponent(entity, "EnemyDeathState");
+    } else {
+      if (world.hasComponent(entity, "Hurtbox")) world.removeComponent(entity, "Hurtbox");
+      if (world.hasComponent(entity, "Dead")) world.removeComponent(entity, "Dead");
+      if (world.hasComponent(entity, "HitReaction")) world.removeComponent(entity, "HitReaction");
+      if (world.hasComponent(entity, "EnemyDeathState")) world.removeComponent(entity, "EnemyDeathState");
+    }
+  }
+
   public acquireEnemy(
     world: World<CoreComponentRegistry>,
     params: HitRunEnemySpawnParams
@@ -51,18 +118,35 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
     const depthMax = moveCfg.depthMax ?? 520;
     const spawnY = Math.min(depthMax, Math.max(depthMin, params.y));
 
-    const isUpdating = world.isUpdating;
-    const entity = world.createEntity();
+    const freeList = this.getFreeList(world);
+    let entity: Entity;
+    let isRecycled = false;
 
-    const addComp = (comp: unknown) => {
-      if (isUpdating) {
-        world.getCommandBuffer().addComponent(entity, comp as never);
+    if (freeList.length > 0) {
+      entity = freeList.pop()!;
+      isRecycled = true;
+    } else {
+      entity = world.createEntity();
+    }
+
+    const isUpdating = world.isUpdating;
+    const cmd = world.getCommandBuffer();
+
+    const setOrAddComp = <K extends Extract<keyof CoreComponentRegistry, string>>(type: K, comp: CoreComponentRegistry[K] & { type: K }) => {
+      if (isRecycled && world.hasComponent(entity, type)) {
+        world.mutateComponent(entity, type, (c) => {
+          Object.assign(c, comp);
+        });
       } else {
-        world.addComponent(entity, comp as never);
+        if (isUpdating) {
+          cmd.addComponent(entity, comp as never);
+        } else {
+          world.addComponent(entity, comp as never);
+        }
       }
     };
 
-    addComp({
+    setOrAddComp("Transform", {
       type: "Transform",
       x: params.x,
       y: spawnY,
@@ -76,13 +160,15 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
       worldScaleY: 1,
       dirty: true
     });
-    addComp({
+
+    setOrAddComp("Velocity", {
       type: "Velocity",
       vx: 0,
       vy: 0,
       angularVelocity: 0
     });
-    addComp({
+
+    setOrAddComp("Collider2D", {
       type: "Collider2D",
       shape: { type: "aabb", halfWidth: size * 0.5, halfHeight: size * 0.5 },
       layer: HIT_RUN_ENEMY_LAYER,
@@ -92,14 +178,16 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
       enabled: true,
       isTrigger: false
     });
-    addComp({
+
+    setOrAddComp("CollisionEvents", {
       type: "CollisionEvents",
       collisions: [],
       activeTriggers: [],
       triggersEntered: [],
       triggersExited: []
     });
-    addComp({
+
+    setOrAddComp("Render", {
       type: "Render",
       shape,
       size,
@@ -107,47 +195,73 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
       visible: true,
       opacity: 1,
       order: 2,
-      depthSort: true
+      depthSort: true,
+      rotation: 0,
+      angularVelocity: 0,
+      hitFlashFrames: 0
     });
 
-    addComp({
+    setOrAddComp("Tag", {
       type: "Tag",
       tags: ["Enemy", params.archetypeId, ...(params.tags ?? []), ...(arch?.behaviorTags ?? [])]
     });
-    addComp({
+
+    setOrAddComp("BeltElevation", {
       type: "BeltElevation",
       z: 0,
       vz: 0,
       grounded: true
     });
-    addComp({
+
+    setOrAddComp("Health", {
       type: "Health",
       current: health,
-      max: health
+      max: health,
+      invulnerableRemaining: 0
     });
-    addComp({
+
+    setOrAddComp("Faction", {
       type: "Faction",
       value: faction
     });
-    addComp({
-      type: "Hurtbox"
-    });
+
+    if (!world.hasComponent(entity, "Hurtbox")) {
+      if (isUpdating) {
+        cmd.addComponent(entity, { type: "Hurtbox" } as never);
+      } else {
+        world.addComponent(entity, { type: "Hurtbox" });
+      }
+    }
 
     const camState = world.getResource<BeltCameraState>(BELT_CAMERA_STATE_RESOURCE);
     const sectionIndex = camState?.currentSectionIndex ?? 0;
-    addComp({
+    setOrAddComp("BeltSectionEnemy", {
       type: "BeltSectionEnemy",
       sectionIndex
-    });
+    } as never);
 
     const enemyKind = (params.archetypeId === "charger" ? "charger" : "patrol") as "patrol" | "jumper" | "charger";
-    addComp({
+    setOrAddComp("Enemy", {
       type: "Enemy",
       kind: enemyKind,
       archetypeId: params.archetypeId,
       indexInGroup: params.indexInGroup ?? 0,
       groupSize: params.groupSize ?? 1
-    } as CoreComponentRegistry["Enemy"] & { archetypeId?: string; indexInGroup?: number; groupSize?: number });
+    } as never);
+
+    setOrAddComp("Reclaimable", {
+      type: "Reclaimable",
+      poolName: "EnemyPool",
+      poolId: ENEMY_POOL_RESOURCE
+    });
+
+    if (isUpdating) {
+      cmd.removeComponent(entity, "Dead");
+      cmd.removeComponent(entity, "HitReaction");
+    } else {
+      if (world.hasComponent(entity, "Dead")) world.removeComponent(entity, "Dead");
+      if (world.hasComponent(entity, "HitReaction")) world.removeComponent(entity, "HitReaction");
+    }
 
     attachEnemyAI(world, entity, {
       archetypeId: params.archetypeId,
@@ -159,11 +273,13 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
 }
 
 export function registerHitRunEnemyPool(
-  world: World<CoreComponentRegistry>
+  world: World<CoreComponentRegistry>,
+  initialSize = 16
 ): HitRunEnemyPool {
   const existing = world.getResource<HitRunEnemyPool>(ENEMY_POOL_RESOURCE);
   if (existing) return existing;
   const pool = new HitRunEnemyPool();
   world.setResource(ENEMY_POOL_RESOURCE, pool);
+  pool.prewarm(world, initialSize);
   return pool;
 }

@@ -1,7 +1,8 @@
 import {
   World,
   Entity,
-  ProjectilePool
+  ProjectilePool,
+  CoreComponentRegistry
 } from "@tiny-aster/core";
 import { createProjectilePoolConfig } from "@tiny-aster/gameplay-kit";
 import type { HitRunBulletParams } from "./HitRunWeaponTypes";
@@ -20,7 +21,7 @@ const enemyPoolHooks = createProjectilePoolConfig<HitRunBulletParams>({
   order: 4,
   bulletType: "EnemyBullet",
   extraComponents: (data, params) => {
-    const damageComp = data.damage as { amount: number; category?: string; consumption?: any; friendlyFire?: boolean; sourceEntity?: number } | undefined;
+    const damageComp = data.damage as { amount: number; category?: string; consumption?: unknown; friendlyFire?: boolean; sourceEntity?: number } | undefined;
     if (damageComp) {
       damageComp.amount = params.damageAmount;
       damageComp.category = params.damageCategory;
@@ -50,7 +51,7 @@ export class HitRunEnemyBulletPool extends ProjectilePool<any, HitRunBulletParam
     super(enemyPoolHooks);
   }
 
-  public acquireBullet(world: World, params: HitRunBulletParams): Entity {
+  public acquireBullet(world: World<CoreComponentRegistry>, params: HitRunBulletParams): Entity {
     const entity = this.acquire(world, params);
     const z = params.z ?? 16;
     const elev = {
@@ -58,7 +59,7 @@ export class HitRunEnemyBulletPool extends ProjectilePool<any, HitRunBulletParam
       z,
       vz: 0,
       grounded: true
-    };
+    } satisfies CoreComponentRegistry["BeltElevation"];
 
     if (world.isUpdating) {
       world.commands.addComponent(entity, elev);
@@ -71,7 +72,7 @@ export class HitRunEnemyBulletPool extends ProjectilePool<any, HitRunBulletParam
 }
 
 export function registerEnemyBulletPool(
-  world: World,
+  world: World<CoreComponentRegistry>,
   initialSize = 128
 ): HitRunEnemyBulletPool {
   const existing = world.getResource<HitRunEnemyBulletPool>("EnemyBulletPool");

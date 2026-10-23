@@ -136,3 +136,25 @@ La frase histórica `InputFrame[0..N] -> snapshot hash: MATCH` no está respalda
 ### Alcance del fallo de duplicación
 
 El ECS Core Sentinel sigue fallando por `check:duplication`: 1.312 líneas duplicadas frente a baseline de 1.135 (+177, 1,12%). Se amplió el diagnóstico para imprimir los clones detectados. Los 15 mayores clones que mostró la traza consultada corresponden a rutas heredadas como `centipede/EntityFactory.ts`, `centipede/rendering/CentipedeCanvasVisuals.ts`, `centipede/rendering/CentipedeSkiaVisuals.ts`, `galaxian/EntityPool.ts` y módulos `core/dsp`; no se encontraron clones que coincidieran con los filtros de archivos modificados por esta auditoría. Esto apunta a una discrepancia de baseline o deuda preexistente fuera del ámbito del shmup, pero el check global continúa fallando y debe mantenerse señalado. No se ha actualizado el baseline para ocultar la regresión.
+
+
+## 9. Última iteración de pruebas — 2026-10-23
+
+### Resultado confirmado en SHA `4dcafebda1715977e5301d8034910625dacca926`
+
+- Build, lint, typecheck y test task de Turbo: PASS.
+- Tests de Turbo: 120 suites, 613 tests y 1 snapshot pasados.
+- Suite shmup: 19 tests pasados, 1 test fallido. El fallo quedó acotado a la expectativa de conservación de ejes tras movimiento diagonal: el sistema normaliza y escribe de vuelta los ejes como `±1/√2`. No fue un fallo del adaptador de teclado.
+- Corrección: en SHA `8877517034fea3fc2b60f1e6571938e090673954`, las aserciones ahora esperan el vector normalizado.
+
+### Cobertura de determinismo añadida
+
+En SHA `c4370ddc933e6d86e0ea98cc0d76f5050ea4416b` se añadió un test de integración que inicia dos partidas con semilla fija, aplica la misma traza de entradas y compara `game.hash()` al comienzo y tras cada tick. Esto corrige la ausencia de evidencia que originó la observación P3-03. El resultado de esta nueva prueba está pendiente de CI.
+
+### Último estado observado en CI — SHA `c4370ddc933e6d86e0ea98cc0d76f5050ea4416b`
+
+- Build: PASS.
+- Lint: PASS.
+- Typecheck: en curso al consultar.
+- Test task de Turbo y suite shmup: pendientes en esa ejecución.
+- ECS Core Sentinel: el ratchet de duplicación falló de nuevo por la discrepancia global baseline 1.135 vs 1.312 líneas duplicadas (+177). El diagnóstico no encontró clones que coincidieran con los filtros de las rutas modificadas por esta auditoría; los clones más grandes impresos estaban en módulos heredados de Centipede, Galaxian y core DSP. Se mantiene como bloqueo global no resuelto y no se modifica el baseline.

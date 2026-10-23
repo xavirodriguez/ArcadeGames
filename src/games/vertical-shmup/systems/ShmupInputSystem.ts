@@ -1,4 +1,4 @@
-import { System, World, PhysicsUtils, Juice, TouchInputState } from "@tiny-aster/core";
+import { System, World, Juice, TouchInputState } from "@tiny-aster/core";
 import { ShmupComponentRegistry, ShmupEventRegistry } from "../types/ShmupTypes";
 import { ShmupConfig } from "../types/ShmupConfigSchema";
 import { createPlayerBullet } from "../EntityFactory";
@@ -33,7 +33,6 @@ export class ShmupInputSystem extends System<ShmupComponentRegistry, ShmupEventR
         moveY = touchState.moveY;
       }
 
-      // Keep the same top speed in all directions, including keyboard and touch diagonals.
       const inputMagnitude = Math.hypot(moveX, moveY);
       if (inputMagnitude > 1) {
         moveX /= inputMagnitude;
@@ -74,11 +73,8 @@ export class ShmupInputSystem extends System<ShmupComponentRegistry, ShmupEventR
         if (velocity.vy > 0) velocity.vy = 0;
       }
 
-      let cooldown = PhysicsUtils.tickTimer(input.shootCooldownRemaining, deltaTime);
-      if (shooting && cooldown <= 0) {
+      const fire = (): void => {
         createPlayerBullet(world, transform.x, transform.y - config.PLAYER_SIZE, pool);
-        cooldown = config.PLAYER_SHOOT_COOLDOWN / 1000;
-
         Juice.playShootJuice(world, entity, {
           muzzleFrames: config.MUZZLE_FLASH_FRAMES,
           recoilPx: config.RETROCOIL_PX,
@@ -86,6 +82,29 @@ export class ShmupInputSystem extends System<ShmupComponentRegistry, ShmupEventR
           shakeDuration: 45
         });
         world.getEventBus()?.emitDeferred("PlaySFX", { name: "shoot", cooldownMs: 70 });
+      };
+
+      const interval = config.PLAYER_SHOOT_COOLDOWN / 1000;
+      let cooldown = input.shootCooldownRemaining;
+      if (shooting) {
+        if (cooldown <= 0) {
+          fire();
+          cooldown = interval;
+        }
+
+        // Preserve overshoot so cadence does not drift when deltaTime does not divide the interval.
+        cooldown -= deltaTime;
+        if (interval > 0) {
+          while (cooldown <= 0) {
+            fire();
+            cooldown += interval;
+          }
+        } else {
+          // A zero interval means at most one shot per simulation update.
+          cooldown = 0;
+        }
+      } else {
+        cooldown = Math.max(0, cooldown - deltaTime);
       }
 
       world.mutateComponent(entity, "Input", i => {

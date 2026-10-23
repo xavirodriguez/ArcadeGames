@@ -174,7 +174,17 @@ describe("Vertical Shmup simulation contracts (P0)", () => {
       const world = game.world;
       const config = world.getResource<ShmupConfig>("GameConfig");
       if (!config) throw new Error("Expected game configuration");
-      world.setResource("GameConfig", { ...config, PLAYER_SHOOT_COOLDOWN: 150 });
+      world.setResource("GameConfig", {
+        ...config,
+        PLAYER_SHOOT_COOLDOWN: 150,
+        SPAWN_INTERVAL: 100
+      });
+      // Isolate cadence from projectile consumption caused by test-enemy overlaps.
+      for (const enemy of world.query("ShmupEnemy", "Collider")) {
+        world.mutateComponent(enemy, "Collider", collider => {
+          collider.enabled = false;
+        });
+      }
       game.setInputState({ actions: new Set(["shoot"]) });
 
       for (const deltaTime of steps) game.update(deltaTime);

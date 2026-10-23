@@ -1,4 +1,6 @@
 import { World, CoreComponentRegistry } from "@tiny-aster/core";
+import type { DamageComponent } from "@tiny-aster/gameplay-kit";
+import type { HitRunEnemyBulletPool } from "../weapons/HitRunEnemyBulletPool";
 
 /**
  * Cooldown de disparo guardado en StateMachine.data.shootCooldownRemaining
@@ -38,9 +40,7 @@ export function tryEnemyShoot(
 
   const speed = (data.shootSpeed as number) ?? 260;
 
-  const pool = world.getResource<{
-    acquireBullet?: (w: World, p: Record<string, unknown>) => number;
-  }>("EnemyBulletPool");
+  const pool = world.getResource<HitRunEnemyBulletPool>("EnemyBulletPool");
 
   const params = {
     x: sx + dx * 12,
@@ -52,7 +52,7 @@ export function tryEnemyShoot(
     ttl: 1.5,
     damageAmount: (data.shootDamage as number) ?? 1,
     damageCategory: (data.shootCategory as string) ?? "enemy_bullet",
-    consumption: "destroy-entity",
+    consumption: "destroy-entity" as const,
     sourceEntity: entity,
     shape: "enemy_bullet"
   };
@@ -98,7 +98,7 @@ function spawnFallbackEnemyBullet(
     ttl: number;
     damageAmount: number;
     damageCategory: string;
-    consumption: string;
+    consumption: "destroy-entity" | "remove-component";
     sourceEntity: number;
     shape: string;
   }
@@ -133,6 +133,17 @@ function spawnFallbackEnemyBullet(
     type: "Faction",
     value: "enemy"
   });
+
+  const damageComp: DamageComponent = {
+    type: "Damage",
+    amount: p.damageAmount,
+    category: p.damageCategory,
+    sourceEntity: p.sourceEntity,
+    friendlyFire: false,
+    consumption: p.consumption
+  };
+  world.addComponent(e, damageComp as never);
+
   world.addComponent(e, {
     type: "Collider2D",
     shape: { type: "aabb", halfWidth: p.size, halfHeight: p.size },

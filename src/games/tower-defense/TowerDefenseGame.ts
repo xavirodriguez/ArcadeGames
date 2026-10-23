@@ -277,8 +277,7 @@ export class TowerDefenseGame extends BaseGame<
     this.world.addSystem(new HierarchySystem(), { phase: SystemPhase.Transform });
     this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new BoundarySystem(), { phase: SystemPhase.Simulation });
-        // TODO(refactor): código duplicado detectado (bloque) con vertical-shmup/scenes/ShmupGameScene.ts:51-54. Considerar extraer a función compartida. Ref: 87a4f2aa
-this.world.addSystem(new WaveSpawnSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new WaveSpawnSystem(), { phase: SystemPhase.Simulation });
 
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
     this.world.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });
@@ -350,58 +349,111 @@ this.world.addSystem(new WaveSpawnSystem(), { phase: SystemPhase.Simulation });
   }
 
   public initializeRenderer(renderer: Renderer<TowerDefenseComponentRegistry>): void {
-    RendererUtils.registerAssets(renderer, {
-      canvas: (r) => {
-        const {
-          drawTowerBasic,
-          drawTowerSniper,
-          drawTowerRapid,
-          drawTowerFrost,
-          drawCreepGrunt,
-          drawCreepFast,
-          drawCreepTank,
-          drawCreepBoss,
-          drawTowerProjectile,
-          drawTdMapBackground,
-        } = require("./rendering/TowerDefenseCanvasVisuals");
-        r.registerShape("tower_basic", drawTowerBasic);
-        r.registerShape("tower_sniper", drawTowerSniper);
-        r.registerShape("tower_rapid", drawTowerRapid);
-        r.registerShape("tower_frost", drawTowerFrost);
-        r.registerShape("creep_grunt", drawCreepGrunt);
-        r.registerShape("creep_fast", drawCreepFast);
-        r.registerShape("creep_tank", drawCreepTank);
-        r.registerShape("creep_boss", drawCreepBoss);
-        r.registerShape("tower_projectile", drawTowerProjectile);
-        r.registerBackgroundEffect("td_map", drawTdMapBackground);
-      },
-      skia: (r) => {
-        const {
-          drawSkiaTowerBasic,
-          drawSkiaTowerSniper,
-          drawSkiaTowerRapid,
-          drawSkiaTowerFrost,
-          drawSkiaCreepGrunt,
-          drawSkiaCreepFast,
-          drawSkiaCreepTank,
-          drawSkiaCreepBoss,
-          drawSkiaTowerProjectile,
-          drawSkiaTdMapBackground,
-        } = require("./rendering/TowerDefenseSkiaVisuals");
-        r.registerShape("tower_basic", drawSkiaTowerBasic);
-        r.registerShape("tower_sniper", drawSkiaTowerSniper);
-        r.registerShape("tower_rapid", drawSkiaTowerRapid);
-        r.registerShape("tower_frost", drawSkiaTowerFrost);
-        r.registerShape("creep_grunt", drawSkiaCreepGrunt);
-        r.registerShape("creep_fast", drawSkiaCreepFast);
-        r.registerShape("creep_tank", drawSkiaCreepTank);
-        r.registerShape("creep_boss", drawSkiaCreepBoss);
-        r.registerShape("tower_projectile", drawSkiaTowerProjectile);
-        r.registerBackgroundEffect("td_map", drawSkiaTdMapBackground);
+    // Always-visible fallback so creeps never disappear if custom drawers fail.
+    const safeCanvasCreep = (fill: string) => ({
+      draw(ctx: CanvasRenderingContext2D, world: World<TowerDefenseComponentRegistry>, entity: number) {
+        try {
+          const render = world.getComponent(entity, "Render");
+          const radius = Math.max(10, (render?.size ?? 28) / 2);
+          ctx.beginPath();
+          ctx.arc(0, 0, radius, 0, Math.PI * 2);
+          ctx.fillStyle = fill;
+          ctx.fill();
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 3;
+          ctx.stroke();
+          ctx.fillStyle = "#111827";
+          ctx.beginPath();
+          ctx.arc(-radius * 0.3, -radius * 0.15, radius * 0.18, 0, Math.PI * 2);
+          ctx.arc(radius * 0.3, -radius * 0.15, radius * 0.18, 0, Math.PI * 2);
+          ctx.fill();
+        } catch (err) {
+          console.warn("[TD] safeCanvasCreep draw failed", err);
+        }
       },
     });
-        // TODO(refactor): código duplicado detectado (bloque) con space-invaders/SpaceInvadersGame.ts:700-706. Considerar extraer a función compartida. Ref: d4e2faf8
-SharedVFX.registerSharedVFX(renderer);
+
+    const wrapCanvas = (
+      name: string,
+      drawer: { draw: (ctx: CanvasRenderingContext2D, world: World<TowerDefenseComponentRegistry>, entity: number) => void },
+      fallbackFill: string
+    ) => ({
+      draw(ctx: CanvasRenderingContext2D, world: World<TowerDefenseComponentRegistry>, entity: number) {
+        try {
+          drawer.draw(ctx, world, entity);
+        } catch (err) {
+          console.warn(`[TD] ${name} drawer threw, using fallback`, err);
+          safeCanvasCreep(fallbackFill).draw(ctx, world, entity);
+        }
+      },
+    });
+
+    RendererUtils.registerAssets(renderer, {
+      canvas: (r) => {
+        r.registerShape("creep_grunt", safeCanvasCreep("#ff2d55"));
+        r.registerShape("creep_fast", safeCanvasCreep("#4fc3f7"));
+        r.registerShape("creep_tank", safeCanvasCreep("#94a3b8"));
+        r.registerShape("creep_boss", safeCanvasCreep("#ef4444"));
+
+        try {
+          const {
+            drawTowerBasic,
+            drawTowerSniper,
+            drawTowerRapid,
+            drawTowerFrost,
+            drawCreepGrunt,
+            drawCreepFast,
+            drawCreepTank,
+            drawCreepBoss,
+            drawTowerProjectile,
+            drawTdMapBackground,
+          } = require("./rendering/TowerDefenseCanvasVisuals");
+          r.registerShape("tower_basic", drawTowerBasic);
+          r.registerShape("tower_sniper", drawTowerSniper);
+          r.registerShape("tower_rapid", drawTowerRapid);
+          r.registerShape("tower_frost", drawTowerFrost);
+          r.registerShape("creep_grunt", wrapCanvas("creep_grunt", drawCreepGrunt, "#ff2d55"));
+          r.registerShape("creep_fast", wrapCanvas("creep_fast", drawCreepFast, "#4fc3f7"));
+          r.registerShape("creep_tank", wrapCanvas("creep_tank", drawCreepTank, "#94a3b8"));
+          r.registerShape("creep_boss", wrapCanvas("creep_boss", drawCreepBoss, "#ef4444"));
+          r.registerShape("tower_projectile", drawTowerProjectile);
+          r.registerBackgroundEffect("td_map", drawTdMapBackground);
+          console.info("[TD] Canvas custom creep drawers registered");
+        } catch (err) {
+          console.warn("[TD] Canvas visuals failed to load; using safe creep fallbacks only", err);
+        }
+      },
+      skia: (r) => {
+        try {
+          const {
+            drawSkiaTowerBasic,
+            drawSkiaTowerSniper,
+            drawSkiaTowerRapid,
+            drawSkiaTowerFrost,
+            drawSkiaCreepGrunt,
+            drawSkiaCreepFast,
+            drawSkiaCreepTank,
+            drawSkiaCreepBoss,
+            drawSkiaTowerProjectile,
+            drawSkiaTdMapBackground,
+          } = require("./rendering/TowerDefenseSkiaVisuals");
+          r.registerShape("tower_basic", drawSkiaTowerBasic);
+          r.registerShape("tower_sniper", drawSkiaTowerSniper);
+          r.registerShape("tower_rapid", drawSkiaTowerRapid);
+          r.registerShape("tower_frost", drawSkiaTowerFrost);
+          r.registerShape("creep_grunt", drawSkiaCreepGrunt);
+          r.registerShape("creep_fast", drawSkiaCreepFast);
+          r.registerShape("creep_tank", drawSkiaCreepTank);
+          r.registerShape("creep_boss", drawSkiaCreepBoss);
+          r.registerShape("tower_projectile", drawSkiaTowerProjectile);
+          r.registerBackgroundEffect("td_map", drawSkiaTdMapBackground);
+          console.info("[TD] Skia custom creep drawers registered");
+        } catch (err) {
+          console.warn("[TD] Skia visuals failed to load", err);
+        }
+      },
+    });
+    SharedVFX.registerSharedVFX(renderer);
   }
 
   public override setInputState(

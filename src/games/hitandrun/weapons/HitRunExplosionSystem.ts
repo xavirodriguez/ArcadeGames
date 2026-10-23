@@ -1,5 +1,4 @@
 import {
-  System,
   World,
   CoreComponentRegistry
 } from "@tiny-aster/core";
@@ -8,10 +7,8 @@ import type {
   CombatExplosionPayload,
   ExplosivePayloadComponent
 } from "./HitRunWeaponTypes";
+import { CombatHitListenerSystem } from "../combat/CombatHitListenerSystem";
 
-/**
- * Payload mínimo de combat:hit que necesitamos (alineado con CombatSystem).
- */
 interface CombatHitLike {
   targetEntity: number;
   sourceEntity?: number;
@@ -23,22 +20,11 @@ interface CombatHitLike {
  *
  * Fase: SystemPhase.GameRules (después de CombatSystem en el tick).
  *
- * Flujo:
- *  1. CombatSystem aplica daño del cohete y consumption: "remove-component"
- *     (quita Damage, el proyectil puede seguir vivo un frame).
- *  2. Este sistema ve combat:hit con category "explosive" y source con ExplosivePayload.
- *  3. Emite combat:explosion (deferred) y marca payload.detonated.
- *  4. En el mismo o siguiente flush, resuelve AOE: enemigos en radio reciben
- *     daño vía mutate Health + combat:hit/death diferidos (sin tocar CombatSystem).
- *
- * Alternativa: escuchar solo combat:explosion si otro sistema lo emite.
+ * Unificado para utilizar únicamente combat:explosion emitido diferidamente o
+ * derivado de combat:hit sin mantener colas duplicadas.
  */
-import { CombatHitListenerSystem } from "../combat/CombatHitListenerSystem";
-
 export class HitRunExplosionSystem extends CombatHitListenerSystem<CombatHitLike> {
   private pendingExplosions: CombatExplosionPayload[] = [];
-
-  // Scratch para queries de enemigos (reutilizado)
   private scratchTargets: number[] = [];
 
   protected override onSubscribe(eventBus: EventBus): void {
@@ -48,13 +34,13 @@ export class HitRunExplosionSystem extends CombatHitListenerSystem<CombatHitLike
   }
 
   public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
-    // 1) Convertir hits explosivos en eventos de explosión
+    // 1) Convertir hits explosivos en eventos de explosión (emitidos deferred al event bus)
     if (this.pendingHits.length > 0) {
       this.detonateFromHits(world);
       this.pendingHits.length = 0;
     }
 
-    // 2) Resolver AOE de explosiones pendientes
+    // 2) Resolver AOE de explosiones pendientes recibidas vía canal combat:explosion
     if (this.pendingExplosions.length > 0) {
       this.resolveExplosions(world);
       this.pendingExplosions.length = 0;
@@ -80,7 +66,6 @@ export class HitRunExplosionSystem extends CombatHitListenerSystem<CombatHitLike
       const transform = world.getComponent(source, "Transform");
       if (!transform) continue;
 
-      // Marcar detonado (evitar doble cadena)
       const mut = world.getMutableComponent(source, "ExplosivePayload") as
         | ExplosivePayloadComponent
         | undefined;
@@ -100,11 +85,10 @@ export class HitRunExplosionSystem extends CombatHitListenerSystem<CombatHitLike
 
       if (bus) {
         bus.emitDeferred("combat:explosion", explosion);
+      } else {
+        this.pendingExplosions.push(explosion);
       }
-      // También encolar local por si el flush de deferred es al final del frame
-      this.pendingExplosions.push(explosion);
 
-      // Reclaim del proyectil tras detonación (diferido)
       world.getCommandBuffer().removeEntity(source);
     }
   }
@@ -117,7 +101,6 @@ export class HitRunExplosionSystem extends CombatHitListenerSystem<CombatHitLike
       const boom = this.pendingExplosions[i];
       const r2 = boom.radius * boom.radius;
 
-      // Candidatos: entidades con Health + Faction enemy (o Hurtbox)
       this.scratchTargets.length = 0;
       const enemies = world.query("Health", "Transform");
       const eLen = enemies.length;
@@ -127,11 +110,13 @@ export class HitRunExplosionSystem extends CombatHitListenerSystem<CombatHitLike
         if (boom.projectileEntity !== undefined && entity === boom.projectileEntity) {
           continue;
         }
-        // No dañar al shooter aliado si comparte faction player
+
+        // No dañar al shooter ni aliados compartiendo faction player
         const faction = world.getComponent(entity, "Faction") as
-          | { faction?: string }
+          | { faction?: string; value?: string }
           | undefined;
-        if (faction?.faction === "player") continue;
+        const factionName = faction?.value ?? faction?.faction;
+        if (factionName === "player") continue;
 
         if (world.hasComponent(entity, "Dead")) continue;
 
@@ -147,7 +132,6 @@ export class HitRunExplosionSystem extends CombatHitListenerSystem<CombatHitLike
         this.scratchTargets.push(entity);
       }
 
-      // Aplicar daño AOE (misma semántica que CombatSystem, sin tocarlo)
       const tLen = this.scratchTargets.length;
       for (let t = 0; t < tLen; t++) {
         const target = this.scratchTargets[t];
@@ -189,9 +173,8 @@ export class HitRunExplosionSystem extends CombatHitListenerSystem<CombatHitLike
         }
       }
 
-      // SFX de explosión (solo presentación)
       if (!world.isReSimulating && bus) {
-          bus.emit("PlaySFX", { name: "explosion_large" });
+        bus.emit("PlaySFX", { name: "explosion_large" });
       }
     }
   }

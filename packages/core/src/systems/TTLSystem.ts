@@ -32,6 +32,17 @@ export class TTLSystem extends System<CoreComponentRegistry> {
 
     for (let i = 0; i < len; i++) {
       const entity = entities[i];
+      // Read the mutable component storage: getComponent() returns a shallow-frozen
+      // view in development, while the pool marks its live component with _released.
+      const reclaimable = world.getMutableComponent(entity, "Reclaimable") as
+        | ({ type: "Reclaimable"; poolId: string; _released?: boolean; onReclaim?: (context: { world: World; entity: number }) => void })
+        | undefined;
+
+      // Boundary/collision systems can reclaim an entity earlier in this same ECS tick.
+      // Its removal is deferred until the command buffer flushes, so TTLSystem may still
+      // see it in the current query. Do not release the same pooled entity twice.
+      if (reclaimable?._released === true) continue;
+
       const ttl = world.getMutableComponent(entity, "TTL");
       if (!ttl) continue;
 

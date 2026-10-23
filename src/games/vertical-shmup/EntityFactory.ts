@@ -1,11 +1,22 @@
-import { World, Entity, EntityBuilder, ShapeType, CircleShape, BoundaryComponent, createDeferredEntity } from "@tiny-aster/core";
+import { World, Entity, EntityBuilder, ShapeType, CircleShape, BoundaryComponent } from "@tiny-aster/core";
 import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 import { ShmupComponentRegistry } from "./types/ShmupTypes";
 import { ShmupConfig } from "./types/ShmupConfigSchema";
 import { PlayerBulletPool, EnemyBulletPool } from "./EntityPool";
 import { getGameplayColor } from "../../theme/GameplayColorMap";
 import type { BulletPatternConfig } from "../shared/BulletPatternSystem";
-import { attachEnemyDefaults } from "../shared/enemyHelpers";
+
+function nextGameplayRandom(world: World<ShmupComponentRegistry>): number {
+  const random = world.gameplayRandom;
+  const wasLocked = random.isLocked();
+  if (wasLocked) random.unlock();
+  try {
+    return random.next();
+  } finally {
+    if (wasLocked) random.lock();
+  }
+}
+
 
 export function createPlayer(world: World<ShmupComponentRegistry>, x: number, y: number): Entity {
   const c = world.getResource<ShmupConfig>("GameConfig")!;
@@ -17,7 +28,7 @@ export function createPlayer(world: World<ShmupComponentRegistry>, x: number, y:
     .withCollider({ shape: { type: ShapeType.Circle, radius: c.PLAYER_COLLIDER_RADIUS } as CircleShape, layer: CollisionLayers.PLAYER, mask: CollisionLayers.ENEMY })
     .withCollisionEvents();
   world.addComponent(e, { type: "ShmupPlayer" });
-  world.addComponent(e, { type: "Input", axes: {}, actions: new Set<string>(), shootCooldownRemaining: 0 });
+  world.addComponent(e, { type: "Input", axes: {}, actions: [], shootCooldownRemaining: 0 });
   world.addComponent(e, { type: "Health", current: 3, max: 3, invulnerableRemaining: 0 });
   world.addComponent(e, { type: "Faction", faction: "player", value: "player" });
   world.addComponent(e, {
@@ -30,7 +41,9 @@ export function createPlayer(world: World<ShmupComponentRegistry>, x: number, y:
     height: c.WORLD_HEIGHT,
     mode: "bounce",
     bounceX: false,
-    bounceY: false
+    bounceY: false,
+    clampX: true,
+    clampY: true
   } as BoundaryComponent);
   world.addComponent(e, { type: "LocalPlayer" });
   return e;
@@ -132,7 +145,7 @@ export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: 
   add({
     type: "BulletPattern",
     config: patternConfig,
-    cooldownRemaining: 0.8 + Math.random() * 0.5,
+    cooldownRemaining: 0.8 + nextGameplayRandom(world) * 0.5,
     phase: 0
   });
 

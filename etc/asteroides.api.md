@@ -666,6 +666,8 @@ export type BlueprintRegistryMap<TComponents extends ComponentRegistry, TEvents 
 export interface BoundaryComponent extends Component {
     bounceX?: boolean;
     bounceY?: boolean;
+    clampX?: boolean;
+    clampY?: boolean;
     height: number;
     maxX?: number;
     maxY?: number;
@@ -1252,6 +1254,13 @@ export interface CoreComponentRegistry extends ComponentRegistry {
     Collider2D: Collider2DComponent;
     CollisionEvents: CollisionEventsComponent;
     Combo: ComboComponent;
+    Damage: Component & {
+        amount: number;
+        sourceEntity?: Entity;
+        category?: string;
+        friendlyFire?: boolean;
+        consumption?: unknown;
+    };
     Dead: DeadComponent;
     // (undocumented)
     DeathZone: DeathZoneComponent;

@@ -31,10 +31,13 @@ export default function VerticalShmupScreen() {
   const setInput = useCallback((patch: Partial<{ moveX: number; moveY: number; shoot: boolean }>) => {
     handleInput(patch as never);
     if (game) {
-      game.setInputState({
-        axes: { moveX: patch.moveX ?? 0, moveY: patch.moveY ?? 0 },
-        actions: patch.shoot ? new Set(["shoot"]) : new Set()
-      });
+      const inputUpdate: Partial<import("@/games/vertical-shmup/types/ShmupTypes").ShmupInputState> = {};
+      const axes: { moveX?: number; moveY?: number } = {};
+      if (patch.moveX !== undefined) axes.moveX = patch.moveX;
+      if (patch.moveY !== undefined) axes.moveY = patch.moveY;
+      if (Object.keys(axes).length > 0) inputUpdate.axes = axes;
+      if (patch.shoot !== undefined) inputUpdate.actions = patch.shoot ? ["shoot"] : [];
+      game.setInputState(inputUpdate);
     }
   }, [game, handleInput]);
 

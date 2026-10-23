@@ -1,5 +1,6 @@
 import { SystemPhase, World, CoreComponentRegistry } from "@tiny-aster/core";
 import { registerPlayerBulletPool } from "./HitRunBulletPool";
+import { registerEnemyBulletPool } from "./HitRunEnemyBulletPool";
 import { HitRunWeaponSystem } from "./HitRunWeaponSystem";
 import { HitRunExplosionSystem } from "./HitRunExplosionSystem";
 import { registerHitRunCombat } from "../systems/HitRunCombatBootstrap";
@@ -10,9 +11,10 @@ import { registerHitRunCameraScroll } from "../systems/HitRunCameraScrollSystem"
  */
 export function registerHitRunWeapons(
   world: World<CoreComponentRegistry>,
-  opts?: { bulletPoolSize?: number }
+  opts?: { bulletPoolSize?: number; enemyBulletPoolSize?: number }
 ): void {
   registerPlayerBulletPool(world, opts?.bulletPoolSize ?? 64);
+  registerEnemyBulletPool(world, opts?.enemyBulletPoolSize ?? 128);
   registerHitRunCombat(world);
   registerHitRunCameraScroll(world);
 

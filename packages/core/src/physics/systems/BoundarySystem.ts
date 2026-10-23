@@ -63,13 +63,19 @@ export class BoundarySystem extends System<CoreComponentRegistry> {
       } else if (b.mode === "bounce") {
         const bounceX = b.bounceX !== false;
         const bounceY = b.bounceY !== false;
+        const clampX = b.clampX === true;
+        const clampY = b.clampY === true;
+        const minX = clampX ? b.minX ?? 0 : 0;
+        const maxX = clampX ? b.maxX ?? b.width : b.width;
+        const minY = clampY ? b.minY ?? 0 : 0;
+        const maxY = clampY ? b.maxY ?? b.height : b.height;
         let needsX = false;
         let needsY = false;
 
-        if (bounceX && (t.x < 0 || t.x > b.width)) {
+        if ((bounceX || clampX) && (t.x < minX || t.x > maxX)) {
           needsX = true;
         }
-        if (bounceY && (t.y < 0 || t.y > b.height)) {
+        if ((bounceY || clampY) && (t.y < minY || t.y > maxY)) {
           needsY = true;
         }
 
@@ -77,36 +83,37 @@ export class BoundarySystem extends System<CoreComponentRegistry> {
           const mt = world.getMutableComponent(entity, "Transform");
           if (mt) {
             if (needsX) {
-              if (mt.x < 0) {
-                mt.x = 0;
-                this.reverseVelocity(world, entity, "x");
-              } else if (mt.x > b.width) {
-                mt.x = b.width;
-                this.reverseVelocity(world, entity, "x");
+              if (mt.x < minX) {
+                mt.x = minX;
+                this.reverseVelocity(world, entity, "x", clampX);
+              } else if (mt.x > maxX) {
+                mt.x = maxX;
+                this.reverseVelocity(world, entity, "x", clampX);
               }
             }
             if (needsY) {
-              if (mt.y < 0) {
-                mt.y = 0;
-                this.reverseVelocity(world, entity, "y");
-              } else if (mt.y > b.height) {
-                mt.y = b.height;
-                this.reverseVelocity(world, entity, "y");
+              if (mt.y < minY) {
+                mt.y = minY;
+                this.reverseVelocity(world, entity, "y", clampY);
+              } else if (mt.y > maxY) {
+                mt.y = maxY;
+                this.reverseVelocity(world, entity, "y", clampY);
               }
             }
+            mt.dirty = true;
           }
         }
       }
     }
   }
 
-  private reverseVelocity(world: World<CoreComponentRegistry>, entity: number, axis: "x" | "y"): void {
+  private reverseVelocity(world: World<CoreComponentRegistry>, entity: number, axis: "x" | "y", stop = false): void {
     // Safe for determinism/rollback. Avoids per-tick callback allocations.
     const v = world.getMutableComponent(entity, "Velocity");
     if (v) {
-      if (axis === "x") v.vx *= -1;
-      else v.vy *= -1;
-      world.getEventBus()?.emitDeferred("PlaySFX", { name: "bounce" });
+      if (axis === "x") v.vx = stop ? 0 : -v.vx;
+      else v.vy = stop ? 0 : -v.vy;
+      if (!stop) world.getEventBus()?.emitDeferred("PlaySFX", { name: "bounce" });
     }
   }
 }

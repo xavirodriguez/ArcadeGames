@@ -28,6 +28,12 @@ export const drawHitRunDebugOverlay: EffectDrawer<
       canvasWidth = gameConfig.viewportWidth;
     }
 
+    // 0. Allocations / tick metric counter
+    const allocsCount = world.getResource<number>("HitRunAllocsPerTick") ?? 0;
+    ctx.fillStyle = "#00ffcc";
+    ctx.font = "bold 12px monospace";
+    ctx.fillText(`allocs/tick: ${allocsCount}`, 10, 20);
+
     // 1. Belt depth limits
     ctx.lineWidth = 1.5;
     ctx.setLineDash([6, 4]);

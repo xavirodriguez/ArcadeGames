@@ -7,7 +7,8 @@ import {
   World,
   CoreComponentRegistry,
   CollisionSystem2D,
-  HierarchySystem
+  HierarchySystem,
+  CCDSystem
 } from "@tiny-aster/core";
 import { HitRunCombatSystem } from "./HitRunCombatSystem";
 import { HitRunOrphanEnemyCleanupSystem } from "./HitRunOrphanEnemyCleanupSystem";
@@ -34,6 +35,10 @@ export function registerHitRunCombat(world: World<CoreComponentRegistry>): void 
   world.addSystem(new HierarchySystem(), {
     phase: SystemPhase.Collision,
     priority: 100
+  });
+  world.addSystem(new CCDSystem(), {
+    phase: SystemPhase.Collision,
+    priority: 20
   });
   world.addSystem(new CollisionSystem2D(), {
     phase: SystemPhase.Collision,

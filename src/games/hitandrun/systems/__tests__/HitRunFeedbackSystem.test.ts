@@ -1,4 +1,4 @@
-import { World, CoreComponentRegistry } from "@tiny-aster/core";
+import { World, CoreComponentRegistry, getGameplayFreezeRemaining } from "@tiny-aster/core";
 import { HitRunFeedbackSystem, isSimulationFrozen } from "../HitRunFeedbackSystem";
 import {
   HIT_STOP_NORMAL_SECONDS,
@@ -12,7 +12,6 @@ describe("HitRunFeedbackSystem (Paso B)", () => {
 
   beforeEach(() => {
     world = new World<CoreComponentRegistry>();
-    world.setResource("HitStopRemaining", 0);
     world.setResource("HitRunScreenShake", {
       intensity: 0,
       duration: 0,
@@ -31,21 +30,19 @@ describe("HitRunFeedbackSystem (Paso B)", () => {
     });
 
     feedback.update(world, 0);
-    const afterHit = world.getResource<number>("HitStopRemaining") ?? 0;
+    const afterHit = getGameplayFreezeRemaining(world) ?? 0;
     expect(afterHit).toBeGreaterThan(0);
     expect(afterHit).toBeCloseTo(HIT_STOP_NORMAL_SECONDS, 5);
     expect(isSimulationFrozen(world)).toBe(true);
 
-    // Decay in steps
-    const step = HIT_STOP_NORMAL_SECONDS / 3;
-    feedback.update(world, step);
-    const mid = world.getResource<number>("HitStopRemaining") ?? 0;
-    expect(mid).toBeLessThan(afterHit);
-    expect(mid).toBeGreaterThan(0);
-
-    feedback.update(world, HIT_STOP_NORMAL_SECONDS);
-    const end = world.getResource<number>("HitStopRemaining") ?? 0;
-    expect(end).toBe(0);
+    // Decay step in Schedule
+    const freeze = world.getResource<{ remaining?: number }>("GameplayFreeze");
+    if (freeze && typeof freeze.remaining === "number") {
+      freeze.remaining = Math.max(0, freeze.remaining - HIT_STOP_NORMAL_SECONDS);
+      if (freeze.remaining <= 0) {
+        world.deleteResource("GameplayFreeze");
+      }
+    }
     expect(isSimulationFrozen(world)).toBe(false);
   });
 
@@ -56,7 +53,7 @@ describe("HitRunFeedbackSystem (Paso B)", () => {
       category: "melee"
     });
     feedback.update(world, 0);
-    const killStop = world.getResource<number>("HitStopRemaining") ?? 0;
+    const killStop = getGameplayFreezeRemaining(world) ?? 0;
     expect(killStop).toBeCloseTo(HIT_STOP_KILL_SECONDS, 5);
     expect(killStop).toBeGreaterThan(HIT_STOP_NORMAL_SECONDS);
   });
@@ -71,8 +68,8 @@ describe("HitRunFeedbackSystem (Paso B)", () => {
     });
     feedback.update(world, 0);
 
-    // Hit-stop still applies (sim pacing)
-    expect(world.getResource<number>("HitStopRemaining") ?? 0).toBeGreaterThan(0);
+    // Hit-stop still applies via GameplayFreeze
+    expect(getGameplayFreezeRemaining(world) ?? 0).toBeGreaterThan(0);
 
     const shake = world.getResource<{ intensity: number }>("HitRunScreenShake");
     expect(shake?.intensity ?? 0).toBe(0);

@@ -18,6 +18,8 @@ export interface BeltInputComponent extends Component {
   type: "BeltInput";
   moveX: number;
   moveY: number;
+  aimX: number;
+  aimY: number;
   attackHeld: boolean;
   attackPressed: boolean;
   fireHeld: boolean;
@@ -34,6 +36,8 @@ export function createBeltInputComponent(): BeltInputComponent {
     type: "BeltInput",
     moveX: 0,
     moveY: 0,
+    aimX: 0,
+    aimY: 0,
     attackHeld: false,
     attackPressed: false,
     fireHeld: false,
@@ -98,6 +102,10 @@ export interface BeltInputPartial {
   right?: boolean;
   up?: boolean;
   down?: boolean;
+  aimUp?: boolean;
+  aimDown?: boolean;
+  aimX?: number;
+  aimY?: number;
   jump?: boolean;
   attack?: boolean;
   fire?: boolean;

@@ -13,6 +13,7 @@ import {
 } from "./EnemyAttackConfig";
 import { canTakeDamage } from "../hurt/HitRunHurtSystem";
 import type { MeleeAttackComponent } from "../melee/MeleeAttackTypes";
+import type { BeltElevationComponent } from "../belt/BeltElevationComponent";
 import {
   zeroVx,
   dirToPlayer,
@@ -202,7 +203,6 @@ const alertWindup = {
       data: Record<string, unknown>,
       elapsed: number
     ) {
-      // Si useFlank → Flank; si no → Windup
       const next = data.useFlank ? "Flank" : "Windup";
       return timed(data, "alertDuration", 0.25, elapsed, next);
     }
@@ -221,14 +221,12 @@ const alertWindup = {
       return timed(data, "windupDuration", 0.2, elapsed, "Attack");
     }
   },
-  /** Estado de flanqueo compartido (hr_walk, hr_flank, hr_tank). */
   Flank: {
     onEnter(
       world: World<CoreComponentRegistry>,
       entity: number,
       data: Record<string, unknown>
     ) {
-      // Fijar lado al entrar (pinza / hash)
       computeFlankTarget(world, entity, data);
     },
     onUpdate(
@@ -258,7 +256,6 @@ const alertWindup = {
         cfg.arriveRadius
       );
 
-      // Disparo mientras flanquea (presión lateral)
       if (data.canShoot) tryEnemyShoot(world, entity, data);
 
       if (arrived) return "Windup";
@@ -275,10 +272,17 @@ export function registerHitRunStateMachines(
   registry["hr_walk"] = {
     states: {
       Patrol: {
-        onUpdate(world, entity, data) {
+        onEnter(_w, _e, data) {
+          data._lastPatrolElapsed = 0;
+        },
+        onUpdate(world, entity, data, elapsed) {
+          const lastElapsed = (data._lastPatrolElapsed as number) ?? elapsed;
+          const dt = Math.max(0, elapsed - lastElapsed);
+          data._lastPatrolElapsed = elapsed;
+
           const cd = (data.attackCooldownRemaining as number) ?? 0;
           if (cd > 0) {
-            data.attackCooldownRemaining = Math.max(0, cd - 0.016);
+            data.attackCooldownRemaining = Math.max(0, cd - dt);
           }
 
           const { direction, speed, sensor } = readPatrolContext(world, entity, data);
@@ -288,7 +292,6 @@ export function registerHitRunStateMachines(
             tryEnemyShoot(world, entity, data);
           }
 
-          // Patrol enemy melee attack trigger check
           if (shouldStartTelegraphedAttack(world, entity, data, DEFAULT_PATROL_ATTACK_CONFIG)) {
             return "Anticipation";
           }
@@ -422,17 +425,20 @@ export function registerHitRunStateMachines(
           if (vel) {
             const mv = world.getMutableComponent(entity, "Velocity");
             if (mv) {
-              mv.vy = -jumpVel;
               mv.vx = dir * speed;
             }
           }
+
+          const elev = world.getMutableComponent(entity, "BeltElevation") as BeltElevationComponent | undefined;
+          if (elev) {
+            elev.vz = jumpVel;
+            elev.grounded = false;
+          }
         },
         onUpdate(world, entity, data, elapsed) {
-          const ground = world.getComponent(entity, "PlatformerGroundState") as
-            | { isGrounded?: boolean }
-            | undefined;
+          const elev = world.getComponent(entity, "BeltElevation") as BeltElevationComponent | undefined;
           const dur = (data.attackDuration as number) ?? 0.85;
-          if ((ground?.isGrounded && elapsed > 0.12) || elapsed >= dur) {
+          if ((elev?.grounded && elapsed > 0.12) || (elev && elev.z <= 0 && elapsed > 0.12) || elapsed >= dur) {
             return "Recovery";
           }
         }
@@ -453,13 +459,18 @@ export function registerHitRunStateMachines(
   registry["hr_charge"] = {
     states: {
       Idle: {
-        onEnter(world, entity) {
-          zeroVx(world, entity);
+        onEnter(_w, _e, data) {
+          zeroVx(_w, _e);
+          data._lastIdleElapsed = 0;
         },
-        onUpdate(world, entity, data) {
+        onUpdate(world, entity, data, elapsed) {
+          const lastElapsed = (data._lastIdleElapsed as number) ?? elapsed;
+          const dt = Math.max(0, elapsed - lastElapsed);
+          data._lastIdleElapsed = elapsed;
+
           const cd = (data.attackCooldownRemaining as number) ?? 0;
           if (cd > 0) {
-            data.attackCooldownRemaining = Math.max(0, cd - 0.016);
+            data.attackCooldownRemaining = Math.max(0, cd - dt);
           }
 
           if (shouldStartTelegraphedAttack(world, entity, data, DEFAULT_CHARGER_ATTACK_CONFIG)) {

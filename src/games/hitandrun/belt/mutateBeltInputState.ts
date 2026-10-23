@@ -4,6 +4,7 @@
 
 import { World, CoreComponentRegistry } from "@tiny-aster/core";
 import type { BeltInputComponent, BeltInputPartial } from "./BeltMovementTypes";
+import { resolveHitRunAim } from "../input/resolveHitRunAim";
 
 export function mutateBeltInputState(
   world: World<CoreComponentRegistry>,
@@ -37,6 +38,29 @@ export function mutateBeltInputState(
       input.down !== undefined
     ) {
       c.moveY = up && down ? 0 : up ? -1 : down ? 1 : 0;
+    }
+
+    if (input.aimX !== undefined && input.aimY !== undefined) {
+      c.aimX = input.aimX;
+      c.aimY = input.aimY;
+    } else if (
+      input.moveLeft !== undefined ||
+      input.moveRight !== undefined ||
+      input.aimUp !== undefined ||
+      input.aimDown !== undefined ||
+      input.left !== undefined ||
+      input.right !== undefined
+    ) {
+      const transform = world.getComponent(entity, "Transform") as { scaleX?: number } | undefined;
+      const aim = resolveHitRunAim({
+        moveLeft: left,
+        moveRight: right,
+        aimUp: !!input.aimUp,
+        aimDown: !!input.aimDown,
+        lastFacingX: transform?.scaleX ?? 1
+      });
+      c.aimX = aim.aimX;
+      c.aimY = aim.aimY;
     }
 
     if (input.jump !== undefined) {

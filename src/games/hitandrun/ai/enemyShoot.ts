@@ -1,4 +1,5 @@
 import { World, CoreComponentRegistry } from "@tiny-aster/core";
+import type { HitRunEnemyBulletPool } from "../weapons/HitRunEnemyBulletPool";
 
 /**
  * Cooldown de disparo guardado en StateMachine.data.shootCooldownRemaining
@@ -38,9 +39,7 @@ export function tryEnemyShoot(
 
   const speed = (data.shootSpeed as number) ?? 260;
 
-  const pool = world.getResource<{
-    acquireBullet?: (w: World, p: Record<string, unknown>) => number;
-  }>("EnemyBulletPool");
+  const pool = world.getResource<HitRunEnemyBulletPool>("EnemyBulletPool");
 
   const params = {
     x: sx + dx * 12,
@@ -52,7 +51,7 @@ export function tryEnemyShoot(
     ttl: 1.5,
     damageAmount: (data.shootDamage as number) ?? 1,
     damageCategory: (data.shootCategory as string) ?? "enemy_bullet",
-    consumption: "destroy-entity",
+    consumption: "destroy-entity" as const,
     sourceEntity: entity,
     shape: "enemy_bullet"
   };
@@ -133,6 +132,14 @@ function spawnFallbackEnemyBullet(
     type: "Faction",
     value: "enemy"
   });
+  world.addComponent(e, {
+    type: "Damage",
+    amount: p.damageAmount,
+    category: p.damageCategory,
+    sourceEntity: p.sourceEntity,
+    friendlyFire: false,
+    consumption: p.consumption as any
+  } as unknown as CoreComponentRegistry["Damage"]);
   world.addComponent(e, {
     type: "Collider2D",
     shape: { type: "aabb", halfWidth: p.size, halfHeight: p.size },

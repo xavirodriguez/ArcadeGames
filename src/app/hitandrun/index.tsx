@@ -157,6 +157,8 @@ function HitAndRunContent() {
       const moveRight = activeKeys.has("ArrowRight") || activeKeys.has("KeyD");
       const moveUp = activeKeys.has("ArrowUp") || activeKeys.has("KeyW");
       const moveDown = activeKeys.has("ArrowDown") || activeKeys.has("KeyS");
+      const aimUp = activeKeys.has("ArrowUp") || activeKeys.has("KeyW") || activeKeys.has("KeyI");
+      const aimDown = activeKeys.has("ArrowDown") || activeKeys.has("KeyS") || activeKeys.has("KeyK");
       const jump = activeKeys.has("Space");
       const pulse =
         activeKeys.has("KeyF") ||
@@ -166,7 +168,6 @@ function HitAndRunContent() {
       const attack =
         activeKeys.has("KeyC") ||
         activeKeys.has("KeyX") ||
-        activeKeys.has("KeyK") ||
         activeKeys.has("ControlLeft") ||
         activeKeys.has("ControlRight");
       const special =
@@ -178,6 +179,8 @@ function HitAndRunContent() {
         moveRight,
         moveUp,
         moveDown,
+        aimUp,
+        aimDown,
         jump,
         pulse,
         attack,
@@ -187,8 +190,8 @@ function HitAndRunContent() {
       applyAimToPlayer(game, {
         moveLeft,
         moveRight,
-        aimUp: false,
-        aimDown: false,
+        aimUp,
+        aimDown,
         attack,
       });
     };
@@ -209,6 +212,8 @@ function HitAndRunContent() {
     moveRight?: boolean;
     moveUp?: boolean;
     moveDown?: boolean;
+    aimUp?: boolean;
+    aimDown?: boolean;
     jump?: boolean;
     attack?: boolean;
     pulse?: boolean;
@@ -231,14 +236,17 @@ function HitAndRunContent() {
     const moveRight = partial.moveRight ?? (inp?.moveDir !== undefined && inp.moveDir > 0);
     const attack =
       partial.attack !== undefined ? partial.attack : !!inp?.fireHeld;
+    const aimUp = partial.aimUp ?? (partial.axisY !== undefined && partial.axisY < -0.2);
+    const aimDown = partial.aimDown ?? (partial.axisY !== undefined && partial.axisY > 0.2);
+
     applyAimToPlayer(game, {
       moveLeft: !!moveLeft,
       moveRight: !!moveRight,
-      aimUp: false,
-      aimDown: false,
+      aimUp: !!aimUp,
+      aimDown: !!aimDown,
       attack,
       axisX: partial.axisX,
-      axisY: 0,
+      axisY: partial.axisY,
     });
   };
 
@@ -346,6 +354,8 @@ function HitAndRunContent() {
                     moveRight: x > 0.2,
                     moveUp: y < -0.2,
                     moveDown: y > 0.2,
+                    aimUp: y < -0.2,
+                    aimDown: y > 0.2,
                     axisX: x,
                     axisY: y,
                   });
@@ -356,6 +366,8 @@ function HitAndRunContent() {
                     moveRight: false,
                     moveUp: false,
                     moveDown: false,
+                    aimUp: false,
+                    aimDown: false,
                     axisX: 0,
                     axisY: 0,
                   });

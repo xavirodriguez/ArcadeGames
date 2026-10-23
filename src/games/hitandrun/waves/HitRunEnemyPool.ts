@@ -3,7 +3,6 @@ import {
   Entity,
   CoreComponentRegistry
 } from "@tiny-aster/core";
-import { ArcadeEntityBuilder } from "@tiny-aster/gameplay-kit";
 import { getEnemyArchetype } from "./HitRunEnemyArchetypes";
 import type {
   HitRunEnemySpawnParams,
@@ -45,7 +44,6 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
       ...(arch?.behaviorTags ?? [])
     ];
 
-    // Belt depth axis is Transform.y — keep spawns inside the playable band
     const moveCfg =
       world.getResource<BeltMovementConfig>(BELT_MOVEMENT_CONFIG_RESOURCE) ??
       DEFAULT_BELT_MOVEMENT_CONFIG;
@@ -53,38 +51,64 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
     const depthMax = moveCfg.depthMax ?? 520;
     const spawnY = Math.min(depthMax, Math.max(depthMin, params.y));
 
-    const builder = world.isUpdating
-      ? ArcadeEntityBuilder.createDeferred(world)
-      : ArcadeEntityBuilder.create(world);
-
-    const entity = builder
-      .withTransform({ x: params.x, y: spawnY, worldX: params.x, worldY: spawnY })
-      .withVelocity()
-      .withCollider2D({
-        shape: { type: "aabb", halfWidth: size * 0.5, halfHeight: size * 0.5 },
-        layer: HIT_RUN_ENEMY_LAYER,
-        mask: 0xffff,
-        isTrigger: false
-      })
-      .withCollisionEvents()
-      .withRender({
-        shape,
-        size,
-        color,
-        visible: true,
-        opacity: 1,
-        order: 2,
-        depthSort: true
-      })
-      .build();
+    const isUpdating = world.isUpdating;
+    const entity = world.createEntity();
 
     const addComp = (comp: unknown) => {
-      if (world.isUpdating) {
+      if (isUpdating) {
         world.getCommandBuffer().addComponent(entity, comp as never);
       } else {
         world.addComponent(entity, comp as never);
       }
     };
+
+    addComp({
+      type: "Transform",
+      x: params.x,
+      y: spawnY,
+      worldX: params.x,
+      worldY: spawnY,
+      rotation: 0,
+      worldRotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      worldScaleX: 1,
+      worldScaleY: 1,
+      dirty: true
+    });
+    addComp({
+      type: "Velocity",
+      vx: 0,
+      vy: 0,
+      angularVelocity: 0
+    });
+    addComp({
+      type: "Collider2D",
+      shape: { type: "aabb", halfWidth: size * 0.5, halfHeight: size * 0.5 },
+      layer: HIT_RUN_ENEMY_LAYER,
+      mask: 0xffff,
+      offsetX: 0,
+      offsetY: 0,
+      enabled: true,
+      isTrigger: false
+    });
+    addComp({
+      type: "CollisionEvents",
+      collisions: [],
+      activeTriggers: [],
+      triggersEntered: [],
+      triggersExited: []
+    });
+    addComp({
+      type: "Render",
+      shape,
+      size,
+      color,
+      visible: true,
+      opacity: 1,
+      order: 2,
+      depthSort: true
+    });
 
     addComp({
       type: "Tag",
@@ -109,7 +133,6 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
       type: "Hurtbox"
     });
 
-    // Gate camera until this section's enemies are cleared
     const camState = world.getResource<BeltCameraState>(BELT_CAMERA_STATE_RESOURCE);
     const sectionIndex = camState?.currentSectionIndex ?? 0;
     addComp({

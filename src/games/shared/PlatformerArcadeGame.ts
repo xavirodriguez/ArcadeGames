@@ -57,7 +57,7 @@ export abstract class PlatformerArcadeGame<
     schema: TSchema,
     gameOptions?: Record<string, unknown>,
     levelDataOverride?: { templates: unknown[]; grammar: string[] }
-  ): { baseConfig: TConfig; customLevelData?: { templates: unknown[]; grammar: string[] } } {
+  ): { baseConfig: TConfig; customLevelData?: { templates: any[]; grammar: string[] } } {
     return loadPlatformerArcadeConfig<TConfig, TSchema>(
       this.gameId,
       schema,

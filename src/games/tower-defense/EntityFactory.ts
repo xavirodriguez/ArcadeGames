@@ -68,6 +68,7 @@ export function populateCreep(
   y: number
 ): number {
   // High order + saturated color so creeps paint above path/debris.
+  // Redeploy tip: TowerDefenseGame must include safeCanvasCreep (not RESTORE_FROM_MASTER_PLEASE).
   const renderSize = getCreepRenderSize(def.id, def.size);
   EntityBuilder.fromEntity(world, entity)
     .withTransform({ x, y })

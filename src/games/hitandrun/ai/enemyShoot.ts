@@ -97,7 +97,7 @@ function spawnFallbackEnemyBullet(
     ttl: number;
     damageAmount: number;
     damageCategory: string;
-    consumption: string;
+    consumption: import("@tiny-aster/gameplay-kit").DamageConsumptionPolicy;
     sourceEntity: number;
     shape: string;
   }
@@ -138,8 +138,8 @@ function spawnFallbackEnemyBullet(
     category: p.damageCategory,
     sourceEntity: p.sourceEntity,
     friendlyFire: false,
-    consumption: p.consumption as any
-  } as unknown as CoreComponentRegistry["Damage"]);
+    consumption: p.consumption
+  });
   world.addComponent(e, {
     type: "Collider2D",
     shape: { type: "aabb", halfWidth: p.size, halfHeight: p.size },

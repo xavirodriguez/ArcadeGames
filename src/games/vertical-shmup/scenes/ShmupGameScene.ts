@@ -1,4 +1,4 @@
-import { Scene, World, SystemPhase, MovementSystem, BoundarySystem, TTLSystem, CollisionSystem2D, Camera2DSystem, RenderUpdateSystem, JuiceSystem, SpatialPartitioningSystem } from "@tiny-aster/core";
+import { Scene, World, System, SystemPhase, MovementSystem, BoundarySystem, TTLSystem, CollisionSystem2D, Camera2DSystem, RenderUpdateSystem, JuiceSystem, SpatialPartitioningSystem, HierarchySystem } from "@tiny-aster/core";
 import { CombatSystem } from "@tiny-aster/gameplay-kit";
 import { ShmupComponentRegistry } from "../types/ShmupTypes";
 import { ShmupConfig } from "../types/ShmupConfigSchema";
@@ -7,6 +7,7 @@ import { ShmupInputSystem } from "../systems/ShmupInputSystem";
 import { ScrollSystem } from "../systems/ScrollSystem";
 import { EnemyPathSystem } from "../systems/EnemyPathSystem";
 import { ShmupCollisionSystem } from "../systems/ShmupCollisionSystem";
+import { ShmupSingleHitGuardSystem } from "../systems/ShmupSingleHitGuardSystem";
 import { ShmupBulletPatternSystem } from "../systems/BulletPatternSystem";
 import { ShmupSpawnSystem } from "../systems/ShmupSpawnSystem";
 import { createPlayer, createEnemy } from "../EntityFactory";
@@ -23,7 +24,13 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
   ) { super(world); }
 
   public onEnter(): void {
-    this.world.setResource("GameConfig", this.config);
+    this.world.setResource("GameConfig", {
+      ...this.config,
+      // RendererUtils consumes camelCase world dimensions. Keep the game-facing
+      // UPPER_SNAKE_CASE config while exposing the renderer contract explicitly.
+      worldWidth: this.config.WORLD_WIDTH,
+      worldHeight: this.config.WORLD_HEIGHT
+    });
     this.world.setResource("PlayerBulletPool", this.playerPool);
     this.world.setResource("EnemyBulletPool", this.enemyPool);
 
@@ -32,7 +39,6 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
     const player = createPlayer(this.world, this.config.WORLD_WIDTH / 2, this.config.WORLD_HEIGHT - 100);
     this.world.setResource("ScreenConfig", { width: this.config.WORLD_WIDTH, height: this.config.WORLD_HEIGHT });
 
-    // Fixed camera locked at (0,0) for stable fixed-screen vertical shmup view
     const cam = createMainCamera2D(this.world, player, { smoothingX: 0, smoothingY: 0 });
     this.world.mutateComponent(cam, "Camera2D", c => {
       c.x = 0;
@@ -53,15 +59,18 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
   }
 
   private registerSystems(): void {
-    this.world.addSystem(new ShmupInputSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new ShmupInputSystem(), { phase: SystemPhase.Input });
     this.world.addSystem(new MovementSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new EnemyPathSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new ShmupSpawnSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new ScrollSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new BoundarySystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
+    // Physics integration mutates local x/y. Refresh world-space coordinates before broad/narrow phase.
+    this.world.addSystem(new HierarchySystem() as System<ShmupComponentRegistry>, { phase: SystemPhase.Transform });
     this.world.addSystem(new SpatialPartitioningSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
+    this.world.addSystem(new ShmupSingleHitGuardSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new ShmupBulletPatternSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new ShmupCollisionSystem(), { phase: SystemPhase.GameRules });

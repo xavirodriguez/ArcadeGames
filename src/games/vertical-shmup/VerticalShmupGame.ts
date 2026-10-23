@@ -3,7 +3,7 @@ import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import { loadAndMutateConfig } from "../shared/configHelper";
 import { registerMutatorHook } from "../../utils/MutatorRegistry";
 import { ShmupConfigSchema, ShmupConfig } from "./types/ShmupConfigSchema";
-import { ShmupComponentRegistry, ShmupEventRegistry, ShmupInputState, ShmupGameStateComponent } from "./types/ShmupTypes";
+import { ShmupComponentRegistry, ShmupEventRegistry, ShmupInputState, ShmupInputUpdate, ShmupKeyboardInputState, ShmupGameStateComponent } from "./types/ShmupTypes";
 import { PlayerBulletPool, EnemyBulletPool } from "./EntityPool";
 import { initializeShmupRenderer } from "./rendering/ShmupRenderer";
 import { registerSharedVFX } from "../shared/rendering/SharedVFX";
@@ -35,12 +35,39 @@ export class VerticalShmupGame extends BaseGame<ShmupGameStateComponent, ShmupIn
     await preloadSharedAudioManifest(this.audio);
   }
 
-  public setInputState(input: Partial<ShmupInputState>): void {
+  public setInputState(input: ShmupInputUpdate): void {
     const player = this.world.query("ShmupPlayer", "Input")[0];
     if (player === undefined) return;
+
+    const hasStructuredInput = "axes" in input || "actions" in input;
+    const structuredAxes = "axes" in input ? input.axes : undefined;
+    const structuredActions = "actions" in input ? input.actions : undefined;
+    const keyboardInput = input as ShmupKeyboardInputState;
+
     this.world.mutateComponent(player, "Input", i => {
-      if (input.axes) i.axes = { ...i.axes, ...input.axes };
-      if (input.actions) i.actions = input.actions;
+      if (hasStructuredInput) {
+        if (structuredAxes) i.axes = { ...i.axes, ...structuredAxes };
+        if (structuredActions !== undefined) i.actions = [...structuredActions];
+        return;
+      }
+
+      if (typeof keyboardInput.moveX === "number") {
+        i.axes.moveX = keyboardInput.moveX;
+      } else if (keyboardInput.moveLeft !== undefined || keyboardInput.moveRight !== undefined) {
+        i.axes.moveX = (keyboardInput.moveRight ? 1 : 0) - (keyboardInput.moveLeft ? 1 : 0);
+      }
+
+      if (typeof keyboardInput.moveY === "number") {
+        i.axes.moveY = keyboardInput.moveY;
+      } else if (keyboardInput.moveUp !== undefined || keyboardInput.moveDown !== undefined) {
+        i.axes.moveY = (keyboardInput.moveDown ? 1 : 0) - (keyboardInput.moveUp ? 1 : 0);
+      }
+
+      if (typeof keyboardInput.shoot === "boolean") {
+        i.actions = keyboardInput.shoot
+          ? (i.actions.includes("shoot") ? [...i.actions] : [...i.actions, "shoot"])
+          : i.actions.filter(action => action !== "shoot");
+      }
     });
   }
 

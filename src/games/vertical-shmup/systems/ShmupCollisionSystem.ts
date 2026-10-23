@@ -5,7 +5,7 @@ import { spawnLayeredExplosion } from "../../shared/rendering/SharedVFX";
 export class ShmupCollisionSystem extends System<ShmupComponentRegistry, ShmupEventRegistry> {
   private subscribed = false;
 
-  update(world: World<ShmupComponentRegistry, ShmupEventRegistry>, deltaTime: number): void {
+  update(world: World<ShmupComponentRegistry, ShmupEventRegistry>, _deltaTime: number): void {
     if (!this.subscribed) {
       this.subscribed = true;
       world.getEventBus()?.on("combat:hit", (event) => {
@@ -52,14 +52,17 @@ export class ShmupCollisionSystem extends System<ShmupComponentRegistry, ShmupEv
       });
 
       if (health.current <= 0) {
-        const transform = world.getComponent(entity, "Transform");
-        if (transform) {
-          spawnLayeredExplosion(world, transform.x, transform.y, { type: "ship" });
-          Juice.playDeathJuice(world, entity, { shakeIntensity: 6.0, shakeDuration: 180 });
+        const alreadyGameOver = world.getSingleton("ShmupGameState")?.isGameOver === true;
+        if (!alreadyGameOver) {
+          const transform = world.getComponent(entity, "Transform");
+          if (transform) {
+            spawnLayeredExplosion(world, transform.x, transform.y, { type: "ship" });
+            Juice.playDeathJuice(world, entity, { shakeIntensity: 6.0, shakeDuration: 180 });
+          }
+          world.mutateSingleton("ShmupGameState", (state) => {
+            state.isGameOver = true;
+          });
         }
-        world.mutateSingleton("ShmupGameState", (state) => {
-          state.isGameOver = true;
-        });
       }
     }
 

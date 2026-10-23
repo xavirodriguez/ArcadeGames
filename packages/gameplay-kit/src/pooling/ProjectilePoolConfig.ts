@@ -9,6 +9,7 @@ import {
   ReclaimableComponent,
   TTLComponent,
   ProjectileParams,
+  BoundaryComponent,
   World,
   Entity
 } from "@tiny-aster/core";
@@ -24,6 +25,7 @@ export interface ProjectilePoolConfigDefaults<TParams extends ProjectileParams =
   isTrigger?: boolean;
   order?: number;
   bulletType?: string;
+  boundary?: BoundaryComponent;
   extraComponents?: (data: Record<string, unknown>, params: TParams, world: World, entity: Entity) => void;
 }
 
@@ -109,6 +111,9 @@ export function createProjectilePoolConfig<TParams extends ProjectileParams = Pr
 
       if (defaults.bulletType) {
         base.bullet = { type: defaults.bulletType };
+      }
+      if (defaults.boundary) {
+        base.boundary = { ...defaults.boundary };
       }
 
       return base;

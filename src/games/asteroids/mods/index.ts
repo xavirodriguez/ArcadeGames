@@ -33,6 +33,10 @@ export {
   drawSkiaIcebergAsteroid,
   drawSkiaIcebergBullet
 } from "./iceberg/IcebergSkiaVisuals";
+export {
+  drawIcebergParticle,
+  drawSkiaIcebergParticle
+} from "./iceberg/IcebergParticleVisuals";
 export { entitySeededRandom, radiusToIcebergSize, vertsForAsteroidEntity } from "./iceberg/IcebergDrawUtils";
 export {
   PolarOceanBackgroundEffect,

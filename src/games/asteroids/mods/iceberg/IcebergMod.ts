@@ -13,6 +13,10 @@ import {
   drawSkiaIcebergBullet
 } from "./IcebergSkiaVisuals";
 import {
+  drawIcebergParticle,
+  drawSkiaIcebergParticle
+} from "./IcebergParticleVisuals";
+import {
   PolarOceanBackgroundEffect,
   GeometricAuroraBackgroundEffect,
   SkiaPolarOceanBackgroundEffect,
@@ -25,6 +29,7 @@ import {
  * Phase 0–1: palette, theme, verts.
  * Phase 2: faceted Canvas + Skia drawers.
  * Phase 3: polar ocean, geometric aurora, ice-shard fracture VFX.
+ * Phase 4: diamond particle drawer, fracture ring polish.
  *
  * @public
  */
@@ -94,10 +99,12 @@ export const icebergMod: AsteroidsVisualMod = {
     register("canvas", "player_ship", drawIcebergPlayerShip as never);
     register("canvas", "asteroid", drawIcebergAsteroid as never);
     register("canvas", "bullet", drawIcebergBullet as never);
+    register("canvas", "particle", drawIcebergParticle as never);
 
     register("skia", "player_ship", drawSkiaIcebergPlayerShip as never);
     register("skia", "asteroid", drawSkiaIcebergAsteroid as never);
     register("skia", "bullet", drawSkiaIcebergBullet as never);
+    register("skia", "particle", drawSkiaIcebergParticle as never);
   },
 
   registerBackgroundEffects(register) {

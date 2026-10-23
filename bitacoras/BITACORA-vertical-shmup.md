@@ -129,3 +129,35 @@ Después de corregir fallos, ejecutar la suite completa mediante `pnpm test:ci`.
 
 
 - Afinación del comando de CI: el paso usa el filtro `--testPathPattern='src/games/vertical-shmup/__tests__'` para ejecutar la suite de este juego y no iniciar accidentalmente todos los tests del monorepo con su configuración parcial de alias.
+
+
+## Resultados de ejecución TDD y correcciones — actualización 2026-10-23
+
+### Ejecución A — SHA `a4ada74a046af3289e7d57333f66c60584fa2aad`
+
+- Build, lint, typecheck y el conjunto de tests de Turbo terminaron correctamente.
+- Los tests genéricos reportaron 120 suites, 613 tests y 1 snapshot superados.
+- La suite específica del shmup reportó **13 tests pasados y 2 fallidos de 15**.
+- Fallo `TEST-SHOOT-01`: 0 disparos detectados. La inspección posterior identificó que `inputState.buttons.shoot === false` tenía prioridad por `??` sobre la acción `shoot` del componente `Input` que recibe `VerticalShmupGame.setInputState()`.
+- Fallo `TEST-LIFECYCLE-01`: el proyectil seguía vivo fuera del área. La configuración de `EntityPool.ts` escribía `data.boundary` en `extraComponents`, pero la factoría base no incluía la clave `boundary`; `ComponentSetPool` construye su mapa de componentes a partir de las claves de `factory()`, por lo que el ECS nunca recibía ese componente.
+
+### Ejecución B — SHA `5709046d60fc8fd4eb3478b15f74311c14dfd941`
+
+- Build, lint, typecheck y tests genéricos pasaron.
+- La suite específica no pudo recopilar los tests: TypeScript detectó TS2588 porque la variable `shooting` se declaró `const` aunque la entrada táctil la reasignaba.
+- Corrección aplicada: la variable vuelve a ser `let`. Esta ejecución no constituye evidencia de comportamiento de los casos P0, ya que los tests no llegaron a ejecutarse.
+
+### Correcciones aplicadas para la siguiente ejecución
+
+- `ShmupInputSystem.ts`: disparar cuando la acción sea verdadera en el input global **o** en el componente ECS; conservar la posibilidad de forzar disparo por input táctil.
+- `EntityPool.ts`: incluir una instancia `Boundary` en la factoría del pool antes de su creación, de forma que `ComponentSetPool` registre y adjunte el componente; mutar sus límites al adquirir el proyectil.
+- `ShmupInputSystem.ts`: mantener mutable la variable `shooting` que puede ser activada por el estado táctil.
+
+### Estado más reciente conocido — SHA `ae67310fb7fecf3841c723fef59a4d38401de5f6`
+
+- Build: PASS.
+- Lint: PASS.
+- Typecheck: PASS.
+- Tests genéricos de Turbo y la suite P0 específica: en curso al registrar esta anotación; todavía no hay una traza final verificada para los tests específicos.
+- No marcar `Red-Green` como cerrado hasta revisar el resultado de Jest de esta versión. Si vuelve a fallar, anotar primero el mensaje y la causa raíz; no cambiar la expectativa para hacer pasar el test sin evidencia.
+

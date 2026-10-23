@@ -4,6 +4,7 @@ const path = require("path");
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
+  testMatch: ['<rootDir>/__tests__/**/*.test.ts', '<rootDir>/**/*.test.ts'],
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
       useESM: true,

@@ -75,6 +75,16 @@ export interface WaveDirectorState {
   pendingStaggers: PendingStagger[];
   /** Contador de enemigos spawneados en esta run (métricas). */
   totalSpawned: number;
+  /** Contador de enemigos matados pertenecientes a la oleada. */
+  totalKilled?: number;
+  /** Claves de eventos telegraph procesados. */
+  telegraphedKeys?: string[];
+  /** Último índice de evento que mostró banner de clear. */
+  lastClearEventIndex?: number;
+  /** Timer de finalización de oleada. */
+  waveDoneTimer?: number;
+  /** ID del último script cargado. */
+  lastScriptId?: string;
 }
 
 export interface PendingStagger {
@@ -127,6 +137,8 @@ export interface HitRunEnemySpawnParams {
 /** Contrato mínimo del pool de enemigos. */
 export interface IHitRunEnemyPool {
   acquireEnemy(world: unknown, params: HitRunEnemySpawnParams): number;
+  prewarm?(world: unknown, count?: number): void;
+  releaseEnemy?(world: unknown, entity: number): void;
 }
 
 /** Resource key del director. */

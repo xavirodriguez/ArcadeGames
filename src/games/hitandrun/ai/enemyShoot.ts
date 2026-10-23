@@ -1,4 +1,5 @@
 import { World, CoreComponentRegistry } from "@tiny-aster/core";
+import type { DamageComponent } from "@tiny-aster/gameplay-kit";
 import type { HitRunEnemyBulletPool } from "../weapons/HitRunEnemyBulletPool";
 
 /**
@@ -97,7 +98,7 @@ function spawnFallbackEnemyBullet(
     ttl: number;
     damageAmount: number;
     damageCategory: string;
-    consumption: string;
+    consumption: "destroy-entity" | "remove-component";
     sourceEntity: number;
     shape: string;
   }
@@ -132,14 +133,17 @@ function spawnFallbackEnemyBullet(
     type: "Faction",
     value: "enemy"
   });
-  world.addComponent(e, {
+
+  const damageComp: DamageComponent = {
     type: "Damage",
     amount: p.damageAmount,
     category: p.damageCategory,
     sourceEntity: p.sourceEntity,
     friendlyFire: false,
-    consumption: p.consumption as any
-  } as unknown as CoreComponentRegistry["Damage"]);
+    consumption: p.consumption
+  };
+  world.addComponent(e, damageComp as never);
+
   world.addComponent(e, {
     type: "Collider2D",
     shape: { type: "aabb", halfWidth: p.size, halfHeight: p.size },

@@ -666,6 +666,8 @@ export type BlueprintRegistryMap<TComponents extends ComponentRegistry, TEvents 
 export interface BoundaryComponent extends Component {
     bounceX?: boolean;
     bounceY?: boolean;
+    clampX?: boolean;
+    clampY?: boolean;
     height: number;
     maxX?: number;
     maxY?: number;

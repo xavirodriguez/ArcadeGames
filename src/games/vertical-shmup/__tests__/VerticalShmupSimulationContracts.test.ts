@@ -1,6 +1,6 @@
 import { VerticalShmupGame } from "../VerticalShmupGame";
 import { resolveViewportDimensions } from "@tiny-aster/core";
-import { createEnemyBullet } from "../EntityFactory";
+import { createEnemy, createEnemyBullet } from "../EntityFactory";
 import type { EnemyBulletPool, PlayerBulletPool } from "../EntityPool";
 import type { ShmupConfig } from "../types/ShmupConfigSchema";
 

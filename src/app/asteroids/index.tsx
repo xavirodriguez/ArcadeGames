@@ -68,8 +68,15 @@ export default function AsteroidsScreen() {
     PlayerProfileService.updateDisplayName(name);
   };
   const [selectedMode, setSelectedMode] = useState<"deathmatch" | "story">("deathmatch");
+  const [selectedVisualMod, setSelectedVisualMod] = useState<"classic" | "iceberg">("classic");
 
-  const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useAsteroidsGame(started, isMulti && started, initialSeed, selectedMode);
+  const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useAsteroidsGame(
+    started,
+    isMulti && started,
+    initialSeed,
+    selectedMode,
+    selectedVisualMod
+  );
 
   const touchStateRef = useRef<TouchInputState | null>(null);
   if (!touchStateRef.current) {
@@ -197,6 +204,8 @@ export default function AsteroidsScreen() {
           activeMutators={activeMutators}
           selectedMode={selectedMode}
           onModeChange={setSelectedMode}
+          selectedVisualMod={selectedVisualMod}
+          onVisualModChange={setSelectedVisualMod}
         />
       </GameThemeProvider>
     );
@@ -442,6 +451,8 @@ const StartScreen: FC<{
   activeMutators?: Mutator[];
   selectedMode: "deathmatch" | "story";
   onModeChange: (mode: "deathmatch" | "story") => void;
+  selectedVisualMod: "classic" | "iceberg";
+  onVisualModChange: (mod: "classic" | "iceberg") => void;
 }> = ({
   title,
   highScore,
@@ -455,6 +466,8 @@ const StartScreen: FC<{
   activeMutators = [],
   selectedMode,
   onModeChange,
+  selectedVisualMod,
+  onVisualModChange,
 }) => {
   const { t } = useTranslation();
   return (
@@ -515,6 +528,56 @@ const StartScreen: FC<{
         >
           <Text style={[sharedScreenStyles.startButtonText, { color: selectedMode === "story" ? "black" : colors.cyan, fontSize: 14 }]}>
             MODO HISTORIA
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Visual Mod Selector */}
+      <View style={styles.modeSelector}>
+        <TouchableOpacity
+          style={[
+            sharedScreenStyles.startButton,
+            {
+              backgroundColor: selectedVisualMod === "classic" ? colors.cyan : "rgba(0, 240, 255, 0.2)",
+              flex: 1,
+              maxWidth: 160,
+              paddingVertical: 12,
+            }
+          ]}
+          onPress={() => {
+            hapticSelection();
+            onVisualModChange("classic");
+          }}
+          accessibilityRole="button"
+          accessibilityLabel="Estilo Clásico"
+          accessibilityState={{ selected: selectedVisualMod === "classic" }}
+          accessibilityHint="Selecciona el estilo visual clásico de neón"
+        >
+          <Text style={[sharedScreenStyles.startButtonText, { color: selectedVisualMod === "classic" ? "black" : colors.cyan, fontSize: 14 }]}>
+            CLÁSICO
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            sharedScreenStyles.startButton,
+            {
+              backgroundColor: selectedVisualMod === "iceberg" ? colors.cyan : "rgba(0, 240, 255, 0.2)",
+              flex: 1,
+              maxWidth: 160,
+              paddingVertical: 12,
+            }
+          ]}
+          onPress={() => {
+            hapticSelection();
+            onVisualModChange("iceberg");
+          }}
+          accessibilityRole="button"
+          accessibilityLabel="Mod Iceberg"
+          accessibilityState={{ selected: selectedVisualMod === "iceberg" }}
+          accessibilityHint="Selecciona el mod visual Iceberg (Borealis / cristal glaciar)"
+        >
+          <Text style={[sharedScreenStyles.startButtonText, { color: selectedVisualMod === "iceberg" ? "black" : colors.cyan, fontSize: 14 }]}>
+            MOD ICEBERG
           </Text>
         </TouchableOpacity>
       </View>

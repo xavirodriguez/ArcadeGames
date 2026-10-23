@@ -24,6 +24,6 @@ export interface ShmupEnemyBulletComponent extends Component { type:"ShmupEnemyB
 export interface EnemyPathComponent extends Component { type:"EnemyPath"; kind:"straight"|"sine"|"arc"; elapsed:number; duration:number; speed:number; amplitude:number; frequency:number; originX:number; originY:number; }
 export interface BulletPatternComponent extends Component { type:"BulletPattern"; config:BulletPatternConfig; cooldownRemaining:number; phase:number; }
 export interface ShmupGameStateComponent extends Component { type:"ShmupGameState"; score:number; wave:number; lives:number; scrollDistance:number; isGameOver:boolean; spawnTimer:number; }
-export interface ShmupComponentRegistry extends CoreComponentRegistry, MultiplayerRegistry {
+export interface ShmupComponentRegistry extends CoreComponentRegistry {
   Input:ShmupInputComponent; ShmupPlayer:ShmupPlayerComponent; ShmupEnemy:ShmupEnemyComponent; ShmupPlayerBullet:ShmupPlayerBulletComponent; ShmupEnemyBullet:ShmupEnemyBulletComponent; EnemyPath:EnemyPathComponent; BulletPattern:BulletPatternComponent; ShmupGameState:ShmupGameStateComponent; Damage:DamageComponent; Faction:FactionComponent; SpawnDirector:SpawnDirectorComponent; WaveMember:WaveMemberComponent; Combo:ComboComponent; LocalPlayer:{type:"LocalPlayer"}; RemotePlayer:{type:"RemotePlayer";sessionId?:string};
 }

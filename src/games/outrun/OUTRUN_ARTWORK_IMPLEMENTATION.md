@@ -13,7 +13,7 @@ La fuente visual sigue siendo [`OUTRUN_ARTWORK.md`](./OUTRUN_ARTWORK.md). Este d
 | 5 | Coupé del jugador y tráfico procedural con siluetas de coupé, furgoneta y camión. | #848 (integrada) |
 | 6 | Haces de faros nocturnos y HUD responsive con tiempo, tramo/hora, progreso, velocímetro y dial de radio. | #845 (integrada) |
 | 7 | Auditoría WCAG de contraste, pruebas de contratos visuales y guía de los controles de calidad pendientes. | #846 (integrada) |
-| 8 | Corrección de proporciones: coche del jugador un tercio más bajo, carrocerías/cabinas de tráfico aplanadas y tests que protegen la visibilidad. | PR correctiva pendiente |
+| 8 | Corrección de proporciones: coche del jugador un tercio más bajo, carrocerías/cabinas de tráfico aplanadas y tests que protegen la visibilidad. | #856 (abierta) |
 
 Las fases 2–7 ya están integradas en `master`. Esta fase 8 es una corrección de dirección de arte solicitada tras revisar las proporciones en conjunto; no cambia las reglas de conducción, la escala relativa a la anchura de carretera ni la geometría de proyección.
 

@@ -71,9 +71,6 @@ import { createShip, createPowerUp, spawnAsteroidWave, registerAsteroidsBlueprin
 import type { IAsteroidsGame } from "./types/GameInterfaces";
 import { BulletPool, ParticlePool, AsteroidPool } from "./EntityPool";
 import { initializeAsteroidsRenderer } from "./rendering/AsteroidsRendererManager";
-import { applyVisualMod } from "./mods/applyVisualMod";
-import type { AsteroidsVisualMod } from "./mods/types";
-import { classicMod } from "./mods/classic/ClassicMod";
 import { AsteroidConfigSchema, AsteroidConfig } from "./types/AsteroidConfigSchema";
 import { GameStateComponent, InputState } from "./types/AsteroidTypes";
 import { getStoryBeatForLevel } from "./story/StoryBeats";
@@ -104,8 +101,6 @@ export class AsteroidsGame
   private baseConfig: AsteroidConfig;
   private config: AsteroidConfig;
   public mode: "deathmatch" | "story" = "deathmatch";
-  /** Active visual presentation mod (classic | iceberg). */
-  private visualMod: AsteroidsVisualMod = classicMod;
 
   public get networkManager(): NetworkManager<AsteroidsComponentRegistry> | undefined { return this.network.networkManager; }
   public set networkManager(val: NetworkManager<AsteroidsComponentRegistry> | undefined) { this.network.networkManager = val; }
@@ -132,13 +127,6 @@ export class AsteroidsGame
 
   protected override async onRegisterSystems(): Promise<void> {
     this.config = loadAndMutateConfig(this.gameId, AsteroidConfigSchema, asteroidsConfigRaw, this._config.gameOptions);
-
-    this.visualMod = applyVisualMod(
-      this.world,
-      this.config,
-      this._config.gameOptions as { mod?: string } | undefined,
-      this._config.theme
-    );
 
     this.world.setResource("GameConfig", this.config);
     this.world.setResource("PowerUpEffects", new PowerUpRegistry());
@@ -167,6 +155,8 @@ export class AsteroidsGame
       }
     }
 
+
+    // Register blueprints using centralized helper
     registerAsteroidsBlueprints(this.world, this.blueprints);
 
     if (!this.networkManager) {
@@ -220,6 +210,7 @@ export class AsteroidsGame
     });
 
     if (this.mode === "story") {
+      // Lazy require asteroidsStoryGraph to break top-level circular dependency with encounter definitions
       const { asteroidsStoryGraph } = require("../shared/story");
       const graph = (this._config.gameOptions as { graphOverride?: StoryGraph })?.graphOverride || asteroidsStoryGraph;
       const storyRuntime = new StoryRuntime(graph);
@@ -273,6 +264,7 @@ export class AsteroidsGame
     if (this.isMultiplayer) return;
 
     runWithUnlockedRandomAndMutators(this.world, this._config.gameOptions, () => {
+      // Create GameState entity
       const gameStateEntity = this.world.createEntity();
       const beat = this.mode === "story" ? getStoryBeatForLevel(1) : null;
       this.world.addComponent(gameStateEntity, {
@@ -287,6 +279,7 @@ export class AsteroidsGame
         storyBeatText: beat ? beat.readyText : undefined
       } as GameStateComponent);
 
+      // Create Player Ship
       const screen = this.world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 800, height: 600 };
       const ship = createShip({
         world: this.world,
@@ -294,6 +287,7 @@ export class AsteroidsGame
         y: screen.height / 2
       });
 
+      // Add LocalPlayer and Input components to the ship
       this.world.addComponent(ship, { type: "LocalPlayer" });
       this.world.addComponent(ship, {
         type: "Input",
@@ -301,8 +295,10 @@ export class AsteroidsGame
         axes: {}
       });
 
+      // Spawn first wave
       spawnAsteroidWave(this.world, 1);
 
+      // Initialize active minimission for Level 1
       if (this.missionSystem) {
         const selectedMission = ASTEROIDS_MINI_MISSIONS[0];
         this.missionSystem.setActiveMission(this.world, selectedMission);
@@ -314,6 +310,14 @@ export class AsteroidsGame
       this.world.update(dt);
   }
 
+
+  /**
+   * Preloads game assets (SFX and Textures) to prevent cold-start latency.
+   *
+   * @warning
+   * Asset loading may fail due to network or filesystem issues. Failure to
+   * preload assets may result in visual or audio artifacts during gameplay.
+   */
   protected override async onPreloadAssets(): Promise<void> {
     const loader = this.assetLoader;
     try {
@@ -334,14 +338,24 @@ export class AsteroidsGame
     this.network.setMultiplayerMode(active);
   }
 
+  /**
+   * Applies an input frame to a specific player ship entity.
+   */
   public applyInputToEntity(entityId: number, input: InputFrame) {
     this.network.applyInputToEntity(entityId, input);
   }
 
+
+  /**
+   * Performs local player movement prediction using the shared simulation.
+   */
   public predictLocalPlayer(input: InputFrame, deltaTime: number) {
     this.network.predictLocalPlayer(input, deltaTime);
   }
 
+  /**
+   * Runs a single simulation step.
+   */
   public runSimulationStep(deltaTime: number, isResimulating: boolean) {
     this.network.runSimulationStep(deltaTime, isResimulating);
   }
@@ -350,9 +364,12 @@ export class AsteroidsGame
     this.network.updateFromServer(payload, localSessionId);
   }
 
+  /**
+   * Registers game-specific rendering logic to the provided renderer.
+   */
   public initializeRenderer(renderer: Renderer<AsteroidsComponentRegistry, RenderContext>): void {
     if (this.isHeadless) return;
-    initializeAsteroidsRenderer(renderer, this.visualMod);
+    initializeAsteroidsRenderer(renderer);
     SharedVFX.registerSharedVFX(renderer);
 
     if (renderer.type === "canvas") {
@@ -437,14 +454,32 @@ export class AsteroidsGame
   }
 
   public isGameOver(): boolean {
-    const state = this.world.getSingleton("GameState");
-    return !!(state && state.isGameOver);
+    return this.gameStateSystem.isGameOver();
   }
 
+  /**
+   * Decoupled Input Bridge: Sets the state of the local player inputs in the ECS World.
+   * Mapped fields: rotateLeft, rotateRight, thrust, shoot, hyperspace, rotationAmount.
+   * Ensures that the LocalPlayer entity has the "Input" component, adding it if missing.
+   */
   public setInputState(input: Record<string, unknown> | object): void {
+    // Paso 1: Unificar el puente de Inputs
     const localPlayer = this.world.query("LocalPlayer")[0];
     if (localPlayer !== undefined) {
+      if (!this.world.hasComponent(localPlayer, "Input")) {
+        // Verify that the LocalPlayer entity has the "Input" component, adding it if missing with all flags false and rotationAmount 0.
+        this.world.addComponent(localPlayer, {
+          type: "Input",
+          actions: {},
+          axes: {}
+        });
+      }
       this.world.mutateComponent(localPlayer, "Input", (inputComp) => {
+        if (!inputComp.actions || typeof inputComp.actions !== "object" || inputComp.actions instanceof Set) {
+          inputComp.actions = {};
+        }
+        if (!inputComp.axes) inputComp.axes = {};
+
         const inputObj = input as Record<string, unknown>;
         if (inputObj && typeof inputObj === "object" && inputObj.axes) {
           const axes = inputObj.axes as Record<string, number>;
@@ -459,6 +494,7 @@ export class AsteroidsGame
           inputComp.actions["shoot"] = hasAction("fire");
           inputComp.actions["hyperspace"] = hasAction("hyperspace");
         } else {
+          // Only write fields that are defined in the payload (!== undefined)
           if (typeof inputObj.rotateLeft === "boolean") {
             inputComp.actions["rotateLeft"] = inputObj.rotateLeft;
           }
@@ -489,4 +525,21 @@ export class AsteroidsGame
     this.particlePool?.clear();
     this.asteroidPool?.clear();
   }
+
 }
+
+/** @public */
+export class NullAsteroidsGame extends NullBaseGame<GameStateComponent, InputState, AsteroidsComponentRegistry, AsteroidsEventRegistry> implements IAsteroidsGame {
+  public override getGameState(): GameStateComponent {
+    return INITIAL_GAME_STATE;
+  }
+}
+
+export { AsteroidsDefinition } from "./AsteroidsDefinition";
+
+registerMutatorHook("story_fragment", (world: World<AsteroidsComponentRegistry>) => {
+  const eventBus = world.getEventBus();
+  if (eventBus) {
+    eventBus.emit("story:beat_reached", { beatId: "asteroids_story_beat", dialogueReference: "story.chapter_1_fragment_1" });
+  }
+});

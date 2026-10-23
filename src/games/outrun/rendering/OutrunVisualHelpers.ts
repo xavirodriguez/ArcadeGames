@@ -24,22 +24,6 @@ export function computeOutrunPlayerPixelSize(config: OutrunConfig): number {
   return Math.max(1, targetCarWidth / OUTRUN_PLAYER_PIXEL_SPRITE.width);
 }
 
-/** Scale in reference-vehicle units so the procedural body matches road perspective. */
-export function computeOutrunPlayerArtworkScale(config: OutrunConfig): number {
-  const halfScreenHeight = config.HEIGHT / 2;
-  const baselineY = config.HEIGHT - 80;
-  const tuning = config.visual.tuning.playerCar;
-  if (config.cameraHeight <= 0 || halfScreenHeight <= 0 || config.roadWidth <= 0) {
-    return 1 / tuning.referenceWidthPx;
-  }
-
-  const perspectiveScale = Math.max(0, baselineY - halfScreenHeight) /
-    (config.cameraHeight * halfScreenHeight);
-  const projectedHalfRoadWidth = perspectiveScale * config.roadWidth * config.WIDTH * 0.5;
-  const targetCarWidth = projectedHalfRoadWidth * tuning.widthToRoadHalfWidth;
-  return Math.max(1 / tuning.referenceWidthPx, targetCarWidth / tuning.referenceWidthPx);
-}
-
 export interface RacerProjectionResult {
   sx: number;
   sy: number;
@@ -93,8 +77,8 @@ export function computeRacerProjection(
   const sw = best.w1 + (best.w2 - best.w1) * t;
 
   const lateral = racer.lateralX * sw;
-  const carW = sw * config.visual.tuning.traffic.widthToRoadHalfWidth;
-  const carH = carW * config.visual.tuning.traffic.bodyHeightToWidth;
+  const carW = sw * 2 * OUTRUN_CAR_ROAD_WIDTH_RATIO;
+  const carH = carW * 0.6;
 
   if (sy > config.HEIGHT || sy >= best.clip || carW < 2) return null;
 

@@ -96,7 +96,6 @@ export * from "./audio/audioHelpers";
 export * from "./audio/WebAudioPlayer";
 export * from "./audio/IHapticDevice";
 export * from "./audio/AudioEventMap";
-export * from "./audio/SoundBank";
 
 // AI
 export * from "./ai/FactionComponent";

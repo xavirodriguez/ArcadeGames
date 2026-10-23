@@ -45,13 +45,7 @@ export const AsteroidConfigSchema = BaseConfigSchema.extend({
   UFO_SCORE_SMALL: z.number().default(1000),
   FRAGMENT_IMPULSE_SPEED: z.number().default(80),
   SHIP_DEATH_PARTICLE_COUNT: z.number().default(24),
-  MAX_ASTEROIDS: z.number().default(50),
-  /**
-   * Visual presentation mod. "classic" = current neon look;
-   * "iceberg" = Borealis / cristal glaciar (ART_ICEBERG.md).
-   * Overridable via gameOptions.mod at runtime.
-   */
-  VISUAL_MOD: z.enum(["classic", "iceberg"]).default("classic")
+  MAX_ASTEROIDS: z.number().default(50)
 });
 
 /** @public */

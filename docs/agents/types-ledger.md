@@ -26,22 +26,3 @@
 | 2026-10-19 | `src/games/platformer/systems/PlatformerWallJumpSystem.ts` (`PlatformerWallJumpSystem.update`) | Resuelto | Removed `as any` casts for component lookups. |
 | 2026-10-19 | `src/games/shared/story/adapters/BaseArcadeAdapter.ts` (`BaseArcadeAdapter`) | Resuelto | Replaced `BaseGame<any, ...>` with generic `ComponentRegistry` / `EventRegistry` / `BlueprintRegistryMap`. |
 | 2026-10-19 | `src/games/shared/missions/MissionTypes.ts` (`MissionDefinition.onEvent`, `onUpdate`, `onInit`, `ActiveMissionState.customData`) | Resuelto | Replaced `World<any>` and `any` with `World` and `unknown`. |
-| 2026-10-21 | `src/games/space-invaders/rendering/SpaceInvadersVisualUtils.ts` (`resolveBossRenderSetup`, `resolveInvaderRenderSetup`, `resolveBulletDrawSetup`, `resolveExplosionParticleData`) | Resuelto | Typed `customGeom?: EntityGeometryProfile` and generic Skia particle colors, eliminating 4 `any` nodes. |
-| 2026-10-21 | `src/games/space-invaders/rendering/ExplosionParticlePool.ts` (`VisualExplosionParticle.skColor`) | Resuelto | Replaced `skColor?: any` with `skColor?: unknown`. |
-| 2026-10-21 | `src/games/hitandrun/weapons/HitRunBulletPool.ts` (`HitRunBulletPool.acquireBullet`, `extraComponents`) | Resuelto | Replaced `any` and `as any` with `DamageComponent`, `RenderComponent`, `TransformComponent`, and `BeltElevationComponent`. |
-| 2026-10-21 | `src/games/hitandrun/systems/HitRunCombatSystem.ts` (`HitRunCombatSystem.update`, `resolveDamageDirection`) | Resuelto | Replaced `as any` component queries with typed `CoreComponentRegistry`. |
-| 2026-10-21 | `src/games/shared/story/adapters/BaseArcadeAdapter.ts` (`AnyBaseGame`) | Resuelto | Replaced `BaseGame<any, any, any, any, any>` with generic constraints `ComponentRegistry`, `EventRegistry`, `BlueprintRegistryMap`. |
-| 2026-10-21 | `src/games/pong/story/PongEncounter.ts` (`PongArcadeAdapter.buildResult`) | Resuelto | Replaced `payload?: any` and `this.game as any` with typed `Record<string, unknown>` and `getGameState()`. |
-| 2026-10-21 | `src/games/hitandrun/story/HitAndRunEncounter.ts` (`HitAndRunArcadeAdapter.buildResult`) | Resuelto | Replaced `payload?: any` with `payload?: Record<string, unknown>`. |
-| 2026-10-21 | `src/games/geometrywars/EntityPool.ts` (`GWBulletPool.extraComponents`, `GWBulletPool.acquireBullet`) | Resuelto | Replaced `data: any` and `World` parameters with typed `ProjectileParams` and `World<REG>`. |
-| 2026-10-21 | `src/games/geometrywars/systems/WeaponSystem.ts` (`WeaponSystem.update`) | Resuelto | Replaced `audio: any` with typed `SoundBank` resource lookup. |
-| 2026-10-21 | `src/games/geometrywars/types/GeometryWarsRegistry.ts` (`GeometryWarsInput`) | Resuelto | Removed `Record<string, any>` interface extension. |
-| 2026-10-21 | `src/games/tower-defense/systems/CreepDeathSystem.ts` (`CreepDeathSystem.killCreep`) | Resuelto | Replaced `(s: any)` with `(s: SpawnDirectorComponent)`. |
-| 2026-10-21 | `src/games/tower-defense/systems/CreepMovementSystem.ts` (`CreepMovementSystem.reachBase`) | Resuelto | Replaced `(world as any).isReSimulating` with `world.isReSimulating` and `SoundBank` resource lookup. |
-| 2026-10-21 | `src/games/tower-defense/rendering/TowerDefenseVisualHelpers.ts` (`forEachTileGridCell`) | Resuelto | Replaced `tile: any` with typed `TileType`. |
-| 2026-10-21 | `src/games/shared/missions/MissionTypes.ts` (`MissionDefinition`, `ActiveMissionState`) | Resuelto | Replaced `World<any>` and `Record<string, any>` with generic constraints and `Record<string, unknown>`. |
-| 2026-10-21 | `src/games/shared/arcade/ComboUtils.ts` (`applyComboKill`) | Resuelto | Replaced `TRegistry extends Record<string, any>` with `TRegistry extends ComponentRegistry`. |
-| 2026-10-21 | `src/games/shared/enemyHelpers.ts` (`attachEnemyDefaults`) | Resuelto | Replaced `World<any, any, any>` with generic `World<TRegistry>`. |
-| 2026-10-21 | `src/hooks/useKeyboardControls.ts` (`useKeyboardControls`) | Resuelto | Replaced `IGame<any, any>` and `(inputPayload as any)` with generic `IGame<TReg, TEvents>` and typed records. |
-| 2026-10-21 | `src/ui/narrative/ModifierInspector.tsx` (`explainModifier`, `activeModifiers`) | Resuelto | Replaced `Record<string, any>` and `value: any` with `Record<string, unknown>` and `value: unknown`. |
-| 2026-10-21 | `src/games/shared/rendering/JuiceOrchestrator.ts` (`spawn`) | Resuelto | Replaced `addComp(entity, comp: any)` with typed `Component` interfaces (`TransformComponent`, `RenderComponent`, `TTLComponent`). |

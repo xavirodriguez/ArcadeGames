@@ -283,7 +283,7 @@ export interface BossVisualState {
 export interface BossRenderSetup {
   render: RenderComponent;
   theme: Theme | undefined;
-  customGeom?: EntityGeometryProfile;
+  customGeom: any;
   bossState: BossVisualState;
   flash: HitFlashState;
   hpRatio: number;
@@ -325,7 +325,7 @@ export interface InvaderRenderSetup {
   render: RenderComponent;
   size: number;
   theme: Theme | undefined;
-  customGeom?: EntityGeometryProfile;
+  customGeom: any;
   baseColor: string;
   isTeleporter: boolean;
   flash: HitFlashState;
@@ -517,7 +517,7 @@ export function computeTrailPointOffset(
   };
 }
 
-export function resolveExplosionParticleData<TSkColor = unknown>(p: {
+export function resolveExplosionParticleData(p: {
   active: boolean;
   life: number;
   maxLife: number;
@@ -527,7 +527,7 @@ export function resolveExplosionParticleData<TSkColor = unknown>(p: {
   radius: number;
   size: number;
   color: string;
-  skColor?: TSkColor;
+  skColor?: any;
 }) {
   if (!p.active) return null;
   const ratio = Math.max(0, p.life / p.maxLife);
@@ -544,7 +544,7 @@ export function resolveExplosionParticleData<TSkColor = unknown>(p: {
 }
 
 export interface BulletDrawSetup {
-  customGeom?: EntityGeometryProfile;
+  customGeom?: any;
   customGeomSize: number;
   render: RenderComponent;
   bulletContext: BulletTrailContext;

@@ -1,50 +1,21 @@
-export type Wave = 'sine' | 'triangle' | 'square' | 'sawtooth' | 'pulse' | 'noise';
-export type LfoWave = Wave | 'sampleAndHold';
-
-export interface LfoSpec {
-  wave: LfoWave;
-  rateHz: number;
-  depth: number;
-  delay?: number;
-  fadeIn?: number;
-  phase?: number;
-}
-
-export interface ModulationSpec {
-  pitch?: LfoSpec;
-  amp?: LfoSpec;
-  filter?: LfoSpec;
-  pulseWidth?: LfoSpec;
-}
+export type Wave = 'sine' | 'triangle' | 'square' | 'sawtooth';
 export type Category = 'combat' | 'movement' | 'progression' | 'ui';
 export type FilterSpec = {
-  type?: 'lowpass' | 'highpass' | 'bandpass' | 'notch';
+  type?: 'lowpass' | 'highpass' | 'bandpass';
   minHz: number;
   maxHz?: number;
-  q?: number;
-  curve?: 'linear' | 'exponential';
 };
-export interface EnvelopePoint {
-  t: number;
-  level: number;
-  curve?: 'linear' | 'exp';
-}
-
 export type Envelope = {
   attack?: number;
   decay?: number;
   sustain?: number;
   release?: number;
-  curve?: 'linear' | 'exp';
-  points?: EnvelopePoint[];
 };
-
 export type PitchCurve = {
   startHz: number;
   endHz: number;
   /** linear | exponential (default exponential for most sweeps) */
   curve?: 'linear' | 'exponential';
-  envelope?: Envelope;
 };
 export type Variation = {
   pitch?: number;
@@ -53,10 +24,8 @@ export type Variation = {
 };
 
 export interface SequenceNote {
-  /** Frequency in Hz (0 indicates a rest / silence). */
+  /** Frequency in Hz. */
   frequency: number;
-  /** Optional rest flag; when true, no tone is generated for this step. */
-  rest?: boolean;
   /** Duration of this step in seconds. */
   stepDuration: number;
   /** Optional level offset in dB for this note. */
@@ -65,28 +34,12 @@ export interface SequenceNote {
   envelope?: Envelope;
 }
 
-export interface FmSpec {
-  ratio: number;
-  index: number;
-  indexEnvelope?: Envelope;
-  feedback?: number;
-}
-
-export interface UnisonSpec {
-  voices: number;
-  detuneCents: number;
-  spread?: number;
-}
-
 export interface LayerSpec {
   kind: 'tone' | 'noise' | 'click' | 'zap' | 'whoosh' | 'subBoom' | 'chord' | 'sequence';
   level?: number;
   start?: number;
   duration?: number;
   wave?: Wave;
-  duty?: number;
-  bitcrush?: { bits?: number; downsample?: number };
-  lfsr?: { bits: 7 | 15; clockHz?: number };
   frequency?: number;
   pitch?: PitchCurve;
   frequencies?: number[];
@@ -94,77 +47,8 @@ export interface LayerSpec {
   loopCount?: number;
   envelope?: Envelope;
   filter?: FilterSpec;
-  /** @deprecated Use fm.ratio instead. */
+  /** Optional FM-ish harmonicity hint (future use) */
   harmonicity?: number;
-  fm?: FmSpec;
-  unison?: UnisonSpec;
-  modulation?: ModulationSpec;
-}
-
-export type DelayEffectSpec = {
-  type: 'delay';
-  timeSeconds: number;
-  feedback: number;
-  mix: number;
-  cutoffHz?: number;
-};
-
-export type ReverbEffectSpec = {
-  type: 'reverb';
-  roomSize?: number;
-  dampHz?: number;
-  mix: number;
-};
-
-export type DistortionEffectSpec = {
-  type: 'distortion';
-  drive: number;
-  mix?: number;
-};
-
-export type ChorusEffectSpec = {
-  type: 'chorus';
-  rateHz?: number;
-  depthMs?: number;
-  mix?: number;
-};
-
-export type BitcrushEffectSpec = {
-  type: 'bitcrush';
-  bits?: number;
-  downsample?: number;
-};
-
-export type EffectSpec =
-  | DelayEffectSpec
-  | ReverbEffectSpec
-  | DistortionEffectSpec
-  | ChorusEffectSpec
-  | BitcrushEffectSpec;
-
-import { RNG } from './random';
-
-export interface MusicTrack {
-  name?: string;
-  layer: LayerSpec;
-  pattern: (barIndex: number, rng: RNG) => SequenceNote[];
-}
-
-export interface MusicSection {
-  id: string;
-  bars: number;
-  tracks: MusicTrack[];
-}
-
-export interface MusicRecipe {
-  name: string;
-  bpm: number;
-  timeSignature?: [number, number];
-  bars: number;
-  key?: string;
-  tracks: MusicTrack[];
-  loop?: boolean;
-  sections?: MusicSection[];
 }
 
 export interface SoundRecipe {
@@ -172,7 +56,6 @@ export interface SoundRecipe {
   category: Category;
   duration: number;
   layers: LayerSpec[];
-  effects?: EffectSpec[];
   variation?: Variation;
   tags?: string[];
   /** When true the generated WAV is intended for seamless looping (longer buffer + soft edges). */

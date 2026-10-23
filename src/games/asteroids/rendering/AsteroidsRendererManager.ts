@@ -1,7 +1,13 @@
 import {
+  World,
   ShapeDrawer,
   Renderer,
-  RendererUtils
+  RendererUtils,
+  TransformComponent,
+  RenderComponent,
+  ColliderComponent,
+  CircleShape,
+  TTLComponent
 } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import {
@@ -16,39 +22,19 @@ import {
   drawSkiaAsteroidsBullet as skiaDrawAsteroidsBullet,
   drawSkiaAsteroidsMissionHUD as skiaDrawAsteroidsMissionHUD
 } from "./AsteroidsSkiaVisuals";
-import type { AsteroidsVisualMod } from "../mods/types";
 
-/**
- * Registers Asteroids shape drawers and HUD for Canvas + Skia.
- * When a visual mod is provided, its drawers take precedence over the
- * classic defaults; mission HUD remains shared.
- *
- * @public
- */
+import { Skia } from "../../shared/rendering/SkiaContext";
+
+/** @public */
 export const initializeAsteroidsRenderer = (
   renderer: Renderer<AsteroidsComponentRegistry, any>,
-  visualMod?: AsteroidsVisualMod,
   customDrawers?: Record<string, ShapeDrawer<any, AsteroidsComponentRegistry>>
 ) => {
   RendererUtils.registerAssets(renderer, {
     canvas: (r) => {
-      if (visualMod) {
-        visualMod.registerDrawers((backend, shape, drawer) => {
-          if (backend === "canvas") {
-            r.registerShape(shape, drawer);
-          }
-        });
-        visualMod.registerBackgroundEffects?.((backend, name, effect) => {
-          if (backend === "canvas") {
-            r.registerBackgroundEffect(name, effect as never);
-          }
-        });
-      } else {
-        r.registerShape("player_ship", canvasDrawAsteroidsPlayerShip);
-        r.registerShape("asteroid", canvasDrawAsteroidsAsteroid);
-        r.registerShape("bullet", canvasDrawAsteroidsBullet);
-      }
-
+      r.registerShape("player_ship", canvasDrawAsteroidsPlayerShip);
+      r.registerShape("asteroid", canvasDrawAsteroidsAsteroid);
+      r.registerShape("bullet", canvasDrawAsteroidsBullet);
       r.registerBackgroundEffect("mission_hud", canvasDrawAsteroidsMissionHUD);
 
       if (customDrawers) {
@@ -58,23 +44,9 @@ export const initializeAsteroidsRenderer = (
       }
     },
     skia: (r) => {
-      if (visualMod) {
-        visualMod.registerDrawers((backend, shape, drawer) => {
-          if (backend === "skia") {
-            r.registerShape(shape, drawer);
-          }
-        });
-        visualMod.registerBackgroundEffects?.((backend, name, effect) => {
-          if (backend === "skia") {
-            r.registerBackgroundEffect(name, effect as never);
-          }
-        });
-      } else {
-        r.registerShape("player_ship", skiaDrawAsteroidsPlayerShip);
-        r.registerShape("asteroid", skiaDrawAsteroidsAsteroid);
-        r.registerShape("bullet", skiaDrawAsteroidsBullet);
-      }
-
+      r.registerShape("player_ship", skiaDrawAsteroidsPlayerShip);
+      r.registerShape("asteroid", skiaDrawAsteroidsAsteroid);
+      r.registerShape("bullet", skiaDrawAsteroidsBullet);
       r.registerBackgroundEffect("mission_hud", skiaDrawAsteroidsMissionHUD);
 
       if (customDrawers) {

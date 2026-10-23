@@ -17,10 +17,6 @@ export class RNG {
   range(min: number, max: number) {
     return min + this.next() * (max - min);
   }
-  choice<T>(items: T[]): T {
-    const idx = Math.floor(this.next() * items.length);
-    return items[Math.min(idx, items.length - 1)];
-  }
   fork(identifier: number | string = 0): RNG {
     let hash = this.state >>> 0;
     if (typeof identifier === 'number') {

@@ -1483,8 +1483,6 @@ export interface CoreComponentRegistry extends ComponentRegistry {
   VehicleWaypoint: VehicleWaypointComponent;
   /** LapTracker component. */
   LapTracker: LapTrackerComponent;
-  /** EchoRunner input component. */
-  EchoRunnerInput: { type: "EchoRunnerInput"; pulsePressed: boolean; pulseCooldown: number };
   /** Generic GameState component. */
   GameState: Component & { mode?: unknown };
   /** LevelGoal component. */

@@ -26,8 +26,6 @@ import {
 import { RacerInputSystem } from "./systems/RacerInputSystem";
 import { RoadAdvanceSystem } from "./systems/RoadAdvanceSystem";
 import { TrafficSystem } from "./systems/TrafficSystem";
-import { ColorScriptSystem } from "./systems/ColorScriptSystem";
-import { ParallaxSystem } from "./systems/ParallaxSystem";
 import { scenarioHash } from "./rendering/OutrunPalettes";
 import { expandStretch, type StretchDescriptor } from "./rendering/RoadStretch";
 import {
@@ -121,8 +119,6 @@ export class OutrunGame extends BaseGame<
     this.world.addSystem(new RacerInputSystem(), { phase: SystemPhase.Input });
     this.world.addSystem(new RoadAdvanceSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new TrafficSystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(new ColorScriptSystem(), { phase: SystemPhase.Presentation });
-    this.world.addSystem(new ParallaxSystem(), { phase: SystemPhase.Presentation });
   }
 
   protected override async onInitializeEntities(): Promise<void> {
@@ -334,13 +330,13 @@ export class OutrunGame extends BaseGame<
         const offset = 1.4 + scenarioHash(scenarioId, i * 11) * 1.5;
         const val = scenarioHash(scenarioId, i * 13);
 
-        let kind = "tree";
+        let kind = "palm";
         if (scenarioId === "coast" || scenarioId === "classic_coast") {
-          kind = val > 0.35 ? "palm" : "lighthouse";
+          kind = val > 0.35 ? "palm" : "lamp";
         } else if (scenarioId === "desert" || scenarioId === "classic_desert") {
-          kind = val > 0.42 ? "cactus" : "dry_shrub";
+          kind = val > 0.35 ? "shrub" : "wind_tower";
         } else if (scenarioId === "mountain" || scenarioId === "classic_mountain") {
-          kind = val > 0.66 ? "tree" : val > 0.33 ? "pine" : "rock";
+          kind = val > 0.35 ? "cypress" : "wall";
         }
 
         sprites.push({ offset, side, kind });

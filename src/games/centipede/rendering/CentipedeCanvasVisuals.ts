@@ -1,10 +1,10 @@
-import { RenderContext, resolveThemeColor, World, Entity, ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
+import { RenderContext, resolveThemeColor, World, Entity } from "@tiny-aster/core";
 import { CentipedeComponentRegistry, CentipedeEventRegistry } from "../types/CentipedeTypes";
 import { CentipedeConfig } from "../types/CentipedeConfigSchema";
 
 type CentipedeWorld = World<CentipedeComponentRegistry, CentipedeEventRegistry>;
 
-export function renderCentipedeBackground(ctx: RenderContext, world: CentipedeWorld): void {
+export function drawCentipedeBackground(ctx: RenderContext, world: CentipedeWorld): void {
   const c2d = ctx as CanvasRenderingContext2D;
   const canvas = (ctx as { canvas?: HTMLCanvasElement }).canvas;
   const width = canvas?.width ?? 300;
@@ -72,13 +72,7 @@ export function renderCentipedeBackground(ctx: RenderContext, world: CentipedeWo
   c2d.stroke();
 }
 
-export const drawCentipedeBackground: EffectDrawer<CanvasRenderingContext2D, CentipedeComponentRegistry> = {
-  draw(ctx, world) {
-    renderCentipedeBackground(ctx, world as CentipedeWorld);
-  }
-};
-
-export function renderCentipedeHead(ctx: RenderContext, world: CentipedeWorld, entity: Entity): void {
+export function drawCentipedeHead(ctx: RenderContext, world: CentipedeWorld, entity: Entity): void {
   const c2d = ctx as CanvasRenderingContext2D;
   const config = world.getResource<CentipedeConfig>("GameConfig");
   const isColorblind = config?.visual?.colorblindMode ?? false;
@@ -149,13 +143,7 @@ export function renderCentipedeHead(ctx: RenderContext, world: CentipedeWorld, e
   c2d.restore();
 }
 
-export const drawCentipedeHead: ShapeDrawer<CanvasRenderingContext2D, CentipedeComponentRegistry> = {
-  draw(ctx, world, entity) {
-    renderCentipedeHead(ctx, world as CentipedeWorld, entity);
-  }
-};
-
-export function renderCentipedeBody(ctx: RenderContext, world: CentipedeWorld, entity: Entity): void {
+export function drawCentipedeBody(ctx: RenderContext, world: CentipedeWorld, entity: Entity): void {
   const c2d = ctx as CanvasRenderingContext2D;
   const config = world.getResource<CentipedeConfig>("GameConfig");
   const isColorblind = config?.visual?.colorblindMode ?? false;
@@ -219,13 +207,7 @@ export function renderCentipedeBody(ctx: RenderContext, world: CentipedeWorld, e
   c2d.restore();
 }
 
-export const drawCentipedeBody: ShapeDrawer<CanvasRenderingContext2D, CentipedeComponentRegistry> = {
-  draw(ctx, world, entity) {
-    renderCentipedeBody(ctx, world as CentipedeWorld, entity);
-  }
-};
-
-export function renderMushroom(ctx: RenderContext, world: CentipedeWorld, entity: Entity): void {
+export function drawMushroom(ctx: RenderContext, world: CentipedeWorld, entity: Entity): void {
   const c2d = ctx as CanvasRenderingContext2D;
   const config = world.getResource<CentipedeConfig>("GameConfig");
   const isColorblind = config?.visual?.colorblindMode ?? false;
@@ -293,13 +275,7 @@ export function renderMushroom(ctx: RenderContext, world: CentipedeWorld, entity
   c2d.restore();
 }
 
-export const drawMushroom: ShapeDrawer<CanvasRenderingContext2D, CentipedeComponentRegistry> = {
-  draw(ctx, world, entity) {
-    renderMushroom(ctx, world as CentipedeWorld, entity);
-  }
-};
-
-export function renderSpider(ctx: RenderContext, world: CentipedeWorld, _entity: Entity): void {
+export function drawSpider(ctx: RenderContext, world: CentipedeWorld, _entity: Entity): void {
   const c2d = ctx as CanvasRenderingContext2D;
   const config = world.getResource<CentipedeConfig>("GameConfig");
   const isColorblind = config?.visual?.colorblindMode ?? false;
@@ -336,13 +312,7 @@ export function renderSpider(ctx: RenderContext, world: CentipedeWorld, _entity:
   }
 }
 
-export const drawSpider: ShapeDrawer<CanvasRenderingContext2D, CentipedeComponentRegistry> = {
-  draw(ctx, world, entity) {
-    renderSpider(ctx, world as CentipedeWorld, entity);
-  }
-};
-
-export function renderFlea(ctx: RenderContext, world: CentipedeWorld, _entity: Entity): void {
+export function drawFlea(ctx: RenderContext, world: CentipedeWorld, _entity: Entity): void {
   const c2d = ctx as CanvasRenderingContext2D;
   const config = world.getResource<CentipedeConfig>("GameConfig");
   const isColorblind = config?.visual?.colorblindMode ?? false;
@@ -374,13 +344,7 @@ export function renderFlea(ctx: RenderContext, world: CentipedeWorld, _entity: E
   }
 }
 
-export const drawFlea: ShapeDrawer<CanvasRenderingContext2D, CentipedeComponentRegistry> = {
-  draw(ctx, world, entity) {
-    renderFlea(ctx, world as CentipedeWorld, entity);
-  }
-};
-
-export function renderScorpion(ctx: RenderContext, world: CentipedeWorld, _entity: Entity): void {
+export function drawScorpion(ctx: RenderContext, world: CentipedeWorld, _entity: Entity): void {
   const c2d = ctx as CanvasRenderingContext2D;
   const config = world.getResource<CentipedeConfig>("GameConfig");
   const isColorblind = config?.visual?.colorblindMode ?? false;
@@ -409,13 +373,7 @@ export function renderScorpion(ctx: RenderContext, world: CentipedeWorld, _entit
   }
 }
 
-export const drawScorpion: ShapeDrawer<CanvasRenderingContext2D, CentipedeComponentRegistry> = {
-  draw(ctx, world, entity) {
-    renderScorpion(ctx, world as CentipedeWorld, entity);
-  }
-};
-
-export function renderShooter(ctx: RenderContext, world: CentipedeWorld, _entity: Entity): void {
+export function drawShooter(ctx: RenderContext, world: CentipedeWorld, _entity: Entity): void {
   const c2d = ctx as CanvasRenderingContext2D;
   const config = world.getResource<CentipedeConfig>("GameConfig");
   const isColorblind = config?.visual?.colorblindMode ?? false;
@@ -439,13 +397,7 @@ export function renderShooter(ctx: RenderContext, world: CentipedeWorld, _entity
   c2d.fill();
 }
 
-export const drawShooter: ShapeDrawer<CanvasRenderingContext2D, CentipedeComponentRegistry> = {
-  draw(ctx, world, entity) {
-    renderShooter(ctx, world as CentipedeWorld, entity);
-  }
-};
-
-export function renderDart(ctx: RenderContext, world: CentipedeWorld, _entity: Entity): void {
+export function drawDart(ctx: RenderContext, world: CentipedeWorld, _entity: Entity): void {
   const c2d = ctx as CanvasRenderingContext2D;
   const config = world.getResource<CentipedeConfig>("GameConfig");
   const isColorblind = config?.visual?.colorblindMode ?? false;
@@ -461,9 +413,3 @@ export function renderDart(ctx: RenderContext, world: CentipedeWorld, _entity: E
   c2d.lineTo(0, 5);
   c2d.stroke();
 }
-
-export const drawDart: ShapeDrawer<CanvasRenderingContext2D, CentipedeComponentRegistry> = {
-  draw(ctx, world, entity) {
-    renderDart(ctx, world as CentipedeWorld, entity);
-  }
-};

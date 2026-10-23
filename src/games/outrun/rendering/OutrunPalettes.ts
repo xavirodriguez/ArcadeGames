@@ -228,7 +228,7 @@ export function interpolateHexColor(c1: string, c2: string, t: number): string {
   const g = Math.round(g1 + (g2 - g1) * clampT);
   const b = Math.round(b1 + (b2 - b1) * clampT);
 
-  const toHex = (n: number) => n.toString(16).padStart(2, "0").toUpperCase();
+  const toHex = (n: number) => n.toString(16).padStart(2, "0");
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 

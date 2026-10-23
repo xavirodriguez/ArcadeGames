@@ -311,7 +311,7 @@ Vista trasera de un **coupé deportivo muy bajo y ancho**, con proporciones insp
 en un Ferrari moderno: techo bajo, cabina corta y una carrocería que ocupa más ancho
 que alto. La silueta no debe tapar innecesariamente la carretera que queda delante.
 Geometría de referencia en unidades del tablero (origen en el centro de la base del
-coche, `y` hacia arriba en el dibujo; ancho total 64):
+coche; los valores `y` negativos quedan por encima de esa base; ancho total 64):
 
 ```
 sombra       elipse (0,0)  rx 42  ry 4.5                   shadow @55 %

@@ -44,13 +44,13 @@ const createMockContext = () => {
 
 describe("Iceberg particle polish (Phase 4)", () => {
   it("draws a diamond shard without Math.random", () => {
+    const world = new World<AsteroidsComponentRegistry, AsteroidsEventRegistry>();
     const original = Math.random;
     Math.random = jest.fn(() => {
       throw new Error("Math.random in particle drawer");
     });
 
     try {
-      const world = new World<AsteroidsComponentRegistry, AsteroidsEventRegistry>();
       const entity = world.createEntity();
       world.addComponent(entity, {
         type: "Render",

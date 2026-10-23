@@ -1254,6 +1254,13 @@ export interface CoreComponentRegistry extends ComponentRegistry {
     Collider2D: Collider2DComponent;
     CollisionEvents: CollisionEventsComponent;
     Combo: ComboComponent;
+    Damage: Component & {
+        amount: number;
+        sourceEntity?: Entity;
+        category?: string;
+        friendlyFire?: boolean;
+        consumption?: unknown;
+    };
     Dead: DeadComponent;
     // (undocumented)
     DeathZone: DeathZoneComponent;

@@ -222,6 +222,16 @@ if (isRegression) {
       console.error(`  - ${clone.lines} lines: ${first} <-> ${second} | ${fragment}`);
     }
   }
+  if (auditClones.length === 0) {
+    const topClones = [...report.duplicates].sort((left, right) => right.lines - left.lines).slice(0, 15);
+    console.error("\\nTop detected clones (none matched the audit path filters):");
+    for (const clone of topClones) {
+      const first = `${clone.firstFile.name}:${clone.firstFile.start}-${clone.firstFile.end}`;
+      const second = `${clone.secondFile.name}:${clone.secondFile.start}-${clone.secondFile.end}`;
+      const fragment = clone.fragment.replace(/\\s+/g, " ").slice(0, 140);
+      console.error(`  - ${clone.lines} lines: ${first} <-> ${second} | ${fragment}`);
+    }
+  }
   process.exit(1);
 }
 

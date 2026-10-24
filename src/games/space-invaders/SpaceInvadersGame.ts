@@ -1,4 +1,861 @@
 import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils, NetworkController, InputFrame, WebAudioPlayer, ReplayRecorder, ReplayPlayer, NullBaseGame, loadAudioAssets, InterpolationSnapshotEntry, EntitySyncDescriptor, applyServerState, preloadSharedAudioManifest, SHARED_AUDIO_MANIFEST, System, BaseGameConfig, CanonicalInputState } from "@tiny-aster/core";
-// Temporary stub to unblock deploy — full file restored below via push
-export { };
-throw new Error("SpaceInvadersGame full restore in progress — pull latest branch");
+import { ComboSystem } from "@tiny-aster/core";
+import { LootSystem, PowerUpSystem, PowerUpEffectRegistry } from "@tiny-aster/gameplay-kit";
+import { EnemyFactory } from "./EnemyFactory";
+import { BENEFICIAL_MUTATORS, NEGATIVE_MUTATORS, MutatorRegistry, registerMutatorHook } from "../../utils/MutatorRegistry";
+import { loadAndMutateConfig } from "../shared/configHelper";
+/* eslint-disable @typescript-eslint/no-require-imports */
+import { GameStateComponent, InputState, INITIAL_GAME_STATE, SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, GAME_CONFIG, BossComponent, WaveDefinition, InputComponent, PlayerComponent, InvaderComponent, EnemyBulletComponent, PlayerBulletComponent, ShieldComponent, FormationComponent, SpawnDirectorComponent } from "./types/SpaceInvadersTypes";
+import { createInputComponent } from "./EntityFactory";
+
+function ensureInputComponent(world: World<SpaceInvadersComponentRegistry>, entity: number): void {
+  if (!world.hasComponent(entity, "Input")) {
+    world.addComponent(entity, createInputComponent());
+  }
+}
+import { createThemeFromGameAccents } from "../../theme/gameAccents";
+import { getGameplayColor } from "../../theme/GameplayColorMap";
+import { SpaceInvadersConfigSchema, SpaceInvadersConfig } from "./types/SpaceInvadersConfigSchema";
+import { ISpaceInvadersGame } from "./types/GameInterfaces";
+import { PlayerBulletPool, EnemyBulletPool, ParticlePool } from "./EntityPool";
+import { SpaceInvadersGameScene } from "./scenes/SpaceInvadersGameScene";
+import * as SharedVFX from "../shared/rendering/SharedVFX";
+import { markLocalPlayerEntity, NO_OP_SYNC, applyServerSnapshot, queryPlayerEntity } from "../shared/networkUtils";
+import spaceInvadersConfigRaw from "./config/space-invaders.json";
+
+const __DEV__ = process.env.NODE_ENV !== "production";
+
+/**
+ * Main controller for the Space Invaders game.
+ *
+ * @remarks
+ * Manages the enemy horde lifecycle and wave progression.
+ * Unlike Asteroids, it uses a rigid formation system where the movement
+ * of one entity affects the whole group (Swarm movement).
+ */
+import { TransformComponent, VelocityComponent, RenderComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, CollisionEventsComponent, HealthComponent, BoundaryComponent, BlueprintDefinition, Theme, resolveThemeColor, EntityBuilder } from "@tiny-aster/core";
+import { CollisionLayers } from "@tiny-aster/gameplay-kit";
+import { FactionComponent, DamageComponent } from "@tiny-aster/gameplay-kit";
+
+export interface SpaceInvadersBlueprintMap extends Record<string, BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, unknown>> {
+  player: BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, { x: number, y: number }>;
+  invader: BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, { x: number, y: number, row: number, col: number }>;
+  shield: BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, { x: number, y: number, row: number, col: number }>;
+  state: BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, Record<string, never>>;
+  formation: BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, Record<string, never>>;
+  player_bullet: BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, { x: number, y: number }>;
+  enemy_bullet: BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, { x: number, y: number }>;
+  boss: BlueprintDefinition<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, { level: number }>;
+}
+
+export class SpaceInvadersGame
+  extends BaseGame<GameStateComponent, InputState, SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, SpaceInvadersBlueprintMap>
+  implements ISpaceInvadersGame {
+
+  public isMultiplayer = false;
+  private playerBulletPool!: PlayerBulletPool;
+  private enemyBulletPool!: EnemyBulletPool;
+  private particlePool!: ParticlePool;
+  private networkManager!: NetworkManager<SpaceInvadersComponentRegistry>;
+  public readonly gameId = "space-invaders";
+  private baseConfig: SpaceInvadersConfig;
+  private config!: SpaceInvadersConfig;
+  private network: NetworkController<SpaceInvadersComponentRegistry>;
+
+  constructor(config: BaseGameConfig<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry, InputState, SpaceInvadersBlueprintMap> = {}) {
+    const seed = config.gameOptions?.seed as number || config.seed;
+    const loadedBaseConfig = ConfigService.load<SpaceInvadersConfig>(
+      "space-invaders",
+      SpaceInvadersConfigSchema,
+      config.gameOptions?.rawConfig ?? spaceInvadersConfigRaw
+    );
+    super({
+      gameId: config.gameId ?? "space-invaders",
+      errorReporter: config.errorReporter,
+      gitCommit: config.gitCommit,
+      deploymentId: config.deploymentId,
+      environment: config.environment,
+      pauseKey: loadedBaseConfig.KEYS.PAUSE,
+      restartKey: loadedBaseConfig.KEYS.RESTART,
+      isMultiplayer: config.isMultiplayer,
+      headless: config.headless,
+      schedule: config.schedule,
+      theme: config.theme ?? createThemeFromGameAccents("space-invaders"),
+      gameOptions: { ...config.gameOptions, seed },
+      audio: config.audio || new WebAudioPlayer()
+    });
+    this.baseConfig = loadedBaseConfig;
+    this.config = this.baseConfig;
+    this.isMultiplayer = !!config.isMultiplayer;
+    this.network = new NetworkController<SpaceInvadersComponentRegistry>(this.world);
+  }
+
+  public applyInputToEntity(entityId: number, input: InputFrame) {
+    const activeWorld = this.getWorld();
+    const activeNetwork = new NetworkController<SpaceInvadersComponentRegistry>(activeWorld);
+    activeNetwork.applyInputToEntity(entityId, input);
+  }
+
+  public predictLocalPlayer(input: InputFrame, deltaTime: number) {
+    this.network.predictLocalPlayer(input, deltaTime);
+  }
+
+  public runSimulationStep(deltaTime: number, isResimulating: boolean) {
+    this.runDeterministicStep(deltaTime, this.getWorld());
+  }
+
+  protected override async onRegisterSystems(): Promise<void> {
+    this.config = loadAndMutateConfig(this.gameId, SpaceInvadersConfigSchema, spaceInvadersConfigRaw, this._config.gameOptions);
+
+    this.world.setResource("GameConfig", this.config);
+    this.setupCommonArcadeResources();
+    this.world.setResource("IsHeadless", this.isHeadless);
+    this._config.gameOptions = { ...this._config.gameOptions, ...this.config };
+
+    if (!this.playerBulletPool) this.playerBulletPool = new PlayerBulletPool();
+    if (!this.enemyBulletPool) this.enemyBulletPool = new EnemyBulletPool();
+    if (!this.particlePool) this.particlePool = new ParticlePool();
+
+    // Register blueprints
+    this.blueprints.register("player", {
+      spawn: (world, entity, args: { x: number, y: number }) => {
+        const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
+        const tint = resolveThemeColor(world, "player") ?? getGameplayColor("Player", world);
+
+        const hasComboHeadStart = world.getResource("HasComboHeadStart") === true;
+        const initialCombo = hasComboHeadStart ? 5 : 0;
+        const initialMultiplier = hasComboHeadStart ? 2 : 1;
+        const initialTimerRemaining = hasComboHeadStart ? config.COMBO_TIMEOUT / 1000 : 0;
+
+        EntityBuilder.fromEntity(world, entity)
+          .withTransform({ x: args.x, y: args.y })
+          .withVelocity()
+          .withRender({
+            shape: "player_ship",
+            size: config.PLAYER_RENDER_WIDTH,
+            color: tint,
+            order: 0
+          })
+          .withCollider({
+            shape: { type: ShapeType.Circle, radius: config.PLAYER_COLLIDER_RADIUS } as CircleShape,
+            layer: CollisionLayers.PLAYER,
+            mask: CollisionLayers.ENEMY | CollisionLayers.DEBRIS
+          })
+          .withCollisionEvents();
+
+        world.addComponent(entity, {
+          type: "Health",
+          current: config.PLAYER_INITIAL_LIVES,
+          max: config.PLAYER_INITIAL_LIVES,
+          invulnerableRemaining: 0
+        } as HealthComponent);
+        world.addComponent(entity, {
+          type: "Faction",
+          faction: "player",
+          value: "player"
+        } as FactionComponent);
+        world.addComponent(entity, {
+          type: "Boundary",
+          width: config.worldWidth - config.PLAYER_RENDER_WIDTH,
+          height: config.worldHeight,
+          mode: "bounce"
+        } as BoundaryComponent);
+        world.addComponent(entity, {
+          type: "Input",
+          moveLeft: false,
+          moveRight: false,
+          shoot: false,
+          shootCooldownRemaining: 0,
+          actions: new Set<string>(),
+          axes: {}
+        } as InputComponent);
+        world.addComponent(entity, { type: "Player" } as PlayerComponent);
+        world.addComponent(entity, {
+          type: "EmpAbility",
+          charge: 0,
+          cooldownRemaining: 0,
+          radius: config.EMP_RADIUS,
+          chargePerKill: config.EMP_CHARGE_PER_KILL
+        } as SpaceInvadersComponentRegistry["EmpAbility"]);
+        world.addComponent(entity, {
+          type: "Combo",
+          combo: initialCombo,
+          multiplier: initialMultiplier,
+          timerRemaining: initialTimerRemaining,
+          timerDuration: config.COMBO_TIMEOUT / 1000
+        } as SpaceInvadersComponentRegistry["Combo"]);
+
+        createEmitter(world, {
+          type: "spawn",
+          x: args.x,
+          y: args.y,
+          rate: 0,
+          burst: true,
+          count: 4,
+          lifetime: [1.0, 1.5],
+          speed: [30, 60],
+          angle: [260, 280],
+          size: [2, 4],
+          color: ["#00FF00"],
+          loop: false
+        });
+      }
+    });
+
+    this.blueprints.register("invader", {
+      spawn: (world, entity, args: { x: number, y: number, row: number, col: number }) => {
+        const blueprintId = args.row === 0 ? "invader_commander" : "invader_scout";
+        EnemyFactory.createEnemy(world, blueprintId, args.x, args.y, {}, false, entity);
+        const points = (5 - args.row) * 10;
+
+        world.addComponent(entity, { type: "Invader", row: args.row, col: args.col, points } as InvaderComponent);
+        world.addComponent(entity, {
+          type: "LootTable",
+          tableId: "invader",
+          drops: [
+            { type: "speed", chance: 0.05, config: { value: 1.5, duration: 5000 } },
+            { type: "triple_shot", chance: 0.05, config: { duration: 8000 } }
+          ]
+        } as SpaceInvadersComponentRegistry["LootTable"]);
+
+        // Attach Collectible component directly
+        world.addComponent(entity, {
+          type: "Collectible",
+          kind: "story_fragment",
+          value: 1,
+          persistent: true,
+          collectOnce: true,
+          id: `invader_fragment_${args.row}_${args.col}`
+        } as SpaceInvadersComponentRegistry["Collectible"]);
+      }
+    });
+
+    this.blueprints.register("player_bullet", {
+      spawn: (world, entity, args: { x: number, y: number }) => {
+        const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
+        const hasPlasmaPierce = world.getResource("HasPlasmaPierce") === true;
+        const bulletColor = hasPlasmaPierce ? "cyan" : "yellow";
+        const consumptionMode = hasPlasmaPierce ? "decrement-piercing" : "destroy-entity";
+
+        EntityBuilder.fromEntity(world, entity)
+          .withTransform({ x: args.x, y: args.y })
+          .withVelocity({ vy: -config.PLAYER_BULLET_SPEED })
+          .withRender({ shape: "player_bullet", size: config.PLAYER_BULLET_SIZE, color: bulletColor, order: 10 })
+          .withCollider({
+            shape: { type: ShapeType.Circle, radius: config.PLAYER_BULLET_SIZE } as CircleShape,
+            layer: CollisionLayers.PROJECTILE,
+            mask: CollisionLayers.ENEMY | CollisionLayers.DEBRIS
+          })
+          .withCollisionEvents();
+
+        world.addComponent(entity, { type: "PlayerBullet" } as PlayerBulletComponent);
+        world.addComponent(entity, {
+          type: "Damage",
+          amount: 1,
+          category: "player_bullet",
+          friendlyFire: false,
+          consumption: consumptionMode,
+          piercing: hasPlasmaPierce ? 1 : undefined,
+          charged: hasPlasmaPierce
+        } as DamageComponent);
+        world.addComponent(entity, { type: "Faction", faction: "player", value: "player" } as FactionComponent);
+        world.addComponent(entity, {
+          type: "Boundary",
+          width: config.worldWidth,
+          height: config.worldHeight,
+          mode: "destroy"
+        } as BoundaryComponent);
+      }
+    });
+
+    this.blueprints.register("enemy_bullet", {
+      spawn: (world, entity, args: { x: number, y: number }) => {
+        const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
+        const enemyBulletColor = resolveThemeColor(world, "enemy-bullet", "bullet") ?? getGameplayColor("EnemyProjectile", world);
+        EntityBuilder.fromEntity(world, entity)
+          .withTransform({ x: args.x, y: args.y })
+          .withVelocity({ vy: config.ENEMY_BULLET_SPEED })
+          .withRender({ shape: "enemy_bullet", size: config.ENEMY_BULLET_SIZE, color: enemyBulletColor, order: 10 })
+          .withCollider({
+            shape: { type: ShapeType.Circle, radius: config.ENEMY_BULLET_SIZE } as CircleShape,
+            layer: CollisionLayers.ENEMY,
+            mask: CollisionLayers.PLAYER | CollisionLayers.DEBRIS
+          })
+          .withCollisionEvents();
+
+        world.addComponent(entity, { type: "EnemyBullet" } as EnemyBulletComponent);
+        world.addComponent(entity, {
+          type: "Damage",
+          amount: 1,
+          category: "enemy_bullet",
+          friendlyFire: false,
+          consumption: "destroy-entity"
+        } as DamageComponent);
+        world.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
+        world.addComponent(entity, {
+          type: "Boundary",
+          width: config.worldWidth,
+          height: config.worldHeight,
+          mode: "destroy"
+        } as BoundaryComponent);
+      }
+    });
+
+    this.blueprints.register("shield", {
+      spawn: (world, entity, args: { x: number, y: number, row: number, col: number }) => {
+        const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
+        const tint = resolveThemeColor(world, "shield", "secondary") ?? getGameplayColor("Pickup", world);
+
+        EntityBuilder.fromEntity(world, entity)
+          .withTransform({ x: args.x, y: args.y })
+          .withRender({ shape: "shield_block", size: 15, color: tint, order: 0 })
+          .withCollider({
+            shape: { type: ShapeType.Box, width: 15, height: 15 } as BoxShape,
+            layer: CollisionLayers.DEBRIS,
+            mask: CollisionLayers.ENEMY | CollisionLayers.PROJECTILE
+          })
+          .withCollisionEvents();
+
+        world.addComponent(entity, {
+          type: "Shield",
+          hp: config.SHIELD_SEGMENT_HP,
+          maxHp: config.SHIELD_SEGMENT_HP,
+          segment: { row: args.row, col: args.col }
+        } as SpaceInvadersComponentRegistry["Shield"]);
+      }
+    });
+
+    this.blueprints.register("state", {
+      spawn: (world, entity, _args: {}) => {
+        const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
+        const hasComboHeadStart = world.getResource("HasComboHeadStart") === true;
+        const initialCombo = hasComboHeadStart ? 5 : 0;
+        const initialMultiplier = hasComboHeadStart ? 2 : 1;
+        const initialTimerRemaining = hasComboHeadStart ? config.COMBO_TIMEOUT / 1000 : 0;
+        const isHeadless = this.isHeadless;
+
+        world.addComponent(entity, {
+          type: "GameState",
+          lives: config.PLAYER_INITIAL_LIVES,
+          score: 0,
+          level: 1,
+          invadersRemaining: 0,
+          isGameOver: false,
+          screenShake: null,
+          kamikazesActive: 0,
+          readyRemaining: isHeadless ? 0.0 : 3.0,
+          intermissionRemaining: 0,
+          continueCountdownRemaining: 0,
+          continuesRemaining: 3,
+        } as GameStateComponent);
+        world.addComponent(entity, {
+          type: "SpawnDirector",
+          waveIndex: 0,
+          cooldownRemaining: 0,
+          pendingSpawns: [],
+          waveElapsedTime: 0,
+          enemiesRemaining: 0,
+          status: "idle"
+        } as SpawnDirectorComponent);
+      }
+    });
+
+    this.blueprints.register("boss", {
+      spawn: (world, entity, args: { level: number }) => {
+        const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
+        const hp = 50 + (args.level / 5) * 50;
+        const tint = resolveThemeColor(world, "boss", "accent") ?? getGameplayColor("Boss", world);
+
+        EntityBuilder.fromEntity(world, entity)
+          .withTransform({ x: config.worldWidth / 2, y: 100 })
+          .withRender({ shape: "boss", size: 80, color: tint, order: 0 })
+          .withCollider({
+            shape: { type: ShapeType.Circle, radius: 40 } as CircleShape,
+            layer: CollisionLayers.ENEMY,
+            mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE
+          })
+          .withCollisionEvents();
+
+        world.addComponent(entity, { type: "Health", current: hp, max: hp } as HealthComponent);
+        world.addComponent(entity, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
+        world.addComponent(entity, { type: "Boss", hp, maxHp: hp, timer: 0, phase: 1 } as BossComponent);
+      }
+    });
+
+    this.blueprints.register("formation", {
+      spawn: (world, entity, _args: {}) => {
+        const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
+        const waveDefs = world.getResource<WaveDefinition[]>("WaveDefinitions");
+        const initialTotal = (waveDefs && waveDefs[0] && waveDefs[0].totalInvaders > 0)
+          ? waveDefs[0].totalInvaders
+          : (config.INVADER_MIN_ROWS * config.INVADER_MIN_COLS);
+        world.addComponent(entity, {
+          type: "Formation",
+          direction: 1,
+          stepDownPending: false,
+          speed: config.INVADER_SPEED_BASE,
+          descentStep: config.INVADER_DESCENT_STEP,
+          leftBound: 0,
+          rightBound: 0,
+          fireCooldownRemaining: config.ENEMY_FIRE_INTERVAL_MIN,
+          totalInvaders: initialTotal,
+        } as FormationComponent);
+      }
+    });
+
+    // Bind inputs for UnifiedInputSystem
+    this.unifiedInput.bind("moveLeft", [this.config.KEYS.LEFT]);
+    this.unifiedInput.bind("moveRight", [this.config.KEYS.RIGHT]);
+    this.unifiedInput.bind("shoot", [this.config.KEYS.SHOOT]);
+    this.unifiedInput.bind("emp", [this.config.KEYS.EMP]);
+
+    const gameScene = new SpaceInvadersGameScene(
+      this,
+      this.playerBulletPool,
+      this.enemyBulletPool,
+      this.particlePool,
+      this.config,
+      this.world
+    );
+
+    const powerUpRegistry = new PowerUpEffectRegistry();
+    powerUpRegistry.attachToWorld(this.world);
+
+    // Register Power-up systems in the unified world
+    this.world.addSystem(new LootSystem());
+    this.world.addSystem(new PowerUpSystem());
+    this.world.addSystem(new ComboSystem());
+
+    if (!this.networkManager) {
+      this.networkManager = NetworkManager.registerGame(this.gameId, this, {
+          strategy: 'hybrid',
+          interpolationDelay: 100
+      });
+    }
+    this.world.addSystem(new LocalPredictionSystem(this.networkManager, () => {}), { phase: SystemPhase.Input });
+    this.world.addSystem(new RemoteInterpolationSystem(this.networkManager), { phase: SystemPhase.Presentation });
+
+    this.sceneManager.transitionTo(gameScene, { effect: "crt", duration: 300 });
+  }
+
+  protected override async onBeforeRestart(): Promise<void> {
+    this.sceneManager?.destroy();
+  }
+
+  private _recorder: ReplayRecorder | null = null;
+  private _player: ReplayPlayer | null = null;
+
+  public startRecordingReplay(): void {
+    this._recorder = new ReplayRecorder(this.getSeed());
+  }
+
+  public stopRecordingReplay(): string | null {
+    if (this._recorder) {
+      const serialized = this._recorder.serialize({ gameId: "space-invaders" });
+      this._recorder = null;
+      return serialized;
+    }
+    return null;
+  }
+
+  public startPlaybackReplay(serialized: string): void {
+    this._player = new ReplayPlayer(serialized);
+    const seed = this._player.getSeed();
+    this.getWorld().gameplayRandom.setSeed(seed);
+  }
+
+  public stopPlaybackReplay(): void {
+    this._player = null;
+  }
+
+  public override update(dt: number): void {
+      const world = this.getWorld();
+
+      // 1. Playback recorded inputs if a replay is running
+      if (this._player) {
+        world.setResource("IsReplayPlayback", true);
+        const playerEntity = world.query("Player")[0];
+        if (playerEntity !== undefined) {
+          const tick = world.tick + 1; // Upcoming tick
+          const frame = this._player.getInputs().find((i) => i.tick === tick);
+          if (frame) {
+            ensureInputComponent(world, playerEntity);
+            world.mutateComponent(playerEntity, "Input", (inputComp: InputComponent) => {
+              inputComp.moveLeft = frame.actions.includes("moveLeft");
+              inputComp.moveRight = frame.actions.includes("moveRight");
+              inputComp.shoot = frame.actions.includes("shoot");
+            });
+          }
+        }
+      } else {
+        world.deleteResource("IsReplayPlayback");
+      }
+
+      // 2. Perform the actual simulation update tick
+      if (this.sceneManager) {
+        this.sceneManager.update(dt);
+      } else {
+        world.update(dt);
+      }
+      world.getEventBus()?.flushDeferred();
+
+      // 3. Record inputs if recording is enabled
+      if (this._recorder) {
+        const playerEntity = world.query("Player")[0];
+        const inputComp = playerEntity !== undefined ? world.getComponent(playerEntity, "Input") : null;
+        const actions: string[] = [];
+        if (inputComp) {
+          if (inputComp.moveLeft) actions.push("moveLeft");
+          if (inputComp.moveRight) actions.push("moveRight");
+          if (inputComp.shoot) actions.push("shoot");
+        }
+        this._recorder.recordFrame({
+          tick: world.tick,
+          actions,
+          axes: {}
+        });
+      }
+  }
+
+  protected override async onPreloadAssets(): Promise<void> {
+    if (this.audio) {
+      await preloadSharedAudioManifest(this.audio);
+    }
+  }
+
+  public initializeRenderer(renderer: Renderer<SpaceInvadersComponentRegistry>): void {
+    RendererUtils.registerAssets(renderer, {
+      canvas: (r) => {
+        const {
+          drawSpaceInvadersPlayer,
+          drawSpaceInvadersInvader,
+          drawSpaceInvadersBoss,
+          drawSpaceInvadersBullet,
+          drawSpaceInvadersShield,
+          drawSpaceInvadersParticle
+        } = require("./rendering/SpaceInvadersCanvasVisuals");
+        r.registerShape("player_ship", drawSpaceInvadersPlayer);
+        r.registerShape("invader", drawSpaceInvadersInvader);
+        r.registerShape("boss", drawSpaceInvadersBoss);
+        r.registerShape("player_bullet", drawSpaceInvadersBullet);
+        r.registerShape("enemy_bullet", drawSpaceInvadersBullet); // Reuse bullet drawer
+        r.registerShape("shield_block", drawSpaceInvadersShield);
+        r.registerShape("particle", drawSpaceInvadersParticle);
+        const { drawSpaceInvadersComboHUD } = require("./systems/ComboHUDRenderSystem");
+        r.registerBackgroundEffect("combo_hud", drawSpaceInvadersComboHUD);
+        const { drawExplosionBackgroundEffect } = require("./rendering/SpaceInvadersCanvasVisuals");
+        r.registerBackgroundEffect("explosion_vfx", drawExplosionBackgroundEffect);
+        const { registerNauticalChartCanvasEffects } = require("./rendering/registerNauticalChartEffects");
+        registerNauticalChartCanvasEffects(r);
+      },
+      skia: (r) => {
+        const {
+          drawSkiaSpaceInvadersPlayer,
+          drawSkiaSpaceInvadersInvader,
+          drawSkiaSpaceInvadersBoss,
+          drawSkiaSpaceInvadersBullet,
+          drawSkiaSpaceInvadersShield,
+          drawSkiaSpaceInvadersParticle,
+          drawSkiaExplosionBackgroundEffect
+        } = require("./rendering/SpaceInvadersSkiaVisuals");
+        r.registerShape("player_ship", drawSkiaSpaceInvadersPlayer);
+        r.registerShape("invader", drawSkiaSpaceInvadersInvader);
+        r.registerShape("boss", drawSkiaSpaceInvadersBoss);
+        r.registerShape("player_bullet", drawSkiaSpaceInvadersBullet);
+        r.registerShape("enemy_bullet", drawSkiaSpaceInvadersBullet);
+        r.registerShape("shield_block", drawSkiaSpaceInvadersShield);
+        r.registerShape("particle", drawSkiaSpaceInvadersParticle);
+        r.registerBackgroundEffect("explosion_vfx", drawSkiaExplosionBackgroundEffect);
+        const { registerNauticalChartSkiaEffects } = require("./rendering/registerNauticalChartEffects");
+registerNauticalChartSkiaEffects(r);
+      }
+    });
+
+    SharedVFX.registerSharedVFX(renderer);
+  }
+
+  public selectRunMutator(mutatorId: string): void {
+    const world = this.getWorld();
+    const playerEntity = world.query("Player")[0];
+    if (playerEntity === undefined) return;
+
+    const draft = world.getComponent(playerEntity, "DraftState");
+    if (!draft) {
+      // For backward compatibility with the old test suite and old RunMutatorChoices trigger
+      const choices = world.getResource<{ choices: string[], active: boolean }>("RunMutatorChoices");
+      if (choices && choices.active) {
+        if (BENEFICIAL_MUTATORS[mutatorId]) {
+          BENEFICIAL_MUTATORS[mutatorId].apply(world, { playerId: `player_${playerEntity}`, targetEntity: playerEntity });
+        } else if (NEGATIVE_MUTATORS[mutatorId]) {
+          NEGATIVE_MUTATORS[mutatorId].apply(world, { playerId: `player_${playerEntity}`, targetEntity: playerEntity });
+        }
+
+        const activeRun = world.getResource<string[]>("ActiveRunMutators") || [];
+        activeRun.push(mutatorId);
+        world.setResource("ActiveRunMutators", activeRun);
+
+        choices.active = false;
+        world.setResource("RunMutatorChoices", choices);
+
+        this.resume();
+      }
+      return;
+    }
+
+    // Validation: make sure the server/game validates against options actually offered to that player!
+    if (!draft.options.includes(mutatorId)) {
+      console.warn(`Jugador player_${playerEntity} seleccionó un mutador no ofrecido: ${mutatorId}`);
+      return;
+    }
+
+    // Apply the mutator with targetEntity context
+    const mutator = MutatorRegistry.get(mutatorId);
+    mutator.apply(world, { playerId: `player_${playerEntity}`, targetEntity: playerEntity });
+
+    // Mark as chosen and store selected ID
+    world.mutateComponent(playerEntity, "DraftState", (ds) => {
+      ds.options = [];
+      ds.hasChosen = true;
+      ds.selectedMutatorId = mutatorId;
+    });
+
+    // Record in active mutators list
+    const activeRun = world.getResource<string[]>("ActiveRunMutators") || [];
+    if (!activeRun.includes(mutatorId)) {
+      activeRun.push(mutatorId);
+    }
+    world.setResource("ActiveRunMutators", activeRun);
+
+    // Resume phase ONLY when ALL active players have made their choice!
+    const allPlayers = world.query("Player");
+    const allPlayersReady = allPlayers.length > 0 && allPlayers.every(p => {
+      const d = world.getComponent(p, "DraftState");
+      return d && d.hasChosen;
+    });
+
+    if (allPlayersReady) {
+      world.mutateSingleton("GameState", (gs: GameStateComponent) => {
+        gs.phase = "PLAYING";
+        // Also clean DraftState components from players to prepare for next wave
+        allPlayers.forEach(p => {
+          world.removeComponent(p, "DraftState");
+        });
+      });
+      this.resume();
+    }
+  }
+
+  public getGameState(): GameStateComponent {
+    const world = this.getWorld();
+    const state = world.getSingleton("GameState");
+    if (!state) return INITIAL_GAME_STATE;
+
+    let combo = 0;
+    let multiplier = 1;
+    let comboTimerRemaining = 0;
+
+    const comboEntities = world.query("Combo");
+    const comboEntity = comboEntities[0];
+    if (comboEntity !== undefined) {
+      const comboComp = world.getComponent(comboEntity, "Combo");
+      if (comboComp) {
+        combo = comboComp.combo;
+        multiplier = comboComp.multiplier;
+        comboTimerRemaining = Math.max(0, comboComp.timerRemaining);
+      }
+    }
+
+    const runChoices = world.getResource<{ choices: string[], active: boolean }>("RunMutatorChoices");
+    const activeRun = world.getResource<string[]>("ActiveRunMutators") || [];
+
+    const playerEntity = world.query("Player")[0];
+    const draft = playerEntity !== undefined ? world.getComponent(playerEntity, "DraftState") : null;
+    const choices = draft && !draft.hasChosen ? draft.options : (runChoices?.active ? runChoices.choices : null);
+
+    let isDialogueActive = false;
+    let dialogueText = "";
+    const dialogueBoxEntities = world.query("DialogueBox");
+    if (dialogueBoxEntities.length > 0) {
+      const dialogueBox = world.getComponent(dialogueBoxEntities[0], "DialogueBox");
+      if (dialogueBox) {
+        isDialogueActive = true;
+        const currentLineKey = dialogueBox.lines[dialogueBox.currentLineIndex];
+        dialogueText = currentLineKey || "";
+      }
+    }
+
+    return {
+      ...state,
+      combo,
+      multiplier,
+      comboTimerRemaining,
+      runMutatorChoices: choices,
+      activeRunMutators: activeRun,
+      isDialogueActive,
+      dialogueText
+    };
+  }
+
+  public getWorld(): World<SpaceInvadersComponentRegistry> {
+    return this.world;
+  }
+
+  public setMultiplayerMode(active: boolean) {
+    this.isMultiplayer = active;
+  }
+
+  public override setInputState(input: Partial<InputState> | CanonicalInputState | Record<string, unknown>): void {
+    const world = this.getWorld();
+    const playerEntity = queryPlayerEntity(world);
+    if (playerEntity !== undefined) {
+      ensureInputComponent(world, playerEntity);
+      world.mutateComponent(playerEntity, "Input", (inputComp: InputComponent) => {
+        const inp = input as Record<string, unknown>;
+        // CanonicalInputState support
+        if (inp && typeof inp === "object" && inp.axes && typeof inp.axes === "object") {
+          const axes = inp.axes as Record<string, number>;
+          const moveX = axes.moveX ?? 0;
+          inputComp.moveLeft = moveX < 0;
+          inputComp.moveRight = moveX > 0;
+          const actions = inp.actions;
+          inputComp.shoot = actions instanceof Set ? actions.has("fire") : (Array.isArray(actions) ? actions.includes("fire") : false);
+        } else if (inp) {
+          if (typeof inp.moveLeft === "boolean") inputComp.moveLeft = inp.moveLeft;
+          if (typeof inp.moveRight === "boolean") inputComp.moveRight = inp.moveRight;
+          if (typeof inp.shoot === "boolean") inputComp.shoot = inp.shoot;
+        }
+      });
+    }
+  }
+
+  public setInput(input: Partial<InputState>) {
+    this.setInputState(input);
+  }
+
+  private readonly ENTITY_SYNC_DESCRIPTORS: EntitySyncDescriptor<
+    Record<string, unknown>,
+    unknown,
+    SpaceInvadersComponentRegistry,
+    SpaceInvadersEventRegistry,
+    SpaceInvadersBlueprintMap
+  >[] = [
+    {
+      serverIdPrefix: "player",
+      localPlayerPolicy: "mark",
+      getStateMap: (root) => root.players as Record<string, { x: number; y: number; alive: boolean; sessionId?: string }>,
+      spawn: (world, entity, state) => {
+        const item = state as { x: number; y: number };
+        this.blueprints.get("player")?.spawn(world, entity, { x: item.x, y: item.y });
+      },
+      onLocalPlayerMark: (world, entity) => {
+        markLocalPlayerEntity(world, entity);
+        const commands = world.getCommandBuffer();
+        if (!world.hasComponent(entity, "Input")) {
+          commands.addComponent(entity, createInputComponent());
+        }
+      },
+      sync: (world, entity, state) => {
+        const item = state as { alive: boolean };
+        world.mutateComponent(entity, "Render", render => {
+          render.color = item.alive ? "green" : "red";
+        });
+      }
+    },
+    {
+      serverIdPrefix: "invader",
+      getStateMap: (root) => {
+        if (!root.invaders || typeof root.invaders !== "object") return undefined;
+        const result: Record<string, { x: number; y: number; alive: boolean; id: string }> = {};
+        for (const [id, inv] of Object.entries(root.invaders as Record<string, { x: number; y: number; alive: boolean; id: string }>)) {
+          if (inv && inv.alive) {
+            result[id] = inv;
+          }
+        }
+        return result;
+      },
+      spawn: (world, entity, state) => {
+        const item = state as { x: number; y: number };
+        this.blueprints.get("invader")?.spawn(world, entity, { x: item.x, y: item.y, row: 0, col: 0 });
+      },
+      sync: NO_OP_SYNC
+    },
+    {
+      serverIdPrefix: "bullet",
+      getStateMap: (root) => root.bullets as Record<string, { x: number; y: number; ownerId: string }>,
+      spawn: (world, entity, state) => {
+        const item = state as { x: number; y: number; ownerId: string };
+        const bpName = item.ownerId === "player" ? "player_bullet" : "enemy_bullet";
+        this.blueprints.get(bpName)?.spawn(world, entity, { x: item.x, y: item.y });
+      },
+      sync: NO_OP_SYNC
+    }
+  ];
+
+  public updateFromServer(state: Record<string, unknown>, localSessionId?: string) {
+    if (!this.isMultiplayer || !state) return;
+    applyServerSnapshot(
+      this.getWorld(),
+      this.networkManager,
+      state,
+      {
+        gameStateSingletonKey: "GameState",
+        descriptors: this.ENTITY_SYNC_DESCRIPTORS,
+        groups: [
+          { stateKey: "players", prefix: "player" },
+          { stateKey: "invaders", prefix: "invader", requireAlive: true },
+          { stateKey: "bullets", prefix: "bullet" }
+        ],
+        localSessionId
+      }
+    );
+  }
+
+  public isGameOver(): boolean {
+    return this.getGameState().isGameOver;
+  }
+
+}
+
+export class NullSpaceInvadersGame extends NullBaseGame<GameStateComponent, InputState, SpaceInvadersComponentRegistry> implements ISpaceInvadersGame {
+  public isMultiplayer = false;
+  public gameId = "space-invaders";
+
+  public override getGameState(): GameStateComponent {
+    return INITIAL_GAME_STATE;
+  }
+
+  public setInput(input: Partial<InputState>): void {
+    this.setInputState(input);
+  }
+
+  public selectRunMutator(_mutatorId: string): void {}
+  public startRecordingReplay(): void {}
+  public stopRecordingReplay(): string | null { return null; }
+  public startPlaybackReplay(_serialized: string): void {}
+  public stopPlaybackReplay(): void {}
+}
+
+export const SpaceInvadersDefinition = {
+  name: "space-invaders",
+  createSimulation: (seed: number, options?: { modifiers?: unknown[]; gameOptions?: Record<string, unknown> }) => {
+    const game = new SpaceInvadersGame({
+      gameId: "space-invaders",
+      gameOptions: { seed, ...options?.gameOptions }
+    });
+    return game;
+  },
+  inputSchema: {
+    actions: ["moveLeft", "moveRight", "shoot"]
+  },
+  assets: {
+    sprites: [],
+    sounds: SHARED_AUDIO_MANIFEST
+  }
+};
+
+registerMutatorHook("story_fragment", (world: World) => {
+  const eventBus = world.getEventBus();
+  if (eventBus) {
+    eventBus.emit("story:beat_reached", { beatId: "space_invaders_story_beat", dialogueReference: "story.chapter_1_fragment_3" });
+  }
+});

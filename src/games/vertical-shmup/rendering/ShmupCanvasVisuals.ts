@@ -475,7 +475,7 @@ export const drawShmupStarfield: EffectDrawer<CanvasRenderingContext2D, ShmupCom
       ctx.restore();
     } else if (biome.atmosphereStyle === "garden" || biome.atmosphereStyle === "sacred") {
       ctx.save();
-      const rayColor = biome.atmosphereStyle === "garden" ? "#BDF7D8" : SHMUP_COLOR_TOKENS.gold.sunlight;
+      const rayColor = biome.rayColor;
       ctx.strokeStyle = colorWithAlpha(rayColor, biome.atmosphereStyle === "garden" ? 0.09 : 0.12);
       ctx.lineWidth = width * 0.018;
       for (let i = 0; i < 7; i += 1) {
@@ -492,10 +492,10 @@ export const drawShmupStarfield: EffectDrawer<CanvasRenderingContext2D, ShmupCom
       if (pulse > 0.015) {
         const boltX = width * (0.58 + 0.16 * Math.sin(time * 0.23));
         ctx.save();
-        ctx.strokeStyle = colorWithAlpha("#8CCBFF", 0.18 + pulse * 0.62);
+        ctx.strokeStyle = colorWithAlpha(biome.lightningColor, 0.18 + pulse * 0.62);
         ctx.lineWidth = 2 + pulse * 3;
         ctx.shadowBlur = 20 * pulse;
-        ctx.shadowColor = "#5AAEFF";
+        ctx.shadowColor = biome.glowColor;
         ctx.beginPath();
         ctx.moveTo(boltX, 0);
         ctx.lineTo(boltX - width * 0.045, height * 0.12);
@@ -535,7 +535,7 @@ export const drawShmupStarfield: EffectDrawer<CanvasRenderingContext2D, ShmupCom
       ctx.save();
       ctx.globalAlpha = 0.92;
       if (biome.islandStyle === "crystal") {
-        ctx.fillStyle = "#15283F";
+        ctx.fillStyle = biome.crystalShadowColor;
         ctx.beginPath();
         ctx.moveTo(island.x, island.y + island.height * 0.24);
         ctx.lineTo(island.x + island.width * 0.18, island.y + island.height * 0.58);
@@ -544,7 +544,7 @@ export const drawShmupStarfield: EffectDrawer<CanvasRenderingContext2D, ShmupCom
         ctx.lineTo(island.x + island.width, island.y + island.height * 0.26);
         ctx.closePath();
         ctx.fill();
-        ctx.strokeStyle = colorWithAlpha("#76CFFF", 0.7);
+        ctx.strokeStyle = colorWithAlpha(biome.crystalEdgeColor, 0.7);
         ctx.lineWidth = 2;
         ctx.stroke();
         ctx.fillStyle = colorWithAlpha(biome.glowColor, 0.72);

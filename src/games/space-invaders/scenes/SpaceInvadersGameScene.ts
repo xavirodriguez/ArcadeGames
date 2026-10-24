@@ -25,9 +25,9 @@ import { SpaceInvadersFormationSystem } from "../systems/SpaceInvadersFormationS
 import { SpaceInvadersCollisionSystem } from "../systems/SpaceInvadersCollisionSystem";
 import { SpaceInvadersGameStateSystem } from "../systems/SpaceInvadersGameStateSystem";
 import { SpaceInvadersRenderSystem } from "../systems/SpaceInvadersRenderSystem";
-import { NauticalWindSystem } from "../systems/NauticalWindSystem";
-import { IslandErosionSystem } from "../systems/IslandErosionSystem";
 import { ComboHUDRenderSystem } from "../systems/ComboHUDRenderSystem";
+import { resolveSpaceInvadersMod } from "../mods";
+import { THEME_RESOURCE_KEY, Theme } from "@tiny-aster/core";
 import { InvulnerabilitySystem } from "../systems/InvulnerabilitySystem";
 import { CombatSystem } from "@tiny-aster/gameplay-kit";
 import { WaveTransitionSystem } from "../systems/WaveTransitionSystem";
@@ -210,9 +210,11 @@ export class SpaceInvadersGameScene extends Scene<SpaceInvadersComponentRegistry
     this.world.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation, group: "presentation" }); // No trails
     this.world.addSystem(new SpaceInvadersRenderSystem(), { phase: SystemPhase.Presentation, group: "presentation" });
     this.world.addSystem(new ComboHUDRenderSystem(), { phase: SystemPhase.Presentation, group: "presentation" });
-    // Aquí hay dragones — wind + island erosion (no-op unless nautical theme active)
-    this.world.addSystem(new NauticalWindSystem(), { phase: SystemPhase.Simulation, group: "simulation" });
-    this.world.addSystem(new IslandErosionSystem(), { phase: SystemPhase.Presentation, group: "presentation" });
+
+    // Mod-specific systems (dynamically declared by active mod based on World Theme)
+    const activeTheme = this.world.getResource<Theme>(THEME_RESOURCE_KEY);
+    const activeMod = resolveSpaceInvadersMod(activeTheme);
+    activeMod.registerSystems?.(this.world);
 
     // 2. Initial entities
     if (this.game.isMultiplayer) return; // Wait for server state

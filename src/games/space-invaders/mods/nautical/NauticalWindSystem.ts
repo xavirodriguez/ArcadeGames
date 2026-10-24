@@ -1,18 +1,17 @@
-import { System, World, Theme, THEME_RESOURCE_KEY } from "@tiny-aster/core";
-import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
+import { System, World } from "@tiny-aster/core";
+import { SpaceInvadersComponentRegistry } from "../../types/SpaceInvadersTypes";
 import {
-  isNauticalChartTheme,
   NAUTICAL_WIND_RESOURCE,
   NauticalWindState,
   createDefaultWindState,
-} from "../nautical/NauticalThemeShared";
+} from "./NauticalThemeShared";
 
 export {
   NAUTICAL_WIND_RESOURCE,
   type NauticalWindState,
   createDefaultWindState,
   isNauticalChartTheme,
-} from "../nautical/NauticalThemeShared";
+} from "./NauticalThemeShared";
 
 const FORCE_TABLE = [0, 1, 2, 3];
 /** Lateral px/s² scaled by force — readable without being unfair. */
@@ -20,10 +19,7 @@ const LATERAL_ACCEL_PER_FORCE = 48;
 
 export function ensureNauticalWind(
   world: World<SpaceInvadersComponentRegistry>
-): NauticalWindState | null {
-  const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-  if (!isNauticalChartTheme(theme)) return null;
-
+): NauticalWindState {
   let wind = world.getResource<NauticalWindState>(NAUTICAL_WIND_RESOURCE);
   if (!wind) {
     wind = createDefaultWindState();
@@ -33,7 +29,7 @@ export function ensureNauticalWind(
 }
 
 /**
- * Applies horizontal acceleration to bullet velocities while the nautical theme is active.
+ * Applies horizontal acceleration to bullet velocities when registered by NauticalMod.
  */
 export class NauticalWindSystem extends System<SpaceInvadersComponentRegistry> {
   public update(
@@ -41,7 +37,6 @@ export class NauticalWindSystem extends System<SpaceInvadersComponentRegistry> {
     deltaTime: number
   ): void {
     const wind = ensureNauticalWind(world);
-    if (!wind) return;
 
     wind.changeRemaining -= deltaTime;
     if (wind.changeRemaining <= 0) {

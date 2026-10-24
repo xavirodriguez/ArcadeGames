@@ -1,16 +1,16 @@
-import { EffectDrawer, Theme, THEME_RESOURCE_KEY, World } from "@tiny-aster/core";
-import { SpaceInvadersComponentRegistry, GAME_CONFIG } from "../types/SpaceInvadersTypes";
+import { EffectDrawer, Theme, THEME_RESOURCE_KEY } from "@tiny-aster/core";
+import { SpaceInvadersComponentRegistry, GAME_CONFIG } from "../../../types/SpaceInvadersTypes";
 import {
   AQUI_HAY_DRAGONES_ALPHAS,
   AQUI_HAY_DRAGONES_PALETTE,
-} from "../../../theme/conceptPacks/aquiHayDragonesConceptPack";
+} from "../../../../../theme/conceptPacks/aquiHayDragonesConceptPack";
 import {
   NAUTICAL_WIND_RESOURCE,
   NauticalWindState,
   isNauticalChartTheme,
-} from "../nautical/NauticalThemeShared";
+} from "../NauticalThemeShared";
 
-export { isNauticalChartTheme, NAUTICAL_CHART_THEME_IDS } from "../nautical/NauticalThemeShared";
+export { isNauticalChartTheme, NAUTICAL_CHART_THEME_IDS } from "../NauticalThemeShared";
 
 export interface NauticalBackdropOptions {
   wind?: NauticalWindState | null;
@@ -132,9 +132,6 @@ export const drawNauticalChartBackgroundEffect: EffectDrawer<
   SpaceInvadersComponentRegistry
 > = {
   draw(ctx, world) {
-    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-    if (!isNauticalChartTheme(theme)) return;
-
     const config = world.getResource<{ worldWidth?: number; worldHeight?: number }>("GameConfig");
     const w = config?.worldWidth ?? GAME_CONFIG.worldWidth;
     const h = config?.worldHeight ?? GAME_CONFIG.worldHeight;

@@ -100,8 +100,17 @@ export function resolveInvaderRoleKeys(
 ): SpaceInvadersRoleKey[] {
   const archetype = (invaderComp as { archetype?: string } | undefined)?.archetype;
 
-  if (enemyTag?.variant === "ufo" || enemyTag?.blueprintId === "ufo" || (invaderComp && invaderComp.row === 0)) {
+  if (enemyTag?.variant === "ufo" || enemyTag?.blueprintId === "ufo") {
     return ["ufo", "enemy"];
+  }
+  if (
+    enemyTag?.variant === "commander" ||
+    enemyTag?.variant === "elite" ||
+    archetype === "elite" ||
+    archetype === "commander" ||
+    (invaderComp && invaderComp.row === 0)
+  ) {
+    return ["invader_commander", "commander", "enemy"];
   }
   if (isTeleporter || enemyTag?.variant === "scout" || archetype === "scout") {
     return ["invader_scout", "scout", "enemy"];

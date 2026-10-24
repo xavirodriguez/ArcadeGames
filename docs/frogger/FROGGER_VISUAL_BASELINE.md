@@ -57,3 +57,20 @@ Implemented in the `feat/frogger-sunset-environment` branch:
 - [ ] Confirm frame-time impact on mobile hardware/emulator.
 
 These checks deliberately do not modify entity positions, gameplay rows, collision bounds, scoring, or simulation timing.
+
+
+## Phase 3 — Directional vehicles
+
+Implemented on `feat/frogger-directional-vehicles`:
+
+- [x] Cars use a low-profile, rounded silhouette whose rendered height is smaller than the existing gameplay collider.
+- [x] Trucks have a light cargo body, warm cab, dark windshield and restrained panel seams.
+- [x] Vehicle front and rear are derived from `Vehicle.direction`; local vehicle art is mirrored for left-moving traffic.
+- [x] Warm headlamps, coral tail lamps and short low-opacity beams point in the actual travel direction.
+- [x] Both Canvas and Skia use the same palette and geometry proportions.
+- [x] Direction-sign helper tests and vehicle-palette assertions added.
+- [x] Canvas tire placement avoids allocating a new position array per draw call.
+- [ ] Capture side-by-side runtime images and verify lighting/orientation at mobile scale.
+- [ ] Check that car and truck silhouettes remain legible with traffic moving in both directions on a device/emulator.
+
+The phase changes only render instructions and semantic visual tokens. Vehicle speed, direction, transform, collider dimensions, collision layers and row layout remain unchanged.

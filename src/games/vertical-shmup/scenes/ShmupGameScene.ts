@@ -11,6 +11,7 @@ import { ShmupSingleHitGuardSystem } from "../systems/ShmupSingleHitGuardSystem"
 import { ShmupBulletPatternSystem } from "../systems/BulletPatternSystem";
 import { ShmupSpawnSystem } from "../systems/ShmupSpawnSystem";
 import { createPlayer, createEnemy } from "../EntityFactory";
+import { selectShmupEnemyArchetype } from "../EnemyArchetypes";
 import { createMainCamera2D } from "../../shared/componentBuilders";
 import { runWithUnlockedRandomAndMutators } from "../../shared/configHelper";
 
@@ -53,7 +54,7 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
     runWithUnlockedRandomAndMutators(this.world, this.gameOptions, () => {
       const rng = this.world.gameplayRandom;
       for (let i = 0; i < 6; i += 1) {
-        createEnemy(this.world, 55 + rng.next() * (this.config.WORLD_WIDTH - 110), 80 + i * 45, i % 3 === 0 ? "sine" : "straight");
+        createEnemy(this.world, 55 + rng.next() * (this.config.WORLD_WIDTH - 110), 80 + i * 45, i % 3 === 0 ? "sine" : "straight", 1, selectShmupEnemyArchetype(1, i));
       }
     });
   }

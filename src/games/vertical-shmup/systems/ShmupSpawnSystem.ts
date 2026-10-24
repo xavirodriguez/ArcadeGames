@@ -2,6 +2,7 @@ import { System, World } from "@tiny-aster/core";
 import { ShmupComponentRegistry, ShmupEventRegistry } from "../types/ShmupTypes";
 import { ShmupConfig } from "../types/ShmupConfigSchema";
 import { createEnemy } from "../EntityFactory";
+import { selectShmupEnemyArchetype } from "../EnemyArchetypes";
 
 export class ShmupSpawnSystem extends System<ShmupComponentRegistry, ShmupEventRegistry> {
   update(world: World<ShmupComponentRegistry, ShmupEventRegistry>, deltaTime: number): void {
@@ -43,7 +44,7 @@ export class ShmupSpawnSystem extends System<ShmupComponentRegistry, ShmupEventR
           nextWave >= 3 && i === 0 ? "armored" : i % 3 === 0 ? "sine" : i % 2 === 0 ? "arc" : "straight";
         const startX = 50 + rng.next() * (config.WORLD_WIDTH - 100);
         const startY = -40 - i * 45;
-        createEnemy(world, startX, startY, kind, nextWave);
+        createEnemy(world, startX, startY, kind, nextWave, selectShmupEnemyArchetype(nextWave, i));
       }
       return;
     }
@@ -65,7 +66,7 @@ export class ShmupSpawnSystem extends System<ShmupComponentRegistry, ShmupEventR
         const kindIndex = Math.floor(rng.next() * kinds.length);
         const kind = kinds[kindIndex] ?? "straight";
         const startX = 50 + rng.next() * (config.WORLD_WIDTH - 100);
-        createEnemy(world, startX, -40, kind, state.wave);
+        createEnemy(world, startX, -40, kind, state.wave, selectShmupEnemyArchetype(state.wave, activeEnemies.length));
       }
     }
   }

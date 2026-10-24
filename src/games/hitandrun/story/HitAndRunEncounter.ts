@@ -34,7 +34,7 @@ export class HitAndRunArcadeAdapter extends BaseArcadeAdapter<HitAndRunGame> {
     return new HitAndRunGame({ seed: context.seed });
   }
 
-  protected buildResult(context: MiniGameRunContext, payload?: any): MiniGameResult {
+  protected buildResult(context: MiniGameRunContext, payload?: Record<string, unknown>): MiniGameResult {
     return this.buildRunnerResult(context, "memory_core_fragment_01", payload);
   }
 }

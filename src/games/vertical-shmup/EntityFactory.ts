@@ -1,6 +1,6 @@
 import { World, Entity, EntityBuilder, ShapeType, CircleShape, BoundaryComponent } from "@tiny-aster/core";
 import { CollisionLayers } from "@tiny-aster/gameplay-kit";
-import { ShmupComponentRegistry } from "./types/ShmupTypes";
+import { ShmupComponentRegistry, ShmupEnemyArchetype } from "./types/ShmupTypes";
 import { ShmupConfig } from "./types/ShmupConfigSchema";
 import { PlayerBulletPool, EnemyBulletPool } from "./EntityPool";
 import { getGameplayColor } from "../../theme/GameplayColorMap";
@@ -49,13 +49,7 @@ export function createPlayer(world: World<ShmupComponentRegistry>, x: number, y:
   return e;
 }
 
-export function createEnemy(
-  world: World<ShmupComponentRegistry>,
-  x: number,
-  y: number,
-  kind: "straight" | "sine" | "arc" | "armored" | "boss" = "straight",
-  wave: number = 1
-): Entity {
+export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: number, kind: "straight"|"sine"|"arc"|"armored"|"boss" = "straight", wave: number = 1, archetype: ShmupEnemyArchetype = "scout"): Entity {
   const c = world.getResource<ShmupConfig>("GameConfig")!;
   const isBoss = kind === "boss";
   const isArmored = kind === "armored";
@@ -141,12 +135,9 @@ export function createEnemy(
     triggersEntered: [],
     triggersExited: []
   });
-  const baseScore = Math.floor(c.ENEMY_SCORE * (1 + (wave - 1) * 0.2));
-  const baseHp = c.ENEMY_HP + Math.floor((wave - 1) / 3);
-  const scaledScore = isBoss ? baseScore * 10 : isArmored ? baseScore * 3 : baseScore;
-  const scaledHp = isBoss ? baseHp * 10 : isArmored ? baseHp * 3 : baseHp;
-
-  add({ type: "ShmupEnemy", score: scaledScore });
+  const scaledScore = Math.floor(c.ENEMY_SCORE * (1 + (wave - 1) * 0.2));
+  const scaledHp = c.ENEMY_HP + Math.floor((wave - 1) / 3);
+  add({ type: "ShmupEnemy", score: scaledScore, archetype });
   add({ type: "Health", current: scaledHp, max: scaledHp });
   add({ type: "Faction", faction: "enemy", value: "enemy" });
   add({ type: "EnemyPath", kind: pathKind, elapsed: 0, duration: pathDuration, speed: enemySpeed, amplitude: isBoss ? 80 : 120, frequency: isBoss ? 1.0 : 1.8, originX: x, originY: y });

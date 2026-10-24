@@ -194,15 +194,14 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
       theme: config.theme ?? (config.gameOptions?.theme as Theme | undefined) ?? createThemeFromGameAccents("echorunner"),
       audio: new WebAudioPlayer()
     });
-    const loaded = loadPlatformerArcadeConfig<EchoRunnerConfigType>(
-      this.gameId,
+    const res = this.loadConfig<EchoRunnerConfigType>(
       EchoRunnerConfigSchema,
       config.gameOptions,
       config.levelData
     );
-    this.baseConfig = loaded.baseConfig;
-    this.config = loaded.baseConfig;
-    this.customLevelData = loaded.customLevelData;
+    this.baseConfig = res.baseConfig;
+    this.config = res.baseConfig;
+    this.customLevelData = res.customLevelData;
   }
 
   protected override async onRegisterSystems(): Promise<void> {

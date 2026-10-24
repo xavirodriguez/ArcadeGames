@@ -95,12 +95,12 @@ export class ArkanoidArcadeAdapter extends BaseArcadeAdapter<ArkanoidGame> {
     return new ArkanoidGame({ seed: context.seed, headless: true });
   }
 
-  protected buildResult(context: MiniGameRunContext, payload?: any): MiniGameResult {
-    const score = payload?.score ?? this.game?.getGameState?.()?.score ?? 0;
-    const completed = payload?.completed ?? (score >= (context.config.targetScore ?? 1000));
-    const durationMs = payload?.durationMs ?? 30000;
-    const bricksDestroyed = payload?.bricksDestroyed ?? Math.floor(score / 100);
-    const secretsFound: string[] = payload?.secretsFound ?? [];
+  protected buildResult(context: MiniGameRunContext, payload?: Record<string, unknown>): MiniGameResult {
+    const score = typeof payload?.score === "number" ? payload.score : (this.game?.getGameState?.()?.score ?? 0);
+    const completed = typeof payload?.completed === "boolean" ? payload.completed : (score >= (context.config.targetScore ?? 1000));
+    const durationMs = typeof payload?.durationMs === "number" ? payload.durationMs : 30000;
+    const bricksDestroyed = typeof payload?.bricksDestroyed === "number" ? payload.bricksDestroyed : Math.floor(score / 100);
+    const secretsFound = Array.isArray(payload?.secretsFound) ? (payload.secretsFound as string[]) : [];
 
     if (payload?.foundCore) {
       secretsFound.push("quantum_brick_core");
@@ -114,7 +114,7 @@ export class ArkanoidArcadeAdapter extends BaseArcadeAdapter<ArkanoidGame> {
       durationMs,
       metrics: {
         bricksDestroyed,
-        maxCombo: payload?.maxCombo ?? 1
+        maxCombo: typeof payload?.maxCombo === "number" ? payload.maxCombo : 1
       },
       secretsFound
     };

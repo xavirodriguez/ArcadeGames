@@ -27,6 +27,33 @@ function attachComponent<T extends Component>(
   }
 }
 
+function createTransformComponent(x: number, y: number): TransformComponent {
+  return {
+    type: "Transform",
+    x,
+    y,
+    rotation: 0,
+    scaleX: 1,
+    scaleY: 1,
+    worldX: x,
+    worldY: y,
+    worldRotation: 0,
+    worldScaleX: 1,
+    worldScaleY: 1,
+    dirty: true,
+  };
+}
+
+function createCollisionEventsComponent() {
+  return {
+    type: "CollisionEvents" as const,
+    collisions: [],
+    activeTriggers: [],
+    triggersEntered: [],
+    triggersExited: [],
+  };
+}
+
 export class CentipedeEntityFactory {
   public static createPlayer(world: CentipedeWorld): void {
     const config = world.getResource<CentipedeConfig>("GameConfig") || DEFAULT_CENTIPEDE_CONFIG;
@@ -35,21 +62,6 @@ export class CentipedeEntityFactory {
     const pos = gridToWorldCenter(config, playerRow, playerCol);
 
     const entity = spawnEntity(world);
-
-    const transform: TransformComponent = {
-      type: "Transform",
-      x: pos.x,
-      y: pos.y,
-      rotation: 0,
-      scaleX: 1,
-      scaleY: 1,
-      worldX: pos.x,
-      worldY: pos.y,
-      worldRotation: 0,
-      worldScaleX: 1,
-      worldScaleY: 1,
-      dirty: true,
-    };
 
     const velocity: VelocityComponent = {
       type: "Velocity",
@@ -80,17 +92,11 @@ export class CentipedeEntityFactory {
       isTrigger: false,
     };
 
-    attachComponent(world, entity, transform);
+    attachComponent(world, entity, createTransformComponent(pos.x, pos.y));
     attachComponent(world, entity, velocity);
     attachComponent(world, entity, render);
     attachComponent(world, entity, collider);
-    attachComponent(world, entity, {
-      type: "CollisionEvents",
-      collisions: [],
-      activeTriggers: [],
-      triggersEntered: [],
-      triggersExited: [],
-    });
+    attachComponent(world, entity, createCollisionEventsComponent());
 
     attachComponent(world, entity, {
       type: "Shooter",
@@ -107,21 +113,6 @@ export class CentipedeEntityFactory {
   public static createDart(world: CentipedeWorld, x: number, y: number): void {
     const config = world.getResource<CentipedeConfig>("GameConfig") || DEFAULT_CENTIPEDE_CONFIG;
     const entity = spawnEntity(world);
-
-    const transform: TransformComponent = {
-      type: "Transform",
-      x,
-      y,
-      rotation: 0,
-      scaleX: 1,
-      scaleY: 1,
-      worldX: x,
-      worldY: y,
-      worldRotation: 0,
-      worldScaleX: 1,
-      worldScaleY: 1,
-      dirty: true,
-    };
 
     const velocity: VelocityComponent = {
       type: "Velocity",
@@ -152,17 +143,11 @@ export class CentipedeEntityFactory {
       isTrigger: false,
     };
 
-    attachComponent(world, entity, transform);
+    attachComponent(world, entity, createTransformComponent(x, y));
     attachComponent(world, entity, velocity);
     attachComponent(world, entity, render);
     attachComponent(world, entity, collider);
-    attachComponent(world, entity, {
-      type: "CollisionEvents",
-      collisions: [],
-      activeTriggers: [],
-      triggersEntered: [],
-      triggersExited: [],
-    });
+    attachComponent(world, entity, createCollisionEventsComponent());
 
     attachComponent(world, entity, { type: "Dart" });
     attachComponent(world, entity, { type: "Tag", tags: ["Dart"] });
@@ -176,21 +161,6 @@ export class CentipedeEntityFactory {
     const cellHash = hashCellSeed(row, col, seed);
 
     const entity = spawnEntity(world);
-
-    const transform: TransformComponent = {
-      type: "Transform",
-      x: pos.x,
-      y: pos.y,
-      rotation: 0,
-      scaleX: 1,
-      scaleY: 1,
-      worldX: pos.x,
-      worldY: pos.y,
-      worldRotation: 0,
-      worldScaleX: 1,
-      worldScaleY: 1,
-      dirty: true,
-    };
 
     const render: RenderComponent = {
       type: "Render",
@@ -214,16 +184,10 @@ export class CentipedeEntityFactory {
       isTrigger: false,
     };
 
-    attachComponent(world, entity, transform);
+    attachComponent(world, entity, createTransformComponent(pos.x, pos.y));
     attachComponent(world, entity, render);
     attachComponent(world, entity, collider);
-    attachComponent(world, entity, {
-      type: "CollisionEvents",
-      collisions: [],
-      activeTriggers: [],
-      triggersEntered: [],
-      triggersExited: [],
-    });
+    attachComponent(world, entity, createCollisionEventsComponent());
 
     attachComponent(world, entity, {
       type: "Mushroom",
@@ -263,21 +227,6 @@ export class CentipedeEntityFactory {
 
     const entity = spawnEntity(world);
 
-    const transform: TransformComponent = {
-      type: "Transform",
-      x: pos.x,
-      y: pos.y,
-      rotation: 0,
-      scaleX: 1,
-      scaleY: 1,
-      worldX: pos.x,
-      worldY: pos.y,
-      worldRotation: 0,
-      worldScaleX: 1,
-      worldScaleY: 1,
-      dirty: true,
-    };
-
     const velocity: VelocityComponent = {
       type: "Velocity",
       vx: 0,
@@ -307,17 +256,11 @@ export class CentipedeEntityFactory {
       isTrigger: false,
     };
 
-    attachComponent(world, entity, transform);
+    attachComponent(world, entity, createTransformComponent(pos.x, pos.y));
     attachComponent(world, entity, velocity);
     attachComponent(world, entity, render);
     attachComponent(world, entity, collider);
-    attachComponent(world, entity, {
-      type: "CollisionEvents",
-      collisions: [],
-      activeTriggers: [],
-      triggersEntered: [],
-      triggersExited: [],
-    });
+    attachComponent(world, entity, createCollisionEventsComponent());
 
     attachComponent(world, entity, {
       type: "CentipedeSegment",
@@ -390,21 +333,6 @@ export class CentipedeEntityFactory {
     const config = world.getResource<CentipedeConfig>("GameConfig") || DEFAULT_CENTIPEDE_CONFIG;
     const entity = spawnEntity(world);
 
-    const transform: TransformComponent = {
-      type: "Transform",
-      x,
-      y,
-      rotation: 0,
-      scaleX: 1,
-      scaleY: 1,
-      worldX: x,
-      worldY: y,
-      worldRotation: 0,
-      worldScaleX: 1,
-      worldScaleY: 1,
-      dirty: true,
-    };
-
     const velocity: VelocityComponent = {
       type: "Velocity",
       vx: config.SPIDER_SPEED * 0.707,
@@ -434,17 +362,11 @@ export class CentipedeEntityFactory {
       isTrigger: false,
     };
 
-    attachComponent(world, entity, transform);
+    attachComponent(world, entity, createTransformComponent(x, y));
     attachComponent(world, entity, velocity);
     attachComponent(world, entity, render);
     attachComponent(world, entity, collider);
-    attachComponent(world, entity, {
-      type: "CollisionEvents",
-      collisions: [],
-      activeTriggers: [],
-      triggersEntered: [],
-      triggersExited: [],
-    });
+    attachComponent(world, entity, createCollisionEventsComponent());
 
     attachComponent(world, entity, {
       type: "Spider",
@@ -459,21 +381,6 @@ export class CentipedeEntityFactory {
     const config = world.getResource<CentipedeConfig>("GameConfig") || DEFAULT_CENTIPEDE_CONFIG;
     const pos = gridToWorldCenter(config, 0, col);
     const entity = spawnEntity(world);
-
-    const transform: TransformComponent = {
-      type: "Transform",
-      x: pos.x,
-      y: 0,
-      rotation: 0,
-      scaleX: 1,
-      scaleY: 1,
-      worldX: pos.x,
-      worldY: 0,
-      worldRotation: 0,
-      worldScaleX: 1,
-      worldScaleY: 1,
-      dirty: true,
-    };
 
     const velocity: VelocityComponent = {
       type: "Velocity",
@@ -504,17 +411,11 @@ export class CentipedeEntityFactory {
       isTrigger: false,
     };
 
-    attachComponent(world, entity, transform);
+    attachComponent(world, entity, createTransformComponent(pos.x, 0));
     attachComponent(world, entity, velocity);
     attachComponent(world, entity, render);
     attachComponent(world, entity, collider);
-    attachComponent(world, entity, {
-      type: "CollisionEvents",
-      collisions: [],
-      activeTriggers: [],
-      triggersEntered: [],
-      triggersExited: [],
-    });
+    attachComponent(world, entity, createCollisionEventsComponent());
 
     attachComponent(world, entity, {
       type: "Flea",
@@ -536,21 +437,6 @@ export class CentipedeEntityFactory {
     const pos = gridToWorldCenter(config, row, startCol);
 
     const entity = spawnEntity(world);
-
-    const transform: TransformComponent = {
-      type: "Transform",
-      x: pos.x,
-      y: pos.y,
-      rotation: 0,
-      scaleX: 1,
-      scaleY: 1,
-      worldX: pos.x,
-      worldY: pos.y,
-      worldRotation: 0,
-      worldScaleX: 1,
-      worldScaleY: 1,
-      dirty: true,
-    };
 
     const velocity: VelocityComponent = {
       type: "Velocity",
@@ -581,17 +467,11 @@ export class CentipedeEntityFactory {
       isTrigger: false,
     };
 
-    attachComponent(world, entity, transform);
+    attachComponent(world, entity, createTransformComponent(pos.x, pos.y));
     attachComponent(world, entity, velocity);
     attachComponent(world, entity, render);
     attachComponent(world, entity, collider);
-    attachComponent(world, entity, {
-      type: "CollisionEvents",
-      collisions: [],
-      activeTriggers: [],
-      triggersEntered: [],
-      triggersExited: [],
-    });
+    attachComponent(world, entity, createCollisionEventsComponent());
 
     attachComponent(world, entity, {
       type: "Scorpion",

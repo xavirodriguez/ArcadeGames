@@ -13,7 +13,7 @@ class TestEchoRunnerAdapter extends EchoRunnerArcadeAdapter {
   public getGame(): EchoRunnerGame | null {
     return this.game;
   }
-  public buildTestResult(context: MiniGameRunContext, payload?: unknown) {
+  public buildTestResult(context: MiniGameRunContext, payload?: Record<string, unknown>) {
     return this.buildResult(context, payload);
   }
 }

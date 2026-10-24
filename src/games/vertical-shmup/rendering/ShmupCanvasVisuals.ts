@@ -421,13 +421,31 @@ export const drawShmupEnemyBullet: ShapeDrawer<CanvasRenderingContext2D, ShmupCo
   }
 };
 
+function colorWithAlpha(color: string, alpha: number): string {
+  const match = /^#([0-9a-f]{6})$/i.exec(color);
+  if (!match) return color;
+  const value = match[1] ?? "000000";
+  const red = Number.parseInt(value.slice(0, 2), 16);
+  const green = Number.parseInt(value.slice(2, 4), 16);
+  const blue = Number.parseInt(value.slice(4, 6), 16);
+  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+}
+
+function blendHex(from: string, to: string, amount: number): string {
+  const parse = (color: string, offset: number): number => Number.parseInt(color.slice(offset, offset + 2), 16);
+  const t = Math.max(0, Math.min(1, amount));
+  const channels = [1, 3, 5].map(offset => Math.round(
+    parse(from, offset) + (parse(to, offset) - parse(from, offset)) * t
+  ));
+  return `#${channels.map(channel => channel.toString(16).padStart(2, "0")).join("")}`;
+}
+
 export const drawShmupStarfield: EffectDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
   draw(ctx, world) {
-    const { width, height, biome, clouds, islands, particles } = computeShmupParallaxWorld(world);
-
+    const { width, height, time, biome, clouds, islands, particles } = computeShmupParallaxWorld(world);
     ctx.save();
 
-    // Layer 1: Sky Gradient
+    // Layer 1: atmospheric sky and biome-specific light source.
     const skyGradient = ctx.createLinearGradient(0, 0, 0, height);
     skyGradient.addColorStop(0, biome.skyTop);
     skyGradient.addColorStop(0.55, biome.skyMid);
@@ -435,19 +453,75 @@ export const drawShmupStarfield: EffectDrawer<CanvasRenderingContext2D, ShmupCom
     ctx.fillStyle = skyGradient;
     ctx.fillRect(0, 0, width, height);
 
-    // Layer 2: Volumetric Drifting Clouds (Multi-lobe bumps with shadow base)
+    const glowX = width * biome.glowX;
+    const glowY = height * biome.glowY;
+    const glowRadius = Math.min(width, height) * biome.glowRadius;
+    const atmosphereGlow = ctx.createRadialGradient(glowX, glowY, 0, glowX, glowY, glowRadius);
+    atmosphereGlow.addColorStop(0, colorWithAlpha(biome.glowColor, biome.atmosphereStyle === "storm" ? 0.24 : 0.3));
+    atmosphereGlow.addColorStop(1, colorWithAlpha(biome.glowColor, 0));
+    ctx.fillStyle = atmosphereGlow;
+    ctx.fillRect(0, 0, width, height);
+
+    if (biome.atmosphereStyle === "sunrise") {
+      ctx.save();
+      ctx.strokeStyle = colorWithAlpha(SHMUP_COLOR_TOKENS.gold.sunlight, 0.13);
+      ctx.lineWidth = Math.max(2, width * 0.004);
+      for (let i = -3; i <= 3; i += 1) {
+        ctx.beginPath();
+        ctx.moveTo(glowX, glowY + height * 0.04);
+        ctx.lineTo(glowX + i * width * 0.19, height);
+        ctx.stroke();
+      }
+      ctx.restore();
+    } else if (biome.atmosphereStyle === "garden" || biome.atmosphereStyle === "sacred") {
+      ctx.save();
+      const rayColor = biome.rayColor;
+      ctx.strokeStyle = colorWithAlpha(rayColor, biome.atmosphereStyle === "garden" ? 0.09 : 0.12);
+      ctx.lineWidth = width * 0.018;
+      for (let i = 0; i < 7; i += 1) {
+        const rayX = width * (0.08 + i * 0.14) + Math.sin(time * 0.18 + i) * width * 0.025;
+        ctx.beginPath();
+        ctx.moveTo(rayX - width * 0.035, 0);
+        ctx.lineTo(rayX + width * 0.07, height);
+        ctx.stroke();
+      }
+      ctx.restore();
+    } else {
+      // A short, deterministic lightning pulse: visual-only, no gameplay RNG.
+      const pulse = Math.max(0, Math.sin(time * 1.35)) ** 8;
+      if (pulse > 0.015) {
+        const boltX = width * (0.58 + 0.16 * Math.sin(time * 0.23));
+        ctx.save();
+        ctx.strokeStyle = colorWithAlpha(biome.lightningColor, 0.18 + pulse * 0.62);
+        ctx.lineWidth = 2 + pulse * 3;
+        ctx.shadowBlur = 20 * pulse;
+        ctx.shadowColor = biome.glowColor;
+        ctx.beginPath();
+        ctx.moveTo(boltX, 0);
+        ctx.lineTo(boltX - width * 0.045, height * 0.12);
+        ctx.lineTo(boltX + width * 0.018, height * 0.19);
+        ctx.lineTo(boltX - width * 0.08, height * 0.34);
+        ctx.lineTo(boltX - width * 0.025, height * 0.41);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(boltX - width * 0.01, height * 0.2);
+        ctx.lineTo(boltX + width * 0.09, height * 0.29);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    // Layer 2: drifting clouds. The same profile controls opacity in both renderers.
     for (const cloud of clouds) {
       ctx.save();
-      // Cloud shadow base
       ctx.fillStyle = biome.cloudShadow;
-      ctx.globalAlpha = 0.4;
+      ctx.globalAlpha = biome.cloudOpacity * 0.62;
       ctx.beginPath();
       ctx.ellipse(cloud.x, cloud.y + cloud.ry * 0.2, cloud.rx * 1.1, cloud.ry * 0.85, 0, 0, Math.PI * 2);
       ctx.fill();
 
-      // Multi-lobe volumetric cloud bumps
       ctx.fillStyle = biome.cloudLight;
-      ctx.globalAlpha = 0.55;
+      ctx.globalAlpha = biome.cloudOpacity;
       ctx.beginPath();
       ctx.arc(cloud.x - cloud.rx * 0.35, cloud.y, cloud.ry * 0.75, 0, Math.PI * 2);
       ctx.arc(cloud.x, cloud.y - cloud.ry * 0.25, cloud.ry * 0.95, 0, Math.PI * 2);
@@ -456,123 +530,113 @@ export const drawShmupStarfield: EffectDrawer<CanvasRenderingContext2D, ShmupCom
       ctx.restore();
     }
 
-    // Layer 3: Floating Islands, Waterfalls, Trees & Architectural Ruins
+    // Layer 3: biome-specific floating landforms and silhouettes.
     for (const island of islands) {
       ctx.save();
       ctx.globalAlpha = 0.92;
-
-      // Animated Waterfall descending from island edge down into clouds
-      if (island.hasWaterfall) {
-        const flowTime = (world.tick * 0.016 * 120) % 20;
-        ctx.save();
-        ctx.fillStyle = "rgba(143, 214, 245, 0.75)";
-        ctx.fillRect(island.waterfallX - 4, island.y + island.height * 0.4, 8, island.waterfallLength);
-
-        // Inner white water core streak
-        ctx.fillStyle = "rgba(243, 252, 255, 0.9)";
-        ctx.fillRect(island.waterfallX - 2, island.y + island.height * 0.4 + flowTime, 4, island.waterfallLength * 0.6);
-
-        // Splash foam particles at bottom of waterfall
-        ctx.fillStyle = SHMUP_COLOR_TOKENS.player.core;
-        const splashY = island.y + island.height * 0.4 + island.waterfallLength;
+      if (biome.islandStyle === "crystal") {
+        ctx.fillStyle = biome.crystalShadowColor;
         ctx.beginPath();
-        ctx.arc(island.waterfallX - 5, splashY, 3.5, 0, Math.PI * 2);
-        ctx.arc(island.waterfallX + 5, splashY, 4, 0, Math.PI * 2);
-        ctx.arc(island.waterfallX, splashY + 2, 5, 0, Math.PI * 2);
+        ctx.moveTo(island.x, island.y + island.height * 0.24);
+        ctx.lineTo(island.x + island.width * 0.18, island.y + island.height * 0.58);
+        ctx.lineTo(island.x + island.width * 0.38, island.y + island.height);
+        ctx.lineTo(island.x + island.width * 0.72, island.y + island.height * 0.68);
+        ctx.lineTo(island.x + island.width, island.y + island.height * 0.26);
+        ctx.closePath();
         ctx.fill();
-        ctx.restore();
-      }
-
-      // Island dark rock base / cliff volume
-      ctx.fillStyle = island.cliffColor;
-      ctx.beginPath();
-      ctx.moveTo(island.x, island.y + island.height * 0.3);
-      ctx.lineTo(island.x + island.width * 0.2, island.y + island.height);
-      ctx.lineTo(island.x + island.width * 0.5, island.y + island.height * 1.15);
-      ctx.lineTo(island.x + island.width * 0.8, island.y + island.height * 0.9);
-      ctx.lineTo(island.x + island.width, island.y + island.height * 0.3);
-      ctx.closePath();
-      ctx.fill();
-
-      // Island foliage cap
-      ctx.fillStyle = island.color;
-      ctx.beginPath();
-      ctx.roundRect(island.x - 6, island.y - 2, island.width + 12, island.height * 0.55, 12);
-      ctx.fill();
-
-      // Pink Blossom Tree
-      if (island.hasBlossomTree) {
-        const treeX = island.x + island.width * 0.25;
-        const treeY = island.y - 4;
-
-        // Trunk
-        ctx.fillStyle = "#3A2A1A";
-        ctx.fillRect(treeX - 2, treeY - 10, 4, 10);
-
-        // Pink Crown
-        ctx.fillStyle = SHMUP_COLOR_TOKENS.blossom;
+        ctx.strokeStyle = colorWithAlpha(biome.crystalEdgeColor, 0.7);
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.fillStyle = colorWithAlpha(biome.glowColor, 0.72);
         ctx.beginPath();
-        ctx.arc(treeX - 5, treeY - 16, 7, 0, Math.PI * 2);
-        ctx.arc(treeX + 5, treeY - 16, 7, 0, Math.PI * 2);
-        ctx.arc(treeX, treeY - 22, 9, 0, Math.PI * 2);
+        ctx.moveTo(island.x + island.width * 0.28, island.y + island.height * 0.42);
+        ctx.lineTo(island.x + island.width * 0.38, island.y - island.height * 0.12);
+        ctx.lineTo(island.x + island.width * 0.48, island.y + island.height * 0.42);
+        ctx.closePath();
         ctx.fill();
-      }
-
-      // Ancient Temple Arch / Columns
-      if (island.hasArch) {
+      } else {
         ctx.fillStyle = biome.architectureColor;
-        const archX = island.x + island.width * 0.5;
-        ctx.fillRect(archX - 14, island.y - 18, 6, 18);
-        ctx.fillRect(archX + 8, island.y - 18, 6, 18);
-        ctx.fillRect(archX - 18, island.y - 24, 36, 6);
-
-        // Gold temple ceremonial emblem
-        ctx.fillStyle = SHMUP_COLOR_TOKENS.gold.sunlight;
         ctx.beginPath();
-        ctx.arc(archX, island.y - 12, 4.5, 0, Math.PI * 2);
+        ctx.roundRect(island.x, island.y + island.height * 0.3, island.width, island.height * 0.7, 12);
         ctx.fill();
+
+        ctx.fillStyle = island.color;
+        ctx.beginPath();
+        ctx.roundRect(island.x - 4, island.y, island.width + 8, island.height * 0.55, 14);
+        ctx.fill();
+
+        if (biome.islandStyle === "lush") {
+          for (let tree = 0; tree < 3; tree += 1) {
+            const treeX = island.x + island.width * (0.22 + tree * 0.28);
+            const treeY = island.y + island.height * (0.12 + (tree % 2) * 0.05);
+            ctx.fillStyle = tree % 2 === 0 ? SHMUP_COLOR_TOKENS.foliage.deep : SHMUP_COLOR_TOKENS.foliage.mid;
+            ctx.beginPath();
+            ctx.arc(treeX, treeY, island.height * 0.16, 0, Math.PI * 2);
+            ctx.fill();
+            if (biome.atmosphereStyle === "garden") {
+              ctx.fillStyle = SHMUP_COLOR_TOKENS.blossom;
+              ctx.beginPath();
+              ctx.arc(treeX + island.height * 0.07, treeY - island.height * 0.04, 2.5, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+        }
+
+        if (island.hasArch || biome.islandStyle === "ruins") {
+          ctx.fillStyle = biome.architectureColor;
+          const columnWidth = Math.max(6, island.width * 0.075);
+          const columnTop = island.y - island.height * 0.28;
+          ctx.fillRect(island.x + island.width * 0.3, columnTop, columnWidth, island.height * 0.3);
+          ctx.fillRect(island.x + island.width * 0.62, columnTop, columnWidth, island.height * 0.3);
+          ctx.fillRect(island.x + island.width * 0.24, columnTop - 5, island.width * 0.52, Math.max(6, island.height * 0.09));
+          ctx.fillStyle = SHMUP_COLOR_TOKENS.gold.sunlight;
+          ctx.beginPath();
+          ctx.arc(island.x + island.width * 0.5, columnTop + island.height * 0.03, 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
       ctx.restore();
     }
 
-    // Soft Smooth Vignette Overlay (Dims outer edges without harsh vertical lines)
-    ctx.save();
+    // Low-cost edge vignette keeps projectiles and the player readable.
     const vignette = ctx.createRadialGradient(
-      width / 2, height / 2, Math.min(width, height) * 0.35,
-      width / 2, height / 2, Math.max(width, height) * 0.75
+      width / 2, height / 2, Math.min(width, height) * 0.32,
+      width / 2, height / 2, Math.max(width, height) * 0.76
     );
     vignette.addColorStop(0, "rgba(0, 0, 0, 0)");
-    vignette.addColorStop(1, "rgba(11, 21, 40, 0.45)");
+    vignette.addColorStop(1, biome.atmosphereStyle === "storm" ? "rgba(3, 10, 24, 0.58)" : "rgba(11, 21, 40, 0.36)");
     ctx.fillStyle = vignette;
     ctx.fillRect(0, 0, width, height);
-    ctx.restore();
 
-    // Layer 4: Near Decor Particles (capped <= 15)
-    for (const p of particles) {
+    // Layer 4: small foreground particles retain their biome-specific silhouette.
+    for (const particle of particles) {
       ctx.save();
-      ctx.globalAlpha = p.opacity;
-      ctx.fillStyle = p.color;
-      ctx.translate(p.x, p.y);
-      ctx.rotate(p.rotation);
-
-      if (p.type === "petal") {
+      ctx.globalAlpha = particle.opacity;
+      ctx.fillStyle = particle.color;
+      ctx.translate(particle.x, particle.y);
+      ctx.rotate(particle.rotation);
+      if (particle.type === "petal") {
         ctx.beginPath();
-        ctx.ellipse(0, 0, p.size, p.size * 0.5, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, 0, particle.size, particle.size * 0.5, 0, 0, Math.PI * 2);
         ctx.fill();
-      } else if (p.type === "crystal") {
+      } else if (particle.type === "crystal" || particle.type === "rune") {
         ctx.beginPath();
-        ctx.moveTo(0, -p.size);
-        ctx.lineTo(p.size * 0.6, 0);
-        ctx.lineTo(0, p.size);
-        ctx.lineTo(-p.size * 0.6, 0);
+        ctx.moveTo(0, -particle.size);
+        ctx.lineTo(particle.size * 0.65, 0);
+        ctx.lineTo(0, particle.size);
+        ctx.lineTo(-particle.size * 0.65, 0);
         ctx.closePath();
         ctx.fill();
+        if (particle.type === "rune") {
+          ctx.strokeStyle = SHMUP_COLOR_TOKENS.gold.sunlight;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
       } else {
         ctx.beginPath();
-        ctx.arc(0, 0, p.size * 0.5, 0, Math.PI * 2);
+        ctx.arc(0, 0, particle.size * 0.5, 0, Math.PI * 2);
         ctx.fill();
       }
-
       ctx.restore();
     }
 

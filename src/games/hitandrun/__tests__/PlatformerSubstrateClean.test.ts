@@ -4,8 +4,7 @@ import { HitAndRunGame } from "../HitAndRunGame";
 describe("M11: Platformer substrate cleanliness in Hit&Run", () => {
   it("does not rely on Platformer platform substrate for player movement or death plane", async () => {
     const game = new HitAndRunGame({ seed: 12345 });
-    await (game as any).onRegisterSystems();
-    await (game as any).onInitializeEntities();
+    await game.init();
     const world = game.getWorld();
 
     // Verify DeathPlaneY is deactivated (Infinity)

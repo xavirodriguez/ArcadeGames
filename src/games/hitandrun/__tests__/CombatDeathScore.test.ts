@@ -26,9 +26,8 @@ describe("M9: Score bound to combat:death events", () => {
     });
     world.addComponent(enemy, {
       type: "Enemy",
-      kind: "patrol",
-      archetypeId: "popcorn"
-    } as any);
+      kind: "patrol"
+    });
 
     // Emit combat:death deferred
     bus.emitDeferred("combat:death", {

@@ -10,15 +10,12 @@ describe("M8: Dedicated BeltSectionEnemy gate locking", () => {
     const enemy = world.createEntity();
     world.addComponent(enemy, {
       type: "Enemy",
-      kind: "patrol",
-      archetypeId: "popcorn",
-      indexInGroup: 0,
-      groupSize: 1
-    } as any);
+      kind: "patrol"
+    });
     world.addComponent(enemy, {
       type: "BeltSectionEnemy",
       sectionIndex: 0
-    } as any);
+    });
     world.addComponent(enemy, {
       type: "Health",
       current: 5,

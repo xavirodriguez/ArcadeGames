@@ -18,14 +18,14 @@ export interface NauticalWindState {
 export const NAUTICAL_WIND_RESOURCE = "NauticalWind";
 
 const FORCE_TABLE = [0, 1, 2, 3];
-/** Lateral px/s² scaled by force (subtle but readable). */
-const LATERAL_ACCEL_PER_FORCE = 28;
+/** Lateral px/s² scaled by force — readable without being unfair. */
+const LATERAL_ACCEL_PER_FORCE = 48;
 
 export function createDefaultWindState(): NauticalWindState {
   return {
     force: 1,
     sign: 1,
-    changeRemaining: 8,
+    changeRemaining: 6,
     visualIntensity: 0.25,
   };
 }
@@ -59,7 +59,7 @@ export class NauticalWindSystem extends System<SpaceInvadersComponentRegistry> {
     if (wind.changeRemaining <= 0) {
       wind.force = FORCE_TABLE[Math.floor(Math.random() * FORCE_TABLE.length)];
       wind.sign = Math.random() < 0.5 ? -1 : 1;
-      wind.changeRemaining = 6 + Math.random() * 6;
+      wind.changeRemaining = 5 + Math.random() * 4;
       wind.visualIntensity = wind.force === 0 ? 0.08 : 0.15 + wind.force * 0.12;
     }
 

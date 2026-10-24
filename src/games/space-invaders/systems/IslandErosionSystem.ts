@@ -25,7 +25,7 @@ export function islandVisualAlpha(ratio: number): number {
 }
 
 /**
- * Marks shield entities with visual erosion (opacity/visibility) under nautical theme.
+ * Marks shield entities with visual erosion (opacity/size/visibility) under nautical theme.
  */
 export class IslandErosionSystem extends System<SpaceInvadersComponentRegistry> {
   public update(
@@ -43,15 +43,24 @@ export class IslandErosionSystem extends System<SpaceInvadersComponentRegistry> 
       const phase = islandPhaseFromRatio(ratio);
       const render = world.getComponent(entity, "Render");
       if (render) {
+        const scale = islandVisualScale(ratio);
+        const alpha = islandVisualAlpha(ratio);
         world.mutateComponent(entity, "Render", (r) => {
-          if (phase === "sinking") {
-            r.opacity = islandVisualAlpha(ratio);
-          } else if (phase === "gone") {
+          if (phase === "gone") {
             r.opacity = 0;
             r.visible = false;
           } else {
-            r.opacity = islandVisualAlpha(ratio);
+            r.opacity = alpha;
             r.visible = true;
+            if (typeof (r as { scale?: number }).scale === "number") {
+              (r as { scale?: number }).scale = scale;
+            }
+            const baseSize = (r as { _islandBaseSize?: number })._islandBaseSize;
+            if (baseSize == null && typeof r.size === "number") {
+              (r as { _islandBaseSize?: number })._islandBaseSize = r.size;
+            }
+            const base = (r as { _islandBaseSize?: number })._islandBaseSize ?? r.size ?? 15;
+            r.size = base * scale;
           }
         });
       }

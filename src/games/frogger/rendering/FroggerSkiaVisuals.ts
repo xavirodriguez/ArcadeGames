@@ -316,11 +316,22 @@ export const drawLogSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
     const logColor = render.color || FROGGER_VISUAL_TOKENS.logs.body;
 
     canvas.save();
-    canvas.translate(0, FROGGER_VISUAL_TOKENS.shadows.offsetY + 1);
 
     const shadowPaint = Skia.Paint();
     shadowPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.shadows.color));
-    canvas.drawRRect(Skia.RRectXY(Skia.XYWHRect(-halfW + 1, -halfH + 1, width - 2, height - 1), 10, 10), shadowPaint);
+    canvas.drawRRect(
+      Skia.RRectXY(
+        Skia.XYWHRect(
+          -halfW + 1,
+          -halfH + FROGGER_VISUAL_TOKENS.shadows.offsetY + 1,
+          width - 2,
+          height - 1
+        ),
+        10,
+        10
+      ),
+      shadowPaint
+    );
 
     const bodyPaint = Skia.Paint();
     bodyPaint.setColor(Skia.Color(logColor));

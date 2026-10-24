@@ -18,9 +18,14 @@ export const FROGGER_VISUAL_TOKENS = {
     riverDeep: "#0F6E7A",
     riverShallow: "#17A3A3",
     hud: "#1B1B2E",
+    bankShadow: "#C18D3A",
+    bankHighlight: "#F5D478",
+    bankTileLine: "rgba(113, 76, 38, 0.22)",
+    roadEdge: "#181824",
     waterFlow: "rgba(242, 238, 227, 0.10)",
+    waterGlint: "rgba(242, 238, 227, 0.20)",
     laneDivider: "rgba(242, 238, 227, 0.30)",
-    medianDivider: "rgba(233, 185, 73, 0.45)",
+    medianDivider: "rgba(113, 76, 38, 0.28)",
   },
   logs: {
     body: "#B9824A",
@@ -67,6 +72,24 @@ export const FROGGER_VISUAL_TOKENS = {
  *
  * These values document the target composition; they do not override the ECS
  * simulation's grid/world dimensions or the runtime's measured screen size.
+ */
+/**
+ * Rows in the logical board occupied by the visual background zones.
+ * Keep these aligned with Frogger's existing 15-row gameplay layout.
+ */
+export const FROGGER_BACKGROUND_ROWS = {
+  goalBank: 0,
+  riverStart: 1,
+  riverRows: 5,
+  median: 6,
+  roadStart: 7,
+  roadRows: 5,
+  startBank: 12,
+  startRows: 3,
+} as const;
+
+/**
+ * Portrait screenshot reference. These values do not override runtime sizing.
  */
 export const FROGGER_VISUAL_REFERENCE = {
   viewport: {

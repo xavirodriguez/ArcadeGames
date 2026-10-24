@@ -32,6 +32,7 @@ import { colors } from "../../../theme/colors";
 import type { HitRunDeathFlowState } from "../systems/HitRunDeathFlowSystem";
 import { DEATH_FLOW_RESOURCE } from "../systems/HitRunDeathFlowSystem";
 import type { HitRunScoreState } from "../systems/HitRunScoreSystem";
+import { HIT_RUN_SCORE_RESOURCE } from "../systems/HitRunScoreSystem";
 
 function resolveViewport(world: {
   getResource: (k: string) => unknown;
@@ -215,7 +216,9 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
       ctx.fillText(`SPAWNED ${wave.totalSpawned}`, w * 0.5, 42);
     }
 
-    const scoreState = world.getResource<HitRunScoreState>("HitRunScoreState");
+    const scoreState = world.getResource(HIT_RUN_SCORE_RESOURCE) as
+      | HitRunScoreState
+      | undefined;
     const displayScore = scoreState?.score ?? score;
     const comboMult = scoreState?.comboMultiplier ?? 1;
 

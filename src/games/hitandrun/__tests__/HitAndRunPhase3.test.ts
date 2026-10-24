@@ -1,11 +1,10 @@
-import { World, CoreComponentRegistry } from "@tiny-aster/core";
+import { World, CoreComponentRegistry, HealthComponent } from "@tiny-aster/core";
 import { registerHitRunWeapons } from "../weapons/registerHitRunWeapons";
 import { registerHitRunWeaponPickups } from "../weapons/HitRunWeaponPickup";
 import { registerHitRunPowSystem, createPowBlueprint, HitRunPowComponent } from "../pow/HitRunPowSystem";
 import { registerHitRunScoreSystem, HIT_RUN_SCORE_RESOURCE, HitRunScoreState } from "../systems/HitRunScoreSystem";
 import { HitRunExplosionSystem } from "../weapons/HitRunExplosionSystem";
 import type { HitRunWeaponState } from "../weapons/HitRunWeaponTypes";
-import type { HealthComponent } from "@tiny-aster/core";
 
 describe("Hit & Run Phase 3 Requirements", () => {
   let world: World<CoreComponentRegistry>;
@@ -42,7 +41,7 @@ describe("Hit & Run Phase 3 Requirements", () => {
         ammoCurrent: 1,
         ammoMax: 20,
         fallbackWeaponId: "longbow"
-      } as HitRunWeaponState);
+      });
       world.addComponent(shooter, {
         type: "BeltInput",
         moveX: 0,

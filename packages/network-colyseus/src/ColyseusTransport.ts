@@ -8,7 +8,7 @@ export class ColyseusTransport implements NetworkTransport {
   public readonly isOffline = false;
   private client: Client | null = null;
   private room: Room | null = null;
-  private messageHandlers = new Map<string, Set<(message: any) => void>>();
+  private messageHandlers = new Map<string, Set<(message: unknown) => void>>();
 
   /**
    * @param roomName - Default room name to join or create.
@@ -16,7 +16,7 @@ export class ColyseusTransport implements NetworkTransport {
    */
   constructor(
     private readonly roomName: string = "game",
-    private readonly options: Record<string, any> = {}
+    private readonly options: Record<string, unknown> = {}
   ) {}
 
   /**
@@ -59,7 +59,7 @@ export class ColyseusTransport implements NetworkTransport {
   /**
    * Sends a message to the server.
    */
-  public send(type: string, message: any): void {
+  public send(type: string, message: unknown): void {
     if (this.room) {
       this.room.send(type, message);
     }
@@ -69,7 +69,7 @@ export class ColyseusTransport implements NetworkTransport {
    * Registers a message handler.
    * Discards Colyseus' unsubscribe return to match NetworkTransport signature.
    */
-  public onMessage(type: string, handler: (message: any) => void): void {
+  public onMessage(type: string, handler: (message: unknown) => void): void {
     if (!this.messageHandlers.has(type)) {
       this.messageHandlers.set(type, new Set());
     }

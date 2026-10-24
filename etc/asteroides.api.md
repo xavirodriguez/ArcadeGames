@@ -1279,6 +1279,15 @@ export interface CoreComponentRegistry extends ComponentRegistry {
     HapticRequest: HapticRequestComponent<string>;
     Health: HealthComponent;
     Hitbox: HitboxComponent;
+    HitRunWeapon: Component & {
+        type: "HitRunWeapon";
+        weaponId: string;
+        cooldownRemaining: number;
+        ammoCurrent?: number;
+        ammoMax?: number;
+        fallbackWeaponId?: string;
+        muzzleFlashRemaining?: number;
+    };
     Hurtbox: HurtboxComponent;
     InputState: InputStateComponent;
     Invulnerable: InvulnerableComponent;

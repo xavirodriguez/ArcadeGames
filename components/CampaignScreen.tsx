@@ -89,17 +89,17 @@ export const CampaignScreen: React.FC<CampaignScreenProps> = ({
     if (!key) return "";
     const parts = key.split(".");
     if (parts.length > 1) {
-      let curr: any = t;
+      let curr: unknown = t;
       for (const part of parts) {
         if (curr && typeof curr === "object" && part in curr) {
-          curr = curr[part];
+          curr = (curr as Record<string, unknown>)[part];
         } else {
           return key;
         }
       }
       return typeof curr === "string" ? curr : key;
     }
-    const campaignDict = (t as any)?.campaign || {};
+    const campaignDict = typeof t === "object" && t !== null && "campaign" in t ? (t as unknown as Record<string, Record<string, string>>).campaign : {};
     return campaignDict[key] || key;
   }, [t]);
 

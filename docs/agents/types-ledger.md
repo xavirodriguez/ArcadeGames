@@ -45,3 +45,7 @@
 | 2026-10-21 | `src/hooks/useKeyboardControls.ts` (`useKeyboardControls`) | Resuelto | Replaced `IGame<any, any>` and `(inputPayload as any)` with generic `IGame<TReg, TEvents>` and typed records. |
 | 2026-10-21 | `src/ui/narrative/ModifierInspector.tsx` (`explainModifier`, `activeModifiers`) | Resuelto | Replaced `Record<string, any>` and `value: any` with `Record<string, unknown>` and `value: unknown`. |
 | 2026-10-21 | `src/games/shared/rendering/JuiceOrchestrator.ts` (`spawn`) | Resuelto | Replaced `addComp(entity, comp: any)` with typed `Component` interfaces (`TransformComponent`, `RenderComponent`, `TTLComponent`). |
+| 2026-10-24 | `packages/network-colyseus/src/ColyseusTransport.ts` (`ColyseusTransport`) | Resuelto | Replaced `any` in messageHandlers, options, send, and onMessage signatures with `unknown` and `Record<string, unknown>`. |
+| 2026-10-24 | `packages/react-native/src/hooks/useMultiplayer.ts` (`useMultiplayer`) | Resuelto | Replaced `any` in serverState, state change callback, onLeave, and sendInput signatures with `unknown` and `Record<string, unknown>`. |
+| 2026-10-24 | `components/CampaignScreen.tsx` (`CampaignScreen.getLocalizedText`) | Resuelto | Removed `any` casts in localized dictionary lookups and keyboard control hooks. |
+| 2026-10-24 | `src/games/hitandrun/rendering/HitRunHudCanvas.ts` (`drawHitRunHud`) | Resuelto | Replaced string resource key and `any` cast on scoreState with `HIT_RUN_SCORE_RESOURCE` and `HitRunScoreState`. |

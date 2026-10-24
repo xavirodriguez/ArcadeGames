@@ -1,0 +1,82 @@
+import { System, World, Theme, THEME_RESOURCE_KEY } from "@tiny-aster/core";
+import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
+import { isNauticalChartTheme } from "../rendering/NauticalChartBackground";
+
+/**
+ * Wind resource for Aquí hay dragones (art bible: wind deflects projectiles).
+ * force: 0..3  (0 = calm).  sign: -1 left, +1 right.
+ */
+export interface NauticalWindState {
+  force: number;
+  sign: number;
+  /** Seconds until next force/sign roll */
+  changeRemaining: number;
+  /** Visual: rhumb line intensity 0..1 */
+  visualIntensity: number;
+}
+
+export const NAUTICAL_WIND_RESOURCE = "NauticalWind";
+
+const FORCE_TABLE = [0, 1, 2, 3];
+/** Lateral px/s² scaled by force (subtle but readable). */
+const LATERAL_ACCEL_PER_FORCE = 28;
+
+export function createDefaultWindState(): NauticalWindState {
+  return {
+    force: 1,
+    sign: 1,
+    changeRemaining: 8,
+    visualIntensity: 0.25,
+  };
+}
+
+export function ensureNauticalWind(
+  world: World<SpaceInvadersComponentRegistry>
+): NauticalWindState | null {
+  const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+  if (!isNauticalChartTheme(theme)) return null;
+
+  let wind = world.getResource<NauticalWindState>(NAUTICAL_WIND_RESOURCE);
+  if (!wind) {
+    wind = createDefaultWindState();
+    world.setResource(NAUTICAL_WIND_RESOURCE, wind);
+  }
+  return wind;
+}
+
+/**
+ * Applies horizontal acceleration to bullet velocities while the nautical theme is active.
+ */
+export class NauticalWindSystem extends System<SpaceInvadersComponentRegistry> {
+  public update(
+    world: World<SpaceInvadersComponentRegistry>,
+    deltaTime: number
+  ): void {
+    const wind = ensureNauticalWind(world);
+    if (!wind) return;
+
+    wind.changeRemaining -= deltaTime;
+    if (wind.changeRemaining <= 0) {
+      wind.force = FORCE_TABLE[Math.floor(Math.random() * FORCE_TABLE.length)];
+      wind.sign = Math.random() < 0.5 ? -1 : 1;
+      wind.changeRemaining = 6 + Math.random() * 6;
+      wind.visualIntensity = wind.force === 0 ? 0.08 : 0.15 + wind.force * 0.12;
+    }
+
+    if (wind.force === 0) return;
+
+    const ax = wind.sign * wind.force * LATERAL_ACCEL_PER_FORCE * deltaTime;
+
+    const bullets = [
+      ...world.query("PlayerBullet"),
+      ...world.query("EnemyBullet"),
+    ];
+    for (const entity of bullets) {
+      const vel = world.getComponent(entity, "Velocity");
+      if (!vel) continue;
+      world.mutateComponent(entity, "Velocity", (v) => {
+        v.vx = (v.vx || 0) + ax;
+      });
+    }
+  }
+}

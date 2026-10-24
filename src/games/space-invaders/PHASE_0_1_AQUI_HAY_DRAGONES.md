@@ -1,4 +1,4 @@
-# Fase 0–2 — Aquí hay dragones
+# Fase 0–3 — Aquí hay dragones
 
 ## Fase 0 (Opción A)
 - Ids: `aqui_hay_dragones` | `nautical-chart`
@@ -8,10 +8,15 @@
 - Palette tokens, geometry stubs, registry, tests
 
 ## Fase 2
-- [x] Lavados semitransparentes + desregistro (`WASH_OFFSET`, alpha 0.6/0.8)
-- [x] Ojos parchment en kraken / serpiente / ballena
-- [x] Geometría de isla (`nauticalIslandGeometry`)
-- [x] `drawNauticalChartBackdrop` — pergamino, marco doble, cuadrícula, ondas
-- [x] Background effect `parchment_chart` (Canvas + Skia)
-- [x] Shield drawer usa customGeom
-- [ ] Erosión de islas + viento (Fase 3)
+- Lavados (WASH_OFFSET + alpha), ojos parchment, isla geometry
+- `NauticalChartBackground` (Canvas + Skia)
+- Background effect `parchment_chart`
+
+## Fase 3
+- [x] `NauticalWindSystem` — force 0–3, lateral accel on bullets
+- [x] `IslandErosionSystem` — opacity/visibility from Shield HP
+- [x] Helpers: `islandPhaseFromRatio`, visual scale/alpha
+- [x] Systems registered in `SpaceInvadersGameScene`
+- [ ] Wire `parchment_chart` in `SpaceInvadersGame.initializeRenderer` (restore if stubbed)
+- [ ] Shield drawer customGeom (restore if stubbed)
+- [ ] Visual wind rhumb lines on HUD

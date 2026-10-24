@@ -1,0 +1,60 @@
+import { System, World, Theme, THEME_RESOURCE_KEY } from "@tiny-aster/core";
+import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
+import { isNauticalChartTheme } from "../rendering/NauticalChartBackground";
+
+/**
+ * Island erosion phases for shield_block when nautical theme is active.
+ * Visual scale + alpha follow remaining HP ratio (art bible: islands erode on hits).
+ */
+export type IslandErosionPhase = "intact" | "chipped" | "cracked" | "sinking" | "gone";
+
+export function islandPhaseFromRatio(ratio: number): IslandErosionPhase {
+  if (ratio <= 0) return "gone";
+  if (ratio < 0.25) return "sinking";
+  if (ratio < 0.5) return "cracked";
+  if (ratio < 0.85) return "chipped";
+  return "intact";
+}
+
+export function islandVisualScale(ratio: number): number {
+  return 0.55 + 0.45 * Math.max(0, Math.min(1, ratio));
+}
+
+export function islandVisualAlpha(ratio: number): number {
+  return 0.35 + 0.65 * Math.max(0, Math.min(1, ratio));
+}
+
+/**
+ * Marks shield entities with visual erosion (opacity/visibility) under nautical theme.
+ */
+export class IslandErosionSystem extends System<SpaceInvadersComponentRegistry> {
+  public update(
+    world: World<SpaceInvadersComponentRegistry>,
+    _deltaTime: number
+  ): void {
+    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+    if (!isNauticalChartTheme(theme)) return;
+
+    for (const entity of world.query("Shield")) {
+      const shield = world.getComponent(entity, "Shield");
+      if (!shield) continue;
+      const maxHp = shield.maxHp || 1;
+      const ratio = Math.max(0, (shield.hp ?? 0) / maxHp);
+      const phase = islandPhaseFromRatio(ratio);
+      const render = world.getComponent(entity, "Render");
+      if (render) {
+        world.mutateComponent(entity, "Render", (r) => {
+          if (phase === "sinking") {
+            r.opacity = islandVisualAlpha(ratio);
+          } else if (phase === "gone") {
+            r.opacity = 0;
+            r.visible = false;
+          } else {
+            r.opacity = islandVisualAlpha(ratio);
+            r.visible = true;
+          }
+        });
+      }
+    }
+  }
+}

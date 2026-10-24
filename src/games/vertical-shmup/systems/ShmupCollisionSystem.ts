@@ -19,6 +19,15 @@ export class ShmupCollisionSystem extends System<ShmupComponentRegistry, ShmupEv
             render.hitFlashFrames = 10;
           });
           Juice.playHitJuice(world, event.targetEntity, { shakeIntensity: 4.0, shakeDuration: 120 });
+          return;
+        }
+
+        // Enemy hits need an equally immediate visual response, without changing combat state.
+        const enemy = world.getComponent(event.targetEntity, "ShmupEnemy");
+        if (enemy) {
+          world.mutateComponent(event.targetEntity, "Render", (render) => {
+            render.hitFlashFrames = Math.max(render.hitFlashFrames ?? 0, 5);
+          });
         }
       });
     }

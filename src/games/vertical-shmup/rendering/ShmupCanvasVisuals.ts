@@ -85,6 +85,20 @@ export const drawShmupPlayer: ShapeDrawer<CanvasRenderingContext2D, ShmupCompone
     ctx.closePath();
     ctx.fill();
 
+    // Fine cyan exhaust filaments add a sense of thrust without obscuring bullets.
+    ctx.save();
+    ctx.globalAlpha = 0.18 + 0.12 * (0.5 + 0.5 * Math.sin(time * 22));
+    ctx.strokeStyle = SHMUP_COLOR_TOKENS.player.primary;
+    ctx.lineWidth = Math.max(1, size * 0.055);
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(-size * 0.25, size * 0.78);
+    ctx.lineTo(-size * 0.25, size * 0.78 + plumeLength * 0.58);
+    ctx.moveTo(size * 0.25, size * 0.78);
+    ctx.lineTo(size * 0.25, size * 0.78 + plumeLength * 0.58);
+    ctx.stroke();
+    ctx.restore();
+
     // Core Plumes (White hot center)
     ctx.fillStyle = SHMUP_COLOR_TOKENS.player.core;
     ctx.beginPath();
@@ -428,96 +442,29 @@ export const drawShmupEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupComponen
       ctx.fill();
     }
 
-    // Fine edge light and archetype-specific insignia separate silhouettes from
-    // busy backgrounds while keeping the central collision area unobstructed.
-    ctx.save();
-    ctx.lineJoin = "round";
-    ctx.strokeStyle = "rgba(225, 245, 255, 0.82)";
-    ctx.lineWidth = Math.max(1.2, size * 0.055);
-    ctx.beginPath();
-    if (archetype === "scout") {
-      ctx.moveTo(0, size * 0.92);
-      ctx.lineTo(size * 0.62, -size * 0.22);
-      ctx.lineTo(size * 0.3, -size * 0.68);
-      ctx.lineTo(0, -size * 0.38);
-      ctx.lineTo(-size * 0.3, -size * 0.68);
-      ctx.lineTo(-size * 0.62, -size * 0.22);
-      ctx.closePath();
-      ctx.stroke();
-      ctx.fillStyle = SHMUP_COLOR_TOKENS.enemy.accent;
-      ctx.fillRect(-size * 0.08, -size * 0.12, size * 0.16, size * 0.42);
-    } else if (archetype === "interceptor") {
-      ctx.moveTo(0, size * 1.12);
-      ctx.lineTo(size * 0.58, -size * 0.38);
-      ctx.lineTo(size * 0.18, -size * 0.72);
-      ctx.lineTo(0, -size * 0.48);
-      ctx.lineTo(-size * 0.18, -size * 0.72);
-      ctx.lineTo(-size * 0.58, -size * 0.38);
-      ctx.closePath();
-      ctx.stroke();
-      ctx.fillStyle = SHMUP_COLOR_TOKENS.gold.sunlight;
+    // Brief white/cyan impact ring and rays while an enemy hit flash is active.
+    const hitFlash = Math.max(0, Math.min(1, (eCtx.render.hitFlashFrames ?? 0) / 5));
+    if (hitFlash > 0) {
+      ctx.save();
+      ctx.globalAlpha = hitFlash * 0.9;
+      ctx.strokeStyle = SHMUP_COLOR_TOKENS.player.core;
+      ctx.lineWidth = 1.5 + hitFlash * 2;
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = SHMUP_COLOR_TOKENS.player.primary;
       ctx.beginPath();
-      ctx.moveTo(0, size * 0.38);
-      ctx.lineTo(size * 0.12, size * 0.05);
-      ctx.lineTo(0, -size * 0.08);
-      ctx.lineTo(-size * 0.12, size * 0.05);
-      ctx.closePath();
-      ctx.fill();
-    } else if (archetype === "armored") {
-      ctx.moveTo(0, size * 0.82);
-      ctx.lineTo(size * 0.94, size * 0.2);
-      ctx.lineTo(size * 0.68, -size * 0.68);
-      ctx.lineTo(-size * 0.68, -size * 0.68);
-      ctx.lineTo(-size * 0.94, size * 0.2);
-      ctx.closePath();
+      ctx.arc(0, 0, size * (1.02 + hitFlash * 0.08), 0, Math.PI * 2);
       ctx.stroke();
-      ctx.strokeStyle = SHMUP_COLOR_TOKENS.gold.sunlight;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(-size * 0.62, -size * 0.36);
-      ctx.lineTo(-size * 0.34, -size * 0.12);
-      ctx.moveTo(size * 0.62, -size * 0.36);
-      ctx.lineTo(size * 0.34, -size * 0.12);
-      ctx.stroke();
-    } else if (archetype === "support") {
-      ctx.strokeStyle = SHMUP_COLOR_TOKENS.gold.sunlight;
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(0, -size * 0.34);
-      ctx.lineTo(size * 0.22, 0);
-      ctx.lineTo(0, size * 0.34);
-      ctx.lineTo(-size * 0.22, 0);
-      ctx.closePath();
-      ctx.stroke();
-    } else {
-      ctx.moveTo(0, size * 1.05);
-      ctx.lineTo(size * 1.14, -size * 0.32);
-      ctx.lineTo(size * 0.64, -size * 0.9);
-      ctx.lineTo(-size * 0.64, -size * 0.9);
-      ctx.lineTo(-size * 1.14, -size * 0.32);
-      ctx.closePath();
-      ctx.stroke();
-      // Crown-like side fins and a segmented command core.
-      ctx.fillStyle = SHMUP_COLOR_TOKENS.gold.sunlight;
-      ctx.beginPath();
-      ctx.moveTo(-size * 0.78, -size * 0.34);
-      ctx.lineTo(-size * 1.42, -size * 0.62);
-      ctx.lineTo(-size * 1.08, size * 0.02);
-      ctx.closePath();
-      ctx.fill();
-      ctx.beginPath();
-      ctx.moveTo(size * 0.78, -size * 0.34);
-      ctx.lineTo(size * 1.42, -size * 0.62);
-      ctx.lineTo(size * 1.08, size * 0.02);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.arc(0, 0, size * 0.56, time * 0.6, time * 0.6 + Math.PI * 1.25);
-      ctx.stroke();
+      for (let i = 0; i < 4; i += 1) {
+        const angle = time * 1.8 + i * Math.PI / 2;
+        const innerRadius = size * 0.72;
+        const outerRadius = size * (1.05 + hitFlash * 0.25);
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(angle) * innerRadius, Math.sin(angle) * innerRadius);
+        ctx.lineTo(Math.cos(angle) * outerRadius, Math.sin(angle) * outerRadius);
+        ctx.stroke();
+      }
+      ctx.restore();
     }
-    ctx.restore();
 
     ctx.restore();
   }
@@ -533,13 +480,35 @@ export const drawShmupPlayerBullet: ShapeDrawer<CanvasRenderingContext2D, ShmupC
     ctx.shadowBlur = 12;
     ctx.shadowColor = color;
 
-    // Outer plasma aura
+    // Moving pulse gives the laser a bright core and a softer separation halo.
+    const time = world.tick * 0.016;
+    const pulse = 0.9 + 0.1 * Math.sin(time * 26);
+    ctx.shadowBlur = 16;
+    ctx.shadowColor = color;
+    ctx.save();
+    ctx.globalAlpha = 0.2;
     ctx.fillStyle = color;
-    ctx.fillRect(-size * 0.75, -size * 2.5, size * 1.5, size * 5);
+    ctx.beginPath();
+    ctx.roundRect(-size * 0.95, -size * 3, size * 1.9, size * 6, size * 0.95);
+    ctx.fill();
+    ctx.restore();
 
-    // Crisp white core laser beam
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.roundRect(-size * 0.62, -size * 2.5, size * 1.24, size * 5, size * 0.62);
+    ctx.fill();
+
+    // Crisp white core and pointed leading edge.
     ctx.fillStyle = SHMUP_COLOR_TOKENS.player.core;
-    ctx.fillRect(-size * 0.35, -size * 2, size * 0.7, size * 4);
+    ctx.beginPath();
+    ctx.roundRect(-size * 0.23, -size * 2.12, size * 0.46, size * 4.2 * pulse, size * 0.23);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(0, -size * 2.8);
+    ctx.lineTo(size * 0.35, -size * 1.9);
+    ctx.lineTo(-size * 0.35, -size * 1.9);
+    ctx.closePath();
+    ctx.fill();
 
     ctx.restore();
   }

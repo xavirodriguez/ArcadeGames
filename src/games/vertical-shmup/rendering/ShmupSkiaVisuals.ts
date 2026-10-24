@@ -81,7 +81,15 @@ export const drawSkiaShmupPlayer: ShapeDrawer<SkCanvas, ShmupComponentRegistry> 
     rightPlume.close();
     canvas.drawPath(rightPlume, paint);
 
+    // Fine cyan exhaust filaments complement the twin plumes.
+    paint.setStyle(Skia.PaintStyle.Stroke);
+    paint.setColor(Skia.Color(colorWithAlpha(SHMUP_COLOR_TOKENS.player.primary, 0.22 + 0.12 * (0.5 + 0.5 * Math.sin(time * 22)))));
+    paint.setStrokeWidth(Math.max(1, size * 0.055));
+    canvas.drawLine(-size * 0.25, size * 0.78, -size * 0.25, size * 0.78 + plumeLength * 0.58, paint);
+    canvas.drawLine(size * 0.25, size * 0.78, size * 0.25, size * 0.78 + plumeLength * 0.58, paint);
+
     // Core Plumes
+    paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.core));
     const leftCore = Skia.Path.Make();
     leftCore.moveTo(-size * 0.3, size * 0.45);
@@ -351,88 +359,30 @@ export const drawSkiaShmupEnemy: ShapeDrawer<SkCanvas, ShmupComponentRegistry> =
       canvas.drawCircle(0, 0, size * 0.42 * corePulse, paint);
     }
 
-    // Fine edge light and archetype insignia; keep the combat core uncluttered.
-    paint.setStyle(Skia.PaintStyle.Stroke);
-    paint.setColor(Skia.Color("rgba(225, 245, 255, 0.82)"));
-    paint.setStrokeWidth(Math.max(1.2, size * 0.055));
-    const detail = Skia.Path.Make();
-    if (archetype === "scout") {
-      detail.moveTo(0, size * 0.92);
-      detail.lineTo(size * 0.62, -size * 0.22);
-      detail.lineTo(size * 0.3, -size * 0.68);
-      detail.lineTo(0, -size * 0.38);
-      detail.lineTo(-size * 0.3, -size * 0.68);
-      detail.lineTo(-size * 0.62, -size * 0.22);
-      detail.close();
-      canvas.drawPath(detail, paint);
-      paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.enemy.accent));
-      canvas.drawRect(Skia.XYWHRect(-size * 0.08, -size * 0.12, size * 0.16, size * 0.42), paint);
-    } else if (archetype === "interceptor") {
-      detail.moveTo(0, size * 1.12);
-      detail.lineTo(size * 0.58, -size * 0.38);
-      detail.lineTo(size * 0.18, -size * 0.72);
-      detail.lineTo(0, -size * 0.48);
-      detail.lineTo(-size * 0.18, -size * 0.72);
-      detail.lineTo(-size * 0.58, -size * 0.38);
-      detail.close();
-      canvas.drawPath(detail, paint);
-      paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.gold.sunlight));
-      const sigil = Skia.Path.Make();
-      sigil.moveTo(0, size * 0.38);
-      sigil.lineTo(size * 0.12, size * 0.05);
-      sigil.lineTo(0, -size * 0.08);
-      sigil.lineTo(-size * 0.12, size * 0.05);
-      sigil.close();
-      canvas.drawPath(sigil, paint);
-    } else if (archetype === "armored") {
-      detail.moveTo(0, size * 0.82);
-      detail.lineTo(size * 0.94, size * 0.2);
-      detail.lineTo(size * 0.68, -size * 0.68);
-      detail.lineTo(-size * 0.68, -size * 0.68);
-      detail.lineTo(-size * 0.94, size * 0.2);
-      detail.close();
-      canvas.drawPath(detail, paint);
-      paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.gold.sunlight));
-      paint.setStrokeWidth(2);
-      canvas.drawLine(-size * 0.62, -size * 0.36, -size * 0.34, -size * 0.12, paint);
-      canvas.drawLine(size * 0.62, -size * 0.36, size * 0.34, -size * 0.12, paint);
-    } else if (archetype === "support") {
-      paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.gold.sunlight));
-      paint.setStrokeWidth(1.5);
-      detail.moveTo(0, -size * 0.34);
-      detail.lineTo(size * 0.22, 0);
-      detail.lineTo(0, size * 0.34);
-      detail.lineTo(-size * 0.22, 0);
-      detail.close();
-      canvas.drawPath(detail, paint);
-    } else {
-      detail.moveTo(0, size * 1.05);
-      detail.lineTo(size * 1.14, -size * 0.32);
-      detail.lineTo(size * 0.64, -size * 0.9);
-      detail.lineTo(-size * 0.64, -size * 0.9);
-      detail.lineTo(-size * 1.14, -size * 0.32);
-      detail.close();
-      canvas.drawPath(detail, paint);
-      paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.gold.sunlight));
-      const leftFin = Skia.Path.Make();
-      leftFin.moveTo(-size * 0.78, -size * 0.34);
-      leftFin.lineTo(-size * 1.42, -size * 0.62);
-      leftFin.lineTo(-size * 1.08, size * 0.02);
-      leftFin.close();
-      canvas.drawPath(leftFin, paint);
-      const rightFin = Skia.Path.Make();
-      rightFin.moveTo(size * 0.78, -size * 0.34);
-      rightFin.lineTo(size * 1.42, -size * 0.62);
-      rightFin.lineTo(size * 1.08, size * 0.02);
-      rightFin.close();
-      canvas.drawPath(rightFin, paint);
+    // Brief white/cyan impact ring and rays while an enemy hit flash is active.
+    const hitFlash = Math.max(0, Math.min(1, (eCtx.render.hitFlashFrames ?? 0) / 5));
+    if (hitFlash > 0) {
+      canvas.save();
       paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(Skia.Color("rgba(255, 255, 255, 0.9)"));
-      paint.setStrokeWidth(1.5);
-      canvas.drawArc(Skia.XYWHRect(-size * 0.56, -size * 0.56, size * 1.12, size * 1.12), (time * 0.6) * (180 / Math.PI), 225, false, paint);
+      paint.setColor(Skia.Color(colorWithAlpha(SHMUP_COLOR_TOKENS.player.primary, hitFlash * 0.38)));
+      paint.setStrokeWidth(5 + hitFlash * 1.5);
+      canvas.drawCircle(0, 0, size * (1.02 + hitFlash * 0.08), paint);
+      paint.setColor(Skia.Color(colorWithAlpha(SHMUP_COLOR_TOKENS.player.core, hitFlash * 0.9)));
+      paint.setStrokeWidth(1.5 + hitFlash * 2);
+      canvas.drawCircle(0, 0, size * (1.02 + hitFlash * 0.08), paint);
+      for (let i = 0; i < 4; i += 1) {
+        const angle = time * 1.8 + i * Math.PI / 2;
+        const innerRadius = size * 0.72;
+        const outerRadius = size * (1.05 + hitFlash * 0.25);
+        canvas.drawLine(
+          Math.cos(angle) * innerRadius,
+          Math.sin(angle) * innerRadius,
+          Math.cos(angle) * outerRadius,
+          Math.sin(angle) * outerRadius,
+          paint
+        );
+      }
+      canvas.restore();
     }
 
     canvas.restore();
@@ -453,13 +403,23 @@ export const drawSkiaShmupPlayerBullet: ShapeDrawer<SkCanvas, ShmupComponentRegi
     paint.setAntiAlias(true);
     paint.setStyle(Skia.PaintStyle.Fill);
 
-    // Plasma aura
-    paint.setColor(Skia.Color(color));
-    canvas.drawRect(Skia.XYWHRect(-size * 0.75, -size * 2.5, size * 1.5, size * 5), paint);
+    // Moving pulse gives the laser a crisp capsule silhouette and pointed leading edge.
+    const time = world.tick * 0.016;
+    const pulse = 0.9 + 0.1 * Math.sin(time * 26);
+    paint.setColor(Skia.Color(colorWithAlpha(color, 0.2)));
+    canvas.drawRRect(Skia.RRectXY(Skia.XYWHRect(-size * 0.95, -size * 3, size * 1.9, size * 6), size * 0.95, size * 0.95), paint);
 
-    // Core laser
+    paint.setColor(Skia.Color(color));
+    canvas.drawRRect(Skia.RRectXY(Skia.XYWHRect(-size * 0.62, -size * 2.5, size * 1.24, size * 5), size * 0.62, size * 0.62), paint);
+
     paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.core));
-    canvas.drawRect(Skia.XYWHRect(-size * 0.35, -size * 2, size * 0.7, size * 4), paint);
+    canvas.drawRRect(Skia.RRectXY(Skia.XYWHRect(-size * 0.23, -size * 2.12, size * 0.46, size * 4.2 * pulse), size * 0.23, size * 0.23), paint);
+    const leadingEdge = Skia.Path.Make();
+    leadingEdge.moveTo(0, -size * 2.8);
+    leadingEdge.lineTo(size * 0.35, -size * 1.9);
+    leadingEdge.lineTo(-size * 0.35, -size * 1.9);
+    leadingEdge.close();
+    canvas.drawPath(leadingEdge, paint);
 
     canvas.restore();
   }

@@ -1,6 +1,6 @@
 import { World, Entity, EntityBuilder, ShapeType, CircleShape, BoundaryComponent } from "@tiny-aster/core";
 import { CollisionLayers } from "@tiny-aster/gameplay-kit";
-import { ShmupComponentRegistry } from "./types/ShmupTypes";
+import { ShmupComponentRegistry, ShmupEnemyArchetype } from "./types/ShmupTypes";
 import { ShmupConfig } from "./types/ShmupConfigSchema";
 import { PlayerBulletPool, EnemyBulletPool } from "./EntityPool";
 import { getGameplayColor } from "../../theme/GameplayColorMap";
@@ -49,7 +49,7 @@ export function createPlayer(world: World<ShmupComponentRegistry>, x: number, y:
   return e;
 }
 
-export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: number, kind: "straight"|"sine"|"arc" = "straight", wave: number = 1): Entity {
+export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: number, kind: "straight"|"sine"|"arc" = "straight", wave: number = 1, archetype: ShmupEnemyArchetype = "scout"): Entity {
   const c = world.getResource<ShmupConfig>("GameConfig")!;
   const enemySpeed = c.ENEMY_SPEED * Math.min(2.0, 1 + (wave - 1) * 0.08);
   const flightDistance = c.WORLD_HEIGHT + c.OFFSCREEN_MARGIN * 2;
@@ -128,7 +128,7 @@ export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: 
   });
   const scaledScore = Math.floor(c.ENEMY_SCORE * (1 + (wave - 1) * 0.2));
   const scaledHp = c.ENEMY_HP + Math.floor((wave - 1) / 3);
-  add({ type: "ShmupEnemy", score: scaledScore });
+  add({ type: "ShmupEnemy", score: scaledScore, archetype });
   add({ type: "Health", current: scaledHp, max: scaledHp });
   add({ type: "Faction", faction: "enemy", value: "enemy" });
   add({ type: "EnemyPath", kind, elapsed: 0, duration: pathDuration, speed: enemySpeed, amplitude: 120, frequency: 1.8, originX: x, originY: y });

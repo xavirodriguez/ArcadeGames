@@ -1,18 +1,50 @@
-import { EffectDrawer, Theme, THEME_RESOURCE_KEY } from "@tiny-aster/core";
+import { EffectDrawer, Theme, THEME_RESOURCE_KEY, World } from "@tiny-aster/core";
 import { SpaceInvadersComponentRegistry, GAME_CONFIG } from "../types/SpaceInvadersTypes";
-import { AQUI_HAY_DRAGONES_PALETTE } from "../../../theme/conceptPacks/aquiHayDragonesConceptPack";
+import {
+  AQUI_HAY_DRAGONES_PALETTE,
+} from "../../../theme/conceptPacks/aquiHayDragonesConceptPack";
 import { isNauticalChartTheme } from "./NauticalChartBackground";
 import {
   NAUTICAL_WIND_RESOURCE,
   NauticalWindState,
-  ensureNauticalWind,
 } from "../systems/NauticalWindSystem";
 
+const P = AQUI_HAY_DRAGONES_PALETTE;
+
 /**
- * Aquí hay dragones HUD — art bible §10.
+ * Nautical HUD overlay (art bible §10).
  * Leguas (score), Viento + arrow, compass rose, Tripulación (mini galleons).
  */
-export function drawNauticalHud(
+function drawMiniGalleon(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  s: number,
+  color: string
+): void {
+  ctx.fillStyle = color;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(0.8, 1 * s);
+  ctx.beginPath();
+  ctx.moveTo(x - 6 * s, y);
+  ctx.lineTo(x + 6 * s, y);
+  ctx.lineTo(x + 4 * s, y + 3 * s);
+  ctx.lineTo(x - 4 * s, y + 3 * s);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x, y - 8 * s);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x, y - 8 * s);
+  ctx.lineTo(x + 5 * s, y - 3 * s);
+  ctx.lineTo(x, y - 2 * s);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawNauticalHud(
   ctx: CanvasRenderingContext2D,
   worldWidth: number,
   worldHeight: number,
@@ -20,25 +52,20 @@ export function drawNauticalHud(
   lives: number,
   wind: NauticalWindState | null
 ): void {
-  const P = AQUI_HAY_DRAGONES_PALETTE;
   const sx = worldWidth / 206;
   const sy = worldHeight / 420;
 
   ctx.save();
   ctx.textBaseline = "alphabetic";
 
-  // --- Leguas (score) top-left ---
+  // --- Leguas (score) ---
   ctx.fillStyle = P.inkMuted;
   ctx.font = `italic ${Math.max(10, 12 * sx)}px Georgia, "Times New Roman", serif`;
   ctx.textAlign = "left";
-  ctx.fillText("Leguas", 18 * sx, 26 * sy);
-
+  ctx.fillText("Leguas", 22 * sx, 22 * sy);
   ctx.fillStyle = P.ink;
-  ctx.font = `${Math.max(12, 16 * sx)}px Georgia, "Times New Roman", serif`;
-  const scoreStr = String(Math.max(0, Math.floor(score)))
-    .padStart(5, "0")
-    .replace(/(\d)(?=(\d{3})+$)/g, "$1 ");
-  ctx.fillText(scoreStr.trim(), 18 * sx, 46 * sy);
+  ctx.font = `bold ${Math.max(14, 18 * sx)}px Georgia, "Times New Roman", serif`;
+  ctx.fillText(String(Math.floor(score)), 22 * sx, 42 * sy);
 
   // --- Viento label + arrow ---
   ctx.fillStyle = P.inkMuted;
@@ -91,14 +118,27 @@ export function drawNauticalHud(
   ctx.fillStyle = P.ink;
   ctx.lineWidth = Math.max(0.8, 1 * sx);
   ctx.globalAlpha = 1;
+  // Active wind ray: force>0 → east (sign+) or west (sign−)
+  const windAngle = force > 0 ? (sign >= 0 ? 0 : Math.PI) : null;
   for (let i = 0; i < 8; i++) {
     const a = (i / 8) * Math.PI * 2 - Math.PI / 2;
     const len = i % 2 === 0 ? r : r * 0.55;
+    const isWindRay =
+      windAngle != null &&
+      Math.abs(Math.atan2(Math.sin(a - windAngle), Math.cos(a - windAngle))) < 0.2;
+    ctx.strokeStyle = isWindRay ? P.teal : P.ink;
+    ctx.lineWidth = isWindRay
+      ? Math.max(1.4, 1.8 * sx)
+      : Math.max(0.8, 1 * sx);
+    ctx.globalAlpha = isWindRay ? 1 : 0.85;
     ctx.beginPath();
     ctx.moveTo(roseX, roseY);
     ctx.lineTo(roseX + Math.cos(a) * len, roseY + Math.sin(a) * len);
     ctx.stroke();
   }
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = P.ink;
+  ctx.lineWidth = Math.max(0.8, 1 * sx);
   ctx.beginPath();
   ctx.arc(roseX, roseY, 2 * sx, 0, Math.PI * 2);
   ctx.fill();
@@ -106,7 +146,7 @@ export function drawNauticalHud(
   ctx.textAlign = "center";
   ctx.fillText("N", roseX, roseY - r - 2 * sy);
 
-  // --- Tripulación (lives) bottom-left — §10.2 ---
+  // --- Tripulación (lives) bottom-left ---
   const crewY = worldHeight - 12 * sy;
   const labelY = crewY - 14 * sy;
   ctx.fillStyle = P.inkMuted;
@@ -123,38 +163,6 @@ export function drawNauticalHud(
   ctx.restore();
 }
 
-function drawMiniGalleon(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  s: number,
-  color: string
-): void {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.strokeStyle = color;
-  ctx.fillStyle = color;
-  ctx.lineWidth = Math.max(0.8, s * 1.2);
-  ctx.beginPath();
-  ctx.moveTo(-7 * s, 0);
-  ctx.lineTo(7 * s, 0);
-  ctx.lineTo(5 * s, 4 * s);
-  ctx.lineTo(-5 * s, 4 * s);
-  ctx.closePath();
-  ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.lineTo(0, -10 * s);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(0, -2 * s);
-  ctx.lineTo(0, -9 * s);
-  ctx.lineTo(5 * s, -3 * s);
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
-}
-
 export const drawNauticalHudEffect: EffectDrawer<
   CanvasRenderingContext2D,
   SpaceInvadersComponentRegistry
@@ -163,17 +171,15 @@ export const drawNauticalHudEffect: EffectDrawer<
     const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
     if (!isNauticalChartTheme(theme)) return;
 
-    const config = world.getResource<{ worldWidth?: number; worldHeight?: number }>("GameConfig");
-    const w = config?.worldWidth ?? GAME_CONFIG.worldWidth;
-    const h = config?.worldHeight ?? GAME_CONFIG.worldHeight;
-
-    const gameState = world.getSingleton("GameState");
+    const w = GAME_CONFIG.worldWidth;
+    const h = GAME_CONFIG.worldHeight;
+    const gameState = world.getSingleton("GameState") as
+      | { score?: number; lives?: number }
+      | undefined;
     const score = gameState?.score ?? 0;
-    const lives = gameState?.lives ?? 0;
-
+    const lives = gameState?.lives ?? 3;
     const wind =
-      ensureNauticalWind(world) ??
-      world.getResource<NauticalWindState>(NAUTICAL_WIND_RESOURCE) ??
+      (world.getResource(NAUTICAL_WIND_RESOURCE) as NauticalWindState | undefined) ??
       null;
 
     drawNauticalHud(ctx, w, h, score, lives, wind);

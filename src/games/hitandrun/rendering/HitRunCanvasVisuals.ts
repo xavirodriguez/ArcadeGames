@@ -8,6 +8,7 @@ import type {
 import { ThemeRegistry } from "./theme/ThemeRegistry";
 import type { EntityRenderSnapshot } from "./theme/HitRunThemeTypes";
 import type { BeltElevationComponent } from "../belt/BeltElevationComponent";
+import { getInterpolatedPosition } from "./HitRunRenderInterpolation";
 
 function getElevationZ(
   world: import("@tiny-aster/core").World<CoreComponentRegistry>,
@@ -30,11 +31,14 @@ function buildEntitySnapshot(
   const size = render.size || defaultSize;
   const z = getElevationZ(world, entity);
   const facing = (transform.scaleX ?? 1) >= 0 ? 1 : -1;
-  const depth = transform.y ?? 0;
+
+  // Use interpolated position for smooth visual rendering
+  const pos = getInterpolatedPosition(world, entity, 1.0);
+  const depth = pos.y;
 
   return {
-    x: transform.x ?? 0,
-    y: transform.y ?? 0,
+    x: pos.x,
+    y: pos.y,
     depth,
     elevation: z,
     facing,

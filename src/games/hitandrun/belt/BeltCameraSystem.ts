@@ -30,14 +30,12 @@ function isPlayerEntity(world: World<CoreComponentRegistry>, e: number): boolean
 }
 
 /**
- * Only count real, hittable wave enemies — not white-dot orphans / missing colliders.
+ * Filter enemies belonging to a camera section via dedicated BeltSectionEnemy + Enemy components.
  */
-function isHittableEnemy(world: World<CoreComponentRegistry>, e: number): boolean {
+function isSectionEnemy(world: World<CoreComponentRegistry>, e: number): boolean {
   if (!world.hasComponent(e, "Enemy")) return false;
-  if (!world.hasComponent(e, "Collider2D")) return false;
+  if (!world.hasComponent(e, "BeltSectionEnemy")) return false;
   if (world.hasComponent(e, "Dead")) return false;
-  const render = world.getComponent(e, "Render") as { size?: number } | undefined;
-  if (render && (render.size ?? 0) > 0 && (render.size ?? 0) < 5) return false;
   return true;
 }
 
@@ -72,7 +70,7 @@ export class BeltCameraSystem extends System<CoreComponentRegistry> {
     for (let i = 0; i < withHealth.length; i++) {
       const e = withHealth[i];
       if (isPlayerEntity(world, e)) continue;
-      if (!isHittableEnemy(world, e)) continue;
+      if (!isSectionEnemy(world, e)) continue;
 
       const sectionTag = world.getComponent(e, "BeltSectionEnemy") as
         | { sectionIndex: number }

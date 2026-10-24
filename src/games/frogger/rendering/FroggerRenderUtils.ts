@@ -1,5 +1,5 @@
 import { World, RenderComponent } from "@tiny-aster/core";
-import { FroggerComponentRegistry, GoalLilyPadComponent } from "../types/FroggerTypes";
+import { FrogFacing, FroggerComponentRegistry, GoalLilyPadComponent, TurtleDivePhase } from "../types/FroggerTypes";
 import { DEFAULT_FROGGER_CONFIG } from "../types/FroggerConfigSchema";
 import { FROGGER_VISUAL_TOKENS } from "./FroggerVisualTokens";
 
@@ -58,6 +58,48 @@ export function resolveFroggerPlayerDrawContext(
     half,
     isInvuln,
     primaryColor,
+  };
+}
+
+/**
+ * Rotation for art authored facing up. The returned value is radians for Canvas
+ * and can be converted to degrees for Skia; it never changes the ECS transform.
+ */
+export function resolveFroggerFacingRotation(facing: FrogFacing | undefined): number {
+  switch (facing) {
+    case "right": return Math.PI / 2;
+    case "down": return Math.PI;
+    case "left": return -Math.PI / 2;
+    case "up":
+    default: return 0;
+  }
+}
+
+export interface FroggerTurtleVisualState {
+  bodyColor: string;
+  shellColor: string;
+  opacity: number;
+}
+
+export function resolveFroggerTurtleVisualState(phase: TurtleDivePhase | undefined): FroggerTurtleVisualState {
+  if (phase === "warning") {
+    return {
+      bodyColor: FROGGER_VISUAL_TOKENS.turtles.warning,
+      shellColor: FROGGER_VISUAL_TOKENS.turtles.shell,
+      opacity: 1,
+    };
+  }
+  if (phase === "submerged") {
+    return {
+      bodyColor: FROGGER_VISUAL_TOKENS.turtles.submerged,
+      shellColor: FROGGER_VISUAL_TOKENS.turtles.submerged,
+      opacity: 0.62,
+    };
+  }
+  return {
+    bodyColor: FROGGER_VISUAL_TOKENS.turtles.body,
+    shellColor: FROGGER_VISUAL_TOKENS.turtles.shell,
+    opacity: 1,
   };
 }
 

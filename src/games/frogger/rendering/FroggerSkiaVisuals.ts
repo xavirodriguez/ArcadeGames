@@ -159,7 +159,7 @@ function getFroggerRiverShader(grid: number): SkShader | null {
     Skia.Point(0, (FROGGER_BACKGROUND_ROWS.riverStart + FROGGER_BACKGROUND_ROWS.riverRows) * grid),
     [
       Skia.Color(FROGGER_VISUAL_TOKENS.surfaces.riverShallow),
-      Skia.Color("#16949C"),
+      Skia.Color(FROGGER_VISUAL_TOKENS.surfaces.riverMid),
       Skia.Color(FROGGER_VISUAL_TOKENS.surfaces.riverDeep),
     ],
     [0, 0.55, 1],

@@ -167,11 +167,12 @@ export const drawSpaceInvadersShield: ShapeDrawer<CanvasRenderingContext2D, Spac
       theme?.visualTheme?.shapeTokens?.customGeometries?.["pared"];
     ctx.save();
     if (customGeom) {
-      ctx.globalAlpha = flash.opacity * (0.35 + 0.65 * ratio);
+      const erodeScale = 0.55 + 0.45 * ratio;
+      ctx.globalAlpha = flash.opacity * (0.3 + 0.7 * ratio);
       drawFromGeometryProfileCanvas(ctx, customGeom, {
-        size: size * 1.8,
+        size: size * 1.8 * erodeScale,
         baseColor: color,
-        isHitFlashing: flash.opacity < 1.0,
+        isHitFlashing: flash.opacity < 1.0 || ratio < 0.85,
       });
       ctx.restore();
       return;

@@ -76,18 +76,19 @@ Implemented on `feat/frogger-directional-vehicles`:
 The phase changes only render instructions and semantic visual tokens. Vehicle speed, direction, transform, collider dimensions, collision layers and row layout remain unchanged.
 
 
-## Phase 4 — Frog, river entities and goals
+## Phase 5 — Arcade HUD and screen composition
 
-Implemented in `feat/frogger-river-entities`:
+Implemented on `feat/frogger-arcade-hud`:
 
-- [x] Frog uses a recognizable compact silhouette with legs, belly, eye stalks, eyes and pupils; the art rotates from the existing `Frogger.facing` value.
-- [x] Logs use warm end-grain rings, bark highlights and sparse grain lines.
-- [x] Turtles use feet, a head, panelled shells and eye details; their real `Log.divePhase` drives warning color and a darker, lower-opacity submerged pose.
-- [x] Crocodile uses a tapered body, dorsal bands, short legs, eyes and a mouth whose open/closed drawing follows `Log.mouthOpen`.
-- [x] Goal pads use a leaf notch and veins; free, occupied, fly-bearing and crocodile-bearing pads display distinct in-world markers from the existing `GoalLilyPad` state.
-- [x] Canvas and Skia implementations follow the same design and palette.
-- [x] Added tests for facing rotation, turtle dive presentation, cached shell layout and the new semantic tokens.
-- [ ] Compare Canvas/Skia captures on mobile, including turtle warning/submerged and crocodile mouth-open states.
-- [ ] Check visual bounds and readability against the existing colliders during gameplay.
+- [x] Replace the neon score row with a compact dark-ink panel using the shared art-direction palette.
+- [x] Format score into grouped, zero-padded digits (for example, `004 250`) without modifying the actual score.
+- [x] Render lives as small frog silhouettes, with remaining lives bright and lost lives muted; expose the exact count for accessibility.
+- [x] Show the level label, occupied/total goals and remaining seconds.
+- [x] Derive the timer bar from the current `FroggerState.timeRemaining` and the configured level time limit; change its accent to coral at 25% remaining or below.
+- [x] Read the active runtime `GameConfig` for the configured initial lives and time-limit curve.
+- [x] Recolor touch controls and the game-over/retry overlay to the sunset palette, removing the green neon styling from gameplay controls.
+- [x] Add pure unit tests for score formatting, time-limit calculation and clamped timer progress.
+- [ ] Verify the complete HUD and controls do not obscure active lanes at 390×844 and 360×800.
+- [ ] Capture and compare the final HUD in Canvas and Skia on a real device/emulator.
 
-No ECS fields, gameplay rules, movement, collision geometry, score calculations or timers were added or changed.
+The HUD reads existing game state and configuration. It introduces no changes to scoring, life awarding, timer ticks, gameplay configuration, input handling or collisions.

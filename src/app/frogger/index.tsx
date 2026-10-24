@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, FC } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Platform } from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
 import { GestureDetector, Gesture, Directions } from "react-native-gesture-handler";
 import { useSharedValue, useFrameCallback, runOnJS } from "react-native-reanimated";
 import { GestureActionButton } from "@/components/controls/GestureActionButton";
@@ -16,13 +16,16 @@ import { MutatorService } from "@/services/MutatorService";
 import { MutatorBadge } from "@/components/MutatorBadge";
 import { Mutator } from "@/config/MutatorConfig";
 import { FroggerInput } from "../../games/frogger";
+import { FroggerHud } from "../../games/frogger/presentation/FroggerHud";
+import { DEFAULT_FROGGER_CONFIG } from "../../games/frogger/types/FroggerConfigSchema";
+import type { FroggerConfig } from "../../games/frogger/types/FroggerConfigSchema";
+import { getFroggerTimeLimit } from "../../games/frogger/presentation/FroggerHudModel";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { useGameSession } from "@/hooks/useGameSession";
 import { useKeyboardControls } from "../../hooks/useKeyboardControls";
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { hapticSelection } from "../../utils/haptics";
 import { useTranslation } from "../../hooks/useTranslation";
-import { colors } from "../../theme";
 import {
   GameScreen,
   GameTitle,
@@ -133,6 +136,10 @@ export default function FroggerScreen() {
 
   if (!game || !isReady) return null;
 
+  const gameConfig =
+    game.getWorld().getResource<FroggerConfig>("GameConfig") ?? DEFAULT_FROGGER_CONFIG;
+  const timeLimit = getFroggerTimeLimit(gameConfig, gameState.level);
+
   return (
     <GameErrorBoundary gameId="frogger">
       <SafeAreaProvider>
@@ -156,15 +163,17 @@ export default function FroggerScreen() {
               <Text style={sharedScreenStyles.backButtonText}>← {t?.common?.menu || "Menu"}</Text>
             </TouchableOpacity>
           }
-          centerHudSlot={
-            <View style={styles.hudOverlay} pointerEvents="none">
-              <View style={styles.hudRow}>
-                <Text style={styles.hudText}>SCORE: {gameState.score}</Text>
-                <Text style={styles.hudText}>LIVES: {gameState.lives}</Text>
-                <Text style={styles.hudText}>LEVEL: {gameState.level}</Text>
-                <Text style={styles.hudText}>PADS: {gameState.occupiedLilyPads}/{gameState.totalLilyPads}</Text>
-              </View>
-            </View>
+          hudSlot={
+            <FroggerHud
+              score={gameState.score}
+              lives={gameState.lives}
+              lifeSlots={gameConfig.INITIAL_LIVES}
+              level={gameState.level}
+              occupiedLilyPads={gameState.occupiedLilyPads}
+              totalLilyPads={gameState.totalLilyPads}
+              timeRemaining={gameState.timeRemaining ?? timeLimit}
+              timeLimit={timeLimit}
+            />
           }
           canvasSlot={
             <CanvasRenderer
@@ -241,7 +250,7 @@ const StartScreen: FC<{
   return (
     <GameScreen>
       <BackButton label={t?.common?.menu || "Menu"} />
-      <GameTitle glowColor="#39FF14">{title}</GameTitle>
+      <GameTitle glowColor="#B6F23C">{title}</GameTitle>
 
       <PlayerNameInput
         label={t?.accessibility?.player_name_label || "Player Name"}
@@ -283,30 +292,6 @@ const StartScreen: FC<{
 };
 
 const styles = StyleSheet.create({
-  hudOverlay: {
-    position: "absolute",
-    top: 50,
-    left: 0,
-    right: 0,
-    zIndex: 20,
-    alignItems: "center",
-  },
-  hudRow: {
-    flexDirection: "row",
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#39FF14",
-    gap: 16,
-  },
-  hudText: {
-    color: "#39FF14",
-    fontFamily: "monospace",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
   dpadContainer: {
     position: "absolute",
     bottom: 30,
@@ -322,9 +307,9 @@ const styles = StyleSheet.create({
   dpadButton: {
     width: 60,
     height: 60,
-    backgroundColor: "rgba(57, 255, 20, 0.2)",
+    backgroundColor: "rgba(15, 110, 122, 0.20)",
     borderWidth: 2,
-    borderColor: "#39FF14",
+    borderColor: "#E9B949",
     borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
@@ -336,44 +321,44 @@ const styles = StyleSheet.create({
   dpadRight: {},
   dpadButtonPressed: {
     transform: [{ scale: 0.92 }],
-    backgroundColor: "rgba(57, 255, 20, 0.4)",
-    borderColor: "#FFFFFF",
+    backgroundColor: "rgba(23, 163, 163, 0.36)",
+    borderColor: "#F2EEE3",
   },
   dpadText: {
-    color: "#39FF14",
+    color: "#F2EEE3",
     fontSize: 24,
     fontWeight: "bold",
     userSelect: "none",
   },
   gameOverOverlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(0, 0, 0, 0.85)",
+    backgroundColor: "rgba(27, 27, 46, 0.95)",
     justifyContent: "center",
     alignItems: "center",
     zIndex: 100,
   },
   gameOverText: {
-    color: "#FF2A6D",
+    color: "#FF5A4F",
     fontSize: 36,
     fontFamily: "monospace",
     fontWeight: "bold",
     marginBottom: 10,
   },
   finalScoreText: {
-    color: "#FFFFFF",
+    color: "#F2EEE3",
     fontSize: 20,
     fontFamily: "monospace",
     marginBottom: 20,
   },
   restartButton: {
-    backgroundColor: "#39FF14",
+    backgroundColor: "#B6F23C",
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 6,
     userSelect: "none",
   },
   restartButtonText: {
-    color: "#000000",
+    color: "#232338",
     fontWeight: "bold",
     fontFamily: "monospace",
     userSelect: "none",
@@ -473,10 +458,10 @@ function FroggerTouchControls({
           <GestureActionButton
             label="▲"
             size={58}
-            color="rgba(57, 255, 20, 0.2)"
-            borderColor="#39FF14"
-            pressedColor="rgba(57, 255, 20, 0.4)"
-            pressedBorderColor="#FFFFFF"
+            color="rgba(15, 110, 122, 0.20)"
+            borderColor="#E9B949"
+            pressedColor="rgba(23, 163, 163, 0.36)"
+            pressedBorderColor="#F2EEE3"
             haptic="medium"
             onPressIn={() => handleGameInput({ moveUp: true })}
             onPressOut={() => handleGameInput({ moveUp: false })}
@@ -487,10 +472,10 @@ function FroggerTouchControls({
             <GestureActionButton
               label="◀"
               size={58}
-              color="rgba(57, 255, 20, 0.2)"
-              borderColor="#39FF14"
-              pressedColor="rgba(57, 255, 20, 0.4)"
-              pressedBorderColor="#FFFFFF"
+              color="rgba(15, 110, 122, 0.20)"
+              borderColor="#E9B949"
+              pressedColor="rgba(23, 163, 163, 0.36)"
+              pressedBorderColor="#F2EEE3"
               haptic="medium"
               onPressIn={() => handleGameInput({ moveLeft: true })}
               onPressOut={() => handleGameInput({ moveLeft: false })}
@@ -500,10 +485,10 @@ function FroggerTouchControls({
             <GestureActionButton
               label="▶"
               size={58}
-              color="rgba(57, 255, 20, 0.2)"
-              borderColor="#39FF14"
-              pressedColor="rgba(57, 255, 20, 0.4)"
-              pressedBorderColor="#FFFFFF"
+              color="rgba(15, 110, 122, 0.20)"
+              borderColor="#E9B949"
+              pressedColor="rgba(23, 163, 163, 0.36)"
+              pressedBorderColor="#F2EEE3"
               haptic="medium"
               onPressIn={() => handleGameInput({ moveRight: true })}
               onPressOut={() => handleGameInput({ moveRight: false })}
@@ -514,10 +499,10 @@ function FroggerTouchControls({
           <GestureActionButton
             label="▼"
             size={58}
-            color="rgba(57, 255, 20, 0.2)"
-            borderColor="#39FF14"
-            pressedColor="rgba(57, 255, 20, 0.4)"
-            pressedBorderColor="#FFFFFF"
+            color="rgba(15, 110, 122, 0.20)"
+            borderColor="#E9B949"
+            pressedColor="rgba(23, 163, 163, 0.36)"
+            pressedBorderColor="#F2EEE3"
             haptic="medium"
             onPressIn={() => handleGameInput({ moveDown: true })}
             onPressOut={() => handleGameInput({ moveDown: false })}

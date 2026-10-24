@@ -69,12 +69,6 @@ export const FROGGER_VISUAL_TOKENS = {
 } as const;
 
 /**
- * Reference-only viewport contract from the approved artwork.
- *
- * These values document the target composition; they do not override the ECS
- * simulation's grid/world dimensions or the runtime's measured screen size.
- */
-/**
  * Rows in the logical board occupied by the visual background zones.
  * Keep these aligned with Frogger's existing 15-row gameplay layout.
  */

@@ -31,7 +31,16 @@ describe("Frogger visual reference contract", () => {
     const rows = FROGGER_BACKGROUND_ROWS;
     const config = DEFAULT_FROGGER_CONFIG;
 
-    expect(rows.goalBank).toBe(0);
+    expect(rows).toEqual({
+      goalBank: 0,
+      riverStart: 1,
+      riverRows: 5,
+      median: 6,
+      roadStart: 7,
+      roadRows: 5,
+      startBank: 12,
+      startRows: 3,
+    });
     expect(rows.riverStart).toBe(rows.goalBank + 1);
     expect(rows.median).toBe(rows.riverStart + rows.riverRows);
     expect(rows.roadStart).toBe(rows.median + 1);

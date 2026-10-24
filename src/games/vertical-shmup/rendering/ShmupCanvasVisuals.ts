@@ -124,6 +124,23 @@ export const drawShmupPlayer: ShapeDrawer<CanvasRenderingContext2D, ShmupCompone
     ctx.closePath();
     ctx.fill();
 
+    // Twin recessed engine housings connect the hull visually to its exhaust plumes.
+    ctx.save();
+    ctx.strokeStyle = SHMUP_COLOR_TOKENS.player.secondary;
+    ctx.lineWidth = 1.5;
+    for (const side of [-1, 1]) {
+      ctx.fillStyle = "rgba(5, 24, 52, 0.92)";
+      ctx.beginPath();
+      ctx.ellipse(side * size * 0.24, size * 0.48, size * 0.085, size * 0.065, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = SHMUP_COLOR_TOKENS.player.core;
+      ctx.beginPath();
+      ctx.arc(side * size * 0.24, size * 0.48, size * 0.026, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+
     // Layered wing armor: dark insets and luminous feather panels give the fighter
     // a more deliberate anime-mecha silhouette without changing its hitbox.
     ctx.fillStyle = "rgba(5, 24, 52, 0.72)";

@@ -28,6 +28,16 @@ export const drawSkiaShmupPlayer: ShapeDrawer<SkCanvas, ShmupComponentRegistry> 
       paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.primary));
       paint.setStrokeWidth(2.5);
       canvas.drawCircle(0, 0, size * 1.35, paint);
+
+      // Rotating shield notch ring
+      canvas.save();
+      canvas.rotate((time * 3) * (180 / Math.PI), 0, 0);
+      paint.setStrokeWidth(4);
+      for (let i = 0; i < 3; i++) {
+        const angle = (i * Math.PI * 2) / 3;
+        canvas.drawCircle(Math.cos(angle) * size * 1.35, Math.sin(angle) * size * 1.35, 3.5, paint);
+      }
+      canvas.restore();
     }
 
     // Outer Energy Separation Halo (Dark outline + cyan energy ring)
@@ -218,7 +228,17 @@ export const drawSkiaShmupEnemy: ShapeDrawer<SkCanvas, ShmupComponentRegistry> =
       paint.setStrokeWidth(2.5);
       canvas.drawCircle(0, 0, size * 0.95, paint);
 
+      // Rotating orbital gold nodes
       paint.setStyle(Skia.PaintStyle.Fill);
+      paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.gold.sunlight));
+      const orbAngle = time * 2.5;
+      for (let i = 0; i < 3; i++) {
+        const angle = orbAngle + (i * Math.PI * 2) / 3;
+        const ox = Math.cos(angle) * size * 0.95;
+        const oy = Math.sin(angle) * size * 0.95;
+        canvas.drawCircle(ox, oy, 4, paint);
+      }
+
       paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.enemy.primary));
       canvas.drawCircle(0, 0, size * 0.55, paint);
 
@@ -236,6 +256,12 @@ export const drawSkiaShmupEnemy: ShapeDrawer<SkCanvas, ShmupComponentRegistry> =
       path.close();
       canvas.drawPath(path, paint);
 
+      paint.setStyle(Skia.PaintStyle.Stroke);
+      paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.architecture));
+      paint.setStrokeWidth(3);
+      canvas.drawPath(path, paint);
+
+      paint.setStyle(Skia.PaintStyle.Fill);
       const corePulse = 0.85 + 0.3 * Math.sin(time * 10);
       paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.gold.sunlight));
       canvas.drawCircle(0, 0, size * 0.42 * corePulse, paint);
@@ -364,13 +390,65 @@ export const drawSkiaShmupStarfield: EffectDrawer<SkCanvas, ShmupComponentRegist
       canvas.drawCircle(cloud.x + cloud.rx * 0.35, cloud.y, cloud.ry * 0.75, paint);
     }
 
-    // Layer 3: Floating Islands
+    // Layer 3: Floating Islands, Waterfalls, Trees & Architectural Ruins
     for (const island of islands) {
-      paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.architecture));
-      canvas.drawRect(Skia.XYWHRect(island.x, island.y + island.height * 0.3, island.width, island.height * 0.7), paint);
+      // Animated Waterfall
+      if (island.hasWaterfall) {
+        const flowTime = (world.tick * 0.016 * 120) % 20;
+        paint.setColor(Skia.Color("rgba(143, 214, 245, 0.75)"));
+        canvas.drawRect(Skia.XYWHRect(island.waterfallX - 4, island.y + island.height * 0.4, 8, island.waterfallLength), paint);
 
+        paint.setColor(Skia.Color("rgba(243, 252, 255, 0.9)"));
+        canvas.drawRect(Skia.XYWHRect(island.waterfallX - 2, island.y + island.height * 0.4 + flowTime, 4, island.waterfallLength * 0.6), paint);
+
+        // Splash foam at bottom
+        paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.core));
+        const splashY = island.y + island.height * 0.4 + island.waterfallLength;
+        canvas.drawCircle(island.waterfallX - 5, splashY, 3.5, paint);
+        canvas.drawCircle(island.waterfallX + 5, splashY, 4, paint);
+        canvas.drawCircle(island.waterfallX, splashY + 2, 5, paint);
+      }
+
+      // Island dark rock base / cliff volume
+      paint.setColor(Skia.Color(island.cliffColor));
+      const cliffPath = Skia.Path.Make();
+      cliffPath.moveTo(island.x, island.y + island.height * 0.3);
+      cliffPath.lineTo(island.x + island.width * 0.2, island.y + island.height);
+      cliffPath.lineTo(island.x + island.width * 0.5, island.y + island.height * 1.15);
+      cliffPath.lineTo(island.x + island.width * 0.8, island.y + island.height * 0.9);
+      cliffPath.lineTo(island.x + island.width, island.y + island.height * 0.3);
+      cliffPath.close();
+      canvas.drawPath(cliffPath, paint);
+
+      // Island foliage cap
       paint.setColor(Skia.Color(island.color));
-      canvas.drawRect(Skia.XYWHRect(island.x - 4, island.y, island.width + 8, island.height * 0.55), paint);
+      canvas.drawRRect(Skia.RRectXY(Skia.XYWHRect(island.x - 6, island.y - 2, island.width + 12, island.height * 0.55), 12, 12), paint);
+
+      // Pink Blossom Tree
+      if (island.hasBlossomTree) {
+        const treeX = island.x + island.width * 0.25;
+        const treeY = island.y - 4;
+
+        paint.setColor(Skia.Color("#3A2A1A"));
+        canvas.drawRect(Skia.XYWHRect(treeX - 2, treeY - 10, 4, 10), paint);
+
+        paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.blossom));
+        canvas.drawCircle(treeX - 5, treeY - 16, 7, paint);
+        canvas.drawCircle(treeX + 5, treeY - 16, 7, paint);
+        canvas.drawCircle(treeX, treeY - 22, 9, paint);
+      }
+
+      // Ancient Temple Arch / Columns
+      if (island.hasArch) {
+        const archX = island.x + island.width * 0.5;
+        paint.setColor(Skia.Color(biome.architectureColor));
+        canvas.drawRect(Skia.XYWHRect(archX - 14, island.y - 18, 6, 18), paint);
+        canvas.drawRect(Skia.XYWHRect(archX + 8, island.y - 18, 6, 18), paint);
+        canvas.drawRect(Skia.XYWHRect(archX - 18, island.y - 24, 36, 6), paint);
+
+        paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.gold.sunlight));
+        canvas.drawCircle(archX, island.y - 12, 4.5, paint);
+      }
     }
 
     // Layer 4: Near Decor Particles

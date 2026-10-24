@@ -65,8 +65,8 @@ export const drawFroggerCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCom
 };
 
 export const drawCarCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComponentRegistry> = {
-  draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
+  draw(ctx, _world, entity) {
+    const render = _world.getComponent(entity, "Render");
     if (!render) return;
 
     const width = render.size || 48;
@@ -93,8 +93,8 @@ export const drawCarCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCompone
 };
 
 export const drawTruckCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComponentRegistry> = {
-  draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
+  draw(ctx, _world, entity) {
+    const render = _world.getComponent(entity, "Render");
     if (!render) return;
 
     const width = render.size || 80;
@@ -119,8 +119,8 @@ export const drawTruckCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCompo
 };
 
 export const drawLogCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComponentRegistry> = {
-  draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
+  draw(ctx, _world, entity) {
+    const render = _world.getComponent(entity, "Render");
     if (!render) return;
 
     const width = render.size || 120;
@@ -189,8 +189,8 @@ export const drawTurtleCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComp
 };
 
 export const drawCrocodileCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComponentRegistry> = {
-  draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
+  draw(ctx, _world, entity) {
+    const render = _world.getComponent(entity, "Render");
     if (!render) return;
 
     const width = render.size || 100;

@@ -31,6 +31,7 @@ import { HIT_PALETTE } from "./HitAndRunPalette";
 import { colors } from "../../../theme/colors";
 import type { HitRunDeathFlowState } from "../systems/HitRunDeathFlowSystem";
 import { DEATH_FLOW_RESOURCE } from "../systems/HitRunDeathFlowSystem";
+import type { HitRunScoreState } from "../systems/HitRunScoreSystem";
 
 function resolveViewport(world: {
   getResource: (k: string) => unknown;
@@ -214,9 +215,7 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
       ctx.fillText(`SPAWNED ${wave.totalSpawned}`, w * 0.5, 42);
     }
 
-    const scoreState = world.getResource("HitRunScoreState") as
-      | { score: number; comboMultiplier: number; popups: Array<any> }
-      | undefined;
+    const scoreState = world.getResource<HitRunScoreState>("HitRunScoreState");
     const displayScore = scoreState?.score ?? score;
     const comboMult = scoreState?.comboMultiplier ?? 1;
 
@@ -232,7 +231,7 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
     }
 
     // Floating score popups
-    const popupPool = (scoreState as any)?.popupPool;
+    const popupPool = scoreState?.popupPool;
     if (popupPool && popupPool.length > 0) {
       ctx.save();
       ctx.textAlign = "center";

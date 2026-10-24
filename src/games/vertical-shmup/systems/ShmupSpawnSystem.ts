@@ -29,9 +29,19 @@ export class ShmupSpawnSystem extends System<ShmupComponentRegistry, ShmupEventR
 
       // Spawn initial enemy squad for new wave
       const rng = world.gameplayRandom;
+
+      // Boss Wave every 5 waves
+      if (nextWave % 5 === 0) {
+        createEnemy(world, config.WORLD_WIDTH / 2, -90, "boss", nextWave);
+        createEnemy(world, config.WORLD_WIDTH * 0.25, -50, "armored", nextWave);
+        createEnemy(world, config.WORLD_WIDTH * 0.75, -50, "armored", nextWave);
+        return;
+      }
+
       const squadCount = Math.min(6, 4 + Math.floor(nextWave / 2));
       for (let i = 0; i < squadCount; i++) {
-        const kind = i % 3 === 0 ? "sine" : i % 2 === 0 ? "arc" : "straight";
+        const kind: "straight" | "sine" | "arc" | "armored" =
+          nextWave >= 3 && i === 0 ? "armored" : i % 3 === 0 ? "sine" : i % 2 === 0 ? "arc" : "straight";
         const startX = 50 + rng.next() * (config.WORLD_WIDTH - 100);
         const startY = -40 - i * 45;
         createEnemy(world, startX, startY, kind, nextWave, selectShmupEnemyArchetype(nextWave, i));
@@ -51,7 +61,8 @@ export class ShmupSpawnSystem extends System<ShmupComponentRegistry, ShmupEventR
 
       if (activeEnemies.length < maxEnemies) {
         const rng = world.gameplayRandom;
-        const kinds: Array<"straight" | "sine" | "arc"> = ["straight", "sine", "arc"];
+        const kinds: Array<"straight" | "sine" | "arc" | "armored"> =
+          state.wave >= 3 ? ["straight", "sine", "arc", "armored"] : ["straight", "sine", "arc"];
         const kindIndex = Math.floor(rng.next() * kinds.length);
         const kind = kinds[kindIndex] ?? "straight";
         const startX = 50 + rng.next() * (config.WORLD_WIDTH - 100);

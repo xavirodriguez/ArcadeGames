@@ -259,7 +259,12 @@ export interface ShmupIslandData {
   width: number;
   height: number;
   color: string;
+  cliffColor: string;
   hasArch: boolean;
+  hasWaterfall: boolean;
+  waterfallX: number;
+  waterfallLength: number;
+  hasBlossomTree: boolean;
 }
 
 export interface ShmupParticleData {
@@ -336,7 +341,12 @@ export function computeShmupParallaxWorld(
       width: w,
       height: h,
       color: biome.islandColor,
+      cliffColor: SHMUP_COLOR_TOKENS.architecture,
       hasArch: i % 2 === 0,
+      hasWaterfall: i % 3 === 0,
+      waterfallX: flank + w * (0.35 + (i % 3) * 0.15),
+      waterfallLength: h * (1.8 + (i % 2) * 0.8),
+      hasBlossomTree: i % 2 === 1,
     });
   }
 

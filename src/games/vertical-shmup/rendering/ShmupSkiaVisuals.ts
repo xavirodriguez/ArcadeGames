@@ -28,6 +28,16 @@ export const drawSkiaShmupPlayer: ShapeDrawer<SkCanvas, ShmupComponentRegistry> 
       paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.primary));
       paint.setStrokeWidth(2.5);
       canvas.drawCircle(0, 0, size * 1.35, paint);
+
+      // Rotating shield notch ring
+      canvas.save();
+      canvas.rotate((time * 3) * (180 / Math.PI), 0, 0);
+      paint.setStrokeWidth(4);
+      for (let i = 0; i < 3; i++) {
+        const angle = (i * Math.PI * 2) / 3;
+        canvas.drawCircle(Math.cos(angle) * size * 1.35, Math.sin(angle) * size * 1.35, 3.5, paint);
+      }
+      canvas.restore();
     }
 
     // Outer Energy Separation Halo (Dark outline + cyan energy ring)
@@ -218,7 +228,17 @@ export const drawSkiaShmupEnemy: ShapeDrawer<SkCanvas, ShmupComponentRegistry> =
       paint.setStrokeWidth(2.5);
       canvas.drawCircle(0, 0, size * 0.95, paint);
 
+      // Rotating orbital gold nodes
       paint.setStyle(Skia.PaintStyle.Fill);
+      paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.gold.sunlight));
+      const orbAngle = time * 2.5;
+      for (let i = 0; i < 3; i++) {
+        const angle = orbAngle + (i * Math.PI * 2) / 3;
+        const ox = Math.cos(angle) * size * 0.95;
+        const oy = Math.sin(angle) * size * 0.95;
+        canvas.drawCircle(ox, oy, 4, paint);
+      }
+
       paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.enemy.primary));
       canvas.drawCircle(0, 0, size * 0.55, paint);
 
@@ -236,6 +256,12 @@ export const drawSkiaShmupEnemy: ShapeDrawer<SkCanvas, ShmupComponentRegistry> =
       path.close();
       canvas.drawPath(path, paint);
 
+      paint.setStyle(Skia.PaintStyle.Stroke);
+      paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.architecture));
+      paint.setStrokeWidth(3);
+      canvas.drawPath(path, paint);
+
+      paint.setStyle(Skia.PaintStyle.Fill);
       const corePulse = 0.85 + 0.3 * Math.sin(time * 10);
       paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.gold.sunlight));
       canvas.drawCircle(0, 0, size * 0.42 * corePulse, paint);

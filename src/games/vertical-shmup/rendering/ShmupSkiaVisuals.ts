@@ -339,44 +339,193 @@ export const drawSkiaShmupEnemyBullet: ShapeDrawer<SkCanvas, ShmupComponentRegis
   }
 };
 
+function colorWithAlpha(color: string, alpha: number): string {
+  const match = /^#([0-9a-f]{6})$/i.exec(color);
+  if (!match) return color;
+  const value = match[1] ?? "000000";
+  const red = Number.parseInt(value.slice(0, 2), 16);
+  const green = Number.parseInt(value.slice(2, 4), 16);
+  const blue = Number.parseInt(value.slice(4, 6), 16);
+  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+}
+
+function blendHex(from: string, to: string, amount: number): string {
+  const parse = (color: string, offset: number): number => Number.parseInt(color.slice(offset, offset + 2), 16);
+  const t = Math.max(0, Math.min(1, amount));
+  const channels = [1, 3, 5].map(offset => Math.round(
+    parse(from, offset) + (parse(to, offset) - parse(from, offset)) * t
+  ));
+  return `#${channels.map(channel => channel.toString(16).padStart(2, "0")).join("")}`;
+}
+
 export const drawSkiaShmupStarfield: EffectDrawer<SkCanvas, ShmupComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    const { width, height, biome, clouds, islands, particles } = computeShmupParallaxWorld(world);
+    const { width, height, time, biome, clouds, islands, particles } = computeShmupParallaxWorld(world);
     const paint = getPaint();
-
     canvas.save();
-
-    // Layer 1: Sky background
     paint.reset();
+    paint.setAntiAlias(true);
     paint.setStyle(Skia.PaintStyle.Fill);
-    paint.setColor(Skia.Color(biome.skyMid));
-    canvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
 
-    // Layer 2: Volumetric Clouds
+    // Layer 1: stepped vertical gradient with a restrained biome light bloom.
+    const gradientSteps = 32;
+    for (let i = 0; i < gradientSteps; i += 1) {
+      const t0 = i / gradientSteps;
+      const t1 = (i + 1) / gradientSteps;
+      const color = t0 < 0.55
+        ? blendHex(biome.skyTop, biome.skyMid, t0 / 0.55)
+        : blendHex(biome.skyMid, biome.skyLight, (t0 - 0.55) / 0.45);
+      paint.setColor(Skia.Color(color));
+      canvas.drawRect(Skia.XYWHRect(0, height * t0, width, height * (t1 - t0) + 1), paint);
+    }
+
+    const glowX = width * biome.glowX;
+    const glowY = height * biome.glowY;
+    const glowRadius = Math.min(width, height) * biome.glowRadius;
+    for (let ring = 8; ring >= 1; ring -= 1) {
+      const ratio = ring / 8;
+      const radius = glowRadius * ratio;
+      const alpha = (biome.atmosphereStyle === "storm" ? 0.15 : 0.18) * (1 - ratio) + 0.015;
+      paint.setColor(Skia.Color(colorWithAlpha(biome.glowColor, alpha)));
+      canvas.drawCircle(glowX, glowY, radius, paint);
+    }
+
+    if (biome.atmosphereStyle === "sunrise") {
+      paint.setStyle(Skia.PaintStyle.Stroke);
+      paint.setStrokeWidth(Math.max(2, width * 0.004));
+      paint.setColor(Skia.Color(colorWithAlpha(SHMUP_COLOR_TOKENS.gold.sunlight, 0.13)));
+      for (let i = -3; i <= 3; i += 1) {
+        canvas.drawLine(glowX, glowY + height * 0.04, glowX + i * width * 0.19, height, paint);
+      }
+    } else if (biome.atmosphereStyle === "garden" || biome.atmosphereStyle === "sacred") {
+      paint.setStyle(Skia.PaintStyle.Stroke);
+      paint.setStrokeWidth(width * 0.018);
+      const rayColor = biome.atmosphereStyle === "garden" ? "#BDF7D8" : SHMUP_COLOR_TOKENS.gold.sunlight;
+      paint.setColor(Skia.Color(colorWithAlpha(rayColor, biome.atmosphereStyle === "garden" ? 0.09 : 0.12)));
+      for (let i = 0; i < 7; i += 1) {
+        const rayX = width * (0.08 + i * 0.14) + Math.sin(time * 0.18 + i) * width * 0.025;
+        canvas.drawLine(rayX - width * 0.035, 0, rayX + width * 0.07, height, paint);
+      }
+    } else {
+      const pulse = Math.max(0, Math.sin(time * 1.35)) ** 8;
+      if (pulse > 0.015) {
+        const boltX = width * (0.58 + 0.16 * Math.sin(time * 0.23));
+        paint.setStyle(Skia.PaintStyle.Stroke);
+        paint.setStrokeWidth(2 + pulse * 3);
+        paint.setColor(Skia.Color(colorWithAlpha("#8CCBFF", 0.18 + pulse * 0.62)));
+        const bolt = Skia.Path.Make();
+        bolt.moveTo(boltX, 0);
+        bolt.lineTo(boltX - width * 0.045, height * 0.12);
+        bolt.lineTo(boltX + width * 0.018, height * 0.19);
+        bolt.lineTo(boltX - width * 0.08, height * 0.34);
+        bolt.lineTo(boltX - width * 0.025, height * 0.41);
+        canvas.drawPath(bolt, paint);
+        const branch = Skia.Path.Make();
+        branch.moveTo(boltX - width * 0.01, height * 0.2);
+        branch.lineTo(boltX + width * 0.09, height * 0.29);
+        canvas.drawPath(branch, paint);
+      }
+    }
+
+    // Layer 2: cloud volume and shadows use the same per-biome opacity as Canvas.
+    paint.setStyle(Skia.PaintStyle.Fill);
     for (const cloud of clouds) {
-      paint.setColor(Skia.Color(biome.cloudShadow));
-      canvas.drawOval(Skia.XYWHRect(cloud.x - cloud.rx * 1.1, cloud.y - cloud.ry * 0.85 + cloud.ry * 0.2, cloud.rx * 2.2, cloud.ry * 1.7), paint);
-
-      paint.setColor(Skia.Color(biome.cloudLight));
+      paint.setColor(Skia.Color(colorWithAlpha(biome.cloudShadow, biome.cloudOpacity * 0.62)));
+      canvas.drawOval(Skia.XYWHRect(
+        cloud.x - cloud.rx * 1.1,
+        cloud.y - cloud.ry * 0.85 + cloud.ry * 0.2,
+        cloud.rx * 2.2,
+        cloud.ry * 1.7
+      ), paint);
+      paint.setColor(Skia.Color(colorWithAlpha(biome.cloudLight, biome.cloudOpacity)));
       canvas.drawCircle(cloud.x - cloud.rx * 0.35, cloud.y, cloud.ry * 0.75, paint);
       canvas.drawCircle(cloud.x, cloud.y - cloud.ry * 0.25, cloud.ry * 0.95, paint);
       canvas.drawCircle(cloud.x + cloud.rx * 0.35, cloud.y, cloud.ry * 0.75, paint);
     }
 
-    // Layer 3: Floating Islands
+    // Layer 3: garden islands, temple ruins and storm crystals have different silhouettes.
     for (const island of islands) {
-      paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.architecture));
-      canvas.drawRect(Skia.XYWHRect(island.x, island.y + island.height * 0.3, island.width, island.height * 0.7), paint);
+      if (biome.islandStyle === "crystal") {
+        paint.setColor(Skia.Color("#15283F"));
+        const rock = Skia.Path.Make();
+        rock.moveTo(island.x, island.y + island.height * 0.24);
+        rock.lineTo(island.x + island.width * 0.18, island.y + island.height * 0.58);
+        rock.lineTo(island.x + island.width * 0.38, island.y + island.height);
+        rock.lineTo(island.x + island.width * 0.72, island.y + island.height * 0.68);
+        rock.lineTo(island.x + island.width, island.y + island.height * 0.26);
+        rock.close();
+        canvas.drawPath(rock, paint);
+        paint.setStyle(Skia.PaintStyle.Stroke);
+        paint.setStrokeWidth(2);
+        paint.setColor(Skia.Color(colorWithAlpha("#76CFFF", 0.7)));
+        canvas.drawPath(rock, paint);
+        paint.setStyle(Skia.PaintStyle.Fill);
+        paint.setColor(Skia.Color(colorWithAlpha(biome.glowColor, 0.72)));
+        const shard = Skia.Path.Make();
+        shard.moveTo(island.x + island.width * 0.28, island.y + island.height * 0.42);
+        shard.lineTo(island.x + island.width * 0.38, island.y - island.height * 0.12);
+        shard.lineTo(island.x + island.width * 0.48, island.y + island.height * 0.42);
+        shard.close();
+        canvas.drawPath(shard, paint);
+      } else {
+        paint.setColor(Skia.Color(biome.architectureColor));
+        canvas.drawRect(Skia.XYWHRect(island.x, island.y + island.height * 0.3, island.width, island.height * 0.7), paint);
+        paint.setColor(Skia.Color(island.color));
+        canvas.drawRect(Skia.XYWHRect(island.x - 4, island.y, island.width + 8, island.height * 0.55), paint);
 
-      paint.setColor(Skia.Color(island.color));
-      canvas.drawRect(Skia.XYWHRect(island.x - 4, island.y, island.width + 8, island.height * 0.55), paint);
+        if (biome.islandStyle === "lush") {
+          for (let tree = 0; tree < 3; tree += 1) {
+            const treeX = island.x + island.width * (0.22 + tree * 0.28);
+            const treeY = island.y + island.height * (0.12 + (tree % 2) * 0.05);
+            paint.setColor(Skia.Color(tree % 2 === 0 ? SHMUP_COLOR_TOKENS.foliage.deep : SHMUP_COLOR_TOKENS.foliage.mid));
+            canvas.drawCircle(treeX, treeY, island.height * 0.16, paint);
+            if (biome.atmosphereStyle === "garden") {
+              paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.blossom));
+              canvas.drawCircle(treeX + island.height * 0.07, treeY - island.height * 0.04, 2.5, paint);
+            }
+          }
+        }
+
+        if (island.hasArch || biome.islandStyle === "ruins") {
+          paint.setColor(Skia.Color(biome.architectureColor));
+          const columnWidth = Math.max(6, island.width * 0.075);
+          const columnTop = island.y - island.height * 0.28;
+          canvas.drawRect(Skia.XYWHRect(island.x + island.width * 0.3, columnTop, columnWidth, island.height * 0.3), paint);
+          canvas.drawRect(Skia.XYWHRect(island.x + island.width * 0.62, columnTop, columnWidth, island.height * 0.3), paint);
+          canvas.drawRect(Skia.XYWHRect(island.x + island.width * 0.24, columnTop - 5, island.width * 0.52, Math.max(6, island.height * 0.09)), paint);
+          paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.gold.sunlight));
+          canvas.drawCircle(island.x + island.width * 0.5, columnTop + island.height * 0.03, 4, paint);
+        }
+      }
     }
 
-    // Layer 4: Near Decor Particles
-    for (const p of particles) {
-      paint.setColor(Skia.Color(p.color));
-      canvas.drawCircle(p.x, p.y, p.size * 0.5, paint);
+    // Layer 4: capped ambient motifs retain their silhouette and rotation.
+    for (const particle of particles) {
+      canvas.save();
+      canvas.rotate(particle.rotation * (180 / Math.PI), particle.x, particle.y);
+      paint.setStyle(Skia.PaintStyle.Fill);
+      paint.setColor(Skia.Color(colorWithAlpha(particle.color, particle.opacity)));
+      if (particle.type === "petal") {
+        canvas.drawOval(Skia.XYWHRect(particle.x - particle.size, particle.y - particle.size * 0.5, particle.size * 2, particle.size), paint);
+      } else if (particle.type === "crystal" || particle.type === "rune") {
+        const shape = Skia.Path.Make();
+        shape.moveTo(particle.x, particle.y - particle.size);
+        shape.lineTo(particle.x + particle.size * 0.65, particle.y);
+        shape.lineTo(particle.x, particle.y + particle.size);
+        shape.lineTo(particle.x - particle.size * 0.65, particle.y);
+        shape.close();
+        canvas.drawPath(shape, paint);
+        if (particle.type === "rune") {
+          paint.setStyle(Skia.PaintStyle.Stroke);
+          paint.setStrokeWidth(1);
+          paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.gold.sunlight));
+          canvas.drawPath(shape, paint);
+        }
+      } else {
+        canvas.drawCircle(particle.x, particle.y, particle.size * 0.5, paint);
+      }
+      canvas.restore();
     }
 
     canvas.restore();

@@ -212,7 +212,7 @@ export const drawSkiaShmupEnemy: ShapeDrawer<SkCanvas, ShmupComponentRegistry> =
       const engineOffset = archetype === "armored" ? 0.46 : archetype === "boss" ? 0.42 : 0.23;
       const engineAnchorY = archetype === "boss" ? -0.72 : archetype === "armored" ? -0.64 : -0.55;
       const plumeLength = size * (0.34 + plumePulse * 0.3);
-      const plumeWidth = size * (archetype === "boss" ? 0.15 : 0.09);
+      const plumeWidth = archetype === "boss" ? 0.15 : 0.09;
       const plumeColor = archetype === "armored"
         ? SHMUP_COLOR_TOKENS.warning
         : SHMUP_COLOR_TOKENS.enemy.accent;

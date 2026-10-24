@@ -1,9 +1,11 @@
 import { World, CoreComponentRegistry } from "@tiny-aster/core";
 import { registerHitRunWeapons } from "../weapons/registerHitRunWeapons";
 import { registerHitRunWeaponPickups } from "../weapons/HitRunWeaponPickup";
-import { registerHitRunPowSystem, createPowBlueprint } from "../pow/HitRunPowSystem";
+import { registerHitRunPowSystem, createPowBlueprint, HitRunPowComponent } from "../pow/HitRunPowSystem";
 import { registerHitRunScoreSystem, HIT_RUN_SCORE_RESOURCE, HitRunScoreState } from "../systems/HitRunScoreSystem";
 import { HitRunExplosionSystem } from "../weapons/HitRunExplosionSystem";
+import type { HitRunWeaponState } from "../weapons/HitRunWeaponTypes";
+import type { HealthComponent } from "@tiny-aster/core";
 
 describe("Hit & Run Phase 3 Requirements", () => {
   let world: World<CoreComponentRegistry>;
@@ -40,7 +42,7 @@ describe("Hit & Run Phase 3 Requirements", () => {
         ammoCurrent: 1,
         ammoMax: 20,
         fallbackWeaponId: "longbow"
-      } as any);
+      } as HitRunWeaponState);
       world.addComponent(shooter, {
         type: "BeltInput",
         moveX: 0,
@@ -58,9 +60,9 @@ describe("Hit & Run Phase 3 Requirements", () => {
 
       world.update(0.016);
 
-      const weaponState = world.getComponent(shooter, "HitRunWeapon") as any;
-      expect(weaponState.weaponId).toBe("longbow");
-      expect(weaponState.ammoCurrent).toBe(Number.POSITIVE_INFINITY);
+      const weaponState = world.getComponent(shooter, "HitRunWeapon") as HitRunWeaponState | undefined;
+      expect(weaponState?.weaponId).toBe("longbow");
+      expect(weaponState?.ammoCurrent).toBe(Number.POSITIVE_INFINITY);
     });
   });
 
@@ -75,8 +77,8 @@ describe("Hit & Run Phase 3 Requirements", () => {
 
       world.update(0.016);
 
-      const powComp = world.getComponent(pow, "HitRunPow") as any;
-      expect(powComp.state).toBe("liberated");
+      const powComp = world.getComponent(pow, "HitRunPow") as HitRunPowComponent | undefined;
+      expect(powComp?.state).toBe("liberated");
 
       const { HitRunScoreSystem } = require("../systems/HitRunScoreSystem");
       const scoreSys = new HitRunScoreSystem();
@@ -135,8 +137,8 @@ describe("Hit & Run Phase 3 Requirements", () => {
 
       explosionSys.update(world, 0.016);
 
-      const health = world.getComponent(target, "Health") as any;
-      expect(health.current).toBe(10);
+      const health = world.getComponent(target, "Health") as HealthComponent | undefined;
+      expect(health?.current).toBe(10);
     });
   });
 

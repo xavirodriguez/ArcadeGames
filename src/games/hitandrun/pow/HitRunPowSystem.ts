@@ -8,6 +8,10 @@ import {
 } from "@tiny-aster/core";
 import { createWeaponPickupBlueprint } from "../weapons/HitRunWeaponPickup";
 import type { HitRunWeaponId } from "../weapons/HitRunWeaponTypes";
+import {
+  createBeltTransformComponent,
+  createBeltElevationComponent
+} from "../belt/BeltEntityHelpers";
 
 export interface HitRunPowComponent {
   type: "HitRunPow";
@@ -36,27 +40,8 @@ export function createPowBlueprint(): BlueprintDefinition<
       const isUpdating = world.isUpdating;
       const cmd = world.getCommandBuffer();
 
-      const transformComp = {
-        type: "Transform",
-        x: args.x,
-        y: args.y,
-        worldX: args.x,
-        worldY: args.y,
-        rotation: 0,
-        worldRotation: 0,
-        scaleX: 1,
-        scaleY: 1,
-        worldScaleX: 1,
-        worldScaleY: 1,
-        dirty: true
-      } as const;
-
-      const elevComp = {
-        type: "BeltElevation",
-        z: args.z ?? 0,
-        vz: 0,
-        grounded: true
-      } as const;
+      const transformComp = createBeltTransformComponent(args.x, args.y);
+      const elevComp = createBeltElevationComponent(args.z ?? 0);
 
       const colliderComp = {
         type: "Collider2D",

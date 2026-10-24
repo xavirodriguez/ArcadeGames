@@ -1,4 +1,4 @@
-import { FroggerConfig } from "../types/FroggerConfigSchema";
+import type { FroggerConfig } from "../types/FroggerConfigSchema";
 
 /**
  * Display-only score formatting. Keeps at least six digits grouped in threes:
@@ -7,7 +7,7 @@ import { FroggerConfig } from "../types/FroggerConfigSchema";
 export function formatFroggerScore(score: number): string {
   const safeScore = Number.isFinite(score) ? Math.max(0, Math.floor(score)) : 0;
   const digits = String(safeScore).padStart(6, "0");
-  return `${digits.slice(0, -3)} ${digits.slice(-3)}`;
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
 
 /** Mirrors the time-limit formula used by FroggerGameStateSystem for the HUD. */

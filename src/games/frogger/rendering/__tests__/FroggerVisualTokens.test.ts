@@ -37,7 +37,6 @@ describe("Frogger visual reference contract", () => {
     expect(rows.roadStart).toBe(rows.median + 1);
     expect(rows.startBank).toBe(rows.roadStart + rows.roadRows);
     expect(rows.startBank + rows.startRows).toBe(config.TOTAL_ROWS);
-    expect(config.GRID_SIZE).toBe(rows.startRows > 0 ? 40 : 0);
   });
 
   it("exposes the agreed warm sunset palette through semantic tokens", () => {

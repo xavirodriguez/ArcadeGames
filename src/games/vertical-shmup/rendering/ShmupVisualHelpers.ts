@@ -47,6 +47,14 @@ export function resolveShmupPlayerDrawContext(
   };
 }
 
+function isShmupEnemyArchetype(value: string | undefined): value is ShmupEnemyArchetype {
+  return value === "scout"
+    || value === "interceptor"
+    || value === "armored"
+    || value === "support"
+    || value === "boss";
+}
+
 export interface ShmupEnemyDrawContext {
   render: RenderComponent;
   path?: EnemyPathComponent;
@@ -72,8 +80,8 @@ export function resolveShmupEnemyDrawContext(
   const size = render.size ?? 32;
   const enemyColor = render.color ?? SHMUP_COLOR_TOKENS.enemy.primary;
   const time = world.tick * 0.016;
-  // Visual identity is authored by the factory; path and sprite size only affect motion/layout.
-  const archetype: ShmupEnemyArchetype = enemy?.archetype ?? "scout";
+  // Visual identity is authored by the factory; path and size never infer a silhouette.
+  const archetype = isShmupEnemyArchetype(enemy?.archetype) ? enemy.archetype : "scout";
 
   const isTelegraphing = pattern ? pattern.cooldownRemaining <= 0.4 : false;
 

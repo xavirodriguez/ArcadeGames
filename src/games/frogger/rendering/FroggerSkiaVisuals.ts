@@ -50,23 +50,6 @@ export const drawFroggerSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = 
   },
 };
 
-function drawSkiaRoundedRectAt(
-  canvas: SkCanvas,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  color: string,
-  radius = 2
-): void {
-  const paint = Skia.Paint();
-  paint.setColor(Skia.Color(color));
-  canvas.drawRRect(
-    Skia.RRectXY(Skia.XYWHRect(x, y, width, height), radius, radius),
-    paint
-  );
-}
-
 function drawSkiaVehicleBeam(
   canvas: SkCanvas,
   halfWidth: number,

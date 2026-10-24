@@ -859,3 +859,20 @@ El juego debe sentirse como un viaje por un mundo de islas flotantes, templos en
 El objetivo no es llenar cada píxel de detalle. Es crear una imagen en la que **el mundo sea hermoso, el combate sea comprensible y cada elemento tenga una función visual reconocible**.
 
 La primera validación debe concentrarse en una única escena de 30–60 segundos: un fondo de archipiélago, la nave del jugador, tres familias de enemigos o patrones, una pequeña secuencia de jefe y el HUD. Cuando esa escena funcione en movimiento, servirá como referencia para el resto de los niveles.
+
+## Presentación de jefes y HUD
+
+### Entrada y lectura del jefe
+
+- El jefe debe distinguirse del resto de enemigos por tamaño, silueta y un sello orbital dorado/magenta de movimiento lento. El efecto debe reforzar su presencia sin cubrir proyectiles ni zonas vulnerables.
+- Los arcos luminosos deben conservar suficiente transparencia para que la forma principal del jefe y los patrones de ataque sigan siendo legibles.
+- La presentación del jefe se identifica por el arquetipo de la entidad, no por inferencias basadas en tamaño o trayectoria.
+- La barra de salud del jefe aparece solo mientras existe un jefe activo y refleja sus valores reales de salud actual y máxima. El tratamiento visual usa ámbar para la alerta y magenta para la salud enemiga.
+
+### Jerarquía del HUD
+
+- **Nivel primario:** puntuación, oleada y vidas, alineadas en un panel compacto y de alto contraste.
+- **Nivel de encuentro:** aviso y barra de salud del jefe, visibles solo durante ese encuentro.
+- Las superficies deben usar azul noche translúcido, bordes finos y tipografía monoespaciada; el cian identifica información del jugador, el dorado indica alerta y el magenta identifica al jefe.
+- Mantener la interfaz fuera del centro de la zona de combate y evitar efectos intermitentes de alta frecuencia en la interfaz.
+- Canvas y Skia deben compartir el mismo lenguaje visual para los elementos del jefe. Los detalles de presentación no alteran salud, daño, movimiento, patrones ni colisiones.

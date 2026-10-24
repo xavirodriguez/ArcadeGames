@@ -81,7 +81,21 @@ export const drawSkiaShmupPlayer: ShapeDrawer<SkCanvas, ShmupComponentRegistry> 
     rightPlume.close();
     canvas.drawPath(rightPlume, paint);
 
+    // Fine cyan exhaust filaments complement the twin plumes.
+    paint.setStyle(Skia.PaintStyle.Stroke);
+    paint.setColor(Skia.Color(colorWithAlpha(SHMUP_COLOR_TOKENS.player.primary, 0.22 + 0.12 * (0.5 + 0.5 * Math.sin(time * 22)))));
+    paint.setStrokeWidth(Math.max(1, size * 0.055));
+    const leftExhaust = Skia.Path.Make();
+    leftExhaust.moveTo(-size * 0.25, size * 0.78);
+    leftExhaust.lineTo(-size * 0.25, size * 0.78 + plumeLength * 0.58);
+    canvas.drawPath(leftExhaust, paint);
+    const rightExhaust = Skia.Path.Make();
+    rightExhaust.moveTo(size * 0.25, size * 0.78);
+    rightExhaust.lineTo(size * 0.25, size * 0.78 + plumeLength * 0.58);
+    canvas.drawPath(rightExhaust, paint);
+
     // Core Plumes
+    paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.core));
     const leftCore = Skia.Path.Make();
     leftCore.moveTo(-size * 0.3, size * 0.45);
@@ -267,6 +281,29 @@ export const drawSkiaShmupEnemy: ShapeDrawer<SkCanvas, ShmupComponentRegistry> =
       canvas.drawCircle(0, 0, size * 0.42 * corePulse, paint);
     }
 
+    // Brief white/cyan impact ring and rays while an enemy hit flash is active.
+    const hitFlash = Math.max(0, Math.min(1, (eCtx.render.hitFlashFrames ?? 0) / 5));
+    if (hitFlash > 0) {
+      canvas.save();
+      paint.setStyle(Skia.PaintStyle.Stroke);
+      paint.setColor(Skia.Color(colorWithAlpha(SHMUP_COLOR_TOKENS.player.core, hitFlash * 0.9)));
+      paint.setStrokeWidth(1.5 + hitFlash * 2);
+      canvas.drawCircle(0, 0, size * (1.02 + hitFlash * 0.08), paint);
+      for (let i = 0; i < 4; i += 1) {
+        const angle = time * 1.8 + i * Math.PI / 2;
+        const innerRadius = size * 0.72;
+        const outerRadius = size * (1.05 + hitFlash * 0.25);
+        canvas.drawLine(
+          Math.cos(angle) * innerRadius,
+          Math.sin(angle) * innerRadius,
+          Math.cos(angle) * outerRadius,
+          Math.sin(angle) * outerRadius,
+          paint
+        );
+      }
+      canvas.restore();
+    }
+
     canvas.restore();
   }
 };
@@ -285,13 +322,23 @@ export const drawSkiaShmupPlayerBullet: ShapeDrawer<SkCanvas, ShmupComponentRegi
     paint.setAntiAlias(true);
     paint.setStyle(Skia.PaintStyle.Fill);
 
-    // Plasma aura
-    paint.setColor(Skia.Color(color));
-    canvas.drawRect(Skia.XYWHRect(-size * 0.75, -size * 2.5, size * 1.5, size * 5), paint);
+    // Moving pulse gives the laser a crisp capsule silhouette and pointed leading edge.
+    const time = world.tick * 0.016;
+    const pulse = 0.9 + 0.1 * Math.sin(time * 26);
+    paint.setColor(Skia.Color(colorWithAlpha(color, 0.2)));
+    canvas.drawRRect(Skia.RRectXY(Skia.XYWHRect(-size * 0.95, -size * 3, size * 1.9, size * 6), size * 0.95, size * 0.95), paint);
 
-    // Core laser
+    paint.setColor(Skia.Color(color));
+    canvas.drawRRect(Skia.RRectXY(Skia.XYWHRect(-size * 0.62, -size * 2.5, size * 1.24, size * 5), size * 0.62, size * 0.62), paint);
+
     paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.core));
-    canvas.drawRect(Skia.XYWHRect(-size * 0.35, -size * 2, size * 0.7, size * 4), paint);
+    canvas.drawRRect(Skia.RRectXY(Skia.XYWHRect(-size * 0.23, -size * 2.12, size * 0.46, size * 4.2 * pulse), size * 0.23, size * 0.23), paint);
+    const leadingEdge = Skia.Path.Make();
+    leadingEdge.moveTo(0, -size * 2.8);
+    leadingEdge.lineTo(size * 0.35, -size * 1.9);
+    leadingEdge.lineTo(-size * 0.35, -size * 1.9);
+    leadingEdge.close();
+    canvas.drawPath(leadingEdge, paint);
 
     canvas.restore();
   }

@@ -3,7 +3,7 @@ export type {
   AsteroidsVisualModId,
   AsteroidsParticleStyle
 } from "./types";
-export { resolveVisualMod, listVisualMods, MODS } from "./registry";
+export { resolveVisualMod, listVisualMods, registerVisualMod, MODS } from "./registry";
 export { classicMod } from "./classic/ClassicMod";
 export { icebergMod } from "./iceberg/IcebergMod";
 export {

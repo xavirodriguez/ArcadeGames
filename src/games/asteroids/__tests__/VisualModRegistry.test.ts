@@ -1,4 +1,5 @@
-import { resolveVisualMod, listVisualMods } from "../mods/registry";
+import { resolveVisualMod, listVisualMods, registerVisualMod, MODS } from "../mods/registry";
+import type { AsteroidsVisualMod } from "../mods/types";
 import { classicMod } from "../mods/classic/ClassicMod";
 import { icebergMod } from "../mods/iceberg/IcebergMod";
 import { ICEBERG_PALETTE } from "../mods/iceberg/IcebergPalette";
@@ -16,9 +17,26 @@ describe("Asteroids visual mod registry", () => {
     expect(resolveVisualMod("iceberg").displayName).toContain("Iceberg");
   });
 
-  it("lists both mods", () => {
+  it("lists default mods and compensates for dynamic registry map", () => {
     const list = listVisualMods();
-    expect(list.map((m) => m.id).sort()).toEqual(["classic", "iceberg"]);
+    const ids = list.map((m) => m.id);
+    expect(ids).toContain("classic");
+    expect(ids).toContain("iceberg");
+    expect(MODS.has("classic")).toBe(true);
+    expect(MODS.has("iceberg")).toBe(true);
+  });
+
+  it("supports dynamic registration of custom visual mods", () => {
+    const customMod: AsteroidsVisualMod = {
+      id: "nebula_x",
+      displayName: "Nebula X",
+      createTheme: (b) => b,
+      registerDrawers: () => {}
+    };
+
+    registerVisualMod(customMod);
+    expect(resolveVisualMod("nebula_x").id).toBe("nebula_x");
+    expect(listVisualMods().some((m) => m.id === "nebula_x")).toBe(true);
   });
 
   it("classic theme is identity", () => {

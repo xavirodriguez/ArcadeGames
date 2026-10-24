@@ -1,5 +1,6 @@
 import type { Theme } from "@tiny-aster/core";
 import type { AsteroidsVisualMod } from "../types";
+import { spawnLayeredExplosion } from "../../../shared/rendering/SharedVFX";
 import {
   drawAsteroidsPlayerShip as canvasDrawAsteroidsPlayerShip,
   drawAsteroidsAsteroid as canvasDrawAsteroidsAsteroid,
@@ -34,5 +35,10 @@ export const classicMod: AsteroidsVisualMod = {
     register("skia", "player_ship", skiaDrawAsteroidsPlayerShip as never);
     register("skia", "asteroid", skiaDrawAsteroidsAsteroid as never);
     register("skia", "bullet", skiaDrawAsteroidsBullet as never);
+  },
+
+  spawnDestructionEffect(world, x, y, size) {
+    const explosionType = size === "ship" ? "ship" : size === "large" ? "enemy" : "small";
+    spawnLayeredExplosion(world, x, y, { type: explosionType });
   }
 };

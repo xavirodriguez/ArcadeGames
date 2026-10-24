@@ -1,8 +1,8 @@
-import type { Theme, ShapeDrawer } from "@tiny-aster/core";
-import type { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
+import type { Theme, ShapeDrawer, World, EffectDrawer } from "@tiny-aster/core";
+import type { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/AsteroidRegistry";
 
 /** Supported visual mod identifiers for Asteroids. */
-export type AsteroidsVisualModId = "classic" | "iceberg";
+export type AsteroidsVisualModId = string;
 
 /** Particle style hint used by presentation systems. */
 export type AsteroidsParticleStyle = "neon" | "iceShard" | "crystalFacet";
@@ -64,4 +64,26 @@ export interface AsteroidsVisualMod {
 
   /** Preferred particle style for destruction / thrust FX. */
   particleStyle?: AsteroidsParticleStyle;
+
+  /**
+   * Spawns destruction / explosion particles for entity death.
+   * Mod-level dispatch prevents gameplay systems from branching on specific mod types.
+   */
+  spawnDestructionEffect?: (
+    world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>,
+    x: number,
+    y: number,
+    size: "large" | "medium" | "small" | "ship"
+  ) => void;
+
+  /**
+   * Optional hook to register or override HUD drawers for Canvas and Skia backends.
+   */
+  registerHud?: (
+    register: (
+      backend: "canvas" | "skia",
+      name: string,
+      effect: EffectDrawer<unknown, AsteroidsComponentRegistry>
+    ) => void
+  ) => void;
 }

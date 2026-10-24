@@ -22,6 +22,7 @@ import {
   SkiaPolarOceanBackgroundEffect,
   SkiaGeometricAuroraBackgroundEffect
 } from "./IcebergBackground";
+import { spawnIceShardFracture } from "./IcebergFracture";
 
 /**
  * Iceberg visual mod — Borealis / Cristal Glaciar (ART_ICEBERG.md).
@@ -112,5 +113,9 @@ export const icebergMod: AsteroidsVisualMod = {
     register("canvas", "geometric_aurora", GeometricAuroraBackgroundEffect as never);
     register("skia", "polar_ocean", SkiaPolarOceanBackgroundEffect as never);
     register("skia", "geometric_aurora", SkiaGeometricAuroraBackgroundEffect as never);
+  },
+
+  spawnDestructionEffect(world, x, y, size) {
+    spawnIceShardFracture(world, x, y, size);
   }
 };

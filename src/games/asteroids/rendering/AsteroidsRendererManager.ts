@@ -49,7 +49,18 @@ export const initializeAsteroidsRenderer = (
         r.registerShape("bullet", canvasDrawAsteroidsBullet);
       }
 
-      r.registerBackgroundEffect("mission_hud", canvasDrawAsteroidsMissionHUD);
+      let canvasHudRegistered = false;
+      if (visualMod?.registerHud) {
+        visualMod.registerHud((backend, name, effect) => {
+          if (backend === "canvas") {
+            r.registerBackgroundEffect(name, effect as never);
+            canvasHudRegistered = true;
+          }
+        });
+      }
+      if (!canvasHudRegistered) {
+        r.registerBackgroundEffect("mission_hud", canvasDrawAsteroidsMissionHUD);
+      }
 
       if (customDrawers) {
         for (const [key, drawer] of Object.entries(customDrawers)) {
@@ -75,7 +86,18 @@ export const initializeAsteroidsRenderer = (
         r.registerShape("bullet", skiaDrawAsteroidsBullet);
       }
 
-      r.registerBackgroundEffect("mission_hud", skiaDrawAsteroidsMissionHUD);
+      let skiaHudRegistered = false;
+      if (visualMod?.registerHud) {
+        visualMod.registerHud((backend, name, effect) => {
+          if (backend === "skia") {
+            r.registerBackgroundEffect(name, effect as never);
+            skiaHudRegistered = true;
+          }
+        });
+      }
+      if (!skiaHudRegistered) {
+        r.registerBackgroundEffect("mission_hud", skiaDrawAsteroidsMissionHUD);
+      }
 
       if (customDrawers) {
         for (const [key, drawer] of Object.entries(customDrawers)) {

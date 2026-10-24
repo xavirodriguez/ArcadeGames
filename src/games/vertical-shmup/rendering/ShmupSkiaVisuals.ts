@@ -119,6 +119,22 @@ export const drawSkiaShmupPlayer: ShapeDrawer<SkCanvas, ShmupComponentRegistry> 
     jetPath.close();
     canvas.drawPath(jetPath, paint);
 
+    // Twin recessed engine housings connect the hull visually to its exhaust plumes.
+    paint.setStyle(Skia.PaintStyle.Stroke);
+    paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.secondary));
+    paint.setStrokeWidth(1.5);
+    for (const side of [-1, 1]) {
+      paint.setStyle(Skia.PaintStyle.Fill);
+      paint.setColor(Skia.Color("rgba(5, 24, 52, 0.92)"));
+      canvas.drawOval(Skia.XYWHRect(side * size * 0.24 - size * 0.085, size * 0.48 - size * 0.065, size * 0.17, size * 0.13), paint);
+      paint.setStyle(Skia.PaintStyle.Stroke);
+      paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.secondary));
+      canvas.drawOval(Skia.XYWHRect(side * size * 0.24 - size * 0.085, size * 0.48 - size * 0.065, size * 0.17, size * 0.13), paint);
+      paint.setStyle(Skia.PaintStyle.Fill);
+      paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.core));
+      canvas.drawCircle(side * size * 0.24, size * 0.48, size * 0.026, paint);
+    }
+
     // Layered wing armor matching the Canvas renderer.
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color("rgba(5, 24, 52, 0.72)"));

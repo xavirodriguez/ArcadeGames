@@ -1,5 +1,5 @@
 import type { World, RenderComponent, HealthComponent } from "@tiny-aster/core";
-import type { ShmupComponentRegistry, EnemyPathComponent, BulletPatternComponent } from "../types/ShmupTypes";
+import type { ShmupComponentRegistry, ShmupEnemyArchetype, EnemyPathComponent, BulletPatternComponent } from "../types/ShmupTypes";
 import type { ShmupConfig } from "../types/ShmupConfigSchema";
 import { SHMUP_COLOR_TOKENS } from "./ShmupColorTokens";
 
@@ -55,7 +55,7 @@ export interface ShmupEnemyDrawContext {
   size: number;
   enemyColor: string;
   time: number;
-  archetype: "scout" | "interceptor" | "armored" | "support" | "boss";
+  archetype: ShmupEnemyArchetype;
   isTelegraphing: boolean;
 }
 
@@ -68,21 +68,12 @@ export function resolveShmupEnemyDrawContext(
   const path = world.getComponent(entity, "EnemyPath");
   const pattern = world.getComponent(entity, "BulletPattern");
   const health = world.getComponent(entity, "Health");
+  const enemy = world.getComponent(entity, "ShmupEnemy");
   const size = render.size ?? 32;
   const enemyColor = render.color ?? SHMUP_COLOR_TOKENS.enemy.primary;
   const time = world.tick * 0.016;
-
-  // Determine silhouette archetype based on path or size
-  let archetype: "scout" | "interceptor" | "armored" | "support" | "boss" = "scout";
-  if (size >= 80) {
-    archetype = "boss";
-  } else if (path?.kind === "sine") {
-    archetype = "interceptor";
-  } else if (path?.kind === "arc") {
-    archetype = "support";
-  } else if (size >= 40) {
-    archetype = "armored";
-  }
+  // Visual identity is authored by the factory; path and sprite size only affect motion/layout.
+  const archetype: ShmupEnemyArchetype = enemy?.archetype ?? "scout";
 
   const isTelegraphing = pattern ? pattern.cooldownRemaining <= 0.4 : false;
 
@@ -133,6 +124,13 @@ export interface BiomeProfile {
   architectureColor: string;
   particleColor: string;
   particleType: "petal" | "pollen" | "rune" | "crystal";
+  atmosphereStyle: "sunrise" | "garden" | "sacred" | "storm";
+  glowColor: string;
+  glowX: number;
+  glowY: number;
+  glowRadius: number;
+  cloudOpacity: number;
+  islandStyle: "lush" | "ruins" | "crystal";
 }
 
 export const BIOMES: Record<BiomeKind, BiomeProfile> = {
@@ -148,6 +146,13 @@ export const BIOMES: Record<BiomeKind, BiomeProfile> = {
     architectureColor: SHMUP_COLOR_TOKENS.architecture,
     particleColor: SHMUP_COLOR_TOKENS.blossom,
     particleType: "petal",
+    atmosphereStyle: "sunrise",
+    glowColor: SHMUP_COLOR_TOKENS.gold.sunlight,
+    glowX: 0.76,
+    glowY: 0.15,
+    glowRadius: 0.48,
+    cloudOpacity: 0.56,
+    islandStyle: "lush",
   },
   gardens: {
     id: "gardens",
@@ -161,6 +166,13 @@ export const BIOMES: Record<BiomeKind, BiomeProfile> = {
     architectureColor: SHMUP_COLOR_TOKENS.architecture,
     particleColor: SHMUP_COLOR_TOKENS.gold.sunlight,
     particleType: "pollen",
+    atmosphereStyle: "garden",
+    glowColor: "#C2FFD8",
+    glowX: 0.5,
+    glowY: 0.24,
+    glowRadius: 0.62,
+    cloudOpacity: 0.62,
+    islandStyle: "lush",
   },
   temples: {
     id: "temples",
@@ -174,6 +186,13 @@ export const BIOMES: Record<BiomeKind, BiomeProfile> = {
     architectureColor: SHMUP_COLOR_TOKENS.gold.sunlight,
     particleColor: SHMUP_COLOR_TOKENS.gold.sunlight,
     particleType: "rune",
+    atmosphereStyle: "sacred",
+    glowColor: SHMUP_COLOR_TOKENS.gold.sunlight,
+    glowX: 0.5,
+    glowY: 0.35,
+    glowRadius: 0.44,
+    cloudOpacity: 0.48,
+    islandStyle: "ruins",
   },
   storm: {
     id: "storm",
@@ -187,6 +206,13 @@ export const BIOMES: Record<BiomeKind, BiomeProfile> = {
     architectureColor: "#3B5270",
     particleColor: SHMUP_COLOR_TOKENS.player.primary,
     particleType: "crystal",
+    atmosphereStyle: "storm",
+    glowColor: "#5AAEFF",
+    glowX: 0.57,
+    glowY: 0.18,
+    glowRadius: 0.56,
+    cloudOpacity: 0.72,
+    islandStyle: "crystal",
   },
 };
 

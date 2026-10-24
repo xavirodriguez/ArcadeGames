@@ -107,17 +107,23 @@ export interface TurtleShellSegment {
   segX: number;
 }
 
-export function resolveFroggerShellSegments(width: number): TurtleShellSegment[] {
+const turtleShellSegmentsCache = new Map<number, readonly TurtleShellSegment[]>();
+
+export function resolveFroggerShellSegments(width: number): readonly TurtleShellSegment[] {
+  const cached = turtleShellSegmentsCache.get(width);
+  if (cached) return cached;
+
   const halfW = width / 2;
-  const segmentCount = Math.floor(width / 35);
+  const segmentCount = Math.max(1, Math.floor(width / 35));
   const step = width / segmentCount;
   const segments: TurtleShellSegment[] = [];
 
-  for (let i = 0; i < segmentCount; i++) {
+  for (let i = 0; i < segmentCount; i += 1) {
     const segX = -halfW + i * step + step / 2;
     segments.push({ segX });
   }
 
+  turtleShellSegmentsCache.set(width, segments);
   return segments;
 }
 

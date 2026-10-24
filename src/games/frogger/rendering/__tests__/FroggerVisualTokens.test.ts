@@ -47,7 +47,10 @@ describe("Frogger visual reference contract", () => {
     expect(FROGGER_VISUAL_TOKENS.surfaces.asphalt).toBe("#232338");
     expect(FROGGER_VISUAL_TOKENS.surfaces.bank).toBe("#E9B949");
     expect(FROGGER_VISUAL_TOKENS.surfaces.riverDeep).toBe("#0F6E7A");
+    expect(FROGGER_VISUAL_TOKENS.surfaces.riverMid).toBe("#16949C");
     expect(FROGGER_VISUAL_TOKENS.surfaces.riverShallow).toBe("#17A3A3");
+    expect(FROGGER_VISUAL_TOKENS.surfaces.bankHighlight).toBe("#F5D478");
+    expect(FROGGER_VISUAL_TOKENS.surfaces.roadEdge).toBe("#181824");
 
     expect(FROGGER_VISUAL_TOKENS.logs.body).toBe("#B9824A");
     expect(FROGGER_VISUAL_TOKENS.turtles.body).toBe("#2F8F7A");

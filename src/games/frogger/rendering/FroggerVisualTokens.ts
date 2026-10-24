@@ -53,12 +53,13 @@ export const FROGGER_VISUAL_TOKENS = {
   },
   vehicles: {
     cars: ["#5B6FB5", "#8B63A8", "#9A9AB8", "#C07A9A", "#7FA6D6"] as const,
-    truck: "#C07A9A",
-    truckCab: "#F2EEE3",
+    truck: "#F2EEE3",
+    truckCab: "#E9B949",
+    truckDetail: "#C18D3A",
     glass: "rgba(20, 20, 42, 0.55)",
     tires: "#232338",
     headlights: "#FFF4D0",
-    headlightBeam: "rgba(255, 240, 196, 0.25)",
+    headlightBeam: "rgba(255, 240, 196, 0.18)",
     taillights: "#FF5A4F",
   },
   shadows: {

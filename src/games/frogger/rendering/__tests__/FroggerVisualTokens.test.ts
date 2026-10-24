@@ -72,5 +72,10 @@ describe("Frogger visual reference contract", () => {
       "#C07A9A",
       "#7FA6D6",
     ]);
+    expect(FROGGER_VISUAL_TOKENS.vehicles.truck).toBe("#F2EEE3");
+    expect(FROGGER_VISUAL_TOKENS.vehicles.truckCab).toBe("#E9B949");
+    expect(FROGGER_VISUAL_TOKENS.vehicles.headlights).toBe("#FFF4D0");
+    expect(FROGGER_VISUAL_TOKENS.vehicles.taillights).toBe("#FF5A4F");
+    expect(FROGGER_VISUAL_TOKENS.vehicles.glass).toBe("rgba(20, 20, 42, 0.55)");
   });
 });

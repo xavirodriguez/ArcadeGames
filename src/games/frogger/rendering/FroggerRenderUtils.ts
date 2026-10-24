@@ -124,6 +124,14 @@ export function resolveFroggerBackgroundContext(
   return { config, w, grid };
 }
 
+/**
+ * Converts the gameplay direction sign into the local vehicle-art orientation.
+ * Vehicle geometry is authored facing right and mirrored for left-moving traffic.
+ */
+export function resolveFroggerVehicleDirection(direction: number | undefined): -1 | 1 {
+  return direction !== undefined && direction < 0 ? -1 : 1;
+}
+
 export interface FroggerSlotColors {
   slotColor: string;
   occupiedColor: string;

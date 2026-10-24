@@ -3,11 +3,11 @@ import { SpaceInvadersComponentRegistry, GAME_CONFIG } from "../types/SpaceInvad
 import {
   AQUI_HAY_DRAGONES_PALETTE,
 } from "../../../theme/conceptPacks/aquiHayDragonesConceptPack";
-import { isNauticalChartTheme } from "./NauticalChartBackground";
 import {
+  isNauticalChartTheme,
   NAUTICAL_WIND_RESOURCE,
   NauticalWindState,
-} from "../systems/NauticalWindSystem";
+} from "../nautical/NauticalThemeShared";
 
 const P = AQUI_HAY_DRAGONES_PALETTE;
 
@@ -58,7 +58,6 @@ function drawNauticalHud(
   ctx.save();
   ctx.textBaseline = "alphabetic";
 
-  // --- Leguas (score) ---
   ctx.fillStyle = P.inkMuted;
   ctx.font = `italic ${Math.max(10, 12 * sx)}px Georgia, "Times New Roman", serif`;
   ctx.textAlign = "left";
@@ -67,7 +66,6 @@ function drawNauticalHud(
   ctx.font = `bold ${Math.max(14, 18 * sx)}px Georgia, "Times New Roman", serif`;
   ctx.fillText(String(Math.floor(score)), 22 * sx, 42 * sy);
 
-  // --- Viento label + arrow ---
   ctx.fillStyle = P.inkMuted;
   ctx.font = `italic ${Math.max(10, 12 * sx)}px Georgia, "Times New Roman", serif`;
   ctx.fillText("Viento", 110 * sx, 22 * sy);
@@ -110,7 +108,6 @@ function drawNauticalHud(
   ctx.font = `${Math.max(8, 9 * sx)}px Georgia, serif`;
   ctx.fillText(force === 0 ? "calma" : `${force}`, ax + 14 * sx, ay + 4 * sy);
 
-  // --- Rosa de los vientos (8-point) ---
   const roseX = 170 * sx;
   const roseY = 36 * sy;
   const r = 10 * sx;
@@ -118,7 +115,6 @@ function drawNauticalHud(
   ctx.fillStyle = P.ink;
   ctx.lineWidth = Math.max(0.8, 1 * sx);
   ctx.globalAlpha = 1;
-  // Active wind ray: force>0 → east (sign+) or west (sign−)
   const windAngle = force > 0 ? (sign >= 0 ? 0 : Math.PI) : null;
   for (let i = 0; i < 8; i++) {
     const a = (i / 8) * Math.PI * 2 - Math.PI / 2;
@@ -146,7 +142,6 @@ function drawNauticalHud(
   ctx.textAlign = "center";
   ctx.fillText("N", roseX, roseY - r - 2 * sy);
 
-  // --- Tripulación (lives) bottom-left ---
   const crewY = worldHeight - 12 * sy;
   const labelY = crewY - 14 * sy;
   ctx.fillStyle = P.inkMuted;

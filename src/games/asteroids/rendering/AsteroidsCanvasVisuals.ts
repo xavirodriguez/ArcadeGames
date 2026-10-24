@@ -1,5 +1,5 @@
-import { ShapeDrawer, SHIP_FORWARD_AXIS, THEME_RESOURCE_KEY, Theme } from "@tiny-aster/core";
-import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
+import { ShapeDrawer, SHIP_FORWARD_AXIS, THEME_RESOURCE_KEY, Theme, resolveThemeColorWithFallback, World } from "@tiny-aster/core";
+import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/AsteroidRegistry";
 import { drawNeonShape } from "../../shared/rendering/CanvasNeonUtils";
 import { colors } from "../../../theme/colors";
 import { computeAsteroidSilhouette, computeThrustFlame } from "../../shared/rendering/ProceduralShapeUtils";
@@ -9,6 +9,7 @@ import { resolveAsteroidSaucerSetup, resolveAsteroidDrawSetup, resolvePlayerShip
 
 function applyAsteroidHitFlashStroke(
   ctx: CanvasRenderingContext2D,
+  world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>,
   render: any,
   defaultColor: string,
   lineWidth = 2
@@ -18,7 +19,8 @@ function applyAsteroidHitFlashStroke(
     ctx.globalAlpha = opacity;
   }
   ctx.strokeStyle = colorStr;
-  ctx.shadowColor = isHitFlashing ? colors.white : colorStr;
+  const hitFlashColor = resolveThemeColorWithFallback(world, colors.white, "hitFlash");
+  ctx.shadowColor = isHitFlashing ? hitFlashColor : colorStr;
   ctx.shadowBlur = isHitFlashing ? 20 : 10;
   ctx.lineWidth = lineWidth;
   return { color: colorStr, isHitFlashing };
@@ -34,7 +36,7 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
     if (!setup) return;
 
     const { render, customGeom, size, tick, isThrusting } = setup;
-    let baseColor = render.color || colors.cyan;
+    let baseColor = render.color || resolveThemeColorWithFallback(world, colors.cyan, "player-ship", "player", "primary");
 
     ctx.save();
 
@@ -54,6 +56,8 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
         ctx.globalAlpha = invState.opacity;
       }
     }
+
+    const hitFlashColor = resolveThemeColorWithFallback(world, colors.white, "hitFlash");
 
     if (customGeom) {
       // Data-driven Concept Pack geometry rendering
@@ -75,7 +79,7 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
         size,
         baseColor,
         isHitFlashing,
-        hitFlashColor: colors.white,
+        hitFlashColor,
         isThrusting,
         tick,
       });
@@ -89,10 +93,12 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
 
     if (isThrusting) {
       const { flameLen, sparks } = computeThrustFlame(size, world.renderRandom);
+      const thrustFlameColor = resolveThemeColorWithFallback(world, colors.orangeDark, "thrustFlame", "accent");
+      const sparkColor = resolveThemeColorWithFallback(world, colors.gold, "spark", "secondary");
 
-      ctx.strokeStyle = colors.orangeDark;
-      ctx.fillStyle = colors.gold;
-      ctx.shadowColor = colors.orangeDark;
+      ctx.strokeStyle = thrustFlameColor;
+      ctx.fillStyle = sparkColor;
+      ctx.shadowColor = thrustFlameColor;
       ctx.shadowBlur = 10;
       ctx.lineWidth = 2;
 
@@ -104,7 +110,7 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = colors.white;
+      ctx.fillStyle = resolveThemeColorWithFallback(world, colors.white, "spark", "primary");
       for (let i = 0; i < sparks.length; i++) {
         const { sparkOffset, sparkY, sparkRadius } = sparks[i];
         ctx.beginPath();
@@ -117,7 +123,7 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
       ctx,
       tick,
       baseColor,
-      isHitFlashing ? colors.overlay : colors.border,
+      isHitFlashing ? resolveThemeColorWithFallback(world, colors.overlay, "overlay") : resolveThemeColorWithFallback(world, colors.border, "border"),
       (c, widthScale) => {
         const s = size * breath * widthScale;
         c.moveTo(s * SHIP_FORWARD_AXIS.x, s * SHIP_FORWARD_AXIS.y);
@@ -137,8 +143,8 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
     );
 
     if (isHitFlashing) {
-      ctx.strokeStyle = colors.white;
-      ctx.shadowColor = colors.white;
+      ctx.strokeStyle = hitFlashColor;
+      ctx.shadowColor = hitFlashColor;
       ctx.shadowBlur = 20;
       ctx.lineWidth = 3;
       ctx.beginPath();
@@ -161,18 +167,18 @@ export const drawAsteroidsPlayerShip: ShapeDrawer<CanvasRenderingContext2D, Aste
  */
 export const drawAsteroidsUfo: ShapeDrawer<CanvasRenderingContext2D, AsteroidsComponentRegistry> = {
   draw(ctx, world, entity) {
-    const setup = resolveAsteroidSaucerSetup(world.getComponent(entity, "Render"), colors.cyan);
+    const setup = resolveAsteroidSaucerSetup(world.getComponent(entity, "Render"), resolveThemeColorWithFallback(world, colors.cyan, "ufo", "enemy"));
     if (!setup) return;
 
     const { render, radius, baseColor } = setup;
 
     ctx.save();
 
-    const { isHitFlashing } = applyAsteroidHitFlashStroke(ctx, render, baseColor, 2);
+    const { isHitFlashing } = applyAsteroidHitFlashStroke(ctx, world, render, baseColor, 2);
 
     ctx.beginPath();
     ctx.ellipse(0, 0, radius, radius * 0.4, 0, 0, Math.PI * 2);
-    ctx.fillStyle = isHitFlashing ? colors.overlay : colors.border;
+    ctx.fillStyle = isHitFlashing ? resolveThemeColorWithFallback(world, colors.overlay, "overlay") : resolveThemeColorWithFallback(world, colors.border, "border");
     ctx.fill();
     ctx.stroke();
 
@@ -195,17 +201,17 @@ export const drawAsteroidsAsteroid: ShapeDrawer<CanvasRenderingContext2D, Astero
 
     const { render, radius, customGeom } = setup;
 
-    const baseColor = render.color || colors.pink;
+    const baseColor = render.color || resolveThemeColorWithFallback(world, colors.pink, "asteroid", "enemy");
     ctx.save();
 
-    const { isHitFlashing } = applyAsteroidHitFlashStroke(ctx, render, baseColor, 2);
+    const { isHitFlashing } = applyAsteroidHitFlashStroke(ctx, world, render, baseColor, 2);
 
     if (customGeom) {
       drawFromGeometryProfileCanvas(ctx, customGeom, {
         size: radius * 2,
         baseColor,
         isHitFlashing,
-        hitFlashColor: colors.white,
+        hitFlashColor: resolveThemeColorWithFallback(world, colors.white, "hitFlash"),
       });
       ctx.restore();
       return;
@@ -226,7 +232,7 @@ export const drawAsteroidsAsteroid: ShapeDrawer<CanvasRenderingContext2D, Astero
     }
     ctx.closePath();
 
-    ctx.fillStyle = isHitFlashing ? colors.overlay : colors.border;
+    ctx.fillStyle = isHitFlashing ? resolveThemeColorWithFallback(world, colors.overlay, "overlay") : resolveThemeColorWithFallback(world, colors.border, "border");
     ctx.fill();
     ctx.stroke();
 
@@ -247,7 +253,7 @@ export const drawAsteroidsBullet: ShapeDrawer<CanvasRenderingContext2D, Asteroid
     const customGeom = theme?.visualTheme?.shapeTokens?.projectileGeometry;
 
     const size = render.size || 2;
-    const color = render.color || colors.green;
+    const color = render.color || resolveThemeColorWithFallback(world, colors.green, "bullet", "player-bullet");
 
     ctx.save();
 
@@ -273,7 +279,7 @@ export const drawAsteroidsBullet: ShapeDrawer<CanvasRenderingContext2D, Asteroid
     ctx.stroke();
 
     ctx.shadowBlur = 0;
-    ctx.strokeStyle = colors.white;
+    ctx.strokeStyle = resolveThemeColorWithFallback(world, colors.white, "bulletCore", "bullet");
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(-length / 2, 0);

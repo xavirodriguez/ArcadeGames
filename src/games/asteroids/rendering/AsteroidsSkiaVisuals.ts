@@ -1,4 +1,4 @@
-import { EffectDrawer, ShapeDrawer, RenderContext, World, RenderComponent, SHIP_FORWARD_AXIS, THEME_RESOURCE_KEY, Theme } from "@tiny-aster/core";
+import { ShapeDrawer, RenderComponent, SHIP_FORWARD_AXIS, THEME_RESOURCE_KEY, Theme, resolveThemeColorWithFallback } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import { colors } from "../../../theme/colors";
 import { computeAsteroidSilhouette, computeThrustFlame } from "../../shared/rendering/ProceduralShapeUtils";
@@ -51,7 +51,7 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<SkCanvas, AsteroidsCompone
 
     canvas.save();
 
-    let { opacity, colorStr } = resolveAsteroidOpacityAndColor(render, colors.cyan);
+    let { opacity, colorStr } = resolveAsteroidOpacityAndColor(render, resolveThemeColorWithFallback(world, colors.cyan, "player-ship", "player", "primary"));
 
     // Invulnerability Pulse
     if (world.hasComponent(entity, "Invulnerable")) {
@@ -97,9 +97,12 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<SkCanvas, AsteroidsCompone
 
     if (isThrusting) {
       const { flameLen, sparks } = computeThrustFlame(size, world.renderRandom);
+      const sparkColor = resolveThemeColorWithFallback(world, colors.gold, "spark", "secondary");
+      const thrustFlameColor = resolveThemeColorWithFallback(world, colors.orangeDark, "thrustFlame", "accent");
+      const sparkCoreColor = resolveThemeColorWithFallback(world, colors.white, "spark", "primary");
 
       paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color(colors.gold));
+      paint.setColor(Skia.Color(sparkColor));
       paint.setAlphaf(opacity * 0.7);
 
       const flamePath = Skia.Path.Make();
@@ -110,13 +113,13 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<SkCanvas, AsteroidsCompone
       canvas.drawPath(flamePath, paint);
 
       paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(Skia.Color(colors.orangeDark));
+      paint.setColor(Skia.Color(thrustFlameColor));
       paint.setStrokeWidth(2);
       paint.setAlphaf(opacity);
       canvas.drawPath(flamePath, paint);
 
       paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color(colors.white));
+      paint.setColor(Skia.Color(sparkCoreColor));
       paint.setAlphaf(opacity);
       for (let i = 0; i < sparks.length; i++) {
         const { sparkOffset, sparkY, sparkRadius } = sparks[i];
@@ -161,14 +164,14 @@ export const drawSkiaAsteroidsPlayerShip: ShapeDrawer<SkCanvas, AsteroidsCompone
  */
 export const drawSkiaAsteroidsUfo: ShapeDrawer<SkCanvas, AsteroidsComponentRegistry> = {
   draw(canvas, world, entity) {
-    const setup = resolveAsteroidSaucerSetup(getVisibleSkiaRender(world, entity), colors.cyan);
+    const setup = resolveAsteroidSaucerSetup(getVisibleSkiaRender(world, entity), resolveThemeColorWithFallback(world, colors.cyan, "ufo", "enemy"));
     if (!setup) return;
 
     const { render, radius } = setup;
 
     canvas.save();
 
-    const { paint } = setupAsteroidStrokePaint(render, colors.cyan, 2);
+    const { paint } = setupAsteroidStrokePaint(render, resolveThemeColorWithFallback(world, colors.cyan, "ufo", "enemy"), 2);
 
     const ufoPath = Skia.Path.Make();
     ufoPath.addOval({ x: -radius, y: -radius * 0.4, width: radius * 2, height: radius * 0.8 });
@@ -195,7 +198,7 @@ export const drawSkiaAsteroidsAsteroid: ShapeDrawer<SkCanvas, AsteroidsComponent
 
     canvas.save();
 
-    const { opacity, colorStr, paint } = setupAsteroidStrokePaint(render, colors.pink, 2);
+    const { opacity, colorStr, paint } = setupAsteroidStrokePaint(render, resolveThemeColorWithFallback(world, colors.pink, "asteroid", "enemy"), 2);
 
     if (customGeom) {
       const adapter = new SkiaDrawAdapter(canvas);
@@ -246,7 +249,7 @@ export const drawSkiaAsteroidsBullet: ShapeDrawer<SkCanvas, AsteroidsComponentRe
     const customGeom = theme?.visualTheme?.shapeTokens?.projectileGeometry;
 
     const size = render.size || 2;
-    const colorStr = render.color || colors.green;
+    const colorStr = render.color || resolveThemeColorWithFallback(world, colors.green, "bullet", "player-bullet");
 
     canvas.save();
 
@@ -272,7 +275,7 @@ export const drawSkiaAsteroidsBullet: ShapeDrawer<SkCanvas, AsteroidsComponentRe
     paint.setStrokeWidth(3);
     canvas.drawLine(-length / 2, 0, length / 2, 0, paint);
 
-    paint.setColor(Skia.Color(colors.white));
+    paint.setColor(Skia.Color(resolveThemeColorWithFallback(world, colors.white, "bulletCore", "bullet")));
     paint.setStrokeWidth(1);
     canvas.drawLine(-length / 2, 0, length / 2, 0, paint);
 

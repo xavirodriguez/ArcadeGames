@@ -4,11 +4,11 @@ import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/Ast
 import { CombatDeathEvent } from "@tiny-aster/gameplay-kit";
 import { fragmentAsteroid } from "../EntityFactory";
 import { spawnScorePopup } from "@tiny-aster/gameplay-kit";
-import { createSharedParticle, EXPLOSION_PROFILES, spawnLayeredExplosion } from "../../shared/rendering/SharedVFX";
-import { spawnIceShardFracture } from "../mods/iceberg/IcebergFracture";
+import { spawnLayeredExplosion } from "../../shared/rendering/SharedVFX";
 import { getLogsForLevel } from "../story/StoryBeats";
 import { colors } from "../../../theme/colors";
 import { applyComboKill } from "../../shared/arcade/ComboUtils";
+import type { AsteroidsVisualMod } from "../mods/types";
 
 /**
  * System to resolve collision logic for Asteroids.
@@ -19,9 +19,6 @@ import { applyComboKill } from "../../shared/arcade/ComboUtils";
  * @public
  */
 export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, AsteroidsEventRegistry> {
-  private static readonly ASTEROID_EXPLOSION_COLORS = [colors.pink, colors.magenta, colors.white] as const;
-  private static readonly SHIP_EXPLOSION_COLORS = [colors.cyan, colors.orange, colors.white] as const;
-
   private processedDeaths = new Set<number>();
   private destroyedEntities = new Set<number>();
 
@@ -151,10 +148,9 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
     transform: { x: number; y: number },
     size: "large" | "medium" | "small" | "ship"
   ): void {
-    // Borealis skin: crystalline fracture instead of neon explosion
-    const visualMod = world.getResource<{ particleStyle?: string }>("VisualMod");
-    if (visualMod?.particleStyle === "iceShard") {
-      spawnIceShardFracture(world, transform.x, transform.y, size);
+    const visualMod = world.getResource<AsteroidsVisualMod>("VisualMod");
+    if (visualMod?.spawnDestructionEffect) {
+      visualMod.spawnDestructionEffect(world, transform.x, transform.y, size);
       return;
     }
     const explosionType = size === "ship" ? "ship" : size === "large" ? "enemy" : "small";

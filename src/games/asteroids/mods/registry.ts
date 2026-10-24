@@ -2,10 +2,27 @@ import type { AsteroidsVisualMod, AsteroidsVisualModId } from "./types";
 import { classicMod } from "./classic/ClassicMod";
 import { icebergMod } from "./iceberg/IcebergMod";
 
-const MODS: Record<AsteroidsVisualModId, AsteroidsVisualMod> = {
-  classic: classicMod,
-  iceberg: icebergMod
-};
+/**
+ * Dynamic registry map for visual mods.
+ *
+ * Note on Trade-off: Moving from a closed union type Record<AsteroidsVisualModId, AsteroidsVisualMod>
+ * to a string-keyed Map removes compile-time exhaustiveness guarantees that all union IDs are registered.
+ * This trade-off enables dynamic plugin registration via `registerVisualMod`.
+ * Runtime tests in `VisualModRegistry.test.ts` compensate by verifying default mod availability.
+ */
+const MOD_REGISTRY = new Map<string, AsteroidsVisualMod>([
+  ["classic", classicMod],
+  ["iceberg", icebergMod]
+]);
+
+/**
+ * Registers a new visual mod plugin or overrides an existing mod by ID.
+ *
+ * @public
+ */
+export function registerVisualMod(mod: AsteroidsVisualMod): void {
+  MOD_REGISTRY.set(mod.id, mod);
+}
 
 /**
  * Resolves a visual mod id from config / gameOptions.
@@ -14,8 +31,10 @@ const MODS: Record<AsteroidsVisualModId, AsteroidsVisualMod> = {
  * @public
  */
 export function resolveVisualMod(id: string | undefined | null): AsteroidsVisualMod {
-  if (id === "iceberg") return MODS.iceberg;
-  return MODS.classic;
+  if (id && MOD_REGISTRY.has(id)) {
+    return MOD_REGISTRY.get(id)!;
+  }
+  return MOD_REGISTRY.get("classic") ?? classicMod;
 }
 
 /**
@@ -24,7 +43,7 @@ export function resolveVisualMod(id: string | undefined | null): AsteroidsVisual
  * @public
  */
 export function listVisualMods(): ReadonlyArray<{ id: AsteroidsVisualModId; displayName: string }> {
-  return Object.values(MODS).map((m) => ({ id: m.id, displayName: m.displayName }));
+  return Array.from(MOD_REGISTRY.values()).map((m) => ({ id: m.id, displayName: m.displayName }));
 }
 
-export { MODS };
+export { MOD_REGISTRY as MODS };

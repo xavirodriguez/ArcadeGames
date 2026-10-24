@@ -1,17 +1,18 @@
 import { World } from "@tiny-aster/core";
 import { resolveFroggerSlotColors } from "../FroggerRenderUtils";
 import { FroggerComponentRegistry } from "../../types/FroggerTypes";
+import { FROGGER_VISUAL_TOKENS } from "../FroggerVisualTokens";
 
 describe("resolveFroggerSlotColors unit tests", () => {
-  it("returns fallback slot and occupied colors when Theme resource is missing", () => {
+  it("uses the fixed art-direction palette when Theme resource is missing", () => {
     const world = new World<FroggerComponentRegistry>();
     const slotColors = resolveFroggerSlotColors(world);
 
-    expect(slotColors.slotColor).toBe("#00AA44");
-    expect(slotColors.occupiedColor).toBe("#39FF14");
+    expect(slotColors.slotColor).toBe(FROGGER_VISUAL_TOKENS.lilyPads.free);
+    expect(slotColors.occupiedColor).toBe(FROGGER_VISUAL_TOKENS.lilyPads.occupied);
   });
 
-  it("resolves theme colors when Theme resource defines color overrides", () => {
+  it("keeps the Frogger art palette stable when a global Theme tries to override it", () => {
     const world = new World<FroggerComponentRegistry>();
     world.setResource("Theme", {
       colorMap: {
@@ -21,7 +22,7 @@ describe("resolveFroggerSlotColors unit tests", () => {
     });
 
     const slotColors = resolveFroggerSlotColors(world);
-    expect(slotColors.slotColor).toBe("#112233");
-    expect(slotColors.occupiedColor).toBe("#ff00bb");
+    expect(slotColors.slotColor).toBe("#2F8F7A");
+    expect(slotColors.occupiedColor).toBe("#B6F23C");
   });
 });

@@ -545,6 +545,8 @@ export class SpaceInvadersGame
         r.registerBackgroundEffect("combo_hud", drawSpaceInvadersComboHUD);
         const { drawExplosionBackgroundEffect } = require("./rendering/SpaceInvadersCanvasVisuals");
         r.registerBackgroundEffect("explosion_vfx", drawExplosionBackgroundEffect);
+        const { registerNauticalChartCanvasEffects } = require("./rendering/registerNauticalChartEffects");
+        registerNauticalChartCanvasEffects(r);
       },
       skia: (r) => {
         const {
@@ -564,6 +566,8 @@ export class SpaceInvadersGame
         r.registerShape("shield_block", drawSkiaSpaceInvadersShield);
         r.registerShape("particle", drawSkiaSpaceInvadersParticle);
         r.registerBackgroundEffect("explosion_vfx", drawSkiaExplosionBackgroundEffect);
+        const { registerNauticalChartSkiaEffects } = require("./rendering/registerNauticalChartEffects");
+registerNauticalChartSkiaEffects(r);
       }
     });
 

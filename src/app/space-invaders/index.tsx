@@ -1,5 +1,11 @@
 import { useState, useEffect, useCallback, useRef, FC } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Platform } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  Platform,
+} from "react-native";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { TouchVirtualJoystick, TouchActionButton } from "@/components/controls";
@@ -61,8 +67,25 @@ export default function SpaceInvadersScreen() {
   const [isMulti, setIsMulti] = useState(false);
   const [isDaily, setIsDaily] = useState(false);
   const [selectedThemeId, setSelectedThemeId] = useState<string | null>(null);
-  const selectedTheme = selectedThemeId ? availableConceptPacks[selectedThemeId] : undefined;
-  const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useSpaceInvadersGame(started, isMulti && started, initialSeed, selectedTheme);
+  const selectedTheme = selectedThemeId
+    ? availableConceptPacks[selectedThemeId]
+    : undefined;
+  const {
+    game,
+    gameState,
+    handleInput,
+    isPaused,
+    isReady,
+    togglePause,
+    highScore,
+    seed,
+    restartWithSeed,
+  } = useSpaceInvadersGame(
+    started,
+    isMulti && started,
+    initialSeed,
+    selectedTheme
+  );
 
   const touchStateRef = useRef<TouchInputState | null>(null);
   if (!touchStateRef.current) {
@@ -129,7 +152,11 @@ export default function SpaceInvadersScreen() {
     }
   }, [isAttractMode, game]);
 
-  const { room, connected, handleMultiplayerInput: sendNetInput } = useMultiplayerGame<SpaceInvadersGame, InputState>({
+  const {
+    room,
+    connected,
+    handleMultiplayerInput: sendNetInput,
+  } = useMultiplayerGame<SpaceInvadersGame, InputState>({
     game,
     roomName: "space-invaders",
     playerName,
@@ -137,9 +164,11 @@ export default function SpaceInvadersScreen() {
   });
 
   useEffect(() => {
-    MutatorService.isMutatorModeEnabled().then(enabled => {
+    MutatorService.isMutatorModeEnabled().then((enabled) => {
       if (enabled) {
-        setActiveMutators(MutatorService.getActiveMutatorsForGame("space-invaders"));
+        setActiveMutators(
+          MutatorService.getActiveMutatorsForGame("space-invaders")
+        );
       }
     });
   }, []);
@@ -151,14 +180,17 @@ export default function SpaceInvadersScreen() {
     gameState: gameState ?? { isGameOver: false },
   });
 
-  const handleMultiplayerInput = useCallback((input: Partial<InputState>) => {
-    if (isMulti && room) {
-      sendNetInput(input);
-    } else {
-      handleInput(input);
-      game?.setInputState(input);
-    }
-  }, [isMulti, room, sendNetInput, handleInput, game]);
+  const handleMultiplayerInput = useCallback(
+    (input: Partial<InputState>) => {
+      if (isMulti && room) {
+        sendNetInput(input);
+      } else {
+        handleInput(input);
+        game?.setInputState(input);
+      }
+    },
+    [isMulti, room, sendNetInput, handleInput, game]
+  );
 
   // Activate keyboard controls for Web
   useKeyboardControls(game, isReady, handleMultiplayerInput);
@@ -189,7 +221,11 @@ export default function SpaceInvadersScreen() {
           }}
           playerName={playerName}
           onPlayerNameChange={handlePlayerNameChange}
-          instructions={Platform.OS === "web" ? t["space-invaders"].instructions : t.common.touch_controls}
+          instructions={
+            Platform.OS === "web"
+              ? t["space-invaders"].instructions
+              : t.common.touch_controls
+          }
           onSeedChange={setInitialSeed}
           onStartDaily={(dailySeed) => {
             hapticSelection();
@@ -218,10 +254,15 @@ export default function SpaceInvadersScreen() {
             topLeftSlot={<BackButton label={t.common.menu} />}
             hudSlot={
               <>
-                <ComboDisplay multiplier={gameState?.multiplier || 1} isActive={true} />
+                <ComboDisplay
+                  multiplier={gameState?.multiplier || 1}
+                  isActive={true}
+                />
                 <SpaceInvadersUI
                   gameState={gameState}
-                  onRestart={() => isMulti ? room?.send("start_game") : game.restart()}
+                  onRestart={() =>
+                    isMulti ? room?.send("start_game") : game.restart()
+                  }
                   onPause={() => togglePause()}
                   isPaused={isPaused}
                   highScore={highScore}
@@ -243,7 +284,10 @@ export default function SpaceInvadersScreen() {
             controlsSlot={
               !gameState?.isGameOver ? (
                 <View style={styles.controls} pointerEvents="box-none">
-                  <View style={{ flex: 1, height: '100%' }} pointerEvents="box-none">
+                  <View
+                    style={{ flex: 1, height: "100%" }}
+                    pointerEvents="box-none"
+                  >
                     <TouchVirtualJoystick
                       touchState={touchStateRef.current ?? undefined}
                       floating={true}
@@ -261,14 +305,24 @@ export default function SpaceInvadersScreen() {
                       }}
                     />
                   </View>
-                  <View style={{ width: 120, height: '100%', justifyContent: 'flex-end', alignItems: 'center' }} pointerEvents="box-none">
+                  <View
+                    style={{
+                      width: 120,
+                      height: "100%",
+                      justifyContent: "flex-end",
+                      alignItems: "center",
+                    }}
+                    pointerEvents="box-none"
+                  >
                     <TouchActionButton
                       label="🔥"
                       buttonName="shoot"
                       touchState={touchStateRef.current ?? undefined}
                       size={80}
                       onPressIn={() => handleMultiplayerInput({ shoot: true })}
-                      onPressOut={() => handleMultiplayerInput({ shoot: false })}
+                      onPressOut={() =>
+                        handleMultiplayerInput({ shoot: false })
+                      }
                     />
                   </View>
                 </View>
@@ -287,12 +341,16 @@ export default function SpaceInvadersScreen() {
                     }}
                   >
                     <Text style={styles.attractTitle}>DEMO MODE</Text>
-                    <Text style={styles.attractSubtitle}>TAP ANYWHERE TO PLAY</Text>
+                    <Text style={styles.attractSubtitle}>
+                      TAP ANYWHERE TO PLAY
+                    </Text>
                   </TouchableOpacity>
                 )}
                 {isMulti && !connected && (
                   <View style={sharedScreenStyles.overlay}>
-                    <Text style={sharedScreenStyles.overlayText}>{t.common.connecting}</Text>
+                    <Text style={sharedScreenStyles.overlayText}>
+                      {t.common.connecting}
+                    </Text>
                   </View>
                 )}
                 {showDailyResults && seed !== undefined && (
@@ -362,32 +420,73 @@ const StartScreen: FC<{
           <Text style={styles.themeSelectorLabel}>TEMA / CONCEPT PACK:</Text>
           <View style={styles.themeSelectorRow}>
             <TouchableOpacity
-              style={[styles.themeOptionButton, selectedThemeId === null && styles.themeOptionSelected]}
+              style={[
+                styles.themeOptionButton,
+                selectedThemeId === null && styles.themeOptionSelected,
+              ]}
               onPress={() => {
                 hapticSelection();
                 onSelectTheme(null);
               }}
             >
-              <Text style={[styles.themeOptionText, selectedThemeId === null && styles.themeOptionTextSelected]}>
+              <Text
+                style={[
+                  styles.themeOptionText,
+                  selectedThemeId === null && styles.themeOptionTextSelected,
+                ]}
+              >
                 Clásico
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.themeOptionButton, selectedThemeId === "siege_shield_wall" && styles.themeOptionSelected]}
+              style={[
+                styles.themeOptionButton,
+                selectedThemeId === "siege_shield_wall" &&
+                  styles.themeOptionSelected,
+              ]}
               onPress={() => {
                 hapticSelection();
                 onSelectTheme("siege_shield_wall");
               }}
             >
-              <Text style={[styles.themeOptionText, selectedThemeId === "siege_shield_wall" && styles.themeOptionTextSelected]}>
+              <Text
+                style={[
+                  styles.themeOptionText,
+                  selectedThemeId === "siege_shield_wall" &&
+                    styles.themeOptionTextSelected,
+                ]}
+              >
                 Asedio de la Muralla
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.themeOptionButton,
+                selectedThemeId === "aqui_hay_dragones" &&
+                  styles.themeOptionSelected,
+              ]}
+              onPress={() => {
+                hapticSelection();
+                onSelectTheme("aqui_hay_dragones");
+              }}
+            >
+              <Text
+                style={[
+                  styles.themeOptionText,
+                  selectedThemeId === "aqui_hay_dragones" &&
+                    styles.themeOptionTextSelected,
+                ]}
+              >
+                Aquí hay dragones
               </Text>
             </TouchableOpacity>
           </View>
         </View>
       )}
 
-      {onStartDaily && <DailyChallengeBanner gameId="space-invaders" onPlay={onStartDaily} />}
+      {onStartDaily && (
+        <DailyChallengeBanner gameId="space-invaders" onPlay={onStartDaily} />
+      )}
 
       <MutatorBadge mutators={activeMutators} />
 
@@ -400,34 +499,34 @@ const StartScreen: FC<{
       )}
 
       <View style={sharedScreenStyles.buttonRow}>
-          <NeonButton
-            variant="white"
-            onPress={() => {
-              hapticSelection();
-              onStart();
-            }}
-            accessibilityLabel={t.common.solo}
-            accessibilityHint="Inicia una partida individual de Space Invaders"
-          >
-              {t.common.solo}
-          </NeonButton>
+        <NeonButton
+          variant="white"
+          onPress={() => {
+            hapticSelection();
+            onStart();
+          }}
+          accessibilityLabel={t.common.solo}
+          accessibilityHint="Inicia una partida individual de Space Invaders"
+        >
+          {t.common.solo}
+        </NeonButton>
 
-          {MULTIPLAYER_CONFIG.STATE !== 'hidden' && (
-              <>
-                  <View style={styles.spacerHorizontal20} />
-                  <NeonButton
-                    variant="cyan"
-                    onPress={() => {
-                      hapticSelection();
-                      onStartMulti();
-                    }}
-                    accessibilityLabel={t.common.multi}
-                    accessibilityHint="Inicia una sesión multijugador en línea"
-                  >
-                      {t.common.multi}
-                  </NeonButton>
-              </>
-          )}
+        {MULTIPLAYER_CONFIG.STATE !== "hidden" && (
+          <>
+            <View style={styles.spacerHorizontal20} />
+            <NeonButton
+              variant="cyan"
+              onPress={() => {
+                hapticSelection();
+                onStartMulti();
+              }}
+              accessibilityLabel={t.common.multi}
+              accessibilityHint="Inicia una sesión multijugador en línea"
+            >
+              {t.common.multi}
+            </NeonButton>
+          </>
+        )}
       </View>
     </GameScreen>
   );

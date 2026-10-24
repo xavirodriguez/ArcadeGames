@@ -74,3 +74,21 @@ Implemented on `feat/frogger-directional-vehicles`:
 - [ ] Check that car and truck silhouettes remain legible with traffic moving in both directions on a device/emulator.
 
 The phase changes only render instructions and semantic visual tokens. Vehicle speed, direction, transform, collider dimensions, collision layers and row layout remain unchanged.
+
+
+## Phase 5 — Arcade HUD and screen composition
+
+Implemented on `feat/frogger-arcade-hud`:
+
+- [x] Replace the neon score row with a compact dark-ink panel using the shared art-direction palette.
+- [x] Format score into grouped, zero-padded digits (for example, `004 250`) without modifying the actual score.
+- [x] Render lives as small frog silhouettes, with remaining lives bright and lost lives muted; expose the exact count for accessibility.
+- [x] Show the level label, occupied/total goals and remaining seconds.
+- [x] Derive the timer bar from the current `FroggerState.timeRemaining` and the configured level time limit; change its accent to coral at 25% remaining or below.
+- [x] Read the active runtime `GameConfig` for the configured initial lives and time-limit curve.
+- [x] Recolor touch controls and the game-over/retry overlay to the sunset palette, removing the green neon styling from gameplay controls.
+- [x] Add pure unit tests for score formatting, time-limit calculation and clamped timer progress.
+- [ ] Verify the complete HUD and controls do not obscure active lanes at 390×844 and 360×800.
+- [ ] Capture and compare the final HUD in Canvas and Skia on a real device/emulator.
+
+The HUD reads existing game state and configuration. It introduces no changes to scoring, life awarding, timer ticks, gameplay configuration, input handling or collisions.

@@ -34,12 +34,13 @@ export const drawSkiaSpaceInvadersShield: ShapeDrawer<SkCanvas, SpaceInvadersCom
     canvas.save();
 
     if (customGeom) {
+      const erodeScale = 0.55 + 0.45 * ratio;
       const adapter = new SkiaDrawAdapter(canvas);
       drawFromGeometryProfileAdapter(adapter, customGeom, {
-        size: size * 1.8,
+        size: size * 1.8 * erodeScale,
         baseColor: colorStr,
-        globalAlpha: opacity * (0.35 + 0.65 * ratio),
-        isHitFlashing: opacity < 1.0,
+        globalAlpha: opacity * (0.3 + 0.7 * ratio),
+        isHitFlashing: opacity < 1.0 || ratio < 0.85,
       });
       canvas.restore();
       return;

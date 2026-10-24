@@ -131,6 +131,10 @@ export interface BiomeProfile {
   glowRadius: number;
   cloudOpacity: number;
   islandStyle: "lush" | "ruins" | "crystal";
+  rayColor: string;
+  lightningColor: string;
+  crystalShadowColor: string;
+  crystalEdgeColor: string;
 }
 
 export const BIOMES: Record<BiomeKind, BiomeProfile> = {
@@ -153,6 +157,10 @@ export const BIOMES: Record<BiomeKind, BiomeProfile> = {
     glowRadius: 0.48,
     cloudOpacity: 0.56,
     islandStyle: "lush",
+    rayColor: SHMUP_COLOR_TOKENS.gold.sunlight,
+    lightningColor: SHMUP_COLOR_TOKENS.sky.light,
+    crystalShadowColor: SHMUP_COLOR_TOKENS.sky.deep,
+    crystalEdgeColor: SHMUP_COLOR_TOKENS.sky.light,
   },
   gardens: {
     id: "gardens",
@@ -173,6 +181,10 @@ export const BIOMES: Record<BiomeKind, BiomeProfile> = {
     glowRadius: 0.62,
     cloudOpacity: 0.62,
     islandStyle: "lush",
+    rayColor: "#BDF7D8",
+    lightningColor: SHMUP_COLOR_TOKENS.sky.light,
+    crystalShadowColor: SHMUP_COLOR_TOKENS.foliage.deep,
+    crystalEdgeColor: SHMUP_COLOR_TOKENS.foliage.light,
   },
   temples: {
     id: "temples",
@@ -193,6 +205,10 @@ export const BIOMES: Record<BiomeKind, BiomeProfile> = {
     glowRadius: 0.44,
     cloudOpacity: 0.48,
     islandStyle: "ruins",
+    rayColor: SHMUP_COLOR_TOKENS.gold.sunlight,
+    lightningColor: SHMUP_COLOR_TOKENS.sky.light,
+    crystalShadowColor: SHMUP_COLOR_TOKENS.architecture,
+    crystalEdgeColor: SHMUP_COLOR_TOKENS.gold.sunlight,
   },
   storm: {
     id: "storm",
@@ -213,6 +229,10 @@ export const BIOMES: Record<BiomeKind, BiomeProfile> = {
     glowRadius: 0.56,
     cloudOpacity: 0.72,
     islandStyle: "crystal",
+    rayColor: "#8CCBFF",
+    lightningColor: "#8CCBFF",
+    crystalShadowColor: "#15283F",
+    crystalEdgeColor: "#76CFFF",
   },
 };
 

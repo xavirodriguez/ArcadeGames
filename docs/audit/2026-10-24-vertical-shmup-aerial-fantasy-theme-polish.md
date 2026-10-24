@@ -82,3 +82,26 @@ Acceptance:
 - No ECS entities for decorative clouds, islands, or ambient particles.
 - No wholesale rewrite of the renderers.
 - No claim that static inspection proves runtime or visual correctness.
+
+
+## Implementation update — `feat/vertical-shmup-theme-polish`
+
+### Enemy archetypes
+
+- Added `ShmupEnemyArchetype` to the `ShmupEnemy` component: `scout`, `interceptor`, `armored`, `support`, `boss`.
+- `createEnemy` now stores an explicit archetype; direct factory callers default safely to `scout`.
+- Added the pure `selectShmupEnemyArchetype(wave, spawnIndex)` selector. Wave and spawn slot select the silhouette; movement path still controls only movement.
+- Spawn squads and the initial scene now pass archetypes explicitly. A boss is reserved for slot zero of waves divisible by four after wave one.
+- The visual context reads the stored archetype and no longer infers identity from `EnemyPath.kind` or sprite size.
+
+### Biome background pass
+
+- Extended the shared `BIOMES` profiles with atmosphere style, light source position/color/radius, cloud opacity, and landform style.
+- Canvas and Skia now render biome-specific light rays or storm lightning, opacity-controlled cloud layers, distinct lush/ruin/crystal island silhouettes, and matching particle motifs.
+- All decoration remains derived from existing world time, wave, and deterministic parallax data. No gameplay RNG is used for visual effects.
+
+### Validation status
+
+- Added `VerticalShmupTheme.test.ts` for path/archetype independence, deterministic archetype selection, four-biome selection, and bounded parallax decoration counts.
+- These tests and TypeScript/lint checks have **not yet been executed** in this environment. A local clone was blocked by unavailable DNS/network access; the CI result must be checked on the pull request before treating the changes as validated.
+- No in-game screenshots or Canvas/Skia visual comparison have been captured, so rendering parity is a code-level intent, not a visually verified result.

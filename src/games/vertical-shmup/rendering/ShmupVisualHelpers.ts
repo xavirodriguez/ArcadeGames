@@ -81,7 +81,8 @@ export function resolveShmupEnemyDrawContext(
   const enemyColor = render.color ?? SHMUP_COLOR_TOKENS.enemy.primary;
   const time = world.tick * 0.016;
   // Visual identity is authored by the factory; path and size never infer a silhouette.
-  const archetype = isShmupEnemyArchetype(enemy?.archetype) ? enemy.archetype : "scout";
+  const storedArchetype = enemy?.archetype;
+  const archetype = isShmupEnemyArchetype(storedArchetype) ? storedArchetype : "scout";
 
   const isTelegraphing = pattern ? pattern.cooldownRemaining <= 0.4 : false;
 

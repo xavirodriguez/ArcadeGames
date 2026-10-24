@@ -85,14 +85,8 @@ export const drawSkiaShmupPlayer: ShapeDrawer<SkCanvas, ShmupComponentRegistry> 
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setColor(Skia.Color(colorWithAlpha(SHMUP_COLOR_TOKENS.player.primary, 0.22 + 0.12 * (0.5 + 0.5 * Math.sin(time * 22)))));
     paint.setStrokeWidth(Math.max(1, size * 0.055));
-    const leftExhaust = Skia.Path.Make();
-    leftExhaust.moveTo(-size * 0.25, size * 0.78);
-    leftExhaust.lineTo(-size * 0.25, size * 0.78 + plumeLength * 0.58);
-    canvas.drawPath(leftExhaust, paint);
-    const rightExhaust = Skia.Path.Make();
-    rightExhaust.moveTo(size * 0.25, size * 0.78);
-    rightExhaust.lineTo(size * 0.25, size * 0.78 + plumeLength * 0.58);
-    canvas.drawPath(rightExhaust, paint);
+    canvas.drawLine(-size * 0.25, size * 0.78, -size * 0.25, size * 0.78 + plumeLength * 0.58, paint);
+    canvas.drawLine(size * 0.25, size * 0.78, size * 0.25, size * 0.78 + plumeLength * 0.58, paint);
 
     // Core Plumes
     paint.setStyle(Skia.PaintStyle.Fill);
@@ -286,6 +280,9 @@ export const drawSkiaShmupEnemy: ShapeDrawer<SkCanvas, ShmupComponentRegistry> =
     if (hitFlash > 0) {
       canvas.save();
       paint.setStyle(Skia.PaintStyle.Stroke);
+      paint.setColor(Skia.Color(colorWithAlpha(SHMUP_COLOR_TOKENS.player.primary, hitFlash * 0.38)));
+      paint.setStrokeWidth(5 + hitFlash * 1.5);
+      canvas.drawCircle(0, 0, size * (1.02 + hitFlash * 0.08), paint);
       paint.setColor(Skia.Color(colorWithAlpha(SHMUP_COLOR_TOKENS.player.core, hitFlash * 0.9)));
       paint.setStrokeWidth(1.5 + hitFlash * 2);
       canvas.drawCircle(0, 0, size * (1.02 + hitFlash * 0.08), paint);

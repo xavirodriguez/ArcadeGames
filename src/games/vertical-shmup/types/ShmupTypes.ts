@@ -18,7 +18,8 @@ export interface ShmupKeyboardInputState {
 export type ShmupInputUpdate = Partial<ShmupInputState> | ShmupKeyboardInputState;
 export interface ShmupInputComponent extends Component { type:"Input"; axes:Record<string,number>; actions:any; shootCooldownRemaining:number; }
 export interface ShmupPlayerComponent extends Component { type:"ShmupPlayer"; }
-export interface ShmupEnemyComponent extends Component { type:"ShmupEnemy"; score:number; }
+export type ShmupEnemyArchetype = "scout" | "interceptor" | "armored" | "support" | "boss";
+export interface ShmupEnemyComponent extends Component { type:"ShmupEnemy"; score:number; archetype:ShmupEnemyArchetype; }
 export interface ShmupPlayerBulletComponent extends Component { type:"ShmupPlayerBullet"; }
 export interface ShmupEnemyBulletComponent extends Component { type:"ShmupEnemyBullet"; }
 export interface EnemyPathComponent extends Component { type:"EnemyPath"; kind:"straight"|"sine"|"arc"; elapsed:number; duration:number; speed:number; amplitude:number; frequency:number; originX:number; originY:number; }

@@ -49,7 +49,7 @@ export function createPlayer(world: World<ShmupComponentRegistry>, x: number, y:
   return e;
 }
 
-export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: number, kind: "straight"|"sine"|"arc" = "straight", wave: number = 1, archetype: ShmupEnemyArchetype = "scout"): Entity {
+export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: number, kind: "straight"|"sine"|"arc"|"armored"|"boss" = "straight", wave: number = 1, archetype: ShmupEnemyArchetype = "scout"): Entity {
   const c = world.getResource<ShmupConfig>("GameConfig")!;
   const isBoss = kind === "boss";
   const isArmored = kind === "armored";

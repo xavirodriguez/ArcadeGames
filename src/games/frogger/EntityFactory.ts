@@ -2,6 +2,7 @@ import { World, EntityBuilder, ShapeType, CircleShape, BoxShape, HealthComponent
 import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 import { FroggerComponentRegistry } from "./types/FroggerTypes";
 import { FroggerConfig, DEFAULT_FROGGER_CONFIG } from "./types/FroggerConfigSchema";
+import { FROGGER_VISUAL_TOKENS } from "./rendering/FroggerVisualTokens";
 
 export interface FroggerBlueprintMap extends Record<string, BlueprintDefinition<FroggerComponentRegistry, EventRegistry, unknown>> {
   frogger: BlueprintDefinition<FroggerComponentRegistry, EventRegistry, { gridX: number; gridY: number }>;
@@ -70,7 +71,7 @@ export function registerFroggerBlueprints(world: World<FroggerComponentRegistry>
       EntityBuilder.fromEntity(w, entity)
         .withTransform({ x, y })
         .withVelocity({ vx: 0, vy: 0 })
-        .withRender({ shape: "frogger", size: config.GRID_SIZE - 8, color: "#39FF14", order: 10 })
+        .withRender({ shape: "frogger", size: config.GRID_SIZE - 8, color: FROGGER_VISUAL_TOKENS.frog.body, order: 10 })
         .withCollider({
           shape: { type: ShapeType.Circle, radius: (config.GRID_SIZE - 12) / 2 } as CircleShape,
           layer: CollisionLayers.PLAYER,
@@ -119,7 +120,10 @@ export function registerFroggerBlueprints(world: World<FroggerComponentRegistry>
         direction: args.direction,
         width,
         shape: args.vehicleType === "truck" ? "truck" : "car",
-        color: args.vehicleType === "truck" ? "#FF2A6D" : "#00F3FF",
+        color: args.vehicleType === "truck"
+          ? FROGGER_VISUAL_TOKENS.vehicles.truck
+          : (FROGGER_VISUAL_TOKENS.vehicles.cars[args.row % FROGGER_VISUAL_TOKENS.vehicles.cars.length]
+            ?? FROGGER_VISUAL_TOKENS.vehicles.cars[0]),
         order: 5,
       });
 
@@ -142,8 +146,9 @@ export function registerFroggerBlueprints(world: World<FroggerComponentRegistry>
         args.logType === "turtle" ? "turtle" :
         args.logType === "crocodile" ? "crocodile" : "log";
       const color =
-        args.logType === "turtle" ? "#00D2FF" :
-        args.logType === "crocodile" ? "#2E8B57" : "#8B5A2B";
+        args.logType === "turtle" ? FROGGER_VISUAL_TOKENS.turtles.body :
+        args.logType === "crocodile" ? FROGGER_VISUAL_TOKENS.crocodile.body :
+        FROGGER_VISUAL_TOKENS.logs.body;
 
       spawnMovingGridObstacle(w, entity, {
         row: args.row,
@@ -182,7 +187,7 @@ export function registerFroggerBlueprints(world: World<FroggerComponentRegistry>
 
       EntityBuilder.fromEntity(w, entity)
         .withTransform({ x: args.x, y })
-        .withRender({ shape: "lily_pad", size: config.GRID_SIZE - 4, color: "#00FF66", order: 2 })
+        .withRender({ shape: "lily_pad", size: config.GRID_SIZE - 4, color: FROGGER_VISUAL_TOKENS.lilyPads.body, order: 2 })
         .withCollider({
           shape: { type: ShapeType.Box, width: config.GRID_SIZE, height: config.GRID_SIZE } as BoxShape,
           layer: CollisionLayers.ENEMY,

@@ -1,4 +1,4 @@
-import { ShapeDrawer, EffectDrawer, resolveThemeColorWithFallback } from "@tiny-aster/core";
+import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
 import { FroggerComponentRegistry } from "../types/FroggerTypes";
 import { Skia, type SkCanvas } from "../../shared/rendering/SkiaContext";
 import { getVisibleSkiaRender } from "../../shared/rendering/renderingUtils";
@@ -9,6 +9,7 @@ import {
   resolveFroggerBackgroundContext,
   resolveFroggerSlotColors,
 } from "./FroggerRenderUtils";
+import { FROGGER_VISUAL_TOKENS } from "./FroggerVisualTokens";
 
 function drawSkiaRoundedBox(
   canvas: SkCanvas,
@@ -32,35 +33,35 @@ export const drawFroggerSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = 
     const { half, isInvuln, primaryColor } = playerCtx;
 
     const paint = Skia.Paint();
-    paint.setColor(Skia.Color(isInvuln ? "#A3FF80" : primaryColor));
+    paint.setColor(Skia.Color(isInvuln ? FROGGER_VISUAL_TOKENS.frog.invulnerable : primaryColor));
     canvas.drawCircle(0, 0, half, paint);
 
     const eyePaint = Skia.Paint();
-    eyePaint.setColor(Skia.Color("#FFFFFF"));
+    eyePaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.frog.eyes));
     canvas.drawCircle(-half * 0.4, -half * 0.5, half * 0.35, eyePaint);
     canvas.drawCircle(half * 0.4, -half * 0.5, half * 0.35, eyePaint);
 
     const pupilPaint = Skia.Paint();
-    pupilPaint.setColor(Skia.Color("#000000"));
+    pupilPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.frog.pupils));
     canvas.drawCircle(-half * 0.4, -half * 0.55, half * 0.18, pupilPaint);
     canvas.drawCircle(half * 0.4, -half * 0.55, half * 0.18, pupilPaint);
   },
 };
 
 export const drawCarSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
-  draw(canvas, world, entity) {
-    const render = getVisibleSkiaRender(world, entity);
+  draw(canvas, _world, entity) {
+    const render = getVisibleSkiaRender(_world, entity);
     if (!render) return;
 
     const width = render.size || 48;
-    const carColor = resolveThemeColorWithFallback(world, render.color || "#00F3FF", "car", "secondary");
+    const carColor = render.color || FROGGER_VISUAL_TOKENS.vehicles.cars[0];
     drawSkiaRoundedBox(canvas, width, 30, carColor, 6, 6);
   },
 };
 
 export const drawTruckSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
-  draw(canvas, world, entity) {
-    const render = getVisibleSkiaRender(world, entity);
+  draw(canvas, _world, entity) {
+    const render = getVisibleSkiaRender(_world, entity);
     if (!render) return;
 
     const width = render.size || 80;
@@ -68,24 +69,24 @@ export const drawTruckSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
     const halfW = width / 2;
     const halfH = height / 2;
 
-    const truckColor = resolveThemeColorWithFallback(world, "#FF2A6D", "truck", "accent");
+    const truckColor = render.color || FROGGER_VISUAL_TOKENS.vehicles.truck;
     const paintTrailer = Skia.Paint();
     paintTrailer.setColor(Skia.Color(truckColor));
     canvas.drawRect(Skia.XYWHRect(-halfW, -halfH, width * 0.7, height), paintTrailer);
 
     const paintCab = Skia.Paint();
-    paintCab.setColor(Skia.Color("#D3D9E2"));
+    paintCab.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.vehicles.truckCab));
     canvas.drawRect(Skia.XYWHRect(halfW - width * 0.28, -halfH + 2, width * 0.28, height - 4), paintCab);
   },
 };
 
 export const drawLogSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
-  draw(canvas, world, entity) {
-    const render = getVisibleSkiaRender(world, entity);
+  draw(canvas, _world, entity) {
+    const render = getVisibleSkiaRender(_world, entity);
     if (!render) return;
 
     const width = render.size || 120;
-    const logColor = resolveThemeColorWithFallback(world, "#8B5A2B", "log", "secondary");
+    const logColor = render.color || FROGGER_VISUAL_TOKENS.logs.body;
     drawSkiaRoundedBox(canvas, width, 30, logColor, 10, 10);
   },
 };
@@ -98,24 +99,35 @@ export const drawTurtleSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
     const width = render.size || 80;
     const segments = resolveFroggerShellSegments(width);
 
-    const turtleColor = resolveThemeColorWithFallback(world, "#00D2FF", "turtle", "secondary");
+    const log = world.getComponent(entity, "Log");
+    const turtleColor = log?.divePhase === "warning"
+      ? FROGGER_VISUAL_TOKENS.turtles.warning
+      : log?.divePhase === "submerged"
+        ? FROGGER_VISUAL_TOKENS.turtles.submerged
+        : (render.color || FROGGER_VISUAL_TOKENS.turtles.body);
     const paintOuter = Skia.Paint();
     paintOuter.setColor(Skia.Color(turtleColor));
+    const paintShell = Skia.Paint();
+    paintShell.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.turtles.shell));
 
     for (let i = 0; i < segments.length; i++) {
       canvas.drawCircle(segments[i].segX, 0, 14, paintOuter);
+      canvas.drawCircle(segments[i].segX, 0, 8, paintShell);
     }
   },
 };
 
 export const drawCrocodileSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
-  draw(canvas, world, entity) {
-    const render = getVisibleSkiaRender(world, entity);
+  draw(canvas, _world, entity) {
+    const render = getVisibleSkiaRender(_world, entity);
     if (!render) return;
 
     const width = render.size || 100;
-    const crocColor = resolveThemeColorWithFallback(world, "#2E8B57", "crocodile", "secondary");
+    const crocColor = render.color || FROGGER_VISUAL_TOKENS.crocodile.body;
     drawSkiaRoundedBox(canvas, width, 30, crocColor, 8, 8);
+    const eyePaint = Skia.Paint();
+    eyePaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.crocodile.eyes));
+    canvas.drawCircle(width / 2 - 12, -5, 3, eyePaint);
   },
 };
 

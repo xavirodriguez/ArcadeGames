@@ -5,6 +5,7 @@ import {
   drawTruckCanvas,
   drawLogCanvas,
   drawTurtleCanvas,
+  drawCrocodileCanvas,
   drawLilyPadCanvas,
   froggerBackgroundCanvasEffect,
 } from "../rendering/FroggerCanvasVisuals";
@@ -14,6 +15,7 @@ import {
   drawTruckSkia,
   drawLogSkia,
   drawTurtleSkia,
+  drawCrocodileSkia,
   drawLilyPadSkia,
   froggerBackgroundSkiaEffect,
 } from "../rendering/FroggerSkiaVisuals";
@@ -40,6 +42,7 @@ describe("FroggerPresentation Shape Registration", () => {
     expect(registeredShapes.get("truck")).toBe(drawTruckCanvas);
     expect(registeredShapes.get("log")).toBe(drawLogCanvas);
     expect(registeredShapes.get("turtle")).toBe(drawTurtleCanvas);
+    expect(registeredShapes.get("crocodile")).toBe(drawCrocodileCanvas);
     expect(registeredShapes.get("lily_pad")).toBe(drawLilyPadCanvas);
     expect(registeredEffects.get("froggerBackground")).toBe(froggerBackgroundCanvasEffect);
   });
@@ -65,6 +68,7 @@ describe("FroggerPresentation Shape Registration", () => {
     expect(registeredShapes.get("truck")).toBe(drawTruckSkia);
     expect(registeredShapes.get("log")).toBe(drawLogSkia);
     expect(registeredShapes.get("turtle")).toBe(drawTurtleSkia);
+    expect(registeredShapes.get("crocodile")).toBe(drawCrocodileSkia);
     expect(registeredShapes.get("lily_pad")).toBe(drawLilyPadSkia);
     expect(registeredEffects.get("froggerBackground")).toBe(froggerBackgroundSkiaEffect);
   });

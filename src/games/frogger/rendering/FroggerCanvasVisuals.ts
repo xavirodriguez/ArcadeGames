@@ -7,59 +7,96 @@ import {
   resolveFroggerBackgroundContext,
   resolveFroggerSlotColors,
   resolveFroggerVehicleDirection,
+  resolveFroggerFacingRotation,
+  resolveFroggerTurtleVisualState,
 } from "./FroggerRenderUtils";
 import { FROGGER_BACKGROUND_ROWS, FROGGER_VISUAL_TOKENS } from "./FroggerVisualTokens";
 
 export const drawFroggerCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComponentRegistry> = {
   draw(ctx, world, entity) {
-    const frogger = world.getComponent(entity, "Frogger");
-    const health = world.getComponent(entity, "Health");
-    const invulnerableRemaining =
-      frogger?.invulnerableRemaining ?? health?.invulnerableRemaining ?? 0;
-    const isInvulnerable = invulnerableRemaining > 0;
-    const shouldSkip = isInvulnerable && Math.floor(world.tick / 3) % 2 === 0;
-    if (shouldSkip) return;
-
     const playerCtx = resolveFroggerPlayerDrawContext(world, entity);
     if (!playerCtx) return;
 
     const { half, isInvuln, primaryColor } = playerCtx;
+    const facing = world.getComponent(entity, "Frogger")?.facing;
+    const scale = half / 16;
 
     ctx.save();
+    ctx.rotate(resolveFroggerFacingRotation(facing));
+    ctx.scale(scale, scale);
 
-    ctx.fillStyle = isInvuln ? FROGGER_VISUAL_TOKENS.frog.invulnerable : primaryColor;
-    ctx.shadowColor = FROGGER_VISUAL_TOKENS.shadows.color;
-    ctx.shadowBlur = FROGGER_VISUAL_TOKENS.shadows.blur;
-    ctx.shadowOffsetY = FROGGER_VISUAL_TOKENS.shadows.offsetY;
+    // Contact shadow keeps the frog separate from the background without neon glow.
+    ctx.fillStyle = FROGGER_VISUAL_TOKENS.shadows.color;
     ctx.beginPath();
-    ctx.arc(0, 0, half, 0, Math.PI * 2);
+    ctx.ellipse(0, 8, 9.5, 4, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Eyes
-    ctx.fillStyle = FROGGER_VISUAL_TOKENS.frog.eyes;
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetY = 0;
+    // Rear feet and toes sit behind the body.
+    ctx.fillStyle = FROGGER_VISUAL_TOKENS.frog.limbs;
     ctx.beginPath();
-    ctx.arc(-half * 0.4, -half * 0.5, half * 0.35, 0, Math.PI * 2);
-    ctx.arc(half * 0.4, -half * 0.5, half * 0.35, 0, Math.PI * 2);
+    ctx.ellipse(-8, 5, 4.5, 5.5, -0.35, 0, Math.PI * 2);
+    ctx.ellipse(8, 5, 4.5, 5.5, 0.35, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(-10, 9, 3.5, 2.1, -0.3, 0, Math.PI * 2);
+    ctx.ellipse(-6, 10, 3.1, 1.8, 0.1, 0, Math.PI * 2);
+    ctx.ellipse(10, 9, 3.5, 2.1, 0.3, 0, Math.PI * 2);
+    ctx.ellipse(6, 10, 3.1, 1.8, -0.1, 0, Math.PI * 2);
     ctx.fill();
 
-    // Pupils
-    ctx.fillStyle = FROGGER_VISUAL_TOKENS.frog.pupils;
-    ctx.beginPath();
-    ctx.arc(-half * 0.4, -half * 0.55, half * 0.18, 0, Math.PI * 2);
-    ctx.arc(half * 0.4, -half * 0.55, half * 0.18, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Legs
+    // Forearms extend to the sides; all proportions are art-only.
     ctx.strokeStyle = FROGGER_VISUAL_TOKENS.frog.limbs;
     ctx.lineWidth = 3;
+    ctx.lineCap = "round";
     ctx.beginPath();
-    ctx.moveTo(-half * 0.8, half * 0.2);
-    ctx.lineTo(-half * 1.1, half * 0.8);
-    ctx.moveTo(half * 0.8, half * 0.2);
-    ctx.lineTo(half * 1.1, half * 0.8);
+    ctx.moveTo(-5, 0);
+    ctx.lineTo(-10, 3);
+    ctx.moveTo(5, 0);
+    ctx.lineTo(10, 3);
     ctx.stroke();
+    ctx.fillStyle = FROGGER_VISUAL_TOKENS.frog.body;
+    ctx.beginPath();
+    ctx.arc(-10, 3, 2.3, 0, Math.PI * 2);
+    ctx.arc(10, 3, 2.3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Compact body and pale belly make the character read as a frog, not a green dot.
+    ctx.fillStyle = isInvuln ? FROGGER_VISUAL_TOKENS.frog.invulnerable : primaryColor;
+    ctx.beginPath();
+    ctx.ellipse(0, 2, 8.2, 10.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = FROGGER_VISUAL_TOKENS.frog.belly;
+    ctx.beginPath();
+    ctx.ellipse(0, 4.5, 4.8, 6.2, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Head, eye stalks, eyes and pupils point in the stored facing direction.
+    ctx.fillStyle = isInvuln ? FROGGER_VISUAL_TOKENS.frog.invulnerable : primaryColor;
+    ctx.beginPath();
+    ctx.ellipse(0, -5.2, 8.6, 6.8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = FROGGER_VISUAL_TOKENS.frog.highlight;
+    ctx.beginPath();
+    ctx.ellipse(-2.2, -8.2, 3.3, 1.1, -0.18, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = FROGGER_VISUAL_TOKENS.frog.body;
+    ctx.beginPath();
+    ctx.ellipse(-3.6, -9.1, 3.2, 4.1, -0.1, 0, Math.PI * 2);
+    ctx.ellipse(3.6, -9.1, 3.2, 4.1, 0.1, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = FROGGER_VISUAL_TOKENS.frog.eyes;
+    ctx.beginPath();
+    ctx.ellipse(-3.6, -9.2, 2.55, 3.25, 0, 0, Math.PI * 2);
+    ctx.ellipse(3.6, -9.2, 2.55, 3.25, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = FROGGER_VISUAL_TOKENS.frog.pupils;
+    ctx.beginPath();
+    ctx.ellipse(-3.6, -10.1, 1.15, 1.65, 0, 0, Math.PI * 2);
+    ctx.ellipse(3.6, -10.1, 1.15, 1.65, 0, 0, Math.PI * 2);
+    ctx.fill();
 
     ctx.restore();
   },

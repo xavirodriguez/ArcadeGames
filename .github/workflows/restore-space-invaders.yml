@@ -1,0 +1,96 @@
+name: Restore SpaceInvaders files
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/restore-space-invaders.yml"
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/theme-aqui-hay-dragones
+          fetch-depth: 0
+      - name: Restore Game and Canvas from master
+        run: |
+          git fetch origin master
+          git checkout origin/master -- \
+            src/games/space-invaders/SpaceInvadersGame.ts \
+            src/games/space-invaders/rendering/SpaceInvadersCanvasVisuals.ts
+          python3 << 'PY'
+          from pathlib import Path
+          p = Path("src/games/space-invaders/SpaceInvadersGame.ts")
+          t = p.read_text()
+          old = """        const { drawExplosionBackgroundEffect } = require("./rendering/SpaceInvadersCanvasVisuals");
+        r.registerBackgroundEffect("explosion_vfx", drawExplosionBackgroundEffect);
+      },
+      skia:"""
+          new = """        const { drawExplosionBackgroundEffect } = require("./rendering/SpaceInvadersCanvasVisuals");
+        r.registerBackgroundEffect("explosion_vfx", drawExplosionBackgroundEffect);
+        const { registerNauticalChartCanvasEffects } = require("./rendering/registerNauticalChartEffects");
+        registerNauticalChartCanvasEffects(r);
+      },
+      skia:"""
+          if old in t:
+              t = t.replace(old, new, 1)
+          old2 = """        r.registerBackgroundEffect("explosion_vfx", drawSkiaExplosionBackgroundEffect);
+      }
+    });"""
+          new2 = """        r.registerBackgroundEffect("explosion_vfx", drawSkiaExplosionBackgroundEffect);
+        const { registerNauticalChartSkiaEffects } = require("./rendering/registerNauticalChartEffects");
+        registerNauticalChartSkiaEffects(r);
+      }
+    });"""
+          if old2 in t:
+              t = t.replace(old2, new2, 1)
+          p.write_text(t)
+          p2 = Path("src/games/space-invaders/rendering/SpaceInvadersCanvasVisuals.ts")
+          t2 = p2.read_text()
+          old_s = """    const ratio = calculateShieldHpRatio(hp, maxHp);
+
+    ctx.save();
+
+    ctx.fillStyle = color;
+    ctx.globalAlpha = flash.opacity * (0.15 + 0.5 * ratio);
+    ctx.fillRect(-size / 2, -size / 2, size, size);
+"""
+          new_s = """    const ratio = calculateShieldHpRatio(hp, maxHp);
+
+    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+    const customGeom =
+      theme?.visualTheme?.shapeTokens?.customGeometries?.["shield_block"] ||
+      theme?.visualTheme?.shapeTokens?.customGeometries?.["shield"];
+
+    ctx.save();
+
+    if (customGeom) {
+      ctx.globalAlpha = flash.opacity * (0.35 + 0.65 * ratio);
+      drawFromGeometryProfileCanvas(ctx, customGeom, {
+        size: size * 1.8,
+        baseColor: color,
+        isHitFlashing: flash.opacity < 1.0,
+      });
+      ctx.restore();
+      return;
+    }
+
+    ctx.fillStyle = color;
+    ctx.globalAlpha = flash.opacity * (0.15 + 0.5 * ratio);
+    ctx.fillRect(-size / 2, -size / 2, size, size);
+"""
+          if old_s in t2:
+              t2 = t2.replace(old_s, new_s, 1)
+              p2.write_text(t2)
+          print("patched ok")
+          PY
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/games/space-invaders/SpaceInvadersGame.ts src/games/space-invaders/rendering/SpaceInvadersCanvasVisuals.ts
+          git diff --staged --quiet && echo "No changes" && exit 0
+          git commit -m "fix: restore SpaceInvadersGame + Canvas from master with nautical wiring"
+          git push origin feature/theme-aqui-hay-dragones

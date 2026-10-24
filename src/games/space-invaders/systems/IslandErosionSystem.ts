@@ -1,6 +1,6 @@
 import { System, World, Theme, THEME_RESOURCE_KEY } from "@tiny-aster/core";
 import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
-import { isNauticalChartTheme } from "../rendering/NauticalChartBackground";
+import { isNauticalChartTheme } from "../nautical/NauticalThemeShared";
 
 /**
  * Island erosion phases for shield_block when nautical theme is active.

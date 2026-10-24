@@ -1,677 +1,120 @@
 /**
- * Hit&Run canvas shape drawers — armed runner + enemy archetypes + bullets.
- *
- * Design Decision:
- * "Transform.y = línea de pies sobre el plano del suelo.
- *  elevation.z = altura sobre el suelo (salto, hop, knockback).
- *  El sprite se dibuja hacia ARRIBA desde los pies; la sombra se dibuja
- *  SIEMPRE en el plano del suelo, sin elevation."
+ * Hit&Run canvas shape drawers — delegates rendering to active HitRunTheme.
  */
 import type {
   ShapeDrawer,
-  CoreComponentRegistry,
-  HealthComponent
+  CoreComponentRegistry
 } from "@tiny-aster/core";
-import { HIT_PALETTE } from "./HitAndRunPalette";
-import type { HitRunWeaponState } from "../weapons/HitRunWeaponTypes";
+import { ThemeRegistry } from "./theme/ThemeRegistry";
+import type { EntityRenderSnapshot } from "./theme/HitRunThemeTypes";
 import type { BeltElevationComponent } from "../belt/BeltElevationComponent";
 
-function facingFromTransform(scaleX?: number): number {
-  return (scaleX ?? 1) >= 0 ? 1 : -1;
-}
-
-function getElevationZ(world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): number {
-  const elevation = world.getComponent(entity, "BeltElevation");
+function getElevationZ(
+  world: import("@tiny-aster/core").World<CoreComponentRegistry>,
+  entity: number
+): number {
+  const elevation = world.getComponent(entity, "BeltElevation") as BeltElevationComponent | undefined;
   return elevation?.z ?? 0;
 }
 
-function getLandingSquash(
+function buildEntitySnapshot(
   world: import("@tiny-aster/core").World<CoreComponentRegistry>,
   entity: number,
-  k = 0.18,
-  duration = 0.15
-): { scaleX: number; scaleY: number } {
-  const elevation = world.getComponent(entity, "BeltElevation") as
-    | BeltElevationComponent
-    | undefined;
-  const timer = elevation?.landTimer ?? 0;
-  if (timer <= 0) return { scaleX: 1, scaleY: 1 };
-  const progress = Math.min(1, Math.max(0, timer / duration));
-  const easeOut = 1 - (1 - progress) * (1 - progress);
-  const squash = 1 + k * easeOut;
+  visualId: string,
+  defaultSize: number
+): EntityRenderSnapshot | null {
+  const render = world.getComponent(entity, "Render");
+  const transform = world.getComponent(entity, "Transform");
+  if (!render?.visible || !transform) return null;
+
+  const size = render.size || defaultSize;
+  const z = getElevationZ(world, entity);
+  const facing = (transform.scaleX ?? 1) >= 0 ? 1 : -1;
+  const depth = transform.y ?? 0;
+
   return {
-    scaleX: squash,
-    scaleY: 1 / squash
+    x: transform.x ?? 0,
+    y: transform.y ?? 0,
+    depth,
+    elevation: z,
+    facing,
+    scale: transform.scaleX ?? 1,
+    animState: "idle",
+    hitFlash: render.hitFlashFrames ?? 0,
+    visualId,
+    size,
+    color: render.color
   };
 }
 
-function setupGlowFill(ctx: CanvasRenderingContext2D, color: string, shadowBlur = 10): void {
-  ctx.fillStyle = color;
-  ctx.shadowColor = color;
-  ctx.shadowBlur = shadowBlur;
-}
-
-function drawGroundShadow(
-  ctx: CanvasRenderingContext2D,
-  size: number,
-  z: number,
-  rxRatio = 0.45,
-  ryRatio = 0.15
-): void {
-  const shadowScale = Math.min(1, Math.max(0.4, 1 - z / 120));
-  const shadowAlpha = 0.35 * shadowScale;
-  ctx.fillStyle = `rgba(0,0,0,${shadowAlpha.toFixed(3)})`;
-  ctx.beginPath();
-  ctx.ellipse(0, 0, size * rxRatio * shadowScale, size * ryRatio * shadowScale, 0, 0, Math.PI * 2);
-  ctx.fill();
-}
-
-/** Options for character transform wrapper. */
-export interface CharacterTransformOptions {
-  size: number;
-  z: number;
-  shadowRxRatio?: number;
-  shadowRyRatio?: number;
-  squashK?: number;
-  squashDuration?: number;
-  hitFlashFrames?: number;
-  face?: number;
-  bob?: number;
-  lean?: number;
-}
-
-/** Helper drawing white hit flash ellipse if hitFlashFrames > 0. Returns true if hit flash was drawn. */
-export function drawHitFlashEllipse(
-  ctx: CanvasRenderingContext2D,
-  hitFlashFrames: number | undefined,
-  drawFlash: () => void
-): boolean {
-  if ((hitFlashFrames ?? 0) > 0) {
-    ctx.fillStyle = "#ffffff";
-    drawFlash();
-    return true;
-  }
-  return false;
-}
-
-/** Wraps character rendering with ground shadow, elevation translation, landing squash, bobbing, and facing scale. */
-export function withCharacterTransform(
-  ctx: CanvasRenderingContext2D,
-  world: import("@tiny-aster/core").World<CoreComponentRegistry>,
-  entity: number,
-  opts: CharacterTransformOptions,
-  drawBody: () => void
-): void {
-  const {
-    size,
-    z,
-    shadowRxRatio = 0.45,
-    shadowRyRatio = 0.15,
-    squashK = 0.2,
-    squashDuration = 0.15,
-    face,
-    bob = 0,
-    lean = 0
-  } = opts;
-
-  ctx.save();
-
-  // 1. Draw shadow on ground plane
-  drawGroundShadow(ctx, size, z, shadowRxRatio, shadowRyRatio);
-
-  // 2. Draw body translated by elevation z
-  ctx.save();
-  ctx.translate(0, -z);
-
-  const { scaleX: sqX, scaleY: sqY } = getLandingSquash(world, entity, squashK, squashDuration);
-  if (sqX !== 1 || sqY !== 1) {
-    ctx.scale(sqX, sqY);
-  }
-
-  if (face !== undefined || bob !== 0 || lean !== 0) {
-    const f = face ?? 1;
-    ctx.scale(f, 1);
-    ctx.translate(0, bob);
-    ctx.rotate(lean * f);
-  }
-
-  drawBody();
-
-  ctx.restore(); // restore body transform
-  ctx.restore(); // restore main save
-}
-
-/** Helper to draw character entity with standard render guard and elevation transform. */
-function drawCharacterEntity(
-  ctx: CanvasRenderingContext2D,
-  world: import("@tiny-aster/core").World<CoreComponentRegistry>,
-  entity: number,
-  defaultSize: number,
-  opts: Omit<CharacterTransformOptions, "size" | "z">,
-  drawBody: (size: number, render: any) => void
-): void {
-  const render = world.getComponent(entity, "Render");
-  if (!render?.visible) return;
-  const size = render.size || defaultSize;
-  const z = getElevationZ(world, entity);
-
-  withCharacterTransform(
-    ctx,
-    world,
-    entity,
-    { size, z, ...opts },
-    () => drawBody(size, render)
-  );
-}
-
-/** Wraps projectile rendering with ground shadow and elevation translation. */
-function withProjectileTransform(
-  ctx: CanvasRenderingContext2D,
-  size: number,
-  z: number,
-  shadowRxRatio: number,
-  shadowRyRatio: number,
-  drawProj: () => void
-): void {
-  ctx.save();
-  drawGroundShadow(ctx, size, z, shadowRxRatio, shadowRyRatio);
-  ctx.save();
-  ctx.translate(0, -z);
-  drawProj();
-  ctx.restore();
-  ctx.restore();
-}
-
-/** Armed platformer runner with HMG silhouette + muzzle flash. */
 export const drawHitRunPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    const transform = world.getComponent(entity, "Transform");
-    if (!render?.visible || !transform) return;
-
-    const size = render.size || 24;
-    const face = facingFromTransform(transform.scaleX);
-    const vel = world.getComponent(entity, "Velocity") as { vx?: number; vy?: number } | undefined;
-    const grounded = world.getComponent(entity, "PlatformerGroundState") as
-      | { isGrounded?: boolean }
-      | undefined;
-    const weapon = world.getComponent(entity, "HitRunWeapon") as HitRunWeaponState | undefined;
-    const health = world.getComponent(entity, "Health") as HealthComponent | undefined;
-    const tick = world.tick ?? 0;
-    const z = getElevationZ(world, entity);
-
-    ctx.save();
-
-    if (drawHitFlashEllipse(ctx, render.hitFlashFrames, () => {
-      ctx.beginPath();
-      ctx.arc(0, -size * 0.5, size * 0.55, 0, Math.PI * 2);
-      ctx.fill();
-    })) {
-      ctx.restore();
-      return;
-    }
-
-    if (health && (health as { invulnerableRemaining?: number }).invulnerableRemaining) {
-      const inv = (health as { invulnerableRemaining?: number }).invulnerableRemaining ?? 0;
-      if (inv > 0 && Math.floor(tick / 3) % 2 === 0) {
-        ctx.globalAlpha = 0.35;
-      }
-    }
-
-    const bob = grounded?.isGrounded ? 0 : Math.sin(tick * 0.35) * 1.5;
-    const lean = Math.max(-0.2, Math.min(0.2, (vel?.vx ?? 0) * 0.002));
-
-    withCharacterTransform(
-      ctx,
-      world,
-      entity,
-      {
-        size,
-        z,
-        shadowRxRatio: 0.45,
-        shadowRyRatio: 0.14,
-        squashK: 0.2,
-        face,
-        bob,
-        lean
-      },
-      () => {
-        // Legs (feet at y = 0)
-        const stride = grounded?.isGrounded
-          ? Math.sin(tick * 0.4) * size * 0.12
-          : size * 0.08;
-        ctx.strokeStyle = "#1a1220";
-        ctx.lineWidth = 3;
-        ctx.lineCap = "round";
-        ctx.beginPath();
-        ctx.moveTo(-size * 0.12, -size * 0.35);
-        ctx.lineTo(-size * 0.18 - stride, 0);
-        ctx.moveTo(size * 0.12, -size * 0.35);
-        ctx.lineTo(size * 0.18 + stride, 0);
-        ctx.stroke();
-
-        // Heavy field boots and knee guards give the lower silhouette more weight.
-        ctx.fillStyle = "#151b23";
-        ctx.fillRect(-size * 0.29 - stride, -size * 0.08, size * 0.2, size * 0.08);
-        ctx.fillRect(size * 0.09 + stride, -size * 0.08, size * 0.2, size * 0.08);
-        ctx.fillStyle = "#c18b43";
-        ctx.fillRect(-size * 0.22 - stride, -size * 0.31, size * 0.12, size * 0.07);
-        ctx.fillRect(size * 0.1 + stride, -size * 0.31, size * 0.12, size * 0.07);
-
-        // Torso
-        const bodyGrad = ctx.createLinearGradient(-size * 0.3, -size * 0.85, size * 0.3, -size * 0.35);
-        bodyGrad.addColorStop(0, "#3d4a5c");
-        bodyGrad.addColorStop(0.5, "#5a6a80");
-        bodyGrad.addColorStop(1, "#2a3340");
-        ctx.fillStyle = bodyGrad;
-        ctx.strokeStyle = HIT_PALETTE.hitRunRed;
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        if (ctx.roundRect) {
-          ctx.roundRect(-size * 0.28, -size * 0.85, size * 0.56, size * 0.5, 4);
-        } else {
-          ctx.rect(-size * 0.28, -size * 0.85, size * 0.56, size * 0.5);
-        }
-        ctx.fill();
-        ctx.stroke();
-
-        // Tactical harness, chest plate and utility pouches.
-        ctx.fillStyle = "#222c38";
-        ctx.fillRect(-size * 0.21, -size * 0.77, size * 0.42, size * 0.31);
-        ctx.strokeStyle = "#8793a2";
-        ctx.lineWidth = Math.max(0.8, size * 0.025);
-        ctx.strokeRect(-size * 0.21, -size * 0.77, size * 0.42, size * 0.31);
-        ctx.strokeStyle = "#c18b43";
-        ctx.lineWidth = Math.max(1, size * 0.045);
-        ctx.beginPath();
-        ctx.moveTo(-size * 0.18, -size * 0.81);
-        ctx.lineTo(size * 0.12, -size * 0.48);
-        ctx.moveTo(size * 0.18, -size * 0.81);
-        ctx.lineTo(-size * 0.12, -size * 0.48);
-        ctx.stroke();
-        ctx.fillStyle = "#596575";
-        ctx.fillRect(-size * 0.24, -size * 0.52, size * 0.14, size * 0.13);
-        ctx.fillRect(size * 0.1, -size * 0.52, size * 0.14, size * 0.13);
-        ctx.fillStyle = HIT_PALETTE.hitRunYellow;
-        ctx.fillRect(-size * 0.045, -size * 0.72, size * 0.09, size * 0.08);
-
-        // Helmet / head
-        ctx.fillStyle = "#1e2430";
-        ctx.beginPath();
-        ctx.arc(0, -size * 0.98, size * 0.22, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "#101720";
-        ctx.fillRect(-size * 0.19, -size * 0.94, size * 0.38, size * 0.07);
-        ctx.fillStyle = HIT_PALETTE.hitRunYellow;
-        ctx.beginPath();
-        ctx.ellipse(size * 0.08, -size * 1.0, size * 0.12, size * 0.08, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "#f7d56a";
-        ctx.fillRect(-size * 0.2, -size * 1.06, size * 0.12, size * 0.035);
-
-        // HMG body
-        ctx.fillStyle = "#1a1a22";
-        ctx.fillRect(size * 0.15, -size * 0.68, size * 0.55, size * 0.14);
-        ctx.fillStyle = "#3a3a48";
-        ctx.fillRect(size * 0.65, -size * 0.64, size * 0.22, size * 0.06);
-        // Barrel tip
-        ctx.fillStyle = "#0a0a10";
-        ctx.fillRect(size * 0.85, -size * 0.62, size * 0.12, size * 0.03);
-
-        // Muzzle flash
-        const flash = weapon?.muzzleFlashRemaining ?? 0;
-        if (flash > 0) {
-          const a = Math.min(1, flash / 0.06);
-          ctx.save();
-          ctx.globalAlpha = a;
-          ctx.fillStyle = "#fff7cc";
-          ctx.shadowColor = HIT_PALETTE.hitRunYellow;
-          ctx.shadowBlur = 12;
-          ctx.beginPath();
-          ctx.moveTo(size * 0.95, -size * 0.56);
-          ctx.lineTo(size * 1.25, -size * 0.68);
-          ctx.lineTo(size * 1.15, -size * 0.56);
-          ctx.lineTo(size * 1.25, -size * 0.44);
-          ctx.closePath();
-          ctx.fill();
-          ctx.restore();
-        }
-
-        // Weapon receiver, feed cover and grip break up the long barrel silhouette.
-        ctx.fillStyle = "#515b69";
-        ctx.fillRect(size * 0.3, -size * 0.71, size * 0.18, size * 0.2);
-        ctx.fillStyle = "#b6c0cb";
-        ctx.fillRect(size * 0.35, -size * 0.69, size * 0.08, size * 0.035);
-        ctx.fillStyle = "#171c25";
-        ctx.fillRect(size * 0.2, -size * 0.55, size * 0.1, size * 0.15);
-
-        // Accent stripe
-        ctx.fillStyle = HIT_PALETTE.hitRunRed;
-        ctx.fillRect(-size * 0.22, -size * 0.61, size * 0.12, size * 0.08);
-      }
-    );
-
-    ctx.restore();
+    const snapshot = buildEntitySnapshot(world, entity, "player", 24);
+    if (!snapshot) return;
+    const elapsed = (world.tick ?? 0) / 60;
+    ThemeRegistry.getActiveTheme().renderEntity(ctx, snapshot, elapsed);
   }
 };
 
 export const drawHitRunPopcorn: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    drawCharacterEntity(
-      ctx,
-      world,
-      entity,
-      10,
-      { shadowRxRatio: 0.45, shadowRyRatio: 0.15, squashK: 0.2 },
-      (size, render) => {
-        if (drawHitFlashEllipse(ctx, render.hitFlashFrames, () => {
-          ctx.beginPath();
-          ctx.arc(0, -size * 0.45, size * 0.45, 0, Math.PI * 2);
-          ctx.fill();
-        })) {
-          return;
-        }
-
-        setupGlowFill(ctx, render.color || "#f97316", 8);
-
-        // Grasping tendrils break up the otherwise circular silhouette.
-        ctx.strokeStyle = "#7c2d12";
-        ctx.lineWidth = Math.max(1, size * 0.08);
-        ctx.lineCap = "round";
-        ctx.beginPath();
-        ctx.moveTo(-size * 0.31, -size * 0.25);
-        ctx.quadraticCurveTo(-size * 0.55, -size * 0.12, -size * 0.48, size * 0.02);
-        ctx.moveTo(size * 0.31, -size * 0.25);
-        ctx.quadraticCurveTo(size * 0.55, -size * 0.12, size * 0.48, size * 0.02);
-        ctx.stroke();
-
-        // Grunt body with an inked edge and readable highlight.
-        ctx.beginPath();
-        ctx.arc(0, -size * 0.45, size * 0.45, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = "#7c2d12";
-        ctx.lineWidth = Math.max(1, size * 0.055);
-        ctx.stroke();
-        ctx.fillStyle = "rgba(255,237,213,0.65)";
-        ctx.beginPath();
-        ctx.ellipse(-size * 0.17, -size * 0.69, size * 0.12, size * 0.055, -0.35, 0, Math.PI * 2);
-        ctx.fill();
-
-        // High-contrast eyes with pupils.
-        ctx.fillStyle = "#fff4db";
-        ctx.beginPath();
-        ctx.arc(-size * 0.12, -size * 0.53, size * 0.115, 0, Math.PI * 2);
-        ctx.arc(size * 0.14, -size * 0.53, size * 0.115, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "#1a0a00";
-        ctx.beginPath();
-        ctx.arc(-size * 0.1, -size * 0.53, size * 0.06, 0, Math.PI * 2);
-        ctx.arc(size * 0.16, -size * 0.53, size * 0.06, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Mouth band
-        ctx.fillStyle = HIT_PALETTE.hitRunYellow;
-        ctx.fillRect(-size * 0.2, -size * 0.3, size * 0.4, size * 0.08);
-      }
-    );
+    const snapshot = buildEntitySnapshot(world, entity, "popcorn", 10);
+    if (!snapshot) return;
+    const elapsed = (world.tick ?? 0) / 60;
+    ThemeRegistry.getActiveTheme().renderEntity(ctx, snapshot, elapsed);
   }
 };
 
 export const drawHitRunWallTrooper: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    drawCharacterEntity(
-      ctx,
-      world,
-      entity,
-      14,
-      { shadowRxRatio: 0.5, shadowRyRatio: 0.16, squashK: 0.18 },
-      (size, render) => {
-        if (drawHitFlashEllipse(ctx, render.hitFlashFrames, () => {
-          ctx.fillRect(-size * 0.4, -size, size * 0.8, size);
-        })) {
-          return;
-        }
-
-        ctx.fillStyle = render.color || "#78716c";
-        ctx.strokeStyle = "#a8a29e";
-        ctx.lineWidth = 2;
-        ctx.fillRect(-size * 0.4, -size, size * 0.8, size);
-        ctx.strokeRect(-size * 0.4, -size, size * 0.8, size);
-
-        // Reinforced chest, shoulder plates and helmet slit.
-        ctx.fillStyle = "#44403c";
-        ctx.fillRect(-size * 0.34, -size * 0.76, size * 0.68, size * 0.26);
-        ctx.strokeStyle = "#d6d3d1";
-        ctx.lineWidth = Math.max(1, size * 0.06);
-        ctx.beginPath();
-        ctx.moveTo(-size * 0.28, -size * 0.67);
-        ctx.lineTo(size * 0.28, -size * 0.67);
-        ctx.moveTo(0, -size * 0.74);
-        ctx.lineTo(0, -size * 0.53);
-        ctx.stroke();
-        ctx.fillStyle = "#292524";
-        ctx.fillRect(-size * 0.27, -size * 1.02, size * 0.54, size * 0.23);
-        ctx.fillStyle = "#fca5a5";
-        ctx.fillRect(-size * 0.17, -size * 0.94, size * 0.34, size * 0.055);
-
-        // Shield plate with a readable insignia.
-        ctx.fillStyle = "#44403c";
-        ctx.fillRect(-size * 0.45, -size * 0.7, size * 0.2, size * 0.55);
-        ctx.strokeStyle = "#a8a29e";
-        ctx.lineWidth = 1;
-        ctx.strokeRect(-size * 0.45, -size * 0.7, size * 0.2, size * 0.55);
-        ctx.fillStyle = "#ef4444";
-        ctx.fillRect(-size * 0.15, -size * 0.85, size * 0.3, size * 0.12);
-        ctx.fillRect(-size * 0.075, -size * 0.875, size * 0.15, size * 0.17);
-      }
-    );
+    const snapshot = buildEntitySnapshot(world, entity, "wall_trooper", 14);
+    if (!snapshot) return;
+    const elapsed = (world.tick ?? 0) / 60;
+    ThemeRegistry.getActiveTheme().renderEntity(ctx, snapshot, elapsed);
   }
 };
 
 export const drawHitRunHopper: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    drawCharacterEntity(
-      ctx,
-      world,
-      entity,
-      12,
-      { shadowRxRatio: 0.5, shadowRyRatio: 0.15, squashK: 0.26 },
-      (size, render) => {
-        if (drawHitFlashEllipse(ctx, render.hitFlashFrames, () => {
-          ctx.beginPath();
-          ctx.ellipse(0, -size * 0.55, size * 0.5, size * 0.35, 0, 0, Math.PI * 2);
-          ctx.fill();
-        })) {
-          return;
-        }
-
-        setupGlowFill(ctx, render.color || "#a855f7", 10);
-
-        // Body ellipse
-        ctx.beginPath();
-        ctx.ellipse(0, -size * 0.55, size * 0.5, size * 0.35, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = "#4c1d95";
-        ctx.lineWidth = Math.max(1, size * 0.06);
-        ctx.stroke();
-
-        // Dorsal ridges and a forward-facing luminous eye.
-        ctx.shadowBlur = 0;
-        ctx.strokeStyle = "#d8b4fe";
-        ctx.lineWidth = Math.max(0.8, size * 0.045);
-        ctx.beginPath();
-        ctx.moveTo(-size * 0.18, -size * 0.77);
-        ctx.lineTo(-size * 0.05, -size * 0.88);
-        ctx.lineTo(size * 0.02, -size * 0.76);
-        ctx.moveTo(-size * 0.02, -size * 0.78);
-        ctx.lineTo(size * 0.1, -size * 0.9);
-        ctx.lineTo(size * 0.18, -size * 0.74);
-        ctx.stroke();
-        ctx.fillStyle = "#fff4db";
-        ctx.beginPath();
-        ctx.arc(size * 0.24, -size * 0.57, Math.max(1, size * 0.07), 0, Math.PI * 2);
-        ctx.fill();
-
-        // Spring legs down to y = 0
-        ctx.strokeStyle = "#6b21a8";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(-size * 0.2, -size * 0.35);
-        ctx.quadraticCurveTo(-size * 0.4, -size * 0.05, -size * 0.15, 0);
-        ctx.moveTo(size * 0.2, -size * 0.35);
-        ctx.quadraticCurveTo(size * 0.4, -size * 0.05, size * 0.15, 0);
-        ctx.stroke();
-      }
-    );
+    const snapshot = buildEntitySnapshot(world, entity, "hopper", 12);
+    if (!snapshot) return;
+    const elapsed = (world.tick ?? 0) / 60;
+    ThemeRegistry.getActiveTheme().renderEntity(ctx, snapshot, elapsed);
   }
 };
 
-function drawChargerPolygon(ctx: CanvasRenderingContext2D, size: number): void {
-  ctx.beginPath();
-  ctx.moveTo(size * 0.65, -size * 0.42);
-  ctx.lineTo(-size * 0.45, -size * 0.84);
-  ctx.lineTo(-size * 0.25, -size * 0.42);
-  ctx.lineTo(-size * 0.45, 0);
-  ctx.closePath();
-  ctx.fill();
-}
-
 export const drawHitRunCharger: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    drawCharacterEntity(
-      ctx,
-      world,
-      entity,
-      14,
-      { shadowRxRatio: 0.6, shadowRyRatio: 0.16, squashK: 0.2 },
-      (size, render) => {
-        if (drawHitFlashEllipse(ctx, render.hitFlashFrames, () => {
-          drawChargerPolygon(ctx, size);
-        })) {
-          return;
-        }
-
-        setupGlowFill(ctx, render.color || "#ef4444", 12);
-
-        drawChargerPolygon(ctx, size);
-        ctx.strokeStyle = "#7f1d1d";
-        ctx.lineWidth = Math.max(1, size * 0.055);
-        ctx.beginPath();
-        ctx.moveTo(-size * 0.28, -size * 0.61);
-        ctx.lineTo(size * 0.28, -size * 0.47);
-        ctx.moveTo(-size * 0.15, -size * 0.28);
-        ctx.lineTo(size * 0.22, -size * 0.23);
-        ctx.stroke();
-        ctx.fillStyle = "#fecaca";
-        ctx.beginPath();
-        ctx.moveTo(-size * 0.35, -size * 0.76);
-        ctx.lineTo(-size * 0.1, -size * 0.72);
-        ctx.lineTo(-size * 0.27, -size * 0.6);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.fillStyle = "#fca5a5";
-        ctx.beginPath();
-        ctx.arc(size * 0.15, -size * 0.42, size * 0.12, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    );
+    const snapshot = buildEntitySnapshot(world, entity, "charger", 14);
+    if (!snapshot) return;
+    const elapsed = (world.tick ?? 0) / 60;
+    ThemeRegistry.getActiveTheme().renderEntity(ctx, snapshot, elapsed);
   }
 };
 
 export const drawHitRunElite: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render?.visible) return;
-    const size = render.size || 22;
-    const tick = world.tick ?? 0;
-    const z = getElevationZ(world, entity);
-
-    withCharacterTransform(
-      ctx,
-      world,
-      entity,
-      { size, z, shadowRxRatio: 0.55, shadowRyRatio: 0.18, squashK: 0.22 },
-      () => {
-        if (drawHitFlashEllipse(ctx, render.hitFlashFrames, () => {
-          ctx.beginPath();
-          ctx.arc(0, -size * 0.5, size * 0.5, 0, Math.PI * 2);
-          ctx.fill();
-        })) {
-          return;
-        }
-
-        const pulse = 0.5 + 0.5 * Math.sin(tick * 0.15);
-        ctx.strokeStyle = `rgba(234, 179, 8, ${0.4 + pulse * 0.4})`;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(0, -size * 0.5, size * (0.7 + pulse * 0.1), 0, Math.PI * 2);
-        ctx.stroke();
-
-        setupGlowFill(ctx, render.color || "#eab308", 14);
-        ctx.beginPath();
-        ctx.arc(0, -size * 0.5, size * 0.42, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = "#1a1200";
-        ctx.fillRect(-size * 0.2, -size * 0.62, size * 0.4, size * 0.24);
-
-        ctx.fillStyle = HIT_PALETTE.hitRunRed;
-        ctx.beginPath();
-        ctx.arc(0, -size * 0.5, size * 0.1, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    );
+    const snapshot = buildEntitySnapshot(world, entity, "elite", 22);
+    if (!snapshot) return;
+    const elapsed = (world.tick ?? 0) / 60;
+    ThemeRegistry.getActiveTheme().renderEntity(ctx, snapshot, elapsed);
   }
 };
 
 export const drawHitRunBullet: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render?.visible) return;
-    const size = render.size || 3;
-    const color = render.color || "#fbbf24";
-    const z = getElevationZ(world, entity);
-
-    withProjectileTransform(ctx, size * 1.5, z, 0.4, 0.12, () => {
-      ctx.shadowColor = color;
-      ctx.shadowBlur = 8;
-      const grad = ctx.createLinearGradient(-size * 2, 0, size * 2, 0);
-      grad.addColorStop(0, "rgba(255,255,255,0)");
-      grad.addColorStop(0.4, color);
-      grad.addColorStop(1, "#ffffff");
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.ellipse(0, 0, size * 2.2, size * 0.7, 0, 0, Math.PI * 2);
-      ctx.fill();
-    });
+    const snapshot = buildEntitySnapshot(world, entity, "bullet", 3);
+    if (!snapshot) return;
+    const elapsed = (world.tick ?? 0) / 60;
+    ThemeRegistry.getActiveTheme().renderProjectile(ctx, snapshot, elapsed);
   }
 };
 
 export const drawHitRunRocket: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render?.visible) return;
-    const size = render.size || 7;
-    const z = getElevationZ(world, entity);
-
-    withProjectileTransform(ctx, size * 1.5, z, 0.5, 0.15, () => {
-      setupGlowFill(ctx, "#ef4444", 10);
-      ctx.beginPath();
-      ctx.moveTo(size * 1.2, 0);
-      ctx.lineTo(-size * 0.8, -size * 0.5);
-      ctx.lineTo(-size * 0.5, 0);
-      ctx.lineTo(-size * 0.8, size * 0.5);
-      ctx.closePath();
-      ctx.fill();
-      // Exhaust
-      ctx.fillStyle = "#fbbf24";
-      ctx.beginPath();
-      ctx.moveTo(-size * 0.5, 0);
-      ctx.lineTo(-size * 1.4, -size * 0.25);
-      ctx.lineTo(-size * 1.4, size * 0.25);
-      ctx.closePath();
-      ctx.fill();
-    });
+    const snapshot = buildEntitySnapshot(world, entity, "rocket", 7);
+    if (!snapshot) return;
+    const elapsed = (world.tick ?? 0) / 60;
+    ThemeRegistry.getActiveTheme().renderProjectile(ctx, snapshot, elapsed);
   }
 };

@@ -1,5 +1,5 @@
 /**
- * Combat HUD — health, weapon, section/wave, score, telegraphs, CLEAR banner.
+ * Combat HUD — delegates rendering to active ThemeRegistry theme.
  */
 import type {
   EffectDrawer,
@@ -27,12 +27,10 @@ import {
   type BeltCameraState
 } from "../belt/BeltCameraTypes";
 import { BELT_ALIVE_ENEMIES_RESOURCE } from "../belt/BeltCameraSystem";
-import { HIT_PALETTE } from "./HitAndRunPalette";
-import { colors } from "../../../theme/colors";
-import type { HitRunDeathFlowState } from "../systems/HitRunDeathFlowSystem";
-import { DEATH_FLOW_RESOURCE } from "../systems/HitRunDeathFlowSystem";
 import type { HitRunScoreState } from "../systems/HitRunScoreSystem";
 import { HIT_RUN_SCORE_RESOURCE } from "../systems/HitRunScoreSystem";
+import { ThemeRegistry } from "./theme/ThemeRegistry";
+import type { HudRenderSnapshot, BannerRenderSnapshot } from "./theme/HitRunThemeTypes";
 
 function resolveViewport(world: {
   getResource: (k: string) => unknown;
@@ -58,7 +56,6 @@ function mainCam(world: {
   return { x: 0, y: 0 };
 }
 
-/** Fallback count when BeltCameraSystem has not published yet. */
 function countAliveEnemies(world: {
   query: (...tags: string[]) => readonly number[];
   getComponent: (e: number, t: string) => unknown;
@@ -72,21 +69,7 @@ function countAliveEnemies(world: {
       continue;
     }
     if (world.hasComponent(e, "Dead")) continue;
-    const faction = world.getComponent(e, "Faction") as
-      | { value?: string; faction?: string }
-      | undefined;
-    const f = faction?.value ?? faction?.faction;
-    const isEnemy =
-      world.hasComponent(e, "Enemy") ||
-      f === "enemy" ||
-      ((world.getComponent(e, "Tag") as { tags?: string[] } | undefined)?.tags?.includes(
-        "Enemy"
-      ) ??
-        false);
-    if (!isEnemy) continue;
-    const health = world.getComponent(e, "Health") as
-      | { current?: number; hp?: number }
-      | undefined;
+    const health = world.getComponent(e, "Health") as { current?: number; hp?: number } | undefined;
     const hp = health?.current ?? health?.hp ?? 0;
     if (hp > 0) n++;
   }
@@ -113,7 +96,6 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
     const script = world.getResource(WAVE_SCRIPT_RESOURCE) as WaveScript | undefined;
     const telegraphs = world.getResource(WAVE_TELEGRAPHS_RESOURCE) as WaveTelegraphMarker[] | undefined;
     const banner = world.getResource(WAVE_BANNER_RESOURCE) as WaveBannerState | null | undefined;
-    const death = world.getResource(DEATH_FLOW_RESOURCE) as HitRunDeathFlowState | undefined;
     const camState = world.getResource(BELT_CAMERA_STATE_RESOURCE) as BeltCameraState | undefined;
     const camCfg = world.getResource(BELT_CAMERA_CONFIG_RESOURCE) as BeltCameraConfig | undefined;
     const publishedAlive = world.getResource(BELT_ALIVE_ENEMIES_RESOURCE) as number | undefined;
@@ -124,168 +106,57 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
         ? camCfg.sections[camState.currentSectionIndex]
         : undefined;
 
-    const score = rs
-      ? rs.collectedTemporalIds.length * 10 + rs.collectedPermanentIds.length * 100
-      : 0;
+    const scoreState = world.getResource(HIT_RUN_SCORE_RESOURCE) as HitRunScoreState | undefined;
+    const scoreVal = scoreState?.score ?? (rs ? rs.collectedTemporalIds.length * 10 : 0);
 
-    if (telegraphs && telegraphs.length > 0) {
-      for (let i = 0; i < telegraphs.length; i++) {
-        const t = telegraphs[i];
-        const sx = t.x - cam.x;
-        const sy = t.y - cam.y;
-        if (sx < -40 || sx > w + 40 || sy < -40 || sy > h + 40) continue;
-        const pulse = 0.5 + 0.5 * Math.sin((1 - t.remaining / t.lead) * Math.PI * 6);
-        const r = 14 + pulse * 6;
-        ctx.save();
-        ctx.globalAlpha = 0.35 + pulse * 0.45;
-        ctx.strokeStyle = HIT_PALETTE.hitRunRed;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(sx, sy, r, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.globalAlpha = 0.5 + pulse * 0.4;
-        ctx.fillStyle = HIT_PALETTE.hitRunYellow;
-        ctx.beginPath();
-        ctx.arc(sx, sy, 3, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-      }
-    }
+    const hudSnapshot: HudRenderSnapshot = {
+      viewportWidth: w,
+      viewportHeight: h,
+      cameraX: cam.x,
+      cameraY: cam.y,
+      player: player !== undefined
+        ? {
+            currentHp: health?.current ?? 0,
+            maxHp: health?.max ?? 3,
+            weaponId: weapon?.weaponId ?? "longbow",
+            ammoCurrent: weapon?.ammoCurrent ?? Number.POSITIVE_INFINITY,
+            ammoMax: weapon?.ammoMax ?? Number.POSITIVE_INFINITY,
+            cooldownRemaining: weapon?.cooldownRemaining ?? 0
+          }
+        : undefined,
+      wave: {
+        sectionLabel: section?.id ? section.id.replace(/_/g, " ").toUpperCase() : "—",
+        waveName: script?.name ?? wave?.scriptId ?? "—",
+        gateLocked: camState?.gateLocked !== false && !camState?.sectionCleared,
+        sectionCleared: camState?.sectionCleared ?? false,
+        aliveEnemies,
+        totalSpawned: wave?.totalSpawned ?? 0
+      },
+      score: {
+        score: scoreVal,
+        comboMultiplier: scoreState?.comboMultiplier ?? 1
+      },
+      telegraphs: telegraphs?.map(t => ({
+        x: t.x,
+        y: t.y,
+        lead: t.lead,
+        remaining: t.remaining
+      })),
+      isGameOver: false
+    };
 
-    ctx.save();
-
-    const barH = 36;
-    const topGrad = ctx.createLinearGradient(0, 0, 0, barH + 12);
-    topGrad.addColorStop(0, colors.panelStrong);
-    topGrad.addColorStop(1, "rgba(0, 0, 0, 0)");
-    ctx.fillStyle = topGrad;
-    ctx.fillRect(0, 0, w, barH + 16);
-
-    const maxHp = health?.max ?? 3;
-    const curHp = health?.current ?? 0;
-    const pipW = 18;
-    const pipH = 10;
-    const startX = 16;
-    const pipY = 14;
-    for (let i = 0; i < maxHp; i++) {
-      const x = startX + i * (pipW + 6);
-      ctx.fillStyle = i < curHp ? HIT_PALETTE.hitRunRed : colors.surface;
-      ctx.strokeStyle = colors.border;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      if (ctx.roundRect) ctx.roundRect(x, pipY, pipW, pipH, 2);
-      else ctx.rect(x, pipY, pipW, pipH);
-      ctx.fill();
-      ctx.stroke();
-    }
-
-    const weaponId = (weapon?.weaponId ?? "longbow").toUpperCase();
-    const cd = weapon?.cooldownRemaining ?? 0;
-    const ammoCur = weapon?.ammoCurrent ?? Number.POSITIVE_INFINITY;
-    const ammoMax = weapon?.ammoMax ?? Number.POSITIVE_INFINITY;
-    const ammoText = ammoCur === Number.POSITIVE_INFINITY ? "∞" : `${ammoCur}/${ammoMax}`;
-
-    ctx.font = "bold 12px 'Share Tech Mono', monospace";
-    ctx.textAlign = "left";
-    ctx.fillStyle = HIT_PALETTE.hitRunYellow;
-    ctx.fillText(`${weaponId} [${ammoText}]`, startX + maxHp * (pipW + 6) + 16, 22);
-    if (cd > 0.02) {
-      ctx.fillStyle = colors.textMuted;
-      ctx.fillRect(startX + maxHp * (pipW + 6) + 16, 26, 40 * Math.min(1, cd / 0.2), 3);
-    }
-
-    ctx.textAlign = "center";
-    ctx.font = "bold 12px 'Share Tech Mono', monospace";
-    const sectionLabel = section?.id
-      ? section.id.replace(/_/g, " ").toUpperCase()
-      : "—";
-    const waveName = script?.name ?? wave?.scriptId ?? "—";
-    const locked = camState?.gateLocked !== false && !camState?.sectionCleared;
-    const gateTag = locked
-      ? `GATE LOCKED`
-      : camState?.sectionCleared
-        ? "GATE OPEN"
-        : "GATE LOCKED";
-    ctx.fillStyle = colors.neutral[100];
-    ctx.fillText(`${sectionLabel}  ·  ${waveName}`, w * 0.5, 16);
-    ctx.font = "10px 'Share Tech Mono', monospace";
-    ctx.fillStyle = locked ? HIT_PALETTE.hitRunRed : HIT_PALETTE.hitRunYellow;
-    ctx.fillText(`${gateTag}  ·  ALIVE ${aliveEnemies}`, w * 0.5, 30);
-    if (wave) {
-      ctx.fillStyle = colors.textMuted;
-      ctx.fillText(`SPAWNED ${wave.totalSpawned}`, w * 0.5, 42);
-    }
-
-    const scoreState = world.getResource(HIT_RUN_SCORE_RESOURCE) as
-      | HitRunScoreState
-      | undefined;
-    const displayScore = scoreState?.score ?? score;
-    const comboMult = scoreState?.comboMultiplier ?? 1;
-
-    ctx.textAlign = "right";
-    ctx.font = "bold 14px 'Share Tech Mono', monospace";
-    ctx.fillStyle = colors.neutral[200];
-    ctx.fillText(String(displayScore).padStart(6, "0"), w - 16, 22);
-
-    if (comboMult > 1) {
-      ctx.font = "bold 11px 'Share Tech Mono', monospace";
-      ctx.fillStyle = HIT_PALETTE.hitRunRed;
-      ctx.fillText(`COMBO x${comboMult.toFixed(1)}`, w - 16, 36);
-    }
-
-    // Floating score popups
-    const popupPool = scoreState?.popupPool;
-    if (popupPool && popupPool.length > 0) {
-      ctx.save();
-      ctx.textAlign = "center";
-      ctx.font = "bold 13px 'Share Tech Mono', monospace";
-      for (let i = 0; i < popupPool.length; i++) {
-        const p = popupPool[i];
-        if (!p.active) continue;
-        const sx = p.x - cam.x;
-        const sy = p.y - cam.y;
-        if (sx < -50 || sx > w + 50 || sy < -50 || sy > h + 50) continue;
-        ctx.globalAlpha = p.opacity;
-        ctx.fillStyle = p.color;
-        ctx.fillText(p.text, sx, sy);
-      }
-      ctx.restore();
-    }
+    const elapsed = (world.tick ?? 0) / 60;
+    const theme = ThemeRegistry.getActiveTheme();
+    theme.renderHud(ctx, hudSnapshot, elapsed);
 
     if (banner && banner.remaining > 0) {
-      const a = Math.min(1, banner.remaining / 0.35);
-      ctx.globalAlpha = a;
-      ctx.textAlign = "center";
-      ctx.font = "bold 42px 'Share Tech Mono', monospace";
-      ctx.fillStyle =
-        banner.text === "CLEAR" ? HIT_PALETTE.hitRunYellow : HIT_PALETTE.hitRunRed;
-      ctx.shadowColor = ctx.fillStyle;
-      ctx.shadowBlur = 18;
-      ctx.fillText(banner.text, w * 0.5, h * 0.38);
-      if (banner.sub) {
-        ctx.shadowBlur = 0;
-        ctx.font = "14px 'Share Tech Mono', monospace";
-        ctx.fillStyle = colors.textSecondary;
-        ctx.fillText(banner.sub, w * 0.5, h * 0.38 + 28);
-      }
-      ctx.globalAlpha = 1;
-      ctx.shadowBlur = 0;
+      const bannerSnapshot: BannerRenderSnapshot = {
+        text: banner.text,
+        sub: banner.sub,
+        remaining: banner.remaining,
+        totalDuration: 2.0
+      };
+      theme.renderSectionBanner(ctx, bannerSnapshot, w, h, elapsed);
     }
-
-    if (death?.active) {
-      ctx.fillStyle = colors.overlay;
-      ctx.fillRect(0, 0, w, h);
-      ctx.textAlign = "center";
-      ctx.font = "bold 28px 'Share Tech Mono', monospace";
-      ctx.fillStyle = HIT_PALETTE.hitRunRed;
-      ctx.fillText("DOWN", w * 0.5, h * 0.5);
-    }
-
-    ctx.textAlign = "left";
-    ctx.font = "10px 'Share Tech Mono', monospace";
-    ctx.fillStyle = colors.textMuted;
-    ctx.fillText("←→ MOVE  ↑↓ DEPTH  SPACE JUMP  F MELEE  Q SPECIAL  C/X FIRE", 16, h - 12);
-
-    ctx.restore();
   }
 };

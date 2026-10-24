@@ -13,7 +13,7 @@ export const HitAndRunConfigSchema = BaseConfigSchema
   .merge(PlayerMovementSchema)
   .merge(JumpPhysicsSchema)
   .extend({
-    // Additional configuration parameters specific to Hit & Run (if any)
+    theme: z.string().default("fantasy")
   });
 
 export type HitAndRunConfig = z.infer<typeof HitAndRunConfigSchema>;

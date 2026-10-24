@@ -74,12 +74,13 @@ import { drawHitRunDebugOverlay } from "./rendering/HitRunDebugOverlay";
 import { drawPlatformerTilemap } from "../shared/rendering/PlatformerSharedVisuals";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import { runWithUnlockedRandomAndMutators } from "../shared/configHelper";
+import { ThemeRegistry, resolveThemeIdFromConfig } from "./rendering/theme/ThemeRegistry";
 
 export interface HitAndRunConfig {
   seed?: number;
   gameOptions?: Record<string, unknown>;
   levelData?: { templates: SegmentTemplate[]; grammar: string[] };
-  theme?: Theme;
+  theme?: Theme | string;
 }
 
 export type HitAndRunBlueprintMap = Record<
@@ -130,7 +131,7 @@ export class HitAndRunGame extends PlatformerArcadeGame<
       restartKey: "KeyR",
       gameOptions: config.gameOptions,
       seed: config.seed,
-      theme: config.theme ?? createThemeFromGameAccents("hitandrun"),
+      theme: typeof config.theme === "object" ? config.theme : createThemeFromGameAccents("hitandrun"),
       audio: new WebAudioPlayer()
     });
     this.customLevelData =
@@ -138,6 +139,10 @@ export class HitAndRunGame extends PlatformerArcadeGame<
       (config.gameOptions?.levelData as
         | { templates: SegmentTemplate[]; grammar: string[] }
         | undefined);
+
+    const themeStr = typeof config.theme === "string" ? config.theme : (config.gameOptions?.theme as string | undefined);
+    const activeThemeId = resolveThemeIdFromConfig(themeStr);
+    ThemeRegistry.setActiveTheme(activeThemeId);
   }
 
   public override update(dt: number): void {
@@ -181,7 +186,6 @@ export class HitAndRunGame extends PlatformerArcadeGame<
   protected override async onRegisterSystems(): Promise<void> {
     await super.onRegisterSystems();
 
-    // Tilemap blueprints still used for corridor props until a pure belt level lands
     registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_HIT_AND_RUN_CONFIG);
     registerStandardPlatformerCollectibles(this.blueprints);
     registerPlatformerEnvironmentBlueprints(this.blueprints);
@@ -245,7 +249,6 @@ export class HitAndRunGame extends PlatformerArcadeGame<
       const gameConfig = this.world.getResource<{ viewportWidth?: number; viewportHeight?: number }>("GameConfig");
       this.installProceduralBackdrop(gameConfig?.viewportWidth ?? 800, gameConfig?.viewportHeight ?? 600);
 
-      // Belt uses Transform.y as depth — disable platformer death plane if present
       if (this.world.getResource("DeathPlaneY") !== undefined) {
         this.world.setResource("DeathPlaneY", Number.POSITIVE_INFINITY);
       }
@@ -262,7 +265,6 @@ export class HitAndRunGame extends PlatformerArcadeGame<
     renderer: Renderer<CoreComponentRegistry, RenderContext>
   ): void {
     if (renderer.type === "canvas" || renderer.type === "skia") {
-      // Canvas drawers work as a first Skia parity pass; dedicated Skia art is follow-up.
       registerHitRunRenderers(renderer);
       if (renderer.type === "skia") {
         console.info(

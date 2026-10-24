@@ -401,7 +401,7 @@ export const drawSkiaShmupStarfield: EffectDrawer<SkCanvas, ShmupComponentRegist
     } else if (biome.atmosphereStyle === "garden" || biome.atmosphereStyle === "sacred") {
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setStrokeWidth(width * 0.018);
-      const rayColor = biome.atmosphereStyle === "garden" ? "#BDF7D8" : SHMUP_COLOR_TOKENS.gold.sunlight;
+      const rayColor = biome.rayColor;
       paint.setColor(Skia.Color(colorWithAlpha(rayColor, biome.atmosphereStyle === "garden" ? 0.09 : 0.12)));
       for (let i = 0; i < 7; i += 1) {
         const rayX = width * (0.08 + i * 0.14) + Math.sin(time * 0.18 + i) * width * 0.025;
@@ -413,7 +413,7 @@ export const drawSkiaShmupStarfield: EffectDrawer<SkCanvas, ShmupComponentRegist
         const boltX = width * (0.58 + 0.16 * Math.sin(time * 0.23));
         paint.setStyle(Skia.PaintStyle.Stroke);
         paint.setStrokeWidth(2 + pulse * 3);
-        paint.setColor(Skia.Color(colorWithAlpha("#8CCBFF", 0.18 + pulse * 0.62)));
+        paint.setColor(Skia.Color(colorWithAlpha(biome.lightningColor, 0.18 + pulse * 0.62)));
         const bolt = Skia.Path.Make();
         bolt.moveTo(boltX, 0);
         bolt.lineTo(boltX - width * 0.045, height * 0.12);
@@ -447,7 +447,7 @@ export const drawSkiaShmupStarfield: EffectDrawer<SkCanvas, ShmupComponentRegist
     // Layer 3: garden islands, temple ruins and storm crystals have different silhouettes.
     for (const island of islands) {
       if (biome.islandStyle === "crystal") {
-        paint.setColor(Skia.Color("#15283F"));
+        paint.setColor(Skia.Color(biome.crystalShadowColor));
         const rock = Skia.Path.Make();
         rock.moveTo(island.x, island.y + island.height * 0.24);
         rock.lineTo(island.x + island.width * 0.18, island.y + island.height * 0.58);
@@ -458,7 +458,7 @@ export const drawSkiaShmupStarfield: EffectDrawer<SkCanvas, ShmupComponentRegist
         canvas.drawPath(rock, paint);
         paint.setStyle(Skia.PaintStyle.Stroke);
         paint.setStrokeWidth(2);
-        paint.setColor(Skia.Color(colorWithAlpha("#76CFFF", 0.7)));
+        paint.setColor(Skia.Color(colorWithAlpha(biome.crystalEdgeColor, 0.7)));
         canvas.drawPath(rock, paint);
         paint.setStyle(Skia.PaintStyle.Fill);
         paint.setColor(Skia.Color(colorWithAlpha(biome.glowColor, 0.72)));

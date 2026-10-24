@@ -26,7 +26,7 @@ export const drawFroggerCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCom
 
     ctx.save();
 
-    ctx.fillStyle = isInvuln ? "#A3FF80" : primaryColor;
+    ctx.fillStyle = isInvuln ? FROGGER_VISUAL_TOKENS.frog.invulnerable : primaryColor;
     ctx.shadowColor = FROGGER_VISUAL_TOKENS.shadows.color;
     ctx.shadowBlur = FROGGER_VISUAL_TOKENS.shadows.blur;
     ctx.shadowOffsetY = FROGGER_VISUAL_TOKENS.shadows.offsetY;
@@ -105,7 +105,6 @@ export const drawTruckCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCompo
     ctx.save();
 
     const truckColor = render.color || FROGGER_VISUAL_TOKENS.vehicles.truck;
-    ctx.save();
     ctx.fillStyle = truckColor;
     ctx.shadowColor = FROGGER_VISUAL_TOKENS.shadows.color;
     ctx.shadowBlur = FROGGER_VISUAL_TOKENS.shadows.blur;
@@ -242,8 +241,9 @@ export const drawLilyPadCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCom
 
     if (occupied) {
       ctx.fillStyle = occupiedColor;
-      ctx.shadowColor = occupiedColor;
-      ctx.shadowBlur = 10;
+      ctx.shadowColor = FROGGER_VISUAL_TOKENS.shadows.color;
+      ctx.shadowBlur = FROGGER_VISUAL_TOKENS.shadows.blur;
+      ctx.shadowOffsetY = FROGGER_VISUAL_TOKENS.shadows.offsetY;
       ctx.beginPath();
       ctx.arc(0, 0, half * 0.6, 0, Math.PI * 2);
       ctx.fill();

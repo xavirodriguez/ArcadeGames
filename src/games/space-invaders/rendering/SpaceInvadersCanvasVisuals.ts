@@ -1,3 +1,21 @@
-import { ShapeDrawer, EffectDrawer, World, THEME_RESOURCE_KEY, Theme } from "@tiny-aster/core";
-// RESTORED VIA PHASE2 - full file too large for single message; use git checkout from master then patch
-export {};
+/**
+ * Canvas visuals for Space Invaders — barrel re-export.
+ * Split across modules to keep file sizes manageable.
+ */
+export {
+  EXPLOSION_PARTICLE_POOL,
+  spawnLayeredExplosion,
+  updateExplosionParticles,
+  drawExplosionParticlesCanvas,
+  drawExplosionBackgroundEffect,
+  drawSpaceInvadersPlayer,
+  drawSpaceInvadersInvader,
+} from "./SpaceInvadersCanvasVisualsA";
+
+export {
+  drawSpaceInvadersBullet,
+  drawSpaceInvadersBoss,
+  drawSpaceInvadersShield,
+  drawSpaceInvadersParticle,
+  spaceInvadersScreenShakeEffect,
+} from "./SpaceInvadersCanvasVisualsB";

@@ -86,6 +86,7 @@ export const drawShmupPlayer: ShapeDrawer<CanvasRenderingContext2D, ShmupCompone
     ctx.fill();
 
     // Fine cyan exhaust filaments add a sense of thrust without obscuring bullets.
+    ctx.save();
     ctx.globalAlpha = 0.18 + 0.12 * (0.5 + 0.5 * Math.sin(time * 22));
     ctx.strokeStyle = SHMUP_COLOR_TOKENS.player.primary;
     ctx.lineWidth = Math.max(1, size * 0.055);
@@ -96,7 +97,7 @@ export const drawShmupPlayer: ShapeDrawer<CanvasRenderingContext2D, ShmupCompone
     ctx.moveTo(size * 0.25, size * 0.78);
     ctx.lineTo(size * 0.25, size * 0.78 + plumeLength * 0.58);
     ctx.stroke();
-    ctx.globalAlpha = 1;
+    ctx.restore();
 
     // Core Plumes (White hot center)
     ctx.fillStyle = SHMUP_COLOR_TOKENS.player.core;
@@ -387,13 +388,14 @@ export const drawShmupPlayerBullet: ShapeDrawer<CanvasRenderingContext2D, ShmupC
     const pulse = 0.9 + 0.1 * Math.sin(time * 26);
     ctx.shadowBlur = 16;
     ctx.shadowColor = color;
+    ctx.save();
     ctx.globalAlpha = 0.2;
     ctx.fillStyle = color;
     ctx.beginPath();
     ctx.roundRect(-size * 0.95, -size * 3, size * 1.9, size * 6, size * 0.95);
     ctx.fill();
+    ctx.restore();
 
-    ctx.globalAlpha = 1;
     ctx.fillStyle = color;
     ctx.beginPath();
     ctx.roundRect(-size * 0.62, -size * 2.5, size * 1.24, size * 5, size * 0.62);

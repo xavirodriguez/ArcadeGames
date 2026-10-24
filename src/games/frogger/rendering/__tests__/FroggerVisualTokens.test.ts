@@ -52,6 +52,8 @@ describe("Frogger visual reference contract", () => {
     expect(FROGGER_VISUAL_TOKENS.frog.body).toBe("#B6F23C");
     expect(FROGGER_VISUAL_TOKENS.frog.eyes).toBe("#F2EEE3");
     expect(FROGGER_VISUAL_TOKENS.frog.pupils).toBe("#232338");
+    expect(FROGGER_VISUAL_TOKENS.frog.belly).toBe("#D5F78A");
+    expect(FROGGER_VISUAL_TOKENS.frog.highlight).toBe("#E6FFAB");
 
     expect(FROGGER_VISUAL_TOKENS.surfaces.asphalt).toBe("#232338");
     expect(FROGGER_VISUAL_TOKENS.surfaces.bank).toBe("#E9B949");
@@ -62,9 +64,14 @@ describe("Frogger visual reference contract", () => {
     expect(FROGGER_VISUAL_TOKENS.surfaces.roadEdge).toBe("#181824");
 
     expect(FROGGER_VISUAL_TOKENS.logs.body).toBe("#B9824A");
+    expect(FROGGER_VISUAL_TOKENS.logs.ring).toBe("#C99560");
+    expect(FROGGER_VISUAL_TOKENS.logs.endGrain).toBe("#E0B17C");
     expect(FROGGER_VISUAL_TOKENS.turtles.body).toBe("#2F8F7A");
+    expect(FROGGER_VISUAL_TOKENS.turtles.shellLine).toBe("#244D39");
     expect(FROGGER_VISUAL_TOKENS.crocodile.body).toBe("#4C7F5E");
+    expect(FROGGER_VISUAL_TOKENS.crocodile.mouth).toBe("#4A3438");
     expect(FROGGER_VISUAL_TOKENS.lilyPads.body).toBe("#3FA373");
+    expect(FROGGER_VISUAL_TOKENS.lilyPads.vein).toBe("#287858");
     expect(FROGGER_VISUAL_TOKENS.vehicles.cars).toEqual([
       "#5B6FB5",
       "#8B63A8",

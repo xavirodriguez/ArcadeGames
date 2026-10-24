@@ -49,8 +49,8 @@ export const drawFroggerSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = 
 };
 
 export const drawCarSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
-  draw(canvas, world, entity) {
-    const render = getVisibleSkiaRender(world, entity);
+  draw(canvas, _world, entity) {
+    const render = getVisibleSkiaRender(_world, entity);
     if (!render) return;
 
     const width = render.size || 48;
@@ -60,8 +60,8 @@ export const drawCarSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
 };
 
 export const drawTruckSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
-  draw(canvas, world, entity) {
-    const render = getVisibleSkiaRender(world, entity);
+  draw(canvas, _world, entity) {
+    const render = getVisibleSkiaRender(_world, entity);
     if (!render) return;
 
     const width = render.size || 80;
@@ -81,8 +81,8 @@ export const drawTruckSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
 };
 
 export const drawLogSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
-  draw(canvas, world, entity) {
-    const render = getVisibleSkiaRender(world, entity);
+  draw(canvas, _world, entity) {
+    const render = getVisibleSkiaRender(_world, entity);
     if (!render) return;
 
     const width = render.size || 120;
@@ -118,8 +118,8 @@ export const drawTurtleSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
 };
 
 export const drawCrocodileSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
-  draw(canvas, world, entity) {
-    const render = getVisibleSkiaRender(world, entity);
+  draw(canvas, _world, entity) {
+    const render = getVisibleSkiaRender(_world, entity);
     if (!render) return;
 
     const width = render.size || 100;

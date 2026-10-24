@@ -1,6 +1,7 @@
 import { World } from "@tiny-aster/core";
 import {
   resolveFroggerFacingRotation,
+  resolveFroggerShellSegments,
   resolveFroggerSlotColors,
   resolveFroggerTurtleVisualState,
   resolveFroggerVehicleDirection,
@@ -81,5 +82,21 @@ describe("resolveFroggerTurtleVisualState", () => {
       shellColor: FROGGER_VISUAL_TOKENS.turtles.submerged,
       opacity: 0.62,
     });
+  });
+});
+
+
+describe("resolveFroggerShellSegments", () => {
+  it("supports the smallest practical sprite size and caches stable layouts", () => {
+    const compact = resolveFroggerShellSegments(24);
+    expect(compact).toHaveLength(1);
+    expect(compact[0].segX).toBe(0);
+    expect(resolveFroggerShellSegments(24)).toBe(compact);
+  });
+
+  it("distributes larger turtle groups evenly along their platform", () => {
+    const segments = resolveFroggerShellSegments(120);
+    expect(segments).toHaveLength(3);
+    expect(segments.map((segment) => segment.segX)).toEqual([-40, 0, 40]);
   });
 });

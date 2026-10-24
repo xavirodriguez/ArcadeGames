@@ -243,7 +243,7 @@ export const drawShmupEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupComponen
       const engineOffset = archetype === "armored" ? 0.46 : archetype === "boss" ? 0.42 : 0.23;
       const engineAnchorY = archetype === "boss" ? -0.72 : archetype === "armored" ? -0.64 : -0.55;
       const plumeLength = size * (0.34 + plumePulse * 0.3);
-      const plumeWidth = size * (archetype === "boss" ? 0.15 : 0.09);
+      const plumeWidth = archetype === "boss" ? 0.15 : 0.09;
       ctx.globalAlpha = 0.78;
       ctx.shadowBlur = size * 0.25;
       ctx.shadowColor = archetype === "armored" ? SHMUP_COLOR_TOKENS.gold.sunlight : SHMUP_COLOR_TOKENS.enemy.accent;
@@ -251,8 +251,8 @@ export const drawShmupEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupComponen
 
       for (const side of [-1, 1]) {
         ctx.beginPath();
-        ctx.moveTo(side * (engineOffset - plumeWidth), engineAnchorY * size);
-        ctx.lineTo(side * (engineOffset + plumeWidth), engineAnchorY * size);
+        ctx.moveTo(side * (engineOffset - plumeWidth) * size, engineAnchorY * size);
+        ctx.lineTo(side * (engineOffset + plumeWidth) * size, engineAnchorY * size);
         ctx.lineTo(side * engineOffset * size, engineAnchorY * size - plumeLength);
         ctx.closePath();
         ctx.fill();

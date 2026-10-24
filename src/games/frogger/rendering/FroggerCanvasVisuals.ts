@@ -7,7 +7,7 @@ import {
   resolveFroggerBackgroundContext,
   resolveFroggerSlotColors,
 } from "./FroggerRenderUtils";
-import { FROGGER_VISUAL_TOKENS } from "./FroggerVisualTokens";
+import { FROGGER_BACKGROUND_ROWS, FROGGER_VISUAL_TOKENS } from "./FroggerVisualTokens";
 
 export const drawFroggerCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComponentRegistry> = {
   draw(ctx, world, entity) {
@@ -284,7 +284,7 @@ export const froggerBackgroundCanvasEffect: EffectDrawer<CanvasRenderingContext2
     // River: a restrained vertical gradient, with slow, low-contrast wave marks.
     const riverGradient = ctx.createLinearGradient(0, riverY, 0, riverY + riverHeight);
     riverGradient.addColorStop(0, palette.riverShallow);
-    riverGradient.addColorStop(0.55, "#16949C");
+    riverGradient.addColorStop(0.55, palette.riverMid);
     riverGradient.addColorStop(1, palette.riverDeep);
     ctx.fillStyle = riverGradient;
     ctx.fillRect(0, riverY, w, riverHeight);

@@ -74,3 +74,20 @@ Implemented on `feat/frogger-directional-vehicles`:
 - [ ] Check that car and truck silhouettes remain legible with traffic moving in both directions on a device/emulator.
 
 The phase changes only render instructions and semantic visual tokens. Vehicle speed, direction, transform, collider dimensions, collision layers and row layout remain unchanged.
+
+
+## Phase 4 — Frog, river entities and goals
+
+Implemented in `feat/frogger-river-entities`:
+
+- [x] Frog uses a recognizable compact silhouette with legs, belly, eye stalks, eyes and pupils; the art rotates from the existing `Frogger.facing` value.
+- [x] Logs use warm end-grain rings, bark highlights and sparse grain lines.
+- [x] Turtles use feet, a head, panelled shells and eye details; their real `Log.divePhase` drives warning color and a darker, lower-opacity submerged pose.
+- [x] Crocodile uses a tapered body, dorsal bands, short legs, eyes and a mouth whose open/closed drawing follows `Log.mouthOpen`.
+- [x] Goal pads use a leaf notch and veins; free, occupied, fly-bearing and crocodile-bearing pads display distinct in-world markers from the existing `GoalLilyPad` state.
+- [x] Canvas and Skia implementations follow the same design and palette.
+- [x] Added tests for facing rotation, turtle dive presentation, cached shell layout and the new semantic tokens.
+- [ ] Compare Canvas/Skia captures on mobile, including turtle warning/submerged and crocodile mouth-open states.
+- [ ] Check visual bounds and readability against the existing colliders during gameplay.
+
+No ECS fields, gameplay rules, movement, collision geometry, score calculations or timers were added or changed.

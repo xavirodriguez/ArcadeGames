@@ -315,14 +315,6 @@ export const drawLogSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
     const halfH = height / 2;
     const logColor = render.color || FROGGER_VISUAL_TOKENS.logs.body;
 
-    drawSkiaRoundedBox(
-      canvas,
-      width - 2,
-      height - 1,
-      FROGGER_VISUAL_TOKENS.shadows.color,
-      10,
-      10
-    );
     canvas.save();
     canvas.translate(0, FROGGER_VISUAL_TOKENS.shadows.offsetY + 1);
 

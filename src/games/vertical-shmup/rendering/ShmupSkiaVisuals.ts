@@ -230,6 +230,41 @@ export const drawSkiaShmupEnemy: ShapeDrawer<SkCanvas, ShmupComponentRegistry> =
     paint.setAntiAlias(true);
     paint.setStyle(Skia.PaintStyle.Fill);
 
+    // Boss presentation: mirror the animated celestial seal used by Canvas.
+    if (archetype === "boss") {
+      const pulse = 1 + 0.035 * Math.sin(time * 2.4);
+      const orbitRadius = size * 1.34 * pulse;
+      paint.setStyle(Skia.PaintStyle.Stroke);
+      paint.setColor(Skia.Color("rgba(255, 209, 102, 0.32)"));
+      paint.setStrokeWidth(Math.max(2, size * 0.035));
+      canvas.drawCircle(0, 0, size * 1.17, paint);
+
+      paint.setColor(Skia.Color("rgba(255, 209, 102, 0.78)"));
+      paint.setStrokeWidth(Math.max(2, size * 0.045));
+      for (let index = 0; index < 4; index += 1) {
+        const startDegrees = (time * 0.42 + index * Math.PI / 2) * (180 / Math.PI);
+        canvas.drawArc(
+          Skia.XYWHRect(-orbitRadius, -orbitRadius, orbitRadius * 2, orbitRadius * 2),
+          startDegrees,
+          39.6,
+          false,
+          paint
+        );
+      }
+
+      const innerRadius = size * (1.02 + 0.025 * Math.sin(time * 1.8));
+      paint.setColor(Skia.Color("rgba(242, 93, 187, 0.48)"));
+      paint.setStrokeWidth(Math.max(1.5, size * 0.025));
+      canvas.drawArc(
+        Skia.XYWHRect(-innerRadius, -innerRadius, innerRadius * 2, innerRadius * 2),
+        (-time * 0.3) * (180 / Math.PI),
+        207,
+        false,
+        paint
+      );
+      paint.setStyle(Skia.PaintStyle.Fill);
+    }
+
     // Match the Canvas renderer with flickering rear engines behind each hull.
     if (archetype !== "support") {
       const plumePulse = 0.82 + 0.18 * Math.sin(time * (archetype === "interceptor" ? 34 : 22));

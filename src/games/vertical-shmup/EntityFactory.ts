@@ -137,7 +137,7 @@ export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: 
   });
   const scaledScore = Math.floor(c.ENEMY_SCORE * (1 + (wave - 1) * 0.2));
   const scaledHp = c.ENEMY_HP + Math.floor((wave - 1) / 3);
-  add({ type: "ShmupEnemy", score: scaledScore, archetype });
+  add({ type: "ShmupEnemy", score: scaledScore, archetype: isBoss ? "boss" : archetype });
   add({ type: "Health", current: scaledHp, max: scaledHp });
   add({ type: "Faction", faction: "enemy", value: "enemy" });
   add({ type: "EnemyPath", kind: pathKind, elapsed: 0, duration: pathDuration, speed: enemySpeed, amplitude: isBoss ? 80 : 120, frequency: isBoss ? 1.0 : 1.8, originX: x, originY: y });

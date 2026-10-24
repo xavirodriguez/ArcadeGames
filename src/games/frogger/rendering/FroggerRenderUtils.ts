@@ -1,7 +1,7 @@
-import { World, RenderComponent, resolveThemeColor, resolveThemeColorWithFallback } from "@tiny-aster/core";
+import { World, RenderComponent } from "@tiny-aster/core";
 import { FroggerComponentRegistry, GoalLilyPadComponent } from "../types/FroggerTypes";
 import { DEFAULT_FROGGER_CONFIG } from "../types/FroggerConfigSchema";
-import { colors } from "../../../theme/colors";
+import { FROGGER_VISUAL_TOKENS } from "./FroggerVisualTokens";
 
 export function shouldSkipFroggerRenderDueToInvulnerability(
   world: World<FroggerComponentRegistry>,
@@ -50,7 +50,7 @@ export function resolveFroggerPlayerDrawContext(
   const isInvuln = isFroggerInvulnerable(world, entity);
   const size = render.size || 32;
   const half = size / 2;
-  const primaryColor = resolveThemeColor(world, "frogger", "player") || colors.green;
+  const primaryColor = FROGGER_VISUAL_TOKENS.frog.body;
 
   return {
     render,
@@ -118,15 +118,15 @@ export interface FroggerBackgroundContext {
 }
 
 export function resolveFroggerBackgroundContext(
-  world: World<FroggerComponentRegistry, any>
+  world: World<FroggerComponentRegistry>
 ): FroggerBackgroundContext {
   const config = world.getResource<typeof DEFAULT_FROGGER_CONFIG>("GameConfig") || DEFAULT_FROGGER_CONFIG;
   const w = config.worldWidth;
   const grid = config.GRID_SIZE;
 
-  const grassColor = resolveThemeColorWithFallback(world, colors.backgroundDark, "frogger_grass", "secondary");
-  const waterColor = resolveThemeColorWithFallback(world, colors.backgroundSlate, "water", "secondary");
-  const roadColor = resolveThemeColorWithFallback(world, colors.surface, "frogger_road");
+  const grassColor = FROGGER_VISUAL_TOKENS.surfaces.bank;
+  const waterColor = FROGGER_VISUAL_TOKENS.surfaces.riverShallow;
+  const roadColor = FROGGER_VISUAL_TOKENS.surfaces.asphalt;
 
   return { config, w, grid, grassColor, waterColor, roadColor };
 }
@@ -137,7 +137,7 @@ export interface FroggerSlotColors {
 }
 
 export function resolveFroggerSlotColors(world: World<FroggerComponentRegistry>): FroggerSlotColors {
-  const slotColor = resolveThemeColorWithFallback(world, "#00AA44", "home_slot", "secondary");
-  const occupiedColor = resolveThemeColorWithFallback(world, "#39FF14", "home_slot_occupied", "primary");
+  const slotColor = FROGGER_VISUAL_TOKENS.lilyPads.free;
+  const occupiedColor = FROGGER_VISUAL_TOKENS.lilyPads.occupied;
   return { slotColor, occupiedColor };
 }

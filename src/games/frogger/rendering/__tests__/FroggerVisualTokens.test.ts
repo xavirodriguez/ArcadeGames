@@ -1,4 +1,5 @@
 import {
+  FROGGER_BACKGROUND_ROWS,
   FROGGER_VISUAL_REFERENCE,
   FROGGER_VISUAL_TOKENS,
 } from "../FroggerVisualTokens";
@@ -24,6 +25,19 @@ describe("Frogger visual reference contract", () => {
     // The reference screenshot is not a source of truth for simulation dimensions.
     expect(logicalGrid.columns * logicalGrid.cellSize).toBe(800);
     expect(logicalGrid.rows * logicalGrid.cellSize).toBe(600);
+  });
+
+  it("keeps the background zones contiguous across the complete logical board", () => {
+    const rows = FROGGER_BACKGROUND_ROWS;
+    const config = DEFAULT_FROGGER_CONFIG;
+
+    expect(rows.goalBank).toBe(0);
+    expect(rows.riverStart).toBe(rows.goalBank + 1);
+    expect(rows.median).toBe(rows.riverStart + rows.riverRows);
+    expect(rows.roadStart).toBe(rows.median + 1);
+    expect(rows.startBank).toBe(rows.roadStart + rows.roadRows);
+    expect(rows.startBank + rows.startRows).toBe(config.TOTAL_ROWS);
+    expect(config.GRID_SIZE).toBe(rows.startRows > 0 ? 40 : 0);
   });
 
   it("exposes the agreed warm sunset palette through semantic tokens", () => {

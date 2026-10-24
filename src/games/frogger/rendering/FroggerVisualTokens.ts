@@ -16,6 +16,7 @@ export const FROGGER_VISUAL_TOKENS = {
     asphalt: "#232338",
     bank: "#E9B949",
     riverDeep: "#0F6E7A",
+    riverMid: "#16949C",
     riverShallow: "#17A3A3",
     hud: "#1B1B2E",
     bankShadow: "#C18D3A",

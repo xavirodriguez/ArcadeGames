@@ -19,6 +19,7 @@ import { SpaceInvadersConfigSchema, SpaceInvadersConfig } from "./types/SpaceInv
 import { ISpaceInvadersGame } from "./types/GameInterfaces";
 import { PlayerBulletPool, EnemyBulletPool, ParticlePool } from "./EntityPool";
 import { SpaceInvadersGameScene } from "./scenes/SpaceInvadersGameScene";
+import { resolveSpaceInvadersMod, SpaceInvadersMod } from "./mods";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
 import { markLocalPlayerEntity, NO_OP_SYNC, applyServerSnapshot, queryPlayerEntity } from "../shared/networkUtils";
 import spaceInvadersConfigRaw from "./config/space-invaders.json";
@@ -33,7 +34,7 @@ const __DEV__ = process.env.NODE_ENV !== "production";
  * Unlike Asteroids, it uses a rigid formation system where the movement
  * of one entity affects the whole group (Swarm movement).
  */
-import { TransformComponent, VelocityComponent, RenderComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, CollisionEventsComponent, HealthComponent, BoundaryComponent, BlueprintDefinition, Theme, resolveThemeColor, EntityBuilder } from "@tiny-aster/core";
+import { TransformComponent, VelocityComponent, RenderComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, CollisionEventsComponent, HealthComponent, BoundaryComponent, BlueprintDefinition, Theme, resolveThemeColor, EntityBuilder, THEME_RESOURCE_KEY } from "@tiny-aster/core";
 import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 import { FactionComponent, DamageComponent } from "@tiny-aster/gameplay-kit";
 
@@ -523,7 +524,13 @@ export class SpaceInvadersGame
     }
   }
 
-  public initializeRenderer(renderer: Renderer<SpaceInvadersComponentRegistry>): void {
+  public initializeRenderer(
+    renderer: Renderer<SpaceInvadersComponentRegistry>,
+    mod?: SpaceInvadersMod
+  ): void {
+    const activeTheme = this.world.getResource<Theme>(THEME_RESOURCE_KEY) ?? this._config?.theme;
+    const activeMod = mod ?? resolveSpaceInvadersMod(activeTheme);
+
     RendererUtils.registerAssets(renderer, {
       canvas: (r) => {
         const {
@@ -541,12 +548,22 @@ export class SpaceInvadersGame
         r.registerShape("enemy_bullet", drawSpaceInvadersBullet); // Reuse bullet drawer
         r.registerShape("shield_block", drawSpaceInvadersShield);
         r.registerShape("particle", drawSpaceInvadersParticle);
+
         const { drawSpaceInvadersComboHUD } = require("./systems/ComboHUDRenderSystem");
         r.registerBackgroundEffect("combo_hud", drawSpaceInvadersComboHUD);
         const { drawExplosionBackgroundEffect } = require("./rendering/SpaceInvadersCanvasVisuals");
         r.registerBackgroundEffect("explosion_vfx", drawExplosionBackgroundEffect);
-        const { registerNauticalChartCanvasEffects } = require("./rendering/registerNauticalChartEffects");
-        registerNauticalChartCanvasEffects(r);
+
+        activeMod.registerDrawers?.((backend, shape, drawer) => {
+          if (backend === "canvas") {
+            r.registerShape(shape, drawer);
+          }
+        });
+        activeMod.registerBackgroundEffects?.((backend, name, effect) => {
+          if (backend === "canvas") {
+            r.registerBackgroundEffect(name, effect as never);
+          }
+        });
       },
       skia: (r) => {
         const {
@@ -566,8 +583,17 @@ export class SpaceInvadersGame
         r.registerShape("shield_block", drawSkiaSpaceInvadersShield);
         r.registerShape("particle", drawSkiaSpaceInvadersParticle);
         r.registerBackgroundEffect("explosion_vfx", drawSkiaExplosionBackgroundEffect);
-        const { registerNauticalChartSkiaEffects } = require("./rendering/registerNauticalChartEffects");
-registerNauticalChartSkiaEffects(r);
+
+        activeMod.registerDrawers?.((backend, shape, drawer) => {
+          if (backend === "skia") {
+            r.registerShape(shape, drawer);
+          }
+        });
+        activeMod.registerBackgroundEffects?.((backend, name, effect) => {
+          if (backend === "skia") {
+            r.registerBackgroundEffect(name, effect as never);
+          }
+        });
       }
     });
 

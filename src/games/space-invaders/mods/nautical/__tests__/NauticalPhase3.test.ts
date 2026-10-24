@@ -1,23 +1,25 @@
 import { World, THEME_RESOURCE_KEY } from "@tiny-aster/core";
-import { aquiHayDragonesConceptPack } from "../../../theme/conceptPacks/aquiHayDragonesConceptPack";
+import { aquiHayDragonesConceptPack } from "../../../../../theme/conceptPacks/aquiHayDragonesConceptPack";
 import {
   NauticalWindSystem,
   ensureNauticalWind,
   NAUTICAL_WIND_RESOURCE,
   createDefaultWindState,
-} from "../systems/NauticalWindSystem";
+} from "../NauticalWindSystem";
 import {
   islandPhaseFromRatio,
   islandVisualScale,
   islandVisualAlpha,
   IslandErosionSystem,
-} from "../systems/IslandErosionSystem";
-import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
+} from "../IslandErosionSystem";
+import { SpaceInvadersComponentRegistry } from "../../../types/SpaceInvadersTypes";
 
 describe("Phase 3 — Nautical wind", () => {
-  it("does not create wind resource without nautical theme", () => {
+  it("creates wind resource on ensureNauticalWind when requested by NauticalMod", () => {
     const world = new World<SpaceInvadersComponentRegistry>();
-    expect(ensureNauticalWind(world)).toBeNull();
+    const wind = ensureNauticalWind(world);
+    expect(wind).not.toBeNull();
+    expect(world.getResource(NAUTICAL_WIND_RESOURCE)).toBe(wind);
   });
 
   it("creates and updates wind under aqui_hay_dragones theme", () => {

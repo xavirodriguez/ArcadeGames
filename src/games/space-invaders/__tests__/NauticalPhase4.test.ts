@@ -1,6 +1,6 @@
-import { drawNauticalChartBackdrop } from "../rendering/NauticalChartBackground";
-import { drawNauticalHud } from "../rendering/NauticalHudOverlay";
-import { createDefaultWindState } from "../systems/NauticalWindSystem";
+import { drawNauticalChartBackdrop } from "../mods/nautical/rendering/NauticalChartBackground";
+import { drawNauticalHud } from "../mods/nautical/rendering/NauticalHudOverlay";
+import { createDefaultWindState } from "../mods/nautical/NauticalWindSystem";
 
 function mockCtx() {
   const ops: string[] = [];

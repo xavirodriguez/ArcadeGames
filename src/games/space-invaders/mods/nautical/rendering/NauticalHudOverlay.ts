@@ -1,13 +1,12 @@
-import { EffectDrawer, Theme, THEME_RESOURCE_KEY, World } from "@tiny-aster/core";
-import { SpaceInvadersComponentRegistry, GAME_CONFIG } from "../types/SpaceInvadersTypes";
+import { EffectDrawer } from "@tiny-aster/core";
+import { SpaceInvadersComponentRegistry, GAME_CONFIG } from "../../../types/SpaceInvadersTypes";
 import {
   AQUI_HAY_DRAGONES_PALETTE,
-} from "../../../theme/conceptPacks/aquiHayDragonesConceptPack";
+} from "../../../../../theme/conceptPacks/aquiHayDragonesConceptPack";
 import {
-  isNauticalChartTheme,
   NAUTICAL_WIND_RESOURCE,
   NauticalWindState,
-} from "../nautical/NauticalThemeShared";
+} from "../NauticalThemeShared";
 
 const P = AQUI_HAY_DRAGONES_PALETTE;
 
@@ -44,7 +43,7 @@ function drawMiniGalleon(
   ctx.fill();
 }
 
-function drawNauticalHud(
+export function drawNauticalHud(
   ctx: CanvasRenderingContext2D,
   worldWidth: number,
   worldHeight: number,
@@ -163,9 +162,6 @@ export const drawNauticalHudEffect: EffectDrawer<
   SpaceInvadersComponentRegistry
 > = {
   draw(ctx, world) {
-    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-    if (!isNauticalChartTheme(theme)) return;
-
     const w = GAME_CONFIG.worldWidth;
     const h = GAME_CONFIG.worldHeight;
     const gameState = world.getSingleton("GameState") as

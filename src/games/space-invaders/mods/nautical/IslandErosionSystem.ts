@@ -1,6 +1,5 @@
-import { System, World, Theme, THEME_RESOURCE_KEY } from "@tiny-aster/core";
-import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
-import { isNauticalChartTheme } from "../nautical/NauticalThemeShared";
+import { System, World } from "@tiny-aster/core";
+import { SpaceInvadersComponentRegistry } from "../../types/SpaceInvadersTypes";
 
 /**
  * Island erosion phases for shield_block when nautical theme is active.
@@ -25,16 +24,13 @@ export function islandVisualAlpha(ratio: number): number {
 }
 
 /**
- * Marks shield entities with visual erosion (opacity/size/visibility) under nautical theme.
+ * Marks shield entities with visual erosion (opacity/size/visibility) when registered by NauticalMod.
  */
 export class IslandErosionSystem extends System<SpaceInvadersComponentRegistry> {
   public update(
     world: World<SpaceInvadersComponentRegistry>,
     _deltaTime: number
   ): void {
-    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-    if (!isNauticalChartTheme(theme)) return;
-
     for (const entity of world.query("Shield")) {
       const shield = world.getComponent(entity, "Shield");
       if (!shield) continue;

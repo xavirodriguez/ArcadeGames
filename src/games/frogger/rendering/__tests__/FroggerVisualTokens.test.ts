@@ -1,4 +1,5 @@
 import {
+  FROGGER_BACKGROUND_ROWS,
   FROGGER_VISUAL_REFERENCE,
   FROGGER_VISUAL_TOKENS,
 } from "../FroggerVisualTokens";
@@ -26,6 +27,27 @@ describe("Frogger visual reference contract", () => {
     expect(logicalGrid.rows * logicalGrid.cellSize).toBe(600);
   });
 
+  it("keeps the background zones contiguous across the complete logical board", () => {
+    const rows = FROGGER_BACKGROUND_ROWS;
+    const config = DEFAULT_FROGGER_CONFIG;
+
+    expect(rows).toEqual({
+      goalBank: 0,
+      riverStart: 1,
+      riverRows: 5,
+      median: 6,
+      roadStart: 7,
+      roadRows: 5,
+      startBank: 12,
+      startRows: 3,
+    });
+    expect(rows.riverStart).toBe(rows.goalBank + 1);
+    expect(rows.median).toBe(rows.riverStart + rows.riverRows);
+    expect(rows.roadStart).toBe(rows.median + 1);
+    expect(rows.startBank).toBe(rows.roadStart + rows.roadRows);
+    expect(rows.startBank + rows.startRows).toBe(config.TOTAL_ROWS);
+  });
+
   it("exposes the agreed warm sunset palette through semantic tokens", () => {
     expect(FROGGER_VISUAL_TOKENS.frog.body).toBe("#B6F23C");
     expect(FROGGER_VISUAL_TOKENS.frog.eyes).toBe("#F2EEE3");
@@ -34,7 +56,10 @@ describe("Frogger visual reference contract", () => {
     expect(FROGGER_VISUAL_TOKENS.surfaces.asphalt).toBe("#232338");
     expect(FROGGER_VISUAL_TOKENS.surfaces.bank).toBe("#E9B949");
     expect(FROGGER_VISUAL_TOKENS.surfaces.riverDeep).toBe("#0F6E7A");
+    expect(FROGGER_VISUAL_TOKENS.surfaces.riverMid).toBe("#16949C");
     expect(FROGGER_VISUAL_TOKENS.surfaces.riverShallow).toBe("#17A3A3");
+    expect(FROGGER_VISUAL_TOKENS.surfaces.bankHighlight).toBe("#F5D478");
+    expect(FROGGER_VISUAL_TOKENS.surfaces.roadEdge).toBe("#181824");
 
     expect(FROGGER_VISUAL_TOKENS.logs.body).toBe("#B9824A");
     expect(FROGGER_VISUAL_TOKENS.turtles.body).toBe("#2F8F7A");

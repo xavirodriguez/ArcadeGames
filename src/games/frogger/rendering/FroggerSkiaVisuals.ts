@@ -1,4 +1,5 @@
 import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
+import type { SkShader } from "@shopify/react-native-skia";
 import { FroggerComponentRegistry } from "../types/FroggerTypes";
 import { Skia, type SkCanvas } from "../../shared/rendering/SkiaContext";
 import { getVisibleSkiaRender } from "../../shared/rendering/renderingUtils";
@@ -9,7 +10,7 @@ import {
   resolveFroggerBackgroundContext,
   resolveFroggerSlotColors,
 } from "./FroggerRenderUtils";
-import { FROGGER_VISUAL_TOKENS } from "./FroggerVisualTokens";
+import { FROGGER_BACKGROUND_ROWS, FROGGER_VISUAL_TOKENS } from "./FroggerVisualTokens";
 
 function drawSkiaRoundedBox(
   canvas: SkCanvas,
@@ -147,24 +148,138 @@ export const drawLilyPadSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = 
   },
 };
 
+let cachedRiverShader: { grid: number; shader: SkShader } | null = null;
+
+function getFroggerRiverShader(grid: number): SkShader | null {
+  if (!Skia) return null;
+  if (cachedRiverShader?.grid === grid) return cachedRiverShader.shader;
+
+  const shader = Skia.Shader.MakeLinearGradient(
+    Skia.Point(0, FROGGER_BACKGROUND_ROWS.riverStart * grid),
+    Skia.Point(0, (FROGGER_BACKGROUND_ROWS.riverStart + FROGGER_BACKGROUND_ROWS.riverRows) * grid),
+    [
+      Skia.Color(FROGGER_VISUAL_TOKENS.surfaces.riverShallow),
+      Skia.Color(FROGGER_VISUAL_TOKENS.surfaces.riverMid),
+      Skia.Color(FROGGER_VISUAL_TOKENS.surfaces.riverDeep),
+    ],
+    [0, 0.55, 1],
+    Skia.TileMode.Clamp
+  );
+
+  if (!shader) return null;
+  cachedRiverShader = { grid, shader };
+  return shader;
+}
+
 export const froggerBackgroundSkiaEffect: EffectDrawer<SkCanvas, FroggerComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
-    const { w, grid, grassColor, waterColor, roadColor } = resolveFroggerBackgroundContext(world);
+    const { w, grid } = resolveFroggerBackgroundContext(world);
+    const rows = FROGGER_BACKGROUND_ROWS;
+    const palette = FROGGER_VISUAL_TOKENS.surfaces;
+    const riverY = rows.riverStart * grid;
+    const riverHeight = rows.riverRows * grid;
+    const medianY = rows.median * grid;
+    const roadY = rows.roadStart * grid;
+    const roadHeight = rows.roadRows * grid;
+    const startY = rows.startBank * grid;
+    const startHeight = rows.startRows * grid;
 
-    const grassPaint = Skia.Paint();
-    grassPaint.setColor(Skia.Color(grassColor));
+    canvas.save();
 
+    const bankPaint = Skia.Paint();
+    bankPaint.setColor(Skia.Color(palette.bank));
+    canvas.drawRect(Skia.XYWHRect(0, 0, w, grid), bankPaint);
+
+    const bankHighlightPaint = Skia.Paint();
+    bankHighlightPaint.setColor(Skia.Color(palette.bankHighlight));
+    canvas.drawRect(Skia.XYWHRect(0, 0, w, 3), bankHighlightPaint);
+
+    const bankShadowPaint = Skia.Paint();
+    bankShadowPaint.setColor(Skia.Color(palette.bankShadow));
+    canvas.drawRect(Skia.XYWHRect(0, grid - 4, w, 4), bankShadowPaint);
+
+    // River gradient shader is cached by cell size; it is not rebuilt every frame.
     const waterPaint = Skia.Paint();
-    waterPaint.setColor(Skia.Color(waterColor));
+    const riverShader = getFroggerRiverShader(grid);
+    if (riverShader) {
+      waterPaint.setShader(riverShader);
+    } else {
+      waterPaint.setColor(Skia.Color(palette.riverShallow));
+    }
+    canvas.drawRect(Skia.XYWHRect(0, riverY, w, riverHeight), waterPaint);
 
+    const waterFlowPaint = Skia.Paint();
+    waterFlowPaint.setStyle(Skia.PaintStyle.Stroke);
+    waterFlowPaint.setColor(Skia.Color(palette.waterFlow));
+    waterFlowPaint.setStrokeWidth(1.5);
+
+    const waterGlintPaint = Skia.Paint();
+    waterGlintPaint.setStyle(Skia.PaintStyle.Stroke);
+    waterGlintPaint.setColor(Skia.Color(palette.waterGlint));
+    waterGlintPaint.setStrokeWidth(1);
+
+    const flowOffset = (world.tick * 0.35) % 96;
+    for (let lane = 0; lane < rows.riverRows; lane += 1) {
+      const lineY = riverY + lane * grid + grid * 0.34 + (lane % 2) * 5;
+      const laneOffset = lane % 2 === 0 ? flowOffset : (flowOffset + 48) % 96;
+      for (let x = -96 + laneOffset; x < w + 96; x += 96) {
+        canvas.drawLine(x, lineY, x + 8, lineY - 2, waterFlowPaint);
+        canvas.drawLine(x + 8, lineY - 2, x + 18, lineY, waterFlowPaint);
+        canvas.drawLine(x + 38, lineY + 10, x + 50, lineY + 8, waterGlintPaint);
+      }
+    }
+
+    // Safe median has its own bank surface and subdued seams.
+    canvas.drawRect(Skia.XYWHRect(0, medianY, w, grid), bankPaint);
+    canvas.drawRect(Skia.XYWHRect(0, medianY, w, 3), bankShadowPaint);
+    canvas.drawRect(Skia.XYWHRect(0, medianY + grid - 3, w, 3), bankShadowPaint);
+
+    const medianLinePaint = Skia.Paint();
+    medianLinePaint.setStyle(Skia.PaintStyle.Stroke);
+    medianLinePaint.setColor(Skia.Color(palette.medianDivider));
+    medianLinePaint.setStrokeWidth(1);
+    for (let x = 12; x < w; x += grid) {
+      canvas.drawLine(x, medianY + 13, x + 10, medianY + 13, medianLinePaint);
+      canvas.drawLine(x + 5, medianY + 25, x + 17, medianY + 25, medianLinePaint);
+    }
+
+    // Road surface and the four separators that define five traffic lanes.
     const roadPaint = Skia.Paint();
-    roadPaint.setColor(Skia.Color(roadColor));
+    roadPaint.setColor(Skia.Color(palette.asphalt));
+    canvas.drawRect(Skia.XYWHRect(0, roadY, w, roadHeight), roadPaint);
+    const roadEdgePaint = Skia.Paint();
+    roadEdgePaint.setColor(Skia.Color(palette.roadEdge));
+    canvas.drawRect(Skia.XYWHRect(0, roadY, w, 3), roadEdgePaint);
+    canvas.drawRect(Skia.XYWHRect(0, roadY + roadHeight - 3, w, 3), roadEdgePaint);
 
-    canvas.drawRect(Skia.XYWHRect(0, 0, w, grid), grassPaint);
-    canvas.drawRect(Skia.XYWHRect(0, grid * 1, w, grid * 5), waterPaint);
-    canvas.drawRect(Skia.XYWHRect(0, grid * 6, w, grid), grassPaint);
-    canvas.drawRect(Skia.XYWHRect(0, grid * 7, w, grid * 5), roadPaint);
-    canvas.drawRect(Skia.XYWHRect(0, grid * 12, w, grid * 3), grassPaint);
+    const lanePaint = Skia.Paint();
+    lanePaint.setStyle(Skia.PaintStyle.Stroke);
+    lanePaint.setColor(Skia.Color(palette.laneDivider));
+    lanePaint.setStrokeWidth(2);
+    for (let separator = 1; separator < rows.roadRows; separator += 1) {
+      const lineY = roadY + separator * grid;
+      for (let x = 0; x < w; x += 18) {
+        canvas.drawLine(x, lineY, Math.min(x + 8, w), lineY, lanePaint);
+      }
+    }
+
+    // Starting bank uses the same paving seams as Canvas.
+    canvas.drawRect(Skia.XYWHRect(0, startY, w, startHeight), bankPaint);
+    canvas.drawRect(Skia.XYWHRect(0, startY, w, 3), bankHighlightPaint);
+    canvas.drawRect(Skia.XYWHRect(0, startY + startHeight - 4, w, 4), bankShadowPaint);
+
+    const tilePaint = Skia.Paint();
+    tilePaint.setStyle(Skia.PaintStyle.Stroke);
+    tilePaint.setColor(Skia.Color(palette.bankTileLine));
+    tilePaint.setStrokeWidth(1);
+    for (let x = grid; x < w; x += grid) {
+      canvas.drawLine(x, startY + 4, x, startY + startHeight - 4, tilePaint);
+    }
+    for (let y = startY + grid; y < startY + startHeight; y += grid) {
+      canvas.drawLine(0, y, w, y, tilePaint);
+    }
+
+    canvas.restore();
   },
 };

@@ -85,6 +85,19 @@ export const drawShmupPlayer: ShapeDrawer<CanvasRenderingContext2D, ShmupCompone
     ctx.closePath();
     ctx.fill();
 
+    // Fine cyan exhaust filaments add a sense of thrust without obscuring bullets.
+    ctx.globalAlpha = 0.18 + 0.12 * (0.5 + 0.5 * Math.sin(time * 22));
+    ctx.strokeStyle = SHMUP_COLOR_TOKENS.player.primary;
+    ctx.lineWidth = Math.max(1, size * 0.055);
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(-size * 0.25, size * 0.78);
+    ctx.lineTo(-size * 0.25, size * 0.78 + plumeLength * 0.58);
+    ctx.moveTo(size * 0.25, size * 0.78);
+    ctx.lineTo(size * 0.25, size * 0.78 + plumeLength * 0.58);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
     // Core Plumes (White hot center)
     ctx.fillStyle = SHMUP_COLOR_TOKENS.player.core;
     ctx.beginPath();
@@ -331,6 +344,30 @@ export const drawShmupEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupComponen
       ctx.fill();
     }
 
+    // Brief white/cyan impact ring and rays while an enemy hit flash is active.
+    const hitFlash = Math.max(0, Math.min(1, (eCtx.render.hitFlashFrames ?? 0) / 5));
+    if (hitFlash > 0) {
+      ctx.save();
+      ctx.globalAlpha = hitFlash * 0.9;
+      ctx.strokeStyle = SHMUP_COLOR_TOKENS.player.core;
+      ctx.lineWidth = 1.5 + hitFlash * 2;
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = SHMUP_COLOR_TOKENS.player.primary;
+      ctx.beginPath();
+      ctx.arc(0, 0, size * (1.02 + hitFlash * 0.08), 0, Math.PI * 2);
+      ctx.stroke();
+      for (let i = 0; i < 4; i += 1) {
+        const angle = time * 1.8 + i * Math.PI / 2;
+        const innerRadius = size * 0.72;
+        const outerRadius = size * (1.05 + hitFlash * 0.25);
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(angle) * innerRadius, Math.sin(angle) * innerRadius);
+        ctx.lineTo(Math.cos(angle) * outerRadius, Math.sin(angle) * outerRadius);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
     ctx.restore();
   }
 };
@@ -345,13 +382,34 @@ export const drawShmupPlayerBullet: ShapeDrawer<CanvasRenderingContext2D, ShmupC
     ctx.shadowBlur = 12;
     ctx.shadowColor = color;
 
-    // Outer plasma aura
+    // Moving pulse gives the laser a bright core and a softer separation halo.
+    const time = world.tick * 0.016;
+    const pulse = 0.9 + 0.1 * Math.sin(time * 26);
+    ctx.shadowBlur = 16;
+    ctx.shadowColor = color;
+    ctx.globalAlpha = 0.2;
     ctx.fillStyle = color;
-    ctx.fillRect(-size * 0.75, -size * 2.5, size * 1.5, size * 5);
+    ctx.beginPath();
+    ctx.roundRect(-size * 0.95, -size * 3, size * 1.9, size * 6, size * 0.95);
+    ctx.fill();
 
-    // Crisp white core laser beam
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.roundRect(-size * 0.62, -size * 2.5, size * 1.24, size * 5, size * 0.62);
+    ctx.fill();
+
+    // Crisp white core and pointed leading edge.
     ctx.fillStyle = SHMUP_COLOR_TOKENS.player.core;
-    ctx.fillRect(-size * 0.35, -size * 2, size * 0.7, size * 4);
+    ctx.beginPath();
+    ctx.roundRect(-size * 0.23, -size * 2.12, size * 0.46, size * 4.2 * pulse, size * 0.23);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(0, -size * 2.8);
+    ctx.lineTo(size * 0.35, -size * 1.9);
+    ctx.lineTo(-size * 0.35, -size * 1.9);
+    ctx.closePath();
+    ctx.fill();
 
     ctx.restore();
   }

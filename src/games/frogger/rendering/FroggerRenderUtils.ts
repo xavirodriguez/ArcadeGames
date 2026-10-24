@@ -136,7 +136,7 @@ export interface FroggerSlotColors {
   occupiedColor: string;
 }
 
-export function resolveFroggerSlotColors(world: World<FroggerComponentRegistry>): FroggerSlotColors {
+export function resolveFroggerSlotColors(_world: World<FroggerComponentRegistry>): FroggerSlotColors {
   const slotColor = FROGGER_VISUAL_TOKENS.lilyPads.free;
   const occupiedColor = FROGGER_VISUAL_TOKENS.lilyPads.occupied;
   return { slotColor, occupiedColor };

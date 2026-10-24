@@ -53,6 +53,19 @@ export abstract class PlatformerArcadeGame<
     super(config);
   }
 
+  protected loadConfig<TConfig, TSchema extends z.ZodTypeAny = z.ZodTypeAny>(
+    schema: TSchema,
+    gameOptions?: Record<string, unknown>,
+    levelDataOverride?: { templates: unknown[]; grammar: string[] }
+  ): { baseConfig: TConfig; customLevelData?: { templates: any[]; grammar: string[] } } {
+    return loadPlatformerArcadeConfig<TConfig, TSchema>(
+      this.gameId,
+      schema,
+      gameOptions,
+      levelDataOverride
+    );
+  }
+
   /**
    * Common system registration setup for platformer games.
    * Initializes screen resources, death plane Y boundary, RunState, and AudioPlayer resource.

@@ -6,6 +6,7 @@ import {
   resolveFroggerGoalContext,
   resolveFroggerBackgroundContext,
   resolveFroggerSlotColors,
+  resolveFroggerVehicleDirection,
 } from "./FroggerRenderUtils";
 import { FROGGER_BACKGROUND_ROWS, FROGGER_VISUAL_TOKENS } from "./FroggerVisualTokens";
 
@@ -64,56 +65,164 @@ export const drawFroggerCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCom
   },
 };
 
+function drawCanvasVehicleBeam(
+  ctx: CanvasRenderingContext2D,
+  halfWidth: number,
+  height: number,
+  length: number
+): void {
+  ctx.fillStyle = FROGGER_VISUAL_TOKENS.vehicles.headlightBeam;
+  ctx.beginPath();
+  ctx.moveTo(halfWidth - 2, -height * 0.2);
+  ctx.lineTo(halfWidth + length, -height * 0.62);
+  ctx.lineTo(halfWidth + length, height * 0.62);
+  ctx.lineTo(halfWidth - 2, height * 0.2);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawCanvasVehicleTires(
+  ctx: CanvasRenderingContext2D,
+  wheelCenters: number[],
+  height: number
+): void {
+  ctx.fillStyle = FROGGER_VISUAL_TOKENS.vehicles.tires;
+  for (const centerX of wheelCenters) {
+    ctx.beginPath();
+    ctx.roundRect(centerX - 3.5, -height * 0.48, 7, 4.5, 1.5);
+    ctx.roundRect(centerX - 3.5, height * 0.28, 7, 4.5, 1.5);
+    ctx.fill();
+  }
+}
+
+function drawCanvasVehicleLights(
+  ctx: CanvasRenderingContext2D,
+  halfWidth: number,
+  height: number
+): void {
+  ctx.fillStyle = FROGGER_VISUAL_TOKENS.vehicles.headlights;
+  ctx.beginPath();
+  ctx.roundRect(halfWidth - 4, -height * 0.34, 3.5, 3, 1);
+  ctx.roundRect(halfWidth - 4, height * 0.21, 3.5, 3, 1);
+  ctx.fill();
+
+  ctx.fillStyle = FROGGER_VISUAL_TOKENS.vehicles.taillights;
+  ctx.beginPath();
+  ctx.roundRect(-halfWidth + 0.5, -height * 0.34, 3, 3, 1);
+  ctx.roundRect(-halfWidth + 0.5, height * 0.21, 3, 3, 1);
+  ctx.fill();
+}
+
 export const drawCarCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComponentRegistry> = {
-  draw(ctx, _world, entity) {
-    const render = _world.getComponent(entity, "Render");
+  draw(ctx, world, entity) {
+    const render = world.getComponent(entity, "Render");
     if (!render) return;
 
     const width = render.size || 48;
-    const height = 30;
+    // Keep the art lower than the 30px gameplay collider.
+    const height = Math.min(24, Math.max(18, width * 0.46));
     const halfW = width / 2;
     const halfH = height / 2;
-
+    const direction = resolveFroggerVehicleDirection(world.getComponent(entity, "Vehicle")?.direction);
     const carColor = render.color || FROGGER_VISUAL_TOKENS.vehicles.cars[0];
-    ctx.save();
-    ctx.fillStyle = carColor;
-    ctx.shadowColor = FROGGER_VISUAL_TOKENS.shadows.color;
-    ctx.shadowBlur = FROGGER_VISUAL_TOKENS.shadows.blur;
-    ctx.shadowOffsetY = FROGGER_VISUAL_TOKENS.shadows.offsetY;
 
+    ctx.save();
+    ctx.scale(direction, 1);
+
+    // The beam is deliberately faint and ends close to the car, preserving road readability.
+    drawCanvasVehicleBeam(ctx, halfW, height, width * 0.42);
+
+    // Soft offset shadow and tires remain within the existing visual footprint.
+    ctx.fillStyle = FROGGER_VISUAL_TOKENS.shadows.color;
     ctx.beginPath();
-    ctx.roundRect(-halfW, -halfH, width, height, 6);
+    ctx.roundRect(-halfW + 1, -halfH + FROGGER_VISUAL_TOKENS.shadows.offsetY + 1, width - 2, height - 1, 6);
+    ctx.fill();
+    drawCanvasVehicleTires(ctx, [-width * 0.27, width * 0.27], height);
+
+    // Low, rounded body with a tapered nose. The direction sign mirrors this exact silhouette.
+    ctx.fillStyle = carColor;
+    ctx.beginPath();
+    ctx.moveTo(-halfW + 4, -halfH);
+    ctx.lineTo(halfW - 7, -halfH);
+    ctx.quadraticCurveTo(halfW - 2, -halfH, halfW, -halfH + 4);
+    ctx.lineTo(halfW, halfH - 4);
+    ctx.quadraticCurveTo(halfW - 2, halfH, halfW - 7, halfH);
+    ctx.lineTo(-halfW + 4, halfH);
+    ctx.quadraticCurveTo(-halfW, halfH, -halfW, halfH - 4);
+    ctx.lineTo(-halfW, -halfH + 4);
+    ctx.quadraticCurveTo(-halfW, -halfH, -halfW + 4, -halfH);
+    ctx.closePath();
+    ctx.fill();
+
+    // Hood highlight and low-profile cabin.
+    ctx.fillStyle = "rgba(242, 238, 227, 0.18)";
+    ctx.beginPath();
+    ctx.roundRect(halfW * 0.18, -halfH * 0.64, halfW * 0.58, 2.2, 1);
     ctx.fill();
 
     ctx.fillStyle = FROGGER_VISUAL_TOKENS.vehicles.glass;
-    ctx.fillRect(-halfW * 0.4, -halfH * 0.6, width * 0.4, height * 0.5);
+    ctx.beginPath();
+    ctx.roundRect(-width * 0.13, -height * 0.31, width * 0.27, height * 0.62, 2.5);
+    ctx.roundRect(width * 0.17, -height * 0.28, width * 0.10, height * 0.56, 1.5);
+    ctx.roundRect(-width * 0.34, -height * 0.25, width * 0.09, height * 0.5, 1.5);
+    ctx.fill();
 
+    drawCanvasVehicleLights(ctx, halfW, height);
     ctx.restore();
   },
 };
 
 export const drawTruckCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComponentRegistry> = {
-  draw(ctx, _world, entity) {
-    const render = _world.getComponent(entity, "Render");
+  draw(ctx, world, entity) {
+    const render = world.getComponent(entity, "Render");
     if (!render) return;
 
     const width = render.size || 80;
-    const height = 32;
+    const height = Math.min(27, Math.max(23, width * 0.34));
     const halfW = width / 2;
     const halfH = height / 2;
+    const direction = resolveFroggerVehicleDirection(world.getComponent(entity, "Vehicle")?.direction);
+    const truckColor = render.color || FROGGER_VISUAL_TOKENS.vehicles.truck;
 
     ctx.save();
+    ctx.scale(direction, 1);
 
-    const truckColor = render.color || FROGGER_VISUAL_TOKENS.vehicles.truck;
+    drawCanvasVehicleBeam(ctx, halfW, height, width * 0.4);
+
+    // Shadow, tandem wheels and cargo box.
+    ctx.fillStyle = FROGGER_VISUAL_TOKENS.shadows.color;
+    ctx.beginPath();
+    ctx.roundRect(-halfW + 1, -halfH + FROGGER_VISUAL_TOKENS.shadows.offsetY + 1, width - 2, height - 1, 3);
+    ctx.fill();
+    drawCanvasVehicleTires(ctx, [-width * 0.34, -width * 0.08, width * 0.36], height);
+
     ctx.fillStyle = truckColor;
-    ctx.shadowColor = FROGGER_VISUAL_TOKENS.shadows.color;
-    ctx.shadowBlur = FROGGER_VISUAL_TOKENS.shadows.blur;
-    ctx.shadowOffsetY = FROGGER_VISUAL_TOKENS.shadows.offsetY;
-    ctx.fillRect(-halfW, -halfH, width * 0.7, height);
+    ctx.beginPath();
+    ctx.roundRect(-halfW + 1, -halfH + 1, width * 0.69, height - 2, 3);
+    ctx.fill();
 
+    // Cargo-panel seams are faint so the truck remains readable at mobile scale.
+    ctx.strokeStyle = FROGGER_VISUAL_TOKENS.vehicles.truckDetail;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(-halfW + 7, -halfH + 4);
+    ctx.lineTo(-halfW + width * 0.63, -halfH + 4);
+    ctx.moveTo(-halfW + 7, halfH - 4);
+    ctx.lineTo(-halfW + width * 0.63, halfH - 4);
+    ctx.stroke();
+
+    // Cab is always at the front, even when the vehicle travels left.
     ctx.fillStyle = FROGGER_VISUAL_TOKENS.vehicles.truckCab;
-    ctx.fillRect(halfW - width * 0.28, -halfH + 2, width * 0.28, height - 4);
+    ctx.beginPath();
+    ctx.roundRect(halfW - width * 0.31, -halfH + 2, width * 0.29, height - 4, 3);
+    ctx.fill();
 
+    ctx.fillStyle = FROGGER_VISUAL_TOKENS.vehicles.glass;
+    ctx.beginPath();
+    ctx.roundRect(halfW - 7, -height * 0.31, 4, height * 0.62, 1);
+    ctx.fill();
+
+    drawCanvasVehicleLights(ctx, halfW, height);
     ctx.restore();
   },
 };

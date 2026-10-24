@@ -49,9 +49,18 @@ export function createPlayer(world: World<ShmupComponentRegistry>, x: number, y:
   return e;
 }
 
-export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: number, kind: "straight"|"sine"|"arc" = "straight", wave: number = 1): Entity {
+export function createEnemy(
+  world: World<ShmupComponentRegistry>,
+  x: number,
+  y: number,
+  kind: "straight" | "sine" | "arc" | "armored" | "boss" = "straight",
+  wave: number = 1
+): Entity {
   const c = world.getResource<ShmupConfig>("GameConfig")!;
-  const enemySpeed = c.ENEMY_SPEED * Math.min(2.0, 1 + (wave - 1) * 0.08);
+  const isBoss = kind === "boss";
+  const isArmored = kind === "armored";
+
+  const enemySpeed = (isBoss ? c.ENEMY_SPEED * 0.4 : isArmored ? c.ENEMY_SPEED * 0.7 : c.ENEMY_SPEED) * Math.min(2.0, 1 + (wave - 1) * 0.08);
   const flightDistance = c.WORLD_HEIGHT + c.OFFSCREEN_MARGIN * 2;
   const pathDuration = flightDistance / Math.max(1, enemySpeed);
 
@@ -66,9 +75,15 @@ export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: 
   const patternConfigs: Record<string, BulletPatternConfig> = {
     straight: { kind: "aimed", bulletCount: 1, speed: baseBulletSpeed * Math.min(1.5, waveMult), ratePerSec: 0.8 * waveMult },
     sine: { kind: "spread", bulletCount: 3, speed: baseBulletSpeed * 0.9 * Math.min(1.5, waveMult), ratePerSec: 0.6 * waveMult, arcDegrees: 45 },
-    arc: { kind: "ring", bulletCount: 6, speed: baseBulletSpeed * 0.8 * Math.min(1.5, waveMult), ratePerSec: 0.4 * waveMult }
+    arc: { kind: "ring", bulletCount: 6, speed: baseBulletSpeed * 0.8 * Math.min(1.5, waveMult), ratePerSec: 0.4 * waveMult },
+    armored: { kind: "spread", bulletCount: 5, speed: baseBulletSpeed * 0.85 * Math.min(1.5, waveMult), ratePerSec: 0.5 * waveMult, arcDegrees: 60 },
+    boss: { kind: "ring", bulletCount: 8, speed: baseBulletSpeed * 0.75 * Math.min(1.5, waveMult), ratePerSec: 0.8 * waveMult }
   };
   const patternConfig = patternConfigs[kind] ?? patternConfigs.straight;
+  const pathKind = (kind === "armored" || kind === "boss") ? "sine" : kind;
+
+  const entitySize = isBoss ? 85 : isArmored ? Math.floor(c.ENEMY_SIZE * 1.4) : c.ENEMY_SIZE;
+  const colliderRadius = isBoss ? 42 : isArmored ? 22 : c.ENEMY_COLLIDER_RADIUS;
 
   const add = (comp: unknown) => {
     if (isUpdating) {
@@ -108,12 +123,12 @@ export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: 
     hitFlashFrames: 0,
     muzzleFlashFrames: 0,
     shape: "shmup_enemy",
-    size: c.ENEMY_SIZE,
-    color: SHMUP_COLOR_TOKENS.enemy.primary
+    size: entitySize,
+    color: isBoss ? SHMUP_COLOR_TOKENS.enemy.accent : SHMUP_COLOR_TOKENS.enemy.primary
   });
   add({
     type: "Collider",
-    shape: { type: ShapeType.Circle, radius: c.ENEMY_COLLIDER_RADIUS } as CircleShape,
+    shape: { type: ShapeType.Circle, radius: colliderRadius } as CircleShape,
     layer: CollisionLayers.ENEMY,
     mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE,
     enabled: true,
@@ -126,12 +141,15 @@ export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: 
     triggersEntered: [],
     triggersExited: []
   });
-  const scaledScore = Math.floor(c.ENEMY_SCORE * (1 + (wave - 1) * 0.2));
-  const scaledHp = c.ENEMY_HP + Math.floor((wave - 1) / 3);
+  const baseScore = Math.floor(c.ENEMY_SCORE * (1 + (wave - 1) * 0.2));
+  const baseHp = c.ENEMY_HP + Math.floor((wave - 1) / 3);
+  const scaledScore = isBoss ? baseScore * 10 : isArmored ? baseScore * 3 : baseScore;
+  const scaledHp = isBoss ? baseHp * 10 : isArmored ? baseHp * 3 : baseHp;
+
   add({ type: "ShmupEnemy", score: scaledScore });
   add({ type: "Health", current: scaledHp, max: scaledHp });
   add({ type: "Faction", faction: "enemy", value: "enemy" });
-  add({ type: "EnemyPath", kind, elapsed: 0, duration: pathDuration, speed: enemySpeed, amplitude: 120, frequency: 1.8, originX: x, originY: y });
+  add({ type: "EnemyPath", kind: pathKind, elapsed: 0, duration: pathDuration, speed: enemySpeed, amplitude: isBoss ? 80 : 120, frequency: isBoss ? 1.0 : 1.8, originX: x, originY: y });
   add({
     type: "Boundary",
     minX: -c.OFFSCREEN_MARGIN,

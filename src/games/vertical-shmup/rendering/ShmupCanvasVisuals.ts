@@ -456,34 +456,80 @@ export const drawShmupStarfield: EffectDrawer<CanvasRenderingContext2D, ShmupCom
       ctx.restore();
     }
 
-    // Layer 3: Floating Islands & Architectural Ruins
+    // Layer 3: Floating Islands, Waterfalls, Trees & Architectural Ruins
     for (const island of islands) {
       ctx.save();
-      ctx.globalAlpha = 0.88;
+      ctx.globalAlpha = 0.92;
 
-      // Island dark rock base
-      ctx.fillStyle = SHMUP_COLOR_TOKENS.architecture;
+      // Animated Waterfall descending from island edge down into clouds
+      if (island.hasWaterfall) {
+        const flowTime = (world.tick * 0.016 * 120) % 20;
+        ctx.save();
+        ctx.fillStyle = "rgba(143, 214, 245, 0.75)";
+        ctx.fillRect(island.waterfallX - 4, island.y + island.height * 0.4, 8, island.waterfallLength);
+
+        // Inner white water core streak
+        ctx.fillStyle = "rgba(243, 252, 255, 0.9)";
+        ctx.fillRect(island.waterfallX - 2, island.y + island.height * 0.4 + flowTime, 4, island.waterfallLength * 0.6);
+
+        // Splash foam particles at bottom of waterfall
+        ctx.fillStyle = SHMUP_COLOR_TOKENS.player.core;
+        const splashY = island.y + island.height * 0.4 + island.waterfallLength;
+        ctx.beginPath();
+        ctx.arc(island.waterfallX - 5, splashY, 3.5, 0, Math.PI * 2);
+        ctx.arc(island.waterfallX + 5, splashY, 4, 0, Math.PI * 2);
+        ctx.arc(island.waterfallX, splashY + 2, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // Island dark rock base / cliff volume
+      ctx.fillStyle = island.cliffColor;
       ctx.beginPath();
-      ctx.roundRect(island.x, island.y + island.height * 0.3, island.width, island.height * 0.7, 12);
+      ctx.moveTo(island.x, island.y + island.height * 0.3);
+      ctx.lineTo(island.x + island.width * 0.2, island.y + island.height);
+      ctx.lineTo(island.x + island.width * 0.5, island.y + island.height * 1.15);
+      ctx.lineTo(island.x + island.width * 0.8, island.y + island.height * 0.9);
+      ctx.lineTo(island.x + island.width, island.y + island.height * 0.3);
+      ctx.closePath();
       ctx.fill();
 
       // Island foliage cap
       ctx.fillStyle = island.color;
       ctx.beginPath();
-      ctx.roundRect(island.x - 4, island.y, island.width + 8, island.height * 0.55, 14);
+      ctx.roundRect(island.x - 6, island.y - 2, island.width + 12, island.height * 0.55, 12);
       ctx.fill();
 
-      // Temple Arch / Columns
+      // Pink Blossom Tree
+      if (island.hasBlossomTree) {
+        const treeX = island.x + island.width * 0.25;
+        const treeY = island.y - 4;
+
+        // Trunk
+        ctx.fillStyle = "#3A2A1A";
+        ctx.fillRect(treeX - 2, treeY - 10, 4, 10);
+
+        // Pink Crown
+        ctx.fillStyle = SHMUP_COLOR_TOKENS.blossom;
+        ctx.beginPath();
+        ctx.arc(treeX - 5, treeY - 16, 7, 0, Math.PI * 2);
+        ctx.arc(treeX + 5, treeY - 16, 7, 0, Math.PI * 2);
+        ctx.arc(treeX, treeY - 22, 9, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Ancient Temple Arch / Columns
       if (island.hasArch) {
         ctx.fillStyle = biome.architectureColor;
-        ctx.fillRect(island.x + island.width * 0.32, island.y - 18, 10, 18);
-        ctx.fillRect(island.x + island.width * 0.62, island.y - 18, 10, 18);
-        ctx.fillRect(island.x + island.width * 0.26, island.y - 24, island.width * 0.5, 7);
+        const archX = island.x + island.width * 0.5;
+        ctx.fillRect(archX - 14, island.y - 18, 6, 18);
+        ctx.fillRect(archX + 8, island.y - 18, 6, 18);
+        ctx.fillRect(archX - 18, island.y - 24, 36, 6);
 
-        // Temple gold emblem
+        // Gold temple ceremonial emblem
         ctx.fillStyle = SHMUP_COLOR_TOKENS.gold.sunlight;
         ctx.beginPath();
-        ctx.arc(island.x + island.width * 0.5, island.y - 12, 4, 0, Math.PI * 2);
+        ctx.arc(archX, island.y - 12, 4.5, 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.restore();

@@ -9,7 +9,7 @@ import {
   AQUI_HAY_DRAGONES_ALPHAS,
   AQUI_HAY_DRAGONES_PALETTE,
 } from "../../../theme/conceptPacks/aquiHayDragonesConceptPack";
-import { isNauticalChartTheme } from "./NauticalChartBackground";
+import { isNauticalChartTheme } from "../nautical/NauticalThemeShared";
 
 /** Minimal Skia paint factory injected by the Skia visuals module to avoid tight coupling. */
 export type SkiaPaintFactory = {
@@ -82,7 +82,6 @@ export function drawNauticalChartBackdropSkia(
 
   paintFactory.setColor(stroke, P.teal, A.waves);
   paintFactory.setStroke(stroke, Math.max(1, 1.4 * sx));
-  // Approximate waves as short polylines (Skia path optional later)
   const waveMarks: Array<[number, number]> = [
     [0.11, 0.33],
     [0.73, 0.45],

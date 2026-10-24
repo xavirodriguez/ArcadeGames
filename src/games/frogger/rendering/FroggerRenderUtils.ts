@@ -112,9 +112,6 @@ export interface FroggerBackgroundContext {
   config: typeof DEFAULT_FROGGER_CONFIG;
   w: number;
   grid: number;
-  grassColor: string;
-  waterColor: string;
-  roadColor: string;
 }
 
 export function resolveFroggerBackgroundContext(
@@ -124,11 +121,7 @@ export function resolveFroggerBackgroundContext(
   const w = config.worldWidth;
   const grid = config.GRID_SIZE;
 
-  const grassColor = FROGGER_VISUAL_TOKENS.surfaces.bank;
-  const waterColor = FROGGER_VISUAL_TOKENS.surfaces.riverShallow;
-  const roadColor = FROGGER_VISUAL_TOKENS.surfaces.asphalt;
-
-  return { config, w, grid, grassColor, waterColor, roadColor };
+  return { config, w, grid };
 }
 
 export interface FroggerSlotColors {

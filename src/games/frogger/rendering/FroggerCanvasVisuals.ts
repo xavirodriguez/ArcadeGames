@@ -7,7 +7,7 @@ import {
   resolveFroggerBackgroundContext,
   resolveFroggerSlotColors,
 } from "./FroggerRenderUtils";
-import { FROGGER_VISUAL_TOKENS } from "./FroggerVisualTokens";
+import { FROGGER_BACKGROUND_ROWS, FROGGER_VISUAL_TOKENS } from "./FroggerVisualTokens";
 
 export const drawFroggerCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComponentRegistry> = {
   draw(ctx, world, entity) {
@@ -260,43 +260,112 @@ export const drawLilyPadCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCom
 
 export const froggerBackgroundCanvasEffect: EffectDrawer<CanvasRenderingContext2D, FroggerComponentRegistry> = {
   draw(ctx, world) {
-    const { w, grid, grassColor, waterColor, roadColor } = resolveFroggerBackgroundContext(world);
-    const waterGridColor = FROGGER_VISUAL_TOKENS.surfaces.waterFlow;
+    const { w, grid } = resolveFroggerBackgroundContext(world);
+    const rows = FROGGER_BACKGROUND_ROWS;
+    const palette = FROGGER_VISUAL_TOKENS.surfaces;
+    const riverY = rows.riverStart * grid;
+    const riverHeight = rows.riverRows * grid;
+    const medianY = rows.median * grid;
+    const roadY = rows.roadStart * grid;
+    const roadHeight = rows.roadRows * grid;
+    const startY = rows.startBank * grid;
+    const startHeight = rows.startRows * grid;
 
-    ctx.fillStyle = grassColor;
+    ctx.save();
+
+    // Upper goal bank.
+    ctx.fillStyle = palette.bank;
     ctx.fillRect(0, 0, w, grid);
+    ctx.fillStyle = palette.bankHighlight;
+    ctx.fillRect(0, 0, w, 3);
+    ctx.fillStyle = palette.bankShadow;
+    ctx.fillRect(0, grid - 4, w, 4);
 
-    ctx.fillStyle = waterColor;
-    ctx.fillRect(0, grid * 1, w, grid * 5);
+    // River: a restrained vertical gradient, with slow, low-contrast wave marks.
+    const riverGradient = ctx.createLinearGradient(0, riverY, 0, riverY + riverHeight);
+    riverGradient.addColorStop(0, palette.riverShallow);
+    riverGradient.addColorStop(0.55, palette.riverMid);
+    riverGradient.addColorStop(1, palette.riverDeep);
+    ctx.fillStyle = riverGradient;
+    ctx.fillRect(0, riverY, w, riverHeight);
 
-    ctx.strokeStyle = waterGridColor;
+    const flowOffset = (world.tick * 0.35) % 96;
+    ctx.strokeStyle = palette.waterFlow;
+    ctx.lineWidth = 1.5;
+    for (let lane = 0; lane < rows.riverRows; lane += 1) {
+      const lineY = riverY + lane * grid + grid * 0.34 + (lane % 2) * 5;
+      const laneOffset = lane % 2 === 0 ? flowOffset : (flowOffset + 48) % 96;
+      for (let x = -96 + laneOffset; x < w + 96; x += 96) {
+        ctx.beginPath();
+        ctx.moveTo(x, lineY);
+        ctx.lineTo(x + 8, lineY - 2);
+        ctx.lineTo(x + 18, lineY);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x + 38, lineY + 10);
+        ctx.lineTo(x + 50, lineY + 8);
+        ctx.stroke();
+      }
+    }
+
+    // Safe median is visually distinct from both river and roadway.
+    ctx.fillStyle = palette.bank;
+    ctx.fillRect(0, medianY, w, grid);
+    ctx.fillStyle = palette.bankShadow;
+    ctx.fillRect(0, medianY, w, 3);
+    ctx.fillRect(0, medianY + grid - 3, w, 3);
+    ctx.strokeStyle = palette.medianDivider;
     ctx.lineWidth = 1;
-    const offset = (world.tick * 1.5) % 40;
-    for (let r = 1; r <= 5; r++) {
+    for (let x = 12; x < w; x += grid) {
       ctx.beginPath();
-      ctx.moveTo(-40 + offset, r * grid + grid / 2);
-      ctx.lineTo(w + 40 + offset, r * grid + grid / 2);
+      ctx.moveTo(x, medianY + 13);
+      ctx.lineTo(x + 10, medianY + 13);
+      ctx.moveTo(x + 5, medianY + 25);
+      ctx.lineTo(x + 17, medianY + 25);
       ctx.stroke();
     }
 
-    ctx.fillStyle = grassColor;
-    ctx.fillRect(0, grid * 6, w, grid);
+    // Road surface and four separators between the five traffic lanes.
+    ctx.fillStyle = palette.asphalt;
+    ctx.fillRect(0, roadY, w, roadHeight);
+    ctx.fillStyle = palette.roadEdge;
+    ctx.fillRect(0, roadY, w, 3);
+    ctx.fillRect(0, roadY + roadHeight - 3, w, 3);
 
-    ctx.fillStyle = roadColor;
-    ctx.fillRect(0, grid * 7, w, grid * 5);
-
-    ctx.strokeStyle = FROGGER_VISUAL_TOKENS.surfaces.laneDivider;
+    ctx.strokeStyle = palette.laneDivider;
     ctx.lineWidth = 2;
-    ctx.setLineDash([15, 15]);
-    for (let r = 8; r <= 11; r++) {
+    for (let separator = 1; separator < rows.roadRows; separator += 1) {
+      const lineY = roadY + separator * grid;
+      for (let x = 0; x < w; x += 18) {
+        ctx.beginPath();
+        ctx.moveTo(x, lineY);
+        ctx.lineTo(Math.min(x + 8, w), lineY);
+        ctx.stroke();
+      }
+    }
+
+    // Starting bank: warm paving with subdued, evenly spaced joints.
+    ctx.fillStyle = palette.bank;
+    ctx.fillRect(0, startY, w, startHeight);
+    ctx.fillStyle = palette.bankHighlight;
+    ctx.fillRect(0, startY, w, 3);
+    ctx.fillStyle = palette.bankShadow;
+    ctx.fillRect(0, startY + startHeight - 4, w, 4);
+    ctx.strokeStyle = palette.bankTileLine;
+    ctx.lineWidth = 1;
+    for (let x = grid; x < w; x += grid) {
       ctx.beginPath();
-      ctx.moveTo(0, r * grid);
-      ctx.lineTo(w, r * grid);
+      ctx.moveTo(x, startY + 4);
+      ctx.lineTo(x, startY + startHeight - 4);
       ctx.stroke();
     }
-    ctx.setLineDash([]);
+    for (let y = startY + grid; y < startY + startHeight; y += grid) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(w, y);
+      ctx.stroke();
+    }
 
-    ctx.fillStyle = grassColor;
-    ctx.fillRect(0, grid * 12, w, grid * 3);
+    ctx.restore();
   },
 };

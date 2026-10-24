@@ -122,7 +122,8 @@ export function registerFroggerBlueprints(world: World<FroggerComponentRegistry>
         shape: args.vehicleType === "truck" ? "truck" : "car",
         color: args.vehicleType === "truck"
           ? FROGGER_VISUAL_TOKENS.vehicles.truck
-          : FROGGER_VISUAL_TOKENS.vehicles.cars[args.row % FROGGER_VISUAL_TOKENS.vehicles.cars.length],
+          : (FROGGER_VISUAL_TOKENS.vehicles.cars[args.row % FROGGER_VISUAL_TOKENS.vehicles.cars.length]
+            ?? FROGGER_VISUAL_TOKENS.vehicles.cars[0]),
         order: 5,
       });
 

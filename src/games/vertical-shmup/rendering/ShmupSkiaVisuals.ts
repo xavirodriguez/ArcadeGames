@@ -127,6 +127,46 @@ export const drawSkiaShmupPlayer: ShapeDrawer<SkCanvas, ShmupComponentRegistry> 
     jetPath.close();
     canvas.drawPath(jetPath, paint);
 
+    // Twin recessed engine housings connect the hull visually to its exhaust plumes.
+    paint.setStyle(Skia.PaintStyle.Stroke);
+    paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.secondary));
+    paint.setStrokeWidth(1.5);
+    for (const side of [-1, 1]) {
+      paint.setStyle(Skia.PaintStyle.Fill);
+      paint.setColor(Skia.Color("rgba(5, 24, 52, 0.92)"));
+      canvas.drawOval(Skia.XYWHRect(side * size * 0.24 - size * 0.085, size * 0.48 - size * 0.065, size * 0.17, size * 0.13), paint);
+      paint.setStyle(Skia.PaintStyle.Stroke);
+      paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.secondary));
+      canvas.drawOval(Skia.XYWHRect(side * size * 0.24 - size * 0.085, size * 0.48 - size * 0.065, size * 0.17, size * 0.13), paint);
+      paint.setStyle(Skia.PaintStyle.Fill);
+      paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.core));
+      canvas.drawCircle(side * size * 0.24, size * 0.48, size * 0.026, paint);
+    }
+
+    // Layered wing armor matching the Canvas renderer.
+    paint.setStyle(Skia.PaintStyle.Fill);
+    paint.setColor(Skia.Color("rgba(5, 24, 52, 0.72)"));
+    const leftInset = Skia.Path.Make();
+    leftInset.moveTo(-size * 0.28, -size * 0.28);
+    leftInset.lineTo(-size * 0.88, size * 0.37);
+    leftInset.lineTo(-size * 0.7, size * 0.53);
+    leftInset.lineTo(-size * 0.38, size * 0.31);
+    leftInset.close();
+    canvas.drawPath(leftInset, paint);
+    const rightInset = Skia.Path.Make();
+    rightInset.moveTo(size * 0.28, -size * 0.28);
+    rightInset.lineTo(size * 0.88, size * 0.37);
+    rightInset.lineTo(size * 0.7, size * 0.53);
+    rightInset.lineTo(size * 0.38, size * 0.31);
+    rightInset.close();
+    canvas.drawPath(rightInset, paint);
+
+    paint.setStyle(Skia.PaintStyle.Stroke);
+    paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.secondary));
+    paint.setStrokeWidth(2);
+    canvas.drawLine(-size * 0.5, size * 0.08, -size * 0.82, size * 0.36, paint);
+    canvas.drawLine(size * 0.5, size * 0.08, size * 0.82, size * 0.36, paint);
+
     // Inner wing panel lines
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.core));
@@ -140,6 +180,20 @@ export const drawSkiaShmupPlayer: ShapeDrawer<SkCanvas, ShmupComponentRegistry> 
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.core));
     canvas.drawOval(Skia.XYWHRect(-size * 0.2, -size * 0.57, size * 0.4, size * 0.84), paint);
+
+    paint.setStyle(Skia.PaintStyle.Stroke);
+    paint.setColor(Skia.Color("rgba(255, 255, 255, 0.9)"));
+    paint.setStrokeWidth(1.5);
+    canvas.drawLine(-size * 0.06, -size * 0.48, size * 0.04, -size * 0.24, paint);
+    paint.setStyle(Skia.PaintStyle.Fill);
+    paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.secondary));
+    const crest = Skia.Path.Make();
+    crest.moveTo(0, -size * 0.92);
+    crest.lineTo(size * 0.09, -size * 0.66);
+    crest.lineTo(0, -size * 0.56);
+    crest.lineTo(-size * 0.09, -size * 0.66);
+    crest.close();
+    canvas.drawPath(crest, paint);
 
     if (isShooting) {
       paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.core));
@@ -175,6 +229,36 @@ export const drawSkiaShmupEnemy: ShapeDrawer<SkCanvas, ShmupComponentRegistry> =
     paint.reset();
     paint.setAntiAlias(true);
     paint.setStyle(Skia.PaintStyle.Fill);
+
+    // Match the Canvas renderer with flickering rear engines behind each hull.
+    if (archetype !== "support") {
+      const plumePulse = 0.82 + 0.18 * Math.sin(time * (archetype === "interceptor" ? 34 : 22));
+      const engineOffset = archetype === "armored" ? 0.46 : archetype === "boss" ? 0.42 : 0.23;
+      const engineAnchorY = archetype === "boss" ? -0.72 : archetype === "armored" ? -0.64 : -0.55;
+      const plumeLength = size * (0.34 + plumePulse * 0.3);
+      const plumeWidth = archetype === "boss" ? 0.15 : 0.09;
+      const plumeColor = archetype === "armored"
+        ? SHMUP_COLOR_TOKENS.warning
+        : SHMUP_COLOR_TOKENS.enemy.accent;
+
+      for (const side of [-1, 1]) {
+        const plume = Skia.Path.Make();
+        plume.moveTo(side * (engineOffset - plumeWidth) * size, engineAnchorY * size);
+        plume.lineTo(side * (engineOffset + plumeWidth) * size, engineAnchorY * size);
+        plume.lineTo(side * engineOffset * size, engineAnchorY * size - plumeLength);
+        plume.close();
+        paint.setColor(Skia.Color(plumeColor));
+        canvas.drawPath(plume, paint);
+
+        const core = Skia.Path.Make();
+        core.moveTo(side * (engineOffset - plumeWidth * 0.3) * size, engineAnchorY * size);
+        core.lineTo(side * (engineOffset + plumeWidth * 0.3) * size, engineAnchorY * size);
+        core.lineTo(side * engineOffset * size, engineAnchorY * size - plumeLength * 0.58);
+        core.close();
+        paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.player.core));
+        canvas.drawPath(core, paint);
+      }
+    }
 
     if (archetype === "scout") {
       paint.setColor(Skia.Color(SHMUP_COLOR_TOKENS.enemy.primary));

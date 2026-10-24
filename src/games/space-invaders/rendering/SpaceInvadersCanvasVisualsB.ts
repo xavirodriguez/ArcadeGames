@@ -162,7 +162,9 @@ export const drawSpaceInvadersShield: ShapeDrawer<CanvasRenderingContext2D, Spac
     const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
     const customGeom =
       theme?.visualTheme?.shapeTokens?.customGeometries?.["shield_block"] ||
-      theme?.visualTheme?.shapeTokens?.customGeometries?.["shield"];
+      theme?.visualTheme?.shapeTokens?.customGeometries?.["shield"] ||
+      theme?.visualTheme?.shapeTokens?.customGeometries?.["wall"] ||
+      theme?.visualTheme?.shapeTokens?.customGeometries?.["pared"];
     ctx.save();
     if (customGeom) {
       ctx.globalAlpha = flash.opacity * (0.35 + 0.65 * ratio);

@@ -1,5 +1,11 @@
 import { World } from "@tiny-aster/core";
-import { resolveFroggerSlotColors, resolveFroggerVehicleDirection } from "../FroggerRenderUtils";
+import {
+  resolveFroggerFacingRotation,
+  resolveFroggerShellSegments,
+  resolveFroggerSlotColors,
+  resolveFroggerTurtleVisualState,
+  resolveFroggerVehicleDirection,
+} from "../FroggerRenderUtils";
 import { FroggerComponentRegistry } from "../../types/FroggerTypes";
 import { FROGGER_VISUAL_TOKENS } from "../FroggerVisualTokens";
 
@@ -42,5 +48,55 @@ describe("resolveFroggerVehicleDirection", () => {
   it("uses a stable right-facing fallback when direction is absent or zero", () => {
     expect(resolveFroggerVehicleDirection(undefined)).toBe(1);
     expect(resolveFroggerVehicleDirection(0)).toBe(1);
+  });
+});
+
+
+describe("resolveFroggerFacingRotation", () => {
+  it("maps the stored facing direction to a presentation-only rotation", () => {
+    expect(resolveFroggerFacingRotation("up")).toBe(0);
+    expect(resolveFroggerFacingRotation("right")).toBe(Math.PI / 2);
+    expect(resolveFroggerFacingRotation("down")).toBe(Math.PI);
+    expect(resolveFroggerFacingRotation("left")).toBe(-Math.PI / 2);
+    expect(resolveFroggerFacingRotation(undefined)).toBe(0);
+  });
+});
+
+describe("resolveFroggerTurtleVisualState", () => {
+  it("keeps normal and warning turtle art distinct", () => {
+    expect(resolveFroggerTurtleVisualState("float")).toEqual({
+      bodyColor: FROGGER_VISUAL_TOKENS.turtles.body,
+      shellColor: FROGGER_VISUAL_TOKENS.turtles.shell,
+      opacity: 1,
+    });
+    expect(resolveFroggerTurtleVisualState("warning")).toEqual({
+      bodyColor: FROGGER_VISUAL_TOKENS.turtles.warning,
+      shellColor: FROGGER_VISUAL_TOKENS.turtles.shell,
+      opacity: 1,
+    });
+  });
+
+  it("uses a darker, lower-opacity presentation when submerged", () => {
+    expect(resolveFroggerTurtleVisualState("submerged")).toEqual({
+      bodyColor: FROGGER_VISUAL_TOKENS.turtles.submerged,
+      shellColor: FROGGER_VISUAL_TOKENS.turtles.submerged,
+      opacity: 0.62,
+    });
+  });
+});
+
+
+describe("resolveFroggerShellSegments", () => {
+  it("supports the smallest practical sprite size and caches stable layouts", () => {
+    const compact = resolveFroggerShellSegments(24);
+    expect(compact).toHaveLength(1);
+    expect(compact[0].segX).toBe(0);
+    expect(resolveFroggerShellSegments(24)).toBe(compact);
+  });
+
+  it("distributes larger turtle groups evenly along their platform", () => {
+    const segments = resolveFroggerShellSegments(120);
+    expect(segments).toHaveLength(3);
+    expect(segments.map((segment) => segment.segX)).toEqual([-40, 0, 40]);
   });
 });

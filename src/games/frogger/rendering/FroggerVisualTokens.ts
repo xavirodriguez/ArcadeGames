@@ -11,6 +11,8 @@ export const FROGGER_VISUAL_TOKENS = {
     eyes: "#F2EEE3",
     pupils: "#232338",
     limbs: "#72A83C",
+    belly: "#D5F78A",
+    highlight: "#E6FFAB",
   },
   surfaces: {
     asphalt: "#232338",
@@ -32,10 +34,14 @@ export const FROGGER_VISUAL_TOKENS = {
     body: "#B9824A",
     ring: "#C99560",
     grain: "#74482D",
+    barkHighlight: "#D4A16B",
+    endGrain: "#E0B17C",
   },
   turtles: {
     body: "#2F8F7A",
     shell: "#3A6648",
+    shellHighlight: "#6AA46A",
+    shellLine: "#244D39",
     submerged: "#1E5E5C",
     skin: "#8CBF58",
     warning: "#FF5A4F",
@@ -43,13 +49,19 @@ export const FROGGER_VISUAL_TOKENS = {
   crocodile: {
     body: "#4C7F5E",
     dorsal: "#3A6648",
+    underbelly: "#8CBF58",
+    mouth: "#4A3438",
+    teeth: "#F2EEE3",
     eyes: "#FF5A4F",
   },
   lilyPads: {
     body: "#3FA373",
     free: "#2F8F7A",
     occupied: "#B6F23C",
+    vein: "#287858",
+    edge: "#286B50",
     flower: "#E9B949",
+    danger: "#FF5A4F",
   },
   vehicles: {
     cars: ["#5B6FB5", "#8B63A8", "#9A9AB8", "#C07A9A", "#7FA6D6"] as const,

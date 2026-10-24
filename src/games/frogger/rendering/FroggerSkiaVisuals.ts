@@ -10,6 +10,8 @@ import {
   resolveFroggerBackgroundContext,
   resolveFroggerSlotColors,
   resolveFroggerVehicleDirection,
+  resolveFroggerFacingRotation,
+  resolveFroggerTurtleVisualState,
 } from "./FroggerRenderUtils";
 import { FROGGER_BACKGROUND_ROWS, FROGGER_VISUAL_TOKENS } from "./FroggerVisualTokens";
 
@@ -30,23 +32,71 @@ function drawSkiaRoundedBox(
 export const drawFroggerSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
   draw(canvas, world, entity) {
     const playerCtx = resolveFroggerPlayerDrawContext(world, entity);
-    if (!playerCtx) return;
+    if (!playerCtx || !Skia) return;
 
     const { half, isInvuln, primaryColor } = playerCtx;
+    const facing = world.getComponent(entity, "Frogger")?.facing;
+    const scale = half / 16;
 
-    const paint = Skia.Paint();
-    paint.setColor(Skia.Color(isInvuln ? FROGGER_VISUAL_TOKENS.frog.invulnerable : primaryColor));
-    canvas.drawCircle(0, 0, half, paint);
+    canvas.save();
+    canvas.rotate((resolveFroggerFacingRotation(facing) * 180) / Math.PI, 0, 0);
+    canvas.scale(scale, scale);
+
+    const shadowPaint = Skia.Paint();
+    shadowPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.shadows.color));
+    canvas.drawOval(Skia.XYWHRect(-9.5, 4, 19, 8), shadowPaint);
+
+    const limbPaint = Skia.Paint();
+    limbPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.frog.limbs));
+    canvas.drawOval(Skia.XYWHRect(-12.5, -0.5, 9, 11), limbPaint);
+    canvas.drawOval(Skia.XYWHRect(3.5, -0.5, 9, 11), limbPaint);
+    canvas.drawOval(Skia.XYWHRect(-13.5, 6.9, 7, 4.2), limbPaint);
+    canvas.drawOval(Skia.XYWHRect(-7.6, 8.2, 6.2, 3.6), limbPaint);
+    canvas.drawOval(Skia.XYWHRect(6.5, 6.9, 7, 4.2), limbPaint);
+    canvas.drawOval(Skia.XYWHRect(1.4, 8.2, 6.2, 3.6), limbPaint);
+
+    const armPath = Skia.Path.Make();
+    armPath.moveTo(-5, 0);
+    armPath.lineTo(-10, 3);
+    armPath.moveTo(5, 0);
+    armPath.lineTo(10, 3);
+    const armPaint = Skia.Paint();
+    armPaint.setStyle(Skia.PaintStyle.Stroke);
+    armPaint.setStrokeWidth(3);
+    armPaint.setStrokeCap(Skia.StrokeCap.Round);
+    armPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.frog.limbs));
+    canvas.drawPath(armPath, armPaint);
+
+    const bodyPaint = Skia.Paint();
+    bodyPaint.setColor(Skia.Color(isInvuln ? FROGGER_VISUAL_TOKENS.frog.invulnerable : primaryColor));
+    canvas.drawOval(Skia.XYWHRect(-8.2, -8.5, 16.4, 21), bodyPaint);
+
+    const bellyPaint = Skia.Paint();
+    bellyPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.frog.belly));
+    canvas.drawOval(Skia.XYWHRect(-4.8, -1.7, 9.6, 12.4), bellyPaint);
+
+    canvas.drawOval(Skia.XYWHRect(-8.6, -12, 17.2, 13.6), bodyPaint);
+
+    const highlightPaint = Skia.Paint();
+    highlightPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.frog.highlight));
+    canvas.drawOval(Skia.XYWHRect(-5.5, -9.3, 6.6, 2.2), highlightPaint);
+
+    const eyeStalkPaint = Skia.Paint();
+    eyeStalkPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.frog.body));
+    canvas.drawOval(Skia.XYWHRect(-6.8, -13.2, 6.4, 8.2), eyeStalkPaint);
+    canvas.drawOval(Skia.XYWHRect(0.4, -13.2, 6.4, 8.2), eyeStalkPaint);
 
     const eyePaint = Skia.Paint();
     eyePaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.frog.eyes));
-    canvas.drawCircle(-half * 0.4, -half * 0.5, half * 0.35, eyePaint);
-    canvas.drawCircle(half * 0.4, -half * 0.5, half * 0.35, eyePaint);
+    canvas.drawOval(Skia.XYWHRect(-6.15, -12.45, 5.1, 6.5), eyePaint);
+    canvas.drawOval(Skia.XYWHRect(1.05, -12.45, 5.1, 6.5), eyePaint);
 
     const pupilPaint = Skia.Paint();
     pupilPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.frog.pupils));
-    canvas.drawCircle(-half * 0.4, -half * 0.55, half * 0.18, pupilPaint);
-    canvas.drawCircle(half * 0.4, -half * 0.55, half * 0.18, pupilPaint);
+    canvas.drawOval(Skia.XYWHRect(-4.75, -11.75, 2.3, 3.3), pupilPaint);
+    canvas.drawOval(Skia.XYWHRect(2.45, -11.75, 2.3, 3.3), pupilPaint);
+
+    canvas.restore();
   },
 };
 
@@ -255,54 +305,265 @@ export const drawTruckSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
 
 export const drawLogSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
   draw(canvas, _world, entity) {
+    if (!Skia) return;
     const render = getVisibleSkiaRender(_world, entity);
     if (!render) return;
 
     const width = render.size || 120;
+    const height = 30;
+    const halfW = width / 2;
+    const halfH = height / 2;
     const logColor = render.color || FROGGER_VISUAL_TOKENS.logs.body;
-    drawSkiaRoundedBox(canvas, width, 30, logColor, 10, 10);
+
+    canvas.save();
+
+    const shadowPaint = Skia.Paint();
+    shadowPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.shadows.color));
+    canvas.drawRRect(
+      Skia.RRectXY(
+        Skia.XYWHRect(
+          -halfW + 1,
+          -halfH + FROGGER_VISUAL_TOKENS.shadows.offsetY + 1,
+          width - 2,
+          height - 1
+        ),
+        10,
+        10
+      ),
+      shadowPaint
+    );
+
+    const bodyPaint = Skia.Paint();
+    bodyPaint.setColor(Skia.Color(logColor));
+    canvas.drawRRect(Skia.RRectXY(Skia.XYWHRect(-halfW, -halfH, width, height), 10, 10), bodyPaint);
+
+    const highlightPaint = Skia.Paint();
+    highlightPaint.setStyle(Skia.PaintStyle.Stroke);
+    highlightPaint.setStrokeWidth(2);
+    highlightPaint.setStrokeCap(Skia.StrokeCap.Round);
+    highlightPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.logs.barkHighlight));
+    canvas.drawLine(-halfW + 13, -halfH + 4, halfW - 13, -halfH + 4, highlightPaint);
+
+    const grainPaint = Skia.Paint();
+    grainPaint.setStyle(Skia.PaintStyle.Stroke);
+    grainPaint.setStrokeWidth(1.6);
+    grainPaint.setStrokeCap(Skia.StrokeCap.Round);
+    grainPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.logs.grain));
+    const lineCount = Math.max(2, Math.floor(width / 38));
+    for (let i = 0; i < lineCount; i += 1) {
+      const x1 = -halfW + 18 + i * ((width - 36) / lineCount);
+      const y1 = i % 2 === 0 ? -4 : 3;
+      canvas.drawLine(x1, y1, Math.min(x1 + 14 + (i % 3) * 4, halfW - 14), y1 - (i % 2 === 0 ? 1 : -1), grainPaint);
+    }
+
+    for (let endIndex = 0; endIndex < 2; endIndex += 1) {
+      const endX = endIndex === 0 ? -halfW + 6 : halfW - 6;
+      const outer = Skia.Paint();
+      outer.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.logs.grain));
+      canvas.drawOval(Skia.XYWHRect(endX - 5.8, -halfH + 1, 11.6, height - 2), outer);
+
+      const ring = Skia.Paint();
+      ring.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.logs.ring));
+      canvas.drawOval(Skia.XYWHRect(endX - 4.3, -halfH + 3, 8.6, height - 6), ring);
+
+      const inner = Skia.Paint();
+      inner.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.logs.endGrain));
+      canvas.drawOval(Skia.XYWHRect(endX - 2.8, -halfH + 6, 5.6, height - 12), inner);
+
+      const innerLine = Skia.Paint();
+      innerLine.setStyle(Skia.PaintStyle.Stroke);
+      innerLine.setStrokeWidth(0.8);
+      innerLine.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.logs.grain));
+      canvas.drawOval(Skia.XYWHRect(endX - 1.3, -halfH + 8, 2.6, height - 16), innerLine);
+    }
+
+    canvas.restore();
   },
 };
 
 export const drawTurtleSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
   draw(canvas, world, entity) {
+    if (!Skia) return;
     const render = getVisibleSkiaRender(world, entity);
     if (!render) return;
 
     const width = render.size || 80;
     const segments = resolveFroggerShellSegments(width);
-
     const log = world.getComponent(entity, "Log");
-    const turtleColor = log?.divePhase === "warning"
-      ? FROGGER_VISUAL_TOKENS.turtles.warning
-      : log?.divePhase === "submerged"
-        ? FROGGER_VISUAL_TOKENS.turtles.submerged
-        : (render.color || FROGGER_VISUAL_TOKENS.turtles.body);
-    const paintOuter = Skia.Paint();
-    paintOuter.setColor(Skia.Color(turtleColor));
-    const paintShell = Skia.Paint();
-    paintShell.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.turtles.shell));
+    const visual = resolveFroggerTurtleVisualState(log?.divePhase);
+    const direction = resolveFroggerVehicleDirection(log?.direction);
+    const halfW = width / 2;
 
-    for (let i = 0; i < segments.length; i++) {
-      canvas.drawCircle(segments[i].segX, 0, 14, paintOuter);
-      canvas.drawCircle(segments[i].segX, 0, 8, paintShell);
+    canvas.save();
+    if (log?.divePhase === "submerged") canvas.scale(1, 0.78);
+
+    const skinPaint = Skia.Paint();
+    skinPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.turtles.skin));
+    skinPaint.setAlphaf(visual.opacity);
+    for (let i = 0; i < segments.length; i += 1) {
+      const x = segments[i].segX;
+      canvas.drawOval(Skia.XYWHRect(x - 11.8, -13, 7.6, 6), skinPaint);
+      canvas.drawOval(Skia.XYWHRect(x + 4.2, -13, 7.6, 6), skinPaint);
+      canvas.drawOval(Skia.XYWHRect(x - 11.8, 7, 7.6, 6), skinPaint);
+      canvas.drawOval(Skia.XYWHRect(x + 4.2, 7, 7.6, 6), skinPaint);
     }
+
+    const bodyPaint = Skia.Paint();
+    bodyPaint.setColor(Skia.Color(visual.bodyColor));
+    bodyPaint.setAlphaf(visual.opacity);
+    const shellPaint = Skia.Paint();
+    shellPaint.setColor(Skia.Color(visual.shellColor));
+    shellPaint.setAlphaf(visual.opacity);
+    const shellHighlightPaint = Skia.Paint();
+    shellHighlightPaint.setStyle(Skia.PaintStyle.Stroke);
+    shellHighlightPaint.setStrokeWidth(1.2);
+    shellHighlightPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.turtles.shellHighlight));
+    shellHighlightPaint.setAlphaf(visual.opacity);
+    const shellLinePaint = Skia.Paint();
+    shellLinePaint.setStyle(Skia.PaintStyle.Stroke);
+    shellLinePaint.setStrokeWidth(1.1);
+    shellLinePaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.turtles.shellLine));
+    shellLinePaint.setAlphaf(visual.opacity);
+
+    for (let i = 0; i < segments.length; i += 1) {
+      const x = segments[i].segX;
+      canvas.drawOval(Skia.XYWHRect(x - 12.5, -14.5, 25, 29), bodyPaint);
+      canvas.drawOval(Skia.XYWHRect(x - 10.4, -12.4, 20.8, 24.8), shellPaint);
+      canvas.drawOval(Skia.XYWHRect(x - 8.5, -10.2, 17, 20.4), shellHighlightPaint);
+      canvas.drawLine(x, -10, x, 10, shellLinePaint);
+      canvas.drawLine(x - 8, -5, x + 8, -5, shellLinePaint);
+      canvas.drawLine(x - 8, 5, x + 8, 5, shellLinePaint);
+      canvas.drawLine(x - 4, -9, x - 7, -4, shellLinePaint);
+      canvas.drawLine(x + 4, 9, x + 7, 4, shellLinePaint);
+    }
+
+    const headX = direction * (halfW - 8);
+    canvas.drawOval(Skia.XYWHRect(headX - 7.8, -6.7, 15.6, 13.4), bodyPaint);
+    const eyePaint = Skia.Paint();
+    eyePaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.frog.eyes));
+    eyePaint.setAlphaf(visual.opacity);
+    canvas.drawCircle(headX + direction * 2, -2.1, 1.45, eyePaint);
+    canvas.drawCircle(headX + direction * 2, 2.1, 1.45, eyePaint);
+    const pupilPaint = Skia.Paint();
+    pupilPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.frog.pupils));
+    pupilPaint.setAlphaf(visual.opacity);
+    canvas.drawCircle(headX + direction * 2.3, -2.1, 0.65, pupilPaint);
+    canvas.drawCircle(headX + direction * 2.3, 2.1, 0.65, pupilPaint);
+
+    canvas.restore();
   },
 };
 
 export const drawCrocodileSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
-  draw(canvas, _world, entity) {
-    const render = getVisibleSkiaRender(_world, entity);
+  draw(canvas, world, entity) {
+    if (!Skia) return;
+    const render = getVisibleSkiaRender(world, entity);
+    const log = world.getComponent(entity, "Log");
     if (!render) return;
 
     const width = render.size || 100;
-    const crocColor = render.color || FROGGER_VISUAL_TOKENS.crocodile.body;
-    drawSkiaRoundedBox(canvas, width, 30, crocColor, 8, 8);
+    const halfW = width / 2;
+    const direction = resolveFroggerVehicleDirection(log?.direction);
+    const bodyColor = render.color || FROGGER_VISUAL_TOKENS.crocodile.body;
+
+    canvas.save();
+    canvas.scale(direction, 1);
+
+    const shadowPaint = Skia.Paint();
+    shadowPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.shadows.color));
+    canvas.drawOval(Skia.XYWHRect(-halfW + 2, -8, width - 4, 24), shadowPaint);
+
+    const body = Skia.Path.Make();
+    body.moveTo(-halfW, 0);
+    body.lineTo(-halfW + 20, -6);
+    body.quadTo(-halfW + 32, -9, -halfW + 44, -7);
+    body.lineTo(halfW - 22, -7);
+    body.quadTo(halfW - 8, -7, halfW - 5, -3);
+    body.lineTo(halfW, -2);
+    body.lineTo(halfW, 2);
+    body.lineTo(halfW - 7, 3);
+    body.quadTo(halfW - 14, 8, halfW - 26, 7);
+    body.lineTo(-halfW + 30, 6);
+    body.quadTo(-halfW + 15, 6, -halfW, 0);
+    body.close();
+    const bodyPaint = Skia.Paint();
+    bodyPaint.setColor(Skia.Color(bodyColor));
+    canvas.drawPath(body, bodyPaint);
+
+    const limbPaint = Skia.Paint();
+    limbPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.crocodile.body));
+    for (let leg = 0; leg < 2; leg += 1) {
+      const legX = leg === 0 ? -width * 0.28 : width * 0.22;
+      canvas.drawOval(Skia.XYWHRect(legX - 5.5, -13.8, 11, 7.6), limbPaint);
+      canvas.drawOval(Skia.XYWHRect(legX - 5.5, 6.2, 11, 7.6), limbPaint);
+    }
+
+    const dorsalPaint = Skia.Paint();
+    dorsalPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.crocodile.dorsal));
+    for (let band = 0; band < 4; band += 1) {
+      const bandX = -width * 0.12 + band * width * 0.12;
+      canvas.drawRRect(Skia.RRectXY(Skia.XYWHRect(bandX, -7, 5.5, 14), 2, 2), dorsalPaint);
+    }
+
+    const jawX = halfW - 24;
+    canvas.drawRRect(Skia.RRectXY(Skia.XYWHRect(jawX, -7, 22, 10), 4, 4), bodyPaint);
+
+    if (log?.mouthOpen) {
+      const mouth = Skia.Path.Make();
+      mouth.moveTo(jawX + 1, -1);
+      mouth.lineTo(halfW, -1);
+      mouth.lineTo(halfW, 5);
+      mouth.lineTo(jawX + 3, 4);
+      mouth.close();
+      const mouthPaint = Skia.Paint();
+      mouthPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.crocodile.mouth));
+      canvas.drawPath(mouth, mouthPaint);
+
+      const teethPaint = Skia.Paint();
+      teethPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.crocodile.teeth));
+      for (let tooth = 0; tooth < 3; tooth += 1) {
+        const toothX = jawX + 5 + tooth * 5;
+        const toothPath = Skia.Path.Make();
+        toothPath.moveTo(toothX, -1);
+        toothPath.lineTo(toothX + 2.2, -1);
+        toothPath.lineTo(toothX + 1.1, 1.6);
+        toothPath.close();
+        canvas.drawPath(toothPath, teethPaint);
+      }
+    } else {
+      const mouthLine = Skia.Paint();
+      mouthLine.setStyle(Skia.PaintStyle.Stroke);
+      mouthLine.setStrokeWidth(1.5);
+      mouthLine.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.crocodile.dorsal));
+      canvas.drawLine(jawX + 2, 1.5, halfW - 2, 1.5, mouthLine);
+    }
+
+    const eyeRimPaint = Skia.Paint();
+    eyeRimPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.crocodile.underbelly));
+    canvas.drawCircle(halfW - 23, -5.5, 3.8, eyeRimPaint);
     const eyePaint = Skia.Paint();
     eyePaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.crocodile.eyes));
-    canvas.drawCircle(width / 2 - 12, -5, 3, eyePaint);
+    canvas.drawCircle(halfW - 23, -5.5, 1.8, eyePaint);
+
+    canvas.restore();
   },
 };
+
+function drawSkiaGoalFrog(canvas: SkCanvas, half: number): void {
+  const bodyPaint = Skia.Paint();
+  bodyPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.frog.body));
+  canvas.drawOval(Skia.XYWHRect(-half * 0.43, 2 - half * 0.5, half * 0.86, half), bodyPaint);
+
+  const eyePaint = Skia.Paint();
+  eyePaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.frog.eyes));
+  canvas.drawCircle(-half * 0.27, -half * 0.26, half * 0.17, eyePaint);
+  canvas.drawCircle(half * 0.27, -half * 0.26, half * 0.17, eyePaint);
+
+  const pupilPaint = Skia.Paint();
+  pupilPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.frog.pupils));
+  canvas.drawCircle(-half * 0.27, -half * 0.29, half * 0.07, pupilPaint);
+  canvas.drawCircle(half * 0.27, -half * 0.29, half * 0.07, pupilPaint);
+}
 
 export const drawLilyPadSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = {
   draw(canvas, world, entity) {
@@ -310,13 +571,64 @@ export const drawLilyPadSkia: ShapeDrawer<SkCanvas, FroggerComponentRegistry> = 
     const goalCtx = resolveFroggerGoalContext(world, entity);
     if (!goalCtx) return;
 
-    const { half, occupied } = goalCtx;
-
+    const { half, occupied, pad } = goalCtx;
     const { slotColor, occupiedColor } = resolveFroggerSlotColors(world);
+    const hasCrocodile = !!pad.hasCrocodile;
+    const hasFly = !!pad.hasFly;
 
-    const paint = Skia.Paint();
-    paint.setColor(Skia.Color(occupied ? occupiedColor : slotColor));
-    canvas.drawCircle(0, 0, half, paint);
+    const shadowPaint = Skia.Paint();
+    shadowPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.shadows.color));
+    canvas.drawOval(Skia.XYWHRect(-half, -half * 0.83 + 3, half * 2, half * 1.66), shadowPaint);
+
+    const leaf = Skia.Path.Make();
+    leaf.moveTo(half * Math.cos(Math.PI * 0.25), half * Math.sin(Math.PI * 0.25));
+    leaf.addArc(Skia.XYWHRect(-half, -half, half * 2, half * 2), 45, 315);
+    leaf.lineTo(0, 0);
+    leaf.close();
+    const leafPaint = Skia.Paint();
+    leafPaint.setColor(Skia.Color(occupied ? occupiedColor : slotColor));
+    canvas.drawPath(leaf, leafPaint);
+
+    const edgePaint = Skia.Paint();
+    edgePaint.setStyle(Skia.PaintStyle.Stroke);
+    edgePaint.setStrokeWidth(1.3);
+    edgePaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.lilyPads.edge));
+    canvas.drawPath(leaf, edgePaint);
+
+    const veinPaint = Skia.Paint();
+    veinPaint.setStyle(Skia.PaintStyle.Stroke);
+    veinPaint.setStrokeWidth(1.1);
+    veinPaint.setStrokeCap(Skia.StrokeCap.Round);
+    veinPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.lilyPads.vein));
+    canvas.drawLine(0, 0, half * 0.35, -half * 0.48, veinPaint);
+    canvas.drawLine(0, 0, half * 0.55, 0, veinPaint);
+    canvas.drawLine(0, 0, half * 0.28, half * 0.5, veinPaint);
+    canvas.drawLine(0, 0, -half * 0.48, half * 0.2, veinPaint);
+    canvas.drawLine(0, 0, -half * 0.38, -half * 0.35, veinPaint);
+
+    if (occupied) {
+      drawSkiaGoalFrog(canvas, half);
+    } else if (hasCrocodile) {
+      const crocPaint = Skia.Paint();
+      crocPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.crocodile.body));
+      canvas.drawOval(Skia.XYWHRect(-half * 0.68, -half * 0.24, half * 1.36, half * 0.48), crocPaint);
+      canvas.drawRRect(Skia.RRectXY(Skia.XYWHRect(-half * 0.6, -half * 0.28, half * 0.7, half * 0.28), 2, 2), crocPaint);
+      const dangerPaint = Skia.Paint();
+      dangerPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.lilyPads.danger));
+      canvas.drawCircle(half * 0.28, -half * 0.12, 1.8, dangerPaint);
+    } else if (hasFly) {
+      const wingPaint = Skia.Paint();
+      wingPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.lilyPads.flower));
+      canvas.drawOval(Skia.XYWHRect(-5.3, -2.8, 5.6, 3.6), wingPaint);
+      canvas.drawOval(Skia.XYWHRect(-0.3, -2.8, 5.6, 3.6), wingPaint);
+      const flyPaint = Skia.Paint();
+      flyPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.crocodile.dorsal));
+      canvas.drawOval(Skia.XYWHRect(-1.3, -2.4, 2.6, 6.8), flyPaint);
+    } else {
+      const flowerPaint = Skia.Paint();
+      flowerPaint.setColor(Skia.Color(FROGGER_VISUAL_TOKENS.lilyPads.flower));
+      canvas.drawCircle(0, 0, 2, flowerPaint);
+    }
   },
 };
 

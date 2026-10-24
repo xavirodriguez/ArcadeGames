@@ -2,6 +2,7 @@ import {
   FROGGER_VISUAL_REFERENCE,
   FROGGER_VISUAL_TOKENS,
 } from "../FroggerVisualTokens";
+import { DEFAULT_FROGGER_CONFIG } from "../../types/FroggerConfigSchema";
 
 describe("Frogger visual reference contract", () => {
   it("keeps the approved portrait reference separate from logical grid sizing", () => {
@@ -15,9 +16,9 @@ describe("Frogger visual reference contract", () => {
     });
     expect(viewport.hudHeight + viewport.playfieldHeight).toBe(viewport.height);
     expect(logicalGrid).toEqual({
-      columns: 20,
-      rows: 15,
-      cellSize: 40,
+      columns: DEFAULT_FROGGER_CONFIG.TOTAL_COLS,
+      rows: DEFAULT_FROGGER_CONFIG.TOTAL_ROWS,
+      cellSize: DEFAULT_FROGGER_CONFIG.GRID_SIZE,
     });
 
     // The reference screenshot is not a source of truth for simulation dimensions.

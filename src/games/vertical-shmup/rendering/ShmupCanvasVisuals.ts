@@ -235,6 +235,42 @@ export const drawShmupEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupComponen
     ctx.shadowBlur = 10;
     ctx.shadowColor = enemyColor;
 
+    // Animated rear thrusters reinforce each fighter's direction and silhouette.
+    // These are purely decorative and sit behind the hull; the hitbox is unchanged.
+    if (archetype !== "support") {
+      ctx.save();
+      const plumePulse = 0.82 + 0.18 * Math.sin(time * (archetype === "interceptor" ? 34 : 22));
+      const engineOffset = archetype === "armored" ? 0.46 : archetype === "boss" ? 0.42 : 0.23;
+      const engineAnchorY = archetype === "boss" ? -0.72 : archetype === "armored" ? -0.64 : -0.55;
+      const plumeLength = size * (0.34 + plumePulse * 0.3);
+      const plumeWidth = size * (archetype === "boss" ? 0.15 : 0.09);
+      ctx.globalAlpha = 0.78;
+      ctx.shadowBlur = size * 0.25;
+      ctx.shadowColor = archetype === "armored" ? SHMUP_COLOR_TOKENS.gold.sunlight : SHMUP_COLOR_TOKENS.enemy.accent;
+      ctx.fillStyle = archetype === "armored" ? SHMUP_COLOR_TOKENS.warning : SHMUP_COLOR_TOKENS.enemy.accent;
+
+      for (const side of [-1, 1]) {
+        ctx.beginPath();
+        ctx.moveTo(side * (engineOffset - plumeWidth), engineAnchorY * size);
+        ctx.lineTo(side * (engineOffset + plumeWidth), engineAnchorY * size);
+        ctx.lineTo(side * engineOffset * size, engineAnchorY * size - plumeLength);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.globalAlpha = 0.95;
+        ctx.fillStyle = SHMUP_COLOR_TOKENS.player.core;
+        ctx.beginPath();
+        ctx.moveTo(side * (engineOffset - plumeWidth * 0.3) * size, engineAnchorY * size);
+        ctx.lineTo(side * (engineOffset + plumeWidth * 0.3) * size, engineAnchorY * size);
+        ctx.lineTo(side * engineOffset * size, engineAnchorY * size - plumeLength * 0.58);
+        ctx.closePath();
+        ctx.fill();
+        ctx.globalAlpha = 0.78;
+        ctx.fillStyle = archetype === "armored" ? SHMUP_COLOR_TOKENS.warning : SHMUP_COLOR_TOKENS.enemy.accent;
+      }
+      ctx.restore();
+    }
+
     if (archetype === "scout") {
       // Angular fast scout (dagger wings, forward sensors)
       ctx.fillStyle = SHMUP_COLOR_TOKENS.enemy.primary;

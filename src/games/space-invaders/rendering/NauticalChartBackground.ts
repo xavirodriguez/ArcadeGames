@@ -7,15 +7,10 @@ import {
 import {
   NAUTICAL_WIND_RESOURCE,
   NauticalWindState,
-} from "../systems/NauticalWindSystem";
+  isNauticalChartTheme,
+} from "../nautical/NauticalThemeShared";
 
-/** Concept pack ids that enable the parchment chart backdrop. */
-export const NAUTICAL_CHART_THEME_IDS = new Set(["aqui_hay_dragones", "nautical-chart"]);
-
-export function isNauticalChartTheme(theme: Theme | undefined | null): boolean {
-  const id = theme?.conceptPack?.id;
-  return typeof id === "string" && NAUTICAL_CHART_THEME_IDS.has(id);
-}
+export { isNauticalChartTheme, NAUTICAL_CHART_THEME_IDS } from "../nautical/NauticalThemeShared";
 
 export interface NauticalBackdropOptions {
   wind?: NauticalWindState | null;
@@ -45,24 +40,20 @@ export function drawNauticalChartBackdrop(
   const outerStroke = Math.max(1, 1.5 * sx);
   const innerStroke = Math.max(0.6, 0.6 * sx);
 
-  // Rose at HUD (art bible §10.1 centre ~170,36 on 206×420 board)
   const roseX = options.roseX ?? 170 * sx;
   const roseY = options.roseY ?? 36 * sy;
 
   ctx.save();
 
-  // 1. Pergamino
   ctx.fillStyle = P.parchment;
   ctx.fillRect(0, 0, worldWidth, worldHeight);
 
-  // 2–3. Marcos
   ctx.strokeStyle = P.ink;
   ctx.lineWidth = outerStroke;
   ctx.strokeRect(marginOuter, marginOuter, worldWidth - marginOuter * 2, worldHeight - marginOuter * 2);
   ctx.lineWidth = innerStroke;
   ctx.strokeRect(marginInner, marginInner, worldWidth - marginInner * 2, worldHeight - marginInner * 2);
 
-  // 4. Cuadrícula
   ctx.strokeStyle = P.ink;
   ctx.globalAlpha = A.grid;
   ctx.lineWidth = Math.max(0.8, 1 * sx);
@@ -81,7 +72,6 @@ export function drawNauticalChartBackdrop(
     ctx.stroke();
   }
 
-  // 5. Líneas de rumbo (16 rays from rose) — §8.3
   const activeAngle = wind ? (wind.sign < 0 ? Math.PI : 0) : null;
   const nRhumb = 16;
   for (let i = 0; i < nRhumb; i++) {
@@ -102,7 +92,6 @@ export function drawNauticalChartBackdrop(
     ctx.stroke();
   }
 
-  // 6. Ondas del mar — tilt ±8° and stretch with wind (§8.1–8.2)
   const force = wind?.force ?? 0;
   const sign = wind?.sign ?? 1;
   const tiltRad = (force / 3) * ((8 * Math.PI) / 180) * sign;

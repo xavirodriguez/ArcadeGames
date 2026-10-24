@@ -314,7 +314,8 @@ export const drawLogCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCompone
     }
 
     // End grain rings make the long platform read as timber.
-    for (const endX of [-halfW + 6, halfW - 6]) {
+    for (let endIndex = 0; endIndex < 2; endIndex += 1) {
+      const endX = endIndex === 0 ? -halfW + 6 : halfW - 6;
       ctx.fillStyle = FROGGER_VISUAL_TOKENS.logs.grain;
       ctx.beginPath();
       ctx.ellipse(endX, 0, 5.8, halfH - 1, 0, 0, Math.PI * 2);
@@ -460,7 +461,8 @@ export const drawCrocodileCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerC
 
     // Four short legs, kept inside the obstacle's existing visual footprint.
     ctx.fillStyle = FROGGER_VISUAL_TOKENS.crocodile.body;
-    for (const legX of [-width * 0.28, width * 0.22]) {
+    for (let leg = 0; leg < 2; leg += 1) {
+      const legX = leg === 0 ? -width * 0.28 : width * 0.22;
       ctx.beginPath();
       ctx.ellipse(legX, -10, 5.5, 3.8, -0.35, 0, Math.PI * 2);
       ctx.ellipse(legX, 10, 5.5, 3.8, 0.35, 0, Math.PI * 2);

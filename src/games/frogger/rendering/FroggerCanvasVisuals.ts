@@ -83,11 +83,16 @@ function drawCanvasVehicleBeam(
 
 function drawCanvasVehicleTires(
   ctx: CanvasRenderingContext2D,
-  wheelCenters: number[],
-  height: number
+  width: number,
+  height: number,
+  isTruck: boolean
 ): void {
   ctx.fillStyle = FROGGER_VISUAL_TOKENS.vehicles.tires;
-  for (const centerX of wheelCenters) {
+  const wheelCount = isTruck ? 3 : 2;
+  for (let index = 0; index < wheelCount; index += 1) {
+    const centerX = isTruck
+      ? (index === 0 ? -width * 0.34 : index === 1 ? -width * 0.08 : width * 0.36)
+      : (index === 0 ? -width * 0.27 : width * 0.27);
     ctx.beginPath();
     ctx.roundRect(centerX - 3.5, -height * 0.48, 7, 4.5, 1.5);
     ctx.roundRect(centerX - 3.5, height * 0.28, 7, 4.5, 1.5);
@@ -137,7 +142,7 @@ export const drawCarCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCompone
     ctx.beginPath();
     ctx.roundRect(-halfW + 1, -halfH + FROGGER_VISUAL_TOKENS.shadows.offsetY + 1, width - 2, height - 1, 6);
     ctx.fill();
-    drawCanvasVehicleTires(ctx, [-width * 0.27, width * 0.27], height);
+    drawCanvasVehicleTires(ctx, width, height, false);
 
     // Low, rounded body with a tapered nose. The direction sign mirrors this exact silhouette.
     ctx.fillStyle = carColor;
@@ -194,7 +199,7 @@ export const drawTruckCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCompo
     ctx.beginPath();
     ctx.roundRect(-halfW + 1, -halfH + FROGGER_VISUAL_TOKENS.shadows.offsetY + 1, width - 2, height - 1, 3);
     ctx.fill();
-    drawCanvasVehicleTires(ctx, [-width * 0.34, -width * 0.08, width * 0.36], height);
+    drawCanvasVehicleTires(ctx, width, height, true);
 
     ctx.fillStyle = truckColor;
     ctx.beginPath();

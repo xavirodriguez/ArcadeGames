@@ -22,14 +22,9 @@ import type {
   HitAndRunInput
 } from "./types/HitAndRunTypes";
 import {
-  registerPlatformerEnvironmentBlueprints
-} from "@tiny-aster/gameplay-kit";
-import {
-  registerPlatformerTilemapBlueprint,
   createMainCamera2D,
   registerPresentationSystems,
-  generateAndInstantiatePlatformerLevel,
-  registerStandardPlatformerCollectibles
+  generateAndInstantiatePlatformerLevel
 } from "../shared/componentBuilders";
 import { DEFAULT_HIT_AND_RUN_CONFIG } from "./types/HitAndRunConfigSchema";
 import hitRunLevelData from "./levels/level-01.json";
@@ -39,6 +34,7 @@ import { registerHitRunHurt } from "./hurt/registerHitRunHurt";
 import { registerHitRunWeapons } from "./weapons/registerHitRunWeapons";
 import { registerHitRunWaves } from "./waves/registerHitRunWaves";
 import { registerHitRunDeathFlow } from "./systems/HitRunDeathFlowSystem";
+import { registerHitRunScoreSystem, HIT_RUN_SCORE_RESOURCE, type HitRunScoreState } from "./systems/HitRunScoreSystem";
 import { registerBeltSystems } from "./belt/registerBeltSystems";
 import {
   registerBeltPlayerBlueprint,
@@ -71,10 +67,10 @@ import {
 } from "./rendering/HitRunCanvasVisuals";
 import { drawHitRunHud } from "./rendering/HitRunHudCanvas";
 import { drawHitRunDebugOverlay } from "./rendering/HitRunDebugOverlay";
-import { drawPlatformerTilemap } from "../shared/rendering/PlatformerSharedVisuals";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import { runWithUnlockedRandomAndMutators } from "../shared/configHelper";
 import { ThemeRegistry, resolveThemeIdFromConfig } from "./rendering/theme/ThemeRegistry";
+import { storePreviousTransforms } from "./rendering/HitRunRenderInterpolation";
 
 export interface HitAndRunConfig {
   seed?: number;
@@ -109,8 +105,6 @@ function registerHitRunRenderers(
   renderer.registerShape("arrow", drawHitRunBullet);
   renderer.registerShape("bolt", drawHitRunBullet);
   renderer.registerShape("fireball", drawHitRunBullet);
-
-  renderer.registerShape("tilemap", drawPlatformerTilemap);
 }
 
 export class HitAndRunGame extends PlatformerArcadeGame<
@@ -146,6 +140,7 @@ export class HitAndRunGame extends PlatformerArcadeGame<
   }
 
   public override update(dt: number): void {
+    storePreviousTransforms(this.world);
     this.gameOver = this.checkRunProgressGameOver(dt, this.gameOver);
     this.world.update(dt);
   }
@@ -186,10 +181,6 @@ export class HitAndRunGame extends PlatformerArcadeGame<
   protected override async onRegisterSystems(): Promise<void> {
     await super.onRegisterSystems();
 
-    registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_HIT_AND_RUN_CONFIG);
-    registerStandardPlatformerCollectibles(this.blueprints);
-    registerPlatformerEnvironmentBlueprints(this.blueprints);
-
     registerBeltSystems(this.world);
     registerHitRunAI(this.world);
     registerHitRunFeedback(this.world);
@@ -201,6 +192,7 @@ export class HitAndRunGame extends PlatformerArcadeGame<
       defaultSpawnY: 400
     });
     registerHitRunDeathFlow(this.world);
+    registerHitRunScoreSystem(this.world);
 
     this.world.setResource(COMBO_MELEE_CONFIG_RESOURCE, {
       ...DEFAULT_COMBO_MELEE_CONFIG
@@ -278,6 +270,7 @@ export class HitAndRunGame extends PlatformerArcadeGame<
     const rs = this.world.getResource<RunState>("RunState");
     const wave = this.world.getResource<WaveDirectorState>(WAVE_DIRECTOR_RESOURCE);
     const script = this.world.getResource<WaveScript>(WAVE_SCRIPT_RESOURCE);
+    const scoreState = this.world.getResource<HitRunScoreState>(HIT_RUN_SCORE_RESOURCE);
     const players = this.world.query("BeltInput", "Health");
     const player = players[0];
     const health =
@@ -291,10 +284,10 @@ export class HitAndRunGame extends PlatformerArcadeGame<
 
     return {
       type: "HitAndRunGameState",
-      score: rs
+      score: scoreState?.score ?? (rs
         ? rs.collectedTemporalIds.length * 10 +
           rs.collectedPermanentIds.length * 100
-        : 0,
+        : 0),
       isGameOver: this.gameOver,
       attempts: rs?.attempt ?? 1,
       deaths: rs?.deaths ?? 0,

@@ -95,7 +95,6 @@ describe("Hit & Run Game Systems", () => {
       expect(shapesRegistered.has("elite")).toBe(true);
       expect(shapesRegistered.has("bullet_hmg")).toBe(true);
       expect(shapesRegistered.has("bullet_rocket")).toBe(true);
-      expect(shapesRegistered.has("tilemap")).toBe(true);
 
       expect(effectsRegistered.has("hit_run_procedural_backdrop")).toBe(true);
       expect(effectsRegistered.has("hit_run_hud")).toBe(true);
@@ -111,9 +110,6 @@ describe("Hit & Run Game Systems", () => {
       expect(plan.totalWidth).toBeGreaterThan(0);
 
       const gameWorld = game.getWorld();
-      const tilemaps = gameWorld.query("Tilemap");
-      expect(tilemaps.length).toBeGreaterThan(0);
-
       const backdrop = gameWorld.getResource("HitRunBackdropSpec");
       expect(backdrop).toBeDefined();
       game.destroy();

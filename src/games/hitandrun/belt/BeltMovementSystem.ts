@@ -103,7 +103,11 @@ export class BeltMovementSystem extends System<CoreComponentRegistry> {
 
     if (!elevation) {
       elevation = createBeltElevationComponent();
-      world.addComponent(entity, elevation);
+      if (world.isUpdating) {
+        world.getCommandBuffer().addComponent(entity, elevation as never);
+      } else {
+        world.addComponent(entity, elevation);
+      }
     }
 
     const canHop = !belt.isHopping && (elevation.grounded || elevation.z <= 0);

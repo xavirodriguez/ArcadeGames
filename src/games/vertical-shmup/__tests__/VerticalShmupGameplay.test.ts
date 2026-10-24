@@ -18,6 +18,15 @@ describe("VerticalShmup Gameplay Systems & Mechanics", () => {
     game.destroy();
   });
 
+  it("assigns the boss visual archetype when creating a boss enemy", () => {
+    const world = game.getWorld();
+    const boss = createEnemy(world, 360, 100, "boss", 5);
+
+    expect(world.getComponent(boss, "ShmupEnemy")?.archetype).toBe("boss");
+    expect(world.getComponent(boss, "Render")?.size).toBe(85);
+    expect(world.getComponent(boss, "Health")?.max).toBeGreaterThan(0);
+  });
+
   it("attaches BulletPattern component to enemies created via createEnemy", () => {
     const world = game.getWorld();
     const enemy = createEnemy(world, 100, 100, "straight", 1);

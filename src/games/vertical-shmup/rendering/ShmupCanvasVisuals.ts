@@ -252,6 +252,34 @@ export const drawShmupEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupComponen
     ctx.shadowBlur = 10;
     ctx.shadowColor = enemyColor;
 
+    // Boss presentation: a slow celestial seal gives the encounter a distinct silhouette.
+    if (archetype === "boss") {
+      ctx.save();
+      const pulse = 1 + 0.035 * Math.sin(time * 2.4);
+      const orbitRadius = size * 1.34 * pulse;
+      ctx.strokeStyle = "rgba(255, 209, 102, 0.32)";
+      ctx.lineWidth = Math.max(2, size * 0.035);
+      ctx.beginPath();
+      ctx.arc(0, 0, size * 1.17, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = "rgba(255, 209, 102, 0.78)";
+      ctx.lineWidth = Math.max(2, size * 0.045);
+      for (let index = 0; index < 4; index += 1) {
+        const startAngle = time * 0.42 + index * Math.PI / 2;
+        ctx.beginPath();
+        ctx.arc(0, 0, orbitRadius, startAngle, startAngle + Math.PI * 0.22);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = "rgba(242, 93, 187, 0.48)";
+      ctx.lineWidth = Math.max(1.5, size * 0.025);
+      ctx.beginPath();
+      ctx.arc(0, 0, size * (1.02 + 0.025 * Math.sin(time * 1.8)), -time * 0.3, -time * 0.3 + Math.PI * 1.15);
+      ctx.stroke();
+      ctx.restore();
+    }
+
     // Animated rear thrusters reinforce each fighter's direction and silhouette.
     // These are purely decorative and sit behind the hull; the hitbox is unchanged.
     if (archetype !== "support") {

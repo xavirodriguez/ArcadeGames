@@ -278,21 +278,61 @@ export const drawLogCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCompone
     const height = 30;
     const halfW = width / 2;
     const halfH = height / 2;
-
     const logColor = render.color || FROGGER_VISUAL_TOKENS.logs.body;
+    const grainColor = FROGGER_VISUAL_TOKENS.logs.grain;
 
     ctx.save();
+
+    ctx.fillStyle = FROGGER_VISUAL_TOKENS.shadows.color;
+    ctx.beginPath();
+    ctx.roundRect(-halfW + 1, -halfH + FROGGER_VISUAL_TOKENS.shadows.offsetY + 2, width - 2, height - 1, 10);
+    ctx.fill();
+
     ctx.fillStyle = logColor;
     ctx.beginPath();
     ctx.roundRect(-halfW, -halfH, width, height, 10);
     ctx.fill();
 
-    ctx.strokeStyle = FROGGER_VISUAL_TOKENS.logs.grain;
+    // Warm upper rim and bark grain; marks stay sparse at mobile scale.
+    ctx.strokeStyle = FROGGER_VISUAL_TOKENS.logs.barkHighlight;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(-halfW + 15, 0);
-    ctx.lineTo(halfW - 15, 0);
+    ctx.moveTo(-halfW + 13, -halfH + 4);
+    ctx.lineTo(halfW - 13, -halfH + 4);
     ctx.stroke();
+
+    ctx.strokeStyle = grainColor;
+    ctx.lineWidth = 1.6;
+    const lineCount = Math.max(2, Math.floor(width / 38));
+    for (let i = 0; i < lineCount; i += 1) {
+      const x1 = -halfW + 18 + i * ((width - 36) / lineCount);
+      const y1 = i % 2 === 0 ? -4 : 3;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(Math.min(x1 + 14 + (i % 3) * 4, halfW - 14), y1 - (i % 2 === 0 ? 1 : -1));
+      ctx.stroke();
+    }
+
+    // End grain rings make the long platform read as timber.
+    for (const endX of [-halfW + 6, halfW - 6]) {
+      ctx.fillStyle = FROGGER_VISUAL_TOKENS.logs.grain;
+      ctx.beginPath();
+      ctx.ellipse(endX, 0, 5.8, halfH - 1, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = FROGGER_VISUAL_TOKENS.logs.ring;
+      ctx.beginPath();
+      ctx.ellipse(endX, 0, 4.3, halfH - 3, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = FROGGER_VISUAL_TOKENS.logs.endGrain;
+      ctx.beginPath();
+      ctx.ellipse(endX, 0, 2.8, halfH - 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = FROGGER_VISUAL_TOKENS.logs.grain;
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      ctx.ellipse(endX, 0, 1.3, Math.max(2, halfH - 8), 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }
 
     ctx.restore();
   },
@@ -305,103 +345,273 @@ export const drawTurtleCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComp
 
     const width = render.size || 80;
     const segments = resolveFroggerShellSegments(width);
-
     const log = world.getComponent(entity, "Log");
-    const isWarning = log?.divePhase === "warning";
-    const isSubmerged = log?.divePhase === "submerged";
-    const turtleColor = isWarning
-      ? FROGGER_VISUAL_TOKENS.turtles.warning
-      : isSubmerged
-        ? FROGGER_VISUAL_TOKENS.turtles.submerged
-        : (render.color || FROGGER_VISUAL_TOKENS.turtles.body);
-    const innerColor = FROGGER_VISUAL_TOKENS.turtles.shell;
+    const visual = resolveFroggerTurtleVisualState(log?.divePhase);
+    const direction = resolveFroggerVehicleDirection(log?.direction);
+    const halfW = width / 2;
 
     ctx.save();
+    ctx.globalAlpha *= visual.opacity;
+    if (log?.divePhase === "submerged") ctx.scale(1, 0.78);
 
-    for (let i = 0; i < segments.length; i++) {
-      const segX = segments[i].segX;
-      ctx.fillStyle = turtleColor;
-      ctx.shadowColor = FROGGER_VISUAL_TOKENS.shadows.color;
-      ctx.shadowBlur = FROGGER_VISUAL_TOKENS.shadows.blur;
-      ctx.shadowOffsetY = FROGGER_VISUAL_TOKENS.shadows.offsetY;
+    // Feet and neck are drawn before the shell to establish a readable creature silhouette.
+    ctx.fillStyle = FROGGER_VISUAL_TOKENS.turtles.skin;
+    for (let i = 0; i < segments.length; i += 1) {
+      const x = segments[i].segX;
       ctx.beginPath();
-      ctx.arc(segX, 0, 14, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = innerColor;
-      ctx.shadowBlur = 0;
-      ctx.beginPath();
-      ctx.arc(segX, 0, 8, 0, Math.PI * 2);
+      ctx.ellipse(x - 8, -10, 3.8, 3, -0.2, 0, Math.PI * 2);
+      ctx.ellipse(x + 8, -10, 3.8, 3, 0.2, 0, Math.PI * 2);
+      ctx.ellipse(x - 8, 10, 3.8, 3, 0.2, 0, Math.PI * 2);
+      ctx.ellipse(x + 8, 10, 3.8, 3, -0.2, 0, Math.PI * 2);
       ctx.fill();
     }
+
+    for (let i = 0; i < segments.length; i += 1) {
+      const x = segments[i].segX;
+      ctx.fillStyle = visual.bodyColor;
+      ctx.beginPath();
+      ctx.ellipse(x, 0, 12.5, 14.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = visual.shellColor;
+      ctx.beginPath();
+      ctx.ellipse(x, 0, 10.4, 12.4, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = FROGGER_VISUAL_TOKENS.turtles.shellHighlight;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.ellipse(x, 0, 8.5, 10.2, 0, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = FROGGER_VISUAL_TOKENS.turtles.shellLine;
+      ctx.lineWidth = 1.1;
+      ctx.beginPath();
+      ctx.moveTo(x, -10);
+      ctx.lineTo(x, 10);
+      ctx.moveTo(x - 8, -5);
+      ctx.lineTo(x + 8, -5);
+      ctx.moveTo(x - 8, 5);
+      ctx.lineTo(x + 8, 5);
+      ctx.moveTo(x - 4, -9);
+      ctx.lineTo(x - 7, -4);
+      ctx.moveTo(x + 4, 9);
+      ctx.lineTo(x + 7, 4);
+      ctx.stroke();
+    }
+
+    // A shared leading head follows the floating group's real direction.
+    const headX = direction * (halfW - 8);
+    ctx.fillStyle = visual.bodyColor;
+    ctx.beginPath();
+    ctx.ellipse(headX, 0, 7.8, 6.7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = FROGGER_VISUAL_TOKENS.frog.eyes;
+    ctx.beginPath();
+    ctx.arc(headX + direction * 2, -2.1, 1.45, 0, Math.PI * 2);
+    ctx.arc(headX + direction * 2, 2.1, 1.45, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = FROGGER_VISUAL_TOKENS.frog.pupils;
+    ctx.beginPath();
+    ctx.arc(headX + direction * 2.3, -2.1, 0.65, 0, Math.PI * 2);
+    ctx.arc(headX + direction * 2.3, 2.1, 0.65, 0, Math.PI * 2);
+    ctx.fill();
 
     ctx.restore();
   },
 };
 
 export const drawCrocodileCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComponentRegistry> = {
-  draw(ctx, _world, entity) {
-    const render = _world.getComponent(entity, "Render");
+  draw(ctx, world, entity) {
+    const render = world.getComponent(entity, "Render");
+    const log = world.getComponent(entity, "Log");
     if (!render) return;
 
     const width = render.size || 100;
     const height = 30;
     const halfW = width / 2;
-    const halfH = height / 2;
-
-    const crocColor = render.color || FROGGER_VISUAL_TOKENS.crocodile.body;
+    const direction = resolveFroggerVehicleDirection(log?.direction);
+    const bodyColor = render.color || FROGGER_VISUAL_TOKENS.crocodile.body;
 
     ctx.save();
-    ctx.fillStyle = crocColor;
-    ctx.shadowColor = FROGGER_VISUAL_TOKENS.shadows.color;
-    ctx.shadowBlur = FROGGER_VISUAL_TOKENS.shadows.blur;
-    ctx.shadowOffsetY = FROGGER_VISUAL_TOKENS.shadows.offsetY;
+    ctx.scale(direction, 1);
 
+    ctx.fillStyle = FROGGER_VISUAL_TOKENS.shadows.color;
     ctx.beginPath();
-    ctx.roundRect(-halfW, -halfH, width, height, 8);
+    ctx.ellipse(0, 4, halfW - 2, 12, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Eyes
-    ctx.fillStyle = FROGGER_VISUAL_TOKENS.crocodile.eyes;
-    ctx.shadowBlur = 0;
+    // Tail tapers into a long reptilian body.
+    ctx.fillStyle = bodyColor;
     ctx.beginPath();
-    ctx.arc(halfW - 12, -halfH + 8, 4, 0, Math.PI * 2);
+    ctx.moveTo(-halfW, 0);
+    ctx.lineTo(-halfW + 20, -6);
+    ctx.quadraticCurveTo(-halfW + 32, -9, -halfW + 44, -7);
+    ctx.lineTo(halfW - 22, -7);
+    ctx.quadraticCurveTo(halfW - 8, -7, halfW - 5, -3);
+    ctx.lineTo(halfW, -2);
+    ctx.lineTo(halfW, 2);
+    ctx.lineTo(halfW - 7, 3);
+    ctx.quadraticCurveTo(halfW - 14, 8, halfW - 26, 7);
+    ctx.lineTo(-halfW + 30, 6);
+    ctx.quadraticCurveTo(-halfW + 15, 6, -halfW, 0);
+    ctx.closePath();
+    ctx.fill();
+
+    // Four short legs, kept inside the obstacle's existing visual footprint.
+    ctx.fillStyle = FROGGER_VISUAL_TOKENS.crocodile.body;
+    for (const legX of [-width * 0.28, width * 0.22]) {
+      ctx.beginPath();
+      ctx.ellipse(legX, -10, 5.5, 3.8, -0.35, 0, Math.PI * 2);
+      ctx.ellipse(legX, 10, 5.5, 3.8, 0.35, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Dorsal bands use a dark botanical green instead of a bright outline.
+    ctx.fillStyle = FROGGER_VISUAL_TOKENS.crocodile.dorsal;
+    for (let band = 0; band < 4; band += 1) {
+      const bandX = -width * 0.12 + band * width * 0.12;
+      ctx.beginPath();
+      ctx.roundRect(bandX, -7, 5.5, 14, 2);
+      ctx.fill();
+    }
+
+    // Snout and mouth reflect the current gameplay danger flag.
+    const jawX = halfW - 24;
+    ctx.fillStyle = bodyColor;
+    ctx.beginPath();
+    ctx.roundRect(jawX, -7, 22, 10, 4);
+    ctx.fill();
+
+    if (log?.mouthOpen) {
+      ctx.fillStyle = FROGGER_VISUAL_TOKENS.crocodile.mouth;
+      ctx.beginPath();
+      ctx.moveTo(jawX + 1, -1);
+      ctx.lineTo(halfW, -1);
+      ctx.lineTo(halfW, 5);
+      ctx.lineTo(jawX + 3, 4);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = FROGGER_VISUAL_TOKENS.crocodile.teeth;
+      for (let tooth = 0; tooth < 3; tooth += 1) {
+        const toothX = jawX + 5 + tooth * 5;
+        ctx.beginPath();
+        ctx.moveTo(toothX, -1);
+        ctx.lineTo(toothX + 2.2, -1);
+        ctx.lineTo(toothX + 1.1, 1.6);
+        ctx.closePath();
+        ctx.fill();
+      }
+    } else {
+      ctx.strokeStyle = FROGGER_VISUAL_TOKENS.crocodile.dorsal;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(jawX + 2, 1.5);
+      ctx.lineTo(halfW - 2, 1.5);
+      ctx.stroke();
+    }
+
+    // Coral eyes are reserved as the danger cue.
+    ctx.fillStyle = FROGGER_VISUAL_TOKENS.crocodile.underbelly;
+    ctx.beginPath();
+    ctx.arc(halfW - 23, -5.5, 3.8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = FROGGER_VISUAL_TOKENS.crocodile.eyes;
+    ctx.beginPath();
+    ctx.arc(halfW - 23, -5.5, 1.8, 0, Math.PI * 2);
     ctx.fill();
 
     ctx.restore();
   },
 };
 
+function drawCanvasGoalFrog(ctx: CanvasRenderingContext2D, half: number): void {
+  ctx.fillStyle = FROGGER_VISUAL_TOKENS.frog.body;
+  ctx.beginPath();
+  ctx.ellipse(0, 2, half * 0.43, half * 0.5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = FROGGER_VISUAL_TOKENS.frog.eyes;
+  ctx.beginPath();
+  ctx.arc(-half * 0.27, -half * 0.26, half * 0.17, 0, Math.PI * 2);
+  ctx.arc(half * 0.27, -half * 0.26, half * 0.17, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = FROGGER_VISUAL_TOKENS.frog.pupils;
+  ctx.beginPath();
+  ctx.arc(-half * 0.27, -half * 0.29, half * 0.07, 0, Math.PI * 2);
+  ctx.arc(half * 0.27, -half * 0.29, half * 0.07, 0, Math.PI * 2);
+  ctx.fill();
+}
+
 export const drawLilyPadCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComponentRegistry> = {
   draw(ctx, world, entity) {
     const goalCtx = resolveFroggerGoalContext(world, entity);
     if (!goalCtx) return;
 
-    const { half, occupied } = goalCtx;
-
+    const { half, occupied, pad } = goalCtx;
     const { slotColor, occupiedColor } = resolveFroggerSlotColors(world);
+    const hasCrocodile = !!pad.hasCrocodile;
+    const hasFly = !!pad.hasFly;
 
     ctx.save();
+    ctx.fillStyle = FROGGER_VISUAL_TOKENS.shadows.color;
+    ctx.beginPath();
+    ctx.ellipse(1, 3, half, half * 0.83, 0, 0, Math.PI * 2);
+    ctx.fill();
 
+    // Leaf notch at the upper-right gives each goal the classic lily-pad silhouette.
     ctx.fillStyle = occupied ? occupiedColor : slotColor;
     ctx.beginPath();
-    ctx.arc(0, 0, half, 0.2, Math.PI * 1.8);
+    ctx.arc(0, 0, half, Math.PI * 0.25, Math.PI * 1.9);
     ctx.lineTo(0, 0);
     ctx.closePath();
     ctx.fill();
+    ctx.strokeStyle = FROGGER_VISUAL_TOKENS.lilyPads.edge;
+    ctx.lineWidth = 1.3;
+    ctx.stroke();
+
+    ctx.strokeStyle = FROGGER_VISUAL_TOKENS.lilyPads.vein;
+    ctx.lineWidth = 1.1;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(half * 0.35, -half * 0.48);
+    ctx.moveTo(0, 0);
+    ctx.lineTo(half * 0.55, 0);
+    ctx.moveTo(0, 0);
+    ctx.lineTo(half * 0.28, half * 0.5);
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-half * 0.48, half * 0.2);
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-half * 0.38, -half * 0.35);
+    ctx.stroke();
 
     if (occupied) {
-      ctx.fillStyle = occupiedColor;
-      ctx.shadowColor = FROGGER_VISUAL_TOKENS.shadows.color;
-      ctx.shadowBlur = FROGGER_VISUAL_TOKENS.shadows.blur;
-      ctx.shadowOffsetY = FROGGER_VISUAL_TOKENS.shadows.offsetY;
+      drawCanvasGoalFrog(ctx, half);
+    } else if (hasCrocodile) {
+      // A compact warning silhouette stays visible even at the goal's small size.
+      ctx.fillStyle = FROGGER_VISUAL_TOKENS.crocodile.body;
       ctx.beginPath();
-      ctx.arc(0, 0, half * 0.6, 0, Math.PI * 2);
+      ctx.ellipse(0, 0, half * 0.68, half * 0.24, 0, 0, Math.PI * 2);
+      ctx.roundRect(-half * 0.6, -half * 0.28, half * 0.7, half * 0.28, 2);
+      ctx.fill();
+      ctx.fillStyle = FROGGER_VISUAL_TOKENS.lilyPads.danger;
+      ctx.beginPath();
+      ctx.arc(half * 0.28, -half * 0.12, 1.8, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (hasFly) {
+      ctx.fillStyle = FROGGER_VISUAL_TOKENS.lilyPads.flower;
+      ctx.beginPath();
+      ctx.ellipse(-2.5, -1, 2.8, 1.8, -0.45, 0, Math.PI * 2);
+      ctx.ellipse(2.5, -1, 2.8, 1.8, 0.45, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = FROGGER_VISUAL_TOKENS.crocodile.dorsal;
+      ctx.beginPath();
+      ctx.ellipse(0, 1, 1.3, 3.4, 0, 0, Math.PI * 2);
       ctx.fill();
     } else {
       ctx.fillStyle = FROGGER_VISUAL_TOKENS.lilyPads.flower;
       ctx.beginPath();
-      ctx.arc(0, 0, 4, 0, Math.PI * 2);
+      ctx.arc(0, 0, 2, 0, Math.PI * 2);
       ctx.fill();
     }
 

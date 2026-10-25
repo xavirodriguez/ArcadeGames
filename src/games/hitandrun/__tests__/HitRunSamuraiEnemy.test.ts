@@ -96,6 +96,29 @@ describe("Hit & Run samurai enemy", () => {
     expect(world.getComponent(entity, "Transform")?.y).toBe(400);
   });
 
+  it("finishes the hurt recoil after the short hitstun component expires", () => {
+    const world = new World<CoreComponentRegistry>();
+    world.setResource(SAMURAI_SPRITE_READY_RESOURCE, true);
+    const entity = new HitRunEnemyPool().acquireEnemy(world, {
+      x: 480,
+      y: 400,
+      archetypeId: "samurai"
+    });
+    const stateSystem = new SamuraiAnimationStateSystem();
+    world.addComponent(entity, {
+      type: "HitReaction",
+      hitstunRemaining: 0.12,
+      blinkElapsed: 0
+    });
+
+    stateSystem.update(world, 1 / 60);
+    expect(world.getComponent(entity, "Animator")?.current).toBe("hurt");
+
+    world.removeComponent(entity, "HitReaction");
+    stateSystem.update(world, 1 / 60);
+    expect(world.getComponent(entity, "Animator")?.current).toBe("hurt");
+  });
+
   it("plays death as a terminal non-looping clip", () => {
     const world = new World<CoreComponentRegistry>();
     world.setResource(SAMURAI_SPRITE_READY_RESOURCE, true);

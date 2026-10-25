@@ -1,4 +1,4 @@
-import { Asset } from "expo-asset";
+import type { Asset } from "expo-asset";
 import type { AnimationDefinition, IAssetProvider } from "@tiny-aster/core";
 
 /** Shared AssetLoader key consumed by Canvas and Skia sprite drawers. */
@@ -44,7 +44,8 @@ export function getSamuraiFrameRect(atlasFrameIndex: number): SamuraiFrameRect {
 
 /** Static require keeps the PNG discoverable by Metro on web and native. */
 export function createSamuraiSpritesheetAsset(): Asset {
-  return Asset.fromModule(require("../assets/samurai-enemy.png"));
+  const { Asset: ExpoAsset } = require("expo-asset") as typeof import("expo-asset");
+  return ExpoAsset.fromModule(require("../assets/samurai-enemy.png"));
 }
 
 export async function loadSamuraiSpritesheetAsset(): Promise<Asset> {

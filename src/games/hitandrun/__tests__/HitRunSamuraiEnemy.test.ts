@@ -107,9 +107,18 @@ describe("Hit & Run samurai enemy", () => {
     world.mutateComponent(entity, "Health", (health) => {
       health.current = 0;
     });
+    world.addComponent(entity, {
+      type: "EnemyDeathState",
+      timer: 0.35,
+      phase: "dying"
+    } as never);
 
     new SamuraiAnimationStateSystem().update(world, 1 / 60);
     expect(world.getComponent(entity, "Animator")?.current).toBe("death");
     expect(SAMURAI_ANIMATIONS.death.loop).toBe(false);
+    expect(world.getComponent(entity, "EnemyDeathState")).toMatchObject({
+      timer: 0.85,
+      phase: "samurai-animation"
+    });
   });
 });

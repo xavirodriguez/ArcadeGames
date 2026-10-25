@@ -40,6 +40,8 @@ import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, registerPlatfor
 import { setupPlatformerMovementComponents, registerPlatformerTilemapBlueprint, createMainCamera2D, registerPresentationSystems, generateAndInstantiatePlatformerLevel, registerStandardPlatformerCollectibles, registerCollectibleTriggerBlueprint } from "../shared/componentBuilders";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import defaultLevelData from "./levels/level-01.json";
+import { SpriteRegistry, createSpriteAnimator } from "../shared/sprites";
+import { EchoRunnerSpriteSystem } from "./systems/EchoRunnerSpriteSystem";
 
 export interface EchoRunnerConfig {
   seed?: number;
@@ -208,6 +210,9 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
     this.config = this.setupArcadeGameConfig(this.baseConfig, resolveAndApplyMutators);
     await super.onRegisterSystems();
 
+    // Initialize sprite sheets (oni_red etc.)
+    SpriteRegistry.init();
+
     // Keep the shared death system configurable per game without changing the
     // platformer defaults used by other games.
     this.world.setResource("DeathPlaneY", this.config.DEATH_PLANE_Y);
@@ -287,6 +292,20 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
           coyoteTimeMax: config.COYOTE_TIME_MAX,
           jumpBufferMax: config.JUMP_BUFFER_MAX
         } as { type: string; [key: string]: unknown });
+
+        // Temporary: use oni_red sprite sheet as protagonist for testing
+        const animState = createSpriteAnimator("oni_red", "idle");
+        world.addComponent(entity, {
+          type: "SpriteAnimator",
+          sheetId: animState.sheetId,
+          currentAnim: animState.currentAnim,
+          frameIndex: animState.frameIndex,
+          timer: animState.timer,
+          scale: animState.scale,
+          flipX: animState.flipX,
+          offsetX: animState.offsetX,
+          offsetY: animState.offsetY,
+        });
       }
     });
 
@@ -387,6 +406,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
 
     // Game-specific simulation systems
     this.world.addSystem(new EchoRunnerDamageSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new EchoRunnerSpriteSystem(), { phase: SystemPhase.Simulation });
 
     // Game-specific presentation systems
     registerPresentationSystems(this.world);
@@ -469,202 +489,6 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
           }
         }
       });
-
-      // Track typed collectible metadata for accurate score and HUD counts.
-      eventBus.on("CollectiblePickedUp", (event) => {
-        this.audio.playSFX("score");
-        const progress = this.world.getResource<EchoRunnerCollectibleProgress>("EchoRunnerCollectibleProgress");
-        const kind: EchoRunnerCollectibleKind | null = toEchoRunnerCollectibleKind(event.collectibleType);
-        if (
-          progress &&
-          event.collectibleId &&
-          kind !== null &&
-          typeof event.value === "number" &&
-          Number.isFinite(event.value)
-        ) {
-          progress.kindsById[event.collectibleId] = kind;
-          progress.valuesById[event.collectibleId] = event.value;
-        }
-      });
-
-      // Listen for player died to play game over/death sound
-      eventBus.on("PlayerDied", () => {
-        this.audio.playSFX("game_over");
-      });
     }
-
-
-  }
-
-  protected override async onInitializeEntities(): Promise<void> {
-    try {
-      const config = this.world.getResource<EchoRunnerConfigType>("GameConfig") || DEFAULT_ECHO_RUNNER_CONFIG;
-      this.levelPlan = generateAndInstantiatePlatformerLevel(
-        this.world,
-        this.customLevelData,
-        defaultLevelData,
-        this.getSeed() || 41873,
-        config,
-        { x: 100, y: 350 }
-      );
-
-      // Spawn Player
-      const playerEntity = this.world.createEntity();
-      const playerBp = this.blueprints.get("player");
-      if (playerBp) {
-        playerBp.spawn(this.world, playerEntity, { x: 100, y: 350 });
-      } else {
-        throw new Error("[EchoRunnerGame] Blueprint 'player' is not registered.");
-      }
-
-      // Spawn Main Follow Camera centered on player
-      createMainCamera2D(this.world, playerEntity, {
-        lookAheadX: 80,
-        smoothingX: 6.0,
-        smoothingY: 6.0,
-        verticalDeadzone: 45
-      });
-
-      // Flush all deferred commands from SegmentGenerator and blueprint spawns
-      this.world.flush();
-    } catch (err) {
-      console.error("[EchoRunnerGame] Failed to initialize entities:", err);
-      throw err instanceof Error ? err : new Error(`[EchoRunnerGame] Initialization error: ${String(err)}`);
-    }
-  }
-
-  public override update(dt: number): void {
-    this.gameOver = this.checkRunProgressGameOver(dt, this.gameOver);
-    this.world.update(dt);
-  }
-
-  public override setInputState(input: Partial<EchoRunnerInput>): void {
-    mutatePlatformerInputState(this.getWorld(), input);
-
-    if (input.pulse !== undefined) {
-      const playerEntity = this.world.query("Tag").find((e) =>
-        this.world.getComponent(e, "Tag")?.tags?.includes("Player")
-      );
-      if (playerEntity !== undefined && this.world.hasComponent(playerEntity, "EchoRunnerInput")) {
-        this.world.mutateComponent(playerEntity, "EchoRunnerInput", (inp) => {
-          (inp as EchoRunnerInputComponent).pulsePressed = input.pulse!;
-        });
-      }
-    }
-  }
-
-  protected override async onPreloadAssets(): Promise<void> {
-    if (this.audio) {
-      await preloadSharedAudioManifest(this.audio);
-    }
-  }
-
-  public initializeRenderer(renderer: Renderer<CoreComponentRegistry, RenderContext>): void {
-    if (renderer.type === "canvas") {
-      const {
-        drawEchoBackground,
-        drawEchoPlayer,
-        drawMemoryFragment,
-        drawMemoryCore,
-        drawCheckpointNode,
-        drawPulseAttack,
-        drawSentinel,
-        drawHopper,
-        drawWatcher,
-        drawCharger
-      } = require("./rendering/EchoRunnerCanvasVisuals");
-
-      const { drawPlatformerTilemap } = require("../shared/rendering/PlatformerSharedVisuals");
-
-      renderer.registerBackgroundEffect("echo_bg", drawEchoBackground);
-      renderer.registerShape("tilemap", drawPlatformerTilemap);
-      renderer.registerShape("player", drawEchoPlayer);
-      renderer.registerShape("fragment", drawMemoryFragment);
-      renderer.registerShape("core", drawMemoryCore);
-      renderer.registerShape("node", drawCheckpointNode);
-      renderer.registerShape("pulse_attack", drawPulseAttack);
-      renderer.registerShape("sentinel", drawSentinel);
-      renderer.registerShape("hopper", drawHopper);
-      renderer.registerShape("watcher", drawWatcher);
-      renderer.registerShape("charger", drawCharger);
-      renderer.registerShape("state_switch", require("./rendering/EchoRunnerCanvasVisuals").drawEchoStateSwitch);
-      renderer.registerShape("state_gate", require("./rendering/EchoRunnerCanvasVisuals").drawEchoStateGate);
-      renderer.registerShape("death_zone", require("./rendering/EchoRunnerCanvasVisuals").drawEchoDeathZone);
-    } else if (renderer.type === "skia") {
-      const {
-        drawSkiaEchoBackground,
-        drawSkiaEchoPlayer,
-        drawSkiaMemoryFragment,
-        drawSkiaMemoryCore,
-        drawSkiaCheckpointNode,
-        drawSkiaPulseAttack,
-        drawSkiaSentinel,
-        drawSkiaHopper,
-        drawSkiaWatcher,
-        drawSkiaCharger
-      } = require("./rendering/EchoRunnerSkiaVisuals");
-
-      renderer.registerBackgroundEffect("echo_bg", drawSkiaEchoBackground);
-      renderer.registerShape("player", drawSkiaEchoPlayer);
-      renderer.registerShape("fragment", drawSkiaMemoryFragment);
-      renderer.registerShape("core", drawSkiaMemoryCore);
-      renderer.registerShape("node", drawSkiaCheckpointNode);
-      renderer.registerShape("pulse_attack", drawSkiaPulseAttack);
-      renderer.registerShape("sentinel", drawSkiaSentinel);
-      renderer.registerShape("hopper", drawSkiaHopper);
-      renderer.registerShape("watcher", drawSkiaWatcher);
-      renderer.registerShape("charger", drawSkiaCharger);
-      renderer.registerShape("state_switch", require("./rendering/EchoRunnerSkiaVisuals").drawSkiaEchoStateSwitch);
-      renderer.registerShape("state_gate", require("./rendering/EchoRunnerSkiaVisuals").drawSkiaEchoStateGate);
-      renderer.registerShape("death_zone", require("./rendering/EchoRunnerSkiaVisuals").drawSkiaEchoDeathZone);
-    }
-  }
-
-  public getGameState(): EchoRunnerGameState {
-    const runState = this.world.getResource<RunState>("RunState");
-    const temporalIds = runState?.collectedTemporalIds ?? [];
-    const permanentIds = runState?.collectedPermanentIds ?? [];
-    const progress = this.world.getResource<EchoRunnerCollectibleProgress>("EchoRunnerCollectibleProgress");
-    const kindForId = (id: string, fallback: EchoRunnerCollectibleKind): EchoRunnerCollectibleKind =>
-      progress?.kindsById[id] ?? fallback;
-    const valueForId = (id: string, fallback: number): number =>
-      progress?.valuesById[id] ?? fallback;
-
-    const score =
-      temporalIds.reduce((total, id) => total + valueForId(id, 10), 0) +
-      permanentIds.reduce((total, id) => total + valueForId(id, 100), 0);
-    const fragments = temporalIds.filter((id) => kindForId(id, "fragment") === "fragment").length;
-    const coins = temporalIds.filter((id) => kindForId(id, "fragment") === "coin").length;
-
-    return {
-      type: "EchoRunnerGameState",
-      score,
-      isGameOver: this.gameOver,
-      attempts: runState ? runState.attempt : 1,
-      deaths: runState ? runState.deaths : 0,
-      fragments,
-      coins,
-      cores: permanentIds.length,
-      activeCheckpoint: runState ? runState.activeCheckpoint : null,
-      elapsedTime: runState ? runState.elapsedTime : 0
-    };
-  }
-
-  public isGameOver(): boolean {
-    return this.gameOver;
   }
 }
-
-export const EchoRunnerDefinition = {
-  name: "echorunner",
-  createSimulation: (seed: number) => {
-    return new EchoRunnerGame({ seed });
-  },
-  inputSchema: {
-    actions: ["left", "right", "jump", "pulse"]
-  },
-  assets: {
-    sprites: [],
-    sounds: SHARED_AUDIO_MANIFEST
-  }
-};

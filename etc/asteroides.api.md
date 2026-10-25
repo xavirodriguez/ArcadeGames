@@ -1247,6 +1247,10 @@ export interface CoreComponentRegistry extends ComponentRegistry {
     Animator: AnimatorComponent;
     BeltElevation: BeltElevationComponent;
     BeltInput: BeltInputComponent;
+    BeltSectionEnemy: Component & {
+        type: "BeltSectionEnemy";
+        sectionIndex: number;
+    };
     Boundary: BoundaryComponent;
     Camera2D: Camera2DComponent;
     Collectible: CollectibleComponent;

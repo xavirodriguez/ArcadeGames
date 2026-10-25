@@ -142,9 +142,7 @@ export class HitAndRunGame extends PlatformerArcadeGame<
       audio: new WebAudioPlayer(),
       assetProvider: config.assetProvider
     });
-    this.samuraiAssetLoader = new AssetLoader(
-      config.assetProvider ?? createSamuraiAssetProvider()
-    );
+    this.samuraiAssetLoader = new AssetLoader(createSamuraiAssetProvider());
     this.world.setResource("AssetLoader", this.samuraiAssetLoader);
     this.world.setResource(SAMURAI_SPRITE_READY_RESOURCE, false);
     this.customLevelData =

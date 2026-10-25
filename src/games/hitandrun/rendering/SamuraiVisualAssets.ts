@@ -54,26 +54,18 @@ export async function loadSamuraiSpritesheetAsset(): Promise<Asset> {
 }
 
 /**
- * Fallback provider for this bundled image only. It preserves Expo Asset handles
- * so Canvas can load the URI and Skia can resolve localUri/uri on native.
+ * Provider for the bundled PNG. Keep the URI handle compatible with both
+ * CanvasSpriteDrawer and SkiaSpriteDrawer instead of returning a backend-specific image.
  */
 export function createSamuraiAssetProvider(): IAssetProvider {
   return {
-    async loadImage(path: string): Promise<unknown> {
-      const asset = path as unknown as { uri?: string; localUri?: string };
-      if (
-        typeof asset === "object" &&
-        asset !== null &&
-        (typeof asset.localUri === "string" || typeof asset.uri === "string")
-      ) {
-        return asset;
-      }
+    async loadImage(path: string): Promise<{ uri: string }> {
       return { uri: path };
     },
-    async loadAudio(path: string): Promise<unknown> {
+    async loadAudio(path: string): Promise<string> {
       return path;
     },
-    async loadFont(path: string): Promise<unknown> {
+    async loadFont(path: string): Promise<string> {
       return path;
     }
   };

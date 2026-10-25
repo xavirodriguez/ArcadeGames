@@ -38,7 +38,7 @@ describe("Decoupled Asteroids Visual Mods Architecture", () => {
     collisionSystem.onRegister(world);
 
     // Invoke private spawnExplosionParticles via reflection/method call
-    (collisionSystem as any).spawnExplosionParticles(world, { x: 100, y: 100 }, "large");
+    collisionSystem["spawnExplosionParticles"](world, { x: 100, y: 100 }, "large");
 
     expect(spawnDestructionEffectCalled).toBe(true);
     expect(effectSizePassed).toBe("large");
@@ -78,7 +78,7 @@ describe("Decoupled Asteroids Visual Mods Architecture", () => {
     world.setResource("VisualMod", customMod);
 
     const collisionSystem = new AsteroidCollisionSystem();
-    (collisionSystem as any).spawnExplosionParticles(world, { x: 50, y: 50 }, "ship");
+    collisionSystem["spawnExplosionParticles"](world, { x: 50, y: 50 }, "ship");
     expect(customFxTriggered).toBe(true);
 
     const registeredCanvasEffects: string[] = [];

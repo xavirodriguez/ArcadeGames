@@ -1,4 +1,4 @@
-import { EffectDrawer, Theme, THEME_RESOURCE_KEY } from "@tiny-aster/core";
+import { EffectDrawer } from "@tiny-aster/core";
 import { SpaceInvadersComponentRegistry, GAME_CONFIG } from "../../../types/SpaceInvadersTypes";
 import {
   AQUI_HAY_DRAGONES_ALPHAS,
@@ -7,10 +7,9 @@ import {
 import {
   NAUTICAL_WIND_RESOURCE,
   NauticalWindState,
-  isNauticalChartTheme,
 } from "../NauticalThemeShared";
 
-export { isNauticalChartTheme, NAUTICAL_CHART_THEME_IDS } from "../NauticalThemeShared";
+export { NAUTICAL_CHART_THEME_IDS } from "../NauticalThemeShared";
 
 export interface NauticalBackdropOptions {
   wind?: NauticalWindState | null;

@@ -2,14 +2,13 @@
  * Skia-side parchment chart backdrop for Aquí hay dragones.
  * Mirrors NauticalChartBackground.ts without depending on Canvas types at call sites.
  */
-import { Theme, THEME_RESOURCE_KEY, World } from "@tiny-aster/core";
+import { World } from "@tiny-aster/core";
 import type { SkCanvas, SkPaint } from "@shopify/react-native-skia";
 import { SpaceInvadersComponentRegistry, GAME_CONFIG } from "../../../types/SpaceInvadersTypes";
 import {
   AQUI_HAY_DRAGONES_ALPHAS,
   AQUI_HAY_DRAGONES_PALETTE,
 } from "../../../../../theme/conceptPacks/aquiHayDragonesConceptPack";
-import { isNauticalChartTheme } from "../NauticalThemeShared";
 
 /** Minimal Skia paint factory injected by the Skia visuals module to avoid tight coupling. */
 export type SkiaPaintFactory = {
@@ -102,8 +101,6 @@ export function drawNauticalChartBackdropSkia(
 export function createDrawSkiaNauticalChartBackgroundEffect(paintFactory?: SkiaPaintFactory) {
   return {
     draw(canvas: SkCanvas, world: World<SpaceInvadersComponentRegistry>) {
-      const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-      if (!isNauticalChartTheme(theme)) return;
       const config = world.getResource<{ worldWidth?: number; worldHeight?: number }>("GameConfig");
       const w = config?.worldWidth ?? GAME_CONFIG.worldWidth;
       const h = config?.worldHeight ?? GAME_CONFIG.worldHeight;

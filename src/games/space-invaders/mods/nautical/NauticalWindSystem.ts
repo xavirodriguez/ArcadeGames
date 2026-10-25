@@ -10,7 +10,6 @@ export {
   NAUTICAL_WIND_RESOURCE,
   type NauticalWindState,
   createDefaultWindState,
-  isNauticalChartTheme,
 } from "./NauticalThemeShared";
 
 const FORCE_TABLE = [0, 1, 2, 3];

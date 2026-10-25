@@ -91,6 +91,10 @@ exports[`Echo Runner Game Simulation Tests should maintain expected registered p
     "systemName": "EchoRunnerDamageSystem",
   },
   {
+    "phase": "Simulation",
+    "systemName": "EchoRunnerSpriteSystem",
+  },
+  {
     "phase": "Presentation",
     "systemName": "JuiceSystem",
   },

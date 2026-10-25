@@ -74,20 +74,22 @@ export class EchoRunnerSpriteSystem extends System<CoreComponentRegistry> {
           targetAnim = "idle";
       }
 
-      playAnimation(animator, targetAnim);
+      const mutableAnimator = { ...animator };
 
-      // Facing
-      animator.flipX = (transform?.scaleX ?? 1) < 0;
+      playAnimation(mutableAnimator, targetAnim);
+
+      const facingLeft = (transform?.scaleX ?? 1) < 0;
 
       // Advance frames
-      updateSpriteAnimator(animator, deltaTime);
+      updateSpriteAnimator(mutableAnimator, deltaTime);
 
       // Write back (mutateComponent keeps change tracking happy)
       world.mutateComponent(entity, "SpriteAnimator", (comp) => {
-        comp.currentAnim = animator!.currentAnim;
-        comp.frameIndex = animator!.frameIndex;
-        comp.timer = animator!.timer;
-        comp.flipX = animator!.flipX;
+        const animComp = comp as SpriteAnimatorComponent;
+        animComp.currentAnim = mutableAnimator.currentAnim;
+        animComp.frameIndex = mutableAnimator.frameIndex;
+        animComp.timer = mutableAnimator.timer;
+        animComp.flipX = facingLeft;
       });
     }
   }

@@ -4,12 +4,12 @@
  */
 import { Theme, THEME_RESOURCE_KEY, World } from "@tiny-aster/core";
 import type { SkCanvas, SkPaint } from "@shopify/react-native-skia";
-import { SpaceInvadersComponentRegistry, GAME_CONFIG } from "../types/SpaceInvadersTypes";
+import { SpaceInvadersComponentRegistry, GAME_CONFIG } from "../../../types/SpaceInvadersTypes";
 import {
   AQUI_HAY_DRAGONES_ALPHAS,
   AQUI_HAY_DRAGONES_PALETTE,
-} from "../../../theme/conceptPacks/aquiHayDragonesConceptPack";
-import { isNauticalChartTheme } from "../nautical/NauticalThemeShared";
+} from "../../../../../theme/conceptPacks/aquiHayDragonesConceptPack";
+import { isNauticalChartTheme } from "../NauticalThemeShared";
 
 /** Minimal Skia paint factory injected by the Skia visuals module to avoid tight coupling. */
 export type SkiaPaintFactory = {

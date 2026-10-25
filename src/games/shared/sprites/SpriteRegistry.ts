@@ -21,6 +21,13 @@ function makeRowFrames(
   }));
 }
 
+let oniRedImageSource: unknown = null;
+try {
+  oniRedImageSource = require("../../../../assets/sprites/enemies/oni_red.png");
+} catch {
+  oniRedImageSource = null;
+}
+
 /**
  * Red Oni / Ashigaru Infernal sprite sheet.
  * Measurements taken from the original 924×539 sheet.
@@ -28,7 +35,7 @@ function makeRowFrames(
 const ONI_RED: SpriteSheetDef = {
   id: "oni_red",
   // NOTE: place the file at assets/sprites/enemies/oni_red.png
-  imageSource: require("../../../../assets/sprites/enemies/oni_red.png"),
+  imageSource: oniRedImageSource,
   frameWidth: 56,
   frameHeight: 90,
   animations: {

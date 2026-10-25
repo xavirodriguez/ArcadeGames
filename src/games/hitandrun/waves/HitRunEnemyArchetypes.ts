@@ -4,9 +4,8 @@ import type {
 } from "./HitRunWaveTypes";
 
 /**
- * Catálogo data-driven de enemigos (fantasy belt).
- * behaviorTags impulsan FSM + flanqueo.
- * Colores alineados con dusk / emerald / bone / iron palette.
+ * Catálogo data-driven de enemigos fantasy belt.
+ * behaviorTags impulsan FSM + flanqueo; los valores visuales deben seguir siendo deterministas.
  */
 export const HIT_RUN_ENEMY_ARCHETYPES: Record<
   string,
@@ -20,7 +19,7 @@ export const HIT_RUN_ENEMY_ARCHETYPES: Record<
     faction: "enemy",
     shape: "popcorn",
     size: 10,
-    color: "#3d8b4f", // goblin green
+    color: "#3d8b4f",
     speed: 60,
     behaviorTags: ["walk", "shoot_slow", "flank"]
   },
@@ -33,7 +32,7 @@ export const HIT_RUN_ENEMY_ARCHETYPES: Record<
     faction: "enemy",
     shape: "wall_trooper",
     size: 14,
-    color: "#5c6b4a", // iron-moss orc
+    color: "#5c6b4a",
     speed: 40,
     behaviorTags: ["walk", "block"]
   },
@@ -46,7 +45,7 @@ export const HIT_RUN_ENEMY_ARCHETYPES: Record<
     faction: "enemy",
     shape: "hopper",
     size: 12,
-    color: "#7c6bb0", // wraith violet
+    color: "#7c6bb0",
     speed: 80,
     behaviorTags: ["hop", "flank"]
   },
@@ -59,7 +58,7 @@ export const HIT_RUN_ENEMY_ARCHETYPES: Record<
     faction: "enemy",
     shape: "charger",
     size: 14,
-    color: "#c4b59a", // bone
+    color: "#c4b59a",
     speed: 140,
     behaviorTags: ["charge"]
   },
@@ -72,9 +71,22 @@ export const HIT_RUN_ENEMY_ARCHETYPES: Record<
     faction: "enemy",
     shape: "elite",
     size: 22,
-    color: "#c9a227", // cursed gold
+    color: "#c9a227",
     speed: 50,
     behaviorTags: ["shoot_heavy", "tank", "flank"]
+  },
+
+  /** Red-armored katana fighter; uses the standard telegraphed melee FSM. */
+  samurai: {
+    id: "samurai",
+    poolId: "enemy_samurai",
+    health: 5,
+    faction: "enemy",
+    shape: "samurai",
+    size: 32,
+    color: "#c92337",
+    speed: 58,
+    behaviorTags: ["walk"]
   }
 };
 

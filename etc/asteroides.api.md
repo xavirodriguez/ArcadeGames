@@ -1317,6 +1317,17 @@ export interface CoreComponentRegistry extends ComponentRegistry {
     ScreenShake: ScreenShakeComponent;
     SpatialNode: SpatialNodeComponent;
     Sprite: SpriteComponent;
+    SpriteAnimator: Component & {
+        type: "SpriteAnimator";
+        sheetId: string;
+        currentAnim: string;
+        frameIndex: number;
+        timer: number;
+        flipX: boolean;
+        scale: number;
+        offsetX?: number;
+        offsetY?: number;
+    };
     // (undocumented)
     StateGate: StateGateComponent;
     StateMachine: StateMachineComponent;

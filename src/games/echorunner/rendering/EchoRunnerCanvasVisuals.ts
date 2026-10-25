@@ -115,6 +115,7 @@ export {
 
 export const drawEchoBackground: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world) {
+    if (!ctx || !("fillRect" in ctx)) return;
     const { width, height, elapsed, palette } = resolveEchoBackgroundContext(world);
 
     // The Archive visual pass: portal glow, parallax ruins and a perspective data plane.

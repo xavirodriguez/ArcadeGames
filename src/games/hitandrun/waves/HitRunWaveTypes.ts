@@ -10,6 +10,7 @@ export type HitRunEnemyArchetypeId =
   | "hopper"
   | "charger"
   | "elite"
+  | "samurai"
   | string;
 
 /** Formación espacial al spawnear un grupo. */

@@ -26,9 +26,16 @@ class HitRunDeadCleanupSystem extends System<CoreComponentRegistry> {
       if (world.hasComponent(e, "HitRunPow")) continue;
 
       if (!world.hasComponent(e, "EnemyDeathState")) {
+        const animator = world.getComponent(e, "Animator");
+        const deathClip = animator?.animations.death;
+        // Keep the entity alive until its non-looping death clip reaches the final frame.
+        const deathDuration = deathClip && deathClip.frameRate > 0 && deathClip.loop !== true
+          ? Math.max(0.35, deathClip.frames.length / deathClip.frameRate + 0.1)
+          : 0.35;
+
         world.getCommandBuffer().addComponent(e, {
           type: "EnemyDeathState",
-          timer: 0.35,
+          timer: deathDuration,
           phase: "dying"
         } as never);
         if (world.hasComponent(e, "Collider2D")) {

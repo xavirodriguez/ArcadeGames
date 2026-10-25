@@ -3,6 +3,14 @@ import {
   Entity,
   CoreComponentRegistry
 } from "@tiny-aster/core";
+import type { AnimatorComponent, SpriteComponent } from "@tiny-aster/core";
+import {
+  SAMURAI_ANIMATIONS,
+  SAMURAI_ASSET_KEY,
+  SAMURAI_SPRITE_ANCHOR,
+  SAMURAI_SPRITE_READY_RESOURCE,
+  getSamuraiFrameRect
+} from "../rendering/SamuraiVisualAssets";
 import { getEnemyArchetype } from "./HitRunEnemyArchetypes";
 import type {
   HitRunEnemySpawnParams,
@@ -103,7 +111,12 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
 
     const size = arch?.size ?? 12;
     const color = arch?.color ?? "#ef4444";
-    const shape = arch?.shape ?? "enemy";
+    const samuraiSpriteReady =
+      world.getResource<boolean>(SAMURAI_SPRITE_READY_RESOURCE) === true;
+    const shape =
+      params.archetypeId === "samurai" && samuraiSpriteReady
+        ? "sprite"
+        : (arch?.shape ?? "enemy");
     const health = arch?.health ?? 1;
     const faction = arch?.faction ?? "enemy";
     const behaviorTags = [
@@ -200,6 +213,44 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
       angularVelocity: 0,
       hitFlashFrames: 0
     });
+
+    if (params.archetypeId === "samurai" && samuraiSpriteReady) {
+      const sprite: SpriteComponent = {
+        type: "Sprite",
+        assetKey: SAMURAI_ASSET_KEY,
+        anchor: { ...SAMURAI_SPRITE_ANCHOR },
+        srcRect: getSamuraiFrameRect(0),
+        flipX: false,
+        flipY: false
+      };
+      setOrAddComp("Sprite", sprite);
+
+      const animations = Object.fromEntries(
+        Object.entries(SAMURAI_ANIMATIONS).map(([name, clip]) => [
+          name,
+          { ...clip, frames: [...clip.frames] }
+        ])
+      );
+      const animator: AnimatorComponent = {
+        type: "Animator",
+        isPlaying: true,
+        animations,
+        current: "idle",
+        elapsed: 0,
+        frame: 0
+      };
+      setOrAddComp("Animator", animator);
+    } else {
+      // A pooled samurai must not leave its image/animator attached to another archetype.
+      for (const component of ["Sprite", "Animator"] as const) {
+        if (!world.hasComponent(entity, component)) continue;
+        if (isUpdating) {
+          cmd.removeComponent(entity, component);
+        } else {
+          world.removeComponent(entity, component);
+        }
+      }
+    }
 
     setOrAddComp("Tag", {
       type: "Tag",

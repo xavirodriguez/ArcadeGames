@@ -2,15 +2,15 @@
 // ---------------------------------------------------------------------------
 // Image cache (simple, shared between Canvas & Skia)
 // ---------------------------------------------------------------------------
-import type { Asset } from "expo-asset";
+import type { Asset as ExpoAssetType } from "expo-asset";
 import { getPaint, Skia } from "../rendering/SkiaContext";
 import type { SkCanvas, SkImage, SkPaint } from "@shopify/react-native-skia";
 
-let Asset: any = null;
+let ExpoAsset: any = null;
 try {
-  Asset = require("expo-asset").Asset;
+  ExpoAsset = require("expo-asset").Asset;
 } catch {
-  Asset = null;
+  ExpoAsset = null;
 }
 import { SpriteRegistry } from "./SpriteRegistry";
 import { getCurrentFrameRect } from "./SpriteAnimator";
@@ -45,7 +45,7 @@ async function resolveImageUri(
   if (typeof source === "string") return source;
 
   if (typeof source === "number") {
-    const AssetClass = loadExpoAssetClass() as (typeof Asset) | undefined;
+    const AssetClass = loadExpoAssetClass() as (typeof ExpoAssetType) | undefined;
     if (!AssetClass) return undefined;
     const asset = AssetClass.fromModule(source);
     await asset.downloadAsync();

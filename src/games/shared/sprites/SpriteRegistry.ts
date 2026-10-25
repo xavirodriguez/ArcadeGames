@@ -40,6 +40,8 @@ try {
   tower2ImageSource = require("../../../../assets/sprites/towers/tower2.png");
 } catch {
   tower2ImageSource = null;
+}
+
 let seaDragonImageSource: SpriteImageSource = null;
 try {
   seaDragonImageSource = require("../../../../assets/sprites/enemies/sea_dragon.png");
@@ -192,7 +194,6 @@ export const SpriteRegistry = {
   init() {
     this.register(ONI_RED);
     this.register(SEA_DRAGON);
-    this.register(GHOST_GALLEON);
     this.register(TOWER_BASIC_ART);
     this.register(TOWER_SNIPER_ART);
     // Future sprites go here

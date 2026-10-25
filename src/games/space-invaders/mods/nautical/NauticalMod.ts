@@ -2,6 +2,7 @@ import type { SpaceInvadersMod } from "../types";
 import { registerNauticalChartCanvasEffects, registerNauticalChartSkiaEffects } from "./rendering/registerNauticalChartEffects";
 import { NauticalWindSystem } from "./NauticalWindSystem";
 import { IslandErosionSystem } from "./IslandErosionSystem";
+import { drawSeaDragonSpriteCanvas, drawSkiaSeaDragonSprite, SEA_DRAGON_SHAPE } from "../../rendering/SeaDragonVisuals";
 import { SystemPhase } from "@tiny-aster/core";
 
 /**
@@ -18,6 +19,13 @@ export const nauticalMod: SpaceInvadersMod = {
     registerNauticalChartSkiaEffects({
       registerBackgroundEffect: (name, effect) => register("skia", name, effect as never)
     });
+  },
+
+  registerDrawers(register) {
+    // Sea dragon ("dragón marino", art bible §12.2): canvas + skia drawers share
+    // the same registered SpriteRegistry sheet, so both backends stay in parity.
+    register("canvas", SEA_DRAGON_SHAPE, drawSeaDragonSpriteCanvas);
+    register("skia", SEA_DRAGON_SHAPE, drawSkiaSeaDragonSprite);
   },
 
   registerSystems(world) {

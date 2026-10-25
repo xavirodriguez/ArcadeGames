@@ -33,10 +33,15 @@ describe("Hit & Run samurai enemy", () => {
       "death"
     ]);
     expect(SAMURAI_ANIMATIONS.idle).toMatchObject({ frames: expect.any(Array), loop: true });
+    expect(SAMURAI_ANIMATIONS.idle.frames).toHaveLength(8);
     expect(SAMURAI_ANIMATIONS.walk).toMatchObject({ frames: expect.any(Array), loop: true });
+    expect(SAMURAI_ANIMATIONS.walk.frames).toHaveLength(8);
     expect(SAMURAI_ANIMATIONS.attack).toMatchObject({ frames: expect.any(Array), loop: false });
+    expect(SAMURAI_ANIMATIONS.attack.frames).toHaveLength(8);
+    expect(SAMURAI_ANIMATIONS.hurt).toMatchObject({ frames: expect.any(Array), loop: false });
     expect(SAMURAI_ANIMATIONS.hurt.frames).toHaveLength(6);
     expect(SAMURAI_ANIMATIONS.death).toMatchObject({ frames: expect.any(Array), loop: false });
+    expect(SAMURAI_ANIMATIONS.death.frames).toHaveLength(8);
     expect(SAMURAI_CELL_SIZE).toBe(64);
   });
 
@@ -117,6 +122,30 @@ describe("Hit & Run samurai enemy", () => {
     world.removeComponent(entity, "HitReaction");
     stateSystem.update(world, 1 / 60);
     expect(world.getComponent(entity, "Animator")?.current).toBe("hurt");
+  });
+
+  it("returns to locomotion after hitstun expires even when HitReaction remains attached", () => {
+    const world = new World<CoreComponentRegistry>();
+    world.setResource(SAMURAI_SPRITE_READY_RESOURCE, true);
+    const entity = new HitRunEnemyPool().acquireEnemy(world, {
+      x: 480,
+      y: 400,
+      archetypeId: "samurai"
+    });
+
+    world.addComponent(entity, {
+      type: "HitReaction",
+      hitstunRemaining: 0,
+      blinkElapsed: 0
+    } as never);
+    world.mutateComponent(entity, "Animator", (animator) => {
+      animator.current = "hurt";
+      animator.frame = 5;
+    });
+
+    new SamuraiAnimationStateSystem().update(world, 1 / 60);
+    expect(world.hasComponent(entity, "HitReaction")).toBe(true);
+    expect(world.getComponent(entity, "Animator")?.current).toBe("idle");
   });
 
   it("plays death as a terminal non-looping clip", () => {

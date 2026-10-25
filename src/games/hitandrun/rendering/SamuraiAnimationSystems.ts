@@ -29,11 +29,15 @@ export class SamuraiAnimationStateSystem extends System<CoreComponentRegistry> {
       const machine = world.getComponent(entity, "StateMachine");
       const velocity = world.getComponent(entity, "Velocity");
       const health = world.getComponent(entity, "Health");
+      const hitReaction = world.getComponent(entity, "HitReaction") as
+        | { hitstunRemaining?: number }
+        | undefined;
       const animator = world.getMutableComponent(entity, "Animator");
       if (!machine || !animator) continue;
 
       const isDead = world.hasComponent(entity, "Dead") || (health !== undefined && health.current <= 0);
-      const isHurt = world.hasComponent(entity, "HitReaction");
+      // HitReaction can remain attached after hitstun expires; only its active timer means hurt.
+      const isHurt = (hitReaction?.hitstunRemaining ?? 0) > 0;
       const moving = Math.abs(velocity?.vx ?? 0) + Math.abs(velocity?.vy ?? 0) > 5;
       const currentClip = animator.current;
       const currentDefinition = currentClip ? animator.animations[currentClip] : undefined;

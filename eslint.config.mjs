@@ -80,8 +80,11 @@ export default tseslint.config(
             "./AsteroidsSkiaVisuals",
             "./AsteroidSkiaDrawers",
             "expo-audio",
+            "expo-asset",
             "react-native",
             "../../../../assets/ship.png",
+            "../../../../assets/sprites/enemies/enemy2.png",
+            "../../../../assets/sprites/enemies/sea_dragon.png",
           ],
         },
       ],
@@ -107,6 +110,20 @@ export default tseslint.config(
       sourceType: "commonjs",
       globals: {
         ...globals.node,
+      },
+    },
+    rules: {
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },
+  // Node-style CommonJS tooling (asset generator scripts, jest helpers)
+  {
+    files: ["**/*.cjs"],
+    languageOptions: {
+      sourceType: "commonjs",
+      globals: {
+        ...globals.node,
+        ...globals.commonjs,
       },
     },
     rules: {

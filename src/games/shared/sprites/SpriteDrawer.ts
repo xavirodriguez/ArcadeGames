@@ -1,8 +1,16 @@
 // src/games/shared/sprites/SpriteDrawer.ts
 
-import { Asset } from "expo-asset";
-import { Skia } from "@shopify/react-native-skia";
 import type { SkCanvas, SkImage, SkPaint } from "@shopify/react-native-skia";
+
+function getSkiaApi(): typeof import("@shopify/react-native-skia").Skia | null {
+  try {
+    /* eslint-disable-next-line @typescript-eslint/no-require-imports */
+    const { Skia } = require("@shopify/react-native-skia");
+    return Skia ?? null;
+  } catch {
+    return null;
+  }
+}
 import { SpriteRegistry } from "./SpriteRegistry";
 import { getCurrentFrameRect } from "./SpriteAnimator";
 import type { SpriteAnimatorComponent } from "./SpriteAnimator";
@@ -22,9 +30,16 @@ async function resolveImageUri(
   if (typeof source === "string") return source;
 
   if (typeof source === "number") {
-    const asset = Asset.fromModule(source);
-    await asset.downloadAsync();
-    return preferLocalUri ? (asset.localUri ?? asset.uri) : (asset.uri ?? asset.localUri);
+    try {
+      // Dynamic require so non-React-Native/Node test environments do not fail
+      /* eslint-disable-next-line @typescript-eslint/no-require-imports */
+      const { Asset } = require("expo-asset");
+      const asset = Asset.fromModule(source);
+      await asset.downloadAsync();
+      return preferLocalUri ? (asset.localUri ?? asset.uri) : (asset.uri ?? asset.localUri);
+    } catch {
+      return undefined;
+    }
   }
   if (source === null) return undefined;
 
@@ -40,15 +55,10 @@ function getCanvasImageSize(image: HTMLImageElement | HTMLCanvasElement): { widt
   return { width: image.width, height: image.height };
 }
 
-interface SkiaImageDimensions {
-  width: number | (() => number);
-  height: number | (() => number);
-}
-
 function getSkiaImageSize(image: SkImage): { width: number; height: number } {
-  const dimensions = image as unknown as SkiaImageDimensions;
-  const width = typeof dimensions.width === "function" ? dimensions.width() : dimensions.width;
-  const height = typeof dimensions.height === "function" ? dimensions.height() : dimensions.height;
+  const dimensions = image as { width?: number | (() => number); height?: number | (() => number) };
+  const width = typeof dimensions.width === "function" ? dimensions.width() : (dimensions.width ?? 0);
+  const height = typeof dimensions.height === "function" ? dimensions.height() : (dimensions.height ?? 0);
   return { width, height };
 }
 
@@ -121,7 +131,8 @@ export function preloadSpriteSheetCanvas(sheetId: string): Promise<void> {
 /** Decode a bundled sheet into Skia's cache; drawing falls back while it loads. */
 export function preloadSpriteSheetSkia(sheetId: string): Promise<void> {
   const sheet = SpriteRegistry.get(sheetId);
-  if (!sheet || skiaImageCache.has(sheetId) || skiaFailedLoads.has(sheetId) || !Skia) {
+  const SkiaApi = getSkiaApi();
+  if (!sheet || skiaImageCache.has(sheetId) || skiaFailedLoads.has(sheetId) || !SkiaApi) {
     return Promise.resolve();
   }
 
@@ -132,10 +143,10 @@ export function preloadSpriteSheetSkia(sheetId: string): Promise<void> {
     const uri = await resolveImageUri(sheet.imageSource, true);
     if (!uri) throw new Error(`No image URI available for sprite sheet "${sheetId}".`);
 
-    const data = await Skia.Data.fromURI(uri);
+    const data = await SkiaApi.Data.fromURI(uri);
     if (!data) throw new Error(`Failed to decode sprite sheet "${sheetId}".`);
 
-    const image = Skia.Image.MakeImageFromEncoded(data);
+    const image = SkiaApi.Image.MakeImageFromEncoded(data);
     if (!image) throw new Error(`Failed to create Skia image for sprite sheet "${sheetId}".`);
     skiaImageCache.set(sheetId, image);
   })().catch((error: unknown) => {
@@ -243,7 +254,7 @@ export function drawSpriteSkia(
     width: dw,
     height: dh,
   };
-  canvas.drawImageRect(image, src, dst, paint ?? undefined);
+  canvas.drawImageRect(image, src, dst, paint as SkPaint);
   canvas.restore();
   return true;
 }

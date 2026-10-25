@@ -4,8 +4,9 @@ import type {
 } from "./HitRunWaveTypes";
 
 /**
- * Catálogo data-driven de enemigos fantasy belt.
- * behaviorTags impulsan FSM + flanqueo; los valores visuales deben seguir siendo deterministas.
+ * Catálogo data-driven de enemigos (fantasy belt).
+ * behaviorTags impulsan FSM + flanqueo.
+ * Colores alineados con dusk / emerald / bone / iron palette.
  */
 export const HIT_RUN_ENEMY_ARCHETYPES: Record<
   string,
@@ -19,7 +20,7 @@ export const HIT_RUN_ENEMY_ARCHETYPES: Record<
     faction: "enemy",
     shape: "popcorn",
     size: 10,
-    color: "#3d8b4f",
+    color: "#3d8b4f", // goblin green
     speed: 60,
     behaviorTags: ["walk", "shoot_slow", "flank"]
   },
@@ -32,7 +33,7 @@ export const HIT_RUN_ENEMY_ARCHETYPES: Record<
     faction: "enemy",
     shape: "wall_trooper",
     size: 14,
-    color: "#5c6b4a",
+    color: "#5c6b4a", // iron-moss orc
     speed: 40,
     behaviorTags: ["walk", "block"]
   },
@@ -45,7 +46,7 @@ export const HIT_RUN_ENEMY_ARCHETYPES: Record<
     faction: "enemy",
     shape: "hopper",
     size: 12,
-    color: "#7c6bb0",
+    color: "#7c6bb0", // wraith violet
     speed: 80,
     behaviorTags: ["hop", "flank"]
   },
@@ -58,7 +59,7 @@ export const HIT_RUN_ENEMY_ARCHETYPES: Record<
     faction: "enemy",
     shape: "charger",
     size: 14,
-    color: "#c4b59a",
+    color: "#c4b59a", // bone
     speed: 140,
     behaviorTags: ["charge"]
   },
@@ -71,7 +72,7 @@ export const HIT_RUN_ENEMY_ARCHETYPES: Record<
     faction: "enemy",
     shape: "elite",
     size: 22,
-    color: "#c9a227",
+    color: "#c9a227", // cursed gold
     speed: 50,
     behaviorTags: ["shoot_heavy", "tank", "flank"]
   },

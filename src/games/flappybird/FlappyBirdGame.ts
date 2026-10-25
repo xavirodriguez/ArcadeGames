@@ -29,7 +29,7 @@ import { AchievementSystem } from "@tiny-aster/gameplay-kit";
  * Implementa mecánicas de scroll infinito y generación procedural de obstáculos (tuberías).
  * Utiliza un sistema de gravedad simple y una única acción de entrada ("jump").
  */
-import { ColliderComponent, CollisionEventsComponent, ShapeType, CircleShape, BoxShape, BoundaryComponent, TransformComponent, VelocityComponent, RenderComponent, HealthComponent, BlueprintDefinition, createEmitter, Theme, resolveThemeColor, EntityBuilder } from "@tiny-aster/core";
+import { ColliderComponent, CollisionEventsComponent, ShapeType, CircleShape, BoxShape, BoundaryComponent, TransformComponent, VelocityComponent, RenderComponent, HealthComponent, BlueprintDefinition, createEmitter, Theme, resolveThemeColor, EntityBuilder, THEME_RESOURCE_KEY } from "@tiny-aster/core";
 import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 import { spawnVisualParticle as spawnCanvasParticle } from "./rendering/FlappyBirdCanvasVisuals";
 import { spawnVisualParticle as spawnSkiaParticle } from "./rendering/FlappyBirdSkiaVisuals";
@@ -528,23 +528,30 @@ export class FlappyBirdGame
   }
 
   public initializeRenderer(renderer: Renderer<FlappyBirdComponentRegistry, RenderContext>): void {
+    const theme = this.world.getResource<Theme>(THEME_RESOURCE_KEY);
+    const packId = theme?.conceptPack?.id;
+
     if (renderer.type === "canvas") {
       this.activeRendererType = "canvas";
-      const { drawFlappyBird, drawFlappyPipe, drawFlappyGround, scrollingBackgroundEffect } = require("./rendering/FlappyBirdCanvasVisuals");
+      const { resolveFlappyCanvasVisuals } = require("./mods/registry");
       const { drawFlappyBirdMissionHUD } = require("./rendering/FlappyBirdMissionHUD");
-      renderer.registerShape("bird", drawFlappyBird);
-      renderer.registerShape("pipe", drawFlappyPipe);
-      renderer.registerShape("ground", drawFlappyGround);
-      renderer.registerBackgroundEffect("scrollingSky", scrollingBackgroundEffect);
+      const drawers = resolveFlappyCanvasVisuals(packId);
+
+      renderer.registerShape("bird", drawers.drawBird);
+      renderer.registerShape("pipe", drawers.drawPipe);
+      renderer.registerShape("ground", drawers.drawGround);
+      renderer.registerBackgroundEffect("scrollingSky", drawers.scrollingBackground);
       renderer.registerBackgroundEffect("mission_hud", drawFlappyBirdMissionHUD);
     } else if (renderer.type === "skia") {
       this.activeRendererType = "skia";
-      const { drawSkiaFlappyBird, drawSkiaFlappyPipe, drawSkiaFlappyGround, scrollingSkiaBackgroundEffect } = require("./rendering/FlappyBirdSkiaVisuals");
+      const { resolveFlappySkiaVisuals } = require("./mods/registry");
       const { drawSkiaFlappyBirdMissionHUD } = require("./rendering/FlappyBirdSkiaMissionHUD");
-      renderer.registerShape("bird", drawSkiaFlappyBird);
-      renderer.registerShape("pipe", drawSkiaFlappyPipe);
-      renderer.registerShape("ground", drawSkiaFlappyGround);
-      renderer.registerBackgroundEffect("scrollingSky", scrollingSkiaBackgroundEffect);
+      const drawers = resolveFlappySkiaVisuals(packId);
+
+      renderer.registerShape("bird", drawers.drawBird);
+      renderer.registerShape("pipe", drawers.drawPipe);
+      renderer.registerShape("ground", drawers.drawGround);
+      renderer.registerBackgroundEffect("scrollingSky", drawers.scrollingBackground);
       renderer.registerBackgroundEffect("mission_hud", drawSkiaFlappyBirdMissionHUD);
     }
   }

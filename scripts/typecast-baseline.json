@@ -614,6 +614,11 @@
     "unknownCount": 5,
     "total": 5
   },
+  "src/games/flappybird/mods/officePaper/OfficePaperSkiaVisuals.ts": {
+    "anyCount": 0,
+    "unknownCount": 4,
+    "total": 4
+  },
   "src/games/flappybird/rendering/FlappyBirdSkiaVisuals.ts": {
     "anyCount": 0,
     "unknownCount": 4,

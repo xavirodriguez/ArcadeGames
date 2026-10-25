@@ -370,8 +370,13 @@ export function resolveFlappyBackgroundSetup(
   const gameState = world.getSingleton("FlappyState");
   if (!gameState) return null;
   const { width = 400, height = 600 } = world.getResource<{ width: number; height: number }>("ScreenConfig") || { width: 400, height: 600 };
+
+  const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+  const layers = theme?.vfxProfile?.backgroundLayers;
+  const isBackgroundDisabled = Array.isArray(layers) && layers.length === 0;
+
   const scenarioTheme = getThemeForScenario(gameState.currentScenario);
-  const nebulae = scenarioTheme.nebulae;
+  const nebulae = isBackgroundDisabled ? [] : scenarioTheme.nebulae;
   return { gameState, width, height, scenarioTheme, nebulae };
 }
 

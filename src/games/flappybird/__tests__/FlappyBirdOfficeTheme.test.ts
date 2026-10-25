@@ -3,6 +3,10 @@ import { FlappyBirdGame } from "../FlappyBirdGame";
 import { officePaperTheme } from "../../../theme/officePaperTheme";
 import { createThemeFromGameAccents } from "../../../theme/gameAccents";
 import { DEFAULT_FLAPPY_BIRD_CONFIG } from "../types/FlappyBirdConfigSchema";
+import { isOfficeTheme, OFFICE_PAPER_THEME_ID } from "../theme/FlappyThemeShared";
+import { resolveFlappyCanvasVisuals, resolveFlappySkiaVisuals } from "../mods/registry";
+import { drawOfficePaperBird } from "../mods/officePaper/OfficePaperCanvasVisuals";
+import { drawSkiaOfficePaperBird } from "../mods/officePaper/OfficePaperSkiaVisuals";
 
 describe("Flappy Bird Office Paper Theme ('Oficina 8:47')", () => {
   let game: FlappyBirdGame;
@@ -13,13 +17,27 @@ describe("Flappy Bird Office Paper Theme ('Oficina 8:47')", () => {
     }
   });
 
-  test("should define officePaperTheme with exact office theme tokens", () => {
+  test("should define officePaperTheme with conceptPack id and exact tokens", () => {
     expect(officePaperTheme).toBeDefined();
+    expect(officePaperTheme.conceptPack?.id).toBe("office-paper");
+    expect(officePaperTheme.conceptPack?.name).toBe("Oficina 8:47");
+    expect(isOfficeTheme(officePaperTheme)).toBe(true);
     expect(officePaperTheme.colorMap?.bird).toBe("#FFFFFF");
     expect(officePaperTheme.colorMap?.pipe).toBe("#475569");
     expect(officePaperTheme.colorMap?.ground).toBe("#B45309");
     expect(officePaperTheme.vfxProfile?.backgroundLayers).toEqual([]);
     expect(officePaperTheme.lore?.description).toBe("Oficina vacía, 8:47. Avión lanzado por aburrimiento.");
+  });
+
+  test("should resolve dedicated office paper drawers from mod registry when conceptPack.id is office-paper", () => {
+    const canvasDrawers = resolveFlappyCanvasVisuals(OFFICE_PAPER_THEME_ID);
+    expect(canvasDrawers.drawBird).toBe(drawOfficePaperBird);
+
+    const skiaDrawers = resolveFlappySkiaVisuals(OFFICE_PAPER_THEME_ID);
+    expect(skiaDrawers.drawBird).toBe(drawSkiaOfficePaperBird);
+
+    const defaultCanvasDrawers = resolveFlappyCanvasVisuals("default");
+    expect(defaultCanvasDrawers.drawBird).not.toBe(drawOfficePaperBird);
   });
 
   test("should instantiate FlappyBirdGame with officePaperTheme and apply color roles", async () => {
@@ -30,6 +48,7 @@ describe("Flappy Bird Office Paper Theme ('Oficina 8:47')", () => {
     const activeTheme = world.getResource<Theme>(THEME_RESOURCE_KEY);
 
     expect(activeTheme).toBeDefined();
+    expect(activeTheme?.conceptPack?.id).toBe("office-paper");
     expect(activeTheme?.colorMap?.bird).toBe("#FFFFFF");
 
     const resolvedBirdColor = resolveThemeColor(world, "bird", "player");

@@ -1,6 +1,7 @@
 import type { ShapeDrawer } from "@tiny-aster/core";
 import type { SkCanvas } from "@shopify/react-native-skia";
 import type { OutrunComponentRegistry, RoadSegmentSprite } from "../types/OutrunTypes";
+import type { OutrunVisualMod, OutrunBitmapSpriteSpec } from "../mods/types";
 import { Skia } from "../../shared/rendering/SkiaContext";
 import {
   resolveOutrunRoadContext,
@@ -45,6 +46,49 @@ function fillRoadsidePolygonSkia(
   canvas.drawPath(path, paint);
 }
 
+function drawOutrunBitmapSpriteSkia(
+  canvas: SkCanvas,
+  spec: OutrunBitmapSpriteSpec,
+  sx: number,
+  sy: number,
+  sw: number,
+  clipY: number,
+  world: import("@tiny-aster/core").World<OutrunComponentRegistry>
+): boolean {
+  if (!Skia) return false;
+  const assetLoader = world.getResource<import("@tiny-aster/core").AssetLoader>("AssetLoader");
+  if (!assetLoader) return false;
+
+  const rawImg = assetLoader.get<unknown>(spec.assetKey);
+  if (!rawImg) return false;
+
+  const aspect = spec.aspectRatio ?? 1.0;
+  const size = sw * 0.8;
+  const w = size;
+  const h = size * aspect;
+  if (sy >= clipY || w < 2) return false;
+
+  const anchorX = spec.anchor?.x ?? 0.5;
+  const anchorY = spec.anchor?.y ?? 1.0;
+
+  const dx = sx - w * anchorX;
+  const dy = sy - h * anchorY;
+
+  const skImg = rawImg as import("@shopify/react-native-skia").SkImage;
+  if (skImg) {
+    const paint = Skia.Paint();
+    const dest = Skia.XYWHRect(dx, dy, w, h);
+    if (spec.srcRect) {
+      const src = Skia.XYWHRect(spec.srcRect.x, spec.srcRect.y, spec.srcRect.w, spec.srcRect.h);
+      canvas.drawImageRect(skImg, src, dest, paint);
+    } else {
+      canvas.drawImageRect(skImg, Skia.XYWHRect(0, 0, w, h), dest, paint);
+    }
+    return true;
+  }
+  return false;
+}
+
 function drawRoadSpriteSkia(
   canvas: SkCanvas,
   sp: RoadSegmentSprite,
@@ -54,9 +98,34 @@ function drawRoadSpriteSkia(
   clipY: number,
   visualPalette: import("../types/OutrunVisualTypes").OutrunVisualPaletteResource,
   depth: number,
-  lightsOn: boolean
+  lightsOn: boolean,
+  activeMod?: OutrunVisualMod,
+  world?: import("@tiny-aster/core").World<OutrunComponentRegistry>
 ): void {
   if (!Skia || sy >= clipY || sw < 2) return;
+
+  if (activeMod?.drawRoadsideSprite) {
+    const handled = activeMod.drawRoadsideSprite({
+      backend: "skia",
+      ctx: canvas,
+      sprite: sp,
+      sx,
+      sy,
+      sw,
+      clipY,
+      visualPalette,
+      depth,
+      lightsOn,
+      world
+    });
+    if (handled) return;
+  }
+
+  if (activeMod?.spriteCatalog?.[sp.kind] && world) {
+    const spec = activeMod.spriteCatalog[sp.kind]!;
+    const drawn = drawOutrunBitmapSpriteSkia(canvas, spec, sx, sy, sw, clipY, world);
+    if (drawn) return;
+  }
 
   const size = sw * 0.8;
 
@@ -92,7 +161,7 @@ function drawRoadSpriteSkia(
       { x: sx - cw / 2, y: sy - ch }
     ], colors.amber);
   } else {
-    const style = resolveOutrunRoadsideArtworkStyle(sp, visualPalette, depth, sw, lightsOn);
+    const style = resolveOutrunRoadsideArtworkStyle(sp, visualPalette, depth, sw, lightsOn, activeMod);
     const h = style.height;
     const trunkH = h * visualPalette.tuning.tree.trunkHeightToHeight;
     const trunkW = h * visualPalette.tuning.tree.trunkWidthToHeight;
@@ -485,10 +554,27 @@ function drawOutrunTrafficVehicleSkia(
   centerX: number,
   baselineY: number,
   width: number,
-  styleIndex: number
+  styleIndex: number,
+  activeMod?: OutrunVisualMod,
+  world?: import("@tiny-aster/core").World<OutrunComponentRegistry>
 ): void {
   if (!Skia) return;
-  const style = resolveOutrunTrafficArtworkStyle(config, styleIndex, width);
+
+  if (activeMod?.drawTrafficVehicle) {
+    const handled = activeMod.drawTrafficVehicle({
+      backend: "skia",
+      ctx: canvas,
+      config,
+      centerX,
+      baselineY,
+      width,
+      styleIndex,
+      world
+    });
+    if (handled) return;
+  }
+
+  const style = resolveOutrunTrafficArtworkStyle(config, styleIndex, width, activeMod);
   const bodyTop = -style.bodyHeight;
   const cabinBaseY = bodyTop;
   const cabinTopY = cabinBaseY - style.cabinHeight;
@@ -545,6 +631,7 @@ export const drawSkiaOutrunRoad: ShapeDrawer<SkCanvas, OutrunComponentRegistry> 
     if (!roadCtx) return;
 
     const { state, roadData, config, screenW, screenH, palette, visualPalette } = roadCtx;
+    const activeMod = world.getResource<OutrunVisualMod>("VisualMod");
     const sceneryLayout = resolveOutrunSceneryLayout(world, state, roadData, config);
     const horizonY = sceneryLayout.horizonY;
     drawOutrunScenerySkia(canvas, sceneryLayout, screenW, screenH);
@@ -569,7 +656,7 @@ export const drawSkiaOutrunRoad: ShapeDrawer<SkCanvas, OutrunComponentRegistry> 
       groundPaint.setStyle(Skia.PaintStyle.Fill);
       canvas.drawRect(Skia.XYWHRect(0, p.y2, screenW, p.y1 - p.y2), groundPaint);
 
-      // Coast: water is restricted to the left side, beyond the outer kerb.
+      // Coast water pass.
       if (artwork.waterColor !== null) {
         const outerW2 = p.w2 * (1 + artwork.kerbWidthRatio);
         const outerW1 = p.w1 * (1 + artwork.kerbWidthRatio);
@@ -585,7 +672,7 @@ export const drawSkiaOutrunRoad: ShapeDrawer<SkCanvas, OutrunComponentRegistry> 
         canvas.drawPath(waterPath, waterPaint);
       }
 
-      // Pianos alternate cream and the hour-specific dark token.
+      // Pianos pass.
       const outerW2 = p.w2 * (1 + artwork.kerbWidthRatio);
       const outerW1 = p.w1 * (1 + artwork.kerbWidthRatio);
       const kerbPath = Skia.Path.Make();
@@ -599,7 +686,7 @@ export const drawSkiaOutrunRoad: ShapeDrawer<SkCanvas, OutrunComponentRegistry> 
       kerbPaint.setStyle(Skia.PaintStyle.Fill);
       canvas.drawPath(kerbPath, kerbPaint);
 
-      // Road surface uses the configured near/far tokens.
+      // Road surface pass.
       const roadPath = Skia.Path.Make();
       roadPath.moveTo(p.x2 - p.w2, p.y2);
       roadPath.lineTo(p.x2 + p.w2, p.y2);
@@ -611,7 +698,7 @@ export const drawSkiaOutrunRoad: ShapeDrawer<SkCanvas, OutrunComponentRegistry> 
       roadPaint.setStyle(Skia.PaintStyle.Fill);
       canvas.drawPath(roadPath, roadPaint);
 
-      // Lane dashes share the even-segment rhythm of the dark kerb.
+      // Lane dashes pass.
       if (artwork.drawLane) {
         const halfMarkW1 = p.w1 * artwork.laneMarkWidthRatio * 0.5;
         const halfMarkW2 = p.w2 * artwork.laneMarkWidthRatio * 0.5;
@@ -632,13 +719,13 @@ export const drawSkiaOutrunRoad: ShapeDrawer<SkCanvas, OutrunComponentRegistry> 
       console.warn("[drawSkiaOutrunRoad] 100% of projected road segments were clipped or discarded.");
     }
 
-    // Flat headlight cones are night-only and sit beneath roadside sprites.
+    // Flat headlight cones.
     const headlightBeams = computeOutrunHeadlightBeams(state, config, visualPalette);
     for (const beam of headlightBeams) {
       fillRoadsidePolygonSkia(canvas, beam.points, beam.color, beam.alpha);
     }
 
-    // Short radial streaks stay on the ground outside the pianos.
+    // Short radial streaks.
     const speedLines = computeOutrunRoadSpeedLineSegments({
       projectedSegments: projectionBuffer,
       count,
@@ -666,7 +753,7 @@ export const drawSkiaOutrunRoad: ShapeDrawer<SkCanvas, OutrunComponentRegistry> 
 
     // 3. Roadside Sprites Pass
     iterateOutrunSprites(canvas, count, roadData, config, palette.lightsOn, (c, sp, sx, sy, _sw, _roadW, lightsOn, clipY, depth) => {
-      drawRoadSpriteSkia(c, sp, sx, sy, _sw, clipY, visualPalette, depth, lightsOn);
+      drawRoadSpriteSkia(c, sp, sx, sy, _sw, clipY, visualPalette, depth, lightsOn, activeMod, world);
     });
   }
 };
@@ -726,7 +813,8 @@ export const drawSkiaOutrunRacer: ShapeDrawer<SkCanvas, OutrunComponentRegistry>
     const { sx, sy, lateral, carW, bestClip } = proj;
     if (sy >= bestClip || carW < 2) return;
 
-    drawOutrunTrafficVehicleSkia(canvas, config, sx + lateral, sy, carW, vehicleStyleIndex);
+    const activeMod = world.getResource<OutrunVisualMod>("VisualMod");
+    drawOutrunTrafficVehicleSkia(canvas, config, sx + lateral, sy, carW, vehicleStyleIndex, activeMod, world);
   }
 };
 
@@ -833,7 +921,7 @@ export const drawSkiaOutrunHud = {
       }, bar.active ? shared.car : shared.hudMutedText);
     }
 
-    // Countdown and end-of-run overlays remain independent of simulation.
+    // Countdown and end-of-run overlays.
     if (phase === "countdown") {
       const countdown = Math.ceil(state.countdownTime ?? 3);
       const overPaint = Skia.Paint();

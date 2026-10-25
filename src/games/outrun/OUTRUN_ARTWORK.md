@@ -14,7 +14,8 @@ para implementarlo (`OUTRUN_PROMPT.md` lo toma como fuente de verdad visual).
   (las otras tres horas, los decorados de costa y desierto, los estados del
   coche, la noche).
 
-La sección 18 lista lo que todavía no está diseñado.
+La sección 18 lista lo que todavía no está diseñado. La sección 19 describe la
+arquitectura de desacoplamiento de Visual Mods.
 
 ---
 
@@ -394,7 +395,7 @@ Pórtico plano sobre la carretera con dos flechas diagonales y la distancia.
 - Panel de fondo `#142B40`, borde de 1.5 px en `cream`.
 - Dos flechas rotadas ±35°, en el color de acento de cada rama: costa `#2FB8B0`,
   sierra `#FF8A5B`, desierto `#E8B04A` *(este último, propuesta)*.
-- Texto central con la distancia ("300 m") en 12 px.
+- Texto central con la distancia ("300 m") in 12 px.
 - Debajo de cada flecha, el nombre del decorado en `#C9D6E6`.
 - Cada rama anticipa la paleta del tramo siguiente, con el acento como pista.
 
@@ -498,3 +499,63 @@ Pórtico plano sobre la carretera con dos flechas diagonales y la distancia.
 - Pantalla de resultados al final de cada tramo y del recorrido.
 - Rival o "compañera" en el coche (el original tenía copiloto).
 - Sonido y música (fuera del alcance de este documento).
+
+---
+
+## 19. Sistema de Visual Mods y Punto de Extensión (p.ej. Mod Medieval)
+
+### 19.1 Arquitectura de desacoplamiento
+
+Toda la capa visual de Outrun está 100% desacoplada de la simulación mediante la interfaz `OutrunVisualMod` (`src/games/outrun/mods/types.ts`).
+
+Un `OutrunVisualMod` encapsula:
+- **`id` y `displayName`**: Identificador de mod (p.ej., `"classic"`, `"medieval"`).
+- **`createTheme(baseTheme)`**: Transformación del tema del mundo.
+- **`registerDrawers(register)`**: Registro de Shape Drawers para Canvas y Skia (`"road"`, `"outrun_car"`, `"outrun_racer"`, etc.).
+- **`registerBackgroundEffects(register)`**: Registro de Background Effect Drawers (`"outrun_hud"`, etc.).
+- **`resolveScenarioDecorKind(scenarioId, slotHash)`**: Mapeo agnóstico de tema de tramo y hash determinista a un `kind` de decorado.
+- **`resolveRoadsideKind(kind)`**: Mapeo o resolución de kinds de decorado personalizados (sin colapsar silenciosamente a un valor fijo).
+- **`resolveTrafficVehicleShape(styleIndex)`**: Resolución de silueta/tipo de tráfico (p.ej., `"horse_cart"`, `"carriage"`).
+- **`drawRoadsideSprite(params)` y `drawTrafficVehicle(params)`**: Puntos opcionales de intercepción de dibujo.
+- **`spriteCatalog`**: Catálogo opcional de specs para sprites bitmap (`OutrunBitmapSpriteSpec`).
+
+### 19.2 Soporte de Sprites Bitmap (`CanvasSpriteDrawer` / `SkiaSpriteDrawer`)
+
+La arquitectura permite que un mod utilice imágenes bitmap (PNG/WebP/SVG) en vez de geometría vectorial procedural:
+- El mod puede registrar `CanvasSpriteDrawer` (de `@tiny-aster/renderer-canvas`) o `SkiaSpriteDrawer` (de `@tiny-aster/renderer-skia`) en `registerDrawers`.
+- Alternativamente, el mod puede rellenar `spriteCatalog` asociando un `kind` de decorado o vehículo con un `OutrunBitmapSpriteSpec` (`{ assetKey, srcRect, anchor, aspectRatio }`).
+- El renderer de carretera y tráfico invoca automáticamente la renderización de sprites bitmap si el mod declara entradas en `spriteCatalog`.
+
+### 19.3 Guía para implementar un Mod Futuro (ej. `MedievalMod`)
+
+Para crear un mod con ambientación medieval (caballos, carros, caminos de tierra, decorados de villa/foso y sprites bitmap):
+
+1. **Crear el módulo**: Crear `src/games/outrun/mods/medieval/MedievalMod.ts`.
+2. **Implementar `OutrunVisualMod`**:
+   ```ts
+   import type { OutrunVisualMod } from "../types";
+
+   export const medievalMod: OutrunVisualMod = {
+     id: "medieval",
+     displayName: "Fantasía Medieval",
+     createTheme: (base) => ({
+       ...base,
+       // Paleta de tonos tierra, madera, piedra y paja
+     }),
+     registerDrawers(register) {
+       // Registrar drawers vectoriales o bitmap para road, caballo/carro jugador y carros de tráfico
+     },
+     resolveScenarioDecorKind(scenarioId, slotHash) {
+       return slotHash > 0.5 ? "wooden_fence" : "stone_tower";
+     },
+     resolveTrafficVehicleShape(styleIndex) {
+       return styleIndex % 2 === 0 ? "horse_cart" : "hay_wagon";
+     },
+     spriteCatalog: {
+       wooden_fence: { assetKey: "sprite_fence", aspectRatio: 0.8 },
+       stone_tower: { assetKey: "sprite_tower", aspectRatio: 1.5 }
+     }
+   };
+   ```
+3. **Registrar el mod**: En `src/games/outrun/mods/registry.ts`, añadir `registerVisualMod(medievalMod);`.
+4. **Cero cambios al engine**: No se requiere tocar `OutrunGame.ts`, `OutrunTypes.ts` ni los sistemas de simulación.

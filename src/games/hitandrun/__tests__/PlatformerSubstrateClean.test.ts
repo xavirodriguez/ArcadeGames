@@ -17,7 +17,7 @@ describe("M11: Platformer substrate cleanliness in Hit&Run", () => {
 
     // Verify player does not rely on PlatformerGravity or PlatformerGroundState
     const player = players[0];
-    expect(world.hasComponent(player, "PlatformerGravityConfig" as any)).toBe(false);
-    expect(world.hasComponent(player, "PlatformerGroundState" as any)).toBe(false);
+    expect(world.hasComponent(player, "PlatformerGravityConfig")).toBe(false);
+    expect(world.hasComponent(player, "PlatformerGroundState")).toBe(false);
   });
 });

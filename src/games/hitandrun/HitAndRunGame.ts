@@ -185,9 +185,9 @@ export class HitAndRunGame extends BaseGame<
     currentlyGameOver: boolean,
     predicate: (rs: RunState) => boolean = (rs) => rs.collectedPermanentIds.includes("archive_core_1")
   ): boolean {
-    const isComplete = updateRunProgress(this.world as unknown as World<CoreComponentRegistry>, dt, predicate);
+    const isComplete = updateRunProgress(this.world, dt, predicate);
     if (isComplete && !currentlyGameOver) {
-      (this.eventBus as unknown as { emit: (event: string, payload: unknown) => void }).emit("game:over", {
+      this.getEventBus()?.emit("game:over", {
         state: this.getGameState()
       });
       return true;

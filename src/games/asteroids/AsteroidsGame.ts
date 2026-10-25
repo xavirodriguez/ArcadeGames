@@ -318,9 +318,17 @@ export class AsteroidsGame
     const loader = this.assetLoader;
     try {
       if (loader) {
-        await loader.load([
-          { id: "ship_sprite", type: "image", path: require("../../../assets/ship.png") }
-        ]);
+        let shipSpritePath: unknown = null;
+        try {
+          shipSpritePath = require("../../../assets/ship.png");
+        } catch {
+          shipSpritePath = null;
+        }
+        if (shipSpritePath) {
+          await loader.load([
+            { id: "ship_sprite", type: "image", path: shipSpritePath as string }
+          ]);
+        }
       }
       if (this.audio) {
         await preloadSharedAudioManifest(this.audio);

@@ -1,8 +1,16 @@
 // src/games/shared/sprites/SpriteDrawer.ts
 
-import { Asset } from "expo-asset";
-import { Skia } from "@shopify/react-native-skia";
 import type { SkCanvas, SkImage, SkPaint } from "@shopify/react-native-skia";
+
+function getSkia() {
+  try {
+    /* eslint-disable @typescript-eslint/no-require-imports */
+    const { Skia } = require("@shopify/react-native-skia");
+    return Skia;
+  } catch {
+    return undefined;
+  }
+}
 import { SpriteRegistry } from "./SpriteRegistry";
 import { getCurrentFrameRect } from "./SpriteAnimator";
 import type { SpriteAnimatorComponent } from "./SpriteAnimator";
@@ -22,9 +30,15 @@ async function resolveImageUri(
   if (typeof source === "string") return source;
 
   if (typeof source === "number") {
-    const asset = Asset.fromModule(source);
-    await asset.downloadAsync();
-    return preferLocalUri ? (asset.localUri ?? asset.uri) : (asset.uri ?? asset.localUri);
+    try {
+      /* eslint-disable @typescript-eslint/no-require-imports */
+      const { Asset } = require("expo-asset");
+      const asset = Asset.fromModule(source);
+      await asset.downloadAsync();
+      return preferLocalUri ? (asset.localUri ?? asset.uri) : (asset.uri ?? asset.localUri);
+    } catch {
+      return undefined;
+    }
   }
   if (source === null) return undefined;
 
@@ -121,6 +135,7 @@ export function preloadSpriteSheetCanvas(sheetId: string): Promise<void> {
 /** Decode a bundled sheet into Skia's cache; drawing falls back while it loads. */
 export function preloadSpriteSheetSkia(sheetId: string): Promise<void> {
   const sheet = SpriteRegistry.get(sheetId);
+  const Skia = getSkia();
   if (!sheet || skiaImageCache.has(sheetId) || skiaFailedLoads.has(sheetId) || !Skia) {
     return Promise.resolve();
   }
@@ -243,7 +258,7 @@ export function drawSpriteSkia(
     width: dw,
     height: dh,
   };
-  const activePaint = paint ?? Skia.Paint();
+  const activePaint = paint ?? getSkia()?.Paint();
   canvas.drawImageRect(image, src, dst, activePaint);
   canvas.restore();
   return true;

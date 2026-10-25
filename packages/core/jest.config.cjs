@@ -3,6 +3,7 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   moduleNameMapper: {
+    '^expo-asset$': '<rootDir>/tests/__mocks__/expoAssetMock.js',
     '^@tiny-aster/core$': '<rootDir>/src/index.ts',
     '^@tiny-aster/core/(.*)$': '<rootDir>/src/$1',
     '^@tiny-aster/gameplay-kit$': '<rootDir>/../gameplay-kit/src/index.ts',

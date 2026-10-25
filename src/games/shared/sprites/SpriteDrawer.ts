@@ -1,8 +1,14 @@
 // src/games/shared/sprites/SpriteDrawer.ts
 
-import { Asset } from "expo-asset";
-import { Skia } from "@shopify/react-native-skia";
+import { Skia } from "../rendering/SkiaContext";
 import type { SkCanvas, SkImage, SkPaint } from "@shopify/react-native-skia";
+
+let Asset: any = null;
+try {
+  Asset = require("expo-asset").Asset;
+} catch {
+  Asset = null;
+}
 import { SpriteRegistry } from "./SpriteRegistry";
 import { getCurrentFrameRect } from "./SpriteAnimator";
 import type { SpriteAnimatorComponent } from "./SpriteAnimator";
@@ -22,6 +28,7 @@ async function resolveImageUri(
   if (typeof source === "string") return source;
 
   if (typeof source === "number") {
+    if (!Asset) return undefined;
     const asset = Asset.fromModule(source);
     await asset.downloadAsync();
     return preferLocalUri ? (asset.localUri ?? asset.uri) : (asset.uri ?? asset.localUri);

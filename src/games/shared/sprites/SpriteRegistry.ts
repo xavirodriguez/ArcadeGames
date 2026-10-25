@@ -28,6 +28,20 @@ try {
   oniRedImageSource = null;
 }
 
+let tower1ImageSource: SpriteImageSource = null;
+try {
+  tower1ImageSource = require("../../../../assets/sprites/towers/tower1.png");
+} catch {
+  tower1ImageSource = null;
+}
+
+let tower2ImageSource: SpriteImageSource = null;
+try {
+  tower2ImageSource = require("../../../../assets/sprites/towers/tower2.png");
+} catch {
+  tower2ImageSource = null;
+}
+
 /**
  * Red Oni / Ashigaru Infernal sprite sheet.
  * Measurements taken from the original 924×539 sheet.
@@ -81,7 +95,7 @@ const ONI_RED: SpriteSheetDef = {
  */
 const TOWER_BASIC_ART: SpriteSheetDef = {
   id: "tower_basic_art",
-  imageSource: require("../../../../assets/sprites/towers/tower1.png"),
+  imageSource: tower1ImageSource,
   frameWidth: 34,
   frameHeight: 34,
   sourceMode: "full-image",
@@ -93,7 +107,7 @@ const TOWER_BASIC_ART: SpriteSheetDef = {
 
 const TOWER_SNIPER_ART: SpriteSheetDef = {
   id: "tower_sniper_art",
-  imageSource: require("../../../../assets/sprites/towers/tower2.png"),
+  imageSource: tower2ImageSource,
   frameWidth: 34,
   frameHeight: 34,
   sourceMode: "full-image",

@@ -2,14 +2,27 @@
 // ---------------------------------------------------------------------------
 // Image cache (simple, shared between Canvas & Skia)
 // ---------------------------------------------------------------------------
-import { Asset } from "expo-asset";
-import { getPaint } from "../rendering/SkiaContext";
-import { Skia } from "@shopify/react-native-skia";
+import type { Asset } from "expo-asset";
+import { getPaint, Skia } from "../rendering/SkiaContext";
 import type { SkCanvas, SkImage, SkPaint } from "@shopify/react-native-skia";
 import { SpriteRegistry } from "./SpriteRegistry";
 import { getCurrentFrameRect } from "./SpriteAnimator";
 import type { SpriteAnimatorComponent } from "./SpriteAnimator";
 import type { SpriteSheetDef, SpriteFrameRect } from "./SpriteTypes";
+
+/**
+ * Lazily loads the expo-asset module. Kept out of the static imports so
+ * headless / test environments (no Metro asset registry) never crash on load:
+ * resolveImageUri callers all early-return before touching the asset registry.
+ */
+function loadExpoAssetClass(): (typeof import("expo-asset"))["Asset"] | undefined {
+  try {
+    return (require("expo-asset") as typeof import("expo-asset")).Asset;
+  } catch {
+    return undefined;
+  }
+}
+
 
 const canvasImageCache = new Map<string, HTMLImageElement | HTMLCanvasElement>();
 const canvasPendingLoads = new Map<string, Promise<void>>();
@@ -25,7 +38,9 @@ async function resolveImageUri(
   if (typeof source === "string") return source;
 
   if (typeof source === "number") {
-    const asset = Asset.fromModule(source);
+    const AssetClass = loadExpoAssetClass() as (typeof Asset) | undefined;
+    if (!AssetClass) return undefined;
+    const asset = AssetClass.fromModule(source);
     await asset.downloadAsync();
     return preferLocalUri ? (asset.localUri ?? asset.uri) : (asset.uri ?? asset.localUri);
   }
@@ -55,6 +70,7 @@ function getSkiaImageSize(image: SkImage): { width: number; height: number } {
   return { width, height };
 }
 
+/** Resolves which source pixels a frame occupies (full-image sheets or frame grids). */
 function resolveSourceRect(
   sheet: SpriteSheetDef,
   animator: SpriteAnimatorComponent,
@@ -69,6 +85,7 @@ function resolveSourceRect(
   return getCurrentFrameRect(animator);
 }
 
+/** Resolves the logical draw size of a frame in world units. */
 function resolveDrawSize(
   sheet: SpriteSheetDef,
   frame: SpriteFrameRect,
@@ -176,10 +193,7 @@ export function getSkiaImage(sheetId: string): SkImage | undefined {
   return skiaImageCache.get(sheetId);
 }
 
-/**
- * Whether the Canvas image for a sheet already finished loading.
- * Renderers use this to decide between the sprite path and their fallback visuals.
- */
+/** Whether the Canvas image for a sheet already finished loading. */
 export function isCanvasSpriteReady(sheetId: string): boolean {
   return canvasImageCache.has(sheetId);
 }
@@ -214,7 +228,7 @@ export function drawSpriteCanvas(
   const anchor = sheet.anchor ?? { x: 0.5, y: 1 };
 
   ctx.save();
-  ctx.globalAlpha *= (options?.opacity ?? 1);
+  ctx.globalAlpha *= Math.max(0, Math.min(1, options?.opacity ?? 1));
   ctx.translate(x + ox, y + oy);
   if (animator.flipX) {
     ctx.scale(-1, 1);
@@ -238,6 +252,10 @@ export function drawSpriteCanvas(
   ctx.restore();
   return true;
 }
+
+// ---------------------------------------------------------------------------
+// Skia drawer
+// ---------------------------------------------------------------------------
 
 export function drawSpriteSkia(
   canvas: SkCanvas,
@@ -274,8 +292,7 @@ export function drawSpriteSkia(
 
   const usingCallerPaint = paint !== undefined;
   const paintToUse = paint ?? getPaint();
-  const opacity = Math.max(0, Math.min(1, options?.opacity ?? 1));
-  paintToUse.setAlphaf(opacity);
+  paintToUse.setAlphaf(Math.max(0, Math.min(1, options?.opacity ?? 1)));
 
   const src = { x: frame.x, y: frame.y, width: frame.w, height: frame.h };
   const dst = { x: dx, y: dy, width: dw, height: dh };

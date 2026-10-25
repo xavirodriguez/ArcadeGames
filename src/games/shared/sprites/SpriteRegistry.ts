@@ -180,6 +180,7 @@ export const SpriteRegistry = {
   init() {
     this.register(ONI_RED);
     this.register(SEA_DRAGON);
+    this.register(GHOST_GALLEON);
     this.register(TOWER_BASIC_ART);
     this.register(TOWER_SNIPER_ART);
     // Future sprites go here

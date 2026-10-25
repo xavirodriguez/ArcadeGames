@@ -16,7 +16,7 @@ import {
 import { drawSkiaHitFlashCircle } from "../../shared/rendering/PlatformerSharedVisuals";
 import { resolveEchoRunnerDeathZoneDrawData, resolveEchoRunnerStateGateDrawData, resolveEchoRunnerStateSwitchDrawData } from "./EchoRunnerInteractionVisualUtils";
 
-export const drawSkiaEchoStateSwitch: ShapeDrawer<SkCanvas, CoreComponentRegistry> = {
+export const drawSkiaEchoStateSwitch: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
     const state = resolveEchoRunnerStateSwitchDrawData(world, entity);
@@ -46,7 +46,7 @@ export const drawSkiaEchoStateSwitch: ShapeDrawer<SkCanvas, CoreComponentRegistr
   }
 };
 
-export const drawSkiaEchoStateGate: ShapeDrawer<SkCanvas, CoreComponentRegistry> = {
+export const drawSkiaEchoStateGate: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
     const state = resolveEchoRunnerStateGateDrawData(world, entity);
@@ -78,7 +78,7 @@ export const drawSkiaEchoStateGate: ShapeDrawer<SkCanvas, CoreComponentRegistry>
   }
 };
 
-export const drawSkiaEchoDeathZone: ShapeDrawer<SkCanvas, CoreComponentRegistry> = {
+export const drawSkiaEchoDeathZone: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
     const zone = resolveEchoRunnerDeathZoneDrawData(world, entity);

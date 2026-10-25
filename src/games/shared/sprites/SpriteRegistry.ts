@@ -1,6 +1,6 @@
 // src/games/shared/sprites/SpriteRegistry.ts
 
-import { SpriteSheetDef, SpriteFrameRect } from "./SpriteTypes";
+import { SpriteSheetDef, SpriteFrameRect, SpriteImageSource } from "./SpriteTypes";
 
 /**
  * Helper to generate evenly spaced frames from a row in the sheet.
@@ -21,14 +21,21 @@ function makeRowFrames(
   }));
 }
 
+let oniRedImageSource: SpriteImageSource = null;
+try {
+  oniRedImageSource = require("../../../../assets/sprites/enemies/oni_red.png");
+} catch {
+  oniRedImageSource = null;
+}
+
 /**
  * Red Oni / Ashigaru Infernal sprite sheet.
  * Measurements taken from the original 924×539 sheet.
  */
 const ONI_RED: SpriteSheetDef = {
   id: "oni_red",
-  // File currently lives as enemy2.png in the repo
-  imageSource: require("../../../../assets/sprites/enemies/enemy2.png"),
+  // NOTE: place the file at assets/sprites/enemies/oni_red.png
+  imageSource: oniRedImageSource,
   frameWidth: 56,
   frameHeight: 90,
   animations: {
@@ -97,6 +104,33 @@ const SEA_DRAGON: SpriteSheetDef = {
       frameDuration: 0.12,
       loop: false,
     },
+ * Static tower artwork. Source dimensions are read from each image at runtime,
+ * so these definitions do not assume a frame grid or bake source-pixel sizes.
+ *
+ * tower1 is assigned to the basic tower and tower2 to the sniper tower. Both
+ * use center anchors because towers sit on cell centers rather than on feet.
+ */
+const TOWER_BASIC_ART: SpriteSheetDef = {
+  id: "tower_basic_art",
+  imageSource: require("../../../../assets/sprites/towers/tower1.png"),
+  frameWidth: 34,
+  frameHeight: 34,
+  sourceMode: "full-image",
+  anchor: { x: 0.5, y: 0.5 },
+  animations: {
+    idle: { name: "idle", frames: [], frameDuration: 1, loop: true },
+  },
+};
+
+const TOWER_SNIPER_ART: SpriteSheetDef = {
+  id: "tower_sniper_art",
+  imageSource: require("../../../../assets/sprites/towers/tower2.png"),
+  frameWidth: 34,
+  frameHeight: 34,
+  sourceMode: "full-image",
+  anchor: { x: 0.5, y: 0.5 },
+  animations: {
+    idle: { name: "idle", frames: [], frameDuration: 1, loop: true },
   },
 };
 
@@ -121,6 +155,8 @@ export const SpriteRegistry = {
   init() {
     this.register(ONI_RED);
     this.register(SEA_DRAGON);
+    this.register(TOWER_BASIC_ART);
+    this.register(TOWER_SNIPER_ART);
     // Future sprites go here
   },
 };

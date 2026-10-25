@@ -1,5 +1,6 @@
 import type { ShapeDrawer } from "@tiny-aster/core";
 import type { OutrunComponentRegistry, RoadSegmentSprite } from "../types/OutrunTypes";
+import type { OutrunVisualMod, OutrunBitmapSpriteSpec } from "../mods/types";
 import {
   resolveOutrunRoadContext,
   projectOutrunRoad,
@@ -39,6 +40,47 @@ function fillRoadsidePolygonCanvas(
   ctx.fill();
 }
 
+function drawOutrunBitmapSpriteCanvas(
+  ctx: CanvasRenderingContext2D,
+  spec: OutrunBitmapSpriteSpec,
+  sx: number,
+  sy: number,
+  sw: number,
+  clipY: number,
+  world: import("@tiny-aster/core").World<OutrunComponentRegistry>
+): boolean {
+  const assetLoader = world.getResource<import("@tiny-aster/core").AssetLoader>("AssetLoader");
+  if (!assetLoader) return false;
+
+  const rawImg = assetLoader.get<unknown>(spec.assetKey);
+  if (!rawImg) return false;
+
+  const aspect = spec.aspectRatio ?? 1.0;
+  const size = sw * 0.8;
+  const w = size;
+  const h = size * aspect;
+  if (sy >= clipY || w < 2) return false;
+
+  const anchorX = spec.anchor?.x ?? 0.5;
+  const anchorY = spec.anchor?.y ?? 1.0;
+
+  const dx = sx - w * anchorX;
+  const dy = sy - h * anchorY;
+
+  ctx.save();
+  if (typeof HTMLImageElement !== "undefined" && rawImg instanceof HTMLImageElement) {
+    if (spec.srcRect) {
+      ctx.drawImage(rawImg, spec.srcRect.x, spec.srcRect.y, spec.srcRect.w, spec.srcRect.h, dx, dy, w, h);
+    } else {
+      ctx.drawImage(rawImg, dx, dy, w, h);
+    }
+    ctx.restore();
+    return true;
+  }
+  ctx.restore();
+  return false;
+}
+
 function drawRoadSpriteCanvas(
   ctx: CanvasRenderingContext2D,
   sp: RoadSegmentSprite,
@@ -48,9 +90,34 @@ function drawRoadSpriteCanvas(
   clipY: number,
   visualPalette: import("../types/OutrunVisualTypes").OutrunVisualPaletteResource,
   depth: number,
-  lightsOn: boolean
+  lightsOn: boolean,
+  activeMod?: OutrunVisualMod,
+  world?: import("@tiny-aster/core").World<OutrunComponentRegistry>
 ): void {
   if (sy >= clipY || sw < 2) return;
+
+  if (activeMod?.drawRoadsideSprite) {
+    const handled = activeMod.drawRoadsideSprite({
+      backend: "canvas",
+      ctx,
+      sprite: sp,
+      sx,
+      sy,
+      sw,
+      clipY,
+      visualPalette,
+      depth,
+      lightsOn,
+      world
+    });
+    if (handled) return;
+  }
+
+  if (activeMod?.spriteCatalog?.[sp.kind] && world) {
+    const spec = activeMod.spriteCatalog[sp.kind]!;
+    const drawn = drawOutrunBitmapSpriteCanvas(ctx, spec, sx, sy, sw, clipY, world);
+    if (drawn) return;
+  }
 
   ctx.save();
   ctx.lineJoin = "round";
@@ -93,7 +160,7 @@ function drawRoadSpriteCanvas(
       { x: sx - cw / 2, y: sy - ch }
     ], colors.amber);
   } else {
-    const style = resolveOutrunRoadsideArtworkStyle(sp, visualPalette, depth, sw, lightsOn);
+    const style = resolveOutrunRoadsideArtworkStyle(sp, visualPalette, depth, sw, lightsOn, activeMod);
     const h = style.height;
     const trunkH = h * visualPalette.tuning.tree.trunkHeightToHeight;
     const trunkW = h * visualPalette.tuning.tree.trunkWidthToHeight;
@@ -468,9 +535,25 @@ function drawOutrunTrafficVehicleCanvas(
   centerX: number,
   baselineY: number,
   width: number,
-  styleIndex: number
+  styleIndex: number,
+  activeMod?: OutrunVisualMod,
+  world?: import("@tiny-aster/core").World<OutrunComponentRegistry>
 ): void {
-  const style = resolveOutrunTrafficArtworkStyle(config, styleIndex, width);
+  if (activeMod?.drawTrafficVehicle) {
+    const handled = activeMod.drawTrafficVehicle({
+      backend: "canvas",
+      ctx,
+      config,
+      centerX,
+      baselineY,
+      width,
+      styleIndex,
+      world
+    });
+    if (handled) return;
+  }
+
+  const style = resolveOutrunTrafficArtworkStyle(config, styleIndex, width, activeMod);
   const bodyTop = -style.bodyHeight;
   const cabinBaseY = bodyTop;
   const cabinTopY = cabinBaseY - style.cabinHeight;
@@ -524,6 +607,7 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
     if (!roadCtx) return;
 
     const { state, roadData, config, screenW, screenH, palette, visualPalette } = roadCtx;
+    const activeMod = world.getResource<OutrunVisualMod>("VisualMod");
     ctx.save();
 
     const sceneryLayout = resolveOutrunSceneryLayout(world, state, roadData, config);
@@ -544,11 +628,11 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
 
       const artwork = resolveOutrunRoadSegmentArtwork(p.index, p.fog, visualPalette);
 
-      // Depth haze and the subtle alternating ground stripe.
+      // Depth haze and alternating ground stripe.
       ctx.fillStyle = artwork.groundColor;
       ctx.fillRect(0, p.y2, screenW, p.y1 - p.y2);
 
-      // The coast keeps the sea on the left and land on the right.
+      // Coast water pass.
       if (artwork.waterColor !== null) {
         const outerW2 = p.w2 * (1 + artwork.kerbWidthRatio);
         const outerW1 = p.w1 * (1 + artwork.kerbWidthRatio);
@@ -562,7 +646,7 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
         ctx.fill();
       }
 
-      // Pianos alternate cream and the hour-specific dark token.
+      // Pianos pass.
       const outerW2 = p.w2 * (1 + artwork.kerbWidthRatio);
       const outerW1 = p.w1 * (1 + artwork.kerbWidthRatio);
       ctx.fillStyle = artwork.kerbColor;
@@ -574,7 +658,7 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
       ctx.closePath();
       ctx.fill();
 
-      // Road surface uses near/far palette tokens, never a second projection.
+      // Road surface pass.
       ctx.fillStyle = artwork.roadColor;
       ctx.beginPath();
       ctx.moveTo(p.x2 - p.w2, p.y2);
@@ -584,7 +668,7 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
       ctx.closePath();
       ctx.fill();
 
-      // Lane dashes share the even-segment rhythm of the dark kerb.
+      // Lane dashes pass.
       if (artwork.drawLane) {
         const halfMarkW1 = p.w1 * artwork.laneMarkWidthRatio * 0.5;
         const halfMarkW2 = p.w2 * artwork.laneMarkWidthRatio * 0.5;
@@ -603,7 +687,7 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
       console.warn("[drawOutrunRoad] 100% of projected road segments were clipped or discarded.");
     }
 
-    // Flat headlight cones are night-only and sit beneath roadside sprites.
+    // Flat headlight cones.
     const headlightBeams = computeOutrunHeadlightBeams(state, config, visualPalette);
     if (headlightBeams.length > 0) {
       ctx.save();
@@ -614,7 +698,7 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
       ctx.restore();
     }
 
-    // Short radial streaks stay on the ground outside the pianos.
+    // Short radial streaks.
     const speedLines = computeOutrunRoadSpeedLineSegments({
       projectedSegments: projectionBuffer,
       count,
@@ -642,7 +726,7 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
 
     // 3. Roadside Sprites Pass
     iterateOutrunSprites(ctx, count, roadData, config, palette.lightsOn, (c, sp, sx, sy, _sw, _roadW, lightsOn, clipY, depth) => {
-      drawRoadSpriteCanvas(c, sp, sx, sy, _sw, clipY, visualPalette, depth, lightsOn);
+      drawRoadSpriteCanvas(c, sp, sx, sy, _sw, clipY, visualPalette, depth, lightsOn, activeMod, world);
     });
 
     ctx.restore();
@@ -707,7 +791,8 @@ export const drawOutrunRacer: ShapeDrawer<CanvasRenderingContext2D, OutrunCompon
     const { sx, sy, lateral, carW, bestClip } = proj;
     if (sy >= bestClip || carW < 2) return;
 
-    drawOutrunTrafficVehicleCanvas(ctx, config, sx + lateral, sy, carW, vehicleStyleIndex);
+    const activeMod = world.getResource<OutrunVisualMod>("VisualMod");
+    drawOutrunTrafficVehicleCanvas(ctx, config, sx + lateral, sy, carW, vehicleStyleIndex, activeMod, world);
   }
 };
 
@@ -773,7 +858,7 @@ export const drawOutrunHud = {
     ctx.textAlign = "right";
     ctx.fillText("km/h", speed.unitX, speed.unitY);
 
-    // Decorative radio dial: five bars; the active one uses the car accent.
+    // Decorative radio dial.
     const radio = layout.radioPill;
     ctx.save();
     ctx.globalAlpha = radio.shadowAlpha;
@@ -791,7 +876,7 @@ export const drawOutrunHud = {
       }, bar.active ? shared.car : shared.hudMutedText);
     }
 
-    // Countdown and end-of-run overlays remain independent of the simulation.
+    // Countdown and end-of-run overlays.
     if (phase === "countdown") {
       const countdown = Math.ceil(state.countdownTime ?? 3);
       ctx.fillStyle = hexToRgba(shared.shadow, 0.64);

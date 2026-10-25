@@ -1382,8 +1382,6 @@ export interface CoreComponentRegistry extends ComponentRegistry {
   BeltElevation: BeltElevationComponent;
   /** Belt input component. */
   BeltInput: BeltInputComponent;
-  /** Belt section enemy tag component. */
-  BeltSectionEnemy: Component & { type: "BeltSectionEnemy"; sectionIndex: number };
   /** Transform component. */
   Transform: TransformComponent;
   /** Velocity component. */
@@ -1499,6 +1497,10 @@ export interface CoreComponentRegistry extends ComponentRegistry {
   Damage: Component & { amount: number; sourceEntity?: Entity; category?: string; friendlyFire?: boolean; consumption?: unknown };
   /** Hit & Run weapon state component. */
   HitRunWeapon: Component & { type: "HitRunWeapon"; weaponId: string; cooldownRemaining: number; ammoCurrent?: number; ammoMax?: number; fallbackWeaponId?: string; muzzleFlashRemaining?: number };
+  /** Hit & Run section enemy tag component. */
+  BeltSectionEnemy: Component & { type: "BeltSectionEnemy"; sectionIndex: number };
+  /** SpriteAnimator component. */
+  SpriteAnimator: Component & { type: "SpriteAnimator"; sheetId: string; currentAnim: string; frameIndex: number; timer: number; flipX: boolean; scale: number; offsetX?: number; offsetY?: number };
 }
 
 /**

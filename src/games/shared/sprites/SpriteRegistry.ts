@@ -28,6 +28,27 @@ try {
   oniRedImageSource = null;
 }
 
+let seaDragonImageSource: SpriteImageSource = null;
+try {
+  seaDragonImageSource = require("../../../../assets/sprites/enemies/sea_dragon.png");
+} catch {
+  seaDragonImageSource = null;
+}
+
+let towerBasicImageSource: SpriteImageSource = null;
+try {
+  towerBasicImageSource = require("../../../../assets/sprites/towers/tower1.png");
+} catch {
+  towerBasicImageSource = null;
+}
+
+let towerSniperImageSource: SpriteImageSource = null;
+try {
+  towerSniperImageSource = require("../../../../assets/sprites/towers/tower2.png");
+} catch {
+  towerSniperImageSource = null;
+}
+
 /**
  * Red Oni / Ashigaru Infernal sprite sheet.
  * Measurements taken from the original 924×539 sheet.
@@ -82,7 +103,7 @@ const ONI_RED: SpriteSheetDef = {
  */
 const SEA_DRAGON: SpriteSheetDef = {
   id: "sea_dragon",
-  imageSource: require("../../../../assets/sprites/enemies/sea_dragon.png"),
+  imageSource: seaDragonImageSource,
   frameWidth: 40,
   frameHeight: 32,
   animations: {
@@ -104,6 +125,10 @@ const SEA_DRAGON: SpriteSheetDef = {
       frameDuration: 0.12,
       loop: false,
     },
+  },
+};
+
+/**
  * Static tower artwork. Source dimensions are read from each image at runtime,
  * so these definitions do not assume a frame grid or bake source-pixel sizes.
  *
@@ -112,7 +137,7 @@ const SEA_DRAGON: SpriteSheetDef = {
  */
 const TOWER_BASIC_ART: SpriteSheetDef = {
   id: "tower_basic_art",
-  imageSource: require("../../../../assets/sprites/towers/tower1.png"),
+  imageSource: towerBasicImageSource,
   frameWidth: 34,
   frameHeight: 34,
   sourceMode: "full-image",
@@ -124,7 +149,7 @@ const TOWER_BASIC_ART: SpriteSheetDef = {
 
 const TOWER_SNIPER_ART: SpriteSheetDef = {
   id: "tower_sniper_art",
-  imageSource: require("../../../../assets/sprites/towers/tower2.png"),
+  imageSource: towerSniperImageSource,
   frameWidth: 34,
   frameHeight: 34,
   sourceMode: "full-image",

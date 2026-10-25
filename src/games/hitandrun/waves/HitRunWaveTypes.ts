@@ -1,6 +1,9 @@
 /**
- * Identificador de arquetipo de enemigo (mapa a pool / blueprint).
+ * Tipos del director de oleadas de Hit&Run.
+ * Scripts 100% declarativos (JSON-serializables).
  */
+
+/** Identificador de arquetipo de enemigo (mapa a pool / blueprint). */
 export type HitRunEnemyArchetypeId =
   | "popcorn"
   | "wall"
@@ -12,14 +15,17 @@ export type HitRunEnemyArchetypeId =
 
 /** Formación espacial al spawnear un grupo. */
 export type WaveFormation =
-  | "point"
-  | "line"
-  | "column"
-  | "wall"
-  | "scatter"
-  | "drop";
+  | "point"      // todos en (x,y) o spawn por defecto
+  | "line"       // fila horizontal
+  | "column"     // columna vertical
+  | "wall"       // muro denso horizontal (tensión)
+  | "scatter"    // rejilla con jitter determinista
+  | "drop";      // caen desde arriba en X repartidas
 
-/** Un evento de la timeline. */
+/**
+ * Un evento de la timeline.
+ * Ejemplo JSON: `{ "t": 5, "type": "popcorn", "count": 6, "formation": "line" }`
+ */
 export interface WaveEvent {
   /** Tiempo en segundos desde el inicio del script. */
   t: number;
@@ -29,24 +35,30 @@ export interface WaveEvent {
   count?: number;
   /** Formación del grupo. */
   formation?: WaveFormation;
-  /** Origen X (world). */
+  /** Origen X (world). Si se omite, usa defaultSpawn del director. */
   x?: number;
   /** Origen Y (world). */
   y?: number;
-  /** Intervalo entre spawns individuales del mismo evento (s). */
+  /**
+   * Intervalo entre spawns individuales del mismo evento (s).
+   * Si > 0, el count se reparte en el tiempo (stagger).
+   */
   interval?: number;
   /** Espaciado entre unidades en formaciones line/wall/column (px). */
   spacing?: number;
-  /** Tags libres para el spawner. */
+  /** Tags libres para el spawner (patrol, kamikaze, …). */
   tags?: string[];
 }
 
 /** Script completo de oleada (array ordenado por t). */
 export interface WaveScript {
   id: string;
+  /** Nombre legible (debug / UI). */
   name?: string;
   events: WaveEvent[];
+  /** Si true, al terminar reinicia elapsed (modo endless). */
   loop?: boolean;
+  /** Delay tras el último evento antes de loop (s). */
   loopDelay?: number;
 }
 
@@ -54,15 +66,25 @@ export interface WaveScript {
 export interface WaveDirectorState {
   type: "WaveDirectorState";
   scriptId: string;
+  /** Tiempo acumulado de la oleada actual (s). */
   elapsed: number;
+  /** Índice del próximo WaveEvent a disparar. */
   nextEventIndex: number;
+  /** true mientras el director está activo. */
   active: boolean;
+  /** Eventos en curso con stagger (interval > 0). */
   pendingStaggers: PendingStagger[];
+  /** Contador de enemigos spawneados en esta run (métricas). */
   totalSpawned: number;
+  /** Contador de enemigos matados pertenecientes a la oleada. */
   totalKilled?: number;
+  /** Claves de eventos telegraph procesados. */
   telegraphedKeys?: string[];
+  /** Último índice de evento que mostró banner de clear. */
   lastClearEventIndex?: number;
+  /** Timer de finalización de oleada. */
   waveDoneTimer?: number;
+  /** ID del último script cargado. */
   lastScriptId?: string;
 }
 
@@ -71,6 +93,7 @@ export interface PendingStagger {
   remaining: number;
   nextSpawnAt: number;
   spawned: number;
+  /** Copia de los campos de spawn del evento. */
   type: HitRunEnemyArchetypeId;
   formation: WaveFormation;
   baseX: number;
@@ -84,13 +107,20 @@ export interface PendingStagger {
 /** Definición data-driven de un arquetipo de enemigo. */
 export interface EnemyArchetypeDefinition {
   id: HitRunEnemyArchetypeId;
+  /** Clave de pool / blueprint. */
   poolId: string;
+  /** Health por defecto. */
   health: number;
+  /** Faction. */
   faction: string;
+  /** Shape de render. */
   shape: string;
+  /** Tamaño collider/visual. */
   size: number;
   color: string;
+  /** Velocidad base (si el AI la lee). */
   speed?: number;
+  /** Tags de comportamiento para StateMachine / AI. */
   behaviorTags?: string[];
 }
 
@@ -100,6 +130,7 @@ export interface HitRunEnemySpawnParams {
   y: number;
   archetypeId: HitRunEnemyArchetypeId;
   tags?: string[];
+  /** Índice dentro del grupo (para formaciones). */
   indexInGroup?: number;
   groupSize?: number;
 }
@@ -111,6 +142,9 @@ export interface IHitRunEnemyPool {
   releaseEnemy?(world: unknown, entity: number): void;
 }
 
+/** Resource key del director. */
 export const WAVE_DIRECTOR_RESOURCE = "WaveDirectorState";
+/** Resource key del script activo. */
 export const WAVE_SCRIPT_RESOURCE = "WaveScript";
+/** Resource key del pool de enemigos. */
 export const ENEMY_POOL_RESOURCE = "HitRunEnemyPool";

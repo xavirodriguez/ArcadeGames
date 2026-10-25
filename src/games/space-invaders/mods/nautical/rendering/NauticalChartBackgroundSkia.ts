@@ -4,12 +4,12 @@
  */
 import { Theme, THEME_RESOURCE_KEY, World } from "@tiny-aster/core";
 import type { SkCanvas, SkPaint } from "@shopify/react-native-skia";
-import { SpaceInvadersComponentRegistry, GAME_CONFIG } from "../types/SpaceInvadersTypes";
+import { SpaceInvadersComponentRegistry, GAME_CONFIG } from "../../../types/SpaceInvadersTypes";
 import {
   AQUI_HAY_DRAGONES_ALPHAS,
   AQUI_HAY_DRAGONES_PALETTE,
-} from "../../../theme/conceptPacks/aquiHayDragonesConceptPack";
-import { isNauticalChartTheme } from "../nautical/NauticalThemeShared";
+} from "../../../../../theme/conceptPacks/aquiHayDragonesConceptPack";
+import { isNauticalChartTheme } from "../NauticalThemeShared";
 
 /** Minimal Skia paint factory injected by the Skia visuals module to avoid tight coupling. */
 export type SkiaPaintFactory = {
@@ -43,7 +43,7 @@ export function drawNauticalChartBackdropSkia(
   const fill = paintFactory.makePaint();
   paintFactory.setStyleFill(fill);
   paintFactory.setColor(fill, P.parchment);
-  canvas.drawRect({ x: 0, y: 0, width: worldWidth, height: worldHeight } as any, fill);
+  canvas.drawRect({ x: 0, y: 0, width: worldWidth, height: worldHeight }, fill);
 
   const stroke = paintFactory.makePaint();
   paintFactory.setStyleStroke(stroke);
@@ -55,7 +55,7 @@ export function drawNauticalChartBackdropSkia(
       y: marginOuter,
       width: worldWidth - marginOuter * 2,
       height: worldHeight - marginOuter * 2,
-    } as any,
+    },
     stroke
   );
   paintFactory.setStroke(stroke, innerStroke);
@@ -65,7 +65,7 @@ export function drawNauticalChartBackdropSkia(
       y: marginInner,
       width: worldWidth - marginInner * 2,
       height: worldHeight - marginInner * 2,
-    } as any,
+    },
     stroke
   );
 

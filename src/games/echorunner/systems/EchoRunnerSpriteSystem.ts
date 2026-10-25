@@ -25,7 +25,7 @@ export class EchoRunnerSpriteSystem extends System<CoreComponentRegistry> {
 
       if (!animator) {
         animator = createSpriteAnimator("oni_red", "idle");
-        world.addComponent(entity, {
+        world.getCommandBuffer().addComponent(entity, {
           type: "SpriteAnimator",
           sheetId: animator.sheetId,
           currentAnim: animator.currentAnim,

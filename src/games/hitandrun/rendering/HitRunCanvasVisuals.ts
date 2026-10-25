@@ -96,6 +96,16 @@ export const drawHitRunCharger: ShapeDrawer<CanvasRenderingContext2D, CoreCompon
   }
 };
 
+/** Procedural fallback used only when the bundled samurai PNG cannot load. */
+export const drawHitRunSamuraiFallback: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
+  draw(ctx, world, entity) {
+    const snapshot = buildEntitySnapshot(world, entity, "samurai", 32);
+    if (!snapshot) return;
+    const elapsed = (world.tick ?? 0) / 60;
+    ThemeRegistry.getActiveTheme().renderEntity(ctx, snapshot, elapsed);
+  }
+};
+
 export const drawHitRunElite: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
     const snapshot = buildEntitySnapshot(world, entity, "elite", 22);

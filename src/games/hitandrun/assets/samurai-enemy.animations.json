@@ -1,0 +1,119 @@
+{
+  "cellSize": 96,
+  "columns": 8,
+  "rows": 5,
+  "anchor": {
+    "x": 0.5,
+    "y": 0.89
+  },
+  "animations": {
+    "idle": {
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "frameRate": 10,
+      "loop": true
+    },
+    "walk": {
+      "frames": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "frameRate": 12,
+      "loop": true
+    },
+    "attack": {
+      "frames": [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "frameRate": 14,
+      "loop": false
+    },
+    "hurt": {
+      "frames": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29
+      ],
+      "frameRate": 16,
+      "loop": false
+    },
+    "death": {
+      "frames": [
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39
+      ],
+      "frameRate": 10,
+      "loop": false
+    }
+  },
+  "frameOrder": [
+    "idle_00",
+    "idle_01",
+    "idle_02",
+    "idle_03",
+    "idle_04",
+    "idle_05",
+    "idle_06",
+    "idle_07",
+    "walk_00",
+    "walk_01",
+    "walk_02",
+    "walk_03",
+    "walk_04",
+    "walk_05",
+    "walk_06",
+    "walk_07",
+    "attack_00",
+    "attack_01",
+    "attack_02",
+    "attack_03",
+    "attack_04",
+    "attack_05",
+    "attack_06",
+    "attack_07",
+    "hurt_00",
+    "hurt_01",
+    "hurt_02",
+    "hurt_03",
+    "hurt_04",
+    "hurt_05",
+    "death_00",
+    "death_01",
+    "death_02",
+    "death_03",
+    "death_04",
+    "death_05",
+    "death_06",
+    "death_07"
+  ]
+}

@@ -39,12 +39,16 @@ Scalable sprite-sheet system for ArcadeGames (Canvas + Skia).
    - Canvas: `drawSpriteCanvas(ctx, animator, x, y)`
    - Skia:   `drawSpriteSkia(canvas, animator, x, y)`
 
-## Adding a new character
+## Adding a new character or static prop
 
 1. Drop the PNG into `assets/sprites/...`
 2. Add a new `SpriteSheetDef` in `SpriteRegistry.ts`
-3. Call `SpriteRegistry.register(...)` inside `init()`
-4. Use `createSpriteAnimator("your_id")`
+3. For a regular sheet, define measured source rectangles per animation row.
+4. For a single-image prop, set `sourceMode: "full-image"`, provide its logical fit box in `frameWidth/frameHeight`, and use `animations.idle.frames: []`. The drawer reads the source dimensions at runtime and preserves aspect ratio.
+5. Set `anchor: { x: 0.5, y: 0.5 }` for cell-centered props; character sheets default to bottom-center.
+6. Register it in `SpriteRegistry.init()` and use `createSpriteAnimator("your_id")` in the game's drawer or entity blueprint.
+
+Canvas and Skia use renderer-specific decoded-image caches over the shared registry. Both drawers return `false` while the asset is loading, allowing the ShapeDrawer fallback to remain visible.
 
 ## Notes
 

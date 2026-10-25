@@ -1,6 +1,6 @@
 // src/games/shared/sprites/SpriteRegistry.ts
 
-import { SpriteSheetDef, SpriteFrameRect } from "./SpriteTypes";
+import { SpriteSheetDef, SpriteFrameRect, SpriteImageSource } from "./SpriteTypes";
 
 /**
  * Helper to generate evenly spaced frames from a row in the sheet.
@@ -21,7 +21,7 @@ function makeRowFrames(
   }));
 }
 
-let oniRedImageSource: unknown = null;
+let oniRedImageSource: SpriteImageSource = null;
 try {
   oniRedImageSource = require("../../../../assets/sprites/enemies/oni_red.png");
 } catch {
@@ -72,6 +72,37 @@ const ONI_RED: SpriteSheetDef = {
   },
 };
 
+/**
+ * Static tower artwork. Source dimensions are read from each image at runtime,
+ * so these definitions do not assume a frame grid or bake source-pixel sizes.
+ *
+ * tower1 is assigned to the basic tower and tower2 to the sniper tower. Both
+ * use center anchors because towers sit on cell centers rather than on feet.
+ */
+const TOWER_BASIC_ART: SpriteSheetDef = {
+  id: "tower_basic_art",
+  imageSource: require("../../../../assets/sprites/towers/tower1.png"),
+  frameWidth: 34,
+  frameHeight: 34,
+  sourceMode: "full-image",
+  anchor: { x: 0.5, y: 0.5 },
+  animations: {
+    idle: { name: "idle", frames: [], frameDuration: 1, loop: true },
+  },
+};
+
+const TOWER_SNIPER_ART: SpriteSheetDef = {
+  id: "tower_sniper_art",
+  imageSource: require("../../../../assets/sprites/towers/tower2.png"),
+  frameWidth: 34,
+  frameHeight: 34,
+  sourceMode: "full-image",
+  anchor: { x: 0.5, y: 0.5 },
+  animations: {
+    idle: { name: "idle", frames: [], frameDuration: 1, loop: true },
+  },
+};
+
 const registry = new Map<string, SpriteSheetDef>();
 
 export const SpriteRegistry = {
@@ -92,6 +123,8 @@ export const SpriteRegistry = {
    */
   init() {
     this.register(ONI_RED);
+    this.register(TOWER_BASIC_ART);
+    this.register(TOWER_SNIPER_ART);
     // Future sprites go here
   },
 };

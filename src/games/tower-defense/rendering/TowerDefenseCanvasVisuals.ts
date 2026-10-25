@@ -24,6 +24,10 @@ import {
 type TDWorld = World<TowerDefenseComponentRegistry>;
 
 import { isPaperDuskTheme } from "./TowerDefenseVisualHelpers";
+import { createSpriteAnimator, drawSpriteCanvas } from "../../shared/sprites";
+
+const TOWER_BASIC_SPRITE = createSpriteAnimator("tower_basic_art");
+const TOWER_SNIPER_SPRITE = createSpriteAnimator("tower_sniper_art");
 
 function drawTowerBase(
   world: TDWorld,
@@ -225,7 +229,12 @@ export const drawTowerBasic: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseC
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     const size = render?.size ?? 28;
-    drawTowerBase(world, ctx, size, "tower_basic", "tower_basic_accent", "#4fc3f7", "#81d4fa", "basic");
+    const isPaperDusk = isPaperDuskTheme(world);
+    TOWER_BASIC_SPRITE.scale = size / 34;
+    const spriteDrawn = !isPaperDusk && drawSpriteCanvas(ctx, TOWER_BASIC_SPRITE, 0, 0);
+    if (!spriteDrawn) {
+      drawTowerBase(world, ctx, size, "tower_basic", "tower_basic_accent", "#4fc3f7", "#81d4fa", "basic");
+    }
     drawTowerWeaponCanvas(ctx, world, entity, size, "basic");
   },
 };
@@ -234,7 +243,12 @@ export const drawTowerSniper: ShapeDrawer<CanvasRenderingContext2D, TowerDefense
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     const size = render?.size ?? 28;
-    drawTowerBase(world, ctx, size, "tower_sniper", "tower_sniper_accent", "#ab47bc", "#ce93d8", "sniper");
+    const isPaperDusk = isPaperDuskTheme(world);
+    TOWER_SNIPER_SPRITE.scale = size / 34;
+    const spriteDrawn = !isPaperDusk && drawSpriteCanvas(ctx, TOWER_SNIPER_SPRITE, 0, 0);
+    if (!spriteDrawn) {
+      drawTowerBase(world, ctx, size, "tower_sniper", "tower_sniper_accent", "#ab47bc", "#ce93d8", "sniper");
+    }
     drawTowerWeaponCanvas(ctx, world, entity, size, "sniper");
   },
 };

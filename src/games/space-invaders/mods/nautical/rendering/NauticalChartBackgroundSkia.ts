@@ -43,7 +43,7 @@ export function drawNauticalChartBackdropSkia(
   const fill = paintFactory.makePaint();
   paintFactory.setStyleFill(fill);
   paintFactory.setColor(fill, P.parchment);
-  canvas.drawRect({ x: 0, y: 0, width: worldWidth, height: worldHeight } as any, fill);
+  canvas.drawRect({ x: 0, y: 0, width: worldWidth, height: worldHeight }, fill);
 
   const stroke = paintFactory.makePaint();
   paintFactory.setStyleStroke(stroke);
@@ -55,7 +55,7 @@ export function drawNauticalChartBackdropSkia(
       y: marginOuter,
       width: worldWidth - marginOuter * 2,
       height: worldHeight - marginOuter * 2,
-    } as any,
+    },
     stroke
   );
   paintFactory.setStroke(stroke, innerStroke);
@@ -65,7 +65,7 @@ export function drawNauticalChartBackdropSkia(
       y: marginInner,
       width: worldWidth - marginInner * 2,
       height: worldHeight - marginInner * 2,
-    } as any,
+    },
     stroke
   );
 

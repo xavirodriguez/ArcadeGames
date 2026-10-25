@@ -1382,6 +1382,8 @@ export interface CoreComponentRegistry extends ComponentRegistry {
   BeltElevation: BeltElevationComponent;
   /** Belt input component. */
   BeltInput: BeltInputComponent;
+  /** Belt section enemy tag component. */
+  BeltSectionEnemy: Component & { type: "BeltSectionEnemy"; sectionIndex: number };
   /** Transform component. */
   Transform: TransformComponent;
   /** Velocity component. */

@@ -31,17 +31,15 @@ export function preloadSpriteSheetCanvas(sheetId: string): Promise<void> {
     img.onerror = reject;
 
     // Metro / Expo asset handling
-    if (typeof sheet.imageSource === "number") {
-      // In RN web this usually resolves via asset registry; fallback to string
-      // For pure web testing you may need to adjust this path.
-      img.src = (sheet.imageSource as any).uri ?? String(sheet.imageSource);
-    } else if (typeof sheet.imageSource === "string") {
-      img.src = sheet.imageSource;
-    } else if (sheet.imageSource?.uri) {
-      img.src = sheet.imageSource.uri;
-    } else {
-      // Last resort – assume it is already a usable source
-      img.src = sheet.imageSource as any;
+    const source = sheet.imageSource as { uri?: string } | number | string | undefined;
+    if (typeof source === "number") {
+      img.src = String(source);
+    } else if (typeof source === "string") {
+      img.src = source;
+    } else if (source && typeof source === "object" && source.uri) {
+      img.src = source.uri;
+    } else if (typeof source === "string") {
+      img.src = source;
     }
   });
 }
@@ -157,8 +155,8 @@ export function drawSpriteSkia(
   // Skia drawImageRect signature varies slightly by version; this is the common form
   canvas.drawImageRect(
     image,
-    src as any,
-    dst as any,
+    src,
+    dst,
     paint ?? undefined
   );
 

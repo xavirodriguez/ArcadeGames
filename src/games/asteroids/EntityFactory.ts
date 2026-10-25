@@ -6,6 +6,7 @@ import {
   CircleShape,
   Theme,
   resolveThemeColor,
+  resolveThemeColorWithFallback,
   EntityBuilder,
   HealthComponent,
   BoundaryComponent,
@@ -32,12 +33,12 @@ function getPowerUpColor(
   world?: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>
 ): string {
   if (world) {
-    const resolved = resolveThemeColor(world, `powerup-${lootType}`);
-    if (resolved) return resolved;
+    const fallback = lootType === "shield" ? colors.cyan : lootType === "speed_boost" ? colors.orange : getGameplayColor("Pickup", world);
+    return resolveThemeColorWithFallback(world, fallback, `powerup-${lootType}`);
   }
   if (lootType === "shield") return colors.cyan;
   if (lootType === "speed_boost") return colors.orange;
-  return getGameplayColor("Pickup", world);
+  return getGameplayColor("Pickup");
 }
 
 interface MovingCircularEnemyParams {

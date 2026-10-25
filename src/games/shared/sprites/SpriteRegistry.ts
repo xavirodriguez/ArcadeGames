@@ -28,6 +28,18 @@ try {
   oniRedImageSource = null;
 }
 
+let tower1ImageSource: SpriteImageSource = null;
+try {
+  tower1ImageSource = require("../../../../assets/sprites/towers/tower1.png");
+} catch {
+  tower1ImageSource = null;
+}
+
+let tower2ImageSource: SpriteImageSource = null;
+try {
+  tower2ImageSource = require("../../../../assets/sprites/towers/tower2.png");
+} catch {
+  tower2ImageSource = null;
 let seaDragonImageSource: SpriteImageSource = null;
 try {
   seaDragonImageSource = require("../../../../assets/sprites/enemies/sea_dragon.png");

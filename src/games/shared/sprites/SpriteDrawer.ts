@@ -5,6 +5,13 @@
 import type { Asset } from "expo-asset";
 import { getPaint, Skia } from "../rendering/SkiaContext";
 import type { SkCanvas, SkImage, SkPaint } from "@shopify/react-native-skia";
+
+let Asset: any = null;
+try {
+  Asset = require("expo-asset").Asset;
+} catch {
+  Asset = null;
+}
 import { SpriteRegistry } from "./SpriteRegistry";
 import { getCurrentFrameRect } from "./SpriteAnimator";
 import type { SpriteAnimatorComponent } from "./SpriteAnimator";

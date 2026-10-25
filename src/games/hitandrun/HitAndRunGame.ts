@@ -194,11 +194,8 @@ export class HitAndRunGame extends PlatformerArcadeGame<
         type: "image"
       }]);
       await this.samuraiAssetLoader.loadAll();
-      const loadedImage = this.samuraiAssetLoader.get<unknown>(SAMURAI_ASSET_KEY);
-      this.world.setResource(
-        SAMURAI_SPRITE_READY_RESOURCE,
-        loadedImage !== undefined && loadedImage !== null
-      );
+      const loadedImage = this.samuraiAssetLoader.get<{ uri: string }>(SAMURAI_ASSET_KEY);
+      this.world.setResource(SAMURAI_SPRITE_READY_RESOURCE, Boolean(loadedImage?.uri));
     } catch (error) {
       this.world.setResource(SAMURAI_SPRITE_READY_RESOURCE, false);
       console.warn("[HitAndRunGame] Samurai sprite unavailable; using procedural fallback:", error);

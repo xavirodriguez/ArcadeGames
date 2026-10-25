@@ -13,6 +13,7 @@ import {
 
 const ATTACK_STATES = new Set(["Anticipation", "Windup", "Attack", "Charge"]);
 const RECOVERY_STATE = "Recovery";
+const SAMURAI_DEATH_ANIMATION_SECONDS = 0.85;
 
 /** Selects animation clips from the existing Hit & Run AI/combat state. */
 export class SamuraiAnimationStateSystem extends System<CoreComponentRegistry> {
@@ -59,6 +60,18 @@ export class SamuraiAnimationStateSystem extends System<CoreComponentRegistry> {
         animator.frame = 0;
         animator.elapsed = 0;
         animator.isPlaying = true;
+
+        // The shared dead-cleanup system starts with a 0.35s timer. Keep the samurai
+        // alive long enough for all eight death frames to be visible before pooling.
+        if (nextClip === "death") {
+          const deathState = world.getMutableComponent(entity, "EnemyDeathState") as
+            | { timer: number; phase: string }
+            | undefined;
+          if (deathState) {
+            deathState.timer = Math.max(deathState.timer, SAMURAI_DEATH_ANIMATION_SECONDS);
+            deathState.phase = "samurai-animation";
+          }
+        }
       }
     }
   }

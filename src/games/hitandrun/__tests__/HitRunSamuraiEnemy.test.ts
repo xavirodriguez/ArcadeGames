@@ -1,6 +1,7 @@
 import { World, CoreComponentRegistry } from "@tiny-aster/core";
 import { getEnemyArchetype } from "../waves/HitRunEnemyArchetypes";
 import { HitRunEnemyPool } from "../waves/HitRunEnemyPool";
+import { SECTION_WAVE_SCRIPTS } from "../waves/sectionWaves";
 import {
   SAMURAI_ANIMATIONS,
   SAMURAI_ASSET_KEY,
@@ -25,6 +26,9 @@ describe("Hit & Run samurai enemy", () => {
       health: 5
     });
     expect(archetype?.behaviorTags).toContain("walk");
+    expect(SECTION_WAVE_SCRIPTS.wave_boss.events).toContainEqual(
+      expect.objectContaining({ type: "samurai", count: 1 })
+    );
     expect(Object.keys(SAMURAI_ANIMATIONS)).toEqual([
       "idle",
       "walk",

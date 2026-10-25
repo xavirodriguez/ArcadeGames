@@ -193,7 +193,7 @@ describe("Sea dragon drawers and mod registration", () => {
       fillRect: () => calls.push("fillRect"),
       drawImage: () => calls.push("drawImage"),
     };
-    drawSeaDragonSpriteCanvas.draw(ctx as unknown as CanvasRenderingContext2D, world, entity);
+    drawSeaDragonSpriteCanvas.draw(ctx as never as CanvasRenderingContext2D, world, entity);
 
     expect(calls).toContain("save");
     expect(calls).toContain("fillRect"); // gold eye painted by the fallback silhouette
@@ -209,14 +209,14 @@ describe("Sea dragon drawers and mod registration", () => {
       save: () => calls.push("save"),
       restore: () => calls.push("restore"),
     };
-    drawSeaDragonSpriteCanvas.draw(ctx as unknown as CanvasRenderingContext2D, world, 0);
+    drawSeaDragonSpriteCanvas.draw(ctx as never as CanvasRenderingContext2D, world, 0);
     expect(calls).toEqual([]);
 
     const hidden = world.createEntity();
     const hiddenRender = createRender();
     hiddenRender.visible = false;
     world.addComponent(hidden, hiddenRender);
-    drawSeaDragonSpriteCanvas.draw(ctx as unknown as CanvasRenderingContext2D, world, hidden);
+    drawSeaDragonSpriteCanvas.draw(ctx as never as CanvasRenderingContext2D, world, hidden);
     expect(calls).toEqual([]);
   });
 
@@ -234,7 +234,7 @@ describe("Sea dragon drawers and mod registration", () => {
     };
     expect(() => {
       void preloadSeaDragonSkiaImage();
-      drawSkiaSeaDragonSprite.draw(canvas as unknown as SkCanvas, world, entity);
+      drawSkiaSeaDragonSprite.draw(canvas as never as SkCanvas, world, entity);
     }).not.toThrow();
   });
 });

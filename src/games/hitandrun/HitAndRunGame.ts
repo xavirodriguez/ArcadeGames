@@ -19,7 +19,7 @@ import {
   Theme,
   World
 } from "@tiny-aster/core";
-import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
+import { updateRunProgress } from "@tiny-aster/gameplay-kit";
 import type { IAssetProvider } from "@tiny-aster/core";
 import {
   createSamuraiAssetProvider,

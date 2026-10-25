@@ -6,7 +6,8 @@ import type { Asset } from "expo-asset";
 import { getPaint, Skia } from "../rendering/SkiaContext";
 import type { SkCanvas, SkImage, SkPaint } from "@shopify/react-native-skia";
 import { SpriteRegistry } from "./SpriteRegistry";
-import { getCurrentFrameRect, SpriteAnimatorComponent } from "./SpriteAnimator";
+import { getCurrentFrameRect } from "./SpriteAnimator";
+import type { SpriteAnimatorComponent } from "./SpriteAnimator";
 import type { SpriteSheetDef, SpriteFrameRect } from "./SpriteTypes";
 
 /**
@@ -62,19 +63,8 @@ interface SkiaImageDimensions {
   height: number | (() => number);
 }
 
-/**
- * Shared draw options accepted by the Canvas and Skia sprite drawers.
- */
-export interface SpriteDrawOptions {
-  /** Logical anchor of `y`: "feet" (default) honors the sheet anchor (feet at origin); "center" centers the frame on the draw position. */
-  anchor?: "feet" | "center";
-  /** Additional alpha multiplier (0..1). Defaults to 1. */
-  opacity?: number;
-}
-
-/** Extracts pixel dimensions from a Skia image across API variants. */
 function getSkiaImageSize(image: SkImage): { width: number; height: number } {
-  const dimensions = image as unknown as SkiaImageDimensions;
+  const dimensions = image as SkiaImageDimensions;
   const width = typeof dimensions.width === "function" ? dimensions.width() : dimensions.width;
   const height = typeof dimensions.height === "function" ? dimensions.height() : dimensions.height;
   return { width, height };
@@ -111,6 +101,16 @@ function resolveDrawSize(
     width: frame.w * animator.scale,
     height: frame.h * animator.scale,
   };
+}
+
+/**
+ * Shared draw options accepted by the Canvas and Skia sprite drawers.
+ */
+export interface SpriteDrawOptions {
+  /** Logical anchor of `y`: "feet" (default, frame drawn above y) or "center" (frame centered on y). */
+  anchor?: "feet" | "center";
+  /** Additional alpha multiplier (0..1). Defaults to 1. */
+  opacity?: number;
 }
 
 /** Load a sheet once for Canvas, sharing the pending request between entities. */
@@ -230,14 +230,12 @@ export function drawSpriteCanvas(
   ctx.save();
   ctx.globalAlpha *= Math.max(0, Math.min(1, options?.opacity ?? 1));
   ctx.translate(x + ox, y + oy);
-  // Mirroring via scale keeps any anchor footprint in place (x⊗(-1) mirrors the
-  // drawn span around the entity origin), so no extra translate is needed.
-  if (animator.flipX) ctx.scale(-1, 1);
+  if (animator.flipX) {
+    ctx.scale(-1, 1);
+  }
 
-  // Logical anchor: "center" centers the frame on the draw position (flying
-  // entities hang off their centroid); "feet"/default honors the sheet anchor.
-  const drawX = options?.anchor === "center" ? -dw / 2 : -dw * anchor.x;
-  const drawY = options?.anchor === "center" ? -dh / 2 : -dh * anchor.y;
+  const dy = options?.anchor === "center" ? -dh / 2 : -dh * anchor.y;
+  const dx = -dw * anchor.x;
 
   ctx.drawImage(
     img,
@@ -245,8 +243,8 @@ export function drawSpriteCanvas(
     frame.y,
     frame.w,
     frame.h,
-    drawX,
-    drawY,
+    dx,
+    dy,
     dw,
     dh
   );
@@ -289,27 +287,22 @@ export function drawSpriteSkia(
   canvas.translate(x + ox, y + oy);
   if (animator.flipX) canvas.scale(-1, 1);
 
-  // Logical anchor: "center" centers the frame on the draw position (flying
-  // entities hang off their centroid); "feet"/default honors the sheet anchor.
-  const drawX = options?.anchor === "center" ? -dw / 2 : -dw * anchor.x;
-  const drawY = options?.anchor === "center" ? -dh / 2 : -dh * anchor.y;
+  const dy = options?.anchor === "center" ? -dh / 2 : -dh * anchor.y;
+  const dx = -dw * anchor.x;
 
-  // Prefer the caller's paint; fall back to the shared cached one. Both paths
-  // reset alpha explicitly so opacity never leaks between draws.
   const usingCallerPaint = paint !== undefined;
   const paintToUse = paint ?? getPaint();
   paintToUse.setAlphaf(Math.max(0, Math.min(1, options?.opacity ?? 1)));
 
-  // Source rect → dest rect at the chosen anchor
   const src = { x: frame.x, y: frame.y, width: frame.w, height: frame.h };
-  const dst = { x: drawX, y: drawY, width: dw, height: dh };
+  const dst = { x: dx, y: dy, width: dw, height: dh };
 
   canvas.drawImageRect(image, src, dst, paintToUse);
 
   canvas.restore();
 
-  // Restore the shared paint's alpha so other drawers using getPaint() are unaffected.
   if (!usingCallerPaint) paintToUse.setAlphaf(1);
+
   return true;
 }
 

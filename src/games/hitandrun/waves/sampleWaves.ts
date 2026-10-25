@@ -31,6 +31,7 @@ export const WAVE_PRESSURE: WaveScript = {
     { t: 2.5, type: "charger", count: 2, formation: "column", spacing: 36, x: 560, y: DEPTH_NEAR },
     { t: 5, type: "wall", count: 6, formation: "wall", spacing: 20, x: 480, y: DEPTH_MID },
     { t: 8, type: "hopper", count: 4, formation: "line", spacing: 40, interval: 0.15, x: 420, y: DEPTH_FAR },
+    { t: 10, type: "samurai", count: 1, formation: "point", x: 520, y: DEPTH_MID },
     { t: 12, type: "popcorn", count: 10, formation: "scatter", spacing: 22, x: 520, y: DEPTH_NEAR }
   ]
 };

@@ -56,6 +56,7 @@ export const WAVE_BOSS: WaveScript = {
     { t: 4.0, type: "charger", count: 3, formation: "line", spacing: 40, x: 350, y: DEPTH_NEAR },
     { t: 7.5, type: "elite", count: 1, formation: "point", x: 360, y: DEPTH_FAR },
     { t: 8.0, type: "popcorn", count: 6, formation: "scatter", spacing: 28, x: 300, y: DEPTH_NEAR },
+    { t: 10.5, type: "samurai", count: 1, formation: "point", x: 360, y: DEPTH_MID },
     { t: 12.0, type: "hopper", count: 3, formation: "column", spacing: 36, x: 340, y: DEPTH_MID }
   ]
 };

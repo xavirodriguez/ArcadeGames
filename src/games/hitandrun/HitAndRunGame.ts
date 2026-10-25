@@ -5,6 +5,7 @@ import {
   CoreComponentRegistry,
   EventRegistry,
   RenderContext,
+  AssetLoader,
   WebAudioPlayer,
   Renderer,
   HealthComponent,
@@ -17,6 +18,14 @@ import {
   Theme
 } from "@tiny-aster/core";
 import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
+import type { IAssetProvider } from "@tiny-aster/core";
+import {
+  createSamuraiAssetProvider,
+  loadSamuraiSpritesheetAsset,
+  SAMURAI_ASSET_KEY,
+  SAMURAI_SPRITE_READY_RESOURCE
+} from "./rendering/SamuraiVisualAssets";
+import { registerHitRunSamuraiAnimationSystems } from "./rendering/SamuraiAnimationSystems";
 import type {
   HitAndRunGameState,
   HitAndRunInput
@@ -62,6 +71,7 @@ import {
   drawHitRunHopper,
   drawHitRunCharger,
   drawHitRunElite,
+  drawHitRunSamuraiFallback,
   drawHitRunBullet,
   drawHitRunRocket
 } from "./rendering/HitRunCanvasVisuals";
@@ -77,6 +87,7 @@ export interface HitAndRunConfig {
   gameOptions?: Record<string, unknown>;
   levelData?: { templates: SegmentTemplate[]; grammar: string[] };
   theme?: Theme | string;
+  assetProvider?: IAssetProvider;
 }
 
 export type HitAndRunBlueprintMap = Record<
@@ -97,6 +108,7 @@ function registerHitRunRenderers(
   renderer.registerShape("hopper", drawHitRunHopper);
   renderer.registerShape("charger", drawHitRunCharger);
   renderer.registerShape("elite", drawHitRunElite);
+  renderer.registerShape("samurai", drawHitRunSamuraiFallback);
 
   renderer.registerShape("bullet_hmg", drawHitRunBullet);
   renderer.registerShape("bullet_shotgun", drawHitRunBullet);
@@ -118,6 +130,7 @@ export class HitAndRunGame extends PlatformerArcadeGame<
   private gameOver = false;
   private levelPlan!: LevelPlan;
   private customLevelData?: { templates: SegmentTemplate[]; grammar: string[] };
+  private readonly samuraiAssetLoader: AssetLoader;
 
   constructor(config: HitAndRunConfig = {}) {
     super({
@@ -126,8 +139,14 @@ export class HitAndRunGame extends PlatformerArcadeGame<
       gameOptions: config.gameOptions,
       seed: config.seed,
       theme: typeof config.theme === "object" ? config.theme : createThemeFromGameAccents("hitandrun"),
-      audio: new WebAudioPlayer()
+      audio: new WebAudioPlayer(),
+      assetProvider: config.assetProvider
     });
+    this.samuraiAssetLoader = new AssetLoader(
+      config.assetProvider ?? createSamuraiAssetProvider()
+    );
+    this.world.setResource("AssetLoader", this.samuraiAssetLoader);
+    this.world.setResource(SAMURAI_SPRITE_READY_RESOURCE, false);
     this.customLevelData =
       config.levelData ??
       (config.gameOptions?.levelData as
@@ -152,6 +171,27 @@ export class HitAndRunGame extends PlatformerArcadeGame<
       } catch (e) {
         console.warn("[HitAndRunGame] Audio preloading failed or timed out:", e);
       }
+    }
+
+    // Headless simulations use the existing procedural fallback and must not load image assets.
+    if (this.isHeadless) return;
+
+    try {
+      const spritesheet = await loadSamuraiSpritesheetAsset();
+      this.samuraiAssetLoader.queueAssets([{
+        id: SAMURAI_ASSET_KEY,
+        path: spritesheet,
+        type: "image"
+      }]);
+      await this.samuraiAssetLoader.loadAll();
+      const loadedImage = this.samuraiAssetLoader.get<unknown>(SAMURAI_ASSET_KEY);
+      this.world.setResource(
+        SAMURAI_SPRITE_READY_RESOURCE,
+        loadedImage !== undefined && loadedImage !== null
+      );
+    } catch (error) {
+      this.world.setResource(SAMURAI_SPRITE_READY_RESOURCE, false);
+      console.warn("[HitAndRunGame] Samurai sprite unavailable; using procedural fallback:", error);
     }
   }
 
@@ -199,6 +239,7 @@ export class HitAndRunGame extends PlatformerArcadeGame<
     });
 
     registerPresentationSystems(this.world);
+    registerHitRunSamuraiAnimationSystems(this.world);
   }
 
   public getLevelPlan(): LevelPlan {

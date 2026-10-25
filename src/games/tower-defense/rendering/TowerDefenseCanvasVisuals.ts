@@ -230,6 +230,7 @@ export const drawTowerBasic: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseC
     const render = world.getComponent(entity, "Render");
     const size = render?.size ?? 28;
     const isPaperDusk = isPaperDuskTheme(world);
+    TOWER_BASIC_SPRITE.scale = size / 34;
     const spriteDrawn = !isPaperDusk && drawSpriteCanvas(ctx, TOWER_BASIC_SPRITE, 0, 0);
     if (!spriteDrawn) {
       drawTowerBase(world, ctx, size, "tower_basic", "tower_basic_accent", "#4fc3f7", "#81d4fa", "basic");
@@ -243,6 +244,7 @@ export const drawTowerSniper: ShapeDrawer<CanvasRenderingContext2D, TowerDefense
     const render = world.getComponent(entity, "Render");
     const size = render?.size ?? 28;
     const isPaperDusk = isPaperDuskTheme(world);
+    TOWER_SNIPER_SPRITE.scale = size / 34;
     const spriteDrawn = !isPaperDusk && drawSpriteCanvas(ctx, TOWER_SNIPER_SPRITE, 0, 0);
     if (!spriteDrawn) {
       drawTowerBase(world, ctx, size, "tower_sniper", "tower_sniper_accent", "#ab47bc", "#ce93d8", "sniper");

@@ -8,6 +8,7 @@ module.exports = {
     '^@tiny-aster/gameplay-kit$': '<rootDir>/../gameplay-kit/src/index.ts',
     '^@tiny-aster/gameplay-kit/(.*)$': '<rootDir>/../gameplay-kit/src/$1',
     '^@/(.*)$': '<rootDir>/../../$1',
+    '\\.(png|jpg|jpeg|gif|webp|svg)$': '<rootDir>/tests/__mocks__/fileMock.js',
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
   transform: {

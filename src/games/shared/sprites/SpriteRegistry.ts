@@ -28,18 +28,32 @@ try {
   oniRedImageSource = null;
 }
 
-let tower1ImageSource: SpriteImageSource = null;
+let seaDragonImageSource: SpriteImageSource = null;
 try {
-  tower1ImageSource = require("../../../../assets/sprites/towers/tower1.png");
+  seaDragonImageSource = require("../../../../assets/sprites/enemies/sea_dragon.png");
 } catch {
-  tower1ImageSource = null;
+  seaDragonImageSource = null;
 }
 
-let tower2ImageSource: SpriteImageSource = null;
+let ghostGalleonImageSource: SpriteImageSource = null;
 try {
-  tower2ImageSource = require("../../../../assets/sprites/towers/tower2.png");
+  ghostGalleonImageSource = require("../../../../assets/sprites/enemies/ghost_galleon.png");
 } catch {
-  tower2ImageSource = null;
+  ghostGalleonImageSource = null;
+}
+
+let towerBasicImageSource: SpriteImageSource = null;
+try {
+  towerBasicImageSource = require("../../../../assets/sprites/towers/tower1.png");
+} catch {
+  towerBasicImageSource = null;
+}
+
+let towerSniperImageSource: SpriteImageSource = null;
+try {
+  towerSniperImageSource = require("../../../../assets/sprites/towers/tower2.png");
+} catch {
+  towerSniperImageSource = null;
 }
 
 /**
@@ -87,6 +101,56 @@ const ONI_RED: SpriteSheetDef = {
 };
 
 /**
+ * Sea dragon ("dragón marino") sprite sheet from the "Aquí hay dragones" Space Invaders art bible.
+ * Produced by scripts/sprites/build-sea-dragon-atlas.cjs: 640×192 PNG, uniform 80×64 px cells
+ * (2 px nearest-neighbor scale of the 40×32 logical frame), rows top-down:
+ *   row 0 fly (6 frames, loop), row 1 hit (3 frames, one-shot), row 2 death (6 frames, one-shot).
+ * Logical frame 40×32 world units; the silhouette is ≈34 u long and vertically centered,
+ * matching the bonus-ship lane scale documented in ARTWORK_theme_alternativo.md §12.2.
+ */
+const SEA_DRAGON: SpriteSheetDef = {
+  id: "sea_dragon",
+  imageSource: seaDragonImageSource,
+  frameWidth: 40,
+  frameHeight: 32,
+  animations: {
+    fly: {
+      name: "fly",
+      frames: makeRowFrames(0, 0, 40, 32, 6, 40),
+      frameDuration: 0.16,
+      loop: true,
+    },
+    hit: {
+      name: "hit",
+      frames: makeRowFrames(0, 32, 40, 32, 3, 40),
+      frameDuration: 0.09,
+      loop: false,
+    },
+    death: {
+      name: "death",
+      frames: makeRowFrames(0, 64, 40, 32, 6, 40),
+      frameDuration: 0.12,
+      loop: false,
+    },
+  },
+};
+
+const GHOST_GALLEON: SpriteSheetDef = {
+  id: "ghost_galleon",
+  imageSource: ghostGalleonImageSource,
+  frameWidth: 48,
+  frameHeight: 48,
+  animations: {
+    idle: {
+      name: "idle",
+      frames: makeRowFrames(0, 0, 48, 48, 4, 48),
+      frameDuration: 0.2,
+      loop: true,
+    },
+  },
+};
+
+/**
  * Static tower artwork. Source dimensions are read from each image at runtime,
  * so these definitions do not assume a frame grid or bake source-pixel sizes.
  *
@@ -95,7 +159,7 @@ const ONI_RED: SpriteSheetDef = {
  */
 const TOWER_BASIC_ART: SpriteSheetDef = {
   id: "tower_basic_art",
-  imageSource: tower1ImageSource,
+  imageSource: towerBasicImageSource,
   frameWidth: 34,
   frameHeight: 34,
   sourceMode: "full-image",
@@ -107,7 +171,7 @@ const TOWER_BASIC_ART: SpriteSheetDef = {
 
 const TOWER_SNIPER_ART: SpriteSheetDef = {
   id: "tower_sniper_art",
-  imageSource: tower2ImageSource,
+  imageSource: towerSniperImageSource,
   frameWidth: 34,
   frameHeight: 34,
   sourceMode: "full-image",
@@ -137,6 +201,8 @@ export const SpriteRegistry = {
    */
   init() {
     this.register(ONI_RED);
+    this.register(SEA_DRAGON);
+    this.register(GHOST_GALLEON);
     this.register(TOWER_BASIC_ART);
     this.register(TOWER_SNIPER_ART);
     // Future sprites go here

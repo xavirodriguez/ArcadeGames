@@ -20,7 +20,6 @@ import {
   World
 } from "@tiny-aster/core";
 import { updateRunProgress } from "@tiny-aster/gameplay-kit";
-import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
 import type { IAssetProvider } from "@tiny-aster/core";
 import {
   createSamuraiAssetProvider,

@@ -171,10 +171,10 @@ describe("TowerDefense headless - Phase 2 (Playable Headless)", () => {
   });
 
   it("keeps all creep silhouettes readable without changing configured sizes", () => {
-    expect(getCreepRenderSize("grunt", 12)).toBe(18);
-    expect(getCreepRenderSize("fast", 10)).toBe(16);
-    expect(getCreepRenderSize("tank", 18)).toBeCloseTo(26.1);
-    expect(getCreepRenderSize("boss", 28)).toBe(38);
+    expect(getCreepRenderSize("grunt", 12)).toBe(28);
+    expect(getCreepRenderSize("fast", 10)).toBe(26);
+    expect(getCreepRenderSize("tank", 18)).toBeCloseTo(38.7);
+    expect(getCreepRenderSize("boss", 28)).toBe(52);
   });
 
   it("2.7 App-level input: setInputState({ startWave: true }) triggers wave transition and spawns creeps", async () => {

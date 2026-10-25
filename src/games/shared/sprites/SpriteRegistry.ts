@@ -79,9 +79,23 @@ const ONI_RED: SpriteSheetDef = {
  * tower1 is assigned to the basic tower and tower2 to the sniper tower. Both
  * use center anchors because towers sit on cell centers rather than on feet.
  */
+let towerBasicImageSource: SpriteImageSource = null;
+try {
+  towerBasicImageSource = require("../../../../assets/sprites/towers/tower1.png");
+} catch {
+  towerBasicImageSource = null;
+}
+
+let towerSniperImageSource: SpriteImageSource = null;
+try {
+  towerSniperImageSource = require("../../../../assets/sprites/towers/tower2.png");
+} catch {
+  towerSniperImageSource = null;
+}
+
 const TOWER_BASIC_ART: SpriteSheetDef = {
   id: "tower_basic_art",
-  imageSource: require("../../../../assets/sprites/towers/tower1.png"),
+  imageSource: towerBasicImageSource,
   frameWidth: 34,
   frameHeight: 34,
   sourceMode: "full-image",
@@ -93,7 +107,7 @@ const TOWER_BASIC_ART: SpriteSheetDef = {
 
 const TOWER_SNIPER_ART: SpriteSheetDef = {
   id: "tower_sniper_art",
-  imageSource: require("../../../../assets/sprites/towers/tower2.png"),
+  imageSource: towerSniperImageSource,
   frameWidth: 34,
   frameHeight: 34,
   sourceMode: "full-image",

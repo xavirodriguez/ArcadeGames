@@ -27,8 +27,8 @@ function makeRowFrames(
  */
 const ONI_RED: SpriteSheetDef = {
   id: "oni_red",
-  // NOTE: place the file at assets/sprites/enemies/oni_red.png
-  imageSource: require("../../../../assets/sprites/enemies/oni_red.png"),
+  // File currently lives as enemy2.png in the repo
+  imageSource: require("../../../../assets/sprites/enemies/enemy2.png"),
   frameWidth: 56,
   frameHeight: 90,
   animations: {

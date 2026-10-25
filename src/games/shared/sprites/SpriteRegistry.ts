@@ -1,6 +1,6 @@
 // src/games/shared/sprites/SpriteRegistry.ts
 
-import { SpriteSheetDef, SpriteFrameRect } from "./SpriteTypes";
+import { SpriteSheetDef, SpriteFrameRect, SpriteImageSource } from "./SpriteTypes";
 
 /**
  * Helper to generate evenly spaced frames from a row in the sheet.
@@ -21,7 +21,7 @@ function makeRowFrames(
   }));
 }
 
-let oniRedImageSource: unknown = null;
+let oniRedImageSource: SpriteImageSource = null;
 try {
   oniRedImageSource = require("../../../../assets/sprites/enemies/oni_red.png");
 } catch {

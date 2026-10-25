@@ -294,10 +294,18 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
         } as { type: string; [key: string]: unknown });
 
         // Temporary: use oni_red sprite sheet as protagonist for testing
+        const animState = createSpriteAnimator("oni_red", "idle");
         world.addComponent(entity, {
           type: "SpriteAnimator",
-          ...createSpriteAnimator("oni_red", "idle"),
-        } as any);
+          sheetId: animState.sheetId,
+          currentAnim: animState.currentAnim,
+          frameIndex: animState.frameIndex,
+          timer: animState.timer,
+          scale: animState.scale,
+          flipX: animState.flipX,
+          offsetX: animState.offsetX,
+          offsetY: animState.offsetY,
+        });
       }
     });
 

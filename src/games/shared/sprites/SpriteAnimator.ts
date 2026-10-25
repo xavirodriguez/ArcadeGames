@@ -3,6 +3,8 @@
 import { SpriteRegistry } from "./SpriteRegistry";
 import { SpriteAnimatorComponent } from "./SpriteTypes";
 
+export type { SpriteAnimatorComponent };
+
 /**
  * Creates a new SpriteAnimator component.
  */

@@ -27,8 +27,15 @@ export class EchoRunnerSpriteSystem extends System<CoreComponentRegistry> {
         animator = createSpriteAnimator("oni_red", "idle");
         world.addComponent(entity, {
           type: "SpriteAnimator",
-          ...animator,
-        } as any);
+          sheetId: animator.sheetId,
+          currentAnim: animator.currentAnim,
+          frameIndex: animator.frameIndex,
+          timer: animator.timer,
+          scale: animator.scale,
+          flipX: animator.flipX,
+          offsetX: animator.offsetX,
+          offsetY: animator.offsetY,
+        });
         continue;
       }
 
@@ -77,11 +84,10 @@ export class EchoRunnerSpriteSystem extends System<CoreComponentRegistry> {
 
       // Write back (mutateComponent keeps change tracking happy)
       world.mutateComponent(entity, "SpriteAnimator", (comp) => {
-        const a = comp as SpriteAnimatorComponent;
-        a.currentAnim = animator!.currentAnim;
-        a.frameIndex = animator!.frameIndex;
-        a.timer = animator!.timer;
-        a.flipX = animator!.flipX;
+        comp.currentAnim = animator!.currentAnim;
+        comp.frameIndex = animator!.frameIndex;
+        comp.timer = animator!.timer;
+        comp.flipX = animator!.flipX;
       });
     }
   }

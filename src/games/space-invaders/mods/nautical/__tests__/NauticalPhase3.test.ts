@@ -31,8 +31,8 @@ describe("Phase 3 — Nautical wind", () => {
     expect(world.getResource(NAUTICAL_WIND_RESOURCE)).toBe(wind);
 
     const entity = world.createEntity();
-    world.addComponent(entity, { type: "PlayerBullet" } as any);
-    world.addComponent(entity, { type: "Velocity", vx: 0, vy: -100 } as any);
+    world.addComponent(entity, { type: "PlayerBullet" });
+    world.addComponent(entity, { type: "Velocity", vx: 0, vy: -100, angularVelocity: 0 });
 
     const sys = new NauticalWindSystem();
     wind!.force = 2;
@@ -74,8 +74,7 @@ describe("Phase 3 — Island erosion helpers", () => {
       type: "Shield",
       hp: 1,
       maxHp: 4,
-      segment: { row: 0, col: 0 },
-    } as any);
+    });
     world.addComponent(e, {
       type: "Render",
       shape: "shield_block",
@@ -87,7 +86,7 @@ describe("Phase 3 — Island erosion helpers", () => {
       rotation: 0,
       angularVelocity: 0,
       hitFlashFrames: 0,
-    } as any);
+    });
     new IslandErosionSystem().update(world, 0);
     const r = world.getComponent(e, "Render");
     expect(r!.opacity).toBeLessThan(1);

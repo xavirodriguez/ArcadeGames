@@ -48,7 +48,17 @@ export class SamuraiAnimationStateSystem extends System<CoreComponentRegistry> {
         nextClip = "hurt";
       } else if (ATTACK_STATES.has(machine.currentState)) {
         nextClip = "attack";
-      } else if (machine.currentState === RECOVERY_STATE && currentClip === "attack" && !currentFrameIsTerminal) {
+      } else if (
+        currentClip === "hurt" &&
+        !currentFrameIsTerminal
+      ) {
+        // Hitstun is shorter than the six-frame hurt clip: preserve the full recoil.
+        nextClip = "hurt";
+      } else if (
+        machine.currentState === RECOVERY_STATE &&
+        currentClip === "attack" &&
+        !currentFrameIsTerminal
+      ) {
         // Allow the eight-frame swing to finish through AI recovery.
         nextClip = "attack";
       } else {

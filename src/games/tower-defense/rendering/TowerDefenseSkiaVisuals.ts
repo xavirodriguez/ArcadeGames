@@ -6,9 +6,6 @@ import { Skia, getPaint, SkCanvas, SkPaint } from "../../shared/rendering/SkiaCo
 import { drawGlowOrbSkia } from "../../shared/rendering/SkiaNeonUtils";
 import { colors } from "../../../theme/colors";
 import { createSpriteAnimator, drawSpriteSkia } from "../../shared/sprites";
-
-const TOWER_BASIC_SPRITE = createSpriteAnimator("tower_basic_art");
-const TOWER_SNIPER_SPRITE = createSpriteAnimator("tower_sniper_art");
 import {
   createPathDirectionMarkers,
   resolveCreepAnimationState,
@@ -20,6 +17,9 @@ import {
   forEachTileGridCell,
   isPaperDuskTheme,
 } from "./TowerDefenseVisualHelpers";
+
+const TOWER_BASIC_SPRITE = createSpriteAnimator("tower_basic_art");
+const TOWER_SNIPER_SPRITE = createSpriteAnimator("tower_sniper_art");
 
 type TDWorld = World<TowerDefenseComponentRegistry>;
 

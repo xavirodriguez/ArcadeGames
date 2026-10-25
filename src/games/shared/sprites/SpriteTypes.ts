@@ -31,7 +31,8 @@ export interface SpriteAnimationDef {
 export type SpriteImageSource =
   | number
   | string
-  | { uri?: string; localUri?: string };
+  | { uri?: string; localUri?: string }
+  | null;
 
 export interface SpriteSheetDef {
   id: string;

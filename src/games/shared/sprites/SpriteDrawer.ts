@@ -26,6 +26,7 @@ async function resolveImageUri(
     await asset.downloadAsync();
     return preferLocalUri ? (asset.localUri ?? asset.uri) : (asset.uri ?? asset.localUri);
   }
+  if (source === null) return undefined;
 
   return preferLocalUri
     ? (source?.localUri ?? source?.uri)

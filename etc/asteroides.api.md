@@ -245,7 +245,7 @@ export interface AssistRule {
 }
 
 // @public
-export type AsteroidsRoleKey = CommonRoleKey | "player-ship" | "player-bullet" | "asteroid" | "asteroid-large" | "asteroid-medium" | "asteroid-small";
+export type AsteroidsRoleKey = CommonRoleKey | "player-ship" | "player-bullet" | "asteroid" | "asteroid-large" | "asteroid-medium" | "asteroid-small" | "thrustFlame" | "spark" | "hitFlash" | "bulletTrail" | "bulletCore" | "overlay" | "border" | "ufo";
 
 // @public
 export interface AudioAsset {

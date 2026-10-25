@@ -1,3 +1,4 @@
+/* global module */
 class Asset {
   static fromModule(module) {
     return new Asset(module);

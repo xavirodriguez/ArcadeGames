@@ -36,7 +36,22 @@ export type CommonRoleKey = "primary" | "secondary" | "accent" | "player" | "ene
  * Role keys for Asteroids.
  * @public
  */
-export type AsteroidsRoleKey = CommonRoleKey | "player-ship" | "player-bullet" | "asteroid" | "asteroid-large" | "asteroid-medium" | "asteroid-small";
+export type AsteroidsRoleKey =
+  | CommonRoleKey
+  | "player-ship"
+  | "player-bullet"
+  | "asteroid"
+  | "asteroid-large"
+  | "asteroid-medium"
+  | "asteroid-small"
+  | "thrustFlame"
+  | "spark"
+  | "hitFlash"
+  | "bulletTrail"
+  | "bulletCore"
+  | "overlay"
+  | "border"
+  | "ufo";
 
 /**
  * Role keys for Space Invaders.

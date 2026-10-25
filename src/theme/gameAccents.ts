@@ -237,6 +237,16 @@ export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<
     "large-asteroid": accentColors.accent,
     boss: accentColors.accent,
     shield: accentColors.primary,
+
+    // Asteroids role tokens
+    thrustFlame: colors.orangeDark,
+    spark: colors.gold,
+    hitFlash: colors.white,
+    bulletTrail: colors.green,
+    bulletCore: colors.white,
+    overlay: colors.overlay,
+    border: colors.border,
+    ufo: colors.cyan,
     ball: accentColors.primary,
     paddle: accentColors.primary,
     left: accentColors.primary,

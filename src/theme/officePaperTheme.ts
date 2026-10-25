@@ -9,6 +9,10 @@ import type { Theme } from "@tiny-aster/core";
  * Utiliza claves de color específicas consumidas por Flappy Bird (`bird`, `pipe`, `ground`).
  */
 export const officePaperTheme: Theme = createThemeFromGameAccents("flappy-bird", {
+  conceptPack: {
+    id: "office-paper",
+    name: "Oficina 8:47",
+  },
   colorMap: {
     bird: "#FFFFFF",
     pipe: "#475569",

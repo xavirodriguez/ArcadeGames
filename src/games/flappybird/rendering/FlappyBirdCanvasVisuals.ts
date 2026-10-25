@@ -1,4 +1,4 @@
-import { ShapeDrawer, EffectDrawer, THEME_RESOURCE_KEY, Theme, World } from "@tiny-aster/core";
+import { ShapeDrawer, EffectDrawer, World } from "@tiny-aster/core";
 import { FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
 import { computeFlappyThrusterFlame } from "../../shared/rendering/ProceduralShapeUtils";
 import {
@@ -36,12 +36,6 @@ import { hexToRgba } from "../../shared/rendering/CosmicPalette";
 import { CanvasGlowCache } from "../../shared/rendering/GlowSystem";
 
 export { FLAPPY_PARTICLE_POOL as FLAPPY_CANVAS_PARTICLE_POOL, spawnVisualParticle };
-
-function isOfficeTheme(world: World<FlappyBirdComponentRegistry>): boolean {
-  const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-  const layers = theme?.vfxProfile?.backgroundLayers;
-  return Array.isArray(layers) && layers.length === 0;
-}
 
 function drawCanvasGlideEnergyBar(
   ctx: CanvasRenderingContext2D,
@@ -147,54 +141,8 @@ function getCachedCanvasGradient(
   return grad;
 }
 
-function drawPaperAirplaneDetails(ctx: CanvasRenderingContext2D, size: number) {
-  // Left wing top fold
-  ctx.fillStyle = "#FFFFFF";
-  ctx.beginPath();
-  ctx.moveTo(size * 1.3, 0);
-  ctx.lineTo(-size * 0.9, -size * 0.8);
-  ctx.lineTo(-size * 0.4, 0);
-  ctx.closePath();
-  ctx.fill();
-
-  // Right wing under shadow
-  ctx.fillStyle = "#E2E8F0";
-  ctx.beginPath();
-  ctx.moveTo(size * 1.3, 0);
-  ctx.lineTo(-size * 0.4, 0);
-  ctx.lineTo(-size * 0.9, size * 0.8);
-  ctx.closePath();
-  ctx.fill();
-
-  // Center crease shadow line
-  ctx.fillStyle = "#94A3B8";
-  ctx.beginPath();
-  ctx.moveTo(size * 1.3, 0);
-  ctx.lineTo(-size * 0.4, 0);
-  ctx.lineTo(-size * 0.6, -size * 0.15);
-  ctx.closePath();
-  ctx.fill();
-
-  // Crisp outline
-  ctx.strokeStyle = "#334155";
-  ctx.lineWidth = 1.0;
-  ctx.beginPath();
-  ctx.moveTo(size * 1.3, 0);
-  ctx.lineTo(-size * 0.9, -size * 0.8);
-  ctx.lineTo(-size * 0.4, 0);
-  ctx.lineTo(-size * 0.9, size * 0.8);
-  ctx.closePath();
-  ctx.stroke();
-
-  // Center fold line
-  ctx.beginPath();
-  ctx.moveTo(size * 1.3, 0);
-  ctx.lineTo(-size * 0.4, 0);
-  ctx.stroke();
-}
-
 /**
- * Player Ship / Paper Airplane shape drawer.
+ * Player Ship (Interceptor) shape drawer.
  */
 export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdComponentRegistry> = {
   draw(ctx, world, entity) {
@@ -216,47 +164,12 @@ export const drawFlappyBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
       speed,
     } = drawCtx;
 
-    const officeTheme = isOfficeTheme(world);
-
     ctx.save();
     ctx.globalAlpha = globalOpacity;
 
     ctx.rotate(angleRad);
     ctx.scale(scaleX, scaleY);
 
-    if (officeTheme) {
-      // Paper Airplane Rendering
-      if (isAlive) {
-        ctx.save();
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        ctx.moveTo(-size * 0.5, -size * 0.2);
-        ctx.lineTo(-size * 1.6, -size * 0.2);
-        ctx.moveTo(-size * 0.5, size * 0.2);
-        ctx.lineTo(-size * 1.6, size * 0.2);
-        ctx.stroke();
-        ctx.restore();
-      }
-
-      drawPaperAirplaneDetails(ctx, size);
-      ctx.restore();
-
-      if (birdComp.nearMissTimer > 0) {
-        ctx.save();
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        const alphaVal = birdComp.nearMissTimer / 0.3;
-        ctx.fillStyle = hexToRgba("#FFFFFF", alphaVal);
-        ctx.font = "bold 13px 'Share Tech Mono', monospace";
-        ctx.textAlign = "center";
-        const floatY = (0.3 - birdComp.nearMissTimer) * 40;
-        ctx.fillText("NEAR_MISS +50", transform.x, transform.y - 35 - floatY);
-        ctx.restore();
-      }
-      return;
-    }
-
-    // Default Interceptor Rendering
     if (isDyingGlitch) {
       ctx.save();
       ctx.translate(-3, -1);
@@ -452,7 +365,7 @@ function applyPipeGradientStops(
 }
 
 /**
- * Containment Towers / Office Staplers Shape Drawer.
+ * Containment Towers Shape Drawer.
  */
 export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdComponentRegistry> = {
   draw(ctx, world, entity) {
@@ -460,47 +373,7 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
     if (!pipeCtx) return;
 
     const { pos, pipe, width, halfWidth, variant, capHeight, capWidth, capHalfWidth, beaconPulse, isTopPipe, pipeY, pipeHeight, capYOffset, beaconY } = pipeCtx;
-    const officeTheme = isOfficeTheme(world);
 
-    if (officeTheme) {
-      // Office Stapler / Metal Supply Pillar
-      const pillarGrad = getCachedCanvasGradient(ctx, `office_pillar_${halfWidth}`, () => {
-        const g = ctx.createLinearGradient(-halfWidth, 0, halfWidth, 0);
-        g.addColorStop(0, "#334155");
-        g.addColorStop(0.5, "#475569");
-        g.addColorStop(1.0, "#1E293B");
-        return g;
-      });
-
-      ctx.fillStyle = pillarGrad;
-      ctx.fillRect(-halfWidth, pipeY, width, pipeHeight);
-
-      ctx.strokeStyle = "#64748B";
-      ctx.lineWidth = 1.2;
-      ctx.strokeRect(-halfWidth, pipeY, width, pipeHeight);
-
-      // Chrome Stapler Collar / Cap
-      const collarGrad = getCachedCanvasGradient(ctx, `office_collar_${capHalfWidth}`, () => {
-        const g = ctx.createLinearGradient(-capHalfWidth, 0, capHalfWidth, 0);
-        g.addColorStop(0, "#64748B");
-        g.addColorStop(0.5, "#CBD5E1");
-        g.addColorStop(1.0, "#475569");
-        return g;
-      });
-
-      ctx.fillStyle = collarGrad;
-      ctx.fillRect(-capHalfWidth, capYOffset, capWidth, capHeight);
-      ctx.strokeStyle = "#94A3B8";
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(-capHalfWidth, capYOffset, capWidth, capHeight);
-
-      // Silver staple clip accent
-      ctx.fillStyle = "#F8FAFC";
-      ctx.fillRect(-capHalfWidth + 12, capYOffset + capHeight * 0.4, capWidth - 24, 3);
-      return;
-    }
-
-    // Default Containment Pillar
     const pillarGrad = getCachedCanvasGradient(ctx, `pillar_${halfWidth}_${variant}`, () => {
       const g = ctx.createLinearGradient(-halfWidth, 0, halfWidth, 0);
       applyPipeGradientStops(g, variant, [0.25, 0.5, 0.75]);
@@ -648,7 +521,7 @@ export const drawFlappyPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdCom
 };
 
 /**
- * Station Hull Ground / Office Wooden Desk Ground Shape Drawer.
+ * Station Hull Ground Shape Drawer.
  */
 export const drawFlappyGround: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdComponentRegistry> = {
   draw(ctx, world, entity) {
@@ -657,34 +530,7 @@ export const drawFlappyGround: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdC
     const { size = 400 } = render;
     const width = size;
     const height = 40;
-    const officeTheme = isOfficeTheme(world);
 
-    if (officeTheme) {
-      // Office Wooden Desk Surface
-      const deskGrad = getCachedCanvasGradient(ctx, `desk_${height}`, () => {
-        const g = ctx.createLinearGradient(0, -height / 2, 0, height / 2);
-        g.addColorStop(0, "#D97706");
-        g.addColorStop(0.3, "#B45309");
-        g.addColorStop(1.0, "#78350F");
-        return g;
-      });
-      ctx.fillStyle = deskGrad;
-      ctx.fillRect(-width / 2, -height / 2, width, height);
-
-      // Polished Edge Brass Trim
-      ctx.fillStyle = "#F59E0B";
-      ctx.fillRect(-width / 2, -height / 2, width, 3);
-
-      ctx.strokeStyle = "#451A03";
-      ctx.lineWidth = 1.0;
-      ctx.beginPath();
-      ctx.moveTo(-width / 2, -height / 2);
-      ctx.lineTo(width / 2, -height / 2);
-      ctx.stroke();
-      return;
-    }
-
-    // Default Station Hull Ground
     const baseGrad = getCachedCanvasGradient(ctx, `base_${height}`, () => {
       const g = ctx.createLinearGradient(0, -height / 2, 0, height / 2);
       g.addColorStop(0, colors.surface);
@@ -861,49 +707,9 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
     if (!bgSetup) return;
 
     const { gameState, width, height, scenarioTheme, nebulae } = bgSetup;
-    const officeTheme = isOfficeTheme(world);
 
     updateVisualParticles();
 
-    if (officeTheme) {
-      // Office 8:47 Ambient Room Background
-      const bgGrad = getCachedCanvasGradient(ctx, `office_bg_${width}_${height}`, () => {
-        const g = ctx.createLinearGradient(0, 0, 0, height);
-        g.addColorStop(0, "#0F172A");
-        g.addColorStop(0.6, "#1E293B");
-        g.addColorStop(1.0, "#090D16");
-        return g;
-      });
-      ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, width, height);
-
-      // Office Blueprint / Graph Paper Grid Lines
-      ctx.save();
-      ctx.strokeStyle = "rgba(148, 163, 184, 0.08)";
-      ctx.lineWidth = 1.0;
-      const gridOffset = (world.tick * 0.5) % 20;
-
-      for (let gx = -20 + gridOffset; gx < width + 20; gx += 20) {
-        ctx.beginPath();
-        ctx.moveTo(gx, 0);
-        ctx.lineTo(gx, height);
-        ctx.stroke();
-      }
-      for (let gy = 0; gy < height; gy += 20) {
-        ctx.beginPath();
-        ctx.moveTo(0, gy);
-        ctx.lineTo(width, gy);
-        ctx.stroke();
-      }
-      ctx.restore();
-
-      drawCanvasVisualParticles(ctx);
-
-      drawCanvasGlideEnergyBar(ctx, world, width, height);
-      return;
-    }
-
-    // Default Space Theme Background
     if (!staticStars) {
       staticStars = generateStarfield(width, height);
     }

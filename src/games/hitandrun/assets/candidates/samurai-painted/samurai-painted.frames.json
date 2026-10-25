@@ -1,0 +1,1746 @@
+{
+  "source": "assets/sprites/samurai1.png",
+  "source_size": [
+    1408,
+    768
+  ],
+  "scale": 0.4,
+  "feet_y": 60,
+  "safe_area_px": 2,
+  "cells": [
+    {
+      "index": 0,
+      "clip": "idle",
+      "clip_frame": 0,
+      "source": {
+        "row": 1,
+        "frame": 0,
+        "bbox": [
+          49,
+          22,
+          140,
+          157
+        ]
+      },
+      "masked_bbox": [
+        0,
+        0,
+        91,
+        135
+      ],
+      "flip_x": false,
+      "size": [
+        36,
+        54
+      ],
+      "offset": [
+        14,
+        6
+      ],
+      "duplicate_of": null,
+      "hold_of": null
+    },
+    {
+      "index": 1,
+      "clip": "idle",
+      "clip_frame": 1,
+      "source": {
+        "row": 1,
+        "frame": 1,
+        "bbox": [
+          185,
+          22,
+          277,
+          157
+        ]
+      },
+      "masked_bbox": [
+        0,
+        0,
+        92,
+        135
+      ],
+      "flip_x": false,
+      "size": [
+        37,
+        54
+      ],
+      "offset": [
+        14,
+        6
+      ],
+      "duplicate_of": null,
+      "hold_of": null
+    },
+    {
+      "index": 2,
+      "clip": "idle",
+      "clip_frame": 2,
+      "source": {
+        "row": 1,
+        "frame": 2,
+        "bbox": [
+          325,
+          22,
+          417,
+          158
+        ]
+      },
+      "masked_bbox": [
+        0,
+        0,
+        92,
+        135
+      ],
+      "flip_x": false,
+      "size": [
+        37,
+        54
+      ],
+      "offset": [
+        14,
+        6
+      ],
+      "duplicate_of": null,
+      "hold_of": null
+    },
+    {
+      "index": 3,
+      "clip": "idle",
+      "clip_frame": 3,
+      "source": {
+        "row": 1,
+        "frame": 3,
+        "bbox": [
+          459,
+          22,
+          551,
+          158
+        ]
+      },
+      "masked_bbox": [
+        0,
+        0,
+        92,
+        136
+      ],
+      "flip_x": false,
+      "size": [
+        37,
+        54
+      ],
+      "offset": [
+        14,
+        6
+      ],
+      "duplicate_of": null,
+      "hold_of": null
+    },
+    {
+      "index": 4,
+      "clip": "idle",
+      "clip_frame": 4,
+      "source": {
+        "row": 1,
+        "frame": 4,
+        "bbox": [
+          589,
+          22,
+          681,
+          158
+        ]
+      },
+      "masked_bbox": [
+        0,
+        0,
+        92,
+        136
+      ],
+      "flip_x": false,
+      "size": [
+        37,
+        54
+      ],
+      "offset": [
+        14,
+        6
+      ],
+      "duplicate_of": null,
+      "hold_of": null
+    },
+    {
+      "index": 5,
+      "clip": "idle",
+      "clip_frame": 5,
+      "source": {
+        "row": 1,
+        "frame": 5,
+        "bbox": [
+          723,
+          22,
+          815,
+          157
+        ]
+      },
+      "masked_bbox": [
+        0,
+        0,
+        92,
+        135
+      ],
+      "flip_x": false,
+      "size": [
+        37,
+        54
+      ],
+      "offset": [
+        14,
+        6
+      ],
+      "duplicate_of": null,
+      "hold_of": null
+    },
+    {
+      "index": 6,
+      "clip": "idle",
+      "clip_frame": 6,
+      "source": {
+        "row": 1,
+        "frame": 4,
+        "bbox": [
+          589,
+          22,
+          681,
+          158
+        ]
+      },
+      "masked_bbox": [
+        0,
+        0,
+        92,
+        136
+      ],
+      "flip_x": false,
+      "size": [
+        37,
+        54
+      ],
+      "offset": [
+        14,
+        6
+      ],
+      "duplicate_of": 4,
+      "hold_of": 4
+    },
+    {
+      "index": 7,
+      "clip": "idle",
+      "clip_frame": 7,
+      "source": {
+        "row": 1,
+        "frame": 5,
+        "bbox": [
+          723,
+          22,
+          815,
+          157
+        ]
+      },
+      "masked_bbox": [
+        0,
+        0,
+        92,
+        135
+      ],
+      "flip_x": false,
+      "size": [
+        37,
+        54
+      ],
+      "offset": [
+        14,
+        6
+      ],
+      "duplicate_of": 5,
+      "hold_of": 5
+    },
+    {
+      "index": 8,
+      "clip": "walk",
+      "clip_frame": 0,
+      "source": {
+        "row": 2,
+        "frame": 0,
+        "bbox": [
+          37,
+          182,
+          139,
+          300
+        ]
+      },
+      "masked_bbox": [
+        0,
+        0,
+        102,
+        118
+      ],
+      "flip_x": false,
+      "size": [
+        41,
+        47
+      ],
+      "offset": [
+        12,
+        13
+      ],
+      "duplicate_of": null,
+      "hold_of": null
+    },
+    {
+      "index": 9,
+      "clip": "walk",
+      "clip_frame": 1,
+      "source": {
+        "row": 2,
+        "frame": 1,
+        "bbox": [
+          171,
+          182,
+          278,
+          298
+        ]
+      },
+      "masked_bbox": [
+        0,
+        1,
+        107,
+        116
+      ],
+      "flip_x": false,
+      "size": [
+        43,
+        46
+      ],
+      "offset": [
+        10,
+        14
+      ],
+      "duplicate_of": null,
+      "hold_of": null
+    },
+    {
+      "index": 10,
+      "clip": "walk",
+      "clip_frame": 2,
+      "source": {
+        "row": 2,
+        "frame": 2,
+        "bbox": [
+          313,
+          182,
+          417,
+          300
+        ]
+      },
+      "masked_bbox": [
+        0,
+        1,
+        104,
+        118
+      ],
+      "flip_x": false,
+      "size": [
+        42,
+        47
+      ],
+      "offset": [
+        11,
+        13
+      ],
+      "duplicate_of": null,
+      "hold_of": null
+    },
+    {
+      "index": 11,
+      "clip": "walk",
+      "clip_frame": 3,
+      "source": {
+        "row": 2,
+        "frame": 3,
+        "bbox": [
+          449,
+          182,
+          563,
+          301
+        ]
+      },
+      "masked_bbox": [
+        0,
+        1,
+        114,
+        118
+      ],
+      "flip_x": false,
+      "size": [
+        46,
+        47
+      ],
+      "offset": [
+        9,
+        13
+      ],
+      "duplicate_of": null,
+      "hold_of": null
+    },
+    {
+      "index": 12,
+      "clip": "walk",
+      "clip_frame": 4,
+      "source": {
+        "row": 2,
+        "frame": 4,
+        "bbox": [
+          591,
+          182,
+          695,
+          300
+        ]
+      },
+      "masked_bbox": [
+        0,
+        0,
+        104,
+        118
+      ],
+      "flip_x": false,
+      "size": [
+        42,
+        47
+      ],
+      "offset": [
+        11,
+        13
+      ],
+      "duplicate_of": null,
+      "hold_of": null
+    },
+    {
+      "index": 13,
+      "clip": "walk",
+      "clip_frame": 5,
+      "source": {
+        "row": 2,
+        "frame": 5,
+        "bbox": [
+          725,
+          182,
+          830,
+          300
+        ]
+      },
+      "masked_bbox": [
+        0,
+        1,
+        105,
+        117
+      ],
+      "flip_x": false,
+      "size": [
+        42,
+        46
+      ],
+      "offset": [
+        11,
+        14
+      ],
+      "duplicate_of": null,
+      "hold_of": null
+    },
+    {
+      "index": 14,
+      "clip": "walk",
+      "clip_frame": 6,
+      "source": {
+        "row": 2,
+        "frame": 6,
+        "bbox": [
+          863,
+          182,
+          974,
+          300
+        ]
+      },
+      "masked_bbox": [
+        0,
+        0,
+        111,
+        118
+      ],
+      "flip_x": false,
+      "size": [
+        44,
+        47
+      ],
+      "offset": [
+        10,
+        13
+      ],
+      "duplicate_of": null,
+      "hold_of": null
+    },
+    {
+      "index": 15,
+      "clip": "walk",
+      "clip_frame": 7,
+      "source": {
+        "row": 2,
+        "frame": 7,
+        "bbox": [
+          1002,
+          182,
+          1099,
+          300
+        ]
+      },
+      "masked_bbox": [
+        0,
+        0,
+        97,
+        118
+      ],
+      "flip_x": false,
+      "size": [
+        39,
+        47
+      ],
+      "offset": [
+        12,
+        13
+      ],
+      "duplicate_of": null,
+      "hold_of": null
+    },
+    {
+      "index": 16,
+      "clip": "attack",
+      "clip_frame": 0,
+      "source": {
+        "row": 3,
+        "frame": 0,
+        "bbox": [
+          39,
+          330,
+          149,
+          459
+        ]
+      },
+      "masked_bbox": [
+        0,
+        0,
+        110,
+        129
+      ],
+      "flip_x": true,
+      "size": [
+        44,
+        52
+      ],
+      "offset": [
+        17,
+        8
+      ],
+      "duplicate_of": null,
+      "hold_of": null
+    },
+    {
+      "index": 17,
+      "clip": "attack",
+      "clip_frame": 1,
+      "source": {
+        "row": 3,
+        "frame": 1,
+        "bbox": [
+          188,
+          324,
+          338,
+          459
+        ]
+      },
+      "masked_bbox": [
+        0,
+        1,
+        119,
+        135
+      ],
+      "flip_x": true,
+      "size": [
+        48,
+        54
+      ],
+      "offset": [
+        10,
+        6
+      ],
+      "duplicate_of": null,
+      "hold_of": null
+    },
+    {
+      "index": 18,
+      "clip": "attack",
+      "clip_frame": 2,
+      "source": {
+        "row": 3,
+        "frame": 2,
+        "bbox": [
+          336,
+          319,
+          481,
+          459
+        ]
+      },
+      "masked_bbox": [
+        0,
+        6,
+        145,
+        140
+      ],
+      "flip_x": true,
+      "size": [
+        58,
+        54
+      ],
+      "offset": [
+        -2,
+        6
+      ],
+      "duplicate_of": null,
+      "hold_of": null
+    },
+    {
+      "index": 19,
+      "clip": "attack",
+      "clip_frame": 3,
+      "source": {
+        "row": 3,
+        "frame": 3,
+        "bbox": [
+          479,
+          326,
+          663,
+          459
+        ]
+      },
+      "masked_bbox": [
+        16,
+        0,
+        165,
+        133
+      ],
+      "flip_x": true,
+      "size": [
+        60,
+        53
+      ],
+      "offset": [
+        -2,
+        7
+      ],
+      "duplicate_of": null,
+      "hold_of": null
+    },
+    {
+      "index": 20,
+      "clip": "attack",
+      "clip_frame": 4,
+      "source": {
+        "row": 3,
+        "frame": 3,
+        "bbox": [
+          479,
+          326,
+          663,
+          459
+        ]
+      },
+      "masked_bbox": [
+        16,
+        0,
+        165,
+        133
+      ],
+      "flip_x": true,
+      "size": [
+        60,
+        53
+      ],
+      "offset": [
+        -2,
+        7
+      ],
+      "duplicate_of": 19,
+      "hold_of": 19
+    },
+    {
+      "index": 21,
+      "clip": "attack",
+      "clip_frame": 5,
+      "source": {
+        "row": 3,
+        "frame": 4,
+        "bbox": [
+          661,
+          327,
+          831,
+          459
+        ]
+      },
+      "masked_bbox": [
+        0,
+        1,
+        170,
+        132
+      ],
+      "flip_x": true,
+      "size": [
+        68,
+        52
+      ],
+      "offset": [
+        -5,
+        8
+      ],
+      "duplicate_of": null,
+      "hold_of": null
+    },
+    {
+      "index": 22,
+      "clip": "attack",
+      "clip_frame": 6,
+      "source": {
+        "row": 3,
+        "frame": 6,
+        "bbox": [
+          1044,
+          324,
+          1142,
+          459
+        ]
+      },
+      "masked_bbox": [
+        0,
+        0,
+        98,
+        135
+      ],
+      "flip_x": true,
+      "size": [
+        39,
+        54
+      ],
+      "offset": [
+        18,
+        6
+      ],
+      "duplicate_of": null,
+      "hold_of": null
+    },
+    {
+      "index": 23,
+      "clip": "attack",
+      "clip_frame": 7,
+      "source": {
+        "row": 3,
+        "frame": 6,
+        "bbox": [
+          1044,
+          324,
+          1142,
+          459
+        ]
+      },
+      "masked_bbox": [
+        0,
+        0,
+        98,
+        135
+      ],
+      "flip_x": true,
+      "size": [
+        39,
+        54
+      ],
+      "offset": [
+        18,
+        6
+      ],
+      "duplicate_of": 22,
+      "hold_of": 22
+    },
+    {
+      "index": 24,
+      "clip": "hurt",
+      "clip_frame": 0,
+      "source": {
+        "row": 4,
+        "frame": 5,
+        "bbox": [
+          929,
+          474,
+          1020,
+          598
+        ]
+      },
+      "masked_bbox": [
+        0,
+        1,
+        91,
+        124
+      ],
+      "flip_x": true,
+      "size": [
+        36,
+        49
+      ],
+      "offset": [
+        14,
+        11
+      ],
+      "duplicate_of": null,
+      "hold_of": null
+    },
+    {
+      "index": 25,
+      "clip": "hurt",
+      "clip_frame": 1,
+      "source": {
+        "row": 4,
+        "frame": 4,
+        "bbox": [
+          786,
+          474,
+          878,
+          598
+        ]
+      },
+      "masked_bbox": [
+        0,
+        0,
+        92,
+        124
+      ],
+      "flip_x": true,
+      "size": [
+        37,
+        50
+      ],
+      "offset": [
+        14,
+        10
+      ],
+      "duplicate_of": null,
+      "hold_of": null
+    },
+    {
+      "index": 26,
+      "clip": "hurt",
+      "clip_frame": 2,
+      "source": {
+        "row": 3,
+        "frame": 5,
+        "bbox": [
+          877,
+          333,
+          1015,
+          458
+        ]
+      },
+      "masked_bbox": [
+        0,
+        0,
+        138,
+        125
+      ],
+      "flip_x": true,
+      "size": [
+        55,
+        50
+      ],
+      "offset": [
+        4,
+        10
+      ],
+      "duplicate_of": null,
+      "hold_of": null
+    },
+    {
+      "index": 27,
+      "clip": "hurt",
+      "clip_frame": 3,
+      "source": {
+        "row": 5,
+        "frame": 4,
+        "bbox": [
+          592,
+          617,
+          711,
+          744
+        ]
+      },
+      "masked_bbox": [
+        0,
+        0,
+        119,
+        127
+      ],
+      "flip_x": true,
+      "size": [
+        48,
+        51
+      ],
+      "offset": [
+        8,
+        9
+      ],
+      "duplicate_of": null,
+      "hold_of": null
+    },
+    {
+      "index": 28,
+      "clip": "hurt",
+      "clip_frame": 4,
+      "source": {
+        "row": 3,
+        "frame": 7,
+        "bbox": [
+          1157,
+          322,
+          1272,
+          458
+        ]
+      },
+      "masked_bbox": [
+        0,
+        0,
+        115,
+        122
+      ],
+      "flip_x": true,
+      "size": [
+        46,
+        49
+      ],
+      "offset": [
+        9,
+        11
+      ],
+      "duplicate_of": null,
+      "hold_of": null
+    },
+    {
+      "index": 29,
+      "clip": "hurt",
+      "clip_frame": 5,
+      "source": {
+        "row": 3,
+        "frame": 6,
+        "bbox": [
+          1044,
+          324,
+          1142,
+          459
+        ]
+      },
+      "masked_bbox": [
+        0,
+        0,
+        98,
+        135
+      ],
+      "flip_x": true,
+      "size": [
+        39,
+        54
+      ],
+      "offset": [
+        12,
+        6
+      ],
+      "duplicate_of": 22,
+      "hold_of": null
+    },
+    {
+      "index": 30,
+      "clip": "empty",
+      "source": null
+    },
+    {
+      "index": 31,
+      "clip": "empty",
+      "source": null
+    },
+    {
+      "index": 32,
+      "clip": "death",
+      "clip_frame": 0,
+      "source": {
+        "row": 5,
+        "frame": 4,
+        "bbox": [
+          592,
+          617,
+          711,
+          744
+        ]
+      },
+      "masked_bbox": [
+        0,
+        0,
+        119,
+        127
+      ],
+      "flip_x": true,
+      "size": [
+        48,
+        51
+      ],
+      "offset": [
+        8,
+        9
+      ],
+      "duplicate_of": 27,
+      "hold_of": null
+    },
+    {
+      "index": 33,
+      "clip": "death",
+      "clip_frame": 1,
+      "source": {
+        "row": 5,
+        "frame": 5,
+        "bbox": [
+          755,
+          637,
+          876,
+          744
+        ]
+      },
+      "masked_bbox": [
+        0,
+        0,
+        120,
+        107
+      ],
+      "flip_x": true,
+      "size": [
+        48,
+        43
+      ],
+      "offset": [
+        8,
+        17
+      ],
+      "duplicate_of": null,
+      "hold_of": null
+    },
+    {
+      "index": 34,
+      "clip": "death",
+      "clip_frame": 2,
+      "source": {
+        "row": 5,
+        "frame": 6,
+        "bbox": [
+          910,
+          642,
+          1028,
+          743
+        ]
+      },
+      "masked_bbox": [
+        0,
+        0,
+        118,
+        101
+      ],
+      "flip_x": true,
+      "size": [
+        47,
+        40
+      ],
+      "offset": [
+        8,
+        20
+      ],
+      "duplicate_of": null,
+      "hold_of": null
+    },
+    {
+      "index": 35,
+      "clip": "death",
+      "clip_frame": 3,
+      "source": {
+        "row": 5,
+        "frame": 7,
+        "bbox": [
+          1069,
+          626,
+          1193,
+          744
+        ]
+      },
+      "masked_bbox": [
+        4,
+        18,
+        124,
+        118
+      ],
+      "flip_x": true,
+      "size": [
+        48,
+        40
+      ],
+      "offset": [
+        8,
+        20
+      ],
+      "duplicate_of": null,
+      "hold_of": null
+    },
+    {
+      "index": 36,
+      "clip": "death",
+      "clip_frame": 4,
+      "source": {
+        "row": 5,
+        "frame": 7,
+        "bbox": [
+          1069,
+          626,
+          1193,
+          744
+        ]
+      },
+      "masked_bbox": [
+        4,
+        18,
+        124,
+        118
+      ],
+      "flip_x": true,
+      "size": [
+        48,
+        40
+      ],
+      "offset": [
+        8,
+        20
+      ],
+      "duplicate_of": 35,
+      "hold_of": 35
+    },
+    {
+      "index": 37,
+      "clip": "death",
+      "clip_frame": 5,
+      "source": {
+        "row": 5,
+        "frame": 7,
+        "bbox": [
+          1069,
+          626,
+          1193,
+          744
+        ]
+      },
+      "masked_bbox": [
+        4,
+        18,
+        124,
+        118
+      ],
+      "flip_x": true,
+      "size": [
+        48,
+        40
+      ],
+      "offset": [
+        8,
+        20
+      ],
+      "duplicate_of": 35,
+      "hold_of": 35
+    },
+    {
+      "index": 38,
+      "clip": "death",
+      "clip_frame": 6,
+      "source": {
+        "row": 5,
+        "frame": 7,
+        "bbox": [
+          1069,
+          626,
+          1193,
+          744
+        ]
+      },
+      "masked_bbox": [
+        4,
+        18,
+        124,
+        118
+      ],
+      "flip_x": true,
+      "size": [
+        48,
+        40
+      ],
+      "offset": [
+        8,
+        20
+      ],
+      "duplicate_of": 35,
+      "hold_of": 35
+    },
+    {
+      "index": 39,
+      "clip": "death",
+      "clip_frame": 7,
+      "source": {
+        "row": 5,
+        "frame": 7,
+        "bbox": [
+          1069,
+          626,
+          1193,
+          744
+        ]
+      },
+      "masked_bbox": [
+        4,
+        18,
+        124,
+        118
+      ],
+      "flip_x": true,
+      "size": [
+        48,
+        40
+      ],
+      "offset": [
+        8,
+        20
+      ],
+      "duplicate_of": 35,
+      "hold_of": 35
+    }
+  ],
+  "source_inventory": [
+    {
+      "row": 1,
+      "frame": 0,
+      "bbox": [
+        49,
+        22,
+        140,
+        157
+      ],
+      "used_by": [
+        0
+      ]
+    },
+    {
+      "row": 1,
+      "frame": 1,
+      "bbox": [
+        185,
+        22,
+        277,
+        157
+      ],
+      "used_by": [
+        1
+      ]
+    },
+    {
+      "row": 1,
+      "frame": 2,
+      "bbox": [
+        325,
+        22,
+        417,
+        158
+      ],
+      "used_by": [
+        2
+      ]
+    },
+    {
+      "row": 1,
+      "frame": 3,
+      "bbox": [
+        459,
+        22,
+        551,
+        158
+      ],
+      "used_by": [
+        3
+      ]
+    },
+    {
+      "row": 1,
+      "frame": 4,
+      "bbox": [
+        589,
+        22,
+        681,
+        158
+      ],
+      "used_by": [
+        4,
+        6
+      ]
+    },
+    {
+      "row": 1,
+      "frame": 5,
+      "bbox": [
+        723,
+        22,
+        815,
+        157
+      ],
+      "used_by": [
+        5,
+        7
+      ]
+    },
+    {
+      "row": 2,
+      "frame": 0,
+      "bbox": [
+        37,
+        182,
+        139,
+        300
+      ],
+      "used_by": [
+        8
+      ]
+    },
+    {
+      "row": 2,
+      "frame": 1,
+      "bbox": [
+        171,
+        182,
+        278,
+        298
+      ],
+      "used_by": [
+        9
+      ]
+    },
+    {
+      "row": 2,
+      "frame": 2,
+      "bbox": [
+        313,
+        182,
+        417,
+        300
+      ],
+      "used_by": [
+        10
+      ]
+    },
+    {
+      "row": 2,
+      "frame": 3,
+      "bbox": [
+        449,
+        182,
+        563,
+        301
+      ],
+      "used_by": [
+        11
+      ]
+    },
+    {
+      "row": 2,
+      "frame": 4,
+      "bbox": [
+        591,
+        182,
+        695,
+        300
+      ],
+      "used_by": [
+        12
+      ]
+    },
+    {
+      "row": 2,
+      "frame": 5,
+      "bbox": [
+        725,
+        182,
+        830,
+        300
+      ],
+      "used_by": [
+        13
+      ]
+    },
+    {
+      "row": 2,
+      "frame": 6,
+      "bbox": [
+        863,
+        182,
+        974,
+        300
+      ],
+      "used_by": [
+        14
+      ]
+    },
+    {
+      "row": 2,
+      "frame": 7,
+      "bbox": [
+        1002,
+        182,
+        1099,
+        300
+      ],
+      "used_by": [
+        15
+      ]
+    },
+    {
+      "row": 2,
+      "frame": 8,
+      "bbox": [
+        1129,
+        182,
+        1238,
+        300
+      ],
+      "used_by": []
+    },
+    {
+      "row": 3,
+      "frame": 0,
+      "bbox": [
+        39,
+        330,
+        149,
+        459
+      ],
+      "used_by": [
+        16
+      ]
+    },
+    {
+      "row": 3,
+      "frame": 1,
+      "bbox": [
+        188,
+        324,
+        338,
+        459
+      ],
+      "used_by": [
+        17
+      ]
+    },
+    {
+      "row": 3,
+      "frame": 2,
+      "bbox": [
+        336,
+        319,
+        481,
+        459
+      ],
+      "used_by": [
+        18
+      ]
+    },
+    {
+      "row": 3,
+      "frame": 3,
+      "bbox": [
+        479,
+        326,
+        663,
+        459
+      ],
+      "used_by": [
+        19,
+        20
+      ]
+    },
+    {
+      "row": 3,
+      "frame": 4,
+      "bbox": [
+        661,
+        327,
+        831,
+        459
+      ],
+      "used_by": [
+        21
+      ]
+    },
+    {
+      "row": 3,
+      "frame": 5,
+      "bbox": [
+        877,
+        333,
+        1015,
+        458
+      ],
+      "used_by": [
+        26
+      ]
+    },
+    {
+      "row": 3,
+      "frame": 6,
+      "bbox": [
+        1044,
+        324,
+        1142,
+        459
+      ],
+      "used_by": [
+        22,
+        23,
+        29
+      ]
+    },
+    {
+      "row": 3,
+      "frame": 7,
+      "bbox": [
+        1157,
+        322,
+        1272,
+        458
+      ],
+      "used_by": [
+        28
+      ]
+    },
+    {
+      "row": 4,
+      "frame": 0,
+      "bbox": [
+        46,
+        487,
+        157,
+        598
+      ],
+      "used_by": []
+    },
+    {
+      "row": 4,
+      "frame": 1,
+      "bbox": [
+        216,
+        482,
+        326,
+        598
+      ],
+      "used_by": []
+    },
+    {
+      "row": 4,
+      "frame": 2,
+      "bbox": [
+        372,
+        486,
+        479,
+        598
+      ],
+      "used_by": []
+    },
+    {
+      "row": 4,
+      "frame": 3,
+      "bbox": [
+        528,
+        481,
+        634,
+        598
+      ],
+      "used_by": []
+    },
+    {
+      "row": 4,
+      "frame": 4,
+      "bbox": [
+        786,
+        474,
+        878,
+        598
+      ],
+      "used_by": [
+        25
+      ]
+    },
+    {
+      "row": 4,
+      "frame": 5,
+      "bbox": [
+        929,
+        474,
+        1020,
+        598
+      ],
+      "used_by": [
+        24
+      ]
+    },
+    {
+      "row": 4,
+      "frame": 6,
+      "bbox": [
+        1084,
+        471,
+        1179,
+        598
+      ],
+      "used_by": []
+    },
+    {
+      "row": 4,
+      "frame": 7,
+      "bbox": [
+        1226,
+        475,
+        1333,
+        599
+      ],
+      "used_by": []
+    },
+    {
+      "row": 5,
+      "frame": 0,
+      "bbox": [
+        44,
+        615,
+        133,
+        744
+      ],
+      "used_by": []
+    },
+    {
+      "row": 5,
+      "frame": 1,
+      "bbox": [
+        181,
+        616,
+        266,
+        744
+      ],
+      "used_by": []
+    },
+    {
+      "row": 5,
+      "frame": 2,
+      "bbox": [
+        319,
+        619,
+        411,
+        744
+      ],
+      "used_by": []
+    },
+    {
+      "row": 5,
+      "frame": 3,
+      "bbox": [
+        456,
+        617,
+        557,
+        744
+      ],
+      "used_by": []
+    },
+    {
+      "row": 5,
+      "frame": 4,
+      "bbox": [
+        592,
+        617,
+        711,
+        744
+      ],
+      "used_by": [
+        27,
+        32
+      ]
+    },
+    {
+      "row": 5,
+      "frame": 5,
+      "bbox": [
+        755,
+        637,
+        876,
+        744
+      ],
+      "used_by": [
+        33
+      ]
+    },
+    {
+      "row": 5,
+      "frame": 6,
+      "bbox": [
+        910,
+        642,
+        1028,
+        743
+      ],
+      "used_by": [
+        34
+      ]
+    },
+    {
+      "row": 5,
+      "frame": 7,
+      "bbox": [
+        1069,
+        626,
+        1193,
+        744
+      ],
+      "used_by": [
+        35,
+        36,
+        37,
+        38,
+        39
+      ]
+    },
+    {
+      "row": 5,
+      "frame": 8,
+      "bbox": [
+        1209,
+        676,
+        1370,
+        750
+      ],
+      "used_by": []
+    }
+  ]
+}

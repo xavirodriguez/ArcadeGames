@@ -1,0 +1,25 @@
+{
+  "ok": true,
+  "assets": [
+    {
+      "path": "src/games/hitandrun/assets/candidates/samurai-painted/samurai-painted.png",
+      "format": "PNG",
+      "mode": "RGBA",
+      "width": 512,
+      "height": 320,
+      "bytes": 139337,
+      "color_count": 26394,
+      "has_alpha": true,
+      "alpha_min": 0,
+      "alpha_max": 255,
+      "transparent_pixels": 112892,
+      "content_bounds": [
+        8,
+        6,
+        505,
+        316
+      ],
+      "problems": []
+    }
+  ]
+}

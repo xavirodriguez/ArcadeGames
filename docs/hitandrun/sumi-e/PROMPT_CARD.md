@@ -33,9 +33,10 @@ las proporciones ni el frame map. Haz esto:
 
 Para enemigos, repite el flujo usando el piloto aprobado como referencia de estilo.
 
-> **Samurai:** no generes su atlas con un prompt. Ya existe el generador determinista
-> `tools/generate_samurai_sumi_e.py` (`512×320`, 40 frames, 7 swatches). Usa prompts para el
-> `player` ronin y el resto de la familia.
+> **Samurai y player:** no generes sus atlas con un prompt. Ya existen los generadores
+> deterministas `tools/generate_samurai_sumi_e.py` y `tools/generate_player_sumi_e.py`
+> (`512×320`, 40 frames, 7 swatches). Usa prompts solo para el resto de la familia
+> (`elite`, `charger`, `wall_trooper`, `hopper`, `popcorn`).
 >
 > La hoja `reference/samurai-main-char2` es un ejemplo de output que **no** se puede recortar:
 > poses fusionadas con VFX, checkerboard horneado y escala inconsistente. Úsala como referencia
@@ -78,7 +79,7 @@ multiple characters, cropped feet, extra limbs, inconsistent proportions
 
 ## 4. Pilot prompts
 
-### 4.1 Player ronin — concept sheet
+### 4.1 Player ronin — concept sheet (referencia; atlas ya producido)
 
 ```text
 SUBJECT: a lean wandering ronin, worn conical kasa hat, short coat, sash, bare feet or straw
@@ -91,7 +92,7 @@ LOCKS: asymmetric hat brim, rifle longer than the torso, one vermilion sash acce
 EXCLUDE: [paste Global exclude list]
 ```
 
-### 4.2 Player ronin — idle key pose
+### 4.2 Player ronin — idle key pose (referencia; atlas ya producido)
 
 ```text
 SUBJECT: the same ronin in a grounded idle stance, rifle held low-diagonal, coat hem still,
@@ -217,15 +218,21 @@ python3 .agents/skills/create-game-assets/scripts/asset_report.py \
   src/games/hitandrun/assets/themes/sumi-e/enemies/samurai.png \
   --expect-size 512x320 --require-alpha --json
 
-# contact sheet
-python3 .agents/skills/create-game-assets/scripts/build_preview_sheet.py \
-  src/games/hitandrun/assets/themes/sumi-e/enemies/samurai.png \
-  --out docs/hitandrun/sumi-e/characters-preview.png --columns 4 --cell-size 192
+# contact sheet por clip
+python3 docs/hitandrun/sumi-e/tools/build_atlas_contact_sheet.py \
+  src/games/hitandrun/assets/themes/sumi-e/characters/player.png \
+  --out docs/hitandrun/sumi-e/player-preview.png --zoom 3 \
+  --labels "idle 0-7,walk 8-15,attack 16-23,hurt 24-29 + empty 30-31,death 32-39"
+
+# legibilidad papel / tinta / grayscale
+python3 docs/hitandrun/sumi-e/tools/build_readability_sheet.py \
+  src/games/hitandrun/assets/themes/sumi-e/characters/player.png \
+  --out docs/hitandrun/sumi-e/player-readability.png
 ```
 
 > Entorno actual: Python 3.9.6 + Pillow 11.3.0. `--max-colors 8` cuenta tuplas RGBA y no aplica a
-> alpha suave; el criterio Sumi-e se audita con `asset_report_sumie.py` (7 swatches RGB). Ver
-> `ASSET_AUDIT.md §6`.
+> alpha suave; el criterio Sumi-e se audita con `asset_report_sumie.py` (7 swatches RGB en ambos
+> pilotos). Ver `ASSET_AUDIT.md §6`.
 
 ---
 

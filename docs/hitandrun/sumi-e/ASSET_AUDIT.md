@@ -9,10 +9,10 @@ sin ejecución del juego.
 
 ## 1. Resumen ejecutivo
 
-No existe todavía un asset **Sumi-e** aprobado. Sí existe un **piloto** generativo para el enemigo
-`samurai` (`src/games/hitandrun/assets/themes/sumi-e/enemies/samurai.png` +
-`tools/generate_samurai_sumi_e.py`), validado a nivel de atlas y de legibilidad sobre papel y
-grayscale, pero no en el juego. El único raster productivo de personaje sigue siendo el atlas de
+No existe todavía un asset **Sumi-e** aprobado. Sí existen **dos pilotos** generativos: el enemigo
+`samurai` (`.../enemies/samurai.png` + `tools/generate_samurai_sumi_e.py`) y el `player` rōnin
+(`.../characters/player.png` + `tools/generate_player_sumi_e.py`), validados a nivel de atlas y de
+legibilidad sobre papel y grayscale, pero no en el juego. El único raster productivo de personaje sigue siendo el atlas de
 samurai en estilo **neón/pixel art**, y el tema Sumi-e dibuja casi todo con formas procedurales.
 Además, el HUD React sigue siendo neón. El resultado es que en una misma partida conviven tres
 lenguajes visuales:
@@ -21,9 +21,9 @@ lenguajes visuales:
 2. Samurai: pixel art rojo/negro con contorno blanco (neón) o piloto Sumi-e, según el wiring.
 3. HUD React: cian, violeta, rosa y glow (neón).
 
-El piloto falla en el stress test de tinta sólida: la masa negra desaparece y solo quedan los
-acentos dorado y bermellón. Es el principal hallazgo de la hoja de legibilidad
-(`atlas-readability.png`).
+Ambos pilotos fallan el stress test de tinta sólida: la masa negra desaparece y solo quedan los
+acentos dorado y bermellón. Es el principal hallazgo de las hojas de legibilidad
+(`atlas-readability.png`, `player-readability.png`).
 
 El manifiesto `SUMI_E_ASSET_MANIFEST.ts` es aspiracional y **no se consume desde ningún sitio**.
 Sus rutas no existen y sus dimensiones no coinciden con el atlas real.
@@ -183,9 +183,9 @@ zona de tinta sólida, que hoy no es el fondo jugable pero sí un caso que la pu
 exige cubrir.
 
 **Lo que cubre:** el enemigo `samurai` (katana, casco, acentos dorados, faja bermellón).
-**Lo que no cubre:** el `player` ronin (kasa + rifle), los onis, el ashigaru, el tengu ni el
-diablillo. Tampoco sustituye la validación en Canvas/Skia ni la decisión de reemplazar el atlas
-legacy.
+**Lo que no cubre:** el `player` ronin (tiene su propio piloto, §2.11), los onis, el ashigaru, el
+tengu ni el diablillo. Tampoco sustituye la validación en Canvas/Skia ni la decisión de
+reemplazar el atlas legacy.
 
 **Decisión pendiente:** para que el piloto lea sobre tinta hace falta una de estas opciones:
 1. Keyline de papel en runtime cuando el fondo sea oscuro (presentación, no asset).
@@ -217,23 +217,56 @@ enemigo samurai; para el `player` ronin sirve solo como referencia de tinta/pose
 **Uso permitido:** referencia de estilo y key poses. **Prohibido:** recortar tal cual a celdas
 `64 × 64`, publicar como asset o asumir que el alpha está limpio.
 
+### 2.11 Piloto generativo del `player`
+
+Segundo piloto de la familia, producido a partir del contrato de §2.9 y del lenguaje de key poses
+de la referencia (kasa, rifle largo, faldón), sin samplear píxeles de la hoja.
+
+| Archivo | Rol | Estado |
+| --- | --- | --- |
+| `tools/generate_player_sumi_e.py` | Generador determinista; reutiliza el pintor del samurai | Pilot |
+| `.../characters/player.png` | Atlas piloto `512 × 320`, 40 frames | Pilot |
+| `.../characters/player.atlas.json` | Frame map 8×5, pivote `(0.5, 0.94)` | Pilot |
+| `.../characters/player.animations.json` | Clips 8/8/8/6/8 | Pilot |
+| `player-readability.png` | Papel / tinta / grayscale | Evidencia |
+| `player-preview.png` | Contact sheet por clip sobre checkerboard | Evidencia |
+| `reference/player-pilot.provenance.md` | Procedencia y puertas pendientes | Registro |
+
+**Validación ejecutada:**
+
+- `512 × 320`, RGBA8888, 40 frames, celdas `64 × 64`, 30.993 bytes.
+- **7 swatches RGB exactos**, 0 píxeles fuera de paleta, 7 swatches opacos.
+- Alpha continuo 4–255; 133.538 píxeles transparentes; sin fondo horneado.
+- Frames 30 y 31 vacíos; baseline en `y ≈ 59.6`; safe area 2 px PASS en las 40 celdas.
+- Acento (oro + bermellón) 2,78 % de los píxeles pintados con alpha ≥ 128.
+- Determinismo verificado: dos ejecuciones → mismo SHA-256
+  (`7381293b…c8742`).
+- `asset_report_sumie.py`: PASS; `asset_report.py`: `problems: []`.
+- Legibilidad: papel ✅, grayscale ✅, tinta sólida ❌ (solo acentos y filos de papel).
+
+**Silueta:** kasa ancha + rifle en diagonal más largo que el torso + faldón + piernas separadas.
+Se distingue del samurai (casco + katana vertical) a 64 px. El rifle y la kasa rompen el contorno;
+la faja bermellón es el único acento de vestuario.
+
+**Limitaciones conocidas:** el rifle mide ~1–2 px de grosor y el brillo de papel del cañón puede
+leer como filo a tamaño nativo; en tinta sólida la masa desaparece (mismo bloqueo que el samurai).
+
 ---
 
 ## 3. Matriz de cumplimiento Sumi-e
 
-| Criterio | Atlas legacy | Piloto samurai |
-| --- | --- | --- |
-| Paleta de papel/tinta | ❌ Negro azulado, rojo neón, blanco frío | ✅ 7 swatches exactos, 0 off-palette |
-| Alpha suave de pincel | ❌ Alpha binario | ✅ Rampa continua 4–255 |
-| Contorno roto | ❌ Contorno de píxel continuo | ✅ Dry-brush y bordes suaves |
-| Sin glow/neón | ❌ Highlight blanco frío y rojo saturado | ✅ Sin glow, sin blanco puro de relleno |
-| Silueta a 64 px | ✅ El samurai se lee bien | ✅ La katana y el casco se leen |
-| Grid y anchor | ✅ 8×5, `(0.5, 0.94)` | ✅ 8×5, `(0.5, 0.94)` |
-| Frame map | ✅ 40 frames, clips correctos | ✅ 40 frames, clips 8/8/8/6/8 |
-| Sin texto en sprite | ✅ | ✅ |
-| Acento ≤ 5 % | ⚠️ No medido | ✅ 4,31 % |
-| Legibilidad sobre tinta | ✅ Contorno blanco lo separa | ❌ La masa negra desaparece |
-| Procedencia | ⚠️ Desconocida | ✅ MIT + generador determinista |
+| Criterio | Atlas legacy | Piloto samurai | Piloto player |
+| --- | --- | --- | --- |
+| Paleta de papel/tinta | ❌ Negro azulado, rojo neón, blanco frío | ✅ 7 swatches, 0 off-palette | ✅ 7 swatches, 0 off-palette |
+| Alpha suave de pincel | ❌ Alpha binario | ✅ Rampa 4–255 | ✅ Rampa 4–255 |
+| Contorno roto | ❌ Contorno de píxel continuo | ✅ Dry-brush | ✅ Dry-brush |
+| Sin glow/neón | ❌ Highlight blanco frío y rojo saturado | ✅ | ✅ |
+| Silueta a 64 px | ✅ El samurai se lee bien | ✅ Katana + casco | ✅ Kasa + rifle diagonal |
+| Grid y anchor | ✅ 8×5, `(0.5, 0.94)` | ✅ | ✅ |
+| Frame map | ✅ 40 frames | ✅ 8/8/8/6/8 | ✅ 8/8/8/6/8 |
+| Acento ≤ 5 % | ⚠️ No medido | ✅ 4,31 % | ✅ 2,78 % |
+| Legibilidad sobre tinta | ✅ Contorno blanco lo separa | ❌ Masa desaparece | ❌ Masa desaparece |
+| Procedencia | ⚠️ Desconocida | ✅ MIT + generador | ✅ MIT + generador |
 
 ---
 
@@ -241,7 +274,7 @@ enemigo samurai; para el `player` ronin sirve solo como referencia de tinta/pose
 
 | `visualId` real | Concepto Sumi-e | Asset | Estado |
 | --- | --- | --- | --- |
-| `player` | Rōnin con kasa y rifle | `characters/player.png` | Falta |
+| `player` | Rōnin con kasa y rifle | `characters/player.png` | **Piloto producido**; pendiente wiring + in-engine |
 | `samurai` | Samurai con katana | `enemies/samurai.png` | **Piloto producido**; pendiente in-engine |
 | `elite` | Oni azul con maza | `enemies/elite_blue_oni.png` | Falta |
 | `charger` | Oni rojo cargando | `enemies/charger_red_oni.png` | Falta |
@@ -270,18 +303,18 @@ enemigo samurai; para el `player` ronin sirve solo como referencia de tinta/pose
 4. Corregir o retirar `SUMI_E_ASSET_MANIFEST.ts`: o se conecta al loader, o se elimina para evitar
    que parezca implementado.
 
-### P1 — Validar el piloto samurai
+### P1 — Validar los pilotos `samurai` y `player`
 
-1. ~~Elegir el piloto~~ → `samurai` (única ruta de sprite cableada).
-2. ~~Crear el atlas~~ → producido en `.../enemies/samurai.png` (`512 × 320`, 40 frames,
-   7 swatches).
+1. ~~Elegir los pilotos~~ → `samurai` (ruta de sprite cableada) y `player` (visualId más visible).
+2. ~~Crear los atlas~~ → producidos en `.../enemies/samurai.png` y
+   `.../characters/player.png` (`512 × 320`, 40 frames, 7 swatches cada uno).
 3. Revisar a 64 px en Canvas 800×600 y en dispositivo físico, sobre papel y sobre tinta.
 4. Resolver la legibilidad sobre tinta: keyline de papel en runtime o restricción a papel.
-5. Aprobar el piloto antes de producir la familia.
+5. Aprobar los pilotos antes de producir la familia.
 
 ### P2 — Producir la familia y el fondo
 
-1. Producir el `player` ronin y los 5 enemigos restantes usando el piloto como referencia
+1. Producir los 5 enemigos restantes usando los pilotos como referencia
    (`elite`, `charger`, `wall_trooper`, `hopper`, `popcorn`).
 2. Cachear el papel y limitar su resolución.
 3. Añadir props de fondo (torii, farol, tejados) solo si aportan profundidad.
@@ -311,12 +344,21 @@ enemigo samurai; para el `player` ronin sirve solo como referencia de tinta/pose
   (`sha256 c4a187ad9d0036f0...`) y los mismos JSON; `cmp` idéntico.
 - Validación del JSON del piloto: 40 frames, pivote `(0.5, 0.94)`, clips 8/8/8/6/8.
 - Inspección de `atlas-readability.png`: papel ✅, grayscale ✅, tinta ❌.
+- Generación del atlas piloto `player` y validación con `asset_report_sumie.py`: 7 swatches,
+  0 off-palette, alpha 4–255, acento 2,78 %, safe area PASS, pure fills 0.
+- `asset_report.py` del `player`: 30.993 bytes, 133.538 píxeles transparentes,
+  content bounds `[18, 12, 508, 318]`, `problems: []`.
+- Determinismo del `player`: dos ejecuciones → mismo SHA-256 (`7381293b…c8742`).
+- Inspección de `player-readability.png`: papel ✅, grayscale ✅, tinta ❌.
+- Contact sheet `player-preview.png` por clip sobre checkerboard.
+- Mock de contexto `player-context-mock.png` a 800×600: escala, baseline y contraste de silueta
+  frente al samurai (no sustituye la captura in-engine).
 - Búsqueda de imports de `SUMI_E_ASSET_MANIFEST` (0 resultados).
 - Búsqueda de carga de fuentes (0 resultados para `Yuji Boku`/`Noto Serif JP`).
 
 ### Pendiente / bloqueado
 
-- No se ha ejecutado el juego ni capturado un frame real del piloto en Canvas/Skia.
+- No se ha ejecutado el juego ni capturado un frame real de los pilotos en Canvas/Skia.
 - No se ha validado el atlas en un dispositivo físico.
 - La legibilidad sobre tinta sigue fallando; hay que decidir keyline runtime o restricción a papel.
 - El `--max-colors 8` del `asset_report.py` genérico no aplica a alpha suave: cuenta tuplas RGBA
@@ -334,10 +376,16 @@ python3 .agents/skills/create-game-assets/scripts/asset_report.py \
   src/games/hitandrun/assets/themes/sumi-e/enemies/samurai.png \
   --expect-size 512x320 --require-alpha --json
 
-# contact sheet
-python3 .agents/skills/create-game-assets/scripts/build_preview_sheet.py \
-  src/games/hitandrun/assets/themes/sumi-e/enemies/samurai.png \
-  --out docs/hitandrun/sumi-e/characters-preview.png --columns 4 --cell-size 192
+# contact sheet por clip (atlas = una imagen)
+python3 docs/hitandrun/sumi-e/tools/build_atlas_contact_sheet.py \
+  src/games/hitandrun/assets/themes/sumi-e/characters/player.png \
+  --out docs/hitandrun/sumi-e/player-preview.png --zoom 3 \
+  --labels "idle 0-7,walk 8-15,attack 16-23,hurt 24-29 + empty 30-31,death 32-39"
+
+# legibilidad papel / tinta / grayscale
+python3 docs/hitandrun/sumi-e/tools/build_readability_sheet.py \
+  src/games/hitandrun/assets/themes/sumi-e/characters/player.png \
+  --out docs/hitandrun/sumi-e/player-readability.png
 ```
 
 ---
@@ -348,7 +396,7 @@ python3 .agents/skills/create-game-assets/scripts/build_preview_sheet.py \
    excepción?
 2. ¿El HUD React se adapta a Sumi-e o se oculta y se usa solo el HUD canvas?
 3. ¿Se elimina `SUMI_E_ASSET_MANIFEST.ts` o se convierte en el manifiesto real del loader?
-4. ¿El siguiente asset es el `player` ronin (más visible) o un enemigo?
+4. ¿Se adopta el piloto `player` o se mantiene el ronin procedural de `SumiETheme`?
 5. ¿Se acepta el coste de cargar dos fuentes japonesas en el bundle inicial o se cargan por tema?
 6. ¿Cómo se resuelve la legibilidad sobre tinta: keyline de papel en runtime o restricción a papel?
 7. ¿La referencia `samurai-main-char2` se conserva solo como estilo o se descarta?

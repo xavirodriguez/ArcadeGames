@@ -47,13 +47,6 @@ Dibuja:
 - `belt/` — movimiento, elevación, escala por profundidad y cámara gated
 - `combat/` — helper puro `depthZOverlap` para filtrado de combate en 3D-box
 - `fantasy/` — paletas, enemigos, armas
-- **Arquetipos de Enemigos:**
-  - `popcorn`: Goblin fodder (`walk`, `shoot_slow`, `flank`)
-  - `wall`: Orc trooper wall (`walk`, `block`)
-  - `hopper`: Wraith jumper (`hop`, `flank`)
-  - `charger`: Skeleton berserker (`charge`)
-  - `elite`: Citadel warlock (`shoot_heavy`, `tank`, `flank`)
-  - `samurai`: Red Armored Samurai (`walk`, `flank`, `charge`) — Integrado con `SAMURAI_ANIMATIONS` (`idle`, `walk`, `attack`, `hurt`, `death`) y `drawSamuraiVisual`.
 - `melee/` — melee data-driven y combos
 - `rendering/` — drawers de canvas + overlay de debug
 

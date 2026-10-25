@@ -5,6 +5,10 @@ import type { GridLayout } from "../../shared/grid/GridTypes";
 import { Skia, getPaint, SkCanvas, SkPaint } from "../../shared/rendering/SkiaContext";
 import { drawGlowOrbSkia } from "../../shared/rendering/SkiaNeonUtils";
 import { colors } from "../../../theme/colors";
+import { createSpriteAnimator, drawSpriteSkia } from "../../shared/sprites";
+
+const TOWER_BASIC_SPRITE = createSpriteAnimator("tower_basic_art");
+const TOWER_SNIPER_SPRITE = createSpriteAnimator("tower_sniper_art");
 import {
   createPathDirectionMarkers,
   resolveCreepAnimationState,
@@ -234,7 +238,11 @@ export const drawSkiaTowerBasic: ShapeDrawer<SkCanvas, TowerDefenseComponentRegi
   draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
     const size = render?.size ?? 28;
-    drawSkiaTower(world, canvas, size, "tower_basic", "tower_basic_accent", colors.cyan, colors.blueLight, "basic");
+    const isPaperDusk = isPaperDuskTheme(world);
+    const spriteDrawn = !isPaperDusk && drawSpriteSkia(canvas, TOWER_BASIC_SPRITE, 0, 0);
+    if (!spriteDrawn) {
+      drawSkiaTower(world, canvas, size, "tower_basic", "tower_basic_accent", colors.cyan, colors.blueLight, "basic");
+    }
     drawSkiaTowerWeapon(canvas, world, entity, size, "basic");
   },
 };
@@ -243,7 +251,11 @@ export const drawSkiaTowerSniper: ShapeDrawer<SkCanvas, TowerDefenseComponentReg
   draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
     const size = render?.size ?? 28;
-    drawSkiaTower(world, canvas, size, "tower_sniper", "tower_sniper_accent", colors.purple, colors.violet, "sniper");
+    const isPaperDusk = isPaperDuskTheme(world);
+    const spriteDrawn = !isPaperDusk && drawSpriteSkia(canvas, TOWER_SNIPER_SPRITE, 0, 0);
+    if (!spriteDrawn) {
+      drawSkiaTower(world, canvas, size, "tower_sniper", "tower_sniper_accent", colors.purple, colors.violet, "sniper");
+    }
     drawSkiaTowerWeapon(canvas, world, entity, size, "sniper");
   },
 };

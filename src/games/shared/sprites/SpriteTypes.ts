@@ -28,13 +28,22 @@ export interface SpriteAnimationDef {
  * Full definition of a sprite sheet + its animations.
  * Register one of these per character / enemy.
  */
+export type SpriteImageSource =
+  | number
+  | string
+  | { uri?: string; localUri?: string };
+
 export interface SpriteSheetDef {
   id: string;
-  /** Metro require() of the PNG (or Asset) */
-  imageSource: any;
-  /** Logical frame size used for collision / positioning */
+  /** Metro require() of a PNG, a URI, or an Expo Asset source. */
+  imageSource: SpriteImageSource;
+  /** Logical frame size used for collision / positioning and full-image fit. */
   frameWidth: number;
   frameHeight: number;
+  /** "full-image" treats the entire PNG as a single static frame. */
+  sourceMode?: "frames" | "full-image";
+  /** Normalized destination anchor. Defaults to bottom-center (character feet). */
+  anchor?: { x: number; y: number };
   animations: Record<string, SpriteAnimationDef>;
 }
 

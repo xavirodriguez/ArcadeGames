@@ -11,10 +11,24 @@ function getSkia() {
     return undefined;
   }
 }
+
 import { SpriteRegistry } from "./SpriteRegistry";
 import { getCurrentFrameRect } from "./SpriteAnimator";
 import type { SpriteAnimatorComponent } from "./SpriteAnimator";
 import type { SpriteSheetDef, SpriteFrameRect } from "./SpriteTypes";
+
+/**
+ * Lazily loads the expo-asset module. Kept out of the static imports so
+ * headless / test environments (no Metro asset registry) never crash on load:
+ * resolveImageUri callers all early-return before touching the asset registry.
+ */
+function loadExpoAssetClass(): (typeof import("expo-asset"))["Asset"] | undefined {
+  try {
+    return (require("expo-asset") as typeof import("expo-asset")).Asset;
+  } catch {
+    return undefined;
+  }
+}
 
 const canvasImageCache = new Map<string, HTMLImageElement | HTMLCanvasElement>();
 const canvasPendingLoads = new Map<string, Promise<void>>();
@@ -30,15 +44,11 @@ async function resolveImageUri(
   if (typeof source === "string") return source;
 
   if (typeof source === "number") {
-    try {
-      /* eslint-disable @typescript-eslint/no-require-imports */
-      const { Asset } = require("expo-asset");
-      const asset = Asset.fromModule(source);
-      await asset.downloadAsync();
-      return preferLocalUri ? (asset.localUri ?? asset.uri) : (asset.uri ?? asset.localUri);
-    } catch {
-      return undefined;
-    }
+    const AssetClass = loadExpoAssetClass();
+    if (!AssetClass) return undefined;
+    const asset = AssetClass.fromModule(source);
+    await asset.downloadAsync();
+    return preferLocalUri ? (asset.localUri ?? asset.uri) : (asset.uri ?? asset.localUri);
   }
   if (source === null) return undefined;
 
@@ -66,6 +76,7 @@ function getSkiaImageSize(image: SkImage): { width: number; height: number } {
   return { width, height };
 }
 
+/** Resolves which source pixels a frame occupies (full-image sheets or frame grids). */
 function resolveSourceRect(
   sheet: SpriteSheetDef,
   animator: SpriteAnimatorComponent,
@@ -80,6 +91,7 @@ function resolveSourceRect(
   return getCurrentFrameRect(animator);
 }
 
+/** Resolves the logical draw size of a frame in world units. */
 function resolveDrawSize(
   sheet: SpriteSheetDef,
   frame: SpriteFrameRect,
@@ -95,6 +107,16 @@ function resolveDrawSize(
     width: frame.w * animator.scale,
     height: frame.h * animator.scale,
   };
+}
+
+/**
+ * Shared draw options accepted by the Canvas and Skia sprite drawers.
+ */
+export interface SpriteDrawOptions {
+  /** Logical anchor of `y`: "feet" (default, frame drawn above y) or "center" (frame centered on y). */
+  anchor?: "feet" | "center";
+  /** Additional alpha multiplier (0..1). Defaults to 1. */
+  opacity?: number;
 }
 
 /** Load a sheet once for Canvas, sharing the pending request between entities. */
@@ -178,11 +200,21 @@ export function getSkiaImage(sheetId: string): SkImage | undefined {
   return skiaImageCache.get(sheetId);
 }
 
+/** Whether the Canvas image for a sheet already finished loading. */
+export function isCanvasSpriteReady(sheetId: string): boolean {
+  return canvasImageCache.has(sheetId);
+}
+
+// ---------------------------------------------------------------------------
+// Canvas drawer
+// ---------------------------------------------------------------------------
+
 export function drawSpriteCanvas(
   ctx: CanvasRenderingContext2D,
   animator: SpriteAnimatorComponent,
   x: number,
-  y: number
+  y: number,
+  options?: SpriteDrawOptions
 ): boolean {
   const sheet = SpriteRegistry.get(animator.sheetId);
   if (!sheet) return false;
@@ -203,8 +235,14 @@ export function drawSpriteCanvas(
   const anchor = sheet.anchor ?? { x: 0.5, y: 1 };
 
   ctx.save();
+  ctx.globalAlpha *= Math.max(0, Math.min(1, options?.opacity ?? 1));
   ctx.translate(x + ox, y + oy);
-  if (animator.flipX) ctx.scale(-1, 1);
+  if (animator.flipX) {
+    ctx.scale(-1, 1);
+  }
+
+  const dy = options?.anchor === "center" ? -dh / 2 : -dh * anchor.y;
+  const dx = -dw * anchor.x;
 
   ctx.drawImage(
     img,
@@ -212,8 +250,8 @@ export function drawSpriteCanvas(
     frame.y,
     frame.w,
     frame.h,
-    -dw * anchor.x,
-    -dh * anchor.y,
+    dx,
+    dy,
     dw,
     dh
   );
@@ -222,12 +260,17 @@ export function drawSpriteCanvas(
   return true;
 }
 
+// ---------------------------------------------------------------------------
+// Skia drawer
+// ---------------------------------------------------------------------------
+
 export function drawSpriteSkia(
   canvas: SkCanvas,
   animator: SpriteAnimatorComponent,
   x: number,
   y: number,
-  paint?: SkPaint
+  paint?: SkPaint,
+  options?: SpriteDrawOptions
 ): boolean {
   const sheet = SpriteRegistry.get(animator.sheetId);
   if (!sheet) return false;
@@ -251,16 +294,26 @@ export function drawSpriteSkia(
   canvas.translate(x + ox, y + oy);
   if (animator.flipX) canvas.scale(-1, 1);
 
+  const dy = options?.anchor === "center" ? -dh / 2 : -dh * anchor.y;
+  const dx = -dw * anchor.x;
+
+  const Skia = getSkia();
+  const usingCallerPaint = paint !== undefined;
+  const paintToUse = paint ?? (Skia ? Skia.Paint() : undefined);
+  if (paintToUse) {
+    paintToUse.setAlphaf(Math.max(0, Math.min(1, options?.opacity ?? 1)));
+  }
+
   const src = { x: frame.x, y: frame.y, width: frame.w, height: frame.h };
-  const dst = {
-    x: -dw * anchor.x,
-    y: -dh * anchor.y,
-    width: dw,
-    height: dh,
-  };
-  const activePaint = paint ?? getSkia()?.Paint();
-  canvas.drawImageRect(image, src, dst, activePaint);
+  const dst = { x: dx, y: dy, width: dw, height: dh };
+
+  if (paintToUse) {
+    canvas.drawImageRect(image, src, dst, paintToUse);
+  }
   canvas.restore();
+
+  if (!usingCallerPaint && paintToUse) paintToUse.setAlphaf(1);
+
   return true;
 }
 

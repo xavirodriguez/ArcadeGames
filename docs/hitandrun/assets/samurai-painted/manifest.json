@@ -1,0 +1,215 @@
+{
+  "schema_version": 1,
+  "kind": "candidate-asset-manifest",
+  "game": "hitandrun",
+  "theme": null,
+  "theme_note": "Unassigned. The painted steel-blue style is closer to the 'fantasy' theme than to 'sumi-e'; do not register it as a Sumi-e pilot.",
+  "status_summary": {
+    "candidate": 1,
+    "approved": 0,
+    "in_engine": 0
+  },
+  "blockers": [
+    "Source author, generator, prompt and license are unknown.",
+    "No theme decision (fantasy variant vs. a new themed family).",
+    "Solid-ink and in-engine review not performed.",
+    "File is 139337 B, above the 120 KB contract budget.",
+    "Attack VFX is fused to the body and violates the 2px safe area on cells 18-21."
+  ],
+  "technical_contract": {
+    "engine": "TinyAster ECS",
+    "renderers": [
+      "Canvas2D (web)",
+      "Skia (native)"
+    ],
+    "character_cell": {
+      "width": 64,
+      "height": 64
+    },
+    "character_atlas": {
+      "width": 512,
+      "height": 320,
+      "columns": 8,
+      "rows": 5,
+      "frames": 40
+    },
+    "anchor": {
+      "x": 0.5,
+      "y": 0.94,
+      "description": "feet bottom-center; feet baseline at cell y = 60"
+    },
+    "frame_ranges": {
+      "idle": [0, 7],
+      "walk": [8, 15],
+      "attack": [16, 23],
+      "hurt": [24, 29],
+      "empty": [30, 31],
+      "death": [32, 39]
+    },
+    "format": "PNG-32 RGBA8888",
+    "alpha": "straight (not premultiplied)",
+    "color_space": "sRGB",
+    "filtering": "linear",
+    "facing": "right (source attack/hurt/death poses mirrored)",
+    "safe_area_px": 2,
+    "file_budget_kb": {
+      "min": 60,
+      "max": 120
+    },
+    "scale_from_source": 0.4,
+    "source_frame_height_px": 140,
+    "atlas_content_height_px": 56
+  },
+  "assets": [
+    {
+      "id": "candidate-character-enemy-samurai-painted",
+      "role": "Enemy samurai with katana, painted steel-blue. Candidate replacement for the legacy samurai atlas. NOT wired.",
+      "path": "src/games/hitandrun/assets/candidates/samurai-painted/samurai-painted.png",
+      "status": "candidate",
+      "visual_ids": ["samurai"],
+      "technical": {
+        "dimensions": "512x320",
+        "cell": "64x64",
+        "grid": "8x5",
+        "frames": 40,
+        "empty_cells": [30, 31],
+        "alpha": true,
+        "alpha_mode": "straight, 256 levels",
+        "format": "PNG-32 RGBA8888",
+        "anchor": "bottom-center (0.5, 0.94)",
+        "filtering": "linear",
+        "color_space": "sRGB",
+        "display_size": "64x64",
+        "measured": {
+          "bytes": 139337,
+          "kib": 136.1,
+          "transparent_pixels": 112892,
+          "opaque_rgb_swatches": 17427,
+          "rgb_swatches_total": 21863,
+          "pure_black_opaque_pixels": 32,
+          "pure_white_opaque_pixels": 0,
+          "pure_fill_pixels_any_alpha": 2403,
+          "safe_area": "FAIL on cells 18-21 only (fused slash arc / sword tip); body content inside",
+          "file_budget": "FAIL - 139337 B > 120 KB",
+          "sha256": "59b6c841c71a7530368f7b47882416d0ac0795ae81e5ecf3cc7bca10183ca267"
+        }
+      },
+      "visual_locks": [
+        "kabuto helmet silhouette",
+        "blue cape mass",
+        "katana diagonal",
+        "right-facing",
+        "feet-baseline",
+        "painted steel-blue palette"
+      ],
+      "animation_map": {
+        "idle": {
+          "cells": [0, 1, 2, 3, 4, 5, 6, 7],
+          "unique_source_frames": 6,
+          "holds": [6, 7],
+          "fps": 8,
+          "loop": true
+        },
+        "walk": {
+          "cells": [8, 9, 10, 11, 12, 13, 14, 15],
+          "unique_source_frames": 8,
+          "holds": [],
+          "fps": 10,
+          "loop": true
+        },
+        "attack": {
+          "cells": [16, 17, 18, 19, 20, 21, 22, 23],
+          "unique_source_frames": 6,
+          "holds": [20, 23],
+          "fps": 14,
+          "loop": false
+        },
+        "hurt": {
+          "cells": [24, 25, 26, 27, 28, 29],
+          "unique_source_frames": 6,
+          "holds": [],
+          "reused_across_clips": 1,
+          "fps": 16,
+          "loop": false
+        },
+        "death": {
+          "cells": [32, 33, 34, 35, 36, 37, 38, 39],
+          "unique_source_frames": 4,
+          "holds": [36, 37, 38, 39],
+          "reused_across_clips": 1,
+          "fps": 10,
+          "loop": false
+        }
+      },
+      "source": {
+        "kind": "third-party-sheet",
+        "path": "assets/sprites/samurai1.png",
+        "dimensions": "1408x768",
+        "format": "PNG-32 RGBA",
+        "bytes": 973782,
+        "sha256": "58a7c377d299e198f80d50eeeb763867036bed796f9af2aecfdcb76eff422804",
+        "git_commit": "b3e08872",
+        "creator": "unknown",
+        "created_at": "unknown",
+        "license": "unknown - verify before shipping",
+        "attribution": "none documented",
+        "prompt_or_source_record": "none",
+        "notes": "Key-pose sheet: 5 rows with 6/9/8/8/9 segments, mixed facing, baked blood, slash VFX fused to the body, real transparent background."
+      },
+      "verification": {
+        "native_scale_reviewed": true,
+        "in_engine_reviewed": false,
+        "technical_checks_passed": false,
+        "approved_by": "",
+        "notes": "Deterministic build and generic size/alpha checks pass; Sumi-e palette, pure-fill and safe-area checks fail. No Canvas/Skia review."
+      },
+      "readability": {
+        "paper": "pass - dark armor reads on #E8E3D4",
+        "grayscale": "pass - value separation survives desaturation",
+        "solid_ink_stress": "pass - blue/steel edge separates from #171817; red blood is the weakest read",
+        "evidence": "docs/hitandrun/assets/samurai-painted/readability.png",
+        "context_evidence": "docs/hitandrun/assets/samurai-painted/context-mock.png (synthetic, not in-engine)"
+      },
+      "known_issues": [
+        "idle, attack and death use holds; hurt and death share one source pose.",
+        "Blood is baked into hurt/death frames.",
+        "The slash arc is fused to attack cells 18-21 and breaks the 2px safe area.",
+        "File exceeds the 120 KB budget.",
+        "Palette is far outside the <= 8 swatch Sumi-e contract; quantization was tested and rejected for destroying readability."
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "id": "build-samurai-painted-atlas",
+      "path": "docs/hitandrun/assets/samurai-painted/build_atlas.py",
+      "role": "Deterministic slice, normalize, mirror, baseline and QA for the painted samurai candidate.",
+      "status": "candidate"
+    }
+  ],
+  "reports": {
+    "build": "docs/hitandrun/assets/samurai-painted/build-report.json",
+    "qa_generic": "docs/hitandrun/assets/samurai-painted/qa-generic.json",
+    "qa_sumi_e": "docs/hitandrun/assets/samurai-painted/qa-sumi-e.txt",
+    "frames": "src/games/hitandrun/assets/candidates/samurai-painted/samurai-painted.frames.json",
+    "atlas": "src/games/hitandrun/assets/candidates/samurai-painted/samurai-painted.atlas.json",
+    "animations": "src/games/hitandrun/assets/candidates/samurai-painted/samurai-painted.animations.json",
+    "readme": "docs/hitandrun/assets/samurai-painted/README.md",
+    "provenance": "docs/hitandrun/assets/samurai-painted/provenance.md"
+  },
+  "approval_gates": [
+    "Source author and license resolved.",
+    "Theme decision recorded (fantasy variant or new theme; not Sumi-e).",
+    "Holds and cross-clip reuse accepted or reworked.",
+    "Baked blood and fused slash VFX accepted or repainted.",
+    "File size under 120 KB or an approved exception.",
+    "Reviewed at 64 px in Canvas and Skia, on paper and on ink.",
+    "User visual approval."
+  ],
+  "notes": [
+    "No asset in this folder is approved or imported by the engine.",
+    "The candidate path is deliberately outside the themed asset folders.",
+    "The engine frame map in SamuraiVisualAssets.ts was not modified.",
+    "The Sumi-e audit is reported as diagnostic evidence of style mismatch, not as the acceptance gate for this candidate."
+  ]
+}

@@ -8,9 +8,9 @@
   "theme": "sumi-e",
   "status_summary": {
     "approved": 0,
-    "pilot": 1,
+    "pilot": 2,
     "legacy_rejected_for_theme": 1,
-    "planned": 10,
+    "planned": 9,
     "code_native": 12,
     "blocked": 0
   },
@@ -184,9 +184,9 @@
     },
     {
       "id": "character-player-ronin",
-      "role": "Player character: ronin with kasa hat, coat and rifle.",
+      "role": "Player character: ronin with kasa hat, short coat and long matchlock rifle. PILOT asset for the Sumi-e family (wiring not implemented).",
       "path": "src/games/hitandrun/assets/themes/sumi-e/characters/player.png",
-      "status": "planned",
+      "status": "pilot",
       "visual_ids": ["player"],
       "technical": {
         "dimensions": "512x320",
@@ -194,7 +194,16 @@
         "grid": "8x5",
         "frames": 40,
         "alpha": true,
-        "alpha_mode": "straight",
+        "alpha_mode": "straight (continuous ramp 4..255, soft brush edges)",
+        "measured": {
+          "bytes": 30993,
+          "distinct_rgb_swatches": 7,
+          "off_palette_pixels": 0,
+          "pure_black_or_white_fills": 0,
+          "accent_ratio_of_painted_px_alpha_ge_128": "2.78% (<= 5%)",
+          "safe_area": "PASS - all 40 cells within the 2px margin",
+          "sha256": "7381293b7a5cdb21c458309ab02762a54acae544043139a42b8fd518b19c8742"
+        },
         "format": "PNG-32 RGBA8888",
         "anchor": "bottom-center (0.5, 0.94)",
         "filtering": "linear",
@@ -202,21 +211,29 @@
         "display_size": "64x64",
         "frame_ranges": { "idle": [0, 7], "walk": [8, 15], "attack": [16, 23], "hurt": [24, 29], "empty": [30, 31], "death": [32, 39] }
       },
-      "visual_locks": ["kasa-hat-silhouette", "rifle-diagonal", "coat-hem", "paper-negative-space", "right-facing", "feet-baseline"],
+      "visual_locks": ["kasa-hat-silhouette", "rifle-diagonal-longer-than-torso", "coat-hem", "paper-negative-space", "right-facing", "feet-baseline"],
       "source": {
-        "kind": "planned-generated-or-authored",
-        "url_or_tool": "",
-        "creator": "TBD",
-        "created_at": "",
-        "license": "TBD",
-        "attribution": "",
-        "prompt_or_source_record": "docs/hitandrun/sumi-e/ART_DIRECTION_BRIEF.md §2 and §6"
+        "kind": "procedural-generated",
+        "url_or_tool": "docs/hitandrun/sumi-e/tools/generate_player_sumi_e.py (deterministic, seeded hashes)",
+        "creator": "project (deterministic generator; re-runs reproduce identical bytes)",
+        "created_at": "2026-10-25",
+        "license": "MIT (repository)",
+        "attribution": "Palette and shape rules from docs/hitandrun/sumi-e/ART_DIRECTION_BRIEF.md; key poses informed by the non-shippable reference samurai-main-char2",
+        "prompt_or_source_record": "docs/hitandrun/sumi-e/reference/player-pilot.provenance.md"
+      },
+      "readability": {
+        "paper": "pass",
+        "grayscale": "pass",
+        "solid_ink_stress": "fail - black mass disappears; accents only",
+        "evidence": "docs/hitandrun/sumi-e/player-readability.png",
+        "action": "same runtime paper-keyline decision as the samurai pilot; do not add a white outline to the atlas"
       },
       "verification": {
-        "native_scale_reviewed": false,
+        "native_scale_reviewed": true,
         "in_engine_reviewed": false,
-        "technical_checks_passed": false,
-        "approved_by": ""
+        "technical_checks_passed": true,
+        "approved_by": "",
+        "notes": "Pilot only. Paper and grayscale pass; solid-ink stress test fails. Wiring (assetKey per theme) and in-engine review pending."
       }
     },
     {
@@ -905,12 +922,13 @@
     "asset_report_sumie.py passes without errors (palette swatches, accent, safe area, soft alpha)"
   ],
   "notes": [
-    "No asset is approved yet. The samurai pilot is produced and technically validated; approval requires the user's in-engine review.",
-    "The only other raster is the legacy neon samurai atlas; it is not Sumi-e.",
+    "No asset is approved yet. Two pilots (samurai, player) are produced and technically validated; approval requires the user's in-engine review.",
+    "The only wired raster is the legacy neon samurai atlas; it is not Sumi-e.",
     "SUMI_E_ASSET_MANIFEST.ts is not imported anywhere and its paths do not exist.",
     "The target board is a proposed greybox, not final art.",
-    "QA environment: Python 3.9.6 + Pillow 11.3.0 (installed via pip --user). asset_report.py counts distinct RGBA tuples, so soft-alpha sprites must be palette-audited with asset_report_sumie.py (RGB swatches), which the pilot passes.",
-    "The samurai pilot reads on paper and grayscale but fails a solid-ink stress test; see readability and docs/hitandrun/sumi-e/atlas-readability.png. Resolve with a runtime paper keyline or a paper-only constraint.",
-    "The samurai-main-char2 sheet is a reference only: unknown license, checkerboard keying leaks, poses fused with VFX, no consistent grid. Do not crop it into the atlas."
+    "QA environment: Python 3.9.6 + Pillow 11.3.0 (installed via pip --user). asset_report.py counts distinct RGBA tuples, so soft-alpha sprites must be palette-audited with asset_report_sumie.py (RGB swatches), which both pilots pass.",
+    "Both pilots read on paper and grayscale but fail a solid-ink stress test; see atlas-readability.png and player-readability.png. Resolve with a runtime paper keyline or a paper-only constraint.",
+    "The samurai-main-char2 sheet is a reference only: unknown license, checkerboard keying leaks, poses fused with VFX, no consistent grid. Do not crop it into the atlas.",
+    "The player pilot reuses the samurai painter and was derived from the reference key poses only; no reference pixels are sampled."
   ]
 }

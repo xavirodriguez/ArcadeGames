@@ -255,7 +255,8 @@ Contiene, a escala nativa:
 6. Un artista puede replicar el estilo con la paleta y las reglas, sin ver una referencia externa.
 7. Los onis azul y rojo se diferencian por postura, cuernos y arma, no solo por color.
 
-> **Evidencia del piloto:** `atlas-readability.png` (papel ✅ / grayscale ✅ / tinta sólida ❌).
+> **Evidencia de los pilotos:** `atlas-readability.png` y `player-readability.png`
+> (papel ✅ / grayscale ✅ / tinta sólida ❌ en ambos).
 > La referencia `reference/samurai-main-char2` es estilo/key poses, no un atlas recortable.
 
 ---
@@ -264,7 +265,7 @@ Contiene, a escala nativa:
 
 | Familia | Assets | Estado | Notas |
 | --- | --- | --- | --- |
-| **Personajes** | `player`, `samurai`, `elite`, `charger`, `wall_trooper`, `hopper`, `popcorn` | `1 pilot + 6 planned` | `samurai` piloto `512×320`; legibilidad en tinta pendiente |
+| **Personajes** | `player`, `samurai`, `elite`, `charger`, `wall_trooper`, `hopper`, `popcorn` | `2 pilots + 5 planned` | `samurai` y `player` pilotos `512×320`; legibilidad en tinta pendiente y wiring pendiente |
 | **Proyectiles** | `ofuda`, `enemy_bullet`, `rocket` | `code-native` | Procedurales; raster opcional 32×32 |
 | **Props** | `torii`, `lantern`, `roof`, `bamboo` | `planned` / `code-native` | Fondo; sin colisión |
 | **UI** | `hanko`, `ink-pot`, `score-stamp`, `scroll-panel` | `code-native` | React/SVG + canvas |
@@ -281,8 +282,9 @@ Contiene, a escala nativa:
 > Un prompt no es un asset aprobado; el piloto debe normalizarse y validarse en el juego.
 
 1. **Aprobar el target board** y congelar paleta, siluetas y frame map.
-2. **Piloto producido:** `samurai` en `.../enemies/samurai.png` (`512×320`, 40 frames, 7 swatches).
-   No producir otro piloto hasta validarlo en el juego.
+2. **Pilotos producidos:** `samurai` (`.../enemies/samurai.png`) y `player`
+   (`.../characters/player.png`), ambos `512×320`, 40 frames, 7 swatches. No producir el resto de
+   la familia hasta revisarlos en el juego.
 3. **Normalizar** con `asset_report_sumie.py`, `asset_report.py` y `build_preview_sheet.py`; el
    entorno actual (`Python 3.9.6` + Pillow 11.3.0) ya los ejecuta.
 4. **Validar en el juego** a 800×600 y en un dispositivo real; comprobar pies, escala, legibilidad
@@ -295,19 +297,25 @@ Contiene, a escala nativa:
 ### Comandos de QA
 
 ```bash
-# auditor Sumi-e (paleta, acento, safe area, alpha)
+# auditor Sumi-e (paleta, acento, safe area, alpha) — repetir para player.png
 python3 docs/hitandrun/sumi-e/tools/asset_report_sumie.py \
   src/games/hitandrun/assets/themes/sumi-e/enemies/samurai.png
 
 # auditor genérico (sin --max-colors para alpha suave)
 python3 .agents/skills/create-game-assets/scripts/asset_report.py \
-  src/games/hitandrun/assets/themes/sumi-e/enemies/samurai.png \
+  src/games/hitandrun/assets/themes/sumi-e/characters/player.png \
   --expect-size 512x320 --require-alpha --json
 
-# contact sheet
-python3 .agents/skills/create-game-assets/scripts/build_preview_sheet.py \
-  src/games/hitandrun/assets/themes/sumi-e/enemies/samurai.png \
-  --out docs/hitandrun/sumi-e/characters-preview.png --columns 4 --cell-size 192
+# contact sheet por clip
+python3 docs/hitandrun/sumi-e/tools/build_atlas_contact_sheet.py \
+  src/games/hitandrun/assets/themes/sumi-e/characters/player.png \
+  --out docs/hitandrun/sumi-e/player-preview.png --zoom 3 \
+  --labels "idle 0-7,walk 8-15,attack 16-23,hurt 24-29 + empty 30-31,death 32-39"
+
+# legibilidad papel / tinta / grayscale
+python3 docs/hitandrun/sumi-e/tools/build_readability_sheet.py \
+  src/games/hitandrun/assets/themes/sumi-e/characters/player.png \
+  --out docs/hitandrun/sumi-e/player-readability.png
 ```
 
 > Entorno actual: Python 3.9.6 + Pillow 11.3.0. `--max-colors 8` no aplica a alpha suave
@@ -330,8 +338,8 @@ Un asset solo pasa a `approved` si cumple **todas**:
 - [ ] Procedencia y licencia registradas.
 - [ ] `asset_report.py` pasa sin errores.
 
-> **Estado del piloto:** el `samurai` pasa las puertas técnicas y de paleta, pero falla la de tinta
-> sólida. No se marca `approved` hasta resolverla y revisarlo en Canvas/Skia.
+> **Estado de los pilotos:** `samurai` y `player` pasan las puertas técnicas y de paleta, pero
+> fallan la de tinta sólida. No se marcan `approved` hasta resolverla y revisarlos en Canvas/Skia.
 
 ---
 
@@ -345,7 +353,7 @@ Un asset solo pasa a `approved` si cumple **todas**:
 | ¿Fuentes? | `Yuji Boku`/`Noto Serif JP` vs sistema | Cargar ambas con `expo-font`; fallback `serif` |
 | ¿Papel? | Full-screen noise vs tile 256×256 | Tile cacheado; medir antes de optimizar |
 | ¿HUD React? | Dejarlo neón vs tokens Sumi-e | Tokens compartidos; es parte del tema |
-| ¿Alcance inicial? | 7 personajes vs 1 piloto | Piloto `samurai` elegido; siguiente `player` |
+| ¿Alcance inicial? | 7 personajes vs 1 piloto | Dos pilotos (`samurai`, `player`); siguiente `elite` |
 | ¿Legibilidad en tinta? | Keyline runtime vs restricción a papel vs wash más claro | Keyline runtime; no tocar el atlas |
 | ¿Referencia `samurai-main-char2`? | Usar como estilo vs descartar | Solo estilo/key poses; no shippable |
 
@@ -368,5 +376,8 @@ Un asset solo pasa a `approved` si cumple **todas**:
 - **Referencia de estilo:** `reference/samurai-main-char2-alpha.png` (JPEG original `1408×768`,
   checkerboard horneado; alpha keyed con fugas). Generador, prompt y licencia desconocidos;
   **no shippable**. Ver `reference/samurai-main-char2.provenance.md`.
+- **Pilotos procedurales:** `tools/generate_samurai_sumi_e.py` y `tools/generate_player_sumi_e.py`
+  (código propio, MIT, deterministas). El `player` usa la referencia solo como key poses; no
+  samplea sus píxeles. Ver `reference/player-pilot.provenance.md`.
 - **Fuentes:** Yuji Boku (Copyright 2021 The Yuji Project Authors, OFL 1.1) y Noto Serif JP (Copyright 2012 Google Inc., OFL 1.1).
 - **Target board:** greybox vectorial propio, sin arte generado.

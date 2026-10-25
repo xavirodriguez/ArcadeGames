@@ -27,7 +27,26 @@ import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { hapticSelection } from "../../utils/haptics";
 import { useTranslation } from "../../hooks/useTranslation";
 import { officePaperTheme, createThemeFromGameAccents } from "../../theme";
-import { TouchInputState } from "@tiny-aster/core";
+import { Theme, TouchInputState } from "@tiny-aster/core";
+
+export interface FlappyThemeOption {
+  key: string;
+  label: string;
+  theme: Theme;
+}
+
+export const FLAPPY_BIRD_THEME_REGISTRY: Record<string, FlappyThemeOption> = {
+  neon: {
+    key: "neon",
+    label: "Neon Void",
+    theme: createThemeFromGameAccents("flappy-bird"),
+  },
+  office: {
+    key: "office",
+    label: "Oficina 8:47",
+    theme: officePaperTheme,
+  },
+};
 import {
   GameScreen,
   GameTitle,
@@ -46,12 +65,10 @@ export default function FlappyBirdScreen() {
   const [initialSeed, setInitialSeed] = useState<number | undefined>();
   const [isBooting, setIsBooting] = useState(false);
   const sessionBootedRef = useRef(false);
-  const [selectedThemeKey, setSelectedThemeKey] = useState<"neon" | "office">("neon");
+  const [selectedThemeKey, setSelectedThemeKey] = useState<string>("neon");
 
   const selectedTheme = useMemo(() => {
-    return selectedThemeKey === "office"
-      ? officePaperTheme
-      : createThemeFromGameAccents("flappy-bird");
+    return FLAPPY_BIRD_THEME_REGISTRY[selectedThemeKey]?.theme ?? FLAPPY_BIRD_THEME_REGISTRY.neon.theme;
   }, [selectedThemeKey]);
 
   // Sync player name from profile
@@ -340,8 +357,8 @@ export default function FlappyBirdScreen() {
 const StartScreen: FC<{
   title: string;
   highScore: number;
-  selectedThemeKey: "neon" | "office";
-  onThemeChange: (theme: "neon" | "office") => void;
+  selectedThemeKey: string;
+  onThemeChange: (themeKey: string) => void;
   onStart: () => void;
   onStartMulti: () => void;
   playerName: string;
@@ -381,48 +398,30 @@ const StartScreen: FC<{
       <View style={styles.themeSelectorContainer}>
         <Text style={styles.themeSelectorLabel}>THEME:</Text>
         <View style={styles.themeSelectorRow}>
-          <TouchableOpacity
-            style={[
-              styles.themeOptionButton,
-              selectedThemeKey === "neon" && styles.themeOptionActive,
-            ]}
-            onPress={() => {
-              hapticSelection();
-              onThemeChange("neon");
-            }}
-            accessibilityRole="button"
-            accessibilityLabel="Neon Void"
-          >
-            <Text
+          {Object.values(FLAPPY_BIRD_THEME_REGISTRY).map((option) => (
+            <TouchableOpacity
+              key={option.key}
               style={[
-                styles.themeOptionText,
-                selectedThemeKey === "neon" && styles.themeOptionTextActive,
+                styles.themeOptionButton,
+                selectedThemeKey === option.key && styles.themeOptionActive,
               ]}
+              onPress={() => {
+                hapticSelection();
+                onThemeChange(option.key);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={option.label}
             >
-              Neon Void
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.themeOptionButton,
-              selectedThemeKey === "office" && styles.themeOptionActive,
-            ]}
-            onPress={() => {
-              hapticSelection();
-              onThemeChange("office");
-            }}
-            accessibilityRole="button"
-            accessibilityLabel="Oficina 8:47"
-          >
-            <Text
-              style={[
-                styles.themeOptionText,
-                selectedThemeKey === "office" && styles.themeOptionTextActive,
-              ]}
-            >
-              Oficina 8:47
-            </Text>
-          </TouchableOpacity>
+              <Text
+                style={[
+                  styles.themeOptionText,
+                  selectedThemeKey === option.key && styles.themeOptionTextActive,
+                ]}
+              >
+                {option.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
       </View>
 

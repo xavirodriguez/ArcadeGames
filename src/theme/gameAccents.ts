@@ -395,6 +395,7 @@ export function createThemeFromGameAccents(game: GameKey, customTheme?: Partial<
   );
 
   return {
+    conceptPack: customTheme?.conceptPack,
     spriteMap: { ...customTheme?.spriteMap },
     colorMap: { ...defaultColorMap, ...customTheme?.colorMap },
     effects: { ...defaultEffects, ...customTheme?.effects },

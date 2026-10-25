@@ -1,4 +1,4 @@
-import { ShapeDrawer, EffectDrawer, RenderContext, THEME_RESOURCE_KEY, Theme, World } from "@tiny-aster/core";
+import { ShapeDrawer, EffectDrawer, RenderContext, World } from "@tiny-aster/core";
 import type { SkCanvas, SkPaint, SkPath, SkShader } from "@shopify/react-native-skia";
 import { FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
 import { computeFlappyThrusterFlame } from "../../shared/rendering/ProceduralShapeUtils";
@@ -38,12 +38,6 @@ import { colors } from "../../../theme/colors";
 import { hexToRgba } from "../../shared/rendering/CosmicPalette";
 
 export { FLAPPY_PARTICLE_POOL as FLAPPY_SKIA_PARTICLE_POOL, spawnVisualParticle };
-
-function isOfficeTheme(world: World<FlappyBirdComponentRegistry>): boolean {
-  const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-  const layers = theme?.vfxProfile?.backgroundLayers;
-  return Array.isArray(layers) && layers.length === 0;
-}
 
 function resolvePipeGradientColors(variant: string) {
   if (variant === "rusted") {
@@ -211,53 +205,6 @@ function getArrowheadPath(size: number): SkPath | null {
   return cachedArrowheadPath;
 }
 
-function drawSkiaPaperAirplane(skCanvas: SkCanvas, paint: SkPaint, size: number) {
-  // Left wing top fold
-  paint.reset();
-  paint.setAntiAlias(true);
-  paint.setStyle(Skia.PaintStyle.Fill);
-  paint.setColor(Skia.Color("#FFFFFF"));
-
-  const p1 = Skia.Path.Make();
-  p1.moveTo(size * 1.3, 0);
-  p1.lineTo(-size * 0.9, -size * 0.8);
-  p1.lineTo(-size * 0.4, 0);
-  p1.close();
-  skCanvas.drawPath(p1, paint);
-
-  // Right wing under shadow
-  paint.setColor(Skia.Color("#E2E8F0"));
-  const p2 = Skia.Path.Make();
-  p2.moveTo(size * 1.3, 0);
-  p2.lineTo(-size * 0.4, 0);
-  p2.lineTo(-size * 0.9, size * 0.8);
-  p2.close();
-  skCanvas.drawPath(p2, paint);
-
-  // Center crease shadow line
-  paint.setColor(Skia.Color("#94A3B8"));
-  const p3 = Skia.Path.Make();
-  p3.moveTo(size * 1.3, 0);
-  p3.lineTo(-size * 0.4, 0);
-  p3.lineTo(-size * 0.6, -size * 0.15);
-  p3.close();
-  skCanvas.drawPath(p3, paint);
-
-  // Outline
-  paint.setStyle(Skia.PaintStyle.Stroke);
-  paint.setColor(Skia.Color("#334155"));
-  paint.setStrokeWidth(1.0);
-  const pOutline = Skia.Path.Make();
-  pOutline.moveTo(size * 1.3, 0);
-  pOutline.lineTo(-size * 0.9, -size * 0.8);
-  pOutline.lineTo(-size * 0.4, 0);
-  pOutline.lineTo(-size * 0.9, size * 0.8);
-  pOutline.close();
-  skCanvas.drawPath(pOutline, paint);
-
-  skCanvas.drawLine(size * 1.3, 0, -size * 0.4, 0, paint);
-}
-
 export const drawSkiaFlappyBird: ShapeDrawer<RenderContext, FlappyBirdComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
@@ -278,27 +225,11 @@ export const drawSkiaFlappyBird: ShapeDrawer<RenderContext, FlappyBirdComponentR
     } = drawCtx;
 
     const paint = getPaint();
-    const officeTheme = isOfficeTheme(world);
 
     skCanvas.save();
 
     skCanvas.rotate(angleDeg, 0, 0);
     skCanvas.scale(scaleX, scaleY);
-
-    if (officeTheme) {
-      if (isAlive) {
-        paint.reset();
-        paint.setStyle(Skia.PaintStyle.Stroke);
-        paint.setColor(Skia.Color("rgba(255, 255, 255, 0.4)"));
-        paint.setStrokeWidth(1.2);
-        skCanvas.drawLine(-size * 0.5, -size * 0.2, -size * 1.6, -size * 0.2, paint);
-        skCanvas.drawLine(-size * 0.5, size * 0.2, -size * 1.6, size * 0.2, paint);
-      }
-
-      drawSkiaPaperAirplane(skCanvas, paint, size);
-      skCanvas.restore();
-      return;
-    }
 
     if (isAlive) {
       const warpFactor = calculateWarpFactor(world);
@@ -412,59 +343,8 @@ export const drawSkiaFlappyPipe: ShapeDrawer<RenderContext, FlappyBirdComponentR
     if (!pipeCtx) return;
 
     const { pos, pipe, width, halfWidth, variant, capHeight, capWidth, capHalfWidth, beaconPulse, isTopPipe, pipeY, pipeHeight, capYOffset, beaconY } = pipeCtx;
-    const officeTheme = isOfficeTheme(world);
 
     const paint = getPaint();
-
-    if (officeTheme) {
-      const pillarShader = getCachedSkiaShader(`office_skia_pillar_${halfWidth}`, () =>
-        Skia.Shader.MakeLinearGradient(
-          Skia.Point(-halfWidth, 0),
-          Skia.Point(halfWidth, 0),
-          [Skia.Color("#334155"), Skia.Color("#475569"), Skia.Color("#1E293B")],
-          [0, 0.5, 1.0],
-          Skia.TileMode.Clamp
-        )
-      );
-
-      paint.reset();
-      paint.setStyle(Skia.PaintStyle.Fill);
-      if (pillarShader) paint.setShader(pillarShader);
-      skCanvas.drawRect(Skia.XYWHRect(-halfWidth, pipeY, width, pipeHeight), paint);
-
-      paint.reset();
-      paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(Skia.Color("#64748B"));
-      paint.setStrokeWidth(1.2);
-      skCanvas.drawRect(Skia.XYWHRect(-halfWidth, pipeY, width, pipeHeight), paint);
-
-      const collarShader = getCachedSkiaShader(`office_skia_collar_${capHalfWidth}`, () =>
-        Skia.Shader.MakeLinearGradient(
-          Skia.Point(-capHalfWidth, 0),
-          Skia.Point(capHalfWidth, 0),
-          [Skia.Color("#64748B"), Skia.Color("#CBD5E1"), Skia.Color("#475569")],
-          [0, 0.5, 1.0],
-          Skia.TileMode.Clamp
-        )
-      );
-
-      paint.reset();
-      paint.setStyle(Skia.PaintStyle.Fill);
-      if (collarShader) paint.setShader(collarShader);
-      skCanvas.drawRect(Skia.XYWHRect(-capHalfWidth, capYOffset, capWidth, capHeight), paint);
-
-      paint.reset();
-      paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(Skia.Color("#94A3B8"));
-      paint.setStrokeWidth(1.5);
-      skCanvas.drawRect(Skia.XYWHRect(-capHalfWidth, capYOffset, capWidth, capHeight), paint);
-
-      paint.reset();
-      paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color("#F8FAFC"));
-      skCanvas.drawRect(Skia.XYWHRect(-capHalfWidth + 12, capYOffset + capHeight * 0.4, capWidth - 24, 3), paint);
-      return;
-    }
 
     const pillarShader = getCachedSkiaShader(`pillar_${halfWidth}_${variant}`, () => {
       const colorsList = resolvePipeGradientColors(variant);
@@ -586,37 +466,8 @@ export const drawSkiaFlappyGround: ShapeDrawer<RenderContext, FlappyBirdComponen
     const { size = 400 } = render;
     const width = size;
     const height = 40;
-    const officeTheme = isOfficeTheme(world);
 
     const paint = getPaint();
-
-    if (officeTheme) {
-      const deskShader = getCachedSkiaShader(`desk_skia_${height}`, () =>
-        Skia.Shader.MakeLinearGradient(
-          Skia.Point(0, -height / 2),
-          Skia.Point(0, height / 2),
-          [Skia.Color("#D97706"), Skia.Color("#B45309"), Skia.Color("#78350F")],
-          [0, 0.3, 1.0],
-          Skia.TileMode.Clamp
-        )
-      );
-
-      paint.reset();
-      paint.setStyle(Skia.PaintStyle.Fill);
-      if (deskShader) paint.setShader(deskShader);
-      skCanvas.drawRect(Skia.XYWHRect(-width / 2, -height / 2, width, height), paint);
-
-      paint.reset();
-      paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color("#F59E0B"));
-      skCanvas.drawRect(Skia.XYWHRect(-width / 2, -height / 2, width, 3), paint);
-
-      paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(Skia.Color("#451A03"));
-      paint.setStrokeWidth(1.0);
-      skCanvas.drawLine(-width / 2, -height / 2, width / 2, -height / 2, paint);
-      return;
-    }
 
     const baseShader = getCachedSkiaShader(`base_${height}`, () =>
       Skia.Shader.MakeLinearGradient(
@@ -783,47 +634,8 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<RenderContext, FlappyBi
     const { gameState, width, height, scenarioTheme, nebulae } = bgSetup;
     const skCanvas = canvas as unknown as SkCanvas;
     const paint = getPaint();
-    const officeTheme = isOfficeTheme(world);
 
     updateVisualParticles();
-
-    if (officeTheme) {
-      const bgShader = getCachedSkiaShader(`office_skia_bg_${width}_${height}`, () =>
-        Skia.Shader.MakeLinearGradient(
-          Skia.Point(0, 0),
-          Skia.Point(0, height),
-          [Skia.Color("#0F172A"), Skia.Color("#1E293B"), Skia.Color("#090D16")],
-          [0, 0.6, 1.0],
-          Skia.TileMode.Clamp
-        )
-      );
-
-      paint.reset();
-      paint.setStyle(Skia.PaintStyle.Fill);
-      if (bgShader) paint.setShader(bgShader);
-      skCanvas.drawRect(Skia.XYWHRect(0, 0, width, height), paint);
-
-      skCanvas.save();
-      paint.reset();
-      paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(Skia.Color("rgba(148, 163, 184, 0.08)"));
-      paint.setStrokeWidth(1.0);
-
-      const gridOffset = (world.tick * 0.5) % 20;
-
-      for (let gx = -20 + gridOffset; gx < width + 20; gx += 20) {
-        skCanvas.drawLine(gx, 0, gx, height, paint);
-      }
-      for (let gy = 0; gy < height; gy += 20) {
-        skCanvas.drawLine(0, gy, width, gy, paint);
-      }
-      skCanvas.restore();
-
-      drawSkiaVisualParticles(skCanvas, paint);
-
-      drawSkiaGlideEnergyBar(skCanvas, paint, world, width, height);
-      return;
-    }
 
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);

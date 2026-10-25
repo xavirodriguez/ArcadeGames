@@ -12,6 +12,7 @@ import {
   CoreComponentRegistry,
   EventRegistry,
   RenderContext,
+  RendererUtils,
   WebAudioPlayer,
   IAudioPlayer,
   EventBus,
@@ -550,38 +551,40 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
   }
 
   public initializeRenderer(renderer: Renderer<CoreComponentRegistry, RenderContext>): void {
-    if (renderer.type === "skia") {
-      const r = renderer as Renderer<CoreComponentRegistry, any>;
-      r.registerShape("tilemap", drawPlatformerTilemap);
-      r.registerShape("player", drawSkiaEchoPlayer);
-      r.registerShape("fragment", drawSkiaMemoryFragment);
-      r.registerShape("core", drawSkiaMemoryCore);
-      r.registerShape("node", drawSkiaCheckpointNode);
-      r.registerShape("pulse_attack", drawSkiaPulseAttack);
-      r.registerShape("sentinel", drawSkiaSentinel);
-      r.registerShape("hopper", drawSkiaHopper);
-      r.registerShape("watcher", drawSkiaWatcher);
-      r.registerShape("charger", drawSkiaCharger);
-      r.registerShape("state_switch", drawSkiaEchoStateSwitch);
-      r.registerShape("state_gate", drawSkiaEchoStateGate);
-      r.registerShape("death_zone", drawSkiaEchoDeathZone);
-      r.registerBackgroundEffect("echo_bg", drawSkiaEchoBackground);
-    } else {
-      renderer.registerShape("tilemap", drawPlatformerTilemap);
-      renderer.registerShape("player", drawEchoPlayer);
-      renderer.registerShape("fragment", drawMemoryFragment);
-      renderer.registerShape("core", drawMemoryCore);
-      renderer.registerShape("node", drawCheckpointNode);
-      renderer.registerShape("pulse_attack", drawPulseAttack);
-      renderer.registerShape("sentinel", drawSentinel);
-      renderer.registerShape("hopper", drawHopper);
-      renderer.registerShape("watcher", drawWatcher);
-      renderer.registerShape("charger", drawCharger);
-      renderer.registerShape("state_switch", drawEchoStateSwitch);
-      renderer.registerShape("state_gate", drawEchoStateGate);
-      renderer.registerShape("death_zone", drawEchoDeathZone);
-      renderer.registerBackgroundEffect("echo_bg", drawEchoBackground);
-    }
+    RendererUtils.registerAssets(renderer, {
+      canvas: (r) => {
+        r.registerShape("tilemap", drawPlatformerTilemap);
+        r.registerShape("player", drawEchoPlayer);
+        r.registerShape("fragment", drawMemoryFragment);
+        r.registerShape("core", drawMemoryCore);
+        r.registerShape("node", drawCheckpointNode);
+        r.registerShape("pulse_attack", drawPulseAttack);
+        r.registerShape("sentinel", drawSentinel);
+        r.registerShape("hopper", drawHopper);
+        r.registerShape("watcher", drawWatcher);
+        r.registerShape("charger", drawCharger);
+        r.registerShape("state_switch", drawEchoStateSwitch);
+        r.registerShape("state_gate", drawEchoStateGate);
+        r.registerShape("death_zone", drawEchoDeathZone);
+        r.registerBackgroundEffect("echo_bg", drawEchoBackground);
+      },
+      skia: (r) => {
+        r.registerShape("tilemap", drawPlatformerTilemap);
+        r.registerShape("player", drawSkiaEchoPlayer);
+        r.registerShape("fragment", drawSkiaMemoryFragment);
+        r.registerShape("core", drawSkiaMemoryCore);
+        r.registerShape("node", drawSkiaCheckpointNode);
+        r.registerShape("pulse_attack", drawSkiaPulseAttack);
+        r.registerShape("sentinel", drawSkiaSentinel);
+        r.registerShape("hopper", drawSkiaHopper);
+        r.registerShape("watcher", drawSkiaWatcher);
+        r.registerShape("charger", drawSkiaCharger);
+        r.registerShape("state_switch", drawSkiaEchoStateSwitch);
+        r.registerShape("state_gate", drawSkiaEchoStateGate);
+        r.registerShape("death_zone", drawSkiaEchoDeathZone);
+        r.registerBackgroundEffect("echo_bg", drawSkiaEchoBackground);
+      }
+    });
   }
 
   protected override async onInitializeEntities(): Promise<void> {

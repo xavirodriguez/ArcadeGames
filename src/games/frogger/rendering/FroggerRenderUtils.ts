@@ -190,3 +190,136 @@ export function resolveFroggerSlotColors(_world: World<FroggerComponentRegistry>
   const occupiedColor = FROGGER_VISUAL_TOKENS.lilyPads.occupied;
   return { slotColor, occupiedColor };
 }
+
+export interface FroggerCarContext {
+  width: number;
+  height: number;
+  halfW: number;
+  halfH: number;
+  direction: -1 | 1;
+  carColor: string;
+}
+
+export function resolveFroggerCarContext(
+  world: World<FroggerComponentRegistry>,
+  entity: number
+): FroggerCarContext | null {
+  const render = world.getComponent(entity, "Render");
+  if (!render) return null;
+
+  const width = render.size || 48;
+  const height = Math.min(24, Math.max(18, width * 0.46));
+  const halfW = width / 2;
+  const halfH = height / 2;
+  const direction = resolveFroggerVehicleDirection(world.getComponent(entity, "Vehicle")?.direction);
+  const carColor = render.color || FROGGER_VISUAL_TOKENS.vehicles.cars[0];
+
+  return { width, height, halfW, halfH, direction, carColor };
+}
+
+export interface FroggerTruckContext {
+  width: number;
+  height: number;
+  halfW: number;
+  halfH: number;
+  direction: -1 | 1;
+  truckColor: string;
+}
+
+export function resolveFroggerTruckContext(
+  world: World<FroggerComponentRegistry>,
+  entity: number
+): FroggerTruckContext | null {
+  const render = world.getComponent(entity, "Render");
+  if (!render) return null;
+
+  const width = render.size || 80;
+  const height = Math.min(27, Math.max(23, width * 0.34));
+  const halfW = width / 2;
+  const halfH = height / 2;
+  const direction = resolveFroggerVehicleDirection(world.getComponent(entity, "Vehicle")?.direction);
+  const truckColor = render.color || FROGGER_VISUAL_TOKENS.vehicles.truck;
+
+  return { width, height, halfW, halfH, direction, truckColor };
+}
+
+export interface FroggerLogContext {
+  width: number;
+  height: number;
+  halfW: number;
+  halfH: number;
+  logColor: string;
+  grainColor: string;
+  lineCount: number;
+}
+
+export function resolveFroggerLogContext(
+  world: World<FroggerComponentRegistry>,
+  entity: number
+): FroggerLogContext | null {
+  const render = world.getComponent(entity, "Render");
+  if (!render) return null;
+
+  const width = render.size || 120;
+  const height = 30;
+  const halfW = width / 2;
+  const halfH = height / 2;
+  const logColor = render.color || FROGGER_VISUAL_TOKENS.logs.body;
+  const grainColor = FROGGER_VISUAL_TOKENS.logs.grain;
+  const lineCount = Math.max(2, Math.floor(width / 38));
+
+  return { width, height, halfW, halfH, logColor, grainColor, lineCount };
+}
+
+export interface FroggerTurtleContext {
+  width: number;
+  halfW: number;
+  segments: readonly TurtleShellSegment[];
+  visual: FroggerTurtleVisualState;
+  direction: -1 | 1;
+  divePhase?: string;
+}
+
+export function resolveFroggerTurtleContext(
+  world: World<FroggerComponentRegistry>,
+  entity: number
+): FroggerTurtleContext | null {
+  const render = world.getComponent(entity, "Render");
+  if (!render) return null;
+
+  const width = render.size || 80;
+  const segments = resolveFroggerShellSegments(width);
+  const log = world.getComponent(entity, "Log");
+  const visual = resolveFroggerTurtleVisualState(log?.divePhase);
+  const direction = resolveFroggerVehicleDirection(log?.direction);
+  const halfW = width / 2;
+
+  return { width, halfW, segments, visual, direction, divePhase: log?.divePhase };
+}
+
+export interface FroggerCrocodileContext {
+  width: number;
+  height: number;
+  halfW: number;
+  direction: -1 | 1;
+  bodyColor: string;
+  mouthOpen: boolean;
+}
+
+export function resolveFroggerCrocodileContext(
+  world: World<FroggerComponentRegistry>,
+  entity: number
+): FroggerCrocodileContext | null {
+  const render = world.getComponent(entity, "Render");
+  if (!render) return null;
+
+  const log = world.getComponent(entity, "Log");
+  const width = render.size || 100;
+  const height = 30;
+  const halfW = width / 2;
+  const direction = resolveFroggerVehicleDirection(log?.direction);
+  const bodyColor = render.color || FROGGER_VISUAL_TOKENS.crocodile.body;
+  const mouthOpen = !!log?.mouthOpen;
+
+  return { width, height, halfW, direction, bodyColor, mouthOpen };
+}

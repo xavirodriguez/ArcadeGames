@@ -30,7 +30,6 @@ describe("HitRunMeleeSystem (Paso A)", () => {
   beforeEach(() => {
     world = new World<CoreComponentRegistry>();
     world.setResource("IsPaused", false);
-    world.setResource("HitStopRemaining", 0);
     system = registerHitRunMelee(world, { ...DEFAULT_MELEE_ATTACK_CONFIG });
   });
 

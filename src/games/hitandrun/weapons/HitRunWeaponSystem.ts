@@ -106,14 +106,6 @@ export class HitRunWeaponSystem extends System<CoreComponentRegistry> {
         weaponState.muzzleFlashRemaining = 0.06;
 
         if (!world.isReSimulating) {
-          const shake = world.getResource<{ intensity: number; duration: number; elapsed: number }>(
-            "HitRunScreenShake"
-          );
-          if (shake) {
-            shake.intensity = Math.min(6, shake.intensity + (def.id === "hmg" ? 1.2 : 4));
-            shake.duration = Math.max(shake.duration, def.id === "hmg" ? 0.08 : 0.2);
-            shake.elapsed = 0;
-          }
           const cams = world.query("Camera2D");
           for (let c = 0; c < cams.length; c++) {
             const cam = world.getComponent(cams[c], "Camera2D") as { isMain?: boolean } | undefined;

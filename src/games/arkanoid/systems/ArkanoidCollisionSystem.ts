@@ -5,7 +5,8 @@ import {
   Juice,
   CoreComponentRegistry,
   createEmitter,
-  Entity
+  Entity,
+  enterGameplayFreeze
 } from "@tiny-aster/core";
 import { spawnScorePopup, CombatHitEvent, CombatDeathEvent, subscribeToCombatEvents } from "@tiny-aster/gameplay-kit";
 import { ArkanoidComponentRegistry, ArkanoidEventRegistry } from "../types/ArkanoidTypes";
@@ -62,7 +63,7 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
         render.hitFlashFrames = 4;
       });
 
-      world.setResource("GameplayFreeze", { remaining: 0.04 });
+      enterGameplayFreeze(world, 0.04);
       Juice.squash(world as World<CoreComponentRegistry>, target, 1.15, 0.85, 120);
 
       const pos = world.getComponent(target, "Transform");

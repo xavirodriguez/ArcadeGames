@@ -5,7 +5,8 @@ import {
   VelocityComponent,
   Juice,
   createEmitter,
-  TTLComponent
+  TTLComponent,
+  enterGameplayFreeze
 } from "@tiny-aster/core";
 import { PongConfig } from "../types/PongConfigSchema";
 import { type BallComponent, type PongComponentRegistry } from "../types";
@@ -79,7 +80,7 @@ export class PongCollisionSystem extends System<PongComponentRegistry> {
               }
 
               // Apply physical hit-stop (60ms) to make paddle hit feel heavy and punchy
-              world.setResource("GameplayFreeze", { remaining: 0.06 });
+              enterGameplayFreeze(world, 0.06);
 
               // Juice/ScreenShake effect
               Juice.shake(world, 4, 150);

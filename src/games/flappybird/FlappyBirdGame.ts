@@ -1,4 +1,4 @@
-import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, CollisionSystem2D, JuiceSystem, Renderer, RenderContext, EventRegistry, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, HierarchySystem, TTLSystem, WebAudioPlayer, ConfigService, NullBaseGame, loadAudioAssets, InterpolationSnapshotEntry, EntitySyncDescriptor, applyServerState, preloadSharedAudioManifest, SHARED_AUDIO_MANIFEST, IAudioPlayer, Mutator, ComboComponent, MultiplayerRegistry } from "@tiny-aster/core";
+import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, CollisionSystem2D, JuiceSystem, Renderer, RenderContext, RendererUtils, EventRegistry, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, HierarchySystem, TTLSystem, WebAudioPlayer, ConfigService, NullBaseGame, loadAudioAssets, InterpolationSnapshotEntry, EntitySyncDescriptor, applyServerState, preloadSharedAudioManifest, SHARED_AUDIO_MANIFEST, IAudioPlayer, Mutator, ComboComponent, MultiplayerRegistry } from "@tiny-aster/core";
 import { FlappyBirdInput, FLAPPY_CONFIG, INITIAL_FLAPPY_STATE, createFlappyState, FlappyBirdState, BirdComponent, PipeComponent, FlappyBirdComponentRegistry, FlappyBirdEventRegistry } from "./types/FlappyBirdTypes";
 import { FlappyBirdConfigSchema, FlappyBirdConfig as FlappyBirdConfigType, DEFAULT_FLAPPY_BIRD_CONFIG } from "./types/FlappyBirdConfigSchema";
 import { ComboSystem } from "@tiny-aster/core";
@@ -531,29 +531,32 @@ export class FlappyBirdGame
     const theme = this.world.getResource<Theme>(THEME_RESOURCE_KEY);
     const packId = theme?.conceptPack?.id;
 
-    if (renderer.type === "canvas") {
-      this.activeRendererType = "canvas";
-      const { resolveFlappyCanvasVisuals } = require("./mods/registry");
-      const { drawFlappyBirdMissionHUD } = require("./rendering/FlappyBirdMissionHUD");
-      const drawers = resolveFlappyCanvasVisuals(packId);
+    RendererUtils.registerAssets(renderer, {
+      canvas: (r) => {
+        this.activeRendererType = "canvas";
+        const { resolveFlappyCanvasVisuals } = require("./mods/registry");
+        const { drawFlappyBirdMissionHUD } = require("./rendering/FlappyBirdMissionHUD");
+        const drawers = resolveFlappyCanvasVisuals(packId);
 
-      renderer.registerShape("bird", drawers.drawBird);
-      renderer.registerShape("pipe", drawers.drawPipe);
-      renderer.registerShape("ground", drawers.drawGround);
-      renderer.registerBackgroundEffect("scrollingSky", drawers.scrollingBackground);
-      renderer.registerBackgroundEffect("mission_hud", drawFlappyBirdMissionHUD);
-    } else if (renderer.type === "skia") {
-      this.activeRendererType = "skia";
-      const { resolveFlappySkiaVisuals } = require("./mods/registry");
-      const { drawSkiaFlappyBirdMissionHUD } = require("./rendering/FlappyBirdSkiaMissionHUD");
-      const drawers = resolveFlappySkiaVisuals(packId);
+        r.registerShape("bird", drawers.drawBird);
+        r.registerShape("pipe", drawers.drawPipe);
+        r.registerShape("ground", drawers.drawGround);
+        r.registerBackgroundEffect("scrollingSky", drawers.scrollingBackground);
+        r.registerBackgroundEffect("mission_hud", drawFlappyBirdMissionHUD);
+      },
+      skia: (r) => {
+        this.activeRendererType = "skia";
+        const { resolveFlappySkiaVisuals } = require("./mods/registry");
+        const { drawSkiaFlappyBirdMissionHUD } = require("./rendering/FlappyBirdSkiaMissionHUD");
+        const drawers = resolveFlappySkiaVisuals(packId);
 
-      renderer.registerShape("bird", drawers.drawBird);
-      renderer.registerShape("pipe", drawers.drawPipe);
-      renderer.registerShape("ground", drawers.drawGround);
-      renderer.registerBackgroundEffect("scrollingSky", drawers.scrollingBackground);
-      renderer.registerBackgroundEffect("mission_hud", drawSkiaFlappyBirdMissionHUD);
-    }
+        r.registerShape("bird", drawers.drawBird);
+        r.registerShape("pipe", drawers.drawPipe);
+        r.registerShape("ground", drawers.drawGround);
+        r.registerBackgroundEffect("scrollingSky", drawers.scrollingBackground);
+        r.registerBackgroundEffect("mission_hud", drawSkiaFlappyBirdMissionHUD);
+      }
+    });
   }
 
   public getGameState(): FlappyBirdState & { combo?: number; multiplier?: number; comboMultiplier?: number; comboTimerRemaining?: number } {

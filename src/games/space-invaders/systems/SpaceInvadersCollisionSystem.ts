@@ -1,4 +1,4 @@
-import { World, ComponentType, Juice, CoreComponentRegistry, createEmitter, WorldUtils } from "@tiny-aster/core";
+import { World, ComponentType, Juice, CoreComponentRegistry, createEmitter, WorldUtils, enterGameplayFreeze } from "@tiny-aster/core";
 import { System } from "@tiny-aster/core";
 import { Entity } from "@tiny-aster/core";
 import { EventBus } from "@tiny-aster/core";
@@ -122,7 +122,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     });
 
     // Apply hit-stop (50ms) and Squash & Stretch to Boss on hit
-    world.setResource("GameplayFreeze", { remaining: 0.05 });
+    enterGameplayFreeze(world, 0.05);
     Juice.squash(world as World<CoreComponentRegistry>, target, 1.2, 0.8, 200);
 
     const pos = world.getComponent(target, "Transform");
@@ -150,7 +150,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     });
 
     // Apply micro freeze-frame hit-stop (30ms) and Squash & Stretch deformation on invader hit
-    world.setResource("GameplayFreeze", { remaining: 0.03 });
+    enterGameplayFreeze(world, 0.03);
     Juice.squash(world as World<CoreComponentRegistry>, target, 1.25, 0.75, 120);
 
     const pos = world.getComponent(target, "Transform");

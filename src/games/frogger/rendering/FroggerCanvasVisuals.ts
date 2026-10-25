@@ -2,13 +2,15 @@ import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
 import { FroggerComponentRegistry } from "../types/FroggerTypes";
 import {
   resolveFroggerPlayerDrawContext,
-  resolveFroggerShellSegments,
   resolveFroggerGoalContext,
   resolveFroggerBackgroundContext,
   resolveFroggerSlotColors,
-  resolveFroggerVehicleDirection,
   resolveFroggerFacingRotation,
-  resolveFroggerTurtleVisualState,
+  resolveFroggerCarContext,
+  resolveFroggerTruckContext,
+  resolveFroggerLogContext,
+  resolveFroggerTurtleContext,
+  resolveFroggerCrocodileContext,
 } from "./FroggerRenderUtils";
 import { FROGGER_BACKGROUND_ROWS, FROGGER_VISUAL_TOKENS } from "./FroggerVisualTokens";
 
@@ -157,16 +159,10 @@ function drawCanvasVehicleLights(
 
 export const drawCarCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render) return;
+    const carCtx = resolveFroggerCarContext(world, entity);
+    if (!carCtx) return;
 
-    const width = render.size || 48;
-    // Keep the art lower than the 30px gameplay collider.
-    const height = Math.min(24, Math.max(18, width * 0.46));
-    const halfW = width / 2;
-    const halfH = height / 2;
-    const direction = resolveFroggerVehicleDirection(world.getComponent(entity, "Vehicle")?.direction);
-    const carColor = render.color || FROGGER_VISUAL_TOKENS.vehicles.cars[0];
+    const { width, height, halfW, halfH, direction, carColor } = carCtx;
 
     ctx.save();
     ctx.scale(direction, 1);
@@ -216,15 +212,10 @@ export const drawCarCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCompone
 
 export const drawTruckCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render) return;
+    const truckCtx = resolveFroggerTruckContext(world, entity);
+    if (!truckCtx) return;
 
-    const width = render.size || 80;
-    const height = Math.min(27, Math.max(23, width * 0.34));
-    const halfW = width / 2;
-    const halfH = height / 2;
-    const direction = resolveFroggerVehicleDirection(world.getComponent(entity, "Vehicle")?.direction);
-    const truckColor = render.color || FROGGER_VISUAL_TOKENS.vehicles.truck;
+    const { width, height, halfW, halfH, direction, truckColor } = truckCtx;
 
     ctx.save();
     ctx.scale(direction, 1);
@@ -270,16 +261,11 @@ export const drawTruckCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCompo
 };
 
 export const drawLogCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComponentRegistry> = {
-  draw(ctx, _world, entity) {
-    const render = _world.getComponent(entity, "Render");
-    if (!render) return;
+  draw(ctx, world, entity) {
+    const logCtx = resolveFroggerLogContext(world, entity);
+    if (!logCtx) return;
 
-    const width = render.size || 120;
-    const height = 30;
-    const halfW = width / 2;
-    const halfH = height / 2;
-    const logColor = render.color || FROGGER_VISUAL_TOKENS.logs.body;
-    const grainColor = FROGGER_VISUAL_TOKENS.logs.grain;
+    const { width, height, halfW, halfH, logColor, grainColor, lineCount } = logCtx;
 
     ctx.save();
 
@@ -303,7 +289,6 @@ export const drawLogCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCompone
 
     ctx.strokeStyle = grainColor;
     ctx.lineWidth = 1.6;
-    const lineCount = Math.max(2, Math.floor(width / 38));
     for (let i = 0; i < lineCount; i += 1) {
       const x1 = -halfW + 18 + i * ((width - 36) / lineCount);
       const y1 = i % 2 === 0 ? -4 : 3;
@@ -341,19 +326,14 @@ export const drawLogCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCompone
 
 export const drawTurtleCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    if (!render) return;
+    const turtleCtx = resolveFroggerTurtleContext(world, entity);
+    if (!turtleCtx) return;
 
-    const width = render.size || 80;
-    const segments = resolveFroggerShellSegments(width);
-    const log = world.getComponent(entity, "Log");
-    const visual = resolveFroggerTurtleVisualState(log?.divePhase);
-    const direction = resolveFroggerVehicleDirection(log?.direction);
-    const halfW = width / 2;
+    const { width, halfW, segments, visual, direction, divePhase } = turtleCtx;
 
     ctx.save();
     ctx.globalAlpha *= visual.opacity;
-    if (log?.divePhase === "submerged") ctx.scale(1, 0.78);
+    if (divePhase === "submerged") ctx.scale(1, 0.78);
 
     // Feet and neck are drawn before the shell to establish a readable creature silhouette.
     ctx.fillStyle = FROGGER_VISUAL_TOKENS.turtles.skin;
@@ -424,15 +404,10 @@ export const drawTurtleCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComp
 
 export const drawCrocodileCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    const log = world.getComponent(entity, "Log");
-    if (!render) return;
+    const crocCtx = resolveFroggerCrocodileContext(world, entity);
+    if (!crocCtx) return;
 
-    const width = render.size || 100;
-    const height = 30;
-    const halfW = width / 2;
-    const direction = resolveFroggerVehicleDirection(log?.direction);
-    const bodyColor = render.color || FROGGER_VISUAL_TOKENS.crocodile.body;
+    const { width, halfW, direction, bodyColor, mouthOpen } = crocCtx;
 
     ctx.save();
     ctx.scale(direction, 1);
@@ -485,7 +460,7 @@ export const drawCrocodileCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerC
     ctx.roundRect(jawX, -7, 22, 10, 4);
     ctx.fill();
 
-    if (log?.mouthOpen) {
+    if (mouthOpen) {
       ctx.fillStyle = FROGGER_VISUAL_TOKENS.crocodile.mouth;
       ctx.beginPath();
       ctx.moveTo(jawX + 1, -1);

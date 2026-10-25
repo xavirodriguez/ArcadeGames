@@ -15,18 +15,6 @@ export interface CombatDeathPayload {
   category?: string;
 }
 
-/** Resource key: "HitStopRemaining" (seconds of global sim freeze). */
-export type HitStopRemaining = number;
-
-/**
- * Presentation mirror resource (optional readers).
- * Camera path uses core ScreenShake + ScreenShakeSystem.
- */
-export interface HitRunScreenShake {
-  intensity: number;
-  duration: number;
-  elapsed: number;
-}
 
 export interface HitFeedbackProfile {
   hitStopSeconds: number;

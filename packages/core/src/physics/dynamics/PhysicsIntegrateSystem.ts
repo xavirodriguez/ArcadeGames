@@ -4,6 +4,7 @@ import { ComponentRegistry } from "../../ecs/Component";
 import { CoreComponentRegistry, TransformComponent, VelocityComponent } from "../../ecs/CoreComponents";
 import { Entity } from "../../ecs/Entity";
 import { SpatialCullingSystem } from "../../systems/SpatialCullingSystem";
+import { isGameplayFrozen } from "../../runtime/GameplayFreezeMixin";
 
 /**
  * Physics dynamics system that integrates entity velocities and angular velocities into positions.
@@ -41,7 +42,7 @@ export class PhysicsIntegrateSystem<
    * @sideEffect Mutates `Transform` components on integrated entities.
    */
   public update(world: World<TRegistry>, deltaTime: number): void {
-    if (world.getResource("IsPaused") === true) {
+    if (world.getResource("IsPaused") === true || isGameplayFrozen(world)) {
       return;
     }
     const resourceCandidates = world.getResource<Entity[]>("SpatialCullingCandidates");

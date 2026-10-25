@@ -96,18 +96,42 @@ export const drawHitRunCharger: ShapeDrawer<CanvasRenderingContext2D, CoreCompon
   }
 };
 
+export interface HitRunSamuraiFallbackContext {
+  snapshot: EntityRenderSnapshot;
+  size: number;
+  state: string;
+  dead: boolean;
+  windup: boolean;
+  attack: boolean;
+  sway: number;
+  swordAngle: number;
+}
+
+export function resolveHitRunSamuraiFallbackContext(
+  world: import("@tiny-aster/core").World<CoreComponentRegistry>,
+  entity: number
+): HitRunSamuraiFallbackContext | null {
+  const snapshot = buildEntitySnapshot(world, entity, "samurai", 32);
+  if (!snapshot) return null;
+
+  const size = snapshot.size;
+  const state = world.getComponent(entity, "StateMachine")?.currentState ?? "Patrol";
+  const dead = world.hasComponent(entity, "Dead");
+  const windup = state === "Anticipation" || state === "Windup";
+  const attack = state === "Attack" || state === "Charge";
+  const sway = Math.sin((world.tick ?? 0) / 60 * 6) * size * 0.018;
+  const swordAngle = windup ? -1.1 : attack ? 0.18 : -0.26;
+
+  return { snapshot, size, state, dead, windup, attack, sway, swordAngle };
+}
+
 /** Procedural Neo-Retro fallback used only when the bundled samurai PNG cannot load. */
 export const drawHitRunSamuraiFallback: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
-    const snapshot = buildEntitySnapshot(world, entity, "samurai", 32);
-    if (!snapshot) return;
+    const samuraiCtx = resolveHitRunSamuraiFallbackContext(world, entity);
+    if (!samuraiCtx) return;
 
-    const size = snapshot.size;
-    const state = world.getComponent(entity, "StateMachine")?.currentState ?? "Patrol";
-    const dead = world.hasComponent(entity, "Dead");
-    const windup = state === "Anticipation" || state === "Windup";
-    const attack = state === "Attack" || state === "Charge";
-    const sway = Math.sin((world.tick ?? 0) / 60 * 6) * size * 0.018;
+    const { snapshot, size, dead, attack, sway, swordAngle } = samuraiCtx;
     const outline = "#171923";
     const lacquer = "#c92337";
     const highlight = "#f05245";
@@ -287,7 +311,6 @@ export const drawHitRunSamuraiFallback: ShapeDrawer<CanvasRenderingContext2D, Co
     ctx.stroke();
 
     // Clearly readable katana. Wind-up pulls back; active attack sweeps forward.
-    const swordAngle = windup ? -1.1 : attack ? 0.18 : -0.26;
     ctx.save();
     ctx.translate(size * 0.25, -size * 0.87);
     ctx.rotate(swordAngle + (attack ? Math.sin((world.tick ?? 0) * 0.8) * 0.1 : 0));

@@ -3,6 +3,7 @@ import {
   BaseGame,
   Renderer,
   RenderContext,
+  RendererUtils,
   SceneManager,
   World,
   Camera2DSystem,
@@ -409,49 +410,52 @@ export class GeometryWarsGame extends BaseGame<
     const { registerSharedVFX } = require("../shared/rendering/SharedVFX");
     registerSharedVFX(renderer);
 
-    if (renderer.type === "canvas") {
-      const {
-        drawPlayerShip,
-        drawBullet,
-        drawChaser,
-        drawEvader,
-        drawGrunt,
-        drawParticle,
-        drawEnemySeeker,
-        drawEnemyFastSeeker,
-        drawGeometryWarsBackground
-      } = require("./rendering/GeometryWarsCanvasVisuals");
-      renderer.registerShape("gw_player", drawPlayerShip);
-      renderer.registerShape("gw_bullet", drawBullet);
-      renderer.registerShape("gw_chaser", drawChaser);
-      renderer.registerShape("gw_evader", drawEvader);
-      renderer.registerShape("gw_grunt", drawGrunt);
-      renderer.registerShape("gw_particle", drawParticle);
-      renderer.registerShape("gw_seeker", drawEnemySeeker);
-      renderer.registerShape("gw_fast_seeker", drawEnemyFastSeeker);
-      renderer.registerBackgroundEffect("gw_bg", drawGeometryWarsBackground);
-    } else if (renderer.type === "skia") {
-      const {
-        drawSkiaPlayerShip,
-        drawSkiaBullet,
-        drawSkiaChaser,
-        drawSkiaEvader,
-        drawSkiaGrunt,
-        drawSkiaParticle,
-        drawSkiaEnemySeeker,
-        drawSkiaEnemyFastSeeker,
-        drawSkiaGeometryWarsBackground
-      } = require("./rendering/GeometryWarsSkiaVisuals");
-      renderer.registerShape("gw_player", drawSkiaPlayerShip);
-      renderer.registerShape("gw_bullet", drawSkiaBullet);
-      renderer.registerShape("gw_chaser", drawSkiaChaser);
-      renderer.registerShape("gw_evader", drawSkiaEvader);
-      renderer.registerShape("gw_grunt", drawSkiaGrunt);
-      renderer.registerShape("gw_particle", drawSkiaParticle);
-      renderer.registerShape("gw_seeker", drawSkiaEnemySeeker);
-      renderer.registerShape("gw_fast_seeker", drawSkiaEnemyFastSeeker);
-      renderer.registerBackgroundEffect("gw_bg", drawSkiaGeometryWarsBackground);
-    }
+    RendererUtils.registerAssets(renderer, {
+      canvas: (r) => {
+        const {
+          drawPlayerShip,
+          drawBullet,
+          drawChaser,
+          drawEvader,
+          drawGrunt,
+          drawParticle,
+          drawEnemySeeker,
+          drawEnemyFastSeeker,
+          drawGeometryWarsBackground
+        } = require("./rendering/GeometryWarsCanvasVisuals");
+        r.registerShape("gw_player", drawPlayerShip);
+        r.registerShape("gw_bullet", drawBullet);
+        r.registerShape("gw_chaser", drawChaser);
+        r.registerShape("gw_evader", drawEvader);
+        r.registerShape("gw_grunt", drawGrunt);
+        r.registerShape("gw_particle", drawParticle);
+        r.registerShape("gw_seeker", drawEnemySeeker);
+        r.registerShape("gw_fast_seeker", drawEnemyFastSeeker);
+        r.registerBackgroundEffect("gw_bg", drawGeometryWarsBackground);
+      },
+      skia: (r) => {
+        const {
+          drawSkiaPlayerShip,
+          drawSkiaBullet,
+          drawSkiaChaser,
+          drawSkiaEvader,
+          drawSkiaGrunt,
+          drawSkiaParticle,
+          drawSkiaEnemySeeker,
+          drawSkiaEnemyFastSeeker,
+          drawSkiaGeometryWarsBackground
+        } = require("./rendering/GeometryWarsSkiaVisuals");
+        r.registerShape("gw_player", drawSkiaPlayerShip);
+        r.registerShape("gw_bullet", drawSkiaBullet);
+        r.registerShape("gw_chaser", drawSkiaChaser);
+        r.registerShape("gw_evader", drawSkiaEvader);
+        r.registerShape("gw_grunt", drawSkiaGrunt);
+        r.registerShape("gw_particle", drawSkiaParticle);
+        r.registerShape("gw_seeker", drawSkiaEnemySeeker);
+        r.registerShape("gw_fast_seeker", drawSkiaEnemyFastSeeker);
+        r.registerBackgroundEffect("gw_bg", drawSkiaGeometryWarsBackground);
+      }
+    });
   }
 
   public getGameState(): GeometryWarsStateComponent & { combo: number; multiplier: number; comboTimerRemaining: number } {

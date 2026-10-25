@@ -8,7 +8,8 @@ import {
   System,
   World,
   CoreComponentRegistry,
-  Entity
+  Entity,
+  isGameplayFrozen
 } from "@tiny-aster/core";
 import {
   resolveBeltSystemConfig,
@@ -28,6 +29,8 @@ function moveTowards(current: number, target: number, maxDelta: number): number 
 
 export class BeltMovementSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
+    if (isGameplayFrozen(world)) return;
+
     const config = resolveBeltSystemConfig(world);
     if (!config) return;
 

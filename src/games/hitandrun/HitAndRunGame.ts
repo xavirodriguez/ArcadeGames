@@ -6,6 +6,7 @@ import {
   CoreComponentRegistry,
   EventRegistry,
   RenderContext,
+  RendererUtils,
   AssetLoader,
   WebAudioPlayer,
   Renderer,
@@ -19,6 +20,7 @@ import {
   Theme,
   World
 } from "@tiny-aster/core";
+import { updateRunProgress } from "@tiny-aster/gameplay-kit";
 import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
 import type { IAssetProvider } from "@tiny-aster/core";
 import {
@@ -332,14 +334,17 @@ export class HitAndRunGame extends BaseGame<
   public initializeRenderer(
     renderer: Renderer<CoreComponentRegistry, RenderContext>
   ): void {
-    if (renderer.type === "canvas" || renderer.type === "skia") {
-      registerHitRunRenderers(renderer);
-      if (renderer.type === "skia") {
+    RendererUtils.registerAssets(renderer, {
+      canvas: (r) => {
+        registerHitRunRenderers(r);
+      },
+      skia: (r) => {
+        registerHitRunRenderers(r);
         console.info(
           "[HitAndRunGame] Skia: using canvas-compatible drawers (Phase 4 parity)."
         );
       }
-    }
+    });
   }
 
   public getGameState(): HitAndRunGameState {

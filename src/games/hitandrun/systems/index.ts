@@ -6,8 +6,6 @@ export {
 export type {
   CombatHitPayload,
   CombatDeathPayload,
-  HitStopRemaining,
-  HitRunScreenShake,
   HitFeedbackProfile,
   HitRunFeedbackConfig
 } from "./HitRunFeedbackTypes";

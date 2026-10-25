@@ -46,7 +46,7 @@ interface SkiaImageDimensions {
 }
 
 function getSkiaImageSize(image: SkImage): { width: number; height: number } {
-  const dimensions = image as unknown as SkiaImageDimensions;
+  const dimensions = image as SkiaImageDimensions;
   const width = typeof dimensions.width === "function" ? dimensions.width() : dimensions.width;
   const height = typeof dimensions.height === "function" ? dimensions.height() : dimensions.height;
   return { width, height };
@@ -243,7 +243,8 @@ export function drawSpriteSkia(
     width: dw,
     height: dh,
   };
-  canvas.drawImageRect(image, src, dst, paint ?? undefined);
+  const activePaint = paint ?? Skia.Paint();
+  canvas.drawImageRect(image, src, dst, activePaint);
   canvas.restore();
   return true;
 }

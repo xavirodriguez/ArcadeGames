@@ -10,13 +10,15 @@ describe("HitRunFeedbackSystem (Paso B)", () => {
   let world: World<CoreComponentRegistry>;
   let feedback: HitRunFeedbackSystem;
 
+  let mainCam: number;
+
   beforeEach(() => {
     world = new World<CoreComponentRegistry>();
-    world.setResource("HitRunScreenShake", {
-      intensity: 0,
-      duration: 0,
-      elapsed: 0
-    });
+    mainCam = world.createEntity();
+    world.addComponent(mainCam, {
+      type: "Camera2D",
+      isMain: true
+    } as never);
     feedback = new HitRunFeedbackSystem({ ...DEFAULT_HIT_RUN_FEEDBACK_CONFIG });
   });
 
@@ -58,7 +60,7 @@ describe("HitRunFeedbackSystem (Paso B)", () => {
     expect(killStop).toBeGreaterThan(HIT_STOP_NORMAL_SECONDS);
   });
 
-  it("does not apply screen shake resource when isReSimulating", () => {
+  it("does not apply screen shake component when isReSimulating", () => {
     world.isReSimulating = true;
     feedback.enqueueHitForTest({
       targetEntity: 1,
@@ -67,15 +69,15 @@ describe("HitRunFeedbackSystem (Paso B)", () => {
       category: "melee"
     });
     feedback.update(world, 0);
+    world.flush();
 
     // Hit-stop still applies via GameplayFreeze
     expect(getGameplayFreezeRemaining(world) ?? 0).toBeGreaterThan(0);
 
-    const shake = world.getResource<{ intensity: number }>("HitRunScreenShake");
-    expect(shake?.intensity ?? 0).toBe(0);
+    expect(world.hasComponent(mainCam, "ScreenShake")).toBe(false);
   });
 
-  it("writes HitRunScreenShake when not re-simulating", () => {
+  it("adds ScreenShake component on Camera2D when not re-simulating", () => {
     world.isReSimulating = false;
     feedback.enqueueHitForTest({
       targetEntity: 1,
@@ -84,11 +86,11 @@ describe("HitRunFeedbackSystem (Paso B)", () => {
       category: "melee"
     });
     feedback.update(world, 0);
+    world.flush();
 
-    const shake = world.getResource<{ intensity: number; duration: number }>(
-      "HitRunScreenShake"
-    );
-    expect(shake?.intensity ?? 0).toBeGreaterThan(0);
-    expect(shake?.duration ?? 0).toBeGreaterThan(0);
+    const shake = world.getComponent(mainCam, "ScreenShake") as { intensity: number; duration: number } | undefined;
+    expect(shake).toBeDefined();
+    expect(shake?.intensity).toBeGreaterThan(0);
+    expect(shake?.duration).toBeGreaterThan(0);
   });
 });

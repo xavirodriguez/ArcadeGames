@@ -12,7 +12,6 @@ import {
   CombatDeathPayload,
   HitRunFeedbackConfig,
   HitFeedbackProfile,
-  HitRunScreenShake,
   DEFAULT_HIT_RUN_FEEDBACK_CONFIG
 } from "./HitRunFeedbackTypes";
 
@@ -21,8 +20,7 @@ import {
  *
  * - Hit-stop canónico: utiliza `GameplayFreeze` del motor core vía `enterGameplayFreeze`.
  * - Screen shake: presentation only — skipped when world.isReSimulating.
- *   Writes HitRunScreenShake resource AND core ScreenShake on main Camera2D
- *   so ScreenShakeSystem can drive VisualOffset.
+ *   Writes core ScreenShake on main Camera2D so ScreenShakeSystem can drive VisualOffset.
  * - hitFlashFrames on victim Render (also skipped on re-sim).
  */
 import { CombatHitListenerSystem } from "../combat/CombatHitListenerSystem";
@@ -61,8 +59,6 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     const reSim = world.isReSimulating === true;
 
-    this.tickScreenShakeResource(world, deltaTime);
-
     if (this.pendingHits.length > 0) {
       this.processHits(world, reSim);
       this.pendingHits.length = 0;
@@ -83,21 +79,6 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
     enterGameplayFreeze(world, next);
   }
 
-  private tickScreenShakeResource(
-    world: World<CoreComponentRegistry>,
-    dt: number
-  ): void {
-    const shake = world.getResource<HitRunScreenShake>("HitRunScreenShake");
-    if (!shake || shake.duration <= 0) return;
-
-    shake.elapsed += dt;
-    if (shake.elapsed >= shake.duration) {
-      shake.intensity = 0;
-      shake.duration = 0;
-      shake.elapsed = 0;
-    }
-  }
-
   private applyScreenShake(
     world: World<CoreComponentRegistry>,
     intensity: number,
@@ -106,18 +87,6 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
     if (intensity <= 0 || duration <= 0) return;
 
     const capped = Math.min(intensity, this.config.maxShakeIntensity);
-
-    let shake = world.getResource<HitRunScreenShake>("HitRunScreenShake");
-    if (!shake) {
-      shake = { intensity: 0, duration: 0, elapsed: 0 };
-      world.setResource("HitRunScreenShake", shake);
-    }
-    if (capped >= shake.intensity) {
-      shake.intensity = capped;
-      shake.duration = duration;
-      shake.elapsed = 0;
-    }
-
     this.applyCoreCameraShake(world, capped, duration);
   }
 

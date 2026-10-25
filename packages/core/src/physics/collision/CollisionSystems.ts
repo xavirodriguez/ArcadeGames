@@ -9,6 +9,7 @@ import { CoreComponentRegistry, CollisionEventsComponent } from "../../ecs/CoreC
 import { ShapeType } from "../shapes/Shapes";
 import { SpatialCullingSystem } from "../../systems/SpatialCullingSystem";
 import { toShapeDefinition } from "../utils/ColliderShapeUtils";
+import { isGameplayFrozen } from "../../runtime/GameplayFreezeMixin";
 
 /**
  * Signature for a callback invoked when a physical collision occurs between two entities.
@@ -95,7 +96,7 @@ export class CollisionSystem2D<
     _deltaTime: number,
     candidatesOverride?: Entity[]
   ): void {
-    if (world.getResource("IsPaused") === true) return;
+    if (world.getResource("IsPaused") === true || isGameplayFrozen(world)) return;
 
     const w = world as unknown as World<CoreComponentRegistry>;
     const resourceCandidates = world.getResource<Entity[]>("SpatialCullingCandidates");
@@ -373,6 +374,7 @@ export class CCDSystem<
   }
 
   public update(world: World<TRegistry>, deltaTime: number): void {
+    if (isGameplayFrozen(world)) return;
     const w = world as unknown as World<CoreComponentRegistry>;
     const resourceCandidates = world.getResource<Entity[]>("SpatialCullingCandidates");
     const candidatesList =

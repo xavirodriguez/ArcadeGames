@@ -355,25 +355,24 @@ export class AsteroidsGame
     initializeAsteroidsRenderer(renderer, this.visualMod);
     SharedVFX.registerSharedVFX(renderer);
 
-    if (renderer.type === "canvas") {
-      renderer.registerBackgroundEffect("diffuse_milky_way", SharedVFX.DiffuseMilkyWayBackgroundEffect);
-      renderer.registerBackgroundEffect("drifting_nebula", SharedVFX.DriftingNebulaBackgroundEffect);
-      renderer.registerBackgroundEffect("starfield", SharedVFX.ScrollingStarfieldEffect);
-      renderer.registerBackgroundEffect("distant_space_station", SharedVFX.DistantSpaceStationBackgroundEffect);
-      renderer.registerBackgroundEffect("distant_asteroid_belt", SharedVFX.DistantAsteroidBeltBackgroundEffect);
-      renderer.registerBackgroundEffect("ringing_planet", SharedVFX.RingingPlanetBackgroundEffect);
-    } else if (renderer.type === "skia") {
-      RendererUtils.registerAssets(renderer, {
-        skia: (r) => {
-          r.registerBackgroundEffect("diffuse_milky_way", SharedVFX.SkiaDiffuseMilkyWayBackgroundEffect);
-          r.registerBackgroundEffect("drifting_nebula", SharedVFX.SkiaDriftingNebulaBackgroundEffect);
-          r.registerBackgroundEffect("starfield", SharedVFX.SkiaScrollingStarfieldEffect);
-          r.registerBackgroundEffect("distant_space_station", SharedVFX.SkiaDistantSpaceStationBackgroundEffect);
-          r.registerBackgroundEffect("distant_asteroid_belt", SharedVFX.SkiaDistantAsteroidBeltBackgroundEffect);
-          r.registerBackgroundEffect("ringing_planet", SharedVFX.SkiaRingingPlanetBackgroundEffect);
-        }
-      });
-    }
+    RendererUtils.registerAssets(renderer, {
+      canvas: (r) => {
+        r.registerBackgroundEffect("diffuse_milky_way", SharedVFX.DiffuseMilkyWayBackgroundEffect);
+        r.registerBackgroundEffect("drifting_nebula", SharedVFX.DriftingNebulaBackgroundEffect);
+        r.registerBackgroundEffect("starfield", SharedVFX.ScrollingStarfieldEffect);
+        r.registerBackgroundEffect("distant_space_station", SharedVFX.DistantSpaceStationBackgroundEffect);
+        r.registerBackgroundEffect("distant_asteroid_belt", SharedVFX.DistantAsteroidBeltBackgroundEffect);
+        r.registerBackgroundEffect("ringing_planet", SharedVFX.RingingPlanetBackgroundEffect);
+      },
+      skia: (r) => {
+        r.registerBackgroundEffect("diffuse_milky_way", SharedVFX.SkiaDiffuseMilkyWayBackgroundEffect);
+        r.registerBackgroundEffect("drifting_nebula", SharedVFX.SkiaDriftingNebulaBackgroundEffect);
+        r.registerBackgroundEffect("starfield", SharedVFX.SkiaScrollingStarfieldEffect);
+        r.registerBackgroundEffect("distant_space_station", SharedVFX.SkiaDistantSpaceStationBackgroundEffect);
+        r.registerBackgroundEffect("distant_asteroid_belt", SharedVFX.SkiaDistantAsteroidBeltBackgroundEffect);
+        r.registerBackgroundEffect("ringing_planet", SharedVFX.SkiaRingingPlanetBackgroundEffect);
+      }
+    });
   }
 
   public getMissionSystem(): MissionSystem {

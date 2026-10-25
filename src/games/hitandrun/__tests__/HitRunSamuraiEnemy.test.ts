@@ -118,7 +118,7 @@ describe("Hit & Run samurai enemy", () => {
       type: "HitReaction",
       hitstunRemaining: 0.12,
       blinkElapsed: 0
-    });
+    } as never);
 
     stateSystem.update(world, 1 / 60);
     expect(world.getComponent(entity, "Animator")?.current).toBe("hurt");

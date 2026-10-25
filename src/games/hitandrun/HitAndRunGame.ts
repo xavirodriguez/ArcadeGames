@@ -2,6 +2,7 @@
  * Hit&Run — fantasy belt-scroll beat'em-up (melee + ranged) on @tiny-aster/core.
  */
 import {
+  BaseGame,
   CoreComponentRegistry,
   EventRegistry,
   RenderContext,
@@ -14,9 +15,10 @@ import {
   preloadSharedAudioWithTimeout,
   generateBackdrop,
   BlueprintDefinition,
-  Theme
+  Theme,
+  World
 } from "@tiny-aster/core";
-import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
+import { updateRunProgress } from "@tiny-aster/gameplay-kit";
 import type {
   HitAndRunGameState,
   HitAndRunInput
@@ -107,7 +109,7 @@ function registerHitRunRenderers(
   renderer.registerShape("fireball", drawHitRunBullet);
 }
 
-export class HitAndRunGame extends PlatformerArcadeGame<
+export class HitAndRunGame extends BaseGame<
   HitAndRunGameState,
   HitAndRunInput,
   CoreComponentRegistry,
@@ -178,8 +180,38 @@ export class HitAndRunGame extends PlatformerArcadeGame<
     this.world.setResource(HIT_RUN_BACKDROP_RESOURCE, spec);
   }
 
+  protected checkRunProgressGameOver(
+    dt: number,
+    currentlyGameOver: boolean,
+    predicate: (rs: RunState) => boolean = (rs) => rs.collectedPermanentIds.includes("archive_core_1")
+  ): boolean {
+    const isComplete = updateRunProgress(this.world, dt, predicate);
+    if (isComplete && !currentlyGameOver) {
+      this.getEventBus()?.emit("game:over", {
+        state: this.getGameState()
+      });
+      return true;
+    }
+    return currentlyGameOver;
+  }
+
   protected override async onRegisterSystems(): Promise<void> {
     await super.onRegisterSystems();
+
+    this.setupCommonArcadeResources();
+    this.world.deleteResource("IsPaused");
+
+    const runState: RunState = {
+      attempt: 1,
+      lives: 3,
+      activeCheckpoint: null,
+      elapsedTime: 0,
+      deaths: 0,
+      collectedPermanentIds: [],
+      collectedTemporalIds: []
+    };
+    this.world.setResource("RunState", runState);
+    this.world.setResource("AudioPlayer", this.audio);
 
     registerBeltSystems(this.world);
     registerHitRunAI(this.world);
@@ -240,10 +272,6 @@ export class HitAndRunGame extends PlatformerArcadeGame<
 
       const gameConfig = this.world.getResource<{ viewportWidth?: number; viewportHeight?: number }>("GameConfig");
       this.installProceduralBackdrop(gameConfig?.viewportWidth ?? 800, gameConfig?.viewportHeight ?? 600);
-
-      if (this.world.getResource("DeathPlaneY") !== undefined) {
-        this.world.setResource("DeathPlaneY", Number.POSITIVE_INFINITY);
-      }
 
       this.world.flush();
     });

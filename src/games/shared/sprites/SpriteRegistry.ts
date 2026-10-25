@@ -65,6 +65,41 @@ const ONI_RED: SpriteSheetDef = {
   },
 };
 
+/**
+ * Sea dragon ("dragón marino") sprite sheet from the "Aquí hay dragones" Space Invaders art bible.
+ * Produced by scripts/sprites/build-sea-dragon-atlas.cjs: 640×192 PNG, uniform 80×64 px cells
+ * (2 px nearest-neighbor scale of the 40×32 logical frame), rows top-down:
+ *   row 0 fly (6 frames, loop), row 1 hit (3 frames, one-shot), row 2 death (6 frames, one-shot).
+ * Logical frame 40×32 world units; the silhouette is ≈34 u long and vertically centered,
+ * matching the bonus-ship lane scale documented in ARTWORK_theme_alternativo.md §12.2.
+ */
+const SEA_DRAGON: SpriteSheetDef = {
+  id: "sea_dragon",
+  imageSource: require("../../../../assets/sprites/enemies/sea_dragon.png"),
+  frameWidth: 40,
+  frameHeight: 32,
+  animations: {
+    fly: {
+      name: "fly",
+      frames: makeRowFrames(0, 0, 40, 32, 6, 40),
+      frameDuration: 0.16,
+      loop: true,
+    },
+    hit: {
+      name: "hit",
+      frames: makeRowFrames(0, 32, 40, 32, 3, 40),
+      frameDuration: 0.09,
+      loop: false,
+    },
+    death: {
+      name: "death",
+      frames: makeRowFrames(0, 64, 40, 32, 6, 40),
+      frameDuration: 0.12,
+      loop: false,
+    },
+  },
+};
+
 const registry = new Map<string, SpriteSheetDef>();
 
 export const SpriteRegistry = {
@@ -85,6 +120,7 @@ export const SpriteRegistry = {
    */
   init() {
     this.register(ONI_RED);
+    this.register(SEA_DRAGON);
     // Future sprites go here
   },
 };

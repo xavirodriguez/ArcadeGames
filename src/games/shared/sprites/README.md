@@ -46,6 +46,16 @@ Scalable sprite-sheet system for ArcadeGames (Canvas + Skia).
 3. Call `SpriteRegistry.register(...)` inside `init()`
 4. Use `createSpriteAnimator("your_id")`
 
+## Registered sheets
+
+- `oni_red` — Red Oni / Ashigaru Infernal. Measured from the original 924×539 sheet.
+- `sea_dragon` — Sea dragon ("dragón marino") for the Space Invaders *Aquí hay dragones* mod
+  (art bible §12.2). Procedurally built outline atlas: 640×192 PNG, 80×64 px cells, logical
+  frame 40×32 world units, rows `fly` (6, loop) / `hit` (3, one-shot) / `death` (6, one-shot).
+  Regenerate with `node scripts/sprites/build-sea-dragon-atlas.cjs`. Drawers for Canvas/Skia
+  live in `src/games/space-invaders/rendering/SeaDragonVisuals.ts`, registered through the
+  NauticalMod so entities with `render.shape = "sea_dragon"` render on both backends.
+
 ## Notes
 
 - Frame rects for `oni_red` were measured from the original sheet (924×539).

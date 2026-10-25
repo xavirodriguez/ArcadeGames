@@ -2,14 +2,26 @@
 // ---------------------------------------------------------------------------
 // Image cache (simple, shared between Canvas & Skia)
 // ---------------------------------------------------------------------------
-import { Asset } from "expo-asset";
-import { getPaint } from "../rendering/SkiaContext";
-import { Skia } from "@shopify/react-native-skia";
+import type { Asset } from "expo-asset";
+import { getPaint, Skia } from "../rendering/SkiaContext";
 import type { SkCanvas, SkImage, SkPaint } from "@shopify/react-native-skia";
 import { SpriteRegistry } from "./SpriteRegistry";
 import { getCurrentFrameRect, SpriteAnimatorComponent } from "./SpriteAnimator";
-import type { SpriteAnimatorComponent } from "./SpriteAnimator";
 import type { SpriteSheetDef, SpriteFrameRect } from "./SpriteTypes";
+
+/**
+ * Lazily loads the expo-asset module. Kept out of the static imports so
+ * headless / test environments (no Metro asset registry) never crash on load:
+ * resolveImageUri callers all early-return before touching the asset registry.
+ */
+function loadExpoAssetClass(): (typeof import("expo-asset"))["Asset"] | undefined {
+  try {
+    return (require("expo-asset") as typeof import("expo-asset")).Asset;
+  } catch {
+    return undefined;
+  }
+}
+
 
 const canvasImageCache = new Map<string, HTMLImageElement | HTMLCanvasElement>();
 const canvasPendingLoads = new Map<string, Promise<void>>();
@@ -25,7 +37,9 @@ async function resolveImageUri(
   if (typeof source === "string") return source;
 
   if (typeof source === "number") {
-    const asset = Asset.fromModule(source);
+    const AssetClass = loadExpoAssetClass() as (typeof Asset) | undefined;
+    if (!AssetClass) return undefined;
+    const asset = AssetClass.fromModule(source);
     await asset.downloadAsync();
     return preferLocalUri ? (asset.localUri ?? asset.uri) : (asset.uri ?? asset.localUri);
   }
@@ -52,39 +66,13 @@ interface SkiaImageDimensions {
  * Shared draw options accepted by the Canvas and Skia sprite drawers.
  */
 export interface SpriteDrawOptions {
-  /** Logical anchor of `y`: "feet" (default, frame drawn above y) or "center" (frame centered on y). */
+  /** Logical anchor of `y`: "feet" (default) honors the sheet anchor (feet at origin); "center" centers the frame on the draw position. */
   anchor?: "feet" | "center";
   /** Additional alpha multiplier (0..1). Defaults to 1. */
   opacity?: number;
 }
 
-/**
- * Preload a sheet for Canvas (web).
- * Call this early if you want to avoid first-frame pop-in.
- */
-export function preloadSpriteSheetCanvas(sheetId: string): Promise<void> {
-  const sheet = SpriteRegistry.get(sheetId);
-  if (!sheet) return Promise.resolve();
-
-  if (canvasImageCache.has(sheetId)) return Promise.resolve();
-
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      canvasImageCache.set(sheetId, img);
-      resolve();
-    };
-    img.onerror = reject;
-
-    // Metro / Expo asset handling
-    const source = sheet.imageSource as { uri?: string } | number | string | undefined;
-    if (typeof source === "number") {
-      img.src = String(source);
-    } else if (typeof source === "string") {
-      img.src = source;
-    } else if (source && typeof source === "object" && source.uri) {
-      img.src = source.uri;
-    }
+/** Extracts pixel dimensions from a Skia image across API variants. */
 function getSkiaImageSize(image: SkImage): { width: number; height: number } {
   const dimensions = image as unknown as SkiaImageDimensions;
   const width = typeof dimensions.width === "function" ? dimensions.width() : dimensions.width;
@@ -92,6 +80,7 @@ function getSkiaImageSize(image: SkImage): { width: number; height: number } {
   return { width, height };
 }
 
+/** Resolves which source pixels a frame occupies (full-image sheets or frame grids). */
 function resolveSourceRect(
   sheet: SpriteSheetDef,
   animator: SpriteAnimatorComponent,
@@ -106,6 +95,7 @@ function resolveSourceRect(
   return getCurrentFrameRect(animator);
 }
 
+/** Resolves the logical draw size of a frame in world units. */
 function resolveDrawSize(
   sheet: SpriteSheetDef,
   frame: SpriteFrameRect,
@@ -203,10 +193,7 @@ export function getSkiaImage(sheetId: string): SkImage | undefined {
   return skiaImageCache.get(sheetId);
 }
 
-/**
- * Whether the Canvas image for a sheet already finished loading.
- * Renderers use this to decide between the sprite path and their fallback visuals.
- */
+/** Whether the Canvas image for a sheet already finished loading. */
 export function isCanvasSpriteReady(sheetId: string): boolean {
   return canvasImageCache.has(sheetId);
 }
@@ -221,7 +208,7 @@ export function drawSpriteCanvas(
   x: number,
   y: number,
   options?: SpriteDrawOptions
-): void {
+): boolean {
   const sheet = SpriteRegistry.get(animator.sheetId);
   if (!sheet) return false;
 
@@ -241,27 +228,25 @@ export function drawSpriteCanvas(
   const anchor = sheet.anchor ?? { x: 0.5, y: 1 };
 
   ctx.save();
-  ctx.globalAlpha *= (options?.opacity ?? 1);
+  ctx.globalAlpha *= Math.max(0, Math.min(1, options?.opacity ?? 1));
   ctx.translate(x + ox, y + oy);
+  // Mirroring via scale keeps any anchor footprint in place (x⊗(-1) mirrors the
+  // drawn span around the entity origin), so no extra translate is needed.
   if (animator.flipX) ctx.scale(-1, 1);
 
-  if (animator.flipX) {
-    ctx.scale(-1, 1);
-    ctx.translate(-dw, 0);
-  }
+  // Logical anchor: "center" centers the frame on the draw position (flying
+  // entities hang off their centroid); "feet"/default honors the sheet anchor.
+  const drawX = options?.anchor === "center" ? -dw / 2 : -dw * anchor.x;
+  const drawY = options?.anchor === "center" ? -dh / 2 : -dh * anchor.y;
 
-  // Logical anchor: feet (default) or centered on the position
-  const dy = options?.anchor === "center" ? -dh / 2 : -dh;
-
-  // Draw the frame at the chosen anchor
   ctx.drawImage(
     img,
     frame.x,
     frame.y,
     frame.w,
     frame.h,
-    -dw * anchor.x,
-    -dh * anchor.y,
+    drawX,
+    drawY,
     dw,
     dh
   );
@@ -270,6 +255,10 @@ export function drawSpriteCanvas(
   return true;
 }
 
+// ---------------------------------------------------------------------------
+// Skia drawer
+// ---------------------------------------------------------------------------
+
 export function drawSpriteSkia(
   canvas: SkCanvas,
   animator: SpriteAnimatorComponent,
@@ -277,7 +266,7 @@ export function drawSpriteSkia(
   y: number,
   paint?: SkPaint,
   options?: SpriteDrawOptions
-): void {
+): boolean {
   const sheet = SpriteRegistry.get(animator.sheetId);
   if (!sheet) return false;
 
@@ -300,24 +289,20 @@ export function drawSpriteSkia(
   canvas.translate(x + ox, y + oy);
   if (animator.flipX) canvas.scale(-1, 1);
 
-  if (animator.flipX) {
-    canvas.scale(-1, 1);
-    canvas.translate(-dw, 0);
-  }
+  // Logical anchor: "center" centers the frame on the draw position (flying
+  // entities hang off their centroid); "feet"/default honors the sheet anchor.
+  const drawX = options?.anchor === "center" ? -dw / 2 : -dw * anchor.x;
+  const drawY = options?.anchor === "center" ? -dh / 2 : -dh * anchor.y;
 
-  // Logical anchor: feet (default) or centered on the position
-  const dy = options?.anchor === "center" ? -dh / 2 : -dh;
-
-  // Determine the paint: prefer the caller's, fall back to the shared cached one.
-  // Both paths reset the alpha explicitly so opacity never leaks between draws.
+  // Prefer the caller's paint; fall back to the shared cached one. Both paths
+  // reset alpha explicitly so opacity never leaks between draws.
   const usingCallerPaint = paint !== undefined;
   const paintToUse = paint ?? getPaint();
-  const opacity = Math.max(0, Math.min(1, options?.opacity ?? 1));
-  paintToUse.setAlphaf(opacity);
+  paintToUse.setAlphaf(Math.max(0, Math.min(1, options?.opacity ?? 1)));
 
-  // Source rect → dest rect (anchor above origin)
+  // Source rect → dest rect at the chosen anchor
   const src = { x: frame.x, y: frame.y, width: frame.w, height: frame.h };
-  const dst = { x: -dw / 2, y: dy, width: dw, height: dh };
+  const dst = { x: drawX, y: drawY, width: dw, height: dh };
 
   canvas.drawImageRect(image, src, dst, paintToUse);
 
@@ -325,16 +310,6 @@ export function drawSpriteSkia(
 
   // Restore the shared paint's alpha so other drawers using getPaint() are unaffected.
   if (!usingCallerPaint) paintToUse.setAlphaf(1);
-
-  const src = { x: frame.x, y: frame.y, width: frame.w, height: frame.h };
-  const dst = {
-    x: -dw * anchor.x,
-    y: -dh * anchor.y,
-    width: dw,
-    height: dh,
-  };
-  canvas.drawImageRect(image, src, dst, paint ?? undefined);
-  canvas.restore();
   return true;
 }
 

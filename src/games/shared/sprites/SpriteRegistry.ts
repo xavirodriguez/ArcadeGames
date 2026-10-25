@@ -104,6 +104,45 @@ const SEA_DRAGON: SpriteSheetDef = {
       frameDuration: 0.12,
       loop: false,
     },
+  },
+};
+
+/**
+ * Ghost galleon sprite sheet — "Aquí hay dragones" Space Invaders bonus ship.
+ * Produced by scripts/sprites/build-ghost-galleon-atlas.cjs: 640×192 PNG, uniform
+ * 80×64 px cells (2 px nearest-neighbor scale of the 40×32 logical frame), rows
+ * top-down: row 0 sail (8 frames, loop), row 1 hit (3 frames, one-shot),
+ * row 2 death (6 frames, one-shot; last cell intentionally blank — the wreck
+ * dissolves). Logical frame 40×32 world units, same lane scale as the sea dragon.
+ */
+const GHOST_GALLEON: SpriteSheetDef = {
+  id: "ghost_galleon",
+  imageSource: require("../../../../assets/sprites/enemies/ghost_galleon.png"),
+  frameWidth: 40,
+  frameHeight: 32,
+  animations: {
+    sail: {
+      name: "sail",
+      frames: makeRowFrames(0, 0, 40, 32, 8, 40),
+      frameDuration: 0.18,
+      loop: true,
+    },
+    hit: {
+      name: "hit",
+      frames: makeRowFrames(0, 32, 40, 32, 3, 40),
+      frameDuration: 0.09,
+      loop: false,
+    },
+    death: {
+      name: "death",
+      frames: makeRowFrames(0, 64, 40, 32, 5, 40),
+      frameDuration: 0.12,
+      loop: false,
+    },
+  },
+};
+
+/**
  * Static tower artwork. Source dimensions are read from each image at runtime,
  * so these definitions do not assume a frame grid or bake source-pixel sizes.
  *
@@ -155,6 +194,7 @@ export const SpriteRegistry = {
   init() {
     this.register(ONI_RED);
     this.register(SEA_DRAGON);
+    this.register(GHOST_GALLEON);
     this.register(TOWER_BASIC_ART);
     this.register(TOWER_SNIPER_ART);
     // Future sprites go here

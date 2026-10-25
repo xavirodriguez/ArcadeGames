@@ -1,10 +1,10 @@
 {
-  "cellSize": 96,
+  "cellSize": 64,
   "columns": 8,
   "rows": 5,
   "anchor": {
     "x": 0.5,
-    "y": 0.89
+    "y": 0.94
   },
   "animations": {
     "idle": {
@@ -18,7 +18,7 @@
         6,
         7
       ],
-      "frameRate": 10,
+      "frameRate": 8,
       "loop": true
     },
     "walk": {
@@ -32,7 +32,7 @@
         14,
         15
       ],
-      "frameRate": 12,
+      "frameRate": 10,
       "loop": true
     },
     "attack": {

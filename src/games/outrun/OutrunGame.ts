@@ -3,12 +3,12 @@ import {
   ConfigService,
   SystemPhase,
   Renderer,
-  RendererUtils,
   World,
   System,
   preloadSharedAudioManifest,
   SHARED_AUDIO_MANIFEST,
-  WebAudioPlayer
+  WebAudioPlayer,
+  NullAudioPlayer
 } from "@tiny-aster/core";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import { loadAndMutateConfig, runWithUnlockedRandomAndMutators } from "../shared/configHelper";
@@ -30,18 +30,10 @@ import { ColorScriptSystem } from "./systems/ColorScriptSystem";
 import { ParallaxSystem } from "./systems/ParallaxSystem";
 import { scenarioHash } from "./rendering/OutrunPalettes";
 import { expandStretch, type StretchDescriptor } from "./rendering/RoadStretch";
-import {
-  drawOutrunRoad,
-  drawOutrunCar,
-  drawOutrunRacer,
-  drawOutrunHud
-} from "./rendering/OutrunCanvasVisuals";
-import {
-  drawSkiaOutrunRoad,
-  drawSkiaOutrunCar,
-  drawSkiaOutrunRacer,
-  drawSkiaOutrunHud
-} from "./rendering/OutrunSkiaVisuals";
+import { applyVisualMod } from "./mods/applyVisualMod";
+import { classicMod } from "./mods/classic/ClassicMod";
+import type { OutrunVisualMod } from "./mods/types";
+import { initializeOutrunRenderer } from "./rendering/OutrunRendererManager";
 
 import outrunConfigRaw from "./config/outrun.json";
 
@@ -72,7 +64,7 @@ export class OutrunGame extends BaseGame<
       pauseKey: "Escape",
       theme: createThemeFromGameAccents("racing"),
       gameOptions: { ...options.gameOptions, seed: options.gameOptions?.seed ?? options.seed },
-      audio: options.audio ?? new WebAudioPlayer(),
+      audio: options.audio ?? (options.headless ? new NullAudioPlayer() : new WebAudioPlayer()),
       headless: options.headless
     });
     this.baseConfig = ConfigService.load<OutrunConfig>(
@@ -91,6 +83,8 @@ export class OutrunGame extends BaseGame<
       this._config.gameOptions
     );
     this.world.setResource("GameConfig", this.config);
+
+    applyVisualMod(this.world, this.config, this._config.gameOptions, this._config.theme);
 
     let segments: RoadSegment[] = [];
     runWithUnlockedRandomAndMutators(this.world, this._config.gameOptions, () => {
@@ -228,11 +222,8 @@ export class OutrunGame extends BaseGame<
     const segments: RoadSegment[] = [];
     const segLen = config.segmentLength;
     const rng = world.gameplayRandom;
+    const visualMod = world.getResource<OutrunVisualMod>("VisualMod") ?? classicMod;
 
-    /**
-     * Abrupt stretch — constant curve/hill on every segment.
-     * Use for straights, plateaus, and intentionally hard transitions.
-     */
     const add = (count: number, curve: number, hill: number) => {
       for (let i = 0; i < count; i++) {
         segments.push({
@@ -244,10 +235,6 @@ export class OutrunGame extends BaseGame<
       }
     };
 
-    /**
-     * Eased stretch — bakes enter/hold/leave curve (and optional hill) values
-     * via RoadStretch.expandStretch. Prefer for medium/long bends.
-     */
     const addStretch = (desc: StretchDescriptor) => {
       const { curves, hills } = expandStretch(desc);
       for (let i = 0; i < curves.length; i++) {
@@ -260,7 +247,6 @@ export class OutrunGame extends BaseGame<
       }
     };
 
-    // --- Fixed layout: straights stay abrupt; bends use eased stretches ---
     add(40, 0, 0);
     addStretch({ enter: 8, hold: 14, leave: 8, curve: 2 });
     add(25, 0, 1.5);
@@ -272,7 +258,6 @@ export class OutrunGame extends BaseGame<
     addStretch({ enter: 6, hold: 13, leave: 6, curve: 2, hill: -2 });
     add(50, 0, 0);
 
-    // --- Random bends: highest visual impact — always eased ---
     for (let k = 0; k < 4; k++) {
       const curve = (rng.next() - 0.5) * 6;
       const hill = (rng.next() - 0.5) * 4;
@@ -334,14 +319,7 @@ export class OutrunGame extends BaseGame<
         const offset = 1.4 + scenarioHash(scenarioId, i * 11) * 1.5;
         const val = scenarioHash(scenarioId, i * 13);
 
-        let kind = "tree";
-        if (scenarioId === "coast" || scenarioId === "classic_coast") {
-          kind = val > 0.35 ? "palm" : "lighthouse";
-        } else if (scenarioId === "desert" || scenarioId === "classic_desert") {
-          kind = val > 0.42 ? "cactus" : "dry_shrub";
-        } else if (scenarioId === "mountain" || scenarioId === "classic_mountain") {
-          kind = val > 0.66 ? "tree" : val > 0.33 ? "pine" : "rock";
-        }
+        const kind = visualMod.resolveScenarioDecorKind(scenarioId, val);
 
         sprites.push({ offset, side, kind });
       }
@@ -360,20 +338,8 @@ export class OutrunGame extends BaseGame<
 
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   public initializeRenderer(renderer: Renderer<OutrunComponentRegistry, any>): void {
-    RendererUtils.registerAssets(renderer, {
-      canvas: (r) => {
-        r.registerShape("road", drawOutrunRoad);
-        r.registerShape("outrun_car", drawOutrunCar);
-        r.registerShape("outrun_racer", drawOutrunRacer);
-        r.registerBackgroundEffect("outrun_hud", drawOutrunHud);
-      },
-      skia: (r) => {
-        r.registerShape("road", drawSkiaOutrunRoad);
-        r.registerShape("outrun_car", drawSkiaOutrunCar);
-        r.registerShape("outrun_racer", drawSkiaOutrunRacer);
-        r.registerBackgroundEffect("outrun_hud", drawSkiaOutrunHud);
-      }
-    });
+    const visualMod = this.world.getResource<OutrunVisualMod>("VisualMod");
+    initializeOutrunRenderer(renderer, visualMod);
   }
 
   public getGameState(): RaceStateComponent {

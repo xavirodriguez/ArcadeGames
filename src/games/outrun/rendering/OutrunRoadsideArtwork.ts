@@ -1,8 +1,9 @@
 import type { RoadSegmentSprite } from "../types/OutrunTypes";
 import type { OutrunVisualPaletteResource } from "../types/OutrunVisualTypes";
+import type { OutrunVisualMod } from "../mods/types";
 import { lerpColor } from "../utils/palette";
 
-export type OutrunRoadsideKind =
+export type ClassicRoadsideKind =
   | "tree"
   | "pine"
   | "rock"
@@ -11,6 +12,12 @@ export type OutrunRoadsideKind =
   | "cactus"
   | "dry_shrub"
   | "wind_tower";
+
+/**
+ * Generalized roadside decoration kind identifier.
+ * Can be any string defined by an active OutrunVisualMod.
+ */
+export type OutrunRoadsideKind = string;
 
 export interface OutrunRoadsideArtworkStyle {
   kind: OutrunRoadsideKind;
@@ -29,7 +36,12 @@ export interface OutrunRoadsideArtworkStyle {
 
 const clamp01 = (value: number): number => Math.max(0, Math.min(1, value));
 
-export function resolveOutrunRoadsideKind(kind: string): OutrunRoadsideKind {
+export function resolveOutrunRoadsideKind(kind: string, activeMod?: OutrunVisualMod): OutrunRoadsideKind {
+  if (activeMod?.resolveRoadsideKind) {
+    const modResolved = activeMod.resolveRoadsideKind(kind);
+    if (modResolved) return modResolved;
+  }
+
   switch (kind) {
     case "tree":
     case "pine":
@@ -59,11 +71,12 @@ export function resolveOutrunRoadsideArtworkStyle(
   visualPalette: OutrunVisualPaletteResource,
   depth: number,
   roadHalfWidth: number,
-  lightsOn: boolean
+  lightsOn: boolean,
+  activeMod?: OutrunVisualMod
 ): OutrunRoadsideArtworkStyle {
   const { tokens, shared, tuning } = visualPalette;
-  const kind = resolveOutrunRoadsideKind(sprite.kind);
-  const heightFactor: Record<OutrunRoadsideKind, number> = {
+  const kind = resolveOutrunRoadsideKind(sprite.kind, activeMod);
+  const heightFactor: Record<string, number> = {
     tree: tuning.tree.heightToRoadHalfWidth,
     pine: 0.66,
     rock: 0.32,
@@ -73,7 +86,8 @@ export function resolveOutrunRoadsideArtworkStyle(
     dry_shrub: 0.24,
     wind_tower: 0.88
   };
-  const height = Math.max(2, roadHalfWidth * heightFactor[kind]);
+  const factor = heightFactor[kind] ?? 0.5;
+  const height = Math.max(2, roadHalfWidth * factor);
   const haze = clamp01(depth) * tuning.decor.distantObjectHazeMix;
   const color = (base: string): string => lerpColor(base, tokens.horizon, haze);
 

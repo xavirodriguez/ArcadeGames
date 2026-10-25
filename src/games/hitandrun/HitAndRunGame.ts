@@ -142,7 +142,15 @@ export class HitAndRunGame extends PlatformerArcadeGame<
       audio: new WebAudioPlayer(),
       assetProvider: config.assetProvider
     });
-    this.samuraiAssetLoader = new AssetLoader(createSamuraiAssetProvider());
+    const existingAssetLoader = this.world.getResource<AssetLoader>("AssetLoader");
+    this.samuraiAssetLoader =
+      existingAssetLoader ??
+      new AssetLoader(config.assetProvider ?? createSamuraiAssetProvider());
+    if (!this.samuraiAssetLoader.hasProvider()) {
+      this.samuraiAssetLoader.setProvider(
+        config.assetProvider ?? createSamuraiAssetProvider()
+      );
+    }
     this.world.setResource("AssetLoader", this.samuraiAssetLoader);
     this.world.setResource(SAMURAI_SPRITE_READY_RESOURCE, false);
     this.customLevelData =
@@ -176,9 +184,13 @@ export class HitAndRunGame extends PlatformerArcadeGame<
 
     try {
       const spritesheet = await loadSamuraiSpritesheetAsset();
+      const spritesheetUri = spritesheet.localUri ?? spritesheet.uri;
+      if (!spritesheetUri) {
+        throw new Error("Expo Asset did not resolve a URI for the samurai spritesheet");
+      }
       this.samuraiAssetLoader.queueAssets([{
         id: SAMURAI_ASSET_KEY,
-        path: spritesheet,
+        path: spritesheetUri,
         type: "image"
       }]);
       await this.samuraiAssetLoader.loadAll();

@@ -28,7 +28,8 @@ export function resolveShmupPlayerDrawContext(
   const time = world.tick * 0.016;
   const shouldBlink = invulnerable && Math.floor(time * 18) % 2 === 0;
   const size = render.size ?? 36;
-  const primaryColor = render.color ?? SHMUP_COLOR_TOKENS.player.primary;
+  const sumiE = world.getResource<string>("ShmupVisualTheme") === "sumi-e";
+  const primaryColor = sumiE ? SHMUP_SUMI_E_THEME.palette.player : (render.color ?? SHMUP_COLOR_TOKENS.player.primary);
   const moveX = input?.axes?.moveX ?? 0;
   const moveY = input?.axes?.moveY ?? 0;
   const isShooting = (input?.actions?.includes("shoot") ?? false) || (input?.shootCooldownRemaining ?? 0) > 0;
@@ -78,7 +79,11 @@ export function resolveShmupEnemyDrawContext(
   const health = world.getComponent(entity, "Health");
   const enemy = world.getComponent(entity, "ShmupEnemy");
   const size = render.size ?? 32;
-  const enemyColor = render.color ?? SHMUP_COLOR_TOKENS.enemy.primary;
+  const sumiE = world.getResource<string>("ShmupVisualTheme") === "sumi-e";
+  const storedArchetype = world.getComponent(entity, "ShmupEnemy")?.archetype;
+  const enemyColor = sumiE
+    ? (storedArchetype === "boss" ? SHMUP_SUMI_E_THEME.palette.threat : SHMUP_SUMI_E_THEME.palette.ink)
+    : (render.color ?? SHMUP_COLOR_TOKENS.enemy.primary);
   const time = world.tick * 0.016;
   // Visual identity is authored by the factory; path and size never infer a silhouette.
   const storedArchetype = enemy?.archetype;
@@ -105,7 +110,11 @@ export function resolveShmupBulletDrawContext(
   const render = world.getComponent(entity, "Render");
   if (!render) return null;
   const size = render.size ?? defaultSize;
-  const color = render.color ?? defaultColor;
+  const sumiE = world.getResource<string>("ShmupVisualTheme") === "sumi-e";
+  const isPlayerBullet = world.getComponent(entity, "ShmupPlayerBullet") !== undefined;
+  const color = sumiE
+    ? (isPlayerBullet ? SHMUP_SUMI_E_THEME.palette.player : SHMUP_SUMI_E_THEME.palette.threat)
+    : (render.color ?? defaultColor);
 
   let kind: "warm" | "hot" | "special" | "player" = "warm";
   if (color === SHMUP_COLOR_TOKENS.bullet.hot) {

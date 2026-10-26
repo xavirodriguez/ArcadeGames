@@ -1,293 +1,294 @@
-# Sprite System — Agent Knowledge Guide
+# Presentation System — Agent Knowledge Guide  
+### (Sprites **or** procedural rendering for every game)
 
-> **Audience:** any AI agent (or human) that must add, fix, wire, or debug sprites in ArcadeGames.  
-> **Scope:** shared `SpriteRegistry` pipeline + how it integrates with games + the parallel Hit&Run atlas path.  
+> **Audience:** any AI agent (or human) that must add, fix, wire, or debug visuals in ArcadeGames.  
+> **Core rule:** every game that lives in this system **must** be able to present entities via **sprites** and/or **procedural rendering**. Neither path is exclusive; the shared contract is `ShapeDrawer` + `registerShape`.  
 > **Repo paths are relative to repository root.**  
-> **Last aligned with branch:** `chore/sprite-readiness-audit` (2026-10).
+> **Aligned with:** `docs/sprite-system-agent-guide` / registry work on `chore/sprite-readiness-audit` (2026-10).
 
 ---
 
-## 1. Mental model (read this first)
+## 0. Architecture contract (read this first)
 
-A PNG under `assets/sprites/` is **not** a playable sprite. It becomes playable only when **all** of these exist:
+### 0.1 What every game shares
 
-| Step | What | Where |
-|------|------|--------|
-| 1 | File on disk (Metro-bundlable PNG) | `assets/sprites/...` |
-| 2 | `SpriteSheetDef` + `require(...)` | `src/games/shared/sprites/SpriteRegistry.ts` |
-| 3 | Registered in `SpriteRegistry.init()` | same file |
-| 4 | Game calls `SpriteRegistry.init()` at boot | e.g. `TowerDefenseGame.ts`, `HitAndRunGame.ts` |
-| 5 | Shape drawer that uses animator + `drawSpriteCanvas` / `drawSpriteSkia` | game `*Visuals.ts` or shared template |
-| 6 | Shape registered on the renderer | `registerShape("shape_id", drawer)` |
-| 7 | Entity has `Render.shape = "shape_id"` (or equivalent blueprint) | ECS / blueprint |
+All games use the same ECS presentation surface from `@tiny-aster/core`:
 
-Until steps 2–6 exist, the asset is **art only**. Vector/procedural drawers often act as fallbacks while images load or if registration is missing.
+```ts
+// packages/core/src/rendering/Renderer.ts
+interface Renderer<TRegistry, TContext> {
+  readonly type: string; // "canvas" | "skia" | ...
+  render(world, ctx, interpolation?): void;
+  registerShape(name: string, drawer: ShapeDrawer<TContext, TRegistry>): void;
+  registerBackgroundEffect(name: string, drawer: EffectDrawer<...>): void;
+}
 
-There is a **second, independent pipeline** for Hit&Run samurai (atlas JSON + AnimationSystem). Do not mix the two without an explicit migration.
+interface ShapeDrawer<TContext, TRegistry> {
+  draw(context: TContext, world: World<TRegistry>, entity: number): void;
+}
+```
+
+- Entities carry a `Render` component with a **`shape` string** (e.g. `"invader"`, `"tower_basic"`, `"lancero"`).
+- At boot, the game's `initializeRenderer(renderer)` registers one `ShapeDrawer` per shape **per backend** (Canvas and/or Skia).
+- **How** the drawer paints is an implementation detail of the game (or a shared module). The engine does not care whether the pixels come from a PNG atlas or from `path` / `fillRect` math.
+
+### 0.2 Two first-class presentation strategies
+
+| Strategy | Meaning | Typical modules |
+|----------|---------|-----------------|
+| **Procedural** | Geometry, silhouettes, neon, pixel grids, particles drawn with API calls (Canvas 2D or Skia). No image asset required at runtime. | `*CanvasVisuals.ts`, `*SkiaVisuals.ts`, `ProceduralShapeUtils.ts`, Echo/OutRun pixel modules |
+| **Sprites** | Bitmap frames from PNG sheets (or local atlases), driven by animator + drawer. | `src/games/shared/sprites/*`, game-local atlas (Hit&Run samurai), optional game-local pixel blit |
+
+**Rules for agents:**
+
+1. **Every game may use either strategy** for any shape. Prefer the one that matches art direction and asset readiness.
+2. **Hybrid is the production default when a sheet exists:** try the sprite; if load fails or sheet is missing, draw procedural. Never leave an entity with no draw path.
+3. **Simulation is independent of presentation.** Colliders, AI, and scoring must not depend on whether the drawer used a PNG or a vector path.
+4. **Both backends matter.** If a game supports Canvas and Skia, register drawers for both (parity), whether procedural or sprite-based.
+5. **Themes can override.** Some themes force procedural (e.g. paper-dusk / ink) even when a sprite sheet is registered — check theme flags inside the drawer.
+
+### 0.3 Mental model: "playable visual"
+
+An entity is **visually playable** when:
+
+1. Something sets `Render.shape = "<id>"` (blueprint, spawner, or mod).
+2. `initializeRenderer` registered a drawer for that shape on the active backend.
+3. The drawer always produces pixels (sprite **or** procedural fallback).
+
+A PNG under `assets/sprites/` alone is **not** enough. A pure procedural drawer with no PNG is a complete, valid solution.
 
 ---
 
-## 2. Core modules (shared pipeline)
+## 1. Where presentation code lives
+
+```
+packages/core/src/rendering/     # Renderer, ShapeDrawer contracts
+src/games/shared/
+  sprites/                       # Shared sprite pipeline (optional tool)
+  rendering/                     # Shared procedural helpers, VFX, tilemaps
+src/games/<game>/
+  *Game.ts                       # initializeRenderer → registerShape(...)
+  rendering/*CanvasVisuals.ts    # Procedural and/or sprite-backed drawers
+  rendering/*SkiaVisuals.ts
+  mods/                          # Optional theme packs that swap drawers
+assets/sprites/                  # Optional bitmap sheets for the shared pipeline
+```
+
+Games in the repo today (all subject to the dual-strategy rule):
+
+`arkanoid`, `asteroids`, `centipede`, `echorunner`, `flappybird`, `frogger`, `galaxian`, `geometrywars`, `hitandrun`, `outrun`, `platformer`, `pong`, `racing`, `space-invaders`, `tower-defense`, `vertical-shmup`, …
+
+Most ship **procedural-first**. A subset already wires the shared sprite registry (TD towers, SI Nautical, Hit&Run lancero template). Echo Runner / Out Run use **local pixel grids** (procedural-style bitmaps, not `SpriteRegistry`).
+
+---
+
+## 2. Procedural rendering (baseline for every game)
+
+### 2.1 Pattern
+
+```ts
+// In <Game>.ts initializeRenderer:
+if (renderer.type === "canvas") {
+  renderer.registerShape("enemy", drawEnemyCanvas);
+} else if (renderer.type === "skia") {
+  renderer.registerShape("enemy", drawEnemySkia);
+}
+
+// In *CanvasVisuals.ts:
+export const drawEnemyCanvas: ShapeDrawer = {
+  draw(ctx, world, entity) {
+    const transform = world.getComponent(entity, "Transform");
+    const render = world.getComponent(entity, "Render");
+    if (!transform || !render?.visible) return;
+    // pure Canvas path / fill / gradient — no require()
+    ctx.save();
+    ctx.translate(transform.x, transform.y);
+    // ... silhouette, accents, squash, facing ...
+    ctx.restore();
+  }
+};
+```
+
+### 2.2 Shared procedural helpers
+
+| Module | Role |
+|--------|------|
+| `src/games/shared/rendering/ProceduralShapeUtils.ts` | Deterministic silhouettes, grid displacement, pure math shared by Canvas/Skia |
+| `src/games/shared/rendering/renderingUtils.ts` | Common draw helpers over ECS components |
+| `src/games/shared/rendering/SharedVFX.ts` | Cross-game VFX shapes (shockwave, thruster, etc.) |
+| `src/games/shared/rendering/CanvasNeonUtils.ts` | Neon / glow primitives |
+| Game `*Palette.ts` / theme packs | Colours and tokens; keep simulation free of palette imports when possible |
+
+### 2.3 When to stay procedural
+
+- No finished sheet yet (most of `assets/sprites/enemies/*` historically).
+- Strong vector / neon / ink art direction (Geometry Wars, many SI themes, Asteroids).
+- Deterministic tiny pixel art defined in code (Echo Runner frames, Out Run cars) without Metro image deps.
+- CI / headless: procedural drawers never depend on image load.
+
+### 2.4 Mono / diagnostic placeholders
+
+Hit&Run uses monochrome procedural shapes (`HitRunPlaceholderVisuals.ts`) for tilemap / collectibles so missing blueprints still show *something*. Prefer this over invisible entities while assets or registry entries are unfinished.
+
+---
+
+## 3. Shared sprite pipeline (optional tool, available to all games)
 
 Location: `src/games/shared/sprites/`
 
+Any game **may** adopt this pipeline for any shape. It is not reserved for Tower Defense or Space Invaders.
+
 | File | Responsibility |
 |------|----------------|
-| `SpriteTypes.ts` | `SpriteFrameRect`, `SpriteAnimationDef`, `SpriteSheetDef`, `SpriteAnimatorComponent`, `SpriteImageSource` |
+| `SpriteTypes.ts` | `SpriteFrameRect`, `SpriteAnimationDef`, `SpriteSheetDef`, `SpriteAnimatorComponent` |
 | `SpriteRegistry.ts` | `require` of PNGs, sheet defs, `register` / `get` / `has` / `init` |
 | `SpriteAnimator.ts` | `createSpriteAnimator`, `updateSpriteAnimator`, `playAnimation`, `getCurrentFrameRect` |
-| `SpriteDrawer.ts` | Canvas/Skia image caches, `preload*`, `drawSpriteCanvas`, `drawSpriteSkia`, `isCanvasSpriteReady`, `getSkiaImage` |
-| `index.ts` | Re-exports the above |
-| `LanceroSpriteVisuals.ts` | **Template** end-to-end shape drawers (Canvas) for a character sheet |
-| `README.md` | Short human quick-start (keep in sync when APIs change) |
-| `__tests__/SpriteRegistry.test.ts` | Registry smoke tests |
+| `SpriteDrawer.ts` | Canvas/Skia caches, preload, `drawSpriteCanvas`, `drawSpriteSkia` |
+| `LanceroSpriteVisuals.ts` | **Template** ShapeDrawers that bridge registry → `registerShape` |
+| `index.ts` | Re-exports |
 
-### 2.1 Types that matter
+### 3.1 Types
 
 ```ts
-interface SpriteFrameRect { x: number; y: number; w: number; h: number }
-
-interface SpriteAnimationDef {
-  name: string;
-  frames: SpriteFrameRect[];
-  frameDuration: number; // seconds per frame
-  loop: boolean;
-}
-
 interface SpriteSheetDef {
   id: string;
-  imageSource: SpriteImageSource; // Metro require number, URI, or null
-  frameWidth: number;   // logical size in world units (collision / fit)
+  imageSource: SpriteImageSource; // Metro require number | URI | null
+  frameWidth: number;             // logical world size
   frameHeight: number;
-  sourceMode?: "frames" | "full-image"; // default = frames
-  anchor?: { x: number; y: number };    // default {0.5, 1} = feet
+  sourceMode?: "frames" | "full-image";
+  anchor?: { x: number; y: number }; // default feet {0.5, 1}
   animations: Record<string, SpriteAnimationDef>;
 }
-
-interface SpriteAnimatorComponent {
-  sheetId: string;
-  currentAnim: string;
-  frameIndex: number;
-  timer: number;
-  flipX: boolean;
-  scale: number;
-  offsetX?: number;
-  offsetY?: number;
-}
 ```
 
-- **`sourceMode: "full-image"`** — entire PNG is one static frame; `animations.idle.frames` is `[]`. Used for towers. Drawer fits the image into `frameWidth × frameHeight` preserving aspect.
-- **`sourceMode` omitted / `"frames"`** — animation rows with measured rectangles. Used for characters and grid atlases (sea_dragon, ghost_galleon, lancero, oni_red).
+- **`sourceMode: "full-image"`** — whole PNG is one static frame (`frames: []`). Towers use this.
+- **`"frames"` (default)** — measured rectangles per animation row. Characters and grid atlases.
 
-### 2.2 Registry API
+### 3.2 Registry API
 
 ```ts
-SpriteRegistry.register(def);
-SpriteRegistry.get(id);   // SpriteSheetDef | undefined
+SpriteRegistry.init();           // call once at game boot if any sheet is used
+SpriteRegistry.get(id);
 SpriteRegistry.has(id);
-SpriteRegistry.init();    // registers all built-in sheets
+SpriteRegistry.register(def);    // usually only inside init()
 ```
 
-`init()` is **idempotent in practice** (re-register same ids) but must be called before any draw that uses a sheet. Games that use the shared pipeline call it in boot / `initializeRenderer` / entity init.
+Wrap every `require("...png")` in `try/catch` so a missing file yields `null` instead of breaking the module graph.
 
-### 2.3 Animator API
+### 3.3 Animator + drawer API
 
 ```ts
 const a = createSpriteAnimator("sea_dragon", "fly");
-updateSpriteAnimator(a, dt);           // returns true when non-loop anim finishes
-playAnimation(a, "death", true);       // force restart
-getCurrentFrameRect(a);                // current source rect or null
+updateSpriteAnimator(a, dt);     // true when non-loop anim finishes
+playAnimation(a, "death", true);
+
+// Returns false while loading or if sheet missing → caller must procedural-fallback
+drawSpriteCanvas(ctx, a, x, y, options?): boolean
+drawSpriteSkia(canvas, a, x, y, paint?, options?): boolean
 ```
 
-Animator is a **plain object**, not an ECS component by default. Games either:
+### 3.4 Sheets registered in `SpriteRegistry.init()` today
 
-- Keep one shared animator per shape (static props, towers), or
-- Store animators in a `WeakMap` keyed by world/entity (Lancero / SeaDragon pattern), or
-- Attach equivalent fields on an ECS component and mirror the API.
+| id | Mode | Notes |
+|----|------|--------|
+| `oni_red` | frames | Art = `enemy2.png` (id kept stable) |
+| `sea_dragon` | frames | SI Nautical |
+| `ghost_galleon` | frames | SI Nautical; also bound to shape `"ufo"` |
+| `lancero` | frames | Provisional grid; template for other 1376×768 sheets |
+| `tower_basic_art` / `tower_sniper_art` | full-image | TD |
 
-### 2.4 Drawer API
+### 3.5 Hybrid ShapeDrawer pattern (recommended)
 
 ```ts
-// Returns false while loading or if sheet/frame missing → caller should keep vector fallback.
-drawSpriteCanvas(ctx, animator, x, y, options?: { anchor?: "feet"|"center"; opacity?: number }): boolean
-drawSpriteSkia(canvas, animator, x, y, paint?, options?): boolean
+export const drawFooCanvas: ShapeDrawer = {
+  draw(ctx, world, entity) {
+    const transform = world.getComponent(entity, "Transform");
+    const render = world.getComponent(entity, "Render");
+    if (!transform || !render?.visible) return;
 
-preloadSpriteSheetCanvas(sheetId): Promise<void>
-preloadSpriteSheetSkia(sheetId): Promise<void>
-isCanvasSpriteReady(sheetId): boolean
-getSkiaImage(sheetId): SkImage | undefined
-getSpriteLogicalSize(sheetId): { w, h } | null
-```
+    if (!SpriteRegistry.has("foo")) SpriteRegistry.init();
+    const animator = getOrCreateAnimator(world, entity, "foo");
+    updateSpriteAnimator(animator, dtFromTick);
 
-Important behaviours:
-
-- Separate caches for Canvas vs Skia; failed loads are remembered so retries do not spin forever without reset.
-- Draw returns `false` until the image is in cache → **always** pair with a procedural silhouette/fallback so entities are never invisible while loading.
-- Default anchor is **feet** (`y` at bottom of sprite). Override via sheet `anchor` or draw options.
-
----
-
-## 3. Asset layout
-
-```
-assets/sprites/
-  enemies/
-    sea_dragon.png          # 640×192 grid atlas — READY
-    ghost_galleon.png       # 640×192 grid atlas — READY (registry + Nautical)
-    enemy2.png              # 924×539 — used as oni_red art
-    lancero.png             # 1376×768 multi-row — provisional grid in registry
-    kapa.png, kichisake-onna.png, qiongqi.png, enemy3.png  # same class, NOT registered
-    several_enemies.png     # contact sheet — do not register as one runtime sheet
-  towers/
-    tower1.png, tower2.png  # full-image static props — READY
-  samurai1.png, personaje1.png   # concept / unused by shared registry
-  wip/*.jpg                 # never require from runtime code
-```
-
-**Metro rule:** only static `require("...png")` paths work in the bundle. Dynamic strings break. Wrap requires in `try/catch` so missing files become `null` instead of crashing the module graph (see `SpriteRegistry.ts`).
-
----
-
-## 4. Currently registered sheets (`SpriteRegistry.init`)
-
-| id | Mode | Logical frame | Notes |
-|----|------|---------------|--------|
-| `oni_red` | frames | 56×90 | Art path = `enemy2.png` (fallback `oni_red.png`) |
-| `sea_dragon` | frames | 40×32 | SI Nautical; anims `fly` / `hit` / `death` |
-| `ghost_galleon` | frames | 40×32 | SI Nautical; anims `sail` / `hit` / `death`; also bound to shape `"ufo"` |
-| `lancero` | frames | 48×64 | Provisional cell 172×192; template for other 1376×768 sheets |
-| `tower_basic_art` | full-image | 34×34 | TD basic tower |
-| `tower_sniper_art` | full-image | 34×34 | TD sniper tower |
-
-Helper used for row layouts:
-
-```ts
-function makeRowFrames(startX, startY, frameW, frameH, count, spacing = 96): SpriteFrameRect[]
-```
-
-For tight grid atlases (sea_dragon style), pass `spacing === frameW`.
-
----
-
-## 5. How games wire sprites
-
-### 5.1 Tower Defense (full-image props)
-
-- Boot: `SpriteRegistry.init()` in `TowerDefenseGame.ts`.
-- Drawers: `TowerDefenseCanvasVisuals.ts` / `TowerDefenseSkiaVisuals.ts`.
-- Shared animators: `createSpriteAnimator("tower_basic_art")` (static idle).
-- Pattern: try `drawSpriteCanvas` / Skia; if `false`, draw vector tower.
-
-### 5.2 Space Invaders — Nautical mod (grid atlas + shape alias)
-
-- Sheets: `sea_dragon`, `ghost_galleon`.
-- Visual modules:
-  - `src/games/space-invaders/rendering/SeaDragonVisuals.ts`
-  - `src/games/space-invaders/rendering/GhostGalleonVisuals.ts`
-- Registration: `NauticalMod.registerDrawers` registers both Canvas and Skia for:
-  - `SEA_DRAGON_SHAPE` / `GHOST_GALLEON_SHAPE`
-  - classic shape `"ufo"` → ghost galleon drawers (theme remap).
-- Animators often live in a `WeakMap` per world; animation advanced from tick delta (`1/60` fixed step).
-- Atlas builders (optional regenerate):  
-  `scripts/sprites/build-sea-dragon-atlas.cjs`  
-  `scripts/sprites/build-ghost-galleon-atlas.cjs`  
-  shared helpers: `scripts/sprites/atlas-kit.cjs`
-
-### 5.3 Hit&Run — shared registry path (lancero template)
-
-- `HitAndRunGame.ts` calls `SpriteRegistry.init()` and `registerShape(LANCERO_SHAPE, drawLanceroSpriteCanvas)`.
-- Template file: `src/games/shared/sprites/LanceroSpriteVisuals.ts`.
-- Pattern to copy for `kapa` / `kichisake` / `qiongqi` / `enemy3`:
-  1. Measure cells → `SpriteSheetDef` in registry.
-  2. Clone Lancero drawers (or parameterize by sheet id).
-  3. `registerShape` in the game that spawns that enemy.
-  4. Blueprint / wave director sets `render.shape`.
-
-### 5.4 Hit&Run — **separate** samurai pipeline (do not confuse)
-
-**Not** driven by `SpriteRegistry`.
-
-| Piece | Path |
-|-------|------|
-| PNG | `src/games/hitandrun/assets/samurai-enemy.png` |
-| Atlas | `samurai-enemy.atlas.json` |
-| Anim defs | `samurai-enemy.animations.json` + `SamuraiVisualAssets.ts` (`SAMURAI_ANIMATIONS`) |
-| Systems | `SamuraiAnimationSystems.ts` |
-| Decision | `samurai1.png` under `assets/sprites/` is **concept art only**; runtime stays on `samurai-enemy` until an explicit migration measures cells and rewires AnimationSystem |
-
-Agent rule: if the task is “make Hit&Run player look like samurai1”, treat it as a **migration project**, not a one-line registry change.
-
----
-
-## 6. End-to-end checklist: add a new character sprite
-
-Use this sequence; skip steps only when intentionally static.
-
-1. **Place PNG** under `assets/sprites/enemies/<name>.png` (or towers/). Prefer PNG, not JPG. Avoid `wip/`.
-
-2. **Measure the sheet**
-   - Open in an image editor; note total size, row count, cell size, padding/spacing.
-   - Character sheets in this repo often ≈1376×768 with ~8 frames × 4–5 rows (idle/walk/attack/hurt/death).
-   - Grid atlases like sea_dragon: 640×192, 40×32 cells, spacing = cell width.
-
-3. **Add `require` + `SpriteSheetDef` in `SpriteRegistry.ts`**
-   ```ts
-   let fooSource: SpriteImageSource = null;
-   try { fooSource = require("../../../../assets/sprites/enemies/foo.png"); } catch { fooSource = null; }
-
-   const FOO: SpriteSheetDef = {
-     id: "foo",
-     imageSource: fooSource,
-     frameWidth: 48,   // logical world size (tune vs collider)
-     frameHeight: 64,
-     anchor: { x: 0.5, y: 1 },
-     animations: {
-       idle:   { name: "idle",   frames: makeRowFrames(0, 0, CELL_W, CELL_H, 8, CELL_W), frameDuration: 0.12, loop: true },
-       walk:   { name: "walk",   frames: makeRowFrames(0, CELL_H, CELL_W, CELL_H, 8, CELL_W), frameDuration: 0.09, loop: true },
-       // ...
-     },
-   };
-   ```
-   Register inside `init()`: `this.register(FOO)`.
-
-4. **Create or extend a Visuals module**
-   - Prefer cloning `LanceroSpriteVisuals.ts` or `SeaDragonVisuals.ts`.
-   - Export `FOO_SHAPE = "foo"`, Canvas drawer (and Skia if the game uses Skia).
-   - Inside drawer: ensure registry init, get/create animator, `updateSpriteAnimator`, `drawSprite*`; on `false`, draw a mono silhouette.
-
-5. **Register the shape** on the game’s renderer (`registerShape(FOO_SHAPE, drawFooCanvas)` and Skia twin if needed).
-
-6. **Spawn path**: blueprint or wave system must set `Render.shape = "foo"` (and visibility). Registration of blueprints must happen **before** level generation (see Hit&Run tilemap/collectible lesson).
-
-7. **Boot**: game already calls `SpriteRegistry.init()` or you add the call once.
-
-8. **Verify**
-   - Image appears (not only “turrets shoot invisible enemies”).
-   - Loading: brief fallback then sprite is OK; permanent fallback ⇒ require path wrong or Metro miss.
-   - Wrong frames ⇒ adjust `makeRowFrames` start/spacing/size.
-   - Both backends if the game supports Canvas + Skia.
-
-9. **Tests**: extend `SpriteRegistry.test.ts` for the new id; add drawer smoke if the game has visual tests.
-
----
-
-## 7. Full-image static props (towers, props)
-
-```ts
-const PROP: SpriteSheetDef = {
-  id: "my_prop",
-  imageSource: propSource,
-  frameWidth: 34,
-  frameHeight: 34,
-  sourceMode: "full-image",
-  anchor: { x: 0.5, y: 0.5 },
-  animations: {
-    idle: { name: "idle", frames: [], frameDuration: 1, loop: true },
+    const drawn = drawSpriteCanvas(ctx, animator, transform.x, transform.y, {
+      opacity: render.opacity,
+    });
+    if (!drawn) {
+      drawFooProceduralFallback(ctx, transform, render); // always implement this
+    }
   },
 };
 ```
 
-Drawer uses whole image bounds; logical size is a fit box. One shared `createSpriteAnimator("my_prop")` is enough.
+---
+
+## 4. Game-local sprite-like paths (still valid)
+
+Not everything bitmap goes through `SpriteRegistry`. These remain legitimate under the dual-strategy rule:
+
+| Path | Used by | Notes |
+|------|---------|--------|
+| Hit&Run samurai atlas | Hit&Run | `samurai-enemy.png` + `.atlas.json` + AnimationSystem — **not** shared registry. `assets/sprites/samurai1.png` is concept art only until an explicit migration. |
+| Echo Runner pixel frames | Echo Runner | Code-defined grids in `EchoRunnerPixelArt.ts`; Canvas/Skia blit |
+| Out Run pixel vehicles | Out Run | `OutrunPixelSprites.ts`; controlled low-res grids |
+
+Agent rule: if the task mentions these assets, open their local modules first; do not assume `SpriteRegistry` is involved.
+
+---
+
+## 5. How games wire presentation today (map)
+
+| Game | Dominant strategy | Sprite / bitmap notes |
+|------|-------------------|------------------------|
+| Tower Defense | Procedural creeps + **sprite towers** | `tower_*_art` full-image; hybrid drawers |
+| Space Invaders | Procedural invaders + **Nautical sprite ships** | `sea_dragon` / `ghost_galleon` via mod `registerDrawers` |
+| Hit&Run | Procedural + **local samurai atlas** + lancero template | Shared registry optional for new enemies |
+| Echo Runner | Procedural + local pixel art | No shared registry required |
+| Out Run | Road projection + local pixel cars | No shared registry required |
+| Asteroids, Geometry Wars, Pong, Arkanoid, Centipede, Galaxian, Flappy, Frogger, … | Procedural / neon / vector | Free to adopt shared sprites later via hybrid drawers |
+
+**Implication for agents:** when asked to "add sprites to game X", implement hybrid drawers and registry entries **without** removing procedural paths. When asked to "fix missing art", a solid procedural drawer is an acceptable complete fix.
+
+---
+
+## 6. Asset layout (optional bitmaps)
+
+```
+assets/sprites/
+  enemies/     # character & ship sheets (many not yet in registry)
+  towers/      # TD full-image props (ready)
+  wip/         # never require from runtime
+```
+
+Metro only accepts **static** `require("...png")`. Dynamic paths break. Prefer PNG over JPG for runtime.
+
+Until a sheet is measured and registered **and** a ShapeDrawer uses it, it is art inventory only — the game must still look correct procedurally.
+
+---
+
+## 7. End-to-end checklists
+
+### 7.1 Add or improve **procedural** presentation for a shape
+
+1. Implement `drawXCanvas` / `drawXSkia` (pure geometry or local pixel grid).
+2. `registerShape("x", drawer)` for each backend in `initializeRenderer`.
+3. Ensure blueprints / spawners set `Render.shape = "x"`.
+4. Keep draw deterministic where the game cares about replay / tests.
+5. Optional: share math via `ProceduralShapeUtils`.
+
+### 7.2 Add **sprite** presentation for a shape (any game)
+
+1. Place PNG under `assets/sprites/...` (or reuse existing).
+2. Measure cells → `SpriteSheetDef` + `require` in `SpriteRegistry.ts` → `init()`.
+3. Call `SpriteRegistry.init()` from the game's boot path if not already.
+4. ShapeDrawer: animator + `drawSprite*`; **always** procedural fallback.
+5. `registerShape` on Canvas and Skia as needed.
+6. Spawn path sets `Render.shape` to the registered id (or mod alias).
+7. Verify: visible while loading (fallback), then sprite; no permanent invisibility.
+
+### 7.3 Theme / mod swap
+
+Mods (e.g. Nautical, Asteroids visual packs) call `registerDrawers` to **replace or alias** shapes. Prefer aliasing classic ids (`"ufo"` → ghost galleon) so gameplay blueprints stay stable.
 
 ---
 
@@ -295,32 +296,61 @@ Drawer uses whole image bounds; logical size is a fit box. One shared `createSpr
 
 | Symptom | Likely cause | Action |
 |---------|--------------|--------|
-| Entity targeted / collides but invisible | Shape drawer missing or throws; registry not inited; image never loads | Register shape; wrap drawer in try/catch; call `SpriteRegistry.init()`; check `require` path |
-| Permanent vector fallback | `imageSource` null (failed require) or load failure cached | Fix path; clear failed-load sets in drawer if hot-reloading; confirm PNG in Metro |
-| Wrong crop / sliding frames | Bad `makeRowFrames` numbers | Re-measure sheet; set `spacing` = cell width for tight grids |
-| Works on Canvas, black on native | Skia drawer not registered or Skia preload never called | Register Skia twin; call `preloadSpriteSheetSkia` / `getSkiaImage` |
-| Blueprint warnings `tilemap` / collectibles | Unrelated to sprites but blocks spawns | Register blueprints **before** `generateAndInstantiatePlatformerLevel` |
-| “oni_red” missing file | Historical rename | Registry already points at `enemy2.png`; keep id stable |
-| samurai1 not showing in Hit&Run | Different pipeline | See §5.4 — not a registry issue |
+| Entity collides / is targeted but invisible | No `registerShape`, drawer throws, or both sprite and fallback failed | Register shape; try/catch; implement procedural fallback |
+| Permanent vector look though PNG exists | Sheet not in registry, `init()` not called, failed `require`, or theme disables sprites | Fix path + init; check theme flags |
+| Wrong crop / sliding frames | Bad `makeRowFrames` | Re-measure; spacing = cell width on tight grids |
+| Canvas OK, native blank | Skia drawer missing or Skia preload never runs | Register Skia twin; preload |
+| Blueprint warnings block spawns | Unrelated to pixels but stops entities existing | Register blueprints **before** level generation |
+| samurai1 not in Hit&Run | Different pipeline | §4 — migration, not a one-line registry change |
 
-**Never** leave entities without a fallback draw path. Invisible enemies with working AI is the most common failure mode in this codebase.
-
----
-
-## 9. Parallel systems (do not unify casually)
-
-| System | Used by | Entry points |
-|--------|---------|--------------|
-| Shared `SpriteRegistry` | TD towers, SI Nautical dragons/galleon, lancero template, oni_red | `src/games/shared/sprites/*` |
-| Hit&Run samurai atlas | Hit&Run player / enemy art | `SamuraiVisualAssets.ts`, atlas JSON, AnimationSystem |
-| Procedural / vector drawers | Most games as primary or fallback | `*CanvasVisuals.ts`, `*SkiaVisuals.ts`, mono placeholders |
-| Echo Runner / Out Run pixel grids | Those games only | Own pixel modules + polish wave docs |
-
-Aesthetic themes (ink-world, paper-dusk, etc.) may **disable** sprite draws and force vector looks — check theme flags in the drawer before assuming a bug.
+**Hard rule:** never ship a shape with no draw path. Invisible-but-alive entities are the most common visual defect in this codebase.
 
 ---
 
-## 10. Atlas generation scripts
+## 9. Agent decision tree
+
+```
+Does the task change what the player *sees* for an entity?
+  │
+  ├─ Art direction is vector / neon / ink / no sheet ready
+  │    → Implement or fix procedural ShapeDrawer(s); register both backends
+  │
+  ├─ Finished PNG sheet exists (or is being authored)
+  │    → SpriteSheetDef + hybrid ShapeDrawer (sprite then procedural fallback)
+  │
+  ├─ Hit&Run samurai / samurai1 / local atlas
+  │    → Open SamuraiVisualAssets + atlas JSON; do not only edit SpriteRegistry
+  │
+  └─ Echo / Out Run pixel frames
+       → Open that game's Pixel* modules; keep simulation untouched
+```
+
+```
+Is the PNG already in SpriteRegistry.init()?
+  NO → add require + def + init entry (if choosing shared pipeline)
+  YES → does a ShapeDrawer call drawSprite* for this shape id?
+          NO → add hybrid drawer + registerShape
+          YES → fix load path, frames, theme, or backend parity
+```
+
+---
+
+## 10. Reference implementations
+
+| Goal | Copy from |
+|------|-----------|
+| Pure procedural entity | Geometry Wars / Asteroids / Centipede `*CanvasVisuals` + matching Skia |
+| Hybrid tower (sprite + vector) | `TowerDefenseCanvasVisuals` / Skia tower drawers |
+| Grid atlas + mod registration | `SeaDragonVisuals.ts` + `NauticalMod.ts` |
+| Shape alias under a theme | `GhostGalleonVisuals` + `"ufo"` in NauticalMod |
+| Character sheet template | `LanceroSpriteVisuals.ts` + `LANCERO` in `SpriteRegistry` |
+| Safe image require | try/catch blocks in `SpriteRegistry.ts` |
+| Diagnostic mono shapes | `HitRunPlaceholderVisuals.ts` |
+| Shared procedural math | `ProceduralShapeUtils.ts` |
+
+---
+
+## 11. Atlas scripts (optional)
 
 ```
 scripts/sprites/
@@ -329,64 +359,31 @@ scripts/sprites/
   build-ghost-galleon-atlas.cjs
 ```
 
-Run from repo root with Node when regenerating procedural outline atlases. Character photo/paint sheets are usually hand-measured, not generated.
+Use when regenerating outline atlases. Hand-painted multi-row characters are measured manually into `makeRowFrames`.
 
 ---
 
-## 11. Agent decision tree
+## 12. Related docs
 
-```
-Is the task about Hit&Run samurai / samurai1?
-  YES → read SamuraiVisualAssets + atlas JSON; do not only edit SpriteRegistry
-  NO  → continue
-
-Is the PNG already under assets/sprites and in SpriteRegistry.init()?
-  NO  → add require + SpriteSheetDef + init() entry
-  YES → continue
-
-Does a ShapeDrawer exist that calls drawSpriteCanvas/Skia for this id?
-  NO  → add Visuals module (clone Lancero or SeaDragon) + registerShape
-  YES → continue
-
-Does the entity’s Render.shape match the registered shape id?
-  NO  → fix blueprint / spawner / mod alias
-  YES → debug load path, frame rects, theme flags, backend parity
-```
+- `docs/SPRITE_READINESS_AUDIT.md` — inventory of `assets/sprites` vs registry (may lag; trust code).
+- `src/games/shared/sprites/README.md` — short sprite quick-start.
+- `docs/ARCADE_SPRITE_POLISH_WAVE1.md` — polish often procedural/pixel, not registry sheets.
+- `packages/core/src/rendering/Renderer.ts` — authoritative ShapeDrawer contract.
 
 ---
 
-## 12. Reference implementations (copy these)
+## 13. Non-goals / hard rules for agents
 
-| Goal | Copy from |
-|------|-----------|
-| Character multi-row sheet + Canvas shape | `LanceroSpriteVisuals.ts` + `LANCERO` in `SpriteRegistry.ts` |
-| Grid atlas + Canvas/Skia + mod registration | `SeaDragonVisuals.ts` + `NauticalMod.ts` |
-| Bonus ship / shape alias | `GhostGalleonVisuals.ts` + `"ufo"` registers in NauticalMod |
-| Static prop full-image | `TOWER_BASIC_ART` + TD Canvas/Skia tower drawers |
-| Safe require | try/catch blocks at top of `SpriteRegistry.ts` |
-| Fallback when image not ready | any TD tower drawer (`drawSprite*` then vector) |
-
----
-
-## 13. Related docs
-
-- `docs/SPRITE_READINESS_AUDIT.md` — inventory vs readiness (may lag code; trust registry + this guide).
-- `src/games/shared/sprites/README.md` — short quick-start.
-- `docs/ARCADE_SPRITE_POLISH_WAVE1.md` — polish that is often vector/pixel, not registry sheets.
-- Space Invaders art bible notes referenced inside `SeaDragonVisuals.ts`.
+1. **Do not treat sprites as mandatory** for a game to be "complete." Procedural presentation is first-class.
+2. **Do not remove procedural fallbacks** when wiring a sheet.
+3. **Do not** `require` `assets/sprites/wip/*`.
+4. **Do not** register contact sheets (`several_enemies.png`) as a single runtime sheet.
+5. **Do not** replace Hit&Run `samurai-enemy` with `samurai1` without measuring cells and migrating AnimationSystem.
+6. Prefer stable **shape ids** and stable **sheet ids** even when filenames change (`oni_red` → `enemy2.png`).
+7. Register blueprints **before** procedural level generation.
+8. Match Canvas and Skia registration when the game supports both.
+9. Keep simulation / collision independent of whether the drawer used a bitmap.
 
 ---
 
-## 14. Non-goals / hard rules for agents
-
-1. Do **not** `require` files under `assets/sprites/wip/`.
-2. Do **not** register contact sheets (`several_enemies.png`) as a single runtime sheet.
-3. Do **not** replace Hit&Run `samurai-enemy` with `samurai1` without measuring cells and migrating AnimationSystem.
-4. Do **not** remove vector fallbacks when adding sprites.
-5. Prefer keeping stable **ids** (`oni_red`) even if the PNG filename changes.
-6. Always register blueprints **before** procedural level generation.
-7. Match Canvas and Skia registration when the game supports both backends.
-
----
-
-*End of guide. When the registry or drawer API changes, update sections 2, 4, and 12 in the same PR.*
+*End of guide. When the Renderer contract or shared sprite API changes, update sections 0, 2, and 3 in the same PR.*

@@ -119,6 +119,11 @@ describe("TowerDefense headless - Phase 2 (Playable Headless)", () => {
     // Grunt speed is 60 px/s. Over 1s, it should move ~60 px (within 2px tolerance)
     expect(distMoved).toBeGreaterThanOrEqual(58);
     expect(distMoved).toBeLessThanOrEqual(62);
+
+    // Verify visual world transform tracked local movement (worldX/worldY match new x/y and changed from spawn)
+    expect(newTransform.worldX).toBe(newTransform.x);
+    expect(newTransform.worldY).toBe(newTransform.y);
+    expect(newTransform.worldX).not.toBe(initialTransform.x);
   });
 
   it("2.6 Wave cycle: transitions through build -> wave -> intermission -> build", async () => {
@@ -171,10 +176,10 @@ describe("TowerDefense headless - Phase 2 (Playable Headless)", () => {
   });
 
   it("keeps all creep silhouettes readable without changing configured sizes", () => {
-    expect(getCreepRenderSize("grunt", 12)).toBe(18);
-    expect(getCreepRenderSize("fast", 10)).toBe(16);
-    expect(getCreepRenderSize("tank", 18)).toBeCloseTo(26.1);
-    expect(getCreepRenderSize("boss", 28)).toBe(38);
+    expect(getCreepRenderSize("grunt", 12)).toBe(28);
+    expect(getCreepRenderSize("fast", 10)).toBe(26);
+    expect(getCreepRenderSize("tank", 18)).toBeCloseTo(38.7);
+    expect(getCreepRenderSize("boss", 28)).toBe(52);
   });
 
   it("2.7 App-level input: setInputState({ startWave: true }) triggers wave transition and spawns creeps", async () => {

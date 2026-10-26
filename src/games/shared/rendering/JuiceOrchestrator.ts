@@ -59,7 +59,25 @@ export type SupportedGameId =
   | "platformer"
   | "echo-runner";
 
-export const JUICE_CATALOG: Record<SupportedGameId, Record<string, JuiceProfile>> = {
+/**
+ * Strictly typed mapping of supported games to their valid semantic Juice event keys.
+ * @public
+ */
+export interface GameJuiceEventMap {
+  pong: "ball:rally" | "paddle:hit" | "goal:scored";
+  asteroids: "rock:destroyed" | "ship:damage" | "ship:fire";
+  "space-invaders": "shield:degraded" | "alien:destroyed" | "ufo:destroyed";
+  arkanoid: "brick:shatter" | "paddle:bounce" | "boss:hit" | "brick:hit";
+  flappybird: "pipe:passed" | "bird:flap" | "bird:crash";
+  frogger: "goal:reached" | "frog:hop" | "frog:splat";
+  "geometry-wars": "enemy:destroyed" | "bomb:trigger" | "player:death";
+  platformer: "player:damage" | "coin:collected" | "enemy:stomp";
+  "echo-runner": "echo:ghost" | "dash:boost" | "obstacle:hit";
+}
+
+export const JUICE_CATALOG: {
+  [G in SupportedGameId]: Record<GameJuiceEventMap[G], JuiceProfile>;
+} = {
   pong: {
     "ball:rally": { effect: "warp_lines", tint: colors.cyan, intensity: 1.0, scale: 1.0 },
     "paddle:hit": { effect: "shockwave", tint: colors.cyan, scale: 0.8, ttl: 0.2, hitStopMs: 30, hitStopPriority: HitStopPriority.LOW, shakeIntensity: 1.5, shakeDurationMs: 40 },
@@ -77,6 +95,7 @@ export const JUICE_CATALOG: Record<SupportedGameId, Record<string, JuiceProfile>
   },
   arkanoid: {
     "brick:shatter": { effect: "shockwave", tint: colors.danger, scale: 0.8, ttl: 0.25, hitStopMs: 30, hitStopPriority: HitStopPriority.NORMAL, shakeIntensity: 1.5, shakeDurationMs: 50 },
+    "brick:hit": { effect: "shockwave", tint: colors.cyan, scale: 0.6, ttl: 0.15, hitStopMs: 30, hitStopPriority: HitStopPriority.LOW, shakeIntensity: 1.0, shakeDurationMs: 30 },
     "paddle:bounce": { effect: "shield_bubble", tint: colors.cyan, scale: 0.9, ttl: 0.2 },
     "boss:hit": { effect: "hologram_glitch", tint: colors.redHot, scale: 1.5, ttl: 0.4, hitStopMs: 80, hitStopPriority: HitStopPriority.HIGH, shakeIntensity: 3.5, shakeDurationMs: 100 }
   },
@@ -217,11 +236,15 @@ export class JuiceOrchestrator<TComponents extends CoreComponentRegistry = CoreC
    * Triggers a semantic event mapped in `JuiceMap` for the specified game.
    * FR-4: Semantic per-game mapping.
    */
-  public triggerEvent(gameId: SupportedGameId, eventName: string, context?: { x?: number; y?: number; overrideTint?: string }): void {
-    const gameMap = JUICE_CATALOG[gameId];
+  public triggerEvent<G extends SupportedGameId>(
+    gameId: G,
+    eventName: GameJuiceEventMap[G],
+    context?: { x?: number; y?: number; overrideTint?: string }
+  ): void {
+    const gameMap = JUICE_CATALOG[gameId] as Record<string, JuiceProfile>;
     if (!gameMap) return;
 
-    const profile = gameMap[eventName];
+    const profile = gameMap[eventName as string];
     if (!profile) return;
 
     this.spawn(profile.effect, {

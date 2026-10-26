@@ -8,6 +8,7 @@ import {
   Entity
 } from "@tiny-aster/core";
 import { spawnScorePopup, CombatHitEvent, CombatDeathEvent, subscribeToCombatEvents } from "@tiny-aster/gameplay-kit";
+import { JuiceOrchestrator } from "../../shared/rendering/JuiceOrchestrator";
 import { ArkanoidComponentRegistry, ArkanoidEventRegistry } from "../types/ArkanoidTypes";
 import { ArkanoidConfig, DEFAULT_ARKANOID_CONFIG } from "../types/ArkanoidConfigSchema";
 
@@ -44,9 +45,18 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
   private config?: ArkanoidConfig;
   private processedPairs = new Set<string>();
   private pendingRemovedBalls = new Set<Entity>();
+  private orchestrator?: JuiceOrchestrator;
+
+  private getOrchestrator(world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>): JuiceOrchestrator {
+    if (!this.orchestrator) {
+      this.orchestrator = new JuiceOrchestrator(world as World<CoreComponentRegistry>);
+    }
+    return this.orchestrator;
+  }
 
   public override onRegister(world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry>): void {
     this.config = world.getResource<ArkanoidConfig>("GameConfig") || DEFAULT_ARKANOID_CONFIG;
+    this.orchestrator = new JuiceOrchestrator(world as World<CoreComponentRegistry>);
     subscribeToCombatEvents(world, {
       onHit: (event) => this.onCombatHit(world, event),
       onDeath: (event) => this.onCombatDeath(world, event)
@@ -62,11 +72,12 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
         render.hitFlashFrames = 4;
       });
 
-      world.setResource("GameplayFreeze", { remaining: 0.04 });
       Juice.squash(world as World<CoreComponentRegistry>, target, 1.15, 0.85, 120);
 
       const pos = world.getComponent(target, "Transform");
       if (pos) {
+        this.getOrchestrator(world).triggerEvent("arkanoid", "brick:hit", { x: pos.x, y: pos.y });
+
         const sparkEmitter = createEmitter(world as World<CoreComponentRegistry>, {
           type: "spark",
           x: pos.x,
@@ -134,6 +145,8 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
         const popupText = nextMultiplier > 1 ? `+${pointsGained} (x${nextMultiplier})` : `+${pointsGained}`;
         spawnScorePopup(world, pos.x, pos.y, popupText, popupColor);
 
+        this.getOrchestrator(world).triggerEvent("arkanoid", "brick:shatter", { x: pos.x, y: pos.y, overrideTint: popupColor });
+
         const explosionEmitter = createEmitter(world as World<CoreComponentRegistry>, {
           type: "spark",
           x: pos.x,
@@ -149,8 +162,6 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
           loop: false
         });
         world.getCommandBuffer().addComponent(explosionEmitter, { type: "TTL", timeLeft: 0.35, remaining: 0.35 });
-
-        Juice.shake(world as World<CoreComponentRegistry>, nextMultiplier >= 4 ? 5 : 3, 120);
 
         if (brick.kind === "explosive") {
           this.triggerExplosiveAOE(world, pos.x, pos.y);

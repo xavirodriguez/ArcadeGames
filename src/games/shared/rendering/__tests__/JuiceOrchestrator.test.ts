@@ -96,13 +96,22 @@ describe("JuiceOrchestrator Unit Tests & Golden Replays", () => {
       expect(games.length).toBe(9);
 
       for (const gameId of games) {
-        const events = Object.keys(JUICE_CATALOG[gameId]);
+        const gameCatalog = JUICE_CATALOG[gameId];
+        const events = Object.keys(gameCatalog) as Array<keyof typeof gameCatalog>;
         expect(events.length).toBeGreaterThan(0);
 
         for (const eventName of events) {
           juice.triggerEvent(gameId, eventName, { x: 50, y: 50 });
         }
       }
+    });
+
+    it("should trigger typed Arkanoid brick:hit and brick:shatter events", () => {
+      juice.triggerEvent("arkanoid", "brick:hit", { x: 100, y: 120 });
+      expect(world.query("Render").length).toBe(1);
+
+      juice.triggerEvent("arkanoid", "brick:shatter", { x: 200, y: 220 });
+      expect(world.query("Render").length).toBe(2);
     });
   });
 

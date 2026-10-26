@@ -1,5 +1,4 @@
 import { SoundRecipe, MusicRecipe, GenerateOptions, LayerSpec } from './types';
-import { renderMusic } from '../music/renderMusic';
 import { RNG } from './random';
 import { layerRenderers, LayerRendererContext } from './renderers';
 import { applyEffectsChain, estimateEffectsTailSeconds } from './effects/chain';
@@ -40,6 +39,8 @@ export async function renderFinal(
 
   let samples: Float32Array;
   if ('tracks' in recipe && Array.isArray((recipe as MusicRecipe).tracks)) {
+    // Lazy import to avoid circular dependency with renderMusic.ts
+    const { renderMusic } = await import('../music/renderMusic');
     const res = await renderMusic(recipe as MusicRecipe, options);
     samples = res.samples;
   } else {

@@ -37,7 +37,7 @@ import { CanvasGlowCache } from "../../shared/rendering/GlowSystem";
 
 export { FLAPPY_PARTICLE_POOL as FLAPPY_CANVAS_PARTICLE_POOL, spawnVisualParticle };
 
-function drawCanvasGlideEnergyBar(
+export function drawCanvasGlideEnergyBar(
   ctx: CanvasRenderingContext2D,
   world: World<FlappyBirdComponentRegistry>,
   width: number,
@@ -69,7 +69,7 @@ function drawCanvasGlideEnergyBar(
 }
 
 /** Draws active visual particles for Canvas2D renderer. */
-function drawCanvasVisualParticles(ctx: CanvasRenderingContext2D): void {
+export function drawCanvasVisualParticles(ctx: CanvasRenderingContext2D): void {
   const particles = FLAPPY_PARTICLE_POOL.getActiveParticles();
   for (let i = 0; i < particles.length; i++) {
     const data = resolveFlappyParticleData(particles[i]);

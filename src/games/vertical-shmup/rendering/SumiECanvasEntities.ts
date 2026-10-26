@@ -1,7 +1,6 @@
 import type { ShapeDrawer } from "@tiny-aster/core";
 import type { ShmupComponentRegistry } from "../types/ShmupTypes";
-import { SHMUP_SUMI_E_THEME } from "./ShmupVisualHelpers";
-import { resolveShmupPlayerDrawContext } from "./ShmupVisualHelpers";
+import { SHMUP_SUMI_E_THEME, resolveShmupPlayerDrawContext } from "./ShmupVisualHelpers";
 
 /** Brush-ink shrine glider. Pure presentation; geometry and hitbox are unchanged. */
 export const drawSumiECanvasPlayer: ShapeDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {

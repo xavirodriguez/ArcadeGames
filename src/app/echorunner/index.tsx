@@ -278,7 +278,7 @@ function EchoRunnerContent() {
           <View style={[styles.hudContainer, { backgroundColor: activeUiStyle.hudBg, borderColor: activeUiStyle.hudBorder }]}>
             <View style={styles.hudItem}>
               <Text style={[styles.hudLabel, { color: activeUiStyle.hudTextLabel }]}>{t.echorunner.attempts}</Text>
-              <Text style={[styles.hudValue, { color: activeUiStyle.hudValue, textShadowColor: activeUiStyle.hudValue }]}>
+              <Text style={[styles.hudValue, { color: activeUiStyle.hudValue, textShadow: `0px 0px 4px ${activeUiStyle.hudValue}` }]}>
                 {gameState.attempts.toString().padStart(2, "0")}
               </Text>
             </View>
@@ -372,7 +372,7 @@ function EchoRunnerContent() {
         overlaySlot={
           gameState.isGameOver ? (
             <View style={[styles.gameOverOverlay, { backgroundColor: activeUiStyle.gameOverBg }]}>
-              <Text style={[styles.gameOverTitle, { color: activeUiStyle.gameOverTitle, textShadowColor: activeUiStyle.gameOverTitle }]}>
+              <Text style={[styles.gameOverTitle, { color: activeUiStyle.gameOverTitle, textShadow: `0px 0px 15px ${activeUiStyle.gameOverTitle}` }]}>
                 {t.echorunner.archive_restored}
               </Text>
               <Text style={styles.gameOverSubtitle}>{t.echorunner.archive_restored_sub}</Text>
@@ -494,16 +494,14 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.bold,
     fontFamily: typography.game,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 4,
   },
   violetGlow: {
     color: colors.violet,
-    textShadowColor: colors.violet,
+    textShadow: `0px 0px 4px ${colors.violet}`,
   },
   goldGlow: {
     color: colors.gold,
-    textShadowColor: colors.gold,
+    textShadow: `0px 0px 4px ${colors.gold}`,
   },
   touchControlsContainer: {
     position: "absolute",
@@ -534,8 +532,6 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.title,
     fontWeight: typography.weights.bold,
     fontFamily: typography.game,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 15,
     marginBottom: spacing.sm,
     textAlign: "center",
   },

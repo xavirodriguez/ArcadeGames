@@ -1,6 +1,7 @@
 import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
 import type { ShmupComponentRegistry } from "../types/ShmupTypes";
 import { SHMUP_COLOR_TOKENS } from "./ShmupColorTokens";
+import { drawSumiECanvasBackdrop } from "./SumiECanvasBackdrop";
 import {
   computeShmupParallaxWorld,
   resolveShmupPlayerDrawContext,
@@ -627,6 +628,10 @@ function blendHex(from: string, to: string, amount: number): string {
 
 export const drawShmupStarfield: EffectDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
   draw(ctx, world) {
+    if (world.getResource<string>("ShmupVisualTheme") === "sumi-e") {
+      drawSumiECanvasBackdrop.draw(ctx, world);
+      return;
+    }
     const { width, height, time, biome, clouds, islands, particles } = computeShmupParallaxWorld(world);
     ctx.save();
 

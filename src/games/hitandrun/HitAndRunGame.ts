@@ -87,6 +87,8 @@ import {
 } from "./rendering/HitRunCanvasVisuals";
 import { drawHitRunHud } from "./rendering/HitRunHudCanvas";
 import { drawHitRunDebugOverlay } from "./rendering/HitRunDebugOverlay";
+import { drawLanceroSpriteCanvas, LANCERO_SHAPE } from "../shared/sprites/LanceroSpriteVisuals";
+import { SpriteRegistry } from "../shared/sprites";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import { runWithUnlockedRandomAndMutators } from "../shared/configHelper";
 import { ThemeRegistry, resolveThemeIdFromConfig } from "./rendering/theme/ThemeRegistry";
@@ -129,6 +131,9 @@ function registerHitRunRenderers(
   renderer.registerShape("tilemap", drawHitRunMonoTilemap);
   renderer.registerShape("fragment", drawHitRunMonoFragment);
   renderer.registerShape("core", drawHitRunMonoCore);
+
+  SpriteRegistry.init();
+  renderer.registerShape(LANCERO_SHAPE, drawLanceroSpriteCanvas);
 }
 
 export class HitAndRunGame extends BaseGame<
@@ -159,45 +164,13 @@ export class HitAndRunGame extends BaseGame<
 
   public override update(dt: number): void {
     storePreviousTransforms(this.world);
-    this.world.update(dt);
-    this.checkRunProgressGameOver(dt, this.gameOver);
+    super.update(dt);
   }
 
   protected override async onPreloadAssets(): Promise<void> {
     if (this.audio) {
       await preloadSharedAudioWithTimeout(this.audio);
     }
-  }
-
-  private installProceduralBackdrop(viewportWidth: number, viewportHeight: number): void {
-    try {
-      const backdrop = generateBackdrop({
-        width: viewportWidth,
-        height: viewportHeight,
-        theme: HIT_RUN_BACKDROP_THEME as Theme,
-        seed: this.getSeed() || 41873,
-      } as never);
-      this.world.setResource(HIT_RUN_BACKDROP_RESOURCE, backdrop);
-      this.world.setResource("BackgroundEffect", "hit_run_procedural_backdrop");
-    } catch (err) {
-      console.warn("[HitAndRunGame] Failed to install procedural backdrop", err);
-    }
-  }
-
-  protected checkRunProgressGameOver(
-    dt: number,
-    currentlyGameOver: boolean
-  ): boolean {
-    const isComplete = updateRunProgress(
-      this.world as unknown as World<CoreComponentRegistry>,
-      dt,
-      (rs) => rs.collectedPermanentIds.length > 0
-    );
-    if (isComplete && !currentlyGameOver) {
-      this.gameOver = true;
-      return true;
-    }
-    return currentlyGameOver;
   }
 
   protected override async onRegisterSystems(): Promise<void> {
@@ -300,6 +273,21 @@ export class HitAndRunGame extends BaseGame<
           "[HitAndRunGame] Skia: using canvas-compatible drawers (Phase 4 parity)."
         );
       }
+    }
+  }
+
+  private installProceduralBackdrop(viewportWidth: number, viewportHeight: number): void {
+    try {
+      const backdrop = generateBackdrop({
+        width: viewportWidth,
+        height: viewportHeight,
+        theme: HIT_RUN_BACKDROP_THEME as Theme,
+        seed: this.getSeed() || 41873,
+      } as never);
+      this.world.setResource(HIT_RUN_BACKDROP_RESOURCE, backdrop);
+      this.world.setResource("BackgroundEffect", "hit_run_procedural_backdrop");
+    } catch (err) {
+      console.warn("[HitAndRunGame] Failed to install procedural backdrop", err);
     }
   }
 

@@ -198,6 +198,13 @@ export class EventBus<TEvents extends EventRegistry = EventRegistry> {
     return () => this.off(event, handler);
   }
 
+  /**
+   * Subscribes a handler that runs at most once for the specified event.
+   *
+   * @param event - Event name to listen for.
+   * @param handler - Callback invoked with the event payload and name.
+   * @returns A function that cancels the one-time subscription before it fires.
+   */
   once<K extends keyof CombinedEvents<TEvents> & string>(
     event: K,
     handler: EventHandler<CombinedEvents<TEvents>[K]>
@@ -209,6 +216,12 @@ export class EventBus<TEvents extends EventRegistry = EventRegistry> {
     return this.on(event, wrapper);
   }
 
+  /**
+   * Removes a previously registered handler from an event.
+   *
+   * @param event - Event name from which to unsubscribe.
+   * @param handler - Exact callback reference previously passed to `on` or `once`.
+   */
   off<K extends keyof CombinedEvents<TEvents> & string>(
     event: K,
     handler: EventHandler<CombinedEvents<TEvents>[K]>
@@ -294,6 +307,16 @@ export class EventBus<TEvents extends EventRegistry = EventRegistry> {
     }
   }
 
+  /**
+   * Clears event handlers and both deferred-event buffers.
+   *
+   * @param pattern - Optional regular expression source used to select handler names.
+   *   When omitted or empty, all handlers are removed.
+   *
+   * @remarks
+   * Deferred events are discarded regardless of whether `pattern` is supplied.
+   * Invalid regular expression patterns throw when the pattern is provided.
+   */
   clear(pattern?: string): void {
     if (!pattern) {
       this.handlers.clear();

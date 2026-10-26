@@ -306,8 +306,8 @@ export const drawShmupEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupComponen
       const plumeWidth = archetype === "boss" ? 0.15 : 0.09;
       ctx.globalAlpha = 0.78;
       ctx.shadowBlur = size * 0.25;
-      ctx.shadowColor = archetype === "armored" ? SHMUP_COLOR_TOKENS.gold.sunlight : SHMUP_COLOR_TOKENS.enemy.accent;
-      ctx.fillStyle = archetype === "armored" ? SHMUP_COLOR_TOKENS.warning : SHMUP_COLOR_TOKENS.enemy.accent;
+      ctx.shadowColor = archetype === "armored" ? SHMUP_COLOR_TOKENS.gold.sunlight : (world.getResource<string>("ShmupVisualTheme") === "sumi-e" ? SHMUP_COLOR_TOKENS.bullet.warm : SHMUP_COLOR_TOKENS.enemy.accent);
+      ctx.fillStyle = archetype === "armored" ? SHMUP_COLOR_TOKENS.warning : (world.getResource<string>("ShmupVisualTheme") === "sumi-e" ? SHMUP_COLOR_TOKENS.bullet.warm : SHMUP_COLOR_TOKENS.enemy.accent);
 
       for (const side of [-1, 1]) {
         ctx.beginPath();
@@ -326,14 +326,14 @@ export const drawShmupEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupComponen
         ctx.closePath();
         ctx.fill();
         ctx.globalAlpha = 0.78;
-        ctx.fillStyle = archetype === "armored" ? SHMUP_COLOR_TOKENS.warning : SHMUP_COLOR_TOKENS.enemy.accent;
+        ctx.fillStyle = archetype === "armored" ? SHMUP_COLOR_TOKENS.warning : (world.getResource<string>("ShmupVisualTheme") === "sumi-e" ? SHMUP_COLOR_TOKENS.bullet.warm : SHMUP_COLOR_TOKENS.enemy.accent);
       }
       ctx.restore();
     }
 
     if (archetype === "scout") {
       // Angular fast scout (dagger wings, forward sensors)
-      ctx.fillStyle = SHMUP_COLOR_TOKENS.enemy.primary;
+      ctx.fillStyle = enemyColor;
       ctx.beginPath();
       ctx.moveTo(0, size * 1.1);
       ctx.lineTo(size * 0.9, -size * 0.25);
@@ -352,14 +352,14 @@ export const drawShmupEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupComponen
       ctx.fill();
 
       // Magenta core
-      ctx.fillStyle = SHMUP_COLOR_TOKENS.enemy.accent;
+      ctx.fillStyle = (world.getResource<string>("ShmupVisualTheme") === "sumi-e" ? SHMUP_COLOR_TOKENS.bullet.warm : SHMUP_COLOR_TOKENS.enemy.accent);
       ctx.beginPath();
       ctx.arc(0, 0, size * 0.28, 0, Math.PI * 2);
       ctx.fill();
 
     } else if (archetype === "interceptor") {
       // Aggressive narrow long-nose interceptor
-      ctx.fillStyle = SHMUP_COLOR_TOKENS.enemy.primary;
+      ctx.fillStyle = enemyColor;
       ctx.beginPath();
       ctx.moveTo(0, size * 1.25);                  // Sharp nose
       ctx.lineTo(size * 0.7, -size * 0.45);
@@ -371,7 +371,7 @@ export const drawShmupEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupComponen
       ctx.fill();
 
       // Magenta wing accent lines
-      ctx.strokeStyle = SHMUP_COLOR_TOKENS.enemy.accent;
+      ctx.strokeStyle = (world.getResource<string>("ShmupVisualTheme") === "sumi-e" ? SHMUP_COLOR_TOKENS.bullet.warm : SHMUP_COLOR_TOKENS.enemy.accent);
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(0, size * 0.8);
@@ -381,7 +381,7 @@ export const drawShmupEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupComponen
       ctx.stroke();
 
       // Core eye
-      ctx.fillStyle = SHMUP_COLOR_TOKENS.enemy.accent;
+      ctx.fillStyle = (world.getResource<string>("ShmupVisualTheme") === "sumi-e" ? SHMUP_COLOR_TOKENS.bullet.warm : SHMUP_COLOR_TOKENS.enemy.accent);
       ctx.beginPath();
       ctx.arc(0, -size * 0.1, size * 0.28, 0, Math.PI * 2);
       ctx.fill();
@@ -399,7 +399,7 @@ export const drawShmupEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupComponen
       ctx.fill();
 
       // Heavy armor trim
-      ctx.strokeStyle = SHMUP_COLOR_TOKENS.enemy.primary;
+      ctx.strokeStyle = enemyColor;
       ctx.lineWidth = 2.5;
       ctx.stroke();
 
@@ -414,10 +414,10 @@ export const drawShmupEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupComponen
     } else if (archetype === "support") {
       // Mage / Support unit with orbiting magic ring
       ctx.save();
-      ctx.strokeStyle = SHMUP_COLOR_TOKENS.enemy.accent;
+      ctx.strokeStyle = (world.getResource<string>("ShmupVisualTheme") === "sumi-e" ? SHMUP_COLOR_TOKENS.bullet.warm : SHMUP_COLOR_TOKENS.enemy.accent);
       ctx.lineWidth = 2.5;
       ctx.shadowBlur = 12;
-      ctx.shadowColor = SHMUP_COLOR_TOKENS.enemy.accent;
+      ctx.shadowColor = (world.getResource<string>("ShmupVisualTheme") === "sumi-e" ? SHMUP_COLOR_TOKENS.bullet.warm : SHMUP_COLOR_TOKENS.enemy.accent);
       ctx.beginPath();
       ctx.arc(0, 0, size * 0.95, 0, Math.PI * 2);
       ctx.stroke();
@@ -435,19 +435,19 @@ export const drawShmupEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupComponen
       }
       ctx.restore();
 
-      ctx.fillStyle = SHMUP_COLOR_TOKENS.enemy.primary;
+      ctx.fillStyle = enemyColor;
       ctx.beginPath();
       ctx.arc(0, 0, size * 0.55, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.fillStyle = SHMUP_COLOR_TOKENS.enemy.accent;
+      ctx.fillStyle = (world.getResource<string>("ShmupVisualTheme") === "sumi-e" ? SHMUP_COLOR_TOKENS.bullet.warm : SHMUP_COLOR_TOKENS.enemy.accent);
       ctx.beginPath();
       ctx.arc(0, 0, size * 0.28, 0, Math.PI * 2);
       ctx.fill();
 
     } else {
       // Boss entity
-      ctx.fillStyle = SHMUP_COLOR_TOKENS.enemy.primary;
+      ctx.fillStyle = enemyColor;
       ctx.beginPath();
       ctx.moveTo(0, size * 1.15);
       ctx.lineTo(size * 1.25, -size * 0.35);

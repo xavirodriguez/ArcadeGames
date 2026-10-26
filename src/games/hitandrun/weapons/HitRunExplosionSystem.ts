@@ -8,6 +8,7 @@ import type {
   ExplosivePayloadComponent
 } from "./HitRunWeaponTypes";
 import { CombatHitListenerSystem } from "../combat/CombatHitListenerSystem";
+import { isFriendly } from "../combat/faction";
 
 interface CombatHitLike {
   targetEntity: number;
@@ -116,12 +117,16 @@ export class HitRunExplosionSystem extends CombatHitListenerSystem<CombatHitLike
           continue;
         }
 
-        // No dañar al shooter ni aliados compartiendo faction player
-        const faction = world.getComponent(entity, "Faction") as
-          | { faction?: string; value?: string }
+        // Exclude the shooter and allies using the same faction contract as direct combat.
+        const sourceFaction = boom.sourceEntity === undefined
+          ? undefined
+          : world.getComponent(boom.sourceEntity, "Faction") as
+              | { value?: string; faction?: string }
+              | undefined;
+        const targetFaction = world.getComponent(entity, "Faction") as
+          | { value?: string; faction?: string }
           | undefined;
-        const factionName = faction?.value ?? faction?.faction;
-        if (factionName === "player") continue;
+        if (isFriendly(sourceFaction, targetFaction)) continue;
 
         if (world.hasComponent(entity, "Dead")) continue;
 

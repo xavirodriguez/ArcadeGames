@@ -17,7 +17,7 @@ export const GameTitle: React.FC<GameTitleProps> = ({
     <Text
       style={[
         styles.title,
-        { textShadowColor: glowColor },
+        { textShadow: `0px 0px 16px ${glowColor}` },
         style,
       ]}
       {...props}
@@ -35,7 +35,5 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.bold,
     marginBottom: spacing.xxxl,
     textAlign: "center",
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 16,
   },
 });

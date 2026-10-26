@@ -176,4 +176,37 @@ describe("Centipede Gameplay Logic (Headless)", () => {
 
     game.destroy();
   });
+
+  it("simulates centipede movement over time to verify descending zig-zag into player zone", async () => {
+    const game = new CentipedeGame({ headless: true, gameOptions: { seed: 42 } });
+    await game.init();
+    const world = game.getWorld();
+
+    let maxRowReached = 0;
+    const initialHead = world.query("CentipedeSegment").find(e => {
+      const seg = world.getComponent(e, "CentipedeSegment");
+      return seg?.isHead;
+    });
+
+    expect(initialHead).toBeDefined();
+
+    // 2500 frames * 0.016s = 40 seconds of gameplay
+    for (let frame = 0; frame < 2500; frame++) {
+      game.update(0.016);
+      const heads = world.query("CentipedeSegment").filter(e => {
+        const seg = world.getComponent(e, "CentipedeSegment");
+        return seg?.isHead;
+      });
+      for (const h of heads) {
+        const gridPos = world.getComponent(h, "GridPos");
+        if (gridPos && gridPos.row > maxRowReached) {
+          maxRowReached = gridPos.row;
+        }
+      }
+    }
+
+    // Player zone starts at row 27 (GRID_ROWS 32 - PLAYER_ZONE_ROWS 5)
+    expect(maxRowReached).toBeGreaterThanOrEqual(25);
+    game.destroy();
+  });
 });

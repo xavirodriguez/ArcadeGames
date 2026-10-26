@@ -1,4 +1,4 @@
-import { System, World, TouchInputState } from "@tiny-aster/core";
+import { System, World, TouchInputState, IInputSystem } from "@tiny-aster/core";
 import { CentipedeComponentRegistry, CentipedeEventRegistry, CentipedeInput } from "../types/CentipedeTypes";
 import { CentipedeConfig, DEFAULT_CENTIPEDE_CONFIG } from "../types/CentipedeConfigSchema";
 
@@ -6,7 +6,7 @@ export class ShooterMovementSystem extends System<CentipedeComponentRegistry, Ce
   public update(world: World<CentipedeComponentRegistry, CentipedeEventRegistry>, dt: number): void {
     const config = world.getResource<CentipedeConfig>("GameConfig") || DEFAULT_CENTIPEDE_CONFIG;
     const inputState = world.getResource<CentipedeInput>("InputState");
-    const unifiedInput = world.getResource<{ isDown: (action: string) => boolean }>("UnifiedInput");
+    const inputSys = world.getResource<IInputSystem>("InputSystem");
     const touchState = world.getResource<TouchInputState>("TouchInputState");
 
     const shooters = world.query("Shooter", "Transform", "Velocity");
@@ -15,11 +15,11 @@ export class ShooterMovementSystem extends System<CentipedeComponentRegistry, Ce
     let dx = 0;
     let dy = 0;
 
-    if (unifiedInput) {
-      if (unifiedInput.isDown("p1Left") || unifiedInput.isDown("left")) dx -= 1;
-      if (unifiedInput.isDown("p1Right") || unifiedInput.isDown("right")) dx += 1;
-      if (unifiedInput.isDown("p1Up") || unifiedInput.isDown("up")) dy -= 1;
-      if (unifiedInput.isDown("p1Down") || unifiedInput.isDown("down")) dy += 1;
+    if (inputSys) {
+      if (inputSys.getAction("p1Left") || inputSys.getAction("left")) dx -= 1;
+      if (inputSys.getAction("p1Right") || inputSys.getAction("right")) dx += 1;
+      if (inputSys.getAction("p1Up") || inputSys.getAction("up")) dy -= 1;
+      if (inputSys.getAction("p1Down") || inputSys.getAction("down")) dy += 1;
     }
 
     if (inputState) {

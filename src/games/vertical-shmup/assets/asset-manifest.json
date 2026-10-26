@@ -124,5 +124,22 @@
       "source": { "kind": "generated-or-authored", "url_or_tool": "", "creator": "", "created_at": "", "license": "", "attribution": "", "prompt_or_source_record": "" },
       "verification": { "native_scale_reviewed": false, "in_engine_reviewed": false, "technical_checks_passed": false, "approved_by": "" }
     }
+    ,
+    {
+      "id": "proc-sumi-e-backdrop",
+      "role": "Sumi-e paper, sun, mist, mountain strokes, pagodas, waterfalls and edge silhouettes; Canvas and Skia share deterministic geometry",
+      "path": "src/games/vertical-shmup/rendering/ShmupVisualHelpers.ts",
+      "status": "production",
+      "technical": {
+        "kind": "code-procedural",
+        "canvas_renderer": "src/games/vertical-shmup/rendering/SumiECanvasBackdrop.ts",
+        "skia_renderer": "src/games/vertical-shmup/rendering/SumiESkiaBackdrop.ts",
+        "determinism": "world tick + scroll only; no gameplay RNG",
+        "safe_play_area": "central 56% of viewport is kept free of foreground silhouettes"
+      },
+      "visual_locks": ["washi-paper", "subdued-vermilion-sun", "low-contrast-mist", "ink-wash-ridges", "edge-density", "canvas-skia-parity"],
+      "source": { "kind": "authored", "creator": "OpenAI + repository author", "created_at": "2026-10-26", "license": "MIT", "attribution": "", "prompt_or_source_record": "Sumi-e vertical shmup art direction brief" },
+      "verification": { "native_scale_reviewed": false, "in_engine_reviewed": false, "technical_checks_passed": false, "approved_by": "" }
+    }
   ]
 }

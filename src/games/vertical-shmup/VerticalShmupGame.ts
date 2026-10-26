@@ -11,7 +11,6 @@ import { registerSharedVFX } from "../shared/rendering/SharedVFX";
 import { Renderer, RenderContext } from "@tiny-aster/core";
 import { ShmupGameScene } from "./scenes/ShmupGameScene";
 import configRaw from "./config/vertical-shmup.json";
-import { Asset } from "expo-asset";
 
 export class VerticalShmupGame extends BaseGame<ShmupGameStateComponent, ShmupInputState, ShmupComponentRegistry, ShmupEventRegistry> {
   public readonly gameId = "vertical-shmup";
@@ -26,6 +25,7 @@ export class VerticalShmupGame extends BaseGame<ShmupGameStateComponent, ShmupIn
     this.assetLoader = new AssetLoader({
       async loadImage(path: string): Promise<unknown> {
         if (path !== "shmup_sumi_e_player") return undefined;
+        const { Asset } = require("expo-asset") as typeof import("expo-asset");
         const asset = Asset.fromModule(require("../../../assets/shmup/sumi-e/player_ship.png"));
         await asset.downloadAsync();
         return { uri: asset.localUri ?? asset.uri };

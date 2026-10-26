@@ -52,8 +52,6 @@ export const drawSumiESkiaBackdrop: EffectDrawer<SkCanvas, ShmupComponentRegistr
     for (const ridge of data.ridges) {
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setStrokeWidth(ridge.width);
-      paint.setStrokeCap(Skia.StrokeCap.Round);
-      paint.setStrokeJoin(Skia.StrokeJoin.Round);
       paint.setColor(Skia.Color(withAlpha(palette.inkWash, ridge.opacity)));
       const path = Skia.Path.Make();
       path.moveTo(ridge.points[0]!.x, ridge.points[0]!.y);

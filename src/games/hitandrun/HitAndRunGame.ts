@@ -36,8 +36,15 @@ import type {
 import {
   createMainCamera2D,
   registerPresentationSystems,
-  generateAndInstantiatePlatformerLevel
+  generateAndInstantiatePlatformerLevel,
+  registerPlatformerTilemapBlueprint,
+  registerStandardPlatformerCollectibles,
 } from "../shared/componentBuilders";
+import {
+  drawHitRunMonoTilemap,
+  drawHitRunMonoFragment,
+  drawHitRunMonoCore,
+} from "./rendering/HitRunPlaceholderVisuals";
 import { DEFAULT_HIT_AND_RUN_CONFIG } from "./types/HitAndRunConfigSchema";
 import hitRunLevelData from "./levels/level-01.json";
 import { registerHitRunMelee } from "./melee/registerHitRunMelee";
@@ -89,8 +96,6 @@ export interface HitAndRunConfig {
   seed?: number;
   gameOptions?: Record<string, unknown>;
   levelData?: { templates: SegmentTemplate[]; grammar: string[] };
-  theme?: Theme | string;
-  assetProvider?: IAssetProvider;
 }
 
 export type HitAndRunBlueprintMap = Record<
@@ -120,6 +125,10 @@ function registerHitRunRenderers(
   renderer.registerShape("arrow", drawHitRunBullet);
   renderer.registerShape("bolt", drawHitRunBullet);
   renderer.registerShape("fireball", drawHitRunBullet);
+
+  renderer.registerShape("tilemap", drawHitRunMonoTilemap);
+  renderer.registerShape("fragment", drawHitRunMonoFragment);
+  renderer.registerShape("core", drawHitRunMonoCore);
 }
 
 export class HitAndRunGame extends BaseGame<
@@ -136,108 +145,56 @@ export class HitAndRunGame extends BaseGame<
   private readonly samuraiAssetLoader: AssetLoader;
 
   constructor(config: HitAndRunConfig = {}) {
+    const seed = (config.gameOptions?.seed as number) || config.seed;
     super({
-      pauseKey: "KeyP",
-      restartKey: "KeyR",
-      gameOptions: config.gameOptions,
-      seed: config.seed,
-      theme: typeof config.theme === "object" ? config.theme : createThemeFromGameAccents("hitandrun"),
+      isMultiplayer: false,
+      headless: false,
+      theme: createThemeFromGameAccents("hitandrun"),
+      gameOptions: { ...config.gameOptions, seed },
       audio: new WebAudioPlayer(),
-      assetProvider: config.assetProvider
     });
-    const existingAssetLoader = this.world.getResource<AssetLoader>("AssetLoader");
-    this.samuraiAssetLoader =
-      existingAssetLoader ??
-      new AssetLoader(config.assetProvider ?? createSamuraiAssetProvider());
-    if (!this.samuraiAssetLoader.hasProvider()) {
-      this.samuraiAssetLoader.setProvider(
-        config.assetProvider ?? createSamuraiAssetProvider()
-      );
-    }
-    this.world.setResource("AssetLoader", this.samuraiAssetLoader);
-    this.world.setResource(SAMURAI_SPRITE_READY_RESOURCE, false);
-    this.customLevelData =
-      config.levelData ??
-      (config.gameOptions?.levelData as
-        | { templates: SegmentTemplate[]; grammar: string[] }
-        | undefined);
-
-    const themeStr = typeof config.theme === "string" ? config.theme : (config.gameOptions?.theme as string | undefined);
-    const activeThemeId = resolveThemeIdFromConfig(themeStr);
-    ThemeRegistry.setActiveTheme(activeThemeId);
+    this.samuraiAssetLoader = new AssetLoader();
+    this.customLevelData = config.levelData;
   }
 
   public override update(dt: number): void {
     storePreviousTransforms(this.world);
-    this.gameOver = this.checkRunProgressGameOver(dt, this.gameOver);
     this.world.update(dt);
+    this.checkRunProgressGameOver(dt, this.gameOver);
   }
 
   protected override async onPreloadAssets(): Promise<void> {
     if (this.audio) {
-      try {
-        await preloadSharedAudioWithTimeout(this.audio, 2000);
-      } catch (e) {
-        console.warn("[HitAndRunGame] Audio preloading failed or timed out:", e);
-      }
-    }
-
-    // Headless simulations use the existing procedural fallback and must not load image assets.
-    if (this.isHeadless) return;
-
-    try {
-      const spritesheet = await loadSamuraiSpritesheetAsset();
-      const spritesheetUri = spritesheet.localUri ?? spritesheet.uri;
-      if (!spritesheetUri) {
-        throw new Error("Expo Asset did not resolve a URI for the samurai spritesheet");
-      }
-      this.samuraiAssetLoader.queueAssets([{
-        id: SAMURAI_ASSET_KEY,
-        path: spritesheetUri,
-        type: "image"
-      }]);
-      await this.samuraiAssetLoader.loadAll();
-      const loadedImage = this.samuraiAssetLoader.get<{ uri: string }>(SAMURAI_ASSET_KEY);
-      this.world.setResource(SAMURAI_SPRITE_READY_RESOURCE, Boolean(loadedImage?.uri));
-    } catch (error) {
-      this.world.setResource(SAMURAI_SPRITE_READY_RESOURCE, false);
-      console.warn("[HitAndRunGame] Samurai sprite unavailable; using procedural fallback:", error);
+      await preloadSharedAudioWithTimeout(this.audio);
     }
   }
 
   private installProceduralBackdrop(viewportWidth: number, viewportHeight: number): void {
-    const seed = this.getSeed() || 41873;
-    const spec = generateBackdrop({
-      seed,
-      viewportWidth,
-      viewportHeight,
-      chunkWidth: viewportWidth,
-      quality: "high",
-      fantasyDensity: 1.0,
-      theme: HIT_RUN_BACKDROP_THEME,
-      playfieldMask: {
-        enabled: true,
-        x: 0,
-        y: viewportHeight * 0.4,
+    try {
+      const backdrop = generateBackdrop({
         width: viewportWidth,
-        height: viewportHeight * 0.6,
-        opacity: 0.22,
-        colorToken: "#000000"
-      }
-    });
-    this.world.setResource(HIT_RUN_BACKDROP_RESOURCE, spec);
+        height: viewportHeight,
+        theme: HIT_RUN_BACKDROP_THEME as Theme,
+        seed: this.getSeed() || 41873,
+      } as never);
+      this.world.setResource(HIT_RUN_BACKDROP_RESOURCE, backdrop);
+      this.world.setResource("BackgroundEffect", "hit_run_procedural_backdrop");
+    } catch (err) {
+      console.warn("[HitAndRunGame] Failed to install procedural backdrop", err);
+    }
   }
 
   protected checkRunProgressGameOver(
     dt: number,
-    currentlyGameOver: boolean,
-    predicate: (rs: RunState) => boolean = (rs) => rs.collectedPermanentIds.includes("archive_core_1")
+    currentlyGameOver: boolean
   ): boolean {
-    const isComplete = updateRunProgress(this.world, dt, predicate);
+    const isComplete = updateRunProgress(
+      this.world as unknown as World<CoreComponentRegistry>,
+      dt,
+      (rs) => rs.collectedPermanentIds.length > 0
+    );
     if (isComplete && !currentlyGameOver) {
-      this.getEventBus()?.emit("game:over", {
-        state: this.getGameState()
-      });
+      this.gameOver = true;
       return true;
     }
     return currentlyGameOver;
@@ -289,6 +246,9 @@ export class HitAndRunGame extends BaseGame<
   protected override async onInitializeEntities(): Promise<void> {
     runWithUnlockedRandomAndMutators(this.world, this._config.gameOptions, () => {
       registerBeltPlayerBlueprint(this.blueprints);
+      registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_HIT_AND_RUN_CONFIG);
+      registerStandardPlatformerCollectibles(this.blueprints);
+      console.info("[HitAndRun/diag] Registered blueprints: tilemap, collectible_fragment, collectible_core");
 
       this.levelPlan = generateAndInstantiatePlatformerLevel(
         this.world,

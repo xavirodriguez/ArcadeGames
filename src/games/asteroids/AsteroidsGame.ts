@@ -58,8 +58,11 @@ import { LootSystem, PowerUpSystem, DifficultyDirectorSystem, AchievementSystem,
 import { MissionSystem } from "../shared/missions/MissionSystem";
 import { ASTEROIDS_MINI_MISSIONS, ASTEROIDS_MISSIONS } from "./AsteroidsMissions";
 import { applyMissionReward } from "../shared/missions/MissionHelpers";
-import { StoryDirectorSystem, DialogueSystem } from "../shared/story";
-import { StoryRuntime, StoryGraph } from "@tiny-aster/core";
+import { StoryDirectorSystem } from "../shared/story/StoryDirectorSystem";
+import { DialogueSystem } from "../shared/story/DialogueSystem";
+import { StoryRuntime } from "@tiny-aster/core";
+import type { StoryGraph } from "@tiny-aster/core";
+import type { AsteroidsGameOptions } from "./types/AsteroidsGameOptions";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry, AsteroidsBlueprintMap } from "./types/AsteroidRegistry";
 import { AsteroidGameStateSystem } from "./systems/AsteroidGameStateSystem";
@@ -122,7 +125,7 @@ export class AsteroidsGame
       config.theme = createThemeFromGameAccents("asteroids");
     }
     super(config);
-    this.mode = (config.gameOptions as { mode?: "deathmatch" | "story" })?.mode || "deathmatch";
+    this.mode = (config.gameOptions as AsteroidsGameOptions)?.mode || "deathmatch";
     this.network = new NetworkController<AsteroidsComponentRegistry>(this.world);
     this.isMultiplayer = config.isMultiplayer || false;
     this.baseConfig = ConfigService.load<AsteroidConfig>(this.gameId, AsteroidConfigSchema, asteroidsConfigRaw);
@@ -220,8 +223,11 @@ export class AsteroidsGame
     });
 
     if (this.mode === "story") {
-      const { asteroidsStoryGraph } = require("../shared/story");
-      const graph = (this._config.gameOptions as { graphOverride?: StoryGraph })?.graphOverride || asteroidsStoryGraph;
+      const options = this._config.gameOptions as AsteroidsGameOptions | undefined;
+      const graph = options?.storyGraph ?? options?.graphOverride;
+      if (!graph) {
+        throw new Error("AsteroidsGame requires gameOptions.storyGraph when mode is 'story'.");
+      }
       const storyRuntime = new StoryRuntime(graph);
       this.world.setResource("StoryRuntime", storyRuntime);
       this.world.addSystem(new StoryDirectorSystem(storyRuntime), { phase: SystemPhase.GameRules });

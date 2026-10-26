@@ -1,19 +1,5 @@
 /**
- * Ink-wash parallax backdrop for Echo Runner.
- *
- * Theme-agnostic: resolves its ink color from whichever Theme is active via
- * resolveThemeColorWithFallback, so it renders correctly under the ink-world concept
- * pack (see src/theme/conceptPacks/inkWorldEchoRunnerConceptPack.ts) without being
- * hardcoded to it. Registered under the "inkwash_parallax" background-layer name;
- * it only actually paints when the active Theme's vfxProfile.backgroundLayers
- * includes that name (see SharedVFXInternal.ts's layer gate) — registering it here
- * does not change Echo Runner's current default ("echo_bg") appearance.
- *
- * cameraX is derived from RunState.elapsedTime, same convention the existing
- * drawEchoBackground skyline already uses — Echo Runner's RunStateResource has no
- * real distance-traveled field, only elapsedTime.
- *
- * Canvas only for now; no Skia counterpart yet.
+ * Ink-wash parallax backdrop for Echo Runner featuring procedural Japanese mountains, vegetation, and environment.
  */
 import { EffectDrawer, CoreComponentRegistry, resolveThemeColorWithFallback } from "@tiny-aster/core";
 import {
@@ -22,6 +8,8 @@ import {
 } from "../../shared/rendering/InkWashParallaxBackdrop";
 import { resolveEchoBackgroundContext } from "./EchoRunnerVisualUtils";
 import { INK_WORLD_PALETTE } from "../../../theme/inkWorldPalette";
+import { generateProceduralScene } from "../../shared/procedural/scene/ProceduralSceneGenerator";
+import { drawProceduralSceneCanvas } from "../../shared/procedural/rendering/drawProceduralSceneCanvas";
 
 /** Forward scroll speed for the virtual cameraX derived from elapsed time, px/s. */
 const VIRTUAL_SCROLL_SPEED = 60;
@@ -34,8 +22,20 @@ export const drawEchoInkWashBackdrop: EffectDrawer<CanvasRenderingContext2D, Cor
     const inkColor = resolveThemeColorWithFallback(world, INK_WORLD_PALETTE.ink, "ink", "inkOrOutline", "primary");
 
     ctx.save();
+    // 1. Layered Ink Wash
     const geometry = computeInkWashLayers(width, height, cameraX);
     drawInkWashLayersCanvas(ctx, geometry, inkColor);
+
+    // 2. Japanese Procedural Vector Backdrops (Mountains, Trees, Clouds, Birds)
+    const procScene = generateProceduralScene({
+      seed: 41873,
+      width,
+      height,
+      theme: "japanese",
+      density: 0.8
+    });
+    drawProceduralSceneCanvas(ctx, procScene);
+
     ctx.restore();
   }
 };

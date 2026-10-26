@@ -164,7 +164,7 @@ export class HitAndRunGame extends BaseGame<
 
   public override update(dt: number): void {
     storePreviousTransforms(this.world);
-    super.update(dt);
+    this.runDeterministicStep(dt);
   }
 
   protected override async onPreloadAssets(): Promise<void> {
@@ -279,11 +279,11 @@ export class HitAndRunGame extends BaseGame<
   private installProceduralBackdrop(viewportWidth: number, viewportHeight: number): void {
     try {
       const backdrop = generateBackdrop({
-        width: viewportWidth,
-        height: viewportHeight,
-        theme: HIT_RUN_BACKDROP_THEME as Theme,
+        viewportWidth,
+        viewportHeight,
+        theme: HIT_RUN_BACKDROP_THEME,
         seed: this.getSeed() || 41873,
-      } as never);
+      });
       this.world.setResource(HIT_RUN_BACKDROP_RESOURCE, backdrop);
       this.world.setResource("BackgroundEffect", "hit_run_procedural_backdrop");
     } catch (err) {

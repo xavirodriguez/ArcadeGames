@@ -4,6 +4,7 @@ import { SHMUP_COLOR_TOKENS } from "./ShmupColorTokens";
 import { SHMUP_SUMI_E_THEME } from "./ShmupVisualHelpers";
 import { drawSumiECanvasBackdrop } from "./SumiECanvasBackdrop";
 import { drawSumiECanvasPlayer } from "./SumiECanvasEntities";
+import { drawSumiECanvasEnemy } from "./SumiECanvasEnemy";
 import {
   computeShmupParallaxWorld,
   resolveShmupPlayerDrawContext,
@@ -250,6 +251,10 @@ export const drawShmupEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupComponen
   draw(ctx, world, entity) {
     const eCtx = resolveShmupEnemyDrawContext(world, entity);
     if (!eCtx) return;
+    if (world.getResource<string>("ShmupVisualTheme") === "sumi-e") {
+      drawSumiECanvasEnemy.draw(ctx, world, entity);
+      return;
+    }
 
     const { size, enemyColor, time, archetype, isTelegraphing } = eCtx;
 

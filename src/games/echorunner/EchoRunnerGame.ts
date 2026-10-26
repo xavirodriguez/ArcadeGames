@@ -63,6 +63,7 @@ import {
   drawSkiaEchoDeathZone
 } from "./rendering/EchoRunnerSkiaVisuals";
 import { drawPlatformerTilemap } from "../shared/rendering/PlatformerSharedVisuals";
+import { drawEchoInkWashBackdrop } from "./rendering/EchoRunnerInkWashBackdrop";
 import { EchoRunnerInput, EchoRunnerInputComponent, EchoRunnerGameState, EchoRunnerEventRegistry, EchoRunnerCollectibleProgress, EchoRunnerCollectibleKind, toEchoRunnerCollectibleKind, ECHO_CONFIG } from "./types/EchoRunnerTypes";
 import { EchoRunnerConfigSchema, EchoRunnerConfig as EchoRunnerConfigType, DEFAULT_ECHO_RUNNER_CONFIG } from "./types/EchoRunnerConfigSchema";
 import { PlatformerArcadeGame, loadPlatformerArcadeConfig } from "../shared/PlatformerArcadeGame";
@@ -581,6 +582,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
       renderer.registerShape("state_gate", drawEchoStateGate);
       renderer.registerShape("death_zone", drawEchoDeathZone);
       renderer.registerBackgroundEffect("echo_bg", drawEchoBackground);
+      renderer.registerBackgroundEffect("inkwash_parallax", drawEchoInkWashBackdrop);
     }
   }
 

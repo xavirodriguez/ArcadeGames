@@ -273,6 +273,45 @@ export class CollisionSystem2D<
     return null;
   }
 
+  private resolveCollider(
+    world: World<CoreComponentRegistry>,
+    entity: Entity
+  ): {
+    shape: import("../shapes/Shapes").Shape;
+    layer: number;
+    mask: number;
+    enabled: boolean;
+    isTrigger: boolean;
+    offsetX?: number;
+    offsetY?: number;
+  } | null {
+    const collider = world.getComponent(entity, "Collider");
+    if (collider) {
+      return {
+        shape: collider.shape,
+        layer: collider.layer,
+        mask: collider.mask,
+        enabled: collider.enabled,
+        isTrigger: collider.isTrigger,
+        offsetX: collider.offsetX,
+        offsetY: collider.offsetY
+      };
+    }
+    const collider2D = world.getComponent(entity, "Collider2D");
+    if (collider2D) {
+      return {
+        shape: toShapeDefinition(collider2D),
+        layer: collider2D.layer,
+        mask: collider2D.mask,
+        enabled: collider2D.enabled,
+        isTrigger: collider2D.isTrigger,
+        offsetX: collider2D.offsetX,
+        offsetY: collider2D.offsetY
+      };
+    }
+    return null;
+  }
+
   private shouldCollide(
     layerA: number,
     maskB: number,
@@ -391,7 +430,9 @@ export class CCDSystem<
       for (let i = 0; i < candidatesList.length; i++) {
         const entity = candidatesList[i];
         const hasTransform = w.hasComponent(entity, "Transform");
-        const hasCollider = w.hasComponent(entity, "Collider");
+        const hasCollider =
+          w.hasComponent(entity, "Collider") ||
+          w.hasComponent(entity, "Collider2D");
         if (hasTransform && hasCollider) {
           this._cachedCollidablesArray.push(entity);
           if (w.hasComponent(entity, "Velocity")) {
@@ -402,8 +443,19 @@ export class CCDSystem<
       query = this._cachedQueryArray;
       collidables = this._cachedCollidablesArray;
     } else {
-      query = w.query("Transform", "Velocity", "Collider");
-      collidables = w.query("Transform", "Collider");
+      this._cachedQueryArray.length = 0;
+      this._cachedCollidablesArray.length = 0;
+      const transformedEntities = w.query("Transform");
+      for (let i = 0; i < transformedEntities.length; i++) {
+        const entity = transformedEntities[i];
+        if (!this.resolveCollider(w, entity)) continue;
+        this._cachedCollidablesArray.push(entity);
+        if (w.hasComponent(entity, "Velocity")) {
+          this._cachedQueryArray.push(entity);
+        }
+      }
+      query = this._cachedQueryArray;
+      collidables = this._cachedCollidablesArray;
     }
 
     const qLen = query.length;
@@ -411,9 +463,9 @@ export class CCDSystem<
       const entity = query[i];
       const trans = w.getComponent(entity, "Transform")!;
       const vel = w.getComponent(entity, "Velocity")!;
-      const col = w.getComponent(entity, "Collider")!;
+      const col = this.resolveCollider(w, entity);
 
-      if (!col.enabled || (vel.vx === 0 && vel.vy === 0)) continue;
+      if (!col || !col.enabled || (vel.vx === 0 && vel.vy === 0)) continue;
 
       const p0x = trans.worldX ?? trans.x;
       const p0y = trans.worldY ?? trans.y;
@@ -425,8 +477,8 @@ export class CCDSystem<
         const other = collidables[j];
         if (entity === other) continue;
 
-        const otherCol = w.getComponent(other, "Collider")!;
-        if (!otherCol.enabled || otherCol.isTrigger) continue;
+        const otherCol = this.resolveCollider(w, other);
+        if (!otherCol || !otherCol.enabled || otherCol.isTrigger) continue;
         if (!this.shouldCollide(col.layer, otherCol.mask, otherCol.layer, col.mask)) continue;
 
         const otherTrans = w.getComponent(other, "Transform")!;

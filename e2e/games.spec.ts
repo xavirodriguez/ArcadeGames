@@ -67,15 +67,16 @@ test.describe("Game Launch Test Suite", () => {
         }
       });
 
-      await page.goto(game.path);
-      await page.waitForTimeout(2500); // Wait for Expo Router / Skia / Canvas initialization
+      await page.goto(game.path, { waitUntil: "domcontentloaded" });
+
+      // Wait for the route's initial interactive UI instead of guessing a delay.
+      await expect(page.getByRole("button").first()).toBeVisible({ timeout: 15000 });
 
       // Perform initial gameplay interactions (keyboard presses / mouse clicks)
       await page.keyboard.press("Space");
       await page.keyboard.press("ArrowRight");
       await page.keyboard.press("ArrowLeft");
       await page.mouse.click(640, 360);
-      await page.waitForTimeout(1000);
 
       // Check no unhandled JS errors occurred
       expect(pageErrors, `Unhandled errors on ${game.name}: ${pageErrors.map(e => e.message).join(", ")}`).toHaveLength(0);
@@ -101,7 +102,7 @@ test.describe("Game Launch Test Suite", () => {
     await expect(campaignBtn).toBeVisible({ timeout: 15000 });
     await campaignBtn.click();
 
-    await page.waitForTimeout(2000);
+    await expect(page).toHaveURL(/\/campaign/);
 
     expect(pageErrors, `Unhandled errors opening Campaign from menu: ${pageErrors.map(e => e.message).join(", ")}`).toHaveLength(0);
   });

@@ -1,476 +1,503 @@
-# Unified Combat Juice Evolution Roadmap (Sword & Fireball Weight & Impact)
+# Unified Combat Juice Consolidation & Evolution Roadmap
 
-**Target:** `docs/JUICE_SWORD_COMBAT_EVOLUTION_ROADMAP.md`
-**Repository:** [xavirodriguez/ArcadeGames](https://github.com/xavirodriguez/ArcadeGames)
-**Status:** Implementation Roadmap — Verified against current checkout (`src/games/` and `packages/`).
-
----
-
-## 1. Objective and Core Philosophy
-
-Transform the combat feel across TinyAsterEngine arcade games by making attacks feel weighted, tangible, and visually expressive.
-
-Rather than building isolated systems for sword slashes and fireball projectiles, both attack families derive from a single unified combat lifecycle system (`CombatJuicePipeline`). The pipeline unifies two fundamental feedback paradigms into one single phase-driven engine model:
-
-1. **Impact Punch:** Immediate feedback on contact (White flash, impact sound, directional sparks/particles, impulse knockback, camera shake, freeze/hit-stop).
-2. **Disney Animation Principles:** Telegraphed animation cues (Anticipation, squash & stretch along movement axes, follow-through drag/settling, hit-stop, parabolic arc motion).
-
-Every visual and kinetic feedback effect is driven by explicit lifecycle phase transitions (`anticipation` → `execution` → `contact` → `impact` → `follow_through`), decoupling deterministic simulation from high-fidelity visual rendering.
+**Repository:** [xavirodriguez/ArcadeGames](https://github.com/xavirodriguez/ArcadeGames)  
+**Document:** \`docs/JUICE_SWORD_COMBAT_EVOLUTION_ROADMAP.md\`  
+**Updated:** 2026-10-26  
+**Status:** Updated implementation plan; code changes are not part of this commit.  
+**Baseline:** Source inspection of the current repository and the existing Hit&Run audit.
 
 ---
 
-## 2. Verification Status and Codebase Evidence
-
-The implementation decisions in this document are strictly based on static code inspection and unit test verification across the repository.
-
-### 2.1 Verified Evidence Summary
-
-- **Engine Timestep & Simulation:**
-  - `BaseGame.ts` (`packages/core/src/runtime/BaseGame.ts`) runs a fixed deterministic 60Hz tick loop (`dt = 1/60`s).
-  - Component storage is managed by `SparseSetStorage.ts` and `MapStorage.ts`. World states and snapshot hashes are binary-deterministic.
-- **Hitbox & Spatial Queries:**
-  - Hitboxes use `BoxColliderComponent` (`packages/core/src/ecs/CoreComponents.ts`) and `SpatialCullingSystem` / `Broadphase`.
-  - Physics/Collision positions read directly from `TransformComponent.x`, `y`, `rotation`.
-  - Hitbox detection is completely independent of visual rendering transformations (`VisualTransformComponent`).
-- **Existing Melee and Projectile Implementations:**
-  - `hitandrun` (`src/games/hitandrun/`): Fully implements both families! Sword melee sweep (`HitRunMeleeSystem.ts`, `ComboMeleeSystem.ts`) and fire/projectile attacks (`HitRunWeaponSystem.ts`, `HitRunBulletPool.ts`).
-  - `platformer` (`src/games/platformer/`): Melee stomps and contact damage, but lacks directional sword sweeps.
-  - `geometrywars` (`src/games/geometrywars/`): Rapid projectile weapons with directional recoil, but no sword melee.
-  - `asteroids`, `space-invaders`, `vertical-shmup`: Projectiles and explosive contact damage.
-  - `tower-defense`: Turret projectiles and slow-on-hit effects.
-- **Visual Effects & Juice Architecture:**
-  - `JuiceOrchestrator.ts` (`src/games/shared/rendering/JuiceOrchestrator.ts`) processes event-driven screen shake, camera rumble, and primitive VFX (`shockwave`, `screen_border_glow`, `hologram_glitch`).
-  - `HitStopSystem.ts` (`src/games/shared/rendering/HitStopSystem.ts`) provides global frame freeze handling with priority queuing (`requestHitStop`).
-  - `VisualParticlePool.ts` (`src/games/shared/rendering/VisualParticlePool.ts`) manages zero-allocation particle pooling.
-  - `CircularPositionBuffer.ts` (`src/games/shared/rendering/CircularPositionBuffer.ts`) provides zero-allocation motion trail position history.
-- **Audio Infrastructure:**
-  - `@tiny-aster/arcade-sound-kit` (`packages/arcade-sound-kit/`) generates procedural 8-bit sound syntheses via `SoundSynthesizer`, `validateRecipe`, and `RecipeValidationError`.
-- **Renderers:**
-  - Dual rendering backend exists across Canvas2D (`CanvasRenderer.ts`) and Skia (`SkiaRenderer.ts`). Visual draw routines inspect entity components and theme tokens.
-
-### 2.2 Evidence Labels
-
-- **Verified:** Inspected in source code and confirmed via executable test or file inspection.
-- **No verificado:** Unconfirmed assumption or pending experimental tuning.
-
----
-
-## 3. Unified Phase-Driven Lifecycle Model
-
-Both Melee (Sword) and Projectile (Fireball) attacks follow a single unified 5-phase timeline. Each effect is bound to one or more specific phases:
-
-```
-+---------------------------------------------------------------------------------------------+
-|                                UNIFIED ATTACK LIFECYCLE TIMELINE                            |
-+-------------------+------------------+-------------------+------------------+---------------+
-| 1. ANTICIPATION   | 2. EXECUTION     | 3. CONTACT        | 4. IMPACT        | 5. FOLLOW-THRU|
-| (Wind-up / Lean)  | (Travel / Arc)   | (Collision Detect)| (Blast / Punch)  | (Settle / Drag)|
-+-------------------+------------------+-------------------+------------------+---------------+
-| Hero leans back   | Arc sweep trail  | Contact trigger   | White Flash      | Body settles  |
-| Fireball charges  | Stretched sphere | Hit stop start    | Knockback impulse| Trail lingers |
-| Threat telegraph  | Parabolic arc    | Sound trigger     | Particle burst   | Burst drifts  |
-|                   |                  |                   | Screen shake     | Arc damage num|
-+-------------------+------------------+-------------------+------------------+---------------+
-```
-
-### Phase Mapping Table
-
-| Phase | Melee (Sword Sweep) | Projectile (Fireball) |
-|---|---|---|
-| **1. Anticipation** | Hero leans back (`-15%` x-scale, `-5°` rotation), weapon shines. | Hero leans back, energy ball squashes (`0.7` length, `1.3` width) at hands. |
-| **2. Execution** | Rapid forward arc sweep with motion ribbon trail. | Projectile travels along path (or subtle arc) stretched along velocity vector (`1.4` length, `0.75` width). |
-| **3. Contact** | Sword hitbox intersects enemy collider. Triggers sound & hit stop. | Projectile collider intersects enemy/obstacle. Triggers sound & hit stop. |
-| **4. Impact** | Target flashes white for 3 ticks; directional particle spark burst; knockback impulse applied; camera shake; enemy squashes on impact axis (`0.6` length, `1.4` width). | Target & fireball squash on impact axis; fireball detonate explosion burst; directional debris particles; knockback impulse applied; camera shake. |
-| **5. Follow-through** | Hero body settles back to neutral (`easeInOut`); sword trail fades out over 4 ticks. | Projectile trail lingers and dissolves; fire smoke particles retain inertia drifting outward; floating damage numbers fly in parabolic arcs. |
-
----
-
-## 4. Game × Attack Type × Effect Matrix
-
-Comprehensive audit across all 15 arcade games currently in `src/games/`.
-
-| Game | Melee Family | Projectile Family | Applied Effects | Excluded Effects & Justification |
-|---|---|---|---|---|
-| `hitandrun` **(PILOT)** | Sword Slash / Combo Sweep | Fireball / Laser / Shotgun / Grenade | **ALL EFFECTS:** Anticipation, Stretch/Squash, Flash, Sound, Particles, Knockback, Shake, Hit Stop, Arcs, Follow-through. | None. Target pilot game containing full combat mechanics. |
-| `platformer` | Stomp / Kick | Enemy Projectiles | Flash, Sound, Particles, Knockback, Shake, Hit Stop, Squash/Stretch on stomp. | Sword Arc Sweep: Player uses stomps/dashes rather than sword. |
-| `geometrywars` | None | Rapid Plasma / Homing Missiles | Flash, Sound, Directional Particles, Recoil Knockback, Screen Shake, Trail Follow-through. | Melee Anticipation: Hyper-fast twin-stick shooter requires instant input response (0-tick windup). |
-| `space-invaders` | None | Cannon Shot / Alien Plasma | Flash, Sound, Explosion Particles, Hit Stop on Shield/UFO, Screen Shake. | Knockback: Aliens move on fixed grid step matrix; knockback would break grid invaders logic. |
-| `asteroids` | None | Ship Laser / Asteroid Splat | Recoil, Explosive Particles, Screen Shake, Flash, Sound, Hit Stop on large breakup. | Melee Arc Sweep: No melee combat. |
-| `vertical-shmup` | Shield Ram (contact) | Plasma Bullets / Bombs | Flash, Sound, Particle Spray, Screen Shake, Hit Stop on Bosses. | Grid/Position Knockback: Bullet hell movement requires precise position control. |
-| `tower-defense` | None | Arrow / Cannon / Magic / Slow Orb | Sound, Impact Burst Particles, Floating Damage Arcs, Enemy Flash, Target Squash. | Player Anticipation: Towers fire automatically based on range timers. |
-| `arkanoid` | Paddle Deflect (contact) | Laser Powerup / Doh Bullets | Paddle Squash/Stretch, Flash, Sound, Spark Particles, Ball Trail, Screen Shake on Brick Shatter. | Entity Knockback: Bricks are static grid items; ball trajectory is governed by reflection math. |
-| `pong` | Paddle Hit | Ball | Paddle Stretch on impact, Flash, Sound, Particle Spark Burst, Screen Shake on Goal. | Sword/Fireball Anticipation: Pure classic pong physics model. |
-| `echorunner` | Slide Tackle (contact) | Echo Wave | Flash, Sound, Particle Dust, Camera Shake, Hit Stop. | Knockback: Runner game velocity is strictly governed by lane scrolling. |
-| `flappybird` | Pipe Collision (death) | None | Flash, Sound, Feathers Particle Burst, Screen Shake, Hit Stop on crash. | Melee / Fireball attack pipelines (pure avoidance gameplay). |
-| `frogger` | Splat / Water Sink | None | Flash, Sound, Water Splash Particles, Hit Stop. | Attack mechanics (pure river crossing puzzle). |
-| `outrun` | Vehicle Crash | None | Screen Shake, Sound, Smoke/Debris Particles, Speed Penalty. | Combat attacks. |
-| `racing` | Car Collision | None | Tire Smoke Particles, Crash Sound, Camera Shake, Impulsive Collision Bounce. | Combat attacks. |
-| `story` (shared) | Delegates to underlying minigame | Delegates to underlying minigame | Inherits from minigame adapter (`BaseArcadeAdapter`). | N/A |
-
----
-
-## 5. Key Architecture & Design Decisions
-
-### 5.1 Simulation vs. Presentation Boundary
-
-To guarantee deterministic simulation and multiplayer synchronization (Colyseus rollback / snapshot reconciliation):
-
-- **Pure Presentation (Client-Local / Visual Only):**
-  - Flash (tint overlay), visual particles, audio playback, camera shake, squash & stretch visual scales, cosmetic damage number arcs, visual motion trails.
-  - *Invariant:* Disabling presentation effects alters 0 bytes of simulation state or snapshot output.
-- **Simulation Logic (Deterministic Core):**
-  - Knockback velocity impulse (mutates `VelocityComponent`), hit stop tick counter (when pausing physics simulation), anticipation windup duration (when delaying attack hitbox activation).
-  - *Invariant:* Executed identically across server and client simulation ticks.
-
-### 5.2 Squash & Stretch Without Hitbox Mutation
-
-- **Component:** `VisualTransformComponent` (`packages/core/src/ecs/CoreComponents.ts` or `src/games/shared/rendering/`).
-  ```typescript
-  export interface VisualTransformComponent {
-    scaleX: number;
-    scaleY: number;
-    rotationOffset: number;
-    skewX: number;
-    skewY: number;
-    offsetX: number;
-    offsetY: number;
-  }
-  ```
-- **Hitbox Isolation:** `BoxColliderComponent` and `TransformComponent` store untransformed world bounds `(x, y, width, height)`. Collision systems read `TransformComponent` directly. Renderers multiply canvas/Skia matrix by `VisualTransformComponent` scales without touching physics colliders.
-- **Directional Alignment:**
-  - For Projectiles: Eje de deformación alineado con el vector de velocidad normalizado `(vx, vy)`.
-  - For Melee Hits: Eje de deformación alineado con la normal del impacto `(nx, ny)`.
-- **Canvas / Skia Parity:** Both `CanvasRenderer` and `SkiaRenderer` push matrix, translate to `(x + offsetX, y + offsetY)`, rotate by `rotation + rotationOffset`, scale by `(scaleX, scaleY)`, draw shape/sprite, and pop matrix.
-
-### 5.3 Anticipation, Latency, and Network Synchronization
-
-- **Gameplay Impact:** A 6-tick (100ms) anticipation windup delays hitbox creation. In fast arcade games, heavy windups feel unresponsive if unbuffered.
-- **Policy by Attack Family:**
-  - *Light Melee:* 2 ticks (33ms) anticipation. Non-cancelable.
-  - *Heavy Melee / Sword Sweep:* 5 ticks (83ms) anticipation. Cancelable by player roll/dash up to tick 3.
-  - *Fireball Projectile:* 4 ticks (66ms) character cast windup before projectile spawn. Projectile spawns at tick 5.
-- **Multiplayer / Remote Players:** On remote clients, input prediction plays the anticipation animation instantly upon button press. If server reconciles a rollback, the animation smoothly interpolates to correct phase without desyncing hitbox position.
-- **Tuning Range (Initial Ticks at 60Hz):**
-  - Melee: `startupTicks = 4`, `activeTicks = 3`, `recoveryTicks = 8`.
-  - Fireball: `castTicks = 5`, `flyTicks = 30` (max TTL), `detonateTicks = 6`.
-
-### 5.4 Arcos (Gameplay vs. Cosméticos)
-
-- **Gameplay Trajectories (Simulation):** Fireballs travel either in a straight line or along a deterministic parabolic arc calculated via fixed gravimetric steps in `MovementSystem` (`vy += gravity * dt`).
-- **Cosméticos (Presentation):**
-  - Directional Sparks & Blood/Ember Particles: Calculated via quadratic Bezier control points:
-    $$P(t) = (1-t)^2 P_0 + 2(1-t)t P_c + t^2 P_1$$
-    where $P_c$ is perturbed perpendicular to impact normal $N$.
-  - Floating Damage Text: Spawns at impact point $P_0$, arc height $H = 24\text{px}$, velocity $V_x = \text{randomDirection} \times 30\text{px/s}$, dropping down via gravity factor over $0.5\text{s}$.
-
-### 5.5 Follow-Through & Trail Inertia
-
-- **Motion Trails:** Uses `CircularPositionBuffer` (`capacity = 16`). Each tick stores position `(x, y)`, velocity, and rotation.
-- **Lag / Delay Effect:** Renderers sample position history with a decay curve $A(i) = (i / capacity)^{1.5}$. When hero stops moving, the trail points continue forward along stored velocity vectors for 3 ticks before collapsing.
-- **Particle Inertia:** On fireball explosion or sword hit, particles inherit 30% of projectile/sword velocity vector $\vec{V}_{\text{parent}}$ added to their random explosion radial vector $\vec{V}_{\text{radial}}$.
-
-### 5.6 Unified Hit Stop Architecture
-
-- Uses `HitStopSystem.ts` with explicit `HitStopPriority`:
-  - `LIGHT_HIT` (Weak projectile / light slash): 2 ticks (33ms), priority `LOW`.
-  - `MEDIUM_HIT` (Heavy sword slash / fireball direct hit): 4 ticks (66ms), priority `NORMAL`.
-  - `CRITICAL_HIT` (Kill blow / boss impact / hero damage): 8 ticks (133ms), priority `CRITICAL`.
-- **Freeze Mechanism:** Hit-stop uses the engine's canonical `GameplayFreeze` resource through `enterGameplayFreeze`. While the freeze is active, `Schedule` skips simulation, transform, collision, and game-rule phases; systems explicitly marked to run while frozen may continue presentation-side work. Hit-stop must not keep a parallel `HitStopRemaining` resource.
-
-### 5.7 Decoupled Event-Driven Architecture
-
-Collision and combat systems emit structured events on `world.getEventBus()` instead of calling juice logic inline:
-
-```typescript
-export interface CombatAttackPhaseEvent {
-  entity: number;
-  attackId: string;
-  family: "melee" | "projectile";
-  phase: "anticipation" | "execution" | "contact" | "impact" | "follow_through";
-  position: { x: number; y: number };
-  direction: { x: number; y: number };
-}
-
-export interface CombatImpactEvent {
-  attackerEntity: number;
-  targetEntity: number;
-  attackFamily: "melee" | "projectile";
-  profileId: string;
-  position: { x: number; y: number };
-  normal: { x: number; y: number }; // Normalized impact vector (nx, ny)
-  damage: number;
-  isFatal: boolean;
-}
-```
-
-Independent Juice listeners (`CombatJuiceSystem`, `JuiceOrchestrator`) subscribe to these events and trigger visual transforms, particle spawns, sound recipes, and camera rumbles.
-
-### 5.8 Data-Driven Combat Juice Profiles
-
-Per-attack feel parameters are stored in typed data schemas:
-
-```typescript
-export interface CombatJuiceProfile {
-  id: string;
-  family: "melee" | "projectile";
-  phases: {
-    anticipationTicks: number;
-    executionTicks: number;
-    contactTicks: number;
-    followThroughTicks: number;
-  };
-  squashStretch: {
-    anticipationScaleX: number;
-    anticipationScaleY: number;
-    impactTargetScaleX: number; // e.g. 0.6
-    impactTargetScaleY: number; // e.g. 1.4
-    recoveryDurationTicks: number;
-  };
-  flash: {
-    durationTicks: number;
-    colorHex: string; // e.g. "#FFFFFF"
-  };
-  particles: {
-    count: number;
-    speedMin: number;
-    speedMax: number;
-    spreadAngleRad: number;
-    inheritVelocityFactor: number;
-    tintTokens: string[];
-  };
-  knockback: {
-    impulseMagnitude: number;
-    decayFactor: number;
-  };
-  shake: {
-    intensity: number;
-    durationMs: number;
-  };
-  hitStop: {
-    durationMs: number;
-    priority: number;
-  };
-  soundRecipe: {
-    recipeId: string;
-    pitchVariation: number;
-  };
-}
-```
-
-Profiles live in `packages/gameplay-kit/src/combat/profiles/` and are registered in `World` resources, easily overrideable via `Theme` overrides or game blueprints.
-
-### 5.9 Package and Module Boundaries
-
-- `packages/gameplay-kit/src/combat/`:
-  - `CombatJuicePipeline.ts`: Core system orchestrating attack phases.
-  - `CombatJuiceProfileSchema.ts`: Profile types and validation schemas.
-  - `components/VisualTransformComponent.ts`: Visual transform offsets for squash/stretch.
-  - `systems/VisualSquashStretchSystem.ts`: Smooth spring-damper recovery for visual scale.
-- `src/games/shared/rendering/`:
-  - `SharedVFX.ts`: Reusable particle profile spawners and floating text arcs.
-  - `JuiceOrchestrator.ts`: Event bus adapter mapping `CombatImpactEvent` to screen shake and audio.
-- `@tiny-aster/arcade-sound-kit`:
-  - Sound recipes for sword slashes (`sword_sweep`, `sword_clash`, `sword_flesh_hit`) and fireballs (`fireball_cast`, `fireball_fly_loop`, `fireball_detonate`).
-
-### 5.10 Resource Pooling, Caps, and Sound Voice Limits
-
-- **Particle Pooling:** `VisualParticlePool` uses preallocated fixed-capacity array (max 256 active particles per game instance). When capacity is reached, oldest low-priority particles are recycled. Max 32 particles spawned per impact frame.
-- **Sound Voice Limits:** Audio system limits concurrent impact sounds to max 4 voices per frame, prioritizing local player impacts over background NPC hits. Pitch is randomized by $\pm 8\%$ (`1 + (random - 0.5) * 0.16`) to eliminate machine-gun repetition.
-- **Knockback Bounds Safety:** Knockback velocities applied to entities check map boundaries and static colliders using `GridRaycast` / `SpatialCulling`. If an impulse pushes an entity into a wall, velocity is clamped and secondary wall-bounce spark particles spawn.
-
-### 5.11 Global Toggle and Motion Reduction Accessibility
-
-- `Theme` resource and `VFXWorldState` include accessibility flags:
-  ```typescript
-  export interface VFXWorldState {
-    juiceLevel: number;        // 0.0 (off) to 1.0 (full)
-    motionReduction: boolean; // Accessible low-motion mode
-  }
-  ```
-- **When `juiceLevel === 0`:**
-  - All visual squash/stretch, screen shake, flashes, damage numbers, and particles are skipped.
-  - Hit stop duration is forced to 0.
-  - Simulation behavior (knockback impulse and attack phase tick timing) remains 100% unchanged.
-- **When `motionReduction === true`:**
-  - Camera shake intensity scaled to 0.
-  - Screen flashes replaced with subtle outline highlights.
-  - Squash/stretch maximum scale clamped to $\pm 10\%$ max deformation.
-
----
-
-## 6. Phased Implementation Plan
-
-Each phase is sized for a single focused work session with a dedicated git commit.
-
-```
-+-----------------------------------------------------------------------------------+
-|                            PHASED EXECUTION ROADMAP                               |
-+-----------------------------------------------------------------------------------+
-| PHASE 1: Core Combat Juice Engine & Visual Transform (packages/gameplay-kit)     |
-+-----------------------------------------------------------------------------------+
-                                         |
-                                         v
-+-----------------------------------------------------------------------------------+
-| PHASE 2: Shared VFX Utilities, Sound Recipes & Floating Damage Arcs               |
-+-----------------------------------------------------------------------------------+
-                                         |
-                                         v
-+-----------------------------------------------------------------------------------+
-| PHASE 3: Pilot Integration in Hit & Run (Sword Melee & Fireball Weapons)          |
-+-----------------------------------------------------------------------------------+
-                                         |
-                                         v
-+-----------------------------------------------------------------------------------+
-| PHASE 4: Secondary Game Integrations (Platformer, GeometryWars, TowerDefense)     |
-+-----------------------------------------------------------------------------------+
-                                         |
-                                         v
-+-----------------------------------------------------------------------------------+
-| PHASE 5: Accessibility, Motion Reduction & Determinism Test Guardrails            |
-+-----------------------------------------------------------------------------------+
-```
-
----
-
-### Phase 1 — Core Combat Juice Engine & Visual Transform Component
-
-**Session Goal:** Implement the foundational `VisualTransformComponent`, `VisualSquashStretchSystem`, and data-driven `CombatJuicePipeline` in `packages/gameplay-kit`.
-
-- **Target Packages/Files:**
-  - `packages/gameplay-kit/src/combat/components/VisualTransformComponent.ts` (NEW)
-  - `packages/gameplay-kit/src/combat/systems/VisualSquashStretchSystem.ts` (NEW)
-  - `packages/gameplay-kit/src/combat/types/CombatJuiceTypes.ts` (NEW)
-  - `packages/gameplay-kit/src/combat/systems/CombatJuicePipeline.ts` (NEW)
-  - `packages/renderer-canvas/src/CanvasRenderer.ts`
-  - `packages/renderer-skia/src/SkiaRenderer.ts`
-- **Atomic Steps:**
-  1. Create `VisualTransformComponent` definition with `scaleX`, `scaleY`, `rotationOffset`, `offsetX`, `offsetY`.
-  2. Implement `VisualSquashStretchSystem` applying critically damped spring-damper recovery ($k = 300, c = 20$) back to unit scale $(1, 1)$ every tick.
-  3. Update `CanvasRenderer` and `SkiaRenderer` matrix transforms to apply `VisualTransformComponent` offsets without touching `TransformComponent` or `BoxColliderComponent`.
-  4. Implement `CombatJuicePipeline` listening to `combat:attack_phase` and `combat:impact` events.
-- **Acceptance Criteria:**
-  - Unit tests verify that applying visual squash/stretch does not alter `BoxColliderComponent` bounding box or collision detection output.
-  - Dual renderers (Canvas & Skia) render identical visual deformations.
-- **Risks & Mitigations:**
-  - *Risk:* Matrix stack leak in render loops. *Mitigation:* Wrap transform operations in strict `ctx.save()` / `ctx.restore()` or Skia `canvas.save()` / `canvas.restore()` blocks.
-
----
-
-### Phase 2 — Shared VFX Utilities, Sound Recipes & Damage Arcs
-
-**Session Goal:** Expand `@tiny-aster/arcade-sound-kit` with sword/fireball recipes and extend `SharedVFX` with directional particle bursts and parabolic damage text arcs.
-
-- **Target Packages/Files:**
-  - `packages/arcade-sound-kit/src/recipes/combatRecipes.ts` (NEW)
-  - `src/games/shared/rendering/SharedVFX.ts`
-  - `src/games/shared/rendering/VisualParticlePool.ts`
-- **Atomic Steps:**
-  1. Add 6 procedural sound recipes in `arcade-sound-kit`: `sword_sweep`, `sword_clash`, `sword_flesh_hit`, `fireball_cast`, `fireball_fly_loop`, `fireball_detonate`.
-  2. Add `spawnDirectionalBurst()` to `SharedVFX.ts` taking impact origin $(x, y)$, normal vector $(nx, ny)$, spread angle, and speed.
-  3. Add `spawnParabolicDamageText()` to `SharedVFX.ts` animating floating numbers along Bezier arc trajectories.
-  4. Integrate voice limit caps (max 4 concurrent impact sounds per frame) and particle allocation guards.
-- **Acceptance Criteria:**
-  - `pnpm --filter=@tiny-aster/arcade-sound-kit test` passes with recipe validation.
-  - Particle spawns recycle cleanly when cap (256) is reached without garbage collection allocations.
-- **Risks & Mitigations:**
-  - *Risk:* Audio distortion from overlapping noise bursts. *Mitigation:* Apply soft clipping compressor in `arcade-sound-kit` synthesis buffer.
-
----
-
-### Phase 3 — Pilot Integration in Hit & Run (Sword Melee & Fireball Weapons)
-
-**Session Goal:** Integrate the complete unified combat juice pipeline into `hitandrun`, validating both Sword Melee and Fireball/Laser weapons in a real game.
-
-- **Target Files:**
-  - `src/games/hitandrun/melee/HitRunMeleeSystem.ts`
-  - `src/games/hitandrun/weapons/HitRunWeaponSystem.ts`
-  - `src/games/hitandrun/systems/HitRunCombatSystem.ts`
-  - `src/games/hitandrun/systems/registerHitRunFeedback.ts`
-  - `src/games/hitandrun/HitAndRunGame.ts`
-  - `src/games/hitandrun/__tests__/HitRunCombatJuice.test.ts` (NEW)
-- **Atomic Steps:**
-  1. Emit `combat:attack_phase` in `HitRunMeleeSystem.ts` during sword windup, active sweep, and follow-through recovery.
-  2. Emit `combat:attack_phase` in `HitRunWeaponSystem.ts` when firing fireball projectiles and upon projectile detonation.
-  3. Emit `combat:impact` in `HitRunCombatSystem.ts` carrying attacker, target, impact normal vector, and damage.
-  4. Register `CombatJuicePipeline` in `registerHitRunFeedback.ts` and attach profiles for `sword_slash` and `fireball_blast`.
-  5. Run integration tests and measure feel across Canvas2D and Skia visual modes.
-- **Acceptance Criteria:**
-  - Sword slash triggers hero windup lean, arc trail, impact flash, sound, directional spark burst, enemy squash, and 4-tick hit stop.
-  - Fireball triggers cast squash, traveling stretched sphere, detonation explosion burst, camera shake, and knockback impulse.
-  - All existing `hitandrun` unit tests continue passing with zero regressions.
-- **Risks & Mitigations:**
-  - *Risk:* Hit stop interfering with weapon cooldown timers. *Mitigation:* Weapon cooldown systems check `isHitStopActive(world)` and pause cooldown decrement during freeze ticks.
-
----
-
-### Phase 4 — Secondary Game Integrations (Platformer, Geometry Wars, Tower Defense)
-
-**Session Goal:** Roll out the unified combat juice pipeline to `platformer`, `geometrywars`, and `tower-defense`.
-
-- **Target Files:**
-  - `src/games/platformer/systems/PlatformerDamageSystem.ts`
-  - `src/games/geometrywars/systems/`
-  - `src/games/tower-defense/systems/`
-- **Atomic Steps:**
-  1. Attach `VisualTransformComponent` to platformer player on stomp and damage impact.
-  2. Wire `geometrywars` plasma impacts and missile detonations to emit `combat:impact` with directional recoil.
-  3. Wire `tower-defense` turret projectile impacts to trigger enemy flash, impact sound, target squash, and floating damage arcs.
-- **Acceptance Criteria:**
-  - Impact feedback works consistently across all 3 games according to the Game × Effect matrix.
-- **Risks & Mitigations:**
-  - *Risk:* Performance slowdown with dense enemy swarms in Geometry Wars or Tower Defense. *Mitigation:* Enforce strict particle caps (max 8 particles per swarm hit) and priority hit stop overrides.
-
----
-
-### Phase 5 — Accessibility, Motion Reduction & Determinism Test Guardrails
-
-**Session Goal:** Implement motion reduction controls and comprehensive automated regression test suites.
-
-- **Target Files:**
-  - `src/games/shared/rendering/JuiceOrchestrator.ts`
-  - `packages/core/src/theme/Theme.ts`
-  - `packages/core/tests/CombatDeterminismParity.test.ts` (NEW)
-  - `packages/core/tests/HitboxIsolation.test.ts` (NEW)
-- **Atomic Steps:**
-  1. Implement `juiceLevel` and `motionReduction` toggles in `JuiceOrchestrator`.
-  2. Write determinism test: run 100 combat ticks with `juiceLevel = 1.0` and `juiceLevel = 0.0`; verify resulting `World` snapshot hashes are 100% identical.
-  3. Write hitbox isolation test: apply max squash/stretch deformation $(2.0, 0.5)$; verify `BoxColliderComponent` bounds remain un-deformed.
-  4. Write particle pool bound test: spawn 1000 impact events in a single tick; verify memory allocation does not grow beyond preallocated 256 capacity.
-- **Acceptance Criteria:**
-  - All 3 automated test suites pass cleanly.
-  - `pnpm run ci` passes without typecheck or ratchet errors.
-
----
-
-## 7. Required Automated Test Guardrails
-
-1. **Determinism Parity Test (`CombatDeterminismParity.test.ts`):**
-   - *Requirement:* Simulation snapshot hashes after $N$ combat ticks must be binary-identical regardless of whether visual juice is enabled (`juiceLevel = 1.0`) or disabled (`juiceLevel = 0.0`).
-2. **Hitbox Isolation Test (`HitboxIsolation.test.ts`):**
-   - *Requirement:* Mutating `VisualTransformComponent` (scaleX, scaleY, skew, rotationOffset) must not alter spatial culling queries, AABB bounding boxes, or raycast intersections on `BoxColliderComponent`.
-3. **Particle Pool Boundedness Test (`ParticlePoolBoundedness.test.ts`):**
-   - *Requirement:* Spawning continuous combat impacts over 10,000 frames must maintain constant memory footprint with zero heap allocations after initial pool warm-up.
-
----
-
-## 8. Open Questions Requiring User Input
-
-1. **Hit Stop Mechanics in Local Co-op / Multiplayer:**
-   - *Question:* Should hit stop pause physics simulation for ALL entities globally (standard arcade style), or only pause physics for the attacker and target entities (preserving movement for non-involved remote players)?
-   - *Recommendation:* Global freeze for single-player games and local co-op; entity-isolated freeze for Colyseus online multiplayer to prevent remote player stutter.
-2. **Sword Slash Canceling Window:**
-   - *Question:* Should heavy sword melee attacks be cancelable by a dash/roll during the initial anticipation phase (2-3 ticks), or should all melee attacks commit full animation length once button is pressed?
-   - *Recommendation:* Allow dash-canceling during windup for high-skill expression in `hitandrun`.
-3. **Floating Damage Text Visual Style:**
-   - *Question:* Should damage numbers use retro 8-bit bitmap font characters or procedural stroke vectors matching the active game concept pack/theme?
-   - *Recommendation:* Use procedural vector characters derived from the game theme font tokens to maintain theme decoupling parity.
-
----
-
-## 9. Definition of Done
-
-- Unified combat juice engine (`CombatJuicePipeline`) implemented in `packages/gameplay-kit`.
-- Dual Canvas2D and Skia renderers support `VisualTransformComponent` squash & stretch without altering physics colliders.
-- Pilot game `hitandrun` exhibits complete weighted feedback for both sword slashes and fireball projectiles.
-- All automated guardrail tests (Determinism, Hitbox Isolation, Particle Cap) pass with 100% coverage.
-- Full workspace verification (`pnpm run ci`) completes with zero errors.
+## 1. Executive decision
+
+Consolidate the existing Juice/VFX mechanisms before introducing new combat abstractions or migrating more games.
+
+The current codebase has reusable components already in place: \`Juice\`, \`JuiceOrchestrator\`, \`JUICE_CATALOG\`, \`HitStopSystem\`, \`GameplayFreeze\`, shared VFX helpers, and game-specific feedback systems. The immediate problem is not a lack of abstractions. It is that several existing mechanisms overlap, some do not connect to the scheduler that executes them, and game code mixes centralized profiles with direct writes.
+
+**Implementation order:**
+
+1. Establish one authoritative hit-stop/freeze contract and prove it freezes the intended simulation phases.
+2. Audit the screen-shake fallback chain and choose a single effective output path per world.
+3. Strengthen the existing Juice catalog's event typing and diagnostics without creating a parallel API.
+4. Migrate Arkanoid as the first vertical pilot.
+5. Migrate Pong and Space Invaders after auditing their current event semantics.
+6. Fix Hit&Run against the existing audit instead of repeating that audit.
+7. Migrate other games only when actual consumers and specific benefits are confirmed.
+8. Revisit a broader melee/projectile lifecycle pipeline only if the consolidated system proves insufficient.
+
+Do not implement a new \`CombatJuicePipeline\` as the first step. Treat it as a deferred design decision, not an assumed prerequisite.
+
+## 2. Scope and non-goals
+
+### In scope
+
+- Unify the meaning and execution of hit-stop.
+- Inventory hit-stop requests, freeze consumers, and system registrations.
+- Document and rationalize the three fallback paths used by \`Juice.shake\`.
+- Remove duplicated feedback writes where the catalog already provides the same effect.
+- Type event names from the game-specific keys in \`JUICE_CATALOG\`.
+- Prove the behavior with scheduler-level and game-level tests.
+- Retain current game-specific effects where the shared catalog does not represent them yet.
+- Preserve simulation/render separation and explicitly decide how hit-stop behaves under networking, rollback, pause, and reduced-motion settings.
+
+### Out of scope for the initial phases
+
+- A wholesale rewrite of \`Juice\` or \`JuiceOrchestrator\`.
+- A global Juice singleton or a service registry introduced solely to avoid constructing a small stateless orchestrator.
+- Migrating a game just because its ID appears in \`JUICE_CATALOG\`.
+- Replacing all game-specific feedback in one large refactor.
+- Implementing sword/fireball anticipation, full attack phases, or a new attack pipeline before the shared hit-stop and feedback contracts work.
+- Claiming accessibility/determinism parity without testing the effects of simulation freezes.
+
+## 3. Evidence and current-state inventory
+
+Evidence labels in this document:
+
+- **Verified in source:** directly supported by the inspected implementation.
+- **Existing audit:** documented in an existing repository audit; confirm only the affected details before changing code.
+- **Pending validation:** needs an executable test or a wider call-site/registration search before implementation.
+
+### 3.1 Hit-stop has two disconnected mechanisms
+
+**Verified in source:**
+
+- [\`HitStopSystem.ts\`](../src/games/shared/rendering/HitStopSystem.ts) stores an active timer, priority, and cooldown in the VFX world state. \`requestHitStop\` mutates that state, and \`HitStopSystem.update\` decrements its timer.
+- [\`JuiceOrchestrator.ts\`](../src/games/shared/rendering/JuiceOrchestrator.ts) calls \`requestHitStop\` when an effect profile requests \`hitStopMs\`.
+- [\`Schedule.ts\`](../packages/core/src/ecs/Schedule.ts) determines whether gameplay phases are frozen by reading the \`GameplayFreeze\` resource. It does not consult \`isHitStopActive\` or the VFX hit-stop timer.
+- [\`GameplayFreezeMixin.ts\`](../packages/core/src/runtime/GameplayFreezeMixin.ts) exposes the core operations for entering, querying, and exiting a gameplay freeze.
+- [\`SpaceInvadersGameScene.ts\`](../src/games/space-invaders/scenes/SpaceInvadersGameScene.ts) registers \`HitStopSystem\`; registration coverage for all other games must be established before relying on its timer or cooldown behavior.
+- Existing tests in [\`JuiceOrchestrator.test.ts\`](../src/games/shared/rendering/__tests__/JuiceOrchestrator.test.ts) verify the local VFX timer, but that alone does not prove the scheduler freezes gameplay.
+
+**Consequence:** a catalog-driven request can update the VFX timer without freezing the phases controlled by \`Schedule\`. Elsewhere, systems directly write \`GameplayFreeze\`, bypassing the profile's hit-stop arbitration.
+
+### 3.2 Inline and catalog-driven feedback are mixed
+
+- **Arkanoid:** [\`ArkanoidCollisionSystem.ts\`](../src/games/arkanoid/systems/ArkanoidCollisionSystem.ts) writes \`GameplayFreeze\` directly, applies \`Juice.squash\`, creates particle emitters, and emits sound events in its collision/death paths. Its behavior must be mapped onto the correct catalog events before removing inline effects.
+- **Pong:** [\`PongCollisionSystem.ts\`](../src/games/pong/systems/PongCollisionSystem.ts) writes \`GameplayFreeze\` directly and calls \`Juice.shake\` and \`Juice.squash\` for paddle collisions. The catalog already defines \`pong.paddle:hit\` with hit-stop and shake settings, but the consumer path must be wired and tested before duplicate writes are removed.
+- **Space Invaders:** [\`SpaceInvadersCollisionSystem.ts\`](../src/games/space-invaders/systems/SpaceInvadersCollisionSystem.ts) uses direct freeze writes, \`Juice\` helpers, custom explosion logic, and \`JuiceOrchestrator\`. The catalog defines \`alien:destroyed\`, \`shield:degraded\`, and \`ufo:destroyed\` profiles. In the inspected code, \`onBossCombatHit\` calls the \`ufo:destroyed\` profile; verify whether that is semantically correct before migration. Do not treat an event name as proof that the event is being emitted at the correct lifecycle moment.
+
+### 3.3 Hit&Run has a useful audit already
+
+Use [\`docs/audit/2026-10-23-hitandrun-metal-slug-gap-analysis.md\`](audit/2026-10-23-hitandrun-metal-slug-gap-analysis.md) as the starting evidence instead of repeating the full audit.
+
+That audit identifies, among other issues:
+
+- No registered core \`ParticleSystem\` in the Hit&Run presentation registration path.
+- A double-channel screen-shake write: \`HitRunWeaponSystem\` and \`HitRunFeedbackSystem\` can write both \`HitRunScreenShake\` and the core camera \`ScreenShake\` component.
+- Hit-stop guards are not consistently observed by movement and collision paths.
+
+[ \`HitRunFeedbackSystem.ts\`](../src/games/hitandrun/systems/HitRunFeedbackSystem.ts) already calls \`enterGameplayFreeze\` and queries \`getGameplayFreezeRemaining\`. That proves the helper is used in this system; it does **not** prove that every movement, collision, and game-rule system is actually stopped by the scheduler. Add an end-to-end test for the configured Hit&Run schedule.
+
+### 3.4 \`Juice.shake\` has three fallback conventions
+
+**Verified in source:** [\`Juice.ts\`](../packages/core/src/utils/Juice.ts) tries these targets in order:
+
+1. The \`ScreenShake\` singleton.
+2. The \`ScreenShake\` resource.
+3. \`GameState.screenShake\`, used as a compatibility path by some games.
+
+This is a compatibility cascade, not an instruction to write all three targets. The problem is that consumers use different contracts, and the units/consumption rules need to be documented. The first two paths assign the supplied duration directly; the \`GameState.screenShake\` branch converts durations greater than 10 by dividing by 1000. Confirm the intended units for each consumer before normalizing behavior.
+
+### 3.5 Catalog typing and consumer coverage
+
+- \`SupportedGameId\` is already a union, and \`JUICE_CATALOG\` already maps each supported game ID to its profiles.
+- \`triggerEvent(gameId, eventName: string, ...)\` accepts any event string and silently returns if the profile is missing.
+- The catalog includes several games for which the current search did not find \`triggerEvent\` call sites, including Flappy Bird, Frogger, Platformer, and Echo Runner. This is not evidence that those games have no feedback: direct \`Juice\` calls exist in at least some of them. Before migration decisions, verify with a repository-wide search for both \`triggerEvent\` and direct helpers.
+- \`JuiceOrchestrator\` currently stores a world reference and has no significant per-instance state beyond that reference. Do not add a global instance cache solely to avoid constructing it at a call site.
+
+## 4. Architectural decisions and invariants
+
+### 4.1 One authoritative hit-stop duration
+
+The scheduler already uses \`GameplayFreeze\`, so this roadmap selects it as the authoritative source for the **effective freeze duration**.
+
+- \`requestHitStop\` remains the public request entry point for catalog-driven effects.
+- It must arbitrate priority and cooldown, then apply an accepted finite request through the core gameplay-freeze API.
+- \`VFXWorldState.hitStopTimer\` must no longer independently determine whether gameplay is frozen or how much freeze time remains. Remove it after all readers are migrated, or temporarily expose a derived compatibility value that reads the canonical resource.
+- Preserve and test the intended priority policy: a higher-priority request may override an active lower-priority hit-stop; equal/lower requests are ignored while active; the 50 ms anti-chaining cooldown remains explicit unless tests or design review justify changing it.
+- Define behavior when another system has installed an indefinite freeze, when the world is paused, or when a freeze was initiated directly rather than by Juice.
+- Audit every \`HitStopSystem\` registration. Do not rely on an optional system to decrement a second active timer. Its remaining responsibility, if retained, should be limited to policy state such as cooldown; it must not compete with \`Schedule\` for timer ownership.
+- Normalize units at the boundary: catalog fields named \`hitStopMs\` are milliseconds; the core freeze resource uses seconds.
+
+The bridge should not write both timers and hope that they remain synchronized. Tests must verify the actual schedule behavior, not only the state of a timer.
+
+### 4.2 Decide whether hit-stop is simulation-affecting or presentation-only
+
+The current \`GameplayFreeze\` mechanism stops selected scheduler phases. Consequently, scaling that freeze by a local visual preference can change the number of simulation steps completed in a given wall-clock interval.
+
+Before changing \`juiceLevel\` or reduced-motion behavior, explicitly decide:
+
+- For single-player and local play, whether a profile-requested hit-stop is allowed to pause the game simulation.
+- For networked/rollback play, whether a freeze is synchronized authoritative behavior or presentation-only feedback. A client-local visual preference must not silently change authoritative simulation timing.
+- Whether \`juiceLevel\` scales only visual effects or also simulation-affecting hit-stop. Do not claim identical simulation hashes across configurations that deliberately execute different numbers of simulation ticks.
+- Whether reduced-motion settings disable camera movement only, change hit-stop, or both. The resulting contract must be testable and documented.
+
+**Default recommendation:** keep simulation-affecting freezes deterministic and explicit; do not let client-local Juice scaling silently alter authoritative simulation. If hit-stop needs to be purely cosmetic in online multiplayer, implement that policy at the presentation layer rather than freezing a non-authoritative subset of the simulation.
+
+### 4.3 One effective screen-shake path per event
+
+Do not remove compatibility targets blindly.
+
+1. Inventory each producer, the drawer/system that reads its shake data, and the time unit expected by the reader.
+2. Prefer the core camera \`ScreenShake\` component where the game is already using the core camera pipeline.
+3. Keep a legacy fallback only while a verified consumer requires it.
+4. An event should not write both a custom resource and the core component unless both paths are deliberately consumed and the visual result is explicitly tested. Where two channels are redundant, designate one authoritative channel and migrate the consumer before deleting the other.
+5. Normalize duration units at a single boundary; add tests for legacy consumers before changing the conversion behavior.
+
+### 4.4 Preserve the existing API; extend types instead of creating a parallel one
+
+- Keep \`Juice\`, \`JuiceOrchestrator\`, and \`JUICE_CATALOG\` as the existing integration points.
+- Derive event-name types from each catalog entry with a generic API, such as \`keyof typeof JUICE_CATALOG[G]\`, while preserving the declared \`SupportedGameId\` union.
+- Use the catalog as the source of truth for valid game/event combinations; do not maintain a second hand-written event union.
+- Make missing profiles visible during development through a diagnostic or typed failure path. Do not silently conceal invalid literals during normal development. Preserve intentional production behavior for dynamically supplied data where required.
+- Continue to use the existing \`spawn\` implementation, including its juice-level clamping, reduced-stimulation behavior, and command-buffer handling while the world is updating. Audit these behaviors individually; do not rewrite them incidentally as part of event typing.
+- Keep \`Juice.shake\` and \`Juice.squash\` for cases where they represent effects not yet covered by the catalog. Migrate an effect only when there is a semantically equivalent profile and a passing regression test.
+
+## 5. Phased implementation roadmap
+
+Each phase should be a small, reviewable change with a dedicated commit. Do not start a later migration while a prerequisite acceptance criterion is failing.
+
+### Phase 0 — Evidence inventory and behavioral contract
+
+**Goal:** turn the current evidence into a complete call-site and runtime map, with no intended gameplay change.
+
+**Inspect:**
+
+- Every write to \`GameplayFreeze\`, and every use of \`enterGameplayFreeze\`, \`exitGameplayFreeze\`, \`getGameplayFreezeRemaining\`, and \`isGameplayFrozen\`.
+- Every read/write of \`hitStopTimer\`, \`hitStopCooldown\`, \`hitStopPriority\`, and every use of \`requestHitStop\` / \`isHitStopActive\`.
+- Every \`HitStopSystem\` construction and registration, including phase, priority, group, and whether it can update through a freeze.
+- Every \`Juice.shake\`, \`JuiceOrchestrator.triggerEvent\`, direct shake-resource write, and renderer/drawer reading those channels.
+- The current time units for each shake duration and each freeze API.
+- Existing tests for pauses, time scale, rollback/re-simulation, and lifecycle teardown.
+
+**Deliverables:**
+
+- A concise producer → contract → consumer matrix.
+- A list of duplicate writes that may be removed only after a catalog event is wired.
+- An explicit decision for local play, networked play, reduced motion, pause, and indefinite freeze behavior.
+- A test baseline for current expected effects.
+
+**Acceptance criteria:**
+
+- Every active hit-stop mechanism is accounted for.
+- Registration coverage and runtime readers are identified by repository-wide search.
+- Existing behavior that must be preserved is recorded before implementation.
+- No new registry, service locator, or replacement effects API is introduced.
+
+### Phase 1 — Canonical gameplay freeze integration
+
+**Goal:** ensure a catalog hit-stop request stops the phases that the core scheduler is designed to freeze.
+
+**Primary files:**
+
+- \`src/games/shared/rendering/HitStopSystem.ts\`
+- \`src/games/shared/rendering/SharedVFXInternal.ts\`
+- \`src/games/shared/rendering/JuiceOrchestrator.ts\`
+- \`packages/core/src/runtime/GameplayFreezeMixin.ts\` (only if a core contract gap is proven)
+- \`packages/core/src/ecs/Schedule.ts\` (only if the verified freeze semantics require a scheduler change)
+- \`src/games/shared/rendering/__tests__/JuiceOrchestrator.test.ts\`
+- Relevant core scheduler tests.
+
+**Atomic steps:**
+
+1. Implement hit-stop requests through the canonical \`GameplayFreeze\` resource.
+2. Preserve the priority and cooldown policy without a second active duration timer.
+3. Handle an existing indefinite freeze and direct freezes without extending or clearing them accidentally.
+4. Decide and implement correct \`HitStopSystem\` registration/cooldown ownership based on Phase 0 findings.
+5. Remove or derive the legacy \`hitStopTimer\` only after all consumers are migrated.
+6. Keep effect spawning safe during \`world.isUpdating\`; do not bypass the existing command-buffer path.
+7. Define networked and reduced-motion behavior before letting Juice configuration alter freeze duration.
+
+**Required tests:**
+
+- An accepted \`requestHitStop\` makes the scheduler skip the expected Input, Transform, Collision, and GameRules work while the freeze is active.
+- Simulation resumes after the canonical duration expires.
+- Higher-priority override, equal/lower rejection, and cooldown behavior match the documented policy.
+- Existing indefinite pause is not accidentally converted into a timed hit-stop.
+- No timer is decremented twice or left active after the canonical freeze ends.
+- Re-simulation, time scale, and pause behavior remain correct.
+- Tests verify systems actually do or do not run; checking only \`isHitStopActive\` is insufficient.
+
+**Acceptance criterion:** there is one authoritative active freeze duration, and a catalog request has observable, tested scheduler behavior.
+
+### Phase 2 — Screen-shake and \`Juice.shake\` contract audit
+
+**Goal:** document the fallback cascade and prevent duplicate or unit-inconsistent shake behavior.
+
+**Primary files:**
+
+- \`packages/core/src/utils/Juice.ts\`
+- \`src/games/shared/rendering/JuiceOrchestrator.ts\`
+- Core \`ScreenShake\` component/system and relevant renderers
+- \`src/games/hitandrun/systems/HitRunFeedbackSystem.ts\`
+- \`src/games/hitandrun/weapons/HitRunWeaponSystem.ts\`
+- Affected game-specific shake consumers.
+
+**Atomic steps:**
+
+1. Write a table of the singleton, resource, and GameState fallback consumers.
+2. Determine whether the shake duration contract is milliseconds or seconds for each consumer; cover the current conditional conversion with tests.
+3. Identify all renderers/drawers that read \`HitRunScreenShake\`, \`ScreenShake\`, or \`GameState.screenShake\`.
+4. Decide the preferred channel for each game. Where both a custom resource and core camera component are written, document whether both are consumed.
+5. Migrate a single game at a time to the chosen path. Do not delete compatibility fallbacks before the final consumer is migrated.
+6. Keep effect intensity/duration clamping and accessibility behavior unless a test-backed decision explicitly changes it.
+
+**Required tests:**
+
+- A shake request produces the expected camera movement through the configured renderer path.
+- Only the intended channel is active for a migrated event; no double shake is rendered.
+- Duration units produce comparable real-time behavior across all supported fallback paths.
+- Existing consumers that still use a fallback keep working until migrated.
+
+**Acceptance criterion:** each migrated game has one documented, test-proven effective shake channel, and duration semantics are consistent at the API boundary.
+
+### Phase 3 — Type the catalog event contract
+
+**Goal:** detect invalid game/event combinations at compile time and surface unknown dynamic events during development.
+
+**Primary file:** \`src/games/shared/rendering/JuiceOrchestrator.ts\`.
+
+**Atomic steps:**
+
+1. Retain the existing \`SupportedGameId\` union.
+2. Preserve the catalog's per-game literal keys, using an appropriate \`satisfies\`/literal typing pattern if it fits the current TypeScript configuration.
+3. Type \`triggerEvent\` generically so the accepted event name depends on the selected game ID.
+4. Keep the context shape stable unless an actual consumer needs new fields.
+5. Add a development diagnostic for unknown dynamically supplied profiles without introducing a second event registry.
+6. Add type-level checks or compile-time fixtures for valid and invalid combinations.
+
+**Acceptance criteria:**
+
+- Existing valid calls compile unchanged or receive a small mechanical correction.
+- An event from another game's catalog is rejected by TypeScript.
+- An unknown literal cannot silently pass as a valid profile call.
+- Runtime handling of untrusted/dynamic event names remains deliberate and documented.
+- \`spawn\` clamping, reduced-stimulation behavior, and update-time command-buffer semantics are unchanged.
+
+### Phase 4 — Arkanoid vertical pilot
+
+**Goal:** migrate one concrete game path end-to-end, using the canonical freeze and shake contracts without replacing game-specific mechanics unnecessarily.
+
+**Primary file:** \`src/games/arkanoid/systems/ArkanoidCollisionSystem.ts\`, plus the catalog, relevant VFX utilities, and focused tests.
+
+**Atomic steps:**
+
+1. Map non-lethal brick hit and brick destruction as distinct semantic events. Do not emit \`brick:shatter\` for every non-lethal hit.
+2. Wire the existing \`arkanoid.brick:shatter\` profile to the correct destruction path, if its actual behavior matches the existing profile semantics.
+3. If non-lethal brick hits need centralized feedback, introduce a separately named profile only after agreeing on its semantics and adding tests.
+4. Replace direct freeze writes only for events now handled by the canonical profile. Avoid applying hit-stop twice from the same collision.
+5. Retain \`Juice.squash\`, score popups, custom particle emitters, and SFX where the catalog does not yet express equivalent behavior.
+6. Ensure the feedback is emitted once, and that visual/audio work is not duplicated during re-simulation.
+7. Preserve combo logic, explosive AOE, brick score and count updates, and collision rules.
+
+**Acceptance criteria:**
+
+- A non-lethal hit has the intended feedback without incorrectly triggering a shatter profile.
+- Brick destruction produces one hit-stop request, one intended shake path, expected particles and SFX, and correct score/combo behavior.
+- The scheduler actually freezes the expected phases for the configured duration.
+- No duplicate direct/profile hit-stop request remains for the same effect.
+- Existing Arkanoid collision and gameplay tests pass.
+
+**Why Arkanoid first:** its direct hit response and destruction path clearly demonstrate the fragmented implementation, and the catalog already has a brick-shatter profile to evaluate against real behavior.
+
+### Phase 5 — Pong and Space Invaders migration
+
+**Goal:** remove duplicated behavior while preserving each game's unique collision, explosion, and boss rules.
+
+**Primary files:**
+
+- \`src/games/pong/systems/PongCollisionSystem.ts\`
+- \`src/games/space-invaders/systems/SpaceInvadersCollisionSystem.ts\`
+- \`src/games/shared/rendering/JuiceOrchestrator.ts\`
+- Relevant scene registration and tests.
+
+**Pong steps:**
+
+1. Verify that \`paddle:hit\` describes the actual ball-paddle contact effect and call the typed catalog event at that point.
+2. Remove the direct \`GameplayFreeze\` write only after the catalog request is confirmed to drive the canonical freeze.
+3. Keep squash/stretch and paddle recoil as game-specific effects unless the profile explicitly supports them.
+4. Confirm ball velocity, spin, combo, particle direction, and audio are unchanged.
+
+**Space Invaders steps:**
+
+1. Verify the intended semantics and call timing for \`shield:degraded\`, \`alien:destroyed\`, and \`ufo:destroyed\`.
+2. Correct the event mapping if a boss hit currently triggers a destruction profile; do not simply rename a key without tests.
+3. Migrate one event path at a time and remove the direct freeze write only when a single catalog request owns that event's hit-stop.
+4. Preserve boss HP rules, player invulnerability, score/lives, explosions, and existing SFX.
+5. Confirm that \`HitStopSystem\` is registered and that its remaining policy state has a valid lifecycle.
+
+**Acceptance criteria:**
+
+- Each migrated collision event requests hit-stop only once.
+- Catalog-driven freeze works in the actual game scene.
+- The screen shake uses the selected single channel.
+- Existing mechanics and tests remain intact.
+- Boss hit versus boss destruction semantics are explicitly tested.
+
+### Phase 6 — Hit&Run correction using the existing audit
+
+**Goal:** make the existing feedback architecture effective end-to-end rather than re-auditing from scratch.
+
+**Reference:** [\`docs/audit/2026-10-23-hitandrun-metal-slug-gap-analysis.md\`](audit/2026-10-23-hitandrun-metal-slug-gap-analysis.md).
+
+**Primary files:** \`HitRunWeaponSystem.ts\`, \`HitRunFeedbackSystem.ts\`, the actual movement and collision systems, presentation registration, and the corresponding integration tests.
+
+**Atomic steps:**
+
+1. Verify each system's scheduled phase and whether it runs while \`GameplayFreeze\` is active.
+2. Add a test that initiates the normal HitRun feedback path and asserts that movement and collision outcomes stop for the intended interval, then resume.
+3. Consolidate the custom \`HitRunScreenShake\` resource and core camera \`ScreenShake\` component only after identifying all readers. Do not assume that writing both means both are rendered, or that writing one is sufficient for every drawer.
+4. Register \`ParticleSystem\` if required by the actual effect components and validate the configured renderer path.
+5. Reuse existing profiles/events and audit results instead of creating another combat feedback pipeline.
+6. Preserve rollback/re-simulation guards for presentation side effects.
+
+**Acceptance criteria:**
+
+- Hit-stop prevents the intended movement/collision updates in the real Hit&Run schedule.
+- Hit-stop duration expires and simulation resumes.
+- A single effective screen-shake channel is rendered.
+- Impact/explosion particles are visible through the registered presentation system.
+- Existing Hit&Run audit findings are closed with tests or explicitly deferred with a reason.
+
+### Phase 7 — Additional game integrations, evidence-gated
+
+**Goal:** migrate only additional game consumers that gain a verified behavior from the shared contracts.
+
+Candidate games include Asteroids, Geometry Wars, Flappy Bird, Frogger, Platformer, Echo Runner, Tower Defense, and others with relevant catalog profiles. Their inclusion in the catalog is not, by itself, a migration requirement.
+
+**Atomic steps:**
+
+1. Run repository-wide searches for catalog calls and direct \`Juice\`/freeze/shake writes.
+2. For each candidate, identify the actual runtime path, game mode, system registration, event timing, and renderer.
+3. Compare behavior with the current catalog profile.
+4. Create a focused issue/commit only if there is a real consumer or duplication to fix.
+5. Migrate one event family per commit, with regression tests.
+
+**Acceptance criteria:**
+
+- Every migrated event has at least one verified producer.
+- The profile's semantics match that event's actual lifecycle point.
+- No game is migrated solely because its ID exists in \`JUICE_CATALOG\`.
+- No shared abstraction is expanded without a concrete use case.
+
+### Phase 8 — Reassess melee/projectile lifecycle abstraction
+
+**Goal:** revisit the original sword/fireball ambition after the shared primitives work reliably.
+
+The initial proposal included a new \`CombatJuicePipeline\`, an attack-phase model, additional visual-transform components, and integration across Canvas and Skia. Defer the broad implementation until Phases 1–7 reveal whether existing events, the catalog, \`Juice\`, shared VFX, and sound recipes are insufficient.
+
+**Decision gate:**
+
+- List a concrete requirement that the existing architecture cannot represent cleanly.
+- Demonstrate the requirement in one real sword or projectile attack.
+- Compare the minimum extension to the existing catalog/event path against a new pipeline.
+- Only add phase orchestration if it removes proven duplication or enables a required behavior; do not mirror hit-stop, shake, and sound ownership in the new abstraction.
+- Keep gameplay hitboxes and deterministic world transforms independent from visual squash/stretch.
+- Verify Canvas/Skia parity before expanding to more games.
+
+**Acceptance criteria:**
+
+- The decision to add or reject a separate pipeline is documented with code evidence.
+- If added, it builds on existing effect APIs and has no second hit-stop or screen-shake authority.
+- Attack presentation does not mutate collision geometry.
+- The initial implementation covers a single representative attack end-to-end with tests before wider rollout.
+
+## 6. Test guardrails
+
+Use existing test conventions and add the smallest targeted suites needed for each phase. Proposed test names below are suggestions, not assertions that those files already exist.
+
+### Hit-stop and scheduler
+
+- Verify canonical freeze resource creation, duration units, expiration, and resumption.
+- Verify which phases and systems run while frozen.
+- Cover priority override, equal/lower rejection, cooldown, pause, time scale zero, and indefinite freezes.
+- Verify that VFX hit-stop requests do not leave a detached timer active.
+- Verify registration in each scene that uses catalog hit-stop.
+
+### Screen shake
+
+- Cover singleton, resource, and GameState fallback paths independently.
+- Cover milliseconds-versus-seconds semantics and duration expiry.
+- Verify which renderer consumes each channel.
+- Verify a migrated hit renders one intended shake, not duplicated or missing movement.
+
+### Catalog typing and runtime diagnostics
+
+- Compile-time positive cases for valid game/event pairs.
+- Compile-time negative cases for a valid event paired with the wrong game.
+- Runtime test for an unknown dynamic event and its development diagnostic.
+- Preserve existing \`spawn\` behavior under world updates, low-stimulation mode, and Juice level limits.
+
+### Per-game regression tests
+
+- Arkanoid: non-lethal hit versus brick shatter, combo/score, particles, SFX, freeze once.
+- Pong: paddle collision physics, spin, recoil, particle direction, freeze once.
+- Space Invaders: player hit, shield degradation, alien destruction, boss hit/death semantics, score/lives.
+- Hit&Run: scheduler actually stops movement and collision outcomes while frozen; shake and particles use the intended paths.
+
+### Determinism and networking
+
+Do not assert snapshot parity between configurations that intentionally execute different numbers of simulation ticks due to different simulation-affecting hit-stop durations.
+
+Instead:
+
+- Verify visual-only settings do not mutate authoritative simulation state.
+- Verify deterministic hit-stop policies produce the same results when peers receive the same authoritative events and configuration.
+- Verify local accessibility preferences cannot silently alter server-authoritative simulation timing.
+- Compare snapshots after equivalent logical simulation steps, while separately testing the expected wall-clock pause behavior.
+- Keep presentation audio, particles, and shake suppressed or safely handled during re-simulation.
+
+## 7. File and search checklist
+
+Before changing a phase, refresh this inventory against the current branch:
+
+- \`src/games/shared/rendering/HitStopSystem.ts\`
+- \`src/games/shared/rendering/SharedVFXInternal.ts\`
+- \`src/games/shared/rendering/JuiceOrchestrator.ts\`
+- \`src/games/shared/rendering/SharedVFX.ts\`
+- \`packages/core/src/runtime/GameplayFreezeMixin.ts\`
+- \`packages/core/src/ecs/Schedule.ts\`
+- \`packages/core/src/utils/Juice.ts\`
+- \`src/games/arkanoid/systems/ArkanoidCollisionSystem.ts\`
+- \`src/games/pong/systems/PongCollisionSystem.ts\`
+- \`src/games/space-invaders/systems/SpaceInvadersCollisionSystem.ts\`
+- \`src/games/hitandrun/systems/HitRunFeedbackSystem.ts\`
+- \`src/games/hitandrun/weapons/HitRunWeaponSystem.ts\`
+- \`docs/audit/2026-10-23-hitandrun-metal-slug-gap-analysis.md\`
+
+Useful searches from the repository root:
+
+- \`rg -n 'GameplayFreeze|enterGameplayFreeze|exitGameplayFreeze|getGameplayFreezeRemaining|isGameplayFrozen' src packages\`
+- \`rg -n 'hitStopTimer|hitStopCooldown|hitStopPriority|requestHitStop|isHitStopActive|HitStopSystem' src packages\`
+- \`rg -n 'Juice\\.shake|JuiceOrchestrator|triggerEvent\\(|HitRunScreenShake|screenShake|ScreenShake' src packages\`
+- \`rg -n 'new JuiceOrchestrator|\\.spawn\\(|triggerEvent\\(' src/games\`
+
+These searches are investigation steps, not proof that every relevant dynamic path can be found statically. Follow up with targeted tests and registration review.
+
+## 8. Definition of done
+
+The roadmap is complete only when all of the following hold:
+
+- One authoritative active freeze duration drives the scheduler; no disconnected hit-stop timer claims to freeze gameplay.
+- Priority, cooldown, pause, indefinite freeze, time-scale, and network behavior are documented and tested.
+- \`Juice.shake\` fallback and unit semantics are documented; each migrated game renders through one intended channel.
+- The catalog event API prevents invalid game/event pairs at compile time and makes missing dynamic profiles visible during development.
+- Arkanoid is migrated vertically and its non-lethal hit/destruction semantics remain correct.
+- Pong and Space Invaders no longer duplicate hit-stop requests for migrated events, and their lifecycle event mappings are verified.
+- Hit&Run uses the existing audit as baseline; movement/collision freeze, shake, and particle registration are tested end-to-end.
+- Additional games are integrated only with evidence of real consumers and a concrete benefit.
+- Presentation effects remain rollback-safe; the determinism tests account for whether a feature changes simulation timing.
+- Any future attack-phase pipeline is justified by a concrete gap and does not create duplicate ownership of existing effects.
+- Relevant tests pass, and the repository's standard CI command is run before merging.
+
+## 9. Open design decisions
+
+These decisions must be resolved in Phase 0 rather than silently encoded in a new abstraction:
+
+1. **Hit-stop semantics in multiplayer:** presentation-only freeze versus an explicitly synchronized authoritative simulation pause.
+2. **Accessibility:** whether reduced motion changes only visuals or also simulation-affecting hit-stop, and how that choice is synchronized.
+3. **Legacy shake fallbacks:** which games still require singleton/resource/GameState support, and the migration order.
+4. **Missing catalog profiles:** development warning/error policy for dynamic events versus statically typed literals.
+5. **Attack lifecycle:** whether a new pipeline is warranted after the existing catalog and effect helpers are consolidated.
+
+The default implementation principle is **consolidate first, replace only when necessary**. Every phase must leave one clear owner for each effective behavior, a test proving that behavior, and no second API or timer introduced merely to work around the first.

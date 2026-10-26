@@ -80,9 +80,9 @@ export function resolveShmupEnemyDrawContext(
   const enemy = world.getComponent(entity, "ShmupEnemy");
   const size = render.size ?? 32;
   const sumiE = world.getResource<string>("ShmupVisualTheme") === "sumi-e";
-  const storedArchetype = world.getComponent(entity, "ShmupEnemy")?.archetype;
+  const themeArchetype = enemy?.archetype;
   const enemyColor = sumiE
-    ? (storedArchetype === "boss" ? SHMUP_SUMI_E_THEME.palette.threat : SHMUP_SUMI_E_THEME.palette.ink)
+    ? (themeArchetype === "boss" ? SHMUP_SUMI_E_THEME.palette.threat : SHMUP_SUMI_E_THEME.palette.ink)
     : (render.color ?? SHMUP_COLOR_TOKENS.enemy.primary);
   const time = world.tick * 0.016;
   // Visual identity is authored by the factory; path and size never infer a silhouette.

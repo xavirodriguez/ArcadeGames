@@ -48,7 +48,7 @@ const enemyPoolHooks = createProjectilePoolConfig<HitRunBulletParams>({
 
 export class HitRunEnemyBulletPool extends ProjectilePool<any, HitRunBulletParams> {
   constructor(initialSize = 128) {
-    super(enemyPoolHooks);
+    super({ ...enemyPoolHooks, initialSize });
   }
 
   public acquireBullet(world: World<CoreComponentRegistry>, params: HitRunBulletParams): Entity {

@@ -1,7 +1,7 @@
 import { VerticalShmupGame } from "../VerticalShmupGame";
 import { createEnemy } from "../EntityFactory";
 import { selectShmupEnemyArchetype } from "../EnemyArchetypes";
-import { BIOMES, computeShmupParallaxWorld, resolveShmupEnemyDrawContext } from "../rendering/ShmupVisualHelpers";
+import { BIOMES, SHMUP_SUMI_E_THEME, computeShmupParallaxWorld, computeSumiEBackdrop, resolveShmupEnemyDrawContext } from "../rendering/ShmupVisualHelpers";
 
 describe("Vertical Shmup theme contracts", () => {
   let game: VerticalShmupGame;
@@ -14,6 +14,31 @@ describe("Vertical Shmup theme contracts", () => {
 
   afterEach(() => {
     game.destroy();
+  });
+
+
+  it("defines a semantic Sumi-e theme and a deterministic, edge-weighted backdrop", () => {
+    expect(SHMUP_SUMI_E_THEME.id).toBe("sumi-e");
+    expect(SHMUP_SUMI_E_THEME.palette.paper).toBe("#E7DFCB");
+    expect(SHMUP_SUMI_E_THEME.palette.player).toBe("#4DA3FF");
+    expect(SHMUP_SUMI_E_THEME.palette.threatCritical).toBe("#FF3B30");
+    expect(SHMUP_SUMI_E_THEME.layers).toEqual([
+      "paper", "sun", "mist", "mountains", "structures", "foreground"
+    ]);
+
+    game.world.setResource("ShmupVisualTheme", "sumi-e");
+    const first = computeSumiEBackdrop(game.world);
+    const second = computeSumiEBackdrop(game.world);
+    expect(first.ridges).toEqual(second.ridges);
+    expect(first.paperFibers).toEqual(second.paperFibers);
+    expect(first.ridges).toHaveLength(4);
+    expect(first.paperFibers.length).toBeGreaterThan(0);
+    expect(first.palette.ink).toBe("#151515");
+  });
+
+  it("selects Sumi-e by default without changing the gameplay state contract", () => {
+    expect(game.world.getResource<string>("ShmupVisualTheme")).toBe("sumi-e");
+    expect(game.getGameState().lives).toBe(3);
   });
 
   it("keeps enemy silhouette identity independent from its movement path", () => {

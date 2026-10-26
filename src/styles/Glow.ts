@@ -1,5 +1,5 @@
 import { Platform, ViewStyle } from "react-native";
-import { COLORS } from "../theme";
+import { COLORS } from "../theme/colors";
 
 export function createNeonGlow(color: string = COLORS.neonCyan, intensity: number = 1): ViewStyle {
   if (Platform.OS === "web") {

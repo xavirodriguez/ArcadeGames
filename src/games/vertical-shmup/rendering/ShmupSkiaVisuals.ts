@@ -4,6 +4,7 @@ import { Skia, getPaint, type SkCanvas } from "../../shared/rendering/SkiaContex
 import { SHMUP_COLOR_TOKENS } from "./ShmupColorTokens";
 import { SHMUP_SUMI_E_THEME } from "./ShmupVisualHelpers";
 import { drawSumiESkiaBackdrop } from "./SumiESkiaBackdrop";
+import { drawSumiESkiaPlayer } from "./SumiESkiaEntities";
 import {
   computeShmupParallaxWorld,
   resolveShmupPlayerDrawContext,
@@ -16,6 +17,10 @@ export const drawSkiaShmupPlayer: ShapeDrawer<SkCanvas, ShmupComponentRegistry> 
     if (!Skia) return;
     const pCtx = resolveShmupPlayerDrawContext(world, entity);
     if (!pCtx || pCtx.shouldBlink) return;
+    if (world.getResource<string>("ShmupVisualTheme") === "sumi-e") {
+      drawSumiESkiaPlayer.draw(canvas, world, entity);
+      return;
+    }
 
     const { invulnerable, time, size, primaryColor, moveX, isShooting } = pCtx;
     const paint = getPaint();

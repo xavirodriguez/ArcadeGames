@@ -75,15 +75,19 @@ describe("Galaxian Gameplay Systems (Headless Simulation)", () => {
     expect(diverComp.pointsDive).toBeGreaterThan(diverComp.pointsFormation);
   });
 
-  it("should score points and decrease enemies count on hit", async () => {
+  it("should score points and decrease enemies count on hit for non-flagship enemy", async () => {
     const game = new GalaxianGame({ headless: true, seed: 12345 });
     await game.init();
     game.update(0.01);
     const world = game.getWorld();
 
-    const enemies = world.query("GalaxianEnemy", "Transform");
+    const enemies = world.query("GalaxianEnemy", "Transform").filter((e) => {
+      const comp = world.getComponent(e, "GalaxianEnemy") as GalaxianEnemyComponent | undefined;
+      return comp && comp.enemyType === "drone";
+    });
     expect(enemies.length).toBeGreaterThan(0);
 
+    const initialTotalEnemies = world.query("GalaxianEnemy").length;
     const enemyEntity = enemies[0];
     const enemyTrans = world.getComponent(enemyEntity, "Transform")!;
 
@@ -105,8 +109,52 @@ describe("Galaxian Gameplay Systems (Headless Simulation)", () => {
     game.update(0.01);
 
     const state = game.getGameState();
-    expect(state.score).toBeGreaterThan(0);
-    expect(state.enemiesRemaining).toBe(enemies.length - 1);
+    expect(state.score).toBe(30);
+    expect(state.enemiesRemaining).toBe(initialTotalEnemies - 1);
+  });
+
+  it("should require 2 hits to destroy flagship enemy", async () => {
+    const game = new GalaxianGame({ headless: true, seed: 12345 });
+    await game.init();
+    game.update(0.01);
+    const world = game.getWorld();
+
+    const flagshipEntities = world.query("GalaxianEnemy", "Transform").filter((e) => {
+      const comp = world.getComponent(e, "GalaxianEnemy") as GalaxianEnemyComponent | undefined;
+      return comp && comp.enemyType === "flagship";
+    });
+    expect(flagshipEntities.length).toBeGreaterThan(0);
+
+    const initialTotalEnemies = world.query("GalaxianEnemy").length;
+    const flagshipEntity = flagshipEntities[0];
+    const flagshipComp = world.getComponent(flagshipEntity, "GalaxianEnemy") as GalaxianEnemyComponent;
+    expect(flagshipComp.hitsRemaining).toBe(2);
+
+    const flagshipTrans = world.getComponent(flagshipEntity, "Transform")!;
+
+    // Spawn bullet directly using BulletPool to avoid single bullet cooldown / state race
+    game.getBulletPool().acquirePlayerBullet(world, flagshipTrans.x, flagshipTrans.y);
+    world.flush();
+
+    game.update(0.01);
+
+    // Read fresh reference of flagship component from world after update
+    const flagshipCompAfterHit1 = world.getComponent(flagshipEntity, "GalaxianEnemy") as GalaxianEnemyComponent;
+    const stateAfterHit1 = game.getGameState();
+    expect(flagshipCompAfterHit1.hitsRemaining).toBe(1);
+    expect(stateAfterHit1.enemiesRemaining).toBe(initialTotalEnemies);
+    expect(stateAfterHit1.score).toBe(0);
+
+    // Second hit
+    game.getBulletPool().acquirePlayerBullet(world, flagshipTrans.x, flagshipTrans.y);
+    world.flush();
+
+    game.update(0.01);
+
+    // After 2nd hit: flagship destroyed, points assigned (150 in formation), enemiesRemaining decreased
+    const stateAfterHit2 = game.getGameState();
+    expect(stateAfterHit2.score).toBe(150);
+    expect(stateAfterHit2.enemiesRemaining).toBe(initialTotalEnemies - 1);
   });
 
   it("should lose life when player is hit by enemy bullet", async () => {

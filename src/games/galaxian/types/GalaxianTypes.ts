@@ -18,6 +18,7 @@ export interface GalaxianEnemyComponent extends Component {
   shotsFiredInDive: number;
   leaderEntity?: number;
   isEscortLeader?: boolean;
+  hitsRemaining: number;
 }
 
 export interface FormationSlot {

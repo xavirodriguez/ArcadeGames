@@ -119,13 +119,15 @@ export class HitRunCombatSystem extends System<CoreComponentRegistry> {
 
     const eventBus = world.getEventBus() as EventBus;
     if (eventBus) {
-      eventBus.emitDeferred("combat:hit", {
+      const hitPayload = {
         targetEntity: target,
         sourceEntity,
+        attackerEntity: attacker,
         amount: dmgAmount,
         remainingHealth: nextHealth,
         category: damageComp.category ?? "bullet"
-      });
+      };
+      eventBus.emitDeferred("combat:hit", hitPayload);
     }
 
     if (nextHealth <= 0) {

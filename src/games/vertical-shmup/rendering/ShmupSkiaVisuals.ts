@@ -2,6 +2,7 @@ import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
 import type { ShmupComponentRegistry } from "../types/ShmupTypes";
 import { Skia, getPaint, type SkCanvas } from "../../shared/rendering/SkiaContext";
 import { SHMUP_COLOR_TOKENS } from "./ShmupColorTokens";
+import { SHMUP_SUMI_E_THEME } from "./ShmupVisualHelpers";
 import { drawSumiESkiaBackdrop } from "./SumiESkiaBackdrop";
 import {
   computeShmupParallaxWorld,
@@ -275,7 +276,7 @@ export const drawSkiaShmupEnemy: ShapeDrawer<SkCanvas, ShmupComponentRegistry> =
       const plumeWidth = archetype === "boss" ? 0.15 : 0.09;
       const plumeColor = archetype === "armored"
         ? SHMUP_COLOR_TOKENS.warning
-        : (world.getResource<string>("ShmupVisualTheme") === "sumi-e" ? SHMUP_COLOR_TOKENS.bullet.warm : SHMUP_COLOR_TOKENS.enemy.accent);
+        : (world.getResource<string>("ShmupVisualTheme") === "sumi-e" ? SHMUP_SUMI_E_THEME.palette.threat : SHMUP_COLOR_TOKENS.enemy.accent);
 
       for (const side of [-1, 1]) {
         const plume = Skia.Path.Make();
@@ -312,7 +313,7 @@ export const drawSkiaShmupEnemy: ShapeDrawer<SkCanvas, ShmupComponentRegistry> =
       canvas.drawCircle(size * 0.8, -size * 0.2, 3.5, paint);
       canvas.drawCircle(-size * 0.8, -size * 0.2, 3.5, paint);
 
-      paint.setColor(Skia.Color((world.getResource<string>("ShmupVisualTheme") === "sumi-e" ? SHMUP_COLOR_TOKENS.bullet.warm : SHMUP_COLOR_TOKENS.enemy.accent)));
+      paint.setColor(Skia.Color((world.getResource<string>("ShmupVisualTheme") === "sumi-e" ? SHMUP_SUMI_E_THEME.palette.threat : SHMUP_COLOR_TOKENS.enemy.accent)));
       canvas.drawCircle(0, 0, size * 0.28, paint);
 
     } else if (archetype === "interceptor") {
@@ -328,7 +329,7 @@ export const drawSkiaShmupEnemy: ShapeDrawer<SkCanvas, ShmupComponentRegistry> =
       canvas.drawPath(path, paint);
 
       paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(Skia.Color((world.getResource<string>("ShmupVisualTheme") === "sumi-e" ? SHMUP_COLOR_TOKENS.bullet.warm : SHMUP_COLOR_TOKENS.enemy.accent)));
+      paint.setColor(Skia.Color((world.getResource<string>("ShmupVisualTheme") === "sumi-e" ? SHMUP_SUMI_E_THEME.palette.threat : SHMUP_COLOR_TOKENS.enemy.accent)));
       paint.setStrokeWidth(2.0);
       canvas.drawLine(0, size * 0.8, size * 0.55, -size * 0.3, paint);
       canvas.drawLine(0, size * 0.8, -size * 0.55, -size * 0.3, paint);
@@ -352,7 +353,7 @@ export const drawSkiaShmupEnemy: ShapeDrawer<SkCanvas, ShmupComponentRegistry> =
 
     } else if (archetype === "support") {
       paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(Skia.Color((world.getResource<string>("ShmupVisualTheme") === "sumi-e" ? SHMUP_COLOR_TOKENS.bullet.warm : SHMUP_COLOR_TOKENS.enemy.accent)));
+      paint.setColor(Skia.Color((world.getResource<string>("ShmupVisualTheme") === "sumi-e" ? SHMUP_SUMI_E_THEME.palette.threat : SHMUP_COLOR_TOKENS.enemy.accent)));
       paint.setStrokeWidth(2.5);
       canvas.drawCircle(0, 0, size * 0.95, paint);
 
@@ -370,7 +371,7 @@ export const drawSkiaShmupEnemy: ShapeDrawer<SkCanvas, ShmupComponentRegistry> =
       paint.setColor(Skia.Color(enemyColor));
       canvas.drawCircle(0, 0, size * 0.55, paint);
 
-      paint.setColor(Skia.Color((world.getResource<string>("ShmupVisualTheme") === "sumi-e" ? SHMUP_COLOR_TOKENS.bullet.warm : SHMUP_COLOR_TOKENS.enemy.accent)));
+      paint.setColor(Skia.Color((world.getResource<string>("ShmupVisualTheme") === "sumi-e" ? SHMUP_SUMI_E_THEME.palette.threat : SHMUP_COLOR_TOKENS.enemy.accent)));
       canvas.drawCircle(0, 0, size * 0.28, paint);
 
     } else {

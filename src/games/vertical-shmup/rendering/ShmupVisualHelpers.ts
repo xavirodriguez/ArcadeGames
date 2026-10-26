@@ -119,7 +119,69 @@ export function resolveShmupBulletDrawContext(
   return { render, size, color, kind };
 }
 
-export type BiomeKind = "archipelago" | "gardens" | "temples" | "storm";
+
+/** Presentation-only theme contract. It is deliberately independent from ECS gameplay rules. */
+export type ShmupThemeId = "aerial-fantasy" | "sumi-e";
+
+export type ShmupSemanticColor =
+  | "paper" | "ink" | "inkWash" | "mist" | "sun"
+  | "threat" | "threatCritical" | "player" | "reward" | "frame";
+
+export interface ShmupThemeContract {
+  readonly id: ShmupThemeId;
+  readonly version: 1;
+  readonly palette: Readonly<Record<ShmupSemanticColor, string>>;
+  readonly layers: readonly ["paper", "sun", "mist", "mountains", "structures", "foreground"];
+  readonly assets: Readonly<Record<string, { readonly kind: "sprite" | "texture"; readonly path: string; readonly status: "planned" | "available" }>>;
+  readonly procedural: Readonly<{
+    paperGrain: { readonly enabled: boolean; readonly density: number; readonly opacity: number };
+    mountainRidges: { readonly count: number; readonly minOpacity: number; readonly maxOpacity: number };
+    waterfallStrokes: { readonly count: number; readonly opacity: number };
+    foregroundSilhouettes: { readonly edgeBand: number; readonly maxCenterIntrusion: number };
+  }>;
+  readonly effects: Readonly<{
+    playerTrail: "blue-brush";
+    enemyProjectile: "vermilion-petal";
+    impact: "ink-splatter";
+    reward: "gold-ofuda";
+  }>;
+}
+
+export const SHMUP_SUMI_E_THEME: ShmupThemeContract = {
+  id: "sumi-e",
+  version: 1,
+  palette: {
+    paper: "#E7DFCB",
+    ink: "#151515",
+    inkWash: "#5F6466",
+    mist: "#C9D1D2",
+    sun: "#D7473F",
+    threat: "#B3261E",
+    threatCritical: "#FF3B30",
+    player: "#4DA3FF",
+    reward: "#E3A92F",
+    frame: "#B9A272",
+  },
+  layers: ["paper", "sun", "mist", "mountains", "structures", "foreground"],
+  assets: {
+    washiTexture: { kind: "texture", path: "assets/shmup/sumi-e/washi-grain.png", status: "planned" },
+    pagoda: { kind: "sprite", path: "assets/shmup/sumi-e/pagoda.png", status: "planned" },
+  },
+  procedural: {
+    paperGrain: { enabled: true, density: 0.00018, opacity: 0.055 },
+    mountainRidges: { count: 4, minOpacity: 0.12, maxOpacity: 0.32 },
+    waterfallStrokes: { count: 5, opacity: 0.22 },
+    foregroundSilhouettes: { edgeBand: 0.22, maxCenterIntrusion: 0.12 },
+  },
+  effects: {
+    playerTrail: "blue-brush",
+    enemyProjectile: "vermilion-petal",
+    impact: "ink-splatter",
+    reward: "gold-ofuda",
+  },
+};
+
+\nexport type BiomeKind = "archipelago" | "gardens" | "temples" | "storm";
 
 export interface BiomeProfile {
   id: BiomeKind;

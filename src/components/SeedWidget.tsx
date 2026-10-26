@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { StyleSheet, View, TextInput, TouchableOpacity, Text, ViewStyle } from "react-native";
+import { Platform, StyleSheet, View, TextInput, TouchableOpacity, Text, ViewStyle } from "react-native";
 import { useTranslation } from "../hooks/useTranslation";
 import { hapticSelection } from "../utils/haptics";
 import { colors, spacing, typography } from "../theme";
@@ -79,11 +79,15 @@ const styles = StyleSheet.create({
   inputFocused: {
     borderColor: colors.cyan,
     borderWidth: 2,
-    shadowColor: colors.cyan,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 6,
-    elevation: 4,
+    ...(Platform.OS === "web"
+      ? { boxShadow: "0px 0px 6px rgba(0, 240, 255, 0.8)" }
+      : {
+          shadowColor: colors.cyan,
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0.8,
+          shadowRadius: 6,
+          elevation: 4,
+        }),
   },
   button: {
     backgroundColor: colors.borderDark,

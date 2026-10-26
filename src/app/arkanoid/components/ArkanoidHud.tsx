@@ -2,7 +2,7 @@
  * Synthwave Arkanoid — Module A HUD (React Native)
  */
 import React, { useEffect, useRef } from "react";
-import { View, Text, StyleSheet, Animated } from "react-native";
+import { View, Text, StyleSheet, Animated, Platform } from "react-native";
 import { colors } from "../../../theme/colors";
 
 const FONT_LABEL = "Orbitron_400Regular";
@@ -130,6 +130,26 @@ export function ArkanoidHud({
   );
 }
 
+const valueGlow =
+  Platform.OS === "web"
+    ? ({ textShadow: `0 0 8px ${colors.cyan}` } as const)
+    : ({
+        textShadowColor: colors.cyan,
+        textShadowOffset: { width: 0, height: 0 },
+        textShadowRadius: 8,
+      } as const);
+
+const paddleGlow =
+  Platform.OS === "web"
+    ? ({ boxShadow: `0 0 6px ${colors.cyan}` } as const)
+    : ({
+        shadowColor: colors.cyan,
+        shadowOpacity: 0.9,
+        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 0 },
+        elevation: 4,
+      } as const);
+
 const styles = StyleSheet.create({
   hudRow: {
     flexDirection: "row",
@@ -166,9 +186,7 @@ const styles = StyleSheet.create({
     color: colors.cyan,
     fontSize: 18,
     fontWeight: "800",
-    textShadowColor: colors.cyan,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
+    ...valueGlow,
   },
   livesRow: {
     flexDirection: "row",
@@ -180,16 +198,13 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 3,
     backgroundColor: colors.cyan,
-    shadowColor: colors.cyan,
-    shadowOpacity: 0.9,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 4,
+    ...paddleGlow,
   },
   miniPaddleOff: {
     backgroundColor: "#1a3340",
-    shadowOpacity: 0,
-    elevation: 0,
+    ...(Platform.OS === "web"
+      ? { boxShadow: "none" }
+      : { shadowOpacity: 0, elevation: 0 }),
   },
   progressTrack: {
     height: 3,

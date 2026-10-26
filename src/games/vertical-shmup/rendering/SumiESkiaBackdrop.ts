@@ -50,10 +50,13 @@ export const drawSumiESkiaBackdrop: EffectDrawer<SkCanvas, ShmupComponentRegistr
     }
 
     for (const ridge of data.ridges) {
+      paint.setStyle(Skia.PaintStyle.Stroke);
+      paint.setStrokeWidth(ridge.width);
+      paint.setStrokeCap(Skia.StrokeCap.Round);
+      paint.setStrokeJoin(Skia.StrokeJoin.Round);
       paint.setColor(Skia.Color(withAlpha(palette.inkWash, ridge.opacity)));
       const path = Skia.Path.Make();
-      path.moveTo(0, height);
-      path.lineTo(ridge.points[0]!.x, ridge.points[0]!.y);
+      path.moveTo(ridge.points[0]!.x, ridge.points[0]!.y);
       for (let i = 1; i < ridge.points.length; i += 1) {
         const previous = ridge.points[i - 1]!;
         const current = ridge.points[i]!;
@@ -61,9 +64,8 @@ export const drawSumiESkiaBackdrop: EffectDrawer<SkCanvas, ShmupComponentRegistr
       }
       const last = ridge.points[ridge.points.length - 1]!;
       path.lineTo(last.x, last.y);
-      path.lineTo(width, height);
-      path.close();
       canvas.drawPath(path, paint);
+      paint.setStyle(Skia.PaintStyle.Fill);
     }
 
     const edge = width * 0.22;

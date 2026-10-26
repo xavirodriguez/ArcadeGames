@@ -1,4 +1,4 @@
-import { System, World, TouchInputState } from "@tiny-aster/core";
+import { System, World, TouchInputState, IInputSystem } from "@tiny-aster/core";
 import { CentipedeComponentRegistry, CentipedeEventRegistry, CentipedeInput } from "../types/CentipedeTypes";
 import { CentipedeConfig, DEFAULT_CENTIPEDE_CONFIG } from "../types/CentipedeConfigSchema";
 import { CentipedeEntityFactory } from "../EntityFactory";
@@ -7,7 +7,7 @@ export class ShootingSystem extends System<CentipedeComponentRegistry, Centipede
   public update(world: World<CentipedeComponentRegistry, CentipedeEventRegistry>, dt: number): void {
     const config = world.getResource<CentipedeConfig>("GameConfig") || DEFAULT_CENTIPEDE_CONFIG;
     const inputState = world.getResource<CentipedeInput>("InputState");
-    const unifiedInput = world.getResource<{ isDown: (action: string) => boolean }>("UnifiedInput");
+    const inputSys = world.getResource<IInputSystem>("InputSystem");
     const touchState = world.getResource<TouchInputState>("TouchInputState");
 
     const activeDarts = world.query("Dart", "Transform");
@@ -22,8 +22,8 @@ export class ShootingSystem extends System<CentipedeComponentRegistry, Centipede
     const shooters = world.query("Shooter", "Transform");
 
     let isFiring = false;
-    if (unifiedInput) {
-      if (unifiedInput.isDown("p1Fire") || unifiedInput.isDown("fire") || unifiedInput.isDown("p1Launch") || unifiedInput.isDown("launch")) {
+    if (inputSys) {
+      if (inputSys.getAction("p1Fire") || inputSys.getAction("fire") || inputSys.getAction("p1Launch") || inputSys.getAction("launch")) {
         isFiring = true;
       }
     }

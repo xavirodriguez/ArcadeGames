@@ -15,7 +15,7 @@ export class ArkanoidInputSystem extends System<ArkanoidComponentRegistry, Arkan
     let launchInput = false;
 
     // Check InputSystem resource if available
-    const inputSys = world.getResource<any>("InputSystem") || world.getResource<any>("UnifiedInput");
+    const inputSys = world.getResource<any>("InputSystem");
     if (inputSys) {
       if (typeof inputSys.getAction === "function") {
         leftInput = !!inputSys.getAction("p1Left") || !!inputSys.getAction("left");

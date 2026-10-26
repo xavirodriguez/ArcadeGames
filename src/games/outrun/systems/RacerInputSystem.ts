@@ -23,11 +23,7 @@ export class RacerInputSystem extends System<OutrunComponentRegistry, OutrunEven
       world.getResource<{
         getAction?: (a: string) => boolean;
         isActionActive?: (a: string) => boolean;
-      }>("InputSystem") ||
-      world.getResource<{
-        getAction?: (a: string) => boolean;
-        isActionActive?: (a: string) => boolean;
-      }>("UnifiedInput");
+      }>("InputSystem");
 
     if (inputSys) {
       if (typeof inputSys.getAction === "function") {

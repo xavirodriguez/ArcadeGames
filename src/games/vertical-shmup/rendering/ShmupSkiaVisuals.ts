@@ -2,6 +2,7 @@ import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
 import type { ShmupComponentRegistry } from "../types/ShmupTypes";
 import { Skia, getPaint, type SkCanvas } from "../../shared/rendering/SkiaContext";
 import { SHMUP_COLOR_TOKENS } from "./ShmupColorTokens";
+import { drawSumiESkiaBackdrop } from "./SumiESkiaBackdrop";
 import {
   computeShmupParallaxWorld,
   resolveShmupPlayerDrawContext,
@@ -550,6 +551,10 @@ function blendHex(from: string, to: string, amount: number): string {
 export const drawSkiaShmupStarfield: EffectDrawer<SkCanvas, ShmupComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
+    if (world.getResource<string>("ShmupVisualTheme") === "sumi-e") {
+      drawSumiESkiaBackdrop.draw(canvas, world);
+      return;
+    }
     const { width, height, time, biome, clouds, islands, particles } = computeShmupParallaxWorld(world);
     const paint = getPaint();
     canvas.save();

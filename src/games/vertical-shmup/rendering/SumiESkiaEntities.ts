@@ -3,6 +3,69 @@ import type { ShmupComponentRegistry } from "../types/ShmupTypes";
 import { Skia, getPaint, type SkCanvas } from "../../shared/rendering/SkiaContext";
 import { SHMUP_SUMI_E_THEME, resolveShmupPlayerDrawContext } from "./ShmupVisualHelpers";
 
+
+const sumiESkiaImages = new Map<string, unknown>();
+const sumiESkiaPendingImages = new Set<string>();
+
+function tryDrawBundledPlayerSprite(
+  canvas: SkCanvas,
+  world: Parameters<ShapeDrawer<SkCanvas, ShmupComponentRegistry>["draw"]>[1],
+  entity: number,
+  size: number,
+  moveX: number
+): boolean {
+  const sprite = world.getComponent(entity, "Sprite");
+  if (!sprite) return false;
+  const loader = world.getResource<{ get: (key: string) => unknown }>("AssetLoader");
+  const raw = loader?.get(sprite.assetKey ?? "");
+  if (!raw) return false;
+  const asset = raw as { uri?: string; localUri?: string };
+  const uri = asset.localUri || asset.uri;
+  if (!uri || !Skia) return false;
+
+  let image = sumiESkiaImages.get(uri);
+  if (!image && !sumiESkiaPendingImages.has(uri)) {
+    sumiESkiaPendingImages.add(uri);
+    Skia.Data.fromURI(uri)
+      .then((data) => {
+        if (!data) return;
+        const decoded = Skia.Image.MakeImageFromEncoded(data);
+        if (decoded) sumiESkiaImages.set(uri, decoded);
+      })
+      .catch(() => undefined)
+      .finally(() => { sumiESkiaPendingImages.delete(uri); });
+  }
+  if (!image) return false;
+
+  const dimensions = image as { width?: number | (() => number); height?: number | (() => number) };
+  const imageWidth = typeof dimensions.width === "function" ? dimensions.width() : dimensions.width ?? 0;
+  const imageHeight = typeof dimensions.height === "function" ? dimensions.height() : dimensions.height ?? 0;
+  if (imageWidth <= 0 || imageHeight <= 0) return false;
+
+  const paint = getPaint();
+  paint.reset();
+  paint.setAntiAlias(true);
+  paint.setStyle(Skia.PaintStyle.Fill);
+  canvas.save();
+  canvas.rotate(moveX * 0.12 * 180 / Math.PI, 0, 0);
+  canvas.drawImageRect(
+    image as never,
+    Skia.XYWHRect(0, 0, imageWidth, imageHeight),
+    Skia.XYWHRect(-size * 1.1, -size * 1.4, size * 2.2, size * 2.8),
+    paint
+  );
+  paint.setColor(Skia.Color(SHMUP_SUMI_E_THEME.palette.reward));
+  const ofuda = Skia.Path.Make();
+  ofuda.moveTo(0, -size * 0.24);
+  ofuda.lineTo(size * 0.09, -size * 0.08);
+  ofuda.lineTo(0, size * 0.08);
+  ofuda.lineTo(-size * 0.09, -size * 0.08);
+  ofuda.close();
+  canvas.drawPath(ofuda, paint);
+  canvas.restore();
+  return true;
+}
+
 /** Skia counterpart to the Canvas ink-brush shrine glider. */
 export const drawSumiESkiaPlayer: ShapeDrawer<SkCanvas, ShmupComponentRegistry> = {
   draw(canvas, world, entity) {
@@ -11,6 +74,7 @@ export const drawSumiESkiaPlayer: ShapeDrawer<SkCanvas, ShmupComponentRegistry> 
     if (!player || player.shouldBlink) return;
     const { size, time, moveX, invulnerable, isShooting } = player;
     const palette = SHMUP_SUMI_E_THEME.palette;
+    if (tryDrawBundledPlayerSprite(canvas, world, entity, size, moveX)) return;
     const paint = getPaint();
     canvas.save();
 

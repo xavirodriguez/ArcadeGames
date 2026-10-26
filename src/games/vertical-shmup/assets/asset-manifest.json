@@ -193,5 +193,24 @@
       "source": { "kind": "authored", "creator": "OpenAI + repository author", "created_at": "2026-10-26", "license": "MIT", "attribution": "", "prompt_or_source_record": "Sumi-e vertical shmup art direction brief" },
       "verification": { "native_scale_reviewed": false, "in_engine_reviewed": false, "technical_checks_passed": false, "approved_by": "" }
     }
+    ,
+    {
+      "id": "sprite-sumi-e-player-ship",
+      "role": "transparent PNG sprite for the Sumi-e shrine-glider player; procedural draw remains fallback",
+      "path": "assets/shmup/sumi-e/player_ship.png",
+      "status": "production",
+      "technical": {
+        "kind": "sprite",
+        "dimensions": "96x112",
+        "alpha": true,
+        "anchor": "center",
+        "filtering": "linear",
+        "asset_loader_key": "shmup_sumi_e_player",
+        "fallback": "SumiECanvasEntities.ts / SumiESkiaEntities.ts"
+      },
+      "visual_locks": ["blue-player-identity", "ink-silhouette", "gold-ofuda-overlay", "procedural-fallback"],
+      "source": { "kind": "generated", "creator": "OpenAI + repository author", "created_at": "2026-10-26", "license": "MIT", "attribution": "", "prompt_or_source_record": "Generated Sumi-e concept board; player sprite cropped and background-keyed for transparency" },
+      "verification": { "native_scale_reviewed": false, "in_engine_reviewed": false, "technical_checks_passed": false, "approved_by": "" }
+    }
   ]
 }

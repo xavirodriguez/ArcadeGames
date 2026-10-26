@@ -4,6 +4,10 @@ import {
   type BeltMovementConfig,
   BELT_MOVEMENT_CONFIG_RESOURCE
 } from "../belt/BeltMovementTypes";
+import {
+  HIT_RUN_DEBUG_METRICS_RESOURCE,
+  type HitRunDebugMetrics
+} from "./HitRunDebugMetrics";
 
 export const HIT_RUN_DEBUG_OVERLAY_RESOURCE = "HitRunDebugOverlayEnabled";
 
@@ -28,11 +32,20 @@ export const drawHitRunDebugOverlay: EffectDrawer<
       canvasWidth = gameConfig.viewportWidth;
     }
 
-    // 0. Allocations / tick metric counter
-    const allocsCount = world.getResource<number>("HitRunAllocsPerTick") ?? 0;
+    // 0. Per-tick projectile/enemy spawns, selected gameplay events, and ECS structure changes.
+    const metrics = world.getResource<HitRunDebugMetrics>(HIT_RUN_DEBUG_METRICS_RESOURCE);
     ctx.fillStyle = "#00ffcc";
-    ctx.font = "bold 12px monospace";
-    ctx.fillText(`allocs/tick: ${allocsCount}`, 10, 20);
+    ctx.font = "bold 11px monospace";
+    ctx.fillText(
+      `spawns/tick bullets:${metrics?.bulletSpawnsThisTick ?? 0} enemies:${metrics?.enemySpawnsThisTick ?? 0} events:${metrics?.trackedEventsThisTick ?? 0}`,
+      10,
+      20
+    );
+    ctx.fillText(
+      `ecs structure changes/tick: ${metrics?.structureChangesThisTick ?? 0}`,
+      10,
+      34
+    );
 
     // 1. Belt depth limits
     ctx.lineWidth = 1.5;

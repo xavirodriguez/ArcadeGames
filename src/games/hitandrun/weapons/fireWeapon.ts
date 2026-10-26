@@ -1,6 +1,7 @@
 import { World, CoreComponentRegistry } from "@tiny-aster/core";
 import type { HitRunWeaponDefinition, HitRunBulletParams } from "./HitRunWeaponTypes";
 import type { HitRunBulletPool } from "./HitRunBulletPool";
+import { recordHitRunDebugAllocation } from "../rendering/HitRunDebugMetrics";
 
 export interface FireWeaponArgs {
   world: World<CoreComponentRegistry>;
@@ -100,6 +101,7 @@ export function fireWeapon(args: FireWeaponArgs): number {
     }
 
     pool.acquireBullet(world, params);
+    recordHitRunDebugAllocation(world, "bullet");
     spawned++;
   }
 

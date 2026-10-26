@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { Platform, View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { MutatorRegistry } from "../utils/MutatorRegistry";
 import { colors } from "../theme/colors";
 
@@ -90,10 +90,14 @@ const styles = StyleSheet.create({
     padding: 16,
     width: 170,
     alignItems: "center",
-    shadowColor: colors.cyan,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    ...(Platform.OS === "web"
+      ? { boxShadow: "0px 2px 4px rgba(0, 240, 255, 0.3)" }
+      : {
+          shadowColor: colors.cyan,
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.3,
+          shadowRadius: 4,
+        }),
   },
   rarity: {
     fontSize: 10,

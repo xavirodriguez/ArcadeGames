@@ -29,12 +29,30 @@ test.describe("Game Launch Test Suite", () => {
     });
   });
 
-  test("Main menu loads correctly", async ({ page }) => {
-    await page.goto("/");
-    await page.waitForLoadState("networkidle");
-    // Verify main menu title or buttons exist
-    const content = await page.textContent("body");
-    expect(content).toBeTruthy();
+  test("Main menu loads correctly", async ({ page }, testInfo) => {
+    const pageErrors: Error[] = [];
+    page.on("pageerror", (err) => pageErrors.push(err));
+
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+
+    // Wait for something characteristic of the main menu
+    const titleOrButton = page
+      .locator("text=/Arcade|Story Campaign|Campaña|Asteroids|Play/i")
+      .first();
+
+    await expect(titleOrButton).toBeVisible({ timeout: 15000 });
+
+    // Ensure no unhandled JavaScript errors
+    expect(
+      pageErrors,
+      `Unhandled errors on main menu: ${pageErrors.map((e) => e.message).join(", ")}`
+    ).toHaveLength(0);
+
+    // Capture screenshot for artifacts
+    await page.screenshot({
+      path: testInfo.outputPath("main_menu.png"),
+      fullPage: true,
+    });
   });
 
   for (const game of GAME_ROUTES) {
@@ -76,12 +94,11 @@ test.describe("Game Launch Test Suite", () => {
     const pageErrors: Error[] = [];
     page.on("pageerror", (err) => pageErrors.push(err));
 
-    await page.goto("/");
-    await page.waitForLoadState("networkidle");
+    await page.goto("/", { waitUntil: "domcontentloaded" });
 
     // Click the Campaign button (Story Campaign or Campaña Historia depending on locale)
-    const campaignBtn = page.locator('text=/Story Campaign|Campaña Historia/i').first();
-    await expect(campaignBtn).toBeVisible();
+    const campaignBtn = page.locator("text=/Story Campaign|Campaña Historia/i").first();
+    await expect(campaignBtn).toBeVisible({ timeout: 15000 });
     await campaignBtn.click();
 
     await page.waitForTimeout(2000);

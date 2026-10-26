@@ -26,7 +26,6 @@ export class VerticalShmupGame extends BaseGame<ShmupGameStateComponent, ShmupIn
       async loadImage(path: string): Promise<unknown> {
         if (path !== "shmup_sumi_e_player") return undefined;
         const { Asset } = require("expo-asset") as typeof import("expo-asset");
-        const { Asset } = require("expo-asset") as typeof import("expo-asset");
         const asset = Asset.fromModule(require("../../../assets/shmup/sumi-e/player_ship.png"));
         await asset.downloadAsync();
         return { uri: asset.localUri ?? asset.uri };

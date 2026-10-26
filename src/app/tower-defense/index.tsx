@@ -417,19 +417,26 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     borderColor: colors.border,
-    shadowColor: colors.cyan,
-    shadowOpacity: 0.22,
-    shadowRadius: 12,
-    elevation: 8,
+    ...(Platform.OS === "web"
+      ? { boxShadow: "0px 0px 12px rgba(0, 240, 255, 0.22)" }
+      : {
+          shadowColor: colors.cyan,
+          shadowOpacity: 0.22,
+          shadowRadius: 12,
+          elevation: 8,
+        }),
   },
   hudBoardCritical: {
     borderColor: "#ff5252",
-    shadowColor: "#ff5252",
-    shadowOpacity: 0.36,
+    ...(Platform.OS === "web"
+      ? { boxShadow: "0px 0px 12px rgba(255, 82, 82, 0.36)" }
+      : { shadowColor: "#ff5252", shadowOpacity: 0.36 }),
   },
   hudBoardVictory: {
     borderColor: "#62f6bd",
-    shadowColor: "#62f6bd",
+    ...(Platform.OS === "web"
+      ? { boxShadow: "0px 0px 12px rgba(98, 246, 189, 0.22)" }
+      : { shadowColor: "#62f6bd" }),
   },
   hudTextGold: {
     color: colors.gold,

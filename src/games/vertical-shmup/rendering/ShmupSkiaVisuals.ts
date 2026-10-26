@@ -5,6 +5,7 @@ import { SHMUP_COLOR_TOKENS } from "./ShmupColorTokens";
 import { SHMUP_SUMI_E_THEME } from "./ShmupVisualHelpers";
 import { drawSumiESkiaBackdrop } from "./SumiESkiaBackdrop";
 import { drawSumiESkiaPlayer } from "./SumiESkiaEntities";
+import { drawSumiESkiaEnemy } from "./SumiESkiaEnemy";
 import {
   computeShmupParallaxWorld,
   resolveShmupPlayerDrawContext,
@@ -217,6 +218,10 @@ export const drawSkiaShmupEnemy: ShapeDrawer<SkCanvas, ShmupComponentRegistry> =
     if (!Skia) return;
     const eCtx = resolveShmupEnemyDrawContext(world, entity);
     if (!eCtx) return;
+    if (world.getResource<string>("ShmupVisualTheme") === "sumi-e") {
+      drawSumiESkiaEnemy.draw(canvas, world, entity);
+      return;
+    }
 
     const { size, enemyColor, time, archetype, isTelegraphing } = eCtx;
     const paint = getPaint();

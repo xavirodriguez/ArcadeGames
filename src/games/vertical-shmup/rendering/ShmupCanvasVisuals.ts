@@ -5,6 +5,7 @@ import { SHMUP_SUMI_E_THEME } from "./ShmupVisualHelpers";
 import { drawSumiECanvasBackdrop } from "./SumiECanvasBackdrop";
 import { drawSumiECanvasPlayer } from "./SumiECanvasEntities";
 import { drawSumiECanvasEnemy } from "./SumiECanvasEnemy";
+import { drawSumiECanvasEnemyBullet, drawSumiECanvasPlayerBullet } from "./SumiECanvasProjectiles";
 import {
   computeShmupParallaxWorld,
   resolveShmupPlayerDrawContext,
@@ -512,6 +513,10 @@ export const drawShmupEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupComponen
 
 export const drawShmupPlayerBullet: ShapeDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
   draw(ctx, world, entity) {
+    if (world.getResource<string>("ShmupVisualTheme") === "sumi-e") {
+      drawSumiECanvasPlayerBullet.draw(ctx, world, entity);
+      return;
+    }
     const bCtx = resolveShmupBulletDrawContext(world, entity, 6, SHMUP_COLOR_TOKENS.player.primary);
     if (!bCtx) return;
     const { size, color } = bCtx;
@@ -556,6 +561,10 @@ export const drawShmupPlayerBullet: ShapeDrawer<CanvasRenderingContext2D, ShmupC
 
 export const drawShmupEnemyBullet: ShapeDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
   draw(ctx, world, entity) {
+    if (world.getResource<string>("ShmupVisualTheme") === "sumi-e") {
+      drawSumiECanvasEnemyBullet.draw(ctx, world, entity);
+      return;
+    }
     const bCtx = resolveShmupBulletDrawContext(world, entity, 6, SHMUP_COLOR_TOKENS.bullet.warm);
     if (!bCtx) return;
     const { size, color, kind } = bCtx;

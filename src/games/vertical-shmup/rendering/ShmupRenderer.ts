@@ -3,17 +3,19 @@ import { ShmupComponentRegistry } from "../types/ShmupTypes";
 import {
   drawShmupPlayer,
   drawShmupEnemy,
-  drawShmupPlayerBullet,
-  drawShmupEnemyBullet,
   drawShmupStarfield
 } from "./ShmupCanvasVisuals";
 import {
   drawSkiaShmupPlayer,
   drawSkiaShmupEnemy,
-  drawSkiaShmupPlayerBullet,
-  drawSkiaShmupEnemyBullet,
   drawSkiaShmupStarfield
 } from "./ShmupSkiaVisuals";
+import {
+  drawThemeCanvasPlayerBullet,
+  drawThemeCanvasEnemyBullet,
+  drawThemeSkiaPlayerBullet,
+  drawThemeSkiaEnemyBullet
+} from "./ShmupProjectileThemeRouting";
 
 export function initializeShmupRenderer(renderer: Renderer<ShmupComponentRegistry, unknown>): void {
   RendererUtils.registerAssets(renderer, {

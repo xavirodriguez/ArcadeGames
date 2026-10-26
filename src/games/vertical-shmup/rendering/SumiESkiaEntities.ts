@@ -27,9 +27,9 @@ function tryDrawBundledPlayerSprite(
   if (!image && !sumiESkiaPendingImages.has(uri)) {
     sumiESkiaPendingImages.add(uri);
     Skia.Data.fromURI(uri)
-      .then((data) => {
+      .then((data: unknown) => {
         if (!data) return;
-        const decoded = Skia.Image.MakeImageFromEncoded(data);
+        const decoded = Skia.Image.MakeImageFromEncoded(data as never);
         if (decoded) sumiESkiaImages.set(uri, decoded);
       })
       .catch(() => undefined)

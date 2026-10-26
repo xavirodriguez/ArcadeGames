@@ -34,6 +34,13 @@ describe("Vertical Shmup theme contracts", () => {
     expect(first.ridges).toHaveLength(4);
     expect(first.paperFibers.length).toBeGreaterThan(0);
     expect(first.palette.ink).toBe("#151515");
+    expect(SHMUP_SUMI_E_THEME.effects).toEqual({
+      playerTrail: "blue-brush",
+      enemyProjectile: "vermilion-petal",
+      impact: "ink-splatter",
+      reward: "gold-ofuda"
+    });
+    expect(SHMUP_SUMI_E_THEME.palette.threat).not.toBe(SHMUP_SUMI_E_THEME.palette.sun);
   });
 
   it("selects Sumi-e by default without changing the gameplay state contract", () => {

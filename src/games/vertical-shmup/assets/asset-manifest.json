@@ -141,5 +141,22 @@
       "source": { "kind": "authored", "creator": "OpenAI + repository author", "created_at": "2026-10-26", "license": "MIT", "attribution": "", "prompt_or_source_record": "Sumi-e vertical shmup art direction brief" },
       "verification": { "native_scale_reviewed": false, "in_engine_reviewed": false, "technical_checks_passed": false, "approved_by": "" }
     }
+    ,
+    {
+      "id": "proc-sumi-e-player",
+      "role": "ink-brush shrine glider with blue trail and gold ofuda; presentation-only silhouette variant",
+      "path": "src/games/vertical-shmup/rendering/SumiECanvasEntities.ts",
+      "status": "production",
+      "technical": {
+        "kind": "code-procedural",
+        "skia_peer_file": "src/games/vertical-shmup/rendering/SumiESkiaEntities.ts",
+        "display_size_px": "derived from existing Render.size",
+        "hitbox": "unchanged; remains defined by ECS Collider",
+        "determinism": "world tick and input axes only"
+      },
+      "visual_locks": ["ink-silhouette", "blue-player-identity", "gold-ofuda", "no-neon-glow", "canvas-skia-parity"],
+      "source": { "kind": "authored", "creator": "OpenAI + repository author", "created_at": "2026-10-26", "license": "MIT", "attribution": "", "prompt_or_source_record": "Sumi-e vertical shmup art direction brief" },
+      "verification": { "native_scale_reviewed": false, "in_engine_reviewed": false, "technical_checks_passed": false, "approved_by": "" }
+    }
   ]
 }

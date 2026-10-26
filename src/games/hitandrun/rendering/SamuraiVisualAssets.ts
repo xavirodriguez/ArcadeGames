@@ -2,6 +2,13 @@ import type { Asset } from "expo-asset";
 import type { AnimationDefinition, IAssetProvider } from "@tiny-aster/core";
 
 /** Shared AssetLoader key consumed by Canvas and Skia sprite drawers. */
+/**
+ * Runtime decision (2026-10-26 sprite audit):
+ * `assets/sprites/samurai1.png` is alternate concept art and does NOT replace
+ * this pipeline. Hit&Run keeps `samurai-enemy.png` + atlas JSON / AnimationSystem
+ * frame mapping. Promote samurai1 only after measuring cells and migrating
+ * SAMURAI_ANIMATIONS; until then both assets coexist (samurai1 unused at runtime).
+ */
 export const SAMURAI_ASSET_KEY = "hitrun_samurai_enemy";
 export const SAMURAI_SPRITE_READY_RESOURCE = "HitRunSamuraiSpriteReady";
 export const SAMURAI_CELL_SIZE = 64;

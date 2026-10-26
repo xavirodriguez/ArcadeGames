@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, StyleSheet, TextInputProps } from "react-native";
+import { Platform, View, Text, TextInput, StyleSheet, TextInputProps } from "react-native";
 import { colors, typography, spacing, radius } from "@/theme";
 import { useTranslation } from "@/hooks/useTranslation";
 
@@ -90,10 +90,14 @@ const styles = StyleSheet.create({
   inputFocused: {
     borderColor: colors.cyan,
     borderWidth: 2,
-    shadowColor: colors.cyan,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.9,
-    shadowRadius: 8,
-    elevation: 6,
+    ...(Platform.OS === "web"
+      ? { boxShadow: "0px 0px 8px rgba(0, 240, 255, 0.9)" }
+      : {
+          shadowColor: colors.cyan,
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0.9,
+          shadowRadius: 8,
+          elevation: 6,
+        }),
   },
 });

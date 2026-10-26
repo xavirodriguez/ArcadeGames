@@ -60,7 +60,6 @@ export function ScorePulse({ score, fontSize = 32 }: ScorePulseProps) {
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scoreScale.value }],
-    textShadowRadius: scoreGlowRadius.value,
   }));
 
   return (

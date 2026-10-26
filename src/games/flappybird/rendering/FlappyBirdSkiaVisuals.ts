@@ -109,7 +109,7 @@ function getShardPolyPath(): SkPath | null {
   return shardPolyPath;
 }
 
-function drawSkiaGlideEnergyBar(
+export function drawSkiaGlideEnergyBar(
   skCanvas: SkCanvas,
   paint: SkPaint,
   world: World<FlappyBirdComponentRegistry>,

@@ -3,14 +3,16 @@ import { FlappyBirdComponentRegistry } from "../../types/FlappyBirdTypes";
 import {
   FLAPPY_PARTICLE_POOL,
   updateVisualParticles,
-  resolveFlappyParticleData
 } from "../../rendering/FlappyBirdParticles";
 import {
   resolveFlappyBirdDrawContext,
   resolveFlappyPipeDrawContext,
-  resolveGlideEnergyState,
   resolveFlappyBackgroundSetup
 } from "../../rendering/FlappyBirdRenderUtils";
+import {
+  drawCanvasGlideEnergyBar,
+  drawCanvasVisualParticles
+} from "../../rendering/FlappyBirdCanvasVisuals";
 import { colors } from "../../../../theme/colors";
 import { hexToRgba } from "../../../shared/rendering/CosmicPalette";
 
@@ -35,77 +37,6 @@ function getCachedCanvasGradient(
     canvasGradientCache.set(key, grad);
   }
   return grad;
-}
-
-function drawCanvasGlideEnergyBar(
-  ctx: CanvasRenderingContext2D,
-  world: World<FlappyBirdComponentRegistry>,
-  width: number,
-  height: number
-): void {
-  const glideState = resolveGlideEnergyState(world, width, height);
-  if (!glideState) return;
-
-  const { ratio, isOverheated, barW, barH, bx, by, fillColor } = glideState;
-  ctx.save();
-  ctx.fillStyle = hexToRgba(colors.surface, 0.75);
-  ctx.fillRect(bx, by, barW, barH);
-
-  ctx.fillStyle = fillColor;
-  ctx.fillRect(bx, by, barW * ratio, barH);
-
-  ctx.strokeStyle = isOverheated ? colors.red : colors.slate;
-  ctx.lineWidth = 1.0;
-  ctx.strokeRect(bx, by, barW, barH);
-  ctx.restore();
-}
-
-function drawCanvasVisualParticles(ctx: CanvasRenderingContext2D): void {
-  const particles = FLAPPY_PARTICLE_POOL.getActiveParticles();
-  for (let i = 0; i < particles.length; i++) {
-    const data = resolveFlappyParticleData(particles[i]);
-    if (!data) continue;
-
-    const { type, x, y, size, color, angle, ratio } = data;
-
-    ctx.save();
-    ctx.translate(x, y);
-    if (angle !== undefined && angle !== 0) {
-      ctx.rotate(angle);
-    }
-    ctx.globalAlpha = ratio;
-
-    if (type === "spark") {
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      const sz = size;
-      ctx.moveTo(sz * 0.8, 0);
-      ctx.lineTo(0, -sz * 0.2);
-      ctx.lineTo(-sz * 0.8, 0);
-      ctx.lineTo(0, sz * 0.2);
-      ctx.closePath();
-      ctx.fill();
-    } else if (type === "shard") {
-      ctx.fillStyle = colors.slate;
-      const sz = size;
-      ctx.beginPath();
-      ctx.moveTo(sz * 0.4, -sz * 0.3);
-      ctx.lineTo(sz * 0.1, sz * 0.4);
-      ctx.lineTo(-sz * 0.4, sz * 0.1);
-      ctx.lineTo(-sz * 0.2, -sz * 0.3);
-      ctx.closePath();
-      ctx.fill();
-
-      ctx.strokeStyle = colors.red;
-      ctx.lineWidth = 0.6;
-      ctx.stroke();
-    } else if (type === "star") {
-      ctx.fillStyle = color;
-      ctx.fillRect(-size / 2, -size / 2, size, size);
-    }
-
-    ctx.restore();
-  }
 }
 
 function drawPaperAirplaneDetails(ctx: CanvasRenderingContext2D, size: number, theme?: Theme) {

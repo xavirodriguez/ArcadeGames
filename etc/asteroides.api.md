@@ -441,7 +441,6 @@ export abstract class BaseGame<TState = unknown, TInput extends object = Record<
     get debugManager(): DebugManager;
     // (undocumented)
     protected readonly deploymentId?: string;
-    // (undocumented)
     destroy(): void;
     enterGameplayFreeze(duration?: number): void;
     // (undocumented)
@@ -472,11 +471,9 @@ export abstract class BaseGame<TState = unknown, TInput extends object = Record<
     init(): Promise<void>;
     abstract isGameOver(): boolean;
     isGameplayFrozen(): boolean;
-    // (undocumented)
     readonly isHeadless: boolean;
     isPausedState(): boolean;
     readonly kernel: ArcadeKernel;
-    // (undocumented)
     protected loop: GameLoop;
     protected onApplyInputFrame(input: CompactInputFrame): void;
     protected onBeforeRestart(): Promise<void>;
@@ -2148,16 +2145,13 @@ export class EventBus<TEvents extends EventRegistry = EventRegistry> {
     constructor(config?: {
         maxRecursion?: number;
     });
-    // (undocumented)
     clear(pattern?: string): void;
     currentEventChain: string[];
     emit<K extends keyof CombinedEvents<TEvents> & string>(event: K, payload: CombinedEvents<TEvents>[K]): void;
     emitDeferred<K extends keyof CombinedEvents<TEvents> & string>(event: K, payload: CombinedEvents<TEvents>[K]): void;
     flushDeferred(): void;
-    // (undocumented)
     off<K extends keyof CombinedEvents<TEvents> & string>(event: K, handler: EventHandler<CombinedEvents<TEvents>[K]>): void;
     on<K extends keyof CombinedEvents<TEvents> & string>(event: K, handler: EventHandler<CombinedEvents<TEvents>[K]>): () => void;
-    // (undocumented)
     once<K extends keyof CombinedEvents<TEvents> & string>(event: K, handler: EventHandler<CombinedEvents<TEvents>[K]>): () => void;
 }
 
@@ -4313,13 +4307,10 @@ export interface QualitativeRelationshipStatus {
 export class Query<_TComponents extends ComponentRegistry> {
     // @internal
     constructor(componentTypes: string[]);
-    // (undocumented)
     add(entity: Entity): void;
     getEntities(): ReadonlyArray<Entity>;
     matches(componentSet: Set<string>): boolean;
-    // (undocumented)
     rebuild(activeEntities: Set<Entity>, entityComponentSets: Map<Entity, Set<string>>): void;
-    // (undocumented)
     remove(entity: Entity): void;
 }
 
@@ -4494,11 +4485,8 @@ export type RenderCommand = {
 
 // @public
 export interface RenderCommandBuffer {
-    // (undocumented)
     clear(): void;
-    // (undocumented)
     getCommands(): ReadonlyArray<RenderCommand>;
-    // (undocumented)
     push(command: RenderCommand): void;
 }
 

@@ -10,7 +10,7 @@ export default defineConfig({
     viewport: { width: 1280, height: 720 },
   },
   webServer: {
-    command: "npx expo start --web --port 8081",
+    command: "EXPO_PUBLIC_E2E_HOOKS=true npx expo start --web --port 8081",
     url: "http://localhost:8081",
     reuseExistingServer: true,
     timeout: 120000,

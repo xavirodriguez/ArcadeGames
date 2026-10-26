@@ -102,16 +102,16 @@ export interface RenderCommandBuffer {
    * Appends a drawing command for later execution by a renderer.
    *
    * @param command - Typed draw operation and its associated payload.
-   */ 
+   */
   push(command: RenderCommand): void;
   /**
    * Removes all buffered drawing commands without changing the buffer instance.
-   */ 
+   */
   clear(): void;
   /**
    * Returns the commands currently buffered, in submission order.
    *
    * @returns A read-only view of the buffered drawing commands.
-   */ 
+   */
   getCommands(): ReadonlyArray<RenderCommand>;
 }

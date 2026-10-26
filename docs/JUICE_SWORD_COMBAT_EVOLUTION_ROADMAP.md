@@ -175,7 +175,7 @@ To guarantee deterministic simulation and multiplayer synchronization (Colyseus 
   - `LIGHT_HIT` (Weak projectile / light slash): 2 ticks (33ms), priority `LOW`.
   - `MEDIUM_HIT` (Heavy sword slash / fireball direct hit): 4 ticks (66ms), priority `NORMAL`.
   - `CRITICAL_HIT` (Kill blow / boss impact / hero damage): 8 ticks (133ms), priority `CRITICAL`.
-- **Freeze Mechanism:** `HitStopSystem` decrements `HitStopRemaining`. While `HitStopRemaining > 0`, positional physics updates (`MovementSystem`, `PhysicsSystem`) skip entity translation for affected entities, while `VisualParticlePool` and rendering loops continue drawing ambient animation and CRT scanlines.
+- **Freeze Mechanism:** Hit-stop uses the engine's canonical `GameplayFreeze` resource through `enterGameplayFreeze`. While the freeze is active, `Schedule` skips simulation, transform, collision, and game-rule phases; systems explicitly marked to run while frozen may continue presentation-side work. Hit-stop must not keep a parallel `HitStopRemaining` resource.
 
 ### 5.7 Decoupled Event-Driven Architecture
 

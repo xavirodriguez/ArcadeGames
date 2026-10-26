@@ -42,6 +42,7 @@ export class FlappyBirdPipeMovementSystem extends System<FlappyBirdComponentRegi
               const bottomHeight = screenHeight - bottomY;
               t.y = bottomY + bottomHeight / 2;
             }
+            t.dirty = true;
           });
 
           world.mutateComponent(entity, "Collider", (col) => {

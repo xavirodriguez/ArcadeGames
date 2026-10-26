@@ -55,6 +55,7 @@ export class CreepMovementSystem extends System<TowerDefenseComponentRegistry, T
         world.mutateComponent(entity, "Transform", (t) => {
           t.x = target.x;
           t.y = target.y;
+          t.dirty = true;
         });
         const nextWaypoint = creep.waypointIndex + 1;
         world.mutateComponent(entity, "Creep", (c) => {
@@ -74,6 +75,7 @@ export class CreepMovementSystem extends System<TowerDefenseComponentRegistry, T
       world.mutateComponent(entity, "Transform", (t) => {
         t.x += nx * step;
         t.y += ny * step;
+        t.dirty = true;
       });
 
       const remainingDist = dist - step;

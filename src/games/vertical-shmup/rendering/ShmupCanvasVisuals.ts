@@ -3,6 +3,7 @@ import type { ShmupComponentRegistry } from "../types/ShmupTypes";
 import { SHMUP_COLOR_TOKENS } from "./ShmupColorTokens";
 import { SHMUP_SUMI_E_THEME } from "./ShmupVisualHelpers";
 import { drawSumiECanvasBackdrop } from "./SumiECanvasBackdrop";
+import { drawSumiECanvasPlayer } from "./SumiECanvasEntities";
 import {
   computeShmupParallaxWorld,
   resolveShmupPlayerDrawContext,
@@ -14,6 +15,10 @@ export const drawShmupPlayer: ShapeDrawer<CanvasRenderingContext2D, ShmupCompone
   draw(ctx, world, entity) {
     const pCtx = resolveShmupPlayerDrawContext(world, entity);
     if (!pCtx || pCtx.shouldBlink) return;
+    if (world.getResource<string>("ShmupVisualTheme") === "sumi-e") {
+      drawSumiECanvasPlayer.draw(ctx, world, entity);
+      return;
+    }
 
     const { invulnerable, time, size, primaryColor, moveX, isShooting } = pCtx;
 

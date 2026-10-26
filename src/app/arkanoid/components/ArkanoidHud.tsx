@@ -51,14 +51,26 @@ export function HighScorePanel({ score }: { score: number }) {
   }, [opacity]);
 
   return (
-    <View style={styles.hiScore} accessibilityRole="text" accessibilityLabel={`High score ${score}`}>
-      <Animated.Text style={[styles.label, { opacity }]}>HI-SCORE</Animated.Text>
+    <View
+      style={styles.hiScore}
+      accessibilityRole="text"
+      accessibilityLabel={`High score ${score}`}
+    >
+      <Animated.Text style={[styles.label, { opacity }]}>
+        HI-SCORE
+      </Animated.Text>
       <Text style={styles.value}>{score}</Text>
     </View>
   );
 }
 
-export function LivesIndicator({ lives, max = 3 }: { lives: number; max?: number }) {
+export function LivesIndicator({
+  lives,
+  max = 3,
+}: {
+  lives: number;
+  max?: number;
+}) {
   const safeLives = Math.max(0, Math.min(lives, max));
   return (
     <View
@@ -87,7 +99,12 @@ export function LevelProgressBar({ progress }: { progress: number }) {
       accessibilityRole="progressbar"
       accessibilityValue={{ min: 0, max: 100, now: Math.round(clamped * 100) }}
     >
-      <View style={[styles.progressFill, { width: `${Math.round(clamped * 100)}%` }]} />
+      <View
+        style={[
+          styles.progressFill,
+          { width: `${Math.round(clamped * 100)}%` },
+        ]}
+      />
     </View>
   );
 }

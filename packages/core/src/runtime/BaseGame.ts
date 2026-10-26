@@ -925,7 +925,7 @@ export abstract class BaseGame<
    */
   protected onStart(): void {
     if (!this.isHeadless && this.audio) {
-      this.audio.playBGM("dark_atmosphere");
+      this.audio.playBGM("ambient_loop");
     }
   }
 
@@ -943,7 +943,7 @@ export abstract class BaseGame<
    */
   protected onResume(): void {
     if (!this.isHeadless && this.audio) {
-      this.audio.playBGM("dark_atmosphere");
+      this.audio.playBGM("ambient_loop");
     }
   }
 

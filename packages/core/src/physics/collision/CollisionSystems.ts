@@ -246,45 +246,6 @@ export class CollisionSystem2D<
     offsetX?: number;
     offsetY?: number;
   } | null {
-    const col = world.getComponent(entity, "Collider");
-    if (col) {
-      return {
-        shape: col.shape,
-        layer: col.layer as number,
-        mask: col.mask as number,
-        enabled: col.enabled,
-        isTrigger: col.isTrigger,
-        offsetX: col.offsetX,
-        offsetY: col.offsetY
-      };
-    }
-    const c2 = world.getComponent(entity, "Collider2D");
-    if (c2) {
-      return {
-        shape: toShapeDefinition(c2),
-        layer: c2.layer,
-        mask: c2.mask,
-        enabled: c2.enabled,
-        isTrigger: c2.isTrigger,
-        offsetX: c2.offsetX,
-        offsetY: c2.offsetY
-      };
-    }
-    return null;
-  }
-
-  private resolveCollider(
-    world: World<CoreComponentRegistry>,
-    entity: Entity
-  ): {
-    shape: import("../shapes/Shapes").Shape;
-    layer: number;
-    mask: number;
-    enabled: boolean;
-    isTrigger: boolean;
-    offsetX?: number;
-    offsetY?: number;
-  } | null {
     const collider = world.getComponent(entity, "Collider");
     if (collider) {
       return {
@@ -519,6 +480,45 @@ export class CCDSystem<
         }
       }
     }
+  }
+
+  private resolveCollider(
+    world: World<CoreComponentRegistry>,
+    entity: Entity
+  ): {
+    shape: import("../shapes/Shapes").Shape;
+    layer: number;
+    mask: number;
+    enabled: boolean;
+    isTrigger: boolean;
+    offsetX?: number;
+    offsetY?: number;
+  } | null {
+    const collider = world.getComponent(entity, "Collider");
+    if (collider) {
+      return {
+        shape: collider.shape,
+        layer: collider.layer,
+        mask: collider.mask,
+        enabled: collider.enabled,
+        isTrigger: collider.isTrigger,
+        offsetX: collider.offsetX,
+        offsetY: collider.offsetY
+      };
+    }
+    const collider2D = world.getComponent(entity, "Collider2D");
+    if (collider2D) {
+      return {
+        shape: toShapeDefinition(collider2D),
+        layer: collider2D.layer,
+        mask: collider2D.mask,
+        enabled: collider2D.enabled,
+        isTrigger: collider2D.isTrigger,
+        offsetX: collider2D.offsetX,
+        offsetY: collider2D.offsetY
+      };
+    }
+    return null;
   }
 
   private shouldCollide(

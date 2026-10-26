@@ -2,6 +2,9 @@
 
 Minijuego de Tower Defense construido sobre la arquitectura ECS determinista de `@tiny-aster/core` y `@tiny-aster/gameplay-kit`.
 
+## Dirección de Arte
+- **Especificación Sumi-E**: [Dirección de Arte — Tower Defense (tinta sumi-e)](../../docs/tower-defense/ART_DIRECTION_SUMI_E.md)
+
 ## Arquitectura y Convenciones
 
 ### 1. Unidades de Tiempo

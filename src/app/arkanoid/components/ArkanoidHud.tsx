@@ -187,3 +187,5 @@ const styles = StyleSheet.create({
 });
 
 void FONT_FALLBACK;
+
+export default ArkanoidHud;

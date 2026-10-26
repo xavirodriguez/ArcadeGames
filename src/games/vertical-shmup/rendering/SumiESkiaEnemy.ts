@@ -89,6 +89,24 @@ export const drawSumiESkiaEnemy: ShapeDrawer<SkCanvas, ShmupComponentRegistry> =
       const radius = size * (1.12 + 0.035 * Math.sin(time * 2));
       canvas.drawArc(Skia.XYWHRect(-radius, -radius, radius * 2, radius * 2), 194.4, 151.2, false, paint);
     }
+
+    const hit = Math.max(0, Math.min(1, (enemy.render.hitFlashFrames ?? 0) / 5));
+    if (hit > 0) {
+      paint.setStyle(Skia.PaintStyle.Stroke);
+      paint.setColor(Skia.Color("rgba(21, 21, 21, " + (hit * 0.78) + ")"));
+      for (let mark = 0; mark < 9; mark += 1) {
+        const angle = mark * 2.399963 + entity * 0.37;
+        const inner = size * (0.45 + (mark % 3) * 0.08);
+        const outer = size * (0.85 + (mark % 4) * 0.12) * hit;
+        paint.setStrokeWidth(1 + (mark % 3) * 0.6);
+        canvas.drawLine(Math.cos(angle) * inner, Math.sin(angle) * inner, Math.cos(angle) * outer, Math.sin(angle) * outer, paint);
+        if (mark % 2 === 0) {
+          paint.setStyle(Skia.PaintStyle.Fill);
+          canvas.drawCircle(Math.cos(angle) * outer, Math.sin(angle) * outer, 1.2 + (mark % 3) * 0.6, paint);
+          paint.setStyle(Skia.PaintStyle.Stroke);
+        }
+      }
+    }
     canvas.restore();
   }
 };

@@ -1,6 +1,7 @@
 import { World } from "@tiny-aster/core";
 import { AsteroidsGame } from "../AsteroidsGame";
 import { getStoryEnding } from "../story/StoryBeats";
+import { keplersGhostStoryGraph } from "../story/KeplersGhostGraph";
 
 describe("Asteroids Story Mode Tests", () => {
   let game: AsteroidsGame;
@@ -10,7 +11,8 @@ describe("Asteroids Story Mode Tests", () => {
     game = new AsteroidsGame({
       headless: true,
       gameOptions: {
-        mode: "story"
+        mode: "story",
+        storyGraph: keplersGhostStoryGraph
       }
     });
     await game.init();

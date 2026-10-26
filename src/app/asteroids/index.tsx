@@ -24,6 +24,7 @@ import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { InputState } from "../../types/GameTypes";
 import { MULTIPLAYER_CONFIG } from "@/config/MultiplayerConfig";
 import { GameStateComponent } from "@/games/asteroids/types/AsteroidTypes";
+import { keplersGhostStoryGraph } from "@/games/asteroids/story/KeplersGhostGraph";
 import { useGameSession } from "@/hooks/useGameSession";
 import { useKeyboardControls } from "../../hooks/useKeyboardControls";
 import { RadialBackground } from "@/components/RadialBackground";
@@ -70,12 +71,15 @@ export default function AsteroidsScreen() {
   const [selectedMode, setSelectedMode] = useState<"deathmatch" | "story">("deathmatch");
   const [selectedVisualMod, setSelectedVisualMod] = useState<"classic" | "iceberg">("classic");
 
+  const storyGraph = selectedMode === "story" ? keplersGhostStoryGraph : undefined;
+
   const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } = useAsteroidsGame(
     started,
     isMulti && started,
     initialSeed,
     selectedMode,
-    selectedVisualMod
+    selectedVisualMod,
+    storyGraph
   );
 
   const touchStateRef = useRef<TouchInputState | null>(null);

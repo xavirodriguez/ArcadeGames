@@ -7,6 +7,7 @@ import type { GameStateComponent, InputState } from "../types/GameTypes";
 import { MutatorService } from "../services/MutatorService";
 import { ExpoAssetProvider } from "../providers/ExpoAssetProvider";
 import { Mutator } from "../config/MutatorConfig";
+import type { StoryGraph } from "@tiny-aster/core";
 
 const expoAssetProvider = new ExpoAssetProvider();
 
@@ -24,7 +25,8 @@ export function useAsteroidsGame(
   isMultiplayer: boolean = false,
   seed?: number,
   mode: "deathmatch" | "story" = "deathmatch",
-  visualMod: "classic" | "iceberg" = "classic"
+  visualMod: "classic" | "iceberg" = "classic",
+  storyGraph?: StoryGraph
 ) {
   const [mutators, setMutators] = useState<Mutator[] | null>(null);
 
@@ -40,8 +42,9 @@ export function useAsteroidsGame(
   const memoizedGameOptions = useMemo(() => ({
     mutators: mutators || [],
     mode,
-    mod: visualMod
-  }), [mutators, mode, visualMod]);
+    mod: visualMod,
+    ...(mode === "story" && storyGraph ? { storyGraph } : {})
+  }), [mutators, mode, visualMod, storyGraph]);
 
   const { game, gameState, isPaused, isReady, handleInput, togglePause, restart } =
     useGame<AsteroidsGame, GameStateComponent, InputState>(

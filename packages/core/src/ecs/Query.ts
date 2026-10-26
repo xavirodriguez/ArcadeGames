@@ -40,6 +40,15 @@ export class Query<_TComponents extends ComponentRegistry> {
     return this.componentTypes.every(type => componentSet.has(type));
   }
 
+  /**
+   * Adds an entity to this query's candidate set and marks the cached result dirty.
+   *
+   * @param entity - Entity identifier to include if it has the required components.
+   *
+   * @remarks
+   * The query's matching invariant is maintained by the caller/World. Adding an
+   * entity already present in the set is a no-op.
+   */
   public add(entity: Entity): void {
     if (!this.entities.has(entity)) {
       this.entities.add(entity);
@@ -47,6 +56,14 @@ export class Query<_TComponents extends ComponentRegistry> {
     }
   }
 
+  /**
+   * Removes an entity from this query's candidate set and marks the cached result dirty.
+   *
+   * @param entity - Entity identifier to remove.
+   *
+   * @remarks
+   * Removing an entity not present in the set is a no-op.
+   */
   public remove(entity: Entity): void {
     if (this.entities.delete(entity)) {
       this.isDirty = true;
@@ -90,6 +107,16 @@ export class Query<_TComponents extends ComponentRegistry> {
     return this.sortedEntities;
   }
 
+  /**
+   * Recreates this query's candidate set from active entities and their component sets.
+   *
+   * @param activeEntities - Current set of active entity identifiers.
+   * @param entityComponentSets - Map from entity identifiers to their attached component types.
+   *
+   * @remarks
+   * The method replaces the existing candidates and marks the sorted result dirty
+   * so the next read recalculates it lazily.
+   */
   public rebuild(activeEntities: Set<Entity>, entityComponentSets: Map<Entity, Set<string>>): void {
     this.entities.clear();
     activeEntities.forEach(entity => {

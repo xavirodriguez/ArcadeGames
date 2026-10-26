@@ -437,3 +437,70 @@ export function computeShmupParallaxWorld(
 
   return { width, height, scroll, time, wave, biome, clouds, islands, particles };
 }
+
+
+export interface SumiEMountainRidge {
+  readonly points: readonly { readonly x: number; readonly y: number }[];
+  readonly opacity: number;
+  readonly width: number;
+}
+
+export interface SumiEBackdropData {
+  readonly width: number;
+  readonly height: number;
+  readonly time: number;
+  readonly scroll: number;
+  readonly palette: ShmupThemeContract["palette"];
+  readonly ridges: readonly SumiEMountainRidge[];
+  readonly paperFibers: readonly { readonly x: number; readonly y: number; readonly length: number; readonly alpha: number }[];
+}
+
+/** Stable, presentation-only geometry: same world tick and viewport always produce the same backdrop. */
+export function computeSumiEBackdrop(world: World<ShmupComponentRegistry>): SumiEBackdropData {
+  const config = world.getResource<ShmupConfig>("GameConfig");
+  const width = config?.WORLD_WIDTH ?? 720;
+  const height = config?.WORLD_HEIGHT ?? 1280;
+  const state = world.getSingleton("ShmupGameState");
+  const time = world.tick * 0.016;
+  const scroll = state?.scrollDistance ?? time * (config?.SCROLL_SPEED ?? 80);
+  const palette = SHMUP_SUMI_E_THEME.palette;
+
+  const ridges: SumiEMountainRidge[] = [];
+  const ridgeCount = SHMUP_SUMI_E_THEME.procedural.mountainRidges.count;
+  for (let ridge = 0; ridge < ridgeCount; ridge += 1) {
+    const points: { x: number; y: number }[] = [];
+    const segments = 8;
+    const baseY = height * (0.2 + ridge * 0.115);
+    const amplitude = height * (0.025 + ridge * 0.009);
+    for (let point = 0; point <= segments; point += 1) {
+      const x = width * point / segments;
+      const wave = Math.sin(point * 1.73 + ridge * 2.4) * 0.62
+        + Math.sin(point * 0.71 + ridge * 1.9) * 0.38;
+      const y = baseY + wave * amplitude + ((scroll * (0.035 + ridge * 0.045)) % (height * 0.035));
+      points.push({ x, y });
+    }
+    ridges.push({
+      points,
+      opacity: SHMUP_SUMI_E_THEME.procedural.mountainRidges.maxOpacity
+        - ridge * ((SHMUP_SUMI_E_THEME.procedural.mountainRidges.maxOpacity
+        - SHMUP_SUMI_E_THEME.procedural.mountainRidges.minOpacity) / Math.max(1, ridgeCount - 1)),
+      width: 1.5 + ridge * 1.1,
+    });
+  }
+
+  const paperFibers: { x: number; y: number; length: number; alpha: number }[] = [];
+  const fiberCount = Math.round(width * height * SHMUP_SUMI_E_THEME.procedural.paperGrain.density);
+  for (let index = 0; index < fiberCount; index += 1) {
+    // Integer hash, not Math.random: decorative detail cannot perturb gameplay RNG.
+    const hash = (index * 1664525 + 1013904223) >>> 0;
+    const hash2 = (hash * 22695477 + 1) >>> 0;
+    paperFibers.push({
+      x: (hash % 100000) / 100000 * width,
+      y: (hash2 % 100000) / 100000 * height,
+      length: 2 + (hash % 7),
+      alpha: SHMUP_SUMI_E_THEME.procedural.paperGrain.opacity * (0.35 + (hash2 % 100) / 150),
+    });
+  }
+
+  return { width, height, time, scroll, palette, ridges, paperFibers };
+}

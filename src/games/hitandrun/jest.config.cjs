@@ -7,10 +7,9 @@ module.exports = {
   testMatch: ['<rootDir>/__tests__/**/*.test.ts', '<rootDir>/**/*.test.ts'],
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
-      useESM: true,
+      isolatedModules: true,
     }],
   },
-  extensionsToTreatAsEsm: ['.ts'],
   moduleNameMapper: {
     '^@tiny-aster/gameplay-kit$': path.resolve(__dirname, "../../../packages/gameplay-kit/src/index.ts"),
     '^@tiny-aster/core$': path.resolve(__dirname, "../../../packages/core/src/index.ts"),

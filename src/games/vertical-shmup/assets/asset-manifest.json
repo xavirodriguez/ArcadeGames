@@ -158,5 +158,22 @@
       "source": { "kind": "authored", "creator": "OpenAI + repository author", "created_at": "2026-10-26", "license": "MIT", "attribution": "", "prompt_or_source_record": "Sumi-e vertical shmup art direction brief" },
       "verification": { "native_scale_reviewed": false, "in_engine_reviewed": false, "technical_checks_passed": false, "approved_by": "" }
     }
+    ,
+    {
+      "id": "proc-sumi-e-yokai-enemies",
+      "role": "scout ghost, tengu interceptor, oni mask, lantern spirit and horned boss; black ink silhouettes with vermilion eyes",
+      "path": "src/games/vertical-shmup/rendering/SumiECanvasEnemy.ts",
+      "status": "production",
+      "technical": {
+        "kind": "code-procedural",
+        "skia_peer_file": "src/games/vertical-shmup/rendering/SumiESkiaEnemy.ts",
+        "identity_source": "ShmupEnemy.archetype",
+        "hitbox": "unchanged; remains defined by ECS Collider",
+        "determinism": "world tick and archetype only"
+      },
+      "visual_locks": ["ink-yokai-silhouettes", "vermilion-eyes", "archetype-readability", "no-neon-glow", "canvas-skia-parity"],
+      "source": { "kind": "authored", "creator": "OpenAI + repository author", "created_at": "2026-10-26", "license": "MIT", "attribution": "", "prompt_or_source_record": "Sumi-e vertical shmup art direction brief" },
+      "verification": { "native_scale_reviewed": false, "in_engine_reviewed": false, "technical_checks_passed": false, "approved_by": "" }
+    }
   ]
 }

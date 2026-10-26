@@ -36,9 +36,7 @@ export const sharedScreenStyles = StyleSheet.create({
     fontWeight: typography.weights.bold,
     marginBottom: spacing.xxxl,
     textAlign: "center",
-    textShadowColor: COLORS.neonCyan,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 16,
+    textShadow: `0px 0px 16px ${COLORS.neonCyan}`,
   },
   instructions: {
     fontSize: typography.sizes.body,

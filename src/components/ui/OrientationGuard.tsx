@@ -108,11 +108,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     maxWidth: 420,
     width: "100%",
-    shadowColor: colors.cyan,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 16,
-    elevation: 20,
+    ...(Platform.OS === "web"
+      ? { boxShadow: "0px 0px 16px rgba(0, 240, 255, 0.8)" }
+      : {
+          shadowColor: colors.cyan,
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: 0.8,
+          shadowRadius: 16,
+          elevation: 20,
+        }),
   },
   rotateIcon: {
     fontSize: 48,

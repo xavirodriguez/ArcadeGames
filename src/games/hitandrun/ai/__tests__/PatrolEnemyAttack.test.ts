@@ -151,4 +151,40 @@ describe("PatrolEnemyAttack (Paso A)", () => {
     const fsm = world.getComponent(enemy, "StateMachine") as { currentState: string };
     expect(fsm.currentState).toBe("Patrol");
   });
+  it("keeps the patrol attack cooldown independent of simulation timestep", () => {
+    const remainingAfterOneSecond = (dt: number, ticks: number): number => {
+      const { world } = createTestWorld();
+      const enemy = spawnPatrolEnemy(world, 100);
+      const fsm = world.getMutableComponent(enemy, "StateMachine") as
+        | {
+            elapsedInState: number;
+            data: Record<string, unknown>;
+          }
+        | undefined;
+      if (!fsm) throw new Error("Expected patrol state machine");
+
+      fsm.elapsedInState = 0;
+      fsm.data._lastPatrolElapsed = 0;
+      fsm.data.attackCooldownRemaining = 2;
+
+      for (let tick = 0; tick < ticks; tick++) {
+        updateStateMachineHelper(world, enemy, dt);
+      }
+
+      const updated = world.getComponent(enemy, "StateMachine") as
+        | { data: Record<string, unknown> }
+        | undefined;
+      if (!updated) throw new Error("Expected updated patrol state machine");
+      return updated.data.attackCooldownRemaining as number;
+    };
+
+    const at60Hz = remainingAfterOneSecond(1 / 60, 60);
+    const at30Hz = remainingAfterOneSecond(1 / 30, 30);
+    const at120Hz = remainingAfterOneSecond(1 / 120, 120);
+
+    expect(at60Hz).toBeCloseTo(1, 5);
+    expect(at30Hz).toBeCloseTo(1, 5);
+    expect(at120Hz).toBeCloseTo(1, 5);
+  });
+
 });

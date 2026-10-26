@@ -2,5 +2,12 @@ packages:
   - packages/*
   - server
 
+ignoredBuiltDependencies:
+  - '@shopify/react-native-skia'
+  - '@swc/core'
+  - better-sqlite3
+  - esbuild
+  - msgpackr-extract
+
 onlyBuiltDependencies:
   - dtrace-provider

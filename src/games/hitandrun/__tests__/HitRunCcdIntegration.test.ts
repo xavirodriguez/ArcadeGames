@@ -33,7 +33,7 @@ describe("Hit&Run continuous collision detection", () => {
     world.addComponent(target, {
       type: "Faction",
       value: "player"
-    } as CoreComponentRegistry["Faction"]);
+    } as never);
     world.addComponent(target, {
       type: "Collider2D",
       shape: { type: "aabb", halfWidth: 4, halfHeight: 4 },
@@ -56,7 +56,7 @@ describe("Hit&Run continuous collision detection", () => {
       z: 0,
       vz: 0,
       grounded: true
-    } as CoreComponentRegistry["BeltElevation"]);
+    } as never);
 
     const projectile = world.createEntity();
     world.addComponent(projectile, {
@@ -86,11 +86,11 @@ describe("Hit&Run continuous collision detection", () => {
       sourceEntity: projectile,
       friendlyFire: false,
       consumption: "destroy-entity"
-    } as CoreComponentRegistry["Damage"]);
+    } as never);
     world.addComponent(projectile, {
       type: "Faction",
       value: "enemy"
-    } as CoreComponentRegistry["Faction"]);
+    } as never);
     world.addComponent(projectile, {
       type: "Collider2D",
       shape: { type: "aabb", halfWidth: 1, halfHeight: 1 },
@@ -113,7 +113,7 @@ describe("Hit&Run continuous collision detection", () => {
       z: 0,
       vz: 0,
       grounded: true
-    } as CoreComponentRegistry["BeltElevation"]);
+    } as never);
 
     world.update(1 / 60);
 

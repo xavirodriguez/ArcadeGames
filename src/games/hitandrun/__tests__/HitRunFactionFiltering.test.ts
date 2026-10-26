@@ -32,13 +32,13 @@ function addCombatant(
   world.addComponent(entity, {
     type: "Faction",
     value: faction
-  } as CoreComponentRegistry["Faction"]);
+  } as never);
   world.addComponent(entity, {
     type: "BeltElevation",
     z: 0,
     vz: 0,
     grounded: true
-  } as CoreComponentRegistry["BeltElevation"]);
+  } as never);
   return entity;
 }
 

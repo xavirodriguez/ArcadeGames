@@ -32,7 +32,7 @@ function createEnemy(world: World<CoreComponentRegistry>, x: number, target: num
     type: "PlayerSensor",
     visionRange: 500,
     detectedPlayerEntity: target
-  } as CoreComponentRegistry["PlayerSensor"]);
+  } as never);
   return enemy;
 }
 
@@ -48,7 +48,7 @@ function createPlayer(world: World<CoreComponentRegistry>, x: number): number {
   world.addComponent(player, {
     type: "Faction",
     value: "player"
-  } as CoreComponentRegistry["Faction"]);
+  } as never);
   world.addComponent(player, {
     type: "Collider2D",
     shape: { type: "aabb", halfWidth: 8, halfHeight: 8 },
@@ -71,7 +71,7 @@ function createPlayer(world: World<CoreComponentRegistry>, x: number): number {
     z: 0,
     vz: 0,
     grounded: true
-  } as CoreComponentRegistry["BeltElevation"]);
+  } as never);
   return player;
 }
 

@@ -32,6 +32,13 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
       worldWidth: this.config.WORLD_WIDTH,
       worldHeight: this.config.WORLD_HEIGHT
     });
+    // Visual theme is presentation-only and never participates in simulation rules.
+    // Sumi-e is the pilot default; set gameOptions.visualTheme="aerial-fantasy" to
+    // retain the previous four-biome treatment during comparison.
+    this.world.setResource(
+      "ShmupVisualTheme",
+      this.gameOptions?.visualTheme === "aerial-fantasy" ? "aerial-fantasy" : "sumi-e"
+    );
     this.world.setResource("PlayerBulletPool", this.playerPool);
     this.world.setResource("EnemyBulletPool", this.enemyPool);
 

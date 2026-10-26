@@ -193,7 +193,7 @@ export const SHMUP_SUMI_E_THEME: ShmupThemeContract = {
   },
 };
 
-\nexport type BiomeKind = "archipelago" | "gardens" | "temples" | "storm";
+export type BiomeKind = "archipelago" | "gardens" | "temples" | "storm";
 
 export interface BiomeProfile {
   id: BiomeKind;

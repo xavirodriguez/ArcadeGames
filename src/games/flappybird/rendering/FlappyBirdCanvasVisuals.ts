@@ -784,7 +784,7 @@ export const scrollingBackgroundEffect: EffectDrawer<CanvasRenderingContext2D, F
     }
 
     const megaData = calculateMegastructureData(tick, width, height, 1600, scenarioTheme.megaIndex);
-    if (megaData.visible) {
+    if (megaData.visible && bgSetup.showScenarioElements) {
       drawCanvasMegastructure(ctx, megaData);
     }
 

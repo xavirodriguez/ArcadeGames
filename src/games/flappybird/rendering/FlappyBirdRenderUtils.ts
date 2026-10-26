@@ -362,6 +362,7 @@ export interface FlappyBackgroundSetup {
   height: number;
   scenarioTheme: ReturnType<typeof getThemeForScenario>;
   nebulae: ReturnType<typeof getThemeForScenario>["nebulae"];
+  showScenarioElements: boolean;
 }
 
 export function resolveFlappyBackgroundSetup(
@@ -377,7 +378,8 @@ export function resolveFlappyBackgroundSetup(
 
   const scenarioTheme = getThemeForScenario(gameState.currentScenario);
   const nebulae = isBackgroundDisabled ? [] : scenarioTheme.nebulae;
-  return { gameState, width, height, scenarioTheme, nebulae };
+  const showScenarioElements = !isBackgroundDisabled;
+  return { gameState, width, height, scenarioTheme, nebulae, showScenarioElements };
 }
 
 export function maybeSpawnLaserGateSparks(

@@ -34,6 +34,7 @@ import { loadAndMutateConfig, runWithUnlockedRandomAndMutators } from "../shared
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import { createPaddleColliderConfig, registerPresentationSystems } from "../shared/componentBuilders";
 
+import { HitStopSystem } from "../shared/rendering/HitStopSystem";
 import { ArkanoidInputSystem } from "./systems/ArkanoidInputSystem";
 import { ArkanoidSpinSystem } from "./systems/ArkanoidSpinSystem";
 import { BrickRulesSystem } from "./systems/BrickRulesSystem";
@@ -282,6 +283,7 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
     this.world.addSystem(new BrickRulesSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new ComboSystem(), { phase: SystemPhase.GameRules });
 
+    this.world.addSystem(new HitStopSystem() as System<ArkanoidComponentRegistry, ArkanoidEventRegistry>, { phase: SystemPhase.Simulation, priority: 100 });
     registerPresentationSystems(this.world);
   }
 

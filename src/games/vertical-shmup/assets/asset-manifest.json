@@ -124,5 +124,93 @@
       "source": { "kind": "generated-or-authored", "url_or_tool": "", "creator": "", "created_at": "", "license": "", "attribution": "", "prompt_or_source_record": "" },
       "verification": { "native_scale_reviewed": false, "in_engine_reviewed": false, "technical_checks_passed": false, "approved_by": "" }
     }
+    ,
+    {
+      "id": "proc-sumi-e-backdrop",
+      "role": "Sumi-e paper, sun, mist, mountain strokes, pagodas, waterfalls and edge silhouettes; Canvas and Skia share deterministic geometry",
+      "path": "src/games/vertical-shmup/rendering/ShmupVisualHelpers.ts",
+      "status": "production",
+      "technical": {
+        "kind": "code-procedural",
+        "canvas_renderer": "src/games/vertical-shmup/rendering/SumiECanvasBackdrop.ts",
+        "skia_renderer": "src/games/vertical-shmup/rendering/SumiESkiaBackdrop.ts",
+        "determinism": "world tick + scroll only; no gameplay RNG",
+        "safe_play_area": "central 56% of viewport is kept free of foreground silhouettes"
+      },
+      "visual_locks": ["washi-paper", "subdued-vermilion-sun", "low-contrast-mist", "ink-wash-ridges", "edge-density", "canvas-skia-parity"],
+      "source": { "kind": "authored", "creator": "OpenAI + repository author", "created_at": "2026-10-26", "license": "MIT", "attribution": "", "prompt_or_source_record": "Sumi-e vertical shmup art direction brief" },
+      "verification": { "native_scale_reviewed": false, "in_engine_reviewed": false, "technical_checks_passed": false, "approved_by": "" }
+    }
+    ,
+    {
+      "id": "proc-sumi-e-player",
+      "role": "ink-brush shrine glider with blue trail and gold ofuda; presentation-only silhouette variant",
+      "path": "src/games/vertical-shmup/rendering/SumiECanvasEntities.ts",
+      "status": "production",
+      "technical": {
+        "kind": "code-procedural",
+        "skia_peer_file": "src/games/vertical-shmup/rendering/SumiESkiaEntities.ts",
+        "display_size_px": "derived from existing Render.size",
+        "hitbox": "unchanged; remains defined by ECS Collider",
+        "determinism": "world tick and input axes only"
+      },
+      "visual_locks": ["ink-silhouette", "blue-player-identity", "gold-ofuda", "no-neon-glow", "canvas-skia-parity"],
+      "source": { "kind": "authored", "creator": "OpenAI + repository author", "created_at": "2026-10-26", "license": "MIT", "attribution": "", "prompt_or_source_record": "Sumi-e vertical shmup art direction brief" },
+      "verification": { "native_scale_reviewed": false, "in_engine_reviewed": false, "technical_checks_passed": false, "approved_by": "" }
+    }
+    ,
+    {
+      "id": "proc-sumi-e-yokai-enemies",
+      "role": "scout ghost, tengu interceptor, oni mask, lantern spirit and horned boss; black ink silhouettes with vermilion eyes",
+      "path": "src/games/vertical-shmup/rendering/SumiECanvasEnemy.ts",
+      "status": "production",
+      "technical": {
+        "kind": "code-procedural",
+        "skia_peer_file": "src/games/vertical-shmup/rendering/SumiESkiaEnemy.ts",
+        "identity_source": "ShmupEnemy.archetype",
+        "hitbox": "unchanged; remains defined by ECS Collider",
+        "determinism": "world tick and archetype only"
+      },
+      "visual_locks": ["ink-yokai-silhouettes", "vermilion-eyes", "archetype-readability", "no-neon-glow", "canvas-skia-parity"],
+      "source": { "kind": "authored", "creator": "OpenAI + repository author", "created_at": "2026-10-26", "license": "MIT", "attribution": "", "prompt_or_source_record": "Sumi-e vertical shmup art direction brief" },
+      "verification": { "native_scale_reviewed": false, "in_engine_reviewed": false, "technical_checks_passed": false, "approved_by": "" }
+    }
+    ,
+    {
+      "id": "proc-sumi-e-projectiles-and-impact",
+      "role": "blue brush-stroke player shots, vermilion hostile petals and radial ink splatter on hit",
+      "path": "src/games/vertical-shmup/rendering/SumiECanvasProjectiles.ts",
+      "status": "production",
+      "technical": {
+        "kind": "code-procedural",
+        "skia_peer_file": "src/games/vertical-shmup/rendering/SumiESkiaProjectiles.ts",
+        "impact_canvas": "src/games/vertical-shmup/rendering/SumiECanvasEnemy.ts",
+        "impact_skia": "src/games/vertical-shmup/rendering/SumiESkiaEnemy.ts",
+        "determinism": "tick + entity id; no random calls",
+        "gameplay_changes": "none; ECS colliders and damage remain unchanged"
+      },
+      "visual_locks": ["blue-player-shot", "vermilion-petal-threat", "ink-splatter-impact", "canvas-skia-parity", "readable-hitboxes"],
+      "source": { "kind": "authored", "creator": "OpenAI + repository author", "created_at": "2026-10-26", "license": "MIT", "attribution": "", "prompt_or_source_record": "Sumi-e vertical shmup art direction brief" },
+      "verification": { "native_scale_reviewed": false, "in_engine_reviewed": false, "technical_checks_passed": false, "approved_by": "" }
+    }
+    ,
+    {
+      "id": "sprite-sumi-e-player-ship",
+      "role": "transparent PNG sprite for the Sumi-e shrine-glider player; procedural draw remains fallback",
+      "path": "assets/shmup/sumi-e/player_ship.png",
+      "status": "production",
+      "technical": {
+        "kind": "sprite",
+        "dimensions": "96x112",
+        "alpha": true,
+        "anchor": "center",
+        "filtering": "linear",
+        "asset_loader_key": "shmup_sumi_e_player",
+        "fallback": "SumiECanvasEntities.ts / SumiESkiaEntities.ts"
+      },
+      "visual_locks": ["blue-player-identity", "ink-silhouette", "gold-ofuda-overlay", "procedural-fallback"],
+      "source": { "kind": "generated", "creator": "OpenAI + repository author", "created_at": "2026-10-26", "license": "MIT", "attribution": "", "prompt_or_source_record": "Generated Sumi-e concept board; player sprite cropped and background-keyed for transparency" },
+      "verification": { "native_scale_reviewed": false, "in_engine_reviewed": false, "technical_checks_passed": false, "approved_by": "" }
+    }
   ]
 }

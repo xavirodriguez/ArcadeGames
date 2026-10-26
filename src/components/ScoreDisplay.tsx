@@ -36,7 +36,7 @@ export function ScoreDisplay({
         {
           fontSize,
           color: textColor,
-          textShadowColor: textColor,
+          textShadow: `0px 0px 12px ${textColor}`,
         },
         style,
       ]}
@@ -51,7 +51,5 @@ const styles = StyleSheet.create({
     fontFamily: 'Space Mono',
     fontWeight: '700',
     letterSpacing: 2,
-    textShadowRadius: 12,
-    textShadowOffset: { width: 0, height: 0 },
   },
 });

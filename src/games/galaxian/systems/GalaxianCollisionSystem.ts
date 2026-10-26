@@ -43,6 +43,14 @@ export class GalaxianCollisionSystem extends System<GalaxianComponentRegistry> {
         const dist = Math.hypot(pbTrans.x - enemyTrans.x, pbTrans.y - enemyTrans.y);
 
         if (dist <= pbRadius + enemyRadius) {
+          if (enemyComp.hitsRemaining > 1) {
+            world.mutateComponent(enemyEntity, "GalaxianEnemy", (comp) => {
+              comp.hitsRemaining--;
+            });
+            this.bulletPool.release(world, pbEntity);
+            break;
+          }
+
           const inDive = enemyComp.state === "diving" || enemyComp.state === "windup";
           let points = inDive ? enemyComp.pointsDive : enemyComp.pointsFormation;
 

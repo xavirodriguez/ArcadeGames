@@ -147,7 +147,8 @@ export function drawOrigamiBirdCanvas(
   ctx: CanvasRenderingContext2D,
   enemyType: "flagship" | "escort" | "emissary" | "drone",
   palette: any,
-  scale: number = 1.0
+  scale: number = 1.0,
+  isDamaged: boolean = false
 ): void {
   let light = palette.droneLight;
   let mid = palette.droneMid;
@@ -162,9 +163,9 @@ export function drawOrigamiBirdCanvas(
     mid = palette.escortMid;
     dark = palette.escortDark;
   } else if (enemyType === "flagship") {
-    light = palette.flagshipLight;
-    mid = palette.flagshipMid;
-    dark = palette.flagshipDark;
+    light = isDamaged ? palette.escortLight : palette.flagshipLight;
+    mid = isDamaged ? palette.escortMid : palette.flagshipMid;
+    dark = isDamaged ? palette.escortDark : palette.flagshipDark;
   }
 
   ctx.save();
@@ -344,7 +345,8 @@ export const drawGalaxianEnemyCanvas: ShapeDrawer<CanvasRenderingContext2D, Gala
     }
 
     const baseScale = enemy.enemyType === "flagship" ? 1.25 : 1.0;
-    drawOrigamiBirdCanvas(ctx, enemy.enemyType, palette, baseScale);
+    const isDamaged = enemy.enemyType === "flagship" && enemy.hitsRemaining === 1;
+    drawOrigamiBirdCanvas(ctx, enemy.enemyType, palette, baseScale, isDamaged);
 
     ctx.restore();
   },

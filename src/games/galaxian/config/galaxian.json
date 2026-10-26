@@ -27,7 +27,7 @@
     "oscillationAmplitude": 60,
     "oscillationFrequency": 0.35,
     "grid": [
-      { "type": "flagship", "row": 0, "count": 2, "pointsFormation": 60, "pointsDive": 150, "bonusEscorted": 800 },
+      { "type": "flagship", "row": 0, "count": 2, "pointsFormation": 150, "pointsDive": 300, "bonusEscorted": 500 },
       { "type": "escort", "row": 1, "count": 6, "pointsFormation": 50, "pointsDive": 100, "bonusEscorted": 0 },
       { "type": "emissary", "row": 2, "count": 8, "pointsFormation": 40, "pointsDive": 80, "bonusEscorted": 0 },
       { "type": "drone", "row": 3, "count": 10, "pointsFormation": 30, "pointsDive": 60, "bonusEscorted": 0 },

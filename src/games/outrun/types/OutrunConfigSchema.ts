@@ -148,6 +148,7 @@ export const OutrunVisualConfigSchema = z.object({
 }).default(DEFAULT_OUTRUN_VISUAL_CONFIG);
 
 export const OutrunConfigSchema = BaseConfigSchema.extend({
+  VISUAL_MOD: z.string().optional(),
   segmentLength: z.number().positive().default(200),
   rumbleLength: z.number().int().positive().default(3),
   roadWidth: z.number().positive().default(2000),

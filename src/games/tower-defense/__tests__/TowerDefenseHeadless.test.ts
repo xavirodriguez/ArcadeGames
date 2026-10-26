@@ -119,6 +119,11 @@ describe("TowerDefense headless - Phase 2 (Playable Headless)", () => {
     // Grunt speed is 60 px/s. Over 1s, it should move ~60 px (within 2px tolerance)
     expect(distMoved).toBeGreaterThanOrEqual(58);
     expect(distMoved).toBeLessThanOrEqual(62);
+
+    // Verify visual world transform tracked local movement (worldX/worldY match new x/y and changed from spawn)
+    expect(newTransform.worldX).toBe(newTransform.x);
+    expect(newTransform.worldY).toBe(newTransform.y);
+    expect(newTransform.worldX).not.toBe(initialTransform.x);
   });
 
   it("2.6 Wave cycle: transitions through build -> wave -> intermission -> build", async () => {

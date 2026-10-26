@@ -1,0 +1,12 @@
+src/games/hitandrun/assets/candidates/samurai-painted/samurai-painted.png
+  size          : 512x320
+  rgb swatches  : 21863  (<= 8 : FAIL)
+  opaque swatches: 17427
+  off-palette px: 44790
+  alpha levels  : 252 (ramp 4..255)
+  accent ratio  : 0.00% of painted pixels, alpha>=128 (<= 5%: PASS)
+  pure fills    : 2403 (0 == PASS)
+  SAFE AREA   : cell 2,2 bounds [0, 6, 55, 59] violate 2px safe area (62.0px limit, content at x 0..55, y 6..59)
+  SAFE AREA   : cell 3,2 bounds [0, 7, 57, 59] violate 2px safe area (62.0px limit, content at x 0..57, y 7..59)
+  SAFE AREA   : cell 4,2 bounds [0, 7, 57, 59] violate 2px safe area (62.0px limit, content at x 0..57, y 7..59)
+  SAFE AREA   : cell 5,2 bounds [0, 8, 62, 59] violate 2px safe area (62.0px limit, content at x 0..62, y 8..59)

@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback, useRef, FC } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Platform } from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { TouchVirtualJoystick, TouchActionButton } from "@/components/controls";
 import { TouchInputState } from "@tiny-aster/core";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { GalaxianGame, GalaxianStateComponent } from "@/games/galaxian";
+import { useGalaxianGame } from "@/hooks/useGalaxianGame";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { useKeyboardControls } from "../../hooks/useKeyboardControls";
 import { RadialBackground } from "@/components/RadialBackground";
@@ -27,9 +28,10 @@ import {
 export default function GalaxianScreen() {
   const { t } = useTranslation();
   const [started, setStarted] = useState(false);
-  const [game, setGame] = useState<GalaxianGame | null>(null);
-  const [gameState, setGameState] = useState<GalaxianStateComponent | null>(null);
-  const [isPaused, setIsPaused] = useState(false);
+  const [initialSeed, setInitialSeed] = useState<number | undefined>();
+
+  const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } =
+    useGalaxianGame(started, false, initialSeed);
 
   const touchStateRef = useRef<TouchInputState | null>(null);
   if (!touchStateRef.current) {
@@ -37,35 +39,22 @@ export default function GalaxianScreen() {
   }
 
   useEffect(() => {
-    if (started && !game) {
-      const g = new GalaxianGame({ headless: false });
-      g.init().then(() => {
-        setGame(g);
-        setGameState(g.getGameState());
-      });
-
-      return () => {
-        g.destroy();
-      };
-    }
-  }, [started, game]);
-
-  useEffect(() => {
-    if (!game) return;
-    const unsub = game.subscribe((st) => {
-      setGameState({ ...st });
-      setIsPaused(game.isPausedState());
-    });
-    return unsub;
-  }, [game]);
-
-  const handleInput = useCallback((input: Partial<{ moveLeft: boolean; moveRight: boolean; shoot: boolean }>) => {
-    if (game) {
-      game.setInput(input);
+    if (game && touchStateRef.current) {
+      game.getWorld().setResource("TouchInputState", touchStateRef.current);
     }
   }, [game]);
 
-  useKeyboardControls(game, !!game, handleInput);
+  const handleInputState = useCallback(
+    (input: Partial<{ moveLeft: boolean; moveRight: boolean; shoot: boolean }>) => {
+      handleInput(input);
+      if (game) {
+        game.setInput(input);
+      }
+    },
+    [handleInput, game]
+  );
+
+  useKeyboardControls(game, isReady, handleInputState);
 
   if (!started) {
     return (
@@ -76,7 +65,7 @@ export default function GalaxianScreen() {
           <GameInstructions>
             {Platform.OS === "web" ? "Usa las flechas izquierda/derecha para moverte y Espacio para disparar." : t.common.touch_controls}
           </GameInstructions>
-          <HighScoreText label={t.common.record} score={gameState?.highScore ?? 0} />
+          <HighScoreText label={t.common.record} score={highScore ?? 0} />
           <View style={sharedScreenStyles.buttonRow}>
             <NeonButton
               variant="cyan"
@@ -94,7 +83,15 @@ export default function GalaxianScreen() {
     );
   }
 
-  if (!game) return null;
+  if (!game || !isReady) {
+    return (
+      <View style={sharedScreenStyles.container}>
+        <RadialBackground />
+        <ActivityIndicator size="large" color="#FFC145" />
+        <Text style={styles.loadingText}>Loading Galaxian...</Text>
+      </View>
+    );
+  }
 
   return (
     <GameErrorBoundary gameId="galaxian">
@@ -109,7 +106,7 @@ export default function GalaxianScreen() {
                 <View style={styles.hudColumn}>
                   <Text style={styles.hudLabel}>1UP</Text>
                   <Text style={styles.hudValue}>{String(gameState?.score ?? 0).padStart(6, "0")}</Text>
-                  <Text style={styles.hudMuted}>HIGH: {String(gameState?.highScore ?? 0).padStart(6, "0")}</Text>
+                  <Text style={styles.hudMuted}>HIGH: {String(gameState?.highScore ?? highScore ?? 0).padStart(6, "0")}</Text>
                 </View>
                 <View style={styles.hudColumnCenter}>
                   <Text style={styles.hudLabel}>OLEADA</Text>
@@ -127,7 +124,7 @@ export default function GalaxianScreen() {
             }
             canvasSlot={
               <CanvasRenderer
-                world={() => game.getWorld()}
+                world={game.getWorld()}
                 gameLoop={game.getGameLoop()}
                 onInitialize={(renderer) => game.initializeRenderer(renderer)}
               />
@@ -140,13 +137,13 @@ export default function GalaxianScreen() {
                       touchState={touchStateRef.current ?? undefined}
                       floating={true}
                       onMove={(x) => {
-                        handleInput({
+                        handleInputState({
                           moveLeft: x < -0.25,
                           moveRight: x > 0.25,
                         });
                       }}
                       onRelease={() => {
-                        handleInput({
+                        handleInputState({
                           moveLeft: false,
                           moveRight: false,
                         });
@@ -159,14 +156,30 @@ export default function GalaxianScreen() {
                       buttonName="shoot"
                       touchState={touchStateRef.current ?? undefined}
                       size={80}
-                      onPressIn={() => handleInput({ shoot: true })}
-                      onPressOut={() => handleInput({ shoot: false })}
+                      onPressIn={() => handleInputState({ shoot: true })}
+                      onPressOut={() => handleInputState({ shoot: false })}
                     />
                   </View>
                 </View>
               ) : null
             }
             debugSlot={<DebugOverlay game={game} />}
+            overlaySlot={
+              gameState?.isGameOver ? (
+                <View style={sharedScreenStyles.overlay}>
+                  <Text style={sharedScreenStyles.overlayText}>{t.common?.game_over ?? "Fin de partida"}</Text>
+                  <TouchableOpacity
+                    style={styles.restartButton}
+                    onPress={() => {
+                      hapticSelection();
+                      game.restart();
+                    }}
+                  >
+                    <Text style={styles.restartButtonText}>{t.common?.retry ?? "Reintentar"}</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : null
+            }
           />
         </GameThemeProvider>
       </SafeAreaProvider>
@@ -175,6 +188,12 @@ export default function GalaxianScreen() {
 }
 
 const styles = StyleSheet.create({
+  loadingText: {
+    color: colors.white,
+    marginTop: 20,
+    fontFamily: "monospace",
+    fontSize: 18,
+  },
   hudContainer: {
     width: "100%",
     paddingHorizontal: 20,
@@ -228,5 +247,16 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 40,
     paddingBottom: 40,
+  },
+  restartButton: {
+    backgroundColor: colors.white,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 5,
+    marginTop: 20,
+  },
+  restartButtonText: {
+    color: colors.background,
+    fontWeight: "bold",
   },
 });

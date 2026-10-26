@@ -245,7 +245,7 @@ export interface AssistRule {
 }
 
 // @public
-export type AsteroidsRoleKey = CommonRoleKey | "player-ship" | "player-bullet" | "asteroid" | "asteroid-large" | "asteroid-medium" | "asteroid-small";
+export type AsteroidsRoleKey = CommonRoleKey | "player-ship" | "player-bullet" | "asteroid" | "asteroid-large" | "asteroid-medium" | "asteroid-small" | "thrustFlame" | "spark" | "hitFlash" | "bulletTrail" | "bulletCore" | "overlay" | "border" | "ufo";
 
 // @public
 export interface AudioAsset {
@@ -1247,6 +1247,10 @@ export interface CoreComponentRegistry extends ComponentRegistry {
     Animator: AnimatorComponent;
     BeltElevation: BeltElevationComponent;
     BeltInput: BeltInputComponent;
+    BeltSectionEnemy: Component & {
+        type: "BeltSectionEnemy";
+        sectionIndex: number;
+    };
     Boundary: BoundaryComponent;
     Camera2D: Camera2DComponent;
     Collectible: CollectibleComponent;
@@ -1313,6 +1317,17 @@ export interface CoreComponentRegistry extends ComponentRegistry {
     ScreenShake: ScreenShakeComponent;
     SpatialNode: SpatialNodeComponent;
     Sprite: SpriteComponent;
+    SpriteAnimator: Component & {
+        type: "SpriteAnimator";
+        sheetId: string;
+        currentAnim: string;
+        frameIndex: number;
+        timer: number;
+        flipX: boolean;
+        scale: number;
+        offsetX?: number;
+        offsetY?: number;
+    };
     // (undocumented)
     StateGate: StateGateComponent;
     StateMachine: StateMachineComponent;

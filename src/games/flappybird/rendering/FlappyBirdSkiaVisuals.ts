@@ -715,7 +715,7 @@ export const scrollingSkiaBackgroundEffect: EffectDrawer<RenderContext, FlappyBi
     }
 
     const megaData = calculateMegastructureData(tick, width, height, 1600, scenarioTheme.megaIndex);
-    if (megaData.visible) {
+    if (megaData.visible && bgSetup.showScenarioElements) {
       drawSkiaMegastructure(skCanvas, paint, megaData);
     }
 

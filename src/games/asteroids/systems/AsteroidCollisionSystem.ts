@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { World, System, resolveThemeColor, Juice } from "@tiny-aster/core";
+import { World, System, resolveThemeColorWithFallback, Juice } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/AsteroidRegistry";
 import { CombatDeathEvent } from "@tiny-aster/gameplay-kit";
 import { fragmentAsteroid } from "../EntityFactory";
@@ -172,12 +172,12 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
       if (logs && logs.length > 0) {
         const logIndex = world.gameplayRandom.nextInt(0, logs.length);
         const logText = logs[logIndex];
-        const logColor = resolveThemeColor(world, "system", "primary") || colors.cyan;
+        const logColor = resolveThemeColorWithFallback(world, colors.cyan, "system", "primary");
         spawnScorePopup(world, transform.x, transform.y - 20, logText, logColor);
       }
     }
 
-    const multiplierColor = resolveThemeColor(world, "warning", "boss") || colors.gold;
+    const multiplierColor = resolveThemeColorWithFallback(world, colors.gold, "warning", "boss");
     spawnScorePopup(world, transform.x, transform.y, `x${nextMultiplier}`, multiplierColor);
   }
 

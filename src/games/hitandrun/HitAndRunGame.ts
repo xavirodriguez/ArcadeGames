@@ -2,9 +2,11 @@
  * Hit&Run — fantasy belt-scroll beat'em-up (melee + ranged) on @tiny-aster/core.
  */
 import {
+  BaseGame,
   CoreComponentRegistry,
   EventRegistry,
   RenderContext,
+  AssetLoader,
   WebAudioPlayer,
   Renderer,
   HealthComponent,
@@ -14,9 +16,19 @@ import {
   preloadSharedAudioWithTimeout,
   generateBackdrop,
   BlueprintDefinition,
-  Theme
+  Theme,
+  World
 } from "@tiny-aster/core";
+import { updateRunProgress } from "@tiny-aster/gameplay-kit";
 import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
+import type { IAssetProvider } from "@tiny-aster/core";
+import {
+  createSamuraiAssetProvider,
+  loadSamuraiSpritesheetAsset,
+  SAMURAI_ASSET_KEY,
+  SAMURAI_SPRITE_READY_RESOURCE
+} from "./rendering/SamuraiVisualAssets";
+import { registerHitRunSamuraiAnimationSystems } from "./rendering/SamuraiAnimationSystems";
 import type {
   HitAndRunGameState,
   HitAndRunInput
@@ -24,8 +36,15 @@ import type {
 import {
   createMainCamera2D,
   registerPresentationSystems,
-  generateAndInstantiatePlatformerLevel
+  generateAndInstantiatePlatformerLevel,
+  registerPlatformerTilemapBlueprint,
+  registerStandardPlatformerCollectibles,
 } from "../shared/componentBuilders";
+import {
+  drawHitRunMonoTilemap,
+  drawHitRunMonoFragment,
+  drawHitRunMonoCore,
+} from "./rendering/HitRunPlaceholderVisuals";
 import { DEFAULT_HIT_AND_RUN_CONFIG } from "./types/HitAndRunConfigSchema";
 import hitRunLevelData from "./levels/level-01.json";
 import { registerHitRunMelee } from "./melee/registerHitRunMelee";
@@ -62,11 +81,14 @@ import {
   drawHitRunHopper,
   drawHitRunCharger,
   drawHitRunElite,
+  drawHitRunSamuraiFallback,
   drawHitRunBullet,
   drawHitRunRocket
 } from "./rendering/HitRunCanvasVisuals";
 import { drawHitRunHud } from "./rendering/HitRunHudCanvas";
 import { drawHitRunDebugOverlay } from "./rendering/HitRunDebugOverlay";
+import { drawLanceroSpriteCanvas, LANCERO_SHAPE } from "../shared/sprites/LanceroSpriteVisuals";
+import { SpriteRegistry } from "../shared/sprites";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import { runWithUnlockedRandomAndMutators } from "../shared/configHelper";
 import { ThemeRegistry, resolveThemeIdFromConfig } from "./rendering/theme/ThemeRegistry";
@@ -76,7 +98,6 @@ export interface HitAndRunConfig {
   seed?: number;
   gameOptions?: Record<string, unknown>;
   levelData?: { templates: SegmentTemplate[]; grammar: string[] };
-  theme?: Theme | string;
 }
 
 export type HitAndRunBlueprintMap = Record<
@@ -97,6 +118,7 @@ function registerHitRunRenderers(
   renderer.registerShape("hopper", drawHitRunHopper);
   renderer.registerShape("charger", drawHitRunCharger);
   renderer.registerShape("elite", drawHitRunElite);
+  renderer.registerShape("samurai", drawHitRunSamuraiFallback);
 
   renderer.registerShape("bullet_hmg", drawHitRunBullet);
   renderer.registerShape("bullet_shotgun", drawHitRunBullet);
@@ -105,9 +127,16 @@ function registerHitRunRenderers(
   renderer.registerShape("arrow", drawHitRunBullet);
   renderer.registerShape("bolt", drawHitRunBullet);
   renderer.registerShape("fireball", drawHitRunBullet);
+
+  renderer.registerShape("tilemap", drawHitRunMonoTilemap);
+  renderer.registerShape("fragment", drawHitRunMonoFragment);
+  renderer.registerShape("core", drawHitRunMonoCore);
+
+  SpriteRegistry.init();
+  renderer.registerShape(LANCERO_SHAPE, drawLanceroSpriteCanvas);
 }
 
-export class HitAndRunGame extends PlatformerArcadeGame<
+export class HitAndRunGame extends BaseGame<
   HitAndRunGameState,
   HitAndRunInput,
   CoreComponentRegistry,
@@ -118,68 +147,49 @@ export class HitAndRunGame extends PlatformerArcadeGame<
   private gameOver = false;
   private levelPlan!: LevelPlan;
   private customLevelData?: { templates: SegmentTemplate[]; grammar: string[] };
+  private readonly samuraiAssetLoader: AssetLoader;
 
   constructor(config: HitAndRunConfig = {}) {
+    const seed = (config.gameOptions?.seed as number) || config.seed;
     super({
-      pauseKey: "KeyP",
-      restartKey: "KeyR",
-      gameOptions: config.gameOptions,
-      seed: config.seed,
-      theme: typeof config.theme === "object" ? config.theme : createThemeFromGameAccents("hitandrun"),
-      audio: new WebAudioPlayer()
+      isMultiplayer: false,
+      headless: false,
+      theme: createThemeFromGameAccents("hitandrun"),
+      gameOptions: { ...config.gameOptions, seed },
+      audio: new WebAudioPlayer(),
     });
-    this.customLevelData =
-      config.levelData ??
-      (config.gameOptions?.levelData as
-        | { templates: SegmentTemplate[]; grammar: string[] }
-        | undefined);
-
-    const themeStr = typeof config.theme === "string" ? config.theme : (config.gameOptions?.theme as string | undefined);
-    const activeThemeId = resolveThemeIdFromConfig(themeStr);
-    ThemeRegistry.setActiveTheme(activeThemeId);
+    this.samuraiAssetLoader = new AssetLoader();
+    this.customLevelData = config.levelData;
   }
 
   public override update(dt: number): void {
     storePreviousTransforms(this.world);
-    this.gameOver = this.checkRunProgressGameOver(dt, this.gameOver);
-    this.world.update(dt);
+    this.runDeterministicStep(dt);
   }
 
   protected override async onPreloadAssets(): Promise<void> {
     if (this.audio) {
-      try {
-        await preloadSharedAudioWithTimeout(this.audio, 2000);
-      } catch (e) {
-        console.warn("[HitAndRunGame] Audio preloading failed or timed out:", e);
-      }
+      await preloadSharedAudioWithTimeout(this.audio);
     }
-  }
-
-  private installProceduralBackdrop(viewportWidth: number, viewportHeight: number): void {
-    const seed = this.getSeed() || 41873;
-    const spec = generateBackdrop({
-      seed,
-      viewportWidth,
-      viewportHeight,
-      chunkWidth: viewportWidth,
-      quality: "high",
-      fantasyDensity: 1.0,
-      theme: HIT_RUN_BACKDROP_THEME,
-      playfieldMask: {
-        enabled: true,
-        x: 0,
-        y: viewportHeight * 0.4,
-        width: viewportWidth,
-        height: viewportHeight * 0.6,
-        opacity: 0.22,
-        colorToken: "#000000"
-      }
-    });
-    this.world.setResource(HIT_RUN_BACKDROP_RESOURCE, spec);
   }
 
   protected override async onRegisterSystems(): Promise<void> {
     await super.onRegisterSystems();
+
+    this.setupCommonArcadeResources();
+    this.world.deleteResource("IsPaused");
+
+    const runState: RunState = {
+      attempt: 1,
+      lives: 3,
+      activeCheckpoint: null,
+      elapsedTime: 0,
+      deaths: 0,
+      collectedPermanentIds: [],
+      collectedTemporalIds: []
+    };
+    this.world.setResource("RunState", runState);
+    this.world.setResource("AudioPlayer", this.audio);
 
     registerBeltSystems(this.world);
     registerHitRunAI(this.world);
@@ -199,6 +209,7 @@ export class HitAndRunGame extends PlatformerArcadeGame<
     });
 
     registerPresentationSystems(this.world);
+    registerHitRunSamuraiAnimationSystems(this.world);
   }
 
   public getLevelPlan(): LevelPlan {
@@ -208,6 +219,9 @@ export class HitAndRunGame extends PlatformerArcadeGame<
   protected override async onInitializeEntities(): Promise<void> {
     runWithUnlockedRandomAndMutators(this.world, this._config.gameOptions, () => {
       registerBeltPlayerBlueprint(this.blueprints);
+      registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_HIT_AND_RUN_CONFIG);
+      registerStandardPlatformerCollectibles(this.blueprints);
+      console.info("[HitAndRun/diag] Registered blueprints: tilemap, collectible_fragment, collectible_core");
 
       this.levelPlan = generateAndInstantiatePlatformerLevel(
         this.world,
@@ -241,10 +255,6 @@ export class HitAndRunGame extends PlatformerArcadeGame<
       const gameConfig = this.world.getResource<{ viewportWidth?: number; viewportHeight?: number }>("GameConfig");
       this.installProceduralBackdrop(gameConfig?.viewportWidth ?? 800, gameConfig?.viewportHeight ?? 600);
 
-      if (this.world.getResource("DeathPlaneY") !== undefined) {
-        this.world.setResource("DeathPlaneY", Number.POSITIVE_INFINITY);
-      }
-
       this.world.flush();
     });
   }
@@ -263,6 +273,21 @@ export class HitAndRunGame extends PlatformerArcadeGame<
           "[HitAndRunGame] Skia: using canvas-compatible drawers (Phase 4 parity)."
         );
       }
+    }
+  }
+
+  private installProceduralBackdrop(viewportWidth: number, viewportHeight: number): void {
+    try {
+      const backdrop = generateBackdrop({
+        viewportWidth,
+        viewportHeight,
+        theme: HIT_RUN_BACKDROP_THEME,
+        seed: this.getSeed() || 41873,
+      });
+      this.world.setResource(HIT_RUN_BACKDROP_RESOURCE, backdrop);
+      this.world.setResource("BackgroundEffect", "hit_run_procedural_backdrop");
+    } catch (err) {
+      console.warn("[HitAndRunGame] Failed to install procedural backdrop", err);
     }
   }
 

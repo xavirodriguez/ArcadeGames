@@ -1,0 +1,934 @@
+{
+  "schema_version": 1,
+  "art_direction_brief": "docs/hitandrun/sumi-e/ART_DIRECTION_BRIEF.md",
+  "audit": "docs/hitandrun/sumi-e/ASSET_AUDIT.md",
+  "target_board": "docs/hitandrun/sumi-e/target-board.svg",
+  "prompt_card": "docs/hitandrun/sumi-e/PROMPT_CARD.md",
+  "game": "hitandrun",
+  "theme": "sumi-e",
+  "status_summary": {
+    "approved": 0,
+    "pilot": 2,
+    "legacy_rejected_for_theme": 1,
+    "planned": 9,
+    "code_native": 12,
+    "blocked": 0
+  },
+  "blockers": [
+    "Fonts Yuji Boku / Noto Serif JP are not loaded with expo-font.",
+    "The samurai sprite uses a fixed assetKey and bypasses the theme.",
+    "The React HUD still uses neon tokens and does not share Sumi-e tokens."
+  ],
+  "technical_contract": {
+    "engine": "TinyAster ECS",
+    "renderers": ["Canvas2D (web)", "Skia (native)"],
+    "logical_viewport": { "width": 800, "height": 600, "aspect": "4:3" },
+    "orientation": "landscape",
+    "character_cell": { "width": 64, "height": 64 },
+    "character_atlas": { "width": 512, "height": 320, "columns": 8, "rows": 5, "frames": 40 },
+    "anchor": { "x": 0.5, "y": 0.94, "description": "feet bottom-center" },
+    "frame_ranges": {
+      "idle": [0, 7],
+      "walk": [8, 15],
+      "attack": [16, 23],
+      "hurt": [24, 29],
+      "empty": [30, 31],
+      "death": [32, 39]
+    },
+    "format": "PNG-32 RGBA8888",
+    "alpha": "straight (not premultiplied)",
+    "color_space": "sRGB",
+    "filtering": "linear",
+    "facing": "right; renderer flips X",
+    "safe_area_px": 2,
+    "max_colors_per_character": 8,
+    "file_budget_kb": { "min": 60, "max": 120 },
+    "naming": {
+      "characters": "src/games/hitandrun/assets/themes/sumi-e/characters/<id>.png",
+      "enemies": "src/games/hitandrun/assets/themes/sumi-e/enemies/<id>.png",
+      "projectiles": "src/games/hitandrun/assets/themes/sumi-e/projectiles/<id>.png",
+      "props": "src/games/hitandrun/assets/themes/sumi-e/props/<id>.png",
+      "textures": "src/games/hitandrun/assets/themes/sumi-e/textures/<id>.png",
+      "fonts": "assets/fonts/<Family>-<Weight>.ttf"
+    }
+  },
+  "families": [
+    {
+      "id": "characters",
+      "shared_visual_locks": [
+        "palette",
+        "silhouette",
+        "proportions",
+        "facing",
+        "light-direction",
+        "feet-baseline",
+        "brush-edge",
+        "frame-map"
+      ],
+      "assets": [
+        "character-player-ronin",
+        "character-enemy-samurai",
+        "character-enemy-elite-blue-oni",
+        "character-enemy-charger-red-oni",
+        "character-enemy-wall-trooper",
+        "character-enemy-hopper-tengu",
+        "character-enemy-popcorn-imp"
+      ]
+    },
+    {
+      "id": "ui",
+      "shared_visual_locks": ["palette", "typography", "seal-rotation", "paper-negative-space"],
+      "assets": ["hud-hanko", "hud-ink-pots", "hud-score-stamp"]
+    },
+    {
+      "id": "background",
+      "shared_visual_locks": ["palette", "layer-opacity", "parallax-depth", "paper-grain"],
+      "assets": ["background-paper-grain", "background-mountain-layers", "background-torii"]
+    },
+    {
+      "id": "vfx",
+      "shared_visual_locks": ["palette", "deterministic-rng", "decal-budget", "reduced-motion"],
+      "assets": ["vfx-ink-splatter", "vfx-slash-arc", "vfx-kanji-popup"]
+    },
+    {
+      "id": "projectiles",
+      "shared_visual_locks": ["palette", "readable-at-small-size", "no-neon-glow", "ink-trail"],
+      "assets": ["projectile-ofuda", "projectile-rocket", "projectile-enemy-needle"]
+    },
+    {
+      "id": "pickups",
+      "shared_visual_locks": ["palette", "paper-roll", "red-seal"],
+      "assets": ["pickup-weapon-scroll"]
+    },
+    {
+      "id": "fonts",
+      "shared_visual_locks": ["ofl-1.1", "japanese-glyphs", "legibility-at-small-size"],
+      "assets": ["font-yuji-boku", "font-noto-serif-jp"]
+    },
+    {
+      "id": "audio",
+      "shared_visual_locks": ["deterministic-recipes", "arcade-sound-kit"],
+      "assets": ["audio-sumi-e-pack"]
+    },
+    {
+      "id": "legacy",
+      "shared_visual_locks": ["do-not-use-for-sumi-e", "fantasy-only"],
+      "assets": ["legacy-samurai-atlas"]
+    }
+  ],
+  "tools": [
+    {
+      "id": "generate-samurai-sumi-e",
+      "path": "docs/hitandrun/sumi-e/tools/generate_samurai_sumi_e.py",
+      "role": "Deterministic procedural generator for the samurai pilot atlas.",
+      "status": "pilot"
+    },
+    {
+      "id": "asset-report-sumi-e",
+      "path": "docs/hitandrun/sumi-e/tools/asset_report_sumie.py",
+      "role": "Sumi-e QA: palette swatches, accent ratio, safe area, soft alpha.",
+      "status": "pilot"
+    }
+  ],
+  "references": [
+    {
+      "id": "reference-samurai-main-char2",
+      "path": "docs/hitandrun/sumi-e/reference/samurai-main-char2-alpha.png",
+      "provenance": "docs/hitandrun/sumi-e/reference/samurai-main-char2.provenance.md",
+      "verification": "docs/hitandrun/sumi-e/reference/samurai-main-char2-alpha-verify.jpg",
+      "status": "reference",
+      "shippable": false,
+      "blockers": [
+        "Unknown generator, prompt and license.",
+        "Checkerboard keying leaks visible in the verification image.",
+        "Poses fused with VFX; no consistent grid or scale."
+      ],
+      "notes": "Style/key-pose reference only. Do not crop into the 64x64 atlas."
+    }
+  ],
+  "assets": [
+    {
+      "id": "legacy-samurai-atlas",
+      "role": "Existing neon/pixel samurai atlas. NOT Sumi-e; kept for the fantasy theme.",
+      "path": "src/games/hitandrun/assets/samurai-enemy.png",
+      "status": "legacy",
+      "technical": {
+        "dimensions": "512x320",
+        "cell": "64x64",
+        "grid": "8x5",
+        "frames": 40,
+        "alpha": true,
+        "alpha_mode": "binary (1 transparent palette index)",
+        "format": "PNG-8 indexed, 24 colors",
+        "anchor": "bottom-center (0.5, 0.94)",
+        "filtering": "linear",
+        "color_space": "sRGB"
+      },
+      "visual_locks": [],
+      "source": {
+        "kind": "bundled-existing",
+        "url_or_tool": "git commit 8c124576",
+        "creator": "unknown",
+        "created_at": "2026-10-25",
+        "license": "unknown — verify before shipping",
+        "attribution": "none documented",
+        "prompt_or_source_record": "src/games/hitandrun/assets/samurai-enemy.atlas.json"
+      },
+      "verification": {
+        "native_scale_reviewed": false,
+        "in_engine_reviewed": false,
+        "technical_checks_passed": false,
+        "approved_by": "",
+        "notes": "Atlas inspected at 1:1 in isolation, not in-game. Fails Sumi-e palette, edge, alpha and lighting rules. Do not use as Sumi-e art."
+      }
+    },
+    {
+      "id": "character-player-ronin",
+      "role": "Player character: ronin with kasa hat, short coat and long matchlock rifle. PILOT asset for the Sumi-e family (wiring not implemented).",
+      "path": "src/games/hitandrun/assets/themes/sumi-e/characters/player.png",
+      "status": "pilot",
+      "visual_ids": ["player"],
+      "technical": {
+        "dimensions": "512x320",
+        "cell": "64x64",
+        "grid": "8x5",
+        "frames": 40,
+        "alpha": true,
+        "alpha_mode": "straight (continuous ramp 4..255, soft brush edges)",
+        "measured": {
+          "bytes": 30993,
+          "distinct_rgb_swatches": 7,
+          "off_palette_pixels": 0,
+          "pure_black_or_white_fills": 0,
+          "accent_ratio_of_painted_px_alpha_ge_128": "2.78% (<= 5%)",
+          "safe_area": "PASS - all 40 cells within the 2px margin",
+          "sha256": "7381293b7a5cdb21c458309ab02762a54acae544043139a42b8fd518b19c8742"
+        },
+        "format": "PNG-32 RGBA8888",
+        "anchor": "bottom-center (0.5, 0.94)",
+        "filtering": "linear",
+        "color_space": "sRGB",
+        "display_size": "64x64",
+        "frame_ranges": { "idle": [0, 7], "walk": [8, 15], "attack": [16, 23], "hurt": [24, 29], "empty": [30, 31], "death": [32, 39] }
+      },
+      "visual_locks": ["kasa-hat-silhouette", "rifle-diagonal-longer-than-torso", "coat-hem", "paper-negative-space", "right-facing", "feet-baseline"],
+      "source": {
+        "kind": "procedural-generated",
+        "url_or_tool": "docs/hitandrun/sumi-e/tools/generate_player_sumi_e.py (deterministic, seeded hashes)",
+        "creator": "project (deterministic generator; re-runs reproduce identical bytes)",
+        "created_at": "2026-10-25",
+        "license": "MIT (repository)",
+        "attribution": "Palette and shape rules from docs/hitandrun/sumi-e/ART_DIRECTION_BRIEF.md; key poses informed by the non-shippable reference samurai-main-char2",
+        "prompt_or_source_record": "docs/hitandrun/sumi-e/reference/player-pilot.provenance.md"
+      },
+      "readability": {
+        "paper": "pass",
+        "grayscale": "pass",
+        "solid_ink_stress": "fail - black mass disappears; accents only",
+        "evidence": "docs/hitandrun/sumi-e/player-readability.png",
+        "action": "same runtime paper-keyline decision as the samurai pilot; do not add a white outline to the atlas"
+      },
+      "verification": {
+        "native_scale_reviewed": true,
+        "in_engine_reviewed": false,
+        "technical_checks_passed": true,
+        "approved_by": "",
+        "notes": "Pilot only. Paper and grayscale pass; solid-ink stress test fails. Wiring (assetKey per theme) and in-engine review pending."
+      }
+    },
+    {
+      "id": "character-enemy-samurai",
+      "role": "Enemy samurai with katana. Theme-aware replacement for the legacy atlas. PILOT asset for the Sumi-e family.",
+      "path": "src/games/hitandrun/assets/themes/sumi-e/enemies/samurai.png",
+      "status": "pilot",
+      "visual_ids": ["samurai"],
+      "technical": {
+        "dimensions": "512x320",
+        "cell": "64x64",
+        "grid": "8x5",
+        "frames": 40,
+        "alpha": true,
+        "alpha_mode": "straight (continuous ramp 4..255, soft brush edges)",
+        "format": "PNG-32 RGBA8888",
+        "anchor": "bottom-center (0.5, 0.94)",
+        "filtering": "linear",
+        "color_space": "sRGB",
+        "display_size": "64x64",
+        "measured": {
+          "bytes": 34042,
+          "distinct_rgb_swatches": 7,
+          "off_palette_pixels": 0,
+          "pure_black_or_white_fills": 0,
+          "accent_ratio_of_painted_px_alpha_ge_128": "4.31% (<= 5%)",
+          "safe_area": "PASS - all 40 cells within the 2px margin"
+        }
+      },
+      "visual_locks": ["helmet-silhouette", "katana-arc", "vertical-mass", "right-facing", "feet-baseline"],
+      "source": {
+        "kind": "procedural-generated",
+        "url_or_tool": "docs/hitandrun/sumi-e/tools/generate_samurai_sumi_e.py (deterministic, seeded hashes)",
+        "creator": "project (deterministic generator; re-runs reproduce identical bytes)",
+        "created_at": "2026-10-25",
+        "license": "MIT (repository)",
+        "attribution": "Palette and shape rules from docs/hitandrun/sumi-e/ART_DIRECTION_BRIEF.md",
+        "prompt_or_source_record": "QA: docs/hitandrun/sumi-e/tools/asset_report_sumie.py"
+      },
+      "readability": {
+        "paper": "pass",
+        "grayscale": "pass",
+        "solid_ink_stress": "fail - black mass disappears; accents only",
+        "evidence": "docs/hitandrun/sumi-e/atlas-readability.png",
+        "action": "runtime paper keyline when background luminance is low, or restrict the pilot to paper zones; do not add a white outline to the atlas"
+      },
+      "verification": {
+        "native_scale_reviewed": true,
+        "in_engine_reviewed": false,
+        "technical_checks_passed": true,
+        "approved_by": "",
+        "notes": "Pilot only. Paper and grayscale pass; solid-ink stress test fails. In-engine review pending."
+      }
+    },
+    {
+      "id": "character-enemy-elite-blue-oni",
+      "role": "Elite enemy: blue oni with horns and club. Maps to visualId elite.",
+      "path": "src/games/hitandrun/assets/themes/sumi-e/enemies/elite_blue_oni.png",
+      "status": "planned",
+      "visual_ids": ["elite"],
+      "technical": {
+        "dimensions": "512x320",
+        "cell": "64x64",
+        "grid": "8x5",
+        "frames": 40,
+        "alpha": true,
+        "alpha_mode": "straight",
+        "format": "PNG-32 RGBA8888",
+        "anchor": "bottom-center (0.5, 0.94)",
+        "filtering": "linear",
+        "color_space": "sRGB",
+        "display_size": "64x64"
+      },
+      "visual_locks": ["horns-above-shoulders", "broad-shoulders", "club-silhouette", "oni-blue", "right-facing"],
+      "source": {
+        "kind": "planned-generated-or-authored",
+        "url_or_tool": "",
+        "creator": "TBD",
+        "created_at": "",
+        "license": "TBD",
+        "attribution": "",
+        "prompt_or_source_record": "docs/hitandrun/sumi-e/ART_DIRECTION_BRIEF.md §2 and §6"
+      },
+      "verification": {
+        "native_scale_reviewed": false,
+        "in_engine_reviewed": false,
+        "technical_checks_passed": false,
+        "approved_by": ""
+      }
+    },
+    {
+      "id": "character-enemy-charger-red-oni",
+      "role": "Charger enemy: red oni with katana. Maps to visualId charger.",
+      "path": "src/games/hitandrun/assets/themes/sumi-e/enemies/charger_red_oni.png",
+      "status": "planned",
+      "visual_ids": ["charger"],
+      "technical": {
+        "dimensions": "512x320",
+        "cell": "64x64",
+        "grid": "8x5",
+        "frames": 40,
+        "alpha": true,
+        "alpha_mode": "straight",
+        "format": "PNG-32 RGBA8888",
+        "anchor": "bottom-center (0.5, 0.94)",
+        "filtering": "linear",
+        "color_space": "sRGB",
+        "display_size": "64x64"
+      },
+      "visual_locks": ["forward-lean", "katana-arc", "horns", "oni-red", "right-facing"],
+      "source": {
+        "kind": "planned-generated-or-authored",
+        "url_or_tool": "",
+        "creator": "TBD",
+        "created_at": "",
+        "license": "TBD",
+        "attribution": "",
+        "prompt_or_source_record": "docs/hitandrun/sumi-e/ART_DIRECTION_BRIEF.md §2 and §6"
+      },
+      "verification": {
+        "native_scale_reviewed": false,
+        "in_engine_reviewed": false,
+        "technical_checks_passed": false,
+        "approved_by": ""
+      }
+    },
+    {
+      "id": "character-enemy-wall-trooper",
+      "role": "Armored ashigaru with spear and shield. Maps to visualId wall_trooper.",
+      "path": "src/games/hitandrun/assets/themes/sumi-e/enemies/wall_trooper.png",
+      "status": "planned",
+      "visual_ids": ["wall_trooper"],
+      "technical": {
+        "dimensions": "512x320",
+        "cell": "64x64",
+        "grid": "8x5",
+        "frames": 40,
+        "alpha": true,
+        "alpha_mode": "straight",
+        "format": "PNG-32 RGBA8888",
+        "anchor": "bottom-center (0.5, 0.94)",
+        "filtering": "linear",
+        "color_space": "sRGB",
+        "display_size": "64x64"
+      },
+      "visual_locks": ["spear-crosses-contour", "helmet", "shield-mass", "ink-only", "right-facing"],
+      "source": {
+        "kind": "planned-generated-or-authored",
+        "url_or_tool": "",
+        "creator": "TBD",
+        "created_at": "",
+        "license": "TBD",
+        "attribution": "",
+        "prompt_or_source_record": "docs/hitandrun/sumi-e/ART_DIRECTION_BRIEF.md §2 and §6"
+      },
+      "verification": {
+        "native_scale_reviewed": false,
+        "in_engine_reviewed": false,
+        "technical_checks_passed": false,
+        "approved_by": ""
+      }
+    },
+    {
+      "id": "character-enemy-hopper-tengu",
+      "role": "Hopping tengu with wings and scarf. Maps to visualId hopper.",
+      "path": "src/games/hitandrun/assets/themes/sumi-e/enemies/hopper_tengu.png",
+      "status": "planned",
+      "visual_ids": ["hopper"],
+      "technical": {
+        "dimensions": "512x320",
+        "cell": "64x64",
+        "grid": "8x5",
+        "frames": 40,
+        "alpha": true,
+        "alpha_mode": "straight",
+        "format": "PNG-32 RGBA8888",
+        "anchor": "bottom-center (0.5, 0.94)",
+        "filtering": "linear",
+        "color_space": "sRGB",
+        "display_size": "64x64"
+      },
+      "visual_locks": ["wing-negative-space", "beak-silhouette", "scarf-trail", "airborne-pose", "right-facing"],
+      "source": {
+        "kind": "planned-generated-or-authored",
+        "url_or_tool": "",
+        "creator": "TBD",
+        "created_at": "",
+        "license": "TBD",
+        "attribution": "",
+        "prompt_or_source_record": "docs/hitandrun/sumi-e/ART_DIRECTION_BRIEF.md §2 and §6"
+      },
+      "verification": {
+        "native_scale_reviewed": false,
+        "in_engine_reviewed": false,
+        "technical_checks_passed": false,
+        "approved_by": ""
+      }
+    },
+    {
+      "id": "character-enemy-popcorn-imp",
+      "role": "Small imp enemy. Maps to visualId popcorn.",
+      "path": "src/games/hitandrun/assets/themes/sumi-e/enemies/popcorn_imp.png",
+      "status": "planned",
+      "visual_ids": ["popcorn"],
+      "technical": {
+        "dimensions": "512x320",
+        "cell": "64x64",
+        "grid": "8x5",
+        "frames": 40,
+        "alpha": true,
+        "alpha_mode": "straight",
+        "format": "PNG-32 RGBA8888",
+        "anchor": "bottom-center (0.5, 0.94)",
+        "filtering": "linear",
+        "color_space": "sRGB",
+        "display_size": "64x64"
+      },
+      "visual_locks": ["oversized-head", "small-body", "ink-splatter-hands", "right-facing"],
+      "source": {
+        "kind": "planned-generated-or-authored",
+        "url_or_tool": "",
+        "creator": "TBD",
+        "created_at": "",
+        "license": "TBD",
+        "attribution": "",
+        "prompt_or_source_record": "docs/hitandrun/sumi-e/ART_DIRECTION_BRIEF.md §2 and §6"
+      },
+      "verification": {
+        "native_scale_reviewed": false,
+        "in_engine_reviewed": false,
+        "technical_checks_passed": false,
+        "approved_by": ""
+      }
+    },
+    {
+      "id": "projectile-ofuda",
+      "role": "Player projectile: paper talisman with calligraphy and gold halo.",
+      "path": "",
+      "status": "code-native",
+      "visual_ids": ["bullet_hmg", "bullet_shotgun", "arrow", "bolt"],
+      "technical": {
+        "dimensions": "n/a (procedural)",
+        "alpha": true,
+        "filtering": "n/a",
+        "notes": "Current SumiETheme renders a gold rectangle with a red seal; keep procedural until profiling justifies a raster."
+      },
+      "visual_locks": ["paper-gold", "red-seal", "no-neon-glow"],
+      "source": {
+        "kind": "code-native",
+        "url_or_tool": "src/games/hitandrun/rendering/theme/sumi-e/SumiETheme.ts",
+        "creator": "project",
+        "created_at": "2026-10-25",
+        "license": "MIT (repository)",
+        "attribution": "",
+        "prompt_or_source_record": ""
+      },
+      "verification": {
+        "native_scale_reviewed": false,
+        "in_engine_reviewed": false,
+        "technical_checks_passed": false,
+        "approved_by": ""
+      }
+    },
+    {
+      "id": "projectile-rocket",
+      "role": "Heavy projectile: burning scroll or ink bolt.",
+      "path": "",
+      "status": "code-native",
+      "visual_ids": ["bullet_rocket", "fireball"],
+      "technical": {
+        "dimensions": "n/a (procedural)",
+        "alpha": true,
+        "filtering": "n/a"
+      },
+      "visual_locks": ["ink-trail", "vermilion-tip", "no-neon-glow"],
+      "source": {
+        "kind": "code-native",
+        "url_or_tool": "src/games/hitandrun/rendering/theme/sumi-e/SumiETheme.ts",
+        "creator": "project",
+        "created_at": "2026-10-25",
+        "license": "MIT (repository)",
+        "attribution": "",
+        "prompt_or_source_record": ""
+      },
+      "verification": {
+        "native_scale_reviewed": false,
+        "in_engine_reviewed": false,
+        "technical_checks_passed": false,
+        "approved_by": ""
+      }
+    },
+    {
+      "id": "projectile-enemy-needle",
+      "role": "Enemy projectile: thin ink needle.",
+      "path": "",
+      "status": "code-native",
+      "visual_ids": ["enemy_bullet"],
+      "technical": {
+        "dimensions": "n/a (procedural)",
+        "alpha": true,
+        "filtering": "n/a"
+      },
+      "visual_locks": ["ink-only", "readable-at-4px", "no-glow"],
+      "source": {
+        "kind": "code-native",
+        "url_or_tool": "src/games/hitandrun/rendering/theme/sumi-e/SumiETheme.ts",
+        "creator": "project",
+        "created_at": "2026-10-25",
+        "license": "MIT (repository)",
+        "attribution": "",
+        "prompt_or_source_record": ""
+      },
+      "verification": {
+        "native_scale_reviewed": false,
+        "in_engine_reviewed": false,
+        "technical_checks_passed": false,
+        "approved_by": ""
+      }
+    },
+    {
+      "id": "pickup-weapon-scroll",
+      "role": "Weapon pickup: rolled scroll with a seal.",
+      "path": "",
+      "status": "code-native",
+      "visual_ids": ["pickup_weapon"],
+      "technical": {
+        "dimensions": "n/a (procedural)",
+        "alpha": true,
+        "filtering": "n/a"
+      },
+      "visual_locks": ["paper-roll", "red-seal", "gold-band"],
+      "source": {
+        "kind": "code-native",
+        "url_or_tool": "src/games/hitandrun/rendering/theme/sumi-e/SumiETheme.ts",
+        "creator": "project",
+        "created_at": "2026-10-25",
+        "license": "MIT (repository)",
+        "attribution": "",
+        "prompt_or_source_record": ""
+      },
+      "verification": {
+        "native_scale_reviewed": false,
+        "in_engine_reviewed": false,
+        "technical_checks_passed": false,
+        "approved_by": ""
+      }
+    },
+    {
+      "id": "hud-hanko",
+      "role": "Red seal stamp for lives, score and section banners.",
+      "path": "",
+      "status": "code-native",
+      "technical": {
+        "dimensions": "n/a (vector/canvas)",
+        "alpha": true,
+        "notes": "Implement as React Native/SVG for HUD and as canvas primitive for in-game HUD."
+      },
+      "visual_locks": ["vermilion", "slight-rotation", "thick-border", "inner-shadow", "paper-negative-space"],
+      "source": {
+        "kind": "code-native",
+        "url_or_tool": "src/games/hitandrun/rendering/theme/sumi-e/SumiETheme.ts",
+        "creator": "project",
+        "created_at": "2026-10-25",
+        "license": "MIT (repository)",
+        "attribution": "",
+        "prompt_or_source_record": ""
+      },
+      "verification": {
+        "native_scale_reviewed": false,
+        "in_engine_reviewed": false,
+        "technical_checks_passed": false,
+        "approved_by": ""
+      }
+    },
+    {
+      "id": "hud-ink-pots",
+      "role": "Health display: ink pots that empty as HP drops.",
+      "path": "",
+      "status": "code-native",
+      "technical": {
+        "dimensions": "n/a (vector/canvas)",
+        "alpha": true
+      },
+      "visual_locks": ["ink-fill", "paper-empty-state", "consistent-size"],
+      "source": {
+        "kind": "code-native",
+        "url_or_tool": "src/games/hitandrun/rendering/theme/sumi-e/SumiETheme.ts",
+        "creator": "project",
+        "created_at": "2026-10-25",
+        "license": "MIT (repository)",
+        "attribution": "",
+        "prompt_or_source_record": ""
+      },
+      "verification": {
+        "native_scale_reviewed": false,
+        "in_engine_reviewed": false,
+        "technical_checks_passed": false,
+        "approved_by": ""
+      }
+    },
+    {
+      "id": "hud-score-stamp",
+      "role": "Score panel styled as a stamped seal.",
+      "path": "",
+      "status": "code-native",
+      "technical": {
+        "dimensions": "n/a (vector/canvas)",
+        "alpha": true
+      },
+      "visual_locks": ["vermilion-border", "ink-digits", "slight-rotation"],
+      "source": {
+        "kind": "code-native",
+        "url_or_tool": "src/games/hitandrun/rendering/theme/sumi-e/SumiETheme.ts",
+        "creator": "project",
+        "created_at": "2026-10-25",
+        "license": "MIT (repository)",
+        "attribution": "",
+        "prompt_or_source_record": ""
+      },
+      "verification": {
+        "native_scale_reviewed": false,
+        "in_engine_reviewed": false,
+        "technical_checks_passed": false,
+        "approved_by": ""
+      }
+    },
+    {
+      "id": "font-yuji-boku",
+      "role": "Display calligraphy font for titles, banners and kanji.",
+      "path": "assets/fonts/YujiBoku-Regular.ttf",
+      "status": "planned",
+      "technical": {
+        "dimensions": "n/a (font)",
+        "format": "TTF",
+        "notes": "Load with expo-font; fallback to serif."
+      },
+      "visual_locks": ["calligraphic-brush", "vertical-strokes", "high-contrast"],
+      "source": {
+        "kind": "third-party",
+        "url_or_tool": "https://github.com/google/fonts/tree/main/ofl/yujiboku",
+        "creator": "The Yuji Project Authors",
+        "created_at": "2021",
+        "license": "SIL Open Font License 1.1",
+        "attribution": "Copyright 2021 The Yuji Project Authors",
+        "prompt_or_source_record": "https://raw.githubusercontent.com/google/fonts/main/ofl/yujiboku/OFL.txt"
+      },
+      "verification": {
+        "native_scale_reviewed": false,
+        "in_engine_reviewed": false,
+        "technical_checks_passed": false,
+        "approved_by": ""
+      }
+    },
+    {
+      "id": "font-noto-serif-jp",
+      "role": "Body and kanji font for HUD labels and dialogue.",
+      "path": "assets/fonts/NotoSerifJP-Regular.otf",
+      "status": "planned",
+      "technical": {
+        "dimensions": "n/a (font)",
+        "format": "OTF/TTF",
+        "notes": "Load with expo-font; fallback to serif."
+      },
+      "visual_locks": ["serif", "japanese-glyphs", "legible-at-10px"],
+      "source": {
+        "kind": "third-party",
+        "url_or_tool": "https://github.com/google/fonts/tree/main/ofl/notoserifjp",
+        "creator": "Google Inc.",
+        "created_at": "2012",
+        "license": "SIL Open Font License 1.1",
+        "attribution": "Copyright 2012 Google Inc.",
+        "prompt_or_source_record": "https://raw.githubusercontent.com/google/fonts/main/ofl/notoserifjp/OFL.txt"
+      },
+      "verification": {
+        "native_scale_reviewed": false,
+        "in_engine_reviewed": false,
+        "technical_checks_passed": false,
+        "approved_by": ""
+      }
+    },
+    {
+      "id": "background-paper-grain",
+      "role": "Washi paper grain and vignette.",
+      "path": "",
+      "status": "code-native",
+      "technical": {
+        "dimensions": "256x256 seamless tile (recommended) or cached 1024x1024 offscreen",
+        "alpha": false,
+        "format": "procedural or PNG-24",
+        "notes": "Do not generate full-screen noise on every resize."
+      },
+      "visual_locks": ["paper-base", "subtle-grain", "warm-vignette", "no-digital-flatness"],
+      "source": {
+        "kind": "code-native",
+        "url_or_tool": "src/games/hitandrun/rendering/theme/sumi-e/SumiETheme.ts",
+        "creator": "project",
+        "created_at": "2026-10-25",
+        "license": "MIT (repository)",
+        "attribution": "",
+        "prompt_or_source_record": ""
+      },
+      "verification": {
+        "native_scale_reviewed": false,
+        "in_engine_reviewed": false,
+        "technical_checks_passed": false,
+        "approved_by": ""
+      }
+    },
+    {
+      "id": "background-mountain-layers",
+      "role": "Parallax ink-wash mountains and fog.",
+      "path": "",
+      "status": "code-native",
+      "technical": {
+        "dimensions": "n/a (procedural)",
+        "alpha": true,
+        "notes": "3-5 layers with decreasing opacity; use quadraticCurveTo."
+      },
+      "visual_locks": ["ink-wash", "parallax-depth", "no-hard-outline", "paper-negative-space"],
+      "source": {
+        "kind": "code-native",
+        "url_or_tool": "src/games/hitandrun/rendering/theme/sumi-e/SumiETheme.ts",
+        "creator": "project",
+        "created_at": "2026-10-25",
+        "license": "MIT (repository)",
+        "attribution": "",
+        "prompt_or_source_record": ""
+      },
+      "verification": {
+        "native_scale_reviewed": false,
+        "in_engine_reviewed": false,
+        "technical_checks_passed": false,
+        "approved_by": ""
+      }
+    },
+    {
+      "id": "background-torii",
+      "role": "Foreground/midground torii gate silhouette.",
+      "path": "src/games/hitandrun/assets/themes/sumi-e/props/torii.png",
+      "status": "planned",
+      "technical": {
+        "dimensions": "256x256",
+        "alpha": true,
+        "format": "PNG-32 RGBA8888",
+        "filtering": "linear",
+        "color_space": "sRGB"
+      },
+      "visual_locks": ["vermilion-desaturated", "ink-wood-grain", "no-photo-texture"],
+      "source": {
+        "kind": "planned-generated-or-authored",
+        "url_or_tool": "",
+        "creator": "TBD",
+        "created_at": "",
+        "license": "TBD",
+        "attribution": "",
+        "prompt_or_source_record": "docs/hitandrun/sumi-e/ART_DIRECTION_BRIEF.md §2 and §6"
+      },
+      "verification": {
+        "native_scale_reviewed": false,
+        "in_engine_reviewed": false,
+        "technical_checks_passed": false,
+        "approved_by": ""
+      }
+    },
+    {
+      "id": "vfx-ink-splatter",
+      "role": "Impact decal: persistent ink splatter with satellite drops.",
+      "path": "",
+      "status": "code-native",
+      "technical": {
+        "dimensions": "n/a (procedural)",
+        "alpha": true,
+        "notes": "Ring buffer 32-64 decals; world-space coordinates; deterministic RNG."
+      },
+      "visual_locks": ["ink-only", "satellite-drops", "no-glow", "decal-budget"],
+      "source": {
+        "kind": "code-native",
+        "url_or_tool": "src/games/hitandrun/rendering/theme/sumi-e/SumiETheme.ts",
+        "creator": "project",
+        "created_at": "2026-10-25",
+        "license": "MIT (repository)",
+        "attribution": "",
+        "prompt_or_source_record": ""
+      },
+      "verification": {
+        "native_scale_reviewed": false,
+        "in_engine_reviewed": false,
+        "technical_checks_passed": false,
+        "approved_by": ""
+      }
+    },
+    {
+      "id": "vfx-slash-arc",
+      "role": "Melee slash arc and impact flash.",
+      "path": "",
+      "status": "code-native",
+      "technical": {
+        "dimensions": "n/a (procedural)",
+        "alpha": true,
+        "notes": "Brush arc with tapered ends; no white neon."
+      },
+      "visual_locks": ["tapered-arc", "ink-or-gold", "short-lifetime", "no-neon"],
+      "source": {
+        "kind": "code-native",
+        "url_or_tool": "src/games/hitandrun/rendering/theme/sumi-e/SumiETheme.ts",
+        "creator": "project",
+        "created_at": "2026-10-25",
+        "license": "MIT (repository)",
+        "attribution": "",
+        "prompt_or_source_record": ""
+      },
+      "verification": {
+        "native_scale_reviewed": false,
+        "in_engine_reviewed": false,
+        "technical_checks_passed": false,
+        "approved_by": ""
+      }
+    },
+    {
+      "id": "vfx-kanji-popup",
+      "role": "Floating impact kanji (斬, 轟, 爆).",
+      "path": "",
+      "status": "code-native",
+      "technical": {
+        "dimensions": "n/a (font + procedural)",
+        "alpha": true,
+        "notes": "Object pool; reduceMotion disables vertical drift; use theme font."
+      },
+      "visual_locks": ["vermilion", "brush-font", "short-lifetime", "no-shadow-glow"],
+      "source": {
+        "kind": "code-native",
+        "url_or_tool": "src/games/hitandrun/rendering/theme/sumi-e/SumiETheme.ts",
+        "creator": "project",
+        "created_at": "2026-10-25",
+        "license": "MIT (repository)",
+        "attribution": "",
+        "prompt_or_source_record": ""
+      },
+      "verification": {
+        "native_scale_reviewed": false,
+        "in_engine_reviewed": false,
+        "technical_checks_passed": false,
+        "approved_by": ""
+      }
+    },
+    {
+      "id": "audio-sumi-e-pack",
+      "role": "Procedural audio recipes for shots, hits, explosions and taiko accents.",
+      "path": "",
+      "status": "planned",
+      "technical": {
+        "dimensions": "n/a (recipes)",
+        "format": "arcade-sound-kit recipe",
+        "notes": "Do not add a new Web Audio synth; use @tiny-aster/arcade-sound-kit."
+      },
+      "visual_locks": [],
+      "source": {
+        "kind": "recipe",
+        "url_or_tool": "@tiny-aster/arcade-sound-kit",
+        "creator": "project",
+        "created_at": "",
+        "license": "MIT (repository)",
+        "attribution": "",
+        "prompt_or_source_record": "packages/arcade-sound-kit/src/design/"
+      },
+      "verification": {
+        "native_scale_reviewed": false,
+        "in_engine_reviewed": false,
+        "technical_checks_passed": false,
+        "approved_by": ""
+      }
+    }
+  ],
+  "approval_gates": [
+    "Silhouette readable at 64px and in motion",
+    "Exact 512x320 atlas, 64x64 cells, 40 frames",
+    "Anchor (0.5, 0.94) and stable feet baseline",
+    "PNG-32 with soft alpha; no baked background",
+    "Max 8 colors per character; no neon, pure black or pure white fill",
+    "No text, logos, frames or duplicated objects",
+    "Reviewed in Canvas and Skia",
+    "Reviewed on paper background and on ink wash",
+    "Solid-ink stress test passes, or an approved runtime paper keyline is in place",
+    "Provenance and license recorded",
+    "Reference-only assets are marked shippable:false and never used as atlases",
+    "asset_report_sumie.py passes without errors (palette swatches, accent, safe area, soft alpha)"
+  ],
+  "notes": [
+    "No asset is approved yet. Two pilots (samurai, player) are produced and technically validated; approval requires the user's in-engine review.",
+    "The only wired raster is the legacy neon samurai atlas; it is not Sumi-e.",
+    "SUMI_E_ASSET_MANIFEST.ts is not imported anywhere and its paths do not exist.",
+    "The target board is a proposed greybox, not final art.",
+    "QA environment: Python 3.9.6 + Pillow 11.3.0 (installed via pip --user). asset_report.py counts distinct RGBA tuples, so soft-alpha sprites must be palette-audited with asset_report_sumie.py (RGB swatches), which both pilots pass.",
+    "Both pilots read on paper and grayscale but fail a solid-ink stress test; see atlas-readability.png and player-readability.png. Resolve with a runtime paper keyline or a paper-only constraint.",
+    "The samurai-main-char2 sheet is a reference only: unknown license, checkerboard keying leaks, poses fused with VFX, no consistent grid. Do not crop it into the atlas.",
+    "The player pilot reuses the samurai painter and was derived from the reference key poses only; no reference pixels are sampled."
+  ]
+}

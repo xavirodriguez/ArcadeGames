@@ -154,7 +154,8 @@ export function drawSkiaOrigamiBird(
   canvas: SkCanvas,
   enemyType: "flagship" | "escort" | "emissary" | "drone",
   palette: any,
-  scale: number = 1.0
+  scale: number = 1.0,
+  isDamaged: boolean = false
 ): void {
   if (!Skia) return;
   const paint = getPaint();
@@ -172,9 +173,9 @@ export function drawSkiaOrigamiBird(
     mid = palette.escortMid;
     dark = palette.escortDark;
   } else if (enemyType === "flagship") {
-    light = palette.flagshipLight;
-    mid = palette.flagshipMid;
-    dark = palette.flagshipDark;
+    light = isDamaged ? palette.escortLight : palette.flagshipLight;
+    mid = isDamaged ? palette.escortMid : palette.flagshipMid;
+    dark = isDamaged ? palette.escortDark : palette.flagshipDark;
   }
 
   canvas.save();
@@ -353,7 +354,8 @@ export const drawSkiaGalaxianEnemy: ShapeDrawer<SkCanvas, GalaxianComponentRegis
     }
 
     const baseScale = enemy.enemyType === "flagship" ? 1.25 : 1.0;
-    drawSkiaOrigamiBird(canvas, enemy.enemyType, palette, baseScale);
+    const isDamaged = enemy.enemyType === "flagship" && enemy.hitsRemaining === 1;
+    drawSkiaOrigamiBird(canvas, enemy.enemyType, palette, baseScale, isDamaged);
 
     canvas.restore();
   },

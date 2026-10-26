@@ -54,6 +54,7 @@ export class EnemyFactory {
       state: "in_slot",
       windupTimer: 0,
       shotsFiredInDive: 0,
+      hitsRemaining: enemyType === "flagship" ? 2 : 1,
     } as GalaxianEnemyComponent);
 
     world.addComponent(entity, {

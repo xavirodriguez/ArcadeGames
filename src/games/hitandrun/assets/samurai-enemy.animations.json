@@ -1,0 +1,121 @@
+{
+  "cellSize": 64,
+  "columns": 8,
+  "rows": 5,
+  "anchor": {
+    "x": 0.5,
+    "y": 0.94
+  },
+  "animations": {
+    "idle": {
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "frameRate": 8,
+      "loop": true
+    },
+    "walk": {
+      "frames": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "frameRate": 10,
+      "loop": true
+    },
+    "attack": {
+      "frames": [
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "frameRate": 14,
+      "loop": false
+    },
+    "hurt": {
+      "frames": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29
+      ],
+      "frameRate": 16,
+      "loop": false
+    },
+    "death": {
+      "frames": [
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39
+      ],
+      "frameRate": 10,
+      "loop": false
+    }
+  },
+  "frameOrder": [
+    "idle_00.png",
+    "idle_01.png",
+    "idle_02.png",
+    "idle_03.png",
+    "idle_04.png",
+    "idle_05.png",
+    "idle_06.png",
+    "idle_07.png",
+    "walk_00.png",
+    "walk_01.png",
+    "walk_02.png",
+    "walk_03.png",
+    "walk_04.png",
+    "walk_05.png",
+    "walk_06.png",
+    "walk_07.png",
+    "attack_00.png",
+    "attack_01.png",
+    "attack_02.png",
+    "attack_03.png",
+    "attack_04.png",
+    "attack_05.png",
+    "attack_06.png",
+    "attack_07.png",
+    "hurt_00.png",
+    "hurt_01.png",
+    "hurt_02.png",
+    "hurt_03.png",
+    "hurt_04.png",
+    "hurt_05.png",
+    "empty_30.png",
+    "empty_31.png",
+    "death_00.png",
+    "death_01.png",
+    "death_02.png",
+    "death_03.png",
+    "death_04.png",
+    "death_05.png",
+    "death_06.png",
+    "death_07.png"
+  ]
+}

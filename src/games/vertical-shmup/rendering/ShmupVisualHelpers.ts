@@ -28,7 +28,8 @@ export function resolveShmupPlayerDrawContext(
   const time = world.tick * 0.016;
   const shouldBlink = invulnerable && Math.floor(time * 18) % 2 === 0;
   const size = render.size ?? 36;
-  const primaryColor = render.color ?? SHMUP_COLOR_TOKENS.player.primary;
+  const sumiE = world.getResource<string>("ShmupVisualTheme") === "sumi-e";
+  const primaryColor = sumiE ? SHMUP_SUMI_E_THEME.palette.player : (render.color ?? SHMUP_COLOR_TOKENS.player.primary);
   const moveX = input?.axes?.moveX ?? 0;
   const moveY = input?.axes?.moveY ?? 0;
   const isShooting = (input?.actions?.includes("shoot") ?? false) || (input?.shootCooldownRemaining ?? 0) > 0;
@@ -78,7 +79,11 @@ export function resolveShmupEnemyDrawContext(
   const health = world.getComponent(entity, "Health");
   const enemy = world.getComponent(entity, "ShmupEnemy");
   const size = render.size ?? 32;
-  const enemyColor = render.color ?? SHMUP_COLOR_TOKENS.enemy.primary;
+  const sumiE = world.getResource<string>("ShmupVisualTheme") === "sumi-e";
+  const themeArchetype = enemy?.archetype;
+  const enemyColor = sumiE
+    ? (themeArchetype === "boss" ? SHMUP_SUMI_E_THEME.palette.threat : SHMUP_SUMI_E_THEME.palette.ink)
+    : (render.color ?? SHMUP_COLOR_TOKENS.enemy.primary);
   const time = world.tick * 0.016;
   // Visual identity is authored by the factory; path and size never infer a silhouette.
   const storedArchetype = enemy?.archetype;
@@ -105,19 +110,88 @@ export function resolveShmupBulletDrawContext(
   const render = world.getComponent(entity, "Render");
   if (!render) return null;
   const size = render.size ?? defaultSize;
-  const color = render.color ?? defaultColor;
+  const sumiE = world.getResource<string>("ShmupVisualTheme") === "sumi-e";
+  const isPlayerBullet = world.getComponent(entity, "ShmupPlayerBullet") !== undefined;
+  const sourceColor = render.color ?? defaultColor;
+  const color = sumiE
+    ? (isPlayerBullet ? SHMUP_SUMI_E_THEME.palette.player : SHMUP_SUMI_E_THEME.palette.threat)
+    : sourceColor;
 
+  // Classify projectile family before applying theme colors, so the theme does not
+  // erase the existing hot/special gameplay visual identity.
   let kind: "warm" | "hot" | "special" | "player" = "warm";
-  if (color === SHMUP_COLOR_TOKENS.bullet.hot) {
+  if (sourceColor === SHMUP_COLOR_TOKENS.bullet.hot) {
     kind = "hot";
-  } else if (color === SHMUP_COLOR_TOKENS.bullet.special) {
+  } else if (sourceColor === SHMUP_COLOR_TOKENS.bullet.special) {
     kind = "special";
-  } else if (color === SHMUP_COLOR_TOKENS.player.primary || color === SHMUP_COLOR_TOKENS.gold.sunlight) {
+  } else if (isPlayerBullet || sourceColor === SHMUP_COLOR_TOKENS.player.primary || sourceColor === SHMUP_COLOR_TOKENS.gold.sunlight) {
     kind = "player";
   }
 
   return { render, size, color, kind };
 }
+
+
+/** Presentation-only theme contract. It is deliberately independent from ECS gameplay rules. */
+export type ShmupThemeId = "aerial-fantasy" | "sumi-e";
+
+export type ShmupSemanticColor =
+  | "paper" | "ink" | "inkWash" | "mist" | "sun"
+  | "threat" | "threatCritical" | "player" | "reward" | "frame";
+
+export interface ShmupThemeContract {
+  readonly id: ShmupThemeId;
+  readonly version: 1;
+  readonly palette: Readonly<Record<ShmupSemanticColor, string>>;
+  readonly layers: readonly ["paper", "sun", "mist", "mountains", "structures", "foreground"];
+  readonly assets: Readonly<Record<string, { readonly kind: "sprite" | "texture"; readonly path: string; readonly status: "planned" | "available" }>>;
+  readonly procedural: Readonly<{
+    paperGrain: { readonly enabled: boolean; readonly density: number; readonly opacity: number };
+    mountainRidges: { readonly count: number; readonly minOpacity: number; readonly maxOpacity: number };
+    waterfallStrokes: { readonly count: number; readonly opacity: number };
+    foregroundSilhouettes: { readonly edgeBand: number; readonly maxCenterIntrusion: number };
+  }>;
+  readonly effects: Readonly<{
+    playerTrail: "blue-brush";
+    enemyProjectile: "vermilion-petal";
+    impact: "ink-splatter";
+    reward: "gold-ofuda";
+  }>;
+}
+
+export const SHMUP_SUMI_E_THEME: ShmupThemeContract = {
+  id: "sumi-e",
+  version: 1,
+  palette: {
+    paper: "#E7DFCB",
+    ink: "#151515",
+    inkWash: "#5F6466",
+    mist: "#C9D1D2",
+    sun: "#D7473F",
+    threat: "#B3261E",
+    threatCritical: "#FF3B30",
+    player: "#4DA3FF",
+    reward: "#E3A92F",
+    frame: "#B9A272",
+  },
+  layers: ["paper", "sun", "mist", "mountains", "structures", "foreground"],
+  assets: {
+    washiTexture: { kind: "texture", path: "assets/shmup/sumi-e/washi-grain.png", status: "planned" },
+    pagoda: { kind: "sprite", path: "assets/shmup/sumi-e/pagoda.png", status: "planned" },
+  },
+  procedural: {
+    paperGrain: { enabled: true, density: 0.00018, opacity: 0.055 },
+    mountainRidges: { count: 4, minOpacity: 0.12, maxOpacity: 0.32 },
+    waterfallStrokes: { count: 5, opacity: 0.22 },
+    foregroundSilhouettes: { edgeBand: 0.22, maxCenterIntrusion: 0.12 },
+  },
+  effects: {
+    playerTrail: "blue-brush",
+    enemyProjectile: "vermilion-petal",
+    impact: "ink-splatter",
+    reward: "gold-ofuda",
+  },
+};
 
 export type BiomeKind = "archipelago" | "gardens" | "temples" | "storm";
 
@@ -374,4 +448,71 @@ export function computeShmupParallaxWorld(
   }
 
   return { width, height, scroll, time, wave, biome, clouds, islands, particles };
+}
+
+
+export interface SumiEMountainRidge {
+  readonly points: readonly { readonly x: number; readonly y: number }[];
+  readonly opacity: number;
+  readonly width: number;
+}
+
+export interface SumiEBackdropData {
+  readonly width: number;
+  readonly height: number;
+  readonly time: number;
+  readonly scroll: number;
+  readonly palette: ShmupThemeContract["palette"];
+  readonly ridges: readonly SumiEMountainRidge[];
+  readonly paperFibers: readonly { readonly x: number; readonly y: number; readonly length: number; readonly alpha: number }[];
+}
+
+/** Stable, presentation-only geometry: same world tick and viewport always produce the same backdrop. */
+export function computeSumiEBackdrop(world: World<ShmupComponentRegistry>): SumiEBackdropData {
+  const config = world.getResource<ShmupConfig>("GameConfig");
+  const width = config?.WORLD_WIDTH ?? 720;
+  const height = config?.WORLD_HEIGHT ?? 1280;
+  const state = world.getSingleton("ShmupGameState");
+  const time = world.tick * 0.016;
+  const scroll = state?.scrollDistance ?? time * (config?.SCROLL_SPEED ?? 80);
+  const palette = SHMUP_SUMI_E_THEME.palette;
+
+  const ridges: SumiEMountainRidge[] = [];
+  const ridgeCount = SHMUP_SUMI_E_THEME.procedural.mountainRidges.count;
+  for (let ridge = 0; ridge < ridgeCount; ridge += 1) {
+    const points: { x: number; y: number }[] = [];
+    const segments = 8;
+    const baseY = height * (0.2 + ridge * 0.115);
+    const amplitude = height * (0.025 + ridge * 0.009);
+    for (let point = 0; point <= segments; point += 1) {
+      const x = width * point / segments;
+      const wave = Math.sin(point * 1.73 + ridge * 2.4) * 0.62
+        + Math.sin(point * 0.71 + ridge * 1.9) * 0.38;
+      const y = baseY + wave * amplitude + ((scroll * (0.035 + ridge * 0.045)) % (height * 0.035));
+      points.push({ x, y });
+    }
+    ridges.push({
+      points,
+      opacity: SHMUP_SUMI_E_THEME.procedural.mountainRidges.maxOpacity
+        - ridge * ((SHMUP_SUMI_E_THEME.procedural.mountainRidges.maxOpacity
+        - SHMUP_SUMI_E_THEME.procedural.mountainRidges.minOpacity) / Math.max(1, ridgeCount - 1)),
+      width: 1.5 + ridge * 1.1,
+    });
+  }
+
+  const paperFibers: { x: number; y: number; length: number; alpha: number }[] = [];
+  const fiberCount = Math.round(width * height * SHMUP_SUMI_E_THEME.procedural.paperGrain.density);
+  for (let index = 0; index < fiberCount; index += 1) {
+    // Integer hash, not Math.random: decorative detail cannot perturb gameplay RNG.
+    const hash = (index * 1664525 + 1013904223) >>> 0;
+    const hash2 = (hash * 22695477 + 1) >>> 0;
+    paperFibers.push({
+      x: (hash % 100000) / 100000 * width,
+      y: (hash2 % 100000) / 100000 * height,
+      length: 2 + (hash % 7),
+      alpha: SHMUP_SUMI_E_THEME.procedural.paperGrain.opacity * (0.35 + (hash2 % 100) / 150),
+    });
+  }
+
+  return { width, height, time, scroll, palette, ridges, paperFibers };
 }

@@ -23,6 +23,7 @@ import {
   RenderUpdateSystem,
 } from "@tiny-aster/core";
 import { CombatSystem } from "@tiny-aster/gameplay-kit";
+import { SpriteRegistry } from "../shared/sprites";
 import {
   GameStateComponent,
   InputState,
@@ -158,6 +159,8 @@ export class TowerDefenseGame extends BaseGame<
   }
 
   protected override async onRegisterSystems(): Promise<void> {
+    SpriteRegistry.init();
+
     this.config = this.setupArcadeGameConfig(
       this.baseConfig,
       (_cfg, options) =>

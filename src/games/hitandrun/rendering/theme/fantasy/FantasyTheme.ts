@@ -1,6 +1,6 @@
 /**
  * FantasyTheme — default theme for Hit & Run replicating existing visual art.
- * Optimized with offscreen gradient/canvas caching.
+ * Optimized with offscreen gradient/canvas caching and procedural urban backdrop scenery.
  */
 
 import type { HitRunTheme, HitRunThemePaletteTokens } from "../HitRunTheme";
@@ -12,6 +12,8 @@ import type {
 } from "../HitRunThemeTypes";
 import { HIT_PALETTE } from "../../HitAndRunPalette";
 import { colors } from "../../../../../theme/colors";
+import { generateProceduralScene } from "../../../../shared/procedural/scene/ProceduralSceneGenerator";
+import { drawProceduralSceneCanvas } from "../../../../shared/procedural/rendering/drawProceduralSceneCanvas";
 
 export const FANTASY_PALETTE_TOKENS: HitRunThemePaletteTokens = {
   primary: "#3d4a5c",
@@ -54,13 +56,29 @@ export class FantasyTheme implements HitRunTheme {
   }
 
   public renderBackdrop(
-    _ctx: CanvasRenderingContext2D,
-    _viewportWidth: number,
-    _viewportHeight: number,
+    ctx: CanvasRenderingContext2D,
+    viewportWidth: number,
+    viewportHeight: number,
     _cameraX: number,
     _cameraY: number,
     _elapsed: number
-  ): void {}
+  ): void {
+    ctx.save();
+    ctx.fillStyle = FANTASY_PALETTE_TOKENS.background;
+    ctx.fillRect(0, 0, viewportWidth, viewportHeight);
+
+    // Controlled alpha procedural backdrop to preserve combat legibility
+    ctx.globalAlpha = 0.35;
+    const procScene = generateProceduralScene({
+      seed: 41873,
+      width: viewportWidth,
+      height: viewportHeight,
+      theme: "urban",
+      density: 0.6
+    });
+    drawProceduralSceneCanvas(ctx, procScene);
+    ctx.restore();
+  }
 
   public renderGroundShadow(
     ctx: CanvasRenderingContext2D,

@@ -1,0 +1,216 @@
+{
+  "schema_version": 1,
+  "art_direction_brief": "src/games/vertical-shmup/assets/art-direction-brief.md",
+  "production_model": "hybrid",
+  "production_model_note": "Track A = procedural code-drawn families (produccion activa, los assets son draw code + tokens + BIOMES). Track B = sprites PNG para nave del jugador y jefes (planificados). Estado de tracks decidido el 2026-10-25.",
+  "status_legend": {
+    "production": "exists and is the live renderer path; changes only via code review",
+    "planned": "not yet produced; greybox/placeholder is active",
+    "approved": "passed all technical gates + native-scale + in-engine review"
+  },
+  "assets": [
+    {
+      "id": "proc-palette-tokens",
+      "role": "single source of truth for every color decision (both renderers)",
+      "path": "src/games/vertical-shmup/rendering/ShmupColorTokens.ts",
+      "status": "production",
+      "technical": { "kind": "code-tokens" },
+      "visual_locks": ["palette", "semantic-color-roles"],
+      "source": { "kind": "authored", "creator": "", "created_at": "", "license": "", "attribution": "", "prompt_or_source_record": ""}
+    },
+    {
+      "id": "proc-biome-backgrounds",
+      "role": "four biome profiles: archipelago, gardens, temples, storm",
+      "path": "src/games/vertical-shmup/rendering/ShmupVisualHelpers.ts",
+      "status": "production",
+      "technical": {
+        "kind": "code-procedural",
+        "biomes": ["archipelago", "gardens", "temples", "storm"],
+        "determinism": "derived from wave index + parallax; no gameplay RNG"
+      },
+      "visual_locks": ["palette", "light-direction", "determinism", "biome-motifs"],
+      "source": { "kind": "authored", "creator": "", "created_at": "", "license": "", "attribution": "", "prompt_or_source_record": "" },
+      "verification": { "native_scale_reviewed": false, "in_engine_reviewed": false, "technical_checks_passed": false, "approved_by": "" }
+    },
+    {
+      "id": "proc-enemy-archetypes",
+      "role": "enemy silhouettes scout, interceptor, armored, support, boss",
+      "path": "src/games/vertical-shmup/rendering/ShmupCanvasVisuals.ts",
+      "status": "production",
+      "technical": {
+        "kind": "code-procedural",
+        "size_reference_px": 32,
+        "skia_peer_file": "src/games/vertical-shmup/rendering/ShmupSkiaVisuals.ts",
+        "identity_source": "ShmupEnemy.archetype (decoupled from EnemyPath.kind)"
+      },
+      "visual_locks": ["silhouette", "palette", "archetype-identity-source", "canvas-skia-parity"],
+      "source": { "kind": "authored", "creator": "", "created_at": "", "license": "", "attribution": "", "prompt_or_source_record": "" },
+      "verification": { "native_scale_reviewed": false, "in_engine_reviewed": false, "technical_checks_passed": false, "approved_by": "" }
+    },
+    {
+      "id": "proc-bullet-families",
+      "role": "player shot (cyan core white) + hostile bullets warm/hot/special with distinguishable shapes",
+      "path": "src/games/vertical-shmup/rendering/ShmupCanvasVisuals.ts",
+      "status": "production",
+      "technical": { "kind": "code-procedural", "size_reference_px": 4, "skia_peer_file": "src/games/vertical-shmup/rendering/ShmupSkiaVisuals.ts" },
+      "visual_locks": ["palette", "hitbox-vs-glow-ratio", "readability-center-band"],
+      "source": { "kind": "authored", "creator": "", "created_at": "", "license": "", "attribution": "", "prompt_or_source_record": "" },
+      "verification": { "native_scale_reviewed": false, "in_engine_reviewed": false, "technical_checks_passed": false, "approved_by": "" }
+    },
+    {
+      "id": "proc-ambient-particles",
+      "role": "biome motifs: petals, gold pollen, slate runes, cold crystals (never bullet-like)",
+      "path": "src/games/vertical-shmup/rendering/ShmupVisualHelpers.ts",
+      "status": "production",
+      "technical": { "kind": "code-procedural", "degradation_order": "first to cut under performance pressure" },
+      "visual_locks": ["palette", "not-confusable-with-hostile-bullets", "determinism"],
+      "source": { "kind": "authored", "creator": "", "created_at": "", "license": "", "attribution": "", "prompt_or_source_record": "" },
+      "verification": { "native_scale_reviewed": false, "in_engine_reviewed": false, "technical_checks_passed": false, "approved_by": "" }
+    },
+    {
+      "id": "proc-hud",
+      "role": "top-UI panel (score, wave, lives) and boss health bar; Canvas/Skia share the same visual language",
+      "path": "src/games/vertical-shmup/rendering/ShmupRenderer.ts",
+      "status": "production",
+      "technical": { "kind": "code-procedural", "hierarchy": "primary: score/wave/lives; encounter: boss bar only while active" },
+      "visual_locks": ["palette", "typography", "position", "hierarchy"],
+      "source": { "kind": "authored", "creator": "", "created_at": "", "license": "", "attribution": "", "prompt_or_source_record": "" },
+      "verification": { "native_scale_reviewed": false, "in_engine_reviewed": false, "technical_checks_passed": false, "approved_by": "" }
+    },
+    {
+      "id": "player-ship-idle",
+      "role": "player hero asset (greybox: procedural shmup_player shape drawer)",
+      "path": "assets/shmup/player/player_ship_idle.png",
+      "status": "planned",
+      "technical": {
+        "dimensions": "256x256 authoring cell (2x of 128)",
+        "art_area": "centered ~70% of cell (~176px), transparent margin >= 8px per side",
+        "alpha": true,
+        "anchor": "center",
+        "frames": 1,
+        "filtering": "linear",
+        "display_size_px": 72,
+        "display_note": "display scale decided 2026-10-25 (mid of 64-88 range); Render.size 36 -> 72 is presentation-only; hitbox r=2.5 independent per contract test; final value re-confirms with device captures",
+        "bundle_budget_kb": 150
+      },
+      "visual_locks": ["palette", "silhouette", "proportions", "facing", "light-direction", "core-cyan-accent"],
+      "source": { "kind": "generated-or-authored", "url_or_tool": "", "creator": "", "created_at": "", "license": "", "attribution": "", "prompt_or_source_record": "" },
+      "verification": { "native_scale_reviewed": false, "in_engine_reviewed": false, "technical_checks_passed": false, "approved_by": "" }
+    },
+    {
+      "id": "player-ship-states",
+      "role": "damage/invulnerability/upgrade/destruction states, either as atlas frames or code-driven presentation over the idle sprite",
+      "path": "assets/shmup/player/",
+      "status": "planned",
+      "technical": { "dimensions": "256x256 frames", "alpha": true, "anchor": "center", "filtering": "linear", "bundle_budget_kb": 150 },
+      "visual_locks": ["palette", "silhouette", "proportions", "state-legibility"],
+      "source": { "kind": "generated-or-authored", "url_or_tool": "", "creator": "", "created_at": "", "license": "", "attribution": "", "prompt_or_source_record": "" },
+      "verification": { "native_scale_reviewed": false, "in_engine_reviewed": false, "technical_checks_passed": false, "approved_by": "" }
+    },
+    {
+      "id": "boss-archipelago",
+      "role": "first boss concept from §8: mechanical dragon / sanctuary guardian / ship-temple (to pick one)",
+      "path": "assets/shmup/enemies/boss_archipelago.png",
+      "status": "planned",
+      "technical": {
+        "dimensions": "authored at 2x of max on-screen width (396px logical -> master 792-1024px), exported at 1x measured over the 720x1280 reference",
+        "alpha": true,
+        "anchor": "center",
+        "filtering": "linear",
+        "vulnerable_core": "explicit silhouette + animation pulse, distinct from attack telegraph",
+        "bundle_budget_kb": 400
+      },
+      "visual_locks": ["palette", "silhouette", "core-vulnerability-contrast", "phase-legibility"],
+      "source": { "kind": "generated-or-authored", "url_or_tool": "", "creator": "", "created_at": "", "license": "", "attribution": "", "prompt_or_source_record": "" },
+      "verification": { "native_scale_reviewed": false, "in_engine_reviewed": false, "technical_checks_passed": false, "approved_by": "" }
+    }
+    ,
+    {
+      "id": "proc-sumi-e-backdrop",
+      "role": "Sumi-e paper, sun, mist, mountain strokes, pagodas, waterfalls and edge silhouettes; Canvas and Skia share deterministic geometry",
+      "path": "src/games/vertical-shmup/rendering/ShmupVisualHelpers.ts",
+      "status": "production",
+      "technical": {
+        "kind": "code-procedural",
+        "canvas_renderer": "src/games/vertical-shmup/rendering/SumiECanvasBackdrop.ts",
+        "skia_renderer": "src/games/vertical-shmup/rendering/SumiESkiaBackdrop.ts",
+        "determinism": "world tick + scroll only; no gameplay RNG",
+        "safe_play_area": "central 56% of viewport is kept free of foreground silhouettes"
+      },
+      "visual_locks": ["washi-paper", "subdued-vermilion-sun", "low-contrast-mist", "ink-wash-ridges", "edge-density", "canvas-skia-parity"],
+      "source": { "kind": "authored", "creator": "OpenAI + repository author", "created_at": "2026-10-26", "license": "MIT", "attribution": "", "prompt_or_source_record": "Sumi-e vertical shmup art direction brief" },
+      "verification": { "native_scale_reviewed": false, "in_engine_reviewed": false, "technical_checks_passed": false, "approved_by": "" }
+    }
+    ,
+    {
+      "id": "proc-sumi-e-player",
+      "role": "ink-brush shrine glider with blue trail and gold ofuda; presentation-only silhouette variant",
+      "path": "src/games/vertical-shmup/rendering/SumiECanvasEntities.ts",
+      "status": "production",
+      "technical": {
+        "kind": "code-procedural",
+        "skia_peer_file": "src/games/vertical-shmup/rendering/SumiESkiaEntities.ts",
+        "display_size_px": "derived from existing Render.size",
+        "hitbox": "unchanged; remains defined by ECS Collider",
+        "determinism": "world tick and input axes only"
+      },
+      "visual_locks": ["ink-silhouette", "blue-player-identity", "gold-ofuda", "no-neon-glow", "canvas-skia-parity"],
+      "source": { "kind": "authored", "creator": "OpenAI + repository author", "created_at": "2026-10-26", "license": "MIT", "attribution": "", "prompt_or_source_record": "Sumi-e vertical shmup art direction brief" },
+      "verification": { "native_scale_reviewed": false, "in_engine_reviewed": false, "technical_checks_passed": false, "approved_by": "" }
+    }
+    ,
+    {
+      "id": "proc-sumi-e-yokai-enemies",
+      "role": "scout ghost, tengu interceptor, oni mask, lantern spirit and horned boss; black ink silhouettes with vermilion eyes",
+      "path": "src/games/vertical-shmup/rendering/SumiECanvasEnemy.ts",
+      "status": "production",
+      "technical": {
+        "kind": "code-procedural",
+        "skia_peer_file": "src/games/vertical-shmup/rendering/SumiESkiaEnemy.ts",
+        "identity_source": "ShmupEnemy.archetype",
+        "hitbox": "unchanged; remains defined by ECS Collider",
+        "determinism": "world tick and archetype only"
+      },
+      "visual_locks": ["ink-yokai-silhouettes", "vermilion-eyes", "archetype-readability", "no-neon-glow", "canvas-skia-parity"],
+      "source": { "kind": "authored", "creator": "OpenAI + repository author", "created_at": "2026-10-26", "license": "MIT", "attribution": "", "prompt_or_source_record": "Sumi-e vertical shmup art direction brief" },
+      "verification": { "native_scale_reviewed": false, "in_engine_reviewed": false, "technical_checks_passed": false, "approved_by": "" }
+    }
+    ,
+    {
+      "id": "proc-sumi-e-projectiles-and-impact",
+      "role": "blue brush-stroke player shots, vermilion hostile petals and radial ink splatter on hit",
+      "path": "src/games/vertical-shmup/rendering/SumiECanvasProjectiles.ts",
+      "status": "production",
+      "technical": {
+        "kind": "code-procedural",
+        "skia_peer_file": "src/games/vertical-shmup/rendering/SumiESkiaProjectiles.ts",
+        "impact_canvas": "src/games/vertical-shmup/rendering/SumiECanvasEnemy.ts",
+        "impact_skia": "src/games/vertical-shmup/rendering/SumiESkiaEnemy.ts",
+        "determinism": "tick + entity id; no random calls",
+        "gameplay_changes": "none; ECS colliders and damage remain unchanged"
+      },
+      "visual_locks": ["blue-player-shot", "vermilion-petal-threat", "ink-splatter-impact", "canvas-skia-parity", "readable-hitboxes"],
+      "source": { "kind": "authored", "creator": "OpenAI + repository author", "created_at": "2026-10-26", "license": "MIT", "attribution": "", "prompt_or_source_record": "Sumi-e vertical shmup art direction brief" },
+      "verification": { "native_scale_reviewed": false, "in_engine_reviewed": false, "technical_checks_passed": false, "approved_by": "" }
+    }
+    ,
+    {
+      "id": "sprite-sumi-e-player-ship",
+      "role": "transparent PNG sprite for the Sumi-e shrine-glider player; procedural draw remains fallback",
+      "path": "assets/shmup/sumi-e/player_ship.png",
+      "status": "production",
+      "technical": {
+        "kind": "sprite",
+        "dimensions": "96x112",
+        "alpha": true,
+        "anchor": "center",
+        "filtering": "linear",
+        "asset_loader_key": "shmup_sumi_e_player",
+        "fallback": "SumiECanvasEntities.ts / SumiESkiaEntities.ts"
+      },
+      "visual_locks": ["blue-player-identity", "ink-silhouette", "gold-ofuda-overlay", "procedural-fallback"],
+      "source": { "kind": "generated", "creator": "OpenAI + repository author", "created_at": "2026-10-26", "license": "MIT", "attribution": "", "prompt_or_source_record": "Generated Sumi-e concept board; player sprite cropped and background-keyed for transparency" },
+      "verification": { "native_scale_reviewed": false, "in_engine_reviewed": false, "technical_checks_passed": false, "approved_by": "" }
+    }
+  ]
+}

@@ -1,4 +1,5 @@
-import { BaseGame, ConfigService, NetworkManager, NetworkController, NullBaseGame, WebAudioPlayer, preloadSharedAudioManifest, SHARED_AUDIO_MANIFEST, GameDefinition, BaseGameConfig, World } from "@tiny-aster/core";
+/* eslint-disable @typescript-eslint/no-require-imports */
+import { BaseGame, ConfigService, NetworkManager, NetworkController, NullBaseGame, WebAudioPlayer, preloadSharedAudioManifest, SHARED_AUDIO_MANIFEST, GameDefinition, BaseGameConfig, World, AssetLoader } from "@tiny-aster/core";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import { loadAndMutateConfig } from "../shared/configHelper";
 import { registerMutatorHook } from "../../utils/MutatorRegistry";
@@ -15,11 +16,24 @@ export class VerticalShmupGame extends BaseGame<ShmupGameStateComponent, ShmupIn
   public readonly gameId = "vertical-shmup";
   private config: ShmupConfig;
   private readonly network: NetworkController<ShmupComponentRegistry>;
+  private readonly assetLoader: AssetLoader;
 
   constructor(config: BaseGameConfig<ShmupComponentRegistry, ShmupEventRegistry, ShmupInputState> = {}) {
     const loaded = ConfigService.load<ShmupConfig>("vertical-shmup", ShmupConfigSchema, config.gameOptions?.rawConfig ?? configRaw);
     super({ pauseKey: "Escape", restartKey: "KeyR", isMultiplayer: config.isMultiplayer, headless: config.headless, theme: config.theme ?? createThemeFromGameAccents("vertical-shmup"), gameOptions: config.gameOptions, audio: config.audio ?? new WebAudioPlayer() });
     this.config = loaded;
+    this.assetLoader = new AssetLoader({
+      async loadImage(path: string): Promise<unknown> {
+        if (path !== "shmup_sumi_e_player") return undefined;
+        const { Asset } = require("expo-asset") as typeof import("expo-asset");
+        const { Asset } = require("expo-asset") as typeof import("expo-asset");
+        const asset = Asset.fromModule(require("../../../assets/shmup/sumi-e/player_ship.png"));
+        await asset.downloadAsync();
+        return { uri: asset.localUri ?? asset.uri };
+      },
+      async loadAudio(path: string): Promise<unknown> { return path; },
+      async loadFont(path: string): Promise<unknown> { return path; }
+    });
     this.network = new NetworkController<ShmupComponentRegistry>(this.world);
   }
 
@@ -32,6 +46,15 @@ export class VerticalShmupGame extends BaseGame<ShmupGameStateComponent, ShmupIn
   }
 
   protected override async onPreloadAssets(): Promise<void> {
+    this.world.setResource("AssetLoader", this.assetLoader);
+    if (!this.isHeadless) {
+      try {
+        await this.assetLoader.load([{ id: "shmup_sumi_e_player", type: "image", path: "shmup_sumi_e_player" }]);
+        this.world.setResource("ShmupSumiEPlayerSpriteReady", true);
+      } catch {
+        this.world.setResource("ShmupSumiEPlayerSpriteReady", false);
+      }
+    }
     await preloadSharedAudioManifest(this.audio);
   }
 

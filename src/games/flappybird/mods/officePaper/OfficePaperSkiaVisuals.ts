@@ -136,10 +136,10 @@ function drawSkiaPaperAirplane(skCanvas: SkCanvas, paint: SkPaint, size: number,
   skCanvas.drawLine(size * 1.3, 0, -size * 0.4, 0, paint);
 }
 
-export const drawSkiaOfficePaperBird: ShapeDrawer<RenderContext, FlappyBirdComponentRegistry> = {
+export const drawSkiaOfficePaperBird: ShapeDrawer<unknown, FlappyBirdComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    const skCanvas = canvas as unknown as SkCanvas;
+    const skCanvas = canvas as SkCanvas;
     const drawCtx = resolveFlappyBirdDrawContext(world, entity, FLAPPY_PARTICLE_POOL);
     if (!drawCtx) return;
 
@@ -172,10 +172,10 @@ export const drawSkiaOfficePaperBird: ShapeDrawer<RenderContext, FlappyBirdCompo
   }
 };
 
-export const drawSkiaOfficePaperPipe: ShapeDrawer<RenderContext, FlappyBirdComponentRegistry> = {
+export const drawSkiaOfficePaperPipe: ShapeDrawer<unknown, FlappyBirdComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    const skCanvas = canvas as unknown as SkCanvas;
+    const skCanvas = canvas as SkCanvas;
     const pipeCtx = resolveFlappyPipeDrawContext(world, entity);
     if (!pipeCtx) return;
 
@@ -233,10 +233,10 @@ export const drawSkiaOfficePaperPipe: ShapeDrawer<RenderContext, FlappyBirdCompo
   }
 };
 
-export const drawSkiaOfficePaperGround: ShapeDrawer<RenderContext, FlappyBirdComponentRegistry> = {
+export const drawSkiaOfficePaperGround: ShapeDrawer<unknown, FlappyBirdComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    const skCanvas = canvas as unknown as SkCanvas;
+    const skCanvas = canvas as SkCanvas;
     const render = world.getComponent(entity, "Render");
     if (!render) return;
 
@@ -275,14 +275,14 @@ export const drawSkiaOfficePaperGround: ShapeDrawer<RenderContext, FlappyBirdCom
   }
 };
 
-export const scrollingSkiaOfficePaperBackgroundEffect: EffectDrawer<RenderContext, FlappyBirdComponentRegistry> = {
+export const scrollingSkiaOfficePaperBackgroundEffect: EffectDrawer<unknown, FlappyBirdComponentRegistry> = {
   draw(canvas, world) {
     if (!Skia) return;
     const bgSetup = resolveFlappyBackgroundSetup(world);
     if (!bgSetup) return;
 
     const { width, height } = bgSetup;
-    const skCanvas = canvas as unknown as SkCanvas;
+    const skCanvas = canvas as SkCanvas;
     const paint = getPaint();
 
     updateVisualParticles();

@@ -10,6 +10,7 @@ import type {
   BannerRenderSnapshot,
   FeedbackEventSnapshot
 } from "../HitRunThemeTypes";
+import { computeInkWashLayers, drawInkWashLayersCanvas } from "../../../../shared/rendering/InkWashParallaxBackdrop";
 
 export const SUMI_E_PALETTE: HitRunThemePaletteTokens = {
   primary: "#171817",
@@ -143,32 +144,8 @@ export class SumiETheme implements HitRunTheme {
     ctx.save();
 
     // 2. Parallax layers (4 layers of ink wash: far mountains, pagodas, pines, houses)
-    const layers = [
-      { depth: 0.08, color: "rgba(23, 24, 23, 0.08)", yRatio: 0.25, height: 120 },
-      { depth: 0.15, color: "rgba(23, 24, 23, 0.14)", yRatio: 0.35, height: 90 },
-      { depth: 0.28, color: "rgba(23, 24, 23, 0.22)", yRatio: 0.42, height: 70 },
-      { depth: 0.45, color: "rgba(23, 24, 23, 0.32)", yRatio: 0.48, height: 50 }
-    ];
-
-    for (let i = 0; i < layers.length; i++) {
-      const layer = layers[i];
-      const offsetX = (-cameraX * layer.depth) % w;
-      const baseY = h * layer.yRatio;
-
-      ctx.fillStyle = layer.color;
-      for (let pass = 0; pass < 2; pass++) {
-        const passX = offsetX + pass * w;
-        ctx.beginPath();
-        ctx.moveTo(passX, baseY + layer.height);
-        for (let x = 0; x <= w; x += 40) {
-          const mountainY = baseY + Math.sin((x + passX) * 0.008 + i) * layer.height * 0.5;
-          ctx.lineTo(passX + x, mountainY);
-        }
-        ctx.lineTo(passX + w, baseY + layer.height);
-        ctx.closePath();
-        ctx.fill();
-      }
-    }
+    const inkWashGeometry = computeInkWashLayers(w, h, cameraX);
+    drawInkWashLayersCanvas(ctx, inkWashGeometry, SUMI_E_PALETTE.inkOrOutline);
 
     // Faded ghost dragon in sky background
     const dragonX = ((elapsed * 12 - cameraX * 0.05) % (w * 1.5)) - w * 0.25;

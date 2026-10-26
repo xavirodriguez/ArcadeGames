@@ -75,6 +75,19 @@ export const HIT_RUN_ENEMY_ARCHETYPES: Record<
     color: "#c9a227", // cursed gold
     speed: 50,
     behaviorTags: ["shoot_heavy", "tank", "flank"]
+  },
+
+  /** Red-armored katana fighter; uses the standard telegraphed melee FSM. */
+  samurai: {
+    id: "samurai",
+    poolId: "enemy_samurai",
+    health: 5,
+    faction: "enemy",
+    shape: "samurai",
+    size: 32,
+    color: "#c92337",
+    speed: 58,
+    behaviorTags: ["walk"]
   }
 };
 

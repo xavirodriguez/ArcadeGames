@@ -28,6 +28,13 @@ export function createPlayer(world: World<ShmupComponentRegistry>, x: number, y:
     .withCollider({ shape: { type: ShapeType.Circle, radius: c.PLAYER_COLLIDER_RADIUS } as CircleShape, layer: CollisionLayers.PLAYER, mask: CollisionLayers.ENEMY })
     .withCollisionEvents();
   world.addComponent(e, { type: "ShmupPlayer" });
+  if (world.getResource("ShmupSumiEPlayerSpriteReady") === true) {
+    world.addComponent(e, {
+      type: "Sprite",
+      assetKey: "shmup_sumi_e_player",
+      anchor: { x: 0.5, y: 0.5 }
+    } as never);
+  }
   world.addComponent(e, { type: "Input", axes: {}, actions: [], shootCooldownRemaining: 0 });
   world.addComponent(e, { type: "Health", current: 3, max: 3, invulnerableRemaining: 0 });
   world.addComponent(e, { type: "Faction", faction: "player", value: "player" });

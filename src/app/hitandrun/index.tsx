@@ -27,6 +27,14 @@ import { DEATH_FLOW_RESOURCE } from "../../games/hitandrun/systems/HitRunDeathFl
 import type { HitRunDeathFlowState } from "../../games/hitandrun/systems/HitRunDeathFlowSystem";
 import { resolveHitRunAim } from "../../games/hitandrun/input/resolveHitRunAim";
 
+declare global {
+  interface Window {
+    __hitAndRunDebug?: {
+      getPlayerX: () => number | null;
+    };
+  }
+}
+
 function applyAimToPlayer(
   game: { getWorld: () => { query: (...t: string[]) => ReadonlyArray<number>; getComponent: (e: number, t: string) => unknown; mutateComponent: (e: number, t: string, fn: (c: any) => void) => void; hasComponent: (e: number, t: string) => boolean } },
   keys: {
@@ -94,8 +102,9 @@ function HitAndRunContent() {
   };
   const isTouchDevice = useTouchDevice();
 
+  const isE2E = process.env.EXPO_PUBLIC_E2E_HOOKS === "true";
   const { game, gameState, isPaused, isReady, togglePause, highScore, restartWithSeed } =
-    useHitAndRunGame(started, initialSeed);
+    useHitAndRunGame(started || isE2E, initialSeed);
 
   useEffect(() => {
     if (!game || !isReady) return;
@@ -200,10 +209,27 @@ function HitAndRunContent() {
     window.addEventListener("keyup", handleKeyUp);
     window.addEventListener("blur", handleBlur);
 
+    if (process.env.EXPO_PUBLIC_E2E_HOOKS === "true") {
+      window.__hitAndRunDebug = {
+        getPlayerX: () => {
+          if (!game) return null;
+          const w = game.getWorld();
+          const players = w.query("BeltMovement", "Transform");
+          const player = players[0];
+          if (player === undefined) return null;
+          const t = w.getComponent(player, "Transform") as { x: number } | undefined;
+          return t ? t.x : null;
+        },
+      };
+    }
+
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
       window.removeEventListener("blur", handleBlur);
+      if (process.env.EXPO_PUBLIC_E2E_HOOKS === "true") {
+        delete window.__hitAndRunDebug;
+      }
     };
   }, [game, isReady, togglePause, restartWithSeed]);
 

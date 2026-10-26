@@ -4,11 +4,11 @@ import {
   CoreComponentRegistry,
   ScreenShakeSystem
 } from "@tiny-aster/core";
+import { HitRunFeedbackSystem } from "./HitRunFeedbackSystem";
 import {
-  HitRunFeedbackSystem,
   DEFAULT_HIT_RUN_FEEDBACK_CONFIG,
   type HitRunFeedbackConfig
-} from "./index";
+} from "./HitRunFeedbackTypes";
 
 /**
  * Registers HitRunFeedbackSystem + ScreenShakeSystem + resources.

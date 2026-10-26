@@ -44,10 +44,12 @@ export const drawSumiECanvasBackdrop: EffectDrawer<CanvasRenderingContext2D, Shm
     for (const ridge of data.ridges) {
       ctx.save();
       ctx.globalAlpha = ridge.opacity;
-      ctx.fillStyle = palette.inkWash;
+      ctx.strokeStyle = palette.inkWash;
+      ctx.lineWidth = ridge.width;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
       ctx.beginPath();
-      ctx.moveTo(0, height);
-      ctx.lineTo(ridge.points[0]!.x, ridge.points[0]!.y);
+      ctx.moveTo(ridge.points[0]!.x, ridge.points[0]!.y);
       for (let i = 1; i < ridge.points.length; i += 1) {
         const previous = ridge.points[i - 1]!;
         const current = ridge.points[i]!;
@@ -55,9 +57,7 @@ export const drawSumiECanvasBackdrop: EffectDrawer<CanvasRenderingContext2D, Shm
       }
       const last = ridge.points[ridge.points.length - 1]!;
       ctx.lineTo(last.x, last.y);
-      ctx.lineTo(width, height);
-      ctx.closePath();
-      ctx.fill();
+      ctx.stroke();
       ctx.restore();
     }
 

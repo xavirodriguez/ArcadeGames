@@ -250,6 +250,13 @@ export abstract class BaseGame<
     TEvents,
     [TBlueprints] extends [BlueprintRegistryMap<TComponents, TEvents>] ? TBlueprints : BlueprintRegistryMap<TComponents, TEvents>
   >;
+  /**
+   * Whether the game runs without browser presentation and asset preloading.
+   *
+   * @remarks
+   * Headless mode is selected from `BaseGameConfig.headless`, or inferred from
+   * the absence of a browser `window` when the option is omitted.
+   */
   public readonly isHeadless: boolean;
   public readonly gameId: string;
   public readonly sessionId: string;
@@ -258,6 +265,13 @@ export abstract class BaseGame<
   protected readonly deploymentId?: string;
   protected readonly environment?: string;
 
+  /**
+   * Fixed-step ticker that drives updates while the game lifecycle is running.
+   *
+   * @remarks
+   * Subclasses can access the loop to coordinate lifecycle behavior. Prefer the
+   * public `getGameLoop()` accessor when external consumers need the loop.
+   */
   protected loop: GameLoop;
   protected unifiedInput: IInputSystem<TInput>;
   protected _config: BaseGameConfig<TComponents, TEvents, TInput, TBlueprints>;
@@ -667,16 +681,9 @@ export abstract class BaseGame<
   }
 
   /**
-   * Stops the game loop ticker and thoroughly releases registered systems, schedules, and event bus handlers.
+   * Calculates current screen configuration based on canvas dimensions, window inner size, or the 800×600 fallback.
    *
-   * @remarks
-   * Postcondition: Lifecycle state becomes `DESTROYED`. System dispose callbacks are executed, schedule is cleared,
-   * and input system resources are released.
-   */
-  /**
-   * Calculates current screen configuration based on canvas dimensions, window inner size, or default fallback (800x600).
-   *
-   * @returns `ScreenConfig` object `{ width, height, pixelRatio }`.
+   * @returns The logical screen width and height with the resolved pixel ratio.
    */
   protected calculateScreenConfig(): { width: number; height: number; pixelRatio: number } {
     return calculateScreenConfig(this.canvas);
@@ -780,6 +787,15 @@ export abstract class BaseGame<
     });
   }
 
+  /**
+   * Stops the game loop and releases systems, event handlers, input resources, and other lifecycle-managed state.
+   *
+   * @remarks
+   * This operation marks the instance as `DESTROYED`, stops future loop ticks,
+   * clears the ECS schedule, removes event listeners, and disposes input/audio
+   * resources where supported. Shutdown errors are reported through the configured
+   * error reporter so cleanup can continue.
+   */
   public destroy(): void {
     this.lifecycleState = GameLifecycleState.DESTROYED;
     this.loop.stop();

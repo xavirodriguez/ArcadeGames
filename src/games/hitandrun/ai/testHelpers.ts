@@ -10,7 +10,6 @@ export function createTestWorld(): {
 } {
   const world = new World<CoreComponentRegistry>();
   world.setResource("IsPaused", false);
-  world.setResource("HitStopRemaining", 0);
 
   registerHitRunStateMachines(world);
   const meleeSystem = new HitRunMeleeSystem();

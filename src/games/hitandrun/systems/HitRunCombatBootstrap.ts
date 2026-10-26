@@ -72,18 +72,20 @@ class HitRunDeadCleanupSystem extends System<CoreComponentRegistry> {
 }
 
 /**
- * Register after Collision phase systems so CollisionEvents are populated.
+ * Resolve hierarchy transforms, discrete overlaps, then swept contacts before combat.
+ * CCD must run after CollisionSystem2D because that system clears/rebuilds collision
+ * buffers at the start of its update; combat then consumes both contact sources.
  */
 export function registerHitRunCombat(world: World<CoreComponentRegistry>): void {
   world.addSystem(new HierarchySystem(), {
     phase: SystemPhase.Collision,
     priority: 100
   });
-  world.addSystem(new CCDSystem(), {
+  world.addSystem(new CollisionSystem2D(), {
     phase: SystemPhase.Collision,
     priority: 20
   });
-  world.addSystem(new CollisionSystem2D(), {
+  world.addSystem(new CCDSystem(), {
     phase: SystemPhase.Collision,
     priority: 10
   });

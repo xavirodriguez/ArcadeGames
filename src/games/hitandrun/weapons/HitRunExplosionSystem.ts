@@ -8,9 +8,12 @@ import type {
   ExplosivePayloadComponent
 } from "./HitRunWeaponTypes";
 import { CombatHitListenerSystem } from "../combat/CombatHitListenerSystem";
+import { isFriendly } from "../combat/faction";
 
 interface CombatHitLike {
   targetEntity: number;
+  /** Entity carrying Damage (usually the projectile); sourceEntity remains the scoring/owner attribution. */
+  attackerEntity?: number;
   sourceEntity?: number;
   category?: string;
 }
@@ -55,25 +58,25 @@ export class HitRunExplosionSystem extends CombatHitListenerSystem<CombatHitLike
       const hit = this.pendingHits[i];
       if (hit.category !== "explosive") continue;
 
-      const source = hit.sourceEntity;
-      if (source === undefined || !world.hasEntity(source)) continue;
+      const projectile = hit.attackerEntity ?? hit.sourceEntity;
+      if (projectile === undefined || !world.hasEntity(projectile)) continue;
 
-      const payload = world.getComponent(source, "ExplosivePayload") as
+      const payload = world.getComponent(projectile, "ExplosivePayload") as
         | ExplosivePayloadComponent
         | undefined;
       if (!payload || payload.detonated) continue;
 
-      const transform = world.getComponent(source, "Transform");
+      const transform = world.getComponent(projectile, "Transform");
       if (!transform) continue;
 
-      const mut = world.getMutableComponent(source, "ExplosivePayload") as
+      const mut = world.getMutableComponent(projectile, "ExplosivePayload") as
         | ExplosivePayloadComponent
         | undefined;
       if (mut) {
         mut.detonated = true;
       }
 
-      const sourceElev = world.getComponent(source, "BeltElevation") as
+      const sourceElev = world.getComponent(projectile, "BeltElevation") as
         | { z?: number }
         | undefined;
 
@@ -83,8 +86,8 @@ export class HitRunExplosionSystem extends CombatHitListenerSystem<CombatHitLike
         z: sourceElev?.z ?? 0,
         radius: payload.radius,
         damage: payload.damage,
-        sourceEntity: source,
-        projectileEntity: source,
+        sourceEntity: hit.sourceEntity ?? projectile,
+        projectileEntity: projectile,
         category: "explosive"
       };
 
@@ -94,7 +97,7 @@ export class HitRunExplosionSystem extends CombatHitListenerSystem<CombatHitLike
         this.pendingExplosions.push(explosion);
       }
 
-      world.getCommandBuffer().removeEntity(source);
+      world.getCommandBuffer().removeEntity(projectile);
     }
   }
 
@@ -116,12 +119,16 @@ export class HitRunExplosionSystem extends CombatHitListenerSystem<CombatHitLike
           continue;
         }
 
-        // No dañar al shooter ni aliados compartiendo faction player
-        const faction = world.getComponent(entity, "Faction") as
-          | { faction?: string; value?: string }
+        // Exclude the shooter and allies using the same faction contract as direct combat.
+        const sourceFaction = boom.sourceEntity === undefined
+          ? undefined
+          : world.getComponent(boom.sourceEntity, "Faction") as
+              | { value?: string; faction?: string }
+              | undefined;
+        const targetFaction = world.getComponent(entity, "Faction") as
+          | { value?: string; faction?: string }
           | undefined;
-        const factionName = faction?.value ?? faction?.faction;
-        if (factionName === "player") continue;
+        if (isFriendly(sourceFaction, targetFaction)) continue;
 
         if (world.hasComponent(entity, "Dead")) continue;
 

@@ -7,6 +7,7 @@ import {
   CoreComponentRegistry
 } from "@tiny-aster/core";
 import { depthZOverlap, DEFAULT_HALF_DEPTH } from "../combat/HitVolume";
+import { isFriendly } from "../combat/faction";
 
 /**
  * HitRunCombatSystem — processes collision contacts for Hit&Run,
@@ -89,13 +90,8 @@ export class HitRunCombatSystem extends System<CoreComponentRegistry> {
       | { value?: string; faction?: string }
       | undefined;
 
-    const factionAVal = factionA?.value ?? factionA?.faction;
-    const factionBVal = factionB?.value ?? factionB?.faction;
-
-    if (factionAVal && factionBVal && factionAVal === factionBVal) {
-      if (!damageComp.friendlyFire) {
-        return;
-      }
+    if (isFriendly(factionA, factionB, damageComp.friendlyFire === true)) {
+      return;
     }
 
     if (healthComp.invulnerableRemaining !== undefined && healthComp.invulnerableRemaining > 0) {
@@ -123,13 +119,15 @@ export class HitRunCombatSystem extends System<CoreComponentRegistry> {
 
     const eventBus = world.getEventBus() as EventBus;
     if (eventBus) {
-      eventBus.emitDeferred("combat:hit", {
+      const hitPayload = {
         targetEntity: target,
         sourceEntity,
+        attackerEntity: attacker,
         amount: dmgAmount,
         remainingHealth: nextHealth,
         category: damageComp.category ?? "bullet"
-      });
+      };
+      eventBus.emitDeferred("combat:hit", hitPayload);
     }
 
     if (nextHealth <= 0) {

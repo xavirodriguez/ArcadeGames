@@ -12,6 +12,7 @@ import {
   getSamuraiFrameRect
 } from "../rendering/SamuraiVisualAssets";
 import { getEnemyArchetype } from "./HitRunEnemyArchetypes";
+import { recordHitRunDebugAllocation } from "../rendering/HitRunDebugMetrics";
 import type {
   HitRunEnemySpawnParams,
   IHitRunEnemyPool
@@ -141,6 +142,7 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
     } else {
       entity = world.createEntity();
     }
+    recordHitRunDebugAllocation(world, "enemy");
 
     const isUpdating = world.isUpdating;
     const cmd = world.getCommandBuffer();

@@ -87,6 +87,7 @@ import {
 } from "./rendering/HitRunCanvasVisuals";
 import { drawHitRunHud } from "./rendering/HitRunHudCanvas";
 import { drawHitRunDebugOverlay } from "./rendering/HitRunDebugOverlay";
+import { registerHitRunDebugMetrics } from "./rendering/HitRunDebugMetrics";
 import { drawLanceroSpriteCanvas, LANCERO_SHAPE } from "../shared/sprites/LanceroSpriteVisuals";
 import { SpriteRegistry } from "../shared/sprites";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
@@ -203,6 +204,7 @@ export class HitAndRunGame extends BaseGame<
     });
     registerHitRunDeathFlow(this.world);
     registerHitRunScoreSystem(this.world);
+    registerHitRunDebugMetrics(this.world);
 
     this.world.setResource(COMBO_MELEE_CONFIG_RESOURCE, {
       ...DEFAULT_COMBO_MELEE_CONFIG

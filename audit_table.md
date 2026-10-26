@@ -1,3 +1,5 @@
+> **Actualización — 26 de octubre de 2026:** Se retiraron de este inventario los 12 miembros solicitados en el PR #928 después de que la Documentation CI generara correctamente sus páginas TSDoc ([ejecución de validación](https://github.com/xavirodriguez/ArcadeGames/actions/runs/40377142553)). Este archivo conserva las entradas pendientes del snapshot original.
+
 ### `packages/core/src/snapshots/WorldSnapshot.ts` (2 ítems)
 
 | Símbolo.Miembro | Archivo:Línea | Tipo |
@@ -5,14 +7,11 @@
 | `AoSWorldSnapshot.soaComponentData` | `packages/core/src/snapshots/WorldSnapshot.ts:66` | Marca del informe (`(undocumented)`) |
 | `SoAWorldSnapshot.componentData` | `packages/core/src/snapshots/WorldSnapshot.ts:65` | Marca del informe (`(undocumented)`) |
 
-### `packages/core/src/runtime/BaseGame.ts` (5 ítems)
+### `packages/core/src/runtime/BaseGame.ts` (2 ítems)
 
 | Símbolo.Miembro | Archivo:Línea | Tipo |
 | --- | --- | --- |
 | `BaseGame._config` | `packages/core/src/runtime/BaseGame.ts:237` | Marca del informe (`(undocumented)`) |
-| `BaseGame.destroy` | `packages/core/src/runtime/BaseGame.ts:47` | Marca del informe (`(undocumented)`) |
-| `BaseGame.isHeadless` | `packages/core/src/runtime/BaseGame.ts:234` | Marca del informe (`(undocumented)`) |
-| `BaseGame.loop` | `packages/core/src/runtime/BaseGame.ts:7` | Marca del informe (`(undocumented)`) |
 | `BaseGame.unifiedInput` | `packages/core/src/runtime/BaseGame.ts:236` | Marca del informe (`(undocumented)`) |
 
 ### `packages/core/src/systems/BaseGameStateSystem.ts` (1 ítems)
@@ -94,14 +93,6 @@
 | `EntityBuilder.useCommandBuffer` | `packages/core/src/ecs/EntityBuilder.ts:27` | Marca del informe (`(undocumented)`) |
 | `EntityBuilder.world` | `packages/core/src/ecs/EntityBuilder.ts:25` | Marca del informe (`(undocumented)`) |
 
-### `packages/core/src/events/EventBus.ts` (3 ítems)
-
-| Símbolo.Miembro | Archivo:Línea | Tipo |
-| --- | --- | --- |
-| `EventBus.clear` | `packages/core/src/events/EventBus.ts:282` | Marca del informe (`(undocumented)`) |
-| `EventBus.off` | `packages/core/src/events/EventBus.ts:183` | Marca del informe (`(undocumented)`) |
-| `EventBus.once` | `packages/core/src/events/EventBus.ts:186` | Marca del informe (`(undocumented)`) |
-
 ### `packages/core/src/ai/FactionComponent.ts` (1 ítems)
 
 | Símbolo.Miembro | Archivo:Línea | Tipo |
@@ -182,14 +173,6 @@
 | `Mutator.componentType` | `packages/core/src/systems/ModifierSystem.ts:11` | Marca del informe (`(undocumented)`) |
 | `Mutator.mutate` | `packages/core/src/systems/ModifierSystem.ts:12` | Marca del informe (`(undocumented)`) |
 
-### `packages/core/src/ecs/Query.ts` (3 ítems)
-
-| Símbolo.Miembro | Archivo:Línea | Tipo |
-| --- | --- | --- |
-| `Query.add` | `packages/core/src/ecs/Query.ts:15` | Marca del informe (`(undocumented)`) |
-| `Query.rebuild` | `packages/core/src/ecs/Query.ts:93` | Marca del informe (`(undocumented)`) |
-| `Query.remove` | `packages/core/src/ecs/Query.ts:15` | Marca del informe (`(undocumented)`) |
-
 ### `packages/core/src/network/RemoteInterpolationSystem.ts` (3 ítems)
 
 | Símbolo.Miembro | Archivo:Línea | Tipo |
@@ -197,14 +180,6 @@
 | `RemoteInterpolationSystem.dispose` | `packages/core/src/network/RemoteInterpolationSystem.ts:58` | Marca del informe (`(undocumented)`) |
 | `RemoteInterpolationSystem.onRegister` | `packages/core/src/network/RemoteInterpolationSystem.ts:57` | Marca del informe (`(undocumented)`) |
 | `RemoteInterpolationSystem.update` | `packages/core/src/network/RemoteInterpolationSystem.ts:45` | Marca del informe (`(undocumented)`) |
-
-### `packages/core/src/rendering/RenderTypes.ts` (3 ítems)
-
-| Símbolo.Miembro | Archivo:Línea | Tipo |
-| --- | --- | --- |
-| `RenderCommandBuffer.clear` | `packages/core/src/rendering/RenderTypes.ts:100` | Marca del informe (`(undocumented)`) |
-| `RenderCommandBuffer.getCommands` | `packages/core/src/rendering/RenderTypes.ts:101` | Marca del informe (`(undocumented)`) |
-| `RenderCommandBuffer.push` | `packages/core/src/rendering/RenderTypes.ts:99` | Marca del informe (`(undocumented)`) |
 
 ### `packages/core/src/rendering/Renderer.ts` (3 ítems)
 

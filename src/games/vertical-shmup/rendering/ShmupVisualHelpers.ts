@@ -112,16 +112,19 @@ export function resolveShmupBulletDrawContext(
   const size = render.size ?? defaultSize;
   const sumiE = world.getResource<string>("ShmupVisualTheme") === "sumi-e";
   const isPlayerBullet = world.getComponent(entity, "ShmupPlayerBullet") !== undefined;
+  const sourceColor = render.color ?? defaultColor;
   const color = sumiE
     ? (isPlayerBullet ? SHMUP_SUMI_E_THEME.palette.player : SHMUP_SUMI_E_THEME.palette.threat)
-    : (render.color ?? defaultColor);
+    : sourceColor;
 
+  // Classify projectile family before applying theme colors, so the theme does not
+  // erase the existing hot/special gameplay visual identity.
   let kind: "warm" | "hot" | "special" | "player" = "warm";
-  if (color === SHMUP_COLOR_TOKENS.bullet.hot) {
+  if (sourceColor === SHMUP_COLOR_TOKENS.bullet.hot) {
     kind = "hot";
-  } else if (color === SHMUP_COLOR_TOKENS.bullet.special) {
+  } else if (sourceColor === SHMUP_COLOR_TOKENS.bullet.special) {
     kind = "special";
-  } else if (color === SHMUP_COLOR_TOKENS.player.primary || color === SHMUP_COLOR_TOKENS.gold.sunlight) {
+  } else if (isPlayerBullet || sourceColor === SHMUP_COLOR_TOKENS.player.primary || sourceColor === SHMUP_COLOR_TOKENS.gold.sunlight) {
     kind = "player";
   }
 

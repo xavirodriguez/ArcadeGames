@@ -97,6 +97,32 @@ export const drawSumiECanvasEnemy: ShapeDrawer<CanvasRenderingContext2D, ShmupCo
       ctx.arc(0, 0, size * (1.12 + 0.035 * Math.sin(time * 2)), Math.PI * 1.08, Math.PI * 1.92);
       ctx.stroke();
     }
+
+    // Impact feedback is a compact radial ink splatter, derived only from tick/entity id.
+    const hit = Math.max(0, Math.min(1, (enemy.render.hitFlashFrames ?? 0) / 5));
+    if (hit > 0) {
+      ctx.save();
+      ctx.globalAlpha = hit * 0.78;
+      ctx.strokeStyle = palette.ink;
+      ctx.fillStyle = palette.ink;
+      ctx.lineCap = "round";
+      for (let mark = 0; mark < 9; mark += 1) {
+        const angle = mark * 2.399963 + entity * 0.37;
+        const inner = size * (0.45 + (mark % 3) * 0.08);
+        const outer = size * (0.85 + (mark % 4) * 0.12) * hit;
+        ctx.lineWidth = 1 + (mark % 3) * 0.6;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(angle) * inner, Math.sin(angle) * inner);
+        ctx.lineTo(Math.cos(angle) * outer, Math.sin(angle) * outer);
+        ctx.stroke();
+        if (mark % 2 === 0) {
+          ctx.beginPath();
+          ctx.arc(Math.cos(angle) * outer, Math.sin(angle) * outer, 1.2 + (mark % 3) * 0.6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      ctx.restore();
+    }
     ctx.restore();
   }
 };

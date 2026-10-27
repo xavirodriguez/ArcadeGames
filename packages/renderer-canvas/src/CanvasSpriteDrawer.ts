@@ -1,4 +1,4 @@
-import { World, Entity, SpriteComponent, AssetLoader, ShapeDrawer, CoreComponentRegistry } from "@tiny-aster/core";
+import { calculateSpriteDestinationRect, World, Entity, SpriteComponent, AssetLoader, ShapeDrawer, CoreComponentRegistry } from "@tiny-aster/core";
 
 export type ImageLoadStatus = "loading" | "ready" | "error";
 
@@ -178,27 +178,45 @@ export class CanvasSpriteDrawer<TRegistry extends CoreComponentRegistry = CoreCo
     const htmlImg = img as unknown as HTMLImageElement;
     if (sprite.srcRect) {
       const { x, y, w, h } = sprite.srcRect;
-      if (w <= 0 || h <= 0) {
+      const destination = calculateSpriteDestinationRect(
+        w * spriteScale,
+        h * spriteScale,
+        { x: anchorX, y: anchorY }
+      );
+      if (!destination) {
         ctx.restore();
         return;
       }
-      const drawWidth = w * spriteScale;
-      const drawHeight = h * spriteScale;
-      const dx = -drawWidth * anchorX;
-      const dy = -drawHeight * anchorY;
-      ctx.drawImage(htmlImg, x, y, w, h, dx, dy, drawWidth, drawHeight);
+      ctx.drawImage(
+        htmlImg,
+        x,
+        y,
+        w,
+        h,
+        destination.x,
+        destination.y,
+        destination.width,
+        destination.height
+      );
     } else {
       const w = img.width || 0;
       const h = img.height || 0;
-      if (w <= 0 || h <= 0) {
+      const destination = calculateSpriteDestinationRect(
+        w * spriteScale,
+        h * spriteScale,
+        { x: anchorX, y: anchorY }
+      );
+      if (!destination) {
         ctx.restore();
         return;
       }
-      const drawWidth = w * spriteScale;
-      const drawHeight = h * spriteScale;
-      const dx = -drawWidth * anchorX;
-      const dy = -drawHeight * anchorY;
-      ctx.drawImage(htmlImg, dx, dy, drawWidth, drawHeight);
+      ctx.drawImage(
+        htmlImg,
+        destination.x,
+        destination.y,
+        destination.width,
+        destination.height
+      );
     }
 
     ctx.restore();

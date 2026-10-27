@@ -76,3 +76,7 @@ All shared-pipeline sheet definitions use the canonical `SpriteSheetDefinition` 
 ## Animation timing
 
 `updateSpriteAnimator(animator, dt)` consumes elapsed seconds and advances across every frame boundary covered by `dt`, including after a slow frame. A completed non-looping clip sets `animator.finished` and reports completion once; call `playAnimation(animator, name, true)` to restart that same clip. Invalid or non-positive `dt` values and non-positive frame durations do not advance playback.
+
+## Shared destination geometry
+
+The ECS Canvas drawer, ECS Skia drawer and shared sprite-sheet drawer use `calculateSpriteDestinationRect` from `@tiny-aster/core` for destination sizing and anchor offsets. This keeps center, feet and custom normalized anchors consistent across both render backends. Run the core test `packages/core/tests/SpriteSheetDefinition.test.ts` when changing this contract.

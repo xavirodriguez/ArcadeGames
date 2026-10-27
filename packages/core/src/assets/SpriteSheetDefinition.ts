@@ -86,3 +86,50 @@ export interface SpriteImageDimensions {
   width: number;
   height: number;
 }
+
+
+/** Normalized destination anchor in the sprite's local coordinate space. */
+export interface SpriteAnchor {
+  x: number;
+  y: number;
+}
+
+/** Destination rectangle relative to the entity's transform origin. */
+export interface SpriteDestinationRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * Calculates an anchored destination rectangle shared by Canvas, Skia and
+ * game-level sprite drawers. Returns null for invalid geometry.
+ */
+export function calculateSpriteDestinationRect(
+  width: number,
+  height: number,
+  anchor: SpriteAnchor
+): SpriteDestinationRect | null {
+  if (
+    !Number.isFinite(width) ||
+    !Number.isFinite(height) ||
+    width <= 0 ||
+    height <= 0 ||
+    !Number.isFinite(anchor.x) ||
+    !Number.isFinite(anchor.y) ||
+    anchor.x < 0 ||
+    anchor.x > 1 ||
+    anchor.y < 0 ||
+    anchor.y > 1
+  ) {
+    return null;
+  }
+
+  return {
+    x: -width * anchor.x,
+    y: -height * anchor.y,
+    width,
+    height
+  };
+}

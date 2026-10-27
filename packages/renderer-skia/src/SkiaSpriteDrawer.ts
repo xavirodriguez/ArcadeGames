@@ -1,4 +1,4 @@
-import { World, Entity, SpriteComponent, AssetLoader, ShapeDrawer, CoreComponentRegistry } from "@tiny-aster/core";
+import { calculateSpriteDestinationRect, World, Entity, SpriteComponent, AssetLoader, ShapeDrawer, CoreComponentRegistry } from "@tiny-aster/core";
 import { SkCanvas, SkPaint, Skia, SkImage, BlendMode } from "@shopify/react-native-skia";
 
 const skiaImageCache = new Map<string, SkImage>();
@@ -102,15 +102,23 @@ export class SkiaSpriteDrawer<TRegistry extends CoreComponentRegistry = CoreComp
     const imgAsRecord = img as unknown as { width?: unknown; height?: unknown };
     if (sprite.srcRect) {
       const { x, y, w, h } = sprite.srcRect;
-      if (w <= 0 || h <= 0) {
+      const destination = calculateSpriteDestinationRect(
+        w * spriteScale,
+        h * spriteScale,
+        { x: anchorX, y: anchorY }
+      );
+      if (!destination) {
         this.paint.setColorFilter(null);
         canvas.restore();
         return;
       }
       const src = Skia.XYWHRect(x, y, w, h);
-      const drawWidth = w * spriteScale;
-      const drawHeight = h * spriteScale;
-      const dest = Skia.XYWHRect(-drawWidth * anchorX, -drawHeight * anchorY, drawWidth, drawHeight);
+      const dest = Skia.XYWHRect(
+        destination.x,
+        destination.y,
+        destination.width,
+        destination.height
+      );
       canvas.drawImageRect(img, src, dest, this.paint);
     } else {
       const w = typeof imgAsRecord.width === "function" ? (imgAsRecord.width as () => number)() : ((imgAsRecord.width as number) || 0);
@@ -120,9 +128,22 @@ export class SkiaSpriteDrawer<TRegistry extends CoreComponentRegistry = CoreComp
         canvas.restore();
         return;
       }
-      const drawWidth = w * spriteScale;
-      const drawHeight = h * spriteScale;
-      const dest = Skia.XYWHRect(-drawWidth * anchorX, -drawHeight * anchorY, drawWidth, drawHeight);
+      const destination = calculateSpriteDestinationRect(
+        w * spriteScale,
+        h * spriteScale,
+        { x: anchorX, y: anchorY }
+      );
+      if (!destination) {
+        this.paint.setColorFilter(null);
+        canvas.restore();
+        return;
+      }
+      const dest = Skia.XYWHRect(
+        destination.x,
+        destination.y,
+        destination.width,
+        destination.height
+      );
       const src = Skia.XYWHRect(0, 0, w, h);
       canvas.drawImageRect(img, src, dest, this.paint);
     }

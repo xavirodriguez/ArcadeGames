@@ -3,6 +3,7 @@
 // Image cache (simple, shared between Canvas & Skia)
 // ---------------------------------------------------------------------------
 import type { Asset as ExpoAssetType } from "expo-asset";
+import { calculateSpriteDestinationRect } from "@tiny-aster/core";
 import { getPaint, Skia } from "../rendering/SkiaContext";
 import type { SkCanvas, SkImage, SkPaint } from "@shopify/react-native-skia";
 
@@ -233,6 +234,11 @@ export function drawSpriteCanvas(
   const ox = (animator.offsetX ?? 0) * animator.scale;
   const oy = (animator.offsetY ?? 0) * animator.scale;
   const anchor = sheet.anchor ?? { x: 0.5, y: 1 };
+  const destination = calculateSpriteDestinationRect(dw, dh, {
+    x: anchor.x,
+    y: options?.anchor === "center" ? 0.5 : anchor.y
+  });
+  if (!destination) return false;
 
   ctx.save();
   ctx.globalAlpha *= Math.max(0, Math.min(1, options?.opacity ?? 1));
@@ -241,19 +247,16 @@ export function drawSpriteCanvas(
     ctx.scale(-1, 1);
   }
 
-  const dy = options?.anchor === "center" ? -dh / 2 : -dh * anchor.y;
-  const dx = -dw * anchor.x;
-
   ctx.drawImage(
     img,
     frame.x,
     frame.y,
     frame.w,
     frame.h,
-    dx,
-    dy,
-    dw,
-    dh
+    destination.x,
+    destination.y,
+    destination.width,
+    destination.height
   );
 
   ctx.restore();
@@ -289,20 +292,27 @@ export function drawSpriteSkia(
   const ox = (animator.offsetX ?? 0) * animator.scale;
   const oy = (animator.offsetY ?? 0) * animator.scale;
   const anchor = sheet.anchor ?? { x: 0.5, y: 1 };
+  const destination = calculateSpriteDestinationRect(dw, dh, {
+    x: anchor.x,
+    y: options?.anchor === "center" ? 0.5 : anchor.y
+  });
+  if (!destination) return false;
 
   canvas.save();
   canvas.translate(x + ox, y + oy);
   if (animator.flipX) canvas.scale(-1, 1);
-
-  const dy = options?.anchor === "center" ? -dh / 2 : -dh * anchor.y;
-  const dx = -dw * anchor.x;
 
   const usingCallerPaint = paint !== undefined;
   const paintToUse = paint ?? getPaint();
   paintToUse.setAlphaf(Math.max(0, Math.min(1, options?.opacity ?? 1)));
 
   const src = { x: frame.x, y: frame.y, width: frame.w, height: frame.h };
-  const dst = { x: dx, y: dy, width: dw, height: dh };
+  const dst = {
+    x: destination.x,
+    y: destination.y,
+    width: destination.width,
+    height: destination.height
+  };
 
   canvas.drawImageRect(image, src, dst, paintToUse);
 

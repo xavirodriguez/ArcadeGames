@@ -102,11 +102,11 @@ describe("CanvasSpriteDrawer Preloading and Caching", () => {
   it("applies SpriteComponent.scale to the destination rectangle without changing the atlas source", async () => {
     const drawer = new CanvasSpriteDrawer();
     const drawImageMock = jest.fn();
-    const mockCtx = {
+    const mockCtx: CanvasRenderingContext2D = Object.assign(Object.create(null), {
       save: jest.fn(),
       restore: jest.fn(),
       drawImage: drawImageMock,
-    } as never as CanvasRenderingContext2D;
+    });
 
     const world = new World();
     const image = { width: 64, height: 64, complete: true };

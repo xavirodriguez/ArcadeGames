@@ -27,6 +27,18 @@ jobs:
         id: install_dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Validate sprite atlases and metadata
+        run: pnpm run sprites:validate
+
+      - name: Test sprite metadata validator and animator
+        run: pnpm exec jest --config src/games/shared/jest.config.cjs --runInBand --runTestsByPath src/games/shared/sprites/SpriteManifestValidator.test.ts src/games/shared/sprites/SpriteAnimator.test.ts src/games/shared/sprites/SpriteDrawer.test.ts src/games/shared/sprites/AssetLoaderAdapter.test.ts
+
+      - name: Test shared sprite destination geometry
+        run: pnpm --filter=@tiny-aster/core exec jest --runInBand --runTestsByPath tests/SpriteSheetDefinition.test.ts
+
+      - name: Lint sprite metadata and animation files
+        run: pnpm exec eslint packages/core/src/assets/SpriteSheetDefinition.ts packages/core/tests/SpriteSheetDefinition.test.ts scripts/validate-sprites.ts src/games/shared/sprites/SpriteManifestValidator.ts src/games/shared/sprites/SpriteManifestValidator.test.ts src/games/shared/sprites/SpriteTypes.ts src/games/shared/sprites/SpriteAnimator.ts src/games/shared/sprites/SpriteAnimator.test.ts src/games/shared/sprites/SpriteDrawer.test.ts src/games/shared/sprites/AssetLoaderAdapter.ts src/games/shared/sprites/AssetLoaderAdapter.test.ts src/games/hitandrun/rendering/HitRunSpriteAtlas.ts src/games/hitandrun/__tests__/HitRunSpriteAtlas.test.ts src/games/hitandrun/__tests__/HitRunSpritePreload.test.ts src/games/hitandrun/__tests__/HitRunSamuraiEnemy.test.ts src/games/hitandrun/__tests__/HitAndRun.test.ts src/games/hitandrun/rendering/SamuraiAnimationSystems.ts src/games/hitandrun/waves/HitRunEnemyPool.ts src/games/hitandrun/belt/registerBeltPlayerBlueprint.ts
+
       - name: Build through Turborepo
         run: pnpm exec turbo run build
 

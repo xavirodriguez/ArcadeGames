@@ -1,5 +1,4 @@
 import { World, CoreComponentRegistry, EventBus, AssetLoader } from "@tiny-aster/core";
-import { SAMURAI_SPRITE_READY_RESOURCE } from "../rendering/SamuraiVisualAssets";
 import { HitAndRunGame } from "../HitAndRunGame";
 import { spawnBeltPlayer } from "../belt/registerBeltPlayerBlueprint";
 import {
@@ -7,6 +6,8 @@ import {
   SUMI_E_PLAYER_READY_RESOURCE,
   SUMI_E_THEME_RESOURCE
 } from "../rendering/SumiEVisualAssets";
+import { SpriteRegistry } from "../../shared/sprites";
+import { getHitRunCharacterSpriteSheet } from "../rendering/HitRunSpriteAtlas";
 import {
   SumiEPlayerAnimationStateSystem,
   SumiEPlayerSpriteFrameSystem
@@ -55,6 +56,9 @@ describe("Hit & Run Game Systems", () => {
     });
 
     it("spawns and animates the Sumi-e player atlas when its assets are ready", () => {
+      const playerSheet = getHitRunCharacterSpriteSheet(SUMI_E_PLAYER_ASSET_KEY);
+      if (!playerSheet) throw new Error("Sumi-e player sprite metadata is missing.");
+      SpriteRegistry.register(playerSheet);
       const gameWorld = new World<CoreComponentRegistry>();
       gameWorld.setResource(SUMI_E_THEME_RESOURCE, true);
       gameWorld.setResource(SUMI_E_PLAYER_READY_RESOURCE, true);
@@ -70,14 +74,14 @@ describe("Hit & Run Game Systems", () => {
         anchor: { x: 0.5, y: 0.94 },
         scale: 26 / 64
       });
-      expect(gameWorld.getComponent(player, "Animator")?.current).toBe("idle");
+      expect(gameWorld.getComponent(player, "SpriteAnimator")?.currentAnim).toBe("idle");
 
       const stateSystem = new SumiEPlayerAnimationStateSystem();
       gameWorld.mutateComponent(player, "Velocity", (velocity) => {
         velocity.vx = 40;
       });
       stateSystem.update(gameWorld, 1 / 60);
-      expect(gameWorld.getComponent(player, "Animator")?.current).toBe("walk");
+      expect(gameWorld.getComponent(player, "SpriteAnimator")?.currentAnim).toBe("walk");
 
       gameWorld.mutateComponent(player, "Velocity", (velocity) => {
         velocity.vx = 0;
@@ -86,16 +90,17 @@ describe("Hit & Run Game Systems", () => {
         combo.activeStep = "jab1";
       });
       stateSystem.update(gameWorld, 1 / 60);
-      expect(gameWorld.getComponent(player, "Animator")?.current).toBe("attack");
+      expect(gameWorld.getComponent(player, "SpriteAnimator")?.currentAnim).toBe("attack");
 
-      gameWorld.mutateComponent(player, "Animator", (animator) => {
-        animator.current = "walk";
-        animator.frame = 1;
+      gameWorld.mutateComponent(player, "SpriteAnimator", (animator) => {
+        animator.currentAnim = "walk";
+        animator.frameIndex = 1;
       });
       new SumiEPlayerSpriteFrameSystem().update(gameWorld, 1 / 60);
       expect(gameWorld.getComponent(player, "Sprite")?.srcRect).toEqual({
         x: 64, y: 64, w: 64, h: 64
       });
+
 
       if (gameWorld.getResource<boolean>("IsHeadless")) {
         expect(gameWorld.getResource<boolean>(SAMURAI_SPRITE_READY_RESOURCE)).toBe(false);

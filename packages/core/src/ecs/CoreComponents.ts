@@ -1502,7 +1502,7 @@ export interface CoreComponentRegistry extends ComponentRegistry {
   /** Hit & Run section enemy tag component. */
   BeltSectionEnemy: Component & { type: "BeltSectionEnemy"; sectionIndex: number };
   /** SpriteAnimator component. */
-  SpriteAnimator: Component & { type: "SpriteAnimator"; sheetId: string; currentAnim: string; frameIndex: number; timer: number; flipX: boolean; scale: number; offsetX?: number; offsetY?: number };
+  SpriteAnimator: Component & { type: "SpriteAnimator"; sheetId: string; currentAnim: string; frameIndex: number; timer: number; finished?: boolean; flipX: boolean; scale: number; offsetX?: number; offsetY?: number };
 }
 
 /**

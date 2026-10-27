@@ -22,7 +22,7 @@ export function createInputComponent(): InputComponent {
     sell: false,
     upgrade: false,
     startWave: false,
-    actions: new Set(),
+    actions: [],
     axes: {},
   };
 }

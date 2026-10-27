@@ -1,4 +1,4 @@
-import { World, System, computeShipPhysics, getForwardVector, PhysicsUtils, Juice, TouchInputState } from "@tiny-aster/core";
+import { World, System, computeShipPhysics, getForwardVector, PhysicsUtils, Juice, TouchInputState, hasInputAction } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/AsteroidRegistry";
 import { AsteroidConfig } from "../types/AsteroidConfigSchema";
 import { createBullet } from "../EntityFactory";
@@ -264,14 +264,8 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
 
                   const mutInp = world.getMutableComponent(entity, "Input");
                   if (mutInp) {
-                      const acts = mutInp.actions;
-                      if (acts instanceof Set) {
-                          acts.delete("hyperspace");
-                      } else if (Array.isArray(acts)) {
-                          mutInp.actions = acts.filter(x => x !== "hyperspace");
-                      } else if (acts && typeof acts === "object") {
-                          (acts as Record<string, boolean>)["hyperspace"] = false;
-                      }
+                      const acts = Array.isArray(mutInp.actions) ? mutInp.actions : [];
+                      mutInp.actions = acts.filter(x => x !== "hyperspace");
                   }
 
                   const eventBus = world.getEventBus();
@@ -303,21 +297,7 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
       if (actionName === "rotateLeft" && (touchState.getButton("rotateLeft") || touchState.moveX < -0.25)) return true;
       if (actionName === "rotateRight" && (touchState.getButton("rotateRight") || touchState.moveX > 0.25)) return true;
     }
-    const acts = input.actions;
-    if (acts instanceof Set) {
-      return acts.has(actionName);
-    }
-    if (Array.isArray(acts)) {
-      const aLen = acts.length;
-      for (let j = 0; j < aLen; j++) {
-        if (acts[j] === actionName) return true;
-      }
-      return false;
-    }
-    if (acts && typeof acts === "object") {
-      return (acts as Record<string, boolean>)[actionName] === true;
-    }
-    return false;
+    return hasInputAction(input.actions, actionName);
   }
 
   public onRegister(_world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>): void {}

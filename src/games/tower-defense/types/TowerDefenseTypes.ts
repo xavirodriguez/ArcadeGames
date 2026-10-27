@@ -1,4 +1,4 @@
-import { Component, CoreComponentRegistry, CoreEvents, MultiplayerRegistry, HealthComponent } from "@tiny-aster/core";
+import { Component, CoreComponentRegistry, CoreEvents, MultiplayerRegistry, HealthComponent, CanonicalActionName } from "@tiny-aster/core";
 import {
   DamageComponent,
   FactionComponent,
@@ -81,7 +81,7 @@ export interface InputComponent extends Component {
   sell: boolean;
   upgrade: boolean;
   startWave: boolean;
-  actions: Set<string>;
+  actions: readonly CanonicalActionName[];
   axes: Record<string, number>;
 }
 
@@ -137,7 +137,7 @@ export interface InputState {
   sell: boolean;
   upgrade: boolean;
   startWave: boolean;
-  actions?: Set<string>;
+  actions?: readonly CanonicalActionName[];
   axes?: Record<string, number>;
   [key: string]: unknown;
 }

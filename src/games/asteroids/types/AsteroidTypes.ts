@@ -1,4 +1,4 @@
-import { Component } from "@tiny-aster/core";
+import { Component, CanonicalActionName } from "@tiny-aster/core";
 
 /** @public */
 export interface GameStateComponent extends Component {
@@ -22,7 +22,7 @@ export interface GameStateComponent extends Component {
 /** @public */
 export interface InputComponent extends Component {
   type: "Input";
-  actions: any; // Fully justified: satisfies compile-time MultiplayerRegistry (expecting Set<string>) while allowing serializable Record<string, boolean> at runtime.
+  actions: readonly CanonicalActionName[];
   axes: Record<string, number>;
 }
 

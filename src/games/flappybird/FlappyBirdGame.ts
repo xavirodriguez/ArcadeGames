@@ -1,4 +1,4 @@
-import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, CollisionSystem2D, JuiceSystem, Renderer, RenderContext, EventRegistry, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, HierarchySystem, TTLSystem, WebAudioPlayer, ConfigService, NullBaseGame, loadAudioAssets, InterpolationSnapshotEntry, EntitySyncDescriptor, applyServerState, preloadSharedAudioManifest, SHARED_AUDIO_MANIFEST, IAudioPlayer, Mutator, ComboComponent, MultiplayerRegistry } from "@tiny-aster/core";
+import { BaseGame, WorldSnapshot, GameLoop, World, System, SystemPhase, InputSystem, MovementSystem, CollisionSystem2D, JuiceSystem, Renderer, RenderContext, EventRegistry, EventBus, UnifiedInputSystem, MutatorSystem, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, HierarchySystem, TTLSystem, WebAudioPlayer, ConfigService, NullBaseGame, loadAudioAssets, InterpolationSnapshotEntry, EntitySyncDescriptor, applyServerState, preloadSharedAudioManifest, SHARED_AUDIO_MANIFEST, IAudioPlayer, Mutator, ComboComponent, MultiplayerRegistry, hasInputAction } from "@tiny-aster/core";
 import { FlappyBirdInput, FLAPPY_CONFIG, INITIAL_FLAPPY_STATE, createFlappyState, FlappyBirdState, BirdComponent, PipeComponent, FlappyBirdComponentRegistry, FlappyBirdEventRegistry } from "./types/FlappyBirdTypes";
 import { FlappyBirdConfigSchema, FlappyBirdConfig as FlappyBirdConfigType, DEFAULT_FLAPPY_BIRD_CONFIG } from "./types/FlappyBirdConfigSchema";
 import { ComboSystem } from "@tiny-aster/core";
@@ -435,11 +435,10 @@ export class FlappyBirdGame
         if (inputObj && typeof inputObj === "object" && inputObj.axes) {
           const axes = inputObj.axes as Record<string, number>;
           const moveY = axes.moveY ?? 0;
-          const actions = inputObj.actions as Set<string> | string[] | undefined;
-          const hasAction = (name: string) => actions instanceof Set ? actions.has(name) : !!(actions as string[])?.includes?.(name);
+          const actions = inputObj.actions as Set<string> | string[] | Record<string, boolean> | undefined;
 
-          inputComp.flap = hasAction("confirm") || hasAction("fire") || moveY < 0;
-          inputComp.glide = hasAction("boost") || moveY > 0;
+          inputComp.flap = hasInputAction(actions, "confirm") || hasInputAction(actions, "fire") || moveY < 0;
+          inputComp.glide = hasInputAction(actions, "boost") || moveY > 0;
         } else {
           if (typeof inputObj.flap === "boolean") {
             inputComp.flap = inputObj.flap;

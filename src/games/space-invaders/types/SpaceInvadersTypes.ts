@@ -1,4 +1,4 @@
-import { Component, CoreComponentRegistry, CoreEvents, ComboComponent, MultiplayerRegistry } from "@tiny-aster/core";
+import { Component, CoreComponentRegistry, CoreEvents, ComboComponent, MultiplayerRegistry, CanonicalActionName } from "@tiny-aster/core";
 import { LootTableComponent, PowerUpComponent, CombatHitEvent, CombatDeathEvent, DamageComponent, FactionComponent, SpawnDirectorComponent, WaveMemberComponent } from "@tiny-aster/gameplay-kit";
 import { DialogueBoxComponent } from "../../shared/story/DialogueBoxComponent";
 import { EnemyTagComponent } from "../components/EnemyTagComponent";
@@ -135,7 +135,7 @@ export interface InputState {
   moveLeft: boolean;
   moveRight: boolean;
   shoot: boolean;
-  actions?: Set<string>;
+  actions?: readonly CanonicalActionName[];
   axes?: Record<string, number>;
   [key: string]: unknown;
 }
@@ -146,7 +146,7 @@ export interface InputState {
 export interface InputComponent extends Component, InputState {
   type: "Input";
   shootCooldownRemaining: number;
-  actions: Set<string>;
+  actions: readonly CanonicalActionName[];
   axes: Record<string, number>;
 }
 

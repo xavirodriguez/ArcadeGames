@@ -247,7 +247,7 @@ export class GeometryWarsGame extends BaseGame<
           aim.aimX = input.axes.aimX;
           aim.aimY = input.axes.aimY;
         }
-        aim.isFiring = input.actions?.includes("fire") || false;
+        aim.isFiring = import("@tiny-aster/core").hasInputAction(input.actions as import("@tiny-aster/core").InputActionsLike, "fire");
       });
     }
   }
@@ -373,7 +373,7 @@ export class GeometryWarsGame extends BaseGame<
           if (typeof axes.moveX === "number") p.moveX = axes.moveX;
           if (typeof axes.moveY === "number") p.moveY = axes.moveY;
           if (actions !== undefined) {
-            p.useBomb = actions instanceof Set ? actions.has("bomb") : !!actions.bomb;
+            p.useBomb = import("@tiny-aster/core").hasInputAction(actions as import("@tiny-aster/core").InputActionsLike, "bomb");
           } else if (inputObj.bomb !== undefined) {
             p.useBomb = !!inputObj.bomb;
           }
@@ -396,7 +396,7 @@ export class GeometryWarsGame extends BaseGame<
             }
           }
           if (actions !== undefined) {
-            aim.isFiring = actions instanceof Set ? actions.has("fire") : !!actions.fire;
+            aim.isFiring = import("@tiny-aster/core").hasInputAction(actions as import("@tiny-aster/core").InputActionsLike, "fire");
           } else if (inputObj.fire !== undefined) {
             aim.isFiring = !!inputObj.fire;
           }

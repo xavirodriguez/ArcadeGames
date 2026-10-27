@@ -84,3 +84,7 @@ The ECS Canvas drawer, ECS Skia drawer and shared sprite-sheet drawer use `calcu
 ## Loading and retrying assets
 
 The shared loader resolves each numeric Expo module id once and reuses that downloaded asset handle across Canvas and Skia. Each backend still owns its decoded image cache. If a sheet fails to load temporarily, call `retrySpriteSheetLoad(sheetId)` to retry both backends, or pass `"canvas"` / `"skia"` to retry only one. The returned promise rejects if a requested backend still cannot load the resource, so the caller can log the failure while the ShapeDrawer keeps its procedural fallback visible.
+
+## Bridging ECS asset loading
+
+Games that already preload a sprite through the ECS `AssetLoader` can call `loadSpriteSheetWithAssetLoader(loader, sheetDefinition, runtimeAssetId, resolvedSource)`. It preserves legacy component keys while registering the same resolved URI against the canonical sheet id in `SpriteRegistry`. Registration happens only after the ECS loader succeeds; if preload fails, the caller should keep its existing procedural fallback and ready flag disabled.

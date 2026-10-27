@@ -403,3 +403,7 @@ All three sprite draw paths — `packages/renderer-canvas/src/CanvasSpriteDrawer
 ### Runtime loading and retry policy
 
 The shared registry resolves numeric Expo asset modules through one pending/download cache and reuses the resolved asset between Canvas and Skia. The decoded `HTMLImageElement` and `SkImage` caches remain backend-specific. A failed shared-pipeline load can be retried with `retrySpriteSheetLoad(sheetId, "canvas" | "skia" | "both")`; retry rejection must not remove the procedural fallback. ECS `AssetLoader` consumers that use game-owned providers remain on their existing path until a dedicated provider adapter migrates them safely.
+
+### ECS AssetLoader bridge
+
+When migrating a game that already loads images with `AssetLoader`, use `loadSpriteSheetWithAssetLoader` rather than duplicating a second metadata-to-runtime mapping. Pass the canonical `SpriteSheetDefinition`, the legacy runtime key used by existing ECS components, and the resolved URI/local URI from the game's platform asset resolver. It loads the legacy key first and then publishes the resolved source to `SpriteRegistry`. Keep the existing ready-resource/fallback behavior on failure. This adapter does not replace platform-specific decoding; the renderer backends still decode their own image types.

@@ -141,3 +141,11 @@ export const HIT_RUN_CHARACTER_SPRITE_SHEETS: readonly SpriteSheetDefinition[] =
       animations
     };
   });
+
+
+/** Looks up the canonical metadata by sheet id without duplicating atlas tables. */
+export function getHitRunCharacterSpriteSheet(
+  sheetId: string
+): SpriteSheetDefinition | undefined {
+  return HIT_RUN_CHARACTER_SPRITE_SHEETS.find((sheet) => sheet.id === sheetId);
+}

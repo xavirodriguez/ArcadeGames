@@ -4,7 +4,8 @@ import {
   HIT_RUN_CHARACTER_ATLAS_COLUMNS,
   HIT_RUN_CHARACTER_ATLAS_ROWS,
   HIT_RUN_CHARACTER_CELL_SIZE,
-  HIT_RUN_CHARACTER_SPRITE_SHEETS
+  HIT_RUN_CHARACTER_SPRITE_SHEETS,
+  getHitRunCharacterSpriteSheet
 } from "../rendering/HitRunSpriteAtlas";
 
 const EXPECTED_CLIP_LENGTHS: Record<string, number> = {
@@ -46,6 +47,16 @@ describe("HitRunSpriteAtlas", () => {
     expect(frames).toHaveLength(38);
     expect(uniqueFramePositions.size).toBe(38);
     expect(HIT_RUN_CHARACTER_ATLAS_COLUMNS * HIT_RUN_CHARACTER_ATLAS_ROWS).toBe(40);
+  });
+
+  it("resolves canonical sheets by id and keeps legacy key aliases out of metadata", () => {
+    expect(getHitRunCharacterSpriteSheet("hitrun_sumi_e_samurai")?.assetPath).toBe(
+      "src/games/hitandrun/assets/themes/sumi-e/enemies/samurai.png"
+    );
+    expect(getHitRunCharacterSpriteSheet("hitrun_samurai_enemy")?.assetPath).toBe(
+      "src/games/hitandrun/assets/samurai-enemy.png"
+    );
+    expect(getHitRunCharacterSpriteSheet("missing-sheet")).toBeUndefined();
   });
 
   it("keeps all three Hit&Run assets aligned with the same canonical clips and anchors", () => {

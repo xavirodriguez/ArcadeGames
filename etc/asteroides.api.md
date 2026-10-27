@@ -5273,6 +5273,7 @@ export interface SpriteComponent extends Component {
     assetKey?: string;
     flipX?: boolean;
     flipY?: boolean;
+    scale?: number;
     srcRect?: {
         x: number;
         y: number;

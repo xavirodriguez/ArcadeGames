@@ -9,7 +9,7 @@
 
 import { colors } from "../../../../theme/colors";
 import { SUMI_E_PALETTE } from "./SumiEPalette";
-import type { JuiceProfile, SupportedGameId, GameJuiceEventMap } from "../JuiceOrchestrator";
+import type { BaseJuiceOptions, SupportedGameId, GameJuiceEventMap } from "../JuiceOrchestrator";
 import { HitStopPriority } from "../HitStopSystem";
 
 /**
@@ -32,9 +32,16 @@ export type ExtendedVFXPrimitiveName =
   | SumiEVFXPrimitiveName;
 
 /**
+ * Juice profile extended for sumi-e primitive names.
+ */
+export interface SumiEJuiceProfile extends BaseJuiceOptions {
+  effect: ExtendedVFXPrimitiveName;
+}
+
+/**
  * Default juice profiles for sumi-e primitives (used when spawning by name).
  */
-export const SUMI_E_PRIMITIVE_DEFAULTS: Record<SumiEVFXPrimitiveName, JuiceProfile & { effect: SumiEVFXPrimitiveName }> = {
+export const SUMI_E_PRIMITIVE_DEFAULTS: Record<SumiEVFXPrimitiveName, SumiEJuiceProfile & { effect: SumiEVFXPrimitiveName }> = {
   ink_splash: {
     effect: "ink_splash",
     tint: SUMI_E_PALETTE.ink,
@@ -99,7 +106,7 @@ export const SUMI_E_PRIMITIVE_DEFAULTS: Record<SumiEVFXPrimitiveName, JuiceProfi
  * to ink primitives and subtler feedback (preferSubtleJuice).
  */
 export const SUMI_E_JUICE_CATALOG: {
-  [G in SupportedGameId]?: Partial<Record<GameJuiceEventMap[G], JuiceProfile & { effect: ExtendedVFXPrimitiveName }>>;
+  [G in SupportedGameId]?: Partial<Record<GameJuiceEventMap[G], SumiEJuiceProfile>>;
 } = {
   asteroids: {
     "rock:destroyed": {
@@ -346,10 +353,10 @@ export const SUMI_E_JUICE_CATALOG: {
  */
 export function getSumiEJuiceProfile<
   G extends SupportedGameId
->(gameId: G, eventName: GameJuiceEventMap[G]): (JuiceProfile & { effect: ExtendedVFXPrimitiveName }) | undefined {
+>(gameId: G, eventName: GameJuiceEventMap[G]): SumiEJuiceProfile | undefined {
   const gameMap = SUMI_E_JUICE_CATALOG[gameId];
   if (!gameMap) return undefined;
-  return (gameMap as Record<string, JuiceProfile & { effect: ExtendedVFXPrimitiveName }>)[eventName as string];
+  return (gameMap as Record<string, SumiEJuiceProfile>)[eventName as string];
 }
 
 /** Fallback mapping: sumi primitive → closest classic SharedVFX name for drawers not yet implemented. */

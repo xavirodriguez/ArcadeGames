@@ -387,3 +387,11 @@ Use when regenerating outline atlases. Hand-painted multi-row characters are mea
 ---
 
 *End of guide. When the Renderer contract or shared sprite API changes, update sections 0, 2, and 3 in the same PR.*
+
+## 8. Shared metadata contract and validation
+
+- The canonical platform-independent sheet metadata is `SpriteSheetDefinition` in `packages/core/src/assets/SpriteSheetDefinition.ts`, exported by `@tiny-aster/core`. The shared registry re-exports compatibility aliases from `SpriteTypes.ts`; do not create another local copy of the sheet/frame/clip interfaces.
+- Every entry in `SPRITE_SHEET_CATALOG` declares both `assetPath` (repository-relative path for build-time tooling) and `imageSource` (runtime platform handle). Keep both aligned when replacing an image.
+- Run `pnpm run sprites:validate` to check PNG files, image dimensions, frame bounds, duplicate ids, anchors, animation frame durations, and source-mode rules. The same command runs in CI. It validates the shared catalogue and adapts Hit&Run's ECS frame-index metadata to the same validation shape without changing that game's animation runtime.
+- The canonical metadata refactor does not merge `AnimatorComponent` and `SpriteAnimatorComponent` playback state. They have different runtime semantics today; migrating that playback API is a separate, compatibility-sensitive task. New atlas metadata should nevertheless use the canonical sheet contract.
+

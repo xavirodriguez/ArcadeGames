@@ -9,7 +9,7 @@ import {
   SAMURAI_ASSET_KEY,
   SAMURAI_CELL_SIZE,
   SAMURAI_SPRITE_ANCHOR,
-  SAMURAI_SPRITE_READY_RESOURCE
+  SAMURAI_SPRITE_READY_RESOURCE,
   getSamuraiFrameRect
 } from "../rendering/SamuraiVisualAssets";
 import { SUMI_E_THEME_RESOURCE } from "../rendering/SumiEVisualAssets";

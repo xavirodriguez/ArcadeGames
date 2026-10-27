@@ -169,6 +169,31 @@ export class HitAndRunGame extends BaseGame<
   }
 
   protected override async onPreloadAssets(): Promise<void> {
+    // Sprite drawers resolve images through the world's AssetLoader resource.
+    // Register it even when headless so the render contract remains explicit.
+    this.world.setResource("AssetLoader", this.samuraiAssetLoader);
+    this.world.setResource(SAMURAI_SPRITE_READY_RESOURCE, false);
+
+    if (!this.isHeadless) {
+      try {
+        const asset = await loadSamuraiSpritesheetAsset();
+        const imageUri = asset.localUri ?? asset.uri;
+
+        this.samuraiAssetLoader.setProvider(createSamuraiAssetProvider());
+        await this.samuraiAssetLoader.load([
+          { id: SAMURAI_ASSET_KEY, path: imageUri, type: "image" }
+        ]);
+
+        this.world.setResource(SAMURAI_SPRITE_READY_RESOURCE, true);
+      } catch (error) {
+        // Keep the procedural renderer active if the image cannot be resolved.
+        console.warn(
+          "[HitAndRunGame] Failed to load samurai spritesheet; using procedural fallback.",
+          error
+        );
+      }
+    }
+
     if (this.audio) {
       await preloadSharedAudioWithTimeout(this.audio);
     }

@@ -77,7 +77,7 @@ All shared-pipeline sheet definitions use the canonical `SpriteSheetDefinition` 
 
 Hit&Run uses the core `SpriteAnimator` component with these shared helpers. The state-selection systems choose a clip from combat/movement state, `HitRunSpriteAnimatorPlaybackSystem` advances it using elapsed seconds, and the frame sync copies the canonical source rectangle into the existing ECS `Sprite` component. Canvas and Skia therefore keep their current renderer path, while animation timing and atlas metadata come from the shared contract.
 
-The ECS component carries `type: "SpriteAnimator"` and an optional `finished` flag. Keep that shape aligned with `SpriteAnimatorComponent` in this module. The index-based `AnimatorComponent`/`AnimationSystem` remain available to other existing consumers; this migration does not merge those two APIs.
+The `createSpriteAnimator` factory returns the shared runtime state with `type: "SpriteAnimator"` for ECS storage and an optional `finished` flag. The `SpriteAnimatorComponent` interface itself intentionally omits a required `type`, so visual themes can use the same state as a plain in-memory object. The core ECS registry declares the tagged component shape. The index-based `AnimatorComponent`/`AnimationSystem` remain available to other existing consumers; this migration does not merge those two APIs.
 
 ## Animation timing
 

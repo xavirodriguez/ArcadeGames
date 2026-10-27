@@ -9,6 +9,7 @@ import type {
 export const HIT_RUN_CHARACTER_CELL_SIZE = 64;
 export const HIT_RUN_CHARACTER_ATLAS_COLUMNS = 8;
 export const HIT_RUN_CHARACTER_ATLAS_ROWS = 5;
+export const HIT_RUN_SUMI_E_SAMURAI_SHEET_ID = "hitrun_sumi_e_samurai";
 export const HIT_RUN_CHARACTER_ANCHOR = { x: 0.5, y: 0.94 } as const;
 
 export type HitRunFrameRect = SpriteFrameRect;
@@ -110,7 +111,7 @@ const HIT_RUN_CHARACTER_SHEET_ASSETS = [
     assetPath: "src/games/hitandrun/assets/themes/sumi-e/characters/player.png"
   },
   {
-    id: "hitrun_sumi_e_samurai",
+    id: HIT_RUN_SUMI_E_SAMURAI_SHEET_ID,
     assetPath: "src/games/hitandrun/assets/themes/sumi-e/enemies/samurai.png"
   }
 ] as const;

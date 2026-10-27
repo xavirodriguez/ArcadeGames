@@ -27,6 +27,9 @@ jobs:
         id: install_dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Validate sprite atlases and metadata
+        run: pnpm run sprites:validate
+
       - name: Build through Turborepo
         run: pnpm exec turbo run build
 

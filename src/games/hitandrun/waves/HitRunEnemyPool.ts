@@ -4,7 +4,7 @@ import {
   CoreComponentRegistry
 } from "@tiny-aster/core";
 import type { SpriteComponent } from "@tiny-aster/core";
-import { createSpriteAnimator } from "../../shared/sprites";
+import { createSpriteAnimator } from "../../shared/sprites/SpriteAnimator";
 import {
   SAMURAI_ASSET_KEY,
   SAMURAI_CELL_SIZE,

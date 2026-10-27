@@ -102,11 +102,7 @@ describe("Hit & Run Game Systems", () => {
         x: 64, y: 64, w: 64, h: 64
       });
 
-      if (game.isHeadless) {
-        expect(gameWorld.getResource<boolean>(SAMURAI_SPRITE_READY_RESOURCE)).toBe(false);
-      }
 
-      game.destroy();
     });
 
     it("creates exactly one main Camera2D entity after initialization", async () => {

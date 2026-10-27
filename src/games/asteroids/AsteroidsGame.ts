@@ -64,6 +64,7 @@ import { StoryRuntime } from "@tiny-aster/core";
 import type { StoryGraph } from "@tiny-aster/core";
 import type { AsteroidsGameOptions } from "./types/AsteroidsGameOptions";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
+import { registerSumiEBackground, registerSumiEVFX } from "../shared/rendering/sumi-e";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry, AsteroidsBlueprintMap } from "./types/AsteroidRegistry";
 import { AsteroidGameStateSystem } from "./systems/AsteroidGameStateSystem";
 import { AsteroidInputSystem } from "./systems/AsteroidInputSystem";
@@ -361,6 +362,10 @@ export class AsteroidsGame
     initializeAsteroidsRenderer(renderer, this.visualMod);
     SharedVFX.registerSharedVFX(renderer);
 
+    // Phase 1+2: sumi-e / shan-shui background + ink juice drawers (mountain landscape)
+    registerSumiEBackground(renderer as any, { aesthetic: "sumi-e", landscape: "mountain", force: true });
+    registerSumiEVFX(renderer as any);
+
     if (renderer.type === "canvas") {
       renderer.registerBackgroundEffect("diffuse_milky_way", SharedVFX.DiffuseMilkyWayBackgroundEffect);
       renderer.registerBackgroundEffect("drifting_nebula", SharedVFX.DriftingNebulaBackgroundEffect);
@@ -452,19 +457,7 @@ export class AsteroidsGame
     if (localPlayer !== undefined) {
       this.world.mutateComponent(localPlayer, "Input", (inputComp) => {
         const inputObj = input as Record<string, unknown>;
-        if (inputObj && typeof inputObj === "object" && inputObj.axes) {
-          const axes = inputObj.axes as Record<string, number>;
-          const moveX = axes.moveX ?? 0;
-          const moveY = axes.moveY ?? 0;
-          const actions = inputObj.actions as Set<string> | string[] | undefined;
-          const hasAction = (name: string) => actions instanceof Set ? actions.has(name) : !!(actions as string[])?.includes?.(name);
-
-          inputComp.actions["rotateLeft"] = moveX < 0;
-          inputComp.actions["rotateRight"] = moveX > 0;
-          inputComp.actions["thrust"] = moveY < 0 || hasAction("boost");
-          inputComp.actions["shoot"] = hasAction("fire");
-          inputComp.actions["hyperspace"] = hasAction("hyperspace");
-        } else {
+        if (inputObj) {
           if (typeof inputObj.rotateLeft === "boolean") {
             inputComp.actions["rotateLeft"] = inputObj.rotateLeft;
           }

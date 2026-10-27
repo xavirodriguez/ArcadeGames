@@ -27,3 +27,8 @@ export {
   INK_WASH_EFFECT_NAME,
   type InkWashEffectOptions
 } from "./InkWashBackgroundEffect";
+
+export {
+  registerSumiEBackground,
+  type RegisterSumiEBackgroundOptions
+} from "./registerSumiEBackground";

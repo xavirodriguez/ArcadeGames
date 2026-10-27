@@ -7,7 +7,8 @@ import {
   RunState,
   CoreComponentRegistry,
   ConfigService,
-  World
+  World,
+  SegmentTemplate
 } from "@tiny-aster/core";
 import { z } from "zod";
 
@@ -19,14 +20,14 @@ export function loadPlatformerArcadeConfig<TConfig, TSchema extends z.ZodTypeAny
   gameId: string,
   schema: TSchema,
   gameOptions?: Record<string, unknown>,
-  levelDataOverride?: { templates: unknown[]; grammar: string[] }
-): { baseConfig: TConfig; customLevelData?: { templates: unknown[]; grammar: string[] } } {
+  levelDataOverride?: { templates: SegmentTemplate[]; grammar: string[] }
+): { baseConfig: TConfig; customLevelData?: { templates: SegmentTemplate[]; grammar: string[] } } {
   const baseConfig = ConfigService.load<TConfig>(
     gameId,
     schema,
     gameOptions?.rawConfig ?? {}
   );
-  const customLevelData = levelDataOverride ?? (gameOptions?.levelData as { templates: unknown[]; grammar: string[] } | undefined);
+  const customLevelData = levelDataOverride ?? (gameOptions?.levelData as { templates: SegmentTemplate[]; grammar: string[] } | undefined);
   return { baseConfig, customLevelData };
 }
 import { updateRunProgress } from "@tiny-aster/gameplay-kit";
@@ -56,8 +57,8 @@ export abstract class PlatformerArcadeGame<
   protected loadConfig<TConfig, TSchema extends z.ZodTypeAny = z.ZodTypeAny>(
     schema: TSchema,
     gameOptions?: Record<string, unknown>,
-    levelDataOverride?: { templates: unknown[]; grammar: string[] }
-  ): { baseConfig: TConfig; customLevelData?: { templates: unknown[]; grammar: string[] } } {
+    levelDataOverride?: { templates: SegmentTemplate[]; grammar: string[] }
+  ): { baseConfig: TConfig; customLevelData?: { templates: SegmentTemplate[]; grammar: string[] } } {
     return loadPlatformerArcadeConfig<TConfig, TSchema>(
       this.gameId,
       schema,

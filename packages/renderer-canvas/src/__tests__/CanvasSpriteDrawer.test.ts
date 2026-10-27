@@ -99,20 +99,25 @@ describe("CanvasSpriteDrawer Preloading and Caching", () => {
     await expect(preloadPromise).resolves.toBeUndefined();
   });
 
-  it("applies SpriteComponent.scale to the destination rectangle without changing the atlas source", () => {
+  it("applies SpriteComponent.scale to the destination rectangle without changing the atlas source", async () => {
     const drawer = new CanvasSpriteDrawer();
     const drawImageMock = jest.fn();
     const mockCtx = {
       save: jest.fn(),
       restore: jest.fn(),
       drawImage: drawImageMock,
-    } as unknown as CanvasRenderingContext2D;
+    } as CanvasRenderingContext2D;
 
     const world = new World();
     const image = { width: 64, height: 64, complete: true };
-    const assetLoader = {
-      get: jest.fn().mockReturnValue(image),
-    } as unknown as AssetLoader;
+    const assetLoader = new AssetLoader({
+      async loadImage(): Promise<unknown> { return image; },
+      async loadAudio(): Promise<unknown> { return null; },
+      async loadFont(): Promise<unknown> { return null; }
+    });
+    await assetLoader.load([
+      { id: "scaled_sprite", path: "scaled_sprite", type: "image" }
+    ]);
     world.setResource("AssetLoader", assetLoader);
 
     const entity = world.createEntity();

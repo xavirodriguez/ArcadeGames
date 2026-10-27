@@ -1,105 +1,80 @@
 # Sumi-e / Shan-shui Background Integration Roadmap
 
-Goal: make the ink-wash parallax system and related procedural graphics the **default visual language** of the suite for a medieval Japan aesthetic (sumi-e / shan-shui).
-
 Branch: `feature/sumi-e-background-integration`
 
 ## Phase 0 — Foundation ✅
+InkWash Skia + options, SumiEPalette, AestheticTheme, registrable `ink-wash-parallax`.
 
-- [x] Enhance `InkWashParallaxBackdrop` with Skia, options, landscape presets
-- [x] Shared `SumiEPalette` + variants (classic / winter / forest)
-- [x] `AestheticTheme` switch (`sumi-e` | `cosmic` | `neon`)
-- [x] Registrable `ink-wash-parallax` effects (Canvas + Skia)
-- [x] Module barrel: `src/games/shared/rendering/sumi-e/`
-
-## Phase 1 — Cross-game adoption (in progress)
-
-| Game            | Status | Landscape |
-|-----------------|--------|-----------|
-| **Asteroids**   | ✅ wired | mountain |
-| Flappy Bird     | ⏳ pending | coastal |
-| Tower Defense   | ⏳ pending | forest |
-| Space Invaders  | ⏳ pending | default |
-| Pong            | ⏳ pending | subtle |
-| Platformer      | ⏳ pending | forest |
-| Echo Runner     | partial (own inkwash) | unify |
-| Hit & Run       | advanced SumiETheme | migrate tokens |
-
-### One-call integration (any game)
-
-```ts
-import { registerSumiEBackground, registerSumiEVFX } from "../../shared/rendering/sumi-e";
-
-// Inside initializeRenderer:
-registerSumiEBackground(renderer, {
-  aesthetic: "sumi-e",
-  landscape: "mountain", // or "coastal" | "default"
-  force: true            // register even alongside cosmic BGs
-});
-registerSumiEVFX(renderer); // ink_splash, seal_stamp, etc.
-```
-
-**Asteroids** already does this in `initializeRenderer` (mountain landscape).
+## Phase 1 — Cross-game adoption (partial) ✅*
+- Helper `registerSumiEBackground` / `registerSumiEVFX`
+- **Asteroids** wired (mountain)
+- Remaining games: same 2-line pattern
 
 ## Phase 2 — Juice vocabulary ✅
+Primitives: `ink_splash`, `ink_bleed`, `brush_stroke`, `dry_brush_trail`, `seal_stamp`, `mist_layer`, `water_ripple`, `floating_kanji`  
+Catalog: `SUMI_E_JUICE_CATALOG` + Canvas/Skia drawers.
 
-New primitives (shape drawers + catalog):
+## Phase 3 — Atmosphere & depth ✅
 
-| Primitive | Visual |
-|-----------|--------|
-| `ink_splash` | Irregular ink blot expanding |
-| `ink_bleed` | Same family, softer |
-| `brush_stroke` | Curved calligraphic stroke |
-| `dry_brush_trail` | Thinner trail |
-| `seal_stamp` | Vermilion square seal |
-| `mist_layer` | Soft expanding wash |
-| `water_ripple` | Concentric rings |
-| `floating_kanji` | Seal-style glyph |
-
-Files:
-- `sumi-e/SumiEJuice.ts` — `SUMI_E_JUICE_CATALOG` for all SupportedGameId events
-- `sumi-e/SumiEShapeDrawers.ts` — Canvas + Skia drawers + `registerSumiEVFX`
-
-Usage:
+| Feature | Module |
+|---------|--------|
+| 6-layer atmosphere stack | `ATMOSPHERE_INK_WASH_LAYERS` |
+| Mist bands (deterministic) | `computeMistBands` / `drawMistBandsCanvas` |
+| Ambient particles (petal, ink_dot, bird) | `spawnAmbientParticle` / `spawnAmbientBand` |
+| Regional presets | `getRegionalAtmosphere("mountain"\|"coast"\|"forest"\|"winter"\|"village")` |
+| ParallaxSystem coupling | `inkDepthToParallaxLayer` / `cameraXForInkLayer` |
 
 ```ts
-import { getSumiEJuiceProfile, SUMI_E_PRIMITIVE_DEFAULTS } from "../../shared/rendering/sumi-e";
+import {
+  getRegionalAtmosphere,
+  computeMistBands,
+  drawMistBandsCanvas,
+  spawnAmbientBand
+} from "../../shared/rendering/sumi-e";
 
-const profile = getSumiEJuiceProfile("asteroids", "rock:destroyed");
-// → { effect: "ink_splash", tint: "#171817", ... }
-
-// Or spawn directly once drawers are registered:
-// juice.spawn("ink_splash", { x, y, scale: 1.1 });
+const region = getRegionalAtmosphere("coast");
+// use region.layers with registerSumiEBackground / computeInkWashLayers
+const mist = computeMistBands(h, timeSec, cameraX, region.mist);
+drawMistBandsCanvas(ctx, w, mist);
 ```
 
-To fully switch a game's juice to sumi-e, prefer `SUMI_E_JUICE_CATALOG` over `JUICE_CATALOG` when `AestheticTheme.id === "sumi-e"` (orchestrator hook can be added next).
+## Phase 4 — Polish ✅
 
-## Phase 3 — Atmosphere & depth
+| Feature | API |
+|---------|-----|
+| Quality presets | `resolveSumiERenderSettings("low"\|"medium"\|"high"\|"ultra")` |
+| Accessibility | `{ reduceMotion, highContrast, disableParallax, disableParticles }` |
+| Layer trimming | `selectLayers(layers, maxLayers)` |
+| High-contrast colors | `contrastColors(true)` |
+| Debug overlay | `drawSumiEDebugOverlayCanvas(ctx, snapshot)` + resource `SumiEDebug` |
+| Determinism tests | `sumi-e/__tests__/InkWashDeterminism.test.ts` |
 
-- More layers (architecture, birds, mist animation)
-- Deeper `ParallaxSystem` + `Camera2D` integration
-- Regional variants via `LevelThemeSystem`
-- Particle trails (leaves, petals, residual ink)
-
-## Phase 4 — Polish
-
-- Debug overlay for live layer editing
-- Performance presets
-- Visual regression tests (Canvas vs Skia)
-- Accessibility options
+```ts
+const settings = resolveSumiERenderSettings("medium", { reduceMotion: true });
+const layers = selectLayers(getLayerStack("atmosphere"), settings.maxLayers);
+// step: settings.step, parallax: settings.parallax, ...
+```
 
 ## Design principles
+1. Deterministic geometry  
+2. Canvas ↔ Skia parity  
+3. Shared module first  
+4. Subtle juice / a11y by default  
+5. Cosmic/neon remain opt-in  
 
-1. **Deterministic** — no RNG in `computeInkWashLayers`
-2. **Parity** — every Canvas path has a Skia twin
-3. **Reusable** — shared module first
-4. **Subtle by default** — `preferSubtleJuice` for sumi-e
-5. **Opt-in per game** — cosmic/neon remain available
+## Module map
 
-## Related files
-
-- `src/games/shared/rendering/InkWashParallaxBackdrop.ts`
-- `src/games/shared/rendering/sumi-e/*`
-- `src/games/asteroids/AsteroidsGame.ts` (Phase 1 example)
-- `src/games/hitandrun/rendering/theme/sumi-e/SumiETheme.ts` (origin)
-- `src/games/shared/rendering/JuiceOrchestrator.ts`
+```
+src/games/shared/rendering/sumi-e/
+  SumiEPalette.ts
+  AestheticTheme.ts
+  InkWashBackgroundEffect.ts
+  registerSumiEBackground.ts
+  SumiEJuice.ts
+  SumiEShapeDrawers.ts
+  SumiEAtmosphere.ts      # Phase 3
+  SumiEPerformance.ts     # Phase 4
+  SumiEDebugOverlay.ts    # Phase 4
+  index.ts
+  __tests__/InkWashDeterminism.test.ts
+```

@@ -1,6 +1,6 @@
 /**
  * Sumi-e / shan-shui aesthetic module.
- * Re-exports palette, theme and ink-wash background effect helpers.
+ * Re-exports palette, theme, ink-wash background, juice and shape drawers.
  */
 
 export {
@@ -32,3 +32,14 @@ export {
   registerSumiEBackground,
   type RegisterSumiEBackgroundOptions
 } from "./registerSumiEBackground";
+
+export {
+  SUMI_E_PRIMITIVE_DEFAULTS,
+  SUMI_E_JUICE_CATALOG,
+  SUMI_E_FALLBACK_SHAPE,
+  getSumiEJuiceProfile,
+  type SumiEVFXPrimitiveName,
+  type ExtendedVFXPrimitiveName
+} from "./SumiEJuice";
+
+export { registerSumiEVFX } from "./SumiEShapeDrawers";

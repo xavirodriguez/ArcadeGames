@@ -66,6 +66,11 @@ describe("Hit&Run sprite preload integration", () => {
       if (player === undefined) throw new Error("Sumi-e player was not spawned.");
       expect(world.getComponent(player, "Render")?.shape).toBe("sprite");
       expect(world.getComponent(player, "Sprite")?.assetKey).toBe(SUMI_E_PLAYER_ASSET_KEY);
+      expect(world.getComponent(player, "SpriteAnimator")).toMatchObject({
+        type: "SpriteAnimator",
+        sheetId: SUMI_E_PLAYER_ASSET_KEY,
+        currentAnim: "idle"
+      });
 
       const samurai = new HitRunEnemyPool().acquireEnemy(world, {
         x: 480,
@@ -74,6 +79,11 @@ describe("Hit&Run sprite preload integration", () => {
       });
       expect(world.getComponent(samurai, "Render")?.shape).toBe("sprite");
       expect(world.getComponent(samurai, "Sprite")?.assetKey).toBe(SAMURAI_ASSET_KEY);
+      expect(world.getComponent(samurai, "SpriteAnimator")).toMatchObject({
+        type: "SpriteAnimator",
+        sheetId: "hitrun_sumi_e_samurai",
+        currentAnim: "idle"
+      });
     } finally {
       game.destroy();
     }

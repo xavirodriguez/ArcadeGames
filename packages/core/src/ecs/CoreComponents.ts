@@ -1240,6 +1240,8 @@ export interface SpriteComponent extends Component {
   flipY?: boolean;
   /** Color tint applied to sprite. */
   tint?: string;
+  /** Uniform destination scale, independent of Transform scale used for facing. */
+  scale?: number;
 }
 
 /**

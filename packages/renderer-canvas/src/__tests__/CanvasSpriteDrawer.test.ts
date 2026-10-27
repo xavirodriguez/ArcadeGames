@@ -99,6 +99,41 @@ describe("CanvasSpriteDrawer Preloading and Caching", () => {
     await expect(preloadPromise).resolves.toBeUndefined();
   });
 
+  it("applies SpriteComponent.scale to the destination rectangle without changing the atlas source", () => {
+    const drawer = new CanvasSpriteDrawer();
+    const drawImageMock = jest.fn();
+    const mockCtx = {
+      save: jest.fn(),
+      restore: jest.fn(),
+      drawImage: drawImageMock,
+    } as unknown as CanvasRenderingContext2D;
+
+    const world = new World();
+    const image = { width: 64, height: 64, complete: true };
+    const assetLoader = {
+      get: jest.fn().mockReturnValue(image),
+    } as unknown as AssetLoader;
+    world.setResource("AssetLoader", assetLoader);
+
+    const entity = world.createEntity();
+    const spriteComp: SpriteComponent = {
+      type: "Sprite",
+      assetKey: "scaled_sprite",
+      srcRect: { x: 64, y: 128, w: 64, h: 64 },
+      anchor: { x: 0.5, y: 0.5 },
+      scale: 0.5
+    };
+    world.addComponent(entity, spriteComp);
+
+    drawer.draw(mockCtx, world, entity);
+
+    expect(drawImageMock).toHaveBeenCalledWith(
+      image,
+      64, 128, 64, 64,
+      -16, -16, 32, 32
+    );
+  });
+
   it("does not draw sprite if image is not ready", () => {
     class MockImage {
       public src = "";

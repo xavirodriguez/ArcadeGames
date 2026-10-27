@@ -28,6 +28,13 @@ import {
   SAMURAI_ASSET_KEY,
   SAMURAI_SPRITE_READY_RESOURCE
 } from "./rendering/SamuraiVisualAssets";
+import {
+  SUMI_E_PLAYER_ASSET_KEY,
+  SUMI_E_PLAYER_READY_RESOURCE,
+  SUMI_E_THEME_RESOURCE,
+  loadSumiEPlayerSpritesheetAsset,
+  loadSumiESamuraiSpritesheetAsset
+} from "./rendering/SumiEVisualAssets";
 import { registerHitRunSamuraiAnimationSystems } from "./rendering/SamuraiAnimationSystems";
 import type {
   HitAndRunGameState,
@@ -149,9 +156,14 @@ export class HitAndRunGame extends BaseGame<
   private levelPlan!: LevelPlan;
   private customLevelData?: { templates: SegmentTemplate[]; grammar: string[] };
   private readonly samuraiAssetLoader: AssetLoader;
+  private readonly activeThemeId: string;
 
   constructor(config: HitAndRunConfig = {}) {
     const seed = (config.gameOptions?.seed as number) || config.seed;
+    const configuredThemeId = typeof config.gameOptions?.theme === "string"
+      ? config.gameOptions.theme
+      : "sumi-e";
+    const requestedThemeId = resolveThemeIdFromConfig(configuredThemeId);
     super({
       isMultiplayer: false,
       headless: false,
@@ -159,6 +171,7 @@ export class HitAndRunGame extends BaseGame<
       gameOptions: { ...config.gameOptions, seed },
       audio: new WebAudioPlayer(),
     });
+    this.activeThemeId = ThemeRegistry.setActiveTheme(requestedThemeId).id;
     this.samuraiAssetLoader = new AssetLoader();
     this.customLevelData = config.levelData;
   }
@@ -169,6 +182,55 @@ export class HitAndRunGame extends BaseGame<
   }
 
   protected override async onPreloadAssets(): Promise<void> {
+    this.samuraiAssetLoader.setProvider(createSamuraiAssetProvider());
+
+    if (this.activeThemeId === "sumi-e") {
+      try {
+        const playerAsset = await loadSumiEPlayerSpritesheetAsset();
+        const playerUri = playerAsset.localUri ?? playerAsset.uri;
+        await this.samuraiAssetLoader.load([
+          { id: SUMI_E_PLAYER_ASSET_KEY, path: playerUri, type: "image" }
+        ]);
+        this.world.setResource(SUMI_E_PLAYER_READY_RESOURCE, true);
+      } catch (error) {
+        this.world.setResource(SUMI_E_PLAYER_READY_RESOURCE, false);
+        console.warn(
+          "[HitAndRunGame] Failed to load Sumi-e player spritesheet; using procedural player.",
+          error
+        );
+      }
+
+      try {
+        const samuraiAsset = await loadSumiESamuraiSpritesheetAsset();
+        const samuraiUri = samuraiAsset.localUri ?? samuraiAsset.uri;
+        await this.samuraiAssetLoader.load([
+          { id: SAMURAI_ASSET_KEY, path: samuraiUri, type: "image" }
+        ]);
+        this.world.setResource(SAMURAI_SPRITE_READY_RESOURCE, true);
+      } catch (error) {
+        this.world.setResource(SAMURAI_SPRITE_READY_RESOURCE, false);
+        console.warn(
+          "[HitAndRunGame] Failed to load Sumi-e samurai spritesheet; using procedural fallback.",
+          error
+        );
+      }
+    } else {
+      try {
+        const asset = await loadSamuraiSpritesheetAsset();
+        const imageUri = asset.localUri ?? asset.uri;
+        await this.samuraiAssetLoader.load([
+          { id: SAMURAI_ASSET_KEY, path: imageUri, type: "image" }
+        ]);
+        this.world.setResource(SAMURAI_SPRITE_READY_RESOURCE, true);
+      } catch (error) {
+        this.world.setResource(SAMURAI_SPRITE_READY_RESOURCE, false);
+        console.warn(
+          "[HitAndRunGame] Failed to load samurai spritesheet; using procedural fallback.",
+          error
+        );
+      }
+    }
+
     if (this.audio) {
       await preloadSharedAudioWithTimeout(this.audio);
     }
@@ -176,6 +238,12 @@ export class HitAndRunGame extends BaseGame<
 
   protected override async onRegisterSystems(): Promise<void> {
     await super.onRegisterSystems();
+
+    // Register the loader before entities or renderer drawers need it.
+    this.world.setResource("AssetLoader", this.samuraiAssetLoader);
+    this.world.setResource(SAMURAI_SPRITE_READY_RESOURCE, false);
+    this.world.setResource(SUMI_E_PLAYER_READY_RESOURCE, false);
+    this.world.setResource(SUMI_E_THEME_RESOURCE, this.activeThemeId === "sumi-e");
 
     this.setupCommonArcadeResources();
     this.world.deleteResource("IsPaused");

@@ -81,6 +81,7 @@ export class SkiaSpriteDrawer<TRegistry extends CoreComponentRegistry = CoreComp
     // Anchor
     const anchorX = sprite.anchor?.x ?? 0.5;
     const anchorY = sprite.anchor?.y ?? 0.5;
+    const spriteScale = sprite.scale ?? 1;
 
     // Flip
     const flipX = sprite.flipX ? -1 : 1;
@@ -107,7 +108,9 @@ export class SkiaSpriteDrawer<TRegistry extends CoreComponentRegistry = CoreComp
         return;
       }
       const src = Skia.XYWHRect(x, y, w, h);
-      const dest = Skia.XYWHRect(-w * anchorX, -h * anchorY, w, h);
+      const drawWidth = w * spriteScale;
+      const drawHeight = h * spriteScale;
+      const dest = Skia.XYWHRect(-drawWidth * anchorX, -drawHeight * anchorY, drawWidth, drawHeight);
       canvas.drawImageRect(img, src, dest, this.paint);
     } else {
       const w = typeof imgAsRecord.width === "function" ? (imgAsRecord.width as () => number)() : ((imgAsRecord.width as number) || 0);
@@ -117,7 +120,9 @@ export class SkiaSpriteDrawer<TRegistry extends CoreComponentRegistry = CoreComp
         canvas.restore();
         return;
       }
-      const dest = Skia.XYWHRect(-w * anchorX, -h * anchorY, w, h);
+      const drawWidth = w * spriteScale;
+      const drawHeight = h * spriteScale;
+      const dest = Skia.XYWHRect(-drawWidth * anchorX, -drawHeight * anchorY, drawWidth, drawHeight);
       const src = Skia.XYWHRect(0, 0, w, h);
       canvas.drawImageRect(img, src, dest, this.paint);
     }

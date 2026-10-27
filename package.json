@@ -19,6 +19,7 @@
     "build": "pnpm turbo run build && pnpm exec expo export",
     "test": "pnpm exec turbo run test",
     "test:e2e": "pnpm exec playwright test",
+    "sprites:validate": "pnpm exec tsx scripts/validate-sprites.ts",
     "lint": "pnpm turbo run lint",
     "lint:fix": "pnpm  turbo run lint -- --fix",
     "build:dev": "pnpm exec eas build --profile development --platform android",

@@ -304,7 +304,7 @@ export class AsteroidsGame
       this.world.addComponent(ship, { type: "LocalPlayer" });
       this.world.addComponent(ship, {
         type: "Input",
-        actions: {},
+        actions: [],
         axes: {}
       });
 
@@ -458,21 +458,26 @@ export class AsteroidsGame
       this.world.mutateComponent(localPlayer, "Input", (inputComp) => {
         const inputObj = input as Record<string, unknown>;
         if (inputObj) {
+          const actsSet = new Set<import("@tiny-aster/core").CanonicalActionName>(inputComp.actions || []);
           if (typeof inputObj.rotateLeft === "boolean") {
-            inputComp.actions["rotateLeft"] = inputObj.rotateLeft;
+            if (inputObj.rotateLeft) actsSet.add("rotateLeft"); else actsSet.delete("rotateLeft");
           }
           if (typeof inputObj.rotateRight === "boolean") {
-            inputComp.actions["rotateRight"] = inputObj.rotateRight;
+            if (inputObj.rotateRight) actsSet.add("rotateRight"); else actsSet.delete("rotateRight");
           }
           if (typeof inputObj.thrust === "boolean") {
-            inputComp.actions["thrust"] = inputObj.thrust;
+            if (inputObj.thrust) actsSet.add("thrust"); else actsSet.delete("thrust");
           }
           if (typeof inputObj.shoot === "boolean") {
-            inputComp.actions["shoot"] = inputObj.shoot;
+            if (inputObj.shoot) actsSet.add("shoot"); else actsSet.delete("shoot");
           }
           if (typeof inputObj.hyperspace === "boolean") {
-            inputComp.actions["hyperspace"] = inputObj.hyperspace;
+            if (inputObj.hyperspace) actsSet.add("hyperspace"); else actsSet.delete("hyperspace");
           }
+          const sorted = Array.from(actsSet);
+          sorted.sort();
+          inputComp.actions = sorted;
+
           if (typeof inputObj.rotationAmount === "number") {
             inputComp.axes["rotate_x"] = inputObj.rotationAmount;
             inputComp.axes["horizontal"] = inputObj.rotationAmount;

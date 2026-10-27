@@ -7,26 +7,35 @@
  *
  * @public
  */
-export type InputActionsLike = ReadonlySet<string> | readonly string[] | Readonly<Record<string, boolean>>;
+import { CanonicalActionName } from "./CanonicalInput";
 
 /**
- * Utility function to query whether a specific input action is currently active in an `InputActionsLike` structure.
+ * Type representing supported container/structure formats for active input actions.
  *
- * @param actions - The actions object, set, or array (or null/undefined).
+ * @public
+ */
+export type InputActionsLike = readonly CanonicalActionName[] | ReadonlySet<string> | Readonly<Record<string, boolean>>;
+
+/**
+ * Utility function to query whether a specific input action is currently active in a `CanonicalActionName[]` or `InputActionsLike` structure.
+ *
+ * @param actions - The actions array, set, or object (or null/undefined).
  * @param name - The action identifier to check.
  * @returns `true` if the action is active, `false` otherwise.
  *
  * @public
  */
+export function hasInputAction(actions: readonly CanonicalActionName[] | null | undefined, name: string): boolean;
+export function hasInputAction(actions: InputActionsLike | null | undefined, name: string): boolean;
 export function hasInputAction(actions: InputActionsLike | null | undefined, name: string): boolean {
   if (!actions) return false;
 
-  if (actions instanceof Set) {
-    return actions.has(name);
+  if (Array.isArray(actions)) {
+    return actions.includes(name as CanonicalActionName);
   }
 
-  if (Array.isArray(actions)) {
-    return actions.includes(name);
+  if (actions instanceof Set) {
+    return actions.has(name);
   }
 
   if (typeof actions === "object" && name in actions) {

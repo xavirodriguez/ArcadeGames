@@ -1,4 +1,4 @@
-import { World, Juice, CoreComponentRegistry, createEmitter, PhysicsUtils, TouchInputState } from "@tiny-aster/core";
+import { World, Juice, CoreComponentRegistry, createEmitter, PhysicsUtils, TouchInputState, hasInputAction } from "@tiny-aster/core";
 import { TransformComponent, VelocityComponent, WorldUtils } from "@tiny-aster/core";
 import { InputComponent, SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
 import { PlayerBulletPool } from "../EntityPool";
@@ -91,10 +91,10 @@ export class SpaceInvadersInputSystem extends GameSystem {
           nextShoot = input.shoot;
         } else if (useNetwork) {
           const axes = (input as any).axes || {};
-          const actions = (input as any).actions;
+          const actions = input.actions;
           nextMoveLeft = (axes.moveX === -1);
           nextMoveRight = (axes.moveX === 1);
-          nextShoot = (actions instanceof Set ? actions.has("shoot") : Array.isArray(actions) ? actions.includes("shoot") : false);
+          nextShoot = hasInputAction(actions, "shoot") || hasInputAction(actions, "fire");
         } else if (inputState) {
           nextMoveLeft = InputUtils.isPressed(inputState, "moveLeft");
           nextMoveRight = InputUtils.isPressed(inputState, "moveRight");

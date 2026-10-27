@@ -1,4 +1,4 @@
-import { Component, CoreComponentRegistry, CoreEvents, BlueprintDefinition } from "@tiny-aster/core";
+import { Component, CoreComponentRegistry, CoreEvents, BlueprintDefinition, CanonicalActionName } from "@tiny-aster/core";
 
 export type EnemyType = "flagship" | "escort" | "emissary" | "drone";
 export type EnemyState = "in_slot" | "windup" | "diving" | "returning";
@@ -55,7 +55,7 @@ export interface GalaxianInputState {
   moveLeft: boolean;
   moveRight: boolean;
   shoot: boolean;
-  actions?: Set<string>;
+  actions?: readonly CanonicalActionName[];
   axes?: Record<string, number>;
   [key: string]: unknown;
 }
@@ -63,7 +63,7 @@ export interface GalaxianInputState {
 export interface GalaxianInputComponent extends Component, GalaxianInputState {
   type: "Input";
   shootCooldownRemaining: number;
-  actions: Set<string>;
+  actions: readonly CanonicalActionName[];
   axes: Record<string, number>;
 }
 

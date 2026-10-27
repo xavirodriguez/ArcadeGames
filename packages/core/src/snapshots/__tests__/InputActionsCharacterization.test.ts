@@ -22,7 +22,7 @@ function hasActionLocal(actions: unknown, actionName: string): boolean {
   return false;
 }
 
-function createSimulationAdapter(world: World): Simulation {
+function createPureSimulationAdapter(world: World): Simulation {
   return {
     get tick() {
       return world.tick;
@@ -45,18 +45,44 @@ function createSimulationAdapter(world: World): Simulation {
   };
 }
 
+function createReapplyingSimulationAdapter(world: World): Simulation {
+  return {
+    get tick() {
+      return world.tick;
+    },
+    get state() {
+      return {};
+    },
+    step() {
+      world.advanceTick();
+      const playerEntity = world.query("Input")[0];
+      if (playerEntity !== undefined) {
+        applyInputFrameToEntity(world, playerEntity, { actions: ["thrust"], axes: {} });
+      }
+    },
+    snapshot() {
+      return world.snapshot();
+    },
+    restore(snapshot) {
+      world.restore(snapshot);
+    },
+    hash() {
+      return "hash";
+    }
+  };
+}
+
 describe("Input.actions Characterization Tests", () => {
-  describe("Format: Set", () => {
-    function setupWorldWithSet(): { world: World; entityId: number } {
+  describe("Format: Canonical Action Array (applyInputFrameToEntity)", () => {
+    function setupWorldWithInputFrame(): { world: World; entityId: number } {
       const world = new World();
       const entityId = world.createEntity();
       applyInputFrameToEntity(world, entityId, { actions: ["thrust"], axes: {} });
       return { world, entityId };
     }
 
-    // ComponentCloner.ts:29-45 converts Set to {} during AoS snapshot cloning, losing Set prototype and items.
-    testFailing("a) AoS snapshot -> restore", () => {
-      const { world, entityId } = setupWorldWithSet();
+    it("a) AoS snapshot -> restore retains canonical action array", () => {
+      const { world, entityId } = setupWorldWithInputFrame();
       const snap = world.snapshot();
       world.restore(snap);
 
@@ -64,9 +90,8 @@ describe("Input.actions Characterization Tests", () => {
       expect(hasActionLocal(inputComp?.actions, "thrust")).toBe(true);
     });
 
-    // ComponentCloner.ts:29-45 converts Set to {} during SoA snapshot cloning when serializing components.
-    testFailing("b) SoA snapshot -> restore", () => {
-      const { world, entityId } = setupWorldWithSet();
+    it("b) SoA snapshot -> restore retains canonical action array", () => {
+      const { world, entityId } = setupWorldWithInputFrame();
       world.setResource("UseSoASnapshots", true);
       const snap = world.snapshot();
       world.restore(snap);
@@ -75,9 +100,8 @@ describe("Input.actions Characterization Tests", () => {
       expect(hasActionLocal(inputComp?.actions, "thrust")).toBe(true);
     });
 
-    // ComponentCloner.ts:29-45 turns Set into {} in snapshot, and JSON.stringify(Set) also produces {}.
-    testFailing("c) JSON replication (JSON.parse(JSON.stringify(snapshot)))", () => {
-      const { world, entityId } = setupWorldWithSet();
+    it("c) JSON replication retains canonical action array", () => {
+      const { world, entityId } = setupWorldWithInputFrame();
       const snap = JSON.parse(JSON.stringify(world.snapshot()));
       world.restore(snap);
 
@@ -85,10 +109,9 @@ describe("Input.actions Characterization Tests", () => {
       expect(hasActionLocal(inputComp?.actions, "thrust")).toBe(true);
     });
 
-    // ComponentCloner.ts:29-45 converts Set to {} when saving snapshot during rollback cycle.
-    testFailing("d) RollbackSimulation cycle", () => {
-      const { world, entityId } = setupWorldWithSet();
-      const sim = createSimulationAdapter(world);
+    it("d) RollbackSimulation cycle retains canonical action array", () => {
+      const { world, entityId } = setupWorldWithInputFrame();
+      const sim = createPureSimulationAdapter(world);
       const buffer = new SnapshotBuffer(10);
       const rollback = new RollbackSimulation(sim, buffer);
 
@@ -106,13 +129,49 @@ describe("Input.actions Characterization Tests", () => {
     });
   });
 
+  describe("Rollback re-application paths", () => {
+    it("a) Local player re-applying input frame on resimulation step retains active action", () => {
+      const world = new World();
+      const entityId = world.createEntity();
+      applyInputFrameToEntity(world, entityId, { actions: ["thrust"], axes: {} });
+
+      const sim = createReapplyingSimulationAdapter(world);
+      const buffer = new SnapshotBuffer(10);
+      const rollback = new RollbackSimulation(sim, buffer);
+
+      buffer.saveSnapshot(1, sim.snapshot());
+      sim.step({ t: 1, b: 0 });
+
+      const inputsHistory = new Map();
+      inputsHistory.set(1, { t: 1, b: 0 });
+      inputsHistory.set(2, { t: 2, b: 0 });
+
+      rollback.processRollback(1, { t: 1, b: 0 }, 2, inputsHistory);
+
+      const inputComp = world.getComponent(entityId, "Input" as never) as { actions: unknown } | undefined;
+      expect(hasActionLocal(inputComp?.actions, "thrust")).toBe(true);
+    });
+
+    it("b) Remote entity with canonical action array retains actions after restore", () => {
+      const world = new World();
+      const remoteEntity = world.createEntity();
+      applyInputFrameToEntity(world, remoteEntity, { actions: ["thrust"], axes: {} });
+
+      const snap = world.snapshot();
+      world.restore(snap);
+
+      const inputComp = world.getComponent(remoteEntity, "Input" as never) as { actions: unknown } | undefined;
+      expect(hasActionLocal(inputComp?.actions, "thrust")).toBe(true);
+    });
+  });
+
   describe("Format: Record<string, boolean>", () => {
     function setupWorldWithRecord(): { world: World; entityId: number } {
       const world = new World();
       const entityId = world.createEntity();
       world.addComponent(entityId, {
         type: "Input" as never,
-        actions: { thrust: true } as unknown,
+        actions: { thrust: true } as never,
         axes: {}
       } as never);
       return { world, entityId };
@@ -148,7 +207,7 @@ describe("Input.actions Characterization Tests", () => {
 
     it("d) RollbackSimulation cycle", () => {
       const { world, entityId } = setupWorldWithRecord();
-      const sim = createSimulationAdapter(world);
+      const sim = createPureSimulationAdapter(world);
       const buffer = new SnapshotBuffer(10);
       const rollback = new RollbackSimulation(sim, buffer);
 
@@ -172,7 +231,7 @@ describe("Input.actions Characterization Tests", () => {
       const entityId = world.createEntity();
       world.addComponent(entityId, {
         type: "Input" as never,
-        actions: ["thrust"] as unknown,
+        actions: ["thrust"] as never,
         axes: {}
       } as never);
       return { world, entityId };
@@ -208,7 +267,7 @@ describe("Input.actions Characterization Tests", () => {
 
     it("d) RollbackSimulation cycle", () => {
       const { world, entityId } = setupWorldWithArray();
-      const sim = createSimulationAdapter(world);
+      const sim = createPureSimulationAdapter(world);
       const buffer = new SnapshotBuffer(10);
       const rollback = new RollbackSimulation(sim, buffer);
 

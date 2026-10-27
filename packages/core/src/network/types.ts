@@ -1,5 +1,6 @@
 import { CoreComponentRegistry, TransformComponent, VelocityComponent } from "../ecs/CoreComponents";
 import { World } from "../ecs/World";
+import { CanonicalActionName } from "../input/CanonicalInput";
 
 /**
  * Default input payload structure for network prediction and reconciliation.
@@ -7,7 +8,7 @@ import { World } from "../ecs/World";
  * @public
  */
 export interface InputPayload {
-    actions: Set<string>;
+    actions: readonly CanonicalActionName[];
     axes: Record<string, number>;
 }
 
@@ -21,7 +22,7 @@ export interface MultiplayerRegistry extends CoreComponentRegistry {
     LocalPlayer: { type: "LocalPlayer" };
     Input: {
         type: "Input";
-        actions: Set<string>;
+        actions: readonly CanonicalActionName[];
         axes: Record<string, number>;
     };
 }

@@ -824,7 +824,7 @@ export class CampaignSaveManager {
 }
 
 // @public
-export type CanonicalActionName<TExtra extends string = never> = "fire" | "secondary" | "boost" | "hyperspace" | "pause" | "confirm" | "cancel" | TExtra;
+export type CanonicalActionName<TExtra extends string = never> = "fire" | "secondary" | "boost" | "hyperspace" | "pause" | "confirm" | "cancel" | "thrust" | "rotateLeft" | "rotateRight" | "shoot" | "left" | "right" | "up" | "down" | "flap" | "glide" | "accelerate" | "brake" | "moveLeft" | "moveRight" | "bomb" | TExtra;
 
 // @public
 export interface CanonicalInputState<TExtra extends string = never> {
@@ -2646,6 +2646,9 @@ export function hashChunkSeed(baseSeed: number, layerIndex: number, chunkX: numb
 export function hashSoA(snapshot: SoAWorldSnapshot): string;
 
 // @public
+export function hasInputAction(actions: readonly CanonicalActionName[] | null | undefined, name: string): boolean;
+
+// @public (undocumented)
 export function hasInputAction(actions: InputActionsLike | null | undefined, name: string): boolean;
 
 // @public
@@ -2802,7 +2805,7 @@ export interface INetworkGame {
 }
 
 // @public
-export type InputActionsLike = ReadonlySet<string> | readonly string[] | Readonly<Record<string, boolean>>;
+export type InputActionsLike = readonly CanonicalActionName[] | ReadonlySet<string> | Readonly<Record<string, boolean>>;
 
 // @public
 export type InputBinding<TExtra extends string = never> = AxisBinding | ActionBinding<TExtra>;
@@ -2833,7 +2836,7 @@ export class InputMapper<TExtra extends string = never> {
 // @public
 export interface InputPayload {
     // (undocumented)
-    actions: Set<string>;
+    actions: readonly CanonicalActionName[];
     // (undocumented)
     axes: Record<string, number>;
 }
@@ -2934,6 +2937,9 @@ export interface IPrefabPool<TParams> {
 export class IrisTransition extends BaseTransitionEffect {
     protected paint(ctx: RenderContext, progress: number, width: number, height: number, options?: TransitionOptions): void;
 }
+
+// @public
+export function isCanonicalActionName(value: unknown): value is CanonicalActionName;
 
 // @public
 export function isGameplayFrozen(world: World): boolean;
@@ -3574,7 +3580,7 @@ export interface MultiplayerRegistry extends CoreComponentRegistry {
     // (undocumented)
     Input: {
         type: "Input";
-        actions: Set<string>;
+        actions: readonly CanonicalActionName[];
         axes: Record<string, number>;
     };
     // (undocumented)

@@ -1,11 +1,11 @@
-import { Component, CoreComponentRegistry, CoreEvents, MultiplayerRegistry, ComboComponent } from "@tiny-aster/core";
+import { Component, CoreComponentRegistry, CoreEvents, MultiplayerRegistry, ComboComponent, CanonicalActionName } from "@tiny-aster/core";
 import { DamageComponent, FactionComponent, SpawnDirectorComponent, WaveMemberComponent, CombatHitEvent, CombatDeathEvent } from "@tiny-aster/gameplay-kit";
 import type { BulletPatternConfig } from "../../shared/BulletPatternSystem";
 
 export interface ShmupEventRegistry extends CoreEvents, Record<string, unknown> {
   "combat:hit": CombatHitEvent; "combat:death": CombatDeathEvent; "shmup:kill": { entity: number; score: number }; "shmup:wave_complete": { wave: number };
 }
-export interface ShmupInputState { axes: { moveX?: number; moveY?: number }; actions: string[]; }
+export interface ShmupInputState { axes: { moveX?: number; moveY?: number }; actions: readonly CanonicalActionName[]; }
 export interface ShmupKeyboardInputState {
   moveX?: number;
   moveY?: number;
@@ -16,7 +16,7 @@ export interface ShmupKeyboardInputState {
   shoot?: boolean;
 }
 export type ShmupInputUpdate = Partial<ShmupInputState> | ShmupKeyboardInputState;
-export interface ShmupInputComponent extends Component { type:"Input"; axes:Record<string,number>; actions:any; shootCooldownRemaining:number; }
+export interface ShmupInputComponent extends Component { type:"Input"; axes:Record<string,number>; actions:readonly CanonicalActionName[]; shootCooldownRemaining:number; }
 export interface ShmupPlayerComponent extends Component { type:"ShmupPlayer"; }
 export type ShmupEnemyArchetype = "scout" | "interceptor" | "armored" | "support" | "boss";
 export interface ShmupEnemyComponent extends Component { type:"ShmupEnemy"; score:number; archetype:ShmupEnemyArchetype; }

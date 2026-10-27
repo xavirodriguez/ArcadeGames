@@ -12,7 +12,55 @@ export type CanonicalActionName<TExtra extends string = never> =
   | "pause"
   | "confirm"
   | "cancel"
+  | "thrust"
+  | "rotateLeft"
+  | "rotateRight"
+  | "shoot"
+  | "left"
+  | "right"
+  | "up"
+  | "down"
+  | "flap"
+  | "glide"
+  | "accelerate"
+  | "brake"
+  | "moveLeft"
+  | "moveRight"
+  | "bomb"
   | TExtra;
+
+const CANONICAL_ACTION_SET = new Set<string>([
+  "fire",
+  "secondary",
+  "boost",
+  "hyperspace",
+  "pause",
+  "confirm",
+  "cancel",
+  "thrust",
+  "rotateLeft",
+  "rotateRight",
+  "shoot",
+  "left",
+  "right",
+  "up",
+  "down",
+  "flap",
+  "glide",
+  "accelerate",
+  "brake",
+  "moveLeft",
+  "moveRight",
+  "bomb"
+]);
+
+/**
+ * Type guard verifying if a string is a valid `CanonicalActionName`.
+ * @public
+ */
+export function isCanonicalActionName(value: unknown): value is CanonicalActionName {
+  return typeof value === "string" && CANONICAL_ACTION_SET.has(value);
+}
 
 /**
  * Standard input state interface capturing analog axes and active actions.

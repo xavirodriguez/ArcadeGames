@@ -1,4 +1,5 @@
-import { World, CoreComponentRegistry, EventBus } from "@tiny-aster/core";
+import { World, CoreComponentRegistry, EventBus, AssetLoader } from "@tiny-aster/core";
+import { SAMURAI_SPRITE_READY_RESOURCE } from "../rendering/SamuraiVisualAssets";
 import { HitAndRunGame } from "../HitAndRunGame";
 import { HIT_RUN_WEAPON_CATALOG, getWeaponDefinition } from "../weapons/HitRunWeaponCatalog";
 import { registerPlayerBulletPool } from "../weapons/HitRunBulletPool";
@@ -27,6 +28,21 @@ describe("Hit & Run Game Systems", () => {
       expect(state.type).toBe("HitAndRunGameState");
       expect(state.score).toBe(0);
       expect(state.isGameOver).toBe(false);
+      game.destroy();
+    });
+
+    it("registers the sprite loader and leaves the sprite fallback active in headless mode", async () => {
+      const game = new HitAndRunGame({ seed: 12345 });
+      await game.init();
+
+      const gameWorld = game.getWorld();
+      expect(gameWorld.getResource<AssetLoader>("AssetLoader")).toBeInstanceOf(AssetLoader);
+      expect(typeof gameWorld.getResource<boolean>(SAMURAI_SPRITE_READY_RESOURCE)).toBe("boolean");
+
+      if (game.isHeadless) {
+        expect(gameWorld.getResource<boolean>(SAMURAI_SPRITE_READY_RESOURCE)).toBe(false);
+      }
+
       game.destroy();
     });
 

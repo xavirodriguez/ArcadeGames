@@ -40,6 +40,7 @@ export function readPngDimensions(bytes: Uint8Array): SpriteImageDimensions | nu
   }
 
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  if (view.getUint32(8, false) !== 13) return null;
   const width = view.getUint32(16, false);
   const height = view.getUint32(20, false);
   if (width <= 0 || height <= 0) return null;
@@ -96,7 +97,7 @@ export function validateSpriteSheetDefinition(
     add("INVALID_IMAGE_DIMENSIONS", "PNG dimensions must be positive integers.");
   }
 
-  const sourceMode = sheet.sourceMode ?? "frames";
+  const sourceMode: string = sheet.sourceMode ?? "frames";
   for (const [animationKey, animation] of Object.entries(sheet.animations)) {
     if (animationKey.trim().length === 0) {
       add("EMPTY_ANIMATION_NAME", "Animation keys must not be empty.");

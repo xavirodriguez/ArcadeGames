@@ -1,6 +1,6 @@
 // src/games/shared/sprites/SpriteRegistry.ts
 
-import { SpriteSheetDef, SpriteFrameRect, SpriteImageSource } from "./SpriteTypes";
+import type { SpriteSheetDef, SpriteFrameRect, SpriteImageSource } from "./SpriteTypes";
 
 function makeRowFrames(
   startX: number,

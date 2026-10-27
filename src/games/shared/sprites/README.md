@@ -65,3 +65,32 @@ Canvas and Skia use renderer-specific decoded-image caches over the shared regis
 - Frame rects for `oni_red` were measured from the original sheet (924×539).
 - Adjust `startX / startY / spacing` in `makeRowFrames` if frames look offset.
 - The system is intentionally renderer-agnostic so the same animator works on web (Canvas) and native (Skia).
+
+## Atlas validation
+
+Run `pnpm run sprites:validate` before opening a game or submitting sprite work. The command validates the shared sprite catalogue and the bundled Hit&Run atlases. It checks that each referenced PNG exists, verifies the PNG signature/IHDR dimensions, confirms frame rectangles remain inside the image, detects duplicate ids, and validates animation timing, source mode and anchors. CI runs the same command before the build.
+
+All shared-pipeline sheet definitions use the canonical `SpriteSheetDefinition` contract exported by `@tiny-aster/core`. Keep the repository-relative `assetPath` alongside the runtime `imageSource`: the former is for tooling and validation; the latter is for Metro/platform loading. Add new shared-pipeline sheets to `SPRITE_SHEET_CATALOG` so runtime registration and CI inspect the same definitions.
+
+
+## ECS `SpriteAnimator` playback
+
+Hit&Run uses the core `SpriteAnimator` component with these shared helpers. The state-selection systems choose a clip from combat/movement state, `HitRunSpriteAnimatorPlaybackSystem` advances it using elapsed seconds, and the frame sync copies the canonical source rectangle into the existing ECS `Sprite` component. Canvas and Skia therefore keep their current renderer path, while animation timing and atlas metadata come from the shared contract.
+
+The `createSpriteAnimator` factory returns the shared runtime state with `type: "SpriteAnimator"` for ECS storage and an optional `finished` flag. The `SpriteAnimatorComponent` interface itself intentionally omits a required `type`, so visual themes can use the same state as a plain in-memory object. The core ECS registry declares the tagged component shape. The index-based `AnimatorComponent`/`AnimationSystem` remain available to other existing consumers; this migration does not merge those two APIs.
+
+## Animation timing
+
+`updateSpriteAnimator(animator, dt)` consumes elapsed seconds and advances across every frame boundary covered by `dt`, including after a slow frame. A completed non-looping clip sets `animator.finished` and reports completion once; call `playAnimation(animator, name, true)` to restart that same clip. Invalid or non-positive `dt` values and non-positive frame durations do not advance playback.
+
+## Shared destination geometry
+
+The ECS Canvas drawer, ECS Skia drawer and shared sprite-sheet drawer use `calculateSpriteDestinationRect` from `@tiny-aster/core` for destination sizing and anchor offsets. This keeps center, feet and custom normalized anchors consistent across both render backends. Run the core test `packages/core/tests/SpriteSheetDefinition.test.ts` when changing this contract.
+
+## Loading and retrying assets
+
+The shared loader resolves each numeric Expo module id once and reuses that downloaded asset handle across Canvas and Skia. Each backend still owns its decoded image cache. If a sheet fails to load temporarily, call `retrySpriteSheetLoad(sheetId)` to retry both backends, or pass `"canvas"` / `"skia"` to retry only one. The returned promise rejects if a requested backend still cannot load the resource, so the caller can log the failure while the ShapeDrawer keeps its procedural fallback visible.
+
+## Bridging ECS asset loading
+
+Games that already preload a sprite through the ECS `AssetLoader` can call `loadSpriteSheetWithAssetLoader(loader, sheetDefinition, runtimeAssetId, resolvedSource)`. It preserves legacy component keys while registering the same resolved URI against the canonical sheet id in `SpriteRegistry`. Registration happens only after the ECS loader succeeds; if preload fails, the caller should keep its existing procedural fallback and ready flag disabled.

@@ -1,55 +1,14 @@
-// src/games/shared/sprites/SpriteTypes.ts
+// Keep one public metadata contract for sprite sheets across consumers.
+export type {
+  SpriteAnimationDefinition as SpriteAnimationDef,
+  SpriteFrameRect,
+  SpriteImageSource,
+  SpriteSheetDefinition as SpriteSheetDef
+} from "@tiny-aster/core";
 
 /**
- * Source rectangle inside a sprite sheet.
- */
-export interface SpriteFrameRect {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
-
-/**
- * Definition of a single animation (idle, walk, attack, etc.).
- */
-export interface SpriteAnimationDef {
-  /** Animation name */
-  name: string;
-  /** Ordered list of source rectangles */
-  frames: SpriteFrameRect[];
-  /** Duration of each frame in seconds */
-  frameDuration: number;
-  /** Whether the animation loops */
-  loop: boolean;
-}
-
-/**
- * Full definition of a sprite sheet + its animations.
- * Register one of these per character / enemy.
- */
-export type SpriteImageSource =
-  | number
-  | string
-  | { uri?: string; localUri?: string }
-  | null;
-
-export interface SpriteSheetDef {
-  id: string;
-  /** Metro require() of a PNG, a URI, or an Expo Asset source. */
-  imageSource: SpriteImageSource;
-  /** Logical frame size used for collision / positioning and full-image fit. */
-  frameWidth: number;
-  frameHeight: number;
-  /** "full-image" treats the entire PNG as a single static frame. */
-  sourceMode?: "frames" | "full-image";
-  /** Normalized destination anchor. Defaults to bottom-center (character feet). */
-  anchor?: { x: number; y: number };
-  animations: Record<string, SpriteAnimationDef>;
-}
-
-/**
- * ECS component that drives sprite animation.
+ * Runtime animation state. ECS entities store this shape with type "SpriteAnimator",
+ * while renderer/theme code may use it as a plain in-memory animation state.
  */
 export interface SpriteAnimatorComponent {
   sheetId: string;
@@ -58,6 +17,8 @@ export interface SpriteAnimatorComponent {
   frameIndex: number;
   /** Time accumulator (seconds) */
   timer: number;
+  /** Whether a non-looping animation has completed. Reset by playAnimation. */
+  finished?: boolean;
   /** Horizontal flip */
   flipX: boolean;
   /** Uniform scale */

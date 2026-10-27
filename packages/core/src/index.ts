@@ -91,6 +91,7 @@ export * from "./input/InputFrame";
 
 // Assets & Audio
 export * from "./assets/AssetLoader";
+export * from "./assets/SpriteSheetDefinition";
 export * from "./assets/WebAssetProvider";
 export * from "./audio/IAudioPlayer";
 export * from "./audio/audioHelpers";

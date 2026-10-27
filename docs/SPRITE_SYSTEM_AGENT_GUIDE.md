@@ -228,7 +228,7 @@ Not everything bitmap goes through `SpriteRegistry`. These remain legitimate und
 
 | Path | Used by | Notes |
 |------|---------|--------|
-| Hit&Run samurai atlas | Hit&Run | `samurai-enemy.png` + `.atlas.json` + AnimationSystem — **not** shared registry. `assets/sprites/samurai1.png` is concept art only until an explicit migration. |
+| Hit&Run samurai atlas | Hit&Run | `samurai-enemy.png` + canonical `HitRunSpriteAtlas` metadata + shared `SpriteAnimator`; `samurai1.png` remains unused concept art. |
 | Echo Runner pixel frames | Echo Runner | Code-defined grids in `EchoRunnerPixelArt.ts`; Canvas/Skia blit |
 | Out Run pixel vehicles | Out Run | `OutrunPixelSprites.ts`; controlled low-res grids |
 
@@ -242,7 +242,7 @@ Agent rule: if the task mentions these assets, open their local modules first; d
 |------|-------------------|------------------------|
 | Tower Defense | Procedural creeps + **sprite towers** | `tower_*_art` full-image; hybrid drawers |
 | Space Invaders | Procedural invaders + **Nautical sprite ships** | `sea_dragon` / `ghost_galleon` via mod `registerDrawers` |
-| Hit&Run | Procedural + **local samurai atlas** + lancero template | Shared registry optional for new enemies |
+| Hit&Run | Procedural fallbacks + shared-registry samurai atlases + lancero template | Shared `SpriteAnimator` playback for player/samurai; legacy clip projection retained for compatibility |
 | Echo Runner | Procedural + local pixel art | No shared registry required |
 | Out Run | Road projection + local pixel cars | No shared registry required |
 | Asteroids, Geometry Wars, Pong, Arkanoid, Centipede, Galaxian, Flappy, Frogger, … | Procedural / neon / vector | Free to adopt shared sprites later via hybrid drawers |
@@ -301,7 +301,7 @@ Mods (e.g. Nautical, Asteroids visual packs) call `registerDrawers` to **replace
 | Wrong crop / sliding frames | Bad `makeRowFrames` | Re-measure; spacing = cell width on tight grids |
 | Canvas OK, native blank | Skia drawer missing or Skia preload never runs | Register Skia twin; preload |
 | Blueprint warnings block spawns | Unrelated to pixels but stops entities existing | Register blueprints **before** level generation |
-| samurai1 not in Hit&Run | Different pipeline | §4 — migration, not a one-line registry change |
+| samurai1 not in Hit&Run | It is alternate concept art, not the loaded atlas | §4 — migrate only after measuring frames and updating canonical metadata/path |
 
 **Hard rule:** never ship a shape with no draw path. Invisible-but-alive entities are the most common visual defect in this codebase.
 
@@ -318,7 +318,7 @@ Does the task change what the player *sees* for an entity?
   ├─ Finished PNG sheet exists (or is being authored)
   │    → SpriteSheetDef + hybrid ShapeDrawer (sprite then procedural fallback)
   │
-  ├─ Hit&Run samurai / samurai1 / local atlas
+  ├─ Hit&Run canonical samurai atlas / shared SpriteAnimator
   │    → Open SamuraiVisualAssets + atlas JSON; do not only edit SpriteRegistry
   │
   └─ Echo / Out Run pixel frames
@@ -378,7 +378,7 @@ Use when regenerating outline atlases. Hand-painted multi-row characters are mea
 2. **Do not remove procedural fallbacks** when wiring a sheet.
 3. **Do not** `require` `assets/sprites/wip/*`.
 4. **Do not** register contact sheets (`several_enemies.png`) as a single runtime sheet.
-5. **Do not** replace Hit&Run `samurai-enemy` with `samurai1` without measuring cells and migrating AnimationSystem.
+5. **Do not** replace Hit&Run `samurai-enemy.png` with `samurai1.png` without measuring cells and updating the canonical atlas metadata and asset path.
 6. Prefer stable **shape ids** and stable **sheet ids** even when filenames change (`oni_red` → `enemy2.png`).
 7. Register blueprints **before** procedural level generation.
 8. Match Canvas and Skia registration when the game supports both.
@@ -387,3 +387,24 @@ Use when regenerating outline atlases. Hand-painted multi-row characters are mea
 ---
 
 *End of guide. When the Renderer contract or shared sprite API changes, update sections 0, 2, and 3 in the same PR.*
+
+## 8. Shared metadata contract and validation
+
+- The canonical platform-independent sheet metadata is `SpriteSheetDefinition` in `packages/core/src/assets/SpriteSheetDefinition.ts`, exported by `@tiny-aster/core`. The shared registry re-exports compatibility aliases from `SpriteTypes.ts`; do not create another local copy of the sheet/frame/clip interfaces.
+- Every entry in `SPRITE_SHEET_CATALOG` declares both `assetPath` (repository-relative path for build-time tooling) and `imageSource` (runtime platform handle). Keep both aligned when replacing an image.
+- Run `pnpm run sprites:validate` to check PNG files, image dimensions, frame bounds, duplicate ids, anchors, animation frame durations, and source-mode rules. The same command runs in CI. It validates the shared catalogue and the canonical metadata exported by Hit&Run. Hit&Run player and samurai now use the shared `SpriteAnimator` playback state against the canonical rectangle-based clips; the validation metadata and source rectangles derive from one animation declaration.
+- Hit&Run declares clips once in `HIT_RUN_CHARACTER_ANIMATION_DEFINITIONS` using source rectangles and seconds-per-frame. `HIT_RUN_CHARACTER_ANIMATIONS` remains a tested compatibility projection for any consumers still using index-based ECS `AnimationSystem`; the player and samurai have migrated to `SpriteAnimator`, which advances elapsed seconds and exposes the exact source rectangle. All three Hit&Run atlases derive their validation metadata from the same canonical clips.
+- This increment migrates Hit&Run player/samurai playback to `SpriteAnimator`, but it does not merge the engine-wide `AnimatorComponent` and `SpriteAnimator` APIs. Other consumers can continue using `AnimationSystem`; broader unification remains a separate compatibility-sensitive task.
+
+
+### Shared destination layout
+
+All three sprite draw paths — `packages/renderer-canvas/src/CanvasSpriteDrawer.ts`, `packages/renderer-skia/src/SkiaSpriteDrawer.ts` and `src/games/shared/sprites/SpriteDrawer.ts` — use `calculateSpriteDestinationRect` from `@tiny-aster/core`. Keep anchoring math in this pure helper rather than duplicating destination offsets per backend. Loading and image decoding remain backend-specific because Canvas and Skia consume different image objects.
+
+### Runtime loading and retry policy
+
+The shared registry resolves numeric Expo asset modules through one pending/download cache and reuses the resolved asset between Canvas and Skia. The decoded `HTMLImageElement` and `SkImage` caches remain backend-specific. A failed shared-pipeline load can be retried with `retrySpriteSheetLoad(sheetId, "canvas" | "skia" | "both")`; retry rejection must not remove the procedural fallback. ECS `AssetLoader` consumers that use game-owned providers remain on their existing path until a dedicated provider adapter migrates them safely.
+
+### ECS AssetLoader bridge
+
+When migrating a game that already loads images with `AssetLoader`, use `loadSpriteSheetWithAssetLoader` rather than duplicating a second metadata-to-runtime mapping. Pass the canonical `SpriteSheetDefinition`, the legacy runtime key used by existing ECS components, and the resolved URI/local URI from the game's platform asset resolver. It loads the legacy key first and then publishes the resolved source to `SpriteRegistry`. Keep the existing ready-resource/fallback behavior on failure. This adapter does not replace platform-specific decoding; the renderer backends still decode their own image types.

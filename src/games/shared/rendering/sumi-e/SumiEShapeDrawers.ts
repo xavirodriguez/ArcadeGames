@@ -273,7 +273,7 @@ export function registerSumiEVFX(
       floating_kanji: CanvasFloatingKanjiDrawer
     };
     for (const [name, drawer] of Object.entries(map)) {
-      renderer.registerShape(name, drawer as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      renderer.registerShape(name, drawer as never);
     }
   } else if (renderer.type === "skia") {
     const map: Record<string, ShapeDrawer<SkCanvas, CoreComponentRegistry>> = {
@@ -287,7 +287,7 @@ export function registerSumiEVFX(
       floating_kanji: SkiaFloatingKanjiDrawer
     };
     for (const [name, drawer] of Object.entries(map)) {
-      renderer.registerShape(name, drawer as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      renderer.registerShape(name, drawer as never);
     }
   }
 }

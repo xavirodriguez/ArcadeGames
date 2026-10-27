@@ -97,7 +97,8 @@ import { drawHitRunHud } from "./rendering/HitRunHudCanvas";
 import { drawHitRunDebugOverlay } from "./rendering/HitRunDebugOverlay";
 import { registerHitRunDebugMetrics } from "./rendering/HitRunDebugMetrics";
 import { drawLanceroSpriteCanvas, LANCERO_SHAPE } from "../shared/sprites/LanceroSpriteVisuals";
-import { SpriteRegistry } from "../shared/sprites";
+import { SpriteRegistry, loadSpriteSheetWithAssetLoader } from "../shared/sprites";
+import { getHitRunCharacterSpriteSheet, HIT_RUN_SUMI_E_SAMURAI_SHEET_ID } from "./rendering/HitRunSpriteAtlas";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import { runWithUnlockedRandomAndMutators } from "../shared/configHelper";
 import { ThemeRegistry, resolveThemeIdFromConfig } from "./rendering/theme/ThemeRegistry";
@@ -189,12 +190,14 @@ export class HitAndRunGame extends BaseGame<
       await Promise.all([
         this.preloadSpriteAsset(
           SUMI_E_PLAYER_ASSET_KEY,
+          SUMI_E_PLAYER_ASSET_KEY,
           loadSumiEPlayerSpritesheetAsset,
           SUMI_E_PLAYER_READY_RESOURCE,
           "Sumi-e player"
         ),
         this.preloadSpriteAsset(
           SAMURAI_ASSET_KEY,
+          HIT_RUN_SUMI_E_SAMURAI_SHEET_ID,
           loadSumiESamuraiSpritesheetAsset,
           SAMURAI_SPRITE_READY_RESOURCE,
           "Sumi-e samurai"
@@ -202,6 +205,7 @@ export class HitAndRunGame extends BaseGame<
       ]);
     } else {
       await this.preloadSpriteAsset(
+        SAMURAI_ASSET_KEY,
         SAMURAI_ASSET_KEY,
         loadSamuraiSpritesheetAsset,
         SAMURAI_SPRITE_READY_RESOURCE,
@@ -216,16 +220,24 @@ export class HitAndRunGame extends BaseGame<
 
   private async preloadSpriteAsset(
     assetKey: string,
+    sheetId: string,
     loadAsset: () => Promise<Asset>,
     readyResource: string,
     label: string
   ): Promise<void> {
     try {
+      const sheet = getHitRunCharacterSpriteSheet(sheetId);
+      if (!sheet) {
+        throw new Error(`No canonical sprite metadata registered for "${sheetId}".`);
+      }
+
       const asset = await loadAsset();
-      const uri = asset.localUri ?? asset.uri;
-      await this.samuraiAssetLoader.load([
-        { id: assetKey, path: uri, type: "image" }
-      ]);
+      await loadSpriteSheetWithAssetLoader(
+        this.samuraiAssetLoader,
+        sheet,
+        assetKey,
+        { uri: asset.uri, localUri: asset.localUri }
+      );
       this.world.setResource(readyResource, true);
     } catch (error) {
       this.world.setResource(readyResource, false);

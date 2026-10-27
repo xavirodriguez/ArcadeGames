@@ -3,15 +3,10 @@
 // Image cache (simple, shared between Canvas & Skia)
 // ---------------------------------------------------------------------------
 import type { Asset as ExpoAssetType } from "expo-asset";
+import { calculateSpriteDestinationRect } from "@tiny-aster/core";
 import { getPaint, Skia } from "../rendering/SkiaContext";
 import type { SkCanvas, SkImage, SkPaint } from "@shopify/react-native-skia";
 
-let ExpoAsset: any = null;
-try {
-  ExpoAsset = require("expo-asset").Asset;
-} catch {
-  ExpoAsset = null;
-}
 import { SpriteRegistry } from "./SpriteRegistry";
 import { getCurrentFrameRect } from "./SpriteAnimator";
 import type { SpriteAnimatorComponent } from "./SpriteAnimator";
@@ -37,6 +32,33 @@ const skiaImageCache = new Map<string, SkImage>();
 const skiaPendingLoads = new Map<string, Promise<void>>();
 const canvasFailedLoads = new Set<string>();
 const skiaFailedLoads = new Set<string>();
+const expoAssetResolutionCache = new Map<number, Promise<ExpoAssetType>>();
+
+/**
+ * Resolve and download each Metro asset module only once across both render
+ * backends. Canvas and Skia still decode the resolved URI into their own image
+ * types because those platform objects are not interchangeable.
+ */
+async function resolveExpoAsset(moduleId: number): Promise<ExpoAssetType | undefined> {
+  const cached = expoAssetResolutionCache.get(moduleId);
+  if (cached) return cached;
+
+  const AssetClass = loadExpoAssetClass();
+  if (!AssetClass) return undefined;
+
+  const pending = (async () => {
+    const asset = AssetClass.fromModule(moduleId);
+    await asset.downloadAsync();
+    return asset;
+  })().catch((error: unknown) => {
+    expoAssetResolutionCache.delete(moduleId);
+    throw error;
+  });
+
+  expoAssetResolutionCache.set(moduleId, pending);
+  return pending;
+}
+
 
 async function resolveImageUri(
   source: SpriteSheetDef["imageSource"],
@@ -45,10 +67,8 @@ async function resolveImageUri(
   if (typeof source === "string") return source;
 
   if (typeof source === "number") {
-    const AssetClass = loadExpoAssetClass() as (typeof ExpoAssetType) | undefined;
-    if (!AssetClass) return undefined;
-    const asset = AssetClass.fromModule(source);
-    await asset.downloadAsync();
+    const asset = await resolveExpoAsset(source);
+    if (!asset) return undefined;
     return preferLocalUri ? (asset.localUri ?? asset.uri) : (asset.uri ?? asset.localUri);
   }
   if (source === null) return undefined;
@@ -186,6 +206,41 @@ export function preloadSpriteSheetSkia(sheetId: string): Promise<void> {
   return load;
 }
 
+export type SpriteRendererBackend = "canvas" | "skia" | "both";
+
+/**
+ * Retry a failed sprite-sheet load after its asset becomes available again.
+ * By default, both rendering backends are retried. Successfully decoded images
+ * remain cached; only backends currently marked as failed are invalidated.
+ */
+export async function retrySpriteSheetLoad(
+  sheetId: string,
+  backend: SpriteRendererBackend = "both"
+): Promise<void> {
+  if (!SpriteRegistry.has(sheetId)) {
+    throw new Error(`Cannot retry unknown sprite sheet "${sheetId}".`);
+  }
+
+  const retries: Promise<void>[] = [];
+
+  if (backend === "canvas" || backend === "both") {
+    if (canvasFailedLoads.delete(sheetId)) {
+      canvasImageCache.delete(sheetId);
+    }
+    retries.push(preloadSpriteSheetCanvas(sheetId));
+  }
+
+  if (backend === "skia" || backend === "both") {
+    if (skiaFailedLoads.delete(sheetId)) {
+      skiaImageCache.delete(sheetId);
+    }
+    retries.push(preloadSpriteSheetSkia(sheetId));
+  }
+
+  await Promise.all(retries);
+}
+
+
 /** Store a Skia image for a sheet (call after a custom useImage loader if needed). */
 export function setSkiaImage(sheetId: string, image: SkImage | null): void {
   if (image) {
@@ -233,6 +288,11 @@ export function drawSpriteCanvas(
   const ox = (animator.offsetX ?? 0) * animator.scale;
   const oy = (animator.offsetY ?? 0) * animator.scale;
   const anchor = sheet.anchor ?? { x: 0.5, y: 1 };
+  const destination = calculateSpriteDestinationRect(dw, dh, {
+    x: anchor.x,
+    y: options?.anchor === "center" ? 0.5 : anchor.y
+  });
+  if (!destination) return false;
 
   ctx.save();
   ctx.globalAlpha *= Math.max(0, Math.min(1, options?.opacity ?? 1));
@@ -241,19 +301,16 @@ export function drawSpriteCanvas(
     ctx.scale(-1, 1);
   }
 
-  const dy = options?.anchor === "center" ? -dh / 2 : -dh * anchor.y;
-  const dx = -dw * anchor.x;
-
   ctx.drawImage(
     img,
     frame.x,
     frame.y,
     frame.w,
     frame.h,
-    dx,
-    dy,
-    dw,
-    dh
+    destination.x,
+    destination.y,
+    destination.width,
+    destination.height
   );
 
   ctx.restore();
@@ -289,20 +346,27 @@ export function drawSpriteSkia(
   const ox = (animator.offsetX ?? 0) * animator.scale;
   const oy = (animator.offsetY ?? 0) * animator.scale;
   const anchor = sheet.anchor ?? { x: 0.5, y: 1 };
+  const destination = calculateSpriteDestinationRect(dw, dh, {
+    x: anchor.x,
+    y: options?.anchor === "center" ? 0.5 : anchor.y
+  });
+  if (!destination) return false;
 
   canvas.save();
   canvas.translate(x + ox, y + oy);
   if (animator.flipX) canvas.scale(-1, 1);
-
-  const dy = options?.anchor === "center" ? -dh / 2 : -dh * anchor.y;
-  const dx = -dw * anchor.x;
 
   const usingCallerPaint = paint !== undefined;
   const paintToUse = paint ?? getPaint();
   paintToUse.setAlphaf(Math.max(0, Math.min(1, options?.opacity ?? 1)));
 
   const src = { x: frame.x, y: frame.y, width: frame.w, height: frame.h };
-  const dst = { x: dx, y: dy, width: dw, height: dh };
+  const dst = {
+    x: destination.x,
+    y: destination.y,
+    width: destination.width,
+    height: destination.height
+  };
 
   canvas.drawImageRect(image, src, dst, paintToUse);
 

@@ -73,6 +73,12 @@ Run `pnpm run sprites:validate` before opening a game or submitting sprite work.
 All shared-pipeline sheet definitions use the canonical `SpriteSheetDefinition` contract exported by `@tiny-aster/core`. Keep the repository-relative `assetPath` alongside the runtime `imageSource`: the former is for tooling and validation; the latter is for Metro/platform loading. Add new shared-pipeline sheets to `SPRITE_SHEET_CATALOG` so runtime registration and CI inspect the same definitions.
 
 
+## ECS `SpriteAnimator` playback
+
+Hit&Run uses the core `SpriteAnimator` component with these shared helpers. The state-selection systems choose a clip from combat/movement state, `HitRunSpriteAnimatorPlaybackSystem` advances it using elapsed seconds, and the frame sync copies the canonical source rectangle into the existing ECS `Sprite` component. Canvas and Skia therefore keep their current renderer path, while animation timing and atlas metadata come from the shared contract.
+
+The ECS component carries `type: "SpriteAnimator"` and an optional `finished` flag. Keep that shape aligned with `SpriteAnimatorComponent` in this module. The index-based `AnimatorComponent`/`AnimationSystem` remain available to other existing consumers; this migration does not merge those two APIs.
+
 ## Animation timing
 
 `updateSpriteAnimator(animator, dt)` consumes elapsed seconds and advances across every frame boundary covered by `dt`, including after a slow frame. A completed non-looping clip sets `animator.finished` and reports completion once; call `playAnimation(animator, name, true)` to restart that same clip. Invalid or non-positive `dt` values and non-positive frame durations do not advance playback.

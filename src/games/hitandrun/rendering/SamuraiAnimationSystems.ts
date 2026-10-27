@@ -12,9 +12,8 @@ import {
   updateSpriteAnimator,
   type SpriteAnimatorComponent
 } from "../../shared/sprites";
-import {
-  SAMURAI_ASSET_KEY
-} from "./SamuraiVisualAssets";
+import { SAMURAI_ASSET_KEY } from "./SamuraiVisualAssets";
+import { HIT_RUN_SUMI_E_SAMURAI_SHEET_ID } from "./HitRunSpriteAtlas";
 import {
   SUMI_E_PLAYER_ASSET_KEY
 } from "./SumiEVisualAssets";
@@ -24,7 +23,6 @@ import type { ComboMeleeComponent } from "../melee/ComboMeleeTypes";
 const ATTACK_STATES = new Set(["Anticipation", "Windup", "Attack", "Charge"]);
 const RECOVERY_STATE = "Recovery";
 const SAMURAI_DEATH_ANIMATION_SECONDS = 0.85;
-const SUMI_E_SAMURAI_SHEET_ID = "hitrun_sumi_e_samurai";
 
 function isTerminalFrame(animator: SpriteAnimatorComponent): boolean {
   const clip = SpriteRegistry.get(animator.sheetId)?.animations[animator.currentAnim];
@@ -237,5 +235,3 @@ export function registerHitRunSamuraiAnimationSystems(
   });
 }
 
-/** Exposes the canonical Sumi-e samurai sheet id for focused integration tests. */
-export const HIT_RUN_SUMI_E_SAMURAI_SHEET_ID = SUMI_E_SAMURAI_SHEET_ID;

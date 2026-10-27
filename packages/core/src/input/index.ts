@@ -6,3 +6,4 @@ export * from "./UnifiedInputSystem";
 export * from "./TouchInputState";
 export * from "./TouchInputUtils";
 export * from "./providers";
+export * from "./hasInputAction";

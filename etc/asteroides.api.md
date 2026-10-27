@@ -1177,7 +1177,7 @@ export function computeShipPhysics(transform: {
     vx: number;
     vy: number;
 }, input: {
-    actions: Set<string> | string[] | Record<string, boolean>;
+    actions: InputActionsLike;
     axes: Record<string, number>;
     rotationAmount?: number;
     targetAngle?: number;
@@ -2646,6 +2646,9 @@ export function hashChunkSeed(baseSeed: number, layerIndex: number, chunkX: numb
 export function hashSoA(snapshot: SoAWorldSnapshot): string;
 
 // @public
+export function hasInputAction(actions: InputActionsLike | null | undefined, name: string): boolean;
+
+// @public
 export interface HealthComponent extends Component {
     current: number;
     invulnerableRemaining?: number;
@@ -2797,6 +2800,9 @@ export type INetworkableWorld<TComponents extends ComponentRegistry = ComponentR
 export interface INetworkGame {
     readonly gameId: string;
 }
+
+// @public
+export type InputActionsLike = ReadonlySet<string> | readonly string[] | Readonly<Record<string, boolean>>;
 
 // @public
 export type InputBinding<TExtra extends string = never> = AxisBinding | ActionBinding<TExtra>;
@@ -5273,6 +5279,7 @@ export interface SpriteComponent extends Component {
     assetKey?: string;
     flipX?: boolean;
     flipY?: boolean;
+    scale?: number;
     srcRect?: {
         x: number;
         y: number;

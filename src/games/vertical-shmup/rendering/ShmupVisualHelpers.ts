@@ -1,4 +1,4 @@
-import type { World, RenderComponent, HealthComponent } from "@tiny-aster/core";
+import { hasInputAction, type World, type RenderComponent, type HealthComponent } from "@tiny-aster/core";
 import type { ShmupComponentRegistry, ShmupEnemyArchetype, EnemyPathComponent, BulletPatternComponent } from "../types/ShmupTypes";
 import type { ShmupConfig } from "../types/ShmupConfigSchema";
 import { SHMUP_COLOR_TOKENS } from "./ShmupColorTokens";
@@ -32,7 +32,7 @@ export function resolveShmupPlayerDrawContext(
   const primaryColor = sumiE ? SHMUP_SUMI_E_THEME.palette.player : (render.color ?? SHMUP_COLOR_TOKENS.player.primary);
   const moveX = input?.axes?.moveX ?? 0;
   const moveY = input?.axes?.moveY ?? 0;
-  const isShooting = (input?.actions?.includes("shoot") ?? false) || (input?.shootCooldownRemaining ?? 0) > 0;
+  const isShooting = hasInputAction(input?.actions, "shoot") || (input?.shootCooldownRemaining ?? 0) > 0;
 
   return {
     render,

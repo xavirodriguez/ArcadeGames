@@ -86,9 +86,10 @@ export class VerticalShmupGame extends BaseGame<ShmupGameStateComponent, ShmupIn
       }
 
       if (typeof keyboardInput.shoot === "boolean") {
+        const acts = Array.isArray(i.actions) ? i.actions : [];
         i.actions = keyboardInput.shoot
-          ? (i.actions.includes("shoot") ? [...i.actions] : [...i.actions, "shoot"])
-          : i.actions.filter((action: string) => action !== "shoot");
+          ? (acts.includes("shoot") ? [...acts] : [...acts, "shoot"])
+          : acts.filter((action: string) => action !== "shoot");
       }
     });
   }

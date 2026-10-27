@@ -1,4 +1,4 @@
-import { ShapeType, CircleShape, ColliderComponent, RenderComponent, World, Theme, THEME_RESOURCE_KEY, EntityGeometryProfile, RandomService } from "@tiny-aster/core";
+import { ShapeType, CircleShape, ColliderComponent, RenderComponent, World, Theme, THEME_RESOURCE_KEY, EntityGeometryProfile, RandomService, hasInputAction } from "@tiny-aster/core";
 import type { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
 import { computeMotionSecondaryEffect } from "../../shared/rendering/ProceduralShapeUtils";
 
@@ -76,7 +76,7 @@ export function resolvePlayerShipSetup(
   const size = render.size || 15;
   const tick = Math.floor((world.tick * 5) / 12);
   const input = world.getComponent(entity, "Input");
-  const isThrusting = Boolean(input && input.actions && input.actions["thrust"]);
+  const isThrusting = hasInputAction(input?.actions, "thrust");
   return { render, customGeom, size, tick, isThrusting };
 }
 

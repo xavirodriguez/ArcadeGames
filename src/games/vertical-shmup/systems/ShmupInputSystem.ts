@@ -1,4 +1,4 @@
-import { System, World, Juice, TouchInputState } from "@tiny-aster/core";
+import { System, World, Juice, TouchInputState, hasInputAction } from "@tiny-aster/core";
 import { ShmupComponentRegistry, ShmupEventRegistry } from "../types/ShmupTypes";
 import { ShmupConfig } from "../types/ShmupConfigSchema";
 import { createPlayerBullet } from "../EntityFactory";
@@ -45,7 +45,7 @@ export class ShmupInputSystem extends System<ShmupComponentRegistry, ShmupEventR
         moveY /= inputMagnitude;
       }
 
-      let shooting = Boolean(inputState?.buttons?.shoot) || input.actions.includes("shoot");
+      let shooting = Boolean(inputState?.buttons?.shoot) || hasInputAction(input.actions, "shoot");
       if (touchState && (touchState.getButton("shoot") || touchState.getButton("fire"))) {
         shooting = true;
       }

@@ -1,5 +1,6 @@
 import { getForwardVector } from "./ForwardVector";
 import { rotateTowardsAngle } from "../../input/TouchInputUtils";
+import { hasInputAction, InputActionsLike } from "../../input/hasInputAction";
 
 /**
  * Pure function computing ship rotation, thrust acceleration, and friction decay.
@@ -22,7 +23,7 @@ import { rotateTowardsAngle } from "../../input/TouchInputUtils";
 export function computeShipPhysics(
   transform: { rotation: number },
   velocity: { vx: number; vy: number },
-  input: { actions: Set<string> | string[] | Record<string, boolean>; axes: Record<string, number>; rotationAmount?: number; targetAngle?: number; rotateLeft?: boolean; rotateRight?: boolean; thrust?: boolean },
+  input: { actions: InputActionsLike; axes: Record<string, number>; rotationAmount?: number; targetAngle?: number; rotateLeft?: boolean; rotateRight?: boolean; thrust?: boolean },
   config: { SHIP_THRUST: number; SHIP_ROTATION_SPEED: number; SHIP_FRICTION: number },
   deltaTimeSec: number
 ): { vx: number; vy: number; rotation: number } {
@@ -30,27 +31,14 @@ export function computeShipPhysics(
   let vx = velocity.vx;
   let vy = velocity.vy;
 
-  let actionsSet: { has(action: string): boolean };
-  if (input.actions instanceof Set) {
-    actionsSet = input.actions;
-  } else if (Array.isArray(input.actions)) {
-    actionsSet = new Set(input.actions);
-  } else if (input.actions && typeof input.actions === "object") {
-    const actObj = input.actions as Record<string, boolean>;
-    actionsSet = {
-      has: (action: string) => actObj[action] === true
-    };
-  } else {
-    actionsSet = new Set<string>();
-  }
-
+  const actions = input.actions;
   const axes = input.axes || {};
 
   const rotationAmount = axes["rotate_x"] ?? axes["horizontal"] ?? input.rotationAmount;
   const targetAngle = input.targetAngle ?? axes["target_angle"];
-  const rotateLeft = actionsSet.has("rotateLeft") || input.rotateLeft === true;
-  const rotateRight = actionsSet.has("rotateRight") || input.rotateRight === true;
-  const thrust = actionsSet.has("thrust") || input.thrust === true;
+  const rotateLeft = hasInputAction(actions, "rotateLeft") || input.rotateLeft === true;
+  const rotateRight = hasInputAction(actions, "rotateRight") || input.rotateRight === true;
+  const thrust = hasInputAction(actions, "thrust") || input.thrust === true;
 
   // 1. Rotation handling
   if (targetAngle !== undefined) {

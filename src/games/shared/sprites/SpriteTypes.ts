@@ -7,10 +7,10 @@ export type {
 } from "@tiny-aster/core";
 
 /**
- * ECS component that drives sprite animation.
+ * Runtime animation state. ECS entities store this shape with type "SpriteAnimator",
+ * while renderer/theme code may use it as a plain in-memory animation state.
  */
 export interface SpriteAnimatorComponent {
-  type: "SpriteAnimator";
   sheetId: string;
   currentAnim: string;
   /** Current frame index inside the active animation */

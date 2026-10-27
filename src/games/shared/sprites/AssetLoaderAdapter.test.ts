@@ -1,4 +1,4 @@
-import type { AssetDescriptor, AssetLoader, SpriteSheetDefinition } from "@tiny-aster/core";
+import { AssetLoader, type AssetDescriptor, type SpriteLoader, type SpriteSheetDefinition } from "@tiny-aster/core";
 import { SpriteRegistry } from "./SpriteRegistry";
 import { loadSpriteSheetWithAssetLoader } from "./AssetLoaderAdapter";
 
@@ -48,6 +48,40 @@ describe("loadSpriteSheetWithAssetLoader", () => {
         uri: "https://example.test/sprite.png",
         localUri: "file:///cache/sprite.png"
       }
+    });
+  });
+
+  it("bridges a real ECS AssetLoader cache entry into the canonical registry", async () => {
+    const loader = new AssetLoader({
+      async loadImage(path: string): Promise<unknown> {
+        return { uri: path };
+      },
+      async loadAudio(path: string): Promise<unknown> {
+        return path;
+      },
+      async loadFont(path: string): Promise<unknown> {
+        return path;
+      }
+    });
+    const sheetId = "sprite_asset_adapter_real_loader_test";
+    const runtimeKey = "legacy_runtime_key_real_loader_test";
+    const source = {
+      uri: "https://example.test/player.png",
+      localUri: "file:///cache/player.png"
+    };
+
+    await loadSpriteSheetWithAssetLoader(
+      loader,
+      { ...TEST_SHEET, id: sheetId },
+      runtimeKey,
+      source
+    );
+
+    expect(loader.get<{ uri: string }>(runtimeKey)).toEqual({ uri: source.localUri });
+    expect(SpriteRegistry.get(sheetId)).toEqual({
+      ...TEST_SHEET,
+      id: sheetId,
+      imageSource: source
     });
   });
 

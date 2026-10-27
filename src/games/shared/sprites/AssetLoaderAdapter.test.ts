@@ -1,4 +1,4 @@
-import { AssetLoader, type AssetDescriptor, type SpriteLoader, type SpriteSheetDefinition } from "@tiny-aster/core";
+import { AssetLoader, type AssetDescriptor, type SpriteSheetDefinition } from "@tiny-aster/core";
 import { SpriteRegistry } from "./SpriteRegistry";
 import { loadSpriteSheetWithAssetLoader } from "./AssetLoaderAdapter";
 

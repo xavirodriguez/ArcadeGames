@@ -10,6 +10,7 @@ export type {
  * ECS component that drives sprite animation.
  */
 export interface SpriteAnimatorComponent {
+  type: "SpriteAnimator";
   sheetId: string;
   currentAnim: string;
   /** Current frame index inside the active animation */

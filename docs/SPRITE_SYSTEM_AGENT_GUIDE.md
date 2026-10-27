@@ -399,3 +399,7 @@ Use when regenerating outline atlases. Hand-painted multi-row characters are mea
 ### Shared destination layout
 
 All three sprite draw paths — `packages/renderer-canvas/src/CanvasSpriteDrawer.ts`, `packages/renderer-skia/src/SkiaSpriteDrawer.ts` and `src/games/shared/sprites/SpriteDrawer.ts` — use `calculateSpriteDestinationRect` from `@tiny-aster/core`. Keep anchoring math in this pure helper rather than duplicating destination offsets per backend. Loading and image decoding remain backend-specific because Canvas and Skia consume different image objects.
+
+### Runtime loading and retry policy
+
+The shared registry resolves numeric Expo asset modules through one pending/download cache and reuses the resolved asset between Canvas and Skia. The decoded `HTMLImageElement` and `SkImage` caches remain backend-specific. A failed shared-pipeline load can be retried with `retrySpriteSheetLoad(sheetId, "canvas" | "skia" | "both")`; retry rejection must not remove the procedural fallback. ECS `AssetLoader` consumers that use game-owned providers remain on their existing path until a dedicated provider adapter migrates them safely.

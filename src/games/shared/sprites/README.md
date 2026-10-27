@@ -80,3 +80,7 @@ All shared-pipeline sheet definitions use the canonical `SpriteSheetDefinition` 
 ## Shared destination geometry
 
 The ECS Canvas drawer, ECS Skia drawer and shared sprite-sheet drawer use `calculateSpriteDestinationRect` from `@tiny-aster/core` for destination sizing and anchor offsets. This keeps center, feet and custom normalized anchors consistent across both render backends. Run the core test `packages/core/tests/SpriteSheetDefinition.test.ts` when changing this contract.
+
+## Loading and retrying assets
+
+The shared loader resolves each numeric Expo module id once and reuses that downloaded asset handle across Canvas and Skia. Each backend still owns its decoded image cache. If a sheet fails to load temporarily, call `retrySpriteSheetLoad(sheetId)` to retry both backends, or pass `"canvas"` / `"skia"` to retry only one. The returned promise rejects if a requested backend still cannot load the resource, so the caller can log the failure while the ShapeDrawer keeps its procedural fallback visible.

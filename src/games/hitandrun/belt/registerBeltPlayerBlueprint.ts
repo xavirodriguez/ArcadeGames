@@ -23,10 +23,10 @@ import { createMeleeAttackComponent } from "../melee/HitRunMeleeSystem";
 import { FANTASY_PALETTE } from "../fantasy/FantasyPalette";
 import type { HitRunWeaponState } from "../weapons/HitRunWeaponTypes";
 import type { ComboMeleeComponent } from "../melee/ComboMeleeTypes";
-import type { AnimatorComponent, SpriteComponent } from "@tiny-aster/core";
+import type { SpriteComponent } from "@tiny-aster/core";
+import { createSpriteAnimator } from "../../shared/sprites";
 import {
   SUMI_E_CELL_SIZE,
-  SUMI_E_PLAYER_ANIMATIONS,
   SUMI_E_PLAYER_ANCHOR,
   SUMI_E_PLAYER_ASSET_KEY,
   SUMI_E_PLAYER_READY_RESOURCE,
@@ -86,11 +86,6 @@ export function spawnBeltPlayer(
     .withCollisionEvents();
 
   if (useSumiESprite) {
-    const animations: AnimatorComponent["animations"] = {};
-    for (const [name, clip] of Object.entries(SUMI_E_PLAYER_ANIMATIONS)) {
-      animations[name] = { ...clip, frames: [...clip.frames] };
-    }
-
     world.addComponent(entity, {
       type: "Sprite",
       assetKey: SUMI_E_PLAYER_ASSET_KEY,
@@ -101,14 +96,7 @@ export function spawnBeltPlayer(
       flipY: false
     } satisfies SpriteComponent);
 
-    world.addComponent(entity, {
-      type: "Animator",
-      isPlaying: true,
-      animations,
-      current: "idle",
-      elapsed: 0,
-      frame: 0
-    } satisfies AnimatorComponent);
+    world.addComponent(entity, createSpriteAnimator(SUMI_E_PLAYER_ASSET_KEY, "idle"));
   }
 
   world.addComponent(entity, {

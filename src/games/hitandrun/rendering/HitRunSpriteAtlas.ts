@@ -1,4 +1,4 @@
-import type { AnimationDefinition } from "@tiny-aster/core";
+import type { AnimationDefinition, SpriteAnimationDefinition, SpriteSheetDefinition } from "@tiny-aster/core";
 
 /** Shared 8x5 character atlas contract used by the bundled samurai and Sumi-e player. */
 export const HIT_RUN_CHARACTER_CELL_SIZE = 64;
@@ -39,3 +39,41 @@ export function getHitRunFrameRect(atlasFrameIndex: number): HitRunFrameRect {
     h: HIT_RUN_CHARACTER_CELL_SIZE
   };
 }
+
+
+/**
+ * Canonical validation metadata for the legacy ECS-index atlas and its two
+ * Sumi-e variants. Runtime asset loading remains game-owned; the shared
+ * contract lets tooling validate every frame against each bundled PNG.
+ */
+export const HIT_RUN_CHARACTER_SPRITE_SHEETS: readonly SpriteSheetDefinition[] = [
+  "src/games/hitandrun/assets/samurai-enemy.png",
+  "src/games/hitandrun/assets/themes/sumi-e/characters/player.png",
+  "src/games/hitandrun/assets/themes/sumi-e/enemies/samurai.png"
+].map((assetPath, index) => {
+  const animations: Record<string, SpriteAnimationDefinition> = {};
+  for (const [name, animation] of Object.entries(HIT_RUN_CHARACTER_ANIMATIONS)) {
+    animations[name] = {
+      name,
+      frames: animation.frames.map((frameIndex) => getHitRunFrameRect(frameIndex)),
+      frameDuration: 1 / animation.frameRate,
+      loop: animation.loop ?? true
+    };
+  }
+
+  const ids = [
+    "hitrun_samurai_enemy",
+    "hitrun_sumi_e_player",
+    "hitrun_sumi_e_samurai"
+  ] as const;
+
+  return {
+    id: ids[index],
+    assetPath,
+    imageSource: null,
+    frameWidth: HIT_RUN_CHARACTER_CELL_SIZE,
+    frameHeight: HIT_RUN_CHARACTER_CELL_SIZE,
+    anchor: { ...HIT_RUN_CHARACTER_ANCHOR },
+    animations
+  };
+});

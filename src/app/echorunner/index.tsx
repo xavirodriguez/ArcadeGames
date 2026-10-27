@@ -292,7 +292,7 @@ function EchoRunnerContent() {
             </View>
             <View style={styles.hudItem}>
               <Text style={[styles.hudLabel, { color: activeUiStyle.hudTextLabel }]}>{t.echorunner.chrono}</Text>
-              <Text style={[styles.hudValue, { color: activeUiStyle.hudValue, textShadowColor: activeUiStyle.hudValue }]}>
+              <Text style={[styles.hudValue, { color: activeUiStyle.hudValue, textShadow: `0px 0px 4px ${activeUiStyle.hudValue}` }]}>
                 {formatTime(gameState.elapsedTime)}
               </Text>
             </View>

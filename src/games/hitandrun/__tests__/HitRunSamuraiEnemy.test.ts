@@ -15,12 +15,12 @@ import {
   SamuraiSpriteFrameSystem
 } from "../rendering/SamuraiAnimationSystems";
 import { SpriteRegistry } from "../../shared/sprites";
-import { getHitRunCharacterSpriteSheet } from "../rendering/HitRunSpriteAtlas";
+import { getHitRunCharacterSpriteSheet, HIT_RUN_SUMI_E_SAMURAI_SHEET_ID } from "../rendering/HitRunSpriteAtlas";
 
 describe("Hit & Run samurai enemy", () => {
   beforeEach(() => {
     const classicSheet = getHitRunCharacterSpriteSheet(SAMURAI_ASSET_KEY);
-    const sumiESheet = getHitRunCharacterSpriteSheet("hitrun_sumi_e_samurai");
+    const sumiESheet = getHitRunCharacterSpriteSheet(HIT_RUN_SUMI_E_SAMURAI_SHEET_ID);
     if (!classicSheet || !sumiESheet) throw new Error("Hit&Run sprite metadata is missing.");
     SpriteRegistry.register(classicSheet);
     SpriteRegistry.register(sumiESheet);

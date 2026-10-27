@@ -30,11 +30,11 @@ jobs:
       - name: Validate sprite atlases and metadata
         run: pnpm run sprites:validate
 
-      - name: Test sprite metadata validator
-        run: pnpm exec jest --config src/games/shared/jest.config.cjs --runInBand --runTestsByPath src/games/shared/sprites/SpriteManifestValidator.test.ts
+      - name: Test sprite metadata validator and animator
+        run: pnpm exec jest --config src/games/shared/jest.config.cjs --runInBand --runTestsByPath src/games/shared/sprites/SpriteManifestValidator.test.ts src/games/shared/sprites/SpriteAnimator.test.ts
 
-      - name: Lint sprite metadata files
-        run: pnpm exec eslint packages/core/src/assets/SpriteSheetDefinition.ts scripts/validate-sprites.ts src/games/shared/sprites/SpriteManifestValidator.ts src/games/shared/sprites/SpriteManifestValidator.test.ts src/games/shared/sprites/SpriteTypes.ts src/games/hitandrun/rendering/HitRunSpriteAtlas.ts
+      - name: Lint sprite metadata and animation files
+        run: pnpm exec eslint packages/core/src/assets/SpriteSheetDefinition.ts scripts/validate-sprites.ts src/games/shared/sprites/SpriteManifestValidator.ts src/games/shared/sprites/SpriteManifestValidator.test.ts src/games/shared/sprites/SpriteTypes.ts src/games/shared/sprites/SpriteAnimator.ts src/games/shared/sprites/SpriteAnimator.test.ts src/games/hitandrun/rendering/HitRunSpriteAtlas.ts src/games/hitandrun/__tests__/HitRunSpriteAtlas.test.ts
 
       - name: Build through Turborepo
         run: pnpm exec turbo run build

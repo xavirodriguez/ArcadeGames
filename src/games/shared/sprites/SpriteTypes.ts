@@ -16,6 +16,8 @@ export interface SpriteAnimatorComponent {
   frameIndex: number;
   /** Time accumulator (seconds) */
   timer: number;
+  /** Whether a non-looping animation has completed. Reset by playAnimation. */
+  finished?: boolean;
   /** Horizontal flip */
   flipX: boolean;
   /** Uniform scale */

@@ -98,7 +98,7 @@ import { drawHitRunDebugOverlay } from "./rendering/HitRunDebugOverlay";
 import { registerHitRunDebugMetrics } from "./rendering/HitRunDebugMetrics";
 import { drawLanceroSpriteCanvas, LANCERO_SHAPE } from "../shared/sprites/LanceroSpriteVisuals";
 import { SpriteRegistry, loadSpriteSheetWithAssetLoader } from "../shared/sprites";
-import { getHitRunCharacterSpriteSheet } from "./rendering/HitRunSpriteAtlas";
+import { getHitRunCharacterSpriteSheet, HIT_RUN_SUMI_E_SAMURAI_SHEET_ID } from "./rendering/HitRunSpriteAtlas";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import { runWithUnlockedRandomAndMutators } from "../shared/configHelper";
 import { ThemeRegistry, resolveThemeIdFromConfig } from "./rendering/theme/ThemeRegistry";
@@ -197,7 +197,7 @@ export class HitAndRunGame extends BaseGame<
         ),
         this.preloadSpriteAsset(
           SAMURAI_ASSET_KEY,
-          "hitrun_sumi_e_samurai",
+          HIT_RUN_SUMI_E_SAMURAI_SHEET_ID,
           loadSumiESamuraiSpritesheetAsset,
           SAMURAI_SPRITE_READY_RESOURCE,
           "Sumi-e samurai"

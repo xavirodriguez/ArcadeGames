@@ -10,7 +10,7 @@ export function neonTextGlow(
 ): TextStyle & { textShadow?: string } {
   if (Platform.OS === "web") {
     return {
-      textShadow: `${offsetX}px ${offsetY}px ${radius}px ${color}`, 
+      textShadow: `${offsetX}px ${offsetY}px ${radius}px ${color}`,
     };
   }
 

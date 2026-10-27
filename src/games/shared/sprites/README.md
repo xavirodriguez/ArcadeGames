@@ -65,3 +65,10 @@ Canvas and Skia use renderer-specific decoded-image caches over the shared regis
 - Frame rects for `oni_red` were measured from the original sheet (924×539).
 - Adjust `startX / startY / spacing` in `makeRowFrames` if frames look offset.
 - The system is intentionally renderer-agnostic so the same animator works on web (Canvas) and native (Skia).
+
+## Atlas validation
+
+Run `pnpm run sprites:validate` before opening a game or submitting sprite work. The command validates the shared sprite catalogue and the bundled Hit&Run atlases. It checks that each referenced PNG exists, verifies the PNG signature/IHDR dimensions, confirms frame rectangles remain inside the image, detects duplicate ids, and validates animation timing, source mode and anchors. CI runs the same command before the build.
+
+All shared-pipeline sheet definitions use the canonical `SpriteSheetDefinition` contract exported by `@tiny-aster/core`. Keep the repository-relative `assetPath` alongside the runtime `imageSource`: the former is for tooling and validation; the latter is for Metro/platform loading. Add new shared-pipeline sheets to `SPRITE_SHEET_CATALOG` so runtime registration and CI inspect the same definitions.
+

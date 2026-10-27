@@ -77,9 +77,7 @@ export const NeonButton: React.FC<NeonButtonProps> = ({
   const dynamicTextStyle: TextStyle = bordered
     ? {
         color: variantColor,
-        textShadowColor: variantColor,
-        textShadowOffset: { width: 0, height: 0 },
-        textShadowRadius: reduceMotion ? 0 : 8,
+        textShadow: `0px 0px ${reduceMotion ? 0 : 8}px ${variantColor}`,
       }
     : {
         color: semanticColors.background.dark,

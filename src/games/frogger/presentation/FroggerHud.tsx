@@ -1,5 +1,5 @@
 import React, { FC } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, Text, View } from "react-native";
 import { FROGGER_VISUAL_TOKENS } from "../rendering/FroggerVisualTokens";
 import {
   formatFroggerScore,
@@ -124,11 +124,15 @@ const styles = StyleSheet.create({
     borderRadius: 13,
     borderWidth: 1,
     borderColor: "rgba(233, 185, 73, 0.38)",
-    shadowColor: FROGGER_VISUAL_TOKENS.shadows.color,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.55,
-    shadowRadius: 5,
-    elevation: 4,
+    ...(Platform.OS === "web"
+      ? { boxShadow: "0px 3px 5px rgba(35, 35, 56, 0.154)" }
+      : {
+          shadowColor: FROGGER_VISUAL_TOKENS.shadows.color,
+          shadowOffset: { width: 0, height: 3 },
+          shadowOpacity: 0.55,
+          shadowRadius: 5,
+          elevation: 4,
+        }),
     gap: 3,
   },
   topRow: {

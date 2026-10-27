@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
@@ -159,10 +159,14 @@ const styles = StyleSheet.create({
     borderColor: "rgba(85, 232, 255, 0.55)",
     borderRadius: 10,
     backgroundColor: "rgba(8, 17, 42, 0.92)",
-    shadowColor: "#08112a",
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    elevation: 5,
+    ...(Platform.OS === "web"
+      ? { boxShadow: "0px 0px 10px rgba(8, 17, 42, 0.35)" }
+      : {
+          shadowColor: "#08112a",
+          shadowOpacity: 0.35,
+          shadowRadius: 10,
+          elevation: 5,
+        }),
   },
   statGroup: {
     flex: 1,

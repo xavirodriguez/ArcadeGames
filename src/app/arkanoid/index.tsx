@@ -301,11 +301,15 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderBottomWidth: 5,
     borderBottomColor: "rgba(0, 180, 200, 0.9)",
-    shadowColor: colors.cyan,
-    shadowOpacity: 0.85,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 8,
+    ...(Platform.OS === "web"
+      ? { boxShadow: "0px 4px 12px rgba(0, 240, 255, 0.85)" }
+      : {
+          shadowColor: colors.cyan,
+          shadowOpacity: 0.85,
+          shadowRadius: 12,
+          shadowOffset: { width: 0, height: 4 },
+          elevation: 8,
+        }),
   },
   launchLabel: {
     fontSize: 14,

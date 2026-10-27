@@ -553,9 +553,7 @@ const styles = StyleSheet.create({
   countdownText: {
     fontFamily: "monospace",
     fontWeight: "bold",
-    textShadowColor: "rgba(0, 0, 0, 0.8)",
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 6
+    textShadow: "2px 2px 6px rgba(0, 0, 0, 0.8)"
   },
   numberText: {
     fontSize: 72

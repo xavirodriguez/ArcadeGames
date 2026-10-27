@@ -169,29 +169,23 @@ export class HitAndRunGame extends BaseGame<
   }
 
   protected override async onPreloadAssets(): Promise<void> {
-    // Sprite drawers resolve images through the world's AssetLoader resource.
-    // Register it even when headless so the render contract remains explicit.
-    this.world.setResource("AssetLoader", this.samuraiAssetLoader);
-    this.world.setResource(SAMURAI_SPRITE_READY_RESOURCE, false);
+    try {
+      const asset = await loadSamuraiSpritesheetAsset();
+      const imageUri = asset.localUri ?? asset.uri;
 
-    if (!this.isHeadless) {
-      try {
-        const asset = await loadSamuraiSpritesheetAsset();
-        const imageUri = asset.localUri ?? asset.uri;
+      this.samuraiAssetLoader.setProvider(createSamuraiAssetProvider());
+      await this.samuraiAssetLoader.load([
+        { id: SAMURAI_ASSET_KEY, path: imageUri, type: "image" }
+      ]);
 
-        this.samuraiAssetLoader.setProvider(createSamuraiAssetProvider());
-        await this.samuraiAssetLoader.load([
-          { id: SAMURAI_ASSET_KEY, path: imageUri, type: "image" }
-        ]);
-
-        this.world.setResource(SAMURAI_SPRITE_READY_RESOURCE, true);
-      } catch (error) {
-        // Keep the procedural renderer active if the image cannot be resolved.
-        console.warn(
-          "[HitAndRunGame] Failed to load samurai spritesheet; using procedural fallback.",
-          error
-        );
-      }
+      this.world.setResource(SAMURAI_SPRITE_READY_RESOURCE, true);
+    } catch (error) {
+      // Keep the procedural renderer active if the image cannot be resolved.
+      this.world.setResource(SAMURAI_SPRITE_READY_RESOURCE, false);
+      console.warn(
+        "[HitAndRunGame] Failed to load samurai spritesheet; using procedural fallback.",
+        error
+      );
     }
 
     if (this.audio) {
@@ -201,6 +195,11 @@ export class HitAndRunGame extends BaseGame<
 
   protected override async onRegisterSystems(): Promise<void> {
     await super.onRegisterSystems();
+
+    // Sprite drawers and enemy pools resolve these resources from the World.
+    // Asset readiness remains false until the bundled atlas finishes preloading.
+    this.world.setResource("AssetLoader", this.samuraiAssetLoader);
+    this.world.setResource(SAMURAI_SPRITE_READY_RESOURCE, false);
 
     this.setupCommonArcadeResources();
     this.world.deleteResource("IsPaused");

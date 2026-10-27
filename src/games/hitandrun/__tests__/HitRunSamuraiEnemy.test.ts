@@ -25,6 +25,7 @@ describe("Hit & Run samurai enemy", () => {
     SpriteRegistry.register(classicSheet);
     SpriteRegistry.register(sumiESheet);
   });
+
   it("registers a durable melee archetype and all five non-empty clips", () => {
     const archetype = getEnemyArchetype("samurai");
 
@@ -77,7 +78,7 @@ describe("Hit & Run samurai enemy", () => {
       srcRect: { x: 0, y: 0, w: 64, h: 64 },
       scale: (getEnemyArchetype("samurai")?.size ?? SAMURAI_CELL_SIZE) / SAMURAI_CELL_SIZE
     });
-        expect(world.getComponent(entity, "SpriteAnimator")).toMatchObject({
+    expect(world.getComponent(entity, "SpriteAnimator")).toMatchObject({
       type: "SpriteAnimator",
       sheetId: SAMURAI_ASSET_KEY,
       currentAnim: "idle",
@@ -142,6 +143,7 @@ describe("Hit & Run samurai enemy", () => {
     new SamuraiSpriteFrameSystem().update(world, 1 / 60);
     expect(world.getComponent(entity, "Sprite")?.srcRect).toEqual(getSamuraiFrameRect(18));
   });
+
   it("finishes the hurt recoil after the short hitstun component expires", () => {
     const world = new World<CoreComponentRegistry>();
     world.setResource(SAMURAI_SPRITE_READY_RESOURCE, true);

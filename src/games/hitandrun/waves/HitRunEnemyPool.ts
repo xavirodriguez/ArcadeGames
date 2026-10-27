@@ -3,15 +3,16 @@ import {
   Entity,
   CoreComponentRegistry
 } from "@tiny-aster/core";
-import type { AnimatorComponent, SpriteComponent } from "@tiny-aster/core";
+import type { SpriteComponent } from "@tiny-aster/core";
+import { createSpriteAnimator } from "../../shared/sprites";
 import {
-  SAMURAI_ANIMATIONS,
   SAMURAI_ASSET_KEY,
   SAMURAI_CELL_SIZE,
   SAMURAI_SPRITE_ANCHOR,
-  SAMURAI_SPRITE_READY_RESOURCE,
+  SAMURAI_SPRITE_READY_RESOURCE
   getSamuraiFrameRect
 } from "../rendering/SamuraiVisualAssets";
+import { SUMI_E_THEME_RESOURCE } from "../rendering/SumiEVisualAssets";
 import { getEnemyArchetype } from "./HitRunEnemyArchetypes";
 import { recordHitRunDebugAllocation } from "../rendering/HitRunDebugMetrics";
 import type {
@@ -229,24 +230,13 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
       };
       setOrAddComp("Sprite", sprite);
 
-      const animations = Object.fromEntries(
-        Object.entries(SAMURAI_ANIMATIONS).map(([name, clip]) => [
-          name,
-          { ...clip, frames: [...clip.frames] }
-        ])
-      );
-      const animator: AnimatorComponent = {
-        type: "Animator",
-        isPlaying: true,
-        animations,
-        current: "idle",
-        elapsed: 0,
-        frame: 0
-      };
-      setOrAddComp("Animator", animator);
+      const sheetId = world.getResource<boolean>(SUMI_E_THEME_RESOURCE) === true
+        ? "hitrun_sumi_e_samurai"
+        : SAMURAI_ASSET_KEY;
+      setOrAddComp("SpriteAnimator", createSpriteAnimator(sheetId, "idle"));
     } else {
       // A pooled samurai must not leave its image/animator attached to another archetype.
-      for (const component of ["Sprite", "Animator"] as const) {
+      for (const component of ["Sprite", "Animator", "SpriteAnimator"] as const) {
         if (!world.hasComponent(entity, component)) continue;
         if (isUpdating) {
           cmd.removeComponent(entity, component);

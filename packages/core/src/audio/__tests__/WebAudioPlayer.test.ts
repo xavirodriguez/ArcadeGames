@@ -176,7 +176,7 @@ describe("WebAudioPlayer", () => {
     const player = new WebAudioPlayer();
     player.playBGM("dark_atmosphere");
 
-    expect(mockAudioSources).toContain("/assets/audio/dark-atmosphere.wav");
+    expect(mockAudioSources).toContain("/public/assets/audio/dark-atmosphere.wav");
     expect(mockPlay).toHaveBeenCalled();
   });
 

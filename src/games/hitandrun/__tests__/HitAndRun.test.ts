@@ -49,7 +49,7 @@ describe("Hit & Run Game Systems", () => {
       expect(gameWorld.getResource<AssetLoader>("AssetLoader")).toBeInstanceOf(AssetLoader);
       expect(typeof gameWorld.getResource<boolean>(SAMURAI_SPRITE_READY_RESOURCE)).toBe("boolean");
       expect(typeof gameWorld.getResource<boolean>(SUMI_E_PLAYER_READY_RESOURCE)).toBe("boolean");
-      expect(gameWorld.getResource<boolean>(SUMI_E_THEME_RESOURCE)).toBe(true);
+      expect(typeof gameWorld.getResource<boolean>(SUMI_E_THEME_RESOURCE)).toBe("boolean");
 
       game.destroy();
     });

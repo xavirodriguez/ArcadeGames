@@ -5265,6 +5265,14 @@ export interface SpringJointOptions {
 }
 
 // @public
+export interface SpriteAnimationDefinition {
+    frameDuration: number;
+    frames: SpriteFrameRect[];
+    loop: boolean;
+    name: string;
+}
+
+// @public
 export interface SpriteComponent extends Component {
     anchor?: {
         x: number;
@@ -5282,6 +5290,40 @@ export interface SpriteComponent extends Component {
     textureId?: string;
     tint?: string;
     type: "Sprite";
+}
+
+// @public
+export interface SpriteFrameRect {
+    h: number;
+    w: number;
+    x: number;
+    y: number;
+}
+
+// @public
+export interface SpriteImageDimensions {
+    height: number;
+    width: number;
+}
+
+// @public
+export type SpriteImageSource = number | string | {
+    localUri?: string;
+    uri?: string;
+} | null;
+
+// @public
+export interface SpriteSheetDefinition {
+    anchor?: {
+        x: number;
+        y: number;
+    };
+    animations: Record<string, SpriteAnimationDefinition>;
+    assetPath: string;
+    frameHeight: number;
+    frameWidth: number;
+    imageSource: SpriteImageSource;
+    sourceMode?: "frames" | "full-image";
 }
 
 // @public

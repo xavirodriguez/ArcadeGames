@@ -67,22 +67,27 @@ test.describe("Game Launch Test Suite", () => {
         }
       });
 
-      await page.goto(game.path);
-      await page.waitForTimeout(2500); // Wait for Expo Router / Skia / Canvas initialization
+      await page.goto(game.path, { waitUntil: "domcontentloaded" });
+
+      // Ensure CanvasKit / Root Layout initialization has completed
+      await expect(page.getByText("Loading CanvasKit...")).toBeHidden({ timeout: 20000 });
+
+      // Wait for explicit, verifiable route initialization (Visible Canvas or interactive button)
+      const primaryElement = page.locator("canvas:visible, [role='button']:visible").first();
+      await expect(primaryElement).toBeVisible({ timeout: 15000 });
 
       // Perform initial gameplay interactions (keyboard presses / mouse clicks)
       await page.keyboard.press("Space");
       await page.keyboard.press("ArrowRight");
       await page.keyboard.press("ArrowLeft");
       await page.mouse.click(640, 360);
-      await page.waitForTimeout(1000);
+
+      // Verify the body / main container remains visible without crashing
+      const body = page.locator("body");
+      await expect(body).toBeVisible();
 
       // Check no unhandled JS errors occurred
       expect(pageErrors, `Unhandled errors on ${game.name}: ${pageErrors.map(e => e.message).join(", ")}`).toHaveLength(0);
-
-      // Verify the canvas or main interactive element is visible
-      const body = page.locator("body");
-      await expect(body).toBeVisible();
 
       // Capture visual evidence screenshot for audit artifacts
       const screenshotPath = testInfo.outputPath(`${game.name.replace(/\s+/g, "_").toLowerCase()}_screenshot.png`);
@@ -96,12 +101,16 @@ test.describe("Game Launch Test Suite", () => {
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
 
+    // Ensure CanvasKit / Root Layout initialization has completed
+    await expect(page.getByText("Loading CanvasKit...")).toBeHidden({ timeout: 20000 });
+
     // Click the Campaign button (Story Campaign or Campaña Historia depending on locale)
     const campaignBtn = page.locator("text=/Story Campaign|Campaña Historia/i").first();
     await expect(campaignBtn).toBeVisible({ timeout: 15000 });
     await campaignBtn.click();
 
-    await page.waitForTimeout(2000);
+    const campaignElement = page.locator("canvas:visible, [role='button']:visible").first();
+    await expect(campaignElement).toBeVisible({ timeout: 15000 });
 
     expect(pageErrors, `Unhandled errors opening Campaign from menu: ${pageErrors.map(e => e.message).join(", ")}`).toHaveLength(0);
   });

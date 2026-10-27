@@ -13,7 +13,6 @@ import {
   type SpriteAnimatorComponent
 } from "../../shared/sprites";
 import { SAMURAI_ASSET_KEY } from "./SamuraiVisualAssets";
-import { HIT_RUN_SUMI_E_SAMURAI_SHEET_ID } from "./HitRunSpriteAtlas";
 import {
   SUMI_E_PLAYER_ASSET_KEY
 } from "./SumiEVisualAssets";

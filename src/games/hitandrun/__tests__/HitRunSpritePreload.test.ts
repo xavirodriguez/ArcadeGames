@@ -12,6 +12,7 @@ import {
   SUMI_E_PLAYER_READY_RESOURCE
 } from "../rendering/SumiEVisualAssets";
 import { HitRunEnemyPool } from "../waves/HitRunEnemyPool";
+import { HIT_RUN_SUMI_E_SAMURAI_SHEET_ID } from "../rendering/HitRunSpriteAtlas";
 
 function createResolvedAsset(uri: string, localUri: string): Asset {
   const asset = Object.create(null) as Asset;
@@ -60,7 +61,7 @@ describe("Hit&Run sprite preload integration", () => {
         .toEqual({ uri: samuraiSource.localUri });
 
       expect(SpriteRegistry.get(SUMI_E_PLAYER_ASSET_KEY)?.imageSource).toEqual(playerSource);
-      expect(SpriteRegistry.get("hitrun_sumi_e_samurai")?.imageSource).toEqual(samuraiSource);
+      expect(SpriteRegistry.get(HIT_RUN_SUMI_E_SAMURAI_SHEET_ID)?.imageSource).toEqual(samuraiSource);
 
       const player = world.query("BeltInput", "Sprite")[0];
       if (player === undefined) throw new Error("Sumi-e player was not spawned.");
@@ -81,7 +82,7 @@ describe("Hit&Run sprite preload integration", () => {
       expect(world.getComponent(samurai, "Sprite")?.assetKey).toBe(SAMURAI_ASSET_KEY);
       expect(world.getComponent(samurai, "SpriteAnimator")).toMatchObject({
         type: "SpriteAnimator",
-        sheetId: "hitrun_sumi_e_samurai",
+        sheetId: HIT_RUN_SUMI_E_SAMURAI_SHEET_ID,
         currentAnim: "idle"
       });
     } finally {

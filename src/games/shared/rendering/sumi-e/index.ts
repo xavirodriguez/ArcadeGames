@@ -1,6 +1,6 @@
 /**
  * Sumi-e / shan-shui aesthetic module.
- * Re-exports palette, theme, ink-wash background, juice and shape drawers.
+ * Re-exports palette, theme, ink-wash, juice, atmosphere, performance and debug.
  */
 
 export {
@@ -43,3 +43,42 @@ export {
 } from "./SumiEJuice";
 
 export { registerSumiEVFX } from "./SumiEShapeDrawers";
+
+// Phase 3 — atmosphere
+export {
+  ATMOSPHERE_INK_WASH_LAYERS,
+  DEFAULT_MIST_BANDS,
+  REGIONAL_ATMOSPHERES,
+  getAtmosphereLayers,
+  getRegionalAtmosphere,
+  computeMistBands,
+  drawMistBandsCanvas,
+  spawnAmbientParticle,
+  spawnAmbientBand,
+  cameraXForInkLayer,
+  inkDepthToParallaxLayer,
+  type AtmospherePreset,
+  type MistBandSpec,
+  type MistBandGeometry,
+  type AmbientParticleKind,
+  type SumiERegionId,
+  type RegionalAtmosphere
+} from "./SumiEAtmosphere";
+
+// Phase 4 — performance, a11y, debug
+export {
+  resolveSumiERenderSettings,
+  selectLayers,
+  getLayerStack,
+  contrastColors,
+  type SumiEQualityPreset,
+  type SumiERenderSettings,
+  type AccessibilityOverrides,
+  type LayerStackId
+} from "./SumiEPerformance";
+
+export {
+  drawSumiEDebugOverlayCanvas,
+  SUMI_E_DEBUG_RESOURCE,
+  type SumiEDebugSnapshot
+} from "./SumiEDebugOverlay";

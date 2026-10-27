@@ -1,7 +1,8 @@
-import { ComponentRegistry } from "./Component";
-import { EventRegistry } from "../events/EventBus";
-import { System, SystemPhase, SystemConfig } from "./System";
-import { World, BlueprintRegistryMap } from "./World";
+import type { ComponentRegistry } from "./Component";
+import type { EventRegistry } from "../events/EventBus";
+import { SystemPhase } from "./System";
+import type { System, SystemConfig } from "./System";
+import type { World, BlueprintRegistryMap } from "./World";
 import { GameErrorReporter, normalizeError, ENGINE_VERSION, GameErrorPhase } from "../diagnostics";
 
 /**

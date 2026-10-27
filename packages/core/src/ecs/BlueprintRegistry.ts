@@ -1,5 +1,5 @@
-import { World, BlueprintRegistryMap, ComponentRegistry } from "./World";
-import { EventRegistry } from "../events/EventBus";
+import type { World, BlueprintRegistryMap, ComponentRegistry } from "./World";
+import type { EventRegistry } from "../events/EventBus";
 
 /**
  * Utility type to extract arguments for a specific blueprint ID from a registry map.

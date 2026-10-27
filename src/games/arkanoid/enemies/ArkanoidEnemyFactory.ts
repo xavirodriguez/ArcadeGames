@@ -1,6 +1,6 @@
 import { World, EntityBuilder, ShapeType, BoxShape, CircleShape, Entity } from "@tiny-aster/core";
 import { ArkanoidComponentRegistry, ArkanoidEventRegistry } from "../types/ArkanoidTypes";
-import { ArkanoidBlueprintMap } from "../ArkanoidGame";
+import type { ArkanoidBlueprintMap } from "../ArkanoidGame";
 
 export class ArkanoidEnemyFactory {
   public static createEnemy(

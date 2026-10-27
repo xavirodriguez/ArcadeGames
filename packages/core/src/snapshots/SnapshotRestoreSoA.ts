@@ -1,8 +1,9 @@
-import { ComponentRegistry } from "../ecs/Component";
-import { World } from "../ecs/World";
-import { WorldSnapshot, SoAComponentBlock } from "./WorldSnapshot";
+import type { ComponentRegistry } from "../ecs/Component";
+import type { World } from "../ecs/World";
+import type { WorldSnapshot, SoAComponentBlock } from "./WorldSnapshot";
 import { SoADeserializer } from "./SoADeserializer";
-import { restoreWorldMetadata, rebuildQueries, restoreComponentStorage, registerEntityComponent, InternalWorldAccess } from "./SnapshotInternalAccess";
+import { restoreWorldMetadata, rebuildQueries, restoreComponentStorage, registerEntityComponent } from "./SnapshotInternalAccess";
+import type { InternalWorldAccess } from "./SnapshotInternalAccess";
 
 /**
  * Structure of Arrays (SoA) restoration utility.

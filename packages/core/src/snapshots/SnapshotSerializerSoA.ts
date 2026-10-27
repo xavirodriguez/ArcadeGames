@@ -1,9 +1,9 @@
 import { ComponentCloner } from "../ecs/ComponentCloner";
-import { ComponentRegistry } from "../ecs/Component";
-import { World } from "../ecs/World";
-import { SoAWorldSnapshot, SoAComponentTypeData } from "./WorldSnapshot";
+import type { ComponentRegistry } from "../ecs/Component";
+import type { World } from "../ecs/World";
+import type { SoAWorldSnapshot, SoAComponentTypeData } from "./WorldSnapshot";
 import { buildSnapshotMetadata } from "./SnapshotMetadataBuilder";
-import { InternalWorldAccess } from "./SnapshotInternalAccess";
+import type { InternalWorldAccess } from "./SnapshotInternalAccess";
 
 /**
  * High-performance Structure of Arrays (SoA) Serializer.

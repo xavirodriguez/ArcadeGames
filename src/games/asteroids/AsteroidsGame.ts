@@ -363,8 +363,8 @@ export class AsteroidsGame
     SharedVFX.registerSharedVFX(renderer);
 
     // Phase 1+2: sumi-e / shan-shui background + ink juice drawers (mountain landscape)
-    registerSumiEBackground(renderer as any, { aesthetic: "sumi-e", landscape: "mountain", force: true });
-    registerSumiEVFX(renderer as any);
+    registerSumiEBackground(renderer, { aesthetic: "sumi-e", landscape: "mountain", force: true });
+    registerSumiEVFX(renderer);
 
     if (renderer.type === "canvas") {
       renderer.registerBackgroundEffect("diffuse_milky_way", SharedVFX.DiffuseMilkyWayBackgroundEffect);

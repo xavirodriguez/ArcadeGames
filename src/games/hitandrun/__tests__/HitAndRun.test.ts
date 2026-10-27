@@ -1,7 +1,6 @@
 import { World, CoreComponentRegistry, EventBus, AssetLoader } from "@tiny-aster/core";
 import { HitAndRunGame } from "../HitAndRunGame";
 import { spawnBeltPlayer } from "../belt/registerBeltPlayerBlueprint";
-import { SAMURAI_SPRITE_READY_RESOURCE } from "../rendering/SamuraiVisualAssets";
 import {
   SUMI_E_PLAYER_ASSET_KEY,
   SUMI_E_PLAYER_READY_RESOURCE,
@@ -87,7 +86,7 @@ describe("Hit & Run Game Systems", () => {
       gameWorld.mutateComponent(player, "Velocity", (velocity) => {
         velocity.vx = 0;
       });
-      gameWorld.mutateComponent(player, "ComboMelee", (combo) => {
+      gameWorld.mutateComponent(player, "ComboMelee", (combo: any) => {
         combo.activeStep = "jab1";
       });
       stateSystem.update(gameWorld, 1 / 60);
@@ -103,6 +102,9 @@ describe("Hit & Run Game Systems", () => {
       });
 
 
+      if (gameWorld.getResource<boolean>("IsHeadless")) {
+        expect(gameWorld.getResource<boolean>(SAMURAI_SPRITE_READY_RESOURCE)).toBe(false);
+      }
     });
 
     it("creates exactly one main Camera2D entity after initialization", async () => {

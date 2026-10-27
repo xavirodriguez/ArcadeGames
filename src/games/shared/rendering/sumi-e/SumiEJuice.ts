@@ -9,7 +9,7 @@
 
 import { colors } from "../../../../theme/colors";
 import { SUMI_E_PALETTE } from "./SumiEPalette";
-import type { JuiceProfile, SupportedGameId, GameJuiceEventMap } from "../JuiceOrchestrator";
+import type { BaseJuiceOptions, SupportedGameId, GameJuiceEventMap } from "../JuiceOrchestrator";
 import { HitStopPriority } from "../HitStopSystem";
 
 /**
@@ -30,6 +30,13 @@ export type SumiEVFXPrimitiveName =
 export type ExtendedVFXPrimitiveName =
   | import("../JuiceOrchestrator").SharedVFXPrimitiveName
   | SumiEVFXPrimitiveName;
+
+/**
+ * Juice profile extended for sumi-e primitive names.
+ */
+export interface SumiEJuiceProfile extends BaseJuiceOptions {
+  effect: ExtendedVFXPrimitiveName;
+}
 
 /**
  * Default juice profiles for sumi-e primitives (used when spawning by name).

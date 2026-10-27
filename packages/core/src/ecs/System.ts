@@ -1,4 +1,4 @@
-import { World } from "./World";
+import type { World } from "./World";
 import { ComponentRegistry } from "./Component";
 import { EventRegistry } from "../events/EventBus";
 

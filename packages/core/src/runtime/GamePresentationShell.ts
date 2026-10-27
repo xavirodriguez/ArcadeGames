@@ -1,6 +1,6 @@
-import { BaseGame } from "./BaseGame";
-import { ComponentRegistry, BlueprintRegistryMap } from "../ecs/World";
-import { EventRegistry } from "../events/EventBus";
+import type { BaseGame } from "./BaseGame";
+import type { ComponentRegistry, BlueprintRegistryMap } from "../ecs/World";
+import type { EventRegistry } from "../events/EventBus";
 import { SceneManager } from "../scenes/SceneManager";
 import { IAudioPlayer, NullAudioPlayer } from "../audio/IAudioPlayer";
 

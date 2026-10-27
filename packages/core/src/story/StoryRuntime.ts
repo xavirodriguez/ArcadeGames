@@ -1,4 +1,4 @@
-import { World, BlueprintRegistryMap } from "../ecs/World";
+import type { World, BlueprintRegistryMap } from "../ecs/World";
 import type { ComponentRegistry } from "../ecs/Component";
 import type { CoreComponentRegistry } from "../ecs/CoreComponents";
 import { EventBus, type EventRegistry } from "../events/EventBus";
@@ -46,7 +46,7 @@ function cloneStoryState(state: StoryState): StoryState {
     history: state.history ? [...state.history] : []
   };
 }
-import { DeductionEngine } from "./DeductionEngine";
+import type { DeductionEngine } from "./DeductionEngine";
 import { NarrativeTimelineEngine } from "./NarrativeTimelineEngine";
 
 /**

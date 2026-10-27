@@ -1,5 +1,5 @@
 import { DeductionRule, StoryEffect } from "./StoryTypes";
-import { StoryRuntime } from "./StoryRuntime";
+import type { StoryRuntime } from "./StoryRuntime";
 
 /**
  * Result descriptor returned by active deduction formulation attempts.

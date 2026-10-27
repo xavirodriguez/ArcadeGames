@@ -1,9 +1,9 @@
 import { ComponentCloner } from "../ecs/ComponentCloner";
-import { ComponentRegistry } from "../ecs/Component";
-import { World } from "../ecs/World";
-import { WorldSnapshot, AoSWorldSnapshot, ComponentDataSnapshot, SerializedComponent } from "./WorldSnapshot";
+import type { ComponentRegistry } from "../ecs/Component";
+import type { World } from "../ecs/World";
+import type { WorldSnapshot, AoSWorldSnapshot, ComponentDataSnapshot, SerializedComponent } from "./WorldSnapshot";
 import { buildSnapshotMetadata } from "./SnapshotMetadataBuilder";
-import { InternalWorldAccess } from "./SnapshotInternalAccess";
+import type { InternalWorldAccess } from "./SnapshotInternalAccess";
 
 /**
  * Classical Array of Structures (AoS) Serializer.

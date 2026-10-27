@@ -1,7 +1,7 @@
 import { ComponentCloner } from "../ecs/ComponentCloner";
-import { ComponentRegistry } from "../ecs/Component";
-import { World } from "../ecs/World";
-import { WorldSnapshot } from "./WorldSnapshot";
+import type { ComponentRegistry } from "../ecs/Component";
+import type { World } from "../ecs/World";
+import type { WorldSnapshot } from "./WorldSnapshot";
 import { restoreWorldMetadata, rebuildQueries, restoreComponentStorage, registerEntityComponent } from "./SnapshotInternalAccess";
 
 /**

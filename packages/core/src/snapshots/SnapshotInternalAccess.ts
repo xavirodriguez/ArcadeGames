@@ -1,6 +1,6 @@
-import { World } from "../ecs/World";
-import { WorldSnapshot } from "./WorldSnapshot";
-import { ComponentRegistry } from "../ecs/Component";
+import type { World } from "../ecs/World";
+import type { WorldSnapshot } from "./WorldSnapshot";
+import type { ComponentRegistry } from "../ecs/Component";
 import { Query } from "../ecs/Query";
 import { ComponentStorage, MapStorage, SparseSetStorage } from "../ecs/storage";
 

@@ -1,7 +1,7 @@
-import { World } from "../ecs/World";
-import { Entity } from "../ecs/Entity";
-import { ComponentRegistry } from "../ecs/Component";
-import { BaseWorldSnapshot } from "./WorldSnapshot";
+import type { World } from "../ecs/World";
+import type { Entity } from "../ecs/Entity";
+import type { ComponentRegistry } from "../ecs/Component";
+import type { BaseWorldSnapshot } from "./WorldSnapshot";
 
 /**
  * Internal interface to access private world state for metadata building.

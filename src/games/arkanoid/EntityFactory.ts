@@ -1,6 +1,6 @@
 import { World, spawnBlueprintEntity, Entity } from "@tiny-aster/core";
 import { ArkanoidComponentRegistry, ArkanoidEventRegistry, BrickKind, BrickColorName, CapsuleType } from "./types/ArkanoidTypes";
-import { ArkanoidBlueprintMap } from "./ArkanoidGame";
+import type { ArkanoidBlueprintMap } from "./ArkanoidGame";
 
 export class ArkanoidEntityFactory {
   public static createPaddle(world: World<ArkanoidComponentRegistry, ArkanoidEventRegistry, ArkanoidBlueprintMap>): Entity {

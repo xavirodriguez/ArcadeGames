@@ -1,7 +1,7 @@
-import { World, BlueprintRegistryMap } from "./World";
-import { ComponentRegistry, ComponentType } from "./Component";
-import { BlueprintArgs, BlueprintRegistry } from "./BlueprintRegistry";
-import { EventRegistry } from "../events/EventBus";
+import type { World, BlueprintRegistryMap } from "./World";
+import type { ComponentRegistry, ComponentType } from "./Component";
+import type { BlueprintArgs, BlueprintRegistry } from "./BlueprintRegistry";
+import type { EventRegistry } from "../events/EventBus";
 import { Entity } from "./Entity";
 
 /**

@@ -1,4 +1,4 @@
-import type { AnimationDefinition, SpriteAnimationDefinition, SpriteSheetDefinition } from "@tiny-aster/core";
+import type { AnimationDefinition, SpriteAnimationDefinition, SpriteFrameRect, SpriteSheetDefinition } from "@tiny-aster/core";
 
 /** Shared 8x5 character atlas contract used by the bundled samurai and Sumi-e player. */
 export const HIT_RUN_CHARACTER_CELL_SIZE = 64;
@@ -17,12 +17,7 @@ export const HIT_RUN_CHARACTER_ANIMATIONS: Record<string, AnimationDefinition> =
   death: { frames: frameRange(32, 8), frameRate: 10, loop: false }
 };
 
-export interface HitRunFrameRect {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
+export type HitRunFrameRect = SpriteFrameRect;
 
 export function getHitRunFrameRect(atlasFrameIndex: number): HitRunFrameRect {
   const safeIndex = Math.max(
@@ -46,34 +41,40 @@ export function getHitRunFrameRect(atlasFrameIndex: number): HitRunFrameRect {
  * Sumi-e variants. Runtime asset loading remains game-owned; the shared
  * contract lets tooling validate every frame against each bundled PNG.
  */
-export const HIT_RUN_CHARACTER_SPRITE_SHEETS: readonly SpriteSheetDefinition[] = [
-  "src/games/hitandrun/assets/samurai-enemy.png",
-  "src/games/hitandrun/assets/themes/sumi-e/characters/player.png",
-  "src/games/hitandrun/assets/themes/sumi-e/enemies/samurai.png"
-].map((assetPath, index) => {
-  const animations: Record<string, SpriteAnimationDefinition> = {};
-  for (const [name, animation] of Object.entries(HIT_RUN_CHARACTER_ANIMATIONS)) {
-    animations[name] = {
-      name,
-      frames: animation.frames.map((frameIndex) => getHitRunFrameRect(frameIndex)),
-      frameDuration: 1 / animation.frameRate,
-      loop: animation.loop ?? true
-    };
+const HIT_RUN_CHARACTER_SHEET_ASSETS = [
+  {
+    id: "hitrun_samurai_enemy",
+    assetPath: "src/games/hitandrun/assets/samurai-enemy.png"
+  },
+  {
+    id: "hitrun_sumi_e_player",
+    assetPath: "src/games/hitandrun/assets/themes/sumi-e/characters/player.png"
+  },
+  {
+    id: "hitrun_sumi_e_samurai",
+    assetPath: "src/games/hitandrun/assets/themes/sumi-e/enemies/samurai.png"
   }
+] as const;
 
-  const ids = [
-    "hitrun_samurai_enemy",
-    "hitrun_sumi_e_player",
-    "hitrun_sumi_e_samurai"
-  ] as const;
+export const HIT_RUN_CHARACTER_SPRITE_SHEETS: readonly SpriteSheetDefinition[] =
+  HIT_RUN_CHARACTER_SHEET_ASSETS.map(({ id, assetPath }) => {
+    const animations: Record<string, SpriteAnimationDefinition> = {};
+    for (const [name, animation] of Object.entries(HIT_RUN_CHARACTER_ANIMATIONS)) {
+      animations[name] = {
+        name,
+        frames: animation.frames.map((frameIndex) => getHitRunFrameRect(frameIndex)),
+        frameDuration: 1 / animation.frameRate,
+        loop: animation.loop ?? true
+      };
+    }
 
-  return {
-    id: ids[index],
-    assetPath,
-    imageSource: null,
-    frameWidth: HIT_RUN_CHARACTER_CELL_SIZE,
-    frameHeight: HIT_RUN_CHARACTER_CELL_SIZE,
-    anchor: { ...HIT_RUN_CHARACTER_ANCHOR },
-    animations
-  };
-});
+    return {
+      id,
+      assetPath,
+      imageSource: null,
+      frameWidth: HIT_RUN_CHARACTER_CELL_SIZE,
+      frameHeight: HIT_RUN_CHARACTER_CELL_SIZE,
+      anchor: { ...HIT_RUN_CHARACTER_ANCHOR },
+      animations
+    };
+  });

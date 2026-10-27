@@ -22,12 +22,20 @@ import {
 import { updateRunProgress } from "@tiny-aster/gameplay-kit";
 import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
 import type { IAssetProvider } from "@tiny-aster/core";
+import type { Asset } from "expo-asset";
 import {
   createSamuraiAssetProvider,
   loadSamuraiSpritesheetAsset,
   SAMURAI_ASSET_KEY,
   SAMURAI_SPRITE_READY_RESOURCE
 } from "./rendering/SamuraiVisualAssets";
+import {
+  SUMI_E_PLAYER_ASSET_KEY,
+  SUMI_E_PLAYER_READY_RESOURCE,
+  SUMI_E_THEME_RESOURCE,
+  loadSumiEPlayerSpritesheetAsset,
+  loadSumiESamuraiSpritesheetAsset
+} from "./rendering/SumiEVisualAssets";
 import { registerHitRunSamuraiAnimationSystems } from "./rendering/SamuraiAnimationSystems";
 import type {
   HitAndRunGameState,
@@ -149,9 +157,14 @@ export class HitAndRunGame extends BaseGame<
   private levelPlan!: LevelPlan;
   private customLevelData?: { templates: SegmentTemplate[]; grammar: string[] };
   private readonly samuraiAssetLoader: AssetLoader;
+  private readonly activeThemeId: string;
 
   constructor(config: HitAndRunConfig = {}) {
     const seed = (config.gameOptions?.seed as number) || config.seed;
+    const configuredThemeId = typeof config.gameOptions?.theme === "string"
+      ? config.gameOptions.theme
+      : "sumi-e";
+    const requestedThemeId = resolveThemeIdFromConfig(configuredThemeId);
     super({
       isMultiplayer: false,
       headless: false,
@@ -159,6 +172,7 @@ export class HitAndRunGame extends BaseGame<
       gameOptions: { ...config.gameOptions, seed },
       audio: new WebAudioPlayer(),
     });
+    this.activeThemeId = ThemeRegistry.setActiveTheme(requestedThemeId).id;
     this.samuraiAssetLoader = new AssetLoader();
     this.customLevelData = config.levelData;
   }
@@ -169,22 +183,29 @@ export class HitAndRunGame extends BaseGame<
   }
 
   protected override async onPreloadAssets(): Promise<void> {
-    try {
-      const asset = await loadSamuraiSpritesheetAsset();
-      const imageUri = asset.localUri ?? asset.uri;
+    this.samuraiAssetLoader.setProvider(createSamuraiAssetProvider());
 
-      this.samuraiAssetLoader.setProvider(createSamuraiAssetProvider());
-      await this.samuraiAssetLoader.load([
-        { id: SAMURAI_ASSET_KEY, path: imageUri, type: "image" }
+    if (this.activeThemeId === "sumi-e") {
+      await Promise.all([
+        this.preloadSpriteAsset(
+          SUMI_E_PLAYER_ASSET_KEY,
+          loadSumiEPlayerSpritesheetAsset,
+          SUMI_E_PLAYER_READY_RESOURCE,
+          "Sumi-e player"
+        ),
+        this.preloadSpriteAsset(
+          SAMURAI_ASSET_KEY,
+          loadSumiESamuraiSpritesheetAsset,
+          SAMURAI_SPRITE_READY_RESOURCE,
+          "Sumi-e samurai"
+        )
       ]);
-
-      this.world.setResource(SAMURAI_SPRITE_READY_RESOURCE, true);
-    } catch (error) {
-      // Keep the procedural renderer active if the image cannot be resolved.
-      this.world.setResource(SAMURAI_SPRITE_READY_RESOURCE, false);
-      console.warn(
-        "[HitAndRunGame] Failed to load samurai spritesheet; using procedural fallback.",
-        error
+    } else {
+      await this.preloadSpriteAsset(
+        SAMURAI_ASSET_KEY,
+        loadSamuraiSpritesheetAsset,
+        SAMURAI_SPRITE_READY_RESOURCE,
+        "samurai"
       );
     }
 
@@ -193,13 +214,36 @@ export class HitAndRunGame extends BaseGame<
     }
   }
 
+  private async preloadSpriteAsset(
+    assetKey: string,
+    loadAsset: () => Promise<Asset>,
+    readyResource: string,
+    label: string
+  ): Promise<void> {
+    try {
+      const asset = await loadAsset();
+      const uri = asset.localUri ?? asset.uri;
+      await this.samuraiAssetLoader.load([
+        { id: assetKey, path: uri, type: "image" }
+      ]);
+      this.world.setResource(readyResource, true);
+    } catch (error) {
+      this.world.setResource(readyResource, false);
+      console.warn(
+        `[HitAndRunGame] Failed to load ${label}; using procedural fallback.`,
+        error
+      );
+    }
+  }
+
   protected override async onRegisterSystems(): Promise<void> {
     await super.onRegisterSystems();
 
-    // Sprite drawers and enemy pools resolve these resources from the World.
-    // Asset readiness remains false until the bundled atlas finishes preloading.
+    // Register the loader before entities or renderer drawers need it.
     this.world.setResource("AssetLoader", this.samuraiAssetLoader);
     this.world.setResource(SAMURAI_SPRITE_READY_RESOURCE, false);
+    this.world.setResource(SUMI_E_PLAYER_READY_RESOURCE, false);
+    this.world.setResource(SUMI_E_THEME_RESOURCE, this.activeThemeId === "sumi-e");
 
     this.setupCommonArcadeResources();
     this.world.deleteResource("IsPaused");

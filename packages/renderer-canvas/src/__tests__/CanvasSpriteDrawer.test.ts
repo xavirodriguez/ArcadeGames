@@ -99,6 +99,46 @@ describe("CanvasSpriteDrawer Preloading and Caching", () => {
     await expect(preloadPromise).resolves.toBeUndefined();
   });
 
+  it("applies SpriteComponent.scale to the destination rectangle without changing the atlas source", async () => {
+    const drawer = new CanvasSpriteDrawer();
+    const drawImageMock = jest.fn();
+    const mockCtx = {
+      save: jest.fn(),
+      restore: jest.fn(),
+      drawImage: drawImageMock,
+    } as CanvasRenderingContext2D;
+
+    const world = new World();
+    const image = { width: 64, height: 64, complete: true };
+    const assetLoader = new AssetLoader({
+      async loadImage(): Promise<unknown> { return image; },
+      async loadAudio(): Promise<unknown> { return null; },
+      async loadFont(): Promise<unknown> { return null; }
+    });
+    await assetLoader.load([
+      { id: "scaled_sprite", path: "scaled_sprite", type: "image" }
+    ]);
+    world.setResource("AssetLoader", assetLoader);
+
+    const entity = world.createEntity();
+    const spriteComp: SpriteComponent = {
+      type: "Sprite",
+      assetKey: "scaled_sprite",
+      srcRect: { x: 64, y: 128, w: 64, h: 64 },
+      anchor: { x: 0.5, y: 0.5 },
+      scale: 0.5
+    };
+    world.addComponent(entity, spriteComp);
+
+    drawer.draw(mockCtx, world, entity);
+
+    expect(drawImageMock).toHaveBeenCalledWith(
+      image,
+      64, 128, 64, 64,
+      -16, -16, 32, 32
+    );
+  });
+
   it("does not draw sprite if image is not ready", () => {
     class MockImage {
       public src = "";

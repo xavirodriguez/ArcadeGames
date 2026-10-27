@@ -1,6 +1,17 @@
 import { World, CoreComponentRegistry, EventBus, AssetLoader } from "@tiny-aster/core";
 import { SAMURAI_SPRITE_READY_RESOURCE } from "../rendering/SamuraiVisualAssets";
 import { HitAndRunGame } from "../HitAndRunGame";
+import { spawnBeltPlayer } from "../belt/registerBeltPlayerBlueprint";
+import { SAMURAI_SPRITE_READY_RESOURCE } from "../rendering/SamuraiVisualAssets";
+import {
+  SUMI_E_PLAYER_ASSET_KEY,
+  SUMI_E_PLAYER_READY_RESOURCE,
+  SUMI_E_THEME_RESOURCE
+} from "../rendering/SumiEVisualAssets";
+import {
+  SumiEPlayerAnimationStateSystem,
+  SumiEPlayerSpriteFrameSystem
+} from "../rendering/SamuraiAnimationSystems";
 import { HIT_RUN_WEAPON_CATALOG, getWeaponDefinition } from "../weapons/HitRunWeaponCatalog";
 import { registerPlayerBulletPool } from "../weapons/HitRunBulletPool";
 import { fireWeapon } from "../weapons/fireWeapon";
@@ -31,13 +42,61 @@ describe("Hit & Run Game Systems", () => {
       game.destroy();
     });
 
-    it("registers the sprite loader and leaves the sprite fallback active in headless mode", async () => {
+    it("registers the sprite loader and initializes readiness flags during game initialization", async () => {
       const game = new HitAndRunGame({ seed: 12345 });
       await game.init();
 
       const gameWorld = game.getWorld();
       expect(gameWorld.getResource<AssetLoader>("AssetLoader")).toBeInstanceOf(AssetLoader);
       expect(typeof gameWorld.getResource<boolean>(SAMURAI_SPRITE_READY_RESOURCE)).toBe("boolean");
+      expect(typeof gameWorld.getResource<boolean>(SUMI_E_PLAYER_READY_RESOURCE)).toBe("boolean");
+      expect(typeof gameWorld.getResource<boolean>(SUMI_E_THEME_RESOURCE)).toBe("boolean");
+
+      game.destroy();
+    });
+
+    it("spawns and animates the Sumi-e player atlas when its assets are ready", () => {
+      const gameWorld = new World<CoreComponentRegistry>();
+      gameWorld.setResource(SUMI_E_THEME_RESOURCE, true);
+      gameWorld.setResource(SUMI_E_PLAYER_READY_RESOURCE, true);
+      const player = gameWorld.createEntity();
+
+      spawnBeltPlayer(gameWorld, player, { x: 120, y: 400 });
+
+      expect(gameWorld.getComponent(player, "Render")?.shape).toBe("sprite");
+      expect(gameWorld.getComponent(player, "Sprite")).toMatchObject({
+        type: "Sprite",
+        assetKey: SUMI_E_PLAYER_ASSET_KEY,
+        srcRect: { x: 0, y: 0, w: 64, h: 64 },
+        anchor: { x: 0.5, y: 0.94 },
+        scale: 26 / 64
+      });
+      expect(gameWorld.getComponent(player, "Animator")?.current).toBe("idle");
+
+      const stateSystem = new SumiEPlayerAnimationStateSystem();
+      gameWorld.mutateComponent(player, "Velocity", (velocity) => {
+        velocity.vx = 40;
+      });
+      stateSystem.update(gameWorld, 1 / 60);
+      expect(gameWorld.getComponent(player, "Animator")?.current).toBe("walk");
+
+      gameWorld.mutateComponent(player, "Velocity", (velocity) => {
+        velocity.vx = 0;
+      });
+      gameWorld.mutateComponent(player, "ComboMelee", (combo) => {
+        combo.activeStep = "jab1";
+      });
+      stateSystem.update(gameWorld, 1 / 60);
+      expect(gameWorld.getComponent(player, "Animator")?.current).toBe("attack");
+
+      gameWorld.mutateComponent(player, "Animator", (animator) => {
+        animator.current = "walk";
+        animator.frame = 1;
+      });
+      new SumiEPlayerSpriteFrameSystem().update(gameWorld, 1 / 60);
+      expect(gameWorld.getComponent(player, "Sprite")?.srcRect).toEqual({
+        x: 64, y: 64, w: 64, h: 64
+      });
 
       if (game.isHeadless) {
         expect(gameWorld.getResource<boolean>(SAMURAI_SPRITE_READY_RESOURCE)).toBe(false);

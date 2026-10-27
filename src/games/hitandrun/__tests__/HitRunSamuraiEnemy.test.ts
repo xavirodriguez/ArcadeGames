@@ -6,6 +6,7 @@ import {
   SAMURAI_ANIMATIONS,
   SAMURAI_ASSET_KEY,
   SAMURAI_CELL_SIZE,
+  SAMURAI_CELL_SIZE,
   SAMURAI_SPRITE_READY_RESOURCE,
   getSamuraiFrameRect
 } from "../rendering/SamuraiVisualAssets";
@@ -64,7 +65,8 @@ describe("Hit & Run samurai enemy", () => {
       type: "Sprite",
       assetKey: SAMURAI_ASSET_KEY,
       anchor: { x: 0.5, y: 0.94 },
-      srcRect: { x: 0, y: 0, w: 64, h: 64 }
+      srcRect: { x: 0, y: 0, w: 64, h: 64 },
+      scale: (getEnemyArchetype("samurai")?.size ?? SAMURAI_CELL_SIZE) / SAMURAI_CELL_SIZE
     });
     expect(world.getComponent(entity, "Animator")?.current).toBe("idle");
     expect(world.getComponent(entity, "StateMachine")?.machineId).toBe("hr_walk");

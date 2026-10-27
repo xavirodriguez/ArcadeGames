@@ -7,6 +7,7 @@ import type { AnimatorComponent, SpriteComponent } from "@tiny-aster/core";
 import {
   SAMURAI_ANIMATIONS,
   SAMURAI_ASSET_KEY,
+  SAMURAI_CELL_SIZE,
   SAMURAI_SPRITE_ANCHOR,
   SAMURAI_SPRITE_READY_RESOURCE,
   getSamuraiFrameRect
@@ -222,6 +223,7 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
         assetKey: SAMURAI_ASSET_KEY,
         anchor: { ...SAMURAI_SPRITE_ANCHOR },
         srcRect: getSamuraiFrameRect(0),
+        scale: size / SAMURAI_CELL_SIZE,
         flipX: false,
         flipY: false
       };

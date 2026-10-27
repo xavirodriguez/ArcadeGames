@@ -23,6 +23,16 @@ import { createMeleeAttackComponent } from "../melee/HitRunMeleeSystem";
 import { FANTASY_PALETTE } from "../fantasy/FantasyPalette";
 import type { HitRunWeaponState } from "../weapons/HitRunWeaponTypes";
 import type { ComboMeleeComponent } from "../melee/ComboMeleeTypes";
+import type { AnimatorComponent, SpriteComponent } from "@tiny-aster/core";
+import {
+  SUMI_E_CELL_SIZE,
+  SUMI_E_PLAYER_ANIMATIONS,
+  SUMI_E_PLAYER_ANCHOR,
+  SUMI_E_PLAYER_ASSET_KEY,
+  SUMI_E_PLAYER_READY_RESOURCE,
+  SUMI_E_THEME_RESOURCE,
+  getSumiEFrameRect
+} from "../rendering/SumiEVisualAssets";
 
 export interface BeltPlayerSpawnArgs {
   x: number;
@@ -52,6 +62,9 @@ export function spawnBeltPlayer(
   const size = args.size ?? DEFAULT_BELT_PLAYER_SPAWN.size;
   const health = args.health ?? DEFAULT_BELT_PLAYER_SPAWN.health;
   const weaponId = args.weaponId ?? DEFAULT_BELT_PLAYER_SPAWN.weaponId;
+  const useSumiESprite =
+    world.getResource<boolean>(SUMI_E_THEME_RESOURCE) === true &&
+    world.getResource<boolean>(SUMI_E_PLAYER_READY_RESOURCE) === true;
 
   ArcadeEntityBuilder.fromEntity(world, entity)
     .withTransform({ x, y, scaleX: 1, scaleY: 1 })
@@ -64,13 +77,39 @@ export function spawnBeltPlayer(
       isTrigger: false
     })
     .withRender({
-      shape: "player",
+      shape: useSumiESprite ? "sprite" : "player",
       size,
       color: FANTASY_PALETTE.playerArmor,
       order: 2,
       depthSort: true
     })
     .withCollisionEvents();
+
+  if (useSumiESprite) {
+    const animations: AnimatorComponent["animations"] = {};
+    for (const [name, clip] of Object.entries(SUMI_E_PLAYER_ANIMATIONS)) {
+      animations[name] = { ...clip, frames: [...clip.frames] };
+    }
+
+    world.addComponent(entity, {
+      type: "Sprite",
+      assetKey: SUMI_E_PLAYER_ASSET_KEY,
+      srcRect: getSumiEFrameRect(0),
+      anchor: { ...SUMI_E_PLAYER_ANCHOR },
+      scale: size / SUMI_E_CELL_SIZE,
+      flipX: false,
+      flipY: false
+    } satisfies SpriteComponent);
+
+    world.addComponent(entity, {
+      type: "Animator",
+      isPlaying: true,
+      animations,
+      current: "idle",
+      elapsed: 0,
+      frame: 0
+    } satisfies AnimatorComponent);
+  }
 
   world.addComponent(entity, {
     type: "Health",

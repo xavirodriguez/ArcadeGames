@@ -165,6 +165,7 @@ export class CanvasSpriteDrawer<TRegistry extends CoreComponentRegistry = CoreCo
     // Anchor
     const anchorX = sprite.anchor?.x ?? 0.5;
     const anchorY = sprite.anchor?.y ?? 0.5;
+    const spriteScale = sprite.scale ?? 1;
 
     // Apply flip
     const flipX = sprite.flipX ? -1 : 1;
@@ -181,9 +182,11 @@ export class CanvasSpriteDrawer<TRegistry extends CoreComponentRegistry = CoreCo
         ctx.restore();
         return;
       }
-      const dx = -w * anchorX;
-      const dy = -h * anchorY;
-      ctx.drawImage(htmlImg, x, y, w, h, dx, dy, w, h);
+      const drawWidth = w * spriteScale;
+      const drawHeight = h * spriteScale;
+      const dx = -drawWidth * anchorX;
+      const dy = -drawHeight * anchorY;
+      ctx.drawImage(htmlImg, x, y, w, h, dx, dy, drawWidth, drawHeight);
     } else {
       const w = img.width || 0;
       const h = img.height || 0;
@@ -191,9 +194,11 @@ export class CanvasSpriteDrawer<TRegistry extends CoreComponentRegistry = CoreCo
         ctx.restore();
         return;
       }
-      const dx = -w * anchorX;
-      const dy = -h * anchorY;
-      ctx.drawImage(htmlImg, dx, dy, w, h);
+      const drawWidth = w * spriteScale;
+      const drawHeight = h * spriteScale;
+      const dx = -drawWidth * anchorX;
+      const dy = -drawHeight * anchorY;
+      ctx.drawImage(htmlImg, dx, dy, drawWidth, drawHeight);
     }
 
     ctx.restore();

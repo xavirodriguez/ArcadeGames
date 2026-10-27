@@ -2,6 +2,8 @@
  * Typed asset manifest and placeholders for Sumi-e visual theme.
  */
 
+import { SUMI_E_PLAYER_ANIMATIONS, getSumiEFrameRect } from "../../SumiEVisualAssets";
+
 export interface SumiEFrameSpec {
   readonly x: number;
   readonly y: number;
@@ -24,76 +26,34 @@ export interface SumiEVisualAssetSpec {
   readonly animations: Record<string, SumiEAnimationSpec>;
 }
 
+const SUMI_E_ANIMATIONS: Record<string, SumiEAnimationSpec> = Object.fromEntries(
+  Object.entries(SUMI_E_PLAYER_ANIMATIONS).map(([name, animation]) => [
+    name,
+    {
+      frames: animation.frames.map((frame) => getSumiEFrameRect(frame)),
+      fps: animation.frameRate,
+      loop: animation.loop
+    }
+  ])
+);
+
+/** Only shipped Sumi-e atlas files are listed here; other art prompts remain future targets. */
 export const SUMI_E_ASSET_MANIFEST: Record<string, SumiEVisualAssetSpec> = {
   player: {
     visualId: "player",
-    atlasPath: "assets/themes/sumi-e/characters/ronin.png",
+    atlasPath: "src/games/hitandrun/assets/themes/sumi-e/characters/player.png",
     anchorX: 0.5,
-    anchorY: 1.0,
+    anchorY: 0.94,
     baseScale: 1.0,
-    animations: {
-      idle: { frames: [{ x: 0, y: 0, w: 64, h: 64 }], fps: 6, loop: true },
-      walk: { frames: [{ x: 64, y: 0, w: 64, h: 64 }], fps: 8, loop: true },
-      attack: { frames: [{ x: 128, y: 0, w: 64, h: 64 }], fps: 12, loop: false },
-      hurt: { frames: [{ x: 192, y: 0, w: 64, h: 64 }], fps: 10, loop: false },
-      death: { frames: [{ x: 256, y: 0, w: 64, h: 64 }], fps: 6, loop: false }
-    }
+    animations: SUMI_E_ANIMATIONS
   },
-  blue_oni: {
-    visualId: "blue_oni",
-    atlasPath: "assets/themes/sumi-e/enemies/blue_oni.png",
+  samurai: {
+    visualId: "samurai",
+    atlasPath: "src/games/hitandrun/assets/themes/sumi-e/enemies/samurai.png",
     anchorX: 0.5,
-    anchorY: 1.0,
-    baseScale: 1.2,
-    animations: {
-      idle: { frames: [{ x: 0, y: 0, w: 80, h: 80 }], fps: 6, loop: true },
-      walk: { frames: [{ x: 80, y: 0, w: 80, h: 80 }], fps: 8, loop: true },
-      attack: { frames: [{ x: 160, y: 0, w: 80, h: 80 }], fps: 10, loop: false },
-      hurt: { frames: [{ x: 240, y: 0, w: 80, h: 80 }], fps: 10, loop: false },
-      death: { frames: [{ x: 320, y: 0, w: 80, h: 80 }], fps: 6, loop: false }
-    }
-  },
-  red_oni: {
-    visualId: "red_oni",
-    atlasPath: "assets/themes/sumi-e/enemies/red_oni.png",
-    anchorX: 0.5,
-    anchorY: 1.0,
-    baseScale: 1.1,
-    animations: {
-      idle: { frames: [{ x: 0, y: 0, w: 72, h: 72 }], fps: 6, loop: true },
-      walk: { frames: [{ x: 72, y: 0, w: 72, h: 72 }], fps: 10, loop: true },
-      attack: { frames: [{ x: 144, y: 0, w: 72, h: 72 }], fps: 12, loop: false },
-      hurt: { frames: [{ x: 216, y: 0, w: 72, h: 72 }], fps: 10, loop: false },
-      death: { frames: [{ x: 288, y: 0, w: 72, h: 72 }], fps: 6, loop: false }
-    }
-  },
-  skeleton_warrior: {
-    visualId: "skeleton_warrior",
-    atlasPath: "assets/themes/sumi-e/enemies/skeleton_warrior.png",
-    anchorX: 0.5,
-    anchorY: 1.0,
+    anchorY: 0.94,
     baseScale: 1.0,
-    animations: {
-      idle: { frames: [{ x: 0, y: 0, w: 60, h: 60 }], fps: 6, loop: true },
-      walk: { frames: [{ x: 60, y: 0, w: 60, h: 60 }], fps: 6, loop: true },
-      attack: { frames: [{ x: 120, y: 0, w: 60, h: 60 }], fps: 10, loop: false },
-      hurt: { frames: [{ x: 180, y: 0, w: 60, h: 60 }], fps: 10, loop: false },
-      death: { frames: [{ x: 240, y: 0, w: 60, h: 60 }], fps: 6, loop: false }
-    }
-  },
-  tengu_bird: {
-    visualId: "tengu_bird",
-    atlasPath: "assets/themes/sumi-e/enemies/tengu_bird.png",
-    anchorX: 0.5,
-    anchorY: 1.0,
-    baseScale: 1.05,
-    animations: {
-      idle: { frames: [{ x: 0, y: 0, w: 64, h: 64 }], fps: 8, loop: true },
-      walk: { frames: [{ x: 64, y: 0, w: 64, h: 64 }], fps: 12, loop: true },
-      attack: { frames: [{ x: 128, y: 0, w: 64, h: 64 }], fps: 12, loop: false },
-      hurt: { frames: [{ x: 192, y: 0, w: 64, h: 64 }], fps: 10, loop: false },
-      death: { frames: [{ x: 256, y: 0, w: 64, h: 64 }], fps: 6, loop: false }
-    }
+    animations: SUMI_E_ANIMATIONS
   }
 };
 

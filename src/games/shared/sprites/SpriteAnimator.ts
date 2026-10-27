@@ -9,7 +9,7 @@ export type { SpriteAnimatorComponent };
 export function createSpriteAnimator(
   sheetId: string,
   initialAnim = "idle"
-): SpriteAnimatorComponent {
+): SpriteAnimatorComponent & { type: "SpriteAnimator" } {
   return {
     type: "SpriteAnimator",
     sheetId,

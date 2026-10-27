@@ -11,6 +11,7 @@ export function createSpriteAnimator(
   initialAnim = "idle"
 ): SpriteAnimatorComponent {
   return {
+    type: "SpriteAnimator",
     sheetId,
     currentAnim: initialAnim,
     frameIndex: 0,

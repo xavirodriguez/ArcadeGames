@@ -81,6 +81,7 @@ try {
 
 const ONI_RED: SpriteSheetDef = {
   id: "oni_red",
+  assetPath: "assets/sprites/enemies/enemy2.png",
   imageSource: oniRedImageSource,
   frameWidth: 56,
   frameHeight: 90,
@@ -95,6 +96,7 @@ const ONI_RED: SpriteSheetDef = {
 
 const SEA_DRAGON: SpriteSheetDef = {
   id: "sea_dragon",
+  assetPath: "assets/sprites/enemies/sea_dragon.png",
   imageSource: seaDragonImageSource,
   frameWidth: 40,
   frameHeight: 32,
@@ -107,6 +109,7 @@ const SEA_DRAGON: SpriteSheetDef = {
 
 const GHOST_GALLEON: SpriteSheetDef = {
   id: "ghost_galleon",
+  assetPath: "assets/sprites/enemies/ghost_galleon.png",
   imageSource: ghostGalleonImageSource,
   frameWidth: 40,
   frameHeight: 32,
@@ -121,6 +124,7 @@ const LANCERO_CELL_W = 172;
 const LANCERO_CELL_H = 192;
 const LANCERO: SpriteSheetDef = {
   id: "lancero",
+  assetPath: "assets/sprites/enemies/lancero.png",
   imageSource: lanceroImageSource,
   frameWidth: 48,
   frameHeight: 64,
@@ -135,6 +139,7 @@ const LANCERO: SpriteSheetDef = {
 
 const TOWER_BASIC_ART: SpriteSheetDef = {
   id: "tower_basic_art",
+  assetPath: "assets/sprites/towers/tower1.png",
   imageSource: towerBasicImageSource,
   frameWidth: 34,
   frameHeight: 34,
@@ -147,6 +152,7 @@ const TOWER_BASIC_ART: SpriteSheetDef = {
 
 const TOWER_SNIPER_ART: SpriteSheetDef = {
   id: "tower_sniper_art",
+  assetPath: "assets/sprites/towers/tower2.png",
   imageSource: towerSniperImageSource,
   frameWidth: 34,
   frameHeight: 34,
@@ -157,10 +163,20 @@ const TOWER_SNIPER_ART: SpriteSheetDef = {
   },
 };
 
+/** All shared-pipeline sheets, kept declarative for runtime registration and CI validation. */
+export const SPRITE_SHEET_CATALOG: readonly SpriteSheetDef[] = [
+  ONI_RED,
+  SEA_DRAGON,
+  GHOST_GALLEON,
+  LANCERO,
+  TOWER_BASIC_ART,
+  TOWER_SNIPER_ART
+];
+
 const registry = new Map<string, SpriteSheetDef>();
 
 export const SpriteRegistry = {
-  register(def: SpriteSheetDef) {
+  register(def: SpriteSheetDef): void {
     registry.set(def.id, def);
   },
   get(id: string): SpriteSheetDef | undefined {
@@ -169,12 +185,12 @@ export const SpriteRegistry = {
   has(id: string): boolean {
     return registry.has(id);
   },
-  init() {
-    this.register(ONI_RED);
-    this.register(SEA_DRAGON);
-    this.register(GHOST_GALLEON);
-    this.register(LANCERO);
-    this.register(TOWER_BASIC_ART);
-    this.register(TOWER_SNIPER_ART);
+  getAll(): readonly SpriteSheetDef[] {
+    return [...registry.values()];
+  },
+  init(): void {
+    for (const definition of SPRITE_SHEET_CATALOG) {
+      this.register(definition);
+    }
   },
 };

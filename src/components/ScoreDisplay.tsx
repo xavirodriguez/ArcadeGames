@@ -2,6 +2,7 @@ import React from 'react';
 import { Text, StyleSheet, TextStyle, StyleProp } from 'react-native';
 import { useGameTheme } from '../context/GameThemeContext';
 import { colors } from '../theme/colors';
+import { neonTextGlow } from "../theme/effects";
 
 interface ScoreDisplayProps {
   score: number;
@@ -36,7 +37,7 @@ export function ScoreDisplay({
         {
           fontSize,
           color: textColor,
-          textShadow: `0px 0px 12px ${textColor}`,
+          ...neonTextGlow(textColor, 12),
         },
         style,
       ]}

@@ -17,6 +17,7 @@ import { hapticSelection } from "@/utils/haptics";
 import { getRacingSkin } from "@/games/racing/rendering/RacingSkin";
 import { TRACK_LIST, DEFAULT_TRACK_ID } from "@/games/racing/config/tracks";
 import { computeRacingSpeedMetrics } from "@/games/racing/RacingHudMetrics";
+import { neonTextGlow } from "../../theme/effects";
 
 function formatRaceTime(seconds: number | null | undefined): string {
   if (seconds === null || seconds === undefined || !Number.isFinite(seconds) || seconds < 0) {
@@ -553,7 +554,7 @@ const styles = StyleSheet.create({
   countdownText: {
     fontFamily: "monospace",
     fontWeight: "bold",
-    textShadow: "2px 2px 6px rgba(0, 0, 0, 0.8)"
+    ...neonTextGlow("rgba(0, 0, 0, 0.8)", 6, 2, 2)
   },
   numberText: {
     fontSize: 72

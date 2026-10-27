@@ -25,6 +25,7 @@ import {
   NeonButton,
   GameLayoutShell,
 } from "../../components/ui";
+import { neonTextGlow } from "../../theme/effects";
 
 interface SkinUIStyle {
   hudBg: string;
@@ -278,7 +279,7 @@ function EchoRunnerContent() {
           <View style={[styles.hudContainer, { backgroundColor: activeUiStyle.hudBg, borderColor: activeUiStyle.hudBorder }]}>
             <View style={styles.hudItem}>
               <Text style={[styles.hudLabel, { color: activeUiStyle.hudTextLabel }]}>{t.echorunner.attempts}</Text>
-              <Text style={[styles.hudValue, { color: activeUiStyle.hudValue, textShadow: `0px 0px 4px ${activeUiStyle.hudValue}` }]}>
+              <Text style={[styles.hudValue, { color: activeUiStyle.hudValue, ...neonTextGlow(activeUiStyle.hudValue, 4) }]}>
                 {gameState.attempts.toString().padStart(2, "0")}
               </Text>
             </View>
@@ -292,7 +293,7 @@ function EchoRunnerContent() {
             </View>
             <View style={styles.hudItem}>
               <Text style={[styles.hudLabel, { color: activeUiStyle.hudTextLabel }]}>{t.echorunner.chrono}</Text>
-              <Text style={[styles.hudValue, { color: activeUiStyle.hudValue, textShadow: `0px 0px 4px ${activeUiStyle.hudValue}` }]}>
+              <Text style={[styles.hudValue, { color: activeUiStyle.hudValue, ...neonTextGlow(activeUiStyle.hudValue, 4) }]}>
                 {formatTime(gameState.elapsedTime)}
               </Text>
             </View>
@@ -372,7 +373,7 @@ function EchoRunnerContent() {
         overlaySlot={
           gameState.isGameOver ? (
             <View style={[styles.gameOverOverlay, { backgroundColor: activeUiStyle.gameOverBg }]}>
-              <Text style={[styles.gameOverTitle, { color: activeUiStyle.gameOverTitle, textShadow: `0px 0px 15px ${activeUiStyle.gameOverTitle}` }]}>
+              <Text style={[styles.gameOverTitle, { color: activeUiStyle.gameOverTitle, ...neonTextGlow(activeUiStyle.gameOverTitle, 15) }]}>
                 {t.echorunner.archive_restored}
               </Text>
               <Text style={styles.gameOverSubtitle}>{t.echorunner.archive_restored_sub}</Text>
@@ -497,11 +498,11 @@ const styles = StyleSheet.create({
   },
   violetGlow: {
     color: colors.violet,
-    textShadow: `0px 0px 4px ${colors.violet}`,
+    ...neonTextGlow(colors.violet, 4),
   },
   goldGlow: {
     color: colors.gold,
-    textShadow: `0px 0px 4px ${colors.gold}`,
+    ...neonTextGlow(colors.gold, 4),
   },
   touchControlsContainer: {
     position: "absolute",

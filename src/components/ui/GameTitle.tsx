@@ -1,6 +1,7 @@
 import React from "react";
 import { Text, StyleSheet, TextProps } from "react-native";
 import { colors, typography, spacing } from "@/theme";
+import { neonTextGlow } from "../../theme/effects";
 
 interface GameTitleProps extends TextProps {
   children: string;
@@ -17,7 +18,7 @@ export const GameTitle: React.FC<GameTitleProps> = ({
     <Text
       style={[
         styles.title,
-        { textShadow: `0px 0px 16px ${glowColor}` },
+        neonTextGlow(glowColor, 16),
         style,
       ]}
       {...props}

@@ -1,19 +1,24 @@
-import { Platform, ViewStyle } from "react-native";
+import { Platform, type TextStyle, type ViewStyle } from "react-native";
 import { colors } from "./colors";
 import { createNeonGlow } from "../styles/Glow";
 
-export function neonTextGlow(color: string, radius = 15) {
+export function neonTextGlow(
+  color: string,
+  radius = 15,
+  offsetX = 0,
+  offsetY = 0
+): TextStyle & { textShadow?: string } {
   if (Platform.OS === "web") {
     return {
-      textShadow: `0 0 ${radius}px ${color}`,
+      textShadow: `${offsetX}px ${offsetY}px ${radius}px ${color}`,
     };
   }
 
   return {
     textShadowColor: color,
     textShadowOffset: {
-      width: 0,
-      height: 0,
+      width: offsetX,
+      height: offsetY,
     },
     textShadowRadius: radius,
   };

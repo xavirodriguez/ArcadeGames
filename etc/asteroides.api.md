@@ -1319,6 +1319,7 @@ export interface CoreComponentRegistry extends ComponentRegistry {
         sheetId: string;
         currentAnim: string;
         frameIndex: number;
+        finished?: boolean;
         timer: number;
         flipX: boolean;
         scale: number;

@@ -24,7 +24,7 @@ import { FANTASY_PALETTE } from "../fantasy/FantasyPalette";
 import type { HitRunWeaponState } from "../weapons/HitRunWeaponTypes";
 import type { ComboMeleeComponent } from "../melee/ComboMeleeTypes";
 import type { SpriteComponent } from "@tiny-aster/core";
-import { createSpriteAnimator } from "../../shared/sprites";
+import { createSpriteAnimator } from "../../shared/sprites/SpriteAnimator";
 import {
   SUMI_E_CELL_SIZE,
   SUMI_E_PLAYER_ANCHOR,

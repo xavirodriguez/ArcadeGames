@@ -1,7 +1,6 @@
 const { getDefaultConfig } = require("expo/metro-config");
 const path = require("path");
 const fs = require("fs");
-const url = require("url");
 
 const config = getDefaultConfig(__dirname);
 
@@ -57,10 +56,10 @@ config.server = {
   ...config.server,
   enhanceMiddleware: (middleware) => {
     return (req, res, next) => {
-      const parsedUrl = url.parse(req.url, true);
+      const parsedUrl = new URL(req.url ?? "/", "http://localhost");
 
       // Intercept requests for audio assets and serve them from public/audio/
-      if (parsedUrl.pathname && parsedUrl.pathname.startsWith("/audio/")) {
+      if (parsedUrl.pathname.startsWith("/audio/")) {
         const filePath = path.join(__dirname, "public", parsedUrl.pathname);
         if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
           // Set appropriate content type based on extension

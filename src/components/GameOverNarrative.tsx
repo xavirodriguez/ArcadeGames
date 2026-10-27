@@ -1,5 +1,5 @@
 import React from "react";
-import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Platform, StyleSheet, Text, TextStyle, TouchableOpacity, View } from "react-native";
 import Animated, { FadeIn, SlideInDown, ZoomIn } from "react-native-reanimated";
 import { COLORS, typography, spacing, radius } from "../theme";
 import { useTranslation } from "../hooks/useTranslation";
@@ -90,7 +90,7 @@ export const GameOverNarrative: React.FC<GameOverNarrativeProps> = ({
             styles.signalLostTitle,
             { color: accentColor },
             Platform.OS === "web"
-              ? ({ textShadow: `0 0 18px ${accentColor}88` } as any)
+              ? ({ textShadow: `0 0 18px ${accentColor}88` } as TextStyle)
               : { textShadowColor: `${accentColor}88`, textShadowOffset: { width: 0, height: 0 }, textShadowRadius: 15 },
           ]}
         >

@@ -4,100 +4,102 @@ Goal: make the ink-wash parallax system and related procedural graphics the **de
 
 Branch: `feature/sumi-e-background-integration`
 
-## Phase 0 — Foundation (this PR)
+## Phase 0 — Foundation ✅
 
-- [x] Enhance `InkWashParallaxBackdrop` with:
-  - Skia consumer (`drawInkWashLayersSkia`)
-  - Convenience render helpers
-  - Extra layer presets (`MOUNTAIN_INK_WASH_LAYERS`, `COASTAL_INK_WASH_LAYERS`)
-  - `InkWashDrawOptions` (paperColor, alphaScale, yOffset)
+- [x] Enhance `InkWashParallaxBackdrop` with Skia, options, landscape presets
 - [x] Shared `SumiEPalette` + variants (classic / winter / forest)
 - [x] `AestheticTheme` switch (`sumi-e` | `cosmic` | `neon`)
-- [x] Registrable background effects:
-  - `createInkWashCanvasEffect` / `createInkWashSkiaEffect`
-  - Canonical name: `"ink-wash-parallax"`
+- [x] Registrable `ink-wash-parallax` effects (Canvas + Skia)
 - [x] Module barrel: `src/games/shared/rendering/sumi-e/`
 
-### How to use (Phase 0)
+## Phase 1 — Cross-game adoption (in progress)
+
+| Game            | Status | Landscape |
+|-----------------|--------|-----------|
+| **Asteroids**   | ✅ wired | mountain |
+| Flappy Bird     | ⏳ pending | coastal |
+| Tower Defense   | ⏳ pending | forest |
+| Space Invaders  | ⏳ pending | default |
+| Pong            | ⏳ pending | subtle |
+| Platformer      | ⏳ pending | forest |
+| Echo Runner     | partial (own inkwash) | unify |
+| Hit & Run       | advanced SumiETheme | migrate tokens |
+
+### One-call integration (any game)
 
 ```ts
-import {
-  getAestheticTheme,
-  createInkWashCanvasEffect,
-  createInkWashSkiaEffect,
-  INK_WASH_EFFECT_NAME
-} from "../../shared/rendering/sumi-e";
+import { registerSumiEBackground, registerSumiEVFX } from "../../shared/rendering/sumi-e";
 
-const theme = getAestheticTheme("sumi-e", { landscape: "mountain" });
-
-if (renderer.type === "canvas") {
-  renderer.registerBackgroundEffect(
-    INK_WASH_EFFECT_NAME,
-    createInkWashCanvasEffect(theme)
-  );
-} else if (renderer.type === "skia") {
-  renderer.registerBackgroundEffect(
-    INK_WASH_EFFECT_NAME,
-    createInkWashSkiaEffect(theme)
-  );
-}
+// Inside initializeRenderer:
+registerSumiEBackground(renderer, {
+  aesthetic: "sumi-e",
+  landscape: "mountain", // or "coastal" | "default"
+  force: true            // register even alongside cosmic BGs
+});
+registerSumiEVFX(renderer); // ink_splash, seal_stamp, etc.
 ```
 
-## Phase 1 — Cross-game adoption
+**Asteroids** already does this in `initializeRenderer` (mountain landscape).
 
-| Game            | Priority | Suggested landscape |
-|-----------------|----------|---------------------|
-| Asteroids       | High     | mountain            |
-| Flappy Bird     | High     | coastal             |
-| Tower Defense   | High     | default / forest    |
-| Space Invaders  | Medium   | default             |
-| Pong            | Medium   | default (subtle)    |
-| Platformer      | Medium   | forest / mountain   |
-| Echo Runner     | Already partial | unify with shared module |
-| Hit & Run       | Already advanced | migrate SumiETheme to shared tokens |
+## Phase 2 — Juice vocabulary ✅
 
-Tasks:
-- Wire `AestheticTheme` into each game's `registerVisuals` / boot path.
-- Replace or complement cosmic starfields when theme is `sumi-e`.
-- Keep cosmic/neon as opt-in for classic arcade feel.
+New primitives (shape drawers + catalog):
 
-## Phase 2 — Juice vocabulary
+| Primitive | Visual |
+|-----------|--------|
+| `ink_splash` | Irregular ink blot expanding |
+| `ink_bleed` | Same family, softer |
+| `brush_stroke` | Curved calligraphic stroke |
+| `dry_brush_trail` | Thinner trail |
+| `seal_stamp` | Vermilion square seal |
+| `mist_layer` | Soft expanding wash |
+| `water_ripple` | Concentric rings |
+| `floating_kanji` | Seal-style glyph |
 
-Add SharedVFX primitives:
-- `ink_splash` / `ink_bleed`
-- `brush_stroke` / `dry_brush_trail`
-- `seal_stamp`
-- `mist_layer` / `water_ripple`
-- `floating_kanji`
+Files:
+- `sumi-e/SumiEJuice.ts` — `SUMI_E_JUICE_CATALOG` for all SupportedGameId events
+- `sumi-e/SumiEShapeDrawers.ts` — Canvas + Skia drawers + `registerSumiEVFX`
 
-Map them in `JuiceOrchestrator` / `JUICE_CATALOG` for every supported gameId.
+Usage:
+
+```ts
+import { getSumiEJuiceProfile, SUMI_E_PRIMITIVE_DEFAULTS } from "../../shared/rendering/sumi-e";
+
+const profile = getSumiEJuiceProfile("asteroids", "rock:destroyed");
+// → { effect: "ink_splash", tint: "#171817", ... }
+
+// Or spawn directly once drawers are registered:
+// juice.spawn("ink_splash", { x, y, scale: 1.1 });
+```
+
+To fully switch a game's juice to sumi-e, prefer `SUMI_E_JUICE_CATALOG` over `JUICE_CATALOG` when `AestheticTheme.id === "sumi-e"` (orchestrator hook can be added next).
 
 ## Phase 3 — Atmosphere & depth
 
-- More layers (architecture, birds, mist animation).
-- Deeper integration with `ParallaxSystem` + `Camera2D`.
-- Regional variants driven by `LevelThemeSystem`.
-- Particle trails (leaves, petals, residual ink).
+- More layers (architecture, birds, mist animation)
+- Deeper `ParallaxSystem` + `Camera2D` integration
+- Regional variants via `LevelThemeSystem`
+- Particle trails (leaves, petals, residual ink)
 
 ## Phase 4 — Polish
 
-- Debug overlay for live layer editing.
-- Performance presets (step size, layer count, grain off).
-- Visual regression tests (Canvas vs Skia).
-- Accessibility: high-contrast ink, reduced motion, no parallax option.
+- Debug overlay for live layer editing
+- Performance presets
+- Visual regression tests (Canvas vs Skia)
+- Accessibility options
 
 ## Design principles
 
-1. **Deterministic** — geometry stays pure (no RNG in `computeInkWashLayers`).
-2. **Parity** — every Canvas path has a Skia twin.
-3. **Reusable** — shared module first; game-specific code only when necessary.
-4. **Subtle by default** — `preferSubtleJuice` for sumi-e (kanso, seijaku).
-5. **Opt-in per game** — cosmic/neon remain available; sumi-e is the recommended medieval-Japan default.
+1. **Deterministic** — no RNG in `computeInkWashLayers`
+2. **Parity** — every Canvas path has a Skia twin
+3. **Reusable** — shared module first
+4. **Subtle by default** — `preferSubtleJuice` for sumi-e
+5. **Opt-in per game** — cosmic/neon remain available
 
 ## Related files
 
 - `src/games/shared/rendering/InkWashParallaxBackdrop.ts`
 - `src/games/shared/rendering/sumi-e/*`
+- `src/games/asteroids/AsteroidsGame.ts` (Phase 1 example)
 - `src/games/hitandrun/rendering/theme/sumi-e/SumiETheme.ts` (origin)
 - `src/games/shared/rendering/JuiceOrchestrator.ts`
-- `src/games/shared/rendering/LevelThemeSystem.ts`

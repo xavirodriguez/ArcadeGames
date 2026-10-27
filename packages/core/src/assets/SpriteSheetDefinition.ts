@@ -127,8 +127,8 @@ export function calculateSpriteDestinationRect(
   }
 
   return {
-    x: -width * anchor.x,
-    y: -height * anchor.y,
+    x: anchor.x === 0 ? 0 : -width * anchor.x,
+    y: anchor.y === 0 ? 0 : -height * anchor.y,
     width,
     height
   };

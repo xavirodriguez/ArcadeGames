@@ -25,6 +25,7 @@ const validSheet: SpriteSheetDefinition = {
 function createPngHeader(width: number, height: number): Uint8Array {
   const bytes = new Uint8Array(24);
   bytes.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a], 0);
+  bytes.set([0x00, 0x00, 0x00, 0x0d], 8);
   bytes.set([0x49, 0x48, 0x44, 0x52], 12);
   const view = new DataView(bytes.buffer);
   view.setUint32(16, width, false);
@@ -77,9 +78,9 @@ describe("SpriteManifestValidator", () => {
 
   it("reports duplicate ids, missing files, and invalid PNGs", () => {
     const issues = validateSpriteCatalog(
-      [validSheet, { ...validSheet, assetPath: "assets/another.png" }],
+      [validSheet, { ...validSheet, assetPath: "assets/another.png" }, { ...validSheet, id: "invalid_png", assetPath: "assets/invalid.png" }],
       {
-        existingAssetPaths: new Set(["assets/test_character.png"]),
+        existingAssetPaths: new Set(["assets/test_character.png", "assets/invalid.png"]),
         dimensionsByAssetPath: new Map([["assets/test_character.png", { width: 32, height: 32 }]])
       }
     );
@@ -87,6 +88,7 @@ describe("SpriteManifestValidator", () => {
     const codes = issues.map((issue) => issue.code);
     expect(codes).toContain("DUPLICATE_ID");
     expect(codes).toContain("MISSING_ASSET");
+    expect(codes).toContain("INVALID_PNG");
   });
 
   it("reads PNG dimensions from the IHDR header", () => {

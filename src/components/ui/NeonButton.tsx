@@ -4,6 +4,7 @@ import { colors, typography, radius, spacing, effects, semanticColors } from "..
 import { usePressedButton } from "../../hooks/usePressedButton";
 import { GameThemeContext } from "../../context/GameThemeContext";
 import { hapticSelection } from "../../utils/haptics";
+import { neonTextGlow } from "../../theme/effects";
 
 interface NeonButtonProps {
   children: string;
@@ -77,7 +78,7 @@ export const NeonButton: React.FC<NeonButtonProps> = ({
   const dynamicTextStyle: TextStyle = bordered
     ? {
         color: variantColor,
-        textShadow: `0px 0px ${reduceMotion ? 0 : 8}px ${variantColor}`,
+        ...neonTextGlow(variantColor, reduceMotion ? 0 : 8),
       }
     : {
         color: semanticColors.background.dark,

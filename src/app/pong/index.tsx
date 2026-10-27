@@ -32,6 +32,7 @@ import {
   PlayerNameInput,
   GameLayoutShell,
 } from "../../components/ui";
+import { neonTextGlow } from "../../theme/effects";
 
 export default function PongScreen() {
   const { t } = useTranslation();
@@ -388,14 +389,14 @@ const styles = StyleSheet.create({
     fontSize: 54,
     fontFamily: "monospace",
     fontWeight: "bold",
-    textShadow: `0px 0px 15px ${colors.pink}`,
+    ...neonTextGlow(colors.pink, 15),
   },
   scoreTextP2: {
     color: colors.cyan,
     fontSize: 54,
     fontFamily: "monospace",
     fontWeight: "bold",
-    textShadow: `0px 0px 15px ${colors.cyan}`,
+    ...neonTextGlow(colors.cyan, 15),
   },
   scoreSeparator: {
     color: "rgba(255, 255, 255, 0.4)",
@@ -403,7 +404,7 @@ const styles = StyleSheet.create({
     fontFamily: "monospace",
     fontWeight: "bold",
     marginHorizontal: 30,
-    textShadow: "0px 0px 8px rgba(255, 255, 255, 0.4)",
+    ...neonTextGlow("rgba(255, 255, 255, 0.4)", 8),
   },
   overlay: {
     ...StyleSheet.absoluteFill,

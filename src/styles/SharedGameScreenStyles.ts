@@ -1,5 +1,6 @@
 import { StyleSheet } from "react-native";
 import { colors, spacing, typography, radius, effects, COLORS } from "../theme";
+import { neonTextGlow } from "../theme/effects";
 
 export const NeonColors = {
   backgroundDeep: COLORS.bgDark,
@@ -36,7 +37,7 @@ export const sharedScreenStyles = StyleSheet.create({
     fontWeight: typography.weights.bold,
     marginBottom: spacing.xxxl,
     textAlign: "center",
-    textShadow: `0px 0px 16px ${COLORS.neonCyan}`,
+    ...neonTextGlow(COLORS.neonCyan, 16),
   },
   instructions: {
     fontSize: typography.sizes.body,

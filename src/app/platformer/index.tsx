@@ -25,6 +25,7 @@ import {
   NeonButton,
   GameLayoutShell,
 } from "../../components/ui";
+import { neonTextGlow } from "../../theme/effects";
 
 function PlatformerContent() {
   const { t } = useTranslation();
@@ -322,7 +323,7 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.bold,
     fontFamily: typography.game,
-    textShadow: `0px 0px 4px ${colors.cyan}`,
+    ...neonTextGlow(colors.cyan, 4),
   },
   touchControlsContainer: {
     position: "absolute",
@@ -356,7 +357,7 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.bold,
     color: colors.cyan,
     fontFamily: typography.game,
-    textShadow: `0px 0px 15px ${colors.cyan}`,
+    ...neonTextGlow(colors.cyan, 15),
     marginBottom: spacing.sm,
     textAlign: "center",
   },

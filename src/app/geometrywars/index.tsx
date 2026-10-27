@@ -26,6 +26,7 @@ import {
   NeonButton,
   GameLayoutShell,
 } from "../../components/ui";
+import { neonTextGlow } from "../../theme/effects";
 
 export default function GeometryWarsScreen() {
   const { t } = useTranslation();
@@ -475,7 +476,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "monospace",
     fontWeight: "bold",
-    textShadow: `0px 0px 6px ${colors.cyan}`,
+    ...neonTextGlow(colors.cyan, 6),
   },
   hudSubText: {
     color: colors.textMuted,
@@ -515,7 +516,7 @@ const styles = StyleSheet.create({
     fontFamily: "monospace",
     fontWeight: "bold",
     marginBottom: 40,
-    textShadow: `0px 0px 20px ${colors.cyan}`,
+    ...neonTextGlow(colors.cyan, 20),
   },
   gameOverTitle: {
     fontSize: 54,
@@ -523,7 +524,7 @@ const styles = StyleSheet.create({
     fontFamily: "monospace",
     fontWeight: "bold",
     marginBottom: 20,
-    textShadow: `0px 0px 20px ${colors.pink}`,
+    ...neonTextGlow(colors.pink, 20),
   },
   finalScoreText: {
     fontSize: 24,

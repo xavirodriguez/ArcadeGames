@@ -26,6 +26,7 @@ import {
 import { DEATH_FLOW_RESOURCE } from "../../games/hitandrun/systems/HitRunDeathFlowSystem";
 import type { HitRunDeathFlowState } from "../../games/hitandrun/systems/HitRunDeathFlowSystem";
 import { resolveHitRunAim } from "../../games/hitandrun/input/resolveHitRunAim";
+import { neonTextGlow } from "../../theme/effects";
 
 declare global {
   interface Window {
@@ -536,10 +537,10 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.md,
     fontWeight: typography.weights.bold,
     fontFamily: typography.game,
-    textShadow: `0px 0px 4px ${colors.cyan}`,
+    ...neonTextGlow(colors.cyan, 4),
   },
-  violetGlow: { color: colors.violet, textShadow: `0px 0px 4px ${colors.violet}` },
-  pinkGlow: { color: colors.pink, textShadow: `0px 0px 4px ${colors.pink}` },
+  violetGlow: { color: colors.violet, ...neonTextGlow(colors.violet, 4) },
+  pinkGlow: { color: colors.pink, ...neonTextGlow(colors.pink, 4) },
   touchControlsContainer: {
     position: "absolute",
     bottom: 20,
@@ -566,7 +567,7 @@ const styles = StyleSheet.create({
     fontWeight: typography.weights.bold,
     color: colors.cyan,
     fontFamily: typography.game,
-    textShadow: `0px 0px 15px ${colors.cyan}`,
+    ...neonTextGlow(colors.cyan, 15),
     marginBottom: spacing.sm,
     textAlign: "center",
   },

@@ -43,19 +43,21 @@ export function getSumiEFrameRect(atlasFrameIndex: number): SumiEFrameRect {
   };
 }
 
-/** Static requires keep both bundled atlases discoverable by Metro. */
-export function createSumiEPlayerSpritesheetAsset(): Asset {
+/** Keep literal requires so Metro includes both PNGs in web/native bundles. */
+const SUMI_E_PLAYER_MODULE = require("../assets/themes/sumi-e/characters/player.png");
+const SUMI_E_SAMURAI_MODULE = require("../assets/themes/sumi-e/enemies/samurai.png");
+
+function createAssetFromModule(moduleId: number): Asset {
   const { Asset: ExpoAsset } = require("expo-asset") as typeof import("expo-asset");
-  return ExpoAsset.fromModule(
-    require("../assets/themes/sumi-e/characters/player.png")
-  );
+  return ExpoAsset.fromModule(moduleId);
+}
+
+export function createSumiEPlayerSpritesheetAsset(): Asset {
+  return createAssetFromModule(SUMI_E_PLAYER_MODULE);
 }
 
 export function createSumiESamuraiSpritesheetAsset(): Asset {
-  const { Asset: ExpoAsset } = require("expo-asset") as typeof import("expo-asset");
-  return ExpoAsset.fromModule(
-    require("../assets/themes/sumi-e/enemies/samurai.png")
-  );
+  return createAssetFromModule(SUMI_E_SAMURAI_MODULE);
 }
 
 export async function loadSumiEPlayerSpritesheetAsset(): Promise<Asset> {

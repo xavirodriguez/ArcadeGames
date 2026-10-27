@@ -2,6 +2,8 @@
  * Typed asset manifest and placeholders for Sumi-e visual theme.
  */
 
+import { SUMI_E_PLAYER_ANIMATIONS, getSumiEFrameRect } from "../../SumiEVisualAssets";
+
 export interface SumiEFrameSpec {
   readonly x: number;
   readonly y: number;
@@ -24,24 +26,16 @@ export interface SumiEVisualAssetSpec {
   readonly animations: Record<string, SumiEAnimationSpec>;
 }
 
-const makeFrames = (start: number, count: number): SumiEFrameSpec[] =>
-  Array.from({ length: count }, (_entry, offset) => {
-    const frame = start + offset;
-    return {
-      x: (frame % 8) * 64,
-      y: Math.floor(frame / 8) * 64,
-      w: 64,
-      h: 64
-    };
-  });
-
-const SUMI_E_ANIMATIONS: Record<string, SumiEAnimationSpec> = {
-  idle: { frames: makeFrames(0, 8), fps: 8, loop: true },
-  walk: { frames: makeFrames(8, 8), fps: 10, loop: true },
-  attack: { frames: makeFrames(16, 8), fps: 14, loop: false },
-  hurt: { frames: makeFrames(24, 6), fps: 16, loop: false },
-  death: { frames: makeFrames(32, 8), fps: 10, loop: false }
-};
+const SUMI_E_ANIMATIONS: Record<string, SumiEAnimationSpec> = Object.fromEntries(
+  Object.entries(SUMI_E_PLAYER_ANIMATIONS).map(([name, animation]) => [
+    name,
+    {
+      frames: animation.frames.map((frame) => getSumiEFrameRect(frame)),
+      fps: animation.frameRate,
+      loop: animation.loop
+    }
+  ])
+);
 
 /** Only shipped Sumi-e atlas files are listed here; other art prompts remain future targets. */
 export const SUMI_E_ASSET_MANIFEST: Record<string, SumiEVisualAssetSpec> = {

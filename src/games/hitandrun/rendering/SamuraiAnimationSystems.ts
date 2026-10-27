@@ -160,72 +160,56 @@ export class SumiEPlayerAnimationStateSystem extends System<CoreComponentRegistr
   }
 }
 
-/** Keeps the player's source rectangle in sync with the clip-local animation frame. */
-export class SumiEPlayerSpriteFrameSystem extends System<CoreComponentRegistry> {
-  public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
-    const entities = world.query("Sprite", "Animator");
+type SpriteFrameRect = { x: number; y: number; w: number; h: number };
 
-    for (const entity of entities) {
-      const sprite = world.getComponent(entity, "Sprite");
-      const animator = world.getComponent(entity, "Animator");
-      if (!sprite || !animator) continue;
-      if (sprite.assetKey !== SUMI_E_PLAYER_ASSET_KEY && sprite.textureId !== SUMI_E_PLAYER_ASSET_KEY) {
-        continue;
-      }
+function updateSpriteFrameRect(
+  world: World<CoreComponentRegistry>,
+  assetKey: string,
+  getFrameRect: (atlasFrameIndex: number) => SpriteFrameRect
+): void {
+  const entities = world.query("Sprite", "Animator");
 
-      const clip = animator.current ? animator.animations[animator.current] : undefined;
-      if (!clip || clip.frames.length === 0) continue;
+  for (const entity of entities) {
+    const sprite = world.getComponent(entity, "Sprite");
+    const animator = world.getComponent(entity, "Animator");
+    if (!sprite || !animator) continue;
+    if (sprite.assetKey !== assetKey && sprite.textureId !== assetKey) continue;
 
-      const frameIndex = Math.max(0, Math.min(animator.frame, clip.frames.length - 1));
-      const atlasFrameIndex = clip.frames[frameIndex];
-      if (!Number.isFinite(atlasFrameIndex)) continue;
-      const rect = getSumiEFrameRect(atlasFrameIndex);
-      const mutableSprite = world.getMutableComponent(entity, "Sprite");
-      if (!mutableSprite) continue;
+    const clip = animator.current ? animator.animations[animator.current] : undefined;
+    if (!clip || clip.frames.length === 0) continue;
 
-      const oldRect = mutableSprite.srcRect;
-      if (
-        oldRect?.x === rect.x &&
-        oldRect.y === rect.y &&
-        oldRect.w === rect.w &&
-        oldRect.h === rect.h
-      ) {
-        continue;
-      }
-      mutableSprite.srcRect = rect;
+    const frameIndex = Math.max(0, Math.min(animator.frame, clip.frames.length - 1));
+    const atlasFrameIndex = clip.frames[frameIndex];
+    if (!Number.isFinite(atlasFrameIndex)) continue;
+
+    const rect = getFrameRect(atlasFrameIndex);
+    const mutableSprite = world.getMutableComponent(entity, "Sprite");
+    if (!mutableSprite) continue;
+
+    const oldRect = mutableSprite.srcRect;
+    if (
+      oldRect?.x === rect.x &&
+      oldRect.y === rect.y &&
+      oldRect.w === rect.w &&
+      oldRect.h === rect.h
+    ) {
+      continue;
     }
+    mutableSprite.srcRect = rect;
   }
 }
 
-/** Copies AnimationSystem's local frame index into SpriteComponent.srcRect. */
+/** Keeps the player's source rectangle in sync with the clip-local animation frame. */
+export class SumiEPlayerSpriteFrameSystem extends System<CoreComponentRegistry> {
+  public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
+    updateSpriteFrameRect(world, SUMI_E_PLAYER_ASSET_KEY, getSumiEFrameRect);
+  }
+}
+
+/** Copies AnimationSystem's local frame index into the legacy/Sumi-e samurai atlas. */
 export class SamuraiSpriteFrameSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
-    const entities = world.query("Sprite", "Animator");
-
-    for (const entity of entities) {
-      const sprite = world.getComponent(entity, "Sprite");
-      const animator = world.getComponent(entity, "Animator");
-      if (!sprite || !animator) continue;
-      if (sprite.assetKey !== SAMURAI_ASSET_KEY && sprite.textureId !== SAMURAI_ASSET_KEY) {
-        continue;
-      }
-
-      const clip = animator.current ? animator.animations[animator.current] : undefined;
-      if (!clip || clip.frames.length === 0) continue;
-
-      const localIndex = Math.max(0, Math.min(animator.frame, clip.frames.length - 1));
-      const atlasFrameIndex = clip.frames[localIndex];
-      const rect = getSamuraiFrameRect(atlasFrameIndex);
-      const mutableSprite = world.getMutableComponent(entity, "Sprite");
-      if (!mutableSprite) continue;
-
-      const oldRect = mutableSprite.srcRect;
-      if (oldRect?.x === rect.x && oldRect.y === rect.y && oldRect.w === rect.w && oldRect.h === rect.h) {
-        continue;
-      }
-
-      mutableSprite.srcRect = rect;
-    }
+    updateSpriteFrameRect(world, SAMURAI_ASSET_KEY, getSamuraiFrameRect);
   }
 }
 

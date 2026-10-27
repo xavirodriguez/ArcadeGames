@@ -22,6 +22,7 @@ import {
 import { updateRunProgress } from "@tiny-aster/gameplay-kit";
 import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
 import type { IAssetProvider } from "@tiny-aster/core";
+import type { Asset } from "expo-asset";
 import {
   createSamuraiAssetProvider,
   loadSamuraiSpritesheetAsset,
@@ -185,54 +186,53 @@ export class HitAndRunGame extends BaseGame<
     this.samuraiAssetLoader.setProvider(createSamuraiAssetProvider());
 
     if (this.activeThemeId === "sumi-e") {
-      try {
-        const playerAsset = await loadSumiEPlayerSpritesheetAsset();
-        const playerUri = playerAsset.localUri ?? playerAsset.uri;
-        await this.samuraiAssetLoader.load([
-          { id: SUMI_E_PLAYER_ASSET_KEY, path: playerUri, type: "image" }
-        ]);
-        this.world.setResource(SUMI_E_PLAYER_READY_RESOURCE, true);
-      } catch (error) {
-        this.world.setResource(SUMI_E_PLAYER_READY_RESOURCE, false);
-        console.warn(
-          "[HitAndRunGame] Failed to load Sumi-e player spritesheet; using procedural player.",
-          error
-        );
-      }
-
-      try {
-        const samuraiAsset = await loadSumiESamuraiSpritesheetAsset();
-        const samuraiUri = samuraiAsset.localUri ?? samuraiAsset.uri;
-        await this.samuraiAssetLoader.load([
-          { id: SAMURAI_ASSET_KEY, path: samuraiUri, type: "image" }
-        ]);
-        this.world.setResource(SAMURAI_SPRITE_READY_RESOURCE, true);
-      } catch (error) {
-        this.world.setResource(SAMURAI_SPRITE_READY_RESOURCE, false);
-        console.warn(
-          "[HitAndRunGame] Failed to load Sumi-e samurai spritesheet; using procedural fallback.",
-          error
-        );
-      }
+      await Promise.all([
+        this.preloadSpriteAsset(
+          SUMI_E_PLAYER_ASSET_KEY,
+          loadSumiEPlayerSpritesheetAsset,
+          SUMI_E_PLAYER_READY_RESOURCE,
+          "Sumi-e player"
+        ),
+        this.preloadSpriteAsset(
+          SAMURAI_ASSET_KEY,
+          loadSumiESamuraiSpritesheetAsset,
+          SAMURAI_SPRITE_READY_RESOURCE,
+          "Sumi-e samurai"
+        )
+      ]);
     } else {
-      try {
-        const asset = await loadSamuraiSpritesheetAsset();
-        const imageUri = asset.localUri ?? asset.uri;
-        await this.samuraiAssetLoader.load([
-          { id: SAMURAI_ASSET_KEY, path: imageUri, type: "image" }
-        ]);
-        this.world.setResource(SAMURAI_SPRITE_READY_RESOURCE, true);
-      } catch (error) {
-        this.world.setResource(SAMURAI_SPRITE_READY_RESOURCE, false);
-        console.warn(
-          "[HitAndRunGame] Failed to load samurai spritesheet; using procedural fallback.",
-          error
-        );
-      }
+      await this.preloadSpriteAsset(
+        SAMURAI_ASSET_KEY,
+        loadSamuraiSpritesheetAsset,
+        SAMURAI_SPRITE_READY_RESOURCE,
+        "samurai"
+      );
     }
 
     if (this.audio) {
       await preloadSharedAudioWithTimeout(this.audio);
+    }
+  }
+
+  private async preloadSpriteAsset(
+    assetKey: string,
+    loadAsset: () => Promise<Asset>,
+    readyResource: string,
+    label: string
+  ): Promise<void> {
+    try {
+      const asset = await loadAsset();
+      const uri = asset.localUri ?? asset.uri;
+      await this.samuraiAssetLoader.load([
+        { id: assetKey, path: uri, type: "image" }
+      ]);
+      this.world.setResource(readyResource, true);
+    } catch (error) {
+      this.world.setResource(readyResource, false);
+      console.warn(
+        `[HitAndRunGame] Failed to load ${label}; using procedural fallback.`,
+        error
+      );
     }
   }
 

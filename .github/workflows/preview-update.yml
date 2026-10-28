@@ -1,39 +1,50 @@
 name: Preview Update
 
 on:
-  push:
-    branches:
-      - develop
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [develop]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: preview-update-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
 
 jobs:
   update:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
     name: EAS Update
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Checkout validated commit
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           run_install: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: '22'
-          cache: 'pnpm'
+          node-version: "22"
+          cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Setup EAS
-        uses: expo/expo-github-action@v8
+        uses: expo/expo-github-action@v9
         with:
-          eas-version: latest
+          eas-version: 21.6.0
           token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Publish Update to Preview
+      - name: Publish validated commit to Preview
         run: pnpm exec eas update --branch preview --message "$COMMIT_MESSAGE" --non-interactive
         env:
-          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          COMMIT_MESSAGE: ${{ github.event.workflow_run.head_commit.message }}

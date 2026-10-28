@@ -1,4 +1,15 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
+
+interface HitAndRunDebug {
+  getPlayerX(): number;
+}
+
+declare global {
+  interface Window {
+    __hitAndRunDebug?: HitAndRunDebug;
+  }
+}
+
 
 /**
  * E2E tests for Hit & Run player movement.
@@ -23,38 +34,47 @@ test.describe("Hit and Run Real Player Movement E2E", () => {
     await page.goto("/hitandrun");
 
     // Wait until the debug hook becomes available (indicates React + ECS game ready)
-    await page.waitForFunction(() => (window as any).__hitAndRunDebug != null, {
-      timeout: 20000,
-    });
+    await page.waitForFunction(
+      () => typeof window.__hitAndRunDebug?.getPlayerX === "function",
+      { timeout: 20000 },
+    );
 
     // Read initial player X position
-    const initialX = await page.evaluate(() =>
-      (window as any).__hitAndRunDebug.getPlayerX()
-    );
+    const readPlayerX = (): Promise<number> =>
+      page.evaluate(() => {
+        const debug = window.__hitAndRunDebug;
+        if (debug === undefined) {
+          throw new Error("Hit & Run debug hook disappeared before the position could be read.");
+        }
+        return debug.getPlayerX();
+      });
+    const initialX = await readPlayerX();
 
     expect(typeof initialX).toBe("number");
     expect(initialX).not.toBeNull();
 
     // Simulate sustained movement to the right via browser keyboard
     await page.keyboard.down("ArrowRight");
-    await page.waitForTimeout(500);
-    await page.keyboard.up("ArrowRight");
-
-    // Give a brief frame interval for position update to settle
-    await page.waitForTimeout(100);
+    try {
+      await expect.poll(readPlayerX, { timeout: 2000 }).toBeGreaterThan(initialX);
+    } finally {
+      await page.keyboard.up("ArrowRight");
+    }
 
     // Read updated player X position
-    const finalX = await page.evaluate(() =>
-      (window as any).__hitAndRunDebug.getPlayerX()
-    );
+    const finalX = await readPlayerX();
 
     expect(typeof finalX).toBe("number");
-    expect(finalX).toBeGreaterThan(initialX!);
+    expect(finalX).toBeGreaterThan(initialX);
 
     // Ensure no unhandled JavaScript runtime or page errors occurred during movement
     expect(
       pageErrors,
       `Unhandled errors: ${pageErrors.map((e) => e.message).join(", ")}`
+    ).toHaveLength(0);
+    expect(
+      consoleErrors,
+      `Browser console errors: ${consoleErrors.join(", ")}`
     ).toHaveLength(0);
   });
 });

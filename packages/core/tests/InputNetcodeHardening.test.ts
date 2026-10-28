@@ -46,7 +46,7 @@ function makePredictionWorld(actions: CanonicalActionName[]): { world: World<Mul
     worldScaleY: 1,
     dirty: false
   });
-  world.addComponent(entity, { type: "Velocity", vx: 0, vy: 0 });
+  world.addComponent(entity, { type: "Velocity", vx: 0, vy: 0, angularVelocity: 0 });
   world.addComponent(entity, { type: "LocalPlayer" });
   world.addComponent(entity, { type: "Input", actions, axes: {} });
   return { world, entity };

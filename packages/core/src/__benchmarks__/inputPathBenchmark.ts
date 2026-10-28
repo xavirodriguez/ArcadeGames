@@ -69,7 +69,7 @@ export function runInputPathBenchmark(): Measurement[] {
     worldScaleY: 1,
     dirty: false
   });
-  inputWorld.addComponent(entity, { type: "Velocity", vx: 1, vy: 1 });
+  inputWorld.addComponent(entity, { type: "Velocity", vx: 1, vy: 1, angularVelocity: 0 });
   inputWorld.addComponent(entity, { type: "LocalPlayer" });
   applyInputFrameToEntity(inputWorld, entity, { actions: ["fire", "boost"], axes: { moveX: 1 } });
 

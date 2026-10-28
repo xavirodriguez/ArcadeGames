@@ -1,12 +1,10 @@
 import { test, expect } from "@playwright/test";
 
-interface HitAndRunDebug {
-  getPlayerX(): number;
-}
-
 declare global {
   interface Window {
-    __hitAndRunDebug?: HitAndRunDebug;
+    __hitAndRunDebug?: {
+      getPlayerX: () => number | null;
+    };
   }
 }
 
@@ -40,7 +38,7 @@ test.describe("Hit and Run Real Player Movement E2E", () => {
     );
 
     // Read initial player X position
-    const readPlayerX = (): Promise<number> =>
+    const readPlayerX = (): Promise<number | null> =>
       page.evaluate(() => {
         const debug = window.__hitAndRunDebug;
         if (debug === undefined) {
@@ -48,23 +46,28 @@ test.describe("Hit and Run Real Player Movement E2E", () => {
         }
         return debug.getPlayerX();
       });
-    const initialX = await readPlayerX();
 
-    expect(typeof initialX).toBe("number");
-    expect(initialX).not.toBeNull();
+    const readPlayerXOrThrow = async (): Promise<number> => {
+      const playerX = await readPlayerX();
+      if (playerX === null) {
+        throw new Error("Hit & Run player position is unavailable.");
+      }
+      return playerX;
+    };
+
+    const initialX = await readPlayerXOrThrow();
 
     // Simulate sustained movement to the right via browser keyboard
     await page.keyboard.down("ArrowRight");
     try {
-      await expect.poll(readPlayerX, { timeout: 2000 }).toBeGreaterThan(initialX);
+      await expect.poll(readPlayerXOrThrow, { timeout: 2000 }).toBeGreaterThan(initialX);
     } finally {
       await page.keyboard.up("ArrowRight");
     }
 
     // Read updated player X position
-    const finalX = await readPlayerX();
+    const finalX = await readPlayerXOrThrow();
 
-    expect(typeof finalX).toBe("number");
     expect(finalX).toBeGreaterThan(initialX);
 
     // Ensure no unhandled JavaScript runtime or page errors occurred during movement

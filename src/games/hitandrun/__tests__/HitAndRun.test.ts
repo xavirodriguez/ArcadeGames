@@ -86,7 +86,7 @@ describe("Hit & Run Game Systems", () => {
       gameWorld.mutateComponent(player, "Velocity", (velocity) => {
         velocity.vx = 0;
       });
-      gameWorld.mutateComponent(player, "ComboMelee", (combo: any) => {
+      gameWorld.mutateComponent(player, "ComboMelee", (combo) => {
         combo.activeStep = "jab1";
       });
       stateSystem.update(gameWorld, 1 / 60);
@@ -533,9 +533,8 @@ describe("Hit & Run Game Systems", () => {
       });
       gameWorld.addComponent(enemy, {
         type: "Faction",
-        faction: "enemy",
         value: "enemy"
-      } as any);
+      });
 
       game.setInputState({ fire: true });
 
@@ -671,9 +670,8 @@ describe("Hit & Run Game Systems", () => {
       });
       gameWorld.addComponent(enemy, {
         type: "Faction",
-        faction: "enemy",
         value: "enemy"
-      } as any);
+      });
 
       game.setInputState({ moveRight: true, aimUp: true, fire: true });
 

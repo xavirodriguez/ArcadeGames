@@ -13,7 +13,6 @@ import {
   getSamuraiFrameRect
 } from "../rendering/SamuraiVisualAssets";
 import { SUMI_E_THEME_RESOURCE } from "../rendering/SumiEVisualAssets";
-import { HIT_RUN_SUMI_E_SAMURAI_SHEET_ID } from "../rendering/HitRunSpriteAtlas";
 import { getEnemyArchetype } from "./HitRunEnemyArchetypes";
 import { recordHitRunDebugAllocation } from "../rendering/HitRunDebugMetrics";
 import type {

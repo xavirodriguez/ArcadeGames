@@ -3,6 +3,7 @@
   "compilerOptions": {
     "outDir": "./dist", // STOP CONTAMINATION: Output directory configured to "./dist" for compiled artifacts
     "strict": true,
+    "isolatedModules": true,
     "strictPropertyInitialization": false,
     "noImplicitAny": true,
     "downlevelIteration": true,

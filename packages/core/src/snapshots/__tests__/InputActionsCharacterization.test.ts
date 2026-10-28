@@ -4,10 +4,6 @@ import { RollbackSimulation } from "../../network/RollbackSimulation";
 import { SnapshotBuffer } from "../SnapshotBuffer";
 import { Simulation } from "../../runtime/Simulation";
 
-type FailingTestFunction = (name: string, fn: () => void | Promise<void>) => void;
-type TestWithFailing = typeof test & { failing: FailingTestFunction };
-const testFailing = (test as TestWithFailing).failing;
-
 function hasActionLocal(actions: unknown, actionName: string): boolean {
   if (!actions) return false;
   if (actions instanceof Set) {

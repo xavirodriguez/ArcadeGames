@@ -40,6 +40,11 @@ describe("hasInputAction", () => {
       const actions = { shoot: true };
       expect(hasInputAction(actions, "thrust")).toBe(false);
     });
+
+    it("does not treat a truthy non-boolean value as active", () => {
+      const actions = { thrust: "true" } as never;
+      expect(hasInputAction(actions, "thrust")).toBe(false);
+    });
   });
 
   describe("falsy and edge cases", () => {

@@ -1,5 +1,7 @@
 import { World } from "../ecs/World";
 import { InputFrame } from "../network/NetTypes";
+import { isCanonicalActionName } from "../input/CanonicalInput";
+import type { CanonicalActionName } from "../input/CanonicalInput";
 
 /**
  * Utility class to play back recorded tick inputs deterministically.
@@ -38,18 +40,19 @@ export class ReplayPlayer {
       if (!world.hasComponent(player, inputType)) {
         world.addComponent(player, {
           type: "Input",
-          actions: new Set<string>(),
+          actions: [] as CanonicalActionName[],
           axes: {}
         } as unknown as TRegistry[Extract<keyof TRegistry, string>] & { type: Extract<keyof TRegistry, string> });
       }
 
       world.mutateComponent(player, inputType, (inputComp) => {
-        const ic = inputComp as unknown as Record<string, unknown> & { actions: Set<string>; axes: Record<string, number> };
-        ic.actions = new Set<string>(inputFrame.actions || []);
+        const ic = inputComp as unknown as Record<string, unknown> & { actions: readonly CanonicalActionName[]; axes: Record<string, number> };
+        const replayActions = inputFrame.actions.filter(isCanonicalActionName).sort();
+        ic.actions = replayActions;
         ic.axes = { ...inputFrame.axes };
 
         // Map logical actions directly onto individual game-specific boolean fields
-        for (const action of inputFrame.actions) {
+        for (const action of replayActions) {
           ic[action] = true;
         }
 

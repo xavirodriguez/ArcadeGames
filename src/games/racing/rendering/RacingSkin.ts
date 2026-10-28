@@ -1,4 +1,4 @@
-import type { World } from "@tiny-aster/core";
+import { hasInputAction, type World } from "@tiny-aster/core";
 import type { SkCanvas } from "@shopify/react-native-skia";
 import type { RacingComponentRegistry } from "../types/RacingRegistry";
 import type { TrackSpec } from "../types/TrackSpecSchema";
@@ -81,7 +81,7 @@ export function extractActorParams(
   return {
     size: render.size ?? 16,
     isPlayer: world.hasComponent(entity, "LocalPlayer"),
-    boosting: input?.actions.boost === true,
+    boosting: hasInputAction(input?.actions, "boost"),
     time: world.getResource<number>("RacingTime") ?? 0,
     palette,
     color: render.color,

@@ -69,7 +69,7 @@ describe("AsteroidPool & AsteroidInputSystem Detailed Tests", () => {
       world.addComponent(ship, { type: "LocalPlayer" });
       world.addComponent(ship, {
         type: "Input",
-        actions: { hyperspace: true },
+        actions: ["hyperspace"],
         axes: {}
       });
       createAsteroid({ world, x: 700, y: 700, size: "large" });
@@ -87,7 +87,7 @@ describe("AsteroidPool & AsteroidInputSystem Detailed Tests", () => {
 
       // Release key on frame 2
       world.mutateComponent(ship, "Input", (inp: any) => {
-        inp.actions = {};
+        inp.actions = [];
       });
 
       world.update(0.016);
@@ -106,7 +106,7 @@ describe("AsteroidPool & AsteroidInputSystem Detailed Tests", () => {
       world.addComponent(ship, { type: "LocalPlayer" });
       world.addComponent(ship, {
         type: "Input",
-        actions: { hyperspace: true },
+        actions: ["hyperspace"],
         axes: {}
       });
       createAsteroid({ world, x: 700, y: 700, size: "large" });

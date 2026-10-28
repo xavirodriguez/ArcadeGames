@@ -6,4 +6,4 @@ export * from "./providers/GameServicesProvider";
 export * from "./audio/ExpoAudioPlayer";
 export * from "./audio/nativeAudioManifest";
 export * from "./audio/NativeAssetProvider";
-export { InputFrame, PredictedState, EntitySnapshot, ReplayFrame, ReplayData } from "@tiny-aster/core";
+export type { InputFrame, PredictedState, EntitySnapshot, ReplayFrame, ReplayData } from "@tiny-aster/core";

@@ -72,7 +72,7 @@ export function registerRacingBlueprints(
         w.addComponent(entity, createVehicleWaypoint(waypoints, 60, true));
       } else {
         w.addComponent(entity, { type: "LocalPlayer" });
-        w.addComponent(entity, { type: "Input", actions: {}, axes: { moveX: 0, moveY: 0 } });
+        w.addComponent(entity, { type: "Input", actions: [], axes: { moveX: 0, moveY: 0 } });
       }
     }
   });

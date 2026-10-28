@@ -74,11 +74,11 @@ describe("Input Unification Retrofit Non-Regression Tests", () => {
       const player = game.getWorld().query("LocalPlayer" as any)[0];
       const inputComp = game.getWorld().getComponent(player, "Input" as any) as any;
 
-      expect(inputComp.actions["rotateRight"]).toBe(true);
-      expect(inputComp.actions["rotateLeft"]).toBe(false);
-      expect(inputComp.actions["thrust"]).toBe(true);
-      expect(inputComp.actions["shoot"]).toBe(true);
-      expect(inputComp.actions["hyperspace"]).toBe(true);
+      expect(inputComp.actions).toContain("rotateRight");
+      expect(inputComp.actions).not.toContain("rotateLeft");
+      expect(inputComp.actions).toContain("thrust");
+      expect(inputComp.actions).toContain("shoot");
+      expect(inputComp.actions).toContain("hyperspace");
     });
   });
 

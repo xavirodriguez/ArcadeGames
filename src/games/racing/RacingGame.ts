@@ -25,7 +25,9 @@ import {
   INetworkGame,
   preloadSharedAudioWithTimeout,
   SHARED_AUDIO_MANIFEST,
-  WebAudioPlayer
+  WebAudioPlayer,
+  hasInputAction,
+  CanonicalActionName
 } from "@tiny-aster/core";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import { loadAndMutateConfig } from "../shared/configHelper";
@@ -137,7 +139,7 @@ export class RacingGame extends BaseGame<
             const entity = cars[i];
             const transform = world.getComponent(entity, "Transform" as never);
             const velocity = world.getComponent(entity, "Velocity" as never);
-            const inputComp = world.getComponent(entity, "Input" as never) as { axes?: { moveX?: number; moveY?: number }; actions?: { boost?: boolean; brake?: boolean } } | undefined;
+            const inputComp = world.getComponent(entity, "Input" as never) as { axes?: { moveX?: number; moveY?: number }; actions?: readonly CanonicalActionName[] } | undefined;
             if (!transform || !velocity) continue;
             const result = computeCarPhysics(
               transform as unknown as { rotation: number },
@@ -145,8 +147,8 @@ export class RacingGame extends BaseGame<
               {
                 moveX: inputComp?.axes?.moveX ?? 0,
                 moveY: inputComp?.axes?.moveY ?? 0,
-                boost: inputComp?.actions?.boost === true,
-                brake: inputComp?.actions?.brake === true
+                boost: hasInputAction(inputComp?.actions, "boost"),
+                brake: hasInputAction(inputComp?.actions, "brake")
               },
               this.config,
               dt
@@ -326,8 +328,14 @@ export class RacingGame extends BaseGame<
     component.axes.moveX = moveX;
     component.axes.moveY = moveY;
 
-    if (typeof inp.boost === "boolean") component.actions.boost = inp.boost;
-    if (typeof inp.brake === "boolean") component.actions.brake = inp.brake;
+    const activeActions = new Set<CanonicalActionName>(component.actions);
+    if (typeof inp.boost === "boolean") {
+      if (inp.boost) activeActions.add("boost"); else activeActions.delete("boost");
+    }
+    if (typeof inp.brake === "boolean") {
+      if (inp.brake) activeActions.add("brake"); else activeActions.delete("brake");
+    }
+    component.actions = Array.from(activeActions).sort();
   }
 
   public initializeRenderer(renderer: Renderer<RacingComponentRegistry, RenderContext>): void {

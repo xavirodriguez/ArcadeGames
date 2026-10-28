@@ -36,7 +36,7 @@ describe("AsteroidsGame Network & Prediction Tests", () => {
     } as any);
     world.addComponent(localPlayer, {
       type: "Input",
-      actions: new Set(),
+      actions: [],
       axes: {}
     } as any);
 
@@ -51,7 +51,7 @@ describe("AsteroidsGame Network & Prediction Tests", () => {
 
     // Verify player Input component is updated
     const inputComp = world.getComponent(localPlayer, "Input") as any;
-    expect(inputComp.actions.has("thrust")).toBe(true);
+    expect(inputComp.actions.includes("thrust")).toBe(true);
     expect(inputComp.axes.horizontal).toBe(1.0);
   });
 

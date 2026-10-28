@@ -365,14 +365,14 @@ export class GeometryWarsGame extends BaseGame<
       const inputObj = input as Record<string, unknown>;
       // CanonicalInputState support
       const axes = ((inputObj.axes as Record<string, number> | undefined) ?? inputObj) as Record<string, number | undefined>;
-      const actions = inputObj.actions as Set<string> | Record<string, boolean> | undefined;
+      const actions = inputObj.actions as InputActionsLike | undefined;
 
       if (sceneWorld.hasComponent(player, "Player")) {
         sceneWorld.mutateComponent(player, "Player", (p) => {
           if (typeof axes.moveX === "number") p.moveX = axes.moveX;
           if (typeof axes.moveY === "number") p.moveY = axes.moveY;
           if (actions !== undefined) {
-            p.useBomb = hasInputAction(actions as InputActionsLike, "bomb");
+            p.useBomb = hasInputAction(actions, "bomb");
           } else if (inputObj.bomb !== undefined) {
             p.useBomb = !!inputObj.bomb;
           }
@@ -395,7 +395,7 @@ export class GeometryWarsGame extends BaseGame<
             }
           }
           if (actions !== undefined) {
-            aim.isFiring = hasInputAction(actions as InputActionsLike, "fire");
+            aim.isFiring = hasInputAction(actions, "fire");
           } else if (inputObj.fire !== undefined) {
             aim.isFiring = !!inputObj.fire;
           }

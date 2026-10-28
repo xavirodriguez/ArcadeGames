@@ -109,6 +109,7 @@ export class InputMapper<TExtra extends string = never> {
    */
   public map(raw: RawInputState): CanonicalInputState<TExtra> {
     const out = createEmptyCanonicalInputState<TExtra>();
+    const actions: CanonicalActionName<TExtra>[] = [];
 
     for (let i = 0; i < this.bindings.length; i++) {
       const binding = this.bindings[i];
@@ -120,11 +121,12 @@ export class InputMapper<TExtra extends string = never> {
         );
       } else {
         if (this.resolveAction(binding, raw)) {
-          out.actions.add(binding.canonicalAction);
+          if (!actions.includes(binding.canonicalAction)) actions.push(binding.canonicalAction);
         }
       }
     }
 
+    out.actions = actions.sort();
     out.timestamp = Date.now();
     return out;
   }

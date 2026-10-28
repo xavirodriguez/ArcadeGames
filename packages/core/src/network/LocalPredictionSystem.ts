@@ -1,6 +1,25 @@
 import { World } from "../ecs/World";
 import { System } from "../ecs/System";
 import { NetworkManager } from "./NetworkManager";
+
+function cloneInputForQueue<TInput>(input: TInput): TInput {
+    if (input === null || typeof input !== "object") return input;
+    if (Array.isArray(input)) return [...input] as TInput;
+
+    const source = input as Record<string, unknown>;
+    const clone: Record<string, unknown> = { ...source };
+    const actions = source.actions;
+
+    if (Array.isArray(actions)) {
+        clone.actions = [...actions];
+    } else if (actions instanceof Set) {
+        clone.actions = new Set(actions);
+    } else if (actions !== null && typeof actions === "object") {
+        clone.actions = { ...(actions as Record<string, unknown>) };
+    }
+
+    return clone as TInput;
+}
 import {
     MultiplayerRegistry,
     ReconciledInput,
@@ -120,7 +139,7 @@ export class LocalPredictionSystem<
 
             this.inputQueue.push({
                 tick: this.lastProcessedTick++,
-                input: { ...input },
+                input: cloneInputForQueue(input),
                 state: {
                     x: finalTransform.x, y: finalTransform.y,
                     vx: finalVelocity.vx, vy: finalVelocity.vy

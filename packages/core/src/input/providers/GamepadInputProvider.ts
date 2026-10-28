@@ -37,6 +37,7 @@ export class GamepadInputProvider<TExtra extends string = never> implements Inpu
   /** Retrieves snapshot of connected Gamepad API axes and button states. */
   public getInputState(): CanonicalInputState<TExtra> {
     const state = createEmptyCanonicalInputState<TExtra>();
+    const actions: CanonicalActionName<TExtra>[] = [];
     state.timestamp = Date.now();
 
     if (typeof navigator === "undefined" || typeof navigator.getGamepads !== "function") {
@@ -68,21 +69,22 @@ export class GamepadInputProvider<TExtra extends string = never> implements Inpu
     };
 
     if (isButtonPressed(0) || isButtonPressed(7)) { // South button (A / X) or Right Trigger
-      state.actions.add("fire" as CanonicalActionName<TExtra>);
+      actions.push("fire" as CanonicalActionName<TExtra>);
     }
     if (isButtonPressed(1)) { // East button (B / Circle)
-      state.actions.add("secondary" as CanonicalActionName<TExtra>);
+      actions.push("secondary" as CanonicalActionName<TExtra>);
     }
     if (isButtonPressed(2)) { // West button (X / Square)
-      state.actions.add("boost" as CanonicalActionName<TExtra>);
+      actions.push("boost" as CanonicalActionName<TExtra>);
     }
     if (isButtonPressed(3)) { // North button (Y / Triangle)
-      state.actions.add("hyperspace" as CanonicalActionName<TExtra>);
+      actions.push("hyperspace" as CanonicalActionName<TExtra>);
     }
     if (isButtonPressed(9)) { // Start / Pause
-      state.actions.add("pause" as CanonicalActionName<TExtra>);
+      actions.push("pause" as CanonicalActionName<TExtra>);
     }
 
+    state.actions = actions.sort();
     return state;
   }
 }

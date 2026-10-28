@@ -39,6 +39,7 @@
     "check:core-boundaries": "bash ./scripts/check-core-boundaries.sh",
     "check:gameplay-kit-boundaries": "bash ./scripts/check-gameplay-kit-boundaries.sh",
     "check:network-boundaries": "bash ./scripts/check-network-boundaries.sh",
+    "check:input-contract": "pnpm exec tsx scripts/check-input-contract.ts",
     "check:ratchet": "NODE_OPTIONS=\"--max-old-space-size=8192\" pnpm exec tsx scripts/typecast-ratchet.ts",
     "ratchet:update": "NODE_OPTIONS=\"--max-old-space-size=8192\" pnpm exec tsx scripts/typecast-ratchet.ts --update",
     "sound:golden:update": "pnpm --filter=@tiny-aster/arcade-sound-kit golden:update",
@@ -48,7 +49,7 @@
     "check:game-patterns": "pnpm exec tsx scripts/check-game-patterns.ts",
     "story:lint": "pnpm exec tsx scripts/story-lint.ts",
     "validate:story": "pnpm run story:lint",
-    "ci": "pnpm run build:core && pnpm --filter=@tiny-aster/gameplay-kit build && pnpm run check:core-boundaries && pnpm run check:gameplay-kit-boundaries && pnpm run check:network-boundaries && pnpm run check:ratchet && pnpm run check:duplication && pnpm run check:game-patterns && pnpm run story:lint && pnpm run docs:check && pnpm run typecheck:app",
+    "ci": "pnpm run build:core && pnpm --filter=@tiny-aster/gameplay-kit build && pnpm run check:core-boundaries && pnpm run check:gameplay-kit-boundaries && pnpm run check:network-boundaries && pnpm run check:input-contract && pnpm run check:ratchet && pnpm run check:duplication && pnpm run check:game-patterns && pnpm run story:lint && pnpm run docs:check && pnpm run typecheck:app",
     "test:ci": "NODE_OPTIONS=\"--max-old-space-size=4096\" pnpm exec jest --runInBand"
   },
   "dependencies": {

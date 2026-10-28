@@ -1,4 +1,4 @@
-import { World, Renderer, CoreComponentRegistry, Entity, ShapeDrawer, EffectDrawer, ShapeType, RenderComponent, TransformComponent, ColliderComponent, Camera2DComponent, VisualOffsetComponent, SceneManager, SceneState, resolveViewportDimensions } from "@tiny-aster/core";
+import { World, Renderer, CoreComponentRegistry, Entity, ShapeDrawer, EffectDrawer, ShapeType, RenderComponent, TransformComponent, ColliderComponent, SceneManager, SceneState, resolveViewportDimensions, buildRenderPlan, RenderQueueEntry } from "@tiny-aster/core";
 import { CanvasCircleDrawer, CanvasBoxDrawer, CanvasPolygonDrawer } from "./CanvasShapeDrawers";
 import { CanvasSpriteDrawer } from "./CanvasSpriteDrawer";
 
@@ -66,20 +66,9 @@ export class FrameTimeMeter {
 /**
  * Basic 2D Canvas renderer.
  */
-export interface RenderSortEntry {
-  entity: Entity;
-  render?: RenderComponent;
-  transform?: TransformComponent;
-  order: number;
-  depthSort: boolean;
-  y: number;
-  shape?: string;
-  color?: string;
-}
-
 export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreComponentRegistry> implements Renderer<TRegistry, CanvasRenderingContext2D> {
-  private sortedEntities: Entity[] = [];
-  private sortEntries: RenderSortEntry[] = [];
+  /** Reusable buffer passed to buildRenderPlan (zero-alloc path). */
+  private entriesBuffer: RenderQueueEntry[] = [];
   public readonly type = "canvas";
   private readonly backgroundEffects: Map<string, EffectDrawer<CanvasRenderingContext2D, TRegistry>> = new Map();
   private readonly frameTimeMeter = new FrameTimeMeter(300);
@@ -301,8 +290,11 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
     const logicalWidth = screenConfig?.width ?? (canvas.width / dpr);
     const logicalHeight = screenConfig?.height ?? (canvas.height / dpr);
 
-    const gameConfig = world.getResource<{ worldWidth?: number; worldHeight?: number; viewportWidth?: number; viewportHeight?: number }>("GameConfig");
-    const { viewportWidth, viewportHeight } = resolveViewportDimensions(gameConfig);
+    // Shared plan: query + filter + deterministic sort + camera resolution
+    const plan = buildRenderPlan(world, this.entriesBuffer);
+    this.entriesBuffer = plan.entries;
+
+    const { viewportWidth, viewportHeight, entries, mainCamera } = plan;
 
     let scale = 1;
     let offsetX = 0;
@@ -335,79 +327,10 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
       drawer.draw(ctx, world);
     }
 
-    const cameraType = "Camera2D" as Extract<keyof TRegistry, string>;
-    const transformType = "Transform" as Extract<keyof TRegistry, string>;
-    const renderType = "Render" as Extract<keyof TRegistry, string>;
     const colliderType = "Collider" as Extract<keyof TRegistry, string>;
+    const visualOffsetType = "VisualOffset" as Extract<keyof TRegistry, string>;
 
-    const cameras = world.query(cameraType);
-    let mainCameraEntity: Entity | undefined;
-
-    for (let i = 0; i < cameras.length; i++) {
-      const cam = world.getComponent(cameras[i], cameraType) as Camera2DComponent | undefined;
-      if (cam?.isMain) {
-        mainCameraEntity = cameras[i];
-        break;
-      }
-    }
-
-    const entities = world.query(transformType, renderType);
-
-    if (this.sortEntries.length !== entities.length) {
-      this.sortEntries = new Array(entities.length);
-    }
-
-    for (let i = 0; i < entities.length; i++) {
-      const entity = entities[i];
-      const render = world.getComponent(entity, renderType) as RenderComponent | undefined;
-      const transform = world.getComponent(entity, transformType) as TransformComponent | undefined;
-
-      const order = render?.order || 0;
-      const depthSort = render?.depthSort === true;
-      const y = transform ? (transform.worldY ?? transform.y) : 0;
-      const shape = render?.shape;
-      const color = render?.color;
-
-      let entry = this.sortEntries[i];
-      if (!entry) {
-        entry = { entity, render, transform, order, depthSort, y, shape, color };
-        this.sortEntries[i] = entry;
-      } else {
-        entry.entity = entity;
-        entry.render = render;
-        entry.transform = transform;
-        entry.order = order;
-        entry.depthSort = depthSort;
-        entry.y = y;
-        entry.shape = shape;
-        entry.color = color;
-      }
-    }
-
-    this.sortEntries.sort((a, b) => {
-      if (a.order !== b.order) {
-        return a.order - b.order;
-      }
-      if (a.depthSort && b.depthSort) {
-        return a.y - b.y;
-      }
-      if (a.shape !== b.shape) {
-        return (a.shape ?? "") < (b.shape ?? "") ? -1 : 1;
-      }
-      if (a.color !== b.color) {
-        return (a.color ?? "") < (b.color ?? "") ? -1 : 1;
-      }
-      return a.entity - b.entity;
-    });
-
-    if (this.sortedEntities.length !== this.sortEntries.length) {
-      this.sortedEntities = new Array(this.sortEntries.length);
-    }
-    for (let i = 0; i < this.sortEntries.length; i++) {
-      this.sortedEntities[i] = this.sortEntries[i].entity;
-    }
-
-    ctx.save();                          // ← save de cámara (NUEVO)
+    ctx.save(); // camera save
 
     let camX = 0;
     let camY = 0;
@@ -416,36 +339,27 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
     let camVoY = 0;
     let hasMainCamera = false;
 
-    if (mainCameraEntity !== undefined) {
-      const cam = world.getComponent(mainCameraEntity, cameraType) as Camera2DComponent | undefined;
-      if (cam) {
-        hasMainCamera = true;
-        camX = cam.x;
-        camY = cam.y;
-        camZoom = cam.zoom;
-        ctx.translate(-cam.x, -cam.y);
-        ctx.scale(cam.zoom, cam.zoom);
-
-        const visualOffsetType = "VisualOffset" as Extract<keyof TRegistry, string>;
-        const visualOffset = world.getComponent(mainCameraEntity, visualOffsetType) as VisualOffsetComponent | undefined;
-        if (visualOffset) {
-          camVoX = visualOffset.offsetX;
-          camVoY = visualOffset.offsetY;
-          ctx.translate(-visualOffset.offsetX, -visualOffset.offsetY);
-        }
+    if (mainCamera) {
+      hasMainCamera = true;
+      camX = mainCamera.x;
+      camY = mainCamera.y;
+      camZoom = mainCamera.zoom;
+      camVoX = mainCamera.visualOffsetX;
+      camVoY = mainCamera.visualOffsetY;
+      ctx.translate(-camX, -camY);
+      ctx.scale(camZoom, camZoom);
+      if (camVoX !== 0 || camVoY !== 0) {
+        ctx.translate(-camVoX, -camVoY);
       }
     }
 
     let lastColor = "";
 
-    for (let i = 0; i < this.sortEntries.length; i++) {
-      const entry = this.sortEntries[i];
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i];
       const entity = entry.entity;
       const render = entry.render;
       const transform = entry.transform;
-
-      if (!render || !render.visible || render.opacity === 0) continue;
-      if (!transform) continue;
 
       ctx.save();
 
@@ -459,10 +373,9 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
         ctx.translate(camX, camY);
       }
 
-      const visualOffsetType = "VisualOffset" as Extract<keyof TRegistry, string>;
       const visualOffset = world.getComponent(entity, visualOffsetType) as unknown as { offsetX: number; offsetY: number; scaleX?: number; scaleY?: number } | undefined;
-      const offsetX = visualOffset?.offsetX ?? 0;
-      const offsetY = visualOffset?.offsetY ?? 0;
+      const voX = visualOffset?.offsetX ?? 0;
+      const voY = visualOffset?.offsetY ?? 0;
       const visualScaleX = visualOffset?.scaleX ?? 1;
       const visualScaleY = visualOffset?.scaleY ?? 1;
 
@@ -472,7 +385,7 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
       const scaleX = transform.worldScaleX ?? transform.scaleX ?? 1;
       const scaleY = transform.worldScaleY ?? transform.scaleY ?? 1;
 
-      ctx.translate(x + offsetX, y + offsetY);
+      ctx.translate(x + voX, y + voY);
       ctx.rotate(rotation);
       ctx.scale(scaleX * visualScaleX, scaleY * visualScaleY);
       ctx.globalAlpha = render.opacity;
@@ -508,8 +421,8 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
       ctx.restore();
     }
 
-    ctx.restore();                       // ← restore de cámara (NUEVO)
-    ctx.restore();                       // ← restore de viewport (letterboxing)
+    ctx.restore(); // camera restore
+    ctx.restore(); // viewport (letterboxing) restore
 
     if (isPerfEnabled && typeof performance !== "undefined") {
       const durationMs = performance.now() - startMs;

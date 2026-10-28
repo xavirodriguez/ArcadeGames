@@ -161,7 +161,7 @@ describe("Input netcode hardening", () => {
       type: "UnorderedCollections",
       entries: new Map([["beta", 2], ["alpha", 1]]),
       tags: new Set(["beta", "alpha"])
-    });
+    } as UnorderedCollectionsFixture);
 
     const secondWorld = new World<UnorderedCollectionsRegistry>();
     secondWorld.gameplayRandom.setSeed(12345);
@@ -170,7 +170,7 @@ describe("Input netcode hardening", () => {
       type: "UnorderedCollections",
       entries: new Map([["alpha", 1], ["beta", 2]]),
       tags: new Set(["alpha", "beta"])
-    });
+    } as UnorderedCollectionsFixture);
 
     const firstAoS = SnapshotSerializer.snapshot(firstWorld);
     const secondAoS = SnapshotSerializer.snapshot(secondWorld);

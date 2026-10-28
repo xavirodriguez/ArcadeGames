@@ -303,7 +303,9 @@ export class HitAndRunGame extends BaseGame<
       registerBeltPlayerBlueprint(this.blueprints);
       registerPlatformerTilemapBlueprint(this.blueprints, DEFAULT_HIT_AND_RUN_CONFIG);
       registerStandardPlatformerCollectibles(this.blueprints);
-      console.info("[HitAndRun/diag] Registered blueprints: tilemap, collectible_fragment, collectible_core");
+      if (process.env.NODE_ENV === "development") {
+        console.info("[HitAndRun/diag] Registered blueprints: tilemap, collectible_fragment, collectible_core");
+      }
 
       this.levelPlan = generateAndInstantiatePlatformerLevel(
         this.world,

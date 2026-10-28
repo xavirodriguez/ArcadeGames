@@ -48,7 +48,9 @@ const enemyPoolHooks = createProjectilePoolConfig<HitRunBulletParams>({
 
 export class HitRunEnemyBulletPool extends ProjectilePool<any, HitRunBulletParams> {
   constructor(initialSize = 128) {
-    super({ ...enemyPoolHooks, initialSize });
+    // PrefabPool includes its factory template as one available slot.
+    // Subtract it here so this pool exposes exactly the requested capacity.
+    super({ ...enemyPoolHooks, initialSize: Math.max(0, initialSize - 1) });
   }
 
   public acquireBullet(world: World<CoreComponentRegistry>, params: HitRunBulletParams): Entity {

@@ -145,15 +145,17 @@ describe("Input netcode hardening", () => {
 
   it("copies queued action arrays and replays only inputs newer than the acknowledged server tick", () => {
     const replayed: CanonicalActionName[][] = [];
-    const actions: CanonicalActionName[] = ["fire"];
-    const { world, entity } = makePredictionWorld(actions);
+    const { world, entity } = makePredictionWorld(["fire"]);
+    const liveInput = world.getMutableComponent(entity, "Input");
+    if (!liveInput) throw new Error("Input fixture was not registered");
+    const liveActions = liveInput.actions as CanonicalActionName[];
     const system = new LocalPredictionSystem<MultiplayerRegistry, InputPayload>(
       new NetworkManager<MultiplayerRegistry>(),
       { simulateFn: (_currentWorld, input) => replayed.push([...input.actions]) }
     );
 
     system.update(world, 1 / 60);
-    actions.push("boost");
+    liveActions.push("boost");
     replayed.length = 0;
     system.reconcile(world, -1, { x: 0, y: 0, vx: 0, vy: 0 });
     expect(replayed).toEqual([["fire"]]);

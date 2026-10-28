@@ -39,7 +39,7 @@ describe("InputMapper", () => {
 
     expect(canonical.axes.moveX).toBe(1);
     expect(canonical.axes.moveY).toBe(0);
-    expect(canonical.actions.has("fire")).toBe(true);
+    expect(canonical.actions.includes("fire")).toBe(true);
   });
 
   it("resolves gamepad axis deadzones and button actions", () => {
@@ -53,7 +53,7 @@ describe("InputMapper", () => {
 
     const canonical1 = mapper.map(raw);
     expect(canonical1.axes.moveX).toBe(0); // filtered by deadzone
-    expect(canonical1.actions.has("fire")).toBe(true);
+    expect(canonical1.actions.includes("fire")).toBe(true);
 
     raw.gamepad.axes[0] = 0.8;
     const canonical2 = mapper.map(raw);

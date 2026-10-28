@@ -9,14 +9,14 @@ describe("CanonicalInput", () => {
   it("creates an empty canonical input state with zeroed axes and empty actions", () => {
     const state = createEmptyCanonicalInputState();
     expect(state.axes).toEqual({ moveX: 0, moveY: 0, aimX: 0, aimY: 0 });
-    expect(state.actions.size).toBe(0);
+    expect(state.actions.length).toBe(0);
     expect(state.timestamp).toBe(0);
   });
 
   it("converts CanonicalInputState to InputFrame and back seamlessly", () => {
     const original: CanonicalInputState<"custom"> = {
       axes: { moveX: 0.8, moveY: -0.5, aimX: 1, aimY: 0 },
-      actions: new Set(["fire", "boost", "custom"]),
+      actions: ["fire", "boost", "custom"],
       timestamp: 123456789,
     };
 
@@ -29,7 +29,7 @@ describe("CanonicalInput", () => {
 
     const converted = inputFrameToCanonical<"custom">(frame);
     expect(converted.axes).toEqual(original.axes);
-    expect(Array.from(converted.actions).sort()).toEqual(Array.from(original.actions).sort());
+    expect([...converted.actions]).toEqual(Array.from(original.actions).sort());
     expect(converted.timestamp).toBe(original.timestamp);
   });
 
@@ -43,7 +43,7 @@ describe("CanonicalInput", () => {
 
     const canonical = inputFrameToCanonical(malformedFrame);
     expect(canonical.axes).toEqual({ moveX: 0, moveY: 0, aimX: 0, aimY: 0 });
-    expect(canonical.actions.size).toBe(0);
+    expect(canonical.actions.length).toBe(0);
     expect(canonical.timestamp).toBe(0);
   });
 });

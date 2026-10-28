@@ -17,7 +17,7 @@ describe("InputProviders", () => {
 
       expect(state.axes.moveY).toBe(-1);
       expect(state.axes.moveX).toBe(1);
-      expect(state.actions.has("fire")).toBe(true);
+      expect(state.actions.includes("fire")).toBe(true);
 
       provider.dispose();
     });
@@ -35,7 +35,7 @@ describe("InputProviders", () => {
       expect(state.axes.moveX).toBe(-0.5);
       expect(state.axes.moveY).toBe(0.8);
       expect(state.axes.aimY).toBe(0.5);
-      expect(state.actions.has("fire")).toBe(true);
+      expect(state.actions.includes("fire")).toBe(true);
     });
 
     it("does not trigger fire when right stick is within deadzone threshold", () => {
@@ -45,7 +45,7 @@ describe("InputProviders", () => {
 
       const state = provider.getInputState();
 
-      expect(state.actions.has("fire")).toBe(false);
+      expect(state.actions.includes("fire")).toBe(false);
     });
   });
 
@@ -56,7 +56,7 @@ describe("InputProviders", () => {
 
       expect(state.axes.moveX).toBe(0);
       expect(state.axes.moveY).toBe(0);
-      expect(state.actions.size).toBe(0);
+      expect(state.actions.length).toBe(0);
     });
   });
 });

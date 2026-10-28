@@ -74,8 +74,8 @@ export interface CanonicalInputState<TExtra extends string = never> {
     aimX: number;
     aimY: number;
   };
-  /** Set of currently active canonical action names. */
-  actions: Set<CanonicalActionName<TExtra>>;
+  /** Sorted list of currently active canonical action names. */
+  actions: readonly CanonicalActionName<TExtra>[];
   /** Timestamp when the input frame was recorded. */
   timestamp: number;
 }
@@ -92,7 +92,7 @@ export function createEmptyCanonicalInputState<TExtra extends string = never>():
       aimX: 0,
       aimY: 0,
     },
-    actions: new Set<CanonicalActionName<TExtra>>(),
+    actions: [],
     timestamp: 0,
   };
 }
@@ -110,7 +110,7 @@ export function canonicalToInputFrame<TExtra extends string = never>(
     protocolVersion,
     tick,
     timestamp: state.timestamp,
-    actions: Array.from(state.actions),
+    actions: [...state.actions].sort(),
     axes: {
       moveX: state.axes.moveX,
       moveY: state.axes.moveY,
@@ -127,12 +127,14 @@ export function canonicalToInputFrame<TExtra extends string = never>(
 export function inputFrameToCanonical<TExtra extends string = never>(
   frame: InputFrame
 ): CanonicalInputState<TExtra> {
-  const actions = new Set<CanonicalActionName<TExtra>>();
+  const actions: CanonicalActionName<TExtra>[] = [];
   if (Array.isArray(frame.actions)) {
     for (let i = 0; i < frame.actions.length; i++) {
-      actions.add(frame.actions[i] as CanonicalActionName<TExtra>);
+      const action = frame.actions[i] as CanonicalActionName<TExtra>;
+      if (!actions.includes(action)) actions.push(action);
     }
   }
+  actions.sort();
 
   return {
     axes: {

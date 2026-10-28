@@ -831,7 +831,7 @@ export type CanonicalActionName<TExtra extends string = never> = "fire" | "secon
 
 // @public
 export interface CanonicalInputState<TExtra extends string = never> {
-    actions: Set<CanonicalActionName<TExtra>>;
+    actions: readonly CanonicalActionName<TExtra>[];
     axes: {
         moveX: number;
         moveY: number;

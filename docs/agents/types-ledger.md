@@ -49,3 +49,5 @@
 | 2026-10-24 | `packages/react-native/src/hooks/useMultiplayer.ts` (`useMultiplayer`) | Resuelto | Replaced `any` in serverState, state change callback, onLeave, and sendInput signatures with `unknown` and `Record<string, unknown>`. |
 | 2026-10-24 | `components/CampaignScreen.tsx` (`CampaignScreen.getLocalizedText`) | Resuelto | Removed `any` casts in localized dictionary lookups and keyboard control hooks. |
 | 2026-10-24 | `src/games/hitandrun/rendering/HitRunHudCanvas.ts` (`drawHitRunHud`) | Resuelto | Replaced string resource key and `any` cast on scoreState with `HIT_RUN_SCORE_RESOURCE` and `HitRunScoreState`. |
+
+| 2026-10-28 | `packages/core/src/input/CanonicalInput.ts` (`CanonicalInputState.actions`, `Input.actions`) | Protegido | Mantener `readonly CanonicalActionName[]` en los caminos canónicos. Cambios requieren revisión de netcode porque afectan predicción, rollback y hashes. No introducir `any` en el path de Input sin justificación `Fully justified` y revisión. |

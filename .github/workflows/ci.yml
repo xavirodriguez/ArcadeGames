@@ -51,6 +51,12 @@ jobs:
       - name: Run tests through Turborepo
         run: pnpm exec turbo run test
 
+      - name: Enforce canonical input contract
+        run: pnpm run check:input-contract
+
+      - name: Measure input-path performance baseline
+        run: pnpm exec tsx packages/core/src/__benchmarks__/inputPathBenchmark.ts
+
       - name: Run Hit & Run regression tests
         run: pnpm exec jest --config src/games/hitandrun/jest.config.cjs --runInBand --testPathPattern='src/games/hitandrun/__tests__'
 

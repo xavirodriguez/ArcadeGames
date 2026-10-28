@@ -4,6 +4,7 @@ import type { WorldSnapshot, SoAComponentBlock } from "./WorldSnapshot";
 import { SoADeserializer } from "./SoADeserializer";
 import { restoreWorldMetadata, rebuildQueries, restoreComponentStorage, registerEntityComponent } from "./SnapshotInternalAccess";
 import type { InternalWorldAccess } from "./SnapshotInternalAccess";
+import { isSnapshotComponentExcluded } from "./SnapshotExclusionPolicy";
 
 /**
  * Structure of Arrays (SoA) restoration utility.
@@ -31,6 +32,7 @@ export class SnapshotRestoreSoA {
     type: string,
     soaData: SoAComponentBlock
   ): void {
+    if (isSnapshotComponentExcluded(type)) return;
     const internal = world.getSerializationView();
     const { storage, index, versions } = restoreComponentStorage(internal, type);
 

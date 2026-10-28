@@ -4,6 +4,7 @@ import type { World } from "../ecs/World";
 import type { WorldSnapshot, AoSWorldSnapshot, ComponentDataSnapshot, SerializedComponent } from "./WorldSnapshot";
 import { buildSnapshotMetadata } from "./SnapshotMetadataBuilder";
 import type { InternalWorldAccess } from "./SnapshotInternalAccess";
+import { isSnapshotComponentExcluded, SNAPSHOT_EXCLUDED_COMPONENT_TYPES } from "./SnapshotExclusionPolicy";
 
 /**
  * Classical Array of Structures (AoS) Serializer.
@@ -45,6 +46,7 @@ export class SnapshotSerializer {
     target?: AoSWorldSnapshot
   ): AoSWorldSnapshot {
     const componentData: ComponentDataSnapshot = target?.componentData ?? {};
+    for (const excludedType of SNAPSHOT_EXCLUDED_COMPONENT_TYPES) delete componentData[excludedType];
     const internal = world.getSerializationView();
 
     const activeEntities = internal.activeEntities;
@@ -56,6 +58,7 @@ export class SnapshotSerializer {
       if (!componentSet) return;
 
       for (const type of componentSet) {
+        if (isSnapshotComponentExcluded(type)) continue;
         const map = componentMaps.get(type);
         if (!map) continue;
         const component = map.get(entity);
@@ -109,6 +112,7 @@ export class SnapshotSerializer {
     const componentVersions = internal.componentVersions;
 
     componentMaps.forEach((map, type) => {
+      if (isSnapshotComponentExcluded(type)) return;
       const typeVersions = componentVersions.get(type);
       if (!typeVersions) return;
 

@@ -1,4 +1,5 @@
 import { SoAWorldSnapshot } from "./WorldSnapshot";
+import { isSnapshotComponentExcluded } from "./SnapshotExclusionPolicy";
 
 const floatBuffer = new Float64Array(1);
 const byteBuffer = new Uint8Array(floatBuffer.buffer);
@@ -45,7 +46,7 @@ export function hashSoA(snapshot: SoAWorldSnapshot): string {
   // 3. Hash Component Data
   const soaComponentData = snapshot.soaComponentData;
   if (soaComponentData) {
-    const types = Object.keys(soaComponentData).sort();
+    const types = Object.keys(soaComponentData).filter(type => !isSnapshotComponentExcluded(type)).sort();
     for (let i = 0; i < types.length; i++) {
       const type = types[i];
       hash = hashString(hash, type);
@@ -106,7 +107,7 @@ export function hashAoS(snapshot: {
 
   const componentData = snapshot.componentData;
   if (componentData) {
-    const types = Object.keys(componentData).sort();
+    const types = Object.keys(componentData).filter(type => !isSnapshotComponentExcluded(type)).sort();
     for (let i = 0; i < types.length; i++) {
       const type = types[i];
       hash = hashString(hash, type);
@@ -173,12 +174,52 @@ function hashValue(hash: number, val: unknown): number {
     hash = hashInt32(hash, 3);
     return hashString(hash, val as string);
   }
+  if (type === "bigint") {
+    hash = hashInt32(hash, 6);
+    return hashString(hash, (val as bigint).toString());
+  }
   if (Array.isArray(val)) {
     hash = hashInt32(hash, 4);
     hash = hashInt32(hash, val.length);
     for (let i = 0; i < val.length; i++) {
       hash = hashValue(hash, val[i]);
     }
+    return hash;
+  }
+  if (val instanceof Date) {
+    hash = hashInt32(hash, 7);
+    return hashFloat64(hash, val.getTime());
+  }
+  if (val instanceof Map) {
+    hash = hashInt32(hash, 8);
+    hash = hashInt32(hash, val.size);
+    for (const [key, entryValue] of val) {
+      hash = hashValue(hash, key);
+      hash = hashValue(hash, entryValue);
+    }
+    return hash;
+  }
+  if (val instanceof Set) {
+    hash = hashInt32(hash, 9);
+    hash = hashInt32(hash, val.size);
+    for (const entry of val) hash = hashValue(hash, entry);
+    return hash;
+  }
+  if (val instanceof ArrayBuffer) {
+    hash = hashInt32(hash, 10);
+    const bytes = new Uint8Array(val);
+    hash = hashInt32(hash, bytes.length);
+    for (let i = 0; i < bytes.length; i++) hash = hashInt32(hash, bytes[i]);
+    return hash;
+  }
+  if (ArrayBuffer.isView(val)) {
+    hash = hashInt32(hash, 11);
+    const view = val as ArrayBufferView;
+    const name = (val as { constructor: { name: string } }).constructor.name;
+    hash = hashString(hash, name);
+    const bytes = new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
+    hash = hashInt32(hash, bytes.length);
+    for (let i = 0; i < bytes.length; i++) hash = hashInt32(hash, bytes[i]);
     return hash;
   }
   if (type === "object") {

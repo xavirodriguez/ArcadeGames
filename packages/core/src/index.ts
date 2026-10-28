@@ -27,6 +27,7 @@ export * from "./ecs/EntityHelpers";
 export * from "./ecs/WorldUtils";
 export * from "./snapshots/WorldSnapshot";
 export * from "./snapshots/SnapshotMetadataBuilder";
+export * from "./snapshots/SnapshotExclusionPolicy";
 export * from "./snapshots/SnapshotSerializer";
 export * from "./snapshots/SnapshotRestore";
 export * from "./snapshots/SnapshotSerializerSoA";

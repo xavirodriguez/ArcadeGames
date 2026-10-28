@@ -7,7 +7,7 @@ describe("Physics and Render Cross-Invariant Test", () => {
     const transform = { rotation: 0 };
     const velocity = { vx: 0, vy: 0 };
     const config = { SHIP_THRUST: 100, SHIP_ROTATION_SPEED: 2.0, SHIP_FRICTION: 0 };
-    const input = { actions: new Set(["thrust"]), axes: {} };
+    const input = { actions: ["thrust"], axes: {} } as never;
 
     const result = computeShipPhysics(transform, velocity, input, config, 1.0);
 

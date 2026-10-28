@@ -41,7 +41,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       world.addComponent(shipEntity, { type: "LocalPlayer" });
       world.addComponent(shipEntity, {
           type: "Input",
-          actions: { shoot: true },
+          actions: ["shoot"],
           axes: {}
       });
       world.flush();
@@ -79,7 +79,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       world.addComponent(shipEntity, { type: "LocalPlayer" });
       world.addComponent(shipEntity, {
           type: "Input",
-          actions: { shoot: true },
+          actions: ["shoot"],
           axes: {}
       });
 
@@ -152,11 +152,11 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       const config = { SHIP_THRUST: 150, SHIP_ROTATION_SPEED: 4.0, SHIP_FRICTION: 0.5 };
 
       // Rotate Right
-      let result = computeShipPhysics(transform, velocity, { actions: new Set(["rotateRight"]), axes: {} }, config, 0.1);
+      let result = computeShipPhysics(transform, velocity, { actions: ["rotateRight"], axes: {} }, config, 0.1);
       expect(result.rotation).toBeCloseTo(0.4, 4);
 
       // Rotate Left
-      result = computeShipPhysics(transform, velocity, { actions: new Set(["rotateLeft"]), axes: {} }, config, 0.1);
+      result = computeShipPhysics(transform, velocity, { actions: ["rotateLeft"], axes: {} }, config, 0.1);
       expect(result.rotation).toBeCloseTo(-0.4, 4);
     });
 
@@ -166,7 +166,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       const config = { SHIP_THRUST: 100, SHIP_ROTATION_SPEED: 4.0, SHIP_FRICTION: 1.0 };
 
       // Apply thrust for 0.1 seconds
-      const result = computeShipPhysics(transform, velocity, { actions: new Set(["thrust"]), axes: {} }, config, 0.1);
+      const result = computeShipPhysics(transform, velocity, { actions: ["thrust"], axes: {} }, config, 0.1);
       // ax = cos(0)*100 = 100. vx_pre = ax*0.1 = 10. vx_post = 10 * (1 - 1.0*0.1) = 9
       expect(result.vx).toBeCloseTo(9, 4);
       expect(result.vy).toBe(0);
@@ -530,7 +530,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       world.addComponent(ship, { type: "LocalPlayer" });
       world.addComponent(ship, {
         type: "Input",
-        actions: { hyperspace: true },
+        actions: ["hyperspace"],
         axes: {}
       });
       createAsteroid({ world, x: 700, y: 700, size: "large" });
@@ -558,7 +558,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       world.addComponent(ship, { type: "LocalPlayer" });
       world.addComponent(ship, {
         type: "Input",
-        actions: { hyperspace: true },
+        actions: ["hyperspace"],
         axes: {}
       });
       // Spawn a placeholder asteroid far away to prevent wave spawning
@@ -592,7 +592,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       world.addComponent(ship, { type: "LocalPlayer" });
       world.addComponent(ship, {
         type: "Input",
-        actions: { hyperspace: true },
+        actions: ["hyperspace"],
         axes: {}
       });
       createAsteroid({ world, x: 700, y: 700, size: "large" });
@@ -607,7 +607,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
 
       // Release key
       world.mutateComponent(ship, "Input", (inp) => {
-        inp.actions = {};
+        inp.actions = [];
       });
 
       world.update(0.016);
@@ -623,7 +623,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       world.addComponent(ship, { type: "LocalPlayer" });
       world.addComponent(ship, {
         type: "Input",
-        actions: { hyperspace: true },
+        actions: ["hyperspace"],
         axes: {}
       });
       createAsteroid({ world, x: 700, y: 700, size: "large" });
@@ -660,7 +660,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       world.addComponent(ship, { type: "LocalPlayer" });
       world.addComponent(ship, {
         type: "Input",
-        actions: { hyperspace: true },
+        actions: ["hyperspace"],
         axes: {}
       });
       createAsteroid({ world, x: 700, y: 700, size: "large" });

@@ -12,7 +12,16 @@ export type CanonicalActionName<TExtra extends string = never> =
   | "pause"
   | "confirm"
   | "cancel"
+  | (string & {})
   | TExtra;
+
+/**
+ * Type guard checking if an action name is a valid string canonical action name.
+ * @public
+ */
+export function isCanonicalActionName(action: unknown): action is CanonicalActionName {
+  return typeof action === "string" && action.length > 0;
+}
 
 /**
  * Standard input state interface capturing analog axes and active actions.

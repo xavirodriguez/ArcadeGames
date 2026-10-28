@@ -32,7 +32,7 @@ const SUMI_E_ANIMATIONS: Record<string, SumiEAnimationSpec> = Object.fromEntries
     {
       frames: animation.frames.map((frame) => getSumiEFrameRect(frame)),
       fps: animation.frameRate,
-      loop: animation.loop
+      loop: animation.loop ?? false
     }
   ])
 );

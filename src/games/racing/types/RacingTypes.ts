@@ -1,4 +1,4 @@
-import { Component, CoreComponentRegistry } from "@tiny-aster/core";
+import { Component, CoreComponentRegistry, CanonicalActionName } from "@tiny-aster/core";
 
 export interface RacingGameState extends Component {
   type: "RacingState";
@@ -33,7 +33,7 @@ export interface RacingInputState {
 
 export interface RacingInputComponent extends Component {
   type: "Input";
-  actions: Record<string, boolean>;
+  actions: readonly CanonicalActionName[];
   axes: Record<string, number>;
 }
 

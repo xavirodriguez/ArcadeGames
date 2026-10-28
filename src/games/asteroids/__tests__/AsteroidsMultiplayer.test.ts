@@ -45,7 +45,7 @@ describe("Asteroids Authoritative Multiplayer", () => {
     });
     world.addComponent(shipEntity, {
       type: "Input",
-      actions: { thrust: true },
+      actions: ["thrust"],
       axes: {}
     });
 

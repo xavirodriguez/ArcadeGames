@@ -167,7 +167,7 @@ export class SpaceInvadersGame
           moveRight: false,
           shoot: false,
           shootCooldownRemaining: 0,
-          actions: new Set<string>(),
+          actions: [],
           axes: {}
         } as InputComponent);
         world.addComponent(entity, { type: "Player" } as PlayerComponent);

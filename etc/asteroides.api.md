@@ -824,7 +824,7 @@ export class CampaignSaveManager {
 }
 
 // @public
-export type CanonicalActionName<TExtra extends string = never> = "fire" | "secondary" | "boost" | "hyperspace" | "pause" | "confirm" | "cancel" | TExtra;
+export type CanonicalActionName<TExtra extends string = never> = "fire" | "secondary" | "boost" | "hyperspace" | "pause" | "confirm" | "cancel" | (string & {}) | TExtra;
 
 // @public
 export interface CanonicalInputState<TExtra extends string = never> {
@@ -2802,7 +2802,7 @@ export interface INetworkGame {
 }
 
 // @public
-export type InputActionsLike = ReadonlySet<string> | readonly string[] | Readonly<Record<string, boolean>>;
+export type InputActionsLike = readonly CanonicalActionName[];
 
 // @public
 export type InputBinding<TExtra extends string = never> = AxisBinding | ActionBinding<TExtra>;
@@ -2833,7 +2833,7 @@ export class InputMapper<TExtra extends string = never> {
 // @public
 export interface InputPayload {
     // (undocumented)
-    actions: Set<string>;
+    actions: readonly CanonicalActionName[];
     // (undocumented)
     axes: Record<string, number>;
 }
@@ -2934,6 +2934,9 @@ export interface IPrefabPool<TParams> {
 export class IrisTransition extends BaseTransitionEffect {
     protected paint(ctx: RenderContext, progress: number, width: number, height: number, options?: TransitionOptions): void;
 }
+
+// @public
+export function isCanonicalActionName(action: unknown): action is CanonicalActionName;
 
 // @public
 export function isGameplayFrozen(world: World): boolean;
@@ -3574,7 +3577,7 @@ export interface MultiplayerRegistry extends CoreComponentRegistry {
     // (undocumented)
     Input: {
         type: "Input";
-        actions: Set<string>;
+        actions: readonly CanonicalActionName[];
         axes: Record<string, number>;
     };
     // (undocumented)

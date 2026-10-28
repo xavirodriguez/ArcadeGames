@@ -1,18 +1,16 @@
+import { CanonicalActionName } from "./CanonicalInput";
+
 /**
  * Type representing supported container/structure formats for active input actions.
  *
- * @remarks
- * In runtime execution, action lists can exist as a `Set<string>`, an array of strings `string[]`,
- * or a dictionary `Record<string, boolean>`.
- *
  * @public
  */
-export type InputActionsLike = ReadonlySet<string> | readonly string[] | Readonly<Record<string, boolean>>;
+export type InputActionsLike = readonly CanonicalActionName[];
 
 /**
  * Utility function to query whether a specific input action is currently active in an `InputActionsLike` structure.
  *
- * @param actions - The actions object, set, or array (or null/undefined).
+ * @param actions - The actions array (or null/undefined).
  * @param name - The action identifier to check.
  * @returns `true` if the action is active, `false` otherwise.
  *
@@ -21,16 +19,16 @@ export type InputActionsLike = ReadonlySet<string> | readonly string[] | Readonl
 export function hasInputAction(actions: InputActionsLike | null | undefined, name: string): boolean {
   if (!actions) return false;
 
-  if (actions instanceof Set) {
-    return actions.has(name);
+  if (Array.isArray(actions)) {
+    return actions.includes(name as CanonicalActionName);
   }
 
-  if (Array.isArray(actions)) {
-    return actions.includes(name);
+  if (actions instanceof Set) {
+    return (actions as never as Set<string>).has(name);
   }
 
   if (typeof actions === "object" && name in actions) {
-    return (actions as Readonly<Record<string, boolean>>)[name] === true;
+    return Boolean((actions as never as Readonly<Record<string, boolean>>)[name]);
   }
 
   return false;

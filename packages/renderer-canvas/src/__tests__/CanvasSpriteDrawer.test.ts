@@ -106,7 +106,7 @@ describe("CanvasSpriteDrawer Preloading and Caching", () => {
       save: jest.fn(),
       restore: jest.fn(),
       drawImage: drawImageMock,
-    } as CanvasRenderingContext2D;
+    } as never as CanvasRenderingContext2D;
 
     const world = new World();
     const image = { width: 64, height: 64, complete: true };

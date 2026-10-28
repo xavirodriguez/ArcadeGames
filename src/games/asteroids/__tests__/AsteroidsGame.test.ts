@@ -36,7 +36,7 @@ describe("AsteroidsGame Network & Prediction Tests", () => {
     } as any);
     world.addComponent(localPlayer, {
       type: "Input",
-      actions: new Set(),
+      actions: [],
       axes: {}
     } as any);
 

@@ -7,7 +7,7 @@ import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { TouchVirtualJoystick, TouchHoldButton, TouchActionButton } from "@/components/controls";
-import { TouchInputState } from "@tiny-aster/core";
+import { TouchInputState, hasInputAction } from "@tiny-aster/core";
 import { useRacingGame } from "@/hooks/useRacingGame";
 import { useKeyboardControls } from "@/hooks/useKeyboardControls";
 import { GameLayoutShell, GameScreen, GameTitle, GameInstructions, BackButton, NeonButton } from "@/components/ui";
@@ -69,7 +69,7 @@ export default function RacingScreen() {
     playerVelocity?.vy ?? 0,
     maxSpeed
   );
-  const isBoosting = playerInput?.actions.boost === true;
+  const isBoosting = hasInputAction(playerInput?.actions, "boost");
 
   const countdownVal = Math.ceil(gameState.countdownRemaining);
   const isCountdownActive = gameState.phase === "countdown" || (gameState.phase === "racing" && gameState.raceTime < 1.0);

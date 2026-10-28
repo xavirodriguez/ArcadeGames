@@ -50,7 +50,8 @@ import {
   RenderContext,
   Mutator,
   CompactInputFrame,
-  preloadSharedAudioManifest
+  preloadSharedAudioManifest,
+  CanonicalActionName
 } from "@tiny-aster/core";
 
 import { ComboSystem } from "@tiny-aster/core";
@@ -304,7 +305,7 @@ export class AsteroidsGame
       this.world.addComponent(ship, { type: "LocalPlayer" });
       this.world.addComponent(ship, {
         type: "Input",
-        actions: {},
+        actions: [],
         axes: {}
       });
 
@@ -458,21 +459,28 @@ export class AsteroidsGame
       this.world.mutateComponent(localPlayer, "Input", (inputComp) => {
         const inputObj = input as Record<string, unknown>;
         if (inputObj) {
+          const current = new Set<string>(inputComp.actions || []);
           if (typeof inputObj.rotateLeft === "boolean") {
-            inputComp.actions["rotateLeft"] = inputObj.rotateLeft;
+            if (inputObj.rotateLeft) current.add("rotateLeft"); else current.delete("rotateLeft");
           }
           if (typeof inputObj.rotateRight === "boolean") {
-            inputComp.actions["rotateRight"] = inputObj.rotateRight;
+            if (inputObj.rotateRight) current.add("rotateRight"); else current.delete("rotateRight");
           }
           if (typeof inputObj.thrust === "boolean") {
-            inputComp.actions["thrust"] = inputObj.thrust;
+            if (inputObj.thrust) current.add("thrust"); else current.delete("thrust");
           }
           if (typeof inputObj.shoot === "boolean") {
-            inputComp.actions["shoot"] = inputObj.shoot;
+            if (inputObj.shoot) current.add("shoot"); else current.delete("shoot");
           }
           if (typeof inputObj.hyperspace === "boolean") {
-            inputComp.actions["hyperspace"] = inputObj.hyperspace;
+            if (inputObj.hyperspace) current.add("hyperspace"); else current.delete("hyperspace");
           }
+          if (Array.isArray(inputObj.actions)) {
+            for (const a of inputObj.actions) {
+              if (typeof a === "string") current.add(a);
+            }
+          }
+          inputComp.actions = Array.from(current).sort() as CanonicalActionName[];
           if (typeof inputObj.rotationAmount === "number") {
             inputComp.axes["rotate_x"] = inputObj.rotationAmount;
             inputComp.axes["horizontal"] = inputObj.rotationAmount;

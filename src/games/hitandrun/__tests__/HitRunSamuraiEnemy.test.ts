@@ -6,7 +6,6 @@ import {
   SAMURAI_ANIMATIONS,
   SAMURAI_ASSET_KEY,
   SAMURAI_CELL_SIZE,
-  SAMURAI_CELL_SIZE,
   SAMURAI_SPRITE_READY_RESOURCE,
   getSamuraiFrameRect
 } from "../rendering/SamuraiVisualAssets";

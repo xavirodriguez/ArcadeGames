@@ -264,14 +264,7 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
 
                   const mutInp = world.getMutableComponent(entity, "Input");
                   if (mutInp) {
-                      const acts = mutInp.actions;
-                      if (acts instanceof Set) {
-                          acts.delete("hyperspace");
-                      } else if (Array.isArray(acts)) {
-                          mutInp.actions = acts.filter(x => x !== "hyperspace");
-                      } else if (acts && typeof acts === "object") {
-                          (acts as Record<string, boolean>)["hyperspace"] = false;
-                      }
+                      mutInp.actions = mutInp.actions.filter(x => x !== "hyperspace");
                   }
 
                   const eventBus = world.getEventBus();

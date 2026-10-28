@@ -3,12 +3,12 @@ import { hasInputAction } from "../hasInputAction";
 describe("hasInputAction", () => {
   describe("Set format", () => {
     it("returns true when action is present", () => {
-      const actions = new Set(["thrust", "shoot"]);
+      const actions = new Set(["thrust", "shoot"]) as never;
       expect(hasInputAction(actions, "thrust")).toBe(true);
     });
 
     it("returns false when action is absent", () => {
-      const actions = new Set(["shoot"]);
+      const actions = new Set(["shoot"]) as never;
       expect(hasInputAction(actions, "thrust")).toBe(false);
     });
   });
@@ -27,17 +27,17 @@ describe("hasInputAction", () => {
 
   describe("Record format", () => {
     it("returns true when action is true", () => {
-      const actions = { thrust: true, shoot: false };
+      const actions = { thrust: true, shoot: false } as never;
       expect(hasInputAction(actions, "thrust")).toBe(true);
     });
 
     it("returns false when action is false", () => {
-      const actions = { thrust: false, shoot: true };
+      const actions = { thrust: false, shoot: true } as never;
       expect(hasInputAction(actions, "thrust")).toBe(false);
     });
 
     it("returns false when action is undefined or missing", () => {
-      const actions = { shoot: true };
+      const actions = { shoot: true } as never;
       expect(hasInputAction(actions, "thrust")).toBe(false);
     });
   });

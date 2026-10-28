@@ -1,4 +1,4 @@
-import { System, World, TouchInputState } from "@tiny-aster/core";
+import { System, World, TouchInputState, hasInputAction } from "@tiny-aster/core";
 import { computeCarPhysics } from "../physics/CarPhysics";
 import type { RacingConfig } from "../types/RacingConfigSchema";
 import type { RacingComponentRegistry, RacingEventRegistry } from "../types/RacingRegistry";
@@ -40,8 +40,8 @@ export class RacingInputSystem extends System<RacingComponentRegistry, RacingEve
         {
           moveX,
           moveY,
-          boost: input.actions.boost === true || (touchState ? touchState.getButton("boost") : false),
-          brake: input.actions.brake === true || (touchState ? touchState.getButton("brake") : false)
+          boost: hasInputAction(input.actions, "boost") || (touchState ? touchState.getButton("boost") : false),
+          brake: hasInputAction(input.actions, "brake") || (touchState ? touchState.getButton("brake") : false)
         },
         this.config,
         deltaTime

@@ -1781,4 +1781,4 @@ export interface RunState {
   collectedTemporalIds: string[];
 }
 
-export { Entity };
+export type { Entity };

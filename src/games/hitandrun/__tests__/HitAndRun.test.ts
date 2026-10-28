@@ -6,6 +6,7 @@ import {
   SUMI_E_PLAYER_READY_RESOURCE,
   SUMI_E_THEME_RESOURCE
 } from "../rendering/SumiEVisualAssets";
+import { SAMURAI_SPRITE_READY_RESOURCE } from "../rendering/SamuraiVisualAssets";
 import { SpriteRegistry } from "../../shared/sprites";
 import { getHitRunCharacterSpriteSheet } from "../rendering/HitRunSpriteAtlas";
 import {
@@ -86,7 +87,7 @@ describe("Hit & Run Game Systems", () => {
       gameWorld.mutateComponent(player, "Velocity", (velocity) => {
         velocity.vx = 0;
       });
-      gameWorld.mutateComponent(player, "ComboMelee", (combo) => {
+      gameWorld.mutateComponent(player, "ComboMelee", (combo: { activeStep?: string }) => {
         combo.activeStep = "jab1";
       });
       stateSystem.update(gameWorld, 1 / 60);

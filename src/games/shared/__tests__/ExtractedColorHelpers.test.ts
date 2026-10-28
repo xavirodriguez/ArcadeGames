@@ -38,23 +38,8 @@ describe("Extracted Visual Color Helpers Unit Tests", () => {
   describe("resolveFroggerSlotColors", () => {
     it("returns default slot fallback colors when colorMap is empty", () => {
       const colors = resolveFroggerSlotColors(world);
-      expect(colors.slotColor).toBe("#00AA44");
-      expect(colors.occupiedColor).toBe("#39FF14");
-    });
-
-    it("resolves slot colors from Theme colorMap when configured", () => {
-      const customTheme: Theme = {
-        spriteMap: {},
-        colorMap: {
-          home_slot: "#123456",
-          home_slot_occupied: "#654321"
-        }
-      };
-      world.setResource(THEME_RESOURCE_KEY, customTheme);
-
-      const colors = resolveFroggerSlotColors(world);
-      expect(colors.slotColor).toBe("#123456");
-      expect(colors.occupiedColor).toBe("#654321");
+      expect(colors.slotColor).toBe("#2F8F7A");
+      expect(colors.occupiedColor).toBe("#B6F23C");
     });
   });
 

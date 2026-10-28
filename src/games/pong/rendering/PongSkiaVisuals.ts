@@ -6,7 +6,7 @@ import { Skia, getPaint, SkCanvas } from "../../shared/rendering/SkiaContext";
 import { fillSkiaPaint } from "../../shared/rendering/renderingUtils";
 import { resolvePongBallContext, resolvePongPaddleContext } from "./PongRenderUtils";
 
-export { TrailPoint } from "../../shared/rendering/CanvasNeonUtils";
+export type { TrailPoint } from "../../shared/rendering/CanvasNeonUtils";
 export { SkiaMotionTrail };
 
 const ballSkiaMotionTrail = new SkiaMotionTrail(30);

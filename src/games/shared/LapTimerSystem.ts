@@ -1,6 +1,6 @@
 import { System, World, CoreComponentRegistry, Entity, LapTrackerComponent } from "@tiny-aster/core";
 
-export { LapTrackerComponent };
+export type { LapTrackerComponent };
 
 /**
  * Creates a new {@link LapTrackerComponent}.

@@ -58,8 +58,8 @@ describe("Visual Math Pure Helpers", () => {
 
       const phase3 = calculateBossPhase(0.2);
       expect(phase3.phase).toBe(3);
-      expect(phase3.baseColor).toBe("#FF4444");
-      expect(phase3.accentColor).toBe("#FF0055");
+      expect(phase3.baseColor).toBe(colors.red);
+      expect(phase3.accentColor).toBe(colors.pink);
     });
   });
 });

@@ -8,7 +8,7 @@ import { computeNeonPulse } from "./ProceduralShapeUtils";
 import { COSMIC_ARCADE_PALETTE, hexToRgba } from "./CosmicPalette";
 import { MotionTrailBase, computeMotionTrailSegment, TrailPoint } from "./MotionTrailBuffer";
 
-export { TrailPoint };
+export type { TrailPoint };
 
 /**
  * Draws a rounded rectangle path on Canvas 2D context using `ctx.roundRect` if available,

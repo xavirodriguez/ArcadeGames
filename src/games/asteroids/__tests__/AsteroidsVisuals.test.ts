@@ -62,7 +62,7 @@ describe("Deterministic Asteroids 2D Visual Drawers (Canvas)", () => {
     });
     world.addComponent(entity, {
       type: "Input",
-      actions: { thrust: true },
+      actions: ["thrust" as never],
       axes: {}
     });
 

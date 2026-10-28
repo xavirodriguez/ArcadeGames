@@ -24,15 +24,14 @@ describe("Asteroids Input Bridge (React Bridge)", () => {
 
     // Call setInputState to simulate React Bridge inputs
     game.setInputState({
-      rotateLeft: true,
-      thrust: true,
-      shoot: false,
+      actions: ["rotateLeft", "thrust"],
+      axes: {}
     });
 
     // Verify component in ECS is updated
     const updatedInput = world.getComponent(playerEntity, "Input") as any;
-    expect(updatedInput.actions.rotateLeft).toBe(true);
-    expect(updatedInput.actions.thrust).toBe(true);
-    expect(updatedInput.actions.shoot).toBe(false);
+    expect(updatedInput.actions).toContain("rotateLeft");
+    expect(updatedInput.actions).toContain("thrust");
+    expect(updatedInput.actions).not.toContain("shoot");
   });
 });

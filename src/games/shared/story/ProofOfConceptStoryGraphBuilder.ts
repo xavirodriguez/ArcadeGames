@@ -68,7 +68,12 @@ export const builtProofOfConceptStoryGraph: StoryGraph = StoryGraphBuilder.graph
         key: "survive-asteroids-wave3",
         operator: "==",
         value: true
-      })
+      }, 10)
+      .addTransition("eval_act1_performance", {
+        type: "flag",
+        key: "asteroidsStruggle",
+        value: true
+      }, 0)
   )
 
   // 04: Branch Eval Act 1
@@ -187,7 +192,12 @@ export const builtProofOfConceptStoryGraph: StoryGraph = StoryGraphBuilder.graph
         key: "repel-invaders-wave",
         operator: "==",
         value: true
-      })
+      }, 10)
+      .addTransition("eval_act2_performance", {
+        type: "flag",
+        key: "reinforcementsReceived",
+        value: false
+      }, 0)
   )
 
   // 10: Cutscene Flappy Bird Route
@@ -230,7 +240,12 @@ export const builtProofOfConceptStoryGraph: StoryGraph = StoryGraphBuilder.graph
         key: "navigate-debris-channel",
         operator: "==",
         value: true
-      })
+      }, 10)
+      .addTransition("eval_act2_performance", {
+        type: "flag",
+        key: "reinforcementsReceived",
+        value: false
+      }, 0)
   )
 
   // 12: Branch Eval Act 2
@@ -331,7 +346,12 @@ export const builtProofOfConceptStoryGraph: StoryGraph = StoryGraphBuilder.graph
         key: "clear-final-sector",
         operator: "==",
         value: true
-      })
+      }, 10)
+      .addTransition("final_evaluation_branch", {
+        type: "flag",
+        key: "reduxClimaxFlawless",
+        value: false
+      }, 0)
   )
 
   // 18: Act 3 Space Invaders Redux Intro
@@ -374,7 +394,12 @@ export const builtProofOfConceptStoryGraph: StoryGraph = StoryGraphBuilder.graph
         key: "repel-final-fleet",
         operator: "==",
         value: true
-      })
+      }, 10)
+      .addTransition("final_evaluation_branch", {
+        type: "flag",
+        key: "reduxClimaxFlawless",
+        value: false
+      }, 0)
   )
 
   // 20: Final Evaluation Branch

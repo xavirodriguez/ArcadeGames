@@ -4,7 +4,7 @@ import { Skia } from "./SkiaContext";
 import type { SkCanvas, SkPaint } from "./SkiaContext";
 import { MotionTrailBase, computeMotionTrailSegment, TrailPoint } from "./MotionTrailBuffer";
 
-export { TrailPoint };
+export type { TrailPoint };
 
 function initSkiaPaint(style: unknown, colorStr: string, alpha = 1.0, existingPaint?: SkPaint | null): SkPaint | undefined {
   if (!Skia) return undefined;

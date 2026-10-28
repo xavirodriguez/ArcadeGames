@@ -7,7 +7,7 @@ import {
 } from "@tiny-aster/gameplay-kit";
 import type { TileType, TowerDefinition, CreepDefinition, WaveDefinition } from "./TowerDefenseConfigSchema";
 
-export { SpawnDirectorComponent, WaveMemberComponent };
+export type { SpawnDirectorComponent, WaveMemberComponent };
 
 /** Map tile kinds used by the level layout. */
 export type { TileType };

@@ -153,16 +153,16 @@ export type SnapshotDelta = Partial<BaseWorldSnapshot> & {
  * ```
  *
  * @warning
- * **Serializable state only**: Snapshots only capture serializable state (primitive
- * values, plain objects/arrays). The following are NOT captured and will be lost or
- * corrupted during snapshot/restore:
+ * **Serializable state only**: snapshots capture primitives, arrays, plain objects, Map, Set,
+ * Date, ArrayBuffer, DataView, and typed arrays. The clone utility preserves circular references,
+ * but snapshot hashing requires acyclic component data. The following are not restored as live
+ * resources or full class instances:
  * - Functions and closures.
- * - Class instances (unless they are plain objects under the hood).
- * - Circular references.
+ * - Class prototypes, methods, and private state.
  * - External/native resources (e.g. GPU buffers, DOM elements, AudioContext handles).
- * - Map and Set instances (must be converted to Objects/Arrays if needed).
+ * - Transient output/presentation components listed in SnapshotExclusionPolicy.
  *
- * These must be managed, re-initialized, or manually synchronized after restoration.
+ * Reinitialize external resources after restoration. Keep authoritative input in snapshots and hashes.
  * @public
  */
 export type WorldSnapshot = AoSWorldSnapshot | SoAWorldSnapshot;

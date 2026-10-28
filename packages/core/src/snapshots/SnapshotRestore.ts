@@ -3,6 +3,7 @@ import type { ComponentRegistry } from "../ecs/Component";
 import type { World } from "../ecs/World";
 import type { WorldSnapshot } from "./WorldSnapshot";
 import { restoreWorldMetadata, rebuildQueries, restoreComponentStorage, registerEntityComponent } from "./SnapshotInternalAccess";
+import { isSnapshotComponentExcluded } from "./SnapshotExclusionPolicy";
 
 /**
  * Classical Array of Structures (AoS) restoration utility.
@@ -44,6 +45,7 @@ export class SnapshotRestore {
     const internal = restoreWorldMetadata(world, state);
 
     for (const type in state.componentData) {
+      if (isSnapshotComponentExcluded(type)) continue;
       const { storage, index, versions } = restoreComponentStorage(internal, type);
 
       const snapshotEntities = state.componentData[type];

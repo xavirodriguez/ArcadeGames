@@ -9,7 +9,7 @@ describe("serializeInput contract (canonicalToInputFrame)", () => {
     const canonical = createEmptyCanonicalInputState();
     canonical.axes.moveX = 0.5;
     canonical.axes.moveY = -0.5;
-    canonical.actions.add("fire");
+    canonical.actions = ["fire"];
 
     const frame = canonicalToInputFrame(canonical, 42);
 
@@ -24,8 +24,7 @@ describe("serializeInput contract (canonicalToInputFrame)", () => {
   it("is pure and deterministic: same canonical input yields identical serialized frame", () => {
     const canonical = createEmptyCanonicalInputState();
     canonical.axes.aimX = -0.3;
-    canonical.actions.add("fire");
-    canonical.actions.add("boost");
+    canonical.actions = ["fire", "boost"];
 
     const a = canonicalToInputFrame(canonical, 10);
     const b = canonicalToInputFrame(canonical, 10);
@@ -35,25 +34,25 @@ describe("serializeInput contract (canonicalToInputFrame)", () => {
 
   it("never mutates the input CanonicalInputState", () => {
     const canonical = createEmptyCanonicalInputState();
-    canonical.actions.add("fire");
-    const snapshotActionsSize = canonical.actions.size;
+    canonical.actions = ["fire"];
+    const snapshotActions = [...canonical.actions];
 
     canonicalToInputFrame(canonical, 1);
 
-    expect(canonical.actions.size).toBe(snapshotActionsSize);
+    expect(canonical.actions).toEqual(snapshotActions);
   });
 
   it("round-trips correctly between canonicalToInputFrame and inputFrameToCanonical", () => {
     const canonical = createEmptyCanonicalInputState();
     canonical.axes.moveX = 0.75;
     canonical.axes.aimY = -0.25;
-    canonical.actions.add("secondary");
+    canonical.actions = ["secondary"];
 
     const frame = canonicalToInputFrame(canonical, 100);
     const restored = inputFrameToCanonical(frame);
 
     expect(restored.axes.moveX).toBe(canonical.axes.moveX);
     expect(restored.axes.aimY).toBe(canonical.axes.aimY);
-    expect(restored.actions.has("secondary")).toBe(true);
+    expect(restored.actions.includes("secondary")).toBe(true);
   });
 });

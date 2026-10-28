@@ -53,6 +53,7 @@ export class VirtualJoystickProvider<TExtra extends string = never> implements I
 
   public getInputState(): CanonicalInputState<TExtra> {
     const state = createEmptyCanonicalInputState<TExtra>();
+    const actions: CanonicalActionName<TExtra>[] = [];
     state.timestamp = Date.now();
 
     state.axes.moveX = this.leftX;
@@ -63,13 +64,14 @@ export class VirtualJoystickProvider<TExtra extends string = never> implements I
     // Check right stick magnitude threshold for twin-stick auto-fire
     const rightMagSq = this.rightX * this.rightX + this.rightY * this.rightY;
     if (rightMagSq >= this.fireThreshold * this.fireThreshold) {
-      state.actions.add("fire" as CanonicalActionName<TExtra>);
+      actions.push("fire" as CanonicalActionName<TExtra>);
     }
 
     for (const action of this.extraActions) {
-      state.actions.add(action);
+      if (!actions.includes(action)) actions.push(action);
     }
 
+    state.actions = actions.sort();
     return state;
   }
 

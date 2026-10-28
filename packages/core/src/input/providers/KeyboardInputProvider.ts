@@ -116,6 +116,7 @@ export class KeyboardInputProvider<TExtra extends string = never> implements Inp
 
   public getInputState(): CanonicalInputState<TExtra> {
     const state = createEmptyCanonicalInputState<TExtra>();
+    const actions: CanonicalActionName<TExtra>[] = [];
     state.timestamp = Date.now();
 
     let moveX = 0;
@@ -149,11 +150,13 @@ export class KeyboardInputProvider<TExtra extends string = never> implements Inp
     if (this.config.actions) {
       for (const [code, actionName] of Object.entries(this.config.actions)) {
         if (this.activeKeys.has(code)) {
-          state.actions.add(actionName as CanonicalActionName<TExtra>);
+          const action = actionName as CanonicalActionName<TExtra>;
+          if (!actions.includes(action)) actions.push(action);
         }
       }
     }
 
+    state.actions = actions.sort();
     return state;
   }
 

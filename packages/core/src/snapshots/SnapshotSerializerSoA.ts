@@ -4,6 +4,7 @@ import type { World } from "../ecs/World";
 import type { SoAWorldSnapshot, SoAComponentTypeData } from "./WorldSnapshot";
 import { buildSnapshotMetadata } from "./SnapshotMetadataBuilder";
 import type { InternalWorldAccess } from "./SnapshotInternalAccess";
+import { isSnapshotComponentExcluded } from "./SnapshotExclusionPolicy";
 
 /**
  * High-performance Structure of Arrays (SoA) Serializer.
@@ -40,6 +41,7 @@ export class SnapshotSerializerSoA {
     const soaComponentData: Record<string, SoAComponentTypeData> = {};
 
     componentMaps.forEach((map, type) => {
+      if (isSnapshotComponentExcluded(type)) return;
       // 1. Gather active entities with this component
       const entitiesWithComponent: number[] = [];
       map.forEach((_comp, entity) => {

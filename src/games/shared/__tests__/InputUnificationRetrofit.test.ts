@@ -19,7 +19,7 @@ describe("Input Unification Retrofit Non-Regression Tests", () => {
       canonicalState.axes.moveY = -1;
       canonicalState.axes.aimX = 0.5;
       canonicalState.axes.aimY = 0.5;
-      canonicalState.actions.add("fire");
+      canonicalState.actions = ["fire"];
 
       game.setInputState(canonicalState);
 
@@ -46,7 +46,7 @@ describe("Input Unification Retrofit Non-Regression Tests", () => {
 
       const canonicalState = createEmptyCanonicalInputState();
       canonicalState.axes.moveX = -1;
-      canonicalState.actions.add("fire");
+      canonicalState.actions = ["fire"];
 
       game.setInputState(canonicalState);
 
@@ -67,8 +67,7 @@ describe("Input Unification Retrofit Non-Regression Tests", () => {
       const canonicalState = createEmptyCanonicalInputState();
       canonicalState.axes.moveX = 1;
       canonicalState.axes.moveY = -1;
-      canonicalState.actions.add("hyperspace");
-      canonicalState.actions.add("fire");
+      canonicalState.actions = ["fire", "hyperspace"];
 
       game.setInputState(canonicalState);
 
@@ -94,8 +93,7 @@ describe("Input Unification Retrofit Non-Regression Tests", () => {
       world.addComponent(bird, { type: "Bird" } as any);
 
       const canonicalState = createEmptyCanonicalInputState();
-      canonicalState.actions.add("confirm");
-      canonicalState.actions.add("boost");
+      canonicalState.actions = ["boost", "confirm"];
 
       game.setInputState(canonicalState);
 

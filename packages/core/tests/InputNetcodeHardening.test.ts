@@ -145,6 +145,7 @@ describe("Input netcode hardening", () => {
 
   it("hashes Map and Set contents independently of insertion order", () => {
     const firstWorld = new World<Record<string, Component>>();
+    firstWorld.gameplayRandom.setSeed(12345);
     const firstEntity = firstWorld.createEntity();
     firstWorld.addComponent(firstEntity, {
       type: "UnorderedCollections",
@@ -153,6 +154,7 @@ describe("Input netcode hardening", () => {
     });
 
     const secondWorld = new World<Record<string, Component>>();
+    secondWorld.gameplayRandom.setSeed(12345);
     const secondEntity = secondWorld.createEntity();
     secondWorld.addComponent(secondEntity, {
       type: "UnorderedCollections",

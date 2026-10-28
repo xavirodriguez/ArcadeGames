@@ -970,4 +970,4 @@ function assertResourceShape(name: string, value: unknown): void {
   }
 }
 
-export { ComponentRegistry, ComponentType };
+export type { ComponentRegistry, ComponentType };

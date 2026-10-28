@@ -207,7 +207,7 @@ export * from "./utils/PrefabPool";
 export * from "./utils/ProjectilePool";
 
 // Deterministic Pure Replay System
-export { Replay } from "./replay/DeterministicReplay";
+export type { Replay } from "./replay/DeterministicReplay";
 export { DeterministicReplayRecorder } from "./replay/DeterministicReplay";
 export { DeterministicReplayPlayer } from "./replay/DeterministicReplay";
 export { DivergenceDetector } from "./replay/DivergenceDetector";

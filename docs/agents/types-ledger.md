@@ -51,3 +51,4 @@
 | 2026-10-24 | `src/games/hitandrun/rendering/HitRunHudCanvas.ts` (`drawHitRunHud`) | Resuelto | Replaced string resource key and `any` cast on scoreState with `HIT_RUN_SCORE_RESOURCE` and `HitRunScoreState`. |
 
 | 2026-10-28 | `packages/core/src/input/CanonicalInput.ts` (`CanonicalInputState.actions`, `Input.actions`) | Protegido | Mantener `readonly CanonicalActionName[]` en los caminos canónicos. Cambios requieren revisión de netcode porque afectan predicción, rollback y hashes. No introducir `any` en el path de Input sin justificación `Fully justified` y revisión. |
+| 2026-10-28 | `packages/core/src/input/CanonicalInput.ts` (`CanonicalInputState.actions`, `Input.actions`) | Protegido | Mantener `readonly CanonicalActionName[]` en los caminos canónicos. Cambios requieren revisión de netcode porque afectan predicción, rollback y hashes. No introducir `any` en el path de Input sin justificación `Fully justified` y revisión. |

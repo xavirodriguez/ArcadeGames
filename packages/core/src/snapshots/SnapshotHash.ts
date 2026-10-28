@@ -159,6 +159,77 @@ function hashString(hash: number, str: string): number {
   return hash;
 }
 
+function compareStableKeys(left: string, right: string): number {
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
+}
+
+/** Builds a deterministic ordering key for non-numeric Map/Set entries before hashing them. */
+function stableValueKey(value: unknown, ancestors = new WeakSet<object>()): string {
+  if (value === null) return "null";
+  if (value === undefined) return "undefined";
+
+  const valueType = typeof value;
+  if (valueType === "string") return `string:${JSON.stringify(value)}`;
+  if (valueType === "boolean") return value ? "boolean:1" : "boolean:0";
+  if (valueType === "number") {
+    if (Number.isNaN(value as number)) return "number:NaN";
+    if (Object.is(value, -0)) return "number:-0";
+    return `number:${String(value)}`;
+  }
+  if (valueType === "bigint") return `bigint:${String(value)}`;
+  if (valueType !== "object") return `${valueType}:${String(value)}`;
+
+  const objectValue = value as object;
+  if (ancestors.has(objectValue)) {
+    throw new Error("Snapshot hashing requires acyclic component data.");
+  }
+  ancestors.add(objectValue);
+
+  try {
+    if (value instanceof Date) return `date:${value.getTime()}`;
+
+    if (value instanceof Map) {
+      const entries = Array.from(value.entries(), ([key, entryValue]) => [
+        stableValueKey(key, ancestors),
+        stableValueKey(entryValue, ancestors)
+      ] as const);
+      entries.sort((left, right) =>
+        compareStableKeys(left[0], right[0]) || compareStableKeys(left[1], right[1])
+      );
+      return `map:{${entries.map(([key, entryValue]) => `${key}=>${entryValue}`).join("|")}}`;
+    }
+
+    if (value instanceof Set) {
+      const entries = Array.from(value, entry => stableValueKey(entry, ancestors)).sort(compareStableKeys);
+      return `set:{${entries.join("|")}}`;
+    }
+
+    if (value instanceof ArrayBuffer) {
+      const bytes = new Uint8Array(value);
+      return `arraybuffer:${Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("")}`;
+    }
+
+    if (ArrayBuffer.isView(value)) {
+      const view = value as ArrayBufferView;
+      const name = (value as { constructor: { name: string } }).constructor.name;
+      const bytes = new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
+      return `view:${name}:${Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("")}`;
+    }
+
+    if (Array.isArray(value)) {
+      return `array:[${value.map(entry => stableValueKey(entry, ancestors)).join("|")}]`;
+    }
+
+    const record = value as Record<string, unknown>;
+    const keys = Object.keys(record).sort(compareStableKeys);
+    return `object:{${keys.map(key => `${JSON.stringify(key)}:${stableValueKey(record[key], ancestors)}`).join("|")}}`;
+  } finally {
+    ancestors.delete(objectValue);
+  }
+}
+
 function hashValue(hash: number, val: unknown): number {
   if (val === null || val === undefined) {
     return hashInt32(hash, 0);
@@ -193,16 +264,27 @@ function hashValue(hash: number, val: unknown): number {
   if (val instanceof Map) {
     hash = hashInt32(hash, 8);
     hash = hashInt32(hash, val.size);
-    for (const [key, entryValue] of val) {
-      hash = hashValue(hash, key);
-      hash = hashValue(hash, entryValue);
+    const entries = Array.from(val.entries(), ([key, entryValue]) => ({
+      key,
+      entryValue,
+      keySort: stableValueKey(key),
+      valueSort: stableValueKey(entryValue)
+    }));
+    entries.sort((left, right) =>
+      compareStableKeys(left.keySort, right.keySort) || compareStableKeys(left.valueSort, right.valueSort)
+    );
+    for (const entry of entries) {
+      hash = hashValue(hash, entry.key);
+      hash = hashValue(hash, entry.entryValue);
     }
     return hash;
   }
   if (val instanceof Set) {
     hash = hashInt32(hash, 9);
     hash = hashInt32(hash, val.size);
-    for (const entry of val) hash = hashValue(hash, entry);
+    const entries = Array.from(val, entry => ({ entry, sortKey: stableValueKey(entry) }));
+    entries.sort((left, right) => compareStableKeys(left.sortKey, right.sortKey));
+    for (const entry of entries) hash = hashValue(hash, entry.entry);
     return hash;
   }
   if (val instanceof ArrayBuffer) {

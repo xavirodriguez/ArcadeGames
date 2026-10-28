@@ -143,6 +143,32 @@ describe("Input netcode hardening", () => {
     });
   });
 
+  it("hashes Map and Set contents independently of insertion order", () => {
+    const firstWorld = new World<Record<string, Component>>();
+    const firstEntity = firstWorld.createEntity();
+    firstWorld.addComponent(firstEntity, {
+      type: "UnorderedCollections",
+      entries: new Map([["beta", 2], ["alpha", 1]]),
+      tags: new Set(["beta", "alpha"])
+    });
+
+    const secondWorld = new World<Record<string, Component>>();
+    const secondEntity = secondWorld.createEntity();
+    secondWorld.addComponent(secondEntity, {
+      type: "UnorderedCollections",
+      entries: new Map([["alpha", 1], ["beta", 2]]),
+      tags: new Set(["alpha", "beta"])
+    });
+
+    const firstAoS = SnapshotSerializer.snapshot(firstWorld);
+    const secondAoS = SnapshotSerializer.snapshot(secondWorld);
+    expect(hashAoS(firstAoS)).toBe(hashAoS(secondAoS));
+
+    const firstSoA = SnapshotSerializerSoA.snapshot(firstWorld);
+    const secondSoA = SnapshotSerializerSoA.snapshot(secondWorld);
+    expect(hashSoA(firstSoA)).toBe(hashSoA(secondSoA));
+  });
+
   it("copies queued action arrays and replays only inputs newer than the acknowledged server tick", () => {
     const replayed: CanonicalActionName[][] = [];
     const { world, entity } = makePredictionWorld(["fire"]);

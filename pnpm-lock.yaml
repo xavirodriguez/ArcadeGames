@@ -1389,15 +1389,6 @@ packages:
       '@colyseus/core': 0.17.x
       '@colyseus/ws-transport': 0.17.x
 
-  '@colyseus/uwebsockets-transport@0.17.20':
-    resolution: {integrity: sha512-274nZvtkaNyJ2Cs6w6onepKZLACtrHDtu5WbM5Krp5M4ScvR9k3icrqtQgffaBdo/5nVMKPuOn4U51Ylmn/dWw==}
-    peerDependencies:
-      '@colyseus/core': 0.17.x
-      uwebsockets-express: ^1.4.1 || ^2.0.1
-    peerDependenciesMeta:
-      uwebsockets-express:
-        optional: true
-
   '@colyseus/ws-transport@0.17.13':
     resolution: {integrity: sha512-5yjNoXKQLTGVAIu5u/x12DsF29cC7y1EIQL1uOS6vBhqymPioFQz++zgmer0W3M2h2iwZuM5rHdpujG/R4IUfg==}
     peerDependencies:
@@ -4654,22 +4645,6 @@ packages:
   color@4.2.3:
     resolution: {integrity: sha512-1rXeuUUiGGrykh+CeBdu5Ie7OJwinCgQY0bc7GCRxy5xVHy+moaqkpL/jqQq0MtQOeYcrqEz4abc5f0KtU7W4A==}
     engines: {node: '>=12.5.0'}
-
-  colyseus@0.17.10:
-    resolution: {integrity: sha512-RiVNY7LaLfI0vgVYdoc2GTPAYO6aumHWDw0xvbQuml4SA6naYGaAZI33R0vWzvVYtWFQIsGhTdkRDtp/N9FauQ==}
-    engines: {node: '>= 20.x'}
-    peerDependencies:
-      '@colyseus/auth': 0.17.x
-      '@colyseus/core': 0.17.x
-      '@colyseus/redis-driver': 0.17.x
-      '@colyseus/redis-presence': 0.17.x
-      '@colyseus/schema': ^4.0.7
-      '@colyseus/uwebsockets-transport': 0.17.x
-      '@colyseus/ws-transport': 0.17.x
-      vite: '>=6.0.0'
-    peerDependenciesMeta:
-      vite:
-        optional: true
 
   combined-stream@1.0.8:
     resolution: {integrity: sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==}
@@ -8824,10 +8799,6 @@ packages:
     engines: {node: '>=16.20.0'}
     hasBin: true
 
-  uWebSockets.js@https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/fcfc622a4286909593b7f390056d89e0ca3b56b9:
-    resolution: {tarball: https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/fcfc622a4286909593b7f390056d89e0ca3b56b9}
-    version: 20.57.0
-
   ua-parser-js@1.0.41:
     resolution: {integrity: sha512-LbBDqdIC5s8iROCUjMbW1f5dJQTEFB1+KO9ogbvlb3nm9n4YHa5p4KTvFPWvh2Hs8gZMBuiB1/8+pdfe/tDPug==}
     hasBin: true
@@ -10288,11 +10259,6 @@ snapshots:
       dotenv: 17.4.2
     transitivePeerDependencies:
       - supports-color
-
-  '@colyseus/uwebsockets-transport@0.17.20(@colyseus/core@0.17.43)':
-    dependencies:
-      '@colyseus/core': 0.17.43(@colyseus/better-call@1.3.3(zod@4.4.3))(@colyseus/schema@4.0.26(typescript@5.9.3))(@colyseus/ws-transport@0.17.13)(@pm2/io@6.1.0)(express@5.2.1)(zod@4.4.3)
-      uWebSockets.js: https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/fcfc622a4286909593b7f390056d89e0ca3b56b9
 
   '@colyseus/ws-transport@0.17.13(@colyseus/core@0.17.43)(express@5.2.1)':
     dependencies:
@@ -13960,25 +13926,6 @@ snapshots:
     dependencies:
       color-convert: 2.0.1
       color-string: 1.9.1
-
-  colyseus@0.17.10(@colyseus/auth@0.17.9(@colyseus/core@0.17.43)(express@5.2.1))(@colyseus/better-call@1.3.3(zod@4.4.3))(@colyseus/core@0.17.43)(@colyseus/redis-driver@0.17.7(@colyseus/better-call@1.3.3(zod@4.4.3))(@colyseus/schema@4.0.26(typescript@5.9.3))(@colyseus/ws-transport@0.17.13)(@pm2/io@6.1.0)(express@5.2.1)(zod@4.4.3))(@colyseus/redis-presence@0.17.7(@colyseus/better-call@1.3.3(zod@4.4.3))(@colyseus/schema@4.0.26(typescript@5.9.3))(@colyseus/ws-transport@0.17.13)(@pm2/io@6.1.0)(express@5.2.1)(zod@4.4.3))(@colyseus/schema@4.0.26(typescript@5.9.3))(@colyseus/uwebsockets-transport@0.17.20(@colyseus/core@0.17.43))(@colyseus/ws-transport@0.17.13)(@pm2/io@6.1.0)(express@5.2.1)(zod@4.4.3):
-    dependencies:
-      '@colyseus/auth': 0.17.9(@colyseus/core@0.17.43)(express@5.2.1)
-      '@colyseus/core': 0.17.43(@colyseus/better-call@1.3.3(zod@4.4.3))(@colyseus/schema@4.0.26(typescript@5.9.3))(@colyseus/ws-transport@0.17.13)(@pm2/io@6.1.0)(express@5.2.1)(zod@4.4.3)
-      '@colyseus/monitor': 0.17.8(@colyseus/better-call@1.3.3(zod@4.4.3))(@colyseus/schema@4.0.26(typescript@5.9.3))(@colyseus/ws-transport@0.17.13)(@pm2/io@6.1.0)(zod@4.4.3)
-      '@colyseus/playground': 0.17.12(@colyseus/auth@0.17.9(@colyseus/core@0.17.43)(express@5.2.1))(@colyseus/core@0.17.43)(express@5.2.1)(zod@4.4.3)
-      '@colyseus/redis-driver': 0.17.7(@colyseus/better-call@1.3.3(zod@4.4.3))(@colyseus/schema@4.0.26(typescript@5.9.3))(@colyseus/ws-transport@0.17.13)(@pm2/io@6.1.0)(express@5.2.1)(zod@4.4.3)
-      '@colyseus/redis-presence': 0.17.7(@colyseus/better-call@1.3.3(zod@4.4.3))(@colyseus/schema@4.0.26(typescript@5.9.3))(@colyseus/ws-transport@0.17.13)(@pm2/io@6.1.0)(express@5.2.1)(zod@4.4.3)
-      '@colyseus/schema': 4.0.26(typescript@5.9.3)
-      '@colyseus/tools': 0.17.19(@colyseus/core@0.17.43)(@colyseus/ws-transport@0.17.13)
-      '@colyseus/uwebsockets-transport': 0.17.20(@colyseus/core@0.17.43)
-      '@colyseus/ws-transport': 0.17.13(@colyseus/core@0.17.43)(express@5.2.1)
-    transitivePeerDependencies:
-      - '@colyseus/better-call'
-      - '@pm2/io'
-      - express
-      - supports-color
-      - zod
 
   combined-stream@1.0.8:
     dependencies:
@@ -19158,8 +19105,6 @@ snapshots:
       '@typescript/typescript-win32-arm64': 7.0.2
       '@typescript/typescript-win32-x64': 7.0.2
     optional: true
-
-  uWebSockets.js@https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/fcfc622a4286909593b7f390056d89e0ca3b56b9: {}
 
   ua-parser-js@1.0.41: {}
 

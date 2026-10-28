@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   restore:
-    if: ${{ inputs.confirm == 'RESTORE' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.confirm == 'RESTORE' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write

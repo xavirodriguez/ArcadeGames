@@ -715,6 +715,9 @@ export const browserFrameScheduler: FrameScheduler;
 export function buildInterpolationSnapshot(tick: number, entries: InterpolationSnapshotEntry[]): WorldSnapshot;
 
 // @public
+export function buildRenderPlan<TRegistry extends ComponentRegistry>(world: World<TRegistry>, entriesBuffer?: RenderQueueEntry[]): RenderPlan;
+
+// @public
 export function buildSnapshotMetadata<TComponents extends ComponentRegistry>(world: World<TComponents>, internal: InternalWorldSnapshotAccess, activeEntities: Set<Entity>, options?: {
     isSoA?: false;
 }): BaseWorldSnapshot & {
@@ -4479,6 +4482,20 @@ export class RemoteInterpolationSystem<TRegistry extends MultiplayerRegistry = M
 export type RenderCallback = (alpha: number) => void;
 
 // @public
+export interface RenderCameraState {
+    // (undocumented)
+    visualOffsetX: number;
+    // (undocumented)
+    visualOffsetY: number;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+    // (undocumented)
+    zoom: number;
+}
+
+// @public
 export type RenderCommand = {
     type: typeof RenderCommandType.DrawSprite | "DrawSprite";
     data: DrawSpritePayload;
@@ -4578,6 +4595,34 @@ export class RenderPipeline {
     getActiveBuffer(): RenderCommandBuffer;
     getBackBuffer(): RenderCommandBuffer;
     swapBuffers(): void;
+}
+
+// @public
+export interface RenderPlan {
+    entries: RenderQueueEntry[];
+    mainCamera: RenderCameraState | null;
+    viewportHeight: number;
+    viewportWidth: number;
+}
+
+// @public
+export interface RenderQueueEntry {
+    // (undocumented)
+    color?: string;
+    // (undocumented)
+    depthSort: boolean;
+    // (undocumented)
+    entity: Entity;
+    // (undocumented)
+    order: number;
+    // (undocumented)
+    render: RenderComponent;
+    // (undocumented)
+    shape?: string;
+    // (undocumented)
+    transform: TransformComponent;
+    // (undocumented)
+    y: number;
 }
 
 // @public

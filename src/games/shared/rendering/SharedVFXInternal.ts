@@ -11,12 +11,18 @@ import { MotionTrailParams, computeTrailParameters, getThrusterFlameColors, Circ
 import { LevelThemeName, LevelVisualTheme, LEVEL_THEME_PRESETS, getLevelTheme } from "./LevelThemeSystem";
 
 export { COSMIC_ARCADE_PALETTE, getSemanticColor, hexToRgba, getSkiaColor };
-export { GlowIntensity, GlowStyle, GLOW_PRESETS, getGlowStyle, renderCanvasGlow, renderSkiaGlow };
-export { ParallaxLayerName, PARALLAX_FACTORS, computeParallaxOffset, wrapParallaxCoordinate };
-export { ExplosionType, ExplosionProfile, EXPLOSION_PROFILES, computeExplosionState };
-export { PlanetType, PlanetTheme, PLANET_THEMES, getPlanetTheme };
-export { MotionTrailParams, computeTrailParameters, getThrusterFlameColors, CircularPositionBuffer, CircularPositionBufferConfig, TrailBufferPoint };
-export { LevelThemeName, LevelVisualTheme, LEVEL_THEME_PRESETS, getLevelTheme };
+export type { GlowIntensity, GlowStyle };
+export { GLOW_PRESETS, getGlowStyle, renderCanvasGlow, renderSkiaGlow };
+export type { ParallaxLayerName };
+export { PARALLAX_FACTORS, computeParallaxOffset, wrapParallaxCoordinate };
+export type { ExplosionType, ExplosionProfile };
+export { EXPLOSION_PROFILES, computeExplosionState };
+export type { PlanetType, PlanetTheme };
+export { PLANET_THEMES, getPlanetTheme };
+export type { MotionTrailParams, CircularPositionBufferConfig, TrailBufferPoint };
+export { computeTrailParameters, getThrusterFlameColors, CircularPositionBuffer };
+export type { LevelThemeName, LevelVisualTheme };
+export { LEVEL_THEME_PRESETS, getLevelTheme };
 
 export interface ActiveVisualContext {
   starDensity: number;

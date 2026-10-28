@@ -137,8 +137,9 @@ exports[`UpdateFromServer Golden Master Tests GeometryWarsGame.updateFromServer 
       },
       "Render": {
         "angularVelocity": 0,
-        "color": undefined,
+        "color": "#00D9FF",
         "hitFlashFrames": 0,
+        "muzzleFlashFrames": 0,
         "opacity": 1,
         "order": 1,
         "rotation": 0,
@@ -169,16 +170,63 @@ exports[`UpdateFromServer Golden Master Tests GeometryWarsGame.updateFromServer 
   {
     "components": {
       "Health": {
+        "current": 1,
+        "max": 1,
+        "type": "Health",
+      },
+      "Player": {
+        "fireCooldownRemaining": 0,
+        "invulnRemaining": 0,
+        "moveX": 0,
+        "moveY": 0,
+        "type": "Player",
+      },
+      "Render": {
+        "angularVelocity": 0,
+        "color": "#00D9FF",
+        "hitFlashFrames": 0,
+        "opacity": 1,
+        "order": 1,
+        "rotation": 1.57,
+        "shape": "gw_player",
+        "size": 16,
+        "type": "Render",
+        "visible": true,
+      },
+      "Transform": {
+        "dirty": false,
+        "rotation": 1.57,
+        "scaleX": 1,
+        "scaleY": 1,
+        "type": "Transform",
+        "worldRotation": 1.57,
+        "worldScaleX": 1,
+        "worldScaleY": 1,
+        "worldX": 10,
+        "worldY": 20,
+        "x": 10,
+        "y": 20,
+      },
+    },
+    "id": 1048583,
+  },
+  {
+    "components": {
+      "Health": {
         "current": 0,
         "max": 1,
         "type": "Health",
       },
       "Player": {
+        "fireCooldownRemaining": 0,
+        "invulnRemaining": 0,
+        "moveX": 0,
+        "moveY": 0,
         "type": "Player",
       },
       "Render": {
         "angularVelocity": 0,
-        "color": "#00f0ff",
+        "color": "#00D9FF",
         "hitFlashFrames": 0,
         "opacity": 1,
         "order": 1,
@@ -203,13 +251,13 @@ exports[`UpdateFromServer Golden Master Tests GeometryWarsGame.updateFromServer 
         "y": 40,
       },
     },
-    "id": 1048583,
+    "id": 1048584,
   },
   {
     "components": {
       "Render": {
         "angularVelocity": 0,
-        "color": "#ff0055",
+        "color": "#FF006E",
         "hitFlashFrames": 0,
         "opacity": 1,
         "order": 1,
@@ -234,13 +282,13 @@ exports[`UpdateFromServer Golden Master Tests GeometryWarsGame.updateFromServer 
         "y": 100,
       },
     },
-    "id": 1048584,
+    "id": 1048585,
   },
   {
     "components": {
       "Render": {
         "angularVelocity": 0,
-        "color": "#ffd700",
+        "color": "#FFD700",
         "hitFlashFrames": 0,
         "opacity": 1,
         "order": 2,
@@ -265,7 +313,7 @@ exports[`UpdateFromServer Golden Master Tests GeometryWarsGame.updateFromServer 
         "y": 200,
       },
     },
-    "id": 1048585,
+    "id": 1048586,
   },
 ]
 `;
@@ -292,6 +340,8 @@ exports[`UpdateFromServer Golden Master Tests SpaceInvadersGame.updateFromServer
         "type": "Health",
       },
       "Input": {
+        "actions": [],
+        "axes": {},
         "moveLeft": false,
         "moveRight": false,
         "shoot": false,
@@ -308,6 +358,7 @@ exports[`UpdateFromServer Golden Master Tests SpaceInvadersGame.updateFromServer
         "angularVelocity": 0,
         "color": "green",
         "hitFlashFrames": 0,
+        "muzzleFlashFrames": 0,
         "opacity": 1,
         "order": 0,
         "rotation": 0,
@@ -355,6 +406,8 @@ exports[`UpdateFromServer Golden Master Tests SpaceInvadersGame.updateFromServer
         "type": "Health",
       },
       "Input": {
+        "actions": [],
+        "axes": {},
         "moveLeft": false,
         "moveRight": false,
         "shoot": false,
@@ -368,6 +421,7 @@ exports[`UpdateFromServer Golden Master Tests SpaceInvadersGame.updateFromServer
         "angularVelocity": 0,
         "color": "red",
         "hitFlashFrames": 0,
+        "muzzleFlashFrames": 0,
         "opacity": 1,
         "order": 0,
         "rotation": 0,
@@ -416,7 +470,7 @@ exports[`UpdateFromServer Golden Master Tests SpaceInvadersGame.updateFromServer
       },
       "Render": {
         "angularVelocity": 0,
-        "color": "#ff0088",
+        "color": "#FF0088",
         "data": {},
         "hitFlashFrames": 0,
         "opacity": 1,
@@ -456,8 +510,10 @@ exports[`UpdateFromServer Golden Master Tests SpaceInvadersGame.updateFromServer
       "Damage": {
         "amount": 1,
         "category": "player_bullet",
+        "charged": false,
         "consumption": "destroy-entity",
         "friendlyFire": false,
+        "piercing": undefined,
         "type": "Damage",
       },
       "Faction": {
@@ -472,6 +528,7 @@ exports[`UpdateFromServer Golden Master Tests SpaceInvadersGame.updateFromServer
         "angularVelocity": 0,
         "color": "yellow",
         "hitFlashFrames": 0,
+        "muzzleFlashFrames": 0,
         "opacity": 1,
         "order": 10,
         "rotation": 0,
@@ -524,8 +581,9 @@ exports[`UpdateFromServer Golden Master Tests SpaceInvadersGame.updateFromServer
       },
       "Render": {
         "angularVelocity": 0,
-        "color": "red",
+        "color": "#FBBF24",
         "hitFlashFrames": 0,
+        "muzzleFlashFrames": 0,
         "opacity": 1,
         "order": 10,
         "rotation": 0,

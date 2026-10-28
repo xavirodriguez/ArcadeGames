@@ -3,7 +3,7 @@ import { LootTableComponent, PowerUpComponent, CombatHitEvent, CombatDeathEvent,
 import { DialogueBoxComponent } from "../../shared/story/DialogueBoxComponent";
 import { EnemyTagComponent } from "../components/EnemyTagComponent";
 
-export { SpawnDirectorComponent, WaveMemberComponent };
+export type { SpawnDirectorComponent, WaveMemberComponent };
 
 export interface WaveDefinition {
   id: string;

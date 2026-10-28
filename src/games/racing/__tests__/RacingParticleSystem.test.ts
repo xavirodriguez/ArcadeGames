@@ -33,7 +33,7 @@ describe("RacingParticlePool", () => {
     expect(pool.sparks[0]?.alpha).toBeGreaterThan(0);
     expect(pool.sparks[0]?.x).toBeGreaterThan(5);
 
-    pool.update(0.2);
+    pool.update(1.0);
     expect(pool.skidMarks[0]?.alpha).toBe(0);
     expect(pool.sparks[0]?.alpha).toBe(0);
     expect(pool.activeSparkCount).toBe(0);

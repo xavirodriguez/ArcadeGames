@@ -1,7 +1,7 @@
 export { GeometryWarsGame } from "./GeometryWarsGame";
 export { GeometryWarsGameScene } from "./scenes/GeometryWarsGameScene";
-export { GeometryWarsConfig, DEFAULT_CONFIG } from "./config/GeometryWarsConfig";
-export { GeometryWarsComponentRegistry, GeometryWarsEventRegistry } from "./types/GeometryWarsRegistry";
+export { type GeometryWarsConfig, DEFAULT_CONFIG } from "./config/GeometryWarsConfig";
+export type { GeometryWarsComponentRegistry, GeometryWarsEventRegistry } from "./types/GeometryWarsRegistry";
 export { registerGeometryWarsBlueprints, GeometryWarsEntityFactory } from "./entities/GeometryWarsEntities";
 export { WeaponSystem } from "./systems/WeaponSystem";
 export { GWBulletPool } from "./EntityPool";

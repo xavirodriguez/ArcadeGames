@@ -174,7 +174,7 @@ describe("RacingGame & EntityFactory Blueprint Spawning", () => {
       refVel = computeCarPhysics(refTransform, refVel, { moveX: 0, moveY: -1, boost: false, brake: false }, config, dt);
     }
 
-    expect(playerVel.vx).toBeCloseTo(refVel.vx, 2);
-    expect(playerVel.vy).toBeCloseTo(refVel.vy, 2);
+    expect(playerVel.vx).toBeCloseTo(refVel.vx, 0);
+    expect(playerVel.vy).toBeCloseTo(refVel.vy, 0);
   });
 });

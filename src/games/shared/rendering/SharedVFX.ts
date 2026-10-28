@@ -19,7 +19,8 @@ import {
 } from "./SharedVFXInternal";
 
 export * from "./SharedVFXInternal";
-export { IDrawAdapter, CanvasDrawAdapter, SkiaDrawAdapter };
+export type { IDrawAdapter };
+export { CanvasDrawAdapter, SkiaDrawAdapter };
 
 import { ScrollingStarfieldEffect, SkiaScrollingStarfieldEffect } from "./layers/ScrollingStarfieldLayer";
 import { DriftingNebulaBackgroundEffect, SkiaDriftingNebulaBackgroundEffect } from "./layers/DriftingNebulaLayer";
@@ -50,6 +51,8 @@ export {
   createSkiaMissionHUD,
   drawCanvasMissionHUD,
   drawSkiaMissionHUD,
+} from "./SharedMissionHUD";
+export type {
   MissionHudViewModel,
   MissionHudOptions
 } from "./SharedMissionHUD";

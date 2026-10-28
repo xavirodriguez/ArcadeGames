@@ -183,8 +183,8 @@ export function resolveNativeAudioSource(sourceInput: unknown): unknown {
       return mapped;
     }
 
-    // Try finding by ID from SHARED_AUDIO_MANIFEST
-    const manifestEntry = SHARED_AUDIO_MANIFEST.find((a) => a.id === sourceInput);
+    // Try finding by ID or path from SHARED_AUDIO_MANIFEST
+    const manifestEntry = SHARED_AUDIO_MANIFEST.find((a) => a.id === sourceInput || a.path === sourceInput);
     if (manifestEntry) {
       const mappedManifest = NATIVE_AUDIO_MAP[manifestEntry.id] ?? NATIVE_AUDIO_MAP[manifestEntry.path];
       if (mappedManifest !== undefined) {

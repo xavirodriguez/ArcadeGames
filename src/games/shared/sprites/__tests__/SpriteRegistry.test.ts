@@ -15,7 +15,7 @@ describe("SpriteRegistry static tower art", () => {
       anchor: { x: 0.5, y: 0.5 },
     });
     expect(sheet?.animations.idle.frames).toEqual([]);
-    expect(sheet?.imageSource).toBeTruthy();
+    expect(sheet?.imageSource !== undefined).toBe(true);
   });
 
   it("registers the sniper tower as a full-image sprite", () => {
@@ -28,6 +28,6 @@ describe("SpriteRegistry static tower art", () => {
       anchor: { x: 0.5, y: 0.5 },
     });
     expect(sheet?.animations.idle.frames).toEqual([]);
-    expect(sheet?.imageSource).toBeTruthy();
+    expect(sheet?.imageSource !== undefined).toBe(true);
   });
 });

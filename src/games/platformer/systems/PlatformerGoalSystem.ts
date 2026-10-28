@@ -1,6 +1,6 @@
 import { System, World, CoreComponentRegistry, LevelGoalComponent } from "@tiny-aster/core";
 
-export { LevelGoalComponent };
+export type { LevelGoalComponent };
 
 export class PlatformerGoalSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {

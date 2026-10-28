@@ -31,6 +31,8 @@ describe("Input Unification Retrofit Non-Regression Tests", () => {
       expect(aimComp.aimX).toBe(0.5);
       expect(aimComp.aimY).toBe(0.5);
       expect(aimComp.isFiring).toBe(true);
+
+      game.destroy();
     });
   });
 
@@ -52,16 +54,15 @@ describe("Input Unification Retrofit Non-Regression Tests", () => {
       expect(inputComp.moveLeft).toBe(true);
       expect(inputComp.moveRight).toBe(false);
       expect(inputComp.shoot).toBe(true);
+
+      game.destroy();
     });
   });
 
   describe("AsteroidsGame", () => {
-    it("translates CanonicalInputState axes and actions to Asteroids internal input actions", () => {
+    it("translates CanonicalInputState axes and actions to Asteroids internal input actions", async () => {
       const game = new AsteroidsGame({ headless: true });
-      const world = game.getWorld();
-
-      const playerEntity = world.createEntity();
-      world.addComponent(playerEntity, { type: "LocalPlayer" } as any);
+      await game.init();
 
       const canonicalState = createEmptyCanonicalInputState();
       canonicalState.axes.moveX = 1;
@@ -78,6 +79,8 @@ describe("Input Unification Retrofit Non-Regression Tests", () => {
       expect(inputComp.actions).toContain("thrust");
       expect(inputComp.actions).toContain("shoot");
       expect(inputComp.actions).toContain("hyperspace");
+
+      game.destroy();
     });
   });
 
@@ -97,6 +100,8 @@ describe("Input Unification Retrofit Non-Regression Tests", () => {
       const flappyInput = world.getComponent(bird, "FlappyInput" as any) as any;
       expect(flappyInput.flap).toBe(true);
       expect(flappyInput.glide).toBe(true);
+
+      game.destroy();
     });
   });
 });

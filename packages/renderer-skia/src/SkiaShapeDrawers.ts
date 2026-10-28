@@ -56,7 +56,7 @@ export class SkiaPolygonDrawer<TRegistry extends CoreComponentRegistry = CoreCom
 
     let vertices: Array<{ x: number; y: number }> | undefined;
     if (render) {
-      const renderWithVertices = render as unknown as { vertices?: Array<{ x: number; y: number }> };
+      const renderWithVertices = render as RenderComponent & { vertices?: Array<{ x: number; y: number }> };
       if (renderWithVertices.vertices) {
         vertices = renderWithVertices.vertices;
       }

@@ -736,6 +736,9 @@ export function calculateScreenConfig(canvas?: HTMLCanvasElement): {
 };
 
 // @public
+export function calculateSpriteDestinationRect(width: number, height: number, anchor: SpriteAnchor): SpriteDestinationRect | null;
+
+// @public
 export interface Camera2DComponent extends Component {
     followEntities?: Entity[];
     followEntity?: Entity;
@@ -2647,10 +2650,7 @@ export function hashChunkSeed(baseSeed: number, layerIndex: number, chunkX: numb
 export function hashSoA(snapshot: SoAWorldSnapshot): string;
 
 // @public
-export function hasInputAction(actions: readonly CanonicalActionName[] | null | undefined, name: string): boolean;
-
-// @public (undocumented)
-export function hasInputAction(actions: InputActionsLike | null | undefined, name: string): boolean;
+export function hasInputAction(actions: readonly string[] | InputActionsLike | null | undefined, name: string): boolean;
 
 // @public
 export interface HealthComponent extends Component {
@@ -5278,6 +5278,14 @@ export interface SpringJointOptions {
 }
 
 // @public
+export interface SpriteAnchor {
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
+// @public
 export interface SpriteAnimationDefinition {
     frameDuration: number;
     frames: SpriteFrameRect[];
@@ -5307,6 +5315,18 @@ export interface SpriteComponent extends Component {
 }
 
 // @public
+export interface SpriteDestinationRect {
+    // (undocumented)
+    height: number;
+    // (undocumented)
+    width: number;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
+// @public
 export interface SpriteFrameRect {
     h: number;
     w: number;
@@ -5316,14 +5336,16 @@ export interface SpriteFrameRect {
 
 // @public
 export interface SpriteImageDimensions {
+    // (undocumented)
     height: number;
+    // (undocumented)
     width: number;
 }
 
 // @public
 export type SpriteImageSource = number | string | {
-    localUri?: string;
     uri?: string;
+    localUri?: string;
 } | null;
 
 // @public
@@ -5336,6 +5358,7 @@ export interface SpriteSheetDefinition {
     assetPath: string;
     frameHeight: number;
     frameWidth: number;
+    id: string;
     imageSource: SpriteImageSource;
     sourceMode?: "frames" | "full-image";
 }

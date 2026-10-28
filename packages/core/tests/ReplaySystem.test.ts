@@ -48,8 +48,8 @@ describe("Replay System (Recorder & Player)", () => {
 
     const inputComp1 = world.getComponent(entityId, "Input" as any) as any;
     expect(inputComp1).toBeDefined();
-    expect(inputComp1.actions.has("shoot")).toBe(true);
-    expect(inputComp1.actions.has("thrust")).toBe(true);
+    expect(inputComp1.actions.includes("shoot")).toBe(true);
+    expect(inputComp1.actions.includes("thrust")).toBe(true);
     expect(inputComp1.axes.moveX).toBe(1.0);
 
     // Apply inputs for tick 2
@@ -57,8 +57,8 @@ describe("Replay System (Recorder & Player)", () => {
     expect(applied2).toBe(true);
 
     const inputComp2 = world.getComponent(entityId, "Input" as any) as any;
-    expect(inputComp2.actions.has("shoot")).toBe(false); // cleared/not present in tick 2 frame
-    expect(inputComp2.actions.has("thrust")).toBe(true);
+    expect(inputComp2.actions.includes("shoot")).toBe(false); // cleared/not present in tick 2 frame
+    expect(inputComp2.actions.includes("thrust")).toBe(true);
     expect(inputComp2.axes.moveY).toBe(-0.5);
 
     // Apply inputs for nonexistent tick 3

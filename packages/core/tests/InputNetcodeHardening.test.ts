@@ -29,6 +29,16 @@ interface ComplexFixture extends Component {
   view: DataView;
 }
 
+interface UnorderedCollectionsFixture extends Component {
+  type: "UnorderedCollections";
+  entries: Map<string, number>;
+  tags: Set<string>;
+}
+
+type UnorderedCollectionsRegistry = {
+  UnorderedCollections: UnorderedCollectionsFixture;
+};
+
 function makePredictionWorld(actions: CanonicalActionName[]): { world: World<MultiplayerRegistry>; entity: number } {
   const world = new World<MultiplayerRegistry>();
   const entity = world.createEntity();
@@ -144,7 +154,7 @@ describe("Input netcode hardening", () => {
   });
 
   it("hashes Map and Set contents independently of insertion order", () => {
-    const firstWorld = new World<Record<string, Component>>();
+    const firstWorld = new World<UnorderedCollectionsRegistry>();
     firstWorld.gameplayRandom.setSeed(12345);
     const firstEntity = firstWorld.createEntity();
     firstWorld.addComponent(firstEntity, {
@@ -153,7 +163,7 @@ describe("Input netcode hardening", () => {
       tags: new Set(["beta", "alpha"])
     });
 
-    const secondWorld = new World<Record<string, Component>>();
+    const secondWorld = new World<UnorderedCollectionsRegistry>();
     secondWorld.gameplayRandom.setSeed(12345);
     const secondEntity = secondWorld.createEntity();
     secondWorld.addComponent(secondEntity, {

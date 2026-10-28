@@ -9,7 +9,7 @@ import { computeShipPhysics } from "../src/physics/utils/ShipPhysics";
 interface TestRegistry extends CoreComponentRegistry {
   RemotePlayer: { type: "RemotePlayer"; targetX: number; targetY: number; targetRotation: number; sessionId: string };
   LocalPlayer: { type: "LocalPlayer" };
-  Input: { type: "Input"; actions: Set<string>; axes: Record<string, number> };
+  Input: { type: "Input"; actions: readonly import("../src/input/CanonicalInput").CanonicalActionName[]; axes: Record<string, number> };
 }
 
 describe("ReplicationSystem Tests", () => {
@@ -88,7 +88,7 @@ describe("ReplicationSystem Tests", () => {
 
     world.addComponent(localPlayer, {
       type: "Input",
-      actions: new Set(["thrust"]),
+      actions: ["thrust"],
       axes: {},
     });
 
@@ -103,10 +103,7 @@ describe("ReplicationSystem Tests", () => {
 
     // Tick 2: deltaTime = 0.03s con thrust desactivado
     world.mutateComponent(localPlayer, "Input", (input) => {
-      const acts = input.actions;
-      const actionsSet = acts instanceof Set ? acts : new Set<string>((acts && typeof (acts as any)[Symbol.iterator] === "function") ? acts : []);
-      actionsSet.delete("thrust");
-      input.actions = actionsSet;
+      input.actions = [];
     });
 
     localPredictionSystem.update(world, 0.03);
@@ -146,7 +143,7 @@ describe("ReplicationSystem Tests", () => {
 
     world.addComponent(localPlayer, {
       type: "Input",
-      actions: new Set(["thrust"]),
+      actions: ["thrust"],
       axes: {},
     });
 
@@ -254,7 +251,7 @@ describe("ReplicationSystem Tests", () => {
     });
     world.addComponent(localPlayer, {
       type: "Input",
-      actions: new Set(["thrust"]),
+      actions: ["thrust"],
       axes: {},
     });
 

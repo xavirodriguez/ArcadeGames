@@ -7,9 +7,8 @@
  * via a theme-aware orchestrator path.
  */
 
-import { colors } from "../../../../theme/colors";
 import { SUMI_E_PALETTE } from "./SumiEPalette";
-import type { BaseJuiceOptions, SupportedGameId, GameJuiceEventMap } from "../JuiceOrchestrator";
+import type { BaseJuiceOptions, SupportedGameId, GameJuiceEventMap, JuiceProfile } from "../JuiceOrchestrator";
 import { HitStopPriority } from "../HitStopSystem";
 
 /**

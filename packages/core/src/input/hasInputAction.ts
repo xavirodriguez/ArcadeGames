@@ -25,9 +25,7 @@ export type InputActionsLike = readonly CanonicalActionName[] | ReadonlySet<stri
  *
  * @public
  */
-export function hasInputAction(actions: readonly CanonicalActionName[] | null | undefined, name: string): boolean;
-export function hasInputAction(actions: InputActionsLike | null | undefined, name: string): boolean;
-export function hasInputAction(actions: InputActionsLike | null | undefined, name: string): boolean {
+export function hasInputAction(actions: readonly string[] | InputActionsLike | null | undefined, name: string): boolean {
   if (!actions) return false;
 
   if (Array.isArray(actions)) {

@@ -4,7 +4,6 @@ import {
   Renderer,
   RenderContext,
   SceneManager,
-  World,
   Camera2DSystem,
   TransformComponent,
   RenderComponent,
@@ -24,9 +23,9 @@ import {
   NetworkController,
   SystemPhase,
   InputFrame,
-  InterpolationSnapshotEntry,
   EntitySyncDescriptor,
-  applyServerState
+  hasInputAction,
+  InputActionsLike
 } from "@tiny-aster/core";
 import {
   GeometryWarsComponentRegistry,
@@ -247,12 +246,12 @@ export class GeometryWarsGame extends BaseGame<
           aim.aimX = input.axes.aimX;
           aim.aimY = input.axes.aimY;
         }
-        aim.isFiring = import("@tiny-aster/core").hasInputAction(input.actions as import("@tiny-aster/core").InputActionsLike, "fire");
+        aim.isFiring = hasInputAction(input.actions as InputActionsLike, "fire");
       });
     }
   }
 
-  public runSimulationStep(deltaTime: number, isResimulating: boolean) {
+  public runSimulationStep(deltaTime: number, _isResimulating: boolean) {
     this.runDeterministicStep(deltaTime, this.getWorld());
   }
 
@@ -373,7 +372,7 @@ export class GeometryWarsGame extends BaseGame<
           if (typeof axes.moveX === "number") p.moveX = axes.moveX;
           if (typeof axes.moveY === "number") p.moveY = axes.moveY;
           if (actions !== undefined) {
-            p.useBomb = import("@tiny-aster/core").hasInputAction(actions as import("@tiny-aster/core").InputActionsLike, "bomb");
+            p.useBomb = hasInputAction(actions as InputActionsLike, "bomb");
           } else if (inputObj.bomb !== undefined) {
             p.useBomb = !!inputObj.bomb;
           }
@@ -396,7 +395,7 @@ export class GeometryWarsGame extends BaseGame<
             }
           }
           if (actions !== undefined) {
-            aim.isFiring = import("@tiny-aster/core").hasInputAction(actions as import("@tiny-aster/core").InputActionsLike, "fire");
+            aim.isFiring = hasInputAction(actions as InputActionsLike, "fire");
           } else if (inputObj.fire !== undefined) {
             aim.isFiring = !!inputObj.fire;
           }

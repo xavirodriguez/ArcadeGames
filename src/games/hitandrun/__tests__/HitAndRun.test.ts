@@ -6,12 +6,14 @@ import {
   SUMI_E_PLAYER_READY_RESOURCE,
   SUMI_E_THEME_RESOURCE
 } from "../rendering/SumiEVisualAssets";
+import { SAMURAI_SPRITE_READY_RESOURCE } from "../rendering/SamuraiVisualAssets";
 import { SpriteRegistry } from "../../shared/sprites";
 import { getHitRunCharacterSpriteSheet } from "../rendering/HitRunSpriteAtlas";
 import {
   SumiEPlayerAnimationStateSystem,
   SumiEPlayerSpriteFrameSystem
 } from "../rendering/SamuraiAnimationSystems";
+import type { ComboMeleeComponent } from "../melee/ComboMeleeTypes";
 import { HIT_RUN_WEAPON_CATALOG, getWeaponDefinition } from "../weapons/HitRunWeaponCatalog";
 import { registerPlayerBulletPool } from "../weapons/HitRunBulletPool";
 import { fireWeapon } from "../weapons/fireWeapon";
@@ -86,8 +88,8 @@ describe("Hit & Run Game Systems", () => {
       gameWorld.mutateComponent(player, "Velocity", (velocity) => {
         velocity.vx = 0;
       });
-      gameWorld.mutateComponent(player, "ComboMelee", (combo: any) => {
-        combo.activeStep = "jab1";
+      gameWorld.mutateComponent(player, "ComboMelee", (combo) => {
+        (combo as unknown as ComboMeleeComponent).activeStep = "jab1";
       });
       stateSystem.update(gameWorld, 1 / 60);
       expect(gameWorld.getComponent(player, "SpriteAnimator")?.currentAnim).toBe("attack");
@@ -533,9 +535,8 @@ describe("Hit & Run Game Systems", () => {
       });
       gameWorld.addComponent(enemy, {
         type: "Faction",
-        faction: "enemy",
         value: "enemy"
-      } as any);
+      });
 
       game.setInputState({ fire: true });
 
@@ -671,9 +672,8 @@ describe("Hit & Run Game Systems", () => {
       });
       gameWorld.addComponent(enemy, {
         type: "Faction",
-        faction: "enemy",
         value: "enemy"
-      } as any);
+      });
 
       game.setInputState({ moveRight: true, aimUp: true, fire: true });
 

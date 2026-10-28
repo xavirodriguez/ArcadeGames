@@ -59,7 +59,18 @@ export function resolveViewportDimensions(
 }
 
 /**
- * Sorts entities in-place based on render layer order and depth-sort Y position.
+ * Sorts entities in-place using a fully deterministic 5-clause comparator that
+ * matches the behaviour historically used by CanvasRenderer:
+ *
+ *   1. render.order          (ascending)
+ *   2. depthSort Y           (only when both entities have depthSort === true)
+ *   3. render.shape          (alphabetical, empty string for missing)
+ *   4. render.color          (alphabetical, empty string for missing)
+ *   5. entity id             (strict numeric tie-break)
+ *
+ * This guarantees identical draw order between the Canvas and Skia backends
+ * and removes dependence on ECS query iteration order.
+ *
  * @public
  */
 export function sortEntitiesByRenderOrder<TRegistry extends ComponentRegistry>(
@@ -71,21 +82,40 @@ export function sortEntitiesByRenderOrder<TRegistry extends ComponentRegistry>(
   sortedEntities.sort((a, b) => {
     const renderA = world.getComponent(a, renderType) as RenderComponent | undefined;
     const renderB = world.getComponent(b, renderType) as RenderComponent | undefined;
+
+    // 1. Primary: explicit render order / layer
     const orderA = renderA?.order || 0;
     const orderB = renderB?.order || 0;
-
     if (orderA !== orderB) {
       return orderA - orderB;
     }
 
+    // 2. Secondary: Y-depth sort (only when both request it)
     if (renderA?.depthSort && renderB?.depthSort) {
       const transformA = world.getComponent(a, transformType) as TransformComponent | undefined;
       const transformB = world.getComponent(b, transformType) as TransformComponent | undefined;
       const yA = transformA ? (transformA.worldY ?? transformA.y) : 0;
       const yB = transformB ? (transformB.worldY ?? transformB.y) : 0;
-      return yA - yB;
+      if (yA !== yB) {
+        return yA - yB;
+      }
     }
 
-    return 0;
+    // 3. Tertiary: shape name (groups same drawers together, aids batching)
+    const shapeA = renderA?.shape ?? "";
+    const shapeB = renderB?.shape ?? "";
+    if (shapeA !== shapeB) {
+      return shapeA < shapeB ? -1 : 1;
+    }
+
+    // 4. Quaternary: color (further helps Canvas fillStyle/strokeStyle batching)
+    const colorA = renderA?.color ?? "";
+    const colorB = renderB?.color ?? "";
+    if (colorA !== colorB) {
+      return colorA < colorB ? -1 : 1;
+    }
+
+    // 5. Final stable tie-break by entity id (guarantees determinism)
+    return a - b;
   });
 }

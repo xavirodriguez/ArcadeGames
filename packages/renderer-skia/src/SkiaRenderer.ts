@@ -1,6 +1,6 @@
 import { World, Renderer, CoreComponentRegistry, ShapeType, ShapeDrawer, EffectDrawer, Entity, Camera2DComponent, RenderComponent, TransformComponent, VisualOffsetComponent, ColliderComponent, resolveViewportDimensions, sortEntitiesByRenderOrder } from "@tiny-aster/core";
 import { SkCanvas, SkPaint, Skia, PaintStyle, ClipOp } from "@shopify/react-native-skia";
-import { SkiaCircleDrawer, SkiaBoxDrawer } from "./SkiaShapeDrawers";
+import { SkiaCircleDrawer, SkiaBoxDrawer, SkiaPolygonDrawer } from "./SkiaShapeDrawers";
 import { SkiaSpriteDrawer } from "./SkiaSpriteDrawer";
 
 /**
@@ -33,6 +33,13 @@ export class SkiaRenderer<TRegistry extends CoreComponentRegistry = CoreComponen
     if (!this.shapeDrawers.has("box")) {
       this.shapeDrawers.set("box", new SkiaBoxDrawer(this.paint));
     }
+    // Polygon support (parity with CanvasRenderer)
+    if (!this.shapeDrawers.has("Polygon")) {
+      this.shapeDrawers.set("Polygon", new SkiaPolygonDrawer(this.paint));
+    }
+    if (!this.shapeDrawers.has("polygon")) {
+      this.shapeDrawers.set("polygon", new SkiaPolygonDrawer(this.paint));
+    }
   }
 
   public registerShape(name: string, drawer: ShapeDrawer<SkCanvas, TRegistry>): void {
@@ -63,11 +70,16 @@ export class SkiaRenderer<TRegistry extends CoreComponentRegistry = CoreComponen
 
     canvas.save();
 
+    // Always clear to black to prevent smearing / ghosting, matching CanvasRenderer behaviour.
+    // When ScreenConfig is present we clear the full surface; otherwise we clear the resolved viewport.
+    this.paint.reset();
+    this.paint.setStyle(PaintStyle.Fill);
+    this.paint.setColor(Skia.Color("#000000"));
     if (screenConfig && screenConfig.width > 0 && screenConfig.height > 0) {
-      this.paint.reset();
-      this.paint.setStyle(PaintStyle.Fill);
-      this.paint.setColor(Skia.Color("#000000"));
       canvas.drawRect(Skia.XYWHRect(0, 0, screenConfig.width, screenConfig.height), this.paint);
+    } else {
+      // Fallback clear of the logical viewport area
+      canvas.drawRect(Skia.XYWHRect(0, 0, viewportWidth, viewportHeight), this.paint);
     }
 
     canvas.translate(offsetX, offsetY);

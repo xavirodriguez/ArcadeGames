@@ -1,4 +1,4 @@
-import { World, Renderer, CoreComponentRegistry, ShapeType, ShapeDrawer, EffectDrawer, Entity, Camera2DComponent, RenderComponent, TransformComponent, VisualOffsetComponent, ColliderComponent, resolveViewportDimensions, sortEntitiesByRenderOrder } from "@tiny-aster/core";
+import { World, Renderer, CoreComponentRegistry, ShapeType, ShapeDrawer, EffectDrawer, Entity, RenderComponent, TransformComponent, ColliderComponent, resolveViewportDimensions, buildRenderPlan, RenderQueueEntry } from "@tiny-aster/core";
 import { SkCanvas, SkPaint, Skia, PaintStyle, ClipOp } from "@shopify/react-native-skia";
 import { SkiaCircleDrawer, SkiaBoxDrawer, SkiaPolygonDrawer } from "./SkiaShapeDrawers";
 import { SkiaSpriteDrawer } from "./SkiaSpriteDrawer";
@@ -8,7 +8,8 @@ import { SkiaSpriteDrawer } from "./SkiaSpriteDrawer";
  */
 export class SkiaRenderer<TRegistry extends CoreComponentRegistry = CoreComponentRegistry> implements Renderer<TRegistry, SkCanvas> {
   private paint: SkPaint;
-  private sortedEntities: Entity[] = [];
+  /** Reusable buffer passed to buildRenderPlan (zero-alloc path). */
+  private entriesBuffer: RenderQueueEntry[] = [];
   public readonly type = "skia";
   private readonly backgroundEffects: Map<string, EffectDrawer<SkCanvas, TRegistry>> = new Map();
 
@@ -52,8 +53,11 @@ export class SkiaRenderer<TRegistry extends CoreComponentRegistry = CoreComponen
 
   public render(world: World<TRegistry>, canvas: SkCanvas, _interpolation?: number): void {
     const screenConfig = world.getResource<{ width: number; height: number }>("ScreenConfig");
-    const gameConfig = world.getResource<{ worldWidth?: number; worldHeight?: number; viewportWidth?: number; viewportHeight?: number }>("GameConfig");
-    const { viewportWidth, viewportHeight } = resolveViewportDimensions(gameConfig);
+    const plan = buildRenderPlan(world, this.entriesBuffer);
+    // Keep buffer reference in case buildRenderPlan replaced the array
+    this.entriesBuffer = plan.entries;
+
+    const { viewportWidth, viewportHeight, entries, mainCamera } = plan;
 
     let scale = 1;
     let offsetX = 0;
@@ -71,14 +75,12 @@ export class SkiaRenderer<TRegistry extends CoreComponentRegistry = CoreComponen
     canvas.save();
 
     // Always clear to black to prevent smearing / ghosting, matching CanvasRenderer behaviour.
-    // When ScreenConfig is present we clear the full surface; otherwise we clear the resolved viewport.
     this.paint.reset();
     this.paint.setStyle(PaintStyle.Fill);
     this.paint.setColor(Skia.Color("#000000"));
     if (screenConfig && screenConfig.width > 0 && screenConfig.height > 0) {
       canvas.drawRect(Skia.XYWHRect(0, 0, screenConfig.width, screenConfig.height), this.paint);
     } else {
-      // Fallback clear of the logical viewport area
       canvas.drawRect(Skia.XYWHRect(0, 0, viewportWidth, viewportHeight), this.paint);
     }
 
@@ -90,23 +92,9 @@ export class SkiaRenderer<TRegistry extends CoreComponentRegistry = CoreComponen
     for (const drawer of this.backgroundEffects.values()) {
       drawer.draw(canvas, world);
     }
-    const cameraType = "Camera2D" as Extract<keyof TRegistry, string>;
-    const transformType = "Transform" as Extract<keyof TRegistry, string>;
-    const renderType = "Render" as Extract<keyof TRegistry, string>;
-    const visualOffsetType = "VisualOffset" as Extract<keyof TRegistry, string>;
+
     const colliderType = "Collider" as Extract<keyof TRegistry, string>;
-
-    // Handle Camera
-    const cameras = world.query(cameraType);
-    let mainCameraEntity: Entity | undefined;
-
-    for (let i = 0; i < cameras.length; i++) {
-      const cam = world.getComponent(cameras[i], cameraType) as Camera2DComponent | undefined;
-      if (cam?.isMain) {
-        mainCameraEntity = cameras[i];
-        break;
-      }
-    }
+    const visualOffsetType = "VisualOffset" as Extract<keyof TRegistry, string>;
 
     canvas.save();
 
@@ -117,44 +105,25 @@ export class SkiaRenderer<TRegistry extends CoreComponentRegistry = CoreComponen
     let camVoY = 0;
     let hasMainCamera = false;
 
-    if (mainCameraEntity !== undefined) {
-      const cam = world.getComponent(mainCameraEntity, cameraType) as Camera2DComponent | undefined;
-      if (cam) {
-        hasMainCamera = true;
-        camX = cam.x;
-        camY = cam.y;
-        camZoom = cam.zoom;
-        // Center camera and apply zoom
-        canvas.translate(-cam.x, -cam.y);
-        canvas.scale(cam.zoom, cam.zoom);
-
-        const visualOffset = world.getComponent(mainCameraEntity, visualOffsetType) as VisualOffsetComponent | undefined;
-        if (visualOffset) {
-          camVoX = visualOffset.offsetX;
-          camVoY = visualOffset.offsetY;
-          canvas.translate(-visualOffset.offsetX, -visualOffset.offsetY);
-        }
+    if (mainCamera) {
+      hasMainCamera = true;
+      camX = mainCamera.x;
+      camY = mainCamera.y;
+      camZoom = mainCamera.zoom;
+      camVoX = mainCamera.visualOffsetX;
+      camVoY = mainCamera.visualOffsetY;
+      canvas.translate(-camX, -camY);
+      canvas.scale(camZoom, camZoom);
+      if (camVoX !== 0 || camVoY !== 0) {
+        canvas.translate(-camVoX, -camVoY);
       }
     }
 
-    const entities = world.query(transformType, renderType);
-
-    if (this.sortedEntities.length !== entities.length) {
-      this.sortedEntities = [...entities];
-    } else {
-      for (let i = 0; i < entities.length; i++) {
-        this.sortedEntities[i] = entities[i];
-      }
-    }
-
-    sortEntitiesByRenderOrder(this.sortedEntities, world, renderType, transformType);
-
-    for (let i = 0; i < this.sortedEntities.length; i++) {
-      const entity = this.sortedEntities[i];
-      const transform = world.getComponent(entity, transformType) as TransformComponent | undefined;
-      const render = world.getComponent(entity, renderType) as RenderComponent | undefined;
-
-      if (!render || !transform || !render.visible || render.opacity === 0) continue;
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i];
+      const entity = entry.entity;
+      const transform = entry.transform;
+      const render = entry.render;
 
       canvas.save();
 
@@ -169,8 +138,8 @@ export class SkiaRenderer<TRegistry extends CoreComponentRegistry = CoreComponen
       }
 
       const visualOffset = world.getComponent(entity, visualOffsetType) as unknown as { offsetX: number; offsetY: number; scaleX?: number; scaleY?: number } | undefined;
-      const offsetX = visualOffset?.offsetX ?? 0;
-      const offsetY = visualOffset?.offsetY ?? 0;
+      const voX = visualOffset?.offsetX ?? 0;
+      const voY = visualOffset?.offsetY ?? 0;
       const visualScaleX = visualOffset?.scaleX ?? 1;
       const visualScaleY = visualOffset?.scaleY ?? 1;
 
@@ -180,14 +149,14 @@ export class SkiaRenderer<TRegistry extends CoreComponentRegistry = CoreComponen
       const scaleX = transform.worldScaleX ?? transform.scaleX ?? 1;
       const scaleY = transform.worldScaleY ?? transform.scaleY ?? 1;
 
-      canvas.translate(x + offsetX, y + offsetY);
+      canvas.translate(x + voX, y + voY);
       canvas.rotate((rotation * 180) / Math.PI, 0, 0);
       canvas.scale(scaleX * visualScaleX, scaleY * visualScaleY);
 
       this.paint.setColor(Skia.Color(render.color || "white"));
       this.paint.setAlphaf(render.opacity ?? 1);
 
-      // 1. Try custom registered shape drawer (e.g., shield_bubble, player_ship, invader)
+      // 1. Try custom registered shape drawer
       const customDrawer = render.shape ? this.shapeDrawers.get(render.shape) : undefined;
       if (customDrawer) {
         customDrawer.draw(canvas, world, entity);

@@ -1,16 +1,22 @@
 name: Restore SpaceInvaders files
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - ".github/workflows/restore-space-invaders.yml"
+    inputs:
+      confirm:
+        description: "Type RESTORE to restore files and push to the recovery branch"
+        required: true
+        type: string
+permissions:
+  contents: read
+
 jobs:
   restore:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.confirm == 'RESTORE' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: feature/theme-aqui-hay-dragones
           fetch-depth: 0

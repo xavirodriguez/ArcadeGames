@@ -22,16 +22,13 @@ const GAME_ROUTES = [
 ];
 
 test.describe("Game Launch Test Suite", () => {
-  test.beforeEach(async ({ page }) => {
-    // Listen for unhandled errors / console errors
-    page.on("pageerror", (error) => {
-      console.error("Page error caught:", error.message);
-    });
-  });
-
   test("Main menu loads correctly", async ({ page }, testInfo) => {
     const pageErrors: Error[] = [];
+    const consoleErrors: string[] = [];
     page.on("pageerror", (err) => pageErrors.push(err));
+    page.on("console", (msg) => {
+      if (msg.type() === "error") consoleErrors.push(msg.text());
+    });
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
 
@@ -47,6 +44,7 @@ test.describe("Game Launch Test Suite", () => {
       pageErrors,
       `Unhandled errors on main menu: ${pageErrors.map((e) => e.message).join(", ")}`
     ).toHaveLength(0);
+    expect(consoleErrors, `Browser console errors on main menu: ${consoleErrors.join(", ")}`).toHaveLength(0);
 
     // Capture screenshot for artifacts
     await page.screenshot({
@@ -88,6 +86,7 @@ test.describe("Game Launch Test Suite", () => {
 
       // Check no unhandled JS errors occurred
       expect(pageErrors, `Unhandled errors on ${game.name}: ${pageErrors.map(e => e.message).join(", ")}`).toHaveLength(0);
+      expect(consoleErrors, `Browser console errors on ${game.name}: ${consoleErrors.join(", ")}`).toHaveLength(0);
 
       // Capture visual evidence screenshot for audit artifacts
       const screenshotPath = testInfo.outputPath(`${game.name.replace(/\s+/g, "_").toLowerCase()}_screenshot.png`);
@@ -97,7 +96,11 @@ test.describe("Game Launch Test Suite", () => {
 
   test("Can navigate to Story Campaign by clicking on main menu button", async ({ page }) => {
     const pageErrors: Error[] = [];
+    const consoleErrors: string[] = [];
     page.on("pageerror", (err) => pageErrors.push(err));
+    page.on("console", (msg) => {
+      if (msg.type() === "error") consoleErrors.push(msg.text());
+    });
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
 
@@ -113,5 +116,6 @@ test.describe("Game Launch Test Suite", () => {
     await expect(campaignElement).toBeVisible({ timeout: 15000 });
 
     expect(pageErrors, `Unhandled errors opening Campaign from menu: ${pageErrors.map(e => e.message).join(", ")}`).toHaveLength(0);
+    expect(consoleErrors, `Browser console errors opening Campaign: ${consoleErrors.join(", ")}`).toHaveLength(0);
   });
 });

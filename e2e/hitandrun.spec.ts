@@ -1,5 +1,14 @@
 import { test, expect } from "@playwright/test";
 
+declare global {
+  interface Window {
+    __hitAndRunDebug?: {
+      getPlayerX: () => number | null;
+    };
+  }
+}
+
+
 /**
  * E2E tests for Hit & Run player movement.
  *
@@ -23,38 +32,52 @@ test.describe("Hit and Run Real Player Movement E2E", () => {
     await page.goto("/hitandrun");
 
     // Wait until the debug hook becomes available (indicates React + ECS game ready)
-    await page.waitForFunction(() => (window as any).__hitAndRunDebug != null, {
-      timeout: 20000,
-    });
-
-    // Read initial player X position
-    const initialX = await page.evaluate(() =>
-      (window as any).__hitAndRunDebug.getPlayerX()
+    await page.waitForFunction(
+      () => typeof window.__hitAndRunDebug?.getPlayerX === "function",
+      { timeout: 20000 },
     );
 
-    expect(typeof initialX).toBe("number");
-    expect(initialX).not.toBeNull();
+    // Read initial player X position
+    const readPlayerX = (): Promise<number | null> =>
+      page.evaluate(() => {
+        const debug = window.__hitAndRunDebug;
+        if (debug === undefined) {
+          throw new Error("Hit & Run debug hook disappeared before the position could be read.");
+        }
+        return debug.getPlayerX();
+      });
+
+    const readPlayerXOrThrow = async (): Promise<number> => {
+      const playerX = await readPlayerX();
+      if (playerX === null) {
+        throw new Error("Hit & Run player position is unavailable.");
+      }
+      return playerX;
+    };
+
+    const initialX = await readPlayerXOrThrow();
 
     // Simulate sustained movement to the right via browser keyboard
     await page.keyboard.down("ArrowRight");
-    await page.waitForTimeout(500);
-    await page.keyboard.up("ArrowRight");
-
-    // Give a brief frame interval for position update to settle
-    await page.waitForTimeout(100);
+    try {
+      await expect.poll(readPlayerXOrThrow, { timeout: 2000 }).toBeGreaterThan(initialX);
+    } finally {
+      await page.keyboard.up("ArrowRight");
+    }
 
     // Read updated player X position
-    const finalX = await page.evaluate(() =>
-      (window as any).__hitAndRunDebug.getPlayerX()
-    );
+    const finalX = await readPlayerXOrThrow();
 
-    expect(typeof finalX).toBe("number");
-    expect(finalX).toBeGreaterThan(initialX!);
+    expect(finalX).toBeGreaterThan(initialX);
 
     // Ensure no unhandled JavaScript runtime or page errors occurred during movement
     expect(
       pageErrors,
       `Unhandled errors: ${pageErrors.map((e) => e.message).join(", ")}`
+    ).toHaveLength(0);
+    expect(
+      consoleErrors,
+      `Browser console errors: ${consoleErrors.join(", ")}`
     ).toHaveLength(0);
   });
 });

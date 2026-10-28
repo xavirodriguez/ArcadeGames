@@ -12,13 +12,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: "pnpm"
@@ -37,7 +37,7 @@ jobs:
         run: pnpm --filter=@tiny-aster/core exec jest --runInBand --runTestsByPath tests/SpriteSheetDefinition.test.ts
 
       - name: Lint sprite metadata and animation files
-        run: pnpm exec eslint packages/core/src/assets/SpriteSheetDefinition.ts packages/core/tests/SpriteSheetDefinition.test.ts scripts/validate-sprites.ts src/games/shared/sprites/SpriteManifestValidator.ts src/games/shared/sprites/SpriteManifestValidator.test.ts src/games/shared/sprites/SpriteTypes.ts src/games/shared/sprites/SpriteAnimator.ts src/games/shared/sprites/SpriteAnimator.test.ts src/games/shared/sprites/SpriteDrawer.test.ts src/games/shared/sprites/AssetLoaderAdapter.ts src/games/shared/sprites/AssetLoaderAdapter.test.ts src/games/hitandrun/rendering/HitRunSpriteAtlas.ts src/games/hitandrun/__tests__/HitRunSpriteAtlas.test.ts src/games/hitandrun/__tests__/HitRunSpritePreload.test.ts src/games/hitandrun/__tests__/HitRunSamuraiEnemy.test.ts src/games/hitandrun/__tests__/HitAndRun.test.ts src/games/hitandrun/rendering/SamuraiAnimationSystems.ts src/games/hitandrun/waves/HitRunEnemyPool.ts src/games/hitandrun/belt/registerBeltPlayerBlueprint.ts
+        run: pnpm exec eslint packages/core/src/assets/SpriteSheetDefinition.ts packages/core/tests/SpriteSheetDefinition.test.ts scripts/validate-sprites.ts src/games/shared/sprites/SpriteManifestValidator.ts src/games/shared/sprites/SpriteManifestValidator.test.ts src/games/shared/sprites/SpriteTypes.ts src/games/shared/sprites/SpriteAnimator.ts src/games/shared/sprites/SpriteAnimator.test.ts src/games/shared/sprites/SpriteDrawer.test.ts src/games/shared/sprites/AssetLoaderAdapter.ts src/games/shared/sprites/AssetLoaderAdapter.test.ts src/games/hitandrun/rendering/HitRunSpriteAtlas.ts src/games/hitandrun/__tests__/HitRunSpriteAtlas.test.ts src/games/hitandrun/__tests__/HitRunSpritePreload.test.ts src/games/hitandrun/__tests__/HitRunSamuraiEnemy.test.ts src/games/hitandrun/__tests__/HitAndRun.test.ts src/games/hitandrun/rendering/SamuraiAnimationSystems.ts src/games/hitandrun/waves/HitRunEnemyPool.ts src/games/hitandrun/belt/registerBeltPlayerBlueprint.ts playwright.config.ts e2e/games.spec.ts e2e/hitandrun.spec.ts
 
       - name: Build through Turborepo
         run: pnpm exec turbo run build
@@ -57,9 +57,10 @@ jobs:
       - name: Measure input-path performance baseline
         run: pnpm exec tsx packages/core/src/__benchmarks__/inputPathBenchmark.ts
 
-      - name: Run Hit & Run regression tests
-        run: pnpm exec jest --config src/games/hitandrun/jest.config.cjs --runInBand --testPathPattern='src/games/hitandrun/__tests__'
-
-      - name: Run vertical-shmup P0 TDD integration tests
+      - name: Run all game unit and regression tests
         if: ${{ always() && steps.install_dependencies.outcome == 'success' }}
-        run: pnpm exec jest --config src/games/vertical-shmup/jest.config.cjs --runInBand --testPathPattern='src/games/vertical-shmup/__tests__'
+        run: pnpm run test:games:ci
+
+      - name: Typecheck application and game routes
+        if: ${{ always() && steps.install_dependencies.outcome == 'success' }}
+        run: pnpm run typecheck:app

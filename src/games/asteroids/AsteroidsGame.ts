@@ -50,7 +50,8 @@ import {
   RenderContext,
   Mutator,
   CompactInputFrame,
-  preloadSharedAudioManifest
+  preloadSharedAudioManifest,
+  isCanonicalActionName
 } from "@tiny-aster/core";
 
 import { ComboSystem } from "@tiny-aster/core";
@@ -459,6 +460,38 @@ export class AsteroidsGame
         const inputObj = input as Record<string, unknown>;
         if (inputObj) {
           const actsSet = new Set<import("@tiny-aster/core").CanonicalActionName>(inputComp.actions || []);
+          const incomingActions = inputObj.actions;
+          if (Array.isArray(incomingActions) || incomingActions instanceof Set) {
+            actsSet.clear();
+            for (const action of incomingActions) {
+              if (!isCanonicalActionName(action)) continue;
+              actsSet.add(action);
+              if (action === "fire") actsSet.add("shoot");
+            }
+          }
+
+          const inputAxes = inputObj.axes;
+          if (inputAxes && typeof inputAxes === "object") {
+            const axes = inputAxes as Record<string, unknown>;
+            if (typeof axes.moveX === "number") {
+              inputComp.axes["rotate_x"] = axes.moveX;
+              inputComp.axes["horizontal"] = axes.moveX;
+              if (axes.moveX < -0.25) {
+                actsSet.add("rotateLeft");
+                actsSet.delete("rotateRight");
+              } else if (axes.moveX > 0.25) {
+                actsSet.add("rotateRight");
+                actsSet.delete("rotateLeft");
+              } else {
+                actsSet.delete("rotateLeft");
+                actsSet.delete("rotateRight");
+              }
+            }
+            if (typeof axes.moveY === "number" && axes.moveY < -0.25) {
+              actsSet.add("thrust");
+            }
+          }
+
           if (typeof inputObj.rotateLeft === "boolean") {
             if (inputObj.rotateLeft) actsSet.add("rotateLeft"); else actsSet.delete("rotateLeft");
           }
@@ -474,8 +507,7 @@ export class AsteroidsGame
           if (typeof inputObj.hyperspace === "boolean") {
             if (inputObj.hyperspace) actsSet.add("hyperspace"); else actsSet.delete("hyperspace");
           }
-          const sorted = Array.from(actsSet);
-          sorted.sort();
+          const sorted = Array.from(actsSet).sort();
           inputComp.actions = sorted;
 
           if (typeof inputObj.rotationAmount === "number") {

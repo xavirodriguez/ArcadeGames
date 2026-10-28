@@ -1,4 +1,5 @@
 import { World, System, SystemPhase, UnifiedInputSystem, GameplayFreeze } from "../src";
+import type { CanonicalActionName } from "../src/input/CanonicalInput";
 import { ReplayRecorder } from "../src/replay/ReplayRecorder";
 import { ReplayPlayer } from "../src/replay/ReplayPlayer";
 
@@ -18,7 +19,7 @@ interface SmokeRegistry {
   Position: PositionComponent;
   Velocity: VelocityComponent;
   LocalPlayer: { type: "LocalPlayer" };
-  Input: { type: "Input"; actions: Set<string>; axes: Record<string, number> };
+  Input: { type: "Input"; actions: readonly CanonicalActionName[]; axes: Record<string, number> };
 }
 
 class TestInputReaderSystem extends System<any> {
@@ -29,11 +30,12 @@ class TestInputReaderSystem extends System<any> {
     const players = world.query("LocalPlayer", "Input");
     for (const player of players) {
       world.mutateComponent(player, "Input", (input: any) => {
-        input.actions = new Set<string>();
-        if (inputSystem.getAction("left")) input.actions.add("left");
-        if (inputSystem.getAction("right")) input.actions.add("right");
-        if (inputSystem.getAction("up")) input.actions.add("up");
-        if (inputSystem.getAction("down")) input.actions.add("down");
+        const actions: CanonicalActionName[] = [];
+        if (inputSystem.getAction("left")) actions.push("left");
+        if (inputSystem.getAction("right")) actions.push("right");
+        if (inputSystem.getAction("up")) actions.push("up");
+        if (inputSystem.getAction("down")) actions.push("down");
+        input.actions = actions;
       });
     }
   }
@@ -50,10 +52,10 @@ class TestMovementSystem extends System<any> {
       let speedX = 0;
       let speedY = 0;
 
-      if (input.actions.has("left")) speedX = -100;
-      if (input.actions.has("right")) speedX = 100;
-      if (input.actions.has("up")) speedY = -100;
-      if (input.actions.has("down")) speedY = 100;
+      if (input.actions.includes("left")) speedX = -100;
+      if (input.actions.includes("right")) speedX = 100;
+      if (input.actions.includes("up")) speedY = -100;
+      if (input.actions.includes("down")) speedY = 100;
 
       world.mutateComponent(player, "Position", (p) => {
         p.x += speedX * deltaTime;
@@ -86,7 +88,7 @@ describe("Replay & Recording Infrastructure Tests", () => {
     world.addComponent(player, { type: "LocalPlayer" });
     world.addComponent(player, { type: "Position", x: 100, y: 100 });
     world.addComponent(player, { type: "Velocity", vx: 0, vy: 0 });
-    world.addComponent(player, { type: "Input", actions: new Set<string>(), axes: {} });
+    world.addComponent(player, { type: "Input", actions: [], axes: {} });
 
     // Take initial snapshot before recording starts
     const initialSnapshot = world.snapshot();

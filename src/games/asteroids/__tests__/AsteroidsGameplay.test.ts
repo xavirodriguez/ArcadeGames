@@ -41,7 +41,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       world.addComponent(shipEntity, { type: "LocalPlayer" });
       world.addComponent(shipEntity, {
           type: "Input",
-          actions: { shoot: true },
+          actions: ["shoot"],
           axes: {}
       });
       world.flush();
@@ -79,7 +79,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       world.addComponent(shipEntity, { type: "LocalPlayer" });
       world.addComponent(shipEntity, {
           type: "Input",
-          actions: { shoot: true },
+          actions: ["shoot"],
           axes: {}
       });
 
@@ -530,7 +530,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       world.addComponent(ship, { type: "LocalPlayer" });
       world.addComponent(ship, {
         type: "Input",
-        actions: { hyperspace: true },
+        actions: ["hyperspace"],
         axes: {}
       });
       createAsteroid({ world, x: 700, y: 700, size: "large" });
@@ -558,7 +558,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       world.addComponent(ship, { type: "LocalPlayer" });
       world.addComponent(ship, {
         type: "Input",
-        actions: { hyperspace: true },
+        actions: ["hyperspace"],
         axes: {}
       });
       // Spawn a placeholder asteroid far away to prevent wave spawning
@@ -592,7 +592,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       world.addComponent(ship, { type: "LocalPlayer" });
       world.addComponent(ship, {
         type: "Input",
-        actions: { hyperspace: true },
+        actions: ["hyperspace"],
         axes: {}
       });
       createAsteroid({ world, x: 700, y: 700, size: "large" });
@@ -607,7 +607,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
 
       // Release key
       world.mutateComponent(ship, "Input", (inp) => {
-        inp.actions = {};
+        inp.actions = [];
       });
 
       world.update(0.016);
@@ -623,7 +623,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       world.addComponent(ship, { type: "LocalPlayer" });
       world.addComponent(ship, {
         type: "Input",
-        actions: { hyperspace: true },
+        actions: ["hyperspace"],
         axes: {}
       });
       createAsteroid({ world, x: 700, y: 700, size: "large" });
@@ -660,7 +660,7 @@ describe("Asteroids Gameplay, Physics & Collision Systems", () => {
       world.addComponent(ship, { type: "LocalPlayer" });
       world.addComponent(ship, {
         type: "Input",
-        actions: { hyperspace: true },
+        actions: ["hyperspace"],
         axes: {}
       });
       createAsteroid({ world, x: 700, y: 700, size: "large" });

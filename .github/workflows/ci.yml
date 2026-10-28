@@ -48,9 +48,6 @@ jobs:
       - name: Typecheck through Turborepo
         run: pnpm exec turbo run typecheck
 
-      - name: Typecheck application and game routes
-        run: pnpm run typecheck:app
-
       - name: Run tests through Turborepo
         run: pnpm exec turbo run test
 
@@ -63,3 +60,7 @@ jobs:
       - name: Run all game unit and regression tests
         if: ${{ always() && steps.install_dependencies.outcome == 'success' }}
         run: pnpm run test:games:ci
+
+      - name: Typecheck application and game routes
+        if: ${{ always() && steps.install_dependencies.outcome == 'success' }}
+        run: pnpm run typecheck:app

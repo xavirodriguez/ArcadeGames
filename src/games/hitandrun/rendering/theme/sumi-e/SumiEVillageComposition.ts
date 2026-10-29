@@ -65,10 +65,10 @@ export function createSumiEVillageCatalog(): VisualCompositionCatalog {
             : anchor.x === 0 && anchor.y === 0
               ? "top-left"
               : undefined;
-        if (semanticAnchor) return { id: sheet.id, anchor: semanticAnchor };
+        if (semanticAnchor) return { id: sheet.id, nominalSize: { width: sheet.frameWidth, height: sheet.frameHeight }, anchor: semanticAnchor };
         return anchor
-          ? { id: sheet.id, anchor: "unsupported-registry-anchor" as never }
-          : { id: sheet.id };
+          ? { id: sheet.id, nominalSize: { width: sheet.frameWidth, height: sheet.frameHeight }, anchor: "unsupported-registry-anchor" as never }
+          : { id: sheet.id, nominalSize: { width: sheet.frameWidth, height: sheet.frameHeight } };
       }
     }
   };

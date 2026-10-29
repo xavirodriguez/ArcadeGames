@@ -25,7 +25,7 @@ import {
   InputFrame,
   EntitySyncDescriptor,
   hasInputAction,
-  InputActionsLike
+  CanonicalActionName
 } from "@tiny-aster/core";
 import {
   GeometryWarsComponentRegistry,
@@ -246,7 +246,7 @@ export class GeometryWarsGame extends BaseGame<
           aim.aimX = input.axes.aimX;
           aim.aimY = input.axes.aimY;
         }
-        aim.isFiring = hasInputAction(input.actions as InputActionsLike, "fire");
+        aim.isFiring = hasInputAction(input.actions as readonly CanonicalActionName[], "fire");
       });
     }
   }
@@ -365,7 +365,7 @@ export class GeometryWarsGame extends BaseGame<
       const inputObj = input as Record<string, unknown>;
       // CanonicalInputState support
       const axes = ((inputObj.axes as Record<string, number> | undefined) ?? inputObj) as Record<string, number | undefined>;
-      const actions = inputObj.actions as InputActionsLike | undefined;
+      const actions = inputObj.actions as readonly CanonicalActionName[] | undefined;
 
       if (sceneWorld.hasComponent(player, "Player")) {
         sceneWorld.mutateComponent(player, "Player", (p) => {

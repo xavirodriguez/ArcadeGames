@@ -830,7 +830,7 @@ export class CampaignSaveManager {
 }
 
 // @public
-export type CanonicalActionName<TExtra extends string = never> = "fire" | "secondary" | "boost" | "hyperspace" | "pause" | "confirm" | "cancel" | "thrust" | "rotateLeft" | "rotateRight" | "shoot" | "left" | "right" | "up" | "down" | "flap" | "glide" | "accelerate" | "brake" | "moveLeft" | "moveRight" | "bomb" | TExtra;
+export type CanonicalActionName<TExtra extends string = never> = "fire" | "secondary" | "boost" | "hyperspace" | "pause" | "confirm" | "cancel" | "thrust" | "rotateLeft" | "rotateRight" | "shoot" | "left" | "right" | "up" | "down" | "flap" | "glide" | "accelerate" | "brake" | "moveLeft" | "moveRight" | "bomb" | "build" | "sell" | "upgrade" | "startWave" | TExtra;
 
 // @public
 export interface CanonicalInputState<TExtra extends string = never> {
@@ -1183,7 +1183,7 @@ export function computeShipPhysics(transform: {
     vx: number;
     vy: number;
 }, input: {
-    actions: InputActionsLike;
+    actions: readonly CanonicalActionName[];
     axes: Record<string, number>;
     rotationAmount?: number;
     targetAngle?: number;
@@ -2653,7 +2653,7 @@ export function hashChunkSeed(baseSeed: number, layerIndex: number, chunkX: numb
 export function hashSoA(snapshot: SoAWorldSnapshot): string;
 
 // @public
-export function hasInputAction(actions: readonly string[] | InputActionsLike | null | undefined, name: string): boolean;
+export function hasInputAction(actions: readonly CanonicalActionName[] | null | undefined, name: CanonicalActionName): boolean;
 
 // @public
 export interface HealthComponent extends Component {
@@ -2807,9 +2807,6 @@ export type INetworkableWorld<TComponents extends ComponentRegistry = ComponentR
 export interface INetworkGame {
     readonly gameId: string;
 }
-
-// @public
-export type InputActionsLike = readonly CanonicalActionName[] | ReadonlySet<string> | Readonly<Record<string, boolean>>;
 
 // @public
 export type InputBinding<TExtra extends string = never> = AxisBinding | ActionBinding<TExtra>;

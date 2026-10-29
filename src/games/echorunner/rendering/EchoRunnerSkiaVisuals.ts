@@ -12,6 +12,11 @@ import {
   resolveEchoRunnerSpriteMotion,
   drawRleSpriteFrame,
 } from "./EchoRunnerPixelArt";
+import {
+  drawSpriteSkia,
+  getCurrentFrameRect,
+  type SpriteAnimatorComponent
+} from "../../shared/sprites";
 
 import { drawSkiaHitFlashCircle } from "../../shared/rendering/PlatformerSharedVisuals";
 import { resolveEchoRunnerDeathZoneDrawData, resolveEchoRunnerStateGateDrawData, resolveEchoRunnerStateSwitchDrawData } from "./EchoRunnerInteractionVisualUtils";
@@ -308,6 +313,20 @@ export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {
       dimOpacity: 0.3,
     });
     const alpha = invState.isInvulnerable ? invState.opacity : 1;
+    const spriteAnimator = world.getComponent(entity, "SpriteAnimator") as
+      | SpriteAnimatorComponent
+      | undefined;
+    const spriteFrame = spriteAnimator ? getCurrentFrameRect(spriteAnimator) : null;
+    if (spriteAnimator && spriteFrame) {
+      const scaledAnimator = { ...spriteAnimator, scale: size / spriteFrame.w };
+      if (drawSpriteSkia(canvas, scaledAnimator, 0, 0, paint, {
+        anchor: "feet",
+        opacity: alpha
+      })) {
+        return;
+      }
+    }
+
     const transform = world.getComponent(entity, "Transform");
     const facingLeft = (transform?.scaleX ?? 1) < 0;
     const motion = resolveEchoRunnerSpriteMotion(vx, vy, isGrounded, isAttacking);

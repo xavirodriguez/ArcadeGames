@@ -65,6 +65,13 @@ try {
   lanceroImageSource = null;
 }
 
+let kuchisakeOnnaImageSource: SpriteImageSource = null;
+try {
+  kuchisakeOnnaImageSource = require("../../../../assets/sprites/enemies/kichisake-onna.png");
+} catch {
+  kuchisakeOnnaImageSource = null;
+}
+
 let towerBasicImageSource: SpriteImageSource = null;
 try {
   towerBasicImageSource = require("../../../../assets/sprites/towers/tower1.png");
@@ -137,6 +144,51 @@ const LANCERO: SpriteSheetDef = {
   },
 };
 
+/**
+ * Cropped semantic regions from the original Kuchisake-onna contact sheet.
+ * Rectangles exclude the sheet labels; the pale slash arc is intentional art.
+ */
+const KUCHISAKE_ONNA: SpriteSheetDef = {
+  id: "echorunner_kuchisake_onna",
+  assetPath: "assets/sprites/enemies/kichisake-onna.png",
+  imageSource: kuchisakeOnnaImageSource,
+  frameWidth: 160,
+  frameHeight: 143,
+  anchor: { x: 0.5, y: 1 },
+  animations: {
+    idle: {
+      name: "idle",
+      frames: [{ x: 360, y: 55, w: 145, h: 143 }],
+      frameDuration: 1,
+      loop: true
+    },
+    walk: {
+      name: "walk",
+      frames: [{ x: 695, y: 60, w: 160, h: 138 }],
+      frameDuration: 0.12,
+      loop: true
+    },
+    attack: {
+      name: "attack",
+      frames: [{ x: 680, y: 438, w: 180, h: 127 }],
+      frameDuration: 0.12,
+      loop: false
+    },
+    hurt: {
+      name: "hurt",
+      frames: [{ x: 850, y: 250, w: 165, h: 125 }],
+      frameDuration: 0.1,
+      loop: false
+    },
+    death: {
+      name: "death",
+      frames: [{ x: 325, y: 645, w: 185, h: 90 }],
+      frameDuration: 0.12,
+      loop: false
+    }
+  }
+};
+
 const TOWER_BASIC_ART: SpriteSheetDef = {
   id: "tower_basic_art",
   assetPath: "assets/sprites/towers/tower1.png",
@@ -169,6 +221,7 @@ export const SPRITE_SHEET_CATALOG: readonly SpriteSheetDef[] = [
   SEA_DRAGON,
   GHOST_GALLEON,
   LANCERO,
+  KUCHISAKE_ONNA,
   TOWER_BASIC_ART,
   TOWER_SNIPER_ART
 ];

@@ -32,7 +32,7 @@ Until (2)+(3)+(4) exist, a PNG is only an **art asset**, not a playable sprite.
 | `sprites/enemies/enemy2.png` | 924×539 | **No** | **No** | **Not ready** — sheet on disk only |
 | `sprites/enemies/enemy3.png` | 1376×768 | **No** | **No** | **Not ready** |
 | `sprites/enemies/kapa.png` | 1376×768 | **No** | **No** | **Not ready** |
-| `sprites/enemies/kichisake-onna.png` | 1376×768 | **No** | **No** | **Not ready** |
+| `sprites/enemies/kichisake-onna.png` | 1376×768 | **Yes** (`echorunner_kuchisake_onna`) | **Yes** — Echo Runner player (Canvas + Skia, pixel fallback) | **Ready** — measured source rectangles; contact-sheet labels excluded |
 | `sprites/enemies/lancero.png` | 1376×768 | **No** | **No** | **Not ready** |
 | `sprites/enemies/qiongqi.png` | 1376×768 | **No** | **No** | **Not ready** |
 | `sprites/enemies/several_enemies.png` | 1408×768 | **No** | **No** | **Not ready** — likely contact sheet / multi-char |
@@ -56,7 +56,7 @@ Until (2)+(3)+(4) exist, a PNG is only an **art asset**, not a playable sprite.
 | **Space Invaders (Nautical)** | `sea_dragon` | Grid atlas + Canvas/Skia drawers in `SeaDragonVisuals.ts` |
 | **Hit&Run** | `src/games/hitandrun/assets/samurai-enemy.png` (+ sumi-e theme atlases) | **Separate** pipeline from `assets/sprites/samurai1.png` |
 
-Everything else under `assets/sprites/enemies/` (except sea_dragon) and `personaje1` / `samurai1` is **not playable** yet.
+Except for the entries explicitly marked ready above, the remaining sheets under `assets/sprites/enemies/` and `personaje1` / `samurai1` are **not playable** yet.
 
 ---
 

@@ -68,10 +68,13 @@ const context: PresentationThemeContext = {
   random: { next: () => 0.5 }
 };
 
-function createTheme(descriptor: PresentationThemeDescriptor): TestTheme {
+function createTheme(
+  descriptor: PresentationThemeDescriptor,
+  onDispose: () => void = () => undefined
+): TestTheme {
   return {
     descriptor,
-    dispose: () => undefined
+    dispose: onDispose
   };
 }
 
@@ -109,7 +112,7 @@ function createRegistry(): PresentationThemeRegistry<
 }
 
 describe("PresentationThemeRegistry", () => {
-  test("creates a new theme instance for every session", () => {
+  test("creates a self-contained session for each selection", () => {
     const instances: TestTheme[] = [];
     const registry = createRegistry();
 
@@ -131,41 +134,67 @@ describe("PresentationThemeRegistry", () => {
       }
     });
 
-    const first = registry.create("sumi-e", context);
-    const second = registry.create("sumi-e", {
+    const first = registry.createSession("sumi-e", context);
+    const second = registry.createSession("sumi-e", {
       ...context,
       sessionId: "session-2"
     });
 
     expect(first).not.toBe(second);
+    expect(first.theme).not.toBe(second.theme);
     expect(instances).toHaveLength(2);
     expect(first.descriptor.id).toBe("sumi-e");
-    expect(second.descriptor.id).toBe("sumi-e");
+    expect(first.tokens.colors.background).toBe("#111111");
+    expect(first.sessionId).toBe("session-1");
+    expect(second.sessionId).toBe("session-2");
+    expect(first.disposed).toBe(false);
   });
 
-  test("exposes normalized theme tokens through the registry definition", () => {
+  test("resolves presentation tokens per session without changing catalogue defaults", () => {
     const registry = createRegistry();
+    registry.register({
+      descriptor: {
+        id: "variant",
+        displayName: "Variant",
+        capabilities: []
+      },
+      tokens: themeTokens,
+      resolveTokens: (sessionContext) => {
+        const accent = sessionContext.options?.accent;
+        if (typeof accent !== "string") return themeTokens;
+        return {
+          ...themeTokens,
+          colors: {
+            ...themeTokens.colors,
+            accent
+          }
+        };
+      },
+      create: () =>
+        createTheme({
+          id: "variant",
+          displayName: "Variant",
+          capabilities: []
+        })
+    });
 
-    expect(registry.resolve("default").definition.tokens.colors.background).toBe("#111111");
-    expect(registry.resolve("default").definition.tokens.typography.monospace).toBe("monospace");
+    const session = registry.createSession("variant", {
+      ...context,
+      options: { accent: "#c0392b" }
+    });
+
+    expect(session.tokens.colors.accent).toBe("#c0392b");
+    expect(registry.resolve("variant").definition.tokens.colors.accent).toBe("#4da3ff");
   });
 
-  test("rejects a context belonging to another game", () => {
+  test("reports and preserves fallback metadata in the resolved session", () => {
     const registry = createRegistry();
-    const otherGameContext = { ...context, gameId: "other-game" };
+    const session = registry.createSession("missing-theme", context);
 
-    expect(() => registry.create("default", otherGameContext)).toThrow(
-      "cannot create a theme for game 'other-game'"
-    );
-  });
-
-  test("reports an explicit fallback when a requested theme is not registered", () => {
-    const registry = createRegistry();
-    const resolution = registry.resolve("missing-theme");
-
-    expect(resolution.requestedId).toBe("missing-theme");
-    expect(resolution.resolvedId).toBe("default");
-    expect(resolution.usedFallback).toBe(true);
+    expect(session.requestedThemeId).toBe("missing-theme");
+    expect(session.resolvedThemeId).toBe("default");
+    expect(session.usedFallback).toBe(true);
+    expect(session.descriptor.id).toBe("default");
   });
 
   test("fails clearly when the fallback has not been registered", () => {
@@ -179,6 +208,15 @@ describe("PresentationThemeRegistry", () => {
 
     expect(() => registry.resolve("missing-theme")).toThrow(
       "fallback 'missing-default' is missing"
+    );
+  });
+
+  test("rejects a context belonging to another game", () => {
+    const registry = createRegistry();
+    const otherGameContext = { ...context, gameId: "other-game" };
+
+    expect(() => registry.createSession("default", otherGameContext)).toThrow(
+      "cannot create a theme for game 'other-game'"
     );
   });
 
@@ -227,8 +265,45 @@ describe("PresentationThemeRegistry", () => {
         })
     });
 
-    expect(() => registry.create("invalid", context)).toThrow(
+    expect(() => registry.createSession("invalid", context)).toThrow(
       "must declare capability 'entity' exactly when its matching method is implemented"
     );
+  });
+
+  test("disposes only the owned theme instance and only once", () => {
+    const registry = createRegistry();
+    let firstDisposals = 0;
+    let secondDisposals = 0;
+
+    registry.register({
+      descriptor: {
+        id: "custom",
+        displayName: "Custom",
+        capabilities: []
+      },
+      tokens: themeTokens,
+      create: ({ sessionId }) =>
+        createTheme(
+          { id: "custom", displayName: "Custom", capabilities: [] },
+          () => {
+            if (sessionId === "session-1") firstDisposals++;
+            else secondDisposals++;
+          }
+        )
+    });
+
+    const first = registry.createSession("custom", context);
+    const second = registry.createSession("custom", { ...context, sessionId: "session-2" });
+
+    first.dispose();
+    first.dispose();
+
+    expect(first.disposed).toBe(true);
+    expect(second.disposed).toBe(false);
+    expect(firstDisposals).toBe(1);
+    expect(secondDisposals).toBe(0);
+
+    second.dispose();
+    expect(secondDisposals).toBe(1);
   });
 });

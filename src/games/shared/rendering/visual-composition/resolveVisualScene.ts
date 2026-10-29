@@ -232,7 +232,7 @@ export function validateVisualComposition(
     if (prefab) validatePrefab(prefab, prefabId, catalog, issues);
   }
   if (issues.length) return { ok: false, issues };
-  return { ok: true, value: definition as unknown as LevelVisualDefinition };
+  return { ok: true, value: definition as LevelVisualDefinition };
 }
 
 export function resolveVisualScene(

@@ -79,14 +79,10 @@ describe("ProofOfConceptStoryGraph Unit Tests", () => {
     runtime.setFlag("route_space_invaders", true);
     runtime.navigateToNode("act2_spaceinvaders_gameplay");
     runtime.setVariable("spaceinvadersScore", 6000);
-    runtime.setFlag("reinforcementsReceived", true);
     runtime.applyEffect({ type: "completeObjective", objectiveId: "repel-invaders-wave" });
 
     expect(runtime.getFlag("reinforcementsReceived")).toBe(true);
-    expect(runtime.getCurrentNodeId()).toBe("branch_reinforcements_success");
-
-    runtime.evaluateTransitions();
-    expect(runtime.getCurrentNodeId()).toBe("act3_asteroids_redux_intro");
+    expect(runtime.getCurrentNodeId()).toBe("act3_asteroids_redux_gameplay");
   });
 
   it("evaluates final branch to Flawless Victory when both flags are true", () => {

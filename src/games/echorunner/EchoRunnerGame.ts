@@ -66,7 +66,7 @@ import { drawPlatformerTilemap } from "../shared/rendering/PlatformerSharedVisua
 import { drawEchoInkWashBackdrop } from "./rendering/EchoRunnerInkWashBackdrop";
 import { EchoRunnerInput, EchoRunnerInputComponent, EchoRunnerGameState, EchoRunnerEventRegistry, EchoRunnerCollectibleProgress, EchoRunnerCollectibleKind, toEchoRunnerCollectibleKind, ECHO_CONFIG } from "./types/EchoRunnerTypes";
 import { EchoRunnerConfigSchema, EchoRunnerConfig as EchoRunnerConfigType, DEFAULT_ECHO_RUNNER_CONFIG } from "./types/EchoRunnerConfigSchema";
-import { PlatformerArcadeGame, loadPlatformerArcadeConfig } from "../shared/PlatformerArcadeGame";
+import { PlatformerArcadeGame, loadPlatformerArcadeConfig, DEFAULT_PLATFORMER_TILE_DEFINITIONS } from "../shared/PlatformerArcadeGame";
 import { PlatformerInputSystem } from "../shared/systems/PlatformerInputSystem";
 import { resolveAndApplyMutators } from "../../config/MutatorConfig";
 import { ArcadeEntityBuilder, registerPlatformerEnemyBlueprints, registerPlatformerEnvironmentBlueprints, mutatePlatformerInputState, registerCommonPlatformerSystems, updatePlayerInvulnerabilityAndContactDamage, updateRunProgress } from "@tiny-aster/gameplay-kit";
@@ -222,13 +222,10 @@ export const EchoRunnerDefinition: GameDefinition = {
   }
 };
 
-export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, EchoRunnerInput, CoreComponentRegistry, EchoRunnerEventRegistry, EchoRunnerBlueprintMap> {
+export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, EchoRunnerInput, CoreComponentRegistry, EchoRunnerEventRegistry, EchoRunnerBlueprintMap, EchoRunnerConfigType> {
   public readonly gameId = "echorunner";
   private gameOver = false;
   private levelPlan!: LevelPlan;
-  private customLevelData?: { templates: SegmentTemplate[]; grammar: string[] };
-  private baseConfig: EchoRunnerConfigType;
-  private config: EchoRunnerConfigType;
 
   public getLevelPlan(): LevelPlan {
     return this.levelPlan;
@@ -243,14 +240,11 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
       theme: config.theme ?? (config.gameOptions?.theme as Theme | undefined) ?? createThemeFromGameAccents("echorunner"),
       audio: new WebAudioPlayer()
     });
-    const res = this.loadConfig<EchoRunnerConfigType>(
+    this.initPlatformerConfig<EchoRunnerConfigType>(
       EchoRunnerConfigSchema,
       config.gameOptions,
       config.levelData
     );
-    this.baseConfig = res.baseConfig;
-    this.config = res.baseConfig;
-    this.customLevelData = res.customLevelData;
   }
 
   protected override async onRegisterSystems(): Promise<void> {
@@ -591,13 +585,7 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
       throw new Error("[EchoRunnerGame] Required blueprint 'player' is missing");
     }
 
-    const tileDefinitions = {
-      1: { solid: true, kind: "normal" as const },
-      2: { solid: true, kind: "ice" as const },
-      3: { solid: true, kind: "bounce" as const, bounce: 1.2 },
-      4: { solid: true, kind: "spike" as const },
-      5: { solid: true, oneWay: true, kind: "normal" as const }
-    };
+    const tileDefinitions = DEFAULT_PLATFORMER_TILE_DEFINITIONS;
 
     const levelSeed = this.getSeed() || 41873;
     const config = this.world.getResource<EchoRunnerConfigType>("GameConfig") || DEFAULT_ECHO_RUNNER_CONFIG;

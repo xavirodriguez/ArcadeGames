@@ -74,16 +74,8 @@ export function drawSumiEVillageLayer(
     });
   }
 
-  // The pilot uses a fixed 800×600 authoring canvas; adapt its origin to the
-  // actual viewport while preserving authored spacing and camera parallax.
+  // Center the fixed authoring frame at draw time without cloning the scene IR.
   const offsetX = (viewportWidth - 800) * 0.5;
   const offsetY = viewportHeight - 600;
-  const viewportScene: ResolvedVisualScene = {
-    ...scene,
-    instances: scene.instances.map(instance => ({
-      ...instance,
-      position: { x: instance.position.x + offsetX, y: instance.position.y + offsetY }
-    }))
-  };
-  drawResolvedVisualSceneCanvas(ctx, viewportScene, { x: cameraX, y: 0 });
+  drawResolvedVisualSceneCanvas(ctx, scene, { x: cameraX, y: 0 }, { x: offsetX, y: offsetY });
 }

@@ -1,5 +1,6 @@
 import { resolveVisualScene } from "../../../../shared/rendering/visual-composition";
 import { getCanvasVisualPosition } from "../../../../shared/rendering/visual-composition/CanvasVisualSceneRenderer";
+import { getCanvasSpriteLoadState } from "../../../../shared/sprites/SpriteDrawer";
 import { createSumiEVillageCatalog, SUMI_E_VILLAGE_COMPOSITION } from "../SumiEVillageComposition";
 
 describe("declarative Sumi-e village pilot", () => {
@@ -28,6 +29,10 @@ describe("declarative Sumi-e village pilot", () => {
       position: { x: 100, y: 200 }, space: "parallax", parallaxFactor: 0.25
     }, { x: 10, y: 20 })).toEqual({ x: 97.5, y: 195 });
   });
+  it("reports unregistered sprite assets without creating another cache", () => {
+    expect(getCanvasSpriteLoadState("visual-composition-test-missing-asset")).toBe("unregistered");
+  });
+
   it("composes zoom and viewport offsets after world/parallax translation", () => {
     const camera = { x: 10, y: 20, zoom: 2, visualOffsetX: 5, visualOffsetY: -3 };
     expect(getCanvasVisualPosition({

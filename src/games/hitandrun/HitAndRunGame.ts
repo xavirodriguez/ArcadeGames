@@ -103,7 +103,12 @@ import { getHitRunCharacterSpriteSheet, HIT_RUN_SUMI_E_SAMURAI_SHEET_ID } from "
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import { runWithUnlockedRandomAndMutators } from "../shared/configHelper";
 import { resolveThemeIdFromConfig } from "./rendering/theme/ThemeRegistry";
-import { activateHitAndRunTheme } from "./mods/registry";
+import { resolveHitAndRunTheme } from "./mods/registry";
+import {
+  createHitRunPresentationSession,
+  HIT_RUN_PRESENTATION_SESSION_RESOURCE,
+  type HitRunPresentationSession
+} from "./rendering/theme/HitRunPresentationSession";
 import { storePreviousTransforms } from "./rendering/HitRunRenderInterpolation";
 
 export interface HitAndRunConfig {
@@ -168,6 +173,7 @@ export class HitAndRunGame extends BaseGame<
   private customLevelData?: { templates: SegmentTemplate[]; grammar: string[] };
   private readonly samuraiAssetLoader: AssetLoader;
   private readonly activeThemeId: string;
+  private presentationSession: HitRunPresentationSession | undefined;
 
   constructor(config: HitAndRunConfig = {}) {
     const seed = (config.gameOptions?.seed as number) || config.seed;
@@ -182,7 +188,7 @@ export class HitAndRunGame extends BaseGame<
       gameOptions: { ...config.gameOptions, seed },
       audio: new WebAudioPlayer(),
     });
-    this.activeThemeId = activateHitAndRunTheme(requestedThemeId).id;
+    this.activeThemeId = resolveHitAndRunTheme(requestedThemeId).id;
     this.samuraiAssetLoader = new AssetLoader();
     this.customLevelData = config.levelData;
   }
@@ -190,6 +196,16 @@ export class HitAndRunGame extends BaseGame<
   public override update(dt: number): void {
     storePreviousTransforms(this.world);
     this.runDeterministicStep(dt);
+  }
+
+  public override destroy(): void {
+    super.destroy();
+    const session = this.presentationSession;
+    this.presentationSession = undefined;
+    if (session) {
+      this.world.deleteResource(HIT_RUN_PRESENTATION_SESSION_RESOURCE);
+      session.dispose();
+    }
   }
 
   protected override async onPreloadAssets(): Promise<void> {
@@ -259,6 +275,14 @@ export class HitAndRunGame extends BaseGame<
 
   protected override async onRegisterSystems(): Promise<void> {
     await super.onRegisterSystems();
+
+    this.presentationSession?.dispose();
+    this.presentationSession = createHitRunPresentationSession(
+      this.activeThemeId,
+      this.sessionId,
+      this.getSeed() || 41873
+    );
+    this.world.setResource(HIT_RUN_PRESENTATION_SESSION_RESOURCE, this.presentationSession);
 
     // Register the loader before entities or renderer drawers need it.
     this.world.setResource("AssetLoader", this.samuraiAssetLoader);

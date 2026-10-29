@@ -1,7 +1,7 @@
 import type { HitAndRunThemeModule, HitAndRunThemeId } from "./types";
 import { fantasyThemeModule } from "./fantasy/FantasyThemeModule";
 import { sumiEThemeModule } from "./sumi-e/SumiEThemeModule";
-import { ThemeRegistry, resolveThemeIdFromConfig } from "../rendering/theme/ThemeRegistry";
+import { resolveThemeIdFromConfig } from "../rendering/theme/ThemeRegistry";
 
 const THEMES: Record<HitAndRunThemeId, HitAndRunThemeModule> = {
   fantasy: fantasyThemeModule,
@@ -19,11 +19,12 @@ export function resolveHitAndRunTheme(themeOrId?: string | null): HitAndRunTheme
   return THEMES[asThemeId(raw)];
 }
 
-/** The single production entry point for changing Hit & Run's active renderer theme. */
+/**
+ * @deprecated Compatibility alias. Production code should resolve the theme and
+ * create a session owned by the corresponding game instance.
+ */
 export function activateHitAndRunTheme(themeOrId?: string | null): HitAndRunThemeModule {
-  const themeModule = resolveHitAndRunTheme(themeOrId);
-  ThemeRegistry.setActiveTheme(themeModule.id);
-  return themeModule;
+  return resolveHitAndRunTheme(themeOrId);
 }
 
 export { fantasyThemeModule, sumiEThemeModule, THEMES };

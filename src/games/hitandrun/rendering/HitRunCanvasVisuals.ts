@@ -5,7 +5,7 @@ import type {
   ShapeDrawer,
   CoreComponentRegistry
 } from "@tiny-aster/core";
-import { ThemeRegistry } from "./theme/ThemeRegistry";
+import { getHitRunTheme } from "./theme/HitRunPresentationSession";
 import type { EntityRenderSnapshot } from "./theme/HitRunThemeTypes";
 import type { BeltElevationComponent } from "../belt/BeltElevationComponent";
 import { getInterpolatedPosition } from "./HitRunRenderInterpolation";
@@ -56,7 +56,7 @@ export const drawHitRunPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreCompone
     const snapshot = buildEntitySnapshot(world, entity, "player", 24);
     if (!snapshot) return;
     const elapsed = (world.tick ?? 0) / 60;
-    ThemeRegistry.getActiveTheme().renderEntity(ctx, snapshot, elapsed);
+    getHitRunTheme(world).renderEntity(ctx, snapshot, elapsed);
   }
 };
 
@@ -65,7 +65,7 @@ export const drawHitRunPopcorn: ShapeDrawer<CanvasRenderingContext2D, CoreCompon
     const snapshot = buildEntitySnapshot(world, entity, "popcorn", 10);
     if (!snapshot) return;
     const elapsed = (world.tick ?? 0) / 60;
-    ThemeRegistry.getActiveTheme().renderEntity(ctx, snapshot, elapsed);
+    getHitRunTheme(world).renderEntity(ctx, snapshot, elapsed);
   }
 };
 
@@ -74,7 +74,7 @@ export const drawHitRunWallTrooper: ShapeDrawer<CanvasRenderingContext2D, CoreCo
     const snapshot = buildEntitySnapshot(world, entity, "wall_trooper", 14);
     if (!snapshot) return;
     const elapsed = (world.tick ?? 0) / 60;
-    ThemeRegistry.getActiveTheme().renderEntity(ctx, snapshot, elapsed);
+    getHitRunTheme(world).renderEntity(ctx, snapshot, elapsed);
   }
 };
 
@@ -83,7 +83,7 @@ export const drawHitRunHopper: ShapeDrawer<CanvasRenderingContext2D, CoreCompone
     const snapshot = buildEntitySnapshot(world, entity, "hopper", 12);
     if (!snapshot) return;
     const elapsed = (world.tick ?? 0) / 60;
-    ThemeRegistry.getActiveTheme().renderEntity(ctx, snapshot, elapsed);
+    getHitRunTheme(world).renderEntity(ctx, snapshot, elapsed);
   }
 };
 
@@ -92,7 +92,7 @@ export const drawHitRunCharger: ShapeDrawer<CanvasRenderingContext2D, CoreCompon
     const snapshot = buildEntitySnapshot(world, entity, "charger", 14);
     if (!snapshot) return;
     const elapsed = (world.tick ?? 0) / 60;
-    ThemeRegistry.getActiveTheme().renderEntity(ctx, snapshot, elapsed);
+    getHitRunTheme(world).renderEntity(ctx, snapshot, elapsed);
   }
 };
 
@@ -343,7 +343,7 @@ export const drawHitRunElite: ShapeDrawer<CanvasRenderingContext2D, CoreComponen
     const snapshot = buildEntitySnapshot(world, entity, "elite", 22);
     if (!snapshot) return;
     const elapsed = (world.tick ?? 0) / 60;
-    ThemeRegistry.getActiveTheme().renderEntity(ctx, snapshot, elapsed);
+    getHitRunTheme(world).renderEntity(ctx, snapshot, elapsed);
   }
 };
 
@@ -352,7 +352,7 @@ export const drawHitRunBullet: ShapeDrawer<CanvasRenderingContext2D, CoreCompone
     const snapshot = buildEntitySnapshot(world, entity, "bullet", 3);
     if (!snapshot) return;
     const elapsed = (world.tick ?? 0) / 60;
-    ThemeRegistry.getActiveTheme().renderProjectile(ctx, snapshot, elapsed);
+    getHitRunTheme(world).renderProjectile(ctx, snapshot, elapsed);
   }
 };
 
@@ -361,6 +361,6 @@ export const drawHitRunRocket: ShapeDrawer<CanvasRenderingContext2D, CoreCompone
     const snapshot = buildEntitySnapshot(world, entity, "rocket", 7);
     if (!snapshot) return;
     const elapsed = (world.tick ?? 0) / 60;
-    ThemeRegistry.getActiveTheme().renderProjectile(ctx, snapshot, elapsed);
+    getHitRunTheme(world).renderProjectile(ctx, snapshot, elapsed);
   }
 };

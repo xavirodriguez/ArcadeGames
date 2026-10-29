@@ -4,6 +4,7 @@
  */
 
 import type { HitRunTheme, HitRunThemePaletteTokens } from "../HitRunTheme";
+import type { PresentationRandom } from "../../../../shared/presentation/PresentationContracts";
 import type {
   EntityRenderSnapshot,
   HudRenderSnapshot,
@@ -52,13 +53,14 @@ export class SumiETheme implements HitRunTheme {
   public readonly name = "Ukiyo-e Sumi-e";
   public readonly palette = SUMI_E_PALETTE;
 
-  private prng = new ThemePRNG(98765);
+  private prng: PresentationRandom;
   private paperCanvas: HTMLCanvasElement | null = null;
   private goldBorderCanvas: HTMLCanvasElement | null = null;
   private decalRingBuffer: InkDecal[] = [];
   private maxDecals = 32;
 
-  public constructor() {
+  public constructor(random?: PresentationRandom, seed = 98765) {
+    this.prng = random ?? new ThemePRNG(seed);
     // Pre-seed decal buffer
   }
 

@@ -2,7 +2,8 @@ import { PresentationThemeRegistry } from "../PresentationThemeRegistry";
 import type {
   PresentationTheme,
   PresentationThemeContext,
-  PresentationThemeDescriptor
+  PresentationThemeDescriptor,
+  PresentationThemeTokens
 } from "../PresentationContracts";
 
 interface SceneSnapshot {
@@ -32,6 +33,33 @@ type TestTheme = PresentationTheme<
   HudSnapshot,
   BannerSnapshot
 >;
+
+const themeTokens: PresentationThemeTokens<object> = {
+  colors: {
+    background: "#111111",
+    surface: "#222222",
+    textPrimary: "#ffffff",
+    textSecondary: "#cccccc",
+    accent: "#4da3ff",
+    player: "#4da3ff",
+    threat: "#ff3b30",
+    reward: "#e3a92f",
+    danger: "#ff3b30",
+    success: "#4a8a62",
+    warning: "#e3a92f",
+    outline: "#777777"
+  },
+  typography: {
+    display: "sans-serif",
+    body: "sans-serif",
+    monospace: "monospace"
+  },
+  layout: {
+    spacing: { xs: 4, sm: 8, md: 12, lg: 16, xl: 24 },
+    radius: { sm: 2, md: 4, lg: 8, pill: 999 }
+  },
+  custom: {}
+};
 
 const context: PresentationThemeContext = {
   gameId: "test-game",
@@ -68,6 +96,7 @@ function createRegistry(): PresentationThemeRegistry<
       displayName: "Default",
       capabilities: []
     },
+    tokens: themeTokens,
     create: () =>
       createTheme({
         id: "default",
@@ -90,6 +119,7 @@ describe("PresentationThemeRegistry", () => {
         displayName: "Sumi-e",
         capabilities: []
       },
+      tokens: themeTokens,
       create: () => {
         const instance = createTheme({
           id: "sumi-e",
@@ -111,6 +141,13 @@ describe("PresentationThemeRegistry", () => {
     expect(instances).toHaveLength(2);
     expect(first.descriptor.id).toBe("sumi-e");
     expect(second.descriptor.id).toBe("sumi-e");
+  });
+
+  test("exposes normalized theme tokens through the registry definition", () => {
+    const registry = createRegistry();
+
+    expect(registry.resolve("default").definition.tokens.colors.background).toBe("#111111");
+    expect(registry.resolve("default").definition.tokens.typography.monospace).toBe("monospace");
   });
 
   test("reports an explicit fallback when a requested theme is not registered", () => {
@@ -146,6 +183,7 @@ describe("PresentationThemeRegistry", () => {
           displayName: "Duplicate",
           capabilities: []
         },
+        tokens: themeTokens,
         create: () =>
           createTheme({
             id: "default",
@@ -171,6 +209,7 @@ describe("PresentationThemeRegistry", () => {
         displayName: "Invalid",
         capabilities: ["entity"]
       },
+      tokens: themeTokens,
       create: () =>
         createTheme({
           id: "invalid",

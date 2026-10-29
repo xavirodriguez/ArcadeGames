@@ -1,6 +1,6 @@
 /**
  * Backend-neutral contracts for swappable game presentation.
- * This module must remain independent of ECS, React, Canvas and Skia APIs.
+ * Keep this module independent of ECS, React, Canvas and Skia concrete APIs.
  */
 
 export type PresentationCapability =
@@ -21,6 +21,54 @@ export interface PresentationThemeDescriptor {
   readonly id: string;
   readonly displayName: string;
   readonly capabilities: readonly PresentationCapability[];
+}
+
+export interface PresentationColorTokens {
+  readonly background: string;
+  readonly surface: string;
+  readonly textPrimary: string;
+  readonly textSecondary: string;
+  readonly accent: string;
+  readonly player: string;
+  readonly threat: string;
+  readonly reward: string;
+  readonly danger: string;
+  readonly success: string;
+  readonly warning: string;
+  readonly outline: string;
+}
+
+export interface PresentationTypographyTokens {
+  readonly display: string;
+  readonly body: string;
+  readonly monospace: string;
+}
+
+export interface PresentationLayoutTokens {
+  readonly spacing: {
+    readonly xs: number;
+    readonly sm: number;
+    readonly md: number;
+    readonly lg: number;
+    readonly xl: number;
+  };
+  readonly radius: {
+    readonly sm: number;
+    readonly md: number;
+    readonly lg: number;
+    readonly pill: number;
+  };
+}
+
+/**
+ * Common semantic roles support shared UI; custom keeps each art direction's
+ * richer, strictly typed token model (for example the nested Sumi-e token groups).
+ */
+export interface PresentationThemeTokens<TCustomTokens extends object = object> {
+  readonly colors: PresentationColorTokens;
+  readonly typography: PresentationTypographyTokens;
+  readonly layout: PresentationLayoutTokens;
+  readonly custom: TCustomTokens;
 }
 
 export interface PresentationViewport {
@@ -54,6 +102,106 @@ export interface PresentationRect {
   readonly y: number;
   readonly width: number;
   readonly height: number;
+}
+
+export interface PresentationTransformSnapshot {
+  readonly x: number;
+  readonly y: number;
+  readonly rotationRadians: number;
+  readonly scaleX: number;
+  readonly scaleY: number;
+}
+
+export interface PresentationAnimationSnapshot {
+  readonly state: string;
+  readonly frameIndex: number;
+  readonly elapsedSeconds: number;
+}
+
+export type PresentationEntityRole =
+  | "player"
+  | "hostile"
+  | "projectile"
+  | "obstacle"
+  | "collectible"
+  | "environment"
+  | "effect"
+  | "neutral";
+
+export interface PresentationEntitySnapshot<TCustomData extends object = object> {
+  /** Stable presentation identity, not the concrete ECS entity object. */
+  readonly entityId: string;
+  /** Semantic asset/drawer key resolved by the theme. */
+  readonly visualId: string;
+  readonly role: PresentationEntityRole;
+  readonly transform: PresentationTransformSnapshot;
+  readonly opacity: number;
+  readonly elevation?: number;
+  readonly facing?: -1 | 1;
+  readonly animation?: PresentationAnimationSnapshot;
+  readonly hitFlash?: number;
+  readonly tint?: string;
+  readonly custom?: TCustomData;
+}
+
+export type PresentationEnvironmentCoordinateSpace = "screen" | "world" | "parallax";
+
+export interface PresentationEnvironmentLayerSnapshot {
+  readonly assetId: string;
+  readonly coordinateSpace: PresentationEnvironmentCoordinateSpace;
+  readonly bounds: PresentationRect;
+  readonly zIndex: number;
+  readonly opacity: number;
+  /** Used only when coordinateSpace is parallax. */
+  readonly parallaxFactor: number;
+  readonly repeatX?: boolean;
+}
+
+export interface PresentationSceneSnapshot<TCustomData extends object = object> {
+  readonly sceneId: string;
+  readonly levelId?: string;
+  readonly environmentId?: string;
+  readonly environmentLayers?: ReadonlyArray<PresentationEnvironmentLayerSnapshot>;
+  readonly custom?: TCustomData;
+}
+
+export type PresentationFeedbackKind = "hit" | "death" | "explosion" | "pickup" | "blocked";
+
+export interface PresentationPoint {
+  readonly x: number;
+  readonly y: number;
+}
+
+export interface PresentationFeedbackEventSnapshot {
+  readonly eventId: string;
+  readonly type: PresentationFeedbackKind;
+  readonly position?: PresentationPoint;
+  readonly amount?: number;
+  readonly category?: string;
+  readonly directionRadians?: number;
+}
+
+export interface PresentationHealthSnapshot {
+  readonly current: number;
+  readonly max: number;
+}
+
+export interface PresentationHudSnapshot<TMetrics extends object = object> {
+  readonly score?: number;
+  readonly highScore?: number;
+  readonly lives?: number;
+  readonly health?: PresentationHealthSnapshot;
+  readonly combo?: number;
+  readonly isPaused?: boolean;
+  readonly isGameOver?: boolean;
+  readonly metrics?: TMetrics;
+}
+
+export interface PresentationBannerSnapshot {
+  readonly text: string;
+  readonly subtext?: string;
+  readonly remainingSeconds: number;
+  readonly totalDurationSeconds: number;
 }
 
 export interface PresentationGradient {
@@ -164,7 +312,7 @@ export interface PresentationPainter {
     endRadius: number
   ): PresentationGradient;
 
-  /** assetId resolves through the preloaded asset layer, not a DOM/native image handle. */
+  /** assetId resolves through preloaded assets, never a DOM/native image handle. */
   drawImage(
     assetId: string,
     destination: PresentationRect,
@@ -179,7 +327,8 @@ export interface PresentationTheme<
   TEntitySnapshot,
   TFeedbackEvent,
   THudSnapshot,
-  TBannerSnapshot
+  TBannerSnapshot,
+  TCustomTokens extends object = object
 > {
   readonly descriptor: PresentationThemeDescriptor;
 
@@ -199,15 +348,18 @@ export interface PresentationThemeDefinition<
   TEntitySnapshot,
   TFeedbackEvent,
   THudSnapshot,
-  TBannerSnapshot
+  TBannerSnapshot,
+  TCustomTokens extends object = object
 > {
   readonly descriptor: PresentationThemeDescriptor;
+  readonly tokens: PresentationThemeTokens<TCustomTokens>;
   create(context: PresentationThemeContext): PresentationTheme<
     TSceneSnapshot,
     TEntitySnapshot,
     TFeedbackEvent,
     THudSnapshot,
-    TBannerSnapshot
+    TBannerSnapshot,
+    TCustomTokens
   >;
 }
 
@@ -216,7 +368,8 @@ export interface PresentationThemeResolution<
   TEntitySnapshot,
   TFeedbackEvent,
   THudSnapshot,
-  TBannerSnapshot
+  TBannerSnapshot,
+  TCustomTokens extends object = object
 > {
   readonly requestedId: string;
   readonly resolvedId: string;
@@ -226,6 +379,7 @@ export interface PresentationThemeResolution<
     TEntitySnapshot,
     TFeedbackEvent,
     THudSnapshot,
-    TBannerSnapshot
+    TBannerSnapshot,
+    TCustomTokens
   >;
 }

@@ -14,7 +14,10 @@ export interface CanvasVisualSceneCamera {
   readonly visualOffsetY?: number;
 }
 
-export interface CanvasVisualSceneOffset { readonly x: number; readonly y: number }
+export interface CanvasVisualSceneOffset {
+  readonly x: number;
+  readonly y: number;
+}
 
 function cameraFactor(space: VisualCoordinateSpace, parallaxFactor?: number): number {
   if (space === "screen") return 0;
@@ -34,8 +37,24 @@ export function getCanvasVisualPosition(
   const offsetY = (camera.visualOffsetY ?? 0) + viewportOffset.y;
   if (instance.space === "screen") return { x: instance.position.x + offsetX, y: instance.position.y + offsetY };
   return {
-    x: (instance.position.x - camera.x * factor) * zoom + offsetX,
-    y: (instance.position.y - camera.y * factor) * zoom + offsetY
+    x: instance.position.x - camera.x * factor + viewportOffset.x,
+    y: instance.position.y - camera.y * factor + viewportOffset.y
+  };
+}
+
+/** Honor semantic anchors while reusing the shared sprite drawer. */
+function getDrawPoint(
+  instance: ResolvedVisualInstance,
+  point: { x: number; y: number }
+): { x: number; y: number; anchor: "center" | "feet" } {
+  if (instance.anchor === "bottom-center") return { ...point, anchor: "feet" };
+  if (instance.anchor === "center") return { ...point, anchor: "center" };
+  const size = getSpriteLogicalSize(instance.asset);
+  if (!size) return { ...point, anchor: "center" };
+  return {
+    x: point.x + size.w * instance.scale.x * 0.5,
+    y: point.y + size.h * instance.scale.y * 0.5,
+    anchor: "center"
   };
 }
 

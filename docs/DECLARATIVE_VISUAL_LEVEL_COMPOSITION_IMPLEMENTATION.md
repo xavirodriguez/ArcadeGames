@@ -51,3 +51,10 @@ This is a Canvas pilot, not yet Canvas/Skia parity. The existing SpriteDrawer ow
 - The existing SpriteDrawer exposes read-only Canvas/Skia load states (`unregistered`, `not-loaded`, `loading`, `ready`, `failed`). Composition rendering continues to use the shared backend caches and never owns or disposes them.
 - Tests cover normalized anchor defaults, world/screen/parallax transforms with zoom and offsets, and unregistered-asset state.
 - Validation note: these changes were authored through the GitHub API; Jest, typecheck and `pnpm run ci` have not been executed in this environment.
+
+### Phase 2.1 — viewport transform allocation fix
+
+- Added an optional viewport offset to the Canvas adapter. It is applied after world/screen/parallax camera transforms, so centering the fixed authoring frame does not change the meaning of each layer's parallax factor.
+- Removed the per-frame scene clone and seven per-instance object allocations from `drawSumiEVillageLayer`. The resolved scene remains cached and immutable; viewport centering is now a draw-time transform input.
+- Added a unit test proving viewport offsets are composed after camera/parallax transforms.
+- This is a targeted allocation reduction, not a claim of zero-allocation rendering. The sprite drawer still constructs per-instance animator/options objects, and viewport culling remains future work.

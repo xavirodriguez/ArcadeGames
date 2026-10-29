@@ -74,8 +74,14 @@ export function drawSumiEVillageLayer(
     });
   }
 
-  // Center the fixed authoring frame at draw time without cloning the scene IR.
-  const offsetX = (viewportWidth - 800) * 0.5;
-  const offsetY = viewportHeight - 600;
-  drawResolvedVisualSceneCanvas(ctx, scene, { x: cameraX, y: 0 }, { x: offsetX, y: offsetY });
+  // Offset the fixed 800×600 authoring frame at draw time. Avoid allocating a
+  // replacement scene and seven replacement instance objects on every frame.
+  const viewportOffsetX = (viewportWidth - 800) * 0.5;
+  const viewportOffsetY = viewportHeight - 600;
+  drawResolvedVisualSceneCanvas(
+    ctx,
+    scene,
+    { x: cameraX, y: 0 },
+    { x: viewportOffsetX, y: viewportOffsetY }
+  );
 }

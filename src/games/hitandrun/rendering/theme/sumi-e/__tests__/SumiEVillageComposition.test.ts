@@ -46,4 +46,10 @@ describe("declarative Sumi-e village pilot", () => {
     }, camera)).toEqual({ x: 105, y: 197 });
   });
 
+
+  it("applies viewport centering after camera/parallax transforms", () => {
+    expect(getCanvasVisualPosition({
+      position: { x: 100, y: 200 }, space: "parallax", parallaxFactor: 0.25
+    }, { x: 10, y: 20 }, { x: 40, y: -15 })).toEqual({ x: 137.5, y: 180 });
+  });
 });

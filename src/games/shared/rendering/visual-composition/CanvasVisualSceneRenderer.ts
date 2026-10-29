@@ -1,16 +1,11 @@
 import type { ResolvedVisualInstance, ResolvedVisualScene, VisualCoordinateSpace } from "./VisualCompositionTypes";
 import { SpriteRegistry } from "../../sprites/SpriteRegistry";
-import { drawSpriteCanvas, preloadSpriteSheetCanvas } from "../../sprites/SpriteDrawer";
+import { drawSpriteCanvas, getSpriteLogicalSize, preloadSpriteSheetCanvas } from "../../sprites/SpriteDrawer";
 import type { SpriteAnimatorComponent } from "../../sprites/SpriteAnimator";
 
 export interface CanvasVisualSceneCamera {
   readonly x: number;
   readonly y: number;
-}
-
-/** Maps declarative anchors to the shared sprite drawer's supported anchors. */
-function spriteAnchor(anchor: ResolvedVisualInstance["anchor"]): "center" | "feet" {
-  return anchor === "center" ? "center" : "feet";
 }
 
 function cameraFactor(space: VisualCoordinateSpace, parallaxFactor?: number): number {
@@ -31,11 +26,26 @@ export function getCanvasVisualPosition(
   };
 }
 
+/** Honor semantic anchors while reusing the shared sprite drawer. */
+function getDrawPoint(
+  instance: ResolvedVisualInstance,
+  point: { x: number; y: number }
+): { x: number; y: number; anchor: "center" | "feet" } {
+  if (instance.anchor === "bottom-center") return { ...point, anchor: "feet" };
+  if (instance.anchor === "center") return { ...point, anchor: "center" };
+  const size = getSpriteLogicalSize(instance.asset);
+  if (!size) return { ...point, anchor: "center" };
+  return {
+    x: point.x + size.w * instance.scale.x * 0.5,
+    y: point.y + size.h * instance.scale.y * 0.5,
+    anchor: "center"
+  };
+}
+
 /**
  * Draws the renderer-neutral scene IR using the existing sprite registry and
  * shared Canvas drawer. This adapter does not own image caches or ECS state.
- * Returns false if the sprite sheet is not registered; the shared drawer keeps
- * its existing asynchronous preload behavior for registered sheets.
+ * Returns false if a sprite is unregistered or not yet decoded.
  */
 export function drawResolvedVisualSceneCanvas(
   ctx: CanvasRenderingContext2D,
@@ -44,30 +54,26 @@ export function drawResolvedVisualSceneCanvas(
 ): boolean {
   let complete = true;
   for (const instance of scene.instances) {
-    const sheet = SpriteRegistry.get(instance.asset);
-    if (!sheet) {
+    if (!SpriteRegistry.has(instance.asset)) {
       complete = false;
       continue;
     }
     const point = getCanvasVisualPosition(instance, camera);
+    const target = getDrawPoint(instance, point);
     const animator: SpriteAnimatorComponent = {
       sheetId: instance.asset,
       currentAnim: "idle",
       frameIndex: 0,
       timer: 0,
       flipX: instance.flipX,
-      scale: 1
+      scale: instance.scale.x === instance.scale.y ? instance.scale.x : 1
     };
     ctx.save();
-    ctx.translate(point.x, point.y);
+    ctx.translate(target.x, target.y);
     if (instance.rotation !== 0) ctx.rotate(instance.rotation);
-    if (instance.scale.x !== instance.scale.y) {
-      ctx.scale(instance.scale.x, instance.scale.y);
-    } else {
-      animator.scale = instance.scale.x;
-    }
+    if (instance.scale.x !== instance.scale.y) ctx.scale(instance.scale.x, instance.scale.y);
     const drawn = drawSpriteCanvas(ctx, animator, 0, 0, {
-      anchor: spriteAnchor(instance.anchor),
+      anchor: target.anchor,
       opacity: instance.opacity
     });
     ctx.restore();
@@ -76,7 +82,7 @@ export function drawResolvedVisualSceneCanvas(
   return complete;
 }
 
-/** Explicit preload helper; asset loading remains owned by SpriteDrawer. */
+/** Preload via the existing SpriteDrawer cache; this adapter owns no cache. */
 export async function preloadResolvedVisualSceneCanvas(scene: ResolvedVisualScene): Promise<void> {
   const ids = [...new Set(scene.instances.map(instance => instance.asset))];
   await Promise.all(ids.map(async id => {

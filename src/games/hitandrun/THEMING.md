@@ -25,3 +25,14 @@ To create a new visual theme:
 
 - `fantasy`: Default Dark Fantasy dusk brawler theme.
 - `sumi-e`: Modern Ukiyo-e Sumi-e theme with parchment paper, ink wash parallax, world-space ink decals, and red seal HUD.
+
+## Presentation-neutral asset ids (Lote D)
+
+Simulation modules (`belt/`, `waves/`, `ai/`, `weapons/`) must import theme **flags and atlas ids** only from:
+
+- `src/games/hitandrun/presentation/ThemeAssetIds.ts`
+- `src/games/hitandrun/presentation/CharacterAtlasContract.ts`
+
+Debug spawn counters live in `src/games/hitandrun/debug/HitRunDebugMetrics.ts` (re-exported from `rendering/` for compatibility).
+
+Monorepo facade: `resolveHitAndRunTheme()` in `mods/registry.ts` wraps the existing `ThemeRegistry` without replacing `HitRunTheme` drawers.

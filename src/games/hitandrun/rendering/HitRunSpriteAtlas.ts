@@ -1,34 +1,27 @@
 import type {
   AnimationDefinition,
   SpriteAnimationDefinition,
-  SpriteFrameRect,
   SpriteSheetDefinition
 } from "@tiny-aster/core";
+import {
+  HIT_RUN_CHARACTER_ANCHOR,
+  HIT_RUN_CHARACTER_ATLAS_COLUMNS,
+  HIT_RUN_CHARACTER_ATLAS_ROWS,
+  HIT_RUN_CHARACTER_CELL_SIZE,
+  HIT_RUN_SUMI_E_SAMURAI_SHEET_ID,
+  getHitRunFrameRect,
+  type HitRunFrameRect
+} from "../presentation/CharacterAtlasContract";
 
-/** Shared 8x5 character atlas contract used by the bundled samurai and Sumi-e player. */
-export const HIT_RUN_CHARACTER_CELL_SIZE = 64;
-export const HIT_RUN_CHARACTER_ATLAS_COLUMNS = 8;
-export const HIT_RUN_CHARACTER_ATLAS_ROWS = 5;
-export const HIT_RUN_SUMI_E_SAMURAI_SHEET_ID = "hitrun_sumi_e_samurai";
-export const HIT_RUN_CHARACTER_ANCHOR = { x: 0.5, y: 0.94 } as const;
-
-export type HitRunFrameRect = SpriteFrameRect;
-
-export function getHitRunFrameRect(atlasFrameIndex: number): HitRunFrameRect {
-  const safeIndex = Math.max(
-    0,
-    Math.min(
-      HIT_RUN_CHARACTER_ATLAS_COLUMNS * HIT_RUN_CHARACTER_ATLAS_ROWS - 1,
-      Math.floor(atlasFrameIndex)
-    )
-  );
-  return {
-    x: (safeIndex % HIT_RUN_CHARACTER_ATLAS_COLUMNS) * HIT_RUN_CHARACTER_CELL_SIZE,
-    y: Math.floor(safeIndex / HIT_RUN_CHARACTER_ATLAS_COLUMNS) * HIT_RUN_CHARACTER_CELL_SIZE,
-    w: HIT_RUN_CHARACTER_CELL_SIZE,
-    h: HIT_RUN_CHARACTER_CELL_SIZE
-  };
-}
+export {
+  HIT_RUN_CHARACTER_ANCHOR,
+  HIT_RUN_CHARACTER_ATLAS_COLUMNS,
+  HIT_RUN_CHARACTER_ATLAS_ROWS,
+  HIT_RUN_CHARACTER_CELL_SIZE,
+  HIT_RUN_SUMI_E_SAMURAI_SHEET_ID,
+  getHitRunFrameRect,
+  type HitRunFrameRect
+};
 
 interface HitRunAnimationLayout {
   name: string;
@@ -53,7 +46,7 @@ const HIT_RUN_CHARACTER_ANIMATION_LAYOUT: readonly HitRunAnimationLayout[] = [
   { name: "death", startFrame: 32, frameCount: 8, frameDuration: 1 / 10, loop: false }
 ];
 
-function createFrameSequence(startFrame: number, frameCount: number): SpriteFrameRect[] {
+function createFrameSequence(startFrame: number, frameCount: number): import("@tiny-aster/core").SpriteFrameRect[] {
   return Array.from({ length: frameCount }, (_entry, index) =>
     getHitRunFrameRect(startFrame + index)
   );
@@ -71,7 +64,7 @@ for (const layout of HIT_RUN_CHARACTER_ANIMATION_LAYOUT) {
   };
 }
 
-function getAtlasFrameIndex(frame: SpriteFrameRect): number {
+function getAtlasFrameIndex(frame: import("@tiny-aster/core").SpriteFrameRect): number {
   const column = frame.x / HIT_RUN_CHARACTER_CELL_SIZE;
   const row = frame.y / HIT_RUN_CHARACTER_CELL_SIZE;
   const isGridAligned = Number.isInteger(column) && Number.isInteger(row);

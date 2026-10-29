@@ -1,7 +1,7 @@
 import { World, CoreComponentRegistry } from "@tiny-aster/core";
 import type { DamageComponent } from "@tiny-aster/gameplay-kit";
 import type { HitRunEnemyBulletPool } from "../weapons/HitRunEnemyBulletPool";
-import { recordHitRunDebugAllocation } from "../rendering/HitRunDebugMetrics";
+import { recordHitRunDebugAllocation } from "../debug/HitRunDebugMetrics";
 
 /**
  * Cooldown de disparo guardado en StateMachine.data.shootCooldownRemaining

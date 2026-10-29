@@ -130,7 +130,7 @@ function registerHitRunRenderers(
   } else {
     renderer.registerBackgroundEffect(
       "hit_run_procedural_backdrop",
-      drawHitRunProceduralBackdrop as unknown as import("@tiny-aster/core").EffectDrawer<RenderContext, CoreComponentRegistry>
+      drawHitRunProceduralBackdrop as never as import("@tiny-aster/core").EffectDrawer<RenderContext, CoreComponentRegistry>
     );
   }
   renderer.registerBackgroundEffect("hit_run_hud", drawHitRunHud);

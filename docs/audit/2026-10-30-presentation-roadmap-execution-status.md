@@ -39,6 +39,10 @@
 - The latest commit's combined status reports a [Vercel failure](https://vercel.com/javis-projects-0a2bd667?upgradeToPro=build-rate-limit) with a build-rate-limit destination. This is not a successful build result and does not identify a TypeScript or test failure.
 - A local checkout was unavailable in this execution environment. Jest, `pnpm run ci`, E2E, real Canvas/Skia execution, and screenshot comparisons have **not** been run. No test result should be inferred from the presence of test files.
 
+## Synchronization with latest master
+
+After the first push, `master` advanced through [PR #989](https://github.com/xavirodriguez/ArcadeGames/pull/989), now at [`0a603ceb4233`](https://github.com/xavirodriguez/ArcadeGames/commit/0a603ceb4233be1c41dd12061da3d160b21c1425). This branch preserves its session refactor and now includes the relevant PR #989 updates: both Hit & Run renderer casts use `never` rather than `unknown`, and the Sumi-e integration test includes the corrected closing call. The synchronization is recorded as a merge commit with `master` as its second parent; the roadmap phase squash commits remain intact.
+
 ## Next action
 
 Create a pull request when ready to trigger the repository's configured CI workflows. Before declaring the roadmap complete, resolve any actual checks that fail and complete Phase 4's production migration to `PresentationPainter`, the Phase 5 visual/performance/accessibility acceptance, and Phase 7's real second-game pilot.

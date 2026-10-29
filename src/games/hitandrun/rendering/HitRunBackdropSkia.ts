@@ -13,7 +13,7 @@ import {
  */
 export const drawHitRunProceduralBackdropSkia: EffectDrawer<RenderContext, CoreComponentRegistry> = {
   draw(context, world) {
-    const canvas = context as unknown as SkCanvas;
+    const canvas = context as never as SkCanvas;
     if (!canvas || typeof canvas.drawRect !== "function" || !Skia) return;
 
     const gameConfig = world.getResource<{ viewportWidth?: number; viewportHeight?: number }>("GameConfig");

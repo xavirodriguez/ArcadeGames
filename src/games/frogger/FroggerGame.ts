@@ -39,7 +39,7 @@ import { FroggerBlueprintMap, registerFroggerBlueprints } from "./EntityFactory"
 import { applyMutators } from "../shared/configHelper";
 import { registerMutatorHook } from "../../utils/MutatorRegistry";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
-import { initializeFroggerRenderer } from "./rendering/FroggerPresentation";
+import { resolveFroggerTheme } from "./mods/registry";
 
 export class FroggerGame extends BaseGame<
   FroggerState,
@@ -287,7 +287,7 @@ export class FroggerGame extends BaseGame<
   }
 
   public initializeRenderer(renderer: Renderer<FroggerComponentRegistry>): void {
-    initializeFroggerRenderer(renderer);
+    resolveFroggerTheme().initializeRenderer(renderer);
   }
 
   public getGameState(): FroggerState {

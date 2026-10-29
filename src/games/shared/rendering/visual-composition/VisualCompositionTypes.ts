@@ -36,6 +36,18 @@ export interface VisualPrefabDefinition {
 export type VisualLayerItemDefinition =
   | { kind: "instance"; instance: VisualInstanceDefinition }
   | { kind: "prefab"; id: string; prefab: string; position?: VisualPoint };
+export interface VisualRepeaterDefinition {
+  /** Stable layer-local identifier. */
+  id: string;
+  /** Static full-image assets selected in a stable cycle by repeat index. */
+  assets: readonly string[];
+  /** World/screen-space origin of repeat index zero. */
+  start: VisualPoint;
+  /** Horizontal distance between repeated instances; must be positive. */
+  spacing: number;
+  scale?: VisualScale;
+  opacity?: number;
+}
 export interface VisualLayerDefinition {
   id: string;
   role: VisualLayerRole;
@@ -45,6 +57,8 @@ export interface VisualLayerDefinition {
   parallaxFactor?: number;
   /** One ordered list permits direct instances and prefab placements to interleave. */
   items: readonly VisualLayerItemDefinition[];
+  /** Repeated scenery remains declarative and is culled by each renderer. */
+  repeaters?: readonly VisualRepeaterDefinition[];
   /** Applied to every item in the layer, including prefab placements. */
   position?: VisualPoint;
 }
@@ -70,11 +84,30 @@ export interface ResolvedVisualInstance {
   readonly flipX: boolean;
   readonly anchor: VisualAnchorPoint;
 }
+export interface ResolvedVisualRepeaterAsset {
+  readonly id: string;
+  readonly anchor: VisualAnchorPoint;
+}
+export interface ResolvedVisualRepeater {
+  readonly id: string;
+  readonly layerId: string;
+  readonly layerRole: VisualLayerRole;
+  readonly layerOrder: number;
+  readonly space: VisualCoordinateSpace;
+  readonly parallaxFactor?: number;
+  readonly assets: readonly ResolvedVisualRepeaterAsset[];
+  readonly start: Readonly<VisualPoint>;
+  readonly spacing: number;
+  readonly scale: Readonly<VisualScale>;
+  readonly opacity: number;
+}
 export interface ResolvedVisualScene {
   readonly schemaVersion: 1;
   readonly levelId: string;
   readonly themeId: string;
   readonly instances: readonly ResolvedVisualInstance[];
+  /** Optional for compatibility with scenes authored before repeated layers existed. */
+  readonly repeaters?: readonly ResolvedVisualRepeater[];
 }
 export interface VisualCompositionIssue { readonly path: string; readonly message: string }
 export type VisualCompositionResult<T> =

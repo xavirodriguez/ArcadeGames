@@ -82,6 +82,7 @@ import {
 import type { HitRunWeaponState } from "./weapons/HitRunWeaponTypes";
 import { HIT_RUN_BACKDROP_THEME } from "./rendering/HitAndRunPalette";
 import { HIT_RUN_BACKDROP_RESOURCE, drawHitRunProceduralBackdrop } from "./rendering/HitRunBackdropCanvas";
+import { drawHitRunProceduralBackdropSkia } from "./rendering/HitRunBackdropSkia";
 import {
   drawHitRunPlayer,
   drawHitRunPopcorn,
@@ -119,7 +120,14 @@ export type HitAndRunBlueprintMap = Record<
 function registerHitRunRenderers(
   renderer: Renderer<CoreComponentRegistry, RenderContext>
 ): void {
-  renderer.registerBackgroundEffect("hit_run_procedural_backdrop", drawHitRunProceduralBackdrop);
+  if (renderer.type === "skia") {
+    renderer.registerBackgroundEffect("hit_run_procedural_backdrop", drawHitRunProceduralBackdropSkia);
+  } else {
+    renderer.registerBackgroundEffect(
+      "hit_run_procedural_backdrop",
+      drawHitRunProceduralBackdrop as unknown as import("@tiny-aster/core").EffectDrawer<RenderContext, CoreComponentRegistry>
+    );
+  }
   renderer.registerBackgroundEffect("hit_run_hud", drawHitRunHud);
   renderer.registerBackgroundEffect("hit_run_debug_overlay", drawHitRunDebugOverlay);
 

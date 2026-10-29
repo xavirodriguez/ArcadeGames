@@ -47,6 +47,62 @@ describe("declarative visual composition", () => {
     expect(first.value.instances[0]).toMatchObject({ position: { x: 110, y: 230 }, scale: { x: 1, y: 1 }, rotation: 0, flipX: false, opacity: 0.5, anchor: { x: 0.5, y: 0.5 } });
   });
 
+  it("resolves repeated rows without expanding them into static scene instances", () => {
+    const repeated = {
+      schemaVersion: 1 as const,
+      id: "test.repeated",
+      theme: "sumi-e",
+      layers: [{
+        id: "houses",
+        role: "settlement" as const,
+        order: 10,
+        space: "parallax" as const,
+        parallaxFactor: 0.3,
+        items: [],
+        repeaters: [{
+          id: "row",
+          assets: ["house", "tree"],
+          start: { x: -100, y: 300 },
+          spacing: 420,
+          scale: { x: 0.5, y: 0.5 },
+          opacity: 0.7
+        }]
+      }]
+    };
+    const result = resolveVisualScene(repeated, catalog);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.instances).toHaveLength(0);
+    expect(result.value.repeaters).toEqual([expect.objectContaining({
+      id: "houses/row",
+      layerOrder: 10,
+      parallaxFactor: 0.3,
+      start: { x: -100, y: 300 },
+      spacing: 420,
+      scale: { x: 0.5, y: 0.5 },
+      opacity: 0.7,
+      assets: [
+        { id: "house", anchor: { x: 0.5, y: 1 } },
+        { id: "tree", anchor: { x: 0.5, y: 0.5 } }
+      ]
+    })]);
+  });
+
+  it("rejects empty repeater asset lists and non-positive spacing", () => {
+    const invalid = {
+      schemaVersion: 1,
+      id: "test.invalid-repeater",
+      theme: "sumi-e",
+      layers: [{
+        id: "houses", role: "settlement", order: 10, space: "world", items: [],
+        repeaters: [{ id: "row", assets: [], start: { x: 0, y: 0 }, spacing: 0 }]
+      }]
+    };
+    const p = paths(validateVisualComposition(invalid, catalog));
+    expect(p).toContain("layers[0].repeaters[0].assets");
+    expect(p).toContain("layers[0].repeaters[0].spacing");
+  });
+
   it("rejects unknown keys, instance space, and invalid scale/opacity", () => {
     const invalid = { ...definition, layers: [{ id: "settlement", role: "settlement", order: 0, space: "world", items: [
       { kind: "instance", instance: { id: "tree", asset: "tree", position: { x: 0, y: 0 }, opacty: 0.5, space: "screen", opacity: 2, scale: { x: 0, y: 1 } } }

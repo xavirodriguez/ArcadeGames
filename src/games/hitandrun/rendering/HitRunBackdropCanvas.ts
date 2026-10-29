@@ -12,7 +12,7 @@ import { ThemeRegistry } from "./theme/ThemeRegistry";
 
 const RESOURCE_KEY = "HitRunBackdropSpec";
 
-function resolveMainCameraX(world: {
+export function resolveMainCameraX(world: {
   query: (t: string) => readonly number[];
   getComponent: (e: number, t: string) => unknown;
 }): number {
@@ -24,7 +24,7 @@ function resolveMainCameraX(world: {
   return 0;
 }
 
-function resolveElapsed(world: {
+export function resolveElapsed(world: {
   getResource: (k: string) => unknown;
   tick?: number;
 }): number {

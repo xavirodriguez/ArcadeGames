@@ -72,6 +72,84 @@ try {
   kuchisakeOnnaImageSource = null;
 }
 
+let urbanBigHouseImageSource: SpriteImageSource = null;
+try { urbanBigHouseImageSource = require("../../../../assets/sprites/background/urban/big_house.png"); } catch { urbanBigHouseImageSource = null; }
+let urbanCasa1ImageSource: SpriteImageSource = null;
+try { urbanCasa1ImageSource = require("../../../../assets/sprites/background/urban/casa1.png"); } catch { urbanCasa1ImageSource = null; }
+let urbanCasa3ImageSource: SpriteImageSource = null;
+try { urbanCasa3ImageSource = require("../../../../assets/sprites/background/urban/casa3.png"); } catch { urbanCasa3ImageSource = null; }
+let urbanCasa4ImageSource: SpriteImageSource = null;
+try { urbanCasa4ImageSource = require("../../../../assets/sprites/background/urban/casa4.png"); } catch { urbanCasa4ImageSource = null; }
+let urbanCasaGrandeImageSource: SpriteImageSource = null;
+try { urbanCasaGrandeImageSource = require("../../../../assets/sprites/background/urban/casa_grande.png"); } catch { urbanCasaGrandeImageSource = null; }
+let urbanSmallHousesImageSource: SpriteImageSource = null;
+try { urbanSmallHousesImageSource = require("../../../../assets/sprites/background/urban/small_houses.png"); } catch { urbanSmallHousesImageSource = null; }
+let urbanCasita1ImageSource: SpriteImageSource = null;
+try { urbanCasita1ImageSource = require("../../../../assets/sprites/background/urban/casita1.png"); } catch { urbanCasita1ImageSource = null; }
+let urbanCasita2ImageSource: SpriteImageSource = null;
+try { urbanCasita2ImageSource = require("../../../../assets/sprites/background/urban/casita2.png"); } catch { urbanCasita2ImageSource = null; }
+let urbanCasita4ImageSource: SpriteImageSource = null;
+try { urbanCasita4ImageSource = require("../../../../assets/sprites/background/urban/casita4.png"); } catch { urbanCasita4ImageSource = null; }
+let urbanCasita5ImageSource: SpriteImageSource = null;
+try { urbanCasita5ImageSource = require("../../../../assets/sprites/background/urban/casita5.png"); } catch { urbanCasita5ImageSource = null; }
+// The source file currently has a leading space in its repository filename.
+let urbanCasita7ImageSource: SpriteImageSource = null;
+try { urbanCasita7ImageSource = require("../../../../assets/sprites/background/urban/ casita7.png"); } catch { urbanCasita7ImageSource = null; }
+
+function createStaticEnvironmentArt(
+  id: string,
+  assetPath: string,
+  imageSource: SpriteImageSource
+): SpriteSheetDef {
+  return {
+    id,
+    assetPath,
+    imageSource,
+    // Fit the complete source image into this logical box while preserving aspect ratio.
+    frameWidth: 260,
+    frameHeight: 230,
+    sourceMode: "full-image",
+    anchor: { x: 0.5, y: 1 },
+    animations: {
+      idle: { name: "idle", frames: [], frameDuration: 1, loop: true }
+    }
+  };
+}
+
+const URBAN_BIG_HOUSE = createStaticEnvironmentArt(
+  "urban_big_house", "assets/sprites/background/urban/big_house.png", urbanBigHouseImageSource
+);
+const URBAN_HOUSE_01 = createStaticEnvironmentArt(
+  "urban_house_01", "assets/sprites/background/urban/casa1.png", urbanCasa1ImageSource
+);
+const URBAN_HOUSE_03 = createStaticEnvironmentArt(
+  "urban_house_03", "assets/sprites/background/urban/casa3.png", urbanCasa3ImageSource
+);
+const URBAN_HOUSE_04 = createStaticEnvironmentArt(
+  "urban_house_04", "assets/sprites/background/urban/casa4.png", urbanCasa4ImageSource
+);
+const URBAN_LARGE_HOUSE = createStaticEnvironmentArt(
+  "urban_large_house", "assets/sprites/background/urban/casa_grande.png", urbanCasaGrandeImageSource
+);
+const URBAN_SMALL_HOUSES = createStaticEnvironmentArt(
+  "urban_small_houses", "assets/sprites/background/urban/small_houses.png", urbanSmallHousesImageSource
+);
+const URBAN_CASITA_01 = createStaticEnvironmentArt(
+  "urban_casita_01", "assets/sprites/background/urban/casita1.png", urbanCasita1ImageSource
+);
+const URBAN_CASITA_02 = createStaticEnvironmentArt(
+  "urban_casita_02", "assets/sprites/background/urban/casita2.png", urbanCasita2ImageSource
+);
+const URBAN_CASITA_04 = createStaticEnvironmentArt(
+  "urban_casita_04", "assets/sprites/background/urban/casita4.png", urbanCasita4ImageSource
+);
+const URBAN_CASITA_05 = createStaticEnvironmentArt(
+  "urban_casita_05", "assets/sprites/background/urban/casita5.png", urbanCasita5ImageSource
+);
+const URBAN_CASITA_07 = createStaticEnvironmentArt(
+  "urban_casita_07", "assets/sprites/background/urban/ casita7.png", urbanCasita7ImageSource
+);
+
 let towerBasicImageSource: SpriteImageSource = null;
 try {
   towerBasicImageSource = require("../../../../assets/sprites/towers/tower1.png");
@@ -222,6 +300,17 @@ export const SPRITE_SHEET_CATALOG: readonly SpriteSheetDef[] = [
   GHOST_GALLEON,
   LANCERO,
   KUCHISAKE_ONNA,
+  URBAN_BIG_HOUSE,
+  URBAN_HOUSE_01,
+  URBAN_HOUSE_03,
+  URBAN_HOUSE_04,
+  URBAN_LARGE_HOUSE,
+  URBAN_SMALL_HOUSES,
+  URBAN_CASITA_01,
+  URBAN_CASITA_02,
+  URBAN_CASITA_04,
+  URBAN_CASITA_05,
+  URBAN_CASITA_07,
   TOWER_BASIC_ART,
   TOWER_SNIPER_ART
 ];

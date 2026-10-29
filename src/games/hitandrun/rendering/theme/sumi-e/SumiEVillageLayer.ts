@@ -1,63 +1,45 @@
 /**
- * Sumi-e foreground settlement props.
- *
- * The nearest settlement silhouette reuses the shared tower artwork. Far and
- * middle distance remain owned by SumiETheme's procedural ink-wash parallax.
- * These props are deterministic presentation-only elements, not ECS entities.
+ * Sumi-e settlement props.
+ * Repeated positions come from the renderer-neutral scene IR and current camera.
  */
+import type { SkCanvas, SkPaint } from "@shopify/react-native-skia";
+import type { ResolvedVisualScene } from "../../../../shared/rendering/visual-composition";
 import { resolveVisualScene } from "../../../../shared/rendering/visual-composition";
-import { drawResolvedVisualSceneCanvas, preloadResolvedVisualSceneCanvas } from "../../../../shared/rendering/visual-composition/CanvasVisualSceneRenderer";
+import {
+  drawResolvedVisualSceneCanvas,
+  preloadResolvedVisualSceneCanvas
+} from "../../../../shared/rendering/visual-composition/CanvasVisualSceneRenderer";
+import {
+  drawResolvedVisualSceneSkia,
+  preloadResolvedVisualSceneSkia
+} from "../../../../shared/rendering/visual-composition/SkiaVisualSceneRenderer";
 import { createSumiEVillageCatalog, SUMI_E_VILLAGE_COMPOSITION } from "./SumiEVillageComposition";
 
-export interface SumiEVillageHousePlacement {
-  x: number;
-  baselineY: number;
-  scale: number;
-  alpha: number;
-  depth: number;
-}
-
-const VILLAGE_LAYERS = [
-  { spacing: 520, offset: 90, depth: 0.18, scale: 0.34, alpha: 0.34 },
-  { spacing: 430, offset: 240, depth: 0.36, scale: 0.52, alpha: 0.54 },
-  { spacing: 360, offset: 170, depth: 0.58, scale: 0.72, alpha: 0.78 }
-] as const;
 let resolvedVillage: ResolvedVisualScene | null = null;
-let villageLoadRequested = false;
+let villageResolutionAttempted = false;
+let canvasPreloadRequested = false;
+let skiaPreloadRequested = false;
 
 function getResolvedVillage(): ResolvedVisualScene | null {
-  if (resolvedVillage) return resolvedVillage;
+  if (villageResolutionAttempted) return resolvedVillage;
+  villageResolutionAttempted = true;
   const result = resolveVisualScene(SUMI_E_VILLAGE_COMPOSITION, createSumiEVillageCatalog());
-  if (!result.ok) return null;
+  if (!result.ok) {
+    console.error("[HitRun/SumiE] Invalid village composition", result.issues);
+    return null;
+  }
   resolvedVillage = result.value;
   return resolvedVillage;
 }
 
-/** Pure placement calculation: stable across frames and independent of RNG. */
-export function getSumiEVillageHousePlacements(
-  viewportWidth: number,
-  viewportHeight: number,
-  cameraX: number
-): SumiEVillageHousePlacement[] {
-  const placements: SumiEVillageHousePlacement[] = [];
-  for (const layer of VILLAGE_LAYERS) {
-    const scrollX = cameraX * layer.depth;
-    const firstIndex = Math.floor((scrollX - layer.offset - 120) / layer.spacing);
-    const lastIndex = Math.ceil((scrollX + viewportWidth - layer.offset + 120) / layer.spacing);
-    for (let index = firstIndex; index <= lastIndex; index++) {
-      placements.push({
-        x: index * layer.spacing + layer.offset - scrollX,
-        baselineY: viewportHeight * (0.56 + layer.depth * 0.22),
-        scale: layer.scale,
-        alpha: layer.alpha,
-        depth: layer.depth
-      });
-    }
-  }
-  return placements;
+function getViewportOffset(viewportWidth: number, viewportHeight: number): { x: number; y: number } {
+  return {
+    x: (viewportWidth - 800) * 0.5,
+    y: viewportHeight - 600
+  };
 }
 
-/** Draw the fixed declarative pilot over the existing procedural ink-wash backdrop. */
+/** Draw repeated scenery using the shared Canvas sprite cache. */
 export function drawSumiEVillageLayer(
   ctx: CanvasRenderingContext2D,
   viewportWidth: number,
@@ -66,22 +48,44 @@ export function drawSumiEVillageLayer(
 ): void {
   const scene = getResolvedVillage();
   if (!scene) return;
-
-  if (!villageLoadRequested) {
-    villageLoadRequested = true;
+  if (!canvasPreloadRequested) {
+    canvasPreloadRequested = true;
     void preloadResolvedVisualSceneCanvas(scene).catch(() => {
-      // Keep the procedural backdrop available if optional sprite art fails.
+      // Keep the procedural ink-wash backdrop visible when optional art fails.
     });
   }
-
-  // Offset the fixed 800×600 authoring frame at draw time. Avoid allocating a
-  // replacement scene and seven replacement instance objects on every frame.
-  const viewportOffsetX = (viewportWidth - 800) * 0.5;
-  const viewportOffsetY = viewportHeight - 600;
   drawResolvedVisualSceneCanvas(
     ctx,
     scene,
     { x: cameraX, y: 0 },
-    { x: viewportOffsetX, y: viewportOffsetY }
+    getViewportOffset(viewportWidth, viewportHeight),
+    { width: viewportWidth, height: viewportHeight }
+  );
+}
+
+/** Native Skia equivalent; Canvas image objects never cross this boundary. */
+export function drawSumiEVillageLayerSkia(
+  canvas: SkCanvas,
+  viewportWidth: number,
+  viewportHeight: number,
+  cameraX: number,
+  paint?: SkPaint
+): void {
+  const scene = getResolvedVillage();
+  if (!scene) return;
+  if (!skiaPreloadRequested) {
+    skiaPreloadRequested = true;
+    void preloadResolvedVisualSceneSkia(scene).catch(() => {
+      // Keep the native procedural backdrop visible when optional art fails.
+    });
+  }
+  drawResolvedVisualSceneSkia(
+    canvas,
+    scene,
+    { x: cameraX, y: 0 },
+    viewportWidth,
+    viewportHeight,
+    getViewportOffset(viewportWidth, viewportHeight),
+    paint
   );
 }

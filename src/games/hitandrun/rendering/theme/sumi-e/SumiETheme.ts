@@ -10,7 +10,8 @@ import type {
   BannerRenderSnapshot,
   FeedbackEventSnapshot
 } from "../HitRunThemeTypes";
-import { computeInkWashLayers, drawInkWashLayersCanvas } from "../../../../shared/rendering/InkWashParallaxBackdrop";
+import { computeInkWashLayers, drawInkWashLayersCanvas, drawInkWashLayersSkia } from "../../../../shared/rendering/InkWashParallaxBackdrop";
+import { Skia, getPaint, type SkCanvas } from "../../../../shared/rendering/SkiaContext";
 
 export const SUMI_E_PALETTE: HitRunThemePaletteTokens = {
   primary: "#171817",
@@ -59,6 +60,32 @@ export class SumiETheme implements HitRunTheme {
 
   public constructor() {
     // Pre-seed decal buffer
+  }
+
+  /** Theme extension point for decorative bitmap scenery, called above the floor and below frame ornaments. */
+  protected renderEnvironmentLayerCanvas(
+    _ctx: CanvasRenderingContext2D,
+    _viewportWidth: number,
+    _viewportHeight: number,
+    _cameraX: number
+  ): void {
+    void _ctx;
+    void _viewportWidth;
+    void _viewportHeight;
+    void _cameraX;
+  }
+
+  /** Native counterpart to the Canvas environment extension point. */
+  protected renderEnvironmentLayerSkia(
+    _canvas: SkCanvas,
+    _viewportWidth: number,
+    _viewportHeight: number,
+    _cameraX: number
+  ): void {
+    void _canvas;
+    void _viewportWidth;
+    void _viewportHeight;
+    void _cameraX;
   }
 
   private initParchmentAndBorder(w: number, h: number): void {
@@ -207,6 +234,9 @@ export class SumiETheme implements HitRunTheme {
       ctx.restore();
     }
 
+    // Bitmap scenery belongs above the lane but beneath the decorative edge frame.
+    this.renderEnvironmentLayerCanvas(ctx, w, h, cameraX);
+
     // 5. Foreground roof/branch silhouettes strictly on margins
     ctx.fillStyle = SUMI_E_PALETTE.inkOrOutline;
     ctx.beginPath();
@@ -231,6 +261,98 @@ export class SumiETheme implements HitRunTheme {
     }
 
     ctx.restore();
+  }
+
+  public renderBackdropSkia(
+    canvas: SkCanvas,
+    w: number,
+    h: number,
+    cameraX: number,
+    _cameraY: number,
+    _elapsed: number
+  ): void {
+    if (!Skia || !canvas) return;
+    const paint = getPaint();
+    if (!paint) return;
+
+    canvas.save();
+    paint.setColor(Skia.Color(SUMI_E_PALETTE.background));
+    paint.setAlphaf(1);
+    canvas.drawRect(Skia.XYWHRect(0, 0, w, h), paint);
+
+    drawInkWashLayersSkia(
+      canvas,
+      computeInkWashLayers(w, h, cameraX),
+      SUMI_E_PALETTE.inkOrOutline,
+      w,
+      h
+    );
+
+    paint.setColor(Skia.Color(SUMI_E_PALETTE.paperOrFloor));
+    paint.setAlphaf(0.4);
+    const laneY = h * 0.45;
+    const laneH = h * 0.48;
+    canvas.drawRect(Skia.XYWHRect(0, laneY, w, laneH), paint);
+
+    paint.setColor(Skia.Color(SUMI_E_PALETTE.inkOrOutline));
+    paint.setAlphaf(0.15);
+    const lanePath = Skia.Path.Make();
+    lanePath.moveTo(0, laneY);
+    lanePath.lineTo(w, laneY);
+    lanePath.moveTo(0, laneY + laneH);
+    lanePath.lineTo(w, laneY + laneH);
+    canvas.drawPath(lanePath, paint);
+
+    // Keep Canvas and Skia village placement at the same composition depth.
+    this.renderEnvironmentLayerSkia(canvas, w, h, cameraX);
+
+    // Foreground roof/branch silhouettes, drawn after buildings just like Canvas.
+    paint.setAlphaf(1);
+    paint.setStyle(Skia.PaintStyle.Fill);
+    paint.setColor(Skia.Color(SUMI_E_PALETTE.inkOrOutline));
+    const topRoof = Skia.Path.Make();
+    topRoof.moveTo(0, 0);
+    topRoof.lineTo(140, 0);
+    topRoof.lineTo(110, 35);
+    topRoof.lineTo(0, 25);
+    topRoof.close();
+    canvas.drawPath(topRoof, paint);
+
+    const bottomRoof = Skia.Path.Make();
+    bottomRoof.moveTo(w, h);
+    bottomRoof.lineTo(w - 150, h);
+    bottomRoof.lineTo(w - 120, h - 45);
+    bottomRoof.lineTo(w, h - 30);
+    bottomRoof.close();
+    canvas.drawPath(bottomRoof, paint);
+
+    // Gold ornamental frame and corner seals mirror the Canvas theme.
+    const margin = 12;
+    paint.setColor(Skia.Color(SUMI_E_PALETTE.goldOrYellow));
+    paint.setStyle(Skia.PaintStyle.Stroke);
+    paint.setStrokeWidth(3);
+    canvas.drawRect(Skia.XYWHRect(margin, margin, w - margin * 2, h - margin * 2), paint);
+
+    paint.setStyle(Skia.PaintStyle.Fill);
+    const cornerSize = 24;
+    const cornerRadius = cornerSize * 0.35;
+    const corners = [
+      { x: margin, y: margin },
+      { x: w - margin, y: margin },
+      { x: margin, y: h - margin },
+      { x: w - margin, y: h - margin }
+    ];
+    for (let i = 0; i < corners.length; i++) {
+      const corner = corners[i];
+      canvas.drawOval(
+        Skia.XYWHRect(corner.x - cornerRadius, corner.y - cornerRadius, cornerRadius * 2, cornerRadius * 2),
+        paint
+      );
+    }
+
+    paint.setAlphaf(1);
+    paint.setStyle(Skia.PaintStyle.Fill);
+    canvas.restore();
   }
 
   public renderGroundShadow(

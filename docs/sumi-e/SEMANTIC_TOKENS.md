@@ -23,7 +23,7 @@ The factory enforces these invariants:
 1. The root contains exactly the seven semantic groups, and each group contains exactly the declared token fields. Missing or unexpected fields throw a `TypeError`.
 2. Every color is a six-digit `#RRGGBB` value. `createSumiESemanticColor(value, role)` validates an individual color and returns its compile-time role brand.
 3. Primary and secondary text each maintain at least 4.5:1 contrast against both `surface.paper` and `surface.paperLight`.
-4. Threat glow differs from the player's projectile, hostile body pigment differs from reward gold, and decorative hanko red differs from hostile body pigment. Hex comparisons are case-insensitive.
+4. Threat glow differs from the player's projectile; hostile body pigment, player projectiles and reward gold remain distinct; decorative hanko red differs from both hostile body pigment and hostile glow. Hex comparisons are case-insensitive.
 5. The returned root object and all seven groups are frozen.
 
 All output interfaces expose `readonly` fields. `HexColor` and `SemanticColor<Role>` are branded TypeScript types, so plain strings and colors from unrelated roles cannot be assigned as tokens without an explicit cast. The runtime factory exists to validate data at the trust boundary; the type brands alone are not runtime validation.

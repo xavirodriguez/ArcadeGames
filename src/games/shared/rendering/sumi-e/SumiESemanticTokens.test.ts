@@ -223,20 +223,34 @@ describe("SUMI_E_SEMANTIC_TOKENS", () => {
       ...input,
       reward: { primary: input.threat.body }
     };
+    const playerRewardCollision = {
+      ...input,
+      reward: { primary: input.player.projectile }
+    };
     const sealThreatCollision = {
       ...input,
       ui: { ...input.ui, seal: input.threat.body }
     };
+    const sealGlowCollision = {
+      ...input,
+      ui: { ...input.ui, seal: input.threat.glow }
+    };
 
     expect(() =>
       createSumiESemanticTokens(threatPlayerCollision as SumiESemanticTokenInput)
-    ).toThrow(/threat\.glow and player\.projectile must use different colors/);
+    ).toThrow(/threat\\.glow and player\\.projectile must use different colors/);
     expect(() =>
       createSumiESemanticTokens(threatRewardCollision as SumiESemanticTokenInput)
-    ).toThrow(/threat\.body and reward\.primary must use different colors/);
+    ).toThrow(/threat\\.body and reward\\.primary must use different colors/);
+    expect(() =>
+      createSumiESemanticTokens(playerRewardCollision as SumiESemanticTokenInput)
+    ).toThrow(/player\\.projectile and reward\\.primary must use different colors/);
     expect(() =>
       createSumiESemanticTokens(sealThreatCollision as SumiESemanticTokenInput)
-    ).toThrow(/ui\.seal and threat\.body must use different colors/);
+    ).toThrow(/ui\\.seal and threat\\.body must use different colors/);
+    expect(() =>
+      createSumiESemanticTokens(sealGlowCollision as SumiESemanticTokenInput)
+    ).toThrow(/ui\\.seal and threat\\.glow must use different colors/);
   });
 
   it("keeps gameplay color semantics distinct", () => {

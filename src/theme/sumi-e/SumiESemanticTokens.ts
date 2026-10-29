@@ -348,7 +348,9 @@ export function createSumiESemanticTokens(
 
   assertDifferentRoles("threat.glow", threat.glow, "player.projectile", player.projectile);
   assertDifferentRoles("threat.body", threat.body, "reward.primary", reward.primary);
+  assertDifferentRoles("player.projectile", player.projectile, "reward.primary", reward.primary);
   assertDifferentRoles("ui.seal", ui.seal, "threat.body", threat.body);
+  assertDifferentRoles("ui.seal", ui.seal, "threat.glow", threat.glow);
 
   return Object.freeze({
     surface,

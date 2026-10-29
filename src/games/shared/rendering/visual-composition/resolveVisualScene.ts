@@ -200,6 +200,7 @@ export function resolveVisualScene(
         layerOrder: layer.order,
         instanceOrder,
         space: layer.space,
+        ...(layer.space === "parallax" ? { parallaxFactor: layer.parallaxFactor } : {}),
         position: {
           x: instance.position.x + (layer.position?.x ?? 0),
           y: instance.position.y + (layer.position?.y ?? 0)

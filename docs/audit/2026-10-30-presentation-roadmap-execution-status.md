@@ -30,15 +30,15 @@
 7. Phase 6: [`1f8492bc`](https://github.com/xavirodriguez/ArcadeGames/commit/1f8492bc7e60d8be5a4d850875ddf75f7d20882b) — remove process-wide active theme selection.
 8. Phase 7: preflight record and status report are committed separately from code migration; this phase remains open until a real second-game pilot is implemented and validated.
 
-## Validation provenance
+## Post-push validation
 
-This work was authored through the GitHub repository API because a local checkout was unavailable in the execution environment. Consequently, local Jest runs, `pnpm run ci`, and runtime screenshot validation have not been performed. GitHub Actions must be inspected after this branch is pushed. A queued workflow is neither a pass nor a failure; an absent result is not evidence of success.
-
-The base snapshot had these recorded workflow links:
-- [Continuous Integration](https://github.com/xavirodriguez/ArcadeGames/actions/runs/40967629302)
-- [Build API Reference](https://github.com/xavirodriguez/ArcadeGames/actions/runs/40967629493)
-- [Restore Space Invaders workflow](https://github.com/xavirodriguez/ArcadeGames/actions/runs/40967627624) — failed, but its job endpoint returned no records during inspection, so the failure has not been attributed to this work.
+- The branch was pushed successfully and then synchronized with the two newer `master` commits. Current master head at sync time: [`d72cd3c5897662820093dbcfd5c8143dcd4c009a`](https://github.com/xavirodriguez/ArcadeGames/commit/d72cd3c5897662820093dbcfd5c8143dcd4c009a). The sync merge is [`5b6e0026`](https://github.com/xavirodriguez/ArcadeGames/commit/5b6e00261998ecbd89982dceb673e01dd656dda0).
+- The branch is now **ahead by 9 commits and behind by 0** relative to master. Eight commits correspond to the eight roadmap phases; the ninth is the master synchronization merge.
+- The repository's `.github/workflows/ci.yml` is configured to run on pushes to `master`/`develop` and pull requests targeting those branches. Since this request asked for a branch push and no PR was created, the normal CI workflow did not run against this branch. The documentation CI workflow also has no run associated with this branch in the observed Actions results.
+- Pushes triggered [.github/workflows/restore-space-invaders.yml run 40972690980](https://github.com/xavirodriguez/ArcadeGames/actions/runs/40972690980), which ended in **failure**. Its job endpoint returned zero jobs, so the failure has no actionable job trace and has not been attributed to the presentation changes.
+- The latest commit's combined status reports a [Vercel failure](https://vercel.com/javis-projects-0a2bd667?upgradeToPro=build-rate-limit) with a build-rate-limit destination. This is not a successful build result and does not identify a TypeScript or test failure.
+- A local checkout was unavailable in this execution environment. Jest, `pnpm run ci`, E2E, real Canvas/Skia execution, and screenshot comparisons have **not** been run. No test result should be inferred from the presence of test files.
 
 ## Next action
 
-After publishing the branch, inspect all newly triggered CI and API-reference runs. Resolve any type/lint/test failures first. Do not start another-game migration until Phase 4's backend-neutral production path has a passing real-backend acceptance test.
+Create a pull request when ready to trigger the repository's configured CI workflows. Before declaring the roadmap complete, resolve any actual checks that fail and complete Phase 4's production migration to `PresentationPainter`, the Phase 5 visual/performance/accessibility acceptance, and Phase 7's real second-game pilot.

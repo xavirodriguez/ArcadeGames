@@ -30,7 +30,7 @@ describe("Multi-rotation numerical regression test for thrust and bullet directi
       const transform = { rotation };
       const velocity = { vx: 0, vy: 0 };
       const config = { SHIP_THRUST: 100, SHIP_ROTATION_SPEED: 1.0, SHIP_FRICTION: 0 };
-      const input = { actions: new Set(["thrust"]), axes: {} };
+      const input = { actions: ["thrust" as const], axes: {} };
 
       const physResult = computeShipPhysics(transform, velocity, input, config, 1.0);
 

@@ -1,12 +1,20 @@
 import type { ResolvedVisualInstance, ResolvedVisualScene, VisualCoordinateSpace } from "./VisualCompositionTypes";
 import { SpriteRegistry } from "../../sprites/SpriteRegistry";
-import { drawSpriteCanvas, getSpriteLogicalSize, preloadSpriteSheetCanvas } from "../../sprites/SpriteDrawer";
+import { drawSpriteCanvas, getCanvasSpriteLoadState, preloadSpriteSheetCanvas } from "../../sprites/SpriteDrawer";
 import type { SpriteAnimatorComponent } from "../../sprites/SpriteAnimator";
 
 export interface CanvasVisualSceneCamera {
+  /** Camera origin in world coordinates. */
   readonly x: number;
   readonly y: number;
+  /** Uniform world zoom; screen-space props are not zoomed. */
+  readonly zoom?: number;
+  /** Final viewport-pixel translation, applied after world zoom. */
+  readonly visualOffsetX?: number;
+  readonly visualOffsetY?: number;
 }
+
+export interface CanvasVisualSceneOffset { readonly x: number; readonly y: number }
 
 function cameraFactor(space: VisualCoordinateSpace, parallaxFactor?: number): number {
   if (space === "screen") return 0;
@@ -17,75 +25,52 @@ function cameraFactor(space: VisualCoordinateSpace, parallaxFactor?: number): nu
 /** Resolve scene-space coordinates to Canvas viewport coordinates. */
 export function getCanvasVisualPosition(
   instance: Pick<ResolvedVisualInstance, "position" | "space" | "parallaxFactor">,
-  camera: CanvasVisualSceneCamera
+  camera: CanvasVisualSceneCamera,
+  viewportOffset: CanvasVisualSceneOffset = { x: 0, y: 0 }
 ): { x: number; y: number } {
+  const zoom = camera.zoom ?? 1;
   const factor = cameraFactor(instance.space, instance.parallaxFactor);
+  const offsetX = (camera.visualOffsetX ?? 0) + viewportOffset.x;
+  const offsetY = (camera.visualOffsetY ?? 0) + viewportOffset.y;
+  if (instance.space === "screen") return { x: instance.position.x + offsetX, y: instance.position.y + offsetY };
   return {
-    x: instance.position.x - camera.x * factor,
-    y: instance.position.y - camera.y * factor
+    x: (instance.position.x - camera.x * factor) * zoom + offsetX,
+    y: (instance.position.y - camera.y * factor) * zoom + offsetY
   };
 }
 
-/** Honor semantic anchors while reusing the shared sprite drawer. */
-function getDrawPoint(
-  instance: ResolvedVisualInstance,
-  point: { x: number; y: number }
-): { x: number; y: number; anchor: "center" | "feet" } {
-  if (instance.anchor === "bottom-center") return { ...point, anchor: "feet" };
-  if (instance.anchor === "center") return { ...point, anchor: "center" };
-  const size = getSpriteLogicalSize(instance.asset);
-  if (!size) return { ...point, anchor: "center" };
-  return {
-    x: point.x + size.w * instance.scale.x * 0.5,
-    y: point.y + size.h * instance.scale.y * 0.5,
-    anchor: "center"
-  };
-}
-
-/**
- * Draws the renderer-neutral scene IR using the existing sprite registry and
- * shared Canvas drawer. This adapter does not own image caches or ECS state.
- * Returns false if a sprite is unregistered or not yet decoded.
- */
+/** Draw through the existing registry/drawer; this adapter never owns resources. */
 export function drawResolvedVisualSceneCanvas(
   ctx: CanvasRenderingContext2D,
   scene: ResolvedVisualScene,
-  camera: CanvasVisualSceneCamera
+  camera: CanvasVisualSceneCamera,
+  viewportOffset: CanvasVisualSceneOffset = { x: 0, y: 0 }
 ): boolean {
   let complete = true;
+  const zoom = camera.zoom ?? 1;
   for (const instance of scene.instances) {
-    if (!SpriteRegistry.has(instance.asset)) {
-      complete = false;
-      continue;
-    }
-    const point = getCanvasVisualPosition(instance, camera);
-    const target = getDrawPoint(instance, point);
+    if (!SpriteRegistry.has(instance.asset)) { complete = false; continue; }
+    const point = getCanvasVisualPosition(instance, camera, viewportOffset);
+    const screenSpace = instance.space === "screen";
+    const scaleX = instance.scale.x * (screenSpace ? 1 : zoom);
+    const scaleY = instance.scale.y * (screenSpace ? 1 : zoom);
     const animator: SpriteAnimatorComponent = {
-      sheetId: instance.asset,
-      currentAnim: "idle",
-      frameIndex: 0,
-      timer: 0,
-      flipX: instance.flipX,
-      scale: instance.scale.x === instance.scale.y ? instance.scale.x : 1
+      sheetId: instance.asset, currentAnim: "idle", frameIndex: 0, timer: 0,
+      flipX: instance.flipX, scale: scaleX === scaleY ? scaleX : 1
     };
     ctx.save();
-    ctx.translate(target.x, target.y);
+    ctx.translate(point.x, point.y);
     if (instance.rotation !== 0) ctx.rotate(instance.rotation);
-    if (instance.scale.x !== instance.scale.y) ctx.scale(instance.scale.x, instance.scale.y);
-    const drawn = drawSpriteCanvas(ctx, animator, 0, 0, {
-      anchor: target.anchor,
-      opacity: instance.opacity
-    });
+    if (scaleX !== scaleY) ctx.scale(scaleX, scaleY);
+    const drawn = drawSpriteCanvas(ctx, animator, 0, 0, { destinationAnchor: instance.anchor, opacity: instance.opacity });
     ctx.restore();
-    if (!drawn) complete = false;
+    if (!drawn || getCanvasSpriteLoadState(instance.asset) !== "ready") complete = false;
   }
   return complete;
 }
 
-/** Preload via the existing SpriteDrawer cache; this adapter owns no cache. */
+/** Preload via the existing SpriteDrawer cache; composition owns no resources. */
 export async function preloadResolvedVisualSceneCanvas(scene: ResolvedVisualScene): Promise<void> {
   const ids = [...new Set(scene.instances.map(instance => instance.asset))];
-  await Promise.all(ids.map(async id => {
-    if (SpriteRegistry.has(id)) await preloadSpriteSheetCanvas(id);
-  }));
+  await Promise.all(ids.map(async id => { if (SpriteRegistry.has(id)) await preloadSpriteSheetCanvas(id); }));
 }

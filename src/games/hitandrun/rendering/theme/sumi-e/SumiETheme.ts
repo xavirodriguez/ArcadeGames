@@ -68,7 +68,12 @@ export class SumiETheme implements HitRunTheme {
     _viewportWidth: number,
     _viewportHeight: number,
     _cameraX: number
-  ): void {}
+  ): void {
+    void _ctx;
+    void _viewportWidth;
+    void _viewportHeight;
+    void _cameraX;
+  }
 
   /** Native counterpart to the Canvas environment extension point. */
   protected renderEnvironmentLayerSkia(
@@ -76,7 +81,12 @@ export class SumiETheme implements HitRunTheme {
     _viewportWidth: number,
     _viewportHeight: number,
     _cameraX: number
-  ): void {}
+  ): void {
+    void _canvas;
+    void _viewportWidth;
+    void _viewportHeight;
+    void _cameraX;
+  }
 
   private initParchmentAndBorder(w: number, h: number): void {
     if (typeof document === "undefined" || typeof document.createElement !== "function") return;

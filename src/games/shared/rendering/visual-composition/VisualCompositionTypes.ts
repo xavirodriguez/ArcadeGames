@@ -11,6 +11,10 @@ export interface VisualAnchorPoint { readonly x: number; readonly y: number }
 export interface VisualScale { x: number; y: number }
 export interface VisualAssetDefinition {
   id: string;
+  /** Repository-relative asset path, for diagnostics/tooling only. */
+  assetPath?: string;
+  /** Sprite sampling mode from the canonical registry metadata. */
+  sourceMode?: "frames" | "full-image";
   nominalSize?: { width: number; height: number };
   anchor?: VisualAnchor;
   tags?: readonly string[];

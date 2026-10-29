@@ -6,6 +6,7 @@ import { spacing } from '../theme/spacing';
 import { radius } from '../theme/radius';
 import { effects } from '../theme/effects';
 import { LAYER_ELEVATION } from '../theme/layers';
+import type { AestheticThemeConfig } from '../games/shared/rendering/sumi-e/AestheticTheme';
 
 export interface ThemeTokens {
   colors: typeof colors;
@@ -24,6 +25,8 @@ export interface GameThemeContextType {
     secondary: string;
     accent: string;
   };
+  /** Explicitly selected visual aesthetic; null preserves the legacy game theme. */
+  aestheticTheme: AestheticThemeConfig | null;
   highContrast: boolean;
   reduceMotion: boolean;
   setHighContrast: (value: boolean) => void;
@@ -40,6 +43,7 @@ const DEFAULT_GAME_THEME: GameThemeContextType = {
     secondary: colors.pink,
     accent: colors.amber,
   },
+  aestheticTheme: null,
   highContrast: false,
   reduceMotion: false,
   setHighContrast: () => {},
@@ -56,7 +60,7 @@ const DEFAULT_GAME_THEME: GameThemeContextType = {
 };
 
 /**
- * Access the active game theme context (accent colors, game key, accessibility flags, tokens).
+ * Access the active game theme context (accent colors, aesthetic, accessibility flags and tokens).
  * Falls back to default ODISEA-7 theme tokens if called outside <GameThemeProvider>.
  */
 export function useGameTheme(): GameThemeContextType {

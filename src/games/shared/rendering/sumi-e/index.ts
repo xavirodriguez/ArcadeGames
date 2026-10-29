@@ -18,6 +18,7 @@ export {
   shouldUseInkWash,
   type AestheticId,
   type AestheticThemeConfig,
+  type AestheticThemeOptions,
   type SumiELandscapeVariant
 } from "./AestheticTheme";
 

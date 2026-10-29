@@ -40,9 +40,10 @@ export class NauticalWindSystem extends System<SpaceInvadersComponentRegistry> {
 
     wind.changeRemaining -= deltaTime;
     if (wind.changeRemaining <= 0) {
-      wind.force = FORCE_TABLE[Math.floor(Math.random() * FORCE_TABLE.length)];
-      wind.sign = Math.random() < 0.5 ? -1 : 1;
-      wind.changeRemaining = 5 + Math.random() * 4;
+      const random = world.gameplayRandom;
+      wind.force = FORCE_TABLE[Math.floor(random.next() * FORCE_TABLE.length)] ?? 0;
+      wind.sign = random.next() < 0.5 ? -1 : 1;
+      wind.changeRemaining = 5 + random.next() * 4;
       wind.visualIntensity = wind.force === 0 ? 0.08 : 0.15 + wind.force * 0.12;
     }
 

@@ -59,10 +59,10 @@ export interface OutrunTrafficDrawParams {
  */
 export interface OutrunThemeModule extends ThemeModuleDescriptor {
   /** Stable id used in config and gameOptions. */
-  id: OutrunVisualModId;
+  readonly id: OutrunVisualModId;
 
   /** Human-readable name for menus / debug. */
-  displayName: string;
+  readonly displayName: string;
 
   /**
    * Builds the Theme applied to the world for this mod.
@@ -140,7 +140,8 @@ export interface OutrunGameplayMod extends GameplayModDescriptor {
 }
 
 /** Legacy combined contract, retained for current mod consumers. */
-export interface OutrunVisualMod extends OutrunThemeModule, OutrunGameplayMod {
+export interface OutrunVisualMod extends OutrunThemeModule {
+  /** Independent modules exposed by the compatibility facade. */
   readonly theme?: OutrunThemeModule;
   readonly gameplay?: OutrunGameplayMod;
 }

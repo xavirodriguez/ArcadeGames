@@ -32,10 +32,14 @@ export function applyVisualMod(
     "classic";
 
   const visualMod = resolveVisualMod(modId);
+  const themeModule = visualMod.theme ?? visualMod;
+  const gameplayMod = visualMod.gameplay ?? visualMod;
   world.setResource("VisualMod", visualMod);
+  world.setResource("OutrunThemeModule", themeModule);
+  world.setResource("GameplayMod", gameplayMod);
 
   const baseTheme = currentTheme ?? createThemeFromGameAccents("racing");
-  const themed = visualMod.createTheme(baseTheme);
+  const themed = themeModule.createTheme(baseTheme);
   world.setResource("Theme", themed);
 
   return visualMod;

@@ -4,8 +4,8 @@ import {
   RendererUtils
 } from "@tiny-aster/core";
 import type { OutrunComponentRegistry } from "../types/OutrunTypes";
-import type { OutrunVisualMod } from "../mods/types";
-import { classicMod } from "../mods/classic/ClassicMod";
+import type { OutrunThemeModule } from "../mods/types";
+import { classicTheme } from "../mods/classic/ClassicTheme";
 
 /**
  * Registers Outrun shape drawers and HUD for Canvas + Skia.
@@ -16,10 +16,10 @@ import { classicMod } from "../mods/classic/ClassicMod";
  */
 export const initializeOutrunRenderer = (
   renderer: Renderer<OutrunComponentRegistry, any>,
-  visualMod?: OutrunVisualMod,
+  themeModule?: OutrunThemeModule,
   customDrawers?: Record<string, ShapeDrawer<any, OutrunComponentRegistry>>
 ): void => {
-  const mod = visualMod ?? classicMod;
+  const mod = themeModule ?? classicTheme;
 
   RendererUtils.registerAssets(renderer, {
     canvas: (r) => {

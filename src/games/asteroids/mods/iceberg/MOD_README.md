@@ -1,22 +1,38 @@
-# Asteroids visual mod — Borealis (Iceberg)
+# Asteroids visual theme — Borealis (Iceberg)
 
-Presentation-only skin for Asteroids. **No ECS / netcode / scoring changes.**
+Presentation skin for Asteroids, keeping gameplay and rendering responsibilities separate.
 
 ## Enable
+
+Via game options:
 
 ```ts
 new AsteroidsGame({ gameOptions: { mod: "iceberg" } });
 ```
 
-Or in `config/asteroids.json`:
+Via URL:
 
-```json
-"VISUAL_MOD": "iceberg"
+```text
+/asteroids?theme=iceberg
 ```
 
-Priority: `gameOptions.mod` → `config.VISUAL_MOD` → `"classic"`.
+The legacy `?mod=iceberg` alias and the `gameOptions.mod` option remain supported. Unknown theme IDs fall back to `classic`.
 
-## Classic vs Iceberg
+## Theme and gameplay modules
+
+- `IcebergTheme.ts` owns the palette, Canvas/Skia drawers, ocean/aurora background effects and particle rendering.
+- `IcebergGameplayMod.ts` owns deterministic iceberg vertex generation and dispatch to the fracture effect.
+- `IcebergMod.ts` remains the compatibility facade, preserving the legacy flat API and stable ID.
+- `src/games/asteroids/presentation/themeRegistry.ts` registers presentation modules independently from gameplay mods.
+
+Change the active module without recreating the world:
+
+```ts
+game.setVisualMod("iceberg");
+game.setVisualMod("classic");
+```
+
+## Visual parity
 
 | | Classic | Iceberg (Borealis) |
 |--|---------|---------------------|
@@ -24,16 +40,6 @@ Priority: `gameOptions.mod` → `config.VISUAL_MOD` → `"classic"`.
 | Rocks | Jagged outline | 3-tone icebergs + hard shadow |
 | Bullets | Glow laser | Thermal beam blocks |
 | Background | Starfield / nebula | Polar ocean + geometric aurora |
-| Destruction | Neon explosion | Ice shards + thermal ring |
+| Destruction | Layered explosion | Ice shards + thermal ring |
 
-## Phases implemented
-
-0. Mod contract + registry + `VISUAL_MOD`
-1. Palette, verts, facet math
-2. Canvas / Skia entity drawers
-3. Ocean, aurora, fracture VFX
-4. Shard particle drawer + fracture ring polish
-
-## Not in scope
-
-New mechanics (currents, hull integrity, blizzards) would be a **game mode**, not this visual mod.
+The two themes retain the IDs `classic` and `iceberg`. The theme module never writes to ECS state; collision systems depend on the gameplay contract, not on a theme implementation.

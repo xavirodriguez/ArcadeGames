@@ -1,8 +1,8 @@
 /**
- * Deterministic geometry generators for Borealis (presentation only).
+ * Deterministic pure geometry generators used by Borealis' gameplay/presentation adapter.
  *
- * All randomness must go through the injected `random` callback so multiplayer
- * / replay stay deterministic when callers pass `world.gameplayRandom.next`.
+ * These functions do not mutate the World. Randomness is injected by the caller so
+ * replay and multiplayer remain reproducible with the appropriate random stream.
  *
  * @public
  */

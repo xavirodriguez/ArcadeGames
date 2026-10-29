@@ -471,6 +471,14 @@ Tareas:
 - El juego es determinista con cualquier tema.
 - El tema se puede cambiar sin reiniciar.
 
+**Implementación de la fase (2026-10-29):**
+- `AsteroidsVisualMod` es ahora una fachada compatible sobre `ThemeModule` y `AsteroidsGameplayMod`.
+- `ClassicTheme` y `IcebergTheme` contienen paleta/configuración, drawers Canvas/Skia, fondos y registro visual.
+- `IcebergGameplayMod` contiene la geometría determinista y el despacho de `IcebergFracture`; `AsteroidCollisionSystem` consume únicamente el contrato gameplay.
+- `src/games/asteroids/presentation/themeRegistry.ts` registra los temas; el registro antiguo y los IDs `classic`/`iceberg` se conservan como API de compatibilidad.
+- `AsteroidsGame.setVisualMod()` cambia recursos y drawers durante una partida sin recrear el mundo. La pantalla acepta `?theme=iceberg` y `?mod=iceberg`.
+- Se añaden pruebas para selección/registro, fronteras entre presentación y sistemas, y ausencia de cambios de estado al alternar temas.
+
 ---
 
 ### Fase 5 — Unificar mods y temas

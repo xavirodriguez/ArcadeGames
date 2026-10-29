@@ -10,6 +10,7 @@ import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { useAsteroidsGame } from "@/hooks/useAsteroidsGame";
 import { useMultiplayerGame } from "@/hooks/useMultiplayerGame";
 import { AsteroidsGame } from "@/games/asteroids/AsteroidsGame";
+import { resolveAsteroidsThemeId } from "@/games/asteroids/presentation/themeRegistry";
 import { useTranslation } from "@/hooks/useTranslation";
 import { VirtualJoystick } from "../../components/controls/VirtualJoystick";
 import { GestureActionButton } from "../../components/controls/GestureActionButton";
@@ -50,7 +51,8 @@ import {
 
 export default function AsteroidsScreen() {
   const { t } = useTranslation();
-  const params = useLocalSearchParams<{ seed?: string; isDaily?: string }>();
+  const params = useLocalSearchParams<{ seed?: string; isDaily?: string; theme?: string; mod?: string }>();
+  const requestedTheme = params.theme ?? params.mod;
   const [started, setStarted] = useState(false);
   const [isMulti, setIsMulti] = useState(false);
   const [isDaily, setIsDaily] = useState(false);
@@ -69,7 +71,7 @@ export default function AsteroidsScreen() {
     PlayerProfileService.updateDisplayName(name);
   };
   const [selectedMode, setSelectedMode] = useState<"deathmatch" | "story">("deathmatch");
-  const [selectedVisualMod, setSelectedVisualMod] = useState<"classic" | "iceberg">("classic");
+  const [selectedVisualMod, setSelectedVisualMod] = useState<"classic" | "iceberg">(() => resolveAsteroidsThemeId(requestedTheme));
 
   const storyGraph = selectedMode === "story" ? keplersGhostStoryGraph : undefined;
 
@@ -81,6 +83,16 @@ export default function AsteroidsScreen() {
     selectedVisualMod,
     storyGraph
   );
+
+  useEffect(() => {
+    if (!requestedTheme) return;
+    const requestedVisualMod = resolveAsteroidsThemeId(requestedTheme);
+    if (started && game && isReady) {
+      game.setVisualMod(requestedVisualMod);
+      return;
+    }
+    setSelectedVisualMod(requestedVisualMod);
+  }, [game, isReady, requestedTheme, started]);
 
   const touchStateRef = useRef<TouchInputState | null>(null);
   if (!touchStateRef.current) {

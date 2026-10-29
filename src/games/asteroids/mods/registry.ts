@@ -1,49 +1,43 @@
-import type { AsteroidsVisualMod, AsteroidsVisualModId } from "./types";
+import type { AsteroidsVisualMod, AsteroidsVisualModFacade, AsteroidsVisualModId } from "./types";
+import { createAsteroidsVisualModFacade } from "./createVisualModFacade";
+import { registerAsteroidsTheme } from "../presentation/themeRegistry";
+import { registerAsteroidsGameplayMod } from "./gameplayRegistry";
 import { classicMod } from "./classic/ClassicMod";
 import { icebergMod } from "./iceberg/IcebergMod";
 
-/**
- * Dynamic registry map for visual mods.
- *
- * Note on Trade-off: Moving from a closed union type Record<AsteroidsVisualModId, AsteroidsVisualMod>
- * to a string-keyed Map removes compile-time exhaustiveness guarantees that all union IDs are registered.
- * This trade-off enables dynamic plugin registration via `registerVisualMod`.
- * Runtime tests in `VisualModRegistry.test.ts` compensate by verifying default mod availability.
- */
+/** Compatibility registry for existing callers that expect one visual-mod object. */
 const MOD_REGISTRY = new Map<string, AsteroidsVisualMod>([
   ["classic", classicMod],
   ["iceberg", icebergMod]
 ]);
 
 /**
- * Registers a new visual mod plugin or overrides an existing mod by ID.
- *
- * @public
+ * Register a split facade or a legacy combined plug-in. Legacy plug-ins are
+ * normalized into independent registry entries while the flat API remains available.
  */
 export function registerVisualMod(mod: AsteroidsVisualMod): void {
-  MOD_REGISTRY.set(mod.id, mod);
+  const theme = mod.theme ?? mod;
+  const gameplay = mod.gameplay ?? mod;
+  const facade: AsteroidsVisualModFacade =
+    mod.theme && mod.gameplay
+      ? mod as AsteroidsVisualModFacade
+      : createAsteroidsVisualModFacade(theme, gameplay);
+
+  registerAsteroidsTheme(theme);
+  registerAsteroidsGameplayMod(gameplay);
+  MOD_REGISTRY.set(facade.id, facade);
 }
 
-/**
- * Resolves a visual mod id from config / gameOptions.
- * Unknown or missing values fall back to classic (zero visual change).
- *
- * @public
- */
+/** Unknown or missing IDs retain the old safe fallback to Classic. */
 export function resolveVisualMod(id: string | undefined | null): AsteroidsVisualMod {
-  if (id && MOD_REGISTRY.has(id)) {
-    return MOD_REGISTRY.get(id)!;
-  }
-  return MOD_REGISTRY.get("classic") ?? classicMod;
+  return (id ? MOD_REGISTRY.get(id) : undefined) ?? MOD_REGISTRY.get("classic") ?? classicMod;
 }
 
-/**
- * Lists registered visual mods (for menus / debug).
- *
- * @public
- */
 export function listVisualMods(): ReadonlyArray<{ id: AsteroidsVisualModId; displayName: string }> {
-  return Array.from(MOD_REGISTRY.values()).map((m) => ({ id: m.id, displayName: m.displayName }));
+  return Array.from(MOD_REGISTRY.values(), ({ id, displayName }) => ({ id, displayName }));
 }
+
+registerVisualMod(classicMod);
+registerVisualMod(icebergMod);
 
 export { MOD_REGISTRY as MODS };

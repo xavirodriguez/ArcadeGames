@@ -111,6 +111,7 @@ export class AsteroidsGame
   public mode: "deathmatch" | "story" = "deathmatch";
   /** Active visual presentation mod (classic | iceberg). */
   private visualMod: AsteroidsVisualMod = classicMod;
+  private activeRenderer: Renderer<AsteroidsComponentRegistry, RenderContext> | undefined;
 
   public get networkManager(): NetworkManager<AsteroidsComponentRegistry> | undefined { return this.network.networkManager; }
   public set networkManager(val: NetworkManager<AsteroidsComponentRegistry> | undefined) { this.network.networkManager = val; }
@@ -358,9 +359,18 @@ export class AsteroidsGame
     this.network.updateFromServer(payload, localSessionId);
   }
 
+  /** Change the presentation/gameplay adapter in-place without recreating the World or systems. */
+  public setVisualMod(id: string): void {
+    this.visualMod = applyVisualMod(this.world, this.config, { mod: id }, this._config.theme);
+    if (this.activeRenderer && !this.isHeadless) {
+      initializeAsteroidsRenderer(this.activeRenderer, this.visualMod.theme ?? this.visualMod);
+    }
+  }
+
   public initializeRenderer(renderer: Renderer<AsteroidsComponentRegistry, RenderContext>): void {
     if (this.isHeadless) return;
-    initializeAsteroidsRenderer(renderer, this.visualMod);
+    this.activeRenderer = renderer;
+    initializeAsteroidsRenderer(renderer, this.visualMod.theme ?? this.visualMod);
     SharedVFX.registerSharedVFX(renderer);
 
     // Phase 1+2: sumi-e / shan-shui background + ink juice drawers (mountain landscape)

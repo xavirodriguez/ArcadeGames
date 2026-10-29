@@ -28,3 +28,16 @@
 - Asset lookup is supplied by an adapter around the existing registry/provider; no parallel asset catalog or global singleton is created.
 - Theme identifiers are validated against the injected catalog. Theme rendering and palette treatment remain owned by existing theme implementations.
 - Procedural variation, nested prefabs, viewport/camera transforms, and runtime resource ownership remain future phases.
+
+## Phase 2 — fixed Sumi-e village pilot
+
+- Added `CanvasVisualSceneRenderer`, a thin adapter from the renderer-neutral resolved IR to the existing `SpriteRegistry` and `SpriteDrawer`. It does not create a parallel image cache or mutate ECS state.
+- Added camera coordinate mapping for `world`, `screen`, and `parallax` spaces; parallax factor semantics are shared with the resolver contract.
+- Added semantic anchor handling and preserved rotation, scale, flip and opacity during Canvas drawing.
+- Added `SUMI_E_VILLAGE_COMPOSITION`, a small fixed seven-instance composition across far-background, settlement and foreground layers. It uses the existing `tower_basic_art` sprite and registered `sumi-e` theme.
+- Wired `SumiEVillageTheme`'s village layer to resolve and render the fixed composition over the existing procedural ink-wash backdrop. The original deterministic placement helper remains independently testable.
+- Added tests for fixed composition resolution, unique resolved IDs, layer order, and world/screen/parallax camera transforms.
+
+### Phase 2 boundaries
+
+This is a Canvas pilot, not yet Canvas/Skia parity. The existing SpriteDrawer owns asynchronous sprite decoding and cache lifecycle. The composition uses a fixed authoring frame of 800×600 and centers it against the actual viewport; responsive layout rules, viewport culling, Skia drawing, procedural variation and broader asset coverage remain subsequent work. The art asset is intentionally reused as a proof of the composition path, not treated as the final village asset set.

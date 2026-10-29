@@ -188,6 +188,7 @@ export function resolveVisualScene(
   const resolved: ResolvedVisualInstance[] = [];
   const resolutionIssues: VisualCompositionIssue[] = [];
   const resolvedIds = new Set<string>();
+  let resolvedInstanceOrder = 0;
   const layers = [...definition.layers].sort((a, b) => a.order - b.order || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 
   for (const layer of layers) {
@@ -209,7 +210,7 @@ export function resolveVisualScene(
           return;
         }
         resolvedIds.add(resolvedId);
-        resolved.push(resolveInstance(instance, resolvedId, layer.id, layer.role, layer.order, itemIndex, layer.space, layer.parallaxFactor, layer.position, asset.anchor ?? "bottom-center"));
+        resolved.push(resolveInstance(instance, resolvedId, layer.id, layer.role, layer.order, resolvedInstanceOrder++, layer.space, layer.parallaxFactor, layer.position, asset.anchor ?? "bottom-center"));
       } else {
         const prefab = catalog.prefabs?.get(item.prefab);
         if (!prefab) {
@@ -233,7 +234,7 @@ export function resolveVisualScene(
           }
           resolvedIds.add(resolvedId);
           const position = { x: instance.position.x + (item.position?.x ?? 0), y: instance.position.y + (item.position?.y ?? 0) };
-          resolved.push(resolveInstance({ ...instance, position }, resolvedId, layer.id, layer.role, layer.order, itemIndex * 10000 + prefabIndex, layer.space, layer.parallaxFactor, layer.position, asset.anchor ?? "bottom-center"));
+          resolved.push(resolveInstance({ ...instance, position }, resolvedId, layer.id, layer.role, layer.order, resolvedInstanceOrder++, layer.space, layer.parallaxFactor, layer.position, asset.anchor ?? "bottom-center"));
         });
       }
     });

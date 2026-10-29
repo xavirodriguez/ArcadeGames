@@ -79,6 +79,8 @@ export interface ResolvedVisualInstance {
   readonly layerOrder: number;
   readonly instanceOrder: number;
   readonly space: VisualCoordinateSpace;
+  /** Present for parallax instances; inherited from the containing layer. */
+  readonly parallaxFactor?: number;
   readonly position: Readonly<VisualPoint>;
   readonly scale: Readonly<VisualScale>;
   readonly rotation: number;

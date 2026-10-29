@@ -134,5 +134,5 @@ describe("GameThemeProvider aesthetic integration", () => {
       expect(markup).toContain(`data-primary-accent="${accents.primary}"`);
       expect(markup).toContain('data-ink-wash="disabled"');
     }
-  });
+  );
 });

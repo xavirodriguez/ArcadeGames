@@ -5,7 +5,7 @@
  * middle distance remain owned by SumiETheme's procedural ink-wash parallax.
  * These props are deterministic presentation-only elements, not ECS entities.
  */
-import { resolveVisualScene, type ResolvedVisualScene } from "../../../../shared/rendering/visual-composition";
+import { resolveVisualScene } from "../../../../shared/rendering/visual-composition";
 import { drawResolvedVisualSceneCanvas, preloadResolvedVisualSceneCanvas } from "../../../../shared/rendering/visual-composition/CanvasVisualSceneRenderer";
 import { createSumiEVillageCatalog, SUMI_E_VILLAGE_COMPOSITION } from "./SumiEVillageComposition";
 

@@ -1,10 +1,4 @@
 import type { HitRunTheme } from "../HitRunTheme";
-import type {
-  EntityRenderSnapshot,
-  HudRenderSnapshot,
-  BannerRenderSnapshot,
-  FeedbackEventSnapshot
-} from "../HitRunThemeTypes";
 import { SumiETheme } from "./SumiETheme";
 import { drawSumiEVillageLayer } from "./SumiEVillageLayer";
 

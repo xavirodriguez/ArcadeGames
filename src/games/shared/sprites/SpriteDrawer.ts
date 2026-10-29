@@ -138,6 +138,8 @@ export interface SpriteDrawOptions {
   anchor?: "feet" | "center";
   /** Additional alpha multiplier (0..1). Defaults to 1. */
   opacity?: number;
+  /** Explicit normalized destination anchor; overrides sheet metadata and legacy anchor. */
+  destinationAnchor?: { readonly x: number; readonly y: number };
 }
 
 /** Load a sheet once for Canvas, sharing the pending request between entities. */
@@ -255,9 +257,29 @@ export function getSkiaImage(sheetId: string): SkImage | undefined {
   return skiaImageCache.get(sheetId);
 }
 
+export type SpriteLoadState = "unregistered" | "not-loaded" | "loading" | "ready" | "failed";
+
+/** Read-only view of the existing Canvas cache lifecycle; does not trigger loading. */
+export function getCanvasSpriteLoadState(sheetId: string): SpriteLoadState {
+  if (!SpriteRegistry.has(sheetId)) return "unregistered";
+  if (canvasImageCache.has(sheetId)) return "ready";
+  if (canvasPendingLoads.has(sheetId)) return "loading";
+  if (canvasFailedLoads.has(sheetId)) return "failed";
+  return "not-loaded";
+}
+
+/** Read-only view of the existing Skia cache lifecycle; does not trigger loading. */
+export function getSkiaSpriteLoadState(sheetId: string): SpriteLoadState {
+  if (!SpriteRegistry.has(sheetId)) return "unregistered";
+  if (skiaImageCache.has(sheetId)) return "ready";
+  if (skiaPendingLoads.has(sheetId)) return "loading";
+  if (skiaFailedLoads.has(sheetId)) return "failed";
+  return "not-loaded";
+}
+
 /** Whether the Canvas image for a sheet already finished loading. */
 export function isCanvasSpriteReady(sheetId: string): boolean {
-  return canvasImageCache.has(sheetId);
+  return getCanvasSpriteLoadState(sheetId) === "ready";
 }
 
 // ---------------------------------------------------------------------------
@@ -288,7 +310,7 @@ export function drawSpriteCanvas(
   const ox = (animator.offsetX ?? 0) * animator.scale;
   const oy = (animator.offsetY ?? 0) * animator.scale;
   const anchor = sheet.anchor ?? { x: 0.5, y: 1 };
-  const destination = calculateSpriteDestinationRect(dw, dh, {
+  const destination = calculateSpriteDestinationRect(dw, dh, options?.destinationAnchor ?? {
     x: anchor.x,
     y: options?.anchor === "center" ? 0.5 : anchor.y
   });

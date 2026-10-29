@@ -33,6 +33,7 @@ import { DiveTrailVisualSystem } from "./systems/DiveTrailVisualSystem";
 import { UnfoldFxSystem } from "./systems/UnfoldFxSystem";
 import { ScorePopupSystem } from "./systems/ScorePopupSystem";
 import galaxianConfigRaw from "./config/galaxian.json";
+import { createThemeFromGameAccents } from "../../theme/gameAccents";
 
 export class GalaxianGame extends BaseGame<
   GalaxianStateComponent,
@@ -64,7 +65,7 @@ export class GalaxianGame extends BaseGame<
       isMultiplayer: false,
       headless: config.headless,
       schedule: config.schedule,
-      theme: config.theme,
+      theme: config.theme ?? createThemeFromGameAccents("galaxian"),
       gameOptions: { ...config.gameOptions, seed },
     });
     this.baseConfig = loadedBaseConfig;

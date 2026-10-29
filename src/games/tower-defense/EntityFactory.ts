@@ -12,6 +12,7 @@ import type { TowerDefenseConfig, CreepDefinition, TowerDefinition } from "./typ
 import { cellCenter } from "./MapUtils";
 import type { GridLayout } from "../shared/grid/GridTypes";
 import { attachEnemyDefaults } from "../shared/enemyHelpers";
+import { TOWER_DEFENSE_VISUAL_TOKENS } from "./presentation/TowerDefenseVisualTokens";
 
 export function createInputComponent(): InputComponent {
   return {
@@ -76,7 +77,7 @@ export function populateCreep(
     .withRender({
       shape: `creep_${def.id}`,
       size: renderSize,
-      color: "#ff2d55",
+      color: TOWER_DEFENSE_VISUAL_TOKENS.entityDefaults.creep,
       order: 50,
       visible: true,
       opacity: 1,
@@ -131,7 +132,7 @@ export function populateTower(
   const pos = cellCenter(col, row, layout);
   EntityBuilder.fromEntity(world, entity)
     .withTransform({ x: pos.x, y: pos.y })
-    .withRender({ shape: `tower_${def.id}`, size: layout.stepX * 0.7, color: "cyan", order: 8 })
+    .withRender({ shape: `tower_${def.id}`, size: layout.stepX * 0.7, color: TOWER_DEFENSE_VISUAL_TOKENS.entityDefaults.tower, order: 8 })
     .withCollider({
       shape: { type: ShapeType.Circle, radius: layout.stepX * 0.3 } as CircleShape,
       layer: CollisionLayers.PLAYER,

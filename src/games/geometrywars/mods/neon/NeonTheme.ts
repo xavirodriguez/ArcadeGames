@@ -1,5 +1,5 @@
 import type { GeometryWarsThemeModule } from "../types";
-import { GEOMETRY_WARS_VISUAL_TOKENS } from "../../rendering/GeometryWarsVisualTokens";
+import { GEOMETRY_WARS_VISUAL_TOKENS } from "../../presentation/GeometryWarsVisualTokens";
 
 /**
  * Default neon Geometry Wars aesthetic. Tokens only — drawers stay in rendering/.

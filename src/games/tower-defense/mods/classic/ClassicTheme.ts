@@ -1,5 +1,5 @@
 import type { TowerDefenseThemeModule } from "../types";
-import { TOWER_DEFENSE_VISUAL_TOKENS } from "../../rendering/TowerDefenseVisualTokens";
+import { TOWER_DEFENSE_VISUAL_TOKENS } from "../../presentation/TowerDefenseVisualTokens";
 
 export const classicTheme: TowerDefenseThemeModule = {
   id: "classic",

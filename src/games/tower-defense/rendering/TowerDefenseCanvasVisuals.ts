@@ -25,6 +25,7 @@ type TDWorld = World<TowerDefenseComponentRegistry>;
 
 import { isPaperDuskTheme } from "./TowerDefenseVisualHelpers";
 import { createSpriteAnimator, drawSpriteCanvas } from "../../shared/sprites";
+import { TOWER_DEFENSE_VISUAL_TOKENS } from "../presentation/TowerDefenseVisualTokens";
 
 const TOWER_BASIC_SPRITE = createSpriteAnimator("tower_basic_art");
 const TOWER_SNIPER_SPRITE = createSpriteAnimator("tower_sniper_art");
@@ -233,7 +234,7 @@ export const drawTowerBasic: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseC
     TOWER_BASIC_SPRITE.scale = size / 34;
     const spriteDrawn = !isPaperDusk && drawSpriteCanvas(ctx, TOWER_BASIC_SPRITE, 0, 0);
     if (!spriteDrawn) {
-      drawTowerBase(world, ctx, size, "tower_basic", "tower_basic_accent", "#4fc3f7", "#81d4fa", "basic");
+      drawTowerBase(world, ctx, size, "tower_basic", "tower_basic_accent", TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.canvas.basic.primary, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.canvas.basic.accent, "basic");
     }
     drawTowerWeaponCanvas(ctx, world, entity, size, "basic");
   },
@@ -247,7 +248,7 @@ export const drawTowerSniper: ShapeDrawer<CanvasRenderingContext2D, TowerDefense
     TOWER_SNIPER_SPRITE.scale = size / 34;
     const spriteDrawn = !isPaperDusk && drawSpriteCanvas(ctx, TOWER_SNIPER_SPRITE, 0, 0);
     if (!spriteDrawn) {
-      drawTowerBase(world, ctx, size, "tower_sniper", "tower_sniper_accent", "#ab47bc", "#ce93d8", "sniper");
+      drawTowerBase(world, ctx, size, "tower_sniper", "tower_sniper_accent", TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.canvas.sniper.primary, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.canvas.sniper.accent, "sniper");
     }
     drawTowerWeaponCanvas(ctx, world, entity, size, "sniper");
   },
@@ -257,7 +258,7 @@ export const drawTowerRapid: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseC
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     const size = render?.size ?? 28;
-    drawTowerBase(world, ctx, size, "tower_rapid", "tower_rapid_accent", "#66bb6a", "#a5d6a7", "rapid");
+    drawTowerBase(world, ctx, size, "tower_rapid", "tower_rapid_accent", TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.canvas.rapid.primary, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.canvas.rapid.accent, "rapid");
     drawTowerWeaponCanvas(ctx, world, entity, size, "rapid");
   },
 };
@@ -266,9 +267,9 @@ export const drawTowerFrost: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseC
   draw(ctx, world, entity) {
     const render = world.getComponent(entity, "Render");
     const size = render?.size ?? 28;
-    drawTowerBase(world, ctx, size, "tower_frost", "tower_frost_accent", "#4dd0e1", "#b2ebf2", "frost");
+    drawTowerBase(world, ctx, size, "tower_frost", "tower_frost_accent", TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.canvas.frost.primary, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.canvas.frost.accent, "frost");
     if (!isPaperDuskTheme(world)) {
-      const flakeColor = resolveThemeColorWithFallback(world, "#e0f7fa", "tower_frost_flake");
+      const flakeColor = resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.weapon.frost, "tower_frost_flake");
       ctx.strokeStyle = flakeColor;
       ctx.lineWidth = 2;
       ctx.beginPath();
@@ -512,7 +513,7 @@ export const drawCreepTank: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
     ctx.scale(animation.scaleX, animation.scaleY);
     drawCreepBody(ctx, size, fill, stroke, isPaperDusk, "tank", hitFlash);
     if (!isPaperDusk) {
-      ctx.strokeStyle = resolveThemeColorWithFallback(world, "#5d4037", "creep_tank_plate");
+      ctx.strokeStyle = resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.creepRendering.tank.plate, "creep_tank_plate");
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.arc(0, 0, size * 0.55, 0.2, Math.PI - 0.2);

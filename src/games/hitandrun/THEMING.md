@@ -19,7 +19,7 @@ To create a new visual theme:
    ```ts
    ThemeRegistry.register("my-theme", () => new MyTheme());
    ```
-3. **Usage:** Select theme via `DEFAULT_HIT_AND_RUN_CONFIG.theme`, runtime `ThemeRegistry.setActiveTheme("my-theme")`, or URL parameter `?theme=my-theme`.
+3. **Usage:** Select an available theme via `DEFAULT_HIT_AND_RUN_CONFIG.theme`, `activateHitAndRunTheme("sumi-e")` from `mods/registry.ts`, or the URL parameter `?theme=sumi-e`. To add another theme, register its factory in `ThemeRegistry.ts` and expose its ID/module in `mods/types.ts` and `mods/registry.ts` before activating it.
 
 ## Available Themes
 

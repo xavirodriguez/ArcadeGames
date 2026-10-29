@@ -1,6 +1,6 @@
 import { World, resolveThemeColorWithFallback } from "@tiny-aster/core";
 import type { TowerDefenseComponentRegistry, TowerDefenseVisualEffects } from "../types/TowerDefenseTypes";
-import { colors } from "../../../theme/colors";
+import { TOWER_DEFENSE_VISUAL_TOKENS } from "../presentation/TowerDefenseVisualTokens";
 
 export interface PathDirectionMarker {
   x: number;
@@ -98,44 +98,44 @@ export function resolveCreepVisualState(
   // High-contrast fallbacks so creeps never blend into the dark path / space debris.
   if (type === "grunt") {
     const fill = slowed
-      ? resolveThemeColorWithFallback(world, "#5eead4", "creep_slowed")
-      : resolveThemeColorWithFallback(world, "#ff8a3d", "creep_grunt", "enemy");
+      ? resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.creepRendering.slowed.fill, "creep_slowed")
+      : resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.creepRendering.grunt.fill, "creep_grunt", "enemy");
     const stroke = slowed
-      ? resolveThemeColorWithFallback(world, "#99f6e4", "creep_slowed_stroke")
-      : resolveThemeColorWithFallback(world, "#ffe566", "creep_grunt_stroke");
+      ? resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.creepRendering.slowed.stroke, "creep_slowed_stroke")
+      : resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.creepRendering.grunt.stroke, "creep_grunt_stroke");
     return { size, slowed, fill, stroke };
   }
 
   if (type === "fast") {
     const fill = slowed
-      ? resolveThemeColorWithFallback(world, "#5eead4", "creep_slowed")
-      : resolveThemeColorWithFallback(world, "#4fc3f7", "creep_fast", "enemy");
+      ? resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.creepRendering.slowed.fill, "creep_slowed")
+      : resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.creepRendering.fast.fill, "creep_fast", "enemy");
     const stroke = slowed
-      ? resolveThemeColorWithFallback(world, "#99f6e4", "creep_slowed_stroke")
-      : resolveThemeColorWithFallback(world, "#e0f7fa", "creep_fast_stroke");
+      ? resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.creepRendering.slowed.stroke, "creep_slowed_stroke")
+      : resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.creepRendering.fast.stroke, "creep_fast_stroke");
     return { size, slowed, fill, stroke };
   }
 
   if (type === "tank") {
     const fill = slowed
-      ? resolveThemeColorWithFallback(world, "#5eead4", "creep_slowed")
-      : resolveThemeColorWithFallback(world, "#94a3b8", "creep_tank", "enemy");
+      ? resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.creepRendering.slowed.fill, "creep_slowed")
+      : resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.creepRendering.tank.fill, "creep_tank", "enemy");
     const stroke = slowed
-      ? resolveThemeColorWithFallback(world, "#99f6e4", "creep_slowed_stroke")
-      : resolveThemeColorWithFallback(world, "#f1f5f9", "creep_tank_stroke");
+      ? resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.creepRendering.slowed.stroke, "creep_slowed_stroke")
+      : resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.creepRendering.tank.stroke, "creep_tank_stroke");
     return { size, slowed, fill, stroke };
   }
 
   // Boss
   const fill = slowed
-    ? resolveThemeColorWithFallback(world, "#5eead4", "creep_slowed")
-    : resolveThemeColorWithFallback(world, "#ef4444", "creep_boss", "boss");
+    ? resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.creepRendering.slowed.fill, "creep_slowed")
+    : resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.creepRendering.boss.fill, "creep_boss", "boss");
   const stroke = slowed
-    ? resolveThemeColorWithFallback(world, "#99f6e4", "creep_slowed_stroke")
-    : resolveThemeColorWithFallback(world, "#fecaca", "creep_boss_stroke");
+    ? resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.creepRendering.slowed.stroke, "creep_slowed_stroke")
+    : resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.creepRendering.boss.stroke, "creep_boss_stroke");
   const innerStroke = slowed
-    ? resolveThemeColorWithFallback(world, "#99f6e4", "creep_slowed_stroke")
-    : resolveThemeColorWithFallback(world, "#f9a8d4", "creep_boss_inner_stroke");
+    ? resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.creepRendering.slowed.stroke, "creep_slowed_stroke")
+    : resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.creepRendering.boss.innerStroke, "creep_boss_inner_stroke");
 
   return { size, slowed, fill, stroke, innerStroke };
 }
@@ -166,12 +166,12 @@ export function resolveTowerWeaponDrawSetup(
     : -Math.PI / 2;
 
   const barrelColor = type === "sniper"
-    ? resolveThemeColorWithFallback(world, colors.violet, "tower_sniper_barrel")
+    ? resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.weapon.sniper, "tower_sniper_barrel")
     : type === "rapid"
-      ? resolveThemeColorWithFallback(world, colors.green, "tower_rapid_barrel")
+      ? resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.weapon.rapid, "tower_rapid_barrel")
       : type === "frost"
-        ? resolveThemeColorWithFallback(world, "#e0f7fa", "tower_frost_flake", "tower_frost_accent")
-        : resolveThemeColorWithFallback(world, colors.blueLight, "tower_basic_accent");
+        ? resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.weapon.frost, "tower_frost_flake", "tower_frost_accent")
+        : resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.weapon.basic, "tower_basic_accent");
   const inkColor = isPaperDuskTheme(world)
     ? resolveThemeColorWithFallback(world, "#14161B", "pd_ink")
     : "#101827";
@@ -218,8 +218,8 @@ export function resolveTdLandmarkSetup(
   const cx = x + size / 2;
   const cy = y + size / 2;
   const fill = kind === "spawn"
-    ? resolveThemeColorWithFallback(world, "#ef5350", "map_spawn", "accent")
-    : resolveThemeColorWithFallback(world, "#43a047", "map_base", "primary");
+    ? resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.mapLandmarks.spawn, "map_spawn", "accent")
+    : resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.mapLandmarks.base, "map_base", "primary");
   const outline = isPaperDusk
     ? resolveThemeColorWithFallback(world, "#14161B", "pd_ink")
     : "#101827";
@@ -245,8 +245,8 @@ export function resolveTowerProjectileDrawSetup(
   const size = render?.size ?? 4;
   const frost = !!(proj?.slowFactor && proj.slowFactor < 1);
   const color = frost
-    ? resolveThemeColorWithFallback(world, colors.cyan, "tower_projectile_frost")
-    : resolveThemeColorWithFallback(world, colors.yellow, "tower_projectile", "bullet");
+    ? resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.weapon.projectileFrost, "tower_projectile_frost")
+    : resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.weapon.projectile, "tower_projectile", "bullet");
 
   return { size, frost, color };
 }

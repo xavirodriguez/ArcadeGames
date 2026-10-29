@@ -1,6 +1,7 @@
 import { ShapeDrawer, EffectDrawer, RenderContext, World, resolveThemeColorWithFallback } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry } from "../types/GeometryWarsRegistry";
 import { colors } from "../../../theme/colors";
+import { GEOMETRY_WARS_VISUAL_TOKENS } from "../presentation/GeometryWarsVisualTokens";
 import { getDisplacedPoint, BULLET_COORDS } from "../../shared/rendering/ProceduralShapeUtils";
 import { resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
 import { ensureSkiaAvailable, getRenderGuard, getDrawableTransform, fillSkiaPaint } from "../../shared/rendering/renderingUtils";
@@ -116,7 +117,7 @@ export const drawSkiaPlayerShip: ShapeDrawer<SkCanvas, GeometryWarsComponentRegi
     if (!player) return;
 
     const size = render.size ?? 16;
-    const color = resolveThemeColorWithFallback(world, render.color ?? colors.cyan, "player", "player-ship", "primary");
+    const color = resolveThemeColorWithFallback(world, render.color ?? GEOMETRY_WARS_VISUAL_TOKENS.player, "player", "player-ship", "primary");
 
     const x = transform.worldX ?? transform.x;
     const y = transform.worldY ?? transform.y;
@@ -174,7 +175,7 @@ export const drawSkiaParticle: ShapeDrawer<SkCanvas, GeometryWarsComponentRegist
     if (!render) return;
 
     const size = render.size ?? 3;
-    const color = resolveThemeColorWithFallback(world, render.color ?? colors.white, "particle");
+    const color = resolveThemeColorWithFallback(world, render.color ?? GEOMETRY_WARS_VISUAL_TOKENS.particleDefault, "particle");
 
     const paint = getPaint();
     canvas.save();
@@ -192,7 +193,7 @@ export const drawSkiaChaser: ShapeDrawer<SkCanvas, GeometryWarsComponentRegistry
   draw(canvas, world, entity) {
     drawSkiaPathShape(
       canvas,
-      resolveSkiaShapeSetup(world, entity, 14, "chaser", colors.magenta, 2.0),
+      resolveSkiaShapeSetup(world, entity, 14, "chaser", GEOMETRY_WARS_VISUAL_TOKENS.fallbacks.skia.chaser, 2.0),
       (size) => [[0, -size], [size, 0], [0, size], [-size, 0]]
     );
   }
@@ -206,7 +207,7 @@ export const drawSkiaEvader: ShapeDrawer<SkCanvas, GeometryWarsComponentRegistry
   draw(canvas, world, entity) {
     drawSkiaPathShape(
       canvas,
-      resolveSkiaShapeSetup(world, entity, 14, "evader", colors.warning, 2.0),
+      resolveSkiaShapeSetup(world, entity, 14, "evader", GEOMETRY_WARS_VISUAL_TOKENS.fallbacks.skia.evader, 2.0),
       (size) => [[size, 0], [-size / 2, -size / 2], [-size / 2, size / 2]]
     );
   }
@@ -220,7 +221,7 @@ export const drawSkiaGrunt: ShapeDrawer<SkCanvas, GeometryWarsComponentRegistry>
   draw(canvas, world, entity) {
     drawSkiaPathShape(
       canvas,
-      resolveSkiaShapeSetup(world, entity, 10, "grunt", colors.cyan, 1.5),
+      resolveSkiaShapeSetup(world, entity, 10, "grunt", GEOMETRY_WARS_VISUAL_TOKENS.grunt, 1.5),
       (size) => [[size, 0], [-size, -size * 0.7], [-size, size * 0.7]]
     );
   }
@@ -237,7 +238,7 @@ export const drawSkiaBullet: ShapeDrawer<SkCanvas, GeometryWarsComponentRegistry
     if (!render) return;
 
     const size = render.size ?? 4;
-    const color = resolveThemeColorWithFallback(world, render.color ?? colors.yellow, "bullet", "player-bullet", "secondary");
+    const color = resolveThemeColorWithFallback(world, render.color ?? GEOMETRY_WARS_VISUAL_TOKENS.fallbacks.skia.bullet, "bullet", "player-bullet", "secondary");
 
     const paint = getPaint();
     canvas.save();
@@ -256,7 +257,7 @@ export const drawSkiaEnemySeeker: ShapeDrawer<SkCanvas, GeometryWarsComponentReg
   draw(canvas, world, entity) {
     drawSkiaPathShape(
       canvas,
-      resolveSkiaShapeSetup(world, entity, 12, "seeker", colors.magenta, 1.5),
+      resolveSkiaShapeSetup(world, entity, 12, "seeker", GEOMETRY_WARS_VISUAL_TOKENS.fallbacks.skia.seeker, 1.5),
       (size) => [[0, -size], [size / 2, 0], [0, size], [-size / 2, 0]]
     );
   }
@@ -268,7 +269,7 @@ export const drawSkiaEnemySeeker: ShapeDrawer<SkCanvas, GeometryWarsComponentReg
  */
 export const drawSkiaEnemyEvader: ShapeDrawer<SkCanvas, GeometryWarsComponentRegistry> = {
   draw(canvas, world, entity) {
-    const setup = resolveSkiaShapeSetup(world, entity, 12, "evader", colors.green, 1.5);
+    const setup = resolveSkiaShapeSetup(world, entity, 12, "evader", GEOMETRY_WARS_VISUAL_TOKENS.evader, 1.5);
     if (!setup) return;
     const { size, paint } = setup;
 
@@ -287,7 +288,7 @@ export const drawSkiaEnemyFastSeeker: ShapeDrawer<SkCanvas, GeometryWarsComponen
   draw(canvas, world, entity) {
     drawSkiaPathShape(
       canvas,
-      resolveSkiaShapeSetup(world, entity, 8, "fast_seeker", colors.danger, 1.5),
+      resolveSkiaShapeSetup(world, entity, 8, "fast_seeker", GEOMETRY_WARS_VISUAL_TOKENS.fallbacks.skia.fastSeeker, 1.5),
       (size) => [[size, 0], [-size, -size / 2], [-size / 2, 0], [-size, size / 2]]
     );
   }
@@ -344,14 +345,14 @@ export const drawSkiaGeometryWarsBackground: EffectDrawer<SkCanvas, GeometryWars
     const { width, height } = screen;
 
     // 1. Frame prologue: update particles, monitor bullet trails, resolve grid displacement context
-    const { playerX, playerY, bulletCount } = prepareGeometryWarsFramePrologue(world, width, height, colors.yellow, colors.magenta);
+    const { playerX, playerY, bulletCount } = prepareGeometryWarsFramePrologue(world, width, height, GEOMETRY_WARS_VISUAL_TOKENS.fallbacks.skia.trailPrimary, GEOMETRY_WARS_VISUAL_TOKENS.fallbacks.skia.trailSecondary);
 
     // 2. Process visual particles drawings
     drawVisualParticles(canvas);
 
     // 3. Draw Deforming Grid Lines via Skia DrawLine
     const paint = getPaint();
-    fillSkiaPaint(paint, "stroke", colors.border, 0.8);
+    fillSkiaPaint(paint, "stroke", GEOMETRY_WARS_VISUAL_TOKENS.fallbacks.skia.grid, 0.8);
 
     canvas.save();
 

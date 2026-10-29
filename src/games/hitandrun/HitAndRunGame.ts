@@ -101,7 +101,8 @@ import { SpriteRegistry, loadSpriteSheetWithAssetLoader } from "../shared/sprite
 import { getHitRunCharacterSpriteSheet, HIT_RUN_SUMI_E_SAMURAI_SHEET_ID } from "./rendering/HitRunSpriteAtlas";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import { runWithUnlockedRandomAndMutators } from "../shared/configHelper";
-import { ThemeRegistry, resolveThemeIdFromConfig } from "./rendering/theme/ThemeRegistry";
+import { resolveThemeIdFromConfig } from "./rendering/theme/ThemeRegistry";
+import { activateHitAndRunTheme } from "./mods/registry";
 import { storePreviousTransforms } from "./rendering/HitRunRenderInterpolation";
 
 export interface HitAndRunConfig {
@@ -173,7 +174,7 @@ export class HitAndRunGame extends BaseGame<
       gameOptions: { ...config.gameOptions, seed },
       audio: new WebAudioPlayer(),
     });
-    this.activeThemeId = ThemeRegistry.setActiveTheme(requestedThemeId).id;
+    this.activeThemeId = activateHitAndRunTheme(requestedThemeId).id;
     this.samuraiAssetLoader = new AssetLoader();
     this.customLevelData = config.levelData;
   }

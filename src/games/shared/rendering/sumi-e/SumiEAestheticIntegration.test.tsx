@@ -88,13 +88,13 @@ describe("GameThemeProvider aesthetic integration", () => {
   });
 
   it("makes canonical Sumi-e tokens available through the React theme context", () => {
+    const aestheticTheme = getAestheticTheme("sumi-e", {
+      landscape: "mountain",
+      paletteVariant: "forest"
+    });
     const markup = renderProvider({
       gameKey: "hitandrun",
-      aesthetic: "sumi-e",
-      aestheticOptions: {
-        landscape: "mountain",
-        paletteVariant: "forest"
-      }
+      aestheticTheme
     });
     const accents = getGameAccentColors("hitandrun");
 
@@ -108,7 +108,10 @@ describe("GameThemeProvider aesthetic integration", () => {
   it.each(["cosmic", "neon"] as const)(
     "exposes the selected %s aesthetic without changing legacy game accents",
     (aesthetic) => {
-      const markup = renderProvider({ gameKey: "racing", aesthetic });
+      const markup = renderProvider({
+        gameKey: "racing",
+        aestheticTheme: getAestheticTheme(aesthetic)
+      });
       const accents = getGameAccentColors("racing");
 
       expect(markup).toContain(`data-aesthetic="${aesthetic}"`);
@@ -116,5 +119,5 @@ describe("GameThemeProvider aesthetic integration", () => {
       expect(markup).toContain(`data-primary-accent="${accents.primary}"`);
       expect(markup).toContain('data-ink-wash="disabled"');
     }
-  );
+  });
 });

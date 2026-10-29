@@ -255,6 +255,8 @@ export interface PresentationThemeContext {
   readonly sessionId: string;
   readonly cosmeticSeed: number;
   readonly random: PresentationRandom;
+  /** Optional primitive options for theme variants such as landscape or palette. */
+  readonly options?: Readonly<Record<string, string | number | boolean>>;
 }
 
 /** Abstract drawing surface implemented by backend adapters. */
@@ -352,7 +354,10 @@ export interface PresentationThemeDefinition<
   TCustomTokens extends object = object
 > {
   readonly descriptor: PresentationThemeDescriptor;
+  /** Stable defaults used by the catalogue before a session is created. */
   readonly tokens: PresentationThemeTokens<TCustomTokens>;
+  /** Optional token resolver for per-session palette/landscape variants. */
+  readonly resolveTokens?: (context: PresentationThemeContext) => PresentationThemeTokens<TCustomTokens>;
   create(context: PresentationThemeContext): PresentationTheme<
     TSceneSnapshot,
     TEntitySnapshot,

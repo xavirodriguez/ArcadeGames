@@ -106,3 +106,14 @@ El contrato inicial vive en src/games/shared/presentation/. No se creará todav�
 - Terminar el contrato de carga/caché de assets tras auditar el lifecycle de AssetLoader en ambos backends.
 - Establecer la política de accesibilidad comprometida; hasta entonces, la conformidad global no se declarará evaluada.
 - Validar el contrato mediante un segundo juego antes de extraer un paquete independiente.
+
+
+## Ajuste del contrato de sesión
+
+La selección de tokens admite ahora resolución por sesión mediante PresentationThemeDefinition.resolveTokens(context). Esto permite que opciones de paisaje o paleta modifiquen los tokens de una instancia sin cambiar los valores por defecto del catálogo.
+
+PresentationThemeSession agrupa descriptor, tokens resueltos, instancia y metadatos del fallback. UI React y renderer deben consumir la misma sesión. El propietario llama dispose(); la operación es idempotente y afecta exclusivamente a su instancia.
+
+src/games/shared/presentation/adapters/AestheticThemeTokens.ts adapta AestheticThemeConfig al conjunto común de roles. Para Sumi-e utiliza los tokens semánticos canónicos; cosmic/neon conservan sus colores legacy. El objeto de configuración original permanece en custom durante la migración.
+
+La implementación aún no conecta este adaptador con HitRunTheme ni con los pintores de Canvas/Skia.

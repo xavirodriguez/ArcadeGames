@@ -150,6 +150,43 @@ describe("PresentationThemeRegistry", () => {
     expect(first.disposed).toBe(false);
   });
 
+  test("resolves presentation tokens per session without changing catalogue defaults", () => {
+    const registry = createRegistry();
+    registry.register({
+      descriptor: {
+        id: "variant",
+        displayName: "Variant",
+        capabilities: []
+      },
+      tokens: themeTokens,
+      resolveTokens: (sessionContext) => {
+        const accent = sessionContext.options?.accent;
+        if (typeof accent !== "string") return themeTokens;
+        return {
+          ...themeTokens,
+          colors: {
+            ...themeTokens.colors,
+            accent
+          }
+        };
+      },
+      create: () =>
+        createTheme({
+          id: "variant",
+          displayName: "Variant",
+          capabilities: []
+        })
+    });
+
+    const session = registry.createSession("variant", {
+      ...context,
+      options: { accent: "#c0392b" }
+    });
+
+    expect(session.tokens.colors.accent).toBe("#c0392b");
+    expect(registry.resolve("variant").definition.tokens.colors.accent).toBe("#4da3ff");
+  });
+
   test("reports and preserves fallback metadata in the resolved session", () => {
     const registry = createRegistry();
     const session = registry.createSession("missing-theme", context);

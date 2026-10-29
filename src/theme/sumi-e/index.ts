@@ -1,5 +1,6 @@
 export {
   SUMI_E_SEMANTIC_TOKENS,
+  createSumiESemanticColor,
   type HexColor,
   type SemanticColor,
   type SumiESemanticRole,

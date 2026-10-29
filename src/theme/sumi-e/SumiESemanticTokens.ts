@@ -40,8 +40,11 @@ export type SumiEUiColor = SemanticColor<"ui">;
 
 const HEX_COLOR_PATTERN = /^#[0-9A-F]{6}$/i;
 
-/** Validate the color at runtime and attach its compile-time semantic role. */
-function semanticColor<Role extends SumiESemanticRole>(
+/**
+ * Validate a hex value and attach its compile-time semantic role.
+ * Use this when defining a palette variant; invalid CSS colors fail immediately.
+ */
+export function createSumiESemanticColor<Role extends SumiESemanticRole>(
   value: string,
   role: Role
 ): SemanticColor<Role> {
@@ -149,46 +152,46 @@ export interface SumiESemanticTokens {
  */
 export const SUMI_E_SEMANTIC_TOKENS = Object.freeze({
   surface: Object.freeze({
-    paper: semanticColor("#E7DFCB", "surface"),
-    paperLight: semanticColor("#F1EBDD", "surface")
+    paper: createSumiESemanticColor("#E7DFCB", "surface"),
+    paperLight: createSumiESemanticColor("#F1EBDD", "surface")
   }),
   text: Object.freeze({
-    primary: semanticColor("#151515", "text"),
-    secondary: semanticColor("#5F6466", "text")
+    primary: createSumiESemanticColor("#151515", "text"),
+    secondary: createSumiESemanticColor("#5F6466", "text")
   }),
   threat: Object.freeze({
-    body: semanticColor("#B3261E", "threat"),
-    shadow: semanticColor("#A8281F", "threat"),
-    glow: semanticColor("#FF3B30", "threat"),
-    inkCreature: semanticColor("#151515", "threat")
+    body: createSumiESemanticColor("#B3261E", "threat"),
+    shadow: createSumiESemanticColor("#A8281F", "threat"),
+    glow: createSumiESemanticColor("#FF3B30", "threat"),
+    inkCreature: createSumiESemanticColor("#151515", "threat")
   }),
   player: Object.freeze({
-    silhouette: semanticColor("#151515", "player"),
-    trail: semanticColor("#4DA3FF", "player"),
-    projectile: semanticColor("#4DA3FF", "player"),
-    projectileGlow: semanticColor("#9CD0FF", "player"),
-    shield: semanticColor("#4DA3FF", "player")
+    silhouette: createSumiESemanticColor("#151515", "player"),
+    trail: createSumiESemanticColor("#4DA3FF", "player"),
+    projectile: createSumiESemanticColor("#4DA3FF", "player"),
+    projectileGlow: createSumiESemanticColor("#9CD0FF", "player"),
+    shield: createSumiESemanticColor("#4DA3FF", "player")
   }),
   reward: Object.freeze({
-    primary: semanticColor("#E3A92F", "reward")
+    primary: createSumiESemanticColor("#E3A92F", "reward")
   }),
   landscape: Object.freeze({
-    ink: semanticColor("#5F6466", "landscape"),
-    mist: semanticColor("#C9D1D2", "landscape"),
-    mountain: semanticColor("#8FA3B3", "landscape"),
-    water: semanticColor("#2E86B0", "landscape"),
-    sand: semanticColor("#E2D1A5", "landscape"),
-    safeGround: semanticColor("#7FA38A", "landscape"),
-    foliage: semanticColor("#4A5A52", "landscape")
+    ink: createSumiESemanticColor("#5F6466", "landscape"),
+    mist: createSumiESemanticColor("#C9D1D2", "landscape"),
+    mountain: createSumiESemanticColor("#8FA3B3", "landscape"),
+    water: createSumiESemanticColor("#2E86B0", "landscape"),
+    sand: createSumiESemanticColor("#E2D1A5", "landscape"),
+    safeGround: createSumiESemanticColor("#7FA38A", "landscape"),
+    foliage: createSumiESemanticColor("#4A5A52", "landscape")
   }),
   ui: Object.freeze({
-    frame: semanticColor("#B9A272", "ui"),
-    seal: semanticColor("#D7473F", "ui"),
-    sealShadow: semanticColor("#A8281F", "ui"),
-    panel: semanticColor("#F1EBDD", "ui"),
-    bossBarBackground: semanticColor("#151515", "ui"),
-    bossBarFill: semanticColor("#B3261E", "ui"),
-    activeLife: semanticColor("#151515", "ui"),
-    emptyLife: semanticColor("#5F6466", "ui")
+    frame: createSumiESemanticColor("#B9A272", "ui"),
+    seal: createSumiESemanticColor("#D7473F", "ui"),
+    sealShadow: createSumiESemanticColor("#A8281F", "ui"),
+    panel: createSumiESemanticColor("#F1EBDD", "ui"),
+    bossBarBackground: createSumiESemanticColor("#151515", "ui"),
+    bossBarFill: createSumiESemanticColor("#B3261E", "ui"),
+    activeLife: createSumiESemanticColor("#151515", "ui"),
+    emptyLife: createSumiESemanticColor("#5F6466", "ui")
   })
 } satisfies SumiESemanticTokens);

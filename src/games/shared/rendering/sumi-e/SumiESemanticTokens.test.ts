@@ -1,5 +1,6 @@
 import {
   SUMI_E_SEMANTIC_TOKENS,
+  createSumiESemanticColor,
   type HexColor,
   type SumiEPlayerColor,
   type SumiERewardColor,
@@ -93,6 +94,22 @@ describe("SUMI_E_SEMANTIC_TOKENS", () => {
     });
   });
 
+  it("rejects malformed or non-hex values when defining a palette variant", () => {
+    expect(() => createSumiESemanticColor("#FFF", "surface")).toThrow(
+      'Invalid Sumi-e surface color "#FFF": expected #RRGGBB.'
+    );
+    expect(() => createSumiESemanticColor("#12GG56", "player")).toThrow(
+      'Invalid Sumi-e player color "#12GG56": expected #RRGGBB.'
+    );
+    expect(() => createSumiESemanticColor("4DA3FF", "player")).toThrow(
+      'Invalid Sumi-e player color "4DA3FF": expected #RRGGBB.'
+    );
+  });
+
+  it("accepts a valid alternate color for future palette variants", () => {
+    expect(createSumiESemanticColor("#FFFFFF", "surface")).toBe("#FFFFFF");
+  });
+
   it("keeps gameplay color semantics distinct", () => {
     const { threat, player, reward, ui } = SUMI_E_SEMANTIC_TOKENS;
 
@@ -108,7 +125,7 @@ describe("SUMI_E_SEMANTIC_TOKENS", () => {
     expect(threat.body).not.toBe(reward.primary);
   });
 
-  it("contains only runtime-validated six-digit hex colors", () => {
+  it("contains only six-digit hex colors", () => {
     const colors = Object.values(SUMI_E_SEMANTIC_TOKENS).flatMap((group) =>
       Object.values(group)
     );

@@ -17,7 +17,8 @@ The shared semantic palette lives in `src/theme/sumi-e/SumiESemanticTokens.ts` a
 ## Type-level guarantees
 
 - `HexColor` is a branded type, so arbitrary strings cannot be passed as approved palette values without an explicit cast.
-- Palette values pass through a runtime validator that accepts only six-digit `#RRGGBB` strings.
+- `createSumiESemanticColor(value, role)` validates a value at runtime and returns a color branded with its semantic category. Use it when defining an intentional palette variant.
+- The validator accepts six-digit `#RRGGBB` strings only; shorthand hex, missing hashes and invalid digits throw a `TypeError`.
 - `SemanticColor<Role>` adds a second type brand. A threat token cannot accidentally be assigned to a surface, player, reward or UI token field.
 - Public interfaces use `readonly` properties, and the token map plus each group are frozen at runtime.
 - Compile-time assertions in `SumiESemanticTokens.test.ts` ensure unrelated roles remain non-assignable.

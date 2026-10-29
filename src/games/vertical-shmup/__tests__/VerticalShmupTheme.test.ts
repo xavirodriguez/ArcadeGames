@@ -1,6 +1,7 @@
 import { VerticalShmupGame } from "../VerticalShmupGame";
 import { createEnemy } from "../EntityFactory";
 import { selectShmupEnemyArchetype } from "../EnemyArchetypes";
+import { SUMI_E_SEMANTIC_TOKENS } from "../../../theme/sumi-e/SumiESemanticTokens";
 import { BIOMES, SHMUP_SUMI_E_THEME, computeShmupParallaxWorld, computeSumiEBackdrop, resolveShmupEnemyDrawContext } from "../rendering/ShmupVisualHelpers";
 
 describe("Vertical Shmup theme contracts", () => {
@@ -22,6 +23,18 @@ describe("Vertical Shmup theme contracts", () => {
     expect(SHMUP_SUMI_E_THEME.palette.paper).toBe("#E7DFCB");
     expect(SHMUP_SUMI_E_THEME.palette.player).toBe("#4DA3FF");
     expect(SHMUP_SUMI_E_THEME.palette.threatCritical).toBe("#FF3B30");
+    expect(SHMUP_SUMI_E_THEME.palette).toEqual({
+      paper: SUMI_E_SEMANTIC_TOKENS.surface.paper,
+      ink: SUMI_E_SEMANTIC_TOKENS.text.primary,
+      inkWash: SUMI_E_SEMANTIC_TOKENS.landscape.ink,
+      mist: SUMI_E_SEMANTIC_TOKENS.landscape.mist,
+      sun: SUMI_E_SEMANTIC_TOKENS.ui.seal,
+      threat: SUMI_E_SEMANTIC_TOKENS.threat.body,
+      threatCritical: SUMI_E_SEMANTIC_TOKENS.threat.glow,
+      player: SUMI_E_SEMANTIC_TOKENS.player.trail,
+      reward: SUMI_E_SEMANTIC_TOKENS.reward.primary,
+      frame: SUMI_E_SEMANTIC_TOKENS.ui.frame
+    });
     expect(SHMUP_SUMI_E_THEME.layers).toEqual([
       "paper", "sun", "mist", "mountains", "structures", "foreground"
     ]);
@@ -33,7 +46,7 @@ describe("Vertical Shmup theme contracts", () => {
     expect(first.paperFibers).toEqual(second.paperFibers);
     expect(first.ridges).toHaveLength(4);
     expect(first.paperFibers.length).toBeGreaterThan(0);
-    expect(first.palette.ink).toBe("#151515");
+    expect(first.palette.ink).toBe(SUMI_E_SEMANTIC_TOKENS.text.primary);
     expect(SHMUP_SUMI_E_THEME.effects).toEqual({
       playerTrail: "blue-brush",
       enemyProjectile: "vermilion-petal",

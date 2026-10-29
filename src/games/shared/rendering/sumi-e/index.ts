@@ -83,3 +83,5 @@ export {
   SUMI_E_DEBUG_RESOURCE,
   type SumiEDebugSnapshot
 } from "./SumiEDebugOverlay";
+
+export { withSumiEAlpha } from "./SumiEColor";

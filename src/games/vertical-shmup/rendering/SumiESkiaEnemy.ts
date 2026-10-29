@@ -1,6 +1,7 @@
 import type { ShapeDrawer } from "@tiny-aster/core";
 import type { ShmupComponentRegistry } from "../types/ShmupTypes";
 import { Skia, getPaint, type SkCanvas } from "../../shared/rendering/SkiaContext";
+import { withSumiEAlpha } from "../../shared/rendering/sumi-e/SumiEColor";
 import { SHMUP_SUMI_E_THEME, resolveShmupEnemyDrawContext } from "./ShmupVisualHelpers";
 
 /** Skia counterpart of the Canvas ink-yokai enemy family. */
@@ -93,7 +94,7 @@ export const drawSumiESkiaEnemy: ShapeDrawer<SkCanvas, ShmupComponentRegistry> =
     const hit = Math.max(0, Math.min(1, (enemy.render.hitFlashFrames ?? 0) / 5));
     if (hit > 0) {
       paint.setStyle(Skia.PaintStyle.Stroke);
-      paint.setColor(Skia.Color("rgba(21, 21, 21, " + (hit * 0.78) + ")"));
+      paint.setColor(Skia.Color(withSumiEAlpha(palette.ink, hit * 0.78)));
       for (let mark = 0; mark < 9; mark += 1) {
         const angle = mark * 2.399963 + entity * 0.37;
         const inner = size * (0.45 + (mark % 3) * 0.08);

@@ -1,6 +1,7 @@
 import type { ShapeDrawer } from "@tiny-aster/core";
 import type { ShmupComponentRegistry } from "../types/ShmupTypes";
 import { Skia, getPaint, type SkCanvas } from "../../shared/rendering/SkiaContext";
+import { withSumiEAlpha } from "../../shared/rendering/sumi-e/SumiEColor";
 import { SHMUP_SUMI_E_THEME, resolveShmupBulletDrawContext } from "./ShmupVisualHelpers";
 
 export const drawSumiESkiaPlayerBullet: ShapeDrawer<SkCanvas, ShmupComponentRegistry> = {
@@ -15,7 +16,7 @@ export const drawSumiESkiaPlayerBullet: ShapeDrawer<SkCanvas, ShmupComponentRegi
     canvas.save();
     paint.reset(); paint.setAntiAlias(true); paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setStrokeWidth(Math.max(1.2, size * 0.22)); paint.setStrokeCap(Skia.StrokeCap.Round);
-    paint.setColor(Skia.Color("rgba(77, 163, 255, 0.5)"));
+    paint.setColor(Skia.Color(withSumiEAlpha(palette.player, 0.5)));
     const trail = Skia.Path.Make();
     trail.moveTo(-size * 0.22, size * 2.8);
     trail.quadTo(size * 0.15 * Math.sin(time * 8), size * 1.1, 0, size * 0.1);
@@ -60,7 +61,7 @@ export const drawSumiESkiaEnemyBullet: ShapeDrawer<SkCanvas, ShmupComponentRegis
     inner.close(); canvas.drawPath(inner, paint);
     if (special) {
       paint.setStyle(Skia.PaintStyle.Stroke); paint.setStrokeWidth(1.2);
-      paint.setColor(Skia.Color("rgba(179, 38, 30, 0.55)"));
+      paint.setColor(Skia.Color(withSumiEAlpha(palette.threat, 0.55)));
       const radiusX = size * 1.65; const radiusY = size * 1.9;
       canvas.drawArc(Skia.XYWHRect(-radiusX, -radiusY, radiusX * 2, radiusY * 2), time * 11.46, 261, false, paint);
     }

@@ -1,5 +1,6 @@
 import type { EffectDrawer } from "@tiny-aster/core";
 import type { ShmupComponentRegistry } from "../types/ShmupTypes";
+import { withSumiEAlpha } from "../../shared/rendering/sumi-e/SumiEColor";
 import { computeSumiEBackdrop } from "./ShmupVisualHelpers";
 
 /** Sumi-e landscape composition: low-contrast centre, ink-heavy edges, deterministic detail. */
@@ -14,7 +15,7 @@ export const drawSumiECanvasBackdrop: EffectDrawer<CanvasRenderingContext2D, Shm
     ctx.save();
     ctx.lineWidth = 0.7;
     for (const fiber of data.paperFibers) {
-      ctx.strokeStyle = "rgba(95, 100, 102, " + fiber.alpha + ")";
+      ctx.strokeStyle = withSumiEAlpha(palette.inkWash, fiber.alpha);
       ctx.beginPath();
       ctx.moveTo(fiber.x, fiber.y);
       ctx.lineTo(fiber.x + fiber.length, fiber.y + Math.sin(fiber.x * 0.03) * 1.5);

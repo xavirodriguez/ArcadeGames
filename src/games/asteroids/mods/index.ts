@@ -47,3 +47,21 @@ export {
 export { spawnIceShardFracture } from "./iceberg/IcebergFracture";
 export { applyVisualMod } from "./applyVisualMod";
 export type { VisualModGameOptions } from "./applyVisualMod";
+
+export { classicTheme } from "./classic/ClassicTheme";
+export { classicGameplayMod } from "./classic/ClassicGameplayMod";
+export { icebergTheme } from "./iceberg/IcebergTheme";
+export { icebergGameplayMod } from "./iceberg/IcebergGameplayMod";
+export {
+  listAsteroidsThemes,
+  registerAsteroidsTheme,
+  resolveAsteroidsTheme,
+  resolveAsteroidsThemeId
+} from "../presentation/themeRegistry";
+export {
+  listAsteroidsGameplayMods,
+  registerAsteroidsGameplayMod,
+  resolveAsteroidsGameplayMod
+} from "./gameplayRegistry";
+export { createAsteroidsVisualModFacade } from "./createVisualModFacade";
+export type { AsteroidsGameplayMod } from "./gameplayTypes";

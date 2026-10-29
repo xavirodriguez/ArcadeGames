@@ -8,7 +8,7 @@ import { spawnLayeredExplosion } from "../../shared/rendering/SharedVFX";
 import { getLogsForLevel } from "../story/StoryBeats";
 import { colors } from "../../../theme/colors";
 import { applyComboKill } from "../../shared/arcade/ComboUtils";
-import type { AsteroidsVisualMod } from "../mods/types";
+import type { AsteroidsGameplayMod } from "../mods/gameplayTypes";
 
 /**
  * System to resolve collision logic for Asteroids.
@@ -148,9 +148,10 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
     transform: { x: number; y: number },
     size: "large" | "medium" | "small" | "ship"
   ): void {
-    const visualMod = world.getResource<AsteroidsVisualMod>("VisualMod");
-    if (visualMod?.spawnDestructionEffect) {
-      visualMod.spawnDestructionEffect(world, transform.x, transform.y, size);
+    const gameplayMod = world.getResource<AsteroidsGameplayMod>("GameplayMod")
+      ?? world.getResource<AsteroidsGameplayMod>("VisualMod");
+    if (gameplayMod?.spawnDestructionEffect) {
+      gameplayMod.spawnDestructionEffect(world, transform.x, transform.y, size);
       return;
     }
     const explosionType = size === "ship" ? "ship" : size === "large" ? "enemy" : "small";

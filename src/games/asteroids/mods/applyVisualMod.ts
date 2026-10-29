@@ -3,6 +3,8 @@ import type { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../type
 import type { AsteroidConfig } from "../types/AsteroidConfigSchema";
 import type { AsteroidsVisualMod } from "./types";
 import { resolveVisualMod } from "./registry";
+import { resolveAsteroidsTheme } from "../presentation/themeRegistry";
+import { resolveAsteroidsGameplayMod } from "./gameplayRegistry";
 import { createThemeFromGameAccents } from "../../../theme/gameAccents";
 
 export type VisualModGameOptions = {
@@ -11,12 +13,10 @@ export type VisualModGameOptions = {
 };
 
 /**
- * Resolves the active visual mod and applies its theme to the world.
- * Call from AsteroidsGame.onRegisterSystems after config is loaded.
+ * Resolves the selected compatibility facade and writes its independent modules
+ * into their own world resources. Theme construction remains a pure function.
  *
  * Priority: gameOptions.mod > config.VISUAL_MOD > "classic"
- *
- * @public
  */
 export function applyVisualMod(
   world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>,
@@ -26,10 +26,14 @@ export function applyVisualMod(
 ): AsteroidsVisualMod {
   const modId = gameOptions?.mod ?? config.VISUAL_MOD ?? "classic";
   const visualMod = resolveVisualMod(modId);
-  world.setResource("VisualMod", visualMod);
-
+  const themeModule = resolveAsteroidsTheme(modId);
+  const gameplayMod = resolveAsteroidsGameplayMod(modId);
   const baseTheme = currentTheme ?? createThemeFromGameAccents("asteroids");
-  const themed = visualMod.createTheme(baseTheme);
+  const themed = themeModule.createTheme(baseTheme);
+
+  world.setResource("AsteroidsThemeModule", themeModule);
+  world.setResource("GameplayMod", gameplayMod);
+  world.setResource("VisualMod", visualMod);
   world.setResource("Theme", themed);
 
   return visualMod;

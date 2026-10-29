@@ -167,12 +167,43 @@ describe("AsteroidsGame PowerUp & Blueprint Tests", () => {
 });
 
 describe("AsteroidsGame Visual Mod Options", () => {
-  it("should initialize AsteroidsGame with Iceberg mod when mod option is passed", async () => {
+  it("initializes the selected Iceberg theme and gameplay module from gameOptions.mod", async () => {
     const game = new AsteroidsGame({ headless: true, gameOptions: { mod: "iceberg" } });
     await game.init();
-    const world = game.getWorld();
-    const visualMod = world.getResource<{ id: string }>("VisualMod");
-    expect(visualMod?.id).toBe("iceberg");
-    game.destroy();
+    try {
+      const world = game.getWorld();
+      expect(world.getResource<{ id: string }>("VisualMod")?.id).toBe("iceberg");
+      expect(world.getResource<{ id: string }>("AsteroidsThemeModule")?.id).toBe("iceberg");
+      expect(world.getResource<{ id: string }>("GameplayMod")?.id).toBe("iceberg");
+    } finally {
+      game.destroy();
+    }
+  });
+
+  it("switches themes in-place without replacing the world or changing simulation state", async () => {
+    const game = new AsteroidsGame({ headless: true, gameOptions: { mod: "classic", seed: 413 } });
+    await game.init();
+    try {
+      const world = game.getWorld();
+      const tickBeforeSwitch = world.tick;
+      const stateBeforeSwitch = game.getGameState();
+
+      game.setVisualMod("iceberg");
+
+      expect(game.getWorld()).toBe(world);
+      expect(world.tick).toBe(tickBeforeSwitch);
+      expect(game.getGameState()).toEqual(stateBeforeSwitch);
+      expect(world.getResource<{ id: string }>("AsteroidsThemeModule")?.id).toBe("iceberg");
+      expect(world.getResource<{ id: string }>("GameplayMod")?.id).toBe("iceberg");
+      expect(world.getResource<{ conceptPack?: { id?: string } }>("Theme")?.conceptPack?.id).toBe("iceberg");
+
+      game.setVisualMod("classic");
+      expect(game.getWorld()).toBe(world);
+      expect(world.tick).toBe(tickBeforeSwitch);
+      expect(game.getGameState()).toEqual(stateBeforeSwitch);
+      expect(world.getResource<{ id: string }>("AsteroidsThemeModule")?.id).toBe("classic");
+    } finally {
+      game.destroy();
+    }
   });
 });

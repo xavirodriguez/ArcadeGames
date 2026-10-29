@@ -16,7 +16,7 @@ import {
   drawSkiaAsteroidsBullet as skiaDrawAsteroidsBullet,
   drawSkiaAsteroidsMissionHUD as skiaDrawAsteroidsMissionHUD
 } from "./AsteroidsSkiaVisuals";
-import type { AsteroidsVisualMod } from "../mods/types";
+import type { ThemeModule } from "../presentation/types";
 
 /**
  * Registers Asteroids shape drawers and HUD for Canvas + Skia.
@@ -27,18 +27,18 @@ import type { AsteroidsVisualMod } from "../mods/types";
  */
 export const initializeAsteroidsRenderer = (
   renderer: Renderer<AsteroidsComponentRegistry, any>,
-  visualMod?: AsteroidsVisualMod,
+  themeModule?: ThemeModule,
   customDrawers?: Record<string, ShapeDrawer<any, AsteroidsComponentRegistry>>
 ) => {
   RendererUtils.registerAssets(renderer, {
     canvas: (r) => {
-      if (visualMod) {
-        visualMod.registerDrawers((backend, shape, drawer) => {
+      if (themeModule) {
+        themeModule.registerDrawers((backend, shape, drawer) => {
           if (backend === "canvas") {
             r.registerShape(shape, drawer);
           }
         });
-        visualMod.registerBackgroundEffects?.((backend, name, effect) => {
+        themeModule.registerBackgroundEffects?.((backend, name, effect) => {
           if (backend === "canvas") {
             r.registerBackgroundEffect(name, effect as never);
           }
@@ -50,8 +50,8 @@ export const initializeAsteroidsRenderer = (
       }
 
       let canvasHudRegistered = false;
-      if (visualMod?.registerHud) {
-        visualMod.registerHud((backend, name, effect) => {
+      if (themeModule?.registerHud) {
+        themeModule.registerHud((backend, name, effect) => {
           if (backend === "canvas") {
             r.registerBackgroundEffect(name, effect as never);
             canvasHudRegistered = true;
@@ -69,13 +69,13 @@ export const initializeAsteroidsRenderer = (
       }
     },
     skia: (r) => {
-      if (visualMod) {
-        visualMod.registerDrawers((backend, shape, drawer) => {
+      if (themeModule) {
+        themeModule.registerDrawers((backend, shape, drawer) => {
           if (backend === "skia") {
             r.registerShape(shape, drawer);
           }
         });
-        visualMod.registerBackgroundEffects?.((backend, name, effect) => {
+        themeModule.registerBackgroundEffects?.((backend, name, effect) => {
           if (backend === "skia") {
             r.registerBackgroundEffect(name, effect as never);
           }
@@ -87,8 +87,8 @@ export const initializeAsteroidsRenderer = (
       }
 
       let skiaHudRegistered = false;
-      if (visualMod?.registerHud) {
-        visualMod.registerHud((backend, name, effect) => {
+      if (themeModule?.registerHud) {
+        themeModule.registerHud((backend, name, effect) => {
           if (backend === "skia") {
             r.registerBackgroundEffect(name, effect as never);
             skiaHudRegistered = true;

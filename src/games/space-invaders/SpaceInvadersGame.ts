@@ -19,7 +19,8 @@ import { SpaceInvadersConfigSchema, SpaceInvadersConfig } from "./types/SpaceInv
 import { ISpaceInvadersGame } from "./types/GameInterfaces";
 import { PlayerBulletPool, EnemyBulletPool, ParticlePool } from "./EntityPool";
 import { SpaceInvadersGameScene } from "./scenes/SpaceInvadersGameScene";
-import { resolveSpaceInvadersMod, SpaceInvadersMod } from "./mods";
+import { resolveSpaceInvadersMod, resolveSpaceInvadersTheme, resolveSpaceInvadersGameplayMod } from "./mods";
+import type { SpaceInvadersMod } from "./mods";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
 import { markLocalPlayerEntity, NO_OP_SYNC, applyServerSnapshot, queryPlayerEntity } from "../shared/networkUtils";
 import spaceInvadersConfigRaw from "./config/space-invaders.json";
@@ -112,6 +113,17 @@ export class SpaceInvadersGame
     this.setupCommonArcadeResources();
     this.world.setResource("IsHeadless", this.isHeadless);
     this._config.gameOptions = { ...this._config.gameOptions, ...this.config };
+
+    const requestedMod = typeof this._config.gameOptions?.mod === "string"
+      ? this._config.gameOptions.mod
+      : undefined;
+    const themeSelection = requestedMod
+      ?? this.world.getResource<Theme>(THEME_RESOURCE_KEY)
+      ?? this._config.theme;
+    const selectedGameplayMod = resolveSpaceInvadersGameplayMod(themeSelection);
+    this.world.setResource("SpaceInvadersThemeModule", resolveSpaceInvadersTheme(themeSelection));
+    this.world.setResource("GameplayMod", selectedGameplayMod);
+    selectedGameplayMod.registerSystems?.(this.world);
 
     if (!this.playerBulletPool) this.playerBulletPool = new PlayerBulletPool();
     if (!this.enemyBulletPool) this.enemyBulletPool = new EnemyBulletPool();
@@ -530,6 +542,7 @@ export class SpaceInvadersGame
   ): void {
     const activeTheme = this.world.getResource<Theme>(THEME_RESOURCE_KEY) ?? this._config?.theme;
     const activeMod = mod ?? resolveSpaceInvadersMod(activeTheme);
+    const activeThemeModule = activeMod.theme ?? activeMod;
 
     RendererUtils.registerAssets(renderer, {
       canvas: (r) => {
@@ -554,12 +567,12 @@ export class SpaceInvadersGame
         const { drawExplosionBackgroundEffect } = require("./rendering/SpaceInvadersCanvasVisuals");
         r.registerBackgroundEffect("explosion_vfx", drawExplosionBackgroundEffect);
 
-        activeMod.registerDrawers?.((backend, shape, drawer) => {
+        activeThemeModule.registerDrawers?.(backend, shape, drawer) => {
           if (backend === "canvas") {
             r.registerShape(shape, drawer);
           }
         });
-        activeMod.registerBackgroundEffects?.((backend, name, effect) => {
+        activeThemeModule.registerBackgroundEffects?.(backend, name, effect) => {
           if (backend === "canvas") {
             r.registerBackgroundEffect(name, effect as never);
           }
@@ -584,12 +597,12 @@ export class SpaceInvadersGame
         r.registerShape("particle", drawSkiaSpaceInvadersParticle);
         r.registerBackgroundEffect("explosion_vfx", drawSkiaExplosionBackgroundEffect);
 
-        activeMod.registerDrawers?.((backend, shape, drawer) => {
+        activeThemeModule.registerDrawers?.(backend, shape, drawer) => {
           if (backend === "skia") {
             r.registerShape(shape, drawer);
           }
         });
-        activeMod.registerBackgroundEffects?.((backend, name, effect) => {
+        activeThemeModule.registerBackgroundEffects?.(backend, name, effect) => {
           if (backend === "skia") {
             r.registerBackgroundEffect(name, effect as never);
           }

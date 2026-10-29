@@ -1,5 +1,6 @@
 import type { EffectDrawer, ShapeDrawer, Theme } from "@tiny-aster/core";
 import type { AsteroidsComponentRegistry } from "../types/AsteroidRegistry";
+import type { ThemeModuleDescriptor } from "../../shared/presentation/AestheticModules";
 
 /** Particle rendering hint: presentation-only, never a gameplay rule. */
 export type AsteroidsParticleStyle = "neon" | "iceShard" | "crystalFacet";
@@ -9,9 +10,7 @@ export type AsteroidsParticleStyle = "neon" | "iceShard" | "crystalFacet";
  * It owns palette/theme construction and Canvas/Skia renderer registrations only.
  * Gameplay mutation hooks intentionally live in AsteroidsGameplayMod.
  */
-export interface ThemeModule {
-  readonly id: string;
-  readonly displayName: string;
+export interface ThemeModule extends ThemeModuleDescriptor {
   readonly particleStyle?: AsteroidsParticleStyle;
   createTheme: (baseTheme: Theme) => Theme;
   registerDrawers: (

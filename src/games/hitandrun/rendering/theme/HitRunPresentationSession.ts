@@ -204,15 +204,3 @@ export function resizeHitRunPresentationSession(
   currentSession.theme.onResize?.({ width: viewportWidth, height: viewportHeight, pixelRatio: 1 });
 }
 
-export function resizeHitRunPresentationSession(
-  world: PresentationWorldReader,
-  viewportWidth: number,
-  viewportHeight: number
-): void {
-  if (!Number.isFinite(viewportWidth) || !Number.isFinite(viewportHeight) || viewportWidth <= 0 || viewportHeight <= 0) return;
-  const session = getHitRunPresentationSession(world);
-  const previous = sessionViewport.get(session);
-  if (previous?.width === viewportWidth && previous.height === viewportHeight) return;
-  sessionViewport.set(session, { width: viewportWidth, height: viewportHeight });
-  session.theme.onResize?.({ width: viewportWidth, height: viewportHeight, pixelRatio: 1 });
-}

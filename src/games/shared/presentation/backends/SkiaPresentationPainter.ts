@@ -2,6 +2,7 @@ import {
   ClipOp,
   PaintStyle,
   Skia,
+  StrokeJoin,
   type SkCanvas,
   type SkFont,
   type SkImage,
@@ -193,11 +194,14 @@ export class SkiaPresentationPainter implements PresentationPainter {
     if (!font) return;
     const width = font.measureText(text).width;
     const drawX = style.align === "center" ? x - width / 2 : style.align === "right" ? x - width : x;
+    const fontMetrics = font.getMetrics();
     const baselineOffset = style.baseline === "top"
-      ? style.fontSize
+      ? -fontMetrics.ascent
       : style.baseline === "middle"
-        ? style.fontSize * 0.35
-        : 0;
+        ? -(fontMetrics.ascent + fontMetrics.descent) / 2
+        : style.baseline === "bottom"
+          ? -fontMetrics.descent
+          : 0;
     const paint = this.createFillPaint({ color: style.color, alpha: style.alpha });
     this.canvas.drawText(text, drawX, y + baselineOffset, paint, font);
   }
@@ -329,13 +333,13 @@ export class SkiaPresentationPainter implements PresentationPainter {
 
     switch (style.lineJoin ?? "miter") {
       case "round":
-        paint.setStrokeJoin(Skia.StrokeJoin.Round);
+        paint.setStrokeJoin(StrokeJoin.Round);
         break;
       case "bevel":
-        paint.setStrokeJoin(Skia.StrokeJoin.Bevel);
+        paint.setStrokeJoin(StrokeJoin.Bevel);
         break;
       default:
-        paint.setStrokeJoin(Skia.StrokeJoin.Miter);
+        paint.setStrokeJoin(StrokeJoin.Miter);
         break;
     }
 

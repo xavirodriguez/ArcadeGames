@@ -23,20 +23,23 @@ jest.mock("@shopify/react-native-skia", () => {
   return {
     ClipOp: { Intersect: 0 },
     PaintStyle: { Fill: 0, Stroke: 1 },
+    StrokeJoin: { Miter: 0, Round: 1, Bevel: 2 },
     Skia: {
       Path: { Make: jest.fn(() => path) },
       Paint: jest.fn(() => paint),
       XYWHRect: jest.fn((x: number, y: number, width: number, height: number) => ({ x, y, width, height })),
       Color: jest.fn((color: string) => color),
       Point: jest.fn((x: number, y: number) => ({ x, y })),
-      Font: jest.fn((_typeface: null, _size: number) => ({ measureText: (text: string) => ({ width: text.length * 8 }) })),
+      Font: jest.fn((_typeface: null, _size: number) => ({
+        measureText: (text: string) => ({ width: text.length * 8 }),
+        getMetrics: () => ({ ascent: -8, descent: 2, leading: 0 })
+      })),
       Shader: {
         MakeLinearGradient: makeShader,
         MakeTwoPointConicalGradient: makeShader
       },
       TileMode: { Clamp: 0 },
-      StrokeCap: { Butt: 0, Round: 1, Square: 2 },
-      StrokeJoin: { Miter: 0, Round: 1, Bevel: 2 }
+      StrokeCap: { Butt: 0, Round: 1, Square: 2 }
     }
   };
 });

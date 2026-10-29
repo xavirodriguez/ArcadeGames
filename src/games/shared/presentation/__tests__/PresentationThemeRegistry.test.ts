@@ -88,7 +88,7 @@ function createRegistry(): PresentationThemeRegistry<
     FeedbackEvent,
     HudSnapshot,
     BannerSnapshot
-  >("default");
+  >("test-game", "default");
 
   registry.register({
     descriptor: {
@@ -150,6 +150,15 @@ describe("PresentationThemeRegistry", () => {
     expect(registry.resolve("default").definition.tokens.typography.monospace).toBe("monospace");
   });
 
+  test("rejects a context belonging to another game", () => {
+    const registry = createRegistry();
+    const otherGameContext = { ...context, gameId: "other-game" };
+
+    expect(() => registry.create("default", otherGameContext)).toThrow(
+      "cannot create a theme for game 'other-game'"
+    );
+  });
+
   test("reports an explicit fallback when a requested theme is not registered", () => {
     const registry = createRegistry();
     const resolution = registry.resolve("missing-theme");
@@ -166,7 +175,7 @@ describe("PresentationThemeRegistry", () => {
       FeedbackEvent,
       HudSnapshot,
       BannerSnapshot
-    >("missing-default");
+    >("test-game", "missing-default");
 
     expect(() => registry.resolve("missing-theme")).toThrow(
       "fallback 'missing-default' is missing"
@@ -201,7 +210,7 @@ describe("PresentationThemeRegistry", () => {
       FeedbackEvent,
       HudSnapshot,
       BannerSnapshot
-    >("invalid");
+    >("test-game", "invalid");
 
     registry.register({
       descriptor: {

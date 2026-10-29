@@ -10,9 +10,7 @@ import type {
 
 /**
  * Per-game catalogue of theme factories.
- *
- * Definitions and tokens live in the registry; renderable instances are created
- * and owned by individual sessions. The registry never stores an active instance.
+ * Definitions and tokens live here; each session creates and owns its own instance.
  */
 export class PresentationThemeRegistry<
   TSceneSnapshot,
@@ -34,7 +32,13 @@ export class PresentationThemeRegistry<
     >
   >();
 
-  public constructor(private readonly fallbackThemeId: string) {
+  public constructor(
+    private readonly gameId: string,
+    private readonly fallbackThemeId: string
+  ) {
+    if (gameId.trim().length === 0) {
+      throw new Error("[PresentationThemeRegistry] gameId must not be empty.");
+    }
     if (fallbackThemeId.trim().length === 0) {
       throw new Error("[PresentationThemeRegistry] fallbackThemeId must not be empty.");
     }
@@ -136,6 +140,13 @@ export class PresentationThemeRegistry<
     TBannerSnapshot,
     TCustomTokens
   > {
+    if (context.gameId !== this.gameId) {
+      throw new Error(
+        "[PresentationThemeRegistry] Registry for game '" + this.gameId +
+        "' cannot create a theme for game '" + context.gameId + "'."
+      );
+    }
+
     const resolution = this.resolve(requestedId);
     const theme = resolution.definition.create(context);
 

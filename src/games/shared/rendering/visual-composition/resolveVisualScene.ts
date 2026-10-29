@@ -2,6 +2,7 @@ import {
   LevelVisualDefinition,
   ResolvedVisualInstance,
   ResolvedVisualScene,
+  ResolvedVisualRepeater,
   VisualAnchor,
   VisualAnchorPoint,
   VisualCompositionCatalog,
@@ -10,7 +11,8 @@ import {
   VisualCoordinateSpace,
   VisualInstanceDefinition,
   VisualLayerRole,
-  VisualPrefabDefinition
+  VisualPrefabDefinition,
+  VisualRepeaterDefinition
 } from "./VisualCompositionTypes";
 
 const COORDINATE_SPACES = new Set<VisualCoordinateSpace>(["world", "screen", "parallax"]);
@@ -20,7 +22,7 @@ const ROLE_DEPTH: Record<VisualLayerRole, number> = {
   "far-background": 0, atmosphere: 1, midground: 2, settlement: 3, foreground: 4, effects: 5
 };
 const LEVEL_KEYS = new Set(["schemaVersion", "id", "theme", "layers"]);
-const LAYER_KEYS = new Set(["id", "role", "order", "space", "parallaxFactor", "items", "position"]);
+const LAYER_KEYS = new Set(["id", "role", "order", "space", "parallaxFactor", "items", "repeaters", "position"]);
 const INSTANCE_KEYS = new Set(["id", "asset", "position", "scale", "rotation", "opacity", "flipX"]);
 const POINT_KEYS = new Set(["x", "y"]);
 const SCALE_KEYS = new Set(["x", "y"]);
@@ -163,6 +165,58 @@ export function validateVisualComposition(
         if (rawItem.position !== undefined) validatePoint(rawItem.position, `${itemPath}.position`, issues);
       } else issue(issues, `${itemPath}.kind`, 'must be "instance" or "prefab"');
     });
+
+    if (rawLayer.repeaters !== undefined) {
+      if (!Array.isArray(rawLayer.repeaters)) {
+        issue(issues, `${path}.repeaters`, "must be an array");
+      } else {
+        rawLayer.repeaters.forEach((rawRepeater, repeaterIndex) => {
+          const repeaterPath = `${path}.repeaters[${repeaterIndex}]`;
+          if (!isRecord(rawRepeater)) {
+            issue(issues, repeaterPath, "must be an object");
+            return;
+          }
+          strictKeys(rawRepeater, new Set(["id", "assets", "start", "spacing", "scale", "opacity"]), repeaterPath, issues);
+          if (!nonEmpty(rawRepeater.id)) {
+            issue(issues, `${repeaterPath}.id`, "must be a non-empty string");
+          } else if (localIds.has(rawRepeater.id)) {
+            issue(issues, `${repeaterPath}.id`, `duplicate layer item/repeater id "${rawRepeater.id}"`);
+          } else {
+            localIds.add(rawRepeater.id);
+          }
+          if (!Array.isArray(rawRepeater.assets) || rawRepeater.assets.length === 0) {
+            issue(issues, `${repeaterPath}.assets`, "must contain at least one registered asset id");
+          } else {
+            rawRepeater.assets.forEach((assetId, assetIndex) => {
+              if (!nonEmpty(assetId)) {
+                issue(issues, `${repeaterPath}.assets[${assetIndex}]`, "must be a non-empty semantic asset id");
+              } else if (!catalog.assets.getAsset(assetId)) {
+                issue(issues, `${repeaterPath}.assets[${assetIndex}]`, `unknown asset "${assetId}"`);
+              }
+            });
+          }
+          validatePoint(rawRepeater.start, `${repeaterPath}.start`, issues);
+          if (!finite(rawRepeater.spacing) || rawRepeater.spacing <= 0) {
+            issue(issues, `${repeaterPath}.spacing`, "must be a finite number greater than zero");
+          }
+          if (rawRepeater.scale !== undefined) {
+            if (!isRecord(rawRepeater.scale)) {
+              issue(issues, `${repeaterPath}.scale`, "must contain finite positive x and y values");
+            } else {
+              strictKeys(rawRepeater.scale, SCALE_KEYS, `${repeaterPath}.scale`, issues);
+              if (!finite(rawRepeater.scale.x) || !finite(rawRepeater.scale.y) ||
+                  rawRepeater.scale.x <= 0 || rawRepeater.scale.y <= 0) {
+                issue(issues, `${repeaterPath}.scale`, "must contain finite positive x and y values");
+              }
+            }
+          }
+          if (rawRepeater.opacity !== undefined &&
+              (!finite(rawRepeater.opacity) || rawRepeater.opacity < 0 || rawRepeater.opacity > 1)) {
+            issue(issues, `${repeaterPath}.opacity`, "must be between 0 and 1 inclusive");
+          }
+        });
+      }
+    }
   });
 
   const sortedLayers = [...layersForDepth].sort((a, b) => a.order - b.order || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
@@ -187,6 +241,7 @@ export function resolveVisualScene(
   const validation = validateVisualComposition(definition, catalog);
   if (!validation.ok) return validation;
   const resolved: ResolvedVisualInstance[] = [];
+  const resolvedRepeaters: ResolvedVisualRepeater[] = [];
   const resolutionIssues: VisualCompositionIssue[] = [];
   const resolvedIds = new Set<string>();
   let resolvedInstanceOrder = 0;
@@ -239,9 +294,45 @@ export function resolveVisualScene(
         });
       }
     });
+
+    layer.repeaters?.forEach((repeater: VisualRepeaterDefinition, repeaterIndex) => {
+      const repeaterPath = `layers.${layer.id}.repeaters[${repeaterIndex}]`;
+      const assets: Array<{ id: string; anchor: VisualAnchorPoint }> = [];
+      for (let assetIndex = 0; assetIndex < repeater.assets.length; assetIndex++) {
+        const assetId = repeater.assets[assetIndex];
+        const asset = catalog.assets.getAsset(assetId);
+        if (!asset) {
+          issue(resolutionIssues, `${repeaterPath}.assets[${assetIndex}]`, `unknown asset "${assetId}" after validation`);
+          continue;
+        }
+        const anchor = asset.anchor ?? "bottom-center";
+        if (!ANCHORS.has(anchor)) {
+          issue(resolutionIssues, `assets.${asset.id}.anchor`, `unsupported anchor "${String(anchor)}"`);
+          continue;
+        }
+        assets.push({ id: assetId, anchor: toNormalizedAnchor(anchor) });
+      }
+      if (assets.length !== repeater.assets.length) return;
+      resolvedRepeaters.push({
+        id: `${layer.id}/${repeater.id}`,
+        layerId: layer.id,
+        layerRole: layer.role,
+        layerOrder: layer.order,
+        space: layer.space,
+        ...(layer.space === "parallax" ? { parallaxFactor: layer.parallaxFactor } : {}),
+        assets,
+        start: {
+          x: repeater.start.x + (layer.position?.x ?? 0),
+          y: repeater.start.y + (layer.position?.y ?? 0)
+        },
+        spacing: repeater.spacing,
+        scale: { x: repeater.scale?.x ?? 1, y: repeater.scale?.y ?? 1 },
+        opacity: repeater.opacity ?? 1
+      });
+    });
   }
   if (resolutionIssues.length) return { ok: false, issues: resolutionIssues };
-  return { ok: true, value: { schemaVersion: 1, levelId: definition.id, themeId: definition.theme, instances: resolved } };
+  return { ok: true, value: { schemaVersion: 1, levelId: definition.id, themeId: definition.theme, instances: resolved, repeaters: resolvedRepeaters } };
 }
 
 function toNormalizedAnchor(anchor: VisualAnchor): VisualAnchorPoint {

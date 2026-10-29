@@ -2,13 +2,12 @@ import type { LevelVisualDefinition, VisualCompositionCatalog } from "../../../.
 import { SpriteRegistry } from "../../../../shared/sprites/SpriteRegistry";
 
 /**
- * First fixed-composition pilot for the Sumi-e village.
- * Coordinates are world-space; the renderer applies camera/parallax transforms.
- * Gameplay and entity simulation never depend on this definition.
+ * Camera-aware settlement scenery.
+ * Each layer cycles through static urban art at stable world-space positions.
  */
 export const SUMI_E_VILLAGE_COMPOSITION: LevelVisualDefinition = {
   schemaVersion: 1,
-  id: "hitandrun.sumi-e.village-pilot",
+  id: "hitandrun.sumi-e.village",
   theme: "sumi-e",
   layers: [
     {
@@ -17,10 +16,15 @@ export const SUMI_E_VILLAGE_COMPOSITION: LevelVisualDefinition = {
       order: 10,
       space: "parallax",
       parallaxFactor: 0.18,
-      items: [
-        { kind: "instance", instance: { id: "distant-tower-left", asset: "tower_basic_art", position: { x: 90, y: 290 }, scale: { x: 0.46, y: 0.46 }, opacity: 0.34 } },
-        { kind: "instance", instance: { id: "distant-tower-right", asset: "tower_basic_art", position: { x: 760, y: 270 }, scale: { x: 0.42, y: 0.42 }, opacity: 0.3 } }
-      ]
+      items: [],
+      repeaters: [{
+        id: "distant-houses",
+        assets: ["urban_small_houses", "urban_house_01", "urban_house_03"],
+        start: { x: -260, y: 350 },
+        spacing: 500,
+        scale: { x: 0.42, y: 0.42 },
+        opacity: 0.34
+      }]
     },
     {
       id: "village",
@@ -28,10 +32,15 @@ export const SUMI_E_VILLAGE_COMPOSITION: LevelVisualDefinition = {
       order: 20,
       space: "parallax",
       parallaxFactor: 0.36,
-      items: [
-        { kind: "instance", instance: { id: "village-tower-left", asset: "tower_basic_art", position: { x: 230, y: 390 }, scale: { x: 0.72, y: 0.72 }, opacity: 0.56 } },
-        { kind: "instance", instance: { id: "village-tower-right", asset: "tower_basic_art", position: { x: 620, y: 410 }, scale: { x: 0.68, y: 0.68 }, opacity: 0.52 } }
-      ]
+      items: [],
+      repeaters: [{
+        id: "village-houses",
+        assets: ["urban_house_01", "urban_house_03", "urban_house_04", "urban_large_house"],
+        start: { x: -180, y: 440 },
+        spacing: 470,
+        scale: { x: 0.68, y: 0.68 },
+        opacity: 0.56
+      }]
     },
     {
       id: "foreground-village",
@@ -39,11 +48,15 @@ export const SUMI_E_VILLAGE_COMPOSITION: LevelVisualDefinition = {
       order: 30,
       space: "parallax",
       parallaxFactor: 0.58,
-      items: [
-        { kind: "instance", instance: { id: "foreground-tower-left", asset: "tower_basic_art", position: { x: -70, y: 500 }, scale: { x: 0.9, y: 0.9 }, opacity: 0.78 } },
-        { kind: "instance", instance: { id: "foreground-tower-center", asset: "tower_basic_art", position: { x: 400, y: 510 }, scale: { x: 0.84, y: 0.84 }, opacity: 0.76 } },
-        { kind: "instance", instance: { id: "foreground-tower-right", asset: "tower_basic_art", position: { x: 850, y: 505 }, scale: { x: 0.88, y: 0.88 }, opacity: 0.78 } }
-      ]
+      items: [],
+      repeaters: [{
+        id: "foreground-houses",
+        assets: ["urban_big_house", "urban_large_house", "urban_house_04", "urban_house_03"],
+        start: { x: -320, y: 535 },
+        spacing: 410,
+        scale: { x: 0.88, y: 0.88 },
+        opacity: 0.78
+      }]
     }
   ]
 };

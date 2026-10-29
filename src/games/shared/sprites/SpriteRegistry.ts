@@ -72,6 +72,58 @@ try {
   kuchisakeOnnaImageSource = null;
 }
 
+let urbanBigHouseImageSource: SpriteImageSource = null;
+try { urbanBigHouseImageSource = require("../../../../assets/sprites/background/urban/big_house.png"); } catch { urbanBigHouseImageSource = null; }
+let urbanCasa1ImageSource: SpriteImageSource = null;
+try { urbanCasa1ImageSource = require("../../../../assets/sprites/background/urban/casa1.png"); } catch { urbanCasa1ImageSource = null; }
+let urbanCasa3ImageSource: SpriteImageSource = null;
+try { urbanCasa3ImageSource = require("../../../../assets/sprites/background/urban/casa3.png"); } catch { urbanCasa3ImageSource = null; }
+let urbanCasa4ImageSource: SpriteImageSource = null;
+try { urbanCasa4ImageSource = require("../../../../assets/sprites/background/urban/casa4.png"); } catch { urbanCasa4ImageSource = null; }
+let urbanCasaGrandeImageSource: SpriteImageSource = null;
+try { urbanCasaGrandeImageSource = require("../../../../assets/sprites/background/urban/casa_grande.png"); } catch { urbanCasaGrandeImageSource = null; }
+let urbanSmallHousesImageSource: SpriteImageSource = null;
+try { urbanSmallHousesImageSource = require("../../../../assets/sprites/background/urban/small_houses.png"); } catch { urbanSmallHousesImageSource = null; }
+
+function createStaticEnvironmentArt(
+  id: string,
+  assetPath: string,
+  imageSource: SpriteImageSource
+): SpriteSheetDef {
+  return {
+    id,
+    assetPath,
+    imageSource,
+    // Fit the complete source image into this logical box while preserving aspect ratio.
+    frameWidth: 260,
+    frameHeight: 230,
+    sourceMode: "full-image",
+    anchor: { x: 0.5, y: 1 },
+    animations: {
+      idle: { name: "idle", frames: [], frameDuration: 1, loop: true }
+    }
+  };
+}
+
+const URBAN_BIG_HOUSE = createStaticEnvironmentArt(
+  "urban_big_house", "assets/sprites/background/urban/big_house.png", urbanBigHouseImageSource
+);
+const URBAN_HOUSE_01 = createStaticEnvironmentArt(
+  "urban_house_01", "assets/sprites/background/urban/casa1.png", urbanCasa1ImageSource
+);
+const URBAN_HOUSE_03 = createStaticEnvironmentArt(
+  "urban_house_03", "assets/sprites/background/urban/casa3.png", urbanCasa3ImageSource
+);
+const URBAN_HOUSE_04 = createStaticEnvironmentArt(
+  "urban_house_04", "assets/sprites/background/urban/casa4.png", urbanCasa4ImageSource
+);
+const URBAN_LARGE_HOUSE = createStaticEnvironmentArt(
+  "urban_large_house", "assets/sprites/background/urban/casa_grande.png", urbanCasaGrandeImageSource
+);
+const URBAN_SMALL_HOUSES = createStaticEnvironmentArt(
+  "urban_small_houses", "assets/sprites/background/urban/small_houses.png", urbanSmallHousesImageSource
+);
+
 let towerBasicImageSource: SpriteImageSource = null;
 try {
   towerBasicImageSource = require("../../../../assets/sprites/towers/tower1.png");
@@ -222,6 +274,12 @@ export const SPRITE_SHEET_CATALOG: readonly SpriteSheetDef[] = [
   GHOST_GALLEON,
   LANCERO,
   KUCHISAKE_ONNA,
+  URBAN_BIG_HOUSE,
+  URBAN_HOUSE_01,
+  URBAN_HOUSE_03,
+  URBAN_HOUSE_04,
+  URBAN_LARGE_HOUSE,
+  URBAN_SMALL_HOUSES,
   TOWER_BASIC_ART,
   TOWER_SNIPER_ART
 ];

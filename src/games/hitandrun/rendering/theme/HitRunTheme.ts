@@ -3,6 +3,7 @@
  * Fully decoupled from gameplay simulation logic.
  */
 
+import type { SkCanvas } from "@shopify/react-native-skia";
 import type {
   EntityRenderSnapshot,
   HudRenderSnapshot,
@@ -31,6 +32,16 @@ export interface HitRunTheme {
   /** Render background/backdrop layer in world/screen space. */
   renderBackdrop(
     ctx: CanvasRenderingContext2D,
+    viewportWidth: number,
+    viewportHeight: number,
+    cameraX: number,
+    cameraY: number,
+    elapsed: number
+  ): void;
+
+  /** Native backdrop path for renderers that own a Skia canvas. */
+  renderBackdropSkia?(
+    canvas: SkCanvas,
     viewportWidth: number,
     viewportHeight: number,
     cameraX: number,

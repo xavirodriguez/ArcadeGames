@@ -1,95 +1,177 @@
-import type { ResolvedVisualInstance, ResolvedVisualScene, VisualCoordinateSpace } from "./VisualCompositionTypes";
+import type {
+  ResolvedVisualInstance,
+  ResolvedVisualRepeater,
+  ResolvedVisualScene,
+  VisualPoint
+} from "./VisualCompositionTypes";
 import { SpriteRegistry } from "../../sprites/SpriteRegistry";
-import { drawSpriteCanvas, getCanvasSpriteLoadState, preloadSpriteSheetCanvas } from "../../sprites/SpriteDrawer";
+import {
+  drawSpriteCanvas,
+  getCanvasSpriteLoadState,
+  preloadSpriteSheetCanvas
+} from "../../sprites/SpriteDrawer";
 import type { SpriteAnimatorComponent } from "../../sprites/SpriteAnimator";
+import {
+  getVisibleRepeatedIndexRange,
+  getVisualPosition,
+  type VisualSceneCamera,
+  type VisualSceneViewportOffset
+} from "./VisualSceneTransform";
 
-export interface CanvasVisualSceneCamera {
-  /** Camera origin in world coordinates. */
-  readonly x: number;
-  readonly y: number;
-  /** Uniform world zoom; screen-space props are not zoomed. */
-  readonly zoom?: number;
-  /** Final viewport-pixel translation, applied after world zoom. */
-  readonly visualOffsetX?: number;
-  readonly visualOffsetY?: number;
-}
+export type CanvasVisualSceneCamera = VisualSceneCamera;
+export type CanvasVisualSceneOffset = VisualSceneViewportOffset;
 
-export interface CanvasVisualSceneOffset {
-  readonly x: number;
-  readonly y: number;
-}
-
-function cameraFactor(space: VisualCoordinateSpace, parallaxFactor?: number): number {
-  if (space === "screen") return 0;
-  if (space === "world") return 1;
-  return parallaxFactor ?? 0;
-}
-
-/** Resolve scene-space coordinates to Canvas viewport coordinates. */
+/** Public compatibility helper; Canvas and Skia share the implementation. */
 export function getCanvasVisualPosition(
   instance: Pick<ResolvedVisualInstance, "position" | "space" | "parallaxFactor">,
   camera: CanvasVisualSceneCamera,
   viewportOffset: CanvasVisualSceneOffset = { x: 0, y: 0 }
-): { x: number; y: number } {
-  const zoom = camera.zoom ?? 1;
-  const factor = cameraFactor(instance.space, instance.parallaxFactor);
-  const offsetX = (camera.visualOffsetX ?? 0) + viewportOffset.x;
-  const offsetY = (camera.visualOffsetY ?? 0) + viewportOffset.y;
-  if (instance.space === "screen") return { x: instance.position.x + offsetX, y: instance.position.y + offsetY };
-  return {
-    x: instance.position.x - camera.x * factor + viewportOffset.x,
-    y: instance.position.y - camera.y * factor + viewportOffset.y
-  };
+): VisualPoint {
+  return getVisualPosition(instance, camera, viewportOffset);
 }
 
-/** Honor semantic anchors while reusing the shared sprite drawer. */
-function getDrawPoint(
-  instance: ResolvedVisualInstance,
-  point: { x: number; y: number }
-): { x: number; y: number; anchor: "center" | "feet" } {
-  if (instance.anchor === "bottom-center") return { ...point, anchor: "feet" };
-  if (instance.anchor === "center") return { ...point, anchor: "center" };
-  const size = getSpriteLogicalSize(instance.asset);
-  if (!size) return { ...point, anchor: "center" };
-  return {
-    x: point.x + size.w * instance.scale.x * 0.5,
-    y: point.y + size.h * instance.scale.y * 0.5,
-    anchor: "center"
-  };
-}
-
-/** Draw through the existing registry/drawer; this adapter never owns resources. */
-export function drawResolvedVisualSceneCanvas(
+function drawSprite(
   ctx: CanvasRenderingContext2D,
-  scene: ResolvedVisualScene,
-  camera: CanvasVisualSceneCamera,
-  viewportOffset: CanvasVisualSceneOffset = { x: 0, y: 0 }
+  assetId: string,
+  anchor: { readonly x: number; readonly y: number },
+  position: VisualPoint,
+  scaleX: number,
+  scaleY: number,
+  rotation: number,
+  flipX: boolean,
+  opacity: number
 ): boolean {
+  if (!SpriteRegistry.has(assetId)) return false;
+  const scale = scaleX === scaleY ? scaleX : 1;
+  const animator: SpriteAnimatorComponent = {
+    sheetId: assetId,
+    currentAnim: "idle",
+    frameIndex: 0,
+    timer: 0,
+    flipX,
+    scale
+  };
+  ctx.save();
+  ctx.translate(position.x, position.y);
+  if (rotation !== 0) ctx.rotate(rotation);
+  if (scaleX !== scaleY) ctx.scale(scaleX, scaleY);
+  const drawn = drawSpriteCanvas(ctx, animator, 0, 0, {
+    destinationAnchor: anchor,
+    opacity
+  });
+  ctx.restore();
+  return drawn && getCanvasSpriteLoadState(assetId) === "ready";
+}
+
+function drawInstance(
+  ctx: CanvasRenderingContext2D,
+  instance: ResolvedVisualInstance,
+  camera: CanvasVisualSceneCamera,
+  viewportOffset: CanvasVisualSceneOffset
+): boolean {
+  const point = getVisualPosition(instance, camera, viewportOffset);
+  const zoom = instance.space === "screen" ? 1 : (camera.zoom ?? 1);
+  return drawSprite(
+    ctx,
+    instance.asset,
+    instance.anchor,
+    point,
+    instance.scale.x * zoom,
+    instance.scale.y * zoom,
+    instance.rotation,
+    instance.flipX,
+    instance.opacity
+  );
+}
+
+function positiveModulo(value: number, modulus: number): number {
+  return ((value % modulus) + modulus) % modulus;
+}
+function stableSalt(id: string, count: number): number {
+  let hash = 2166136261;
+  for (let index = 0; index < id.length; index++) {
+    hash ^= id.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return positiveModulo(hash, count);
+}
+
+function drawRepeater(
+  ctx: CanvasRenderingContext2D,
+  repeater: ResolvedVisualRepeater,
+  camera: CanvasVisualSceneCamera,
+  viewportOffset: CanvasVisualSceneOffset,
+  viewportWidth: number
+): boolean {
+  if (repeater.assets.length === 0) return false;
+  const range = getVisibleRepeatedIndexRange(repeater, camera, viewportWidth, viewportOffset, repeater.spacing);
+  if (range.lastIndex < range.firstIndex) return true;
+
   let complete = true;
-  const zoom = camera.zoom ?? 1;
-  for (const instance of scene.instances) {
-    if (!SpriteRegistry.has(instance.asset)) { complete = false; continue; }
-    const point = getCanvasVisualPosition(instance, camera, viewportOffset);
-    const screenSpace = instance.space === "screen";
-    const scaleX = instance.scale.x * (screenSpace ? 1 : zoom);
-    const scaleY = instance.scale.y * (screenSpace ? 1 : zoom);
-    const animator: SpriteAnimatorComponent = {
-      sheetId: instance.asset, currentAnim: "idle", frameIndex: 0, timer: 0,
-      flipX: instance.flipX, scale: scaleX === scaleY ? scaleX : 1
-    };
-    ctx.save();
-    ctx.translate(point.x, point.y);
-    if (instance.rotation !== 0) ctx.rotate(instance.rotation);
-    if (scaleX !== scaleY) ctx.scale(scaleX, scaleY);
-    const drawn = drawSpriteCanvas(ctx, animator, 0, 0, { destinationAnchor: instance.anchor, opacity: instance.opacity });
-    ctx.restore();
-    if (!drawn || getCanvasSpriteLoadState(instance.asset) !== "ready") complete = false;
+  const salt = stableSalt(repeater.id, repeater.assets.length);
+  for (let index = range.firstIndex; index <= range.lastIndex; index++) {
+    const selected = repeater.assets[positiveModulo(index + salt, repeater.assets.length)];
+    const point = getVisualPosition({
+      position: { x: repeater.start.x + index * repeater.spacing, y: repeater.start.y },
+      space: repeater.space,
+      parallaxFactor: repeater.parallaxFactor
+    }, camera, viewportOffset);
+    const zoom = repeater.space === "screen" ? 1 : (camera.zoom ?? 1);
+    if (!drawSprite(
+      ctx, selected.id, selected.anchor, point,
+      repeater.scale.x * zoom, repeater.scale.y * zoom, 0, false, repeater.opacity
+    )) complete = false;
   }
   return complete;
 }
 
-/** Preload via the existing SpriteDrawer cache; composition owns no resources. */
+function repeaterPrecedesInstance(
+  repeater: ResolvedVisualRepeater,
+  instance: ResolvedVisualInstance
+): boolean {
+  if (repeater.layerOrder !== instance.layerOrder) return repeater.layerOrder < instance.layerOrder;
+  if (repeater.layerId !== instance.layerId) return repeater.layerId < instance.layerId;
+  return false;
+}
+
+/** Draw a resolved scene without owning caches or ECS state. */
+export function drawResolvedVisualSceneCanvas(
+  ctx: CanvasRenderingContext2D,
+  scene: ResolvedVisualScene,
+  camera: CanvasVisualSceneCamera,
+  viewportOffset: CanvasVisualSceneOffset = { x: 0, y: 0 },
+  viewportSize: { readonly width: number; readonly height: number } = {
+    width: ctx.canvas.width,
+    height: ctx.canvas.height
+  }
+): boolean {
+  const instances = scene.instances;
+  const repeaters = scene.repeaters ?? [];
+  let instanceIndex = 0;
+  let repeaterIndex = 0;
+  let complete = true;
+  while (instanceIndex < instances.length || repeaterIndex < repeaters.length) {
+    const instance = instances[instanceIndex];
+    const repeater = repeaters[repeaterIndex];
+    if (repeater && (!instance || repeaterPrecedesInstance(repeater, instance))) {
+      if (!drawRepeater(ctx, repeater, camera, viewportOffset, viewportSize.width)) complete = false;
+      repeaterIndex++;
+    } else if (instance) {
+      if (!drawInstance(ctx, instance, camera, viewportOffset)) complete = false;
+      instanceIndex++;
+    }
+  }
+  return complete;
+}
+
+/** Preload static and repeated-scene assets through the shared Canvas cache. */
 export async function preloadResolvedVisualSceneCanvas(scene: ResolvedVisualScene): Promise<void> {
-  const ids = [...new Set(scene.instances.map(instance => instance.asset))];
-  await Promise.all(ids.map(async id => { if (SpriteRegistry.has(id)) await preloadSpriteSheetCanvas(id); }));
+  const ids = new Set<string>();
+  for (const instance of scene.instances) ids.add(instance.asset);
+  for (const repeater of scene.repeaters ?? []) {
+    for (const asset of repeater.assets) ids.add(asset.id);
+  }
+  await Promise.all([...ids].map(async id => {
+    if (SpriteRegistry.has(id)) await preloadSpriteSheetCanvas(id);
+  }));
 }

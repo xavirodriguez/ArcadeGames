@@ -10,7 +10,8 @@ import type {
   BannerRenderSnapshot,
   FeedbackEventSnapshot
 } from "../HitRunThemeTypes";
-import { computeInkWashLayers, drawInkWashLayersCanvas } from "../../../../shared/rendering/InkWashParallaxBackdrop";
+import { computeInkWashLayers, drawInkWashLayersCanvas, drawInkWashLayersSkia } from "../../../../shared/rendering/InkWashParallaxBackdrop";
+import { Skia, getPaint, type SkCanvas } from "../../../../shared/rendering/SkiaContext";
 
 export const SUMI_E_PALETTE: HitRunThemePaletteTokens = {
   primary: "#171817",
@@ -231,6 +232,50 @@ export class SumiETheme implements HitRunTheme {
     }
 
     ctx.restore();
+  }
+
+  public renderBackdropSkia(
+    canvas: SkCanvas,
+    w: number,
+    h: number,
+    cameraX: number,
+    _cameraY: number,
+    _elapsed: number
+  ): void {
+    if (!Skia || !canvas) return;
+    const paint = getPaint();
+    if (!paint) return;
+
+    canvas.save();
+    paint.setColor(Skia.Color(SUMI_E_PALETTE.background));
+    paint.setAlphaf(1);
+    canvas.drawRect(Skia.XYWHRect(0, 0, w, h), paint);
+
+    drawInkWashLayersSkia(
+      canvas,
+      computeInkWashLayers(w, h, cameraX),
+      SUMI_E_PALETTE.inkOrOutline,
+      w,
+      h
+    );
+
+    paint.setColor(Skia.Color(SUMI_E_PALETTE.paperOrFloor));
+    paint.setAlphaf(0.4);
+    const laneY = h * 0.45;
+    const laneH = h * 0.48;
+    canvas.drawRect(Skia.XYWHRect(0, laneY, w, laneH), paint);
+
+    paint.setColor(Skia.Color(SUMI_E_PALETTE.inkOrOutline));
+    paint.setAlphaf(0.15);
+    const lanePath = Skia.Path.Make();
+    lanePath.moveTo(0, laneY);
+    lanePath.lineTo(w, laneY);
+    lanePath.moveTo(0, laneY + laneH);
+    lanePath.lineTo(w, laneY + laneH);
+    canvas.drawPath(lanePath, paint);
+
+    paint.setAlphaf(1);
+    canvas.restore();
   }
 
   public renderGroundShadow(

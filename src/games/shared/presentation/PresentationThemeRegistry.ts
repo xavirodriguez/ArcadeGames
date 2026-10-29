@@ -5,7 +5,8 @@ import type {
   PresentationThemeDescriptor,
   PresentationThemeResolution,
   PresentationThemeContext,
-  PresentationThemeTokens
+  PresentationThemeTokens,
+  PresentationThemeSession
 } from "./PresentationContracts";
 
 /**
@@ -55,7 +56,7 @@ export class PresentationThemeRegistry<
     >
   ): void {
     this.validateDescriptor(definition.descriptor);
-    this.validateTokens(definition.tokens);
+    const tokens = this.normalizeTokens(definition.tokens);
 
     if (this.definitions.has(definition.descriptor.id)) {
       throw new Error(
@@ -67,19 +68,10 @@ export class PresentationThemeRegistry<
       ...definition.descriptor,
       capabilities: Object.freeze([...definition.descriptor.capabilities])
     });
-    const tokens = Object.freeze({
-      colors: Object.freeze({ ...definition.tokens.colors }),
-      typography: Object.freeze({ ...definition.tokens.typography }),
-      layout: Object.freeze({
-        spacing: Object.freeze({ ...definition.tokens.layout.spacing }),
-        radius: Object.freeze({ ...definition.tokens.layout.radius })
-      }),
-      custom: definition.tokens.custom
-    }) as PresentationThemeTokens<TCustomTokens>;
-
     this.definitions.set(definition.descriptor.id, {
       descriptor,
       tokens,
+      resolveTokens: definition.resolveTokens,
       create: definition.create
     });
   }
@@ -129,10 +121,10 @@ export class PresentationThemeRegistry<
     };
   }
 
-  public create(
+  public createSession(
     requestedId: string | undefined,
     context: PresentationThemeContext
-  ): PresentationTheme<
+  ): PresentationThemeSession<
     TSceneSnapshot,
     TEntitySnapshot,
     TFeedbackEvent,
@@ -148,6 +140,9 @@ export class PresentationThemeRegistry<
     }
 
     const resolution = this.resolve(requestedId);
+    const tokens = resolution.definition.resolveTokens
+      ? this.normalizeTokens(resolution.definition.resolveTokens(context))
+      : resolution.definition.tokens;
     const theme = resolution.definition.create(context);
 
     try {
@@ -162,7 +157,25 @@ export class PresentationThemeRegistry<
       throw error;
     }
 
-    return theme;
+    let disposed = false;
+    return Object.freeze({
+      gameId: context.gameId,
+      sessionId: context.sessionId,
+      requestedThemeId: resolution.requestedId,
+      resolvedThemeId: resolution.resolvedId,
+      usedFallback: resolution.usedFallback,
+      descriptor: theme.descriptor,
+      tokens,
+      theme,
+      get disposed(): boolean {
+        return disposed;
+      },
+      dispose(): void {
+        if (disposed) return;
+        disposed = true;
+        theme.dispose();
+      }
+    });
   }
 
   private validateDescriptor(descriptor: PresentationThemeDescriptor): void {
@@ -181,6 +194,19 @@ export class PresentationThemeRegistry<
         "[PresentationThemeRegistry] Theme '" + descriptor.id + "' declares duplicate capabilities."
       );
     }
+  }
+
+  private normalizeTokens(tokens: PresentationThemeTokens<TCustomTokens>): PresentationThemeTokens<TCustomTokens> {
+    this.validateTokens(tokens);
+    return Object.freeze({
+      colors: Object.freeze({ ...tokens.colors }),
+      typography: Object.freeze({ ...tokens.typography }),
+      layout: Object.freeze({
+        spacing: Object.freeze({ ...tokens.layout.spacing }),
+        radius: Object.freeze({ ...tokens.layout.radius })
+      }),
+      custom: Object.freeze({ ...tokens.custom })
+    }) as PresentationThemeTokens<TCustomTokens>;
   }
 
   private validateTokens(tokens: PresentationThemeTokens<TCustomTokens>): void {

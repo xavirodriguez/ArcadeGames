@@ -38,3 +38,10 @@ El registro de temas no debe permitir que un fallback o una instancia de un jueg
 ## Fuera del alcance de esta entrega
 
 Esta auditoría no migra los drawers actuales ni cambia la presentación visible de Hit & Run. Tampoco afirma paridad real del tema completo en Skia. La fase siguiente debe tomar una captura y un baseline determinista antes de sustituir el camino de renderizado, y luego migrar fondo, entidades, proyectiles, feedback, HUD y banners en entregas verificables.
+
+
+## Ajuste posterior del contrato
+
+La sesión de presentación debe resolver los tokens específicos de su configuración de variante, no reutilizar sin más los valores por defecto del catálogo. PresentationThemeDefinition.resolveTokens permite resolver tokens por sesión y PresentationThemeSession expone juntos los tokens resueltos, descriptor, instancia y ciclo de vida.
+
+Se añade src/games/shared/presentation/adapters/AestheticThemeTokens.ts como puente inicial de tokens para la configuración estética existente: Sumi-e usa la paleta semántica canónica, mientras cosmic y neon conservan los colores legacy. Esto prepara el terreno para que el HUD React y el renderer consuman la misma selección; aún no es un cableado de producción.

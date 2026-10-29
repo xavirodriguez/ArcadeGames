@@ -47,7 +47,7 @@ Cada registro tiene tipos concretos de snapshots para ese juego. Los temas expon
 
 ### 7. Separar catálogo e instancia por sesión
 
-El registro guarda definiciones y tokens; no mantiene una instancia global activa. Cada sesión crea y posee una instancia propia. Una resolución de tema desconocido devuelve el fallback de forma explícita con usedFallback; si el fallback no existe, la resolución falla. La instancia libera sus recursos mediante dispose().
+El registro guarda definiciones y tokens; no mantiene una instancia global activa. createSession() devuelve una unidad que contiene definición resuelta, descriptor, tokens, instancia, metadatos de fallback y ciclo de vida. La UI y el renderer deben consumir esa misma unidad. Cada sesión crea y posee una instancia propia. Una resolución de tema desconocido devuelve el fallback de forma explícita con usedFallback; si el fallback no existe, la resolución falla. dispose() es idempotente y libera únicamente la instancia que posee la sesión.
 
 ### 8. Aleatoriedad cosmética inyectada
 
@@ -68,7 +68,7 @@ El contrato inicial vive en src/games/shared/presentation/. No se creará todav�
 ## Contratos iniciales en código
 
 - PresentationContracts.ts: snapshots, tokens, painter, manifiestos semánticos, contexto de creación y tema tipado.
-- PresentationThemeRegistry.ts: catálogo tipado, fallback explícito, validación de tokens/capacidades e instancias nuevas por sesión.
+- PresentationThemeRegistry.ts: catálogo tipado, tokens normalizados, fallback explícito, validación de capacidades y createSession() con propiedad del ciclo de vida.
 - PresentationThemeRegistry.test.ts: pruebas de aislamiento, fallback, duplicados, tokens y capacidades.
 - docs/audit/2026-10-29-presentation-phase1-inventory.md: inventario de módulos, riesgos y decisiones de migración.
 
@@ -106,3 +106,14 @@ El contrato inicial vive en src/games/shared/presentation/. No se creará todav�
 - Terminar el contrato de carga/caché de assets tras auditar el lifecycle de AssetLoader en ambos backends.
 - Establecer la política de accesibilidad comprometida; hasta entonces, la conformidad global no se declarará evaluada.
 - Validar el contrato mediante un segundo juego antes de extraer un paquete independiente.
+
+
+## Ajuste del contrato de sesión
+
+La selección de tokens admite ahora resolución por sesión mediante PresentationThemeDefinition.resolveTokens(context). Esto permite que opciones de paisaje o paleta modifiquen los tokens de una instancia sin cambiar los valores por defecto del catálogo.
+
+PresentationThemeSession agrupa descriptor, tokens resueltos, instancia y metadatos del fallback. UI React y renderer deben consumir la misma sesión. El propietario llama dispose(); la operación es idempotente y afecta exclusivamente a su instancia.
+
+src/games/shared/presentation/adapters/AestheticThemeTokens.ts adapta AestheticThemeConfig al conjunto común de roles. Para Sumi-e utiliza los tokens semánticos canónicos; cosmic/neon conservan sus colores legacy. El objeto de configuración original permanece en custom durante la migración.
+
+La implementación aún no conecta este adaptador con HitRunTheme ni con los pintores de Canvas/Skia.

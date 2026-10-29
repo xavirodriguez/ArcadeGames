@@ -5,7 +5,8 @@ import type {
   PresentationThemeDescriptor,
   PresentationThemeResolution,
   PresentationThemeContext,
-  PresentationThemeTokens
+  PresentationThemeTokens,
+  PresentationThemeSession
 } from "./PresentationContracts";
 
 /**
@@ -129,10 +130,10 @@ export class PresentationThemeRegistry<
     };
   }
 
-  public create(
+  public createSession(
     requestedId: string | undefined,
     context: PresentationThemeContext
-  ): PresentationTheme<
+  ): PresentationThemeSession<
     TSceneSnapshot,
     TEntitySnapshot,
     TFeedbackEvent,
@@ -162,7 +163,25 @@ export class PresentationThemeRegistry<
       throw error;
     }
 
-    return theme;
+    let disposed = false;
+    return Object.freeze({
+      gameId: context.gameId,
+      sessionId: context.sessionId,
+      requestedThemeId: resolution.requestedId,
+      resolvedThemeId: resolution.resolvedId,
+      usedFallback: resolution.usedFallback,
+      descriptor: theme.descriptor,
+      tokens: resolution.definition.tokens,
+      theme,
+      get disposed(): boolean {
+        return disposed;
+      },
+      dispose(): void {
+        if (disposed) return;
+        disposed = true;
+        theme.dispose();
+      }
+    });
   }
 
   private validateDescriptor(descriptor: PresentationThemeDescriptor): void {

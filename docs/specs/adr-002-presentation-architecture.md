@@ -47,7 +47,7 @@ Cada registro tiene tipos concretos de snapshots para ese juego. Los temas expon
 
 ### 7. Separar catálogo e instancia por sesión
 
-El registro guarda definiciones y tokens; no mantiene una instancia global activa. Cada sesión crea y posee una instancia propia. Una resolución de tema desconocido devuelve el fallback de forma explícita con usedFallback; si el fallback no existe, la resolución falla. La instancia libera sus recursos mediante dispose().
+El registro guarda definiciones y tokens; no mantiene una instancia global activa. createSession() devuelve una unidad que contiene definición resuelta, descriptor, tokens, instancia, metadatos de fallback y ciclo de vida. La UI y el renderer deben consumir esa misma unidad. Cada sesión crea y posee una instancia propia. Una resolución de tema desconocido devuelve el fallback de forma explícita con usedFallback; si el fallback no existe, la resolución falla. dispose() es idempotente y libera únicamente la instancia que posee la sesión.
 
 ### 8. Aleatoriedad cosmética inyectada
 
@@ -68,7 +68,7 @@ El contrato inicial vive en src/games/shared/presentation/. No se creará todav�
 ## Contratos iniciales en código
 
 - PresentationContracts.ts: snapshots, tokens, painter, manifiestos semánticos, contexto de creación y tema tipado.
-- PresentationThemeRegistry.ts: catálogo tipado, fallback explícito, validación de tokens/capacidades e instancias nuevas por sesión.
+- PresentationThemeRegistry.ts: catálogo tipado, tokens normalizados, fallback explícito, validación de capacidades y createSession() con propiedad del ciclo de vida.
 - PresentationThemeRegistry.test.ts: pruebas de aislamiento, fallback, duplicados, tokens y capacidades.
 - docs/audit/2026-10-29-presentation-phase1-inventory.md: inventario de módulos, riesgos y decisiones de migración.
 

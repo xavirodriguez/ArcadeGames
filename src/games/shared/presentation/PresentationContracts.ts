@@ -383,3 +383,34 @@ export interface PresentationThemeResolution<
     TCustomTokens
   >;
 }
+
+/**
+ * Selected theme and its tokens resolved together for a single presentation session.
+ * Renderer and React UI should consume the same session instead of resolving selection twice.
+ */
+export interface PresentationThemeSession<
+  TSceneSnapshot,
+  TEntitySnapshot,
+  TFeedbackEvent,
+  THudSnapshot,
+  TBannerSnapshot,
+  TCustomTokens extends object = object
+> {
+  readonly gameId: string;
+  readonly sessionId: string;
+  readonly requestedThemeId: string;
+  readonly resolvedThemeId: string;
+  readonly usedFallback: boolean;
+  readonly descriptor: PresentationThemeDescriptor;
+  readonly tokens: PresentationThemeTokens<TCustomTokens>;
+  readonly theme: PresentationTheme<
+    TSceneSnapshot,
+    TEntitySnapshot,
+    TFeedbackEvent,
+    THudSnapshot,
+    TBannerSnapshot,
+    TCustomTokens
+  >;
+  readonly disposed: boolean;
+  dispose(): void;
+}

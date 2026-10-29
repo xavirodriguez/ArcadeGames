@@ -33,7 +33,7 @@ describe("declarative Sumi-e village pilot", () => {
     expect(getCanvasVisualPosition({
       position: { x: 100, y: 200 }, space: "parallax", parallaxFactor: 0.25
     }, { x: 10, y: 20, zoom: 2, visualOffsetX: 5, visualOffsetY: -3 }, { x: 7, y: 11 }))
-      .toEqual({ x: 202, y: 398 });
+      .toEqual({ x: 207, y: 398 });
   });
 
   it("reports unregistered sprite assets without creating another cache", () => {
@@ -47,7 +47,7 @@ describe("declarative Sumi-e village pilot", () => {
     }, camera)).toEqual({ x: 185, y: 357 });
     expect(getCanvasVisualPosition({
       position: { x: 100, y: 200 }, space: "parallax", parallaxFactor: 0.25
-    }, camera, { x: 7, y: 11 })).toEqual({ x: 202, y: 398 });
+    }, camera, { x: 7, y: 11 })).toEqual({ x: 207, y: 398 });
     expect(getCanvasVisualPosition({
       position: { x: 100, y: 200 }, space: "screen"
     }, camera)).toEqual({ x: 105, y: 197 });

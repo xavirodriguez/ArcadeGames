@@ -5,7 +5,7 @@ describe("shared scene transforms", () => {
     expect(getVisualPosition({
       position: { x: 100, y: 200 }, space: "parallax", parallaxFactor: 0.25
     }, { x: 10, y: 20, zoom: 2, visualOffsetX: 5, visualOffsetY: -3 }, { x: 7, y: 11 }))
-      .toEqual({ x: 202, y: 398 });
+      .toEqual({ x: 207, y: 398 });
   });
 
   it("keeps screen-space scenery fixed and unzoomed", () => {

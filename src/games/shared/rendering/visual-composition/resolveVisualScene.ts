@@ -8,7 +8,6 @@ import {
   VisualCompositionResult,
   VisualCoordinateSpace,
   VisualInstanceDefinition,
-  VisualLayerDefinition,
   VisualLayerRole,
   VisualPrefabDefinition
 } from "./VisualCompositionTypes";
@@ -22,19 +21,15 @@ const ANCHORS = new Set<VisualAnchor>(["top-left", "center", "bottom-center"]);
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
-
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
 }
-
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
 }
-
 function issue(issues: VisualCompositionIssue[], path: string, message: string): void {
   issues.push({ path, message });
 }
-
 function validatePoint(value: unknown, path: string, issues: VisualCompositionIssue[]): boolean {
   if (!isRecord(value) || !isFiniteNumber(value.x) || !isFiniteNumber(value.y)) {
     issue(issues, path, "must contain finite numeric x and y values");
@@ -48,7 +43,7 @@ function validateInstance(
   path: string,
   issues: VisualCompositionIssue[],
   seenIds: Set<string>,
-  assetIds: Set<string>
+  catalog: VisualCompositionCatalog
 ): value is VisualInstanceDefinition {
   if (!isRecord(value)) {
     issue(issues, path, "must be an object");
@@ -61,13 +56,12 @@ function validateInstance(
   } else if (seenIds.has(value.id)) {
     issue(issues, `${path}.id`, `duplicate instance id "${value.id}"`);
     valid = false;
-  } else {
-    seenIds.add(value.id);
-  }
+  } else seenIds.add(value.id);
+
   if (!isNonEmptyString(value.asset)) {
     issue(issues, `${path}.asset`, "must be a non-empty semantic asset id");
     valid = false;
-  } else if (!assetIds.has(value.asset)) {
+  } else if (!catalog.assets.getAsset(value.asset)) {
     issue(issues, `${path}.asset`, `unknown asset "${value.asset}"`);
     valid = false;
   }
@@ -76,13 +70,11 @@ function validateInstance(
     valid = false;
   }
   if (!validatePoint(value.position, `${path}.position`, issues)) valid = false;
-
-  if (value.scale !== undefined) {
-    if (!isRecord(value.scale) || !isFiniteNumber(value.scale.x) || !isFiniteNumber(value.scale.y)
-      || value.scale.x <= 0 || value.scale.y <= 0) {
-      issue(issues, `${path}.scale`, "must contain finite positive x and y values");
-      valid = false;
-    }
+  if (value.scale !== undefined &&
+    (!isRecord(value.scale) || !isFiniteNumber(value.scale.x) || !isFiniteNumber(value.scale.y)
+      || value.scale.x <= 0 || value.scale.y <= 0)) {
+    issue(issues, `${path}.scale`, "must contain finite positive x and y values");
+    valid = false;
   }
   if (value.rotation !== undefined && !isFiniteNumber(value.rotation)) {
     issue(issues, `${path}.rotation`, "must be a finite number in radians");
@@ -101,7 +93,7 @@ function validateInstance(
 
 function validatePrefab(
   prefab: VisualPrefabDefinition,
-  assetIds: Set<string>,
+  catalog: VisualCompositionCatalog,
   issues: VisualCompositionIssue[]
 ): void {
   if (prefab.schemaVersion !== 1) issue(issues, `prefabs.${prefab.id}.schemaVersion`, "unsupported schema version");
@@ -111,7 +103,7 @@ function validatePrefab(
   }
   const ids = new Set<string>();
   prefab.instances.forEach((instance, index) =>
-    validateInstance(instance, `prefabs.${prefab.id}.instances[${index}]`, issues, ids, assetIds)
+    validateInstance(instance, `prefabs.${prefab.id}.instances[${index}]`, issues, ids, catalog)
   );
 }
 
@@ -124,7 +116,6 @@ export function validateVisualComposition(
   if (!isRecord(definition)) {
     return { ok: false, issues: [{ path: "$", message: "must be an object" }] };
   }
-
   if (definition.schemaVersion !== 1) issue(issues, "schemaVersion", "unsupported schema version; expected 1");
   if (!isNonEmptyString(definition.id)) issue(issues, "id", "must be a non-empty string");
   if (!isNonEmptyString(definition.theme)) issue(issues, "theme", "must be a non-empty theme id");
@@ -133,13 +124,9 @@ export function validateVisualComposition(
     return { ok: false, issues };
   }
 
-  const assetIds = new Set<string>();
-  // The catalog is the authority for semantic IDs. No parallel asset registry is created.
-  const getAsset = catalog.assets.getAsset;
   const prefabIds = new Set(catalog.prefabs?.keys() ?? []);
   const layerIds = new Set<string>();
   const instanceIds = new Set<string>();
-
   definition.layers.forEach((rawLayer, index) => {
     const path = `layers[${index}]`;
     if (!isRecord(rawLayer)) {
@@ -166,29 +153,20 @@ export function validateVisualComposition(
       else if (!prefabIds.has(rawLayer.prefab)) issue(issues, `${path}.prefab`, `unknown prefab "${rawLayer.prefab}"`);
     }
     if (rawLayer.instances !== undefined && Array.isArray(rawLayer.instances)) {
-      rawLayer.instances.forEach((instance, instanceIndex) => {
-        if (isRecord(instance) && isNonEmptyString(instance.asset)) {
-          assetIds.add(instance.asset);
-        }
-        validateInstance(instance, `${path}.instances[${instanceIndex}]`, issues, instanceIds, assetIds);
-      });
+      rawLayer.instances.forEach((instance, instanceIndex) =>
+        validateInstance(instance, `${path}.instances[${instanceIndex}]`, issues, instanceIds, catalog)
+      );
     }
   });
-
-  // Validate referenced assets against the authoritative registry after collecting IDs.
-  for (const id of assetIds) {
-    if (!getAsset(id)) issue(issues, "assets", `unknown asset "${id}"`);
-  }
-
-  for (const prefab of catalog.prefabs?.values() ?? []) validatePrefab(prefab, assetIds, issues);
+  for (const prefab of catalog.prefabs?.values() ?? []) validatePrefab(prefab, catalog, issues);
 
   if (issues.length > 0) return { ok: false, issues };
   return { ok: true, value: definition as unknown as LevelVisualDefinition };
 }
 
 /**
- * Resolve validated fixed placements into immutable renderer-neutral data.
- * This does not create ECS entities, load assets or access Canvas/Skia.
+ * Resolve fixed placements into renderer-neutral data. No ECS entities, asset
+ * loads, image decoding, Canvas or Skia objects are created here.
  */
 export function resolveVisualScene(
   definition: LevelVisualDefinition,
@@ -197,31 +175,23 @@ export function resolveVisualScene(
   const validation = validateVisualComposition(definition, catalog);
   if (!validation.ok) return validation;
 
-  const issues: VisualCompositionIssue[] = [];
   const resolved: ResolvedVisualInstance[] = [];
   const layers = [...definition.layers].sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
-
   for (const layer of layers) {
-    const layerInstances = [...(layer.instances ?? [])];
+    const layerInstances: VisualInstanceDefinition[] = [...(layer.instances ?? [])];
     if (layer.prefab) {
       const prefab = catalog.prefabs?.get(layer.prefab);
       if (prefab) layerInstances.push(...prefab.instances.map(instance => ({
         ...instance,
         id: `${layer.id}/${instance.id}`,
-        position: {
-          x: instance.position.x + (layer.position?.x ?? 0),
-          y: instance.position.y + (layer.position?.y ?? 0)
-        },
         space: layer.space
       })));
     }
-
     layerInstances.forEach((instance, instanceOrder) => {
       const asset = catalog.assets.getAsset(instance.asset);
-      if (!asset) {
-        issue(issues, `layers.${layer.id}.instances.${instance.id}.asset`, `unknown asset "${instance.asset}"`);
-        return;
-      }
+      // Validation above guarantees the asset exists; keep this guard for adapters
+      // whose registry may change between validation and resolution.
+      if (!asset) return;
       resolved.push({
         id: instance.id,
         asset: instance.asset,
@@ -230,7 +200,10 @@ export function resolveVisualScene(
         layerOrder: layer.order,
         instanceOrder,
         space: layer.space,
-        position: { ...instance.position, x: instance.position.x + (layer.position?.x ?? 0), y: instance.position.y + (layer.position?.y ?? 0) },
+        position: {
+          x: instance.position.x + (layer.position?.x ?? 0),
+          y: instance.position.y + (layer.position?.y ?? 0)
+        },
         scale: { x: instance.scale?.x ?? 1, y: instance.scale?.y ?? 1 },
         rotation: instance.rotation ?? 0,
         opacity: instance.opacity ?? 1,
@@ -239,15 +212,8 @@ export function resolveVisualScene(
       });
     });
   }
-
-  if (issues.length > 0) return { ok: false, issues };
   return {
     ok: true,
-    value: {
-      schemaVersion: 1,
-      levelId: definition.id,
-      themeId: definition.theme,
-      instances: resolved
-    }
+    value: { schemaVersion: 1, levelId: definition.id, themeId: definition.theme, instances: resolved }
   };
 }

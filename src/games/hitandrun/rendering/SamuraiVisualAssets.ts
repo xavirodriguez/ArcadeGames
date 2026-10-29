@@ -1,16 +1,19 @@
 import type { Asset } from "expo-asset";
 import type { IAssetProvider } from "@tiny-aster/core";
 import {
-  HIT_RUN_CHARACTER_ANCHOR,
   HIT_RUN_CHARACTER_ANIMATIONS,
   HIT_RUN_CHARACTER_ATLAS_COLUMNS,
   HIT_RUN_CHARACTER_ATLAS_ROWS,
-  HIT_RUN_CHARACTER_CELL_SIZE,
-  type HitRunFrameRect,
-  getHitRunFrameRect
 } from "./HitRunSpriteAtlas";
+import {
+  SAMURAI_ASSET_KEY,
+  SAMURAI_CELL_SIZE,
+  SAMURAI_SPRITE_ANCHOR,
+  SAMURAI_SPRITE_READY_RESOURCE,
+  getSamuraiFrameRect,
+  type SamuraiFrameRect
+} from "../presentation/ThemeAssetIds";
 
-/** Shared AssetLoader key consumed by Canvas and Skia sprite drawers. */
 /**
  * Runtime decision (2026-10-26 sprite audit):
  * `assets/sprites/samurai1.png` is alternate concept art and does NOT replace
@@ -18,18 +21,18 @@ import {
  * frame mapping. Promote samurai1 only after measuring cells and migrating
  * SAMURAI_ANIMATIONS; until then both assets coexist (samurai1 unused at runtime).
  */
-export const SAMURAI_ASSET_KEY = "hitrun_samurai_enemy";
-export const SAMURAI_SPRITE_READY_RESOURCE = "HitRunSamuraiSpriteReady";
-export const SAMURAI_CELL_SIZE = HIT_RUN_CHARACTER_CELL_SIZE;
+export {
+  SAMURAI_ASSET_KEY,
+  SAMURAI_SPRITE_READY_RESOURCE,
+  SAMURAI_CELL_SIZE,
+  SAMURAI_SPRITE_ANCHOR,
+  getSamuraiFrameRect,
+  type SamuraiFrameRect
+};
+
 export const SAMURAI_ATLAS_COLUMNS = HIT_RUN_CHARACTER_ATLAS_COLUMNS;
 export const SAMURAI_ATLAS_ROWS = HIT_RUN_CHARACTER_ATLAS_ROWS;
-/** Source cells include a small ground shadow; the origin remains at the feet. */
-export const SAMURAI_SPRITE_ANCHOR = HIT_RUN_CHARACTER_ANCHOR;
-
 export const SAMURAI_ANIMATIONS = HIT_RUN_CHARACTER_ANIMATIONS;
-
-export type SamuraiFrameRect = HitRunFrameRect;
-export const getSamuraiFrameRect = getHitRunFrameRect;
 
 /** Static require keeps the PNG discoverable by Metro on web and native. */
 export function createSamuraiSpritesheetAsset(): Asset {

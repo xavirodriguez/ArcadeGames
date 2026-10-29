@@ -259,6 +259,11 @@ export function getSkiaImage(sheetId: string): SkImage | undefined {
 
 export type SpriteLoadState = "unregistered" | "not-loaded" | "loading" | "ready" | "failed";
 
+/** Read-only access to a decoded Canvas image for backend-neutral presentation painters. */
+export function getCanvasSpriteImage(sheetId: string): HTMLImageElement | HTMLCanvasElement | undefined {
+  return canvasImageCache.get(sheetId);
+}
+
 /** Read-only view of the existing Canvas cache lifecycle; does not trigger loading. */
 export function getCanvasSpriteLoadState(sheetId: string): SpriteLoadState {
   if (!SpriteRegistry.has(sheetId)) return "unregistered";

@@ -1,8 +1,8 @@
 import {
   CanvasPresentationPainter,
-  type PresentationCanvasContext
+  type PresentationCanvasContext,
+  type PresentationCanvasImageResolver
 } from "./CanvasPresentationPainter";
-import type { PresentationCanvasImageResolver } from "./CanvasPresentationPainter";
 
 interface SavedState {
   readonly globalAlpha: number;

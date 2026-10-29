@@ -2,6 +2,7 @@ import { hasInputAction, type World, type RenderComponent, type HealthComponent 
 import type { ShmupComponentRegistry, ShmupEnemyArchetype, EnemyPathComponent, BulletPatternComponent } from "../types/ShmupTypes";
 import type { ShmupConfig } from "../types/ShmupConfigSchema";
 import { SHMUP_COLOR_TOKENS } from "./ShmupColorTokens";
+import { SUMI_E_SEMANTIC_TOKENS } from "../../../theme/sumi-e/SumiESemanticTokens";
 
 export interface ShmupPlayerDrawContext {
   render: RenderComponent;
@@ -163,16 +164,16 @@ export const SHMUP_SUMI_E_THEME: ShmupThemeContract = {
   id: "sumi-e",
   version: 1,
   palette: {
-    paper: "#E7DFCB",
-    ink: "#151515",
-    inkWash: "#5F6466",
-    mist: "#C9D1D2",
-    sun: "#D7473F",
-    threat: "#B3261E",
-    threatCritical: "#FF3B30",
-    player: "#4DA3FF",
-    reward: "#E3A92F",
-    frame: "#B9A272",
+    paper: SUMI_E_SEMANTIC_TOKENS.surface.paper,
+    ink: SUMI_E_SEMANTIC_TOKENS.text.primary,
+    inkWash: SUMI_E_SEMANTIC_TOKENS.landscape.ink,
+    mist: SUMI_E_SEMANTIC_TOKENS.landscape.mist,
+    sun: SUMI_E_SEMANTIC_TOKENS.ui.seal,
+    threat: SUMI_E_SEMANTIC_TOKENS.threat.body,
+    threatCritical: SUMI_E_SEMANTIC_TOKENS.threat.glow,
+    player: SUMI_E_SEMANTIC_TOKENS.player.trail,
+    reward: SUMI_E_SEMANTIC_TOKENS.reward.primary,
+    frame: SUMI_E_SEMANTIC_TOKENS.ui.frame,
   },
   layers: ["paper", "sun", "mist", "mountains", "structures", "foreground"],
   assets: {

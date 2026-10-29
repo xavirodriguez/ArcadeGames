@@ -95,3 +95,19 @@ const sumiTokens = aestheticTheme?.semanticTokens;
 ```
 
 The provider still derives `accentColors` from `gameKey`. This is intentional: opting into an aesthetic does not silently rewrite accents consumed by existing UI components. Consumers migrate by selecting `aestheticTheme.semanticTokens` explicitly. When `aestheticTheme` is omitted, the context exposes `null` and preserves the previous game theme behavior. Cosmic and neon configurations keep their existing values and do not receive Sumi-e semantic tokens.
+
+
+## Phase 3 — First renderer consumer
+
+Vertical Shmup now builds `SHMUP_SUMI_E_THEME.palette` from the canonical roles in
+`src/theme/sumi-e/SumiESemanticTokens.ts`. The existing theme contract remains unchanged;
+only the palette's source of truth has moved. Canvas and Skia translucent strokes use
+`withSumiEAlpha`, so alpha variants derive from a semantic color instead of duplicating
+RGB literals. The conversion helper validates both the six-digit hex input and the
+`0..1` alpha range.
+
+This first adoption covers the Sumi-e backdrop, player and enemy details, and player/enemy
+projectiles through their shared theme contract. It does not modify ECS components,
+collision geometry, movement, scoring, random-number generation, or the aerial-fantasy
+palette. Hit & Run is deliberately not migrated in this step: its game-specific approved
+art brief has distinct palette values and takes precedence within that game.

@@ -5,7 +5,8 @@
  * Games can declare aesthetic: "sumi-e" | "cosmic" | "neon" and receive
  * consistent backdrop, palette and juice defaults without hard-coding per game.
  *
- * Phase 0 of the Sumi-e background integration roadmap.
+ * Semantic Sumi-e tokens are additive: legacy palette fields remain available
+ * while new Canvas and React Native consumers can share the canonical token map.
  */
 
 import {
@@ -21,27 +22,41 @@ import {
   type SumiEPaletteVariant
 } from "./SumiEPalette";
 import { COSMIC_ARCADE_PALETTE } from "../CosmicPalette";
+import {
+  SUMI_E_SEMANTIC_TOKENS,
+  type SumiESemanticTokens
+} from "../../../../theme/sumi-e/SumiESemanticTokens";
 
 export type AestheticId = "sumi-e" | "cosmic" | "neon";
 
 export type SumiELandscapeVariant = "default" | "mountain" | "coastal";
 
+export interface AestheticThemeOptions {
+  readonly landscape?: SumiELandscapeVariant;
+  readonly paletteVariant?: SumiEPaletteVariant;
+}
+
 export interface AestheticThemeConfig {
   id: AestheticId;
   /** Human-readable name. */
   name: string;
-  /** Primary background / paper color. */
+  /** Legacy background color retained for existing backdrop consumers. */
   backgroundColor: string;
-  /** Dominant ink / foreground color. */
+  /** Legacy foreground color retained for existing backdrop consumers. */
   foregroundColor: string;
-  /** Accent (vermilion, neon cyan, etc.). */
+  /** Legacy accent color retained for existing backdrop consumers. */
   accentColor: string;
   /** Whether ink-wash parallax should be used as primary backdrop. */
   useInkWash: boolean;
   /** Layer preset when useInkWash is true. */
   inkWashLayers: readonly InkWashLayerSpec[];
-  /** Full Sumi-e palette (only meaningful when id === "sumi-e"). */
+  /** Legacy game-specific Sumi-e palette; retained for existing renderers. */
   sumiPalette?: SumiEPaletteTokens;
+  /**
+   * Canonical role-based palette for new presentation consumers.
+   * Present only for Sumi-e so existing cosmic/neon themes remain unchanged.
+   */
+  semanticTokens?: SumiESemanticTokens;
   /** Soft ambient intensity 0..1 (for glow / CRT). */
   ambientIntensity: number;
   /** Prefer muted juice (less shake, softer flashes). */
@@ -57,6 +72,7 @@ const SUMI_E_DEFAULT: AestheticThemeConfig = {
   useInkWash: true,
   inkWashLayers: DEFAULT_INK_WASH_LAYERS,
   sumiPalette: SUMI_E_PALETTE,
+  semanticTokens: SUMI_E_SEMANTIC_TOKENS,
   ambientIntensity: 0.25,
   preferSubtleJuice: true
 };
@@ -93,13 +109,12 @@ const PRESETS: Record<AestheticId, AestheticThemeConfig> = {
 
 /**
  * Returns a full AestheticThemeConfig, optionally specializing the Sumi-e landscape.
+ * Legacy colors still follow SumiEPalette variants; semanticTokens always exposes
+ * the canonical palette so migration can happen consumer by consumer.
  */
 export function getAestheticTheme(
   id: AestheticId = "sumi-e",
-  options?: {
-    landscape?: SumiELandscapeVariant;
-    paletteVariant?: SumiEPaletteVariant;
-  }
+  options?: AestheticThemeOptions
 ): AestheticThemeConfig {
   const base = { ...PRESETS[id] };
 
@@ -109,6 +124,7 @@ export function getAestheticTheme(
     base.backgroundColor = palette.paper;
     base.foregroundColor = palette.ink;
     base.accentColor = palette.vermilion;
+    base.semanticTokens = SUMI_E_SEMANTIC_TOKENS;
 
     switch (options?.landscape) {
       case "mountain":

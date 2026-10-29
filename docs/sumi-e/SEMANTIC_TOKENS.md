@@ -67,3 +67,31 @@ The secondary text value `#5F6466` is near the 4.5:1 threshold on aged paper. If
 ## Migration boundary
 
 This phase establishes the contract without rewriting `SUMI_E_PALETTE`, `INK_WORLD_PALETTE`, or the Hit & Run palette. Those live palettes have existing consumers and differ from this guide. Later adapters should map each legacy field to a semantic role explicitly; do not silently change existing renders or introduce more local hex values while migrating.
+
+## Integration with AestheticTheme and React UI
+
+`getAestheticTheme("sumi-e")` now carries `semanticTokens` alongside the existing `sumiPalette`, `backgroundColor`, `foregroundColor`, and `accentColor`. The legacy fields continue to resolve through `SumiEPalette` variants; the new `semanticTokens` field always exposes the canonical role-based contract.
+
+Pass the selected configuration to `GameThemeProvider` when the UI should opt into an aesthetic:
+
+```tsx
+const aestheticTheme = getAestheticTheme("sumi-e", {
+  landscape: "mountain",
+  paletteVariant: "forest"
+});
+
+<GameThemeProvider gameKey="hitandrun" aestheticTheme={aestheticTheme}>
+  <GameScreen />
+</GameThemeProvider>
+```
+
+Inside the React tree, read the canonical semantic roles through the existing context hook:
+
+```tsx
+const { aestheticTheme } = useGameTheme();
+const sumiTokens = aestheticTheme?.semanticTokens;
+
+// Example: sumiTokens?.surface.paper, sumiTokens?.player.projectile
+```
+
+The provider still derives `accentColors` from `gameKey`. This is intentional: opting into an aesthetic does not silently rewrite accents consumed by existing UI components. Consumers migrate by selecting `aestheticTheme.semanticTokens` explicitly. When `aestheticTheme` is omitted, the context exposes `null` and preserves the previous game theme behavior. Cosmic and neon configurations keep their existing values and do not receive Sumi-e semantic tokens.

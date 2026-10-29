@@ -8,9 +8,12 @@ import { spacing } from '../theme/spacing';
 import { radius } from '../theme/radius';
 import { effects } from '../theme/effects';
 import { LAYER_ELEVATION } from '../theme/layers';
+import type { AestheticThemeConfig } from '../games/shared/rendering/sumi-e/AestheticTheme';
 
 export interface GameThemeProviderProps {
   gameKey?: GameKey;
+  /** Optional visual configuration; omitted preserves the legacy game theme. */
+  aestheticTheme?: AestheticThemeConfig | null;
   initialHighContrast?: boolean;
   initialReduceMotion?: boolean;
   children: React.ReactNode;
@@ -18,6 +21,7 @@ export interface GameThemeProviderProps {
 
 export function GameThemeProvider({
   gameKey = 'campaign',
+  aestheticTheme = null,
   initialHighContrast = false,
   initialReduceMotion = false,
   children,
@@ -27,9 +31,11 @@ export function GameThemeProvider({
 
   const contextValue = useMemo(() => {
     const accentColors = getGameAccentColors(gameKey);
+
     return {
       gameKey,
       accentColors,
+      aestheticTheme,
       highContrast,
       reduceMotion,
       setHighContrast,
@@ -44,7 +50,7 @@ export function GameThemeProvider({
         layers: LAYER_ELEVATION,
       },
     };
-  }, [gameKey, highContrast, reduceMotion]);
+  }, [gameKey, aestheticTheme, highContrast, reduceMotion]);
 
   return (
     <GameThemeContext.Provider value={contextValue}>

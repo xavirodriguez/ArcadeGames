@@ -4,7 +4,7 @@
 
 import type { HitRunTheme } from "./HitRunTheme";
 import { FantasyTheme } from "./fantasy/FantasyTheme";
-import { SumiETheme } from "./sumi-e/SumiETheme";
+import { SumiEVillageTheme } from "./sumi-e/SumiEVillageTheme";
 
 export type ThemeFactory = () => HitRunTheme;
 
@@ -16,7 +16,7 @@ class ThemeRegistryImpl {
   constructor() {
     // Register default themes
     this.register("fantasy", () => new FantasyTheme());
-    this.register("sumi-e", () => new SumiETheme());
+    this.register("sumi-e", () => new SumiEVillageTheme());
   }
 
   public register(id: string, factory: ThemeFactory): void {
@@ -61,6 +61,7 @@ class ThemeRegistryImpl {
   }
 }
 
+/** Shared registry used by all Hit & Run renderers. */
 export const ThemeRegistry = new ThemeRegistryImpl();
 
 /** Resolves theme ID from URL query string (?theme=) or config or default 'fantasy'. */

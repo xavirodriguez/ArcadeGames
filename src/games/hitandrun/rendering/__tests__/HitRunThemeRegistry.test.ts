@@ -1,21 +1,22 @@
 import { ThemeRegistry } from "../theme/ThemeRegistry";
 
-describe("HitRun ThemeRegistry Hot Swapping", () => {
-  afterEach(() => {
-    ThemeRegistry.setActiveTheme("fantasy");
+describe("HitRun ThemeRegistry catalogue", () => {
+  test("creates a fresh theme instance for every request", () => {
+    const first = ThemeRegistry.get("sumi-e");
+    const second = ThemeRegistry.get("sumi-e");
+
+    expect(first.id).toBe("sumi-e");
+    expect(second.id).toBe("sumi-e");
+    expect(first).not.toBe(second);
+
+    first.dispose();
+    second.dispose();
   });
 
-  test("switches theme in hot-swap mode and cleans up prior theme", () => {
-    const fantasy = ThemeRegistry.getActiveTheme();
-    expect(fantasy.id).toBe("fantasy");
+  test("falls back to fantasy when an unknown theme id is requested", () => {
+    const fallback = ThemeRegistry.get("non_existent_theme");
 
-    const sumiE = ThemeRegistry.setActiveTheme("sumi-e");
-    expect(sumiE.id).toBe("sumi-e");
-    expect(ThemeRegistry.getActiveTheme().id).toBe("sumi-e");
-  });
-
-  test("falls back gracefully when unknown theme id requested", () => {
-    const unknown = ThemeRegistry.setActiveTheme("non_existent_theme");
-    expect(unknown.id).toBe("fantasy");
+    expect(fallback.id).toBe("fantasy");
+    fallback.dispose();
   });
 });

@@ -1,81 +1,37 @@
-import { ShapeDrawer, EffectDrawer, RenderContext } from "@tiny-aster/core";
-import { FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
+import type { Theme } from "@tiny-aster/core";
+import type { FlappyThemeModule, FlappyThemeId } from "./types";
 import { OFFICE_PAPER_THEME_ID } from "../theme/FlappyThemeShared";
+import { neonThemeModule } from "./neon/NeonTheme";
+import { officePaperThemeModule } from "./officePaper/OfficePaperTheme";
 
-import {
-  drawFlappyBird as drawCanvasNeonBird,
-  drawFlappyPipe as drawCanvasNeonPipe,
-  drawFlappyGround as drawCanvasNeonGround,
-  scrollingBackgroundEffect as scrollingCanvasNeonBackground
-} from "../rendering/FlappyBirdCanvasVisuals";
+/** Single authoritative registry for Flappy presentation modules. */
+const THEMES: Record<FlappyThemeId, FlappyThemeModule> = {
+  neon: neonThemeModule,
+  [OFFICE_PAPER_THEME_ID]: officePaperThemeModule
+};
 
-import {
-  drawOfficePaperBird as drawCanvasOfficeBird,
-  drawOfficePaperPipe as drawCanvasOfficePipe,
-  drawOfficePaperGround as drawCanvasOfficeGround,
-  scrollingOfficePaperBackgroundEffect as scrollingCanvasOfficeBackground
-} from "./officePaper/OfficePaperCanvasVisuals";
-
-import {
-  drawSkiaFlappyBird as drawSkiaNeonBird,
-  drawSkiaFlappyPipe as drawSkiaNeonPipe,
-  drawSkiaFlappyGround as drawSkiaNeonGround,
-  scrollingSkiaBackgroundEffect as scrollingSkiaNeonBackground
-} from "../rendering/FlappyBirdSkiaVisuals";
-
-import {
-  drawSkiaOfficePaperBird as drawSkiaOfficeBird,
-  drawSkiaOfficePaperPipe as drawSkiaOfficePipe,
-  drawSkiaOfficePaperGround as drawSkiaOfficeGround,
-  scrollingSkiaOfficePaperBackgroundEffect as scrollingSkiaOfficeBackground
-} from "./officePaper/OfficePaperSkiaVisuals";
-
-export interface FlappyCanvasDrawers {
-  drawBird: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdComponentRegistry>;
-  drawPipe: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdComponentRegistry>;
-  drawGround: ShapeDrawer<CanvasRenderingContext2D, FlappyBirdComponentRegistry>;
-  scrollingBackground: EffectDrawer<CanvasRenderingContext2D, FlappyBirdComponentRegistry>;
-}
-
-export interface FlappySkiaDrawers {
-  drawBird: ShapeDrawer<RenderContext, FlappyBirdComponentRegistry>;
-  drawPipe: ShapeDrawer<RenderContext, FlappyBirdComponentRegistry>;
-  drawGround: ShapeDrawer<RenderContext, FlappyBirdComponentRegistry>;
-  scrollingBackground: EffectDrawer<RenderContext, FlappyBirdComponentRegistry>;
-}
-
-export function resolveFlappyCanvasVisuals(packId?: string): FlappyCanvasDrawers {
-  if (packId === OFFICE_PAPER_THEME_ID) {
-    return {
-      drawBird: drawCanvasOfficeBird,
-      drawPipe: drawCanvasOfficePipe,
-      drawGround: drawCanvasOfficeGround,
-      scrollingBackground: scrollingCanvasOfficeBackground
-    };
+function resolveThemeId(themeOrId?: Theme | string | null): FlappyThemeId {
+  if (typeof themeOrId === "string") {
+    return themeOrId === OFFICE_PAPER_THEME_ID ? OFFICE_PAPER_THEME_ID : "neon";
   }
-
-  return {
-    drawBird: drawCanvasNeonBird,
-    drawPipe: drawCanvasNeonPipe,
-    drawGround: drawCanvasNeonGround,
-    scrollingBackground: scrollingCanvasNeonBackground
-  };
+  const conceptId = themeOrId?.conceptPack?.id;
+  return conceptId === OFFICE_PAPER_THEME_ID ? OFFICE_PAPER_THEME_ID : "neon";
 }
 
-export function resolveFlappySkiaVisuals(packId?: string): FlappySkiaDrawers {
-  if (packId === OFFICE_PAPER_THEME_ID) {
-    return {
-      drawBird: drawSkiaOfficeBird,
-      drawPipe: drawSkiaOfficePipe,
-      drawGround: drawSkiaOfficeGround,
-      scrollingBackground: scrollingSkiaOfficeBackground
-    };
-  }
-
-  return {
-    drawBird: drawSkiaNeonBird,
-    drawPipe: drawSkiaNeonPipe,
-    drawGround: drawSkiaNeonGround,
-    scrollingBackground: scrollingSkiaNeonBackground
-  };
+/** Resolve the presentation module from concept-pack ID, Theme resource, or explicit id. */
+export function resolveFlappyTheme(themeOrId?: Theme | string | null): FlappyThemeModule {
+  return THEMES[resolveThemeId(themeOrId)];
 }
+
+/** @deprecated Prefer resolveFlappyTheme; kept for existing callers. */
+export function resolveFlappyCanvasVisuals(packId?: string) {
+  return resolveFlappyTheme(packId).canvas;
+}
+
+/** @deprecated Prefer resolveFlappyTheme; kept for existing callers. */
+export function resolveFlappySkiaVisuals(packId?: string) {
+  return resolveFlappyTheme(packId).skia;
+}
+
+export type { FlappyCanvasDrawers, FlappySkiaDrawers } from "./typesCompat";
+export { neonThemeModule, officePaperThemeModule, THEMES };

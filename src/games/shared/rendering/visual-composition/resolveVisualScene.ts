@@ -3,6 +3,7 @@ import {
   ResolvedVisualInstance,
   ResolvedVisualScene,
   VisualAnchor,
+  VisualAnchorPoint,
   VisualCompositionCatalog,
   VisualCompositionIssue,
   VisualCompositionResult,
@@ -243,6 +244,14 @@ export function resolveVisualScene(
   return { ok: true, value: { schemaVersion: 1, levelId: definition.id, themeId: definition.theme, instances: resolved } };
 }
 
+function toNormalizedAnchor(anchor: VisualAnchor): VisualAnchorPoint {
+  switch (anchor) {
+    case "top-left": return { x: 0, y: 0 };
+    case "center": return { x: 0.5, y: 0.5 };
+    case "bottom-center": return { x: 0.5, y: 1 };
+  }
+}
+
 function resolveInstance(
   instance: VisualInstanceDefinition, id: string, layerId: string, layerRole: VisualLayerRole, layerOrder: number,
   instanceOrder: number, space: VisualCoordinateSpace, parallaxFactor: number | undefined,
@@ -253,6 +262,6 @@ function resolveInstance(
     ...(space === "parallax" ? { parallaxFactor } : {}),
     position: { x: instance.position.x + (layerPosition?.x ?? 0), y: instance.position.y + (layerPosition?.y ?? 0) },
     scale: { x: instance.scale?.x ?? 1, y: instance.scale?.y ?? 1 },
-    rotation: instance.rotation ?? 0, opacity: instance.opacity ?? 1, flipX: instance.flipX ?? false, anchor
+    rotation: instance.rotation ?? 0, opacity: instance.opacity ?? 1, flipX: instance.flipX ?? false, anchor: toNormalizedAnchor(anchor)
   };
 }

@@ -6,6 +6,8 @@ export type VisualCoordinateSpace = "world" | "screen" | "parallax";
 export type VisualLayerRole = "far-background" | "atmosphere" | "midground" | "settlement" | "foreground" | "effects";
 export type VisualAnchor = "top-left" | "center" | "bottom-center";
 export interface VisualPoint { x: number; y: number }
+/** Normalized destination anchor: (0,0) top-left, (0.5,0.5) center, (0.5,1) feet. */
+export interface VisualAnchorPoint { readonly x: number; readonly y: number }
 export interface VisualScale { x: number; y: number }
 export interface VisualAssetDefinition {
   id: string;
@@ -62,7 +64,7 @@ export interface ResolvedVisualInstance {
   readonly rotation: number;
   readonly opacity: number;
   readonly flipX: boolean;
-  readonly anchor: VisualAnchor;
+  readonly anchor: VisualAnchorPoint;
 }
 export interface ResolvedVisualScene {
   readonly schemaVersion: 1;

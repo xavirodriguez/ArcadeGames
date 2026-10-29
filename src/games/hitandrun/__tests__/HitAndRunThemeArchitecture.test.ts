@@ -137,6 +137,23 @@ describe("HitAndRun presentation theme boundary", () => {
     expect(forbiddenCalls).toEqual([]);
   });
 
+  it("routes all theme-aware render entry points through the world-owned session", () => {
+    const baseDir = path.resolve(__dirname, "..");
+    const entryPoints = [
+      "rendering/HitRunCanvasVisuals.ts",
+      "rendering/HitRunBackdropCanvas.ts",
+      "rendering/HitRunBackdropSkia.ts",
+      "rendering/HitRunHudCanvas.ts"
+    ];
+
+    for (const relativePath of entryPoints) {
+      const source = fs.readFileSync(path.join(baseDir, relativePath), "utf-8");
+      expect(source).toContain("getHitRunTheme(world)");
+      expect(source).not.toContain("ThemeRegistry.getActiveTheme");
+      expect(source).not.toContain("setActiveTheme");
+    }
+  });
+
   it("keeps simulation folders free of static, re-exported, dynamic and type-only rendering imports", () => {
     const baseDir = path.resolve(__dirname, "..");
     expect(findRenderingImports(baseDir)).toEqual([]);

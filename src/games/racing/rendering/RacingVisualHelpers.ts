@@ -131,6 +131,11 @@ export function computeSparkSegment(spark: { x: number; y: number; vx: number; v
   };
 }
 
+/**
+ * Resolves finish line checkerboard color pair with default fallback.
+ * @param skin - Active racing skin definition.
+ * @returns Tuple of [primary, secondary] finish checker hex color strings.
+ */
 export function resolveFinishCheckers(skin?: { finishCheckers?: string[] }): [string, string] {
   const checkers = skin?.finishCheckers;
   if (Array.isArray(checkers) && checkers.length >= 2) {

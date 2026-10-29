@@ -41,7 +41,7 @@ import { drawMemoryFragment, drawCheckpointNode, drawSentinel, drawHopper, drawC
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import defaultLevelData from "./levels/level-01.json";
 import { PlatformerConfigSchema, PlatformerConfig as PlatformerConfigType, DEFAULT_PLATFORMER_CONFIG } from "./types/PlatformerConfigSchema";
-import { PlatformerArcadeGame, loadPlatformerArcadeConfig } from "../shared/PlatformerArcadeGame";
+import { PlatformerArcadeGame, loadPlatformerArcadeConfig, DEFAULT_PLATFORMER_TILE_DEFINITIONS } from "../shared/PlatformerArcadeGame";
 
 export interface PlatformerConfig {
   seed?: number;
@@ -73,13 +73,10 @@ export interface PlatformerBlueprintMap extends Record<string, BlueprintDefiniti
 
 export const PLATFORMER_CONFIG = DEFAULT_PLATFORMER_CONFIG;
 
-export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, PlatformerInput, CoreComponentRegistry, EventRegistry, PlatformerBlueprintMap> {
+export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, PlatformerInput, CoreComponentRegistry, EventRegistry, PlatformerBlueprintMap, PlatformerConfigType> {
   public readonly gameId = "platformer";
   private gameOver = false;
   private levelPlan!: LevelPlan;
-  private customLevelData?: { templates: SegmentTemplate[]; grammar: string[] };
-  private baseConfig: PlatformerConfigType;
-  private config: PlatformerConfigType;
 
   constructor(config: PlatformerConfig = {}) {
     super({
@@ -90,14 +87,11 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
       theme: config.theme ?? createThemeFromGameAccents("platformer"),
       audio: new WebAudioPlayer()
     });
-    const { baseConfig, customLevelData } = this.loadConfig<PlatformerConfigType>(
+    this.initPlatformerConfig<PlatformerConfigType>(
       PlatformerConfigSchema,
       config.gameOptions,
       config.levelData
     );
-    this.baseConfig = baseConfig;
-    this.config = baseConfig;
-    this.customLevelData = customLevelData;
   }
 
   protected override async onRegisterSystems(): Promise<void> {
@@ -299,13 +293,7 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
   }
 
   protected override async onInitializeEntities(): Promise<void> {
-    const tileDefinitions = {
-      1: { solid: true, kind: "normal" as const },
-      2: { solid: true, kind: "ice" as const },
-      3: { solid: true, kind: "bounce" as const, bounce: 1.2 },
-      4: { solid: true, kind: "spike" as const },
-      5: { solid: true, oneWay: true, kind: "normal" as const }
-    };
+    const tileDefinitions = DEFAULT_PLATFORMER_TILE_DEFINITIONS;
 
     const levelData = this.customLevelData ?? defaultLevelData;
     const templates = levelData.templates as SegmentTemplate[];

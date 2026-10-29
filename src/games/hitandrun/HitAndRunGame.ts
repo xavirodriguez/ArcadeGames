@@ -20,7 +20,7 @@ import {
   World
 } from "@tiny-aster/core";
 import { updateRunProgress } from "@tiny-aster/gameplay-kit";
-import { PlatformerArcadeGame } from "../shared/PlatformerArcadeGame";
+import { PlatformerArcadeGame, setupArcadeRunState } from "../shared/PlatformerArcadeGame";
 import type { IAssetProvider } from "@tiny-aster/core";
 import type { Asset } from "expo-asset";
 import {
@@ -261,17 +261,7 @@ export class HitAndRunGame extends BaseGame<
     this.setupCommonArcadeResources();
     this.world.deleteResource("IsPaused");
 
-    const runState: RunState = {
-      attempt: 1,
-      lives: 3,
-      activeCheckpoint: null,
-      elapsedTime: 0,
-      deaths: 0,
-      collectedPermanentIds: [],
-      collectedTemporalIds: []
-    };
-    this.world.setResource("RunState", runState);
-    this.world.setResource("AudioPlayer", this.audio);
+    setupArcadeRunState(this.world, this.audio);
 
     registerBeltSystems(this.world);
     registerHitRunAI(this.world);

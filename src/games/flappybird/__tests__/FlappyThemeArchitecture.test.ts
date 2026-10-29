@@ -19,7 +19,7 @@ describe("Flappy Bird theme presentation separation", () => {
     expect(resolveFlappyTheme("default")).toBe(neonThemeModule);
     expect(resolveFlappyTheme("neon")).toBe(neonThemeModule);
     expect(resolveFlappyTheme(OFFICE_PAPER_THEME_ID)).toBe(officePaperThemeModule);
-    expect(resolveFlappyTheme({ conceptPack: { id: OFFICE_PAPER_THEME_ID } } as any)).toBe(
+    expect(resolveFlappyTheme({ conceptPack: { id: OFFICE_PAPER_THEME_ID } } as never)).toBe(
       officePaperThemeModule
     );
   });

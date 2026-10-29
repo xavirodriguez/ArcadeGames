@@ -1,6 +1,6 @@
 import { World, RenderComponent } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry } from "../types/GeometryWarsRegistry";
-import { colors } from "../../../theme/colors";
+import { GEOMETRY_WARS_VISUAL_TOKENS } from "../presentation/GeometryWarsVisualTokens";
 import { createParticlePool, VisualParticlePool, VisualParticle } from "../../shared/rendering/VisualParticlePool";
 import { resolveGridDisplacementContext } from "./GeometryWarsRenderUtils";
 import { getRenderGuard, getDrawableTransform } from "../../shared/rendering/renderingUtils";
@@ -77,7 +77,7 @@ export function updatePlayerShipVisuals(
   render: RenderComponent,
   x: number,
   y: number,
-  particleColor: string = colors.cyan
+  particleColor: string = GEOMETRY_WARS_VISUAL_TOKENS.player
 ): void {
   // Trigger thruster smoke/engine particles trailing behind on movement
   const velocity = world.getComponent(entity, "Velocity");
@@ -124,7 +124,7 @@ export function updatePlayerShipVisuals(
             Math.sin(spreadAngle) * pSpeed,
             world.renderRandom.nextRange(0.15, 0.35),
             world.renderRandom.nextRange(2.0, 3.5),
-            colors.white
+            GEOMETRY_WARS_VISUAL_TOKENS.particleDefault
           );
         }
       }
@@ -139,8 +139,8 @@ export function updatePlayerShipVisuals(
  */
 export function monitorBulletsAndSpawnTrails(
   world: World<GeometryWarsComponentRegistry>,
-  goldColor: string = colors.gold,
-  pinkColor: string = colors.pink
+  goldColor: string = GEOMETRY_WARS_VISUAL_TOKENS.trailPrimary,
+  pinkColor: string = GEOMETRY_WARS_VISUAL_TOKENS.trailSecondary
 ): void {
   CURRENT_BULLETS_SET.clear();
 
@@ -201,8 +201,8 @@ export function prepareGeometryWarsFramePrologue(
   world: World<GeometryWarsComponentRegistry>,
   width: number,
   height: number,
-  goldColor: string = colors.gold,
-  pinkColor: string = colors.pink
+  goldColor: string = GEOMETRY_WARS_VISUAL_TOKENS.trailPrimary,
+  pinkColor: string = GEOMETRY_WARS_VISUAL_TOKENS.trailSecondary
 ): { playerX: number; playerY: number; bulletCount: number } {
   updateVisualParticles();
   monitorBulletsAndSpawnTrails(world, goldColor, pinkColor);

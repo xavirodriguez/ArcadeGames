@@ -13,7 +13,7 @@ import {
   ProjectileParams
 } from "@tiny-aster/core";
 import { CollisionLayers, createProjectilePoolConfig, SharedParticlePool } from "@tiny-aster/gameplay-kit";
-import { colors } from "../../theme/colors";
+import { GEOMETRY_WARS_VISUAL_TOKENS } from "./presentation/GeometryWarsVisualTokens";
 
 /**
  * Standardized GWBulletPool for Geometry Wars.
@@ -35,7 +35,7 @@ export class GWBulletPool extends ProjectilePool<any, ProjectileParams> {
         extraComponents: (data: any, p: ProjectileParams) => {
           data.position.rotation = p.shape ? parseFloat(p.shape) : 0;
           data.position.worldRotation = data.position.rotation;
-          data.render.color = p.color || colors.gold;
+          data.render.color = p.color || GEOMETRY_WARS_VISUAL_TOKENS.bullet;
           data.render.rotation = data.position.rotation;
           if (data.collider.shape.type === ShapeType.Circle) {
             (data.collider.shape as CircleShape).radius = p.size / 2;

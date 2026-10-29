@@ -54,6 +54,7 @@ import {
 } from "./MapUtils";
 import type { GridLayout } from "../shared/grid/GridTypes";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
+import { TOWER_DEFENSE_VISUAL_TOKENS } from "./presentation/TowerDefenseVisualTokens";
 import { runWithUnlockedRandomAndMutators } from "../shared/configHelper";
 import { queryPlayerEntity } from "../shared/networkUtils";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
@@ -395,10 +396,10 @@ export class TowerDefenseGame extends BaseGame<
 
     RendererUtils.registerAssets(renderer, {
       canvas: (r) => {
-        r.registerShape("creep_grunt", safeCanvasCreep("#ff2d55"));
-        r.registerShape("creep_fast", safeCanvasCreep("#4fc3f7"));
-        r.registerShape("creep_tank", safeCanvasCreep("#94a3b8"));
-        r.registerShape("creep_boss", safeCanvasCreep("#ef4444"));
+        r.registerShape("creep_grunt", safeCanvasCreep(TOWER_DEFENSE_VISUAL_TOKENS.creeps.grunt));
+        r.registerShape("creep_fast", safeCanvasCreep(TOWER_DEFENSE_VISUAL_TOKENS.creeps.fast));
+        r.registerShape("creep_tank", safeCanvasCreep(TOWER_DEFENSE_VISUAL_TOKENS.creeps.tank));
+        r.registerShape("creep_boss", safeCanvasCreep(TOWER_DEFENSE_VISUAL_TOKENS.creeps.boss));
 
         try {
           const {
@@ -417,10 +418,10 @@ export class TowerDefenseGame extends BaseGame<
           r.registerShape("tower_sniper", drawTowerSniper);
           r.registerShape("tower_rapid", drawTowerRapid);
           r.registerShape("tower_frost", drawTowerFrost);
-          r.registerShape("creep_grunt", wrapCanvas("creep_grunt", drawCreepGrunt, "#ff2d55"));
-          r.registerShape("creep_fast", wrapCanvas("creep_fast", drawCreepFast, "#4fc3f7"));
-          r.registerShape("creep_tank", wrapCanvas("creep_tank", drawCreepTank, "#94a3b8"));
-          r.registerShape("creep_boss", wrapCanvas("creep_boss", drawCreepBoss, "#ef4444"));
+          r.registerShape("creep_grunt", wrapCanvas("creep_grunt", drawCreepGrunt, TOWER_DEFENSE_VISUAL_TOKENS.creeps.grunt));
+          r.registerShape("creep_fast", wrapCanvas("creep_fast", drawCreepFast, TOWER_DEFENSE_VISUAL_TOKENS.creeps.fast));
+          r.registerShape("creep_tank", wrapCanvas("creep_tank", drawCreepTank, TOWER_DEFENSE_VISUAL_TOKENS.creeps.tank));
+          r.registerShape("creep_boss", wrapCanvas("creep_boss", drawCreepBoss, TOWER_DEFENSE_VISUAL_TOKENS.creeps.boss));
           r.registerShape("tower_projectile", drawTowerProjectile);
           r.registerBackgroundEffect("td_map", drawTdMapBackground);
           console.info("[TD] Canvas custom creep drawers registered");

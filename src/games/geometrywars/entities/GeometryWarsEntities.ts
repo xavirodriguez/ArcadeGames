@@ -12,7 +12,7 @@ import {
 import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 import { attachEnemyDefaults } from "../../shared/enemyHelpers";
 import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry, WeaponComponent } from "../types/GeometryWarsRegistry";
-import { colors } from "../../../theme/colors";
+import { GEOMETRY_WARS_VISUAL_TOKENS } from "../presentation/GeometryWarsVisualTokens";
 import { GeometryWarsConfig } from "../config/GeometryWarsConfig";
 import { FactionComponent, DamageComponent } from "@tiny-aster/gameplay-kit";
 import { SpawnDirectorComponent } from "@tiny-aster/gameplay-kit";
@@ -103,7 +103,7 @@ const ENEMY_CONFIGS: Record<string, Omit<EnemyParams, "x" | "y">> = {
   enemy_chaser: {
     shape: "gw_chaser",
     size: 14,
-    color: colors.pink,
+    color: GEOMETRY_WARS_VISUAL_TOKENS.chaser,
     radius: 7,
     maxSpeed: 140,
     maxAcceleration: 150
@@ -111,7 +111,7 @@ const ENEMY_CONFIGS: Record<string, Omit<EnemyParams, "x" | "y">> = {
   enemy_evader: {
     shape: "gw_evader",
     size: 14,
-    color: "#ffaa00",
+    color: GEOMETRY_WARS_VISUAL_TOKENS.legacyEvader,
     radius: 7,
     maxSpeed: 120,
     maxAcceleration: 100
@@ -119,7 +119,7 @@ const ENEMY_CONFIGS: Record<string, Omit<EnemyParams, "x" | "y">> = {
   enemy_grunt: {
     shape: "gw_grunt",
     size: 10,
-    color: colors.cyan,
+    color: GEOMETRY_WARS_VISUAL_TOKENS.grunt,
     radius: 5,
     maxSpeed: 250,
     maxAcceleration: 280
@@ -127,7 +127,7 @@ const ENEMY_CONFIGS: Record<string, Omit<EnemyParams, "x" | "y">> = {
   seeker: {
     shape: "gw_seeker",
     size: 12,
-    color: colors.pink,
+    color: GEOMETRY_WARS_VISUAL_TOKENS.seeker,
     radius: 6,
     order: 3,
     health: 2,
@@ -139,7 +139,7 @@ const ENEMY_CONFIGS: Record<string, Omit<EnemyParams, "x" | "y">> = {
   evader: {
     shape: "gw_evader",
     size: 12,
-    color: colors.green,
+    color: GEOMETRY_WARS_VISUAL_TOKENS.evader,
     radius: 6,
     order: 3,
     health: 1,
@@ -151,7 +151,7 @@ const ENEMY_CONFIGS: Record<string, Omit<EnemyParams, "x" | "y">> = {
   fast_seeker: {
     shape: "gw_fast_seeker",
     size: 8,
-    color: colors.pink,
+    color: GEOMETRY_WARS_VISUAL_TOKENS.fastSeeker,
     radius: 4,
     order: 3,
     health: 1,

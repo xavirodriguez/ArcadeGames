@@ -1,6 +1,7 @@
 import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
 import { GeometryWarsComponentRegistry } from "../types/GeometryWarsRegistry";
 import { colors } from "../../../theme/colors";
+import { GEOMETRY_WARS_VISUAL_TOKENS } from "../presentation/GeometryWarsVisualTokens";
 import { getDisplacedPoint, BULLET_COORDS } from "../../shared/rendering/ProceduralShapeUtils";
 import { getDrawable, getDrawableTransform } from "../../shared/rendering/renderingUtils";
 import { resolveInvulnerabilityPulse } from "../../shared/rendering/RenderUtils";
@@ -98,7 +99,7 @@ export const drawPlayerShip: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsC
 
     const player = world.getComponent(entity, "Player");
     if (!player) return;
-    const color = render.color ?? colors.cyan;
+    const color = render.color ?? GEOMETRY_WARS_VISUAL_TOKENS.player;
     const x = transform.worldX ?? transform.x;
     const y = transform.worldY ?? transform.y;
 
@@ -184,7 +185,7 @@ function drawDiamondEnemy(
   const drawable = getDrawable(world, entity, defaultSize);
   if (!drawable) return;
   const { render, size } = drawable;
-  const color = render.color ?? colors.pink;
+  const color = render.color ?? GEOMETRY_WARS_VISUAL_TOKENS.fallbacks.canvas.seeker;
   const key = `gw_diamond_${color}_${size}_${aspectX}_${strokeWidth}_${shadowBlur}`;
 
   drawCachedNeonShape(ctx, key, size, (offCtx) => {
@@ -218,7 +219,7 @@ export const drawEvader: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCompo
     const drawable = getDrawable(world, entity, 14);
     if (!drawable) return;
     const { render, size } = drawable;
-    const color = render.color ?? colors.warning;
+    const color = render.color ?? GEOMETRY_WARS_VISUAL_TOKENS.fallbacks.canvas.evader;
     const key = `gw_evader_${color}_${size}`;
 
     drawCachedNeonShape(ctx, key, size, (offCtx) => {
@@ -242,7 +243,7 @@ export const drawGrunt: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCompon
     const drawable = getDrawable(world, entity, 10);
     if (!drawable) return;
     const { render, size } = drawable;
-    const color = render.color ?? colors.cyan;
+    const color = render.color ?? GEOMETRY_WARS_VISUAL_TOKENS.grunt;
     const key = `gw_grunt_${color}_${size}`;
 
     drawCachedNeonShape(ctx, key, size, (offCtx) => {
@@ -266,7 +267,7 @@ export const drawBullet: ShapeDrawer<CanvasRenderingContext2D, GeometryWarsCompo
     const drawable = getDrawable(world, entity, 4);
     if (!drawable) return;
     const { render, size } = drawable;
-    const color = render.color ?? colors.gold;
+    const color = render.color ?? GEOMETRY_WARS_VISUAL_TOKENS.fallbacks.canvas.bullet;
     const key = `gw_bullet_${color}_${size}`;
 
     drawCachedNeonShape(ctx, key, size, (offCtx) => {
@@ -298,7 +299,7 @@ export const drawEnemyEvader: ShapeDrawer<CanvasRenderingContext2D, GeometryWars
     const drawable = getDrawable(world, entity, 12);
     if (!drawable) return;
     const { render, size } = drawable;
-    const color = render.color ?? colors.green;
+    const color = render.color ?? GEOMETRY_WARS_VISUAL_TOKENS.evader;
     const key = `gw_enemy_evader_${color}_${size}`;
 
     drawCachedNeonShape(ctx, key, size, (offCtx) => {
@@ -319,7 +320,7 @@ export const drawEnemyFastSeeker: ShapeDrawer<CanvasRenderingContext2D, Geometry
     const drawable = getDrawable(world, entity, 8);
     if (!drawable) return;
     const { render, size } = drawable;
-    const color = render.color ?? colors.pink;
+    const color = render.color ?? GEOMETRY_WARS_VISUAL_TOKENS.fallbacks.canvas.fastSeeker;
     const key = `gw_fast_seeker_${color}_${size}`;
 
     drawCachedNeonShape(ctx, key, size, (offCtx) => {
@@ -375,14 +376,14 @@ export const drawGeometryWarsBackground: EffectDrawer<CanvasRenderingContext2D, 
     const { width, height } = screen;
 
     // 1. Frame prologue: update particles, monitor bullet trails, resolve grid displacement context
-    const { playerX, playerY, bulletCount } = prepareGeometryWarsFramePrologue(world, width, height, colors.gold, colors.pink);
+    const { playerX, playerY, bulletCount } = prepareGeometryWarsFramePrologue(world, width, height, GEOMETRY_WARS_VISUAL_TOKENS.fallbacks.canvas.trailPrimary, GEOMETRY_WARS_VISUAL_TOKENS.fallbacks.canvas.trailSecondary);
 
     // 2. Render visual particles
     drawCanvasVisualParticles(ctx);
 
     // 3. Draw Deforming Grid Lines
     ctx.save();
-    ctx.strokeStyle = colors.border; // Translucent neon grid border
+    ctx.strokeStyle = GEOMETRY_WARS_VISUAL_TOKENS.fallbacks.canvas.grid; // Translucent neon grid border
     ctx.lineWidth = 0.8;
 
     // Draw horizontal grid lines

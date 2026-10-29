@@ -1,4 +1,3 @@
-import type { Theme } from "@tiny-aster/core";
 import type { HitAndRunThemeModule, HitAndRunThemeId } from "./types";
 import { fantasyThemeModule } from "./fantasy/FantasyThemeModule";
 import { sumiEThemeModule } from "./sumi-e/SumiEThemeModule";
@@ -14,18 +13,17 @@ function asThemeId(raw: string | undefined | null): HitAndRunThemeId {
   return "fantasy";
 }
 
-/**
- * Authoritative presentation facade. Activates ThemeRegistry when resolving
- * so drawers continue to use getActiveTheme().
- */
-export function resolveHitAndRunTheme(themeOrId?: Theme | string | null): HitAndRunThemeModule {
-  const raw =
-    typeof themeOrId === "string"
-      ? themeOrId
-      : resolveThemeIdFromConfig(undefined);
-  const id = asThemeId(raw);
-  ThemeRegistry.setActiveTheme(id);
-  return THEMES[id];
+/** Pure resolver: selecting metadata does not mutate the currently active theme. */
+export function resolveHitAndRunTheme(themeOrId?: string | null): HitAndRunThemeModule {
+  const raw = themeOrId ?? resolveThemeIdFromConfig(undefined);
+  return THEMES[asThemeId(raw)];
+}
+
+/** The single production entry point for changing Hit & Run's active renderer theme. */
+export function activateHitAndRunTheme(themeOrId?: string | null): HitAndRunThemeModule {
+  const themeModule = resolveHitAndRunTheme(themeOrId);
+  ThemeRegistry.setActiveTheme(themeModule.id);
+  return themeModule;
 }
 
 export { fantasyThemeModule, sumiEThemeModule, THEMES };

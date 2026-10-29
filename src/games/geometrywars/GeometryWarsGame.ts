@@ -36,7 +36,7 @@ import {
 } from "./types/GeometryWarsRegistry";
 import { GeometryWarsConfig, GeometryWarsConfigSchema, DEFAULT_CONFIG } from "./config/GeometryWarsConfig";
 import { GeometryWarsGameScene } from "./scenes/GeometryWarsGameScene";
-import { colors } from "../../theme/colors";
+import { GEOMETRY_WARS_VISUAL_TOKENS } from "./presentation/GeometryWarsVisualTokens";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import { markLocalPlayerEntity, NO_OP_SYNC, applyServerSnapshot } from "../shared/networkUtils";
 
@@ -278,7 +278,7 @@ export class GeometryWarsGame extends BaseGame<
         commands.addComponent(entity, { type: "Velocity", vx: 0, vy: 0, angularVelocity: 0 });
         commands.addComponent(
           entity,
-          createRenderComponent({ shape: "gw_player", size: 16, color: colors.cyan, rotation: state.angle, order: 1 })
+          createRenderComponent({ shape: "gw_player", size: 16, color: GEOMETRY_WARS_VISUAL_TOKENS.player, rotation: state.angle, order: 1 })
         );
         commands.addComponent(entity, createHealthComponent(state.alive ? 1 : 0, 1));
       },
@@ -299,7 +299,7 @@ export class GeometryWarsGame extends BaseGame<
         const state = rawState as { alive: boolean; angle: number };
         world.mutateComponent(entity, "Render", (render: RenderComponent) => {
           render.rotation = state.angle;
-          render.color = state.alive ? colors.cyan : "gray";
+          render.color = state.alive ? GEOMETRY_WARS_VISUAL_TOKENS.player : GEOMETRY_WARS_VISUAL_TOKENS.playerDead;
         });
       }
     },
@@ -312,7 +312,7 @@ export class GeometryWarsGame extends BaseGame<
         commands.addComponent(entity, createTransformComponent(state.x, state.y, state.angle));
         commands.addComponent(
           entity,
-          createRenderComponent({ shape: state.type || "gw_seeker", size: 12, color: colors.pink, rotation: state.angle, order: 1 })
+          createRenderComponent({ shape: state.type || "gw_seeker", size: 12, color: GEOMETRY_WARS_VISUAL_TOKENS.seeker, rotation: state.angle, order: 1 })
         );
       },
       sync: NO_OP_SYNC
@@ -326,7 +326,7 @@ export class GeometryWarsGame extends BaseGame<
         commands.addComponent(entity, createTransformComponent(state.x, state.y, state.angle));
         commands.addComponent(
           entity,
-          createRenderComponent({ shape: "gw_bullet", size: 4, color: colors.gold, rotation: state.angle, order: 2 })
+          createRenderComponent({ shape: "gw_bullet", size: 4, color: GEOMETRY_WARS_VISUAL_TOKENS.bullet, rotation: state.angle, order: 2 })
         );
       },
       sync: NO_OP_SYNC

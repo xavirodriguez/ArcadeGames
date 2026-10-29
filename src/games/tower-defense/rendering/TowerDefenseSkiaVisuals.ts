@@ -6,6 +6,7 @@ import { Skia, getPaint, SkCanvas, SkPaint } from "../../shared/rendering/SkiaCo
 import { drawGlowOrbSkia } from "../../shared/rendering/SkiaNeonUtils";
 import { colors } from "../../../theme/colors";
 import { createSpriteAnimator, drawSpriteSkia } from "../../shared/sprites";
+import { TOWER_DEFENSE_VISUAL_TOKENS } from "../presentation/TowerDefenseVisualTokens";
 import {
   createPathDirectionMarkers,
   resolveCreepAnimationState,
@@ -242,7 +243,7 @@ export const drawSkiaTowerBasic: ShapeDrawer<SkCanvas, TowerDefenseComponentRegi
     TOWER_BASIC_SPRITE.scale = size / 34;
     const spriteDrawn = !isPaperDusk && drawSpriteSkia(canvas, TOWER_BASIC_SPRITE, 0, 0);
     if (!spriteDrawn) {
-      drawSkiaTower(world, canvas, size, "tower_basic", "tower_basic_accent", colors.cyan, colors.blueLight, "basic");
+      drawSkiaTower(world, canvas, size, "tower_basic", "tower_basic_accent", TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.skia.basic.primary, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.skia.basic.accent, "basic");
     }
     drawSkiaTowerWeapon(canvas, world, entity, size, "basic");
   },
@@ -256,7 +257,7 @@ export const drawSkiaTowerSniper: ShapeDrawer<SkCanvas, TowerDefenseComponentReg
     TOWER_SNIPER_SPRITE.scale = size / 34;
     const spriteDrawn = !isPaperDusk && drawSpriteSkia(canvas, TOWER_SNIPER_SPRITE, 0, 0);
     if (!spriteDrawn) {
-      drawSkiaTower(world, canvas, size, "tower_sniper", "tower_sniper_accent", colors.purple, colors.violet, "sniper");
+      drawSkiaTower(world, canvas, size, "tower_sniper", "tower_sniper_accent", TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.skia.sniper.primary, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.skia.sniper.accent, "sniper");
     }
     drawSkiaTowerWeapon(canvas, world, entity, size, "sniper");
   },
@@ -266,7 +267,7 @@ export const drawSkiaTowerRapid: ShapeDrawer<SkCanvas, TowerDefenseComponentRegi
   draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
     const size = render?.size ?? 28;
-    drawSkiaTower(world, canvas, size, "tower_rapid", "tower_rapid_accent", colors.green, colors.primary, "rapid");
+    drawSkiaTower(world, canvas, size, "tower_rapid", "tower_rapid_accent", TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.skia.rapid.primary, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.skia.rapid.accent, "rapid");
     drawSkiaTowerWeapon(canvas, world, entity, size, "rapid");
   },
 };
@@ -484,7 +485,7 @@ export const drawSkiaTowerFrost: ShapeDrawer<SkCanvas, TowerDefenseComponentRegi
   draw(canvas, world, entity) {
     const render = world.getComponent(entity, "Render");
     const size = render?.size ?? 28;
-    drawSkiaTower(world, canvas, size, "tower_frost", "tower_frost_accent", colors.cyan, colors.tertiary);
+    drawSkiaTower(world, canvas, size, "tower_frost", "tower_frost_accent", TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.skia.frost.primary, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.skia.frost.accent);
     drawSkiaTowerWeapon(canvas, world, entity, size, "frost");
   },
 };

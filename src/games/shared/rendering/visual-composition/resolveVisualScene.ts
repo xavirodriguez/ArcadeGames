@@ -8,7 +8,6 @@ import {
   VisualCompositionResult,
   VisualCoordinateSpace,
   VisualInstanceDefinition,
-  VisualLayerItemDefinition,
   VisualLayerRole,
   VisualPrefabDefinition
 } from "./VisualCompositionTypes";
@@ -21,7 +20,6 @@ const ROLE_DEPTH: Record<VisualLayerRole, number> = {
 };
 const LEVEL_KEYS = new Set(["schemaVersion", "id", "theme", "layers"]);
 const LAYER_KEYS = new Set(["id", "role", "order", "space", "parallaxFactor", "items", "position"]);
-const ITEM_KEYS = new Set(["kind", "instance", "id", "prefab", "position"]);
 const INSTANCE_KEYS = new Set(["id", "asset", "position", "scale", "rotation", "opacity", "flipX"]);
 const POINT_KEYS = new Set(["x", "y"]);
 const SCALE_KEYS = new Set(["x", "y"]);
@@ -215,7 +213,7 @@ export function resolveVisualScene(
       } else {
         const prefab = catalog.prefabs?.get(item.prefab);
         if (!prefab) {
-          issue([], `layers.${layer.id}.items[${itemIndex}].prefab`, `unknown prefab "${item.prefab}" after validation`);
+          issue(resolutionIssues, `layers.${layer.id}.items[${itemIndex}].prefab`, `unknown prefab "${item.prefab}" after validation`);
           return;
         }
         prefab.instances.forEach((instance, prefabIndex) => {

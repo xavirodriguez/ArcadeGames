@@ -1,12 +1,21 @@
 export {
   SUMI_E_SEMANTIC_TOKENS,
   type HexColor,
+  type SemanticColor,
+  type SumiESemanticRole,
+  type SumiELandscapeColor,
   type SumiELandscapeTokens,
+  type SumiEPlayerColor,
   type SumiEPlayerTokens,
+  type SumiERewardColor,
   type SumiERewardTokens,
   type SumiESemanticTokens,
+  type SumiESurfaceColor,
   type SumiESurfaceTokens,
+  type SumiETextColor,
   type SumiETextTokens,
+  type SumiEThreatColor,
   type SumiEThreatTokens,
+  type SumiEUiColor,
   type SumiEUiTokens
 } from "./SumiESemanticTokens";

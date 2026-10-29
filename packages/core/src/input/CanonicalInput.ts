@@ -27,6 +27,10 @@ export type CanonicalActionName<TExtra extends string = never> =
   | "moveLeft"
   | "moveRight"
   | "bomb"
+  | "build"
+  | "sell"
+  | "upgrade"
+  | "startWave"
   | TExtra;
 
 const CANONICAL_ACTION_SET = new Set<string>([
@@ -51,7 +55,11 @@ const CANONICAL_ACTION_SET = new Set<string>([
   "brake",
   "moveLeft",
   "moveRight",
-  "bomb"
+  "bomb",
+  "build",
+  "sell",
+  "upgrade",
+  "startWave"
 ]);
 
 /**

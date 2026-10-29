@@ -25,7 +25,7 @@ import {
   InputFrame,
   EntitySyncDescriptor,
   hasInputAction,
-  normalizeInputActions
+  CanonicalActionName
 } from "@tiny-aster/core";
 import {
   GeometryWarsComponentRegistry,
@@ -246,7 +246,7 @@ export class GeometryWarsGame extends BaseGame<
           aim.aimX = input.axes.aimX;
           aim.aimY = input.axes.aimY;
         }
-        aim.isFiring = hasInputAction(normalizeInputActions(input.actions), "fire");
+        aim.isFiring = hasInputAction(input.actions as readonly CanonicalActionName[], "fire");
       });
     }
   }
@@ -365,14 +365,14 @@ export class GeometryWarsGame extends BaseGame<
       const inputObj = input as Record<string, unknown>;
       // CanonicalInputState support
       const axes = ((inputObj.axes as Record<string, number> | undefined) ?? inputObj) as Record<string, number | undefined>;
-      const hasActionsProp = inputObj.actions !== undefined;
+      const actions = inputObj.actions as readonly CanonicalActionName[] | undefined;
 
       if (sceneWorld.hasComponent(player, "Player")) {
         sceneWorld.mutateComponent(player, "Player", (p) => {
           if (typeof axes.moveX === "number") p.moveX = axes.moveX;
           if (typeof axes.moveY === "number") p.moveY = axes.moveY;
-          if (hasActionsProp) {
-            p.useBomb = hasInputAction(normalizeInputActions(inputObj.actions), "bomb");
+          if (actions !== undefined) {
+            p.useBomb = hasInputAction(actions, "bomb");
           } else if (inputObj.bomb !== undefined) {
             p.useBomb = !!inputObj.bomb;
           }
@@ -394,8 +394,8 @@ export class GeometryWarsGame extends BaseGame<
               aim.aimY = axes.aimY;
             }
           }
-          if (hasActionsProp) {
-            aim.isFiring = hasInputAction(normalizeInputActions(inputObj.actions), "fire");
+          if (actions !== undefined) {
+            aim.isFiring = hasInputAction(actions, "fire");
           } else if (inputObj.fire !== undefined) {
             aim.isFiring = !!inputObj.fire;
           }

@@ -69,7 +69,6 @@ export * from "./input/TouchInputState";
 export * from "./input/TouchInputUtils";
 export * from "./input/providers";
 export * from "./input/hasInputAction";
-export * from "./input/normalizeInputActions";
 
 // Loop & Runtime
 export * from "./loop/GameLoop";

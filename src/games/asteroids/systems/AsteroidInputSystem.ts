@@ -289,7 +289,7 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
       }
   }
 
-  private hasAction(input: AsteroidsComponentRegistry["Input"], actionName: string, touchState?: TouchInputState): boolean {
+  private hasAction(input: AsteroidsComponentRegistry["Input"], actionName: "shoot" | "hyperspace" | "thrust" | "rotateLeft" | "rotateRight", touchState?: TouchInputState): boolean {
     if (touchState) {
       if (actionName === "shoot" && touchState.getButton("shoot")) return true;
       if (actionName === "hyperspace" && touchState.getButton("hyperspace")) return true;

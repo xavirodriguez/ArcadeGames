@@ -19,7 +19,7 @@ export const SUMI_E_VILLAGE_COMPOSITION: LevelVisualDefinition = {
       items: [],
       repeaters: [{
         id: "distant-houses",
-        assets: ["urban_small_houses", "urban_house_01", "urban_house_03"],
+        assets: ["urban_small_houses", "urban_house_01", "urban_house_03", "urban_casita_01", "urban_casita_02"],
         start: { x: -260, y: 350 },
         spacing: 500,
         scale: { x: 0.42, y: 0.42 },
@@ -35,7 +35,7 @@ export const SUMI_E_VILLAGE_COMPOSITION: LevelVisualDefinition = {
       items: [],
       repeaters: [{
         id: "village-houses",
-        assets: ["urban_house_01", "urban_house_03", "urban_house_04", "urban_large_house"],
+        assets: ["urban_house_01", "urban_house_03", "urban_house_04", "urban_large_house", "urban_casita_01", "urban_casita_02", "urban_casita_04", "urban_casita_05"],
         start: { x: -180, y: 440 },
         spacing: 470,
         scale: { x: 0.68, y: 0.68 },
@@ -51,7 +51,7 @@ export const SUMI_E_VILLAGE_COMPOSITION: LevelVisualDefinition = {
       items: [],
       repeaters: [{
         id: "foreground-houses",
-        assets: ["urban_big_house", "urban_large_house", "urban_house_04", "urban_house_03"],
+        assets: ["urban_big_house", "urban_large_house", "urban_house_04", "urban_house_03", "urban_casita_04", "urban_casita_05", "urban_casita_07"],
         start: { x: -320, y: 535 },
         spacing: 410,
         scale: { x: 0.88, y: 0.88 },

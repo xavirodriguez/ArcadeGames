@@ -16,6 +16,10 @@ describe("declarative Sumi-e village pilot", () => {
     expect(first.value.repeaters?.map(repeater => repeater.spacing)).toEqual([500, 470, 410]);
     expect(first.value.repeaters?.every(repeater => repeater.assets.length >= 3)).toBe(true);
     expect(first.value.repeaters?.every(repeater => repeater.assets.every(asset => asset.id.startsWith("urban_")))).toBe(true);
+    const repeatedAssetIds = new Set(first.value.repeaters?.flatMap(repeater => repeater.assets.map(asset => asset.id)) ?? []);
+    expect([...repeatedAssetIds]).toEqual(expect.arrayContaining([
+      "urban_casita_01", "urban_casita_02", "urban_casita_04", "urban_casita_05", "urban_casita_07"
+    ]));
   });
 
   it("applies world, screen and parallax camera semantics in the Canvas adapter", () => {

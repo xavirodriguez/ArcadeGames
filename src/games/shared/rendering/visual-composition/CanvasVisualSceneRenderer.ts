@@ -8,6 +8,11 @@ export interface CanvasVisualSceneCamera {
   readonly y: number;
 }
 
+export interface CanvasVisualSceneOffset {
+  readonly x: number;
+  readonly y: number;
+}
+
 function cameraFactor(space: VisualCoordinateSpace, parallaxFactor?: number): number {
   if (space === "screen") return 0;
   if (space === "world") return 1;
@@ -17,12 +22,13 @@ function cameraFactor(space: VisualCoordinateSpace, parallaxFactor?: number): nu
 /** Resolve scene-space coordinates to Canvas viewport coordinates. */
 export function getCanvasVisualPosition(
   instance: Pick<ResolvedVisualInstance, "position" | "space" | "parallaxFactor">,
-  camera: CanvasVisualSceneCamera
+  camera: CanvasVisualSceneCamera,
+  viewportOffset: CanvasVisualSceneOffset = { x: 0, y: 0 }
 ): { x: number; y: number } {
   const factor = cameraFactor(instance.space, instance.parallaxFactor);
   return {
-    x: instance.position.x - camera.x * factor,
-    y: instance.position.y - camera.y * factor
+    x: instance.position.x - camera.x * factor + viewportOffset.x,
+    y: instance.position.y - camera.y * factor + viewportOffset.y
   };
 }
 
@@ -50,7 +56,8 @@ function getDrawPoint(
 export function drawResolvedVisualSceneCanvas(
   ctx: CanvasRenderingContext2D,
   scene: ResolvedVisualScene,
-  camera: CanvasVisualSceneCamera
+  camera: CanvasVisualSceneCamera,
+  viewportOffset: CanvasVisualSceneOffset = { x: 0, y: 0 }
 ): boolean {
   let complete = true;
   for (const instance of scene.instances) {
@@ -58,7 +65,7 @@ export function drawResolvedVisualSceneCanvas(
       complete = false;
       continue;
     }
-    const point = getCanvasVisualPosition(instance, camera);
+    const point = getCanvasVisualPosition(instance, camera, viewportOffset);
     const target = getDrawPoint(instance, point);
     const animator: SpriteAnimatorComponent = {
       sheetId: instance.asset,

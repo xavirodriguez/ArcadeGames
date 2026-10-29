@@ -11,7 +11,7 @@ import { resolveEchoRunnerSpriteMotion } from "../rendering/EchoRunnerPixelArt";
 
 /**
  * Keeps the player's SpriteAnimator in sync with movement / attack state.
- * Temporary bridge while we test the oni_red sheet as protagonist.
+ * Keeps the Kuchisake-onna sprite animation aligned with Echo Runner movement and pulse state.
  */
 export class EchoRunnerSpriteSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
@@ -24,7 +24,7 @@ export class EchoRunnerSpriteSystem extends System<CoreComponentRegistry> {
         | undefined;
 
       if (!animator) {
-        animator = createSpriteAnimator("oni_red", "idle");
+        animator = createSpriteAnimator("echorunner_kuchisake_onna", "idle");
         world.getCommandBuffer().addComponent(entity, {
           type: "SpriteAnimator",
           sheetId: animator.sheetId,

@@ -4,31 +4,25 @@ import { SumiETheme } from "./SumiETheme";
 import { drawSumiEVillageLayer, drawSumiEVillageLayerSkia } from "./SumiEVillageLayer";
 
 /**
- * Sumi-e theme variant with a repeated village skyline in the backdrop.
- * House silhouettes are presentation-only and never enter the simulation world.
+ * Sumi-e theme variant with repeated building sprites in the settlement plane.
+ * Base theme controls composition order so buildings stay beneath the decorative frame.
  */
 export class SumiEVillageTheme extends SumiETheme implements HitRunTheme {
-  public override renderBackdropSkia(
-    canvas: SkCanvas,
-    w: number,
-    h: number,
-    cameraX: number,
-    cameraY: number,
-    elapsed: number
+  protected override renderEnvironmentLayerCanvas(
+    ctx: CanvasRenderingContext2D,
+    viewportWidth: number,
+    viewportHeight: number,
+    cameraX: number
   ): void {
-    super.renderBackdropSkia(canvas, w, h, cameraX, cameraY, elapsed);
-    drawSumiEVillageLayerSkia(canvas, w, h, cameraX);
+    drawSumiEVillageLayer(ctx, viewportWidth, viewportHeight, cameraX);
   }
 
-  public override renderBackdrop(
-    ctx: CanvasRenderingContext2D,
-    w: number,
-    h: number,
-    cameraX: number,
-    cameraY: number,
-    elapsed: number
+  protected override renderEnvironmentLayerSkia(
+    canvas: SkCanvas,
+    viewportWidth: number,
+    viewportHeight: number,
+    cameraX: number
   ): void {
-    super.renderBackdrop(ctx, w, h, cameraX, cameraY, elapsed);
-    drawSumiEVillageLayer(ctx, w, h, cameraX);
+    drawSumiEVillageLayerSkia(canvas, viewportWidth, viewportHeight, cameraX);
   }
 }

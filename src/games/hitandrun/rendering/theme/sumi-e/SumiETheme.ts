@@ -62,6 +62,22 @@ export class SumiETheme implements HitRunTheme {
     // Pre-seed decal buffer
   }
 
+  /** Theme extension point for decorative bitmap scenery, called above the floor and below frame ornaments. */
+  protected renderEnvironmentLayerCanvas(
+    _ctx: CanvasRenderingContext2D,
+    _viewportWidth: number,
+    _viewportHeight: number,
+    _cameraX: number
+  ): void {}
+
+  /** Native counterpart to the Canvas environment extension point. */
+  protected renderEnvironmentLayerSkia(
+    _canvas: SkCanvas,
+    _viewportWidth: number,
+    _viewportHeight: number,
+    _cameraX: number
+  ): void {}
+
   private initParchmentAndBorder(w: number, h: number): void {
     if (typeof document === "undefined" || typeof document.createElement !== "function") return;
 
@@ -208,6 +224,9 @@ export class SumiETheme implements HitRunTheme {
       ctx.restore();
     }
 
+    // Bitmap scenery belongs above the lane but beneath the decorative edge frame.
+    this.renderEnvironmentLayerCanvas(ctx, w, h, cameraX);
+
     // 5. Foreground roof/branch silhouettes strictly on margins
     ctx.fillStyle = SUMI_E_PALETTE.inkOrOutline;
     ctx.beginPath();
@@ -273,6 +292,9 @@ export class SumiETheme implements HitRunTheme {
     lanePath.moveTo(0, laneY + laneH);
     lanePath.lineTo(w, laneY + laneH);
     canvas.drawPath(lanePath, paint);
+
+    // Keep Canvas and Skia village placement at the same composition depth.
+    this.renderEnvironmentLayerSkia(canvas, w, h, cameraX);
 
     paint.setAlphaf(1);
     canvas.restore();

@@ -567,12 +567,12 @@ export class SpaceInvadersGame
         const { drawExplosionBackgroundEffect } = require("./rendering/SpaceInvadersCanvasVisuals");
         r.registerBackgroundEffect("explosion_vfx", drawExplosionBackgroundEffect);
 
-        activeThemeModule.registerDrawers?.(backend, shape, drawer) => {
+        activeThemeModule.registerDrawers?.((backend, shape, drawer) => {
           if (backend === "canvas") {
             r.registerShape(shape, drawer);
           }
         });
-        activeThemeModule.registerBackgroundEffects?.(backend, name, effect) => {
+        activeThemeModule.registerBackgroundEffects?.((backend, name, effect) => {
           if (backend === "canvas") {
             r.registerBackgroundEffect(name, effect as never);
           }
@@ -597,12 +597,12 @@ export class SpaceInvadersGame
         r.registerShape("particle", drawSkiaSpaceInvadersParticle);
         r.registerBackgroundEffect("explosion_vfx", drawSkiaExplosionBackgroundEffect);
 
-        activeThemeModule.registerDrawers?.(backend, shape, drawer) => {
+        activeThemeModule.registerDrawers?.((backend, shape, drawer) => {
           if (backend === "skia") {
             r.registerShape(shape, drawer);
           }
         });
-        activeThemeModule.registerBackgroundEffects?.(backend, name, effect) => {
+        activeThemeModule.registerBackgroundEffects?.((backend, name, effect) => {
           if (backend === "skia") {
             r.registerBackgroundEffect(name, effect as never);
           }

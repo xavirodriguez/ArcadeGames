@@ -189,6 +189,21 @@ export function getHitRunTheme(world: PresentationWorldReader): HitRunTheme {
   return (getHitRunPresentationSession(world).theme as HitRunPresentationBridge).legacyTheme;
 }
 
+const sessionViewport = new WeakMap<HitRunPresentationSession, { readonly width: number; readonly height: number }>();
+
+export function resizeHitRunPresentationSession(
+  world: PresentationWorldReader,
+  viewportWidth: number,
+  viewportHeight: number
+): void {
+  if (!Number.isFinite(viewportWidth) || !Number.isFinite(viewportHeight) || viewportWidth <= 0 || viewportHeight <= 0) return;
+  const currentSession = getHitRunPresentationSession(world);
+  const previous = sessionViewport.get(currentSession);
+  if (previous?.width === viewportWidth && previous.height === viewportHeight) return;
+  sessionViewport.set(currentSession, { width: viewportWidth, height: viewportHeight });
+  currentSession.theme.onResize?.({ width: viewportWidth, height: viewportHeight, pixelRatio: 1 });
+}
+
 export function resizeHitRunPresentationSession(
   world: PresentationWorldReader,
   viewportWidth: number,

@@ -3,6 +3,7 @@ import {
   createHitRunPresentationSession,
   getHitRunPresentationSession,
   getHitRunTheme,
+  resizeHitRunPresentationSession,
   HIT_RUN_PRESENTATION_SESSION_RESOURCE
 } from "../HitRunPresentationSession";
 
@@ -49,6 +50,21 @@ describe("HitRunPresentationSession", () => {
 
     expect(getHitRunPresentationSession(world)).toBe(session);
     expect(getHitRunTheme(world)).toBe(resolvedTheme);
+    session.dispose();
+  });
+
+  test("notifies its theme once per distinct valid viewport", () => {
+    const session = createHitRunPresentationSession("sumi-e", "session-resize", 50);
+    const world = createSessionWorld(session);
+    const onResize = jest.spyOn(getHitRunTheme(world), "onResize");
+
+    resizeHitRunPresentationSession(world, 800, 600);
+    resizeHitRunPresentationSession(world, 800, 600);
+    resizeHitRunPresentationSession(world, 1024, 768);
+
+    expect(onResize).toHaveBeenCalledTimes(2);
+    expect(onResize).toHaveBeenNthCalledWith(1, 800, 600);
+    expect(onResize).toHaveBeenNthCalledWith(2, 1024, 768);
     session.dispose();
   });
 

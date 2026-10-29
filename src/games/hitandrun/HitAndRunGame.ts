@@ -208,6 +208,10 @@ export class HitAndRunGame extends BaseGame<
     }
   }
 
+  public getPresentationSession(): HitRunPresentationSession | undefined {
+    return this.presentationSession;
+  }
+
   protected override async onPreloadAssets(): Promise<void> {
     this.samuraiAssetLoader.setProvider(createSamuraiAssetProvider());
 

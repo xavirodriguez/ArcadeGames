@@ -5,6 +5,7 @@ import { useGameTheme } from "../../../../context/GameThemeContext";
 import { getGameAccentColors } from "../../../../theme/gameAccents";
 import { SUMI_E_SEMANTIC_TOKENS } from "../../../../theme/sumi-e/SumiESemanticTokens";
 import { getAestheticTheme } from "./AestheticTheme";
+import { createAestheticPresentationTokens } from "../../presentation/adapters/AestheticThemeTokens";
 import { SUMI_E_PALETTE, SUMI_E_WINTER_PALETTE } from "./SumiEPalette";
 import { COSMIC_ARCADE_PALETTE } from "../CosmicPalette";
 
@@ -18,6 +19,7 @@ function ThemeProbe(): React.ReactElement {
       "data-aesthetic": aesthetic?.id ?? "legacy",
       "data-semantic-paper": aesthetic?.semanticTokens?.surface.paper ?? "",
       "data-legacy-background": aesthetic?.backgroundColor ?? "",
+      "data-presentation-background": theme.presentationTokens?.colors.background ?? "",
       "data-primary-accent": theme.accentColors.primary,
       "data-ink-wash": aesthetic?.useInkWash === true ? "enabled" : "disabled"
     },
@@ -85,6 +87,19 @@ describe("GameThemeProvider aesthetic integration", () => {
     expect(markup).toContain('data-aesthetic="legacy"');
     expect(markup).toContain('data-semantic-paper=""');
     expect(markup).toContain(`data-primary-accent="${accents.primary}"`);
+  });
+
+  it("accepts normalized presentation tokens without replacing the legacy UI theme", () => {
+    const aestheticTheme = getAestheticTheme("sumi-e");
+    const presentationTokens = createAestheticPresentationTokens(aestheticTheme);
+    const markup = renderProvider({
+      gameKey: "hitandrun",
+      aestheticTheme,
+      presentationTokens
+    });
+
+    expect(markup).toContain('data-presentation-background="#E7DFCB"');
+    expect(markup).toContain('data-legacy-background="#e8e3d4"');
   });
 
   it("makes canonical Sumi-e tokens available through the React theme context", () => {

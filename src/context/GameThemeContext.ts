@@ -7,6 +7,7 @@ import { radius } from '../theme/radius';
 import { effects } from '../theme/effects';
 import { LAYER_ELEVATION } from '../theme/layers';
 import type { AestheticThemeConfig } from '../games/shared/rendering/sumi-e/AestheticTheme';
+import type { PresentationThemeTokens } from '../games/shared/presentation/PresentationContracts';
 
 export interface ThemeTokens {
   colors: typeof colors;
@@ -27,6 +28,8 @@ export interface GameThemeContextType {
   };
   /** Explicitly selected visual aesthetic; null preserves the legacy game theme. */
   aestheticTheme: AestheticThemeConfig | null;
+  /** Normalized tokens resolved from the same presentation session as the renderer. */
+  presentationTokens: PresentationThemeTokens<object> | null;
   highContrast: boolean;
   reduceMotion: boolean;
   setHighContrast: (value: boolean) => void;
@@ -44,6 +47,7 @@ const DEFAULT_GAME_THEME: GameThemeContextType = {
     accent: colors.amber,
   },
   aestheticTheme: null,
+  presentationTokens: null,
   highContrast: false,
   reduceMotion: false,
   setHighContrast: () => {},

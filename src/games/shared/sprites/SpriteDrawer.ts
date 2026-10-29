@@ -368,7 +368,7 @@ export function drawSpriteSkia(
   const ox = (animator.offsetX ?? 0) * animator.scale;
   const oy = (animator.offsetY ?? 0) * animator.scale;
   const anchor = sheet.anchor ?? { x: 0.5, y: 1 };
-  const destination = calculateSpriteDestinationRect(dw, dh, {
+  const destination = calculateSpriteDestinationRect(dw, dh, options?.destinationAnchor ?? {
     x: anchor.x,
     y: options?.anchor === "center" ? 0.5 : anchor.y
   });

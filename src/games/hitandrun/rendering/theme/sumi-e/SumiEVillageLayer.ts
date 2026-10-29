@@ -5,9 +5,9 @@
  * middle distance remain owned by SumiETheme's procedural ink-wash parallax.
  * These props are deterministic presentation-only elements, not ECS entities.
  */
-import { SpriteRegistry } from "../../../../shared/sprites/SpriteRegistry";
-import { drawSpriteCanvas, preloadSpriteSheetCanvas } from "../../../../shared/sprites/SpriteDrawer";
-import type { SpriteAnimatorComponent } from "../../../../shared/sprites/SpriteAnimator";
+import { resolveVisualScene, type ResolvedVisualScene } from "../../../../shared/rendering/visual-composition";
+import { drawResolvedVisualSceneCanvas, preloadResolvedVisualSceneCanvas } from "../../../../shared/rendering/visual-composition/CanvasVisualSceneRenderer";
+import { createSumiEVillageCatalog, SUMI_E_VILLAGE_COMPOSITION } from "./SumiEVillageComposition";
 
 export interface SumiEVillageHousePlacement {
   x: number;
@@ -22,16 +22,16 @@ const FOREGROUND_OFFSET = 170;
 const FOREGROUND_DEPTH = 0.58;
 const FOREGROUND_SCALE = 0.19;
 const FOREGROUND_ALPHA = 0.78;
-let towerLoadRequested = false;
+let resolvedVillage: ResolvedVisualScene | null = null;
+let villageLoadRequested = false;
 
-const TOWER_SPRITE: SpriteAnimatorComponent = {
-  sheetId: "tower_basic_art",
-  currentAnim: "idle",
-  frameIndex: 0,
-  timer: 0,
-  flipX: false,
-  scale: 1
-};
+function getResolvedVillage(): ResolvedVisualScene | null {
+  if (resolvedVillage) return resolvedVillage;
+  const result = resolveVisualScene(SUMI_E_VILLAGE_COMPOSITION, createSumiEVillageCatalog());
+  if (!result.ok) return null;
+  resolvedVillage = result.value;
+  return resolvedVillage;
+}
 
 /** Pure placement calculation: stable across frames and independent of RNG. */
 export function getSumiEVillageHousePlacements(
@@ -56,29 +56,33 @@ export function getSumiEVillageHousePlacements(
   return placements;
 }
 
-/** Draw shared tower art as a foreground landmark; procedural distance layers stay untouched. */
+/** Draw the fixed declarative pilot over the existing procedural ink-wash backdrop. */
 export function drawSumiEVillageLayer(
   ctx: CanvasRenderingContext2D,
   viewportWidth: number,
   viewportHeight: number,
   cameraX: number
 ): void {
-  if (!towerLoadRequested) {
-    towerLoadRequested = true;
-    SpriteRegistry.init();
-    void preloadSpriteSheetCanvas("tower_basic_art").catch(() => {
-      // The backdrop remains usable if the optional sprite cannot be decoded.
+  const scene = getResolvedVillage();
+  if (!scene) return;
+
+  if (!villageLoadRequested) {
+    villageLoadRequested = true;
+    void preloadResolvedVisualSceneCanvas(scene).catch(() => {
+      // Keep the procedural backdrop available if optional sprite art fails.
     });
   }
 
-  const placements = getSumiEVillageHousePlacements(viewportWidth, viewportHeight, cameraX);
-  for (const prop of placements) {
-    if (prop.x < -130 || prop.x > viewportWidth + 130) continue;
-    ctx.save();
-    ctx.globalAlpha *= prop.alpha;
-    // The full-image tower artwork is centered; keep a modest foreground scale.
-    TOWER_SPRITE.scale = prop.scale;
-    drawSpriteCanvas(ctx, TOWER_SPRITE, prop.x, prop.baselineY, { anchor: "center", opacity: prop.alpha });
-    ctx.restore();
-  }
+  // The pilot uses a fixed 800×600 authoring canvas; adapt its origin to the
+  // actual viewport while preserving authored spacing and camera parallax.
+  const offsetX = (viewportWidth - 800) * 0.5;
+  const offsetY = viewportHeight - 600;
+  const viewportScene: ResolvedVisualScene = {
+    ...scene,
+    instances: scene.instances.map(instance => ({
+      ...instance,
+      position: { x: instance.position.x + offsetX, y: instance.position.y + offsetY }
+    }))
+  };
+  drawResolvedVisualSceneCanvas(ctx, viewportScene, { x: cameraX, y: 0 });
 }

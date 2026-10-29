@@ -90,9 +90,23 @@ describe("SkiaPresentationPainter", () => {
     expect(canvas.drawRect).toHaveBeenCalledTimes(1);
   });
 
-  test("rejects a gradient owned by another adapter", () => {
+  test("rejects a gradient owned by a different Skia painter", () => {
     const canvas = createSkiaCanvasMock();
-    const painter = new SkiaPresentationPainter(canvas);
+    const ownerPainter = new SkiaPresentationPainter(createSkiaCanvasMock());
+    const consumerPainter = new SkiaPresentationPainter(canvas);
+    const foreignGradient = ownerPainter.createLinearGradient(0, 0, 10, 0);
+    foreignGradient.addColorStop(0, "#000000");
+
+    expect(() =>
+      consumerPainter.fillRect(
+        { x: 0, y: 0, width: 1, height: 1 },
+        { gradient: foreignGradient }
+      )
+    ).toThrow("Gradient was not created by this painter.");
+  });
+
+  test("rejects a gradient that does not implement the Skia painter's gradient contract", () => {
+    const painter = new SkiaPresentationPainter(createSkiaCanvasMock());
 
     expect(() =>
       painter.fillRect(

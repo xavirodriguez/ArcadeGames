@@ -31,8 +31,8 @@ import { ParallaxSystem } from "./systems/ParallaxSystem";
 import { scenarioHash } from "./rendering/OutrunPalettes";
 import { expandStretch, type StretchDescriptor } from "./rendering/RoadStretch";
 import { applyVisualMod } from "./mods/applyVisualMod";
-import { classicMod } from "./mods/classic/ClassicMod";
-import type { OutrunVisualMod } from "./mods/types";
+import { classicTheme } from "./mods/classic/ClassicTheme";
+import type { OutrunThemeModule } from "./mods/types";
 import { initializeOutrunRenderer } from "./rendering/OutrunRendererManager";
 
 import outrunConfigRaw from "./config/outrun.json";
@@ -222,7 +222,7 @@ export class OutrunGame extends BaseGame<
     const segments: RoadSegment[] = [];
     const segLen = config.segmentLength;
     const rng = world.gameplayRandom;
-    const visualMod = world.getResource<OutrunVisualMod>("VisualMod") ?? classicMod;
+    const visualMod = world.getResource<OutrunThemeModule>("OutrunThemeModule") ?? classicTheme;
 
     const add = (count: number, curve: number, hill: number) => {
       for (let i = 0; i < count; i++) {
@@ -338,8 +338,8 @@ export class OutrunGame extends BaseGame<
 
   /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   public initializeRenderer(renderer: Renderer<OutrunComponentRegistry, any>): void {
-    const visualMod = this.world.getResource<OutrunVisualMod>("VisualMod");
-    initializeOutrunRenderer(renderer, visualMod);
+    const themeModule = this.world.getResource<OutrunThemeModule>("OutrunThemeModule");
+    initializeOutrunRenderer(renderer, themeModule);
   }
 
   public getGameState(): RaceStateComponent {

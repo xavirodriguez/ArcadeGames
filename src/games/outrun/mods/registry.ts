@@ -1,42 +1,40 @@
-import type { OutrunVisualMod, OutrunVisualModId } from "./types";
+import type { OutrunVisualMod, OutrunVisualModId, OutrunThemeModule, OutrunGameplayMod } from "./types";
 import { classicMod } from "./classic/ClassicMod";
+import { createOutrunVisualModFacade } from "./createVisualModFacade";
 
-/**
- * Dynamic registry map for Outrun visual mods.
- */
+/** One canonical registry stores each aesthetic bundle and serves legacy callers. */
 const MOD_REGISTRY = new Map<string, OutrunVisualMod>([
   ["classic", classicMod]
 ]);
 
-/**
- * Registers a new visual mod plugin or overrides an existing mod by ID.
- *
- * @public
- */
+/** Register a paired bundle or normalize a legacy flat visual mod. */
 export function registerVisualMod(mod: OutrunVisualMod): void {
-  MOD_REGISTRY.set(mod.id, mod);
+  const theme = mod.theme ?? mod;
+  const gameplay = mod.gameplay ?? mod;
+  const bundle = mod.theme && mod.gameplay
+    ? mod
+    : createOutrunVisualModFacade(theme, gameplay);
+  MOD_REGISTRY.set(bundle.id, bundle);
 }
 
-/**
- * Resolves a visual mod id from config / gameOptions.
- * Unknown or missing values fall back to classic (zero visual change).
- *
- * @public
- */
+/** Unknown or missing IDs retain the historical Classic fallback. */
 export function resolveVisualMod(id: string | undefined | null): OutrunVisualMod {
-  if (id && MOD_REGISTRY.has(id)) {
-    return MOD_REGISTRY.get(id)!;
-  }
-  return MOD_REGISTRY.get("classic") ?? classicMod;
+  return (id ? MOD_REGISTRY.get(id) : undefined) ?? MOD_REGISTRY.get("classic") ?? classicMod;
 }
 
-/**
- * Lists registered visual mods (for menus / debug).
- *
- * @public
- */
+/** Compatibility selectors derive from the single bundle registry; no duplicate registration maps. */
+export function resolveOutrunTheme(id?: string | null): OutrunThemeModule {
+  const bundle = resolveVisualMod(id);
+  return bundle.theme ?? bundle;
+}
+
+export function resolveOutrunGameplayMod(id?: string | null): OutrunGameplayMod {
+  const bundle = resolveVisualMod(id);
+  return bundle.gameplay ?? bundle;
+}
+
 export function listVisualMods(): ReadonlyArray<{ id: OutrunVisualModId; displayName: string }> {
-  return Array.from(MOD_REGISTRY.values()).map((m) => ({ id: m.id, displayName: m.displayName }));
+  return Array.from(MOD_REGISTRY.values(), ({ id, displayName }) => ({ id, displayName }));
 }
 
 export { MOD_REGISTRY as MODS };

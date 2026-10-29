@@ -43,6 +43,31 @@ describe("Phase 3 — Nautical wind", () => {
     expect(vel!.vx).not.toBe(0);
   });
 
+  it("uses the seeded gameplay random source when wind changes", () => {
+    const world = new World<SpaceInvadersComponentRegistry>();
+    const wind = ensureNauticalWind(world);
+    wind.changeRemaining = 0;
+
+    const next = jest.spyOn(world.gameplayRandom, "next")
+      .mockReturnValueOnce(0.75)
+      .mockReturnValueOnce(0.1)
+      .mockReturnValueOnce(0.5);
+    const randomSpy = jest.spyOn(Math, "random").mockImplementation(() => {
+      throw new Error("Nautical wind must not use Math.random()");
+    });
+
+    try {
+      new NauticalWindSystem().update(world, 0);
+      expect(wind.force).toBe(3);
+      expect(wind.sign).toBe(-1);
+      expect(wind.changeRemaining).toBe(7);
+      expect(next).toHaveBeenCalledTimes(3);
+    } finally {
+      randomSpy.mockRestore();
+      next.mockRestore();
+    }
+  });
+
   it("createDefaultWindState has sensible defaults", () => {
     const w = createDefaultWindState();
     expect(w.force).toBe(1);

@@ -1,31 +1,14 @@
 import type { Theme, ShapeDrawer, EffectDrawer, World } from "@tiny-aster/core";
 import type { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
+import type { ThemeModuleDescriptor, GameplayModDescriptor, AestheticBundle } from "../../shared/presentation/AestheticModules";
 
-/** Supported visual and gameplay mod identifiers for Space Invaders. */
+/** Stable IDs kept for config and concept-pack compatibility. */
 export type SpaceInvadersModId = "classic" | "nautical";
 
-/**
- * Contract for a Space Invaders game mod.
- *
- * Mods can extend themes, shape drawers, background effects, and simulation/presentation systems.
- *
- * @public
- */
-export interface SpaceInvadersMod {
-  /** Stable id used in config / concept pack resolution. */
-  id: SpaceInvadersModId;
-
-  /** Human-readable name for menus / debug. */
-  displayName: string;
-
-  /**
-   * Builds or transforms the Theme applied to the world for this mod.
-   */
+/** Presentation contract: Theme, Canvas/Skia drawers and background effects only. */
+export interface SpaceInvadersThemeModule extends ThemeModuleDescriptor {
+  readonly id: SpaceInvadersModId;
   createTheme?: (baseTheme: Theme) => Theme;
-
-  /**
-   * Registers custom shape drawers for Canvas and Skia backends.
-   */
   registerDrawers?: (
     register: (
       backend: "canvas" | "skia",
@@ -33,10 +16,6 @@ export interface SpaceInvadersMod {
       drawer: ShapeDrawer<unknown, SpaceInvadersComponentRegistry>
     ) => void
   ) => void;
-
-  /**
-   * Registers background effects (e.g., parchment chart, HUD overlay) for Canvas and Skia.
-   */
   registerBackgroundEffects?: (
     register: (
       backend: "canvas" | "skia",
@@ -44,9 +23,18 @@ export interface SpaceInvadersMod {
       effect: EffectDrawer<unknown, SpaceInvadersComponentRegistry> | ((ctx: unknown, ...args: unknown[]) => void)
     ) => void
   ) => void;
+}
 
-  /**
-   * Registers simulation/presentation systems required by this mod into the World.
-   */
+/** Runtime hooks required by a selected game configuration; no renderer imports. */
+export interface SpaceInvadersGameplayMod extends GameplayModDescriptor {
+  readonly id: SpaceInvadersModId;
   registerSystems?: (world: World<SpaceInvadersComponentRegistry>) => void;
 }
+
+/** Backwards-compatible combined contract consumed by older callers. */
+export interface SpaceInvadersMod extends SpaceInvadersThemeModule, SpaceInvadersGameplayMod {
+  readonly theme?: SpaceInvadersThemeModule;
+  readonly gameplay?: SpaceInvadersGameplayMod;
+}
+
+export type SpaceInvadersAestheticBundle = AestheticBundle<SpaceInvadersThemeModule, SpaceInvadersGameplayMod>;

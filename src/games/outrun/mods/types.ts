@@ -2,6 +2,7 @@ import type { Theme, ShapeDrawer, World, EffectDrawer } from "@tiny-aster/core";
 import type { OutrunComponentRegistry, OutrunEventRegistry, RoadSegmentSprite } from "../types/OutrunTypes";
 import type { OutrunConfig } from "../types/OutrunConfigSchema";
 import type { OutrunVisualPaletteResource } from "../types/OutrunVisualTypes";
+import type { ThemeModuleDescriptor, GameplayModDescriptor, AestheticBundle } from "../../shared/presentation/AestheticModules";
 
 /** Supported visual mod identifiers for Outrun. */
 export type OutrunVisualModId = string;
@@ -56,12 +57,12 @@ export interface OutrunTrafficDrawParams {
  *
  * @public
  */
-export interface OutrunVisualMod {
+export interface OutrunThemeModule extends ThemeModuleDescriptor {
   /** Stable id used in config and gameOptions. */
-  id: OutrunVisualModId;
+  readonly id: OutrunVisualModId;
 
   /** Human-readable name for menus / debug. */
-  displayName: string;
+  readonly displayName: string;
 
   /**
    * Builds the Theme applied to the world for this mod.
@@ -131,3 +132,18 @@ export interface OutrunVisualMod {
    */
   spriteCatalog?: Record<string, OutrunBitmapSpriteSpec>;
 }
+
+
+/** Gameplay extension point; Classic currently uses only the base driving systems. */
+export interface OutrunGameplayMod extends GameplayModDescriptor {
+  readonly id: OutrunVisualModId;
+}
+
+/** Legacy combined contract, retained for current mod consumers. */
+export interface OutrunVisualMod extends OutrunThemeModule {
+  /** Independent modules exposed by the compatibility facade. */
+  readonly theme?: OutrunThemeModule;
+  readonly gameplay?: OutrunGameplayMod;
+}
+
+export type OutrunAestheticBundle = AestheticBundle<OutrunThemeModule, OutrunGameplayMod>;

@@ -1,7 +1,6 @@
-import type { SpaceInvadersMod } from "../types";
+import { createSpaceInvadersModFacade } from "../createVisualModFacade";
+import { classicTheme } from "./ClassicTheme";
+import { classicGameplayMod } from "./ClassicGameplayMod";
 
-/** Default classic Space Invaders mod with standard mechanics and visuals. */
-export const classicMod: SpaceInvadersMod = {
-  id: "classic",
-  displayName: "Classic Space Invaders"
-};
+/** Legacy facade retained for existing imports of classicMod. */
+export const classicMod = createSpaceInvadersModFacade(classicTheme, classicGameplayMod);

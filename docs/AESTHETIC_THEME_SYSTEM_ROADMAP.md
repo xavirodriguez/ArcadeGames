@@ -502,6 +502,12 @@ Tareas:
 - Los IDs antiguos siguen resolviendo.
 - Tests de `NauticalPhase3` y de mods existentes pasan.
 
+**Implementación en curso (2026-10-29):**
+- Se introduce un contrato compartido para `ThemeModuleDescriptor`, `GameplayModDescriptor` y `AestheticBundle`; Asteroids consume los tipos base.
+- Space Invaders mantiene un único registro compatible de bundles; `nauticalTheme` registra efectos/drawers, mientras `nauticalGameplayMod` registra `NauticalWindSystem` e `IslandErosionSystem`.
+- OutRun mantiene su registro `registerVisualMod` como fachada de compatibilidad; `ClassicTheme` separa los drawers y resolutores de presentación de `classicGameplayMod`.
+- Las seis paletas históricas de OutRun se extraen a `theme/OutrunPaletteTokens.ts`; `rendering/OutrunPalettes.ts` reexporta los mismos objetos para no romper imports existentes.
+
 ---
 
 ### Fase 6 — Sumi-e de producción

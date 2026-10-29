@@ -41,3 +41,11 @@
 ### Phase 2 boundaries
 
 This is a Canvas pilot, not yet Canvas/Skia parity. The existing SpriteDrawer owns asynchronous sprite decoding and cache lifecycle. The composition uses a fixed authoring frame of 800×600 and centers it against the actual viewport; responsive layout rules, viewport culling, Skia drawing, procedural variation and broader asset coverage remain subsequent work. The art asset is intentionally reused as a proof of the composition path, not treated as the final village asset set.
+
+
+### Phase 2.1 — viewport transform allocation fix
+
+- Added an optional viewport offset to the Canvas adapter. It is applied after world/screen/parallax camera transforms, so centering the fixed authoring frame does not change the meaning of each layer's parallax factor.
+- Removed the per-frame scene clone and seven per-instance object allocations from `drawSumiEVillageLayer`. The resolved scene remains cached and immutable; viewport centering is now a draw-time transform input.
+- Added a unit test proving viewport offsets are composed after camera/parallax transforms.
+- This is a targeted allocation reduction, not a claim of zero-allocation rendering. The sprite drawer still constructs per-instance animator/options objects, and viewport culling remains future work.

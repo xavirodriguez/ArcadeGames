@@ -17,11 +17,11 @@ export interface SumiEVillageHousePlacement {
   depth: number;
 }
 
-const FOREGROUND_SPACING = 360;
-const FOREGROUND_OFFSET = 170;
-const FOREGROUND_DEPTH = 0.58;
-const FOREGROUND_SCALE = 0.19;
-const FOREGROUND_ALPHA = 0.78;
+const VILLAGE_LAYERS = [
+  { spacing: 520, offset: 90, depth: 0.18, scale: 0.34, alpha: 0.34 },
+  { spacing: 430, offset: 240, depth: 0.36, scale: 0.52, alpha: 0.54 },
+  { spacing: 360, offset: 170, depth: 0.58, scale: 0.72, alpha: 0.78 }
+] as const;
 let resolvedVillage: ResolvedVisualScene | null = null;
 let villageLoadRequested = false;
 
@@ -39,19 +39,20 @@ export function getSumiEVillageHousePlacements(
   viewportHeight: number,
   cameraX: number
 ): SumiEVillageHousePlacement[] {
-  const scrollX = cameraX * FOREGROUND_DEPTH;
-  const firstIndex = Math.floor((scrollX - FOREGROUND_OFFSET - 120) / FOREGROUND_SPACING);
-  const lastIndex = Math.ceil((scrollX + viewportWidth - FOREGROUND_OFFSET + 120) / FOREGROUND_SPACING);
   const placements: SumiEVillageHousePlacement[] = [];
-
-  for (let index = firstIndex; index <= lastIndex; index++) {
-    placements.push({
-      x: index * FOREGROUND_SPACING + FOREGROUND_OFFSET - scrollX,
-      baselineY: viewportHeight * 0.69,
-      scale: FOREGROUND_SCALE,
-      alpha: FOREGROUND_ALPHA,
-      depth: FOREGROUND_DEPTH
-    });
+  for (const layer of VILLAGE_LAYERS) {
+    const scrollX = cameraX * layer.depth;
+    const firstIndex = Math.floor((scrollX - layer.offset - 120) / layer.spacing);
+    const lastIndex = Math.ceil((scrollX + viewportWidth - layer.offset + 120) / layer.spacing);
+    for (let index = firstIndex; index <= lastIndex; index++) {
+      placements.push({
+        x: index * layer.spacing + layer.offset - scrollX,
+        baselineY: viewportHeight * (0.56 + layer.depth * 0.22),
+        scale: layer.scale,
+        alpha: layer.alpha,
+        depth: layer.depth
+      });
+    }
   }
   return placements;
 }

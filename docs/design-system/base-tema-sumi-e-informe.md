@@ -1,20 +1,32 @@
 # Informe — Base del tema sumi-e
 
-**Rama:** `design-system/base-tema-sumi-e` (un solo commit)
+**Rama:** `design-system/base-tema-sumi-e`
 **Repo:** https://github.com/xavirodriguez/ArcadeGames
-**Decisiones D1–D4:** [PENDIENTE]
 
-## Parte 1 — Auditoria
-drawText Skia ignora `_fontSize`. Contrastes y deltaE00 medidos.
+## Decisiones
+| # | Estado |
+|---|--------|
+| D1–D3 | [PENDIENTE] (valores propuestos en uso) |
+| **D4** | **Cerrado — Opción A** |
+| D5 | Confirmado (neón = monospace, sin fuentes nuevas) |
 
-## Parte 2 — SSOT provisional
-`inkWorldPalette.ts` como SSOT (tonos D1 propuestos, regla contorno sumi para oro/energyBlue).
-Diferencias vs paletas vivas documentadas; no se migraron hex con deltaE00 >= 3.
+### D4 Opción A
+- **display / kanji:** Yuji Boku (OFL-1.1)
+- **body es/gl:** Noto Serif JP (OFL-1.1) + system-ui fallback
+- **mono:** pila actual
 
-## Parte 3 — Contencion del neon
-- `scripts/color-literals-ratchet.mjs` + baseline (557).
-- `pnpm run check:color-literals` / `colors:update-baseline`; enganchado a `ci`.
-- Allowlist candidata pendiente de confirmacion.
+## Parte 1–3
+SSOT inkWorld, ratchet literales (en master vía PR #988), allowlist candidata.
+
+## Parte 4
+- Contrato + manifiesto + `loadSumiThemeFonts`
+- DrawAdapter: tipografía activa; Skia respeta tamaño
+- AestheticThemeTokens enlaza sumi tipography si hay semanticTokens
+- allowed-kanji.txt + test
+- Inventario de migración; **no** se migraron los ~66 ctx.font en este commit
+- No se descargaron archivos de fuente (colocar en `assets/fonts/` y subset después)
 
 ## No hecho
-Parte 4 (tipografia). No se cambiaron hex en pantalla.
+- Descarga/subset de Yuji Boku y Noto Serif JP
+- Migración masiva ctx.font / React Text
+- Parte 3 allowlist confirmación formal

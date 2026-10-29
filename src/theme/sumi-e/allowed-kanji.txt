@@ -1,0 +1,22 @@
+# Allowed CJK for Sumi-Gun UI (functional, finite). No invented kanji (ART_BIBLE).
+# D4 Option A — load via Yuji Boku subset.
+人生
+正義
+轟
+斬
+水墨
+時間
+順位
+馬力
+二十五大目
+第九关
+爆
+敗
+散
+全
+滅
+突
+破
+封
+生
+墨

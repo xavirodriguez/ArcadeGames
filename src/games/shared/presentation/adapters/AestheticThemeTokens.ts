@@ -1,6 +1,7 @@
 import type { PresentationThemeTokens } from "../PresentationContracts";
 import type { AestheticThemeConfig } from "../../rendering/sumi-e/AestheticTheme";
 import { fonts, typography } from "../../../../theme/typography";
+import { SUMI_THEME_TYPOGRAPHY, NEON_THEME_TYPOGRAPHY } from "../ThemeTypography";
 import { spacing } from "../../../../theme/spacing";
 import { radius } from "../../../../theme/radius";
 
@@ -32,11 +33,17 @@ export function createAestheticPresentationTokens(
       warning: semantic?.reward.primary ?? aesthetic.accentColor,
       outline: semantic?.landscape.ink ?? aesthetic.foregroundColor
     },
-    typography: {
-      display: fonts.display ?? "sans-serif",
-      body: fonts.ui ?? "sans-serif",
-      monospace: fonts.data ?? typography.game ?? "monospace"
-    },
+    typography: aesthetic.semanticTokens
+      ? {
+          display: SUMI_THEME_TYPOGRAPHY.display,
+          body: SUMI_THEME_TYPOGRAPHY.body,
+          monospace: SUMI_THEME_TYPOGRAPHY.mono,
+        }
+      : {
+          display: fonts.display ?? NEON_THEME_TYPOGRAPHY.display,
+          body: fonts.ui ?? NEON_THEME_TYPOGRAPHY.body,
+          monospace: fonts.data ?? typography.game ?? NEON_THEME_TYPOGRAPHY.mono,
+        },
     layout: {
       spacing: {
         xs: spacing.xs,

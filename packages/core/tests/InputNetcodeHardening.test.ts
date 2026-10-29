@@ -76,6 +76,16 @@ function restoreWorld(world: World<MultiplayerRegistry>, snapshot: WorldSnapshot
 }
 
 describe("Input netcode hardening", () => {
+  it("preserves repeated canonical actions when applying an input frame", () => {
+    const { world, entity } = makePredictionWorld([]);
+    applyInputFrameToEntity(world, entity, {
+      actions: ["fire", "fire", "boost"],
+      axes: {}
+    });
+
+    expect(world.getComponent(entity, "Input")?.actions).toStrictEqual(["boost", "fire", "fire"]);
+  });
+
   describe.each(["AoS", "SoA"] as const)("snapshot policy and round-trip (%s)", format => {
     it("keeps Input in the snapshot/hash, excludes transient presentation state, and restores canonical actions", () => {
       const { world, entity } = makePredictionWorld(["thrust", "fire"]);

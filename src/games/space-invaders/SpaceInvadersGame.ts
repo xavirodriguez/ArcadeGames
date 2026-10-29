@@ -20,7 +20,7 @@ import { ISpaceInvadersGame } from "./types/GameInterfaces";
 import { PlayerBulletPool, EnemyBulletPool, ParticlePool } from "./EntityPool";
 import { SpaceInvadersGameScene } from "./scenes/SpaceInvadersGameScene";
 import { resolveSpaceInvadersMod, resolveSpaceInvadersTheme, resolveSpaceInvadersGameplayMod } from "./mods";
-import type { SpaceInvadersMod } from "./mods";
+import type { SpaceInvadersMod, SpaceInvadersThemeModule } from "./mods";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
 import { markLocalPlayerEntity, NO_OP_SYNC, applyServerSnapshot, queryPlayerEntity } from "../shared/networkUtils";
 import spaceInvadersConfigRaw from "./config/space-invaders.json";
@@ -542,7 +542,10 @@ export class SpaceInvadersGame
   ): void {
     const activeTheme = this.world.getResource<Theme>(THEME_RESOURCE_KEY) ?? this._config?.theme;
     const activeMod = mod ?? resolveSpaceInvadersMod(activeTheme);
-    const activeThemeModule = activeMod.theme ?? activeMod;
+    const activeThemeModule = mod?.theme
+      ?? this.world.getResource<SpaceInvadersThemeModule>("SpaceInvadersThemeModule")
+      ?? activeMod.theme
+      ?? activeMod;
 
     RendererUtils.registerAssets(renderer, {
       canvas: (r) => {

@@ -165,18 +165,19 @@ export type SumiESemanticTokenInput = {
   };
 };
 
-type UnknownRecord = Record<string, unknown>;
+type RuntimeValue = string | object | null | undefined;
+type RuntimeRecord = Record<string, RuntimeValue>;
 
-function asRecord(value: unknown, path: string): UnknownRecord {
+function asRecord(value: RuntimeValue, path: string): RuntimeRecord {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new TypeError(`Invalid Sumi-e palette at "${path}": expected an object.`);
   }
 
-  return value as UnknownRecord;
+  return value as RuntimeRecord;
 }
 
 function assertExactKeys(
-  record: UnknownRecord,
+  record: RuntimeRecord,
   expectedKeys: readonly string[],
   path: string
 ): void {
@@ -195,7 +196,7 @@ function assertExactKeys(
 }
 
 function readColor<Role extends SumiESemanticRole>(
-  group: UnknownRecord,
+  group: RuntimeRecord,
   key: string,
   role: Role
 ): SemanticColor<Role> {

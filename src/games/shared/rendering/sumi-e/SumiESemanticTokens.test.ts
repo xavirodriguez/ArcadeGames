@@ -158,14 +158,20 @@ describe("SUMI_E_SEMANTIC_TOKENS", () => {
   });
 
   it("rejects a missing semantic group, a missing token and unexpected keys", () => {
-    const missingGroup = { ...paletteInput() } as Record<string, unknown>;
-    delete missingGroup.ui;
+    const base = paletteInput();
+    const missingGroup = {
+      surface: base.surface,
+      text: base.text,
+      threat: base.threat,
+      player: base.player,
+      reward: base.reward,
+      landscape: base.landscape
+    };
 
     expect(() =>
       createSumiESemanticTokens(missingGroup as SumiESemanticTokenInput)
     ).toThrow('Invalid Sumi-e palette at "palette": missing [ui].');
 
-    const base = paletteInput();
     const missingToken = {
       ...base,
       surface: { paper: base.surface.paper }
@@ -187,7 +193,7 @@ describe("SUMI_E_SEMANTIC_TOKENS", () => {
 
   it("rejects non-object input and non-string palette values", () => {
     expect(() =>
-      createSumiESemanticTokens(null as unknown as SumiESemanticTokenInput)
+      createSumiESemanticTokens(null as never)
     ).toThrow('Invalid Sumi-e palette at "palette": expected an object.');
 
     const input = paletteInput();
@@ -197,7 +203,7 @@ describe("SUMI_E_SEMANTIC_TOKENS", () => {
     };
 
     expect(() =>
-      createSumiESemanticTokens(invalidColor as unknown as SumiESemanticTokenInput)
+      createSumiESemanticTokens(invalidColor as SumiESemanticTokenInput)
     ).toThrow('Invalid Sumi-e player color at "player.projectile": expected a string.');
   });
 
@@ -238,19 +244,19 @@ describe("SUMI_E_SEMANTIC_TOKENS", () => {
 
     expect(() =>
       createSumiESemanticTokens(threatPlayerCollision as SumiESemanticTokenInput)
-    ).toThrow(/threat\\.glow and player\\.projectile must use different colors/);
+    ).toThrow(/threat\.glow and player\.projectile must use different colors/);
     expect(() =>
       createSumiESemanticTokens(threatRewardCollision as SumiESemanticTokenInput)
-    ).toThrow(/threat\\.body and reward\\.primary must use different colors/);
+    ).toThrow(/threat\.body and reward\.primary must use different colors/);
     expect(() =>
       createSumiESemanticTokens(playerRewardCollision as SumiESemanticTokenInput)
-    ).toThrow(/player\\.projectile and reward\\.primary must use different colors/);
+    ).toThrow(/player\.projectile and reward\.primary must use different colors/);
     expect(() =>
       createSumiESemanticTokens(sealThreatCollision as SumiESemanticTokenInput)
-    ).toThrow(/ui\\.seal and threat\\.body must use different colors/);
+    ).toThrow(/ui\.seal and threat\.body must use different colors/);
     expect(() =>
       createSumiESemanticTokens(sealGlowCollision as SumiESemanticTokenInput)
-    ).toThrow(/ui\\.seal and threat\\.glow must use different colors/);
+    ).toThrow(/ui\.seal and threat\.glow must use different colors/);
   });
 
   it("keeps gameplay color semantics distinct", () => {

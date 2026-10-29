@@ -41,3 +41,13 @@
 ### Phase 2 boundaries
 
 This is a Canvas pilot, not yet Canvas/Skia parity. The existing SpriteDrawer owns asynchronous sprite decoding and cache lifecycle. The composition uses a fixed authoring frame of 800×600 and centers it against the actual viewport; responsive layout rules, viewport culling, Skia drawing, procedural variation and broader asset coverage remain subsequent work. The art asset is intentionally reused as a proof of the composition path, not treated as the final village asset set.
+
+### Phase 2.2 — shared anchors, camera transform, and asset lifecycle
+
+- Resolved scene IR now stores normalized numeric anchors. Semantic authoring/catalog anchors map once to `{x,y}`; Canvas and Skia SpriteDrawer paths consume the same explicit destination anchor through `calculateSpriteDestinationRect`.
+- The Canvas composition camera contract supports uniform world zoom and viewport-pixel visual offsets. World/parallax coordinates are camera-translated then zoomed; screen-space coordinates remain fixed-scale; viewport offsets are applied last. Sprite scale follows the same world/screen distinction.
+- Viewport centering is a draw-time input, avoiding a cloned scene and per-instance position allocations each frame.
+- The composition catalog exposes canonical sprite path, sampling mode, logical dimensions and semantic anchor from `SpriteRegistry`, without duplicating the registry.
+- The existing SpriteDrawer exposes read-only Canvas/Skia load states (`unregistered`, `not-loaded`, `loading`, `ready`, `failed`). Composition rendering continues to use the shared backend caches and never owns or disposes them.
+- Tests cover normalized anchor defaults, world/screen/parallax transforms with zoom and offsets, and unregistered-asset state.
+- Validation note: these changes were authored through the GitHub API; Jest, typecheck and `pnpm run ci` have not been executed in this environment.

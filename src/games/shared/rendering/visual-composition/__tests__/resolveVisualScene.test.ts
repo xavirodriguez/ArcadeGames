@@ -44,7 +44,7 @@ describe("declarative visual composition", () => {
     if (!first.ok) return;
     expect(first.value.instances.map(i => i.id)).toEqual(["settlement/tree-1", "settlement/well-placement/well", "settlement/tree-2", "foreground/tree-3"]);
     expect(first.value.instances[1].position).toEqual({ x: 108, y: 210 });
-    expect(first.value.instances[0]).toMatchObject({ position: { x: 110, y: 230 }, scale: { x: 1, y: 1 }, rotation: 0, flipX: false, opacity: 0.5, anchor: "center" });
+    expect(first.value.instances[0]).toMatchObject({ position: { x: 110, y: 230 }, scale: { x: 1, y: 1 }, rotation: 0, flipX: false, opacity: 0.5, anchor: { x: 0.5, y: 0.5 } });
   });
 
   it("rejects unknown keys, instance space, and invalid scale/opacity", () => {
@@ -135,7 +135,7 @@ describe("declarative visual composition", () => {
     ] }] };
     const r = resolveVisualScene(d as LevelVisualDefinition, catalog);
     expect(r.ok).toBe(true);
-    if (r.ok) expect(r.value.instances[0]).toMatchObject({ anchor: "bottom-center", rotation: 0, flipX: false });
+    if (r.ok) expect(r.value.instances[0]).toMatchObject({ anchor: { x: 0.5, y: 1 }, rotation: 0, flipX: false });
   });
 
   it("reports invalid registry anchors and resolved ID collisions", () => {

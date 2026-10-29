@@ -86,7 +86,7 @@ describe("Iceberg Canvas visuals (Phase 2)", () => {
     } as never);
     world.addComponent(entity, {
       type: "Input",
-      actions: ["thrust"],
+      actions: { thrust: true },
       axes: {}
     } as never);
 

@@ -7,3 +7,4 @@ export * from "./TouchInputState";
 export * from "./TouchInputUtils";
 export * from "./providers";
 export * from "./hasInputAction";
+export * from "./normalizeInputActions";

@@ -22,7 +22,7 @@ import {
   JuiceSystem,
   RenderUpdateSystem,
   hasInputAction,
-  InputActionsLike,
+  normalizeInputActions,
 } from "@tiny-aster/core";
 import { CombatSystem } from "@tiny-aster/gameplay-kit";
 import { SpriteRegistry } from "../shared/sprites";
@@ -481,7 +481,7 @@ export class TowerDefenseGame extends BaseGame<
         const axes = inp.axes as Record<string, number>;
         inputComp.cursorX = axes.cursorX ?? axes.moveX ?? inputComp.cursorX;
         inputComp.cursorY = axes.cursorY ?? axes.moveY ?? inputComp.cursorY;
-        const actions = inp.actions as InputActionsLike | undefined;
+        const actions = normalizeInputActions(inp.actions);
         const has = (a: string) => hasInputAction(actions, a);
         if (has("build")) inputComp.build = true;
         if (has("sell")) inputComp.sell = true;

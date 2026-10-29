@@ -1183,7 +1183,7 @@ export function computeShipPhysics(transform: {
     vx: number;
     vy: number;
 }, input: {
-    actions: InputActionsLike;
+    actions: readonly CanonicalActionName[];
     axes: Record<string, number>;
     rotationAmount?: number;
     targetAngle?: number;
@@ -3827,6 +3827,9 @@ export function normalizeAxis(value: number, min: number, max: number): number;
 
 // @public
 export function normalizeError(error: unknown): Error;
+
+// @public
+export function normalizeInputActions(value: unknown): readonly CanonicalActionName[];
 
 // @public
 export class NullAudioPlayer implements IAudioPlayer {

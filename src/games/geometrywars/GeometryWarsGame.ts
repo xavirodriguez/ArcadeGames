@@ -25,7 +25,7 @@ import {
   InputFrame,
   EntitySyncDescriptor,
   hasInputAction,
-  InputActionsLike
+  normalizeInputActions
 } from "@tiny-aster/core";
 import {
   GeometryWarsComponentRegistry,
@@ -246,7 +246,7 @@ export class GeometryWarsGame extends BaseGame<
           aim.aimX = input.axes.aimX;
           aim.aimY = input.axes.aimY;
         }
-        aim.isFiring = hasInputAction(input.actions as InputActionsLike, "fire");
+        aim.isFiring = hasInputAction(normalizeInputActions(input.actions), "fire");
       });
     }
   }
@@ -365,14 +365,14 @@ export class GeometryWarsGame extends BaseGame<
       const inputObj = input as Record<string, unknown>;
       // CanonicalInputState support
       const axes = ((inputObj.axes as Record<string, number> | undefined) ?? inputObj) as Record<string, number | undefined>;
-      const actions = inputObj.actions as InputActionsLike | undefined;
+      const hasActionsProp = inputObj.actions !== undefined;
 
       if (sceneWorld.hasComponent(player, "Player")) {
         sceneWorld.mutateComponent(player, "Player", (p) => {
           if (typeof axes.moveX === "number") p.moveX = axes.moveX;
           if (typeof axes.moveY === "number") p.moveY = axes.moveY;
-          if (actions !== undefined) {
-            p.useBomb = hasInputAction(actions, "bomb");
+          if (hasActionsProp) {
+            p.useBomb = hasInputAction(normalizeInputActions(inputObj.actions), "bomb");
           } else if (inputObj.bomb !== undefined) {
             p.useBomb = !!inputObj.bomb;
           }
@@ -394,8 +394,8 @@ export class GeometryWarsGame extends BaseGame<
               aim.aimY = axes.aimY;
             }
           }
-          if (actions !== undefined) {
-            aim.isFiring = hasInputAction(actions, "fire");
+          if (hasActionsProp) {
+            aim.isFiring = hasInputAction(normalizeInputActions(inputObj.actions), "fire");
           } else if (inputObj.fire !== undefined) {
             aim.isFiring = !!inputObj.fire;
           }

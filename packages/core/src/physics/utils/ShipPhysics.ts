@@ -1,6 +1,7 @@
 import { getForwardVector } from "./ForwardVector";
 import { rotateTowardsAngle } from "../../input/TouchInputUtils";
-import { hasInputAction, InputActionsLike } from "../../input/hasInputAction";
+import { hasInputAction } from "../../input/hasInputAction";
+import { CanonicalActionName } from "../../input/CanonicalInput";
 
 /**
  * Pure function computing ship rotation, thrust acceleration, and friction decay.
@@ -23,7 +24,7 @@ import { hasInputAction, InputActionsLike } from "../../input/hasInputAction";
 export function computeShipPhysics(
   transform: { rotation: number },
   velocity: { vx: number; vy: number },
-  input: { actions: InputActionsLike; axes: Record<string, number>; rotationAmount?: number; targetAngle?: number; rotateLeft?: boolean; rotateRight?: boolean; thrust?: boolean },
+  input: { actions: readonly CanonicalActionName[]; axes: Record<string, number>; rotationAmount?: number; targetAngle?: number; rotateLeft?: boolean; rotateRight?: boolean; thrust?: boolean },
   config: { SHIP_THRUST: number; SHIP_ROTATION_SPEED: number; SHIP_FRICTION: number },
   deltaTimeSec: number
 ): { vx: number; vy: number; rotation: number } {

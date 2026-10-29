@@ -123,7 +123,7 @@ describe("AsteroidPool & AsteroidInputSystem Detailed Tests", () => {
 
       // Attempting to hold hyperspace again while on cooldown should NOT trigger prep
       world.mutateComponent(ship, "Input", (inp: any) => {
-        inp.actions = ["hyperspace"];
+        inp.actions = { hyperspace: true };
       });
 
       world.update(0.016);

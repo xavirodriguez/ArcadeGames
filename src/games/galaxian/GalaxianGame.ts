@@ -7,7 +7,7 @@ import {
   SystemPhase,
   CanonicalInputState,
   hasInputAction,
-  InputActionsLike,
+  normalizeInputActions,
 } from "@tiny-aster/core";
 import { GalaxianConfigSchema, GalaxianConfig } from "./types/GalaxianConfigSchema";
 import {
@@ -152,7 +152,7 @@ export class GalaxianGame extends BaseGame<
       const moveX = axes.moveX ?? 0;
       inputComp.moveLeft = moveX < -0.1;
       inputComp.moveRight = moveX > 0.1;
-      const actions = inp.actions as InputActionsLike | undefined;
+      const actions = normalizeInputActions(inp.actions);
       inputComp.shoot = hasInputAction(actions, "fire") || hasInputAction(actions, "shoot");
     } else if (inp) {
       if (typeof inp.moveLeft === "boolean") inputComp.moveLeft = inp.moveLeft;

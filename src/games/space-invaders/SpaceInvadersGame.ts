@@ -1,4 +1,4 @@
-import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils, NetworkController, InputFrame, WebAudioPlayer, ReplayRecorder, ReplayPlayer, NullBaseGame, loadAudioAssets, InterpolationSnapshotEntry, EntitySyncDescriptor, applyServerState, preloadSharedAudioManifest, SHARED_AUDIO_MANIFEST, System, BaseGameConfig, CanonicalInputState, hasInputAction, InputActionsLike } from "@tiny-aster/core";
+import { World, GameLoop, BaseGame, WorldSnapshot, Component, EventBus, UnifiedInputSystem, InputSystem, ConfigService, Renderer, NetworkManager, LocalPredictionSystem, RemoteInterpolationSystem, MutatorSystem, SystemPhase, createEmitter, RendererUtils, NetworkController, InputFrame, WebAudioPlayer, ReplayRecorder, ReplayPlayer, NullBaseGame, loadAudioAssets, InterpolationSnapshotEntry, EntitySyncDescriptor, applyServerState, preloadSharedAudioManifest, SHARED_AUDIO_MANIFEST, System, BaseGameConfig, CanonicalInputState, hasInputAction, normalizeInputActions } from "@tiny-aster/core";
 import { ComboSystem } from "@tiny-aster/core";
 import { LootSystem, PowerUpSystem, PowerUpEffectRegistry } from "@tiny-aster/gameplay-kit";
 import { EnemyFactory } from "./EnemyFactory";
@@ -743,7 +743,7 @@ export class SpaceInvadersGame
           const moveX = axes.moveX ?? 0;
           inputComp.moveLeft = moveX < 0;
           inputComp.moveRight = moveX > 0;
-          const actions = inp.actions as InputActionsLike | undefined;
+          const actions = normalizeInputActions(inp.actions);
           inputComp.shoot = hasInputAction(actions, "fire");
         } else if (inp) {
           if (typeof inp.moveLeft === "boolean") inputComp.moveLeft = inp.moveLeft;

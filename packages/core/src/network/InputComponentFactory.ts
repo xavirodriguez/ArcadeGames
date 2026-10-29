@@ -1,7 +1,8 @@
 import { World } from "../ecs/World";
 import { ComponentRegistry } from "../ecs/Component";
 import { InputFrame } from "./NetTypes";
-import { CanonicalActionName, isCanonicalActionName } from "../input/CanonicalInput";
+import { CanonicalActionName } from "../input/CanonicalInput";
+import { normalizeInputActions } from "../input/normalizeInputActions";
 
 /**
  * Ensures an entity possesses an Input component and applies the provided actions and axes.
@@ -34,16 +35,7 @@ export function applyInputFrameToEntity<TComponents extends ComponentRegistry = 
 
   world.mutateComponent(entityId, inputType, (inputComp) => {
     const comp = inputComp as InputComponentType;
-    const rawActions = input.actions || [];
-    const canonicalActions: CanonicalActionName[] = [];
-    for (let i = 0; i < rawActions.length; i++) {
-      const act = rawActions[i];
-      if (isCanonicalActionName(act)) {
-        canonicalActions.push(act);
-      }
-    }
-    canonicalActions.sort();
-    comp.actions = canonicalActions;
+    comp.actions = normalizeInputActions(input.actions);
     comp.axes = { ...input.axes };
   });
 }

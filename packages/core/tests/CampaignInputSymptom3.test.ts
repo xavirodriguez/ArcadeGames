@@ -8,7 +8,7 @@ describe("Symptom 3 Baseline Test", () => {
     const velocity = { vx: 0, vy: 0 };
 
     // 10 ticks without input
-    const emptyInput = { actions: [], axes: {} };
+    const emptyInput = { actions: {}, axes: {} };
     for (let i = 0; i < 10; i++) {
       const phys = computeShipPhysics(transform, velocity, emptyInput, config, 0.016);
       velocity.vx = phys.vx;
@@ -21,7 +21,7 @@ describe("Symptom 3 Baseline Test", () => {
     expect(transform.y).toBe(300);
 
     // 10 ticks with thrust input (facing rotation=0, forward vector is +X)
-    const thrustInput = { actions: ["thrust" as const], axes: {}, thrust: true };
+    const thrustInput = { actions: { thrust: true }, axes: {}, thrust: true };
     for (let i = 0; i < 10; i++) {
       const phys = computeShipPhysics(transform, velocity, thrustInput, config, 0.016);
       velocity.vx = phys.vx;

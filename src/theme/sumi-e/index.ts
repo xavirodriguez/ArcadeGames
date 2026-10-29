@@ -1,6 +1,7 @@
 export {
   SUMI_E_SEMANTIC_TOKENS,
   createSumiESemanticColor,
+  createSumiESemanticTokens,
   type HexColor,
   type SemanticColor,
   type SumiESemanticRole,
@@ -10,6 +11,7 @@ export {
   type SumiEPlayerTokens,
   type SumiERewardColor,
   type SumiERewardTokens,
+  type SumiESemanticTokenInput,
   type SumiESemanticTokens,
   type SumiESurfaceColor,
   type SumiESurfaceTokens,

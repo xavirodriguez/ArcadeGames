@@ -1,9 +1,11 @@
 import {
   SUMI_E_SEMANTIC_TOKENS,
   createSumiESemanticColor,
+  createSumiESemanticTokens,
   type HexColor,
   type SumiEPlayerColor,
   type SumiERewardColor,
+  type SumiESemanticTokenInput,
   type SumiESurfaceColor,
   type SumiEThreatColor,
   type SumiEUiColor
@@ -23,6 +25,54 @@ export type SumiESemanticTypeSafetyAssertions = [
   AssertFalse<IsAssignable<SumiERewardColor, SumiEPlayerColor>>,
   AssertFalse<IsAssignable<SumiEUiColor, SumiEThreatColor>>
 ];
+
+function paletteInput(): SumiESemanticTokenInput {
+  return {
+    surface: {
+      paper: SUMI_E_SEMANTIC_TOKENS.surface.paper,
+      paperLight: SUMI_E_SEMANTIC_TOKENS.surface.paperLight
+    },
+    text: {
+      primary: SUMI_E_SEMANTIC_TOKENS.text.primary,
+      secondary: SUMI_E_SEMANTIC_TOKENS.text.secondary
+    },
+    threat: {
+      body: SUMI_E_SEMANTIC_TOKENS.threat.body,
+      shadow: SUMI_E_SEMANTIC_TOKENS.threat.shadow,
+      glow: SUMI_E_SEMANTIC_TOKENS.threat.glow,
+      inkCreature: SUMI_E_SEMANTIC_TOKENS.threat.inkCreature
+    },
+    player: {
+      silhouette: SUMI_E_SEMANTIC_TOKENS.player.silhouette,
+      trail: SUMI_E_SEMANTIC_TOKENS.player.trail,
+      projectile: SUMI_E_SEMANTIC_TOKENS.player.projectile,
+      projectileGlow: SUMI_E_SEMANTIC_TOKENS.player.projectileGlow,
+      shield: SUMI_E_SEMANTIC_TOKENS.player.shield
+    },
+    reward: {
+      primary: SUMI_E_SEMANTIC_TOKENS.reward.primary
+    },
+    landscape: {
+      ink: SUMI_E_SEMANTIC_TOKENS.landscape.ink,
+      mist: SUMI_E_SEMANTIC_TOKENS.landscape.mist,
+      mountain: SUMI_E_SEMANTIC_TOKENS.landscape.mountain,
+      water: SUMI_E_SEMANTIC_TOKENS.landscape.water,
+      sand: SUMI_E_SEMANTIC_TOKENS.landscape.sand,
+      safeGround: SUMI_E_SEMANTIC_TOKENS.landscape.safeGround,
+      foliage: SUMI_E_SEMANTIC_TOKENS.landscape.foliage
+    },
+    ui: {
+      frame: SUMI_E_SEMANTIC_TOKENS.ui.frame,
+      seal: SUMI_E_SEMANTIC_TOKENS.ui.seal,
+      sealShadow: SUMI_E_SEMANTIC_TOKENS.ui.sealShadow,
+      panel: SUMI_E_SEMANTIC_TOKENS.ui.panel,
+      bossBarBackground: SUMI_E_SEMANTIC_TOKENS.ui.bossBarBackground,
+      bossBarFill: SUMI_E_SEMANTIC_TOKENS.ui.bossBarFill,
+      activeLife: SUMI_E_SEMANTIC_TOKENS.ui.activeLife,
+      emptyLife: SUMI_E_SEMANTIC_TOKENS.ui.emptyLife
+    }
+  };
+}
 
 function relativeLuminance(color: string): number {
   const red = Number.parseInt(color.slice(1, 3), 16) / 255;
@@ -94,7 +144,8 @@ describe("SUMI_E_SEMANTIC_TOKENS", () => {
     });
   });
 
-  it("rejects malformed or non-hex values when defining a palette variant", () => {
+  it("validates individual semantic colors and rejects malformed hex values", () => {
+    expect(createSumiESemanticColor("#FFFFFF", "surface")).toBe("#FFFFFF");
     expect(() => createSumiESemanticColor("#FFF", "surface")).toThrow(
       'Invalid Sumi-e surface color "#FFF": expected #RRGGBB.'
     );
@@ -106,8 +157,86 @@ describe("SUMI_E_SEMANTIC_TOKENS", () => {
     );
   });
 
-  it("accepts a valid alternate color for future palette variants", () => {
-    expect(createSumiESemanticColor("#FFFFFF", "surface")).toBe("#FFFFFF");
+  it("rejects a missing semantic group, a missing token and unexpected keys", () => {
+    const missingGroup = { ...paletteInput() } as Record<string, unknown>;
+    delete missingGroup.ui;
+
+    expect(() =>
+      createSumiESemanticTokens(missingGroup as SumiESemanticTokenInput)
+    ).toThrow('Invalid Sumi-e palette at "palette": missing [ui].');
+
+    const base = paletteInput();
+    const missingToken = {
+      ...base,
+      surface: { paper: base.surface.paper }
+    };
+
+    expect(() =>
+      createSumiESemanticTokens(missingToken as SumiESemanticTokenInput)
+    ).toThrow('Invalid Sumi-e palette at "surface": missing [paperLight].');
+
+    const unexpectedKey = {
+      ...base,
+      threat: { ...base.threat, neutral: "#777777" }
+    };
+
+    expect(() =>
+      createSumiESemanticTokens(unexpectedKey as SumiESemanticTokenInput)
+    ).toThrow('Invalid Sumi-e palette at "threat": unexpected [neutral].');
+  });
+
+  it("rejects non-object input and non-string palette values", () => {
+    expect(() =>
+      createSumiESemanticTokens(null as unknown as SumiESemanticTokenInput)
+    ).toThrow('Invalid Sumi-e palette at "palette": expected an object.');
+
+    const input = paletteInput();
+    const invalidColor = {
+      ...input,
+      player: { ...input.player, projectile: 42 }
+    };
+
+    expect(() =>
+      createSumiESemanticTokens(invalidColor as unknown as SumiESemanticTokenInput)
+    ).toThrow('Invalid Sumi-e player color at "player.projectile": expected a string.');
+  });
+
+  it("rejects text colors that fail WCAG AA contrast on either paper surface", () => {
+    const input = paletteInput();
+    const lowContrast = {
+      ...input,
+      text: { ...input.text, secondary: "#FFFFFF" }
+    };
+
+    expect(() =>
+      createSumiESemanticTokens(lowContrast as SumiESemanticTokenInput)
+    ).toThrow(/text\.secondary contrast against surface\.paper is .* expected at least 4\.5:1/);
+  });
+
+  it("rejects palettes that collapse threat, player, reward or seal color roles", () => {
+    const input = paletteInput();
+    const threatPlayerCollision = {
+      ...input,
+      player: { ...input.player, projectile: input.threat.glow }
+    };
+    const threatRewardCollision = {
+      ...input,
+      reward: { primary: input.threat.body }
+    };
+    const sealThreatCollision = {
+      ...input,
+      ui: { ...input.ui, seal: input.threat.body }
+    };
+
+    expect(() =>
+      createSumiESemanticTokens(threatPlayerCollision as SumiESemanticTokenInput)
+    ).toThrow(/threat\.glow and player\.projectile must use different colors/);
+    expect(() =>
+      createSumiESemanticTokens(threatRewardCollision as SumiESemanticTokenInput)
+    ).toThrow(/threat\.body and reward\.primary must use different colors/);
+    expect(() =>
+      createSumiESemanticTokens(sealThreatCollision as SumiESemanticTokenInput)
+    ).toThrow(/ui\.seal and threat\.body must use different colors/);
   });
 
   it("keeps gameplay color semantics distinct", () => {
@@ -117,15 +246,13 @@ describe("SUMI_E_SEMANTIC_TOKENS", () => {
     expect(player.projectile).toBe("#4DA3FF");
     expect(player.projectileGlow).toBe("#9CD0FF");
     expect(reward.primary).toBe("#E3A92F");
-
-    // Decorative hanko red is intentionally distinct from the hostile body pigment.
     expect(ui.seal).toBe("#D7473F");
     expect(ui.seal).not.toBe(threat.body);
     expect(threat.glow).not.toBe(player.projectile);
     expect(threat.body).not.toBe(reward.primary);
   });
 
-  it("contains only six-digit hex colors", () => {
+  it("contains exactly 29 six-digit hex colors", () => {
     const colors = Object.values(SUMI_E_SEMANTIC_TOKENS).flatMap((group) =>
       Object.values(group)
     );
@@ -143,7 +270,7 @@ describe("SUMI_E_SEMANTIC_TOKENS", () => {
     }
   });
 
-  it("freezes the top-level token map and every semantic group at runtime", () => {
+  it("freezes the top-level palette and every semantic group at runtime", () => {
     expect(Object.isFrozen(SUMI_E_SEMANTIC_TOKENS)).toBe(true);
 
     for (const group of Object.values(SUMI_E_SEMANTIC_TOKENS)) {

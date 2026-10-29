@@ -1,6 +1,6 @@
 # Sumi-e semantic tokens
 
-The shared semantic palette lives in `src/theme/sumi-e/SumiESemanticTokens.ts` and is re-exported from `src/theme/sumi-e`.
+The canonical palette lives in `src/theme/sumi-e/SumiESemanticTokens.ts` and is re-exported from `src/theme/sumi-e`.
 
 ## Semantic groups
 
@@ -14,14 +14,19 @@ The shared semantic palette lives in `src/theme/sumi-e/SumiESemanticTokens.ts` a
 | `landscape` | Ink washes, mist, mountains, water, sand and vegetation | `ink`, `mist`, `mountain`, `water`, `sand`, `safeGround`, `foliage` |
 | `ui` | Frame, hanko, panels, boss bar and lives | `frame`, `seal`, `sealShadow`, `panel`, `bossBarBackground`, `bossBarFill`, `activeLife`, `emptyLife` |
 
-## Type-level guarantees
+## Palette construction and validation
 
-- `HexColor` is a branded type, so arbitrary strings cannot be passed as approved palette values without an explicit cast.
-- `createSumiESemanticColor(value, role)` validates a value at runtime and returns a color branded with its semantic category. Use it when defining an intentional palette variant.
-- The validator accepts six-digit `#RRGGBB` strings only; shorthand hex, missing hashes and invalid digits throw a `TypeError`.
-- `SemanticColor<Role>` adds a second type brand. A threat token cannot accidentally be assigned to a surface, player, reward or UI token field.
-- Public interfaces use `readonly` properties, and the token map plus each group are frozen at runtime.
-- Compile-time assertions in `SumiESemanticTokens.test.ts` ensure unrelated roles remain non-assignable.
+Use `createSumiESemanticTokens(input)` to construct a palette variant. It returns a deeply frozen `SumiESemanticTokens` value after validating the entire palette.
+
+The factory enforces these invariants:
+
+1. The root contains exactly the seven semantic groups, and each group contains exactly the declared token fields. Missing or unexpected fields throw a `TypeError`.
+2. Every color is a six-digit `#RRGGBB` value. `createSumiESemanticColor(value, role)` validates an individual color and returns its compile-time role brand.
+3. Primary and secondary text each maintain at least 4.5:1 contrast against both `surface.paper` and `surface.paperLight`.
+4. Threat glow differs from the player's projectile, hostile body pigment differs from reward gold, and decorative hanko red differs from hostile body pigment. Hex comparisons are case-insensitive.
+5. The returned root object and all seven groups are frozen.
+
+All output interfaces expose `readonly` fields. `HexColor` and `SemanticColor<Role>` are branded TypeScript types, so plain strings and colors from unrelated roles cannot be assigned as tokens without an explicit cast. The runtime factory exists to validate data at the trust boundary; the type brands alone are not runtime validation.
 
 ## Color rules
 
@@ -31,10 +36,6 @@ The shared semantic palette lives in `src/theme/sumi-e/SumiESemanticTokens.ts` a
 - **Paper and ink build the world.** Keep backgrounds low-contrast; reserve saturated accents for gameplay information.
 - **Decorative red is explicit.** Hanko seals use `ui.seal`; do not substitute it for threat pigment.
 - **Text is rendered by code.** These tokens specify colors, not generated kanji, labels or interface copy.
-
-## Contrast policy
-
-Primary and secondary text tokens must meet a WCAG AA contrast ratio of at least 4.5:1 against both paper surfaces. The palette tests calculate relative luminance rather than hard-coding a pass result. Gameplay cues such as blue projectiles, gold rewards and red seals are not text tokens and must not be used for small text without a separate contrast check.
 
 ## Value reference
 
@@ -58,6 +59,10 @@ Primary and secondary text tokens must meet a WCAG AA contrast ratio of at least
 | `landscape.foliage` | `#4A5A52` | Pine foliage |
 | `ui.frame` | `#B9A272` | Ornamental frame |
 | `ui.seal` | `#D7473F` | Hanko seal |
+
+## Contrast note
+
+The secondary text value `#5F6466` is near the 4.5:1 threshold on aged paper. If a future paper variant becomes brighter or darker, the palette factory will reject the variant if its text contrast falls below the threshold. Do not bypass the check; choose a readable ink color or explicitly redesign the surface/text pairing.
 
 ## Migration boundary
 

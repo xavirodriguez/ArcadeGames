@@ -32,7 +32,7 @@ import {
   SUMI_E_PLAYER_READY_RESOURCE,
   SUMI_E_THEME_RESOURCE,
   getSumiEFrameRect
-} from "../rendering/SumiEVisualAssets";
+} from "../presentation/ThemeAssetIds";
 
 export interface BeltPlayerSpawnArgs {
   x: number;

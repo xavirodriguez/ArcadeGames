@@ -16,13 +16,15 @@
 ## Phase 1 scope delivered here
 
 - Versioned TypeScript authoring and resolved-scene contracts.
-- Runtime validation with field-path diagnostics for IDs, assets, coordinate spaces, layer ordering, parallax factors and transform bounds.
-- Fixed instance resolution into a renderer-neutral scene, including prefab flattening, stable layer order and transform defaults.
-- Unit test fixtures for stable resolution and common invalid documents.
+- Strict runtime validation with field-path diagnostics, including rejection of unknown keys, registered-theme checks, referenced-prefab validation, asset/anchor checks, transform bounds, and layer-role/order contradictions.
+- A single layer-level coordinate-space authority. Instance definitions do not carry `space`; all items inherit the containing layer's coordinate space and parallax factor.
+- One ordered `items` list per layer allows direct instances and prefab placements to interleave. All resolved IDs are layer-prefixed and collisions are reported.
+- Parallax semantics are explicit: factor `0` is camera-fixed and `1` moves at world-camera speed. Layer position offsets every item in that layer, including prefab placements.
+- Unit tests for deterministic ordering, strict keys, invalid references/transforms, unused broken prefabs, theme checks and ID collisions.
 
 ## Deliberate limits
 
 - This phase does not wire the resolver into Hit & Run rendering, does not load/decode images and does not claim Canvas/Skia parity.
 - Asset lookup is supplied by an adapter around the existing registry/provider; no parallel asset catalog or global singleton is created.
-- Theme identifiers are preserved as data. Theme rendering and palette treatment remain owned by existing theme implementations.
+- Theme identifiers are validated against the injected catalog. Theme rendering and palette treatment remain owned by existing theme implementations.
 - Procedural variation, nested prefabs, viewport/camera transforms, and runtime resource ownership remain future phases.

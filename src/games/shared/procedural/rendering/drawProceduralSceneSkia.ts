@@ -10,14 +10,16 @@ export function drawProceduralPrimitivesSkia(
   paint: SkPaint,
   primitives: readonly ScenePrimitive[]
 ): void {
+  const baseAlpha = paint.getAlphaf();
   for (let i = 0; i < primitives.length; i++) {
     const prim = primitives[i];
     const alpha = prim.alpha ?? 1;
 
     skCanvas.save();
-    if (alpha !== 1) {
-      paint.setAlphaf(paint.getAlphaf() * alpha);
-    }
+    // Paint alpha is mutable and is not restored by canvas.save()/restore().
+    // Apply each primitive's opacity against the caller's base opacity, not
+    // against the previous primitive's opacity.
+    paint.setAlphaf(baseAlpha * alpha);
 
     switch (prim.type) {
       case "polygon": {
@@ -105,7 +107,9 @@ export function drawProceduralPrimitivesSkia(
       }
     }
     skCanvas.restore();
+    paint.setAlphaf(baseAlpha);
   }
+  paint.setAlphaf(baseAlpha);
 }
 
 export function drawProceduralSceneSkia(

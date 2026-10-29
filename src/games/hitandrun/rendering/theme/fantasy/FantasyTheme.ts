@@ -3,7 +3,9 @@
  * Optimized with offscreen gradient/canvas caching and procedural urban backdrop scenery.
  */
 
+import type { SkCanvas } from "@shopify/react-native-skia";
 import type { HitRunTheme, HitRunThemePaletteTokens } from "../HitRunTheme";
+import { Skia, getPaint } from "../../../../shared/rendering/SkiaContext";
 import type {
   EntityRenderSnapshot,
   HudRenderSnapshot,
@@ -14,6 +16,8 @@ import { HIT_PALETTE } from "../../HitAndRunPalette";
 import { colors } from "../../../../../theme/colors";
 import { generateProceduralScene } from "../../../../shared/procedural/scene/ProceduralSceneGenerator";
 import { drawProceduralSceneCanvas } from "../../../../shared/procedural/rendering/drawProceduralSceneCanvas";
+import { drawProceduralSceneSkia } from "../../../../shared/procedural/rendering/drawProceduralSceneSkia";
+import type { ProceduralScene } from "../../../../shared/procedural/types/ProceduralTypes";
 
 export const FANTASY_PALETTE_TOKENS: HitRunThemePaletteTokens = {
   primary: "#3d4a5c",
@@ -35,6 +39,58 @@ export class FantasyTheme implements HitRunTheme {
 
   private bodyGrad: CanvasGradient | null = null;
   private topHudGrad: CanvasGradient | null = null;
+  private proceduralBackdrop: ProceduralScene | null = null;
+  private proceduralBackdropWidth = 0;
+  private proceduralBackdropHeight = 0;
+
+  private getProceduralBackdrop(width: number, height: number): ProceduralScene {
+    if (
+      !this.proceduralBackdrop ||
+      this.proceduralBackdropWidth !== width ||
+      this.proceduralBackdropHeight !== height
+    ) {
+      this.proceduralBackdrop = generateProceduralScene({
+        seed: 41873,
+        width,
+        height,
+        theme: "urban",
+        density: 0.6
+      });
+      this.proceduralBackdropWidth = width;
+      this.proceduralBackdropHeight = height;
+    }
+    return this.proceduralBackdrop;
+  }
+
+  public renderBackdropSkia(
+    canvas: SkCanvas,
+    viewportWidth: number,
+    viewportHeight: number,
+    _cameraX: number,
+    _cameraY: number,
+    _elapsed: number
+  ): void {
+    if (!Skia || !canvas) return;
+    const paint = getPaint();
+    if (!paint) return;
+
+    canvas.save();
+    paint.setStyle(Skia.PaintStyle.Fill);
+    paint.setAlphaf(1);
+    paint.setColor(Skia.Color(FANTASY_PALETTE_TOKENS.background));
+    canvas.drawRect(Skia.XYWHRect(0, 0, viewportWidth, viewportHeight), paint);
+
+    paint.setAlphaf(0.35);
+    drawProceduralSceneSkia(
+      canvas,
+      paint,
+      this.getProceduralBackdrop(viewportWidth, viewportHeight)
+    );
+
+    paint.setAlphaf(1);
+    paint.setStyle(Skia.PaintStyle.Fill);
+    canvas.restore();
+  }
 
   private getBodyGrad(ctx: CanvasRenderingContext2D, size: number): CanvasGradient {
     if (!this.bodyGrad) {
@@ -69,14 +125,7 @@ export class FantasyTheme implements HitRunTheme {
 
     // Controlled alpha procedural backdrop to preserve combat legibility
     ctx.globalAlpha = 0.35;
-    const procScene = generateProceduralScene({
-      seed: 41873,
-      width: viewportWidth,
-      height: viewportHeight,
-      theme: "urban",
-      density: 0.6
-    });
-    drawProceduralSceneCanvas(ctx, procScene);
+    drawProceduralSceneCanvas(ctx, this.getProceduralBackdrop(viewportWidth, viewportHeight));
     ctx.restore();
   }
 

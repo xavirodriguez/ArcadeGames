@@ -150,10 +150,11 @@ export function validateVisualComposition(
     rawLayer.items.forEach((rawItem, itemIndex) => {
       const itemPath = `${path}.items[${itemIndex}]`;
       if (!isRecord(rawItem)) { issue(issues, itemPath, "must be an object"); return; }
-      strictKeys(rawItem, ITEM_KEYS, itemPath, issues);
       if (rawItem.kind === "instance") {
+        strictKeys(rawItem, new Set(["kind", "instance"]), itemPath, issues);
         validateInstance(rawItem.instance, `${itemPath}.instance`, issues, localIds, catalog);
       } else if (rawItem.kind === "prefab") {
+        strictKeys(rawItem, new Set(["kind", "id", "prefab", "position"]), itemPath, issues);
         if (!nonEmpty(rawItem.id)) issue(issues, `${itemPath}.id`, "prefab placement requires a non-empty id");
         else if (localIds.has(rawItem.id)) issue(issues, `${itemPath}.id`, `duplicate layer item id "${rawItem.id}"`);
         else localIds.add(rawItem.id);
@@ -187,6 +188,8 @@ export function resolveVisualScene(
   const validation = validateVisualComposition(definition, catalog);
   if (!validation.ok) return validation;
   const resolved: ResolvedVisualInstance[] = [];
+  const resolutionIssues: VisualCompositionIssue[] = [];
+  const resolvedIds = new Set<string>();
   const layers = [...definition.layers].sort((a, b) => a.order - b.order || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
 
   for (const layer of layers) {
@@ -194,15 +197,21 @@ export function resolveVisualScene(
       if (item.kind === "instance") {
         const instance = item.instance;
         const asset = catalog.assets.getAsset(instance.asset);
+        const resolvedId = `${layer.id}/${instance.id}`;
+        if (resolvedIds.has(resolvedId)) {
+          issue(resolutionIssues, `layers.${layer.id}.items[${itemIndex}].instance.id`, `resolved ID collision "${resolvedId}"`);
+          return;
+        }
         if (!asset) {
-          issue([], `layers.${layer.id}.items[${itemIndex}].instance.asset`, `unknown asset "${instance.asset}" after validation`);
+          issue(resolutionIssues, `layers.${layer.id}.items[${itemIndex}].instance.asset`, `unknown asset "${instance.asset}" after validation`);
           return;
         }
         if (asset.anchor !== undefined && !ANCHORS.has(asset.anchor)) {
-          issue([], `assets.${asset.id}.anchor`, `unsupported anchor "${String(asset.anchor)}"`);
+          issue(resolutionIssues, `assets.${asset.id}.anchor`, `unsupported anchor "${String(asset.anchor)}"`);
           return;
         }
-        resolved.push(resolveInstance(instance, `${layer.id}/${instance.id}`, layer.id, layer.role, layer.order, itemIndex, layer.space, layer.parallaxFactor, layer.position, asset.anchor ?? "bottom-center", catalog));
+        resolvedIds.add(resolvedId);
+        resolved.push(resolveInstance(instance, resolvedId, layer.id, layer.role, layer.order, itemIndex, layer.space, layer.parallaxFactor, layer.position, asset.anchor ?? "bottom-center"));
       } else {
         const prefab = catalog.prefabs?.get(item.prefab);
         if (!prefab) {
@@ -211,27 +220,34 @@ export function resolveVisualScene(
         }
         prefab.instances.forEach((instance, prefabIndex) => {
           const asset = catalog.assets.getAsset(instance.asset);
+          const resolvedId = `${layer.id}/${item.id}/${instance.id}`;
+          if (resolvedIds.has(resolvedId)) {
+            issue(resolutionIssues, `layers.${layer.id}.items[${itemIndex}].prefab`, `resolved ID collision "${resolvedId}"`);
+            return;
+          }
           if (!asset) {
-            issue([], `prefabs.${prefab.id}.instances[${prefabIndex}].asset`, `unknown asset "${instance.asset}" after validation`);
+            issue(resolutionIssues, `prefabs.${prefab.id}.instances[${prefabIndex}].asset`, `unknown asset "${instance.asset}" after validation`);
             return;
           }
           if (asset.anchor !== undefined && !ANCHORS.has(asset.anchor)) {
-            issue([], `assets.${asset.id}.anchor`, `unsupported anchor "${String(asset.anchor)}"`);
+            issue(resolutionIssues, `assets.${asset.id}.anchor`, `unsupported anchor "${String(asset.anchor)}"`);
             return;
           }
+          resolvedIds.add(resolvedId);
           const position = { x: instance.position.x + (item.position?.x ?? 0), y: instance.position.y + (item.position?.y ?? 0) };
-          resolved.push(resolveInstance({ ...instance, position }, `${layer.id}/${item.id}/${instance.id}`, layer.id, layer.role, layer.order, itemIndex * 10000 + prefabIndex, layer.space, layer.parallaxFactor, layer.position, asset.anchor ?? "bottom-center", catalog));
+          resolved.push(resolveInstance({ ...instance, position }, resolvedId, layer.id, layer.role, layer.order, itemIndex * 10000 + prefabIndex, layer.space, layer.parallaxFactor, layer.position, asset.anchor ?? "bottom-center"));
         });
       }
     });
   }
+  if (resolutionIssues.length) return { ok: false, issues: resolutionIssues };
   return { ok: true, value: { schemaVersion: 1, levelId: definition.id, themeId: definition.theme, instances: resolved } };
 }
 
 function resolveInstance(
   instance: VisualInstanceDefinition, id: string, layerId: string, layerRole: VisualLayerRole, layerOrder: number,
   instanceOrder: number, space: VisualCoordinateSpace, parallaxFactor: number | undefined,
-  layerPosition: { x: number; y: number } | undefined, anchor: VisualAnchor, _catalog: VisualCompositionCatalog
+  layerPosition: { x: number; y: number } | undefined, anchor: VisualAnchor
 ): ResolvedVisualInstance {
   return {
     id, asset: instance.asset, layerId, layerRole, layerOrder, instanceOrder, space,

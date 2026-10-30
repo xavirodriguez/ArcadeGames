@@ -26,10 +26,18 @@ export interface Point2D {
   y: number;
 }
 
+function positiveFiniteOr(value: number | undefined, fallback: number): number {
+  return value !== undefined && Number.isFinite(value) && value > 0 ? value : fallback;
+}
+
+function positiveIntegerOr(value: number | undefined, fallback: number): number {
+  return value !== undefined && Number.isInteger(value) && value > 0 ? value : fallback;
+}
+
 export function createIsoConfig(config: Partial<TowerDefenseConfig>): IsoConfig {
   const enabled = config.projection === "isometric";
-  const cellSize = Number.isFinite(config.CELL_SIZE) && (config.CELL_SIZE as number) > 0 ? (config.CELL_SIZE as number) : 40;
-  const ratio = Number.isFinite(config.ISO_TILE_RATIO) && (config.ISO_TILE_RATIO as number) > 0 ? (config.ISO_TILE_RATIO as number) : 2;
+  const cellSize = positiveFiniteOr(config.CELL_SIZE, 40);
+  const ratio = positiveFiniteOr(config.ISO_TILE_RATIO, 2);
   const gridOffsetX = Number.isFinite(config.GRID_OFFSET_X) ? (config.GRID_OFFSET_X as number) : 80;
   const gridOffsetY = Number.isFinite(config.GRID_OFFSET_Y) ? (config.GRID_OFFSET_Y as number) : 40;
   const cols = Number.isFinite(config.GRID_COLS) && (config.GRID_COLS as number) > 0 ? (config.GRID_COLS as number) : 16;
@@ -61,9 +69,10 @@ export function createIsoConfig(config: Partial<TowerDefenseConfig>): IsoConfig 
     const maxX = gridOffsetX + cols * cellSize;
     const minY = gridOffsetY;
     const maxY = gridOffsetY + rows * cellSize;
+
     return {
-      tileWidthHalf,
-      tileHeightHalf,
+      tileWidthHalf: cellSize,
+      tileHeightHalf: cellSize / ratio,
       originX: gridOffsetX,
       originY: gridOffsetY,
       cellSize,
@@ -82,11 +91,16 @@ export function createIsoConfig(config: Partial<TowerDefenseConfig>): IsoConfig 
   }
   const worldWidth = Number.isFinite(config.worldWidth) && (config.worldWidth as number) > 0 ? (config.worldWidth as number) : 800;
 
-  // Calculate originX to center the projected grid horizontal bounding box inside worldWidth
-  const originX = (worldWidth - projectedWidth) / 2 + rows * tileWidthHalf;
-  const originY = (worldHeight - projectedHeight) / 2;
+  const gridSpan = cols + rows;
+  const maxTileWidthByViewport = worldWidth / gridSpan;
+  const maxTileWidthByViewportHeight = (worldHeight * ratio) / gridSpan;
+  const tileWidthHalf = Math.min(maxTileWidthByViewport, maxTileWidthByViewportHeight);
+  const tileHeightHalf = tileWidthHalf / ratio;
 
-  // Outer bounds derived from 4 outer corners in projected isometric space
+  // Center the projected four-corner bounding box without changing its aspect ratio.
+  const originX = worldWidth / 2 - ((cols - rows) * tileWidthHalf) / 2;
+  const originY = (worldHeight - gridSpan * tileHeightHalf) / 2;
+
   const minX = originX - rows * tileWidthHalf;
   const maxX = originX + cols * tileWidthHalf;
   const minY = originY;

@@ -1,5 +1,13 @@
 import { World, resolveThemeColorWithFallback } from "@tiny-aster/core";
-import type { TowerDefenseComponentRegistry, TowerDefenseVisualEffects } from "../types/TowerDefenseTypes";
+import type {
+  TowerDefenseComponentRegistry,
+  TowerDefenseVisualEffects,
+  GameStateComponent,
+  TileGrid,
+  TowerCatalog,
+  TowerDefinition,
+} from "../types/TowerDefenseTypes";
+import type { GridLayout } from "../../shared/grid/GridTypes";
 import { TOWER_DEFENSE_VISUAL_TOKENS } from "../presentation/TowerDefenseVisualTokens";
 import { createIsoConfig, worldToIso, depthOf, type IsoConfig, type Point2D } from "./IsoProjection";
 import type { TowerDefenseConfig } from "../types/TowerDefenseConfigSchema";
@@ -284,6 +292,109 @@ export function resolveTowerProjectileDrawSetup(
 export function isPaperDuskTheme(world: World<TowerDefenseComponentRegistry>): boolean {
   const pdGround = resolveThemeColorWithFallback(world, "", "pd_ground");
   return Boolean(pdGround);
+}
+
+export interface TdProjectedBounds {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+  centerX: number;
+  centerY: number;
+}
+
+/** Converts a logical world position to the active presentation coordinate space. */
+export function resolveTdScreenPosition(isoCfg: IsoConfig, x: number, y: number): Point2D {
+  return isoCfg.enabled ? worldToIso(isoCfg, x, y) : { x, y };
+}
+
+/** Calculates the projected map bounds once for both rendering backends. */
+export function resolveTdProjectedBounds(
+  layout: GridLayout,
+  tileGrid: TileGrid,
+  isoCfg: IsoConfig
+): TdProjectedBounds {
+  const corners = [
+    resolveTdScreenPosition(isoCfg, layout.offsetX, layout.offsetY),
+    resolveTdScreenPosition(isoCfg, layout.offsetX + tileGrid.cols * layout.stepX, layout.offsetY),
+    resolveTdScreenPosition(isoCfg, layout.offsetX, layout.offsetY + tileGrid.rows * layout.stepY),
+    resolveTdScreenPosition(
+      isoCfg,
+      layout.offsetX + tileGrid.cols * layout.stepX,
+      layout.offsetY + tileGrid.rows * layout.stepY
+    ),
+  ];
+  const minX = Math.min(...corners.map((point) => point.x));
+  const maxX = Math.max(...corners.map((point) => point.x));
+  const minY = Math.min(...corners.map((point) => point.y));
+  const maxY = Math.max(...corners.map((point) => point.y));
+
+  return {
+    minX,
+    maxX,
+    minY,
+    maxY,
+    centerX: (minX + maxX) / 2,
+    centerY: (minY + maxY) / 2,
+  };
+}
+
+export interface TowerPlacementPreviewSetup {
+  col: number;
+  row: number;
+  towerType: string;
+  definition: TowerDefinition;
+  center: Point2D;
+  buildable: boolean;
+  canAfford: boolean;
+  canBuild: boolean;
+}
+
+/** Resolves all shared placement-preview/gameplay state; renderers only draw it. */
+export function resolveTowerPlacementPreviewSetup(
+  world: World<TowerDefenseComponentRegistry>,
+  layout: GridLayout,
+  tileGrid: TileGrid,
+  isoCfg: IsoConfig
+): TowerPlacementPreviewSetup | null {
+  const playerEntity = world.query("Player")[0];
+  if (playerEntity === undefined) return null;
+
+  const input = world.getComponent(playerEntity, "Input");
+  if (!input) return null;
+
+  const catalog = world.getResource<TowerCatalog>("TowerCatalog");
+  const gameState = world.getSingleton("GameState") as GameStateComponent | undefined;
+  const player = world.getComponent(playerEntity, "Player");
+  const towerType = player?.selectedTowerType ?? gameState?.selectedTowerType ?? "basic";
+  const definition = catalog?.[towerType];
+  if (!definition) return null;
+
+  // Input cursor is already a logical world-space cell center.
+  const col = Math.floor((input.cursorX - layout.offsetX) / layout.stepX);
+  const row = Math.floor((input.cursorY - layout.offsetY) / layout.stepY);
+  if (row < 0 || row >= tileGrid.rows || col < 0 || col >= tileGrid.cols) return null;
+
+  const worldCenterX = layout.offsetX + (col + 0.5) * layout.stepX;
+  const worldCenterY = layout.offsetY + (row + 0.5) * layout.stepY;
+  const center = resolveTdScreenPosition(isoCfg, worldCenterX, worldCenterY);
+  const buildable = tileGrid.tiles[row]?.[col] === "buildable";
+  const occupied = world.query("Tower").some((entity) => {
+    const tower = world.getComponent(entity, "Tower");
+    return tower?.col === col && tower.row === row;
+  });
+  const canAfford = (gameState?.gold ?? 0) >= definition.cost;
+
+  return {
+    col,
+    row,
+    towerType,
+    definition,
+    center,
+    buildable,
+    canAfford,
+    canBuild: buildable && canAfford && !occupied,
+  };
 }
 
 export interface TdMapBackgroundContext {

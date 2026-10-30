@@ -15,6 +15,9 @@ import {
   resolveTowerWeaponDrawSetup,
   resolveTdLandmarkSetup,
   resolveTdMapBackgroundContext,
+  resolveTdScreenPosition,
+  resolveTdProjectedBounds,
+  resolveTowerPlacementPreviewSetup,
   forEachTileGridCell,
   isPaperDuskTheme,
   resolveEntityIsometricOffset,
@@ -721,27 +724,15 @@ function drawTowerDefenseVfxSkia(
   if (!paint) return;
   const state = world.getResource<TowerDefenseVisualEffects>("TowerDefenseVisualEffects");
   const gameState = world.getSingleton("GameState") as GameStateComponent | undefined;
-  let centerX = layout.offsetX + (tileGrid.cols * layout.stepX) / 2;
-  let bannerY = Math.max(8, layout.offsetY - 10);
-  if (isoCfg.enabled) {
-    const corners = [
-      worldToIso(isoCfg, layout.offsetX, layout.offsetY),
-      worldToIso(isoCfg, layout.offsetX + tileGrid.cols * layout.stepX, layout.offsetY),
-      worldToIso(isoCfg, layout.offsetX, layout.offsetY + tileGrid.rows * layout.stepY),
-      worldToIso(isoCfg, layout.offsetX + tileGrid.cols * layout.stepX, layout.offsetY + tileGrid.rows * layout.stepY),
-    ];
-    const minX = Math.min(...corners.map((point) => point.x));
-    const maxX = Math.max(...corners.map((point) => point.x));
-    const minY = Math.min(...corners.map((point) => point.y));
-    centerX = (minX + maxX) / 2;
-    bannerY = Math.max(8, minY - 12);
-  }
+  const projectedBounds = resolveTdProjectedBounds(layout, tileGrid, isoCfg);
+  const centerX = projectedBounds.centerX;
+  const bannerY = Math.max(8, projectedBounds.minY - (isoCfg.enabled ? 12 : 10));
 
   if (state) {
     for (const effect of state.effects) {
       const progress = Math.max(0, Math.min(1, effect.ageSeconds / effect.durationSeconds));
       const fade = progress > 0.68 ? (1 - progress) / 0.32 : 1;
-      const effectPosition = isoCfg.enabled ? worldToIso(isoCfg, effect.x, effect.y) : { x: effect.x, y: effect.y };
+      const effectPosition = resolveTdScreenPosition(isoCfg, effect.x, effect.y);
       const effectX = effectPosition.x;
       const effectY = effectPosition.y;
       canvas.save();
@@ -1043,37 +1034,9 @@ function drawSkiaTowerPlacementPreview(
   isoCfg: import("./IsoProjection").IsoConfig
 ): void {
   if (!Skia) return;
-  const playerEntity = world.query("Player")[0];
-  if (playerEntity === undefined) return;
-  const input = world.getComponent(playerEntity, "Input");
-  if (!input) return;
-
-  const catalog = world.getResource<TowerCatalog>("TowerCatalog");
-  const gameState = world.getSingleton("GameState") as GameStateComponent | undefined;
-  const towerType = world.getComponent(playerEntity, "Player")?.selectedTowerType
-    ?? gameState?.selectedTowerType
-    ?? "basic";
-  const definition = catalog?.[towerType];
-  if (!definition) return;
-
-  // Input cursor is in logical world coordinates, not projected screen coordinates.
-  const col = Math.floor((input.cursorX - layout.offsetX) / layout.stepX);
-  const row = Math.floor((input.cursorY - layout.offsetY) / layout.stepY);
-  if (row < 0 || row >= tileGrid.rows || col < 0 || col >= tileGrid.cols) return;
-
-  const worldCenterX = layout.offsetX + (col + 0.5) * layout.stepX;
-  const worldCenterY = layout.offsetY + (row + 0.5) * layout.stepY;
-  const center = isoCfg.enabled
-    ? worldToIso(isoCfg, worldCenterX, worldCenterY)
-    : { x: worldCenterX, y: worldCenterY };
-
-  const buildable = tileGrid.tiles[row]?.[col] === "buildable";
-  const occupied = world.query("Tower").some((entity) => {
-    const tower = world.getComponent(entity, "Tower");
-    return tower?.col === col && tower.row === row;
-  });
-  const canAfford = (gameState?.gold ?? 0) >= definition.cost;
-  const canBuild = buildable && canAfford && !occupied;
+  const preview = resolveTowerPlacementPreviewSetup(world, layout, tileGrid, isoCfg);
+  if (!preview) return;
+  const { col, row, towerType, definition, center, buildable, canAfford, canBuild } = preview;
   const paint = getPaint();
   if (!paint) return;
 

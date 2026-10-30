@@ -18,6 +18,9 @@ import {
   resolveTowerWeaponDrawSetup,
   resolveTdLandmarkSetup,
   resolveTdMapBackgroundContext,
+  resolveTdScreenPosition,
+  resolveTdProjectedBounds,
+  resolveTowerPlacementPreviewSetup,
   forEachTileGridCell,
   resolveEntityIsometricOffset,
   getEntityVisualHeight,
@@ -712,27 +715,15 @@ function drawTowerDefenseVfxCanvas(
 ): void {
   const state = world.getResource<TowerDefenseVisualEffects>("TowerDefenseVisualEffects");
   const gameState = world.getSingleton("GameState") as GameStateComponent | undefined;
-  let centerX = layout.offsetX + (tileGrid.cols * layout.stepX) / 2;
-  let bannerY = Math.max(8, layout.offsetY - 10);
-  if (isoCfg.enabled) {
-    const corners = [
-      worldToIso(isoCfg, layout.offsetX, layout.offsetY),
-      worldToIso(isoCfg, layout.offsetX + tileGrid.cols * layout.stepX, layout.offsetY),
-      worldToIso(isoCfg, layout.offsetX, layout.offsetY + tileGrid.rows * layout.stepY),
-      worldToIso(isoCfg, layout.offsetX + tileGrid.cols * layout.stepX, layout.offsetY + tileGrid.rows * layout.stepY),
-    ];
-    const minX = Math.min(...corners.map((point) => point.x));
-    const maxX = Math.max(...corners.map((point) => point.x));
-    const minY = Math.min(...corners.map((point) => point.y));
-    centerX = (minX + maxX) / 2;
-    bannerY = Math.max(8, minY - 12);
-  }
+  const projectedBounds = resolveTdProjectedBounds(layout, tileGrid, isoCfg);
+  const centerX = projectedBounds.centerX;
+  const bannerY = Math.max(8, projectedBounds.minY - (isoCfg.enabled ? 12 : 10));
 
   if (state) {
     for (const effect of state.effects) {
       const progress = Math.max(0, Math.min(1, effect.ageSeconds / effect.durationSeconds));
       const fade = progress > 0.68 ? (1 - progress) / 0.32 : 1;
-      const effectPosition = isoCfg.enabled ? worldToIso(isoCfg, effect.x, effect.y) : { x: effect.x, y: effect.y };
+      const effectPosition = resolveTdScreenPosition(isoCfg, effect.x, effect.y);
       const effectX = effectPosition.x;
       const effectY = effectPosition.y;
       ctx.save();
@@ -1028,42 +1019,11 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
 
     drawPathDirectionMarkersCanvas(ctx, world, isPaperDusk, isoCfg);
 
-    const playerEntity = world.query("Player")[0];
-    const catalog = world.getResource<TowerCatalog>("TowerCatalog");
     const gs = world.getSingleton("GameState") as GameStateComponent | undefined;
+    const preview = resolveTowerPlacementPreviewSetup(world, layout, tileGrid, isoCfg);
 
-    if (playerEntity !== undefined) {
-      const player = world.getComponent(playerEntity, "Player");
-      const input = world.getComponent(playerEntity, "Input");
-      const towerType = player?.selectedTowerType ?? gs?.selectedTowerType ?? "basic";
-      const def = catalog?.[towerType];
-
-      if (input && def) {
-        let col: number;
-        let row: number;
-        if (isoCfg.enabled) {
-          // Input.cursorX/Y are already world-space coordinates (the touch handler
-          // resolves the selected cell before writing the ECS input component).
-          col = Math.floor((input.cursorX - layout.offsetX) / layout.stepX);
-          row = Math.floor((input.cursorY - layout.offsetY) / layout.stepY);
-        } else {
-          col = Math.floor((input.cursorX - layout.offsetX) / layout.stepX);
-          row = Math.floor((input.cursorY - layout.offsetY) / layout.stepY);
-        }
-
-        if (row >= 0 && row < tileGrid.rows && col >= 0 && col < tileGrid.cols) {
-          const cellCenterX = layout.offsetX + (col + 0.5) * layout.stepX;
-          const cellCenterY = layout.offsetY + (row + 0.5) * layout.stepY;
-          const isoCenter = isoCfg.enabled ? worldToIso(isoCfg, cellCenterX, cellCenterY) : { x: cellCenterX, y: cellCenterY };
-
-          const buildable = tileGrid.tiles[row]?.[col] === "buildable";
-          const canAfford = (gs?.gold ?? 0) >= def.cost;
-          const occupied = world.query("Tower").some((e) => {
-            const tw = world.getComponent(e, "Tower");
-            return tw && tw.col === col && tw.row === row;
-          });
-          const canBuild = buildable && canAfford && !occupied;
-
+    if (preview) {
+          const { col, row, towerType, definition: def, center: isoCenter, buildable, canAfford, canBuild } = preview;
           ctx.save();
           ctx.beginPath();
           if (isoCfg.enabled) {
@@ -1118,8 +1078,6 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
             ctx.fillText("NO GOLD", isoCenter.x, isoCenter.y - (isoCfg.enabled ? isoCfg.tileHeightHalf + 10 : 20));
           }
           ctx.restore();
-        }
-      }
     }
 
     if (world.getResource<boolean>("ShowTowerDefenseDebugHud") === true) {

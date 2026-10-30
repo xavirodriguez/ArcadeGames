@@ -4,6 +4,7 @@ import { GameLoop } from "@tiny-aster/core";
 import type { CoreComponentRegistry, World } from "@tiny-aster/core";
 import { SkiaRenderer } from "@tiny-aster/renderer-skia";
 import { useFrameCallback, runOnJS } from "react-native-reanimated";
+import { subscribeRenderFrames } from "@/src/games/shared/rendering/subscribeRenderFrames";
 
 type SkiaModule = typeof import("@shopify/react-native-skia");
 type SkiaPicture = React.ComponentProps<SkiaModule["Picture"]>["picture"];
@@ -69,19 +70,23 @@ export const GameRenderer = <TRegistry extends CoreComponentRegistry>({
       gameLoop.start();
     }
 
-    const unsubscribe = gameLoop.subscribeRender((alpha) => {
-      const renderer = rendererRef.current;
-      if (!renderer) return;
+    const unsubscribe = subscribeRenderFrames(
+      gameLoop,
+      () => world,
+      (activeWorld, alpha) => {
+        const renderer = rendererRef.current;
+        if (!renderer) return;
 
-      const screenConfig = world.getResource<{ width: number; height: number }>("ScreenConfig")
-        ?? { width: 800, height: 600 };
-      const recorder = skiaModule.Skia.PictureRecorder();
-      const recordingCanvas = recorder.beginRecording(
-        skiaModule.Skia.XYWHRect(0, 0, screenConfig.width, screenConfig.height)
-      );
-      renderer.render(world, recordingCanvas, alpha);
-      setPicture(recorder.finishRecordingAsPicture());
-    });
+        const screenConfig = activeWorld.getResource<{ width: number; height: number }>("ScreenConfig")
+          ?? { width: 800, height: 600 };
+        const recorder = skiaModule.Skia.PictureRecorder();
+        const recordingCanvas = recorder.beginRecording(
+          skiaModule.Skia.XYWHRect(0, 0, screenConfig.width, screenConfig.height)
+        );
+        renderer.render(activeWorld, recordingCanvas, alpha);
+        setPicture(recorder.finishRecordingAsPicture());
+      }
+    );
 
     return () => {
       unsubscribe();

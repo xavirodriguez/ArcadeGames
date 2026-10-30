@@ -20,7 +20,7 @@ import {
   resolveEntityIsometricOffset,
   getEntityVisualHeight,
 } from "./TowerDefenseVisualHelpers";
-import { projectVector, worldToIso } from "./IsoProjection";
+import { projectCircleRadii, projectVector, worldToIso } from "./IsoProjection";
 
 const TOWER_BASIC_SPRITE = createSpriteAnimator("tower_basic_art");
 const TOWER_SNIPER_SPRITE = createSpriteAnimator("tower_sniper_art");
@@ -998,22 +998,24 @@ function drawSkiaTowerPlacementPreview(
   const paint = getPaint();
   if (!paint) return;
 
-  // Range geometry matches the Canvas ellipse and is scaled by the isometric
-  // vertical-to-horizontal tile ratio only for presentation.
+  const rangeRadii = projectCircleRadii(isoCfg, definition.range);
   canvas.save();
   canvas.translate(center.x, center.y);
-  if (isoCfg.enabled) {
-    canvas.scale(1, isoCfg.tileHeightHalf / isoCfg.tileWidthHalf);
-  }
   paint.reset();
   paint.setAntiAlias(true);
   paint.setStyle(Skia.PaintStyle.Fill);
   paint.setColor(Skia.Color(canBuild ? "rgba(79,195,247,0.08)" : "rgba(229,57,53,0.06)"));
-  canvas.drawCircle(0, 0, definition.range, paint);
+  canvas.drawOval(
+    Skia.XYWHRect(-rangeRadii.rx, -rangeRadii.ry, rangeRadii.rx * 2, rangeRadii.ry * 2),
+    paint
+  );
   paint.setStyle(Skia.PaintStyle.Stroke);
   paint.setStrokeWidth(1.5);
   paint.setColor(Skia.Color(canBuild ? "rgba(79,195,247,0.45)" : "rgba(229,57,53,0.35)"));
-  canvas.drawCircle(0, 0, definition.range, paint);
+  canvas.drawOval(
+    Skia.XYWHRect(-rangeRadii.rx, -rangeRadii.ry, rangeRadii.rx * 2, rangeRadii.ry * 2),
+    paint
+  );
   canvas.restore();
 
   if (isoCfg.enabled) {

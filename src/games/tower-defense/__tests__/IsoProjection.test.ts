@@ -3,6 +3,7 @@ import {
   worldToIso,
   isoToWorld,
   depthOf,
+  projectCircleRadii,
 } from "../rendering/IsoProjection";
 import { touchToCellCoords } from "../MapUtils";
 import type { TowerDefenseConfig } from "../types/TowerDefenseConfigSchema";
@@ -79,6 +80,15 @@ describe("IsoProjection", () => {
     const topLeftIso = worldToIso(isoCfg, left, top);
     expect(topLeftIso.x).toBeCloseTo(isoCfg.originX, 5);
     expect(topLeftIso.y).toBeCloseTo(isoCfg.originY, 5);
+  });
+
+  it("projects world-space circular ranges into exact isometric ellipse radii", () => {
+    const radii = projectCircleRadii(isoCfg, 100);
+    expect(radii.rx).toBeCloseTo(Math.SQRT2 * 100, 5);
+    expect(radii.ry).toBeCloseTo(Math.SQRT2 * 50, 5);
+
+    const topdown = createIsoConfig({ ...mockConfig, projection: "topdown" });
+    expect(projectCircleRadii(topdown, 100)).toEqual({ rx: 100, ry: 100 });
   });
 
   it("ensures depthOf is monotonic with respect to row + col", () => {

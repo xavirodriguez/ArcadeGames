@@ -28,7 +28,7 @@ type TDWorld = World<TowerDefenseComponentRegistry>;
 import { isPaperDuskTheme } from "./TowerDefenseVisualHelpers";
 import { createSpriteAnimator, drawSpriteCanvas } from "../../shared/sprites";
 import { TOWER_DEFENSE_VISUAL_TOKENS } from "../presentation/TowerDefenseVisualTokens";
-import { projectVector, worldToIso } from "./IsoProjection";
+import { projectCircleRadii, projectVector, worldToIso } from "./IsoProjection";
 
 const TOWER_BASIC_SPRITE = createSpriteAnimator("tower_basic_art");
 const TOWER_SNIPER_SPRITE = createSpriteAnimator("tower_sniper_art");
@@ -1042,8 +1042,7 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
           ctx.save();
           ctx.beginPath();
           if (isoCfg.enabled) {
-            const rx = def.range;
-            const ry = rx * (isoCfg.tileHeightHalf / isoCfg.tileWidthHalf);
+            const { rx, ry } = projectCircleRadii(isoCfg, def.range);
             ctx.ellipse(isoCenter.x, isoCenter.y, rx, ry, 0, 0, Math.PI * 2);
           } else {
             ctx.arc(isoCenter.x, isoCenter.y, def.range, 0, Math.PI * 2);

@@ -117,6 +117,25 @@ export function projectVector(cfg: IsoConfig, vx: number, vy: number): Point2D {
   };
 }
 
+/**
+ * Projects a world-space circle into its exact screen-space ellipse radii.
+ * This is the singular-value transform of the isometric projection matrix.
+ */
+export function projectCircleRadii(cfg: IsoConfig, radius: number): { rx: number; ry: number } {
+  if (!cfg.enabled) {
+    return { rx: radius, ry: radius };
+  }
+
+  const scaleX = cfg.tileWidthHalf / cfg.cellSize;
+  const scaleY = cfg.tileHeightHalf / cfg.cellSize;
+  const diagonalScale = Math.SQRT2 * radius;
+
+  return {
+    rx: diagonalScale * scaleX,
+    ry: diagonalScale * scaleY,
+  };
+}
+
 /** Spatial depth key for Painter's Algorithm depth sorting. */
 export function depthOf(wx: number, wy: number): number {
   return wx + wy;

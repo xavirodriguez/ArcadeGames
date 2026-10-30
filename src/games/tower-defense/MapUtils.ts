@@ -152,6 +152,10 @@ export function touchToCellCoords(
     if (isoCell.col >= 0 && isoCell.col < cols && isoCell.row >= 0 && isoCell.row < rows) {
       return isoCell;
     }
+
+    // An isometric touch outside the projected grid must stay outside it.
+    // Falling back to Cartesian screen coordinates can select an unrelated cell.
+    return { row: -1, col: -1 };
   }
 
   return worldToCellCoords(screenX, screenY, layout);

@@ -28,7 +28,7 @@ type TDWorld = World<TowerDefenseComponentRegistry>;
 import { isPaperDuskTheme } from "./TowerDefenseVisualHelpers";
 import { createSpriteAnimator, drawSpriteCanvas } from "../../shared/sprites";
 import { TOWER_DEFENSE_VISUAL_TOKENS } from "../presentation/TowerDefenseVisualTokens";
-import { worldToIso, isoToWorld } from "./IsoProjection";
+import { worldToIso } from "./IsoProjection";
 
 const TOWER_BASIC_SPRITE = createSpriteAnimator("tower_basic_art");
 const TOWER_SNIPER_SPRITE = createSpriteAnimator("tower_sniper_art");
@@ -998,9 +998,10 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
         let col: number;
         let row: number;
         if (isoCfg.enabled) {
-          const worldP = isoToWorld(isoCfg, input.cursorX, input.cursorY);
-          col = Math.floor((worldP.x - layout.offsetX) / layout.stepX);
-          row = Math.floor((worldP.y - layout.offsetY) / layout.stepY);
+          // Input.cursorX/Y are already world-space coordinates (the touch handler
+          // resolves the selected cell before writing the ECS input component).
+          col = Math.floor((input.cursorX - layout.offsetX) / layout.stepX);
+          row = Math.floor((input.cursorY - layout.offsetY) / layout.stepY);
         } else {
           col = Math.floor((input.cursorX - layout.offsetX) / layout.stepX);
           row = Math.floor((input.cursorY - layout.offsetY) / layout.stepY);

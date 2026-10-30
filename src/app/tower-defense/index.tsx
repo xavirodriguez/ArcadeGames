@@ -198,6 +198,12 @@ function TowerDefensePlay({ initialSeed, theme }: { initialSeed?: number; theme?
       towerDefenseConfigRaw as TowerDefenseConfig,
       layout
     );
+    const cols = towerDefenseConfigRaw.GRID_COLS ?? 16;
+    const rows = towerDefenseConfigRaw.GRID_ROWS ?? 12;
+    if (cell.col < 0 || cell.col >= cols || cell.row < 0 || cell.row >= rows) {
+      return;
+    }
+
     const worldPos = cellCenter(cell.col, cell.row, layout);
     handleInput({
       cursorX: worldPos.x,

@@ -14,7 +14,7 @@
 | 1. Session per game | Implemented in source; validation pending | [Shared registry session bridge](../../src/games/hitandrun/rendering/theme/HitRunPresentationSession.ts) | Execute isolation/lifecycle tests and inspect restart/destroy behavior under the real game loop. |
 | 2. Boundaries, snapshots and determinism | Partial | Shared `PresentationThemeRegistry` owns session/tokens/disposal; session RNG is injected into Sumi-e; architectural source guards were updated. | The full painter/snapshot boundary is not wired into legacy theme methods. Verify deterministic output across frame-rate variation and complete architecture tests. |
 | 3. Resource lifecycle and preload | Partial | Theme instances are owned and disposed by the shared session; resize work is de-duplicated; Hit & Run's React provider receives that session's tokens. | Connect a complete presentation asset manifest and missing-resource fallbacks; run repeated create/restart/destroy memory tests. |
-| 4. Canvas/Skia scene migration | Blocked / incomplete | [Migration gate](2026-10-30-hitrun-canvas-skia-migration-gate.md) | Ground shadows, entities, projectiles, feedback, HUD and banners still use the legacy `HitRunTheme` contract. Only the backdrop has a native Skia method. No full production route to `PresentationPainter` or real-backend parity run yet. |
+| 4. Canvas/Skia scene migration | Partial — HUD/banner vertical slice migrated | [Migration gate](2026-10-30-hitrun-canvas-skia-migration-gate.md) | HUD snapshots and banners now render through `PresentationPainter` on Canvas and Skia. Backdrop, ground shadows, entities, projectiles and feedback remain legacy. Real-backend parity and screenshot acceptance remain open. |
 | 5. Visual, accessibility and performance acceptance | Partial | [Painter gradient ownership fix](https://github.com/xavirodriguez/ArcadeGames/commit/7eaae3b4d6746580f254da41d5929d3180c83901); [acceptance protocol](2026-10-30-presentation-performance-and-visual-acceptance.md) | Unit test is added for cross-painter gradient ownership. Screenshot comparisons, injected font resolver in production, accessibility validation, GC/heap measurements and performance budgets remain unverified. |
 | 6. Retire legacy global selection | Implemented in source; validation pending | [Legacy retirement audit](2026-10-30-presentation-legacy-retirement.md); updated architecture test | CI must confirm the source guards and all consumers. The legacy drawing contract remains intentionally as an adapter; this is not the same as legacy selection state. |
 | 7. Validate a second game | Pending | [Second-game preflight](2026-10-30-second-game-pilot-preflight.md) | A real second-game session and alternate visual theme must use the shared contract; then test both backends and unchanged simulation output. |
@@ -44,6 +44,18 @@
 
 After the first push, `master` advanced through [PR #989](https://github.com/xavirodriguez/ArcadeGames/pull/989), now at [`0a603ceb4233`](https://github.com/xavirodriguez/ArcadeGames/commit/0a603ceb4233be1c41dd12061da3d160b21c1425). This branch preserves its session refactor and now includes the relevant PR #989 updates: both Hit & Run renderer casts use `never` rather than `unknown`, and the Sumi-e integration test includes the corrected closing call. The synchronization is recorded as a merge commit with `master` as its second parent; the roadmap phase squash commits remain intact.
 
+## Phase 4 progress: HUD and banner
+
+The first vertical slice now uses the backend-neutral theme contract:
+
+- ECS data is projected into typed HUD snapshots and a `PresentationFrame`.
+- The shared theme bridge renders health, score, section labels, game-over state and transition banners through `PresentationPainter`.
+- Canvas and Skia register distinct HUD effects backed by `CanvasPresentationPainter` and `SkiaPresentationPainter`.
+- The production HUD route no longer calls legacy `HitRunTheme.renderHud()` or `renderSectionBanner()`.
+- Theme descriptors declare `hud` and `banner` capabilities; unit tests exercise both registered themes plus reduced-motion and high-contrast behavior.
+
+This is not full scene parity. Skia still uses its default typeface unless a font resolver is injected. Real-backend screenshots and migration of the backdrop, shadows, entities, projectiles and feedback remain open.
+
 ## Next action
 
-Create a pull request when ready to trigger the repository's configured CI workflows. Before declaring the roadmap complete, resolve any actual checks that fail and complete Phase 4's production migration to `PresentationPainter`, the Phase 5 visual/performance/accessibility acceptance, and Phase 7's real second-game pilot.
+Continue Phase 4 with ground shadows and entity/projectile rendering through typed snapshots and `PresentationPainter`. Keep visual parity and Phase 5 acceptance open until real Canvas/Skia screenshots and performance measurements exist.

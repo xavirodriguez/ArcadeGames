@@ -11,19 +11,26 @@
 - The session exposes normalized tokens and an isolated cosmetic random stream.
 - Session resize is routed to the owned theme when the viewport changes.
 
+## HUD/banner vertical slice migrated
+
+The shared Hit & Run bridge implements `renderHud` and `renderBanner` with backend-neutral `PresentationPainter` methods. The ECS read layer creates immutable HUD snapshots and a `PresentationFrame`. The production route registers separate Canvas and Skia HUD effects, each creating its matching painter adapter.
+
+The migrated slice includes health, score, section label, game-over overlay and transition banner. It also observes `reduceMotion` and `highContrast` frame flags. The legacy theme methods remain in the legacy interface for other consumers but are no longer used by this HUD route.
+
+Contract tests exercise both registered themes against the same painter API. They do not establish pixel parity between real raster backends.
+
 ## What is not yet a completed Canvas/Skia migration
 
-The legacy `HitRunTheme` contract still requires `CanvasRenderingContext2D` for ground shadows, entities, projectiles, feedback, HUD and banners. Its optional Skia entry point currently covers the backdrop only. `HitAndRunGame.initializeRenderer()` still registers Canvas-compatible shape drawers for the Skia renderer. The existence of `CanvasPresentationPainter` and `SkiaPresentationPainter` does not close this gap.
+The legacy `HitRunTheme` contract still requires `CanvasRenderingContext2D` for ground shadows, entities, projectiles and feedback. The HUD/banner path has moved to the shared painter; the other scene layers have not. Skia has native backdrop and migrated HUD/banner paths, but shape drawers are still Canvas-compatible registrations for both renderer types. The existence of painter adapters does not prove pixel parity.
 
 ## Remaining work, in migration order
 
-1. Build a backend-neutral Hit & Run theme facade over typed presentation snapshots.
-2. Implement the Sumi-e theme over `PresentationPainter` without changing the established visual baseline.
-3. Wire Canvas and Skia painters into the renderer-specific registration path; do not pass Canvas drawers into Skia.
-4. Migrate backdrop and environment layers, then shadows and entities, projectiles and feedback, and finally HUD and banners.
-5. Supply actual font and image resolvers and define missing-asset fallback behavior.
-6. Add backend conformance tests for alpha, clipping, transforms, gradients, text metrics, missing assets and composition order.
-7. Run a seeded scene through both real backends and compare screenshots with explicit rasterization tolerances.
+1. Migrate ground shadows and entity/projectile rendering to typed snapshots and `PresentationPainter`.
+2. Build the backend-neutral backdrop/environment path with asset resolvers and a visual baseline for Sumi-e.
+3. Migrate feedback effects to painter-backed snapshots and seeded cosmetic randomness.
+4. Complete production font/image resolvers and missing-resource fallbacks.
+5. Add backend conformance tests for alpha, clipping, transforms, gradients, text metrics, missing assets and composition order.
+6. Run a seeded scene through both real backends and compare screenshots with explicit rasterization tolerances.
 
 ## Exit criteria
 

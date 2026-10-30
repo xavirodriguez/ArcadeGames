@@ -1,8 +1,17 @@
 import { useState, useEffect, FC } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Platform, GestureResponderEvent, LayoutChangeEvent } from "react-native";
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  Platform,
+  GestureResponderEvent,
+  LayoutChangeEvent,
+} from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
+import { GameRenderer } from "@/components/GameRenderer";
 import { GameRenderer } from "@/components/GameRenderer";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { useTowerDefenseGame } from "@/hooks/useTowerDefenseGame";
@@ -10,12 +19,19 @@ import { GameErrorBoundary } from "@/components/GameErrorBoundary";
 import { useTranslation } from "@/hooks/useTranslation";
 import { hapticSelection } from "../../utils/haptics";
 import { colors, spacing, typography } from "../../theme";
-import { touchToCellCoords, cellCenter, fitContain } from "../../games/tower-defense/MapUtils";
+import {
+  touchToCellCoords,
+  cellCenter,
+  fitContain,
+} from "../../games/tower-defense/MapUtils";
 import towerDefenseConfigRaw from "../../games/tower-defense/config/tower-defense.json";
 import type { TowerDefenseConfig } from "../../games/tower-defense/types/TowerDefenseConfigSchema";
-import type { ThreatInfo } from "../../games/tower-defense/types/TowerDefenseTypes";
+import type {
+  ThreatInfo,
+  TowerDefenseComponentRegistry,
+} from "../../games/tower-defense/types/TowerDefenseTypes";
 import { paperDuskConceptPack } from "../../theme/conceptPacks/paperDuskConceptPack";
-import type { Theme } from "@tiny-aster/core";
+import type { Theme, Renderer } from "@tiny-aster/core";
 
 import {
   GameScreen,
@@ -32,7 +48,9 @@ export default function TowerDefenseScreen() {
   const params = useLocalSearchParams<{ seed?: string }>();
   const [started, setStarted] = useState(false);
   const [initialSeed, setInitialSeed] = useState<number | undefined>();
-  const [selectedThemeKey, setSelectedThemeKey] = useState<"default" | "paper_dusk">("default");
+  const [selectedThemeKey, setSelectedThemeKey] = useState<
+    "default" | "paper_dusk"
+  >("default");
 
   useEffect(() => {
     if (params.seed) {
@@ -43,7 +61,8 @@ export default function TowerDefenseScreen() {
     }
   }, [params.seed]);
 
-  const activeTheme = selectedThemeKey === "paper_dusk" ? paperDuskConceptPack : undefined;
+  const activeTheme =
+    selectedThemeKey === "paper_dusk" ? paperDuskConceptPack : undefined;
 
   if (!started) {
     return (
@@ -55,7 +74,10 @@ export default function TowerDefenseScreen() {
           hapticSelection();
           setStarted(true);
         }}
-        instructions={t["tower-defense"]?.instructions || "Toca celdas para construir torres y defiende la base."}
+        instructions={
+          t["tower-defense"]?.instructions ||
+          "Toca celdas para construir torres y defiende la base."
+        }
       />
     );
   }
@@ -67,7 +89,13 @@ export default function TowerDefenseScreen() {
   );
 }
 
-function TowerDefensePlay({ initialSeed, theme }: { initialSeed?: number; theme?: Theme }) {
+function TowerDefensePlay({
+  initialSeed,
+  theme,
+}: {
+  initialSeed?: number;
+  theme?: Theme;
+}) {
   const { t } = useTranslation();
   const [selectedTower, setSelectedTower] = useState<string>("basic");
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -89,28 +117,40 @@ function TowerDefensePlay({ initialSeed, theme }: { initialSeed?: number; theme?
 
     const unsubBuildFailed = bus.on("tower:build_failed", (ev: unknown) => {
       const payload = ev as { reason?: string };
-      if (payload?.reason === "out_of_bounds") showMsg("Toca una celda del mapa primero");
-      else if (payload?.reason === "not_buildable") showMsg("Celda no construible (solo celdas B)");
-      else if (payload?.reason === "cell_occupied") showMsg("Esa celda ya tiene una torre");
-      else if (payload?.reason === "insufficient_gold") showMsg("Oro insuficiente");
+      if (payload?.reason === "out_of_bounds")
+        showMsg("Toca una celda del mapa primero");
+      else if (payload?.reason === "not_buildable")
+        showMsg("Celda no construible (solo celdas B)");
+      else if (payload?.reason === "cell_occupied")
+        showMsg("Esa celda ya tiene una torre");
+      else if (payload?.reason === "insufficient_gold")
+        showMsg("Oro insuficiente");
       else showMsg("No se pudo construir la torre");
     });
 
     const unsubUpgradeFailed = bus.on("tower:upgrade_failed", (ev: unknown) => {
       const payload = ev as { reason?: string };
-      if (payload?.reason === "no_tower_at_cell") showMsg("Toca la torre que deseas mejorar");
-      else if (payload?.reason === "max_level_reached") showMsg("Torre en nivel máximo");
-      else if (payload?.reason === "insufficient_gold") showMsg("Oro insuficiente para mejorar");
+      if (payload?.reason === "no_tower_at_cell")
+        showMsg("Toca la torre que deseas mejorar");
+      else if (payload?.reason === "max_level_reached")
+        showMsg("Torre en nivel máximo");
+      else if (payload?.reason === "insufficient_gold")
+        showMsg("Oro insuficiente para mejorar");
       else showMsg("No se pudo mejorar la torre");
     });
 
     const unsubSellFailed = bus.on("tower:sell_failed", (ev: unknown) => {
       const payload = ev as { reason?: string };
-      if (payload?.reason === "no_tower_at_cell") showMsg("Toca la torre que deseas vender");
+      if (payload?.reason === "no_tower_at_cell")
+        showMsg("Toca la torre que deseas vender");
     });
 
-    const unsubBuilt = bus.on("tower:built", () => showMsg("¡Torre construida!"));
-    const unsubUpgraded = bus.on("tower:upgraded", () => showMsg("¡Torre mejorada!"));
+    const unsubBuilt = bus.on("tower:built", () =>
+      showMsg("¡Torre construida!")
+    );
+    const unsubUpgraded = bus.on("tower:upgraded", () =>
+      showMsg("¡Torre mejorada!")
+    );
     const unsubSold = bus.on("tower:sold", () => showMsg("Torre vendida"));
 
     return () => {
@@ -124,7 +164,10 @@ function TowerDefensePlay({ initialSeed, theme }: { initialSeed?: number; theme?
     };
   }, [game]);
 
-  const [canvasLayout, setCanvasLayout] = useState<{ width: number; height: number }>({
+  const [canvasLayout, setCanvasLayout] = useState<{
+    width: number;
+    height: number;
+  }>({
     width: towerDefenseConfigRaw.worldWidth,
     height: towerDefenseConfigRaw.worldHeight,
   });
@@ -167,23 +210,34 @@ function TowerDefensePlay({ initialSeed, theme }: { initialSeed?: number; theme?
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [game, isReady, gameState?.phase, initialSeed, restartWithSeed, handleInput]);
+  }, [
+    game,
+    isReady,
+    gameState?.phase,
+    initialSeed,
+    restartWithSeed,
+    handleInput,
+  ]);
 
   const handleCanvasTouch = (e: GestureResponderEvent) => {
     if (!game || !isReady) return;
     const nativeEv = e.nativeEvent;
     const locationX =
-      "locationX" in nativeEv && typeof (nativeEv as { locationX?: unknown }).locationX === "number"
+      "locationX" in nativeEv &&
+      typeof (nativeEv as { locationX?: unknown }).locationX === "number"
         ? (nativeEv as { locationX: number }).locationX
-        : "offsetX" in nativeEv && typeof (nativeEv as { offsetX?: unknown }).offsetX === "number"
-          ? (nativeEv as { offsetX: number }).offsetX
-          : 0;
+        : "offsetX" in nativeEv &&
+          typeof (nativeEv as { offsetX?: unknown }).offsetX === "number"
+        ? (nativeEv as { offsetX: number }).offsetX
+        : 0;
     const locationY =
-      "locationY" in nativeEv && typeof (nativeEv as { locationY?: unknown }).locationY === "number"
+      "locationY" in nativeEv &&
+      typeof (nativeEv as { locationY?: unknown }).locationY === "number"
         ? (nativeEv as { locationY: number }).locationY
-        : "offsetY" in nativeEv && typeof (nativeEv as { offsetY?: unknown }).offsetY === "number"
-          ? (nativeEv as { offsetY: number }).offsetY
-          : 0;
+        : "offsetY" in nativeEv &&
+          typeof (nativeEv as { offsetY?: unknown }).offsetY === "number"
+        ? (nativeEv as { offsetY: number }).offsetY
+        : 0;
     // Map touch coordinates to cell world position
     const layout = {
       stepX: towerDefenseConfigRaw.CELL_SIZE,
@@ -223,17 +277,18 @@ function TowerDefensePlay({ initialSeed, theme }: { initialSeed?: number; theme?
     );
   }
 
-  const aliveEnemies = game.getWorld().getResource<ThreatInfo>("ThreatInfo")?.alive ?? 0;
+  const aliveEnemies =
+    game.getWorld().getResource<ThreatInfo>("ThreatInfo")?.alive ?? 0;
   const phaseText =
     gameState?.phase === "build"
       ? "CONSTRUCCIÓN"
       : gameState?.phase === "wave"
-        ? "OLEADA EN CURSO"
-        : gameState?.phase === "intermission"
-          ? `INTERMISIÓN (${Math.ceil(gameState.intermissionRemaining ?? 0)}s)`
-          : gameState?.phase === "victory"
-            ? "¡VICTORIA!"
-            : "DERROTA";
+      ? "OLEADA EN CURSO"
+      : gameState?.phase === "intermission"
+      ? `INTERMISIÓN (${Math.ceil(gameState.intermissionRemaining ?? 0)}s)`
+      : gameState?.phase === "victory"
+      ? "¡VICTORIA!"
+      : "DERROTA";
 
   return (
     <SafeAreaProvider>
@@ -251,16 +306,24 @@ function TowerDefensePlay({ initialSeed, theme }: { initialSeed?: number; theme?
             accessibilityLabel="Estado de la partida"
           >
             <Text style={styles.hudTextGold}>🪙 {gameState?.gold ?? 0}</Text>
-            <Text style={[styles.hudTextLives, (gameState?.lives ?? 0) <= 5 && styles.hudTextCritical]}>
+            <Text
+              style={[
+                styles.hudTextLives,
+                (gameState?.lives ?? 0) <= 5 && styles.hudTextCritical,
+              ]}
+            >
               ❤️ {gameState?.lives ?? 0}
             </Text>
             <Text style={styles.hudTextEnemies}>👾 {aliveEnemies}</Text>
-            <Text style={styles.hudTextWave}>🌊 Wave {(gameState?.wave ?? 0) + 1}</Text>
+            <Text style={styles.hudTextWave}>
+              🌊 Wave {(gameState?.wave ?? 0) + 1}
+            </Text>
             <Text
               style={[
                 styles.hudTextPhase,
                 gameState?.phase === "wave" && styles.hudTextPhaseActive,
-                gameState?.phase === "intermission" && styles.hudTextPhaseIntermission,
+                gameState?.phase === "intermission" &&
+                  styles.hudTextPhaseIntermission,
                 gameState?.phase === "victory" && styles.hudTextPhaseVictory,
                 gameState?.phase === "game_over" && styles.hudTextPhaseDanger,
               ]}
@@ -283,13 +346,21 @@ function TowerDefensePlay({ initialSeed, theme }: { initialSeed?: number; theme?
                 <CanvasRenderer
                   world={game.getWorld()}
                   gameLoop={game.getGameLoop()}
-                  onInitialize={(renderer) => game.initializeRenderer(renderer)}
+                  onInitialize={(renderer) =>
+                    game.initializeRenderer(
+                      renderer as never as Renderer<TowerDefenseComponentRegistry>
+                    )
+                  }
                 />
               ) : (
                 <GameRenderer
                   world={game.getWorld()}
                   gameLoop={game.getGameLoop()}
-                  onInitialize={(renderer) => game.initializeRenderer(renderer)}
+                  onInitialize={(renderer) =>
+                    game.initializeRenderer(
+                      renderer as never as Renderer<TowerDefenseComponentRegistry>
+                    )
+                  }
                 />
               )}
             </TouchableOpacity>
@@ -302,7 +373,9 @@ function TowerDefensePlay({ initialSeed, theme }: { initialSeed?: number; theme?
               setSelectedTower(type);
               handleInput({ selectedTowerType: type });
             }}
-            onBuild={() => handleInput({ build: true, selectedTowerType: selectedTower })}
+            onBuild={() =>
+              handleInput({ build: true, selectedTowerType: selectedTower })
+            }
             onSell={() => handleInput({ sell: true })}
             onUpgrade={() => handleInput({ upgrade: true })}
             onStartWave={() => handleInput({ startWave: true })}
@@ -318,10 +391,13 @@ function TowerDefensePlay({ initialSeed, theme }: { initialSeed?: number; theme?
                 <Text style={styles.toastText}>{feedback}</Text>
               </View>
             )}
-            {(gameState?.phase === "game_over" || gameState?.phase === "victory") && (
+            {(gameState?.phase === "game_over" ||
+              gameState?.phase === "victory") && (
               <View style={styles.overlay}>
                 <Text style={styles.overlayTitle}>
-                  {gameState.phase === "victory" ? "¡VICTORIA VALIENTE!" : t.common.game_over}
+                  {gameState.phase === "victory"
+                    ? "¡VICTORIA VALIENTE!"
+                    : t.common.game_over}
                 </Text>
                 <Text style={styles.overlaySub}>
                   Puntuación: {gameState?.score ?? 0}
@@ -376,7 +452,8 @@ const StartScreen: FC<{
             <Text
               style={[
                 styles.themeOptionText,
-                selectedThemeKey === "default" && styles.themeOptionTextSelected,
+                selectedThemeKey === "default" &&
+                  styles.themeOptionTextSelected,
               ]}
             >
               Default Neon
@@ -396,7 +473,8 @@ const StartScreen: FC<{
             <Text
               style={[
                 styles.themeOptionText,
-                selectedThemeKey === "paper_dusk" && styles.themeOptionTextSelected,
+                selectedThemeKey === "paper_dusk" &&
+                  styles.themeOptionTextSelected,
               ]}
             >
               Paper Dusk

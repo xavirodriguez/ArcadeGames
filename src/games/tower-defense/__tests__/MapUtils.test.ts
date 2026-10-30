@@ -4,8 +4,35 @@ import towerDefenseConfigRaw from "../config/tower-defense.json";
 import type { TowerDefenseConfig } from "../types/TowerDefenseConfigSchema";
 
 describe("MapUtils touch to cell conversion", () => {
-  const config = towerDefenseConfigRaw as TowerDefenseConfig;
+  const topdownConfig: TowerDefenseConfig = {
+    ...(towerDefenseConfigRaw as TowerDefenseConfig),
+    projection: "topdown",
+  };
+  const isoConfig: TowerDefenseConfig = {
+    ...(towerDefenseConfigRaw as TowerDefenseConfig),
+    projection: "isometric",
+  };
   const layout = {
+    stepX: topdownConfig.CELL_SIZE, // 40
+    stepY: topdownConfig.CELL_SIZE, // 40
+    offsetX: topdownConfig.GRID_OFFSET_X, // 80
+    offsetY: topdownConfig.GRID_OFFSET_Y, // 40
+  };
+
+  it("converts touch at center of cell (1, 2) in topdown projection", () => {
+    // Cell (col 1, row 2) center in Cartesian space:
+    // worldX = 80 + 1 * 40 + 20 = 140
+    // worldY = 40 + 2 * 40 + 20 = 140
+    const cell = touchToCellCoords(140, 140, 800, 600, topdownConfig, layout);
+    expect(cell.col).toBe(1);
+    expect(cell.row).toBe(2);
+  });
+
+  it("converts touch correctly when canvas is scaled 2x (1600x1200) in topdown projection", () => {
+    // Canvas scaled 2x -> touch at (280, 280) corresponds to world (140, 140) -> cell (col 1, row 2)
+    const cell = touchToCellCoords(280, 280, 1600, 1200, topdownConfig, layout);
+    expect(cell.col).toBe(1);
+    expect(cell.row).toBe(2);
     stepX: config.CELL_SIZE,
     stepY: config.CELL_SIZE,
     offsetX: config.GRID_OFFSET_X,
@@ -77,6 +104,17 @@ describe("MapUtils touch to cell conversion", () => {
     });
   });
 
+  it("maps touch to cell correctly with fitted canvas size in topdown projection", () => {
+    // Cell col 2, row 2 center world: (80 + 2*40 + 20, 40 + 2*40 + 20) = (180, 140)
+    // On 800x600 fitted canvas: touch at (180, 140) -> cell (2, 2)
+    const cell800 = touchToCellCoords(180, 140, 800, 600, topdownConfig, layout);
+    expect(cell800.col).toBe(2);
+    expect(cell800.row).toBe(2);
+
+    // On 400x300 fitted canvas: touch at (90, 70) -> cell (2, 2)
+    const cell400 = touchToCellCoords(90, 70, 400, 300, topdownConfig, layout);
+    expect(cell400.col).toBe(2);
+    expect(cell400.row).toBe(2);
   it("maps touch to cell correctly with fitted isometric canvas size", () => {
     const touch = projectedCellCenter(2, 2);
     const cell800 = touchToCellCoords(touch.x, touch.y, 800, 600, config, layout);
@@ -84,6 +122,14 @@ describe("MapUtils touch to cell conversion", () => {
 
     const cell400 = touchToCellCoords(touch.x * 0.5, touch.y * 0.5, 400, 300, config, layout);
     expect(cell400).toEqual({ col: 2, row: 2 });
+  });
+
+  it("maps touch to cell correctly in isometric projection", () => {
+    // Cell (col 2, row 2) center world: (180, 140)
+    // Isometric screen coords for cell (2, 2): (320, 160)
+    const cellIso = touchToCellCoords(320, 160, 800, 600, isoConfig, layout);
+    expect(cellIso.col).toBe(2);
+    expect(cellIso.row).toBe(2);
   });
 
   it("safely handles out-of-bounds and NaN coordinates in isBuildable", () => {

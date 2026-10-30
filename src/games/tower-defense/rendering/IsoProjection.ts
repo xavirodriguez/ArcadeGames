@@ -1,5 +1,14 @@
 import type { TowerDefenseConfig } from "../types/TowerDefenseConfigSchema";
 
+export interface IsoBounds {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+  width: number;
+  height: number;
+}
+
 export interface IsoConfig {
   tileWidthHalf: number;
   tileHeightHalf: number;
@@ -9,6 +18,7 @@ export interface IsoConfig {
   gridOffsetX: number;
   gridOffsetY: number;
   enabled: boolean;
+  bounds: IsoBounds;
 }
 
 export interface Point2D {
@@ -16,34 +26,53 @@ export interface Point2D {
   y: number;
 }
 
-export function createIsoConfig(config: TowerDefenseConfig): IsoConfig {
+export function createIsoConfig(config: Partial<TowerDefenseConfig>): IsoConfig {
   const enabled = config.projection === "isometric";
-  const cellSize = config.CELL_SIZE ?? 40;
-  const ratio = config.ISO_TILE_RATIO ?? 2;
-  const cols = config.GRID_COLS ?? 16;
-  const rows = config.GRID_ROWS ?? 12;
-  const gridOffsetX = config.GRID_OFFSET_X ?? 80;
-  const gridOffsetY = config.GRID_OFFSET_Y ?? 40;
+  const cellSize = Number.isFinite(config.CELL_SIZE) && (config.CELL_SIZE as number) > 0 ? (config.CELL_SIZE as number) : 40;
+  const ratio = Number.isFinite(config.ISO_TILE_RATIO) && (config.ISO_TILE_RATIO as number) > 0 ? (config.ISO_TILE_RATIO as number) : 2;
+  const gridOffsetX = Number.isFinite(config.GRID_OFFSET_X) ? (config.GRID_OFFSET_X as number) : 80;
+  const gridOffsetY = Number.isFinite(config.GRID_OFFSET_Y) ? (config.GRID_OFFSET_Y as number) : 40;
+  const cols = Number.isFinite(config.GRID_COLS) && (config.GRID_COLS as number) > 0 ? (config.GRID_COLS as number) : 16;
+  const rows = Number.isFinite(config.GRID_ROWS) && (config.GRID_ROWS as number) > 0 ? (config.GRID_ROWS as number) : 12;
+  const worldWidth = Number.isFinite(config.worldWidth) && (config.worldWidth as number) > 0 ? (config.worldWidth as number) : 800;
 
-  // Fit the complete projected grid into the logical viewport without
-  // changing gameplay cell coordinates. A grid with C columns and R rows
-  // spans (C + R) half-widths and half-heights in screen space.
-  const projectedWidthAtUnitScale = (cols + rows) * cellSize;
-  const projectedHeightAtUnitScale = projectedWidthAtUnitScale / ratio;
-  const fitScale = Math.min(
-    1,
-    config.worldWidth / projectedWidthAtUnitScale,
-    config.worldHeight / projectedHeightAtUnitScale
-  );
+  const tileWidthHalf = cellSize;
+  const tileHeightHalf = cellSize / ratio;
 
-  const tileWidthHalf = cellSize * fitScale;
-  const tileHeightHalf = tileWidthHalf / ratio;
-  const projectedWidth = (cols + rows) * tileWidthHalf;
-  const projectedHeight = (cols + rows) * tileHeightHalf;
+  if (!enabled) {
+    const minX = gridOffsetX;
+    const maxX = gridOffsetX + cols * cellSize;
+    const minY = gridOffsetY;
+    const maxY = gridOffsetY + rows * cellSize;
+    return {
+      tileWidthHalf,
+      tileHeightHalf,
+      originX: gridOffsetX,
+      originY: gridOffsetY,
+      cellSize,
+      gridOffsetX,
+      gridOffsetY,
+      enabled: false,
+      bounds: {
+        minX,
+        maxX,
+        minY,
+        maxY,
+        width: maxX - minX,
+        height: maxY - minY,
+      },
+    };
+  }
 
-  // Offset the projected origin so the entire diamond bounding box is centered.
-  const originX = (config.worldWidth - projectedWidth) / 2 + rows * tileWidthHalf;
-  const originY = (config.worldHeight - projectedHeight) / 2;
+  // Calculate originX to center the projected grid horizontal bounding box inside worldWidth
+  const originX = (worldWidth - (cols - rows) * tileWidthHalf) / 2;
+  const originY = gridOffsetY + 20;
+
+  // Outer bounds derived from 4 outer corners in projected isometric space
+  const minX = originX - rows * tileWidthHalf;
+  const maxX = originX + cols * tileWidthHalf;
+  const minY = originY;
+  const maxY = originY + (cols + rows) * tileHeightHalf;
 
   return {
     tileWidthHalf,
@@ -53,7 +82,15 @@ export function createIsoConfig(config: TowerDefenseConfig): IsoConfig {
     cellSize,
     gridOffsetX,
     gridOffsetY,
-    enabled,
+    enabled: true,
+    bounds: {
+      minX,
+      maxX,
+      minY,
+      maxY,
+      width: maxX - minX,
+      height: maxY - minY,
+    },
   };
 }
 

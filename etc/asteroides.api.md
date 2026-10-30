@@ -62,12 +62,12 @@ export interface AnimationDefinition {
     onCompleteEvent?: string;
 }
 
-// @public
+// @public @deprecated
 export class AnimationSystem extends System<CoreComponentRegistry> {
     update(world: World<CoreComponentRegistry>, deltaTime: number): void;
 }
 
-// @public
+// @public @deprecated
 export interface AnimatorComponent extends Component {
     animations: Record<string, AnimationDefinition>;
     current: string | null;
@@ -1320,18 +1320,7 @@ export interface CoreComponentRegistry extends ComponentRegistry {
     ScreenShake: ScreenShakeComponent;
     SpatialNode: SpatialNodeComponent;
     Sprite: SpriteComponent;
-    SpriteAnimator: Component & {
-        type: "SpriteAnimator";
-        sheetId: string;
-        currentAnim: string;
-        frameIndex: number;
-        timer: number;
-        finished?: boolean;
-        flipX: boolean;
-        scale: number;
-        offsetX?: number;
-        offsetY?: number;
-    };
+    SpriteAnimator: SpriteAnimatorComponent;
     // (undocumented)
     StateGate: StateGateComponent;
     StateMachine: StateMachineComponent;
@@ -1647,6 +1636,9 @@ export function createSpringJoint(entityA: Entity, entityB: Entity, anchorA: {
 }, restLength: number, stiffness: number, damping: number): JointComponent;
 
 // @public
+export function createSpriteAnimator(sheetId: string, initialAnim?: string): SpriteAnimatorComponent;
+
+// @public
 export function createVehicleSteering(config: VehicleSteeringOptions): VehicleSteeringComponent;
 
 // @public
@@ -1858,6 +1850,9 @@ export const DEFAULT_AUDIO_PRESETS: Record<string, AudioPlayOptions>;
 
 // @public
 export const DEFAULT_META_PROGRESSION_STATE: MetaProgressionState;
+
+// @public
+export const DEFAULT_SPRITE_ANIMATOR_SYSTEM_CONFIG: SystemConfig;
 
 // @public
 export interface DeltaSnapshotPayload {
@@ -4204,6 +4199,14 @@ export class PlatformerMovementSystem<TRegistry extends ComponentRegistry = Core
 export type PlatformerRoleKey = CommonRoleKey | "sentinel" | "hopper" | "charger" | "watcher" | "fragment" | "core" | "node" | "coin" | "goal" | "tilemap" | "restorationCyan" | "restorationGold" | "corruptionCrimson" | "corruptionAmber" | "corruptionPurple" | "archiveVoidDark" | "archiveSlate" | "archiveBorderDark" | "archiveBorderLight" | "archiveGridLine" | "archiveDataStream";
 
 // @public
+export function playAnimation(animator: {
+    currentAnim: string;
+    frameIndex: number;
+    timer: number;
+    finished?: boolean;
+}, animName: string, forceRestart?: boolean): void;
+
+// @public
 export interface PlayerSensorComponent extends Component {
     detectedPlayerEntity?: Entity;
     type: "PlayerSensor";
@@ -5337,6 +5340,27 @@ export interface SpriteAnimationDefinition {
 }
 
 // @public
+export interface SpriteAnimatorComponent extends Component {
+    currentAnim: string;
+    finished?: boolean;
+    flipX: boolean;
+    frameIndex: number;
+    offsetX?: number;
+    offsetY?: number;
+    scale: number;
+    sheetId: string;
+    timer: number;
+    type: "SpriteAnimator";
+}
+
+// @public
+export class SpriteAnimatorSystem extends System<CoreComponentRegistry> {
+    constructor(sheetLookup?: SpriteSheetLookup);
+    // (undocumented)
+    update(world: World<CoreComponentRegistry>, deltaTime: number): void;
+}
+
+// @public
 export interface SpriteComponent extends Component {
     anchor?: {
         x: number;
@@ -5405,6 +5429,9 @@ export interface SpriteSheetDefinition {
     imageSource: SpriteImageSource;
     sourceMode?: "frames" | "full-image";
 }
+
+// @public
+export type SpriteSheetLookup = (sheetId: string) => SpriteSheetDefinition | undefined;
 
 // @public
 export interface StateDefinition {
@@ -5487,6 +5514,15 @@ export interface SteerWaypointResult {
     // (undocumented)
     throttle: number;
 }
+
+// @public
+export function stepSpriteAnimator(animator: {
+    sheetId: string;
+    currentAnim: string;
+    frameIndex: number;
+    timer: number;
+    finished?: boolean;
+}, dt: number, sheetLookup: (sheetId: string) => SpriteSheetDefinition | undefined): boolean;
 
 // @public
 export interface StoryCharacter {

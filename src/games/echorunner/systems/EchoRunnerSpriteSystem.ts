@@ -4,7 +4,6 @@ import { System, World, CoreComponentRegistry, SystemPhase } from "@tiny-aster/c
 import {
   createSpriteAnimator,
   playAnimation,
-  updateSpriteAnimator,
   SpriteAnimatorComponent,
 } from "../../shared/sprites";
 import { resolveEchoRunnerSpriteMotion } from "../rendering/EchoRunnerPixelArt";
@@ -80,15 +79,10 @@ export class EchoRunnerSpriteSystem extends System<CoreComponentRegistry> {
 
       const facingLeft = (transform?.scaleX ?? 1) < 0;
 
-      // Advance frames
-      updateSpriteAnimator(mutableAnimator, deltaTime);
-
-      // Write back (mutateComponent keeps change tracking happy)
+      // Write back clip selection (frames will be advanced by SpriteAnimatorSystem)
       world.mutateComponent(entity, "SpriteAnimator", (comp) => {
         const animComp = comp as SpriteAnimatorComponent;
         animComp.currentAnim = mutableAnimator.currentAnim;
-        animComp.frameIndex = mutableAnimator.frameIndex;
-        animComp.timer = mutableAnimator.timer;
         animComp.flipX = facingLeft;
       });
     }

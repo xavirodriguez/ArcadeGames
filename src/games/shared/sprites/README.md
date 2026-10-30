@@ -75,9 +75,13 @@ All shared-pipeline sheet definitions use the canonical `SpriteSheetDefinition` 
 
 ## ECS `SpriteAnimator` playback
 
-Hit&Run uses the core `SpriteAnimator` component with these shared helpers. The state-selection systems choose a clip from combat/movement state, `HitRunSpriteAnimatorPlaybackSystem` advances it using elapsed seconds, and the frame sync copies the canonical source rectangle into the existing ECS `Sprite` component. Canvas and Skia therefore keep their current renderer path, while animation timing and atlas metadata come from the shared contract.
+Hit&Run uses the core `SpriteAnimator` component with the canonical `SpriteAnimatorSystem` from `@tiny-aster/core`. The state-selection systems choose a clip from combat/movement state, `SpriteAnimatorSystem` advances all world animators using elapsed seconds and pure timing calculations, and the frame sync copies the canonical source rectangle into the existing ECS `Sprite` component. Canvas and Skia therefore keep their current renderer path, while animation timing and atlas metadata come from the shared contract.
 
-The `createSpriteAnimator` factory returns the shared runtime state with `type: "SpriteAnimator"` for ECS storage and an optional `finished` flag. The `SpriteAnimatorComponent` interface itself intentionally omits a required `type`, so visual themes can use the same state as a plain in-memory object. The core ECS registry declares the tagged component shape. The index-based `AnimatorComponent`/`AnimationSystem` remain available to other existing consumers; this migration does not merge those two APIs.
+The `createSpriteAnimator` factory returns the shared runtime state with `type: "SpriteAnimator"` for ECS storage and an optional `finished` flag. The `SpriteAnimatorComponent` interface extends `Component` with `type: "SpriteAnimator"`, and is also usable as an in-memory animation state object. The core ECS registry declares the canonical tagged component shape.
+
+### Legacy index-based animation deprecation
+
+The index-based `AnimatorComponent` and `AnimationSystem` are marked as `@deprecated`. All new sprite animations must use `SpriteSheetDefinition` with canonical source rects, `SpriteAnimatorComponent`, and `SpriteAnimatorSystem`. Existing legacy games can continue using the deprecated classes during the deprecation period without breakage.
 
 ## Animation timing
 

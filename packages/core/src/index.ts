@@ -92,6 +92,7 @@ export * from "./input/InputFrame";
 // Assets & Audio
 export * from "./assets/AssetLoader";
 export * from "./assets/SpriteSheetDefinition";
+export * from "./assets/SpriteAnimator";
 export * from "./assets/WebAssetProvider";
 export * from "./audio/IAudioPlayer";
 export * from "./audio/audioHelpers";
@@ -160,6 +161,7 @@ export * from "./systems/RenderUpdateSystem";
 export * from "./systems/TrailSystem";
 export * from "./systems/ParticleSystem";
 export * from "./systems/AnimationSystem";
+export * from "./systems/SpriteAnimatorSystem";
 export * from "./systems/FeedbackSystem";
 export * from "./systems/HierarchySystem";
 export * from "./systems/AbstractHierarchySystem";

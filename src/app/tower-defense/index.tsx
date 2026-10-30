@@ -12,7 +12,6 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { GameRenderer } from "@/components/GameRenderer";
-import { GameRenderer } from "@/components/GameRenderer";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { useTowerDefenseGame } from "@/hooks/useTowerDefenseGame";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";

@@ -1,10 +1,10 @@
 import { buildRenderPlan, World } from "@tiny-aster/core";
-import type { TowerDefenseComponentRegistry } from "../types/TowerDefenseTypes";
+import type { TowerDefenseComponentRegistry, TowerDefenseEventRegistry } from "../types/TowerDefenseTypes";
 import { TowerDefenseIsoDepthSortSystem } from "../systems/TowerDefenseIsoDepthSortSystem";
 
 describe("TowerDefenseIsoDepthSortSystem", () => {
   const addRenderable = (
-    world: World<TowerDefenseComponentRegistry>,
+    world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>,
     type: "Tower" | "Creep" | "TowerProjectile",
     x: number,
     y: number,
@@ -76,7 +76,7 @@ describe("TowerDefenseIsoDepthSortSystem", () => {
   };
 
   it("sorts towers, creeps and projectiles by world diagonal depth with stable ties", () => {
-    const world = new World<TowerDefenseComponentRegistry>();
+    const world = new World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>();
     world.setResource("GameConfig", { projection: "isometric" });
 
     const farTower = addRenderable(world, "Tower", 100, 200, 8);
@@ -95,7 +95,7 @@ describe("TowerDefenseIsoDepthSortSystem", () => {
   });
 
   it("preserves the configured render layers outside isometric mode", () => {
-    const world = new World<TowerDefenseComponentRegistry>();
+    const world = new World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>();
     world.setResource("GameConfig", { projection: "topdown" });
     const tower = addRenderable(world, "Tower", 100, 200, 8);
     const creep = addRenderable(world, "Creep", 250, 100, 50);

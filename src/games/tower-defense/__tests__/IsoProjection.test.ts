@@ -84,8 +84,9 @@ describe("IsoProjection", () => {
 
   it("projects world-space circular ranges into exact isometric ellipse radii", () => {
     const radii = projectCircleRadii(isoCfg, 100);
-    expect(radii.rx).toBeCloseTo(Math.SQRT2 * 100, 5);
-    expect(radii.ry).toBeCloseTo(Math.SQRT2 * 50, 5);
+    const fitScale = isoCfg.tileWidthHalf / isoCfg.cellSize;
+    expect(radii.rx).toBeCloseTo(Math.SQRT2 * 100 * fitScale, 5);
+    expect(radii.ry).toBeCloseTo(Math.SQRT2 * 50 * fitScale, 5);
 
     const topdown = createIsoConfig({ ...mockConfig, projection: "topdown" });
     expect(projectCircleRadii(topdown, 100)).toEqual({ rx: 100, ry: 100 });

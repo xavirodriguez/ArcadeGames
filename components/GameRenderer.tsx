@@ -1,16 +1,16 @@
 import React, { useRef, useEffect, useState, useMemo } from "react";
 import { StyleSheet, Platform } from "react-native";
-import { World, GameLoop, ComponentRegistry } from "@tiny-aster/core";
+import { World, GameLoop, CoreComponentRegistry } from "@tiny-aster/core";
 import { SkiaRenderer } from "@tiny-aster/renderer-skia";
 import { useFrameCallback, runOnJS } from "react-native-reanimated";
 
 type SkiaModule = typeof import("@shopify/react-native-skia");
 type SkiaPicture = React.ComponentProps<SkiaModule["Picture"]>["picture"];
 
-interface GameRendererProps<TRegistry extends ComponentRegistry> {
+interface GameRendererProps<TRegistry extends CoreComponentRegistry> {
   world: World<TRegistry>;
   gameLoop?: GameLoop;
-  onInitialize?: (renderer: SkiaRenderer) => void;
+  onInitialize?: (renderer: SkiaRenderer<TRegistry>) => void;
 }
 
 /**
@@ -19,12 +19,12 @@ interface GameRendererProps<TRegistry extends ComponentRegistry> {
  * The renderer records each game-loop render into a Skia Picture, which the
  * retained Canvas tree presents. Web continues to use CanvasRenderer.
  */
-export const GameRenderer = <TRegistry extends ComponentRegistry>({
+export const GameRenderer = <TRegistry extends CoreComponentRegistry>({
   world,
   gameLoop: propGameLoop,
   onInitialize,
 }: GameRendererProps<TRegistry>) => {
-  const rendererRef = useRef<SkiaRenderer | null>(null);
+  const rendererRef = useRef<SkiaRenderer<TRegistry> | null>(null);
   const onInitializeRef = useRef(onInitialize);
   onInitializeRef.current = onInitialize;
 
@@ -52,7 +52,7 @@ export const GameRenderer = <TRegistry extends ComponentRegistry>({
     if (Platform.OS === "web" || !skiaModule) return;
 
     if (!rendererRef.current) {
-      rendererRef.current = new SkiaRenderer();
+      rendererRef.current = new SkiaRenderer<TRegistry>();
       onInitializeRef.current?.(rendererRef.current);
     }
 

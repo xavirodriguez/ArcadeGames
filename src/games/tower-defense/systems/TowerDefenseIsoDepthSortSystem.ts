@@ -1,5 +1,5 @@
 import { System, World } from "@tiny-aster/core";
-import type { TowerDefenseComponentRegistry } from "../types/TowerDefenseTypes";
+import type { TowerDefenseComponentRegistry, TowerDefenseEventRegistry } from "../types/TowerDefenseTypes";
 import type { TowerDefenseConfig } from "../types/TowerDefenseConfigSchema";
 import { depthOf } from "../rendering/IsoProjection";
 
@@ -9,8 +9,8 @@ import { depthOf } from "../rendering/IsoProjection";
  * Gameplay keeps Cartesian world coordinates. Only Render.order changes, and
  * only when the isometric presentation mode is active.
  */
-export class TowerDefenseIsoDepthSortSystem extends System<TowerDefenseComponentRegistry> {
-  public override update(world: World<TowerDefenseComponentRegistry>): void {
+export class TowerDefenseIsoDepthSortSystem extends System<TowerDefenseComponentRegistry, TowerDefenseEventRegistry> {
+  public override update(world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>): void {
     const config = world.getResource<TowerDefenseConfig>("GameConfig");
     if (config?.projection !== "isometric") return;
 

@@ -7,7 +7,7 @@ import type {
   GameStateComponent,
 } from "../types/TowerDefenseTypes";
 import type { GridLayout } from "../../shared/grid/GridTypes";
-import { isBuildable, worldToCellCoords } from "../MapUtils";
+import { isBuildable, isCellInBounds, worldToCellCoords } from "../MapUtils";
 import { queryPlayerEntity } from "../../shared/networkUtils";
 
 /**
@@ -46,7 +46,7 @@ export class BuildSystem extends System<TowerDefenseComponentRegistry, TowerDefe
       bus?.emit("tower:build_failed", { reason: "invalid_tower_type", col: cell.col, row: cell.row });
       return false;
     }
-    if (cell.col < 0 || cell.row < 0 || cell.col >= tileGrid.cols || cell.row >= tileGrid.rows) {
+    if (!isCellInBounds(tileGrid, cell.col, cell.row)) {
       bus?.emit("tower:build_failed", { reason: "out_of_bounds", col: cell.col, row: cell.row });
       return false;
     }
@@ -106,10 +106,38 @@ export class BuildSystem extends System<TowerDefenseComponentRegistry, TowerDefe
     const catalog = world.getResource<TowerCatalog>("TowerCatalog");
     if (!tileGrid || !layout || !catalog) return;
 
-    const cell = worldToCellCoords(input.cursorX, input.cursorY, layout);
-    world.mutateComponent(playerEntity, "Player", (p) => {
-      p.selectedCell = cell;
-    });
+    const cursorCell = worldToCellCoords(input.cursorX, input.cursorY, layout);
+    const cursorIsOnGrid = isCellInBounds(tileGrid, cursorCell.col, cursorCell.row);
+    let selectedCell = player.selectedCell;
+
+    if (cursorIsOnGrid) {
+      // Keep the active cell aligned with the hover preview without writing the
+      // same selection into ECS on every pointer-move frame.
+      selectedCell = cursorCell;
+      if (
+        player.selectedCell?.col !== cursorCell.col ||
+        player.selectedCell?.row !== cursorCell.row
+      ) {
+        world.mutateComponent(playerEntity, "Player", (p) => {
+          p.selectedCell = cursorCell;
+        });
+      }
+    } else if (input.selectCell) {
+      // An explicit press outside the map clears the previous selection.
+      selectedCell = null;
+      world.mutateComponent(playerEntity, "Player", (p) => {
+        p.selectedCell = null;
+      });
+    }
+
+    if (input.selectCell) {
+      world.mutateComponent(playerEntity, "Input", (i) => {
+        i.selectCell = false;
+      });
+    }
+
+    // The last valid hovered cell remains available while the pointer enters action controls.
+    const cell = selectedCell ?? { col: -1, row: -1 };
     if (player.selectedTowerType && gs.selectedTowerType !== player.selectedTowerType) {
       world.mutateSingleton("GameState", (g: GameStateComponent) => {
         g.selectedTowerType = player.selectedTowerType;

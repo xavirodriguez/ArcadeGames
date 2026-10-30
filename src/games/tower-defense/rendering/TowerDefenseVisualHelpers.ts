@@ -11,6 +11,7 @@ import type { GridLayout } from "../../shared/grid/GridTypes";
 import { TOWER_DEFENSE_VISUAL_TOKENS } from "../presentation/TowerDefenseVisualTokens";
 import { createIsoConfig, worldToIso, depthOf, projectVector, type IsoConfig, type Point2D } from "./IsoProjection";
 import type { TowerDefenseConfig } from "../types/TowerDefenseConfigSchema";
+import { isCellInBounds } from "../MapUtils";
 
 export interface PathDirectionMarker {
   x: number;
@@ -363,10 +364,26 @@ export function resolveTowerPlacementPreviewSetup(
   const definition = catalog?.[towerType];
   if (!definition) return null;
 
-  // Input cursor is already a logical world-space cell center.
-  const col = Math.floor((input.cursorX - layout.offsetX) / layout.stepX);
-  const row = Math.floor((input.cursorY - layout.offsetY) / layout.stepY);
-  if (row < 0 || row >= tileGrid.rows || col < 0 || col >= tileGrid.cols) return null;
+  // Prefer the transient hover cell; fall back to the persistent user selection
+  // when the pointer leaves the canvas to activate an action control.
+  const hasHoverPosition =
+    Number.isFinite(input.cursorX) &&
+    Number.isFinite(input.cursorY) &&
+    input.cursorX >= 0 &&
+    input.cursorY >= 0;
+  let selectedCell = player?.selectedCell ?? null;
+
+  if (hasHoverPosition) {
+    const cursorCell = {
+      col: Math.floor((input.cursorX - layout.offsetX) / layout.stepX),
+      row: Math.floor((input.cursorY - layout.offsetY) / layout.stepY),
+    };
+    if (!isCellInBounds(tileGrid, cursorCell.col, cursorCell.row)) return null;
+    selectedCell = cursorCell;
+  }
+
+  if (!selectedCell || !isCellInBounds(tileGrid, selectedCell.col, selectedCell.row)) return null;
+  const { col, row } = selectedCell;
 
   const worldCenterX = layout.offsetX + (col + 0.5) * layout.stepX;
   const worldCenterY = layout.offsetY + (row + 0.5) * layout.stepY;

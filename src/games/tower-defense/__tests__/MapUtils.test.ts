@@ -1,4 +1,4 @@
-import { touchToCellCoords, cellCenter, worldToCellCoords, isBuildable, fitContain } from "../MapUtils";
+import { touchToCellCoords, cellCenter, worldToCellCoords, isBuildable, isCellInBounds, fitContain } from "../MapUtils";
 import { createIsoConfig, worldToIso } from "../rendering/IsoProjection";
 import towerDefenseConfigRaw from "../config/tower-defense.json";
 import type { TowerDefenseConfig } from "../types/TowerDefenseConfigSchema";
@@ -60,6 +60,32 @@ describe("MapUtils touch to cell conversion", () => {
   it("preserves top-down touch mapping when projection is disabled", () => {
     const cell = touchToCellCoords(140, 140, 800, 600, topdownConfig, layout);
     expect(cell).toEqual({ col: 1, row: 2 });
+  });
+
+  it("rejects invalid touch coordinates and unusable viewport dimensions", () => {
+    expect(touchToCellCoords(Number.NaN, 140, 800, 600, isoConfig, layout)).toEqual({ row: -1, col: -1 });
+    expect(touchToCellCoords(140, Number.POSITIVE_INFINITY, 800, 600, isoConfig, layout)).toEqual({ row: -1, col: -1 });
+    expect(touchToCellCoords(140, 140, 0, 600, isoConfig, layout)).toEqual({ row: -1, col: -1 });
+    expect(touchToCellCoords(140, 140, 800, 600, { ...isoConfig, worldWidth: 0 }, layout)).toEqual({ row: -1, col: -1 });
+  });
+
+  it("validates grid coordinates as finite integer cells", () => {
+    const tileGrid: TileGrid = {
+      cols: 2,
+      rows: 2,
+      tiles: [
+        ["buildable", "path"],
+        ["blocked", "buildable"],
+      ],
+    };
+
+    expect(isCellInBounds(tileGrid, 0, 0)).toBe(true);
+    expect(isCellInBounds(tileGrid, 1, 1)).toBe(true);
+    expect(isCellInBounds(tileGrid, -1, 0)).toBe(false);
+    expect(isCellInBounds(tileGrid, 2, 0)).toBe(false);
+    expect(isCellInBounds(tileGrid, 0.5, 0)).toBe(false);
+    expect(isCellInBounds(tileGrid, Number.NaN, 0)).toBe(false);
+    expect(isCellInBounds(tileGrid, 0, Number.POSITIVE_INFINITY)).toBe(false);
   });
 
   it("computes cell center world position", () => {

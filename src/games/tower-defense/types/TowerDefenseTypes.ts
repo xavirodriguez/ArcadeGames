@@ -81,6 +81,7 @@ export interface InputComponent extends Component {
   sell: boolean;
   upgrade: boolean;
   startWave: boolean;
+  selectCell: boolean;
   actions: readonly CanonicalActionName[];
   axes: Record<string, number>;
 }
@@ -137,6 +138,7 @@ export interface InputState {
   sell: boolean;
   upgrade: boolean;
   startWave: boolean;
+  selectCell?: boolean;
   actions?: readonly CanonicalActionName[];
   axes?: Record<string, number>;
   [key: string]: unknown;

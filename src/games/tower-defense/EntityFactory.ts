@@ -23,6 +23,7 @@ export function createInputComponent(): InputComponent {
     sell: false,
     upgrade: false,
     startWave: false,
+    selectCell: false,
     actions: [],
     axes: {},
   };

@@ -130,6 +130,20 @@ export function worldToCellCoords(x: number, y: number, layout: GridLayout): Gri
   return worldToCell(layout, { x, y });
 }
 
+/** Returns whether grid coordinates address an existing cell. */
+export function isCellInBounds(
+  tileGrid: TileGrid,
+  col: number,
+  row: number
+): boolean {
+  return Number.isInteger(col) &&
+    Number.isInteger(row) &&
+    col >= 0 &&
+    row >= 0 &&
+    col < tileGrid.cols &&
+    row < tileGrid.rows;
+}
+
 export function touchToCellCoords(
   touchX: number,
   touchY: number,
@@ -138,10 +152,28 @@ export function touchToCellCoords(
   config: TowerDefenseConfig,
   layout: GridLayout
 ): GridCoordinates {
-  const scaleX = canvasWidth > 0 ? canvasWidth / config.worldWidth : 1;
-  const scaleY = canvasHeight > 0 ? canvasHeight / config.worldHeight : 1;
+  if (
+    !Number.isFinite(touchX) ||
+    !Number.isFinite(touchY) ||
+    !Number.isFinite(canvasWidth) ||
+    !Number.isFinite(canvasHeight) ||
+    !Number.isFinite(config.worldWidth) ||
+    !Number.isFinite(config.worldHeight) ||
+    canvasWidth <= 0 ||
+    canvasHeight <= 0 ||
+    config.worldWidth <= 0 ||
+    config.worldHeight <= 0
+  ) {
+    return { row: -1, col: -1 };
+  }
+
+  const scaleX = canvasWidth / config.worldWidth;
+  const scaleY = canvasHeight / config.worldHeight;
   const screenX = touchX / scaleX;
   const screenY = touchY / scaleY;
+  if (!Number.isFinite(screenX) || !Number.isFinite(screenY)) {
+    return { row: -1, col: -1 };
+  }
 
   const isoCfg = createIsoConfig(config);
   if (isoCfg.enabled) {
@@ -208,9 +240,7 @@ export function fitContain(
 }
 
 export function isBuildable(tileGrid: TileGrid, col: number, row: number): boolean {
-  if (!tileGrid?.tiles) return false;
-  if (typeof row !== "number" || typeof col !== "number" || isNaN(row) || isNaN(col)) return false;
-  if (row < 0 || row >= tileGrid.rows || col < 0 || col >= tileGrid.cols) return false;
+  if (!tileGrid?.tiles || !isCellInBounds(tileGrid, col, row)) return false;
   return tileGrid.tiles[row]?.[col] === "buildable";
 }
 

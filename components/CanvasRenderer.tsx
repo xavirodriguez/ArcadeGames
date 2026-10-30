@@ -3,6 +3,7 @@ import { View, StyleSheet, Platform } from "react-native";
 import { World, GameLoop, CoreComponentRegistry } from "@tiny-aster/core";
 import { CanvasRenderer as EngineCanvasRenderer } from "@tiny-aster/renderer-canvas";
 import { useGameWheel } from "@/src/hooks/useGameWheel";
+import { subscribeRenderFrames } from "@/src/games/shared/rendering/subscribeRenderFrames";
 
 interface CanvasRendererProps<TRegistry extends CoreComponentRegistry> {
   world: World<TRegistry> | (() => World<TRegistry>);
@@ -78,12 +79,15 @@ export const CanvasRenderer = <TRegistry extends CoreComponentRegistry>({
       onInitialize(rendererRef.current);
     }
 
-    const unsub = gameLoop?.subscribeRender((_alpha) => {
-      if (rendererRef.current && ctx) {
-        const activeWorld = typeof world === "function" ? world() : world;
-        rendererRef.current.render(activeWorld, ctx);
-      }
-    });
+    const unsub = gameLoop
+      ? subscribeRenderFrames(
+          gameLoop,
+          () => (typeof world === "function" ? world() : world),
+          (activeWorld) => {
+            rendererRef.current?.render(activeWorld, ctx);
+          }
+        )
+      : undefined;
 
     return () => {
       unsub?.();

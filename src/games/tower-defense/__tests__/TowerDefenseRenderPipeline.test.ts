@@ -1,4 +1,5 @@
-import { Renderer } from "@tiny-aster/core";
+import { GameLoop, type Renderer } from "@tiny-aster/core";
+import { subscribeRenderFrames } from "../../shared/rendering/subscribeRenderFrames";
 import { TowerDefenseGame } from "../TowerDefenseGame";
 import { createIsoConfig, worldToIso, isoToWorld } from "../rendering/IsoProjection";
 import type { TowerDefenseConfig } from "../types/TowerDefenseConfigSchema";
@@ -40,6 +41,42 @@ describe("Tower Defense Render Pipeline & F0 Baseline", () => {
     expect(registeredSkiaEffects).toContain("td_map");
 
     await game.destroy();
+  });
+
+  it("dispatches every loop frame to both backends with the same ECS world", () => {
+    const gameLoop = new GameLoop({ manual: true });
+    const world = { id: "tower-defense-world" };
+    const canvasFrames: Array<{ world: typeof world; alpha: number }> = [];
+    const skiaFrames: Array<{ world: typeof world; alpha: number }> = [];
+
+    const unsubscribeCanvas = subscribeRenderFrames(gameLoop, () => world, (frameWorld, alpha) => {
+      canvasFrames.push({ world: frameWorld, alpha });
+    });
+    const unsubscribeSkia = subscribeRenderFrames(gameLoop, () => world, (frameWorld, alpha) => {
+      skiaFrames.push({ world: frameWorld, alpha });
+    });
+
+    gameLoop.start();
+    gameLoop.tick();
+    gameLoop.tick();
+
+    expect(canvasFrames).toHaveLength(2);
+    expect(skiaFrames).toHaveLength(2);
+    expect(canvasFrames.map((frame) => frame.world)).toEqual([world, world]);
+    expect(skiaFrames.map((frame) => frame.world)).toEqual([world, world]);
+    expect(canvasFrames.map((frame) => frame.alpha)).toEqual(skiaFrames.map((frame) => frame.alpha));
+    for (const frame of [...canvasFrames, ...skiaFrames]) {
+      expect(frame.alpha).toBeGreaterThanOrEqual(0);
+      expect(frame.alpha).toBeLessThan(1);
+    }
+
+    unsubscribeCanvas();
+    unsubscribeSkia();
+    gameLoop.tick();
+
+    expect(canvasFrames).toHaveLength(2);
+    expect(skiaFrames).toHaveLength(2);
+    gameLoop.stop();
   });
 
   it("verifies default config uses isometric projection and IsoConfig is valid", async () => {

@@ -2,7 +2,7 @@ import type { GridLayout, WorldPosition, GridCoordinates } from "../shared/grid/
 import { cellToWorld, cellCenterToWorld, worldToCell } from "../shared/grid/GridGeometry";
 import type { TileType, TileGrid, WaypointList } from "./types/TowerDefenseTypes";
 import type { TowerDefenseConfig } from "./types/TowerDefenseConfigSchema";
-import { createIsoConfig, isoToWorld } from "./rendering/IsoProjection";
+import { createIsoConfig, worldToIso } from "./rendering/IsoProjection";
 
 const CHAR_TO_TILE: Record<string, TileType> = {
   P: "path",
@@ -145,17 +145,37 @@ export function touchToCellCoords(
 
   const isoCfg = createIsoConfig(config);
   if (isoCfg.enabled) {
-    const worldP = isoToWorld(isoCfg, screenX, screenY);
-    const isoCell = worldToCellCoords(worldP.x, worldP.y, layout);
     const cols = config.GRID_COLS ?? 16;
     const rows = config.GRID_ROWS ?? 12;
-    if (isoCell.col >= 0 && isoCell.col < cols && isoCell.row >= 0 && isoCell.row < rows) {
-      return isoCell;
+    const candidates: GridCoordinates[] = [];
+    const tolerance = 1e-9;
+
+    // Check the projected diamond for each tile instead of flooring the
+    // inverse-projected point. This makes shared-edge/vertex selection explicit.
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        const center = cellCenter(col, row, layout);
+        const projectedCenter = worldToIso(isoCfg, center.x, center.y);
+        const normalizedDistance =
+          Math.abs(screenX - projectedCenter.x) / isoCfg.tileWidthHalf +
+          Math.abs(screenY - projectedCenter.y) / isoCfg.tileHeightHalf;
+        if (normalizedDistance <= 1 + tolerance) {
+          candidates.push({ row, col });
+        }
+      }
     }
 
-    // An isometric touch outside the projected grid must stay outside it.
-    // Falling back to Cartesian screen coordinates can select an unrelated cell.
-    return { row: -1, col: -1 };
+    if (candidates.length === 0) {
+      return { row: -1, col: -1 };
+    }
+
+    // At shared vertices, prefer the upper/left tile deterministically.
+    candidates.sort((a, b) =>
+      (a.row + a.col) - (b.row + b.col)
+      || a.row - b.row
+      || a.col - b.col
+    );
+    return candidates[0];
   }
 
   return worldToCellCoords(screenX, screenY, layout);

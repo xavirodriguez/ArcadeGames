@@ -121,7 +121,9 @@ describe("IsoProjection", () => {
     const bottomScreen = worldToIso(isoCfg, bottomWorldX, bottomWorldY);
 
     const touchX = bottomScreen.x;
-    const touchY = bottomScreen.y - 1;
+    // This exact vertex is shared by the target diamond and its diagonal neighbors.
+    // The input resolver must choose the upper/left tile consistently.
+    const touchY = bottomScreen.y;
 
     const coords = touchToCellCoords(touchX, touchY, 800, 600, mockConfig, layout);
     expect(coords).toEqual({ row: targetRow, col: targetCol });

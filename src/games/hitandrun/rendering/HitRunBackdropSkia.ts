@@ -2,7 +2,10 @@ import type { CoreComponentRegistry, EffectDrawer, RenderContext } from "@tiny-a
 import type { SkCanvas } from "@shopify/react-native-skia";
 import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
 import { resolveElapsed, resolveMainCameraX } from "./HitRunBackdropCanvas";
-import { ThemeRegistry } from "./theme/ThemeRegistry";
+import {
+  getHitRunTheme,
+  resizeHitRunPresentationSession
+} from "./theme/HitRunPresentationSession";
 
 /**
  * Native Skia effect for Hit & Run. It never passes a Skia canvas into Canvas2D code.
@@ -18,7 +21,8 @@ export const drawHitRunProceduralBackdropSkia: EffectDrawer<RenderContext, CoreC
     const height = gameConfig?.viewportHeight ?? 600;
     const cameraX = resolveMainCameraX(world);
     const elapsed = resolveElapsed(world);
-    const theme = ThemeRegistry.getActiveTheme();
+    resizeHitRunPresentationSession(world, width, height);
+    const theme = getHitRunTheme(world);
 
     if (theme.renderBackdropSkia) {
       theme.renderBackdropSkia(canvas, width, height, cameraX, 0, elapsed);

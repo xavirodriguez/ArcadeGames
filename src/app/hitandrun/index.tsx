@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
 import { TouchActionButton, TouchVirtualJoystick } from "@/components/controls";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { GameThemeProvider } from "../../context/GameThemeProvider";
 import { router } from "expo-router";
 import { PlayerProfileService } from "../../services/PlayerProfileService";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
@@ -339,7 +340,8 @@ function HitAndRunContent() {
   }
 
   return (
-    <SafeAreaProvider>
+    <GameThemeProvider presentationTokens={game.getPresentationSession()?.tokens ?? null}>
+      <SafeAreaProvider>
       <View style={sharedScreenStyles.container}>
         <RadialBackground />
         <BackButton label={t.common.menu} />
@@ -491,7 +493,8 @@ function HitAndRunContent() {
 
         <DebugOverlay game={game} />
       </View>
-    </SafeAreaProvider>
+      </SafeAreaProvider>
+    </GameThemeProvider>
   );
 }
 

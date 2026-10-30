@@ -29,7 +29,7 @@ import {
 import { BELT_ALIVE_ENEMIES_RESOURCE } from "../belt/BeltCameraSystem";
 import type { HitRunScoreState } from "../systems/HitRunScoreSystem";
 import { HIT_RUN_SCORE_RESOURCE } from "../systems/HitRunScoreSystem";
-import { ThemeRegistry } from "./theme/ThemeRegistry";
+import { getHitRunTheme } from "./theme/HitRunPresentationSession";
 import type { HudRenderSnapshot, BannerRenderSnapshot } from "./theme/HitRunThemeTypes";
 
 function resolveViewport(world: {
@@ -146,7 +146,7 @@ export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponent
     };
 
     const elapsed = (world.tick ?? 0) / 60;
-    const theme = ThemeRegistry.getActiveTheme();
+    const theme = getHitRunTheme(world);
     theme.renderHud(ctx, hudSnapshot, elapsed);
 
     if (banner && banner.remaining > 0) {

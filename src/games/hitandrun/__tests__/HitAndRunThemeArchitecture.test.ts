@@ -94,10 +94,7 @@ function findRenderingImports(baseDir: string): string[] {
   return violations.sort();
 }
 
-describe("HitAndRun Lote D theme boundary", () => {
-  afterEach(() => {
-    ThemeRegistry.setActiveTheme("fantasy");
-  });
+describe("HitAndRun presentation theme boundary", () => {
 
   it("resolves fantasy and sumi-e theme modules", () => {
     expect(resolveHitAndRunTheme("fantasy")).toBe(fantasyThemeModule);
@@ -106,33 +103,55 @@ describe("HitAndRun Lote D theme boundary", () => {
     expect(sumiEThemeModule.palette.background).toBeDefined();
   });
 
-  it("resolves without side effects and activates through one facade", () => {
-    ThemeRegistry.setActiveTheme("fantasy");
+  it("resolves theme metadata without a global active instance", () => {
     expect(resolveHitAndRunTheme("sumi-e")).toBe(sumiEThemeModule);
-    expect(ThemeRegistry.getActiveTheme().id).toBe("fantasy");
-
     expect(activateHitAndRunTheme("sumi-e")).toBe(sumiEThemeModule);
-    expect(ThemeRegistry.getActiveTheme().id).toBe("sumi-e");
-
     expect(activateHitAndRunTheme("not-a-theme")).toBe(fantasyThemeModule);
-    expect(ThemeRegistry.getActiveTheme().id).toBe("fantasy");
+
+    const first = ThemeRegistry.get("sumi-e");
+    const second = ThemeRegistry.get("sumi-e");
+    expect(first).not.toBe(second);
+    first.dispose();
+    second.dispose();
   });
 
   it("routes startup through the facade and forbids direct production activation", () => {
     const baseDir = path.resolve(__dirname, "..");
     const gameSource = fs.readFileSync(path.join(baseDir, "HitAndRunGame.ts"), "utf-8");
-    expect(gameSource).toContain("activateHitAndRunTheme(requestedThemeId)");
-    expect(gameSource).not.toContain("ThemeRegistry.setActiveTheme(requestedThemeId)");
+    expect(gameSource).toContain("resolveHitAndRunTheme(requestedThemeId).id");
+    expect(gameSource).toContain("createHitRunPresentationSession(");
+    expect(gameSource).not.toContain("activateHitAndRunTheme(requestedThemeId)");
 
     const facadePath = path.join(baseDir, "mods", "registry.ts");
     const facadeSource = fs.readFileSync(facadePath, "utf-8");
-    expect(facadeSource.match(/ThemeRegistry\.setActiveTheme\s*\(/g)).toHaveLength(1);
+    expect(facadeSource).not.toContain("ThemeRegistry.setActiveTheme");
+
+    const registrySource = fs.readFileSync(path.join(baseDir, "rendering", "theme", "ThemeRegistry.ts"), "utf-8");
+    expect(registrySource).not.toContain("activeThemeInstance");
+    expect(registrySource).not.toContain("getActiveTheme");
+    expect(registrySource).not.toContain("setActiveTheme");
 
     const forbiddenCalls = walkSourceFiles(baseDir)
-      .filter(file => file !== facadePath)
-      .filter(file => /ThemeRegistry\.setActiveTheme\s*\(/.test(fs.readFileSync(file, "utf-8")))
+      .filter(file => /ThemeRegistry\.(getActiveTheme|setActiveTheme)\s*\(/.test(fs.readFileSync(file, "utf-8")))
       .map(file => path.relative(baseDir, file).replace(/\\/g, "/"));
     expect(forbiddenCalls).toEqual([]);
+  });
+
+  it("routes all theme-aware render entry points through the world-owned session", () => {
+    const baseDir = path.resolve(__dirname, "..");
+    const entryPoints = [
+      "rendering/HitRunCanvasVisuals.ts",
+      "rendering/HitRunBackdropCanvas.ts",
+      "rendering/HitRunBackdropSkia.ts",
+      "rendering/HitRunHudCanvas.ts"
+    ];
+
+    for (const relativePath of entryPoints) {
+      const source = fs.readFileSync(path.join(baseDir, relativePath), "utf-8");
+      expect(source).toContain("getHitRunTheme(world)");
+      expect(source).not.toContain("ThemeRegistry.getActiveTheme");
+      expect(source).not.toContain("setActiveTheme");
+    }
   });
 
   it("keeps simulation folders free of static, re-exported, dynamic and type-only rendering imports", () => {

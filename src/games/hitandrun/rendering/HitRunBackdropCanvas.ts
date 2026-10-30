@@ -8,7 +8,10 @@ import type {
   Camera2DComponent,
   RunState
 } from "@tiny-aster/core";
-import { ThemeRegistry } from "./theme/ThemeRegistry";
+import {
+  getHitRunTheme,
+  resizeHitRunPresentationSession
+} from "./theme/HitRunPresentationSession";
 
 const RESOURCE_KEY = "HitRunBackdropSpec";
 
@@ -44,7 +47,8 @@ export const drawHitRunProceduralBackdrop: EffectDrawer<
     const camX = resolveMainCameraX(world);
     const elapsed = resolveElapsed(world);
 
-    const theme = ThemeRegistry.getActiveTheme();
+    resizeHitRunPresentationSession(world, w, h);
+    const theme = getHitRunTheme(world);
     theme.renderBackdrop(ctx, w, h, camX, 0, elapsed);
   }
 };

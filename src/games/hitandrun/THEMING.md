@@ -19,7 +19,7 @@ To create a new visual theme:
    ```ts
    ThemeRegistry.register("my-theme", () => new MyTheme());
    ```
-3. **Usage:** Select an available theme via `DEFAULT_HIT_AND_RUN_CONFIG.theme`, `activateHitAndRunTheme("sumi-e")` from `mods/registry.ts`, or the URL parameter `?theme=sumi-e`. To add another theme, register its factory in `ThemeRegistry.ts` and expose its ID/module in `mods/types.ts` and `mods/registry.ts` before activating it.
+3. **Usage:** Select an available theme via `DEFAULT_HIT_AND_RUN_CONFIG.theme` or the URL parameter `?theme=sumi-e`. Each `HitAndRunGame` instance owns its presentation session; the global `ThemeRegistry` stores factories only. To add another theme, register its factory in `ThemeRegistry.ts` and expose its ID/module in `mods/types.ts` and `mods/registry.ts`.
 
 ## Available Themes
 

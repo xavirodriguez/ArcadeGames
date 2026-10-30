@@ -43,7 +43,10 @@ type GradientGeometry =
 class SkiaPresentationGradient implements PresentationGradient {
   private readonly stopValues: GradientStop[] = [];
 
-  public constructor(public readonly geometry: GradientGeometry) {}
+  public constructor(
+    public readonly owner: object,
+    public readonly geometry: GradientGeometry
+  ) {}
 
   public addColorStop(offset: number, color: string): void {
     if (!Number.isFinite(offset) || offset < 0 || offset > 1) {
@@ -73,6 +76,7 @@ export interface PresentationSkiaFontResolver {
  * default typeface. Native image handles are resolved through the injected provider.
  */
 export class SkiaPresentationPainter implements PresentationPainter {
+  private readonly gradientOwner = {};
   private path = Skia.Path.Make();
   private alpha = 1;
   private readonly alphaStack: number[] = [];
@@ -224,7 +228,7 @@ export class SkiaPresentationPainter implements PresentationPainter {
     endX: number,
     endY: number
   ): PresentationGradient {
-    return new SkiaPresentationGradient({
+    return new SkiaPresentationGradient(this.gradientOwner, {
       kind: "linear",
       startX,
       startY,
@@ -241,7 +245,7 @@ export class SkiaPresentationPainter implements PresentationPainter {
     endY: number,
     endRadius: number
   ): PresentationGradient {
-    return new SkiaPresentationGradient({
+    return new SkiaPresentationGradient(this.gradientOwner, {
       kind: "radial",
       startX,
       startY,
@@ -375,7 +379,10 @@ export class SkiaPresentationPainter implements PresentationPainter {
   }
 
   private assertOwnGradient(gradient: PresentationGradient): SkiaPresentationGradient {
-    if (!(gradient instanceof SkiaPresentationGradient)) {
+    if (
+      !(gradient instanceof SkiaPresentationGradient) ||
+      gradient.owner !== this.gradientOwner
+    ) {
       throw new Error("[SkiaPresentationPainter] Gradient was not created by this painter.");
     }
     return gradient;

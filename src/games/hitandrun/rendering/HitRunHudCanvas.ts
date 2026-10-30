@@ -8,7 +8,8 @@ import type {
   HealthComponent,
   RenderContext,
   RunState,
-  Camera2DComponent
+  Camera2DComponent,
+  World
 } from "@tiny-aster/core";
 import type { SkCanvas } from "@shopify/react-native-skia";
 import { CanvasPresentationPainter } from "../../shared/presentation/backends/CanvasPresentationPainter";
@@ -41,13 +42,10 @@ import { BELT_ALIVE_ENEMIES_RESOURCE } from "../belt/BeltCameraSystem";
 import type { HitRunScoreState } from "../systems/HitRunScoreSystem";
 import { HIT_RUN_SCORE_RESOURCE } from "../systems/HitRunScoreSystem";
 
-export interface HitRunHudWorld {
-  readonly tick?: number;
-  query(...tags: string[]): ReadonlyArray<number>;
-  getComponent(entity: number, component: string): object | undefined;
-  hasComponent(entity: number, component: string): boolean;
-  getResource<T = object>(key: string): T | undefined;
-}
+export type HitRunHudWorld = Pick<
+  World<CoreComponentRegistry>,
+  "tick" | "query" | "getComponent" | "hasComponent" | "getResource"
+>;
 
 export interface HitRunHudPresentationData {
   readonly hud: HitRunPresentationHudSnapshot;

@@ -1,3 +1,4 @@
+import type { CoreComponentRegistry } from "@tiny-aster/core";
 import {
   createHitRunHudPresentationData,
   type HitRunHudWorld
@@ -32,25 +33,25 @@ describe("HitRun HUD snapshot projection", () => {
       [WAVE_TELEGRAPHS_RESOURCE, [{ x: 80, y: 90, lead: 0.55, remaining: 0.2 }]]
     ]);
 
-    const world: HitRunHudWorld = {
+    const world = {
       tick: 120,
-      query: (...tags: string[]): ReadonlyArray<number> => {
+      query: <K extends keyof CoreComponentRegistry & string>(...tags: K[]): ReadonlyArray<number> => {
         if (tags.length === 1 && tags[0] === "Camera2D") return [2];
         if (tags.length === 2 && tags[0] === "BeltInput" && tags[1] === "Health") return [1];
         if (tags.length === 2 && tags[0] === "PlatformerInput" && tags[1] === "Health") return [];
         return [];
       },
-      getComponent: (entity: number, component: string): object | undefined => {
-        if (entity === 2 && component === "Camera2D") return { isMain: true, x: 100, y: 240 };
-        if (entity === 1 && component === "Health") return { current: 4, max: 5 };
+      getComponent: <K extends keyof CoreComponentRegistry & string>(entity: number, component: K): CoreComponentRegistry[K] | undefined => {
+        if (entity === 2 && component === "Camera2D") return { isMain: true, x: 100, y: 240 } as CoreComponentRegistry[K];
+        if (entity === 1 && component === "Health") return { current: 4, max: 5 } as CoreComponentRegistry[K];
         if (entity === 1 && component === "HitRunWeapon") {
-          return { weaponId: "longbow", ammoCurrent: 3, ammoMax: 8, cooldownRemaining: 0.15 };
+          return { weaponId: "longbow", ammoCurrent: 3, ammoMax: 8, cooldownRemaining: 0.15 } as CoreComponentRegistry[K];
         }
         return undefined;
       },
-      hasComponent: (_entity: number, _component: string): boolean => false,
-      getResource: <T = object>(key: string): T | undefined => resources.get(key) as T | undefined
-    };
+      hasComponent: <K extends keyof CoreComponentRegistry & string>(_entity: number, _component: K): boolean => false,
+      getResource: <T>(key: string): T | undefined => resources.get(key) as T | undefined
+    } satisfies HitRunHudWorld;
 
     const result = createHitRunHudPresentationData(world);
 
@@ -88,13 +89,16 @@ describe("HitRun HUD snapshot projection", () => {
   });
 
   test("falls back safely when optional world resources are missing", () => {
-    const world: HitRunHudWorld = {
+    const world = {
       tick: 0,
-      query: (): ReadonlyArray<number> => [],
-      getComponent: (): object | undefined => undefined,
-      hasComponent: (): boolean => false,
-      getResource: <T = object>(_key: string): T | undefined => undefined
-    };
+      query: <K extends keyof CoreComponentRegistry & string>(..._tags: K[]): ReadonlyArray<number> => [],
+      getComponent: <K extends keyof CoreComponentRegistry & string>(
+        _entity: number,
+        _component: K
+      ): CoreComponentRegistry[K] | undefined => undefined,
+      hasComponent: <K extends keyof CoreComponentRegistry & string>(_entity: number, _component: K): boolean => false,
+      getResource: <T>(_key: string): T | undefined => undefined
+    } satisfies HitRunHudWorld;
 
     const result = createHitRunHudPresentationData(world);
 

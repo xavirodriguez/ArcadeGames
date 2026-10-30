@@ -91,6 +91,12 @@ describe("HitRun PresentationPainter theme slice", () => {
       expect(painter.fillCircle).toHaveBeenCalled();
     } else {
       expect(painter.createLinearGradient).toHaveBeenCalled();
+      expect(painter.fillText).toHaveBeenCalledWith(
+        "DOJO  ·  First encounter",
+        400,
+        16,
+        expect.objectContaining({ align: "center" })
+      );
     }
     expect(painter.fillRect).toHaveBeenCalled();
     expect(painter.strokeRect).toHaveBeenCalled();

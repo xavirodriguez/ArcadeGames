@@ -2,6 +2,7 @@ import type { GridLayout, WorldPosition, GridCoordinates } from "../shared/grid/
 import { cellToWorld, cellCenterToWorld, worldToCell } from "../shared/grid/GridGeometry";
 import type { TileType, TileGrid, WaypointList } from "./types/TowerDefenseTypes";
 import type { TowerDefenseConfig } from "./types/TowerDefenseConfigSchema";
+import { createIsoConfig, isoToWorld } from "./rendering/IsoProjection";
 
 const CHAR_TO_TILE: Record<string, TileType> = {
   P: "path",
@@ -139,9 +140,21 @@ export function touchToCellCoords(
 ): GridCoordinates {
   const scaleX = canvasWidth > 0 ? canvasWidth / config.worldWidth : 1;
   const scaleY = canvasHeight > 0 ? canvasHeight / config.worldHeight : 1;
-  const worldX = touchX / scaleX;
-  const worldY = touchY / scaleY;
-  return worldToCellCoords(worldX, worldY, layout);
+  const screenX = touchX / scaleX;
+  const screenY = touchY / scaleY;
+
+  const isoCfg = createIsoConfig(config);
+  if (isoCfg.enabled) {
+    const worldP = isoToWorld(isoCfg, screenX, screenY);
+    const isoCell = worldToCellCoords(worldP.x, worldP.y, layout);
+    const cols = config.GRID_COLS ?? 16;
+    const rows = config.GRID_ROWS ?? 12;
+    if (isoCell.col >= 0 && isoCell.col < cols && isoCell.row >= 0 && isoCell.row < rows) {
+      return isoCell;
+    }
+  }
+
+  return worldToCellCoords(screenX, screenY, layout);
 }
 
 export function fitContain(

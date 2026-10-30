@@ -39,6 +39,8 @@ export const WaveDefinitionSchema = z.object({
 
 export const TowerDefenseConfigSchema = BaseConfigSchema.extend({
   ...ScreenDimensionsSchema.shape,
+  projection: z.enum(["topdown", "isometric"]).default("isometric"),
+  ISO_TILE_RATIO: z.number().positive().default(2),
   KEYS: z.object({
     PAUSE: z.string().default("KeyP"),
     RESTART: z.string().default("KeyR"),

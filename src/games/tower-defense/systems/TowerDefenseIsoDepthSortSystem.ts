@@ -10,7 +10,7 @@ import { depthOf } from "../rendering/IsoProjection";
  * only when the isometric presentation mode is active.
  */
 export class TowerDefenseIsoDepthSortSystem extends System<TowerDefenseComponentRegistry, TowerDefenseEventRegistry> {
-  public override update(world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>): void {
+  public override update(world: World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>, _dt: number): void {
     const config = world.getResource<TowerDefenseConfig>("GameConfig");
     if (config?.projection !== "isometric") return;
 

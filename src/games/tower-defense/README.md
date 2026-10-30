@@ -29,6 +29,9 @@ Minijuego de Tower Defense construido sobre la arquitectura ECS determinista de 
 - El ajuste afecta exclusivamente a la transformación de presentación. No cambia `CELL_SIZE`, las coordenadas ECS ni la geometría lógica usada por movimiento, colisiones o pathfinding.
 - La entrada táctil y de puntero comprueba la geometría de los rombos proyectados. En vértices compartidos, el desempate es estable: primero la menor suma `row + col`, después `row` y `col`.
 - El cursor ECS transporta el centro de celda en coordenadas de mundo. Los drawers proyectan esa posición una sola vez; no deben aplicar una segunda inversión.
+- El movimiento de puntero o dedo actualiza el cursor y la celda activa. Pulsar confirma explícitamente `Player.selectedCell` mediante `Input.selectCell`; salir del canvas conserva la última celda válida para las acciones.
+- El ghost de colocación sigue la celda bajo el cursor y, cuando el puntero sale del canvas, conserva la selección confirmada. Un toque fuera del grid deselecciona explícitamente.
+- Construir, mejorar y vender operan sobre `Player.selectedCell`; el botón o el atajo `B` ejecutan la construcción. En la API de simulación se mantiene el soporte de comandos que incluyen cursor y acción en el mismo frame.
 - Torres, creeps y proyectiles comparten `resolveEntityIsometricOffset`: usa `Transform.worldX/worldY` (con fallback a `x/y`), entrega el mismo anclaje proyectado a Canvas y Skia y mantiene intacto el componente `Transform`.
 - La orientación de torretas y las estelas de proyectiles proyectan vectores mediante `projectVector`; no deben calcular ángulos con coordenadas locales ni duplicar la matriz isométrica en cada backend.
 - El orden de profundidad usa `worldX + worldY` únicamente en `Render.order`; nunca reescribe la posición de gameplay.
@@ -64,7 +67,7 @@ Los sistemas ejecutan la simulación organizados en las siguientes fases:
    - `TowerDefenseVfxSystem` gestiona únicamente efectos visuales efímeros (impactos, desintegración, recompensas flotantes y avisos de oleada/fin de partida); omite la simulación de efectos durante rollback y no altera daño, movimiento ni colisiones.
 
 ### 4. Controles e Interfaz
-- **Controles táctiles y puntero**: Tocar cualquier celda del mapa proyecta las coordenadas del canvas al mundo determinando la celda objetivo (`touchToCellCoords`).
+- **Controles táctiles y puntero**: Mover el puntero o arrastrar el dedo previsualiza la celda mediante `touchToCellCoords`; pulsar la celda la selecciona. Usa `CONSTRUIR` para confirmar la torre.
 - **Botones de acción**: Botones para seleccionar tipo de torre (`Basic`, `Sniper`, `Rapid`, `Frost`), construir (`CONSTRUIR`), mejorar (`MEJORAR`), vender (`VENDER`) e iniciar la oleada (`OLEADA ▶`).
 - **Atajos de teclado (Web)**:
   - `1`, `2`, `3`, `4`: Seleccionar tipo de torre.

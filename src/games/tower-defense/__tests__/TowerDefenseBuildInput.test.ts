@@ -172,6 +172,52 @@ describe("TowerDefense BuildInput System", () => {
     expect(upgradeFailures[0].reason).toBe("no_tower_at_cell");
   });
 
+  it("selects a cell without building until an explicit build action", () => {
+    const world = game.getWorld();
+
+    game.setInputState({
+      cursorX: 180,
+      cursorY: 140,
+      selectedTowerType: "basic",
+      selectCell: true,
+    });
+    game.update(1 / 60);
+
+    const playerEntity = world.query("Player")[0];
+    const player = world.getComponent(playerEntity, "Player");
+    expect(player?.selectedCell).toEqual({ col: 2, row: 2 });
+    expect(world.query("Tower")).toHaveLength(0);
+
+    // Leaving the canvas clears hover but retains the cell used by action buttons.
+    game.setInputState({ cursorX: -1, cursorY: -1 });
+    game.update(1 / 60);
+    expect(world.getComponent(playerEntity, "Player")?.selectedCell).toEqual({ col: 2, row: 2 });
+
+    game.setInputState({ build: true });
+    game.update(1 / 60);
+
+    expect(world.query("Tower")).toHaveLength(1);
+    expect(world.getComponent(playerEntity, "Input")?.build).toBe(false);
+  });
+
+  it("keeps the selected cell when the cursor leaves and clears it on explicit deselection", () => {
+    const world = game.getWorld();
+    const playerEntity = world.query("Player")[0];
+
+    game.setInputState({ cursorX: 180, cursorY: 140, selectCell: true });
+    game.update(1 / 60);
+    expect(world.getComponent(playerEntity, "Player")?.selectedCell).toEqual({ col: 2, row: 2 });
+
+    game.setInputState({ cursorX: -1, cursorY: -1 });
+    game.update(1 / 60);
+    expect(world.getComponent(playerEntity, "Player")?.selectedCell).toEqual({ col: 2, row: 2 });
+
+    game.setInputState({ cursorX: -1, cursorY: -1, selectCell: true });
+    game.update(1 / 60);
+    expect(world.getComponent(playerEntity, "Player")?.selectedCell).toBeNull();
+    expect(world.query("Tower")).toHaveLength(0);
+  });
+
   it("successfully builds on a valid buildable cell and deducts gold", () => {
     const world = game.getWorld();
     const initialGold = (world.getSingleton("GameState") as GameStateComponent).gold;

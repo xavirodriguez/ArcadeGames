@@ -5,7 +5,6 @@ import {
   Text,
   TouchableOpacity,
   Platform,
-  GestureResponderEvent,
   LayoutChangeEvent,
 } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -42,6 +41,16 @@ import {
 } from "../../components/ui";
 import { TowerDefenseControls } from "@/components/TowerDefenseControls";
 
+type CanvasCoordinateEvent = {
+  nativeEvent: {
+    locationX?: number;
+    locationY?: number;
+    offsetX?: number;
+    offsetY?: number;
+  };
+};
+
+
 export default function TowerDefenseScreen() {
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ seed?: string }>();
@@ -75,7 +84,7 @@ export default function TowerDefenseScreen() {
         }}
         instructions={
           t["tower-defense"]?.instructions ||
-          "Toca celdas para construir torres y defiende la base."
+          "Selecciona una celda y pulsa CONSTRUIR para colocar una torre."
         }
       />
     );
@@ -196,10 +205,22 @@ function TowerDefensePlay({
           restartWithSeed(initialSeed);
         }
       } else {
-        if (e.code === "Digit1") setSelectedTower("basic");
-        if (e.code === "Digit2") setSelectedTower("sniper");
-        if (e.code === "Digit3") setSelectedTower("rapid");
-        if (e.code === "Digit4") setSelectedTower("frost");
+        if (e.code === "Digit1") {
+          setSelectedTower("basic");
+          handleInput({ selectedTowerType: "basic" });
+        }
+        if (e.code === "Digit2") {
+          setSelectedTower("sniper");
+          handleInput({ selectedTowerType: "sniper" });
+        }
+        if (e.code === "Digit3") {
+          setSelectedTower("rapid");
+          handleInput({ selectedTowerType: "rapid" });
+        }
+        if (e.code === "Digit4") {
+          setSelectedTower("frost");
+          handleInput({ selectedTowerType: "frost" });
+        }
         if (e.code === "KeyB") handleInput({ build: true });
         if (e.code === "KeyX") handleInput({ sell: true });
         if (e.code === "KeyU") handleInput({ upgrade: true });
@@ -218,26 +239,18 @@ function TowerDefensePlay({
     handleInput,
   ]);
 
-  const handleCanvasTouch = (e: GestureResponderEvent) => {
+  const handleCanvasCoordinate = (event: CanvasCoordinateEvent, selectCell = false) => {
     if (!game || !isReady) return;
-    const nativeEv = e.nativeEvent;
-    const locationX =
-      "locationX" in nativeEv &&
-      typeof (nativeEv as { locationX?: unknown }).locationX === "number"
-        ? (nativeEv as { locationX: number }).locationX
-        : "offsetX" in nativeEv &&
-          typeof (nativeEv as { offsetX?: unknown }).offsetX === "number"
-        ? (nativeEv as { offsetX: number }).offsetX
-        : 0;
-    const locationY =
-      "locationY" in nativeEv &&
-      typeof (nativeEv as { locationY?: unknown }).locationY === "number"
-        ? (nativeEv as { locationY: number }).locationY
-        : "offsetY" in nativeEv &&
-          typeof (nativeEv as { offsetY?: unknown }).offsetY === "number"
-        ? (nativeEv as { offsetY: number }).offsetY
-        : 0;
-    // Map touch coordinates to cell world position
+
+    const nativeEvent = event.nativeEvent;
+    const locationX = typeof nativeEvent.locationX === "number"
+      ? nativeEvent.locationX
+      : nativeEvent.offsetX;
+    const locationY = typeof nativeEvent.locationY === "number"
+      ? nativeEvent.locationY
+      : nativeEvent.offsetY;
+    if (typeof locationX !== "number" || typeof locationY !== "number") return;
+
     const layout = {
       stepX: towerDefenseConfigRaw.CELL_SIZE,
       stepY: towerDefenseConfigRaw.CELL_SIZE,
@@ -254,17 +267,33 @@ function TowerDefensePlay({
     );
     const cols = towerDefenseConfigRaw.GRID_COLS ?? 16;
     const rows = towerDefenseConfigRaw.GRID_ROWS ?? 12;
-    if (cell.col < 0 || cell.col >= cols || cell.row < 0 || cell.row >= rows) {
+    if (
+      !Number.isInteger(cell.col) ||
+      !Number.isInteger(cell.row) ||
+      cell.col < 0 ||
+      cell.col >= cols ||
+      cell.row < 0 ||
+      cell.row >= rows
+    ) {
+      handleInput({
+        cursorX: -1,
+        cursorY: -1,
+        ...(selectCell ? { selectCell: true } : {}),
+      });
       return;
     }
 
-    const worldPos = cellCenter(cell.col, cell.row, layout);
+    // Hover moves the preview; press confirms a persistent cell selection.
+    const worldPosition = cellCenter(cell.col, cell.row, layout);
     handleInput({
-      cursorX: worldPos.x,
-      cursorY: worldPos.y,
-      selectedTowerType: selectedTower,
-      build: true,
+      cursorX: worldPosition.x,
+      cursorY: worldPosition.y,
+      ...(selectCell ? { selectCell: true } : {}),
     });
+  };
+
+  const handleCanvasPress = (event: CanvasCoordinateEvent) => {
+    handleCanvasCoordinate(event, true);
   };
 
   if (!game || !isReady) {
@@ -335,7 +364,9 @@ function TowerDefensePlay({
           <View style={styles.canvasContainer} onLayout={handleContainerLayout}>
             <TouchableOpacity
               activeOpacity={1}
-              onPress={handleCanvasTouch}
+              onPress={handleCanvasPress}
+              onPointerMove={Platform.OS === "web" ? handleCanvasCoordinate : undefined}
+              onTouchMove={Platform.OS === "web" ? undefined : handleCanvasCoordinate}
               style={[
                 styles.canvasTouchArea,
                 { width: canvasLayout.width, height: canvasLayout.height },

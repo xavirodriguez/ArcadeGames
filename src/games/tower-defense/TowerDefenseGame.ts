@@ -484,6 +484,9 @@ export class TowerDefenseGame extends BaseGame<
 
     world.mutateComponent(playerEntity, "Input", (inputComp) => {
       const inp = input as Record<string, unknown>;
+      if (inp && typeof inp.selectCell === "boolean") {
+        inputComp.selectCell = inp.selectCell;
+      }
       if (inp && typeof inp === "object" && inp.axes && typeof inp.axes === "object") {
         const axes = inp.axes as Record<string, number>;
         inputComp.cursorX = axes.cursorX ?? axes.moveX ?? inputComp.cursorX;

@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity, Platform, GestureResponderEve
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
+import { GameRenderer } from "@/components/GameRenderer";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { useTowerDefenseGame } from "@/hooks/useTowerDefenseGame";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
@@ -12,9 +13,9 @@ import { colors, spacing, typography } from "../../theme";
 import { touchToCellCoords, cellCenter, fitContain } from "../../games/tower-defense/MapUtils";
 import towerDefenseConfigRaw from "../../games/tower-defense/config/tower-defense.json";
 import type { TowerDefenseConfig } from "../../games/tower-defense/types/TowerDefenseConfigSchema";
-import type { ThreatInfo } from "../../games/tower-defense/types/TowerDefenseTypes";
+import type { ThreatInfo, TowerDefenseComponentRegistry } from "../../games/tower-defense/types/TowerDefenseTypes";
 import { paperDuskConceptPack } from "../../theme/conceptPacks/paperDuskConceptPack";
-import type { Theme } from "@tiny-aster/core";
+import type { Theme, Renderer } from "@tiny-aster/core";
 
 import {
   GameScreen,
@@ -272,11 +273,19 @@ function TowerDefensePlay({ initialSeed, theme }: { initialSeed?: number; theme?
                 { width: canvasLayout.width, height: canvasLayout.height },
               ]}
             >
-              <CanvasRenderer
-                world={game.getWorld()}
-                gameLoop={game.getGameLoop()}
-                onInitialize={(renderer) => game.initializeRenderer(renderer)}
-              />
+              {Platform.OS === "web" ? (
+                <CanvasRenderer
+                  world={game.getWorld()}
+                  gameLoop={game.getGameLoop()}
+                  onInitialize={(renderer) => game.initializeRenderer(renderer as never as Renderer<TowerDefenseComponentRegistry>)}
+                />
+              ) : (
+                <GameRenderer
+                  world={game.getWorld()}
+                  gameLoop={game.getGameLoop()}
+                  onInitialize={(renderer) => game.initializeRenderer(renderer as never as Renderer<TowerDefenseComponentRegistry>)}
+                />
+              )}
             </TouchableOpacity>
           </View>
         }

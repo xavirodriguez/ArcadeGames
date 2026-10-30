@@ -8,7 +8,8 @@ describe("TowerDefenseIsoDepthSortSystem", () => {
     type: "Tower" | "Creep" | "TowerProjectile",
     x: number,
     y: number,
-    order: number
+    order: number,
+    worldPosition: { x: number; y: number } = { x, y }
   ): number => {
     const entity = world.createEntity();
     world.addComponent(entity, {
@@ -18,8 +19,8 @@ describe("TowerDefenseIsoDepthSortSystem", () => {
       rotation: 0,
       scaleX: 1,
       scaleY: 1,
-      worldX: x,
-      worldY: y,
+      worldX: worldPosition.x,
+      worldY: worldPosition.y,
       worldRotation: 0,
       worldScaleX: 1,
       worldScaleY: 1,
@@ -98,6 +99,22 @@ describe("TowerDefenseIsoDepthSortSystem", () => {
     expect([farTower, nearerCreep, sameDepthProjectile].map((entity) => ({
       ...world.getComponent(entity, "Transform"),
     }))).toEqual(transformSnapshots);
+  });
+
+  it("sorts by hierarchy world coordinates instead of local Transform coordinates", () => {
+    const world = new World<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>();
+    world.setResource("GameConfig", { projection: "isometric" });
+
+    const shallowTower = addRenderable(world, "Tower", 700, 700, 0, { x: 10, y: 10 });
+    const deepCreep = addRenderable(world, "Creep", 10, 10, 50, { x: 700, y: 700 });
+
+    new TowerDefenseIsoDepthSortSystem().update(world, 1 / 60);
+
+    const renderPlan = buildRenderPlan(world);
+    expect(renderPlan.entries.map((entry) => entry.entity)).toEqual([shallowTower, deepCreep]);
+    expect(renderPlan.entries.map((entry) => entry.order)).toEqual([20, 1400]);
+    expect(world.getComponent(shallowTower, "Transform")?.x).toBe(700);
+    expect(world.getComponent(deepCreep, "Transform")?.x).toBe(10);
   });
 
   it("preserves the configured render layers outside isometric mode", () => {

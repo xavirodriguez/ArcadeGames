@@ -1,6 +1,10 @@
 import type { SkCanvas } from "@shopify/react-native-skia";
 import { Skia } from "./SkiaContext";
 import { renderCanvasGlow, renderSkiaGlow, getGlowStyle } from "./GlowSystem";
+import {
+  getActiveThemeTypography,
+  canvasFontString,
+} from "../presentation/ThemeTypography";
 
 /**
  * Platform-agnostic drawing adapter interface for unifying Canvas 2D and Skia rendering operations.
@@ -26,7 +30,7 @@ interface SkiaCanvasLike {
   drawRect?: (rect: unknown, paint: unknown) => void;
   drawLine?: (x1: number, y1: number, x2: number, y2: number, paint: unknown) => void;
   drawPath?: (path: unknown, paint: unknown) => void;
-  drawText?: (text: string, x: number, y: number, paint: unknown) => void;
+  drawText?: (text: string, x: number, y: number, paint: unknown, font?: unknown) => void;
 }
 
 /**
@@ -97,7 +101,7 @@ export class CanvasDrawAdapter implements IDrawAdapter {
 
   public drawText(text: string, x: number, y: number, color: string, alpha: number = 1.0, fontSize: number = 14): void {
     if (alpha <= 0.001) return;
-    this.ctx.font = `bold ${fontSize}px monospace`;
+    this.ctx.font = canvasFontString(getActiveThemeTypography(), fontSize, "mono", "bold");
     this.ctx.textAlign = "center";
     this.ctx.globalAlpha = alpha;
     this.ctx.fillStyle = color;
@@ -201,12 +205,18 @@ export class SkiaDrawAdapter implements IDrawAdapter {
     this.skCanvas.drawPath(path, paint);
   }
 
-  public drawText(text: string, x: number, y: number, color: string, alpha: number = 1.0, _fontSize: number = 14): void {
+  public drawText(text: string, x: number, y: number, color: string, alpha: number = 1.0, fontSize: number = 14): void {
     if (!Skia || alpha <= 0.001 || !this.skCanvas.drawText) return;
     const paint = Skia.Paint();
     paint.setColor(Skia.Color(color));
     paint.setAlphaf(alpha);
-    this.skCanvas.drawText(text, x, y, paint);
+    const size = Math.max(1, fontSize);
+    const font = typeof Skia.Font === "function" ? Skia.Font(null, size) : undefined;
+    if (font) {
+      this.skCanvas.drawText(text, x, y, paint, font);
+    } else {
+      this.skCanvas.drawText(text, x, y, paint);
+    }
   }
 
   public drawGlow(glowColorStr: string, drawFn: (adapter: IDrawAdapter) => void): void {

@@ -1,13 +1,25 @@
 /**
- * Combat HUD — delegates rendering to active ThemeRegistry theme.
+ * Hit & Run HUD snapshots and backend-neutral theme rendering.
+ * ECS reads stop at this module; themes receive immutable presentation data.
  */
 import type {
-  EffectDrawer,
   CoreComponentRegistry,
+  EffectDrawer,
   HealthComponent,
+  RenderContext,
   RunState,
-  Camera2DComponent
+  Camera2DComponent,
+  World
 } from "@tiny-aster/core";
+import type { SkCanvas } from "@shopify/react-native-skia";
+import { CanvasPresentationPainter } from "../../shared/presentation/backends/CanvasPresentationPainter";
+import { SkiaPresentationPainter } from "../../shared/presentation/backends/SkiaPresentationPainter";
+import type { PresentationFrame, PresentationPainter } from "../../shared/presentation/PresentationContracts";
+import type {
+  HitRunPresentationHudSnapshot,
+  HitRunPresentationBannerSnapshot
+} from "./theme/HitRunPresentationSnapshots";
+import { getHitRunPresentationSession } from "./theme/HitRunPresentationSession";
 import type { HitRunWeaponState } from "../weapons/HitRunWeaponTypes";
 import type { WaveDirectorState, WaveScript } from "../waves/HitRunWaveTypes";
 import {
@@ -29,134 +41,159 @@ import {
 import { BELT_ALIVE_ENEMIES_RESOURCE } from "../belt/BeltCameraSystem";
 import type { HitRunScoreState } from "../systems/HitRunScoreSystem";
 import { HIT_RUN_SCORE_RESOURCE } from "../systems/HitRunScoreSystem";
-import { getHitRunTheme } from "./theme/HitRunPresentationSession";
-import type { HudRenderSnapshot, BannerRenderSnapshot } from "./theme/HitRunThemeTypes";
 
-function resolveViewport(world: {
-  getResource: (k: string) => unknown;
-}): { w: number; h: number } {
-  const cfg = world.getResource("GameConfig") as
-    | { viewportWidth?: number; viewportHeight?: number; worldWidth?: number; worldHeight?: number }
-    | undefined;
+export type HitRunHudWorld = Pick<
+  World<CoreComponentRegistry>,
+  "tick" | "query" | "getComponent" | "hasComponent" | "getResource"
+>;
+
+export interface HitRunHudPresentationData {
+  readonly hud: HitRunPresentationHudSnapshot;
+  readonly banner?: HitRunPresentationBannerSnapshot;
+  readonly frame: PresentationFrame;
+}
+
+function resolveViewport(world: HitRunHudWorld): { readonly width: number; readonly height: number } {
+  const config = world.getResource<{
+    readonly viewportWidth?: number;
+    readonly viewportHeight?: number;
+    readonly worldWidth?: number;
+    readonly worldHeight?: number;
+  }>("GameConfig");
   return {
-    w: cfg?.viewportWidth ?? cfg?.worldWidth ?? 800,
-    h: cfg?.viewportHeight ?? cfg?.worldHeight ?? 600
+    width: config?.viewportWidth ?? config?.worldWidth ?? 800,
+    height: config?.viewportHeight ?? config?.worldHeight ?? 600
   };
 }
 
-function mainCam(world: {
-  query: (...tags: string[]) => readonly number[];
-  getComponent: (e: number, t: string) => unknown;
-}): { x: number; y: number } {
-  const cams = world.query("Camera2D");
-  for (let i = 0; i < cams.length; i++) {
-    const cam = world.getComponent(cams[i], "Camera2D") as Camera2DComponent | undefined;
-    if (cam?.isMain) return { x: cam.x ?? 0, y: cam.y ?? 0 };
+function resolveCamera(world: HitRunHudWorld): { readonly x: number; readonly y: number } {
+  const cameras = world.query("Camera2D");
+  for (let index = 0; index < cameras.length; index++) {
+    const camera = world.getComponent(cameras[index], "Camera2D") as Camera2DComponent | undefined;
+    if (camera?.isMain) return { x: camera.x ?? 0, y: camera.y ?? 0 };
   }
   return { x: 0, y: 0 };
 }
 
-function countAliveEnemies(world: {
-  query: (...tags: string[]) => readonly number[];
-  getComponent: (e: number, t: string) => unknown;
-  hasComponent: (e: number, t: string) => boolean;
-}): number {
-  const withHealth = world.query("Health");
-  let n = 0;
-  for (let i = 0; i < withHealth.length; i++) {
-    const e = withHealth[i];
-    if (world.hasComponent(e, "BeltInput") || world.hasComponent(e, "PlatformerInput")) {
-      continue;
-    }
-    if (world.hasComponent(e, "Dead")) continue;
-    const health = world.getComponent(e, "Health") as { current?: number; hp?: number } | undefined;
-    const hp = health?.current ?? health?.hp ?? 0;
-    if (hp > 0) n++;
+function countAliveEnemies(world: HitRunHudWorld): number {
+  const entities = world.query("Health");
+  let alive = 0;
+  for (let index = 0; index < entities.length; index++) {
+    const entity = entities[index];
+    if (world.hasComponent(entity, "BeltInput") || world.hasComponent(entity, "PlatformerInput")) continue;
+    if (world.hasComponent(entity, "Dead")) continue;
+    const health = world.getComponent(entity, "Health") as { readonly current?: number; readonly hp?: number } | undefined;
+    if ((health?.current ?? health?.hp ?? 0) > 0) alive++;
   }
-  return n;
+  return alive;
 }
 
-export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
-  draw(ctx, world) {
-    const { w, h } = resolveViewport(world);
-    const cam = mainCam(world);
-    let players = world.query("BeltInput", "Health");
-    if (players.length === 0) {
-      players = world.query("PlatformerInput", "Health");
-    }
-    const player = players[0];
-    const health = player !== undefined
-      ? (world.getComponent(player, "Health") as HealthComponent | undefined)
-      : undefined;
-    const weapon = player !== undefined
-      ? (world.getComponent(player, "HitRunWeapon") as HitRunWeaponState | undefined)
-      : undefined;
-    const rs = world.getResource("RunState") as RunState | undefined;
-    const wave = world.getResource(WAVE_DIRECTOR_RESOURCE) as WaveDirectorState | undefined;
-    const script = world.getResource(WAVE_SCRIPT_RESOURCE) as WaveScript | undefined;
-    const telegraphs = world.getResource(WAVE_TELEGRAPHS_RESOURCE) as WaveTelegraphMarker[] | undefined;
-    const banner = world.getResource(WAVE_BANNER_RESOURCE) as WaveBannerState | null | undefined;
-    const camState = world.getResource(BELT_CAMERA_STATE_RESOURCE) as BeltCameraState | undefined;
-    const camCfg = world.getResource(BELT_CAMERA_CONFIG_RESOURCE) as BeltCameraConfig | undefined;
-    const publishedAlive = world.getResource(BELT_ALIVE_ENEMIES_RESOURCE) as number | undefined;
-    const aliveEnemies =
-      typeof publishedAlive === "number" ? publishedAlive : countAliveEnemies(world);
-    const section =
-      camState && camCfg
-        ? camCfg.sections[camState.currentSectionIndex]
-        : undefined;
+export function createHitRunHudPresentationData(world: HitRunHudWorld): HitRunHudPresentationData {
+  const viewport = resolveViewport(world);
+  const camera = resolveCamera(world);
+  let players = world.query("BeltInput", "Health");
+  if (players.length === 0) players = world.query("PlatformerInput", "Health");
+  const player = players[0];
 
-    const scoreState = world.getResource(HIT_RUN_SCORE_RESOURCE) as HitRunScoreState | undefined;
-    const scoreVal = scoreState?.score ?? (rs ? rs.collectedTemporalIds.length * 10 : 0);
+  const health = player !== undefined
+    ? world.getComponent(player, "Health") as HealthComponent | undefined
+    : undefined;
+  const weapon = player !== undefined
+    ? world.getComponent(player, "HitRunWeapon") as HitRunWeaponState | undefined
+    : undefined;
+  const runState = world.getResource<RunState>("RunState");
+  const wave = world.getResource<WaveDirectorState>(WAVE_DIRECTOR_RESOURCE);
+  const script = world.getResource<WaveScript>(WAVE_SCRIPT_RESOURCE);
+  const telegraphs = world.getResource<WaveTelegraphMarker[]>(WAVE_TELEGRAPHS_RESOURCE) ?? [];
+  const bannerState = world.getResource<WaveBannerState | null>(WAVE_BANNER_RESOURCE);
+  const cameraState = world.getResource<BeltCameraState>(BELT_CAMERA_STATE_RESOURCE);
+  const cameraConfig = world.getResource<BeltCameraConfig>(BELT_CAMERA_CONFIG_RESOURCE);
+  const publishedAlive = world.getResource<number>(BELT_ALIVE_ENEMIES_RESOURCE);
+  const aliveEnemies = typeof publishedAlive === "number" ? publishedAlive : countAliveEnemies(world);
+  const section = cameraState && cameraConfig
+    ? cameraConfig.sections[cameraState.currentSectionIndex]
+    : undefined;
+  const scoreState = world.getResource<HitRunScoreState>(HIT_RUN_SCORE_RESOURCE);
+  const tick = world.tick ?? 0;
+  const elapsedSeconds = tick / 60;
 
-    const hudSnapshot: HudRenderSnapshot = {
-      viewportWidth: w,
-      viewportHeight: h,
-      cameraX: cam.x,
-      cameraY: cam.y,
-      player: player !== undefined
-        ? {
-            currentHp: health?.current ?? 0,
-            maxHp: health?.max ?? 3,
-            weaponId: weapon?.weaponId ?? "longbow",
-            ammoCurrent: weapon?.ammoCurrent ?? Number.POSITIVE_INFINITY,
-            ammoMax: weapon?.ammoMax ?? Number.POSITIVE_INFINITY,
-            cooldownRemaining: weapon?.cooldownRemaining ?? 0
-          }
-        : undefined,
+  const hud: HitRunPresentationHudSnapshot = {
+    score: scoreState?.score ?? (runState ? runState.collectedTemporalIds.length * 10 : 0),
+    health: player !== undefined
+      ? { current: health?.current ?? 0, max: health?.max ?? 3 }
+      : undefined,
+    combo: scoreState?.comboMultiplier ?? 1,
+    isPaused: world.getResource<boolean>("IsPaused") ?? false,
+    isGameOver: false,
+    metrics: {
+      weaponId: weapon?.weaponId ?? "longbow",
+      ammoCurrent: weapon?.ammoCurrent ?? Number.POSITIVE_INFINITY,
+      ammoMax: weapon?.ammoMax ?? Number.POSITIVE_INFINITY,
+      cooldownRemaining: weapon?.cooldownRemaining ?? 0,
       wave: {
         sectionLabel: section?.id ? section.id.replace(/_/g, " ").toUpperCase() : "—",
         waveName: script?.name ?? wave?.scriptId ?? "—",
-        gateLocked: camState?.gateLocked !== false && !camState?.sectionCleared,
-        sectionCleared: camState?.sectionCleared ?? false,
+        gateLocked: cameraState?.gateLocked !== false && !cameraState?.sectionCleared,
+        sectionCleared: cameraState?.sectionCleared ?? false,
         aliveEnemies,
         totalSpawned: wave?.totalSpawned ?? 0
       },
-      score: {
-        score: scoreVal,
-        comboMultiplier: scoreState?.comboMultiplier ?? 1
-      },
-      telegraphs: telegraphs?.map(t => ({
-        x: t.x,
-        y: t.y,
-        lead: t.lead,
-        remaining: t.remaining
-      })),
-      isGameOver: false
-    };
-
-    const elapsed = (world.tick ?? 0) / 60;
-    const theme = getHitRunTheme(world);
-    theme.renderHud(ctx, hudSnapshot, elapsed);
-
-    if (banner && banner.remaining > 0) {
-      const bannerSnapshot: BannerRenderSnapshot = {
-        text: banner.text,
-        sub: banner.sub,
-        remaining: banner.remaining,
-        totalDuration: 2.0
-      };
-      theme.renderSectionBanner(ctx, bannerSnapshot, w, h, elapsed);
+      telegraphs: telegraphs.map(marker => ({
+        x: marker.x,
+        y: marker.y,
+        lead: marker.lead,
+        remaining: marker.remaining
+      }))
     }
+  };
+
+  const banner: HitRunPresentationBannerSnapshot | undefined =
+    bannerState && bannerState.remaining > 0
+      ? {
+          text: bannerState.text,
+          subtext: bannerState.sub,
+          remainingSeconds: bannerState.remaining,
+          totalDurationSeconds: 2
+        }
+      : undefined;
+
+  const frame: PresentationFrame = {
+    frameId: tick,
+    tick,
+    elapsedSeconds,
+    deltaSeconds: 0,
+    viewport: { ...viewport, pixelRatio: 1 },
+    camera: {
+      x: camera.x,
+      y: camera.y,
+      zoom: 1,
+      visualOffsetX: 0,
+      visualOffsetY: 0
+    },
+    reduceMotion: false,
+    highContrast: false
+  };
+
+  return { hud, banner, frame };
+}
+
+function renderHitRunHud(world: HitRunHudWorld, painter: PresentationPainter): void {
+  const session = getHitRunPresentationSession(world);
+  const data = createHitRunHudPresentationData(world);
+  session.theme.renderHud?.(painter, data.hud, data.frame);
+  if (data.banner) session.theme.renderBanner?.(painter, data.banner, data.frame);
+}
+
+export const drawHitRunHud: EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
+  draw(context, world) {
+    renderHitRunHud(world, new CanvasPresentationPainter(context));
+  }
+};
+
+export const drawHitRunHudSkia: EffectDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(context, world) {
+    const canvas = context as never as SkCanvas;
+    if (!canvas || typeof canvas.drawRect !== "function") return;
+    renderHitRunHud(world, new SkiaPresentationPainter(canvas));
   }
 };

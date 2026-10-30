@@ -3,7 +3,8 @@ import type {
   PresentationSceneSnapshot,
   PresentationEntitySnapshot,
   PresentationFeedbackEventSnapshot,
-  PresentationHudSnapshot,
+  PresentationFrame,
+  PresentationPainter,
   PresentationBannerSnapshot,
   PresentationTheme,
   PresentationThemeDescriptor,
@@ -11,6 +12,7 @@ import type {
   PresentationThemeTokens
 } from "../../../shared/presentation/PresentationContracts";
 import { PresentationThemeRegistry } from "../../../shared/presentation/PresentationThemeRegistry";
+import type { HitRunPresentationHudSnapshot } from "./HitRunPresentationSnapshots";
 import { fonts, typography } from "../../../../theme/typography";
 import { spacing } from "../../../../theme/spacing";
 import { radius } from "../../../../theme/radius";
@@ -25,7 +27,7 @@ type HitRunPresentationSharedTheme = PresentationTheme<
   PresentationSceneSnapshot,
   PresentationEntitySnapshot,
   PresentationFeedbackEventSnapshot,
-  PresentationHudSnapshot,
+  HitRunPresentationHudSnapshot,
   PresentationBannerSnapshot,
   HitRunThemePaletteTokens
 >;
@@ -39,7 +41,7 @@ export type HitRunPresentationSession = PresentationThemeSession<
   PresentationSceneSnapshot,
   PresentationEntitySnapshot,
   PresentationFeedbackEventSnapshot,
-  PresentationHudSnapshot,
+  HitRunPresentationHudSnapshot,
   PresentationBannerSnapshot,
   HitRunThemePaletteTokens
 >;
@@ -98,25 +100,283 @@ function createTokens(palette: HitRunThemePaletteTokens): PresentationThemeToken
   };
 }
 
+const HIT_RUN_HUD_CAPABILITIES = ["hud", "banner"] as const;
+
 const FANTASY_DESCRIPTOR: PresentationThemeDescriptor = {
   id: "fantasy",
   displayName: "Dark Fantasy",
-  capabilities: []
+  capabilities: HIT_RUN_HUD_CAPABILITIES
 };
 
 const SUMI_E_DESCRIPTOR: PresentationThemeDescriptor = {
   id: "sumi-e",
   displayName: "Ukiyo-e Sumi-e",
-  capabilities: []
+  capabilities: HIT_RUN_HUD_CAPABILITIES
 };
 
 function createBridge(
   descriptor: PresentationThemeDescriptor,
   legacyTheme: HitRunTheme
 ): HitRunPresentationBridge {
+  const palette = legacyTheme.palette;
+
   return {
     descriptor,
     legacyTheme,
+    renderHud(painter: PresentationPainter, hud: HitRunPresentationHudSnapshot, frame: PresentationFrame): void {
+      const width = frame.viewport.width;
+      const height = frame.viewport.height;
+      const sealX = 28;
+      const sealY = 28;
+
+      if (descriptor.id === "fantasy") {
+        const metrics = hud.metrics;
+        painter.save();
+        try {
+          const header = painter.createLinearGradient(0, 0, 0, 52);
+          header.addColorStop(0, palette.inkOrOutline);
+          header.addColorStop(1, palette.background);
+          painter.fillRect({ x: 0, y: 0, width, height: 52 }, { gradient: header });
+
+          if (hud.health) {
+            const maxHealth = Math.max(0, Math.min(20, Math.floor(hud.health.max)));
+            const currentHealth = Math.max(0, Math.min(maxHealth, Math.floor(hud.health.current)));
+            const pipWidth = 18;
+            const pipHeight = 10;
+            for (let index = 0; index < maxHealth; index++) {
+              const x = 16 + index * (pipWidth + 6);
+              const color = index < currentHealth ? palette.vermilionOrRed : palette.paperOrFloor;
+              painter.fillRect({ x, y: 14, width: pipWidth, height: pipHeight }, { color });
+              painter.strokeRect({ x, y: 14, width: pipWidth, height: pipHeight }, {
+                color: palette.inkOrOutline,
+                width: 1
+              });
+            }
+
+            const weaponId = metrics?.weaponId.toUpperCase() ?? "LONGBOW";
+            const ammo = metrics && Number.isFinite(metrics.ammoCurrent)
+              ? String(metrics.ammoCurrent) + "/" + String(metrics.ammoMax)
+              : "∞";
+            painter.fillText(weaponId + " [" + ammo + "]", 16 + maxHealth * 24 + 16, 22, {
+              fontFamily: fonts.data ?? "monospace",
+              fontSize: 12,
+              fontWeight: "bold",
+              color: palette.goldOrYellow,
+              baseline: "middle"
+            });
+          }
+
+          if (metrics?.wave) {
+            painter.fillText(
+              metrics.wave.sectionLabel + "  ·  " + metrics.wave.waveName,
+              width * 0.5,
+              16,
+              {
+                fontFamily: fonts.data ?? "monospace",
+                fontSize: 12,
+                fontWeight: "bold",
+                align: "center",
+                baseline: "middle",
+                color: palette.paperOrFloor
+              }
+            );
+            const gateLabel = metrics.wave.gateLocked ? "GATE LOCKED" : "GATE OPEN";
+            painter.fillText(gateLabel + "  ·  ALIVE " + metrics.wave.aliveEnemies, width * 0.5, 30, {
+              fontFamily: fonts.data ?? "monospace",
+              fontSize: 10,
+              align: "center",
+              baseline: "middle",
+              color: metrics.wave.gateLocked ? palette.vermilionOrRed : palette.goldOrYellow
+            });
+          }
+
+          if (hud.score !== undefined) {
+            painter.fillText(String(Math.max(0, Math.floor(hud.score))).padStart(6, "0"), width - 16, 22, {
+              fontFamily: fonts.data ?? "monospace",
+              fontSize: 14,
+              fontWeight: "bold",
+              align: "right",
+              baseline: "middle",
+              color: palette.paperOrFloor
+            });
+            if ((hud.combo ?? 1) > 1) {
+              painter.fillText("COMBO x" + (hud.combo ?? 1).toFixed(1), width - 16, 38, {
+                fontFamily: fonts.data ?? "monospace",
+                fontSize: 11,
+                fontWeight: "bold",
+                align: "right",
+                baseline: "middle",
+                color: palette.vermilionOrRed
+              });
+            }
+          }
+
+          if (hud.isGameOver) {
+            painter.fillRect({ x: 0, y: 0, width, height }, { color: palette.inkOrOutline, alpha: 0.78 });
+            painter.fillText("DOWN", width * 0.5, height * 0.5, {
+              fontFamily: fonts.data ?? "monospace",
+              fontSize: 28,
+              fontWeight: "bold",
+              align: "center",
+              baseline: "middle",
+              color: palette.vermilionOrRed
+            });
+          }
+        } finally {
+          painter.restore();
+        }
+        return;
+      }
+
+      painter.save();
+      try {
+        painter.fillCircle(sealX, sealY, 20, { color: palette.vermilionOrRed });
+        painter.fillText("生", sealX, sealY + 1, {
+          fontFamily: fonts.display ?? "serif",
+          fontSize: 14,
+          fontWeight: "bold",
+          align: "center",
+          baseline: "middle",
+          color: palette.background
+        });
+
+        if (hud.health) {
+          const maxHealth = Math.max(0, Math.min(20, Math.floor(hud.health.max)));
+          const currentHealth = Math.max(0, Math.min(maxHealth, Math.floor(hud.health.current)));
+          for (let index = 0; index < maxHealth; index++) {
+            const x = sealX + 32 + index * 22;
+            const y = sealY - 10;
+            painter.fillRect({ x, y, width: 16, height: 20 }, { color: palette.inkOrOutline });
+            if (index >= currentHealth) {
+              painter.fillRect({ x: x + 2, y: y + 2, width: 12, height: 12 }, { color: palette.background });
+            }
+          }
+        }
+
+        if (hud.score !== undefined) {
+          painter.save();
+          try {
+            painter.translate(width - 70, 30);
+            painter.rotate(-0.06);
+            painter.fillRect(
+              { x: -40, y: -16, width: 80, height: 32 },
+              { color: palette.background, alpha: 0.82 }
+            );
+            painter.strokeRect(
+              { x: -40, y: -16, width: 80, height: 32 },
+              { color: palette.vermilionOrRed, width: 2 }
+            );
+            painter.fillText(String(Math.max(0, Math.floor(hud.score))).padStart(6, "0"), 0, 6, {
+              fontFamily: fonts.data ?? "monospace",
+              fontSize: 16,
+              fontWeight: "bold",
+              align: "center",
+              baseline: "middle",
+              color: palette.inkOrOutline
+            });
+          } finally {
+            painter.restore();
+          }
+        }
+
+        painter.save();
+        try {
+          painter.translate(width - 45, height - 45);
+          painter.rotate(0.08);
+          painter.fillRect({ x: -24, y: -24, width: 48, height: 48 }, { color: palette.vermilionOrRed });
+          painter.fillText("正野", 0, -5, {
+            fontFamily: fonts.display ?? "serif",
+            fontSize: 12,
+            fontWeight: "bold",
+            align: "center",
+            baseline: "middle",
+            color: palette.background
+          });
+          painter.fillText("廣果", 0, 11, {
+            fontFamily: fonts.display ?? "serif",
+            fontSize: 12,
+            fontWeight: "bold",
+            align: "center",
+            baseline: "middle",
+            color: palette.background
+          });
+        } finally {
+          painter.restore();
+        }
+
+        if (hud.isGameOver) {
+          painter.fillRect({ x: 0, y: 0, width, height }, { color: palette.inkOrOutline, alpha: 0.75 });
+          painter.fillText(descriptor.id === "sumi-e" ? "敗 散" : "GAME OVER", width * 0.5, height * 0.5, {
+            fontFamily: fonts.display ?? "serif",
+            fontSize: 36,
+            fontWeight: "bold",
+            align: "center",
+            baseline: "middle",
+            color: palette.vermilionOrRed
+          });
+        }
+
+      } finally {
+        painter.restore();
+      }
+    },
+    renderBanner(painter: PresentationPainter, banner: PresentationBannerSnapshot, frame: PresentationFrame): void {
+      if (!Number.isFinite(banner.remainingSeconds) || banner.remainingSeconds <= 0) return;
+      const alpha = frame.reduceMotion
+        ? 1
+        : Math.min(1, Math.max(0, banner.remainingSeconds / 0.35));
+      const width = Math.max(0, Math.min(180, frame.viewport.width - 32));
+      const height = 70;
+
+      painter.save();
+      try {
+        painter.setAlpha(alpha);
+        if (descriptor.id === "fantasy") {
+          painter.fillText(banner.text, frame.viewport.width * 0.5, frame.viewport.height * 0.38, {
+            fontFamily: fonts.data ?? "monospace",
+            fontSize: 42,
+            fontWeight: "bold",
+            align: "center",
+            baseline: "middle",
+            color: banner.text === "CLEAR" ? palette.goldOrYellow : palette.vermilionOrRed
+          });
+          if (banner.subtext) {
+            painter.fillText(banner.subtext, frame.viewport.width * 0.5, frame.viewport.height * 0.38 + 28, {
+              fontFamily: fonts.data ?? "monospace",
+              fontSize: 14,
+              align: "center",
+              baseline: "middle",
+              color: palette.secondary
+            });
+          }
+          return;
+        }
+        painter.translate(frame.viewport.width * 0.5, frame.viewport.height * 0.38);
+        painter.fillRect(
+          { x: -width * 0.5, y: -height * 0.5, width, height },
+          { color: palette.vermilionOrRed }
+        );
+        if (frame.highContrast) {
+          painter.strokeRect(
+            { x: -width * 0.5, y: -height * 0.5, width, height },
+            { color: palette.inkOrOutline, width: 3 }
+          );
+        }
+        const calligraphy = banner.text === "CLEAR"
+          ? (descriptor.id === "sumi-e" ? "全 滅" : "CLEAR")
+          : (descriptor.id === "sumi-e" ? "突 破" : banner.text.toUpperCase());
+        painter.fillText(calligraphy, 0, 1, {
+          fontFamily: fonts.display ?? "serif",
+          fontSize: 32,
+          fontWeight: "bold",
+          align: "center",
+          baseline: "middle",
+          color: palette.background
+        });
+      } finally {
+        painter.restore();
+      }
+    },
     onResize(viewport): void {
       legacyTheme.onResize(viewport.width, viewport.height);
     },
@@ -134,7 +394,7 @@ const presentationRegistry = new PresentationThemeRegistry<
   PresentationSceneSnapshot,
   PresentationEntitySnapshot,
   PresentationFeedbackEventSnapshot,
-  PresentationHudSnapshot,
+  HitRunPresentationHudSnapshot,
   PresentationBannerSnapshot,
   HitRunThemePaletteTokens
 >("hitandrun", "fantasy");

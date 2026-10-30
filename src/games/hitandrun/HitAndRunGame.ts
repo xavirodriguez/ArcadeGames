@@ -94,7 +94,7 @@ import {
   drawHitRunBullet,
   drawHitRunRocket
 } from "./rendering/HitRunCanvasVisuals";
-import { drawHitRunHud } from "./rendering/HitRunHudCanvas";
+import { drawHitRunHud, drawHitRunHudSkia } from "./rendering/HitRunHudCanvas";
 import { drawHitRunDebugOverlay } from "./rendering/HitRunDebugOverlay";
 import { registerHitRunDebugMetrics } from "./rendering/HitRunDebugMetrics";
 import { drawLanceroSpriteCanvas, LANCERO_SHAPE } from "../shared/sprites/LanceroSpriteVisuals";
@@ -127,13 +127,14 @@ function registerHitRunRenderers(
 ): void {
   if (renderer.type === "skia") {
     renderer.registerBackgroundEffect("hit_run_procedural_backdrop", drawHitRunProceduralBackdropSkia);
+    renderer.registerBackgroundEffect("hit_run_hud", drawHitRunHudSkia);
   } else {
     renderer.registerBackgroundEffect(
       "hit_run_procedural_backdrop",
       drawHitRunProceduralBackdrop as never as import("@tiny-aster/core").EffectDrawer<RenderContext, CoreComponentRegistry>
     );
+    renderer.registerBackgroundEffect("hit_run_hud", drawHitRunHud);
   }
-  renderer.registerBackgroundEffect("hit_run_hud", drawHitRunHud);
   renderer.registerBackgroundEffect("hit_run_debug_overlay", drawHitRunDebugOverlay);
 
   renderer.registerShape("player", drawHitRunPlayer);

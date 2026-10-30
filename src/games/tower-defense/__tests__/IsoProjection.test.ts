@@ -112,6 +112,11 @@ describe("IsoProjection", () => {
       expect(maxY).toBeLessThanOrEqual(config.worldHeight + 1e-8);
       expect((minX + maxX) / 2).toBeCloseTo(config.worldWidth / 2, 5);
       expect((minY + maxY) / 2).toBeCloseTo(config.worldHeight / 2, 5);
+      expect(cfg.bounds.width / cfg.bounds.height).toBeCloseTo(config.ISO_TILE_RATIO, 5);
+
+      const horizontalScale = cfg.tileWidthHalf / cfg.cellSize;
+      const verticalScale = cfg.tileHeightHalf / (cfg.cellSize / config.ISO_TILE_RATIO);
+      expect(horizontalScale).toBeCloseTo(verticalScale, 8);
     }
   });
 
@@ -166,14 +171,20 @@ describe("IsoProjection", () => {
   it("sanitizes missing or invalid config parameters gracefully", () => {
     const partialIso = createIsoConfig({
       projection: "isometric",
-      CELL_SIZE: NaN,
+      worldWidth: Number.NaN,
+      worldHeight: 0,
+      CELL_SIZE: Number.NaN,
       ISO_TILE_RATIO: 0,
+      GRID_COLS: -1,
+      GRID_ROWS: 0,
     });
 
     expect(partialIso.cellSize).toBe(40);
     expect(partialIso.tileHeightHalf).toBe(20);
-    expect(partialIso.bounds.width).toBeGreaterThan(0);
-    expect(partialIso.bounds.height).toBeGreaterThan(0);
+    expect(partialIso.bounds.width).toBeCloseTo(800, 5);
+    expect(partialIso.bounds.height).toBeCloseTo(400, 5);
+    expect(partialIso.bounds.minX).toBeCloseTo(0, 5);
+    expect(partialIso.bounds.maxY).toBeLessThanOrEqual(600);
   });
 
   it("ensures depthOf is monotonic with respect to row + col", () => {

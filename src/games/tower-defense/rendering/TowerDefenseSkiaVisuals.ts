@@ -468,7 +468,7 @@ function drawSkiaCreep(
   size: number,
   fill: string,
   stroke: string,
-  _isPaperDusk = false,
+  isPaperDusk = false,
   type: "grunt" | "fast" | "tank" | "boss" = "grunt",
   hitFlash = false,
   isoEnabled = false
@@ -501,7 +501,7 @@ function drawSkiaCreep(
   drawSkiaCreepGeometry(canvas, paint, radius, type);
 
   paint.setStyle(Skia.PaintStyle.Stroke);
-  paint.setStrokeWidth(Math.max(2, size * 0.08));
+  paint.setStrokeWidth(Math.max(2, size * (isPaperDusk ? 0.1 : 0.08)));
   paint.setColor(Skia.Color(stroke));
   drawSkiaCreepGeometry(canvas, paint, radius, type);
 
@@ -949,6 +949,52 @@ function drawPathDirectionMarkersSkia(
   }
 }
 
+function drawDashedLineSkia(
+  canvas: SkCanvas,
+  paint: SkPaint,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  dashLength: number,
+  gapLength: number
+): void {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const length = Math.hypot(dx, dy);
+  if (length <= 0) return;
+  const directionX = dx / length;
+  const directionY = dy / length;
+  const stride = dashLength + gapLength;
+
+  for (let offset = 0; offset < length; offset += stride) {
+    const end = Math.min(length, offset + dashLength);
+    canvas.drawLine(
+      x1 + directionX * offset,
+      y1 + directionY * offset,
+      x1 + directionX * end,
+      y1 + directionY * end,
+      paint
+    );
+  }
+}
+
+function drawDashedRectSkia(
+  canvas: SkCanvas,
+  paint: SkPaint,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  dashLength = 2,
+  gapLength = 2
+): void {
+  drawDashedLineSkia(canvas, paint, x, y, x + width, y, dashLength, gapLength);
+  drawDashedLineSkia(canvas, paint, x + width, y, x + width, y + height, dashLength, gapLength);
+  drawDashedLineSkia(canvas, paint, x + width, y + height, x, y + height, dashLength, gapLength);
+  drawDashedLineSkia(canvas, paint, x, y + height, x, y, dashLength, gapLength);
+}
+
 function drawRhombusTileSkia(
   canvas: SkCanvas,
   paint: SkPaint,
@@ -957,7 +1003,8 @@ function drawRhombusTileSkia(
   halfWidth: number,
   halfHeight: number,
   fillColor: string,
-  strokeColor?: string
+  strokeColor?: string,
+  dashed = false
 ): void {
   if (!Skia) return;
   const path = Skia.Path.Make();
@@ -977,7 +1024,14 @@ function drawRhombusTileSkia(
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setStrokeWidth(1);
     paint.setColor(Skia.Color(strokeColor));
-    canvas.drawPath(path, paint);
+    if (dashed) {
+      drawDashedLineSkia(canvas, paint, cx, cy - halfHeight, cx + halfWidth, cy, 3, 3);
+      drawDashedLineSkia(canvas, paint, cx + halfWidth, cy, cx, cy + halfHeight, 3, 3);
+      drawDashedLineSkia(canvas, paint, cx, cy + halfHeight, cx - halfWidth, cy, 3, 3);
+      drawDashedLineSkia(canvas, paint, cx - halfWidth, cy, cx, cy - halfHeight, 3, 3);
+    } else {
+      canvas.drawPath(path, paint);
+    }
   }
 }
 
@@ -1150,13 +1204,15 @@ export const drawSkiaTdMapBackground: EffectDrawer<SkCanvas, TowerDefenseCompone
           ? (tile === "path" ? pdPathEdge : tile === "buildable" ? pdBuildableEdge : undefined)
           : undefined;
 
-        drawRhombusTileSkia(canvas, paint, x, y, isoCfg.tileWidthHalf, isoCfg.tileHeightHalf, fillColor, strokeColor);
+        drawRhombusTileSkia(canvas, paint, x, y, isoCfg.tileWidthHalf, isoCfg.tileHeightHalf, fillColor, strokeColor, tile === "buildable");
       } else {
         paint.setStyle(Skia.PaintStyle.Fill);
         if (isPaperDusk) {
           const pdGround = resolveThemeColorWithFallback(world, "#2B2F36", "pd_ground");
           const pdBuildable = resolveThemeColorWithFallback(world, "#3A4049", "pd_buildable");
+          const pdBuildableEdge = resolveThemeColorWithFallback(world, "#5B6470", "pd_buildableEdge");
           const pdPath = resolveThemeColorWithFallback(world, "#D8C3A0", "pd_path");
+          const pdPathEdge = resolveThemeColorWithFallback(world, "#B39B73", "pd_pathEdge");
 
           const fillColor =
             tile === "path" || tile === "spawn" || tile === "base"
@@ -1170,6 +1226,17 @@ export const drawSkiaTdMapBackground: EffectDrawer<SkCanvas, TowerDefenseCompone
           paint.setColor(Skia.Color(getTileTypeColor(tile)));
         }
         canvas.drawRect(Skia.XYWHRect(x, y, layout.stepX - 1, layout.stepY - 1), paint);
+        if (isPaperDusk && tile === "path") {
+          paint.setStyle(Skia.PaintStyle.Stroke);
+          paint.setStrokeWidth(1);
+          paint.setColor(Skia.Color(pdPathEdge));
+          canvas.drawRect(Skia.XYWHRect(x, y, layout.stepX - 1, layout.stepY - 1), paint);
+        } else if (isPaperDusk && tile === "buildable") {
+          paint.setStyle(Skia.PaintStyle.Stroke);
+          paint.setStrokeWidth(1);
+          paint.setColor(Skia.Color(pdBuildableEdge));
+          drawDashedRectSkia(canvas, paint, x + 1, y + 1, layout.stepX - 3, layout.stepY - 3);
+        }
       }
 
       if (tile === "blocked") {

@@ -82,6 +82,9 @@ describe("TowerDefenseIsoDepthSortSystem", () => {
     const farTower = addRenderable(world, "Tower", 100, 200, 8);
     const nearerCreep = addRenderable(world, "Creep", 250, 100, 50);
     const sameDepthProjectile = addRenderable(world, "TowerProjectile", 200, 150, 10);
+    const transformSnapshots = [farTower, nearerCreep, sameDepthProjectile].map((entity) => ({
+      ...world.getComponent(entity, "Transform"),
+    }));
 
     new TowerDefenseIsoDepthSortSystem().update(world, 1 / 60);
 
@@ -92,6 +95,9 @@ describe("TowerDefenseIsoDepthSortSystem", () => {
       sameDepthProjectile,
     ]);
     expect(renderPlan.entries.map((entry) => entry.order)).toEqual([300, 350, 350]);
+    expect([farTower, nearerCreep, sameDepthProjectile].map((entity) => ({
+      ...world.getComponent(entity, "Transform"),
+    }))).toEqual(transformSnapshots);
   });
 
   it("preserves the configured render layers outside isometric mode", () => {

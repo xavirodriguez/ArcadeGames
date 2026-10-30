@@ -82,6 +82,39 @@ describe("IsoProjection", () => {
     expect(topLeftIso.y).toBeCloseTo(isoCfg.originY, 5);
   });
 
+  it("fits different grid ratios and viewport sizes without clipping", () => {
+    const variants = [
+      { ...mockConfig, ISO_TILE_RATIO: 1, worldWidth: 900, worldHeight: 700 },
+      { ...mockConfig, ISO_TILE_RATIO: 3, worldWidth: 640, worldHeight: 480 },
+      { ...mockConfig, ISO_TILE_RATIO: 1.5, worldWidth: 1024, worldHeight: 768 },
+    ];
+
+    for (const config of variants) {
+      const cfg = createIsoConfig(config);
+      const left = config.GRID_OFFSET_X;
+      const top = config.GRID_OFFSET_Y;
+      const right = left + config.GRID_COLS * config.CELL_SIZE;
+      const bottom = top + config.GRID_ROWS * config.CELL_SIZE;
+      const corners = [
+        worldToIso(cfg, left, top),
+        worldToIso(cfg, right, top),
+        worldToIso(cfg, left, bottom),
+        worldToIso(cfg, right, bottom),
+      ];
+      const minX = Math.min(...corners.map((point) => point.x));
+      const maxX = Math.max(...corners.map((point) => point.x));
+      const minY = Math.min(...corners.map((point) => point.y));
+      const maxY = Math.max(...corners.map((point) => point.y));
+
+      expect(minX).toBeGreaterThanOrEqual(-1e-8);
+      expect(maxX).toBeLessThanOrEqual(config.worldWidth + 1e-8);
+      expect(minY).toBeGreaterThanOrEqual(-1e-8);
+      expect(maxY).toBeLessThanOrEqual(config.worldHeight + 1e-8);
+      expect((minX + maxX) / 2).toBeCloseTo(config.worldWidth / 2, 5);
+      expect((minY + maxY) / 2).toBeCloseTo(config.worldHeight / 2, 5);
+    }
+  });
+
   it("projects world-space circular ranges into exact isometric ellipse radii", () => {
     const radii = projectCircleRadii(isoCfg, 100);
     const fitScale = isoCfg.tileWidthHalf / isoCfg.cellSize;

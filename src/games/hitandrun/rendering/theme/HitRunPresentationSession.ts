@@ -153,7 +153,7 @@ function createBridge(
               });
             }
 
-            const weaponId = metrics?.weaponId.toUpperCase() ?? "LONGbow";
+            const weaponId = metrics?.weaponId.toUpperCase() ?? "LONGBOW";
             const ammo = metrics && Number.isFinite(metrics.ammoCurrent)
               ? String(metrics.ammoCurrent) + "/" + String(metrics.ammoMax)
               : "∞";

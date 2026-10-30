@@ -87,7 +87,11 @@ describe("HitRun PresentationPainter theme slice", () => {
     theme.renderHud?.(painter, hud, frame);
     theme.renderBanner?.(painter, banner, frame);
 
-    expect(painter.fillCircle).toHaveBeenCalled();
+    if (themeId === "sumi-e") {
+      expect(painter.fillCircle).toHaveBeenCalled();
+    } else {
+      expect(painter.createLinearGradient).toHaveBeenCalled();
+    }
     expect(painter.fillRect).toHaveBeenCalled();
     expect(painter.strokeRect).toHaveBeenCalled();
     expect(painter.fillText).toHaveBeenCalledWith(

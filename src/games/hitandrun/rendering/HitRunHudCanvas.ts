@@ -44,9 +44,9 @@ import { HIT_RUN_SCORE_RESOURCE } from "../systems/HitRunScoreSystem";
 export interface HitRunHudWorld {
   readonly tick?: number;
   query(...tags: string[]): ReadonlyArray<number>;
-  getComponent(entity: number, component: string): unknown;
+  getComponent(entity: number, component: string): object | undefined;
   hasComponent(entity: number, component: string): boolean;
-  getResource<T = unknown>(key: string): T | undefined;
+  getResource<T = object>(key: string): T | undefined;
 }
 
 export interface HitRunHudPresentationData {

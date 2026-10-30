@@ -40,7 +40,7 @@ describe("HitRun HUD snapshot projection", () => {
         if (tags.length === 2 && tags[0] === "PlatformerInput" && tags[1] === "Health") return [];
         return [];
       },
-      getComponent: (entity: number, component: string): unknown => {
+      getComponent: (entity: number, component: string): object | undefined => {
         if (entity === 2 && component === "Camera2D") return { isMain: true, x: 100, y: 240 };
         if (entity === 1 && component === "Health") return { current: 4, max: 5 };
         if (entity === 1 && component === "HitRunWeapon") {
@@ -49,7 +49,7 @@ describe("HitRun HUD snapshot projection", () => {
         return undefined;
       },
       hasComponent: (_entity: number, _component: string): boolean => false,
-      getResource: <T = unknown>(key: string): T | undefined => resources.get(key) as T | undefined
+      getResource: <T = object>(key: string): T | undefined => resources.get(key) as T | undefined
     };
 
     const result = createHitRunHudPresentationData(world);
@@ -91,9 +91,9 @@ describe("HitRun HUD snapshot projection", () => {
     const world: HitRunHudWorld = {
       tick: 0,
       query: (): ReadonlyArray<number> => [],
-      getComponent: (): unknown => undefined,
+      getComponent: (): object | undefined => undefined,
       hasComponent: (): boolean => false,
-      getResource: <T = unknown>(_key: string): T | undefined => undefined
+      getResource: <T = object>(_key: string): T | undefined => undefined
     };
 
     const result = createHitRunHudPresentationData(world);

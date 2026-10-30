@@ -1,6 +1,8 @@
 import { World, resolveThemeColorWithFallback } from "@tiny-aster/core";
 import type { TowerDefenseComponentRegistry, TowerDefenseVisualEffects } from "../types/TowerDefenseTypes";
 import { TOWER_DEFENSE_VISUAL_TOKENS } from "../presentation/TowerDefenseVisualTokens";
+import { createIsoConfig, worldToIso, depthOf, type IsoConfig, type Point2D } from "./IsoProjection";
+import type { TowerDefenseConfig } from "../types/TowerDefenseConfigSchema";
 
 export interface PathDirectionMarker {
   x: number;
@@ -14,9 +16,21 @@ export interface PathDirectionMarker {
  */
 export function createPathDirectionMarkers(
   points: ReadonlyArray<{ x: number; y: number }>,
-  stride = 2
+  strideOrIsoCfg: number | IsoConfig = 2,
+  isoCfgOpt?: IsoConfig
 ): PathDirectionMarker[] {
   if (points.length < 3) return [];
+
+  let stride = 2;
+  let isoCfg: IsoConfig | undefined;
+
+  if (typeof strideOrIsoCfg === "number") {
+    stride = strideOrIsoCfg;
+    isoCfg = isoCfgOpt;
+  } else if (strideOrIsoCfg && typeof strideOrIsoCfg === "object") {
+    isoCfg = strideOrIsoCfg;
+    stride = 2;
+  }
 
   const interval = Number.isFinite(stride) ? Math.max(1, Math.floor(stride)) : 2;
   const markers: PathDirectionMarker[] = [];
@@ -38,11 +52,18 @@ export function createPathDirectionMarkers(
     const dy = next.y - current.y;
     if (dx === 0 && dy === 0) continue;
 
-    markers.push({ x: current.x, y: current.y, angle: Math.atan2(dy, dx) });
+    const curP = isoCfg && isoCfg.enabled ? worldToIso(isoCfg, current.x, current.y) : current;
+    const nextP = isoCfg && isoCfg.enabled ? worldToIso(isoCfg, next.x, next.y) : next;
+
+    const pdx = nextP.x - curP.x;
+    const pdy = nextP.y - curP.y;
+
+    markers.push({ x: curP.x, y: curP.y, angle: Math.atan2(pdy, pdx) });
   }
 
   return markers;
 }
+
 export type CreepAnimationType = "grunt" | "fast" | "tank" | "boss";
 
 export interface CreepAnimationState {
@@ -53,10 +74,6 @@ export interface CreepAnimationState {
   rotation: number;
 }
 
-/**
- * Small deterministic presentation animation shared by Canvas and Skia.
- * It only reads the visual clock and never modifies movement or hitboxes.
- */
 export function resolveCreepAnimationState(
   world: World<TowerDefenseComponentRegistry>,
   entity: number,
@@ -64,7 +81,6 @@ export function resolveCreepAnimationState(
 ): CreepAnimationState {
   const elapsed = world.getResource<TowerDefenseVisualEffects>("TowerDefenseVisualEffects")?.elapsedSeconds ?? 0;
   const rate = type === "fast" ? 12 : type === "tank" ? 3.4 : type === "boss" ? 2.2 : 6.2;
-  // Slightly stronger bob so motion reads clearly even on busy backgrounds.
   const amplitude = type === "tank" ? 0.9 : type === "boss" ? 1.6 : type === "fast" ? 2.0 : 1.35;
   const phase = elapsed * rate + entity * 0.73;
   const bob = Math.sin(phase);
@@ -76,6 +92,7 @@ export function resolveCreepAnimationState(
     rotation: type === "fast" ? bob * 0.04 : type === "boss" ? Math.sin(elapsed * 1.6 + entity) * 0.028 : 0,
   };
 }
+
 export interface CreepVisualState {
   size: number;
   slowed: boolean;
@@ -95,7 +112,6 @@ export function resolveCreepVisualState(
   const size = render?.size ?? defaultSize;
   const slowed = (creep?.slowRemainingMs ?? 0) > 0;
 
-  // High-contrast fallbacks so creeps never blend into the dark path / space debris.
   if (type === "grunt") {
     const fill = slowed
       ? resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.creepRendering.slowed.fill, "creep_slowed")
@@ -126,7 +142,6 @@ export function resolveCreepVisualState(
     return { size, slowed, fill, stroke };
   }
 
-  // Boss
   const fill = slowed
     ? resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.creepRendering.slowed.fill, "creep_slowed")
     : resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.creepRendering.boss.fill, "creep_boss", "boss");
@@ -161,9 +176,24 @@ export function resolveTowerWeaponDrawSetup(
   const targetTransform = tower && tower.targetEntity !== null
     ? world.getComponent(tower.targetEntity, "Transform")
     : undefined;
-  const angle = transform && targetTransform
-    ? Math.atan2(targetTransform.y - transform.y, targetTransform.x - transform.x)
-    : -Math.PI / 2;
+
+  const gameConfig = world.getResource<TowerDefenseConfig>("GameConfig");
+  const isoCfg = gameConfig ? createIsoConfig(gameConfig) : undefined;
+
+  let angle = -Math.PI / 2;
+  if (transform && targetTransform) {
+    const dx = targetTransform.x - transform.x;
+    const dy = targetTransform.y - transform.y;
+    if (isoCfg && isoCfg.enabled) {
+      const scaleX = isoCfg.tileWidthHalf / isoCfg.cellSize;
+      const scaleY = isoCfg.tileHeightHalf / isoCfg.cellSize;
+      const pdx = (dx - dy) * scaleX;
+      const pdy = (dx + dy) * scaleY;
+      angle = Math.atan2(pdy, pdx);
+    } else {
+      angle = Math.atan2(dy, dx);
+    }
+  }
 
   const barrelColor = type === "sniper"
     ? resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.weapon.sniper, "tower_sniper_barrel")
@@ -215,8 +245,8 @@ export function resolveTdLandmarkSetup(
   kind: "spawn" | "base",
   isPaperDusk: boolean
 ): TdLandmarkSetup {
-  const cx = x + size / 2;
-  const cy = y + size / 2;
+  const cx = x;
+  const cy = y;
   const fill = kind === "spawn"
     ? resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.mapLandmarks.spawn, "map_spawn", "accent")
     : resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.mapLandmarks.base, "map_base", "primary");
@@ -259,6 +289,7 @@ export function isPaperDuskTheme(world: World<TowerDefenseComponentRegistry>): b
 export interface TdMapBackgroundContext {
   layout: import("../../shared/grid/GridTypes").GridLayout;
   tileGrid: import("../types/TowerDefenseTypes").TileGrid;
+  isoCfg: IsoConfig;
 }
 
 export function resolveTdMapBackgroundContext(
@@ -266,21 +297,76 @@ export function resolveTdMapBackgroundContext(
 ): TdMapBackgroundContext | null {
   const layout = world.getResource<import("../../shared/grid/GridTypes").GridLayout>("GridLayout");
   const tileGrid = world.getResource<import("../types/TowerDefenseTypes").TileGrid>("TileGrid");
-  if (!layout || !tileGrid) return null;
-  return { layout, tileGrid };
+  const gameConfig = world.getResource<TowerDefenseConfig>("GameConfig");
+  if (!layout || !tileGrid || !gameConfig) return null;
+
+  const isoCfg = createIsoConfig(gameConfig);
+  return { layout, tileGrid, isoCfg };
 }
 
+/**
+ * Iterates through tile grid cells.
+ * Passes the projected cell center (x, y) to the callback in isometric mode,
+ * or top-left (x, y) in top-down mode.
+ */
 export function forEachTileGridCell(
   bgCtx: TdMapBackgroundContext,
   callback: (tile: any, x: number, y: number, row: number, col: number) => void
 ): void {
-  const { layout, tileGrid } = bgCtx;
+  const { layout, tileGrid, isoCfg } = bgCtx;
   for (let row = 0; row < tileGrid.rows; row++) {
     for (let col = 0; col < tileGrid.cols; col++) {
       const tile = tileGrid.tiles[row]?.[col];
-      const x = layout.offsetX + col * layout.stepX;
-      const y = layout.offsetY + row * layout.stepY;
-      callback(tile, x, y, row, col);
+      const cellCenterX = layout.offsetX + (col + 0.5) * layout.stepX;
+      const cellCenterY = layout.offsetY + (row + 0.5) * layout.stepY;
+
+      if (isoCfg.enabled) {
+        const isoPoint = worldToIso(isoCfg, cellCenterX, cellCenterY);
+        callback(tile, isoPoint.x, isoPoint.y, row, col);
+      } else {
+        const topLeftX = layout.offsetX + col * layout.stepX;
+        const topLeftY = layout.offsetY + row * layout.stepY;
+        callback(tile, topLeftX, topLeftY, row, col);
+      }
     }
   }
+}
+
+/** Returns entity visual height in pixels (e.g. 22px for towers, 8px for creeps). */
+export function getEntityVisualHeight(type?: string): number {
+  if (type === "tower") return 22;
+  if (type === "creep") return 8;
+  return 0;
+}
+
+/** Returns the isometric screen position and visual height offset for an entity. */
+export function resolveEntityIsometricOffset(
+  world: World<TowerDefenseComponentRegistry>,
+  entity: number,
+  type: "tower" | "creep" | "projectile"
+): { screenX: number; screenY: number; drawY: number; isoCfg: IsoConfig } {
+  const transform = world.getComponent(entity, "Transform");
+  const wx = transform ? transform.x : 0;
+  const wy = transform ? transform.y : 0;
+
+  const gameConfig = world.getResource<TowerDefenseConfig>("GameConfig");
+  const isoCfg = gameConfig ? createIsoConfig(gameConfig) : { enabled: false } as IsoConfig;
+
+  if (isoCfg.enabled) {
+    const isoP = worldToIso(isoCfg, wx, wy);
+    const heightPx = getEntityVisualHeight(type);
+    return {
+      screenX: isoP.x,
+      screenY: isoP.y,
+      drawY: isoP.y - heightPx,
+      isoCfg,
+    };
+  }
+
+  return {
+    screenX: wx,
+    screenY: wy,
+    drawY: wy,
+    isoCfg,
+  };
 }

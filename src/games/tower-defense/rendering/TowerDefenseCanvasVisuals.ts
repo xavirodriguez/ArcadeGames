@@ -19,6 +19,8 @@ import {
   resolveTdLandmarkSetup,
   resolveTdMapBackgroundContext,
   forEachTileGridCell,
+  resolveEntityIsometricOffset,
+  getEntityVisualHeight,
 } from "./TowerDefenseVisualHelpers";
 
 type TDWorld = World<TowerDefenseComponentRegistry>;
@@ -26,6 +28,7 @@ type TDWorld = World<TowerDefenseComponentRegistry>;
 import { isPaperDuskTheme } from "./TowerDefenseVisualHelpers";
 import { createSpriteAnimator, drawSpriteCanvas } from "../../shared/sprites";
 import { TOWER_DEFENSE_VISUAL_TOKENS } from "../presentation/TowerDefenseVisualTokens";
+import { worldToIso, isoToWorld } from "./IsoProjection";
 
 const TOWER_BASIC_SPRITE = createSpriteAnimator("tower_basic_art");
 const TOWER_SNIPER_SPRITE = createSpriteAnimator("tower_sniper_art");
@@ -53,13 +56,11 @@ function drawTowerBase(
     const paperColor = resolveThemeColorWithFallback(world, "#F2E9D8", "pd_paper", "tower_base_bg");
     const shadowOffset = s * 0.08;
 
-    // Hard Shadow
     ctx.fillStyle = shadowColor;
     ctx.beginPath();
     ctx.arc(shadowOffset, shadowOffset, s * 0.42, 0, Math.PI * 2);
     ctx.fill();
 
-    // Paper Base
     ctx.fillStyle = paperColor;
     ctx.beginPath();
     ctx.arc(0, 0, s * 0.42, 0, Math.PI * 2);
@@ -68,11 +69,9 @@ function drawTowerBase(
     ctx.lineWidth = Math.max(2, s * 0.06);
     ctx.stroke();
 
-    // Cap Shape by Tower Type
     ctx.fillStyle = primary;
     ctx.beginPath();
     if (towerType === "basic" || towerType === "rapid") {
-      // Triangle (Basic) / Square (Rapid)
       if (towerType === "basic") {
         ctx.moveTo(0, -s * 0.28);
         ctx.lineTo(s * 0.24, s * 0.18);
@@ -81,7 +80,6 @@ function drawTowerBase(
         ctx.rect(-s * 0.2, -s * 0.2, s * 0.4, s * 0.4);
       }
     } else {
-      // Hexagon (Sniper / Frost)
       for (let i = 0; i < 6; i++) {
         const angle = (i * Math.PI) / 3;
         const hx = Math.cos(angle) * (s * 0.25);
@@ -132,7 +130,6 @@ function drawTowerBase(
   ctx.arc(0, 0, s * (towerType === "frost" ? 0.1 : 0.085), 0, Math.PI * 2);
   ctx.fill();
 
-  // Type-specific surface details remain distinct at typical tower sizes.
   if (towerType === "rapid") {
     ctx.fillRect(-s * 0.16, -s * 0.04, s * 0.07, s * 0.16);
     ctx.fillRect(s * 0.09, -s * 0.04, s * 0.07, s * 0.16);
@@ -153,7 +150,6 @@ function drawTowerBase(
   ctx.lineWidth = 1.5;
   ctx.strokeRect(-s * 0.45, -s * 0.15, s * 0.9, s * 0.4);
 
-  // Small bolts, an illuminated top edge and a front access panel add material cues.
   ctx.fillStyle = "#dbeafe";
   ctx.fillRect(-s * 0.32, -s * 0.12, s * 0.64, Math.max(0.8, s * 0.035));
   ctx.fillStyle = baseBg;
@@ -226,62 +222,108 @@ function drawTowerWeaponCanvas(
   }
   ctx.restore();
 }
+
+function drawGroundShadowCanvas(
+  ctx: CanvasRenderingContext2D,
+  size: number,
+  heightOffset: number,
+  isoEnabled: boolean
+): void {
+  ctx.save();
+  ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+  ctx.beginPath();
+  if (isoEnabled) {
+    ctx.translate(0, heightOffset);
+    ctx.ellipse(0, 0, size * 0.6, size * 0.3, 0, 0, Math.PI * 2);
+  } else {
+    ctx.ellipse(size * 0.1, size * 0.1, size * 0.5, size * 0.5, 0, 0, Math.PI * 2);
+  }
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawTowerWithOffset(
+  ctx: CanvasRenderingContext2D,
+  world: TDWorld,
+  entity: number,
+  drawer: () => void
+): void {
+  const { isoCfg } = resolveEntityIsometricOffset(world, entity, "tower");
+
+  ctx.save();
+  if (isoCfg.enabled) {
+    const heightPx = getEntityVisualHeight("tower");
+    drawGroundShadowCanvas(ctx, 28, heightPx, true);
+    ctx.translate(0, -heightPx);
+  }
+  drawer();
+  ctx.restore();
+}
+
 export const drawTowerBasic: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    const size = render?.size ?? 28;
-    const isPaperDusk = isPaperDuskTheme(world);
-    TOWER_BASIC_SPRITE.scale = size / 34;
-    const spriteDrawn = !isPaperDusk && drawSpriteCanvas(ctx, TOWER_BASIC_SPRITE, 0, 0);
-    if (!spriteDrawn) {
-      drawTowerBase(world, ctx, size, "tower_basic", "tower_basic_accent", TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.canvas.basic.primary, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.canvas.basic.accent, "basic");
-    }
-    drawTowerWeaponCanvas(ctx, world, entity, size, "basic");
+    drawTowerWithOffset(ctx, world, entity, () => {
+      const render = world.getComponent(entity, "Render");
+      const size = render?.size ?? 28;
+      const isPaperDusk = isPaperDuskTheme(world);
+      TOWER_BASIC_SPRITE.scale = size / 34;
+      const spriteDrawn = !isPaperDusk && drawSpriteCanvas(ctx, TOWER_BASIC_SPRITE, 0, 0);
+      if (!spriteDrawn) {
+        drawTowerBase(world, ctx, size, "tower_basic", "tower_basic_accent", TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.canvas.basic.primary, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.canvas.basic.accent, "basic");
+      }
+      drawTowerWeaponCanvas(ctx, world, entity, size, "basic");
+    });
   },
 };
 
 export const drawTowerSniper: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    const size = render?.size ?? 28;
-    const isPaperDusk = isPaperDuskTheme(world);
-    TOWER_SNIPER_SPRITE.scale = size / 34;
-    const spriteDrawn = !isPaperDusk && drawSpriteCanvas(ctx, TOWER_SNIPER_SPRITE, 0, 0);
-    if (!spriteDrawn) {
-      drawTowerBase(world, ctx, size, "tower_sniper", "tower_sniper_accent", TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.canvas.sniper.primary, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.canvas.sniper.accent, "sniper");
-    }
-    drawTowerWeaponCanvas(ctx, world, entity, size, "sniper");
+    drawTowerWithOffset(ctx, world, entity, () => {
+      const render = world.getComponent(entity, "Render");
+      const size = render?.size ?? 28;
+      const isPaperDusk = isPaperDuskTheme(world);
+      TOWER_SNIPER_SPRITE.scale = size / 34;
+      const spriteDrawn = !isPaperDusk && drawSpriteCanvas(ctx, TOWER_SNIPER_SPRITE, 0, 0);
+      if (!spriteDrawn) {
+        drawTowerBase(world, ctx, size, "tower_sniper", "tower_sniper_accent", TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.canvas.sniper.primary, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.canvas.sniper.accent, "sniper");
+      }
+      drawTowerWeaponCanvas(ctx, world, entity, size, "sniper");
+    });
   },
 };
 
 export const drawTowerRapid: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    const size = render?.size ?? 28;
-    drawTowerBase(world, ctx, size, "tower_rapid", "tower_rapid_accent", TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.canvas.rapid.primary, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.canvas.rapid.accent, "rapid");
-    drawTowerWeaponCanvas(ctx, world, entity, size, "rapid");
+    drawTowerWithOffset(ctx, world, entity, () => {
+      const render = world.getComponent(entity, "Render");
+      const size = render?.size ?? 28;
+      drawTowerBase(world, ctx, size, "tower_rapid", "tower_rapid_accent", TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.canvas.rapid.primary, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.canvas.rapid.accent, "rapid");
+      drawTowerWeaponCanvas(ctx, world, entity, size, "rapid");
+    });
   },
 };
 
 export const drawTowerFrost: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
   draw(ctx, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    const size = render?.size ?? 28;
-    drawTowerBase(world, ctx, size, "tower_frost", "tower_frost_accent", TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.canvas.frost.primary, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.canvas.frost.accent, "frost");
-    if (!isPaperDuskTheme(world)) {
-      const flakeColor = resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.weapon.frost, "tower_frost_flake");
-      ctx.strokeStyle = flakeColor;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(0, -size * 0.55);
-      ctx.lineTo(0, size * 0.15);
-      ctx.moveTo(-size * 0.2, -size * 0.35);
-      ctx.lineTo(size * 0.2, -size * 0.05);
-      ctx.moveTo(size * 0.2, -size * 0.35);
-      ctx.lineTo(-size * 0.2, -size * 0.05);
-      ctx.stroke();
-    }
-    drawTowerWeaponCanvas(ctx, world, entity, size, "frost");
+    drawTowerWithOffset(ctx, world, entity, () => {
+      const render = world.getComponent(entity, "Render");
+      const size = render?.size ?? 28;
+      drawTowerBase(world, ctx, size, "tower_frost", "tower_frost_accent", TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.canvas.frost.primary, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.canvas.frost.accent, "frost");
+      if (!isPaperDuskTheme(world)) {
+        const flakeColor = resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.weapon.frost, "tower_frost_flake");
+        ctx.strokeStyle = flakeColor;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, -size * 0.55);
+        ctx.lineTo(0, size * 0.15);
+        ctx.moveTo(-size * 0.2, -size * 0.35);
+        ctx.lineTo(size * 0.2, -size * 0.05);
+        ctx.moveTo(size * 0.2, -size * 0.35);
+        ctx.lineTo(-size * 0.2, -size * 0.05);
+        ctx.stroke();
+      }
+      drawTowerWeaponCanvas(ctx, world, entity, size, "frost");
+    });
   },
 };
 
@@ -294,7 +336,6 @@ function drawCreepPath(
   ctx.beginPath();
 
   if (type === "fast") {
-    // Forward-pointing silhouette makes scouts read as fast even at a glance.
     ctx.moveTo(-radius * 0.95, -radius * 0.42);
     ctx.lineTo(radius * 0.42, -radius * 0.58);
     ctx.lineTo(radius, 0);
@@ -348,7 +389,6 @@ function drawCreepDetails(
     ctx.fill();
   }
 
-  // Brow ridges and a compact mouth give even the smallest creeps a readable face.
   ctx.strokeStyle = stroke;
   ctx.lineWidth = Math.max(1, size * 0.045);
   ctx.lineCap = "round";
@@ -362,7 +402,6 @@ function drawCreepDetails(
   ctx.stroke();
 
   if (type === "fast") {
-    // Rear fins reinforce forward direction and make scouts distinct from grunt units.
     ctx.fillStyle = stroke;
     ctx.beginPath();
     ctx.moveTo(-size * 0.28, -size * 0.12);
@@ -416,18 +455,30 @@ function drawCreepBody(
   stroke: string,
   isPaperDusk = false,
   type: "grunt" | "fast" | "tank" | "boss" = "grunt",
-  hitFlash = false
+  hitFlash = false,
+  isoEnabled = false
 ): void {
   ctx.save();
 
   const bodyFill = hitFlash ? "#fff4db" : fill;
-  const shadowOffset = size * 0.1;
   ctx.fillStyle = "rgba(0,0,0,0.38)";
   ctx.save();
-  ctx.translate(shadowOffset, shadowOffset);
-  drawCreepPath(ctx, size, type);
-  ctx.fill();
+  if (isoEnabled) {
+    ctx.translate(0, size * 0.2);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, size * 0.5, size * 0.25, 0, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    const shadowOffset = size * 0.1;
+    ctx.translate(shadowOffset, shadowOffset);
+    drawCreepPath(ctx, size, type);
+    ctx.fill();
+  }
   ctx.restore();
+
+  if (isoEnabled) {
+    ctx.translate(0, -getEntityVisualHeight("creep"));
+  }
 
   drawCreepPath(ctx, size, type);
   ctx.fillStyle = bodyFill;
@@ -467,18 +518,18 @@ function drawCreepHealthBar(
   ctx.restore();
 }
 
-
 export const drawCreepGrunt: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
   draw(ctx, world, entity) {
     const { size, fill, stroke } = resolveCreepVisualState(world, entity, 12, "grunt");
     const animation = resolveCreepAnimationState(world, entity, "grunt");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
+    const { isoCfg } = resolveEntityIsometricOffset(world, entity, "creep");
 
     ctx.save();
     ctx.translate(animation.offsetX, animation.offsetY);
     ctx.rotate(animation.rotation);
     ctx.scale(animation.scaleX, animation.scaleY);
-    drawCreepBody(ctx, size, fill, stroke, isPaperDuskTheme(world), "grunt", hitFlash);
+    drawCreepBody(ctx, size, fill, stroke, isPaperDuskTheme(world), "grunt", hitFlash, isoCfg.enabled);
     drawCreepHealthBar(ctx, world, entity, size);
     ctx.restore();
   },
@@ -489,12 +540,13 @@ export const drawCreepFast: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
     const { size, fill, stroke } = resolveCreepVisualState(world, entity, 10, "fast");
     const animation = resolveCreepAnimationState(world, entity, "fast");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
+    const { isoCfg } = resolveEntityIsometricOffset(world, entity, "creep");
 
     ctx.save();
     ctx.translate(animation.offsetX, animation.offsetY);
     ctx.rotate(animation.rotation);
     ctx.scale(animation.scaleX, animation.scaleY);
-    drawCreepBody(ctx, size, fill, stroke, isPaperDuskTheme(world), "fast", hitFlash);
+    drawCreepBody(ctx, size, fill, stroke, isPaperDuskTheme(world), "fast", hitFlash, isoCfg.enabled);
     drawCreepHealthBar(ctx, world, entity, size);
     ctx.restore();
   },
@@ -506,12 +558,13 @@ export const drawCreepTank: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
     const isPaperDusk = isPaperDuskTheme(world);
     const animation = resolveCreepAnimationState(world, entity, "tank");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
+    const { isoCfg } = resolveEntityIsometricOffset(world, entity, "creep");
 
     ctx.save();
     ctx.translate(animation.offsetX, animation.offsetY);
     ctx.rotate(animation.rotation);
     ctx.scale(animation.scaleX, animation.scaleY);
-    drawCreepBody(ctx, size, fill, stroke, isPaperDusk, "tank", hitFlash);
+    drawCreepBody(ctx, size, fill, stroke, isPaperDusk, "tank", hitFlash, isoCfg.enabled);
     if (!isPaperDusk) {
       ctx.strokeStyle = resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.creepRendering.tank.plate, "creep_tank_plate");
       ctx.lineWidth = 3;
@@ -530,6 +583,7 @@ export const drawCreepBoss: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
     const isPaperDusk = isPaperDuskTheme(world);
     const animation = resolveCreepAnimationState(world, entity, "boss");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
+    const { isoCfg } = resolveEntityIsometricOffset(world, entity, "creep");
 
     ctx.save();
     ctx.translate(animation.offsetX, animation.offsetY);
@@ -542,7 +596,7 @@ export const drawCreepBoss: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
       ctx.arc(0, 0, size * 0.55, 0, Math.PI * 2);
       ctx.stroke();
     }
-    drawCreepBody(ctx, size, fill, innerStroke ?? stroke, isPaperDusk, "boss", hitFlash);
+    drawCreepBody(ctx, size, fill, innerStroke ?? stroke, isPaperDusk, "boss", hitFlash, isoCfg.enabled);
     if (!isPaperDusk) {
       ctx.fillStyle = resolveThemeColorWithFallback(world, "#ffd54f", "creep_boss_crown");
       ctx.beginPath();
@@ -746,6 +800,7 @@ function drawTowerDefenseVfxCanvas(
     ctx.restore();
   }
 }
+
 function drawTdLandmarkCanvas(
   ctx: CanvasRenderingContext2D,
   world: TDWorld,
@@ -793,7 +848,8 @@ function drawTdLandmarkCanvas(
 function drawPathDirectionMarkersCanvas(
   ctx: CanvasRenderingContext2D,
   world: TDWorld,
-  isPaperDusk: boolean
+  isPaperDusk: boolean,
+  isoCfg?: import("./IsoProjection").IsoConfig
 ): void {
   const waypoints = world.getResource<WaypointList>("WaypointList");
   if (!waypoints) return;
@@ -809,7 +865,7 @@ function drawPathDirectionMarkersCanvas(
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
 
-  for (const marker of createPathDirectionMarkers(waypoints.points)) {
+  for (const marker of createPathDirectionMarkers(waypoints.points, isoCfg)) {
     ctx.save();
     ctx.translate(marker.x, marker.y);
     ctx.rotate(marker.angle);
@@ -822,59 +878,111 @@ function drawPathDirectionMarkersCanvas(
   }
   ctx.restore();
 }
+
+function drawRhombusTile(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  halfWidth: number,
+  halfHeight: number,
+  fillColor: string,
+  strokeColor?: string,
+  dashed = false
+): void {
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - halfHeight);
+  ctx.lineTo(cx + halfWidth, cy);
+  ctx.lineTo(cx, cy + halfHeight);
+  ctx.lineTo(cx - halfWidth, cy);
+  ctx.closePath();
+
+  ctx.fillStyle = fillColor;
+  ctx.fill();
+
+  if (strokeColor) {
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 1;
+    if (dashed) {
+      ctx.setLineDash([3, 3]);
+    } else {
+      ctx.setLineDash([]);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+}
+
 export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
   draw(ctx, world: TDWorld) {
     const bgCtx = resolveTdMapBackgroundContext(world);
     if (!bgCtx) return;
-    const { layout, tileGrid } = bgCtx;
+    const { layout, tileGrid, isoCfg } = bgCtx;
 
     const isPaperDusk = isPaperDuskTheme(world);
-
     const vfxElapsed = world.getResource<TowerDefenseVisualEffects>("TowerDefenseVisualEffects")?.elapsedSeconds ?? 0;
+
     forEachTileGridCell(bgCtx, (tile, x, y, row, col) => {
-      if (isPaperDusk) {
+      if (isoCfg.enabled) {
         const pdGround = resolveThemeColorWithFallback(world, "#2B2F36", "pd_ground");
         const pdBuildable = resolveThemeColorWithFallback(world, "#3A4049", "pd_buildable");
         const pdBuildableEdge = resolveThemeColorWithFallback(world, "#5B6470", "pd_buildableEdge");
         const pdPath = resolveThemeColorWithFallback(world, "#D8C3A0", "pd_path");
         const pdPathEdge = resolveThemeColorWithFallback(world, "#B39B73", "pd_pathEdge");
 
-        const fillColor =
-          tile === "path" || tile === "spawn" || tile === "base"
-            ? pdPath
-            : tile === "buildable"
-              ? pdBuildable
-              : pdGround;
+        const fillColor = isPaperDusk
+          ? (tile === "path" || tile === "spawn" || tile === "base" ? pdPath : tile === "buildable" ? pdBuildable : pdGround)
+          : getTileTypeColor(tile);
 
-        ctx.fillStyle = fillColor;
-        ctx.fillRect(x, y, layout.stepX - 1, layout.stepY - 1);
+        const strokeColor = isPaperDusk
+          ? (tile === "path" ? pdPathEdge : tile === "buildable" ? pdBuildableEdge : undefined)
+          : undefined;
 
-        if (tile === "path") {
-          ctx.strokeStyle = pdPathEdge;
-          ctx.lineWidth = 1;
-          ctx.strokeRect(x, y, layout.stepX - 1, layout.stepY - 1);
-        } else if (tile === "buildable") {
-          ctx.strokeStyle = pdBuildableEdge;
-          ctx.lineWidth = 1;
-          ctx.setLineDash([2, 2]);
-          ctx.strokeRect(x + 1, y + 1, layout.stepX - 3, layout.stepY - 3);
-          ctx.setLineDash([]);
-        }
+        drawRhombusTile(ctx, x, y, isoCfg.tileWidthHalf, isoCfg.tileHeightHalf, fillColor, strokeColor, tile === "buildable");
       } else {
-        ctx.fillStyle = getTileTypeColor(tile);
-        ctx.fillRect(x, y, layout.stepX - 1, layout.stepY - 1);
+        if (isPaperDusk) {
+          const pdGround = resolveThemeColorWithFallback(world, "#2B2F36", "pd_ground");
+          const pdBuildable = resolveThemeColorWithFallback(world, "#3A4049", "pd_buildable");
+          const pdBuildableEdge = resolveThemeColorWithFallback(world, "#5B6470", "pd_buildableEdge");
+          const pdPath = resolveThemeColorWithFallback(world, "#D8C3A0", "pd_path");
+          const pdPathEdge = resolveThemeColorWithFallback(world, "#B39B73", "pd_pathEdge");
+
+          const fillColor =
+            tile === "path" || tile === "spawn" || tile === "base"
+              ? pdPath
+              : tile === "buildable"
+                ? pdBuildable
+                : pdGround;
+
+          ctx.fillStyle = fillColor;
+          ctx.fillRect(x, y, layout.stepX - 1, layout.stepY - 1);
+
+          if (tile === "path") {
+            ctx.strokeStyle = pdPathEdge;
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x, y, layout.stepX - 1, layout.stepY - 1);
+          } else if (tile === "buildable") {
+            ctx.strokeStyle = pdBuildableEdge;
+            ctx.lineWidth = 1;
+            ctx.setLineDash([2, 2]);
+            ctx.strokeRect(x + 1, y + 1, layout.stepX - 3, layout.stepY - 3);
+            ctx.setLineDash([]);
+          }
+        } else {
+          ctx.fillStyle = getTileTypeColor(tile);
+          ctx.fillRect(x, y, layout.stepX - 1, layout.stepY - 1);
+        }
       }
 
       if (tile === "blocked") {
-        drawTdAmbientStarCanvas(ctx, x, y, layout.stepX, layout.stepY, row, col, vfxElapsed, isPaperDusk);
+        drawTdAmbientStarCanvas(ctx, x, y, isoCfg.enabled ? isoCfg.tileWidthHalf * 2 : layout.stepX, isoCfg.enabled ? isoCfg.tileHeightHalf * 2 : layout.stepY, row, col, vfxElapsed, isPaperDusk);
       }
 
       if (tile === "spawn" || tile === "base") {
-        drawTdLandmarkCanvas(ctx, world, x, y, layout.stepX, tile, isPaperDusk);
+        drawTdLandmarkCanvas(ctx, world, x, y, isoCfg.enabled ? isoCfg.tileWidthHalf : layout.stepX, tile, isPaperDusk);
       }
     });
 
-    drawPathDirectionMarkersCanvas(ctx, world, isPaperDusk);
+    drawPathDirectionMarkersCanvas(ctx, world, isPaperDusk, isoCfg);
 
     const playerEntity = world.query("Player")[0];
     const catalog = world.getResource<TowerCatalog>("TowerCatalog");
@@ -887,13 +995,22 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
       const def = catalog?.[towerType];
 
       if (input && def) {
-        const col = Math.floor((input.cursorX - layout.offsetX) / layout.stepX);
-        const row = Math.floor((input.cursorY - layout.offsetY) / layout.stepY);
+        let col: number;
+        let row: number;
+        if (isoCfg.enabled) {
+          const worldP = isoToWorld(isoCfg, input.cursorX, input.cursorY);
+          col = Math.floor((worldP.x - layout.offsetX) / layout.stepX);
+          row = Math.floor((worldP.y - layout.offsetY) / layout.stepY);
+        } else {
+          col = Math.floor((input.cursorX - layout.offsetX) / layout.stepX);
+          row = Math.floor((input.cursorY - layout.offsetY) / layout.stepY);
+        }
+
         if (row >= 0 && row < tileGrid.rows && col >= 0 && col < tileGrid.cols) {
-          const gx = layout.offsetX + col * layout.stepX;
-          const gy = layout.offsetY + row * layout.stepY;
-          const cx = gx + layout.stepX / 2;
-          const cy = gy + layout.stepY / 2;
+          const cellCenterX = layout.offsetX + (col + 0.5) * layout.stepX;
+          const cellCenterY = layout.offsetY + (row + 0.5) * layout.stepY;
+          const isoCenter = isoCfg.enabled ? worldToIso(isoCfg, cellCenterX, cellCenterY) : { x: cellCenterX, y: cellCenterY };
+
           const buildable = tileGrid.tiles[row]?.[col] === "buildable";
           const canAfford = (gs?.gold ?? 0) >= def.cost;
           const occupied = world.query("Tower").some((e) => {
@@ -902,20 +1019,42 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
           });
           const canBuild = buildable && canAfford && !occupied;
 
+          ctx.save();
           ctx.beginPath();
-          ctx.arc(cx, cy, def.range, 0, Math.PI * 2);
+          if (isoCfg.enabled) {
+            const rx = def.range;
+            const ry = rx * (isoCfg.tileHeightHalf / isoCfg.tileWidthHalf);
+            ctx.ellipse(isoCenter.x, isoCenter.y, rx, ry, 0, 0, Math.PI * 2);
+          } else {
+            ctx.arc(isoCenter.x, isoCenter.y, def.range, 0, Math.PI * 2);
+          }
           ctx.strokeStyle = canBuild ? "rgba(79, 195, 247, 0.45)" : "rgba(229, 57, 53, 0.35)";
           ctx.lineWidth = 1.5;
           ctx.stroke();
           ctx.fillStyle = canBuild ? "rgba(79, 195, 247, 0.08)" : "rgba(229, 57, 53, 0.06)";
           ctx.fill();
 
-          ctx.strokeStyle = canBuild ? "rgba(102, 187, 106, 0.9)" : "rgba(229, 57, 53, 0.7)";
-          ctx.lineWidth = 2;
-          ctx.strokeRect(gx + 1, gy + 1, layout.stepX - 3, layout.stepY - 3);
+          if (isoCfg.enabled) {
+            drawRhombusTile(
+              ctx,
+              isoCenter.x,
+              isoCenter.y,
+              isoCfg.tileWidthHalf - 1,
+              isoCfg.tileHeightHalf - 1,
+              canBuild ? "rgba(102, 187, 106, 0.2)" : "rgba(229, 57, 53, 0.2)",
+              canBuild ? "rgba(102, 187, 106, 0.9)" : "rgba(229, 57, 53, 0.7)"
+            );
+          } else {
+            ctx.strokeStyle = canBuild ? "rgba(102, 187, 106, 0.9)" : "rgba(229, 57, 53, 0.7)";
+            ctx.lineWidth = 2;
+            const gx = layout.offsetX + col * layout.stepX;
+            const gy = layout.offsetY + row * layout.stepY;
+            ctx.strokeRect(gx + 1, gy + 1, layout.stepX - 3, layout.stepY - 3);
+          }
 
           ctx.save();
-          ctx.translate(cx, cy);
+          const ghostY = isoCfg.enabled ? isoCenter.y - getEntityVisualHeight("tower") : isoCenter.y;
+          ctx.translate(isoCenter.x, ghostY);
           ctx.globalAlpha = 0.45;
           const ghostColor =
             towerType === "sniper"
@@ -932,13 +1071,13 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
             ctx.fillStyle = "#ef5350";
             ctx.font = "11px monospace";
             ctx.textAlign = "center";
-            ctx.fillText("NO GOLD", cx, gy - 4);
+            ctx.fillText("NO GOLD", isoCenter.x, isoCenter.y - (isoCfg.enabled ? isoCfg.tileHeightHalf + 10 : 20));
           }
+          ctx.restore();
         }
       }
     }
 
-    // Keep diagnostics available without covering the playfield during normal games.
     if (world.getResource<boolean>("ShowTowerDefenseDebugHud") === true) {
       const threat = world.getResource<ThreatInfo>("ThreatInfo");
       ctx.fillStyle = "rgba(0,0,0,0.6)";
@@ -958,7 +1097,7 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
         ctx.fillStyle = "#ffab91";
         ctx.fillText(`Threat ${threat.alive} alive / ${threat.remainingInWave} wave`, 12, 114);
       }
-  
+
       if (gs && (gs.phase === "build" || gs.phase === "intermission")) {
         ctx.fillStyle = "rgba(0,0,0,0.5)";
         ctx.fillRect(layout.offsetX, 4, 220, 28);

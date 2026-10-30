@@ -2,6 +2,8 @@
   "worldWidth": 800,
   "worldHeight": 600,
   "aspectRatio": 1.3333333333333333,
+  "projection": "isometric",
+  "ISO_TILE_RATIO": 2,
   "KEYS": {
     "PAUSE": "KeyP",
     "RESTART": "KeyR",

@@ -17,6 +17,8 @@ import {
   resolveTdMapBackgroundContext,
   forEachTileGridCell,
   isPaperDuskTheme,
+  resolveEntityIsometricOffset,
+  getEntityVisualHeight,
 } from "./TowerDefenseVisualHelpers";
 
 const TOWER_BASIC_SPRITE = createSpriteAnimator("tower_basic_art");
@@ -139,7 +141,6 @@ function drawSkiaTower(
   paint.setColor(Skia.Color(accent));
   canvas.drawCircle(0, 0, s * (towerType === "frost" ? 0.1 : 0.085), paint);
 
-  // Mirrors the Canvas-specific visual signatures for each tower type.
   if (towerType === "rapid") {
     canvas.drawRect(Skia.XYWHRect(-s * 0.16, -s * 0.04, s * 0.07, s * 0.16), paint);
     canvas.drawRect(Skia.XYWHRect(s * 0.09, -s * 0.04, s * 0.07, s * 0.16), paint);
@@ -163,7 +164,6 @@ function drawSkiaTower(
   paint.setColor(Skia.Color(accent));
   canvas.drawRect(Skia.XYWHRect(-s * 0.45, -s * 0.15, s * 0.9, s * 0.4), paint);
 
-  // Matching highlights, service panel and bolts provide a layered metal finish.
   paint.reset();
   paint.setAntiAlias(true);
   paint.setStyle(Skia.PaintStyle.Fill);
@@ -235,40 +235,101 @@ function drawSkiaTowerWeapon(
   }
   canvas.restore();
 }
+
+function drawGroundShadowSkia(
+  canvas: SkCanvas,
+  size: number,
+  heightOffset: number,
+  isoEnabled: boolean
+): void {
+  if (!Skia) return;
+  const paint = getPaint();
+  if (!paint) return;
+
+  paint.reset();
+  paint.setAntiAlias(true);
+  paint.setStyle(Skia.PaintStyle.Fill);
+  paint.setColor(Skia.Color("rgba(0,0,0,0.35)"));
+
+  canvas.save();
+  if (isoEnabled) {
+    canvas.translate(0, heightOffset);
+    canvas.drawOval(Skia.XYWHRect(-size * 0.6, -size * 0.3, size * 1.2, size * 0.6), paint);
+  } else {
+    canvas.drawCircle(size * 0.1, size * 0.1, size * 0.5, paint);
+  }
+  canvas.restore();
+}
+
+function drawSkiaTowerWithOffset(
+  canvas: SkCanvas,
+  world: TDWorld,
+  entity: number,
+  drawer: () => void
+): void {
+  const { isoCfg } = resolveEntityIsometricOffset(world, entity, "tower");
+
+  canvas.save();
+  if (isoCfg.enabled) {
+    const heightPx = getEntityVisualHeight("tower");
+    drawGroundShadowSkia(canvas, 28, heightPx, true);
+    canvas.translate(0, -heightPx);
+  }
+  drawer();
+  canvas.restore();
+}
+
 export const drawSkiaTowerBasic: ShapeDrawer<SkCanvas, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    const size = render?.size ?? 28;
-    const isPaperDusk = isPaperDuskTheme(world);
-    TOWER_BASIC_SPRITE.scale = size / 34;
-    const spriteDrawn = !isPaperDusk && drawSpriteSkia(canvas, TOWER_BASIC_SPRITE, 0, 0);
-    if (!spriteDrawn) {
-      drawSkiaTower(world, canvas, size, "tower_basic", "tower_basic_accent", TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.skia.basic.primary, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.skia.basic.accent, "basic");
-    }
-    drawSkiaTowerWeapon(canvas, world, entity, size, "basic");
+    drawSkiaTowerWithOffset(canvas, world, entity, () => {
+      const render = world.getComponent(entity, "Render");
+      const size = render?.size ?? 28;
+      const isPaperDusk = isPaperDuskTheme(world);
+      TOWER_BASIC_SPRITE.scale = size / 34;
+      const spriteDrawn = !isPaperDusk && drawSpriteSkia(canvas, TOWER_BASIC_SPRITE, 0, 0);
+      if (!spriteDrawn) {
+        drawSkiaTower(world, canvas, size, "tower_basic", "tower_basic_accent", TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.skia.basic.primary, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.skia.basic.accent, "basic");
+      }
+      drawSkiaTowerWeapon(canvas, world, entity, size, "basic");
+    });
   },
 };
 
 export const drawSkiaTowerSniper: ShapeDrawer<SkCanvas, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    const size = render?.size ?? 28;
-    const isPaperDusk = isPaperDuskTheme(world);
-    TOWER_SNIPER_SPRITE.scale = size / 34;
-    const spriteDrawn = !isPaperDusk && drawSpriteSkia(canvas, TOWER_SNIPER_SPRITE, 0, 0);
-    if (!spriteDrawn) {
-      drawSkiaTower(world, canvas, size, "tower_sniper", "tower_sniper_accent", TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.skia.sniper.primary, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.skia.sniper.accent, "sniper");
-    }
-    drawSkiaTowerWeapon(canvas, world, entity, size, "sniper");
+    drawSkiaTowerWithOffset(canvas, world, entity, () => {
+      const render = world.getComponent(entity, "Render");
+      const size = render?.size ?? 28;
+      const isPaperDusk = isPaperDuskTheme(world);
+      TOWER_SNIPER_SPRITE.scale = size / 34;
+      const spriteDrawn = !isPaperDusk && drawSpriteSkia(canvas, TOWER_SNIPER_SPRITE, 0, 0);
+      if (!spriteDrawn) {
+        drawSkiaTower(world, canvas, size, "tower_sniper", "tower_sniper_accent", TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.skia.sniper.primary, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.skia.sniper.accent, "sniper");
+      }
+      drawSkiaTowerWeapon(canvas, world, entity, size, "sniper");
+    });
   },
 };
 
 export const drawSkiaTowerRapid: ShapeDrawer<SkCanvas, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    const size = render?.size ?? 28;
-    drawSkiaTower(world, canvas, size, "tower_rapid", "tower_rapid_accent", TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.skia.rapid.primary, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.skia.rapid.accent, "rapid");
-    drawSkiaTowerWeapon(canvas, world, entity, size, "rapid");
+    drawSkiaTowerWithOffset(canvas, world, entity, () => {
+      const render = world.getComponent(entity, "Render");
+      const size = render?.size ?? 28;
+      drawSkiaTower(world, canvas, size, "tower_rapid", "tower_rapid_accent", TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.skia.rapid.primary, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.skia.rapid.accent, "rapid");
+      drawSkiaTowerWeapon(canvas, world, entity, size, "rapid");
+    });
+  },
+};
+
+export const drawSkiaTowerFrost: ShapeDrawer<SkCanvas, TowerDefenseComponentRegistry> = {
+  draw(canvas, world, entity) {
+    drawSkiaTowerWithOffset(canvas, world, entity, () => {
+      const render = world.getComponent(entity, "Render");
+      const size = render?.size ?? 28;
+      drawSkiaTower(world, canvas, size, "tower_frost", "tower_frost_accent", TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.skia.frost.primary, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.skia.frost.accent, "frost");
+      drawSkiaTowerWeapon(canvas, world, entity, size, "frost");
+    });
   },
 };
 
@@ -341,7 +402,6 @@ function drawSkiaCreepDetails(
   canvas.drawCircle(-eyeOffset + size * 0.018, eyeY, eyeRadius * 0.48, paint);
   canvas.drawCircle(eyeOffset + size * 0.018, eyeY, eyeRadius * 0.48, paint);
 
-  // Brow ridges and mouth mirror the Canvas sprite at the same simulation state.
   paint.reset();
   paint.setAntiAlias(true);
   paint.setStyle(Skia.PaintStyle.Stroke);
@@ -408,7 +468,8 @@ function drawSkiaCreep(
   stroke: string,
   _isPaperDusk = false,
   type: "grunt" | "fast" | "tank" | "boss" = "grunt",
-  hitFlash = false
+  hitFlash = false,
+  isoEnabled = false
 ): void {
   if (!Skia) return;
   const paint = getPaint();
@@ -421,9 +482,18 @@ function drawSkiaCreep(
   paint.setStyle(Skia.PaintStyle.Fill);
   paint.setColor(Skia.Color("rgba(0,0,0,0.38)"));
   canvas.save();
-  canvas.translate(size * 0.1, size * 0.1);
-  drawSkiaCreepGeometry(canvas, paint, radius, type);
+  if (isoEnabled) {
+    canvas.translate(0, size * 0.2);
+    canvas.drawOval(Skia.XYWHRect(-radius, -radius * 0.5, radius * 2, radius), paint);
+  } else {
+    canvas.translate(size * 0.1, size * 0.1);
+    drawSkiaCreepGeometry(canvas, paint, radius, type);
+  }
   canvas.restore();
+
+  if (isoEnabled) {
+    canvas.translate(0, -getEntityVisualHeight("creep"));
+  }
 
   paint.setColor(Skia.Color(bodyFill));
   drawSkiaCreepGeometry(canvas, paint, radius, type);
@@ -469,7 +539,6 @@ function drawSkiaCreepHealthBar(
   canvas.drawRect(Skia.XYWHRect(x, y, width, height), paint);
 }
 
-
 function drawSkiaCreepStrokedOutline(canvas: SkCanvas, radius: number, strokeColor: string, strokeWidth = 3): void {
   if (!Skia) return;
   const paint = getPaint();
@@ -481,27 +550,19 @@ function drawSkiaCreepStrokedOutline(canvas: SkCanvas, radius: number, strokeCol
   canvas.drawCircle(0, 0, radius, paint);
 }
 
-export const drawSkiaTowerFrost: ShapeDrawer<SkCanvas, TowerDefenseComponentRegistry> = {
-  draw(canvas, world, entity) {
-    const render = world.getComponent(entity, "Render");
-    const size = render?.size ?? 28;
-    drawSkiaTower(world, canvas, size, "tower_frost", "tower_frost_accent", TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.skia.frost.primary, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.skia.frost.accent);
-    drawSkiaTowerWeapon(canvas, world, entity, size, "frost");
-  },
-};
-
 export const drawSkiaCreepBoss: ShapeDrawer<SkCanvas, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
     const { size, fill, stroke } = resolveCreepVisualState(world, entity, 28, "boss");
     const isPaperDusk = isPaperDuskTheme(world);
     const animation = resolveCreepAnimationState(world, entity, "boss");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
+    const { isoCfg } = resolveEntityIsometricOffset(world, entity, "creep");
 
     canvas.save();
     canvas.translate(animation.offsetX, animation.offsetY);
     canvas.rotate((animation.rotation * 180) / Math.PI, 0, 0);
     canvas.scale(animation.scaleX, animation.scaleY);
-    drawSkiaCreep(canvas, size, fill, stroke, isPaperDusk, "boss", hitFlash);
+    drawSkiaCreep(canvas, size, fill, stroke, isPaperDusk, "boss", hitFlash, isoCfg.enabled);
     if (!isPaperDusk) {
       drawSkiaCreepStrokedOutline(canvas, size * 0.55, stroke, 3);
     }
@@ -515,12 +576,13 @@ export const drawSkiaCreepGrunt: ShapeDrawer<SkCanvas, TowerDefenseComponentRegi
     const { size, fill, stroke } = resolveCreepVisualState(world, entity, 12, "grunt");
     const animation = resolveCreepAnimationState(world, entity, "grunt");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
+    const { isoCfg } = resolveEntityIsometricOffset(world, entity, "creep");
 
     canvas.save();
     canvas.translate(animation.offsetX, animation.offsetY);
     canvas.rotate((animation.rotation * 180) / Math.PI, 0, 0);
     canvas.scale(animation.scaleX, animation.scaleY);
-    drawSkiaCreep(canvas, size, fill, stroke, isPaperDuskTheme(world), "grunt", hitFlash);
+    drawSkiaCreep(canvas, size, fill, stroke, isPaperDuskTheme(world), "grunt", hitFlash, isoCfg.enabled);
     drawSkiaCreepHealthBar(canvas, world, entity, size);
     canvas.restore();
   },
@@ -531,12 +593,13 @@ export const drawSkiaCreepFast: ShapeDrawer<SkCanvas, TowerDefenseComponentRegis
     const { size, fill, stroke } = resolveCreepVisualState(world, entity, 10, "fast");
     const animation = resolveCreepAnimationState(world, entity, "fast");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
+    const { isoCfg } = resolveEntityIsometricOffset(world, entity, "creep");
 
     canvas.save();
     canvas.translate(animation.offsetX, animation.offsetY);
     canvas.rotate((animation.rotation * 180) / Math.PI, 0, 0);
     canvas.scale(animation.scaleX, animation.scaleY);
-    drawSkiaCreep(canvas, size, fill, stroke, isPaperDuskTheme(world), "fast", hitFlash);
+    drawSkiaCreep(canvas, size, fill, stroke, isPaperDuskTheme(world), "fast", hitFlash, isoCfg.enabled);
     drawSkiaCreepHealthBar(canvas, world, entity, size);
     canvas.restore();
   },
@@ -548,12 +611,13 @@ export const drawSkiaCreepTank: ShapeDrawer<SkCanvas, TowerDefenseComponentRegis
     const isPaperDusk = isPaperDuskTheme(world);
     const animation = resolveCreepAnimationState(world, entity, "tank");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
+    const { isoCfg } = resolveEntityIsometricOffset(world, entity, "creep");
 
     canvas.save();
     canvas.translate(animation.offsetX, animation.offsetY);
     canvas.rotate((animation.rotation * 180) / Math.PI, 0, 0);
     canvas.scale(animation.scaleX, animation.scaleY);
-    drawSkiaCreep(canvas, size, fill, stroke, isPaperDusk, "tank", hitFlash);
+    drawSkiaCreep(canvas, size, fill, stroke, isPaperDusk, "tank", hitFlash, isoCfg.enabled);
     if (!isPaperDusk) {
       drawSkiaCreepStrokedOutline(canvas, size * 0.55, stroke, 3);
     }
@@ -757,6 +821,7 @@ function drawTowerDefenseVfxSkia(
     }
   }
 }
+
 function drawTdLandmarkSkia(
   canvas: SkCanvas,
   world: TDWorld,
@@ -811,7 +876,8 @@ function drawTdLandmarkSkia(
 function drawPathDirectionMarkersSkia(
   canvas: SkCanvas,
   world: TDWorld,
-  isPaperDusk: boolean
+  isPaperDusk: boolean,
+  isoCfg?: import("./IsoProjection").IsoConfig
 ): void {
   if (!Skia) return;
   const waypoints = world.getResource<WaypointList>("WaypointList");
@@ -823,7 +889,7 @@ function drawPathDirectionMarkersSkia(
     ? resolveThemeColorWithFallback(world, "#14161B", "pd_pathEdge", "pd_ink")
     : "rgba(20,30,44,0.72)";
 
-  for (const marker of createPathDirectionMarkers(waypoints.points)) {
+  for (const marker of createPathDirectionMarkers(waypoints.points, isoCfg)) {
     canvas.save();
     canvas.translate(marker.x, marker.y);
     canvas.rotate((marker.angle * 180) / Math.PI, 0, 0);
@@ -837,68 +903,101 @@ function drawPathDirectionMarkersSkia(
     canvas.restore();
   }
 }
+
+function drawRhombusTileSkia(
+  canvas: SkCanvas,
+  paint: SkPaint,
+  cx: number,
+  cy: number,
+  halfWidth: number,
+  halfHeight: number,
+  fillColor: string,
+  strokeColor?: string
+): void {
+  if (!Skia) return;
+  const path = Skia.Path.Make();
+  path.moveTo(cx, cy - halfHeight);
+  path.lineTo(cx + halfWidth, cy);
+  path.lineTo(cx, cy + halfHeight);
+  path.lineTo(cx - halfWidth, cy);
+  path.close();
+
+  paint.reset();
+  paint.setAntiAlias(true);
+  paint.setStyle(Skia.PaintStyle.Fill);
+  paint.setColor(Skia.Color(fillColor));
+  canvas.drawPath(path, paint);
+
+  if (strokeColor) {
+    paint.setStyle(Skia.PaintStyle.Stroke);
+    paint.setStrokeWidth(1);
+    paint.setColor(Skia.Color(strokeColor));
+    canvas.drawPath(path, paint);
+  }
+}
+
 export const drawSkiaTdMapBackground: EffectDrawer<SkCanvas, TowerDefenseComponentRegistry> = {
   draw(canvas, world: TDWorld) {
     if (!Skia) return;
     const bgCtx = resolveTdMapBackgroundContext(world);
     if (!bgCtx) return;
-    const { layout } = bgCtx;
+    const { layout, isoCfg } = bgCtx;
 
     const paint = getPaint();
     if (!paint) return;
 
     const isPaperDusk = isPaperDuskTheme(world);
-
     const vfxElapsed = world.getResource<TowerDefenseVisualEffects>("TowerDefenseVisualEffects")?.elapsedSeconds ?? 0;
+
     forEachTileGridCell(bgCtx, (tile, x, y, row, col) => {
       paint.reset();
-      paint.setStyle(Skia.PaintStyle.Fill);
-      if (isPaperDusk) {
+      if (isoCfg.enabled) {
         const pdGround = resolveThemeColorWithFallback(world, "#2B2F36", "pd_ground");
         const pdBuildable = resolveThemeColorWithFallback(world, "#3A4049", "pd_buildable");
+        const pdBuildableEdge = resolveThemeColorWithFallback(world, "#5B6470", "pd_buildableEdge");
         const pdPath = resolveThemeColorWithFallback(world, "#D8C3A0", "pd_path");
+        const pdPathEdge = resolveThemeColorWithFallback(world, "#B39B73", "pd_pathEdge");
 
-        const fillColor =
-          tile === "path" || tile === "spawn" || tile === "base"
-            ? pdPath
-            : tile === "buildable"
-              ? pdBuildable
-              : pdGround;
+        const fillColor = isPaperDusk
+          ? (tile === "path" || tile === "spawn" || tile === "base" ? pdPath : tile === "buildable" ? pdBuildable : pdGround)
+          : getTileTypeColor(tile);
 
-        paint.setColor(Skia.Color(fillColor));
+        const strokeColor = isPaperDusk
+          ? (tile === "path" ? pdPathEdge : tile === "buildable" ? pdBuildableEdge : undefined)
+          : undefined;
+
+        drawRhombusTileSkia(canvas, paint, x, y, isoCfg.tileWidthHalf, isoCfg.tileHeightHalf, fillColor, strokeColor);
       } else {
-        paint.setColor(Skia.Color(getTileTypeColor(tile)));
+        paint.setStyle(Skia.PaintStyle.Fill);
+        if (isPaperDusk) {
+          const pdGround = resolveThemeColorWithFallback(world, "#2B2F36", "pd_ground");
+          const pdBuildable = resolveThemeColorWithFallback(world, "#3A4049", "pd_buildable");
+          const pdPath = resolveThemeColorWithFallback(world, "#D8C3A0", "pd_path");
+
+          const fillColor =
+            tile === "path" || tile === "spawn" || tile === "base"
+              ? pdPath
+              : tile === "buildable"
+                ? pdBuildable
+                : pdGround;
+
+          paint.setColor(Skia.Color(fillColor));
+        } else {
+          paint.setColor(Skia.Color(getTileTypeColor(tile)));
+        }
+        canvas.drawRect(Skia.XYWHRect(x, y, layout.stepX - 1, layout.stepY - 1), paint);
       }
-      canvas.drawRect(Skia.XYWHRect(x, y, layout.stepX - 1, layout.stepY - 1), paint);
+
       if (tile === "blocked") {
-        drawTdAmbientStarSkia(canvas, x, y, layout.stepX, layout.stepY, row, col, vfxElapsed, isPaperDusk);
+        drawTdAmbientStarSkia(canvas, x, y, isoCfg.enabled ? isoCfg.tileWidthHalf * 2 : layout.stepX, isoCfg.enabled ? isoCfg.tileHeightHalf * 2 : layout.stepY, row, col, vfxElapsed, isPaperDusk);
       }
+
       if (tile === "spawn" || tile === "base") {
-        drawTdLandmarkSkia(canvas, world, x, y, layout.stepX, tile, isPaperDusk);
+        drawTdLandmarkSkia(canvas, world, x, y, isoCfg.enabled ? isoCfg.tileWidthHalf : layout.stepX, tile, isPaperDusk);
       }
     });
 
-    drawPathDirectionMarkersSkia(canvas, world, isPaperDusk);
-
-    const playerEntity = world.query("Player")[0];
-    if (playerEntity !== undefined) {
-      const player = world.getComponent(playerEntity, "Player");
-      if (player?.selectedCell && player.selectedTowerType) {
-        const catalog = world.getResource<Record<string, { range: number }>>("TowerCatalog");
-        const def = catalog?.[player.selectedTowerType];
-        if (def) {
-          const cx =
-            layout.offsetX + player.selectedCell.col * layout.stepX + layout.stepX / 2;
-          const cy =
-            layout.offsetY + player.selectedCell.row * layout.stepY + layout.stepY / 2;
-          paint.reset();
-          paint.setStyle(Skia.PaintStyle.Stroke);
-          paint.setStrokeWidth(1.5);
-          paint.setColor(Skia.Color(colors.border));
-          canvas.drawCircle(cx, cy, def.range, paint);
-        }
-      }
-    }
+    drawPathDirectionMarkersSkia(canvas, world, isPaperDusk, isoCfg);
 
     drawTowerDefenseVfxSkia(canvas, world, layout, bgCtx.tileGrid, isPaperDusk);
   },

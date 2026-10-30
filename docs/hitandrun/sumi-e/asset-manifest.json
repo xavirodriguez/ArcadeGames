@@ -25,7 +25,13 @@
     "logical_viewport": { "width": 800, "height": 600, "aspect": "4:3" },
     "orientation": "landscape",
     "character_cell": { "width": 64, "height": 64 },
-    "character_atlas": { "width": 512, "height": 320, "columns": 8, "rows": 5, "frames": 40 },
+    "character_atlas": {
+      "width": 512,
+      "height": 320,
+      "columns": 8,
+      "rows": 5,
+      "frames": 40
+    },
     "anchor": { "x": 0.5, "y": 0.94, "description": "feet bottom-center" },
     "frame_ranges": {
       "idle": [0, 7],
@@ -77,23 +83,51 @@
     },
     {
       "id": "ui",
-      "shared_visual_locks": ["palette", "typography", "seal-rotation", "paper-negative-space"],
+      "shared_visual_locks": [
+        "palette",
+        "typography",
+        "seal-rotation",
+        "paper-negative-space"
+      ],
       "assets": ["hud-hanko", "hud-ink-pots", "hud-score-stamp"]
     },
     {
       "id": "background",
-      "shared_visual_locks": ["palette", "layer-opacity", "parallax-depth", "paper-grain"],
-      "assets": ["background-paper-grain", "background-mountain-layers", "background-torii"]
+      "shared_visual_locks": [
+        "palette",
+        "layer-opacity",
+        "parallax-depth",
+        "paper-grain"
+      ],
+      "assets": [
+        "background-paper-grain",
+        "background-mountain-layers",
+        "background-torii"
+      ]
     },
     {
       "id": "vfx",
-      "shared_visual_locks": ["palette", "deterministic-rng", "decal-budget", "reduced-motion"],
+      "shared_visual_locks": [
+        "palette",
+        "deterministic-rng",
+        "decal-budget",
+        "reduced-motion"
+      ],
       "assets": ["vfx-ink-splatter", "vfx-slash-arc", "vfx-kanji-popup"]
     },
     {
       "id": "projectiles",
-      "shared_visual_locks": ["palette", "readable-at-small-size", "no-neon-glow", "ink-trail"],
-      "assets": ["projectile-ofuda", "projectile-rocket", "projectile-enemy-needle"]
+      "shared_visual_locks": [
+        "palette",
+        "readable-at-small-size",
+        "no-neon-glow",
+        "ink-trail"
+      ],
+      "assets": [
+        "projectile-ofuda",
+        "projectile-rocket",
+        "projectile-enemy-needle"
+      ]
     },
     {
       "id": "pickups",
@@ -102,7 +136,11 @@
     },
     {
       "id": "fonts",
-      "shared_visual_locks": ["ofl-1.1", "japanese-glyphs", "legibility-at-small-size"],
+      "shared_visual_locks": [
+        "ofl-1.1",
+        "japanese-glyphs",
+        "legibility-at-small-size"
+      ],
       "assets": ["font-yuji-boku", "font-noto-serif-jp"]
     },
     {
@@ -209,9 +247,23 @@
         "filtering": "linear",
         "color_space": "sRGB",
         "display_size": "64x64",
-        "frame_ranges": { "idle": [0, 7], "walk": [8, 15], "attack": [16, 23], "hurt": [24, 29], "empty": [30, 31], "death": [32, 39] }
+        "frame_ranges": {
+          "idle": [0, 7],
+          "walk": [8, 15],
+          "attack": [16, 23],
+          "hurt": [24, 29],
+          "empty": [30, 31],
+          "death": [32, 39]
+        }
       },
-      "visual_locks": ["kasa-hat-silhouette", "rifle-diagonal-longer-than-torso", "coat-hem", "paper-negative-space", "right-facing", "feet-baseline"],
+      "visual_locks": [
+        "kasa-hat-silhouette",
+        "rifle-diagonal-longer-than-torso",
+        "coat-hem",
+        "paper-negative-space",
+        "right-facing",
+        "feet-baseline"
+      ],
       "source": {
         "kind": "procedural-generated",
         "url_or_tool": "docs/hitandrun/sumi-e/tools/generate_player_sumi_e.py (deterministic, seeded hashes)",
@@ -263,7 +315,13 @@
           "safe_area": "PASS - all 40 cells within the 2px margin"
         }
       },
-      "visual_locks": ["helmet-silhouette", "katana-arc", "vertical-mass", "right-facing", "feet-baseline"],
+      "visual_locks": [
+        "helmet-silhouette",
+        "katana-arc",
+        "vertical-mass",
+        "right-facing",
+        "feet-baseline"
+      ],
       "source": {
         "kind": "procedural-generated",
         "url_or_tool": "docs/hitandrun/sumi-e/tools/generate_samurai_sumi_e.py (deterministic, seeded hashes)",
@@ -307,7 +365,13 @@
         "color_space": "sRGB",
         "display_size": "64x64"
       },
-      "visual_locks": ["horns-above-shoulders", "broad-shoulders", "club-silhouette", "oni-blue", "right-facing"],
+      "visual_locks": [
+        "horns-above-shoulders",
+        "broad-shoulders",
+        "club-silhouette",
+        "oni-blue",
+        "right-facing"
+      ],
       "source": {
         "kind": "planned-generated-or-authored",
         "url_or_tool": "",
@@ -343,7 +407,13 @@
         "color_space": "sRGB",
         "display_size": "64x64"
       },
-      "visual_locks": ["forward-lean", "katana-arc", "horns", "oni-red", "right-facing"],
+      "visual_locks": [
+        "forward-lean",
+        "katana-arc",
+        "horns",
+        "oni-red",
+        "right-facing"
+      ],
       "source": {
         "kind": "planned-generated-or-authored",
         "url_or_tool": "",
@@ -379,7 +449,13 @@
         "color_space": "sRGB",
         "display_size": "64x64"
       },
-      "visual_locks": ["spear-crosses-contour", "helmet", "shield-mass", "ink-only", "right-facing"],
+      "visual_locks": [
+        "spear-crosses-contour",
+        "helmet",
+        "shield-mass",
+        "ink-only",
+        "right-facing"
+      ],
       "source": {
         "kind": "planned-generated-or-authored",
         "url_or_tool": "",
@@ -415,7 +491,13 @@
         "color_space": "sRGB",
         "display_size": "64x64"
       },
-      "visual_locks": ["wing-negative-space", "beak-silhouette", "scarf-trail", "airborne-pose", "right-facing"],
+      "visual_locks": [
+        "wing-negative-space",
+        "beak-silhouette",
+        "scarf-trail",
+        "airborne-pose",
+        "right-facing"
+      ],
       "source": {
         "kind": "planned-generated-or-authored",
         "url_or_tool": "",
@@ -451,7 +533,12 @@
         "color_space": "sRGB",
         "display_size": "64x64"
       },
-      "visual_locks": ["oversized-head", "small-body", "ink-splatter-hands", "right-facing"],
+      "visual_locks": [
+        "oversized-head",
+        "small-body",
+        "ink-splatter-hands",
+        "right-facing"
+      ],
       "source": {
         "kind": "planned-generated-or-authored",
         "url_or_tool": "",
@@ -591,7 +678,13 @@
         "alpha": true,
         "notes": "Implement as React Native/SVG for HUD and as canvas primitive for in-game HUD."
       },
-      "visual_locks": ["vermilion", "slight-rotation", "thick-border", "inner-shadow", "paper-negative-space"],
+      "visual_locks": [
+        "vermilion",
+        "slight-rotation",
+        "thick-border",
+        "inner-shadow",
+        "paper-negative-space"
+      ],
       "source": {
         "kind": "code-native",
         "url_or_tool": "src/games/hitandrun/rendering/theme/sumi-e/SumiETheme.ts",
@@ -670,7 +763,11 @@
         "format": "TTF",
         "notes": "Load with expo-font; fallback to serif."
       },
-      "visual_locks": ["calligraphic-brush", "vertical-strokes", "high-contrast"],
+      "visual_locks": [
+        "calligraphic-brush",
+        "vertical-strokes",
+        "high-contrast"
+      ],
       "source": {
         "kind": "third-party",
         "url_or_tool": "https://github.com/google/fonts/tree/main/ofl/yujiboku",
@@ -690,7 +787,7 @@
     {
       "id": "font-noto-serif-jp",
       "role": "Body and kanji font for HUD labels and dialogue.",
-      "path": "assets/fonts/NotoSerifJP-Regular.otf",
+      "path": "assets/fonts/NotoSerifJP-Regular.ttf",
       "status": "planned",
       "technical": {
         "dimensions": "n/a (font)",
@@ -725,7 +822,12 @@
         "format": "procedural or PNG-24",
         "notes": "Do not generate full-screen noise on every resize."
       },
-      "visual_locks": ["paper-base", "subtle-grain", "warm-vignette", "no-digital-flatness"],
+      "visual_locks": [
+        "paper-base",
+        "subtle-grain",
+        "warm-vignette",
+        "no-digital-flatness"
+      ],
       "source": {
         "kind": "code-native",
         "url_or_tool": "src/games/hitandrun/rendering/theme/sumi-e/SumiETheme.ts",
@@ -752,7 +854,12 @@
         "alpha": true,
         "notes": "3-5 layers with decreasing opacity; use quadraticCurveTo."
       },
-      "visual_locks": ["ink-wash", "parallax-depth", "no-hard-outline", "paper-negative-space"],
+      "visual_locks": [
+        "ink-wash",
+        "parallax-depth",
+        "no-hard-outline",
+        "paper-negative-space"
+      ],
       "source": {
         "kind": "code-native",
         "url_or_tool": "src/games/hitandrun/rendering/theme/sumi-e/SumiETheme.ts",
@@ -781,7 +888,11 @@
         "filtering": "linear",
         "color_space": "sRGB"
       },
-      "visual_locks": ["vermilion-desaturated", "ink-wood-grain", "no-photo-texture"],
+      "visual_locks": [
+        "vermilion-desaturated",
+        "ink-wood-grain",
+        "no-photo-texture"
+      ],
       "source": {
         "kind": "planned-generated-or-authored",
         "url_or_tool": "",
@@ -808,7 +919,12 @@
         "alpha": true,
         "notes": "Ring buffer 32-64 decals; world-space coordinates; deterministic RNG."
       },
-      "visual_locks": ["ink-only", "satellite-drops", "no-glow", "decal-budget"],
+      "visual_locks": [
+        "ink-only",
+        "satellite-drops",
+        "no-glow",
+        "decal-budget"
+      ],
       "source": {
         "kind": "code-native",
         "url_or_tool": "src/games/hitandrun/rendering/theme/sumi-e/SumiETheme.ts",
@@ -835,7 +951,12 @@
         "alpha": true,
         "notes": "Brush arc with tapered ends; no white neon."
       },
-      "visual_locks": ["tapered-arc", "ink-or-gold", "short-lifetime", "no-neon"],
+      "visual_locks": [
+        "tapered-arc",
+        "ink-or-gold",
+        "short-lifetime",
+        "no-neon"
+      ],
       "source": {
         "kind": "code-native",
         "url_or_tool": "src/games/hitandrun/rendering/theme/sumi-e/SumiETheme.ts",
@@ -862,7 +983,12 @@
         "alpha": true,
         "notes": "Object pool; reduceMotion disables vertical drift; use theme font."
       },
-      "visual_locks": ["vermilion", "brush-font", "short-lifetime", "no-shadow-glow"],
+      "visual_locks": [
+        "vermilion",
+        "brush-font",
+        "short-lifetime",
+        "no-shadow-glow"
+      ],
       "source": {
         "kind": "code-native",
         "url_or_tool": "src/games/hitandrun/rendering/theme/sumi-e/SumiETheme.ts",

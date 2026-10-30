@@ -707,17 +707,34 @@ function drawTowerDefenseVfxCanvas(
   world: TDWorld,
   layout: GridLayout,
   tileGrid: TileGrid,
-  isPaperDusk: boolean
+  isPaperDusk: boolean,
+  isoCfg: import("./IsoProjection").IsoConfig
 ): void {
   const state = world.getResource<TowerDefenseVisualEffects>("TowerDefenseVisualEffects");
   const gameState = world.getSingleton("GameState") as GameStateComponent | undefined;
-  const centerX = layout.offsetX + (tileGrid.cols * layout.stepX) / 2;
-  const bannerY = Math.max(8, layout.offsetY - 10);
+  let centerX = layout.offsetX + (tileGrid.cols * layout.stepX) / 2;
+  let bannerY = Math.max(8, layout.offsetY - 10);
+  if (isoCfg.enabled) {
+    const corners = [
+      worldToIso(isoCfg, layout.offsetX, layout.offsetY),
+      worldToIso(isoCfg, layout.offsetX + tileGrid.cols * layout.stepX, layout.offsetY),
+      worldToIso(isoCfg, layout.offsetX, layout.offsetY + tileGrid.rows * layout.stepY),
+      worldToIso(isoCfg, layout.offsetX + tileGrid.cols * layout.stepX, layout.offsetY + tileGrid.rows * layout.stepY),
+    ];
+    const minX = Math.min(...corners.map((point) => point.x));
+    const maxX = Math.max(...corners.map((point) => point.x));
+    const minY = Math.min(...corners.map((point) => point.y));
+    centerX = (minX + maxX) / 2;
+    bannerY = Math.max(8, minY - 12);
+  }
 
   if (state) {
     for (const effect of state.effects) {
       const progress = Math.max(0, Math.min(1, effect.ageSeconds / effect.durationSeconds));
       const fade = progress > 0.68 ? (1 - progress) / 0.32 : 1;
+      const effectPosition = isoCfg.enabled ? worldToIso(isoCfg, effect.x, effect.y) : { x: effect.x, y: effect.y };
+      const effectX = effectPosition.x;
+      const effectY = effectPosition.y;
       ctx.save();
       ctx.globalAlpha = Math.max(0, Math.min(1, fade));
 
@@ -727,14 +744,14 @@ function drawTowerDefenseVfxCanvas(
         ctx.strokeStyle = effect.color;
         ctx.lineWidth = Math.max(1, 2.5 * (1 - progress));
         ctx.beginPath();
-        ctx.arc(effect.x, effect.y, 4 + progress * 12, 0, Math.PI * 2);
+        ctx.arc(effectX, effectY, 4 + progress * 12, 0, Math.PI * 2);
         ctx.stroke();
         ctx.fillStyle = effect.color;
         for (let index = 0; index < count; index++) {
           const angle = (index / count) * Math.PI * 2 + effect.id * 0.37;
           const distance = radius * (0.65 + (index % 3) * 0.18);
-          const sparkX = effect.x + Math.cos(angle) * distance;
-          const sparkY = effect.y + Math.sin(angle) * distance;
+          const sparkX = effectX + Math.cos(angle) * distance;
+          const sparkY = effectY + Math.sin(angle) * distance;
           ctx.save();
           ctx.translate(sparkX, sparkY);
           ctx.rotate(angle);
@@ -743,12 +760,12 @@ function drawTowerDefenseVfxCanvas(
         }
         ctx.fillStyle = "#fff4db";
         ctx.beginPath();
-        ctx.arc(effect.x, effect.y, Math.max(1, 3 * (1 - progress)), 0, Math.PI * 2);
+        ctx.arc(effectX, effectY, Math.max(1, 3 * (1 - progress)), 0, Math.PI * 2);
         ctx.fill();
       } else if (effect.kind === "gold-reward") {
         const rise = progress * 28;
-        const coinX = effect.x;
-        const coinY = effect.y - rise;
+        const coinX = effectX;
+        const coinY = effectY - rise;
         ctx.fillStyle = "#ffd54f";
         ctx.strokeStyle = "#815f18";
         ctx.lineWidth = 1.4;
@@ -775,7 +792,7 @@ function drawTowerDefenseVfxCanvas(
           ctx.strokeStyle = effect.color;
           ctx.lineWidth = 3 - ringProgress * 2;
           ctx.beginPath();
-          ctx.arc(effect.x, effect.y, 6 + ringProgress * (34 + ring * 9), 0, Math.PI * 2);
+          ctx.arc(effectX, effectY, 6 + ringProgress * (34 + ring * 9), 0, Math.PI * 2);
           ctx.stroke();
         }
       } else if (effect.kind === "phase-banner") {
@@ -819,6 +836,14 @@ function drawTowerDefenseVfxCanvas(
     ctx.restore();
   }
 }
+
+export const drawTdVfxCanvas: EffectDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
+  draw(ctx, world: TDWorld) {
+    const bgCtx = resolveTdMapBackgroundContext(world);
+    if (!bgCtx) return;
+    drawTowerDefenseVfxCanvas(ctx, world, bgCtx.layout, bgCtx.tileGrid, isPaperDuskTheme(world), bgCtx.isoCfg);
+  },
+};
 
 function drawTdLandmarkCanvas(
   ctx: CanvasRenderingContext2D,
@@ -1131,6 +1156,6 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
       }
     }
 
-    drawTowerDefenseVfxCanvas(ctx, world, layout, tileGrid, isPaperDusk);
+
   },
 };

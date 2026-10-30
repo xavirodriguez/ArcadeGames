@@ -713,20 +713,37 @@ function drawTowerDefenseVfxSkia(
   world: TDWorld,
   layout: GridLayout,
   tileGrid: TileGrid,
-  isPaperDusk: boolean
+  isPaperDusk: boolean,
+  isoCfg: import("./IsoProjection").IsoConfig
 ): void {
   if (!Skia) return;
   const paint = getPaint();
   if (!paint) return;
   const state = world.getResource<TowerDefenseVisualEffects>("TowerDefenseVisualEffects");
   const gameState = world.getSingleton("GameState") as GameStateComponent | undefined;
-  const centerX = layout.offsetX + (tileGrid.cols * layout.stepX) / 2;
-  const bannerY = Math.max(8, layout.offsetY - 10);
+  let centerX = layout.offsetX + (tileGrid.cols * layout.stepX) / 2;
+  let bannerY = Math.max(8, layout.offsetY - 10);
+  if (isoCfg.enabled) {
+    const corners = [
+      worldToIso(isoCfg, layout.offsetX, layout.offsetY),
+      worldToIso(isoCfg, layout.offsetX + tileGrid.cols * layout.stepX, layout.offsetY),
+      worldToIso(isoCfg, layout.offsetX, layout.offsetY + tileGrid.rows * layout.stepY),
+      worldToIso(isoCfg, layout.offsetX + tileGrid.cols * layout.stepX, layout.offsetY + tileGrid.rows * layout.stepY),
+    ];
+    const minX = Math.min(...corners.map((point) => point.x));
+    const maxX = Math.max(...corners.map((point) => point.x));
+    const minY = Math.min(...corners.map((point) => point.y));
+    centerX = (minX + maxX) / 2;
+    bannerY = Math.max(8, minY - 12);
+  }
 
   if (state) {
     for (const effect of state.effects) {
       const progress = Math.max(0, Math.min(1, effect.ageSeconds / effect.durationSeconds));
       const fade = progress > 0.68 ? (1 - progress) / 0.32 : 1;
+      const effectPosition = isoCfg.enabled ? worldToIso(isoCfg, effect.x, effect.y) : { x: effect.x, y: effect.y };
+      const effectX = effectPosition.x;
+      const effectY = effectPosition.y;
       canvas.save();
       paint.reset();
       paint.setAntiAlias(true);
@@ -738,13 +755,13 @@ function drawTowerDefenseVfxSkia(
         paint.setStrokeWidth(Math.max(1, 2.5 * (1 - progress)));
         paint.setColor(Skia.Color(effect.color));
         paint.setAlphaf(fade);
-        canvas.drawCircle(effect.x, effect.y, 4 + progress * 12, paint);
+        canvas.drawCircle(effectX, effectY, 4 + progress * 12, paint);
         paint.setStyle(Skia.PaintStyle.Fill);
         for (let index = 0; index < count; index++) {
           const angle = (index / count) * Math.PI * 2 + effect.id * 0.37;
           const distance = radius * (0.65 + (index % 3) * 0.18);
-          const sparkX = effect.x + Math.cos(angle) * distance;
-          const sparkY = effect.y + Math.sin(angle) * distance;
+          const sparkX = effectX + Math.cos(angle) * distance;
+          const sparkY = effectY + Math.sin(angle) * distance;
           canvas.save();
           canvas.translate(sparkX, sparkY);
           canvas.rotate((angle * 180) / Math.PI, 0, 0);
@@ -755,11 +772,11 @@ function drawTowerDefenseVfxSkia(
         }
         paint.setColor(Skia.Color("#fff4db"));
         paint.setAlphaf(fade);
-        canvas.drawCircle(effect.x, effect.y, Math.max(1, 3 * (1 - progress)), paint);
+        canvas.drawCircle(effectX, effectY, Math.max(1, 3 * (1 - progress)), paint);
       } else if (effect.kind === "gold-reward") {
         const rise = progress * 28;
-        const coinX = effect.x;
-        const coinY = effect.y - rise;
+        const coinX = effectX;
+        const coinY = effectY - rise;
         paint.setStyle(Skia.PaintStyle.Fill);
         paint.setColor(Skia.Color("#ffd54f"));
         paint.setAlphaf(fade);
@@ -786,7 +803,7 @@ function drawTowerDefenseVfxSkia(
           paint.setStrokeWidth(3 - ringProgress * 2);
           paint.setColor(Skia.Color(effect.color));
           paint.setAlphaf(Math.max(0, (1 - ringProgress) * 0.8));
-          canvas.drawCircle(effect.x, effect.y, 6 + ringProgress * (34 + ring * 9), paint);
+          canvas.drawCircle(effectX, effectY, 6 + ringProgress * (34 + ring * 9), paint);
         }
       } else if (effect.kind === "phase-banner") {
         const width = Math.min(290, tileGrid.cols * layout.stepX - 20);
@@ -841,6 +858,14 @@ function drawTowerDefenseVfxSkia(
     }
   }
 }
+
+export const drawSkiaTdVfx: EffectDrawer<SkCanvas, TowerDefenseComponentRegistry> = {
+  draw(canvas, world: TDWorld) {
+    const bgCtx = resolveTdMapBackgroundContext(world);
+    if (!bgCtx) return;
+    drawTowerDefenseVfxSkia(canvas, world, bgCtx.layout, bgCtx.tileGrid, isPaperDuskTheme(world), bgCtx.isoCfg);
+  },
+};
 
 function drawTdLandmarkSkia(
   canvas: SkCanvas,
@@ -1159,6 +1184,6 @@ export const drawSkiaTdMapBackground: EffectDrawer<SkCanvas, TowerDefenseCompone
     drawPathDirectionMarkersSkia(canvas, world, isPaperDusk, isoCfg);
     drawSkiaTowerPlacementPreview(canvas, world, layout, bgCtx.tileGrid, isoCfg);
 
-    drawTowerDefenseVfxSkia(canvas, world, layout, bgCtx.tileGrid, isPaperDusk);
+
   },
 };

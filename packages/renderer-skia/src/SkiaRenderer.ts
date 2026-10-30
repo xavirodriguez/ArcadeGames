@@ -12,6 +12,7 @@ export class SkiaRenderer<TRegistry extends CoreComponentRegistry = CoreComponen
   private entriesBuffer: RenderQueueEntry[] = [];
   public readonly type = "skia";
   private readonly backgroundEffects: Map<string, EffectDrawer<SkCanvas, TRegistry>> = new Map();
+  private readonly foregroundEffects: Map<string, EffectDrawer<SkCanvas, TRegistry>> = new Map();
 
   constructor(
     private readonly shapeDrawers: Map<string, ShapeDrawer<SkCanvas, TRegistry>> = new Map()
@@ -49,6 +50,10 @@ export class SkiaRenderer<TRegistry extends CoreComponentRegistry = CoreComponen
 
   public registerBackgroundEffect(name: string, drawer: EffectDrawer<SkCanvas, TRegistry>): void {
     this.backgroundEffects.set(name, drawer);
+  }
+
+  public registerForegroundEffect(name: string, drawer: EffectDrawer<SkCanvas, TRegistry>): void {
+    this.foregroundEffects.set(name, drawer);
   }
 
   public render(world: World<TRegistry>, canvas: SkCanvas, _interpolation?: number): void {
@@ -176,6 +181,11 @@ export class SkiaRenderer<TRegistry extends CoreComponentRegistry = CoreComponen
       }
 
       canvas.restore();
+    }
+
+    // Foreground effects share the active camera transform and draw above entities.
+    for (const drawer of this.foregroundEffects.values()) {
+      drawer.draw(canvas, world);
     }
 
     canvas.restore();

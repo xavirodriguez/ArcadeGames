@@ -112,6 +112,92 @@ describe("HitRun PresentationPainter theme slice", () => {
     session.dispose();
   });
 
+  test.each(["fantasy", "sumi-e"])("%s renders entities and projectiles through PresentationPainter", (themeId) => {
+    const session = createHitRunPresentationSession(themeId, "entity-test-" + themeId, 51);
+    const painter = createPainter();
+    const entity = {
+      entityId: "entity-1",
+      visualId: "player",
+      role: "player" as const,
+      transform: { x: 120, y: 240, rotationRadians: 0, scaleX: 1, scaleY: 1 },
+      opacity: 1,
+      elevation: 24,
+      facing: -1 as const,
+      hitFlash: 0,
+      custom: {
+        size: 24,
+        depth: 240,
+        isDead: false,
+        samuraiWindup: false,
+        samuraiAttack: false,
+        shadowSizeMultiplier: 1
+      }
+    };
+
+    expect(session.theme.descriptor.capabilities).toEqual(
+      expect.arrayContaining(["ground-shadow", "entity", "projectile"])
+    );
+    session.theme.renderGroundShadow?.(painter, entity, frame);
+    session.theme.renderEntity?.(painter, entity, frame);
+    session.theme.renderProjectile?.(painter, { ...entity, role: "projectile", visualId: "bullet" }, frame);
+
+    expect(painter.fillEllipse).toHaveBeenCalled();
+    expect(painter.fillRect).toHaveBeenCalled();
+    if (themeId === "fantasy") {
+      expect(painter.fillCircle).toHaveBeenCalled();
+    } else {
+      expect(painter.fillText).toHaveBeenCalledWith(
+        "封",
+        0,
+        expect.any(Number),
+        expect.objectContaining({ align: "center" })
+      );
+    }
+    expect(painter.save).toHaveBeenCalledTimes(3);
+    expect(painter.restore).toHaveBeenCalledTimes(3);
+    session.dispose();
+  });
+
+  test.each(["fantasy", "sumi-e"])("%s retains Samurai armor, katana and hit-flash overlay through the painter", (themeId) => {
+    const session = createHitRunPresentationSession(themeId, "samurai-test-" + themeId, 71);
+    const painter = createPainter();
+    const samurai = {
+      entityId: "samurai-1",
+      visualId: "samurai",
+      role: "hostile" as const,
+      transform: { x: 200, y: 300, rotationRadians: 0, scaleX: 1, scaleY: 1 },
+      opacity: 1,
+      elevation: 12,
+      facing: 1 as const,
+      hitFlash: 2,
+      custom: {
+        size: 32,
+        depth: 300,
+        isDead: false,
+        samuraiState: "Windup",
+        samuraiWindup: true,
+        samuraiAttack: true,
+        shadowSizeMultiplier: 1,
+        shadowRxRatio: 0.42,
+        shadowRyRatio: 0.12
+      }
+    };
+
+    session.theme.renderEntity?.(painter, samurai, frame);
+
+    expect(painter.stroke).toHaveBeenCalled();
+    expect(painter.quadraticCurveTo).toHaveBeenCalled();
+    expect(painter.fillEllipse).toHaveBeenLastCalledWith(
+      0,
+      -32 * 0.94,
+      32 * 0.38,
+      32 * 0.72,
+      0,
+      { color: "#ffffff", alpha: 0.35 }
+    );
+    session.dispose();
+  });
+
   test("uses stable alpha when reduced motion is requested", () => {
     const session = createHitRunPresentationSession("sumi-e", "hud-reduced-motion", 9);
     const painter = createPainter();

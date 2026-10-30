@@ -2,8 +2,9 @@
 
 **Repository:** `xavirodriguez/ArcadeGames`  
 **Base branch:** `master`  
-**Base commit:** [`db8a38345e3dd020f61dd013a91aef562a693914`](https://github.com/xavirodriguez/ArcadeGames/commit/db8a38345e3dd020f61dd013a91aef562a693914)  
-**Working branch:** `refactor/presentation-roadmap-rollout`  
+**Base commit:** [`024b96cd976c0ac1062f3b83d0dc49545e46af15`](https://github.com/xavirodriguez/ArcadeGames/commit/024b96cd976c0ac1062f3b83d0dc49545e46af15)  
+**Working branch:** `refactor/presentation-hitrun-entities`  
+**Continuation PR:** [#995 — migrate Hit & Run actors and projectiles](https://github.com/xavirodriguez/ArcadeGames/pull/995)  
 **Review date:** 2026-10-30
 
 ## Phase status
@@ -14,7 +15,7 @@
 | 1. Session per game | Implemented in source; validation pending | [Shared registry session bridge](../../src/games/hitandrun/rendering/theme/HitRunPresentationSession.ts) | Execute isolation/lifecycle tests and inspect restart/destroy behavior under the real game loop. |
 | 2. Boundaries, snapshots and determinism | Partial | Shared `PresentationThemeRegistry` owns session/tokens/disposal; session RNG is injected into Sumi-e; architectural source guards were updated. | The full painter/snapshot boundary is not wired into legacy theme methods. Verify deterministic output across frame-rate variation and complete architecture tests. |
 | 3. Resource lifecycle and preload | Partial | Theme instances are owned and disposed by the shared session; resize work is de-duplicated; Hit & Run's React provider receives that session's tokens. | Connect a complete presentation asset manifest and missing-resource fallbacks; run repeated create/restart/destroy memory tests. |
-| 4. Canvas/Skia scene migration | Partial — HUD/banner vertical slice migrated | [Migration gate](2026-10-30-hitrun-canvas-skia-migration-gate.md) | HUD snapshots and banners now render through `PresentationPainter` on Canvas and Skia. Backdrop, ground shadows, entities, projectiles and feedback remain legacy. Real-backend parity and screenshot acceptance remain open. |
+| 4. Canvas/Skia scene migration | Partial — HUD/banner plus entity/projectile vertical slice migrated | [Migration gate](2026-10-30-hitrun-canvas-skia-migration-gate.md) | Actor, Samurai fallback and projectile drawers now use typed snapshots and separate Canvas/Skia painter adapters. Backdrop, feedback, placeholders and Lancero remain legacy. Real-backend parity and screenshot acceptance remain open. |
 | 5. Visual, accessibility and performance acceptance | Partial | [Painter gradient ownership fix](https://github.com/xavirodriguez/ArcadeGames/commit/7eaae3b4d6746580f254da41d5929d3180c83901); [acceptance protocol](2026-10-30-presentation-performance-and-visual-acceptance.md) | Unit test is added for cross-painter gradient ownership. Screenshot comparisons, injected font resolver in production, accessibility validation, GC/heap measurements and performance budgets remain unverified. |
 | 6. Retire legacy global selection | Implemented in source; validation pending | [Legacy retirement audit](2026-10-30-presentation-legacy-retirement.md); updated architecture test | CI must confirm the source guards and all consumers. The legacy drawing contract remains intentionally as an adapter; this is not the same as legacy selection state. |
 | 7. Validate a second game | Pending | [Second-game preflight](2026-10-30-second-game-pilot-preflight.md) | A real second-game session and alternate visual theme must use the shared contract; then test both backends and unchanged simulation output. |
@@ -44,6 +45,10 @@
 
 After the first push, `master` advanced through [PR #989](https://github.com/xavirodriguez/ArcadeGames/pull/989), now at [`0a603ceb4233`](https://github.com/xavirodriguez/ArcadeGames/commit/0a603ceb4233be1c41dd12061da3d160b21c1425). This branch preserves its session refactor and now includes the relevant PR #989 updates: both Hit & Run renderer casts use `never` rather than `unknown`, and the Sumi-e integration test includes the corrected closing call. The synchronization is recorded as a merge commit with `master` as its second parent; the roadmap phase squash commits remain intact.
 
+## Previous rollout history
+
+The sections above titled “Post-push validation” and “Synchronization with latest master” record the earlier rollout branch that delivered the per-session architecture and was integrated through PR #994. The active continuation for Phase 4 is `refactor/presentation-hitrun-entities`, based on master commit `024b96cd976c0ac1062f3b83d0dc49545e46af15`, and tracked in PR #995. The earlier commit-count and workflow observations belong to that previous branch and are not claims about PR #995.
+
 ## Phase 4 progress: HUD and banner
 
 The first vertical slice now uses the backend-neutral theme contract:
@@ -58,4 +63,24 @@ This is not full scene parity. The production frame currently supplies default `
 
 ## Next action
 
-Continue Phase 4 with ground shadows and entity/projectile rendering through typed snapshots and `PresentationPainter`. Keep visual parity and Phase 5 acceptance open until real Canvas/Skia screenshots and performance measurements exist.
+## Phase 4 continuation: actors, ground shadows and projectiles
+
+The current continuation adds the next presentation slice:
+
+- ECS components are projected into typed `PresentationEntitySnapshot` values containing semantic identity, interpolated transform, elevation, facing, opacity, tint and immutable visual metadata. Themes do not receive ECS entities or component references.
+- Player, popcorn, wall trooper, hopper, charger, elite, Samurai fallback, bullets and rockets call session-owned `renderGroundShadow`, `renderEntity` or `renderProjectile` methods.
+- Canvas and Skia register separate drawer factories and use their respective `CanvasPresentationPainter` and `SkiaPresentationPainter` adapters.
+- Fantasy and Sumi-e retain different actor/projectile compositions. Samurai's painter implementation restores armor details, shoulder guards, katana highlights, attack arc and hit-flash overlay.
+- The ECS-facing session reader is typed against `World<CoreComponentRegistry>`; the new session bridge contains no `any` or untyped world reader.
+
+The Samurai fallback is a painter reconstruction, not proven pixel-identical to the former Canvas implementation. Placeholder tilemap/fragment/core drawers, Lancero, backdrop and feedback remain outside this slice. The production frame still supplies default accessibility flags; this branch has not connected the user's reduced-motion or high-contrast preferences.
+
+## Current validation and publication
+
+- Branch: `refactor/presentation-hitrun-entities`.
+- Draft PR: [#995](https://github.com/xavirodriguez/ArcadeGames/pull/995).
+- The source was committed as one squash commit for this continuation before updating the branch reference.
+- CI, E2E and Documentation CI were queued for the earlier PR head. A new head after the squash push will trigger fresh runs; queued results are not passes.
+- No local checkout was available, so `pnpm run ci`, Jest, E2E and real Canvas/Skia screenshot comparisons have not been executed.
+
+The next Phase 4 slice is feedback effects, followed by the backend-neutral backdrop/environment contract. Placeholder shapes and Lancero still need backend-specific drawers. Keep visual parity and Phase 5 acceptance open until real Canvas/Skia screenshots and performance measurements exist.

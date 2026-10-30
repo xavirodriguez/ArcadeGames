@@ -154,6 +154,27 @@ describe("HitAndRun presentation theme boundary", () => {
     }
   });
 
+  it("registers backend-specific painter drawers for actors and projectiles", () => {
+    const baseDir = path.resolve(__dirname, "..");
+    const gameSource = fs.readFileSync(path.join(baseDir, "HitAndRunGame.ts"), "utf-8");
+    const registrationStart = gameSource.indexOf('if (renderer.type === "skia") {', gameSource.indexOf('renderer.registerBackgroundEffect("hit_run_debug_overlay"'));
+    const canvasStart = gameSource.indexOf("} else {", registrationStart);
+    const registrationEnd = gameSource.indexOf('\n  }\n\n  renderer.registerShape("tilemap"', canvasStart);
+    expect(registrationStart).toBeGreaterThanOrEqual(0);
+    expect(canvasStart).toBeGreaterThan(registrationStart);
+    expect(registrationEnd).toBeGreaterThan(canvasStart);
+
+    const skiaRegistration = gameSource.slice(registrationStart, canvasStart);
+    const canvasRegistration = gameSource.slice(canvasStart, registrationEnd);
+
+    expect(skiaRegistration).toContain('renderer.registerShape("player", drawHitRunPlayerSkia)');
+    expect(skiaRegistration).toContain('renderer.registerShape("bullet_rocket", drawHitRunRocketSkia)');
+    expect(skiaRegistration).not.toContain('renderer.registerShape("player", drawHitRunPlayer)');
+    expect(canvasRegistration).toContain('renderer.registerShape("player", drawHitRunPlayer)');
+    expect(canvasRegistration).toContain('renderer.registerShape("bullet_rocket", drawHitRunRocket)');
+    expect(canvasRegistration).not.toContain('drawHitRunPlayerSkia');
+  });
+
   it("keeps simulation folders free of static, re-exported, dynamic and type-only rendering imports", () => {
     const baseDir = path.resolve(__dirname, "..");
     expect(findRenderingImports(baseDir)).toEqual([]);

@@ -1,13 +1,13 @@
 import React, { useRef, useEffect, useState, useMemo } from "react";
 import { StyleSheet, Platform } from "react-native";
-import { World, GameLoop, ComponentRegistry } from "@tiny-aster/core";
+import { World, GameLoop, CoreComponentRegistry } from "@tiny-aster/core";
 import { SkiaRenderer } from "@tiny-aster/renderer-skia";
 import { useFrameCallback, runOnJS } from "react-native-reanimated";
 
-interface GameRendererProps<TRegistry extends ComponentRegistry> {
-  world: World<TRegistry>;
+interface GameRendererProps<TRegistry extends CoreComponentRegistry> {
+  world: World<TRegistry> | (() => World<TRegistry>);
   gameLoop?: GameLoop;
-  onInitialize?: (renderer: SkiaRenderer) => void;
+  onInitialize?: (renderer: SkiaRenderer<TRegistry>) => void;
 }
 
 /**
@@ -22,16 +22,18 @@ interface GameRendererProps<TRegistry extends ComponentRegistry> {
  * While the simulation may run at a fixed timestep, the renderer attempts to
  * match the device's native refresh rate.
  */
-export const GameRenderer = <TRegistry extends ComponentRegistry>({
-  world: _world,
+export const GameRenderer = <TRegistry extends CoreComponentRegistry>({
+  world,
   gameLoop: propGameLoop,
   onInitialize,
 }: GameRendererProps<TRegistry>) => {
-  const rendererRef = useRef<SkiaRenderer | null>(null);
+  const rendererRef = useRef<SkiaRenderer<TRegistry> | null>(null);
   const onInitializeRef = useRef(onInitialize);
   onInitializeRef.current = onInitialize;
 
   const [CanvasComponent, setCanvasComponent] = useState<React.ElementType | null>(null);
+  const [PictureComponent, setPictureComponent] = useState<React.ElementType | null>(null);
+  const [picture, setPicture] = useState<unknown>(null);
 
   const gameLoop = useMemo(() => {
     if (propGameLoop) return propGameLoop;
@@ -50,14 +52,15 @@ export const GameRenderer = <TRegistry extends ComponentRegistry>({
     if ((Platform.OS as string) === "web") return;
 
     // Dynamically import Skia components for native
-    const { Canvas } = require("@shopify/react-native-skia");
+    const { Canvas, Picture, Skia } = require("@shopify/react-native-skia");
     setCanvasComponent(() => Canvas);
+    setPictureComponent(() => Picture);
 
     if (!rendererRef.current) {
-        rendererRef.current = new SkiaRenderer();
-        if (onInitializeRef.current) {
-          onInitializeRef.current(rendererRef.current);
-        }
+      rendererRef.current = new SkiaRenderer<TRegistry>();
+      if (onInitializeRef.current) {
+        onInitializeRef.current(rendererRef.current);
+      }
     }
 
     if ((Platform.OS as string) !== "web") {
@@ -68,12 +71,32 @@ export const GameRenderer = <TRegistry extends ComponentRegistry>({
       gameLoop.start();
     }
 
+    const unsub = gameLoop.subscribeRender(() => {
+      if (!rendererRef.current) return;
+      try {
+        const activeWorld = typeof world === "function" ? world() : world;
+        if (!activeWorld) return;
+        const screenConfig = activeWorld.getResource<{ width: number; height: number }>("ScreenConfig") || {
+          width: 800,
+          height: 600,
+        };
+        const recorder = Skia.PictureRecorder();
+        const canvas = recorder.begin(Skia.XYWHRect(0, 0, screenConfig.width, screenConfig.height));
+        rendererRef.current.render(activeWorld as any, canvas);
+        const pic = recorder.finishDrawing();
+        setPicture(pic);
+      } catch (err) {
+        console.warn("[GameRenderer] Skia frame render failed", err);
+      }
+    });
+
     return () => {
+      unsub();
       if (!propGameLoop) {
         gameLoop.stop();
       }
     };
-  }, [gameLoop, propGameLoop]);
+  }, [gameLoop, propGameLoop, world]);
 
   if (Platform.OS === "web" || !CanvasComponent) {
     return null;
@@ -81,7 +104,7 @@ export const GameRenderer = <TRegistry extends ComponentRegistry>({
 
   return (
     <CanvasComponent style={styles.container}>
-        {/* We need a way to trigger render in Skia component */}
+      {picture && PictureComponent ? <PictureComponent picture={picture} /> : null}
     </CanvasComponent>
   );
 };

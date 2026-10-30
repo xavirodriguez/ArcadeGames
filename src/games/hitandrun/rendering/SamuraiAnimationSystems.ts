@@ -1,5 +1,6 @@
 import {
   AnimationSystem,
+  SpriteAnimatorSystem,
   System,
   SystemPhase,
   World,
@@ -9,7 +10,6 @@ import {
   getCurrentFrameRect,
   playAnimation,
   SpriteRegistry,
-  updateSpriteAnimator,
   type SpriteAnimatorComponent
 } from "../../shared/sprites";
 import { SAMURAI_ASSET_KEY } from "./SamuraiVisualAssets";
@@ -147,14 +147,14 @@ export class SumiEPlayerAnimationStateSystem extends System<CoreComponentRegistr
   }
 }
 
-/** Advances the canonical, seconds-based animator for Hit&Run sprite entities. */
-export class HitRunSpriteAnimatorPlaybackSystem extends System<CoreComponentRegistry> {
-  public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
-    const entities = world.query("SpriteAnimator");
-    for (const entity of entities) {
-      const animator = world.getMutableComponent(entity, "SpriteAnimator");
-      if (animator) updateSpriteAnimator(animator, deltaTime);
-    }
+/**
+ * Advances the canonical, seconds-based animator for Hit&Run sprite entities.
+ *
+ * @deprecated Use canonical `SpriteAnimatorSystem` from `@tiny-aster/core` instead.
+ */
+export class HitRunSpriteAnimatorPlaybackSystem extends SpriteAnimatorSystem {
+  public constructor() {
+    super((sheetId: string) => SpriteRegistry.get(sheetId));
   }
 }
 
@@ -220,7 +220,7 @@ export function registerHitRunSamuraiAnimationSystems(
     phase: SystemPhase.Presentation,
     priority: 41
   });
-  world.addSystem(new HitRunSpriteAnimatorPlaybackSystem(), {
+  world.addSystem(new SpriteAnimatorSystem((sheetId: string) => SpriteRegistry.get(sheetId)), {
     phase: SystemPhase.Presentation,
     priority: 42
   });

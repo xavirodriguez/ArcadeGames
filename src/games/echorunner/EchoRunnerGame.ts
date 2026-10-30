@@ -30,7 +30,8 @@ import {
   EntityBuilder,
   preloadSharedAudioManifest,
   SHARED_AUDIO_MANIFEST,
-  Theme
+  Theme,
+  SpriteAnimatorSystem
 } from "@tiny-aster/core";
 import {
   drawEchoBackground,
@@ -448,6 +449,10 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
     // Game-specific simulation systems
     this.world.addSystem(new EchoRunnerDamageSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new EchoRunnerSpriteSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new SpriteAnimatorSystem((id: string) => SpriteRegistry.get(id)), {
+      phase: SystemPhase.Presentation,
+      priority: 42
+    });
 
     // Game-specific presentation systems
     registerPresentationSystems(this.world);

@@ -432,10 +432,12 @@ export interface AnimationDefinition {
 }
 
 /**
- * Component managing sprite sheet animation playback on an entity.
+ * Component managing sprite sheet animation playback on an entity using frame indices.
+ *
+ * @deprecated Legacy index-based animation component. Use {@link SpriteAnimatorComponent} with {@link SpriteAnimatorSystem} instead.
  *
  * @remarks
- * Driven by `AnimationSystem` to advance active animation frames and emit completion events.
+ * Driven by legacy `AnimationSystem` to advance active animation frames and emit completion events.
  *
  * @example
  * ```ts
@@ -1502,7 +1504,7 @@ export interface CoreComponentRegistry extends ComponentRegistry {
   /** Hit & Run section enemy tag component. */
   BeltSectionEnemy: Component & { type: "BeltSectionEnemy"; sectionIndex: number };
   /** SpriteAnimator component. */
-  SpriteAnimator: Component & { type: "SpriteAnimator"; sheetId: string; currentAnim: string; frameIndex: number; timer: number; finished?: boolean; flipX: boolean; scale: number; offsetX?: number; offsetY?: number };
+  SpriteAnimator: import("../assets/SpriteAnimator").SpriteAnimatorComponent;
 }
 
 /**

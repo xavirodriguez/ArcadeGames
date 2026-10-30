@@ -4,7 +4,10 @@ import { CoreComponentRegistry } from "../ecs/CoreComponents";
 import { EventRegistry } from "../events/EventBus";
 
 /**
- * System that manages sprite sheet frame animation progression for entities with `AnimatorComponent`.
+ * System that manages sprite sheet frame animation progression for entities with legacy `AnimatorComponent`.
+ *
+ * @deprecated Legacy index-based animation system. Use {@link SpriteAnimatorSystem} and {@link SpriteAnimatorComponent}
+ * with canonical {@link SpriteSheetDefinition} source rects instead.
  *
  * @remarks
  * In each frame tick, `AnimationSystem` advances elapsed frame durations for active animations, calculates

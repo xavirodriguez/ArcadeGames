@@ -129,6 +129,105 @@ function createBridge(
       const sealX = 28;
       const sealY = 28;
 
+      if (descriptor.id === "fantasy") {
+        const metrics = hud.metrics;
+        painter.save();
+        try {
+          const header = painter.createLinearGradient(0, 0, 0, 52);
+          header.addColorStop(0, palette.inkOrOutline);
+          header.addColorStop(1, palette.background);
+          painter.fillRect({ x: 0, y: 0, width, height: 52 }, { gradient: header });
+
+          if (hud.health) {
+            const maxHealth = Math.max(0, Math.min(20, Math.floor(hud.health.max)));
+            const currentHealth = Math.max(0, Math.min(maxHealth, Math.floor(hud.health.current)));
+            const pipWidth = 18;
+            const pipHeight = 10;
+            for (let index = 0; index < maxHealth; index++) {
+              const x = 16 + index * (pipWidth + 6);
+              const color = index < currentHealth ? palette.vermilionOrRed : palette.paperOrFloor;
+              painter.fillRect({ x, y: 14, width: pipWidth, height: pipHeight }, { color });
+              painter.strokeRect({ x, y: 14, width: pipWidth, height: pipHeight }, {
+                color: palette.inkOrOutline,
+                width: 1
+              });
+            }
+
+            const weaponId = metrics?.weaponId.toUpperCase() ?? "LONGbow";
+            const ammo = metrics && Number.isFinite(metrics.ammoCurrent)
+              ? String(metrics.ammoCurrent) + "/" + String(metrics.ammoMax)
+              : "∞";
+            painter.fillText(weaponId + " [" + ammo + "]", 16 + maxHealth * 24 + 16, 22, {
+              fontFamily: fonts.data ?? "monospace",
+              fontSize: 12,
+              fontWeight: "bold",
+              color: palette.goldOrYellow,
+              baseline: "middle"
+            });
+          }
+
+          if (metrics?.wave) {
+            painter.fillText(
+              metrics.wave.sectionLabel + "  ·  " + metrics.wave.waveName,
+              width * 0.5,
+              16,
+              {
+                fontFamily: fonts.data ?? "monospace",
+                fontSize: 12,
+                fontWeight: "bold",
+                align: "center",
+                baseline: "middle",
+                color: palette.paperOrFloor
+              }
+            );
+            const gateLabel = metrics.wave.gateLocked ? "GATE LOCKED" : "GATE OPEN";
+            painter.fillText(gateLabel + "  ·  ALIVE " + metrics.wave.aliveEnemies, width * 0.5, 30, {
+              fontFamily: fonts.data ?? "monospace",
+              fontSize: 10,
+              align: "center",
+              baseline: "middle",
+              color: metrics.wave.gateLocked ? palette.vermilionOrRed : palette.goldOrYellow
+            });
+          }
+
+          if (hud.score !== undefined) {
+            painter.fillText(String(Math.max(0, Math.floor(hud.score))).padStart(6, "0"), width - 16, 22, {
+              fontFamily: fonts.data ?? "monospace",
+              fontSize: 14,
+              fontWeight: "bold",
+              align: "right",
+              baseline: "middle",
+              color: palette.paperOrFloor
+            });
+            if ((hud.combo ?? 1) > 1) {
+              painter.fillText("COMBO x" + (hud.combo ?? 1).toFixed(1), width - 16, 38, {
+                fontFamily: fonts.data ?? "monospace",
+                fontSize: 11,
+                fontWeight: "bold",
+                align: "right",
+                baseline: "middle",
+                color: palette.vermilionOrRed
+              });
+            }
+          }
+
+          if (hud.isGameOver) {
+            painter.fillRect({ x: 0, y: 0, width, height }, { color: palette.inkOrOutline, alpha: 0.78 });
+            painter.fillText("DOWN", width * 0.5, height * 0.5, {
+              fontFamily: fonts.data ?? "monospace",
+              fontSize: 28,
+              fontWeight: "bold",
+              align: "center",
+              baseline: "middle",
+              color: palette.vermilionOrRed
+            });
+          }
+        } finally {
+          painter.restore();
+        }
+        return;
+      }
+
       painter.save();
       try {
         painter.fillCircle(sealX, sealY, 20, { color: palette.vermilionOrRed });
@@ -242,6 +341,26 @@ function createBridge(
       painter.save();
       try {
         painter.setAlpha(alpha);
+        if (descriptor.id === "fantasy") {
+          painter.fillText(banner.text, frame.viewport.width * 0.5, frame.viewport.height * 0.38, {
+            fontFamily: fonts.data ?? "monospace",
+            fontSize: 42,
+            fontWeight: "bold",
+            align: "center",
+            baseline: "middle",
+            color: banner.text === "CLEAR" ? palette.goldOrYellow : palette.vermilionOrRed
+          });
+          if (banner.subtext) {
+            painter.fillText(banner.subtext, frame.viewport.width * 0.5, frame.viewport.height * 0.38 + 28, {
+              fontFamily: fonts.data ?? "monospace",
+              fontSize: 14,
+              align: "center",
+              baseline: "middle",
+              color: palette.secondary
+            });
+          }
+          return;
+        }
         painter.translate(frame.viewport.width * 0.5, frame.viewport.height * 0.38);
         painter.fillRect(
           { x: -width * 0.5, y: -height * 0.5, width, height },

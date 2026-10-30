@@ -92,12 +92,13 @@ describe("HitRun PresentationPainter theme slice", () => {
     expect(painter.strokeRect).toHaveBeenCalled();
     expect(painter.fillText).toHaveBeenCalledWith(
       themeId === "sumi-e" ? "全 滅" : "CLEAR",
-      0,
-      1,
+      themeId === "sumi-e" ? 0 : 400,
+      themeId === "sumi-e" ? 1 : 228,
       expect.objectContaining({ align: "center" })
     );
-    expect(painter.save).toHaveBeenCalledTimes(4);
-    expect(painter.restore).toHaveBeenCalledTimes(4);
+    const expectedStateScopes = themeId === "sumi-e" ? 4 : 2;
+    expect(painter.save).toHaveBeenCalledTimes(expectedStateScopes);
+    expect(painter.restore).toHaveBeenCalledTimes(expectedStateScopes);
     session.dispose();
   });
 

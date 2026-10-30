@@ -42,10 +42,16 @@ describe("HitRun HUD snapshot projection", () => {
         return [];
       },
       getComponent: <K extends keyof CoreComponentRegistry & string>(entity: number, component: K): CoreComponentRegistry[K] | undefined => {
-        if (entity === 2 && component === "Camera2D") return { isMain: true, x: 100, y: 240 } as CoreComponentRegistry[K];
-        if (entity === 1 && component === "Health") return { current: 4, max: 5 } as CoreComponentRegistry[K];
+        if (entity === 2 && component === "Camera2D") return { type: component, isMain: true, x: 100, y: 240 } as CoreComponentRegistry[K];
+        if (entity === 1 && component === "Health") return { type: component, current: 4, max: 5 } as CoreComponentRegistry[K];
         if (entity === 1 && component === "HitRunWeapon") {
-          return { weaponId: "longbow", ammoCurrent: 3, ammoMax: 8, cooldownRemaining: 0.15 } as CoreComponentRegistry[K];
+          return {
+            type: component,
+            weaponId: "longbow",
+            ammoCurrent: 3,
+            ammoMax: 8,
+            cooldownRemaining: 0.15
+          } as CoreComponentRegistry[K];
         }
         return undefined;
       },

@@ -1,13 +1,13 @@
-import { getSumiEVillageHousePlacements } from "../SumiEVillageLayer";
+import { getSumiEVillageHousePlacements, type SumiEVillageHousePlacement } from "../SumiEVillageLayer";
 
 describe("Sumi-e village background", () => {
   it("reuses a small set of house sizes across distinct depth layers", () => {
     const houses = getSumiEVillageHousePlacements(800, 600, 0);
-    const scales = [...new Set(houses.map((house) => house.scale))].sort();
+    const scales = [...new Set(houses.map((house: SumiEVillageHousePlacement) => house.scale))].sort();
 
     expect(scales).toEqual([0.34, 0.52, 0.72]);
     expect(houses.length).toBeGreaterThan(8);
-    expect(houses.every((house) => house.alpha > 0 && house.alpha < 1)).toBe(true);
+    expect(houses.every((house: SumiEVillageHousePlacement) => house.alpha > 0 && house.alpha < 1)).toBe(true);
   });
 
   it("keeps placements deterministic and moves each layer at its own parallax rate", () => {
@@ -17,6 +17,6 @@ describe("Sumi-e village background", () => {
 
     expect(first).toEqual(second);
     expect(moved).not.toEqual(first);
-    expect(new Set(first.map((house) => house.depth)).size).toBe(3);
+    expect(new Set(first.map((house: SumiEVillageHousePlacement) => house.depth)).size).toBe(3);
   });
 });

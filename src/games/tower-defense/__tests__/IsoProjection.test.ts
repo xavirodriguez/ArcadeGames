@@ -52,14 +52,33 @@ describe("IsoProjection", () => {
     }
   });
 
-  it("projects known grid cell corners correctly", () => {
-    const topLeftIso = worldToIso(isoCfg, 80, 40);
+  it("projects the complete grid bounding box inside and centered in the viewport", () => {
+    const left = mockConfig.GRID_OFFSET_X;
+    const top = mockConfig.GRID_OFFSET_Y;
+    const right = left + mockConfig.GRID_COLS * mockConfig.CELL_SIZE;
+    const bottom = top + mockConfig.GRID_ROWS * mockConfig.CELL_SIZE;
+    const corners = [
+      worldToIso(isoCfg, left, top),
+      worldToIso(isoCfg, right, top),
+      worldToIso(isoCfg, left, bottom),
+      worldToIso(isoCfg, right, bottom),
+    ];
+
+    const minX = Math.min(...corners.map((point) => point.x));
+    const maxX = Math.max(...corners.map((point) => point.x));
+    const minY = Math.min(...corners.map((point) => point.y));
+    const maxY = Math.max(...corners.map((point) => point.y));
+
+    expect(minX).toBeCloseTo(0, 5);
+    expect(maxX).toBeCloseTo(mockConfig.worldWidth, 5);
+    expect((minX + maxX) / 2).toBeCloseTo(mockConfig.worldWidth / 2, 5);
+    expect(minY).toBeGreaterThanOrEqual(0);
+    expect(maxY).toBeLessThanOrEqual(mockConfig.worldHeight);
+    expect((minY + maxY) / 2).toBeCloseTo(mockConfig.worldHeight / 2, 5);
+
+    const topLeftIso = worldToIso(isoCfg, left, top);
     expect(topLeftIso.x).toBeCloseTo(isoCfg.originX, 5);
     expect(topLeftIso.y).toBeCloseTo(isoCfg.originY, 5);
-
-    const bottomRightIso = worldToIso(isoCfg, 120, 80);
-    expect(bottomRightIso.x).toBeCloseTo(isoCfg.originX, 5);
-    expect(bottomRightIso.y).toBeCloseTo(isoCfg.originY + isoCfg.tileHeightHalf * 2, 5);
   });
 
   it("ensures depthOf is monotonic with respect to row + col", () => {

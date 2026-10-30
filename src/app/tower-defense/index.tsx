@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, TouchableOpacity, Platform, GestureResponderEve
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useLocalSearchParams } from "expo-router";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
+import { GameRenderer } from "@/components/GameRenderer";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { useTowerDefenseGame } from "@/hooks/useTowerDefenseGame";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
@@ -278,11 +279,19 @@ function TowerDefensePlay({ initialSeed, theme }: { initialSeed?: number; theme?
                 { width: canvasLayout.width, height: canvasLayout.height },
               ]}
             >
-              <CanvasRenderer
-                world={game.getWorld()}
-                gameLoop={game.getGameLoop()}
-                onInitialize={(renderer) => game.initializeRenderer(renderer)}
-              />
+              {Platform.OS === "web" ? (
+                <CanvasRenderer
+                  world={game.getWorld()}
+                  gameLoop={game.getGameLoop()}
+                  onInitialize={(renderer) => game.initializeRenderer(renderer)}
+                />
+              ) : (
+                <GameRenderer
+                  world={game.getWorld()}
+                  gameLoop={game.getGameLoop()}
+                  onInitialize={(renderer) => game.initializeRenderer(renderer)}
+                />
+              )}
             </TouchableOpacity>
           </View>
         }

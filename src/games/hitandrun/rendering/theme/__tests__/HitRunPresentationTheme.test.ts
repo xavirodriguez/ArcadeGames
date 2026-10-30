@@ -1,4 +1,4 @@
-import type { PresentationFrame, PresentationPainter } from "../../../shared/presentation/PresentationContracts";
+import type { PresentationFrame, PresentationPainter } from "../../../../shared/presentation/PresentationContracts";
 import { createHitRunPresentationSession } from "../HitRunPresentationSession";
 import type {
   HitRunPresentationBannerSnapshot,

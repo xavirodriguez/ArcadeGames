@@ -24,6 +24,8 @@ jest.mock("@shopify/react-native-skia", () => {
     ClipOp: { Intersect: 0 },
     PaintStyle: { Fill: 0, Stroke: 1 },
     StrokeJoin: { Miter: 0, Round: 1, Bevel: 2 },
+    StrokeCap: { Butt: 0, Round: 1, Square: 2 },
+    TileMode: { Clamp: 0 },
     Skia: {
       Path: { Make: jest.fn(() => path) },
       Paint: jest.fn(() => paint),
@@ -37,9 +39,7 @@ jest.mock("@shopify/react-native-skia", () => {
       Shader: {
         MakeLinearGradient: makeShader,
         MakeTwoPointConicalGradient: makeShader
-      },
-      TileMode: { Clamp: 0 },
-      StrokeCap: { Butt: 0, Round: 1, Square: 2 }
+      }
     }
   };
 });
@@ -58,7 +58,7 @@ function createSkiaCanvasMock(): SkCanvas {
     drawText: jest.fn(),
     drawImageRect: jest.fn(),
     clipRect: jest.fn()
-  } as SkCanvas;
+  } as never as SkCanvas;
 }
 
 describe("SkiaPresentationPainter", () => {

@@ -16,7 +16,7 @@ describe("drawProceduralPrimitivesSkia opacity", () => {
       setStyle: jest.fn(),
       setStrokeWidth: jest.fn(),
       setColor: jest.fn()
-    } as SkPaint;
+    } as never as SkPaint;
     const paintedAlpha: number[] = [];
     const canvas = {
       save: jest.fn(),
@@ -24,7 +24,7 @@ describe("drawProceduralPrimitivesSkia opacity", () => {
       drawLine: jest.fn((_x1: number, _y1: number, _x2: number, _y2: number, drawPaint: SkPaint) => {
         paintedAlpha.push(drawPaint.getAlphaf());
       })
-    } as SkCanvas;
+    } as never as SkCanvas;
 
     drawProceduralPrimitivesSkia(canvas, paint, [
       { type: "line", x1: 0, y1: 0, x2: 10, y2: 10, stroke: "#111111", alpha: 0.5 },

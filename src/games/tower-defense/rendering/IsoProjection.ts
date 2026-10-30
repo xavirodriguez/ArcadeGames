@@ -30,18 +30,27 @@ function positiveFiniteOr(value: number | undefined, fallback: number): number {
   return value !== undefined && Number.isFinite(value) && value > 0 ? value : fallback;
 }
 
-function positiveIntegerOr(value: number | undefined, fallback: number): number {
-  return value !== undefined && Number.isInteger(value) && value > 0 ? value : fallback;
-}
-
 export function createIsoConfig(config: Partial<TowerDefenseConfig>): IsoConfig {
   const enabled = config.projection === "isometric";
   const cellSize = positiveFiniteOr(config.CELL_SIZE, 40);
   const ratio = positiveFiniteOr(config.ISO_TILE_RATIO, 2);
   const gridOffsetX = Number.isFinite(config.GRID_OFFSET_X) ? (config.GRID_OFFSET_X as number) : 80;
   const gridOffsetY = Number.isFinite(config.GRID_OFFSET_Y) ? (config.GRID_OFFSET_Y as number) : 40;
-  const cols = positiveIntegerOr(config.GRID_COLS, 16);
-  const rows = positiveIntegerOr(config.GRID_ROWS, 12);
+  const cols = Number.isFinite(config.GRID_COLS) && (config.GRID_COLS as number) > 0 ? (config.GRID_COLS as number) : 16;
+  const rows = Number.isFinite(config.GRID_ROWS) && (config.GRID_ROWS as number) > 0 ? (config.GRID_ROWS as number) : 12;
+
+  const worldWidth = Number.isFinite(config.worldWidth) && (config.worldWidth as number) > 0
+    ? (config.worldWidth as number)
+    : 800;
+  const worldHeight = Number.isFinite(config.worldHeight) && (config.worldHeight as number) > 0
+    ? (config.worldHeight as number)
+    : 600;
+
+  const gridSpan = cols + rows;
+  const maxTileWidthByViewport = worldWidth / gridSpan;
+  const maxTileWidthByViewportHeight = (worldHeight * ratio) / gridSpan;
+  const tileWidthHalf = Math.min(maxTileWidthByViewport, maxTileWidthByViewportHeight);
+  const tileHeightHalf = tileWidthHalf / ratio;
 
   if (!enabled) {
     const minX = gridOffsetX;
@@ -69,23 +78,6 @@ export function createIsoConfig(config: Partial<TowerDefenseConfig>): IsoConfig 
     };
   }
 
-  const worldWidth = positiveFiniteOr(config.worldWidth, 800);
-  const worldHeight = positiveFiniteOr(config.worldHeight, 600);
-  const gridSpan = cols + rows;
-  const projectedWidthAtUnitScale = gridSpan * cellSize;
-  const projectedHeightAtUnitScale = projectedWidthAtUnitScale / ratio;
-
-  // Keep logical cell size as an upper bound and fit both viewport dimensions.
-  const fitScale = Math.min(
-    1,
-    worldWidth / projectedWidthAtUnitScale,
-    worldHeight / projectedHeightAtUnitScale
-  );
-  const tileWidthHalf = cellSize * fitScale;
-  const tileHeightHalf = tileWidthHalf / ratio;
-  const projectedWidth = gridSpan * tileWidthHalf;
-  const projectedHeight = gridSpan * tileHeightHalf;
-
   // Center the projected four-corner footprint on both viewport axes.
   const originX = worldWidth / 2 - ((cols - rows) * tileWidthHalf) / 2;
   const originY = (worldHeight - projectedHeight) / 2;
@@ -93,7 +85,7 @@ export function createIsoConfig(config: Partial<TowerDefenseConfig>): IsoConfig 
   const minX = originX - rows * tileWidthHalf;
   const maxX = originX + cols * tileWidthHalf;
   const minY = originY;
-  const maxY = originY + projectedHeight;
+  const maxY = originY + (cols + rows) * tileHeightHalf;
 
   return {
     tileWidthHalf,

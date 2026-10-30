@@ -1,6 +1,7 @@
-import { resolveVisualScene } from "../../../../shared/rendering/visual-composition";
-import { getCanvasVisualPosition } from "../../../../shared/rendering/visual-composition/CanvasVisualSceneRenderer";
-import { getCanvasSpriteLoadState } from "../../../../shared/sprites/SpriteDrawer";
+import { resolveVisualScene } from "../../../../../shared/rendering/visual-composition";
+import { getCanvasVisualPosition } from "../../../../../shared/rendering/visual-composition/CanvasVisualSceneRenderer";
+import { getCanvasSpriteLoadState } from "../../../../../shared/sprites/SpriteDrawer";
+import type { ResolvedVisualRepeater } from "../../../../../shared/rendering/visual-composition/VisualCompositionTypes";
 import { createSumiEVillageCatalog, SUMI_E_VILLAGE_COMPOSITION } from "../SumiEVillageComposition";
 
 describe("declarative Sumi-e village pilot", () => {
@@ -10,13 +11,13 @@ describe("declarative Sumi-e village pilot", () => {
     expect(first.ok).toBe(true);
     if (!first.ok) return;
     expect(first.value.instances).toHaveLength(0);
-    expect(first.value.repeaters?.map(repeater => repeater.layerId)).toEqual([
+    expect(first.value.repeaters?.map((repeater: ResolvedVisualRepeater) => repeater.layerId)).toEqual([
       "distant-village", "village", "foreground-village"
     ]);
-    expect(first.value.repeaters?.map(repeater => repeater.spacing)).toEqual([500, 470, 410]);
-    expect(first.value.repeaters?.every(repeater => repeater.assets.length >= 3)).toBe(true);
-    expect(first.value.repeaters?.every(repeater => repeater.assets.every(asset => asset.id.startsWith("urban_")))).toBe(true);
-    const repeatedAssetIds = new Set(first.value.repeaters?.flatMap(repeater => repeater.assets.map(asset => asset.id)) ?? []);
+    expect(first.value.repeaters?.map((repeater: ResolvedVisualRepeater) => repeater.spacing)).toEqual([500, 470, 410]);
+    expect(first.value.repeaters?.every((repeater: ResolvedVisualRepeater) => repeater.assets.length >= 3)).toBe(true);
+    expect(first.value.repeaters?.every((repeater: ResolvedVisualRepeater) => repeater.assets.every((asset: { id: string }) => asset.id.startsWith("urban_")))).toBe(true);
+    const repeatedAssetIds = new Set(first.value.repeaters?.flatMap((repeater: ResolvedVisualRepeater) => repeater.assets.map((asset: { id: string }) => asset.id)) ?? []);
     expect([...repeatedAssetIds]).toEqual(expect.arrayContaining([
       "urban_casita_01", "urban_casita_02", "urban_casita_04", "urban_casita_05", "urban_casita_07"
     ]));

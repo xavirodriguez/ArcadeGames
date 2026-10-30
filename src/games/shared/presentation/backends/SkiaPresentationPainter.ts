@@ -2,7 +2,9 @@ import {
   ClipOp,
   PaintStyle,
   Skia,
+  StrokeCap,
   StrokeJoin,
+  TileMode,
   type SkCanvas,
   type SkFont,
   type SkImage,
@@ -325,13 +327,13 @@ export class SkiaPresentationPainter implements PresentationPainter {
 
     switch (style.lineCap ?? "butt") {
       case "round":
-        paint.setStrokeCap(Skia.StrokeCap.Round);
+        paint.setStrokeCap(StrokeCap.Round);
         break;
       case "square":
-        paint.setStrokeCap(Skia.StrokeCap.Square);
+        paint.setStrokeCap(StrokeCap.Square);
         break;
       default:
-        paint.setStrokeCap(Skia.StrokeCap.Butt);
+        paint.setStrokeCap(StrokeCap.Butt);
         break;
     }
 
@@ -363,7 +365,7 @@ export class SkiaPresentationPainter implements PresentationPainter {
         Skia.Point(geometry.endX, geometry.endY),
         colors,
         positions,
-        Skia.TileMode.Clamp
+        TileMode.Clamp
       );
     }
 
@@ -374,7 +376,7 @@ export class SkiaPresentationPainter implements PresentationPainter {
       geometry.endRadius,
       colors,
       positions,
-      Skia.TileMode.Clamp
+      TileMode.Clamp
     );
   }
 
@@ -393,7 +395,7 @@ export class SkiaPresentationPainter implements PresentationPainter {
       style.fontFamily,
       Math.max(1, style.fontSize),
       style.fontWeight ?? "normal"
-    ) ?? Skia.Font(null, Math.max(1, style.fontSize)) ?? undefined;
+    ) ?? Skia.Font(null as never, Math.max(1, style.fontSize)) ?? undefined;
   }
 
   private isInvisible(alpha: number | undefined): boolean {

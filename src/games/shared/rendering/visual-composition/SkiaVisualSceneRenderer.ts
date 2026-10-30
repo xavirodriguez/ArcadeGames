@@ -47,7 +47,7 @@ export function drawResolvedVisualSceneSkia(
       };
       canvas.save();
       canvas.translate(item.position.x, item.position.y);
-      if (item.rotation !== 0) canvas.rotate(item.rotation * 180 / Math.PI);
+      if (item.rotation !== 0) canvas.rotate(item.rotation * 180 / Math.PI, 0, 0);
       if (item.scaleX !== item.scaleY) canvas.scale(item.scaleX, item.scaleY);
       const drawn = drawSpriteSkia(canvas, animator, 0, 0, paint, {
         destinationAnchor: item.anchor,

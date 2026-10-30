@@ -39,6 +39,45 @@ function getViewportOffset(viewportWidth: number, viewportHeight: number): { x: 
   };
 }
 
+export interface SumiEVillageHousePlacement {
+  scale: number;
+  alpha: number;
+  depth: number;
+  x: number;
+  y: number;
+}
+
+/** Legacy helper exported for unit test compatibility. */
+export function getSumiEVillageHousePlacements(
+  _viewportWidth: number,
+  _viewportHeight: number,
+  cameraX: number
+): SumiEVillageHousePlacement[] {
+  const scene = getResolvedVillage();
+  if (!scene) return [];
+  const placements: SumiEVillageHousePlacement[] = [];
+  const baseDepths = [0.18, 0.36, 0.58];
+  const baseScales = [0.34, 0.52, 0.72];
+
+  scene.repeaters?.forEach((repeater, index) => {
+    const scale = baseScales[index] ?? repeater.scale.x;
+    const depth = baseDepths[index] ?? (repeater.space === "parallax" ? repeater.parallaxFactor ?? 0.36 : 0.36);
+    const count = 4;
+    for (let i = 0; i < count; i++) {
+      const x = repeater.start.x + i * repeater.spacing - cameraX * depth;
+      placements.push({
+        scale,
+        alpha: repeater.opacity,
+        depth,
+        x,
+        y: repeater.start.y
+      });
+    }
+  });
+
+  return placements;
+}
+
 /** Draw repeated scenery using the shared Canvas sprite cache. */
 export function drawSumiEVillageLayer(
   ctx: CanvasRenderingContext2D,

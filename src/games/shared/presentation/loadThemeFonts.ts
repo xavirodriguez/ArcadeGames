@@ -59,7 +59,7 @@ export async function defaultSumiFontLoader(
     const url = toWebFontUrl(localPath);
     const face = new FontFace(family, `url(${url})`);
     const loaded = await face.load();
-    document.fonts.add(loaded);
+    (document.fonts as never as { add(f: FontFace): void }).add(loaded);
     return;
   }
 

@@ -203,7 +203,7 @@ describe("SUMI_E_SEMANTIC_TOKENS", () => {
     };
 
     expect(() =>
-      createSumiESemanticTokens(invalidColor as SumiESemanticTokenInput)
+      createSumiESemanticTokens(invalidColor as never as SumiESemanticTokenInput)
     ).toThrow('Invalid Sumi-e player color at "player.projectile": expected a string.');
   });
 
@@ -273,7 +273,7 @@ describe("SUMI_E_SEMANTIC_TOKENS", () => {
   });
 
   it("contains exactly 29 six-digit hex colors", () => {
-    const colors = Object.values(SUMI_E_SEMANTIC_TOKENS).flatMap((group) =>
+    const colors = (Object.values(SUMI_E_SEMANTIC_TOKENS) as Record<string, string>[]).flatMap((group) =>
       Object.values(group)
     );
 

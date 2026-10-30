@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState, useMemo, useCallback } from "react";
 import { StyleSheet, Platform } from "react-native";
-import { World, GameLoop, CoreComponentRegistry } from "@tiny-aster/core";
+import { GameLoop } from "@tiny-aster/core";
+import type { CoreComponentRegistry, World } from "@tiny-aster/core";
 import { SkiaRenderer } from "@tiny-aster/renderer-skia";
 import { useFrameCallback, runOnJS } from "react-native-reanimated";
 
@@ -38,14 +39,15 @@ export const GameRenderer = <TRegistry extends CoreComponentRegistry>({
 
   // Tick on the JS thread with the loop's own scheduler clock. Reanimated's
   // frame timestamp can use a different time origin on native platforms.
+  const shouldUseNativeLoop = Platform.OS !== "web";
   const tickGameLoop = useCallback(() => {
     gameLoop.tick();
   }, [gameLoop]);
 
   useFrameCallback(() => {
-    if (Platform.OS === "web") return;
+    "worklet";
     runOnJS(tickGameLoop)();
-  }, true);
+  }, shouldUseNativeLoop);
 
   useEffect(() => {
     if (Platform.OS === "web") return;

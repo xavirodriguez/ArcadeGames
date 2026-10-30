@@ -25,7 +25,8 @@ Minijuego de Tower Defense construido sobre la arquitectura ECS determinista de 
 
 - `projection` admite `isometric` y `topdown`; el modo predeterminado del juego es `isometric`. `ISO_TILE_RATIO` controla la relación entre los semiejes del rombo.
 - `worldToIso` y `isoToWorld` son transformaciones inversas para posiciones. La simulación ECS, waypoints, alcance, movimiento, colisiones y targeting permanecen en coordenadas cartesianas de mundo.
-- La configuración calcula una escala uniforme que encaja la caja proyectada del grid dentro de `worldWidth × worldHeight` y centra el resultado. El tamaño lógico de las celdas no cambia.
+- En modo isométrico, `createIsoConfig` obtiene una escala uniforme a partir de los límites de ancho y alto del viewport. La proyección mantiene `ISO_TILE_RATIO`, encaja los cuatro vértices exteriores del grid dentro de `worldWidth × worldHeight` y centra su caja. En modo top-down, conserva el tamaño `CELL_SIZE` y los offsets del grid.
+- El ajuste afecta exclusivamente a la transformación de presentación. No cambia `CELL_SIZE`, las coordenadas ECS ni la geometría lógica usada por movimiento, colisiones o pathfinding.
 - La entrada táctil y de puntero comprueba la geometría de los rombos proyectados. En vértices compartidos, el desempate es estable: primero la menor suma `row + col`, después `row` y `col`.
 - El cursor ECS transporta el centro de celda en coordenadas de mundo. Los drawers proyectan esa posición una sola vez; no deben aplicar una segunda inversión.
 - Los círculos de alcance del gameplay conservan el radio euclídeo del mundo. La previsualización lo transforma en una elipse exacta para representar el mismo conjunto de puntos después de la proyección.

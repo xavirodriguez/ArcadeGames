@@ -15,7 +15,7 @@
 
 The shared Hit & Run bridge implements `renderHud` and `renderBanner` with backend-neutral `PresentationPainter` methods. The ECS read layer creates immutable HUD snapshots and a `PresentationFrame`. The production route registers separate Canvas and Skia HUD effects, each creating its matching painter adapter.
 
-The migrated slice includes health, score, section label, game-over overlay and transition banner. It also observes `reduceMotion` and `highContrast` frame flags. The legacy theme methods remain in the legacy interface for other consumers but are no longer used by this HUD route.
+The migrated slice includes health, score, game-over overlay and transition banner. Fantasy retains its top-bar composition; Sumi-e retains its seal composition. The banner method supports `reduceMotion` and `highContrast` frame flags, but the production reader currently supplies their defaults (`false`). The legacy theme methods remain in the legacy interface for other consumers but are no longer used by this HUD route.
 
 Contract tests exercise both registered themes against the same painter API. They do not establish pixel parity between real raster backends.
 

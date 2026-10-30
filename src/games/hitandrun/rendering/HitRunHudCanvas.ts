@@ -41,7 +41,7 @@ import { BELT_ALIVE_ENEMIES_RESOURCE } from "../belt/BeltCameraSystem";
 import type { HitRunScoreState } from "../systems/HitRunScoreSystem";
 import { HIT_RUN_SCORE_RESOURCE } from "../systems/HitRunScoreSystem";
 
-interface HitRunHudWorld {
+export interface HitRunHudWorld {
   readonly tick?: number;
   query(...tags: string[]): ReadonlyArray<number>;
   getComponent(entity: number, component: string): unknown;
@@ -49,7 +49,7 @@ interface HitRunHudWorld {
   getResource<T = unknown>(key: string): T | undefined;
 }
 
-interface HitRunHudPresentationData {
+export interface HitRunHudPresentationData {
   readonly hud: HitRunPresentationHudSnapshot;
   readonly banner?: HitRunPresentationBannerSnapshot;
   readonly frame: PresentationFrame;
@@ -90,7 +90,7 @@ function countAliveEnemies(world: HitRunHudWorld): number {
   return alive;
 }
 
-function createPresentationData(world: HitRunHudWorld): HitRunHudPresentationData {
+export function createHitRunHudPresentationData(world: HitRunHudWorld): HitRunHudPresentationData {
   const viewport = resolveViewport(world);
   const camera = resolveCamera(world);
   let players = world.query("BeltInput", "Health");
@@ -181,7 +181,7 @@ function createPresentationData(world: HitRunHudWorld): HitRunHudPresentationDat
 
 function renderHitRunHud(world: HitRunHudWorld, painter: PresentationPainter): void {
   const session = getHitRunPresentationSession(world);
-  const data = createPresentationData(world);
+  const data = createHitRunHudPresentationData(world);
   session.theme.renderHud?.(painter, data.hud, data.frame);
   if (data.banner) session.theme.renderBanner?.(painter, data.banner, data.frame);
 }

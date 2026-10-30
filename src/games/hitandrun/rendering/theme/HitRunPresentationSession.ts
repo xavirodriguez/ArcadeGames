@@ -316,26 +316,16 @@ function createBridge(
           });
         }
 
-        const sectionLabel = hud.metrics?.wave.sectionLabel;
-        if (sectionLabel && sectionLabel !== "—") {
-          painter.fillText(sectionLabel, width * 0.5, 24, {
-            fontFamily: fonts.data ?? "monospace",
-            fontSize: 11,
-            fontWeight: "bold",
-            align: "center",
-            baseline: "middle",
-            color: palette.inkOrOutline,
-            alpha: frame.highContrast ? 1 : 0.78
-          });
-        }
       } finally {
         painter.restore();
       }
     },
     renderBanner(painter: PresentationPainter, banner: PresentationBannerSnapshot, frame: PresentationFrame): void {
-      if (banner.remainingSeconds <= 0) return;
-      const alpha = frame.reduceMotion ? 1 : Math.min(1, banner.remainingSeconds / 0.35);
-      const width = Math.min(180, frame.viewport.width - 32);
+      if (!Number.isFinite(banner.remainingSeconds) || banner.remainingSeconds <= 0) return;
+      const alpha = frame.reduceMotion
+        ? 1
+        : Math.min(1, Math.max(0, banner.remainingSeconds / 0.35));
+      const width = Math.max(0, Math.min(180, frame.viewport.width - 32));
       const height = 70;
 
       painter.save();

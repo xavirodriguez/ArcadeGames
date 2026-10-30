@@ -49,12 +49,12 @@ After the first push, `master` advanced through [PR #989](https://github.com/xav
 The first vertical slice now uses the backend-neutral theme contract:
 
 - ECS data is projected into typed HUD snapshots and a `PresentationFrame`.
-- The shared theme bridge renders health, score, section labels, game-over state and transition banners through `PresentationPainter`.
+- The shared theme bridge renders health, score and game-over state through `PresentationPainter`; Fantasy retains its top-bar HUD composition, while Sumi-e retains its seal/paper composition.
 - Canvas and Skia register distinct HUD effects backed by `CanvasPresentationPainter` and `SkiaPresentationPainter`.
 - The production HUD route no longer calls legacy `HitRunTheme.renderHud()` or `renderSectionBanner()`.
-- Theme descriptors declare `hud` and `banner` capabilities; unit tests exercise both registered themes plus reduced-motion and high-contrast behavior.
+- Theme descriptors declare `hud` and `banner` capabilities; unit tests exercise both themes, reduced-motion/high-contrast banner behavior, snapshot projection and optional-resource fallbacks.
 
-This is not full scene parity. Skia still uses its default typeface unless a font resolver is injected. Real-backend screenshots and migration of the backdrop, shadows, entities, projectiles and feedback remain open.
+This is not full scene parity. The production frame currently supplies default `reduceMotion=false` and `highContrast=false`; the theme supports those flags, but this route does not yet source user preferences. Skia still uses its default typeface unless a font resolver is injected. Real-backend screenshots and migration of the backdrop, shadows, entities, projectiles and feedback remain open.
 
 ## Next action
 

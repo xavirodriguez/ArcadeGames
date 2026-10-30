@@ -1,26 +1,24 @@
-import React, { useRef, useEffect, useState, useMemo } from "react";
+import React, { useRef, useEffect, useState, useMemo, useCallback } from "react";
 import { StyleSheet, Platform } from "react-native";
-import { World, GameLoop, CoreComponentRegistry } from "@tiny-aster/core";
+import { GameLoop } from "@tiny-aster/core";
+import type { CoreComponentRegistry, World } from "@tiny-aster/core";
 import { SkiaRenderer } from "@tiny-aster/renderer-skia";
 import { useFrameCallback, runOnJS } from "react-native-reanimated";
 
+type SkiaModule = typeof import("@shopify/react-native-skia");
+type SkiaPicture = React.ComponentProps<SkiaModule["Picture"]>["picture"];
+
 interface GameRendererProps<TRegistry extends CoreComponentRegistry> {
-  world: World<TRegistry> | (() => World<TRegistry>);
+  world: World<TRegistry>;
   gameLoop?: GameLoop;
   onInitialize?: (renderer: SkiaRenderer<TRegistry>) => void;
 }
 
 /**
- * React component for rendering the ECS world using Skia.
+ * React bridge for the imperative ECS renderer on native platforms.
  *
- * @remarks
- * This component acts as a bridge between the React lifecycle and the
- * simulation's rendering phase.
- *
- * @warning
- * **Loop Decoupling**: Rendering is decoupled from the logical simulation loop.
- * While the simulation may run at a fixed timestep, the renderer attempts to
- * match the device's native refresh rate.
+ * The renderer records each game-loop render into a Skia Picture, which the
+ * retained Canvas tree presents. Web continues to use CanvasRenderer.
  */
 export const GameRenderer = <TRegistry extends CoreComponentRegistry>({
   world,
@@ -31,81 +29,76 @@ export const GameRenderer = <TRegistry extends CoreComponentRegistry>({
   const onInitializeRef = useRef(onInitialize);
   onInitializeRef.current = onInitialize;
 
-  const [CanvasComponent, setCanvasComponent] = useState<React.ElementType | null>(null);
-  const [PictureComponent, setPictureComponent] = useState<React.ElementType | null>(null);
-  const [picture, setPicture] = useState<unknown>(null);
+  const [skiaModule, setSkiaModule] = useState<SkiaModule | null>(null);
+  const [picture, setPicture] = useState<SkiaPicture | null>(null);
 
   const gameLoop = useMemo(() => {
     if (propGameLoop) return propGameLoop;
     return new GameLoop({ manual: Platform.OS !== "web" });
   }, [propGameLoop]);
 
-  useFrameCallback((frameInfo) => {
-    if (Platform.OS === "web") return;
+  // Tick on the JS thread with the loop's own scheduler clock. Reanimated's
+  // frame timestamp can use a different time origin on native platforms.
+  const shouldUseNativeLoop = Platform.OS !== "web";
+  const tickGameLoop = useCallback(() => {
+    gameLoop.tick();
+  }, [gameLoop]);
 
-    if (gameLoop) {
-      runOnJS(gameLoop.tick.bind(gameLoop))(frameInfo.timestamp);
-    }
-  }, true);
+  useFrameCallback(() => {
+    "worklet";
+    runOnJS(tickGameLoop)();
+  }, shouldUseNativeLoop);
 
   useEffect(() => {
-    if ((Platform.OS as string) === "web") return;
+    if (Platform.OS === "web") return;
 
-    // Dynamically import Skia components for native
-    const { Canvas, Picture, Skia } = require("@shopify/react-native-skia");
-    setCanvasComponent(() => Canvas);
-    setPictureComponent(() => Picture);
+    const loadedSkia = require("@shopify/react-native-skia") as SkiaModule;
+    setSkiaModule(loadedSkia);
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS === "web" || !skiaModule) return;
 
     if (!rendererRef.current) {
       rendererRef.current = new SkiaRenderer<TRegistry>();
-      if (onInitializeRef.current) {
-        onInitializeRef.current(rendererRef.current);
-      }
+      onInitializeRef.current?.(rendererRef.current);
     }
 
-    if ((Platform.OS as string) !== "web") {
-      gameLoop.stopInternalLoop();
-    }
-
+    gameLoop.stopInternalLoop();
     if (!propGameLoop) {
       gameLoop.start();
     }
 
-    const unsub = gameLoop.subscribeRender(() => {
-      if (!rendererRef.current) return;
-      try {
-        const activeWorld = typeof world === "function" ? world() : world;
-        if (!activeWorld) return;
-        const screenConfig = activeWorld.getResource<{ width: number; height: number }>("ScreenConfig") || {
-          width: 800,
-          height: 600,
-        };
-        const recorder = Skia.PictureRecorder();
-        const canvas = recorder.begin(Skia.XYWHRect(0, 0, screenConfig.width, screenConfig.height));
-        rendererRef.current.render(activeWorld as any, canvas);
-        const pic = recorder.finishDrawing();
-        setPicture(pic);
-      } catch (err) {
-        console.warn("[GameRenderer] Skia frame render failed", err);
-      }
+    const unsubscribe = gameLoop.subscribeRender((alpha) => {
+      const renderer = rendererRef.current;
+      if (!renderer) return;
+
+      const screenConfig = world.getResource<{ width: number; height: number }>("ScreenConfig")
+        ?? { width: 800, height: 600 };
+      const recorder = skiaModule.Skia.PictureRecorder();
+      const recordingCanvas = recorder.beginRecording(
+        skiaModule.Skia.XYWHRect(0, 0, screenConfig.width, screenConfig.height)
+      );
+      renderer.render(world, recordingCanvas, alpha);
+      setPicture(recorder.finishRecordingAsPicture());
     });
 
     return () => {
-      unsub();
+      unsubscribe();
       if (!propGameLoop) {
         gameLoop.stop();
       }
     };
-  }, [gameLoop, propGameLoop, world]);
+  }, [gameLoop, propGameLoop, skiaModule, world]);
 
-  if (Platform.OS === "web" || !CanvasComponent) {
+  if (Platform.OS === "web" || !skiaModule) {
     return null;
   }
 
-  return (
-    <CanvasComponent style={styles.container}>
-      {picture && PictureComponent ? <PictureComponent picture={picture} /> : null}
-    </CanvasComponent>
+  return React.createElement(
+    skiaModule.Canvas,
+    { style: styles.container },
+    picture ? React.createElement(skiaModule.Picture, { picture }) : null
   );
 };
 

@@ -72,8 +72,8 @@ export class CreepDeathSystem extends System<TowerDefenseComponentRegistry, Towe
       entity,
       reward,
       creepType,
-      x: transform?.x,
-      y: transform?.y,
+      x: transform?.worldX ?? transform?.x,
+      y: transform?.worldY ?? transform?.y,
     });
     bus?.emit("enemy:destroyed", { entity, enemyType: creepType });
     const director = world.query("SpawnDirector")[0];

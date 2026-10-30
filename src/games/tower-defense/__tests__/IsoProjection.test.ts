@@ -3,6 +3,7 @@ import {
   worldToIso,
   isoToWorld,
   depthOf,
+  projectCircleRadii,
 } from "../rendering/IsoProjection";
 import { touchToCellCoords } from "../MapUtils";
 import type { TowerDefenseConfig } from "../types/TowerDefenseConfigSchema";
@@ -52,14 +53,76 @@ describe("IsoProjection", () => {
     }
   });
 
-  it("projects known grid cell corners correctly", () => {
-    const topLeftIso = worldToIso(isoCfg, 80, 40);
+  it("projects the complete grid bounding box inside and centered in the viewport", () => {
+    const left = mockConfig.GRID_OFFSET_X;
+    const top = mockConfig.GRID_OFFSET_Y;
+    const right = left + mockConfig.GRID_COLS * mockConfig.CELL_SIZE;
+    const bottom = top + mockConfig.GRID_ROWS * mockConfig.CELL_SIZE;
+    const corners = [
+      worldToIso(isoCfg, left, top),
+      worldToIso(isoCfg, right, top),
+      worldToIso(isoCfg, left, bottom),
+      worldToIso(isoCfg, right, bottom),
+    ];
+
+    const minX = Math.min(...corners.map((point) => point.x));
+    const maxX = Math.max(...corners.map((point) => point.x));
+    const minY = Math.min(...corners.map((point) => point.y));
+    const maxY = Math.max(...corners.map((point) => point.y));
+
+    expect(minX).toBeCloseTo(0, 5);
+    expect(maxX).toBeCloseTo(mockConfig.worldWidth, 5);
+    expect((minX + maxX) / 2).toBeCloseTo(mockConfig.worldWidth / 2, 5);
+    expect(minY).toBeGreaterThanOrEqual(0);
+    expect(maxY).toBeLessThanOrEqual(mockConfig.worldHeight);
+    expect((minY + maxY) / 2).toBeCloseTo(mockConfig.worldHeight / 2, 5);
+
+    const topLeftIso = worldToIso(isoCfg, left, top);
     expect(topLeftIso.x).toBeCloseTo(isoCfg.originX, 5);
     expect(topLeftIso.y).toBeCloseTo(isoCfg.originY, 5);
+  });
 
-    const bottomRightIso = worldToIso(isoCfg, 120, 80);
-    expect(bottomRightIso.x).toBeCloseTo(isoCfg.originX, 5);
-    expect(bottomRightIso.y).toBeCloseTo(isoCfg.originY + isoCfg.tileHeightHalf * 2, 5);
+  it("fits different grid ratios and viewport sizes without clipping", () => {
+    const variants = [
+      { ...mockConfig, ISO_TILE_RATIO: 1, worldWidth: 900, worldHeight: 700 },
+      { ...mockConfig, ISO_TILE_RATIO: 3, worldWidth: 640, worldHeight: 480 },
+      { ...mockConfig, ISO_TILE_RATIO: 1.5, worldWidth: 1024, worldHeight: 768 },
+    ];
+
+    for (const config of variants) {
+      const cfg = createIsoConfig(config);
+      const left = config.GRID_OFFSET_X;
+      const top = config.GRID_OFFSET_Y;
+      const right = left + config.GRID_COLS * config.CELL_SIZE;
+      const bottom = top + config.GRID_ROWS * config.CELL_SIZE;
+      const corners = [
+        worldToIso(cfg, left, top),
+        worldToIso(cfg, right, top),
+        worldToIso(cfg, left, bottom),
+        worldToIso(cfg, right, bottom),
+      ];
+      const minX = Math.min(...corners.map((point) => point.x));
+      const maxX = Math.max(...corners.map((point) => point.x));
+      const minY = Math.min(...corners.map((point) => point.y));
+      const maxY = Math.max(...corners.map((point) => point.y));
+
+      expect(minX).toBeGreaterThanOrEqual(-1e-8);
+      expect(maxX).toBeLessThanOrEqual(config.worldWidth + 1e-8);
+      expect(minY).toBeGreaterThanOrEqual(-1e-8);
+      expect(maxY).toBeLessThanOrEqual(config.worldHeight + 1e-8);
+      expect((minX + maxX) / 2).toBeCloseTo(config.worldWidth / 2, 5);
+      expect((minY + maxY) / 2).toBeCloseTo(config.worldHeight / 2, 5);
+    }
+  });
+
+  it("projects world-space circular ranges into exact isometric ellipse radii", () => {
+    const radii = projectCircleRadii(isoCfg, 100);
+    const fitScale = isoCfg.tileWidthHalf / isoCfg.cellSize;
+    expect(radii.rx).toBeCloseTo(Math.SQRT2 * 100 * fitScale, 5);
+    expect(radii.ry).toBeCloseTo(Math.SQRT2 * 50 * fitScale, 5);
+
+    const topdown = createIsoConfig({ ...mockConfig, projection: "topdown" });
+    expect(projectCircleRadii(topdown, 100)).toEqual({ rx: 100, ry: 100 });
   });
 
   it("calculates accurate 4-vertex bounding box and centers grid horizontally", () => {
@@ -142,7 +205,9 @@ describe("IsoProjection", () => {
     const bottomScreen = worldToIso(isoCfg, bottomWorldX, bottomWorldY);
 
     const touchX = bottomScreen.x;
-    const touchY = bottomScreen.y - 1;
+    // This exact vertex is shared by the target diamond and its diagonal neighbors.
+    // The input resolver must choose the upper/left tile consistently.
+    const touchY = bottomScreen.y;
 
     const coords = touchToCellCoords(touchX, touchY, 800, 600, mockConfig, layout);
     expect(coords).toEqual({ row: targetRow, col: targetCol });

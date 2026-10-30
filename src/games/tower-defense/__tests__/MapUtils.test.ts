@@ -1,4 +1,5 @@
 import { touchToCellCoords, cellCenter, worldToCellCoords, isBuildable, fitContain } from "../MapUtils";
+import { createIsoConfig, worldToIso } from "../rendering/IsoProjection";
 import towerDefenseConfigRaw from "../config/tower-defense.json";
 import type { TowerDefenseConfig } from "../types/TowerDefenseConfigSchema";
 
@@ -32,6 +33,42 @@ describe("MapUtils touch to cell conversion", () => {
     const cell = touchToCellCoords(280, 280, 1600, 1200, topdownConfig, layout);
     expect(cell.col).toBe(1);
     expect(cell.row).toBe(2);
+    stepX: config.CELL_SIZE,
+    stepY: config.CELL_SIZE,
+    offsetX: config.GRID_OFFSET_X,
+    offsetY: config.GRID_OFFSET_Y,
+  };
+
+  const projectedCellCenter = (col: number, row: number) => {
+    const center = cellCenter(col, row, layout);
+    return worldToIso(createIsoConfig(config), center.x, center.y);
+  };
+
+  it("converts the projected center of cell (1, 2) at native viewport size", () => {
+    const touch = projectedCellCenter(1, 2);
+    const cell = touchToCellCoords(touch.x, touch.y, 800, 600, config, layout);
+    expect(cell).toEqual({ col: 1, row: 2 });
+  });
+
+  it("converts touch correctly when the isometric canvas is scaled 2x", () => {
+    const touch = projectedCellCenter(1, 2);
+    const cell = touchToCellCoords(touch.x * 2, touch.y * 2, 1600, 1200, config, layout);
+    expect(cell).toEqual({ col: 1, row: 2 });
+  });
+
+  it("does not reinterpret touches outside the isometric grid as top-down cells", () => {
+    const outsideWorldPoint = worldToIso(createIsoConfig(config), 40, 240);
+    expect(worldToCellCoords(outsideWorldPoint.x, outsideWorldPoint.y, layout).col).toBeGreaterThanOrEqual(0);
+    expect(worldToCellCoords(outsideWorldPoint.x, outsideWorldPoint.y, layout).row).toBeGreaterThanOrEqual(0);
+
+    const cell = touchToCellCoords(outsideWorldPoint.x, outsideWorldPoint.y, 800, 600, config, layout);
+    expect(cell).toEqual({ row: -1, col: -1 });
+  });
+
+  it("preserves top-down touch mapping when projection is disabled", () => {
+    const topdownConfig: TowerDefenseConfig = { ...config, projection: "topdown" };
+    const cell = touchToCellCoords(140, 140, 800, 600, topdownConfig, layout);
+    expect(cell).toEqual({ col: 1, row: 2 });
   });
 
   it("computes cell center world position", () => {
@@ -78,6 +115,13 @@ describe("MapUtils touch to cell conversion", () => {
     const cell400 = touchToCellCoords(90, 70, 400, 300, topdownConfig, layout);
     expect(cell400.col).toBe(2);
     expect(cell400.row).toBe(2);
+  it("maps touch to cell correctly with fitted isometric canvas size", () => {
+    const touch = projectedCellCenter(2, 2);
+    const cell800 = touchToCellCoords(touch.x, touch.y, 800, 600, config, layout);
+    expect(cell800).toEqual({ col: 2, row: 2 });
+
+    const cell400 = touchToCellCoords(touch.x * 0.5, touch.y * 0.5, 400, 300, config, layout);
+    expect(cell400).toEqual({ col: 2, row: 2 });
   });
 
   it("maps touch to cell correctly in isometric projection", () => {

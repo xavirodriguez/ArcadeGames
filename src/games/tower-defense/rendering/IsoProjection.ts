@@ -40,29 +40,8 @@ export function createIsoConfig(config: Partial<TowerDefenseConfig>): IsoConfig 
   const ratio = positiveFiniteOr(config.ISO_TILE_RATIO, 2);
   const gridOffsetX = Number.isFinite(config.GRID_OFFSET_X) ? (config.GRID_OFFSET_X as number) : 80;
   const gridOffsetY = Number.isFinite(config.GRID_OFFSET_Y) ? (config.GRID_OFFSET_Y as number) : 40;
-  const cols = Number.isFinite(config.GRID_COLS) && (config.GRID_COLS as number) > 0 ? (config.GRID_COLS as number) : 16;
-  const rows = Number.isFinite(config.GRID_ROWS) && (config.GRID_ROWS as number) > 0 ? (config.GRID_ROWS as number) : 12;
-
-  const projectedWidthAtUnitScale = (cols + rows) * cellSize;
-  const projectedHeightAtUnitScale = projectedWidthAtUnitScale / ratio;
-
-  const worldWidth = Number.isFinite(config.worldWidth) && (config.worldWidth as number) > 0
-    ? (config.worldWidth as number)
-    : projectedWidthAtUnitScale;
-  const worldHeight = Number.isFinite(config.worldHeight) && (config.worldHeight as number) > 0
-    ? (config.worldHeight as number)
-    : projectedHeightAtUnitScale;
-
-  const fitScale = Math.min(
-    1,
-    worldWidth / projectedWidthAtUnitScale,
-    worldHeight / projectedHeightAtUnitScale
-  );
-
-  const tileWidthHalf = cellSize * fitScale;
-  const tileHeightHalf = tileWidthHalf / ratio;
-  const projectedWidth = (cols + rows) * tileWidthHalf;
-  const projectedHeight = (cols + rows) * tileHeightHalf;
+  const cols = positiveIntegerOr(config.GRID_COLS, 16);
+  const rows = positiveIntegerOr(config.GRID_ROWS, 12);
 
   if (!enabled) {
     const minX = gridOffsetX;
@@ -89,46 +68,32 @@ export function createIsoConfig(config: Partial<TowerDefenseConfig>): IsoConfig 
       },
     };
   }
-  const worldWidth = Number.isFinite(config.worldWidth) && (config.worldWidth as number) > 0 ? (config.worldWidth as number) : 800;
 
+  const worldWidth = positiveFiniteOr(config.worldWidth, 800);
+  const worldHeight = positiveFiniteOr(config.worldHeight, 600);
   const gridSpan = cols + rows;
-  const maxTileWidthByViewport = worldWidth / gridSpan;
-  const maxTileWidthByViewportHeight = (worldHeight * ratio) / gridSpan;
-  const tileWidthHalf = Math.min(maxTileWidthByViewport, maxTileWidthByViewportHeight);
-  const tileHeightHalf = tileWidthHalf / ratio;
+  const projectedWidthAtUnitScale = gridSpan * cellSize;
+  const projectedHeightAtUnitScale = projectedWidthAtUnitScale / ratio;
 
-  // Center the projected four-corner bounding box without changing its aspect ratio.
+  // Keep logical cell size as an upper bound and fit both viewport dimensions.
+  const fitScale = Math.min(
+    1,
+    worldWidth / projectedWidthAtUnitScale,
+    worldHeight / projectedHeightAtUnitScale
+  );
+  const tileWidthHalf = cellSize * fitScale;
+  const tileHeightHalf = tileWidthHalf / ratio;
+  const projectedWidth = gridSpan * tileWidthHalf;
+  const projectedHeight = gridSpan * tileHeightHalf;
+
+  // Center the projected four-corner footprint on both viewport axes.
   const originX = worldWidth / 2 - ((cols - rows) * tileWidthHalf) / 2;
-  const originY = (worldHeight - gridSpan * tileHeightHalf) / 2;
+  const originY = (worldHeight - projectedHeight) / 2;
 
   const minX = originX - rows * tileWidthHalf;
   const maxX = originX + cols * tileWidthHalf;
   const minY = originY;
-  const maxY = originY + (cols + rows) * tileHeightHalf;
-  if (!enabled) {
-    const minX = gridOffsetX;
-    const maxX = gridOffsetX + cols * cellSize;
-    const minY = gridOffsetY;
-    const maxY = gridOffsetY + rows * cellSize;
-    return {
-      tileWidthHalf,
-      tileHeightHalf,
-      originX: gridOffsetX,
-      originY: gridOffsetY,
-      cellSize,
-      gridOffsetX,
-      gridOffsetY,
-      enabled: false,
-      bounds: {
-        minX,
-        maxX,
-        minY,
-        maxY,
-        width: maxX - minX,
-        height: maxY - minY,
-      },
-    };
-  }
+  const maxY = originY + projectedHeight;
 
   return {
     tileWidthHalf,
@@ -144,8 +109,8 @@ export function createIsoConfig(config: Partial<TowerDefenseConfig>): IsoConfig 
       maxX,
       minY,
       maxY,
-      width: maxX - minX,
-      height: maxY - minY,
+      width: projectedWidth,
+      height: projectedHeight,
     },
   };
 }

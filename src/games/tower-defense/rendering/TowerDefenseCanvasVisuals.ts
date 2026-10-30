@@ -5,7 +5,6 @@ import type {
   GameStateComponent,
   TileGrid,
   ThreatInfo,
-  TowerCatalog,
   TowerDefenseVisualEffects,
 } from "../types/TowerDefenseTypes";
 import type { GridLayout } from "../../shared/grid/GridTypes";
@@ -18,6 +17,9 @@ import {
   resolveTowerWeaponDrawSetup,
   resolveTdLandmarkSetup,
   resolveTdMapBackgroundContext,
+  resolveTdScreenPosition,
+  resolveTdProjectedBounds,
+  resolveTowerPlacementPreviewSetup,
   forEachTileGridCell,
   resolveEntityIsometricOffset,
   getEntityVisualHeight,
@@ -28,7 +30,7 @@ type TDWorld = World<TowerDefenseComponentRegistry>;
 import { isPaperDuskTheme } from "./TowerDefenseVisualHelpers";
 import { createSpriteAnimator, drawSpriteCanvas } from "../../shared/sprites";
 import { TOWER_DEFENSE_VISUAL_TOKENS } from "../presentation/TowerDefenseVisualTokens";
-import { worldToIso, isoToWorld } from "./IsoProjection";
+import { projectCircleRadii, projectVector } from "./IsoProjection";
 
 const TOWER_BASIC_SPRITE = createSpriteAnimator("tower_basic_art");
 const TOWER_SNIPER_SPRITE = createSpriteAnimator("tower_sniper_art");
@@ -248,11 +250,12 @@ function drawTowerWithOffset(
   entity: number,
   drawer: () => void
 ): void {
-  const { isoCfg } = resolveEntityIsometricOffset(world, entity, "tower");
+  const { isoCfg, worldX, worldY, screenX, screenY } = resolveEntityIsometricOffset(world, entity, "tower");
 
   ctx.save();
   if (isoCfg.enabled) {
     const heightPx = getEntityVisualHeight("tower");
+    ctx.translate(screenX - worldX, screenY - worldY);
     drawGroundShadowCanvas(ctx, 28, heightPx, true);
     ctx.translate(0, -heightPx);
   }
@@ -523,9 +526,10 @@ export const drawCreepGrunt: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseC
     const { size, fill, stroke } = resolveCreepVisualState(world, entity, 12, "grunt");
     const animation = resolveCreepAnimationState(world, entity, "grunt");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
-    const { isoCfg } = resolveEntityIsometricOffset(world, entity, "creep");
+    const { isoCfg, worldX, worldY, screenX, screenY } = resolveEntityIsometricOffset(world, entity, "creep");
 
     ctx.save();
+    if (isoCfg.enabled) ctx.translate(screenX - worldX, screenY - worldY);
     ctx.translate(animation.offsetX, animation.offsetY);
     ctx.rotate(animation.rotation);
     ctx.scale(animation.scaleX, animation.scaleY);
@@ -540,9 +544,10 @@ export const drawCreepFast: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
     const { size, fill, stroke } = resolveCreepVisualState(world, entity, 10, "fast");
     const animation = resolveCreepAnimationState(world, entity, "fast");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
-    const { isoCfg } = resolveEntityIsometricOffset(world, entity, "creep");
+    const { isoCfg, worldX, worldY, screenX, screenY } = resolveEntityIsometricOffset(world, entity, "creep");
 
     ctx.save();
+    if (isoCfg.enabled) ctx.translate(screenX - worldX, screenY - worldY);
     ctx.translate(animation.offsetX, animation.offsetY);
     ctx.rotate(animation.rotation);
     ctx.scale(animation.scaleX, animation.scaleY);
@@ -558,9 +563,10 @@ export const drawCreepTank: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
     const isPaperDusk = isPaperDuskTheme(world);
     const animation = resolveCreepAnimationState(world, entity, "tank");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
-    const { isoCfg } = resolveEntityIsometricOffset(world, entity, "creep");
+    const { isoCfg, worldX, worldY, screenX, screenY } = resolveEntityIsometricOffset(world, entity, "creep");
 
     ctx.save();
+    if (isoCfg.enabled) ctx.translate(screenX - worldX, screenY - worldY);
     ctx.translate(animation.offsetX, animation.offsetY);
     ctx.rotate(animation.rotation);
     ctx.scale(animation.scaleX, animation.scaleY);
@@ -583,9 +589,10 @@ export const drawCreepBoss: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
     const isPaperDusk = isPaperDuskTheme(world);
     const animation = resolveCreepAnimationState(world, entity, "boss");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
-    const { isoCfg } = resolveEntityIsometricOffset(world, entity, "creep");
+    const { isoCfg, worldX, worldY, screenX, screenY } = resolveEntityIsometricOffset(world, entity, "creep");
 
     ctx.save();
+    if (isoCfg.enabled) ctx.translate(screenX - worldX, screenY - worldY);
     ctx.translate(animation.offsetX, animation.offsetY);
     ctx.rotate(animation.rotation);
     ctx.scale(animation.scaleX, animation.scaleY);
@@ -616,13 +623,20 @@ export const drawCreepBoss: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
 export const drawTowerProjectile: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
   draw(ctx, world, entity) {
     const { size, color } = resolveTowerProjectileDrawSetup(world, entity);
+    const projection = resolveEntityIsometricOffset(world, entity, "projectile");
+    if (projection.isoCfg.enabled) {
+      ctx.translate(projection.screenX - projection.worldX, projection.screenY - projection.worldY);
+    }
 
     const velocity = world.getComponent(entity, "Velocity");
-    if (velocity) {
-      const speed = Math.hypot(velocity.vx, velocity.vy);
+    const projectedVelocity = velocity && projection.isoCfg.enabled
+      ? projectVector(projection.isoCfg, velocity.vx, velocity.vy)
+      : velocity ? { x: velocity.vx, y: velocity.vy } : null;
+    if (projectedVelocity) {
+      const speed = Math.hypot(projectedVelocity.x, projectedVelocity.y);
       if (speed > 1) {
-        const dirX = velocity.vx / speed;
-        const dirY = velocity.vy / speed;
+        const dirX = projectedVelocity.x / speed;
+        const dirY = projectedVelocity.y / speed;
         const trailLength = Math.min(18, Math.max(7, size * 2.5));
         ctx.save();
         ctx.lineCap = "round";
@@ -665,12 +679,19 @@ function drawTdAmbientStarCanvas(
   row: number,
   col: number,
   elapsedSeconds: number,
-  isPaperDusk: boolean
+  isPaperDusk: boolean,
+  isoEnabled = false
 ): void {
   const seed = (row * 73 + col * 37 + 19) >>> 0;
   if (seed % 3 !== 0) return;
-  const starX = x + 5 + (seed % Math.max(1, Math.floor(width - 10)));
-  const starY = y + 5 + ((seed * 13) % Math.max(1, Math.floor(height - 10)));
+  const normalizedX = ((seed % 97) / 96) - 0.5;
+  const normalizedY = (((seed * 13) % 89) / 88) - 0.5;
+  const starX = isoEnabled
+    ? x + normalizedX * width * 0.5
+    : x + 5 + (seed % Math.max(1, Math.floor(width - 10)));
+  const starY = isoEnabled
+    ? y + normalizedY * height * 0.5
+    : y + 5 + ((seed * 13) % Math.max(1, Math.floor(height - 10)));
   const pulse = 0.25 + 0.55 * (0.5 + 0.5 * Math.sin(elapsedSeconds * 2.6 + seed * 0.17));
   ctx.save();
   ctx.globalAlpha = pulse;
@@ -688,17 +709,22 @@ function drawTowerDefenseVfxCanvas(
   world: TDWorld,
   layout: GridLayout,
   tileGrid: TileGrid,
-  isPaperDusk: boolean
+  isPaperDusk: boolean,
+  isoCfg: import("./IsoProjection").IsoConfig
 ): void {
   const state = world.getResource<TowerDefenseVisualEffects>("TowerDefenseVisualEffects");
   const gameState = world.getSingleton("GameState") as GameStateComponent | undefined;
-  const centerX = layout.offsetX + (tileGrid.cols * layout.stepX) / 2;
-  const bannerY = Math.max(8, layout.offsetY - 10);
+  const projectedBounds = resolveTdProjectedBounds(layout, tileGrid, isoCfg);
+  const centerX = projectedBounds.centerX;
+  const bannerY = Math.max(8, projectedBounds.minY - (isoCfg.enabled ? 12 : 10));
 
   if (state) {
     for (const effect of state.effects) {
       const progress = Math.max(0, Math.min(1, effect.ageSeconds / effect.durationSeconds));
       const fade = progress > 0.68 ? (1 - progress) / 0.32 : 1;
+      const effectPosition = resolveTdScreenPosition(isoCfg, effect.x, effect.y);
+      const effectX = effectPosition.x;
+      const effectY = effectPosition.y;
       ctx.save();
       ctx.globalAlpha = Math.max(0, Math.min(1, fade));
 
@@ -708,14 +734,14 @@ function drawTowerDefenseVfxCanvas(
         ctx.strokeStyle = effect.color;
         ctx.lineWidth = Math.max(1, 2.5 * (1 - progress));
         ctx.beginPath();
-        ctx.arc(effect.x, effect.y, 4 + progress * 12, 0, Math.PI * 2);
+        ctx.arc(effectX, effectY, 4 + progress * 12, 0, Math.PI * 2);
         ctx.stroke();
         ctx.fillStyle = effect.color;
         for (let index = 0; index < count; index++) {
           const angle = (index / count) * Math.PI * 2 + effect.id * 0.37;
           const distance = radius * (0.65 + (index % 3) * 0.18);
-          const sparkX = effect.x + Math.cos(angle) * distance;
-          const sparkY = effect.y + Math.sin(angle) * distance;
+          const sparkX = effectX + Math.cos(angle) * distance;
+          const sparkY = effectY + Math.sin(angle) * distance;
           ctx.save();
           ctx.translate(sparkX, sparkY);
           ctx.rotate(angle);
@@ -724,12 +750,12 @@ function drawTowerDefenseVfxCanvas(
         }
         ctx.fillStyle = "#fff4db";
         ctx.beginPath();
-        ctx.arc(effect.x, effect.y, Math.max(1, 3 * (1 - progress)), 0, Math.PI * 2);
+        ctx.arc(effectX, effectY, Math.max(1, 3 * (1 - progress)), 0, Math.PI * 2);
         ctx.fill();
       } else if (effect.kind === "gold-reward") {
         const rise = progress * 28;
-        const coinX = effect.x;
-        const coinY = effect.y - rise;
+        const coinX = effectX;
+        const coinY = effectY - rise;
         ctx.fillStyle = "#ffd54f";
         ctx.strokeStyle = "#815f18";
         ctx.lineWidth = 1.4;
@@ -756,7 +782,7 @@ function drawTowerDefenseVfxCanvas(
           ctx.strokeStyle = effect.color;
           ctx.lineWidth = 3 - ringProgress * 2;
           ctx.beginPath();
-          ctx.arc(effect.x, effect.y, 6 + ringProgress * (34 + ring * 9), 0, Math.PI * 2);
+          ctx.arc(effectX, effectY, 6 + ringProgress * (34 + ring * 9), 0, Math.PI * 2);
           ctx.stroke();
         }
       } else if (effect.kind === "phase-banner") {
@@ -800,6 +826,14 @@ function drawTowerDefenseVfxCanvas(
     ctx.restore();
   }
 }
+
+export const drawTdVfxCanvas: EffectDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
+  draw(ctx, world: TDWorld) {
+    const bgCtx = resolveTdMapBackgroundContext(world);
+    if (!bgCtx) return;
+    drawTowerDefenseVfxCanvas(ctx, world, bgCtx.layout, bgCtx.tileGrid, isPaperDuskTheme(world), bgCtx.isoCfg);
+  },
+};
 
 function drawTdLandmarkCanvas(
   ctx: CanvasRenderingContext2D,
@@ -974,7 +1008,7 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
       }
 
       if (tile === "blocked") {
-        drawTdAmbientStarCanvas(ctx, x, y, isoCfg.enabled ? isoCfg.tileWidthHalf * 2 : layout.stepX, isoCfg.enabled ? isoCfg.tileHeightHalf * 2 : layout.stepY, row, col, vfxElapsed, isPaperDusk);
+        drawTdAmbientStarCanvas(ctx, x, y, isoCfg.enabled ? isoCfg.tileWidthHalf * 2 : layout.stepX, isoCfg.enabled ? isoCfg.tileHeightHalf * 2 : layout.stepY, row, col, vfxElapsed, isPaperDusk, isoCfg.enabled);
       }
 
       if (tile === "spawn" || tile === "base") {
@@ -984,46 +1018,15 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
 
     drawPathDirectionMarkersCanvas(ctx, world, isPaperDusk, isoCfg);
 
-    const playerEntity = world.query("Player")[0];
-    const catalog = world.getResource<TowerCatalog>("TowerCatalog");
     const gs = world.getSingleton("GameState") as GameStateComponent | undefined;
+    const preview = resolveTowerPlacementPreviewSetup(world, layout, tileGrid, isoCfg);
 
-    if (playerEntity !== undefined) {
-      const player = world.getComponent(playerEntity, "Player");
-      const input = world.getComponent(playerEntity, "Input");
-      const towerType = player?.selectedTowerType ?? gs?.selectedTowerType ?? "basic";
-      const def = catalog?.[towerType];
-
-      if (input && def) {
-        let col: number;
-        let row: number;
-        if (isoCfg.enabled) {
-          const worldP = isoToWorld(isoCfg, input.cursorX, input.cursorY);
-          col = Math.floor((worldP.x - layout.offsetX) / layout.stepX);
-          row = Math.floor((worldP.y - layout.offsetY) / layout.stepY);
-        } else {
-          col = Math.floor((input.cursorX - layout.offsetX) / layout.stepX);
-          row = Math.floor((input.cursorY - layout.offsetY) / layout.stepY);
-        }
-
-        if (row >= 0 && row < tileGrid.rows && col >= 0 && col < tileGrid.cols) {
-          const cellCenterX = layout.offsetX + (col + 0.5) * layout.stepX;
-          const cellCenterY = layout.offsetY + (row + 0.5) * layout.stepY;
-          const isoCenter = isoCfg.enabled ? worldToIso(isoCfg, cellCenterX, cellCenterY) : { x: cellCenterX, y: cellCenterY };
-
-          const buildable = tileGrid.tiles[row]?.[col] === "buildable";
-          const canAfford = (gs?.gold ?? 0) >= def.cost;
-          const occupied = world.query("Tower").some((e) => {
-            const tw = world.getComponent(e, "Tower");
-            return tw && tw.col === col && tw.row === row;
-          });
-          const canBuild = buildable && canAfford && !occupied;
-
+    if (preview) {
+          const { col, row, towerType, definition: def, center: isoCenter, buildable, canAfford, canBuild } = preview;
           ctx.save();
           ctx.beginPath();
           if (isoCfg.enabled) {
-            const rx = def.range;
-            const ry = rx * (isoCfg.tileHeightHalf / isoCfg.tileWidthHalf);
+            const { rx, ry } = projectCircleRadii(isoCfg, def.range);
             ctx.ellipse(isoCenter.x, isoCenter.y, rx, ry, 0, 0, Math.PI * 2);
           } else {
             ctx.arc(isoCenter.x, isoCenter.y, def.range, 0, Math.PI * 2);
@@ -1074,8 +1077,6 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
             ctx.fillText("NO GOLD", isoCenter.x, isoCenter.y - (isoCfg.enabled ? isoCfg.tileHeightHalf + 10 : 20));
           }
           ctx.restore();
-        }
-      }
     }
 
     if (world.getResource<boolean>("ShowTowerDefenseDebugHud") === true) {
@@ -1112,6 +1113,6 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
       }
     }
 
-    drawTowerDefenseVfxCanvas(ctx, world, layout, tileGrid, isPaperDusk);
+
   },
 };

@@ -97,8 +97,8 @@ export class TowerDefenseVfxSystem extends System<TowerDefenseComponentRegistry,
     const killedUnsubscribe = bus.on("creep:killed", (event) => {
       if (world.isReSimulating) return;
       const transform = world.getComponent(event.entity, "Transform");
-      const x = event.x ?? transform?.x ?? 0;
-      const y = event.y ?? transform?.y ?? 0;
+      const x = event.x ?? transform?.worldX ?? transform?.x ?? 0;
+      const y = event.y ?? transform?.worldY ?? transform?.y ?? 0;
       const color = VFX_COLORS[event.creepType as keyof typeof VFX_COLORS] ?? VFX_COLORS.grunt;
 
       this.enqueue(world, {
@@ -125,7 +125,11 @@ export class TowerDefenseVfxSystem extends System<TowerDefenseComponentRegistry,
       const transform = world.getComponent(event.entity, "Transform");
       const position = event.x !== undefined && event.y !== undefined
         ? { x: event.x, y: event.y }
-        : this.resolveBasePosition(world, transform?.x ?? 0, transform?.y ?? 0);
+        : this.resolveBasePosition(
+          world,
+          transform?.worldX ?? transform?.x ?? 0,
+          transform?.worldY ?? transform?.y ?? 0
+        );
       this.enqueue(world, {
         kind: "base-hit",
         x: position.x,

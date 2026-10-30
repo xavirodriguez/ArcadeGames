@@ -3,6 +3,7 @@ import { View, StyleSheet, Platform } from "react-native";
 import { World, GameLoop, CoreComponentRegistry } from "@tiny-aster/core";
 import { CanvasRenderer as EngineCanvasRenderer } from "@tiny-aster/renderer-canvas";
 import { useGameWheel } from "@/src/hooks/useGameWheel";
+import { subscribeRenderFrames } from "@/src/games/shared/rendering/subscribeRenderFrames";
 
 interface CanvasRendererProps<TRegistry extends CoreComponentRegistry> {
   world: World<TRegistry> | (() => World<TRegistry>);
@@ -28,6 +29,8 @@ export const CanvasRenderer = <TRegistry extends CoreComponentRegistry>({
 }: CanvasRendererProps<TRegistry>) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<EngineCanvasRenderer<TRegistry> | null>(null);
+  const onInitializeRef = useRef(onInitialize);
+  onInitializeRef.current = onInitialize;
   const [dpr, setDpr] = useState(() => (typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1));
 
   // Scoped wheel event listener to handle scroll blocking and custom wheel mechanics
@@ -74,21 +77,24 @@ export const CanvasRenderer = <TRegistry extends CoreComponentRegistry>({
       rendererRef.current = new EngineCanvasRenderer();
     }
 
-    if (onInitialize && rendererRef.current) {
-      onInitialize(rendererRef.current);
+    if (rendererRef.current) {
+      onInitializeRef.current?.(rendererRef.current);
     }
 
-    const unsub = gameLoop?.subscribeRender((_alpha) => {
-      if (rendererRef.current && ctx) {
-        const activeWorld = typeof world === "function" ? world() : world;
-        rendererRef.current.render(activeWorld, ctx);
-      }
-    });
+    const unsub = gameLoop
+      ? subscribeRenderFrames(
+          gameLoop,
+          () => (typeof world === "function" ? world() : world),
+          (activeWorld) => {
+            rendererRef.current?.render(activeWorld, ctx);
+          }
+        )
+      : undefined;
 
     return () => {
       unsub?.();
     };
-  }, [world, gameLoop, onInitialize]);
+  }, [world, gameLoop]);
 
   if (Platform.OS !== "web") {
     return null;

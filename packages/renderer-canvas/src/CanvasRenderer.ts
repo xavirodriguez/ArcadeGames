@@ -71,6 +71,7 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
   private entriesBuffer: RenderQueueEntry[] = [];
   public readonly type = "canvas";
   private readonly backgroundEffects: Map<string, EffectDrawer<CanvasRenderingContext2D, TRegistry>> = new Map();
+  private readonly foregroundEffects: Map<string, EffectDrawer<CanvasRenderingContext2D, TRegistry>> = new Map();
   private readonly frameTimeMeter = new FrameTimeMeter(300);
 
   private lastCanvas: HTMLCanvasElement | null = null;
@@ -170,6 +171,10 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
 
   public registerBackgroundEffect(name: string, drawer: EffectDrawer<CanvasRenderingContext2D, TRegistry>): void {
     this.backgroundEffects.set(name, drawer);
+  }
+
+  public registerForegroundEffect(name: string, drawer: EffectDrawer<CanvasRenderingContext2D, TRegistry>): void {
+    this.foregroundEffects.set(name, drawer);
   }
 
   public render(world: World<TRegistry>, ctx: CanvasRenderingContext2D): void {
@@ -419,6 +424,11 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
       }
 
       ctx.restore();
+    }
+
+    // Foreground effects share the active camera transform and draw above entities.
+    for (const drawer of this.foregroundEffects.values()) {
+      drawer.draw(ctx, world);
     }
 
     ctx.restore(); // camera restore

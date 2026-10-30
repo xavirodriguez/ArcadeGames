@@ -1,5 +1,6 @@
 import {
   NEON_THEME_TYPOGRAPHY,
+  SUMI_FONT_MANIFEST,
   SUMI_THEME_TYPOGRAPHY,
   canvasFontString,
   mapSizeToStep,
@@ -28,5 +29,14 @@ describe("ThemeTypography D4 Option A", () => {
     expect(mapSizeToStep(16)).toBe("md");
     expect(mapSizeToStep(18)).toBe("lg");
     expect(mapSizeToStep(22)).toBe("xl");
+  });
+
+  it("SUMI_FONT_MANIFEST points at public/assets/fonts *.ttf", () => {
+    for (const entry of SUMI_FONT_MANIFEST) {
+      expect(entry.localPath).toMatch(/^public\/assets\/fonts\/.+\.ttf$/);
+    }
+    expect(SUMI_FONT_MANIFEST.map((e) => e.family).sort()).toEqual(
+      ["Noto Serif JP", "Yuji Boku"].sort()
+    );
   });
 });

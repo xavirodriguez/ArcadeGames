@@ -1,38 +1,70 @@
 import { touchToCellCoords, cellCenter, worldToCellCoords, isBuildable, fitContain } from "../MapUtils";
+import { createIsoConfig, worldToIso } from "../rendering/IsoProjection";
 import towerDefenseConfigRaw from "../config/tower-defense.json";
 import type { TowerDefenseConfig } from "../types/TowerDefenseConfigSchema";
+import type { TileGrid } from "../types/TowerDefenseTypes";
 
 describe("MapUtils touch to cell conversion", () => {
-  const config = towerDefenseConfigRaw as TowerDefenseConfig;
+  const topdownConfig: TowerDefenseConfig = {
+    ...(towerDefenseConfigRaw as TowerDefenseConfig),
+    projection: "topdown",
+  };
+  const isoConfig: TowerDefenseConfig = {
+    ...(towerDefenseConfigRaw as TowerDefenseConfig),
+    projection: "isometric",
+  };
+  const config = isoConfig;
   const layout = {
-    stepX: config.CELL_SIZE, // 40
-    stepY: config.CELL_SIZE, // 40
-    offsetX: config.GRID_OFFSET_X, // 80
-    offsetY: config.GRID_OFFSET_Y, // 40
+    stepX: config.CELL_SIZE,
+    stepY: config.CELL_SIZE,
+    offsetX: config.GRID_OFFSET_X,
+    offsetY: config.GRID_OFFSET_Y,
   };
 
-  it("converts touch at center of cell (1, 2) when canvas matches world dimensions (800x600)", () => {
-    // Cell (col 1, row 2) center:
-    // worldX = 80 + 1 * 40 + 20 = 140
-    // worldY = 40 + 2 * 40 + 20 = 140
-    const cell = touchToCellCoords(140, 140, 800, 600, config, layout);
-    expect(cell.col).toBe(1);
-    expect(cell.row).toBe(2);
+  const projectedCellCenter = (col: number, row: number) => {
+    const center = cellCenter(col, row, layout);
+    return worldToIso(createIsoConfig(isoConfig), center.x, center.y);
+  };
+
+  it("converts touch at center of cell (1, 2) in top-down projection", () => {
+    const cell = touchToCellCoords(140, 140, 800, 600, topdownConfig, layout);
+    expect(cell).toEqual({ col: 1, row: 2 });
   });
 
-  it("converts touch correctly when canvas is scaled 2x (1600x1200)", () => {
-    // Canvas scaled 2x -> touch at (280, 280) corresponds to world (140, 140) -> cell (col 1, row 2)
-    const cell = touchToCellCoords(280, 280, 1600, 1200, config, layout);
-    expect(cell.col).toBe(1);
-    expect(cell.row).toBe(2);
+  it("converts touch correctly when the top-down canvas is scaled 2x", () => {
+    const cell = touchToCellCoords(280, 280, 1600, 1200, topdownConfig, layout);
+    expect(cell).toEqual({ col: 1, row: 2 });
+  });
+
+  it("converts the projected center of cell (1, 2) at native viewport size", () => {
+    const touch = projectedCellCenter(1, 2);
+    const cell = touchToCellCoords(touch.x, touch.y, 800, 600, isoConfig, layout);
+    expect(cell).toEqual({ col: 1, row: 2 });
+  });
+
+  it("converts touch correctly when the isometric canvas is scaled 2x", () => {
+    const touch = projectedCellCenter(1, 2);
+    const cell = touchToCellCoords(touch.x * 2, touch.y * 2, 1600, 1200, isoConfig, layout);
+    expect(cell).toEqual({ col: 1, row: 2 });
+  });
+
+  it("does not reinterpret touches outside the isometric grid as top-down cells", () => {
+    const outsideWorldPoint = worldToIso(createIsoConfig(isoConfig), 40, 240);
+    expect(worldToCellCoords(outsideWorldPoint.x, outsideWorldPoint.y, layout).col).toBeGreaterThanOrEqual(0);
+    expect(worldToCellCoords(outsideWorldPoint.x, outsideWorldPoint.y, layout).row).toBeGreaterThanOrEqual(0);
+
+    const cell = touchToCellCoords(outsideWorldPoint.x, outsideWorldPoint.y, 800, 600, isoConfig, layout);
+    expect(cell).toEqual({ row: -1, col: -1 });
+  });
+
+  it("preserves top-down touch mapping when projection is disabled", () => {
+    const cell = touchToCellCoords(140, 140, 800, 600, topdownConfig, layout);
+    expect(cell).toEqual({ col: 1, row: 2 });
   });
 
   it("computes cell center world position", () => {
     const pos = cellCenter(3, 4, layout);
-    // col 3: 80 + 3 * 40 + 20 = 220
-    // row 4: 40 + 4 * 40 + 20 = 220
-    expect(pos.x).toBe(220);
-    expect(pos.y).toBe(220);
+    expect(pos).toEqual({ x: 220, y: 220 });
   });
 
   describe("fitContain aspect ratio scaling", () => {
@@ -60,25 +92,28 @@ describe("MapUtils touch to cell conversion", () => {
     });
   });
 
-  it("maps touch to cell correctly with fitted canvas size", () => {
-    // Cell col 2, row 2 center world: (80 + 2*40 + 20, 40 + 2*40 + 20) = (180, 140)
-    // On 800x600 fitted canvas: touch at (180, 140) -> cell (2, 2)
-    const cell800 = touchToCellCoords(180, 140, 800, 600, config, layout);
-    expect(cell800.col).toBe(2);
-    expect(cell800.row).toBe(2);
+  it("maps touch to cell correctly with fitted canvas size in top-down projection", () => {
+    const cell800 = touchToCellCoords(180, 140, 800, 600, topdownConfig, layout);
+    expect(cell800).toEqual({ col: 2, row: 2 });
 
-    // On 400x300 fitted canvas: touch at (90, 70) -> cell (2, 2)
-    const cell400 = touchToCellCoords(90, 70, 400, 300, config, layout);
-    expect(cell400.col).toBe(2);
-    expect(cell400.row).toBe(2);
+    const cell400 = touchToCellCoords(90, 70, 400, 300, topdownConfig, layout);
+    expect(cell400).toEqual({ col: 2, row: 2 });
+  });
+
+  it("maps touch to cell correctly with fitted isometric canvas size", () => {
+    const touch = projectedCellCenter(2, 2);
+    const cell800 = touchToCellCoords(touch.x, touch.y, 800, 600, isoConfig, layout);
+    expect(cell800).toEqual({ col: 2, row: 2 });
+
+    const cell400 = touchToCellCoords(touch.x * 0.5, touch.y * 0.5, 400, 300, isoConfig, layout);
+    expect(cell400).toEqual({ col: 2, row: 2 });
   });
 
   it("safely handles out-of-bounds and NaN coordinates in isBuildable", () => {
-    const mockTileGrid: any = {
-      cols: 16,
-      rows: 12,
-      tiles: Array.from({ length: 12 }, () => Array(16).fill("buildable")),
-    };
+    const tiles: TileGrid["tiles"] = Array.from({ length: 12 }, () =>
+      Array.from({ length: 16 }, () => "buildable" as TileGrid["tiles"][number][number])
+    );
+    const mockTileGrid: TileGrid = { cols: 16, rows: 12, tiles };
 
     expect(isBuildable(mockTileGrid, 0, 0)).toBe(true);
     expect(isBuildable(mockTileGrid, -1, 0)).toBe(false);

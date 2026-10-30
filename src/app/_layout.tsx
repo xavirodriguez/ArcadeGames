@@ -6,9 +6,31 @@ import { ReducedMotionConfig, ReduceMotion } from "react-native-reanimated";
 import { GameServicesProvider, configureNativeAudioMode } from "@tiny-aster/react-native";
 import { AudioSettingsService } from "../services/AudioSettingsService";
 import { Platform, View, ActivityIndicator, Text } from "react-native";
+import { loadSumiThemeFonts } from "../games/shared/presentation/loadThemeFonts";
 
 export default function RootLayout() {
   const [skiaReady, setSkiaReady] = useState(Platform.OS !== "web");
+
+  // Best-effort sumi-e font load (D4). Does not block first paint; sets active typography on success.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const result = await loadSumiThemeFonts();
+        if (!cancelled && !result.ok) {
+          console.warn(
+            "[RootLayout] Sumi theme fonts partial/failed:",
+            result.failedFamilies
+          );
+        }
+      } catch (e) {
+        console.warn("[RootLayout] loadSumiThemeFonts error:", e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (Platform.OS !== "web") {

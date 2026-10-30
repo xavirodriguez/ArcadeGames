@@ -19,7 +19,10 @@ export interface ThemeFontManifestEntry {
   readonly /** Logical role(s). */ roles: readonly ("display" | "body" | "mono" | "kanji")[];
   readonly /** Google Fonts family name or local file stem. */ source: string;
   readonly license: "OFL-1.1";
-  /** Prefer subset file under assets/fonts when present. */
+  /**
+   * Path relative to repo root / public URL path for web.
+   * Files live under `public/assets/fonts/` and are served at `/assets/fonts/...` on web.
+   */
   readonly localPath?: string;
 }
 
@@ -49,6 +52,9 @@ export const SUMI_THEME_TYPOGRAPHY_PROVISIONAL = SUMI_THEME_TYPOGRAPHY;
 /**
  * Fonts to load for sumi-e. Do not block the first game frame forever:
  * on failure, fall back to NEON_THEME_TYPOGRAPHY stacks (no throw).
+ *
+ * Bundled files: `public/assets/fonts/YujiBoku-Regular.ttf`,
+ * `public/assets/fonts/NotoSerifJP-Regular.ttf`.
  */
 export const SUMI_FONT_MANIFEST: readonly ThemeFontManifestEntry[] = Object.freeze([
   {
@@ -56,14 +62,14 @@ export const SUMI_FONT_MANIFEST: readonly ThemeFontManifestEntry[] = Object.free
     roles: ["display", "kanji"],
     source: "Yuji+Boku",
     license: "OFL-1.1",
-    localPath: "assets/fonts/YujiBoku-Regular.ttf",
+    localPath: "public/assets/fonts/YujiBoku-Regular.ttf",
   },
   {
     family: "Noto Serif JP",
     roles: ["body"],
     source: "Noto+Serif+JP",
     license: "OFL-1.1",
-    localPath: "assets/fonts/NotoSerifJP-Regular.otf",
+    localPath: "public/assets/fonts/NotoSerifJP-Regular.ttf",
   },
 ]);
 

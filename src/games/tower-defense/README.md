@@ -33,7 +33,7 @@ Minijuego de Tower Defense construido sobre la arquitectura ECS determinista de 
 - La orientación de torretas y las estelas de proyectiles proyectan vectores mediante `projectVector`; no deben calcular ángulos con coordenadas locales ni duplicar la matriz isométrica en cada backend.
 - El orden de profundidad usa `worldX + worldY` únicamente en `Render.order`; nunca reescribe la posición de gameplay.
 - Los círculos de alcance del gameplay conservan el radio euclídeo del mundo. La previsualización lo transforma en una elipse exacta para representar el mismo conjunto de puntos después de la proyección.
-- `TowerDefenseIsoDepthSortSystem` solo modifica `Render.order` en modo isométrico usando `x + y`. No escribe en `Transform` ni modifica la simulación.
+- `TowerDefenseIsoDepthSortSystem` solo modifica `Render.order` en modo isométrico usando `worldX + worldY`. No escribe en `Transform` ni modifica la simulación.
 - Los drawers de entidades y VFX aplican la proyección solo en presentación. Canvas y Skia comparten las mismas coordenadas, composición de capas y contrato de entrada.
 - El mapa se registra como efecto de fondo; los VFX se registran como efectos de primer plano y se dibujan después de las entidades.
 

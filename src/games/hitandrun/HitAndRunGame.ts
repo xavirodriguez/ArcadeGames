@@ -92,7 +92,16 @@ import {
   drawHitRunElite,
   drawHitRunSamuraiFallback,
   drawHitRunBullet,
-  drawHitRunRocket
+  drawHitRunRocket,
+  drawHitRunPlayerSkia,
+  drawHitRunPopcornSkia,
+  drawHitRunWallTrooperSkia,
+  drawHitRunHopperSkia,
+  drawHitRunChargerSkia,
+  drawHitRunEliteSkia,
+  drawHitRunSamuraiFallbackSkia,
+  drawHitRunBulletSkia,
+  drawHitRunRocketSkia
 } from "./rendering/HitRunCanvasVisuals";
 import { drawHitRunHud, drawHitRunHudSkia } from "./rendering/HitRunHudCanvas";
 import { drawHitRunDebugOverlay } from "./rendering/HitRunDebugOverlay";
@@ -137,21 +146,37 @@ function registerHitRunRenderers(
   }
   renderer.registerBackgroundEffect("hit_run_debug_overlay", drawHitRunDebugOverlay);
 
-  renderer.registerShape("player", drawHitRunPlayer);
-  renderer.registerShape("popcorn", drawHitRunPopcorn);
-  renderer.registerShape("wall_trooper", drawHitRunWallTrooper);
-  renderer.registerShape("hopper", drawHitRunHopper);
-  renderer.registerShape("charger", drawHitRunCharger);
-  renderer.registerShape("elite", drawHitRunElite);
-  renderer.registerShape("samurai", drawHitRunSamuraiFallback);
-
-  renderer.registerShape("bullet_hmg", drawHitRunBullet);
-  renderer.registerShape("bullet_shotgun", drawHitRunBullet);
-  renderer.registerShape("bullet_rocket", drawHitRunRocket);
-  renderer.registerShape("enemy_bullet", drawHitRunBullet);
-  renderer.registerShape("arrow", drawHitRunBullet);
-  renderer.registerShape("bolt", drawHitRunBullet);
-  renderer.registerShape("fireball", drawHitRunBullet);
+  if (renderer.type === "skia") {
+    renderer.registerShape("player", drawHitRunPlayerSkia);
+    renderer.registerShape("popcorn", drawHitRunPopcornSkia);
+    renderer.registerShape("wall_trooper", drawHitRunWallTrooperSkia);
+    renderer.registerShape("hopper", drawHitRunHopperSkia);
+    renderer.registerShape("charger", drawHitRunChargerSkia);
+    renderer.registerShape("elite", drawHitRunEliteSkia);
+    renderer.registerShape("samurai", drawHitRunSamuraiFallbackSkia);
+    renderer.registerShape("bullet_hmg", drawHitRunBulletSkia);
+    renderer.registerShape("bullet_shotgun", drawHitRunBulletSkia);
+    renderer.registerShape("bullet_rocket", drawHitRunRocketSkia);
+    renderer.registerShape("enemy_bullet", drawHitRunBulletSkia);
+    renderer.registerShape("arrow", drawHitRunBulletSkia);
+    renderer.registerShape("bolt", drawHitRunBulletSkia);
+    renderer.registerShape("fireball", drawHitRunBulletSkia);
+  } else {
+    renderer.registerShape("player", drawHitRunPlayer);
+    renderer.registerShape("popcorn", drawHitRunPopcorn);
+    renderer.registerShape("wall_trooper", drawHitRunWallTrooper);
+    renderer.registerShape("hopper", drawHitRunHopper);
+    renderer.registerShape("charger", drawHitRunCharger);
+    renderer.registerShape("elite", drawHitRunElite);
+    renderer.registerShape("samurai", drawHitRunSamuraiFallback);
+    renderer.registerShape("bullet_hmg", drawHitRunBullet);
+    renderer.registerShape("bullet_shotgun", drawHitRunBullet);
+    renderer.registerShape("bullet_rocket", drawHitRunRocket);
+    renderer.registerShape("enemy_bullet", drawHitRunBullet);
+    renderer.registerShape("arrow", drawHitRunBullet);
+    renderer.registerShape("bolt", drawHitRunBullet);
+    renderer.registerShape("fireball", drawHitRunBullet);
+  }
 
   renderer.registerShape("tilemap", drawHitRunMonoTilemap);
   renderer.registerShape("fragment", drawHitRunMonoFragment);

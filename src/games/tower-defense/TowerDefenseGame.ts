@@ -72,6 +72,7 @@ import { SlowOnHitSystem } from "./systems/SlowOnHitSystem";
 import { TowerDefenseAudioSystem } from "./systems/TowerDefenseAudioSystem";
 import { ThreatHudSystem } from "./systems/ThreatHudSystem";
 import { TowerDefenseVfxSystem } from "./systems/TowerDefenseVfxSystem";
+import { TowerDefenseIsoDepthSortSystem } from "./systems/TowerDefenseIsoDepthSortSystem";
 
 export interface TowerDefenseBlueprintMap
   extends Record<
@@ -294,6 +295,7 @@ export class TowerDefenseGame extends BaseGame<
 
     this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation });
+    this.world.addSystem(new TowerDefenseIsoDepthSortSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new TowerDefenseAudioSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new ThreatHudSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new TowerDefenseVfxSystem(), { phase: SystemPhase.Presentation });

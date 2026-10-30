@@ -21,6 +21,18 @@ Minijuego de Tower Defense construido sobre la arquitectura ECS determinista de 
   - `X`: Muro / bloque inaccesible.
 - Pathfinding: `extractWaypoints` realiza una búsqueda BFS determinista desde `S` hasta `E` garantizando un camino continuo y ordenado. Si la distribución carece de camino válido, el juego arroja una excepción explícita indicando la falla.
 
+### 2.1 Proyección isométrica y coordenadas
+
+- `projection` admite `isometric` y `topdown`; el modo predeterminado del juego es `isometric`. `ISO_TILE_RATIO` controla la relación entre los semiejes del rombo.
+- `worldToIso` y `isoToWorld` son transformaciones inversas para posiciones. La simulación ECS, waypoints, alcance, movimiento, colisiones y targeting permanecen en coordenadas cartesianas de mundo.
+- La configuración calcula una escala uniforme que encaja la caja proyectada del grid dentro de `worldWidth × worldHeight` y centra el resultado. El tamaño lógico de las celdas no cambia.
+- La entrada táctil y de puntero comprueba la geometría de los rombos proyectados. En vértices compartidos, el desempate es estable: primero la menor suma `row + col`, después `row` y `col`.
+- El cursor ECS transporta el centro de celda en coordenadas de mundo. Los drawers proyectan esa posición una sola vez; no deben aplicar una segunda inversión.
+- Los círculos de alcance del gameplay conservan el radio euclídeo del mundo. La previsualización lo transforma en una elipse exacta para representar el mismo conjunto de puntos después de la proyección.
+- `TowerDefenseIsoDepthSortSystem` solo modifica `Render.order` en modo isométrico usando `x + y`. No escribe en `Transform` ni modifica la simulación.
+- Los drawers de entidades y VFX aplican la proyección solo en presentación. Canvas y Skia comparten las mismas coordenadas, composición de capas y contrato de entrada.
+- El mapa se registra como efecto de fondo; los VFX se registran como efectos de primer plano y se dibujan después de las entidades.
+
 ### 3. Sistemas y Fases ECS
 Los sistemas ejecutan la simulación organizados en las siguientes fases:
 

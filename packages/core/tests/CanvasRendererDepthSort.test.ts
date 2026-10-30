@@ -95,6 +95,27 @@ describe("CanvasRenderer Y-sorting (depthSort)", () => {
     expect(drawOrder).toEqual(["test_B", "test_A"]);
   });
 
+  it("draws foreground effects after world entities", () => {
+    const world = new World<CoreComponentRegistry>();
+    const renderer = new CanvasRenderer();
+    const drawOrder: string[] = [];
+    const entity = world.createEntity();
+    world.addComponent(entity, {
+      type: "Transform", x: 10, y: 10, rotation: 0, scaleX: 1, scaleY: 1,
+      worldX: 10, worldY: 10, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false
+    });
+    world.addComponent(entity, {
+      type: "Render", visible: true, opacity: 1, order: 1, rotation: 0,
+      angularVelocity: 0, hitFlashFrames: 0, shape: "entity"
+    });
+    renderer.registerShape("entity", { draw: () => { drawOrder.push("entity"); } });
+    renderer.registerForegroundEffect("overlay", { draw: () => { drawOrder.push("overlay"); } });
+
+    renderer.render(world, createMockCtx());
+
+    expect(drawOrder).toEqual(["entity", "overlay"]);
+  });
+
   it("does not change sort order for entities without depthSort", () => {
     const world = new World<CoreComponentRegistry>();
     const renderer = new CanvasRenderer();

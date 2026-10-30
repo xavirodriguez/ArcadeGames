@@ -72,6 +72,7 @@ import { SlowOnHitSystem } from "./systems/SlowOnHitSystem";
 import { TowerDefenseAudioSystem } from "./systems/TowerDefenseAudioSystem";
 import { ThreatHudSystem } from "./systems/ThreatHudSystem";
 import { TowerDefenseVfxSystem } from "./systems/TowerDefenseVfxSystem";
+import { TowerDefenseIsoDepthSortSystem } from "./systems/TowerDefenseIsoDepthSortSystem";
 
 export interface TowerDefenseBlueprintMap
   extends Record<
@@ -294,6 +295,7 @@ export class TowerDefenseGame extends BaseGame<
 
     this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation });
+    this.world.addSystem(new TowerDefenseIsoDepthSortSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new TowerDefenseAudioSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new ThreatHudSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new TowerDefenseVfxSystem(), { phase: SystemPhase.Presentation });
@@ -413,6 +415,7 @@ export class TowerDefenseGame extends BaseGame<
             drawCreepBoss,
             drawTowerProjectile,
             drawTdMapBackground,
+            drawTdVfxCanvas,
           } = require("./rendering/TowerDefenseCanvasVisuals");
           r.registerShape("tower_basic", drawTowerBasic);
           r.registerShape("tower_sniper", drawTowerSniper);
@@ -424,6 +427,7 @@ export class TowerDefenseGame extends BaseGame<
           r.registerShape("creep_boss", wrapCanvas("creep_boss", drawCreepBoss, TOWER_DEFENSE_VISUAL_TOKENS.creeps.boss));
           r.registerShape("tower_projectile", drawTowerProjectile);
           r.registerBackgroundEffect("td_map", drawTdMapBackground);
+          r.registerForegroundEffect?.("td_vfx", drawTdVfxCanvas);
           console.info("[TD] Canvas custom creep drawers registered");
         } catch (err) {
           console.warn("[TD] Canvas visuals failed to load; using safe creep fallbacks only", err);
@@ -442,6 +446,7 @@ export class TowerDefenseGame extends BaseGame<
             drawSkiaCreepBoss,
             drawSkiaTowerProjectile,
             drawSkiaTdMapBackground,
+            drawSkiaTdVfx,
           } = require("./rendering/TowerDefenseSkiaVisuals");
           r.registerShape("tower_basic", drawSkiaTowerBasic);
           r.registerShape("tower_sniper", drawSkiaTowerSniper);
@@ -453,6 +458,7 @@ export class TowerDefenseGame extends BaseGame<
           r.registerShape("creep_boss", drawSkiaCreepBoss);
           r.registerShape("tower_projectile", drawSkiaTowerProjectile);
           r.registerBackgroundEffect("td_map", drawSkiaTdMapBackground);
+          r.registerForegroundEffect?.("td_vfx", drawSkiaTdVfx);
           console.info("[TD] Skia custom creep drawers registered");
         } catch (err) {
           console.warn("[TD] Skia visuals failed to load", err);

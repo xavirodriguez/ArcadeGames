@@ -20,14 +20,30 @@ export function createIsoConfig(config: TowerDefenseConfig): IsoConfig {
   const enabled = config.projection === "isometric";
   const cellSize = config.CELL_SIZE ?? 40;
   const ratio = config.ISO_TILE_RATIO ?? 2;
+  const cols = config.GRID_COLS ?? 16;
+  const rows = config.GRID_ROWS ?? 12;
   const gridOffsetX = config.GRID_OFFSET_X ?? 80;
   const gridOffsetY = config.GRID_OFFSET_Y ?? 40;
 
-  const tileWidthHalf = cellSize;
-  const tileHeightHalf = cellSize / ratio;
+  // Fit the complete projected grid into the logical viewport without
+  // changing gameplay cell coordinates. A grid with C columns and R rows
+  // spans (C + R) half-widths and half-heights in screen space.
+  const projectedWidthAtUnitScale = (cols + rows) * cellSize;
+  const projectedHeightAtUnitScale = projectedWidthAtUnitScale / ratio;
+  const fitScale = Math.min(
+    1,
+    config.worldWidth / projectedWidthAtUnitScale,
+    config.worldHeight / projectedHeightAtUnitScale
+  );
 
-  const originX = config.worldWidth / 2;
-  const originY = gridOffsetY + 20;
+  const tileWidthHalf = cellSize * fitScale;
+  const tileHeightHalf = tileWidthHalf / ratio;
+  const projectedWidth = (cols + rows) * tileWidthHalf;
+  const projectedHeight = (cols + rows) * tileHeightHalf;
+
+  // Offset the projected origin so the entire diamond bounding box is centered.
+  const originX = (config.worldWidth - projectedWidth) / 2 + rows * tileWidthHalf;
+  const originY = (config.worldHeight - projectedHeight) / 2;
 
   return {
     tileWidthHalf,
@@ -98,6 +114,25 @@ export function projectVector(cfg: IsoConfig, vx: number, vy: number): Point2D {
   return {
     x: (vx - vy) * scaleX,
     y: (vx + vy) * scaleY,
+  };
+}
+
+/**
+ * Projects a world-space circle into its exact screen-space ellipse radii.
+ * This is the singular-value transform of the isometric projection matrix.
+ */
+export function projectCircleRadii(cfg: IsoConfig, radius: number): { rx: number; ry: number } {
+  if (!cfg.enabled) {
+    return { rx: radius, ry: radius };
+  }
+
+  const scaleX = cfg.tileWidthHalf / cfg.cellSize;
+  const scaleY = cfg.tileHeightHalf / cfg.cellSize;
+  const diagonalScale = Math.SQRT2 * radius;
+
+  return {
+    rx: diagonalScale * scaleX,
+    ry: diagonalScale * scaleY,
   };
 }
 

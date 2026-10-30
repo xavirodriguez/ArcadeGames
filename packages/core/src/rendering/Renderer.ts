@@ -30,6 +30,8 @@ export interface Renderer<TRegistry extends ComponentRegistry = ComponentRegistr
 
   registerShape(name: string, drawer: ShapeDrawer<TContext, TRegistry>): void;
   registerBackgroundEffect(name: string, drawer: EffectDrawer<TContext, TRegistry>): void;
+  /** Optional scene overlay rendered after all entities, in the active camera coordinate space. */
+  registerForegroundEffect?(name: string, drawer: EffectDrawer<TContext, TRegistry>): void;
 }
 
 /**

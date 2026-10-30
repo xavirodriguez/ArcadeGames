@@ -62,6 +62,57 @@ describe("IsoProjection", () => {
     expect(bottomRightIso.y).toBeCloseTo(isoCfg.originY + isoCfg.tileHeightHalf * 2, 5);
   });
 
+  it("calculates accurate 4-vertex bounding box and centers grid horizontally", () => {
+    // Top-Left corner: (col 0, row 0) -> world (80, 40) -> screen (originX, originY)
+    const topLeft = worldToIso(isoCfg, 80, 40);
+    // Top-Right corner: (col 16, row 0) -> world (80 + 16*40, 40) = (720, 40)
+    const topRight = worldToIso(isoCfg, 720, 40);
+    // Bottom-Left corner: (col 0, row 12) -> world (80, 40 + 12*40) = (80, 520)
+    const bottomLeft = worldToIso(isoCfg, 80, 520);
+    // Bottom-Right corner: (col 16, row 12) -> world (720, 520)
+    const bottomRight = worldToIso(isoCfg, 720, 520);
+
+    expect(isoCfg.bounds.minX).toBeCloseTo(bottomLeft.x, 5);
+    expect(isoCfg.bounds.maxX).toBeCloseTo(topRight.x, 5);
+    expect(isoCfg.bounds.minY).toBeCloseTo(topLeft.y, 5);
+    expect(isoCfg.bounds.maxY).toBeCloseTo(bottomRight.y, 5);
+
+    // Verify horizontal symmetry: distance from worldWidth/2 to minX equals distance to maxX
+    const midX = mockConfig.worldWidth / 2;
+    const distMin = midX - isoCfg.bounds.minX;
+    const distMax = isoCfg.bounds.maxX - midX;
+    expect(distMin).toBeCloseTo(distMax, 5);
+  });
+
+  it("handles non-square grids (e.g. 20 cols x 10 rows) with symmetric centering", () => {
+    const rectConfig: TowerDefenseConfig = {
+      ...mockConfig,
+      GRID_COLS: 20,
+      GRID_ROWS: 10,
+    };
+    const rectIso = createIsoConfig(rectConfig);
+
+    const midX = mockConfig.worldWidth / 2;
+    const distMin = midX - rectIso.bounds.minX;
+    const distMax = rectIso.bounds.maxX - midX;
+    expect(distMin).toBeCloseTo(distMax, 5);
+    expect(rectIso.bounds.width).toBeCloseTo((20 + 10) * rectIso.tileWidthHalf, 5);
+    expect(rectIso.bounds.height).toBeCloseTo((20 + 10) * rectIso.tileHeightHalf, 5);
+  });
+
+  it("sanitizes missing or invalid config parameters gracefully", () => {
+    const partialIso = createIsoConfig({
+      projection: "isometric",
+      CELL_SIZE: NaN,
+      ISO_TILE_RATIO: 0,
+    });
+
+    expect(partialIso.cellSize).toBe(40);
+    expect(partialIso.tileHeightHalf).toBe(20);
+    expect(partialIso.bounds.width).toBeGreaterThan(0);
+    expect(partialIso.bounds.height).toBeGreaterThan(0);
+  });
+
   it("ensures depthOf is monotonic with respect to row + col", () => {
     const depth00 = depthOf(80, 40);
     const depth01 = depthOf(120, 40);

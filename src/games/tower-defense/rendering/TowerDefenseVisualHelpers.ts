@@ -443,7 +443,6 @@ export function getEntityVisualHeight(type?: string): number {
   return 0;
 }
 
-/** Returns the isometric screen position and visual height offset for an entity. */
 /** Resolves the authoritative world-space position used by render planning and projection. */
 export function resolveTransformWorldPosition(
   transform: { x: number; y: number; worldX?: number; worldY?: number } | undefined

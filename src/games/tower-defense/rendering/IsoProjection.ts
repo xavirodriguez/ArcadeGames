@@ -78,9 +78,9 @@ export function createIsoConfig(config: Partial<TowerDefenseConfig>): IsoConfig 
     };
   }
 
-  // Center the projected four-corner bounding box without changing its aspect ratio.
+  // Center the projected four-corner footprint on both viewport axes.
   const originX = worldWidth / 2 - ((cols - rows) * tileWidthHalf) / 2;
-  const originY = (worldHeight - gridSpan * tileHeightHalf) / 2;
+  const originY = (worldHeight - projectedHeight) / 2;
 
   const minX = originX - rows * tileWidthHalf;
   const maxX = originX + cols * tileWidthHalf;
@@ -101,8 +101,8 @@ export function createIsoConfig(config: Partial<TowerDefenseConfig>): IsoConfig 
       maxX,
       minY,
       maxY,
-      width: maxX - minX,
-      height: maxY - minY,
+      width: projectedWidth,
+      height: projectedHeight,
     },
   };
 }

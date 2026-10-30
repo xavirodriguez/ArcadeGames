@@ -5,7 +5,6 @@ import type {
   GameStateComponent,
   TileGrid,
   ThreatInfo,
-  TowerCatalog,
   TowerDefenseVisualEffects,
 } from "../types/TowerDefenseTypes";
 import type { GridLayout } from "../../shared/grid/GridTypes";
@@ -31,7 +30,7 @@ type TDWorld = World<TowerDefenseComponentRegistry>;
 import { isPaperDuskTheme } from "./TowerDefenseVisualHelpers";
 import { createSpriteAnimator, drawSpriteCanvas } from "../../shared/sprites";
 import { TOWER_DEFENSE_VISUAL_TOKENS } from "../presentation/TowerDefenseVisualTokens";
-import { projectCircleRadii, projectVector, worldToIso } from "./IsoProjection";
+import { projectCircleRadii, projectVector } from "./IsoProjection";
 
 const TOWER_BASIC_SPRITE = createSpriteAnimator("tower_basic_art");
 const TOWER_SNIPER_SPRITE = createSpriteAnimator("tower_sniper_art");

@@ -1,5 +1,5 @@
 import { ShapeDrawer, EffectDrawer, World, resolveThemeColorWithFallback } from "@tiny-aster/core";
-import type { TowerDefenseComponentRegistry, WaypointList, GameStateComponent, TileGrid, TowerCatalog, TowerDefenseVisualEffects } from "../types/TowerDefenseTypes";
+import type { TowerDefenseComponentRegistry, WaypointList, GameStateComponent, TileGrid, TowerDefenseVisualEffects } from "../types/TowerDefenseTypes";
 import { getTileTypeColor } from "../MapUtils";
 import type { GridLayout } from "../../shared/grid/GridTypes";
 import { Skia, getPaint, SkCanvas, SkPaint } from "../../shared/rendering/SkiaContext";
@@ -23,7 +23,7 @@ import {
   resolveEntityIsometricOffset,
   getEntityVisualHeight,
 } from "./TowerDefenseVisualHelpers";
-import { projectCircleRadii, projectVector, worldToIso } from "./IsoProjection";
+import { projectCircleRadii, projectVector } from "./IsoProjection";
 
 const TOWER_BASIC_SPRITE = createSpriteAnimator("tower_basic_art");
 const TOWER_SNIPER_SPRITE = createSpriteAnimator("tower_sniper_art");

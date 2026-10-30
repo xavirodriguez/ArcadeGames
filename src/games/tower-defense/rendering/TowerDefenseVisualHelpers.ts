@@ -5,8 +5,8 @@ import type {
   GameStateComponent,
   TileGrid,
   TowerCatalog,
-  TowerDefinition,
 } from "../types/TowerDefenseTypes";
+import type { TowerDefinition } from "../types/TowerDefenseConfigSchema";
 import type { GridLayout } from "../../shared/grid/GridTypes";
 import { TOWER_DEFENSE_VISUAL_TOKENS } from "../presentation/TowerDefenseVisualTokens";
 import { createIsoConfig, worldToIso, depthOf, type IsoConfig, type Point2D } from "./IsoProjection";

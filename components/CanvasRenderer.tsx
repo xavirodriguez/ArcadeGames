@@ -29,6 +29,8 @@ export const CanvasRenderer = <TRegistry extends CoreComponentRegistry>({
 }: CanvasRendererProps<TRegistry>) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rendererRef = useRef<EngineCanvasRenderer<TRegistry> | null>(null);
+  const onInitializeRef = useRef(onInitialize);
+  onInitializeRef.current = onInitialize;
   const [dpr, setDpr] = useState(() => (typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1));
 
   // Scoped wheel event listener to handle scroll blocking and custom wheel mechanics
@@ -75,8 +77,8 @@ export const CanvasRenderer = <TRegistry extends CoreComponentRegistry>({
       rendererRef.current = new EngineCanvasRenderer();
     }
 
-    if (onInitialize && rendererRef.current) {
-      onInitialize(rendererRef.current);
+    if (rendererRef.current) {
+      onInitializeRef.current?.(rendererRef.current);
     }
 
     const unsub = gameLoop
@@ -92,7 +94,7 @@ export const CanvasRenderer = <TRegistry extends CoreComponentRegistry>({
     return () => {
       unsub?.();
     };
-  }, [world, gameLoop, onInitialize]);
+  }, [world, gameLoop]);
 
   if (Platform.OS !== "web") {
     return null;

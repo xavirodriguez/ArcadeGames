@@ -650,7 +650,7 @@ export const drawSkiaTowerProjectile: ShapeDrawer<SkCanvas, TowerDefenseComponen
     const velocity = world.getComponent(entity, "Velocity");
     const projectedVelocity = velocity && projection.isoCfg.enabled
       ? projectVector(projection.isoCfg, velocity.vx, velocity.vy)
-      : velocity;
+      : velocity ? { x: velocity.vx, y: velocity.vy } : null;
     if (projectedVelocity) {
       const speed = Math.hypot(projectedVelocity.x, projectedVelocity.y);
       if (speed > 1) {
@@ -1169,6 +1169,8 @@ export const drawSkiaTdMapBackground: EffectDrawer<SkCanvas, TowerDefenseCompone
 
         drawRhombusTileSkia(canvas, paint, x, y, isoCfg.tileWidthHalf, isoCfg.tileHeightHalf, fillColor, strokeColor, tile === "buildable");
       } else {
+        const pdBuildableEdge = resolveThemeColorWithFallback(world, "#5B6470", "pd_buildableEdge");
+        const pdPathEdge = resolveThemeColorWithFallback(world, "#B39B73", "pd_pathEdge");
         paint.setStyle(Skia.PaintStyle.Fill);
         if (isPaperDusk) {
           const pdGround = resolveThemeColorWithFallback(world, "#2B2F36", "pd_ground");

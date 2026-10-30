@@ -4564,6 +4564,7 @@ export type RenderContext = CanvasRenderingContext2D | {
 export interface Renderer<TRegistry extends ComponentRegistry = ComponentRegistry, TContext = RenderContext> {
     // (undocumented)
     registerBackgroundEffect(name: string, drawer: EffectDrawer<TContext, TRegistry>): void;
+    registerForegroundEffect?(name: string, drawer: EffectDrawer<TContext, TRegistry>): void;
     // (undocumented)
     registerShape(name: string, drawer: ShapeDrawer<TContext, TRegistry>): void;
     render(world: World<TRegistry>, ctx: TContext, interpolation?: number): void;

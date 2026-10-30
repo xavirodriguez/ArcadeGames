@@ -13,7 +13,7 @@ import type {
 import type { TowerDefenseConfig } from "../types/TowerDefenseConfigSchema";
 
 describe("Tower Defense placement preview", () => {
-  it("projects the selected world-space cell and hides the preview outside the map", async () => {
+  it("projects the hovered cell and retains its preview after the cursor leaves the map", async () => {
     const game = new TowerDefenseGame({ headless: true, seed: 42 });
     await game.init();
 

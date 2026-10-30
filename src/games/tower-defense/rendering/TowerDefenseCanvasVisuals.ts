@@ -28,7 +28,7 @@ type TDWorld = World<TowerDefenseComponentRegistry>;
 import { isPaperDuskTheme } from "./TowerDefenseVisualHelpers";
 import { createSpriteAnimator, drawSpriteCanvas } from "../../shared/sprites";
 import { TOWER_DEFENSE_VISUAL_TOKENS } from "../presentation/TowerDefenseVisualTokens";
-import { worldToIso } from "./IsoProjection";
+import { projectVector, worldToIso } from "./IsoProjection";
 
 const TOWER_BASIC_SPRITE = createSpriteAnimator("tower_basic_art");
 const TOWER_SNIPER_SPRITE = createSpriteAnimator("tower_sniper_art");
@@ -248,11 +248,12 @@ function drawTowerWithOffset(
   entity: number,
   drawer: () => void
 ): void {
-  const { isoCfg } = resolveEntityIsometricOffset(world, entity, "tower");
+  const { isoCfg, worldX, worldY, screenX, screenY } = resolveEntityIsometricOffset(world, entity, "tower");
 
   ctx.save();
   if (isoCfg.enabled) {
     const heightPx = getEntityVisualHeight("tower");
+    ctx.translate(screenX - worldX, screenY - worldY);
     drawGroundShadowCanvas(ctx, 28, heightPx, true);
     ctx.translate(0, -heightPx);
   }
@@ -523,9 +524,10 @@ export const drawCreepGrunt: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseC
     const { size, fill, stroke } = resolveCreepVisualState(world, entity, 12, "grunt");
     const animation = resolveCreepAnimationState(world, entity, "grunt");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
-    const { isoCfg } = resolveEntityIsometricOffset(world, entity, "creep");
+    const { isoCfg, worldX, worldY, screenX, screenY } = resolveEntityIsometricOffset(world, entity, "creep");
 
     ctx.save();
+    if (isoCfg.enabled) ctx.translate(screenX - worldX, screenY - worldY);
     ctx.translate(animation.offsetX, animation.offsetY);
     ctx.rotate(animation.rotation);
     ctx.scale(animation.scaleX, animation.scaleY);
@@ -540,9 +542,10 @@ export const drawCreepFast: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
     const { size, fill, stroke } = resolveCreepVisualState(world, entity, 10, "fast");
     const animation = resolveCreepAnimationState(world, entity, "fast");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
-    const { isoCfg } = resolveEntityIsometricOffset(world, entity, "creep");
+    const { isoCfg, worldX, worldY, screenX, screenY } = resolveEntityIsometricOffset(world, entity, "creep");
 
     ctx.save();
+    if (isoCfg.enabled) ctx.translate(screenX - worldX, screenY - worldY);
     ctx.translate(animation.offsetX, animation.offsetY);
     ctx.rotate(animation.rotation);
     ctx.scale(animation.scaleX, animation.scaleY);
@@ -558,9 +561,10 @@ export const drawCreepTank: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
     const isPaperDusk = isPaperDuskTheme(world);
     const animation = resolveCreepAnimationState(world, entity, "tank");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
-    const { isoCfg } = resolveEntityIsometricOffset(world, entity, "creep");
+    const { isoCfg, worldX, worldY, screenX, screenY } = resolveEntityIsometricOffset(world, entity, "creep");
 
     ctx.save();
+    if (isoCfg.enabled) ctx.translate(screenX - worldX, screenY - worldY);
     ctx.translate(animation.offsetX, animation.offsetY);
     ctx.rotate(animation.rotation);
     ctx.scale(animation.scaleX, animation.scaleY);
@@ -583,9 +587,10 @@ export const drawCreepBoss: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
     const isPaperDusk = isPaperDuskTheme(world);
     const animation = resolveCreepAnimationState(world, entity, "boss");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
-    const { isoCfg } = resolveEntityIsometricOffset(world, entity, "creep");
+    const { isoCfg, worldX, worldY, screenX, screenY } = resolveEntityIsometricOffset(world, entity, "creep");
 
     ctx.save();
+    if (isoCfg.enabled) ctx.translate(screenX - worldX, screenY - worldY);
     ctx.translate(animation.offsetX, animation.offsetY);
     ctx.rotate(animation.rotation);
     ctx.scale(animation.scaleX, animation.scaleY);
@@ -616,13 +621,20 @@ export const drawCreepBoss: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseCo
 export const drawTowerProjectile: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseComponentRegistry> = {
   draw(ctx, world, entity) {
     const { size, color } = resolveTowerProjectileDrawSetup(world, entity);
+    const projection = resolveEntityIsometricOffset(world, entity, "projectile");
+    if (projection.isoCfg.enabled) {
+      ctx.translate(projection.screenX - projection.worldX, projection.screenY - projection.worldY);
+    }
 
     const velocity = world.getComponent(entity, "Velocity");
-    if (velocity) {
-      const speed = Math.hypot(velocity.vx, velocity.vy);
+    const projectedVelocity = velocity && projection.isoCfg.enabled
+      ? projectVector(projection.isoCfg, velocity.vx, velocity.vy)
+      : velocity;
+    if (projectedVelocity) {
+      const speed = Math.hypot(projectedVelocity.x, projectedVelocity.y);
       if (speed > 1) {
-        const dirX = velocity.vx / speed;
-        const dirY = velocity.vy / speed;
+        const dirX = projectedVelocity.x / speed;
+        const dirY = projectedVelocity.y / speed;
         const trailLength = Math.min(18, Math.max(7, size * 2.5));
         ctx.save();
         ctx.lineCap = "round";
@@ -665,12 +677,19 @@ function drawTdAmbientStarCanvas(
   row: number,
   col: number,
   elapsedSeconds: number,
-  isPaperDusk: boolean
+  isPaperDusk: boolean,
+  isoEnabled = false
 ): void {
   const seed = (row * 73 + col * 37 + 19) >>> 0;
   if (seed % 3 !== 0) return;
-  const starX = x + 5 + (seed % Math.max(1, Math.floor(width - 10)));
-  const starY = y + 5 + ((seed * 13) % Math.max(1, Math.floor(height - 10)));
+  const normalizedX = ((seed % 97) / 96) - 0.5;
+  const normalizedY = (((seed * 13) % 89) / 88) - 0.5;
+  const starX = isoEnabled
+    ? x + normalizedX * width * 0.5
+    : x + 5 + (seed % Math.max(1, Math.floor(width - 10)));
+  const starY = isoEnabled
+    ? y + normalizedY * height * 0.5
+    : y + 5 + ((seed * 13) % Math.max(1, Math.floor(height - 10)));
   const pulse = 0.25 + 0.55 * (0.5 + 0.5 * Math.sin(elapsedSeconds * 2.6 + seed * 0.17));
   ctx.save();
   ctx.globalAlpha = pulse;
@@ -974,7 +993,7 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
       }
 
       if (tile === "blocked") {
-        drawTdAmbientStarCanvas(ctx, x, y, isoCfg.enabled ? isoCfg.tileWidthHalf * 2 : layout.stepX, isoCfg.enabled ? isoCfg.tileHeightHalf * 2 : layout.stepY, row, col, vfxElapsed, isPaperDusk);
+        drawTdAmbientStarCanvas(ctx, x, y, isoCfg.enabled ? isoCfg.tileWidthHalf * 2 : layout.stepX, isoCfg.enabled ? isoCfg.tileHeightHalf * 2 : layout.stepY, row, col, vfxElapsed, isPaperDusk, isoCfg.enabled);
       }
 
       if (tile === "spawn" || tile === "base") {

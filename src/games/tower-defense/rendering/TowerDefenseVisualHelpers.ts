@@ -344,10 +344,17 @@ export function resolveEntityIsometricOffset(
   world: World<TowerDefenseComponentRegistry>,
   entity: number,
   type: "tower" | "creep" | "projectile"
-): { screenX: number; screenY: number; drawY: number; isoCfg: IsoConfig } {
+): {
+  worldX: number;
+  worldY: number;
+  screenX: number;
+  screenY: number;
+  drawY: number;
+  isoCfg: IsoConfig;
+} {
   const transform = world.getComponent(entity, "Transform");
-  const wx = transform ? transform.x : 0;
-  const wy = transform ? transform.y : 0;
+  const wx = transform ? (transform.worldX ?? transform.x) : 0;
+  const wy = transform ? (transform.worldY ?? transform.y) : 0;
 
   const gameConfig = world.getResource<TowerDefenseConfig>("GameConfig");
   const isoCfg = gameConfig ? createIsoConfig(gameConfig) : { enabled: false } as IsoConfig;
@@ -356,6 +363,8 @@ export function resolveEntityIsometricOffset(
     const isoP = worldToIso(isoCfg, wx, wy);
     const heightPx = getEntityVisualHeight(type);
     return {
+      worldX: wx,
+      worldY: wy,
       screenX: isoP.x,
       screenY: isoP.y,
       drawY: isoP.y - heightPx,
@@ -364,6 +373,8 @@ export function resolveEntityIsometricOffset(
   }
 
   return {
+    worldX: wx,
+    worldY: wy,
     screenX: wx,
     screenY: wy,
     drawY: wy,

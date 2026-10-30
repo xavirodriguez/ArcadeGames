@@ -1,5 +1,5 @@
 import { ShapeDrawer, EffectDrawer, World, resolveThemeColorWithFallback } from "@tiny-aster/core";
-import type { TowerDefenseComponentRegistry, WaypointList, GameStateComponent, TileGrid, TowerDefenseVisualEffects } from "../types/TowerDefenseTypes";
+import type { TowerDefenseComponentRegistry, WaypointList, GameStateComponent, TileGrid, TowerCatalog, TowerDefenseVisualEffects } from "../types/TowerDefenseTypes";
 import { getTileTypeColor } from "../MapUtils";
 import type { GridLayout } from "../../shared/grid/GridTypes";
 import { Skia, getPaint, SkCanvas, SkPaint } from "../../shared/rendering/SkiaContext";
@@ -20,6 +20,7 @@ import {
   resolveEntityIsometricOffset,
   getEntityVisualHeight,
 } from "./TowerDefenseVisualHelpers";
+import { projectVector, worldToIso } from "./IsoProjection";
 
 const TOWER_BASIC_SPRITE = createSpriteAnimator("tower_basic_art");
 const TOWER_SNIPER_SPRITE = createSpriteAnimator("tower_sniper_art");
@@ -267,11 +268,12 @@ function drawSkiaTowerWithOffset(
   entity: number,
   drawer: () => void
 ): void {
-  const { isoCfg } = resolveEntityIsometricOffset(world, entity, "tower");
+  const { isoCfg, worldX, worldY, screenX, screenY } = resolveEntityIsometricOffset(world, entity, "tower");
 
   canvas.save();
   if (isoCfg.enabled) {
     const heightPx = getEntityVisualHeight("tower");
+    canvas.translate(screenX - worldX, screenY - worldY);
     drawGroundShadowSkia(canvas, 28, heightPx, true);
     canvas.translate(0, -heightPx);
   }
@@ -556,9 +558,10 @@ export const drawSkiaCreepBoss: ShapeDrawer<SkCanvas, TowerDefenseComponentRegis
     const isPaperDusk = isPaperDuskTheme(world);
     const animation = resolveCreepAnimationState(world, entity, "boss");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
-    const { isoCfg } = resolveEntityIsometricOffset(world, entity, "creep");
+    const { isoCfg, worldX, worldY, screenX, screenY } = resolveEntityIsometricOffset(world, entity, "creep");
 
     canvas.save();
+    if (isoCfg.enabled) canvas.translate(screenX - worldX, screenY - worldY);
     canvas.translate(animation.offsetX, animation.offsetY);
     canvas.rotate((animation.rotation * 180) / Math.PI, 0, 0);
     canvas.scale(animation.scaleX, animation.scaleY);
@@ -576,9 +579,10 @@ export const drawSkiaCreepGrunt: ShapeDrawer<SkCanvas, TowerDefenseComponentRegi
     const { size, fill, stroke } = resolveCreepVisualState(world, entity, 12, "grunt");
     const animation = resolveCreepAnimationState(world, entity, "grunt");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
-    const { isoCfg } = resolveEntityIsometricOffset(world, entity, "creep");
+    const { isoCfg, worldX, worldY, screenX, screenY } = resolveEntityIsometricOffset(world, entity, "creep");
 
     canvas.save();
+    if (isoCfg.enabled) canvas.translate(screenX - worldX, screenY - worldY);
     canvas.translate(animation.offsetX, animation.offsetY);
     canvas.rotate((animation.rotation * 180) / Math.PI, 0, 0);
     canvas.scale(animation.scaleX, animation.scaleY);
@@ -593,9 +597,10 @@ export const drawSkiaCreepFast: ShapeDrawer<SkCanvas, TowerDefenseComponentRegis
     const { size, fill, stroke } = resolveCreepVisualState(world, entity, 10, "fast");
     const animation = resolveCreepAnimationState(world, entity, "fast");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
-    const { isoCfg } = resolveEntityIsometricOffset(world, entity, "creep");
+    const { isoCfg, worldX, worldY, screenX, screenY } = resolveEntityIsometricOffset(world, entity, "creep");
 
     canvas.save();
+    if (isoCfg.enabled) canvas.translate(screenX - worldX, screenY - worldY);
     canvas.translate(animation.offsetX, animation.offsetY);
     canvas.rotate((animation.rotation * 180) / Math.PI, 0, 0);
     canvas.scale(animation.scaleX, animation.scaleY);
@@ -611,9 +616,10 @@ export const drawSkiaCreepTank: ShapeDrawer<SkCanvas, TowerDefenseComponentRegis
     const isPaperDusk = isPaperDuskTheme(world);
     const animation = resolveCreepAnimationState(world, entity, "tank");
     const hitFlash = (world.getComponent(entity, "Render")?.hitFlashFrames ?? 0) > 0;
-    const { isoCfg } = resolveEntityIsometricOffset(world, entity, "creep");
+    const { isoCfg, worldX, worldY, screenX, screenY } = resolveEntityIsometricOffset(world, entity, "creep");
 
     canvas.save();
+    if (isoCfg.enabled) canvas.translate(screenX - worldX, screenY - worldY);
     canvas.translate(animation.offsetX, animation.offsetY);
     canvas.rotate((animation.rotation * 180) / Math.PI, 0, 0);
     canvas.scale(animation.scaleX, animation.scaleY);
@@ -629,17 +635,24 @@ export const drawSkiaCreepTank: ShapeDrawer<SkCanvas, TowerDefenseComponentRegis
 export const drawSkiaTowerProjectile: ShapeDrawer<SkCanvas, TowerDefenseComponentRegistry> = {
   draw(canvas, world, entity) {
     const { size, color } = resolveTowerProjectileDrawSetup(world, entity);
+    const projection = resolveEntityIsometricOffset(world, entity, "projectile");
+    if (projection.isoCfg.enabled) {
+      canvas.translate(projection.screenX - projection.worldX, projection.screenY - projection.worldY);
+    }
 
     if (!Skia) return;
     const paint = getPaint();
     if (!paint) return;
 
     const velocity = world.getComponent(entity, "Velocity");
-    if (velocity) {
-      const speed = Math.hypot(velocity.vx, velocity.vy);
+    const projectedVelocity = velocity && projection.isoCfg.enabled
+      ? projectVector(projection.isoCfg, velocity.vx, velocity.vy)
+      : velocity;
+    if (projectedVelocity) {
+      const speed = Math.hypot(projectedVelocity.x, projectedVelocity.y);
       if (speed > 1) {
-        const dirX = velocity.vx / speed;
-        const dirY = velocity.vy / speed;
+        const dirX = projectedVelocity.x / speed;
+        const dirY = projectedVelocity.y / speed;
         const trailLength = Math.min(18, Math.max(7, size * 2.5));
         paint.reset();
         paint.setAntiAlias(true);
@@ -666,15 +679,22 @@ function drawTdAmbientStarSkia(
   row: number,
   col: number,
   elapsedSeconds: number,
-  isPaperDusk: boolean
+  isPaperDusk: boolean,
+  isoEnabled = false
 ): void {
   if (!Skia) return;
   const paint = getPaint();
   if (!paint) return;
   const seed = (row * 73 + col * 37 + 19) >>> 0;
   if (seed % 3 !== 0) return;
-  const starX = x + 5 + (seed % Math.max(1, Math.floor(width - 10)));
-  const starY = y + 5 + ((seed * 13) % Math.max(1, Math.floor(height - 10)));
+  const normalizedX = ((seed % 97) / 96) - 0.5;
+  const normalizedY = (((seed * 13) % 89) / 88) - 0.5;
+  const starX = isoEnabled
+    ? x + normalizedX * width * 0.5
+    : x + 5 + (seed % Math.max(1, Math.floor(width - 10)));
+  const starY = isoEnabled
+    ? y + normalizedY * height * 0.5
+    : y + 5 + ((seed * 13) % Math.max(1, Math.floor(height - 10)));
   const pulse = 0.25 + 0.55 * (0.5 + 0.5 * Math.sin(elapsedSeconds * 2.6 + seed * 0.17));
   paint.reset();
   paint.setAntiAlias(true);
@@ -936,6 +956,143 @@ function drawRhombusTileSkia(
   }
 }
 
+function drawSkiaTowerPlacementPreview(
+  canvas: SkCanvas,
+  world: TDWorld,
+  layout: GridLayout,
+  tileGrid: TileGrid,
+  isoCfg: import("./IsoProjection").IsoConfig
+): void {
+  if (!Skia) return;
+  const playerEntity = world.query("Player")[0];
+  if (playerEntity === undefined) return;
+  const input = world.getComponent(playerEntity, "Input");
+  if (!input) return;
+
+  const catalog = world.getResource<TowerCatalog>("TowerCatalog");
+  const gameState = world.getSingleton("GameState") as GameStateComponent | undefined;
+  const towerType = world.getComponent(playerEntity, "Player")?.selectedTowerType
+    ?? gameState?.selectedTowerType
+    ?? "basic";
+  const definition = catalog?.[towerType];
+  if (!definition) return;
+
+  // Input cursor is in logical world coordinates, not projected screen coordinates.
+  const col = Math.floor((input.cursorX - layout.offsetX) / layout.stepX);
+  const row = Math.floor((input.cursorY - layout.offsetY) / layout.stepY);
+  if (row < 0 || row >= tileGrid.rows || col < 0 || col >= tileGrid.cols) return;
+
+  const worldCenterX = layout.offsetX + (col + 0.5) * layout.stepX;
+  const worldCenterY = layout.offsetY + (row + 0.5) * layout.stepY;
+  const center = isoCfg.enabled
+    ? worldToIso(isoCfg, worldCenterX, worldCenterY)
+    : { x: worldCenterX, y: worldCenterY };
+
+  const buildable = tileGrid.tiles[row]?.[col] === "buildable";
+  const occupied = world.query("Tower").some((entity) => {
+    const tower = world.getComponent(entity, "Tower");
+    return tower?.col === col && tower.row === row;
+  });
+  const canAfford = (gameState?.gold ?? 0) >= definition.cost;
+  const canBuild = buildable && canAfford && !occupied;
+  const paint = getPaint();
+  if (!paint) return;
+
+  // Range geometry matches the Canvas ellipse and is scaled by the isometric
+  // vertical-to-horizontal tile ratio only for presentation.
+  canvas.save();
+  canvas.translate(center.x, center.y);
+  if (isoCfg.enabled) {
+    canvas.scale(1, isoCfg.tileHeightHalf / isoCfg.tileWidthHalf);
+  }
+  paint.reset();
+  paint.setAntiAlias(true);
+  paint.setStyle(Skia.PaintStyle.Fill);
+  paint.setColor(Skia.Color(canBuild ? "rgba(79,195,247,0.08)" : "rgba(229,57,53,0.06)"));
+  canvas.drawCircle(0, 0, definition.range, paint);
+  paint.setStyle(Skia.PaintStyle.Stroke);
+  paint.setStrokeWidth(1.5);
+  paint.setColor(Skia.Color(canBuild ? "rgba(79,195,247,0.45)" : "rgba(229,57,53,0.35)"));
+  canvas.drawCircle(0, 0, definition.range, paint);
+  canvas.restore();
+
+  if (isoCfg.enabled) {
+    drawRhombusTileSkia(
+      canvas,
+      paint,
+      center.x,
+      center.y,
+      isoCfg.tileWidthHalf - 1,
+      isoCfg.tileHeightHalf - 1,
+      canBuild ? "rgba(102,187,106,0.2)" : "rgba(229,57,53,0.2)",
+      canBuild ? "rgba(102,187,106,0.9)" : "rgba(229,57,53,0.7)"
+    );
+  } else {
+    paint.reset();
+    paint.setAntiAlias(true);
+    paint.setStyle(Skia.PaintStyle.Stroke);
+    paint.setStrokeWidth(2);
+    paint.setColor(Skia.Color(canBuild ? "rgba(102,187,106,0.9)" : "rgba(229,57,53,0.7)"));
+    canvas.drawRect(
+      Skia.XYWHRect(layout.offsetX + col * layout.stepX + 1, layout.offsetY + row * layout.stepY + 1, layout.stepX - 3, layout.stepY - 3),
+      paint
+    );
+  }
+
+  // A compact translucent tower silhouette provides the same placement cue
+  // without coupling the Skia path to the procedural tower implementation.
+  canvas.save();
+  canvas.translate(center.x, center.y - (isoCfg.enabled ? getEntityVisualHeight("tower") : 0));
+  paint.reset();
+  paint.setAntiAlias(true);
+  paint.setStyle(Skia.PaintStyle.Fill);
+  paint.setAlphaf(0.45);
+  const ghostColor = towerType === "sniper" ? "#ab47bc"
+    : towerType === "rapid" ? "#66bb6a"
+    : towerType === "frost" ? "#4dd0e1"
+    : "#4fc3f7";
+  paint.setColor(Skia.Color(ghostColor));
+  const size = layout.stepX * 0.65;
+  canvas.drawCircle(0, 0, size * 0.42, paint);
+  const shape = Skia.Path.Make();
+  if (towerType === "rapid") {
+    shape.addRect(Skia.XYWHRect(-size * 0.2, -size * 0.2, size * 0.4, size * 0.4));
+  } else if (towerType === "sniper") {
+    shape.moveTo(-size * 0.16, size * 0.1);
+    shape.lineTo(-size * 0.1, -size * 0.28);
+    shape.lineTo(size * 0.1, -size * 0.28);
+    shape.lineTo(size * 0.16, size * 0.1);
+    shape.close();
+  } else if (towerType === "frost") {
+    for (let index = 0; index < 6; index++) {
+      const angle = (index * Math.PI) / 3;
+      const x = Math.cos(angle) * size * 0.25;
+      const y = Math.sin(angle) * size * 0.25;
+      if (index === 0) shape.moveTo(x, y);
+      else shape.lineTo(x, y);
+    }
+    shape.close();
+  } else {
+    shape.moveTo(0, -size * 0.28);
+    shape.lineTo(size * 0.24, size * 0.18);
+    shape.lineTo(-size * 0.24, size * 0.18);
+    shape.close();
+  }
+  paint.setColor(Skia.Color("#101827"));
+  paint.setAlphaf(0.75);
+  canvas.drawPath(shape, paint);
+  canvas.restore();
+
+  if (!canAfford && buildable) {
+    paint.reset();
+    paint.setAntiAlias(true);
+    paint.setStyle(Skia.PaintStyle.Fill);
+    paint.setColor(Skia.Color("#ef5350"));
+    const font = Skia.Font ? Skia.Font(null, 11) : null;
+    if (font) canvas.drawText("NO GOLD", center.x - 22, center.y - (isoCfg.enabled ? isoCfg.tileHeightHalf + 10 : 20), paint, font);
+  }
+}
+
 export const drawSkiaTdMapBackground: EffectDrawer<SkCanvas, TowerDefenseComponentRegistry> = {
   draw(canvas, world: TDWorld) {
     if (!Skia) return;
@@ -989,7 +1146,7 @@ export const drawSkiaTdMapBackground: EffectDrawer<SkCanvas, TowerDefenseCompone
       }
 
       if (tile === "blocked") {
-        drawTdAmbientStarSkia(canvas, x, y, isoCfg.enabled ? isoCfg.tileWidthHalf * 2 : layout.stepX, isoCfg.enabled ? isoCfg.tileHeightHalf * 2 : layout.stepY, row, col, vfxElapsed, isPaperDusk);
+        drawTdAmbientStarSkia(canvas, x, y, isoCfg.enabled ? isoCfg.tileWidthHalf * 2 : layout.stepX, isoCfg.enabled ? isoCfg.tileHeightHalf * 2 : layout.stepY, row, col, vfxElapsed, isPaperDusk, isoCfg.enabled);
       }
 
       if (tile === "spawn" || tile === "base") {
@@ -998,6 +1155,7 @@ export const drawSkiaTdMapBackground: EffectDrawer<SkCanvas, TowerDefenseCompone
     });
 
     drawPathDirectionMarkersSkia(canvas, world, isPaperDusk, isoCfg);
+    drawSkiaTowerPlacementPreview(canvas, world, layout, bgCtx.tileGrid, isoCfg);
 
     drawTowerDefenseVfxSkia(canvas, world, layout, bgCtx.tileGrid, isPaperDusk);
   },

@@ -80,6 +80,7 @@ export function createIsoConfig(config: Partial<TowerDefenseConfig>): IsoConfig 
       },
     };
   }
+  const worldWidth = Number.isFinite(config.worldWidth) && (config.worldWidth as number) > 0 ? (config.worldWidth as number) : 800;
 
   // Calculate originX to center the projected grid horizontal bounding box inside worldWidth
   const originX = (worldWidth - projectedWidth) / 2 + rows * tileWidthHalf;
@@ -90,6 +91,30 @@ export function createIsoConfig(config: Partial<TowerDefenseConfig>): IsoConfig 
   const maxX = originX + cols * tileWidthHalf;
   const minY = originY;
   const maxY = originY + (cols + rows) * tileHeightHalf;
+  if (!enabled) {
+    const minX = gridOffsetX;
+    const maxX = gridOffsetX + cols * cellSize;
+    const minY = gridOffsetY;
+    const maxY = gridOffsetY + rows * cellSize;
+    return {
+      tileWidthHalf,
+      tileHeightHalf,
+      originX: gridOffsetX,
+      originY: gridOffsetY,
+      cellSize,
+      gridOffsetX,
+      gridOffsetY,
+      enabled: false,
+      bounds: {
+        minX,
+        maxX,
+        minY,
+        maxY,
+        width: maxX - minX,
+        height: maxY - minY,
+      },
+    };
+  }
 
   return {
     tileWidthHalf,

@@ -1175,7 +1175,9 @@ export const drawSkiaTdMapBackground: EffectDrawer<SkCanvas, TowerDefenseCompone
         if (isPaperDusk) {
           const pdGround = resolveThemeColorWithFallback(world, "#2B2F36", "pd_ground");
           const pdBuildable = resolveThemeColorWithFallback(world, "#3A4049", "pd_buildable");
+          const pdBuildableEdge = resolveThemeColorWithFallback(world, "#5B6470", "pd_buildableEdge");
           const pdPath = resolveThemeColorWithFallback(world, "#D8C3A0", "pd_path");
+          const pdPathEdge = resolveThemeColorWithFallback(world, "#B39B73", "pd_pathEdge");
 
           const fillColor =
             tile === "path" || tile === "spawn" || tile === "base"

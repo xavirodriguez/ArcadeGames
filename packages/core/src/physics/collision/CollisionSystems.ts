@@ -31,6 +31,54 @@ export type TriggerCallback<
   TRegistry extends ComponentRegistry = CoreComponentRegistry
 > = (world: World<TRegistry>, entityA: Entity, entityB: Entity) => void;
 
+function resolveEntityCollider(
+  world: World<CoreComponentRegistry>,
+  entity: Entity
+): {
+  shape: import("../shapes/Shapes").Shape;
+  layer: number;
+  mask: number;
+  enabled: boolean;
+  isTrigger: boolean;
+  offsetX?: number;
+  offsetY?: number;
+} | null {
+  const collider = world.getComponent(entity, "Collider");
+  if (collider) {
+    return {
+      shape: collider.shape,
+      layer: collider.layer,
+      mask: collider.mask,
+      enabled: collider.enabled,
+      isTrigger: collider.isTrigger,
+      offsetX: collider.offsetX,
+      offsetY: collider.offsetY
+    };
+  }
+  const collider2D = world.getComponent(entity, "Collider2D");
+  if (collider2D) {
+    return {
+      shape: toShapeDefinition(collider2D),
+      layer: collider2D.layer,
+      mask: collider2D.mask,
+      enabled: collider2D.enabled,
+      isTrigger: collider2D.isTrigger,
+      offsetX: collider2D.offsetX,
+      offsetY: collider2D.offsetY
+    };
+  }
+  return null;
+}
+
+function shouldCollideLayers(
+  layerA: number,
+  maskB: number,
+  layerB: number,
+  maskA: number
+): boolean {
+  return (layerA & maskB) !== 0 && (layerB & maskA) !== 0;
+}
+
 /**
  * Detects and resolves 2D collisions between entities using a broad-phase / narrow-phase pipeline.
  *
@@ -179,12 +227,12 @@ export class CollisionSystem2D<
     const bpLen = broadPhasePairs.length;
     for (let i = 0; i < bpLen; i++) {
       const [entityA, entityB] = broadPhasePairs[i];
-      const colA = this.resolveCollider(w, entityA);
-      const colB = this.resolveCollider(w, entityB);
+      const colA = resolveEntityCollider(w, entityA);
+      const colB = resolveEntityCollider(w, entityB);
       if (!colA || !colB) continue;
 
       if (!colA.enabled || !colB.enabled) continue;
-      if (!this.shouldCollide(colA.layer, colB.mask, colB.layer, colA.mask)) continue;
+      if (!shouldCollideLayers(colA.layer, colB.mask, colB.layer, colA.mask)) continue;
 
       const transA = w.getComponent(entityA, "Transform")!;
       const transB = w.getComponent(entityB, "Transform")!;
@@ -232,54 +280,6 @@ export class CollisionSystem2D<
 
   private hasAnyCollider(world: World<CoreComponentRegistry>, entity: Entity): boolean {
     return world.hasComponent(entity, "Collider") || world.hasComponent(entity, "Collider2D");
-  }
-
-  private resolveCollider(
-    world: World<CoreComponentRegistry>,
-    entity: Entity
-  ): {
-    shape: import("../shapes/Shapes").Shape;
-    layer: number;
-    mask: number;
-    enabled: boolean;
-    isTrigger: boolean;
-    offsetX?: number;
-    offsetY?: number;
-  } | null {
-    const collider = world.getComponent(entity, "Collider");
-    if (collider) {
-      return {
-        shape: collider.shape,
-        layer: collider.layer,
-        mask: collider.mask,
-        enabled: collider.enabled,
-        isTrigger: collider.isTrigger,
-        offsetX: collider.offsetX,
-        offsetY: collider.offsetY
-      };
-    }
-    const collider2D = world.getComponent(entity, "Collider2D");
-    if (collider2D) {
-      return {
-        shape: toShapeDefinition(collider2D),
-        layer: collider2D.layer,
-        mask: collider2D.mask,
-        enabled: collider2D.enabled,
-        isTrigger: collider2D.isTrigger,
-        offsetX: collider2D.offsetX,
-        offsetY: collider2D.offsetY
-      };
-    }
-    return null;
-  }
-
-  private shouldCollide(
-    layerA: number,
-    maskB: number,
-    layerB: number,
-    maskA: number
-  ): boolean {
-    return (layerA & maskB) !== 0 && (layerB & maskA) !== 0;
   }
 
   private getPairId(a: Entity, b: Entity): string {
@@ -409,7 +409,7 @@ export class CCDSystem<
       const transformedEntities = w.query("Transform");
       for (let i = 0; i < transformedEntities.length; i++) {
         const entity = transformedEntities[i];
-        if (!this.resolveCollider(w, entity)) continue;
+        if (!resolveEntityCollider(w, entity)) continue;
         this._cachedCollidablesArray.push(entity);
         if (w.hasComponent(entity, "Velocity")) {
           this._cachedQueryArray.push(entity);
@@ -424,7 +424,7 @@ export class CCDSystem<
       const entity = query[i];
       const trans = w.getComponent(entity, "Transform")!;
       const vel = w.getComponent(entity, "Velocity")!;
-      const col = this.resolveCollider(w, entity);
+      const col = resolveEntityCollider(w, entity);
 
       if (!col || !col.enabled || (vel.vx === 0 && vel.vy === 0)) continue;
 
@@ -438,9 +438,9 @@ export class CCDSystem<
         const other = collidables[j];
         if (entity === other) continue;
 
-        const otherCol = this.resolveCollider(w, other);
+        const otherCol = resolveEntityCollider(w, other);
         if (!otherCol || !otherCol.enabled || otherCol.isTrigger) continue;
-        if (!this.shouldCollide(col.layer, otherCol.mask, otherCol.layer, col.mask)) continue;
+        if (!shouldCollideLayers(col.layer, otherCol.mask, otherCol.layer, col.mask)) continue;
 
         const otherTrans = w.getComponent(other, "Transform")!;
         const ox = otherTrans.worldX ?? otherTrans.x;
@@ -480,54 +480,6 @@ export class CCDSystem<
         }
       }
     }
-  }
-
-  private resolveCollider(
-    world: World<CoreComponentRegistry>,
-    entity: Entity
-  ): {
-    shape: import("../shapes/Shapes").Shape;
-    layer: number;
-    mask: number;
-    enabled: boolean;
-    isTrigger: boolean;
-    offsetX?: number;
-    offsetY?: number;
-  } | null {
-    const collider = world.getComponent(entity, "Collider");
-    if (collider) {
-      return {
-        shape: collider.shape,
-        layer: collider.layer,
-        mask: collider.mask,
-        enabled: collider.enabled,
-        isTrigger: collider.isTrigger,
-        offsetX: collider.offsetX,
-        offsetY: collider.offsetY
-      };
-    }
-    const collider2D = world.getComponent(entity, "Collider2D");
-    if (collider2D) {
-      return {
-        shape: toShapeDefinition(collider2D),
-        layer: collider2D.layer,
-        mask: collider2D.mask,
-        enabled: collider2D.enabled,
-        isTrigger: collider2D.isTrigger,
-        offsetX: collider2D.offsetX,
-        offsetY: collider2D.offsetY
-      };
-    }
-    return null;
-  }
-
-  private shouldCollide(
-    layerA: number,
-    maskB: number,
-    layerB: number,
-    maskA: number
-  ): boolean {
-    return (layerA & maskB) !== 0 && (layerB & maskA) !== 0;
   }
 
   private rayIntersectsCircle(

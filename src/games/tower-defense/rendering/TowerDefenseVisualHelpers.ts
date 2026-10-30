@@ -9,7 +9,7 @@ import type {
 import type { TowerDefinition } from "../types/TowerDefenseConfigSchema";
 import type { GridLayout } from "../../shared/grid/GridTypes";
 import { TOWER_DEFENSE_VISUAL_TOKENS } from "../presentation/TowerDefenseVisualTokens";
-import { createIsoConfig, worldToIso, depthOf, type IsoConfig, type Point2D } from "./IsoProjection";
+import { createIsoConfig, worldToIso, depthOf, projectVector, type IsoConfig, type Point2D } from "./IsoProjection";
 import type { TowerDefenseConfig } from "../types/TowerDefenseConfigSchema";
 
 export interface PathDirectionMarker {
@@ -186,21 +186,14 @@ export function resolveTowerWeaponDrawSetup(
     : undefined;
 
   const gameConfig = world.getResource<TowerDefenseConfig>("GameConfig");
-  const isoCfg = gameConfig ? createIsoConfig(gameConfig) : undefined;
+  const isoCfg = gameConfig ? createIsoConfig(gameConfig) : createIsoConfig({ projection: "topdown" });
 
   let angle = -Math.PI / 2;
   if (transform && targetTransform) {
-    const dx = targetTransform.x - transform.x;
-    const dy = targetTransform.y - transform.y;
-    if (isoCfg && isoCfg.enabled) {
-      const scaleX = isoCfg.tileWidthHalf / isoCfg.cellSize;
-      const scaleY = isoCfg.tileHeightHalf / isoCfg.cellSize;
-      const pdx = (dx - dy) * scaleX;
-      const pdy = (dx + dy) * scaleY;
-      angle = Math.atan2(pdy, pdx);
-    } else {
-      angle = Math.atan2(dy, dx);
-    }
+    const origin = resolveTransformWorldPosition(transform);
+    const target = resolveTransformWorldPosition(targetTransform);
+    const direction = projectVector(isoCfg, target.x - origin.x, target.y - origin.y);
+    angle = Math.atan2(direction.y, direction.x);
   }
 
   const barrelColor = type === "sniper"
@@ -451,6 +444,18 @@ export function getEntityVisualHeight(type?: string): number {
 }
 
 /** Returns the isometric screen position and visual height offset for an entity. */
+/** Resolves the authoritative world-space position used by render planning and projection. */
+export function resolveTransformWorldPosition(
+  transform: { x: number; y: number; worldX?: number; worldY?: number } | undefined
+): Point2D {
+  if (!transform) return { x: 0, y: 0 };
+  return {
+    x: transform.worldX ?? transform.x,
+    y: transform.worldY ?? transform.y,
+  };
+}
+
+/** Returns the isometric screen position and visual height offset for an entity. */
 export function resolveEntityIsometricOffset(
   world: World<TowerDefenseComponentRegistry>,
   entity: number,
@@ -463,32 +468,29 @@ export function resolveEntityIsometricOffset(
   drawY: number;
   isoCfg: IsoConfig;
 } {
-  const transform = world.getComponent(entity, "Transform");
-  const wx = transform ? (transform.worldX ?? transform.x) : 0;
-  const wy = transform ? (transform.worldY ?? transform.y) : 0;
-
+  const worldPosition = resolveTransformWorldPosition(world.getComponent(entity, "Transform"));
   const gameConfig = world.getResource<TowerDefenseConfig>("GameConfig");
-  const isoCfg = gameConfig ? createIsoConfig(gameConfig) : { enabled: false } as IsoConfig;
+  const isoCfg = gameConfig ? createIsoConfig(gameConfig) : createIsoConfig({ projection: "topdown" });
 
   if (isoCfg.enabled) {
-    const isoP = worldToIso(isoCfg, wx, wy);
+    const screenPosition = worldToIso(isoCfg, worldPosition.x, worldPosition.y);
     const heightPx = getEntityVisualHeight(type);
     return {
-      worldX: wx,
-      worldY: wy,
-      screenX: isoP.x,
-      screenY: isoP.y,
-      drawY: isoP.y - heightPx,
+      worldX: worldPosition.x,
+      worldY: worldPosition.y,
+      screenX: screenPosition.x,
+      screenY: screenPosition.y,
+      drawY: screenPosition.y - heightPx,
       isoCfg,
     };
   }
 
   return {
-    worldX: wx,
-    worldY: wy,
-    screenX: wx,
-    screenY: wy,
-    drawY: wy,
+    worldX: worldPosition.x,
+    worldY: worldPosition.y,
+    screenX: worldPosition.x,
+    screenY: worldPosition.y,
+    drawY: worldPosition.y,
     isoCfg,
   };
 }

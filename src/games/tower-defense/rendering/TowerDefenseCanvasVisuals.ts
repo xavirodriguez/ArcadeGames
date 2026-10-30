@@ -631,7 +631,7 @@ export const drawTowerProjectile: ShapeDrawer<CanvasRenderingContext2D, TowerDef
     const velocity = world.getComponent(entity, "Velocity");
     const projectedVelocity = velocity && projection.isoCfg.enabled
       ? projectVector(projection.isoCfg, velocity.vx, velocity.vy)
-      : velocity;
+      : velocity ? { x: velocity.vx, y: velocity.vy } : null;
     if (projectedVelocity) {
       const speed = Math.hypot(projectedVelocity.x, projectedVelocity.y);
       if (speed > 1) {

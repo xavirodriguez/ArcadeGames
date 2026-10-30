@@ -34,10 +34,27 @@ export function createIsoConfig(config: Partial<TowerDefenseConfig>): IsoConfig 
   const gridOffsetY = Number.isFinite(config.GRID_OFFSET_Y) ? (config.GRID_OFFSET_Y as number) : 40;
   const cols = Number.isFinite(config.GRID_COLS) && (config.GRID_COLS as number) > 0 ? (config.GRID_COLS as number) : 16;
   const rows = Number.isFinite(config.GRID_ROWS) && (config.GRID_ROWS as number) > 0 ? (config.GRID_ROWS as number) : 12;
-  const worldWidth = Number.isFinite(config.worldWidth) && (config.worldWidth as number) > 0 ? (config.worldWidth as number) : 800;
 
-  const tileWidthHalf = cellSize;
-  const tileHeightHalf = cellSize / ratio;
+  const projectedWidthAtUnitScale = (cols + rows) * cellSize;
+  const projectedHeightAtUnitScale = projectedWidthAtUnitScale / ratio;
+
+  const worldWidth = Number.isFinite(config.worldWidth) && (config.worldWidth as number) > 0
+    ? (config.worldWidth as number)
+    : projectedWidthAtUnitScale;
+  const worldHeight = Number.isFinite(config.worldHeight) && (config.worldHeight as number) > 0
+    ? (config.worldHeight as number)
+    : projectedHeightAtUnitScale;
+
+  const fitScale = Math.min(
+    1,
+    worldWidth / projectedWidthAtUnitScale,
+    worldHeight / projectedHeightAtUnitScale
+  );
+
+  const tileWidthHalf = cellSize * fitScale;
+  const tileHeightHalf = tileWidthHalf / ratio;
+  const projectedWidth = (cols + rows) * tileWidthHalf;
+  const projectedHeight = (cols + rows) * tileHeightHalf;
 
   if (!enabled) {
     const minX = gridOffsetX;
@@ -63,16 +80,41 @@ export function createIsoConfig(config: Partial<TowerDefenseConfig>): IsoConfig 
       },
     };
   }
+  const worldWidth = Number.isFinite(config.worldWidth) && (config.worldWidth as number) > 0 ? (config.worldWidth as number) : 800;
 
   // Calculate originX to center the projected grid horizontal bounding box inside worldWidth
-  const originX = (worldWidth - (cols - rows) * tileWidthHalf) / 2;
-  const originY = gridOffsetY + 20;
+  const originX = (worldWidth - projectedWidth) / 2 + rows * tileWidthHalf;
+  const originY = (worldHeight - projectedHeight) / 2;
 
   // Outer bounds derived from 4 outer corners in projected isometric space
   const minX = originX - rows * tileWidthHalf;
   const maxX = originX + cols * tileWidthHalf;
   const minY = originY;
   const maxY = originY + (cols + rows) * tileHeightHalf;
+  if (!enabled) {
+    const minX = gridOffsetX;
+    const maxX = gridOffsetX + cols * cellSize;
+    const minY = gridOffsetY;
+    const maxY = gridOffsetY + rows * cellSize;
+    return {
+      tileWidthHalf,
+      tileHeightHalf,
+      originX: gridOffsetX,
+      originY: gridOffsetY,
+      cellSize,
+      gridOffsetX,
+      gridOffsetY,
+      enabled: false,
+      bounds: {
+        minX,
+        maxX,
+        minY,
+        maxY,
+        width: maxX - minX,
+        height: maxY - minY,
+      },
+    };
+  }
 
   return {
     tileWidthHalf,

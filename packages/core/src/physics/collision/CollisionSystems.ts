@@ -282,6 +282,15 @@ export class CollisionSystem2D<
     return world.hasComponent(entity, "Collider") || world.hasComponent(entity, "Collider2D");
   }
 
+  private shouldCollide(
+    layerA: number,
+    maskB: number,
+    layerB: number,
+    maskA: number
+  ): boolean {
+    return shouldCollideLayers(layerA, maskB, layerB, maskA);
+  }
+
   private getPairId(a: Entity, b: Entity): string {
     return a < b ? `${a},${b}` : `${b},${a}`;
   }
@@ -480,6 +489,15 @@ export class CCDSystem<
         }
       }
     }
+  }
+
+  private shouldCollide(
+    layerA: number,
+    maskB: number,
+    layerB: number,
+    maskA: number
+  ): boolean {
+    return shouldCollideLayers(layerA, maskB, layerB, maskA);
   }
 
   private rayIntersectsCircle(

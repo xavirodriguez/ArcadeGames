@@ -39,6 +39,7 @@ function createRender(): RenderComponent {
 function createAnimatorState(): { animator: SpriteAnimatorComponent; lastTick: number } {
   return {
     animator: {
+      type: "SpriteAnimator",
       sheetId: SEA_DRAGON_SPRITE_ID,
       currentAnim: "fly",
       frameIndex: 0,
@@ -146,6 +147,7 @@ describe("Sea dragon animator behaviour", () => {
 
   it("completes the one-shot clips without leaking into the next loop", () => {
     const animator: SpriteAnimatorComponent = {
+      type: "SpriteAnimator",
       sheetId: SEA_DRAGON_SPRITE_ID,
       currentAnim: "hit",
       frameIndex: 0,

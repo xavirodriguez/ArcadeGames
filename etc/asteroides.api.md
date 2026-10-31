@@ -5333,10 +5333,18 @@ export interface SpriteAnchor {
 
 // @public
 export interface SpriteAnimationDefinition {
+    events?: SpriteAnimationEventDefinition[];
     frameDuration: number;
     frames: SpriteFrameRect[];
     loop: boolean;
     name: string;
+}
+
+// @public
+export interface SpriteAnimationEventDefinition {
+    frame: number;
+    payload?: Record<string, unknown>;
+    type: string;
 }
 
 // @public

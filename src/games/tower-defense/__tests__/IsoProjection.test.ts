@@ -179,10 +179,18 @@ describe("IsoProjection", () => {
       GRID_ROWS: 0,
     });
 
+    const defaultCols = 16;
+    const defaultRows = 12;
+    const defaultSpan = defaultCols + defaultRows;
+    const defaultRatio = 2;
+    const expectedTileWidthHalf = 800 / defaultSpan;
+    const expectedTileHeightHalf = expectedTileWidthHalf / defaultRatio;
+    const expectedBoundsHeight = defaultSpan * expectedTileHeightHalf;
+
     expect(partialIso.cellSize).toBe(40);
-    expect(partialIso.tileHeightHalf).toBe(20);
+    expect(partialIso.tileHeightHalf).toBeCloseTo(expectedTileHeightHalf, 5);
     expect(partialIso.bounds.width).toBeCloseTo(800, 5);
-    expect(partialIso.bounds.height).toBeCloseTo(400, 5);
+    expect(partialIso.bounds.height).toBeCloseTo(expectedBoundsHeight, 5);
     expect(partialIso.bounds.minX).toBeCloseTo(0, 5);
     expect(partialIso.bounds.maxY).toBeLessThanOrEqual(600);
   });

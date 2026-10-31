@@ -32,6 +32,22 @@ export type SpriteImageSource =
   | null;
 
 /**
+ * Animation frame event specification.
+ *
+ * Allows triggering SFX, VFX, or gameplay logic on designated animation frames.
+ *
+ * @public
+ */
+export interface SpriteAnimationEventDefinition {
+  /** Zero-based frame index within the animation clip where the event triggers. */
+  frame: number;
+  /** Semantic event type (e.g. "sfx", "vfx", "hit", or custom). */
+  type: string;
+  /** Optional arbitrary metadata payload associated with the event. */
+  payload?: Record<string, unknown>;
+}
+
+/**
  * Animation clip represented by ordered source rectangles.
  *
  * frameDuration is seconds per frame, independent of the game-loop tick rate.
@@ -47,6 +63,8 @@ export interface SpriteAnimationDefinition {
   frameDuration: number;
   /** Whether playback loops indefinitely. */
   loop: boolean;
+  /** Optional frame events triggered at specific frame boundaries. */
+  events?: SpriteAnimationEventDefinition[];
 }
 
 /**

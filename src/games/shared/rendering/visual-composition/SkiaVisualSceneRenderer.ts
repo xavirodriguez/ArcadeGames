@@ -38,6 +38,7 @@ export function drawResolvedVisualSceneSkia(
       if (!SpriteRegistry.has(item.assetId)) return false;
       const scale = item.scaleX === item.scaleY ? item.scaleX : 1;
       const animator: SpriteAnimatorComponent = {
+        type: "SpriteAnimator",
         sheetId: item.assetId,
         currentAnim: "idle",
         frameIndex: 0,

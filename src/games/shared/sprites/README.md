@@ -87,6 +87,30 @@ The index-based `AnimatorComponent` and `AnimationSystem` are marked as `@deprec
 
 `updateSpriteAnimator(animator, dt)` consumes elapsed seconds and advances across every frame boundary covered by `dt`, including after a slow frame. A completed non-looping clip sets `animator.finished` and reports completion once; call `playAnimation(animator, name, true)` to restart that same clip. Invalid or non-positive `dt` values and non-positive frame durations do not advance playback.
 
+## Animation frame events (`events`)
+
+Animation clips can declare opt-in frame events in their `SpriteAnimationDefinition`:
+
+```ts
+import type { SpriteAnimationDefinition } from "@tiny-aster/core";
+
+const attackAnimation: SpriteAnimationDefinition = {
+  name: "attack",
+  frames: [...],
+  frameDuration: 0.1,
+  loop: false,
+  events: [
+    {
+      frame: 2,                        // 0-based index (0 <= frame < frames.length)
+      type: "sfx",                     // "sfx" | "vfx" | "hit" | custom string
+      payload: { cue: "slash_sfx" }    // optional metadata
+    }
+  ]
+};
+```
+
+Events are validated automatically via `pnpm run sprites:validate`. The validator ensures that `events` is an array when provided, each `type` is a non-empty string, and `frame` is a valid integer within the bounds of `frames` (`0 .. frames.length - 1`).
+
 ## Shared destination geometry
 
 The ECS Canvas drawer, ECS Skia drawer and shared sprite-sheet drawer use `calculateSpriteDestinationRect` from `@tiny-aster/core` for destination sizing and anchor offsets. This keeps center, feet and custom normalized anchors consistent across both render backends. Run the core test `packages/core/tests/SpriteSheetDefinition.test.ts` when changing this contract.

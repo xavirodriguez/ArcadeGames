@@ -3,6 +3,7 @@ import { cellToWorld, cellCenterToWorld, worldToCell } from "../shared/grid/Grid
 import type { TileType, TileGrid, WaypointList } from "./types/TowerDefenseTypes";
 import type { TowerDefenseConfig } from "./types/TowerDefenseConfigSchema";
 import { createIsoConfig, worldToIso } from "./rendering/IsoProjection";
+import { TOWER_DEFENSE_VISUAL_TOKENS } from "./presentation/TowerDefenseVisualTokens";
 
 const CHAR_TO_TILE: Record<string, TileType> = {
   P: "path",
@@ -246,10 +247,10 @@ export function isBuildable(tileGrid: TileGrid, col: number, row: number): boole
 
 /** Resolves standard background fill color for TD grid tile types. */
 export function getTileTypeColor(tile: TileType | undefined): string {
-  if (tile === "path") return "#2a2a4a";
-  if (tile === "buildable") return "#16213e";
-  if (tile === "spawn") return "#3d1a1a";
-  if (tile === "base") return "#1a3d1a";
-  if (tile === "blocked") return "#0a0a12";
-  return "#0f0f1a";
+  if (tile === "path") return TOWER_DEFENSE_VISUAL_TOKENS.tiles.path;
+  if (tile === "buildable") return TOWER_DEFENSE_VISUAL_TOKENS.tiles.buildable;
+  if (tile === "spawn") return TOWER_DEFENSE_VISUAL_TOKENS.tiles.spawn;
+  if (tile === "base") return TOWER_DEFENSE_VISUAL_TOKENS.tiles.base;
+  if (tile === "blocked") return TOWER_DEFENSE_VISUAL_TOKENS.tiles.blocked;
+  return TOWER_DEFENSE_VISUAL_TOKENS.tiles.default;
 }

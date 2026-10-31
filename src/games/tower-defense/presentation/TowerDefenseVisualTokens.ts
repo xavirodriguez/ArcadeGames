@@ -65,6 +65,18 @@ export const TOWER_DEFENSE_VISUAL_TOKENS = {
     spawn: "#ef5350",
     base: "#43a047",
   },
+  tiles: {
+    path: "#2a2a4a",
+    buildable: "#16213e",
+    spawn: "#3d1a1a",
+    base: "#1a3d1a",
+    blocked: "#0a0a12",
+    default: "#0f0f1a",
+  },
+  ink: {
+    paperDusk: "#14161B",
+    darkOutline: "#101827",
+  },
 } as const;
 
 export type TowerDefenseVisualTokens = typeof TOWER_DEFENSE_VISUAL_TOKENS;

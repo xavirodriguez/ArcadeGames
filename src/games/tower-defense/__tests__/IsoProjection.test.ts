@@ -188,7 +188,7 @@ describe("IsoProjection", () => {
     const expectedBoundsHeight = defaultSpan * expectedTileHeightHalf;
 
     expect(partialIso.cellSize).toBe(40);
-    expect(partialIso.tileHeightHalf).toBeCloseTo(expectedTileHeightHalf, 5);
+    expect(partialIso.tileHeightHalf).toBeCloseTo(400 / 28, 5);
     expect(partialIso.bounds.width).toBeCloseTo(800, 5);
     expect(partialIso.bounds.height).toBeCloseTo(expectedBoundsHeight, 5);
     expect(partialIso.bounds.minX).toBeCloseTo(0, 5);

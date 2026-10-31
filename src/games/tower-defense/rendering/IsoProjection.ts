@@ -78,6 +78,9 @@ export function createIsoConfig(config: Partial<TowerDefenseConfig>): IsoConfig 
     };
   }
 
+  const projectedWidth = gridSpan * tileWidthHalf;
+  const projectedHeight = gridSpan * tileHeightHalf;
+
   // Center the projected four-corner footprint on both viewport axes.
   const originX = worldWidth / 2 - ((cols - rows) * tileWidthHalf) / 2;
   const originY = (worldHeight - projectedHeight) / 2;
@@ -85,7 +88,7 @@ export function createIsoConfig(config: Partial<TowerDefenseConfig>): IsoConfig 
   const minX = originX - rows * tileWidthHalf;
   const maxX = originX + cols * tileWidthHalf;
   const minY = originY;
-  const maxY = originY + (cols + rows) * tileHeightHalf;
+  const maxY = originY + projectedHeight;
 
   return {
     tileWidthHalf,

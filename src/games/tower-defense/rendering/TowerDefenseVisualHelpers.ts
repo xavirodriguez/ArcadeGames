@@ -205,8 +205,8 @@ export function resolveTowerWeaponDrawSetup(
         ? resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.weapon.frost, "tower_frost_flake", "tower_frost_accent")
         : resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.weapon.basic, "tower_basic_accent");
   const inkColor = isPaperDuskTheme(world)
-    ? resolveThemeColorWithFallback(world, "#14161B", "pd_ink")
-    : "#101827";
+    ? resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.ink.paperDusk, "pd_ink")
+    : TOWER_DEFENSE_VISUAL_TOKENS.ink.darkOutline;
   const barrelLength = size * (type === "sniper" ? 0.62 : type === "rapid" ? 0.5 : 0.54);
   const barrelWidth = Math.max(3, size * (type === "sniper" ? 0.15 : 0.12));
   const cooldownDuration = tower && tower.fireRate > 0 ? 1 / tower.fireRate : 0;
@@ -253,8 +253,8 @@ export function resolveTdLandmarkSetup(
     ? resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.mapLandmarks.spawn, "map_spawn", "accent")
     : resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.mapLandmarks.base, "map_base", "primary");
   const outline = isPaperDusk
-    ? resolveThemeColorWithFallback(world, "#14161B", "pd_ink")
-    : "#101827";
+    ? resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.ink.paperDusk, "pd_ink")
+    : TOWER_DEFENSE_VISUAL_TOKENS.ink.darkOutline;
 
   const elapsedSeconds = world.getResource<TowerDefenseVisualEffects>("TowerDefenseVisualEffects")?.elapsedSeconds ?? 0;
   const pulse = 0.5 + 0.5 * Math.sin(elapsedSeconds * 3.4 + (kind === "base" ? 0 : 1.8));

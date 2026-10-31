@@ -180,7 +180,7 @@ describe("IsoProjection", () => {
     });
 
     expect(partialIso.cellSize).toBe(40);
-    expect(partialIso.tileHeightHalf).toBe(20);
+    expect(partialIso.tileHeightHalf).toBeCloseTo(400 / 28, 5);
     expect(partialIso.bounds.width).toBeCloseTo(800, 5);
     expect(partialIso.bounds.height).toBeCloseTo(400, 5);
     expect(partialIso.bounds.minX).toBeCloseTo(0, 5);

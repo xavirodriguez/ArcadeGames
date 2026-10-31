@@ -52,4 +52,24 @@ describe("calculateSpriteDestinationRect", () => {
       ).toBeNull();
     }
   });
+
+  it("supports declaring optional frame events on animation definitions", () => {
+    const animation = {
+      name: "slash",
+      frames: [
+        { x: 0, y: 0, w: 32, h: 32 },
+        { x: 32, y: 0, w: 32, h: 32 }
+      ],
+      frameDuration: 0.1,
+      loop: false,
+      events: [
+        { frame: 1, type: "sfx", payload: { cue: "slash_sfx" } },
+        { frame: 1, type: "hit" }
+      ]
+    };
+
+    expect(animation.events).toHaveLength(2);
+    expect(animation.events[0].type).toBe("sfx");
+    expect(animation.events[1].type).toBe("hit");
+  });
 });

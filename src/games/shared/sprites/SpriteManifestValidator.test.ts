@@ -96,4 +96,70 @@ describe("SpriteManifestValidator", () => {
     expect(readPngDimensions(new Uint8Array([1, 2, 3]))).toBeNull();
     expect(readPngDimensions(createPngHeader(0, 64))).toBeNull();
   });
+
+  describe("animation events validation", () => {
+    it("accepts valid events within frame range", () => {
+      const sheet: SpriteSheetDefinition = {
+        ...validSheet,
+        animations: {
+          attack: {
+            name: "attack",
+            frames: [
+              { x: 0, y: 0, w: 16, h: 16 },
+              { x: 16, y: 0, w: 16, h: 16 },
+              { x: 32, y: 0, w: 16, h: 16 }
+            ],
+            frameDuration: 0.1,
+            loop: false,
+            events: [
+              { frame: 1, type: "sfx", payload: { sound: "sword_slash" } },
+              { frame: 2, type: "hit" }
+            ]
+          }
+        }
+      };
+
+      const issues = validateSpriteSheetDefinition(sheet, { width: 48, height: 16 });
+      expect(issues).toEqual([]);
+    });
+
+    it("rejects event frame out of bounds (negative or >= frames.length)", () => {
+      const sheet: SpriteSheetDefinition = {
+        ...validSheet,
+        animations: {
+          idle: {
+            ...validSheet.animations.idle,
+            events: [
+              { frame: -1, type: "sfx" },
+              { frame: 1, type: "vfx" } // validSheet has only 1 frame (index 0)
+            ]
+          }
+        }
+      };
+
+      const codes = validateSpriteSheetDefinition(sheet, { width: 32, height: 32 }).map((i) => i.code);
+      expect(codes.filter((c) => c === "EVENT_FRAME_OUT_OF_BOUNDS")).toHaveLength(2);
+    });
+
+    it("rejects empty or non-string event type and invalid payload", () => {
+      const sheet: SpriteSheetDefinition = {
+        ...validSheet,
+        animations: {
+          idle: {
+            ...validSheet.animations.idle,
+            events: [
+              { frame: 0, type: "" },
+              { frame: 0, type: "   " },
+              { frame: 0, type: 123 as never },
+              { frame: 0, type: "sfx", payload: "invalid-payload" as never }
+            ]
+          }
+        }
+      };
+
+      const codes = validateSpriteSheetDefinition(sheet, { width: 32, height: 32 }).map((i) => i.code);
+      expect(codes.filter((c) => c === "INVALID_EVENT_TYPE")).toHaveLength(3);
+      expect(codes).toContain("INVALID_EVENT_PAYLOAD");
+    });
+  });
 });

@@ -119,6 +119,32 @@ export function validateSpriteSheetDefinition(
       add("EMPTY_ANIMATION_FRAMES", `Animation "${animationKey}" has no source frames.`);
     }
 
+    if (animation.events !== undefined) {
+      if (!Array.isArray(animation.events)) {
+        add("INVALID_ANIMATION_EVENTS", `Animation "${animationKey}" events must be an array when defined.`);
+      } else {
+        for (let eventIndex = 0; eventIndex < animation.events.length; eventIndex++) {
+          const event = animation.events[eventIndex];
+          if (!event || typeof event !== "object") {
+            add("INVALID_EVENT_SPEC", `Animation "${animationKey}" event at index ${eventIndex} must be an object.`);
+            continue;
+          }
+          if (typeof event.type !== "string" || event.type.trim().length === 0) {
+            add("INVALID_EVENT_TYPE", `Animation "${animationKey}" event at index ${eventIndex} must declare a non-empty string type.`);
+          }
+          if (!Number.isInteger(event.frame) || event.frame < 0 || event.frame >= animation.frames.length) {
+            add(
+              "EVENT_FRAME_OUT_OF_BOUNDS",
+              `Animation "${animationKey}" event at index ${eventIndex} has frame ${event.frame}, which is out of bounds (must be between 0 and ${animation.frames.length - 1}).`
+            );
+          }
+          if (event.payload !== undefined && (typeof event.payload !== "object" || event.payload === null || Array.isArray(event.payload))) {
+            add("INVALID_EVENT_PAYLOAD", `Animation "${animationKey}" event at index ${eventIndex} payload must be a Record<string, unknown> object when defined.`);
+          }
+        }
+      }
+    }
+
     for (let frameIndex = 0; frameIndex < animation.frames.length; frameIndex++) {
       const frame = animation.frames[frameIndex];
       const validCoordinates = [frame.x, frame.y, frame.w, frame.h].every(Number.isFinite);

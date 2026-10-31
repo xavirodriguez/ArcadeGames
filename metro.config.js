@@ -50,7 +50,7 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
 };
 
 // ---------------------------------------------------------------------------
-// Custom Middleware to serve static files from public/ (e.g. /audio/*)
+// Custom Middleware to serve static files from public/ (e.g. /audio/*, /assets/*)
 // ---------------------------------------------------------------------------
 config.server = {
   ...config.server,
@@ -58,17 +58,32 @@ config.server = {
     return (req, res, next) => {
       const parsedUrl = new URL(req.url ?? "/", "http://localhost");
 
-      // Intercept requests for audio assets and serve them from public/audio/
-      if (parsedUrl.pathname.startsWith("/audio/")) {
-        const filePath = path.join(__dirname, "public", parsedUrl.pathname);
+      // Intercept requests for static files that exist directly under public/
+      // (e.g. /audio/*, /assets/fonts/*, /assets/images/*, /canvaskit.wasm)
+      const relativePath = parsedUrl.pathname.replace(/^\/+/, "");
+      if (relativePath.length > 0 && !relativePath.includes("..")) {
+        const filePath = path.join(__dirname, "public", relativePath);
         if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
-          // Set appropriate content type based on extension
           if (filePath.endsWith(".mp3"))
             res.setHeader("Content-Type", "audio/mpeg");
           else if (filePath.endsWith(".wav"))
             res.setHeader("Content-Type", "audio/wav");
           else if (filePath.endsWith(".ogg"))
             res.setHeader("Content-Type", "audio/ogg");
+          else if (filePath.endsWith(".flac"))
+            res.setHeader("Content-Type", "audio/flac");
+          else if (filePath.endsWith(".ttf"))
+            res.setHeader("Content-Type", "font/ttf");
+          else if (filePath.endsWith(".otf"))
+            res.setHeader("Content-Type", "font/otf");
+          else if (filePath.endsWith(".woff"))
+            res.setHeader("Content-Type", "font/woff");
+          else if (filePath.endsWith(".woff2"))
+            res.setHeader("Content-Type", "font/woff2");
+          else if (filePath.endsWith(".png"))
+            res.setHeader("Content-Type", "image/png");
+          else if (filePath.endsWith(".wasm"))
+            res.setHeader("Content-Type", "application/wasm");
           else res.setHeader("Content-Type", "application/octet-stream");
 
           return fs.createReadStream(filePath).pipe(res);

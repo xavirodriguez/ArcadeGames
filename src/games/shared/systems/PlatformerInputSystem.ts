@@ -1,4 +1,4 @@
-import { World, System, Entity, CoreComponentRegistry, TouchInputState } from "@tiny-aster/core";
+import { World, System, CoreComponentRegistry, TouchInputState } from "@tiny-aster/core";
 
 /**
  * System that maps game actions to platformer horizontal movement,
@@ -7,8 +7,6 @@ import { World, System, Entity, CoreComponentRegistry, TouchInputState } from "@
  * @public
  */
 export class PlatformerInputSystem extends System<CoreComponentRegistry> {
-  private lastJumpStates = new Map<Entity, boolean>();
-
   public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
     const inputType = "PlatformerInput";
@@ -28,6 +26,7 @@ export class PlatformerInputSystem extends System<CoreComponentRegistry> {
         jumpHeld?: boolean;
         jumpPressed?: boolean;
         jumpReleased?: boolean;
+        previousJumpHeld?: boolean;
       } | undefined;
       const jumper = world.getMutableComponent(entity, jumperType) as {
         coyoteTimer?: number;
@@ -67,11 +66,11 @@ export class PlatformerInputSystem extends System<CoreComponentRegistry> {
         }
       }
 
-      const lastJumpState = this.lastJumpStates.get(entity) || false;
+      const previousJumpHeld = input.previousJumpHeld ?? false;
       const isJumpHeldNow = input.jumpHeld ?? false;
-      const jumpPressed = isJumpHeldNow && !lastJumpState;
-      const jumpReleased = !isJumpHeldNow && lastJumpState;
-      this.lastJumpStates.set(entity, isJumpHeldNow);
+      const jumpPressed = isJumpHeldNow && !previousJumpHeld;
+      const jumpReleased = !isJumpHeldNow && previousJumpHeld;
+      input.previousJumpHeld = isJumpHeldNow;
 
       input.jumpPressed = jumpPressed;
       input.jumpReleased = jumpReleased;

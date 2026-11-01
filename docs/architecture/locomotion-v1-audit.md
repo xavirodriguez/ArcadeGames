@@ -9,7 +9,7 @@
 
 The repository already contains a reusable platformer movement stack. Locomotion v1 must extend that stack rather than introduce a second controller. Existing capabilities include horizontal acceleration/deceleration, asymmetric jump gravity, variable jump-height input handling, coyote/jump-buffer timers, tile collision, and a generic rigid-body collision pipeline.
 
-The current implementation is not yet sufficient for the requested locomotion contract. In particular, jump execution is split between the game-specific input system and a shared timer system; one system stores edge history in a private `Map`; coyote/buffer durations are seconds rather than ticks; tile collision is axis-separated and grid-based; ground state exposes neither a contact normal nor a material identity; and no slide posture/clearance protocol or slope solver is present.
+The current implementation is not yet sufficient for the requested locomotion contract. In particular, jump execution is split between the game-specific input system and a shared timer system; the input system previously stored edge history in a private `Map`; coyote/buffer durations are seconds rather than ticks; tile collision is axis-separated and grid-based; ground state exposes neither a contact normal nor a material identity; and no slide posture/clearance protocol or slope solver is present.
 
 ## 2. Existing physics architecture
 
@@ -108,9 +108,16 @@ No schedule change is required solely to make priority -10 late in Simulation: t
 - **Slope scope:** genuine slope support may require a minimal extension to tile collision/contact queries, not merely a material coefficient.
 - **Schedule order:** collision-resolved grounding is available in a later phase than current input/jump processing.
 
-## 11. Next audit items before implementation
+## 11. Implementation progress — 2026-11-01
 
-- Verify snapshot serialization/cloning of new component data.
+- `PlatformerInputComponent` now has optional `previousJumpHeld` state.
+- `PlatformerInputSystem` derives pressed/released edges from that ECS field instead of a private `Map<Entity, boolean>`.
+- `SnapshotSerializer` serializes component fields generically and does not exclude `PlatformerInput`; the new primitive field therefore participates in snapshots without serializer-specific code.
+- Added a focused regression test proving edge history survives system recreation and held input does not produce a duplicate press. The test has been committed but not executed in this environment.
+
+## 12. Remaining audit items before broader implementation
+
+- Trace 
 - Trace `EntityBuilder.withCollider` and `ArcadeEntityBuilder.withCollider2D` to resolve the player collider mismatch risk.
 - Inspect tile definition schema and collision tests for existing slope/one-way assumptions. Tile definitions currently support `normal | ice | spike | bounce`, optional friction and bounce; this is not a slope geometry contract.
 - Inspect Platformer and Echo Runner tests and defaults to define backward-compatible profile migration.

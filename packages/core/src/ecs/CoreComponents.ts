@@ -704,6 +704,11 @@ export interface PlatformerInputComponent extends Component {
   jumpHeld: boolean;
   /** Whether jump button was released this frame. */
   jumpReleased: boolean;
+  /**
+   * Previous sampled jump-held state, stored in ECS so edge detection survives
+   * system recreation and is included in world snapshots.
+   */
+  previousJumpHeld?: boolean;
 }
 
 /**

@@ -117,7 +117,6 @@ No schedule change is required solely to make priority -10 late in Simulation: t
 
 ## 12. Remaining audit items before broader implementation
 
-- Trace 
 - Trace `EntityBuilder.withCollider` and `ArcadeEntityBuilder.withCollider2D` to resolve the player collider mismatch risk.
 - Inspect tile definition schema and collision tests for existing slope/one-way assumptions. Tile definitions currently support `normal | ice | spike | bounce`, optional friction and bounce; this is not a slope geometry contract.
 - Inspect Platformer and Echo Runner tests and defaults to define backward-compatible profile migration.

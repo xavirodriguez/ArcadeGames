@@ -45,6 +45,12 @@ export function createIsoConfig(config: Partial<TowerDefenseConfig>): IsoConfig 
   const worldWidth = positiveFiniteOr(config.worldWidth, 800);
   const worldHeight = positiveFiniteOr(config.worldHeight, 600);
 
+  const gridSpan = cols + rows;
+  const maxTileWidthByViewport = worldWidth / gridSpan;
+  const maxTileWidthByViewportHeight = (worldHeight * ratio) / gridSpan;
+  const tileWidthHalf = Math.min(maxTileWidthByViewport, maxTileWidthByViewportHeight);
+  const tileHeightHalf = tileWidthHalf / ratio;
+
   if (!enabled) {
     const minX = gridOffsetX;
     const maxX = gridOffsetX + cols * cellSize;

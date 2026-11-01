@@ -42,9 +42,9 @@ The diagram is conceptual. Exact system names and phase placement will be finali
 
 ### 3.1 Input intent
 
-Retain the current `PlatformerInput` component as the sampled intent boundary. Add slide intent only if it can be populated by the existing keyboard/gamepad/touch mapping without storing edge history in a system-instance field.
+Retain the current `PlatformerInput` component as the sampled intent boundary. The optional `previousJumpHeld` field now stores the previous sampled jump state in ECS. `PlatformerInputSystem` derives `jumpPressed` and `jumpReleased` from it, so system recreation and generic world snapshots preserve the edge-detection state.
 
-Button edges and previous-held state must be ECS-backed or derived from tick-indexed input frames. Do not use private `Map`/class fields for rollback-relevant input state.
+Add slide intent only when it can be populated by the existing keyboard/gamepad/touch mapping without storing edge history in a system-instance field. Future button edges must follow the same ECS-backed or tick-indexed-input-frame rule.
 
 ### 3.2 Locomotion state
 
@@ -165,8 +165,8 @@ Use fixed-timestep `deltaTime` for integration only. Gameplay windows use intege
 
 ## 12. Implementation gates
 
-1. Confirm builder collider type and snapshot inclusion for new component fields.
-2. Refactor input edge state into ECS-backed deterministic data and consolidate jump execution.
+1. [x] Confirm generic snapshot serialization of ECS component fields; verify builder collider type before posture work.
+2. [x] Move jump edge history into ECS-backed deterministic data; jump execution is still split and consolidation remains pending.
 3. Add movement profile/controller state with focused unit tests.
 4. Extend gravity and tick timers with boundary tests.
 5. Add slide posture/clearance query; do not ship if stand-up overlap is unresolved.

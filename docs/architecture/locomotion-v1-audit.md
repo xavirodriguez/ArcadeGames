@@ -25,7 +25,7 @@ The current implementation is not yet sufficient for the requested locomotion co
 
 - `CollisionManifold` and `Collision` expose a normal (`normalX`, `normalY`), penetration depth and contact points.
 - `CollisionSystem2D` is registered in the shared platformer schedule.
-- `TileCollisionSystem` resolves tilemap AABB collisions in separate X then Y passes. It handles one-way tiles, ice multiplier, bounce/hazard tile effects and updates `PlatformerGroundState.isGrounded`.
+- `TileCollisionSystem` resolves tilemap AABB collisions in separate X then Y passes. It handles one-way tiles, ice multiplier, bounce/hazard tile effects and updates `PlatformerGroundState.isGrounded`. `TileDefinition` already exposes optional `friction` and `bounce` fields, but the current ground-state contract only publishes an ice multiplier.
 - Tile collision currently resolves against axis-aligned tile boundaries. It does not produce a stable ground contact normal, surface identity, or continuous slope contact.
 - The generic manifold pipeline has normals, but those normals are not currently unified with tilemap ground-state data.
 
@@ -55,11 +55,11 @@ The current implementation is not yet sufficient for the requested locomotion co
 
 ## 5. Schedule and ordering observations
 
-The shared registry currently adds movement, gravity and coyote systems in `Simulation`, followed by gameplay systems and `PhysicsIntegrateSystem` with priority `-10`; collision detection and tile collision are registered in `Collision`. The registry comment describes priority `-10` as late in Simulation, but the actual Schedule comparator must be checked before changing priorities.
+The shared registry currently adds movement, gravity and coyote systems in `Simulation`, followed by gameplay systems and `PhysicsIntegrateSystem` with priority `-10`; collision detection and tile collision are registered in `Collision`. The registry comment describes priority `-10` as late in Simulation, but the Schedule comparator is confirmed: priorities sort descending, so priority -10 runs after priority 0 within a phase.
 
 The current coyote system executes before physics integration and before collision-phase ground-state refresh. Consequently, landing/buffer semantics depend on the previous tick's grounded state. A v1 controller should make the tick boundary explicit: consume prior resolved contacts for current-tick decisions, then publish the next grounded state after collision resolution.
 
-No schedule change should be made until phase ordering and priority comparator semantics are confirmed in `Schedule`.
+No schedule change is required solely to make priority -10 late in Simulation: the comparator sorts descending. Input and Simulation still precede Collision, so the controller consumes the previous completed tick's resolved contact.
 
 ## 6. Determinism and snapshot risks
 
@@ -110,7 +110,7 @@ No schedule change should be made until phase ordering and priority comparator s
 
 ## 11. Next audit items before implementation
 
-- Verify exact `Schedule` priority ordering and snapshot serialization/cloning of new component data.
+- Verify snapshot serialization/cloning of new component data.
 - Trace `EntityBuilder.withCollider` and `ArcadeEntityBuilder.withCollider2D` to resolve the player collider mismatch risk.
-- Inspect tile definition schema and collision tests for existing slope/one-way assumptions.
+- Inspect tile definition schema and collision tests for existing slope/one-way assumptions. Tile definitions currently support `normal | ice | spike | bounce`, optional friction and bounce; this is not a slope geometry contract.
 - Inspect Platformer and Echo Runner tests and defaults to define backward-compatible profile migration.

@@ -1,6 +1,6 @@
 # Locomotion v1 — Testing Strategy and Verification Log
 
-**Status:** planned; no locomotion implementation tests have been added in this documentation-only stage.
+**Status:** implementation in progress; one focused jump-input regression test has been added but not yet executed.
 
 ## 1. Verification principles
 
@@ -57,10 +57,11 @@ Do not report a test as passing unless the command was actually executed against
 
 ## 5. Verification log
 
-### Documentation-only audit stage
+### Increment 1 — ECS-backed jump edge history
 
-- Repository and architecture source inspection: completed.
-- Audit document: added.
-- Design proposal: added.
-- Automated tests: not run; this stage changes documentation only.
-- Locomotion functionality: not implemented or claimed complete.
+- Added `previousJumpHeld?: boolean` to `PlatformerInputComponent`.
+- Removed the system-instance `Map<Entity, boolean>` from `PlatformerInputSystem`.
+- Added `src/games/shared/systems/__tests__/PlatformerInputSystem.test.ts`, covering press, held-across-system-recreation, and release edges.
+- Snapshot inclusion is provided by the existing generic component serializer; no serializer-specific change was required.
+- Test execution: **not verified**. The GitHub connector permits repository edits and inspection but does not provide a local checkout/test runner in this session.
+- Broader locomotion functionality: not implemented or claimed complete.

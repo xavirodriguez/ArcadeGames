@@ -4,6 +4,7 @@ import {
   PlatformerMovementSystem,
   PlatformerGravitySystem,
   PlatformerCoyoteSystem,
+  PlatformerJumpSystem,
   MovingPlatformSystem,
   PlatformCarrySystem,
   EnemySensorSystem,
@@ -42,6 +43,7 @@ export function registerCommonPlatformerSystems(
   world.addSystem(new PlatformerMovementSystem(), { phase: SystemPhase.Simulation });
   world.addSystem(new PlatformerGravitySystem(), { phase: SystemPhase.Simulation });
   world.addSystem(new PlatformerCoyoteSystem(), { phase: SystemPhase.Simulation });
+  world.addSystem(new PlatformerJumpSystem(), { phase: SystemPhase.Simulation });
 
   if (options.includeMovingPlatforms) {
     world.addSystem(new MovingPlatformSystem(), { phase: SystemPhase.Simulation });

@@ -77,6 +77,10 @@ export function createIsoConfig(config: Partial<TowerDefenseConfig>): IsoConfig 
     };
   }
 
+  const gridSpan = cols + rows;
+  const tileWidthHalf = Math.min(worldWidth / gridSpan, (worldHeight * ratio) / gridSpan);
+  const tileHeightHalf = tileWidthHalf / ratio;
+
   const projectedWidth = gridSpan * tileWidthHalf;
   const projectedHeight = gridSpan * tileHeightHalf;
 

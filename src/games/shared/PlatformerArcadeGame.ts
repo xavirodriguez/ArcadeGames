@@ -97,6 +97,22 @@ export abstract class PlatformerArcadeGame<
     );
   }
 
+  /**
+   * Initializes platformer configuration and custom level data from options or schemas.
+   *
+   * @remarks
+   * Standardizes the platformer arcade configuration pipeline:
+   * 1. Loads typed base configuration via ConfigService.load
+   * 2. Sets baseConfig and initial config on the instance
+   * 3. Retains optional customLevelData override
+   * Mutators are subsequently applied during onRegisterSystems via setupArcadeGameConfig.
+   *
+   * @typeParam TConfigData - The concrete configuration type adhering to the schema.
+   * @param schema - Zod validation schema for the game config.
+   * @param gameOptions - Optional runtime game options.
+   * @param levelDataOverride - Optional custom authored level templates and grammar.
+   * @returns The parsed base configuration object.
+   */
   protected initPlatformerConfig<TConfigData extends TConfig = TConfig>(
     schema: z.ZodTypeAny,
     gameOptions?: Record<string, unknown>,

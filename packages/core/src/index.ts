@@ -114,6 +114,7 @@ export * from "./physics/systems/FrictionSystem";
 export * from "./physics/systems/BoundarySystem";
 export * from "./physics/systems/PlatformerMovementSystem";
 export * from "./physics/LocomotionProfiles";
+export * from "./physics/PhysicsMaterials";
 export * from "./physics/systems/PlatformerGravitySystem";
 export * from "./physics/systems/TileCollisionSystem";
 export * from "./physics/systems/MovingPlatformSystem";

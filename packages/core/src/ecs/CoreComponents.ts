@@ -595,6 +595,61 @@ export interface ParticleEmitterComponent extends Component {
  *
  * @public
  */
+/**
+ * Declarative physical response parameters for a surface.
+ * Friction values are dimensionless coefficients; traction scales grounded
+ * acceleration authority and restitution controls normal bounce.
+ * @public
+ */
+export interface PhysicsMaterial {
+  /** Stable material identifier. */
+  id: string;
+  /** Coefficient of static friction. */
+  staticFriction: number;
+  /** Coefficient of dynamic (sliding) friction. */
+  dynamicFriction: number;
+  /** Normal velocity retention on impact, clamped to [0, 1]. */
+  restitution: number;
+  /** Grounded acceleration authority, clamped to [0, 1]. */
+  traction: number;
+  /** Optional world-space conveyor velocity in units per second. */
+  conveyorVelocity?: { x: number; y: number };
+}
+
+/** Resolved physical contact produced by an authoritative collision system. @public */
+export interface PhysicsContact {
+  /** Entity providing the contacted surface. */
+  entity: Entity;
+  /** World-space contact point. */
+  point: { x: number; y: number };
+  /** Unit contact normal pointing away from the surface. */
+  normal: { x: number; y: number };
+  /** Remaining geometric separation after collision resolution. */
+  separation: number;
+  /** Stable surface material identifier, when configured. */
+  materialId?: string;
+  /** Surface velocity in world units per second. */
+  surfaceVelocity: { x: number; y: number };
+  /** Resolved material data; consumers do not need to re-query tilemaps. */
+  material?: PhysicsMaterial;
+}
+
+/** Snapshot-friendly contact manifold shared by locomotion systems. @public */
+export interface PhysicsContactStateComponent extends Component {
+  /** Component discriminator type. */
+  type: "PhysicsContactState";
+  /** Contacts resolved during the latest collision phase. */
+  contacts: PhysicsContact[];
+  /** Selected upward-facing contact, when grounded. */
+  groundContact?: PhysicsContact;
+  /** Whether the latest collision phase resolved ground contact. */
+  isGrounded: boolean;
+}
+
+/**
+ * Tile collision metadata.
+ * @public
+ */
 export interface TileDefinition {
   /** Whether the tile is solid for physical collisions. */
   solid: boolean;
@@ -602,8 +657,10 @@ export interface TileDefinition {
   oneWay?: boolean;
   /** Optional friction coefficient override. */
   friction?: number;
-  /** Optional bounciness coefficient. */
+  /** Optional bounciness coefficient retained for legacy bounce tiles. */
   bounce?: number;
+  /** Optional stable key into TilemapComponent.physicsMaterials. */
+  materialId?: string;
   /** Optional damage inflicted upon contact. */
   damage?: number;
   /** Tile functional classification. */
@@ -641,6 +698,8 @@ export interface TilemapComponent extends Component {
   };
   /** Mapping of tile IDs to definitions. */
   tileDefinitions?: Record<number, TileDefinition>;
+  /** Serializable material definitions referenced by tile materialId values. */
+  physicsMaterials?: Record<string, PhysicsMaterial>;
 }
 
 /**
@@ -1549,6 +1608,8 @@ export interface CoreComponentRegistry extends ComponentRegistry {
   PlatformerJumper: PlatformerJumperComponent;
   /** Platformer ground state. */
   PlatformerGroundState: PlatformerGroundStateComponent;
+  /** Resolved physical contact state. */
+  PhysicsContactState: PhysicsContactStateComponent;
   /** Moving platform component. */
   MovingPlatform: MovingPlatformComponent;
   /** Hitbox component. */

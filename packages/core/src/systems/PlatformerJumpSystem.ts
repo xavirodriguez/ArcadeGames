@@ -28,15 +28,18 @@ export class PlatformerJumpSystem extends System<CoreComponentRegistry> {
       const input = world.getComponent(entity, "PlatformerInput");
       const jumper = world.getComponent(entity, "PlatformerJumper");
       const ground = world.getComponent(entity, "PlatformerGroundState");
+      const contactState = world.getComponent(entity, "PhysicsContactState");
       const gravity = world.getComponent(entity, "PlatformerGravityConfig");
       const velocity = world.getComponent(entity, "Velocity");
       if (!input || !jumper || !ground || !gravity || !velocity) continue;
 
+      // The resolved contact is authoritative when present; legacy entities fall back to GroundState.
+      const isGrounded = contactState ? (contactState.isGrounded || ground.isGrounded) : ground.isGrounded;
       const maxJumps = Math.max(1, jumper.maxJumps ?? 1);
       let jumpsRemaining = jumper.jumpsRemaining ?? maxJumps;
-      if (ground.isGrounded) jumpsRemaining = maxJumps;
+      if (isGrounded) jumpsRemaining = maxJumps;
 
-      const canGroundJump = ground.isGrounded || jumper.coyoteTimer > 0;
+      const canGroundJump = isGrounded || jumper.coyoteTimer > 0;
       const canAirJump = jumpsRemaining > 0;
       const hasBufferedJump = jumper.jumpBufferTimer > 0;
       const requested = input.jumpPressed;
@@ -65,6 +68,11 @@ export class PlatformerJumpSystem extends System<CoreComponentRegistry> {
         if (mutableVelocity && mutableGround && mutableJumper) {
           mutableVelocity.vy = -gravity.jumpVelocity;
           mutableGround.isGrounded = false;
+          const mutableContactState = world.getMutableComponent(entity, "PhysicsContactState");
+          if (mutableContactState) {
+            mutableContactState.isGrounded = false;
+            mutableContactState.groundContact = undefined;
+          }
           mutableJumper.coyoteTimer = 0;
           mutableJumper.jumpBufferTimer = 0;
           mutableJumper.jumpsRemaining = isAirJump

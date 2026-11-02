@@ -46,6 +46,30 @@ function createPlayer(world: World<CoreComponentRegistry>, options?: {
 }
 
 describe("PlatformerJumpSystem", () => {
+  it("uses resolved contact state as the grounded authority when present", () => {
+    const world = new World<CoreComponentRegistry>();
+    const entity = world.createEntity();
+    world.addComponent(entity, {
+      type: "PlatformerInput", moveDir: 0, jumpPressed: true, jumpHeld: true, jumpReleased: false
+    });
+    world.addComponent(entity, {
+      type: "PlatformerJumper", coyoteTimer: 0, jumpBufferTimer: 0, coyoteTimeMax: 0, jumpBufferMax: 0,
+      maxJumps: 1, jumpsRemaining: 0
+    });
+    world.addComponent(entity, { type: "PlatformerGroundState", isGrounded: false });
+    world.addComponent(entity, { type: "PhysicsContactState", contacts: [], isGrounded: true });
+    world.addComponent(entity, {
+      type: "PlatformerGravityConfig", riseGravity: 900, fallGravity: 1000, jumpVelocity: 400, minJumpVelocity: 100
+    });
+    world.addComponent(entity, { type: "Velocity", vx: 0, vy: 0, angularVelocity: 0 });
+
+    new PlatformerJumpSystem().update(world, 1 / 60);
+
+    expect(world.getComponent(entity, "Velocity")?.vy).toBe(-400);
+    expect(world.getComponent(entity, "PlatformerGroundState")?.isGrounded).toBe(false);
+    expect(world.getComponent(entity, "PhysicsContactState")?.isGrounded).toBe(false);
+  });
+
   it("applies a grounded jump once and clamps velocity on early release", () => {
     const world = new World<CoreComponentRegistry>();
     const entity = createPlayer(world);

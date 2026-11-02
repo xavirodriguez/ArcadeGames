@@ -1,7 +1,7 @@
 import { World } from "../../ecs/World";
 import { System } from "../../ecs/System";
 import { ComponentRegistry } from "../../ecs/Component";
-import { CoreComponentRegistry, PlatformerInputComponent, PlatformerMovementConfigComponent, VelocityComponent, PlatformerGroundStateComponent, LocomotionProfileComponent } from "../../ecs/CoreComponents";
+import { CoreComponentRegistry, PlatformerInputComponent, PlatformerMovementConfigComponent, VelocityComponent, PlatformerGroundStateComponent, LocomotionProfileComponent, PhysicsContactStateComponent, PhysicsMaterial, PlatformerGravityConfigComponent } from "../../ecs/CoreComponents";
 import { Entity } from "../../ecs/Entity";
 
 /**
@@ -44,6 +44,13 @@ export class PlatformerMovementSystem<TRegistry extends ComponentRegistry = Core
       if (!input || !vel) continue;
 
       const isGrounded = groundState ? groundState.isGrounded : false;
+      const contactState = world.getComponent(entity, "PhysicsContactState" as Extract<keyof TRegistry, string>) as PhysicsContactStateComponent | undefined;
+      const groundContact = isGrounded ? contactState?.groundContact : undefined;
+      const material = groundContact?.material;
+      const surfaceVelocityX = groundContact?.surfaceVelocity.x ?? 0;
+      const relativeVx = vel.vx - surfaceVelocityX;
+      const gravityConfig = world.getComponent(entity, "PlatformerGravityConfig" as Extract<keyof TRegistry, string>) as PlatformerGravityConfigComponent | undefined;
+      const gravityMagnitude = gravityConfig?.fallGravity ?? 980;
       const profile = world.getComponent(entity, "LocomotionProfile" as Extract<keyof TRegistry, string>) as LocomotionProfileComponent | undefined;
       if (profile) {
         const movement = isGrounded ? profile.ground : profile.air;
@@ -58,7 +65,7 @@ export class PlatformerMovementSystem<TRegistry extends ComponentRegistry = Core
         } else if (moveDir === 0) {
           target = 0;
           acceleration = movement.deceleration;
-        } else if (vel.vx !== 0 && Math.sign(vel.vx) !== Math.sign(moveDir)) {
+        } else if (relativeVx !== 0 && Math.sign(relativeVx) !== Math.sign(moveDir)) {
           acceleration = movement.turnAcceleration;
         } else {
           acceleration = movement.acceleration;
@@ -67,17 +74,22 @@ export class PlatformerMovementSystem<TRegistry extends ComponentRegistry = Core
         // Air steering scales acceleration authority only; it never scales existing velocity.
         if (!isGrounded) {
           acceleration *= profile.air.steeringMultiplier;
+        } else if (material && (moveDir !== 0 || input.brake === true)) {
+          acceleration *= this.clamp01(material.traction);
         }
 
-        const controlledVx = this.moveTowards(
-          vel.vx,
+        let controlledVx = this.moveTowards(
+          relativeVx,
           target,
           Math.max(0, acceleration) * Math.max(0, deltaTime)
         );
+        if (isGrounded && material) {
+          controlledVx = this.applySurfaceFriction(controlledVx, material, gravityMagnitude, deltaTime, moveDir === 0 && input.brake !== true);
+        }
         // Drag is a separate physical damping rate (s^-1), not an air-control multiplier.
         const drag = Math.max(0, isGrounded ? profile.momentum.groundDrag : profile.momentum.airDrag);
         const dragFactor = Math.max(0, 1 - drag * Math.max(0, deltaTime));
-        const newVx = controlledVx * dragFactor;
+        const newVx = controlledVx * dragFactor + surfaceVelocityX;
 
         if (vel.vx !== newVx) {
           const mutableVel = world.getMutableComponent(entity, velocityType) as VelocityComponent | undefined;
@@ -95,10 +107,16 @@ export class PlatformerMovementSystem<TRegistry extends ComponentRegistry = Core
       const effectiveDecel = decel * iceMultiplier;
 
       const targetSpeed = input.moveDir * config.maxSpeed;
-
-      const newVx = input.moveDir !== 0
-        ? this.moveTowards(vel.vx, targetSpeed, effectiveAccel * deltaTime)
-        : this.moveTowards(vel.vx, 0, effectiveDecel * deltaTime);
+      const materialAcceleration = material && isGrounded && input.moveDir !== 0
+        ? effectiveAccel * this.clamp01(material.traction)
+        : effectiveAccel;
+      let controlledVx = input.moveDir !== 0
+        ? this.moveTowards(relativeVx, targetSpeed, materialAcceleration * deltaTime)
+        : this.moveTowards(relativeVx, 0, effectiveDecel * deltaTime);
+      if (material && isGrounded) {
+        controlledVx = this.applySurfaceFriction(controlledVx, material, gravityMagnitude, deltaTime, input.moveDir === 0);
+      }
+      const newVx = controlledVx + surfaceVelocityX;
 
       if (vel.vx !== newVx) {
         // Safe for determinism/rollback. Avoids per-tick closure allocations and stateVersion bumps when horizontal velocity is unchanged.
@@ -108,6 +126,29 @@ export class PlatformerMovementSystem<TRegistry extends ComponentRegistry = Core
         }
       }
     }
+  }
+
+  private clamp01(value: number): number {
+    return Math.min(1, Math.max(0, value));
+  }
+
+  private applySurfaceFriction(
+    relativeVelocity: number,
+    material: PhysicsMaterial,
+    gravityMagnitude: number,
+    deltaTime: number,
+    noDriveInput: boolean
+  ): number {
+    const dt = Math.max(0, deltaTime);
+    const speed = Math.abs(relativeVelocity);
+    if (speed === 0 || dt === 0) return relativeVelocity;
+
+    const normalAcceleration = Math.max(0, gravityMagnitude);
+    const staticThreshold = this.clamp01(material.staticFriction) * normalAcceleration * dt;
+    if (noDriveInput && speed <= staticThreshold) return 0;
+
+    const frictionDelta = this.clamp01(material.dynamicFriction) * normalAcceleration * dt;
+    return this.moveTowards(relativeVelocity, 0, frictionDelta);
   }
 
   private moveTowards(current: number, target: number, maxDelta: number): number {

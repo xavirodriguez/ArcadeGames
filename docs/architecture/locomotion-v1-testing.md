@@ -76,3 +76,22 @@ Do not report a test as passing unless the command was actually executed against
 - Remaining Locomotion v1 scope includes richer controller profiles, slide/clearance, slopes/contact normals, surface materials, momentum transfer, integration/replay coverage and the Locomotion Lab.
 
 - Broader locomotion functionality: not implemented or claimed complete.
+
+
+### Increment 3 — Physics contacts and surface materials (B3)
+
+- Added PhysicsMaterial, PhysicsContact and PhysicsContactState ECS contracts, with material definitions authored on Tilemap and selected by TileDefinition.materialId.
+- TileCollisionSystem now publishes axis-aligned contact normals/points for wall, ceiling and ground resolution, resolved material data, and surface velocity. It clears stale contact state before each collision pass.
+- Added support for both Collider2D AABBs and Collider box shapes so Platformer and Echo Runner use the same tile contact producer.
+- PlatformerMovementSystem applies grounded traction (including braking), static/dynamic friction and conveyor-relative horizontal velocity only when a resolved material contact exists. Material restitution affects landing response.
+- PlatformerJumpSystem consumes resolved grounded contact while retaining the legacy ground-state path for carrier/platform compatibility.
+- Added starter material presets and ADR-003.
+- Added focused tests for ground contact publication, conveyor velocity, restitution, material movement response, stale-contact clearing and legacy Collider compatibility.
+- Determinism test: two independent worlds with identical tilemap/material/input state must produce identical AoS snapshot hashes after the same fixed collision step.
+- Test execution: pending final GitHub Actions; not run locally in this session.
+
+## 5. Known B3 limits
+
+- Tile contacts remain axis-aligned; stable slope normals and walkable-angle policy are B4.
+- Generic CollisionSystem2D manifolds are not yet merged into PhysicsContactState; B3 publishes tilemap contacts.
+- Static/dynamic friction coefficients are converted to horizontal acceleration using fall gravity (default 980 units/s²). Values require per-game calibration.

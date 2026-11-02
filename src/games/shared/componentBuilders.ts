@@ -177,6 +177,11 @@ export function setupPlatformerMovementComponents(
     isGrounded: false,
     iceMultiplier: 1.0
   });
+  world.addComponent(entity, {
+    type: "PhysicsContactState",
+    contacts: [],
+    isGrounded: false
+  });
 }
 
 /**

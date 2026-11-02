@@ -8,11 +8,15 @@ import {
   TransformComponent,
   VelocityComponent,
   Collider2DComponent,
+  ColliderComponent,
   PlatformerGroundStateComponent,
+  PhysicsContact,
+  PhysicsContactStateComponent,
   HealthComponent
 } from "../../ecs/CoreComponents";
 import { TagComponent } from "../../ecs/TagComponent";
 import { Entity } from "../../ecs/Entity";
+import { ShapeType } from "../shapes/Shapes";
 
 /**
  * Iterates over tile coordinates within specified matrix grid bounds.
@@ -87,6 +91,17 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
    */
   public update(world: World<TRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
+    const contactStateType = "PhysicsContactState" as Extract<keyof TRegistry, string>;
+    const contactEntities = world.query(contactStateType);
+    for (let i = 0; i < contactEntities.length; i++) {
+      const state = world.getMutableComponent(contactEntities[i], contactStateType) as PhysicsContactStateComponent | undefined;
+      if (state) {
+        state.contacts = [];
+        state.groundContact = undefined;
+        state.isGrounded = false;
+      }
+    }
+
     const tilemapEntities = world.query("Tilemap" as Extract<keyof TRegistry, string>);
     if (tilemapEntities.length === 0) return;
 
@@ -101,11 +116,13 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
     const tileDefinitions = tilemap.tileDefinitions || {};
 
     const collider2DType = "Collider2D" as Extract<keyof TRegistry, string>;
+    const colliderType = "Collider" as Extract<keyof TRegistry, string>;
     const transformType = "Transform" as Extract<keyof TRegistry, string>;
     const velocityType = "Velocity" as Extract<keyof TRegistry, string>;
     const groundStateType = "PlatformerGroundState" as Extract<keyof TRegistry, string>;
 
-    const entities = world.query(transformType, velocityType, collider2DType);
+    // Tile collision accepts both collider contracts used by Platformer and Echo Runner.
+    const entities = world.query(transformType, velocityType);
     const len = entities.length;
 
     for (let i = 0; i < len; i++) {
@@ -113,24 +130,37 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
       const hasTileColliderTag = this.hasTileColliderTag(world, entity);
       if (!hasTileColliderTag) continue;
 
-      const collider = world.getComponent(entity, collider2DType) as Collider2DComponent | undefined;
-      if (!collider || !collider.enabled || collider.isTrigger) continue;
-      if (collider.shape.type !== "aabb") continue;
+      const collider2D = world.getComponent(entity, collider2DType) as Collider2DComponent | undefined;
+      const collider = world.getComponent(entity, colliderType) as ColliderComponent | undefined;
+      let halfW: number;
+      let halfH: number;
+      let offsetX: number;
+      let offsetY: number;
+
+      if (collider2D && collider2D.enabled && !collider2D.isTrigger && collider2D.shape.type === "aabb") {
+        halfW = collider2D.shape.halfWidth;
+        halfH = collider2D.shape.halfHeight;
+        offsetX = collider2D.offsetX;
+        offsetY = collider2D.offsetY;
+      } else if (collider && collider.enabled && !collider.isTrigger && collider.shape.type === ShapeType.Box) {
+        halfW = collider.shape.width / 2;
+        halfH = collider.shape.height / 2;
+        offsetX = collider.offsetX ?? 0;
+        offsetY = collider.offsetY ?? 0;
+      } else {
+        continue;
+      }
 
       const vel = world.getMutableComponent(entity, velocityType) as VelocityComponent | undefined;
       const trans = world.getMutableComponent(entity, transformType) as TransformComponent | undefined;
       if (!vel || !trans) continue;
-
-      const halfW = collider.shape.halfWidth;
-      const halfH = collider.shape.halfHeight;
-      const offsetX = collider.offsetX;
-      const offsetY = collider.offsetY;
 
       const prevX = trans.x - vel.vx * deltaTime;
       const prevY = trans.y - vel.vy * deltaTime;
 
       let isGrounded = false;
       let onIce = false;
+      const contacts: PhysicsContact[] = [];
 
       // --- Resolve X axis ---
       let currentX = trans.x;
@@ -154,19 +184,23 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
         maxTileX,
         minTileY,
         maxTileY,
-        (tx, _ty, tileDef) => {
+        (tx, ty, tileDef) => {
           if (!tileDef.solid || tileDef.oneWay) return;
 
           const tileLeft = tilemapX + tx * tileSize;
           const tileRight = tileLeft + tileSize;
 
           if (vel.vx > 0) {
+            contacts.push(this.createContact(tilemapEntity, tilemap, tx, ty, tileDef,
+              { x: tileLeft, y: currentY + offsetY }, { x: -1, y: 0 }));
             trans.x = tileLeft - halfW - offsetX;
             trans.dirty = true;
             vel.vx = 0;
             currentX = trans.x;
             return true;
           } else if (vel.vx < 0) {
+            contacts.push(this.createContact(tilemapEntity, tilemap, tx, ty, tileDef,
+              { x: tileRight, y: currentY + offsetY }, { x: 1, y: 0 }));
             trans.x = tileRight + halfW - offsetX;
             trans.dirty = true;
             vel.vx = 0;
@@ -209,17 +243,33 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
 
               if (isDescending && wasAbove) {
                 const landing = this.applyLandingOnTile(world, entity, trans, vel, tileTop, halfH, offsetY, oldVy, tileDef);
+                const contact = this.createContact(tilemapEntity, tilemap, _tx, ty, tileDef,
+                  { x: currentX + offsetX, y: tileTop }, { x: 0, y: -1 });
+                contacts.push(contact);
                 isGrounded = landing.isGrounded;
+                if (contact.material && contact.material.restitution > 0) {
+                  vel.vy = -Math.max(0, oldVy) * Math.min(1, Math.max(0, contact.material.restitution));
+                  isGrounded = false;
+                }
                 if (landing.onIce) onIce = true;
                 return true;
               }
             } else {
               if (oldVy > 0) {
                 const landing = this.applyLandingOnTile(world, entity, trans, vel, tileTop, halfH, offsetY, oldVy, tileDef);
+                const contact = this.createContact(tilemapEntity, tilemap, _tx, ty, tileDef,
+                  { x: currentX + offsetX, y: tileTop }, { x: 0, y: -1 });
+                contacts.push(contact);
                 isGrounded = landing.isGrounded;
+                if (contact.material && contact.material.restitution > 0) {
+                  vel.vy = -Math.max(0, oldVy) * Math.min(1, Math.max(0, contact.material.restitution));
+                  isGrounded = false;
+                }
                 if (landing.onIce) onIce = true;
                 return true;
               } else if (oldVy < 0) {
+                contacts.push(this.createContact(tilemapEntity, tilemap, _tx, ty, tileDef,
+                  { x: currentX + offsetX, y: tileBottom }, { x: 0, y: 1 }));
                 trans.y = tileBottom + halfH - offsetY;
                 trans.dirty = true;
                 vel.vy = 0;
@@ -236,6 +286,15 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
         }
       );
 
+      if (world.hasComponent(entity, contactStateType)) {
+        const mutableContacts = world.getMutableComponent(entity, contactStateType) as PhysicsContactStateComponent | undefined;
+        if (mutableContacts) {
+          mutableContacts.contacts = contacts;
+          mutableContacts.groundContact = contacts.find((contact) => contact.normal.y < -0.5);
+          mutableContacts.isGrounded = isGrounded && mutableContacts.groundContact !== undefined;
+        }
+      }
+
       if (world.hasComponent(entity, groundStateType)) {
         const targetIceMultiplier = onIce ? 0.2 : 1.0;
         const currentGround = world.getComponent(entity, groundStateType) as PlatformerGroundStateComponent | undefined;
@@ -248,6 +307,30 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
         }
       }
     }
+  }
+
+  private createContact(
+    tilemapEntity: Entity,
+    tilemap: TilemapComponent,
+    _tx: number,
+    _ty: number,
+    tileDef: TileDefinition,
+    point: { x: number; y: number },
+    normal: { x: number; y: number }
+  ): PhysicsContact {
+    const materialId = tileDef.materialId;
+    const material = materialId ? tilemap.physicsMaterials?.[materialId] : undefined;
+    return {
+      entity: tilemapEntity,
+      point,
+      normal,
+      separation: 0,
+      ...(materialId ? { materialId } : {}),
+      surfaceVelocity: material?.conveyorVelocity
+        ? { x: material.conveyorVelocity.x, y: material.conveyorVelocity.y }
+        : { x: 0, y: 0 },
+      ...(material ? { material } : {})
+    };
   }
 
   private applyLandingOnTile(

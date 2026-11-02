@@ -146,3 +146,16 @@ No schedule change is required solely to make priority -10 late in Simulation: t
 - The movement system selects the new algorithm only when the component exists; entities without it retain the existing legacy calculation path.
 - The profile path distinguishes passive deceleration, explicit braking, acceleration and direction reversal. Air steering scales acceleration authority, never current velocity.
 - `preserveMomentum` is declared for the later support-detachment block; B1 does not consume it.
+
+
+## 15. B3 implementation notes — physics materials and contacts
+
+- Added the serializable PhysicsMaterial contract with static/dynamic friction, restitution, traction and optional conveyor velocity.
+- TileDefinition can reference a material by materialId; Tilemap stores the material definition map. Existing tilemaps without materialId retain their legacy iceMultiplier and bounce behavior.
+- Added PhysicsContact and PhysicsContactState ECS contracts. TileCollisionSystem publishes axis-aligned wall, ceiling and ground contacts, including resolved material data and surface velocity; stale contact state is cleared each collision update.
+- TileCollisionSystem now accepts both Collider2D AABBs (Echo Runner) and Collider box shapes (Platformer), closing the collider mismatch documented in the audit.
+- PlatformerMovementSystem consumes resolved contact data: traction scales grounded input/braking acceleration, dynamic/static friction oppose or stop relative horizontal drift, and conveyor velocity is handled as a surface-relative baseline.
+- PlatformerJumpSystem consumes resolved contact state for grounded eligibility while retaining PlatformerGroundState as a compatibility path for existing carrier/platform support.
+- Material restitution applies to landing normal velocity. B3 does not add slope geometry or merge generic rigid-body manifolds; those remain explicit limitations.
+- Added PHYSICS_MATERIAL_PRESETS (normal, ice, mud, elastic, conveyor), focused tests, and ADR-003.
+- Test execution is pending GitHub Actions for the final B3 commit; no local test run is claimed.

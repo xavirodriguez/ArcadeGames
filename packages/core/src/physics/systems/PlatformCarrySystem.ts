@@ -102,8 +102,9 @@ export class PlatformCarrySystem extends System<CoreComponentRegistry> {
         const platformCenterY = platformTransform.y + platformCollider.offsetY;
         const platformShape = platformCollider.shape as Aabb;
         const movedCenterX = movedTransform.x + characterCollider.offsetX;
-        const overlapsSupport = movedCenterX + characterShape.halfWidth > platformCenterX - platformShape.halfWidth
-          && movedCenterX - characterShape.halfWidth < platformCenterX + platformShape.halfWidth;
+        const supportCenterX = movedCenterX + (supportState ? platformVelocity.vx * deltaTime : 0);
+        const overlapsSupport = supportCenterX + characterShape.halfWidth > platformCenterX - platformShape.halfWidth
+          && supportCenterX - characterShape.halfWidth < platformCenterX + platformShape.halfWidth;
 
         if (!overlapsSupport) {
           world.mutateComponent(character, "PlatformerGroundState", (state) => {
@@ -118,7 +119,7 @@ export class PlatformCarrySystem extends System<CoreComponentRegistry> {
           character,
           carrier,
           {
-            x: movedCenterX,
+            x: supportCenterX,
             y: platformCenterY - platformShape.halfHeight
           },
           platformVelocity.vx,
@@ -173,14 +174,9 @@ export class PlatformCarrySystem extends System<CoreComponentRegistry> {
       });
       const contactState = world.getComponent(character, "PhysicsContactState");
       world.mutateComponent(character, "Velocity", (velocity) => {
-        if (contactState) {
-          // First support tick: add platform horizontal motion once, then integrate normally.
-          velocity.vx += landedVelocity.vx;
-          velocity.vy = landedVelocity.vy;
-        } else {
-          // Legacy entities without PhysicsContactState keep their independent velocity.
-          velocity.vy = 0;
-        }
+        // Landing snaps to the platform's already-advanced transform. Do not integrate
+        // its displacement twice; support velocity is applied from the next attached tick.
+        velocity.vy = 0;
       });
       world.mutateComponent(character, "PlatformerGroundState", (state) => {
         state.isGrounded = true;

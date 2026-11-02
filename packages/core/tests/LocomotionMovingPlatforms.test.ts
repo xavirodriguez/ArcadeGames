@@ -2,6 +2,7 @@ import { World } from "../src/ecs/World";
 import { CoreComponentRegistry } from "../src/ecs/CoreComponents";
 import { MovingPlatformSystem } from "../src/physics/systems/MovingPlatformSystem";
 import { PlatformCarrySystem } from "../src/physics/systems/PlatformCarrySystem";
+import { PhysicsIntegrateSystem } from "../src/physics/dynamics/PhysicsIntegrateSystem";
 
 describe("Locomotion B5 moving-platform support", () => {
   const addTransform = (world: World<CoreComponentRegistry>, entity: number, x: number, y: number): void => {
@@ -51,7 +52,7 @@ describe("Locomotion B5 moving-platform support", () => {
 
     expect(world.getComponent(platform, "Transform")?.x).toBeCloseTo(150, 5);
     expect(world.getComponent(platform, "Velocity")?.vx).toBeCloseTo(50, 5);
-    new (require("../src/physics/dynamics/PhysicsIntegrateSystem").PhysicsIntegrateSystem)().update(world, 1);
+    new PhysicsIntegrateSystem().update(world, 1);
     expect(world.getComponent(passenger, "Transform")?.x).toBeCloseTo(150, 5);
     expect(world.getComponent(platform, "Transform")?.x).toBeCloseTo(150, 5);
     const contact = world.getComponent(passenger, "PhysicsContactState")?.groundContact;
@@ -73,9 +74,15 @@ describe("Locomotion B5 moving-platform support", () => {
     new PlatformCarrySystem().update(world, 0.1);
 
     expect(world.getComponent(passenger, "Transform")?.y).toBeCloseTo(175, 5);
-    expect(world.getComponent(passenger, "Velocity")?.vy).toBe(20);
+    expect(world.getComponent(passenger, "Velocity")?.vy).toBe(0);
     expect(world.getComponent(passenger, "PlatformerGroundState")?.carrierEntity).toBe(platform);
     expect(world.getComponent(passenger, "PhysicsContactState")?.groundContact?.surfaceVelocity).toEqual({ x: 0, y: 20 });
+
+    world.mutateComponent(platform, "Transform", transform => { transform.y += 2; });
+    new PlatformCarrySystem().update(world, 0.1);
+    new PhysicsIntegrateSystem().update(world, 0.1);
+    expect(world.getComponent(passenger, "Transform")?.y).toBeCloseTo(177, 5);
+    expect(world.getComponent(platform, "Transform")?.y).toBeCloseTo(202, 5);
   });
 
   it("preserves the configured fraction of support velocity on jump detachment", () => {

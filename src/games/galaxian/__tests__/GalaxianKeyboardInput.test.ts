@@ -1,4 +1,4 @@
-import { resolveGalaxianKeyActions } from "../hooks/useGalaxianKeyboardControls";
+import { resolveGalaxianKeyActions } from "../input/GalaxianKeyboardBindings";
 import type { GalaxianConfig } from "../types/GalaxianConfigSchema";
 
 describe("Galaxian keyboard bindings", () => {

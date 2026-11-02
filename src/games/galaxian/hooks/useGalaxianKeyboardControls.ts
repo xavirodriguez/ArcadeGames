@@ -3,22 +3,10 @@ import { Platform } from "react-native";
 import type { GalaxianConfig } from "../types/GalaxianConfigSchema";
 import type { GalaxianGame } from "../GalaxianGame";
 import type { GalaxianInputState } from "../types/GalaxianTypes";
-
-export type GalaxianControlAction = "moveLeft" | "moveRight" | "shoot";
-export type GalaxianControlInput = Partial<Pick<GalaxianInputState, GalaxianControlAction>>;
-
-export function resolveGalaxianKeyActions(
-  keyCode: string,
-  keys: GalaxianConfig["KEYS"]
-): GalaxianControlAction[] {
-  const actions: GalaxianControlAction[] = [];
-
-  if (keyCode === keys.LEFT) actions.push("moveLeft");
-  if (keyCode === keys.RIGHT) actions.push("moveRight");
-  if (keyCode === keys.SHOOT) actions.push("shoot");
-
-  return actions;
-}
+import {
+  resolveGalaxianKeyActions,
+  type GalaxianControlInput,
+} from "../input/GalaxianKeyboardBindings";
 
 /**
  * Routes the configured Galaxian keyboard bindings through the same input bridge

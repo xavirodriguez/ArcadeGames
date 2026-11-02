@@ -176,6 +176,7 @@ export * from "./systems/ScreenShakeSystem";
 export * from "./systems/StateMachineSystem";
 export * from "./systems/TilemapRenderSystem";
 export * from "./systems/PlatformerCoyoteSystem";
+export * from "./systems/PlatformerJumpSystem";
 export * from "./systems/HitDetectionSystem";
 
 // Network

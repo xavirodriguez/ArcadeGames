@@ -120,6 +120,10 @@ describe("PlatformerJumpSystem", () => {
     expect(world.getComponent(entity, "PlatformerJumper")!.jumpsRemaining).toBe(1);
 
     world.mutateComponent(entity, "PlatformerInput", input => {
+      input.jumpPressed = false;
+    });
+    jump.update(world, 1 / 60);
+    world.mutateComponent(entity, "PlatformerInput", input => {
       input.jumpPressed = true;
     });
     jump.update(world, 1 / 60);

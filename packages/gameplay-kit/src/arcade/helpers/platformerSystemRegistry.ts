@@ -2,6 +2,7 @@ import {
   World,
   SystemPhase,
   PlatformerMovementSystem,
+  PlatformerSlideSystem,
   PlatformerGravitySystem,
   PlatformerCoyoteSystem,
   PlatformerJumpSystem,
@@ -40,6 +41,7 @@ export function registerCommonPlatformerSystems(
   options: RegisterPlatformerSystemsOptions = {}
 ): void {
   // Simulation phase - Movement & Physics
+  world.addSystem(new PlatformerSlideSystem(), { phase: SystemPhase.Simulation });
   world.addSystem(new PlatformerMovementSystem(), { phase: SystemPhase.Simulation });
   world.addSystem(new PlatformerGravitySystem(), { phase: SystemPhase.Simulation });
   world.addSystem(new PlatformerCoyoteSystem(), { phase: SystemPhase.Simulation });

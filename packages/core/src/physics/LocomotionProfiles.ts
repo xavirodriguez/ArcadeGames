@@ -26,6 +26,14 @@ export const LOCOMOTION_PROFILE_PRESETS: Readonly<Record<"responsive" | "momentu
       groundDrag: 0.15,
       airDrag: 0.03,
       preserveMomentum: 0.85
+    },
+    slide: {
+      minEntrySpeed: 120,
+      accelerationMultiplier: 0.35,
+      frictionMultiplier: 1.25,
+      steeringMultiplier: 0.25,
+      minimumDuration: 0.2,
+      maximumDuration: 0.9
     }
   },
   momentum: {
@@ -48,6 +56,14 @@ export const LOCOMOTION_PROFILE_PRESETS: Readonly<Record<"responsive" | "momentu
       groundDrag: 0.04,
       airDrag: 0.01,
       preserveMomentum: 1
+    },
+    slide: {
+      minEntrySpeed: 90,
+      accelerationMultiplier: 0.2,
+      frictionMultiplier: 0.45,
+      steeringMultiplier: 0.1,
+      minimumDuration: 0.25,
+      maximumDuration: 1.2
     }
   },
   heavy: {
@@ -70,6 +86,14 @@ export const LOCOMOTION_PROFILE_PRESETS: Readonly<Record<"responsive" | "momentu
       groundDrag: 0.25,
       airDrag: 0.08,
       preserveMomentum: 0.7
+    },
+    slide: {
+      minEntrySpeed: 130,
+      accelerationMultiplier: 0.25,
+      frictionMultiplier: 1.5,
+      steeringMultiplier: 0.15,
+      minimumDuration: 0.3,
+      maximumDuration: 1.0
     }
   }
 };

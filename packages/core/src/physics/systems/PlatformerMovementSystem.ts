@@ -53,6 +53,30 @@ export class PlatformerMovementSystem<TRegistry extends ComponentRegistry = Core
       const gravityMagnitude = gravityConfig?.fallGravity ?? 980;
       const profile = world.getComponent(entity, "LocomotionProfile" as Extract<keyof TRegistry, string>) as LocomotionProfileComponent | undefined;
       if (profile) {
+        const posture = world.getComponent(entity, "PlatformerPosture" as Extract<keyof TRegistry, string>) as { current?: string } | undefined;
+        if (isGrounded && posture?.current === "sliding" && profile.slide) {
+          const slide = profile.slide;
+          const moveDir = Math.max(-1, Math.min(1, input.moveDir));
+          const steering = Math.max(0, slide.accelerationMultiplier) * Math.max(0, slide.steeringMultiplier);
+          const traction = material ? this.clamp01(material.traction) : 1;
+          let slideVx = relativeVx;
+          if (moveDir !== 0) {
+            slideVx = this.moveTowards(
+              relativeVx,
+              moveDir * profile.ground.maxSpeed,
+              profile.ground.acceleration * steering * traction * Math.max(0, deltaTime)
+            );
+          }
+          const slideFriction = Math.max(0, material?.dynamicFriction ?? 0.6)
+            * Math.max(0, slide.frictionMultiplier) * gravityMagnitude * Math.max(0, deltaTime);
+          slideVx = this.moveTowards(slideVx, 0, slideFriction);
+          const slideVelocity = slideVx + surfaceVelocityX;
+          if (vel.vx !== slideVelocity) {
+            const mutableVelocity = world.getMutableComponent(entity, velocityType) as VelocityComponent | undefined;
+            if (mutableVelocity) mutableVelocity.vx = slideVelocity;
+          }
+          continue;
+        }
         const movement = isGrounded ? profile.ground : profile.air;
         const moveDir = Math.max(-1, Math.min(1, input.moveDir));
         const targetSpeed = moveDir * movement.maxSpeed;

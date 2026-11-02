@@ -178,3 +178,8 @@ Use fixed-timestep `deltaTime` for integration only. Gameplay windows use intege
 ## B4 implementation decision
 
 Tilemap slopes are authored as local line segments on TileDefinition.slope. The tile collision system resolves the segment's normal/tangent and only classifies it as ground when its angle is within the configured walkable limit. Axis-aligned tile behavior remains the compatibility path.
+
+
+## B2 implementation decision
+
+Sliding requires both PlatformerPosture and LocomotionProfile.slide. PlatformerSlideSystem runs before horizontal movement, uses fixed-step timers, changes only physical collider height, and keeps the foot position invariant. Standing is restored only when the tilemap and other blocking box/AABB colliders report clearance.

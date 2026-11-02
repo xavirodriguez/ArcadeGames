@@ -859,6 +859,8 @@ export interface LocomotionProfileComponent extends Component, LocomotionProfile
 }
 
 export interface PlatformerInputComponent extends Component {
+  /** Optional held slide/crouch action; consumed only by entities with PlatformerPosture and a slide profile. */
+  slideHeld?: boolean;
   /** Component discriminator type. */
   type: "PlatformerInput";
   /** Horizontal movement direction (-1, 0, 1). */
@@ -972,8 +974,32 @@ export interface PlatformerGroundStateComponent extends Component {
 }
 
 /**
+ * Serializable posture state for opt-in platformer sliding.
+ * Heights are full collider heights in world units; slideElapsed advances in fixed simulation time.
+ * @public
+ */
+export interface PlatformerPostureComponent extends Component {
+  /** Component discriminator type. */
+  type: "PlatformerPosture";
+  /** Current physical posture. */
+  current: "standing" | "sliding" | "blocked";
+  /** Requested posture after input and clearance checks. */
+  desired: "standing" | "sliding";
+  /** Full standing collider height. */
+  standingHeight: number;
+  /** Full sliding collider height. */
+  slidingHeight: number;
+  /** Elapsed time in the current slide, in seconds. */
+  slideElapsed: number;
+  /** Minimum duration before releasing a slide can stand the character up. */
+  slideMinimumDuration: number;
+  /** Maximum duration before a held slide is forcibly released. */
+  slideMaximumDuration: number;
+}
+
+/**
  * Component configuring 2D camera viewport position, follow target, zoom, deadzones, and smoothing.
- *
+
  * @example
  * ```ts
  * const camera: Camera2DComponent = {
@@ -1626,6 +1652,8 @@ export interface CoreComponentRegistry extends ComponentRegistry {
   PlatformerJumper: PlatformerJumperComponent;
   /** Platformer ground state. */
   PlatformerGroundState: PlatformerGroundStateComponent;
+  /** Opt-in physical posture and slide timer. */
+  PlatformerPosture: PlatformerPostureComponent;
   /** Resolved physical contact state. */
   PhysicsContactState: PhysicsContactStateComponent;
   /** Moving platform component. */

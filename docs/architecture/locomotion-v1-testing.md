@@ -104,3 +104,14 @@ Do not report a test as passing unless the command was actually executed against
 - Steep slopes remain contacts but are not grounded; walkable angle defaults to 50° and can be configured per tile.
 - Added ascending and descending ramp, steep-slope, no-slip-at-rest and fixed-step snapshot-hash tests.
 - Test execution: pending GitHub Actions; no local test run is claimed.
+
+
+### Increment 5 — slide posture and clearance (B2)
+
+- Added PlatformerPosture and slideHeld input state.
+- Added PlatformerSlideSystem before horizontal movement in the shared Platformer/Echo Runner schedule.
+- Collider resizing supports both Collider2D AABBs and Collider box shapes and preserves the foot anchor.
+- Clearance checks tilemap solids and enabled non-trigger box/AABB colliders with compatible masks; blocked posture retries standing without moving the character through geometry.
+- Slide steering/friction use the optional LocomotionProfile.slide data; presets now provide tuned starting values.
+- Added tests for entry speed, collider resizing, foot preservation, minimum/maximum timing, blocked/retry, non-trigger solid clearance, slide friction and legacy opt-in behavior.
+- Test execution: pending GitHub Actions; no local test run is claimed.

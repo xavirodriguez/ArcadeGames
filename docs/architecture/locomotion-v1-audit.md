@@ -164,8 +164,20 @@ No schedule change is required solely to make priority -10 late in Simulation: t
 ## 16. B4 — stable slope contacts
 
 - Added opt-in TileSlopeDefinition to tile definitions. The line segment is expressed in tile-local coordinates and ordered left-to-right; axis-aligned tiles remain unchanged.
-- TileCollisionSystem resolves the line surface, normalized upward normal and tangent; it resolves the AABB support radius against the plane to avoid collider penetration, then projects velocity onto the tangent.
+- TileCollisionSystem resolves the line surface, normalized upward normal and tangent; it projects the AABB support radius onto the plane (not just the collider center), preventing the rectangular collider from cutting through the ramp, and projects velocity onto the tangent.
 - Per-slope maxWalkableAngleDegrees (default 50°) controls grounded eligibility. Steeper surfaces still produce a contact but do not set PlatformerGroundState, PhysicsContactState.isGrounded or jump eligibility.
 - Per-slope snapDistance (default 8 units) tolerates fixed-step vertical error. Static/dynamic friction oppose downhill drift; the fallback coefficients for a slope without an authored material are 0.8/0.6.
 - Added ascending/descending ramp, steep-slope, static-friction and snapshot-hash tests. One-way slopes only collide from above.
 - Limits: tile-line slopes only; no polygon/curved surfaces or generic CollisionSystem2D manifold integration.
+
+
+## 17. B2 — sliding posture and deterministic clearance
+
+- Added the opt-in PlatformerPosture component with standing/sliding/blocked states, desired posture, full collider heights and fixed-step slide timers.
+- Added slideHeld to PlatformerInputComponent. The game/input binding must populate this action; no key or controller mapping is assumed by core.
+- Locomotion profile presets now include slide thresholds, steering/acceleration/friction multipliers and minimum/maximum durations.
+- PlatformerSlideSystem enters only while grounded and at or above minEntrySpeed; collider height changes preserve the world-space foot position for Collider2D AABBs and legacy Collider boxes.
+- Release exits only after minimum duration. Maximum duration requests exit even while held. If standing clearance is obstructed, posture remains blocked with the reduced collider and retries each fixed tick.
+- Clearance checks solid tilemap cells and enabled, non-trigger box/AABB colliders that pass mutual layer/mask filters; it ignores the entity's own collider and one-way tiles.
+- PlatformerMovementSystem applies reduced steering and profile/material-driven slide friction. Entities without PlatformerPosture and a slide profile stay on the previous movement path.
+- Added tests for entry threshold/path, foot preservation, minimum duration, blocked ceiling retry, solid entity collider clearance, slide friction and opt-in compatibility.

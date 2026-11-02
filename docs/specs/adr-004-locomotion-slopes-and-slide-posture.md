@@ -1,6 +1,6 @@
 # ADR-004: Tile slope geometry and platformer slide posture
 
-- **Status:** Proposed implementation baseline
+- **Status:** Implemented baseline; pending CI verification
 - **Date:** 2026-11-02
 - **Scope:** Locomotion v1 B4 and B2
 
@@ -25,3 +25,10 @@ The existing tile collision solver resolves axis-aligned full-tile AABBs. It can
 - Clearance currently checks tilemap solids and box/AABB colliders; circle colliders are intentionally non-blocking for this posture check.
 - Input bindings must set PlatformerInput.slideHeld; the core does not assume a keyboard/gamepad mapping.
 - Values are game-feel starting points and require calibration per title.
+
+
+## B2 implementation notes
+
+- The shared Platformer/Echo Runner schedule runs PlatformerSlideSystem before PlatformerMovementSystem.
+- The core exposes slideHeld but deliberately does not bind a keyboard/gamepad key. Each game maps its own action into the ECS input component.
+- Slide timing is fixed-step ECS state; no wall-clock or system-instance state is used.

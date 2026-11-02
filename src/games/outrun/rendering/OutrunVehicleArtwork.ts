@@ -90,7 +90,7 @@ const TRAFFIC_PALETTES: Readonly<Record<ClassicTrafficVehicleShape, readonly Out
 
 function normalizeTrafficStyleSeed(styleIndex: number): number {
   if (!Number.isFinite(styleIndex)) return 0;
-  return Math.abs(Math.trunc(styleIndex)) % 256;
+  return Math.abs(Math.trunc(styleIndex)) % 64;
 }
 
 /** Weighted, deterministic distribution: 50% coupe, 25% van, 12.5% truck, 12.5% motorcycle. */
@@ -100,7 +100,7 @@ export function resolveOutrunTrafficVehicleKind(styleIndex: number): ClassicTraf
 
 /** Palette selection uses the upper seed bits, independent from the archetype bucket. */
 export function resolveOutrunTrafficPaletteIndex(styleIndex: number): number {
-  return Math.floor(normalizeTrafficStyleSeed(styleIndex) / TRAFFIC_KIND_BUCKETS.length) % 4;
+  return Math.floor(normalizeTrafficStyleSeed(styleIndex) / TRAFFIC_KIND_BUCKETS.length);
 }
 
 export function resolveOutrunTrafficVehiclePalette(

@@ -349,22 +349,49 @@ es una silueta deportiva legible que preserve visibilidad hacia el horizonte.
 
 ## 9. Tráfico
 
-Vehículos vistos por detrás, con dimensiones en función del ancho `w` (para
-`w` = 27, el valor del tablero). Las tres variantes se mantienen bajas y anchas;
-furgoneta y camión se distinguen con cambios moderados en la cabina, no con techos
-exageradamente altos.
+Vehículos vistos por detrás y dibujados mediante geometría vectorial compartida
+entre Canvas y Skia. La anchura de referencia `w` es la anchura proyectada de
+un coupe estándar antes de aplicar el factor propio de cada arquetipo.
 
-```
-sombra       elipse rx 0.55·w, ry 0.07·w, shadow @40 %
-carrocería   rect de ancho w y alto 0.27·w, rx 0.07·w
-cabina       trapecio: base 0.74·w, techo 0.56·w, alto base 0.16·w, encima de la carrocería
-luneta       trapecio inscrito en la cabina, en carGlass
-barra luz    rect de ancho 0.89·w y alto 0.074·w, a 0.15·w del borde superior de la carrocería, en #FFE0D8
-```
+| Arquetipo | Anchura | Altura total aprox. | Rasgos reconocibles |
+|---|---:|---:|---|
+| **Coupe** | 1.00·w | 0.43·w | Carrocería baja, luneta trapezoidal y barra de luces. |
+| **Motorcycle** | 0.36·w | 0.69·w | Dos neumáticos alineados, carenado, piloto y casco. |
+| **Van** | 1.08·w | 0.50·w | Caja alta, dos puertas traseras, ventana y luces verticales. |
+| **Truck** | 1.20·w | 0.59·w | Caja de carga rígida, paneles, cierres, parachoques y ruedas dobles. |
 
-Colores: carrocería en `trafficA/B/C`; cabina un 12 % más oscura. La furgoneta
-y el camión siguen teniendo cabinas proporcionalmente algo más altas que el coupé,
-pero todas las variantes deben conservar una altura total inferior a 0.53 × su ancho.
+### 9.1 Distribución determinista
+
+Cada vehículo recibe una semilla visual estable de 6 bits, generada con una
+única llamada existente a `gameplayRandom` durante la creación del tráfico.
+No se consumen valores aleatorios adicionales.
+
+- Los 4 bits inferiores seleccionan uno de 16 buckets: 8 coupe, 4 van,
+  2 truck y 2 motorcycle.
+- Los 2 bits superiores seleccionan una de las cuatro paletas del arquetipo.
+- La identidad visual no se vuelve a calcular durante el renderizado.
+- Canvas y Skia reciben exactamente la misma geometría y colores.
+
+Frecuencias iniciales: **50 % coupe, 25 % van, 12.5 % truck y 12.5 % motorcycle**.
+
+### 9.2 Paletas
+
+Los colores principales de carrocería, en orden de variante, son:
+
+| Arquetipo | Variantes de carrocería |
+|---|---|
+| Coupe | `#C6A55F`, `#9786B5`, `#6B8FA9`, `#78927C` |
+| Motorcycle | `#5B8790`, `#B99A58`, `#A86F68`, `#6C8499` |
+| Van | `#C4815E`, `#648D86`, `#B69B60`, `#789AAF` |
+| Truck | `#929BA1`, `#627F97`, `#A76F63`, `#7E886D` |
+
+Cada paleta define también acentos, detalles, cristales, neumáticos y, para la
+moto, el color del traje y del casco. Las sombras y luces conservan tokens
+compartidos con la dirección artística del juego.
+
+La moto de tráfico es una variante exclusivamente visual: mientras el modelo
+ECS siga usando `Racer`, mantiene la misma huella genérica de colisión que el
+resto del tráfico.
 
 ---
 

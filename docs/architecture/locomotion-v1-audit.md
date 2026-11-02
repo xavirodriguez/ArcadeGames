@@ -47,8 +47,9 @@ The current implementation is not yet sufficient for the requested locomotion co
 
 - `PlatformerMovementSystem`: accelerates/decelerates `Velocity.vx` toward input target speed. It selects ground vs air rates using `PlatformerGroundState.isGrounded`; ice currently scales both acceleration and deceleration via `iceMultiplier`.
 - `PlatformerGravitySystem`: applies rise/fall gravity and optional apex multiplier.
-- `PlatformerCoyoteSystem`: refreshes/decrements coyote and jump-buffer timers and executes a buffered landing jump.
-- Game-specific `PlatformerInputSystem`: derives input edges, performs jump/coyote/double-jump execution and short-hop clamping.
+- `PlatformerCoyoteSystem`: advances coyote and jump-buffer timers only.
+- `PlatformerJumpSystem`: single authority for grounded/coyote/buffered/multi-jump execution and short-hop clamping.
+- Game-specific `PlatformerInputSystem`: samples control intent and derives ECS-backed jump button edges.
 - `PhysicsIntegrateSystem`: integrates velocity to position.
 - `CollisionSystem2D` and `TileCollisionSystem`: run in the Collision phase.
 - `registerCommonPlatformerSystems` is shared by Platformer and Echo Runner; changes here must be regression-tested against both.
@@ -65,7 +66,7 @@ No schedule change is required solely to make priority -10 late in Simulation: t
 
 1. `PlatformerInputSystem` stores jump-edge history in a private `Map<Entity, boolean>`. This state is outside ECS snapshots and is not naturally restored during rollback.
 2. `PlatformerCoyoteSystem` and `PlatformerJumper` store durations as floating-point seconds and decrement by `deltaTime`; the requested v1 contract is tick-based timers.
-3. Jump input handling is split across a game-specific input system and a shared core system. The input system directly sets vertical velocity and resets ground state; the coyote system separately executes buffered jumps.
+3. Jump resolution was split across the game-specific input system and the shared coyote system in the audit baseline; the current implementation increment consolidates impulse application in `PlatformerJumpSystem`.
 4. Touch input mutates the same input component and consumes tap events. The input sampling boundary should be preserved, while simulation-relevant edge state must be serializable.
 5. The existing shared system registry is used by Platformer and Echo Runner, so changing jump semantics globally could change both games.
 
@@ -91,7 +92,7 @@ No schedule change is required solely to make priority -10 late in Simulation: t
 
 ## 9. Minimal change strategy
 
-1. Consolidate jump edge, buffering, coyote and variable-height decisions into one ECS-backed controller path while retaining existing component compatibility where practical.
+1. [x] Consolidate jump edge, buffering, coyote and variable-height decisions into one ECS-backed path while retaining existing component compatibility where practical.
 2. Add a serializable locomotion state/profile contract; keep acceleration logic and gravity application as composable systems.
 3. Add slide posture handling with a collision-world clearance query before restoring the standing collider.
 4. Introduce a surface material identifier/definition and grounded contact data. Resolve materials outside the controller.

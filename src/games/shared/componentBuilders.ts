@@ -14,7 +14,9 @@ import {
   Component,
   SegmentGenerator,
   SegmentTemplate,
-  TileDefinition
+  TileDefinition,
+  LOCOMOTION_PROFILE_PRESETS,
+  PHYSICS_MATERIAL_PRESETS
 } from "@tiny-aster/core";
 import { CollisionLayers, ArcadeEntityBuilder } from "@tiny-aster/gameplay-kit";
 
@@ -182,6 +184,50 @@ export function setupPlatformerMovementComponents(
     contacts: [],
     isGrounded: false
   });
+
+  // Opt the shared Platformer/Echo Runner player into the common locomotion
+  // controller. Clone nested profile data so entities never share mutable state.
+  const profile = LOCOMOTION_PROFILE_PRESETS.responsive;
+  world.addComponent(entity, {
+    type: "LocomotionProfile",
+    ground: {
+      ...profile.ground,
+      maxSpeed: config.PLAYER_SPEED,
+      acceleration: config.PLAYER_ACCEL,
+      deceleration: config.PLAYER_DECEL
+    },
+    air: {
+      ...profile.air,
+      maxSpeed: config.PLAYER_SPEED,
+      acceleration: config.PLAYER_AIR_ACCEL,
+      deceleration: config.PLAYER_AIR_DECEL
+    },
+    momentum: { ...profile.momentum },
+    ...(profile.slide ? { slide: { ...profile.slide } } : {})
+  });
+
+  const collider2D = world.getComponent(entity, "Collider2D") as
+    { shape?: { type: string | number; halfHeight?: number } } | undefined;
+  const collider = world.getComponent(entity, "Collider") as
+    { shape?: { type: string | number; height?: number } } | undefined;
+  const standingHeight = collider2D?.shape?.type === "aabb"
+    ? (collider2D.shape.halfHeight ?? 0) * 2
+    : collider?.shape?.type === ShapeType.Box
+      ? (collider.shape.height ?? 0)
+      : 0;
+
+  if (standingHeight > 0 && profile.slide) {
+    world.addComponent(entity, {
+      type: "PlatformerPosture",
+      current: "standing",
+      desired: "standing",
+      standingHeight,
+      slidingHeight: Math.max(8, standingHeight * 0.6),
+      slideElapsed: 0,
+      slideMinimumDuration: profile.slide.minimumDuration,
+      slideMaximumDuration: profile.slide.maximumDuration
+    });
+  }
 }
 
 /**
@@ -209,7 +255,16 @@ export function setupTilemapEntity(
     type: "Tilemap",
     data,
     tileSize,
-    tileDefinitions
+    tileDefinitions,
+    physicsMaterials: Object.fromEntries(
+      Object.entries(PHYSICS_MATERIAL_PRESETS).map(([id, material]) => [
+        id,
+        {
+          ...material,
+          ...(material.conveyorVelocity ? { conveyorVelocity: { ...material.conveyorVelocity } } : {})
+        }
+      ])
+    )
   });
 }
 
@@ -374,11 +429,22 @@ export function createPaddleColliderConfig(width: number, height: number) {
  * @public
  */
 export const COMMON_PLATFORMER_TILE_DEFINITIONS = {
-  1: { solid: true, kind: "normal" as const },
-  2: { solid: true, kind: "ice" as const },
-  3: { solid: true, kind: "bounce" as const, bounce: 1.5 },
-  4: { solid: true, kind: "spike" as const },
-  5: { solid: true, oneWay: true, kind: "normal" as const }
+  1: { solid: true, kind: "normal" as const, materialId: "normal" },
+  2: { solid: true, kind: "ice" as const, materialId: "ice" },
+  3: { solid: true, kind: "bounce" as const, bounce: 1.5, materialId: "normal" },
+  4: { solid: true, kind: "spike" as const, materialId: "normal" },
+  5: { solid: true, oneWay: true, kind: "normal" as const, materialId: "normal" },
+  6: {
+    solid: true,
+    kind: "normal" as const,
+    materialId: "normal",
+    slope: {
+      start: { x: 0, y: 40 },
+      end: { x: 40, y: 0 },
+      maxWalkableAngleDegrees: 45,
+      snapDistance: 8
+    }
+  }
 };
 
 /**

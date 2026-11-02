@@ -126,3 +126,31 @@ Do not report a test as passing unless the command was actually executed against
 
 
 - B5 jump regression now exercises the real PlatformerJumpSystem → PlatformCarrySystem sequence. Jump resolution temporarily includes the full vertical support impulse; carry detachment removes the full support component and reapplies only preserveMomentum.
+
+
+### Increment 7 — game integration follow-up (2026-11-02)
+
+- Shared Platformer/Echo Runner player setup now attaches a cloned `responsive` LocomotionProfile. Ground/air max speed and acceleration/deceleration are sourced from each game's existing config so the profile path does not silently replace those baseline values.
+- The same setup derives standing collider height from the actual `Collider2D` AABB or legacy `Collider` box and adds an opt-in `PlatformerPosture` with a 60% sliding height.
+- Added the `slide` action to both game input schemas and shared input mutation. Touch input also samples the `slide` button.
+- Fixed blocked stand-up behavior: a grounded entity in `blocked` posture continues through the slide movement/friction branch until clearance allows standing.
+- Platformer tilemap construction now attaches cloned `PHYSICS_MATERIAL_PRESETS`; normal/ice/bounce/spike/one-way tile definitions reference material IDs.
+- Added a walkable slope tile definition and authored one ramp in Echo Runner's `moving_parts_01` segment, immediately before the moving-platform section. The level JSON was parsed after editing and the segment contains exactly one slope tile.
+- Added regression tests for player component setup across both collider contracts, independent profile data, tilemap material attachment, slide input mutation and movement while blocked.
+- Echo Runner already opts into `MovingPlatformSystem` / `PlatformCarrySystem` and has a real moving-platform level segment; this increment preserves that B5 path rather than duplicating it in Platformer, whose shipped level data does not currently author moving platforms.
+- Test execution: **not verified**. This session has repository read/write access but no local checkout or pnpm/Jest runner. The draft PR is not considered merge-ready until CI and the remaining integration checks pass.
+
+## Remaining closure work
+
+- Launch and manually exercise the new development-only Locomotion Lab factory (`createLocomotionLab`) to validate acceleration/braking, slope transitions, normal/ice/bounce/one-way materials, constrained sliding and moving-platform momentum in one repeatable route.
+- Add end-to-end assertions that the actual Platformer and Echo Runner player blueprints receive the expected components and that the authored Echo Runner slope/material/moving-platform segment behaves correctly.
+- Run focused Jest tests, package typechecks, repository CI and replay/snapshot determinism checks on the branch; resolve every failure before marking Locomotion v1 closed.
+
+
+### Increment 8 — integrated Locomotion Lab
+
+- Added `src/games/echorunner/levels/locomotion-lab.json`, a deterministic 24×14 course with normal, ice, bounce, one-way and slope tiles.
+- Added a zero-amplitude moving-platform collider at x=15.5 as a low overhead clearance obstacle, leaving 20 units between its bottom and the floor; a separate horizontally moving support at y=10.5 exercises B5 support velocity.
+- Added `createLocomotionLab(seed)` as a development factory around the production Echo Runner systems. It is intentionally not registered in the campaign game list.
+- Added structural tests for course dimensions, required surface IDs and both platform fixtures.
+- The level JSON and factory are authored; runtime playability and behavior remain unverified until Jest/typecheck and a manual launch are performed.

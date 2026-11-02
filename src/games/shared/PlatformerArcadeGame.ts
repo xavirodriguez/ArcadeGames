@@ -44,11 +44,22 @@ import { updateRunProgress } from "@tiny-aster/gameplay-kit";
  * @public
  */
 export const DEFAULT_PLATFORMER_TILE_DEFINITIONS = {
-  1: { solid: true, kind: "normal" as const },
-  2: { solid: true, kind: "ice" as const },
-  3: { solid: true, kind: "bounce" as const, bounce: 1.2 },
-  4: { solid: true, kind: "spike" as const },
-  5: { solid: true, oneWay: true, kind: "normal" as const }
+  1: { solid: true, kind: "normal" as const, materialId: "normal" },
+  2: { solid: true, kind: "ice" as const, materialId: "ice" },
+  3: { solid: true, kind: "bounce" as const, bounce: 1.2, materialId: "normal" },
+  4: { solid: true, kind: "spike" as const, materialId: "normal" },
+  5: { solid: true, oneWay: true, kind: "normal" as const, materialId: "normal" },
+  6: {
+    solid: true,
+    kind: "normal" as const,
+    materialId: "normal",
+    slope: {
+      start: { x: 0, y: 40 },
+      end: { x: 40, y: 0 },
+      maxWalkableAngleDegrees: 45,
+      snapDistance: 8
+    }
+  }
 };
 
 export function setupArcadeRunState(world: World<any>, audio?: unknown): RunState {

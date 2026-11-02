@@ -1,7 +1,30 @@
-import { World, CoreComponentRegistry } from "@tiny-aster/core";
+import { World, CoreComponentRegistry, TouchInputState } from "@tiny-aster/core";
 import { PlatformerInputSystem } from "../PlatformerInputSystem";
 
 describe("PlatformerInputSystem deterministic jump edges", () => {
+  it("aggregates touch slide input and clears it when the touch button is released", () => {
+    const world = new World<CoreComponentRegistry>();
+    const entity = world.createEntity();
+    const touch = new TouchInputState();
+    world.setResource("TouchInputState", touch);
+    world.addComponent(entity, {
+      type: "PlatformerInput",
+      moveDir: 0,
+      jumpPressed: false,
+      jumpHeld: false,
+      jumpReleased: false,
+      slideActionHeld: false
+    });
+
+    touch.setButton("slide", true);
+    new PlatformerInputSystem().update(world, 1 / 60);
+    expect(world.getComponent(entity, "PlatformerInput")?.slideHeld).toBe(true);
+
+    touch.setButton("slide", false);
+    new PlatformerInputSystem().update(world, 1 / 60);
+    expect(world.getComponent(entity, "PlatformerInput")?.slideHeld).toBe(false);
+  });
+
   it("keeps held-button edge history across system recreation", () => {
     const world = new World<CoreComponentRegistry>();
     const entity = world.createEntity();

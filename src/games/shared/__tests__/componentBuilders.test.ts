@@ -1,5 +1,80 @@
-import { BlueprintRegistry, World } from "@tiny-aster/core";
-import { registerCollectibleTriggerBlueprint, registerStandardPlatformerCollectibles } from "../componentBuilders";
+import { BlueprintRegistry, ShapeType, World } from "@tiny-aster/core";
+import { registerCollectibleTriggerBlueprint, registerStandardPlatformerCollectibles, setupPlatformerMovementComponents, setupTilemapEntity } from "../componentBuilders";
+
+describe("Shared platformer locomotion setup", () => {
+  const config = {
+    PLAYER_ACCEL: 800,
+    PLAYER_SPEED: 240,
+    PLAYER_DECEL: 1200,
+    PLAYER_AIR_ACCEL: 400,
+    PLAYER_AIR_DECEL: 600,
+    PLAYER_JUMP_VEL: -350,
+    PLAYER_MIN_JUMP_VEL: -150,
+    RISE_GRAVITY: 980,
+    FALL_GRAVITY: 1200
+  };
+
+  it("attaches an isolated locomotion profile and slide posture for Collider2D players", () => {
+    const world = new World();
+    const entity = world.createEntity();
+    world.addComponent(entity, {
+      type: "Collider2D",
+      shape: { type: "aabb", halfWidth: 10, halfHeight: 15 },
+      layer: 1, mask: 0xffff, offsetX: 0, offsetY: 0, isTrigger: false, enabled: true
+    } as any);
+
+    setupPlatformerMovementComponents(world as any, entity, config);
+    expect(world.getComponent(entity, "LocomotionProfile")).toMatchObject({
+      type: "LocomotionProfile",
+      ground: { maxSpeed: 240 },
+      slide: { minEntrySpeed: 120 }
+    });
+    expect(world.getComponent(entity, "PlatformerPosture")).toMatchObject({
+      current: "standing",
+      standingHeight: 30,
+      slidingHeight: 18
+    });
+  });
+
+  it("supports legacy Collider box players without sharing mutable profile objects", () => {
+    const world = new World();
+    const first = world.createEntity();
+    const second = world.createEntity();
+    for (const entity of [first, second]) {
+      world.addComponent(entity, {
+        type: "Collider",
+        shape: { type: ShapeType.Box, width: 20, height: 30 },
+        layer: 1, mask: 0xffff, enabled: true, isTrigger: false
+      } as any);
+      setupPlatformerMovementComponents(world as any, entity, config);
+    }
+
+    expect(world.getComponent(first, "PlatformerPosture")).toMatchObject({ standingHeight: 30, slidingHeight: 18 });
+    const firstProfile = world.getMutableComponent(first, "LocomotionProfile") as any;
+    const secondProfile = world.getComponent(second, "LocomotionProfile") as any;
+    firstProfile.ground.maxSpeed = 999;
+    expect(secondProfile.ground.maxSpeed).toBe(240);
+  });
+});
+
+describe("Shared platformer tilemap materials", () => {
+  it("attaches serializable material presets used by authored tile material ids", () => {
+    const world = new World();
+    const entity = world.createEntity();
+    setupTilemapEntity(world as any, entity, 40, [[1, 2, 3]], {
+      1: { solid: true, materialId: "normal" },
+      2: { solid: true, materialId: "ice" },
+      3: { solid: true, materialId: "normal" }
+    });
+
+    expect(world.getComponent(entity, "Tilemap")).toMatchObject({
+      physicsMaterials: {
+        normal: { id: "normal", traction: 1 },
+        ice: { id: "ice", traction: 0.12 }
+      }
+    });
+  });
+});
 
 describe("Collectible Blueprint Characterization Tests", () => {
   it("registers collectible trigger blueprint and correctly spawns collectible entity", () => {

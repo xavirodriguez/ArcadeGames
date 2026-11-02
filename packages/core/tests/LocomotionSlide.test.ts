@@ -105,6 +105,19 @@ describe("Locomotion B2 slide posture", () => {
     expect(world.getComponent(player, "Velocity")!.vx).toBeLessThan(before);
   });
 
+  it("continues to apply slide movement while standing clearance is blocked", () => {
+    const { world, player } = createPlayer(true);
+    const slide = new PlatformerSlideSystem();
+    slide.update(world, 1 / 60);
+    world.mutateComponent(player, "PlatformerInput", input => { input.slideHeld = false; });
+    for (let tick = 0; tick < 20; tick++) slide.update(world, 1 / 60);
+
+    expect(world.getComponent(player, "PlatformerPosture")?.current).toBe("blocked");
+    const before = world.getComponent(player, "Velocity")!.vx;
+    new PlatformerMovementSystem().update(world, 0.1);
+    expect(world.getComponent(player, "Velocity")!.vx).toBeLessThan(before);
+  });
+
   it("keeps the reduced posture when a solid non-trigger box collider blocks standing", () => {
     const { world, player } = createPlayer();
     const ceiling = world.createEntity();

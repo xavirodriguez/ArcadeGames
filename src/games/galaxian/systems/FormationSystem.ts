@@ -3,8 +3,6 @@ import { GalaxianComponentRegistry, FormationComponent, GalaxianEnemyComponent }
 import { GalaxianConfig } from "../types/GalaxianConfigSchema";
 
 export class FormationSystem extends System<GalaxianComponentRegistry> {
-  private elapsed = 0;
-
   public update(world: World<GalaxianComponentRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true || deltaTime <= 0) return;
 
@@ -18,8 +16,8 @@ export class FormationSystem extends System<GalaxianComponentRegistry> {
     const formation = world.getMutableComponent(formationEntity, "Formation") as FormationComponent | undefined;
     if (!formation) return;
 
-    this.elapsed += deltaTime;
-    const currentOscillationX = Math.sin(this.elapsed * freq * 2 * Math.PI) * amp;
+    formation.elapsed += deltaTime;
+    const currentOscillationX = Math.sin(formation.elapsed * freq * 2 * Math.PI) * amp;
     formation.currentOscillationX = currentOscillationX;
 
     const enemyEntities = world.query("GalaxianEnemy", "Transform");

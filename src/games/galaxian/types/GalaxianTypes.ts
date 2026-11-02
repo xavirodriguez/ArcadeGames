@@ -32,6 +32,7 @@ export interface FormationComponent extends Component {
   originX: number;
   originY: number;
   currentOscillationX: number;
+  elapsed: number;
   direction: number;
   totalEnemies: number;
   slots: Record<string, FormationSlot>;
@@ -74,6 +75,15 @@ export interface VisualPoseComponent extends Component {
   scaleY: number;
   visualOffsetX: number;
   visualOffsetY: number;
+  previousX: number;
+  previousY: number;
+  hasPreviousPosition: boolean;
+}
+
+export interface GalaxianBulletPoolEntryComponent extends Component {
+  type: "GalaxianBulletPoolEntry";
+  owner: "player" | "enemy";
+  available: boolean;
 }
 
 export interface DiveTrailComponent extends Component {
@@ -109,6 +119,7 @@ export interface GalaxianComponentRegistry extends CoreComponentRegistry {
   GameState: GalaxianStateComponent;
   Input: GalaxianInputComponent;
   VisualPose: VisualPoseComponent;
+  GalaxianBulletPoolEntry: GalaxianBulletPoolEntryComponent;
   DiveTrail: DiveTrailComponent;
   ScorePopup: ScorePopupComponent;
   UnfoldShard: UnfoldShardComponent;

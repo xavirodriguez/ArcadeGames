@@ -40,6 +40,11 @@ export function registerCommonPlatformerSystems(
   world: World<any>,
   options: RegisterPlatformerSystemsOptions = {}
 ): void {
+  // Moving surfaces advance first so passengers and locomotion read this tick's support velocity.
+  if (options.includeMovingPlatforms) {
+    world.addSystem(new MovingPlatformSystem(), { phase: SystemPhase.Simulation });
+  }
+
   // Simulation phase - Movement & Physics
   world.addSystem(new PlatformerSlideSystem(), { phase: SystemPhase.Simulation });
   world.addSystem(new PlatformerMovementSystem(), { phase: SystemPhase.Simulation });
@@ -47,8 +52,8 @@ export function registerCommonPlatformerSystems(
   world.addSystem(new PlatformerCoyoteSystem(), { phase: SystemPhase.Simulation });
   world.addSystem(new PlatformerJumpSystem(), { phase: SystemPhase.Simulation });
 
+  // Carry runs after jump resolution so detachment can preserve support momentum in this tick.
   if (options.includeMovingPlatforms) {
-    world.addSystem(new MovingPlatformSystem(), { phase: SystemPhase.Simulation });
     world.addSystem(new PlatformCarrySystem(), { phase: SystemPhase.Simulation });
   }
 

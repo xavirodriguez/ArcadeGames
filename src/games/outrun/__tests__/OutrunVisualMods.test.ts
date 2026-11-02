@@ -5,7 +5,12 @@ import { classicMod } from "../mods/classic/ClassicMod";
 import { arcadeMotorcycleMod } from "../mods/motorcycle/ArcadeMotorcycleMod";
 import { resolveMotorcycleFrameIndex } from "../mods/motorcycle/resolveMotorcycleFrameIndex";
 import { resolveOutrunRoadsideKind } from "../rendering/OutrunRoadsideArtwork";
-import { resolveOutrunTrafficArtworkStyle } from "../rendering/OutrunVehicleArtwork";
+import {
+  resolveOutrunTrafficArtworkStyle,
+  resolveOutrunTrafficPaletteIndex,
+  resolveOutrunTrafficVehicleGeometry,
+  resolveOutrunTrafficVehicleKind
+} from "../rendering/OutrunVehicleArtwork";
 import { initializeOutrunRenderer } from "../rendering/OutrunRendererManager";
 import type { OutrunVisualMod, OutrunThemeModule, OutrunGameplayMod } from "../mods/types";
 import type { OutrunComponentRegistry, OutrunEventRegistry, RoadData } from "../types/OutrunTypes";
@@ -110,6 +115,72 @@ describe("Outrun Visual Mods Architecture", () => {
 
     const styleOdd = resolveOutrunTrafficArtworkStyle(defaultConfig, 1, 100, customMod);
     expect(styleOdd.shape).toBe("carriage");
+  });
+
+  it("distributes four deterministic traffic archetypes with independent palette selection", () => {
+    const buckets = Array.from({ length: 16 }, (_, index) => resolveOutrunTrafficVehicleKind(index));
+    expect(buckets.filter((kind) => kind === "coupe")).toHaveLength(8);
+    expect(buckets.filter((kind) => kind === "van")).toHaveLength(4);
+    expect(buckets.filter((kind) => kind === "truck")).toHaveLength(2);
+    expect(buckets.filter((kind) => kind === "motorcycle")).toHaveLength(2);
+
+    for (let paletteIndex = 0; paletteIndex < 4; paletteIndex++) {
+      for (let bucket = 0; bucket < 16; bucket++) {
+        const seed = paletteIndex * 16 + bucket;
+        expect(resolveOutrunTrafficPaletteIndex(seed)).toBe(paletteIndex);
+        expect(resolveOutrunTrafficVehicleKind(seed)).toBe(buckets[bucket]);
+      }
+    }
+
+    expect(resolveOutrunTrafficVehicleKind(Number.NaN)).toBe("coupe");
+    expect(resolveOutrunTrafficPaletteIndex(Number.POSITIVE_INFINITY)).toBe(0);
+  });
+
+  it("builds renderer-neutral geometry for coupe, motorcycle, van and truck", () => {
+    const defaultConfig = OutrunConfigSchema.parse({});
+    const expectedKinds = ["coupe", "motorcycle", "van", "truck"] as const;
+    const seedByKind = new Map<"coupe" | "motorcycle" | "van" | "truck", number>(
+      expectedKinds.map((kind) => [
+        kind,
+        Array.from({ length: 16 }, (_, index) => index).find((index) => resolveOutrunTrafficVehicleKind(index) === kind)!
+      ] as const)
+    );
+
+    for (const kind of expectedKinds) {
+      const seed = seedByKind.get(kind);
+      expect(seed).toBeDefined();
+      const style = resolveOutrunTrafficArtworkStyle(defaultConfig, seed!, 100);
+      const geometry = resolveOutrunTrafficVehicleGeometry(style);
+      expect(style.shape).toBe(kind);
+      expect(geometry.length).toBeGreaterThan(5);
+      expect(geometry.every((command) => command.color.startsWith("#"))).toBe(true);
+      expect(geometry.every((command) => {
+        if (command.kind === "rect") return [command.x, command.y, command.width, command.height].every(Number.isFinite);
+        if (command.kind === "ellipse") return [command.centerX, command.centerY, command.radiusX, command.radiusY].every(Number.isFinite);
+        return command.points.every((point) => Number.isFinite(point.x) && Number.isFinite(point.y));
+      })).toBe(true);
+    }
+
+    const coupe = resolveOutrunTrafficArtworkStyle(defaultConfig, seedByKind.get("coupe")!, 100);
+    const motorcycle = resolveOutrunTrafficArtworkStyle(defaultConfig, seedByKind.get("motorcycle")!, 100);
+    const van = resolveOutrunTrafficArtworkStyle(defaultConfig, seedByKind.get("van")!, 100);
+    const truck = resolveOutrunTrafficArtworkStyle(defaultConfig, seedByKind.get("truck")!, 100);
+
+    for (const kind of expectedKinds) {
+      const bucketSeed = seedByKind.get(kind)!;
+      const paletteColors = new Set(
+        Array.from({ length: 4 }, (_, paletteIndex) => {
+          const seed = paletteIndex * 16 + bucketSeed;
+          return resolveOutrunTrafficArtworkStyle(defaultConfig, seed, 100).bodyColor;
+        })
+      );
+      expect(paletteColors.size).toBe(4);
+    }
+
+    expect(motorcycle.bodyWidth).toBeLessThan(coupe.bodyWidth);
+    expect(motorcycle.bodyHeight).toBeGreaterThan(coupe.bodyHeight);
+    expect(van.bodyWidth).toBeGreaterThan(coupe.bodyWidth);
+    expect(truck.bodyWidth).toBeGreaterThan(van.bodyWidth);
   });
 
   it("delegates drawer and background effect registration to active mod in initializeOutrunRenderer", () => {

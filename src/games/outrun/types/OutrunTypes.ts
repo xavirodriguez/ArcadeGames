@@ -42,7 +42,7 @@ export interface RacerComponent {
   lateralX: number;
   /** Forward speed in world units per second. */
   speed: number;
-  /** Visual color / style index. */
+  /** Stable visual seed resolved into a traffic archetype and palette by the renderer. */
   colorIndex: number;
   /** Whether this racer is still active. */
   active: boolean;

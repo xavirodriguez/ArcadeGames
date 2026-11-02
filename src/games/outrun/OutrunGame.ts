@@ -188,7 +188,8 @@ export class OutrunGame extends BaseGame<
         const z = (i + 1) * (roadData.trackLength / (numTraffic + 2));
         const lateralX = (rng.next() - 0.5) * 1.4;
         const speed = this.config.maxSpeed * (0.35 + rng.next() * 0.4);
-        const colorIndex = Math.floor(rng.next() * 5);
+        // One RNG draw still determines the full visual identity (archetype + palette).
+        const colorIndex = Math.floor(rng.next() * 64);
 
         const ent = this.world.createEntity();
         this.world.addComponent(ent, {

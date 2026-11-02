@@ -139,10 +139,12 @@ describe("Outrun Visual Mods Architecture", () => {
   it("builds renderer-neutral geometry for coupe, motorcycle, van and truck", () => {
     const defaultConfig = OutrunConfigSchema.parse({});
     const expectedKinds = ["coupe", "motorcycle", "van", "truck"] as const;
-    const seedByKind = new Map(expectedKinds.map((kind) => [
-      kind,
-      Array.from({ length: 16 }, (_, index) => index).find((index) => resolveOutrunTrafficVehicleKind(index) === kind)!
-    ]));
+    const seedByKind = new Map<"coupe" | "motorcycle" | "van" | "truck", number>(
+      expectedKinds.map((kind) => [
+        kind,
+        Array.from({ length: 16 }, (_, index) => index).find((index) => resolveOutrunTrafficVehicleKind(index) === kind)!
+      ] as const)
+    );
 
     for (const kind of expectedKinds) {
       const seed = seedByKind.get(kind);
@@ -163,6 +165,17 @@ describe("Outrun Visual Mods Architecture", () => {
     const motorcycle = resolveOutrunTrafficArtworkStyle(defaultConfig, seedByKind.get("motorcycle")!, 100);
     const van = resolveOutrunTrafficArtworkStyle(defaultConfig, seedByKind.get("van")!, 100);
     const truck = resolveOutrunTrafficArtworkStyle(defaultConfig, seedByKind.get("truck")!, 100);
+
+    for (const kind of expectedKinds) {
+      const bucketSeed = seedByKind.get(kind)!;
+      const paletteColors = new Set(
+        Array.from({ length: 4 }, (_, paletteIndex) => {
+          const seed = paletteIndex * 16 + bucketSeed;
+          return resolveOutrunTrafficArtworkStyle(defaultConfig, seed, 100).bodyColor;
+        })
+      );
+      expect(paletteColors).toHaveLength(4);
+    }
 
     expect(motorcycle.bodyWidth).toBeLessThan(coupe.bodyWidth);
     expect(motorcycle.bodyHeight).toBeGreaterThan(coupe.bodyHeight);

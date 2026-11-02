@@ -132,7 +132,8 @@ export const HIT_RUN_CHARACTER_SPRITE_SHEETS: readonly SpriteSheetDefinition[] =
       frameWidth: HIT_RUN_CHARACTER_CELL_SIZE,
       frameHeight: HIT_RUN_CHARACTER_CELL_SIZE,
       anchor: { ...HIT_RUN_CHARACTER_ANCHOR },
-      animations
+      animations,
+      optional: true
     };
   });
 

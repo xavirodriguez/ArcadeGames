@@ -76,6 +76,36 @@ describe("SpriteManifestValidator", () => {
     expect(codes).toContain("EMPTY_ANIMATION_FRAMES");
   });
 
+  it("rejects asset paths with whitespace", () => {
+    const sheet: SpriteSheetDefinition = {
+      ...validSheet,
+      assetPath: "assets/sprites/urban/ casita7.png"
+    };
+
+    const codes = validateSpriteSheetDefinition(sheet).map((issue) => issue.code);
+    expect(codes).toContain("INVALID_ASSET_PATH");
+  });
+
+  it("reports NULL_IMAGE_SOURCE for non-optional sheets with null imageSource in catalog validation", () => {
+    const issues = validateSpriteCatalog(
+      [validSheet],
+      {
+        existingAssetPaths: new Set(["assets/test_character.png"]),
+        dimensionsByAssetPath: new Map([["assets/test_character.png", { width: 32, height: 32 }]])
+      }
+    );
+    expect(issues.map((i) => i.code)).toContain("NULL_IMAGE_SOURCE");
+
+    const optionalIssues = validateSpriteCatalog(
+      [{ ...validSheet, optional: true }],
+      {
+        existingAssetPaths: new Set(["assets/test_character.png"]),
+        dimensionsByAssetPath: new Map([["assets/test_character.png", { width: 32, height: 32 }]])
+      }
+    );
+    expect(optionalIssues.map((i) => i.code)).not.toContain("NULL_IMAGE_SOURCE");
+  });
+
   it("reports duplicate ids, missing files, and invalid PNGs", () => {
     const issues = validateSpriteCatalog(
       [validSheet, { ...validSheet, assetPath: "assets/another.png" }, { ...validSheet, id: "invalid_png", assetPath: "assets/invalid.png" }],

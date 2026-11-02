@@ -14,31 +14,31 @@ import {
   preloadSpriteSheetCanvas,
   updateSpriteAnimator,
   SpriteRegistry,
+  type SpriteAnimatorComponent,
 } from "./index";
 
 export const LANCERO_SPRITE_ID = "lancero";
 export const LANCERO_SHAPE = "lancero";
 
-const animatorByWorld = new WeakMap<object, ReturnType<typeof createSpriteAnimator>>();
+const fallbackStaticAnimator: SpriteAnimatorComponent = {
+  type: "SpriteAnimator",
+  sheetId: LANCERO_SPRITE_ID,
+  currentAnim: "idle",
+  frameIndex: 0,
+  timer: 0,
+  flipX: false,
+  scale: 1,
+};
 
-function getAnimator(world: object) {
-  let a = animatorByWorld.get(world);
-  if (!a) {
-    if (!SpriteRegistry.has(LANCERO_SPRITE_ID)) {
-      SpriteRegistry.init();
-    }
-    a = createSpriteAnimator(LANCERO_SPRITE_ID, "idle");
-    animatorByWorld.set(world, a);
-  }
-  return a;
+function resolveEntityAnimator(world: World<CoreComponentRegistry>, entity: number): SpriteAnimatorComponent {
+  const c = world.getComponent(entity, "SpriteAnimator");
+  return c?.sheetId === LANCERO_SPRITE_ID ? c : fallbackStaticAnimator;
 }
 
 function readRender(world: World<CoreComponentRegistry>, entity: number): RenderComponent | null {
   const render = world.getComponent(entity, "Render") as RenderComponent | undefined;
-  if (!render || !render.visible) return null;
-  return render;
+  return !render || !render.visible ? null : render;
 }
-
 let canvasPreloadStarted = false;
 function kickOffCanvasPreload(): void {
   if (canvasPreloadStarted || typeof Image === "undefined") return;
@@ -63,8 +63,7 @@ export const drawLanceroSpriteCanvas: ShapeDrawer<CanvasRenderingContext2D, Core
   draw(ctx, world, entity) {
     const render = readRender(world, entity);
     if (!render) return;
-    const animator = getAnimator(world);
-    updateSpriteAnimator(animator, 1 / 60);
+    const animator = resolveEntityAnimator(world, entity);
     if (isCanvasSpriteReady(LANCERO_SPRITE_ID)) {
       drawSpriteCanvas(ctx, animator, 0, 0, { anchor: "feet", opacity: render.opacity });
       return;
@@ -78,8 +77,7 @@ export const drawSkiaLanceroSprite: ShapeDrawer<SkCanvas, CoreComponentRegistry>
   draw(canvas, world, entity) {
     const render = readRender(world, entity);
     if (!render) return;
-    const animator = getAnimator(world);
-    updateSpriteAnimator(animator, 1 / 60);
+    const animator = resolveEntityAnimator(world, entity);
     if (!getSkiaImage(LANCERO_SPRITE_ID)) {
       return;
     }

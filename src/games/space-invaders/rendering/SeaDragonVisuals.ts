@@ -75,24 +75,20 @@ export function createSeaDragonAsset(): Asset {
 // never stored in gameplay/snapshot state, mirroring ComboHUDRenderSystem usage)
 // ---------------------------------------------------------------------------
 
-interface SeaDragonAnimatorState {
+export interface SeaDragonAnimatorState {
   animator: SpriteAnimatorComponent;
   lastTick: number;
 }
 
-const animatorStates = new WeakMap<World<SpaceInvadersComponentRegistry>, SeaDragonAnimatorState>();
-
-function getAnimatorState(world: World<SpaceInvadersComponentRegistry>): SeaDragonAnimatorState {
-  let state = animatorStates.get(world);
-  if (!state) {
-    state = {
-      animator: createSpriteAnimator(SEA_DRAGON_SPRITE_ID, "fly"),
-      lastTick: world.tick,
-    };
-    animatorStates.set(world, state);
-  }
-  return state;
-}
+const fallbackStaticAnimator: SpriteAnimatorComponent = {
+  type: "SpriteAnimator",
+  sheetId: SEA_DRAGON_SPRITE_ID,
+  currentAnim: "fly",
+  frameIndex: 0,
+  timer: 0,
+  flipX: false,
+  scale: 1,
+};
 
 /**
  * Advances the sea dragon animator to the given tick and switches clips from
@@ -321,6 +317,17 @@ function readRender(world: World<SpaceInvadersComponentRegistry>, entity: number
   return render;
 }
 
+function resolveSeaDragonEntityAnimator(
+  world: World<SpaceInvadersComponentRegistry>,
+  entity: number
+): SpriteAnimatorComponent {
+  const component = world.getComponent(entity, "SpriteAnimator");
+  if (component && component.sheetId === SEA_DRAGON_SPRITE_ID) {
+    return component;
+  }
+  return fallbackStaticAnimator;
+}
+
 export const drawSeaDragonSpriteCanvas: ShapeDrawer<
   CanvasRenderingContext2D,
   SpaceInvadersComponentRegistry
@@ -328,8 +335,7 @@ export const drawSeaDragonSpriteCanvas: ShapeDrawer<
   draw(ctx, world, entity) {
     const render = readRender(world, entity);
     if (!render) return;
-    const state = getAnimatorState(world);
-    const animator = advanceSeaDragonAnimation(state, render, world.tick);
+    const animator = resolveSeaDragonEntityAnimator(world, entity);
     if (isCanvasSpriteReady(SEA_DRAGON_SPRITE_ID)) {
       drawSpriteCanvas(ctx, animator, 0, 0, {
         anchor: "center",
@@ -350,8 +356,7 @@ export const drawSkiaSeaDragonSprite: ShapeDrawer<
   draw(canvas, world, entity) {
     const render = readRender(world, entity);
     if (!render) return;
-    const state = getAnimatorState(world);
-    const animator = advanceSeaDragonAnimation(state, render, world.tick);
+    const animator = resolveSeaDragonEntityAnimator(world, entity);
     void preloadSeaDragonSkiaImage();
     if (!getSkiaImage(SEA_DRAGON_SPRITE_ID)) {
       drawSkiaSeaDragonFallback(canvas, render);

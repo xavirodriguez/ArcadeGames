@@ -269,8 +269,11 @@ export const drawTowerBasic: ShapeDrawer<CanvasRenderingContext2D, TowerDefenseC
       const render = world.getComponent(entity, "Render");
       const size = render?.size ?? 28;
       const isPaperDusk = isPaperDuskTheme(world);
-      TOWER_BASIC_SPRITE.scale = size / 34;
-      const spriteDrawn = !isPaperDusk && drawSpriteCanvas(ctx, TOWER_BASIC_SPRITE, 0, 0);
+      const spriteAnimator = {
+        ...TOWER_BASIC_SPRITE,
+        scale: size / 34,
+      };
+      const spriteDrawn = !isPaperDusk && drawSpriteCanvas(ctx, spriteAnimator, 0, 0);
       if (!spriteDrawn) {
         drawTowerBase(world, ctx, size, "tower_basic", "tower_basic_accent", TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.canvas.basic.primary, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.canvas.basic.accent, "basic");
       }
@@ -285,8 +288,11 @@ export const drawTowerSniper: ShapeDrawer<CanvasRenderingContext2D, TowerDefense
       const render = world.getComponent(entity, "Render");
       const size = render?.size ?? 28;
       const isPaperDusk = isPaperDuskTheme(world);
-      TOWER_SNIPER_SPRITE.scale = size / 34;
-      const spriteDrawn = !isPaperDusk && drawSpriteCanvas(ctx, TOWER_SNIPER_SPRITE, 0, 0);
+      const spriteAnimator = {
+        ...TOWER_SNIPER_SPRITE,
+        scale: size / 34,
+      };
+      const spriteDrawn = !isPaperDusk && drawSpriteCanvas(ctx, spriteAnimator, 0, 0);
       if (!spriteDrawn) {
         drawTowerBase(world, ctx, size, "tower_sniper", "tower_sniper_accent", TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.canvas.sniper.primary, TOWER_DEFENSE_VISUAL_TOKENS.towerRendering.canvas.sniper.accent, "sniper");
       }

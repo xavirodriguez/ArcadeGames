@@ -9,6 +9,7 @@ jest.mock("../rendering/SkiaContext", () => ({
 import { SpriteRegistry } from "./SpriteRegistry";
 import {
   isCanvasSpriteReady,
+  preloadAllSpriteSheets,
   preloadSpriteSheetCanvas,
   retrySpriteSheetLoad
 } from "./SpriteDrawer";
@@ -92,5 +93,9 @@ describe("SpriteDrawer loading lifecycle", () => {
   it("rejects retry requests for unknown sheet ids", async () => {
     await expect(retrySpriteSheetLoad("sprite_that_does_not_exist", "canvas"))
       .rejects.toThrow("Cannot retry unknown sprite sheet");
+  });
+
+  it("preloadAllSpriteSheets safely preloads specified sheets without throwing", async () => {
+    await expect(preloadAllSpriteSheets([RETRY_SHEET.id], "canvas")).resolves.toBeUndefined();
   });
 });

@@ -5554,6 +5554,7 @@ export interface SpriteSheetDefinition {
     frameWidth: number;
     id: string;
     imageSource: SpriteImageSource;
+    optional?: boolean;
     sourceMode?: "frames" | "full-image";
 }
 

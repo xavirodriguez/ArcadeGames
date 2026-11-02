@@ -25,7 +25,7 @@ import {
   CanonicalActionName,
 } from "@tiny-aster/core";
 import { CombatSystem } from "@tiny-aster/gameplay-kit";
-import { SpriteRegistry } from "../shared/sprites";
+import { SpriteRegistry, preloadAllSpriteSheets } from "../shared/sprites";
 import {
   GameStateComponent,
   InputState,
@@ -417,6 +417,7 @@ export class TowerDefenseGame extends BaseGame<
             drawTdMapBackground,
             drawTdVfxCanvas,
           } = require("./rendering/TowerDefenseCanvasVisuals");
+          preloadAllSpriteSheets(["tower_basic_art", "tower_sniper_art"]).catch(() => {});
           r.registerShape("tower_basic", drawTowerBasic);
           r.registerShape("tower_sniper", drawTowerSniper);
           r.registerShape("tower_rapid", drawTowerRapid);

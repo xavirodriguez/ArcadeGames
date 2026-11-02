@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, FC } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { TouchVirtualJoystick, TouchActionButton } from "@/components/controls";
@@ -14,7 +14,7 @@ import { RadialBackground } from "@/components/RadialBackground";
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { useTranslation } from "@/hooks/useTranslation";
 import { hapticSelection } from "@/utils/haptics";
-import { colors, neonTextGlow } from "../../theme";
+import { colors } from "../../theme";
 import { GameThemeProvider } from "@/context/GameThemeProvider";
 import {
   GameScreen,
@@ -31,7 +31,7 @@ export default function GalaxianScreen() {
   const [started, setStarted] = useState(false);
   const [initialSeed, setInitialSeed] = useState<number | undefined>();
 
-  const { game, gameState, handleInput, isPaused, isReady, togglePause, highScore, seed, restartWithSeed } =
+  const { game, gameState, handleInput, isReady, highScore } =
     useGalaxianGame(started, false, initialSeed);
 
   const touchStateRef = useRef<TouchInputState | null>(null);
@@ -49,7 +49,7 @@ export default function GalaxianScreen() {
     (input: Partial<{ moveLeft: boolean; moveRight: boolean; shoot: boolean }>) => {
       handleInput(input);
     },
-    [handleInput, game]
+    [handleInput]
   );
 
   useKeyboardControls(game, isReady, handleInputState);

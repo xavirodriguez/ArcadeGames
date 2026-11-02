@@ -6,7 +6,6 @@ import {
   RendererUtils,
   SystemPhase,
   CanonicalInputState,
-  CanonicalActionName,
   hasInputAction,
 } from "@tiny-aster/core";
 import { GalaxianConfigSchema, GalaxianConfig } from "./types/GalaxianConfigSchema";

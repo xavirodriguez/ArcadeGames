@@ -1,10 +1,17 @@
 import type { OutrunVisualMod, OutrunVisualModId, OutrunThemeModule, OutrunGameplayMod } from "./types";
 import { classicMod } from "./classic/ClassicMod";
+import { arcadeMotorcycleMod, arcadeMotorcycleGameplayMod } from "./motorcycle/ArcadeMotorcycleMod";
 import { createOutrunVisualModFacade } from "./createVisualModFacade";
 
 /** One canonical registry stores each aesthetic bundle and serves legacy callers. */
+const arcadeMotorcycleBundle = createOutrunVisualModFacade(
+  arcadeMotorcycleMod,
+  arcadeMotorcycleGameplayMod
+);
+
 const MOD_REGISTRY = new Map<string, OutrunVisualMod>([
-  ["classic", classicMod]
+  ["classic", classicMod],
+  ["arcade-moto", arcadeMotorcycleBundle]
 ]);
 
 /** Register a paired bundle or normalize a legacy flat visual mod. */

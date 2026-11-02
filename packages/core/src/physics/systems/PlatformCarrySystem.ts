@@ -78,9 +78,10 @@ export class PlatformCarrySystem extends System<CoreComponentRegistry> {
         // Apply the platform's fixed-step displacement before the character is integrated.
         const supportState = world.getComponent(character, "PhysicsContactState");
         if (supportState) {
-          const previousSupport = supportState.groundContact?.entity === carrier
-            ? supportState.groundContact.surfaceVelocity
-            : { x: 0, y: 0 };
+          const previousContact = supportState.groundContact?.entity === carrier
+            ? supportState.groundContact
+            : supportState.contacts.find((contact) => contact.entity === carrier);
+          const previousSupport = previousContact?.surfaceVelocity ?? { x: 0, y: 0 };
           // Locomotion movement already integrates relative velocity plus the previous
           // support velocity. Rebase it to this tick's platform velocity; PhysicsIntegrate
           // then performs the single authoritative passenger displacement.
@@ -107,6 +108,14 @@ export class PlatformCarrySystem extends System<CoreComponentRegistry> {
           && supportCenterX - characterShape.halfWidth < platformCenterX + platformShape.halfWidth;
 
         if (!overlapsSupport) {
+          this.writeSupportContact(
+            world,
+            character,
+            carrier,
+            { x: supportCenterX, y: platformCenterY - platformShape.halfHeight },
+            platformVelocity.vx,
+            platformVelocity.vy
+          );
           world.mutateComponent(character, "PlatformerGroundState", (state) => {
             state.isGrounded = false;
           });
@@ -168,14 +177,22 @@ export class PlatformCarrySystem extends System<CoreComponentRegistry> {
       const landedShape = landedCollider.shape as Aabb;
       const platformTop = landedTransform.y + landedCollider.offsetY - landedShape.halfHeight;
 
+      const hasContactState = world.hasComponent(character, "PhysicsContactState");
       world.mutateComponent(character, "Transform", (transform) => {
-        transform.y = platformTop - characterShape.halfHeight - characterCollider.offsetY;
+        const landingOffset = hasContactState ? landedVelocity.vy * deltaTime : 0;
+        // Contact-aware passengers are placed at the previous support position so
+        // PhysicsIntegrateSystem advances them onto the already-advanced platform once.
+        transform.y = platformTop - characterShape.halfHeight - characterCollider.offsetY - landingOffset;
         transform.dirty = true;
       });
       world.mutateComponent(character, "Velocity", (velocity) => {
-        // Landing snaps to the platform's already-advanced transform. Do not integrate
-        // its displacement twice; support velocity is applied from the next attached tick.
-        velocity.vy = 0;
+        if (hasContactState) {
+          velocity.vx += landedVelocity.vx;
+          velocity.vy = landedVelocity.vy;
+        } else {
+          // Legacy entities without PhysicsContactState keep independent velocity.
+          velocity.vy = 0;
+        }
       });
       world.mutateComponent(character, "PlatformerGroundState", (state) => {
         state.isGrounded = true;
@@ -237,14 +254,16 @@ export class PlatformCarrySystem extends System<CoreComponentRegistry> {
       ? Math.max(0, Math.min(1, profile.momentum.preserveMomentum))
       : 0;
 
-    if (profile) {
+    if (supportContact || profile) {
       const velocity = world.getMutableComponent(character, "Velocity");
       if (velocity) {
         if (supportContact) {
-          velocity.vx = velocity.vx - supportVelocity.x + supportVelocity.x * preserve;
-          // While attached, vertical velocity is rebased to platform velocity each tick.
-          velocity.vy = velocity.vy - supportVelocity.y + supportVelocity.y * preserve;
-        } else {
+          // Remove the support contribution for legacy contact-aware entities; opt-in
+          // profiles retain only the configured fraction.
+          const retained = profile ? preserve : 0;
+          velocity.vx = velocity.vx - supportVelocity.x + supportVelocity.x * retained;
+          velocity.vy = velocity.vy - supportVelocity.y + supportVelocity.y * retained;
+        } else if (profile) {
           // Legacy transform-delta carrying never included support velocity in ECS velocity.
           velocity.vx += supportVelocity.x * preserve;
           velocity.vy += supportVelocity.y * preserve;

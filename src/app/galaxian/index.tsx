@@ -6,10 +6,9 @@ import { TouchInputState } from "@tiny-aster/core";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { GameRenderer } from "@/components/GameRenderer";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
-import { GalaxianGame, GalaxianStateComponent } from "@/games/galaxian";
+import { useGalaxianKeyboardControls } from "@/games/galaxian/hooks/useGalaxianKeyboardControls";
 import { useGalaxianGame } from "@/hooks/useGalaxianGame";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
-import { useKeyboardControls } from "../../hooks/useKeyboardControls";
 import { RadialBackground } from "@/components/RadialBackground";
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -52,7 +51,7 @@ export default function GalaxianScreen() {
     [handleInput]
   );
 
-  useKeyboardControls(game, isReady, handleInputState);
+  useGalaxianKeyboardControls(game, isReady, handleInputState);
 
   if (!started) {
     return (

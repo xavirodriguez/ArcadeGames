@@ -4,6 +4,7 @@ import { MovingPlatformSystem } from "../src/physics/systems/MovingPlatformSyste
 import { PlatformCarrySystem } from "../src/physics/systems/PlatformCarrySystem";
 import { PhysicsIntegrateSystem } from "../src/physics/dynamics/PhysicsIntegrateSystem";
 import { PlatformerJumpSystem } from "../src/systems/PlatformerJumpSystem";
+import { PlatformerJumpSystem } from "../src/systems/PlatformerJumpSystem";
 import { TileCollisionSystem } from "../src/physics/systems/TileCollisionSystem";
 
 describe("Locomotion B5 moving-platform support", () => {
@@ -67,7 +68,8 @@ describe("Locomotion B5 moving-platform support", () => {
 
   it("inherits vertical platform motion on landing and snaps to the moving top", () => {
     const world = new World<CoreComponentRegistry>();
-    const platform = createPlatform(world, 100, 200, 0, 20);
+    const platform = createPlatform(world, 100, 200, 10, 20);
+    world.mutateComponent(platform, "Transform", transform => { transform.x += 1; transform.y += 2; });
     const passenger = createPassenger(world, platform, 100, 176);
     world.mutateComponent(passenger, "Velocity", velocity => { velocity.vy = 30; });
     world.mutateComponent(passenger, "PlatformerGroundState", state => {
@@ -77,18 +79,21 @@ describe("Locomotion B5 moving-platform support", () => {
 
     new PlatformCarrySystem().update(world, 0.1);
 
-    expect(world.getComponent(passenger, "Transform")?.y).toBeCloseTo(173, 5);
-    expect(world.getComponent(passenger, "Velocity")?.vy).toBe(20);
+    expect(world.getComponent(passenger, "Transform")?.y).toBeCloseTo(175, 5);
+    expect(world.getComponent(passenger, "Velocity")).toMatchObject({ vx: 10, vy: 20 });
     expect(world.getComponent(passenger, "PlatformerGroundState")?.carrierEntity).toBe(platform);
     expect(world.getComponent(passenger, "PhysicsContactState")?.groundContact?.surfaceVelocity).toEqual({ x: 0, y: 20 });
     new PhysicsIntegrateSystem().update(world, 0.1);
-    expect(world.getComponent(passenger, "Transform")?.y).toBeCloseTo(175, 5);
+    expect(world.getComponent(passenger, "Transform")?.x).toBeCloseTo(101, 5);
+    expect(world.getComponent(passenger, "Transform")?.y).toBeCloseTo(177, 5);
 
-    world.mutateComponent(platform, "Transform", transform => { transform.y += 2; });
+    world.mutateComponent(platform, "Transform", transform => { transform.x += 1; transform.y += 2; });
     new PlatformCarrySystem().update(world, 0.1);
     new PhysicsIntegrateSystem().update(world, 0.1);
-    expect(world.getComponent(passenger, "Transform")?.y).toBeCloseTo(177, 5);
-    expect(world.getComponent(platform, "Transform")?.y).toBeCloseTo(202, 5);
+    expect(world.getComponent(passenger, "Transform")?.x).toBeCloseTo(102, 5);
+    expect(world.getComponent(passenger, "Transform")?.y).toBeCloseTo(179, 5);
+    expect(world.getComponent(platform, "Transform")?.x).toBeCloseTo(102, 5);
+    expect(world.getComponent(platform, "Transform")?.y).toBeCloseTo(204, 5);
   });
 
   it("preserves the configured fraction of support velocity on jump detachment", () => {
@@ -127,6 +132,36 @@ describe("Locomotion B5 moving-platform support", () => {
     expect(world.getComponent(passenger, "Velocity")?.vx).toBe(20);
     expect(world.getComponent(passenger, "Velocity")?.vy).toBe(-295);
     expect(world.getComponent(passenger, "PlatformerGroundState")?.carrierEntity).toBeUndefined();
+    expect(world.getComponent(passenger, "PhysicsContactState")?.groundContact).toBeUndefined();
+  });
+
+  it("preserves only the configured support fraction when walking off the platform edge", () => {
+    const world = new World<CoreComponentRegistry>();
+    const platform = createPlatform(world, 100, 200, 50, 10);
+    const passenger = createPassenger(world, platform, 140, 175);
+    world.addComponent(passenger, {
+      type: "LocomotionProfile",
+      ground: { maxSpeed: 200, acceleration: 1000, deceleration: 800, brakingAcceleration: 1200, turnAcceleration: 1000 },
+      air: { maxSpeed: 200, acceleration: 300, deceleration: 100, brakingAcceleration: 200, turnAcceleration: 150, steeringMultiplier: 0.3 },
+      momentum: { groundDrag: 0.1, airDrag: 0.02, preserveMomentum: 0.5 }
+    });
+    world.mutateComponent(passenger, "Velocity", velocity => { velocity.vx = 50; velocity.vy = 10; });
+    world.mutateComponent(passenger, "PhysicsContactState", state => {
+      const contact = {
+        entity: platform, point: { x: 140, y: 190 }, normal: { x: 0, y: -1 },
+        separation: 0, surfaceVelocity: { x: 50, y: 10 }
+      };
+      state.contacts = [contact];
+      state.groundContact = contact;
+      state.isGrounded = true;
+    });
+
+    new PlatformCarrySystem().update(world, 1);
+
+    expect(world.getComponent(passenger, "PlatformerGroundState")?.carrierEntity).toBeUndefined();
+    expect(world.getComponent(passenger, "PlatformerGroundState")?.isGrounded).toBe(false);
+    expect(world.getComponent(passenger, "Velocity")?.vx).toBeCloseTo(25);
+    expect(world.getComponent(passenger, "Velocity")?.vy).toBeCloseTo(5);
     expect(world.getComponent(passenger, "PhysicsContactState")?.groundContact).toBeUndefined();
   });
 

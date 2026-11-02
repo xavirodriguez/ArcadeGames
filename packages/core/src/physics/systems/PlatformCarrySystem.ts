@@ -1,176 +1,289 @@
 import { World } from "../../ecs/World";
 import { System } from "../../ecs/System";
-import { CoreComponentRegistry } from "../../ecs/CoreComponents";
+import {
+  CoreComponentRegistry,
+  LocomotionProfileComponent,
+  PhysicsContact,
+  PhysicsContactStateComponent
+} from "../../ecs/CoreComponents";
 import { Entity } from "../../ecs/Entity";
-import { findMatchingEntityInTriggersOrCollisions } from "../collision/collisionHelpers";
+
+type Aabb = { type: "aabb"; halfWidth: number; halfHeight: number };
+
+function isAabb(shape: { type: string; halfWidth?: number; halfHeight?: number }): shape is Aabb {
+  return shape.type === "aabb"
+    && typeof shape.halfWidth === "number"
+    && typeof shape.halfHeight === "number";
+}
 
 /**
- * System managing characters landing on and being dynamically carried by moving platforms.
+ * Transfers moving-platform displacement and support velocity to platformer passengers.
  *
  * @remarks
- * Integrates non-disruptively with standard `CollisionEvents` to detect landing,
- * and maintains a robust mathematical fallback for axis-aligned bounding box (AABB) overlap.
- * Automatically detaches entities when jumping or walking off platform edges.
+ * Run after jump resolution and before PhysicsIntegrateSystem. Platform motion must
+ * already have been advanced by MovingPlatformSystem in the same fixed simulation tick.
+ * The system publishes a PhysicsContact so locomotion profiles can control velocity
+ * relative to the support surface. Momentum inheritance is opt-in through
+ * LocomotionProfile.momentum.preserveMomentum; entities without a profile retain
+ * the legacy detach behavior.
  *
  * @public
  */
 export class PlatformCarrySystem extends System<CoreComponentRegistry> {
   /**
-   * Updates platform attachment, displacement transfer, and detachment logic for characters.
+   * Carries grounded AABB characters, resolves deterministic landings, and detaches
+   * passengers while optionally retaining a fraction of platform velocity.
    *
    * @param world - Simulation world instance.
-   * @param deltaTime - Frame elapsed time in seconds.
-   *
-   * @sideEffect Mutates `Transform`, `Velocity`, and `PlatformerGroundState` components.
+   * @param deltaTime - Fixed simulation step in seconds.
    */
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
-    if (world.getResource("IsPaused") === true) return;
+    if (world.getResource("IsPaused") === true || !Number.isFinite(deltaTime) || deltaTime < 0) return;
+
     const characters = world.query("Transform", "Velocity", "Collider2D", "PlatformerGroundState");
     const platforms = world.query("Transform", "Velocity", "Collider2D", "MovingPlatform");
 
     for (let i = 0; i < characters.length; i++) {
-      const charEntity = characters[i];
-      const groundState = world.getComponent(charEntity, "PlatformerGroundState")!;
+      const character = characters[i];
+      const groundState = world.getComponent(character, "PlatformerGroundState");
+      const characterTransform = world.getComponent(character, "Transform");
+      const characterVelocity = world.getComponent(character, "Velocity");
+      const characterCollider = world.getComponent(character, "Collider2D");
+      if (!groundState || !characterTransform || !characterVelocity || !characterCollider
+        || !characterCollider.enabled || characterCollider.isTrigger || !isAabb(characterCollider.shape)) continue;
+
+      const characterShape = characterCollider.shape;
+      const characterCenterX = characterTransform.x + characterCollider.offsetX;
+      const characterCenterY = characterTransform.y + characterCollider.offsetY;
 
       if (groundState.carrierEntity !== undefined) {
-        // Carry mode: character is currently on a moving platform
         const carrier = groundState.carrierEntity;
+        const platformTransform = world.getComponent(carrier, "Transform");
+        const platformVelocity = world.getComponent(carrier, "Velocity");
+        const platformCollider = world.getComponent(carrier, "Collider2D");
+        const validCarrier = world.hasEntity(carrier)
+          && world.hasComponent(carrier, "MovingPlatform")
+          && platformTransform !== undefined
+          && platformVelocity !== undefined
+          && platformCollider !== undefined
+          && platformCollider.enabled
+          && !platformCollider.isTrigger
+          && isAabb(platformCollider.shape);
 
-        if (!groundState.isGrounded) {
-          // If the character is no longer grounded (e.g., they jumped), detach them immediately
-          world.mutateComponent(charEntity, "PlatformerGroundState", (g) => {
-            g.carrierEntity = undefined;
-          });
+        if (!validCarrier || !groundState.isGrounded) {
+          this.detach(world, character, carrier, platformVelocity);
           continue;
         }
 
-        const platformTrans = world.getComponent(carrier, "Transform");
-        const platformVel = world.getComponent(carrier, "Velocity");
-        const platformCol = world.getComponent(carrier, "Collider2D");
-
-        if (!platformTrans || !platformVel || !platformCol) {
-          // If platform has been destroyed or is missing components, detach them
-          world.mutateComponent(charEntity, "PlatformerGroundState", (g) => {
-            g.carrierEntity = undefined;
+        // Apply the platform's fixed-step displacement before the character is integrated.
+        const supportState = world.getComponent(character, "PhysicsContactState");
+        if (supportState) {
+          const previousContact = supportState.groundContact?.entity === carrier
+            ? supportState.groundContact
+            : supportState.contacts.find((contact) => contact.entity === carrier);
+          const previousSupport = previousContact?.surfaceVelocity ?? { x: 0, y: 0 };
+          // Locomotion movement already integrates relative velocity plus the previous
+          // support velocity. Rebase it to this tick's platform velocity; PhysicsIntegrate
+          // then performs the single authoritative passenger displacement.
+          world.mutateComponent(character, "Velocity", (velocity) => {
+            velocity.vx = velocity.vx - previousSupport.x + platformVelocity.vx;
+            velocity.vy = platformVelocity.vy;
           });
+        } else {
+          // Legacy entities without the contact model retain transform-delta carrying.
+          world.mutateComponent(character, "Transform", (transform) => {
+            transform.x += platformVelocity.vx * deltaTime;
+            transform.y += platformVelocity.vy * deltaTime;
+            transform.dirty = true;
+          });
+        }
+
+        const movedTransform = world.getComponent(character, "Transform")!;
+        const platformCenterX = platformTransform.x + platformCollider.offsetX;
+        const platformCenterY = platformTransform.y + platformCollider.offsetY;
+        const platformShape = platformCollider.shape as Aabb;
+        const movedCenterX = movedTransform.x + characterCollider.offsetX;
+        const supportCenterX = movedCenterX + (supportState ? platformVelocity.vx * deltaTime : 0);
+        const overlapsSupport = supportCenterX + characterShape.halfWidth > platformCenterX - platformShape.halfWidth
+          && supportCenterX - characterShape.halfWidth < platformCenterX + platformShape.halfWidth;
+
+        if (!overlapsSupport) {
+          this.writeSupportContact(
+            world,
+            character,
+            carrier,
+            { x: supportCenterX, y: platformCenterY - platformShape.halfHeight },
+            platformVelocity.vx,
+            platformVelocity.vy
+          );
+          world.mutateComponent(character, "PlatformerGroundState", (state) => {
+            state.isGrounded = false;
+          });
+          this.detach(world, character, carrier, platformVelocity);
           continue;
         }
 
-        // Apply platform displacement directly to player transform
-        world.mutateComponent(charEntity, "Transform", (t) => {
-          t.x += platformVel.vx * deltaTime;
-          t.y += platformVel.vy * deltaTime;
-          t.dirty = true;
-        });
+        this.writeSupportContact(
+          world,
+          character,
+          carrier,
+          {
+            x: supportCenterX,
+            y: platformCenterY - platformShape.halfHeight
+          },
+          platformVelocity.vx,
+          platformVelocity.vy
+        );
+        continue;
+      }
 
-        // Perform boundary check: did the character walk off the edge of the moving platform?
-        const charTrans = world.getComponent(charEntity, "Transform")!;
-        const charCol = world.getComponent(charEntity, "Collider2D")!;
+      // Landing uses relative vertical velocity and previous-step support positions.
+      if (characterCollider.shape.type !== "aabb") continue;
+      const previousCharacterBottom = characterCenterY
+        - characterVelocity.vy * deltaTime + characterShape.halfHeight;
+      const currentCharacterBottom = characterCenterY + characterShape.halfHeight;
+      let landedPlatform: Entity | undefined;
 
-        if (charCol.shape.type === "aabb" && platformCol.shape.type === "aabb") {
-          const charShape = charCol.shape as { type: "aabb"; halfWidth: number; halfHeight: number };
-          const platformShape = platformCol.shape as { type: "aabb"; halfWidth: number; halfHeight: number };
+      for (let j = 0; j < platforms.length; j++) {
+        const platform = platforms[j];
+        const platformTransform = world.getComponent(platform, "Transform");
+        const platformVelocity = world.getComponent(platform, "Velocity");
+        const platformCollider = world.getComponent(platform, "Collider2D");
+        if (!platformTransform || !platformVelocity || !platformCollider
+          || !platformCollider.enabled || platformCollider.isTrigger || !isAabb(platformCollider.shape)) continue;
 
-          const cx = charTrans.x + charCol.offsetX;
-          const px = platformTrans.x + platformCol.offsetX;
-          const chw = charShape.halfWidth;
-          const phw = platformShape.halfWidth;
+        const platformShape = platformCollider.shape;
+        const platformCenterX = platformTransform.x + platformCollider.offsetX;
+        const platformCenterY = platformTransform.y + platformCollider.offsetY;
+        const platformTop = platformCenterY - platformShape.halfHeight;
+        const previousPlatformTop = platformTop - platformVelocity.vy * deltaTime;
+        const overlapX = characterCenterX + characterShape.halfWidth > platformCenterX - platformShape.halfWidth
+          && characterCenterX - characterShape.halfWidth < platformCenterX + platformShape.halfWidth;
+        const descendingRelativeToPlatform = characterVelocity.vy >= platformVelocity.vy;
+        const wasAbove = previousCharacterBottom <= previousPlatformTop + 2;
+        const isAtSurface = currentCharacterBottom >= platformTop - 2
+          && currentCharacterBottom <= platformCenterY + platformShape.halfHeight + 5;
 
-          if (cx + chw < px - phw || cx - chw > px + phw) {
-            // Walked off the edge! Detach them and mark as ungrounded
-            world.mutateComponent(charEntity, "PlatformerGroundState", (g) => {
-              g.carrierEntity = undefined;
-              g.isGrounded = false;
-            });
-          }
+        if (overlapX && descendingRelativeToPlatform && wasAbove && isAtSurface) {
+          landedPlatform = platform;
+          break;
         }
-      } else {
-        // Landing mode: look for any moving platform to land on
-        const charVel = world.getComponent(charEntity, "Velocity")!;
-        if (charVel.vy < 0) continue; // Only land when falling or moving down
+      }
 
-        const charTrans = world.getComponent(charEntity, "Transform")!;
-        const charCol = world.getComponent(charEntity, "Collider2D")!;
-        if (charCol.shape.type !== "aabb") continue;
+      if (landedPlatform === undefined) continue;
+      const landedTransform = world.getComponent(landedPlatform, "Transform")!;
+      const landedVelocity = world.getComponent(landedPlatform, "Velocity")!;
+      const landedCollider = world.getComponent(landedPlatform, "Collider2D")!;
+      const landedShape = landedCollider.shape as Aabb;
+      const platformTop = landedTransform.y + landedCollider.offsetY - landedShape.halfHeight;
 
-        const charShape = charCol.shape as { type: "aabb"; halfWidth: number; halfHeight: number };
-        const cx = charTrans.x + charCol.offsetX;
-        const cy = charTrans.y + charCol.offsetY;
-        const chw = charShape.halfWidth;
-        const chh = charShape.halfHeight;
-        const charBottom = cy + chh;
-        const prevCharBottom = (charTrans.y - charVel.vy * deltaTime) + charCol.offsetY + chh;
-
-        let landedPlatform: Entity | undefined = undefined;
-
-        // Try detecting landing through CollisionEvents (triggers or physical contacts) if available
-        const matched = findMatchingEntityInTriggersOrCollisions(world, charEntity, (contactEntity) => {
-          if (world.hasEntity(contactEntity) && world.hasComponent(contactEntity, "MovingPlatform")) {
-            const platVel = world.getComponent(contactEntity, "Velocity")!;
-            return charVel.vy >= platVel.vy;
-          }
-          return false;
-        });
-
-        if (matched !== null) {
-          landedPlatform = matched;
+      const hasContactState = world.hasComponent(character, "PhysicsContactState");
+      world.mutateComponent(character, "Transform", (transform) => {
+        const landingOffset = hasContactState ? landedVelocity.vy * deltaTime : 0;
+        // Contact-aware passengers are placed at the previous support position so
+        // PhysicsIntegrateSystem advances them onto the already-advanced platform once.
+        transform.y = platformTop - characterShape.halfHeight - characterCollider.offsetY - landingOffset;
+        transform.dirty = true;
+      });
+      world.mutateComponent(character, "Velocity", (velocity) => {
+        if (hasContactState) {
+          velocity.vx += landedVelocity.vx;
+          velocity.vy = landedVelocity.vy;
+        } else {
+          // Legacy entities without PhysicsContactState keep independent velocity.
+          velocity.vy = 0;
         }
+      });
+      world.mutateComponent(character, "PlatformerGroundState", (state) => {
+        state.isGrounded = true;
+        state.carrierEntity = landedPlatform;
+      });
+      this.writeSupportContact(
+        world,
+        character,
+        landedPlatform,
+        {
+          x: characterCenterX,
+          y: platformTop
+        },
+        landedVelocity.vx,
+        landedVelocity.vy
+      );
+    }
+  }
 
-        // If CollisionEvents did not yield a result, fall back to our ultra-robust manual AABB containment math
-        if (landedPlatform === undefined) {
-          for (let j = 0; j < platforms.length; j++) {
-            const platEntity = platforms[j];
-            const platTrans = world.getComponent(platEntity, "Transform")!;
-            const platVel = world.getComponent(platEntity, "Velocity")!;
-            const platCol = world.getComponent(platEntity, "Collider2D")!;
-            if (platCol.shape.type !== "aabb") continue;
+  private writeSupportContact(
+    world: World<CoreComponentRegistry>,
+    character: Entity,
+    platform: Entity,
+    point: { x: number; y: number },
+    velocityX: number,
+    velocityY: number
+  ): void {
+    if (!world.hasComponent(character, "PhysicsContactState")) return;
+    const contact: PhysicsContact = {
+      entity: platform,
+      point,
+      normal: { x: 0, y: -1 },
+      separation: 0,
+      surfaceVelocity: { x: velocityX, y: velocityY }
+    };
+    const state = world.getMutableComponent(character, "PhysicsContactState") as PhysicsContactStateComponent | undefined;
+    if (!state) return;
+    state.contacts = [contact];
+    state.groundContact = contact;
+    state.isGrounded = true;
+  }
 
-            const platShape = platCol.shape as { type: "aabb"; halfWidth: number; halfHeight: number };
-            const px = platTrans.x + platCol.offsetX;
-            const py = platTrans.y + platCol.offsetY;
-            const phw = platShape.halfWidth;
-            const phh = platShape.halfHeight;
-            const platTop = py - phh;
-            const prevPlatTop = (platTrans.y - platVel.vy * deltaTime) + platCol.offsetY - phh;
+  private detach(
+    world: World<CoreComponentRegistry>,
+    character: Entity,
+    carrier: Entity,
+    fallbackVelocity?: { vx: number; vy: number }
+  ): void {
+    const contactState = world.getComponent(character, "PhysicsContactState");
+    const supportContact = contactState?.groundContact?.entity === carrier
+      ? contactState.groundContact
+      : contactState?.contacts.find((contact) => contact.entity === carrier);
+    const supportVelocity = supportContact?.surfaceVelocity ?? {
+      x: fallbackVelocity?.vx ?? 0,
+      y: fallbackVelocity?.vy ?? 0
+    };
+    const profile = world.getComponent(character, "LocomotionProfile") as LocomotionProfileComponent | undefined;
+    const preserve = profile
+      ? Math.max(0, Math.min(1, profile.momentum.preserveMomentum))
+      : 0;
 
-            // Check for horizontal overlap
-            const overlapX = (cx + chw > px - phw) && (cx - chw < px + phw);
-            if (!overlapX) continue;
-
-            // Check if descending onto the platform from above
-            const isDescending = charVel.vy >= platVel.vy;
-            const wasAbove = prevCharBottom <= prevPlatTop + 2.0;
-            const isAtOrInside = charBottom >= platTop - 2.0 && charBottom <= py + phh + 5.0;
-
-            if (isDescending && wasAbove && isAtOrInside) {
-              landedPlatform = platEntity;
-              break;
-            }
-          }
+    if (supportContact || profile) {
+      const velocity = world.getMutableComponent(character, "Velocity");
+      if (velocity) {
+        if (supportContact) {
+          // Remove the support contribution for legacy contact-aware entities; opt-in
+          // profiles retain only the configured fraction.
+          const retained = profile ? preserve : 0;
+          velocity.vx = velocity.vx - supportVelocity.x + supportVelocity.x * retained;
+          velocity.vy = velocity.vy - supportVelocity.y + supportVelocity.y * retained;
+        } else if (profile) {
+          // Legacy transform-delta carrying never included support velocity in ECS velocity.
+          velocity.vx += supportVelocity.x * preserve;
+          velocity.vy += supportVelocity.y * preserve;
         }
+      }
+    }
 
-        if (landedPlatform !== undefined) {
-          const platEntity = landedPlatform;
-          const platTrans = world.getComponent(platEntity, "Transform")!;
-          const platCol = world.getComponent(platEntity, "Collider2D")!;
-          const platShape = platCol.shape as { type: "aabb"; halfWidth: number; halfHeight: number };
-
-          const py = platTrans.y + platCol.offsetY;
-          const phh = platShape.halfHeight;
-          const platTop = py - phh;
-
-          // Landed! Snap player's Y to the top of the platform
-          world.mutateComponent(charEntity, "Transform", (t) => {
-            t.y = platTop - chh - charCol.offsetY;
-            t.dirty = true;
-          });
-          world.mutateComponent(charEntity, "Velocity", (v) => {
-            v.vy = 0;
-          });
-          world.mutateComponent(charEntity, "PlatformerGroundState", (g) => {
-            g.isGrounded = true;
-            g.carrierEntity = platEntity;
-          });
+    if (world.hasComponent(character, "PlatformerGroundState")) {
+      world.mutateComponent(character, "PlatformerGroundState", (state) => {
+        state.carrierEntity = undefined;
+        state.isGrounded = false;
+      });
+    }
+    if (world.hasComponent(character, "PhysicsContactState")) {
+      const state = world.getMutableComponent(character, "PhysicsContactState") as PhysicsContactStateComponent | undefined;
+      if (state) {
+        state.contacts = state.contacts.filter((contact) => contact.entity !== carrier);
+        if (state.groundContact?.entity === carrier) {
+          state.groundContact = undefined;
+          state.isGrounded = false;
         }
       }
     }

@@ -32,3 +32,8 @@ The existing tile collision solver resolves axis-aligned full-tile AABBs. It can
 - The shared Platformer/Echo Runner schedule runs PlatformerSlideSystem before PlatformerMovementSystem.
 - The core exposes slideHeld but deliberately does not bind a keyboard/gamepad key. Each game maps its own action into the ECS input component.
 - Slide timing is fixed-step ECS state; no wall-clock or system-instance state is used.
+
+
+## B5 implementation decision
+
+MovingPlatformSystem advances first in Simulation. PlatformCarrySystem runs after jump resolution and before PhysicsIntegrateSystem, so it can apply support displacement to grounded passengers and transfer support momentum on the same tick that a jump detaches them. The support is represented as a normal upward PhysicsContact with world-space surfaceVelocity. TileCollisionSystem retains only live moving-platform contacts during its collision-state refresh.

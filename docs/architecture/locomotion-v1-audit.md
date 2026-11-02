@@ -181,3 +181,13 @@ No schedule change is required solely to make priority -10 late in Simulation: t
 - Clearance checks solid tilemap cells and enabled, non-trigger box/AABB colliders that pass mutual layer/mask filters; it ignores the entity's own collider and one-way tiles.
 - PlatformerMovementSystem applies reduced steering and profile/material-driven slide friction. Entities without PlatformerPosture and a slide profile stay on the previous movement path.
 - Added tests for entry threshold/path, foot preservation, minimum duration, blocked ceiling retry, solid entity collider clearance, slide friction and opt-in compatibility.
+
+
+## 18. B5 — moving-platform support velocity and momentum
+
+- Moved MovingPlatformSystem to the start of the shared Platformer/Echo Runner simulation schedule so its transform and fixed-step velocity are available to locomotion in the same tick.
+- PlatformCarrySystem now runs after jump resolution and before PhysicsIntegrateSystem. Contact-aware passengers are carried through a rebase of world velocity to the current support velocity, then integrated exactly once; legacy entities without PhysicsContactState retain transform-delta carrying. AABB landings use relative vertical velocity and snap to the already-advanced platform surface.
+- Publishes an upward PhysicsContact with the platform entity and world-space support velocity. TileCollisionSystem preserves live moving-platform contacts through its collision-state reset so locomotion can consume the contact in the following fixed tick.
+- On jump, edge exit or carrier removal, entities with LocomotionProfile inherit the configured fraction of support velocity. Jump resolution carries the full vertical support impulse into the post-jump velocity; PlatformCarrySystem then removes the full support component and reapplies preserveMomentum, avoiding double-counting horizontal surface velocity. PhysicsIntegrateSystem skips MovingPlatform entities because MovingPlatformSystem already authored their next transform. Entities without a profile retain legacy detach velocity.
+- MovingPlatformSystem now ignores non-positive/non-finite time steps, avoiding division by zero in velocity estimation.
+- Conveyor material velocity remains authored through PhysicsMaterial.conveyorVelocity and is combined with character movement through the existing contact-relative velocity path.

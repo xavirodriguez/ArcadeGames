@@ -115,3 +115,14 @@ Do not report a test as passing unless the command was actually executed against
 - Slide steering/friction use the optional LocomotionProfile.slide data; presets now provide tuned starting values.
 - Added tests for entry speed, collider resizing, foot preservation, minimum/maximum timing, blocked/retry, non-trigger solid clearance, slide friction and legacy opt-in behavior.
 - Test execution: pending GitHub Actions; no local test run is claimed.
+
+
+### Increment 6 — moving-platform support (B5)
+
+- Added tests for fixed-step platform advancement, passenger displacement, published contact surface velocity, horizontal/vertical velocity inheritance on landing, actual jump-resolution momentum preservation, edge-exit momentum, legacy opt-out behavior and zero-duration safety.
+- Updated TileCollisionSystem to retain only live MovingPlatform contacts across its per-tick contact reset. Contact-aware passengers are carried by support-velocity rebasing and the single PhysicsIntegrate pass; PhysicsIntegrateSystem explicitly skips directly-authored MovingPlatform transforms.
+- System schedule order: MovingPlatformSystem → locomotion/jump systems → PlatformCarrySystem → PhysicsIntegrateSystem.
+- Test execution: pending GitHub Actions; no local test run is claimed.
+
+
+- B5 jump regression now exercises the real PlatformerJumpSystem → PlatformCarrySystem sequence. Jump resolution temporarily includes the full vertical support impulse; carry detachment removes the full support component and reapplies only preserveMomentum.

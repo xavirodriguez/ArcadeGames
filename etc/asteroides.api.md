@@ -578,6 +578,7 @@ export interface BaseWorldSnapshot {
     generations?: number[];
     nextEntityId: number;
     rngState?: number;
+    renderRngState?: number;
     seed: number;
     stateVersion: number;
     structureVersion: number;
@@ -2642,6 +2643,7 @@ export function hashAoS(snapshot: {
     componentData: Record<string, Record<number, unknown>>;
     seed: number;
     rngState?: number;
+    renderRngState?: number;
 }): string;
 
 // @public

@@ -51,7 +51,14 @@ export const AsteroidConfigSchema = BaseConfigSchema.extend({
    * "iceberg" = Borealis / cristal glaciar (ART_ICEBERG.md).
    * Overridable via gameOptions.mod at runtime.
    */
-  VISUAL_MOD: z.enum(["classic", "iceberg"]).default("classic")
+  VISUAL_MOD: z.enum(["classic", "iceberg"]).default("classic"),
+
+  // --- Emergent Gameplay & Roguelite Ecosystem Extensions ---
+  CHAIN_REACTION_MAX_DEPTH: z.number().int().default(3),
+  CHAIN_REACTION_BUDGET: z.number().int().default(32),
+  MAGNETIC_BASE_RADIUS: z.number().default(120),
+  MAGNETIC_BASE_FORCE: z.number().default(180),
+  RESOURCE_LIFETIME_TICKS: z.number().int().default(600)
 });
 
 /** @public */

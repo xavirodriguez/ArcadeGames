@@ -2,7 +2,7 @@
 import { World, System, resolveThemeColorWithFallback, Juice } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/AsteroidRegistry";
 import { CombatDeathEvent } from "@tiny-aster/gameplay-kit";
-import { fragmentAsteroid } from "../EntityFactory";
+import { fragmentAsteroid, createResourcePickup } from "../EntityFactory";
 import { spawnScorePopup } from "@tiny-aster/gameplay-kit";
 import { spawnLayeredExplosion } from "../../shared/rendering/SharedVFX";
 import { getLogsForLevel } from "../story/StoryBeats";
@@ -336,6 +336,34 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
       this.spawnExplosionParticles(world, asteroidTransform, size);
     }
     Juice.shake(world, size === "large" ? 3.0 : 1.5, 80);
+
+    // Spawn physical salvage drop (Minerals on medium/large, Energy chance)
+    if (asteroidTransform) {
+      const mineralAmount = size === "large" ? 15 : size === "medium" ? 8 : 4;
+      const angle = world.gameplayRandom.next() * Math.PI * 2;
+      const speed = 40;
+      createResourcePickup({
+        world,
+        x: asteroidTransform.x,
+        y: asteroidTransform.y,
+        resourceType: "minerals",
+        amount: mineralAmount,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed
+      });
+
+      if (size === "large" && world.gameplayRandom.next() < 0.4) {
+        createResourcePickup({
+          world,
+          x: asteroidTransform.x,
+          y: asteroidTransform.y,
+          resourceType: "energy",
+          amount: 25,
+          vx: -Math.cos(angle) * speed,
+          vy: -Math.sin(angle) * speed
+        });
+      }
+    }
 
     // Fragment asteroid
     fragmentAsteroid(world, asteroid);

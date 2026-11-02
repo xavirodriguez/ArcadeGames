@@ -174,7 +174,7 @@ describe("Outrun Visual Mods Architecture", () => {
           return resolveOutrunTrafficArtworkStyle(defaultConfig, seed, 100).bodyColor;
         })
       );
-      expect(paletteColors).toHaveLength(4);
+      expect(paletteColors.size).toBe(4);
     }
 
     expect(motorcycle.bodyWidth).toBeLessThan(coupe.bodyWidth);

@@ -11,7 +11,7 @@ describe("RNG Determinism and Snapshot Integrity", () => {
     const r2 = world.gameplayRandom.next();
 
     // Snapshot the world state (AoS model)
-    world.deleteResource("UseSoASnapshots");
+    world.setResource("UseSoASnapshots", false);
     const snapshot = world.snapshot();
 
     // Generate more numbers post-snapshot

@@ -15,8 +15,10 @@ describe("Galaxian gameplay regressions", () => {
     game.update(1 / 60);
 
     const nextY = world.getComponent(bullet, "Transform")?.y;
-    expect(initialY).toBeDefined();
-    expect(nextY).toBeLessThan(initialY as number);
+    if (initialY === undefined || nextY === undefined) {
+      throw new Error("Player bullet transform was not available after integration");
+    }
+    expect(nextY).toBeLessThan(initialY);
 
     await game.destroy();
   });

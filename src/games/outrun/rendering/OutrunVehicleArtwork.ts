@@ -136,6 +136,13 @@ export function resolveOutrunTrafficArtworkStyle(
     : "coupe";
   const paletteIndex = resolveOutrunTrafficPaletteIndex(styleIndex);
   const palette = resolveOutrunTrafficVehiclePalette(knownShape, paletteIndex);
+  const bodyColor = paletteIndex === 0
+    ? shared.trafficA
+    : paletteIndex === 1
+      ? shared.trafficB
+      : paletteIndex === 2
+        ? shared.trafficC
+        : palette.bodyColor;
 
   const widthFactor = knownShape === "motorcycle" ? 0.36 : knownShape === "van" ? 1.08 : knownShape === "truck" ? 1.2 : 1;
   const resolvedWidth = bodyWidth * widthFactor;
@@ -164,7 +171,7 @@ export function resolveOutrunTrafficArtworkStyle(
     lightBarWidth: resolvedWidth * tuning.lightBarWidthToBodyWidth,
     lightBarHeight: Math.max(1, resolvedWidth * tuning.lightBarHeightToBodyWidth),
     lightBarTopOffset: resolvedWidth * tuning.lightBarTopOffsetToBodyWidth,
-    bodyColor: palette.bodyColor,
+    bodyColor,
     cabinColor: palette.cabinColor,
     glassColor: shared.carGlass,
     shadowColor: shared.shadow,

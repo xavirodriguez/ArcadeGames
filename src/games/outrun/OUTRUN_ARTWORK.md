@@ -380,14 +380,16 @@ Los colores principales de carrocería, en orden de variante, son:
 
 | Arquetipo | Variantes de carrocería |
 |---|---|
-| Coupe | `#C6A55F`, `#9786B5`, `#6B8FA9`, `#78927C` |
-| Motorcycle | `#5B8790`, `#B99A58`, `#A86F68`, `#6C8499` |
-| Van | `#C4815E`, `#648D86`, `#B69B60`, `#789AAF` |
-| Truck | `#929BA1`, `#627F97`, `#A76F63`, `#7E886D` |
+| Coupe | `trafficA`, `trafficB`, `trafficC`, `#78927C` |
+| Motorcycle | `trafficA`, `trafficB`, `trafficC`, `#6C8499` |
+| Van | `trafficA`, `trafficB`, `trafficC`, `#789AAF` |
+| Truck | `trafficA`, `trafficB`, `trafficC`, `#7E886D` |
 
-Cada paleta define también acentos, detalles, cristales, neumáticos y, para la
-moto, el color del traje y del casco. Las sombras y luces conservan tokens
-compartidos con la dirección artística del juego.
+Las tres primeras variantes conservan los tokens configurables `trafficA/B/C`.
+La cuarta añade un color propio por arquetipo. Cada paleta define también
+acentos, detalles, cristales, neumáticos y, para la moto, el color del traje y
+del casco. Las sombras y luces conservan tokens compartidos con la dirección
+artística del juego.
 
 La moto de tráfico es una variante exclusivamente visual: mientras el modelo
 ECS siga usando `Racer`, mantiene la misma huella genérica de colisión que el

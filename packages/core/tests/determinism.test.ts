@@ -59,6 +59,30 @@ describe("RNG Determinism and Snapshot Integrity", () => {
     expect(r1).not.toBe(r3_original);
   });
 
+  it("should preserve render RNG state across AoS snapshot and restore", () => {
+    const world = new World();
+    world.deleteResource("UseSoASnapshots");
+    world.renderRandom.setSeed(1729);
+    const snapshot = world.snapshot();
+
+    const expectedNext = world.renderRandom.next();
+    world.restore(snapshot);
+
+    expect(world.renderRandom.next()).toBe(expectedNext);
+  });
+
+  it("should preserve render RNG state across SoA snapshot and restore", () => {
+    const world = new World();
+    world.setResource("UseSoASnapshots", true);
+    world.renderRandom.setSeed(2718);
+    const snapshot = world.snapshot();
+
+    const expectedNext = world.renderRandom.next();
+    world.restore(snapshot);
+
+    expect(world.renderRandom.next()).toBe(expectedNext);
+  });
+
   it("should guarantee absolute sorting determinism in BroadPhase.sweepAndPrune (Shell Sort)", () => {
     const { BroadPhase } = require("../src/physics/collision/BroadPhase");
     const { ShapeType } = require("../src/physics/shapes/Shapes");

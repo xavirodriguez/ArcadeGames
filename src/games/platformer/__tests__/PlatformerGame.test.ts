@@ -205,6 +205,40 @@ describe("Platformer Game Simulation Tests", () => {
     expect(goals.length).toBe(0);
   });
 
+  it("integrates the locomotion campaign, moving-platform transport and slide controls", () => {
+    const playerEntity = world.query("PlatformerInput")[0];
+    expect(world.hasComponent(playerEntity, "Collider2D")).toBe(true);
+    expect(world.hasComponent(playerEntity, "PlatformerPosture")).toBe(true);
+
+    const profile = world.getComponent(playerEntity, "LocomotionProfile") as {
+      momentum: { preserveMomentum: number };
+    };
+    expect(profile.momentum.preserveMomentum).toBe(1);
+
+    const tilemapEntity = world.query("Tilemap")[0];
+    const tilemap = world.getComponent(tilemapEntity, "Tilemap")!;
+    const tileIds = new Set(tilemap.data.flat());
+    expect(tileIds.has(2)).toBe(true); // ice
+    expect(tileIds.has(3)).toBe(true); // bounce
+    expect(tileIds.has(5)).toBe(true); // one-way
+    expect(tileIds.has(6)).toBe(true); // slope
+
+    expect(world.query("MovingPlatform")).toHaveLength(1);
+    const ceilings = world.query("Tag").filter((entity) => {
+      const tag = world.getComponent(entity, "Tag") as { tags?: string[] } | undefined;
+      return tag?.tags?.includes("LocomotionCeiling") === true;
+    });
+    expect(ceilings).toHaveLength(1);
+  });
+
+  it("advances the campaign moving platform during Platformer simulation", () => {
+    const platform = world.query("MovingPlatform")[0];
+    const before = world.getComponent(platform, "Transform")!.x;
+    game.update(0.1);
+    const after = world.getComponent(platform, "Transform")!.x;
+    expect(after).not.toBe(before);
+  });
+
   it("should initialize renderer and render frame cleanly", () => {
     const renderer = new CanvasRenderer();
     expect(() => game.initializeRenderer(renderer as any)).not.toThrow();

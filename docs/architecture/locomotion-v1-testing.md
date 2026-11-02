@@ -1,6 +1,6 @@
 # Locomotion v1 — Testing Strategy and Verification Log
 
-**Status:** implementation in progress; one focused jump-input regression test has been added but not yet executed.
+**Status:** implementation in progress; jump-input and centralized jump-resolution tests have been added but not executed in this environment.
 
 ## 1. Verification principles
 
@@ -64,4 +64,14 @@ Do not report a test as passing unless the command was actually executed against
 - Added `src/games/shared/systems/__tests__/PlatformerInputSystem.test.ts`, covering press, held-across-system-recreation, and release edges.
 - Snapshot inclusion is provided by the existing generic component serializer; no serializer-specific change was required.
 - Test execution: **not verified**. The GitHub connector permits repository edits and inspection but does not provide a local checkout/test runner in this session.
+
+### Increment 2 — Single jump-resolution authority
+
+- Added `PlatformerJumpSystem` for grounded/coyote jumps, buffered landing jumps, multi-jump consumption and short-hop release clamping.
+- Reduced `PlatformerCoyoteSystem` to coyote/buffer timer advancement; it no longer applies impulses.
+- Registered the new resolver after the timer system in the shared Platformer/Echo Runner system registry.
+- Added `packages/core/tests/PlatformerJumpSystem.test.ts` for grounded jump/short-hop, coyote/buffer, and double-jump exhaustion.
+- Test execution: **not verified**; the GitHub connector cannot run the repository's pnpm/Jest toolchain.
+- Remaining Locomotion v1 scope includes richer controller profiles, slide/clearance, slopes/contact normals, surface materials, momentum transfer, integration/replay coverage and the Locomotion Lab.
+
 - Broader locomotion functionality: not implemented or claimed complete.

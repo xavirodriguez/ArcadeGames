@@ -1,4 +1,5 @@
 import { System, World } from "@tiny-aster/core";
+import { isGalaxianGameOver } from "./isGalaxianGameOver";
 import { GalaxianComponentRegistry, GalaxianEnemyComponent } from "../types/GalaxianTypes";
 import { GalaxianConfig } from "../types/GalaxianConfigSchema";
 import { BulletPool } from "../EntityPool";
@@ -12,7 +13,7 @@ export class EnemyShootingSystem extends System<GalaxianComponentRegistry> {
   }
 
   public update(world: World<GalaxianComponentRegistry>, _deltaTime: number): void {
-    if (world.getResource("IsPaused") === true) return;
+    if (world.getResource("IsPaused") === true || isGalaxianGameOver(world)) return;
 
     const config = world.getResource<GalaxianConfig>("GameConfig");
     if (!config) return;

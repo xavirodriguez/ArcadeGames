@@ -236,7 +236,8 @@ export abstract class BaseGame<
       entities: aosSnap.entities,
       componentData: aosSnap.componentData,
       seed: aosSnap.seed,
-      rngState: aosSnap.rngState
+      rngState: aosSnap.rngState,
+      renderRngState: aosSnap.renderRngState
     });
   }
 

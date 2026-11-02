@@ -76,13 +76,26 @@ export class PlatformCarrySystem extends System<CoreComponentRegistry> {
         }
 
         // Apply the platform's fixed-step displacement before the character is integrated.
-        const dx = platformVelocity.vx * deltaTime;
-        const dy = platformVelocity.vy * deltaTime;
-        world.mutateComponent(character, "Transform", (transform) => {
-          transform.x += dx;
-          transform.y += dy;
-          transform.dirty = true;
-        });
+        const supportState = world.getComponent(character, "PhysicsContactState");
+        if (supportState) {
+          const previousSupport = supportState.groundContact?.entity === carrier
+            ? supportState.groundContact.surfaceVelocity
+            : { x: 0, y: 0 };
+          // Locomotion movement already integrates relative velocity plus the previous
+          // support velocity. Rebase it to this tick's platform velocity; PhysicsIntegrate
+          // then performs the single authoritative passenger displacement.
+          world.mutateComponent(character, "Velocity", (velocity) => {
+            velocity.vx = velocity.vx - previousSupport.x + platformVelocity.vx;
+            velocity.vy = platformVelocity.vy;
+          });
+        } else {
+          // Legacy entities without the contact model retain transform-delta carrying.
+          world.mutateComponent(character, "Transform", (transform) => {
+            transform.x += platformVelocity.vx * deltaTime;
+            transform.y += platformVelocity.vy * deltaTime;
+            transform.dirty = true;
+          });
+        }
 
         const movedTransform = world.getComponent(character, "Transform")!;
         const platformCenterX = platformTransform.x + platformCollider.offsetX;
@@ -158,9 +171,16 @@ export class PlatformCarrySystem extends System<CoreComponentRegistry> {
         transform.y = platformTop - characterShape.halfHeight - characterCollider.offsetY;
         transform.dirty = true;
       });
+      const contactState = world.getComponent(character, "PhysicsContactState");
       world.mutateComponent(character, "Velocity", (velocity) => {
-        // Zero relative vertical velocity: the passenger inherits the platform's vertical motion.
-        velocity.vy = landedVelocity.vy;
+        if (contactState) {
+          // First support tick: add platform horizontal motion once, then integrate normally.
+          velocity.vx += landedVelocity.vx;
+          velocity.vy = landedVelocity.vy;
+        } else {
+          // Legacy entities without PhysicsContactState keep their independent velocity.
+          velocity.vy = 0;
+        }
       });
       world.mutateComponent(character, "PlatformerGroundState", (state) => {
         state.isGrounded = true;
@@ -222,16 +242,18 @@ export class PlatformCarrySystem extends System<CoreComponentRegistry> {
       ? Math.max(0, Math.min(1, profile.momentum.preserveMomentum))
       : 0;
 
-    if (preserve > 0) {
+    if (profile) {
       const velocity = world.getMutableComponent(character, "Velocity");
       if (velocity) {
-        const hasSurfaceRelativeControl = supportContact !== undefined;
-        velocity.vx = hasSurfaceRelativeControl
-          ? velocity.vx - supportVelocity.x + supportVelocity.x * preserve
-          : velocity.vx + supportVelocity.x * preserve;
-        // Landing sets vy to platform vy, so vertical detachment always removes/reapplies
-        // the support contribution rather than stacking it on top of the jump impulse.
-        velocity.vy = velocity.vy - supportVelocity.y + supportVelocity.y * preserve;
+        if (supportContact) {
+          velocity.vx = velocity.vx - supportVelocity.x + supportVelocity.x * preserve;
+          // While attached, vertical velocity is rebased to platform velocity each tick.
+          velocity.vy = velocity.vy - supportVelocity.y + supportVelocity.y * preserve;
+        } else {
+          // Legacy transform-delta carrying never included support velocity in ECS velocity.
+          velocity.vx += supportVelocity.x * preserve;
+          velocity.vy += supportVelocity.y * preserve;
+        }
       }
     }
 

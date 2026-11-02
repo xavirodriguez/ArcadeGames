@@ -51,7 +51,9 @@ describe("Locomotion B5 moving-platform support", () => {
 
     expect(world.getComponent(platform, "Transform")?.x).toBeCloseTo(150, 5);
     expect(world.getComponent(platform, "Velocity")?.vx).toBeCloseTo(50, 5);
+    new (require("../src/physics/dynamics/PhysicsIntegrateSystem").PhysicsIntegrateSystem)().update(world, 1);
     expect(world.getComponent(passenger, "Transform")?.x).toBeCloseTo(150, 5);
+    expect(world.getComponent(platform, "Transform")?.x).toBeCloseTo(150, 5);
     const contact = world.getComponent(passenger, "PhysicsContactState")?.groundContact;
     expect(contact?.entity).toBe(platform);
     expect(contact?.normal).toEqual({ x: 0, y: -1 });
@@ -62,7 +64,7 @@ describe("Locomotion B5 moving-platform support", () => {
     const world = new World<CoreComponentRegistry>();
     const platform = createPlatform(world, 100, 200, 0, 20);
     const passenger = createPassenger(world, platform, 100, 176);
-    world.mutateComponent(passenger, "Velocity", velocity => { velocity.vy = 10; });
+    world.mutateComponent(passenger, "Velocity", velocity => { velocity.vy = 30; });
     world.mutateComponent(passenger, "PlatformerGroundState", state => {
       state.isGrounded = false;
       state.carrierEntity = undefined;

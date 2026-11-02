@@ -13,7 +13,7 @@ export class PlatformerInputSystem extends System<CoreComponentRegistry> {
     const len = entities.length;
     const touchState = world.getResource<TouchInputState>("TouchInputState");
     // Consume discrete touch taps once per frame, not once per player entity.
-    const hasTouchTap = touchState ? touchState.consumeTaps().length > 0 : false;
+    const hasTouchTap = len > 0 && touchState ? touchState.consumeTaps().length > 0 : false;
 
     for (let i = 0; i < len; i++) {
       const entity = entities[i];
@@ -38,15 +38,13 @@ export class PlatformerInputSystem extends System<CoreComponentRegistry> {
           }
         }
 
-        if (touchState.getButton("jump") || hasTouchTap) {
-          input.jumpHeld = true;
-        }
       }
 
       const previousJumpHeld = input.previousJumpHeld ?? false;
-      const isJumpHeldNow = input.jumpHeld ?? false;
-      const jumpPressed = isJumpHeldNow && !previousJumpHeld;
-      const jumpReleased = !isJumpHeldNow && previousJumpHeld;
+      const isTouchJumpHeld = touchState?.getButton("jump") ?? false;
+      const isJumpHeldNow = (input.jumpHeld ?? false) || isTouchJumpHeld;
+      const jumpPressed = (isJumpHeldNow && !previousJumpHeld) || hasTouchTap;
+      const jumpReleased = (!isJumpHeldNow && previousJumpHeld) || (hasTouchTap && !isTouchJumpHeld);
       input.previousJumpHeld = isJumpHeldNow;
 
       input.jumpPressed = jumpPressed;

@@ -125,3 +125,24 @@ No schedule change is required solely to make priority -10 late in Simulation: t
 - Inspect tile definition schema and collision tests for existing slope/one-way assumptions. Tile definitions currently support `normal | ice | spike | bounce`, optional friction and bounce; this is not a slope geometry contract.
 - Inspect Platformer and Echo Runner tests and defaults to define backward-compatible profile migration.
 - Add controller profiles, slope/contact geometry, slide posture and clearance, and inherited surface/platform velocity as separate tested increments.
+
+
+## 13. Verified audit addendum — implementation branch baseline
+
+- `PlatformerMovementSystem` uses `moveTowards` with only acceleration/deceleration and the legacy `iceMultiplier`; it does not distinguish explicit braking from direction reversal.
+- `TileCollisionSystem` queries `Collider2D`. The Platformer player blueprint currently calls `EntityBuilder.withCollider`, which adds `Collider` only; Echo Runner calls `ArcadeEntityBuilder.withCollider2D`. This is a concrete collider-contract mismatch, not an assumption.
+- `MovingPlatformSystem` writes the platform's next position and also writes its computed velocity before `PhysicsIntegrateSystem`; the latter integrates every Transform+Velocity entity. This can advance the platform twice in a tick.
+- `PlatformCarrySystem` directly offsets the passenger Transform while the passenger retains its own Velocity, which is then integrated. The support displacement/relative-velocity ownership must be clarified before extending B5.
+- `CollisionSystems.ts` supports both `Collider` and `Collider2D` for generic narrowphase, but this does not make the tilemap solver support both.
+- The schedule's default phases are Input, Simulation, Transform, Collision, GameRules, Presentation; priorities are descending within each phase.
+- Existing ADRs are `adr-001-game-feel-architecture.md` and `adr-002-presentation-architecture.md`. Neither is a locomotion contact-model ADR.
+- Existing regression coverage includes `packages/core/tests/PlatformerSystems.test.ts`, `packages/core/tests/PlatformerJumpSystem.test.ts`, Platformer game tests and Echo Runner schedule snapshots. Replay and snapshot-hash infrastructure exists under `packages/core/src/snapshots` and `packages/core/tests`.
+- The schedule uses `Date.now()` only to timestamp diagnostic registration/shutdown errors. The inspected locomotion systems do not use wall-clock APIs or `Math.random`; the moving-platform sine path is driven by accumulated simulation delta.
+
+## 14. B1 implementation notes
+
+- Added an optional ECS `LocomotionProfile` component with ground, air, momentum and optional slide data.
+- Added Responsive, Momentum and Heavy presets as plain serializable data.
+- The movement system selects the new algorithm only when the component exists; entities without it retain the existing legacy calculation path.
+- The profile path distinguishes passive deceleration, explicit braking, acceleration and direction reversal. Air steering scales acceleration authority, never current velocity.
+- `preserveMomentum` is declared for the later support-detachment block; B1 does not consume it.

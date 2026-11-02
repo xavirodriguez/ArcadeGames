@@ -2,6 +2,7 @@ import { World, CoreComponentRegistry, EventRegistry, MiniGameRunContext, RunSta
 import { CanvasRenderer } from "@tiny-aster/renderer-canvas";
 import { EchoRunnerGame } from "../EchoRunnerGame";
 import { PlatformerInputSystem } from "../../shared/systems/PlatformerInputSystem";
+import { PlatformerJumpSystem } from "@tiny-aster/core";
 import { EchoRunnerArcadeAdapter } from "../story/EchoRunnerEncounter";
 import { EchoRunnerConfigSchema, EchoRunnerConfig } from "../types/EchoRunnerConfigSchema";
 import { EchoRunnerInputComponent } from "../types/EchoRunnerTypes";
@@ -153,6 +154,7 @@ describe("Echo Runner Game Simulation Tests", () => {
   it("should spend the grounded jump before preserving the remaining multi-jump budget and support short hops", () => {
     const playerEntity = world.query("PlatformerInput")[0];
     const inputSystem = new PlatformerInputSystem();
+    const jumpSystem = new PlatformerJumpSystem();
 
     world.mutateComponent(playerEntity, "PlatformerJumper", (jumper) => {
       jumper.maxJumps = 2;
@@ -168,6 +170,7 @@ describe("Echo Runner Game Simulation Tests", () => {
     });
 
     inputSystem.update(world, 1 / 60);
+    jumpSystem.update(world, 1 / 60);
 
     const jumperAfterJump = world.getComponent(playerEntity, "PlatformerJumper")!;
     const groundAfterJump = world.getComponent(playerEntity, "PlatformerGroundState")!;
@@ -182,6 +185,7 @@ describe("Echo Runner Game Simulation Tests", () => {
       input.jumpHeld = false;
     });
     inputSystem.update(world, 1 / 60);
+    jumpSystem.update(world, 1 / 60);
 
     expect(world.getComponent(playerEntity, "Velocity")!.vy).toBe(-gravity.minJumpVelocity);
     expect(world.getComponent(playerEntity, "PlatformerJumper")!.jumpsRemaining).toBe(1);

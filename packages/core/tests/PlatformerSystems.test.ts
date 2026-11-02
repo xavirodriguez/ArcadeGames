@@ -4,6 +4,7 @@ import { PlatformerMovementSystem } from "../src/physics/systems/PlatformerMovem
 import { PlatformerGravitySystem } from "../src/physics/systems/PlatformerGravitySystem";
 import { TileCollisionSystem } from "../src/physics/systems/TileCollisionSystem";
 import { PlatformerCoyoteSystem } from "../src/systems/PlatformerCoyoteSystem";
+import { PlatformerJumpSystem } from "../src/systems/PlatformerJumpSystem";
 import { PhysicsIntegrateSystem } from "../src/physics/dynamics/PhysicsIntegrateSystem";
 import { EventBus } from "../src/events/EventBus";
 import { MovingPlatformSystem } from "../src/physics/systems/MovingPlatformSystem";
@@ -532,6 +533,13 @@ describe("Platformer Systems Tests", () => {
         type: "PlatformerGroundState",
         isGrounded: true
       });
+      world.addComponent(entity, {
+        type: "PlatformerInput",
+        moveDir: 0,
+        jumpPressed: false,
+        jumpHeld: false,
+        jumpReleased: false
+      });
 
       world.addComponent(entity, {
         type: "PlatformerJumper",
@@ -558,6 +566,7 @@ describe("Platformer Systems Tests", () => {
 
       // Update -> should execute buffered jump (set vy = -300, reset buffer/coyote, set grounded = false)
       coyoteSystem.update(world, 0.016);
+      new PlatformerJumpSystem().update(world, 0.016);
 
       const vel = world.getComponent(entity, "Velocity")!;
       const ground = world.getComponent(entity, "PlatformerGroundState")!;

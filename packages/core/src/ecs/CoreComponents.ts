@@ -693,6 +693,94 @@ export interface PlatformerMovementConfigComponent extends Component {
  *
  * @public
  */
+/**
+ * Ground movement tuning for an opt-in locomotion profile.
+ * @public
+ */
+export interface LocomotionGroundProfile {
+  /** Maximum input-driven horizontal speed in world units per second. */
+  maxSpeed: number;
+  /** Acceleration toward the requested movement speed. */
+  acceleration: number;
+  /** Passive deceleration when no direction is requested. */
+  deceleration: number;
+  /** Deceleration toward rest while the brake action is held. */
+  brakingAcceleration: number;
+  /** Acceleration authority while reversing the current movement direction. */
+  turnAcceleration: number;
+}
+
+/**
+ * Air movement tuning for an opt-in locomotion profile.
+ * @public
+ */
+export interface LocomotionAirProfile extends LocomotionGroundProfile {
+  /**
+   * Scales horizontal acceleration authority in air, never the velocity itself.
+   * A value of zero preserves horizontal velocity against input steering.
+   */
+  steeringMultiplier: number;
+}
+
+/**
+ * Momentum damping and inheritance policy for a locomotion profile.
+ * @public
+ */
+export interface LocomotionMomentumProfile {
+  /** Ground horizontal drag rate in inverse seconds. */
+  groundDrag: number;
+  /** Air horizontal drag rate in inverse seconds. */
+  airDrag: number;
+  /** Fraction of support velocity retained on detachment, in the range [0, 1]. */
+  preserveMomentum: number;
+}
+
+/**
+ * Optional slide tuning reserved for the slide posture implementation.
+ * @public
+ */
+export interface LocomotionSlideProfile {
+  /** Minimum horizontal speed required to enter a slide. */
+  minEntrySpeed: number;
+  /** Multiplier applied to input acceleration while sliding. */
+  accelerationMultiplier: number;
+  /** Multiplier applied to contact friction while sliding. */
+  frictionMultiplier: number;
+  /** Multiplier applied to directional steering while sliding. */
+  steeringMultiplier: number;
+  /** Minimum slide duration in seconds. */
+  minimumDuration: number;
+  /** Maximum slide duration in seconds. */
+  maximumDuration: number;
+}
+
+/**
+ * Serializable, declarative movement tuning attached to an entity.
+ *
+ * The component is opt-in: entities without it continue through the legacy
+ * PlatformerMovementSystem path without changed movement calculations.
+ * @public
+ */
+export interface LocomotionProfile {
+  /** Ground movement parameters. */
+  ground: LocomotionGroundProfile;
+  /** Air movement parameters. */
+  air: LocomotionAirProfile;
+  /** Physical drag and support-momentum policy. */
+  momentum: LocomotionMomentumProfile;
+  /** Optional sliding parameters for the posture system. */
+  slide?: LocomotionSlideProfile;
+}
+
+/**
+ * ECS component containing a serializable locomotion profile.
+ * @public
+ */
+export interface LocomotionProfileComponent extends Component, LocomotionProfile {
+  /** Component discriminator type. */
+  type: "LocomotionProfile";
+}
+
 export interface PlatformerInputComponent extends Component {
   /** Component discriminator type. */
   type: "PlatformerInput";
@@ -704,6 +792,8 @@ export interface PlatformerInputComponent extends Component {
   jumpHeld: boolean;
   /** Whether jump button was released this frame. */
   jumpReleased: boolean;
+  /** Optional explicit horizontal brake action. */
+  brake?: boolean;
   /**
    * Previous sampled jump-held state, stored in ECS so edge detection survives
    * system recreation and is included in world snapshots.
@@ -1449,6 +1539,8 @@ export interface CoreComponentRegistry extends ComponentRegistry {
   Steering: import("../ai/SteeringComponent").SteeringComponent;
   /** Platformer movement config. */
   PlatformerMovementConfig: PlatformerMovementConfigComponent;
+  /** Opt-in declarative locomotion tuning. */
+  LocomotionProfile: LocomotionProfileComponent;
   /** Platformer input component. */
   PlatformerInput: PlatformerInputComponent;
   /** Platformer gravity config. */

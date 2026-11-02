@@ -169,12 +169,23 @@ describe("Locomotion B5 moving-platform support", () => {
     const world = new World<CoreComponentRegistry>();
     const platform = createPlatform(world, 100, 200, 40, 10);
     const passenger = createPassenger(world, platform);
-    world.mutateComponent(passenger, "Velocity", velocity => { velocity.vx = 3; velocity.vy = -250; });
+    world.mutateComponent(passenger, "Velocity", velocity => { velocity.vx = 43; velocity.vy = -290; });
+    world.mutateComponent(passenger, "PhysicsContactState", state => {
+      const contact = {
+        entity: platform, point: { x: 100, y: 190 }, normal: { x: 0, y: -1 },
+        separation: 0, surfaceVelocity: { x: 40, y: 10 }
+      };
+      state.contacts = [contact];
+      state.groundContact = contact;
+      state.isGrounded = true;
+    });
     world.mutateComponent(passenger, "PlatformerGroundState", state => { state.isGrounded = false; });
 
     new PlatformCarrySystem().update(world, 1 / 60);
 
-    expect(world.getComponent(passenger, "Velocity")).toMatchObject({ vx: 3, vy: -250 });
+    // Contact-aware movement velocity contains the full support component. Without a profile,
+    // detachment removes that component rather than inheriting platform momentum.
+    expect(world.getComponent(passenger, "Velocity")).toMatchObject({ vx: 3, vy: -300 });
   });
 
   it("does not advance phase or produce non-finite velocity for a zero-length step", () => {

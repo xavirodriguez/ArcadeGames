@@ -859,8 +859,12 @@ export interface LocomotionProfileComponent extends Component, LocomotionProfile
 }
 
 export interface PlatformerInputComponent extends Component {
-  /** Optional held slide/crouch action; consumed only by entities with PlatformerPosture and a slide profile. */
+  /** Aggregated held slide/crouch action consumed by PlatformerSlideSystem. */
   slideHeld?: boolean;
+  /** Non-touch action source, set by the shared game input adapter. */
+  slideActionHeld?: boolean;
+  /** Touch action source, refreshed from TouchInputState each input tick. */
+  slideTouchHeld?: boolean;
   /** Component discriminator type. */
   type: "PlatformerInput";
   /** Horizontal movement direction (-1, 0, 1). */

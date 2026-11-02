@@ -54,7 +54,7 @@ export class PlatformerMovementSystem<TRegistry extends ComponentRegistry = Core
       const profile = world.getComponent(entity, "LocomotionProfile" as Extract<keyof TRegistry, string>) as LocomotionProfileComponent | undefined;
       if (profile) {
         const posture = world.getComponent(entity, "PlatformerPosture" as Extract<keyof TRegistry, string>) as { current?: string } | undefined;
-        if (isGrounded && posture?.current === "sliding" && profile.slide) {
+        if (isGrounded && (posture?.current === "sliding" || posture?.current === "blocked") && profile.slide) {
           const slide = profile.slide;
           const moveDir = Math.max(-1, Math.min(1, input.moveDir));
           const steering = Math.max(0, slide.accelerationMultiplier) * Math.max(0, slide.steeringMultiplier);

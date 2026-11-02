@@ -26,6 +26,7 @@ export interface EchoRunnerInput {
   moveRight: boolean;
   jump: boolean;
   pulse: boolean; // Attack verb
+  slide?: boolean;
   [key: string]: unknown;
 }
 

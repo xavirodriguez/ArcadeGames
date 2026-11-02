@@ -55,6 +55,7 @@ export interface PlatformerInput {
   moveRight: boolean;
   jump: boolean;
   dash?: boolean;
+  slide?: boolean;
   [key: string]: unknown;
 }
 
@@ -223,7 +224,8 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
           jumpPressed: false,
           jumpHeld: false,
           jumpReleased: false,
-          dash: false
+          dash: false,
+          slideHeld: false
         } as { type: string; [key: string]: unknown });
         world.addComponent(entity, {
           type: "DashUnlocked",
@@ -371,7 +373,7 @@ export const PlatformerDefinition: GameDefinition = {
     return game;
   },
   inputSchema: {
-    actions: ["moveLeft", "moveRight", "jump", "dash"]
+    actions: ["moveLeft", "moveRight", "jump", "dash", "slide"]
   },
   assets: {
     sprites: [],

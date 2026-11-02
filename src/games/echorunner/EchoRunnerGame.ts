@@ -215,7 +215,7 @@ export const EchoRunnerDefinition: GameDefinition = {
     return new EchoRunnerGame({ gameOptions: { seed } });
   },
   inputSchema: {
-    actions: ["moveLeft", "moveRight", "jump", "pulse"]
+    actions: ["moveLeft", "moveRight", "jump", "pulse", "slide"]
   },
   assets: {
     sprites: [],
@@ -320,7 +320,8 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
           moveDir: 0,
           jumpPressed: false,
           jumpHeld: false,
-          jumpReleased: false
+          jumpReleased: false,
+          slideHeld: false
         } as { type: string; [key: string]: unknown });
         world.addComponent(entity, {
           type: "EchoRunnerInput",

@@ -90,7 +90,7 @@ export class GalaxianCollisionSystem extends System<GalaxianComponentRegistry> {
     // 2. Enemy / EnemyBullet vs Player Collision
     for (const pEntity of players) {
       const invulnerability = world.getComponent(pEntity, "Invulnerable");
-      if (invulnerability && invulnerability.remaining > 0) continue;
+      if (invulnerability) continue;
 
       const pTrans = world.getMutableComponent(pEntity, "Transform");
       const pCollider = world.getComponent(pEntity, "Collider");

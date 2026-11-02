@@ -23,31 +23,36 @@ describe("Galaxian gameplay regressions", () => {
     await game.destroy();
   });
 
-  it("releases a missed single-shot projectile and allows the next shot", async () => {
+  it("releases a missed single-shot projectile and reuses it for the next shot", async () => {
     const game = new GalaxianGame({ headless: true, seed: 12345 });
     await game.init();
     game.stop();
 
     const world = game.getWorld();
-    const player = world.query("Player", "Transform")[0];
-    const playerTransform = world.getComponent(player, "Transform");
-    if (!playerTransform) throw new Error("Player transform missing");
-
     game.setInput({ shoot: true });
-    for (let tick = 0; tick < 100; tick++) {
+    game.update(1 / 60);
+
+    const firstBullet = world.query("PlayerBullet", "Transform")[0];
+    expect(firstBullet).toBeDefined();
+    game.setInput({ shoot: false });
+
+    let ticksUntilCleanup = 0;
+    while (world.hasComponent(firstBullet, "PlayerBullet") && ticksUntilCleanup < 100) {
       game.update(1 / 60);
+      ticksUntilCleanup++;
     }
 
-    const activeBullets = world.query("PlayerBullet", "Transform");
-    expect(activeBullets).toHaveLength(1);
-    expect(world.query("GalaxianBulletPoolEntry").filter((entity) => {
-      return world.getComponent(entity, "GalaxianBulletPoolEntry")?.owner === "player";
-    })).toHaveLength(1);
+    expect(ticksUntilCleanup).toBeLessThan(100);
+    expect(world.hasComponent(firstBullet, "PlayerBullet")).toBe(false);
+    expect(world.getComponent(firstBullet, "GalaxianBulletPoolEntry")?.available).toBe(true);
 
-    const activeBulletTransform = world.getComponent(activeBullets[0], "Transform");
-    expect(activeBulletTransform).toBeDefined();
-    expect(activeBulletTransform?.y).toBeGreaterThan(0);
-    expect(activeBulletTransform?.y).toBeLessThan(playerTransform.y - 100);
+    game.setInput({ shoot: true });
+    game.update(1 / 60);
+
+    const nextShot = world.query("PlayerBullet", "Transform");
+    expect(nextShot).toHaveLength(1);
+    expect(nextShot[0]).toBe(firstBullet);
+    expect(world.getComponent(firstBullet, "GalaxianBulletPoolEntry")?.available).toBe(false);
 
     await game.destroy();
   });

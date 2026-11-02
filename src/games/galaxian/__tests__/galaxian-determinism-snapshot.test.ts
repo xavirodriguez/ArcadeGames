@@ -25,9 +25,11 @@ describe("Galaxian snapshot determinism", () => {
     };
     const snapshot = game.snapshot();
     const initialRenderRngState = world.renderRandom.getSeed();
+    const eventBus = world.getEventBus();
+    if (!eventBus) throw new Error("Galaxian event bus was not initialized");
 
     const continueSimulation = (): void => {
-      world.getEventBus().emit("combat:enemy_hit", eventPayload);
+      eventBus.emit("combat:enemy_hit", eventPayload);
       world.flush();
 
       for (let tick = 0; tick < 24; tick++) {

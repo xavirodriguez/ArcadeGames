@@ -11,7 +11,7 @@ export class GalaxianCollisionSystem extends System<GalaxianComponentRegistry> {
     this.bulletPool = bulletPool;
   }
 
-  public update(world: World<GalaxianComponentRegistry>, deltaTime: number): void {
+  public update(world: World<GalaxianComponentRegistry>, _deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
 
     const config = world.getResource<GalaxianConfig>("GameConfig");

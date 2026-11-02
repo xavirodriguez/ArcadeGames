@@ -62,6 +62,12 @@ export class PhysicsIntegrateSystem<
     // Safe for determinism/rollback. Sequential indexed loop eliminates per-tick iterator allocations.
     for (let i = 0; i < len; i++) {
       const entity = entitiesToProcess[i];
+      // MovingPlatformSystem authors the platform's next transform directly and
+      // computes its exact fixed-step surface velocity for passenger integration.
+      // Integrating that velocity again here would advance the platform twice.
+      const movingPlatformKey = "MovingPlatform" as Extract<keyof TRegistry, string>;
+      if (world.hasComponent(entity, movingPlatformKey)) continue;
+
       const v = world.getComponent(entity, velocityKey) as VelocityComponent | undefined;
       if (!v) continue;
       if (v.vx === 0 && v.vy === 0 && (!v.angularVelocity || v.angularVelocity === 0)) continue;

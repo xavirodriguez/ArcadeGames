@@ -595,6 +595,77 @@ export interface ParticleEmitterComponent extends Component {
  *
  * @public
  */
+/**
+ * Declarative physical response parameters for a surface.
+ * Friction values are dimensionless coefficients; traction scales grounded
+ * acceleration authority and restitution controls normal bounce.
+ * @public
+ */
+export interface PhysicsMaterial {
+  /** Stable material identifier. */
+  id: string;
+  /** Coefficient of static friction. */
+  staticFriction: number;
+  /** Coefficient of dynamic (sliding) friction. */
+  dynamicFriction: number;
+  /** Normal velocity retention on impact, clamped to [0, 1]. */
+  restitution: number;
+  /** Grounded acceleration authority, clamped to [0, 1]. */
+  traction: number;
+  /** Optional world-space conveyor velocity in units per second. */
+  conveyorVelocity?: { x: number; y: number };
+}
+
+/** Resolved physical contact produced by an authoritative collision system. @public */
+export interface PhysicsContact {
+  /** Entity providing the contacted surface. */
+  entity: Entity;
+  /** World-space contact point. */
+  point: { x: number; y: number };
+  /** Unit contact normal pointing away from the surface. */
+  normal: { x: number; y: number };
+  /** Remaining geometric separation after collision resolution. */
+  separation: number;
+  /** Stable surface material identifier, when configured. */
+  materialId?: string;
+  /** Surface velocity in world units per second. */
+  surfaceVelocity: { x: number; y: number };
+  /** Resolved material data; consumers do not need to re-query tilemaps. */
+  material?: PhysicsMaterial;
+}
+
+/** Snapshot-friendly contact manifold shared by locomotion systems. @public */
+export interface PhysicsContactStateComponent extends Component {
+  /** Component discriminator type. */
+  type: "PhysicsContactState";
+  /** Contacts resolved during the latest collision phase. */
+  contacts: PhysicsContact[];
+  /** Selected upward-facing contact, when grounded. */
+  groundContact?: PhysicsContact;
+  /** Whether the latest collision phase resolved ground contact. */
+  isGrounded: boolean;
+}
+
+/**
+ * Serializable line segment defining the upper collision surface of a sloped tile.
+ * Coordinates are local to the tile; endpoints must be ordered left-to-right.
+ * @public
+ */
+export interface TileSlopeDefinition {
+  /** Start point on the tile's left side, in tile-local units. */
+  start: { x: number; y: number };
+  /** End point on the tile's right side, in tile-local units. */
+  end: { x: number; y: number };
+  /** Maximum angle from horizontal that is considered walkable. Defaults to 50 degrees. */
+  maxWalkableAngleDegrees?: number;
+  /** Maximum downward snap distance used to maintain contact while traversing. Defaults to 8. */
+  snapDistance?: number;
+}
+
+/**
+ * Tile collision metadata.
+ * @public
+ */
 export interface TileDefinition {
   /** Whether the tile is solid for physical collisions. */
   solid: boolean;
@@ -602,8 +673,12 @@ export interface TileDefinition {
   oneWay?: boolean;
   /** Optional friction coefficient override. */
   friction?: number;
-  /** Optional bounciness coefficient. */
+  /** Optional bounciness coefficient retained for legacy bounce tiles. */
   bounce?: number;
+  /** Optional stable key into TilemapComponent.physicsMaterials. */
+  materialId?: string;
+  /** Optional walkable or steep line-segment surface; opt-in, axis-aligned tiles are unchanged. */
+  slope?: TileSlopeDefinition;
   /** Optional damage inflicted upon contact. */
   damage?: number;
   /** Tile functional classification. */
@@ -641,6 +716,8 @@ export interface TilemapComponent extends Component {
   };
   /** Mapping of tile IDs to definitions. */
   tileDefinitions?: Record<number, TileDefinition>;
+  /** Serializable material definitions referenced by tile materialId values. */
+  physicsMaterials?: Record<string, PhysicsMaterial>;
 }
 
 /**
@@ -693,7 +770,97 @@ export interface PlatformerMovementConfigComponent extends Component {
  *
  * @public
  */
+/**
+ * Ground movement tuning for an opt-in locomotion profile.
+ * @public
+ */
+export interface LocomotionGroundProfile {
+  /** Maximum input-driven horizontal speed in world units per second. */
+  maxSpeed: number;
+  /** Acceleration toward the requested movement speed. */
+  acceleration: number;
+  /** Passive deceleration when no direction is requested. */
+  deceleration: number;
+  /** Deceleration toward rest while the brake action is held. */
+  brakingAcceleration: number;
+  /** Acceleration authority while reversing the current movement direction. */
+  turnAcceleration: number;
+}
+
+/**
+ * Air movement tuning for an opt-in locomotion profile.
+ * @public
+ */
+export interface LocomotionAirProfile extends LocomotionGroundProfile {
+  /**
+   * Scales horizontal acceleration authority in air, never the velocity itself.
+   * A value of zero preserves horizontal velocity against input steering.
+   */
+  steeringMultiplier: number;
+}
+
+/**
+ * Momentum damping and inheritance policy for a locomotion profile.
+ * @public
+ */
+export interface LocomotionMomentumProfile {
+  /** Ground horizontal drag rate in inverse seconds. */
+  groundDrag: number;
+  /** Air horizontal drag rate in inverse seconds. */
+  airDrag: number;
+  /** Fraction of support velocity retained on detachment, in the range [0, 1]. */
+  preserveMomentum: number;
+}
+
+/**
+ * Optional slide tuning reserved for the slide posture implementation.
+ * @public
+ */
+export interface LocomotionSlideProfile {
+  /** Minimum horizontal speed required to enter a slide. */
+  minEntrySpeed: number;
+  /** Multiplier applied to input acceleration while sliding. */
+  accelerationMultiplier: number;
+  /** Multiplier applied to contact friction while sliding. */
+  frictionMultiplier: number;
+  /** Multiplier applied to directional steering while sliding. */
+  steeringMultiplier: number;
+  /** Minimum slide duration in seconds. */
+  minimumDuration: number;
+  /** Maximum slide duration in seconds. */
+  maximumDuration: number;
+}
+
+/**
+ * Serializable, declarative movement tuning attached to an entity.
+ *
+ * The component is opt-in: entities without it continue through the legacy
+ * PlatformerMovementSystem path without changed movement calculations.
+ * @public
+ */
+export interface LocomotionProfile {
+  /** Ground movement parameters. */
+  ground: LocomotionGroundProfile;
+  /** Air movement parameters. */
+  air: LocomotionAirProfile;
+  /** Physical drag and support-momentum policy. */
+  momentum: LocomotionMomentumProfile;
+  /** Optional sliding parameters for the posture system. */
+  slide?: LocomotionSlideProfile;
+}
+
+/**
+ * ECS component containing a serializable locomotion profile.
+ * @public
+ */
+export interface LocomotionProfileComponent extends Component, LocomotionProfile {
+  /** Component discriminator type. */
+  type: "LocomotionProfile";
+}
+
 export interface PlatformerInputComponent extends Component {
+  /** Optional held slide/crouch action; consumed only by entities with PlatformerPosture and a slide profile. */
+  slideHeld?: boolean;
   /** Component discriminator type. */
   type: "PlatformerInput";
   /** Horizontal movement direction (-1, 0, 1). */
@@ -704,6 +871,13 @@ export interface PlatformerInputComponent extends Component {
   jumpHeld: boolean;
   /** Whether jump button was released this frame. */
   jumpReleased: boolean;
+  /** Optional explicit horizontal brake action. */
+  brake?: boolean;
+  /**
+   * Previous sampled jump-held state, stored in ECS so edge detection survives
+   * system recreation and is included in world snapshots.
+   */
+  previousJumpHeld?: boolean;
 }
 
 /**
@@ -800,8 +974,32 @@ export interface PlatformerGroundStateComponent extends Component {
 }
 
 /**
+ * Serializable posture state for opt-in platformer sliding.
+ * Heights are full collider heights in world units; slideElapsed advances in fixed simulation time.
+ * @public
+ */
+export interface PlatformerPostureComponent extends Component {
+  /** Component discriminator type. */
+  type: "PlatformerPosture";
+  /** Current physical posture. */
+  current: "standing" | "sliding" | "blocked";
+  /** Requested posture after input and clearance checks. */
+  desired: "standing" | "sliding";
+  /** Full standing collider height. */
+  standingHeight: number;
+  /** Full sliding collider height. */
+  slidingHeight: number;
+  /** Elapsed time in the current slide, in seconds. */
+  slideElapsed: number;
+  /** Minimum duration before releasing a slide can stand the character up. */
+  slideMinimumDuration: number;
+  /** Maximum duration before a held slide is forcibly released. */
+  slideMaximumDuration: number;
+}
+
+/**
  * Component configuring 2D camera viewport position, follow target, zoom, deadzones, and smoothing.
- *
+
  * @example
  * ```ts
  * const camera: Camera2DComponent = {
@@ -1444,6 +1642,8 @@ export interface CoreComponentRegistry extends ComponentRegistry {
   Steering: import("../ai/SteeringComponent").SteeringComponent;
   /** Platformer movement config. */
   PlatformerMovementConfig: PlatformerMovementConfigComponent;
+  /** Opt-in declarative locomotion tuning. */
+  LocomotionProfile: LocomotionProfileComponent;
   /** Platformer input component. */
   PlatformerInput: PlatformerInputComponent;
   /** Platformer gravity config. */
@@ -1452,6 +1652,10 @@ export interface CoreComponentRegistry extends ComponentRegistry {
   PlatformerJumper: PlatformerJumperComponent;
   /** Platformer ground state. */
   PlatformerGroundState: PlatformerGroundStateComponent;
+  /** Opt-in physical posture and slide timer. */
+  PlatformerPosture: PlatformerPostureComponent;
+  /** Resolved physical contact state. */
+  PhysicsContactState: PhysicsContactStateComponent;
   /** Moving platform component. */
   MovingPlatform: MovingPlatformComponent;
   /** Hitbox component. */

@@ -1303,14 +1303,17 @@ export interface CoreComponentRegistry extends ComponentRegistry {
     KineticAccumulator: KineticAccumulatorComponent;
     LapTracker: LapTrackerComponent;
     LevelGoal: LevelGoalComponent;
+    LocomotionProfile: LocomotionProfileComponent;
     MovingPlatform: MovingPlatformComponent;
     ParticleEmitter: ParticleEmitterComponent;
+    PhysicsContactState: PhysicsContactStateComponent;
     Patrol: PatrolComponent;
     PlatformerGravityConfig: PlatformerGravityConfigComponent;
     PlatformerGroundState: PlatformerGroundStateComponent;
     PlatformerInput: PlatformerInputComponent;
     PlatformerJumper: PlatformerJumperComponent;
     PlatformerMovementConfig: PlatformerMovementConfigComponent;
+    PlatformerPosture: PlatformerPostureComponent;
     PlayerSensor: PlayerSensorComponent;
     Reclaimable: ReclaimableComponent;
     Render: RenderComponent;
@@ -3105,6 +3108,53 @@ export interface LevelGoalComponent extends Component {
 }
 
 // @public
+export interface LocomotionAirProfile extends LocomotionGroundProfile {
+    steeringMultiplier: number;
+}
+
+// @public
+export interface LocomotionGroundProfile {
+    acceleration: number;
+    brakingAcceleration: number;
+    deceleration: number;
+    maxSpeed: number;
+    turnAcceleration: number;
+}
+
+// @public
+export interface LocomotionMomentumProfile {
+    airDrag: number;
+    groundDrag: number;
+    preserveMomentum: number;
+}
+
+// @public
+export interface LocomotionProfile {
+    air: LocomotionAirProfile;
+    ground: LocomotionGroundProfile;
+    momentum: LocomotionMomentumProfile;
+    slide?: LocomotionSlideProfile;
+}
+
+// @public
+export interface LocomotionProfileComponent extends Component, LocomotionProfile {
+    type: "LocomotionProfile";
+}
+
+// @public
+export interface LocomotionSlideProfile {
+    accelerationMultiplier: number;
+    frictionMultiplier: number;
+    maximumDuration: number;
+    minimumDuration: number;
+    minEntrySpeed: number;
+    steeringMultiplier: number;
+}
+
+// @public
+export const LOCOMOTION_PROFILE_PRESETS: Readonly<Record<"responsive" | "momentum" | "heavy", LocomotionProfile>>;
+
+// @public
 export interface LevelPlan {
     globalTilemap: number[][];
     seed: number;
@@ -4070,6 +4120,50 @@ export class PhysicsSolveSystem<TRegistry extends CoreComponentRegistry = CoreCo
 }
 
 // @public
+export interface PhysicsContact {
+    entity: Entity;
+    material?: PhysicsMaterial;
+    materialId?: string;
+    normal: {
+        x: number;
+        y: number;
+    };
+    point: {
+        x: number;
+        y: number;
+    };
+    separation: number;
+    surfaceVelocity: {
+        x: number;
+        y: number;
+    };
+}
+
+// @public
+export interface PhysicsContactStateComponent extends Component {
+    contacts: PhysicsContact[];
+    groundContact?: PhysicsContact;
+    isGrounded: boolean;
+    type: "PhysicsContactState";
+}
+
+// @public
+export interface PhysicsMaterial {
+    conveyorVelocity?: {
+        x: number;
+        y: number;
+    };
+    dynamicFriction: number;
+    id: string;
+    restitution: number;
+    staticFriction: number;
+    traction: number;
+}
+
+// @public
+export const PHYSICS_MATERIAL_PRESETS: Readonly<Record<"normal" | "ice" | "mud" | "elastic" | "conveyor", PhysicsMaterial>>;
+
+// @public
 export interface PhysicsTransformLike {
     rotation?: number;
     scaleX?: number;
@@ -4162,11 +4256,19 @@ export interface PlatformerGroundStateComponent extends Component {
 
 // @public
 export interface PlatformerInputComponent extends Component {
+    brake?: boolean;
     jumpHeld: boolean;
     jumpPressed: boolean;
     jumpReleased: boolean;
     moveDir: number;
+    previousJumpHeld?: boolean;
+    slideHeld?: boolean;
     type: "PlatformerInput";
+}
+
+// @public
+export class PlatformerJumpSystem extends System<CoreComponentRegistry> {
+    update(world: World<CoreComponentRegistry>, _deltaTime: number): void;
 }
 
 // @public
@@ -4196,7 +4298,24 @@ export class PlatformerMovementSystem<TRegistry extends ComponentRegistry = Core
 }
 
 // @public
+export interface PlatformerPostureComponent extends Component {
+    current: "standing" | "sliding" | "blocked";
+    desired: "standing" | "sliding";
+    slideElapsed: number;
+    slideMaximumDuration: number;
+    slideMinimumDuration: number;
+    slidingHeight: number;
+    standingHeight: number;
+    type: "PlatformerPosture";
+}
+
+// @public
 export type PlatformerRoleKey = CommonRoleKey | "sentinel" | "hopper" | "charger" | "watcher" | "fragment" | "core" | "node" | "coin" | "goal" | "tilemap" | "restorationCyan" | "restorationGold" | "corruptionCrimson" | "corruptionAmber" | "corruptionPurple" | "archiveVoidDark" | "archiveSlate" | "archiveBorderDark" | "archiveBorderLight" | "archiveGridLine" | "archiveDataStream";
+
+// @public
+export class PlatformerSlideSystem<TRegistry extends ComponentRegistry = CoreComponentRegistry> extends System<TRegistry> {
+    update(world: World<TRegistry>, deltaTime: number): void;
+}
 
 // @public
 export function playAnimation(animator: {
@@ -6113,13 +6232,30 @@ export interface TileDefinition {
     damage?: number;
     friction?: number;
     kind?: "normal" | "ice" | "spike" | "bounce";
+    materialId?: string;
     oneWay?: boolean;
+    slope?: TileSlopeDefinition;
     solid: boolean;
+}
+
+// @public
+export interface TileSlopeDefinition {
+    end: {
+        x: number;
+        y: number;
+    };
+    maxWalkableAngleDegrees?: number;
+    snapDistance?: number;
+    start: {
+        x: number;
+        y: number;
+    };
 }
 
 // @public
 export interface TilemapComponent extends Component {
     data: number[][];
+    physicsMaterials?: Record<string, PhysicsMaterial>;
     tileDefinitions?: Record<number, TileDefinition>;
     tileSize: number;
     type: "Tilemap";

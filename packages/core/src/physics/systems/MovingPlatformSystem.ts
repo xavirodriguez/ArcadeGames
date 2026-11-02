@@ -21,7 +21,7 @@ export class MovingPlatformSystem extends System<CoreComponentRegistry> {
    * @sideEffect Mutates `MovingPlatform`, `Transform`, and `Velocity` components on platform entities.
    */
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
-    if (world.getResource("IsPaused") === true) return;
+    if (world.getResource("IsPaused") === true || !Number.isFinite(deltaTime) || deltaTime <= 0) return;
     const entities = world.query("Transform", "Velocity", "MovingPlatform");
 
     for (let i = 0; i < entities.length; i++) {

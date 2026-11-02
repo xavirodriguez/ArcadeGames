@@ -173,3 +173,8 @@ Use fixed-timestep `deltaTime` for integration only. Gameplay windows use intege
 6. Add slide posture/clearance query; do not ship if stand-up overlap is unresolved.
 7. Add surface material lookup and a real slope-capable contact geometry path.
 8. Add deterministic integration/replay tests and Locomotion Lab.
+
+
+## B4 implementation decision
+
+Tilemap slopes are authored as local line segments on TileDefinition.slope. The tile collision system resolves the segment's normal/tangent and only classifies it as ground when its angle is within the configured walkable limit. Axis-aligned tile behavior remains the compatibility path.

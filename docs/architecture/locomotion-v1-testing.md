@@ -95,3 +95,12 @@ Do not report a test as passing unless the command was actually executed against
 - Tile contacts remain axis-aligned; stable slope normals and walkable-angle policy are B4.
 - Generic CollisionSystem2D manifolds are not yet merged into PhysicsContactState; B3 publishes tilemap contacts.
 - Static/dynamic friction coefficients are converted to horizontal acceleration using fall gravity (default 980 units/s²). Values require per-game calibration.
+
+
+### Increment 4 — stable slope contacts (B4)
+
+- Added TileSlopeDefinition and a line-segment surface solver in TileCollisionSystem.
+- Added normalized normal/tangent calculation, AABB support-radius resolution, tangential velocity projection, jump-away detection, walkable-angle policy and slope friction.
+- Steep slopes remain contacts but are not grounded; walkable angle defaults to 50° and can be configured per tile.
+- Added ascending and descending ramp, steep-slope, no-slip-at-rest and fixed-step snapshot-hash tests.
+- Test execution: pending GitHub Actions; no local test run is claimed.

@@ -647,6 +647,22 @@ export interface PhysicsContactStateComponent extends Component {
 }
 
 /**
+ * Serializable line segment defining the upper collision surface of a sloped tile.
+ * Coordinates are local to the tile; endpoints must be ordered left-to-right.
+ * @public
+ */
+export interface TileSlopeDefinition {
+  /** Start point on the tile's left side, in tile-local units. */
+  start: { x: number; y: number };
+  /** End point on the tile's right side, in tile-local units. */
+  end: { x: number; y: number };
+  /** Maximum angle from horizontal that is considered walkable. Defaults to 50 degrees. */
+  maxWalkableAngleDegrees?: number;
+  /** Maximum downward snap distance used to maintain contact while traversing. Defaults to 8. */
+  snapDistance?: number;
+}
+
+/**
  * Tile collision metadata.
  * @public
  */
@@ -661,6 +677,8 @@ export interface TileDefinition {
   bounce?: number;
   /** Optional stable key into TilemapComponent.physicsMaterials. */
   materialId?: string;
+  /** Optional walkable or steep line-segment surface; opt-in, axis-aligned tiles are unchanged. */
+  slope?: TileSlopeDefinition;
   /** Optional damage inflicted upon contact. */
   damage?: number;
   /** Tile functional classification. */

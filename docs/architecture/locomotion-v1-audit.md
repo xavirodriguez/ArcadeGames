@@ -159,3 +159,13 @@ No schedule change is required solely to make priority -10 late in Simulation: t
 - Material restitution applies to landing normal velocity. B3 does not add slope geometry or merge generic rigid-body manifolds; those remain explicit limitations.
 - Added PHYSICS_MATERIAL_PRESETS (normal, ice, mud, elastic, conveyor), focused tests, and ADR-003.
 - Test execution is pending GitHub Actions for the final B3 commit; no local test run is claimed.
+
+
+## 16. B4 — stable slope contacts
+
+- Added opt-in TileSlopeDefinition to tile definitions. The line segment is expressed in tile-local coordinates and ordered left-to-right; axis-aligned tiles remain unchanged.
+- TileCollisionSystem resolves the line surface, normalized upward normal and tangent; it resolves the AABB support radius against the plane to avoid collider penetration, then projects velocity onto the tangent.
+- Per-slope maxWalkableAngleDegrees (default 50°) controls grounded eligibility. Steeper surfaces still produce a contact but do not set PlatformerGroundState, PhysicsContactState.isGrounded or jump eligibility.
+- Per-slope snapDistance (default 8 units) tolerates fixed-step vertical error. Static/dynamic friction oppose downhill drift; the fallback coefficients for a slope without an authored material are 0.8/0.6.
+- Added ascending/descending ramp, steep-slope, static-friction and snapshot-hash tests. One-way slopes only collide from above.
+- Limits: tile-line slopes only; no polygon/curved surfaces or generic CollisionSystem2D manifold integration.

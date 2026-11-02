@@ -5,7 +5,6 @@ describe("Galaxian Gameplay Systems (Headless Simulation)", () => {
   it("should initialize game with player, formation, and enemies", async () => {
     const game = new GalaxianGame({ headless: true, seed: 12345 });
     await game.init();
-    game.update(0.01);
 
     const world = game.getWorld();
     const state = game.getGameState();

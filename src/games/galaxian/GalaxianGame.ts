@@ -6,7 +6,6 @@ import {
   RendererUtils,
   SystemPhase,
   CanonicalInputState,
-  CanonicalActionName,
   hasInputAction,
 } from "@tiny-aster/core";
 import { GalaxianConfigSchema, GalaxianConfig } from "./types/GalaxianConfigSchema";
@@ -46,9 +45,11 @@ export class GalaxianGame extends BaseGame<
   private baseConfig: GalaxianConfig;
   private config!: GalaxianConfig;
   private bulletPool!: BulletPool;
+  private pendingInput: Partial<GalaxianInputState> = {};
 
   constructor(config: BaseGameConfig<GalaxianComponentRegistry, GalaxianEventRegistry, GalaxianInputState, GalaxianBlueprintMap> = {}) {
-    const seed = (config.gameOptions?.seed as number) || config.seed || 12345;
+    const configuredSeed = config.gameOptions?.seed;
+    const seed = typeof configuredSeed === "number" ? configuredSeed : (config.seed ?? 12345);
     const loadedBaseConfig = ConfigService.load<GalaxianConfig>(
       "galaxian",
       GalaxianConfigSchema,
@@ -114,8 +115,15 @@ export class GalaxianGame extends BaseGame<
     this.world.addSystem(new UnfoldFxSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new ScorePopupSystem(), { phase: SystemPhase.Presentation });
 
+  }
+
+  protected override async onInitializeEntities(): Promise<void> {
     const gameScene = new GalaxianGameScene(this.config, this.world);
     gameScene.onEnter();
+
+    const pendingInput = this.pendingInput;
+    this.pendingInput = {};
+    this.applyInputToPlayer(pendingInput);
   }
 
   public getGameState(): GalaxianStateComponent {
@@ -140,26 +148,72 @@ export class GalaxianGame extends BaseGame<
   }
 
   public override setInputState(input: Partial<GalaxianInputState> | CanonicalInputState | Record<string, unknown>): void {
-    const playerEntities = this.world.query("Player");
-    if (playerEntities.length === 0) return;
-    const playerEntity = playerEntities[0];
+    if (typeof input !== "object" || input === null) return;
+
+    const normalizedInput = input as Partial<GalaxianInputState>;
+    const playerEntities = this.world.query("Player", "Input");
+    if (playerEntities.length === 0) {
+      this.mergePendingInput(normalizedInput);
+      return;
+    }
+
+    this.applyInputToPlayer(normalizedInput);
+  }
+
+  private mergePendingInput(input: Partial<GalaxianInputState>): void {
+    const pendingInput: Partial<GalaxianInputState> = { ...this.pendingInput };
+
+    if (input.moveLeft !== undefined) pendingInput.moveLeft = input.moveLeft;
+    if (input.moveRight !== undefined) pendingInput.moveRight = input.moveRight;
+    if (input.shoot !== undefined) pendingInput.shoot = input.shoot;
+    if (input.actions !== undefined) pendingInput.actions = [...input.actions];
+    if (input.axes !== undefined) {
+      pendingInput.axes = { ...pendingInput.axes, ...input.axes };
+    }
+
+    this.pendingInput = pendingInput;
+  }
+
+  private applyInputToPlayer(input: Partial<GalaxianInputState>): void {
+    const playerEntity = this.world.query("Player", "Input")[0];
+    if (playerEntity === undefined) {
+      this.mergePendingInput(input);
+      return;
+    }
 
     const inputComp = this.world.getMutableComponent(playerEntity, "Input") as GalaxianInputComponent | undefined;
-    if (!inputComp) return;
+    if (!inputComp) {
+      this.mergePendingInput(input);
+      return;
+    }
 
-    const inp = input as Record<string, unknown>;
-    if (inp && typeof inp === "object" && inp.axes && typeof inp.axes === "object") {
-      const axes = inp.axes as Record<string, number>;
-      const moveX = axes.moveX ?? 0;
+    const moveX = input.axes?.moveX;
+    const hasMoveAxis = typeof moveX === "number" && Number.isFinite(moveX);
+
+    if (input.axes !== undefined) {
+      inputComp.axes = { ...inputComp.axes, ...input.axes };
+    }
+
+    if (input.actions !== undefined) {
+      inputComp.actions = [...input.actions];
+      inputComp.shoot = hasInputAction(input.actions, "fire") || hasInputAction(input.actions, "shoot");
+
+      if (!hasMoveAxis) {
+        inputComp.moveLeft =
+          hasInputAction(input.actions, "moveLeft") || hasInputAction(input.actions, "left");
+        inputComp.moveRight =
+          hasInputAction(input.actions, "moveRight") || hasInputAction(input.actions, "right");
+      }
+    }
+
+    if (hasMoveAxis) {
       inputComp.moveLeft = moveX < -0.1;
       inputComp.moveRight = moveX > 0.1;
-      const actions = inp.actions as readonly CanonicalActionName[] | undefined;
-      inputComp.shoot = hasInputAction(actions, "fire") || hasInputAction(actions, "shoot");
-    } else if (inp) {
-      if (typeof inp.moveLeft === "boolean") inputComp.moveLeft = inp.moveLeft;
-      if (typeof inp.moveRight === "boolean") inputComp.moveRight = inp.moveRight;
-      if (typeof inp.shoot === "boolean") inputComp.shoot = inp.shoot;
     }
+
+    if (input.moveLeft !== undefined) inputComp.moveLeft = input.moveLeft;
+    if (input.moveRight !== undefined) inputComp.moveRight = input.moveRight;
+    if (input.shoot !== undefined) inputComp.shoot = input.shoot;
   }
 
   public setInput(input: Partial<GalaxianInputState>): void {

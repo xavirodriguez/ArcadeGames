@@ -3,6 +3,7 @@ import { CoreComponentRegistry } from "../src/ecs/CoreComponents";
 import { MovingPlatformSystem } from "../src/physics/systems/MovingPlatformSystem";
 import { PlatformCarrySystem } from "../src/physics/systems/PlatformCarrySystem";
 import { PhysicsIntegrateSystem } from "../src/physics/dynamics/PhysicsIntegrateSystem";
+import { PlatformerJumpSystem } from "../src/systems/PlatformerJumpSystem";
 import { TileCollisionSystem } from "../src/physics/systems/TileCollisionSystem";
 
 describe("Locomotion B5 moving-platform support", () => {
@@ -100,7 +101,16 @@ describe("Locomotion B5 moving-platform support", () => {
       air: { maxSpeed: 200, acceleration: 300, deceleration: 100, brakingAcceleration: 200, turnAcceleration: 150, steeringMultiplier: 0.3 },
       momentum: { groundDrag: 0.1, airDrag: 0.02, preserveMomentum: 0.5 }
     });
-    world.mutateComponent(passenger, "Velocity", velocity => { velocity.vx = 40; velocity.vy = -300; });
+    world.addComponent(passenger, {
+      type: "PlatformerInput", moveDir: 0, jumpPressed: true, jumpHeld: true, jumpReleased: false
+    });
+    world.addComponent(passenger, {
+      type: "PlatformerJumper", coyoteTimer: 0, jumpBufferTimer: 0, coyoteTimeMax: 0.1, jumpBufferMax: 0.1
+    });
+    world.addComponent(passenger, {
+      type: "PlatformerGravityConfig", riseGravity: 600, fallGravity: 900, jumpVelocity: 300, minJumpVelocity: 100
+    });
+    world.mutateComponent(passenger, "Velocity", velocity => { velocity.vx = 40; velocity.vy = 10; });
     world.mutateComponent(passenger, "PhysicsContactState", state => {
       state.contacts = [{
         entity: platform, point: { x: 100, y: 190 }, normal: { x: 0, y: -1 },
@@ -111,10 +121,11 @@ describe("Locomotion B5 moving-platform support", () => {
     });
     world.mutateComponent(passenger, "PlatformerGroundState", state => { state.isGrounded = false; });
 
+    new PlatformerJumpSystem().update(world, 1 / 60);
     new PlatformCarrySystem().update(world, 1 / 60);
 
     expect(world.getComponent(passenger, "Velocity")?.vx).toBe(20);
-    expect(world.getComponent(passenger, "Velocity")?.vy).toBe(-305);
+    expect(world.getComponent(passenger, "Velocity")?.vy).toBe(-295);
     expect(world.getComponent(passenger, "PlatformerGroundState")?.carrierEntity).toBeUndefined();
     expect(world.getComponent(passenger, "PhysicsContactState")?.groundContact).toBeUndefined();
   });

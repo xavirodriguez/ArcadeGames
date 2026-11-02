@@ -123,3 +123,6 @@ Do not report a test as passing unless the command was actually executed against
 - Updated TileCollisionSystem to retain only live MovingPlatform contacts across its per-tick contact reset. Contact-aware passengers are carried by support-velocity rebasing and the single PhysicsIntegrate pass; PhysicsIntegrateSystem explicitly skips directly-authored MovingPlatform transforms.
 - System schedule order: MovingPlatformSystem → locomotion/jump systems → PlatformCarrySystem → PhysicsIntegrateSystem.
 - Test execution: pending GitHub Actions; no local test run is claimed.
+
+
+- B5 jump regression now exercises the real PlatformerJumpSystem → PlatformCarrySystem sequence. Jump resolution temporarily includes the full vertical support impulse; carry detachment removes the full support component and reapplies only preserveMomentum.

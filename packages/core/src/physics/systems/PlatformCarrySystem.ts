@@ -274,6 +274,7 @@ export class PlatformCarrySystem extends System<CoreComponentRegistry> {
     if (world.hasComponent(character, "PlatformerGroundState")) {
       world.mutateComponent(character, "PlatformerGroundState", (state) => {
         state.carrierEntity = undefined;
+        state.isGrounded = false;
       });
     }
     if (world.hasComponent(character, "PhysicsContactState")) {

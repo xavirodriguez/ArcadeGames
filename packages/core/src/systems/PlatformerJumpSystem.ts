@@ -66,7 +66,14 @@ export class PlatformerJumpSystem extends System<CoreComponentRegistry> {
         const mutableGround = world.getMutableComponent(entity, "PlatformerGroundState");
         const mutableJumper = world.getMutableComponent(entity, "PlatformerJumper");
         if (mutableVelocity && mutableGround && mutableJumper) {
-          mutableVelocity.vy = -gravity.jumpVelocity;
+          const carrier = mutableGround.carrierEntity;
+          const supportContact = carrier === undefined
+            ? undefined
+            : contactState?.contacts.find((contact) => contact.entity === carrier);
+          // Carry runs after jump resolution. Include the full support impulse here so
+          // PlatformCarrySystem can remove it and retain only preserveMomentum.
+          mutableVelocity.vy = -gravity.jumpVelocity
+            + (supportContact?.surfaceVelocity.y ?? 0);
           mutableGround.isGrounded = false;
           const mutableContactState = world.getMutableComponent(entity, "PhysicsContactState");
           if (mutableContactState) {

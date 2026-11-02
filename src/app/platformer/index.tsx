@@ -90,12 +90,14 @@ function PlatformerContent() {
       const moveRight = activeKeys.has("ArrowRight") || activeKeys.has("KeyD");
       const jump = activeKeys.has("ArrowUp") || activeKeys.has("KeyW") || activeKeys.has("Space");
       const dash = activeKeys.has("KeyK") || activeKeys.has("ShiftLeft");
+      const slide = activeKeys.has("KeyS") || activeKeys.has("ArrowDown");
 
       game.setInputState({
         moveLeft,
         moveRight,
         jump,
-        dash
+        dash,
+        slide
       });
     };
 
@@ -123,6 +125,10 @@ function PlatformerContent() {
     game?.setInputState({ jump: pressed });
   };
 
+  const handleTouchSlide = (pressed: boolean) => {
+    game?.setInputState({ slide: pressed });
+  };
+
   const handleTouchDash = () => {
     game?.setInputState({ dash: true });
     setTimeout(() => game?.setInputState({ dash: false }), 50);
@@ -144,7 +150,7 @@ function PlatformerContent() {
 
         <GameInstructions>
           {Platform.OS === "web"
-            ? (t.platformer?.instructions || "A/D o Flechas: Mover | W/Espacio/Flecha Arriba: Saltar | Shift/K: Dash")
+            ? (t.platformer?.instructions || "A/D o Flechas: Mover | W/Espacio: Saltar | Shift/K: Dash | S/Abajo: Deslizar")
             : t.common.touch_controls}
         </GameInstructions>
 
@@ -230,6 +236,22 @@ function PlatformerContent() {
                   onPressOut={() => {}}
                   accessibilityLabel={"Dash"}
                   accessibilityHint={"Performs a rapid forward dash"}
+                  style={{ marginHorizontal: spacing.sm }}
+                />
+                <TouchActionButton
+                  label="SLIDE"
+                  buttonName="slide"
+                  touchState={touchStateRef.current ?? undefined}
+                  size={55}
+                  color="rgba(30, 41, 59, 0.7)"
+                  borderColor={colors.gold}
+                  pressedColor="rgba(30, 41, 59, 0.9)"
+                  pressedBorderColor={colors.white}
+                  haptic="light"
+                  onPressIn={() => handleTouchSlide(true)}
+                  onPressOut={() => handleTouchSlide(false)}
+                  accessibilityLabel="Slide"
+                  accessibilityHint="Deslizarse bajo obstáculos bajos"
                   style={{ marginHorizontal: spacing.sm }}
                 />
                 <TouchActionButton

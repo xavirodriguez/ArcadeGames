@@ -14,7 +14,7 @@ import {
 import { computeSpeedLines, computeOutrunPlayerArtworkScale } from "./OutrunVisualHelpers";
 import { computeOutrunRoadSpeedLineSegments, resolveOutrunRoadSegmentArtwork } from "./OutrunRoadArtwork";
 import { resolveOutrunRoadsideArtworkStyle } from "./OutrunRoadsideArtwork";
-import { resolveOutrunPlayerPalette, resolveOutrunTrafficArtworkStyle } from "./OutrunVehicleArtwork";
+import { resolveOutrunPlayerPalette, resolveOutrunTrafficArtworkStyle, resolveOutrunTrafficVehicleGeometry } from "./OutrunVehicleArtwork";
 import { computeOutrunHeadlightBeams } from "./OutrunLighting";
 import { resolveOutrunHudLayout } from "./OutrunHudArtwork";
 import { resolveOutrunSceneryLayout, type OutrunSceneryLayout, type MountainLayerLayout } from "./OutrunScenery";
@@ -554,49 +554,40 @@ function drawOutrunTrafficVehicleCanvas(
   }
 
   const style = resolveOutrunTrafficArtworkStyle(config, styleIndex, width, activeMod);
-  const bodyTop = -style.bodyHeight;
-  const cabinBaseY = bodyTop;
-  const cabinTopY = cabinBaseY - style.cabinHeight;
-
+  const geometry = resolveOutrunTrafficVehicleGeometry(style);
   ctx.save();
   ctx.translate(centerX, baselineY);
-  ctx.globalAlpha = style.shadowAlpha;
-  ctx.fillStyle = style.shadowColor;
-  ctx.beginPath();
-  ctx.ellipse(0, 0, style.shadowRadiusX, style.shadowRadiusY, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.globalAlpha = 1;
 
-  fillVehicleRoundedRectCanvas(ctx, {
-    x: -style.bodyWidth / 2, y: bodyTop, width: style.bodyWidth, height: style.bodyHeight,
-    cornerRadius: style.bodyCornerRadius
-  }, style.bodyColor);
+  for (const command of geometry) {
+    const previousAlpha = ctx.globalAlpha;
+    if (command.alpha !== undefined) ctx.globalAlpha = previousAlpha * command.alpha;
+    ctx.fillStyle = command.color;
 
-  const baseHalf = style.cabinBaseWidth / 2;
-  const roofHalf = style.cabinRoofWidth / 2;
-  fillVehiclePolygonCanvas(ctx, [
-    { x: -baseHalf, y: cabinBaseY },
-    { x: baseHalf, y: cabinBaseY },
-    { x: roofHalf, y: cabinTopY },
-    { x: -roofHalf, y: cabinTopY }
-  ], style.cabinColor);
+    switch (command.kind) {
+      case "rect":
+        ctx.fillRect(command.x, command.y, command.width, command.height);
+        break;
+      case "ellipse":
+        ctx.beginPath();
+        ctx.ellipse(command.centerX, command.centerY, command.radiusX, command.radiusY, 0, 0, Math.PI * 2);
+        ctx.fill();
+        break;
+      case "polygon":
+        if (command.points.length >= 3) {
+          ctx.beginPath();
+          ctx.moveTo(command.points[0]!.x, command.points[0]!.y);
+          for (let index = 1; index < command.points.length; index++) {
+            const point = command.points[index]!;
+            ctx.lineTo(point.x, point.y);
+          }
+          ctx.closePath();
+          ctx.fill();
+        }
+        break;
+    }
 
-  const windowBaseHalf = baseHalf * 0.72;
-  const windowRoofHalf = roofHalf * 0.72;
-  fillVehiclePolygonCanvas(ctx, [
-    { x: -windowBaseHalf, y: cabinBaseY - style.cabinHeight * 0.08 },
-    { x: windowBaseHalf, y: cabinBaseY - style.cabinHeight * 0.08 },
-    { x: windowRoofHalf, y: cabinTopY + style.cabinHeight * 0.18 },
-    { x: -windowRoofHalf, y: cabinTopY + style.cabinHeight * 0.18 }
-  ], style.glassColor);
-
-  fillVehicleRoundedRectCanvas(ctx, {
-    x: -style.lightBarWidth / 2,
-    y: bodyTop + style.lightBarTopOffset,
-    width: style.lightBarWidth,
-    height: style.lightBarHeight,
-    cornerRadius: style.lightBarHeight / 2
-  }, style.lightBarColor);
+    ctx.globalAlpha = previousAlpha;
+  }
 
   ctx.restore();
 }

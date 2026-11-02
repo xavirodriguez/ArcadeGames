@@ -1,5 +1,6 @@
 import type { Theme } from "@tiny-aster/core";
 import type { OutrunThemeModule } from "../types";
+import { resolveOutrunTrafficVehicleKind } from "../../rendering/OutrunVehicleArtwork";
 import {
   drawOutrunRoad,
   drawOutrunCar,
@@ -78,7 +79,6 @@ export const classicTheme: OutrunThemeModule = {
   },
 
   resolveTrafficVehicleShape(styleIndex: number): string {
-    const shapeIndex = ((Math.trunc(styleIndex) % 3) + 3) % 3;
-    return shapeIndex === 0 ? "coupe" : shapeIndex === 1 ? "van" : "truck";
+    return resolveOutrunTrafficVehicleKind(styleIndex);
   }
 };

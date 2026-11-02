@@ -2,10 +2,12 @@ import { World } from "@tiny-aster/core";
 import { OutrunGame } from "../OutrunGame";
 import { registerVisualMod, resolveVisualMod, listVisualMods } from "../mods/registry";
 import { classicMod } from "../mods/classic/ClassicMod";
+import { arcadeMotorcycleMod } from "../mods/motorcycle/ArcadeMotorcycleMod";
+import { resolveMotorcycleFrameIndex } from "../mods/motorcycle/resolveMotorcycleFrameIndex";
 import { resolveOutrunRoadsideKind } from "../rendering/OutrunRoadsideArtwork";
 import { resolveOutrunTrafficArtworkStyle } from "../rendering/OutrunVehicleArtwork";
 import { initializeOutrunRenderer } from "../rendering/OutrunRendererManager";
-import type { OutrunVisualMod } from "../mods/types";
+import type { OutrunVisualMod, OutrunThemeModule, OutrunGameplayMod } from "../mods/types";
 import type { OutrunComponentRegistry, OutrunEventRegistry, RoadData } from "../types/OutrunTypes";
 import { OutrunConfigSchema } from "../types/OutrunConfigSchema";
 
@@ -150,6 +152,71 @@ describe("Outrun Visual Mods Architecture", () => {
     expect(registeredCanvasEffects).toContain("outrun_hud");
     expect(registeredSkiaShapes).toContain("road");
     expect(registeredSkiaEffects).toContain("outrun_hud");
+  });
+
+  it("maps the continuous steering tilt to seven clamped motorcycle poses", () => {
+    expect([
+      resolveMotorcycleFrameIndex(-0.08),
+      resolveMotorcycleFrameIndex(-0.05),
+      resolveMotorcycleFrameIndex(-0.02),
+      resolveMotorcycleFrameIndex(0),
+      resolveMotorcycleFrameIndex(0.02),
+      resolveMotorcycleFrameIndex(0.05),
+      resolveMotorcycleFrameIndex(0.08)
+    ]).toEqual([-3, -2, -1, 0, 1, 2, 3]);
+
+    expect(resolveMotorcycleFrameIndex(-1)).toBe(-3);
+    expect(resolveMotorcycleFrameIndex(1)).toBe(3);
+    expect(resolveMotorcycleFrameIndex(Number.NaN)).toBe(0);
+  });
+
+  it("registers the Arcade Moto player drawer for Canvas and Skia without replacing traffic", () => {
+    const registeredCanvasShapes: string[] = [];
+    const registeredSkiaShapes: string[] = [];
+    const mockCanvasRenderer: any = {
+      type: "canvas",
+      registerShape: jest.fn((shape) => registeredCanvasShapes.push(shape)),
+      registerBackgroundEffect: jest.fn()
+    };
+    const mockSkiaRenderer: any = {
+      type: "skia",
+      registerShape: jest.fn((shape) => registeredSkiaShapes.push(shape)),
+      registerBackgroundEffect: jest.fn()
+    };
+
+    initializeOutrunRenderer(mockCanvasRenderer, arcadeMotorcycleMod);
+    initializeOutrunRenderer(mockSkiaRenderer, arcadeMotorcycleMod);
+
+    expect(registeredCanvasShapes).toEqual(["road", "outrun_car", "outrun_racer"]);
+    expect(registeredSkiaShapes).toEqual(["road", "outrun_car", "outrun_racer"]);
+    expect(arcadeMotorcycleMod.resolveRoadsideKind?.("cypress")).toBe("pine");
+    expect(arcadeMotorcycleMod.resolveTrafficVehicleShape?.(2)).toBe(
+      classicMod.resolveTrafficVehicleShape?.(2)
+    );
+    expect(listVisualMods().some((mod) => mod.id === "arcade-moto" && mod.displayName === "Arcade Moto")).toBe(true);
+  });
+
+  it("activates Arcade Moto through gameOptions.mod without exposing presentation to gameplay", async () => {
+    const game = new OutrunGame({
+      seed: 9876,
+      gameOptions: { mod: "arcade-moto" },
+      headless: true
+    });
+
+    await game.init();
+
+    const world = game.getWorld();
+    const activeMod = world.getResource<OutrunVisualMod>("VisualMod");
+    const themeModule = world.getResource<OutrunThemeModule>("OutrunThemeModule");
+    const gameplayMod = world.getResource<OutrunGameplayMod>("GameplayMod");
+
+    expect(activeMod?.id).toBe("arcade-moto");
+    expect(themeModule?.id).toBe("arcade-moto");
+    expect(gameplayMod?.id).toBe("arcade-moto");
+    expect("registerDrawers" in (gameplayMod ?? {})).toBe(false);
+    expect(activeMod?.resolveTrafficVehicleShape?.(0)).toBe("coupe");
+
+    game.destroy();
   });
 
   it("preserves ClassicMod behavior when no mod is specified", () => {

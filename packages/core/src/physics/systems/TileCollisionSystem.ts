@@ -96,9 +96,13 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
     for (let i = 0; i < contactEntities.length; i++) {
       const state = world.getMutableComponent(contactEntities[i], contactStateType) as PhysicsContactStateComponent | undefined;
       if (state) {
-        state.contacts = [];
-        state.groundContact = undefined;
-        state.isGrounded = false;
+        // PlatformCarrySystem resolves moving supports in Simulation before this
+        // collision phase. Retain only live platform contacts across the reset.
+        state.contacts = state.contacts.filter((contact) =>
+          world.hasEntity(contact.entity) && world.hasComponent(contact.entity, "MovingPlatform")
+        );
+        state.groundContact = state.contacts.find((contact) => contact.normal.y < -0.5);
+        state.isGrounded = state.groundContact !== undefined;
       }
     }
 
@@ -158,9 +162,14 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
       const prevX = trans.x - vel.vx * deltaTime;
       const prevY = trans.y - vel.vy * deltaTime;
 
-      let isGrounded = false;
+      const previousContactState = world.getComponent(entity, contactStateType) as PhysicsContactStateComponent | undefined;
+      const platformContacts = previousContactState?.contacts.filter((contact) =>
+        world.hasEntity(contact.entity) && world.hasComponent(contact.entity, "MovingPlatform")
+      ) ?? [];
+      const platformGroundContact = platformContacts.find((contact) => contact.normal.y < -0.5);
+      let isGrounded = platformGroundContact !== undefined;
       let onIce = false;
-      const contacts: PhysicsContact[] = [];
+      const contacts: PhysicsContact[] = platformContacts.slice();
 
       // --- Resolve X axis ---
       let currentX = trans.x;
@@ -402,8 +411,11 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
         const mutableContacts = world.getMutableComponent(entity, contactStateType) as PhysicsContactStateComponent | undefined;
         if (mutableContacts) {
           mutableContacts.contacts = contacts;
+          const tileGroundContact = contacts.find((contact) =>
+            contact.normal.y < -0.5 && !world.hasComponent(contact.entity, "MovingPlatform")
+          );
           mutableContacts.groundContact = isGrounded
-            ? (slopeGroundContact ?? contacts.find((contact) => contact.normal.y < -0.5))
+            ? (slopeGroundContact ?? tileGroundContact ?? platformGroundContact)
             : undefined;
           mutableContacts.isGrounded = isGrounded && mutableContacts.groundContact !== undefined;
         }

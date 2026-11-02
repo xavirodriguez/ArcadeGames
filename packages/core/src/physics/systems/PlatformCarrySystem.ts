@@ -198,8 +198,7 @@ export class PlatformCarrySystem extends System<CoreComponentRegistry> {
     };
     const state = world.getMutableComponent(character, "PhysicsContactState") as PhysicsContactStateComponent | undefined;
     if (!state) return;
-    state.contacts = state.contacts.filter((existing) => existing.entity !== platform);
-    state.contacts.push(contact);
+    state.contacts = [contact];
     state.groundContact = contact;
     state.isGrounded = true;
   }

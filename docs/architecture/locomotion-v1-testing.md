@@ -71,6 +71,7 @@ Do not report a test as passing unless the command was actually executed against
 - Reduced `PlatformerCoyoteSystem` to coyote/buffer timer advancement; it no longer applies impulses.
 - Registered the new resolver after the timer system in the shared Platformer/Echo Runner system registry.
 - Added `packages/core/tests/PlatformerJumpSystem.test.ts` for grounded jump/short-hop, coyote/buffer, and double-jump exhaustion.
+- Updated the Echo Runner system-schedule snapshot for the newly registered shared jump system.
 - Test execution: **not verified**; the GitHub connector cannot run the repository's pnpm/Jest toolchain.
 - Remaining Locomotion v1 scope includes richer controller profiles, slide/clearance, slopes/contact normals, surface materials, momentum transfer, integration/replay coverage and the Locomotion Lab.
 

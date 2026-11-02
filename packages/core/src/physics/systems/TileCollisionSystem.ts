@@ -92,6 +92,7 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
   public update(world: World<TRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
     const contactStateType = "PhysicsContactState" as Extract<keyof TRegistry, string>;
+    const movingPlatformType = "MovingPlatform" as Extract<keyof TRegistry, string>;
     const contactEntities = world.query(contactStateType);
     for (let i = 0; i < contactEntities.length; i++) {
       const state = world.getMutableComponent(contactEntities[i], contactStateType) as PhysicsContactStateComponent | undefined;
@@ -99,7 +100,7 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
         // PlatformCarrySystem resolves moving supports in Simulation before this
         // collision phase. Retain only live platform contacts across the reset.
         state.contacts = state.contacts.filter((contact) =>
-          world.hasEntity(contact.entity) && world.hasComponent(contact.entity, "MovingPlatform")
+          world.hasEntity(contact.entity) && world.hasComponent(contact.entity, movingPlatformType)
         );
         state.groundContact = state.contacts.find((contact) => contact.normal.y < -0.5);
         state.isGrounded = state.groundContact !== undefined;
@@ -164,7 +165,7 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
 
       const previousContactState = world.getComponent(entity, contactStateType) as PhysicsContactStateComponent | undefined;
       const platformContacts = previousContactState?.contacts.filter((contact) =>
-        world.hasEntity(contact.entity) && world.hasComponent(contact.entity, "MovingPlatform")
+        world.hasEntity(contact.entity) && world.hasComponent(contact.entity, movingPlatformType)
       ) ?? [];
       const platformGroundContact = platformContacts.find((contact) => contact.normal.y < -0.5);
       let isGrounded = platformGroundContact !== undefined;
@@ -412,7 +413,7 @@ export class TileCollisionSystem<TRegistry extends ComponentRegistry = CoreCompo
         if (mutableContacts) {
           mutableContacts.contacts = contacts;
           const tileGroundContact = contacts.find((contact) =>
-            contact.normal.y < -0.5 && !world.hasComponent(contact.entity, "MovingPlatform")
+            contact.normal.y < -0.5 && !world.hasComponent(contact.entity, movingPlatformType)
           );
           mutableContacts.groundContact = isGrounded
             ? (slopeGroundContact ?? tileGroundContact ?? platformGroundContact)

@@ -120,6 +120,6 @@ Do not report a test as passing unless the command was actually executed against
 ### Increment 6 — moving-platform support (B5)
 
 - Added tests for fixed-step platform advancement, passenger displacement, published contact surface velocity, vertical velocity inheritance on landing, configured momentum preservation on detachment, legacy opt-out behavior and zero-duration safety.
-- Updated TileCollisionSystem to retain only live MovingPlatform contacts across its per-tick contact reset.
+- Updated TileCollisionSystem to retain only live MovingPlatform contacts across its per-tick contact reset. Contact-aware passengers are carried by support-velocity rebasing and the single PhysicsIntegrate pass; PhysicsIntegrateSystem explicitly skips directly-authored MovingPlatform transforms.
 - System schedule order: MovingPlatformSystem → locomotion/jump systems → PlatformCarrySystem → PhysicsIntegrateSystem.
 - Test execution: pending GitHub Actions; no local test run is claimed.

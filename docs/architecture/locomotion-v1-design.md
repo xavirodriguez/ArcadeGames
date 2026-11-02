@@ -166,9 +166,10 @@ Use fixed-timestep `deltaTime` for integration only. Gameplay windows use intege
 ## 12. Implementation gates
 
 1. [x] Confirm generic snapshot serialization of ECS component fields; verify builder collider type before posture work.
-2. [x] Move jump edge history into ECS-backed deterministic data; jump execution is still split and consolidation remains pending.
-3. Add movement profile/controller state with focused unit tests.
-4. Extend gravity and tick timers with boundary tests.
-5. Add slide posture/clearance query; do not ship if stand-up overlap is unresolved.
-6. Add surface material lookup and a real slope-capable contact geometry path.
-7. Add deterministic integration/replay tests and Locomotion Lab.
+2. [x] Move jump edge history into ECS-backed deterministic data.
+3. [x] Consolidate grounded, coyote, buffered, multi-jump and short-hop impulse decisions in `PlatformerJumpSystem`; `PlatformerCoyoteSystem` now owns timers only.
+4. Add movement profile/controller state with focused unit tests.
+5. Extend gravity and tick timers with boundary tests.
+6. Add slide posture/clearance query; do not ship if stand-up overlap is unresolved.
+7. Add surface material lookup and a real slope-capable contact geometry path.
+8. Add deterministic integration/replay tests and Locomotion Lab.

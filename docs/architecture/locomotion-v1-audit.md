@@ -108,7 +108,7 @@ No schedule change is required solely to make priority -10 late in Simulation: t
 - **Slope scope:** genuine slope support may require a minimal extension to tile collision/contact queries, not merely a material coefficient.
 - **Schedule order:** collision-resolved grounding is available in a later phase than current input/jump processing.
 
-## 11. Implementation progress — 2026-11-01
+## 11. Implementation progress — 2026-11-02
 
 - `PlatformerInputComponent` now has optional `previousJumpHeld` state.
 - `PlatformerInputSystem` derives pressed/released edges from that ECS field instead of a private `Map<Entity, boolean>`.
@@ -120,3 +120,4 @@ No schedule change is required solely to make priority -10 late in Simulation: t
 - Trace `EntityBuilder.withCollider` and `ArcadeEntityBuilder.withCollider2D` to resolve the player collider mismatch risk.
 - Inspect tile definition schema and collision tests for existing slope/one-way assumptions. Tile definitions currently support `normal | ice | spike | bounce`, optional friction and bounce; this is not a slope geometry contract.
 - Inspect Platformer and Echo Runner tests and defaults to define backward-compatible profile migration.
+- Add controller profiles, slope/contact geometry, slide posture and clearance, and inherited surface/platform velocity as separate tested increments.

@@ -55,19 +55,19 @@ describe("Platformer Input Mutation Tests", () => {
 
   it("should route the held slide action to PlatformerInput.slideHeld", () => {
     mutatePlatformerInputState(world as any, { slide: true });
-    expect(world.getComponent(playerEntity, "PlatformerInput" as any)).toMatchObject({ slideHeld: true, slideActionHeld: true });
+    expect(world.getComponent(playerEntity, "PlatformerInput")).toMatchObject({ slideHeld: true, slideActionHeld: true });
 
     mutatePlatformerInputState(world as any, { slide: false });
-    expect(world.getComponent(playerEntity, "PlatformerInput" as any)).toMatchObject({ slideHeld: false, slideActionHeld: false });
+    expect(world.getComponent(playerEntity, "PlatformerInput")).toMatchObject({ slideHeld: false, slideActionHeld: false });
   });
 
   it("should update moveRight without getting stuck on previous moveLeft state", () => {
     mutatePlatformerInputState(world as any, { moveLeft: true });
-    let inputComp = world.getComponent(playerEntity, "PlatformerInput" as any) as any;
-    expect(inputComp.moveDir).toBe(-1);
+    let inputComp = world.getComponent(playerEntity, "PlatformerInput");
+    expect(inputComp?.moveDir).toBe(-1);
 
     mutatePlatformerInputState(world as any, { moveLeft: false, moveRight: true });
-    inputComp = world.getComponent(playerEntity, "PlatformerInput" as any) as any;
-    expect(inputComp.moveDir).toBe(1);
+    inputComp = world.getComponent(playerEntity, "PlatformerInput");
+    expect(inputComp?.moveDir).toBe(1);
   });
 });

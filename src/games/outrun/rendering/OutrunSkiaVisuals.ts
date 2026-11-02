@@ -66,7 +66,7 @@ function drawOutrunBitmapSpriteSkia(
   const size = sw * 0.8;
   const w = size;
   const h = size * aspect;
-  if (sy >= clipY || w < 2) return false;
+  if (sy > clipY || w < 2) return false;
 
   const anchorX = spec.anchor?.x ?? 0.5;
   const anchorY = spec.anchor?.y ?? 1.0;
@@ -102,7 +102,7 @@ function drawRoadSpriteSkia(
   activeMod?: OutrunVisualMod,
   world?: import("@tiny-aster/core").World<OutrunComponentRegistry>
 ): void {
-  if (!Skia || sy >= clipY || sw < 2) return;
+  if (!Skia || sy > clipY || sw < 2) return;
 
   if (activeMod?.drawRoadsideSprite) {
     const handled = activeMod.drawRoadsideSprite({

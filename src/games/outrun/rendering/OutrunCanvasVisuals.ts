@@ -59,7 +59,7 @@ function drawOutrunBitmapSpriteCanvas(
   const size = sw * 0.8;
   const w = size;
   const h = size * aspect;
-  if (sy >= clipY || w < 2) return false;
+  if (sy > clipY || w < 2) return false;
 
   const anchorX = spec.anchor?.x ?? 0.5;
   const anchorY = spec.anchor?.y ?? 1.0;
@@ -94,7 +94,7 @@ function drawRoadSpriteCanvas(
   activeMod?: OutrunVisualMod,
   world?: import("@tiny-aster/core").World<OutrunComponentRegistry>
 ): void {
-  if (sy >= clipY || sw < 2) return;
+  if (sy > clipY || sw < 2) return;
 
   if (activeMod?.drawRoadsideSprite) {
     const handled = activeMod.drawRoadsideSprite({
@@ -760,16 +760,17 @@ export const drawOutrunCar: ShapeDrawer<CanvasRenderingContext2D, OutrunComponen
     // Speed Lines
     const speedLines = computeSpeedLines(config.WIDTH, config.HEIGHT, config.HEIGHT * 0.45, state.playerZ, speedRatio);
     if (speedLines) {
+      ctx.save();
       ctx.strokeStyle = colors.white;
       ctx.lineWidth = 2;
-      for (const line of speedLines) {
-        ctx.globalAlpha = line.alpha;
+      speedLines.forEach((streak) => {
+        ctx.globalAlpha = streak.alpha;
         ctx.beginPath();
-        ctx.moveTo(line.x1, line.y1);
-        ctx.lineTo(line.x2, line.y2);
+        ctx.moveTo(streak.x1, streak.y1);
+        ctx.lineTo(streak.x2, streak.y2);
         ctx.stroke();
-      }
-      ctx.globalAlpha = 1.0;
+      });
+      ctx.restore();
     }
 
     const vehicleScale = computeOutrunPlayerArtworkScale(config);

@@ -22,6 +22,7 @@ import { PowerUpComponent } from "@tiny-aster/gameplay-kit";
 import { BulletPool, AsteroidPool } from "./EntityPool";
 import { colors } from "../../theme/colors";
 import { getGameplayColor } from "../../theme/GameplayColorMap";
+import { ResourceType, CollectibleResourceComponent, PlayerInventoryComponent, MagneticCollectorComponent } from "./types/EconomyTypes";
 
 /**
  * @param lootType - Loot/power-up identifier (e.g. "shield", "speed_boost").
@@ -154,6 +155,25 @@ export function registerAsteroidsBlueprints(
         sessionId: "",
         shootCooldownRemaining: 0
       } as AsteroidsComponentRegistry["Ship"]);
+
+      // Initial Roguelite Inventory & Magnetic Collector
+      w.addComponent(entity, {
+        type: "PlayerInventory",
+        energy: 100,
+        maxEnergy: 100,
+        minerals: 0,
+        components: 0,
+        activeUpgrades: []
+      } as PlayerInventoryComponent);
+
+      w.addComponent(entity, {
+        type: "MagneticCollector",
+        mode: "active",
+        baseRadius: gameConfig?.MAGNETIC_BASE_RADIUS ?? 120,
+        overchargeRadiusMultiplier: 2.0,
+        pullForce: gameConfig?.MAGNETIC_BASE_FORCE ?? 180,
+        energyDrainPerSecond: 0
+      } as MagneticCollectorComponent);
 
       const hasComboHeadStart = w.getResource("HasComboHeadStart") === true;
       const initialCombo = hasComboHeadStart ? 5 : 0;
@@ -368,8 +388,101 @@ export function registerAsteroidsBlueprints(
     }
   });
 
+  registry.register("resource", {
+    spawn: (w: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, entity: number, args: { x: number; y: number; resourceType: ResourceType; amount: number; vx?: number; vy?: number; lifetimeTicks?: number }) => {
+      const gameConfig = w.getResource<AsteroidConfig>("GameConfig");
+      const worldWidth = gameConfig?.worldWidth ?? 800;
+      const worldHeight = gameConfig?.worldHeight ?? 600;
+      const lifetime = args.lifetimeTicks ?? (gameConfig?.RESOURCE_LIFETIME_TICKS ?? 600);
+
+      const colorMap: Record<ResourceType, string> = {
+        energy: colors.cyan,
+        minerals: colors.gold,
+        components: colors.purple
+      };
+      const tint = colorMap[args.resourceType] || colors.white;
+
+      EntityBuilder.fromEntity(w, entity)
+        .withTransform({
+          x: args.x,
+          y: args.y,
+          dirty: true
+        })
+        .withVelocity({
+          vx: args.vx ?? 0,
+          vy: args.vy ?? 0
+        })
+        .withRender({
+          shape: "diamond",
+          size: 8,
+          color: tint,
+          order: 4
+        })
+        .withCollider({
+          shape: { type: ShapeType.Circle, radius: 10 } as CircleShape,
+          layer: CollisionLayers.ENEMY, // Collides with player
+          mask: CollisionLayers.PLAYER,
+          isTrigger: true
+        })
+        .withCollisionEvents();
+
+      w.addComponent(entity, {
+        type: "Boundary",
+        width: worldWidth,
+        height: worldHeight,
+        mode: "wrap"
+      } as BoundaryComponent);
+
+      w.addComponent(entity, {
+        type: "CollectibleResource",
+        resourceType: args.resourceType,
+        amount: args.amount,
+        lifetimeTicks: lifetime,
+        maxLifetimeTicks: lifetime,
+        collectionRadius: 16,
+        isCollected: false
+      } as CollectibleResourceComponent);
+
+      const eventBus = w.getEventBus();
+      if (eventBus) {
+        eventBus.emitDeferred("resource:spawned", {
+          entity,
+          resourceType: args.resourceType,
+          amount: args.amount,
+          x: args.x,
+          y: args.y
+        });
+      }
+    }
+  });
+
   world.setResource("BlueprintRegistry", registry);
 }
+
+/**
+ * Spawns a physical collectible resource with inherited momentum.
+ * @public
+ */
+export const createResourcePickup = (config: {
+  world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>;
+  x: number;
+  y: number;
+  resourceType: ResourceType;
+  amount: number;
+  vx?: number;
+  vy?: number;
+  lifetimeTicks?: number;
+}): number => {
+  return spawnBlueprintEntity(config.world, "resource", {
+    x: config.x,
+    y: config.y,
+    resourceType: config.resourceType,
+    amount: config.amount,
+    vx: config.vx,
+    vy: config.vy,
+    lifetimeTicks: config.lifetimeTicks
+  });
+};
 
 /**
  * @public

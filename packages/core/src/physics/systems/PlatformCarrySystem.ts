@@ -172,7 +172,6 @@ export class PlatformCarrySystem extends System<CoreComponentRegistry> {
         transform.y = platformTop - characterShape.halfHeight - characterCollider.offsetY;
         transform.dirty = true;
       });
-      const contactState = world.getComponent(character, "PhysicsContactState");
       world.mutateComponent(character, "Velocity", (velocity) => {
         // Landing snaps to the platform's already-advanced transform. Do not integrate
         // its displacement twice; support velocity is applied from the next attached tick.

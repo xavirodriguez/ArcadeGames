@@ -3,6 +3,7 @@ import { CoreComponentRegistry } from "../src/ecs/CoreComponents";
 import { MovingPlatformSystem } from "../src/physics/systems/MovingPlatformSystem";
 import { PlatformCarrySystem } from "../src/physics/systems/PlatformCarrySystem";
 import { PhysicsIntegrateSystem } from "../src/physics/dynamics/PhysicsIntegrateSystem";
+import { TileCollisionSystem } from "../src/physics/systems/TileCollisionSystem";
 
 describe("Locomotion B5 moving-platform support", () => {
   const addTransform = (world: World<CoreComponentRegistry>, entity: number, x: number, y: number): void => {
@@ -52,6 +53,8 @@ describe("Locomotion B5 moving-platform support", () => {
 
     expect(world.getComponent(platform, "Transform")?.x).toBeCloseTo(150, 5);
     expect(world.getComponent(platform, "Velocity")?.vx).toBeCloseTo(50, 5);
+    new TileCollisionSystem().update(world, 1);
+    expect(world.getComponent(passenger, "PhysicsContactState")?.groundContact?.entity).toBe(platform);
     new PhysicsIntegrateSystem().update(world, 1);
     expect(world.getComponent(passenger, "Transform")?.x).toBeCloseTo(150, 5);
     expect(world.getComponent(platform, "Transform")?.x).toBeCloseTo(150, 5);

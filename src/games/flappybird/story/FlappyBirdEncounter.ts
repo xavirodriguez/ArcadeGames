@@ -123,8 +123,7 @@ import { BaseArcadeAdapter } from "../../shared/story/adapters/BaseArcadeAdapter
  */
 export class FlappyBirdArcadeAdapter extends BaseArcadeAdapter<FlappyBirdGame> {
   protected createGame(context: MiniGameRunContext): FlappyBirdGame {
-        // TODO(refactor): código duplicado detectado (bloque) con platformer/story/PlatformerEncounter.ts:125-130. Considerar extraer a función compartida. Ref: 825a8f96
-return new FlappyBirdGame({ seed: context.seed });
+    return new FlappyBirdGame({ seed: context.seed });
   }
 
   protected buildResult(context: MiniGameRunContext, payload?: Record<string, unknown>): MiniGameResult {

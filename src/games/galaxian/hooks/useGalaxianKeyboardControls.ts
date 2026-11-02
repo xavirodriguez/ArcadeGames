@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { Platform } from "react-native";
 import type { GalaxianConfig } from "../types/GalaxianConfigSchema";
 import type { GalaxianGame } from "../GalaxianGame";
-import type { GalaxianInputState } from "../types/GalaxianTypes";
 import {
   resolveGalaxianKeyActions,
   type GalaxianControlInput,

@@ -21,7 +21,6 @@ import {
 const DEFAULT_SOURCE_ROOT = "assets/sprites/sources";
 const DEFAULT_ASSET_OUTPUT_ROOT = "assets/sprites/generated";
 const DEFAULT_DEFINITION_OUTPUT_ROOT = "src/games/shared/sprites/generated";
-const GENERATED_INDEX_PATH = DEFAULT_DEFINITION_OUTPUT_ROOT + "/index.generated.ts";
 
 export interface SpriteBuildArtifact {
   path: string;
@@ -54,7 +53,6 @@ export interface SpritePipelineOptions {
 
 interface DiscoveredSpriteSource {
   category: string;
-  directoryName: string;
   config: SpriteSourceConfig;
   mode: "aseprite" | "full-image";
   jsonPath?: string;
@@ -63,7 +61,6 @@ interface DiscoveredSpriteSource {
 }
 
 interface BuiltSpriteSheet {
-  definition: SpriteSheetDefinition;
   summary: SpriteBuildSheetSummary;
   artifacts: SpriteBuildArtifact[];
 }
@@ -198,7 +195,6 @@ function discoverSpriteSources(
 
         discovered.push({
           category,
-          directoryName,
           config,
           mode: "aseprite",
           jsonPath,
@@ -218,7 +214,6 @@ function discoverSpriteSources(
 
         discovered.push({
           category,
-          directoryName,
           config,
           mode: "full-image",
           pngPath: imagePngPath
@@ -437,7 +432,6 @@ function buildOneSpriteSheet(
   };
 
   return {
-    definition,
     summary,
     artifacts: [
       { path: assetPath, content: pngBytes },

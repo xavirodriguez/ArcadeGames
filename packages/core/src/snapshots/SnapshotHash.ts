@@ -8,6 +8,7 @@ interface SnapshotHeader {
   tick: number;
   seed: number;
   rngState?: number;
+  renderRngState?: number;
   entities: number[] | Int32Array;
 }
 
@@ -18,6 +19,9 @@ function hashSnapshotHeader(header: SnapshotHeader): number {
   hash = hashInt32(hash, header.seed);
   if (header.rngState !== undefined) {
     hash = hashInt32(hash, header.rngState);
+  }
+  if (header.renderRngState !== undefined) {
+    hash = hashInt32(hash, header.renderRngState);
   }
 
   const entities = header.entities;
@@ -102,6 +106,7 @@ export function hashAoS(snapshot: {
   componentData: Record<string, Record<number, unknown>>;
   seed: number;
   rngState?: number;
+  renderRngState?: number;
 }): string {
   let hash = hashSnapshotHeader(snapshot);
 

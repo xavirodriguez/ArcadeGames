@@ -5,6 +5,8 @@ import {
   Renderer,
   RendererUtils,
   SystemPhase,
+  PhysicsIntegrateSystem,
+  InvulnerabilitySystem,
   CanonicalInputState,
   hasInputAction,
 } from "@tiny-aster/core";
@@ -26,6 +28,7 @@ import { DiveSystem } from "./systems/DiveSystem";
 import { ShootingSystem } from "./systems/ShootingSystem";
 import { EnemyShootingSystem } from "./systems/EnemyShootingSystem";
 import { GalaxianCollisionSystem } from "./systems/GalaxianCollisionSystem";
+import { ProjectileCleanupSystem } from "./systems/ProjectileCleanupSystem";
 import { WaveSystem } from "./systems/WaveSystem";
 import { EnemyPoseVisualSystem } from "./systems/EnemyPoseVisualSystem";
 import { DiveTrailVisualSystem } from "./systems/DiveTrailVisualSystem";
@@ -96,6 +99,8 @@ export class GalaxianGame extends BaseGame<
     this.world.setResource("ScreenConfig", { width: this.config.worldWidth, height: this.config.worldHeight });
     this.setupCommonArcadeResources();
     this.world.setResource("IsHeadless", this.isHeadless);
+    const renderSeed = (this.getSeed() ^ 0x9E3779B9) >>> 0;
+    this.world.renderRandom.setSeed(renderSeed);
 
     this.bulletPool = new BulletPool();
 
@@ -106,6 +111,15 @@ export class GalaxianGame extends BaseGame<
     this.world.addSystem(new DiveSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new ShootingSystem(this.bulletPool), { phase: SystemPhase.Simulation });
     this.world.addSystem(new EnemyShootingSystem(this.bulletPool), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new InvulnerabilitySystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new PhysicsIntegrateSystem<GalaxianComponentRegistry>(), {
+      phase: SystemPhase.Simulation,
+      priority: -10,
+    });
+    this.world.addSystem(new ProjectileCleanupSystem(this.bulletPool), {
+      phase: SystemPhase.Collision,
+      priority: 10,
+    });
     this.world.addSystem(new GalaxianCollisionSystem(this.bulletPool), { phase: SystemPhase.Collision });
     this.world.addSystem(new WaveSystem(), { phase: SystemPhase.GameRules });
 

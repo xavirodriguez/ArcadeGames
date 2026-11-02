@@ -99,6 +99,9 @@ export const drawSkiaGalaxianPlayer: ShapeDrawer<SkCanvas, GalaxianComponentRegi
 
     if (!render || !palette) return;
 
+    const invulnerability = world.getComponent(entity, "Invulnerable");
+    if (invulnerability && invulnerability.remaining > 0 && Math.floor(world.tick / 5) % 2 === 0) return;
+
     canvas.save();
     if (pose && transform) {
       canvas.rotate(((pose.rotation - transform.rotation) * 180) / Math.PI, 0, 0);

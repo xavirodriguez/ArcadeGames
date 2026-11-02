@@ -26,6 +26,7 @@ export class GalaxianCollisionSystem extends System<GalaxianComponentRegistry> {
     const players = world.query("Player", "Transform", "Collider");
 
     // 1. Player Bullet vs Enemy Collision
+    const destroyedEnemies = new Set<number>();
     for (const pbEntity of playerBullets) {
       const pbTrans = world.getComponent(pbEntity, "Transform");
       const pbCollider = world.getComponent(pbEntity, "Collider");
@@ -34,6 +35,7 @@ export class GalaxianCollisionSystem extends System<GalaxianComponentRegistry> {
       const pbRadius = (pbCollider.shape as CircleShape).radius || 4;
 
       for (const enemyEntity of enemies) {
+        if (destroyedEnemies.has(enemyEntity)) continue;
         const enemyTrans = world.getComponent(enemyEntity, "Transform");
         const enemyCollider = world.getComponent(enemyEntity, "Collider");
         const enemyComp = world.getComponent(enemyEntity, "GalaxianEnemy") as GalaxianEnemyComponent | undefined;
@@ -77,6 +79,7 @@ export class GalaxianCollisionSystem extends System<GalaxianComponentRegistry> {
             inDive,
           });
 
+          destroyedEnemies.add(enemyEntity);
           world.commands.removeEntity(enemyEntity);
           this.bulletPool.release(world, pbEntity);
           break;
@@ -86,6 +89,9 @@ export class GalaxianCollisionSystem extends System<GalaxianComponentRegistry> {
 
     // 2. Enemy / EnemyBullet vs Player Collision
     for (const pEntity of players) {
+      const invulnerability = world.getComponent(pEntity, "Invulnerable");
+      if (invulnerability) continue;
+
       const pTrans = world.getMutableComponent(pEntity, "Transform");
       const pCollider = world.getComponent(pEntity, "Collider");
       if (!pTrans || !pCollider) continue;
@@ -108,6 +114,7 @@ export class GalaxianCollisionSystem extends System<GalaxianComponentRegistry> {
       // Enemy Body vs Player
       if (!playerHit) {
         for (const enemyEntity of enemies) {
+          if (destroyedEnemies.has(enemyEntity)) continue;
           const enemyTrans = world.getComponent(enemyEntity, "Transform");
           const enemyCollider = world.getComponent(enemyEntity, "Collider");
           if (!enemyTrans || !enemyCollider) continue;
@@ -116,6 +123,7 @@ export class GalaxianCollisionSystem extends System<GalaxianComponentRegistry> {
           if (Math.hypot(enemyTrans.x - pTrans.x, enemyTrans.y - pTrans.y) <= pRadius + eRadius) {
             playerHit = true;
             state.enemiesRemaining = Math.max(0, state.enemiesRemaining - 1);
+            destroyedEnemies.add(enemyEntity);
             world.commands.removeEntity(enemyEntity);
             break;
           }
@@ -128,10 +136,23 @@ export class GalaxianCollisionSystem extends System<GalaxianComponentRegistry> {
 
         if (state.lives <= 0) {
           state.isGameOver = true;
+          world.getEventBus()?.emit("game:over", {
+            state,
+            score: state.score,
+            level: state.level,
+          });
         } else {
           pTrans.x = (config?.worldWidth ?? 480) / 2;
           pTrans.y = (config?.worldHeight ?? 640) - 50;
           pTrans.dirty = true;
+
+          const invulnerabilitySeconds = (config?.INVULNERABILITY_DURATION_MS ?? 0) / 1000;
+          if (invulnerabilitySeconds > 0) {
+            world.commands.addComponent(pEntity, {
+              type: "Invulnerable",
+              remaining: invulnerabilitySeconds,
+            });
+          }
         }
       }
     }

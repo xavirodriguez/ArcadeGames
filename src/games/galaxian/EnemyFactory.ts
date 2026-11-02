@@ -64,6 +64,9 @@ export class EnemyFactory {
       scaleY: 1.0,
       visualOffsetX: 0,
       visualOffsetY: 0,
+      previousX: x,
+      previousY: y,
+      hasPreviousPosition: false,
     });
 
     world.addComponent(entity, {

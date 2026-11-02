@@ -1,4 +1,5 @@
 import { System, World } from "@tiny-aster/core";
+import { isGalaxianGameOver } from "./isGalaxianGameOver";
 import { GalaxianComponentRegistry, GalaxianEventRegistry, GalaxianEnemyComponent, FormationComponent, GalaxianStateComponent } from "../types/GalaxianTypes";
 import { GalaxianConfig } from "../types/GalaxianConfigSchema";
 import { PathPatternsSystem, createPathPattern, PathPatternComponent } from "../../shared/PathPatternsSystem";
@@ -12,7 +13,7 @@ export class DiveSystem extends System<GalaxianComponentRegistry, GalaxianEventR
   }
 
   public update(world: World<GalaxianComponentRegistry, GalaxianEventRegistry>, deltaTime: number): void {
-    if (world.getResource("IsPaused") === true || deltaTime <= 0) return;
+    if (world.getResource("IsPaused") === true || deltaTime <= 0 || isGalaxianGameOver(world)) return;
 
     const config = world.getResource<GalaxianConfig>("GameConfig");
     if (!config) return;
@@ -20,7 +21,7 @@ export class DiveSystem extends System<GalaxianComponentRegistry, GalaxianEventR
     const stateEntities = world.query("GameState");
     if (stateEntities.length === 0) return;
     const state = world.getMutableComponent(stateEntities[0], "GameState") as GalaxianStateComponent | undefined;
-    if (!state) return;
+    if (!state || state.isGameOver) return;
 
     const formationEntities = world.query("Formation");
     if (formationEntities.length === 0) return;

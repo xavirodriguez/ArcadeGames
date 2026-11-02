@@ -24,6 +24,10 @@ exports[`Echo Runner Game Simulation Tests should maintain expected registered p
   },
   {
     "phase": "Simulation",
+    "systemName": "PlatformerJumpSystem",
+  },
+  {
+    "phase": "Simulation",
     "systemName": "MovingPlatformSystem",
   },
   {

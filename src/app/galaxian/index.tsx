@@ -4,6 +4,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { TouchVirtualJoystick, TouchActionButton } from "@/components/controls";
 import { TouchInputState } from "@tiny-aster/core";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
+import { GameRenderer } from "@/components/GameRenderer";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
 import { GalaxianGame, GalaxianStateComponent } from "@/games/galaxian";
 import { useGalaxianGame } from "@/hooks/useGalaxianGame";
@@ -47,9 +48,6 @@ export default function GalaxianScreen() {
   const handleInputState = useCallback(
     (input: Partial<{ moveLeft: boolean; moveRight: boolean; shoot: boolean }>) => {
       handleInput(input);
-      if (game) {
-        game.setInput(input);
-      }
     },
     [handleInput, game]
   );
@@ -123,11 +121,19 @@ export default function GalaxianScreen() {
               </View>
             }
             canvasSlot={
-              <CanvasRenderer
-                world={game.getWorld()}
-                gameLoop={game.getGameLoop()}
-                onInitialize={(renderer) => game.initializeRenderer(renderer)}
-              />
+              Platform.OS === "web" ? (
+                <CanvasRenderer
+                  world={game.getWorld()}
+                  gameLoop={game.getGameLoop()}
+                  onInitialize={(renderer) => game.initializeRenderer(renderer)}
+                />
+              ) : (
+                <GameRenderer
+                  world={game.getWorld()}
+                  gameLoop={game.getGameLoop()}
+                  onInitialize={(renderer) => game.initializeRenderer(renderer)}
+                />
+              )
             }
             controlsSlot={
               !gameState?.isGameOver ? (

@@ -52,13 +52,21 @@ Canvas and Skia use renderer-specific decoded-image caches over the shared regis
 
 ## Registered sheets
 
-- `oni_red` — Red Oni / Ashigaru Infernal. Measured from the original 924×539 sheet.
+Total registered sheets: **18** in `SPRITE_SHEET_CATALOG` (`SpriteRegistry.ts`) + **3** in `HIT_RUN_CHARACTER_SPRITE_SHEETS` (`HitRunSpriteAtlas.ts`) = **21** sprite sheets validated in CI.
+
+- `oni_red` — Red Oni / Ashigaru Infernal. Measured from `enemy2.png` (924×539).
 - `sea_dragon` — Sea dragon ("dragón marino") for the Space Invaders *Aquí hay dragones* mod
   (art bible §12.2). Procedurally built outline atlas: 640×192 PNG, 80×64 px cells, logical
   frame 40×32 world units, rows `fly` (6, loop) / `hit` (3, one-shot) / `death` (6, one-shot).
   Regenerate with `node scripts/sprites/build-sea-dragon-atlas.cjs`. Drawers for Canvas/Skia
   live in `src/games/space-invaders/rendering/SeaDragonVisuals.ts`, registered through the
   NauticalMod so entities with `render.shape = "sea_dragon"` render on both backends.
+- `ghost_galleon` — Ghost galleon bonus ship for Space Invaders Nautical mod.
+- `lancero` — Lancero character sheet template in `LanceroSpriteVisuals.ts`.
+- `echorunner_kuchisake_onna` — Kuchisake-onna player character for Echo Runner (`kichisake-onna.png`).
+- `tower_basic_art` & `tower_sniper_art` — Full-image static props for Tower Defense towers.
+- 11 static urban environment props (`urban_big_house`, `urban_house_01`, `urban_house_03`, `urban_house_04`, `urban_large_house`, `urban_small_houses`, `urban_casita_01`, `urban_casita_02`, `urban_casita_04`, `urban_casita_05`, `urban_casita_07`).
+- Hit&Run character atlases (`hitrun_samurai_enemy`, `hitrun_sumi_e_player`, `hitrun_sumi_e_samurai`).
 
 ## Notes
 

@@ -96,6 +96,8 @@ export class GalaxianGame extends BaseGame<
     this.world.setResource("ScreenConfig", { width: this.config.worldWidth, height: this.config.worldHeight });
     this.setupCommonArcadeResources();
     this.world.setResource("IsHeadless", this.isHeadless);
+    const renderSeed = (this.getSeed() ^ 0x9E3779B9) >>> 0;
+    this.world.renderRandom.setSeed(renderSeed);
 
     this.bulletPool = new BulletPool();
 

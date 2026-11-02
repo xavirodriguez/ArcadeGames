@@ -110,10 +110,13 @@ No schedule change is required solely to make priority -10 late in Simulation: t
 
 ## 11. Implementation progress — 2026-11-02
 
-- `PlatformerInputComponent` now has optional `previousJumpHeld` state.
-- `PlatformerInputSystem` derives pressed/released edges from that ECS field instead of a private `Map<Entity, boolean>`.
-- `SnapshotSerializer` serializes component fields generically and does not exclude `PlatformerInput`; the new primitive field therefore participates in snapshots without serializer-specific code.
-- Added a focused regression test proving edge history survives system recreation and held input does not produce a duplicate press. The test has been committed but not executed in this environment.
+- `PlatformerInputComponent` now has optional `previousJumpHeld` state, included by the generic component snapshot serializer.
+- `PlatformerInputSystem` now samples input and derives jump edges without a system-instance `Map`; touch taps are treated as discrete press/release edges and consumed once per frame.
+- Added `PlatformerJumpSystem` as the single authority for grounded/coyote jump impulses, buffered landing jumps, configured multi-jump consumption and short-hop release clamping.
+- `PlatformerCoyoteSystem` now advances coyote and buffer timers only; it no longer applies jump impulses.
+- Registered the jump resolver after the timer system in the shared Platformer/Echo Runner system registry.
+- Added focused tests for ECS-backed input edge persistence and jump resolution (ground jump, short hop, coyote, buffer, double-jump exhaustion).
+- Tests/typecheck have not been executed in this environment; the draft PR is intended to receive CI and integration validation.
 
 ## 12. Remaining audit items before broader implementation
 

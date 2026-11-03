@@ -2,21 +2,11 @@
  * PixelFX Integration Layer — Manifest (V1 candidates)
  *
  * Thin map: pfxId → sheet metadata. Not a second SpriteRegistry.
- * IDs and pixelFxSourceId must be exact. Values for anchor/duration/scale
- * are placeholders until the export spike fills them from real meta.pixelfx.
- *
- * Status: CANDIDATES. Require visual review + exact upstream id confirmation
- * before locking for production.
+ * Status: CANDIDATES. Require visual review + exact upstream id confirmation.
  */
 
 import type { PixelFXManifestEntry } from "./PixelFXTypes";
 
-/**
- * Candidate manifest. Do not treat as final until spike validates:
- * - exact pixelFxSourceId exists
- * - duration and scale fit the game event
- * - Sumi-e variants pass art review for Hit & Run
- */
 export const PIXELFX_MANIFEST: readonly PixelFXManifestEntry[] = [
   {
     id: "pfx-impact-spark",
@@ -24,9 +14,8 @@ export const PIXELFX_MANIFEST: readonly PixelFXManifestEntry[] = [
     pixelFxSourceId: "impacts/hit-flash",
     sheetId: "pixelfx/impacts/hit-flash",
     animation: "main",
-    // From export: pivot [40,54], frame 80×64 → verified by spike-adapt-fixtures
     anchor: { x: 0.5, y: 0.84375 },
-    duration: 0.5333, // 16 frames @ 30 fps
+    duration: 0.5333,
     scale: 0.9,
     fallback: "shockwave",
     usedBy: ["asteroids", "platformer", "hitandrun"],
@@ -37,10 +26,8 @@ export const PIXELFX_MANIFEST: readonly PixelFXManifestEntry[] = [
     pixelFxSourceId: "explosions/cartoon-pow",
     sheetId: "pixelfx/explosions/cartoon-pow",
     animation: "main",
-    // From export: pivot [92,72], frame 184×144 → verified by spike
     anchor: { x: 0.5, y: 0.5 },
-    duration: 1.0667, // 32 frames @ 30 fps
-    // Native 184×144 is large; keep logical scale down for Asteroids
+    duration: 1.0667,
     scale: 0.45,
     fallback: "shockwave",
     usedBy: ["asteroids"],

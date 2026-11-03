@@ -106,6 +106,25 @@ describe("JuiceOrchestrator Unit Tests & Golden Replays", () => {
       }
     });
 
+    it("maps the five new effects to their semantic game events", () => {
+      const expectLatestShape = (shape: string): void => {
+        const entities = world.query("Render", "TTL");
+        const latest = entities[entities.length - 1];
+        expect(world.getComponent(latest, "Render")?.shape).toBe(shape);
+      };
+
+      juice.triggerEvent("pong", "paddle:hit", { x: 80, y: 90 });
+      expectLatestShape("pixelfx_paddle_impact");
+      juice.triggerEvent("arkanoid", "brick:shatter", { x: 80, y: 90 });
+      expectLatestShape("pixelfx_brick_shatter");
+      juice.triggerEvent("flappybird", "bird:flap", { x: 80, y: 90 });
+      expectLatestShape("pixelfx_flap_gust");
+      juice.triggerEvent("frogger", "frog:hop", { x: 80, y: 90 });
+      expectLatestShape("pixelfx_hop");
+      juice.triggerEvent("platformer", "player:dash", { x: 80, y: 90 });
+      expectLatestShape("pixelfx_phase_dash");
+    });
+
     it("should trigger typed Arkanoid brick:hit and brick:shatter events", () => {
       juice.triggerEvent("arkanoid", "brick:hit", { x: 100, y: 120 });
       expect(world.query("Render").length).toBe(1);

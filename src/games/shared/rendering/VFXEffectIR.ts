@@ -102,40 +102,41 @@ export const VFX_VISUAL_PROFILES = {
 } as const satisfies Record<string, VFXVisualProfile>;
 
 
+function assertNever(value: never): never {
+  throw new Error(`Unsupported VFX family: ${String(value)}`);
+}
+
 /** Resolve only presentation placement; family context never changes gameplay state. */
 export function resolveVFXPlacement(
   descriptor: VFXEffectDescriptor
 ): VFXPresentationPlacement {
-  let contextualPlacement: VFXPresentationPlacement;
-
   switch (descriptor.family) {
     case "combat":
-      contextualPlacement = {
+      return {
         x: descriptor.context.impactX,
         y: descriptor.context.impactY,
-        rotation: descriptor.context.direction
+        rotation: descriptor.context.direction,
+        ...descriptor.presentation
       };
-      break;
     case "traversal":
-      contextualPlacement = {
+      return {
         rotation:
           descriptor.context.velocityX === 0 && descriptor.context.velocityY === 0
             ? undefined
-            : Math.atan2(descriptor.context.velocityY, descriptor.context.velocityX)
+            : Math.atan2(descriptor.context.velocityY, descriptor.context.velocityX),
+        ...descriptor.presentation
       };
-      break;
     case "interaction":
-      contextualPlacement = {};
-      break;
+      return { ...descriptor.presentation };
     case "temporal":
-      contextualPlacement = {
+      return {
         x: descriptor.context.focalX,
-        y: descriptor.context.focalY
+        y: descriptor.context.focalY,
+        ...descriptor.presentation
       };
-      break;
+    default:
+      return assertNever(descriptor);
   }
-
-  return { ...contextualPlacement, ...descriptor.presentation };
 }
 
 /** Resolve semantic family meaning to a palette token, independent of primitive identity. */

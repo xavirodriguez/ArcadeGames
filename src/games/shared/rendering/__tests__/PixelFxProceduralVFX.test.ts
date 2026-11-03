@@ -1,8 +1,13 @@
 import type { CoreComponentRegistry, Renderer, RenderContext, World } from "@tiny-aster/core";
 import type { IDrawAdapter } from "../DrawAdapter";
 import {
+  drawPixelFxDust,
   drawPixelFxExplosion,
   drawPixelFxImpact,
+  drawPixelFxInkBurst,
+  drawPixelFxMuzzle,
+  drawPixelFxPickup,
+  drawPixelFxShieldCrack,
   drawPixelFxSlash,
   registerPixelFxProceduralVFX
 } from "../PixelFxProceduralVFX";
@@ -55,15 +60,50 @@ describe("PixelFX-inspired procedural VFX", () => {
     expect(adapter.drawLine).toHaveBeenCalledTimes(20);
   });
 
+  it("draws the five additional procedural compositions", () => {
+    const adapter = createAdapter();
+    const world = createWorld();
+    drawPixelFxDust(adapter, world, 1);
+    expect(adapter.fillCircle).toHaveBeenCalled();
+    expect(adapter.drawArc).toHaveBeenCalled();
+
+    adapter.fillCircle.mockClear();
+    adapter.drawLine.mockClear();
+    drawPixelFxPickup(adapter, world, 1);
+    expect(adapter.strokeCircle).toHaveBeenCalled();
+    expect(adapter.drawLine).toHaveBeenCalled();
+
+    adapter.drawLine.mockClear();
+    drawPixelFxMuzzle(adapter, world, 1);
+    expect(adapter.drawLine).toHaveBeenCalled();
+    expect(adapter.drawArc).toHaveBeenCalled();
+
+    adapter.drawLine.mockClear();
+    drawPixelFxShieldCrack(adapter, world, 1);
+    expect(adapter.drawLine).toHaveBeenCalled();
+    expect(adapter.drawArc).toHaveBeenCalled();
+
+    adapter.fillCircle.mockClear();
+    drawPixelFxInkBurst(adapter, world, 1);
+    expect(adapter.fillCircle).toHaveBeenCalled();
+    expect(adapter.drawArc).toHaveBeenCalled();
+  });
+
   it("does not draw expired effects", () => {
     const adapter = createAdapter();
     const world = createWorld(0);
     drawPixelFxImpact(adapter, world, 1);
     drawPixelFxSlash(adapter, world, 1);
     drawPixelFxExplosion(adapter, world, 1);
+    drawPixelFxDust(adapter, world, 1);
+    drawPixelFxPickup(adapter, world, 1);
+    drawPixelFxMuzzle(adapter, world, 1);
+    drawPixelFxShieldCrack(adapter, world, 1);
+    drawPixelFxInkBurst(adapter, world, 1);
     expect(adapter.drawLine).not.toHaveBeenCalled();
     expect(adapter.drawArc).not.toHaveBeenCalled();
     expect(adapter.strokeCircle).not.toHaveBeenCalled();
+    expect(adapter.fillCircle).not.toHaveBeenCalled();
   });
 
   it("registers all three shapes for Canvas", () => {
@@ -73,11 +113,16 @@ describe("PixelFX-inspired procedural VFX", () => {
       registerShape
     } as unknown as Renderer<CoreComponentRegistry, RenderContext>;
     registerPixelFxProceduralVFX(renderer);
-    expect(registerShape).toHaveBeenCalledTimes(3);
+    expect(registerShape).toHaveBeenCalledTimes(8);
     expect(registerShape.mock.calls.map(([name]) => name)).toEqual([
       "pixelfx_impact",
       "pixelfx_slash",
-      "pixelfx_explosion"
+      "pixelfx_explosion",
+      "pixelfx_dust",
+      "pixelfx_pickup",
+      "pixelfx_muzzle",
+      "pixelfx_shield_crack",
+      "pixelfx_ink_burst"
     ]);
   });
 
@@ -92,7 +137,12 @@ describe("PixelFX-inspired procedural VFX", () => {
     expect(registerShape.mock.calls.map(([name]) => name)).toEqual([
       "pixelfx_impact",
       "pixelfx_slash",
-      "pixelfx_explosion"
+      "pixelfx_explosion",
+      "pixelfx_dust",
+      "pixelfx_pickup",
+      "pixelfx_muzzle",
+      "pixelfx_shield_crack",
+      "pixelfx_ink_burst"
     ]);
   });
 });

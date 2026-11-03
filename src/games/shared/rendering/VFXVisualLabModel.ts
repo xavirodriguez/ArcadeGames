@@ -148,6 +148,8 @@ export function parseVFXLabPreset(serialized: string): VFXLabPreset {
   const value: unknown = JSON.parse(serialized);
   if (typeof value !== "object" || value === null || Array.isArray(value)) throw new Error("Preset must be a JSON object");
   const candidate = value as Record<string, unknown>;
+  const allowedKeys = new Set(["schemaVersion", "id", "label", "effect", "profile", "progress", "size", "rotation", "seed"]);
+  if (Object.keys(candidate).some((key) => !allowedKeys.has(key))) throw new Error("Preset contains unknown fields");
   const effectExists = VFX_LAB_EFFECTS.some((effect) => effect.id === candidate.effect);
   if (
     candidate.schemaVersion !== 1 ||

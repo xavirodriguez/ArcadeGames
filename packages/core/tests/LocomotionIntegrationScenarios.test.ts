@@ -528,7 +528,7 @@ describe("Locomotion V1 Full Multi-Tick Integration Scenarios", () => {
       });
       step(1);
       world.mutateComponent(player, "PlatformerInput", (input) => { input.jumpPressed = false; });
-      step(50);
+      step(60);
 
       return {
         x: world.getComponent(player, "Transform")!.x,

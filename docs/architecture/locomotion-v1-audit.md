@@ -191,3 +191,21 @@ No schedule change is required solely to make priority -10 late in Simulation: t
 - On jump, edge exit or carrier removal, entities with LocomotionProfile inherit the configured fraction of support velocity. Jump resolution carries the full vertical support impulse into the post-jump velocity; PlatformCarrySystem then removes the full support component and reapplies preserveMomentum, avoiding double-counting horizontal surface velocity. PhysicsIntegrateSystem skips MovingPlatform entities because MovingPlatformSystem already authored their next transform. Entities without a profile retain legacy detach velocity.
 - MovingPlatformSystem now ignores non-positive/non-finite time steps, avoiding division by zero in velocity estimation.
 - Conveyor material velocity remains authored through PhysicsMaterial.conveyorVelocity and is combined with character movement through the existing contact-relative velocity path.
+
+## 19. Locomotion V1 Functional Closure Audit & Validation Matrix
+
+| Sistema | Implementado | Registrado | Jugable | Test integrado |
+|---|---|---|---|---|
+| Acceleration / braking | Sí | Sí | Sí | `LocomotionIntegrationScenarios.test.ts` (Scenario 1) |
+| Momentum / jump inheritance | Sí | Sí | Sí | `LocomotionIntegrationScenarios.test.ts` (Scenario 2, 7) |
+| Slopes | Sí | Sí | Sí | `LocomotionIntegrationScenarios.test.ts` (Scenario 2) |
+| Ice | Sí | Sí | Sí | `LocomotionIntegrationScenarios.test.ts` (Scenario 3) |
+| Bounce surfaces | Sí | Sí | Sí | `LocomotionIntegrationScenarios.test.ts` (Scenario 4) |
+| One-way platforms | Sí | Sí | Sí | `LocomotionIntegrationScenarios.test.ts` (Scenario 5) |
+| Slide / posture | Sí | Sí | Sí | `LocomotionIntegrationScenarios.test.ts` (Scenario 6) |
+| Moving platforms | Sí | Sí | Sí | `LocomotionIntegrationScenarios.test.ts` (Scenario 7, 8) |
+| Platform carry | Sí | Sí | Sí | `LocomotionIntegrationScenarios.test.ts` (Scenario 7, 8) |
+| Keyboard controls | Sí | Sí | Sí | `src/app/platformer/index.tsx`, `useKeyboardControls.ts` |
+| Touch controls | Sí | Sí | Sí | `src/app/platformer/index.tsx` (TouchDragZone / TouchActionButton) |
+| Snapshot / restore | Sí | Sí | Sí | `LocomotionDeterminismReplay.test.ts` (Round-trip) |
+| Replay determinism | Sí | Sí | Sí | `LocomotionDeterminismReplay.test.ts` (Replay hash matching) |

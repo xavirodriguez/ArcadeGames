@@ -154,3 +154,23 @@ Do not report a test as passing unless the command was actually executed against
 - Added `createLocomotionLab(seed)` as a development factory around the production Echo Runner systems. It is intentionally not registered in the campaign game list.
 - Added structural tests for course dimensions, required surface IDs and both platform fixtures.
 - The level JSON and factory are authored; runtime playability and behavior remain unverified until Jest/typecheck and a manual launch are performed.
+
+## 6. Functional Integration & Determinism Validation Closure (2026-11-03)
+
+- Corrected duplicate identifier in `packages/core/tests/LocomotionMovingPlatforms.test.ts`.
+- Restored missing `JuiceOrchestrator` import in `src/games/platformer/PlatformerGame.ts`.
+- Validated player blueprints and common movement builder `setupPlatformerMovementComponents` attaching `LocomotionProfile`, `PlatformerPosture`, `PhysicsContactState`, and `PlatformerGroundState`.
+- Implemented and executed multi-tick scenario test suite in `packages/core/tests/LocomotionIntegrationScenarios.test.ts`:
+  1. Acceleration -> braking -> direction reversal.
+  2. Run -> descending slope -> jump preserving momentum.
+  3. Run on ice -> transition to normal surface without kinematic discontinuities.
+  4. Fall onto bounce surface with restitution.
+  5. Jump and land on one-way platform from below.
+  6. Slide under ceiling -> blocked posture -> restoration of standing height.
+  7. Moving platform passenger transport -> jump inheriting platform velocity.
+  8. Moving platform direction reversal and passenger detachment.
+- Implemented determinism, replay, and snapshot restoration test suite in `packages/core/tests/LocomotionDeterminismReplay.test.ts`:
+  - Verified replay determinism producing identical AoS snapshot hashes and player transforms.
+  - Verified snapshot capture mid-jump followed by `SnapshotRestore.restore` produces identical subsequent simulation hashes as a continuous run.
+  - Verified snapshot capture mid-slide followed by `SnapshotRestore.restore` preserves posture, timers, and subsequent simulation hashes.
+- All suites executed and confirmed passing in the local workspace.

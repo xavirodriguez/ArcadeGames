@@ -205,30 +205,44 @@ describe("Platformer Game Simulation Tests", () => {
     expect(goals.length).toBe(0);
   });
 
-  it("integrates the locomotion campaign, moving-platform transport and slide controls", () => {
-    const playerEntity = world.query("PlatformerInput")[0];
-    expect(world.hasComponent(playerEntity, "Collider2D")).toBe(true);
-    expect(world.hasComponent(playerEntity, "PlatformerPosture")).toBe(true);
+  it("keeps the classic level as the default experience", () => {
+    expect(world.query("Enemy").length).toBeGreaterThan(0);
+    expect(world.query("LevelGoal").length).toBeGreaterThan(0);
+  });
 
-    const profile = world.getComponent(playerEntity, "LocomotionProfile") as {
-      momentum: { preserveMomentum: number };
-    };
-    expect(profile.momentum.preserveMomentum).toBe(1);
-
-    const tilemapEntity = world.query("Tilemap")[0];
-    const tilemap = world.getComponent(tilemapEntity, "Tilemap")!;
-    const tileIds = new Set(tilemap.data.flat());
-    expect(tileIds.has(2)).toBe(true); // ice
-    expect(tileIds.has(3)).toBe(true); // bounce
-    expect(tileIds.has(5)).toBe(true); // one-way
-    expect(tileIds.has(6)).toBe(true); // slope
-
-    expect(world.query("MovingPlatform")).toHaveLength(1);
-    const ceilings = world.query("Tag").filter((entity) => {
-      const tag = world.getComponent(entity, "Tag") as { tags?: string[] } | undefined;
-      return tag?.tags?.includes("LocomotionCeiling") === true;
+  it("integrates the opt-in locomotion campaign, moving-platform transport and slide controls", async () => {
+    const campaignGame = new PlatformerGame({
+      seed: 41873,
+      gameOptions: { levelSet: "locomotion" }
     });
-    expect(ceilings).toHaveLength(1);
+    try {
+      await campaignGame.init();
+      const campaignWorld = campaignGame.getWorld();
+      const playerEntity = campaignWorld.query("PlatformerInput")[0];
+      expect(campaignWorld.hasComponent(playerEntity, "Collider2D")).toBe(true);
+      expect(campaignWorld.hasComponent(playerEntity, "PlatformerPosture")).toBe(true);
+
+      const profile = campaignWorld.getComponent(playerEntity, "LocomotionProfile") as {
+        momentum: { preserveMomentum: number };
+      };
+      expect(profile.momentum.preserveMomentum).toBe(1);
+
+      const tilemapEntity = campaignWorld.query("Tilemap")[0];
+      const tilemap = campaignWorld.getComponent(tilemapEntity, "Tilemap")!;
+      const tileIds = new Set(tilemap.data.flat());
+      expect(tileIds.has(2)).toBe(true);
+      expect(tileIds.has(3)).toBe(true);
+      expect(tileIds.has(5)).toBe(true);
+      expect(tileIds.has(6)).toBe(true);
+      expect(campaignWorld.query("MovingPlatform")).toHaveLength(1);
+      const ceilings = campaignWorld.query("Tag").filter((entity) => {
+        const tag = campaignWorld.getComponent(entity, "Tag") as { tags?: string[] } | undefined;
+        return tag?.tags?.includes("LocomotionCeiling") === true;
+      });
+      expect(ceilings).toHaveLength(1);
+    } finally {
+      campaignGame.destroy();
+    }
   });
 
   it("advances the campaign moving platform during Platformer simulation", () => {

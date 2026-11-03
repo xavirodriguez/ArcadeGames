@@ -40,9 +40,9 @@ describe("Platformer locomotion campaign — PR2", () => {
     expect(DEFAULT_PLATFORMER_TILE_DEFINITIONS[7].materialId).toBe("elastic");
     expect(PHYSICS_MATERIAL_PRESETS.elastic.restitution).toBe(0.82);
 
-    expect(rows[10].slice(17, 21)).toEqual([5, 5, 5, 5]);
+    expect(rows[11].slice(16, 20)).toEqual([5, 5, 5, 5]);
     for (const y of [11, 12]) {
-      expect(rows[y].slice(17, 21)).toEqual([0, 0, 0, 0]);
+      expect(rows[y].slice(16, 20)).toEqual([0, 0, 0, 0]);
     }
     expect(rows[11].slice(21, 24)).toEqual([1, 1, 1]);
   });

@@ -18,7 +18,6 @@ interface EffectState {
   alpha: number;
   size: number;
   color: string;
-  rotation: number;
 }
 
 function readEffectState(
@@ -37,8 +36,7 @@ function readEffectState(
     progress,
     alpha: Math.max(0, Math.min(1, ttl.remaining / ttl.timeLeft)) * opacity,
     size,
-    color: render.color ?? "#ffffff",
-    rotation: transform?.rotation ?? 0
+    color: render.color ?? "#ffffff"
   };
 }
 
@@ -50,7 +48,7 @@ export function drawPixelFxImpact(
 ): void {
   const state = readEffectState(world, entity);
   if (!state || state.alpha <= 0.01) return;
-  const { progress: p, alpha, size, color, rotation } = state;
+  const { progress: p, alpha, size, color } = state;
   const radius = size * (0.25 + p * 1.75);
   const fade = alpha * (1 - p * 0.25);
 
@@ -59,7 +57,7 @@ export function drawPixelFxImpact(
   draw.strokeCircle(0, 0, radius * 0.62, color, Math.max(0.75, size * 0.025), fade * 0.45);
 
   for (let i = 0; i < 8; i++) {
-    const angle = rotation + (i * Math.PI) / 4;
+    const angle = (i * Math.PI) / 4;
     const inner = radius * (0.72 + (i % 2) * 0.08);
     const outer = radius * (1.05 + (i % 3) * 0.12);
     const ax = Math.cos(angle) * inner;
@@ -83,9 +81,9 @@ export function drawPixelFxSlash(
 ): void {
   const state = readEffectState(world, entity);
   if (!state || state.alpha <= 0.01) return;
-  const { progress: p, alpha, size, color, rotation } = state;
+  const { progress: p, alpha, size, color } = state;
   const sweep = Math.PI * (0.42 + 0.28 * (1 - p));
-  const start = rotation - sweep * 0.5 + p * 0.2;
+  const start = -sweep * 0.5 + p * 0.2;
   const radius = size * (0.9 + p * 0.35);
 
   draw.save();
@@ -117,14 +115,14 @@ export function drawPixelFxExplosion(
 ): void {
   const state = readEffectState(world, entity);
   if (!state || state.alpha <= 0.01) return;
-  const { progress: p, alpha, size, color, rotation } = state;
+  const { progress: p, alpha, size, color } = state;
   const travel = size * (0.35 + p * 1.55);
   const gravity = size * p * p * 0.42;
 
   draw.save();
   draw.strokeCircle(0, 0, size * (0.22 + p * 0.55), color, Math.max(0.8, size * 0.04 * (1 - p)), alpha * (1 - p));
   for (let i = 0; i < 10; i++) {
-    const angle = rotation + (i * Math.PI * 2) / 10;
+    const angle = (i * Math.PI * 2) / 10;
     const speed = 0.72 + ((i * 7) % 5) * 0.11;
     const x = Math.cos(angle) * travel * speed;
     const y = Math.sin(angle) * travel * speed + gravity;

@@ -94,6 +94,34 @@ describe("PixelFX-inspired procedural VFX", () => {
     expect(adapter.drawArc).toHaveBeenCalled();
   });
 
+  it("draws the five gameplay-specific compositions", () => {
+    const adapter = createAdapter();
+    const world = createWorld();
+    drawPixelFxPaddleImpact(adapter, world, 1);
+    expect(adapter.drawArc).toHaveBeenCalled();
+    expect(adapter.drawLine).toHaveBeenCalled();
+
+    adapter.drawLine.mockClear();
+    drawPixelFxBrickShatter(adapter, world, 1);
+    expect(adapter.strokeRect).toHaveBeenCalled();
+    expect(adapter.drawLine).toHaveBeenCalled();
+
+    adapter.drawLine.mockClear();
+    drawPixelFxFlapGust(adapter, world, 1);
+    expect(adapter.drawArc).toHaveBeenCalled();
+    expect(adapter.drawLine).toHaveBeenCalled();
+
+    adapter.drawLine.mockClear();
+    drawPixelFxHop(adapter, world, 1);
+    expect(adapter.drawArc).toHaveBeenCalled();
+    expect(adapter.drawLine).toHaveBeenCalled();
+
+    adapter.drawLine.mockClear();
+    drawPixelFxPhaseDash(adapter, world, 1);
+    expect(adapter.strokeRect).toHaveBeenCalled();
+    expect(adapter.drawLine).toHaveBeenCalled();
+  });
+
   it("does not draw expired effects", () => {
     const adapter = createAdapter();
     const world = createWorld(0);

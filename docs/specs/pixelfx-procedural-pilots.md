@@ -72,4 +72,4 @@ The five new compositions use the same TTL-derived animation progress and render
 | `pixelfx_hop` | Take-off crescent and separated ground-contact streaks | Frogger successful grid hop |
 | `pixelfx_phase_dash` | Offset afterimages and directional speed lines | Platformer successful dash |
 
-These compositions reuse the shared TTL-driven renderer path and are registered for both Canvas and Skia. Each effect is triggered at the gameplay transition that owns it; presentation spawning is skipped during rollback resimulation. Existing game-specific squash, audio, hit-stop and collision behavior is preserved.
+These compositions reuse the shared TTL-driven renderer path and are registered for both Canvas and Skia. Pong, Arkanoid, Flappy Bird and Frogger explicitly install the PixelFX drawer set in their renderer bootstrap; Platformer uses the same generic registration through its shared VFX bootstrap. Each effect is triggered at the gameplay transition that owns it; presentation spawning is skipped during rollback resimulation. Existing game-specific squash, audio, hit-stop and collision behavior is preserved.

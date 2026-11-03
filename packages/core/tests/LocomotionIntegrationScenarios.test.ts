@@ -181,9 +181,13 @@ describe("Locomotion V1 Full Multi-Tick Integration Scenarios", () => {
     expect(speedAfterBraking).toBeLessThan(speedAfterAccel);
     expect(speedAfterBraking).toBeGreaterThan(0);
 
-    // Active reversal to the left
+    // Reversal first spends the existing rightward momentum before changing sign.
     world.mutateComponent(player, "PlatformerInput", (inp) => { inp.moveDir = -1; });
-    step(25);
+    step(1);
+    const speedDuringTurnaround = world.getComponent(player, "Velocity")?.vx ?? 0;
+    expect(speedDuringTurnaround).toBeGreaterThan(0);
+
+    step(24);
     const speedAfterReversal = world.getComponent(player, "Velocity")?.vx ?? 0;
     expect(speedAfterReversal).toBeLessThan(0);
   });

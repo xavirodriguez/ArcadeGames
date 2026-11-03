@@ -245,12 +245,22 @@ describe("Platformer Game Simulation Tests", () => {
     }
   });
 
-  it("advances the campaign moving platform during Platformer simulation", () => {
-    const platform = world.query("MovingPlatform")[0];
-    const before = world.getComponent(platform, "Transform")!.x;
-    game.update(0.1);
-    const after = world.getComponent(platform, "Transform")!.x;
-    expect(after).not.toBe(before);
+  it("advances the campaign moving platform during Platformer simulation", async () => {
+    const campaignGame = new PlatformerGame({
+      seed: 41873,
+      gameOptions: { levelSet: "locomotion" }
+    });
+    try {
+      await campaignGame.init();
+      const campaignWorld = campaignGame.getWorld();
+      const platform = campaignWorld.query("MovingPlatform")[0];
+      const before = campaignWorld.getComponent(platform, "Transform")!.x;
+      campaignGame.update(0.1);
+      const after = campaignWorld.getComponent(platform, "Transform")!.x;
+      expect(after).not.toBe(before);
+    } finally {
+      campaignGame.destroy();
+    }
   });
 
   it("should initialize renderer and render frame cleanly", () => {

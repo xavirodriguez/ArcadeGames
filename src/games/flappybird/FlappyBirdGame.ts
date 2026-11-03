@@ -528,6 +528,7 @@ export class FlappyBirdGame
   }
 
   public initializeRenderer(renderer: Renderer<FlappyBirdComponentRegistry, RenderContext>): void {
+    registerPixelFxProceduralVFX(renderer);
     const theme = this.world.getResource<Theme>(THEME_RESOURCE_KEY);
     const packId = theme?.conceptPack?.id;
 

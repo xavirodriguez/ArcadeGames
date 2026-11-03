@@ -85,7 +85,7 @@ export interface GameJuiceEventMap {
   flappybird: "pipe:passed" | "bird:flap" | "bird:crash";
   frogger: "goal:reached" | "frog:hop" | "frog:splat";
   "geometry-wars": "enemy:destroyed" | "bomb:trigger" | "player:death";
-  platformer: "player:damage" | "coin:collected" | "enemy:stomp";
+  platformer: "player:damage" | "coin:collected" | "enemy:stomp" | "player:dash";
   "echo-runner": "echo:ghost" | "dash:boost" | "obstacle:hit";
 }
 

@@ -4,6 +4,7 @@ import { SUMI_E_SEMANTIC_TOKENS } from "../../../theme/sumi-e";
 
 /** Gameplay meaning carried to presentation without transferring gameplay authority. */
 export type VFXFamily = "combat" | "traversal" | "interaction" | "temporal";
+export type VFXVisualProfileId = "arcade-neon" | "sumi-e";
 
 export interface CombatVFXContext {
   readonly direction?: number;
@@ -100,7 +101,6 @@ export const VFX_VISUAL_PROFILES = {
   }
 } as const satisfies Record<string, VFXVisualProfile>;
 
-export type VFXVisualProfileId = keyof typeof VFX_VISUAL_PROFILES;
 
 /** Resolve semantic family meaning to a palette token, independent of primitive identity. */
 export function resolveVFXSemanticColor(

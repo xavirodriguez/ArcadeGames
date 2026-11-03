@@ -58,6 +58,23 @@ export const PROPOSED_ALLOWLIST = [
   { path: "src/app/racing/index.tsx", reason: "Racing shell" },
   { path: "src/app/outrun/index.tsx", reason: "OutRun shell" },
   { path: "src/app/tower-defense/index.tsx", reason: "TD shell" },
+  { path: "src/app/galaxian/index.tsx", reason: "Galaxian shell" },
+  { path: "src/app/platformer/index.tsx", reason: "Platformer shell" },
+  { path: "src/games/galaxian/EntityPool.ts", reason: "Galaxian bullet pool colors" },
+  { path: "src/games/galaxian/rendering/GalaxianCanvasVisuals.ts", reason: "Galaxian canvas visuals" },
+  { path: "src/games/galaxian/rendering/GalaxianSkiaVisuals.ts", reason: "Galaxian skia visuals" },
+  { path: "src/games/outrun/rendering/OutrunVehicleArtwork.ts", reason: "Outrun vehicle artwork palettes" },
+  { path: "src/games/platformer/PlatformerGame.ts", reason: "Platformer ceiling tile color" },
+  { path: "src/games/hitandrun/rendering/theme/TemplateTheme.ts", reason: "Hit&Run template theme" },
+  { path: "src/games/hitandrun/rendering/theme/fantasy/FantasyTheme.ts", reason: "Hit&Run fantasy theme" },
+  { path: "src/games/vertical-shmup/rendering/ShmupCanvasVisuals.ts", reason: "Vertical shmup canvas visuals" },
+  { path: "src/games/vertical-shmup/rendering/ShmupSkiaVisuals.ts", reason: "Vertical shmup skia visuals" },
+  { path: "src/games/asteroids/systems/AsteroidInputSystem.ts", reason: "Asteroid thruster particle colors" },
+  { path: "src/games/flappybird/FlappyBirdGame.ts", reason: "Flappy bird sky and pipe colors" },
+  { path: "src/games/hitandrun/systems/HitRunFeedbackSystem.ts", reason: "Hit&Run feedback vfx colors" },
+  { path: "src/games/platformer/systems/PlatformerDamageSystem.ts", reason: "Platformer damage vfx color" },
+  { path: "src/games/pong/systems/PongCollisionSystem.ts", reason: "Pong paddle collision particle colors" },
+  { path: "src/games/shared/pixelfx/PixelFXPaletteAdapter.ts", reason: "PixelFX palette ramp definitions" },
 ];
 const ALLOWED_PREFIXES = ["src/theme/"];
 const HEX_RE = /#([0-9a-fA-F]{3,8})\b/g;

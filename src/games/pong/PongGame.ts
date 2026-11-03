@@ -46,6 +46,7 @@ import { type PongState, type PongInput, type PongComponentRegistry, type PongEv
 import { PongConfigSchema, PongConfig, DEFAULT_PONG_CONFIG } from "./types/PongConfigSchema";
 import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
+import { registerPixelFxProceduralVFX } from "../shared/rendering/PixelFxProceduralVFX";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import { createPaddleColliderConfig, registerPresentationSystems } from "../shared/componentBuilders";
 import pongConfigRaw from "./config/pong.json";
@@ -288,6 +289,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
   }
 
   public initializeRenderer(renderer: Renderer<PongComponentRegistry, RenderContext>): void {
+    registerPixelFxProceduralVFX(renderer);
     RendererUtils.registerAssets(renderer, {
       canvas: (r) => {
         const { drawPongBall, drawPongPaddle, drawPongBackground } = require("./rendering/PongCanvasVisuals");

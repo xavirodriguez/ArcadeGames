@@ -2,10 +2,12 @@ import { World, System, computeShipPhysics, getForwardVector, PhysicsUtils, Juic
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/AsteroidRegistry";
 import { AsteroidConfig } from "../types/AsteroidConfigSchema";
 import { createBullet } from "../EntityFactory";
+import { JuiceOrchestrator } from "../../shared/rendering/JuiceOrchestrator";
 
 /** @public */
 export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, AsteroidsEventRegistry> {
   private config: AsteroidConfig;
+  private juice: JuiceOrchestrator<AsteroidsComponentRegistry> | undefined;
 
   constructor(config: AsteroidConfig) {
     super();
@@ -117,6 +119,16 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
                   shakeIntensity: 1.0,
                   shakeDuration: 40
               });
+
+              // Cosmetic muzzle flash: never emit presentation entities during rollback replay.
+              if (!world.isReSimulating) {
+                  this.juice ??= new JuiceOrchestrator(world);
+                  this.juice.triggerEvent("asteroids", "ship:fire", {
+                      x: transform.x + forward.x * 13,
+                      y: transform.y + forward.y * 13,
+                      rotation: transform.rotation
+                  });
+              }
 
               const eventBus = world.getEventBus();
               if (eventBus) {

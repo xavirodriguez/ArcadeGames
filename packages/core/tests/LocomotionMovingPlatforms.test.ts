@@ -4,7 +4,6 @@ import { MovingPlatformSystem } from "../src/physics/systems/MovingPlatformSyste
 import { PlatformCarrySystem } from "../src/physics/systems/PlatformCarrySystem";
 import { PhysicsIntegrateSystem } from "../src/physics/dynamics/PhysicsIntegrateSystem";
 import { PlatformerJumpSystem } from "../src/systems/PlatformerJumpSystem";
-import { PlatformerJumpSystem } from "../src/systems/PlatformerJumpSystem";
 import { TileCollisionSystem } from "../src/physics/systems/TileCollisionSystem";
 
 describe("Locomotion B5 moving-platform support", () => {

@@ -1,4 +1,5 @@
 import { System, World, CoreComponentRegistry, Component, PhysicsUtils } from "@tiny-aster/core";
+import { JuiceOrchestrator } from "../../shared/rendering/JuiceOrchestrator";
 
 export interface DashUnlockedComponent extends Component {
   type: "DashUnlocked";
@@ -10,6 +11,7 @@ export interface DashUnlockedComponent extends Component {
 }
 
 export class PlatformerDashSystem extends System<CoreComponentRegistry> {
+  private juice?: JuiceOrchestrator<CoreComponentRegistry>;
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
 
@@ -44,6 +46,14 @@ export class PlatformerDashSystem extends System<CoreComponentRegistry> {
         vel.vx = dir * dash.dashSpeed;
         vel.vy = 0;
 
+        if (!world.isReSimulating) {
+          this.juice ??= new JuiceOrchestrator(world);
+          this.juice.triggerEvent("platformer", "player:dash", {
+            x: trans.x,
+            y: trans.y,
+            rotation: dir < 0 ? Math.PI : 0
+          });
+        }
         const eventBus = world.getEventBus();
         if (eventBus) {
           eventBus.emit("PlaySFX", { name: "jump" });

@@ -12,12 +12,25 @@ import type { ConfigContext, ExpoConfig } from "expo/config";
 import { existsSync } from "node:fs";
 import path from "node:path";
 
-import {
-  isGameId,
-  getManifest,
-  type GameId,
-  type GameManifest,
-} from "./src/manifests/manifests";
+import type { GameId, GameManifest } from "./src/manifests/types";
+
+let manifestModule: {
+  isGameId: (id: string) => boolean;
+  getManifest: (id: GameId) => GameManifest;
+} | null = null;
+
+function getManifestHelpers() {
+  if (!manifestModule) {
+    try {
+      const { createJiti } = require("jiti");
+      const jiti = createJiti(path.resolve(process.cwd(), "app.config.ts"));
+      manifestModule = jiti("./src/manifests/manifests");
+    } catch {
+      manifestModule = null;
+    }
+  }
+  return manifestModule;
+}
 
 const ARCADE_EAS_PROJECT_ID = "73fa3f33-9fb8-472b-a676-868aaac4e963";
 const ARCADE_OWNER = "ensable";
@@ -33,7 +46,7 @@ function resolveIcon(candidate: string | undefined, fallback: string): string {
   return existsSync(abs) ? candidate : fallback;
 }
 
-function basePlugins(splashImage: string): ExpoConfig["plugins"] {
+function basePlugins(splashImage: string): NonNullable<ExpoConfig["plugins"]> {
   return [
     "expo-router",
     "expo-asset",
@@ -172,9 +185,10 @@ function singleGameConfig(manifest: GameManifest): ExpoConfig {
 
 export default ({ config }: ConfigContext): ExpoConfig => {
   const raw = process.env.EXPO_PUBLIC_GAME_ID?.trim();
+  const helpers = getManifestHelpers();
 
-  if (raw && isGameId(raw)) {
-    const manifest = getManifest(raw as GameId);
+  if (raw && helpers && helpers.isGameId(raw)) {
+    const manifest = helpers.getManifest(raw as GameId);
     return {
       ...config,
       ...singleGameConfig(manifest),

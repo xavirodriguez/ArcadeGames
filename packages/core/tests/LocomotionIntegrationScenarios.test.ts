@@ -457,4 +457,95 @@ describe("Locomotion V1 Full Multi-Tick Integration Scenarios", () => {
       1
     );
   });
+
+  it("Momentum profile distinguishes coasting from active braking and responsive control", () => {
+    const run = (
+      profile: typeof LOCOMOTION_PROFILE_PRESETS.momentum,
+      brake: boolean
+    ) => {
+      const { world, step } = createIntegrationWorld();
+      const player = spawnPlayer(world, 100, 100, { profile, slideEnabled: false });
+      world.mutateComponent(player, "PlatformerInput", (input) => { input.moveDir = 1; });
+      step(24);
+      const entrySpeed = world.getComponent(player, "Velocity")!.vx;
+      world.mutateComponent(player, "PlatformerInput", (input) => {
+        input.moveDir = 0;
+        input.brake = brake;
+      });
+      step(18);
+      return {
+        entrySpeed,
+        remainingSpeed: world.getComponent(player, "Velocity")!.vx
+      };
+    };
+
+    const momentumCoast = run(LOCOMOTION_PROFILE_PRESETS.momentum, false);
+    const momentumBrake = run(LOCOMOTION_PROFILE_PRESETS.momentum, true);
+    const responsiveCoast = run(LOCOMOTION_PROFILE_PRESETS.responsive, false);
+
+    expect(momentumCoast.entrySpeed).toBeGreaterThan(240);
+    expect(momentumCoast.remainingSpeed).toBeGreaterThan(responsiveCoast.remainingSpeed + 80);
+    expect(momentumBrake.remainingSpeed).toBeLessThan(momentumCoast.remainingSpeed);
+    expect(momentumBrake.remainingSpeed).toBeGreaterThanOrEqual(0);
+  });
+
+  it("Momentum run-up crosses a real three-tile gap that a stationary jump cannot clear", () => {
+    const runGap = (withRunUp: boolean) => {
+      const { world, step } = createIntegrationWorld();
+      const tilemap = world.createEntity();
+      world.addComponent(tilemap, {
+        type: "Tilemap",
+        data: [
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1]
+        ],
+        tileSize: 40,
+        tileDefinitions: { 1: { solid: true, materialId: "normal" } },
+        physicsMaterials: { normal: PHYSICS_MATERIAL_PRESETS.normal }
+      });
+      addTransform(world, tilemap, 0, 0);
+
+      const player = spawnPlayer(world, 20, 145, {
+        profile: LOCOMOTION_PROFILE_PRESETS.momentum,
+        slideEnabled: false
+      });
+
+      if (withRunUp) {
+        world.mutateComponent(player, "PlatformerInput", (input) => { input.moveDir = 1; });
+        step(45);
+      } else {
+        // Start at the same launch point, but without accumulated horizontal speed.
+        world.mutateComponent(player, "Transform", (transform) => { transform.x = 180; });
+      }
+
+      world.mutateComponent(player, "PlatformerInput", (input) => {
+        input.moveDir = withRunUp ? 1 : 0;
+        input.jumpPressed = true;
+        input.jumpHeld = true;
+      });
+      step(1);
+      world.mutateComponent(player, "PlatformerInput", (input) => { input.jumpPressed = false; });
+      step(50);
+
+      return {
+        x: world.getComponent(player, "Transform")!.x,
+        y: world.getComponent(player, "Transform")!.y,
+        grounded: world.getComponent(player, "PlatformerGroundState")!.isGrounded,
+        vx: world.getComponent(player, "Velocity")!.vx
+      };
+    };
+
+    const momentumJump = runGap(true);
+    const stationaryJump = runGap(false);
+
+    expect(momentumJump.x).toBeGreaterThanOrEqual(320);
+    expect(momentumJump.grounded).toBe(true);
+    expect(stationaryJump.x).toBeLessThan(320);
+    expect(stationaryJump.y).toBeGreaterThan(160);
+    expect(stationaryJump.grounded).toBe(false);
+  });
+
 });

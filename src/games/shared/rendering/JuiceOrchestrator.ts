@@ -2,7 +2,12 @@ import { World, CoreComponentRegistry, Entity, Juice } from "@tiny-aster/core";
 import { colors } from "../../../theme/colors";
 import { getVFXState, VFXWorldState } from "./SharedVFXInternal";
 import { requestHitStop, HitStopPriority } from "./HitStopSystem";
-import { resolveVFXPlacement, resolveVFXSemanticColor, VFX_VISUAL_PROFILES, type VFXEffectDescriptor } from "./VFXEffectIR";
+import {
+  resolveVFXPlacement,
+  resolveVFXSemanticColor,
+  VFX_VISUAL_PROFILES,
+  type VFXEffectDescriptor
+} from "./VFXEffectIR";
 
 export type SharedVFXPrimitiveName =
   | "shockwave"

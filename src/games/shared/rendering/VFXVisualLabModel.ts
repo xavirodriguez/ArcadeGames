@@ -133,6 +133,19 @@ export function resolveVFXLabColor(
   return resolveVFXSemanticColor(VFX_VISUAL_PROFILES[profile], effect.family);
 }
 
+export interface VFXLabPreviewPalette {
+  readonly background: string;
+  readonly grid: string;
+  readonly gridAlpha: number;
+}
+
+/** Shared stage palette keeps the Canvas and Skia comparison surfaces identical. */
+export function getVFXLabPreviewPalette(profile: VFXVisualProfileId): VFXLabPreviewPalette {
+  return profile === "sumi-e"
+    ? { background: "#E7DFCB", grid: "#77736B", gridAlpha: 0.12 }
+    : { background: "#070B13", grid: "#26364D", gridAlpha: 0.18 };
+}
+
 export function createVFXLabPreset(label: string, settings: VFXLabSettings, id?: string): VFXLabPreset {
   const normalizedId = id ?? label.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   if (!normalizedId) throw new Error("Preset id must not be empty");

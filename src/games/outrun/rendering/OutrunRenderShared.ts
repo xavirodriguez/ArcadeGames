@@ -487,7 +487,11 @@ export function iterateOutrunSprites<TCtx>(
       const sy = p.y1;
       const sw = p.w1;
 
-      if (sy >= p.clip || sw < 2) continue;
+      // Ridge occlusion occurs when a prior hill crest reaches below the segment base
+      // (higher pixel Y on screen). On flat terrain p.clip equals p.y1 (the segment base),
+      // so strict inequality (sy > p.clip) ensures roadside sprites placed at sy = p.y1
+      // are not falsely self-occluded while still being culled behind genuine crests.
+      if (sy > p.clip || sw < 2) continue;
 
       visitor(ctx, sp, sx, sy, sw, config.roadWidth, lightsOn, p.clip, p.fog, p.index);
     }

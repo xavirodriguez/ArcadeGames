@@ -119,6 +119,7 @@ import {
   type HitRunPresentationSession
 } from "./rendering/theme/HitRunPresentationSession";
 import { storePreviousTransforms } from "./rendering/HitRunRenderInterpolation";
+import { registerPixelFxProceduralVFX } from "../shared/rendering/PixelFxProceduralVFX";
 
 export interface HitAndRunConfig {
   seed?: number;
@@ -405,6 +406,7 @@ export class HitAndRunGame extends BaseGame<
   ): void {
     if (renderer.type === "canvas" || renderer.type === "skia") {
       registerHitRunRenderers(renderer);
+      registerPixelFxProceduralVFX(renderer);
       if (renderer.type === "skia") {
         console.info(
           "[HitAndRunGame] Skia: using canvas-compatible drawers (Phase 4 parity)."

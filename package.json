@@ -54,7 +54,8 @@
     "story:lint": "pnpm exec tsx scripts/story-lint.ts",
     "validate:story": "pnpm run story:lint",
     "ci": "pnpm run build:core && pnpm --filter=@tiny-aster/gameplay-kit build && pnpm run check:core-boundaries && pnpm run check:gameplay-kit-boundaries && pnpm run check:network-boundaries && pnpm run check:input-contract && pnpm run check:ratchet && pnpm run check:duplication && pnpm run check:color-literals && pnpm run check:game-patterns && pnpm run story:lint && pnpm run docs:check && pnpm run typecheck:app",
-    "test:ci": "NODE_OPTIONS=\"--max-old-space-size=4096\" pnpm exec jest --runInBand"
+    "test:ci": "NODE_OPTIONS=\"--max-old-space-size=4096\" pnpm exec jest --runInBand",
+    "sprites:build": "pnpm exec tsx scripts/sprites/cli.ts"
   },
   "dependencies": {
     "@colyseus/sdk": "^0.17.37",

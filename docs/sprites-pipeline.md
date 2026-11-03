@@ -318,3 +318,27 @@ El parser devuelve una representación intermedia sin imageSource ni assetPath. 
 - [x] Spike ubicado en tooling y tests de normalización definidos.
 
 **Siguiente fase:** 4.2 — implementar sprites:build, el escritor de artefactos y la validación de regeneración.
+
+
+## 12. Implementación de la Fase 4.2
+
+La implementación inicial vive en scripts/sprites/ y comparte el validador
+canónico de SpriteSheetDefinition. El comando pnpm run sprites:build acepta
+fuentes Aseprite (Array/Hash) y PNG estáticos full-image, copia los bytes del
+PNG y emite definiciones .generated.ts con require() estático más un índice.
+
+El repositorio todavía no contiene fuentes de producción bajo
+assets/sprites/sources/. Por eso el índice generado inicial puede estar vacío:
+los fixtures del parser y del pipeline no se registran como assets de runtime.
+El primer sheet real se incorporará durante la migración 4.3.
+
+La validación reproducible se ejecuta con:
+
+~~~bash
+pnpm run sprites:build -- --check
+pnpm run sprites:validate
+~~~
+
+El check compara bytes PNG y texto TypeScript, detecta artefactos obsoletos y
+no modifica el workspace. El build completo normal elimina únicamente los
+.atlas.png y .generated.ts obsoletos de los directorios reservados.

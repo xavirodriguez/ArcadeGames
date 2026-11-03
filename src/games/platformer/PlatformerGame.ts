@@ -43,6 +43,7 @@ import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import defaultLevelData from "./levels/locomotion-campaign.json";
 import { PlatformerConfigSchema, PlatformerConfig as PlatformerConfigType, DEFAULT_PLATFORMER_CONFIG } from "./types/PlatformerConfigSchema";
 import { PlatformerArcadeGame, loadPlatformerArcadeConfig, DEFAULT_PLATFORMER_TILE_DEFINITIONS } from "../shared/PlatformerArcadeGame";
+import * as SharedVFX from "../shared/rendering/SharedVFX";
 
 export interface PlatformerConfig {
   seed?: number;
@@ -139,6 +140,7 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
     // Event bus listeners
     const eventBus = this.getEventBus();
     if (eventBus) {
+      const pickupJuice = new JuiceOrchestrator(this.world);
       eventBus.on("level:completed", () => {
         this.gameOver = true;
       });
@@ -148,8 +150,20 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
           this.audio.playSFX(sfx.name);
         }
       });
-      eventBus.on("CollectiblePickedUp", () => {
+      eventBus.on("CollectiblePickedUp", (event: unknown) => {
         this.audio.playSFX("score");
+        if (this.world.isReSimulating) return;
+        const payload = event as { playerEntity?: number } | undefined;
+        if (payload?.playerEntity === undefined) return;
+        const transform = this.world.getComponent(payload.playerEntity, "Transform");
+        if (!transform) return;
+        pickupJuice.spawn("pixelfx_pickup", {
+          x: transform.x,
+          y: transform.y - 8,
+          scale: 0.85,
+          tint: "#f2c14e",
+          ttl: 0.38
+        });
       });
       eventBus.on("PlayerDied", () => {
         this.audio.playSFX("game_over");
@@ -328,6 +342,7 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
   }
 
   public initializeRenderer(renderer: Renderer<CoreComponentRegistry, RenderContext>): void {
+    SharedVFX.registerSharedVFX(renderer);
     renderer.registerShape("tilemap", drawPlatformerTilemap);
     renderer.registerShape("player", drawPlatformerPlayer);
     renderer.registerShape("goal", drawPlatformerGoal);

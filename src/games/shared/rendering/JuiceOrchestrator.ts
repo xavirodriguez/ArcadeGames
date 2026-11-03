@@ -13,7 +13,15 @@ export type SharedVFXPrimitiveName =
   | "hologram_glitch"
   | "floating_text"
   | "screen_border_glow"
-  | "warp_lines";
+  | "warp_lines"
+  | "pixelfx_impact"
+  | "pixelfx_slash"
+  | "pixelfx_explosion"
+  | "pixelfx_dust"
+  | "pixelfx_pickup"
+  | "pixelfx_muzzle"
+  | "pixelfx_shield_crack"
+  | "pixelfx_ink_burst";
 
 /**
  * Base configuration options shared across Juice spawn calls and catalog profiles.
@@ -38,6 +46,7 @@ export interface BaseJuiceOptions {
 export interface JuiceSpawnOptions extends BaseJuiceOptions {
   x?: number;
   y?: number;
+  rotation?: number;
 }
 
 /**
@@ -84,7 +93,7 @@ export const JUICE_CATALOG: {
     "goal:scored": { effect: "shockwave", tint: colors.danger, scale: 1.5, ttl: 0.5, hitStopMs: 100, hitStopPriority: HitStopPriority.HIGH, shakeIntensity: 4.0, shakeDurationMs: 120 }
   },
   asteroids: {
-    "rock:destroyed": { effect: "shockwave", tint: colors.warning, scale: 1.2, ttl: 0.4, hitStopMs: 40, hitStopPriority: HitStopPriority.NORMAL, shakeIntensity: 2.5, shakeDurationMs: 80 },
+    "rock:destroyed": { effect: "pixelfx_explosion", tint: colors.warning, scale: 1.2, ttl: 0.42, hitStopMs: 40, hitStopPriority: HitStopPriority.NORMAL, shakeIntensity: 2.5, shakeDurationMs: 80 },
     "ship:damage": { effect: "screen_border_glow", tint: colors.danger, scale: 1.0, ttl: 0.3, hitStopMs: 150, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 5.0, shakeDurationMs: 150 },
     "ship:fire": { effect: "thruster_flame", tint: colors.cyan, scale: 0.7, ttl: 0.15 }
   },
@@ -115,9 +124,9 @@ export const JUICE_CATALOG: {
     "player:death": { effect: "shockwave", tint: colors.danger, scale: 2.0, ttl: 0.6, hitStopMs: 250, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 8.0, shakeDurationMs: 250 }
   },
   platformer: {
-    "player:damage": { effect: "screen_border_glow", tint: colors.danger, scale: 1.0, ttl: 0.3, hitStopMs: 120, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 4.0, shakeDurationMs: 120 },
+    "player:damage": { effect: "pixelfx_impact", tint: colors.danger, scale: 1.0, ttl: 0.3, hitStopMs: 120, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 4.0, shakeDurationMs: 120 },
     "coin:collected": { effect: "floating_text", tint: colors.yellow, scale: 0.9, ttl: 0.4, text: "+10" },
-    "enemy:stomp": { effect: "shockwave", tint: colors.green, scale: 1.0, ttl: 0.3, hitStopMs: 40, hitStopPriority: HitStopPriority.NORMAL, shakeIntensity: 2.0, shakeDurationMs: 60 }
+    "enemy:stomp": { effect: "pixelfx_impact", tint: colors.green, scale: 1.0, ttl: 0.28, hitStopMs: 40, hitStopPriority: HitStopPriority.NORMAL, shakeIntensity: 2.0, shakeDurationMs: 60 }
   },
   "echo-runner": {
     "echo:ghost": { effect: "hologram_glitch", tint: colors.cyan, scale: 1.0, ttl: 0.3 },
@@ -193,12 +202,12 @@ export class JuiceOrchestrator<TComponents extends CoreComponentRegistry = CoreC
       type: "Transform",
       x,
       y,
-      rotation: 0,
+      rotation: options?.rotation ?? 0,
       scaleX: scale,
       scaleY: scale,
       worldX: x,
       worldY: y,
-      worldRotation: 0,
+      worldRotation: options?.rotation ?? 0,
       worldScaleX: scale,
       worldScaleY: scale,
       dirty: true
@@ -239,7 +248,7 @@ export class JuiceOrchestrator<TComponents extends CoreComponentRegistry = CoreC
   public triggerEvent<G extends SupportedGameId>(
     gameId: G,
     eventName: GameJuiceEventMap[G],
-    context?: { x?: number; y?: number; overrideTint?: string }
+    context?: { x?: number; y?: number; rotation?: number; overrideTint?: string }
   ): void {
     const gameMap = JUICE_CATALOG[gameId] as Record<string, JuiceProfile>;
     if (!gameMap) return;
@@ -250,6 +259,7 @@ export class JuiceOrchestrator<TComponents extends CoreComponentRegistry = CoreC
     this.spawn(profile.effect, {
       x: context?.x,
       y: context?.y,
+      rotation: context?.rotation,
       tint: context?.overrideTint || profile.tint,
       scale: profile.scale,
       intensity: profile.intensity,

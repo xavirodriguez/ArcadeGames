@@ -1,6 +1,7 @@
 // src/games/shared/sprites/SpriteRegistry.ts
 
 import type { SpriteSheetDef, SpriteFrameRect, SpriteImageSource } from "./SpriteTypes";
+import { GENERATED_SPRITE_SHEETS } from "./generated/index.generated";
 
 function makeRowFrames(
   startX: number,
@@ -290,6 +291,7 @@ const TOWER_SNIPER_ART: SpriteSheetDef = {
 
 /** All shared-pipeline sheets, kept declarative for runtime registration and CI validation. */
 export const SPRITE_SHEET_CATALOG: readonly SpriteSheetDef[] = [
+  ...GENERATED_SPRITE_SHEETS,
   ONI_RED,
   SEA_DRAGON,
   GHOST_GALLEON,

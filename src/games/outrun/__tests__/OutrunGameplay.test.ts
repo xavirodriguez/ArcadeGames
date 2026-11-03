@@ -14,6 +14,8 @@ const mockPaint = {
   setColor: jest.fn(),
   setStyle: jest.fn(),
   setAlphaf: jest.fn(),
+  setStrokeWidth: jest.fn(),
+  setStrokeCap: jest.fn(),
 };
 
 jest.mock("@shopify/react-native-skia", () => ({
@@ -21,6 +23,7 @@ jest.mock("@shopify/react-native-skia", () => ({
     Paint: jest.fn(() => mockPaint),
     Color: jest.fn((c) => c),
     PaintStyle: { Fill: 0, Stroke: 1 },
+    StrokeCap: { Round: 1 },
     XYWHRect: jest.fn((x, y, w, h) => ({ x, y, w, h })),
     RRectXY: jest.fn((rect, rx, ry) => ({ rect, rx, ry })),
     Path: {
@@ -28,6 +31,7 @@ jest.mock("@shopify/react-native-skia", () => ({
         moveTo: jest.fn(),
         lineTo: jest.fn(),
         close: jest.fn(),
+        quadTo: jest.fn(),
       })),
     },
   },
@@ -306,6 +310,7 @@ describe("OutrunGameplay", () => {
       arc: jest.fn(),
       ellipse: jest.fn(),
       fillText: jest.fn(),
+      quadraticCurveTo: jest.fn(),
     };
 
     drawOutrunRoad.draw(mockCanvasCtx, world, 0);

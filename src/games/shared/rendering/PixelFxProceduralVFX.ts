@@ -516,7 +516,7 @@ export function drawPixelFxTargetWarning(draw: IDrawAdapter, world: import("@tin
   draw.save();
   draw.strokeCircle(0, 0, radius, color, Math.max(0.8, size * 0.025), fade * 0.45);
   for (let i = 0; i < 4; i++) {
-    const angle = rotation + (i * Math.PI) / 2 + Math.PI / 4;
+    const angle = (i * Math.PI) / 2 + Math.PI / 4;
     const cx = Math.cos(angle) * radius;
     const cy = Math.sin(angle) * radius;
     const tx = -Math.sin(angle);

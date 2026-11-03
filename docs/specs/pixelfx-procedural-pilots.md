@@ -39,3 +39,24 @@ The shapes are intentionally geometric. They do not import PixelFX, allocate par
 ## Follow-up validation
 
 Run the focused Jest test, application typecheck, and the three game smoke tests on Canvas and Skia. Tune scale and color in-game after observing actual combat camera scale; do not infer visual quality from unit tests alone.
+
+
+## Second batch: five additional compositions
+
+| Shape | Composition | Consumer |
+| --- | --- | --- |
+| `pixelfx_dust` | Low expanding puffs, short horizontal streaks and a ground-hugging arc | Platformer grounded-state transition (landing) |
+| `pixelfx_pickup` | Compact halo, diamond facets and four-point glints | Platformer `CollectiblePickedUp` |
+| `pixelfx_muzzle` | Forward-facing flare, hot core and recoil rays | Asteroids successful weapon shot |
+| `pixelfx_shield_crack` | Segmented energy shell and deterministic radial fractures | Asteroids `combat:hit` when the target has `Ship` |
+| `pixelfx_ink_burst` | Broken brush arcs, radial ink drops and short strokes | Hit & Run `combat:death`, with ink-black Sumi-e tint |
+
+The five new compositions use the same TTL-derived animation progress and renderer registration as the first batch. They are registered in the existing shared VFX bootstrap, so Platformer and Asteroids receive Canvas/Skia drawers through `SharedVFX`; Hit & Run receives the same drawers through its renderer bootstrap.
+
+### Event and rollback handling
+
+- Platformer landing dust is emitted only on a committed `isGrounded: false → true` transition. The previous-grounded snapshot is not advanced during resimulation.
+- Pickup sparkle uses the collector's Transform because the collectible entity is scheduled for removal by `CollectibleSystem`.
+- Asteroids muzzle flash is emitted only after a successful shot and is suppressed during rollback resimulation.
+- Asteroids shield crack listens to typed `combat:hit` and filters targets by the `Ship` component.
+- Hit & Run death ink burst is emitted from the victim Transform when still available; it is skipped during resimulation and uses the existing Sumi-e theme resource to choose ink black.

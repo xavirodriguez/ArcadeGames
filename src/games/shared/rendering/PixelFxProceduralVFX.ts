@@ -393,8 +393,8 @@ function skiaDrawer(
   return { draw(canvas, world, entity) { drawEffect(new SkiaDrawAdapter(canvas), world, entity); } };
 }
 
-export function registerPixelFxProceduralVFX(
-  renderer: Renderer<CoreComponentRegistry, RenderContext>
+export function registerPixelFxProceduralVFX<TComponents extends CoreComponentRegistry>(
+  renderer: Renderer<TComponents, RenderContext>
 ): void {
   const drawers = [
     ["pixelfx_impact", drawPixelFxImpact],

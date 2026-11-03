@@ -80,4 +80,19 @@ describe("PixelFX-inspired procedural VFX", () => {
       "pixelfx_explosion"
     ]);
   });
+
+  it("registers the same shape contract for Skia", () => {
+    const registerShape = jest.fn();
+    const renderer = {
+      type: "skia",
+      registerShape
+    } as unknown as Renderer<CoreComponentRegistry, RenderContext>;
+    registerPixelFxProceduralVFX(renderer);
+    expect(registerShape).toHaveBeenCalledTimes(3);
+    expect(registerShape.mock.calls.map(([name]) => name)).toEqual([
+      "pixelfx_impact",
+      "pixelfx_slash",
+      "pixelfx_explosion"
+    ]);
+  });
 });

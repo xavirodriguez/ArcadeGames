@@ -34,6 +34,7 @@ import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 import { spawnVisualParticle as spawnCanvasParticle } from "./rendering/FlappyBirdCanvasVisuals";
 import { spawnVisualParticle as spawnSkiaParticle } from "./rendering/FlappyBirdSkiaVisuals";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
+import { registerPixelFxProceduralVFX } from "../shared/rendering/PixelFxProceduralVFX";
 
 export interface FlappyBirdBlueprintMap extends Record<string, BlueprintDefinition<FlappyBirdComponentRegistry, EventRegistry, unknown>> {
   bird: BlueprintDefinition<FlappyBirdComponentRegistry, EventRegistry, { x: number, y: number }>;
@@ -527,6 +528,7 @@ export class FlappyBirdGame
   }
 
   public initializeRenderer(renderer: Renderer<FlappyBirdComponentRegistry, RenderContext>): void {
+    registerPixelFxProceduralVFX(renderer);
     const theme = this.world.getResource<Theme>(THEME_RESOURCE_KEY);
     const packId = theme?.conceptPack?.id;
 

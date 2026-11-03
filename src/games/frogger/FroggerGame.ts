@@ -40,6 +40,7 @@ import { applyMutators } from "../shared/configHelper";
 import { registerMutatorHook } from "../../utils/MutatorRegistry";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import { resolveFroggerTheme } from "./mods/registry";
+import { registerPixelFxProceduralVFX } from "../shared/rendering/PixelFxProceduralVFX";
 
 export class FroggerGame extends BaseGame<
   FroggerState,
@@ -288,6 +289,7 @@ export class FroggerGame extends BaseGame<
 
   public initializeRenderer(renderer: Renderer<FroggerComponentRegistry>): void {
     resolveFroggerTheme().initializeRenderer(renderer);
+    registerPixelFxProceduralVFX(renderer);
   }
 
   public getGameState(): FroggerState {

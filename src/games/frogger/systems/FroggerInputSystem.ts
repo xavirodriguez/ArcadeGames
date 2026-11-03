@@ -1,8 +1,10 @@
 import { System, World, IInputSystem } from "@tiny-aster/core";
 import { FroggerComponentRegistry } from "../types/FroggerTypes";
 import { FroggerConfig, DEFAULT_FROGGER_CONFIG } from "../types/FroggerConfigSchema";
+import { JuiceOrchestrator } from "../../shared/rendering/JuiceOrchestrator";
 
 export class FroggerInputSystem extends System<FroggerComponentRegistry> {
+  private juice?: JuiceOrchestrator<FroggerComponentRegistry>;
   public update(world: World<FroggerComponentRegistry>, dt: number): void {
     const config = world.getResource<FroggerConfig>("GameConfig") || DEFAULT_FROGGER_CONFIG;
     const froggerEntities = world.query("Frogger", "FroggerInput", "Transform");
@@ -95,6 +97,15 @@ export class FroggerInputSystem extends System<FroggerComponentRegistry> {
           }
         }
 
+        if (!world.isReSimulating) {
+          this.juice ??= new JuiceOrchestrator<FroggerComponentRegistry>(world);
+          const rotation = dy < 0 ? -Math.PI / 2 : dy > 0 ? Math.PI / 2 : dx < 0 ? Math.PI : 0;
+          this.juice.triggerEvent("frogger", "frog:hop", {
+            x: transform.x,
+            y: transform.y,
+            rotation
+          });
+        }
         const eventBus = world.getEventBus();
         if (eventBus) {
           eventBus.emit("frogger:jump", { gridX: frogger.gridX, gridY: frogger.gridY });

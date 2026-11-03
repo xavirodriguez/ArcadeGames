@@ -21,7 +21,12 @@ export type SharedVFXPrimitiveName =
   | "pixelfx_pickup"
   | "pixelfx_muzzle"
   | "pixelfx_shield_crack"
-  | "pixelfx_ink_burst";
+  | "pixelfx_ink_burst"
+  | "pixelfx_paddle_impact"
+  | "pixelfx_brick_shatter"
+  | "pixelfx_flap_gust"
+  | "pixelfx_hop"
+  | "pixelfx_phase_dash";
 
 /**
  * Base configuration options shared across Juice spawn calls and catalog profiles.
@@ -80,7 +85,7 @@ export interface GameJuiceEventMap {
   flappybird: "pipe:passed" | "bird:flap" | "bird:crash";
   frogger: "goal:reached" | "frog:hop" | "frog:splat";
   "geometry-wars": "enemy:destroyed" | "bomb:trigger" | "player:death";
-  platformer: "player:damage" | "coin:collected" | "enemy:stomp";
+  platformer: "player:damage" | "coin:collected" | "enemy:stomp" | "player:dash";
   "echo-runner": "echo:ghost" | "dash:boost" | "obstacle:hit";
 }
 
@@ -89,7 +94,7 @@ export const JUICE_CATALOG: {
 } = {
   pong: {
     "ball:rally": { effect: "warp_lines", tint: colors.cyan, intensity: 1.0, scale: 1.0 },
-    "paddle:hit": { effect: "shockwave", tint: colors.cyan, scale: 0.8, ttl: 0.2, hitStopMs: 30, hitStopPriority: HitStopPriority.LOW, shakeIntensity: 1.5, shakeDurationMs: 40 },
+    "paddle:hit": { effect: "pixelfx_paddle_impact", tint: colors.cyan, scale: 0.9, ttl: 0.22, hitStopMs: 30, hitStopPriority: HitStopPriority.LOW, shakeIntensity: 1.5, shakeDurationMs: 40 },
     "goal:scored": { effect: "shockwave", tint: colors.danger, scale: 1.5, ttl: 0.5, hitStopMs: 100, hitStopPriority: HitStopPriority.HIGH, shakeIntensity: 4.0, shakeDurationMs: 120 }
   },
   asteroids: {
@@ -103,19 +108,19 @@ export const JUICE_CATALOG: {
     "ufo:destroyed": { effect: "shockwave", tint: colors.yellow, scale: 1.8, ttl: 0.6, hitStopMs: 120, hitStopPriority: HitStopPriority.HIGH, shakeIntensity: 4.5, shakeDurationMs: 140 }
   },
   arkanoid: {
-    "brick:shatter": { effect: "shockwave", tint: colors.danger, scale: 0.8, ttl: 0.25, hitStopMs: 30, hitStopPriority: HitStopPriority.NORMAL, shakeIntensity: 1.5, shakeDurationMs: 50 },
+    "brick:shatter": { effect: "pixelfx_brick_shatter", tint: colors.danger, scale: 0.95, ttl: 0.32, hitStopMs: 30, hitStopPriority: HitStopPriority.NORMAL, shakeIntensity: 1.5, shakeDurationMs: 50 },
     "brick:hit": { effect: "shockwave", tint: colors.cyan, scale: 0.6, ttl: 0.15, hitStopMs: 30, hitStopPriority: HitStopPriority.LOW, shakeIntensity: 1.0, shakeDurationMs: 30 },
     "paddle:bounce": { effect: "shield_bubble", tint: colors.cyan, scale: 0.9, ttl: 0.2 },
     "boss:hit": { effect: "hologram_glitch", tint: colors.redHot, scale: 1.5, ttl: 0.4, hitStopMs: 80, hitStopPriority: HitStopPriority.HIGH, shakeIntensity: 3.5, shakeDurationMs: 100 }
   },
   flappybird: {
     "pipe:passed": { effect: "floating_text", tint: colors.yellow, scale: 1.0, ttl: 0.5, text: "+1" },
-    "bird:flap": { effect: "comet_trail", tint: colors.cyan, scale: 0.6, ttl: 0.2 },
+    "bird:flap": { effect: "pixelfx_flap_gust", tint: colors.cyan, scale: 0.65, ttl: 0.2 },
     "bird:crash": { effect: "shockwave", tint: colors.danger, scale: 1.4, ttl: 0.4, hitStopMs: 150, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 5.0, shakeDurationMs: 150 }
   },
   frogger: {
     "goal:reached": { effect: "shield_bubble", tint: colors.cyan, scale: 1.4, ttl: 0.6, hitStopMs: 80, hitStopPriority: HitStopPriority.HIGH },
-    "frog:hop": { effect: "comet_trail", tint: colors.green, scale: 0.5, ttl: 0.15 },
+    "frog:hop": { effect: "pixelfx_hop", tint: colors.green, scale: 0.55, ttl: 0.18 },
     "frog:splat": { effect: "shockwave", tint: colors.danger, scale: 1.2, ttl: 0.4, hitStopMs: 150, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 4.0, shakeDurationMs: 120 }
   },
   "geometry-wars": {
@@ -126,7 +131,8 @@ export const JUICE_CATALOG: {
   platformer: {
     "player:damage": { effect: "pixelfx_impact", tint: colors.danger, scale: 1.0, ttl: 0.3, hitStopMs: 120, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 4.0, shakeDurationMs: 120 },
     "coin:collected": { effect: "floating_text", tint: colors.yellow, scale: 0.9, ttl: 0.4, text: "+10" },
-    "enemy:stomp": { effect: "pixelfx_impact", tint: colors.green, scale: 1.0, ttl: 0.28, hitStopMs: 40, hitStopPriority: HitStopPriority.NORMAL, shakeIntensity: 2.0, shakeDurationMs: 60 }
+    "enemy:stomp": { effect: "pixelfx_impact", tint: colors.green, scale: 1.0, ttl: 0.28, hitStopMs: 40, hitStopPriority: HitStopPriority.NORMAL, shakeIntensity: 2.0, shakeDurationMs: 60 },
+    "player:dash": { effect: "pixelfx_phase_dash", tint: colors.magenta, scale: 1.05, ttl: 0.24 }
   },
   "echo-runner": {
     "echo:ghost": { effect: "hologram_glitch", tint: colors.cyan, scale: 1.0, ttl: 0.3 },

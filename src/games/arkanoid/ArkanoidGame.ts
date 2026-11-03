@@ -27,6 +27,7 @@ import {
   SHARED_AUDIO_MANIFEST
 } from "@tiny-aster/core";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
+import { registerPixelFxProceduralVFX } from "../shared/rendering/PixelFxProceduralVFX";
 import { CombatSystem, CollisionLayers, AchievementSystem, PowerUpSystem, SharedParticlePool } from "@tiny-aster/gameplay-kit";
 import { ComboSystem } from "@tiny-aster/core";
 import { BENEFICIAL_MUTATORS } from "../../utils/MutatorRegistry";
@@ -306,6 +307,7 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
   }
 
   public initializeRenderer(renderer: Renderer<ArkanoidComponentRegistry, RenderContext>): void {
+    registerPixelFxProceduralVFX(renderer);
     RendererUtils.registerAssets(renderer, {
       canvas: (r) => {
         /* eslint-disable @typescript-eslint/no-require-imports */

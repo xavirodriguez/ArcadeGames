@@ -1,150 +1,66 @@
 # VFX Effects & Integration Inventory
 
 **Audit date:** 2026-11-03  
-**Audited ref:** `master` at `0df1f73d49394695ee2eefed6e61e4d4953cbbb4`
+**Audited ref:** `master` at `5e4e289d8e51802f9fc2c53850762d68e62798a0`
 
-This inventory distinguishes code observed on master from effects described only in specifications or open PRs. A PR description is not treated as proof of integration.
+This inventory describes the post-#1044 default branch. Source code and merged tests are the evidence of implementation; old audit snapshots and PR descriptions are not current-state evidence.
 
-## Shared primitives and runtime
+## Shared runtime
 
 | Capability | Canonical location | Current role | VFX 2.0 disposition |
 |---|---|---|---|
-| Draw adapter | `src/games/shared/rendering/DrawAdapter.ts` | Canvas/Skia drawing operations | Reuse as the only effect drawing boundary |
-| Shared drawers | `src/games/shared/rendering/SharedVFX.ts` | Existing shockwave, shield, thruster, beam, vortex, trail, hologram, text and background effects | Reuse; inventory overlaps before adding new shapes |
-| Procedural PixelFX drawers | `src/games/shared/rendering/PixelFxProceduralVFX.ts` | Impact, slash, explosion on audited master source | Reconcile source vs test/spec and open PRs |
-| Orchestrator | `src/games/shared/rendering/JuiceOrchestrator.ts` | Spawn transient ECS entities and map game events through `JUICE_CATALOG` | Retain as runtime integration point; centralize rollback guard |
-| ECS lifecycle | `Render`, `Transform`, `TTL` | Own transform, draw data and expiry | Retain; no parallel effect lifetime manager |
-| Hit-stop | `HitStopSystem.ts` + core `GameplayFreeze` | Priority/cooldown and simulation freeze | Retain canonical route; no second freeze clock |
-| Sprite sheets | `SPRITE_SHEET_CATALOG`, SpriteRegistry, SpriteAnimator | Existing asset/animation path | PixelFX integration remains optional and build-time |
+| Draw adapter | `src/games/shared/rendering/DrawAdapter.ts` | Canvas/Skia drawing operations | Reuse `IDrawAdapter` |
+| Shared drawers | `src/games/shared/rendering/SharedVFX.ts` | Shared visual primitives and registration | Reuse; check overlap before adding primitives |
+| Procedural drawers | `src/games/shared/rendering/PixelFxProceduralVFX.ts` | Thirteen native procedural compositions | Reuse; no runtime PixelFX dependency |
+| Orchestrator | `src/games/shared/rendering/JuiceOrchestrator.ts` | Spawn transient entities and map typed game events through `JUICE_CATALOG` | Preserve as dispatch/compatibility boundary |
+| ECS lifecycle | `Transform`, `Render`, `TTL` | Position, draw data and expiry | Retain; no parallel lifecycle |
+| Renderer registration | `SharedVFX.ts` and game Canvas/Skia bootstraps | Install shared and procedural drawers | Retain; parity tests cover procedural names |
+| Sprite assets | `SPRITE_SHEET_CATALOG`, SpriteRegistry, SpriteAnimator | Existing sprite/animation pipeline | Keep separate from procedural Effect IR |
+| Hit-stop | `HitStopSystem.ts`, core `GameplayFreeze` | Split VFX timer and core simulation freeze | Consolidation remains outstanding |
 
 ## Procedural effect ledger
 
-### Present in the audited master drawer implementation
+All thirteen drawer definitions are present in `PixelFxProceduralVFX.ts`; Canvas and Skia registration tests assert the same thirteen-name contract.
 
-| Effect ID | Family candidate | Known consumer from spec/source | Status |
-|---|---|---|---|
-| `pixelfx_impact` | Combat | Platformer player damage | Drawer present; integration documented |
-| `pixelfx_slash` | Combat | Hit & Run melee hit | Drawer present; integration documented |
-| `pixelfx_explosion` | Combat | Asteroids asteroid destruction | Drawer present; integration documented |
-
-### Documented in the procedural pilot spec / closed PR #1036, but not present in the audited master drawer source
-
-| Effect ID | Family candidate | Intended trigger / consumer | Status |
-|---|---|---|---|
-| `pixelfx_dust` | Traversal | Platformer committed landing edge | Spec and test reference exist; implementation not in fetched master drawer source |
-| `pixelfx_pickup` | Interaction | Platformer `CollectiblePickedUp` | Spec and test reference exist; implementation not in fetched master drawer source |
-| `pixelfx_muzzle` | Combat | Asteroids successful weapon fire | Spec and test reference exist; implementation not in fetched master drawer source |
-| `pixelfx_shield_crack` | Combat | Asteroids typed `combat:hit` filtered to `Ship` | Spec and test reference exist; implementation not in fetched master drawer source |
-| `pixelfx_ink_burst` | Combat / Interaction | Hit & Run `combat:death`, Sumi-e tint | Spec and test reference exist; implementation not in fetched master drawer source |
-
-### Described by open PR #1040 and #1041
-
-| Effect ID | Family candidate | Intended trigger / consumer | Status |
-|---|---|---|---|
-| `pixelfx_paddle_impact` | Combat | Pong paddle contact | Open PR claim; not verified on master |
-| `pixelfx_brick_shatter` | Combat | Arkanoid brick destruction | Open PR claim; not verified on master |
-| `pixelfx_flap_gust` | Traversal | Flappy Bird successful flap | Open PR claim; not verified on master |
-| `pixelfx_hop` | Traversal | Frogger successful grid hop | Open PR claim; not verified on master |
-| `pixelfx_phase_dash` | Traversal | Platformer dash start | Open PR claim; not verified on master |
-
-**PR overlap:** #1040 and #1041 describe the same five new gameplay-specific compositions. #1041 additionally claims to restore the five missing drawers from the previous batch, for thirteen total. A head-diff/commit comparison is required before merging either. Do not count both PRs as separate effects or deliveries.
-
-## Sprite-sheet PixelFX candidate ledger
-
-The merged sprite-sheet layer under `src/games/shared/pixelfx/` is separate from procedural effects.
-
-| Manifest ID | Upstream source ID | Existing fallback | Manifest status |
-|---|---|---|---|
-| `pfx-impact-spark` | `impacts/hit-flash` | `shockwave` | Candidate; export fixture documented |
-| `pfx-explosion-small` | `explosions/cartoon-pow` | `shockwave` | Candidate; export fixture documented |
-| `pfx-muzzle` | `projectiles/cannon-shot` | `thruster_flame` | Candidate; needs exact export verification |
-| `pfx-dust-land` | `impacts/heavy-landing` | `comet_trail` | Candidate; needs exact export verification |
-| `pfx-pickup` | `pickups/collect-burst` | `floating_text` | Candidate; needs exact export verification |
-| `pfx-debris` | `explosions/dirt-explosion` | `shockwave` | Candidate; needs exact export verification |
-| `pfx-slash` | `melee/sword-slash` | `hologram_glitch` | Candidate; needs exact export verification |
-| `pfx-block` | `impacts/blunt-hit` | `shield_bubble` | Candidate; needs exact export verification |
-
-The catalog itself labels these entries as candidates. Do not assume the sheets are registered or production-ready. The integration audit records these blockers: register PNG/JSON in `SPRITE_SHEET_CATALOG`, run `sprites:validate`, prove SpriteAnimator frame/anchor parity on Canvas and Skia, and review Sumi-e artwork before Hit & Run adopts sheets.
-
-## Existing per-game event catalog
-
-`JUICE_CATALOG` currently defines typed event maps for Pong, Asteroids, Space Invaders, Arkanoid, Flappy Bird, Frogger, Geometry Wars, Platformer and Echo Runner. Profiles bind event keys to existing primitive names and scalar parameters (tint, scale, TTL, hit-stop, shake, text).
-
-This is a useful semantic event layer, but not yet the VFX 2.0 visual-profile model. A semantic profile should resolve concepts such as impact, energy, warning, surface, water and temporal distortion to palette/style tokens without making each drawer maintain a separate theme configuration.
-
-## Cross-game assignment from the VFX 2.0 plan
-
-| Game | Intended VFX 2.0 families | Integration evidence / gap |
+| Effect ID | Candidate family | Known use / intent |
 |---|---|---|
-| Asteroids | Ricochet, Charge, Shield Pulse, Magnetism | Existing explosion, muzzle and shield-crack work; new semantic event mappings and magnetism trigger need verification |
-| Platformer | Surface Skid, Teleport, Mechanical Motion, Time Distortion, Water Splash | Existing impact/landing/pickup/dash work; locomotion and environmental event contracts need audit |
-| Hit & Run | Target Warning, Ricochet, Charge | Existing slash/ink burst; warning/charge events and Sumi-e profile need verification |
-| Vertical Shmup | Target Warning, Shield Pulse, Charge, Ricochet | No confirmed PixelFX procedural consumer in the inspected evidence; inspect its own renderer/bootstrap before integration |
-| Frogger | Water Splash, Surface Skid | Hop effect is described by open PR; water/surface events need verification |
-| Arkanoid | Ricochet, Mechanical Motion | Brick shatter is described by open PR; existing brick/bounce feedback includes legacy paths |
-| Echo Runner | Teleport, Time Distortion, Surface Skid | Existing Juice catalog events are echo/dash/hit; new traversal/time event contracts need verification |
+| `pixelfx_impact` | Combat | Player damage / asteroid impact |
+| `pixelfx_slash` | Combat | Hit & Run melee hit |
+| `pixelfx_explosion` | Combat | Asteroid destruction |
+| `pixelfx_dust` | Traversal | Platformer landing |
+| `pixelfx_pickup` | Interaction | Collectible feedback |
+| `pixelfx_muzzle` | Combat | Successful weapon fire |
+| `pixelfx_shield_crack` | Combat | Shield damage |
+| `pixelfx_ink_burst` | Combat / Interaction | Death feedback, including Sumi-e presentation |
+| `pixelfx_paddle_impact` | Combat | Pong paddle contact |
+| `pixelfx_brick_shatter` | Combat | Arkanoid brick destruction |
+| `pixelfx_flap_gust` | Traversal | Flappy Bird flap |
+| `pixelfx_hop` | Traversal | Frogger hop |
+| `pixelfx_phase_dash` | Traversal | Platformer dash |
 
-## Legacy and duplicate feedback routes to re-check
+Family labels above are semantic candidates for typed dispatch; they do not imply that all consumers have migrated to a shared Effect IR.
 
-The 2026-10-27 game-feel inventory records the following candidates. They should be revalidated against current source before migration:
+## Correctness and integration status
 
-- Arkanoid collision callbacks directly mutate hit-flash/freeze/squash state and create inline spark emitters.
-- Pong collision handling directly applies hit-stop/shake/squash and creates inline hit particles; rollback guards need explicit review.
-- Asteroids still has direct Juice helper paths for fire/death and direct shake on asteroid break.
-- Space Invaders constructs `JuiceOrchestrator` inside collision handling and has duplicate shake paths.
-- Hit & Run writes screen-shake state to both a game-specific resource and the core camera component.
-- Geometry Wars contains bespoke shockwave/particle behavior alongside orchestrated effects.
+- **Rollback:** #1044 places the `world.isReSimulating` guard at the beginning of `JuiceOrchestrator.spawn()`, before hit-stop, shake and entity/component creation. A focused regression test covers no spawn and no hit-stop during resimulation.
+- **Brick Shatter:** the drawer builds its rotated outline from four adapter line calls; the test expects 28 total lines (four outline edges plus 24 fragment edges).
+- **Canvas/Skia:** procedural registration tests assert the same thirteen IDs and count for both renderers.
+- **Allocations:** not benchmarked. `readEffectState` allocates a state object per draw and older impact/explosion code uses object-returning rotation helpers. Do not claim zero-allocation.
+- **Sprite sheets:** the PixelFX manifest is candidate metadata. Asset registration and SpriteAnimator Canvas/Skia frame parity remain separate validation work; they are not the procedural drawer catalog.
+- **Legacy consumers:** inline emitters and direct screen-shake/freeze writes remain in some games. Migrate only after verifying current call sites and gameplay event semantics.
 
-These are integration-hardening work items, not a mandate to migrate all feedback into the new IR. Preserve specialized gameplay feedback where it is genuinely game-specific.
+## Time and hit-stop ownership
 
-## Counting rule
+Transient effect lifetime is represented by ECS `TTL`. Simulation time is controlled by the core schedule; presentation time is a separate visual concern and must not mutate gameplay delta.
 
-For VFX Architecture 2.0 reporting:
+Hit-stop is not currently one unified route:
+- `HitStopSystem` updates `VFXWorldState.hitStopTimer`, priority and cooldown.
+- Core `Schedule.update()` freezes simulation using the `GameplayFreeze` resource.
+- Hit & Run uses core `enterGameplayFreeze` / `getGameplayFreezeRemaining` helpers.
+- `JuiceOrchestrator.spawn()` requests the separate VFX timer.
 
-- Count a drawer only when its implementation is present and registered in both Canvas and Skia.
-- Count an effect integration only when a real gameplay event invokes it.
-- Count a game as integrated only when event mapping, profile, both renderer registrations, integration test and Visual Lab reference scenario exist.
-- Count sprite-sheet PixelFX separately from procedural drawers.
-- Never count duplicate PR descriptions as separate delivered work.
+Do not add a third freeze mechanism. Consolidate the existing policy with the Juice/core-freeze work and verify the scheduler end to end before Combat integration treats `hitStopMs` as a simulation pause.
 
+## Scope boundary
 
----
-
-## Repository reconciliation — 2026-11-03 follow-up
-
-The merge graph confirms #1040 and #1041 are both merged; #1041 is the final integration pass. #1042 (CI repair) and #1043 (initial audit) are also merged. The previous sections that described #1040/#1041 as open, unverified, or duplicate pending work are superseded.
-
-### Current procedural drawer catalog on post-merge master
-
-All thirteen procedural drawers are present in `PixelFxProceduralVFX.ts` and listed in `JuiceOrchestrator.SharedVFXPrimitiveName`:
-
-1. `pixelfx_impact`
-2. `pixelfx_slash`
-3. `pixelfx_explosion`
-4. `pixelfx_dust`
-5. `pixelfx_pickup`
-6. `pixelfx_muzzle`
-7. `pixelfx_shield_crack`
-8. `pixelfx_ink_burst`
-9. `pixelfx_paddle_impact`
-10. `pixelfx_brick_shatter`
-11. `pixelfx_flap_gust`
-12. `pixelfx_hop`
-13. `pixelfx_phase_dash`
-
-Canvas and Skia registration tests both assert the same thirteen-shape sequence. The five game-specific additions are integrated through their game event/catalog paths and renderer bootstrap registrations as described by the merged PRs. The initial audit's three-vs-eight drawer discrepancy is withdrawn.
-
-### Remaining verified issues
-
-- `JuiceOrchestrator.spawn` has no central `world.isReSimulating` early return. Per-caller guards exist for the newly added gameplay triggers, but the generic public spawn API is not safe by itself. A central guard and regression test are included in the follow-up patch.
-- The current Brick Shatter drawer uses `drawLine` for its rotated outline, while the current test still asserts `strokeRect`. The follow-up patch changes the assertion to 28 draw-line calls.
-- The older impact/explosion path still has object-returning helpers and the shared state reader allocates a state object per draw. Profile before optimizing; do not represent this as zero-allocation.
-
-### PixelFX sprite-sheet path — separate status
-
-The sprite-sheet integration scaffold is merged, but the manifest remains explicitly marked as candidates. The integration audit still lists PNG/JSON registration in `SPRITE_SHEET_CATALOG`, sprite validation, Canvas/Skia SpriteAnimator frame synchronization, and Sumi-e art review as outstanding. These are not the same deliverables as the thirteen procedural drawers and must be tracked independently.
-
-
-### Additional inventory correction — hit-stop is split
-
-Do not interpret the existing `HitStopSystem` as already connected to the core scheduler. It owns a priority/cooldown timer in `VFXWorldState`; core simulation freeze is driven by the separate `GameplayFreeze` resource. Hit & Run uses the core helper directly, while `JuiceOrchestrator` currently calls `requestHitStop` on the VFX timer. The previous inventory shorthand suggesting one unified route is superseded. Treat this as a cross-cutting integration gap; do not create a third path, and do not rely on VFX profile hit-stop until the two existing mechanisms are reconciled and tested end-to-end.
+Foundation may define the typed semantic contract and profiles while preserving current orchestration, drawing and TTL ownership. Visual Lab is PR3. Family-specific game migrations are PR4–PR6. Sprite-sheet registration, broad legacy migrations, performance optimization without a baseline, and hit-stop consolidation are separate workstreams.

@@ -123,7 +123,6 @@ function spawnHitRunCombatCue(
 }
 
 export function spawnHitRunChargeCue(world: World<CoreComponentRegistry>, entity: number, direction: number, tint: string): void {
-  const transform = world.getComponent(entity, "Transform");
   spawnHitRunCombatCue(world, entity, "pixelfx_charge", tint, direction >= 0 ? 0 : Math.PI, 1.2, 0.34);
 }
 export function enterAnticipationState(

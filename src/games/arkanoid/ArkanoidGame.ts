@@ -307,6 +307,7 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
   }
 
   public initializeRenderer(renderer: Renderer<ArkanoidComponentRegistry, RenderContext>): void {
+    registerPixelFxProceduralVFX(renderer);
     RendererUtils.registerAssets(renderer, {
       canvas: (r) => {
         /* eslint-disable @typescript-eslint/no-require-imports */

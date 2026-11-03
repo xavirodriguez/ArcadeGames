@@ -77,6 +77,7 @@ describe("VFX Visual Lab model", () => {
     expect(() => parseVFXLabPreset(JSON.stringify({ ...valid, schemaVersion: 2 }))).toThrow();
     expect(() => parseVFXLabPreset(JSON.stringify({ ...valid, progress: 1.5 }))).toThrow();
     expect(() => parseVFXLabPreset(JSON.stringify({ ...valid, size: Number.NaN }))).toThrow();
+    expect(() => parseVFXLabPreset(JSON.stringify({ ...valid, injected: true }))).toThrow();
     expect(() => parseVFXLabPreset("[]")).toThrow();
   });
 });

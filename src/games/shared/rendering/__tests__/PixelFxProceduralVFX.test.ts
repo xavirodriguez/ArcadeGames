@@ -103,8 +103,8 @@ describe("PixelFX-inspired procedural VFX", () => {
 
     adapter.drawLine.mockClear();
     drawPixelFxBrickShatter(adapter, world, 1);
-    expect(adapter.strokeRect).toHaveBeenCalled();
-    expect(adapter.drawLine).toHaveBeenCalled();
+    // BrickShatter now builds its rotated rectangle from adapter lines.
+    expect(adapter.drawLine).toHaveBeenCalledTimes(28);
 
     adapter.drawLine.mockClear();
     drawPixelFxFlapGust(adapter, world, 1);

@@ -127,3 +127,40 @@ The MVP should be gated on a stable Foundation contract and should capture enoug
 **No-go for PR 2 until P0.1–P0.3 are reconciled.** P0.4 requires a baseline measurement and explicit decision; it need not force premature optimization in Foundation.
 
 Once those conditions are met, PR 2 can formalize the minimal shared contract around the existing `JuiceOrchestrator`, `IDrawAdapter`, `Render` + `TTL`, and shared renderer registration.
+
+
+---
+
+## Repository reconciliation — 2026-11-03 follow-up
+
+The initial audit snapshot was taken before the latest PixelFX merges and is superseded where it conflicts with this addendum. The merge graph has now been checked directly:
+
+- #1040 is merged (merge commit `f19b57d9034c01759fd081ed5c48cb3108000207`).
+- #1041 is merged after #1040 (merge commit `6a70a300735b547e89f428a456f35a7365808919`). It is the final integration pass, restoring the five prior drawers and adjusting the five new compositions for orientation/rotation.
+- #1042 is merged (CI/build stability repair, merge commit `7ec8f4ef788e57dcbd7d97408cabbeb9af68ea33`).
+- #1043 (this audit's first documentation PR) is merged (merge commit `9350e44f676449d01e9ac5f85722c7ee96736ffc`).
+
+Therefore #1040/#1041 are not outstanding merge conflicts or duplicate open PRs. Both changes are present in the merge history. The current procedural catalog contains thirteen drawer definitions, and the Canvas and Skia registration tests both specify thirteen names. The previous finding that master contained only three drawers and had eight-vs-three registration expectations was based on a stale pre-merge snapshot and is withdrawn.
+
+### Current defects verified against the post-merge tree
+
+1. **Rollback guard is still missing at the orchestrator boundary.** The current `JuiceOrchestrator.spawn` reads VFX state and can request hit-stop, screen shake, and create an ECS effect entity without first checking `world.isReSimulating`. New effect call sites include local guards, but direct/future callers can bypass them. This conflicts with the PixelFX integration docs' statement that the orchestrator itself no-ops during resimulation. A follow-up patch now adds the guard at the start of `spawn` and a regression test covering no entity and no hit-stop during resimulation.
+2. **One procedural drawer test assertion is stale.** `drawPixelFxBrickShatter` was changed to construct its rotated rectangular outline from four `drawLine` calls, but the current test still expects `strokeRect`. The follow-up patch replaces this with an exact 28-line assertion (four outline edges plus 24 fragment edges).
+3. **Allocation baseline remains unmeasured.** The five newest drawers avoid temporary arrays/point objects, but the shared `readEffectState` still returns an object per draw and the older impact/explosion paths call `rotatePoint`, which returns objects. This is a measurable optimization candidate, not a reason to add a new runtime abstraction. Do not claim zero-allocation until profiled and verified.
+
+### Updated gate
+
+The merge-reconciliation blocker is closed. The two concrete correctness issues above are addressed in the follow-up code changes and must pass focused Jest/typecheck/CI before PR 2. Sprite-sheet asset registration and Canvas/Skia SpriteAnimator parity remain separate PixelFX sprite-path blockers; they do not block procedural Effect IR design unless PR 2 explicitly depends on sprite-backed effects.
+
+The repository connector does not execute tests. The follow-up changes are committed to a branch for CI/local validation; no test execution is claimed here.
+
+
+### Additional architecture correction — hit-stop ownership
+
+The prior wording that implied `HitStopSystem` already delegates to core `GameplayFreeze` is incorrect and is superseded. The existing consolidation ledger and source show two distinct paths:
+
+- `HitStopSystem.requestHitStop` updates `VFXWorldState.hitStopTimer`, priority and cooldown. Its update method decrements that timer.
+- Core `Schedule.update()` freezes simulation based on the core `GameplayFreeze` resource.
+- Hit & Run feedback uses `enterGameplayFreeze` / `getGameplayFreezeRemaining` directly, while `JuiceOrchestrator.spawn` requests the separate VFX timer.
+
+The two paths are not yet a single canonical mechanism. PR 1 therefore records **hit-stop consolidation as an architectural gap**, not as a capability already solved. Do not add a third mechanism. Before VFX Combat profiles rely on hit-stop, reconcile the priority/cooldown policy with core `GameplayFreeze` and add an end-to-end schedule test. This should be coordinated with the existing Juice consolidation roadmap rather than implemented as an unrelated VFX scheduler.

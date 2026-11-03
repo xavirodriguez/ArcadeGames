@@ -106,3 +106,45 @@ For VFX Architecture 2.0 reporting:
 - Count a game as integrated only when event mapping, profile, both renderer registrations, integration test and Visual Lab reference scenario exist.
 - Count sprite-sheet PixelFX separately from procedural drawers.
 - Never count duplicate PR descriptions as separate delivered work.
+
+
+---
+
+## Repository reconciliation — 2026-11-03 follow-up
+
+The merge graph confirms #1040 and #1041 are both merged; #1041 is the final integration pass. #1042 (CI repair) and #1043 (initial audit) are also merged. The previous sections that described #1040/#1041 as open, unverified, or duplicate pending work are superseded.
+
+### Current procedural drawer catalog on post-merge master
+
+All thirteen procedural drawers are present in `PixelFxProceduralVFX.ts` and listed in `JuiceOrchestrator.SharedVFXPrimitiveName`:
+
+1. `pixelfx_impact`
+2. `pixelfx_slash`
+3. `pixelfx_explosion`
+4. `pixelfx_dust`
+5. `pixelfx_pickup`
+6. `pixelfx_muzzle`
+7. `pixelfx_shield_crack`
+8. `pixelfx_ink_burst`
+9. `pixelfx_paddle_impact`
+10. `pixelfx_brick_shatter`
+11. `pixelfx_flap_gust`
+12. `pixelfx_hop`
+13. `pixelfx_phase_dash`
+
+Canvas and Skia registration tests both assert the same thirteen-shape sequence. The five game-specific additions are integrated through their game event/catalog paths and renderer bootstrap registrations as described by the merged PRs. The initial audit's three-vs-eight drawer discrepancy is withdrawn.
+
+### Remaining verified issues
+
+- `JuiceOrchestrator.spawn` has no central `world.isReSimulating` early return. Per-caller guards exist for the newly added gameplay triggers, but the generic public spawn API is not safe by itself. A central guard and regression test are included in the follow-up patch.
+- The current Brick Shatter drawer uses `drawLine` for its rotated outline, while the current test still asserts `strokeRect`. The follow-up patch changes the assertion to 28 draw-line calls.
+- The older impact/explosion path still has object-returning helpers and the shared state reader allocates a state object per draw. Profile before optimizing; do not represent this as zero-allocation.
+
+### PixelFX sprite-sheet path — separate status
+
+The sprite-sheet integration scaffold is merged, but the manifest remains explicitly marked as candidates. The integration audit still lists PNG/JSON registration in `SPRITE_SHEET_CATALOG`, sprite validation, Canvas/Skia SpriteAnimator frame synchronization, and Sumi-e art review as outstanding. These are not the same deliverables as the thirteen procedural drawers and must be tracked independently.
+
+
+### Additional inventory correction — hit-stop is split
+
+Do not interpret the existing `HitStopSystem` as already connected to the core scheduler. It owns a priority/cooldown timer in `VFXWorldState`; core simulation freeze is driven by the separate `GameplayFreeze` resource. Hit & Run uses the core helper directly, while `JuiceOrchestrator` currently calls `requestHitStop` on the VFX timer. The previous inventory shorthand suggesting one unified route is superseded. Treat this as a cross-cutting integration gap; do not create a third path, and do not rely on VFX profile hit-stop until the two existing mechanisms are reconciled and tested end-to-end.

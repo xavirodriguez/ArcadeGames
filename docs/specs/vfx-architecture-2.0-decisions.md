@@ -136,3 +136,30 @@ Before PR 2:
 - Pixel-perfect equality between Canvas and Skia where rasterization differences are expected.
 
 **Decision status:** the four strategic choices are closed. The implementation contract is intentionally not frozen until PR 2 resolves the P0 findings and validates the exact existing extension points.
+
+
+---
+
+## Repository reconciliation — 2026-11-03 follow-up
+
+The PR merge graph has now been verified. #1040 and #1041 are both merged, with #1041 as the final integration pass; #1042 and #1043 are also merged. The previous instruction to compare/select between #1040 and #1041 is obsolete and withdrawn.
+
+Post-merge source contains thirteen procedural drawers. Canvas and Skia registration tests both describe the same thirteen-shape contract. The current work is therefore consolidation/hardening, not recovery of missing drawers.
+
+Two concrete correctness gaps remain in the post-merge tree and are being corrected before Foundation:
+
+1. `JuiceOrchestrator.spawn` lacks a central `world.isReSimulating` guard despite the PixelFX integration documentation claiming this behavior. Call-site guards reduce exposure but do not protect direct/future callers. The follow-up patch adds an early return before any presentation side effect and a regression test.
+2. The Brick Shatter drawer now draws its rotated rectangular outline using line primitives, while its test still expects `strokeRect`. The follow-up patch asserts the actual 28 line calls.
+
+Allocation claims are deliberately not closed: `readEffectState` allocates a state object per draw and older impact/explosion helpers return temporary point objects. Establish a performance baseline in Foundation/Hardening before refactoring these paths.
+
+Sprite-sheet PixelFX remains a separate optional asset pipeline. Its candidate manifest is not evidence that sprite sheets are registered or Canvas/Skia animation parity has been validated.
+
+**Updated gate:** the PR merge reconciliation is complete. PR 2 may begin after the rollback and Brick Shatter test fixes pass focused Jest, typecheck and CI. No such execution is claimed by this documentation update; the GitHub connector cannot run the repository toolchain.
+
+
+### Additional decision — hit-stop is not yet one runtime contract
+
+The current implementation has a split ownership model: `HitStopSystem` maintains priority/cooldown in `VFXWorldState.hitStopTimer`, whereas the core scheduler reads `GameplayFreeze`. Hit & Run calls the core freeze helpers directly; `JuiceOrchestrator` calls the separate VFX timer. The earlier wording that suggested these were already unified is withdrawn.
+
+VFX 2.0 must not add a third hit-stop system. Foundation may preserve the existing profile fields for compatibility, but Combat integration must not assume that `hitStopMs` pauses simulation until the existing Juice consolidation work routes accepted requests through the canonical core freeze resource and verifies the configured schedules. Priority, override and cooldown semantics must survive that migration.

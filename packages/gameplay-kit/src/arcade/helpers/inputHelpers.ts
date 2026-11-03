@@ -6,6 +6,7 @@ export interface PlatformerInputPartial {
   jump?: boolean;
   dash?: boolean;
   slide?: boolean;
+  brake?: boolean;
   pulse?: boolean;
 }
 
@@ -36,6 +37,10 @@ export function mutatePlatformerInputState(
       if (input.slide !== undefined) {
         inputComp.slideActionHeld = !!input.slide;
         inputComp.slideHeld = inputComp.slideActionHeld || inputComp.slideTouchHeld === true;
+      }
+      if (input.brake !== undefined) {
+        inputComp.brakeActionHeld = !!input.brake;
+        inputComp.brake = inputComp.brakeActionHeld || inputComp.brakeTouchHeld === true;
       }
       if (input.pulse !== undefined) {
         inputComp.pulsePressed = !!input.pulse;

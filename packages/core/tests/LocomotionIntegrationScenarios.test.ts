@@ -257,11 +257,27 @@ describe("Locomotion V1 Full Multi-Tick Integration Scenarios", () => {
     step(3);
     expect(world.getComponent(player, "PhysicsContactState")?.groundContact?.materialId).toBe("ice");
 
-    // Accelerate on ice and traverse into normal ground (x > 80)
+    // Accelerate on ice and traverse into normal ground (x > 80).
+    // The material changes the next movement response, not the velocity at the seam.
     world.mutateComponent(player, "PlatformerInput", (inp) => { inp.moveDir = 1; });
-    step(60);
+    let previousMaterial = world.getComponent(player, "PhysicsContactState")?.groundContact?.materialId;
+    let observedContinuousTransition = false;
+    for (let tick = 0; tick < 60; tick++) {
+      const velocityBeforeTick = world.getComponent(player, "Velocity")!.vx;
+      step(1);
+      const contact = world.getComponent(player, "PhysicsContactState")?.groundContact;
+      if (previousMaterial === "ice" && contact?.materialId === "normal") {
+        const velocityAfterSeam = world.getComponent(player, "Velocity")!.vx;
+        expect(velocityAfterSeam).toBeGreaterThan(0);
+        expect(Math.abs(velocityAfterSeam - velocityBeforeTick)).toBeLessThan(50);
+        observedContinuousTransition = true;
+      }
+      previousMaterial = contact?.materialId;
+    }
+
     const pos = world.getComponent(player, "Transform")!;
     expect(pos.x).toBeGreaterThan(80);
+    expect(observedContinuousTransition).toBe(true);
     const contact = world.getComponent(player, "PhysicsContactState")?.groundContact;
     expect(contact?.materialId).toBe("normal");
   });

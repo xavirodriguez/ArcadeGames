@@ -44,7 +44,6 @@ import defaultLevelData from "./levels/locomotion-campaign.json";
 import { PlatformerConfigSchema, PlatformerConfig as PlatformerConfigType, DEFAULT_PLATFORMER_CONFIG } from "./types/PlatformerConfigSchema";
 import { PlatformerArcadeGame, loadPlatformerArcadeConfig, DEFAULT_PLATFORMER_TILE_DEFINITIONS } from "../shared/PlatformerArcadeGame";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
-import { JuiceOrchestrator } from "../shared/rendering/JuiceOrchestrator";
 
 export interface PlatformerConfig {
   seed?: number;

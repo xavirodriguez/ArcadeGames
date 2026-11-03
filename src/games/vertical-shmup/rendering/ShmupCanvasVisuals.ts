@@ -1,6 +1,6 @@
 import { ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
 import type { ShmupComponentRegistry } from "../types/ShmupTypes";
-import { SHMUP_COLOR_TOKENS } from "./ShmupColorTokens";
+import { SHMUP_COLOR_TOKENS, colorWithAlpha, blendHex } from "./ShmupColorTokens";
 import { SHMUP_SUMI_E_THEME } from "./ShmupVisualHelpers";
 import { drawSumiECanvasBackdrop } from "./SumiECanvasBackdrop";
 import { drawSumiECanvasPlayer } from "./SumiECanvasEntities";
@@ -627,24 +627,6 @@ export const drawShmupEnemyBullet: ShapeDrawer<CanvasRenderingContext2D, ShmupCo
   }
 };
 
-function colorWithAlpha(color: string, alpha: number): string {
-  const match = /^#([0-9a-f]{6})$/i.exec(color);
-  if (!match) return color;
-  const value = match[1] ?? "000000";
-  const red = Number.parseInt(value.slice(0, 2), 16);
-  const green = Number.parseInt(value.slice(2, 4), 16);
-  const blue = Number.parseInt(value.slice(4, 6), 16);
-  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
-}
-
-function blendHex(from: string, to: string, amount: number): string {
-  const parse = (color: string, offset: number): number => Number.parseInt(color.slice(offset, offset + 2), 16);
-  const t = Math.max(0, Math.min(1, amount));
-  const channels = [1, 3, 5].map(offset => Math.round(
-    parse(from, offset) + (parse(to, offset) - parse(from, offset)) * t
-  ));
-  return `#${channels.map(channel => channel.toString(16).padStart(2, "0")).join("")}`;
-}
 
 export const drawShmupStarfield: EffectDrawer<CanvasRenderingContext2D, ShmupComponentRegistry> = {
   draw(ctx, world) {

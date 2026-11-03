@@ -18,6 +18,7 @@ interface EffectState {
   alpha: number;
   size: number;
   color: string;
+  rotation: number;
 }
 
 function readEffectState(
@@ -36,8 +37,15 @@ function readEffectState(
     progress,
     alpha: Math.max(0, Math.min(1, ttl.remaining / ttl.timeLeft)) * opacity,
     size,
-    color: render.color ?? "#ffffff"
+    color: render.color ?? "#ffffff",
+    rotation: transform?.rotation ?? 0
   };
+}
+
+function rotatePoint(x: number, y: number, angle: number): { x: number; y: number } {
+  const c = Math.cos(angle);
+  const s = Math.sin(angle);
+  return { x: x * c - y * s, y: x * s + y * c };
 }
 
 /** Expanding impact ring, radial rays and eight deterministic polygon shards. */
@@ -48,7 +56,7 @@ export function drawPixelFxImpact(
 ): void {
   const state = readEffectState(world, entity);
   if (!state || state.alpha <= 0.01) return;
-  const { progress: p, alpha, size, color } = state;
+  const { progress: p, alpha, size, color, rotation } = state;
   const radius = size * (0.25 + p * 1.75);
   const fade = alpha * (1 - p * 0.25);
 
@@ -57,18 +65,15 @@ export function drawPixelFxImpact(
   draw.strokeCircle(0, 0, radius * 0.62, color, Math.max(0.75, size * 0.025), fade * 0.45);
 
   for (let i = 0; i < 8; i++) {
-    const angle = (i * Math.PI) / 4;
+    const angle = rotation + (i * Math.PI) / 4;
     const inner = radius * (0.72 + (i % 2) * 0.08);
     const outer = radius * (1.05 + (i % 3) * 0.12);
-    const ax = Math.cos(angle) * inner;
-    const ay = Math.sin(angle) * inner;
-    const bx = Math.cos(angle + 0.09) * outer;
-    const by = Math.sin(angle + 0.09) * outer;
-    const cx = Math.cos(angle - 0.08) * outer * 0.78;
-    const cy = Math.sin(angle - 0.08) * outer * 0.78;
-    draw.drawLine(ax, ay, bx, by, color, Math.max(1, size * 0.055), fade);
-    draw.drawLine(bx, by, cx, cy, color, Math.max(1, size * 0.035), fade * 0.8);
-    draw.drawLine(cx, cy, ax, ay, color, Math.max(1, size * 0.035), fade * 0.8);
+    const a = rotatePoint(Math.cos(angle) * inner, Math.sin(angle) * inner, 0);
+    const b = rotatePoint(Math.cos(angle + 0.09) * outer, Math.sin(angle + 0.09) * outer, 0);
+    const c = rotatePoint(Math.cos(angle - 0.08) * outer * 0.78, Math.sin(angle - 0.08) * outer * 0.78, 0);
+    draw.drawLine(a.x, a.y, b.x, b.y, color, Math.max(1, size * 0.055), fade);
+    draw.drawLine(b.x, b.y, c.x, c.y, color, Math.max(1, size * 0.035), fade * 0.8);
+    draw.drawLine(c.x, c.y, a.x, a.y, color, Math.max(1, size * 0.035), fade * 0.8);
   }
   draw.restore();
 }
@@ -81,9 +86,9 @@ export function drawPixelFxSlash(
 ): void {
   const state = readEffectState(world, entity);
   if (!state || state.alpha <= 0.01) return;
-  const { progress: p, alpha, size, color } = state;
+  const { progress: p, alpha, size, color, rotation } = state;
   const sweep = Math.PI * (0.42 + 0.28 * (1 - p));
-  const start = -sweep * 0.5 + p * 0.2;
+  const start = rotation - sweep * 0.5 + p * 0.2;
   const radius = size * (0.9 + p * 0.35);
 
   draw.save();
@@ -115,27 +120,25 @@ export function drawPixelFxExplosion(
 ): void {
   const state = readEffectState(world, entity);
   if (!state || state.alpha <= 0.01) return;
-  const { progress: p, alpha, size, color } = state;
+  const { progress: p, alpha, size, color, rotation } = state;
   const travel = size * (0.35 + p * 1.55);
   const gravity = size * p * p * 0.42;
 
   draw.save();
   draw.strokeCircle(0, 0, size * (0.22 + p * 0.55), color, Math.max(0.8, size * 0.04 * (1 - p)), alpha * (1 - p));
   for (let i = 0; i < 10; i++) {
-    const angle = (i * Math.PI * 2) / 10;
+    const angle = rotation + (i * Math.PI * 2) / 10;
     const speed = 0.72 + ((i * 7) % 5) * 0.11;
     const x = Math.cos(angle) * travel * speed;
     const y = Math.sin(angle) * travel * speed + gravity;
     const tangent = size * (0.07 + (i % 3) * 0.025) * (1 - p * 0.35);
     const px = -Math.sin(angle) * tangent;
     const py = Math.cos(angle) * tangent;
-    const spin = p * (i % 2 === 0 ? 0.8 : -0.8);
-    const tailX = px * Math.cos(spin) - py * Math.sin(spin);
-    const tailY = px * Math.sin(spin) + py * Math.cos(spin);
-    draw.drawLine(x - tailX, y - tailY, x + tailX, y + tailY, color, Math.max(1, size * 0.045), alpha * (1 - p * 0.45));
+    const tail = rotatePoint(px, py, p * (i % 2 === 0 ? 0.8 : -0.8));
+    draw.drawLine(x - tail.x, y - tail.y, x + tail.x, y + tail.y, color, Math.max(1, size * 0.045), alpha * (1 - p * 0.45));
     draw.drawLine(
-      x + tailX,
-      y + tailY,
+      x + tail.x,
+      y + tail.y,
       x + Math.cos(angle) * size * 0.09,
       y + Math.sin(angle) * size * 0.09 + gravity * 0.3,
       color,

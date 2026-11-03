@@ -1,4 +1,4 @@
-import { BlueprintRegistry, ShapeType, World, type CoreComponentRegistry, type LocomotionProfileComponent } from "@tiny-aster/core";
+import { BlueprintRegistry, CoreComponentRegistry, ShapeType, World } from "@tiny-aster/core";
 import { registerCollectibleTriggerBlueprint, registerStandardPlatformerCollectibles, setupPlatformerMovementComponents, setupTilemapEntity } from "../componentBuilders";
 
 describe("Shared platformer locomotion setup", () => {
@@ -17,7 +17,7 @@ describe("Shared platformer locomotion setup", () => {
   it("attaches an isolated locomotion profile and slide posture for Collider2D players", () => {
     const world = new World<CoreComponentRegistry>();
     const entity = world.createEntity();
-    world.addComponent(entity, {
+    const collider2D: Collider2DComponent = {
       type: "Collider2D",
       shape: { type: "aabb", halfWidth: 10, halfHeight: 15 },
       layer: 1, mask: 0xffff, offsetX: 0, offsetY: 0, isTrigger: false, enabled: true
@@ -41,7 +41,7 @@ describe("Shared platformer locomotion setup", () => {
     const first = world.createEntity();
     const second = world.createEntity();
     for (const entity of [first, second]) {
-      world.addComponent(entity, {
+      const collider: ColliderComponent = {
         type: "Collider",
         shape: { type: ShapeType.Box, width: 20, height: 30 },
         layer: 1, mask: 0xffff, enabled: true, isTrigger: false
@@ -50,7 +50,7 @@ describe("Shared platformer locomotion setup", () => {
     }
 
     expect(world.getComponent(first, "PlatformerPosture")).toMatchObject({ standingHeight: 30, slidingHeight: 18 });
-    const firstProfile = world.getMutableComponent(first, "LocomotionProfile") as LocomotionProfileComponent | undefined;
+    const firstProfile = world.getMutableComponent(first, "LocomotionProfile");
     const secondProfile = world.getComponent(second, "LocomotionProfile");
     if (firstProfile) {
       firstProfile.ground.maxSpeed = 999;

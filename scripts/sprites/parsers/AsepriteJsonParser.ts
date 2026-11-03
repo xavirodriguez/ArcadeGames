@@ -329,9 +329,9 @@ export function parseAsepriteJson(
   raw: AsepriteJsonData | string,
   options: ParseAsepriteOptions
 ): ParsedAsepriteSheet {
-  const data = (typeof raw === "string"
-    ? JSON.parse(raw) as unknown as AsepriteJsonData
-    : raw);
+  const data: AsepriteJsonData = typeof raw === "string"
+    ? JSON.parse(raw)
+    : raw;
 
   if (!data || typeof data !== "object" || !data.frames || !data.meta) {
     throw new Error("Invalid Aseprite JSON: expected frames and meta objects.");

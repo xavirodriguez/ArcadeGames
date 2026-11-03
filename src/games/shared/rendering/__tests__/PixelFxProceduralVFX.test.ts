@@ -9,6 +9,11 @@ import {
   drawPixelFxPickup,
   drawPixelFxShieldCrack,
   drawPixelFxSlash,
+  drawPixelFxPaddleImpact,
+  drawPixelFxBrickShatter,
+  drawPixelFxFlapGust,
+  drawPixelFxHop,
+  drawPixelFxPhaseDash,
   registerPixelFxProceduralVFX
 } from "../PixelFxProceduralVFX";
 
@@ -89,6 +94,33 @@ describe("PixelFX-inspired procedural VFX", () => {
     expect(adapter.drawArc).toHaveBeenCalled();
   });
 
+  it("draws the five gameplay-specific compositions", () => {
+    const adapter = createAdapter();
+    const world = createWorld();
+    drawPixelFxPaddleImpact(adapter, world, 1);
+    expect(adapter.drawArc).toHaveBeenCalled();
+    expect(adapter.drawLine).toHaveBeenCalled();
+
+    adapter.drawLine.mockClear();
+    drawPixelFxBrickShatter(adapter, world, 1);
+    expect(adapter.strokeRect).toHaveBeenCalled();
+    expect(adapter.drawLine).toHaveBeenCalled();
+
+    adapter.drawLine.mockClear();
+    drawPixelFxFlapGust(adapter, world, 1);
+    expect(adapter.drawArc).toHaveBeenCalled();
+    expect(adapter.drawLine).toHaveBeenCalled();
+
+    adapter.drawLine.mockClear();
+    drawPixelFxHop(adapter, world, 1);
+    expect(adapter.drawArc).toHaveBeenCalled();
+    expect(adapter.drawLine).toHaveBeenCalled();
+
+    adapter.drawLine.mockClear();
+    drawPixelFxPhaseDash(adapter, world, 1);
+    expect(adapter.drawLine).toHaveBeenCalled();
+  });
+
   it("does not draw expired effects", () => {
     const adapter = createAdapter();
     const world = createWorld(0);
@@ -100,20 +132,25 @@ describe("PixelFX-inspired procedural VFX", () => {
     drawPixelFxMuzzle(adapter, world, 1);
     drawPixelFxShieldCrack(adapter, world, 1);
     drawPixelFxInkBurst(adapter, world, 1);
+    drawPixelFxPaddleImpact(adapter, world, 1);
+    drawPixelFxBrickShatter(adapter, world, 1);
+    drawPixelFxFlapGust(adapter, world, 1);
+    drawPixelFxHop(adapter, world, 1);
+    drawPixelFxPhaseDash(adapter, world, 1);
     expect(adapter.drawLine).not.toHaveBeenCalled();
     expect(adapter.drawArc).not.toHaveBeenCalled();
     expect(adapter.strokeCircle).not.toHaveBeenCalled();
     expect(adapter.fillCircle).not.toHaveBeenCalled();
   });
 
-  it("registers all three shapes for Canvas", () => {
+  it("registers all thirteen shapes for Canvas", () => {
     const registerShape = jest.fn();
     const renderer = {
       type: "canvas",
       registerShape
     } as unknown as Renderer<CoreComponentRegistry, RenderContext>;
     registerPixelFxProceduralVFX(renderer);
-    expect(registerShape).toHaveBeenCalledTimes(8);
+    expect(registerShape).toHaveBeenCalledTimes(13);
     expect(registerShape.mock.calls.map(([name]) => name)).toEqual([
       "pixelfx_impact",
       "pixelfx_slash",
@@ -122,18 +159,23 @@ describe("PixelFX-inspired procedural VFX", () => {
       "pixelfx_pickup",
       "pixelfx_muzzle",
       "pixelfx_shield_crack",
-      "pixelfx_ink_burst"
+      "pixelfx_ink_burst",
+      "pixelfx_paddle_impact",
+      "pixelfx_brick_shatter",
+      "pixelfx_flap_gust",
+      "pixelfx_hop",
+      "pixelfx_phase_dash"
     ]);
   });
 
-  it("registers the same shape contract for Skia", () => {
+  it("registers the same thirteen-shape contract for Skia", () => {
     const registerShape = jest.fn();
     const renderer = {
       type: "skia",
       registerShape
     } as unknown as Renderer<CoreComponentRegistry, RenderContext>;
     registerPixelFxProceduralVFX(renderer);
-    expect(registerShape).toHaveBeenCalledTimes(3);
+    expect(registerShape).toHaveBeenCalledTimes(13);
     expect(registerShape.mock.calls.map(([name]) => name)).toEqual([
       "pixelfx_impact",
       "pixelfx_slash",
@@ -142,7 +184,12 @@ describe("PixelFX-inspired procedural VFX", () => {
       "pixelfx_pickup",
       "pixelfx_muzzle",
       "pixelfx_shield_crack",
-      "pixelfx_ink_burst"
+      "pixelfx_ink_burst",
+      "pixelfx_paddle_impact",
+      "pixelfx_brick_shatter",
+      "pixelfx_flap_gust",
+      "pixelfx_hop",
+      "pixelfx_phase_dash"
     ]);
   });
 });

@@ -3,6 +3,7 @@ import { registerPixelFxProceduralVFX } from "../PixelFxProceduralVFX";
 import {
   createVFXLabDescriptor,
   createVFXLabPreset,
+  getVFXLabPreviewPalette,
   parseVFXLabPreset,
   resolveVFXLabColor,
   resolveVFXLabSemanticRole,
@@ -49,6 +50,19 @@ describe("VFX Visual Lab model", () => {
     expect(resolveVFXLabColor(impact, "arcade-neon")).not.toBe(
       resolveVFXLabColor(impact, "sumi-e")
     );
+  });
+
+  it("uses the same stage palette and grid opacity for both renderer previews", () => {
+    expect(getVFXLabPreviewPalette("arcade-neon")).toEqual({
+      background: "#070B13",
+      grid: "#26364D",
+      gridAlpha: 0.18
+    });
+    expect(getVFXLabPreviewPalette("sumi-e")).toEqual({
+      background: "#E7DFCB",
+      grid: "#77736B",
+      gridAlpha: 0.12
+    });
   });
 
   it("round-trips a complete reproducible preset", () => {

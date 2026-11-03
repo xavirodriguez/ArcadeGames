@@ -47,6 +47,9 @@ export function createPlayer(world: World<GalaxianComponentRegistry>, x: number,
     scaleY: 1.0,
     visualOffsetX: 0,
     visualOffsetY: 0,
+    previousX: x,
+    previousY: y,
+    hasPreviousPosition: false,
   });
 
   return entity;
@@ -82,6 +85,7 @@ export function createFormationController(world: World<GalaxianComponentRegistry
     originX: startX,
     originY: startY,
     currentOscillationX: 0,
+    elapsed: 0,
     direction: 1,
     totalEnemies: 0,
     slots: {},

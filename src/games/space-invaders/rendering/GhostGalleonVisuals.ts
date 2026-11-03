@@ -35,27 +35,23 @@ export function createGhostGalleonAsset(): Asset {
   return ExpoAsset.fromModule(getGhostGalleonAssetModule());
 }
 
-interface AnimatorState {
+export interface GhostGalleonAnimatorState {
   animator: SpriteAnimatorComponent;
   lastTick: number;
 }
 
-const animatorStates = new WeakMap<World<SpaceInvadersComponentRegistry>, AnimatorState>();
-
-function getAnimatorState(world: World<SpaceInvadersComponentRegistry>): AnimatorState {
-  let state = animatorStates.get(world);
-  if (!state) {
-    state = {
-      animator: createSpriteAnimator(GHOST_GALLEON_SPRITE_ID, "sail"),
-      lastTick: world.tick,
-    };
-    animatorStates.set(world, state);
-  }
-  return state;
-}
+const fallbackStaticAnimator: SpriteAnimatorComponent = {
+  type: "SpriteAnimator",
+  sheetId: GHOST_GALLEON_SPRITE_ID,
+  currentAnim: "sail",
+  frameIndex: 0,
+  timer: 0,
+  flipX: false,
+  scale: 1,
+};
 
 export function advanceGhostGalleonAnimation(
-  state: AnimatorState,
+  state: GhostGalleonAnimatorState,
   render: RenderComponent | undefined,
   tick: number
 ): SpriteAnimatorComponent {
@@ -127,6 +123,17 @@ function readRender(
   return render;
 }
 
+function resolveGhostGalleonEntityAnimator(
+  world: World<SpaceInvadersComponentRegistry>,
+  entity: number
+): SpriteAnimatorComponent {
+  const component = world.getComponent(entity, "SpriteAnimator");
+  if (component && component.sheetId === GHOST_GALLEON_SPRITE_ID) {
+    return component;
+  }
+  return fallbackStaticAnimator;
+}
+
 export const drawGhostGalleonSpriteCanvas: ShapeDrawer<
   CanvasRenderingContext2D,
   SpaceInvadersComponentRegistry
@@ -134,8 +141,7 @@ export const drawGhostGalleonSpriteCanvas: ShapeDrawer<
   draw(ctx, world, entity) {
     const render = readRender(world, entity);
     if (!render) return;
-    const state = getAnimatorState(world);
-    const animator = advanceGhostGalleonAnimation(state, render, world.tick);
+    const animator = resolveGhostGalleonEntityAnimator(world, entity);
     if (isCanvasSpriteReady(GHOST_GALLEON_SPRITE_ID)) {
       drawSpriteCanvas(ctx, animator, 0, 0, { anchor: "center", opacity: render.opacity });
       return;
@@ -152,8 +158,7 @@ export const drawSkiaGhostGalleonSprite: ShapeDrawer<
   draw(canvas, world, entity) {
     const render = readRender(world, entity);
     if (!render) return;
-    const state = getAnimatorState(world);
-    const animator = advanceGhostGalleonAnimation(state, render, world.tick);
+    const animator = resolveGhostGalleonEntityAnimator(world, entity);
     void preloadGhostGalleonSkiaImage();
     if (!getSkiaImage(GHOST_GALLEON_SPRITE_ID)) return;
     drawSpriteSkia(canvas, animator, 0, 0, undefined, {

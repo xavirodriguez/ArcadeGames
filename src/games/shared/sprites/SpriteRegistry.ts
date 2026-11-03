@@ -1,6 +1,7 @@
 // src/games/shared/sprites/SpriteRegistry.ts
 
 import type { SpriteSheetDef, SpriteFrameRect, SpriteImageSource } from "./SpriteTypes";
+import { GENERATED_SPRITE_SHEETS } from "./generated/index.generated";
 
 function makeRowFrames(
   startX: number,
@@ -23,11 +24,7 @@ let oniRedImageSource: SpriteImageSource = null;
 try {
   oniRedImageSource = require("../../../../assets/sprites/enemies/enemy2.png");
 } catch {
-  try {
-    oniRedImageSource = require("../../../../assets/sprites/enemies/oni_red.png");
-  } catch {
-    oniRedImageSource = null;
-  }
+  oniRedImageSource = null;
 }
 
 let tower1ImageSource: SpriteImageSource = null;
@@ -92,9 +89,8 @@ let urbanCasita4ImageSource: SpriteImageSource = null;
 try { urbanCasita4ImageSource = require("../../../../assets/sprites/background/urban/casita4.png"); } catch { urbanCasita4ImageSource = null; }
 let urbanCasita5ImageSource: SpriteImageSource = null;
 try { urbanCasita5ImageSource = require("../../../../assets/sprites/background/urban/casita5.png"); } catch { urbanCasita5ImageSource = null; }
-// The source file currently has a leading space in its repository filename.
 let urbanCasita7ImageSource: SpriteImageSource = null;
-try { urbanCasita7ImageSource = require("../../../../assets/sprites/background/urban/ casita7.png"); } catch { urbanCasita7ImageSource = null; }
+try { urbanCasita7ImageSource = require("../../../../assets/sprites/background/urban/casita7.png"); } catch { urbanCasita7ImageSource = null; }
 
 function createStaticEnvironmentArt(
   id: string,
@@ -147,7 +143,7 @@ const URBAN_CASITA_05 = createStaticEnvironmentArt(
   "urban_casita_05", "assets/sprites/background/urban/casita5.png", urbanCasita5ImageSource
 );
 const URBAN_CASITA_07 = createStaticEnvironmentArt(
-  "urban_casita_07", "assets/sprites/background/urban/ casita7.png", urbanCasita7ImageSource
+  "urban_casita_07", "assets/sprites/background/urban/casita7.png", urbanCasita7ImageSource
 );
 
 let towerBasicImageSource: SpriteImageSource = null;
@@ -295,6 +291,7 @@ const TOWER_SNIPER_ART: SpriteSheetDef = {
 
 /** All shared-pipeline sheets, kept declarative for runtime registration and CI validation. */
 export const SPRITE_SHEET_CATALOG: readonly SpriteSheetDef[] = [
+  ...GENERATED_SPRITE_SHEETS,
   ONI_RED,
   SEA_DRAGON,
   GHOST_GALLEON,
@@ -316,6 +313,8 @@ export const SPRITE_SHEET_CATALOG: readonly SpriteSheetDef[] = [
 ];
 
 const registry = new Map<string, SpriteSheetDef>();
+let initialized = false;
+const warnedNullImageSources = new Set<string>();
 
 export const SpriteRegistry = {
   register(def: SpriteSheetDef): void {
@@ -330,9 +329,32 @@ export const SpriteRegistry = {
   getAll(): readonly SpriteSheetDef[] {
     return [...registry.values()];
   },
+  isInitialized(): boolean {
+    return initialized;
+  },
+  resetForTest(): void {
+    registry.clear();
+    initialized = false;
+    warnedNullImageSources.clear();
+  },
   init(): void {
+    if (initialized) {
+      return;
+    }
+    initialized = true;
+
+    const isDev = typeof __DEV__ !== "undefined" ? Boolean(__DEV__) : process.env.NODE_ENV !== "production";
+
     for (const definition of SPRITE_SHEET_CATALOG) {
       this.register(definition);
+      if (isDev && definition.imageSource === null && !definition.optional) {
+        if (!warnedNullImageSources.has(definition.id)) {
+          warnedNullImageSources.add(definition.id);
+          console.warn(
+            `[SpriteRegistry] Sprite sheet "${definition.id}" (${definition.assetPath}) has null imageSource.`
+          );
+        }
+      }
     }
   },
 };

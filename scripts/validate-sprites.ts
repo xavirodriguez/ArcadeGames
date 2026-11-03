@@ -1,7 +1,19 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { SPRITE_SHEET_CATALOG } from "../src/games/shared/sprites/SpriteRegistry";
-import { HIT_RUN_CHARACTER_SPRITE_SHEETS } from "../src/games/hitandrun/rendering/HitRunSpriteAtlas";
+
+// In Node without a bundler, require of .png throws.
+// Provide a mock loader before importing modules that statically require PNGs,
+// matching Metro/bundler runtime behavior.
+if (typeof require !== "undefined" && require.extensions && !require.extensions[".png"]) {
+  require.extensions[".png"] = (module: NodeModule, filename: string) => {
+    module.exports = filename;
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { SPRITE_SHEET_CATALOG } = require("../src/games/shared/sprites/SpriteRegistry") as typeof import("../src/games/shared/sprites/SpriteRegistry");
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { HIT_RUN_CHARACTER_SPRITE_SHEETS } = require("../src/games/hitandrun/rendering/HitRunSpriteAtlas") as typeof import("../src/games/hitandrun/rendering/HitRunSpriteAtlas");
 import {
   readPngDimensions,
   validateSpriteCatalog,

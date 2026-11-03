@@ -7,9 +7,17 @@ import {
   InputComponent,
   UfoComponent
 } from "./AsteroidTypes";
+import {
+  CollectibleResourceComponent,
+  MagneticCollectorComponent,
+  PlayerInventoryComponent
+} from "./EconomyTypes";
 
 /** @public */
 export interface AsteroidsComponentRegistry extends CoreComponentRegistry {
+  CollectibleResource: CollectibleResourceComponent;
+  MagneticCollector: MagneticCollectorComponent;
+  PlayerInventory: PlayerInventoryComponent;
   LootTable: LootTableComponent;
   PowerUp: PowerUpComponent;
   Combo: ComboComponent;
@@ -46,6 +54,9 @@ export interface AsteroidsEventRegistry extends CoreEvents, Record<string, unkno
   "asteroid:destroyed": { entity: number; size: "large" | "medium" | "small"; x?: number; y?: number };
   "ufo:spawned": { entity: number };
   "score:changed": { newScore: number; delta: number };
+  "resource:spawned": { entity: number; resourceType: import("./EconomyTypes").ResourceType; amount: number; x: number; y: number };
+  "resource:collected": { collectorEntity: number; resourceType: import("./EconomyTypes").ResourceType; amount: number };
+  "upgrade:purchased": { upgradeId: string };
 }
 
 /** @public */
@@ -55,4 +66,5 @@ export interface AsteroidsBlueprintMap extends Record<string, import("@tiny-aste
   asteroid: import("@tiny-aster/core").BlueprintDefinition<AsteroidsComponentRegistry, AsteroidsEventRegistry, { x: number; y: number; size: string; vx?: number; vy?: number; angularVelocity?: number }>;
   powerup: import("@tiny-aster/core").BlueprintDefinition<AsteroidsComponentRegistry, AsteroidsEventRegistry, { x: number; y: number; lootType: string }>;
   ufo: import("@tiny-aster/core").BlueprintDefinition<AsteroidsComponentRegistry, AsteroidsEventRegistry, { x: number; y: number; size?: "large" | "small"; vx?: number; vy?: number }>;
+  resource: import("@tiny-aster/core").BlueprintDefinition<AsteroidsComponentRegistry, AsteroidsEventRegistry, { x: number; y: number; resourceType: import("./EconomyTypes").ResourceType; amount: number; vx?: number; vy?: number; lifetimeTicks?: number }>;
 }

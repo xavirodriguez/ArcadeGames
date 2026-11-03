@@ -242,6 +242,33 @@ export async function retrySpriteSheetLoad(
   await Promise.all(retries);
 }
 
+/**
+ * Preload all registered sprite sheets or a designated subset across one or both backends.
+ * Prevents first-frame pop-in between procedural fallbacks and loaded sprites.
+ */
+export async function preloadAllSpriteSheets(
+  sheetIds?: readonly string[],
+  backend: SpriteRendererBackend = "both"
+): Promise<void> {
+  if (!SpriteRegistry.isInitialized()) {
+    SpriteRegistry.init();
+  }
+
+  const targetIds = sheetIds ?? SpriteRegistry.getAll().map((sheet) => sheet.id);
+  const tasks: Promise<void>[] = [];
+
+  for (const id of targetIds) {
+    if (backend === "canvas" || backend === "both") {
+      tasks.push(preloadSpriteSheetCanvas(id).catch(() => {}));
+    }
+    if (backend === "skia" || backend === "both") {
+      tasks.push(preloadSpriteSheetSkia(id).catch(() => {}));
+    }
+  }
+
+  await Promise.all(tasks);
+}
+
 
 /** Store a Skia image for a sheet (call after a custom useImage loader if needed). */
 export function setSkiaImage(sheetId: string, image: SkImage | null): void {

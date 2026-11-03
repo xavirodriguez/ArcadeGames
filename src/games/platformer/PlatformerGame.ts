@@ -26,7 +26,8 @@ import {
   resolveThemeColor,
   EntityBuilder,
   preloadSharedAudioManifest,
-  SHARED_AUDIO_MANIFEST
+  SHARED_AUDIO_MANIFEST,
+  LOCOMOTION_PROFILE_PRESETS
 } from "@tiny-aster/core";
 import { setupPlatformerMovementComponents, registerPlatformerTilemapBlueprint, createMainCamera2D, syncLevelWorldDimensions, registerCollectibleTriggerBlueprint, registerPowerUpTriggerBlueprint } from "../shared/componentBuilders";
 import { PlatformerInputSystem } from "./systems/PlatformerInputSystem";
@@ -39,9 +40,11 @@ import { PowerUpSystem, PowerUpRegistry, ArcadeEntityBuilder, registerPlatformer
 import { drawPlatformerPlayer, drawPlatformerGoal, drawPlatformerTilemap } from "./rendering/PlatformerCanvasVisuals";
 import { drawMemoryFragment, drawCheckpointNode, drawSentinel, drawHopper, drawCharger } from "../shared/rendering/PlatformerSharedVisuals";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
-import defaultLevelData from "./levels/level-01.json";
+import defaultLevelData from "./levels/locomotion-campaign.json";
 import { PlatformerConfigSchema, PlatformerConfig as PlatformerConfigType, DEFAULT_PLATFORMER_CONFIG } from "./types/PlatformerConfigSchema";
 import { PlatformerArcadeGame, loadPlatformerArcadeConfig, DEFAULT_PLATFORMER_TILE_DEFINITIONS } from "../shared/PlatformerArcadeGame";
+import * as SharedVFX from "../shared/rendering/SharedVFX";
+import { JuiceOrchestrator } from "../shared/rendering/JuiceOrchestrator";
 
 export interface PlatformerConfig {
   seed?: number;
@@ -138,6 +141,7 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
     // Event bus listeners
     const eventBus = this.getEventBus();
     if (eventBus) {
+      const pickupJuice = new JuiceOrchestrator(this.world);
       eventBus.on("level:completed", () => {
         this.gameOver = true;
       });
@@ -147,8 +151,20 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
           this.audio.playSFX(sfx.name);
         }
       });
-      eventBus.on("CollectiblePickedUp", () => {
+      eventBus.on("CollectiblePickedUp", (event: unknown) => {
         this.audio.playSFX("score");
+        if (this.world.isReSimulating) return;
+        const payload = event as { playerEntity?: number } | undefined;
+        if (payload?.playerEntity === undefined) return;
+        const transform = this.world.getComponent(payload.playerEntity, "Transform");
+        if (!transform) return;
+        pickupJuice.spawn("pixelfx_pickup", {
+          x: transform.x,
+          y: transform.y - 8,
+          scale: 0.85,
+          tint: "#f2c14e",
+          ttl: 0.38
+        });
       });
       eventBus.on("PlayerDied", () => {
         this.audio.playSFX("game_over");
@@ -185,6 +201,19 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
     registerPowerUpTriggerBlueprint(this.blueprints, "powerup_double_jump", "double_jump");
     registerPowerUpTriggerBlueprint(this.blueprints, "powerup_dash", "dash_unlock");
 
+    this.blueprints.register("locomotion_ceiling", {
+      spawn: (world, entity, args: { x: number; y: number; width: number; height: number }) => {
+        ArcadeEntityBuilder.fromEntity(world, entity)
+          .withTransform({ x: args.x, y: args.y })
+          .withCollider2D({
+            shape: { type: "aabb", halfWidth: args.width / 2, halfHeight: args.height / 2 },
+            layer: 2
+          })
+          .withRender({ shape: "box", size: args.width, color: "#64748b", order: 1 });
+        world.addComponent(entity, { type: "Tag", tags: ["LocomotionCeiling"] });
+      }
+    });
+
     this.blueprints.register("goal", {
       spawn: (world, entity, args: { x: number; y: number }) => {
         ArcadeEntityBuilder.fromEntity(world, entity)
@@ -218,6 +247,36 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
         const config = world.getResource<PlatformerConfigType>("GameConfig") || DEFAULT_PLATFORMER_CONFIG;
 
         setupPlatformerMovementComponents(world, entity, config);
+        // Platformer opts into the momentum-oriented profile used by the locomotion campaign.
+        const locomotionProfile = world.getMutableComponent(entity, "LocomotionProfile") as {
+          ground: Record<string, number>;
+          air: Record<string, number>;
+          momentum: Record<string, number>;
+          slide?: Record<string, number>;
+        } | undefined;
+        if (locomotionProfile) {
+          const momentumProfile = LOCOMOTION_PROFILE_PRESETS.momentum;
+          locomotionProfile.ground = {
+            ...momentumProfile.ground,
+            maxSpeed: config.PLAYER_SPEED,
+            acceleration: config.PLAYER_ACCEL,
+            deceleration: config.PLAYER_DECEL
+          };
+          locomotionProfile.air = {
+            ...momentumProfile.air,
+            maxSpeed: config.PLAYER_SPEED,
+            acceleration: config.PLAYER_AIR_ACCEL,
+            deceleration: config.PLAYER_AIR_DECEL
+          };
+          locomotionProfile.momentum = { ...momentumProfile.momentum };
+          locomotionProfile.slide = momentumProfile.slide ? { ...momentumProfile.slide } : undefined;
+        }
+        // PlatformCarrySystem consumes Collider2D; keep the legacy Collider as a compatibility contract.
+        ArcadeEntityBuilder.fromEntity(world, entity).withCollider2D({
+          shape: { type: "aabb", halfWidth: 10, halfHeight: 15 },
+          layer: 1,
+          mask: 0xffff
+        });
         world.addComponent(entity, {
           type: "PlatformerInput",
           moveDir: 0,
@@ -268,7 +327,7 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
     this.world.addSystem(new PlatformerDashSystem(), { phase: SystemPhase.Input });
 
     // Register common platformer systems
-    registerCommonPlatformerSystems(this.world);
+    registerCommonPlatformerSystems(this.world, { includeMovingPlatforms: true });
 
     // Game-specific simulation systems
     this.world.addSystem(new PlatformerWallJumpSystem(), { phase: SystemPhase.Simulation });
@@ -284,6 +343,7 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
   }
 
   public initializeRenderer(renderer: Renderer<CoreComponentRegistry, RenderContext>): void {
+    SharedVFX.registerSharedVFX(renderer);
     renderer.registerShape("tilemap", drawPlatformerTilemap);
     renderer.registerShape("player", drawPlatformerPlayer);
     renderer.registerShape("goal", drawPlatformerGoal);

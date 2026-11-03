@@ -38,6 +38,8 @@ export interface BaseWorldSnapshot {
    * Current serializable state integer/index of the gameplay LCG random generator.
    */
   rngState?: number;
+  /** Current serializable state of the render-only random generator. */
+  renderRngState?: number;
   /**
    * The current simulation frame/tick count.
    */

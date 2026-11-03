@@ -61,6 +61,8 @@ export function validateSpriteSheetDefinition(
   if (sheet.id.trim().length === 0) add("EMPTY_ID", "Sprite id must not be empty.");
   if (sheet.assetPath.trim().length === 0) {
     add("EMPTY_ASSET_PATH", "assetPath must point to a repository asset.");
+  } else if (/\s/.test(sheet.assetPath)) {
+    add("INVALID_ASSET_PATH", `assetPath must not contain whitespace: "${sheet.assetPath}".`);
   } else if (
     sheet.assetPath.startsWith("/") ||
     /^[A-Za-z]:[\\/]/.test(sheet.assetPath) ||
@@ -211,6 +213,14 @@ export function validateSpriteCatalog(
         code: "INVALID_PNG",
         spriteId: sheet.id || "<missing-id>",
         message: `File is not a PNG with a valid IHDR chunk: ${sheet.assetPath}`
+      });
+    }
+
+    if (sheet.imageSource === null && !sheet.optional) {
+      issues.push({
+        code: "NULL_IMAGE_SOURCE",
+        spriteId: sheet.id || "<missing-id>",
+        message: `Sprite sheet has null imageSource and is not marked as optional: ${sheet.id}`
       });
     }
 

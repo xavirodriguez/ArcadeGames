@@ -1,4 +1,5 @@
 import type { SpaceInvadersThemeModule } from "../types";
+import { preloadAllSpriteSheets } from "../../../shared/sprites";
 import { registerNauticalChartCanvasEffects, registerNauticalChartSkiaEffects } from "./rendering/registerNauticalChartEffects";
 import { drawSeaDragonSpriteCanvas, drawSkiaSeaDragonSprite, SEA_DRAGON_SHAPE } from "../../rendering/SeaDragonVisuals";
 import {
@@ -22,6 +23,7 @@ export const nauticalTheme: SpaceInvadersThemeModule = {
   },
 
   registerDrawers(register) {
+    void preloadAllSpriteSheets(["sea_dragon", "ghost_galleon"]);
     register("canvas", SEA_DRAGON_SHAPE, drawSeaDragonSpriteCanvas);
     register("skia", SEA_DRAGON_SHAPE, drawSkiaSeaDragonSprite);
     register("canvas", GHOST_GALLEON_SHAPE, drawGhostGalleonSpriteCanvas);

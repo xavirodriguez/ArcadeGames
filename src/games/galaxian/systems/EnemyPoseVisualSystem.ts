@@ -2,8 +2,6 @@ import { System, World } from "@tiny-aster/core";
 import { GalaxianComponentRegistry, GalaxianEnemyComponent, VisualPoseComponent } from "../types/GalaxianTypes";
 
 export class EnemyPoseVisualSystem extends System<GalaxianComponentRegistry> {
-  private previousPositions = new Map<number, { x: number; y: number }>();
-
   public update(world: World<GalaxianComponentRegistry>, deltaTime: number): void {
     if (deltaTime <= 0) return;
 
@@ -14,10 +12,13 @@ export class EnemyPoseVisualSystem extends System<GalaxianComponentRegistry> {
       const pose = world.getMutableComponent(entity, "VisualPose") as VisualPoseComponent | undefined;
       if (!enemy || !transform || !pose) continue;
 
-      const prev = this.previousPositions.get(entity) || { x: transform.x, y: transform.y };
-      const dx = transform.x - prev.x;
-      const dy = transform.y - prev.y;
-      this.previousPositions.set(entity, { x: transform.x, y: transform.y });
+      const previousX = pose.hasPreviousPosition ? pose.previousX : transform.x;
+      const previousY = pose.hasPreviousPosition ? pose.previousY : transform.y;
+      const dx = transform.x - previousX;
+      const dy = transform.y - previousY;
+      pose.previousX = transform.x;
+      pose.previousY = transform.y;
+      pose.hasPreviousPosition = true;
 
       if (enemy.state === "windup") {
         // Windup deformation: squashes vertically (0.9x), expands horizontally (1.25x)

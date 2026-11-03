@@ -97,6 +97,8 @@ export interface SpriteSheetDefinition {
   anchor?: { x: number; y: number };
   /** Animation clips indexed by stable animation name. */
   animations: Record<string, SpriteAnimationDefinition>;
+  /** Optional flag indicating that the asset may be absent at runtime without error. */
+  optional?: boolean;
 }
 
 /** Pixel dimensions read from a PNG IHDR chunk. */

@@ -16,7 +16,7 @@ import {
 import { computeSpeedLines, computeOutrunPlayerArtworkScale } from "./OutrunVisualHelpers";
 import { computeOutrunRoadSpeedLineSegments, resolveOutrunRoadSegmentArtwork } from "./OutrunRoadArtwork";
 import { resolveOutrunRoadsideArtworkStyle } from "./OutrunRoadsideArtwork";
-import { resolveOutrunPlayerPalette, resolveOutrunTrafficArtworkStyle } from "./OutrunVehicleArtwork";
+import { resolveOutrunPlayerPalette, resolveOutrunTrafficArtworkStyle, resolveOutrunTrafficVehicleGeometry } from "./OutrunVehicleArtwork";
 import { computeOutrunHeadlightBeams } from "./OutrunLighting";
 import { resolveOutrunHudLayout } from "./OutrunHudArtwork";
 import { resolveOutrunSceneryLayout, type OutrunSceneryLayout, type MountainLayerLayout } from "./OutrunScenery";
@@ -66,7 +66,7 @@ function drawOutrunBitmapSpriteSkia(
   const size = sw * 0.8;
   const w = size;
   const h = size * aspect;
-  if (sy >= clipY || w < 2) return false;
+  if (sy > clipY || w < 2) return false;
 
   const anchorX = spec.anchor?.x ?? 0.5;
   const anchorY = spec.anchor?.y ?? 1.0;
@@ -102,7 +102,7 @@ function drawRoadSpriteSkia(
   activeMod?: OutrunVisualMod,
   world?: import("@tiny-aster/core").World<OutrunComponentRegistry>
 ): void {
-  if (!Skia || sy >= clipY || sw < 2) return;
+  if (!Skia || sy > clipY || sw < 2) return;
 
   if (activeMod?.drawRoadsideSprite) {
     const handled = activeMod.drawRoadsideSprite({
@@ -575,51 +575,42 @@ function drawOutrunTrafficVehicleSkia(
   }
 
   const style = resolveOutrunTrafficArtworkStyle(config, styleIndex, width, activeMod);
-  const bodyTop = -style.bodyHeight;
-  const cabinBaseY = bodyTop;
-  const cabinTopY = cabinBaseY - style.cabinHeight;
-
+  const geometry = resolveOutrunTrafficVehicleGeometry(style);
   canvas.save();
   canvas.translate(centerX, baselineY);
-  const shadowPaint = Skia.Paint();
-  shadowPaint.setColor(Skia.Color(style.shadowColor));
-  shadowPaint.setAlphaf(style.shadowAlpha);
-  shadowPaint.setStyle(Skia.PaintStyle.Fill);
-  canvas.drawOval(Skia.XYWHRect(
-    -style.shadowRadiusX, -style.shadowRadiusY,
-    style.shadowRadiusX * 2, style.shadowRadiusY * 2
-  ), shadowPaint);
+  const paint = Skia.Paint();
+  paint.setStyle(Skia.PaintStyle.Fill);
 
-  fillVehicleRoundedRectSkia(canvas, {
-    x: -style.bodyWidth / 2, y: bodyTop, width: style.bodyWidth, height: style.bodyHeight,
-    cornerRadius: style.bodyCornerRadius
-  }, style.bodyColor);
+  for (const command of geometry) {
+    paint.setColor(Skia.Color(command.color));
+    paint.setAlphaf(command.alpha ?? 1);
 
-  const baseHalf = style.cabinBaseWidth / 2;
-  const roofHalf = style.cabinRoofWidth / 2;
-  fillVehiclePolygonSkia(canvas, [
-    { x: -baseHalf, y: cabinBaseY },
-    { x: baseHalf, y: cabinBaseY },
-    { x: roofHalf, y: cabinTopY },
-    { x: -roofHalf, y: cabinTopY }
-  ], style.cabinColor);
-
-  const windowBaseHalf = baseHalf * 0.72;
-  const windowRoofHalf = roofHalf * 0.72;
-  fillVehiclePolygonSkia(canvas, [
-    { x: -windowBaseHalf, y: cabinBaseY - style.cabinHeight * 0.08 },
-    { x: windowBaseHalf, y: cabinBaseY - style.cabinHeight * 0.08 },
-    { x: windowRoofHalf, y: cabinTopY + style.cabinHeight * 0.18 },
-    { x: -windowRoofHalf, y: cabinTopY + style.cabinHeight * 0.18 }
-  ], style.glassColor);
-
-  fillVehicleRoundedRectSkia(canvas, {
-    x: -style.lightBarWidth / 2,
-    y: bodyTop + style.lightBarTopOffset,
-    width: style.lightBarWidth,
-    height: style.lightBarHeight,
-    cornerRadius: style.lightBarHeight / 2
-  }, style.lightBarColor);
+    switch (command.kind) {
+      case "rect":
+        canvas.drawRect(Skia.XYWHRect(command.x, command.y, command.width, command.height), paint);
+        break;
+      case "ellipse":
+        canvas.drawOval(Skia.XYWHRect(
+          command.centerX - command.radiusX,
+          command.centerY - command.radiusY,
+          command.radiusX * 2,
+          command.radiusY * 2
+        ), paint);
+        break;
+      case "polygon": {
+        if (command.points.length < 3) break;
+        const path = Skia.Path.Make();
+        path.moveTo(command.points[0]!.x, command.points[0]!.y);
+        for (let index = 1; index < command.points.length; index++) {
+          const point = command.points[index]!;
+          path.lineTo(point.x, point.y);
+        }
+        path.close();
+        canvas.drawPath(path, paint);
+        break;
+      }
+    }
+  }
 
   canvas.restore();
 }

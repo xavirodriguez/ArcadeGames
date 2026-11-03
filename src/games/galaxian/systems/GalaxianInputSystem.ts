@@ -1,9 +1,10 @@
 import { System, World } from "@tiny-aster/core";
+import { isGalaxianGameOver } from "./isGalaxianGameOver";
 import { GalaxianComponentRegistry, GalaxianInputComponent } from "../types/GalaxianTypes";
 
 export class GalaxianInputSystem extends System<GalaxianComponentRegistry> {
   public update(world: World<GalaxianComponentRegistry>, deltaTime: number): void {
-    if (world.getResource("IsPaused") === true || deltaTime <= 0) return;
+    if (world.getResource("IsPaused") === true || deltaTime <= 0 || isGalaxianGameOver(world)) return;
 
     const playerEntities = world.query("Player", "Input");
     for (const entity of playerEntities) {

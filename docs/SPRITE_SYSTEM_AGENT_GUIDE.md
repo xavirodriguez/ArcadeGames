@@ -189,13 +189,31 @@ drawSpriteSkia(canvas, a, x, y, paint?, options?): boolean
 
 ### 3.4 Sheets registered in `SpriteRegistry.init()` today
 
-| id | Mode | Notes |
-|----|------|--------|
-| `oni_red` | frames | Art = `enemy2.png` (id kept stable) |
-| `sea_dragon` | frames | SI Nautical |
-| `ghost_galleon` | frames | SI Nautical; also bound to shape `"ufo"` |
-| `lancero` | frames | Provisional grid; template for other 1376×768 sheets |
-| `tower_basic_art` / `tower_sniper_art` | full-image | TD |
+Total catalog count: **18** sprite sheets in `SPRITE_SHEET_CATALOG` (`SpriteRegistry.ts`) + **3** character sheets in `HIT_RUN_CHARACTER_SPRITE_SHEETS` (`HitRunSpriteAtlas.ts`) = **21** total sprite sheets checked by `pnpm run sprites:validate`.
+
+| id | Mode | Who uses it / Notes |
+|----|------|---------------------|
+| `oni_red` | frames | Measured from `enemy2.png` (924×539). Tested in Echo Runner / concept pack. |
+| `sea_dragon` | frames | Space Invaders (*Aquí hay dragones* / Nautical mod bonus ship). |
+| `ghost_galleon` | frames | Space Invaders Nautical mod (bonus ship / UFO alias). |
+| `lancero` | frames | Template ShapeDrawers in `LanceroSpriteVisuals.ts`. |
+| `echorunner_kuchisake_onna` | frames | Echo Runner player sheet (`kichisake-onna.png`). |
+| `tower_basic_art` | full-image | Tower Defense basic tower (`tower1.png`). |
+| `tower_sniper_art` | full-image | Tower Defense sniper tower (`tower2.png`). |
+| `urban_big_house` | full-image | Static urban environment prop (`big_house.png`). |
+| `urban_house_01` | full-image | Static urban environment prop (`casa1.png`). |
+| `urban_house_03` | full-image | Static urban environment prop (`casa3.png`). |
+| `urban_house_04` | full-image | Static urban environment prop (`casa4.png`). |
+| `urban_large_house` | full-image | Static urban environment prop (`casa_grande.png`). |
+| `urban_small_houses` | full-image | Static urban environment prop (`small_houses.png`). |
+| `urban_casita_01` | full-image | Static urban environment prop (`casita1.png`). |
+| `urban_casita_02` | full-image | Static urban environment prop (`casita2.png`). |
+| `urban_casita_04` | full-image | Static urban environment prop (`casita4.png`). |
+| `urban_casita_05` | full-image | Static urban environment prop (`casita5.png`). |
+| `urban_casita_07` | full-image | Static urban environment prop (`casita7.png`). |
+| `hitrun_samurai_enemy` | frames | Hit & Run enemy samurai atlas (`samurai-enemy.png`). |
+| `hitrun_sumi_e_player` | frames | Hit & Run Sumi-E theme player atlas (`player.png`). |
+| `hitrun_sumi_e_samurai` | frames | Hit & Run Sumi-E theme samurai atlas (`samurai.png`). |
 
 ### 3.5 Hybrid ShapeDrawer pattern (recommended)
 

@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { World, System, resolveThemeColorWithFallback, Juice } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/AsteroidRegistry";
-import { CombatDeathEvent } from "@tiny-aster/gameplay-kit";
-import { fragmentAsteroid } from "../EntityFactory";
+import { CombatDeathEvent, CombatHitEvent } from "@tiny-aster/gameplay-kit";
+import { fragmentAsteroid, createResourcePickup } from "../EntityFactory";
 import { spawnScorePopup } from "@tiny-aster/gameplay-kit";
+import { JuiceOrchestrator } from "../../shared/rendering/JuiceOrchestrator";
 import { spawnLayeredExplosion } from "../../shared/rendering/SharedVFX";
 import { getLogsForLevel } from "../story/StoryBeats";
 import { colors } from "../../../theme/colors";
@@ -25,6 +26,7 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
   // Rollback-safe per-tick player session cache
   private playerCache = new Map<string, number>();
   private playerCacheTick = -1;
+  private juice: JuiceOrchestrator<AsteroidsComponentRegistry> | undefined;
 
   constructor() {
     super();
@@ -44,6 +46,17 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
        */
       eventBus.on("combat:death", (event: CombatDeathEvent) => {
         this.onCombatDeath(world, event);
+      });
+
+      eventBus.on("combat:hit", (event: CombatHitEvent) => {
+        if (world.isReSimulating || !world.hasComponent(event.targetEntity, "Ship")) return;
+        const transform = world.getComponent(event.targetEntity, "Transform");
+        if (!transform) return;
+        this.juice ??= new JuiceOrchestrator(world as unknown as World<AsteroidsComponentRegistry>);
+        this.juice.triggerEvent("asteroids", "ship:damage", {
+          x: transform.x,
+          y: transform.y
+        });
       });
     }
   }
@@ -148,6 +161,18 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
     transform: { x: number; y: number },
     size: "large" | "medium" | "small" | "ship"
   ): void {
+    // Presentation effects must not be duplicated by rollback resimulation.
+    if (world.isReSimulating) return;
+
+    const scale = size === "ship" || size === "large" ? 0.95 : size === "medium" ? 0.72 : 0.55;
+    new JuiceOrchestrator(world as unknown as World<AsteroidsComponentRegistry>).spawn("pixelfx_explosion", {
+      x: transform.x,
+      y: transform.y,
+      scale,
+      tint: resolveThemeColorWithFallback(world, colors.warning, "warning", "primary"),
+      ttl: 0.38
+    });
+
     const gameplayMod = world.getResource<AsteroidsGameplayMod>("GameplayMod")
       ?? world.getResource<AsteroidsGameplayMod>("VisualMod");
     if (gameplayMod?.spawnDestructionEffect) {
@@ -336,6 +361,34 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
       this.spawnExplosionParticles(world, asteroidTransform, size);
     }
     Juice.shake(world, size === "large" ? 3.0 : 1.5, 80);
+
+    // Spawn physical salvage drop (Minerals on medium/large, Energy chance)
+    if (asteroidTransform) {
+      const mineralAmount = size === "large" ? 15 : size === "medium" ? 8 : 4;
+      const angle = world.gameplayRandom.next() * Math.PI * 2;
+      const speed = 40;
+      createResourcePickup({
+        world,
+        x: asteroidTransform.x,
+        y: asteroidTransform.y,
+        resourceType: "minerals",
+        amount: mineralAmount,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed
+      });
+
+      if (size === "large" && world.gameplayRandom.next() < 0.4) {
+        createResourcePickup({
+          world,
+          x: asteroidTransform.x,
+          y: asteroidTransform.y,
+          resourceType: "energy",
+          amount: 25,
+          vx: -Math.cos(angle) * speed,
+          vy: -Math.sin(angle) * speed
+        });
+      }
+    }
 
     // Fragment asteroid
     fragmentAsteroid(world, asteroid);

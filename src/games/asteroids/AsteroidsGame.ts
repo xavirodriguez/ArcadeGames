@@ -71,6 +71,8 @@ import { AsteroidGameStateSystem } from "./systems/AsteroidGameStateSystem";
 import { AsteroidInputSystem } from "./systems/AsteroidInputSystem";
 import { AsteroidCollisionSystem } from "./systems/AsteroidCollisionSystem";
 import { CombatSystem } from "@tiny-aster/gameplay-kit";
+import { MagneticCollectionSystem } from "./systems/MagneticCollectionSystem";
+import { ResourceCollectionSystem } from "./systems/ResourceCollectionSystem";
 import { INITIAL_GAME_STATE } from "./types/AsteroidTypes";
 import { createShip, createPowerUp, spawnAsteroidWave, registerAsteroidsBlueprints } from "./EntityFactory";
 import type { IAsteroidsGame } from "./types/GameInterfaces";
@@ -196,6 +198,7 @@ export class AsteroidsGame
 
     this.world.addSystem(new SpatialCullingSystem({ margin: 100 }), { phase: SystemPhase.Simulation, priority: 100 });
     this.world.addSystem(new AsteroidInputSystem(this.config), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new MagneticCollectionSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new MovementSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new BoundarySystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new FrictionSystem(), { phase: SystemPhase.Simulation });
@@ -205,6 +208,7 @@ export class AsteroidsGame
     this.world.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });
     this.world.setResource("HasCombatSystem", true);
     this.world.addSystem(new AsteroidCollisionSystem(), { phase: SystemPhase.GameRules });
+    this.world.addSystem(new ResourceCollectionSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new InvulnerabilitySystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(this.gameStateSystem, { phase: SystemPhase.GameRules });

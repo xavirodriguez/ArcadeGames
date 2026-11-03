@@ -72,6 +72,7 @@ export function buildSnapshotMetadata<TComponents extends ComponentRegistry>(
     stateVersion: world.stateVersion,
     seed: world.gameplayRandom.getSeed(),
     rngState: world.gameplayRandom.getSeed(),
+    renderRngState: world.renderRandom.getSeed(),
     tick: world.tick
   };
 

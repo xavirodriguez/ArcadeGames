@@ -49,6 +49,10 @@ export function restoreWorldMetadata<TComponents extends ComponentRegistry>(
     world.gameplayRandom.setSeed(state.seed);
   }
 
+  if (state.renderRngState !== undefined) {
+    world.renderRandom.setSeed(state.renderRngState);
+  }
+
   internal.entityComponentSets.clear();
   internal.componentMaps.clear();
   internal.componentIndex.clear();

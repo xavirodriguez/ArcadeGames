@@ -1,186 +1,344 @@
-# [sprites-v2] Pipeline de Atlas: Formatos de Entrada y Contrato de Salida (Fase 4.1)
+# [sprites-v2] Pipeline de sprites: decisión de diseño de la Fase 4.1
 
-> **Estado:** Documento de diseño / Decisión arquitectónica (ADR)
-> **Área:** `scripts/sprites/`, `@tiny-aster/core`, `src/games/shared/sprites/`
-> **Objetivo:** Eliminar la medición manual de coordenadas (`makeRowFrames`, rects hardcodeados) mediante un pipeline reproducible y automatizado de generación de atlas PNG y `SpriteSheetDefinition`.
+> **Estado:** Decisión cerrada para iniciar la Fase 4.2.
+> **Alcance:** formatos de entrada, normalización, contrato de salida, registro runtime y CI.
+> **No incluido:** implementación del build CLI, migraciones de catálogo y cambios de playback en core.
 
----
+## 1. Objetivo y límites arquitectónicos
 
-## 1. Contexto y Problema
+El pipeline convierte fuentes artísticas en artefactos de sprites reproducibles y compatibles con el contrato canónico de core:
 
-Actualmente, varias hojas de sprites en el repositorio (`oni_red`, `lancero`, etc.) miden sus coordenadas rectangulares de frames manualmente en TypeScript utilizando funciones como `makeRowFrames(startX, startY, w, h, count, spacing)` o recortando bounding boxes a mano. Esto genera fricción, propensión a errores de alineación (sliding/offset frames) y desconexión con el flujo de trabajo de arte.
+- PNG listo para cargar mediante el sistema de assets de la plataforma.
+- Definición tipada que implementa SpriteSheetDefinition de @tiny-aster/core.
+- Índice generado para registrar las definiciones sin mantener una segunda lista manual.
 
-En la Fase 4, ArcadeGames incorpora un pipeline de build (`scripts/sprites/`) que toma fuentes autorizadas y produce de forma reproducible:
-1. El archivo PNG del atlas optimizado.
-2. La definición TypeScript tipada compatible con el contrato canónico de core `SpriteSheetDefinition`.
+El pipeline es tooling de build. El runtime no importa parsers, dependencias de Aseprite ni código de empaquetado.
 
-Este documento fija la especificación formal de:
-- **Formatos de entrada seleccionados.**
-- **Contrato exacto de salida y mapeo con `SpriteSheetDefinition`.**
-- **Convenciones de paths y nombres.**
-- **Política de integración continua (CI) y sincronización de artefactos.**
-- **Comandos CLI previstos.**
+La dependencia permitida es unidireccional:
 
----
+~~~text
+Fuentes artísticas
+      |
+      v
+scripts/sprites (parse -> normalize -> validate -> generate)
+      |
+      +----> PNG de runtime
+      |
+      +----> SpriteSheetDefinition .generated.ts
+                    |
+                    v
+            índice generado
+                    |
+                    v
+              SpriteRegistry
+                    |
+               SpriteAnimator
+                    |
+             +------+------+
+             |             |
+           Canvas         Skia
+~~~
 
-## 2. Formatos de Entrada Seleccionados
+El pipeline puede importar tipos de core en tiempo de build. Core y los juegos no pueden importar código de scripts/sprites.
 
-Se han evaluado tres formatos potenciales:
-1. **Aseprite JSON (Array / Hash)** (Prioridad 1 — *Formato principal*)
-2. **Directorio de frames sueltos PNG + convención de nombres** (Prioridad 2 — *Formato secundario/fallback*)
-3. **TexturePacker / Free-tex-packer JSON** (Opcional / derivado de Aseprite)
+## 2. Formatos de entrada seleccionados
 
-### 2.1 Formato Primario: Aseprite JSON (`--format=aseprite`)
+### 2.1 Aseprite JSON + PNG (prioridad 1)
 
-Aseprite es el estándar de la industria indie para pixel art y el software utilizado para las animaciones del juego.
-El export nativo de Aseprite en formato JSON (Sprite Sheet Export con `Data: JSON`, `Array` o `Hash`, y opciones `Tags`, `Slices`) ofrece:
-- **`frames`:** Lista de frames con `frame: { x, y, w, h }`, `duration` (en ms), `sourceSize`, `spriteSourceSize`.
-- **`meta.frameTags`:** Define las animaciones nombradas (`name`, `from`, `to`, `direction: "forward" | "reverse" | "pingpong"`).
-- **`meta.image`:** Nombre de archivo del PNG del atlas exportado (o generado).
-- **`meta.slices` (opcional):** Define puntos de pivote o anclas (`pivot: { x, y }`).
+Formato principal para personajes y sheets animados.
 
-#### Detección de Eventos por Frame en Aseprite
-En Aseprite existen dos métodos canónicos para anotar eventos por frame:
-1. **User Data en frames específicos:** Aseprite permite añadir "User Data" (texto/JSON) por celdas/frames. Se interpreta como `{ "type": "sfx", "payload": { ... } }`.
-2. **Archivo Overlay de eventos (`<sheetId>.events.json`):** Para hojas donde el artista solo entrega el sprite sheet sin metadata interna, un archivo overlay declara eventos sobre los tags existentes sin requerir tocar código TypeScript.
+Cada fuente vive en:
 
-### 2.2 Formato Secundario: Directorio de frames sueltos (`--format=frames`)
+~~~text
+assets/sprites/sources/<category>/<sheetId>/
+  sheet.json
+  sheet.png
+  config.json
+  events.json        # opcional
+~~~
 
-Para situaciones donde los assets vienen de herramientas externas (ej. Blender render passes, exports de Krita, Photoshop):
-- Estructura de directorio: `assets/sprites/sources/<sheetId>/`
-- Nomenclatura de archivos: `<clipName>_<index>.png` (ejemplo: `idle_00.png`, `idle_01.png`, `walk_00.png`, `attack_03.png`).
-- Configuración opcional del sheet: `<sheetId>.config.json` especificando `frameDuration`, `loop`, `anchor`, etc.
-- El pipeline empaqueta los frames individuales en un atlas usando algoritmo bin packing y genera la definición.
+Se aceptan los dos modos JSON nativos de Aseprite:
 
----
+- Array: frames como lista ordenada.
+- Hash: frames como objeto; el parser ordena las claves de forma natural y determinista (frame_2 antes de frame_10).
 
-## 3. Contrato de Salida del Pipeline
+El PNG exportado por Aseprite es la imagen de entrada del runtime. En esta fase no se vuelve a empaquetar ni se reescala: se copia byte a byte al destino generado. Así evitamos introducir otro algoritmo de atlas cuando la fuente ya entrega rectángulos y una imagen coherentes.
 
-El generador debe emitir artefactos que cumplan al 100% el contrato canónico definido en `@tiny-aster/core` (`packages/core/src/assets/SpriteSheetDefinition.ts`).
+Metadatos consumidos:
 
-### 3.1 Artefactos Producidos
+- meta.size: dimensiones del PNG; obligatorio.
+- frames[].frame: rectángulo de origen.
+- frames[].duration: duración en milisegundos.
+- frames[].rotated y frames[].trimmed: deben ser false o estar ausentes.
+- meta.frameTags: clips nombrados con rangos inclusivos y dirección.
 
-Por cada hoja de sprite procesada `<sheetId>`:
-1. **Atlas PNG:** `assets/sprites/<category>/<sheetId>.atlas.png`
-2. **Definición generada (`.generated.ts`):** `src/games/shared/sprites/generated/<sheetId>.generated.ts`
+Direcciones admitidas:
 
-### 3.2 Estructura del Archivo `.generated.ts`
+| Aseprite direction | Secuencia normalizada |
+|---|---|
+| forward | Orden original |
+| reverse | Orden inverso |
+| pingpong | Ida y vuelta sin duplicar los extremos |
 
-El archivo `.generated.ts` debe ser código TypeScript puro, fuertemente tipado, sin imports dinámicos ni dependencias circulares:
+Cualquier dirección desconocida falla. La dirección determina el orden de reproducción, no la política loop.
 
-```ts
-// GENERATED FILE - DO NOT EDIT DIRECTLY
-// Generated by scripts/sprites from assets/sprites/sources/<category>/<sheetId>.json
+El campo repeat no se acepta por ahora: el runtime solo representa loop infinito o reproducción one-shot, no un número finito de repeticiones.
+
+### 2.2 PNG estático + config JSON (prioridad 2)
+
+Formato secundario para props, torres y elementos full-image que no necesitan clips ni extracción de frames:
+
+~~~text
+assets/sprites/sources/<category>/<sheetId>/
+  image.png
+  config.json
+~~~
+
+La configuración declara id, frameWidth, frameHeight, anchor y el modo full-image. El PNG se copia a la carpeta generada sin recomprimirlo.
+
+### 2.3 Formatos aplazados
+
+No se implementan en esta versión:
+
+- Carpetas de frames sueltos y packing binario.
+- TexturePacker / Free Texture Packer JSON.
+- Repacking, trimming, rotación o padding automático.
+
+Se podrán incorporar más adelante mediante adaptadores de entrada. No deben modificar el contrato de salida ni el runtime.
+
+## 3. Configuración y reglas de normalización
+
+Ejemplo de config.json para un personaje:
+
+~~~json
+{
+  "id": "oni_red",
+  "frameWidth": 56,
+  "frameHeight": 90,
+  "anchor": { "x": 0.5, "y": 1 },
+  "animations": {
+    "idle": { "loop": true },
+    "walk": { "loop": true },
+    "attack": { "loop": false },
+    "hurt": { "loop": false },
+    "death": { "loop": false }
+  }
+}
+~~~
+
+Reglas:
+
+1. id, frameWidth y frameHeight son obligatorios. Las dimensiones lógicas no se deducen del primer frame porque distintos clips pueden tener rectángulos diferentes.
+2. anchor es normalizado a [0, 1]. Si se omite, se usa { x: 0.5, y: 1 } (bottom-center).
+3. El anchor es una propiedad del sheet, ya que el contrato actual no soporta pivots diferentes por frame o clip. Los pivots/slices de Aseprite no se convierten implícitamente en eventos ni anchors. Un anchor artístico se confirma en config.json.
+4. Las claves de animación se normalizan a minúsculas y snake_case. Los nombres normalizados deben ser únicos.
+5. animations.<name>.loop prevalece sobre defaultLoop; si no existe override, se conserva la convención actual: attack, hit, hurt, death, die, shoot, jump_end y land son one-shot; los demás clips hacen loop.
+6. Los rangos de tags son inclusivos y deben estar dentro del índice de frames. No se recortan ni clipean rangos inválidos.
+7. Cada clip debe tener una duración uniforme por frame. La duración se convierte de milisegundos a segundos (ms / 1000). Si los frames de un mismo clip tienen duraciones distintas, el build falla: no se promedian ni se descarta timing. El contrato actual de core contiene un único frameDuration; soportar timings variables exigiría ampliar y probar SpriteAnimator antes de cambiar esta regla.
+8. Frames rotados o recortados (rotated / trimmed) se rechazan. SpriteFrameRect no expresa rotación, source-size ni trim offsets. No se aceptan exports que cambien el origen lógico del sprite.
+9. Los rectángulos deben ser enteros, positivos y estar dentro de meta.size.
+
+## 4. Eventos por frame
+
+Los eventos de animación son metadatos semánticos del juego, no una interpretación automática de slices geométricas.
+
+La fuente autorizada será un overlay opcional events.json:
+
+~~~json
+{
+  "animations": {
+    "attack": [
+      {
+        "frame": 3,
+        "type": "hit",
+        "payload": { "damageWindow": true }
+      },
+      {
+        "frame": 4,
+        "type": "sfx",
+        "payload": { "cue": "sword_slash" }
+      }
+    ]
+  }
+}
+~~~
+
+- frame es un índice base cero relativo a la secuencia final de playback, después de aplicar direction.
+- type debe ser un string no vacío.
+- payload es opcional y debe ser un objeto JSON.
+- El clip debe existir y el índice debe estar dentro de frames.
+- Los eventos se copian a SpriteAnimationDefinition.events.
+- No se derivan eventos de slices, bounds, pivots ni nombres de regiones.
+- El parser no ejecuta gameplay ni conoce SFX/VFX concretos.
+
+El soporte de User Data embebido en Aseprite queda aplazado hasta disponer de una convención de export estable y fixtures reales. El overlay evita acoplar semántica de gameplay al documento artístico.
+
+## 5. Contrato de salida
+
+### 5.1 Artefactos generados
+
+Para cada sheet:
+
+~~~text
+assets/sprites/generated/<category>/<sheetId>.atlas.png
+src/games/shared/sprites/generated/<sheetId>.generated.ts
+~~~
+
+Además se genera un índice único:
+
+~~~text
+src/games/shared/sprites/generated/index.generated.ts
+~~~
+
+El índice exporta las definiciones y GENERATED_SPRITE_SHEETS. SpriteRegistry combinará esa colección con los sheets manuales que aún no se hayan migrado. Añadir una fuente válida no requiere editar el catálogo TypeScript a mano.
+
+### 5.2 Mapeo al contrato canónico
+
+La definición emitida implementa directamente SpriteSheetDefinition de @tiny-aster/core:
+
+| Campo de salida | Fuente |
+|---|---|
+| id | config.json.id |
+| assetPath | Ruta repository-relative del PNG generado |
+| imageSource | require() estático generado, compatible con Metro |
+| frameWidth, frameHeight | Configuración explícita |
+| sourceMode | frames para Aseprite; full-image para PNG estático |
+| anchor | Configuración o bottom-center por defecto |
+| animations | Tags normalizados y eventos overlay |
+| frameDuration | Duración uniforme del clip, en segundos |
+| loop | Override de config o convención por nombre |
+| events | Overlay validado, cuando exista |
+
+imageSource nunca se deja en null en un artefacto generado obligatorio. El parser produce una representación intermedia de build; el generador de TypeScript añade la referencia estática real al PNG. No se emiten imports dinámicos ni paths construidos durante el runtime.
+
+Ejemplo esquemático:
+
+~~~ts
 import type { SpriteSheetDefinition } from "@tiny-aster/core";
 
-export const <SHEET_ID_UPPER>_SPRITE_SHEET: SpriteSheetDefinition = {
-  id: "<sheetId>",
-  assetPath: "assets/sprites/<category>/<sheetId>.atlas.png",
-  imageSource: null, // Asignado en runtime por SpriteRegistry vía require() o asset loader
-  frameWidth: 56,     // Ancho lógico en unidades del mundo
-  frameHeight: 90,    // Alto lógico en unidades del mundo
+export const ONI_RED_SPRITE_SHEET: SpriteSheetDefinition = {
+  id: "oni_red",
+  assetPath: "assets/sprites/generated/characters/oni_red.atlas.png",
+  imageSource: require("../../../../../assets/sprites/generated/characters/oni_red.atlas.png"),
+  frameWidth: 56,
+  frameHeight: 90,
   sourceMode: "frames",
-  anchor: { x: 0.5, y: 1 }, // Default pies (bottom-center)
+  anchor: { x: 0.5, y: 1 },
   animations: {
     idle: {
       name: "idle",
-      frameDuration: 0.12, // Convertido de ms a segundos (Aseprite ms / 1000)
-      loop: true,
-      frames: [
-        { x: 0, y: 0, w: 54, h: 82 },
-        { x: 54, y: 0, w: 54, h: 82 },
-        // ...
-      ],
-      events: [
-        // Frame events si existen en la fuente o en el overlay
-      ]
-    },
-    attack: {
-      name: "attack",
-      frameDuration: 0.07,
-      loop: false,
-      frames: [ ... ],
-      events: [
-        { frame: 2, type: "sfx", payload: { cue: "slash" } }
-      ]
+      frames: [{ x: 0, y: 0, w: 54, h: 82 }],
+      frameDuration: 0.12,
+      loop: true
     }
   }
 };
-```
+~~~
 
-### 3.3 Reglas de Mapeo (Aseprite → SpriteSheetDefinition)
+El código real contiene todos los rectángulos y eventos. El require() del ejemplo es relativo al archivo generado y deberá calcularse desde el generador.
 
-| Campo Aseprite | Campo `SpriteSheetDefinition` | Transformación / Regla |
-|---|---|---|
-| `frame.x`, `frame.y`, `frame.w`, `frame.h` | `SpriteFrameRect` (`x`, `y`, `w`, `h`) | Enteros no negativos exactos en píxeles. |
-| `frame.duration` (ms) | `SpriteAnimationDefinition.frameDuration` (s) | `duration / 1000` (segundos por frame). Si hay duraciones variables por frame en Aseprite, se toma el valor común o promedio representativo. |
-| `frameTags.name` | `SpriteAnimationDefinition.name` y clave en `animations` | Nombre normalizado en minúsculas/snake_case (`idle`, `walk`, `attack`). |
-| `frameTags.direction` | `SpriteAnimationDefinition.loop` | Si el tag se llama `idle`, `walk`, `run` o especifica loop en config → `loop: true`; `attack`, `death`, `hurt`, `hit` → `loop: false`. Configurable vía manifest/overlay. |
-| Tag range `[from, to]` | `SpriteAnimationDefinition.frames` | Slice de frames ordenados `frames.slice(from, to + 1)`. |
-| `slice.pivot` o config | `SpriteSheetDefinition.anchor` | Normalizado a rango `[0, 1]`. Por defecto `{ x: 0.5, y: 1 }` (personajes) o `{ x: 0.5, y: 0.5 }` (props/towers). |
-| `meta.slices` / Tag user data | `SpriteAnimationDefinition.events` | Mapeado a `{ frame: number, type: string, payload?: Record<string, unknown> }`. `frame` siempre relativo al inicio de la animación (0 .. frames.length - 1). |
+## 6. Validación y determinismo
 
----
+El build valida antes de escribir:
 
-## 4. Política de CI y Control de Versiones
+- Fuente y configuración presentes y parseables.
+- PNG válido y dimensiones coincidentes con meta.size.
+- IDs y claves de animación únicos.
+- Rectángulos enteros, positivos y dentro de bounds.
+- Duraciones positivas y uniformes por clip.
+- Direcciones, rangos y loops soportados.
+- Anchors finitos dentro de [0, 1].
+- Eventos con tipo, payload y frame válidos.
+- Ausencia de trim y rotación.
+- Paths relativos que no escapen del repositorio.
 
-### 4.1 Decisión: Artefactos Commiteados + Validación Estricta en CI
+La misma entrada debe producir byte-for-byte el mismo PNG y el mismo TypeScript. La copia del PNG Aseprite no debe decodificarlo ni recodificarlo. Los ficheros .generated.ts e index.generated.ts deben tener orden estable y formato determinista.
 
-Se ha optado por el enfoque **Commit de Artefactos con Verificación de Consistencia**:
-1. **Artefactos en Git:** Tanto los PNG generados como los archivos `.generated.ts` se commitean en el repositorio. Esto garantiza:
-   - Los builds de producción de Expo/Next.js/Metro no necesitan ejecutar herramientas de procesamiento de imágenes pesadas en runtime ni en build de release.
-   - Tests y jest no dependen de binarios externos de compilación de sprites.
-   - Diff claro en los Pull Requests que muestra exactamente qué frames y rects cambiaron visualmente y en metadata.
-2. **Validación en CI:**
-   - CI ejecuta `pnpm run sprites:validate`: verifica que todos los PNG existan, tengan encabezado IHDR válido, rects dentro de límites, nombres únicos y duraciones positivas.
-   - CI ejecuta verificación de generación limpia: `pnpm run sprites:build --check`. Si algún archivo `.generated.ts` o atlas PNG difiere del resultado que produce el pipeline a partir de sus fuentes, el comando falla con código de salida 1 mostrando el diff.
+## 7. Política de CI y control de versiones
 
----
+**Decisión: commitear fuentes y artefactos generados, y verificar regeneración estricta en CI.**
 
-## 5. Comandos Previstos y Flujo de Trabajo
+Se versionan:
 
-### 5.1 Comandos CLI en `package.json`
+- Fuentes de entrada (sheet.json, PNG original, config y events).
+- PNG de runtime generado.
+- Definiciones .generated.ts e índice.
 
-```bash
-# Construir todas las hojas de sprites desde assets/sprites/sources/
-pnpm run sprites:build
+CI ejecutará, en este orden:
 
-# Construir una hoja específica
-pnpm run sprites:build --sheet=sea_dragon
-pnpm run sprites:build --sheet=oni_red
+1. pnpm run sprites:build --check
+2. pnpm run sprites:validate
+3. Tests del parser/generador.
 
-# Modo dry-run / verbose
-pnpm run sprites:build --dry-run
-pnpm run sprites:build --verbose
+--check genera resultados esperados en memoria o en un directorio temporal, compara los bytes del PNG y el contenido de TypeScript, y falla con código distinto de cero si hay drift. No modifica archivos ni deja cambios en el workspace.
 
-# Verificación de consistencia en CI (falla si hay diff en artefactos generados)
-pnpm run sprites:build --check
+sprites:validate sigue validando el catálogo completo, tanto los sheets compartidos como los de Hit&Run. El porcentaje de autogeneración se calcula sobre ambos grupos (baseline actual: 21 sheets), y se reporta también por separado para sheets animados y full-image.
 
-# Validación de catálogo canónico
+## 8. Comandos CLI previstos
+
+~~~bash
+pnpm sprites:build
+pnpm sprites:build --sheet=oni_red
+pnpm sprites:build --sheet=tower_basic_art
+pnpm sprites:build --dry-run
+pnpm sprites:build --verbose
+pnpm sprites:build --check
+pnpm sprites:validate
+~~~
+
+El modo --dry-run valida y muestra los artefactos previstos sin escribirlos. --verbose informa fuente, clips, rects y destinos. --check nunca escribe.
+
+## 9. Responsabilidades manuales
+
+Después de implementar 4.2, el trabajo manual esperado será:
+
+- Crear/editar la fuente artística en Aseprite o preparar el PNG estático.
+- Exportar el PNG/JSON y actualizar config/events cuando corresponda.
+- Revisar visualmente el diff del PNG y abrir el PR.
+- Mantener la selección de clips en los sistemas de state-selection del juego.
+- Declarar la semántica de los eventos de gameplay.
+
+No será necesario escribir ni mantener frame rectangles en TypeScript, ni editar el índice generado. SpriteRegistry consumirá el índice generado en 4.2.
+
+## 10. Spike existente y alcance de 4.1
+
+El spike se conserva como parser de build-time bajo scripts/sprites/parsers/AsepriteJsonParser.ts. Los tests cubren Array/Hash, orden determinista, dirección, timing uniforme, overlay de eventos, bounds y rechazo de trim/rotación.
+
+El parser devuelve una representación intermedia sin imageSource ni assetPath. La fase 4.2 es responsable de emitir la definición canónica completa y el require() estático.
+
+## 11. Criterios de aceptación de 4.1
+
+- [x] Aseprite JSON Array/Hash + PNG seleccionado como formato animado primario.
+- [x] PNG estático + config seleccionado como formato secundario.
+- [x] Carpetas de frames sueltos y TexturePacker aplazados.
+- [x] Contrato de salida fijado contra SpriteSheetDefinition.
+- [x] Política de tiempos, dirección, anchors, eventos, trim y rotación definida.
+- [x] Política de artefactos commiteados y CI --check definida.
+- [x] Separación build-time/runtime y registro estático documentados.
+- [x] Spike ubicado en tooling y tests de normalización definidos.
+
+**Siguiente fase:** 4.2 — implementar sprites:build, el escritor de artefactos y la validación de regeneración.
+
+
+## 12. Implementación de la Fase 4.2
+
+La implementación inicial vive en scripts/sprites/ y comparte el validador
+canónico de SpriteSheetDefinition. El comando pnpm run sprites:build acepta
+fuentes Aseprite (Array/Hash) y PNG estáticos full-image, copia los bytes del
+PNG y emite definiciones .generated.ts con require() estático más un índice.
+
+El repositorio todavía no contiene fuentes de producción bajo
+assets/sprites/sources/. Por eso el índice generado inicial puede estar vacío:
+los fixtures del parser y del pipeline no se registran como assets de runtime.
+El primer sheet real se incorporará durante la migración 4.3.
+
+La validación reproducible se ejecuta con:
+
+~~~bash
+pnpm run sprites:build -- --check
 pnpm run sprites:validate
-```
+~~~
 
-### 5.2 Qué queda manual
-
-El único paso manual que permanece intencionalmente es el **registro del `id` en el catálogo**:
-- En `src/games/shared/sprites/SpriteRegistry.ts`, importar la constante generada `<NAME>_SPRITE_SHEET` y agregarla a `SPRITE_SHEET_CATALOG`.
-- Asociar el `require()` de la plataforma para Expo/Metro (`try/catch`).
-- De esta forma, el compilador TypeScript detecta automáticamente si una hoja fue eliminada o renombrada sin que haya side effects mágicos indeseados.
-
----
-
-## 6. Spike Mínimo de Validación (Fase 4.1)
-
-Como parte de esta fase de diseño, se incluye un spike de prueba:
-1. **Fixture de prueba:** `scripts/sprites/fixtures/aseprite-sample.json` que emula un export canónico de Aseprite con frames, frameTags (`idle`, `attack`), y un frame event de impacto.
-2. **Parser spike:** Función pura `parseAsepriteJson(jsonContent, options)` en `src/games/shared/sprites/pipeline/AsepriteJsonParser.ts` que convierte el formato Aseprite en estructura compatible con `SpriteSheetDefinition`.
-3. **Tests unitarios:** `src/games/shared/sprites/__tests__/AsepriteJsonParser.test.ts` verificando que las duraciones, frames ordenados y tags se extraen correctamente con validación de tipos estricta.
-
----
-
-## 7. Criterios de Aceptación Cumplidos
-
-- [x] **Formatos de entrada elegidos y justificados:** Aseprite JSON (primario) y carpetas de frames sueltos (secundario).
-- [x] **Contrato de salida alineado:** Compatible directamente con `@tiny-aster/core` `SpriteSheetDefinition` (.generated.ts + PNG).
-- [x] **Política de CI definida:** Artefactos generados commiteados + chequeo `--check` en CI + `sprites:validate`.
-- [x] **Design note referenciable:** Documentado exhaustivamente en `docs/sprites-pipeline.md`.
+El check compara bytes PNG y texto TypeScript, detecta artefactos obsoletos y
+no modifica el workspace. El build completo normal elimina únicamente los
+.atlas.png y .generated.ts obsoletos de los directorios reservados.

@@ -26,10 +26,13 @@ import {
  * - hitFlashFrames on victim Render (also skipped on re-sim).
  */
 import { CombatHitListenerSystem } from "../combat/CombatHitListenerSystem";
+import { JuiceOrchestrator } from "../../shared/rendering/JuiceOrchestrator";
+import { SUMI_E_THEME_RESOURCE } from "../presentation/ThemeAssetIds";
 
 export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPayload> {
   private config: HitRunFeedbackConfig;
   private pendingDeaths: CombatDeathPayload[] = [];
+  private juice: JuiceOrchestrator<CoreComponentRegistry> | undefined;
 
   constructor(config: Partial<HitRunFeedbackConfig> = {}) {
     super();
@@ -188,6 +191,29 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
 
       this.applyScreenShake(world, profile.shakeIntensity, profile.shakeDuration);
       this.applyHitFlash(world, hit.targetEntity, profile.hitFlashFrames);
+
+      // Melee hits use the directional slash pilot; other weapons retain their existing feedback.
+      if (hit.category === "melee" && world.hasEntity(hit.targetEntity)) {
+        const target = world.getComponent(hit.targetEntity, "Transform");
+        const source = hit.sourceEntity !== undefined && world.hasEntity(hit.sourceEntity)
+          ? world.getComponent(hit.sourceEntity, "Transform")
+          : undefined;
+        if (target) {
+          const rotation = source
+            ? Math.atan2(target.y - source.y, target.x - source.x)
+            : target.rotation ?? 0;
+          this.juice ??= new JuiceOrchestrator(world);
+          const isSumiE = world.getResource<boolean>(SUMI_E_THEME_RESOURCE) === true;
+          this.juice.spawn("pixelfx_slash", {
+            x: target.x,
+            y: target.y,
+            rotation,
+            scale: 1.05,
+            tint: isSumiE ? "#151515" : "#f05a28",
+            ttl: 0.24
+          });
+        }
+      }
     }
   }
 
@@ -208,6 +234,22 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
         deathProfile.shakeDuration
       );
       this.applyHitFlash(world, death.entity, deathProfile.hitFlashFrames);
+
+      // Lethal hits get a distinct radial ink burst; it is presentation-only.
+      const transform = world.hasEntity(death.entity)
+        ? world.getComponent(death.entity, "Transform")
+        : undefined;
+      if (transform) {
+        this.juice ??= new JuiceOrchestrator(world);
+        const isSumiE = world.getResource<boolean>(SUMI_E_THEME_RESOURCE) === true;
+        this.juice.spawn("pixelfx_ink_burst", {
+          x: transform.x,
+          y: transform.y,
+          scale: 1.15,
+          tint: isSumiE ? "#151515" : "#d7473f",
+          ttl: 0.44
+        });
+      }
     }
   }
 

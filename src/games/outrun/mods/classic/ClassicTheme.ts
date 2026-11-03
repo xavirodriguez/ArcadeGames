@@ -1,5 +1,6 @@
 import type { Theme } from "@tiny-aster/core";
 import type { OutrunThemeModule } from "../types";
+import { resolveOutrunTrafficVehicleKind } from "../../rendering/OutrunVehicleArtwork";
 import {
   drawOutrunRoad,
   drawOutrunCar,
@@ -54,31 +55,16 @@ export const classicTheme: OutrunThemeModule = {
   },
 
   resolveRoadsideKind(kind: string): string {
-    switch (kind) {
-      case "tree":
-      case "pine":
-      case "rock":
-      case "palm":
-      case "lighthouse":
-      case "cactus":
-      case "dry_shrub":
-      case "wind_tower":
-        return kind;
-      case "cypress":
-        return "pine";
-      case "wall":
-        return "rock";
-      case "lamp":
-        return "lighthouse";
-      case "shrub":
-        return "dry_shrub";
-      default:
-        return "dry_shrub";
-    }
+    const KNOWN: Record<string, string> = {
+      tree: "tree", pine: "pine", rock: "rock", palm: "palm",
+      lighthouse: "lighthouse", cactus: "cactus", dry_shrub: "dry_shrub",
+      wind_tower: "wind_tower", cypress: "pine", wall: "rock",
+      lamp: "lighthouse", shrub: "dry_shrub"
+    };
+    return KNOWN[kind] ?? "dry_shrub";
   },
 
   resolveTrafficVehicleShape(styleIndex: number): string {
-    const shapeIndex = ((Math.trunc(styleIndex) % 3) + 3) % 3;
-    return shapeIndex === 0 ? "coupe" : shapeIndex === 1 ? "van" : "truck";
+    return resolveOutrunTrafficVehicleKind(styleIndex);
   }
 };

@@ -1,0 +1,33 @@
+/**
+ * Ejemplo de src/app/index.tsx para Fase 2.
+ */
+import React from "react";
+import { resolveGameScreen, isSingleGameBuild } from "../registry/registry.generated";
+
+function SingleGameEntry() {
+  const Screen = resolveGameScreen();
+  if (!Screen) {
+    const { View, Text } = require("react-native");
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#000" }}>
+        <Text style={{ color: "#fff" }}>
+          Unknown EXPO_PUBLIC_GAME_ID: {String(process.env.EXPO_PUBLIC_GAME_ID)}
+        </Text>
+      </View>
+    );
+  }
+  return <Screen />;
+}
+
+function ArcadeEntry() {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const ArcadeHome = require("./ArcadeHome").default;
+  return <ArcadeHome />;
+}
+
+export default function Index() {
+  if (isSingleGameBuild()) {
+    return <SingleGameEntry />;
+  }
+  return <ArcadeEntry />;
+}

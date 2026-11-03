@@ -92,6 +92,9 @@ export const drawGalaxianPlayerCanvas: ShapeDrawer<CanvasRenderingContext2D, Gal
 
     if (!render || !palette) return;
 
+    const invulnerability = world.getComponent(entity, "Invulnerable");
+    if (invulnerability && invulnerability.remaining > 0 && Math.floor(world.tick / 5) % 2 === 0) return;
+
     ctx.save();
     if (pose && transform) {
       ctx.rotate(pose.rotation - transform.rotation);

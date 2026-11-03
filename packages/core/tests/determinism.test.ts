@@ -11,7 +11,7 @@ describe("RNG Determinism and Snapshot Integrity", () => {
     const r2 = world.gameplayRandom.next();
 
     // Snapshot the world state (AoS model)
-    world.deleteResource("UseSoASnapshots");
+    world.setResource("UseSoASnapshots", false);
     const snapshot = world.snapshot();
 
     // Generate more numbers post-snapshot
@@ -57,6 +57,30 @@ describe("RNG Determinism and Snapshot Integrity", () => {
     expect(r3_restored).toBe(r3_original);
     expect(r4_restored).toBe(r4_original);
     expect(r1).not.toBe(r3_original);
+  });
+
+  it("should preserve render RNG state across AoS snapshot and restore", () => {
+    const world = new World();
+    world.deleteResource("UseSoASnapshots");
+    world.renderRandom.setSeed(1729);
+    const snapshot = world.snapshot();
+
+    const expectedNext = world.renderRandom.next();
+    world.restore(snapshot);
+
+    expect(world.renderRandom.next()).toBe(expectedNext);
+  });
+
+  it("should preserve render RNG state across SoA snapshot and restore", () => {
+    const world = new World();
+    world.setResource("UseSoASnapshots", true);
+    world.renderRandom.setSeed(2718);
+    const snapshot = world.snapshot();
+
+    const expectedNext = world.renderRandom.next();
+    world.restore(snapshot);
+
+    expect(world.renderRandom.next()).toBe(expectedNext);
   });
 
   it("should guarantee absolute sorting determinism in BroadPhase.sweepAndPrune (Shell Sort)", () => {

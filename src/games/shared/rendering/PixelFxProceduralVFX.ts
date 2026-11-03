@@ -287,6 +287,30 @@ export function drawPixelFxInkBurst(
 
 
 
+
+function drawRotatedLine(
+  draw: IDrawAdapter,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+  color: string,
+  width: number,
+  alpha: number,
+  cos: number,
+  sin: number
+): void {
+  draw.drawLine(
+    x1 * cos - y1 * sin,
+    x1 * sin + y1 * cos,
+    x2 * cos - y2 * sin,
+    x2 * sin + y2 * cos,
+    color,
+    width,
+    alpha
+  );
+}
+
 /** Paddle contact: compressed impact crescent and directional rebound chevrons. */
 export function drawPixelFxPaddleImpact(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
   const state = readEffectState(world, entity);
@@ -294,15 +318,15 @@ export function drawPixelFxPaddleImpact(draw: IDrawAdapter, world: import("@tiny
   const { progress: p, alpha, size, color, rotation } = state;
   const radius = size * (0.35 + p * 1.05);
   const fade = alpha * (1 - p * 0.35);
+  const cos = Math.cos(rotation);
+  const sin = Math.sin(rotation);
   draw.save();
   draw.drawArc(0, 0, radius, rotation - Math.PI * 0.42, Math.PI * 0.84, color, Math.max(1, size * 0.07 * (1 - p * 0.55)), fade);
   draw.drawArc(0, 0, radius * 0.62, rotation - Math.PI * 0.3, Math.PI * 0.6, color, Math.max(0.8, size * 0.03), fade * 0.55);
   for (let i = 0; i < 4; i++) {
     const lane = (i - 1.5) * 0.22;
     const y = lane * size;
-    const a = rotatePoint(-size * 0.18, y, rotation);
-    const b = rotatePoint(size * (0.55 + p * 0.7), y + lane * size * 0.28, rotation);
-    draw.drawLine(a.x, a.y, b.x, b.y, color, Math.max(0.8, size * 0.035), fade * (1 - Math.abs(lane) * 0.5));
+    drawRotatedLine(draw, -size * 0.18, y, size * (0.55 + p * 0.7), y + lane * size * 0.28, color, Math.max(0.8, size * 0.035), fade * (1 - Math.abs(lane) * 0.5), cos, sin);
   }
   draw.restore();
 }
@@ -314,13 +338,15 @@ export function drawPixelFxBrickShatter(draw: IDrawAdapter, world: import("@tiny
   const { progress: p, alpha, size, color, rotation } = state;
   const spread = size * (0.25 + p * 1.25);
   const fade = alpha * (1 - p * 0.3);
-  const box = [[-0.34, -0.2], [0.34, -0.2], [0.34, 0.2], [-0.34, 0.2]].map(([x, y]) => rotatePoint(x * size, y * size, rotation));
+  const halfW = size * 0.34;
+  const halfH = size * 0.2;
+  const cos = Math.cos(rotation);
+  const sin = Math.sin(rotation);
   draw.save();
-  for (let i = 0; i < 4; i++) {
-    const a = box[i];
-    const b = box[(i + 1) % 4];
-    draw.drawLine(a.x, a.y, b.x, b.y, color, Math.max(0.8, size * 0.035 * (1 - p)), fade * (1 - p));
-  }
+  drawRotatedLine(draw, -halfW, -halfH, halfW, -halfH, color, Math.max(0.8, size * 0.035 * (1 - p)), fade * (1 - p), cos, sin);
+  drawRotatedLine(draw, halfW, -halfH, halfW, halfH, color, Math.max(0.8, size * 0.035 * (1 - p)), fade * (1 - p), cos, sin);
+  drawRotatedLine(draw, halfW, halfH, -halfW, halfH, color, Math.max(0.8, size * 0.035 * (1 - p)), fade * (1 - p), cos, sin);
+  drawRotatedLine(draw, -halfW, halfH, -halfW, -halfH, color, Math.max(0.8, size * 0.035 * (1 - p)), fade * (1 - p), cos, sin);
   for (let i = 0; i < 8; i++) {
     const angle = rotation + (i * Math.PI * 2) / 8 + 0.12;
     const distance = spread * (0.55 + (i % 3) * 0.16);
@@ -345,14 +371,14 @@ export function drawPixelFxFlapGust(draw: IDrawAdapter, world: import("@tiny-ast
   const { progress: p, alpha, size, color, rotation } = state;
   const reach = size * (0.35 + p * 0.9);
   const fade = alpha * (1 - p * 0.4);
+  const cos = Math.cos(rotation);
+  const sin = Math.sin(rotation);
   draw.save();
   draw.drawArc(-size * 0.12, 0, reach * 0.7, rotation + Math.PI * 0.72, Math.PI * 0.78, color, Math.max(1, size * 0.055 * (1 - p * 0.4)), fade);
   draw.drawArc(-size * 0.2, size * 0.12, reach * 0.48, rotation + Math.PI * 0.82, Math.PI * 0.55, color, Math.max(0.8, size * 0.03), fade * 0.55);
   for (let i = 0; i < 4; i++) {
     const y = (i - 1.5) * size * 0.13;
-    const a = rotatePoint(-size * (0.18 + (i % 2) * 0.08), y, rotation);
-    const b = rotatePoint(-reach * (0.75 + (i % 3) * 0.12), y + size * (0.08 + p * 0.05), rotation);
-    draw.drawLine(a.x, a.y, b.x, b.y, color, Math.max(0.8, size * 0.028), fade * (0.9 - i * 0.12));
+    drawRotatedLine(draw, -size * (0.18 + (i % 2) * 0.08), y, -reach * (0.75 + (i % 3) * 0.12), y + size * (0.08 + p * 0.05), color, Math.max(0.8, size * 0.028), fade * (0.9 - i * 0.12), cos, sin);
   }
   draw.restore();
 }
@@ -364,14 +390,14 @@ export function drawPixelFxHop(draw: IDrawAdapter, world: import("@tiny-aster/co
   const { progress: p, alpha, size, color, rotation } = state;
   const spread = size * (0.25 + p * 0.8);
   const fade = alpha * (1 - p * 0.35);
+  const cos = Math.cos(rotation);
+  const sin = Math.sin(rotation);
   draw.save();
   draw.drawArc(0, size * 0.12, spread, rotation + Math.PI * 1.08, Math.PI * 0.84, color, Math.max(1, size * 0.06 * (1 - p * 0.5)), fade);
   for (let i = 0; i < 5; i++) {
     const x = (i - 2) * size * 0.16;
     const y = size * (0.16 + (i % 2) * 0.08) + p * size * 0.12;
-    const a = rotatePoint(x, y, rotation);
-    const b = rotatePoint(x + (i - 2) * size * 0.08, y + size * (0.04 + p * 0.08), rotation);
-    draw.drawLine(a.x, a.y, b.x, b.y, color, Math.max(0.8, size * 0.03), fade * (1 - Math.abs(i - 2) * 0.12));
+    drawRotatedLine(draw, x, y, x + (i - 2) * size * 0.08, y + size * (0.04 + p * 0.08), color, Math.max(0.8, size * 0.03), fade * (1 - Math.abs(i - 2) * 0.12), cos, sin);
   }
   draw.restore();
 }
@@ -383,28 +409,25 @@ export function drawPixelFxPhaseDash(draw: IDrawAdapter, world: import("@tiny-as
   const { progress: p, alpha, size, color, rotation } = state;
   const length = size * (0.65 + p * 1.35);
   const fade = alpha * (1 - p * 0.55);
+  const cos = Math.cos(rotation);
+  const sin = Math.sin(rotation);
   draw.save();
   for (let i = 0; i < 3; i++) {
     const offset = (i + 1) * size * (0.12 + p * 0.035);
     const x = -length * (0.22 + i * 0.18);
     const y = (i - 1) * size * 0.1;
-    const corners = [[x - size * 0.12, y - size * 0.2], [x + size * 0.12, y - size * 0.2], [x + size * 0.12, y + size * 0.2], [x - size * 0.12, y + size * 0.2]].map(([px, py]) => rotatePoint(px, py, rotation));
-    for (let j = 0; j < 4; j++) {
-      const a = corners[j];
-      const b = corners[(j + 1) % 4];
-      draw.drawLine(a.x, a.y, b.x, b.y, color, Math.max(0.8, size * 0.025), fade * (0.72 - i * 0.16));
-    }
-    const topA = rotatePoint(x, y - size * 0.28, rotation);
-    const topB = rotatePoint(x - offset - length * 0.35, y - size * 0.28, rotation);
-    const bottomA = rotatePoint(x, y + size * 0.28, rotation);
-    const bottomB = rotatePoint(x - offset - length * 0.35, y + size * 0.28, rotation);
-    draw.drawLine(topA.x, topA.y, topB.x, topB.y, color, Math.max(0.8, size * 0.035), fade * (0.85 - i * 0.18));
-    draw.drawLine(bottomA.x, bottomA.y, bottomB.x, bottomB.y, color, Math.max(0.8, size * 0.035), fade * (0.85 - i * 0.18));
+    const halfW = size * 0.12;
+    const halfH = size * 0.2;
+    drawRotatedLine(draw, x - halfW, y - halfH, x + halfW, y - halfH, color, Math.max(0.8, size * 0.025), fade * (0.72 - i * 0.16), cos, sin);
+    drawRotatedLine(draw, x + halfW, y - halfH, x + halfW, y + halfH, color, Math.max(0.8, size * 0.025), fade * (0.72 - i * 0.16), cos, sin);
+    drawRotatedLine(draw, x + halfW, y + halfH, x - halfW, y + halfH, color, Math.max(0.8, size * 0.025), fade * (0.72 - i * 0.16), cos, sin);
+    drawRotatedLine(draw, x - halfW, y + halfH, x - halfW, y - halfH, color, Math.max(0.8, size * 0.025), fade * (0.72 - i * 0.16), cos, sin);
+    drawRotatedLine(draw, x, y - size * 0.28, x - offset - length * 0.35, y - size * 0.28, color, Math.max(0.8, size * 0.035), fade * (0.85 - i * 0.18), cos, sin);
+    drawRotatedLine(draw, x, y + size * 0.28, x - offset - length * 0.35, y + size * 0.28, color, Math.max(0.8, size * 0.035), fade * (0.85 - i * 0.18), cos, sin);
   }
   draw.drawArc(-length * 0.2, 0, size * (0.28 + p * 0.08), rotation - Math.PI * 0.42, Math.PI * 0.84, color, Math.max(0.8, size * 0.03), fade * 0.65);
   draw.restore();
 }
-
 
 function canvasDrawer(
   drawEffect: (adapter: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number) => void

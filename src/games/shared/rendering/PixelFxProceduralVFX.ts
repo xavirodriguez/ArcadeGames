@@ -373,9 +373,13 @@ export function drawPixelFxFlapGust(draw: IDrawAdapter, world: import("@tiny-ast
   const fade = alpha * (1 - p * 0.4);
   const cos = Math.cos(rotation);
   const sin = Math.sin(rotation);
+  const arc1X = -size * 0.12 * cos;
+  const arc1Y = -size * 0.12 * sin;
+  const arc2X = -size * 0.2 * cos - size * 0.12 * sin;
+  const arc2Y = -size * 0.2 * sin + size * 0.12 * cos;
   draw.save();
-  draw.drawArc(-size * 0.12, 0, reach * 0.7, rotation + Math.PI * 0.72, Math.PI * 0.78, color, Math.max(1, size * 0.055 * (1 - p * 0.4)), fade);
-  draw.drawArc(-size * 0.2, size * 0.12, reach * 0.48, rotation + Math.PI * 0.82, Math.PI * 0.55, color, Math.max(0.8, size * 0.03), fade * 0.55);
+  draw.drawArc(arc1X, arc1Y, reach * 0.7, rotation + Math.PI * 0.72, Math.PI * 0.78, color, Math.max(1, size * 0.055 * (1 - p * 0.4)), fade);
+  draw.drawArc(arc2X, arc2Y, reach * 0.48, rotation + Math.PI * 0.82, Math.PI * 0.55, color, Math.max(0.8, size * 0.03), fade * 0.55);
   for (let i = 0; i < 4; i++) {
     const y = (i - 1.5) * size * 0.13;
     drawRotatedLine(draw, -size * (0.18 + (i % 2) * 0.08), y, -reach * (0.75 + (i % 3) * 0.12), y + size * (0.08 + p * 0.05), color, Math.max(0.8, size * 0.028), fade * (0.9 - i * 0.12), cos, sin);
@@ -392,8 +396,10 @@ export function drawPixelFxHop(draw: IDrawAdapter, world: import("@tiny-aster/co
   const fade = alpha * (1 - p * 0.35);
   const cos = Math.cos(rotation);
   const sin = Math.sin(rotation);
+  const arcX = -size * 0.12 * sin;
+  const arcY = size * 0.12 * cos;
   draw.save();
-  draw.drawArc(0, size * 0.12, spread, rotation + Math.PI * 1.08, Math.PI * 0.84, color, Math.max(1, size * 0.06 * (1 - p * 0.5)), fade);
+  draw.drawArc(arcX, arcY, spread, rotation + Math.PI * 1.08, Math.PI * 0.84, color, Math.max(1, size * 0.06 * (1 - p * 0.5)), fade);
   for (let i = 0; i < 5; i++) {
     const x = (i - 2) * size * 0.16;
     const y = size * (0.16 + (i % 2) * 0.08) + p * size * 0.12;
@@ -425,7 +431,7 @@ export function drawPixelFxPhaseDash(draw: IDrawAdapter, world: import("@tiny-as
     drawRotatedLine(draw, x, y - size * 0.28, x - offset - length * 0.35, y - size * 0.28, color, Math.max(0.8, size * 0.035), fade * (0.85 - i * 0.18), cos, sin);
     drawRotatedLine(draw, x, y + size * 0.28, x - offset - length * 0.35, y + size * 0.28, color, Math.max(0.8, size * 0.035), fade * (0.85 - i * 0.18), cos, sin);
   }
-  draw.drawArc(-length * 0.2, 0, size * (0.28 + p * 0.08), rotation - Math.PI * 0.42, Math.PI * 0.84, color, Math.max(0.8, size * 0.03), fade * 0.65);
+  draw.drawArc(-length * 0.2 * cos, -length * 0.2 * sin, size * (0.28 + p * 0.08), rotation - Math.PI * 0.42, Math.PI * 0.84, color, Math.max(0.8, size * 0.03), fade * 0.65);
   draw.restore();
 }
 

@@ -144,7 +144,7 @@ describe("PixelFX-inspired procedural VFX", () => {
     expect(adapter.fillCircle).not.toHaveBeenCalled();
   });
 
-  it("registers all three shapes for Canvas", () => {
+  it("registers all thirteen shapes for Canvas", () => {
     const registerShape = jest.fn();
     const renderer = {
       type: "canvas",
@@ -169,7 +169,7 @@ describe("PixelFX-inspired procedural VFX", () => {
     ]);
   });
 
-  it("registers the same shape contract for Skia", () => {
+  it("registers the same thirteen-shape contract for Skia", () => {
     const registerShape = jest.fn();
     const renderer = {
       type: "skia",

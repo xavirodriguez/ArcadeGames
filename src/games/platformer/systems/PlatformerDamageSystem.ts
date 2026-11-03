@@ -27,6 +27,9 @@ export class PlatformerDamageSystem extends System<CoreComponentRegistry> {
       sfxName: "hit"
     });
 
+    // Preserve the last committed health snapshot across rollback replay.
+    if (world.isReSimulating) return;
+
     // Presentation-only edge detection: emit one impact when player health decreases.
     this.juice ??= new JuiceOrchestrator(world);
     const players = world.query("Tag", "Health", "Transform");
@@ -38,7 +41,7 @@ export class PlatformerDamageSystem extends System<CoreComponentRegistry> {
       const transform = world.getComponent(entity, "Transform");
       if (!health || !transform) continue;
       const previous = this.previousHealth.get(entity);
-      if (previous !== undefined && health.current < previous && !world.isReSimulating) {
+      if (previous !== undefined && health.current < previous) {
         this.juice.spawn("pixelfx_impact", {
           x: transform.x,
           y: transform.y,

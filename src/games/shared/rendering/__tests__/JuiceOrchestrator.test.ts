@@ -112,7 +112,6 @@ describe("JuiceOrchestrator Unit Tests & Golden Replays", () => {
         const latest = entities[entities.length - 1];
         expect(world.getComponent(latest, "Render")?.shape).toBe(shape);
       };
-
       juice.triggerEvent("pong", "paddle:hit", { x: 80, y: 90 });
       expectLatestShape("pixelfx_paddle_impact");
       juice.triggerEvent("arkanoid", "brick:shatter", { x: 80, y: 90 });

@@ -145,7 +145,13 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
         const popupText = nextMultiplier > 1 ? `+${pointsGained} (x${nextMultiplier})` : `+${pointsGained}`;
         spawnScorePopup(world, pos.x, pos.y, popupText, popupColor);
 
-        this.getOrchestrator(world).triggerEvent("arkanoid", "brick:shatter", { x: pos.x, y: pos.y, overrideTint: popupColor });
+        if (!world.isReSimulating) {
+          this.getOrchestrator(world).triggerEvent("arkanoid", "brick:shatter", {
+            x: pos.x,
+            y: pos.y,
+            overrideTint: popupColor
+          });
+        }
 
         const explosionEmitter = createEmitter(world as World<CoreComponentRegistry>, {
           type: "spark",

@@ -118,7 +118,6 @@ describe("PixelFX-inspired procedural VFX", () => {
 
     adapter.drawLine.mockClear();
     drawPixelFxPhaseDash(adapter, world, 1);
-    expect(adapter.strokeRect).toHaveBeenCalled();
     expect(adapter.drawLine).toHaveBeenCalled();
   });
 

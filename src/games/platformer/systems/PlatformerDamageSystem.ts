@@ -4,6 +4,7 @@ import { JuiceOrchestrator } from "../../shared/rendering/JuiceOrchestrator";
 
 export class PlatformerDamageSystem extends System<CoreComponentRegistry> {
   private readonly previousHealth = new Map<number, number>();
+  private readonly previousGrounded = new Map<number, boolean>();
   private juice: JuiceOrchestrator<CoreComponentRegistry> | undefined;
 
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
@@ -51,6 +52,31 @@ export class PlatformerDamageSystem extends System<CoreComponentRegistry> {
         });
       }
       this.previousHealth.set(entity, health.current);
+    }
+
+    // Ground contact transition drives a brief dust burst. Keep the committed
+    // edge snapshot unchanged during rollback replay to avoid duplicate VFX.
+    const groundedPlayers = world.query("Tag", "PlatformerGroundState", "Transform", "Velocity");
+    for (let i = 0; i < groundedPlayers.length; i++) {
+      const entity = groundedPlayers[i];
+      const tag = world.getComponent(entity, "Tag");
+      if (!tag?.tags?.includes("Player")) continue;
+      const ground = world.getComponent(entity, "PlatformerGroundState");
+      const transform = world.getComponent(entity, "Transform");
+      const velocity = world.getComponent(entity, "Velocity");
+      if (!ground || !transform || !velocity) continue;
+
+      const wasGrounded = this.previousGrounded.get(entity);
+      if (wasGrounded === false && ground.isGrounded && velocity.vy > 24) {
+        this.juice.spawn("pixelfx_dust", {
+          x: transform.x,
+          y: transform.y + 12,
+          scale: Math.min(1.25, 0.65 + velocity.vy / 900),
+          tint: "#b6a58a",
+          ttl: 0.32
+        });
+      }
+      this.previousGrounded.set(entity, ground.isGrounded);
     }
   }
 }

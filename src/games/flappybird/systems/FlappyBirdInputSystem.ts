@@ -1,5 +1,6 @@
 import { System, World, InputStateComponent, TouchInputState, Juice } from "@tiny-aster/core";
 import { FLAPPY_CONFIG, FlappyBirdComponentRegistry } from "../types/FlappyBirdTypes";
+import { JuiceOrchestrator } from "../../shared/rendering/JuiceOrchestrator";
 
 const InputUtils = {
   isPressed(inputState: InputStateComponent, button: string): boolean {
@@ -50,6 +51,7 @@ export class FlappyBirdInputSystem extends System<FlappyBirdComponentRegistry> {
   }
 
   private isMultiplayer = false;
+  private juice?: JuiceOrchestrator<FlappyBirdComponentRegistry>;
 
   public setMultiplayerMode(active: boolean) {
     this.isMultiplayer = active;
@@ -118,8 +120,19 @@ export class FlappyBirdInputSystem extends System<FlappyBirdComponentRegistry> {
             mutableVel.vy = this.config.FLAP_STRENGTH;
           });
           world.getCommandBuffer().addComponent(entity, { type: "HapticRequest", pattern: "selection" });
-          // Juice: Squash al aletear
+          // Preserve the squash response and add a committed procedural air gust.
           Juice.squash(world, entity, 1.2, 0.8, 50);
+          if (!world.isReSimulating) {
+            const transform = world.getComponent(entity, "Transform");
+            if (transform) {
+              this.juice ??= new JuiceOrchestrator<FlappyBirdComponentRegistry>(world);
+              this.juice.triggerEvent("flappybird", "bird:flap", {
+                x: transform.x,
+                y: transform.y,
+                rotation: -Math.PI / 2
+              });
+            }
+          }
 
           const eventBus = world.getEventBus();
           eventBus.emitDeferred("PlaySFX", { name: "flap" });

@@ -102,6 +102,42 @@ export const VFX_VISUAL_PROFILES = {
 } as const satisfies Record<string, VFXVisualProfile>;
 
 
+/** Resolve only presentation placement; family context never changes gameplay state. */
+export function resolveVFXPlacement(
+  descriptor: VFXEffectDescriptor
+): VFXPresentationPlacement {
+  let contextualPlacement: VFXPresentationPlacement;
+
+  switch (descriptor.family) {
+    case "combat":
+      contextualPlacement = {
+        x: descriptor.context.impactX,
+        y: descriptor.context.impactY,
+        rotation: descriptor.context.direction
+      };
+      break;
+    case "traversal":
+      contextualPlacement = {
+        rotation:
+          descriptor.context.velocityX === 0 && descriptor.context.velocityY === 0
+            ? undefined
+            : Math.atan2(descriptor.context.velocityY, descriptor.context.velocityX)
+      };
+      break;
+    case "interaction":
+      contextualPlacement = {};
+      break;
+    case "temporal":
+      contextualPlacement = {
+        x: descriptor.context.focalX,
+        y: descriptor.context.focalY
+      };
+      break;
+  }
+
+  return { ...contextualPlacement, ...descriptor.presentation };
+}
+
 /** Resolve semantic family meaning to a palette token, independent of primitive identity. */
 export function resolveVFXSemanticColor(
   profile: VFXVisualProfile,

@@ -63,6 +63,20 @@ describe("Platformer Input Mutation Tests", () => {
     expect(world.getComponent(playerEntity, "PlatformerInput")).toMatchObject({ slideHeld: false, slideActionHeld: false });
   });
 
+  it("should route the held brake action to PlatformerInput.brake", () => {
+    mutatePlatformerInputState(world, { brake: true });
+    expect(world.getComponent(playerEntity, "PlatformerInput")).toMatchObject({
+      brake: true,
+      brakeActionHeld: true
+    });
+
+    mutatePlatformerInputState(world, { brake: false });
+    expect(world.getComponent(playerEntity, "PlatformerInput")).toMatchObject({
+      brake: false,
+      brakeActionHeld: false
+    });
+  });
+
   it("should update moveRight without getting stuck on previous moveLeft state", () => {
     mutatePlatformerInputState(world, { moveLeft: true });
     let inputComp = world.getComponent(playerEntity, "PlatformerInput");

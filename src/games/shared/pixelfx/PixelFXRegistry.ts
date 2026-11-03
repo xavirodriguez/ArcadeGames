@@ -26,15 +26,6 @@ export function getAllManifestEntries(): readonly PixelFXManifestEntry[] {
   return PIXELFX_MANIFEST;
 }
 
-/**
- * Resolve a pfxId into the data needed to spawn via existing ECS Sprite path,
- * or signal SharedVFX fallback.
- *
- * Rules:
- * - lowStimulationMode / very low juice → prefer fallback
- * - missing entry → fallback if options provide one, else empty
- * - themeVariant selects pre-baked sheet variant when present
- */
 export function resolveManifest(
   id: string,
   options: PixelFXResolveOptions = { x: 0, y: 0 }
@@ -77,10 +68,6 @@ export function resolveManifest(
   };
 }
 
-/**
- * Structural checks only (no disk I/O).
- * Asset existence is the job of sprites:validate + SpriteRegistry.
- */
 export function validateManifest(): {
   ok: boolean;
   errors: string[];
@@ -112,7 +99,6 @@ export function validateManifest(): {
     if (!e.fallback) {
       warnings.push(`${e.id}: no SharedVFX fallback defined`);
     }
-    // Placeholder detection
     if (e.anchor.x === 0.5 && e.anchor.y === 0.5) {
       warnings.push(
         `${e.id}: anchor still at default 0.5,0.5 — replace from export pivot`

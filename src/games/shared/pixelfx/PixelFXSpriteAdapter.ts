@@ -1,12 +1,6 @@
 /**
  * PixelFX Integration Layer — Export metadata adapter
  *
- * Converts PixelFX sheet JSON (Aseprite-like + meta.pixelfx) into the
- * fields ArcadeGames expects when registering a sheet.
- *
- * Does not register anything. Output is consumed by the existing
- * sprite pipeline / SPRITE_SHEET_CATALOG generators.
- *
  * Pivot → normalized anchor:
  *   anchor.x = pivot.x / frameWidth
  *   anchor.y = pivot.y / frameHeight
@@ -28,7 +22,6 @@ export interface PixelFXExportMeta {
     frames?: number;
     frameSize?: [number, number];
     columns?: number;
-    /** PixelFX exports origin as [x, y] array; some tools may use {x,y} */
     pivot?: [number, number] | { x: number; y: number };
     act?: unknown;
   };
@@ -39,7 +32,6 @@ export interface PixelFXExportJson {
   meta: PixelFXExportMeta;
 }
 
-/** Shape compatible with core SpriteSheetDefinition concepts (structural) */
 export interface AdaptedSpriteSheetMeta {
   id: string;
   imagePath: string;
@@ -49,16 +41,11 @@ export interface AdaptedSpriteSheetMeta {
   loop: boolean;
   anchor: { x: number; y: number };
   frames: Array<{ x: number; y: number; w: number; h: number }>;
-  /** Preserved for Juice / hit-stop data; not part of SpriteSheetDefinition */
   actTiming?: unknown;
   origin: string;
   filter: "nearest";
 }
 
-/**
- * Adapt a PixelFX --sheet JSON into ArcadeGames sheet metadata.
- * frameDuration is uniform: 1 / fps (PixelFX export is constant fps).
- */
 export function adaptPixelFXExport(
   sheetId: string,
   imagePath: string,
@@ -100,7 +87,6 @@ export function adaptPixelFXExport(
     y: pivotY / frameHeight,
   };
 
-  // Clamp warnings are the caller's responsibility; we still produce values.
   const frames = framesRaw.map((f) => ({
     x: f.frame.x,
     y: f.frame.y,
@@ -123,9 +109,6 @@ export function adaptPixelFXExport(
   };
 }
 
-/**
- * Duration of the full clip in seconds (single source of truth for TTL).
- */
 export function clipDurationSeconds(meta: AdaptedSpriteSheetMeta): number {
   return meta.frames.length * meta.frameDuration;
 }

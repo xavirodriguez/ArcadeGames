@@ -21,7 +21,12 @@ export type SharedVFXPrimitiveName =
   | "pixelfx_pickup"
   | "pixelfx_muzzle"
   | "pixelfx_shield_crack"
-  | "pixelfx_ink_burst";
+  | "pixelfx_ink_burst"
+  | "pixelfx_paddle_impact"
+  | "pixelfx_brick_shatter"
+  | "pixelfx_flap_gust"
+  | "pixelfx_hop"
+  | "pixelfx_phase_dash";
 
 /**
  * Base configuration options shared across Juice spawn calls and catalog profiles.

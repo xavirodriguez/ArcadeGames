@@ -119,7 +119,7 @@ export const JUICE_CATALOG: {
     "player:death": { effect: "shockwave", tint: colors.danger, scale: 2.0, ttl: 0.6, hitStopMs: 250, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 8.0, shakeDurationMs: 250 }
   },
   platformer: {
-    "player:damage": { effect: "screen_border_glow", tint: colors.danger, scale: 1.0, ttl: 0.3, hitStopMs: 120, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 4.0, shakeDurationMs: 120 },
+    "player:damage": { effect: "pixelfx_impact", tint: colors.danger, scale: 1.0, ttl: 0.3, hitStopMs: 120, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 4.0, shakeDurationMs: 120 },
     "coin:collected": { effect: "floating_text", tint: colors.yellow, scale: 0.9, ttl: 0.4, text: "+10" },
     "enemy:stomp": { effect: "pixelfx_impact", tint: colors.green, scale: 1.0, ttl: 0.28, hitStopMs: 40, hitStopPriority: HitStopPriority.NORMAL, shakeIntensity: 2.0, shakeDurationMs: 60 }
   },

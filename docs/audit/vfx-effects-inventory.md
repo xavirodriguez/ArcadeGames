@@ -143,3 +143,8 @@ Canvas and Skia registration tests both assert the same thirteen-shape sequence.
 ### PixelFX sprite-sheet path — separate status
 
 The sprite-sheet integration scaffold is merged, but the manifest remains explicitly marked as candidates. The integration audit still lists PNG/JSON registration in `SPRITE_SHEET_CATALOG`, sprite validation, Canvas/Skia SpriteAnimator frame synchronization, and Sumi-e art review as outstanding. These are not the same deliverables as the thirteen procedural drawers and must be tracked independently.
+
+
+### Additional inventory correction — hit-stop is split
+
+Do not interpret the existing `HitStopSystem` as already connected to the core scheduler. It owns a priority/cooldown timer in `VFXWorldState`; core simulation freeze is driven by the separate `GameplayFreeze` resource. Hit & Run uses the core helper directly, while `JuiceOrchestrator` currently calls `requestHitStop` on the VFX timer. The previous inventory shorthand suggesting one unified route is superseded. Treat this as a cross-cutting integration gap; do not create a third path, and do not rely on VFX profile hit-stop until the two existing mechanisms are reconciled and tested end-to-end.

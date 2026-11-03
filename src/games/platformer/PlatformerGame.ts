@@ -43,6 +43,7 @@ import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import defaultLevelData from "./levels/locomotion-campaign.json";
 import { PlatformerConfigSchema, PlatformerConfig as PlatformerConfigType, DEFAULT_PLATFORMER_CONFIG } from "./types/PlatformerConfigSchema";
 import { PlatformerArcadeGame, loadPlatformerArcadeConfig, DEFAULT_PLATFORMER_TILE_DEFINITIONS } from "../shared/PlatformerArcadeGame";
+import * as SharedVFX from "../shared/rendering/SharedVFX";
 
 export interface PlatformerConfig {
   seed?: number;
@@ -328,6 +329,7 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
   }
 
   public initializeRenderer(renderer: Renderer<CoreComponentRegistry, RenderContext>): void {
+    SharedVFX.registerSharedVFX(renderer);
     renderer.registerShape("tilemap", drawPlatformerTilemap);
     renderer.registerShape("player", drawPlatformerPlayer);
     renderer.registerShape("goal", drawPlatformerGoal);

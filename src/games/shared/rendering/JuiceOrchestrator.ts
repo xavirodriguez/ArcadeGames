@@ -153,6 +153,10 @@ export class JuiceOrchestrator<TComponents extends CoreComponentRegistry = CoreC
    * FR-1: High-level single-line API.
    */
   public spawn(effectName: SharedVFXPrimitiveName, options?: JuiceSpawnOptions): number | null {
+    // Presentation must never be emitted from a rollback/resimulation pass.
+    // Keep this guard here so every caller (including future consumers) inherits the policy.
+    if (this.world.isReSimulating) return null;
+
     const state = getVFXState(this.world);
     const juiceLevel = state.juiceLevel ?? 1.0;
 

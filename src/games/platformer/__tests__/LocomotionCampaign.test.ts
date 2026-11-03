@@ -35,13 +35,14 @@ describe("Platformer locomotion campaign — PR2", () => {
   it("requires ice-to-normal control, elastic rebound and a one-way landing", () => {
     const rows = surface.tileData;
     expect(rows[11].slice(3, 9)).toEqual([2, 2, 2, 2, 2, 2]);
-    expect(rows[11].slice(9, 15)).toEqual([1, 1, 1, 1, 1, 1]);
+    expect(rows[11].slice(9, 14)).toEqual([1, 1, 1, 1, 1]);
+    expect(rows[11][14]).toBe(0);
     expect(rows[11][15]).toBe(7);
     expect(DEFAULT_PLATFORMER_TILE_DEFINITIONS[7].materialId).toBe("elastic");
     expect(PHYSICS_MATERIAL_PRESETS.elastic.restitution).toBe(0.82);
 
     expect(rows[11].slice(16, 20)).toEqual([5, 5, 5, 5]);
-    for (const y of [11, 12]) {
+    for (const y of [12]) {
       expect(rows[y].slice(16, 20)).toEqual([0, 0, 0, 0]);
     }
     expect(rows[11].slice(21, 24)).toEqual([1, 1, 1]);

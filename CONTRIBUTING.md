@@ -77,4 +77,9 @@ Every game under `src/games/<game_key>/` containing unit tests in `__tests__/` m
 1. Maintain its own `src/games/<game_key>/jest.config.cjs`.
 2. Register `<rootDir>/src/games/<game_key>/jest.config.cjs` in the `projects` array of the root `jest.config.cjs`.
 
-Automated CI checks (`pnpm run check:game-patterns`) verify all 5 rules automatically before pull requests can be merged.
+The current `pnpm run check:game-patterns` implementation enforces three guard groups: deterministic RNG lock/unlock usage, duplicate inline paddle colliders, and per-game Jest config registration. Do not assume it enforces rules that are only described in prose.
+
+### 6. Agent workflow and regression prevention
+All coding agents must follow [the operating contract](docs/agents/OPERATING_CONTRACT.md) and consult the relevant ledgers under `docs/agents/`. Every recurring defect must result in an executable regression test or guard, not just a documentation note.
+
+Run `pnpm run check:agent-guardrails` for the shared architecture and contract checks. The pull-request CI workflow runs the same command.

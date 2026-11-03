@@ -54,8 +54,9 @@ jobs:
       - name: Run tests through Turborepo
         run: pnpm exec turbo run test
 
-      - name: Enforce canonical input contract
-        run: pnpm run check:input-contract
+      - name: Enforce repository agent and architecture guardrails
+        if: ${{ steps.install_dependencies.outcome == 'success' }}
+        run: pnpm run check:agent-guardrails
 
       - name: Measure input-path performance baseline
         run: pnpm exec tsx packages/core/src/__benchmarks__/inputPathBenchmark.ts

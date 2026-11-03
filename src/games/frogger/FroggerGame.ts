@@ -289,6 +289,7 @@ export class FroggerGame extends BaseGame<
 
   public initializeRenderer(renderer: Renderer<FroggerComponentRegistry>): void {
     resolveFroggerTheme().initializeRenderer(renderer);
+    registerPixelFxProceduralVFX(renderer);
   }
 
   public getGameState(): FroggerState {

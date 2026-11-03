@@ -9,6 +9,7 @@ import {
 } from "@tiny-aster/core";
 import { PongConfig } from "../types/PongConfigSchema";
 import { type BallComponent, type PongComponentRegistry } from "../types";
+import { JuiceOrchestrator } from "../../shared/rendering/JuiceOrchestrator";
 
 export class PongCollisionSystem extends System<PongComponentRegistry> {
   private config: PongConfig;

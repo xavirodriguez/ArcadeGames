@@ -172,6 +172,16 @@ export default function HomeScreen() {
 
           <DailyChallengeCard onPlay={handlePlayDaily} />
 
+          <TouchableOpacity
+            style={styles.visualLabButton}
+            activeOpacity={0.85}
+            onPress={() => router.push("/vfx-lab" as any)}
+            accessibilityRole="button"
+            accessibilityLabel="Open VFX Visual Lab"
+          >
+            <Text style={styles.visualLabButtonText}>VFX VISUAL LAB · DEVELOPER TOOL</Text>
+          </TouchableOpacity>
+
           <View style={{ height: 50 }} />
         </ScrollView>
 
@@ -287,6 +297,22 @@ const styles = StyleSheet.create({
     maxWidth: 360,
     paddingHorizontal: spacing.md,
     justifyContent: 'center',
+  },
+  visualLabButton: {
+    marginTop: spacing.xl,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.magenta,
+    borderRadius: 6,
+    backgroundColor: colors.surface,
+  },
+  visualLabButtonText: {
+    color: colors.magenta,
+    fontFamily: typography.game,
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.bold,
+    letterSpacing: 1,
   },
   menuButton: {
     backgroundColor: "transparent",

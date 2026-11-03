@@ -292,6 +292,7 @@ export function registerSharedVFXAssets(renderer: Renderer<CoreComponentRegistry
       r.registerBackgroundEffect("screen_border_glow", SkiaScreenBorderGlowEffect);
     }
   });
+  registerPixelFxProceduralVFX(renderer);
 }
 
 export const registerSharedVFX = registerSharedVFXAssets;

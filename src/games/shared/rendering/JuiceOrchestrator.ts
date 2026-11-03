@@ -16,7 +16,12 @@ export type SharedVFXPrimitiveName =
   | "warp_lines"
   | "pixelfx_impact"
   | "pixelfx_slash"
-  | "pixelfx_explosion";
+  | "pixelfx_explosion"
+  | "pixelfx_dust"
+  | "pixelfx_pickup"
+  | "pixelfx_muzzle"
+  | "pixelfx_shield_crack"
+  | "pixelfx_ink_burst";
 
 /**
  * Base configuration options shared across Juice spawn calls and catalog profiles.
@@ -89,8 +94,8 @@ export const JUICE_CATALOG: {
   },
   asteroids: {
     "rock:destroyed": { effect: "pixelfx_explosion", tint: colors.warning, scale: 1.2, ttl: 0.42, hitStopMs: 40, hitStopPriority: HitStopPriority.NORMAL, shakeIntensity: 2.5, shakeDurationMs: 80 },
-    "ship:damage": { effect: "screen_border_glow", tint: colors.danger, scale: 1.0, ttl: 0.3, hitStopMs: 150, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 5.0, shakeDurationMs: 150 },
-    "ship:fire": { effect: "thruster_flame", tint: colors.cyan, scale: 0.7, ttl: 0.15 }
+    "ship:damage": { effect: "pixelfx_shield_crack", tint: colors.danger, scale: 1.0, ttl: 0.32, hitStopMs: 150, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 5.0, shakeDurationMs: 150 },
+    "ship:fire": { effect: "pixelfx_muzzle", tint: colors.cyan, scale: 0.7, ttl: 0.13 }
   },
   "space-invaders": {
     "shield:degraded": { effect: "hologram_glitch", tint: colors.green, scale: 1.0, ttl: 0.3, hitStopMs: 30, hitStopPriority: HitStopPriority.LOW },

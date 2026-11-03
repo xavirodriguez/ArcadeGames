@@ -5,6 +5,7 @@ import { CombatDeathEvent } from "@tiny-aster/gameplay-kit";
 import { fragmentAsteroid, createResourcePickup } from "../EntityFactory";
 import { spawnScorePopup } from "@tiny-aster/gameplay-kit";
 import { JuiceOrchestrator } from "../../shared/rendering/JuiceOrchestrator";
+import { spawnLayeredExplosion } from "../../shared/rendering/SharedVFX";
 import { getLogsForLevel } from "../story/StoryBeats";
 import { colors } from "../../../theme/colors";
 import { applyComboKill } from "../../shared/arcade/ComboUtils";
@@ -148,20 +149,23 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
     transform: { x: number; y: number },
     size: "large" | "medium" | "small" | "ship"
   ): void {
+    const scale = size === "ship" || size === "large" ? 0.95 : size === "medium" ? 0.72 : 0.55;
+    new JuiceOrchestrator(world as unknown as World<AsteroidsComponentRegistry>).spawn("pixelfx_explosion", {
+      x: transform.x,
+      y: transform.y,
+      scale,
+      tint: resolveThemeColorWithFallback(world, colors.warning, "warning", "primary"),
+      ttl: 0.38
+    });
+
     const gameplayMod = world.getResource<AsteroidsGameplayMod>("GameplayMod")
       ?? world.getResource<AsteroidsGameplayMod>("VisualMod");
     if (gameplayMod?.spawnDestructionEffect) {
       gameplayMod.spawnDestructionEffect(world, transform.x, transform.y, size);
       return;
     }
-    const scale = size === "ship" || size === "large" ? 1.2 : size === "medium" ? 0.9 : 0.68;
-    new JuiceOrchestrator(world).spawn("pixelfx_explosion", {
-      x: transform.x,
-      y: transform.y,
-      scale,
-      tint: resolveThemeColorWithFallback(world, colors.warning, "warning", "primary"),
-      ttl: 0.42
-    });
+    const explosionType = size === "ship" ? "ship" : size === "large" ? "enemy" : "small";
+    spawnLayeredExplosion(world, transform.x, transform.y, { type: explosionType });
   }
 
   private maybeSpawnStoryLog(

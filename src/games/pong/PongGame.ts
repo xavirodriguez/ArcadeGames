@@ -289,6 +289,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
   }
 
   public initializeRenderer(renderer: Renderer<PongComponentRegistry, RenderContext>): void {
+    registerPixelFxProceduralVFX(renderer);
     RendererUtils.registerAssets(renderer, {
       canvas: (r) => {
         const { drawPongBall, drawPongPaddle, drawPongBackground } = require("./rendering/PongCanvasVisuals");

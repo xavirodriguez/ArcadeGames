@@ -14,7 +14,7 @@ PR2 turns the existing Locomotion Campaign templates into physical skill checks.
 4. A raised landing deck only three tiles wide.
 5. A lower exit route with a spike immediately beyond the raised deck. The player must manage landing speed, brake, and jump again instead of simply holding right through the whole segment.
 
-The `momentum` profile remains the only campaign profile. Its passive deceleration, active braking, turn acceleration, air steering and drag continue to be tuned in the shared profile definition.
+The `momentum` profile remains the only campaign profile. Its passive deceleration, active braking, turn acceleration, air steering and drag continue to be tuned in the shared profile definition. The platformer action schema now exposes `brake`; keyboard/action mutation and touch-button aggregation both feed the existing `PlatformerInput.brake` field.
 
 ## Surface mastery route
 
@@ -65,6 +65,7 @@ Then run the repository CI/test workflow. A test is not considered passing until
 ## Acceptance criteria
 
 - Releasing input retains materially more speed under the momentum profile than under the responsive profile.
+- The platformer exposes a held `brake` action, including touch input.
 - Active brake shortens the stopping distance relative to passive coasting.
 - Direction reversal decelerates before changing the sign of horizontal velocity.
 - A run-up jump crosses the authored gap; a stationary jump from the same launch point does not.

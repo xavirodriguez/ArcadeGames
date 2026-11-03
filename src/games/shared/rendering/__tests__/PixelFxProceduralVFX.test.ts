@@ -9,6 +9,11 @@ import {
   drawPixelFxPickup,
   drawPixelFxShieldCrack,
   drawPixelFxSlash,
+  drawPixelFxPaddleImpact,
+  drawPixelFxBrickShatter,
+  drawPixelFxFlapGust,
+  drawPixelFxHop,
+  drawPixelFxPhaseDash,
   registerPixelFxProceduralVFX
 } from "../PixelFxProceduralVFX";
 

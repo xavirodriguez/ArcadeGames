@@ -230,6 +230,8 @@ describe("Platformer Game Simulation Tests", () => {
       const tilemapEntity = campaignWorld.query("Tilemap")[0];
       const tilemap = campaignWorld.getComponent(tilemapEntity, "Tilemap")!;
       const tileIds = new Set(tilemap.data.flat());
+      // The campaign grammar stitches three authored sections into one playable route.
+      expect(tilemap.data[0].length).toBeGreaterThan(24);
       expect(tileIds.has(2)).toBe(true);
       expect(tileIds.has(3)).toBe(true);
       expect(tileIds.has(5)).toBe(true);
@@ -240,6 +242,15 @@ describe("Platformer Game Simulation Tests", () => {
         return tag?.tags?.includes("LocomotionCeiling") === true;
       });
       expect(ceilings).toHaveLength(1);
+
+      campaignGame.setInputState({ slide: true });
+      expect(
+        (campaignWorld.getComponent(playerEntity, "PlatformerInput") as { slideHeld: boolean }).slideHeld
+      ).toBe(true);
+      campaignGame.setInputState({ slide: false });
+      expect(
+        (campaignWorld.getComponent(playerEntity, "PlatformerInput") as { slideHeld: boolean }).slideHeld
+      ).toBe(false);
     } finally {
       campaignGame.destroy();
     }

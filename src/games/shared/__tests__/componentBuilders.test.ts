@@ -1,4 +1,4 @@
-import { BlueprintRegistry, ShapeType, World } from "@tiny-aster/core";
+import { BlueprintRegistry, ShapeType, World, CoreComponentRegistry, ColliderComponent, Collider2DComponent } from "@tiny-aster/core";
 import { registerCollectibleTriggerBlueprint, registerStandardPlatformerCollectibles, setupPlatformerMovementComponents, setupTilemapEntity } from "../componentBuilders";
 
 describe("Shared platformer locomotion setup", () => {
@@ -15,15 +15,21 @@ describe("Shared platformer locomotion setup", () => {
   };
 
   it("attaches an isolated locomotion profile and slide posture for Collider2D players", () => {
-    const world = new World();
+    const world = new World<CoreComponentRegistry>();
     const entity = world.createEntity();
-    world.addComponent(entity, {
+    const collider2D: Collider2DComponent = {
       type: "Collider2D",
       shape: { type: "aabb", halfWidth: 10, halfHeight: 15 },
-      layer: 1, mask: 0xffff, offsetX: 0, offsetY: 0, isTrigger: false, enabled: true
-    } as any);
+      layer: 1,
+      mask: 0xffff,
+      offsetX: 0,
+      offsetY: 0,
+      isTrigger: false,
+      enabled: true
+    };
+    world.addComponent(entity, collider2D);
 
-    setupPlatformerMovementComponents(world as any, entity, config);
+    setupPlatformerMovementComponents(world, entity, config);
     expect(world.getComponent(entity, "LocomotionProfile")).toMatchObject({
       type: "LocomotionProfile",
       ground: { maxSpeed: 240 },
@@ -37,31 +43,39 @@ describe("Shared platformer locomotion setup", () => {
   });
 
   it("supports legacy Collider box players without sharing mutable profile objects", () => {
-    const world = new World();
+    const world = new World<CoreComponentRegistry>();
     const first = world.createEntity();
     const second = world.createEntity();
     for (const entity of [first, second]) {
-      world.addComponent(entity, {
+      const collider: ColliderComponent = {
         type: "Collider",
         shape: { type: ShapeType.Box, width: 20, height: 30 },
-        layer: 1, mask: 0xffff, enabled: true, isTrigger: false
-      } as any);
-      setupPlatformerMovementComponents(world as any, entity, config);
+        layer: 1,
+        mask: 0xffff,
+        enabled: true,
+        isTrigger: false
+      };
+      world.addComponent(entity, collider);
+      setupPlatformerMovementComponents(world, entity, config);
     }
 
     expect(world.getComponent(first, "PlatformerPosture")).toMatchObject({ standingHeight: 30, slidingHeight: 18 });
-    const firstProfile = world.getMutableComponent(first, "LocomotionProfile") as any;
-    const secondProfile = world.getComponent(second, "LocomotionProfile") as any;
-    firstProfile.ground.maxSpeed = 999;
-    expect(secondProfile.ground.maxSpeed).toBe(240);
+    const firstProfile = world.getMutableComponent(first, "LocomotionProfile");
+    const secondProfile = world.getComponent(second, "LocomotionProfile");
+    expect(firstProfile).toBeDefined();
+    expect(secondProfile).toBeDefined();
+    if (firstProfile) {
+      firstProfile.ground.maxSpeed = 999;
+    }
+    expect(secondProfile?.ground.maxSpeed).toBe(240);
   });
 });
 
 describe("Shared platformer tilemap materials", () => {
   it("attaches serializable material presets used by authored tile material ids", () => {
-    const world = new World();
+    const world = new World<CoreComponentRegistry>();
     const entity = world.createEntity();
-    setupTilemapEntity(world as any, entity, 40, [[1, 2, 3]], {
+    setupTilemapEntity(world, entity, 40, [[1, 2, 3]], {
       1: { solid: true, materialId: "normal" },
       2: { solid: true, materialId: "ice" },
       3: { solid: true, materialId: "normal" }

@@ -14,9 +14,8 @@ describe("Platformer Input Mutation Tests", () => {
       moveDir: 0,
       jumpPressed: false,
       jumpHeld: false,
-      jumpReleased: false,
-      dash: false
-    } as any);
+      jumpReleased: false
+    });
 
     world.addComponent(playerEntity, {
       type: "PlatformerMovementConfig",
@@ -25,20 +24,20 @@ describe("Platformer Input Mutation Tests", () => {
       deceleration: 1200,
       airAcceleration: 400,
       airDeceleration: 600
-    } as any);
+    });
 
     world.addComponent(playerEntity, {
       type: "Velocity",
       vx: 0,
       vy: 0,
       angularVelocity: 0
-    } as any);
+    });
   });
 
   it("should set moveDir to -1 on moveLeft: true", () => {
-    mutatePlatformerInputState(world as any, { moveLeft: true });
-    const inputComp = world.getComponent(playerEntity, "PlatformerInput" as any) as any;
-    expect(inputComp.moveDir).toBe(-1);
+    mutatePlatformerInputState(world, { moveLeft: true });
+    const inputComp = world.getComponent(playerEntity, "PlatformerInput");
+    expect(inputComp?.moveDir).toBe(-1);
   });
 
   it("should set moveDir to 1 on moveRight: true", () => {

@@ -16,6 +16,7 @@ import { HIT_PALETTE } from "../../HitAndRunPalette";
 import { colors } from "../../../../../theme/colors";
 import { generateProceduralScene } from "../../../../shared/procedural/scene/ProceduralSceneGenerator";
 import { drawProceduralSceneCanvas } from "../../../../shared/procedural/rendering/drawProceduralSceneCanvas";
+import { drawGroundShadowEllipse } from "../HitRunThemeUtils";
 import { drawProceduralSceneSkia } from "../../../../shared/procedural/rendering/drawProceduralSceneSkia";
 import type { ProceduralScene } from "../../../../shared/procedural/types/ProceduralTypes";
 
@@ -138,15 +139,7 @@ export class FantasyTheme implements HitRunTheme {
     rxRatio = 0.45,
     ryRatio = 0.15
   ): void {
-    const shadowScale = Math.min(1, Math.max(0.4, 1 - elevation / 120));
-    const shadowAlpha = 0.35 * shadowScale;
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.fillStyle = `rgba(0,0,0,${shadowAlpha.toFixed(3)})`;
-    ctx.beginPath();
-    ctx.ellipse(0, 0, size * rxRatio * shadowScale, size * ryRatio * shadowScale, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
+    drawGroundShadowEllipse(ctx, x, y, size, elevation, "rgba(0,0,0,__ALPHA__)", 0.35, rxRatio, ryRatio);
   }
 
   public renderEntity(

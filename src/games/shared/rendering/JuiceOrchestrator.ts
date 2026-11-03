@@ -115,7 +115,7 @@ export const JUICE_CATALOG: {
   },
   flappybird: {
     "pipe:passed": { effect: "floating_text", tint: colors.yellow, scale: 1.0, ttl: 0.5, text: "+1" },
-    "bird:flap": { effect: "comet_trail", tint: colors.cyan, scale: 0.6, ttl: 0.2 },
+    "bird:flap": { effect: "pixelfx_flap_gust", tint: colors.cyan, scale: 0.65, ttl: 0.2 },
     "bird:crash": { effect: "shockwave", tint: colors.danger, scale: 1.4, ttl: 0.4, hitStopMs: 150, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 5.0, shakeDurationMs: 150 }
   },
   frogger: {

@@ -120,7 +120,7 @@ export const JUICE_CATALOG: {
   },
   frogger: {
     "goal:reached": { effect: "shield_bubble", tint: colors.cyan, scale: 1.4, ttl: 0.6, hitStopMs: 80, hitStopPriority: HitStopPriority.HIGH },
-    "frog:hop": { effect: "comet_trail", tint: colors.green, scale: 0.5, ttl: 0.15 },
+    "frog:hop": { effect: "pixelfx_hop", tint: colors.green, scale: 0.55, ttl: 0.18 },
     "frog:splat": { effect: "shockwave", tint: colors.danger, scale: 1.2, ttl: 0.4, hitStopMs: 150, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 4.0, shakeDurationMs: 120 }
   },
   "geometry-wars": {

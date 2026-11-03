@@ -9,11 +9,13 @@ import {
 } from "@tiny-aster/core";
 import { PongConfig } from "../types/PongConfigSchema";
 import { type BallComponent, type PongComponentRegistry } from "../types";
+import { JuiceOrchestrator } from "../../shared/rendering/JuiceOrchestrator";
 
 export class PongCollisionSystem extends System<PongComponentRegistry> {
   private config: PongConfig;
   // Safe for determinism/rollback. Reusable Set avoids per-tick heap allocations during collision checks.
   private processedPairs = new Set<string>();
+  private juice?: JuiceOrchestrator<PongComponentRegistry>;
 
   constructor(config: PongConfig) {
     super();
@@ -105,6 +107,14 @@ export class PongCollisionSystem extends System<PongComponentRegistry> {
               // Particle feedback on hit location with side-specific neon colors and inward-directed angles
               const ballTransform = world.getComponent(ballEntity, "Transform");
               if (ballTransform) {
+                if (!world.isReSimulating) {
+                  this.juice ??= new JuiceOrchestrator<PongComponentRegistry>(world);
+                  this.juice.triggerEvent("pong", "paddle:hit", {
+                    x: ballTransform.x,
+                    y: ballTransform.y,
+                    rotation: Math.atan2(nextVy, nextVx)
+                  });
+                }
                 const hitColor = paddleComp.side === "left" ? "#FF00FF" : "#00FFFF";
                 const hitAngle: [number, number] = paddleComp.side === "left" ? [-45, 45] : [135, 225];
 

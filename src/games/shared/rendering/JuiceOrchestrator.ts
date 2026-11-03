@@ -108,7 +108,7 @@ export const JUICE_CATALOG: {
     "ufo:destroyed": { effect: "shockwave", tint: colors.yellow, scale: 1.8, ttl: 0.6, hitStopMs: 120, hitStopPriority: HitStopPriority.HIGH, shakeIntensity: 4.5, shakeDurationMs: 140 }
   },
   arkanoid: {
-    "brick:shatter": { effect: "shockwave", tint: colors.danger, scale: 0.8, ttl: 0.25, hitStopMs: 30, hitStopPriority: HitStopPriority.NORMAL, shakeIntensity: 1.5, shakeDurationMs: 50 },
+    "brick:shatter": { effect: "pixelfx_brick_shatter", tint: colors.danger, scale: 0.95, ttl: 0.32, hitStopMs: 30, hitStopPriority: HitStopPriority.NORMAL, shakeIntensity: 1.5, shakeDurationMs: 50 },
     "brick:hit": { effect: "shockwave", tint: colors.cyan, scale: 0.6, ttl: 0.15, hitStopMs: 30, hitStopPriority: HitStopPriority.LOW, shakeIntensity: 1.0, shakeDurationMs: 30 },
     "paddle:bounce": { effect: "shield_bubble", tint: colors.cyan, scale: 0.9, ttl: 0.2 },
     "boss:hit": { effect: "hologram_glitch", tint: colors.redHot, scale: 1.5, ttl: 0.4, hitStopMs: 80, hitStopPriority: HitStopPriority.HIGH, shakeIntensity: 3.5, shakeDurationMs: 100 }

@@ -60,3 +60,16 @@ The five new compositions use the same TTL-derived animation progress and render
 - Asteroids muzzle flash is emitted only after a successful shot and is suppressed during rollback resimulation.
 - Asteroids shield crack listens to typed `combat:hit` and filters targets by the `Ship` component.
 - Hit & Run death ink burst is emitted from the victim Transform when still available; it is skipped during resimulation and uses the existing Sumi-e theme resource to choose ink black.
+
+
+## Third batch: five gameplay-specific compositions
+
+| Shape | Composition | Consumer |
+| --- | --- | --- |
+| `pixelfx_paddle_impact` | Compressed contact crescents and directional rebound chevrons | Pong paddle collision |
+| `pixelfx_brick_shatter` | Angular masonry fragments with short outward trajectories | Arkanoid `brick:shatter` |
+| `pixelfx_flap_gust` | Layered air crescents and feather-like slipstream strokes | Flappy Bird successful flap |
+| `pixelfx_hop` | Take-off crescent and separated ground-contact streaks | Frogger successful grid hop |
+| `pixelfx_phase_dash` | Offset afterimages and directional speed lines | Platformer successful dash |
+
+These compositions reuse the shared TTL-driven renderer path and are registered for both Canvas and Skia. Each effect is triggered at the gameplay transition that owns it; presentation spawning is skipped during rollback resimulation. Existing game-specific squash, audio, hit-stop and collision behavior is preserved.

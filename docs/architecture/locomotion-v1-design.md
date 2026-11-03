@@ -183,3 +183,10 @@ Tilemap slopes are authored as local line segments on TileDefinition.slope. The 
 ## B2 implementation decision
 
 Sliding requires both PlatformerPosture and LocomotionProfile.slide. PlatformerSlideSystem runs before horizontal movement, uses fixed-step timers, changes only physical collider height, and keeps the foot position invariant. Standing is restored only when the tilemap and other blocking box/AABB colliders report clearance.
+
+## 13. Closure and Verification (V1 Functional Closure)
+
+With the completion of integration scenario suites (`LocomotionIntegrationScenarios.test.ts`) and deterministic replay validation (`LocomotionDeterminismReplay.test.ts`), Locomotion V1 satisfies all gates:
+- Shared controller registration with explicit profile attachments (`responsive` and `momentum`).
+- Deterministic multi-tick interaction between horizontal movement, sliding postures with clearance queries, gravity, coyote/buffer jump impulses, slopes, surface material dynamics, and moving platform support velocities.
+- State preservation across rollback/snapshots and replay consistency verified by AoS snapshot hashing.

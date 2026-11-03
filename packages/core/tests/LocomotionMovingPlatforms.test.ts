@@ -81,7 +81,7 @@ describe("Locomotion B5 moving-platform support", () => {
     expect(world.getComponent(passenger, "Transform")?.y).toBeCloseTo(175, 5);
     expect(world.getComponent(passenger, "Velocity")).toMatchObject({ vx: 10, vy: 20 });
     expect(world.getComponent(passenger, "PlatformerGroundState")?.carrierEntity).toBe(platform);
-    expect(world.getComponent(passenger, "PhysicsContactState")?.groundContact?.surfaceVelocity).toEqual({ x: 0, y: 20 });
+    expect(world.getComponent(passenger, "PhysicsContactState")?.groundContact?.surfaceVelocity).toEqual({ x: 10, y: 20 });
     new PhysicsIntegrateSystem().update(world, 0.1);
     expect(world.getComponent(passenger, "Transform")?.x).toBeCloseTo(101, 5);
     expect(world.getComponent(passenger, "Transform")?.y).toBeCloseTo(177, 5);

@@ -1,3 +1,18 @@
+# Mandatory agent workflow
+
+This repository uses `AGENTS.md` as its canonical architecture and agent-instructions entry point. Before editing code, every coding agent must read [the operating contract](docs/agents/OPERATING_CONTRACT.md), inspect the actual implementation and tests, and consult relevant [agent ledgers](docs/agents/).
+
+**Non-negotiable rules:**
+- Verify the canonical type/API before changing consumers. A runtime exception is evidence of a value mismatch, not proof that the declared contract should change.
+- Trace shared-contract changes through producers, consumers, serialization, tests, and both renderer backends where applicable.
+- Fix root causes and add regression tests or executable guards. Do not hide failures with casts, silent fallbacks, skipped tests, broad mocks, or indiscriminate Jest transforms.
+- Run `pnpm run check:agent-guardrails`, `pnpm run ci`, and the relevant Jest suite before declaring work complete. Report commands that could not run; never claim unexecuted checks passed.
+- Every recurring failure must leave behind a regression test, static rule, validator, or required CI check.
+
+Tool-specific instruction files are pointers only. Keep this file and `docs/agents/OPERATING_CONTRACT.md` as the single source of truth.
+
+---
+
 ## 1. Project Overview
 
 ### TinyAster Monorepo Package List

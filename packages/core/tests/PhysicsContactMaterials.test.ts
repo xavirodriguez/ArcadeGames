@@ -54,8 +54,8 @@ describe("Locomotion v1 physics contacts and materials", () => {
     const tilemap = world.createEntity();
     world.addComponent(tilemap, {
       type: "Tilemap", data: [[0, 0, 0], [1, 1, 1]], tileSize: 40,
-      tileDefinitions: { 1: { solid: true, materialId: "stone" } },
-      physicsMaterials: { stone: PHYSICS_MATERIAL_PRESETS.normal }
+      tileDefinitions: { 1: { solid: true, materialId: "normal" } },
+      physicsMaterials: { normal: PHYSICS_MATERIAL_PRESETS.normal }
     });
     addTransform(world, tilemap, 0, 0);
     const player = world.createEntity();

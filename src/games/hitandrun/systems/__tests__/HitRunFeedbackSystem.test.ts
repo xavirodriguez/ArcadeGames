@@ -58,6 +58,42 @@ describe("HitRunFeedbackSystem (Paso B)", () => {
     expect(killStop).toBeGreaterThan(HIT_STOP_NORMAL_SECONDS);
   });
 
+  it("spawns the procedural ink burst at a lethal target", () => {
+    const victim = world.createEntity();
+    world.addComponent(victim, {
+      type: "Transform",
+      x: 40,
+      y: 60,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      worldX: 40,
+      worldY: 60,
+      worldRotation: 0,
+      worldScaleX: 1,
+      worldScaleY: 1,
+      dirty: false
+    });
+    world.addComponent(victim, {
+      type: "Render",
+      shape: "enemy",
+      size: 24,
+      color: "#ffffff",
+      visible: true,
+      opacity: 1,
+      order: 1,
+      rotation: 0,
+      angularVelocity: 0,
+      hitFlashFrames: 0
+    });
+
+    feedback.enqueueDeathForTest({ entity: victim, category: "melee" });
+    feedback.update(world, 0);
+
+    const effects = world.query("Render", "TTL");
+    expect(effects.some((entity) => world.getComponent(entity, "Render")?.shape === "pixelfx_ink_burst")).toBe(true);
+  });
+
   it("does not apply screen shake resource when isReSimulating", () => {
     world.isReSimulating = true;
     feedback.enqueueHitForTest({

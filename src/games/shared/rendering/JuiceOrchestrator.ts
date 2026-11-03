@@ -16,7 +16,12 @@ export type SharedVFXPrimitiveName =
   | "warp_lines"
   | "pixelfx_impact"
   | "pixelfx_slash"
-  | "pixelfx_explosion";
+  | "pixelfx_explosion"
+  | "pixelfx_dust"
+  | "pixelfx_pickup"
+  | "pixelfx_muzzle"
+  | "pixelfx_shield_crack"
+  | "pixelfx_ink_burst";
 
 /**
  * Base configuration options shared across Juice spawn calls and catalog profiles.

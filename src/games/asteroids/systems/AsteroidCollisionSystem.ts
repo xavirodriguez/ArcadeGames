@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { World, System, resolveThemeColorWithFallback, Juice } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/AsteroidRegistry";
-import { CombatDeathEvent } from "@tiny-aster/gameplay-kit";
+import { CombatDeathEvent, CombatHitEvent } from "@tiny-aster/gameplay-kit";
 import { fragmentAsteroid, createResourcePickup } from "../EntityFactory";
 import { spawnScorePopup } from "@tiny-aster/gameplay-kit";
 import { JuiceOrchestrator } from "../../shared/rendering/JuiceOrchestrator";
@@ -26,6 +26,7 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
   // Rollback-safe per-tick player session cache
   private playerCache = new Map<string, number>();
   private playerCacheTick = -1;
+  private juice: JuiceOrchestrator<AsteroidsComponentRegistry> | undefined;
 
   constructor() {
     super();
@@ -45,6 +46,17 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
        */
       eventBus.on("combat:death", (event: CombatDeathEvent) => {
         this.onCombatDeath(world, event);
+      });
+
+      eventBus.on("combat:hit", (event: CombatHitEvent) => {
+        if (world.isReSimulating || !world.hasComponent(event.targetEntity, "Ship")) return;
+        const transform = world.getComponent(event.targetEntity, "Transform");
+        if (!transform) return;
+        this.juice ??= new JuiceOrchestrator(world as unknown as World<AsteroidsComponentRegistry>);
+        this.juice.triggerEvent("asteroids", "ship:damage", {
+          x: transform.x,
+          y: transform.y
+        });
       });
     }
   }

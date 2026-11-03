@@ -234,6 +234,22 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
         deathProfile.shakeDuration
       );
       this.applyHitFlash(world, death.entity, deathProfile.hitFlashFrames);
+
+      // Lethal hits get a distinct radial ink burst; it is presentation-only.
+      const transform = world.hasEntity(death.entity)
+        ? world.getComponent(death.entity, "Transform")
+        : undefined;
+      if (transform) {
+        this.juice ??= new JuiceOrchestrator(world);
+        const isSumiE = world.getResource<boolean>(SUMI_E_THEME_RESOURCE) === true;
+        this.juice.spawn("pixelfx_ink_burst", {
+          x: transform.x,
+          y: transform.y,
+          scale: 1.15,
+          tint: isSumiE ? "#151515" : "#d7473f",
+          ttl: 0.44
+        });
+      }
     }
   }
 

@@ -9,6 +9,17 @@ export class PlatformerDamageSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
 
+    // Seed the health snapshot before damage processing so first-frame hits are observable.
+    const initialPlayers = world.query("Tag", "Health");
+    for (let i = 0; i < initialPlayers.length; i++) {
+      const entity = initialPlayers[i];
+      const tag = world.getComponent(entity, "Tag");
+      const health = world.getComponent(entity, "Health");
+      if (tag?.tags?.includes("Player") && health && !this.previousHealth.has(entity)) {
+        this.previousHealth.set(entity, health.current);
+      }
+    }
+
     updatePlayerInvulnerabilityAndContactDamage(world, deltaTime, {
       contactDistance: 22,
       invulnerabilityDuration: 1.0,

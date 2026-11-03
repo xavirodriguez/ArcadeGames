@@ -17,6 +17,7 @@ import {
   createVFXLabDescriptor,
   createVFXLabPreset,
   getVFXLabEffect,
+  getVFXLabPreviewPalette,
   parseVFXLabPreset,
   resolveVFXLabColor,
   resolveVFXLabSemanticRole,
@@ -78,6 +79,7 @@ export default function VFXVisualLabScreen() {
   const semanticRole = resolveVFXLabSemanticRole(effect.family);
   const color = resolveVFXLabColor(effect, profile);
   const semanticTokens = VFX_VISUAL_PROFILES[profile].tokens;
+  const previewPalette = getVFXLabPreviewPalette(profile);
   const contextEntries = Object.entries(descriptor.context);
   const visibleEffects = VFX_LAB_EFFECTS.filter((item) =>
     `${item.label} ${item.id} ${item.family}`.toLowerCase().includes(filter.toLowerCase())
@@ -97,11 +99,11 @@ export default function VFXVisualLabScreen() {
     const context = canvas.getContext("2d");
     if (!context) return;
     context.clearRect(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT);
-    context.fillStyle = profile === "sumi-e" ? "#E7DFCB" : "#070B13";
+    context.fillStyle = previewPalette.background;
     context.fillRect(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT);
     context.save();
-    context.globalAlpha = profile === "sumi-e" ? 0.12 : 0.18;
-    context.strokeStyle = profile === "sumi-e" ? "#77736B" : "#26364D";
+    context.globalAlpha = previewPalette.gridAlpha;
+    context.strokeStyle = previewPalette.grid;
     context.lineWidth = 1;
     for (let x = 0; x < PREVIEW_WIDTH; x += 32) {
       context.beginPath(); context.moveTo(x, 0); context.lineTo(x, PREVIEW_HEIGHT); context.stroke();
@@ -118,7 +120,7 @@ export default function VFXVisualLabScreen() {
       1
     );
     context.restore();
-  }, [color, effect, profile, progress, rotation, size]);
+  }, [color, effect, previewPalette, profile, progress, rotation, size]);
 
   useEffect(() => {
     if (!Skia) {
@@ -128,17 +130,15 @@ export default function VFXVisualLabScreen() {
     const recorder = Skia.PictureRecorder();
     const skiaCanvas = recorder.beginRecording(Skia.XYWHRect(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT));
     const adapter = new SkiaDrawAdapter(skiaCanvas);
-    const background = profile === "sumi-e" ? "#E7DFCB" : "#070B13";
-    const grid = profile === "sumi-e" ? "#77736B" : "#26364D";
-    adapter.fillRect(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT, background);
-    for (let x = 0; x < PREVIEW_WIDTH; x += 32) adapter.drawLine(x, 0, x, PREVIEW_HEIGHT, grid, 1, 0.18);
-    for (let y = 0; y < PREVIEW_HEIGHT; y += 32) adapter.drawLine(0, y, PREVIEW_WIDTH, y, grid, 1, 0.18);
+    adapter.fillRect(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT, previewPalette.background);
+    for (let x = 0; x < PREVIEW_WIDTH; x += 32) adapter.drawLine(x, 0, x, PREVIEW_HEIGHT, previewPalette.grid, 1, previewPalette.gridAlpha);
+    for (let y = 0; y < PREVIEW_HEIGHT; y += 32) adapter.drawLine(0, y, PREVIEW_WIDTH, y, previewPalette.grid, 1, previewPalette.gridAlpha);
     skiaCanvas.save();
     skiaCanvas.translate(PREVIEW_WIDTH / 2, PREVIEW_HEIGHT / 2);
     effect.draw(adapter, createPreviewWorld(size, color, progress, rotation), 1);
     skiaCanvas.restore();
     setSkiaPicture(recorder.finishRecordingAsPicture());
-  }, [color, effect, profile, progress, rotation, size]);
+  }, [color, effect, previewPalette, profile, progress, rotation, size]);
 
   const applyPreset = (preset: VFXLabPreset) => {
     setEffectId(preset.effect);

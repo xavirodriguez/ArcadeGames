@@ -436,6 +436,98 @@ export function drawPixelFxPhaseDash(draw: IDrawAdapter, world: import("@tiny-as
   draw.restore();
 }
 
+/** Directional ricochet: contact flash plus a sharply reflected trajectory. */
+export function drawPixelFxRicochet(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
+  const state = readEffectState(world, entity);
+  if (!state || state.alpha <= 0.01) return;
+  const { progress: p, alpha, size, color, rotation } = state;
+  const radius = size * (0.18 + p * 0.48);
+  const reach = size * (0.55 + p * 0.85);
+  const fade = alpha * (1 - p * 0.42);
+  const cos = Math.cos(rotation);
+  const sin = Math.sin(rotation);
+  draw.save();
+  draw.strokeCircle(0, 0, radius, color, Math.max(1, size * 0.055 * (1 - p * 0.45)), fade);
+  for (let i = 0; i < 8; i++) {
+    const angle = (i * Math.PI) / 4;
+    const inner = radius * 0.8;
+    const outer = reach * (i % 2 === 0 ? 1 : 0.68);
+    drawRotatedLine(draw, Math.cos(angle) * inner, Math.sin(angle) * inner, Math.cos(angle) * outer, Math.sin(angle) * outer, color, Math.max(0.8, size * (i % 2 === 0 ? 0.045 : 0.028)), fade * (1 - p * 0.25), cos, sin);
+  }
+  drawRotatedLine(draw, -size * 0.22, -size * 0.18, size * 0.12, 0, color, Math.max(1, size * 0.07), fade, cos, sin);
+  drawRotatedLine(draw, size * 0.12, 0, reach, -size * (0.28 + p * 0.12), color, Math.max(1, size * 0.055), fade, cos, sin);
+  drawRotatedLine(draw, size * 0.12, 0, reach * 0.72, size * 0.12, color, Math.max(0.8, size * 0.025), fade * 0.7, cos, sin);
+  draw.restore();
+}
+
+/** Forward charge cue: compressed energy core and deterministic backward speed streaks. */
+export function drawPixelFxCharge(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
+  const state = readEffectState(world, entity);
+  if (!state || state.alpha <= 0.01) return;
+  const { progress: p, alpha, size, color, rotation } = state;
+  const length = size * (0.7 + p * 1.15);
+  const fade = alpha * (1 - p * 0.3);
+  const cos = Math.cos(rotation);
+  const sin = Math.sin(rotation);
+  draw.save();
+  draw.fillCircle(size * 0.12, 0, size * (0.12 + (1 - p) * 0.06), color, fade);
+  draw.drawArc(0, 0, size * (0.28 + p * 0.08), -Math.PI * 0.42, Math.PI * 0.84, color, Math.max(1, size * 0.055), fade * 0.8);
+  for (let i = 0; i < 5; i++) {
+    const lane = (i - 2) * 0.19;
+    const startX = -length * (0.12 + (i % 2) * 0.08);
+    const endX = -length * (0.62 + (i % 3) * 0.12);
+    drawRotatedLine(draw, startX, lane * size, endX, lane * size * (0.72 + p * 0.12), color, Math.max(0.8, size * (i === 2 ? 0.05 : 0.028)), fade * (0.9 - Math.abs(lane) * 0.5), cos, sin);
+  }
+  drawRotatedLine(draw, size * 0.2, -size * 0.2, size * (0.72 + p * 0.25), 0, color, Math.max(1, size * 0.06), fade, cos, sin);
+  drawRotatedLine(draw, size * 0.2, size * 0.2, size * (0.72 + p * 0.25), 0, color, Math.max(1, size * 0.06), fade, cos, sin);
+  draw.restore();
+}
+
+/** Defensive pulse: expanding concentric shell and separated shield arcs (visual only). */
+export function drawPixelFxShieldPulse(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
+  const state = readEffectState(world, entity);
+  if (!state || state.alpha <= 0.01) return;
+  const { progress: p, alpha, size, color, rotation } = state;
+  const radius = size * (0.38 + p * 1.05);
+  const fade = alpha * (1 - p * 0.38);
+  draw.save();
+  draw.strokeCircle(0, 0, radius, color, Math.max(1, size * 0.055 * (1 - p * 0.35)), fade);
+  draw.strokeCircle(0, 0, radius * 0.72, color, Math.max(0.8, size * 0.025), fade * 0.52);
+  for (let i = 0; i < 4; i++) {
+    const start = rotation + (i * Math.PI) / 2 + 0.18;
+    draw.drawArc(0, 0, radius * 1.12, start, Math.PI * 0.28, color, Math.max(1, size * 0.045), fade * 0.85);
+    const x = Math.cos(start + Math.PI * 0.14) * radius;
+    const y = Math.sin(start + Math.PI * 0.14) * radius;
+    draw.drawLine(x * 0.82, y * 0.82, x * 1.08, y * 1.08, color, Math.max(0.8, size * 0.035), fade);
+  }
+  draw.restore();
+}
+
+/** Target warning: pulsing lock-on brackets and a central sight line. */
+export function drawPixelFxTargetWarning(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
+  const state = readEffectState(world, entity);
+  if (!state || state.alpha <= 0.01) return;
+  const { progress: p, alpha, size, color, rotation } = state;
+  const radius = size * (0.48 + p * 0.2);
+  const bracket = size * (0.2 + p * 0.04);
+  const fade = alpha * (0.72 + 0.28 * Math.sin(p * Math.PI * 4));
+  const cos = Math.cos(rotation);
+  const sin = Math.sin(rotation);
+  draw.save();
+  draw.strokeCircle(0, 0, radius, color, Math.max(0.8, size * 0.025), fade * 0.45);
+  for (let i = 0; i < 4; i++) {
+    const angle = (i * Math.PI) / 2 + Math.PI / 4;
+    const cx = Math.cos(angle) * radius;
+    const cy = Math.sin(angle) * radius;
+    const tx = -Math.sin(angle);
+    const ty = Math.cos(angle);
+    drawRotatedLine(draw, cx - tx * bracket, cy - ty * bracket, cx + tx * bracket, cy + ty * bracket, color, Math.max(1, size * 0.045), fade, cos, sin);
+    drawRotatedLine(draw, cx + tx * bracket, cy + ty * bracket, cx + tx * bracket * 0.45, cy + ty * bracket * 0.45, color, Math.max(1, size * 0.045), fade, cos, sin);
+  }
+  draw.drawLine(-size * 0.18, 0, size * 0.18, 0, color, Math.max(0.8, size * 0.03), fade * 0.8);
+  draw.drawLine(0, -size * 0.18, 0, size * 0.18, color, Math.max(0.8, size * 0.03), fade * 0.8);
+  draw.restore();
+}
 function canvasDrawer(
   drawEffect: (adapter: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number) => void
 ): ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> {
@@ -464,7 +556,11 @@ export function registerPixelFxProceduralVFX<TComponents extends CoreComponentRe
     ["pixelfx_brick_shatter", drawPixelFxBrickShatter],
     ["pixelfx_flap_gust", drawPixelFxFlapGust],
     ["pixelfx_hop", drawPixelFxHop],
-    ["pixelfx_phase_dash", drawPixelFxPhaseDash]
+    ["pixelfx_phase_dash", drawPixelFxPhaseDash],
+    ["pixelfx_ricochet", drawPixelFxRicochet],
+    ["pixelfx_charge", drawPixelFxCharge],
+    ["pixelfx_shield_pulse", drawPixelFxShieldPulse],
+    ["pixelfx_target_warning", drawPixelFxTargetWarning]
   ] as const;
 
   for (const [name, drawEffect] of drawers) {

@@ -3,6 +3,7 @@ import type { EnemyAttackTypeConfig } from "./EnemyAttackConfig";
 import { canTakeDamage } from "../hurt/HitRunHurtSystem";
 import type { MeleeAttackComponent } from "../melee/MeleeAttackTypes";
 import type { HitReactionComponent } from "../hurt/HitReactionTypes";
+import { JuiceOrchestrator } from "../../shared/rendering/JuiceOrchestrator";
 
 export function zeroVx(world: World<CoreComponentRegistry>, entity: number): void {
   const vel = world.getComponent(entity, "Velocity");
@@ -101,6 +102,29 @@ export function shouldStartTelegraphedAttack(
   return Math.abs(px - sx) <= cfg.attackRange;
 }
 
+function spawnHitRunCombatCue(
+  world: World<CoreComponentRegistry>,
+  entity: number,
+  effect: "pixelfx_target_warning" | "pixelfx_charge",
+  tint: string,
+  rotation = 0,
+  scale = 1,
+  ttl = 0.32
+): void {
+  // JuiceOrchestrator owns the presentation-only rollback guard and ECS TTL lifecycle.
+  if (world.isReSimulating) return;
+  const transform = world.getComponent(entity, "Transform");
+  if (!transform) return;
+  new JuiceOrchestrator(world).spawn(effect, {
+    x: transform.worldX ?? transform.x,
+    y: transform.worldY ?? transform.y,
+    rotation, tint, scale, ttl
+  });
+}
+
+export function spawnHitRunChargeCue(world: World<CoreComponentRegistry>, entity: number, direction: number, tint: string): void {
+  spawnHitRunCombatCue(world, entity, "pixelfx_charge", tint, direction >= 0 ? 0 : Math.PI, 1.2, 0.34);
+}
 export function enterAnticipationState(
   world: World<CoreComponentRegistry>,
   entity: number,
@@ -119,6 +143,8 @@ export function enterAnticipationState(
     }
     render.color = warningColor;
   }
+  const transform = world.getComponent(entity, "Transform");
+  spawnHitRunCombatCue(world, entity, "pixelfx_target_warning", warningColor, transform?.worldRotation ?? transform?.rotation ?? 0, 1.05, 0.42);
 }
 
 export function updateAnticipationState(

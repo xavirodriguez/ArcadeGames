@@ -32,6 +32,7 @@ function PlatformerContent() {
   const [started, setStarted] = useState(false);
   const [playerName, setPlayerName] = useState("");
   const [initialSeed, setInitialSeed] = useState<number | undefined>();
+  const [levelSet, setLevelSet] = useState<"classic" | "locomotion">("classic");
 
   useEffect(() => {
     PlayerProfileService.getProfile().then((p) => {
@@ -46,7 +47,7 @@ function PlatformerContent() {
   const isTouchDevice = useTouchDevice();
 
   const { game, gameState, isReady, togglePause, highScore } =
-    usePlatformerGame(started, initialSeed);
+    usePlatformerGame(started, initialSeed, levelSet);
 
   const touchStateRef = useRef<TouchInputState | null>(null);
   if (!touchStateRef.current) {
@@ -153,6 +154,27 @@ function PlatformerContent() {
             ? (t.platformer?.instructions || "A/D o Flechas: Mover | W/Espacio: Saltar | Shift/K: Dash | S/Abajo: Deslizar")
             : t.common.touch_controls}
         </GameInstructions>
+
+        <View style={styles.levelSetSelector} accessibilityRole="radiogroup">
+          <TouchableOpacity
+            style={[styles.levelSetButton, levelSet === "classic" && styles.levelSetButtonActive]}
+            onPress={() => setLevelSet("classic")}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: levelSet === "classic" }}
+          >
+            <Text style={styles.levelSetButtonText}>CLÁSICO</Text>
+            <Text style={styles.levelSetDescription}>Nivel original</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.levelSetButton, levelSet === "locomotion" && styles.levelSetButtonActive]}
+            onPress={() => setLevelSet("locomotion")}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: levelSet === "locomotion" }}
+          >
+            <Text style={styles.levelSetButtonText}>LOCOMOCIÓN V1</Text>
+            <Text style={styles.levelSetDescription}>3 recorridos de movimiento</Text>
+          </TouchableOpacity>
+        </View>
 
         <HighScoreText label={t.common.record} score={highScore} />
 
@@ -310,6 +332,37 @@ export default function PlatformerScreen() {
 }
 
 const styles = StyleSheet.create({
+  levelSetSelector: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: spacing.md,
+    marginVertical: spacing.lg,
+  },
+  levelSetButton: {
+    minWidth: 130,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.borderDark,
+    borderRadius: 8,
+    backgroundColor: "rgba(10, 10, 20, 0.65)",
+    alignItems: "center",
+  },
+  levelSetButtonActive: {
+    borderColor: colors.cyan,
+    backgroundColor: "rgba(34, 211, 238, 0.12)",
+  },
+  levelSetButtonText: {
+    color: colors.white,
+    fontFamily: typography.game,
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.bold,
+  },
+  levelSetDescription: {
+    color: colors.textMuted,
+    fontSize: 10,
+    marginTop: spacing.xs,
+  },
   loadingText: {
     color: colors.white,
     marginTop: spacing.xl,

@@ -79,7 +79,7 @@ export default function VFXVisualLabScreen() {
   const semanticRole = resolveVFXLabSemanticRole(effect.family);
   const color = resolveVFXLabColor(effect, profile);
   const semanticTokens = VFX_VISUAL_PROFILES[profile].tokens;
-  const previewPalette = getVFXLabPreviewPalette(profile);
+  const previewPalette = useMemo(() => getVFXLabPreviewPalette(profile), [profile]);
   const contextEntries = Object.entries(descriptor.context);
   const visibleEffects = VFX_LAB_EFFECTS.filter((item) =>
     `${item.label} ${item.id} ${item.family}`.toLowerCase().includes(filter.toLowerCase())

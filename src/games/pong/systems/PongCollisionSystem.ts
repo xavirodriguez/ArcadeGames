@@ -15,6 +15,7 @@ export class PongCollisionSystem extends System<PongComponentRegistry> {
   private config: PongConfig;
   // Safe for determinism/rollback. Reusable Set avoids per-tick heap allocations during collision checks.
   private processedPairs = new Set<string>();
+  private juice?: JuiceOrchestrator;
 
   constructor(config: PongConfig) {
     super();

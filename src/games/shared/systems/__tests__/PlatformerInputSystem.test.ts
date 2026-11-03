@@ -25,6 +25,29 @@ describe("PlatformerInputSystem deterministic jump edges", () => {
     expect(world.getComponent(entity, "PlatformerInput")?.slideHeld).toBe(false);
   });
 
+  it("aggregates touch brake input and clears it when released", () => {
+    const world = new World<CoreComponentRegistry>();
+    const entity = world.createEntity();
+    const touch = new TouchInputState();
+    world.setResource("TouchInputState", touch);
+    world.addComponent(entity, {
+      type: "PlatformerInput",
+      moveDir: 0,
+      jumpPressed: false,
+      jumpHeld: false,
+      jumpReleased: false,
+      brakeActionHeld: false
+    });
+
+    touch.setButton("brake", true);
+    new PlatformerInputSystem().update(world, 1 / 60);
+    expect(world.getComponent(entity, "PlatformerInput")?.brake).toBe(true);
+
+    touch.setButton("brake", false);
+    new PlatformerInputSystem().update(world, 1 / 60);
+    expect(world.getComponent(entity, "PlatformerInput")?.brake).toBe(false);
+  });
+
   it("keeps held-button edge history across system recreation", () => {
     const world = new World<CoreComponentRegistry>();
     const entity = world.createEntity();

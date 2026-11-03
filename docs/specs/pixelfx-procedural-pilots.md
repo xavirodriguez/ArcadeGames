@@ -60,3 +60,18 @@ The five new compositions use the same TTL-derived animation progress and render
 - Asteroids muzzle flash is emitted only after a successful shot and is suppressed during rollback resimulation.
 - Asteroids shield crack listens to typed `combat:hit` and filters targets by the `Ship` component.
 - Hit & Run death ink burst is emitted from the victim Transform when still available; it is skipped during resimulation and uses the existing Sumi-e theme resource to choose ink black.
+
+
+## Third batch: five gameplay-specific compositions
+
+| Shape | Composition | Consumer |
+| --- | --- | --- |
+| `pixelfx_paddle_impact` | Compressed contact crescents and directional rebound chevrons | Pong paddle collision |
+| `pixelfx_brick_shatter` | Angular masonry fragments with short outward trajectories | Arkanoid `brick:shatter` |
+| `pixelfx_flap_gust` | Layered air crescents and feather-like slipstream strokes | Flappy Bird successful flap |
+| `pixelfx_hop` | Take-off crescent and separated ground-contact streaks | Frogger successful grid hop |
+| `pixelfx_phase_dash` | Offset afterimages and directional speed lines | Platformer successful dash |
+
+The renderer keeps the previous five procedural fallback drawers used by existing consumers and adds these five compositions, for thirteen registered shapes in total. Pong, Arkanoid, Flappy Bird and Frogger explicitly install the shared drawer set in their Canvas/Skia renderer bootstrap; Platformer already receives it through the shared VFX bootstrap.
+
+Each new effect is triggered at its gameplay transition and suppressed during rollback resimulation. Existing movement, collision, audio and game-feel responses remain in place.

@@ -94,7 +94,7 @@ export const JUICE_CATALOG: {
 } = {
   pong: {
     "ball:rally": { effect: "warp_lines", tint: colors.cyan, intensity: 1.0, scale: 1.0 },
-    "paddle:hit": { effect: "shockwave", tint: colors.cyan, scale: 0.8, ttl: 0.2, hitStopMs: 30, hitStopPriority: HitStopPriority.LOW, shakeIntensity: 1.5, shakeDurationMs: 40 },
+    "paddle:hit": { effect: "pixelfx_paddle_impact", tint: colors.cyan, scale: 0.9, ttl: 0.22, hitStopMs: 30, hitStopPriority: HitStopPriority.LOW, shakeIntensity: 1.5, shakeDurationMs: 40 },
     "goal:scored": { effect: "shockwave", tint: colors.danger, scale: 1.5, ttl: 0.5, hitStopMs: 100, hitStopPriority: HitStopPriority.HIGH, shakeIntensity: 4.0, shakeDurationMs: 120 }
   },
   asteroids: {

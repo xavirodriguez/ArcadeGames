@@ -68,24 +68,27 @@ describe("JuiceOrchestrator Unit Tests & Golden Replays", () => {
       const arcadeEntity = juice.spawnEffect({
         id: "combat-impact",
         family: "combat",
-        context: { impactX: 40, impactY: 60, intensity: 0.8, material: "metal" },
+        context: { impactX: 40, impactY: 60, direction: 0.5, intensity: 0.8, material: "metal" },
         primitive: "pixelfx_impact",
         profile: "arcade-neon",
-        presentation: { x: 40, y: 60, ttl: 0.25 }
+        presentation: { ttl: 0.25 }
       });
       const sumiEntity = juice.spawnEffect({
         id: "combat-impact-sumi",
         family: "combat",
-        context: { impactX: 40, impactY: 60, intensity: 0.8, material: "metal" },
+        context: { impactX: 40, impactY: 60, direction: 0.5, intensity: 0.8, material: "metal" },
         primitive: "pixelfx_impact",
         profile: "sumi-e",
-        presentation: { x: 40, y: 60, ttl: 0.25 }
+        presentation: { ttl: 0.25 }
       });
 
       expect(arcadeEntity).not.toBeNull();
       expect(sumiEntity).not.toBeNull();
       expect(world.getComponent(arcadeEntity as number, "Render")?.shape).toBe("pixelfx_impact");
       expect(world.getComponent(arcadeEntity as number, "Render")?.color).toBe(colors.danger);
+      expect(world.getComponent(arcadeEntity as number, "Transform")?.x).toBe(40);
+      expect(world.getComponent(arcadeEntity as number, "Transform")?.y).toBe(60);
+      expect(world.getComponent(arcadeEntity as number, "Transform")?.rotation).toBe(0.5);
       expect(world.getComponent(sumiEntity as number, "Render")?.color).toBe("#FF3B30");
       expect(world.getComponent(arcadeEntity as number, "TTL")?.remaining).toBe(0.25);
       expect(world.getComponent(sumiEntity as number, "TTL")?.remaining).toBe(0.25);

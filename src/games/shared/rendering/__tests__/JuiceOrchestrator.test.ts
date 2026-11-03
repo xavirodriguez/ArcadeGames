@@ -47,6 +47,22 @@ describe("JuiceOrchestrator Unit Tests & Golden Replays", () => {
     });
   });
 
+  it("does not spawn presentation effects or request hit-stop during rollback resimulation", () => {
+    world.isReSimulating = true;
+
+    const entity = juice.spawn("shockwave", {
+      x: 100,
+      y: 150,
+      hitStopMs: 120,
+      shakeIntensity: 4,
+      shakeDurationMs: 100
+    });
+
+    expect(entity).toBeNull();
+    expect(world.query("Render", "TTL")).toHaveLength(0);
+    expect(getVFXState(world).hitStopTimer).toBe(0);
+  });
+
   describe("FR-3: Hit-Stop Concurrency Control", () => {
     let hitStopSys: HitStopSystem;
 

@@ -12,6 +12,7 @@ import type {
   ShapeDrawer
 } from "@tiny-aster/core";
 import { CanvasDrawAdapter, SkiaDrawAdapter, type IDrawAdapter } from "./DrawAdapter";
+import { colors } from "../../../theme/colors";
 
 interface EffectState {
   progress: number;
@@ -37,7 +38,7 @@ function readEffectState(
     progress,
     alpha: Math.max(0, Math.min(1, ttl.remaining / ttl.timeLeft)) * opacity,
     size,
-    color: render.color ?? "#ffffff",
+    color: render.color ?? colors.white,
     rotation: transform?.rotation ?? 0
   };
 }
@@ -468,9 +469,9 @@ export function registerPixelFxProceduralVFX<TComponents extends CoreComponentRe
 
   for (const [name, drawEffect] of drawers) {
     if (renderer.type === "canvas") {
-      renderer.registerShape(name, canvasDrawer(drawEffect) as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      renderer.registerShape(name, canvasDrawer(drawEffect) as never);
     } else {
-      renderer.registerShape(name, skiaDrawer(drawEffect) as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      renderer.registerShape(name, skiaDrawer(drawEffect) as never);
     }
   }
 }

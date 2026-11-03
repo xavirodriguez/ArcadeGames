@@ -52,7 +52,7 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
         if (world.isReSimulating || !world.hasComponent(event.targetEntity, "Ship")) return;
         const transform = world.getComponent(event.targetEntity, "Transform");
         if (!transform) return;
-        this.juice ??= new JuiceOrchestrator(world as unknown as World<AsteroidsComponentRegistry>);
+        this.juice ??= new JuiceOrchestrator(world);
         this.juice.triggerEvent("asteroids", "ship:damage", {
           x: transform.x,
           y: transform.y
@@ -162,7 +162,7 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
     size: "large" | "medium" | "small" | "ship"
   ): void {
     const scale = size === "ship" || size === "large" ? 0.95 : size === "medium" ? 0.72 : 0.55;
-    new JuiceOrchestrator(world as unknown as World<AsteroidsComponentRegistry>).spawn("pixelfx_explosion", {
+    new JuiceOrchestrator(world).spawn("pixelfx_explosion", {
       x: transform.x,
       y: transform.y,
       scale,

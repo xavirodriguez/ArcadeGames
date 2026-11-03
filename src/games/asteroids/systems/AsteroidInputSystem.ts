@@ -122,7 +122,7 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
 
               // Cosmetic muzzle flash: never emit presentation entities during rollback replay.
               if (!world.isReSimulating) {
-                  this.juice ??= new JuiceOrchestrator(world as unknown as World<AsteroidsComponentRegistry>);
+                  this.juice ??= new JuiceOrchestrator(world);
                   this.juice.triggerEvent("asteroids", "ship:fire", {
                       x: transform.x + forward.x * 13,
                       y: transform.y + forward.y * 13,

@@ -66,6 +66,7 @@ export interface JuiceSpawnOptions extends BaseJuiceOptions {
  */
 export interface JuiceProfile extends BaseJuiceOptions {
   effect: SharedVFXPrimitiveName;
+  pixelFxId?: string;
 }
 
 export type SupportedGameId =
@@ -148,9 +149,9 @@ export const JUICE_CATALOG: {
 };
 
 export class JuiceOrchestrator<TComponents extends CoreComponentRegistry = CoreComponentRegistry> {
-  private world: World<TComponents>;
+  private world: World<TComponents, any, any>;
 
-  constructor(world: World<TComponents>) {
+  constructor(world: World<TComponents, any, any>) {
     this.world = world;
   }
 

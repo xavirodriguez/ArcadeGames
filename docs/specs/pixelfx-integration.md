@@ -24,7 +24,7 @@ Maps `pfx-*` → `sheetId`, `animation`, normalized `anchor`, `duration` (clip l
 
 ### Export
 
-`node tools/render.mjs <id> --sheet` → PNG + JSON.  
+`node tools/render.mjs <id> --sheet` → PNG + JSON.
 Adapter: `adaptPixelFXExport` (pivot array → anchor 0–1, duration = frames/fps).
 
 ### Rollback
@@ -33,7 +33,7 @@ Adapter: `adaptPixelFXExport` (pivot array → anchor 0–1, duration = frames/f
 
 ### Themes
 
-Build-time palette via PixelFX `--opts '{"palette":[...]}'`.  
+Build-time palette via PixelFX `--opts '{"palette":[...]}'`.
 `themeIdToVariant` selects which registered sheet id to use later.
 
 ## Non-goals (V1)

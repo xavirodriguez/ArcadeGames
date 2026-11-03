@@ -1,7 +1,7 @@
 # PIXELFX INTEGRATION AUDIT
 
-**Date:** 2026-11-03  
-**Repos:** ArcadeGames + patch-gg/pixelfx@0.3.0  
+**Date:** 2026-11-03
+**Repos:** ArcadeGames + patch-gg/pixelfx@0.3.0
 **Status:** Layer scaffold + export spike + Juice re-sim guard. Spritesheet assets not yet registered.
 
 ## Context

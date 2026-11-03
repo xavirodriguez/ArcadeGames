@@ -67,11 +67,11 @@ export class PlatformerDamageSystem extends System<CoreComponentRegistry> {
       if (!ground || !transform || !velocity) continue;
 
       const wasGrounded = this.previousGrounded.get(entity);
-      if (wasGrounded === false && ground.isGrounded && velocity.vy > 24) {
+      if (wasGrounded === false && ground.isGrounded) {
         this.juice.spawn("pixelfx_dust", {
           x: transform.x,
           y: transform.y + 12,
-          scale: Math.min(1.25, 0.65 + velocity.vy / 900),
+          scale: Math.min(1.25, 0.65 + Math.max(0, velocity.vy) / 900),
           tint: "#b6a58a",
           ttl: 0.32
         });

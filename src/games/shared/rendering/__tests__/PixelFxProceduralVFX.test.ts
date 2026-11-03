@@ -133,6 +133,11 @@ describe("PixelFX-inspired procedural VFX", () => {
     drawPixelFxMuzzle(adapter, world, 1);
     drawPixelFxShieldCrack(adapter, world, 1);
     drawPixelFxInkBurst(adapter, world, 1);
+    drawPixelFxPaddleImpact(adapter, world, 1);
+    drawPixelFxBrickShatter(adapter, world, 1);
+    drawPixelFxFlapGust(adapter, world, 1);
+    drawPixelFxHop(adapter, world, 1);
+    drawPixelFxPhaseDash(adapter, world, 1);
     expect(adapter.drawLine).not.toHaveBeenCalled();
     expect(adapter.drawArc).not.toHaveBeenCalled();
     expect(adapter.strokeCircle).not.toHaveBeenCalled();

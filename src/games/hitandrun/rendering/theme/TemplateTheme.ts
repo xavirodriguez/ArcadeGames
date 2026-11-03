@@ -9,6 +9,7 @@ import type {
   BannerRenderSnapshot,
   FeedbackEventSnapshot
 } from "./HitRunThemeTypes";
+import { drawThemeEntityContext } from "./HitRunThemeUtils";
 
 export const TEMPLATE_PALETTE: HitRunThemePaletteTokens = {
   primary: "#2b2b2b",
@@ -64,21 +65,17 @@ export class TemplateTheme implements HitRunTheme {
     snapshot: EntityRenderSnapshot,
     _elapsed: number
   ): void {
-    ctx.save();
-    ctx.translate(snapshot.x, snapshot.y);
-    this.renderGroundShadow(ctx, 0, 0, snapshot.size, snapshot.elevation);
-
-    ctx.save();
-    ctx.translate(0, -snapshot.elevation);
-    ctx.scale(snapshot.facing, 1);
-
-    ctx.fillStyle = snapshot.color || this.palette.primary;
-    ctx.beginPath();
-    ctx.arc(0, -snapshot.size * 0.5, snapshot.size * 0.5, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.restore();
-    ctx.restore();
+    drawThemeEntityContext(
+      ctx,
+      snapshot,
+      () => this.renderGroundShadow(ctx, 0, 0, snapshot.size, snapshot.elevation),
+      () => {
+        ctx.fillStyle = snapshot.color || this.palette.primary;
+        ctx.beginPath();
+        ctx.arc(0, -snapshot.size * 0.5, snapshot.size * 0.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    );
   }
 
   public renderProjectile(

@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Platform, ActivityIndicator } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { TouchVirtualJoystick, TouchActionButton } from "@/components/controls";
-import { TouchInputState } from "@tiny-aster/core";
+import { TouchInputState, type Renderer } from "@tiny-aster/core";
+import type { GalaxianComponentRegistry } from "@/games/galaxian/types/GalaxianTypes";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { GameRenderer } from "@/components/GameRenderer";
 import { DebugOverlay } from "@/components/debug/DebugOverlay";
@@ -124,13 +125,21 @@ export default function GalaxianScreen() {
                 <CanvasRenderer
                   world={game.getWorld()}
                   gameLoop={game.getGameLoop()}
-                  onInitialize={(renderer) => game.initializeRenderer(renderer)}
+                  onInitialize={(renderer) =>
+                    game.initializeRenderer(
+                      renderer as never as Renderer<GalaxianComponentRegistry>
+                    )
+                  }
                 />
               ) : (
                 <GameRenderer
                   world={game.getWorld()}
                   gameLoop={game.getGameLoop()}
-                  onInitialize={(renderer) => game.initializeRenderer(renderer)}
+                  onInitialize={(renderer) =>
+                    game.initializeRenderer(
+                      renderer as never as Renderer<GalaxianComponentRegistry>
+                    )
+                  }
                 />
               )
             }

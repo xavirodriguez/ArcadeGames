@@ -2,6 +2,7 @@ import { World, CoreComponentRegistry, Entity, Juice } from "@tiny-aster/core";
 import { colors } from "../../../theme/colors";
 import { getVFXState, VFXWorldState } from "./SharedVFXInternal";
 import { requestHitStop, HitStopPriority } from "./HitStopSystem";
+import { resolveVFXSemanticColor, VFX_VISUAL_PROFILES, type VFXEffectDescriptor } from "./VFXEffectIR";
 
 export type SharedVFXPrimitiveName =
   | "shockwave"
@@ -249,6 +250,19 @@ export class JuiceOrchestrator<TComponents extends CoreComponentRegistry = CoreC
     });
 
     return entity;
+  }
+
+  /**
+   * Dispatches a typed semantic effect through the existing Juice/ECS lifecycle.
+   * The descriptor adds meaning and profile resolution; spawn remains the sole
+   * entity, TTL, rollback and presentation-side-effect boundary.
+   */
+  public spawnEffect(descriptor: VFXEffectDescriptor): number | null {
+    const profile = VFX_VISUAL_PROFILES[descriptor.profile];
+    return this.spawn(descriptor.primitive, {
+      ...descriptor.presentation,
+      tint: resolveVFXSemanticColor(profile, descriptor.family)
+    });
   }
 
   /**

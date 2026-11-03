@@ -109,11 +109,10 @@ export class PongCollisionSystem extends System<PongComponentRegistry> {
               if (ballTransform) {
                 if (!world.isReSimulating) {
                   this.juice ??= new JuiceOrchestrator<PongComponentRegistry>(world);
-                  this.juice.spawn("pixelfx_paddle_impact", {
+                  this.juice.triggerEvent("pong", "paddle:hit", {
                     x: ballTransform.x,
                     y: ballTransform.y,
-                    rotation: Math.atan2(nextVy, nextVx),
-                    ttl: 0.22
+                    rotation: Math.atan2(nextVy, nextVx)
                   });
                 }
                 const hitColor = paddleComp.side === "left" ? "#FF00FF" : "#00FFFF";

@@ -5,6 +5,7 @@ import { getGlowStyle, renderCanvasGlow, renderSkiaGlow } from "./GlowSystem";
 import { ExplosionType, EXPLOSION_PROFILES } from "./ExplosionSystem";
 import { computeTrailParameters, getThrusterFlameColors } from "./MotionTrailSystem";
 import { IDrawAdapter, CanvasDrawAdapter, SkiaDrawAdapter } from "./DrawAdapter";
+import { registerPixelFxProceduralVFX } from "./PixelFxProceduralVFX";
 
 import {
   getVFXState,

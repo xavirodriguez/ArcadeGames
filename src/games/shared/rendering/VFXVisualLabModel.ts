@@ -21,6 +21,10 @@ import {
   drawPixelFxPaddleImpact,
   drawPixelFxPhaseDash,
   drawPixelFxPickup,
+  drawPixelFxRicochet,
+  drawPixelFxCharge,
+  drawPixelFxShieldPulse,
+  drawPixelFxTargetWarning,
   drawPixelFxShieldCrack,
   drawPixelFxSlash
 } from "./PixelFxProceduralVFX";
@@ -52,7 +56,11 @@ export const VFX_LAB_EFFECTS = [
   { id: "pixelfx_brick_shatter", label: "Brick Shatter", family: "combat", draw: drawPixelFxBrickShatter },
   { id: "pixelfx_flap_gust", label: "Flap Gust", family: "traversal", draw: drawPixelFxFlapGust },
   { id: "pixelfx_hop", label: "Hop", family: "traversal", draw: drawPixelFxHop },
-  { id: "pixelfx_phase_dash", label: "Phase Dash", family: "traversal", draw: drawPixelFxPhaseDash }
+  { id: "pixelfx_phase_dash", label: "Phase Dash", family: "traversal", draw: drawPixelFxPhaseDash },
+  { id: "pixelfx_ricochet", label: "Ricochet", family: "combat", draw: drawPixelFxRicochet },
+  { id: "pixelfx_charge", label: "Charge", family: "combat", draw: drawPixelFxCharge },
+  { id: "pixelfx_shield_pulse", label: "Shield Pulse", family: "combat", draw: drawPixelFxShieldPulse },
+  { id: "pixelfx_target_warning", label: "Target Warning", family: "combat", draw: drawPixelFxTargetWarning }
 ] as const satisfies readonly VFXLabEffect[];
 
 export type VFXLabEffectId = (typeof VFX_LAB_EFFECTS)[number]["id"];
@@ -84,7 +92,11 @@ export const VFX_LAB_PRESETS: readonly VFXLabPreset[] = [
   { schemaVersion: 1, id: "impact-neon", label: "Impact / Neon", effect: "pixelfx_impact", profile: "arcade-neon", progress: 0.28, size: 48, rotation: 0, seed: 104729 },
   { schemaVersion: 1, id: "ink-burst-sumi", label: "Ink Burst / Sumi-e", effect: "pixelfx_ink_burst", profile: "sumi-e", progress: 0.62, size: 60, rotation: 0.35, seed: 130363 },
   { schemaVersion: 1, id: "phase-dash-neon", label: "Phase Dash", effect: "pixelfx_phase_dash", profile: "arcade-neon", progress: 0.18, size: 42, rotation: -0.45, seed: 155921 },
-  { schemaVersion: 1, id: "hop-sumi", label: "Hop / Sumi-e", effect: "pixelfx_hop", profile: "sumi-e", progress: 0.4, size: 38, rotation: -1.2, seed: 196613 }
+  { schemaVersion: 1, id: "hop-sumi", label: "Hop / Sumi-e", effect: "pixelfx_hop", profile: "sumi-e", progress: 0.4, size: 38, rotation: -1.2, seed: 196613 },
+  { schemaVersion: 1, id: "ricochet-neon", label: "Ricochet / Neon", effect: "pixelfx_ricochet", profile: "arcade-neon", progress: 0.34, size: 46, rotation: -0.62, seed: 223117 },
+  { schemaVersion: 1, id: "charge-neon", label: "Charge / Neon", effect: "pixelfx_charge", profile: "arcade-neon", progress: 0.22, size: 54, rotation: 0, seed: 246271 },
+  { schemaVersion: 1, id: "shield-pulse-sumi", label: "Shield Pulse / Sumi-e", effect: "pixelfx_shield_pulse", profile: "sumi-e", progress: 0.42, size: 58, rotation: 0.3, seed: 270371 },
+  { schemaVersion: 1, id: "target-warning-neon", label: "Target Warning / Neon", effect: "pixelfx_target_warning", profile: "arcade-neon", progress: 0.18, size: 50, rotation: 0.18, seed: 293867 }
 ];
 
 const SEMANTIC_ROLE_BY_FAMILY: Record<VFXFamily, VFXLabSemanticRole> = {

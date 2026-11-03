@@ -153,3 +153,14 @@ Therefore #1040/#1041 are not outstanding merge conflicts or duplicate open PRs.
 The merge-reconciliation blocker is closed. The two concrete correctness issues above are addressed in the follow-up code changes and must pass focused Jest/typecheck/CI before PR 2. Sprite-sheet asset registration and Canvas/Skia SpriteAnimator parity remain separate PixelFX sprite-path blockers; they do not block procedural Effect IR design unless PR 2 explicitly depends on sprite-backed effects.
 
 The repository connector does not execute tests. The follow-up changes are committed to a branch for CI/local validation; no test execution is claimed here.
+
+
+### Additional architecture correction — hit-stop ownership
+
+The prior wording that implied `HitStopSystem` already delegates to core `GameplayFreeze` is incorrect and is superseded. The existing consolidation ledger and source show two distinct paths:
+
+- `HitStopSystem.requestHitStop` updates `VFXWorldState.hitStopTimer`, priority and cooldown. Its update method decrements that timer.
+- Core `Schedule.update()` freezes simulation based on the core `GameplayFreeze` resource.
+- Hit & Run feedback uses `enterGameplayFreeze` / `getGameplayFreezeRemaining` directly, while `JuiceOrchestrator.spawn` requests the separate VFX timer.
+
+The two paths are not yet a single canonical mechanism. PR 1 therefore records **hit-stop consolidation as an architectural gap**, not as a capability already solved. Do not add a third mechanism. Before VFX Combat profiles rely on hit-stop, reconcile the priority/cooldown policy with core `GameplayFreeze` and add an end-to-end schedule test. This should be coordinated with the existing Juice consolidation roadmap rather than implemented as an unrelated VFX scheduler.

@@ -161,9 +161,6 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
     transform: { x: number; y: number },
     size: "large" | "medium" | "small" | "ship"
   ): void {
-    // Presentation effects must not be duplicated by rollback resimulation.
-    if (world.isReSimulating) return;
-
     const scale = size === "ship" || size === "large" ? 0.95 : size === "medium" ? 0.72 : 0.55;
     new JuiceOrchestrator(world as unknown as World<AsteroidsComponentRegistry>).spawn("pixelfx_explosion", {
       x: transform.x,

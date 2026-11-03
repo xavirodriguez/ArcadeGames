@@ -2,8 +2,13 @@ import type { CoreComponentRegistry, Renderer, RenderContext } from "@tiny-aster
 import { registerPixelFxProceduralVFX } from "../PixelFxProceduralVFX";
 import {
   createVFXLabDescriptor,
+  createVFXLabPreset,
+  parseVFXLabPreset,
   resolveVFXLabColor,
-  VFX_LAB_EFFECTS
+  resolveVFXLabSemanticRole,
+  serializeVFXLabPreset,
+  VFX_LAB_EFFECTS,
+  VFX_LAB_PRESETS
 } from "../VFXVisualLabModel";
 
 describe("VFX Visual Lab model", () => {
@@ -34,11 +39,44 @@ describe("VFX Visual Lab model", () => {
     }
   });
 
-  it("resolves the same drawer to each semantic visual profile", () => {
+  it("resolves semantic family roles and profile colors", () => {
+    const expectedRoles = { combat: "warning", traversal: "energy", interaction: "reward" };
+    for (const effect of VFX_LAB_EFFECTS) {
+      expect(resolveVFXLabSemanticRole(effect.family)).toBe(expectedRoles[effect.family]);
+    }
     const impact = VFX_LAB_EFFECTS.find((effect) => effect.id === "pixelfx_impact");
     if (!impact) throw new Error("Impact drawer missing from Visual Lab catalog");
     expect(resolveVFXLabColor(impact, "arcade-neon")).not.toBe(
       resolveVFXLabColor(impact, "sumi-e")
     );
+  });
+
+  it("round-trips a complete reproducible preset", () => {
+    const preset = createVFXLabPreset("Impact test", {
+      effect: "pixelfx_impact",
+      profile: "sumi-e",
+      progress: 0.42,
+      size: 64,
+      rotation: -0.75,
+      seed: 0xdecafbad
+    });
+    expect(parseVFXLabPreset(serializeVFXLabPreset(preset))).toEqual(preset);
+  });
+
+  it("ships stable preset ids and complete versioned settings", () => {
+    expect(new Set(VFX_LAB_PRESETS.map((preset) => preset.id)).size).toBe(VFX_LAB_PRESETS.length);
+    for (const preset of VFX_LAB_PRESETS) {
+      expect(preset.schemaVersion).toBe(1);
+      expect(parseVFXLabPreset(serializeVFXLabPreset(preset))).toEqual(preset);
+    }
+  });
+
+  it("rejects unknown effects, unsupported schemas and invalid ranges", () => {
+    const valid = VFX_LAB_PRESETS[0];
+    expect(() => parseVFXLabPreset(JSON.stringify({ ...valid, effect: "pixelfx_unknown" }))).toThrow();
+    expect(() => parseVFXLabPreset(JSON.stringify({ ...valid, schemaVersion: 2 }))).toThrow();
+    expect(() => parseVFXLabPreset(JSON.stringify({ ...valid, progress: 1.5 }))).toThrow();
+    expect(() => parseVFXLabPreset(JSON.stringify({ ...valid, size: Number.NaN }))).toThrow();
+    expect(() => parseVFXLabPreset("[]")).toThrow();
   });
 });

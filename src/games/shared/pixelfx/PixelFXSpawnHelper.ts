@@ -1,10 +1,5 @@
 /**
  * Thin helper: Juice profile with optional pixelFxId → existing ECS presentation entity.
- *
- * V1 policy:
- * - Prefer SharedVFX / procedural shape already registered (`profile.effect`).
- * - Manifest supplies duration/scale when pixelFxId is present.
- * - isReSimulating is enforced inside JuiceOrchestrator.spawn (returns null).
  */
 
 import type {
@@ -26,11 +21,6 @@ export interface SpawnFromProfileContext {
   lowStimulationMode?: boolean;
 }
 
-/**
- * Spawn using a JuiceProfile. When pixelFxId is set, resolve the manifest for
- * duration/scale hints; visual still goes through the orchestrator shape until
- * spritesheets are registered in SPRITE_SHEET_CATALOG.
- */
 export function spawnFromJuiceProfile(
   juice: JuiceOrchestrator,
   profile: JuiceProfile,

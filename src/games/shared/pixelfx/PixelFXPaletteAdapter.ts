@@ -12,9 +12,6 @@
 
 import type { PixelFXThemeVariant, PixelFXManifestEntry } from "./PixelFXTypes";
 
-/**
- * Map ArcadeGames theme / aesthetic tags onto PixelFXThemeVariant.
- */
 export function themeIdToVariant(themeId: string | undefined): PixelFXThemeVariant {
   if (!themeId) return "default";
   const t = themeId.toLowerCase();
@@ -25,10 +22,6 @@ export function themeIdToVariant(themeId: string | undefined): PixelFXThemeVaria
   return "default";
 }
 
-/**
- * Resolve the concrete sheetId for an entry + variant.
- * Falls back to the default sheetId when the variant was not exported.
- */
 export function selectSheetForVariant(
   entry: PixelFXManifestEntry,
   variant: PixelFXThemeVariant
@@ -37,10 +30,6 @@ export function selectSheetForVariant(
   return entry.variants?.[variant] ?? entry.sheetId;
 }
 
-/**
- * Documented build-time palette ramps for the export spike.
- * Used by tooling / scripts, not at runtime draw time.
- */
 export const BUILD_TIME_PALETTE_HINTS: Record<
   PixelFXThemeVariant,
   readonly string[]

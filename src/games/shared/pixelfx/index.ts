@@ -1,13 +1,5 @@
 /**
  * PixelFX Integration Layer — Public API (V1 minimal)
- *
- * Intentionally thin:
- * - Manifest + resolve
- * - Export JSON → sheet meta adapter (pivot → anchor)
- * - Theme variant selection (build-time sheets)
- *
- * Deferred: InstanceManager, procedural Runtime.
- * Image ownership: existing SpriteRegistry / SPRITE_SHEET_CATALOG.
  */
 
 export type {
@@ -64,9 +56,8 @@ export {
   assertPilotCoverage,
 } from "./PixelFXValidation";
 
-// Deferred markers (do not use in V1 paths)
-export { PIXELFX_INSTANCE_MANAGER_DEFERRED } from "./PixelFXInstanceManager";
-export { PIXELFX_RUNTIME_DEFERRED } from "./PixelFXRuntime";
-
 export { spawnFromJuiceProfile } from "./PixelFXSpawnHelper";
 export type { SpawnFromProfileContext } from "./PixelFXSpawnHelper";
+
+export { PIXELFX_INSTANCE_MANAGER_DEFERRED } from "./PixelFXInstanceManager";
+export { PIXELFX_RUNTIME_DEFERRED } from "./PixelFXRuntime";

@@ -22,8 +22,8 @@ The `momentum` profile remains the only campaign profile. Its passive decelerati
 
 - Normal ground → six tiles of ice → normal ground.
 - Elastic bounce tile (tile 7), resolved through the existing `elastic` PhysicsMaterial preset (`restitution: 0.82`).
-- A four-tile one-way platform elevated one tile above the approach floor.
-- Empty space below the one-way platform, so the landing must be resolved by the one-way contact rather than by an overlapping lower floor.
+- A short drop from the normal runway onto the elastic pad, followed by a four-tile floating one-way platform at the same nominal floor height.
+- The bounce lifts the player through the one-way platform; the platform has no solid floor below it, so the descending landing must be resolved by the one-way contact.
 - Normal exit ground after the platform.
 
 Tile 3 keeps its legacy bounce behavior. Tile 7 is a distinct elastic material variant, avoiding an implicit behavior change to existing maps.

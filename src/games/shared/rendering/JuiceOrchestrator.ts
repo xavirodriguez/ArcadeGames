@@ -2,7 +2,7 @@ import { World, CoreComponentRegistry, Entity, Juice } from "@tiny-aster/core";
 import { colors } from "../../../theme/colors";
 import { getVFXState, VFXWorldState } from "./SharedVFXInternal";
 import { requestHitStop, HitStopPriority } from "./HitStopSystem";
-import { resolveVFXSemanticColor, VFX_VISUAL_PROFILES, type VFXEffectDescriptor } from "./VFXEffectIR";
+import { resolveVFXPlacement, resolveVFXSemanticColor, VFX_VISUAL_PROFILES, type VFXEffectDescriptor } from "./VFXEffectIR";
 
 export type SharedVFXPrimitiveName =
   | "shockwave"
@@ -260,7 +260,7 @@ export class JuiceOrchestrator<TComponents extends CoreComponentRegistry = CoreC
   public spawnEffect(descriptor: VFXEffectDescriptor): number | null {
     const profile = VFX_VISUAL_PROFILES[descriptor.profile];
     return this.spawn(descriptor.primitive, {
-      ...descriptor.presentation,
+      ...resolveVFXPlacement(descriptor),
       tint: resolveVFXSemanticColor(profile, descriptor.family)
     });
   }

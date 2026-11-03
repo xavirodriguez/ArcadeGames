@@ -60,6 +60,7 @@ export interface PlatformerInput {
   jump: boolean;
   dash?: boolean;
   slide?: boolean;
+  brake?: boolean;
   [key: string]: unknown;
 }
 
@@ -434,7 +435,7 @@ export const PlatformerDefinition: GameDefinition = {
     return game;
   },
   inputSchema: {
-    actions: ["moveLeft", "moveRight", "jump", "dash", "slide"]
+    actions: ["moveLeft", "moveRight", "jump", "dash", "slide", "brake"]
   },
   assets: {
     sprites: [],

@@ -27,6 +27,7 @@ import {
  */
 import { CombatHitListenerSystem } from "../combat/CombatHitListenerSystem";
 import { JuiceOrchestrator } from "../../shared/rendering/JuiceOrchestrator";
+import { SUMI_E_THEME_RESOURCE } from "../presentation/ThemeAssetIds";
 
 export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPayload> {
   private config: HitRunFeedbackConfig;
@@ -202,7 +203,7 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
             ? Math.atan2(target.y - source.y, target.x - source.x)
             : target.rotation ?? 0;
           this.juice ??= new JuiceOrchestrator(world);
-          const isSumiE = world.getResource<boolean>("SumiETheme") === true;
+          const isSumiE = world.getResource<boolean>(SUMI_E_THEME_RESOURCE) === true;
           this.juice.spawn("pixelfx_slash", {
             x: target.x,
             y: target.y,

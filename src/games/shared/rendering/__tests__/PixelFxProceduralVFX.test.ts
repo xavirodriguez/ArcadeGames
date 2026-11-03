@@ -151,7 +151,7 @@ describe("PixelFX-inspired procedural VFX", () => {
       registerShape
     } as unknown as Renderer<CoreComponentRegistry, RenderContext>;
     registerPixelFxProceduralVFX(renderer);
-    expect(registerShape).toHaveBeenCalledTimes(8);
+    expect(registerShape).toHaveBeenCalledTimes(13);
     expect(registerShape.mock.calls.map(([name]) => name)).toEqual([
       "pixelfx_impact",
       "pixelfx_slash",
@@ -160,7 +160,12 @@ describe("PixelFX-inspired procedural VFX", () => {
       "pixelfx_pickup",
       "pixelfx_muzzle",
       "pixelfx_shield_crack",
-      "pixelfx_ink_burst"
+      "pixelfx_ink_burst",
+      "pixelfx_paddle_impact",
+      "pixelfx_brick_shatter",
+      "pixelfx_flap_gust",
+      "pixelfx_hop",
+      "pixelfx_phase_dash"
     ]);
   });
 
@@ -171,7 +176,7 @@ describe("PixelFX-inspired procedural VFX", () => {
       registerShape
     } as unknown as Renderer<CoreComponentRegistry, RenderContext>;
     registerPixelFxProceduralVFX(renderer);
-    expect(registerShape).toHaveBeenCalledTimes(3);
+    expect(registerShape).toHaveBeenCalledTimes(13);
     expect(registerShape.mock.calls.map(([name]) => name)).toEqual([
       "pixelfx_impact",
       "pixelfx_slash",
@@ -180,7 +185,12 @@ describe("PixelFX-inspired procedural VFX", () => {
       "pixelfx_pickup",
       "pixelfx_muzzle",
       "pixelfx_shield_crack",
-      "pixelfx_ink_burst"
+      "pixelfx_ink_burst",
+      "pixelfx_paddle_impact",
+      "pixelfx_brick_shatter",
+      "pixelfx_flap_gust",
+      "pixelfx_hop",
+      "pixelfx_phase_dash"
     ]);
   });
 });

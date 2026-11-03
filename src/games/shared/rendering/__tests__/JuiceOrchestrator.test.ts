@@ -63,6 +63,50 @@ describe("JuiceOrchestrator Unit Tests & Golden Replays", () => {
     expect(getVFXState(world).hitStopTimer).toBe(0);
   });
 
+  describe("VFX Architecture 2.0 Foundation", () => {
+    it("resolves semantic profiles while reusing the existing primitive and TTL lifecycle", () => {
+      const arcadeEntity = juice.spawnEffect({
+        id: "combat-impact",
+        family: "combat",
+        context: { impactX: 40, impactY: 60, intensity: 0.8, material: "metal" },
+        primitive: "pixelfx_impact",
+        profile: "arcade-neon",
+        presentation: { x: 40, y: 60, ttl: 0.25 }
+      });
+      const sumiEntity = juice.spawnEffect({
+        id: "combat-impact-sumi",
+        family: "combat",
+        context: { impactX: 40, impactY: 60, intensity: 0.8, material: "metal" },
+        primitive: "pixelfx_impact",
+        profile: "sumi-e",
+        presentation: { x: 40, y: 60, ttl: 0.25 }
+      });
+
+      expect(arcadeEntity).not.toBeNull();
+      expect(sumiEntity).not.toBeNull();
+      expect(world.getComponent(arcadeEntity as number, "Render")?.shape).toBe("pixelfx_impact");
+      expect(world.getComponent(arcadeEntity as number, "Render")?.color).toBe(colors.danger);
+      expect(world.getComponent(sumiEntity as number, "Render")?.color).toBe("#FF3B30");
+      expect(world.getComponent(arcadeEntity as number, "TTL")?.remaining).toBe(0.25);
+      expect(world.getComponent(sumiEntity as number, "TTL")?.remaining).toBe(0.25);
+    });
+
+    it("keeps semantic dispatch silent during rollback resimulation", () => {
+      world.isReSimulating = true;
+      const entity = juice.spawnEffect({
+        id: "rollback-impact",
+        family: "combat",
+        context: { intensity: 1 },
+        primitive: "pixelfx_impact",
+        profile: "arcade-neon",
+        presentation: { x: 10, y: 20, ttl: 0.2, }
+      });
+      expect(entity).toBeNull();
+      expect(world.query("Render", "TTL")).toHaveLength(0);
+      expect(getVFXState(world).hitStopTimer).toBe(0);
+    });
+  });
+
   describe("FR-3: Hit-Stop Concurrency Control", () => {
     let hitStopSys: HitStopSystem;
 

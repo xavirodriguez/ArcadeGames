@@ -27,6 +27,7 @@ import {
   SHARED_AUDIO_MANIFEST
 } from "@tiny-aster/core";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
+import { registerPixelFxProceduralVFX } from "../shared/rendering/PixelFxProceduralVFX";
 import { CombatSystem, CollisionLayers, AchievementSystem, PowerUpSystem, SharedParticlePool } from "@tiny-aster/gameplay-kit";
 import { ComboSystem } from "@tiny-aster/core";
 import { BENEFICIAL_MUTATORS } from "../../utils/MutatorRegistry";

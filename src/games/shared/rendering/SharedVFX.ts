@@ -22,6 +22,19 @@ import {
 export * from "./SharedVFXInternal";
 export type { IDrawAdapter };
 export { CanvasDrawAdapter, SkiaDrawAdapter };
+export { VFX_VISUAL_PROFILES, resolveVFXPlacement, resolveVFXSemanticColor } from "./VFXEffectIR";
+export type {
+  CombatVFXContext,
+  InteractionVFXContext,
+  TemporalVFXContext,
+  TraversalVFXContext,
+  VFXEffectDescriptor,
+  VFXFamily,
+  VFXPresentationPlacement,
+  VFXSemanticTokens,
+  VFXVisualProfile,
+  VFXVisualProfileId
+} from "./VFXEffectIR";
 
 import { ScrollingStarfieldEffect, SkiaScrollingStarfieldEffect } from "./layers/ScrollingStarfieldLayer";
 import { DriftingNebulaBackgroundEffect, SkiaDriftingNebulaBackgroundEffect } from "./layers/DriftingNebulaLayer";

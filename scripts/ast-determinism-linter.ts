@@ -82,12 +82,12 @@ for (const sourceFile of project.getSourceFiles()) {
   // calls such as world.createEntity() are not reported as violations.
   const isDeterminismSensitive = isDeterminismSensitiveSource(relativePath);
   const isSystemOrSimulation = isStructuralMutationSensitiveSource(relativePath);
-  const isGameRandomnessSensitive = isVisualRandomnessSensitiveSource(relativePath);
+  const isGameRandomnessSensitive = isGameRandomnessSensitiveSource(relativePath);
 
-  if ((isDeterminismSensitive || isSystemOrSimulation || isVisualRandomnessSensitive) && !isTestFile) {
+  if ((isDeterminismSensitive || isSystemOrSimulation || isGameRandomnessSensitive) && !isTestFile) {
     // Traverse descendants of the file
     sourceFile.forEachDescendant(node => {
-      // Rule 3: Unseeded randomness in simulation, gameplay and presentation; uncontrolled clocks in simulation.
+      // Rule 3: Unseeded randomness across game source and deterministic gameplay; uncontrolled clocks in deterministic gameplay.
       if (node.getKind() === SyntaxKind.CallExpression) {
         const callExpr = node as CallExpression;
         const expr = callExpr.getExpression();
@@ -97,7 +97,7 @@ for (const sourceFile of project.getSourceFiles()) {
           const propName = propAccess.getName();
 
           const usesUnseededRandom = callerText === "Math" && propName === "random" &&
-            (isDeterminismSensitive || isVisualRandomnessSensitive);
+            (isDeterminismSensitive || isGameRandomnessSensitive);
           const usesUncontrolledClock = isDeterminismSensitive &&
             ((callerText === "Date" && propName === "now") ||
               (callerText === "performance" && propName === "now"));

@@ -1,5 +1,5 @@
 import { System, World, Entity, EventBus, CoreComponentRegistry, WorldUtils, WorldCommandBuffer } from "@tiny-aster/core";
-import { DamageComponent, FactionComponent } from "../components/CombatComponents";
+import { DamageComponent, FactionComponent, ShieldComponent } from "../components/CombatComponents";
 
 /**
  * CombatSystem processes physical collision contacts and resolves damage and faction rules.
@@ -123,13 +123,9 @@ export class CombatSystem<
     // 4. Explicit shield absorption is a combat rule, not a presentation-side invulnerability flag.
     // Structural lookup keeps CombatSystem compatible with games that do not declare Shield.
     const shieldKey = "Shield" as Extract<keyof TComponents, string>;
-    const shield = world.getComponent(target, shieldKey) as
-      | { charges: number; rechargeRemaining: number; rechargeSeconds: number }
-      | undefined;
+    const shield = world.getComponent(target, shieldKey) as ShieldComponent | undefined;
     if (shield && shield.charges > 0) {
-      const mutableShield = world.getMutableComponent(target, shieldKey) as
-        | { charges: number; rechargeRemaining: number; rechargeSeconds: number }
-        | undefined;
+      const mutableShield = world.getMutableComponent(target, shieldKey) as ShieldComponent | undefined;
       if (mutableShield) {
         mutableShield.charges = Math.max(0, mutableShield.charges - 1);
         mutableShield.rechargeRemaining = Math.max(0, mutableShield.rechargeSeconds);

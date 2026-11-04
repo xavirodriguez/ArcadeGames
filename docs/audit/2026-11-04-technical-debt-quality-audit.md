@@ -50,9 +50,10 @@ The original AST linter scans `packages/core/src` and `src/games`, but applies t
 This branch expands the deterministic source scope to:
 - all production TypeScript under `packages/gameplay-kit/src`;
 - `systems/`, `simulation/`, `factory(s)/`, `blueprint(s)/` and `entities/` paths;
-- root-level files whose names include `Factory` or `Blueprint`.
+- root-level files whose names include `Factory` or `Blueprint`;
+- `Math.random()` checks in game `rendering/` and `presentation/` paths, where visual randomness must use an injected `world.renderRandom`.
 
-Tests and mocks are excluded consistently. Structural-mutation checks remain limited to systems and simulation, because factories legitimately create and initialize entities.
+The clock rules remain limited to deterministic gameplay/simulation sources, avoiding false positives from render timing and UI instrumentation. Tests and mocks are excluded consistently. Structural-mutation checks remain limited to systems and simulation, because factories legitimately create and initialize entities.
 
 ### Test inventory
 
@@ -66,11 +67,12 @@ The root `jest.config.cjs` already registers Jest projects for all 16 game modul
 ## Work started in this branch
 
 1. Added a testable path-classification module and regression tests for gameplay systems, factories, blueprints, gameplay-kit, test/mocks exclusion and the separation of structural-mutation rules.
-2. Expanded the AST linter's source coverage.
-3. Changed `SpawnRequest.args` from `Record<string, any>` to `Record<string, unknown>` and removed its redundant `as any` call-site assertion in `SpawnDirectorSystem`.
-4. Added the classification test command to ECS Sentinel CI.
-5. Added a 14-day workflow artifact for the raw JSCPD JSON/Markdown reports.
-6. Updated the PRD to describe the expanded deterministic guard.
+2. Expanded the AST linter's source coverage, including seeded-RNG enforcement in game rendering/presentation code.
+3. Removed the implicit `Math.random()` fallback from `computeMotionSecondaryEffect`; all non-empty effects now require an injected RNG. Added seeded regression tests for flame, exhaust-smoke and dust-trail geometry.
+4. Changed `SpawnRequest.args` from `Record<string, any>` to `Record<string, unknown>` and removed its redundant `as any` call-site assertion in `SpawnDirectorSystem`.
+5. Added the classification test command to ECS Sentinel CI.
+6. Added a 14-day workflow artifact for the raw JSCPD JSON/Markdown reports.
+7. Updated the PRD to describe the expanded deterministic guard.
 
 ## Remaining phases
 

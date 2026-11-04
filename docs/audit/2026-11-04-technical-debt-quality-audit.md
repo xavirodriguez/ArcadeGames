@@ -68,8 +68,7 @@ The root `jest.config.cjs` already registers Jest projects for all 16 game modul
 1. Added a testable path-classification module and regression tests for gameplay systems, factories, blueprints, gameplay-kit, test/mocks exclusion and the separation of structural-mutation rules.
 2. Expanded the AST linter's source coverage.
 3. Changed `SpawnRequest.args` from `Record<string, any>` to `Record<string, unknown>` and removed its redundant `as any` call-site assertion in `SpawnDirectorSystem`.
-4.
-3. Added the classification test command to ECS Sentinel CI.
+4. Added the classification test command to ECS Sentinel CI.
 5. Added a 14-day workflow artifact for the raw JSCPD JSON/Markdown reports.
 6. Updated the PRD to describe the expanded deterministic guard.
 

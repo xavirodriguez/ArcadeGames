@@ -7,7 +7,8 @@ import {
   type VFXEffectDescriptor,
   type VFXFamily,
   type VFXSemanticTokens,
-  type VFXVisualProfileId
+  type VFXVisualProfileId,
+  type TraversalVFXContext
 } from "./VFXEffectIR";
 import {
   drawPixelFxBrickShatter,
@@ -130,8 +131,15 @@ export function createVFXLabDescriptor(
   switch (effect.family) {
     case "combat":
       return { ...base, family: "combat", context: { direction: rotation, impactX: 0, impactY: 0, material: "energy" } };
-    case "traversal":
-      return { ...base, family: "traversal", context: { velocityX: Math.cos(rotation), velocityY: Math.sin(rotation), surface: "air", phase: "dash" } };
+    case "traversal": {
+      const phase: TraversalVFXContext["phase"] =
+        effect.id === "pixelfx_teleport" ? "teleport" :
+        effect.id === "pixelfx_surface_skid" ? "slide" :
+        effect.id === "pixelfx_mechanical_motion" ? "mechanical" : "dash";
+      const surface: TraversalVFXContext["surface"] =
+        effect.id === "pixelfx_surface_skid" || effect.id === "pixelfx_mechanical_motion" ? "ground" : "air";
+      return { ...base, family: "traversal", context: { velocityX: Math.cos(rotation), velocityY: Math.sin(rotation), surface, phase } };
+    }
     case "interaction":
       return { ...base, family: "interaction", context: { medium: "pickup" } };
     case "temporal":

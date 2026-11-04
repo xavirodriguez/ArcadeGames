@@ -37,14 +37,13 @@ export class RoadAdvanceSystem extends System<OutrunComponentRegistry, OutrunEve
       if (phase === "finished" || state.isGameOver) return;
 
       if (phase === "countdown") {
-        const countdown = Math.max(
-          0,
-          (state.countdownTime ?? config.countdownDurationSeconds) - elapsed
-        );
-        state.countdownTime = countdown;
-        if (countdown === 0) {
+        const currentCountdown = state.countdownTime ?? config.countdownDurationSeconds;
+        if (currentCountdown <= 0) {
+          state.countdownTime = 0;
           state.racePhase = "racing";
+          return;
         }
+        state.countdownTime = Math.max(0, currentCountdown - elapsed);
         return;
       }
 
@@ -78,12 +77,9 @@ export class RoadAdvanceSystem extends System<OutrunComponentRegistry, OutrunEve
       state.checkpointsPassed = checkpointsPassed;
 
       state.playerZ = Math.min(nextZ, trackLength);
-      const segmentZ = Math.min(state.playerZ, trackLength - Number.EPSILON);
-      const segmentIndex = findSegmentIndexAtZ(
-        roadData.segments,
-        segmentZ,
-        trackLength
-      );
+      const segmentIndex = state.playerZ >= trackLength
+        ? roadData.segments.length - 1
+        : findSegmentIndexAtZ(roadData.segments, state.playerZ, trackLength);
       state.currentSegment = segmentIndex;
 
       const curve = roadData.segments[segmentIndex]?.curve ?? 0;

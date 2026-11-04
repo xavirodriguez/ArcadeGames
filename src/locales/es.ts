@@ -225,7 +225,7 @@ export const es = {
     }
   },
   platformer: {
-    instructions: "A/D o Flechas: Mover  |  W/Espacio/Flecha Arriba: Saltar",
+    instructions: "A/D o Flechas: Mover  |  W/Espacio/Flecha Arriba: Saltar  |  Shift/K: Dash  |  S/Abajo: Deslizar  |  B: Frenar",
     start_run: "INICIAR NIVEL",
     level: "NIVEL",
     score: "PUNTAJE",

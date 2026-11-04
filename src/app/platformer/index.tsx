@@ -92,13 +92,15 @@ function PlatformerContent() {
       const jump = activeKeys.has("ArrowUp") || activeKeys.has("KeyW") || activeKeys.has("Space");
       const dash = activeKeys.has("KeyK") || activeKeys.has("ShiftLeft");
       const slide = activeKeys.has("KeyS") || activeKeys.has("ArrowDown");
+      const brake = activeKeys.has("KeyB");
 
       game.setInputState({
         moveLeft,
         moveRight,
         jump,
         dash,
-        slide
+        slide,
+        brake
       });
     };
 
@@ -130,6 +132,10 @@ function PlatformerContent() {
     game?.setInputState({ slide: pressed });
   };
 
+  const handleTouchBrake = (pressed: boolean) => {
+    game?.setInputState({ brake: pressed });
+  };
+
   const handleTouchDash = () => {
     game?.setInputState({ dash: true });
     setTimeout(() => game?.setInputState({ dash: false }), 50);
@@ -151,7 +157,7 @@ function PlatformerContent() {
 
         <GameInstructions>
           {Platform.OS === "web"
-            ? (t.platformer?.instructions || "A/D o Flechas: Mover | W/Espacio: Saltar | Shift/K: Dash | S/Abajo: Deslizar")
+            ? (t.platformer?.instructions || "A/D o Flechas: Mover | W/Espacio: Saltar | Shift/K: Dash | S/Abajo: Deslizar | B: Frenar")
             : t.common.touch_controls}
         </GameInstructions>
 
@@ -274,6 +280,22 @@ function PlatformerContent() {
                   onPressOut={() => handleTouchSlide(false)}
                   accessibilityLabel="Slide"
                   accessibilityHint="Deslizarse bajo obstáculos bajos"
+                  style={{ marginHorizontal: spacing.sm }}
+                />
+                <TouchActionButton
+                  label="BRAKE"
+                  buttonName="brake"
+                  touchState={touchStateRef.current ?? undefined}
+                  size={52}
+                  color="rgba(127, 29, 29, 0.55)"
+                  borderColor="rgba(248, 113, 113, 0.9)"
+                  pressedColor="rgba(127, 29, 29, 0.9)"
+                  pressedBorderColor={colors.white}
+                  haptic="light"
+                  onPressIn={() => handleTouchBrake(true)}
+                  onPressOut={() => handleTouchBrake(false)}
+                  accessibilityLabel="Brake"
+                  accessibilityHint="Reduces horizontal momentum while held"
                   style={{ marginHorizontal: spacing.sm }}
                 />
                 <TouchActionButton

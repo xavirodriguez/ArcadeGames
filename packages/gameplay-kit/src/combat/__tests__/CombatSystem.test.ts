@@ -6,11 +6,13 @@ import { DamageComponent, FactionComponent } from "../../index";
 interface TestCombatComponentRegistry extends CoreComponentRegistry {
   Damage: DamageComponent;
   Faction: FactionComponent;
+  Shield: { type: "Shield"; charges: number; maxCharges: number; rechargeRemaining: number; rechargeSeconds: number };
 }
 
 interface TestCombatEventRegistry extends CoreEvents, EventRegistry {
   "combat:hit": CombatHitEvent;
   "combat:death": CombatDeathEvent;
+  "combat:shield_absorbed": { targetEntity: number; sourceEntity: number; amount: number; remainingCharges: number };
 }
 
 describe("CombatSystem", () => {
@@ -272,5 +274,28 @@ describe("CombatSystem", () => {
     // Run again and ensure exact same deterministic damage
     world.update(0.016);
     expect(world.getComponent(target, "Health")?.current).toBe(35);
+  });
+
+  it("should absorb damage with an explicit shield before health or death resolution", () => {
+    const attacker = world.createEntity();
+    const target = world.createEntity();
+    world.addComponent(attacker, { type: "Transform", x: 0, y: 0 } as TransformComponent);
+    world.addComponent(attacker, { type: "Damage", amount: 50, category: "enemy_bullet", friendlyFire: false, consumption: "destroy-entity" } as DamageComponent);
+    world.addComponent(attacker, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
+    world.addComponent(target, { type: "Transform", x: 0, y: 0 } as TransformComponent);
+    world.addComponent(target, { type: "Health", current: 3, max: 3 } as HealthComponent);
+    world.addComponent(target, { type: "Faction", faction: "player", value: "player" } as FactionComponent);
+    world.addComponent(target, { type: "Shield", charges: 1, maxCharges: 1, rechargeRemaining: 0, rechargeSeconds: 6 });
+    world.addComponent(attacker, { type: "CollisionEvents", collisions: [{ otherEntity: target, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as CollisionEventsComponent);
+    world.addComponent(target, { type: "CollisionEvents", collisions: [{ otherEntity: attacker, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }], activeTriggers: [], triggersEntered: [], triggersExited: [] } as CollisionEventsComponent);
+    let absorbed: { targetEntity: number; sourceEntity: number; amount: number; remainingCharges: number } | undefined;
+    world.getEventBus()?.on("combat:shield_absorbed", (event) => { absorbed = event; });
+    world.update(0.016);
+    world.getEventBus()?.flushDeferred();
+    expect(world.getComponent(target, "Health")?.current).toBe(3);
+    expect(world.getComponent(target, "Shield")?.charges).toBe(0);
+    expect(world.getComponent(target, "Shield")?.rechargeRemaining).toBe(6);
+    expect(world.hasComponent(target, "Dead")).toBe(false);
+    expect(absorbed).toEqual({ targetEntity: target, sourceEntity: attacker, amount: 50, remainingCharges: 0 });
   });
 });

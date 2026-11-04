@@ -36,7 +36,10 @@ export type SharedVFXPrimitiveName =
   | "pixelfx_ricochet"
   | "pixelfx_charge"
   | "pixelfx_shield_pulse"
-  | "pixelfx_target_warning";
+  | "pixelfx_target_warning"
+  | "pixelfx_teleport"
+  | "pixelfx_surface_skid"
+  | "pixelfx_mechanical_motion";
 
 /**
  * Base configuration options shared across Juice spawn calls and catalog profiles.

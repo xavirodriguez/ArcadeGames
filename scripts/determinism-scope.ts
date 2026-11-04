@@ -63,7 +63,5 @@ export function isGameRandomnessSensitiveSource(relativePath: string): boolean {
   if (isTestOrMockSource(relativePath)) return false;
 
   const normalized = normalizePath(relativePath);
-  if (!normalized.startsWith("src/games/")) return false;
-
   return normalized.startsWith("src/games/");
 }

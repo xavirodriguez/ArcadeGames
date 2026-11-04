@@ -59,13 +59,17 @@ export class CollectibleSystem extends System<CoreComponentRegistry> {
         }
 
         if (eventBus) {
+          const transform = world.getComponent(collEntity, "Transform");
           eventBus.emitDeferred("CollectiblePickedUp", {
             collectibleEntity: collEntity,
             collectibleId: collectible.id,
             collectible,
             collectibleType: collectible.kind,
             value: collectible.value,
-            playerEntity: collectedBy
+            playerEntity: collectedBy,
+            // Snapshot presentation coordinates before the collectible is removed.
+            x: transform?.x,
+            y: transform?.y
           });
         }
 

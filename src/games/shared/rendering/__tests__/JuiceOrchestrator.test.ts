@@ -45,6 +45,30 @@ describe("JuiceOrchestrator Unit Tests & Golden Replays", () => {
         expect(render?.text).toBe("+500");
       }
     });
+
+    it("resolves interaction descriptors through the existing pickup drawer and ECS TTL", () => {
+      const entity = juice.spawnEffect({
+        id: "platformer.collectible.pickup",
+        primitive: "pixelfx_pickup",
+        family: "interaction",
+        profile: "arcade-neon",
+        context: {
+          sourceEntity: 1,
+          targetEntity: 2,
+          medium: "pickup"
+        },
+        presentation: { x: 105, y: 100, scale: 0.85, ttl: 0.38 }
+      });
+
+      expect(entity).not.toBeNull();
+      if (entity !== null) {
+        expect(world.getComponent(entity, "Render")?.shape).toBe("pixelfx_pickup");
+        expect(world.getComponent(entity, "Render")?.color).toBe(colors.gold);
+        expect(world.getComponent(entity, "Transform")?.x).toBe(105);
+        expect(world.getComponent(entity, "Transform")?.y).toBe(100);
+        expect(world.getComponent(entity, "TTL")?.remaining).toBe(0.38);
+      }
+    });
   });
 
   it("does not spawn presentation effects or request hit-stop during rollback resimulation", () => {

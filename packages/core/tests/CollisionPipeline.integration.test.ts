@@ -91,13 +91,15 @@ describe("Collision pipeline — CollectibleSystem & HitDetectionSystem", () => 
       id: "frag_test_1"
     });
 
-    const pickupEvents: Array<{ collectibleId?: string; collectibleType?: string; value?: number; playerEntity?: number }> = [];
+    const pickupEvents: Array<{ collectibleId?: string; collectibleType?: string; value?: number; playerEntity?: number; x?: number; y?: number }> = [];
     eventBus.on("CollectiblePickedUp", (event) => {
       pickupEvents.push({
         collectibleId: event.collectibleId,
         collectibleType: event.collectibleType,
         value: event.value,
-        playerEntity: event.playerEntity
+        playerEntity: event.playerEntity,
+        x: event.x,
+        y: event.y
       });
     });
 
@@ -113,7 +115,9 @@ describe("Collision pipeline — CollectibleSystem & HitDetectionSystem", () => 
       collectibleId: "frag_test_1",
       collectibleType: "fragment",
       value: 10,
-      playerEntity: player
+      playerEntity: player,
+      x: 105,
+      y: 100
     });
   });
 

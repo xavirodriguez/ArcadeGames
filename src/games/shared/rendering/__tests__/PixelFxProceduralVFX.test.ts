@@ -176,6 +176,32 @@ describe("PixelFX-inspired procedural VFX", () => {
     expect(adapter.fillCircle).toHaveBeenCalledTimes(1);
   });
 
+  it("draws traversal effects at initial TTL progress", () => {
+    const adapter = createAdapter();
+    const { world, entity } = createWorld(0.4);
+    drawPixelFxTeleport(adapter, world, entity);
+    expect(adapter.strokeCircle).toHaveBeenCalled();
+    adapter.strokeCircle.mockClear();
+    drawPixelFxSurfaceSkid(adapter, world, entity);
+    expect(adapter.drawArc).toHaveBeenCalled();
+    adapter.drawArc.mockClear();
+    drawPixelFxMechanicalMotion(adapter, world, entity);
+    expect(adapter.strokeCircle).toHaveBeenCalled();
+  });
+
+  it("suppresses traversal effects when render opacity is zero", () => {
+    const adapter = createAdapter();
+    const { world, entity } = createWorld();
+    world.mutateComponent(entity, "Render", render => { render.opacity = 0; });
+    drawPixelFxTeleport(adapter, world, entity);
+    drawPixelFxSurfaceSkid(adapter, world, entity);
+    drawPixelFxMechanicalMotion(adapter, world, entity);
+    expect(adapter.drawLine).not.toHaveBeenCalled();
+    expect(adapter.drawArc).not.toHaveBeenCalled();
+    expect(adapter.strokeCircle).not.toHaveBeenCalled();
+    expect(adapter.fillCircle).not.toHaveBeenCalled();
+  });
+
   it("does not draw expired effects", () => {
     const adapter = createAdapter();
     const { world, entity } = createWorld(0);

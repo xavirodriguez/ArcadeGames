@@ -151,8 +151,7 @@ console.log(`🤖 Typecast Ratchet Linter Results ('as any' / 'as unknown')`);
 console.log(`===========================================================`);
 
 if (regressions.length > 0) {
-  console.error(`❌ TYPECAST REGRESSION: ${regressions.length} file(s) exceeded an individual category baseline:
-`);
+  console.error(`❌ TYPECAST REGRESSION: ${regressions.length} file(s) exceeded an individual category baseline:\n`);
   for (const reg of regressions) {
     console.error(
       `  - ${reg.file}: as any=${reg.current.anyCount} (baseline ${reg.baselineAny}, +${reg.anyIncrease}); as unknown=${reg.current.unknownCount} (baseline ${reg.baselineUnknown}, +${reg.unknownIncrease})`

@@ -36,10 +36,7 @@ export type SharedVFXPrimitiveName =
   | "pixelfx_ricochet"
   | "pixelfx_charge"
   | "pixelfx_shield_pulse"
-  | "pixelfx_target_warning"
-  | "pixelfx_teleport"
-  | "pixelfx_surface_skid"
-  | "pixelfx_mechanical_motion";
+  | "pixelfx_target_warning";
 
 /**
  * Base configuration options shared across Juice spawn calls and catalog profiles.
@@ -99,8 +96,8 @@ export interface GameJuiceEventMap {
   flappybird: "pipe:passed" | "bird:flap" | "bird:crash";
   frogger: "goal:reached" | "frog:hop" | "frog:splat";
   "geometry-wars": "enemy:destroyed" | "bomb:trigger" | "player:death";
-  platformer: "player:damage" | "coin:collected" | "enemy:stomp" | "player:dash" | "player:slide" | "platform:reversed";
-  "echo-runner": "echo:ghost" | "dash:boost" | "obstacle:hit" | "player:slide" | "platform:reversed";
+  platformer: "player:damage" | "coin:collected" | "enemy:stomp" | "player:dash";
+  "echo-runner": "echo:ghost" | "dash:boost" | "obstacle:hit";
 }
 
 export const JUICE_CATALOG: {
@@ -146,16 +143,12 @@ export const JUICE_CATALOG: {
     "player:damage": { effect: "pixelfx_impact", tint: colors.danger, scale: 1.0, ttl: 0.3, hitStopMs: 120, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 4.0, shakeDurationMs: 120 },
     "coin:collected": { effect: "floating_text", tint: colors.yellow, scale: 0.9, ttl: 0.4, text: "+10" },
     "enemy:stomp": { effect: "pixelfx_impact", tint: colors.green, scale: 1.0, ttl: 0.28, hitStopMs: 40, hitStopPriority: HitStopPriority.NORMAL, shakeIntensity: 2.0, shakeDurationMs: 60 },
-    "player:dash": { effect: "pixelfx_phase_dash", tint: colors.magenta, scale: 1.05, ttl: 0.24 },
-    "player:slide": { effect: "pixelfx_surface_skid", tint: colors.yellow, scale: 0.9, ttl: 0.2 },
-    "platform:reversed": { effect: "pixelfx_mechanical_motion", tint: colors.cyan, scale: 0.85, ttl: 0.28 }
+    "player:dash": { effect: "pixelfx_phase_dash", tint: colors.magenta, scale: 1.05, ttl: 0.24 }
   },
   "echo-runner": {
     "echo:ghost": { effect: "hologram_glitch", tint: colors.cyan, scale: 1.0, ttl: 0.3 },
     "dash:boost": { effect: "comet_trail", tint: colors.magenta, scale: 1.2, ttl: 0.25 },
-    "obstacle:hit": { effect: "screen_border_glow", tint: colors.danger, scale: 1.0, ttl: 0.3, hitStopMs: 100, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 3.5, shakeDurationMs: 100 },
-    "player:slide": { effect: "pixelfx_surface_skid", tint: colors.cyan, scale: 0.9, ttl: 0.2 },
-    "platform:reversed": { effect: "pixelfx_mechanical_motion", tint: colors.green, scale: 0.85, ttl: 0.28 }
+    "obstacle:hit": { effect: "screen_border_glow", tint: colors.danger, scale: 1.0, ttl: 0.3, hitStopMs: 100, hitStopPriority: HitStopPriority.CRITICAL, shakeIntensity: 3.5, shakeDurationMs: 100 }
   }
 };
 

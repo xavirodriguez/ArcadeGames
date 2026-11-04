@@ -76,8 +76,6 @@ import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import defaultLevelData from "./levels/level-01.json";
 import { SpriteRegistry, createSpriteAnimator } from "../shared/sprites";
 import { EchoRunnerSpriteSystem } from "./systems/EchoRunnerSpriteSystem";
-import { JuiceOrchestrator } from "../shared/rendering/JuiceOrchestrator";
-import * as SharedVFX from "../shared/rendering/SharedVFX";
 
 export interface EchoRunnerConfig {
   seed?: number;
@@ -463,21 +461,6 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
     // Listen to Hit Detection events
     const eventBus = this.world.getEventBus();
     if (eventBus) {
-      const juice = new JuiceOrchestrator(this.world);
-      eventBus.on("locomotion:slide_started", (event) => {
-        juice.triggerEvent("echo-runner", "player:slide", {
-          x: event.x,
-          y: event.y,
-          rotation: Math.atan2(event.velocityY, event.velocityX)
-        });
-      });
-      eventBus.on("locomotion:platform_reversed", (event) => {
-        juice.triggerEvent("echo-runner", "platform:reversed", {
-          x: event.x,
-          y: event.y,
-          rotation: Math.atan2(event.velocityY, event.velocityX)
-        });
-      });
       eventBus.on("CollectiblePickedUp", (payload: any) => {
         if (payload?.collectibleId) {
           if (payload.collectibleType) {
@@ -568,7 +551,6 @@ export class EchoRunnerGame extends PlatformerArcadeGame<EchoRunnerGameState, Ec
   }
 
   public initializeRenderer(renderer: Renderer<CoreComponentRegistry, RenderContext>): void {
-    SharedVFX.registerSharedVFX(renderer);
     if (renderer.type === "skia") {
       const r = renderer as Renderer<CoreComponentRegistry, any>;
       r.registerShape("tilemap", drawPlatformerTilemap);

@@ -62,7 +62,7 @@ function resolvePipeGradientColors(variant: string) {
 const skiaShaderCache = new Map<string, SkShader>();
 let staticStars: StarfieldStar[] | null = null;
 
-export function getCachedSkiaShader(key: string, factory: () => SkShader | null): SkShader | null {
+function getCachedSkiaShader(key: string, factory: () => SkShader | null): SkShader | null {
   let shader = skiaShaderCache.get(key);
   if (!shader) {
     if (skiaShaderCache.size > 40) {

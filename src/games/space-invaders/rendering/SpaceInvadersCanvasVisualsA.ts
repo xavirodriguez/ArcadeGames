@@ -26,25 +26,6 @@ import { drawFromGeometryProfileCanvas } from "../../shared/rendering/GenericEnt
 
 export { EXPLOSION_PARTICLE_POOL, spawnLayeredExplosion, updateExplosionParticles };
 
-const bulletTrailMap = new WeakMap<any, CircularPositionBuffer>();
-
-function getBulletTrailBuffer(render: any): CircularPositionBuffer {
-  let buf = bulletTrailMap.get(render);
-  if (!buf) {
-    buf = new CircularPositionBuffer({
-      capacity: 10,
-      minDistance: 0.5,
-      maxDiscontinuityDistance: 80,
-      startAlpha: 1.0,
-      endAlpha: 0.0,
-      startWidthScale: 1.0,
-      endWidthScale: 0.15
-    });
-    bulletTrailMap.set(render, buf);
-  }
-  return buf;
-}
-
 export function drawExplosionParticlesCanvas(ctx: CanvasRenderingContext2D): void {
   ctx.save();
   for (let i = 0; i < EXPLOSION_PARTICLE_POOL.length; i++) {

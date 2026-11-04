@@ -10,7 +10,6 @@ import type {
   BannerRenderSnapshot,
   FeedbackEventSnapshot
 } from "./HitRunThemeTypes";
-import type { WalkableAreaGeometry } from "../../belt/WalkableAreaGeometry";
 
 export interface HitRunThemePaletteTokens {
   readonly primary: string;
@@ -30,19 +29,14 @@ export interface HitRunTheme {
   readonly name: string;
   readonly palette: HitRunThemePaletteTokens;
 
-  /**
-   * Render background/backdrop layer in world/screen space.
-   * `walkableArea` is the shared geometry derived from physical belt limits;
-   * themes must use it for floor/border placement instead of hard-coded ratios.
-   */
+  /** Render background/backdrop layer in world/screen space. */
   renderBackdrop(
     ctx: CanvasRenderingContext2D,
     viewportWidth: number,
     viewportHeight: number,
     cameraX: number,
     cameraY: number,
-    elapsed: number,
-    walkableArea?: WalkableAreaGeometry
+    elapsed: number
   ): void;
 
   /** Native backdrop path for renderers that own a Skia canvas. */
@@ -52,8 +46,7 @@ export interface HitRunTheme {
     viewportHeight: number,
     cameraX: number,
     cameraY: number,
-    elapsed: number,
-    walkableArea?: WalkableAreaGeometry
+    elapsed: number
   ): void;
 
   /** Render ground shadow at entity feet position (Transform.y). */

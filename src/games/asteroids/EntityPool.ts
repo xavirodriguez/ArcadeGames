@@ -101,7 +101,6 @@ function createAsteroidsBulletPoolConfig(): PrefabConfig<PooledBulletComponents,
       baseReset(data);
       if (data.bullet) {
         data.bullet.ownerId = undefined;
-        data.bullet.bouncesRemaining = undefined;
       }
     }
   };

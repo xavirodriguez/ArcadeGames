@@ -14,6 +14,9 @@ import {
   drawPixelFxFlapGust,
   drawPixelFxHop,
   drawPixelFxPhaseDash,
+  drawPixelFxTeleport,
+  drawPixelFxSurfaceSkid,
+  drawPixelFxMechanicalMotion,
   registerPixelFxProceduralVFX
 } from "../PixelFxProceduralVFX";
 
@@ -150,6 +153,56 @@ describe("PixelFX-inspired procedural VFX", () => {
     expect(adapter.drawLine).toHaveBeenCalled();
   });
 
+  it("draws deterministic traversal compositions through the shared adapter", () => {
+    const adapter = createAdapter();
+    const { world, entity } = createWorld();
+    drawPixelFxTeleport(adapter, world, entity);
+    expect(adapter.strokeCircle).toHaveBeenCalledTimes(2);
+    expect(adapter.drawArc).toHaveBeenCalled();
+    expect(adapter.drawLine).toHaveBeenCalled();
+
+    adapter.strokeCircle.mockClear();
+    adapter.drawLine.mockClear();
+    drawPixelFxSurfaceSkid(adapter, world, entity);
+    expect(adapter.drawArc).toHaveBeenCalled();
+    expect(adapter.fillCircle).toHaveBeenCalled();
+    expect(adapter.drawLine).toHaveBeenCalled();
+
+    adapter.strokeCircle.mockClear();
+    adapter.drawLine.mockClear();
+    adapter.fillCircle.mockClear();
+    drawPixelFxMechanicalMotion(adapter, world, entity);
+    expect(adapter.strokeCircle).toHaveBeenCalledTimes(3);
+    expect(adapter.drawLine).toHaveBeenCalledTimes(16);
+    expect(adapter.fillCircle).toHaveBeenCalledTimes(1);
+  });
+
+  it("draws traversal effects at initial TTL progress", () => {
+    const adapter = createAdapter();
+    const { world, entity } = createWorld(0.4);
+    drawPixelFxTeleport(adapter, world, entity);
+    expect(adapter.strokeCircle).toHaveBeenCalled();
+    adapter.strokeCircle.mockClear();
+    drawPixelFxSurfaceSkid(adapter, world, entity);
+    expect(adapter.drawArc).toHaveBeenCalled();
+    adapter.drawArc.mockClear();
+    drawPixelFxMechanicalMotion(adapter, world, entity);
+    expect(adapter.strokeCircle).toHaveBeenCalled();
+  });
+
+  it("suppresses traversal effects when render opacity is zero", () => {
+    const adapter = createAdapter();
+    const { world, entity } = createWorld();
+    world.mutateComponent(entity, "Render", render => { render.opacity = 0; });
+    drawPixelFxTeleport(adapter, world, entity);
+    drawPixelFxSurfaceSkid(adapter, world, entity);
+    drawPixelFxMechanicalMotion(adapter, world, entity);
+    expect(adapter.drawLine).not.toHaveBeenCalled();
+    expect(adapter.drawArc).not.toHaveBeenCalled();
+    expect(adapter.strokeCircle).not.toHaveBeenCalled();
+    expect(adapter.fillCircle).not.toHaveBeenCalled();
+  });
+
   it("does not draw expired effects", () => {
     const adapter = createAdapter();
     const { world, entity } = createWorld(0);
@@ -166,20 +219,23 @@ describe("PixelFX-inspired procedural VFX", () => {
     drawPixelFxFlapGust(adapter, world, entity);
     drawPixelFxHop(adapter, world, entity);
     drawPixelFxPhaseDash(adapter, world, entity);
+    drawPixelFxTeleport(adapter, world, entity);
+    drawPixelFxSurfaceSkid(adapter, world, entity);
+    drawPixelFxMechanicalMotion(adapter, world, entity);
     expect(adapter.drawLine).not.toHaveBeenCalled();
     expect(adapter.drawArc).not.toHaveBeenCalled();
     expect(adapter.strokeCircle).not.toHaveBeenCalled();
     expect(adapter.fillCircle).not.toHaveBeenCalled();
   });
 
-  it("registers all thirteen shapes for Canvas", () => {
+  it("registers all twenty shapes for Canvas", () => {
     const registerShape = jest.fn();
     const renderer = {
       type: "canvas" as const,
       registerShape
     } as never as Renderer<CoreComponentRegistry, RenderContext>;
     registerPixelFxProceduralVFX(renderer);
-    expect(registerShape).toHaveBeenCalledTimes(13);
+    expect(registerShape).toHaveBeenCalledTimes(20);
     expect(registerShape.mock.calls.map(([name]) => name)).toEqual([
       "pixelfx_impact",
       "pixelfx_slash",
@@ -193,18 +249,25 @@ describe("PixelFX-inspired procedural VFX", () => {
       "pixelfx_brick_shatter",
       "pixelfx_flap_gust",
       "pixelfx_hop",
-      "pixelfx_phase_dash"
+      "pixelfx_phase_dash",
+      "pixelfx_ricochet",
+      "pixelfx_charge",
+      "pixelfx_shield_pulse",
+      "pixelfx_target_warning",
+      "pixelfx_teleport",
+      "pixelfx_surface_skid",
+      "pixelfx_mechanical_motion"
     ]);
   });
 
-  it("registers the same thirteen-shape contract for Skia", () => {
+  it("registers the same twenty-shape contract for Skia", () => {
     const registerShape = jest.fn();
     const renderer = {
       type: "skia" as const,
       registerShape
     } as never as Renderer<CoreComponentRegistry, RenderContext>;
     registerPixelFxProceduralVFX(renderer);
-    expect(registerShape).toHaveBeenCalledTimes(13);
+    expect(registerShape).toHaveBeenCalledTimes(20);
     expect(registerShape.mock.calls.map(([name]) => name)).toEqual([
       "pixelfx_impact",
       "pixelfx_slash",
@@ -218,7 +281,14 @@ describe("PixelFX-inspired procedural VFX", () => {
       "pixelfx_brick_shatter",
       "pixelfx_flap_gust",
       "pixelfx_hop",
-      "pixelfx_phase_dash"
+      "pixelfx_phase_dash",
+      "pixelfx_ricochet",
+      "pixelfx_charge",
+      "pixelfx_shield_pulse",
+      "pixelfx_target_warning",
+      "pixelfx_teleport",
+      "pixelfx_surface_skid",
+      "pixelfx_mechanical_motion"
     ]);
   });
 });

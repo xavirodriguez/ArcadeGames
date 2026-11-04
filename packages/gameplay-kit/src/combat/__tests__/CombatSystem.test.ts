@@ -296,6 +296,7 @@ describe("CombatSystem", () => {
     expect(world.getComponent(target, "Shield")?.charges).toBe(0);
     expect(world.getComponent(target, "Shield")?.rechargeRemaining).toBe(6);
     expect(world.hasComponent(target, "Dead")).toBe(false);
+    expect(world.hasEntity(attacker)).toBe(false);
     expect(absorbed).toEqual({ targetEntity: target, sourceEntity: attacker, amount: 50, remainingCharges: 0 });
   });
 });

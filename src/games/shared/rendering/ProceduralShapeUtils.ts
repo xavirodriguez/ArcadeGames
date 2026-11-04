@@ -140,7 +140,7 @@ export function computeMotionSecondaryEffect(
     return { effectType: "none", length: 0, particles: [] };
   }
 
-  const nextRng = rng.next;
+  const nextRng = (): number => rng.next();
   const flicker = 0.85 + 0.3 * (nextRng() - 0.5);
   const length = size * 1.4 * flicker;
   const particles: MotionParticle[] = [];

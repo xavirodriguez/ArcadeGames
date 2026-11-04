@@ -386,6 +386,8 @@ export interface OutrunHudContext {
   timeStr: string;
   phase: string;
   progressFraction: number;
+  resultTitle: string;
+  resultDetail: string;
   visualPalette: OutrunVisualPaletteResource;
   hudBg: string;
   hudAccent: string;
@@ -404,15 +406,20 @@ export function resolveOutrunHudContext(
 
   const visualPalette = world.getResource<OutrunVisualPaletteResource>("VisualPalette") ??
     createVisualPaletteResource(state, roadData, config);
-  const progress = state.playerZ % roadData.trackLength;
-  const progressFraction = ((progress < 0 ? progress + roadData.trackLength : progress) /
-    roadData.trackLength);
+  const progressFraction = Math.max(0, Math.min(1, state.playerZ / roadData.trackLength));
   const speedKmh = Math.round((state.speed / config.maxSpeed) * 280);
-  const timeStr = state.lapTime.toFixed(1);
+  const timeStr = Math.max(0, state.timeLeft ?? config.raceTimeLimitSeconds).toFixed(1);
   const phase = state.racePhase ?? "racing";
+  const resultTitle = state.finishReason === "finish"
+    ? "Carrera completada"
+    : state.finishReason === "timeout"
+      ? "Tiempo agotado"
+      : "Fin de la carrera";
+  const resultDetail = `Tiempo ${state.lapTime.toFixed(1)} s · Posición ${state.position} · Checkpoints ${state.checkpointsPassed ?? 0}/${state.checkpointsTotal ?? 0}`;
 
   return {
-    state, config, speedKmh, timeStr, phase, progressFraction, visualPalette,
+    state, config, speedKmh, timeStr, phase, progressFraction,
+    resultTitle, resultDetail, visualPalette,
     hudBg: visualPalette.shared.branchPanel,
     hudAccent: visualPalette.shared.cream
   };

@@ -1,6 +1,6 @@
 import { System, World } from "@tiny-aster/core";
 import type { OutrunComponentRegistry, OutrunEventRegistry } from "../types/OutrunTypes";
-import { resolveOutrunSystemConfig } from "./OutrunSystemUtils";
+import { resolveOutrunSystemContext } from "./OutrunSystemUtils";
 
 /**
  * Reads player input (accelerate / brake / steer) and updates RaceState.
@@ -11,8 +11,10 @@ export class RacerInputSystem extends System<OutrunComponentRegistry, OutrunEven
     world: World<OutrunComponentRegistry, OutrunEventRegistry>,
     deltaTime: number
   ): void {
-    const config = resolveOutrunSystemConfig(world);
-    if (!config) return;
+    const context = resolveOutrunSystemContext(world);
+    if (!context) return;
+    const { state, config } = context;
+    if (state.racePhase === "countdown" || state.racePhase === "finished") return;
 
     let accelerate = false;
     let brake = false;

@@ -16,7 +16,7 @@ export interface RaceStateComponent {
   playerX: number;
   /** Current forward speed in world units per second. */
   speed: number;
-  /** Accumulated lap / race time in seconds. */
+  /** Elapsed race time in seconds; countdown time is excluded. */
   lapTime: number;
   /** Whether the race has ended. */
   isGameOver: boolean;
@@ -28,6 +28,14 @@ export interface RaceStateComponent {
   racePhase?: "countdown" | "racing" | "finished";
   /** Countdown timer before start in seconds. */
   countdownTime?: number;
+  /** Remaining race time, including checkpoint bonuses. */
+  timeLeft?: number;
+  /** Number of checkpoints already crossed. */
+  checkpointsPassed?: number;
+  /** Number of gameplay checkpoints on this generated track. */
+  checkpointsTotal?: number;
+  /** Final result when the race enters the finished phase. */
+  finishReason?: "finish" | "timeout";
 }
 
 /**
@@ -111,6 +119,8 @@ export interface ProjectedSegment {
 export interface RoadData {
   segments: RoadSegment[];
   trackLength: number;
+  /** Ordered world-space Z positions of gameplay checkpoints. */
+  checkpoints?: number[];
 }
 
 export interface OutrunComponentRegistry extends CoreComponentRegistry {
@@ -121,6 +131,7 @@ export interface OutrunComponentRegistry extends CoreComponentRegistry {
 
 export interface OutrunEventRegistry extends EventRegistry {
   "outrun:collision": { entity: Entity; other: Entity };
+  "outrun:checkpoint": { checkpoint: number; timeBonus: number; timeLeft: number };
   "outrun:lap": { lapTime: number };
   "PlaySFX": { name: string };
 }

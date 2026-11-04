@@ -801,7 +801,10 @@ export const drawOutrunHud = {
     const hudCtx = resolveOutrunHudContext(world);
     if (!hudCtx) return;
 
-    const { state, config, speedKmh, timeStr, phase, progressFraction, visualPalette } = hudCtx;
+    const {
+      state, config, speedKmh, timeStr, phase, progressFraction,
+      resultTitle, resultDetail, visualPalette
+    } = hudCtx;
     const layout = resolveOutrunHudLayout({ config, progressFraction, speedKmh, timeStr, visualPalette });
     const shared = visualPalette.shared;
     ctx.save();
@@ -892,7 +895,9 @@ export const drawOutrunHud = {
       ctx.fillStyle = shared.cream;
       ctx.font = `${layout.resultsFont}px sans-serif`;
       ctx.textAlign = "center";
-      ctx.fillText("Fin del recorrido", layout.centerX, layout.centerY);
+      ctx.fillText(resultTitle, layout.centerX, layout.centerY - layout.resultsFont * 0.18);
+      ctx.font = `${Math.max(12, layout.resultsFont * 0.48)}px sans-serif`;
+      ctx.fillText(resultDetail, layout.centerX, layout.centerY + layout.resultsFont * 0.9);
     }
 
     ctx.restore();

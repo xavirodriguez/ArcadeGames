@@ -97,7 +97,17 @@ export class OutrunGame extends BaseGame<
     if (trackLength <= 0) {
       throw new Error(`[OutrunGame] Invalid track length calculated: ${trackLength}. Must be greater than 0.`);
     }
-    const roadData: RoadData = { segments, trackLength };
+    const checkpoints: number[] = [];
+    let distanceFromStart = 0;
+    for (const segment of segments) {
+      if (segment.sprites?.some(
+        (sprite) => sprite.kind === "banner" && sprite.text === "CHECKPOINT"
+      )) {
+        checkpoints.push(distanceFromStart);
+      }
+      distanceFromStart += segment.length;
+    }
+    const roadData: RoadData = { segments, trackLength, checkpoints };
     this.world.setResource("RoadData", roadData);
 
     this.unifiedInput.bind("accelerate", ["ArrowUp", "KeyW", "Space"]);
@@ -137,6 +147,7 @@ export class OutrunGame extends BaseGame<
       });
 
       const stateEntity = this.world.createEntity();
+      const startsWithCountdown = this._config.gameOptions?.startCountdown === true;
       this.world.addComponent(stateEntity, {
         type: "RaceState",
         playerZ: 0,
@@ -145,7 +156,12 @@ export class OutrunGame extends BaseGame<
         lapTime: 0,
         isGameOver: false,
         position: 1,
-        currentSegment: 0
+        currentSegment: 0,
+        racePhase: startsWithCountdown ? "countdown" : "racing",
+        countdownTime: startsWithCountdown ? this.config.countdownDurationSeconds : 0,
+        timeLeft: this.config.raceTimeLimitSeconds,
+        checkpointsPassed: 0,
+        checkpointsTotal: this.world.getResource<RoadData>("RoadData")?.checkpoints?.length ?? 0
       } satisfies RaceStateComponent);
 
       const roadEntity = this.world.createEntity();
@@ -355,7 +371,12 @@ export class OutrunGame extends BaseGame<
           lapTime: 0,
           isGameOver: false,
           position: 1,
-          currentSegment: 0
+          currentSegment: 0,
+          racePhase: "racing",
+          countdownTime: 0,
+          timeLeft: this.config.raceTimeLimitSeconds,
+          checkpointsPassed: 0,
+          checkpointsTotal: 0
         };
   }
 

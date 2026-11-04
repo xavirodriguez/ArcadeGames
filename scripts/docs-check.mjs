@@ -194,7 +194,8 @@ if (
 }
 if (
   !contributingGuide.includes("# Contributing Guidelines & Golden Path for Tiny Aster") ||
-  !contributingGuide.includes("GitHub: `ArcadeGames`")
+  !contributingGuide.includes("GitHub: `ArcadeGames`") ||
+  !contributingGuide.includes("docs/PROJECT_IDENTITY_AND_NAMING.md")
 ) {
   failures.push("CONTRIBUTING.md must use the canonical Tiny Aster brand and identify ArcadeGames only as the repository.");
 }

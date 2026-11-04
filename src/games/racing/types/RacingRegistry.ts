@@ -3,14 +3,31 @@ import type {
   RacingComponentRegistry as LocalRacingComponentRegistry,
   RacingEventRegistry as LocalRacingEventRegistry,
   RacingInputState,
-  RacingGameState
+  RacingGameState,
+  AIPersonalityPreset
 } from "./RacingTypes";
+import type { VehicleSpec } from "./TrackSpecSchema";
 
 export interface RacingComponentRegistry extends CoreComponentRegistry, LocalRacingComponentRegistry {}
 export interface RacingEventRegistry extends CoreEvents, LocalRacingEventRegistry {}
 
 export interface RacingBlueprintMap extends Record<string, BlueprintDefinition<RacingComponentRegistry, RacingEventRegistry, unknown>> {
-  car: BlueprintDefinition<RacingComponentRegistry, RacingEventRegistry, { x: number; y: number; rotation?: number; isAI?: boolean; color?: string }>;
+  car: BlueprintDefinition<
+    RacingComponentRegistry,
+    RacingEventRegistry,
+    {
+      x: number;
+      y: number;
+      rotation?: number;
+      isAI?: boolean;
+      color?: string;
+      vehicleSpec?: VehicleSpec;
+      /** AI difficulty preset. Ignored for human players. Defaults to "normal". */
+      aiDifficulty?: AIPersonalityPreset;
+      /** Explicit lane offset override (otherwise taken from personality). */
+      laneOffset?: number;
+    }
+  >;
   wall: BlueprintDefinition<RacingComponentRegistry, RacingEventRegistry, { x: number; y: number; width: number; height: number }>;
   checkpoint: BlueprintDefinition<RacingComponentRegistry, RacingEventRegistry, {
     index: number; x: number; y: number; width?: number; height?: number; isFinish?: boolean;
@@ -31,4 +48,4 @@ export interface RacingBlueprintMap extends Record<string, BlueprintDefinition<R
   }>;
 }
 
-export type { RacingInputState, RacingGameState };
+export type { RacingInputState, RacingGameState, AIPersonalityPreset };

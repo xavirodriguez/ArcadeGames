@@ -45,6 +45,13 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
     const state = this.world.createEntity();
     this.world.addComponent(state, { type: "ShmupGameState", score: 0, wave: 1, lives: 3, scrollDistance: 0, isGameOver: false, spawnTimer: 0 });
     const player = createPlayer(this.world, this.config.WORLD_WIDTH / 2, this.config.WORLD_HEIGHT - 100);
+    this.world.addComponent(player, {
+      type: "Shield",
+      charges: 1,
+      maxCharges: 1,
+      rechargeRemaining: 0,
+      rechargeSeconds: 6
+    });
     this.world.setResource("ScreenConfig", { width: this.config.WORLD_WIDTH, height: this.config.WORLD_HEIGHT });
 
     const cam = createMainCamera2D(this.world, player, { smoothingX: 0, smoothingY: 0 });

@@ -1,11 +1,13 @@
 import { System, World, WorldUtils, Juice } from "@tiny-aster/core";
 import { ShmupComponentRegistry, ShmupEventRegistry } from "../types/ShmupTypes";
 import { spawnLayeredExplosion } from "../../shared/rendering/SharedVFX";
+import { JuiceOrchestrator } from "../../shared/rendering/JuiceOrchestrator";
+import { SHMUP_COLOR_TOKENS } from "../rendering/ShmupColorTokens";
 
 export class ShmupCollisionSystem extends System<ShmupComponentRegistry, ShmupEventRegistry> {
   private subscribed = false;
 
-  update(world: World<ShmupComponentRegistry, ShmupEventRegistry>, _deltaTime: number): void {
+  update(world: World<ShmupComponentRegistry, ShmupEventRegistry>, deltaTime: number): void {
     if (!this.subscribed) {
       this.subscribed = true;
       world.getEventBus()?.on("combat:hit", (event) => {
@@ -30,6 +32,28 @@ export class ShmupCollisionSystem extends System<ShmupComponentRegistry, ShmupEv
           });
         }
       });
+      world.getEventBus()?.on("combat:shield_absorbed", (event) => {
+        if (!event || typeof event.targetEntity !== "number" || world.isReSimulating) return;
+        const transform = world.getComponent(event.targetEntity, "Transform");
+        if (!transform) return;
+        new JuiceOrchestrator(world).spawn("pixelfx_shield_pulse", {
+          x: transform.worldX ?? transform.x,
+          y: transform.worldY ?? transform.y,
+          tint: SHMUP_COLOR_TOKENS.player.primary,
+          scale: 1.15,
+          ttl: 0.34
+        });
+      });
+    }
+
+    // 0. Recharge explicit shield charges independently from temporary hit invulnerability.
+    for (const entity of world.query("ShmupPlayer", "Shield")) {
+      const shield = world.getMutableComponent(entity, "Shield");
+      if (!shield || shield.charges >= shield.maxCharges) continue;
+      shield.rechargeRemaining = Math.max(0, shield.rechargeRemaining - Math.max(0, deltaTime));
+      if (shield.rechargeRemaining <= 0) {
+        shield.charges = Math.min(shield.maxCharges, shield.charges + 1);
+      }
     }
 
     // 1. Process Enemy Destruction

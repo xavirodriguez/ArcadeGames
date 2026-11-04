@@ -106,6 +106,12 @@ for (const packageName of packages) {
 if (manifest.scripts["docs:check"] !== "node scripts/docs-check.mjs") {
   failures.push("docs:check must run scripts/docs-check.mjs; API extraction belongs to docs:extract.");
 }
+if (!manifest.scripts["architecture:check"] || manifest.scripts.arquitecture) {
+  failures.push("Use architecture:check as the only canonical architecture-analysis script.");
+}
+if (manifest.scripts["validate:story"]) {
+  failures.push("story:lint is the canonical story validation script; remove the redundant validate:story alias.");
+}
 
 // Workspace package names must match their directory and the @tiny-aster scope.
 if (!manifest.private || manifest.name !== "asteroides") {
@@ -192,7 +198,7 @@ for (const scriptName of requiredScriptNames) {
   }
 }
 
-for (const scriptName of ["test", "lint", "test:ci", "test:games:ci", "test:e2e", "sprites:build", "sprites:validate", "typecheck:core", "typecheck:app"]) {
+for (const scriptName of ["test", "lint", "test:ci", "test:games:ci", "test:e2e", "sprites:build", "sprites:validate", "typecheck:core", "typecheck:app", "architecture:check"]) {
   if (!manifest.scripts[scriptName]) {
     failures.push(`README documents a missing root script: ${scriptName}.`);
   }

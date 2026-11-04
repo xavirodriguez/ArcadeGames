@@ -14,7 +14,10 @@ export class RacerInputSystem extends System<OutrunComponentRegistry, OutrunEven
     const context = resolveOutrunSystemContext(world);
     if (!context) return;
     const { state, config } = context;
-    if (state.racePhase === "countdown" || state.racePhase === "finished") return;
+    if (
+      state.racePhase === "finished" ||
+      (state.racePhase === "countdown" && (state.countdownTime ?? 0) > 0)
+    ) return;
 
     let accelerate = false;
     let brake = false;

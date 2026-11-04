@@ -38,13 +38,12 @@ export class RoadAdvanceSystem extends System<OutrunComponentRegistry, OutrunEve
 
       if (phase === "countdown") {
         const currentCountdown = state.countdownTime ?? config.countdownDurationSeconds;
-        if (currentCountdown <= 0) {
-          state.countdownTime = 0;
-          state.racePhase = "racing";
+        if (currentCountdown > 0) {
+          state.countdownTime = Math.max(0, currentCountdown - elapsed);
           return;
         }
-        state.countdownTime = Math.max(0, currentCountdown - elapsed);
-        return;
+        state.countdownTime = 0;
+        state.racePhase = "racing";
       }
 
       if (elapsed === 0) return;

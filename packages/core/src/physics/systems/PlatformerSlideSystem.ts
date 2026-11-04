@@ -55,13 +55,6 @@ export class PlatformerSlideSystem<TRegistry extends ComponentRegistry = CoreCom
           mutablePosture.current = "sliding";
           mutablePosture.desired = "sliding";
           mutablePosture.slideElapsed = 0;
-          world.getEventBus()?.emit("locomotion:slide_started", {
-            entity,
-            x: transform.x,
-            y: transform.y,
-            velocityX: velocity.vx,
-            velocityY: (world.getComponent(entity, "Velocity" as Extract<keyof TRegistry, string>) as { vy?: number } | undefined)?.vy ?? 0
-          });
         }
         continue;
       }

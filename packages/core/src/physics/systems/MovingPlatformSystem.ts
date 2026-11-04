@@ -36,9 +36,6 @@ export class MovingPlatformSystem extends System<CoreComponentRegistry> {
       const updatedPlat = world.getComponent(entity, "MovingPlatform")!;
 
       if (updatedPlat.pattern === "sine") {
-        const previousVelocity = world.getComponent(entity, "Velocity");
-        const previousVx = previousVelocity?.vx ?? 0;
-        const previousVy = previousVelocity?.vy ?? 0;
         const theta = updatedPlat.elapsed * updatedPlat.frequency * 2 * Math.PI;
         const nextX = updatedPlat.startX + Math.sin(theta) * updatedPlat.amplitudeX;
         const nextY = updatedPlat.startY + Math.sin(theta) * updatedPlat.amplitudeY;
@@ -57,16 +54,6 @@ export class MovingPlatformSystem extends System<CoreComponentRegistry> {
           v.vx = vx;
           v.vy = vy;
         });
-        if ((previousVx !== 0 && Math.sign(previousVx) !== Math.sign(vx))
-          || (previousVy !== 0 && Math.sign(previousVy) !== Math.sign(vy))) {
-          world.getEventBus()?.emit("locomotion:platform_reversed", {
-            entity,
-            x: nextX,
-            y: nextY,
-            velocityX: vx,
-            velocityY: vy
-          });
-        }
       }
     }
   }

@@ -55,16 +55,6 @@ describe("Locomotion B2 slide posture", () => {
     expect(transform.y + 10).toBeCloseTo(80, 5);
   });
 
-  it("emits one slide-start event only after a successful posture transition", () => {
-    const { world, player } = createPlayer();
-    const events: Array<{ entity: number; x: number; y: number; velocityX: number; velocityY: number }> = [];
-    world.getEventBus().on("locomotion:slide_started", event => events.push(event));
-    const system = new PlatformerSlideSystem();
-    system.update(world, 1 / 60);
-    system.update(world, 1 / 60);
-    expect(events).toEqual([{ entity: player, x: 20, y: 55, velocityX: 180, velocityY: 0 }]);
-  });
-
   it("rejects slide entry below the configured minimum speed", () => {
     const { world, player } = createPlayer();
     world.mutateComponent(player, "Velocity", velocity => { velocity.vx = 20; });

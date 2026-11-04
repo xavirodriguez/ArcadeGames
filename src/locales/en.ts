@@ -182,7 +182,7 @@ export const en = {
     }
   },
   platformer: {
-    instructions: "A/D or Arrows: Move  |  W/Space/Up Arrow: Jump  |  Shift/K: Dash  |  S/Down: Slide  |  B: Brake",
+    instructions: "A/D or Arrows: Move  |  W/Space/Up Arrow: Jump",
     start_run: "START LEVEL",
     level: "LEVEL",
     score: "SCORE",

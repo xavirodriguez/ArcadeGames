@@ -18,8 +18,9 @@ The tests compare two independent instances tick by tick. This detects divergenc
 
 1. A factory that creates a headless, manually driven instance with the supplied seed.
 2. A representative, non-empty sequence of that game's supported `CompactInputFrame` inputs.
+3. An `applyInput(game, frame)` adapter that maps the frame to the game's actual input API before each simulation step.
 
-Use deterministic input sequences; do not use wall-clock timing or unseeded random values in the test.
+Use deterministic input sequences; do not use wall-clock timing or unseeded random values in the test. The adapter is required because `BaseGame.step()` delegates frame decoding to `onApplyInputFrame()`, whose base implementation is intentionally a no-op. A test must not assume that passing a bitmask alone drives a game's input component.
 
 ## What the shared suite does not assume
 

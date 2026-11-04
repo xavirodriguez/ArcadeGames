@@ -334,10 +334,18 @@ describe("OutrunGameplay", () => {
   });
 
   it("freezes player input, traffic, and race timer during countdown", async () => {
-    const game = new OutrunGame({ seed: 33, headless: true });
+    const game = new OutrunGame({
+      seed: 33,
+      headless: true,
+      gameOptions: { startCountdown: true }
+    });
     await game.init();
 
     const world = game.getWorld();
+    expect(game.getGameState().racePhase).toBe("countdown");
+    expect(game.getGameState().countdownTime).toBe(
+      DEFAULT_OUTRUN_CONFIG.countdownDurationSeconds
+    );
     const firstRacer = world.query("Racer")[0]!;
     const initialRacerZ = world.getComponent(firstRacer, "Racer")!.z;
     world.setResource("CurrentInputFrame", {

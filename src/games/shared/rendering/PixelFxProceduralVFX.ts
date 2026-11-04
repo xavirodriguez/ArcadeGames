@@ -528,6 +528,86 @@ export function drawPixelFxTargetWarning(draw: IDrawAdapter, world: import("@tin
   draw.drawLine(0, -size * 0.18, 0, size * 0.18, color, Math.max(0.8, size * 0.03), fade * 0.8);
   draw.restore();
 }
+
+/** Teleport transition: a collapsing origin ring and an expanding destination gate. */
+export function drawPixelFxTeleport(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
+  const state = readEffectState(world, entity);
+  if (!state || state.alpha <= 0.01) return;
+  const { progress: p, alpha, size, color, rotation } = state;
+  const envelope = Math.sin(Math.PI * p);
+  const originRadius = size * (0.72 * (1 - p) + 0.08);
+  const destinationRadius = size * (0.08 + 0.72 * p);
+  const cos = Math.cos(rotation);
+  const sin = Math.sin(rotation);
+  draw.save();
+  draw.strokeCircle(0, 0, originRadius, color, Math.max(1, size * 0.055), alpha * (1 - p));
+  draw.strokeCircle(0, 0, destinationRadius, color, Math.max(1, size * 0.045), alpha * p);
+  draw.drawArc(0, 0, size * (0.42 + envelope * 0.16), rotation - Math.PI * 0.72, Math.PI * 1.44, color, Math.max(1, size * 0.035), alpha * envelope);
+  for (let i = 0; i < 8; i++) {
+    const angle = rotation + (i * Math.PI) / 4;
+    const inner = size * (0.18 + p * 0.2);
+    const outer = size * (0.48 + (1 - p) * 0.35);
+    const x1 = Math.cos(angle) * inner;
+    const y1 = Math.sin(angle) * inner;
+    const x2 = Math.cos(angle) * outer;
+    const y2 = Math.sin(angle) * outer;
+    drawRotatedLine(draw, x1, y1, x2, y2, color, Math.max(0.8, size * 0.025), alpha * envelope, cos, sin);
+  }
+  draw.restore();
+}
+
+/** Surface skid: low ground-contact scrape, lateral dust and deterministic speed streaks. */
+export function drawPixelFxSurfaceSkid(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
+  const state = readEffectState(world, entity);
+  if (!state || state.alpha <= 0.01) return;
+  const { progress: p, alpha, size, color, rotation } = state;
+  const spread = size * (0.38 + p * 0.92);
+  const fade = alpha * (1 - p * 0.42);
+  const cos = Math.cos(rotation);
+  const sin = Math.sin(rotation);
+  draw.save();
+  draw.drawArc(0, size * 0.18, spread * 0.7, Math.PI * 1.08, Math.PI * 0.84, color, Math.max(1, size * 0.055 * (1 - p * 0.4)), fade);
+  for (let i = 0; i < 7; i++) {
+    const lane = i - 3;
+    const x = lane * spread * 0.22;
+    const y = size * (0.16 + (i % 3) * 0.045) - p * size * (0.08 + (i % 2) * 0.05);
+    const radius = size * (0.045 + (i % 3) * 0.018) * (1 - p * 0.45);
+    draw.fillCircle(x, y, radius, color, fade * (0.72 - (i % 3) * 0.12));
+    drawRotatedLine(draw, x - radius * 2.4, y, x + radius * 1.5, y, color, Math.max(0.7, size * 0.022), fade * 0.55, cos, sin);
+  }
+  for (let i = 0; i < 4; i++) {
+    const y = size * (0.04 + i * 0.075);
+    drawRotatedLine(draw, -spread * (0.45 + i * 0.08), y, spread * (0.2 + i * 0.05), y, color, Math.max(0.8, size * 0.03), fade * (0.5 - i * 0.07), cos, sin);
+  }
+  draw.restore();
+}
+
+/** Mechanical motion: deterministic gear housing, teeth, spokes and a rotating inner hub. */
+export function drawPixelFxMechanicalMotion(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
+  const state = readEffectState(world, entity);
+  if (!state || state.alpha <= 0.01) return;
+  const { progress: p, alpha, size, color, rotation } = state;
+  const spin = rotation + p * Math.PI * 1.5;
+  const outer = size * (0.68 + Math.sin(p * Math.PI) * 0.06);
+  const inner = outer * 0.68;
+  const fade = alpha * (0.82 + 0.18 * Math.sin(p * Math.PI * 2));
+  draw.save();
+  draw.strokeCircle(0, 0, outer, color, Math.max(1, size * 0.055), fade);
+  draw.strokeCircle(0, 0, inner, color, Math.max(1, size * 0.035), fade * 0.78);
+  for (let i = 0; i < 8; i++) {
+    const angle = spin + (i * Math.PI) / 4;
+    const cos = Math.cos(angle);
+    const sin = Math.sin(angle);
+    draw.drawLine(cos * inner * 0.42, sin * inner * 0.42, cos * outer * 0.9, sin * outer * 0.9, color, Math.max(1, size * 0.045), fade);
+    const toothStart = outer * 0.86;
+    const toothEnd = outer * 1.08;
+    draw.drawLine(cos * toothStart, sin * toothStart, cos * toothEnd, sin * toothEnd, color, Math.max(1, size * 0.065), fade);
+  }
+  draw.strokeCircle(0, 0, size * (0.18 + p * 0.06), color, Math.max(1, size * 0.06), fade);
+  draw.fillCircle(0, 0, size * 0.07, color, fade * 0.9);
+  draw.restore();
+}
+
 function canvasDrawer(
   drawEffect: (adapter: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number) => void
 ): ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> {

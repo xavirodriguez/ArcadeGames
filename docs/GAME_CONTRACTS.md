@@ -7,6 +7,7 @@ Tiny Aster exposes a common lifecycle and simulation contract through `BaseGame`
 - Initialization reaches `GameLifecycleState.RUNNING` and exposes the actual initial seed.
 - Pause and resume are idempotent and update the lifecycle state.
 - Restart accepts a replacement seed, rebuilds the simulation and returns to the running state.
+- Destroy moves the lifecycle to its terminal `DESTROYED` state.
 - Two instances created with the same seed and driven by the same compact input frames keep matching simulation ticks and state hashes.
 
 The tests compare two independent instances tick by tick. This detects divergence earlier than comparing only the final score or final state.
@@ -27,7 +28,7 @@ The suite does not assume that every game has the same movement model, collision
 ## Running the pilot
 
 ```bash
-pnpm run test:games:ci -- --runTestsByPath src/games/asteroids/__tests__/AsteroidsGame.contract.test.ts
+pnpm exec jest --runInBand --runTestsByPath src/games/asteroids/__tests__/AsteroidsGame.contract.test.ts
 ```
 
 The normal CI game test step also includes this test through the Asteroids Jest project.

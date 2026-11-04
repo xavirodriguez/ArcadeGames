@@ -16,7 +16,7 @@ import { HIT_PALETTE } from "../../HitAndRunPalette";
 import { colors } from "../../../../../theme/colors";
 import { generateProceduralScene } from "../../../../shared/procedural/scene/ProceduralSceneGenerator";
 import { drawProceduralSceneCanvas } from "../../../../shared/procedural/rendering/drawProceduralSceneCanvas";
-import { drawGroundShadowEllipse } from "../HitRunThemeUtils";
+import { drawGroundShadowEllipse, drawThemedEntityWithHitFlash } from "../HitRunThemeUtils";
 import { drawProceduralSceneSkia } from "../../../../shared/procedural/rendering/drawProceduralSceneSkia";
 import type { ProceduralScene } from "../../../../shared/procedural/types/ProceduralTypes";
 
@@ -147,136 +147,119 @@ export class FantasyTheme implements HitRunTheme {
     snapshot: EntityRenderSnapshot,
     _elapsed: number
   ): void {
-    ctx.save();
-    ctx.translate(snapshot.x, snapshot.y);
+    drawThemedEntityWithHitFlash(
+      ctx,
+      snapshot,
+      () => this.renderGroundShadow(ctx, 0, 0, snapshot.size, snapshot.elevation),
+      (size: number) => {
+        switch (snapshot.visualId) {
+          case "player": {
+            // Legs
+            ctx.strokeStyle = "#1a1220";
+            ctx.lineWidth = 3;
+            ctx.lineCap = "round";
+            ctx.beginPath();
+            ctx.moveTo(-size * 0.12, -size * 0.35);
+            ctx.lineTo(-size * 0.18, 0);
+            ctx.moveTo(size * 0.12, -size * 0.35);
+            ctx.lineTo(size * 0.18, 0);
+            ctx.stroke();
 
-    this.renderGroundShadow(ctx, 0, 0, snapshot.size, snapshot.elevation);
+            // Boots
+            ctx.fillStyle = "#151b23";
+            ctx.fillRect(-size * 0.29, -size * 0.08, size * 0.2, size * 0.08);
+            ctx.fillRect(size * 0.09, -size * 0.08, size * 0.2, size * 0.08);
 
-    ctx.save();
-    ctx.translate(0, -snapshot.elevation);
-    ctx.scale(snapshot.facing, 1);
+            // Body
+            ctx.fillStyle = this.getBodyGrad(ctx, size);
+            ctx.strokeStyle = HIT_PALETTE.hitRunRed;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            if (ctx.roundRect) ctx.roundRect(-size * 0.28, -size * 0.85, size * 0.56, size * 0.5, 4);
+            else ctx.rect(-size * 0.28, -size * 0.85, size * 0.56, size * 0.5);
+            ctx.fill();
+            ctx.stroke();
 
-    if (snapshot.hitFlash > 0) {
-      ctx.fillStyle = "#ffffff";
-      ctx.beginPath();
-      ctx.arc(0, -snapshot.size * 0.5, snapshot.size * 0.55, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-      ctx.restore();
-      return;
-    }
+            // Head
+            ctx.fillStyle = "#1e2430";
+            ctx.beginPath();
+            ctx.arc(0, -size * 0.98, size * 0.22, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = HIT_PALETTE.hitRunYellow;
+            ctx.beginPath();
+            ctx.ellipse(size * 0.08, -size * 1.0, size * 0.12, size * 0.08, 0, 0, Math.PI * 2);
+            ctx.fill();
 
-    const size = snapshot.size;
+            // HMG Weapon
+            ctx.fillStyle = "#1a1a22";
+            ctx.fillRect(size * 0.15, -size * 0.68, size * 0.55, size * 0.14);
+            ctx.fillStyle = "#3a3a48";
+            ctx.fillRect(size * 0.65, -size * 0.64, size * 0.22, size * 0.06);
+            break;
+          }
 
-    switch (snapshot.visualId) {
-      case "player": {
-        // Legs
-        ctx.strokeStyle = "#1a1220";
-        ctx.lineWidth = 3;
-        ctx.lineCap = "round";
-        ctx.beginPath();
-        ctx.moveTo(-size * 0.12, -size * 0.35);
-        ctx.lineTo(-size * 0.18, 0);
-        ctx.moveTo(size * 0.12, -size * 0.35);
-        ctx.lineTo(size * 0.18, 0);
-        ctx.stroke();
+          case "popcorn":
+          case "goblin": {
+            ctx.fillStyle = snapshot.color || "#f97316";
+            ctx.shadowColor = ctx.fillStyle;
+            ctx.shadowBlur = 8;
+            ctx.beginPath();
+            ctx.arc(0, -size * 0.45, size * 0.45, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "#fff4db";
+            ctx.beginPath();
+            ctx.arc(-size * 0.12, -size * 0.53, size * 0.115, 0, Math.PI * 2);
+            ctx.arc(size * 0.14, -size * 0.53, size * 0.115, 0, Math.PI * 2);
+            ctx.fill();
+            break;
+          }
 
-        // Boots
-        ctx.fillStyle = "#151b23";
-        ctx.fillRect(-size * 0.29, -size * 0.08, size * 0.2, size * 0.08);
-        ctx.fillRect(size * 0.09, -size * 0.08, size * 0.2, size * 0.08);
+          case "wall_trooper":
+          case "skeleton": {
+            ctx.fillStyle = snapshot.color || "#78716c";
+            ctx.strokeStyle = "#a8a29e";
+            ctx.lineWidth = 2;
+            ctx.fillRect(-size * 0.4, -size, size * 0.8, size);
+            ctx.strokeRect(-size * 0.4, -size, size * 0.8, size);
+            break;
+          }
 
-        // Body
-        ctx.fillStyle = this.getBodyGrad(ctx, size);
-        ctx.strokeStyle = HIT_PALETTE.hitRunRed;
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        if (ctx.roundRect) ctx.roundRect(-size * 0.28, -size * 0.85, size * 0.56, size * 0.5, 4);
-        else ctx.rect(-size * 0.28, -size * 0.85, size * 0.56, size * 0.5);
-        ctx.fill();
-        ctx.stroke();
+          case "hopper":
+          case "cave_hopper": {
+            ctx.fillStyle = snapshot.color || "#a855f7";
+            ctx.beginPath();
+            ctx.ellipse(0, -size * 0.55, size * 0.5, size * 0.35, 0, 0, Math.PI * 2);
+            ctx.fill();
+            break;
+          }
 
-        // Head
-        ctx.fillStyle = "#1e2430";
-        ctx.beginPath();
-        ctx.arc(0, -size * 0.98, size * 0.22, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = HIT_PALETTE.hitRunYellow;
-        ctx.beginPath();
-        ctx.ellipse(size * 0.08, -size * 1.0, size * 0.12, size * 0.08, 0, 0, Math.PI * 2);
-        ctx.fill();
+          case "charger":
+          case "orc_berserker": {
+            ctx.fillStyle = snapshot.color || "#ef4444";
+            ctx.beginPath();
+            ctx.moveTo(size * 0.65, -size * 0.42);
+            ctx.lineTo(-size * 0.45, -size * 0.84);
+            ctx.lineTo(-size * 0.25, -size * 0.42);
+            ctx.lineTo(-size * 0.45, 0);
+            ctx.closePath();
+            ctx.fill();
+            break;
+          }
 
-        // HMG Weapon
-        ctx.fillStyle = "#1a1a22";
-        ctx.fillRect(size * 0.15, -size * 0.68, size * 0.55, size * 0.14);
-        ctx.fillStyle = "#3a3a48";
-        ctx.fillRect(size * 0.65, -size * 0.64, size * 0.22, size * 0.06);
-        break;
+          case "elite":
+          case "dark_knight":
+          case "warlord":
+          default: {
+            ctx.fillStyle = snapshot.color || "#eab308";
+            ctx.beginPath();
+            ctx.arc(0, -size * 0.5, size * 0.42, 0, Math.PI * 2);
+            ctx.fill();
+            break;
+          }
+        }
       }
-
-      case "popcorn":
-      case "goblin": {
-        ctx.fillStyle = snapshot.color || "#f97316";
-        ctx.shadowColor = ctx.fillStyle;
-        ctx.shadowBlur = 8;
-        ctx.beginPath();
-        ctx.arc(0, -size * 0.45, size * 0.45, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-        ctx.fillStyle = "#fff4db";
-        ctx.beginPath();
-        ctx.arc(-size * 0.12, -size * 0.53, size * 0.115, 0, Math.PI * 2);
-        ctx.arc(size * 0.14, -size * 0.53, size * 0.115, 0, Math.PI * 2);
-        ctx.fill();
-        break;
-      }
-
-      case "wall_trooper":
-      case "skeleton": {
-        ctx.fillStyle = snapshot.color || "#78716c";
-        ctx.strokeStyle = "#a8a29e";
-        ctx.lineWidth = 2;
-        ctx.fillRect(-size * 0.4, -size, size * 0.8, size);
-        ctx.strokeRect(-size * 0.4, -size, size * 0.8, size);
-        break;
-      }
-
-      case "hopper":
-      case "cave_hopper": {
-        ctx.fillStyle = snapshot.color || "#a855f7";
-        ctx.beginPath();
-        ctx.ellipse(0, -size * 0.55, size * 0.5, size * 0.35, 0, 0, Math.PI * 2);
-        ctx.fill();
-        break;
-      }
-
-      case "charger":
-      case "orc_berserker": {
-        ctx.fillStyle = snapshot.color || "#ef4444";
-        ctx.beginPath();
-        ctx.moveTo(size * 0.65, -size * 0.42);
-        ctx.lineTo(-size * 0.45, -size * 0.84);
-        ctx.lineTo(-size * 0.25, -size * 0.42);
-        ctx.lineTo(-size * 0.45, 0);
-        ctx.closePath();
-        ctx.fill();
-        break;
-      }
-
-      case "elite":
-      case "dark_knight":
-      case "warlord":
-      default: {
-        ctx.fillStyle = snapshot.color || "#eab308";
-        ctx.beginPath();
-        ctx.arc(0, -size * 0.5, size * 0.42, 0, Math.PI * 2);
-        ctx.fill();
-        break;
-      }
-    }
-
-    ctx.restore();
-    ctx.restore();
+    );
   }
 
   public renderProjectile(

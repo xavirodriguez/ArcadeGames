@@ -877,6 +877,10 @@ export interface PlatformerInputComponent extends Component {
   jumpReleased: boolean;
   /** Optional explicit horizontal brake action. */
   brake?: boolean;
+  /** Non-touch brake action source, set by the shared game input adapter. */
+  brakeActionHeld?: boolean;
+  /** Touch brake action source, refreshed from TouchInputState each input tick. */
+  brakeTouchHeld?: boolean;
   /**
    * Previous sampled jump-held state, stored in ECS so edge detection survives
    * system recreation and is included in world snapshots.

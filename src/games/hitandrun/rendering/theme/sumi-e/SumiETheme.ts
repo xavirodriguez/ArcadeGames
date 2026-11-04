@@ -13,6 +13,7 @@ import type {
 } from "../HitRunThemeTypes";
 import { computeInkWashLayers, drawInkWashLayersCanvas, drawInkWashLayersSkia } from "../../../../shared/rendering/InkWashParallaxBackdrop";
 import { Skia, getPaint, type SkCanvas } from "../../../../shared/rendering/SkiaContext";
+import { drawGroundShadowEllipse, drawThemedEntityWithHitFlash } from "../HitRunThemeUtils";
 
 export const SUMI_E_PALETTE: HitRunThemePaletteTokens = {
   primary: "#171817",
@@ -366,15 +367,7 @@ export class SumiETheme implements HitRunTheme {
     rxRatio = 0.5,
     ryRatio = 0.16
   ): void {
-    const shadowScale = Math.min(1, Math.max(0.3, 1 - elevation / 120));
-    const shadowAlpha = 0.42 * shadowScale;
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.fillStyle = `rgba(23, 24, 23, ${shadowAlpha.toFixed(3)})`;
-    ctx.beginPath();
-    ctx.ellipse(0, 0, size * rxRatio * shadowScale, size * ryRatio * shadowScale, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
+    drawGroundShadowEllipse(ctx, x, y, size, elevation, "rgba(23, 24, 23, __ALPHA__)", 0.42, rxRatio, ryRatio);
   }
 
   public renderEntity(
@@ -382,99 +375,80 @@ export class SumiETheme implements HitRunTheme {
     snapshot: EntityRenderSnapshot,
     _elapsed: number
   ): void {
-    ctx.save();
-    ctx.translate(snapshot.x, snapshot.y);
+    drawThemedEntityWithHitFlash(
+      ctx,
+      snapshot,
+      () => this.renderGroundShadow(ctx, 0, 0, snapshot.size, snapshot.elevation),
+      (size: number) => {
+        switch (snapshot.visualId) {
+          case "player": {
+            // Ronin with kasa hat & rifle silhouette
+            ctx.fillStyle = SUMI_E_PALETTE.inkOrOutline;
+            // Body
+            ctx.fillRect(-size * 0.25, -size * 0.8, size * 0.5, size * 0.5);
+            // Kasa straw hat
+            ctx.fillStyle = SUMI_E_PALETTE.goldOrYellow;
+            ctx.beginPath();
+            ctx.moveTo(-size * 0.55, -size * 0.85);
+            ctx.lineTo(0, -size * 1.15);
+            ctx.lineTo(size * 0.55, -size * 0.85);
+            ctx.closePath();
+            ctx.fill();
+            // Rifle
+            ctx.fillStyle = SUMI_E_PALETTE.inkOrOutline;
+            ctx.fillRect(size * 0.1, -size * 0.65, size * 0.75, size * 0.1);
+            break;
+          }
 
-    // Ground ink shadow
-    this.renderGroundShadow(ctx, 0, 0, snapshot.size, snapshot.elevation);
+          case "popcorn":
+          case "goblin": {
+            ctx.fillStyle = SUMI_E_PALETTE.inkOrOutline;
+            ctx.beginPath();
+            ctx.arc(0, -size * 0.45, size * 0.45, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = SUMI_E_PALETTE.vermilionOrRed;
+            ctx.beginPath();
+            ctx.arc(size * 0.15, -size * 0.55, size * 0.12, 0, Math.PI * 2);
+            ctx.fill();
+            break;
+          }
 
-    // Entity body
-    ctx.save();
-    ctx.translate(0, -snapshot.elevation);
-    ctx.scale(snapshot.facing, 1);
+          case "charger":
+          case "orc_berserker":
+          case "red_oni": {
+            // Red Oni
+            ctx.fillStyle = SUMI_E_PALETTE.redOniOrCharger;
+            ctx.beginPath();
+            ctx.arc(0, -size * 0.55, size * 0.5, 0, Math.PI * 2);
+            ctx.fill();
+            // Horns
+            ctx.fillStyle = SUMI_E_PALETTE.goldOrYellow;
+            ctx.beginPath();
+            ctx.moveTo(-size * 0.2, -size * 0.9);
+            ctx.lineTo(-size * 0.35, -size * 1.2);
+            ctx.lineTo(-size * 0.05, -size * 0.95);
+            ctx.fill();
+            break;
+          }
 
-    if (snapshot.hitFlash > 0) {
-      ctx.fillStyle = "#ffffff";
-      ctx.beginPath();
-      ctx.arc(0, -snapshot.size * 0.5, snapshot.size * 0.55, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-      ctx.restore();
-      return;
-    }
-
-    const size = snapshot.size;
-
-    switch (snapshot.visualId) {
-      case "player": {
-        // Ronin with kasa hat & rifle silhouette
-        ctx.fillStyle = SUMI_E_PALETTE.inkOrOutline;
-        // Body
-        ctx.fillRect(-size * 0.25, -size * 0.8, size * 0.5, size * 0.5);
-        // Kasa straw hat
-        ctx.fillStyle = SUMI_E_PALETTE.goldOrYellow;
-        ctx.beginPath();
-        ctx.moveTo(-size * 0.55, -size * 0.85);
-        ctx.lineTo(0, -size * 1.15);
-        ctx.lineTo(size * 0.55, -size * 0.85);
-        ctx.closePath();
-        ctx.fill();
-        // Rifle
-        ctx.fillStyle = SUMI_E_PALETTE.inkOrOutline;
-        ctx.fillRect(size * 0.1, -size * 0.65, size * 0.75, size * 0.1);
-        break;
+          case "elite":
+          case "dark_knight":
+          case "blue_oni":
+          default: {
+            // Blue Oni
+            ctx.fillStyle = SUMI_E_PALETTE.darkOniOrElite;
+            ctx.beginPath();
+            ctx.arc(0, -size * 0.55, size * 0.52, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = SUMI_E_PALETTE.goldOrYellow;
+            ctx.beginPath();
+            ctx.arc(0, -size * 0.95, size * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+            break;
+          }
+        }
       }
-
-      case "popcorn":
-      case "goblin": {
-        ctx.fillStyle = SUMI_E_PALETTE.inkOrOutline;
-        ctx.beginPath();
-        ctx.arc(0, -size * 0.45, size * 0.45, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = SUMI_E_PALETTE.vermilionOrRed;
-        ctx.beginPath();
-        ctx.arc(size * 0.15, -size * 0.55, size * 0.12, 0, Math.PI * 2);
-        ctx.fill();
-        break;
-      }
-
-      case "charger":
-      case "orc_berserker":
-      case "red_oni": {
-        // Red Oni
-        ctx.fillStyle = SUMI_E_PALETTE.redOniOrCharger;
-        ctx.beginPath();
-        ctx.arc(0, -size * 0.55, size * 0.5, 0, Math.PI * 2);
-        ctx.fill();
-        // Horns
-        ctx.fillStyle = SUMI_E_PALETTE.goldOrYellow;
-        ctx.beginPath();
-        ctx.moveTo(-size * 0.2, -size * 0.9);
-        ctx.lineTo(-size * 0.35, -size * 1.2);
-        ctx.lineTo(-size * 0.05, -size * 0.95);
-        ctx.fill();
-        break;
-      }
-
-      case "elite":
-      case "dark_knight":
-      case "blue_oni":
-      default: {
-        // Blue Oni
-        ctx.fillStyle = SUMI_E_PALETTE.darkOniOrElite;
-        ctx.beginPath();
-        ctx.arc(0, -size * 0.55, size * 0.52, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = SUMI_E_PALETTE.goldOrYellow;
-        ctx.beginPath();
-        ctx.arc(0, -size * 0.95, size * 0.15, 0, Math.PI * 2);
-        ctx.fill();
-        break;
-      }
-    }
-
-    ctx.restore();
-    ctx.restore();
+    );
   }
 
   public renderProjectile(

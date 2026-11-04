@@ -153,19 +153,26 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
           this.audio.playSFX(sfx.name);
         }
       });
-      eventBus.on("CollectiblePickedUp", (event: unknown) => {
+      eventBus.on("CollectiblePickedUp", (event) => {
         this.audio.playSFX("score");
         if (this.world.isReSimulating) return;
-        const payload = event as { playerEntity?: number } | undefined;
-        if (payload?.playerEntity === undefined) return;
-        const transform = this.world.getComponent(payload.playerEntity, "Transform");
-        if (!transform) return;
-        pickupJuice.spawn("pixelfx_pickup", {
-          x: transform.x,
-          y: transform.y - 8,
-          scale: 0.85,
-          tint: "#f2c14e",
-          ttl: 0.38
+        const playerTransform = event.playerEntity === undefined
+          ? undefined
+          : this.world.getComponent(event.playerEntity, "Transform");
+        const x = event.x ?? playerTransform?.x;
+        const y = event.y ?? playerTransform?.y;
+        if (x === undefined || y === undefined) return;
+        pickupJuice.spawnEffect({
+          id: "platformer.collectible.pickup",
+          primitive: "pixelfx_pickup",
+          family: "interaction",
+          profile: "arcade-neon",
+          context: {
+            sourceEntity: event.playerEntity,
+            targetEntity: event.collectibleEntity,
+            medium: "pickup"
+          },
+          presentation: { x, y, scale: 0.85, ttl: 0.38 }
         });
       });
       eventBus.on("locomotion:slide_started", (event) => {

@@ -86,6 +86,7 @@ export class BoundarySystem extends System<CoreComponentRegistry> {
               if (mt.x < minX) {
                 mt.x = minX;
                 this.reverseVelocity(world, entity, "x", clampX);
+              if (!clampX) this.emitBounce(world, entity, "x", mt.x, mt.y);
               } else if (mt.x > maxX) {
                 mt.x = maxX;
                 this.reverseVelocity(world, entity, "x", clampX);
@@ -95,6 +96,7 @@ export class BoundarySystem extends System<CoreComponentRegistry> {
               if (mt.y < minY) {
                 mt.y = minY;
                 this.reverseVelocity(world, entity, "y", clampY);
+              if (!clampY) this.emitBounce(world, entity, "y", mt.x, mt.y);
               } else if (mt.y > maxY) {
                 mt.y = maxY;
                 this.reverseVelocity(world, entity, "y", clampY);
@@ -105,6 +107,11 @@ export class BoundarySystem extends System<CoreComponentRegistry> {
         }
       }
     }
+  }
+
+  private emitBounce(world: World<CoreComponentRegistry>, entity: number, axis: "x" | "y", x: number, y: number): void {
+    const eventBus = world.getEventBus() as unknown as { emitDeferred: (event: string, payload: unknown) => void } | undefined;
+    eventBus?.emitDeferred("boundary:bounce", { entity, axis, x, y });
   }
 
   private reverseVelocity(world: World<CoreComponentRegistry>, entity: number, axis: "x" | "y", stop = false): void {

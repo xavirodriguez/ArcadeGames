@@ -37,9 +37,10 @@ test("structural mutation checks remain limited to systems and simulation", () =
   assert.equal(isStructuralMutationSensitiveSource("packages/gameplay-kit/src/spawn/BlueprintInterpreter.ts"), false);
 });
 
-test("visual rendering and presentation code requires injected randomness", () => {
-  assert.equal(isVisualRandomnessSensitiveSource("src/games/shared/rendering/ProceduralShapeUtils.ts"), true);
-  assert.equal(isVisualRandomnessSensitiveSource("src/games/hitandrun/presentation/ThemeRenderer.ts"), true);
-  assert.equal(isVisualRandomnessSensitiveSource("src/games/asteroids/rendering/__tests__/AsteroidsVisuals.test.ts"), false);
-  assert.equal(isVisualRandomnessSensitiveSource("src/games/asteroids/systems/AsteroidsSpawnSystem.ts"), false);
+test("all production game source requires injected randomness", () => {
+  assert.equal(isGameRandomnessSensitiveSource("src/games/shared/rendering/ProceduralShapeUtils.ts"), true);
+  assert.equal(isGameRandomnessSensitiveSource("src/games/hitandrun/presentation/ThemeRenderer.ts"), true);
+  assert.equal(isGameRandomnessSensitiveSource("src/games/asteroids/systems/AsteroidsSpawnSystem.ts"), true);
+  assert.equal(isGameRandomnessSensitiveSource("src/games/asteroids/__tests__/AsteroidsVisuals.test.ts"), false);
+  assert.equal(isGameRandomnessSensitiveSource("src/app/sound-lab/index.tsx"), false);
 });

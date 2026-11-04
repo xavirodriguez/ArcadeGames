@@ -3,7 +3,7 @@
 Procedural sound-design toolkit for arcade games.
 Design SFX as **recipes** (layers of primitives) instead of hand-editing waveforms.
 
-**v0.3.1** features:
+**Current package features:**
 
 - Pure Node-free entry point (`@tiny-aster/arcade-sound-kit/core`) for browser and Web Workers
 - Biquad filter sweeps with configurable `q` resonance factor (`q?: number`) and `notch`/`bandpass` types

@@ -56,19 +56,17 @@ for (const sourceFile of project.getSourceFiles()) {
   let anyCount = 0;
   let unknownCount = 0;
 
-  sourceFile.forEachDescendant(node => {
-    const kind = node.getKind();
-    if (kind === SyntaxKind.AsExpression || kind === SyntaxKind.TypeAssertionExpression) {
-      // Get the target type node text
-      const typeNode = (node as any).getTypeNode?.();
-      if (typeNode) {
-        const text = typeNode.getText().trim();
-        if (text === "any") {
-          anyCount++;
-        } else if (text === "unknown") {
-          unknownCount++;
-        }
-      }
+  sourceFile.forEachDescendant((node) => {
+    const typeNode =
+      node.asKind(SyntaxKind.AsExpression)?.getTypeNode() ??
+      node.asKind(SyntaxKind.TypeAssertionExpression)?.getTypeNode();
+    if (!typeNode) return;
+
+    const assertedType = typeNode.getText().trim();
+    if (assertedType === "any") {
+      anyCount++;
+    } else if (assertedType === "unknown") {
+      unknownCount++;
     }
   });
 

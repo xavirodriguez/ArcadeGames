@@ -78,11 +78,15 @@ The monorepo currently contains **8 workspace packages** under `packages/`, plus
 | `server/` | Headless Colyseus authoritative game server |
 | Repository root | Expo / React Native application assembling the workspace packages |
 
+### Project identity and naming
+
+The product and engine brand is **Tiny Aster**; `ArcadeGames` is the GitHub repository name. The root Expo application still uses the private legacy workspace name `asteroides` and the existing Expo/native identifiers. Those identifiers remain unchanged until a dedicated compatibility migration. See the [project identity and naming contract](docs/PROJECT_IDENTITY_AND_NAMING.md).
+
 ---
 
 ## ✨ Engine Features
 
-- **Deterministic ECS runtime** with typed components, systems, and a `BaseGame` lifecycle abstraction shared by every game.
+- **Deterministic ECS runtime** with typed components, systems, and a `BaseGame` lifecycle abstraction used by game implementations built on the core runtime.
 - **Snapshot/restore & rollback** support for authoritative-server netcode reconciliation.
 - **Component & prefab pooling** (`ComponentSetPool`, `PrefabPool`) with dev-mode detection of double-release and partial-destruction bugs — the kind of engine hygiene most hobby ECS implementations skip.
 - **TTL system** for automatic entity lifecycle management.
@@ -98,13 +102,15 @@ The engine features a platform-agnostic audio system designed for a decouple-fir
    - _Graceful Fallback_: Includes a mechanism that caches a silent dummy buffer if loading/decoding fails, avoiding potential errors on subsequent play calls.
 3. **Decoupled Event-Driven Sound Triggering**: ECS systems do not need to call the audio player directly. Instead, they simply emit a `"PlaySFX"` event to the central `EventBus`:
    ```typescript
-   eventBus.emit("PlaySFX" as any, { name: "hit" });
+   eventBus.emit("PlaySFX", { name: "hit" });
    ```
    A global listener registered in `BaseGame` intercepts these events and plays them on the configured audio player automatically.
 4. **Dependency Injection**: Game instances can accept any custom player via the constructor's `BaseGameConfig`, falling back to `WebAudioPlayer` on client platforms:
    ```typescript
    const game = new PongGame({ audio: new WebAudioPlayer() });
    ```
+
+**Runtime playback vs. sound authoring:** `@tiny-aster/core` owns the runtime playback contract (`IAudioPlayer`, `NullAudioPlayer`) and the browser implementation (`WebAudioPlayer`). The separate `@tiny-aster/arcade-sound-kit` package authors procedural sounds and exports WAV files/manifests; it complements the runtime player and does not replace it.
 
 ## 🎮 Games included
 
@@ -221,7 +227,7 @@ pnpm run check:game-patterns
 pnpm run story:lint
 ```
 
-`docs:check` validates the README's game and package inventories against the repository and checks that documented quality-gate commands exist in the root `package.json`. It is separate from API documentation generation: use `pnpm run docs:extract` to extract the API model and `pnpm docs:build` to generate the Markdown API reference.
+`docs:check` validates README inventories, workspace/package and Expo/EAS identities, naming rules, agent/contributor links, wiki game counts, Sound Kit version text, ratchet baselines/targets and documented quality-gate commands against repository files. It is separate from API documentation generation: use `pnpm run docs:extract` to extract the API model and `pnpm docs:build` to generate the Markdown API reference.
 
 ### Additional local checks
 
@@ -235,7 +241,10 @@ pnpm run sprites:build -- --check
 pnpm run sprites:validate
 pnpm run typecheck:core
 pnpm run typecheck:app
+pnpm run architecture:check
 ```
+
+The three debt ratchets measure type assertions, code duplication and color literals. Their committed baselines, exact enforcement rules and 90-day reduction targets are documented in [Technical-debt ratchets](docs/TECHNICAL_DEBT_RATCHETS.md). Update baselines only in a pull request that explains and verifies the corresponding remediation.
 
 ### GitHub Actions
 

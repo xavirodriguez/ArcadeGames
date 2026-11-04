@@ -5,7 +5,8 @@ import * as path from "path";
 /**
  * Script de Ratchet Linter para duplicación de código usando `jscpd`.
  *
- * Mide duplicados en `packages/core/src` y `src/games`, excluyendo tests y artefactos.
+ * Mide los directorios definidos en `.jscpd.json` (Core, Sound Kit y game modules),
+ * excluyendo tests y artefactos según esa configuración.
  * Compara contra `scripts/duplication-baseline.json` y falla si las líneas duplicadas o
  * el porcentaje de duplicación incrementan respecto al baseline.
  */
@@ -65,11 +66,12 @@ try {
     stdio: "pipe",
     encoding: "utf-8"
   });
-} catch (error: any) {
-  // jscpd returns non-zero code when clones are found unless muted or configured.
-  // We swallow the CLI exit error if report was generated.
+} catch (error: unknown) {
+  // jscpd can return non-zero when clones are found; keep the report for evaluation.
+  // Only treat it as an execution failure when no report was generated.
   if (!fs.existsSync(REPORT_FILE)) {
-    console.error("❌ Error ejecutando jscpd:", error.message || error);
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("❌ Error ejecutando jscpd:", message);
     process.exit(1);
   }
 }

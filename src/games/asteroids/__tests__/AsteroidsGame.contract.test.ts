@@ -32,3 +32,47 @@ defineGameContractSuite({
     gameOptions: { seed }
   })
 });
+
+
+describe("Asteroids input contract", () => {
+  it("applies thrust through the game input API before advancing a simulation tick", async () => {
+    const game = new AsteroidsGame({
+      headless: true,
+      manualLoop: true,
+      gameOptions: { seed: 98765 }
+    });
+
+    try {
+      await game.init();
+
+      const [shipEntity] = game.getWorld().query("LocalPlayer", "Velocity");
+      if (shipEntity === undefined) {
+        throw new Error("Asteroids did not initialize its local player velocity.");
+      }
+
+      const velocityBefore = game.getWorld().getComponent(shipEntity, "Velocity");
+      if (!velocityBefore) {
+        throw new Error("Asteroids local player has no Velocity component.");
+      }
+      const speedBefore = Math.hypot(velocityBefore.vx, velocityBefore.vy);
+
+      game.setInputState({
+        thrust: true,
+        rotateLeft: false,
+        rotateRight: false,
+        shoot: false,
+        hyperspace: false
+      });
+      game.step({ t: 1, b: 1 });
+
+      const velocityAfter = game.getWorld().getComponent(shipEntity, "Velocity");
+      if (!velocityAfter) {
+        throw new Error("Asteroids local player lost its Velocity component after stepping.");
+      }
+
+      expect(Math.hypot(velocityAfter.vx, velocityAfter.vy)).toBeGreaterThan(speedBefore);
+    } finally {
+      game.destroy();
+    }
+  });
+});

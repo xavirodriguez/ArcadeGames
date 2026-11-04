@@ -15,6 +15,9 @@ describe("Vertical Shmup explicit shield VFX", () => {
     world.addComponent(attacker, { type: "Faction", faction: "enemy", value: "enemy" } as FactionComponent);
     world.addComponent(attacker, { type: "CollisionEvents", collisions: [], activeTriggers: [], triggersEntered: [], triggersExited: [] });
 
+    const state = world.createEntity();
+    world.addComponent(state, { type: "ShmupGameState", score: 0, wave: 1, lives: 3, scrollDistance: 0, isGameOver: false, spawnTimer: 0 });
+
     const player = world.createEntity();
     world.addComponent(player, { type: "Transform", x: 30, y: 30, rotation: 0, scaleX: 1, scaleY: 1, worldX: 30, worldY: 30, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: true });
     world.addComponent(player, { type: "ShmupPlayer" });

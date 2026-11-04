@@ -37,6 +37,7 @@ describe("Asteroids ricochet VFX integration", () => {
     world.mutateComponent(bullet, "Transform", (transform) => { transform.x = 101; transform.dirty = true; });
     boundarySystem.update(world, 1 / 60);
     eventBus.flushDeferred();
+    world.flush();
 
     expect(world.hasEntity(bullet)).toBe(false);
     const ricochetEffects = world.query("Render", "TTL").filter((entity) =>

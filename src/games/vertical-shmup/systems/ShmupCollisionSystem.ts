@@ -62,6 +62,7 @@ export class ShmupCollisionSystem extends System<ShmupComponentRegistry, ShmupEv
       shield.rechargeRemaining = Math.max(0, shield.rechargeRemaining - Math.max(0, deltaTime));
       if (shield.rechargeRemaining <= 0) {
         shield.charges = Math.min(shield.maxCharges, shield.charges + 1);
+        shield.rechargeRemaining = shield.charges < shield.maxCharges ? shield.rechargeSeconds : 0;
       }
     }
 

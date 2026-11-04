@@ -28,6 +28,9 @@ export interface CoreEvents {
   /** Emitted when an obstacle rock is destroyed. */
   "rock:destroyed": { amount?: number; [key: string]: unknown };
 
+  /** Emitted after an entity velocity is reflected by a world boundary. */
+  "boundary:bounce": { entity: Entity; axis: "x" | "y"; x: number; y: number };
+
   /** Emitted to trigger audio sound effect playback. */
   "PlaySFX": {
     name: string;

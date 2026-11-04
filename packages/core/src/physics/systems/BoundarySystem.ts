@@ -116,19 +116,18 @@ export class BoundarySystem extends System<CoreComponentRegistry> {
   }
 
   private emitBounce(world: World<CoreComponentRegistry>, entity: number, axis: "x" | "y", x: number, y: number): void {
-    const eventBus = world.getEventBus() as unknown as { emitDeferred: (event: string, payload: unknown) => void } | undefined;
-    eventBus?.emitDeferred("boundary:bounce", { entity, axis, x, y });
+    world.getEventBus()?.emitDeferred("boundary:bounce", { entity, axis, x, y });
   }
 
   private reverseVelocity(world: World<CoreComponentRegistry>, entity: number, axis: "x" | "y", stop = false): boolean {
     // Safe for determinism/rollback. Avoids per-tick callback allocations.
     const v = world.getMutableComponent(entity, "Velocity");
-    if (v) {
-      if (axis === "x") v.vx = stop ? 0 : -v.vx;
-      else v.vy = stop ? 0 : -v.vy;
-      if (!stop) world.getEventBus()?.emitDeferred("PlaySFX", { name: "bounce" });
-      return !stop;
-    }
-    return false;
+    if (!v) return false;
+    const axisVelocity = axis === "x" ? v.vx : v.vy;
+    if (!stop && axisVelocity === 0) return false;
+    if (axis === "x") v.vx = stop ? 0 : -v.vx;
+    else v.vy = stop ? 0 : -v.vy;
+    if (!stop) world.getEventBus()?.emitDeferred("PlaySFX", { name: "bounce" });
+    return !stop;
   }
 }

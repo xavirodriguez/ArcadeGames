@@ -65,6 +65,19 @@ describe("Locomotion B5 moving-platform support", () => {
     expect(contact?.surfaceVelocity).toEqual({ x: 50, y: 0 });
   });
 
+  it("emits a single transition event when a moving platform reverses direction", () => {
+    const world = new World<CoreComponentRegistry>();
+    const platform = createPlatform(world);
+    const events: Array<{ entity: number; x: number; y: number; velocityX: number; velocityY: number }> = [];
+    world.getEventBus().on("locomotion:platform_reversed", event => events.push(event));
+    const system = new MovingPlatformSystem();
+    system.update(world, 1);
+    system.update(world, 1);
+    system.update(world, 1);
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({ entity: platform, x: 100, y: 200, velocityX: -50, velocityY: 0 });
+  });
+
   it("inherits vertical platform motion on landing and snaps to the moving top", () => {
     const world = new World<CoreComponentRegistry>();
     const platform = createPlatform(world, 100, 200, 10, 20);

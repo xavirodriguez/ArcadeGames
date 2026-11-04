@@ -3,16 +3,48 @@ name: E2E
 on:
   pull_request:
     branches: [master, develop]
+    paths:
+      - "e2e/**"
+      - "playwright.config.ts"
+      - "src/games/**"
+      - "src/app/**"
+      - "app/**"
+      - "expo-router/**"
+      - "packages/renderer-*/**"
+      - "packages/react-native/**"
+      - "packages/core/**"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - "app.config.ts"
+      - "app.json"
+      - ".github/workflows/e2e.yml"
+  schedule:
+    # Full suite once a day (UTC)
+    - cron: "0 5 * * *"
   workflow_dispatch:
+    inputs:
+      suite:
+        description: "E2E suite to run"
+        required: true
+        default: "full"
+        type: choice
+        options:
+          - smoke
+          - full
 
 permissions:
   contents: read
+
+concurrency:
+  group: e2e-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   playwright:
     name: Playwright E2E
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Smoke should finish well under this; full suite keeps previous headroom.
+    timeout-minutes: ${{ github.event_name == 'pull_request' && 12 || 20 }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -32,8 +64,29 @@ jobs:
       - name: Install Playwright Chromium
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Run E2E suite
-        run: pnpm test:e2e
+      - name: Resolve suite mode
+        id: mode
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "smoke=1" >> "$GITHUB_OUTPUT"
+            echo "label=smoke" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.suite }}" = "smoke" ]; then
+            echo "smoke=1" >> "$GITHUB_OUTPUT"
+            echo "label=smoke" >> "$GITHUB_OUTPUT"
+          else
+            echo "smoke=0" >> "$GITHUB_OUTPUT"
+            echo "label=full" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run E2E suite (${{ steps.mode.outputs.label }})
+        env:
+          E2E_SMOKE: ${{ steps.mode.outputs.smoke }}
+        run: |
+          if [ "${{ steps.mode.outputs.smoke }}" = "1" ]; then
+            pnpm test:e2e:smoke
+          else
+            pnpm test:e2e
+          fi
 
       - name: Upload Playwright diagnostics on failure
         if: ${{ failure() }}

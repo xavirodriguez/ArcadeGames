@@ -11,33 +11,13 @@ import {
 } from "../../rendering/FlappyBirdRenderUtils";
 import {
   drawCanvasGlideEnergyBar,
-  drawCanvasVisualParticles
+  drawCanvasVisualParticles,
+  getCachedCanvasGradient
 } from "../../rendering/FlappyBirdCanvasVisuals";
 import { colors } from "../../../../theme/colors";
 import { hexToRgba } from "../../../shared/rendering/CosmicPalette";
 
-const canvasGradientCache = new Map<string, CanvasGradient>();
-let lastCanvasCtx: CanvasRenderingContext2D | null = null;
 
-function getCachedCanvasGradient(
-  ctx: CanvasRenderingContext2D,
-  key: string,
-  factory: () => CanvasGradient
-): CanvasGradient {
-  if (lastCanvasCtx !== ctx) {
-    lastCanvasCtx = ctx;
-    canvasGradientCache.clear();
-  }
-  let grad = canvasGradientCache.get(key);
-  if (!grad) {
-    if (canvasGradientCache.size > 40) {
-      canvasGradientCache.clear();
-    }
-    grad = factory();
-    canvasGradientCache.set(key, grad);
-  }
-  return grad;
-}
 
 function drawPaperAirplaneDetails(ctx: CanvasRenderingContext2D, size: number, theme?: Theme) {
   const primaryColor = theme?.colorMap?.primary || "#FFFFFF";

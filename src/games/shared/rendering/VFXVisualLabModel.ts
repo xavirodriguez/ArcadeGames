@@ -7,7 +7,8 @@ import {
   type VFXEffectDescriptor,
   type VFXFamily,
   type VFXSemanticTokens,
-  type VFXVisualProfileId
+  type VFXVisualProfileId,
+  type TraversalVFXContext
 } from "./VFXEffectIR";
 import {
   drawPixelFxBrickShatter,
@@ -25,6 +26,9 @@ import {
   drawPixelFxCharge,
   drawPixelFxShieldPulse,
   drawPixelFxTargetWarning,
+  drawPixelFxTeleport,
+  drawPixelFxSurfaceSkid,
+  drawPixelFxMechanicalMotion,
   drawPixelFxShieldCrack,
   drawPixelFxSlash
 } from "./PixelFxProceduralVFX";
@@ -60,7 +64,10 @@ export const VFX_LAB_EFFECTS = [
   { id: "pixelfx_ricochet", label: "Ricochet", family: "combat", draw: drawPixelFxRicochet },
   { id: "pixelfx_charge", label: "Charge", family: "combat", draw: drawPixelFxCharge },
   { id: "pixelfx_shield_pulse", label: "Shield Pulse", family: "combat", draw: drawPixelFxShieldPulse },
-  { id: "pixelfx_target_warning", label: "Target Warning", family: "combat", draw: drawPixelFxTargetWarning }
+  { id: "pixelfx_target_warning", label: "Target Warning", family: "combat", draw: drawPixelFxTargetWarning },
+  { id: "pixelfx_teleport", label: "Teleport", family: "traversal", draw: drawPixelFxTeleport },
+  { id: "pixelfx_surface_skid", label: "Surface Skid", family: "traversal", draw: drawPixelFxSurfaceSkid },
+  { id: "pixelfx_mechanical_motion", label: "Mechanical Motion", family: "traversal", draw: drawPixelFxMechanicalMotion }
 ] as const satisfies readonly VFXLabEffect[];
 
 export type VFXLabEffectId = (typeof VFX_LAB_EFFECTS)[number]["id"];
@@ -96,7 +103,10 @@ export const VFX_LAB_PRESETS: readonly VFXLabPreset[] = [
   { schemaVersion: 1, id: "ricochet-neon", label: "Ricochet / Neon", effect: "pixelfx_ricochet", profile: "arcade-neon", progress: 0.34, size: 46, rotation: -0.62, seed: 223117 },
   { schemaVersion: 1, id: "charge-neon", label: "Charge / Neon", effect: "pixelfx_charge", profile: "arcade-neon", progress: 0.22, size: 54, rotation: 0, seed: 246271 },
   { schemaVersion: 1, id: "shield-pulse-sumi", label: "Shield Pulse / Sumi-e", effect: "pixelfx_shield_pulse", profile: "sumi-e", progress: 0.42, size: 58, rotation: 0.3, seed: 270371 },
-  { schemaVersion: 1, id: "target-warning-neon", label: "Target Warning / Neon", effect: "pixelfx_target_warning", profile: "arcade-neon", progress: 0.18, size: 50, rotation: 0.18, seed: 293867 }
+  { schemaVersion: 1, id: "target-warning-neon", label: "Target Warning / Neon", effect: "pixelfx_target_warning", profile: "arcade-neon", progress: 0.18, size: 50, rotation: 0.18, seed: 293867 },
+  { schemaVersion: 1, id: "teleport-neon", label: "Teleport / Neon", effect: "pixelfx_teleport", profile: "arcade-neon", progress: 0.46, size: 56, rotation: 0.3, seed: 318137 },
+  { schemaVersion: 1, id: "surface-skid-sumi", label: "Surface Skid / Sumi-e", effect: "pixelfx_surface_skid", profile: "sumi-e", progress: 0.38, size: 52, rotation: 0.12, seed: 342347 },
+  { schemaVersion: 1, id: "mechanical-motion-neon", label: "Mechanical Motion / Neon", effect: "pixelfx_mechanical_motion", profile: "arcade-neon", progress: 0.32, size: 58, rotation: -0.2, seed: 366013 }
 ];
 
 const SEMANTIC_ROLE_BY_FAMILY: Record<VFXFamily, VFXLabSemanticRole> = {
@@ -121,8 +131,15 @@ export function createVFXLabDescriptor(
   switch (effect.family) {
     case "combat":
       return { ...base, family: "combat", context: { direction: rotation, impactX: 0, impactY: 0, material: "energy" } };
-    case "traversal":
-      return { ...base, family: "traversal", context: { velocityX: Math.cos(rotation), velocityY: Math.sin(rotation), surface: "air", phase: "dash" } };
+    case "traversal": {
+      const phase: TraversalVFXContext["phase"] =
+        effect.id === "pixelfx_teleport" ? "teleport" :
+        effect.id === "pixelfx_surface_skid" ? "slide" :
+        effect.id === "pixelfx_mechanical_motion" ? "mechanical" : "dash";
+      const surface: TraversalVFXContext["surface"] =
+        effect.id === "pixelfx_surface_skid" || effect.id === "pixelfx_mechanical_motion" ? "ground" : "air";
+      return { ...base, family: "traversal", context: { velocityX: Math.cos(rotation), velocityY: Math.sin(rotation), surface, phase } };
+    }
     case "interaction":
       return { ...base, family: "interaction", context: { medium: "pickup" } };
     case "temporal":

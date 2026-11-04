@@ -19,6 +19,12 @@ import { drawProceduralSceneCanvas } from "../../../../shared/procedural/renderi
 import { drawGroundShadowEllipse, drawThemedEntityWithHitFlash } from "../HitRunThemeUtils";
 import { drawProceduralSceneSkia } from "../../../../shared/procedural/rendering/drawProceduralSceneSkia";
 import type { ProceduralScene } from "../../../../shared/procedural/types/ProceduralTypes";
+import type { WalkableAreaGeometry } from "../../../belt/WalkableAreaGeometry";
+import { DEFAULT_WALKABLE_AREA_GEOMETRY } from "../../../belt/WalkableAreaGeometry";
+import {
+  drawWalkableAreaCanvas,
+  drawWalkableAreaSkia
+} from "../drawWalkableArea";
 
 export const FANTASY_PALETTE_TOKENS: HitRunThemePaletteTokens = {
   primary: "#3d4a5c",
@@ -69,7 +75,8 @@ export class FantasyTheme implements HitRunTheme {
     viewportHeight: number,
     _cameraX: number,
     _cameraY: number,
-    _elapsed: number
+    _elapsed: number,
+    walkableArea: WalkableAreaGeometry = DEFAULT_WALKABLE_AREA_GEOMETRY
   ): void {
     if (!Skia || !canvas) return;
     const paint = getPaint();
@@ -87,6 +94,18 @@ export class FantasyTheme implements HitRunTheme {
       paint,
       this.getProceduralBackdrop(viewportWidth, viewportHeight)
     );
+
+    drawWalkableAreaSkia(canvas, viewportWidth, walkableArea, {
+      floorColor: FANTASY_PALETTE_TOKENS.paperOrFloor,
+      floorAlpha: 0.55,
+      upperBorderColor: "#3a4555",
+      lowerBorderColor: "#1a1220",
+      borderWidth: 2.5,
+      upperCurbColor: "#151b23",
+      upperCurbHeight: 10,
+      lowerCurbColor: "#0a0612",
+      lowerCurbHeight: 14
+    });
 
     paint.setAlphaf(1);
     paint.setStyle(Skia.PaintStyle.Fill);
@@ -118,7 +137,8 @@ export class FantasyTheme implements HitRunTheme {
     viewportHeight: number,
     _cameraX: number,
     _cameraY: number,
-    _elapsed: number
+    _elapsed: number,
+    walkableArea: WalkableAreaGeometry = DEFAULT_WALKABLE_AREA_GEOMETRY
   ): void {
     ctx.save();
     ctx.fillStyle = FANTASY_PALETTE_TOKENS.background;
@@ -127,6 +147,20 @@ export class FantasyTheme implements HitRunTheme {
     // Controlled alpha procedural backdrop to preserve combat legibility
     ctx.globalAlpha = 0.35;
     drawProceduralSceneCanvas(ctx, this.getProceduralBackdrop(viewportWidth, viewportHeight));
+    ctx.globalAlpha = 1;
+
+    drawWalkableAreaCanvas(ctx, viewportWidth, walkableArea, {
+      floorColor: FANTASY_PALETTE_TOKENS.paperOrFloor,
+      floorAlpha: 0.55,
+      upperBorderColor: "#3a4555",
+      lowerBorderColor: "#1a1220",
+      borderWidth: 2.5,
+      upperCurbColor: "#151b23",
+      upperCurbHeight: 10,
+      lowerCurbColor: "#0a0612",
+      lowerCurbHeight: 14
+    });
+
     ctx.restore();
   }
 

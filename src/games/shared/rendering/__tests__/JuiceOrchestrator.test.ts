@@ -140,6 +140,24 @@ describe("JuiceOrchestrator Unit Tests & Golden Replays", () => {
       expectLatestShape("pixelfx_phase_dash");
     });
 
+    it("maps locomotion transitions to traversal effects in both platformer games", () => {
+      juice.triggerEvent("platformer", "player:slide", { x: 120, y: 200, rotation: 0 });
+      expect(world.getComponent(world.query("Render")[0], "Render")?.shape).toBe("pixelfx_surface_skid");
+      juice.triggerEvent("platformer", "platform:reversed", { x: 160, y: 220, rotation: Math.PI });
+      expect(world.getComponent(world.query("Render")[1], "Render")?.shape).toBe("pixelfx_mechanical_motion");
+      juice.triggerEvent("echo-runner", "player:slide", { x: 120, y: 200, rotation: 0 });
+      expect(world.getComponent(world.query("Render")[2], "Render")?.shape).toBe("pixelfx_surface_skid");
+      juice.triggerEvent("echo-runner", "platform:reversed", { x: 160, y: 220, rotation: Math.PI });
+      expect(world.getComponent(world.query("Render")[3], "Render")?.shape).toBe("pixelfx_mechanical_motion");
+    });
+
+    it("does not spawn traversal effects from locomotion events during resimulation", () => {
+      world.isReSimulating = true;
+      juice.triggerEvent("platformer", "player:slide", { x: 120, y: 200 });
+      juice.triggerEvent("platformer", "platform:reversed", { x: 160, y: 220 });
+      expect(world.query("Render", "TTL")).toHaveLength(0);
+    });
+
     it("should trigger typed Arkanoid brick:hit and brick:shatter events", () => {
       juice.triggerEvent("arkanoid", "brick:hit", { x: 100, y: 120 });
       expect(world.query("Render").length).toBe(1);

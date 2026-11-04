@@ -1,5 +1,5 @@
 import { System, World, Entity, EventBus, CoreComponentRegistry, WorldUtils, WorldCommandBuffer } from "@tiny-aster/core";
-import { DamageComponent, FactionComponent } from "../components/CombatComponents";
+import { DamageComponent, FactionComponent, ShieldComponent } from "../components/CombatComponents";
 
 /**
  * CombatSystem processes physical collision contacts and resolves damage and faction rules.
@@ -110,17 +110,49 @@ export class CombatSystem<
       }
     }
 
-    // 2. Invulnerability check
+    // 2. Invulnerability check. Temporary invulnerability takes precedence over shield charges.
     if (healthComp.invulnerableRemaining !== undefined && healthComp.invulnerableRemaining > 0) {
       return;
     }
 
-    // 3. Skip if target is already marked dead
+    // 3. Ignore dead targets before considering shield charges.
     if (world.hasComponent(target, deadKey)) {
       return;
     }
 
-    // 4. Calculate and apply damage
+    // 4. Explicit shield absorption is a combat rule, not a presentation-side invulnerability flag.
+    // Structural lookup keeps CombatSystem compatible with games that do not declare Shield.
+    const shieldKey = "Shield" as Extract<keyof TComponents, string>;
+    const shield = world.getComponent(target, shieldKey) as ShieldComponent | undefined;
+    if (shield && shield.charges > 0) {
+      const mutableShield = world.getMutableComponent(target, shieldKey) as ShieldComponent | undefined;
+      if (mutableShield) {
+        mutableShield.charges = Math.max(0, mutableShield.charges - 1);
+        mutableShield.rechargeRemaining = Math.max(0, mutableShield.rechargeSeconds);
+        const eventBus = world.getEventBus() as EventBus | undefined;
+        eventBus?.emitDeferred(
+          "combat:shield_absorbed" as Extract<keyof TEvents, string>,
+          {
+            targetEntity: target,
+            sourceEntity: attacker,
+            amount: damageComp.amount,
+            remainingCharges: mutableShield.charges
+          } as TEvents[Extract<keyof TEvents, string>]
+        );
+      }
+      // A shield absorbs the hit, not the projectile. Preserve the attacker's declared consumption policy.
+      const shieldHitPolicy = damageComp.consumption || "none";
+      if (shieldHitPolicy === "destroy-entity") {
+        this.reclaimAndDestroy(world, attacker);
+        destroyedEntities.add(attacker);
+      } else if (shieldHitPolicy === "remove-component") {
+        world.getCommandBuffer().removeComponent(attacker, damageKey);
+      }
+      return;
+    }
+
+
+    // 5. Calculate and apply damage
     const prevHealth = healthComp.current;
     if (prevHealth <= 0) return; // Already dead
 

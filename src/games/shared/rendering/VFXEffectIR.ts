@@ -20,7 +20,7 @@ export interface TraversalVFXContext {
   readonly velocityX: number;
   readonly velocityY: number;
   readonly surface?: "ground" | "ice" | "water" | "wall" | "air";
-  readonly phase?: "takeoff" | "landing" | "dash" | "slide" | "contact";
+  readonly phase?: "takeoff" | "landing" | "dash" | "slide" | "contact" | "teleport" | "mechanical";
 }
 
 export interface InteractionVFXContext {

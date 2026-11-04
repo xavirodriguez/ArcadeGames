@@ -175,7 +175,7 @@ export default function HomeScreen() {
           <TouchableOpacity
             style={styles.visualLabButton}
             activeOpacity={0.85}
-            onPress={() => router.push("/vfx-lab" as any)}
+            onPress={() => router.push("/vfx-lab")}
             accessibilityRole="button"
             accessibilityLabel="Open VFX Visual Lab"
           >

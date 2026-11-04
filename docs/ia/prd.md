@@ -83,7 +83,7 @@ convenciones se pueden romper sin querer.
 | ID    | Invariante                                                                                                              | Check                                                                                                                                                                                                                                                                                     |
 | :---- | :---------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | INV-1 | `@tiny-aster/core` no depende de UI ni de plataforma                                                                    | `pnpm run check:core-boundaries` (`scripts/check-core-boundaries.sh`); análogos `check:gameplay-kit-boundaries` y `check:network-boundaries`; también regla de imports en el AST linter                                                                                                   |
-| INV-2 | Toda aleatoriedad de gameplay pasa por `world.gameplayRandom`                                                           | `pnpm exec tsx scripts/ast-determinism-linter.ts` — prohíbe `Math.random()`/`Date.now()`/`performance.now()` como error. **Limitación conocida:** solo cubre archivos bajo `/systems/` y `/simulation/` de `packages/core/src` y `src/games`; factories/blueprints de juegos quedan fuera |
+| INV-2 | `Toda aleatoriedad de gameplay pasa por `world.gameplayRandom` | `pnpm exec tsx scripts/ast-determinism-linter.ts` — comprueba APIs no deterministas en `systems/`, `simulation/`, `factories/`, `factory/`, `blueprints/`, `blueprint/`, `entities/`, ficheros cuyo nombre incluye `Factory`/`Blueprint` y todo `packages/gameplay-kit/src`. Excluye tests y mocks. Las mutaciones estructurales siguen restringidas a sistemas/simulación. |
 | INV-3 | El loop usa fixed timestep; el input entra como `InputFrame`; el render sale a `RenderCommandBuffer`                    | Tests de `GameLoop` en `packages/core/tests`                                                                                                                                                                                                                                              |
 | INV-4 | El estado del `World` es serializable: sin funciones, clases con estado oculto ni referencias circulares en componentes | Test de roundtrip de snapshot (serializar, restaurar, comparar hash) — `determinism.test.ts` + `test:snapshots`                                                                                                                                                                           |
 | INV-5 | Las mutaciones estructurales durante el update de un sistema van por `world.commands` (WorldCommandBuffer)              | Regla 5 del AST linter: prohíbe `world.addComponent/removeComponent/createEntity/removeEntity` directos en sistemas. **Nota:** la mutación de _campos_ de componentes fuera de sistemas no tiene check automático — es revisión manual                                                    |
@@ -175,9 +175,9 @@ React 19.2, Skia 2.4.18, TypeScript 5.9). SO de referencia: ⚠ COMPLETAR.
 **Nunca**
 
 - Importar React, React Native, Skia, DOM o Colyseus desde `@tiny-aster/core`.
-- Usar `Math.random`, `Date.now` o `performance.now` dentro de lógica de simulación
-  (archivos `/systems/` y `/simulation/` lo impide el AST linter; fuera de ahí es
-  responsabilidad del autor y de la revisión).
+- Usar `Math.random`, `Date.now` o `performance.now` dentro de lógica de simulación.
+  El AST linter cubre sistemas, simulación, factories, blueprints, entidades y todo
+  `packages/gameplay-kit/src`; los tests y mocks quedan excluidos.
 - Mutar componentes fuera de un sistema; en sistemas, mutaciones estructurales solo
   vía `world.commands`.
 - Añadir `any` para que compile.
@@ -226,7 +226,7 @@ rendimiento (3), y ambas pierden contra corrección/determinismo (1).
 | :----------------------------------------------------------------- | :------------------------------------------- | :---------------------------------------------------------------- |
 | El core acaba acoplado a React Native                              | INV-1                                        | `check:core-boundaries` + AST linter en `ecs-sentinel.yml`        |
 | Divergencia de determinismo en física                              | RNG aislado + hash de snapshot como detector | INV-2 (AST linter), INV-4 (`determinism.test.ts`, golden replays) |
-| `Math.random` en factories/blueprints fuera del alcance del linter | Extender el linter o revisión manual         | ⚠ sin check automático hoy                                        |
+| `Math.random` en factories/blueprints fuera del alcance del linter | Ampliación del AST linter + tests de alcance en CI | Check añadido; ejecución CI pendiente de confirmar |
 | Un agente da por válido un fix sin ejecutarlo                      | Definición de hecho, punto 5                 | Revisión del informe                                              |
 | Documentación que contradice decisiones                            | Las decisiones de la sección 12 mandan       | Revisión manual                                                   |
 

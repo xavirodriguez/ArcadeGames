@@ -84,10 +84,12 @@ export function defineGameContractSuite<TGame extends GameContractInstance>(
       const restartSeed = initialSeed + 1;
 
       await game.restart(restartSeed);
+      const freshInstance = await createInitializedGame(restartSeed);
 
       expect(game.getSeed()).toBe(restartSeed);
       expect(game.getLifecycleState()).toBe(GameLifecycleState.RUNNING);
       expect(game.isPausedState()).toBe(false);
+      expect(game.hash()).toBe(freshInstance.hash());
     });
 
     it("destroys the game and marks its lifecycle terminal", async () => {

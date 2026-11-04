@@ -14,8 +14,7 @@ export class ShmupCollisionSystem extends System<ShmupComponentRegistry, ShmupEv
   private subscribe(world: World<ShmupComponentRegistry, ShmupEventRegistry>): void {
     if (this.subscribed) return;
     this.subscribed = true;
-      this.subscribed = true;
-      world.getEventBus()?.on("combat:hit", (event) => {
+    world.getEventBus()?.on("combat:hit", (event) => {
         if (!event || typeof event.targetEntity !== "number") return;
         const player = world.getComponent(event.targetEntity, "ShmupPlayer");
         if (player) {
@@ -37,7 +36,7 @@ export class ShmupCollisionSystem extends System<ShmupComponentRegistry, ShmupEv
           });
         }
       });
-      world.getEventBus()?.on("combat:shield_absorbed", (event) => {
+    world.getEventBus()?.on("combat:shield_absorbed", (event) => {
         if (!event || typeof event.targetEntity !== "number" || world.isReSimulating) return;
         const transform = world.getComponent(event.targetEntity, "Transform");
         if (!transform) return;
@@ -48,8 +47,9 @@ export class ShmupCollisionSystem extends System<ShmupComponentRegistry, ShmupEv
           scale: 1.15,
           ttl: 0.34
         });
-      });
+    });
   }
+
   update(world: World<ShmupComponentRegistry, ShmupEventRegistry>, deltaTime: number): void {
     this.subscribe(world);
 

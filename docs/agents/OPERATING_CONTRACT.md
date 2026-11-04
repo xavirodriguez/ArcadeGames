@@ -79,6 +79,7 @@ These are observed failure classes from the 2026-11-03 logs. They are evidence f
 | `JuiceOrchestrator is not defined` during game registration | Verify the canonical export/import and lifecycle wiring. | Application typecheck plus game initialization/SmokeTest. |
 | SpriteRegistry `imageSource === null` | Distinguish Jest's asset resolution from actual runtime asset loading. | Sprite metadata/path validation plus resource-resolution tests; never silence nulls. |
 | Missing Theme color roles | Decide which roles are required/optional and verify fallback behavior. | Theme contract tests; do not add arbitrary aliases just to remove warnings. |
+| Local `Transform` mutation leaves `worldX/worldY` stale | Verify every writer that changes local transform fields marks `dirty = true` before the `Transform` phase; `HierarchySystem` refreshes cached world coordinates only for dirty transforms. | `FroggerLifecycle.test.ts` covers discrete jumps, log carry, and respawn; add equivalent synchronization assertions for new position writers. Run `pnpm exec jest --runInBand src/games/frogger/__tests__/FroggerLifecycle.test.ts`. |
 
 For every recurrence, add the confirmed root cause, exact regression test/guard, and CI command here. Do not record speculative explanations as facts.
 

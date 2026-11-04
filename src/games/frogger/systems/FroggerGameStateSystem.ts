@@ -152,6 +152,7 @@ export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
           });
           transform.x = padTargetX;
           transform.y = padTargetY;
+          transform.dirty = true;
           world.mutateComponent(froggerEntity, "Frogger", (f) => {
             f.gridX = Math.round(padTargetX / config.GRID_SIZE);
           });
@@ -396,6 +397,7 @@ export class FroggerGameStateSystem extends System<FroggerComponentRegistry> {
     world.mutateComponent(froggerEntity, "Transform", (t) => {
       t.x = startX * config.GRID_SIZE + config.GRID_SIZE / 2;
       t.y = startY * config.GRID_SIZE + config.GRID_SIZE / 2;
+      t.dirty = true;
     });
     if (world.hasComponent(froggerEntity, "Velocity")) {
       world.mutateComponent(froggerEntity, "Velocity", (v) => {

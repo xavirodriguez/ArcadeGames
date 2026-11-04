@@ -87,6 +87,7 @@ export class FroggerInputSystem extends System<FroggerComponentRegistry> {
 
         transform.x = frogger.gridX * config.GRID_SIZE + config.GRID_SIZE / 2;
         transform.y = frogger.gridY * config.GRID_SIZE + config.GRID_SIZE / 2;
+        transform.dirty = true;
 
         if (dy < 0 && frogger.gridY < frogger.furthestY) {
           frogger.furthestY = frogger.gridY;

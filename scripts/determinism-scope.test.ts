@@ -3,7 +3,7 @@ import { test } from "node:test";
 import {
   isDeterminismSensitiveSource,
   isStructuralMutationSensitiveSource,
-  isVisualRandomnessSensitiveSource,
+  isGameRandomnessSensitiveSource,
   isTestOrMockSource
 } from "./determinism-scope";
 

@@ -51,10 +51,14 @@ export interface JuiceSpawnOptions extends BaseJuiceOptions {
 
 /**
  * Catalog profile definition binding a juice effect primitive with default options.
+ * Optional `pixelFxId` selects a spritesheet-backed effect from the PixelFX manifest
+ * when assets are registered; otherwise `effect` (SharedVFX / procedural) is used.
  * @public
  */
 export interface JuiceProfile extends BaseJuiceOptions {
   effect: SharedVFXPrimitiveName;
+  /** Stable PixelFX manifest id (e.g. "pfx-impact-spark"). Never a glob. */
+  pixelFxId?: string;
 }
 
 export type SupportedGameId =
@@ -145,8 +149,15 @@ export class JuiceOrchestrator<TComponents extends CoreComponentRegistry = CoreC
   /**
    * Spawns a visual effect primitive with zero-allocation deferral during system ticks.
    * FR-1: High-level single-line API.
+   * Presentation-only: skipped during rollback resimulation.
    */
   public spawn(effectName: SharedVFXPrimitiveName, options?: JuiceSpawnOptions): number | null {
+    // Presentation-only path: during rollback resimulation do not create VFX entities,
+    // request hit-stop, or apply screen shake. Matches Hit & Run feedback policy.
+    if (this.world.isReSimulating === true) {
+      return null;
+    }
+
     const state = getVFXState(this.world);
     const juiceLevel = state.juiceLevel ?? 1.0;
 

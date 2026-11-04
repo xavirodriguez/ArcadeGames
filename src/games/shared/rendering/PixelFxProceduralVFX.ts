@@ -640,7 +640,10 @@ export function registerPixelFxProceduralVFX<TComponents extends CoreComponentRe
     ["pixelfx_ricochet", drawPixelFxRicochet],
     ["pixelfx_charge", drawPixelFxCharge],
     ["pixelfx_shield_pulse", drawPixelFxShieldPulse],
-    ["pixelfx_target_warning", drawPixelFxTargetWarning]
+    ["pixelfx_target_warning", drawPixelFxTargetWarning],
+    ["pixelfx_teleport", drawPixelFxTeleport],
+    ["pixelfx_surface_skid", drawPixelFxSurfaceSkid],
+    ["pixelfx_mechanical_motion", drawPixelFxMechanicalMotion]
   ] as const;
 
   for (const [name, drawEffect] of drawers) {

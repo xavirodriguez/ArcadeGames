@@ -102,13 +102,15 @@ The engine features a platform-agnostic audio system designed for a decouple-fir
    - _Graceful Fallback_: Includes a mechanism that caches a silent dummy buffer if loading/decoding fails, avoiding potential errors on subsequent play calls.
 3. **Decoupled Event-Driven Sound Triggering**: ECS systems do not need to call the audio player directly. Instead, they simply emit a `"PlaySFX"` event to the central `EventBus`:
    ```typescript
-   eventBus.emit("PlaySFX" as any, { name: "hit" });
+   eventBus.emit("PlaySFX", { name: "hit" });
    ```
    A global listener registered in `BaseGame` intercepts these events and plays them on the configured audio player automatically.
 4. **Dependency Injection**: Game instances can accept any custom player via the constructor's `BaseGameConfig`, falling back to `WebAudioPlayer` on client platforms:
    ```typescript
    const game = new PongGame({ audio: new WebAudioPlayer() });
    ```
+
+**Runtime playback vs. sound authoring:** `@tiny-aster/core` owns the runtime playback contract (`IAudioPlayer`, `NullAudioPlayer`) and the browser implementation (`WebAudioPlayer`). The separate `@tiny-aster/arcade-sound-kit` package authors procedural sounds and exports WAV files/manifests; it complements the runtime player and does not replace it.
 
 ## 🎮 Games included
 

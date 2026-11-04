@@ -19,6 +19,13 @@ defineGameContractSuite({
   gameId: "asteroids",
   seed: 98765,
   inputs: deterministicInputs,
+  applyInput: (game, input) => game.setInputState({
+    thrust: (input.b & 1) !== 0,
+    rotateLeft: (input.b & 2) !== 0,
+    rotateRight: (input.b & 4) !== 0,
+    shoot: (input.b & 8) !== 0,
+    hyperspace: (input.b & 16) !== 0
+  }),
   create: (seed) => new AsteroidsGame({
     headless: true,
     manualLoop: true,

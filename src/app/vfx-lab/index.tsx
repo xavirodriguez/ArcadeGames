@@ -113,7 +113,7 @@ export default function VFXVisualLabScreen() {
     }
     context.restore();
     context.save();
-    context.translate(width / 2, height / 2);
+    context.translate(PREVIEW_WIDTH / 2, PREVIEW_HEIGHT / 2);
     const remaining = Math.max(0.001, 1 - progress);
     const render = { size, color, opacity: 1 };
     const ttl = { remaining, timeLeft: 1 };

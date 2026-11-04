@@ -110,12 +110,39 @@ export class CombatSystem<
       }
     }
 
-    // 2. Invulnerability check
+    // 2. Invulnerability check. Temporary invulnerability takes precedence over shield charges.
     if (healthComp.invulnerableRemaining !== undefined && healthComp.invulnerableRemaining > 0) {
       return;
     }
 
-    // 3. Skip if target is already marked dead
+    // 3. Explicit shield absorption is a combat rule, not a presentation-side invulnerability flag.
+    // Structural lookup keeps CombatSystem compatible with games that do not declare Shield.
+    const shieldKey = "Shield" as Extract<keyof TComponents, string>;
+    const shield = world.getComponent(target, shieldKey) as
+      | { charges: number; rechargeRemaining: number; rechargeSeconds: number }
+      | undefined;
+    if (shield && shield.charges > 0) {
+      const mutableShield = world.getMutableComponent(target, shieldKey) as
+        | { charges: number; rechargeRemaining: number; rechargeSeconds: number }
+        | undefined;
+      if (mutableShield) {
+        mutableShield.charges = Math.max(0, mutableShield.charges - 1);
+        mutableShield.rechargeRemaining = Math.max(0, mutableShield.rechargeSeconds);
+        const eventBus = world.getEventBus() as EventBus | undefined;
+        eventBus?.emitDeferred(
+          "combat:shield_absorbed" as Extract<keyof TEvents, string>,
+          {
+            targetEntity: target,
+            sourceEntity: attacker,
+            amount: damageComp.amount,
+            remainingCharges: mutableShield.charges
+          } as TEvents[Extract<keyof TEvents, string>]
+        );
+      }
+      return;
+    }
+
+    // 4. Skip if target is already marked dead
     if (world.hasComponent(target, deadKey)) {
       return;
     }

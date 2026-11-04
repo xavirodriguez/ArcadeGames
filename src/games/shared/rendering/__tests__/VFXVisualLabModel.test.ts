@@ -15,7 +15,7 @@ import {
 describe("VFX Visual Lab model", () => {
   it("exposes every production PixelFX drawer exactly once", () => {
     const ids = VFX_LAB_EFFECTS.map((effect) => effect.id);
-    expect(ids).toHaveLength(17);
+    expect(ids).toHaveLength(20);
     expect(new Set(ids).size).toBe(ids.length);
     expect(VFX_LAB_EFFECTS.every((effect) => typeof effect.draw === "function")).toBe(true);
   });
@@ -38,6 +38,16 @@ describe("VFX Visual Lab model", () => {
       expect(descriptor.family).toBe(effect.family);
       expect(descriptor.profile).toBe("arcade-neon");
     }
+  });
+
+  it("resolves traversal-specific phases and surfaces for PR5 effects", () => {
+    const teleport = VFX_LAB_EFFECTS.find((effect) => effect.id === "pixelfx_teleport");
+    const skid = VFX_LAB_EFFECTS.find((effect) => effect.id === "pixelfx_surface_skid");
+    const mechanical = VFX_LAB_EFFECTS.find((effect) => effect.id === "pixelfx_mechanical_motion");
+    if (!teleport || !skid || !mechanical) throw new Error("Traversal drawer missing from Visual Lab catalog");
+    expect(createVFXLabDescriptor(teleport, "arcade-neon", 0).context).toMatchObject({ phase: "teleport", surface: "air" });
+    expect(createVFXLabDescriptor(skid, "arcade-neon", 0).context).toMatchObject({ phase: "slide", surface: "ground" });
+    expect(createVFXLabDescriptor(mechanical, "arcade-neon", 0).context).toMatchObject({ phase: "mechanical", surface: "ground" });
   });
 
   it("resolves semantic family roles and profile colors", () => {
@@ -83,7 +93,10 @@ describe("VFX Visual Lab model", () => {
       "pixelfx_ricochet",
       "pixelfx_charge",
       "pixelfx_shield_pulse",
-      "pixelfx_target_warning"
+      "pixelfx_target_warning",
+      "pixelfx_teleport",
+      "pixelfx_surface_skid",
+      "pixelfx_mechanical_motion"
     ]) {
       expect(effects.has(effect as never)).toBe(true);
     }

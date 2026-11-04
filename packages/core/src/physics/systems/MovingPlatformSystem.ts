@@ -57,8 +57,8 @@ export class MovingPlatformSystem extends System<CoreComponentRegistry> {
           v.vx = vx;
           v.vy = vy;
         });
-        if ((previousVx !== 0 && vx !== 0 && Math.sign(previousVx) !== Math.sign(vx))
-          || (previousVy !== 0 && vy !== 0 && Math.sign(previousVy) !== Math.sign(vy))) {
+        if ((previousVx !== 0 && Math.sign(previousVx) !== Math.sign(vx))
+          || (previousVy !== 0 && Math.sign(previousVy) !== Math.sign(vy))) {
           world.getEventBus()?.emit("locomotion:platform_reversed", {
             entity,
             x: nextX,

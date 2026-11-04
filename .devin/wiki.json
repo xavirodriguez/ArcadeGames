@@ -16,7 +16,7 @@
   "pages": [
     {
       "title": "Project Overview",
-      "purpose": "High-level introduction to the Asteroides monorepo: what it is, its architecture, the four arcade games it ships, and how the client, core engine, and server relate. Links to all major child sections.",
+      "purpose": "High-level introduction to the Tiny Aster project and the ArcadeGames repository: its architecture, the 16 game-module directories under src/games/ (directory inventory, not a guarantee that each module is complete), and how the root Expo app, workspace packages, engine core and server relate. Links to all major child sections.",
       "page_notes": [
         {
           "content": "Open by framing this repo as both a shipped product and a learning resource. Briefly explain what an ECS-based arcade engine is and why a single core engine (TinyAster) can power multiple unrelated games, before diving into the monorepo layout."
@@ -45,7 +45,7 @@
     },
     {
       "title": "Anatomy of a TinyAster Game",
-      "purpose": "Bridges the gap between 'here are the four games' and 'here is the ECS engine' by explaining, at a conceptual level, what every TinyAster game is made of: configuration, entity creation, systems, scenes, rendering, input, game state, and (optionally) network integration. Shows how these pieces connect for a concrete game.",
+      "purpose": "Explains how a game module on Tiny Aster is composed: configuration, entity creation, systems, scenes, rendering, input, game state and optional network integration. Uses concrete repository examples without implying that every game module has an identical folder layout or feature set.",
       "parent": "Project Overview",
       "page_notes": [
         {
@@ -61,7 +61,7 @@
     },
     {
       "title": "TinyAster Core Engine (packages/core)",
-      "purpose": "Overview of the @tiny-aster/core package — the ECS engine that powers all four games. Introduces the World, Entity, Component, System, and Schedule primitives and links to child pages for each subsystem.",
+      "purpose": "Overview of the @tiny-aster/core package: the platform-agnostic ECS runtime and shared engine primitives used by the game modules. Introduces World, Entity, Component, System and Schedule and links to child pages for each subsystem.",
       "page_notes": [
         {
           "content": "Position this page as the hub for the 'engine' half of the repo, distinct from the 'game' half documented under Game Implementations. Briefly preview each child subsystem page and why it exists (ECS storage, scheduling, physics, rendering abstraction, snapshots, shared utility systems)."
@@ -198,20 +198,20 @@
     },
     {
       "title": "Colyseus Transport & Server Rooms",
-      "purpose": "Documents the ColyseusTransport adapter (packages/network-colyseus), the four Colyseus Room implementations (AsteroidsRoom, FlappyBirdRoom, PongRoom, SpaceInvadersRoom), the server entry point, replication strategies (Legacy, Interest, Delta, Budget, Binary), DailyLeaderboardStore, and NetworkMetricsCollector.",
+      "purpose": "Documents the ColyseusTransport adapter (packages/network-colyseus), the four current Colyseus Room implementations (AsteroidsRoom, FlappyBirdRoom, PongRoom, SpaceInvadersRoom), the server entry point, replication strategies (Legacy, Interest, Delta, Budget, Binary), DailyLeaderboardStore and NetworkMetricsCollector. Room implementations describe multiplayer coverage, not the full game-module inventory.",
       "parent": "Network Layer",
       "page_notes": [
         {
-          "content": "Structure this page in two clearly labeled halves: 'Client: packages/network-colyseus' and 'Server: server/'. Verify which games currently have a corresponding Room implementation in server/ before listing them, since not all seven games in src/games/ necessarily have multiplayer support yet."
+          "content": "Structure this page in two clearly labeled halves: 'Client: packages/network-colyseus' and 'Server: server/'. Verify which games currently have a corresponding Room implementation in server/ before listing them, since not all 16 game-module directories under src/games/ necessarily have multiplayer support."
         }
       ]
     },
     {
       "title": "Game Implementations",
-      "purpose": "Overview of the four arcade games built on TinyAster. Each game follows the same pattern: a Game class extending BaseGame, an EntityFactory, game-specific Systems, a config JSON, and a rendering manager. Links to per-game child pages.",
+      "purpose": "Overview of the 16 game-module directories currently under src/games/. The modules vary in structure and maturity; a directory listing is not a claim that every module is complete or fully playable. Links to the per-game pages that currently exist in this wiki.",
       "page_notes": [
         {
-          "content": "Present a comparison table of which structural pieces each of the seven games actually has (entities/, scenes/, systems/, rendering/, types/, config/, EntityPool) based on their src/games/<name>/ folder contents, rather than assuming all games are structured identically. This sets accurate expectations before the reader visits each per-game page."
+          "content": "Present a comparison table of which structural pieces each of the 16 current game-module directories actually has (entities/, scenes/, systems/, rendering/, types/, config/, EntityPool) based on their src/games/<name>/ folder contents, rather than assuming all games are structured identically. This sets accurate expectations before the reader visits each per-game page."
         }
       ]
     },
@@ -257,7 +257,7 @@
     },
     {
       "title": "Platformer",
-      "purpose": "Documents PlatformerGame.ts and the systems/ folder in src/games/platformer/ — the thinnest of the seven game implementations, with no dedicated entities/, rendering/, or scenes/ folders. Explains what infrastructure it reuses from src/games/shared/ or packages/core directly instead.",
+      "purpose": "Documents PlatformerGame.ts and the systems/ folder in src/games/platformer/. Explains the module's actual structure and the infrastructure it reuses from src/games/shared/ or packages/core, based on source inspection rather than assuming that a smaller folder means an incomplete game.",
       "parent": "Game Implementations",
       "page_notes": [
         {
@@ -267,10 +267,10 @@
     },
     {
       "title": "React Native Client Application",
-      "purpose": "Overview of the Expo/React Native application layer: the expo-router file-based navigation, the GameEngine React wrapper, the dual-renderer support, and the service/hook layer. Links to child pages for UI components and services.",
+      "purpose": "Overview of the Expo/React Native application layer: expo-router file-based navigation, the GameEngine React wrapper, dual-renderer support, and the service/hook layer. Explains how routes and game manifests select the game modules hosted by the app.",
       "page_notes": [
         {
-          "content": "Explain how a single GameEngine React wrapper can host any of the seven distinct games and switch between Canvas and Skia renderers, reinforcing the engine/game separation established in the TinyAster Core Engine section."
+          "content": "Explain how a single GameEngine React wrapper can host the game modules exposed through routes and manifests and switch between Canvas and Skia renderers, reinforcing the engine/game separation established in the TinyAster Core Engine section."
         }
       ]
     },

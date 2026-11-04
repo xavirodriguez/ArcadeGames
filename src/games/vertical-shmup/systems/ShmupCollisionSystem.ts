@@ -7,8 +7,13 @@ import { SHMUP_COLOR_TOKENS } from "../rendering/ShmupColorTokens";
 export class ShmupCollisionSystem extends System<ShmupComponentRegistry, ShmupEventRegistry> {
   private subscribed = false;
 
-  update(world: World<ShmupComponentRegistry, ShmupEventRegistry>, deltaTime: number): void {
-    if (!this.subscribed) {
+  public override onRegister(world: World<ShmupComponentRegistry, ShmupEventRegistry>): void {
+    this.subscribe(world);
+  }
+
+  private subscribe(world: World<ShmupComponentRegistry, ShmupEventRegistry>): void {
+    if (this.subscribed) return;
+    this.subscribed = true;
       this.subscribed = true;
       world.getEventBus()?.on("combat:hit", (event) => {
         if (!event || typeof event.targetEntity !== "number") return;
@@ -44,7 +49,9 @@ export class ShmupCollisionSystem extends System<ShmupComponentRegistry, ShmupEv
           ttl: 0.34
         });
       });
-    }
+  }
+  update(world: World<ShmupComponentRegistry, ShmupEventRegistry>, deltaTime: number): void {
+    this.subscribe(world);
 
     // 0. Recharge explicit shield charges independently from temporary hit invulnerability.
     for (const entity of world.query("ShmupPlayer", "Shield")) {

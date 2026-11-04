@@ -134,13 +134,13 @@ export function computeMotionSecondaryEffect(
   effectType: "flame" | "exhaust_smoke" | "dust_trail" | "none",
   size: number,
   tick: number,
-  rng?: { next: () => number; nextRange: (min: number, max: number) => number }
+  rng: { next: () => number; nextRange: (min: number, max: number) => number }
 ): MotionEffectData {
   if (effectType === "none") {
     return { effectType: "none", length: 0, particles: [] };
   }
 
-  const nextRng = rng?.next ? rng.next : () => Math.random();
+  const nextRng = rng.next;
   const flicker = 0.85 + 0.3 * (nextRng() - 0.5);
   const length = size * 1.4 * flicker;
   const particles: MotionParticle[] = [];
@@ -177,7 +177,7 @@ export function computeMotionSecondaryEffect(
     }
   } else {
     // Default neon thruster flame
-    const flameData = computeThrustFlame(size, rng || { next: () => 0.5, nextRange: (a, b) => (a + b) / 2 });
+    const flameData = computeThrustFlame(size, rng);
     for (let i = 0; i < flameData.sparks.length; i++) {
       const s = flameData.sparks[i];
       particles.push({

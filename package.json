@@ -20,7 +20,6 @@
     "build": "pnpm turbo run build && pnpm exec expo export",
     "test": "pnpm exec turbo run test",
     "test:e2e": "pnpm exec playwright test",
-    "test:e2e:smoke": "E2E_SMOKE=1 pnpm exec playwright test",
     "test:games:ci": "NODE_OPTIONS=\"--max-old-space-size=4096\" pnpm exec jest --runInBand src/games",
     "sprites:validate": "pnpm exec tsx scripts/validate-sprites.ts",
     "arquitecture": "pnpm exec fallow architecture --cycles",

@@ -13,12 +13,7 @@ import type {
 } from "../HitRunThemeTypes";
 import { computeInkWashLayers, drawInkWashLayersCanvas, drawInkWashLayersSkia } from "../../../../shared/rendering/InkWashParallaxBackdrop";
 import { Skia, getPaint, type SkCanvas } from "../../../../shared/rendering/SkiaContext";
-import type { WalkableAreaGeometry } from "../../../belt/WalkableAreaGeometry";
-import { DEFAULT_WALKABLE_AREA_GEOMETRY } from "../../../belt/WalkableAreaGeometry";
-import {
-  drawWalkableAreaCanvas,
-  drawWalkableAreaSkia
-} from "../drawWalkableArea";
+import { drawGroundShadowEllipse, drawThemedEntityWithHitFlash } from "../HitRunThemeUtils";
 
 export const SUMI_E_PALETTE: HitRunThemePaletteTokens = {
   primary: "#171817",
@@ -67,6 +62,7 @@ export class SumiETheme implements HitRunTheme {
 
   public constructor(random?: PresentationRandom, seed = 98765) {
     this.prng = random ?? new ThemePRNG(seed);
+    // Pre-seed decal buffer
   }
 
   /** Theme extension point for decorative bitmap scenery, called above the floor and below frame ornaments. */
@@ -82,6 +78,7 @@ export class SumiETheme implements HitRunTheme {
     void _cameraX;
   }
 
+  /** Native counterpart to the Canvas environment extension point. */
   protected renderEnvironmentLayerSkia(
     _canvas: SkCanvas,
     _viewportWidth: number,
@@ -95,59 +92,63 @@ export class SumiETheme implements HitRunTheme {
   }
 
   private initParchmentAndBorder(w: number, h: number): void {
-    // Implementation retained from existing theme body — paper/gold border caches.
-    // Full method body kept in repo history; simplified here only if missing downstream.
-    if (typeof document === "undefined") {
-      this.paperCanvas = null;
-      this.goldBorderCanvas = null;
-      return;
-    }
-    const paper = document.createElement("canvas");
-    paper.width = w;
-    paper.height = h;
-    const pCtx = paper.getContext("2d");
+    if (typeof document === "undefined" || typeof document.createElement !== "function") return;
+
+    // 1. Parchment texture offscreen canvas
+    this.paperCanvas = document.createElement("canvas");
+    this.paperCanvas.width = w;
+    this.paperCanvas.height = h;
+    const pCtx = this.paperCanvas.getContext("2d");
     if (pCtx) {
       pCtx.fillStyle = SUMI_E_PALETTE.background;
       pCtx.fillRect(0, 0, w, h);
-      for (let i = 0; i < 40; i++) {
-        pCtx.fillStyle = `rgba(23,24,23,${0.02 + (i % 5) * 0.005})`;
-        pCtx.beginPath();
-        pCtx.arc(
-          (i * 97) % w,
-          (i * 53) % h,
-          20 + (i % 7) * 8,
-          0,
-          Math.PI * 2
-        );
-        pCtx.fill();
-      }
-    }
-    this.paperCanvas = paper;
 
-    const border = document.createElement("canvas");
-    border.width = w;
-    border.height = h;
-    const bCtx = border.getContext("2d");
-    if (bCtx) {
+      // Fine paper grain noise
+      const imgData = pCtx.getImageData(0, 0, w, h);
+      const data = imgData.data;
+      for (let i = 0; i < data.length; i += 4) {
+        const noise = (this.prng.next() - 0.5) * 12;
+        data[i] = Math.min(255, Math.max(0, data[i] + noise));
+        data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + noise));
+        data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + noise));
+      }
+      pCtx.putImageData(imgData, 0, 0);
+
+      // Soft vignette
+      const vig = pCtx.createRadialGradient(w * 0.5, h * 0.5, w * 0.3, w * 0.5, h * 0.5, w * 0.7);
+      vig.addColorStop(0, "rgba(0,0,0,0)");
+      vig.addColorStop(1, "rgba(70, 50, 30, 0.18)");
+      pCtx.fillStyle = vig;
+      pCtx.fillRect(0, 0, w, h);
+    }
+
+    // 2. Gold ornamental frame offscreen canvas
+    this.goldBorderCanvas = document.createElement("canvas");
+    this.goldBorderCanvas.width = w;
+    this.goldBorderCanvas.height = h;
+    const gCtx = this.goldBorderCanvas.getContext("2d");
+    if (gCtx) {
       const margin = 12;
-      bCtx.strokeStyle = SUMI_E_PALETTE.goldOrYellow;
-      bCtx.lineWidth = 3;
-      bCtx.strokeRect(margin, margin, w - margin * 2, h - margin * 2);
+      gCtx.strokeStyle = SUMI_E_PALETTE.goldOrYellow;
+      gCtx.lineWidth = 3;
+      gCtx.strokeRect(margin, margin, w - margin * 2, h - margin * 2);
+
+      // Corner ornaments
       const cornerSize = 24;
-      bCtx.fillStyle = SUMI_E_PALETTE.goldOrYellow;
       const corners = [
         { x: margin, y: margin },
         { x: w - margin, y: margin },
         { x: margin, y: h - margin },
         { x: w - margin, y: h - margin }
       ];
-      for (const c of corners) {
-        bCtx.beginPath();
-        bCtx.arc(c.x, c.y, cornerSize * 0.35, 0, Math.PI * 2);
-        bCtx.fill();
+      gCtx.fillStyle = SUMI_E_PALETTE.goldOrYellow;
+      for (let i = 0; i < corners.length; i++) {
+        const c = corners[i];
+        gCtx.beginPath();
+        gCtx.arc(c.x, c.y, cornerSize * 0.35, 0, Math.PI * 2);
+        gCtx.fill();
       }
     }
-    this.goldBorderCanvas = border;
   }
 
   public renderBackdrop(
@@ -156,13 +157,13 @@ export class SumiETheme implements HitRunTheme {
     h: number,
     cameraX: number,
     _cameraY: number,
-    elapsed: number,
-    walkableArea: WalkableAreaGeometry = DEFAULT_WALKABLE_AREA_GEOMETRY
+    elapsed: number
   ): void {
     if (!this.paperCanvas || this.paperCanvas.width !== w || this.paperCanvas.height !== h) {
       this.initParchmentAndBorder(w, h);
     }
 
+    // 1. Parchment paper background
     if (this.paperCanvas) {
       ctx.drawImage(this.paperCanvas, 0, 0);
     } else {
@@ -172,9 +173,11 @@ export class SumiETheme implements HitRunTheme {
 
     ctx.save();
 
+    // 2. Parallax layers (4 layers of ink wash: far mountains, pagodas, pines, houses)
     const inkWashGeometry = computeInkWashLayers(w, h, cameraX);
     drawInkWashLayersCanvas(ctx, inkWashGeometry, SUMI_E_PALETTE.inkOrOutline);
 
+    // Faded ghost dragon in sky background
     const dragonX = ((elapsed * 12 - cameraX * 0.05) % (w * 1.5)) - w * 0.25;
     ctx.globalAlpha = 0.08;
     ctx.strokeStyle = SUMI_E_PALETTE.inkOrOutline;
@@ -189,19 +192,21 @@ export class SumiETheme implements HitRunTheme {
     ctx.stroke();
     ctx.globalAlpha = 1.0;
 
-    // 3. Wash ink lane floor — derived from physical depthMin / depthMax
-    drawWalkableAreaCanvas(ctx, w, walkableArea, {
-      floorColor: SUMI_E_PALETTE.paperOrFloor,
-      floorAlpha: 0.45,
-      upperBorderColor: "rgba(23, 24, 23, 0.35)",
-      lowerBorderColor: "rgba(23, 24, 23, 0.25)",
-      borderWidth: 1.5,
-      upperCurbColor: "rgba(23, 24, 23, 0.08)",
-      upperCurbHeight: 8,
-      lowerCurbColor: "rgba(23, 24, 23, 0.06)",
-      lowerCurbHeight: 12
-    });
+    // 3. Wash ink lane floor
+    const laneY = h * 0.45;
+    const laneH = h * 0.48;
+    ctx.fillStyle = "rgba(220, 214, 194, 0.4)";
+    ctx.fillRect(0, laneY, w, laneH);
+    ctx.strokeStyle = "rgba(23, 24, 23, 0.15)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(0, laneY);
+    ctx.lineTo(w, laneY);
+    ctx.moveTo(0, laneY + laneH);
+    ctx.lineTo(w, laneY + laneH);
+    ctx.stroke();
 
+    // 4. World-space Decals (anchored in world coordinates, translated by cameraX)
     for (let i = 0; i < this.decalRingBuffer.length; i++) {
       const decal = this.decalRingBuffer[i];
       const screenX = decal.x - cameraX;
@@ -214,6 +219,7 @@ export class SumiETheme implements HitRunTheme {
       ctx.arc(screenX, decal.y, decal.radius, 0, Math.PI * 2);
       ctx.fill();
 
+      // Splatter satellite drops
       for (let s = 0; s < 5; s++) {
         const angle = (s / 5) * Math.PI * 2;
         const dist = decal.radius * (1.2 + (s % 3) * 0.4);
@@ -222,6 +228,7 @@ export class SumiETheme implements HitRunTheme {
         ctx.fill();
       }
 
+      // Kanji
       if (decal.kanji) {
         ctx.font = `bold ${Math.round(decal.radius * 1.4)}px 'Yuji Boku', 'Share Tech Mono', serif`;
         ctx.textAlign = "center";
@@ -230,16 +237,20 @@ export class SumiETheme implements HitRunTheme {
       ctx.restore();
     }
 
+    // Bitmap scenery belongs above the lane but beneath the decorative edge frame.
     this.renderEnvironmentLayerCanvas(ctx, w, h, cameraX);
 
+    // 5. Foreground roof/branch silhouettes strictly on margins
     ctx.fillStyle = SUMI_E_PALETTE.inkOrOutline;
     ctx.beginPath();
+    // Top-left roof
     ctx.moveTo(0, 0);
     ctx.lineTo(140, 0);
     ctx.lineTo(110, 35);
     ctx.lineTo(0, 25);
     ctx.fill();
 
+    // Bottom-right roof
     ctx.beginPath();
     ctx.moveTo(w, h);
     ctx.lineTo(w - 150, h);
@@ -247,6 +258,7 @@ export class SumiETheme implements HitRunTheme {
     ctx.lineTo(w, h - 30);
     ctx.fill();
 
+    // Gold border frame
     if (this.goldBorderCanvas) {
       ctx.drawImage(this.goldBorderCanvas, 0, 0);
     }
@@ -260,8 +272,7 @@ export class SumiETheme implements HitRunTheme {
     h: number,
     cameraX: number,
     _cameraY: number,
-    _elapsed: number,
-    walkableArea: WalkableAreaGeometry = DEFAULT_WALKABLE_AREA_GEOMETRY
+    _elapsed: number
   ): void {
     if (!Skia || !canvas) return;
     const paint = getPaint();
@@ -280,21 +291,25 @@ export class SumiETheme implements HitRunTheme {
       h
     );
 
-    // Wash ink lane floor — derived from physical depthMin / depthMax
-    drawWalkableAreaSkia(canvas, w, walkableArea, {
-      floorColor: SUMI_E_PALETTE.paperOrFloor,
-      floorAlpha: 0.45,
-      upperBorderColor: "rgba(23, 24, 23, 0.35)",
-      lowerBorderColor: "rgba(23, 24, 23, 0.25)",
-      borderWidth: 1.5,
-      upperCurbColor: "rgba(23, 24, 23, 0.08)",
-      upperCurbHeight: 8,
-      lowerCurbColor: "rgba(23, 24, 23, 0.06)",
-      lowerCurbHeight: 12
-    });
+    paint.setColor(Skia.Color(SUMI_E_PALETTE.paperOrFloor));
+    paint.setAlphaf(0.4);
+    const laneY = h * 0.45;
+    const laneH = h * 0.48;
+    canvas.drawRect(Skia.XYWHRect(0, laneY, w, laneH), paint);
 
+    paint.setColor(Skia.Color(SUMI_E_PALETTE.inkOrOutline));
+    paint.setAlphaf(0.15);
+    const lanePath = Skia.Path.Make();
+    lanePath.moveTo(0, laneY);
+    lanePath.lineTo(w, laneY);
+    lanePath.moveTo(0, laneY + laneH);
+    lanePath.lineTo(w, laneY + laneH);
+    canvas.drawPath(lanePath, paint);
+
+    // Keep Canvas and Skia village placement at the same composition depth.
     this.renderEnvironmentLayerSkia(canvas, w, h, cameraX);
 
+    // Foreground roof/branch silhouettes, drawn after buildings just like Canvas.
     paint.setAlphaf(1);
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color(SUMI_E_PALETTE.inkOrOutline));
@@ -314,6 +329,7 @@ export class SumiETheme implements HitRunTheme {
     bottomRoof.close();
     canvas.drawPath(bottomRoof, paint);
 
+    // Gold ornamental frame and corner seals mirror the Canvas theme.
     const margin = 12;
     paint.setColor(Skia.Color(SUMI_E_PALETTE.goldOrYellow));
     paint.setStyle(Skia.PaintStyle.Stroke);
@@ -322,6 +338,7 @@ export class SumiETheme implements HitRunTheme {
 
     paint.setStyle(Skia.PaintStyle.Fill);
     const cornerSize = 24;
+    const cornerRadius = cornerSize * 0.35;
     const corners = [
       { x: margin, y: margin },
       { x: w - margin, y: margin },
@@ -329,9 +346,15 @@ export class SumiETheme implements HitRunTheme {
       { x: w - margin, y: h - margin }
     ];
     for (let i = 0; i < corners.length; i++) {
-      canvas.drawCircle(corners[i].x, corners[i].y, cornerSize * 0.35, paint);
+      const corner = corners[i];
+      canvas.drawOval(
+        Skia.XYWHRect(corner.x - cornerRadius, corner.y - cornerRadius, cornerRadius * 2, cornerRadius * 2),
+        paint
+      );
     }
 
+    paint.setAlphaf(1);
+    paint.setStyle(Skia.PaintStyle.Fill);
     canvas.restore();
   }
 
@@ -341,17 +364,10 @@ export class SumiETheme implements HitRunTheme {
     y: number,
     size: number,
     elevation: number,
-    rxRatio = 0.45,
-    ryRatio = 0.15
+    rxRatio = 0.5,
+    ryRatio = 0.16
   ): void {
-    const scale = Math.max(0.3, 1 - elevation / 120);
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.fillStyle = "rgba(23,24,23,0.25)";
-    ctx.beginPath();
-    ctx.ellipse(0, 0, size * rxRatio * scale, size * ryRatio * scale, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
+    drawGroundShadowEllipse(ctx, x, y, size, elevation, "rgba(23, 24, 23, __ALPHA__)", 0.42, rxRatio, ryRatio);
   }
 
   public renderEntity(
@@ -359,18 +375,80 @@ export class SumiETheme implements HitRunTheme {
     snapshot: EntityRenderSnapshot,
     _elapsed: number
   ): void {
-    ctx.save();
-    ctx.translate(snapshot.x, snapshot.y);
-    this.renderGroundShadow(ctx, 0, 0, snapshot.size, snapshot.elevation);
-    ctx.save();
-    ctx.translate(0, -snapshot.elevation);
-    ctx.scale(snapshot.facing, 1);
-    ctx.fillStyle = snapshot.color || SUMI_E_PALETTE.inkOrOutline;
-    ctx.beginPath();
-    ctx.arc(0, -snapshot.size * 0.5, snapshot.size * 0.45, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-    ctx.restore();
+    drawThemedEntityWithHitFlash(
+      ctx,
+      snapshot,
+      () => this.renderGroundShadow(ctx, 0, 0, snapshot.size, snapshot.elevation),
+      (size: number) => {
+        switch (snapshot.visualId) {
+          case "player": {
+            // Ronin with kasa hat & rifle silhouette
+            ctx.fillStyle = SUMI_E_PALETTE.inkOrOutline;
+            // Body
+            ctx.fillRect(-size * 0.25, -size * 0.8, size * 0.5, size * 0.5);
+            // Kasa straw hat
+            ctx.fillStyle = SUMI_E_PALETTE.goldOrYellow;
+            ctx.beginPath();
+            ctx.moveTo(-size * 0.55, -size * 0.85);
+            ctx.lineTo(0, -size * 1.15);
+            ctx.lineTo(size * 0.55, -size * 0.85);
+            ctx.closePath();
+            ctx.fill();
+            // Rifle
+            ctx.fillStyle = SUMI_E_PALETTE.inkOrOutline;
+            ctx.fillRect(size * 0.1, -size * 0.65, size * 0.75, size * 0.1);
+            break;
+          }
+
+          case "popcorn":
+          case "goblin": {
+            ctx.fillStyle = SUMI_E_PALETTE.inkOrOutline;
+            ctx.beginPath();
+            ctx.arc(0, -size * 0.45, size * 0.45, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = SUMI_E_PALETTE.vermilionOrRed;
+            ctx.beginPath();
+            ctx.arc(size * 0.15, -size * 0.55, size * 0.12, 0, Math.PI * 2);
+            ctx.fill();
+            break;
+          }
+
+          case "charger":
+          case "orc_berserker":
+          case "red_oni": {
+            // Red Oni
+            ctx.fillStyle = SUMI_E_PALETTE.redOniOrCharger;
+            ctx.beginPath();
+            ctx.arc(0, -size * 0.55, size * 0.5, 0, Math.PI * 2);
+            ctx.fill();
+            // Horns
+            ctx.fillStyle = SUMI_E_PALETTE.goldOrYellow;
+            ctx.beginPath();
+            ctx.moveTo(-size * 0.2, -size * 0.9);
+            ctx.lineTo(-size * 0.35, -size * 1.2);
+            ctx.lineTo(-size * 0.05, -size * 0.95);
+            ctx.fill();
+            break;
+          }
+
+          case "elite":
+          case "dark_knight":
+          case "blue_oni":
+          default: {
+            // Blue Oni
+            ctx.fillStyle = SUMI_E_PALETTE.darkOniOrElite;
+            ctx.beginPath();
+            ctx.arc(0, -size * 0.55, size * 0.52, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = SUMI_E_PALETTE.goldOrYellow;
+            ctx.beginPath();
+            ctx.arc(0, -size * 0.95, size * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+            break;
+          }
+        }
+      }
+    );
   }
 
   public renderProjectile(
@@ -378,75 +456,170 @@ export class SumiETheme implements HitRunTheme {
     snapshot: EntityRenderSnapshot,
     _elapsed: number
   ): void {
-    const size = snapshot.size || 3;
+    const size = snapshot.size || 4;
+
     ctx.save();
-    ctx.translate(snapshot.x, snapshot.y - (snapshot.elevation || 0));
-    ctx.fillStyle = snapshot.color || SUMI_E_PALETTE.vermilionOrRed;
-    ctx.beginPath();
-    ctx.arc(0, 0, size, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.translate(snapshot.x, snapshot.y);
+    this.renderGroundShadow(ctx, 0, 0, size * 1.5, snapshot.elevation, 0.4, 0.12);
+
+    ctx.save();
+    ctx.translate(0, -snapshot.elevation);
+
+    // Ofuda talisman card
+    ctx.shadowColor = SUMI_E_PALETTE.accent;
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = SUMI_E_PALETTE.goldOrYellow;
+    ctx.fillRect(-size * 1.8, -size * 1.0, size * 3.6, size * 2.0);
+
+    // Kanji seal on talisman
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = SUMI_E_PALETTE.vermilionOrRed;
+    ctx.font = `bold ${Math.round(size * 1.2)}px sans-serif`;
+    ctx.textAlign = "center";
+    ctx.fillText("封", 0, size * 0.4);
+
+    ctx.restore();
     ctx.restore();
   }
 
   public renderFeedback(
     _ctx: CanvasRenderingContext2D,
-    _event: FeedbackEventSnapshot,
+    event: FeedbackEventSnapshot,
     _cameraX: number,
     _cameraY: number,
     _elapsed: number
-  ): void {}
+  ): void {
+    if (event.type === "hit" || event.type === "death" || event.type === "explosion") {
+      const x = event.x ?? 0;
+      const y = event.y ?? 0;
+      const isHeavy = (event.amount ?? 0) >= 3 || event.type === "explosion";
+      const kanjis = isHeavy ? ["爆", "轟"] : ["斬"];
+      const kanji = kanjis[Math.floor(this.prng.next() * kanjis.length)];
+
+      if (this.decalRingBuffer.length >= this.maxDecals) {
+        this.decalRingBuffer.shift();
+      }
+      this.decalRingBuffer.push({
+        x,
+        y,
+        radius: isHeavy ? 18 : 10,
+        opacity: 0.85,
+        kanji,
+        isGold: isHeavy
+      });
+    }
+  }
 
   public renderHud(
     ctx: CanvasRenderingContext2D,
     snapshot: HudRenderSnapshot,
     _elapsed: number
   ): void {
-    const { viewportWidth: w, player, wave, score, isGameOver } = snapshot;
+    const { viewportWidth: w, viewportHeight: h, player, score, isGameOver } = snapshot;
+
     ctx.save();
-    ctx.fillStyle = "rgba(232,227,212,0.85)";
-    ctx.fillRect(0, 0, w, 40);
+
+    // 1. Red seal stamp top-left (Lives)
+    const sealX = 28;
+    const sealY = 28;
+    const sealRadius = 20;
+    ctx.fillStyle = SUMI_E_PALETTE.vermilionOrRed;
+    ctx.beginPath();
+    ctx.arc(sealX, sealY, sealRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.font = "bold 14px 'Yuji Boku', 'Share Tech Mono', serif";
+    ctx.fillStyle = SUMI_E_PALETTE.background;
+    ctx.textAlign = "center";
+    ctx.fillText("生", sealX, sealY + 5);
+
+    // Ink pots for player HP
     if (player) {
-      ctx.fillStyle = SUMI_E_PALETTE.vermilionOrRed;
-      ctx.font = "bold 12px 'Yuji Boku', serif";
-      ctx.fillText(`HP ${player.currentHp}/${player.maxHp}`, 16, 24);
+      const maxHp = player.maxHp || 4;
+      const curHp = player.currentHp;
+      for (let i = 0; i < maxHp; i++) {
+        const potX = sealX + 32 + i * 22;
+        const potY = sealY - 10;
+        ctx.fillStyle = SUMI_E_PALETTE.inkOrOutline;
+        ctx.fillRect(potX, potY, 16, 20);
+        if (i >= curHp) {
+          // Empty pot overlay
+          ctx.fillStyle = SUMI_E_PALETTE.background;
+          ctx.fillRect(potX + 2, potY + 2, 12, 12);
+        }
+      }
     }
-    if (wave) {
-      ctx.textAlign = "center";
-      ctx.fillStyle = SUMI_E_PALETTE.inkOrOutline;
-      ctx.fillText(`${wave.sectionLabel} · ${wave.waveName}`, w * 0.5, 24);
-    }
+
+    // 2. Score stamp top-right with slight rotation
     if (score) {
-      ctx.textAlign = "right";
-      ctx.fillText(String(score.score), w - 16, 24);
-    }
-    if (isGameOver) {
-      ctx.textAlign = "center";
+      ctx.save();
+      ctx.translate(w - 70, 30);
+      ctx.rotate(-0.06);
+
       ctx.fillStyle = SUMI_E_PALETTE.vermilionOrRed;
-      ctx.font = "bold 28px 'Yuji Boku', serif";
-      ctx.fillText("倒", w * 0.5, snapshot.viewportHeight * 0.5);
+      ctx.strokeRect(-40, -16, 80, 32);
+      ctx.fillStyle = SUMI_E_PALETTE.inkOrOutline;
+      ctx.font = "bold 16px 'Share Tech Mono', monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(String(score.score).padStart(6, "0"), 0, 6);
+
+      ctx.restore();
     }
+
+    // Big red seal bottom-right
+    ctx.save();
+    ctx.translate(w - 45, h - 45);
+    ctx.rotate(0.08);
+    ctx.fillStyle = SUMI_E_PALETTE.vermilionOrRed;
+    ctx.fillRect(-24, -24, 48, 48);
+    ctx.fillStyle = SUMI_E_PALETTE.background;
+    ctx.font = "bold 12px serif";
+    ctx.textAlign = "center";
+    ctx.fillText("正野", 0, -4);
+    ctx.fillText("廣果", 0, 12);
+    ctx.restore();
+
+    if (isGameOver) {
+      ctx.fillStyle = "rgba(23, 24, 23, 0.75)";
+      ctx.fillRect(0, 0, w, h);
+      ctx.textAlign = "center";
+      ctx.font = "bold 36px 'Yuji Boku', serif";
+      ctx.fillStyle = SUMI_E_PALETTE.vermilionOrRed;
+      ctx.fillText("敗 散", w * 0.5, h * 0.5);
+    }
+
     ctx.restore();
   }
 
   public renderSectionBanner(
     ctx: CanvasRenderingContext2D,
     snapshot: BannerRenderSnapshot,
-    viewportWidth: number,
-    viewportHeight: number,
+    w: number,
+    h: number,
     _elapsed: number
   ): void {
     if (snapshot.remaining <= 0) return;
+    const a = Math.min(1, snapshot.remaining / 0.35);
+
     ctx.save();
-    ctx.globalAlpha = Math.min(1, snapshot.remaining / 0.35);
-    ctx.textAlign = "center";
-    ctx.font = "bold 36px 'Yuji Boku', serif";
+    ctx.globalAlpha = a;
+    ctx.translate(w * 0.5, h * 0.38);
+
+    // Big red seal banner
     ctx.fillStyle = SUMI_E_PALETTE.vermilionOrRed;
-    ctx.fillText(snapshot.text, viewportWidth * 0.5, viewportHeight * 0.4);
+    ctx.fillRect(-90, -35, 180, 70);
+
+    ctx.fillStyle = SUMI_E_PALETTE.background;
+    ctx.textAlign = "center";
+    ctx.font = "bold 32px 'Yuji Boku', serif";
+    const calligraphy = snapshot.text === "CLEAR" ? "全 滅" : "突 破";
+    ctx.fillText(calligraphy, 0, 10);
+
     ctx.restore();
   }
 
-  public onResize(viewportWidth: number, viewportHeight: number): void {
-    this.initParchmentAndBorder(viewportWidth, viewportHeight);
+  public onResize(w: number, h: number): void {
+    this.initParchmentAndBorder(w, h);
   }
 
   public dispose(): void {

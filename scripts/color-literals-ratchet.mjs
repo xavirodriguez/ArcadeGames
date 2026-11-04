@@ -48,7 +48,6 @@ export const PROPOSED_ALLOWLIST = [
   { path: "src/components/debug/DebugOverlay.tsx", reason: "Debug overlay" },
   { path: "src/components/GameErrorBoundary.tsx", reason: "Error boundary" },
   { path: "src/app/sound-lab/index.tsx", reason: "Sound lab" },
-  { path: "src/app/vfx-lab/index.tsx", reason: "VFX lab" },
   { path: "src/ui/narrative/NarrativeDashboard.tsx", reason: "Narrative dashboard" },
   { path: "src/services/PaletteService.ts", reason: "Palette service" },
   { path: "src/story-ui/config/evidenceConfig.ts", reason: "Evidence config" },

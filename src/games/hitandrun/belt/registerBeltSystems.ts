@@ -16,10 +16,6 @@ import {
   DEFAULT_BELT_MOVEMENT_CONFIG,
   type BeltMovementConfig
 } from "./BeltMovementTypes";
-import {
-  createWalkableAreaGeometry,
-  WALKABLE_AREA_GEOMETRY_RESOURCE
-} from "./WalkableAreaGeometry";
 import { BeltCameraSystem } from "./BeltCameraSystem";
 import {
   BELT_CAMERA_CONFIG_RESOURCE,
@@ -42,14 +38,6 @@ export function registerBeltSystems(
     ...options.movement
   };
   world.setResource(BELT_MOVEMENT_CONFIG_RESOURCE, movementConfig);
-
-  // Presentation geometry is derived solely from the physical belt limits.
-  // Themes must consume this resource (or getWalkableAreaGeometry) so visual
-  // borders never diverge from gameplay depthMin / depthMax.
-  world.setResource(
-    WALKABLE_AREA_GEOMETRY_RESOURCE,
-    createWalkableAreaGeometry(movementConfig)
-  );
 
   const cameraConfig: BeltCameraConfig = {
     ...DEFAULT_BELT_CAMERA_CONFIG,

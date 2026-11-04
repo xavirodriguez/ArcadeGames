@@ -12,7 +12,6 @@ import {
   getHitRunTheme,
   resizeHitRunPresentationSession
 } from "./theme/HitRunPresentationSession";
-import { getWalkableAreaGeometry } from "../belt/WalkableAreaGeometry";
 
 const RESOURCE_KEY = "HitRunBackdropSpec";
 
@@ -50,8 +49,7 @@ export const drawHitRunProceduralBackdrop: EffectDrawer<
 
     resizeHitRunPresentationSession(world, w, h);
     const theme = getHitRunTheme(world);
-    const walkableArea = getWalkableAreaGeometry(world);
-    theme.renderBackdrop(ctx, w, h, camX, 0, elapsed, walkableArea);
+    theme.renderBackdrop(ctx, w, h, camX, 0, elapsed);
   }
 };
 

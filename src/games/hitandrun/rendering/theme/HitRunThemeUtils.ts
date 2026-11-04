@@ -39,3 +39,35 @@ export function drawThemeEntityContext(
   ctx.restore();
   ctx.restore();
 }
+
+/**
+ * Standard entity rendering wrapper that handles translation, ground shadow,
+ * hit-flash white silhouette presentation, and facing flip before delegating to the body drawer.
+ */
+export function drawThemedEntityWithHitFlash(
+  ctx: CanvasRenderingContext2D,
+  snapshot: { x: number; y: number; elevation: number; facing: number; hitFlash: number; size: number },
+  renderShadow: () => void,
+  renderBody: (size: number) => void
+): void {
+  ctx.save();
+  ctx.translate(snapshot.x, snapshot.y);
+  renderShadow();
+  ctx.save();
+  ctx.translate(0, -snapshot.elevation);
+  ctx.scale(snapshot.facing, 1);
+
+  if (snapshot.hitFlash > 0) {
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.arc(0, -snapshot.size * 0.5, snapshot.size * 0.55, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    ctx.restore();
+    return;
+  }
+
+  renderBody(snapshot.size);
+  ctx.restore();
+  ctx.restore();
+}

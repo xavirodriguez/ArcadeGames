@@ -67,9 +67,11 @@ The root `jest.config.cjs` already registers Jest projects for all 16 game modul
 
 1. Added a testable path-classification module and regression tests for gameplay systems, factories, blueprints, gameplay-kit, test/mocks exclusion and the separation of structural-mutation rules.
 2. Expanded the AST linter's source coverage.
+3. Changed `SpawnRequest.args` from `Record<string, any>` to `Record<string, unknown>` and removed its redundant `as any` call-site assertion in `SpawnDirectorSystem`.
+4.
 3. Added the classification test command to ECS Sentinel CI.
-4. Added a 14-day workflow artifact for the raw JSCPD JSON/Markdown reports.
-5. Updated the PRD to describe the expanded deterministic guard.
+5. Added a 14-day workflow artifact for the raw JSCPD JSON/Markdown reports.
+6. Updated the PRD to describe the expanded deterministic guard.
 
 ## Remaining phases
 
@@ -77,7 +79,7 @@ The root `jest.config.cjs` already registers Jest projects for all 16 game modul
 | --- | --- | --- |
 | F0 — Baseline and clone map | Partial | Run JSCPD and inspect the uploaded clone report; committed baseline alone does not identify the actual clone pairs. |
 | F1 — Determinism coverage | Implemented in branch; unverified | ECS Sentinel test + AST linter results. |
-| F2 — Type assertion reduction | Audit complete; refactor pending | Inspect high-impact runtime candidates and add contract tests before removing assertions. |
+| F2 — Type assertion reduction | Partially implemented; verification pending | One unsafe `as any` assertion was removed from `SpawnDirectorSystem`; the baseline remains unchanged until the scanner confirms the reduction. Continue with high-impact runtime candidates only after contract inspection. |
 | F3 — Duplication reduction | Pending | Rank the actual JSCPD clone pairs by duplicated lines and semantic relationship. |
 | F4 — Test-depth alignment | Inventory pending | Compare assertions/coverage per game, not merely Jest project existence. |
 | F5 — Documentation alignment | Partial | Reconcile remaining historical wiki/audit claims with live code and CI evidence. |

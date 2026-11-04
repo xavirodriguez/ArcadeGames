@@ -66,11 +66,12 @@ try {
     stdio: "pipe",
     encoding: "utf-8"
   });
-} catch (error: any) {
-  // jscpd returns non-zero code when clones are found unless muted or configured.
-  // We swallow the CLI exit error if report was generated.
+} catch (error: unknown) {
+  // jscpd can return non-zero when clones are found; keep the report for evaluation.
+  // Only treat it as an execution failure when no report was generated.
   if (!fs.existsSync(REPORT_FILE)) {
-    console.error("❌ Error ejecutando jscpd:", error.message || error);
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("❌ Error ejecutando jscpd:", message);
     process.exit(1);
   }
 }

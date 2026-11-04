@@ -57,7 +57,20 @@ The clock rules remain limited to deterministic gameplay/simulation sources, avo
 
 ### Test inventory
 
-The root `jest.config.cjs` already registers Jest projects for all 16 game modules, as well as core, gameplay-kit, renderers, networking and server. The existence of those projects is not proof of equivalent test depth; per-game assertions and coverage still need a separate inventory. The earlier hypothesis that the newer games lack dedicated Jest projects is not supported by the current root configuration.
+The root `jest.config.cjs` registers Jest projects for all 16 games. A recursive inventory of the current `master` tree finds **202 `.test/.spec` source files** across those games, with substantial imbalance:
+
+| Game | Test files | Game | Test files |
+| --- | ---: | --- | ---: |
+| Arkanoid | 6 | Asteroids | 29 |
+| Flappy Bird | 11 | Space Invaders | 21 |
+| Pong | 4 | Geometry Wars | 10 |
+| Echo Runner | 5 | Platformer | 4 |
+| Frogger | 7 | Racing | 17 |
+| Vertical Shmup | 7 | Tower Defense | 16 |
+| Hit & Run | 36 | OutRun | 19 |
+| Galaxian | 7 | Centipede | 3 |
+
+These counts measure test-file presence, not assertions, meaningful scenarios or coverage. The inspected per-game Jest configurations do not declare `coverageThreshold`. Therefore F4 requires a real coverage run and comparison of tested gameplay contracts; test-file count alone is not an appropriate quality score. The earlier hypothesis that newer games lack dedicated Jest projects is not supported by the current root configuration.
 
 ### Stale findings corrected by live source
 
@@ -82,7 +95,7 @@ The root `jest.config.cjs` already registers Jest projects for all 16 game modul
 | F1 — Determinism coverage | Implemented in branch; unverified | ECS Sentinel test + AST linter results. |
 | F2 — Type assertion reduction | Partially implemented; verification pending | One unsafe `as any` assertion was removed from `SpawnDirectorSystem`; the baseline remains unchanged until the scanner confirms the reduction. Continue with high-impact runtime candidates only after contract inspection. |
 | F3 — Duplication reduction | Pending | Rank the actual JSCPD clone pairs by duplicated lines and semantic relationship. |
-| F4 — Test-depth alignment | Inventory pending | Compare assertions/coverage per game, not merely Jest project existence. |
+| F4 — Test-depth alignment | File inventory complete; coverage comparison pending | The 16 games have 202 test/spec files (range 3–36); collect per-project coverage and check contract scenarios before ranking gaps. |
 | F5 — Documentation alignment | Partial | Reconcile remaining historical wiki/audit claims with live code and CI evidence. |
 
 Do not update any debt baseline until the corresponding scanner has run after the remediation and confirmed a real reduction.

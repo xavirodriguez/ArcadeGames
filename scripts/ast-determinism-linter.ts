@@ -4,7 +4,8 @@ import * as path from "path";
 import {
   isDeterminismSensitiveSource,
   isStructuralMutationSensitiveSource,
-  isTestOrMockSource
+  isTestOrMockSource,
+  isVisualRandomnessSensitiveSource
 } from "./determinism-scope";
 
 const project = new Project();
@@ -81,8 +82,9 @@ for (const sourceFile of project.getSourceFiles()) {
   // calls such as world.createEntity() are not reported as violations.
   const isDeterminismSensitive = isDeterminismSensitiveSource(relativePath);
   const isSystemOrSimulation = isStructuralMutationSensitiveSource(relativePath);
+  const isVisualRandomnessSensitive = isVisualRandomnessSensitiveSource(relativePath);
 
-  if ((isDeterminismSensitive || isSystemOrSimulation) && !isTestFile) {
+  if ((isDeterminismSensitive || isSystemOrSimulation || isVisualRandomnessSensitive) && !isTestFile) {
     // Traverse descendants of the file
     sourceFile.forEachDescendant(node => {
       // Rule 3: Math.random(), Date.now() or performance.now() inside systems & simulation
@@ -94,17 +96,19 @@ for (const sourceFile of project.getSourceFiles()) {
           const callerText = propAccess.getExpression().getText();
           const propName = propAccess.getName();
 
-          if (
-            (callerText === "Math" && propName === "random") ||
-            (callerText === "Date" && propName === "now") ||
-            (callerText === "performance" && propName === "now")
-          ) {
+          const usesUnseededRandom = callerText === "Math" && propName === "random" &&
+            (isDeterminismSensitive || isVisualRandomnessSensitive);
+          const usesUncontrolledClock = isDeterminismSensitive &&
+            ((callerText === "Date" && propName === "now") ||
+              (callerText === "performance" && propName === "now"));
+
+          if (usesUnseededRandom || usesUncontrolledClock) {
             const line = callExpr.getStartLineNumber();
             addViolation(
               relativePath,
               line,
               "Determinism violation: Unseeded RNG or Timer",
-              `Use of non-deterministic API '${callerText}.${propName}()' is forbidden in deterministic gameplay code. Use 'world.gameplayRandom' for gameplay randomness and 'deltaTime' for simulation time.`,
+              `Use of non-deterministic API '${callerText}.${propName}()' is forbidden here. Inject a seeded RNG ('world.gameplayRandom' for gameplay or 'world.renderRandom' for visual effects); use 'deltaTime' for simulation time.`,
               "error"
             );
           }
@@ -112,7 +116,7 @@ for (const sourceFile of project.getSourceFiles()) {
       }
 
       // Rule 4: Unsorted Object.keys, Object.entries, or Set iteration
-      if (node.getKind() === SyntaxKind.CallExpression) {
+      if (isDeterminismSensitive && node.getKind() === SyntaxKind.CallExpression) {
         const callExpr = node as CallExpression;
         const expr = callExpr.getExpression();
         if (expr.getKind() === SyntaxKind.PropertyAccessExpression) {

@@ -30,6 +30,7 @@ const [
   identityDoc,
   ratchetPolicy,
   agentsGuide,
+  contributingGuide,
   operatingContract,
   wiki,
   typecastBaseline,
@@ -49,6 +50,7 @@ const [
   readFile(path.join(rootDir, "docs/PROJECT_IDENTITY_AND_NAMING.md"), "utf8"),
   readFile(path.join(rootDir, "docs/TECHNICAL_DEBT_RATCHETS.md"), "utf8"),
   readFile(path.join(rootDir, "AGENTS.md"), "utf8"),
+  readFile(path.join(rootDir, "CONTRIBUTING.md"), "utf8"),
   readFile(path.join(rootDir, "docs/agents/OPERATING_CONTRACT.md"), "utf8"),
   readJson(".devin/wiki.json"),
   readJson("scripts/typecast-baseline.json"),
@@ -99,8 +101,12 @@ for (const game of games) {
 if (!layoutSection.includes(`**${packages.length} workspace packages**`)) {
   failures.push(`README package count does not match packages/ (${packages.length}).`);
 }
+const packageIdPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 for (const packageName of packages) {
   const packagePath = `packages/${packageName}`;
+  if (!packageIdPattern.test(packageName)) {
+    failures.push(`Workspace package directory must use lowercase kebab-case: ${packageName}.`);
+  }
   if (!layoutSection.includes(packagePath)) {
     failures.push(`README monorepo layout does not list ${packagePath}.`);
   }
@@ -185,6 +191,15 @@ if (
   !operatingContract.includes("../PROJECT_IDENTITY_AND_NAMING.md")
 ) {
   failures.push("AGENTS.md and the operating contract must point to the canonical naming policy.");
+}
+if (
+  !contributingGuide.includes("# Contributing Guidelines & Golden Path for Tiny Aster") ||
+  !contributingGuide.includes("GitHub: `ArcadeGames`")
+) {
+  failures.push("CONTRIBUTING.md must use the canonical Tiny Aster brand and identify ArcadeGames only as the repository.");
+}
+if (serverManifest.name !== "asteroides-server") {
+  failures.push("server/package.json workspace name differs from the canonical identity document.");
 }
 if (
   !wikiOverview?.purpose.includes(`${games.length} game-module directories`) ||

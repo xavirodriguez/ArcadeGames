@@ -8,8 +8,8 @@ import { resolveOutrunSystemConfig } from "./OutrunSystemUtils";
 import { findSegmentIndexAtZ } from "./TrafficSteering";
 
 /**
- * Advances playerZ by current speed and applies centrifugal force from road curve.
- * Runs in Simulation phase after input has updated speed / playerX.
+ * Advances the player through one finite track, applies checkpoint time rewards,
+ * and resolves the race result. The timer runs only while the race is active.
  */
 export class RoadAdvanceSystem extends System<OutrunComponentRegistry, OutrunEventRegistry> {
   public override update(
@@ -24,38 +24,93 @@ export class RoadAdvanceSystem extends System<OutrunComponentRegistry, OutrunEve
     const trackLength = roadData.trackLength;
     if (trackLength <= 0) return;
 
-    world.mutateSingleton("RaceState", (s) => {
-      const phase = s.racePhase ?? "racing";
+    const elapsed = Math.max(0, deltaTime);
+    const checkpointEvents: Array<{
+      checkpoint: number;
+      timeBonus: number;
+      timeLeft: number;
+    }> = [];
+    let finishedLapTime: number | undefined;
+
+    world.mutateSingleton("RaceState", (state) => {
+      const phase = state.racePhase ?? "racing";
+      if (phase === "finished" || state.isGameOver) return;
 
       if (phase === "countdown") {
-        const cd = (s.countdownTime ?? 3) - deltaTime;
-        s.countdownTime = cd;
-        if (cd <= 0) {
-          s.racePhase = "racing";
-          s.countdownTime = 0;
+        const currentCountdown = state.countdownTime ?? config.countdownDurationSeconds;
+        if (currentCountdown > 0) {
+          state.countdownTime = Math.max(0, currentCountdown - elapsed);
+          return;
         }
+        state.countdownTime = 0;
+        state.racePhase = "racing";
+      }
+
+      if (elapsed === 0) return;
+
+      const previousZ = state.playerZ;
+      const nextZ = previousZ + Math.max(0, state.speed) * elapsed;
+      const checkpoints = roadData.checkpoints ?? [];
+
+      state.lapTime += elapsed;
+      state.timeLeft = Math.max(
+        0,
+        (state.timeLeft ?? config.raceTimeLimitSeconds) - elapsed
+      );
+
+      let checkpointsPassed = state.checkpointsPassed ?? 0;
+      while (checkpointsPassed < checkpoints.length) {
+        const checkpointZ = checkpoints[checkpointsPassed]!;
+        if (checkpointZ > nextZ) break;
+
+        checkpointsPassed += 1;
+        if (checkpointZ <= previousZ) continue;
+
+        state.timeLeft += config.checkpointTimeBonusSeconds;
+        checkpointEvents.push({
+          checkpoint: checkpointsPassed,
+          timeBonus: config.checkpointTimeBonusSeconds,
+          timeLeft: state.timeLeft
+        });
+      }
+      state.checkpointsPassed = checkpointsPassed;
+
+      state.playerZ = Math.min(nextZ, trackLength);
+      const segmentIndex = state.playerZ >= trackLength
+        ? roadData.segments.length - 1
+        : findSegmentIndexAtZ(roadData.segments, state.playerZ, trackLength);
+      state.currentSegment = segmentIndex;
+
+      const curve = roadData.segments[segmentIndex]?.curve ?? 0;
+      const speedRatio = state.speed / config.maxSpeed;
+      const centrifugal =
+        curve * config.centrifugalForce * speedRatio * speedRatio * elapsed;
+      state.playerX = Math.max(-2, Math.min(2, state.playerX - centrifugal));
+
+      if (nextZ >= trackLength) {
+        state.playerZ = trackLength;
+        state.racePhase = "finished";
+        state.isGameOver = true;
+        state.finishReason = "finish";
+        state.speed = 0;
+        finishedLapTime = state.lapTime;
         return;
       }
 
-      s.playerZ += s.speed * deltaTime;
-      if (s.playerZ >= trackLength) {
-        s.playerZ -= trackLength;
-      } else if (s.playerZ < 0) {
-        s.playerZ += trackLength;
+      if (state.timeLeft <= 0) {
+        state.timeLeft = 0;
+        state.racePhase = "finished";
+        state.isGameOver = true;
+        state.finishReason = "timeout";
+        state.speed = 0;
       }
-
-      s.lapTime += deltaTime;
-
-      // Multi-segment jumps are safe: findSegmentIndexAtZ scans the full track
-      const segIndex = findSegmentIndexAtZ(roadData.segments, s.playerZ, trackLength);
-      s.currentSegment = segIndex;
-
-      const curve = roadData.segments[segIndex].curve;
-      const speedRatio = s.speed / config.maxSpeed;
-      const centrifugal =
-        curve * config.centrifugalForce * speedRatio * speedRatio * deltaTime;
-      s.playerX -= centrifugal;
-      s.playerX = Math.max(-2, Math.min(2, s.playerX));
     });
+
+    for (const event of checkpointEvents) {
+      world.getEventBus().emit("outrun:checkpoint", event);
+    }
+    if (finishedLapTime !== undefined) {
+      world.getEventBus().emit("outrun:lap", { lapTime: finishedLapTime });
+    }
   }
 }

@@ -89,7 +89,8 @@ export default function OutrunScreen() {
             <View style={styles.hud}>
               <Text style={styles.hudText}>{speedKmh} km/h</Text>
               <Text style={styles.subHudText}>
-                TIME {gameState.lapTime.toFixed(1)} · POS {gameState.position}
+                TIME {(gameState.timeLeft ?? 0).toFixed(1)} · POS {gameState.position}
+                {" · "}CP {gameState.checkpointsPassed ?? 0}/{gameState.checkpointsTotal ?? 3}
               </Text>
               {isPaused && <Text style={styles.paused}>PAUSED</Text>}
             </View>

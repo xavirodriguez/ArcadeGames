@@ -26,6 +26,7 @@ export class TrafficSystem extends System<OutrunComponentRegistry, OutrunEventRe
     const ctx = resolveOutrunSystemContext(world);
     if (!ctx) return;
     const { state, config } = ctx;
+    if (state.racePhase === "countdown" || state.racePhase === "finished") return;
     const roadData = world.getResource<RoadData>("RoadData");
     if (!roadData) return;
 

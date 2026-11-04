@@ -58,6 +58,10 @@ jobs:
         if: ${{ steps.install_dependencies.outcome == 'success' }}
         run: pnpm run check:agent-guardrails
 
+      - name: Validate README and quality-gate documentation
+        if: ${{ steps.install_dependencies.outcome == 'success' }}
+        run: pnpm run docs:check
+
       - name: Measure input-path performance baseline
         run: pnpm exec tsx packages/core/src/__benchmarks__/inputPathBenchmark.ts
 

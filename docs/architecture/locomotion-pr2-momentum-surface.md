@@ -22,7 +22,7 @@ The `momentum` profile remains the only campaign profile. Its passive decelerati
 
 - Normal ground → six tiles of ice → normal ground.
 - Elastic tile 7 is a normal solid tile bound to the existing `elastic` PhysicsMaterial preset (`restitution: 0.82`); the material, not a second tile-level bounce coefficient, owns the rebound.
-- The player drops two tile rows from the runway onto the elastic pad. A four-tile floating one-way platform sits one row above the pad.
+- The player drops two tile rows from the runway onto the elastic pad. A three-tile floating one-way platform sits one row above the pad; the two-tile pad provides a wider landing window for momentum-speed entry.
 - The rebound must carry the collider upward through the one-way platform; it then lands on that platform while descending. There is no solid floor beneath the one-way span.
 - Normal exit ground after the platform.
 

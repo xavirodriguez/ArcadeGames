@@ -5,7 +5,7 @@ import {
   isDeterminismSensitiveSource,
   isStructuralMutationSensitiveSource,
   isTestOrMockSource,
-  isVisualRandomnessSensitiveSource
+  isGameRandomnessSensitiveSource
 } from "./determinism-scope";
 
 const project = new Project();
@@ -82,7 +82,7 @@ for (const sourceFile of project.getSourceFiles()) {
   // calls such as world.createEntity() are not reported as violations.
   const isDeterminismSensitive = isDeterminismSensitiveSource(relativePath);
   const isSystemOrSimulation = isStructuralMutationSensitiveSource(relativePath);
-  const isVisualRandomnessSensitive = isVisualRandomnessSensitiveSource(relativePath);
+  const isGameRandomnessSensitive = isVisualRandomnessSensitiveSource(relativePath);
 
   if ((isDeterminismSensitive || isSystemOrSimulation || isVisualRandomnessSensitive) && !isTestFile) {
     // Traverse descendants of the file

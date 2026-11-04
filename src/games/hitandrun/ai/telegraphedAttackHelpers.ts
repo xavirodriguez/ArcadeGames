@@ -4,6 +4,7 @@ import { canTakeDamage } from "../hurt/HitRunHurtSystem";
 import type { MeleeAttackComponent } from "../melee/MeleeAttackTypes";
 import type { HitReactionComponent } from "../hurt/HitReactionTypes";
 import { JuiceOrchestrator } from "../../shared/rendering/JuiceOrchestrator";
+import { colors } from "../../../theme/colors";
 
 export function zeroVx(world: World<CoreComponentRegistry>, entity: number): void {
   const vel = world.getComponent(entity, "Velocity");
@@ -139,7 +140,7 @@ export function enterAnticipationState(
     | undefined;
   if (render) {
     if (!data.baseColor) {
-      data.baseColor = render.color ?? "#ffffff";
+      data.baseColor = render.color ?? colors.white;
     }
     render.color = warningColor;
   }

@@ -47,7 +47,7 @@ function createPreviewWorld(size: number, color: string, progress: number, rotat
       if (component === "Transform") return transform;
       return undefined;
     }
-  } as unknown as World<CoreComponentRegistry>;
+  } as never as World<CoreComponentRegistry>;
 }
 
 function formatValue(value: unknown): string {

@@ -716,8 +716,8 @@ export const drawSkiaOutrunRoad: ShapeDrawer<SkCanvas, OutrunComponentRegistry> 
       Skia.Point(0, horizonY),
       Skia.Point(0, screenH),
       [
-        Skia.Color(resolveRoadFogColor(palette, fogIntensity(1))),
-        Skia.Color(resolveRoadFogColor(palette, fogIntensity(0)))
+        Skia.Color(resolveRoadFogColor(visualPalette, fogIntensity(1))),
+        Skia.Color(resolveRoadFogColor(visualPalette, fogIntensity(0)))
       ],
       [0, 1],
       Skia.TileMode.Clamp

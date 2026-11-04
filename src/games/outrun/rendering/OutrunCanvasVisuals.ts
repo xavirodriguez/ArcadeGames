@@ -681,8 +681,8 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
 
     // Shared atmospheric fog overlay: dense at the horizon, fading towards the camera.
     const fogGradient = ctx.createLinearGradient(0, horizonY, 0, screenH);
-    fogGradient.addColorStop(0, resolveRoadFogColor(palette, fogIntensity(1)));
-    fogGradient.addColorStop(1, resolveRoadFogColor(palette, fogIntensity(0)));
+    fogGradient.addColorStop(0, resolveRoadFogColor(visualPalette, fogIntensity(1)));
+    fogGradient.addColorStop(1, resolveRoadFogColor(visualPalette, fogIntensity(0)));
     ctx.fillStyle = fogGradient;
     ctx.fillRect(0, horizonY, screenW, screenH - horizonY);
 

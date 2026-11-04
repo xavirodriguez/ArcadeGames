@@ -136,3 +136,11 @@ describe("roadside fog parity", () => {
     );
   });
 });
+
+
+describe("resolveRoadFogColor palette contract", () => {
+  it("reads the far sky band from the active visual palette shape", () => {
+    expect(resolveRoadFogColor({ skyBands: ["#102030", "#405060"] }, 0.4))
+      .toBe("rgba(64, 80, 96, 0.4)");
+  });
+});

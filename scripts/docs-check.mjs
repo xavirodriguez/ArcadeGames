@@ -181,6 +181,38 @@ for (const [expected, label] of baselineChecks) {
   if (!ratchetPolicy.includes(expected)) failures.push(`Technical-debt policy is stale: ${label}.`);
 }
 
+const tenPercentTarget = (value) => Math.floor(value * 0.9);
+const requiredTargets = [
+  [`| Total \`as any\` / \`as unknown\` assertions | ${typecastTotals.total} | **${tenPercentTarget(typecastTotals.total)} or fewer** |`, "type-assertion reduction target"],
+  [`| Duplicated lines | ${duplicationBaseline.duplicatedLines.toLocaleString("en-US")} | **${tenPercentTarget(duplicationBaseline.duplicatedLines).toLocaleString("en-US")} or fewer** |`, "duplication reduction target"],
+  [`| Color-literal occurrences | ${colorBaseline.count} | **${tenPercentTarget(colorBaseline.count)} or fewer** |`, "color-literal reduction target"],
+];
+for (const [expected, label] of requiredTargets) {
+  if (!ratchetPolicy.includes(expected)) failures.push(`Technical-debt policy target is stale: ${label}.`);
+}
+if (!ratchetPolicy.includes("| Duplication ratio | 1.57% | **1.50% or lower** |")) {
+  failures.push("Technical-debt policy must retain the 1.50% duplication-ratio target.");
+}
+
+const gameIdPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+for (const gameId of games) {
+  if (!gameIdPattern.test(gameId)) {
+    failures.push(`Game directory ID is not lowercase kebab-case/single-word: ${gameId}.`);
+  }
+}
+for (const legacyGameId of ["echorunner", "flappybird", "geometrywars", "hitandrun"]) {
+  if (games.includes(legacyGameId) && !identityDoc.includes(`\`${legacyGameId}\``)) {
+    failures.push(`The naming policy must preserve and list the legacy game ID ${legacyGameId}.`);
+  }
+}
+if (
+  !identityDoc.includes("Tiny Aster") ||
+  !identityDoc.includes("ArcadeGames") ||
+  !identityDoc.includes("@tiny-aster")
+) {
+  failures.push("The naming policy must distinguish the Tiny Aster brand, ArcadeGames repository and @tiny-aster package scope.");
+}
+
 const requiredScriptNames = new Set();
 for (const key of ["ci", "check:agent-guardrails"]) {
   const command = manifest.scripts[key];

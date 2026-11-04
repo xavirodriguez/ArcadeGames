@@ -77,6 +77,16 @@ describe("VFX Visual Lab model", () => {
     expect(parseVFXLabPreset(serializeVFXLabPreset(preset))).toEqual(preset);
   });
 
+  it("ships reproducible presets for all four PR4 combat effects", () => {
+    const effects = new Set(VFX_LAB_PRESETS.map((preset) => preset.effect));
+    expect(effects).toEqual(expect.objectContaining(new Set([
+      "pixelfx_ricochet",
+      "pixelfx_charge",
+      "pixelfx_shield_pulse",
+      "pixelfx_target_warning"
+    ])));
+  });
+
   it("ships stable preset ids and complete versioned settings", () => {
     expect(new Set(VFX_LAB_PRESETS.map((preset) => preset.id)).size).toBe(VFX_LAB_PRESETS.length);
     for (const preset of VFX_LAB_PRESETS) {

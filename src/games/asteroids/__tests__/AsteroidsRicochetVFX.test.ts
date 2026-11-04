@@ -3,7 +3,7 @@ import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/Ast
 import { AsteroidCollisionSystem } from "../systems/AsteroidCollisionSystem";
 
 describe("Asteroids ricochet VFX integration", () => {
-  it("emits a ricochet cue when a bouncing player projectile reflects from a world boundary", () => {
+  it("renders each real boundary reflection and reclaims the projectile after three bounces", () => {
     const world = new World<AsteroidsComponentRegistry, AsteroidsEventRegistry>();
     const eventBus = new EventBus<AsteroidsEventRegistry>();
     world.setResource("EventBus", eventBus);
@@ -19,15 +19,29 @@ describe("Asteroids ricochet VFX integration", () => {
 
     const collisionSystem = new AsteroidCollisionSystem();
     collisionSystem.onRegister(world);
-    new BoundarySystem().update(world, 1 / 60);
-    eventBus.flushDeferred();
+    const boundarySystem = new BoundarySystem();
 
+    boundarySystem.update(world, 1 / 60);
+    eventBus.flushDeferred();
     expect(world.getComponent(bullet, "Transform")?.x).toBe(100);
     expect(world.getComponent(bullet, "Velocity")?.vx).toBe(-120);
-    const effect = world.query("Render", "TTL").find((entity) =>
+    expect(world.getComponent(bullet, "Bullet")?.bouncesRemaining).toBe(2);
+
+    world.mutateComponent(bullet, "Transform", (transform) => { transform.x = -1; transform.dirty = true; });
+    boundarySystem.update(world, 1 / 60);
+    eventBus.flushDeferred();
+    expect(world.getComponent(bullet, "Transform")?.x).toBe(0);
+    expect(world.getComponent(bullet, "Velocity")?.vx).toBe(120);
+    expect(world.getComponent(bullet, "Bullet")?.bouncesRemaining).toBe(1);
+
+    world.mutateComponent(bullet, "Transform", (transform) => { transform.x = 101; transform.dirty = true; });
+    boundarySystem.update(world, 1 / 60);
+    eventBus.flushDeferred();
+
+    expect(world.hasEntity(bullet)).toBe(false);
+    const ricochetEffects = world.query("Render", "TTL").filter((entity) =>
       world.getComponent(entity, "Render")?.shape === "pixelfx_ricochet"
     );
-    expect(effect).toBeDefined();
-    expect(world.getComponent(effect!, "TTL")?.remaining).toBeGreaterThan(0);
+    expect(ricochetEffects).toHaveLength(3);
   });
 });

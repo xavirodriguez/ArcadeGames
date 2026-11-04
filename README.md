@@ -86,7 +86,7 @@ The product and engine brand is **Tiny Aster**; `ArcadeGames` is the GitHub repo
 
 ## ✨ Engine Features
 
-- **Deterministic ECS runtime** with typed components, systems, and a `BaseGame` lifecycle abstraction shared by every game.
+- **Deterministic ECS runtime** with typed components, systems, and a `BaseGame` lifecycle abstraction used by game implementations built on the core runtime.
 - **Snapshot/restore & rollback** support for authoritative-server netcode reconciliation.
 - **Component & prefab pooling** (`ComponentSetPool`, `PrefabPool`) with dev-mode detection of double-release and partial-destruction bugs — the kind of engine hygiene most hobby ECS implementations skip.
 - **TTL system** for automatic entity lifecycle management.

@@ -1,6 +1,11 @@
 import { Project, SyntaxKind, ImportDeclaration, CallExpression, PropertyAccessExpression } from "ts-morph";
 import * as fs from "fs";
 import * as path from "path";
+import {
+  isDeterminismSensitiveSource,
+  isStructuralMutationSensitiveSource,
+  isTestOrMockSource
+} from "./determinism-scope";
 
 const project = new Project();
 
@@ -9,6 +14,8 @@ project.addSourceFilesAtPaths("packages/core/src/**/*.ts");
 project.addSourceFilesAtPaths("packages/core/src/**/*.tsx");
 project.addSourceFilesAtPaths("src/games/**/*.ts");
 project.addSourceFilesAtPaths("src/games/**/*.tsx");
+project.addSourceFilesAtPaths("packages/gameplay-kit/src/**/*.ts");
+project.addSourceFilesAtPaths("packages/gameplay-kit/src/**/*.tsx");
 
 interface Violation {
   file: string;
@@ -28,8 +35,8 @@ for (const sourceFile of project.getSourceFiles()) {
   const filePath = sourceFile.getFilePath();
   const relativePath = path.relative(process.cwd(), filePath);
 
-  // Skip test files for boundaries and simulation checks
-  const isTestFile = relativePath.includes("__tests__") || relativePath.includes("/tests/") || relativePath.endsWith(".test.ts") || relativePath.endsWith(".test.tsx");
+  // Skip tests and mocks consistently across every scanned workspace.
+  const isTestFile = isTestOrMockSource(relativePath);
 
   // Rule 1 & 2: Platform and Game boundaries inside packages/core/src (excluding tests and ui/debug)
   if (relativePath.startsWith("packages/core/src") && !isTestFile && !relativePath.includes("ui/debug")) {
@@ -69,10 +76,13 @@ for (const sourceFile of project.getSourceFiles()) {
     }
   }
 
-  // Determine if this file is a system or simulation file
-  const isSystemOrSimulation = relativePath.includes("/systems/") || relativePath.includes("/simulation/");
+  // Determinism rules also apply to entity factories, blueprints and the reusable gameplay kit.
+  // Structural mutation checks remain restricted to systems/simulation so legitimate factory
+  // calls such as world.createEntity() are not reported as violations.
+  const isDeterminismSensitive = isDeterminismSensitiveSource(relativePath);
+  const isSystemOrSimulation = isStructuralMutationSensitiveSource(relativePath);
 
-  if (isSystemOrSimulation && !isTestFile) {
+  if ((isDeterminismSensitive || isSystemOrSimulation) && !isTestFile) {
     // Traverse descendants of the file
     sourceFile.forEachDescendant(node => {
       // Rule 3: Math.random(), Date.now() or performance.now() inside systems & simulation
@@ -161,7 +171,7 @@ for (const sourceFile of project.getSourceFiles()) {
       // Rule 5: Direct mutations (addComponent, removeComponent, createEntity, removeEntity) outside WorldCommandBuffer
       // ParticleSystem.ts is exempt
       const isParticleSystem = relativePath.endsWith("ParticleSystem.ts");
-      if (node.getKind() === SyntaxKind.CallExpression && !isParticleSystem) {
+      if (node.getKind() === SyntaxKind.CallExpression && isSystemOrSimulation && !isParticleSystem) {
         const callExpr = node as CallExpression;
         const expr = callExpr.getExpression();
         if (expr.getKind() === SyntaxKind.PropertyAccessExpression) {

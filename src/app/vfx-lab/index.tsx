@@ -113,12 +113,21 @@ export default function VFXVisualLabScreen() {
     }
     context.restore();
     context.save();
-    context.translate(PREVIEW_WIDTH / 2, PREVIEW_HEIGHT / 2);
-    effect.draw(
-      new CanvasDrawAdapter(context),
-      createPreviewWorld(size, color, progress, rotation),
-      1
-    );
+    context.translate(width / 2, height / 2);
+    const remaining = Math.max(0.001, 1 - progress);
+    const render = { size, color, opacity: 1 };
+    const ttl = { remaining, timeLeft: 1 };
+    const transform = { rotation, scaleX: 1 };
+    const world = {
+      getComponent: (_entity: number, component: string) => {
+        if (component === "Render") return render;
+        if (component === "TTL") return ttl;
+        if (component === "Transform") return transform;
+        return undefined;
+      }
+    } as never as World<CoreComponentRegistry>;
+
+    effect.draw(new CanvasDrawAdapter(context), world, 1);
     context.restore();
   }, [color, effect, previewPalette, profile, progress, rotation, size]);
 

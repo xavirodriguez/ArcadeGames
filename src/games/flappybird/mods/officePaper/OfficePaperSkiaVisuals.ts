@@ -11,51 +11,27 @@ import {
   resolveFlappyPipeDrawContext,
   resolveFlappyBackgroundSetup,
 } from "../../rendering/FlappyBirdRenderUtils";
-import { drawSkiaGlideEnergyBar } from "../../rendering/FlappyBirdSkiaVisuals";
+import { drawSkiaGlideEnergyBar, getCachedSkiaShader } from "../../rendering/FlappyBirdSkiaVisuals";
 import { Skia, getPaint } from "../../../shared/rendering/SkiaContext";
 import { colors } from "../../../../theme/colors";
 
-const skiaShaderCache = new Map<string, SkShader>();
 
-function getCachedSkiaShader(key: string, factory: () => SkShader | null): SkShader | null {
-  let shader = skiaShaderCache.get(key);
-  if (!shader) {
-    if (skiaShaderCache.size > 40) {
-      skiaShaderCache.clear();
-    }
-    const created = factory();
-    if (created) {
-      shader = created;
-      skiaShaderCache.set(key, shader);
-    }
-  }
-  return shader || null;
-}
 
-function drawSkiaVisualParticles(canvas: SkCanvas, paint: SkPaint): void {
-  const particles = FLAPPY_PARTICLE_POOL.getActiveParticles();
-  for (let i = 0; i < particles.length; i++) {
-    const data = resolveFlappyParticleData(particles[i]);
-    if (!data) continue;
-
-    const { type, x, y, size, color, skColor, angle, ratio } = data;
-
+function drawSkiaOfficePaperParticles(canvas: SkCanvas, paint: SkPaint): void {
+  for (const particle of FLAPPY_PARTICLE_POOL.getActiveParticles()) {
+    const data = resolveFlappyParticleData(particle);
+    if (!data || data.type !== "star") continue;
     canvas.save();
-    canvas.translate(x, y);
-    if (angle !== undefined && angle !== 0) {
-      canvas.rotate((angle * 180) / Math.PI, 0, 0);
+    canvas.translate(data.x, data.y);
+    if (data.angle) {
+      canvas.rotate((data.angle * 180) / Math.PI, 0, 0);
     }
-
     paint.reset();
     paint.setAntiAlias(true);
-    paint.setAlphaf(ratio);
-
-    if (type === "star") {
-      paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(skColor || Skia.Color(color));
-      canvas.drawRect(Skia.XYWHRect(-size / 2, -size / 2, size, size), paint);
-    }
-
+    paint.setAlphaf(data.ratio);
+    paint.setStyle(Skia.PaintStyle.Fill);
+    paint.setColor(data.skColor || Skia.Color(data.color));
+    canvas.drawRect(Skia.XYWHRect(-data.size / 2, -data.size / 2, data.size, data.size), paint);
     canvas.restore();
   }
 }
@@ -292,7 +268,7 @@ export const scrollingSkiaOfficePaperBackgroundEffect: EffectDrawer<unknown, Fla
     }
     skCanvas.restore();
 
-    drawSkiaVisualParticles(skCanvas, paint);
+    drawSkiaOfficePaperParticles(skCanvas, paint);
 
     drawSkiaGlideEnergyBar(skCanvas, paint, world, width, height);
   }

@@ -568,4 +568,66 @@ describe("Locomotion V1 Full Multi-Tick Integration Scenarios", () => {
     expect(stationaryJump.grounded).toBe(false);
   });
 
+  it("Campaign surface route: falls to elastic pad, rises through one-way and lands above", () => {
+    const { world, step } = createIntegrationWorld();
+    const tilemap = world.createEntity();
+    const data = Array.from({ length: 14 }, (_, y) =>
+      Array.from({ length: 24 }, (_, x) => {
+        if ((y === 11 || y === 12) && x <= 13) return 1;
+        if (y === 12 && x >= 16 && x <= 19) return 5;
+        if (y === 13 && x === 15) return 7;
+        if ((y === 11 || y === 12) && x >= 20) return 1;
+        return 0;
+      })
+    );
+    world.addComponent(tilemap, {
+      type: "Tilemap",
+      data,
+      tileSize: 40,
+      tileDefinitions: {
+        1: { solid: true, materialId: "normal" },
+        5: { solid: true, oneWay: true, materialId: "normal" },
+        7: { solid: true, kind: "normal", materialId: "elastic" }
+      },
+      physicsMaterials: {
+        normal: PHYSICS_MATERIAL_PRESETS.normal,
+        elastic: PHYSICS_MATERIAL_PRESETS.elastic
+      }
+    });
+    addTransform(world, tilemap, 0, 0);
+
+    const player = spawnPlayer(world, 540, 425, {
+      profile: LOCOMOTION_PROFILE_PRESETS.momentum,
+      slideEnabled: false
+    });
+    world.mutateComponent(player, "Velocity", (velocity) => { velocity.vx = 260; });
+    world.mutateComponent(player, "PlatformerInput", (input) => { input.moveDir = 1; });
+
+    let observedElasticRebound = false;
+    let landedOnOneWay = false;
+    for (let tick = 0; tick < 60; tick++) {
+      step(1);
+      const velocity = world.getComponent(player, "Velocity")!;
+      const transform = world.getComponent(player, "Transform")!;
+      const groundContact = world.getComponent(player, "PhysicsContactState")?.groundContact;
+
+      if (groundContact?.materialId === "elastic" && velocity.vy < 0) {
+        observedElasticRebound = true;
+      }
+      if (
+        observedElasticRebound &&
+        transform.x >= 640 &&
+        transform.x < 800 &&
+        world.getComponent(player, "PlatformerGroundState")?.isGrounded === true &&
+        groundContact?.materialId === "normal"
+      ) {
+        landedOnOneWay = true;
+        break;
+      }
+    }
+
+    expect(observedElasticRebound).toBe(true);
+    expect(landedOnOneWay).toBe(true);
+  });
+
 });

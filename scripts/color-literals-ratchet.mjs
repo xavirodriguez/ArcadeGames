@@ -10,7 +10,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const BASELINE_FILE = path.join(ROOT, "scripts", "color-literals-baseline.json");
 const isUpdate = process.argv.includes("--update");
-export const PROPOSED_ALLOWLIST = [
+// Paths with intentional literals that are currently outside the shared theme-token layer.
+export const COLOR_LITERAL_ALLOWLIST = [
   { path: "src/games/outrun/config/visualDefaults.ts", reason: "OutRun visual defaults" },
   { path: "src/games/racing/rendering/RacingPalette.ts", reason: "Racing palette" },
   { path: "src/games/frogger/rendering/FroggerVisualTokens.ts", reason: "Frogger tokens" },
@@ -84,7 +85,7 @@ function isAllowed(relPath) {
   const norm = relPath.replace(/\\/g, "/");
   if (ALLOWED_PREFIXES.some((p) => norm.startsWith(p))) return true;
   if (norm.includes("/theme/") && norm.startsWith("packages/")) return true;
-  return PROPOSED_ALLOWLIST.some((e) => e.path === norm);
+  return COLOR_LITERAL_ALLOWLIST.some((e) => e.path === norm);
 }
 function findFiles(dir, results = []) {
   if (!fs.existsSync(dir)) return results;

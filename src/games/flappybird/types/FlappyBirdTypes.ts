@@ -1,11 +1,11 @@
-import { Component, CoreComponentRegistry, CoreEvents } from "@tiny-aster/core";
+import { Component, CoreComponentRegistry, CoreEvents, ComboComponent } from "@tiny-aster/core";
+import { DEFAULT_FLAPPY_BIRD_CONFIG } from "./FlappyBirdConfigSchema";
 
 export interface FlappyBirdEventRegistry extends CoreEvents, Record<string, unknown> {
   "flappy:near_miss": { points: number };
   "flappy:near_miss_particles": { x: number; y: number; count: number; minSpeed: number; maxSpeed: number };
   "pipe:passed": Record<string, unknown>;
 }
-import { ComboComponent } from "@tiny-aster/core";
 
 export interface FlappyBirdComponentRegistry extends CoreComponentRegistry {
   FlappyInput: FlappyBirdInputComponent;
@@ -100,6 +100,9 @@ export interface FlappyBirdState extends Component {
   pipeSpawnTimer: number;
   gameOverLogged: boolean;
 
+  /** Seconds remaining in the start-of-round grace period. 0 means grace is over. */
+  graceTimeRemaining: number;
+
   pipesSpawnedCount?: number;
   currentSectorEvent?: "none" | "solar_flare" | "asteroid_storm" | "hyper_warp";
   sectorEventTicks?: number;
@@ -123,6 +126,7 @@ export function createFlappyState(overrides?: Partial<FlappyBirdState>): FlappyB
     highScore: 0,
     pipeSpawnTimer: 0,
     gameOverLogged: false,
+    graceTimeRemaining: DEFAULT_FLAPPY_BIRD_CONFIG.GRACE_PERIOD_SECONDS,
     pipesSpawnedCount: 0,
     currentSectorEvent: "none",
     sectorEventTicks: 0,
@@ -138,8 +142,6 @@ export function createFlappyState(overrides?: Partial<FlappyBirdState>): FlappyB
  * Null Object for FlappyBirdState.
  */
 export const INITIAL_FLAPPY_STATE: FlappyBirdState = Object.freeze(createFlappyState());
-
-import { DEFAULT_FLAPPY_BIRD_CONFIG } from "./FlappyBirdConfigSchema";
 
 /**
  * Global game configuration constants for Flappy Bird.

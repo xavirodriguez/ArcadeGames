@@ -86,20 +86,22 @@ export class BoundarySystem extends System<CoreComponentRegistry> {
               if (mt.x < minX) {
                 mt.x = minX;
                 this.reverseVelocity(world, entity, "x", clampX);
-              if (!clampX) this.emitBounce(world, entity, "x", mt.x, mt.y);
+                if (!clampX) this.emitBounce(world, entity, "x", mt.x, mt.y);
               } else if (mt.x > maxX) {
                 mt.x = maxX;
                 this.reverseVelocity(world, entity, "x", clampX);
+                if (!clampX) this.emitBounce(world, entity, "x", mt.x, mt.y);
               }
             }
             if (needsY) {
               if (mt.y < minY) {
                 mt.y = minY;
                 this.reverseVelocity(world, entity, "y", clampY);
-              if (!clampY) this.emitBounce(world, entity, "y", mt.x, mt.y);
+                if (!clampY) this.emitBounce(world, entity, "y", mt.x, mt.y);
               } else if (mt.y > maxY) {
                 mt.y = maxY;
                 this.reverseVelocity(world, entity, "y", clampY);
+                if (!clampY) this.emitBounce(world, entity, "y", mt.x, mt.y);
               }
             }
             mt.dirty = true;

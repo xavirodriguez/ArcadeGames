@@ -1,5 +1,8 @@
 name: ECS Core Sentinel
 
+permissions:
+  contents: read
+
 on:
   pull_request:
     branches: [master, develop]

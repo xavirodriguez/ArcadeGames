@@ -58,6 +58,19 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
           y: transform.y
         });
       });
+
+      eventBus.on("boundary:bounce", (event: { entity: number; axis: "x" | "y"; x: number; y: number }) => {
+        if (world.isReSimulating || !world.hasComponent(event.entity, "Bullet")) return;
+        this.juice ??= new JuiceOrchestrator(world);
+        this.juice.spawn("pixelfx_ricochet", {
+          x: event.x,
+          y: event.y,
+          rotation: event.axis === "x" ? 0 : Math.PI / 2,
+          tint: colors.cyan,
+          scale: 0.8,
+          ttl: 0.22
+        });
+      });
     }
   }
 

@@ -535,14 +535,17 @@ describe("Locomotion V1 Full Multi-Tick Integration Scenarios", () => {
 
       if (withRunUp) {
         world.mutateComponent(player, "PlatformerInput", (input) => { input.moveDir = 1; });
-        step(45);
+        let guard = 0;
+        while ((world.getComponent(player, "Transform")?.x ?? 0) < 185 && guard++ < 200) {
+          step(1);
+        }
       } else {
         // Start at the same launch point, but without accumulated horizontal speed.
-        world.mutateComponent(player, "Transform", (transform) => { transform.x = 180; });
+        world.mutateComponent(player, "Transform", (transform) => { transform.x = 185; });
       }
 
       world.mutateComponent(player, "PlatformerInput", (input) => {
-        input.moveDir = withRunUp ? 1 : 0;
+        input.moveDir = 1;
         input.jumpPressed = true;
         input.jumpHeld = true;
       });

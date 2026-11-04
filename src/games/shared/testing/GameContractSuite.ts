@@ -24,6 +24,7 @@ export interface GameContractDefinition<TGame extends GameContractInstance> {
   readonly gameId: string;
   readonly create: (seed: number) => TGame;
   readonly inputs: readonly CompactInputFrame[];
+  readonly applyInput: (game: TGame, input: CompactInputFrame) => void;
   readonly seed?: number;
 }
 
@@ -110,6 +111,8 @@ export function defineGameContractSuite<TGame extends GameContractInstance>(
       expect(first.tick).toBe(second.tick);
 
       for (const input of definition.inputs) {
+        definition.applyInput(first, input);
+        definition.applyInput(second, input);
         first.step(input);
         second.step(input);
 

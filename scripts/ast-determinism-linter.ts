@@ -87,7 +87,7 @@ for (const sourceFile of project.getSourceFiles()) {
   if ((isDeterminismSensitive || isSystemOrSimulation || isVisualRandomnessSensitive) && !isTestFile) {
     // Traverse descendants of the file
     sourceFile.forEachDescendant(node => {
-      // Rule 3: Math.random(), Date.now() or performance.now() inside systems & simulation
+      // Rule 3: Unseeded randomness in simulation, gameplay and presentation; uncontrolled clocks in simulation.
       if (node.getKind() === SyntaxKind.CallExpression) {
         const callExpr = node as CallExpression;
         const expr = callExpr.getExpression();

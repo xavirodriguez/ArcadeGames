@@ -23,6 +23,8 @@ const [
   manifest,
   appManifest,
   appConfigSource,
+  workspaceConfig,
+  serverManifest,
   identityDoc,
   ratchetPolicy,
   agentsGuide,
@@ -38,6 +40,8 @@ const [
   readJson("package.json"),
   readJson("app.json"),
   readFile(path.join(rootDir, "app.config.ts"), "utf8"),
+  readFile(path.join(rootDir, "pnpm-workspace.yaml"), "utf8"),
+  readJson("server/package.json"),
   readFile(path.join(rootDir, "docs/PROJECT_IDENTITY_AND_NAMING.md"), "utf8"),
   readFile(path.join(rootDir, "docs/TECHNICAL_DEBT_RATCHETS.md"), "utf8"),
   readFile(path.join(rootDir, "AGENTS.md"), "utf8"),
@@ -137,9 +141,21 @@ if (
   !identityDoc.includes(`\`${rootExpoConfig.slug}\``) ||
   !identityDoc.includes(`\`${rootExpoConfig.scheme}\``) ||
   !identityDoc.includes(`\`${rootExpoConfig.ios.bundleIdentifier}\``) ||
-  !identityDoc.includes(`\`${rootExpoConfig.android.package}\`)
+  !identityDoc.includes(`\`${rootExpoConfig.android.package}\`) ||
+  !identityDoc.includes(`\`${rootExpoConfig.owner}\``) ||
+  !identityDoc.includes(`\`${rootExpoConfig.extra.eas.projectId}\``) ||
+  !identityDoc.includes(`\`${serverManifest.name}\``)
 ) {
-  failures.push("The project identity document does not record the current root package and Expo/native identifiers.");
+  failures.push("The project identity document does not record the root, Expo/EAS, native and server workspace identifiers.");
+}
+if (!workspaceConfig.includes("- packages/*") || !workspaceConfig.includes("- server")) {
+  failures.push("pnpm-workspace.yaml must declare packages/* and server as workspaces.");
+}
+if (
+  !appConfigSource.includes(`const ARCADE_OWNER = "${rootExpoConfig.owner}"`) ||
+  !appConfigSource.includes(`const ARCADE_EAS_PROJECT_ID = "${rootExpoConfig.extra.eas.projectId}"`)
+) {
+  failures.push("app.config.ts is out of sync with app.json for the Expo owner or EAS project ID.");
 }
 for (const configValue of [
   `name: "${rootExpoConfig.name}"`,

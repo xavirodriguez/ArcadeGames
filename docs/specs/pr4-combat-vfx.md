@@ -1,42 +1,52 @@
 # PR4 — Combat VFX
 
-## Scope
+## Scope and implementation status
 
-PR4 extends the existing procedural VFX contract. It does not introduce a parallel renderer registry, a second lifetime system, or new gameplay mechanics.
+PR4 extends the existing procedural VFX contract. It does not add a parallel renderer registry, a second effect lifetime system, or presentation-owned gameplay rules.
 
-The four production drawers are:
-
-| Primitive | Visual purpose | Gameplay status |
+| Primitive | Gameplay source | Integration |
 | --- | --- | --- |
-| `pixelfx_ricochet` | Contact spark and reflected trajectory | Visual Lab only; no verified projectile-bounce mechanic is being claimed |
-| `pixelfx_charge` | Directional energy core and backward speed streaks | Hit & Run charger `Anticipation → Charge` transition |
-| `pixelfx_shield_pulse` | Expanding defensive shell and separated arcs | Visual Lab only; not evidence of an implemented shield |
-| `pixelfx_target_warning` | Pulsing lock-on brackets | Hit & Run telegraphed `Anticipation` entry |
+| `pixelfx_ricochet` | Asteroids `BoundarySystem` bounce of a `Bullet` with `Boundary.mode === "bounce"` | `boundary:bounce` event → `AsteroidCollisionSystem` → `JuiceOrchestrator` |
+| `pixelfx_charge` | Hit & Run `hr_charge` FSM `Anticipation → Charge` | `spawnHitRunChargeCue` on Charge entry |
+| `pixelfx_shield_pulse` | Vertical Shmup explicit `Shield` charge absorbs incoming damage | `CombatSystem` → `combat:shield_absorbed` → `ShmupCollisionSystem` |
+| `pixelfx_target_warning` | Hit & Run telegraphed attack FSM enters `Anticipation` | `enterAnticipationState` → `JuiceOrchestrator` |
 
-## Architecture
+## Gameplay contracts
 
-- Drawers consume the existing `IDrawAdapter` and read progress from ECS `TTL`.
-- `registerPixelFxProceduralVFX` registers the same four names for Canvas and Skia.
-- `SharedVFXPrimitiveName` is the shared spawn contract; Visual Lab references the production drawer functions rather than copying their drawing code.
-- Hit & Run emits cues at existing FSM entry transitions. The helper delegates to `JuiceOrchestrator.spawn`, which owns transient entity creation and the rollback/resimulation presentation guard.
-- No effect changes hitboxes, damage, velocity, AI decisions, or other authoritative gameplay state.
+### Asteroids — projectile ricochet
 
-## Reproducible Visual Lab presets
+- The existing `bouncing_bullets` mutator enables `BULLET_BOUNDARY_BEHAVIOR: "bounce"` for player projectiles.
+- `BoundarySystem` emits `boundary:bounce` only after an actual velocity reflection; clamp-only boundary contacts do not emit it.
+- `AsteroidCollisionSystem` filters the event to entities carrying `Bullet` and spawns `pixelfx_ricochet` at the clamped contact position. X and Y reflections use distinct effect orientations.
+- Projectile lifetime remains bounded by the existing TTL. The VFX does not influence velocity, collision response, or TTL.
 
-- `ricochet-neon`
-- `charge-neon`
-- `shield-pulse-sumi`
-- `target-warning-neon`
+### Vertical Shmup — explicit shield
 
-Each preset fixes effect identity, semantic profile, progress, size, rotation, and seed metadata.
+- The player starts with one shield charge, independently of `Health.invulnerableRemaining`.
+- `CombatSystem` checks temporary invulnerability first, then consumes an available `Shield` charge before mutating health or marking the target `Dead`.
+- Absorption sets the shield recharge timer to six seconds and emits `combat:shield_absorbed`; it does not emit `combat:hit` and does not apply damage.
+- `ShmupCollisionSystem` recharges the charge after the timer and renders `pixelfx_shield_pulse` from the absorption event.
+- Once the charge is depleted, subsequent hits follow the existing health and invulnerability path until the shield recharges.
+
+### Hit & Run — charge and warning
+
+- `enterAnticipationState` emits `pixelfx_target_warning` at the real telegraphed attack transition.
+- `hr_charge` emits `pixelfx_charge` when its FSM enters `Charge`; ordinary melee attacks do not receive the charge cue.
+- The shared helper delegates transient entity creation and resimulation suppression to `JuiceOrchestrator`.
+
+## Rendering and Visual Lab
+
+- All four drawers use the existing `IDrawAdapter` and ECS `TTL` progress contract.
+- `registerPixelFxProceduralVFX` registers the same ordered drawer catalog for Canvas and Skia through `SharedVFX`.
+- Visual Lab uses production drawer functions and includes reproducible presets `ricochet-neon`, `charge-neon`, `shield-pulse-sumi`, and `target-warning-neon`.
+- Preset seeds are stable metadata; these deterministic drawers do not consume gameplay RNG.
 
 ## Validation
 
-Focused tests cover:
-- all 17 production drawers appear exactly once in the Visual Lab catalog;
-- Canvas and Skia register the same ordered set of 17 names;
-- each PR4 drawer emits adapter primitives while its TTL is alive;
-- expired TTLs produce no drawing calls;
-- the charger FSM emits target-warning and charge effect entities at the corresponding transitions.
+Focused coverage includes:
+- CombatSystem absorbs a lethal hit using a shield charge before health/death resolution.
+- Asteroids emits a ricochet effect only when a real projectile reflects from a boundary.
+- Existing VFX drawer tests validate Canvas/Skia catalog parity, TTL expiry, and Visual Lab preset round-trips.
+- Existing Hit & Run state-machine tests validate warning and charge cue creation at the corresponding transitions.
 
-The PR checks remain the source of truth for CI execution. A passing unit test does not replace visual review in Visual Lab on both renderers.
+CI results and Visual Lab review remain the final validation source; no passing result is claimed until the PR checks complete.

@@ -105,8 +105,13 @@ describe("Galaxian gameplay regressions", () => {
 
     const world = game.getWorld();
     const player = world.query("Player", "Transform")[0];
-    const playerTransform = world.getComponent(player, "Transform");
-    if (!playerTransform) throw new Error("Player transform missing");
+    const config = world.getResource<GalaxianConfig>("GameConfig");
+    const playerTransform = world.getMutableComponent(player, "Transform");
+    if (!config || !playerTransform) throw new Error("Player transform or Galaxian config missing");
+
+    playerTransform.x = config.worldWidth / 4;
+    playerTransform.y = config.worldHeight / 2;
+    playerTransform.dirty = true;
 
     const spawnHit = (): void => {
       const transform = world.getComponent(player, "Transform");
@@ -119,6 +124,13 @@ describe("Galaxian gameplay regressions", () => {
     spawnHit();
     expect(game.getGameState().lives).toBe(2);
     expect(world.hasComponent(player, "Invulnerable")).toBe(true);
+
+    const respawnTransform = world.getComponent(player, "Transform");
+    expect(respawnTransform?.x).toBe(config.worldWidth / 2);
+    expect(respawnTransform?.y).toBe(config.worldHeight - 50);
+    expect(respawnTransform?.worldX).toBe(respawnTransform?.x);
+    expect(respawnTransform?.worldY).toBe(respawnTransform?.y);
+    expect(respawnTransform?.dirty).toBe(false);
 
     spawnHit();
     expect(game.getGameState().lives).toBe(2);
@@ -187,13 +199,120 @@ describe("Galaxian gameplay regressions", () => {
     await game.destroy();
   });
 
-  it("starts the next wave after the transition and does not retain removed enemies", async () => {
+  it("clears a complete wave, waits 1.5 seconds and starts a dive-capable next wave", async () => {
     const game = new GalaxianGame({ headless: true, seed: 12345 });
     await game.init();
     game.stop();
 
     const world = game.getWorld();
-    const originalEnemyCount = world.query("GalaxianEnemy").length;
+    const config = world.getResource<GalaxianConfig>("GameConfig");
+    if (!config) throw new Error("Galaxian config missing");
+
+    config.dive.intervalMs = 20;
+    config.dive.windupMs = 0;
+    config.dive.maxConcurrentDives = 1;
+    config.wave.speedMultiplierPerWave = 1;
+    config.wave.maxConcurrentDivesCap = 1;
+
+    const firstWaveEntities = world.query("GalaxianEnemy", "Transform");
+    const firstWaveIds = new Set(firstWaveEntities);
+    const originalEnemyCount = firstWaveEntities.length;
+    const completedLevels: number[] = [];
+    game.getEventBus().on("wave:completed", ({ level }) => {
+      completedLevels.push(level);
+    });
+
+    for (const enemyEntity of firstWaveEntities) {
+      const enemy = world.getComponent(enemyEntity, "GalaxianEnemy");
+      const transform = world.getComponent(enemyEntity, "Transform");
+      if (!enemy || !transform) throw new Error("First-wave enemy data missing");
+
+      for (let hit = 0; hit < enemy.hitsRemaining; hit += 1) {
+        game.getBulletPool().acquirePlayerBullet(world, transform.x, transform.y);
+      }
+    }
+    world.flush();
+
+    game.update(1 / 60);
+    expect(game.getGameState().enemiesRemaining).toBe(0);
+    expect(world.query("GalaxianEnemy")).toHaveLength(0);
+    expect(game.getGameState().level).toBe(1);
+    expect(completedLevels).toHaveLength(0);
+
+    game.update(1 / 60);
+    expect(game.getGameState().level).toBe(2);
+    expect(game.getGameState().waveTransitionRemaining).toBeCloseTo(1.5);
+    expect(completedLevels).toEqual([2]);
+
+    game.update(1.49);
+    expect(game.getGameState().waveTransitionRemaining).toBeGreaterThan(0);
+    expect(world.query("GalaxianEnemy")).toHaveLength(0);
+
+    game.update(0.02);
+    expect(game.getGameState().waveTransitionRemaining).toBe(0);
+    expect(game.getGameState().enemiesRemaining).toBe(originalEnemyCount);
+
+    const secondWaveEntities = world.query("GalaxianEnemy");
+    expect(secondWaveEntities).toHaveLength(originalEnemyCount);
+    expect(secondWaveEntities.every((entity) => !firstWaveIds.has(entity))).toBe(true);
+    expect(game.getGameState().diveTimer).toBeCloseTo(config.dive.intervalMs / 1000);
+
+    for (const enemyEntity of secondWaveEntities) {
+      const enemy = world.getComponent(enemyEntity, "GalaxianEnemy");
+      expect(enemy?.state).toBe("in_slot");
+      expect(world.hasComponent(enemyEntity, "PathPattern")).toBe(false);
+    }
+
+    game.update(0.05);
+    expect(
+      world.query("GalaxianEnemy").some((entity) => {
+        return world.getComponent(entity, "GalaxianEnemy")?.state === "windup";
+      })
+    ).toBe(true);
+
+    game.update(0.05);
+    expect(
+      world.query("GalaxianEnemy").some((entity) => {
+        return world.getComponent(entity, "GalaxianEnemy")?.state === "diving";
+      })
+    ).toBe(true);
+    expect(game.getGameState().activeDivesCount).toBe(1);
+
+    await game.destroy();
+  });
+
+  it("does not advance a wave while enemy entities remain despite a zero counter", async () => {
+    const game = new GalaxianGame({ headless: true, seed: 12345 });
+    await game.init();
+    game.stop();
+
+    const world = game.getWorld();
+    const stateEntity = world.query("GameState")[0];
+    world.mutateComponent(stateEntity, "GameState", (state) => {
+      state.enemiesRemaining = 0;
+    });
+
+    let completedEvents = 0;
+    game.getEventBus().on("wave:completed", () => {
+      completedEvents += 1;
+    });
+
+    game.update(1 / 60);
+
+    expect(game.getGameState().level).toBe(1);
+    expect(game.getGameState().waveTransitionRemaining).toBe(0);
+    expect(completedEvents).toBe(0);
+    expect(world.query("GalaxianEnemy").length).toBeGreaterThan(0);
+
+    await game.destroy();
+  });
+
+  it("does not increment the level again when next-wave spawning is unavailable", async () => {
+    const game = new GalaxianGame({ headless: true, seed: 12345 });
+    await game.init();
+    game.stop();
+
+    const world = game.getWorld();
     for (const enemy of world.query("GalaxianEnemy")) {
       world.commands.removeEntity(enemy);
     }
@@ -204,14 +323,27 @@ describe("Galaxian gameplay regressions", () => {
       state.enemiesRemaining = 0;
     });
 
+    let completedEvents = 0;
+    game.getEventBus().on("wave:completed", () => {
+      completedEvents += 1;
+    });
+
     game.update(1 / 60);
     expect(game.getGameState().level).toBe(2);
+    expect(completedEvents).toBe(1);
+
+    for (const formation of world.query("Formation")) {
+      world.commands.removeEntity(formation);
+    }
+    world.flush();
+
+    game.update(1.5);
     expect(game.getGameState().waveTransitionRemaining).toBeCloseTo(1.5);
 
     game.update(1.5);
-    expect(game.getGameState().waveTransitionRemaining).toBe(0);
-    expect(game.getGameState().enemiesRemaining).toBe(originalEnemyCount);
-    expect(world.query("GalaxianEnemy")).toHaveLength(originalEnemyCount);
+    expect(game.getGameState().level).toBe(2);
+    expect(completedEvents).toBe(1);
+    expect(game.getGameState().waveTransitionRemaining).toBeCloseTo(1.5);
 
     await game.destroy();
   });

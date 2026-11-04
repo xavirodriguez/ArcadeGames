@@ -89,7 +89,7 @@ export default function VFXVisualLabScreen() {
         if (component === "Transform") return transform;
         return undefined;
       }
-    } as unknown as World<CoreComponentRegistry>;
+    } as never as World<CoreComponentRegistry>;
 
     effect.draw(new CanvasDrawAdapter(context), world, 1);
     context.restore();

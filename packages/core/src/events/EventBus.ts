@@ -77,7 +77,7 @@ export interface CoreEvents {
   /** Emitted when a racer crosses a checkpoint. */
   "checkpoint:passed": { entity?: Entity; checkpointIndex: number; nextCheckpointIndex?: number; [key: string]: unknown };
   /** Emitted when a collectible item is picked up. */
-  "CollectiblePickedUp": { collectibleEntity?: Entity; collectibleId?: string; playerEntity?: Entity; value?: number; collectibleType?: string; [key: string]: unknown };
+  "CollectiblePickedUp": { collectibleEntity?: Entity; collectibleId?: string; playerEntity?: Entity; value?: number; collectibleType?: string; x?: number; y?: number; [key: string]: unknown };
   /** Emitted to spawn loot items. */
   "loot:spawn": { x: number; y: number; lootType?: string; [key: string]: unknown };
   /** Emitted when a wave starts. */

@@ -58,3 +58,13 @@ export function isDeterminismSensitiveSource(relativePath: string): boolean {
     /factory|blueprint/i.test(fileName)
   );
 }
+
+export function isVisualRandomnessSensitiveSource(relativePath: string): boolean {
+  if (isTestOrMockSource(relativePath)) return false;
+
+  const normalized = normalizePath(relativePath);
+  if (!normalized.startsWith("src/games/")) return false;
+
+  const directories = pathSegments(normalized).slice(0, -1).map(segment => segment.toLowerCase());
+  return directories.some(segment => segment === "rendering" || segment === "presentation");
+}

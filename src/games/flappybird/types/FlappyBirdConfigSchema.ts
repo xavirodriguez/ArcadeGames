@@ -20,6 +20,10 @@ export const FlappyBirdConfigSchema = BaseConfigSchema.extend({
 
   GROUND_Y: z.number().default(580),
 
+  GRACE_PERIOD_SECONDS: z.number().default(3),
+  /** Max Y the bird may fall to during the start-of-round grace period. Default = BIRD_START_Y + 120. */
+  GRACE_MAX_FALL_Y: z.number().default(420),
+
   NEAR_MISS_THRESHOLD: z.number().default(12),
   PIPE_SPAWN_MARGIN: z.number().default(100),
   COYOTE_TIME: z.number().default(0.05),

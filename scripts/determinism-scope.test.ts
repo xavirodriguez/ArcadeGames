@@ -3,6 +3,7 @@ import { test } from "node:test";
 import {
   isDeterminismSensitiveSource,
   isStructuralMutationSensitiveSource,
+  isVisualRandomnessSensitiveSource,
   isTestOrMockSource
 } from "./determinism-scope";
 
@@ -34,4 +35,11 @@ test("structural mutation checks remain limited to systems and simulation", () =
   assert.equal(isStructuralMutationSensitiveSource("src/games/galaxian/systems/GalaxianInputSystem.ts"), true);
   assert.equal(isStructuralMutationSensitiveSource("src/games/vertical-shmup/EntityFactory.ts"), false);
   assert.equal(isStructuralMutationSensitiveSource("packages/gameplay-kit/src/spawn/BlueprintInterpreter.ts"), false);
+});
+
+test("visual rendering and presentation code requires injected randomness", () => {
+  assert.equal(isVisualRandomnessSensitiveSource("src/games/shared/rendering/ProceduralShapeUtils.ts"), true);
+  assert.equal(isVisualRandomnessSensitiveSource("src/games/hitandrun/presentation/ThemeRenderer.ts"), true);
+  assert.equal(isVisualRandomnessSensitiveSource("src/games/asteroids/rendering/__tests__/AsteroidsVisuals.test.ts"), false);
+  assert.equal(isVisualRandomnessSensitiveSource("src/games/asteroids/systems/AsteroidsSpawnSystem.ts"), false);
 });

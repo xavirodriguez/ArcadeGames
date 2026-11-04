@@ -26,11 +26,16 @@ export class PlatformerInputSystem extends System<CoreComponentRegistry> {
         slideHeld?: boolean;
         slideActionHeld?: boolean;
         slideTouchHeld?: boolean;
+        brake?: boolean;
+        brakeActionHeld?: boolean;
+        brakeTouchHeld?: boolean;
       } | undefined;
       if (!input) continue;
       if (touchState) {
         input.slideTouchHeld = touchState.getButton("slide");
         input.slideHeld = input.slideActionHeld === true || input.slideTouchHeld;
+        input.brakeTouchHeld = touchState.getButton("brake");
+        input.brake = input.brakeActionHeld === true || input.brakeTouchHeld;
         if (touchState.moveX < -0.2 || touchState.getButton("moveLeft")) {
           input.moveDir = -1;
         } else if (touchState.moveX > 0.2 || touchState.getButton("moveRight")) {

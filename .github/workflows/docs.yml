@@ -7,10 +7,15 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+concurrency:
+  group: docs-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-docs:
     name: Build API Reference
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout repository

@@ -1,4 +1,5 @@
 import { getOrCreateStateMachineRegistry, type World, type CoreComponentRegistry } from "@tiny-aster/core";
+import { spawnHitRunChargeCue } from "./telegraphedAttackHelpers";
 import { tryEnemyShoot } from "./enemyShoot";
 import {
   DEFAULT_FLANK,
@@ -522,6 +523,8 @@ export function registerHitRunStateMachines(
         onEnter(world, entity, data) {
           const cfg = DEFAULT_CHARGER_ATTACK_CONFIG;
           const chargeDir = (data.chargeDir as number) ?? dirToPlayer(world, entity);
+          const render = world.getComponent(entity, "Render") as { color?: string } | undefined;
+          spawnHitRunChargeCue(world, entity, chargeDir, render?.color ?? cfg.warningColor);
 
           const tr = world.getComponent(entity, "Transform");
           if (tr && data.startChargeX === undefined) {

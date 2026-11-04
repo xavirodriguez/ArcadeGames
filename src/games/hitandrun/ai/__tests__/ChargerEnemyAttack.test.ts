@@ -89,6 +89,11 @@ describe("ChargerEnemyAttack (Paso B)", () => {
 
     const render = world.getComponent(charger, "Render") as { color: string };
     expect(render.color).toBe(DEFAULT_CHARGER_ATTACK_CONFIG.warningColor);
+    expect(
+      world.query("Render", "TTL").some((entity) =>
+        (world.getComponent(entity, "Render") as { shape?: string } | undefined)?.shape === "pixelfx_target_warning"
+      )
+    ).toBe(true);
 
     const playerTr = world.getMutableComponent(player, "Transform") as { x: number; worldX: number };
     playerTr.x = 50;
@@ -100,6 +105,11 @@ describe("ChargerEnemyAttack (Paso B)", () => {
 
     const vel = world.getComponent(charger, "Velocity") as { vx: number };
     expect(vel.vx).toBe(DEFAULT_CHARGER_ATTACK_CONFIG.chargeSpeed);
+    expect(
+      world.query("Render", "TTL").some((entity) =>
+        (world.getComponent(entity, "Render") as { shape?: string } | undefined)?.shape === "pixelfx_charge"
+      )
+    ).toBe(true);
   });
 
   it("interrupted by player hit during anticipation", () => {

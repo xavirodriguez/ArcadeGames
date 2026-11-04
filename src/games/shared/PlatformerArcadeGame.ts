@@ -49,6 +49,7 @@ export const DEFAULT_PLATFORMER_TILE_DEFINITIONS = {
   3: { solid: true, kind: "bounce" as const, bounce: 1.2, materialId: "normal" },
   4: { solid: true, kind: "spike" as const, materialId: "normal" },
   5: { solid: true, oneWay: true, kind: "normal" as const, materialId: "normal" },
+  7: { solid: true, kind: "normal" as const, materialId: "elastic" },
   6: {
     solid: true,
     kind: "normal" as const,

@@ -40,7 +40,8 @@ import { PowerUpSystem, PowerUpRegistry, ArcadeEntityBuilder, registerPlatformer
 import { drawPlatformerPlayer, drawPlatformerGoal, drawPlatformerTilemap } from "./rendering/PlatformerCanvasVisuals";
 import { drawMemoryFragment, drawCheckpointNode, drawSentinel, drawHopper, drawCharger } from "../shared/rendering/PlatformerSharedVisuals";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
-import defaultLevelData from "./levels/locomotion-campaign.json";
+import defaultLevelData from "./levels/level-01.json";
+import locomotionCampaignData from "./levels/locomotion-campaign.json";
 import { PlatformerConfigSchema, PlatformerConfig as PlatformerConfigType, DEFAULT_PLATFORMER_CONFIG } from "./types/PlatformerConfigSchema";
 import { PlatformerArcadeGame, loadPlatformerArcadeConfig, DEFAULT_PLATFORMER_TILE_DEFINITIONS } from "../shared/PlatformerArcadeGame";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
@@ -59,6 +60,7 @@ export interface PlatformerInput {
   jump: boolean;
   dash?: boolean;
   slide?: boolean;
+  brake?: boolean;
   [key: string]: unknown;
 }
 
@@ -94,7 +96,7 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
     this.initPlatformerConfig<PlatformerConfigType>(
       PlatformerConfigSchema,
       config.gameOptions,
-      config.levelData
+      config.levelData ?? (config.gameOptions?.levelSet === "locomotion" ? locomotionCampaignData : undefined)
     );
   }
 
@@ -433,7 +435,7 @@ export const PlatformerDefinition: GameDefinition = {
     return game;
   },
   inputSchema: {
-    actions: ["moveLeft", "moveRight", "jump", "dash", "slide"]
+    actions: ["moveLeft", "moveRight", "jump", "dash", "slide", "brake"]
   },
   assets: {
     sprites: [],

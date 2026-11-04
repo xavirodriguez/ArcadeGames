@@ -181,9 +181,13 @@ describe("Locomotion V1 Full Multi-Tick Integration Scenarios", () => {
     expect(speedAfterBraking).toBeLessThan(speedAfterAccel);
     expect(speedAfterBraking).toBeGreaterThan(0);
 
-    // Active reversal to the left
+    // Reversal first spends the existing rightward momentum before changing sign.
     world.mutateComponent(player, "PlatformerInput", (inp) => { inp.moveDir = -1; });
-    step(25);
+    step(1);
+    const speedDuringTurnaround = world.getComponent(player, "Velocity")?.vx ?? 0;
+    expect(speedDuringTurnaround).toBeGreaterThan(0);
+
+    step(24);
     const speedAfterReversal = world.getComponent(player, "Velocity")?.vx ?? 0;
     expect(speedAfterReversal).toBeLessThan(0);
   });
@@ -253,11 +257,27 @@ describe("Locomotion V1 Full Multi-Tick Integration Scenarios", () => {
     step(3);
     expect(world.getComponent(player, "PhysicsContactState")?.groundContact?.materialId).toBe("ice");
 
-    // Accelerate on ice and traverse into normal ground (x > 80)
+    // Accelerate on ice and traverse into normal ground (x > 80).
+    // The material changes the next movement response, not the velocity at the seam.
     world.mutateComponent(player, "PlatformerInput", (inp) => { inp.moveDir = 1; });
-    step(60);
+    let previousMaterial = world.getComponent(player, "PhysicsContactState")?.groundContact?.materialId;
+    let observedContinuousTransition = false;
+    for (let tick = 0; tick < 60; tick++) {
+      const velocityBeforeTick = world.getComponent(player, "Velocity")!.vx;
+      step(1);
+      const contact = world.getComponent(player, "PhysicsContactState")?.groundContact;
+      if (previousMaterial === "ice" && contact?.materialId === "normal") {
+        const velocityAfterSeam = world.getComponent(player, "Velocity")!.vx;
+        expect(velocityAfterSeam).toBeGreaterThan(0);
+        expect(Math.abs(velocityAfterSeam - velocityBeforeTick)).toBeLessThan(50);
+        observedContinuousTransition = true;
+      }
+      previousMaterial = contact?.materialId;
+    }
+
     const pos = world.getComponent(player, "Transform")!;
     expect(pos.x).toBeGreaterThan(80);
+    expect(observedContinuousTransition).toBe(true);
     const contact = world.getComponent(player, "PhysicsContactState")?.groundContact;
     expect(contact?.materialId).toBe("normal");
   });
@@ -457,4 +477,161 @@ describe("Locomotion V1 Full Multi-Tick Integration Scenarios", () => {
       1
     );
   });
+
+  it("Momentum profile distinguishes coasting from active braking and responsive control", () => {
+    const run = (
+      profile: typeof LOCOMOTION_PROFILE_PRESETS.momentum,
+      brake: boolean
+    ) => {
+      const { world, step } = createIntegrationWorld();
+      const player = spawnPlayer(world, 100, 100, { profile, slideEnabled: false });
+      world.mutateComponent(player, "PlatformerInput", (input) => { input.moveDir = 1; });
+      step(24);
+      const entrySpeed = world.getComponent(player, "Velocity")!.vx;
+      world.mutateComponent(player, "PlatformerInput", (input) => {
+        input.moveDir = 0;
+        input.brake = brake;
+      });
+      step(18);
+      return {
+        entrySpeed,
+        remainingSpeed: world.getComponent(player, "Velocity")!.vx
+      };
+    };
+
+    const momentumCoast = run(LOCOMOTION_PROFILE_PRESETS.momentum, false);
+    const momentumBrake = run(LOCOMOTION_PROFILE_PRESETS.momentum, true);
+    const responsiveCoast = run(LOCOMOTION_PROFILE_PRESETS.responsive, false);
+
+    expect(momentumCoast.entrySpeed).toBeGreaterThan(240);
+    expect(momentumCoast.remainingSpeed).toBeGreaterThan(responsiveCoast.remainingSpeed + 80);
+    expect(momentumBrake.remainingSpeed).toBeLessThan(momentumCoast.remainingSpeed);
+    expect(momentumBrake.remainingSpeed).toBeGreaterThanOrEqual(0);
+  });
+
+  it("Momentum run-up crosses a real three-tile gap that a stationary jump cannot clear", () => {
+    const runGap = (withRunUp: boolean) => {
+      const { world, step } = createIntegrationWorld();
+      const tilemap = world.createEntity();
+      world.addComponent(tilemap, {
+        type: "Tilemap",
+        data: [
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          [1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1]
+        ],
+        tileSize: 40,
+        tileDefinitions: { 1: { solid: true, materialId: "normal" } },
+        physicsMaterials: { normal: PHYSICS_MATERIAL_PRESETS.normal }
+      });
+      addTransform(world, tilemap, 0, 0);
+
+      const player = spawnPlayer(world, 20, 145, {
+        profile: LOCOMOTION_PROFILE_PRESETS.momentum,
+        slideEnabled: false
+      });
+
+      if (withRunUp) {
+        world.mutateComponent(player, "PlatformerInput", (input) => { input.moveDir = 1; });
+        step(45);
+      } else {
+        // Start at the same launch point, but without accumulated horizontal speed.
+        world.mutateComponent(player, "Transform", (transform) => { transform.x = 180; });
+      }
+
+      world.mutateComponent(player, "PlatformerInput", (input) => {
+        input.moveDir = withRunUp ? 1 : 0;
+        input.jumpPressed = true;
+        input.jumpHeld = true;
+      });
+      step(1);
+      world.mutateComponent(player, "PlatformerInput", (input) => { input.jumpPressed = false; });
+      step(60);
+
+      return {
+        x: world.getComponent(player, "Transform")!.x,
+        y: world.getComponent(player, "Transform")!.y,
+        grounded: world.getComponent(player, "PlatformerGroundState")!.isGrounded,
+        vx: world.getComponent(player, "Velocity")!.vx
+      };
+    };
+
+    const momentumJump = runGap(true);
+    const stationaryJump = runGap(false);
+
+    expect(momentumJump.x).toBeGreaterThanOrEqual(320);
+    expect(momentumJump.grounded).toBe(true);
+    expect(stationaryJump.x).toBeLessThan(320);
+    expect(stationaryJump.y).toBeGreaterThan(160);
+    expect(stationaryJump.grounded).toBe(false);
+  });
+
+  it("Campaign surface route: falls to elastic pad, rises through one-way and lands above", () => {
+    const { world, step } = createIntegrationWorld();
+    const tilemap = world.createEntity();
+    const data = Array.from({ length: 14 }, (_, y) =>
+      Array.from({ length: 24 }, (_, x) => {
+        if ((y === 11 || y === 12) && x <= 13) return 1;
+        if (y === 12 && x >= 17 && x <= 19) return 5;
+        if (y === 13 && x >= 15 && x <= 16) return 7;
+        if ((y === 11 || y === 12) && x >= 20) return 1;
+        return 0;
+      })
+    );
+    world.addComponent(tilemap, {
+      type: "Tilemap",
+      data,
+      tileSize: 40,
+      tileDefinitions: {
+        1: { solid: true, materialId: "normal" },
+        5: { solid: true, oneWay: true, materialId: "normal" },
+        7: { solid: true, kind: "normal", materialId: "elastic" }
+      },
+      physicsMaterials: {
+        normal: PHYSICS_MATERIAL_PRESETS.normal,
+        elastic: PHYSICS_MATERIAL_PRESETS.elastic
+      }
+    });
+    addTransform(world, tilemap, 0, 0);
+
+    const player = spawnPlayer(world, 570, 425, {
+      profile: LOCOMOTION_PROFILE_PRESETS.momentum,
+      slideEnabled: false
+    });
+    world.mutateComponent(player, "Velocity", (velocity) => { velocity.vx = 260; });
+    world.mutateComponent(player, "PlatformerInput", (input) => { input.moveDir = 1; });
+
+    let observedElasticRebound = false;
+    let landedOnOneWay = false;
+    for (let tick = 0; tick < 60; tick++) {
+      step(1);
+      const velocity = world.getComponent(player, "Velocity")!;
+      const transform = world.getComponent(player, "Transform")!;
+      const contactState = world.getComponent(player, "PhysicsContactState");
+      const groundContact = contactState?.groundContact;
+      const elasticLandingContact = contactState?.contacts.find(
+        (contact) => contact.materialId === "elastic" && contact.normal.y < -0.5
+      );
+
+      if (elasticLandingContact && velocity.vy < 0) {
+        observedElasticRebound = true;
+      }
+      if (
+        observedElasticRebound &&
+        transform.x >= 680 &&
+        transform.x < 800 &&
+        world.getComponent(player, "PlatformerGroundState")?.isGrounded === true &&
+        groundContact?.materialId === "normal"
+      ) {
+        landedOnOneWay = true;
+        break;
+      }
+    }
+
+    expect(observedElasticRebound).toBe(true);
+    expect(landedOnOneWay).toBe(true);
+  });
+
 });

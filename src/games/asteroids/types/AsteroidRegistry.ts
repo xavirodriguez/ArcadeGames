@@ -36,7 +36,7 @@ export interface AsteroidsComponentRegistry extends CoreComponentRegistry {
     hyperspacePreviewY?: number;
     hyperspacePreviewEntityId?: number;
   };
-  Bullet: { type: "Bullet"; ownerId?: string };
+  Bullet: { type: "Bullet"; ownerId?: string; bouncesRemaining?: number };
   LocalPlayer: { type: "LocalPlayer" };
   RemotePlayer: { type: "RemotePlayer"; sessionId: string };
   PlayerScore: { type: "PlayerScore"; score: number };
@@ -57,6 +57,7 @@ export interface AsteroidsEventRegistry extends CoreEvents, Record<string, unkno
   "resource:spawned": { entity: number; resourceType: import("./EconomyTypes").ResourceType; amount: number; x: number; y: number };
   "resource:collected": { collectorEntity: number; resourceType: import("./EconomyTypes").ResourceType; amount: number };
   "upgrade:purchased": { upgradeId: string };
+  "boundary:bounce": { entity: number; axis: "x" | "y"; x: number; y: number };
 }
 
 /** @public */

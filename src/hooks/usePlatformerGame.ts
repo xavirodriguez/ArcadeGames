@@ -13,12 +13,14 @@ const INITIAL_PLATFORMER_STATE: PlatformerGameState = {
 
 const EMPTY_GAME_OPTIONS = {};
 
-export function usePlatformerGame(started: boolean, seed?: number) {
+export type PlatformerLevelSet = "classic" | "locomotion";
+
+export function usePlatformerGame(started: boolean, seed?: number, levelSet: PlatformerLevelSet = "classic") {
   const { game, gameState, isPaused, isReady, handleInput, togglePause, restart } =
     useGame<PlatformerGame, PlatformerGameState, PlatformerInput>(
       started ? PlatformerGame : null,
       false,
-      { gameOptions: EMPTY_GAME_OPTIONS, initialState: INITIAL_PLATFORMER_STATE, seed }
+      { gameOptions: { ...EMPTY_GAME_OPTIONS, levelSet }, initialState: INITIAL_PLATFORMER_STATE, seed }
     );
 
   const { highScore, updateHighScore } = useHighScore("platformer-high-score");

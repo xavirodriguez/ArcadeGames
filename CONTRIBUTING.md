@@ -1,6 +1,6 @@
 # Contributing Guidelines & Golden Path for Tiny Aster
 
-Welcome to the Tiny Aster project repository (GitHub: `ArcadeGames`). When adding new games or extending existing ones, please follow this **Golden Path** architecture to maintain zero-allocation performance, deterministic simulations, and low code duplication.
+Welcome to the Tiny Aster project repository (GitHub: `ArcadeGames`). For product, workspace-package, game-ID and script naming rules, follow [the project identity and naming contract](docs/PROJECT_IDENTITY_AND_NAMING.md). When adding new games or extending existing ones, please follow this **Golden Path** architecture to maintain zero-allocation performance, deterministic simulations, and low code duplication.
 
 ---
 

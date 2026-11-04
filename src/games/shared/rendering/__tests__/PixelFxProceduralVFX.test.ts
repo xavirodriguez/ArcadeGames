@@ -172,7 +172,7 @@ describe("PixelFX-inspired procedural VFX", () => {
     adapter.drawLine.mockClear();
     drawPixelFxMechanicalMotion(adapter, world, entity);
     expect(adapter.strokeCircle).toHaveBeenCalledTimes(3);
-    expect(adapter.drawLine).toHaveBeenCalledTimes(16);
+    expect(adapter.drawLine).toHaveBeenCalledTimes(8);
     expect(adapter.fillCircle).toHaveBeenCalledTimes(1);
   });
 

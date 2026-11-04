@@ -85,23 +85,27 @@ export class BoundarySystem extends System<CoreComponentRegistry> {
             if (needsX) {
               if (mt.x < minX) {
                 mt.x = minX;
-                this.reverseVelocity(world, entity, "x", clampX);
-                if (!clampX) this.emitBounce(world, entity, "x", mt.x, mt.y);
+                if (this.reverseVelocity(world, entity, "x", clampX)) {
+                  this.emitBounce(world, entity, "x", mt.x, mt.y);
+                }
               } else if (mt.x > maxX) {
                 mt.x = maxX;
-                this.reverseVelocity(world, entity, "x", clampX);
-                if (!clampX) this.emitBounce(world, entity, "x", mt.x, mt.y);
+                if (this.reverseVelocity(world, entity, "x", clampX)) {
+                  this.emitBounce(world, entity, "x", mt.x, mt.y);
+                }
               }
             }
             if (needsY) {
               if (mt.y < minY) {
                 mt.y = minY;
-                this.reverseVelocity(world, entity, "y", clampY);
-                if (!clampY) this.emitBounce(world, entity, "y", mt.x, mt.y);
+                if (this.reverseVelocity(world, entity, "y", clampY)) {
+                  this.emitBounce(world, entity, "y", mt.x, mt.y);
+                }
               } else if (mt.y > maxY) {
                 mt.y = maxY;
-                this.reverseVelocity(world, entity, "y", clampY);
-                if (!clampY) this.emitBounce(world, entity, "y", mt.x, mt.y);
+                if (this.reverseVelocity(world, entity, "y", clampY)) {
+                  this.emitBounce(world, entity, "y", mt.x, mt.y);
+                }
               }
             }
             mt.dirty = true;
@@ -116,13 +120,15 @@ export class BoundarySystem extends System<CoreComponentRegistry> {
     eventBus?.emitDeferred("boundary:bounce", { entity, axis, x, y });
   }
 
-  private reverseVelocity(world: World<CoreComponentRegistry>, entity: number, axis: "x" | "y", stop = false): void {
+  private reverseVelocity(world: World<CoreComponentRegistry>, entity: number, axis: "x" | "y", stop = false): boolean {
     // Safe for determinism/rollback. Avoids per-tick callback allocations.
     const v = world.getMutableComponent(entity, "Velocity");
     if (v) {
       if (axis === "x") v.vx = stop ? 0 : -v.vx;
       else v.vy = stop ? 0 : -v.vy;
       if (!stop) world.getEventBus()?.emitDeferred("PlaySFX", { name: "bounce" });
+      return !stop;
     }
+    return false;
   }
 }

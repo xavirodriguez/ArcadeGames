@@ -49,7 +49,9 @@ export function defineGameContractSuite<TGame extends GameContractInstance>(
   describe(`${definition.gameId} BaseGame contract`, () => {
     afterEach(() => {
       for (const game of createdGames.splice(0)) {
-        game.destroy();
+        if (game.getLifecycleState() !== GameLifecycleState.DESTROYED) {
+          game.destroy();
+        }
       }
     });
 
@@ -86,6 +88,14 @@ export function defineGameContractSuite<TGame extends GameContractInstance>(
       expect(game.getSeed()).toBe(restartSeed);
       expect(game.getLifecycleState()).toBe(GameLifecycleState.RUNNING);
       expect(game.isPausedState()).toBe(false);
+    });
+
+    it("destroys the game and marks its lifecycle terminal", async () => {
+      const game = await createInitializedGame(initialSeed);
+
+      game.destroy();
+
+      expect(game.getLifecycleState()).toBe(GameLifecycleState.DESTROYED);
     });
 
     it("replays the same input sequence with matching hashes and ticks", async () => {

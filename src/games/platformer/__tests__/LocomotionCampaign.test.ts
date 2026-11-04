@@ -38,14 +38,14 @@ describe("Platformer locomotion campaign — PR2", () => {
     expect(rows[11].slice(9, 14)).toEqual([1, 1, 1, 1, 1]);
     expect(rows[11][14]).toBe(0);
     expect(rows[11][15]).toBe(0);
-    expect(rows[12][15]).toBe(7);
+    expect(rows[13][15]).toBe(7);
     expect(DEFAULT_PLATFORMER_TILE_DEFINITIONS[7]).toMatchObject({ solid: true, kind: "normal", materialId: "elastic" });
     expect(DEFAULT_PLATFORMER_TILE_DEFINITIONS[7]).not.toHaveProperty("bounce");
     expect(PHYSICS_MATERIAL_PRESETS.elastic.restitution).toBe(0.82);
 
-    // The bounce pad is one tile below the floating one-way platform.
-    expect(rows[11].slice(16, 20)).toEqual([5, 5, 5, 5]);
-    expect(rows[12].slice(16, 20)).toEqual([0, 0, 0, 0]);
+    // The pad is two tiles below the runway; the floating one-way ledge is one tile above it.
+    expect(rows[12].slice(16, 20)).toEqual([5, 5, 5, 5]);
+    expect(rows[13].slice(16, 20)).toEqual([0, 0, 0, 0]);
     expect(rows[11].slice(21, 24)).toEqual([1, 1, 1]);
   });
 

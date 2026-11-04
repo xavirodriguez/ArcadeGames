@@ -342,6 +342,25 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
 
     // Game-specific presentation systems
     this.world.addSystem(new AnimationSystem(), { phase: SystemPhase.Presentation });
+
+    const eventBus = this.world.getEventBus();
+    if (eventBus) {
+      const juice = new JuiceOrchestrator(this.world);
+      eventBus.on("locomotion:slide_started", (event) => {
+        juice.triggerEvent("platformer", "player:slide", {
+          x: event.x,
+          y: event.y,
+          rotation: Math.atan2(event.velocityY, event.velocityX)
+        });
+      });
+      eventBus.on("locomotion:platform_reversed", (event) => {
+        juice.triggerEvent("platformer", "platform:reversed", {
+          x: event.x,
+          y: event.y,
+          rotation: Math.atan2(event.velocityY, event.velocityX)
+        });
+      });
+    }
   }
 
   public initializeRenderer(renderer: Renderer<CoreComponentRegistry, RenderContext>): void {

@@ -142,9 +142,14 @@ export class GalaxianCollisionSystem extends System<GalaxianComponentRegistry> {
             level: state.level,
           });
         } else {
-          pTrans.x = (config?.worldWidth ?? 480) / 2;
-          pTrans.y = (config?.worldHeight ?? 640) - 50;
-          pTrans.dirty = true;
+          const respawnX = (config?.worldWidth ?? 480) / 2;
+          const respawnY = (config?.worldHeight ?? 640) - 50;
+          pTrans.x = respawnX;
+          pTrans.y = respawnY;
+          // Collision runs after the Transform phase; keep the root player's render cache current now.
+          pTrans.worldX = respawnX;
+          pTrans.worldY = respawnY;
+          pTrans.dirty = false;
 
           const invulnerabilitySeconds = (config?.INVULNERABILITY_DURATION_MS ?? 0) / 1000;
           if (invulnerabilitySeconds > 0) {

@@ -93,20 +93,28 @@ export function createFormationController(world: World<GalaxianComponentRegistry
   return entity;
 }
 
-export function spawnEnemyWave(world: World<GalaxianComponentRegistry>): void {
+export function spawnEnemyWave(world: World<GalaxianComponentRegistry>): boolean {
   const config = world.getResource<GalaxianConfig>("GameConfig");
-  if (!config) return;
+  if (!config || config.formation.grid.length === 0) return false;
+  if (world.query("GalaxianEnemy").length > 0) return false;
 
   const formationEntities = world.query("Formation");
-  if (formationEntities.length === 0) return;
+  if (formationEntities.length === 0) return false;
   const formationEntity = formationEntities[0];
   const formation = world.getMutableComponent(formationEntity, "Formation");
-  if (!formation) return;
+  if (!formation) return false;
+
+  const stateEntities = world.query("GameState");
+  if (stateEntities.length === 0) return false;
+  const state = world.getMutableComponent(stateEntities[0], "GameState");
+  if (!state) return false;
+
+  const grid = config.formation.grid;
+  if (!grid.some((rowConfig) => rowConfig.count > 0)) return false;
 
   formation.slots = {};
   let totalEnemiesCount = 0;
 
-  const grid = config.formation.grid;
   const slotSpacingX = config.formation.slotSpacingX;
   const slotSpacingY = config.formation.slotSpacingY;
 
@@ -145,13 +153,12 @@ export function spawnEnemyWave(world: World<GalaxianComponentRegistry>): void {
     }
   });
 
-  formation.totalEnemies = totalEnemiesCount;
+  if (totalEnemiesCount === 0) return false;
 
-  const stateEntities = world.query("GameState");
-  if (stateEntities.length > 0) {
-    const state = world.getMutableComponent(stateEntities[0], "GameState");
-    if (state) {
-      state.enemiesRemaining = totalEnemiesCount;
-    }
-  }
+  formation.totalEnemies = totalEnemiesCount;
+  state.enemiesRemaining = totalEnemiesCount;
+  state.activeDivesCount = 0;
+  state.diveTimer = config.dive.intervalMs / 1000;
+
+  return true;
 }

@@ -241,7 +241,7 @@ pnpm run typecheck:app
 
 The GitHub Actions workflows provide additional coverage beyond `pnpm ci`:
 
-- **CI** (`.github/workflows/ci.yml`): generated-sprite verification, sprite metadata validation and tests, Turborepo build/lint/typecheck/test, architecture guardrails, an input-path benchmark, game regression tests and application typechecking.
+- **CI** (`.github/workflows/ci.yml`): generated-sprite verification, sprite metadata validation and tests, Turborepo build/lint/typecheck/test, architecture guardrails, README consistency validation, an input-path benchmark, game regression tests and application typechecking.
 - **E2E** (`.github/workflows/e2e.yml`): Playwright browser tests via `pnpm test:e2e`.
 - **Documentation CI** (`.github/workflows/docs.yml`): API reference generation via `pnpm docs:build` and a check that `docs/api-reference` contains output.
 

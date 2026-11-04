@@ -574,8 +574,8 @@ describe("Locomotion V1 Full Multi-Tick Integration Scenarios", () => {
     const data = Array.from({ length: 14 }, (_, y) =>
       Array.from({ length: 24 }, (_, x) => {
         if ((y === 11 || y === 12) && x <= 13) return 1;
-        if (y === 12 && x >= 16 && x <= 19) return 5;
-        if (y === 13 && x === 15) return 7;
+        if (y === 12 && x >= 17 && x <= 19) return 5;
+        if (y === 13 && x >= 15 && x <= 16) return 7;
         if ((y === 11 || y === 12) && x >= 20) return 1;
         return 0;
       })
@@ -596,7 +596,7 @@ describe("Locomotion V1 Full Multi-Tick Integration Scenarios", () => {
     });
     addTransform(world, tilemap, 0, 0);
 
-    const player = spawnPlayer(world, 540, 425, {
+    const player = spawnPlayer(world, 570, 425, {
       profile: LOCOMOTION_PROFILE_PRESETS.momentum,
       slideEnabled: false
     });
@@ -620,7 +620,7 @@ describe("Locomotion V1 Full Multi-Tick Integration Scenarios", () => {
       }
       if (
         observedElasticRebound &&
-        transform.x >= 640 &&
+        transform.x >= 680 &&
         transform.x < 800 &&
         world.getComponent(player, "PlatformerGroundState")?.isGrounded === true &&
         groundContact?.materialId === "normal"

@@ -29,6 +29,22 @@ export interface DamageComponent extends Component {
 }
 
 /**
+ * Explicit rechargeable shield state, resolved by CombatSystem before health damage.
+ * @public
+ */
+export interface ShieldComponent extends Component {
+  type: "Shield";
+  /** Available hits the shield can absorb. */
+  charges: number;
+  /** Maximum number of absorbable hits. */
+  maxCharges: number;
+  /** Remaining seconds before one charge is restored. */
+  rechargeRemaining: number;
+  /** Recharge duration applied after a successful absorption. */
+  rechargeSeconds: number;
+}
+
+/**
  * Identifies the faction/group of an entity to prevent or manage friendly fire.
  * Extends core FactionComponent to guarantee 100% compile-time compatibility.
  * @public

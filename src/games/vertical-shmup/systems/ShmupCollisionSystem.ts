@@ -14,28 +14,30 @@ export class ShmupCollisionSystem extends System<ShmupComponentRegistry, ShmupEv
   private subscribe(world: World<ShmupComponentRegistry, ShmupEventRegistry>): void {
     if (this.subscribed) return;
     this.subscribed = true;
+
     world.getEventBus()?.on("combat:hit", (event) => {
       if (!event || typeof event.targetEntity !== "number") return;
       const player = world.getComponent(event.targetEntity, "ShmupPlayer");
       if (player) {
         world.mutateComponent(event.targetEntity, "Health", (health) => {
           health.invulnerableRemaining = 1.5;
-          });
-          world.mutateComponent(event.targetEntity, "Render", (render) => {
+        });
+        world.mutateComponent(event.targetEntity, "Render", (render) => {
           render.hitFlashFrames = 10;
-          });
+        });
         Juice.playHitJuice(world, event.targetEntity, { shakeIntensity: 4.0, shakeDuration: 120 });
         return;
       }
 
-        // Enemy hits need an equally immediate visual response, without changing combat state.
+      // Enemy hits need an equally immediate visual response, without changing combat state.
       const enemy = world.getComponent(event.targetEntity, "ShmupEnemy");
       if (enemy) {
-          world.mutateComponent(event.targetEntity, "Render", (render) => {
+        world.mutateComponent(event.targetEntity, "Render", (render) => {
           render.hitFlashFrames = Math.max(render.hitFlashFrames ?? 0, 5);
-          });
+        });
       }
     });
+
     world.getEventBus()?.on("combat:shield_absorbed", (event) => {
       if (!event || typeof event.targetEntity !== "number" || world.isReSimulating) return;
       const transform = world.getComponent(event.targetEntity, "Transform");
@@ -53,7 +55,7 @@ export class ShmupCollisionSystem extends System<ShmupComponentRegistry, ShmupEv
   public override update(world: World<ShmupComponentRegistry, ShmupEventRegistry>, deltaTime: number): void {
     this.subscribe(world);
 
-    // 0. Recharge explicit shield charges independently from temporary hit invulnerability.
+    // Recharge explicit shield charges independently from temporary hit invulnerability.
     for (const entity of world.query("ShmupPlayer", "Shield")) {
       const shield = world.getMutableComponent(entity, "Shield");
       if (!shield || shield.charges >= shield.maxCharges) continue;
@@ -105,6 +107,5 @@ export class ShmupCollisionSystem extends System<ShmupComponentRegistry, ShmupEv
         }
       }
     }
-
   }
 }

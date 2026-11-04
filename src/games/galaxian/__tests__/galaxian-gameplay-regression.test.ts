@@ -2,23 +2,64 @@ import { GalaxianGame } from "../GalaxianGame";
 import type { GalaxianConfig } from "../types/GalaxianConfigSchema";
 
 describe("Galaxian gameplay regressions", () => {
-  it("integrates projectile velocity and advances the projectile transform", async () => {
+  it("integrates projectile velocity and synchronizes world coordinates for both bullet types", async () => {
     const game = new GalaxianGame({ headless: true, seed: 12345 });
     await game.init();
     game.stop();
 
     const world = game.getWorld();
-    const bullet = game.getBulletPool().acquirePlayerBullet(world, 200, 240);
+    const playerBullet = game.getBulletPool().acquirePlayerBullet(world, 200, 240);
+    const enemyBullet = game.getBulletPool().acquireEnemyBullet(world, 300, 180);
     world.flush();
-    const initialY = world.getComponent(bullet, "Transform")?.y;
+
+    const initialPlayerY = world.getComponent(playerBullet, "Transform")?.y;
+    const initialEnemyY = world.getComponent(enemyBullet, "Transform")?.y;
 
     game.update(1 / 60);
 
-    const nextY = world.getComponent(bullet, "Transform")?.y;
-    if (initialY === undefined || nextY === undefined) {
-      throw new Error("Player bullet transform was not available after integration");
+    const playerTransform = world.getComponent(playerBullet, "Transform");
+    const enemyTransform = world.getComponent(enemyBullet, "Transform");
+    if (
+      initialPlayerY === undefined ||
+      initialEnemyY === undefined ||
+      !playerTransform ||
+      !enemyTransform
+    ) {
+      throw new Error("Projectile transforms were not available after integration");
     }
-    expect(nextY).toBeLessThan(initialY);
+
+    expect(playerTransform.y).toBeLessThan(initialPlayerY);
+    expect(enemyTransform.y).toBeGreaterThan(initialEnemyY);
+    expect(playerTransform.worldX).toBe(playerTransform.x);
+    expect(playerTransform.worldY).toBe(playerTransform.y);
+    expect(enemyTransform.worldX).toBe(enemyTransform.x);
+    expect(enemyTransform.worldY).toBe(enemyTransform.y);
+    expect(playerTransform.dirty).toBe(false);
+    expect(enemyTransform.dirty).toBe(false);
+
+    await game.destroy();
+  });
+
+  it("synchronizes the player's world coordinates after horizontal movement", async () => {
+    const game = new GalaxianGame({ headless: true, seed: 12345 });
+    await game.init();
+    game.stop();
+
+    const world = game.getWorld();
+    const player = world.query("Player", "Transform")[0];
+    const beforeX = world.getComponent(player, "Transform")?.x;
+    if (beforeX === undefined) throw new Error("Player transform was not available before movement");
+
+    game.setInput({ moveLeft: true });
+    game.update(1 / 60);
+
+    const after = world.getComponent(player, "Transform");
+    if (!after) throw new Error("Player transform was not available after movement");
+
+    expect(after.x).toBeLessThan(beforeX);
+    expect(after.worldX).toBe(after.x);
+    expect(after.worldY).toBe(after.y);
+    expect(after.dirty).toBe(false);
 
     await game.destroy();
   });

@@ -116,8 +116,7 @@ export class BoundarySystem extends System<CoreComponentRegistry> {
   }
 
   private emitBounce(world: World<CoreComponentRegistry>, entity: number, axis: "x" | "y", x: number, y: number): void {
-    const eventBus = world.getEventBus() as unknown as { emitDeferred: (event: string, payload: unknown) => void } | undefined;
-    eventBus?.emitDeferred("boundary:bounce", { entity, axis, x, y });
+    world.getEventBus()?.emitDeferred("boundary:bounce", { entity, axis, x, y });
   }
 
   private reverseVelocity(world: World<CoreComponentRegistry>, entity: number, axis: "x" | "y", stop = false): boolean {

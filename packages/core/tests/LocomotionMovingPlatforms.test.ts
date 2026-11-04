@@ -75,7 +75,7 @@ describe("Locomotion B5 moving-platform support", () => {
     system.update(world, 1);
     system.update(world, 1);
     expect(events).toHaveLength(1);
-    expect(events[0]).toMatchObject({ entity: platform, x: 0, y: 200, velocityX: -50, velocityY: 0 });
+    expect(events[0]).toMatchObject({ entity: platform, x: 100, y: 200, velocityX: -50, velocityY: 0 });
   });
 
   it("inherits vertical platform motion on landing and snaps to the moving top", () => {

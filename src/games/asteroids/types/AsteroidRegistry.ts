@@ -57,6 +57,7 @@ export interface AsteroidsEventRegistry extends CoreEvents, Record<string, unkno
   "resource:spawned": { entity: number; resourceType: import("./EconomyTypes").ResourceType; amount: number; x: number; y: number };
   "resource:collected": { collectorEntity: number; resourceType: import("./EconomyTypes").ResourceType; amount: number };
   "upgrade:purchased": { upgradeId: string };
+  "boundary:bounce": { entity: number; axis: "x" | "y"; x: number; y: number };
 }
 
 /** @public */

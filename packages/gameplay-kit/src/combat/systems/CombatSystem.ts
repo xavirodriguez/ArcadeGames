@@ -115,6 +115,11 @@ export class CombatSystem<
       return;
     }
 
+    // 3. Ignore dead targets before considering shield charges.
+    if (world.hasComponent(target, deadKey)) {
+      return;
+    }
+
     // 3. Explicit shield absorption is a combat rule, not a presentation-side invulnerability flag.
     // Structural lookup keeps CombatSystem compatible with games that do not declare Shield.
     const shieldKey = "Shield" as Extract<keyof TComponents, string>;
@@ -150,10 +155,6 @@ export class CombatSystem<
       return;
     }
 
-    // 4. Skip if target is already marked dead
-    if (world.hasComponent(target, deadKey)) {
-      return;
-    }
 
     // 4. Calculate and apply damage
     const prevHealth = healthComp.current;

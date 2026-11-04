@@ -23,7 +23,7 @@ PR4 extends the existing procedural VFX contract. It does not add a parallel ren
 ### Vertical Shmup — explicit shield
 
 - The player starts with one shield charge, independently of `Health.invulnerableRemaining`.
-- `CombatSystem` checks temporary invulnerability first, then consumes an available `Shield` charge before mutating health or marking the target `Dead`.
+- `CombatSystem` ignores dead targets and temporary invulnerability first, then consumes an available `Shield` charge before mutating health or marking the target `Dead`.
 - Absorption sets the shield recharge timer to six seconds and emits `combat:shield_absorbed`; it does not emit `combat:hit` and does not apply damage.
 - `ShmupCollisionSystem` recharges the charge after the timer and renders `pixelfx_shield_pulse` from the absorption event.
 - Once the charge is depleted, subsequent hits follow the existing health and invulnerability path until the shield recharges.

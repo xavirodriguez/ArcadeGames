@@ -609,9 +609,13 @@ describe("Locomotion V1 Full Multi-Tick Integration Scenarios", () => {
       step(1);
       const velocity = world.getComponent(player, "Velocity")!;
       const transform = world.getComponent(player, "Transform")!;
-      const groundContact = world.getComponent(player, "PhysicsContactState")?.groundContact;
+      const contactState = world.getComponent(player, "PhysicsContactState");
+      const groundContact = contactState?.groundContact;
+      const elasticLandingContact = contactState?.contacts.find(
+        (contact) => contact.materialId === "elastic" && contact.normal.y < -0.5
+      );
 
-      if (groundContact?.materialId === "elastic" && velocity.vy < 0) {
+      if (elasticLandingContact && velocity.vy < 0) {
         observedElasticRebound = true;
       }
       if (

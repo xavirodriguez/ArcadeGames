@@ -104,7 +104,7 @@ for (const sourceFile of project.getSourceFiles()) {
               relativePath,
               line,
               "Determinism violation: Unseeded RNG or Timer",
-              `Use of non-deterministic API '${callerText}.${propName}()' is forbidden in systems or simulation. Use 'world.gameplayRandom' or 'deltaTime' instead.`,
+              `Use of non-deterministic API '${callerText}.${propName}()' is forbidden in deterministic gameplay code. Use 'world.gameplayRandom' for gameplay randomness and 'deltaTime' for simulation time.`,
               "error"
             );
           }

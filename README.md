@@ -78,6 +78,10 @@ The monorepo currently contains **8 workspace packages** under `packages/`, plus
 | `server/` | Headless Colyseus authoritative game server |
 | Repository root | Expo / React Native application assembling the workspace packages |
 
+### Project identity and naming
+
+The product and engine brand is **Tiny Aster**; `ArcadeGames` is the GitHub repository name. The root Expo application still uses the private legacy workspace name `asteroides` and the existing Expo/native identifiers. Those identifiers remain unchanged until a dedicated compatibility migration. See the [project identity and naming contract](docs/PROJECT_IDENTITY_AND_NAMING.md).
+
 ---
 
 ## ✨ Engine Features
@@ -221,7 +225,7 @@ pnpm run check:game-patterns
 pnpm run story:lint
 ```
 
-`docs:check` validates the README's game and package inventories against the repository and checks that documented quality-gate commands exist in the root `package.json`. It is separate from API documentation generation: use `pnpm run docs:extract` to extract the API model and `pnpm docs:build` to generate the Markdown API reference.
+`docs:check` validates the README inventories, workspace package scopes, project identity, agent-document links, wiki game count and documented quality-gate commands against repository files. It is separate from API documentation generation: use `pnpm run docs:extract` to extract the API model and `pnpm docs:build` to generate the Markdown API reference.
 
 ### Additional local checks
 
@@ -235,7 +239,10 @@ pnpm run sprites:build -- --check
 pnpm run sprites:validate
 pnpm run typecheck:core
 pnpm run typecheck:app
+pnpm run architecture:check
 ```
+
+The three debt ratchets measure type assertions, code duplication and color literals. Their committed baselines, exact enforcement rules and 90-day reduction targets are documented in [Technical-debt ratchets](docs/TECHNICAL_DEBT_RATCHETS.md). Update baselines only in a pull request that explains and verifies the corresponding remediation.
 
 ### GitHub Actions
 

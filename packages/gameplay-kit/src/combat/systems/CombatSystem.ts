@@ -120,7 +120,7 @@ export class CombatSystem<
       return;
     }
 
-    // 3. Explicit shield absorption is a combat rule, not a presentation-side invulnerability flag.
+    // 4. Explicit shield absorption is a combat rule, not a presentation-side invulnerability flag.
     // Structural lookup keeps CombatSystem compatible with games that do not declare Shield.
     const shieldKey = "Shield" as Extract<keyof TComponents, string>;
     const shield = world.getComponent(target, shieldKey) as
@@ -156,7 +156,7 @@ export class CombatSystem<
     }
 
 
-    // 4. Calculate and apply damage
+    // 5. Calculate and apply damage
     const prevHealth = healthComp.current;
     if (prevHealth <= 0) return; // Already dead
 

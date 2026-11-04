@@ -23,7 +23,7 @@ describe("VFX Visual Lab model", () => {
   it("stays aligned with the production Canvas and Skia registration names", () => {
     for (const type of ["canvas", "skia"] as const) {
       const registerShape = jest.fn();
-      const renderer = { type, registerShape } as never as Renderer<CoreComponentRegistry, RenderContext>;
+      const renderer = { type, registerShape } as unknown as Renderer<CoreComponentRegistry, RenderContext>;
       registerPixelFxProceduralVFX(renderer);
       expect(registerShape.mock.calls.map(([name]) => name)).toEqual(
         VFX_LAB_EFFECTS.map((effect) => effect.id)

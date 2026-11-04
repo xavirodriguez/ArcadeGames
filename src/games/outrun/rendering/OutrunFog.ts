@@ -82,7 +82,7 @@ export function resolveSegmentFog(
  * Resolve the shared fog tint at a specific opacity. Both renderers use this
  * in one continuous vertical gradient instead of painting one strip per segment.
  */
-export function resolveRoadFogColor(palette: ScenarioPalette, alpha: number): string {
+export function resolveRoadFogColor(palette: Pick<ScenarioPalette, "skyBands">, alpha: number): string {
   const bands = palette.skyBands;
   const farBand = bands[bands.length - 1] ?? bands[0] ?? colors.cyan;
   const [r, g, b] = hexToRgb(farBand);

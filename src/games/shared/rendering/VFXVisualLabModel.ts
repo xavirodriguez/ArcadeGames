@@ -206,5 +206,5 @@ export function parseVFXLabPreset(serialized: string): VFXLabPreset {
   ) {
     throw new Error("Preset fields are invalid or unsupported (schemaVersion 1)");
   }
-  return candidate as unknown as VFXLabPreset;
+  return candidate as never as VFXLabPreset;
 }

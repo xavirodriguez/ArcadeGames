@@ -97,7 +97,6 @@ export class CentipedeCollisionSystem extends System<CentipedeComponentRegistry,
 
               if (i === 0) {
                 follower.seg.isHead = true;
-                follower.seg.dirX = (-follower.seg.dirX) as 1 | -1;
                 follower.seg.isDiving = false;
                 const render = world.getMutableComponent(follower.entity, "Render");
                 if (render) {
@@ -284,6 +283,17 @@ export class CentipedeCollisionSystem extends System<CentipedeComponentRegistry,
         for (const spEntity of spiders) {
           const spTransform = world.getComponent(spEntity, "Transform")!;
           const dist = Math.hypot(pTransform.x - spTransform.x, pTransform.y - spTransform.y);
+          if (dist < hitRadius * 1.2) {
+            playerHit = true;
+            break;
+          }
+        }
+      }
+
+      if (!playerHit) {
+        for (const fleaEntity of fleas) {
+          const fleaTransform = world.getComponent(fleaEntity, "Transform")!;
+          const dist = Math.hypot(pTransform.x - fleaTransform.x, pTransform.y - fleaTransform.y);
           if (dist < hitRadius * 1.2) {
             playerHit = true;
             break;

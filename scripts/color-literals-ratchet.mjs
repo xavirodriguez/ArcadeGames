@@ -48,7 +48,6 @@ export const PROPOSED_ALLOWLIST = [
   { path: "src/components/debug/DebugOverlay.tsx", reason: "Debug overlay" },
   { path: "src/components/GameErrorBoundary.tsx", reason: "Error boundary" },
   { path: "src/app/sound-lab/index.tsx", reason: "Sound lab" },
-  { path: "src/app/vfx-lab/index.tsx", reason: "VFX lab" },
   { path: "src/ui/narrative/NarrativeDashboard.tsx", reason: "Narrative dashboard" },
   { path: "src/services/PaletteService.ts", reason: "Palette service" },
   { path: "src/story-ui/config/evidenceConfig.ts", reason: "Evidence config" },
@@ -76,6 +75,7 @@ export const PROPOSED_ALLOWLIST = [
   { path: "src/games/platformer/systems/PlatformerDamageSystem.ts", reason: "Platformer damage vfx color" },
   { path: "src/games/pong/systems/PongCollisionSystem.ts", reason: "Pong paddle collision particle colors" },
   { path: "src/games/shared/pixelfx/PixelFXPaletteAdapter.ts", reason: "PixelFX palette ramp definitions" },
+  { path: "src/games/shared/rendering/VFXVisualLabModel.ts", reason: "VFX visual lab preview palette" },
 ];
 const ALLOWED_PREFIXES = ["src/theme/"];
 const HEX_RE = /#([0-9a-fA-F]{3,8})\b/g;

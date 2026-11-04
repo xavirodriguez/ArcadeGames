@@ -1,10 +1,8 @@
 import type {
   PresentationBannerSnapshot,
   PresentationEntitySnapshot,
-  PresentationHudSnapshot,
-  PresentationSceneSnapshot
+  PresentationHudSnapshot
 } from "../../../shared/presentation/PresentationContracts";
-import type { WalkableAreaGeometry } from "../../belt/WalkableAreaGeometry";
 
 export interface HitRunPresentationHudMetrics {
   readonly weaponId: string;
@@ -30,17 +28,6 @@ export interface HitRunPresentationHudMetrics {
 export type HitRunPresentationHudSnapshot = PresentationHudSnapshot<HitRunPresentationHudMetrics>;
 export type HitRunPresentationBannerSnapshot = PresentationBannerSnapshot;
 
-/**
- * Custom scene data that carries the walkable-area geometry derived from the
- * physical belt limits. Themes must use this (or the world resource) instead of
- * hard-coded viewport percentages so visual borders stay aligned with gameplay.
- */
-export interface HitRunPresentationSceneData {
-  readonly walkableArea: WalkableAreaGeometry;
-}
-
-export type HitRunPresentationSceneSnapshot =
-  PresentationSceneSnapshot<HitRunPresentationSceneData>;
 
 export interface HitRunPresentationEntityData {
   readonly size: number;

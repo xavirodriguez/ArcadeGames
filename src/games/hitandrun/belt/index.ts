@@ -6,4 +6,3 @@ export * from "./BeltInputSystem";
 export * from "./mutateBeltInputState";
 export * from "./registerBeltPlayerBlueprint";
 export * from "./registerBeltSystems";
-export * from "./WalkableAreaGeometry";

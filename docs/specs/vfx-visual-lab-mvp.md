@@ -11,7 +11,7 @@ Provide an in-app workbench for inspecting and tuning the twenty existing PixelF
 
 - Effect Browser for all twenty registered `pixelfx_*` drawers.
 - Semantic profile selector: `arcade-neon` and `sumi-e`.
-- Canvas/web and Skia live previews that invoke the real exported drawer functions with a minimal Render/TTL/Transform world fixture.
+- Browser Canvas live preview that invokes the real exported drawer functions with a minimal Render/TTL/Transform world fixture.
 - Timeline progress control mapped to the existing normalized TTL contract.
 - Size and rotation controls.
 - Family/context/placement/color inspector backed by `VFXEffectIR`.
@@ -21,7 +21,7 @@ Provide an in-app workbench for inspecting and tuning the twenty existing PixelF
 ## Runtime and architecture boundaries
 
 - The catalog in `VFXVisualLabModel` is a static developer-facing list of existing draw functions. It does not register shapes or create a second renderer registry.
-- Canvas and Skia previews invoke the same composition functions used by `registerPixelFxProceduralVFX`, through the existing `CanvasDrawAdapter` and `SkiaDrawAdapter` respectively.
+- Preview invokes the same composition functions used by `registerPixelFxProceduralVFX`, through the existing `CanvasDrawAdapter`.
 - The preview fixture implements only the component reads consumed by those drawers: `Render`, `TTL` and `Transform`. It does not instantiate a gameplay World or run an ECS schedule.
 - Semantic colors and descriptor placement are resolved through the Foundation contract in `VFXEffectIR`.
 - Canvas and Skia register the same twenty names and use the same composition functions through their existing adapters.

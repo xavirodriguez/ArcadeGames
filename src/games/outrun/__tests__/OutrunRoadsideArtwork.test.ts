@@ -2,6 +2,7 @@ import { DEFAULT_OUTRUN_CONFIG } from "../types/OutrunConfigSchema";
 import type { RaceStateComponent, RoadData, RoadSegmentSprite } from "../types/OutrunTypes";
 import type { OutrunVisualPaletteResource } from "../types/OutrunVisualTypes";
 import { createVisualPaletteResource, lerpColor } from "../utils/palette";
+import { fogIntensity } from "../rendering/OutrunFog";
 import {
   resolveOutrunRoadsideArtworkStyle,
   resolveOutrunRoadsideKind,
@@ -64,7 +65,7 @@ describe("Out Run roadside artwork", () => {
 
     expect(near.foliageColor).toBe(visual.tokens.foliage);
     expect(far.foliageColor).toBe(
-      lerpColor(visual.tokens.foliage, visual.tokens.horizon, visual.tuning.decor.distantObjectHazeMix)
+      lerpColor(visual.tokens.foliage, visual.tokens.horizon, fogIntensity(1))
     );
     expect(resolveOutrunRoadsideArtworkStyle(
       makeSprite("pine"), visual, 1, 120, false
@@ -93,7 +94,7 @@ describe("Out Run roadside artwork", () => {
       expect(style.lightColor).toBe(lerpColor(
         visual.tokens.sun,
         visual.tokens.horizon,
-        0.9 * visual.tuning.decor.distantObjectHazeMix
+        fogIntensity(0.9)
       ));
     }
   });

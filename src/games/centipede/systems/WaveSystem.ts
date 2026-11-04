@@ -16,6 +16,7 @@ export class WaveSystem extends System<CentipedeComponentRegistry, CentipedeEven
       state.respawnTimerMs -= dt * 1000;
       if (state.respawnTimerMs <= 0) {
         if (state.lives > 0) {
+          this.restoreMushrooms(world, state);
           state.status = "playing";
 
           const players = world.query("Shooter", "Transform", "GridPos");
@@ -60,18 +61,6 @@ export class WaveSystem extends System<CentipedeComponentRegistry, CentipedeEven
         state.level += 1;
         eventBus?.emit("wave:cleared", { level: state.level });
 
-        const mushrooms = world.query("Mushroom");
-        for (const mEntity of mushrooms) {
-          const mushroom = world.getMutableComponent(mEntity, "Mushroom");
-          if (mushroom) {
-            if (mushroom.hp < mushroom.maxHp) {
-              state.score += 5;
-              mushroom.hp = mushroom.maxHp;
-            }
-            mushroom.isPoisoned = false;
-          }
-        }
-
         const chainLength = Math.min(12, config.CENTIPEDE_INITIAL_LENGTH);
         CentipedeEntityFactory.createCentipedeChain(
           world,
@@ -98,6 +87,23 @@ export class WaveSystem extends System<CentipedeComponentRegistry, CentipedeEven
           );
         }
       }
+    }
+  }
+
+  private restoreMushrooms(
+    world: World<CentipedeComponentRegistry, CentipedeEventRegistry>,
+    state: CentipedeComponentRegistry["CentipedeState"]
+  ): void {
+    const mushrooms = world.query("Mushroom");
+    for (const mushroomEntity of mushrooms) {
+      const mushroom = world.getMutableComponent(mushroomEntity, "Mushroom");
+      if (!mushroom) continue;
+
+      if (mushroom.hp < mushroom.maxHp || mushroom.isPoisoned) {
+        state.score += 5;
+        mushroom.hp = mushroom.maxHp;
+      }
+      mushroom.isPoisoned = false;
     }
   }
 }

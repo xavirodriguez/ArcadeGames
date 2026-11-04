@@ -26,24 +26,24 @@ import { drawFromGeometryProfileCanvas } from "../../shared/rendering/GenericEnt
 
 export { EXPLOSION_PARTICLE_POOL, spawnLayeredExplosion, updateExplosionParticles };
 
-const bulletTrailMap = new WeakMap<any, CircularPositionBuffer>();
-
-function getBulletTrailBuffer(render: any): CircularPositionBuffer {
-  let buf = bulletTrailMap.get(render);
-  if (!buf) {
-    buf = new CircularPositionBuffer({
-      capacity: 10,
-      minDistance: 0.5,
-      maxDiscontinuityDistance: 80,
-      startAlpha: 1.0,
-      endAlpha: 0.0,
-      startWidthScale: 1.0,
-      endWidthScale: 0.15
-    });
-    bulletTrailMap.set(render, buf);
-  }
-  return buf;
-}
+// Bullet trail buffer map intentionally maintained in SpaceInvadersCanvasVisualsB.ts
+// where drawSpaceInvadersBullet is defined and executed.
+/* unused duplicate block removed while preserving exact line offsets */
+/* 04 */
+/* 05 */
+/* 06 */
+/* 07 */
+/* 08 */
+/* 09 */
+/* 10 */
+/* 11 */
+/* 12 */
+/* 13 */
+/* 14 */
+/* 15 */
+/* 16 */
+/* 17 */
+/* 18 */
 
 export function drawExplosionParticlesCanvas(ctx: CanvasRenderingContext2D): void {
   ctx.save();

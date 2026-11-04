@@ -131,6 +131,7 @@ export interface GalaxianComponentRegistry extends CoreComponentRegistry {
 export interface GalaxianEventRegistry extends CoreEvents, Record<string, unknown> {
   "combat:enemy_hit": { entity: number; points: number; x: number; y: number; enemyType: EnemyType; inDive: boolean };
   "player:hit": { x: number; y: number };
+  /** 1-based level that was just cleared, before the next wave starts. */
   "wave:completed": { level: number };
 }
 

@@ -1,5 +1,5 @@
 import { Component, CoreComponentRegistry, CoreEvents, MultiplayerRegistry, ComboComponent, CanonicalActionName } from "@tiny-aster/core";
-import { DamageComponent, FactionComponent, SpawnDirectorComponent, WaveMemberComponent, CombatHitEvent, CombatDeathEvent } from "@tiny-aster/gameplay-kit";
+import { DamageComponent, FactionComponent, ShieldComponent, SpawnDirectorComponent, WaveMemberComponent, CombatHitEvent, CombatDeathEvent } from "@tiny-aster/gameplay-kit";
 import type { BulletPatternConfig } from "../../shared/BulletPatternSystem";
 
 export interface ShmupEventRegistry extends CoreEvents, Record<string, unknown> {
@@ -27,5 +27,5 @@ export interface EnemyPathComponent extends Component { type:"EnemyPath"; kind:"
 export interface BulletPatternComponent extends Component { type:"BulletPattern"; config:BulletPatternConfig; cooldownRemaining:number; phase:number; }
 export interface ShmupGameStateComponent extends Component { type:"ShmupGameState"; score:number; wave:number; lives:number; scrollDistance:number; isGameOver:boolean; spawnTimer:number; }
 export interface ShmupComponentRegistry extends CoreComponentRegistry {
-  Input:ShmupInputComponent; ShmupPlayer:ShmupPlayerComponent; Shield:ShmupShieldComponent; ShmupEnemy:ShmupEnemyComponent; ShmupPlayerBullet:ShmupPlayerBulletComponent; ShmupEnemyBullet:ShmupEnemyBulletComponent; EnemyPath:EnemyPathComponent; BulletPattern:BulletPatternComponent; ShmupGameState:ShmupGameStateComponent; Damage:DamageComponent; Faction:FactionComponent; SpawnDirector:SpawnDirectorComponent; WaveMember:WaveMemberComponent; Combo:ComboComponent; LocalPlayer:{type:"LocalPlayer"}; RemotePlayer:{type:"RemotePlayer";sessionId?:string};
+  Input:ShmupInputComponent; ShmupPlayer:ShmupPlayerComponent; Shield:ShieldComponent; ShmupEnemy:ShmupEnemyComponent; ShmupPlayerBullet:ShmupPlayerBulletComponent; ShmupEnemyBullet:ShmupEnemyBulletComponent; EnemyPath:EnemyPathComponent; BulletPattern:BulletPatternComponent; ShmupGameState:ShmupGameStateComponent; Damage:DamageComponent; Faction:FactionComponent; SpawnDirector:SpawnDirectorComponent; WaveMember:WaveMemberComponent; Combo:ComboComponent; LocalPlayer:{type:"LocalPlayer"}; RemotePlayer:{type:"RemotePlayer";sessionId?:string};
 }

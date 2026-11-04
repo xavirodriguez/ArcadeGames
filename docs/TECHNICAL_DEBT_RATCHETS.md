@@ -29,7 +29,7 @@ Command: `pnpm run check:ratchet`
 
 - Scans TypeScript files under `packages/`, `src/`, `server/` and `scripts/`, including tests.
 - Counts only type assertion expressions whose target is `any` or `unknown` (for example, `value as any` and `<unknown>value`). It does not count every type annotation such as `const value: any`.
-- Compares the total assertion count per file with that file's baseline. A file cannot add assertions above its own baseline.
+- Compares `as any` and `as unknown` counts independently per file. A reduction in one category cannot mask an increase in the other.
 - Reductions are reported; update the baseline only after reviewing the exact diff and confirming the assertions were removed rather than moved.
 
 ### Code duplication
@@ -47,11 +47,12 @@ Command: `pnpm run check:color-literals`
 - Scans TypeScript/JavaScript source under `src/`, root `components/` and each package's `src/`; tests, comments and generated folders are excluded.
 - Allows literals under `src/theme/`, package theme directories and the explicitly listed `COLOR_LITERAL_ALLOWLIST`.
 - Fails when a scanned path/line/value key does not exist in the committed baseline. The current implementation is location-sensitive: moving a literal to another line can produce a new key even when its value is unchanged.
-- The check blocks newly introduced keys; it does not independently require the baseline count to decrease.
+- Also enforces a per-file occurrence ceiling using `byFile`. This catches repeated identical literals on the same line, which share one location key in the set.
+- The check blocks new keys and per-file occurrence increases; it does not independently require the baseline count to decrease.
 
 ## No-regression policy
 
-1. Do not increase any debt metric above the behavior enforced by its existing ratchet.
+1. Do not increase any debt metric above the behavior enforced by its existing ratchet. Type assertions are guarded independently by category; color literals are guarded by location and per-file occurrence count.
 2. Do not update a baseline merely to make a failing check pass. The pull request must include the remediation, before/after counts, the exact affected scope and an explanation for any approved exception.
 3. Review baseline JSON diffs as code. A baseline increase requires explicit justification and must not be used to hide newly introduced debt.
 4. Keep tests in the type-assertion scan. Do not remove test files from the scan to improve the metric.

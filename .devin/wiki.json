@@ -391,7 +391,7 @@
       ]
     },
     {
-      "title": "Patterns Across the Four Games",
+      "title": "Patterns Across Four Classic Games",
       "purpose": "Compare how Asteroids, Pong, Flappy Bird and Space Invaders solve the same categories of problems using shared engine architecture. Compare input, movement, entities, spawning, collisions, game state, rendering and configuration, showing which systems are reusable and which remain game-specific.",
       "parent": "Game Architecture Learning Guide",
       "page_notes": [

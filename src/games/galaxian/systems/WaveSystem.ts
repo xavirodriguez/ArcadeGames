@@ -38,10 +38,11 @@ export class WaveSystem extends System<GalaxianComponentRegistry> {
       hasWaveDefinition &&
       hasFormation
     ) {
-      state.level++;
+      const completedLevel = state.level;
+      state.level = completedLevel + 1;
       state.activeDivesCount = 0;
       state.waveTransitionRemaining = WAVE_TRANSITION_DURATION_SECONDS;
-      world.getEventBus()?.emit("wave:completed", { level: state.level });
+      world.getEventBus()?.emit("wave:completed", { level: completedLevel });
     }
   }
 }

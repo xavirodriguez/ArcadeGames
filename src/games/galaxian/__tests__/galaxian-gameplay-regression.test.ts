@@ -1,4 +1,11 @@
 import { GalaxianGame } from "../GalaxianGame";
+import { spawnEnemyWave } from "../EntityFactory";
+import {
+  getWaveDiveIntervalSeconds,
+  getWaveDiveSpeedMultiplier,
+  getWaveMaxConcurrentDives,
+} from "../WaveDifficulty";
+import type { PathPatternComponent } from "../../shared/PathPatternsSystem";
 import type { GalaxianConfig } from "../types/GalaxianConfigSchema";
 
 describe("Galaxian gameplay regressions", () => {
@@ -60,6 +67,99 @@ describe("Galaxian gameplay regressions", () => {
     expect(after.worldX).toBe(after.x);
     expect(after.worldY).toBe(after.y);
     expect(after.dirty).toBe(false);
+
+    await game.destroy();
+  });
+
+  it("scales dive speed and concurrent attackers while enforcing difficulty bounds", async () => {
+    const game = new GalaxianGame({ headless: true, seed: 12345 });
+    await game.init();
+    game.stop();
+
+    const world = game.getWorld();
+    const config = world.getResource<GalaxianConfig>("GameConfig");
+    if (!config) throw new Error("Galaxian config missing");
+
+    config.dive.intervalMs = 2200;
+    config.wave.speedMultiplierPerWave = 1.5;
+    config.wave.diveIntervalMultiplierPerWave = 0.5;
+    config.wave.minimumDiveIntervalMs = 900;
+    config.wave.maxDiveSpeedMultiplier = 2.25;
+    config.wave.maxConcurrentDivesCap = 6;
+
+    expect(getWaveDiveSpeedMultiplier(config, 1)).toBe(1);
+    expect(getWaveDiveSpeedMultiplier(config, 2)).toBeCloseTo(1.5);
+    expect(getWaveDiveSpeedMultiplier(config, 4)).toBeCloseTo(2.25);
+    expect(getWaveDiveSpeedMultiplier(config, 20)).toBeCloseTo(2.25);
+
+    expect(getWaveDiveIntervalSeconds(config, 1)).toBeCloseTo(2.2);
+    expect(getWaveDiveIntervalSeconds(config, 20)).toBeCloseTo(0.9);
+
+    expect(getWaveMaxConcurrentDives(config, 1)).toBe(3);
+    expect(getWaveMaxConcurrentDives(config, 2)).toBe(4);
+    expect(getWaveMaxConcurrentDives(config, 20)).toBe(6);
+
+    await game.destroy();
+  });
+
+  it("cycles deterministic formation layouts without changing enemy composition", async () => {
+    const game = new GalaxianGame({ headless: true, seed: 12345 });
+    await game.init();
+    game.stop();
+
+    const world = game.getWorld();
+    const config = world.getResource<GalaxianConfig>("GameConfig");
+    if (!config) throw new Error("Galaxian config missing");
+
+    const removeCurrentWave = (): void => {
+      for (const enemy of world.query("GalaxianEnemy")) {
+        world.commands.removeEntity(enemy);
+      }
+      world.flush();
+    };
+    const getRowCenter = (row: number): number => {
+      const formationEntity = world.query("Formation")[0];
+      const formation = world.getComponent(formationEntity, "Formation");
+      if (!formation) throw new Error("Galaxian formation missing");
+
+      const rowSlots = Object.entries(formation.slots)
+        .filter(([slotId]) => slotId.startsWith(`${row}_`))
+        .map(([, slot]) => slot.x);
+      if (rowSlots.length === 0) throw new Error(`Formation row ${row} is empty`);
+
+      return rowSlots.reduce((total, x) => total + x, 0) / rowSlots.length;
+    };
+
+    const stateEntity = world.query("GameState")[0];
+    const formationEntity = world.query("Formation")[0];
+    const initialEnemyCount = world.query("GalaxianEnemy").length;
+    removeCurrentWave();
+
+    world.mutateComponent(stateEntity, "GameState", (state) => {
+      state.level = 2;
+      state.enemiesRemaining = 0;
+    });
+    expect(spawnEnemyWave(world)).toBe(true);
+    world.flush();
+
+    expect(world.query("GalaxianEnemy")).toHaveLength(initialEnemyCount);
+    expect(getRowCenter(1) - getRowCenter(0)).toBeCloseTo(config.formation.slotSpacingX / 2);
+
+    removeCurrentWave();
+    world.mutateComponent(stateEntity, "GameState", (state) => {
+      state.level = 3;
+      state.enemiesRemaining = 0;
+    });
+    expect(spawnEnemyWave(world)).toBe(true);
+    world.flush();
+
+    expect(world.query("GalaxianEnemy")).toHaveLength(initialEnemyCount);
+    expect(getRowCenter(5) - getRowCenter(0)).toBeCloseTo(
+      (config.formation.grid.length - 1) * config.formation.slotSpacingX * 0.25
+    );
+
+    // Keep the local variable explicit so the test also verifies that the formation entity survives wave replacement.
+    expect(world.getComponent(formationEntity, "Formation")).toBeDefined();
 
     await game.destroy();
   });
@@ -211,7 +311,8 @@ describe("Galaxian gameplay regressions", () => {
     config.dive.intervalMs = 20;
     config.dive.windupMs = 0;
     config.dive.maxConcurrentDives = 1;
-    config.wave.speedMultiplierPerWave = 1;
+    config.wave.speedMultiplierPerWave = 1.08;
+    config.wave.minimumDiveIntervalMs = 1;
     config.wave.maxConcurrentDivesCap = 1;
 
     const firstWaveEntities = world.query("GalaxianEnemy", "Transform");
@@ -242,7 +343,7 @@ describe("Galaxian gameplay regressions", () => {
     game.update(1 / 60);
     expect(game.getGameState().level).toBe(2);
     expect(game.getGameState().waveTransitionRemaining).toBeCloseTo(1.5);
-    expect(completedLevels).toEqual([2]);
+    expect(completedLevels).toEqual([1]);
 
     game.update(1.49);
     expect(game.getGameState().waveTransitionRemaining).toBeGreaterThan(0);
@@ -255,7 +356,7 @@ describe("Galaxian gameplay regressions", () => {
     const secondWaveEntities = world.query("GalaxianEnemy");
     expect(secondWaveEntities).toHaveLength(originalEnemyCount);
     expect(secondWaveEntities.every((entity) => !firstWaveIds.has(entity))).toBe(true);
-    expect(game.getGameState().diveTimer).toBeCloseTo(config.dive.intervalMs / 1000);
+    expect(game.getGameState().diveTimer).toBeCloseTo(getWaveDiveIntervalSeconds(config, 2));
 
     for (const enemyEntity of secondWaveEntities) {
       const enemy = world.getComponent(enemyEntity, "GalaxianEnemy");
@@ -277,6 +378,16 @@ describe("Galaxian gameplay regressions", () => {
       })
     ).toBe(true);
     expect(game.getGameState().activeDivesCount).toBe(1);
+
+    const divingEnemy = secondWaveEntities.find((entity) => {
+      return world.getComponent(entity, "GalaxianEnemy")?.state === "diving";
+    });
+    if (divingEnemy === undefined) throw new Error("No enemy entered the diving state");
+    const divingComponent = world.getComponent(divingEnemy, "GalaxianEnemy");
+    const pathDefinition = config.dive.paths.find((path) => path.id === divingComponent?.pathId);
+    const pathPattern = world.getComponent(divingEnemy, "PathPattern") as PathPatternComponent | undefined;
+    if (!pathDefinition || !pathPattern) throw new Error("Dive path was not attached to the selected enemy");
+    expect(pathPattern.speed).toBeCloseTo(pathDefinition.speed * getWaveDiveSpeedMultiplier(config, 2));
 
     await game.destroy();
   });

@@ -168,6 +168,20 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
           ttl: 0.38
         });
       });
+      eventBus.on("locomotion:slide_started", (event) => {
+        pickupJuice.triggerEvent("platformer", "player:slide", {
+          x: event.x,
+          y: event.y,
+          rotation: Math.atan2(event.velocityY, event.velocityX)
+        });
+      });
+      eventBus.on("locomotion:platform_reversed", (event) => {
+        pickupJuice.triggerEvent("platformer", "platform:reversed", {
+          x: event.x,
+          y: event.y,
+          rotation: Math.atan2(event.velocityY, event.velocityX)
+        });
+      });
       eventBus.on("PlayerDied", () => {
         this.audio.playSFX("game_over");
       });
@@ -342,6 +356,7 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
 
     // Game-specific presentation systems
     this.world.addSystem(new AnimationSystem(), { phase: SystemPhase.Presentation });
+
   }
 
   public initializeRenderer(renderer: Renderer<CoreComponentRegistry, RenderContext>): void {

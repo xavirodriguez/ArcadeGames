@@ -15,7 +15,7 @@ import {
 describe("VFX Visual Lab model", () => {
   it("exposes every production PixelFX drawer exactly once", () => {
     const ids = VFX_LAB_EFFECTS.map((effect) => effect.id);
-    expect(ids).toHaveLength(17);
+    expect(ids).toHaveLength(20);
     expect(new Set(ids).size).toBe(ids.length);
     expect(VFX_LAB_EFFECTS.every((effect) => typeof effect.draw === "function")).toBe(true);
   });
@@ -83,7 +83,10 @@ describe("VFX Visual Lab model", () => {
       "pixelfx_ricochet",
       "pixelfx_charge",
       "pixelfx_shield_pulse",
-      "pixelfx_target_warning"
+      "pixelfx_target_warning",
+      "pixelfx_teleport",
+      "pixelfx_surface_skid",
+      "pixelfx_mechanical_motion"
     ]) {
       expect(effects.has(effect as never)).toBe(true);
     }

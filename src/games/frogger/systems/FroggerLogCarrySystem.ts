@@ -105,6 +105,7 @@ export class FroggerLogCarrySystem extends System<FroggerComponentRegistry> {
       frogger.logEntity = ridingLogEntity;
 
       transform.x += ridingLogVx * dt;
+      transform.dirty = true;
       frogger.gridX = Math.max(
         0,
         Math.min(config.TOTAL_COLS - 1, Math.floor(transform.x / config.GRID_SIZE))

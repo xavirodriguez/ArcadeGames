@@ -83,7 +83,7 @@ convenciones se pueden romper sin querer.
 | ID    | Invariante                                                                                                              | Check                                                                                                                                                                                                                                                                                     |
 | :---- | :---------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | INV-1 | `@tiny-aster/core` no depende de UI ni de plataforma                                                                    | `pnpm run check:core-boundaries` (`scripts/check-core-boundaries.sh`); análogos `check:gameplay-kit-boundaries` y `check:network-boundaries`; también regla de imports en el AST linter                                                                                                   |
-| INV-2 | Toda aleatoriedad de gameplay pasa por `world.gameplayRandom` | `pnpm exec tsx scripts/ast-determinism-linter.ts` — comprueba APIs no deterministas en `systems/`, `simulation/`, `factories/`, `factory/`, `blueprints/`, `blueprint/`, `entities/`, ficheros cuyo nombre incluye `Factory`/`Blueprint` y todo `packages/gameplay-kit/src`. Excluye tests y mocks. Las mutaciones estructurales siguen restringidas a sistemas/simulación. |
+| INV-2 | Toda aleatoriedad de gameplay y presentación pasa por RNG sembrado (`world.gameplayRandom` / `world.renderRandom`) | `pnpm exec tsx scripts/ast-determinism-linter.ts` — prohíbe `Math.random()` en todo el código de producción de `src/games/`; comprueba además `Date.now()`/`performance.now()` e iteración determinista en `systems/`, `simulation/`, factories, blueprints, entidades y `packages/gameplay-kit/src`. Excluye tests y mocks. Las mutaciones estructurales siguen restringidas a sistemas/simulación. |
 | INV-3 | El loop usa fixed timestep; el input entra como `InputFrame`; el render sale a `RenderCommandBuffer`                    | Tests de `GameLoop` en `packages/core/tests`                                                                                                                                                                                                                                              |
 | INV-4 | El estado del `World` es serializable: sin funciones, clases con estado oculto ni referencias circulares en componentes | Test de roundtrip de snapshot (serializar, restaurar, comparar hash) — `determinism.test.ts` + `test:snapshots`                                                                                                                                                                           |
 | INV-5 | Las mutaciones estructurales durante el update de un sistema van por `world.commands` (WorldCommandBuffer)              | Regla 5 del AST linter: prohíbe `world.addComponent/removeComponent/createEntity/removeEntity` directos en sistemas. **Nota:** la mutación de _campos_ de componentes fuera de sistemas no tiene check automático — es revisión manual                                                    |
@@ -175,9 +175,12 @@ React 19.2, Skia 2.4.18, TypeScript 5.9). SO de referencia: ⚠ COMPLETAR.
 **Nunca**
 
 - Importar React, React Native, Skia, DOM o Colyseus desde `@tiny-aster/core`.
-- Usar `Math.random`, `Date.now` o `performance.now` dentro de lógica de simulación.
-  El AST linter cubre sistemas, simulación, factories, blueprints, entidades y todo
-  `packages/gameplay-kit/src`; los tests y mocks quedan excluidos.
+- Usar `Math.random()` en código de producción de `src/games/`: la lógica de gameplay
+  debe usar `world.gameplayRandom` y los efectos visuales `world.renderRandom`.
+- Usar `Date.now()` o `performance.now()` para controlar simulación o gameplay;
+  usar `deltaTime`. El AST linter aplica estas reglas en sistemas, simulación,
+  factories, blueprints, entidades y todo `packages/gameplay-kit/src`.
+  Los tests y mocks quedan excluidos.
 - Mutar componentes fuera de un sistema; en sistemas, mutaciones estructurales solo
   vía `world.commands`.
 - Añadir `any` para que compile.

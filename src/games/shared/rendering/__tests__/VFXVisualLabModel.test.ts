@@ -40,6 +40,16 @@ describe("VFX Visual Lab model", () => {
     }
   });
 
+  it("resolves traversal-specific phases and surfaces for PR5 effects", () => {
+    const teleport = VFX_LAB_EFFECTS.find((effect) => effect.id === "pixelfx_teleport");
+    const skid = VFX_LAB_EFFECTS.find((effect) => effect.id === "pixelfx_surface_skid");
+    const mechanical = VFX_LAB_EFFECTS.find((effect) => effect.id === "pixelfx_mechanical_motion");
+    if (!teleport || !skid || !mechanical) throw new Error("Traversal drawer missing from Visual Lab catalog");
+    expect(createVFXLabDescriptor(teleport, "arcade-neon", 0).context).toMatchObject({ phase: "teleport", surface: "air" });
+    expect(createVFXLabDescriptor(skid, "arcade-neon", 0).context).toMatchObject({ phase: "slide", surface: "ground" });
+    expect(createVFXLabDescriptor(mechanical, "arcade-neon", 0).context).toMatchObject({ phase: "mechanical", surface: "ground" });
+  });
+
   it("resolves semantic family roles and profile colors", () => {
     const expectedRoles = { combat: "warning", traversal: "energy", interaction: "reward" };
     for (const effect of VFX_LAB_EFFECTS) {

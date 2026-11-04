@@ -155,7 +155,8 @@ if (
 if (!workspaceConfig.includes("- packages/*") || !workspaceConfig.includes("- server")) {
   failures.push("pnpm-workspace.yaml must declare packages/* and server as workspaces.");
 }
-const soundKitReadmeVersion = soundKitReadme.match(/^\\*\\*v([^*]+)\\*\\* features:/m)?.[1];
+const soundKitVersionLine = soundKitReadme.split("\n").find((line) => line.startsWith("**v") && line.endsWith("** features:"));
+const soundKitReadmeVersion = soundKitVersionLine?.slice(3, -12);
 if (soundKitReadmeVersion && soundKitReadmeVersion !== soundKitManifest.version) {
   failures.push(`arcade-sound-kit README version ${soundKitReadmeVersion} does not match package.json version ${soundKitManifest.version}.`);
 }

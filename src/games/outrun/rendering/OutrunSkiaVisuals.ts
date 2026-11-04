@@ -15,6 +15,7 @@ import {
 } from "./OutrunRenderShared";
 import { computeSpeedLines, computeOutrunPlayerArtworkScale } from "./OutrunVisualHelpers";
 import { computeOutrunRoadSpeedLineSegments, resolveOutrunRoadSegmentArtwork } from "./OutrunRoadArtwork";
+import { fogIntensity, resolveRoadFogColor } from "./OutrunFog";
 import { resolveOutrunRoadsideArtworkStyle } from "./OutrunRoadsideArtwork";
 import { resolveOutrunPlayerPalette, resolveOutrunTrafficArtworkStyle, resolveOutrunTrafficVehicleGeometry } from "./OutrunVehicleArtwork";
 import { computeOutrunHeadlightBeams } from "./OutrunLighting";
@@ -709,6 +710,22 @@ export const drawSkiaOutrunRoad: ShapeDrawer<SkCanvas, OutrunComponentRegistry> 
     if (count > 0 && renderedCount === 0) {
       console.warn("[drawSkiaOutrunRoad] 100% of projected road segments were clipped or discarded.");
     }
+
+    // Keep the same horizon-to-camera fog curve and palette as the Canvas backend.
+    const fogShader = Skia.Shader.MakeLinearGradient(
+      Skia.Point(0, horizonY),
+      Skia.Point(0, screenH),
+      [
+        Skia.Color(resolveRoadFogColor(visualPalette, fogIntensity(1))),
+        Skia.Color(resolveRoadFogColor(visualPalette, fogIntensity(0)))
+      ],
+      [0, 1],
+      Skia.TileMode.Clamp
+    );
+    const fogPaint = Skia.Paint();
+    fogPaint.setShader(fogShader);
+    fogPaint.setStyle(Skia.PaintStyle.Fill);
+    canvas.drawRect(Skia.XYWHRect(0, horizonY, screenW, screenH - horizonY), fogPaint);
 
     // Flat headlight cones.
     const headlightBeams = computeOutrunHeadlightBeams(state, config, visualPalette);

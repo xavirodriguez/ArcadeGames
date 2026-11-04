@@ -2,6 +2,7 @@ import { System, World, Camera2DSystem } from "@tiny-aster/core";
 import type { RacingComponentRegistry, RacingEventRegistry } from "../types/RacingRegistry";
 import type { TrackSpec } from "../types/TrackSpecSchema";
 import { isPointInZone } from "./RacingSystemHelpers";
+import { computeRaceProgress } from "../raceProgress";
 
 export class HeadToHeadStateSystem extends System<RacingComponentRegistry, RacingEventRegistry> {
   public update(world: World<RacingComponentRegistry, RacingEventRegistry>, deltaTime: number): void {
@@ -52,16 +53,33 @@ export class HeadToHeadStateSystem extends System<RacingComponentRegistry, Racin
     const cars = world.query("Car", "Transform");
     if (cars.length < 2) return;
 
+    // Build ordered checkpoint positions for shared progress metric
+    const cpEntities = world.query("Checkpoint", "Transform");
+    const orderedCp: Array<{ index: number; x: number; y: number }> = [];
+    for (let i = 0; i < cpEntities.length; i += 1) {
+      const e = cpEntities[i]!;
+      const cp = world.getComponent(e, "Checkpoint");
+      const tr = world.getComponent(e, "Transform");
+      if (cp && tr) orderedCp.push({ index: cp.index, x: tr.x, y: tr.y });
+    }
+    orderedCp.sort((a, b) => a.index - b.index);
+    const checkpointPositions = orderedCp.map((c) => ({ x: c.x, y: c.y }));
+    const totalCheckpoints = checkpointPositions.length;
+
     let leader = cars[0]!;
     let maxProgress = -Infinity;
 
-    for (let i = 0; i < cars.length; i++) {
+    for (let i = 0; i < cars.length; i += 1) {
       const c = cars[i]!;
       const transform = world.getComponent(c, "Transform");
       const lap = world.getComponent(c, "Lap");
       if (!transform) continue;
 
-      const progress = (lap ? lap.lastCheckpoint * 1000 : 0) + transform.x;
+      const progress =
+        lap && totalCheckpoints > 0
+          ? computeRaceProgress(lap, totalCheckpoints, transform, checkpointPositions)
+          : transform.x; // fallback only when no checkpoints exist
+
       if (progress > maxProgress) {
         maxProgress = progress;
         leader = c;
@@ -73,7 +91,7 @@ export class HeadToHeadStateSystem extends System<RacingComponentRegistry, Racin
 
     const trackSpec = world.getResource<TrackSpec>("ActiveTrackSpec");
 
-    for (let i = 0; i < cars.length; i++) {
+    for (let i = 0; i < cars.length; i += 1) {
       const car = cars[i]!;
       if (car === leader) continue;
 
@@ -82,7 +100,7 @@ export class HeadToHeadStateSystem extends System<RacingComponentRegistry, Racin
 
       let inDeadlyZone = false;
       if (trackSpec && trackSpec.zones) {
-        for (let j = 0; j < trackSpec.zones.length; j++) {
+        for (let j = 0; j < trackSpec.zones.length; j += 1) {
           const zone = trackSpec.zones[j]!;
           if (zone.surface === "deadly_edge" && isPointInZone(transform.x, transform.y, zone)) {
             inDeadlyZone = true;
@@ -143,7 +161,7 @@ export class HeadToHeadStateSystem extends System<RacingComponentRegistry, Racin
     const leaderTransform = world.getComponent(leader, "Transform");
     if (!leaderTransform) return;
 
-    for (let i = 0; i < cars.length; i++) {
+    for (let i = 0; i < cars.length; i += 1) {
       const car = cars[i]!;
       if (car === leader) continue;
 

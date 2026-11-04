@@ -3,6 +3,7 @@ import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 import { GalaxianComponentRegistry, GalaxianInputComponent, FormationComponent, GalaxianStateComponent, EnemyType } from "./types/GalaxianTypes";
 import { GalaxianConfig } from "./types/GalaxianConfigSchema";
 import { EnemyFactory } from "./EnemyFactory";
+import { getWaveDiveIntervalSeconds } from "./WaveDifficulty";
 
 export function createGalaxianInputComponent(): GalaxianInputComponent {
   return {
@@ -67,7 +68,7 @@ export function createGameState(world: World<GalaxianComponentRegistry>): Entity
     isGameOver: false,
     highScore: 0,
     screenShake: null,
-    diveTimer: config?.dive.intervalMs ? config.dive.intervalMs / 1000 : 2.2,
+    diveTimer: config ? getWaveDiveIntervalSeconds(config, 1) : 2.2,
     activeDivesCount: 0,
     waveTransitionRemaining: 0,
   } as GalaxianStateComponent);
@@ -93,31 +94,48 @@ export function createFormationController(world: World<GalaxianComponentRegistry
   return entity;
 }
 
-export function spawnEnemyWave(world: World<GalaxianComponentRegistry>): void {
+export function spawnEnemyWave(world: World<GalaxianComponentRegistry>): boolean {
   const config = world.getResource<GalaxianConfig>("GameConfig");
-  if (!config) return;
+  if (!config || config.formation.grid.length === 0) return false;
+  if (world.query("GalaxianEnemy").length > 0) return false;
 
   const formationEntities = world.query("Formation");
-  if (formationEntities.length === 0) return;
+  if (formationEntities.length === 0) return false;
   const formationEntity = formationEntities[0];
   const formation = world.getMutableComponent(formationEntity, "Formation");
-  if (!formation) return;
+  if (!formation) return false;
+
+  const stateEntities = world.query("GameState");
+  if (stateEntities.length === 0) return false;
+  const state = world.getMutableComponent(stateEntities[0], "GameState");
+  if (!state) return false;
+
+  const grid = config.formation.grid;
+  if (!grid.some((rowConfig) => rowConfig.count > 0)) return false;
+
+  const layoutIndex = (Math.max(1, Math.floor(state.level)) - 1) % config.formation.layoutVariants.length;
+  const layoutVariant = config.formation.layoutVariants[layoutIndex] ?? "classic";
 
   formation.slots = {};
   let totalEnemiesCount = 0;
 
-  const grid = config.formation.grid;
   const slotSpacingX = config.formation.slotSpacingX;
   const slotSpacingY = config.formation.slotSpacingY;
 
-  grid.forEach((rowConfig) => {
+  grid.forEach((rowConfig, rowIndex) => {
     const row = rowConfig.row;
     const count = rowConfig.count;
     const startXOffset = -((count - 1) * slotSpacingX) / 2;
+    const rowOffsetX =
+      layoutVariant === "staggered"
+        ? (rowIndex % 2 === 1 ? slotSpacingX / 2 : 0)
+        : layoutVariant === "chevron"
+          ? (rowIndex - (grid.length - 1) / 2) * slotSpacingX * 0.25
+          : 0;
 
     for (let col = 0; col < count; col++) {
       const slotId = `${row}_${col}`;
-      const relX = startXOffset + col * slotSpacingX;
+      const relX = startXOffset + col * slotSpacingX + rowOffsetX;
       const relY = row * slotSpacingY;
       const absX = formation.originX + relX;
       const absY = formation.originY + relY;
@@ -145,13 +163,12 @@ export function spawnEnemyWave(world: World<GalaxianComponentRegistry>): void {
     }
   });
 
-  formation.totalEnemies = totalEnemiesCount;
+  if (totalEnemiesCount === 0) return false;
 
-  const stateEntities = world.query("GameState");
-  if (stateEntities.length > 0) {
-    const state = world.getMutableComponent(stateEntities[0], "GameState");
-    if (state) {
-      state.enemiesRemaining = totalEnemiesCount;
-    }
-  }
+  formation.totalEnemies = totalEnemiesCount;
+  state.enemiesRemaining = totalEnemiesCount;
+  state.activeDivesCount = 0;
+  state.diveTimer = getWaveDiveIntervalSeconds(config, state.level);
+
+  return true;
 }

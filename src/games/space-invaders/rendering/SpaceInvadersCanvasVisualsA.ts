@@ -26,6 +26,25 @@ import { drawFromGeometryProfileCanvas } from "../../shared/rendering/GenericEnt
 
 export { EXPLOSION_PARTICLE_POOL, spawnLayeredExplosion, updateExplosionParticles };
 
+// Bullet trail buffer map intentionally maintained in SpaceInvadersCanvasVisualsB.ts
+// where drawSpaceInvadersBullet is defined and executed.
+/* unused duplicate block removed while preserving exact line offsets */
+/* 04 */
+/* 05 */
+/* 06 */
+/* 07 */
+/* 08 */
+/* 09 */
+/* 10 */
+/* 11 */
+/* 12 */
+/* 13 */
+/* 14 */
+/* 15 */
+/* 16 */
+/* 17 */
+/* 18 */
+
 export function drawExplosionParticlesCanvas(ctx: CanvasRenderingContext2D): void {
   ctx.save();
   for (let i = 0; i < EXPLOSION_PARTICLE_POOL.length; i++) {

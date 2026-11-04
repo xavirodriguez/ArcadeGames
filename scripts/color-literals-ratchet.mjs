@@ -75,6 +75,7 @@ export const PROPOSED_ALLOWLIST = [
   { path: "src/games/platformer/systems/PlatformerDamageSystem.ts", reason: "Platformer damage vfx color" },
   { path: "src/games/pong/systems/PongCollisionSystem.ts", reason: "Pong paddle collision particle colors" },
   { path: "src/games/shared/pixelfx/PixelFXPaletteAdapter.ts", reason: "PixelFX palette ramp definitions" },
+  { path: "src/games/shared/rendering/VFXVisualLabModel.ts", reason: "VFX visual lab preview palette" },
 ];
 const ALLOWED_PREFIXES = ["src/theme/"];
 const HEX_RE = /#([0-9a-fA-F]{3,8})\b/g;

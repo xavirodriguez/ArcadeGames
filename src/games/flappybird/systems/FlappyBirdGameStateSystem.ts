@@ -144,13 +144,23 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
       gs.pipeSpeedMultiplier = totalPipeSpeedMultiplier;
     });
 
-    // Update Pipe Spawner
-    world.mutateSingleton("FlappyState", (gs) => {
-      gs.pipeSpawnTimer += deltaTime;
-    });
+    // Grace period: countdown and freeze pipe spawning while active
+    const graceRemaining = gameState.graceTimeRemaining ?? 0;
+    if (!gameState.isGameOver && graceRemaining > 0) {
+      world.mutateSingleton("FlappyState", (gs) => {
+        gs.graceTimeRemaining = Math.max(0, (gs.graceTimeRemaining ?? 0) - deltaTime);
+      });
+    }
+
+    // Update Pipe Spawner (paused during grace period)
+    if (graceRemaining <= 0) {
+      world.mutateSingleton("FlappyState", (gs) => {
+        gs.pipeSpawnTimer += deltaTime;
+      });
+    }
 
     const spawnIntervalMs = scenarioOverrides?.PIPE_SPAWN_INTERVAL ?? this.config.PIPE_SPAWN_INTERVAL;
-    if (gameState.pipeSpawnTimer >= spawnIntervalMs / 1000) {
+    if (graceRemaining <= 0 && gameState.pipeSpawnTimer >= spawnIntervalMs / 1000) {
       const margin = this.config.PIPE_SPAWN_MARGIN;
       const gapY = world.gameplayRandom.nextInt(margin, this.config.worldHeight - margin);
 
@@ -236,6 +246,7 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
         state.isGameOver = false;
         state.score = 0;
         state.pipeSpawnTimer = 0;
+        state.graceTimeRemaining = this.config.GRACE_PERIOD_SECONDS;
       });
     }
   }

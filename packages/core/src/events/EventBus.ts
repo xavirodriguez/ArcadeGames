@@ -28,6 +28,13 @@ export interface CoreEvents {
   /** Emitted when an obstacle rock is destroyed. */
   "rock:destroyed": { amount?: number; [key: string]: unknown };
 
+  /** Emitted after an entity velocity is reflected by a world boundary. */
+  "boundary:bounce": { entity: Entity; axis: "x" | "y"; x: number; y: number };
+  /** Emitted once when a locomotion entity successfully enters slide posture. */
+  "locomotion:slide_started": { entity: Entity; x: number; y: number; velocityX: number; velocityY: number };
+  /** Emitted when an autonomous moving platform reverses its travel direction. */
+  "locomotion:platform_reversed": { entity: Entity; x: number; y: number; velocityX: number; velocityY: number };
+
   /** Emitted to trigger audio sound effect playback. */
   "PlaySFX": {
     name: string;

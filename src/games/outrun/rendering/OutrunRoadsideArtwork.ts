@@ -2,6 +2,7 @@ import type { RoadSegmentSprite } from "../types/OutrunTypes";
 import type { OutrunVisualPaletteResource } from "../types/OutrunVisualTypes";
 import type { OutrunVisualMod } from "../mods/types";
 import { lerpColor } from "../utils/palette";
+import { fogIntensity } from "./OutrunFog";
 
 export type ClassicRoadsideKind =
   | "tree"
@@ -33,8 +34,6 @@ export interface OutrunRoadsideArtworkStyle {
   lightColor: string;
   highlightAlpha: number;
 }
-
-const clamp01 = (value: number): number => Math.max(0, Math.min(1, value));
 
 export function resolveOutrunRoadsideKind(kind: string, activeMod?: OutrunVisualMod): OutrunRoadsideKind {
   if (activeMod?.resolveRoadsideKind) {
@@ -88,7 +87,7 @@ export function resolveOutrunRoadsideArtworkStyle(
   };
   const factor = heightFactor[kind] ?? 0.5;
   const height = Math.max(2, roadHalfWidth * factor);
-  const haze = clamp01(depth) * tuning.decor.distantObjectHazeMix;
+  const haze = fogIntensity(depth);
   const color = (base: string): string => lerpColor(base, tokens.horizon, haze);
 
   return {

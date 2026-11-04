@@ -37,7 +37,7 @@ describe("PixelFX combat drawers", () => {
       if (type === "Transform") return { scaleX: 1, rotation: 0.35 };
       return undefined;
     }
-  } as unknown as World<CoreComponentRegistry>;
+  } as never as World<CoreComponentRegistry>;
 
   it.each(drawers)("draws %s through the shared adapter contract", (_name, drawer) => {
     const adapter = createAdapter();
@@ -61,7 +61,7 @@ describe("PixelFX combat drawers", () => {
         if (type === "Transform") return { scaleX: 1, rotation: 0 };
         return undefined;
       }
-    } as unknown as World<CoreComponentRegistry>;
+    } as never as World<CoreComponentRegistry>;
     drawer(adapter, expiredWorld, 1);
     expect(adapter.save).not.toHaveBeenCalled();
   });

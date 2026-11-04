@@ -1,7 +1,9 @@
 import { OutrunGame, OutrunDefinition } from "../OutrunGame";
 import { ColorScriptSystem } from "../systems/ColorScriptSystem";
+import { RoadAdvanceSystem } from "../systems/RoadAdvanceSystem";
 import type { OutrunVisualPaletteResource } from "../types/OutrunVisualTypes";
 import type { RoadData } from "../types/OutrunTypes";
+import { DEFAULT_OUTRUN_CONFIG } from "../types/OutrunConfigSchema";
 import { OUTRUN_PALETTES, scenarioHash } from "../rendering/OutrunPalettes";
 import {
   drawOutrunRoad,
@@ -86,7 +88,7 @@ describe("OutrunGameplay", () => {
     expect(game.getGameState().playerX).toBeLessThan(before);
   });
 
-  it("road data wraps and has curves/hills", async () => {
+  it("road data defines a finite track with curves and hills", async () => {
     const game = new OutrunGame({ seed: 99, headless: true });
     await game.init();
     const road = game.getWorld().getResource<RoadData>("RoadData");
@@ -331,22 +333,42 @@ describe("OutrunGameplay", () => {
     expect(skiaPathDrawn).toBe(true);
   });
 
-  it("decrements countdown timer and transitions racePhase from countdown to racing", async () => {
-    const game = new OutrunGame({ seed: 33, headless: true });
+  it("freezes player input, traffic, and race timer during countdown", async () => {
+    const game = new OutrunGame({
+      seed: 33,
+      headless: true,
+      gameOptions: { startCountdown: true }
+    });
     await game.init();
 
-    game.getWorld().mutateSingleton("RaceState", (s) => {
-      s.racePhase = "countdown";
-      s.countdownTime = 1.0;
+    const world = game.getWorld();
+    expect(game.getGameState().racePhase).toBe("countdown");
+    expect(game.getGameState().countdownTime).toBe(
+      DEFAULT_OUTRUN_CONFIG.countdownDurationSeconds
+    );
+    const firstRacer = world.query("Racer")[0]!;
+    const initialRacerZ = world.getComponent(firstRacer, "Racer")!.z;
+    world.setResource("CurrentInputFrame", {
+      actions: { accelerate: true },
+      axes: {}
+    });
+    world.mutateSingleton("RaceState", (state) => {
+      state.racePhase = "countdown";
+      state.countdownTime = 1.0;
     });
 
-    expect(game.getGameState().racePhase).toBe("countdown");
+    for (let i = 0; i < 30; i++) game.update(1 / 60);
 
-    // Advance simulation past countdown time (1.0s)
-    for (let i = 0; i < 70; i++) game.update(1 / 60);
+    expect(game.getGameState().racePhase).toBe("countdown");
+    expect(game.getGameState().speed).toBe(0);
+    expect(game.getGameState().timeLeft).toBe(DEFAULT_OUTRUN_CONFIG.raceTimeLimitSeconds);
+    expect(world.getComponent(firstRacer, "Racer")!.z).toBe(initialRacerZ);
+
+    for (let i = 0; i < 40; i++) game.update(1 / 60);
 
     expect(game.getGameState().racePhase).toBe("racing");
     expect(game.getGameState().countdownTime).toBe(0);
+    expect(game.getGameState().speed).toBeGreaterThan(0);
   });
 
   it("renders matching pixel-run counts for player and traffic cars in Canvas and Skia", async () => {
@@ -468,6 +490,128 @@ describe("OutrunGameplay", () => {
     expect(visualPalette?.hour).toBe("dawn");
     expect(visualPalette?.decor).toBe("sierra");
     expect(visualPalette?.skyBands).toHaveLength(7);
+  });
+
+  it("runs a deterministic headless race to a terminal state with fixed input", async () => {
+    const runRace = async () => {
+      const game = OutrunDefinition.createSimulation(20261104);
+      await game.init();
+      const world = game.getWorld();
+      world.setResource("CurrentInputFrame", {
+        actions: { accelerate: true },
+        axes: {}
+      });
+
+      const lapTimes: number[] = [];
+      world.getEventBus().on("outrun:lap", ({ lapTime }) => {
+        lapTimes.push(lapTime);
+      });
+
+      for (let frame = 0; frame < 3000; frame++) {
+        game.update(1 / 60);
+      }
+      game.update(1 / 60);
+
+      return {
+        state: game.getGameState(),
+        traffic: world.query("Racer").map((entity) =>
+          world.getComponent(entity, "Racer")
+        ),
+        lapTimes
+      };
+    };
+
+    const first = await runRace();
+    const second = await runRace();
+
+    expect(first.state).toEqual(second.state);
+    expect(first.traffic).toEqual(second.traffic);
+    expect(first.state.isGameOver).toBe(true);
+    expect(first.state.racePhase).toBe("finished");
+    expect(first.state.finishReason).toBeDefined();
+    expect(first.lapTimes).toHaveLength(first.state.finishReason === "finish" ? 1 : 0);
+    expect(second.lapTimes).toEqual(first.lapTimes);
+  });
+
+  it("finishes once when the player crosses the end of the track", async () => {
+    const game = new OutrunGame({ seed: 61, headless: true });
+    await game.init();
+
+    const world = game.getWorld();
+    const roadData = world.getResource<RoadData>("RoadData")!;
+    const lapEvents: number[] = [];
+    world.getEventBus().on("outrun:lap", ({ lapTime }) => lapEvents.push(lapTime));
+
+    world.mutateSingleton("RaceState", (state) => {
+      state.racePhase = "racing";
+      state.playerZ = roadData.trackLength - 10;
+      state.speed = 5000;
+      state.timeLeft = 20;
+    });
+
+    game.update(1 / 60);
+    expect(game.getGameState().playerZ).toBe(roadData.trackLength);
+    expect(game.getGameState().isGameOver).toBe(true);
+    expect(game.getGameState().finishReason).toBe("finish");
+    expect(game.getGameState().speed).toBe(0);
+
+    game.update(1 / 60);
+    expect(lapEvents).toHaveLength(1);
+  });
+
+  it("awards checkpoint time once when the player crosses a banner", async () => {
+    const game = new OutrunGame({ seed: 62, headless: true });
+    await game.init();
+
+    const world = game.getWorld();
+    const roadData = world.getResource<RoadData>("RoadData")!;
+    const firstCheckpoint = roadData.checkpoints?.[0];
+    expect(firstCheckpoint).toBeDefined();
+
+    const checkpointEvents: Array<{ checkpoint: number; timeBonus: number; timeLeft: number }> = [];
+    world.getEventBus().on("outrun:checkpoint", (event) => checkpointEvents.push(event));
+
+    world.mutateSingleton("RaceState", (state) => {
+      state.racePhase = "racing";
+      state.playerZ = firstCheckpoint! - 50;
+      state.speed = 12000;
+      state.timeLeft = 5;
+      state.checkpointsPassed = 0;
+    });
+
+    const system = new RoadAdvanceSystem();
+    system.update(world, 1 / 60);
+    system.update(world, 1 / 60);
+
+    expect(game.getGameState().checkpointsPassed).toBe(1);
+    expect(game.getGameState().timeLeft).toBeCloseTo(
+      5 - 2 / 60 + DEFAULT_OUTRUN_CONFIG.checkpointTimeBonusSeconds
+    );
+    expect(checkpointEvents).toHaveLength(1);
+    expect(checkpointEvents[0]?.checkpoint).toBe(1);
+    expect(checkpointEvents[0]?.timeBonus).toBe(DEFAULT_OUTRUN_CONFIG.checkpointTimeBonusSeconds);
+  });
+
+  it("ends the race on timeout without emitting a completed-lap event", async () => {
+    const game = new OutrunGame({ seed: 63, headless: true });
+    await game.init();
+
+    const world = game.getWorld();
+    const lapEvent = jest.fn();
+    world.getEventBus().on("outrun:lap", lapEvent);
+    world.mutateSingleton("RaceState", (state) => {
+      state.racePhase = "racing";
+      state.timeLeft = 0.001;
+      state.speed = 0;
+    });
+
+    new RoadAdvanceSystem().update(world, 1 / 60);
+
+    expect(game.getGameState().isGameOver).toBe(true);
+    expect(game.getGameState().racePhase).toBe("finished");
+    expect(game.getGameState().finishReason).toBe("timeout");
+    expect(game.getGameState().timeLeft).toBe(0);
+    expect(lapEvent).not.toHaveBeenCalled();
   });
 
 });

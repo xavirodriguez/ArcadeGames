@@ -7,9 +7,11 @@ import {
   SystemPhase,
   PhysicsIntegrateSystem,
   InvulnerabilitySystem,
+  HierarchySystem,
   CanonicalInputState,
   hasInputAction,
 } from "@tiny-aster/core";
+import type { System } from "@tiny-aster/core";
 import { GalaxianConfigSchema, GalaxianConfig } from "./types/GalaxianConfigSchema";
 import {
   GalaxianComponentRegistry,
@@ -115,6 +117,10 @@ export class GalaxianGame extends BaseGame<
     this.world.addSystem(new PhysicsIntegrateSystem<GalaxianComponentRegistry>(), {
       phase: SystemPhase.Simulation,
       priority: -10,
+    });
+    // Refresh local movement into world-space coordinates before collision consumers read transforms.
+    this.world.addSystem(new HierarchySystem() as System<GalaxianComponentRegistry>, {
+      phase: SystemPhase.Transform,
     });
     this.world.addSystem(new ProjectileCleanupSystem(this.bulletPool), {
       phase: SystemPhase.Collision,

@@ -54,6 +54,37 @@ function createCollisionEventsComponent() {
   };
 }
 
+function createBoxCollider(
+  width: number,
+  height: number,
+  layer: number,
+  mask: number
+): ColliderComponent {
+  return {
+    type: "Collider",
+    shape: { type: ShapeType.Box, width, height } as BoxShape,
+    layer,
+    mask,
+    enabled: true,
+    isTrigger: false,
+  };
+}
+
+function createDefaultRender(shape: string, size: number, color: string, order: number): RenderComponent {
+  return {
+    type: "Render",
+    shape,
+    size,
+    color,
+    order,
+    visible: true,
+    opacity: 1,
+    rotation: 0,
+    angularVelocity: 0,
+    hitFlashFrames: 0,
+  };
+}
+
 export class CentipedeEntityFactory {
   public static createPlayer(world: CentipedeWorld): void {
     const config = world.getResource<CentipedeConfig>("GameConfig") || DEFAULT_CENTIPEDE_CONFIG;
@@ -162,27 +193,8 @@ export class CentipedeEntityFactory {
 
     const entity = spawnEntity(world);
 
-    const render: RenderComponent = {
-      type: "Render",
-      shape: "mushroom",
-      size: config.CELL_SIZE,
-      color: isPoisoned ? "toxin" : "mushroomA",
-      order: 2,
-      visible: true,
-      opacity: 1,
-      rotation: 0,
-      angularVelocity: 0,
-      hitFlashFrames: 0,
-    };
-
-    const collider: ColliderComponent = {
-      type: "Collider",
-      shape: { type: ShapeType.Box, width: config.CELL_SIZE, height: config.CELL_SIZE } as BoxShape,
-      layer: CollisionLayers.ENEMY,
-      mask: CollisionLayers.PROJECTILE | CollisionLayers.PLAYER,
-      enabled: true,
-      isTrigger: false,
-    };
+    const render = createDefaultRender("mushroom", config.CELL_SIZE, isPoisoned ? "toxin" : "mushroomA", 2);
+    const collider = createBoxCollider(config.CELL_SIZE, config.CELL_SIZE, CollisionLayers.ENEMY, CollisionLayers.PROJECTILE | CollisionLayers.PLAYER);
 
     attachComponent(world, entity, createTransformComponent(pos.x, pos.y));
     attachComponent(world, entity, render);
@@ -340,27 +352,8 @@ export class CentipedeEntityFactory {
       angularVelocity: 0,
     };
 
-    const render: RenderComponent = {
-      type: "Render",
-      shape: "spider",
-      size: config.CELL_SIZE * 1.2,
-      color: "amber",
-      order: 8,
-      visible: true,
-      opacity: 1,
-      rotation: 0,
-      angularVelocity: 0,
-      hitFlashFrames: 0,
-    };
-
-    const collider: ColliderComponent = {
-      type: "Collider",
-      shape: { type: ShapeType.Box, width: config.CELL_SIZE, height: config.CELL_SIZE } as BoxShape,
-      layer: CollisionLayers.ENEMY,
-      mask: CollisionLayers.PROJECTILE | CollisionLayers.PLAYER,
-      enabled: true,
-      isTrigger: false,
-    };
+    const render = createDefaultRender("spider", config.CELL_SIZE * 1.2, "amber", 8);
+    const collider = createBoxCollider(config.CELL_SIZE, config.CELL_SIZE, CollisionLayers.ENEMY, CollisionLayers.PROJECTILE | CollisionLayers.PLAYER);
 
     attachComponent(world, entity, createTransformComponent(x, y));
     attachComponent(world, entity, velocity);
@@ -445,27 +438,8 @@ export class CentipedeEntityFactory {
       angularVelocity: 0,
     };
 
-    const render: RenderComponent = {
-      type: "Render",
-      shape: "scorpion",
-      size: config.CELL_SIZE * 1.2,
-      color: "toxin",
-      order: 6,
-      visible: true,
-      opacity: 1,
-      rotation: 0,
-      angularVelocity: 0,
-      hitFlashFrames: 0,
-    };
-
-    const collider: ColliderComponent = {
-      type: "Collider",
-      shape: { type: ShapeType.Box, width: config.CELL_SIZE * 1.2, height: config.CELL_SIZE * 0.8 } as BoxShape,
-      layer: CollisionLayers.ENEMY,
-      mask: CollisionLayers.PROJECTILE | CollisionLayers.PLAYER,
-      enabled: true,
-      isTrigger: false,
-    };
+    const render = createDefaultRender("scorpion", config.CELL_SIZE * 1.2, "toxin", 6);
+    const collider = createBoxCollider(config.CELL_SIZE * 1.2, config.CELL_SIZE * 0.8, CollisionLayers.ENEMY, CollisionLayers.PROJECTILE | CollisionLayers.PLAYER);
 
     attachComponent(world, entity, createTransformComponent(pos.x, pos.y));
     attachComponent(world, entity, velocity);

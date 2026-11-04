@@ -13,6 +13,7 @@ import {
 } from "./OutrunRenderShared";
 import { computeSpeedLines, computeOutrunPlayerArtworkScale } from "./OutrunVisualHelpers";
 import { computeOutrunRoadSpeedLineSegments, resolveOutrunRoadSegmentArtwork } from "./OutrunRoadArtwork";
+import { fogIntensity, resolveRoadFogColor } from "./OutrunFog";
 import { resolveOutrunRoadsideArtworkStyle } from "./OutrunRoadsideArtwork";
 import { resolveOutrunPlayerPalette, resolveOutrunTrafficArtworkStyle, resolveOutrunTrafficVehicleGeometry } from "./OutrunVehicleArtwork";
 import { computeOutrunHeadlightBeams } from "./OutrunLighting";
@@ -678,6 +679,13 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
       console.warn("[drawOutrunRoad] 100% of projected road segments were clipped or discarded.");
     }
 
+    // Shared atmospheric fog overlay: dense at the horizon, fading towards the camera.
+    const fogGradient = ctx.createLinearGradient(0, horizonY, 0, screenH);
+    fogGradient.addColorStop(0, resolveRoadFogColor(visualPalette, fogIntensity(1)));
+    fogGradient.addColorStop(1, resolveRoadFogColor(visualPalette, fogIntensity(0)));
+    ctx.fillStyle = fogGradient;
+    ctx.fillRect(0, horizonY, screenW, screenH - horizonY);
+
     // Flat headlight cones.
     const headlightBeams = computeOutrunHeadlightBeams(state, config, visualPalette);
     if (headlightBeams.length > 0) {
@@ -793,7 +801,10 @@ export const drawOutrunHud = {
     const hudCtx = resolveOutrunHudContext(world);
     if (!hudCtx) return;
 
-    const { state, config, speedKmh, timeStr, phase, progressFraction, visualPalette } = hudCtx;
+    const {
+      state, config, speedKmh, timeStr, phase, progressFraction,
+      resultTitle, resultDetail, visualPalette
+    } = hudCtx;
     const layout = resolveOutrunHudLayout({ config, progressFraction, speedKmh, timeStr, visualPalette });
     const shared = visualPalette.shared;
     ctx.save();
@@ -884,7 +895,9 @@ export const drawOutrunHud = {
       ctx.fillStyle = shared.cream;
       ctx.font = `${layout.resultsFont}px sans-serif`;
       ctx.textAlign = "center";
-      ctx.fillText("Fin del recorrido", layout.centerX, layout.centerY);
+      ctx.fillText(resultTitle, layout.centerX, layout.centerY - layout.resultsFont * 0.18);
+      ctx.font = `${Math.max(12, layout.resultsFont * 0.48)}px sans-serif`;
+      ctx.fillText(resultDetail, layout.centerX, layout.centerY + layout.resultsFont * 0.9);
     }
 
     ctx.restore();

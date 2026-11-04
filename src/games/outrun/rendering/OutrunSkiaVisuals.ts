@@ -15,6 +15,7 @@ import {
 } from "./OutrunRenderShared";
 import { computeSpeedLines, computeOutrunPlayerArtworkScale } from "./OutrunVisualHelpers";
 import { computeOutrunRoadSpeedLineSegments, resolveOutrunRoadSegmentArtwork } from "./OutrunRoadArtwork";
+import { fogIntensity, resolveRoadFogColor } from "./OutrunFog";
 import { resolveOutrunRoadsideArtworkStyle } from "./OutrunRoadsideArtwork";
 import { resolveOutrunPlayerPalette, resolveOutrunTrafficArtworkStyle, resolveOutrunTrafficVehicleGeometry } from "./OutrunVehicleArtwork";
 import { computeOutrunHeadlightBeams } from "./OutrunLighting";
@@ -710,6 +711,22 @@ export const drawSkiaOutrunRoad: ShapeDrawer<SkCanvas, OutrunComponentRegistry> 
       console.warn("[drawSkiaOutrunRoad] 100% of projected road segments were clipped or discarded.");
     }
 
+    // Keep the same horizon-to-camera fog curve and palette as the Canvas backend.
+    const fogShader = Skia.Shader.MakeLinearGradient(
+      Skia.Point(0, horizonY),
+      Skia.Point(0, screenH),
+      [
+        Skia.Color(resolveRoadFogColor(visualPalette, fogIntensity(1))),
+        Skia.Color(resolveRoadFogColor(visualPalette, fogIntensity(0)))
+      ],
+      [0, 1],
+      Skia.TileMode.Clamp
+    );
+    const fogPaint = Skia.Paint();
+    fogPaint.setShader(fogShader);
+    fogPaint.setStyle(Skia.PaintStyle.Fill);
+    canvas.drawRect(Skia.XYWHRect(0, horizonY, screenW, screenH - horizonY), fogPaint);
+
     // Flat headlight cones.
     const headlightBeams = computeOutrunHeadlightBeams(state, config, visualPalette);
     for (const beam of headlightBeams) {
@@ -853,7 +870,10 @@ export const drawSkiaOutrunHud = {
     const hudCtx = resolveOutrunHudContext(world);
     if (!hudCtx) return;
 
-    const { state, config, speedKmh, timeStr, phase, progressFraction, visualPalette } = hudCtx;
+    const {
+      state, config, speedKmh, timeStr, phase, progressFraction,
+      resultTitle, resultDetail, visualPalette
+    } = hudCtx;
     const layout = resolveOutrunHudLayout({ config, progressFraction, speedKmh, timeStr, visualPalette });
     const shared = visualPalette.shared;
     canvas.save();
@@ -929,11 +949,11 @@ export const drawSkiaOutrunHud = {
       overPaint.setAlphaf(0.72);
       overPaint.setStyle(Skia.PaintStyle.Fill);
       canvas.drawRect(Skia.XYWHRect(0, 0, config.WIDTH, config.HEIGHT), overPaint);
-      const label = "Fin del recorrido";
-      const font = Skia.Font ? Skia.Font(null, layout.resultsFont) : null;
-      const labelWidth = font?.measureText ? font.measureText(label).width : label.length * layout.resultsFont * 0.56;
-      drawOutrunSkiaHudText(canvas, label, layout.centerX - labelWidth / 2,
-        layout.centerY, layout.resultsFont, shared.cream);
+      drawOutrunSkiaHudText(canvas, resultTitle, layout.centerX,
+        layout.centerY - layout.resultsFont * 0.18, layout.resultsFont, shared.cream, "center");
+      drawOutrunSkiaHudText(canvas, resultDetail, layout.centerX,
+        layout.centerY + layout.resultsFont * 0.9,
+        Math.max(12, layout.resultsFont * 0.48), shared.cream, "center");
     }
 
     canvas.restore();

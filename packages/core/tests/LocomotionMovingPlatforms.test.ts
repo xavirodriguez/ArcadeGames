@@ -1,4 +1,5 @@
 import { World } from "../src/ecs/World";
+import { EventBus } from "../src/events/EventBus";
 import { CoreComponentRegistry } from "../src/ecs/CoreComponents";
 import { MovingPlatformSystem } from "../src/physics/systems/MovingPlatformSystem";
 import { PlatformCarrySystem } from "../src/physics/systems/PlatformCarrySystem";
@@ -63,6 +64,20 @@ describe("Locomotion B5 moving-platform support", () => {
     expect(contact?.entity).toBe(platform);
     expect(contact?.normal).toEqual({ x: 0, y: -1 });
     expect(contact?.surfaceVelocity).toEqual({ x: 50, y: 0 });
+  });
+
+  it("emits a single transition event when a moving platform reverses direction", () => {
+    const world = new World<CoreComponentRegistry>();
+    world.setResource("EventBus", new EventBus());
+    const platform = createPlatform(world);
+    const events: Array<{ entity: number; x: number; y: number; velocityX: number; velocityY: number }> = [];
+    world.getEventBus().on("locomotion:platform_reversed", event => events.push(event));
+    const system = new MovingPlatformSystem();
+    system.update(world, 1);
+    system.update(world, 1);
+    system.update(world, 1);
+    expect(events).toHaveLength(1);
+    expect(events[0]).toMatchObject({ entity: platform, x: 100, y: 200, velocityX: -50, velocityY: 0 });
   });
 
   it("inherits vertical platform motion on landing and snaps to the moving top", () => {

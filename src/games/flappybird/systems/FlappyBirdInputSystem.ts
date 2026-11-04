@@ -116,6 +116,14 @@ export class FlappyBirdInputSystem extends System<FlappyBirdComponentRegistry> {
         });
 
         if (shouldFlap) {
+          // First flap ends the grace period immediately so this frame is unconstrained
+          const flappyState = world.getSingleton("FlappyState");
+          if (flappyState && (flappyState.graceTimeRemaining ?? 0) > 0) {
+            world.mutateSingleton("FlappyState", (gs) => {
+              gs.graceTimeRemaining = 0;
+            });
+          }
+
           world.mutateComponent(entity, "Velocity", mutableVel => {
             mutableVel.vy = this.config.FLAP_STRENGTH;
           });
@@ -145,6 +153,25 @@ export class FlappyBirdInputSystem extends System<FlappyBirdComponentRegistry> {
           v.vy += (this.config.GRAVITY || FLAPPY_CONFIG.GRAVITY) * dt;
           nextVelY = v.vy;
         });
+
+        // During grace period, clamp fall so the bird floats above GRACE_MAX_FALL_Y
+        const flappyStateAfterFlap = world.getSingleton("FlappyState");
+        const graceRemaining = flappyStateAfterFlap?.graceTimeRemaining ?? 0;
+        if (graceRemaining > 0) {
+          const transform = world.getComponent(entity, "Transform");
+          if (transform) {
+            const predictedY = transform.y + nextVelY * dt;
+            if (predictedY > this.config.GRACE_MAX_FALL_Y) {
+              world.mutateComponent(entity, "Transform", (t) => {
+                t.y = this.config.GRACE_MAX_FALL_Y;
+              });
+              world.mutateComponent(entity, "Velocity", (v) => {
+                v.vy = 0;
+              });
+              nextVelY = 0;
+            }
+          }
+        }
 
         // Sync bird component velocityY
         world.mutateComponent(entity, "Bird", b => {

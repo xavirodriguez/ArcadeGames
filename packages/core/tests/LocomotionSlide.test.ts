@@ -1,4 +1,5 @@
 import { World } from "../src/ecs/World";
+import { EventBus } from "../src/events/EventBus";
 import { CoreComponentRegistry } from "../src/ecs/CoreComponents";
 import { PlatformerSlideSystem } from "../src/physics/systems/PlatformerSlideSystem";
 import { PlatformerMovementSystem } from "../src/physics/systems/PlatformerMovementSystem";
@@ -8,6 +9,7 @@ import { ShapeType } from "../src/physics/shapes/Shapes";
 describe("Locomotion B2 slide posture", () => {
   const createPlayer = (withCeiling = false) => {
     const world = new World<CoreComponentRegistry>();
+    world.setResource("EventBus", new EventBus());
     const tilemap = world.createEntity();
     world.addComponent(tilemap, {
       type: "Tilemap",
@@ -53,6 +55,16 @@ describe("Locomotion B2 slide posture", () => {
     expect(posture.current).toBe("sliding");
     expect(collider.shape.type === "aabb" ? collider.shape.halfHeight : 0).toBe(10);
     expect(transform.y + 10).toBeCloseTo(80, 5);
+  });
+
+  it("emits one slide-start event only after a successful posture transition", () => {
+    const { world, player } = createPlayer();
+    const events: Array<{ entity: number; x: number; y: number; velocityX: number; velocityY: number }> = [];
+    world.getEventBus().on("locomotion:slide_started", event => events.push(event));
+    const system = new PlatformerSlideSystem();
+    system.update(world, 1 / 60);
+    system.update(world, 1 / 60);
+    expect(events).toEqual([{ entity: player, x: 20, y: 55, velocityX: 180, velocityY: 0 }]);
   });
 
   it("rejects slide entry below the configured minimum speed", () => {

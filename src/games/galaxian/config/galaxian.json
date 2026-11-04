@@ -26,6 +26,7 @@
     "slotSpacingY": 28,
     "oscillationAmplitude": 60,
     "oscillationFrequency": 0.35,
+    "layoutVariants": ["classic", "staggered", "chevron"],
     "grid": [
       { "type": "flagship", "row": 0, "count": 2, "pointsFormation": 150, "pointsDive": 300, "bonusEscorted": 500 },
       { "type": "escort", "row": 1, "count": 6, "pointsFormation": 50, "pointsDive": 100, "bonusEscorted": 0 },
@@ -85,6 +86,8 @@
   "wave": {
     "speedMultiplierPerWave": 1.08,
     "diveIntervalMultiplierPerWave": 0.92,
+    "minimumDiveIntervalMs": 900,
+    "maxDiveSpeedMultiplier": 2.5,
     "maxConcurrentDivesCap": 6
   },
   "visual": {

@@ -3,6 +3,11 @@ import { isGalaxianGameOver } from "./isGalaxianGameOver";
 import { GalaxianComponentRegistry, GalaxianEventRegistry, GalaxianEnemyComponent, FormationComponent, GalaxianStateComponent } from "../types/GalaxianTypes";
 import { GalaxianConfig } from "../types/GalaxianConfigSchema";
 import { PathPatternsSystem, createPathPattern, PathPatternComponent } from "../../shared/PathPatternsSystem";
+import {
+  getWaveDiveIntervalSeconds,
+  getWaveDiveSpeedMultiplier,
+  getWaveMaxConcurrentDives,
+} from "../WaveDifficulty";
 
 export class DiveSystem extends System<GalaxianComponentRegistry, GalaxianEventRegistry> {
   private pathPatternsSystem: PathPatternsSystem;
@@ -56,7 +61,7 @@ export class DiveSystem extends System<GalaxianComponentRegistry, GalaxianEventR
             pattern: "waypoints",
             originX: startX,
             originY: startY,
-            speed: pathDef.speed,
+            speed: pathDef.speed * getWaveDiveSpeedMultiplier(config, state.level),
             waypoints,
             loop: false,
           }));
@@ -119,14 +124,10 @@ export class DiveSystem extends System<GalaxianComponentRegistry, GalaxianEventR
 
     // 3. Dive Scheduler: trigger new dives if under max limit
     state.diveTimer -= deltaTime;
-    const maxConcurrentCap = config.wave?.maxConcurrentDivesCap ?? 6;
-    const maxConcurrent = Math.min(
-      maxConcurrentCap,
-      Math.floor(config.dive.maxConcurrentDives * Math.pow(config.wave.speedMultiplierPerWave, state.level - 1))
-    );
+    const maxConcurrent = getWaveMaxConcurrentDives(config, state.level);
 
     if (state.diveTimer <= 0 && activeDives < maxConcurrent) {
-      state.diveTimer = (config.dive.intervalMs / 1000) * Math.pow(config.wave.diveIntervalMultiplierPerWave, state.level - 1);
+      state.diveTimer = getWaveDiveIntervalSeconds(config, state.level);
 
       // Find enemies in slot available for dive
       const candidateEntities: number[] = [];

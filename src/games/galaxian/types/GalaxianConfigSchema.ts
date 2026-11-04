@@ -88,6 +88,7 @@ export const GalaxianConfigSchema = z.object({
     slotSpacingY: z.number().positive().default(28),
     oscillationAmplitude: z.number().nonnegative().default(60),
     oscillationFrequency: z.number().positive().default(0.35),
+    layoutVariants: z.array(z.enum(["classic", "staggered", "chevron"])).min(1).default(["classic", "staggered", "chevron"]),
     grid: z.array(GalaxianFormationRowSchema),
   }),
   dive: z.object({
@@ -102,6 +103,8 @@ export const GalaxianConfigSchema = z.object({
   wave: z.object({
     speedMultiplierPerWave: z.number().positive().default(1.08),
     diveIntervalMultiplierPerWave: z.number().positive().default(0.92),
+    minimumDiveIntervalMs: z.number().positive().default(900),
+    maxDiveSpeedMultiplier: z.number().min(1).default(2.5),
     maxConcurrentDivesCap: z.number().int().positive().default(6),
   }),
   visual: GalaxianVisualSchema,

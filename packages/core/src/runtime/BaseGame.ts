@@ -277,6 +277,8 @@ export abstract class BaseGame<
   protected unifiedInput: IInputSystem<TInput>;
   protected _config: BaseGameConfig<TComponents, TEvents, TInput, TBlueprints>;
   private lifecycleState: GameLifecycleState = GameLifecycleState.UNINITIALIZED;
+  /** Seed used to initialize this game's deterministic random streams. */
+  private initialSeed: number;
   private isPaused = false;
   /** High-level state machine kernel for flow and session transition management. */
   public readonly kernel: ArcadeKernel;
@@ -350,6 +352,7 @@ export abstract class BaseGame<
 
     // Set the initial gameplay random seed from config/options
     const initialSeed = (config.gameOptions?.seed as number) ?? config.seed ?? Math.floor(Math.random() * 0xFFFFFFFF);
+    this.initialSeed = initialSeed;
     this.world.gameplayRandom.unlock();
     this.world.gameplayRandom.setSeed(initialSeed);
     this.world.gameplayRandom.lock();
@@ -848,6 +851,7 @@ export abstract class BaseGame<
    */
   public async restart(seed?: number): Promise<void> {
     if (seed !== undefined) {
+      this.initialSeed = seed;
       this._config.gameOptions = { ...this._config.gameOptions, seed };
     }
 
@@ -863,6 +867,9 @@ export abstract class BaseGame<
 
     // Reset world and re-register resources
     this.world = new World<TComponents, TEvents, TBlueprints>(this._config.schedule);
+    this.world.gameplayRandom.unlock();
+    this.world.gameplayRandom.setSeed(this.initialSeed);
+    this.world.gameplayRandom.lock();
     this.sceneManager = this._config.sceneManagerFactory
       ? this._config.sceneManagerFactory(this.world, this.eventBus)
       : new SceneManager<TComponents>(this.world, this.eventBus);
@@ -966,7 +973,7 @@ export abstract class BaseGame<
    * Returns the random seed used to initialize the game world simulation.
    */
   public getSeed(): number {
-    return (this._config.gameOptions?.seed as number) ?? this._config.seed ?? 0;
+    return this.initialSeed;
   }
 
   /**

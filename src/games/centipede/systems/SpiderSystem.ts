@@ -9,6 +9,23 @@ export class SpiderSystem extends System<CentipedeComponentRegistry, CentipedeEv
   public update(world: World<CentipedeComponentRegistry, CentipedeEventRegistry>, dt: number): void {
     const config = world.getResource<CentipedeConfig>("GameConfig") || DEFAULT_CENTIPEDE_CONFIG;
     const spiders = world.query("Spider", "Transform", "Velocity");
+    const mushroomsByCell = new Map<number, number[]>();
+
+    if (spiders.length > 0) {
+      const mushrooms = world.query("Mushroom");
+      for (const mushroomEntity of mushrooms) {
+        const mushroom = world.getComponent(mushroomEntity, "Mushroom");
+        if (!mushroom) continue;
+
+        const cellKey = mushroom.row * config.GRID_COLS + mushroom.col;
+        const cellEntities = mushroomsByCell.get(cellKey);
+        if (cellEntities) {
+          cellEntities.push(mushroomEntity);
+        } else {
+          mushroomsByCell.set(cellKey, [mushroomEntity]);
+        }
+      }
+    }
 
     if (spiders.length === 0) {
       this.spawnTimerMs -= dt * 1000;
@@ -53,6 +70,24 @@ export class SpiderSystem extends System<CentipedeComponentRegistry, CentipedeEv
       transform.x += velocity.vx * dt;
       transform.y += velocity.vy * dt;
       transform.dirty = true;
+
+      const currentRow = Math.floor(transform.y / config.CELL_SIZE);
+      const currentCol = Math.floor(transform.x / config.CELL_SIZE);
+      if (
+        currentRow >= 0 &&
+        currentRow < config.GRID_ROWS &&
+        currentCol >= 0 &&
+        currentCol < config.GRID_COLS
+      ) {
+        const cellKey = currentRow * config.GRID_COLS + currentCol;
+        const mushroomsInCell = mushroomsByCell.get(cellKey);
+        if (mushroomsInCell) {
+          for (const mushroomEntity of mushroomsInCell) {
+            world.commands.removeEntity(mushroomEntity);
+          }
+          mushroomsByCell.delete(cellKey);
+        }
+      }
     }
   }
 }

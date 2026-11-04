@@ -5,7 +5,8 @@ import * as path from "path";
 /**
  * Script de Ratchet Linter para duplicación de código usando `jscpd`.
  *
- * Mide duplicados en `packages/core/src` y `src/games`, excluyendo tests y artefactos.
+ * Mide los directorios definidos en `.jscpd.json` (Core, Sound Kit y game modules),
+ * excluyendo tests y artefactos según esa configuración.
  * Compara contra `scripts/duplication-baseline.json` y falla si las líneas duplicadas o
  * el porcentaje de duplicación incrementan respecto al baseline.
  */

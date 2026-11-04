@@ -23,6 +23,8 @@ const [
   manifest,
   appManifest,
   appConfigSource,
+  soundKitManifest,
+  soundKitReadme,
   workspaceConfig,
   serverManifest,
   identityDoc,
@@ -40,6 +42,8 @@ const [
   readJson("package.json"),
   readJson("app.json"),
   readFile(path.join(rootDir, "app.config.ts"), "utf8"),
+  readJson("packages/arcade-sound-kit/package.json"),
+  readFile(path.join(rootDir, "packages/arcade-sound-kit/README.md"), "utf8"),
   readFile(path.join(rootDir, "pnpm-workspace.yaml"), "utf8"),
   readJson("server/package.json"),
   readFile(path.join(rootDir, "docs/PROJECT_IDENTITY_AND_NAMING.md"), "utf8"),
@@ -150,6 +154,10 @@ if (
 }
 if (!workspaceConfig.includes("- packages/*") || !workspaceConfig.includes("- server")) {
   failures.push("pnpm-workspace.yaml must declare packages/* and server as workspaces.");
+}
+const soundKitReadmeVersion = soundKitReadme.match(/^\\*\\*v([^*]+)\\*\\* features:/m)?.[1];
+if (soundKitReadmeVersion && soundKitReadmeVersion !== soundKitManifest.version) {
+  failures.push(`arcade-sound-kit README version ${soundKitReadmeVersion} does not match package.json version ${soundKitManifest.version}.`);
 }
 if (
   !appConfigSource.includes(`const ARCADE_OWNER = "${rootExpoConfig.owner}"`) ||

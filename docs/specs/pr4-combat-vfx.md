@@ -18,7 +18,8 @@ PR4 extends the existing procedural VFX contract. It does not add a parallel ren
 - The existing `bouncing_bullets` mutator enables `BULLET_BOUNDARY_BEHAVIOR: "bounce"` for player projectiles.
 - `BoundarySystem` emits `boundary:bounce` only after an actual velocity reflection; clamp-only boundary contacts do not emit it.
 - `AsteroidCollisionSystem` filters the event to entities carrying `Bullet` and spawns `pixelfx_ricochet` at the clamped contact position. X and Y reflections use distinct effect orientations.
-- Projectile lifetime remains bounded by the existing TTL. The VFX does not influence velocity, collision response, or TTL.
+- Each bullet is limited to three reflections. The remaining count is stored on its `Bullet` component, decremented by the authoritative bounce event, and reset when the pooled projectile is reused; the third reflection reclaims the projectile.
+- The bounce counter advances during rollback resimulation, while only the VFX is suppressed. The existing TTL remains an independent lifetime bound.
 
 ### Vertical Shmup — explicit shield
 

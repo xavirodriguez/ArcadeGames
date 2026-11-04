@@ -139,6 +139,14 @@ export class CombatSystem<
           } as TEvents[Extract<keyof TEvents, string>]
         );
       }
+      // A shield absorbs the hit, not the projectile. Preserve the attacker's declared consumption policy.
+      const shieldHitPolicy = damageComp.consumption || "none";
+      if (shieldHitPolicy === "destroy-entity") {
+        this.reclaimAndDestroy(world, attacker);
+        destroyedEntities.add(attacker);
+      } else if (shieldHitPolicy === "remove-component") {
+        world.getCommandBuffer().removeComponent(attacker, damageKey);
+      }
       return;
     }
 

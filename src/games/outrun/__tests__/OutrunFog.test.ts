@@ -1,7 +1,12 @@
+import { resolveOutrunRoadsideArtworkStyle } from "../rendering/OutrunRoadsideArtwork";
+import { createVisualPaletteResource, lerpColor } from "../utils/palette";
+import { DEFAULT_OUTRUN_CONFIG } from "../types/OutrunConfigSchema";
+import type { RaceStateComponent, RoadData, RoadSegmentSprite } from "../types/OutrunTypes";
 import {
   smoothstep,
   fogIntensity,
   hexToRgb,
+  resolveRoadFogColor,
   resolveSegmentFog
 } from "../rendering/OutrunFog";
 import {
@@ -74,5 +79,60 @@ describe("resolveSegmentFog", () => {
       const style = resolveSegmentFog(0.8, pal);
       expect(style.rgba.includes("135, 206, 235")).toBe(false);
     }
+  });
+});
+
+
+describe("resolveRoadFogColor", () => {
+  it("uses the far sky band and clamps the requested opacity", () => {
+    const farBand = COAST_PALETTE.skyBands[COAST_PALETTE.skyBands.length - 1]!;
+    const [red, green, blue] = hexToRgb(farBand);
+
+    expect(resolveRoadFogColor(COAST_PALETTE, 0.25)).toBe(
+      `rgba(${red}, ${green}, ${blue}, 0.25)`
+    );
+    expect(resolveRoadFogColor(COAST_PALETTE, -1)).toBe(
+      `rgba(${red}, ${green}, ${blue}, 0)`
+    );
+    expect(resolveRoadFogColor(COAST_PALETTE, 2)).toBe(
+      `rgba(${red}, ${green}, ${blue}, 1)`
+    );
+  });
+});
+
+describe("roadside fog parity", () => {
+  const roadData: RoadData = {
+    trackLength: 100,
+    segments: [{ index: 0, length: 100, curve: 0, hill: 0, scenarioId: "coast" }]
+  };
+  const state: RaceStateComponent = {
+    type: "RaceState",
+    playerZ: 0,
+    playerX: 0,
+    speed: 0,
+    lapTime: 0,
+    isGameOver: false,
+    position: 1,
+    currentSegment: 0
+  };
+
+  it("uses the same depth opacity as road-strip fog, not the old independent haze mix", () => {
+    const baseVisual = createVisualPaletteResource(state, roadData, DEFAULT_OUTRUN_CONFIG);
+    const visual = {
+      ...baseVisual,
+      tuning: {
+        ...baseVisual.tuning,
+        decor: { ...baseVisual.tuning.decor, distantObjectHazeMix: 0.05 }
+      }
+    };
+    const depth = 0.63;
+    const sprite: RoadSegmentSprite = { offset: 2, side: 1, kind: "tree" };
+    const style = resolveOutrunRoadsideArtworkStyle(sprite, visual, depth, 80, false);
+    const sharedAlpha = fogIntensity(depth);
+
+    expect(resolveSegmentFog(depth, COAST_PALETTE).alpha).toBeCloseTo(sharedAlpha, 3);
+    expect(style.foliageColor).toBe(
+      lerpColor(baseVisual.tokens.foliage, baseVisual.tokens.horizon, sharedAlpha)
+    );
   });
 });

@@ -13,6 +13,7 @@ import {
 } from "./OutrunRenderShared";
 import { computeSpeedLines, computeOutrunPlayerArtworkScale } from "./OutrunVisualHelpers";
 import { computeOutrunRoadSpeedLineSegments, resolveOutrunRoadSegmentArtwork } from "./OutrunRoadArtwork";
+import { fogIntensity, resolveRoadFogColor } from "./OutrunFog";
 import { resolveOutrunRoadsideArtworkStyle } from "./OutrunRoadsideArtwork";
 import { resolveOutrunPlayerPalette, resolveOutrunTrafficArtworkStyle, resolveOutrunTrafficVehicleGeometry } from "./OutrunVehicleArtwork";
 import { computeOutrunHeadlightBeams } from "./OutrunLighting";
@@ -677,6 +678,13 @@ export const drawOutrunRoad: ShapeDrawer<CanvasRenderingContext2D, OutrunCompone
     if (count > 0 && renderedCount === 0) {
       console.warn("[drawOutrunRoad] 100% of projected road segments were clipped or discarded.");
     }
+
+    // Shared atmospheric fog overlay: dense at the horizon, fading towards the camera.
+    const fogGradient = ctx.createLinearGradient(0, horizonY, 0, screenH);
+    fogGradient.addColorStop(0, resolveRoadFogColor(palette, fogIntensity(1)));
+    fogGradient.addColorStop(1, resolveRoadFogColor(palette, fogIntensity(0)));
+    ctx.fillStyle = fogGradient;
+    ctx.fillRect(0, horizonY, screenW, screenH - horizonY);
 
     // Flat headlight cones.
     const headlightBeams = computeOutrunHeadlightBeams(state, config, visualPalette);

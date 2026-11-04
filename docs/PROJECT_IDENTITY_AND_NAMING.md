@@ -13,6 +13,8 @@ This document defines the names used by the Tiny Aster project. It separates the
 | Root Expo workspace package | `asteroides` | Private application workspace name in the root `package.json`; retained as a legacy identifier. |
 | Default Expo app identity | name `asteroides`, slug `asteroids`, scheme `asteroides` | Existing root application identifiers in `app.json` and `app.config.ts`. |
 | Native application IDs | `com.ensable.asteroids` | Existing Android package and iOS bundle identifier. Treat as compatibility-sensitive identifiers. |
+| Expo owner | `ensable` | Existing Expo/EAS account owner. |
+| EAS project ID | `73fa3f33-9fb8-472b-a676-868aaac4e963` | Existing Expo Application Services project identity. |
 | Server workspace package | `asteroides-server` | Existing internal server package name. |
 
 **Do not rename the root package or Expo/native identifiers as a documentation cleanup.** Changes to the Expo scheme, slug, Android package, iOS bundle identifier or EAS identity can affect app installation, deep links, updates and distribution. A future product rebrand must use a separate migration plan that checks both stores, EAS, deep links, persisted app data and all deployment environments.
@@ -54,7 +56,8 @@ The root `package.json` is private and represents the Expo application workspace
 ## Sources of truth
 
 - Root package and scripts: `package.json`.
-- Default Expo identity: `app.json` and `app.config.ts`.
+- Default Expo identity and EAS project: `app.json` and `app.config.ts`.
+- Server workspace identity: `server/package.json`.
 - Workspace package identities: `packages/*/package.json`.
 - Game IDs: directories under `src/games/` (excluding `shared/`) and the corresponding game manifests/routes.
 - Agent policy: `AGENTS.md` and `docs/agents/OPERATING_CONTRACT.md`.

@@ -196,16 +196,16 @@ No schedule change is required solely to make priority -10 late in Simulation: t
 
 | Sistema | Implementado | Registrado | Jugable | Test integrado |
 |---|---|---|---|---|
-| Acceleration / braking | Sí | Sí | Sí | `LocomotionIntegrationScenarios.test.ts` (Scenario 1) |
-| Momentum / jump inheritance | Sí | Sí | Sí | `LocomotionIntegrationScenarios.test.ts` (Scenario 2, 7) |
-| Slopes | Sí | Sí | Sí | `LocomotionIntegrationScenarios.test.ts` (Scenario 2) |
+| Acceleration / braking | Sí | Sí | Sí | `LocomotionIntegrationScenarios.test.ts` (Scenario 1, Momentum vs Brake) |
+| Momentum / jump inheritance | Sí | Sí | Sí | `LocomotionIntegrationScenarios.test.ts` (Scenario 2, 7, Momentum gap) |
+| Slopes | Sí | Sí | Sí | `LocomotionIntegrationScenarios.test.ts` (Scenario 2), `LocomotionSlopes.test.ts` |
 | Ice | Sí | Sí | Sí | `LocomotionIntegrationScenarios.test.ts` (Scenario 3) |
-| Bounce surfaces | Sí | Sí | Sí | `LocomotionIntegrationScenarios.test.ts` (Scenario 4) |
+| Bounce surfaces | Sí | Sí | Sí | `LocomotionIntegrationScenarios.test.ts` (Scenario 4), `LocomotionCampaign.test.ts` |
 | One-way platforms | Sí | Sí | Sí | `LocomotionIntegrationScenarios.test.ts` (Scenario 5) |
-| Slide / posture | Sí | Sí | Sí | `LocomotionIntegrationScenarios.test.ts` (Scenario 6) |
-| Moving platforms | Sí | Sí | Sí | `LocomotionIntegrationScenarios.test.ts` (Scenario 7, 8) |
+| Slide / posture | Sí | Sí | Sí | `LocomotionIntegrationScenarios.test.ts` (Scenario 6), `LocomotionSlide.test.ts` |
+| Moving platforms | Sí | Sí | Sí | `LocomotionIntegrationScenarios.test.ts` (Scenario 7, 8), `LocomotionMovingPlatforms.test.ts` |
 | Platform carry | Sí | Sí | Sí | `LocomotionIntegrationScenarios.test.ts` (Scenario 7, 8) |
-| Keyboard controls | Sí | Sí | Sí | `src/app/platformer/index.tsx`, `useKeyboardControls.ts` |
+| Keyboard controls | Sí | Sí | Sí | `src/app/platformer/index.tsx`, `src/hooks/useKeyboardControls.ts` |
 | Touch controls | Sí | Sí | Sí | `src/app/platformer/index.tsx` (TouchDragZone / TouchActionButton) |
-| Snapshot / restore | Sí | Sí | Sí | `LocomotionDeterminismReplay.test.ts` (Round-trip) |
+| Snapshot / restore | Sí | Sí | Sí | `LocomotionDeterminismReplay.test.ts` (Round-trip mid-jump, mid-slide) |
 | Replay determinism | Sí | Sí | Sí | `LocomotionDeterminismReplay.test.ts` (Replay hash matching) |

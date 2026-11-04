@@ -169,8 +169,12 @@ Do not report a test as passing unless the command was actually executed against
   6. Slide under ceiling -> blocked posture -> restoration of standing height.
   7. Moving platform passenger transport -> jump inheriting platform velocity.
   8. Moving platform direction reversal and passenger detachment.
+  9. Momentum profile distinguishes coasting from active braking and responsive control.
+  10. Momentum run-up crosses a real three-tile gap that a stationary jump cannot clear.
 - Implemented determinism, replay, and snapshot restoration test suite in `packages/core/tests/LocomotionDeterminismReplay.test.ts`:
-  - Verified replay determinism producing identical AoS snapshot hashes and player transforms.
+  - Verified replay determinism producing identical AoS snapshot hashes and player transforms across independent runs with identical inputs.
   - Verified snapshot capture mid-jump followed by `SnapshotRestore.restore` produces identical subsequent simulation hashes as a continuous run.
   - Verified snapshot capture mid-slide followed by `SnapshotRestore.restore` preserves posture, timers, and subsequent simulation hashes.
+- Validated Platformer campaign levels (`locomotion-campaign.json`, `LocomotionCampaign.test.ts`, `PlatformerGame.test.ts`) covering momentum run-ups, slopes, ice, elastic bounce surfaces, one-way platforms, moving platforms, and low-clearance slides.
+- Validated Echo Runner production systems and `LocomotionLab.ts` (`EchoRunner.test.ts`, `LocomotionLab.test.ts`).
 - All suites executed and confirmed passing in the local workspace.

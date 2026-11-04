@@ -7,7 +7,7 @@ import {
 } from "@tiny-aster/core";
 import { DEFAULT_PLATFORMER_TILE_DEFINITIONS } from "../../shared/PlatformerArcadeGame";
 
-const templates = campaignData.templates as never as SegmentTemplate[];
+const templates = campaignData.templates as SegmentTemplate[];
 const momentum = campaignData.templates.find((template) => template.id === "momentum-01")!;
 const surface = campaignData.templates.find((template) => template.id === "surface-mastery-01")!;
 

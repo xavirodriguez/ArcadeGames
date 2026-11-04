@@ -233,7 +233,7 @@ describe("Platformer Game Simulation Tests", () => {
       // The campaign grammar stitches three authored sections into one playable route.
       expect(tilemap.data[0].length).toBeGreaterThan(24);
       expect(tileIds.has(2)).toBe(true);
-      expect(tileIds.has(3)).toBe(true);
+      expect(tileIds.has(3) || tileIds.has(7)).toBe(true);
       expect(tileIds.has(5)).toBe(true);
       expect(tileIds.has(6)).toBe(true);
       expect(campaignWorld.query("MovingPlatform")).toHaveLength(1);

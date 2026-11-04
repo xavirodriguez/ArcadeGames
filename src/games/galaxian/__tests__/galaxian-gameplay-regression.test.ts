@@ -58,6 +58,7 @@ describe("Galaxian gameplay regressions", () => {
     if (beforeX === undefined) throw new Error("Player transform was not available before movement");
 
     game.setInput({ moveLeft: true });
+    expect(world.getComponent(player, "Input")?.moveLeft).toBe(true);
     game.update(1 / 60);
 
     const after = world.getComponent(player, "Transform");
@@ -160,6 +161,110 @@ describe("Galaxian gameplay regressions", () => {
 
     // Keep the local variable explicit so the test also verifies that the formation entity survives wave replacement.
     expect(world.getComponent(formationEntity, "Formation")).toBeDefined();
+
+    await game.destroy();
+  });
+
+  it("fires enemy projectiles during dives and respects the per-dive shot limit", async () => {
+    const game = new GalaxianGame({ headless: true, seed: 12345 });
+    await game.init();
+    game.stop();
+
+    const world = game.getWorld();
+    const config = world.getResource<GalaxianConfig>("GameConfig");
+    const enemyEntity = world.query("GalaxianEnemy", "Transform")[0];
+    const enemy = world.getMutableComponent(enemyEntity, "GalaxianEnemy");
+    const transform = world.getMutableComponent(enemyEntity, "Transform");
+    const stateEntity = world.query("GameState")[0];
+    if (!config || !enemy || !transform) throw new Error("Enemy shooting setup is incomplete");
+
+    config.dive.enemyShootChance = 1;
+    config.dive.enemyShootMaxPerDive = 1;
+    enemy.state = "diving";
+    enemy.shotsFiredInDive = 0;
+    transform.x = config.worldWidth / 3;
+    transform.y = 200;
+    transform.dirty = true;
+    world.mutateComponent(stateEntity, "GameState", (state) => {
+      state.diveTimer = 10;
+    });
+
+    const originalNext = world.gameplayRandom.next;
+    world.gameplayRandom.next = () => 0;
+    try {
+      game.update(1 / 60);
+
+      const firstShots = world.query("EnemyBullet", "Velocity");
+      expect(firstShots).toHaveLength(1);
+      expect(enemy.shotsFiredInDive).toBe(1);
+
+      const velocity = world.getComponent(firstShots[0], "Velocity");
+      if (!velocity) throw new Error("Enemy projectile velocity is missing");
+      expect(Math.hypot(velocity.vx, velocity.vy)).toBeCloseTo(config.ENEMY_BULLET_SPEED);
+
+      game.update(1 / 60);
+      expect(world.query("EnemyBullet")).toHaveLength(1);
+      expect(enemy.shotsFiredInDive).toBe(1);
+    } finally {
+      world.gameplayRandom.next = originalNext;
+    }
+
+    await game.destroy();
+  });
+
+  it("reclaims enemy projectiles that leave the playfield", async () => {
+    const game = new GalaxianGame({ headless: true, seed: 12345 });
+    await game.init();
+    game.stop();
+
+    const world = game.getWorld();
+    const config = world.getResource<GalaxianConfig>("GameConfig");
+    if (!config) throw new Error("Galaxian config missing");
+
+    const bullet = game.getBulletPool().acquireEnemyBullet(world, config.worldWidth / 2, config.worldHeight + 100);
+    world.flush();
+
+    game.update(1 / 60);
+
+    expect(world.hasComponent(bullet, "EnemyBullet")).toBe(false);
+    expect(world.getComponent(bullet, "GalaxianBulletPoolEntry")?.available).toBe(true);
+
+    await game.destroy();
+  });
+
+  it("resolves player projectile hits, removes the target and awards formation points", async () => {
+    const game = new GalaxianGame({ headless: true, seed: 12345 });
+    await game.init();
+    game.stop();
+
+    const world = game.getWorld();
+    const droneEntity = world.query("GalaxianEnemy", "Transform").find((entity) => {
+      return world.getComponent(entity, "GalaxianEnemy")?.enemyType === "drone";
+    });
+    if (droneEntity === undefined) throw new Error("No drone enemy was available for the collision test");
+
+    const enemy = world.getComponent(droneEntity, "GalaxianEnemy");
+    const transform = world.getComponent(droneEntity, "Transform");
+    if (!enemy || !transform) throw new Error("Drone enemy data is incomplete");
+
+    const stateBefore = game.getGameState();
+    const expectedScore = stateBefore.score + enemy.pointsFormation;
+    const expectedRemaining = stateBefore.enemiesRemaining - 1;
+    const bullet = game.getBulletPool().acquirePlayerBullet(world, transform.x, transform.y);
+    world.flush();
+
+    let hitPoints = 0;
+    game.getEventBus().on("combat:enemy_hit", ({ entity, points }) => {
+      if (entity === droneEntity) hitPoints = points;
+    });
+
+    game.update(1 / 60);
+
+    expect(world.hasComponent(droneEntity, "GalaxianEnemy")).toBe(false);
+    expect(world.getComponent(bullet, "GalaxianBulletPoolEntry")?.available).toBe(true);
+    expect(game.getGameState().score).toBe(expectedScore);
+    expect(game.getGameState().enemiesRemaining).toBe(expectedRemaining);
+    expect(hitPoints).toBe(enemy.pointsFormation);
 
     await game.destroy();
   });

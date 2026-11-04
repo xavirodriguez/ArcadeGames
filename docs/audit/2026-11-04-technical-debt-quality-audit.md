@@ -51,9 +51,9 @@ This branch expands the deterministic source scope to:
 - all production TypeScript under `packages/gameplay-kit/src`;
 - `systems/`, `simulation/`, `factory(s)/`, `blueprint(s)/` and `entities/` paths;
 - root-level files whose names include `Factory` or `Blueprint`;
-- `Math.random()` checks in game `rendering/` and `presentation/` paths, where visual randomness must use an injected `world.renderRandom`.
+- `Math.random()` checks across all production `src/games/` modules, with visual-only effects expected to use an injected `world.renderRandom`.
 
-The clock rules remain limited to deterministic gameplay/simulation sources, avoiding false positives from render timing and UI instrumentation. Tests and mocks are excluded consistently. Structural-mutation checks remain limited to systems and simulation, because factories legitimately create and initialize entities.
+The clock rules remain limited to deterministic gameplay/simulation sources, avoiding false positives from render timing and UI instrumentation. Object iteration warnings also remain limited to deterministic gameplay sources. Tests and mocks are excluded consistently. Structural-mutation checks remain limited to systems and simulation, because factories legitimately create and initialize entities.
 
 ### Test inventory
 
@@ -67,7 +67,7 @@ The root `jest.config.cjs` already registers Jest projects for all 16 game modul
 ## Work started in this branch
 
 1. Added a testable path-classification module and regression tests for gameplay systems, factories, blueprints, gameplay-kit, test/mocks exclusion and the separation of structural-mutation rules.
-2. Expanded the AST linter's source coverage, including seeded-RNG enforcement in game rendering/presentation code.
+2. Expanded the AST linter's source coverage, including a no-`Math.random()` rule across all production game modules.
 3. Removed the implicit `Math.random()` fallback from `computeMotionSecondaryEffect`; all non-empty effects now require an injected RNG. Added seeded regression tests for flame, exhaust-smoke and dust-trail geometry.
 4. Changed `SpawnRequest.args` from `Record<string, any>` to `Record<string, unknown>` and removed its redundant `as any` call-site assertion in `SpawnDirectorSystem`.
 5. Added the classification test command to ECS Sentinel CI.

@@ -19,6 +19,12 @@ import { drawProceduralSceneCanvas } from "../../../../shared/procedural/renderi
 import { drawGroundShadowEllipse } from "../HitRunThemeUtils";
 import { drawProceduralSceneSkia } from "../../../../shared/procedural/rendering/drawProceduralSceneSkia";
 import type { ProceduralScene } from "../../../../shared/procedural/types/ProceduralTypes";
+import type { WalkableAreaGeometry } from "../../../belt/WalkableAreaGeometry";
+import { DEFAULT_WALKABLE_AREA_GEOMETRY } from "../../../belt/WalkableAreaGeometry";
+import {
+  drawWalkableAreaCanvas,
+  drawWalkableAreaSkia
+} from "../drawWalkableArea";
 
 export const FANTASY_PALETTE_TOKENS: HitRunThemePaletteTokens = {
   primary: "#3d4a5c",
@@ -69,7 +75,8 @@ export class FantasyTheme implements HitRunTheme {
     viewportHeight: number,
     _cameraX: number,
     _cameraY: number,
-    _elapsed: number
+    _elapsed: number,
+    walkableArea: WalkableAreaGeometry = DEFAULT_WALKABLE_AREA_GEOMETRY
   ): void {
     if (!Skia || !canvas) return;
     const paint = getPaint();
@@ -87,6 +94,18 @@ export class FantasyTheme implements HitRunTheme {
       paint,
       this.getProceduralBackdrop(viewportWidth, viewportHeight)
     );
+
+    drawWalkableAreaSkia(canvas, viewportWidth, walkableArea, {
+      floorColor: FANTASY_PALETTE_TOKENS.paperOrFloor,
+      floorAlpha: 0.55,
+      upperBorderColor: "#3a4555",
+      lowerBorderColor: "#1a1220",
+      borderWidth: 2.5,
+      upperCurbColor: "#151b23",
+      upperCurbHeight: 10,
+      lowerCurbColor: "#0a0612",
+      lowerCurbHeight: 14
+    });
 
     paint.setAlphaf(1);
     paint.setStyle(Skia.PaintStyle.Fill);
@@ -118,7 +137,8 @@ export class FantasyTheme implements HitRunTheme {
     viewportHeight: number,
     _cameraX: number,
     _cameraY: number,
-    _elapsed: number
+    _elapsed: number,
+    walkableArea: WalkableAreaGeometry = DEFAULT_WALKABLE_AREA_GEOMETRY
   ): void {
     ctx.save();
     ctx.fillStyle = FANTASY_PALETTE_TOKENS.background;
@@ -127,6 +147,20 @@ export class FantasyTheme implements HitRunTheme {
     // Controlled alpha procedural backdrop to preserve combat legibility
     ctx.globalAlpha = 0.35;
     drawProceduralSceneCanvas(ctx, this.getProceduralBackdrop(viewportWidth, viewportHeight));
+    ctx.globalAlpha = 1;
+
+    drawWalkableAreaCanvas(ctx, viewportWidth, walkableArea, {
+      floorColor: FANTASY_PALETTE_TOKENS.paperOrFloor,
+      floorAlpha: 0.55,
+      upperBorderColor: "#3a4555",
+      lowerBorderColor: "#1a1220",
+      borderWidth: 2.5,
+      upperCurbColor: "#151b23",
+      upperCurbHeight: 10,
+      lowerCurbColor: "#0a0612",
+      lowerCurbHeight: 14
+    });
+
     ctx.restore();
   }
 
@@ -170,7 +204,6 @@ export class FantasyTheme implements HitRunTheme {
 
     switch (snapshot.visualId) {
       case "player": {
-        // Legs
         ctx.strokeStyle = "#1a1220";
         ctx.lineWidth = 3;
         ctx.lineCap = "round";
@@ -181,12 +214,10 @@ export class FantasyTheme implements HitRunTheme {
         ctx.lineTo(size * 0.18, 0);
         ctx.stroke();
 
-        // Boots
         ctx.fillStyle = "#151b23";
         ctx.fillRect(-size * 0.29, -size * 0.08, size * 0.2, size * 0.08);
         ctx.fillRect(size * 0.09, -size * 0.08, size * 0.2, size * 0.08);
 
-        // Body
         ctx.fillStyle = this.getBodyGrad(ctx, size);
         ctx.strokeStyle = HIT_PALETTE.hitRunRed;
         ctx.lineWidth = 1.5;
@@ -196,7 +227,6 @@ export class FantasyTheme implements HitRunTheme {
         ctx.fill();
         ctx.stroke();
 
-        // Head
         ctx.fillStyle = "#1e2430";
         ctx.beginPath();
         ctx.arc(0, -size * 0.98, size * 0.22, 0, Math.PI * 2);
@@ -206,7 +236,6 @@ export class FantasyTheme implements HitRunTheme {
         ctx.ellipse(size * 0.08, -size * 1.0, size * 0.12, size * 0.08, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // HMG Weapon
         ctx.fillStyle = "#1a1a22";
         ctx.fillRect(size * 0.15, -size * 0.68, size * 0.55, size * 0.14);
         ctx.fillStyle = "#3a3a48";

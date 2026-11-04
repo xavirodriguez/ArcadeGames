@@ -6,6 +6,7 @@ import {
   getHitRunTheme,
   resizeHitRunPresentationSession
 } from "./theme/HitRunPresentationSession";
+import { getWalkableAreaGeometry } from "../belt/WalkableAreaGeometry";
 
 /**
  * Native Skia effect for Hit & Run. It never passes a Skia canvas into Canvas2D code.
@@ -23,9 +24,10 @@ export const drawHitRunProceduralBackdropSkia: EffectDrawer<RenderContext, CoreC
     const elapsed = resolveElapsed(world);
     resizeHitRunPresentationSession(world, width, height);
     const theme = getHitRunTheme(world);
+    const walkableArea = getWalkableAreaGeometry(world);
 
     if (theme.renderBackdropSkia) {
-      theme.renderBackdropSkia(canvas, width, height, cameraX, 0, elapsed);
+      theme.renderBackdropSkia(canvas, width, height, cameraX, 0, elapsed, walkableArea);
       return;
     }
 

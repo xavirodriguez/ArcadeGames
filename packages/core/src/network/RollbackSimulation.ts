@@ -96,9 +96,28 @@ export class RollbackSimulation {
     // Ensure the buffer is kept intact for targetTick
     this.rollbackBuffer.saveSnapshot(targetTick, snapshot);
 
-    // 3. Apply corrected input frame at targetTick (advances simulation to targetTick + 1)
-    this.simulation.step(correctedInput);
-    inputsHistory.set(targetTick, correctedInput);
+    // 3. Apply the corrected input as a replay frame. The corrected frame is also
+    // a resimulation: authoritative state must be recomputed, but presentation
+    // side effects must not be emitted a second time.
+    const simAccess = this.simulation as unknown as {
+      world?: import("../ecs/World").World;
+      getWorld?: () => import("../ecs/World").World;
+    };
+    const world = simAccess.world ?? simAccess.getWorld?.();
+    const previousResimulationState = world ? world.isReSimulating : false;
+    const random = world ? world.gameplayRandom : undefined;
+    const wasRandomLocked = random ? random.isLocked() : false;
+
+    if (world) world.isReSimulating = true;
+    if (random && wasRandomLocked) random.unlock();
+
+    try {
+      this.simulation.step(correctedInput);
+      inputsHistory.set(targetTick, correctedInput);
+    } finally {
+      if (random && wasRandomLocked) random.lock();
+      if (world) world.isReSimulating = previousResimulationState;
+    }
 
     // 4. Fast-forward / Resimulate up to currentTick
     this.resimulateFromTick(targetTick + 1, currentTick, inputsHistory);

@@ -1,4 +1,4 @@
-# Procedural VFX Core — PR1–PR3
+# Procedural VFX Core — PR1–PR4
 
 This change introduces three renderer-independent helper modules under
 `src/games/shared/rendering`. It does not replace the ECS VFX lifecycle,
@@ -59,8 +59,9 @@ assertion.
 
 ## Deliberate boundaries
 
-The utilities are opt-in and are not wired into existing production drawers in
-this PR. That avoids changing the visual output of shipped games without
-Visual Lab comparison. The style-metrics module from the earlier proposed
-source was not present on the repository default branch, so no replacement
-was invented here.
+The deterministic core, geometry and pixel/color utilities remain opt-in.
+The temporal sampler has one production pilot in `drawPixelFxExplosion`,
+where it drives ring and fragment envelopes; this is intentionally not a
+wholesale migration of existing drawers. The style-metrics module from the
+earlier proposed source was not present on the repository default branch, so
+no replacement was invented here.

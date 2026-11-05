@@ -1,7 +1,6 @@
 import {
   World,
   System,
-  TransformComponent,
   VelocityComponent,
   Juice,
   createEmitter,
@@ -80,64 +79,66 @@ export class PongCollisionSystem extends System<PongComponentRegistry> {
                 });
               }
 
-              // Apply physical hit-stop (60ms) to make paddle hit feel heavy and punchy
-              world.setResource("GameplayFreeze", { remaining: 0.06 });
-
-              // Juice/ScreenShake effect
-              Juice.shake(world, 4, 150);
-              Juice.squash(world, ballEntity, 1.4, 0.7, 100);
-
-              // Apply paddle visual recoil and elastic squash & stretch
-              const recoilDir = paddleComp.side === "left" ? -12 : 12;
-              Juice.add(world, otherEntity, {
-                property: "x",
-                target: recoilDir,
-                duration: 60,
-                easing: "easeOut"
-              });
-              Juice.add(world, otherEntity, {
-                property: "x",
-                target: 0,
-                duration: 180,
-                delay: 60,
-                easing: "elasticOut"
-              });
-              Juice.squash(world, otherEntity, 0.7, 1.3, 200);
-
-              // Particle feedback on hit location with side-specific neon colors and inward-directed angles
+              // The catalog event owns the canonical GameplayFreeze request.
+              // It is intentionally emitted during resimulation; JuiceOrchestrator
+              // replays hit-stop and suppresses its own presentation output.
               const ballTransform = world.getComponent(ballEntity, "Transform");
               if (ballTransform) {
-                if (!world.isReSimulating) {
-                  this.juice ??= new JuiceOrchestrator<PongComponentRegistry>(world);
-                  this.juice.triggerEvent("pong", "paddle:hit", {
-                    x: ballTransform.x,
-                    y: ballTransform.y,
-                    rotation: Math.atan2(nextVy, nextVx)
-                  });
-                }
-                const hitColor = paddleComp.side === "left" ? "#FF00FF" : "#00FFFF";
-                const hitAngle: [number, number] = paddleComp.side === "left" ? [-45, 45] : [135, 225];
-
-                const emitter = createEmitter(world, {
-                  type: "hit",
+                this.juice ??= new JuiceOrchestrator<PongComponentRegistry>(world);
+                this.juice.triggerEvent("pong", "paddle:hit", {
                   x: ballTransform.x,
                   y: ballTransform.y,
-                  rate: 0,
-                  burst: true,
-                  count: 16,
-                  lifetime: [0.3, 0.5],
-                  speed: [100, 220],
-                  color: hitColor,
-                  size: [2, 5],
-                  angle: hitAngle
+                  rotation: Math.atan2(nextVy, nextVx)
                 });
-                const ttlComp: TTLComponent = { type: "TTL", timeLeft: 0.5, remaining: 0.5 };
-                world.getCommandBuffer().addComponent(emitter, ttlComp);
               }
 
-              // Play hit audio
-              const eventBus = world.getEventBus();
-              eventBus.emitDeferred("PlaySFX", { name: "hit" });
+              // Inline feedback is presentation-only and must not be replayed.
+              if (!world.isReSimulating) {
+                Juice.shake(world, 4, 150);
+                Juice.squash(world, ballEntity, 1.4, 0.7, 100);
+
+                // Apply paddle visual recoil and elastic squash & stretch
+                const recoilDir = paddleComp.side === "left" ? -12 : 12;
+                Juice.add(world, otherEntity, {
+                  property: "x",
+                  target: recoilDir,
+                  duration: 60,
+                  easing: "easeOut"
+                });
+                Juice.add(world, otherEntity, {
+                  property: "x",
+                  target: 0,
+                  duration: 180,
+                  delay: 60,
+                  easing: "elasticOut"
+                });
+                Juice.squash(world, otherEntity, 0.7, 1.3, 200);
+
+                // Preserve the side-specific particle burst.
+                if (ballTransform) {
+                  const hitColor = paddleComp.side === "left" ? "#FF00FF" : "#00FFFF";
+                  const hitAngle: [number, number] = paddleComp.side === "left" ? [-45, 45] : [135, 225];
+
+                  const emitter = createEmitter(world, {
+                    type: "hit",
+                    x: ballTransform.x,
+                    y: ballTransform.y,
+                    rate: 0,
+                    burst: true,
+                    count: 16,
+                    lifetime: [0.3, 0.5],
+                    speed: [100, 220],
+                    color: hitColor,
+                    size: [2, 5],
+                    angle: hitAngle
+                  });
+                  const ttlComp: TTLComponent = { type: "TTL", timeLeft: 0.5, remaining: 0.5 };
+                  world.getCommandBuffer().addComponent(emitter, ttlComp);
+                }
+
+                // Play hit audio once, never during corrected/replayed frames.
+                world.getEventBus().emitDeferred("PlaySFX", { name: "hit" });
+              }
             }
           }
         }

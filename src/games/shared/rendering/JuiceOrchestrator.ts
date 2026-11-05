@@ -115,7 +115,7 @@ export const JUICE_CATALOG: {
 } = {
   pong: {
     "ball:rally": { effect: "warp_lines", tint: colors.cyan, intensity: 1.0, scale: 1.0 },
-    "paddle:hit": { effect: "pixelfx_paddle_impact", tint: colors.cyan, scale: 0.9, ttl: 0.22, hitStopMs: 0, hitStopPriority: HitStopPriority.LOW, shakeIntensity: 0, shakeDurationMs: 40 },
+    "paddle:hit": { effect: "pixelfx_paddle_impact", tint: colors.cyan, scale: 0.9, ttl: 0.22, hitStopMs: 60, hitStopPriority: HitStopPriority.LOW, shakeIntensity: 0, shakeDurationMs: 40 },
     "goal:scored": { effect: "shockwave", tint: colors.danger, scale: 1.5, ttl: 0.5, hitStopMs: 100, hitStopPriority: HitStopPriority.HIGH, shakeIntensity: 4.0, shakeDurationMs: 120 }
   },
   asteroids: {

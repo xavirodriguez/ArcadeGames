@@ -163,6 +163,6 @@ The canonical hit-stop bridge is now implemented in the Juice consolidation foll
 - Accepted requests write the active duration to core `GameplayFreeze`; `Schedule.update()` remains the only countdown owner.
 - `VFXWorldState` no longer stores `hitStopTimer`, priority or cooldown.
 - The system runs while frozen, and authoritative hit-stop requests are replayed while presentation output remains suppressed.
-- Direct game-specific freeze writes remain separate owners and are not overridden by Juice.
+- Pong paddle-hit now uses the canonical Juice policy; remaining direct game-specific freeze writes (notably Space Invaders damage paths and Hit & Run feedback) remain separate owners and are not overridden by Juice.
 
 This implementation still requires CI validation and end-to-end multiplayer rollback verification. Do not add another hit-stop scheduler or move the active duration back into VFX state.

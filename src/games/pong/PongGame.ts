@@ -20,6 +20,7 @@ import {
   SHARED_AUDIO_MANIFEST
 } from "@tiny-aster/core";
 import { PongCollisionSystem } from "./systems/PongCollisionSystem";
+import { HitStopSystem } from "../shared/rendering/HitStopSystem";
 import { PongGameStateSystem } from "./systems/PongGameStateSystem";
 import { ComboSystem } from "@tiny-aster/core";
 import { AchievementSystem } from "@tiny-aster/gameplay-kit";
@@ -232,6 +233,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     this.world.addSystem(new PongVelocityGuardrailSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
 
+    this.world.addSystem(new HitStopSystem() as never, { phase: SystemPhase.Simulation, priority: 100 });
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
 
     this.world.addSystem(new PongCollisionSystem(this.config), { phase: SystemPhase.GameRules });

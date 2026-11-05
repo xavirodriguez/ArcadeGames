@@ -213,7 +213,7 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
           : target.rotation ?? 0;
 
         // The ordinary melee slash remains the baseline response for every sword hit.
-        if ((hit.attackCategory === "melee" || hit.attackCategory === "combo-finisher" || hit.category === "melee") && !hit.blocked) {
+        if ((hit.attackCategory === "melee" || hit.attackCategory === "combo-finisher" || hit.category === "melee") && !hit.blocked && hit.amount > 0) {
           this.juice.spawn("pixelfx_slash", {
             x: target.x,
             y: target.y,
@@ -283,7 +283,7 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
 
         // A lethal melee hit is the concrete finisher transition currently
         // represented by Hit&Run's combat model (Health reaches zero).
-        if (!hit.blocked && (
+        if (!hit.blocked && hit.amount > 0 && (
           hit.attackCategory === "combo-finisher" ||
           hit.category === "combo-finisher" ||
           ((hit.attackCategory === "melee" || hit.category === "melee") && hit.remainingHealth <= 0)

@@ -120,6 +120,10 @@ import {
 } from "./rendering/theme/HitRunPresentationSession";
 import { storePreviousTransforms } from "./rendering/HitRunRenderInterpolation";
 import { registerPixelFxProceduralVFX } from "../shared/rendering/PixelFxProceduralVFX";
+import {
+  registerSumiEAmbientSystem,
+  registerSumiEVFX
+} from "../shared/rendering/sumi-e";
 
 export interface HitAndRunConfig {
   seed?: number;
@@ -321,6 +325,11 @@ export class HitAndRunGame extends BaseGame<
     this.world.setResource(SUMI_E_PLAYER_READY_RESOURCE, false);
     this.world.setResource(SUMI_E_THEME_RESOURCE, this.activeThemeId === "sumi-e");
 
+    // Sumi-e ambient particles live with Hit & Run (not Asteroids).
+    if (this.activeThemeId === "sumi-e") {
+      registerSumiEAmbientSystem(this.world, { region: "village", poolSize: 80 });
+    }
+
     this.setupCommonArcadeResources();
     this.world.deleteResource("IsPaused");
 
@@ -407,6 +416,10 @@ export class HitAndRunGame extends BaseGame<
     if (renderer.type === "canvas" || renderer.type === "skia") {
       registerHitRunRenderers(renderer);
       registerPixelFxProceduralVFX(renderer);
+      // Shared Sumi-e juice primitives (ink_splash, brush_stroke, …) for this theme only.
+      if (this.activeThemeId === "sumi-e") {
+        registerSumiEVFX(renderer);
+      }
       if (renderer.type === "skia") {
         console.info(
           "[HitAndRunGame] Skia: using canvas-compatible drawers (Phase 4 parity)."

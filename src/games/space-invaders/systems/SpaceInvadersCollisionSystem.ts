@@ -128,10 +128,8 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     const pos = world.getComponent(target, "Transform");
     if (pos) {
       this.createExplosion(world, pos.x, pos.y, "#FF00FF");
-      if (!world.isReSimulating) {
-        const orchestrator = new JuiceOrchestrator(world);
-        orchestrator.triggerEvent("space-invaders", "ufo:destroyed", { x: pos.x, y: pos.y });
-      }
+      const orchestrator = new JuiceOrchestrator(world);
+      orchestrator.triggerEvent("space-invaders", "ufo:destroyed", { x: pos.x, y: pos.y });
     }
 
     world.mutateSingleton("GameState", (gs) => {
@@ -242,10 +240,8 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
         const popupText = nextMultiplier > 1 ? `+${scoreGain} (x${nextMultiplier})` : `+${scoreGain}`;
         spawnScorePopup(world, explosionX, explosionY, popupText, popupColor);
 
-        if (!world.isReSimulating) {
-          const orchestrator = new JuiceOrchestrator(world);
-          orchestrator.triggerEvent("space-invaders", "alien:destroyed", { x: explosionX, y: explosionY });
-        }
+        const orchestrator = new JuiceOrchestrator(world);
+        orchestrator.triggerEvent("space-invaders", "alien:destroyed", { x: explosionX, y: explosionY });
       }
 
       // Contextual screen shake: light for single kills, medium for fast combo chains
@@ -489,7 +485,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     const eventBus = world.getEventBus();
 
     const shieldPos = world.getComponent(shieldEntity, "Transform");
-    if (shieldPos && !world.isReSimulating) {
+    if (shieldPos) {
       const orchestrator = new JuiceOrchestrator(world);
       orchestrator.triggerEvent("space-invaders", "shield:degraded", { x: shieldPos.x, y: shieldPos.y });
     }

@@ -30,7 +30,7 @@ export function createContour(
   nonNegativeInteger(harmonics, "harmonics");
   positiveNumber(rolloff, "rolloff");
   finiteNumber(phase, "phase");
-  if (Math.abs(amplitude) >= 1) throw new RangeError("absolute amplitude must be less than 1");
+  if (Math.abs(amplitude) >= rolloff) throw new RangeError("absolute amplitude must be smaller than rolloff to keep radius positive");
   return Array.from({ length: points }, (_, i) => {
     const angle = (i / points) * Math.PI * 2;
     const wave = harmonics === 0 ? 0 : Math.sin(angle * harmonics + phase);
@@ -100,7 +100,7 @@ export function ballistic(
   if (drag === 0) return position + velocity * time + 0.5 * acceleration * time * time;
   const decay = Math.exp(-drag * time);
   const terminal = acceleration / drag;
-  return position + (velocity + terminal) * (1 - decay) / drag - terminal * time;
+  return position + terminal * time + (velocity - terminal) * (1 - decay) / drag;
 }
 
 export function radiusFromEnergy(energy: number, baseRadius: number, exponent = 0.5): number {

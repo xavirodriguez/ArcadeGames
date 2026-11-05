@@ -31,7 +31,7 @@ PR3.1 improves the existing Expo Router Visual Lab at `src/app/vfx-lab`. It does
 - Adds a versioned `VFXLabPreset` schema containing effect, profile, progress, size, rotation and seed.
 - Adds stable IDs to the four built-in presets.
 - Supports saving a named preset for the current screen session, JSON export, JSON import and strict schema/range validation.
-- Seed is recorded as scenario metadata. The current production PixelFX drawers are deterministic and do not consume RNG, so seed changes intentionally do not alter rendered pixels.
+- Seed is passed to both preview drawers as the stable entity identity. Explosion derives deterministic fragment variation from that identity without consuming gameplay RNG; effects that do not use entity-seeded variation remain visually unchanged when the seed changes.
 - Imported/exported presets are portable; user-created presets are not persisted across app restarts in this PR.
 
 ## Deliberate non-goals

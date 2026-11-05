@@ -22,3 +22,5 @@ export {
 } from "./HitRunHurtSystem";
 
 export { registerHitRunHurt } from "./registerHitRunHurt";
+
+export { HitRunStaggerSystem } from "./HitRunStaggerSystem";

@@ -46,6 +46,17 @@ an effect lifecycle.
 - Existing rendering registration and effect lifetimes remain unchanged.
 - The focused Jest suite is `src/games/shared/rendering/__tests__/vfx-procedural-core.test.ts`.
 
+
+## Glow adapter parity
+
+`DrawAdapter` carries each glow pass's layer alpha into the existing Canvas and
+Skia primitive calls. Skia reuses the pass paint so its blur mask filter is retained
+while primitive color, style and alpha are applied. Both backends use the same
+p95 degradation thresholds (halo above 8 ms, aura above 12 ms) and the same
+strong/critical highlight alpha (0.9). These are adapter-level contracts; the
+Visual Lab remains a human-inspected side-by-side preview, not a pixel-diff
+assertion.
+
 ## Deliberate boundaries
 
 The utilities are opt-in and are not wired into existing production drawers in

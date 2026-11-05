@@ -103,7 +103,27 @@ describe("HitRunCombatDefense", () => {
 
     expect(result.healthDamage).toBe(5);
     expect(result.armorBroken).toBe(true);
+    expect(result.armorHit).toBe(true);
+    expect(result.armorAbsorbed).toBe(3);
+    expect(result.blocked).toBe(false);
     expect(result.remainingArmor).toBe(0);
+  });
+
+  it("does not report armor absorption as a guard block", () => {
+    const { source, target } = createPair();
+    world.addComponent(target, createHitRunCombatDefense({
+      armor: 20,
+      maxArmor: 20,
+      armorAbsorption: 1
+    }) as never);
+
+    const result = resolveHitRunDamage(world, source, target, 8);
+
+    expect(result.healthDamage).toBe(0);
+    expect(result.armorHit).toBe(true);
+    expect(result.armorAbsorbed).toBe(8);
+    expect(result.blocked).toBe(false);
+    expect(result.armorBroken).toBe(false);
   });
 
   it("regenerates guard after the delay and recovers from guard break", () => {

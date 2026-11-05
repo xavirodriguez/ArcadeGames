@@ -95,7 +95,7 @@ We need a unified, strictly typed, deterministic architecture for Game Feel with
 
 1. **Phase 1: Typed API & Catalog Consolidation**: GF consolidates `JUICE_CATALOG` with a generic TypeScript mapping (`GameJuiceEvents[G]`).
 2. **Phase 2: Arkanoid Vertical Pilot**: GAME (Arkanoid) & GF replace direct `GameplayFreeze` mutations and inline particle emitters in `ArkanoidCollisionSystem` with `JuiceOrchestrator.triggerEvent("arkanoid", "brick:hit")` and `"brick:shatter"`.
-3. **Phase 3: Pong & Asteroids Consolidation**: Migrate `PongCollisionSystem` and `AsteroidCollisionSystem` direct `Juice.shake` / `Juice.squash` calls to orchestrator events.
+3. **Phase 3: Pong & Asteroids Consolidation**: Pong's paddle hit-stop now routes through the canonical Juice catalog and `GameplayFreeze`; remaining Pong presentation deduplication and Asteroids `Juice.shake` / `Juice.squash` migration remain.
 4. **Phase 4: Hit & Run Feedback Resolution**: Unify dual screen shake writing (`HitRunScreenShake` resource and `ScreenShakeComponent`) to single `ScreenShakeComponent`.
 5. **Phase 5: Space Invaders & Geometry Wars Normalization**: Eliminate transient `new JuiceOrchestrator` instantiations in `SpaceInvadersCollisionSystem`.
 6. **Phase 6 & 7: Auditing & Cleanup**: Clean legacy helpers and verify test suites.

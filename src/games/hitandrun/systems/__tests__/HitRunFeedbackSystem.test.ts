@@ -127,4 +127,87 @@ describe("HitRunFeedbackSystem (Paso B)", () => {
     expect(shake?.intensity ?? 0).toBeGreaterThan(0);
     expect(shake?.duration ?? 0).toBeGreaterThan(0);
   });
+  it("spawns combat break and finisher VFX only for their semantic hit transitions", () => {
+    const guardTarget = world.createEntity();
+    const armorTarget = world.createEntity();
+    const lethalTarget = world.createEntity();
+    for (const [entity, x] of [[guardTarget, 20], [armorTarget, 60], [lethalTarget, 100]] as const) {
+      world.addComponent(entity, {
+        type: "Transform",
+        x,
+        y: 40,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: x,
+        worldY: 40,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: false
+      });
+    }
+
+    feedback.enqueueHitForTest({
+      targetEntity: guardTarget,
+      amount: 1,
+      remainingHealth: 4,
+      category: "guard-break"
+    });
+    feedback.enqueueHitForTest({
+      targetEntity: armorTarget,
+      amount: 2,
+      remainingHealth: 3,
+      category: "armor-break"
+    });
+    feedback.enqueueHitForTest({
+      targetEntity: lethalTarget,
+      amount: 2,
+      remainingHealth: 0,
+      category: "melee"
+    });
+
+    feedback.update(world, 0);
+
+    const effects = world.query("Render", "TTL");
+    const shapes = effects.map((entity) =>
+      (world.getComponent(entity, "Render") as { shape?: string } | undefined)?.shape
+    );
+    expect(shapes).toContain("pixelfx_guard_break");
+    expect(shapes).toContain("pixelfx_armor_break");
+    expect(shapes).toContain("pixelfx_combo_finisher");
+    expect(shapes.filter((shape) => shape === "pixelfx_combo_finisher")).toHaveLength(1);
+  });
+
+  it("does not spawn a combo finisher for a non-lethal melee hit", () => {
+    const target = world.createEntity();
+    world.addComponent(target, {
+      type: "Transform",
+      x: 40,
+      y: 60,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      worldX: 40,
+      worldY: 60,
+      worldRotation: 0,
+      worldScaleX: 1,
+      worldScaleY: 1,
+      dirty: false
+    });
+
+    feedback.enqueueHitForTest({
+      targetEntity: target,
+      amount: 1,
+      remainingHealth: 2,
+      category: "melee"
+    });
+    feedback.update(world, 0);
+
+    const effects = world.query("Render", "TTL");
+    expect(effects.some((entity) =>
+      (world.getComponent(entity, "Render") as { shape?: string } | undefined)?.shape === "pixelfx_combo_finisher"
+    )).toBe(false);
+  });
+
 });

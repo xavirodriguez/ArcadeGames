@@ -88,7 +88,7 @@ describe("PixelFX-inspired procedural VFX", () => {
     const { world, entity } = createWorld();
     drawPixelFxImpact(adapter, world, entity);
     expect(adapter.strokeCircle).toHaveBeenCalled();
-    expect(adapter.drawLine).toHaveBeenCalledTimes(27);
+    expect(adapter.drawLine).toHaveBeenCalledTimes(24);
   });
 
   it("draws a directional slash as arcs and trailing strokes", () => {
@@ -207,7 +207,7 @@ describe("PixelFX-inspired procedural VFX", () => {
     const late = createAdapter(), lateState = createWorld(0.04);
     drawPixelFxGuardBreak(late, lateState.world, lateState.entity);
     expect(late.strokeCircle.mock.calls[0][2]).toBeGreaterThan(early.strokeCircle.mock.calls[0][2]);
-    expect(late.drawLine.mock.calls[0][5]).toBeGreaterThan(early.drawLine.mock.calls[0][5]);
+    expect(late.drawLine.mock.calls[0][6]).toBeGreaterThan(early.drawLine.mock.calls[0][6]);
   });
 
   it("animates Armor Break plates outward from the fractured shell", () => {

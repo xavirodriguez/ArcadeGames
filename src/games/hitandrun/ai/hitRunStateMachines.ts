@@ -646,8 +646,35 @@ export function registerHitRunStateMachines(
       const originalUpdate = state.onUpdate;
       if (!originalUpdate) continue;
       state.onUpdate = (world, entity, data, elapsed) => {
-        if (isEnemyInHitstun(world, entity)) return;
-        return originalUpdate(world, entity, data, elapsed);
+        const lockStartKey = "_hitRunImpactLockStartElapsed";
+        const pausedKey = "_hitRunImpactPausedSeconds";
+
+        if (isEnemyInHitstun(world, entity)) {
+          if (typeof data[lockStartKey] !== "number") {
+            data[lockStartKey] = elapsed;
+          }
+          return;
+        }
+
+        const lockStart = data[lockStartKey];
+        if (typeof lockStart === "number") {
+          data[pausedKey] =
+            ((data[pausedKey] as number) ?? 0) + Math.max(0, elapsed - lockStart);
+          delete data[lockStartKey];
+        }
+
+        const pausedSeconds = (data[pausedKey] as number) ?? 0;
+        const nextState = originalUpdate(
+          world,
+          entity,
+          data,
+          Math.max(0, elapsed - pausedSeconds)
+        );
+        if (nextState !== undefined) {
+          delete data[pausedKey];
+          delete data[lockStartKey];
+        }
+        return nextState;
       };
     }
   }

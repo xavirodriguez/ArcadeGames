@@ -38,3 +38,13 @@ export type {
 } from "./ComboMeleeTypes";
 
 export { registerHitRunMelee } from "./registerHitRunMelee";
+
+export {
+  createHitRunCombatDefense,
+  DEFAULT_HIT_RUN_COMBAT_DEFENSE
+} from "../combat/HitRunCombatDefense";
+export type {
+  HitRunCombatDefenseComponent,
+  HitRunDamageResult
+} from "../combat/HitRunCombatDefense";
+export { HitRunCombatDefenseSystem } from "../combat/HitRunCombatDefenseSystem";

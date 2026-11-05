@@ -13,6 +13,7 @@ import { isSimulationFrozen } from "../systems/HitRunFeedbackSystem";
 import { isPlayerControlLocked } from "../hurt/HitRunHurtSystem";
 import { depthZOverlap } from "../combat/HitVolume";
 import { applyBeltElevationKnockback } from "../belt/BeltElevationComponent";
+import { resolveHitRunDamage } from "../combat/HitRunCombatDefense";
 import type { BeltInputComponent } from "../belt/BeltMovementTypes";
 import type { MeleeAttackComponent } from "./MeleeAttackTypes";
 import {
@@ -155,16 +156,19 @@ export class ComboMeleeSystem extends System<CoreComponentRegistry> {
       | undefined;
     if (!health || health.current <= 0) return false;
 
-    const next = Math.max(0, health.current - config.throwDamage);
+    const resolution = resolveHitRunDamage(world, entity, best, config.throwDamage);
+    const next = Math.max(0, health.current - resolution.healthDamage);
     health.current = next;
 
-    if (world.hasComponent(best, "Velocity")) {
+    if (resolution.healthDamage > 0 && world.hasComponent(best, "Velocity")) {
       const vel = world.getMutableComponent(best, "Velocity") as
         | { vx: number }
         | undefined;
       if (vel) vel.vx = face * config.throwKnockbackX;
     }
-    applyBeltElevationKnockback(world, best, config.throwKnockbackY);
+    if (resolution.healthDamage > 0) {
+      applyBeltElevationKnockback(world, best, config.throwKnockbackY);
+    }
 
     // Brief i-frames on thrower
     if (world.hasComponent(entity, "Health")) {
@@ -181,9 +185,12 @@ export class ComboMeleeSystem extends System<CoreComponentRegistry> {
       bus.emitDeferred("combat:hit", {
         targetEntity: best,
         sourceEntity: entity,
-        amount: config.throwDamage,
+        amount: resolution.healthDamage,
         remainingHealth: next,
-        category: "throw"
+        category: resolution.guardBroken ? "guard-break" : resolution.armorBroken ? "armor-break" : "throw",
+        guardBroken: resolution.guardBroken,
+        armorBroken: resolution.armorBroken,
+        blocked: resolution.blocked
       });
       if (next <= 0) {
         world.getCommandBuffer().addComponent(best, { type: "Dead" });
@@ -251,24 +258,30 @@ export class ComboMeleeSystem extends System<CoreComponentRegistry> {
         | undefined;
       if (!h || h.current <= 0) continue;
 
-      const next = Math.max(0, h.current - config.specialDamage);
+      const resolution = resolveHitRunDamage(world, entity, e, config.specialDamage);
+      const next = Math.max(0, h.current - resolution.healthDamage);
       h.current = next;
 
-      if (world.hasComponent(e, "Velocity")) {
+      if (resolution.healthDamage > 0 && world.hasComponent(e, "Velocity")) {
         const vel = world.getMutableComponent(e, "Velocity") as
           | { vx: number }
           | undefined;
         if (vel) vel.vx = (dx >= 0 ? 1 : -1) * 220;
       }
-      applyBeltElevationKnockback(world, e, 180);
+      if (resolution.healthDamage > 0) {
+        applyBeltElevationKnockback(world, e, 180);
+      }
 
       if (bus) {
         bus.emitDeferred("combat:hit", {
           targetEntity: e,
           sourceEntity: entity,
-          amount: config.specialDamage,
+          amount: resolution.healthDamage,
           remainingHealth: next,
-          category: "special"
+          category: resolution.guardBroken ? "guard-break" : resolution.armorBroken ? "armor-break" : "special",
+          guardBroken: resolution.guardBroken,
+          armorBroken: resolution.armorBroken,
+          blocked: resolution.blocked
         });
         if (next <= 0) {
           world.getCommandBuffer().addComponent(e, { type: "Dead" });

@@ -207,7 +207,7 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
           : target.rotation ?? 0;
 
         // The ordinary melee slash remains the baseline response for every sword hit.
-        if (hit.category === "melee") {
+        if ((hit.attackCategory === "melee" || hit.attackCategory === "combo-finisher" || hit.category === "melee") && !hit.blocked) {
           this.juice.spawn("pixelfx_slash", {
             x: target.x,
             y: target.y,
@@ -218,11 +218,20 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
           });
         }
 
-        // These two semantic damage categories are the integration contract for
-        // guard/armor mechanics. They are deliberately not inferred from raw damage:
-        // a future guard or armor system must emit the matching category only when
-        // its state transition actually breaks.
-        if (hit.category === "guard-break") {
+        // Guard and armor flags come from the shared damage resolver, not from
+        // presentation-side guesses about raw damage values.
+        if (hit.blocked === true) {
+          this.juice.spawn("pixelfx_shield_pulse", {
+            x: target.x,
+            y: target.y,
+            rotation,
+            scale: 0.9,
+            tint: isSumiE ? "#151515" : "#4da3ff",
+            ttl: 0.32
+          });
+        }
+
+        if (hit.guardBroken === true || hit.category === "guard-break") {
           this.juice.spawn("pixelfx_guard_break", {
             x: target.x,
             y: target.y,
@@ -231,7 +240,8 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
             tint: isSumiE ? "#151515" : "#e3a92f",
             ttl: 0.46
           });
-        } else if (hit.category === "armor-break") {
+        }
+        if (hit.armorBroken === true || hit.category === "armor-break") {
           this.juice.spawn("pixelfx_armor_break", {
             x: target.x,
             y: target.y,
@@ -244,7 +254,11 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
 
         // A lethal melee hit is the concrete finisher transition currently
         // represented by Hit&Run's combat model (Health reaches zero).
-        if (hit.category === "melee" && hit.remainingHealth <= 0) {
+        if (!hit.blocked && (
+          hit.attackCategory === "combo-finisher" ||
+          hit.category === "combo-finisher" ||
+          ((hit.attackCategory === "melee" || hit.category === "melee") && hit.remainingHealth <= 0)
+        )) {
           this.juice.spawn("pixelfx_combo_finisher", {
             x: target.x,
             y: target.y,

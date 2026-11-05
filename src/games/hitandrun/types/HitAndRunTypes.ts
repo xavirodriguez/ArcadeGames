@@ -16,6 +16,7 @@ export interface HitAndRunInput {
   attack?: boolean;
   fire?: boolean;
   special?: boolean;
+  guard?: boolean;
   moveLeft?: boolean;
   moveRight?: boolean;
   pulse?: boolean;

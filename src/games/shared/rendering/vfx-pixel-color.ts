@@ -52,8 +52,7 @@ export function oklabToOklch(lab: OKLab): OKLCH {
   return { L: lab.L, C, h };
 }
 export function oklchToOklab(lch: OKLCH): OKLab {
-  finiteNumber(lch.L, "L"); nonNegativeInteger(Math.floor(lch.C * 1e9), "chroma");
-  finiteNumber(lch.C, "C"); finiteNumber(lch.h, "h");
+  finiteNumber(lch.L, "L"); finiteNumber(lch.C, "C"); finiteNumber(lch.h, "h");
   if (lch.C < 0) throw new RangeError("C must not be negative");
   const angle = lch.h * Math.PI / 180;
   return { L: lch.L, a: lch.C * Math.cos(angle), b: lch.C * Math.sin(angle) };

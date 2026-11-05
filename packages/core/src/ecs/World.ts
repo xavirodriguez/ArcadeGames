@@ -812,7 +812,7 @@ export class World<
   /** Removes a resource from future snapshots without deleting its live value. */
   public unregisterSnapshotResource(name: string): void {
     if (name === "GameplayFreeze") {
-      throw new Error('[World] "GameplayFreeze" is a core rollback resource and cannot be unregistered.');
+      throw new Error("[World] \"GameplayFreeze\" is a core rollback resource and cannot be unregistered.");
     }
     this.snapshotResourceNames.delete(name);
   }

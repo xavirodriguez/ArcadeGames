@@ -1,7 +1,7 @@
 # Juice & Game Feel — Phase 0 source audit
 
 **Date:** 2026-11-05
-**Scope:** source inventory and behavioral contracts only; no runtime code changed.
+**Scope:** source inventory, snapshot boundary and current canonical hit-stop implementation; runtime changes remain pending CI validation.
 
 ## Executive result
 
@@ -67,6 +67,6 @@ Core snapshots now support explicitly registered plain-data resources. `Gameplay
 
 ## Phase 0 exit
 
-**Sufficient to begin Phase 1 design; not sufficient for bulk cleanup.** Freeze and shake mechanisms, units and key risks are identified. Full producer/consumer coverage and complete per-game registration coverage remain explicit prerequisites in the phases that modify those paths.
+**Phase 1 runtime bridge implemented in the follow-up branch; bulk cleanup remains out of scope.** The canonical freeze and rollback policy are now represented in snapshots. Full producer/consumer coverage, multiplayer rollback validation and per-game migration remain explicit follow-up work.
 
-No test runner, typecheck, lint or build was executed during this connector-based audit. Baseline tests to run before Phase 1: `packages/core/tests/GameplayFreeze.test.ts`, `src/games/shared/rendering/__tests__/JuiceOrchestrator.test.ts`, `src/games/hitandrun/__tests__/HitRunGameplayFreeze.test.ts`, and `src/games/hitandrun/systems/__tests__/HitRunFeedbackSystem.test.ts`.
+No test runner, typecheck, lint or build was executed during this connector-based implementation. CI must run `packages/core/tests/GameplayFreeze.test.ts`, `packages/core/tests/SnapshotResources.test.ts`, `src/games/shared/rendering/__tests__/JuiceOrchestrator.test.ts`, `src/games/hitandrun/__tests__/HitRunGameplayFreeze.test.ts`, and `src/games/hitandrun/systems/__tests__/HitRunFeedbackSystem.test.ts`.

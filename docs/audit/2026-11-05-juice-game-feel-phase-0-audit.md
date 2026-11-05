@@ -1,7 +1,6 @@
 # Juice & Game Feel — Phase 0 source audit
 
 **Date:** 2026-11-05
-**Date:** 2026-11-05  
 **Scope:** source inventory and behavioral contracts only; no runtime code changed.
 
 ## Executive result
@@ -23,7 +22,7 @@ The repository contains the shared primitives, but hit-stop ownership is split. 
 
 ## Scheduler behavior
 
-`Schedule.update()` decrements `GameplayFreeze.remaining`, deletes the resource at zero, then computes `isFrozen`. A freeze expiring during an update can therefore allow gameplay phases to execute in that same update. The required contract is tick-boundary semantics: a tick that starts frozen stays frozen through all phases; the next tick may resume.
+`Schedule.update()` now latches freeze eligibility at tick start. A finite freeze that reaches zero during the update keeps gameplay phases frozen for that complete tick; the exact resource is removed after the phases finish, and gameplay resumes on the next tick. This behavior was merged in PR #1098. The scheduler regression tests were added there, but this connector audit did not execute them.
 
 The freeze countdown currently advances before `IsPaused` is read. `TimeScale` has a separate countdown; `scale === 0` contributes to the frozen decision. Pause, TimeScale zero, and freeze-clock behavior require explicit tests in Phases 1 and 6.
 
@@ -41,6 +40,10 @@ Code search found explicit `HitStopSystem` registration in `ArkanoidGame`, `Geom
 
 ## Rollback findings
 
+`WorldSnapshot` currently serializes entity/component state and RNG metadata, not `World.resources`. This is true for both AoS (`SnapshotSerializer`) and SoA (`SnapshotSerializerSoA`); their restore paths rebuild component storage but do not restore resources. Consequently, `GameplayFreeze.remaining` is not rewound by rollback, and the mutable `VFXWorldState` object (including `hitStopTimer`, priority and cooldown) is also outside the snapshot. The current implementation therefore cannot safely make Juice hit-stop simulation-authoritative merely by writing `GameplayFreeze` from `requestHitStop()`.
+
+`RollbackSimulation.processRollback()` restores a snapshot and then executes the corrected input frame with `simulation.step(correctedInput)` before entering `resimulateFromTick()`, where `world.isReSimulating` is set. This means rollback suppression policy must cover the corrected-input step as well as subsequent replay; a blanket guard based only on `isReSimulating` is not sufficient to define event replay semantics.
+
 `JuiceSystem` and `ScreenShakeSystem` skip `world.isReSimulating`. The existing source audit records an orchestrator guard, but this does not protect producers that create emitters, enqueue audio, or mutate visual components before the consumer runs. The Arkanoid hit path is one known missing producer guard; Pong particle/audio paths are another known risk. Space Invaders has guards on some orchestrator/SFX paths, not yet proven for every direct writer.
 
 ## Corrections to prior documentation
@@ -51,11 +54,14 @@ Code search found explicit `HitStopSystem` registration in `ArkanoidGame`, `Geom
 ## Decisions for implementation
 
 1. `GameplayFreeze` owns effective freeze duration; hit-stop policy must not own a second clock.
+2. Do not bridge `requestHitStop()` to `GameplayFreeze` until duration and arbitration state have an explicit rollback representation and restore tests for both AoS and SoA snapshots.
+3. Do not snapshot all of `VFXWorldState`: it mixes presentation caches/native handles and non-authoritative visual state with hit-stop policy. Extract only the minimal deterministic policy state into a snapshot-safe representation.
+4. Decide whether hit-stop is authoritative simulation time or local presentation before allowing Juice level / reduced-stimulation preferences to scale its duration.
 2. Public Juice durations are milliseconds; ECS timers and `System.update` use seconds.
 3. No fallback is removed until its producer and consumer are migrated and tested.
-4. Rollback suppression is required at presentation producer boundaries, not only in consumers.
-5. Reduced motion must not silently alter authoritative simulation timing.
-6. Game-specific effects remain until semantic equivalence is demonstrated.
+5. Rollback suppression is required at presentation producer boundaries, not only in consumers.
+6. Reduced motion must not silently alter authoritative simulation timing.
+7. Game-specific effects remain until semantic equivalence is demonstrated.
 
 ## Phase 0 exit
 

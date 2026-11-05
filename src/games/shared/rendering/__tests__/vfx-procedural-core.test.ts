@@ -50,6 +50,38 @@ describe("vfx-geometry", () => {
   });
 });
 
+describe("vfx-timeline", () => {
+  const phases: VFXTimelinePhase[] = [
+    { start: 0, end: 0.2, from: 0, to: 1, easing: "ease-out" },
+    { start: 0.4, end: 0.8, from: 1, to: 0.25, easing: "smoothstep" }
+  ];
+  it("samples arbitrary progress deterministically, including held gaps", () => {
+    expect(sampleVFXTimeline(0.1, phases)).toBeCloseTo(0.75);
+    expect(sampleVFXTimeline(0.3, phases)).toBe(1);
+    expect(sampleVFXTimeline(0.6, phases)).toBeCloseTo(0.625);
+    expect(sampleVFXTimeline(1, phases)).toBe(0.25);
+  });
+  it("clamps progress and validates malformed phase contracts", () => {
+    expect(sampleVFXTimeline(-1, phases)).toBe(0);
+    expect(sampleVFXTimeline(2, phases)).toBe(0.25);
+    expect(() => sampleVFXTimeline(0.5, [])).toThrow(RangeError);
+    expect(() => sampleVFXTimeline(0.5, [{ start: 0.5, end: 0.4, from: 0, to: 1 }])).toThrow(RangeError);
+    expect(() => sampleVFXTimeline(0.5, [
+      { start: 0, end: 0.7, from: 0, to: 1 },
+      { start: 0.6, end: 0.9, from: 1, to: 0 }
+    ])).toThrow(RangeError);
+    expect(() => sampleVFXTimeline(Number.NaN, phases)).toThrow(RangeError);
+  });
+  it("implements bounded easing curves", () => {
+    for (const easing of ["linear", "smoothstep", "ease-in", "ease-out", "ease-in-out"] as const) {
+      expect(easeProgress(0, easing)).toBe(0);
+      expect(easeProgress(1, easing)).toBe(1);
+      expect(easeProgress(0.5, easing)).toBeGreaterThanOrEqual(0);
+      expect(easeProgress(0.5, easing)).toBeLessThanOrEqual(1);
+    }
+  });
+});
+
 describe("vfx-pixel-color", () => {
   it("round-trips sRGB and OKLab/OKLCH within numerical tolerance", () => {
     const rgb = { r: 0.2, g: 0.55, b: 0.8 };

@@ -1,7 +1,7 @@
 # ADR — Rollback-safe gameplay freeze and Juice hit-stop
 
 **Date:** 2026-11-05  
-**Status:** Proposed implementation contract; runtime bridge intentionally blocked.
+**Status:** Snapshot resource foundation merged; canonical hit-stop runtime bridge implemented in the current follow-up branch, pending CI validation.
 
 ## Context
 
@@ -28,7 +28,7 @@ There is a second boundary in `RollbackSimulation.processRollback()`: it restore
 
 ## Decision
 
-**Do not connect `requestHitStop()` to `GameplayFreeze` in the current architecture.** Do not remove `VFXWorldState.hitStopTimer` until the following contract is implemented and tested.
+**Use `GameplayFreeze` as the only active hit-stop duration owner.** The snapshot resource foundation has landed; the current runtime change removes the duplicate VFX timer and moves only arbitration state into `JuiceHitStopPolicy`.
 
 1. **Choose simulation semantics explicitly.** If hit-stop changes the number of authoritative simulation ticks, it is gameplay state and must be driven by deterministic, synchronized events/configuration. If it is local presentation only, it must not gate authoritative gameplay phases.
 2. **Snapshot only deterministic policy state.** Do not serialize all of `VFXWorldState`: it also contains renderer caches, Skia/Canvas handles, background state and visual-only data. Extract the minimal hit-stop policy state (active owner/source, priority, cooldown and any required arbitration metadata) into a snapshot-safe representation.
@@ -38,28 +38,27 @@ There is a second boundary in `RollbackSimulation.processRollback()`: it restore
 
 ## Required implementation sequence
 
-### A. Snapshot contract
+### A. Snapshot contract — implemented
 
-- Add a narrow, explicit snapshot-safe resource mechanism or an equivalent component-backed representation.
-- Support both AoS and SoA serialization and restoration.
-- Define whether the resource participates in deterministic hashes and delta snapshots; do not leave these semantics implicit.
-- Preserve existing non-serializable resources and presentation state outside snapshots.
-- Add tests proving resource state is restored exactly, absent resources are removed/reset correctly, and excluded presentation resources are not serialized.
+- `World.registerSnapshotResource(name)` opts plain-data resources into snapshots; `GameplayFreeze` is registered by core `World` construction.
+- AoS and SoA snapshots capture and restore the same resource payload.
+- Registered keys and values participate in deterministic hashes and network delta payloads.
+- Restore replaces the registered resource set and leaves unregistered service/presentation resources untouched.
+- Capture/restore reject functions, symbols, cycles, weak collections, promises and class instances.
 
-### B. Deterministic hit-stop policy
+### B. Deterministic hit-stop policy — implemented in follow-up branch
 
-- Move only the priority/cooldown arbitration state out of `VFXWorldState` into the snapshot-safe representation.
-- Keep `GameplayFreeze` as the sole effective active countdown.
-- Define owner/source semantics so a Juice request cannot shorten, replace or clear an indefinite pause or a freeze owned by another gameplay system.
-- Define higher-priority override, equal/lower rejection and the 50 ms anti-chaining cooldown in simulation ticks or deterministic time units.
-- Make policy advancement run on a well-defined tick boundary even while gameplay is frozen; it must not depend on an optional presentation-system registration.
+- Priority, active ownership and cooldown live in snapshot-registered `JuiceHitStopPolicy`; the active duration remains exclusively in `GameplayFreeze`.
+- Juice-owned freezes carry `source: "juice"`; requests cannot replace indefinite or externally owned freezes.
+- Higher priority may replace a Juice-owned active freeze; equal/lower requests are rejected. The 50 ms cooldown advances through freezes because `HitStopSystem.runsWhileFrozen = true`.
+- `VFXWorldState.hitStopTimer`, `hitStopPriority` and `hitStopCooldown` are removed.
 
-### C. Replay and presentation
+### C. Replay and presentation — implemented, pending CI validation
 
-- Specify how hit-stop requests are regenerated on corrected input and replay frames.
-- Ensure authoritative events are deterministic and not suppressed merely because `world.isReSimulating` is true.
-- Ensure presentation effects are not duplicated during corrected-frame execution or subsequent replay.
-- Compare final gameplay snapshots after equivalent logical ticks, and separately assert expected freeze wall-clock/tick behavior.
+- `JuiceOrchestrator.spawn()` applies hit-stop before the resimulation presentation guard; VFX and shake remain suppressed during replay.
+- Catalog hit-stop event producers in Arkanoid and Space Invaders no longer suppress the authoritative request behind a presentation-only rollback guard.
+- Hit-stop duration is independent of `JuiceLevel` and low-stimulation preferences.
+- Tests compare resource hashes after replaying a request from a pre-hit-stop snapshot.
 
 ## Acceptance tests
 
@@ -75,3 +74,8 @@ There is a second boundary in `RollbackSimulation.processRollback()`: it restore
 ## Consequences
 
 This is a deliberate sequencing constraint, not a rejection of canonical hit-stop. It prevents a superficially unified runtime path from producing divergent rollback state. The next runtime PR should begin with the narrow snapshot-safe state contract and its AoS/SoA tests, then add the policy bridge only after those tests pass.
+
+
+## Implementation update — 2026-11-05
+
+PRs #1110 and #1113 introduced and completed the opt-in snapshot-resource foundation. The follow-up implementation now uses that contract to unify Juice hit-stop with core `GameplayFreeze`. The remaining validation is to run the core and shared-rendering test suites, typecheck/build, and verify multiplayer rollback behavior in CI. Game-specific direct freeze writers (notably Pong and Space Invaders damage paths) remain a later migration; they are preserved as externally owned freezes and are not silently overridden by Juice.

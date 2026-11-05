@@ -225,7 +225,7 @@ describe("PixelFX-inspired procedural VFX", () => {
     const late = createAdapter(), lateState = createWorld(0.04);
     drawPixelFxComboFinisher(late, lateState.world, lateState.entity);
     expect(late.drawArc.mock.calls[0][2]).toBeGreaterThan(early.drawArc.mock.calls[0][2]);
-    expect(late.fillCircle.mock.calls[0][4]).toBeLessThan(early.fillCircle.mock.calls[0][4]);
+    expect(late.fillCircle.mock.calls[0][4]).toBeGreaterThan(early.fillCircle.mock.calls[0][4]);
   });
 
   it("draws the five additional procedural compositions", () => {

@@ -26,6 +26,7 @@ import {
 import { RacerInputSystem } from "./systems/RacerInputSystem";
 import { RoadAdvanceSystem } from "./systems/RoadAdvanceSystem";
 import { TrafficSystem } from "./systems/TrafficSystem";
+import { CrashSystem } from "./systems/CrashSystem";
 import { ColorScriptSystem } from "./systems/ColorScriptSystem";
 import { ParallaxSystem } from "./systems/ParallaxSystem";
 import { scenarioHash } from "./rendering/OutrunPalettes";
@@ -125,6 +126,7 @@ export class OutrunGame extends BaseGame<
     this.world.addSystem(new RacerInputSystem(), { phase: SystemPhase.Input });
     this.world.addSystem(new RoadAdvanceSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new TrafficSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new CrashSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new ColorScriptSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new ParallaxSystem(), { phase: SystemPhase.Presentation });
   }
@@ -161,7 +163,10 @@ export class OutrunGame extends BaseGame<
         countdownTime: startsWithCountdown ? this.config.countdownDurationSeconds : 0,
         timeLeft: this.config.raceTimeLimitSeconds,
         checkpointsPassed: 0,
-        checkpointsTotal: this.world.getResource<RoadData>("RoadData")?.checkpoints?.length ?? 0
+        checkpointsTotal: this.world.getResource<RoadData>("RoadData")?.checkpoints?.length ?? 0,
+        crashRemaining: 0,
+        crashSpin: 0,
+        crashDir: 0
       } satisfies RaceStateComponent);
 
       const roadEntity = this.world.createEntity();
@@ -204,7 +209,6 @@ export class OutrunGame extends BaseGame<
         const z = (i + 1) * (roadData.trackLength / (numTraffic + 2));
         const lateralX = (rng.next() - 0.5) * 1.4;
         const speed = this.config.maxSpeed * (0.35 + rng.next() * 0.4);
-        // One RNG draw still determines the full visual identity (archetype + palette).
         const colorIndex = Math.floor(rng.next() * 64);
 
         const ent = this.world.createEntity();
@@ -376,7 +380,10 @@ export class OutrunGame extends BaseGame<
           countdownTime: 0,
           timeLeft: this.config.raceTimeLimitSeconds,
           checkpointsPassed: 0,
-          checkpointsTotal: 0
+          checkpointsTotal: 0,
+          crashRemaining: 0,
+          crashSpin: 0,
+          crashDir: 0
         };
   }
 

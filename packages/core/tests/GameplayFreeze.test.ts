@@ -96,6 +96,19 @@ describe("GameplayFreeze (Soft Pause) System Tests", () => {
     expect(presentationSys.updated).toBe(1);
   });
 
+  it("should not freeze a tick for an already-expired zero-duration resource", () => {
+    world.setResource("GameplayFreeze", { remaining: 0 } as GameplayFreeze);
+
+    world.update(0.016);
+
+    expect(world.getResource("GameplayFreeze")).toBeUndefined();
+    expect(inputSys.updated).toBe(1);
+    expect(movementSys.updated).toBe(1);
+    expect(collisionSys.updated).toBe(1);
+    expect(rulesSys.updated).toBe(1);
+    expect(presentationSys.updated).toBe(1);
+  });
+
   it("should skip simulation/gameplay systems but execute TTL, Juice, and Presentation systems when frozen", () => {
     world.setResource("GameplayFreeze", {} as GameplayFreeze);
     world.update(0.1);

@@ -4,7 +4,8 @@ import {
   AoSWorldSnapshot,
   SoAWorldSnapshot,
   hashAoS,
-  hashSoA
+  hashSoA,
+  NetworkReplicationUtils
 } from "../src";
 
 function createWorld(useSoA: boolean): World<CoreComponentRegistry> {
@@ -136,5 +137,24 @@ describe("Snapshot resource hashing", () => {
     const firstHash = hashSoA(world.snapshot() as SoAWorldSnapshot);
     world.setResource("GameplayFreeze", { remaining: 0.2 });
     expect(hashSoA(world.snapshot() as SoAWorldSnapshot)).not.toBe(firstHash);
+  });
+});
+
+describe("Snapshot resource delta replication", () => {
+  it.each([false, true])("applies complete resource state to a baseline snapshot (SoA=%s)", useSoA => {
+    const world = createWorld(useSoA);
+    world.registerSnapshotResource("GameplayFreeze");
+    world.setResource("GameplayFreeze", { remaining: 0.1 });
+    const base = world.snapshot();
+
+    world.setResource("GameplayFreeze", { remaining: 0.025, owner: "combat" });
+    const delta = world.deltaSnapshot(0);
+
+    NetworkReplicationUtils.applyDelta(base, delta);
+
+    expect(base.snapshotResourceKeys).toEqual(["GameplayFreeze"]);
+    expect(base.snapshotResources).toEqual({
+      GameplayFreeze: { remaining: 0.025, owner: "combat" }
+    });
   });
 });

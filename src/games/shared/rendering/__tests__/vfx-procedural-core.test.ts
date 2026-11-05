@@ -1,3 +1,4 @@
+import { easeProgress, sampleVFXTimeline, type VFXTimelinePhase } from "../vfx-timeline";
 import {
   DeterministicRandom, clamp, deriveSeed, finiteNumber, lerp, smoothstep
 } from "../vfx-core";
@@ -71,6 +72,10 @@ describe("vfx-timeline", () => {
       { start: 0.6, end: 0.9, from: 1, to: 0 }
     ])).toThrow(RangeError);
     expect(() => sampleVFXTimeline(Number.NaN, phases)).toThrow(RangeError);
+    expect(() => sampleVFXTimeline(0.1, [
+      { start: 0, end: 0.2, from: 0, to: 1 },
+      { start: 0.3, end: 0.2, from: 1, to: 0 }
+    ])).toThrow(RangeError);
   });
   it("implements bounded easing curves", () => {
     for (const easing of ["linear", "smoothstep", "ease-in", "ease-out", "ease-in-out"] as const) {

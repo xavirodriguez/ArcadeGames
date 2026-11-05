@@ -26,6 +26,14 @@ OKLab interpolation, RGB hex conversion, posterization, 4×4 Bayer ordered
 dithering, perceptual nearest-palette mapping, SDF coverage/rasterization, and
 integer nearest-neighbor RGBA upscaling.
 
+## PR4 — Stateless Temporal Sampling
+
+`vfx-timeline.ts` adds normalized, history-free temporal sampling. It supports
+linear, smoothstep, quadratic ease-in/ease-out and symmetric ease-in-out curves.
+Ordered, non-overlapping phases can be sampled at arbitrary progress values;
+gaps hold the preceding value. The sampler is renderer-independent and performs
+no per-sample allocation. It is a calculation primitive, not an effect lifecycle.
+
 ## Integration contract
 
 - Pure utilities only: no Canvas, Skia, React Native, ECS or wall-clock access.

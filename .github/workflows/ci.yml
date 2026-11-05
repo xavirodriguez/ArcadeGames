@@ -30,11 +30,35 @@ jobs:
         id: install_dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Validate Expo environment health (expo-doctor)
+        run: npx expo-doctor --verbose || true
+
       - name: Verify generated sprite artifacts
         run: pnpm run sprites:build -- --check
 
       - name: Validate sprite atlases and metadata
         run: pnpm run sprites:validate
+
+      - name: Lint sprite metadata and animation files
+        run: pnpm exec eslint packages/core/src/assets/SpriteSheetDefinition.ts packages/core/tests/SpriteSheetDefinition.test.ts scripts/validate-sprites.ts scripts/sprites/cli.ts scripts/sprites/SpritePipeline.ts scripts/sprites/SpriteSourceSchemas.ts scripts/sprites/parsers/AsepriteJsonParser.ts src/games/shared/sprites/SpriteManifestValidator.ts src/games/shared/sprites/SpriteManifestValidator.test.ts src/games/shared/sprites/SpriteTypes.ts src/games/shared/sprites/SpriteAnimator.ts src/games/shared/sprites/SpriteAnimator.test.ts src/games/shared/sprites/SpriteDrawer.test.ts src/games/shared/sprites/AssetLoaderAdapter.ts src/games/shared/sprites/AssetLoaderAdapter.test.ts src/games/shared/sprites/__tests__/AsepriteJsonParser.test.ts src/games/shared/sprites/__tests__/SpritePipeline.test.ts src/games/hitandrun/rendering/HitRunSpriteAtlas.ts src/games/hitandrun/__tests__/HitRunSpriteAtlas.test.ts src/games/hitandrun/__tests__/HitRunSpritePreload.test.ts src/games/hitandrun/__tests__/HitRunSamuraiEnemy.test.ts src/games/hitandrun/__tests__/HitAndRun.test.ts src/games/hitandrun/rendering/SamuraiAnimationSystems.ts src/games/hitandrun/waves/HitRunEnemyPool.ts src/games/hitandrun/belt/registerBeltPlayerBlueprint.ts playwright.config.ts e2e/games.spec.ts e2e/hitandrun.spec.ts
+
+      - name: Lint through Turborepo
+        run: pnpm exec turbo run lint
+
+      - name: Enforce repository agent and architecture guardrails
+        run: pnpm run check:agent-guardrails
+
+      - name: Validate README and quality-gate documentation
+        run: pnpm run docs:check
+
+      - name: Build through Turborepo
+        run: pnpm exec turbo run build
+
+      - name: Typecheck through Turborepo
+        run: pnpm exec turbo run typecheck
+
+      - name: Typecheck application and game routes
+        run: pnpm run typecheck:app
 
       - name: Test sprite metadata validator and animator
         run: pnpm exec jest --config src/games/shared/jest.config.cjs --runInBand --runTestsByPath src/games/shared/sprites/SpriteManifestValidator.test.ts src/games/shared/sprites/SpriteAnimator.test.ts src/games/shared/sprites/SpriteDrawer.test.ts src/games/shared/sprites/AssetLoaderAdapter.test.ts src/games/shared/sprites/__tests__/AsepriteJsonParser.test.ts src/games/shared/sprites/__tests__/SpritePipeline.test.ts
@@ -42,36 +66,11 @@ jobs:
       - name: Test shared sprite destination geometry
         run: pnpm --filter=@tiny-aster/core exec jest --runInBand --runTestsByPath tests/SpriteSheetDefinition.test.ts
 
-      - name: Lint sprite metadata and animation files
-        run: pnpm exec eslint packages/core/src/assets/SpriteSheetDefinition.ts packages/core/tests/SpriteSheetDefinition.test.ts scripts/validate-sprites.ts scripts/sprites/cli.ts scripts/sprites/SpritePipeline.ts scripts/sprites/SpriteSourceSchemas.ts scripts/sprites/parsers/AsepriteJsonParser.ts src/games/shared/sprites/SpriteManifestValidator.ts src/games/shared/sprites/SpriteManifestValidator.test.ts src/games/shared/sprites/SpriteTypes.ts src/games/shared/sprites/SpriteAnimator.ts src/games/shared/sprites/SpriteAnimator.test.ts src/games/shared/sprites/SpriteDrawer.test.ts src/games/shared/sprites/AssetLoaderAdapter.ts src/games/shared/sprites/AssetLoaderAdapter.test.ts src/games/shared/sprites/__tests__/AsepriteJsonParser.test.ts src/games/shared/sprites/__tests__/SpritePipeline.test.ts src/games/hitandrun/rendering/HitRunSpriteAtlas.ts src/games/hitandrun/__tests__/HitRunSpriteAtlas.test.ts src/games/hitandrun/__tests__/HitRunSpritePreload.test.ts src/games/hitandrun/__tests__/HitRunSamuraiEnemy.test.ts src/games/hitandrun/__tests__/HitAndRun.test.ts src/games/hitandrun/rendering/SamuraiAnimationSystems.ts src/games/hitandrun/waves/HitRunEnemyPool.ts src/games/hitandrun/belt/registerBeltPlayerBlueprint.ts playwright.config.ts e2e/games.spec.ts e2e/hitandrun.spec.ts
-
-      - name: Build through Turborepo
-        run: pnpm exec turbo run build
-
-      - name: Lint through Turborepo
-        run: pnpm exec turbo run lint
-
-      - name: Typecheck through Turborepo
-        run: pnpm exec turbo run typecheck
-
       - name: Run tests through Turborepo
         run: pnpm exec turbo run test
 
-      - name: Enforce repository agent and architecture guardrails
-        if: ${{ steps.install_dependencies.outcome == 'success' }}
-        run: pnpm run check:agent-guardrails
-
-      - name: Validate README and quality-gate documentation
-        if: ${{ steps.install_dependencies.outcome == 'success' }}
-        run: pnpm run docs:check
+      - name: Run all game unit and regression tests
+        run: pnpm run test:games:ci
 
       - name: Measure input-path performance baseline
         run: pnpm exec tsx packages/core/src/__benchmarks__/inputPathBenchmark.ts
-
-      - name: Run all game unit and regression tests
-        if: ${{ always() && steps.install_dependencies.outcome == 'success' }}
-        run: pnpm run test:games:ci
-
-      - name: Typecheck application and game routes
-        if: ${{ always() && steps.install_dependencies.outcome == 'success' }}
-        run: pnpm run typecheck:app

@@ -131,5 +131,66 @@ const timedPaletteSchema = z.object({
 });
 
 const configuredPaletteSchema = z.object({
-  shared: paletteTokensSchema.extend({}).optional().optional() as never
+  shared: sharedPaletteSchema.default(DEFAULT_OUTRUN_VISUAL_CONFIG.palette.shared),
+  dawn: paletteTokensSchema.default(DEFAULT_OUTRUN_VISUAL_CONFIG.palette.dawn),
+  noon: paletteTokensSchema.default(DEFAULT_OUTRUN_VISUAL_CONFIG.palette.noon),
+  afternoon: paletteTokensSchema.default(DEFAULT_OUTRUN_VISUAL_CONFIG.palette.afternoon),
+  night: paletteTokensSchema.default(DEFAULT_OUTRUN_VISUAL_CONFIG.palette.night)
 });
+
+/** Runtime-validated, data-driven visual settings for Out Run. */
+export const OutrunVisualConfigSchema = z.object({
+  stages: z.array(z.object({
+    hour: z.enum(["dawn", "noon", "afternoon", "twilight", "night"]),
+    decor: z.enum(["sierra", "coast", "desert"])
+  })).min(1).default(DEFAULT_OUTRUN_VISUAL_CONFIG.stages),
+  transitionFraction: z.number().min(0).max(1).default(DEFAULT_OUTRUN_VISUAL_CONFIG.transitionFraction),
+  palette: configuredPaletteSchema.default(DEFAULT_OUTRUN_VISUAL_CONFIG.palette),
+  paletteColorblind: timedPaletteSchema.default(DEFAULT_OUTRUN_VISUAL_CONFIG.paletteColorblind),
+  paletteMode: z.enum(["default", "colorblind"]).default(DEFAULT_OUTRUN_VISUAL_CONFIG.paletteMode),
+  quality: z.enum(["high", "low"]).default(DEFAULT_OUTRUN_VISUAL_CONFIG.quality),
+  tuning: visualTuningSchema.default(DEFAULT_OUTRUN_VISUAL_CONFIG.tuning)
+}).default(DEFAULT_OUTRUN_VISUAL_CONFIG);
+
+export const OutrunConfigSchema = BaseConfigSchema.extend({
+  VISUAL_MOD: z.string().optional(),
+  segmentLength: z.number().positive().default(200),
+  rumbleLength: z.number().int().positive().default(3),
+  roadWidth: z.number().positive().default(2000),
+  cameraHeight: z.number().positive().default(1000),
+  cameraDepth: z.number().positive().default(0.84),
+  drawDistance: z.number().int().positive().default(300),
+  maxSpeed: z.number().positive().default(12000),
+  raceTimeLimitSeconds: z.number().positive().default(25),
+  checkpointTimeBonusSeconds: z.number().nonnegative().default(8),
+  countdownDurationSeconds: z.number().nonnegative().default(3),
+  centrifugalForce: z.number().min(0).default(0.3),
+  accel: z.number().positive().default(2000),
+  brake: z.number().positive().default(4000),
+  decel: z.number().positive().default(800),
+  offRoadDecel: z.number().positive().default(2000),
+  offRoadLimit: z.number().positive().default(4000),
+  steerSpeed: z.number().positive().default(3.0),
+  playerZOffset: z.number().default(0),
+  laneWidth: z.number().positive().default(0.3),
+  trafficDensity: z.number().min(0).max(1).default(0.02),
+  trafficLookaheadSegments: z.number().int().positive().default(20),
+  trafficAvoidRadius: z.number().positive().default(0.35),
+  trafficSteerSpeed: z.number().positive().default(1.5),
+  trafficCollisionSubsteps: z.number().int().positive().default(4),
+  trafficCollisionSubstepsMax: z.number().int().positive().default(32),
+  /** Duration of the classic tumble sequence after a traffic hit (seconds). */
+  crashDurationSeconds: z.number().positive().default(1.35),
+  /** Angular speed of the tumble spin in radians per second. */
+  crashSpinRadiansPerSecond: z.number().positive().default(9.5),
+  /** Extra deceleration applied while tumbling (world units / s²). */
+  crashDecel: z.number().positive().default(7000),
+  /** Player speed is clamped to rivalSpeed * this factor on impact. */
+  crashSpeedFactor: z.number().min(0).max(1).default(0.35),
+  WIDTH: z.number().positive().default(800),
+  HEIGHT: z.number().positive().default(600),
+  visual: OutrunVisualConfigSchema
+});
+
+export type OutrunConfig = z.infer<typeof OutrunConfigSchema>;
+export const DEFAULT_OUTRUN_CONFIG: OutrunConfig = OutrunConfigSchema.parse({});

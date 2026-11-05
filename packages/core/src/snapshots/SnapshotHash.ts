@@ -10,6 +10,8 @@ interface SnapshotHeader {
   rngState?: number;
   renderRngState?: number;
   entities: number[] | Int32Array;
+  snapshotResourceKeys?: string[];
+  snapshotResources?: Record<string, unknown>;
 }
 
 function hashSnapshotHeader(header: SnapshotHeader): number {
@@ -46,6 +48,7 @@ function hashSnapshotHeader(header: SnapshotHeader): number {
  */
 export function hashSoA(snapshot: SoAWorldSnapshot): string {
   let hash = hashSnapshotHeader(snapshot);
+  hash = hashSnapshotResourceState(hash, snapshot);
 
   // 3. Hash Component Data
   const soaComponentData = snapshot.soaComponentData;
@@ -107,8 +110,11 @@ export function hashAoS(snapshot: {
   seed: number;
   rngState?: number;
   renderRngState?: number;
+  snapshotResourceKeys?: string[];
+  snapshotResources?: Record<string, unknown>;
 }): string {
   let hash = hashSnapshotHeader(snapshot);
+  hash = hashSnapshotResourceState(hash, snapshot);
 
   const componentData = snapshot.componentData;
   if (componentData) {
@@ -132,6 +138,24 @@ export function hashAoS(snapshot: {
   }
 
   return (hash >>> 0).toString(16).padStart(8, "0");
+}
+
+function hashSnapshotResourceState(
+  initialHash: number,
+  snapshot: { snapshotResourceKeys?: string[]; snapshotResources?: Record<string, unknown> }
+): number {
+  if (snapshot.snapshotResourceKeys === undefined && snapshot.snapshotResources === undefined) return initialHash;
+  let hash = hashInt32(initialHash, 0x52535243);
+  const keys = (snapshot.snapshotResourceKeys ?? []).slice().sort(compareStableKeys);
+  hash = hashInt32(hash, keys.length);
+  for (const key of keys) {
+    hash = hashString(hash, key);
+    const present = snapshot.snapshotResources !== undefined &&
+      Object.prototype.hasOwnProperty.call(snapshot.snapshotResources, key);
+    hash = hashInt32(hash, present ? 1 : 0);
+    if (present) hash = hashValue(hash, snapshot.snapshotResources![key]);
+  }
+  return hash;
 }
 
 function hashInt32(hash: number, val: number): number {

@@ -98,7 +98,17 @@ describe("PixelFX-inspired procedural VFX", () => {
   });
 
   it("reproduces explosion geometry for the same seed and varies it for a different seed", () => {
-    const { world } = createWorld();
+    const render = { size: 32, color: "#ffffff", opacity: 1 };
+    const ttl = { remaining: 0.2, timeLeft: 0.4 };
+    const transform = { rotation: 0.25, scaleX: 1 };
+    const world = {
+      getComponent: (_entity: number, component: string) => {
+        if (component === "Render") return render;
+        if (component === "TTL") return ttl;
+        if (component === "Transform") return transform;
+        return undefined;
+      }
+    } as never as World<CoreComponentRegistry>;
     const drawForEntity = (entity: number) => {
       const adapter = createAdapter();
       drawPixelFxExplosion(adapter, world, entity);

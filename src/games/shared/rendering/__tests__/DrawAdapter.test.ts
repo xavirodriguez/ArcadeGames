@@ -101,15 +101,21 @@ describe("DrawAdapter glow composition", () => {
       for (const scenario of cases) {
         perfGlobal.__ARCADE_PERF_P95__ = scenario.p95;
         const calls: number[] = [];
-        const canvas = {
+        const skiaCanvas = {
           drawCircle: (_x: number, _y: number, _radius: number, paint: unknown) => {
             calls.push((paint as { alpha: number }).alpha);
           }
         };
-        new SkiaDrawAdapter(canvas).drawGlow("#ff00ff", (layer) => {
+        new SkiaDrawAdapter(skiaCanvas).drawGlow("#ff00ff", (layer) => {
+          layer.fillCircle(0, 0, 8, "#ffffff", 0.5);
+        });
+
+        const { context, fillSnapshots } = createCanvasContext();
+        new CanvasDrawAdapter(context).drawGlow("#ff00ff", (layer) => {
           layer.fillCircle(0, 0, 8, "#ffffff", 0.5);
         });
         expect(calls).toEqual(scenario.expectedAlpha);
+        expect(fillSnapshots.map((snapshot) => snapshot.alpha)).toEqual(scenario.expectedAlpha);
       }
     } finally {
       if (previousP95 === undefined) delete perfGlobal.__ARCADE_PERF_P95__;

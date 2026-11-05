@@ -412,7 +412,7 @@ function HitAndRunContent() {
             <View style={styles.actions} pointerEvents="box-none">
               <TouchActionButton
                 label="MELEE"
-                size={64}
+                size={56}
                 color="rgba(30, 41, 59, 0.7)"
                 borderColor={colors.pink}
                 pressedColor="rgba(30, 41, 59, 0.9)"
@@ -421,11 +421,11 @@ function HitAndRunContent() {
                 onPressIn={() => handleTouchPulse()}
                 onPressOut={() => {}}
                 accessibilityLabel="Melee"
-                style={{ marginHorizontal: spacing.sm }}
+                style={{ marginHorizontal: spacing.xs }}
               />
               <TouchActionButton
                 label="SPCL"
-                size={56}
+                size={48}
                 color="rgba(30, 41, 59, 0.7)"
                 borderColor={colors.violet}
                 pressedColor="rgba(30, 41, 59, 0.9)"
@@ -438,7 +438,7 @@ function HitAndRunContent() {
               />
               <TouchActionButton
                 label="FIRE"
-                size={72}
+                size={60}
                 color="rgba(30, 41, 59, 0.7)"
                 borderColor={colors.gold}
                 pressedColor="rgba(30, 41, 59, 0.9)"
@@ -464,7 +464,7 @@ function HitAndRunContent() {
               />
               <TouchActionButton
                 label="JUMP"
-                size={70}
+                size={60}
                 color="rgba(30, 41, 59, 0.7)"
                 borderColor={colors.cyan}
                 pressedColor="rgba(30, 41, 59, 0.9)"

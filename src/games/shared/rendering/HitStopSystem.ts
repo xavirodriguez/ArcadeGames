@@ -49,6 +49,8 @@ export function isHitStopActive<TComponents extends CoreComponentRegistry = Core
 
 /**
  * Requests a deterministic gameplay freeze through the core scheduler.
+ * Register HitStopSystem at game boot (directly or through registerSharedJuiceSystems)
+ * so the snapshot-backed anti-chaining cooldown advances after the freeze expires.
  *
  * Priority/cooldown arbitration is snapshot state; the effective duration lives
  * exclusively in GameplayFreeze. Existing freezes owned by other systems are

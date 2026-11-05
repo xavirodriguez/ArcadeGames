@@ -6,7 +6,8 @@ import {
   SoAWorldSnapshot,
   hashAoS,
   hashSoA,
-  NetworkReplicationUtils
+  NetworkReplicationUtils,
+  SnapshotDelta
 } from "../src";
 
 function createWorld(useSoA: boolean): World<CoreComponentRegistry> {
@@ -151,7 +152,7 @@ describe("Snapshot resource delta replication", () => {
     const base = world.snapshot();
 
     world.setResource("GameplayFreeze", { remaining: 0.025, owner: "combat" });
-    const delta = world.deltaSnapshot(0);
+    const delta = world.deltaSnapshot(0) as SnapshotDelta;
 
     NetworkReplicationUtils.applyDelta(base, delta);
 

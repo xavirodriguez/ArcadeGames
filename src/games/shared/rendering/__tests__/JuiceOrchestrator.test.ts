@@ -1,4 +1,5 @@
-import { World, CoreComponentRegistry, hashAoS } from "@tiny-aster/core";
+import { World, hashAoS } from "@tiny-aster/core";
+import type { CoreComponentRegistry } from "@tiny-aster/core";
 import { JuiceOrchestrator, JUICE_CATALOG } from "../JuiceOrchestrator";
 import { HitStopSystem, HitStopPriority, requestHitStop, isHitStopActive } from "../HitStopSystem";
 import { KineticFlowSystem } from "../KineticFlowSystem";

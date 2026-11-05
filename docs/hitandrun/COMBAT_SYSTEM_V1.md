@@ -71,8 +71,8 @@ For a custom player/enemy guard input, set `guardHeld` on its `BeltInput` or `Pl
 
 Resolved `combat:hit` events also carry attack-specific knockback magnitudes, armor absorption metadata and optional hitstun/stagger overrides. `HitRunHurtSystem` is the single owner of hit reaction application:
 
-- **Hitstun:** short simulation-time control lock; player and enemy durations are configured independently.
-- **Stagger:** additional stability-break window reserved for heavy attack categories (finisher, throw, special), explicit attack overrides, or enemy hits above the configured poise threshold.
+- **Hitstun:** short simulation-time control lock; player and enemy durations are configured independently (defaults: player 0.12 s, enemy 0.14 s).
+- **Stagger:** additional stability-break window reserved for heavy attack categories (finisher, throw, special), explicit attack overrides, or enemy health damage at/above the 2.5-point poise threshold. Defaults: 0.42 s for heavy attacks and 0.32 s for threshold-breaking enemy hits.
 - **Knockback:** horizontal and elevation impulses are applied once from the resolved impact event. Melee, throw and special attack systems no longer also write the victim velocity directly.
 - **Enemy interruption:** active enemy melee hitboxes are removed when stagger interrupts the attack. Hit&Run FSM callbacks are suspended while hitstun/stagger remains, and `HitRunStaggerSystem` enforces zero horizontal velocity after AI steering.
 - **Hit-stop:** continues to use the engine's canonical `GameplayFreeze`; category profiles now distinguish bullets, shotgun, explosive, melee, finisher, throw, special, guard break and armor break. Durations remain capped and are requested only by resolved impact events. The core primitive is a short global gameplay freeze, not actor-local time dilation; true per-entity hit-stop would require a core scheduler capability and is deliberately not reimplemented inside Hit&Run.

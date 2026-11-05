@@ -42,6 +42,40 @@ export const DEFAULT_HIT_REACTION_CONFIG: HitReactionConfig = {
   blinkHalfPeriod: PLAYER_INVULN_BLINK_HALF_PERIOD
 };
 
+export interface HitReactionInput {
+  readonly amount: number;
+  readonly category?: string;
+  readonly attackCategory?: string;
+  readonly hitstunSeconds?: number;
+  readonly staggerSeconds?: number;
+}
+
+/** One shared resolver keeps gameplay reaction timing and its VFX semantics aligned. */
+export function resolveHitReactionDurations(
+  hit: HitReactionInput,
+  isPlayer: boolean,
+  config: HitReactionConfig
+): { hitstunSeconds: number; staggerSeconds: number } {
+  const baseHitstun = isPlayer
+    ? config.playerHitstunSeconds
+    : config.enemyHitstunSeconds;
+  const isHeavy = hit.attackCategory === "combo-finisher" ||
+    hit.attackCategory === "throw" ||
+    hit.attackCategory === "special" ||
+    hit.category === "guard-break";
+  const exceedsPoiseThreshold = hit.amount >= config.staggerDamageThreshold;
+  const staggerSeconds = hit.staggerSeconds ??
+    (isHeavy
+      ? config.heavyHitStaggerSeconds
+      : exceedsPoiseThreshold && !isPlayer
+        ? config.enemyStaggerSeconds
+        : 0);
+  return {
+    hitstunSeconds: hit.hitstunSeconds ?? baseHitstun,
+    staggerSeconds
+  };
+}
+
 export interface HitReactionComponent {
   type: "HitReaction";
   hitstunRemaining: number;

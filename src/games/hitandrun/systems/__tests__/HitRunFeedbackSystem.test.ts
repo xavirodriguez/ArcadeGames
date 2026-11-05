@@ -210,4 +210,40 @@ describe("HitRunFeedbackSystem (Paso B)", () => {
     )).toBe(false);
   });
 
+  it("receives a lethal melee hit through the combat event bus", () => {
+    const target = world.createEntity();
+    world.addComponent(target, {
+      type: "Transform",
+      x: 72,
+      y: 48,
+      rotation: 0,
+      scaleX: 1,
+      scaleY: 1,
+      worldX: 72,
+      worldY: 48,
+      worldRotation: 0,
+      worldScaleX: 1,
+      worldScaleY: 1,
+      dirty: false
+    });
+
+    const bus = world.getEventBus();
+    expect(bus).toBeDefined();
+    if (!bus) return;
+    feedback.subscribe(bus);
+    bus.emit("combat:hit", {
+      targetEntity: target,
+      amount: 2,
+      remainingHealth: 0,
+      category: "melee"
+    });
+
+    feedback.update(world, 0);
+
+    const effects = world.query("Render", "TTL");
+    expect(effects.some((entity) =>
+      (world.getComponent(entity, "Render") as { shape?: string } | undefined)?.shape === "pixelfx_combo_finisher"
+    )).toBe(true);
+  });
+
 });

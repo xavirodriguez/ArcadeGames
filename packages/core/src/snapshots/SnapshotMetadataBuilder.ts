@@ -3,18 +3,13 @@ import type { Entity } from "../ecs/Entity";
 import type { ComponentRegistry } from "../ecs/Component";
 import type { BaseWorldSnapshot } from "./WorldSnapshot";
 import { captureSnapshotResources } from "./SnapshotResourceState";
+import type { InternalWorldAccess } from "./SnapshotInternalAccess";
 
 /**
  * Internal interface to access private world state for metadata building.
  * @public
  */
-export interface InternalWorldSnapshotAccess {
-  nextEntityId: number;
-  freeEntities: number[];
-  generations?: number[];
-  resources: Map<string, unknown>;
-  snapshotResourceNames: Set<string>;
-}
+export type InternalWorldSnapshotAccess = InternalWorldAccess;
 
 /**
  * Builds standard snapshot metadata from an active World instance.
@@ -77,7 +72,7 @@ export function buildSnapshotMetadata<TComponents extends ComponentRegistry>(
     rngState: world.gameplayRandom.getSeed(),
     renderRngState: world.renderRandom.getSeed(),
     tick: world.tick,
-    ...captureSnapshotResources(internal as InternalWorldSnapshotAccess & { resources: Map<string, unknown>; snapshotResourceNames: Set<string> })
+    ...captureSnapshotResources(internal)
   };
 
   if (options?.isSoA) {

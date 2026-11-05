@@ -81,6 +81,15 @@ Resolved `combat:hit` events also carry attack-specific knockback magnitudes, ar
 
 The shared damage resolver reports `armorHit` and `armorAbsorbed`; `blocked` now means a successful guard block only. This prevents armor absorption from being misrepresented as a shield block.
 
+### Hit reaction presentation
+
+Impacts that produce hitstun or stagger now receive two distinct procedural cues through the shared PixelFX drawer contract:
+
+- `pixelfx_hitstun`: compact core flash and short radial ticks for ordinary hitstun.
+- `pixelfx_stagger`: a broken stability ring and shearing segments only when the shared gameplay resolver reports a positive stagger duration.
+
+The same pure `resolveHitReactionDurations()` helper is used by `HitRunHurtSystem` and `HitRunFeedbackSystem`, so presentation does not reimplement the heavy-hit/poise threshold rules. Fully guarded and armor-only contacts do not spawn either reaction cue. Both effects use the existing `IDrawAdapter` registration path, preserving the same drawer implementation for Canvas and Skia; their TTL remains owned by the existing ECS transient lifecycle.
+
 ## Validation boundaries
 
 Focused tests cover frontal/rear guard behavior, guard break and spillover, armor absorption semantics, legacy damage, blocked-hit reaction suppression, enemy-specific hitstun, attack-scaled stagger, knockback, and guard/armor presentation. CI and E2E results must be checked on the PR before merge; in-game balance and Canvas/Skia parity still require playtesting.

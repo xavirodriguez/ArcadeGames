@@ -21,6 +21,8 @@ export type SharedVFXPrimitiveName =
   | "screen_border_glow"
   | "warp_lines"
   | "pixelfx_impact"
+  | "pixelfx_hitstun"
+  | "pixelfx_stagger"
   | "pixelfx_slash"
   | "pixelfx_explosion"
   | "pixelfx_dust"

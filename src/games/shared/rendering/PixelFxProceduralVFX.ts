@@ -963,11 +963,79 @@ function skiaDrawer(
   return { draw(canvas, world, entity) { drawEffect(new SkiaDrawAdapter(canvas), world, entity); } };
 }
 
+
+/** Hitstun: a tight impact core with short, jitter-like radial ticks. */
+export function drawPixelFxHitstun(
+  draw: IDrawAdapter,
+  world: import("@tiny-aster/core").World<CoreComponentRegistry>,
+  entity: number
+): void {
+  const state = readEffectState(world, entity);
+  if (!state || state.alpha <= 0.01) return;
+  const { progress: p, alpha, size, color, rotation } = state;
+  const pulse = 0.65 + 0.35 * Math.sin(p * Math.PI * 4);
+  const radius = size * (0.2 + p * 0.28);
+  const reach = size * (0.48 + (1 - p) * 0.18);
+  const fade = alpha * (1 - p * 0.28);
+  draw.save();
+  draw.fillCircle(0, 0, Math.max(1, size * 0.055 * pulse), color, fade);
+  draw.strokeCircle(0, 0, radius, color, Math.max(0.8, size * 0.025), fade * 0.62);
+  for (let i = 0; i < 6; i++) {
+    const angle = rotation + (i * Math.PI * 2) / 6 + (i % 2) * 0.08;
+    const inner = radius * (0.92 + (i % 2) * 0.16);
+    const outer = reach * (0.78 + (i % 3) * 0.12);
+    const x1 = Math.cos(angle) * inner, y1 = Math.sin(angle) * inner;
+    const x2 = Math.cos(angle) * outer, y2 = Math.sin(angle) * outer;
+    draw.drawLine(
+      x1, y1, x2, y2,
+      color, Math.max(1, size * (0.045 - p * 0.012)), fade * (0.9 - (i % 3) * 0.12)
+    );
+  }
+  draw.restore();
+}
+
+/** Stagger: a broken stability ring whose separated plates shear outward over time. */
+export function drawPixelFxStagger(
+  draw: IDrawAdapter,
+  world: import("@tiny-aster/core").World<CoreComponentRegistry>,
+  entity: number
+): void {
+  const state = readEffectState(world, entity);
+  if (!state || state.alpha <= 0.01) return;
+  const { progress: p, alpha, size, color, rotation } = state;
+  const radius = size * (0.42 + p * 0.48);
+  const reach = size * (0.12 + p * 0.24);
+  const fade = alpha * (1 - p * 0.42);
+  draw.save();
+  for (let i = 0; i < 4; i++) {
+    const angle = rotation + (i * Math.PI) / 2 + 0.12;
+    const start = angle + 0.16;
+    const sweep = Math.PI * 0.29 * (1 - p * 0.12);
+    draw.drawArc(
+      0, 0, radius + (i % 2) * size * 0.045,
+      start, sweep, color, Math.max(1, size * 0.065 * (1 - p * 0.35)),
+      fade * (0.92 - (i % 2) * 0.18)
+    );
+    const shardX = Math.cos(angle) * (radius + reach);
+    const shardY = Math.sin(angle) * (radius + reach);
+    const innerX = Math.cos(angle + 0.18) * radius * 0.72;
+    const innerY = Math.sin(angle + 0.18) * radius * 0.72;
+    draw.drawLine(
+      innerX, innerY, shardX, shardY,
+      color, Math.max(1, size * 0.04), fade * (1 - i * 0.12)
+    );
+  }
+  draw.strokeCircle(0, 0, size * (0.16 + p * 0.12), color, Math.max(0.8, size * 0.025), fade * 0.48);
+  draw.restore();
+}
+
 export function registerPixelFxProceduralVFX<TComponents extends CoreComponentRegistry>(
   renderer: Renderer<TComponents, RenderContext>
 ): void {
   const drawers = [
     ["pixelfx_impact", drawPixelFxImpact],
+    ["pixelfx_hitstun", drawPixelFxHitstun],
+    ["pixelfx_stagger", drawPixelFxStagger],
     ["pixelfx_slash", drawPixelFxSlash],
     ["pixelfx_explosion", drawPixelFxExplosion],
     ["pixelfx_dust", drawPixelFxDust],

@@ -795,6 +795,28 @@ export class World<
     }
   }
 
+  /**
+   * Opts a plain-data World resource into deterministic snapshots and rollback.
+   * Register only authoritative simulation state; service objects, native handles,
+   * EventBus instances and presentation caches must stay unregistered.
+   */
+  public registerSnapshotResource(name: string): void {
+    if (typeof name !== "string" || name.trim().length === 0) {
+      throw new Error("[World] Snapshot resource name must be a non-empty string.");
+    }
+    this.snapshotResourceNames.add(name);
+  }
+
+  /** Removes a resource from future snapshots without deleting its live value. */
+  public unregisterSnapshotResource(name: string): void {
+    this.snapshotResourceNames.delete(name);
+  }
+
+  /** Returns whether a resource participates in deterministic snapshots. */
+  public isSnapshotResourceRegistered(name: string): boolean {
+    return this.snapshotResourceNames.has(name);
+  }
+
   /** Sets a global resource object by name key. */
   setResource<T>(name: string, resource: T): void {
     if (isDev) {

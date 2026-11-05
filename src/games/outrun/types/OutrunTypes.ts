@@ -36,6 +36,15 @@ export interface RaceStateComponent {
   checkpointsTotal?: number;
   /** Final result when the race enters the finished phase. */
   finishReason?: "finish" | "timeout";
+  /**
+   * Seconds remaining in the classic Out Run tumble sequence.
+   * When > 0 the player has no control and the car spins.
+   */
+  crashRemaining?: number;
+  /** Accumulated tumble rotation in radians (presentation + recovery). */
+  crashSpin?: number;
+  /** Spin direction: -1 clockwise-ish, +1 counter-clockwise relative to lateral shove. */
+  crashDir?: number;
 }
 
 /**
@@ -142,4 +151,9 @@ export interface OutrunInput {
   left: boolean;
   right: boolean;
   [key: string]: unknown;
+}
+
+/** True while the classic tumble sequence is active. */
+export function isOutrunCrashing(state: Pick<RaceStateComponent, "crashRemaining">): boolean {
+  return (state.crashRemaining ?? 0) > 0.001;
 }

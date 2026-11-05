@@ -28,7 +28,7 @@ The snapshot-resource foundation is now merged in PRs #1110 and #1113. The curre
 
 ## Replay ordering
 
-`RollbackSimulation.processRollback()` now sets `world.isReSimulating = true` around the corrected-input step and restores the previous flag in a `finally` block. `resimulateFromTick()` applies the same policy to subsequent replay frames. The orchestrator's hit-stop request path updates snapshot-backed gameplay resources first, then suppresses presentation output for every replayed frame.
+`RollbackSimulation.processRollback()` now sets `world.isReSimulating = true` around the corrected-input step and restores the previous flag in a `finally` block. `resimulateFromTick()` applies the same policy to subsequent replay frames. The orchestrator's hit-stop request path updates snapshot-backed gameplay resources first, then suppresses JuiceOrchestrator-managed VFX entities, shake and audio for every replayed frame. Direct game-specific emitters/audio producers still require their own rollback guards; this slice does not claim to migrate all of them.
 
 Game-specific producers that guard an entire catalog event with `!world.isReSimulating` must be changed only when that event carries authoritative hit-stop. The current slice updates Arkanoid brick-shatter and Space Invaders catalog producers. Other direct particle/audio writers remain separate presentation cleanup work.
 

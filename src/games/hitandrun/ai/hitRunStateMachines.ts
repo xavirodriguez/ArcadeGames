@@ -625,4 +625,57 @@ export function registerHitRunStateMachines(
       Recovery: createIdleRecoveryState(0.8)
     }
   };
+
+  // Freeze every Hit&Run enemy FSM transition while hitstun/stagger is active.
+  // This prevents patrol, windup and ranged states from overwriting the impact
+  // response; active melee hitboxes are interrupted by HitRunHurtSystem.
+  const hitRunMachineIds = ["hr_walk", "hr_flank", "hr_hop", "hr_charge", "hr_shooter", "hr_tank"];
+  for (const machineId of hitRunMachineIds) {
+    const machine = registry[machineId] as unknown as {
+      states: Record<string, {
+        onUpdate?: (
+          world: World<CoreComponentRegistry>,
+          entity: number,
+          data: Record<string, unknown>,
+          elapsed: number
+        ) => string | void;
+      }>;
+    } | undefined;
+    if (!machine) continue;
+    for (const state of Object.values(machine.states)) {
+      const originalUpdate = state.onUpdate;
+      if (!originalUpdate) continue;
+      state.onUpdate = (world, entity, data, elapsed) => {
+        const lockStartKey = "_hitRunImpactLockStartElapsed";
+        const pausedKey = "_hitRunImpactPausedSeconds";
+
+        if (isEnemyInHitstun(world, entity)) {
+          if (typeof data[lockStartKey] !== "number") {
+            data[lockStartKey] = elapsed;
+          }
+          return;
+        }
+
+        const lockStart = data[lockStartKey];
+        if (typeof lockStart === "number") {
+          data[pausedKey] =
+            ((data[pausedKey] as number) ?? 0) + Math.max(0, elapsed - lockStart);
+          delete data[lockStartKey];
+        }
+
+        const pausedSeconds = (data[pausedKey] as number) ?? 0;
+        const nextState = originalUpdate(
+          world,
+          entity,
+          data,
+          Math.max(0, elapsed - pausedSeconds)
+        );
+        if (nextState !== undefined) {
+          delete data[pausedKey];
+          delete data[lockStartKey];
+        }
+        return nextState;
+      };
+    }
+  }
 }

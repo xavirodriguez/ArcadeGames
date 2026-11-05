@@ -12,6 +12,8 @@ export {
   ENEMY_KNOCKBACK_Y,
   PLAYER_INVULN_SECONDS,
   PLAYER_HITSTUN_SECONDS,
+  ENEMY_STAGGER_SECONDS,
+  HEAVY_HIT_STAGGER_SECONDS,
   PLAYER_INVULN_BLINK_HALF_PERIOD
 } from "./HitReactionTypes";
 
@@ -22,3 +24,5 @@ export {
 } from "./HitRunHurtSystem";
 
 export { registerHitRunHurt } from "./registerHitRunHurt";
+
+export { HitRunStaggerSystem } from "./HitRunStaggerSystem";

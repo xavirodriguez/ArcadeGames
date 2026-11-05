@@ -184,13 +184,19 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
     for (let i = 0; i < len; i++) {
       const hit = this.pendingHits[i];
       const profile = this.resolveProfile(hit.category);
+      const isGuardRecovery = hit.guardRecovered === true;
 
-      this.applyHitStop(world, profile.hitStopSeconds);
+      // Recovery is a state transition, not a damaging impact: no freeze or shake.
+      if (!isGuardRecovery) {
+        this.applyHitStop(world, profile.hitStopSeconds);
+      }
 
       if (reSim) continue;
 
-      this.applyScreenShake(world, profile.shakeIntensity, profile.shakeDuration);
-      this.applyHitFlash(world, hit.targetEntity, profile.hitFlashFrames);
+      if (!isGuardRecovery) {
+        this.applyScreenShake(world, profile.shakeIntensity, profile.shakeDuration);
+        this.applyHitFlash(world, hit.targetEntity, profile.hitFlashFrames);
+      }
 
       const target = world.hasEntity(hit.targetEntity)
         ? world.getComponent(hit.targetEntity, "Transform")
@@ -207,7 +213,7 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
           : target.rotation ?? 0;
 
         // The ordinary melee slash remains the baseline response for every sword hit.
-        if ((hit.attackCategory === "melee" || hit.attackCategory === "combo-finisher" || hit.category === "melee") && !hit.blocked) {
+        if ((hit.attackCategory === "melee" || hit.attackCategory === "combo-finisher" || hit.category === "melee") && !hit.blocked && hit.amount > 0) {
           this.juice.spawn("pixelfx_slash", {
             x: target.x,
             y: target.y,
@@ -215,6 +221,18 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
             scale: 1.05,
             tint: isSumiE ? "#151515" : "#f05a28",
             ttl: 0.24
+          });
+        }
+
+        // Guard recovery is emitted by the simulation-time defense system.
+        if (hit.guardRecovered === true) {
+          this.juice.spawn("pixelfx_shield_pulse", {
+            x: target.x,
+            y: target.y,
+            rotation,
+            scale: 0.72,
+            tint: isSumiE ? "#151515" : "#7fa38a",
+            ttl: 0.28
           });
         }
 
@@ -241,6 +259,17 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
             ttl: 0.46
           });
         }
+        if (hit.armorHit === true && !hit.armorBroken) {
+          this.juice.spawn("pixelfx_ricochet", {
+            x: target.x,
+            y: target.y,
+            rotation,
+            scale: 0.72,
+            tint: isSumiE ? "#151515" : "#b9a272",
+            ttl: 0.26
+          });
+        }
+
         if (hit.armorBroken === true || hit.category === "armor-break") {
           this.juice.spawn("pixelfx_armor_break", {
             x: target.x,
@@ -254,7 +283,7 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
 
         // A lethal melee hit is the concrete finisher transition currently
         // represented by Hit&Run's combat model (Health reaches zero).
-        if (!hit.blocked && (
+        if (!hit.blocked && hit.amount > 0 && (
           hit.attackCategory === "combo-finisher" ||
           hit.category === "combo-finisher" ||
           ((hit.attackCategory === "melee" || hit.category === "melee") && hit.remainingHealth <= 0)

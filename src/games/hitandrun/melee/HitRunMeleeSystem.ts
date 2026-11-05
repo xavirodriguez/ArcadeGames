@@ -8,7 +8,6 @@ import { ArcadeEntityBuilder } from "@tiny-aster/gameplay-kit";
 import { isSimulationFrozen } from "../systems/HitRunFeedbackSystem";
 import { isPlayerControlLocked } from "../hurt/HitRunHurtSystem";
 import { depthZOverlap } from "../combat/HitVolume";
-import { applyBeltElevationKnockback } from "../belt/BeltElevationComponent";
 import { resolveHitRunDamage } from "../combat/HitRunCombatDefense";
 import {
   DEFAULT_MELEE_ATTACK_CONFIG,
@@ -372,23 +371,13 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
 
       this.markHit(melee, other);
 
-      if (resolution.healthDamage > 0 && world.hasComponent(other, "Velocity")) {
-        const vel = world.getMutableComponent(other, "Velocity") as
-          | { vx: number; vy: number }
-          | undefined;
-        if (vel) vel.vx = melee.facing * config.knockbackX;
-      }
-      if (resolution.healthDamage > 0) {
-        applyBeltElevationKnockback(world, other, config.knockbackY);
-      }
-
       const category = resolution.guardBroken
         ? "guard-break"
         : resolution.armorBroken
           ? "armor-break"
           : config.damageCategory;
       const bus = world.getEventBus();
-      if (bus && (resolution.healthDamage > 0 || resolution.blocked || resolution.guardBroken || resolution.armorBroken)) {
+      if (bus && (resolution.healthDamage > 0 || resolution.blocked || resolution.guardBroken || resolution.armorHit)) {
         bus.emitDeferred("combat:hit", {
           targetEntity: other,
           sourceEntity: owner,
@@ -398,7 +387,11 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
           attackCategory: config.damageCategory,
           guardBroken: resolution.guardBroken,
           armorBroken: resolution.armorBroken,
-          blocked: resolution.blocked
+          armorHit: resolution.armorHit,
+          armorAbsorbed: resolution.armorAbsorbed,
+          blocked: resolution.blocked,
+          knockbackX: config.knockbackX,
+          knockbackY: config.knockbackY
         });
         if (next <= 0) {
           world.getCommandBuffer().addComponent(other, { type: "Dead" });

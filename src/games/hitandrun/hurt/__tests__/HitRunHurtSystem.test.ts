@@ -4,6 +4,7 @@ import {
   canTakeDamage,
   isPlayerControlLocked
 } from "../HitRunHurtSystem";
+import { HitRunStaggerSystem } from "../HitRunStaggerSystem";
 import {
   DEFAULT_HIT_REACTION_CONFIG,
   PLAYER_INVULN_SECONDS,
@@ -174,7 +175,25 @@ describe("HitRunHurtSystem (Paso C)", () => {
     expect(elev?.vz).toBeGreaterThan(0);
   });
 
-  it("enemy receives knockback without invulnerability", () => {
+  it("does not apply hit reactions to a fully guarded impact", () => {
+    const player = spawnPlayer(100);
+    const source = spawnSource(50);
+    hurt.enqueueHitForTest({
+      targetEntity: player,
+      sourceEntity: source,
+      amount: 0,
+      remainingHealth: 5,
+      blocked: true
+    });
+    hurt.update(world, 0);
+    world.flush();
+
+    expect(world.hasComponent(player, "HitReaction")).toBe(false);
+    expect((world.getComponent(player, "Velocity") as { vx: number }).vx).toBe(0);
+    expect((world.getComponent(player, "Health") as { invulnerableRemaining: number }).invulnerableRemaining).toBe(0);
+  });
+
+  it("enemy receives knockback and its own configured hitstun duration", () => {
     const enemy = world.createEntity();
     addTransform(world, enemy, 200, 100);
     world.addComponent(enemy, {
@@ -202,6 +221,13 @@ describe("HitRunHurtSystem (Paso C)", () => {
       remainingHealth: 2
     });
     hurt.update(world, 0);
+    world.flush();
+
+    const reaction = world.getComponent(enemy, "HitReaction") as {
+      hitstunRemaining: number;
+      staggerRemaining?: number;
+    } | undefined;
+    expect(reaction?.hitstunRemaining).toBeCloseTo(DEFAULT_HIT_REACTION_CONFIG.enemyHitstunSeconds, 5);
 
     const health = world.getComponent(enemy, "Health") as {
       invulnerableRemaining: number;
@@ -211,4 +237,68 @@ describe("HitRunHurtSystem (Paso C)", () => {
     const vel = world.getComponent(enemy, "Velocity") as { vx: number };
     expect(vel.vx).not.toBe(0);
   });
+  it("enforces enemy stagger after AI steering", () => {
+    const enemy = world.createEntity();
+    world.addComponent(enemy, { type: "Enemy", kind: "patrol" } as never);
+    world.addComponent(enemy, { type: "Velocity", vx: 180, vy: 0, angularVelocity: 0 });
+    world.addComponent(enemy, {
+      type: "HitReaction",
+      hitstunRemaining: 0.1,
+      staggerRemaining: 0.3,
+      blinkElapsed: 0
+    } as HitReactionComponent);
+
+    new HitRunStaggerSystem().update(world, 1 / 60);
+
+    expect((world.getComponent(enemy, "Velocity") as { vx: number }).vx).toBe(0);
+  });
+
+  it("applies attack-scaled stagger and knockback to a heavy impact", () => {
+    const enemy = world.createEntity();
+    addTransform(world, enemy, 200, 100);
+    world.addComponent(enemy, { type: "Health", current: 5, max: 5, invulnerableRemaining: 0 });
+    world.addComponent(enemy, { type: "Velocity", vx: 0, vy: 0, angularVelocity: 0 });
+    world.addComponent(enemy, { type: "BeltElevation", z: 0, vz: 0, grounded: true });
+    world.addComponent(enemy, { type: "Faction", value: "enemy" });
+    const enemyHitbox = world.createEntity();
+    world.addComponent(enemy, {
+      type: "MeleeAttack",
+      phase: "active",
+      phaseElapsed: 0.05,
+      hitboxEntity: enemyHitbox,
+      hitCount: 0,
+      hitEntityIds: [],
+      facing: 1
+    } as never);
+    const source = spawnSource(100);
+
+    hurt.enqueueHitForTest({
+      targetEntity: enemy,
+      sourceEntity: source,
+      amount: 3,
+      remainingHealth: 2,
+      attackCategory: "combo-finisher",
+      knockbackX: 260,
+      knockbackY: 200,
+      staggerSeconds: 0.42
+    });
+    hurt.update(world, 0);
+    world.flush();
+
+    const reaction = world.getComponent(enemy, "HitReaction") as {
+      hitstunRemaining: number;
+      staggerRemaining?: number;
+    };
+    const velocity = world.getComponent(enemy, "Velocity") as { vx: number };
+    const elevation = world.getComponent(enemy, "BeltElevation") as { vz: number } | undefined;
+    expect(reaction.staggerRemaining).toBeCloseTo(0.42, 5);
+    expect(isPlayerControlLocked(world, enemy)).toBe(true);
+    expect(velocity.vx).toBe(260);
+    expect(elevation?.vz).toBe(200);
+    const melee = world.getComponent(enemy, "MeleeAttack") as { phase: string; hitboxEntity: number };
+    expect(melee.phase).toBe("recovery");
+    expect(melee.hitboxEntity).toBe(-1);
+    expect(world.hasEntity(enemyHitbox)).toBe(false);
+  });
+
 });

@@ -76,7 +76,7 @@ export class HitRunCombatSystem extends System<CoreComponentRegistry> {
     if (this.destroyedEntities.has(attacker) || this.destroyedEntities.has(target)) return;
 
     const damageComp = world.getComponent(attacker, "Damage" as any) as
-      | { amount: number; category?: string; consumption?: string; friendlyFire?: boolean; sourceEntity?: number }
+      | { amount: number; category?: string; consumption?: string; friendlyFire?: boolean; sourceEntity?: number; knockbackX?: number; knockbackY?: number }
       | undefined;
     const healthComp = world.getComponent(target, "Health") as
       | { current: number; invulnerableRemaining?: number }
@@ -121,7 +121,7 @@ export class HitRunCombatSystem extends System<CoreComponentRegistry> {
         ? "armor-break"
         : damageComp.category ?? "bullet";
     const eventBus = world.getEventBus() as EventBus;
-    if (eventBus && (resolution.healthDamage > 0 || resolution.blocked || resolution.guardBroken || resolution.armorBroken)) {
+    if (eventBus && (resolution.healthDamage > 0 || resolution.blocked || resolution.guardBroken || resolution.armorHit)) {
       eventBus.emitDeferred("combat:hit", {
         targetEntity: target,
         sourceEntity,
@@ -131,7 +131,11 @@ export class HitRunCombatSystem extends System<CoreComponentRegistry> {
         category,
         guardBroken: resolution.guardBroken,
         armorBroken: resolution.armorBroken,
-        blocked: resolution.blocked
+        armorHit: resolution.armorHit,
+        armorAbsorbed: resolution.armorAbsorbed,
+        blocked: resolution.blocked,
+        knockbackX: damageComp.knockbackX,
+        knockbackY: damageComp.knockbackY
       });
     }
 

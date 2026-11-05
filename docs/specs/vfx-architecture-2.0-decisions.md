@@ -163,3 +163,17 @@ Sprite-sheet PixelFX remains a separate optional asset pipeline. Its candidate m
 The current implementation has a split ownership model: `HitStopSystem` maintains priority/cooldown in `VFXWorldState.hitStopTimer`, whereas the core scheduler reads `GameplayFreeze`. Hit & Run calls the core freeze helpers directly; `JuiceOrchestrator` calls the separate VFX timer. The earlier wording that suggested these were already unified is withdrawn.
 
 VFX 2.0 must not add a third hit-stop system. Foundation may preserve the existing profile fields for compatibility, but Combat integration must not assume that `hitStopMs` pauses simulation until the existing Juice consolidation work routes accepted requests through the canonical core freeze resource and verifies the configured schedules. Priority, override and cooldown semantics must survive that migration.
+
+---
+
+## PR6 temporal sampling slice — 2026-11-05
+
+The Effect IR now exposes `resolveTemporalVFXSample(context, elapsedPresentationSeconds, durationSeconds)`, a pure evaluator for temporal phase envelopes.
+
+- `presentationFactor` is explicitly a presentation-time rate multiplier: 0 pauses the sample, 0.5 advances at half rate, and 2 advances at double rate.
+- `enter` maps normalized progress to opacity; `hold` remains fully visible; `exit` maps inverse progress to opacity.
+- Elapsed time and duration are supplied by the caller. The helper owns no clock, ECS system, scheduler, or mutable state.
+- Inputs must be finite; elapsed time and factor must be non-negative; duration must be strictly positive.
+- This helper does not change simulation delta, gameplay clocks, TTL, rollback, or runtime animation by itself. It establishes a deterministic sampling contract for the Visual Lab and future controlled presentation consumers.
+
+**Gate status:** this is a temporal-contract slice, not completion of PR6. Entity-following semantics and an end-to-end presentation-time consumer remain open. Runtime effects continue to use the existing ECS TTL lifecycle.

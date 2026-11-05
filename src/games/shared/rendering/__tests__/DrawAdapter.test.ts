@@ -1,4 +1,5 @@
 import { CanvasDrawAdapter, SkiaDrawAdapter } from "../DrawAdapter";
+import { getGlowStyle, renderCanvasGlow, renderSkiaGlow } from "../GlowSystem";
 
 jest.mock("../SkiaContext", () => {
   class MockPaint {
@@ -121,6 +122,24 @@ describe("DrawAdapter glow composition", () => {
       if (previousP95 === undefined) delete perfGlobal.__ARCADE_PERF_P95__;
       else perfGlobal.__ARCADE_PERF_P95__ = previousP95;
     }
+  });
+
+  it("uses the same highlight alpha for strong glows in Canvas and Skia", () => {
+    const glow = getGlowStyle("#ff00ff", "strong");
+    const { context } = createCanvasContext();
+    let canvasHighlightAlpha = 0;
+    renderCanvasGlow(context, glow, (ctx, isHighlight) => {
+      if (isHighlight) canvasHighlightAlpha = ctx.globalAlpha;
+    });
+
+    let skiaHighlightAlpha = 0;
+    const skiaCanvas = { drawCircle: jest.fn() };
+    renderSkiaGlow(skiaCanvas, glow, (paint, isHighlight) => {
+      if (isHighlight) skiaHighlightAlpha = (paint as { alpha: number }).alpha;
+    });
+
+    expect(canvasHighlightAlpha).toBe(0.9);
+    expect(skiaHighlightAlpha).toBe(canvasHighlightAlpha);
   });
 
 });

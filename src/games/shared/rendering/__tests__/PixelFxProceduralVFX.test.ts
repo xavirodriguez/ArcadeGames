@@ -259,7 +259,7 @@ describe("PixelFX-inspired procedural VFX", () => {
     expect(adapter.strokeCircle).toHaveBeenCalled();
   });
 
-  it("suppresses traversal effects when render opacity is zero", () => {
+  it("suppresses effects when render opacity is zero", () => {
     const adapter = createAdapter();
     const { world, entity } = createWorld();
     world.mutateComponent(entity, "Render", render => { render.opacity = 0; });

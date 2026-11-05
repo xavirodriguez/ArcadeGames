@@ -168,16 +168,15 @@ export class Schedule<
         }
       }
 
+      // Freeze eligibility is latched at the beginning of the tick. A finite
+      // freeze that reaches zero during this update still owns the whole tick;
+      // it is removed only after all phases have observed the frozen state.
       const freeze = world.getResource<{ remaining?: number }>("GameplayFreeze");
+      const isPausedResource = world.getResource("IsPaused") === true;
+      const isFrozen = freeze !== undefined || isPausedResource || effectiveTimeScale === 0;
       if (freeze && typeof freeze.remaining === "number") {
         freeze.remaining = Math.max(0, freeze.remaining - deltaTime);
-        if (freeze.remaining <= 0) {
-          world.deleteResource("GameplayFreeze");
-        }
       }
-
-      const isPausedResource = world.getResource("IsPaused") === true;
-      const isFrozen = world.getResource("GameplayFreeze") !== undefined || isPausedResource || effectiveTimeScale === 0;
       const scaledDeltaTime = deltaTime * effectiveTimeScale;
 
       const gameState = world.getSingleton("GameState" as Extract<keyof TComponents, string>) as unknown as { phase?: string } | undefined;
@@ -217,6 +216,17 @@ export class Schedule<
             sys.update(world, dtToPass);
           }
         }
+      }
+
+      // Expire only the exact resource observed at tick start. This avoids
+      // deleting a replacement freeze installed by a system during the tick.
+      if (
+        freeze &&
+        typeof freeze.remaining === "number" &&
+        freeze.remaining <= 0 &&
+        world.getResource("GameplayFreeze") === freeze
+      ) {
+        world.deleteResource("GameplayFreeze");
       }
 
       const eventBus = world.getEventBus ? world.getEventBus() : null;

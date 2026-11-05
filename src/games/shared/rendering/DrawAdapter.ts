@@ -152,7 +152,7 @@ export class SkiaDrawAdapter implements IDrawAdapter {
   }
 
   private createSkiaPaint(
-    style: unknown,
+    style: Parameters<SkPaint["setStyle"]>[0],
     color: string,
     alpha: number,
     strokeWidth?: number

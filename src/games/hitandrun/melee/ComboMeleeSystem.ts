@@ -151,9 +151,13 @@ export class ComboMeleeSystem extends System<CoreComponentRegistry> {
     if (best === undefined) return false;
 
     const health = world.getMutableComponent(best, "Health") as
-      | { current: number }
+      | { current: number; invulnerableRemaining?: number }
       | undefined;
-    if (!health || health.current <= 0) return false;
+    if (
+      !health ||
+      health.current <= 0 ||
+      (health.invulnerableRemaining ?? 0) > 0
+    ) return false;
 
     const resolution = resolveHitRunDamage(world, entity, best, config.throwDamage);
     const next = Math.max(0, health.current - resolution.healthDamage);
@@ -248,9 +252,9 @@ export class ComboMeleeSystem extends System<CoreComponentRegistry> {
       if (dx * dx + dy * dy > r2) continue;
 
       const h = world.getMutableComponent(e, "Health") as
-        | { current: number }
+        | { current: number; invulnerableRemaining?: number }
         | undefined;
-      if (!h || h.current <= 0) continue;
+      if (!h || h.current <= 0 || (h.invulnerableRemaining ?? 0) > 0) continue;
 
       const resolution = resolveHitRunDamage(world, entity, e, config.specialDamage);
       const next = Math.max(0, h.current - resolution.healthDamage);

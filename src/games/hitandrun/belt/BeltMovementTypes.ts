@@ -26,6 +26,7 @@ export interface BeltInputComponent extends Component {
   firePressed: boolean;
   specialHeld: boolean;
   specialPressed: boolean;
+  guardHeld: boolean;
   jumpHeld: boolean;
   jumpPressed: boolean;
   _prevHeldMask: number;
@@ -44,6 +45,7 @@ export function createBeltInputComponent(): BeltInputComponent {
     firePressed: false,
     specialHeld: false,
     specialPressed: false,
+    guardHeld: false,
     jumpHeld: false,
     jumpPressed: false,
     _prevHeldMask: 0
@@ -110,5 +112,6 @@ export interface BeltInputPartial {
   attack?: boolean;
   fire?: boolean;
   special?: boolean;
+  guard?: boolean;
   pulse?: boolean;
 }

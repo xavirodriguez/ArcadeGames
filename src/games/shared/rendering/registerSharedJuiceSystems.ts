@@ -29,8 +29,8 @@ export function registerSharedJuiceSystems<
   const { kineticFlow = true } = options;
 
   world.addSystem(new HitStopSystem() as never, {
-    phase: SystemPhase.Presentation,
-    priority: -50 // tick hit-stop before most presentation drawers
+    phase: SystemPhase.Simulation,
+    priority: 100 // advance authoritative policy before gameplay systems
   });
 
   if (kineticFlow) {

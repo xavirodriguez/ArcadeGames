@@ -158,7 +158,8 @@ export const OutrunConfigSchema = BaseConfigSchema.extend({
   rumbleLength: z.number().int().positive().default(3),
   roadWidth: z.number().positive().default(2000),
   cameraHeight: z.number().positive().default(1000),
-  cameraDepth: z.number().positive().default(0.84),
+  cameraDepth: z.number().positive().default(0.84,
+  ),
   drawDistance: z.number().int().positive().default(300),
   maxSpeed: z.number().positive().default(12000),
   raceTimeLimitSeconds: z.number().positive().default(25),
@@ -172,21 +173,16 @@ export const OutrunConfigSchema = BaseConfigSchema.extend({
   offRoadLimit: z.number().positive().default(4000),
   steerSpeed: z.number().positive().default(3.0),
   playerZOffset: z.number().default(0),
-  laneWidth: z.number().positive().default(0.3,
-  ),
+  laneWidth: z.number().positive().default(0.3),
   trafficDensity: z.number().min(0).max(1).default(0.02),
   trafficLookaheadSegments: z.number().int().positive().default(20),
   trafficAvoidRadius: z.number().positive().default(0.35),
   trafficSteerSpeed: z.number().positive().default(1.5),
   trafficCollisionSubsteps: z.number().int().positive().default(4),
   trafficCollisionSubstepsMax: z.number().int().positive().default(32),
-  /** Duration of the classic tumble sequence after a traffic hit (seconds). */
   crashDurationSeconds: z.number().positive().default(1.35),
-  /** Angular speed of the tumble spin in radians per second. */
   crashSpinRadiansPerSecond: z.number().positive().default(9.5),
-  /** Extra deceleration applied while tumbling (world units / s²). */
   crashDecel: z.number().positive().default(7000),
-  /** Player speed is clamped to rivalSpeed * this factor on impact. */
   crashSpeedFactor: z.number().min(0).max(1).default(0.35),
   WIDTH: z.number().positive().default(800),
   HEIGHT: z.number().positive().default(600),

@@ -7,11 +7,15 @@ export * from "./systems/RacingWallSystem";
 export * from "./systems/LapSystem";
 export * from "./systems/RaceStateSystem";
 export * from "./systems/RacingEventsSystem";
+export * from "./raceProgress";
+export * from "./aiPersonality";
 export type {
   RacingWallComponent,
   CheckpointComponent,
   RacingInputState,
-  RacingGameState
+  RacingGameState,
+  AIPersonalityComponent,
+  AIPersonalityPreset
 } from "./types/RacingTypes";
 export * from "./types/RacingConfigSchema";
 export * from "./types/RacingRegistry";

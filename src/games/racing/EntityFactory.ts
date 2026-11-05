@@ -2,8 +2,10 @@ import { EntityBuilder, ShapeType, CircleShape, BoxShape, World, BlueprintRegist
 import type { RacingComponentRegistry, RacingEventRegistry, RacingBlueprintMap } from "./types/RacingRegistry";
 import type { RacingConfig } from "./types/RacingConfigSchema";
 import type { TrackSpec, VehicleSpec } from "./types/TrackSpecSchema";
+import type { AIPersonalityPreset } from "./types/RacingTypes";
 import { getRacingPalette } from "./rendering/RacingPalette";
 import { RACING_RENDER_ORDERS } from "./rendering/RacingRenderOrders";
+import { createAIPersonality } from "./aiPersonality";
 
 const PLAYER_LAYER = 1;
 const TRACK_LAYER = 2;
@@ -20,7 +22,16 @@ export function registerRacingBlueprints(
     spawn: (
       w: World<RacingComponentRegistry, RacingEventRegistry>,
       entity: number,
-      args: { x: number; y: number; rotation?: number; isAI?: boolean; color?: string; vehicleSpec?: VehicleSpec }
+      args: {
+        x: number;
+        y: number;
+        rotation?: number;
+        isAI?: boolean;
+        color?: string;
+        vehicleSpec?: VehicleSpec;
+        aiDifficulty?: AIPersonalityPreset;
+        laneOffset?: number;
+      }
     ) => {
       const config = w.getResource<RacingConfig>("GameConfig");
       const palette = getRacingPalette(w);
@@ -70,6 +81,13 @@ export function registerRacingBlueprints(
           })
         );
         w.addComponent(entity, createVehicleWaypoint(waypoints, 60, true));
+
+        const difficulty: AIPersonalityPreset = args.aiDifficulty ?? "normal";
+        const personality = createAIPersonality(difficulty);
+        if (typeof args.laneOffset === "number") {
+          personality.laneOffset = args.laneOffset;
+        }
+        w.addComponent(entity, personality);
       } else {
         w.addComponent(entity, { type: "LocalPlayer" });
         w.addComponent(entity, { type: "Input", actions: [], axes: { moveX: 0, moveY: 0 } });

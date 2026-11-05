@@ -1,6 +1,6 @@
-# Contributing Guidelines & Golden Path for TinyAster Games
+# Contributing Guidelines & Golden Path for Tiny Aster
 
-Welcome to the TinyAster ArcadeGames repository! When adding new games or extending existing ones, please follow this **Golden Path** architecture to maintain zero-allocation performance, deterministic simulations, and low code duplication.
+Welcome to the Tiny Aster project repository (GitHub: `ArcadeGames`). For product, workspace-package, game-ID and script naming rules, follow [the project identity and naming contract](docs/PROJECT_IDENTITY_AND_NAMING.md). When adding new games or extending existing ones, please follow this **Golden Path** architecture to maintain zero-allocation performance, deterministic simulations, and low code duplication.
 
 ---
 
@@ -83,3 +83,5 @@ The current `pnpm run check:game-patterns` implementation enforces three guard g
 All coding agents must follow [the operating contract](docs/agents/OPERATING_CONTRACT.md) and consult the relevant ledgers under `docs/agents/`. Every recurring defect must result in an executable regression test or guard, not just a documentation note.
 
 Run `pnpm run check:agent-guardrails` for the shared architecture and contract checks. The pull-request CI workflow runs the same command.
+
+For changes to a game's lifecycle or deterministic simulation contract, adopt `defineGameContractSuite` from `src/games/shared/testing/GameContractSuite.ts` and follow [the shared game contract guide](docs/GAME_CONTRACTS.md). Before merging to `master`, follow [the branch protection policy](docs/BRANCH_PROTECTION.md).

@@ -23,7 +23,12 @@ describe("VFX Visual Lab model", () => {
   it("stays aligned with the production Canvas and Skia registration names", () => {
     for (const type of ["canvas", "skia"] as const) {
       const registerShape = jest.fn();
-      const renderer = { type, registerShape } as never as Renderer<CoreComponentRegistry, RenderContext>;
+      const renderer: Renderer<CoreComponentRegistry, RenderContext> = {
+        type,
+        render: jest.fn(),
+        registerShape,
+        registerBackgroundEffect: jest.fn()
+      };
       registerPixelFxProceduralVFX(renderer);
       expect(registerShape.mock.calls.map(([name]) => name)).toEqual(
         VFX_LAB_EFFECTS.map((effect) => effect.id)
@@ -87,7 +92,7 @@ describe("VFX Visual Lab model", () => {
     expect(parseVFXLabPreset(serializeVFXLabPreset(preset))).toEqual(preset);
   });
 
-  it("ships reproducible presets for all four PR4 combat effects", () => {
+  it("ships reproducible presets for combat, traversal and interaction effects", () => {
     const effects = new Set(VFX_LAB_PRESETS.map((preset) => preset.effect));
     for (const effect of [
       "pixelfx_ricochet",
@@ -96,7 +101,12 @@ describe("VFX Visual Lab model", () => {
       "pixelfx_target_warning",
       "pixelfx_teleport",
       "pixelfx_surface_skid",
-      "pixelfx_mechanical_motion"
+      "pixelfx_mechanical_motion",
+      "pixelfx_pickup",
+      "pixelfx_paddle_impact",
+      "pixelfx_brick_shatter",
+      "pixelfx_muzzle",
+      "pixelfx_shield_crack"
     ]) {
       expect(effects.has(effect as never)).toBe(true);
     }

@@ -22,7 +22,6 @@
     "test:e2e": "pnpm exec playwright test",
     "test:games:ci": "NODE_OPTIONS=\"--max-old-space-size=4096\" pnpm exec jest --runInBand src/games",
     "sprites:validate": "pnpm exec tsx scripts/validate-sprites.ts",
-    "arquitecture": "pnpm exec fallow architecture --cycles",
     "lint": "pnpm turbo run lint",
     "lint:fix": "pnpm  turbo run lint -- --fix",
     "build:dev": "pnpm exec eas build --profile development --platform android",
@@ -46,17 +45,18 @@
     "ratchet:update": "NODE_OPTIONS=\"--max-old-space-size=8192\" pnpm exec tsx scripts/typecast-ratchet.ts --update",
     "sound:golden:update": "pnpm --filter=@tiny-aster/arcade-sound-kit golden:update",
     "check:duplication": "pnpm exec tsx scripts/duplication-ratchet.ts",
+    "test:determinism-scope": "node --import tsx --test scripts/determinism-scope.test.ts",
     "duplication:update-baseline": "pnpm exec tsx scripts/duplication-ratchet.ts --update",
     "check:color-literals": "node scripts/color-literals-ratchet.mjs",
     "colors:update-baseline": "node scripts/color-literals-ratchet.mjs --update",
     "detect:duplicates": "pnpm exec tsx scripts/detect-duplicates.ts",
     "check:game-patterns": "pnpm exec tsx scripts/check-game-patterns.ts",
     "story:lint": "pnpm exec tsx scripts/story-lint.ts",
-    "validate:story": "pnpm run story:lint",
     "ci": "pnpm run build:core && pnpm --filter=@tiny-aster/gameplay-kit build && pnpm run check:agent-guardrails && pnpm run docs:check && pnpm run typecheck:app",
     "test:ci": "NODE_OPTIONS=\"--max-old-space-size=4096\" pnpm exec jest --runInBand",
     "sprites:build": "pnpm exec tsx scripts/sprites/cli.ts",
-    "check:agent-guardrails": "pnpm run check:core-boundaries && pnpm run check:gameplay-kit-boundaries && pnpm run check:network-boundaries && pnpm run check:input-contract && pnpm run check:ratchet && pnpm run check:duplication && pnpm run check:color-literals && pnpm run check:game-patterns && pnpm run story:lint"
+    "check:agent-guardrails": "pnpm run check:core-boundaries && pnpm run check:gameplay-kit-boundaries && pnpm run check:network-boundaries && pnpm run check:input-contract && pnpm run check:ratchet && pnpm run check:duplication && pnpm run check:color-literals && pnpm run check:game-patterns && pnpm run story:lint",
+    "architecture:check": "pnpm exec fallow architecture --cycles"
   },
   "dependencies": {
     "@colyseus/sdk": "^0.17.37",
@@ -170,5 +170,6 @@
   },
   "engines": {
     "node": ">=20.19.0"
-  }
+  },
+  "description": "Private Expo application workspace for the Tiny Aster arcade engine monorepo."
 }

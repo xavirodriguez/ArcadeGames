@@ -15,9 +15,13 @@ Tool-specific instruction files are pointers only. Keep this file and `docs/agen
 
 ## 1. Project Overview
 
-### TinyAster Monorepo Package List
+### Project identity and naming
 
-The repository is structured as a `pnpm`/`Turborepo` monorepo containing a root application (the `asteroides` Expo/React Native app), a Colyseus server (`/server`), and eight specialized packages inside `packages/`. Each package enforces isolated responsibilities and architectural boundaries via custom linters.
+The human-facing product and engine brand is **Tiny Aster**; use `TinyAster` for established code identifiers. `ArcadeGames` is the GitHub repository name. The root Expo app and private root workspace package retain the legacy identifier `asteroides`; its Expo slug, scheme and native IDs are compatibility-sensitive and must not be renamed as cleanup. Follow [the project identity and naming contract](docs/PROJECT_IDENTITY_AND_NAMING.md) before changing package names, game IDs, routes or app identifiers.
+
+### Tiny Aster Monorepo Package List
+
+The repository is structured as a `pnpm`/`Turborepo` monorepo containing a root Expo/React Native application whose private workspace name is the legacy identifier `asteroides`, a Colyseus server (`/server`), and eight specialized packages inside `packages/`. Each package enforces isolated responsibilities and architectural boundaries via custom linters.
 
 | Package                     | npm Package Name               | Responsibility                                                                                                                                                                                                                                                                                                           |
 | --------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -29,7 +33,7 @@ The repository is structured as a `pnpm`/`Turborepo` monorepo containing a root 
 | `packages/renderer-skia`    | `@tiny-aster/renderer-skia`    | Native mobile GPU-accelerated renderer implementation using `@shopify/react-native-skia` (`SkiaRenderer`, `SkiaShapeDrawers`, `SkiaSpriteDrawer`).                                                                                                                                                                       |
 | `packages/react-native`     | `@tiny-aster/react-native`     | React hooks and providers bridging the React lifecycle with the ECS `World` (e.g., `useGame.ts`).                                                                                                                                                                                                                        |
 | `packages/arcade-sound-kit` | `@tiny-aster/arcade-sound-kit` | Pure DSP procedural sound generator rendering deterministic WAV files from declarative recipes (`tone`, `noise`, `whoosh`, etc.). No dependency on Web Audio or Tone.js; includes the `ask-generate` CLI.                                                                                                                |
-| `root` (`asteroides`)       | —                              | Main Expo/React Native application assembling all packages.                                                                                                                                                                                                                                                              |
+| `root` (`asteroides`)       | —                              | Private Expo/React Native application workspace assembling all packages; `asteroides` is a legacy workspace identifier, not the product brand.                                                                                                                                                                                                                                                              |
 | `server`                    | —                              | Headless Colyseus Node.js server importing `@tiny-aster/core`, `@tiny-aster/network`, and `@tiny-aster/gameplay-kit` for authoritative simulation. Importing UI or React code is forbidden.                                                                                                                              |
 
 ---

@@ -10,7 +10,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const BASELINE_FILE = path.join(ROOT, "scripts", "color-literals-baseline.json");
 const isUpdate = process.argv.includes("--update");
-export const PROPOSED_ALLOWLIST = [
+// Paths with intentional literals that are currently outside the shared theme-token layer.
+export const COLOR_LITERAL_ALLOWLIST = [
   { path: "src/games/outrun/config/visualDefaults.ts", reason: "OutRun visual defaults" },
   { path: "src/games/racing/rendering/RacingPalette.ts", reason: "Racing palette" },
   { path: "src/games/frogger/rendering/FroggerVisualTokens.ts", reason: "Frogger tokens" },
@@ -80,6 +81,7 @@ export const PROPOSED_ALLOWLIST = [
   { path: "src/games/galaxian/EntityFactory.ts", reason: "Galaxian player ship color token" },
   { path: "src/games/outrun/OutrunGame.ts", reason: "Outrun player car default color" },
   { path: "src/games/outrun/rendering/OutrunRoadsideArtwork.ts", reason: "Outrun roadside trunk color" },
+  { path: "src/games/racing/EntityFactory.ts", reason: "Racing car entity colors" },
   { path: "src/games/hitandrun/rendering/theme/HitRunThemeUtils.ts", reason: "Hit&Run hitflash white color" },
 ];
 const ALLOWED_PREFIXES = ["src/theme/"];
@@ -89,7 +91,7 @@ function isAllowed(relPath) {
   const norm = relPath.replace(/\\/g, "/");
   if (ALLOWED_PREFIXES.some((p) => norm.startsWith(p))) return true;
   if (norm.includes("/theme/") && norm.startsWith("packages/")) return true;
-  return PROPOSED_ALLOWLIST.some((e) => e.path === norm);
+  return COLOR_LITERAL_ALLOWLIST.some((e) => e.path === norm);
 }
 function findFiles(dir, results = []) {
   if (!fs.existsSync(dir)) return results;
@@ -140,12 +142,38 @@ function main() {
   if (!fs.existsSync(BASELINE_FILE)) { console.error("No baseline. Run colors:update-baseline"); process.exit(1); }
   const baseline = JSON.parse(fs.readFileSync(BASELINE_FILE,"utf8"));
   const baselineKeys = new Set(baseline.keys||[]);
-  const newHits = hits.filter((h) => !baselineKeys.has(keyOf(h)));
-  console.log(`Color literals: ${hits.length} (baseline ${baseline.count})`);
-  if (newHits.length) {
-    for (const h of newHits.slice(0,40)) console.error(`  ${h.file}:${h.line} ${h.raw}`);
-    process.exit(1);
+  const baselineByFile = baseline.byFile || {};
+  const currentByFile = {};
+  for (const hit of hits) {
+    currentByFile[hit.file] = (currentByFile[hit.file] || 0) + 1;
   }
+
+  const newHits = hits.filter((hit) => !baselineKeys.has(keyOf(hit)));
+  // The location key is a Set, so identical literals on one line share a key.
+  // Per-file occurrence ceilings catch an increase that the Set cannot represent.
+  const fileRegressions = Object.entries(currentByFile)
+    .filter(([file, count]) => count > (baselineByFile[file] || 0))
+    .sort(([left], [right]) => left.localeCompare(right));
+
+  console.log(`Color literals: ${hits.length} (baseline ${baseline.count})`);
+  console.log(`Files above baseline occurrence count: ${fileRegressions.length}`);
+
+  if (newHits.length) {
+    console.error("New color-literal locations:");
+    for (const hit of newHits.slice(0,40)) {
+      console.error(`  ${hit.file}:${hit.line} ${hit.raw}`);
+    }
+  }
+
+  if (fileRegressions.length) {
+    console.error("Color-literal occurrence count increased in existing files:");
+    for (const [file, count] of fileRegressions) {
+      const baselineCount = baselineByFile[file] || 0;
+      console.error(`  ${file}: ${count} (baseline ${baselineCount}, +${count - baselineCount})`);
+    }
+  }
+
+  if (newHits.length || fileRegressions.length) process.exit(1);
   console.log("OK");
   process.exit(0);
 }

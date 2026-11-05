@@ -33,7 +33,7 @@ import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import { loadAndMutateConfig } from "../shared/configHelper";
 import { RacingConfigSchema, RacingConfig } from "./types/RacingConfigSchema";
 import { RacingComponentRegistry, RacingEventRegistry, RacingBlueprintMap } from "./types/RacingRegistry";
-import { RacingGameState, RacingInputState } from "./types/RacingTypes";
+import { RacingGameState, RacingInputState, AIPersonalityPreset } from "./types/RacingTypes";
 import { TrackSpecSchema, TrackSpec } from "./types/TrackSpecSchema";
 import { registerRacingBlueprints, spawnBlueprint } from "./EntityFactory";
 import { TRACKS, DEFAULT_TRACK_ID } from "./config/tracks";
@@ -51,6 +51,12 @@ import { computeCarPhysics } from "./physics/CarPhysics";
 import { initializeRacingRenderer } from "./rendering/RacingRenderer";
 import { createMainCamera2D } from "../shared/componentBuilders";
 import racingConfigRaw from "./config/racing.json";
+
+function resolveAIDifficulty(options: Record<string, unknown> | undefined): AIPersonalityPreset {
+  const raw = options?.aiDifficulty;
+  if (raw === "easy" || raw === "normal" || raw === "hard") return raw;
+  return "normal";
+}
 
 export class RacingGame extends BaseGame<
   RacingGameState,
@@ -190,14 +196,12 @@ export class RacingGame extends BaseGame<
       winner: null
     });
 
-    // Spawn surface, ribbon, skid marks, and smoke
     spawnBlueprint(this.world, "track_surface", { width: trackSpec.width, height: trackSpec.height });
     spawnBlueprint(this.world, "track_ribbon", {});
     spawnBlueprint(this.world, "skid_marks", {});
     spawnBlueprint(this.world, "smoke", {});
     spawnBlueprint(this.world, "collision_sparks", {});
 
-    // Spawn checkpoints from track spec waypoints
     for (let i = 0; i < trackSpec.waypoints.length; i += 1) {
       const point = trackSpec.waypoints[i];
       spawnBlueprint(this.world, "checkpoint", {
@@ -210,12 +214,10 @@ export class RacingGame extends BaseGame<
       });
     }
 
-    // Spawn track walls
     for (let i = 0; i < trackSpec.walls.length; i += 1) {
       spawnBlueprint(this.world, "wall", trackSpec.walls[i]);
     }
 
-    // Spawn track zones
     for (let i = 0; i < trackSpec.zones.length; i += 1) {
       const zone = trackSpec.zones[i];
       spawnBlueprint(this.world, "track_zone", {
@@ -228,7 +230,6 @@ export class RacingGame extends BaseGame<
       });
     }
 
-    // Spawn track obstacles
     for (let i = 0; i < trackSpec.obstacles.length; i += 1) {
       const obs = trackSpec.obstacles[i];
       spawnBlueprint(this.world, "track_obstacle", {
@@ -251,11 +252,13 @@ export class RacingGame extends BaseGame<
     if (lap) lap.lapStartedAt = 0;
 
     const spawnPt2 = trackSpec.spawnPoints[1] ?? { x: 800, y: 240, rotation: 0 };
+    const aiDifficulty = resolveAIDifficulty(this._config.gameOptions);
     const car2 = spawnBlueprint(this.world, "car", {
       x: spawnPt2.x,
       y: spawnPt2.y,
       rotation: spawnPt2.rotation,
-      isAI: true
+      isAI: true,
+      aiDifficulty
     });
 
     createMainCamera2D(this.world, car1, {

@@ -96,6 +96,29 @@ export interface TrackObstacleDataComponent extends Component {
   kind: string;
 }
 
+/** Serializable AI driving profile. Only present on AI cars. */
+export interface AIPersonalityComponent extends Component {
+  type: "AIPersonality";
+  /** Lateral offset from the ideal racing line (positive = right of travel direction). */
+  laneOffset: number;
+  /** 0..1 — higher values produce sharper steering corrections. */
+  aggression: number;
+  /** Steering noise amplitude (radians-scale). 0 disables noise. */
+  noiseAmplitude: number;
+  /** Multiplier applied to throttle when the AI is behind. */
+  boostMultiplier: number;
+  /** Multiplier applied to throttle when the AI is ahead. */
+  nerfMultiplier: number;
+  /** Floor for positive throttle (passed to waypoint resolver). */
+  minPositiveThrottle: number;
+  /** Progress-distance threshold before boost engages. */
+  boostDistance: number;
+  /** Progress-distance threshold before nerf engages. */
+  nerfDistance: number;
+}
+
+export type AIPersonalityPreset = "easy" | "normal" | "hard";
+
 export interface RacingComponentRegistry extends CoreComponentRegistry {
   Input: RacingInputComponent;
   Car: CarComponent;
@@ -107,6 +130,7 @@ export interface RacingComponentRegistry extends CoreComponentRegistry {
   TrackObstacleData: TrackObstacleDataComponent;
   RacingState: RacingGameState;
   HeadToHeadState: HeadToHeadStateComponent;
+  AIPersonality: AIPersonalityComponent;
 }
 
 export interface RacingEventRegistry extends Record<string, unknown> {

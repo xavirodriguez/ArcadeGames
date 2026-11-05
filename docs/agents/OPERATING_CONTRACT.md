@@ -85,6 +85,10 @@ These are observed failure classes from the 2026-11-03 logs. They are evidence f
 
 For every recurrence, add the confirmed root cause, exact regression test/guard, and CI command here. Do not record speculative explanations as facts.
 
-## 8. Keep policy maintainable
+## 8. Naming and project identity
+
+Follow [the project identity and naming contract](../PROJECT_IDENTITY_AND_NAMING.md) for product branding, package scopes, game IDs, scripts and Expo identifiers. Do not rename existing game directories or app/native identifiers as a cosmetic cleanup: trace routes, manifests, imports, persisted/deep-link surfaces and deployment configuration, then provide an explicit migration plan. Use one canonical script per operation and keep compatibility aliases only when a real consumer requires them.
+
+## 9. Keep policy maintainable
 
 `AGENTS.md` and this document are the source of truth. Tool-specific instruction files must remain short pointers; do not copy architecture rules into independently maintained documents.

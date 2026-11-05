@@ -13,6 +13,9 @@ import type {
 } from "@tiny-aster/core";
 import { CanvasDrawAdapter, SkiaDrawAdapter, type IDrawAdapter } from "./DrawAdapter";
 import { colors } from "../../../theme/colors";
+import { ballistic } from "./vfx-geometry";
+import { deriveSeed } from "./vfx-core";
+import { createVFXTimelineSampler } from "./vfx-timeline";
 
 interface EffectState {
   progress: number;
@@ -113,7 +116,20 @@ export function drawPixelFxSlash(
   draw.restore();
 }
 
-/** Radial breakup: deterministic shard trajectories with gravity and spin-like offsets. */
+const EXPLOSION_RING_SCALE = createVFXTimelineSampler([
+  { start: 0, end: 0.16, from: 0.22, to: 1, easing: "ease-out" },
+  { start: 0.16, end: 1, from: 1, to: 0.76, easing: "ease-out" }
+]);
+const EXPLOSION_RING_ALPHA = createVFXTimelineSampler([
+  { start: 0, end: 0.2, from: 1, to: 0.72, easing: "ease-out" },
+  { start: 0.2, end: 1, from: 0.72, to: 0, easing: "ease-in" }
+]);
+const EXPLOSION_SHARD_ALPHA = createVFXTimelineSampler([
+  { start: 0, end: 0.72, from: 1, to: 0.62, easing: "linear" },
+  { start: 0.72, end: 1, from: 0.62, to: 0, easing: "ease-in" }
+]);
+
+/** Radial breakup: seeded fragment variation and closed-form ballistic motion. */
 export function drawPixelFxExplosion(
   draw: IDrawAdapter,
   world: import("@tiny-aster/core").World<CoreComponentRegistry>,
@@ -122,29 +138,40 @@ export function drawPixelFxExplosion(
   const state = readEffectState(world, entity);
   if (!state || state.alpha <= 0.01) return;
   const { progress: p, alpha, size, color, rotation } = state;
-  const travel = size * (0.35 + p * 1.55);
-  const gravity = size * p * p * 0.42;
+  const ringScale = EXPLOSION_RING_SCALE(p);
+  const ringAlpha = alpha * EXPLOSION_RING_ALPHA(p);
+  const gravity = ballistic(0, 0, size * 0.84, p);
 
   draw.save();
-  draw.strokeCircle(0, 0, size * (0.22 + p * 0.55), color, Math.max(0.8, size * 0.04 * (1 - p)), alpha * (1 - p));
+  draw.strokeCircle(0, 0, size * ringScale, color, Math.max(0.8, size * 0.04 * (1 - p)), ringAlpha);
   for (let i = 0; i < 10; i++) {
-    const angle = rotation + (i * Math.PI * 2) / 10;
-    const speed = 0.72 + ((i * 7) % 5) * 0.11;
-    const x = Math.cos(angle) * travel * speed;
-    const y = Math.sin(angle) * travel * speed + gravity;
+    // Derive each property from the entity identity and a stable stream index.
+    // This avoids frame-order dependence and per-frame fragment-array allocation.
+    const angleJitter = deriveSeed(entity >>> 0, i) / 0x100000000;
+    const speedJitter = deriveSeed(entity >>> 0, i + 16) / 0x100000000;
+    const angle = rotation + (i * Math.PI * 2) / 10 + (angleJitter - 0.5) * 0.2;
+    const speed = 0.72 + speedJitter * 0.55;
+    const travel = ballistic(0, size * (0.35 + speed * 0.65), 0, p);
+    const x = Math.cos(angle) * travel;
+    const y = Math.sin(angle) * travel + gravity;
     const tangent = size * (0.07 + (i % 3) * 0.025) * (1 - p * 0.35);
     const px = -Math.sin(angle) * tangent;
     const py = Math.cos(angle) * tangent;
-    const tail = rotatePoint(px, py, p * (i % 2 === 0 ? 0.8 : -0.8));
-    draw.drawLine(x - tail.x, y - tail.y, x + tail.x, y + tail.y, color, Math.max(1, size * 0.045), alpha * (1 - p * 0.45));
+    const tailRotation = p * (i % 2 === 0 ? 0.8 : -0.8);
+    const tailCos = Math.cos(tailRotation);
+    const tailSin = Math.sin(tailRotation);
+    const tailX = px * tailCos - py * tailSin;
+    const tailY = px * tailSin + py * tailCos;
+    const shardAlpha = alpha * EXPLOSION_SHARD_ALPHA(p);
+    draw.drawLine(x - tailX, y - tailY, x + tailX, y + tailY, color, Math.max(1, size * 0.045), shardAlpha);
     draw.drawLine(
-      x + tail.x,
-      y + tail.y,
+      x + tailX,
+      y + tailY,
       x + Math.cos(angle) * size * 0.09,
       y + Math.sin(angle) * size * 0.09 + gravity * 0.3,
       color,
       Math.max(0.7, size * 0.025),
-      alpha * (1 - p)
+      shardAlpha * (1 - p * 0.35)
     );
   }
   draw.restore();

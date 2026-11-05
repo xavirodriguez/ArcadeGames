@@ -20,6 +20,7 @@ import {
   createBeltMovementComponent
 } from "./BeltMovementTypes";
 import { createMeleeAttackComponent } from "../melee/HitRunMeleeSystem";
+import { createHitRunCombatDefense } from "../combat/HitRunCombatDefense";
 import { FANTASY_PALETTE } from "../fantasy/FantasyPalette";
 import type { HitRunWeaponState } from "../weapons/HitRunWeaponTypes";
 import type { ComboMeleeComponent } from "../melee/ComboMeleeTypes";
@@ -131,6 +132,13 @@ export function spawnBeltPlayer(
   });
 
   world.addComponent(entity, createBeltInputComponent());
+  world.addComponent(entity, createHitRunCombatDefense({
+    guard: 60,
+    maxGuard: 60,
+    guardRegenPerSecond: 18,
+    armor: 0,
+    maxArmor: 0
+  }) as never);
 
   world.addComponent(entity, createMeleeAttackComponent());
   world.addComponent(entity, {

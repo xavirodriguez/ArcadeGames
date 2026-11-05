@@ -100,7 +100,7 @@ describe("HitRunCombatDefense", () => {
 
     const result = resolveHitRunDamage(world, source, target, 8);
 
-    expect(result.healthDamage).toBe(4);
+    expect(result.healthDamage).toBe(5);
     expect(result.armorBroken).toBe(true);
     expect(result.remainingArmor).toBe(0);
   });

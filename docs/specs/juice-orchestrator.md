@@ -111,6 +111,6 @@ The kinetic energy system tracks player flow (rally streaks, high speed, near-mi
 
 1. **RNG Isolation**: Effect spawning uses non-gameplay random generators (`world.renderRandom` or deterministic visual seed streams) to ensure zero consumption of `world.gameplayRandom`.
 2. **Rollback state**: `GameplayFreeze` and `JuiceHitStopPolicy` are explicitly registered World resources, included in AoS/SoA snapshots, deterministic hashes and network deltas.
-3. **Replay separation**: authoritative hit-stop requests are replayed; VFX entities, shake and audio are not duplicated during resimulation.
+3. **Replay separation**: authoritative hit-stop requests are replayed; JuiceOrchestrator-managed VFX entities, shake and audio are not duplicated during resimulation.
 4. **Zero-Cost Idle**: When `JuiceLevel = 0` or no active VFX entities exist, systems immediately return without iterating entities or performing allocations.
 5. **Canvas & Skia Parity**: Every new or parameterized drawer is implemented for both HTML5 Canvas 2D and React Native Skia contexts.

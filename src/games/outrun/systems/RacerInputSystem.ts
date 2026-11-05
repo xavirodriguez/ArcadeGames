@@ -1,10 +1,12 @@
 import { System, World } from "@tiny-aster/core";
 import type { OutrunComponentRegistry, OutrunEventRegistry } from "../types/OutrunTypes";
+import { isOutrunCrashing } from "../types/OutrunTypes";
 import { resolveOutrunSystemContext } from "./OutrunSystemUtils";
 
 /**
  * Reads player input (accelerate / brake / steer) and updates RaceState.
  * Runs in Input phase. Simulation systems consume the resulting speed / playerX.
+ * While crashing, control is locked (classic Out Run tumble).
  */
 export class RacerInputSystem extends System<OutrunComponentRegistry, OutrunEventRegistry> {
   public override update(
@@ -18,6 +20,9 @@ export class RacerInputSystem extends System<OutrunComponentRegistry, OutrunEven
       state.racePhase === "finished" ||
       (state.racePhase === "countdown" && (state.countdownTime ?? 0) > 0)
     ) return;
+
+    // Tumble sequence owns speed/lateral motion via CrashSystem.
+    if (isOutrunCrashing(state)) return;
 
     let accelerate = false;
     let brake = false;

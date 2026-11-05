@@ -463,14 +463,24 @@ export function drawPixelFxPhaseDash(draw: IDrawAdapter, world: import("@tiny-as
   draw.restore();
 }
 
-/** Directional ricochet: contact flash plus a sharply reflected trajectory. */
+const RICOCHET_RING_RADIUS = createVFXTimelineSampler([
+  { start: 0, end: 0.12, from: 0.18, to: 0.42, easing: "ease-out" },
+  { start: 0.12, end: 1, from: 0.42, to: 1.05, easing: "ease-out" }
+]);
+const RICOCHET_FLASH_ALPHA = createVFXTimelineSampler([
+  { start: 0, end: 0.08, from: 0.45, to: 1, easing: "ease-out" },
+  { start: 0.08, end: 0.48, from: 1, to: 0.62, easing: "smoothstep" },
+  { start: 0.48, end: 1, from: 0.62, to: 0, easing: "ease-in" }
+]);
+
+/** Directional ricochet: a sharp contact flash followed by a reflected trajectory. */
 export function drawPixelFxRicochet(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
   const state = readEffectState(world, entity);
   if (!state || state.alpha <= 0.01) return;
   const { progress: p, alpha, size, color, rotation } = state;
-  const radius = size * (0.18 + p * 0.48);
+  const radius = size * RICOCHET_RING_RADIUS(p);
   const reach = size * (0.55 + p * 0.85);
-  const fade = alpha * (1 - p * 0.42);
+  const fade = alpha * RICOCHET_FLASH_ALPHA(p);
   const cos = Math.cos(rotation);
   const sin = Math.sin(rotation);
   draw.save();
@@ -487,18 +497,30 @@ export function drawPixelFxRicochet(draw: IDrawAdapter, world: import("@tiny-ast
   draw.restore();
 }
 
-/** Forward charge cue: compressed energy core and deterministic backward speed streaks. */
+const CHARGE_CORE_RADIUS = createVFXTimelineSampler([
+  { start: 0, end: 0.62, from: 0.105, to: 0.19, easing: "ease-in-out" },
+  { start: 0.62, end: 1, from: 0.19, to: 0.31, easing: "ease-out" }
+]);
+const CHARGE_CORE_ALPHA = createVFXTimelineSampler([
+  { start: 0, end: 0.18, from: 0.5, to: 1, easing: "ease-out" },
+  { start: 0.18, end: 0.78, from: 1, to: 0.88, easing: "linear" },
+  { start: 0.78, end: 1, from: 0.88, to: 0, easing: "ease-in" }
+]);
+
+/** Forward charge cue: a compressed core builds energy before a timed release. */
 export function drawPixelFxCharge(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
   const state = readEffectState(world, entity);
   if (!state || state.alpha <= 0.01) return;
   const { progress: p, alpha, size, color, rotation } = state;
   const length = size * (0.7 + p * 1.15);
   const fade = alpha * (1 - p * 0.3);
+  const coreAlpha = fade * CHARGE_CORE_ALPHA(p);
+  const coreRadius = size * CHARGE_CORE_RADIUS(p);
   const cos = Math.cos(rotation);
   const sin = Math.sin(rotation);
   draw.save();
-  draw.fillCircle(size * 0.12, 0, size * (0.12 + (1 - p) * 0.06), color, fade);
-  draw.drawArc(0, 0, size * (0.28 + p * 0.08), -Math.PI * 0.42, Math.PI * 0.84, color, Math.max(1, size * 0.055), fade * 0.8);
+  draw.fillCircle(size * 0.12, 0, coreRadius, color, coreAlpha);
+  draw.drawArc(0, 0, size * (0.28 + p * 0.08), -Math.PI * 0.42, Math.PI * 0.84, color, Math.max(1, size * 0.055), coreAlpha * 0.8);
   for (let i = 0; i < 5; i++) {
     const lane = (i - 2) * 0.19;
     const startX = -length * (0.12 + (i % 2) * 0.08);
@@ -510,16 +532,40 @@ export function drawPixelFxCharge(draw: IDrawAdapter, world: import("@tiny-aster
   draw.restore();
 }
 
-/** Defensive pulse: expanding concentric shell and separated shield arcs (visual only). */
+const SHIELD_PULSE_RADIUS = createVFXTimelineSampler([
+  { start: 0, end: 0.14, from: 0.22, to: 0.38, easing: "ease-out" },
+  { start: 0.14, end: 0.72, from: 0.38, to: 1.32, easing: "ease-out" },
+  { start: 0.72, end: 1, from: 1.32, to: 1.52, easing: "ease-out" }
+]);
+const SHIELD_PULSE_ALPHA = createVFXTimelineSampler([
+  { start: 0, end: 0.12, from: 0.55, to: 1, easing: "ease-out" },
+  { start: 0.12, end: 0.72, from: 1, to: 0.72, easing: "linear" },
+  { start: 0.72, end: 1, from: 0.72, to: 0, easing: "ease-in" }
+]);
+const SHIELD_ECHO_RADIUS = createVFXTimelineSampler([
+  { start: 0, end: 0.32, from: 0.18, to: 0.18, easing: "linear" },
+  { start: 0.32, end: 0.88, from: 0.18, to: 1.28, easing: "ease-out" }
+]);
+const SHIELD_ECHO_ALPHA = createVFXTimelineSampler([
+  { start: 0, end: 0.32, from: 0, to: 0, easing: "linear" },
+  { start: 0.32, end: 0.88, from: 0.62, to: 0, easing: "ease-in" }
+]);
+
+/** Defensive pulse: a staged expanding shell, delayed echo and separated shield arcs. */
 export function drawPixelFxShieldPulse(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
   const state = readEffectState(world, entity);
   if (!state || state.alpha <= 0.01) return;
   const { progress: p, alpha, size, color, rotation } = state;
-  const radius = size * (0.38 + p * 1.05);
-  const fade = alpha * (1 - p * 0.38);
+  const radius = size * SHIELD_PULSE_RADIUS(p);
+  const fade = alpha * SHIELD_PULSE_ALPHA(p);
+  const echoRadius = size * SHIELD_ECHO_RADIUS(p);
+  const echoAlpha = alpha * SHIELD_ECHO_ALPHA(p);
   draw.save();
   draw.strokeCircle(0, 0, radius, color, Math.max(1, size * 0.055 * (1 - p * 0.35)), fade);
   draw.strokeCircle(0, 0, radius * 0.72, color, Math.max(0.8, size * 0.025), fade * 0.52);
+  if (echoAlpha > 0.01) {
+    draw.strokeCircle(0, 0, echoRadius, color, Math.max(0.8, size * 0.022), echoAlpha);
+  }
   for (let i = 0; i < 4; i++) {
     const start = rotation + (i * Math.PI) / 2 + 0.18;
     draw.drawArc(0, 0, radius * 1.12, start, Math.PI * 0.28, color, Math.max(1, size * 0.045), fade * 0.85);

@@ -3,7 +3,7 @@
  * One-call registration of shared juice / game-feel systems that depend on VFXWorldState.
  *
  * Games that already call registerSharedVFX should also call this during system setup
- * so hit-stop timers tick and kinetic charge is mirrored into VFX state.
+ * so hit-stop cooldown policy advances through freezes and kinetic charge is mirrored into VFX state.
  */
 
 import { SystemPhase, type World, type CoreComponentRegistry } from "@tiny-aster/core";
@@ -17,8 +17,8 @@ export interface RegisterSharedJuiceSystemsOptions {
 
 /**
  * Registers HitStopSystem (and optionally KineticFlowSystem) on the world.
- * Safe to call once per game boot; systems are presentation-phase and deterministic
- * with respect to gameplay RNG (they only read/write VFXWorldState).
+ * Safe to call once per game boot. Hit-stop policy is snapshot-backed simulation state;
+ * KineticFlow remains a presentation-side mirror and does not affect gameplay RNG.
  */
 export function registerSharedJuiceSystems<
   TComponents extends CoreComponentRegistry = CoreComponentRegistry

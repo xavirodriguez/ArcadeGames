@@ -28,6 +28,12 @@ import {
 import { CombatHitListenerSystem } from "../combat/CombatHitListenerSystem";
 import { JuiceOrchestrator } from "../../shared/rendering/JuiceOrchestrator";
 import { SUMI_E_THEME_RESOURCE } from "../presentation/ThemeAssetIds";
+import {
+  DEFAULT_HIT_REACTION_CONFIG,
+  HIT_REACTION_CONFIG_RESOURCE,
+  resolveHitReactionDurations,
+  type HitReactionConfig
+} from "../hurt/HitReactionTypes";
 
 export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPayload> {
   private config: HitRunFeedbackConfig;
@@ -172,6 +178,17 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
     }
   }
 
+  private isPlayerTarget(world: World<CoreComponentRegistry>, entity: number): boolean {
+    if (
+      world.hasComponent(entity, "PlatformerInput") ||
+      world.hasComponent(entity, "BeltInput")
+    ) return true;
+    const faction = world.getComponent(entity, "Faction") as
+      | { value?: string; faction?: string }
+      | undefined;
+    return faction?.value === "player" || faction?.faction === "player";
+  }
+
   private resolveProfile(category?: string): HitFeedbackProfile {
     if (category && this.config.byCategory[category]) {
       return this.config.byCategory[category];
@@ -234,6 +251,41 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
             tint: isSumiE ? "#151515" : "#7fa38a",
             ttl: 0.28
           });
+        }
+
+        // Health-impact feedback uses the same pure duration resolver as the
+        // gameplay hurt system. Fully guarded and armor-only contacts stay quiet.
+        const isHealthReaction = hit.blocked !== true &&
+          (hit.amount > 0 || hit.guardBroken === true);
+        if (isHealthReaction) {
+          const reactionConfig =
+            world.getResource<HitReactionConfig>(HIT_REACTION_CONFIG_RESOURCE) ??
+            DEFAULT_HIT_REACTION_CONFIG;
+          const reaction = resolveHitReactionDurations(
+            hit,
+            this.isPlayerTarget(world, hit.targetEntity),
+            reactionConfig
+          );
+          if (reaction.hitstunSeconds > 0) {
+            this.juice.spawn("pixelfx_hitstun", {
+              x: target.x,
+              y: target.y,
+              rotation,
+              scale: 0.68,
+              tint: isSumiE ? "#151515" : "#f05a28",
+              ttl: 0.2
+            });
+          }
+          if (reaction.staggerSeconds > 0) {
+            this.juice.spawn("pixelfx_stagger", {
+              x: target.x,
+              y: target.y,
+              rotation,
+              scale: 1.02,
+              tint: isSumiE ? "#151515" : "#e3a92f",
+              ttl: Math.min(0.46, Math.max(0.3, reaction.staggerSeconds))
+            });
+          }
         }
 
         // Guard and armor flags come from the shared damage resolver, not from

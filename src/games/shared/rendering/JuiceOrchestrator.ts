@@ -36,6 +36,7 @@ export type SharedVFXPrimitiveName =
   | "pixelfx_ricochet"
   | "pixelfx_charge"
   | "pixelfx_shield_pulse"
+  | "pixelfx_parry"
   | "pixelfx_target_warning"
   | "pixelfx_teleport"
   | "pixelfx_surface_skid"

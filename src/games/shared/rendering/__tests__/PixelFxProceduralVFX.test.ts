@@ -89,12 +89,24 @@ describe("PixelFX-inspired procedural VFX", () => {
     expect(adapter.drawLine).toHaveBeenCalledTimes(5);
   });
 
-  it("draws a fragmenting explosion without using gameplay randomness", () => {
+  it("draws fragmenting explosions deterministically from the entity identity", () => {
     const adapter = createAdapter();
     const { world, entity } = createWorld();
     drawPixelFxExplosion(adapter, world, entity);
     expect(adapter.strokeCircle).toHaveBeenCalledTimes(1);
     expect(adapter.drawLine).toHaveBeenCalledTimes(20);
+  });
+
+  it("reproduces explosion geometry for the same seed and varies it for a different seed", () => {
+    const { world } = createWorld();
+    const drawForEntity = (entity: number) => {
+      const adapter = createAdapter();
+      drawPixelFxExplosion(adapter, world, entity);
+      return adapter.drawLine.mock.calls;
+    };
+
+    expect(drawForEntity(104729)).toEqual(drawForEntity(104729));
+    expect(drawForEntity(104729)).not.toEqual(drawForEntity(130363));
   });
 
   it("draws the five additional procedural compositions", () => {

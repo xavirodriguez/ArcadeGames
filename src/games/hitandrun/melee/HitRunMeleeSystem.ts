@@ -388,7 +388,7 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
           ? "armor-break"
           : config.damageCategory;
       const bus = world.getEventBus();
-      if (bus && (resolution.healthDamage > 0 || resolution.guardBroken || resolution.armorBroken)) {
+      if (bus && (resolution.healthDamage > 0 || resolution.blocked || resolution.guardBroken || resolution.armorBroken)) {
         bus.emitDeferred("combat:hit", {
           targetEntity: other,
           sourceEntity: owner,
@@ -396,7 +396,8 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
           remainingHealth: next,
           category,
           guardBroken: resolution.guardBroken,
-          armorBroken: resolution.armorBroken
+          armorBroken: resolution.armorBroken,
+          blocked: resolution.blocked
         });
         if (next <= 0) {
           world.getCommandBuffer().addComponent(other, { type: "Dead" });

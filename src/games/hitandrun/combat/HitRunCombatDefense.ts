@@ -148,7 +148,15 @@ export function tickHitRunCombatDefense(
     if (!defense) continue;
     defense.guardBreakRemaining = Math.max(0, defense.guardBreakRemaining - deltaTime);
     defense.guardRegenDelayRemaining = Math.max(0, defense.guardRegenDelayRemaining - deltaTime);
-    if (defense.guardRegenDelayRemaining <= 0 && defense.guardBreakRemaining <= 0) {
+    const input = (world.getComponent(entities[i], "BeltInput") ??
+      world.getComponent(entities[i], "PlatformerInput")) as
+      | { guardHeld?: boolean }
+      | undefined;
+    if (
+      input?.guardHeld !== true &&
+      defense.guardRegenDelayRemaining <= 0 &&
+      defense.guardBreakRemaining <= 0
+    ) {
       defense.guard = Math.min(
         Math.max(0, defense.maxGuard),
         defense.guard + Math.max(0, defense.guardRegenPerSecond) * deltaTime

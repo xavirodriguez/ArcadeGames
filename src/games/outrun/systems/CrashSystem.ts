@@ -27,7 +27,6 @@ export class CrashSystem extends System<OutrunComponentRegistry, OutrunEventRegi
     world.mutateSingleton("RaceState", (state) => {
       if (state.racePhase === "finished" || state.isGameOver) return;
       if (!isOutrunCrashing(state)) {
-        // Keep residual spin cleared when idle so presentation stays upright.
         if ((state.crashSpin ?? 0) !== 0) state.crashSpin = 0;
         return;
       }
@@ -39,23 +38,19 @@ export class CrashSystem extends System<OutrunComponentRegistry, OutrunEventRegi
 
       state.crashSpin = (state.crashSpin ?? 0) + dir * spinRate * elapsed;
       state.speed = Math.max(0, state.speed - config.crashDecel * elapsed);
-      // Mild outward slide during the tumble (arcade shove, not full physics).
       state.playerX = Math.max(-2, Math.min(2, state.playerX + dir * 0.35 * elapsed));
       state.crashRemaining = remaining;
 
       if (remaining <= 0.001) {
         state.crashRemaining = 0;
         state.crashDir = 0;
-        // Settle to the nearest upright multiple of 2π so the body faces the road.
         const spin = state.crashSpin ?? 0;
         state.crashSpin = Math.round(spin / TWO_PI) * TWO_PI;
-        // Soft floor so the player is not left completely stopped after a tumble.
         if (state.speed < config.maxSpeed * 0.08) {
           state.speed = config.maxSpeed * 0.08;
         }
       }
 
-      // Guard against pathological long frames: never exceed configured duration.
       if ((state.crashRemaining ?? 0) > duration) {
         state.crashRemaining = duration;
       }

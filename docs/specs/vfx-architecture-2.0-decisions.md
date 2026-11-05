@@ -174,6 +174,6 @@ The Effect IR now exposes `resolveTemporalVFXSample(context, elapsedPresentation
 - `enter` maps normalized progress to opacity; `hold` remains fully visible; `exit` maps inverse progress to opacity.
 - Elapsed time and duration are supplied by the caller. The helper owns no clock, ECS system, scheduler, or mutable state.
 - Inputs must be finite; elapsed time and factor must be non-negative; duration must be strictly positive.
-- This helper does not change simulation delta, gameplay clocks, TTL, rollback, or runtime animation by itself. It establishes a deterministic sampling contract for the Visual Lab and future controlled presentation consumers.
+- This helper does not change simulation delta, gameplay clocks, TTL, rollback, or runtime animation by itself. It establishes a deterministic sampling contract for a future Visual Lab scrubber and other controlled presentation consumers.
 
 **Gate status:** this is a temporal-contract slice, not completion of PR6. Entity-following semantics and an end-to-end presentation-time consumer remain open. Runtime effects continue to use the existing ECS TTL lifecycle.

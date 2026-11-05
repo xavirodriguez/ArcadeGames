@@ -24,6 +24,7 @@ export interface HitReactionConfig {
   enemyHitstunSeconds: number;
   enemyStaggerSeconds: number;
   heavyHitStaggerSeconds: number;
+  staggerDamageThreshold: number;
   blinkHalfPeriod: number;
 }
 
@@ -37,6 +38,7 @@ export const DEFAULT_HIT_REACTION_CONFIG: HitReactionConfig = {
   enemyHitstunSeconds: ENEMY_HITSTUN_SECONDS,
   enemyStaggerSeconds: ENEMY_STAGGER_SECONDS,
   heavyHitStaggerSeconds: HEAVY_HIT_STAGGER_SECONDS,
+  staggerDamageThreshold: 2.5,
   blinkHalfPeriod: PLAYER_INVULN_BLINK_HALF_PERIOD
 };
 

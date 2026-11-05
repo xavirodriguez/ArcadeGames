@@ -175,11 +175,17 @@ export class JuiceOrchestrator<TComponents extends CoreComponentRegistry = CoreC
    * FR-1: High-level single-line API.
    */
   public spawn(effectName: SharedVFXPrimitiveName, options?: JuiceSpawnOptions): number | null {
-    // Presentation must never be emitted from a rollback/resimulation pass.
-    // Keep this guard here so every caller (including future consumers) inherits the policy.
+    const state = getVFXState(this.world);
+
+    // Hit-stop changes authoritative simulation state, so replay it during rollback.
+    // Its duration is independent of local Juice/accessibility presentation settings.
+    if (options?.hitStopMs && options.hitStopMs > 0) {
+      requestHitStop(this.world, options.hitStopMs, options.hitStopPriority ?? HitStopPriority.NORMAL);
+    }
+
+    // Particles, shake and all other presentation output are never emitted during replay.
     if (this.world.isReSimulating) return null;
 
-    const state = getVFXState(this.world);
     const juiceLevel = state.juiceLevel ?? 1.0;
 
     // FR-6: Low stimulation mode disables shake & flashes and suppresses background screen-filling effects
@@ -188,12 +194,6 @@ export class JuiceOrchestrator<TComponents extends CoreComponentRegistry = CoreC
     const tint = options?.tint;
     const x = options?.x ?? 0;
     const y = options?.y ?? 0;
-
-    // Trigger hit-stop if requested
-    if (options?.hitStopMs && options.hitStopMs > 0) {
-      const scaledHitStop = state.lowStimulationMode ? Math.min(options.hitStopMs, 30) : options.hitStopMs * juiceLevel;
-      requestHitStop(this.world, scaledHitStop, options.hitStopPriority ?? HitStopPriority.NORMAL);
-    }
 
     // Trigger screen shake if requested (suppressed in Low Stimulation Mode)
     if (options?.shakeIntensity && options.shakeIntensity > 0 && !state.lowStimulationMode) {

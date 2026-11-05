@@ -8,6 +8,8 @@ interface TestState {
 }
 
 class RollbackTestGame extends BaseGame<TestState, any> {
+  public resimulationFlags: boolean[] = [];
+
   constructor(seed: number) {
     super({
       gameOptions: { seed }
@@ -44,6 +46,7 @@ class RollbackTestGame extends BaseGame<TestState, any> {
   }
 
   protected override onApplyInputFrame(input: CompactInputFrame): void {
+    this.resimulationFlags.push(this.world.isReSimulating);
     const ents = this.world.query("Val" as any);
     for (const ent of ents) {
       this.world.mutateComponent(ent, "Val" as any, (p: any) => {
@@ -121,6 +124,8 @@ describe("Rollback and Resimulation Engine", () => {
     );
 
     expect(rollbackSuccess).toBe(true);
+    expect(predictedGame.resimulationFlags.slice(-3)).toEqual([true, true, true]);
+    expect(predictedGame.world.isReSimulating).toBe(false);
 
     // 4. Assert that after rollback and resimulation, state hashes match perfectly!
     expect(predictedGame.hash()).toBe(expectedFinalHash);

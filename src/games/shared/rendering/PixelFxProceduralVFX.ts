@@ -680,7 +680,7 @@ export function drawPixelFxCriticalHit(draw: IDrawAdapter, world: import("@tiny-
   draw.fillCircle(0, 0, core, color, flash);
   draw.strokeCircle(0, 0, core * 1.32, color, Math.max(0.8, size * 0.035), flash * 0.72);
   for (let i = 0; i < 10; i++) {
-    const angle = (i * Math.PI * 2) / 10, delay = (i % 4) * 0.045;
+    const angle = rotation + (i * Math.PI * 2) / 10, delay = (i % 4) * 0.045;
     const localProgress = Math.max(0, Math.min(1, (p - delay) / (1 - delay)));
     const fragmentReach = size * (0.18 + CRITICAL_FRAGMENT_REACH(localProgress) * (0.72 + (i % 3) * 0.12));
     const inner = core * (0.72 + (i % 2) * 0.18), outer = Math.max(inner, fragmentReach);

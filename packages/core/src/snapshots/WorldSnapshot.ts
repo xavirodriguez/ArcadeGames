@@ -44,6 +44,15 @@ export interface BaseWorldSnapshot {
    * The current simulation frame/tick count.
    */
   tick: number;
+  /**
+   * Names explicitly registered for rollback-safe resource capture.
+   * Missing values remain registered but are restored as absent.
+   */
+  snapshotResourceKeys?: string[];
+  /**
+   * Plain-data values for registered resources, shared by AoS and SoA layouts.
+   */
+  snapshotResources?: Record<string, unknown>;
 }
 
 /**
@@ -96,6 +105,8 @@ export type SnapshotDelta = Partial<BaseWorldSnapshot> & {
   isSoA?: boolean;
   componentData?: ComponentDataSnapshot;
   soaComponentData?: Record<string, Partial<SoAComponentTypeData>>;
+  snapshotResourceKeys?: string[];
+  snapshotResources?: Record<string, unknown>;
 };
 
 /**

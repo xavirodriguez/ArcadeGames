@@ -155,6 +155,24 @@ export class HitRunHurtSystem extends CombatHitListenerSystem<CombatHitPayload> 
   ): void {
     this.applyKnockback(world, target, hit.sourceEntity, knockbackX, knockbackY);
     this.ensureHitReaction(world, target, hitstunSeconds, staggerSeconds);
+
+    // A stability-breaking impact interrupts an enemy's active melee window.
+    if (staggerSeconds > 0 && world.hasComponent(target, "MeleeAttack")) {
+      const melee = world.getMutableComponent(target, "MeleeAttack") as
+        | { phase?: string; phaseElapsed?: number; hitboxEntity?: number }
+        | undefined;
+      if (melee) {
+        if (melee.hitboxEntity !== undefined && melee.hitboxEntity >= 0 &&
+          world.hasEntity(melee.hitboxEntity)) {
+          world.getCommandBuffer().removeEntity(melee.hitboxEntity);
+        }
+        melee.hitboxEntity = -1;
+        if (melee.phase === "active" || melee.phase === "startup") {
+          melee.phase = "recovery";
+          melee.phaseElapsed = 0;
+        }
+      }
+    }
   }
 
   private applyKnockback(

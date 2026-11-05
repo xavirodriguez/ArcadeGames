@@ -5,7 +5,7 @@
 
 ## Executive result
 
-The repository contains the shared primitives, but hit-stop ownership is split. `requestHitStop()` mutates `VFXWorldState.hitStopTimer`; `Schedule.update()` reads `GameplayFreeze`. These are separate clocks and the catalog request does not currently prove that gameplay is frozen.
+The repository now has a canonical hit-stop path in the current implementation branch. `requestHitStop()` arbitrates through snapshot-registered `JuiceHitStopPolicy` and writes the accepted finite duration to `GameplayFreeze`; `Schedule.update()` remains the only owner of the active countdown. `VFXWorldState` no longer stores a hit-stop timer.
 
 `Juice.shake()` has three destinations: the `ScreenShake` singleton, the `ScreenShake` resource, and legacy `GameState.screenShake`. The first two receive the supplied duration unchanged; the legacy path applies `duration > 10 ? duration / 1000 : duration`. This makes the effective unit destination-dependent.
 
@@ -14,7 +14,7 @@ The repository contains the shared primitives, but hit-stop ownership is split. 
 | Domain | Producer / state | Consumer | Finding |
 |---|---|---|---|
 | Freeze | `enterGameplayFreeze()` / `GameplayFreeze` | `Schedule.update()` | Effective scheduler authority; remaining is seconds. |
-| Hit-stop policy | `requestHitStop()` / `VFXWorldState` | `HitStopSystem.update()` | Separate timer, priority and cooldown; not connected to scheduler freeze. |
+| Hit-stop policy | `requestHitStop()` / `JuiceHitStopPolicy` | `HitStopSystem.update()` + `Schedule.update()` | Priority/cooldown are snapshot state; active duration is owned only by `GameplayFreeze`. |
 | Camera shake | `Juice.shake()` | `ScreenShakeSystem` for ECS component path | Core system uses seconds, `world.renderRandom`, skips rollback, and clears camera `VisualOffset`. |
 | Legacy shake | `GameState.screenShake` | Game-specific renderer | Keep until renderer migration and equivalence tests. |
 | Entity transforms | `Juice.add()` / `Juice.squash()` | `JuiceSystem` | Public duration/delay converted from ms to seconds; system writes `VisualOffset` / `Render`, or arbitrary component when `componentType` is supplied. |
@@ -40,11 +40,13 @@ Code search found explicit `HitStopSystem` registration in `ArkanoidGame`, `Geom
 
 ## Rollback findings
 
-`WorldSnapshot` currently serializes entity/component state and RNG metadata, not `World.resources`. This is true for both AoS (`SnapshotSerializer`) and SoA (`SnapshotSerializerSoA`); their restore paths rebuild component storage but do not restore resources. Consequently, `GameplayFreeze.remaining` is not rewound by rollback, and the mutable `VFXWorldState` object (including `hitStopTimer`, priority and cooldown) is also outside the snapshot. The current implementation therefore cannot safely make Juice hit-stop simulation-authoritative merely by writing `GameplayFreeze` from `requestHitStop()`.
+Core snapshots now support explicitly registered plain-data resources. `GameplayFreeze` is registered by `World`; `JuiceHitStopPolicy` is registered by `HitStopSystem`. AoS and SoA serializers capture the same resource payload, restore replaces the registered resource set, and hashes include registered keys and values. Network deltas carry the complete registered-resource payload and `NetworkReplicationUtils.applyDelta()` replaces the baseline resource state.
 
-`RollbackSimulation.processRollback()` restores a snapshot and then executes the corrected input frame with `simulation.step(correctedInput)` before entering `resimulateFromTick()`, where `world.isReSimulating` is set. This means rollback suppression policy must cover the corrected-input step as well as subsequent replay; a blanket guard based only on `isReSimulating` is not sufficient to define event replay semantics.
+`RollbackSimulation.processRollback()` restores a snapshot and executes the corrected input frame before entering `resimulateFromTick()`, where `world.isReSimulating` is set. The runtime bridge therefore applies hit-stop requests before the presentation guard in `JuiceOrchestrator.spawn()`: authoritative freeze decisions replay on corrected and subsequent frames, while VFX entities and shake remain suppressed.
 
-`JuiceSystem` and `ScreenShakeSystem` skip `world.isReSimulating`. The existing source audit records an orchestrator guard, but this does not protect producers that create emitters, enqueue audio, or mutate visual components before the consumer runs. The Arkanoid hit path is one known missing producer guard; Pong particle/audio paths are another known risk. Space Invaders has guards on some orchestrator/SFX paths, not yet proven for every direct writer.
+`HitStopSystem` now stores only priority, active ownership and cooldown in `JuiceHitStopPolicy`. It runs while frozen and observes the scheduler-owned `GameplayFreeze.remaining`; no second duration timer remains. External/indefinite freezes are not replaced by Juice. Direct game-specific freeze writers are still present and intentionally remain external owners pending their own migrations.
+
+`JuiceSystem` and `ScreenShakeSystem` continue to skip `world.isReSimulating`; this is appropriate for presentation. Tests for snapshot resource capture, restore, hashing, binary transport, network delta application and hit-stop replay have been authored in this branch but still require CI execution.
 
 ## Corrections to prior documentation
 
@@ -54,9 +56,9 @@ Code search found explicit `HitStopSystem` registration in `ArkanoidGame`, `Geom
 ## Decisions for implementation
 
 1. `GameplayFreeze` owns effective freeze duration; hit-stop policy must not own a second clock.
-2. Do not bridge `requestHitStop()` to `GameplayFreeze` until duration and arbitration state have an explicit rollback representation and restore tests for both AoS and SoA snapshots.
-3. Do not snapshot all of `VFXWorldState`: it mixes presentation caches/native handles and non-authoritative visual state with hit-stop policy. Extract only the minimal deterministic policy state into a snapshot-safe representation.
-4. Decide whether hit-stop is authoritative simulation time or local presentation before allowing Juice level / reduced-stimulation preferences to scale its duration.
+2. `GameplayFreeze` is registered by core `World`; Juice priority/cooldown state is registered separately as `JuiceHitStopPolicy`.
+3. Do not snapshot all of `VFXWorldState`: renderer caches/native handles and presentation data remain outside rollback.
+4. Hit-stop duration is authoritative and must not be scaled by local Juice level or reduced-stimulation preferences.
 5. Public Juice durations are milliseconds; ECS timers and `System.update` use seconds.
 6. No fallback is removed until its producer and consumer are migrated and tested.
 7. Rollback suppression is required at presentation producer boundaries, not only in consumers.

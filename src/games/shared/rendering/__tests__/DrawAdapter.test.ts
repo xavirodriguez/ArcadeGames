@@ -1,25 +1,22 @@
 import { CanvasDrawAdapter, SkiaDrawAdapter } from "../DrawAdapter";
 
 jest.mock("../SkiaContext", () => {
-  const createPaint = () => {
-    const paint = {
-      style: undefined as unknown,
-      color: undefined as unknown,
-      alpha: 1,
-      strokeWidth: undefined as number | undefined,
-      maskFilter: undefined as unknown,
-      setStyle(style: unknown) { paint.style = style; },
-      setColor(color: unknown) { paint.color = color; },
-      setAlphaf(alpha: number) { paint.alpha = alpha; },
-      setStrokeWidth(width: number) { paint.strokeWidth = width; },
-      setMaskFilter(filter: unknown) { paint.maskFilter = filter; }
-    };
-    return paint;
-  };
-  const sharedPaint = createPaint();
+  class MockPaint {
+    style: unknown;
+    color: unknown;
+    alpha = 1;
+    strokeWidth: number | undefined;
+    maskFilter: unknown;
+    setStyle(style: unknown) { this.style = style; }
+    setColor(color: unknown) { this.color = color; }
+    setAlphaf(alpha: number) { this.alpha = alpha; }
+    setStrokeWidth(width: number) { this.strokeWidth = width; }
+    setMaskFilter(filter: unknown) { this.maskFilter = filter; }
+  }
+  const sharedPaint = new MockPaint();
   return {
     Skia: {
-      Paint: createPaint,
+      Paint: () => new MockPaint(),
       PaintStyle: { Fill: "fill", Stroke: "stroke" },
       Color: (color: string) => color,
       MaskFilter: { MakeBlur: (_mode: unknown, sigma: number) => ({ sigma }) },
@@ -64,9 +61,7 @@ describe("DrawAdapter glow composition", () => {
   it("multiplies primitive alpha by each Canvas glow layer alpha", () => {
     const { context, alphaAtFill } = createCanvasContext();
     const adapter = new CanvasDrawAdapter(context);
-
     adapter.drawGlow("#ff00ff", (layer) => layer.fillCircle(0, 0, 8, "#ffffff", 0.5));
-
     expect(alphaAtFill).toEqual([0.075, 0.175, 0.5]);
     adapter.fillCircle(0, 0, 8, "#ffffff", 0.5);
     expect(alphaAtFill[3]).toBe(0.5);
@@ -77,25 +72,14 @@ describe("DrawAdapter glow composition", () => {
     const canvas = {
       drawCircle: (_x: number, _y: number, _radius: number, paint: unknown) => {
         const current = paint as { alpha: number; maskFilter: unknown; color: unknown };
-        calls.push({
-          alpha: current.alpha,
-          maskFilter: current.maskFilter,
-          color: current.color
-        });
+        calls.push({ alpha: current.alpha, maskFilter: current.maskFilter, color: current.color });
       }
     };
     const adapter = new SkiaDrawAdapter(canvas);
-
     adapter.drawGlow("#ff00ff", (layer) => layer.fillCircle(0, 0, 8, "#ffffff", 0.5));
-
     expect(calls.map((call) => call.alpha)).toEqual([0.075, 0.175, 0.5]);
-    expect(calls.map((call) => call.maskFilter)).toEqual([
-      { sigma: 18 },
-      { sigma: 8 },
-      null
-    ]);
+    expect(calls.map((call) => call.maskFilter)).toEqual([{ sigma: 18 }, { sigma: 8 }, null]);
     expect(calls.map((call) => call.color)).toEqual(["#ffffff", "#ffffff", "#ffffff"]);
-
     adapter.fillCircle(0, 0, 8, "#ffffff", 0.5);
     expect(calls[3].maskFilter).toBeUndefined();
     expect(calls[3].alpha).toBe(0.5);

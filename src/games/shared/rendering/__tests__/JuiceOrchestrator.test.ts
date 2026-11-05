@@ -124,6 +124,19 @@ describe("JuiceOrchestrator Unit Tests & Golden Replays", () => {
       expect(world.getResource<{ remaining?: number }>("GameplayFreeze")?.remaining).toBe(0.08);
     });
 
+    it("replays Pong paddle-hit hit-stop from its catalog profile", () => {
+      world.isReSimulating = true;
+      juice.triggerEvent("pong", "paddle:hit", { x: 100, y: 200 });
+
+      expect(JUICE_CATALOG.pong["paddle:hit"].hitStopMs).toBe(60);
+      expect(world.getResource<{ remaining?: number; source?: string }>("GameplayFreeze")).toEqual({
+        remaining: 0.06,
+        source: "juice"
+      });
+      expect(world.query("Render", "TTL")).toHaveLength(0);
+      world.isReSimulating = false;
+    });
+
     it("does not override an indefinite or externally owned gameplay freeze", () => {
       world.setResource("GameplayFreeze", { remaining: undefined });
       expect(requestHitStop(world, 100, HitStopPriority.CRITICAL)).toBe(false);

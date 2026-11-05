@@ -21,6 +21,7 @@ import type {
 } from "./HitRunWaveTypes";
 import { ENEMY_POOL_RESOURCE } from "./HitRunWaveTypes";
 import { attachEnemyAI } from "../ai/attachEnemyAI";
+import { createHitRunCombatDefense } from "../combat/HitRunCombatDefense";
 import {
   BELT_CAMERA_STATE_RESOURCE,
   type BeltCameraState
@@ -264,6 +265,21 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
       max: health,
       invulnerableRemaining: 0
     });
+
+    const armor = Math.max(0, arch?.armor ?? 0);
+    const combatDefense = createHitRunCombatDefense({
+      armor,
+      maxArmor: armor
+    });
+    if (isRecycled && world.hasComponent(entity, "CombatDefense" as never)) {
+      world.mutateComponent(entity, "CombatDefense" as never, (current: unknown) => {
+        Object.assign(current as object, combatDefense);
+      });
+    } else if (isUpdating) {
+      cmd.addComponent(entity, combatDefense as never);
+    } else {
+      world.addComponent(entity, combatDefense as never);
+    }
 
     setOrAddComp("Faction", {
       type: "Faction",

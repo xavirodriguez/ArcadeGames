@@ -136,12 +136,38 @@ function main() {
   if (!fs.existsSync(BASELINE_FILE)) { console.error("No baseline. Run colors:update-baseline"); process.exit(1); }
   const baseline = JSON.parse(fs.readFileSync(BASELINE_FILE,"utf8"));
   const baselineKeys = new Set(baseline.keys||[]);
-  const newHits = hits.filter((h) => !baselineKeys.has(keyOf(h)));
-  console.log(`Color literals: ${hits.length} (baseline ${baseline.count})`);
-  if (newHits.length) {
-    for (const h of newHits.slice(0,40)) console.error(`  ${h.file}:${h.line} ${h.raw}`);
-    process.exit(1);
+  const baselineByFile = baseline.byFile || {};
+  const currentByFile = {};
+  for (const hit of hits) {
+    currentByFile[hit.file] = (currentByFile[hit.file] || 0) + 1;
   }
+
+  const newHits = hits.filter((hit) => !baselineKeys.has(keyOf(hit)));
+  // The location key is a Set, so identical literals on one line share a key.
+  // Per-file occurrence ceilings catch an increase that the Set cannot represent.
+  const fileRegressions = Object.entries(currentByFile)
+    .filter(([file, count]) => count > (baselineByFile[file] || 0))
+    .sort(([left], [right]) => left.localeCompare(right));
+
+  console.log(`Color literals: ${hits.length} (baseline ${baseline.count})`);
+  console.log(`Files above baseline occurrence count: ${fileRegressions.length}`);
+
+  if (newHits.length) {
+    console.error("New color-literal locations:");
+    for (const hit of newHits.slice(0,40)) {
+      console.error(`  ${hit.file}:${hit.line} ${hit.raw}`);
+    }
+  }
+
+  if (fileRegressions.length) {
+    console.error("Color-literal occurrence count increased in existing files:");
+    for (const [file, count] of fileRegressions) {
+      const baselineCount = baselineByFile[file] || 0;
+      console.error(`  ${file}: ${count} (baseline ${baselineCount}, +${count - baselineCount})`);
+    }
+  }
+
+  if (newHits.length || fileRegressions.length) process.exit(1);
   console.log("OK");
   process.exit(0);
 }

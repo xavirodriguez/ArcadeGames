@@ -83,7 +83,7 @@ The shared damage resolver reports `armorHit` and `armorAbsorbed`; `blocked` now
 
 ### Hit reaction presentation
 
-Successful health impacts now receive two distinct procedural cues through the shared PixelFX drawer contract:
+Impacts that produce hitstun or stagger now receive two distinct procedural cues through the shared PixelFX drawer contract:
 
 - `pixelfx_hitstun`: compact core flash and short radial ticks for ordinary hitstun.
 - `pixelfx_stagger`: a broken stability ring and shearing segments only when the shared gameplay resolver reports a positive stagger duration.

@@ -44,7 +44,7 @@ export interface HitReactionComponent {
   type: "HitReaction";
   hitstunRemaining: number;
   /** Extra control/mobility lock from a stability-breaking impact. */
-  staggerRemaining: number;
+  staggerRemaining?: number;
   blinkElapsed: number;
 }
 

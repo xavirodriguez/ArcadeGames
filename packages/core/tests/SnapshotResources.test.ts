@@ -1,10 +1,13 @@
 import {
   World,
   CoreComponentRegistry,
+  BinaryCompression,
   AoSWorldSnapshot,
   SoAWorldSnapshot,
   hashAoS,
-  hashSoA
+  hashSoA,
+  NetworkReplicationUtils,
+  SnapshotDelta
 } from "../src";
 
 function createWorld(useSoA: boolean): World<CoreComponentRegistry> {
@@ -27,12 +30,14 @@ describe.each([
     });
 
     const snapshot = source.snapshot();
+    const packed = BinaryCompression.pack(snapshot);
+    const transportedSnapshot = BinaryCompression.unpack<typeof snapshot>(packed);
     source.getResource<{ policy: { priority: number } }>("GameplayFreeze")!.policy.priority = 99;
 
     const target = createWorld(useSoA);
     target.registerSnapshotResource("GameplayFreeze");
     target.setResource("GameplayFreeze", { remaining: 10 });
-    target.restore(snapshot);
+    target.restore(transportedSnapshot);
 
     expect(target.getResource("GameplayFreeze")).toEqual({
       remaining: 0.125,
@@ -46,7 +51,6 @@ describe.each([
     const source = createWorld(useSoA);
     source.registerSnapshotResource("GameplayFreeze");
     source.setResource("GameplayFreeze", { remaining: 0.2 });
-
     const snapshot = source.snapshot();
 
     const target = createWorld(useSoA);
@@ -82,8 +86,41 @@ describe.each([
     const world = createWorld(useSoA);
     world.registerSnapshotResource("InvalidPolicy");
     world.setResource("InvalidPolicy", { callback: () => undefined });
-
     expect(() => world.snapshot()).toThrow(/unsupported function/);
+  });
+
+  it("rejects cyclic resource values because deterministic hashing requires acyclic data", () => {
+    const world = createWorld(useSoA);
+    const cyclic: { self?: unknown } = {};
+    cyclic.self = cyclic;
+    world.registerSnapshotResource("CyclicPolicy");
+    world.setResource("CyclicPolicy", cyclic);
+    expect(() => world.snapshot()).toThrow(/circular reference/);
+  });
+
+  it("keeps unregistered service resources outside the rollback payload", () => {
+    const source = createWorld(useSoA);
+    source.setResource("RendererHandle", { id: "source" });
+    const snapshot = source.snapshot();
+
+    const target = createWorld(useSoA);
+    target.setResource("RendererHandle", { id: "target" });
+    target.restore(snapshot);
+
+    expect(target.getResource("RendererHandle")).toEqual({ id: "target" });
+    expect(snapshot.snapshotResourceKeys).toEqual([]);
+    expect(snapshot.snapshotResources).toEqual({});
+  });
+
+  it("includes the complete registered resource state in delta snapshots", () => {
+    const world = createWorld(useSoA);
+    world.registerSnapshotResource("GameplayFreeze");
+    world.setResource("GameplayFreeze", { remaining: 0.04 });
+
+    const delta = world.deltaSnapshot(0);
+
+    expect(delta.snapshotResourceKeys).toEqual(["GameplayFreeze"]);
+    expect(delta.snapshotResources).toEqual({ GameplayFreeze: { remaining: 0.04 } });
   });
 });
 
@@ -92,25 +129,36 @@ describe("Snapshot resource hashing", () => {
     const world = createWorld(false);
     world.registerSnapshotResource("GameplayFreeze");
     world.setResource("GameplayFreeze", { remaining: 0.1 });
-
-    const first = world.snapshot() as AoSWorldSnapshot;
-    const firstHash = hashAoS(first);
+    const firstHash = hashAoS(world.snapshot() as AoSWorldSnapshot);
     world.setResource("GameplayFreeze", { remaining: 0.2 });
-    const second = world.snapshot() as AoSWorldSnapshot;
-
-    expect(hashAoS(second)).not.toBe(firstHash);
+    expect(hashAoS(world.snapshot() as AoSWorldSnapshot)).not.toBe(firstHash);
   });
 
   it("includes registered resource values in SoA hashes", () => {
     const world = createWorld(true);
     world.registerSnapshotResource("GameplayFreeze");
     world.setResource("GameplayFreeze", { remaining: 0.1 });
-
-    const first = world.snapshot() as SoAWorldSnapshot;
-    const firstHash = hashSoA(first);
+    const firstHash = hashSoA(world.snapshot() as SoAWorldSnapshot);
     world.setResource("GameplayFreeze", { remaining: 0.2 });
-    const second = world.snapshot() as SoAWorldSnapshot;
+    expect(hashSoA(world.snapshot() as SoAWorldSnapshot)).not.toBe(firstHash);
+  });
+});
 
-    expect(hashSoA(second)).not.toBe(firstHash);
+describe("Snapshot resource delta replication", () => {
+  it.each([false, true])("applies complete resource state to a baseline snapshot (SoA=%s)", useSoA => {
+    const world = createWorld(useSoA);
+    world.registerSnapshotResource("GameplayFreeze");
+    world.setResource("GameplayFreeze", { remaining: 0.1 });
+    const base = world.snapshot();
+
+    world.setResource("GameplayFreeze", { remaining: 0.025, owner: "combat" });
+    const delta = world.deltaSnapshot(0) as SnapshotDelta;
+
+    NetworkReplicationUtils.applyDelta(base, delta);
+
+    expect(base.snapshotResourceKeys).toEqual(["GameplayFreeze"]);
+    expect(base.snapshotResources).toEqual({
+      GameplayFreeze: { remaining: 0.025, owner: "combat" }
+    });
   });
 });

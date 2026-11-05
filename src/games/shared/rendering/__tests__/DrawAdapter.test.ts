@@ -30,7 +30,7 @@ jest.mock("../SkiaContext", () => {
 });
 
 function createCanvasContext() {
-  const alphaAtFill: number[] = [];
+  const fillSnapshots: Array<{ alpha: number; shadowBlur: number }> = [];
   const context = {
     globalAlpha: 1,
     fillStyle: "",
@@ -44,7 +44,7 @@ function createCanvasContext() {
     restore: jest.fn(),
     beginPath: jest.fn(),
     arc: jest.fn(),
-    fill: jest.fn(() => alphaAtFill.push(context.globalAlpha)),
+    fill: jest.fn(() => fillSnapshots.push({ alpha: context.globalAlpha, shadowBlur: context.shadowBlur })),
     stroke: jest.fn(),
     fillRect: jest.fn(),
     strokeRect: jest.fn(),
@@ -54,17 +54,21 @@ function createCanvasContext() {
     drawImage: jest.fn(),
     translate: jest.fn()
   };
-  return { context: context as unknown as CanvasRenderingContext2D, alphaAtFill };
+  return { context: context as unknown as CanvasRenderingContext2D, fillSnapshots };
 }
 
 describe("DrawAdapter glow composition", () => {
   it("multiplies primitive alpha by each Canvas glow layer alpha", () => {
-    const { context, alphaAtFill } = createCanvasContext();
+    const { context, fillSnapshots } = createCanvasContext();
     const adapter = new CanvasDrawAdapter(context);
     adapter.drawGlow("#ff00ff", (layer) => layer.fillCircle(0, 0, 8, "#ffffff", 0.5));
-    expect(alphaAtFill).toEqual([0.075, 0.175, 0.5]);
+    expect(fillSnapshots).toEqual([
+      { alpha: 0.075, shadowBlur: 18 },
+      { alpha: 0.175, shadowBlur: 8 },
+      { alpha: 0.5, shadowBlur: 0 }
+    ]);
     adapter.fillCircle(0, 0, 8, "#ffffff", 0.5);
-    expect(alphaAtFill[3]).toBe(0.5);
+    expect(fillSnapshots[3]).toEqual({ alpha: 0.5, shadowBlur: 0 });
   });
 
   it("preserves Skia blur mask filters and multiplies primitive alpha per layer", () => {

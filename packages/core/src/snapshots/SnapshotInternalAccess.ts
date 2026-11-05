@@ -46,6 +46,8 @@ export function restoreWorldMetadata<TComponents extends ComponentRegistry>(
   internal._tick = state.tick;
   internal.useSparseSetStorage = world.getResource("UseSparseSetStorage") === true;
   restoreSnapshotResources(internal, state);
+  // GameplayFreeze is a core scheduler invariant, including when restoring legacy snapshots.
+  world.registerSnapshotResource("GameplayFreeze");
 
   if (state.rngState !== undefined) {
     world.gameplayRandom.setSeed(state.rngState);

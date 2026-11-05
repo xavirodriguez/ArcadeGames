@@ -1,77 +1,50 @@
-# ADR — Rollback-safe gameplay freeze and Juice hit-stop
+# ADR-002 — Rollback-safe gameplay freeze and Juice hit-stop
 
 **Date:** 2026-11-05  
-**Status:** Proposed implementation contract; runtime bridge intentionally blocked.
+**Status:** Runtime implementation in follow-up branch; CI validation pending.
 
 ## Context
 
-The engine has one scheduler authority for stopping gameplay: the `GameplayFreeze` world resource read by `Schedule.update()`. Juice currently has a separate arbitration implementation in `VFXWorldState`:
+The ECS scheduler reads the core `GameplayFreeze` resource to decide whether gameplay phases run. Previously, Juice maintained a second active countdown in `VFXWorldState.hitStopTimer`; that timer did not freeze the scheduler and was not represented in rollback snapshots.
 
-- `requestHitStop()` writes `hitStopTimer`, `hitStopPriority`, and `hitStopCooldown`.
-- `HitStopSystem.update()` decrements that timer.
-- `Schedule.update()` does not read the VFX timer; it reads `GameplayFreeze`.
+The snapshot-resource foundation is now merged in PRs #1110 and #1113. The current follow-up removes the duplicate Juice timer and routes accepted requests through the scheduler's canonical resource.
 
-PR #1098 fixed tick-boundary expiry semantics for `GameplayFreeze`: a tick that begins frozen remains frozen through all gameplay phases, even if the countdown reaches zero during that tick.
+## Snapshot and rollback contract
 
-## Verified rollback boundary
+- `World` registers `GameplayFreeze` as a snapshot resource by default.
+- `HitStopSystem` registers `JuiceHitStopPolicy`, containing only `active`, `priority`, and `cooldownRemaining`.
+- AoS and SoA snapshots capture and restore registered resources. Registered keys and values participate in deterministic snapshot hashes and network deltas.
+- Restore replaces the registered-resource set and values. Unregistered service objects, renderer caches, native handles and presentation state remain outside snapshots.
+- Resource payloads are validated as plain serializable data; functions, symbols, cycles, weak collections, promises and class instances are rejected.
 
-The current snapshot implementation does not serialize world resources:
+## Decisions
 
-- AoS: `SnapshotSerializer.snapshot()` captures entity components plus `buildSnapshotMetadata()`.
-- SoA: `SnapshotSerializerSoA.snapshot()` captures entity components plus the same metadata builder.
-- `BaseWorldSnapshot` contains entity allocation metadata, RNG metadata and tick, but no resource payload.
-- `SnapshotRestore` and `SnapshotRestoreSoA` restore world metadata and component storage; neither restores `World.resources`.
+1. **One active duration owner.** `GameplayFreeze.remaining` is the only active hit-stop countdown. `HitStopSystem` never decrements a second timer.
+2. **Snapshot-safe arbitration.** Priority, active ownership and cooldown are stored in `JuiceHitStopPolicy`, not in `VFXWorldState`.
+3. **Explicit ownership.** Juice-owned freezes carry `source: "juice"`. A Juice request cannot replace an indefinite freeze or a freeze owned by another subsystem. A higher-priority request may replace only an active Juice-owned freeze; equal/lower requests are rejected.
+4. **Cooldown through freeze.** `HitStopSystem.runsWhileFrozen = true` lets it observe expiry and advance the 50 ms anti-chaining cooldown while gameplay phases remain frozen.
+5. **Replay authoritative requests.** `JuiceOrchestrator.spawn()` processes `hitStopMs` before its resimulation presentation guard. Corrected-input and subsequent replay frames therefore reproduce the same freeze decision; VFX entities, shake and audio remain suppressed.
+6. **Accessibility is presentation-only.** Juice level and low-stimulation preferences may scale or suppress visual/audio output, but never change authoritative freeze duration.
 
-Therefore neither `GameplayFreeze.remaining` nor the hit-stop arbitration state stored in `VFXWorldState` is rewound by rollback. Bridging the request to the resource alone would unify the normal runtime clock but would not make the feature deterministic under rollback.
+## Replay ordering
 
-There is a second boundary in `RollbackSimulation.processRollback()`: it restores the target snapshot and executes the corrected input frame with `simulation.step(correctedInput)` before calling `resimulateFromTick()`. The latter sets `world.isReSimulating = true`. Any replay/event policy must account for the corrected frame as well as later replay ticks.
+`RollbackSimulation.processRollback()` now sets `world.isReSimulating = true` around the corrected-input step and restores the previous flag in a `finally` block. `resimulateFromTick()` applies the same policy to subsequent replay frames. The orchestrator's hit-stop request path updates snapshot-backed gameplay resources first, then suppresses JuiceOrchestrator-managed VFX entities, shake and audio for every replayed frame. Direct game-specific emitters/audio producers still require their own rollback guards; this slice does not claim to migrate all of them.
 
-## Decision
-
-**Do not connect `requestHitStop()` to `GameplayFreeze` in the current architecture.** Do not remove `VFXWorldState.hitStopTimer` until the following contract is implemented and tested.
-
-1. **Choose simulation semantics explicitly.** If hit-stop changes the number of authoritative simulation ticks, it is gameplay state and must be driven by deterministic, synchronized events/configuration. If it is local presentation only, it must not gate authoritative gameplay phases.
-2. **Snapshot only deterministic policy state.** Do not serialize all of `VFXWorldState`: it also contains renderer caches, Skia/Canvas handles, background state and visual-only data. Extract the minimal hit-stop policy state (active owner/source, priority, cooldown and any required arbitration metadata) into a snapshot-safe representation.
-3. **Preserve one active duration owner.** Once the snapshot contract exists, `GameplayFreeze` remains the only active duration consumed by the scheduler. Policy arbitration may accept/reject/override requests but must not decrement a parallel active timer.
-4. **Protect external effects separately.** Particles, audio, camera shake and other presentation output must be suppressed or deduplicated during corrected-frame execution and replay. A consumer-side `isReSimulating` guard alone is insufficient if producers mutate state before dispatch.
-5. **Do not let local accessibility preferences alter authority.** `juiceLevel` and low-stimulation settings may scale or suppress visual/audio output, but must not silently change server-authoritative freeze duration.
-
-## Required implementation sequence
-
-### A. Snapshot contract
-
-- Add a narrow, explicit snapshot-safe resource mechanism or an equivalent component-backed representation.
-- Support both AoS and SoA serialization and restoration.
-- Define whether the resource participates in deterministic hashes and delta snapshots; do not leave these semantics implicit.
-- Preserve existing non-serializable resources and presentation state outside snapshots.
-- Add tests proving resource state is restored exactly, absent resources are removed/reset correctly, and excluded presentation resources are not serialized.
-
-### B. Deterministic hit-stop policy
-
-- Move only the priority/cooldown arbitration state out of `VFXWorldState` into the snapshot-safe representation.
-- Keep `GameplayFreeze` as the sole effective active countdown.
-- Define owner/source semantics so a Juice request cannot shorten, replace or clear an indefinite pause or a freeze owned by another gameplay system.
-- Define higher-priority override, equal/lower rejection and the 50 ms anti-chaining cooldown in simulation ticks or deterministic time units.
-- Make policy advancement run on a well-defined tick boundary even while gameplay is frozen; it must not depend on an optional presentation-system registration.
-
-### C. Replay and presentation
-
-- Specify how hit-stop requests are regenerated on corrected input and replay frames.
-- Ensure authoritative events are deterministic and not suppressed merely because `world.isReSimulating` is true.
-- Ensure presentation effects are not duplicated during corrected-frame execution or subsequent replay.
-- Compare final gameplay snapshots after equivalent logical ticks, and separately assert expected freeze wall-clock/tick behavior.
+Game-specific producers that guard an entire catalog event with `!world.isReSimulating` must be changed only when that event carries authoritative hit-stop. The current slice updates Arkanoid brick-shatter and Space Invaders catalog producers. Other direct particle/audio writers remain separate presentation cleanup work.
 
 ## Acceptance tests
 
-- AoS and SoA snapshots restore active finite freeze, indefinite freeze, priority, cooldown and owner/source state.
-- A resource absent at snapshot time does not leak from the post-snapshot world after restore.
-- A finite freeze expiring during a tick keeps the entire tick frozen and resumes on the next tick.
-- Higher-priority override, equal/lower rejection and cooldown behavior are deterministic across restore/replay.
-- Juice cannot override a pause or unrelated owner unless the explicit policy permits it.
-- Corrected input and subsequent resimulation reproduce the same authoritative freeze decisions.
-- Particles/audio/shake are emitted once at most and never mutate authoritative simulation state during replay.
-- Reduced-stimulation and Juice-level settings cannot desynchronize authoritative simulation timing.
+- AoS and SoA restore registered resource values and remove resources absent from the snapshot.
+- Snapshot resource values survive binary transport, participate in hashes, and propagate through network delta application.
+- Finite freeze expiry keeps the complete tick frozen; the next tick resumes gameplay.
+- Higher-priority override, equal/lower rejection and cooldown behavior are deterministic.
+- Juice cannot override indefinite or externally owned freezes.
+- Resimulation from a pre-hit-stop snapshot reproduces the same registered-resource hash without creating VFX entities.
+- Low-stimulation mode does not alter the requested gameplay freeze duration.
 
-## Consequences
+## Remaining scope
 
-This is a deliberate sequencing constraint, not a rejection of canonical hit-stop. It prevents a superficially unified runtime path from producing divergent rollback state. The next runtime PR should begin with the narrow snapshot-safe state contract and its AoS/SoA tests, then add the policy bridge only after those tests pass.
+- Run `packages/core/tests/GameplayFreeze.test.ts`, `packages/core/tests/SnapshotResources.test.ts`, and `src/games/shared/rendering/__tests__/JuiceOrchestrator.test.ts`, plus typecheck/build in CI.
+- Verify multiplayer rollback end-to-end.
+- Migrate direct game-specific freeze writers (including Pong and Space Invaders damage paths) in separate game-level slices. They remain external owners and are not overridden by Juice.
+

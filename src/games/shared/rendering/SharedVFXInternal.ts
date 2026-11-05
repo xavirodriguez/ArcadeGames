@@ -184,9 +184,6 @@ export interface VFXWorldState {
 
   // Extended Juice / Game Feel State
   shakeMagnitude: number;
-  hitStopTimer: number;
-  hitStopPriority: number;
-  hitStopCooldown: number;
   kineticCharge: number;
   juiceLevel: number;
   lowStimulationMode: boolean;
@@ -243,9 +240,6 @@ export function getVFXState<TComponents extends ComponentRegistry = ComponentReg
       stationInitialized: false,
       timePhase: 0,
       shakeMagnitude: 0,
-      hitStopTimer: 0,
-      hitStopPriority: 0,
-      hitStopCooldown: 0,
       kineticCharge: 0,
       juiceLevel: 1.0,
       lowStimulationMode: false,

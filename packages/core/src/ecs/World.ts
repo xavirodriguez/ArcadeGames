@@ -157,6 +157,7 @@ export class World<
     this._gameplayRandom.lock();
     this.registerComponentMetadata("Juice", { allowMutationDuringUpdate: true });
     this.registerComponentMetadata("VisualOffset", { allowMutationDuringUpdate: true });
+    this.registerSnapshotResource("GameplayFreeze");
   }
 
   /** @internal */
@@ -445,6 +446,7 @@ export class World<
     this.generations = [];
     this.resources.clear();
     this.snapshotResourceNames.clear();
+    this.registerSnapshotResource("GameplayFreeze");
     this._tick = 0;
     this._stateVersion = 0;
     this._structureVersion = 0;
@@ -809,6 +811,9 @@ export class World<
 
   /** Removes a resource from future snapshots without deleting its live value. */
   public unregisterSnapshotResource(name: string): void {
+    if (name === "GameplayFreeze") {
+      throw new Error("[World] \"GameplayFreeze\" is a core rollback resource and cannot be unregistered.");
+    }
     this.snapshotResourceNames.delete(name);
   }
 
@@ -933,8 +938,25 @@ function assertResourceShape(name: string, value: unknown): void {
       break;
     }
     case "GameplayFreeze":
-      if (!isRecord(value) || (value.remaining !== undefined && typeof value.remaining !== "number")) {
-        throw new Error(`[World] Resource "GameplayFreeze" does not match the expected shape { remaining?: number }.`);
+      if (
+        !isRecord(value) ||
+        (value.remaining !== undefined && typeof value.remaining !== "number") ||
+        (value.source !== undefined && typeof value.source !== "string")
+      ) {
+        throw new Error(`[World] Resource "GameplayFreeze" does not match the expected shape { remaining?: number, source?: string }.`);
+      }
+      break;
+    case "JuiceHitStopPolicy":
+      if (
+        !isRecord(value) ||
+        typeof value.priority !== "number" ||
+        !Number.isFinite(value.priority) ||
+        typeof value.cooldownRemaining !== "number" ||
+        !Number.isFinite(value.cooldownRemaining) ||
+        value.cooldownRemaining < 0 ||
+        typeof value.active !== "boolean"
+      ) {
+        throw new Error(`[World] Resource "JuiceHitStopPolicy" does not match the expected hit-stop policy shape.`);
       }
       break;
     case "EventBus":

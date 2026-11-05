@@ -1,4 +1,5 @@
-import { World, CoreComponentRegistry } from "@tiny-aster/core";
+import { World, hashAoS } from "@tiny-aster/core";
+import type { CoreComponentRegistry } from "@tiny-aster/core";
 import { JuiceOrchestrator, JUICE_CATALOG } from "../JuiceOrchestrator";
 import { HitStopSystem, HitStopPriority, requestHitStop, isHitStopActive } from "../HitStopSystem";
 import { KineticFlowSystem } from "../KineticFlowSystem";
@@ -47,7 +48,7 @@ describe("JuiceOrchestrator Unit Tests & Golden Replays", () => {
     });
   });
 
-  it("does not spawn presentation effects or request hit-stop during rollback resimulation", () => {
+  it("replays authoritative hit-stop but suppresses presentation during rollback resimulation", () => {
     world.isReSimulating = true;
 
     const entity = juice.spawn("shockwave", {
@@ -60,49 +61,92 @@ describe("JuiceOrchestrator Unit Tests & Golden Replays", () => {
 
     expect(entity).toBeNull();
     expect(world.query("Render", "TTL")).toHaveLength(0);
-    expect(getVFXState(world).hitStopTimer).toBe(0);
+    expect(world.getResource<{ remaining?: number; source?: string }>("GameplayFreeze")).toEqual({
+      remaining: 0.12,
+      source: "juice"
+    });
+    expect(world.getResource("JuiceHitStopPolicy")).toMatchObject({ active: true, priority: HitStopPriority.NORMAL });
   });
 
   describe("FR-3: Hit-Stop Concurrency Control", () => {
-    let hitStopSys: HitStopSystem;
-
     beforeEach(() => {
-      hitStopSys = new HitStopSystem();
+      world.addSystem(new HitStopSystem());
     });
 
-    it("should allow a higher priority hit-stop to override an active lower priority hit-stop", () => {
-      requestHitStop(world, 100, HitStopPriority.LOW);
-      const state = getVFXState(world);
-      expect(state.hitStopTimer).toBe(0.1); // 100ms
-      expect(state.hitStopPriority).toBe(HitStopPriority.LOW);
+    it("allows a higher priority request to override the canonical active freeze", () => {
+      expect(requestHitStop(world, 100, HitStopPriority.LOW)).toBe(true);
+      const freeze = world.getResource<{ remaining?: number; source?: string }>("GameplayFreeze")!;
+      const policy = world.getResource<{ priority: number; active: boolean }>("JuiceHitStopPolicy")!;
+      expect(freeze.remaining).toBe(0.1);
+      expect(policy.priority).toBe(HitStopPriority.LOW);
 
-      // Higher priority request overrides
-      const overridden = requestHitStop(world, 200, HitStopPriority.CRITICAL);
-      expect(overridden).toBe(true);
-      expect(state.hitStopTimer).toBe(0.2); // 200ms
-      expect(state.hitStopPriority).toBe(HitStopPriority.CRITICAL);
+      expect(requestHitStop(world, 200, HitStopPriority.CRITICAL)).toBe(true);
+      expect(freeze.remaining).toBe(0.2);
+      expect(policy.priority).toBe(HitStopPriority.CRITICAL);
     });
 
-    it("should ignore lower or equal priority hit-stops while a higher priority hit-stop is active", () => {
+    it("ignores lower or equal priority requests while the canonical freeze is active", () => {
       requestHitStop(world, 200, HitStopPriority.HIGH);
-      const state = getVFXState(world);
+      const freeze = world.getResource<{ remaining?: number }>("GameplayFreeze")!;
 
-      const ignored = requestHitStop(world, 300, HitStopPriority.NORMAL);
-      expect(ignored).toBe(false);
-      expect(state.hitStopTimer).toBe(0.2); // Unchanged duration, no summation
-      expect(state.hitStopPriority).toBe(HitStopPriority.HIGH);
+      expect(requestHitStop(world, 300, HitStopPriority.NORMAL)).toBe(false);
+      expect(requestHitStop(world, 300, HitStopPriority.HIGH)).toBe(false);
+      expect(freeze.remaining).toBe(0.2);
     });
 
-    it("should decrement hitStopTimer over ticks via HitStopSystem", () => {
+    it("lets Schedule own the only active countdown and starts cooldown on expiry", () => {
       requestHitStop(world, 100, HitStopPriority.NORMAL);
       expect(isHitStopActive(world)).toBe(true);
 
-      hitStopSys.update(world, 0.06); // 60ms
-      expect(getVFXState(world).hitStopTimer).toBeCloseTo(0.04, 3);
+      world.update(0.06);
+      expect(world.getResource<{ remaining?: number }>("GameplayFreeze")?.remaining).toBeCloseTo(0.04, 3);
+      expect(isHitStopActive(world)).toBe(true);
 
-      hitStopSys.update(world, 0.05); // 50ms (clears timer and sets 50ms cooldown)
+      world.update(0.05);
       expect(isHitStopActive(world)).toBe(false);
-      expect(getVFXState(world).hitStopCooldown).toBe(0.05);
+      expect(world.getResource<{ cooldownRemaining: number }>("JuiceHitStopPolicy")?.cooldownRemaining).toBe(0.05);
+
+      world.update(0.02);
+      expect(world.getResource<{ cooldownRemaining: number }>("JuiceHitStopPolicy")?.cooldownRemaining).toBeCloseTo(0.03, 3);
+
+      world.update(0.03);
+      expect(world.getResource<{ cooldownRemaining: number; priority: number }>("JuiceHitStopPolicy"))
+        .toMatchObject({ cooldownRemaining: 0, priority: 0 });
+    });
+
+    it("blocks chaining during cooldown unless a strictly higher priority arrives", () => {
+      requestHitStop(world, 20, HitStopPriority.NORMAL);
+      world.update(0.02);
+
+      expect(isHitStopActive(world)).toBe(false);
+      expect(requestHitStop(world, 80, HitStopPriority.NORMAL)).toBe(false);
+      expect(requestHitStop(world, 80, HitStopPriority.HIGH)).toBe(true);
+      expect(world.getResource<{ remaining?: number }>("GameplayFreeze")?.remaining).toBe(0.08);
+    });
+
+    it("does not override an indefinite or externally owned gameplay freeze", () => {
+      world.setResource("GameplayFreeze", { remaining: undefined });
+      expect(requestHitStop(world, 100, HitStopPriority.CRITICAL)).toBe(false);
+      expect(world.getResource("GameplayFreeze")).toEqual({ remaining: undefined });
+
+      world.setResource("GameplayFreeze", { remaining: 0.4, source: "cutscene" });
+      expect(requestHitStop(world, 100, HitStopPriority.CRITICAL)).toBe(false);
+      expect(world.getResource("GameplayFreeze")).toEqual({ remaining: 0.4, source: "cutscene" });
+    });
+
+    it("replays the same authoritative resource state from a pre-hit-stop snapshot", () => {
+      const initial = world.snapshot();
+      requestHitStop(world, 120, HitStopPriority.HIGH);
+      const expected = world.snapshot();
+
+      world.restore(initial);
+      world.isReSimulating = true;
+      juice.spawn("shockwave", { hitStopMs: 120, hitStopPriority: HitStopPriority.HIGH });
+      world.isReSimulating = false;
+
+      expect(hashAoS(world.snapshot() as import("@tiny-aster/core").AoSWorldSnapshot))
+        .toBe(hashAoS(expected as import("@tiny-aster/core").AoSWorldSnapshot));
+      expect(world.query("Render", "TTL")).toHaveLength(0);
     });
   });
 
@@ -168,6 +212,16 @@ describe("JuiceOrchestrator Unit Tests & Golden Replays", () => {
   });
 
   describe("FR-6: Global JuiceLevel & Low Stimulation Accessibility Mode", () => {
+    it("keeps authoritative hit-stop duration independent of accessibility presentation settings", () => {
+      juice.setJuiceLevel(0, true);
+      const entity = juice.spawn("shockwave", { hitStopMs: 120 });
+      expect(entity).not.toBeNull();
+      expect(world.getResource<{ remaining?: number; source?: string }>("GameplayFreeze")).toEqual({
+        remaining: 0.12,
+        source: "juice"
+      });
+    });
+
     it("should suppress screen shake and reduce opacity when JuiceLevel is set to Low Stimulation", () => {
       juice.setJuiceLevel(0, true);
       const state = juice.getState();

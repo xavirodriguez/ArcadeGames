@@ -29,7 +29,7 @@ The **Juice Orchestrator** provides a unified visual effects orchestration layer
                                           v
 +-----------------------------------------------------------------------------------+
 |                   VFXWorldState / SharedVFX Draw Adapters                         |
-|  - Extended state: { hitStopTimer, hitStopPriority, kineticCharge, juiceLevel }   |
+|  - Presentation state: { shakeMagnitude, kineticCharge, juiceLevel }                 |
 |  - Drawers: CanvasDrawAdapter & SkiaDrawAdapter with parameter tinting & scale     |
 +-----------------------------------------------------------------------------------+
 ```
@@ -52,16 +52,16 @@ juice.spawn("shockwave", {
 ```
 
 ### 3.2 Extended Shared World State (`VFXWorldState`)
-`VFXWorldState` in `SharedVFXInternal.ts` is extended with:
-- `hitStopTimer: number`: Active hit-stop pause timer (seconds).
-- `hitStopPriority: number`: Priority level of currently active hit-stop.
-- `hitStopCooldown: number`: Cooldown timer preventing rapid hit-stop chaining.
+`VFXWorldState` in `SharedVFXInternal.ts` contains presentation controls only:
+- `shakeMagnitude: number`: Current visual shake magnitude.
 - `kineticCharge: number`: Flow energy accumulator level (0.0 to 1.0).
 - `juiceLevel: number`: Global game-feel multiplier (0.0 to 1.5, default 1.0).
 - `lowStimulationMode: boolean`: Accessibility toggle disabling screen shake, high-contrast hit flashes, and intense CRT glitching.
 
+Hit-stop is deliberately not stored in `VFXWorldState`. The active duration is owned by core `GameplayFreeze.remaining` (seconds); deterministic arbitration is stored in the snapshot-registered `JuiceHitStopPolicy` resource (`active`, `priority`, `cooldownRemaining`). `HitStopSystem` runs while gameplay is frozen, observes expiry, and advances the 50 ms anti-chaining cooldown. A Juice request cannot replace an indefinite freeze or a freeze owned by another subsystem.
+
 ### 3.3 Hit-Stop Concurrency Control & Priority Hierarchy
-Hit-stops freeze gameplay simulation briefly to emphasize impact. The orchestrator strictly enforces hit-stop concurrency:
+Hit-stops freeze gameplay simulation briefly to emphasize impact. The orchestrator strictly enforces hit-stop concurrency through the canonical core `GameplayFreeze` resource:
 - **Never sum durations**: Two overlapping hit-stops never add up their time.
 - **Priority Override**: A higher-priority hit-stop cancels and replaces any lower-priority hit-stop. Equal or lower priority hit-stops are ignored during active hit-stops or cooldowns.
 - **Priority Hierarchy**:
@@ -69,6 +69,8 @@ Hit-stops freeze gameplay simulation briefly to emphasize impact. The orchestrat
   2. `HIGH (20)`: Boss / Elite enemy destruction, combo max threshold.
   3. `NORMAL (10)`: Standard enemy death, power-up pickup.
   4. `LOW (5)`: Minor bullet impact, grazing.
+
+The accepted duration is never scaled by `JuiceLevel` or low-stimulation settings because it changes authoritative simulation time. During rollback, hit-stop requests are replayed from corrected gameplay events; particles, shake and other presentation outputs remain suppressed.
 
 ### 3.4 Semantic Mapping Table (`JuiceMap`)
 Declarative mapping table per minigame: `gameId -> event -> JuiceProfile`.
@@ -108,5 +110,7 @@ The kinetic energy system tracks player flow (rally streaks, high speed, near-mi
 ## 4. Replay Determinism & Performance Constraints
 
 1. **RNG Isolation**: Effect spawning uses non-gameplay random generators (`world.renderRandom` or deterministic visual seed streams) to ensure zero consumption of `world.gameplayRandom`.
-2. **Zero-Cost Idle**: When `JuiceLevel = 0` or no active VFX entities exist, systems immediately return without iterating entities or performing allocations.
-3. **Canvas & Skia Parity**: Every new or parameterized drawer is implemented for both HTML5 Canvas 2D and React Native Skia contexts.
+2. **Rollback state**: `GameplayFreeze` and `JuiceHitStopPolicy` are explicitly registered World resources, included in AoS/SoA snapshots, deterministic hashes and network deltas.
+3. **Replay separation**: authoritative hit-stop requests are replayed; JuiceOrchestrator-managed VFX entities, shake and audio are not duplicated during resimulation.
+4. **Zero-Cost Idle**: When `JuiceLevel = 0` or no active VFX entities exist, systems immediately return without iterating entities or performing allocations.
+5. **Canvas & Skia Parity**: Every new or parameterized drawer is implemented for both HTML5 Canvas 2D and React Native Skia contexts.

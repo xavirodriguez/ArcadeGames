@@ -9,6 +9,8 @@ import { EventRegistry } from "../events/EventBus";
 export interface GameplayFreeze {
   /** Optional countdown duration in seconds. */
   remaining?: number;
+  /** Identifies the subsystem that owns a finite freeze; omitted means external/gameplay-owned. */
+  source?: string;
 }
 
 export const SystemPhase = {

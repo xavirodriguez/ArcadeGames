@@ -56,7 +56,7 @@ export class HitRunHurtSystem extends CombatHitListenerSystem<CombatHitPayload> 
       if (hit.blocked || (hit.amount <= 0 && !hit.guardBroken)) continue;
 
       const target = hit.targetEntity;
-      const isPlayer = this.isPlayer(world, target);
+      const isPlayer = isHitRunPlayer(world, target);
       const { hitstunSeconds, staggerSeconds } =
         resolveHitReactionDurations(hit, isPlayer, config);
       const fallbackKnockbackX = isPlayer
@@ -80,16 +80,6 @@ export class HitRunHurtSystem extends CombatHitListenerSystem<CombatHitPayload> 
         );
       }
     }
-  }
-
-  private isPlayer(world: World<CoreComponentRegistry>, entity: Entity): boolean {
-    if (world.hasComponent(entity, "PlatformerInput") || world.hasComponent(entity, "BeltInput")) {
-      return true;
-    }
-    const faction = world.getComponent(entity, "Faction") as
-      | { value?: string; faction?: string }
-      | undefined;
-    return faction?.value === "player" || faction?.faction === "player";
   }
 
   private applyPlayerReaction(
@@ -342,4 +332,19 @@ export function canTakeDamage(
   }
   if (world.hasComponent(entity, "Dead")) return false;
   return true;
+}
+
+/** Shared player classification for gameplay reaction and presentation consumers. */
+export function isHitRunPlayer(
+  world: World<CoreComponentRegistry>,
+  entity: Entity
+): boolean {
+  if (
+    world.hasComponent(entity, "PlatformerInput") ||
+    world.hasComponent(entity, "BeltInput")
+  ) return true;
+  const faction = world.getComponent(entity, "Faction") as
+    | { value?: string; faction?: string }
+    | undefined;
+  return faction?.value === "player" || faction?.faction === "player";
 }

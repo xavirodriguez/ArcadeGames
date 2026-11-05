@@ -107,6 +107,7 @@ export interface PlayerCarGeometry {
   carScale: number;
   tiltAngle: number;
   isOffroad: boolean;
+  isCrashing: boolean;
   speedRatio: number;
 }
 
@@ -124,16 +125,22 @@ export function computePlayerCarGeometry(
   const carScale = 1.0 + speedRatio * 0.08;
 
   const isOffroad = Math.abs(state.playerX) > 1.0;
-  const bounceY = isOffroad
-    ? Math.sin(state.playerZ * 0.2) * 3
-    : Math.sin(state.playerZ * 0.05) * 1.2 * speedRatio;
+  const isCrashing = (state.crashRemaining ?? 0) > 0.001;
+  const bounceY = isCrashing
+    ? Math.sin((state.crashSpin ?? 0) * 2) * 4
+    : isOffroad
+      ? Math.sin(state.playerZ * 0.2) * 3
+      : Math.sin(state.playerZ * 0.05) * 1.2 * speedRatio;
 
-  const tiltAngle = state.playerX * 0.08 * speedRatio;
+  // Classic tumble: full spin from crash state; otherwise gentle steering lean.
+  const tiltAngle = isCrashing
+    ? (state.crashSpin ?? 0)
+    : state.playerX * 0.08 * speedRatio;
 
   const baseY = screenH - 80 + bounceY + vY;
   const baseX = screenW / 2 + state.playerX * 40 + vX;
 
-  return { baseX, baseY, carScale, tiltAngle, isOffroad, speedRatio };
+  return { baseX, baseY, carScale, tiltAngle, isOffroad, isCrashing, speedRatio };
 }
 
 /**

@@ -207,6 +207,16 @@ describe("JuiceOrchestrator Unit Tests & Golden Replays", () => {
   });
 
   describe("FR-6: Global JuiceLevel & Low Stimulation Accessibility Mode", () => {
+    it("keeps authoritative hit-stop duration independent of accessibility presentation settings", () => {
+      juice.setJuiceLevel(0, true);
+      const entity = juice.spawn("shockwave", { hitStopMs: 120 });
+      expect(entity).not.toBeNull();
+      expect(world.getResource<{ remaining?: number; source?: string }>("GameplayFreeze")).toEqual({
+        remaining: 0.12,
+        source: "juice"
+      });
+    });
+
     it("should suppress screen shake and reduce opacity when JuiceLevel is set to Low Stimulation", () => {
       juice.setJuiceLevel(0, true);
       const state = juice.getState();

@@ -1,6 +1,5 @@
 import type { SkCanvas } from "@shopify/react-native-skia";
-import { Skia } from "./SkiaContext";
-import type { SkPaint } from "./SkiaContext";
+import { Skia, type SkPaint } from "./SkiaContext";
 import { renderCanvasGlow, renderSkiaGlow, getGlowStyle } from "./GlowSystem";
 import {
   getActiveThemeTypography,

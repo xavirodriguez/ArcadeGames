@@ -73,7 +73,7 @@ Evidence labels in this document:
 ### 3.2 Inline and catalog-driven feedback are mixed
 
 - **Arkanoid:** [`ArkanoidCollisionSystem.ts`](../src/games/arkanoid/systems/ArkanoidCollisionSystem.ts) writes `GameplayFreeze` directly, applies `Juice.squash`, creates particle emitters, and emits sound events in its collision/death paths. Its behavior must be mapped onto the correct catalog events before removing inline effects.
-- **Pong:** [`PongCollisionSystem.ts`](../src/games/pong/systems/PongCollisionSystem.ts) writes `GameplayFreeze` directly and calls `Juice.shake` and `Juice.squash` for paddle collisions. The catalog already defines `pong.paddle:hit` with hit-stop and shake settings, but the consumer path must be wired and tested before duplicate writes are removed.
+- **Pong:** Paddle collision now emits `pong.paddle:hit`; its 60 ms hit-stop is routed through canonical `GameplayFreeze` and `HitStopSystem`. Inline squash/recoil and particle/audio feedback remain for normal play, with rollback guards. Remaining work is to consolidate duplicate presentation output only after Canvas/Skia equivalence is demonstrated.
 - **Space Invaders:** [`SpaceInvadersCollisionSystem.ts`](../src/games/space-invaders/systems/SpaceInvadersCollisionSystem.ts) uses direct freeze writes, `Juice` helpers, custom explosion logic, and `JuiceOrchestrator`. The catalog defines `alien:destroyed`, `shield:degraded`, and `ufo:destroyed` profiles. In the inspected code, `onBossCombatHit` calls the `ufo:destroyed` profile; verify whether that is semantically correct before migration. Do not treat an event name as proof that the event is being emitted at the correct lifecycle moment.
 
 ### 3.3 Hit&Run has a useful audit already

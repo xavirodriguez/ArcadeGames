@@ -52,7 +52,7 @@ const projectedSegment: ProjectedSegment = {
 
 describe("Out Run road artwork", () => {
   it("interpolates road and ground from near to far tokens", () => {
-    const visual = makeVisual();
+    const visual = makeVisual({ decor: "sierra", nextDecor: "sierra", decorBlend: 0 });
     const near = resolveOutrunRoadSegmentArtwork(0, 0, visual);
     const far = resolveOutrunRoadSegmentArtwork(0, 1, visual);
 
@@ -63,7 +63,7 @@ describe("Out Run road artwork", () => {
   });
 
   it("adds only the configured subtle white mix to odd road stripes", () => {
-    const visual = makeVisual();
+    const visual = makeVisual({ decor: "sierra", nextDecor: "sierra", decorBlend: 0 });
     const even = resolveOutrunRoadSegmentArtwork(0, 0.5, visual);
     const odd = resolveOutrunRoadSegmentArtwork(1, 0.5, visual);
     const depthGround = lerpColor(visual.tokens.groundNear, visual.tokens.groundFar, 0.5);
@@ -79,9 +79,15 @@ describe("Out Run road artwork", () => {
 
   it("uses the sand blend for desert ground and sea colors only on the coast", () => {
     const base = makeVisual();
-    const desert = resolveOutrunRoadSegmentArtwork(0, 0.4, { ...base, decor: "desert" });
-    const coast = resolveOutrunRoadSegmentArtwork(0, 0.4, { ...base, decor: "coast" });
-    const sierra = resolveOutrunRoadSegmentArtwork(0, 0.4, { ...base, decor: "sierra" });
+    const desert = resolveOutrunRoadSegmentArtwork(0, 0.4, {
+      ...base, decor: "desert", nextDecor: "desert", decorBlend: 0
+    });
+    const coast = resolveOutrunRoadSegmentArtwork(0, 0.4, {
+      ...base, decor: "coast", nextDecor: "coast", decorBlend: 0
+    });
+    const sierra = resolveOutrunRoadSegmentArtwork(0, 0.4, {
+      ...base, decor: "sierra", nextDecor: "sierra", decorBlend: 0
+    });
     const normalGround = lerpColor(base.tokens.groundNear, base.tokens.groundFar, 0.4);
 
     expect(desert.groundColor).toBe(
@@ -89,6 +95,17 @@ describe("Out Run road artwork", () => {
     );
     expect(coast.waterColor).toBe(lerpColor(base.tokens.skyMid, base.tokens.skyLow, 0.4));
     expect(sierra.waterColor).toBeNull();
+  });
+
+  it("blends desert sand during decor transitions", () => {
+    const base = makeVisual();
+    const half = resolveOutrunRoadSegmentArtwork(0, 0.4, {
+      ...base, decor: "sierra", nextDecor: "desert", decorBlend: 0.5
+    });
+    const normalGround = lerpColor(base.tokens.groundNear, base.tokens.groundFar, 0.4);
+    expect(half.groundColor).toBe(
+      lerpColor(normalGround, base.tuning.decor.desertSandColor, base.tuning.decor.desertGroundMix * 0.5)
+    );
   });
 
   it("disables speed lines below the speed threshold and in low quality", () => {

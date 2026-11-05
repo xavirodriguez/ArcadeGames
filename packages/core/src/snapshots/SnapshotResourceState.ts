@@ -81,15 +81,31 @@ export function restoreSnapshotResources(
   internal: InternalWorldAccess,
   state: Partial<SnapshotResourceState>
 ): void {
-  if (state.snapshotResourceKeys === undefined || state.snapshotResources === undefined) return;
+  const hasKeys = state.snapshotResourceKeys !== undefined;
+  const hasValues = state.snapshotResources !== undefined;
+  if (!hasKeys && !hasValues) return;
+  if (!hasKeys || !hasValues) {
+    throw new Error("[Snapshot] Snapshot resource keys and values must be provided together.");
+  }
 
-  const keys = state.snapshotResourceKeys;
+  const keys = state.snapshotResourceKeys!;
+  const values = state.snapshotResources!;
   const keySet = new Set<string>();
   for (const name of keys) {
     if (typeof name !== "string" || name.length === 0 || keySet.has(name)) {
       throw new Error("[Snapshot] Invalid or duplicate snapshot resource key.");
     }
     keySet.add(name);
+  }
+
+  const restoredValues = new Map<string, unknown>();
+  for (const name of Object.keys(values)) {
+    if (!keySet.has(name)) {
+      throw new Error(`[Snapshot] Resource value "${name}" is not present in snapshotResourceKeys.`);
+    }
+    const value = values[name];
+    assertSnapshotValue(value, name, name, new WeakSet<object>());
+    restoredValues.set(name, ComponentCloner.cloneComponent(value));
   }
 
   for (const name of internal.snapshotResourceNames) {
@@ -99,18 +115,8 @@ export function restoreSnapshotResources(
   internal.snapshotResourceNames.clear();
   for (const name of keys) internal.snapshotResourceNames.add(name);
 
-  for (const name of Object.keys(state.snapshotResources)) {
-    if (!keySet.has(name)) {
-      throw new Error(`[Snapshot] Resource value "${name}" is not present in snapshotResourceKeys.`);
-    }
-    const value = state.snapshotResources[name];
-    assertSnapshotValue(value, name, name, new WeakSet<object>());
-    internal.resources.set(name, ComponentCloner.cloneComponent(value));
-  }
-
+  for (const [name, value] of restoredValues) internal.resources.set(name, value);
   for (const name of keys) {
-    if (!Object.prototype.hasOwnProperty.call(state.snapshotResources, name)) {
-      internal.resources.delete(name);
-    }
+    if (!restoredValues.has(name)) internal.resources.delete(name);
   }
 }

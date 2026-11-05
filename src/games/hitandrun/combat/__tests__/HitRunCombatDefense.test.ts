@@ -1,4 +1,5 @@
 import { World, CoreComponentRegistry } from "@tiny-aster/core";
+import { mutateBeltInputState } from "../../belt/mutateBeltInputState";
 import {
   createHitRunCombatDefense,
   resolveHitRunDamage,
@@ -142,4 +143,54 @@ describe("HitRunCombatDefense", () => {
     expect(result.guardBroken).toBe(false);
     expect(result.armorBroken).toBe(false);
   });
+  it("does not regenerate guard while the guard input remains held", () => {
+    const target = world.createEntity();
+    world.addComponent(target, createHitRunCombatDefense({
+      guard: 10,
+      maxGuard: 20,
+      guardRegenPerSecond: 10
+    }) as never);
+    world.addComponent(target, {
+      type: "BeltInput",
+      guardHeld: true
+    } as never);
+
+    tickHitRunCombatDefense(world, 1);
+
+    const defense = world.getComponent(target, "CombatDefense" as never) as { guard: number };
+    expect(defense.guard).toBe(10);
+  });
+
+  it("exposes guard through the existing input bridge", () => {
+    const player = world.createEntity();
+    world.addComponent(player, {
+      type: "Transform",
+      x: 0,
+      y: 0,
+      scaleX: 1
+    } as never);
+    world.addComponent(player, {
+      type: "BeltInput",
+      moveX: 0,
+      moveY: 0,
+      aimX: 1,
+      aimY: 0,
+      attackHeld: false,
+      attackPressed: false,
+      fireHeld: false,
+      firePressed: false,
+      specialHeld: false,
+      specialPressed: false,
+      guardHeld: false,
+      jumpHeld: false,
+      jumpPressed: false,
+      _prevHeldMask: 0
+    } as never);
+
+    mutateBeltInputState(world, { guard: true });
+    expect((world.getComponent(player, "BeltInput") as { guardHeld: boolean }).guardHeld).toBe(true);
+    mutateBeltInputState(world, { guard: false });
+    expect((world.getComponent(player, "BeltInput") as { guardHeld: boolean }).guardHeld).toBe(false);
+  });
+
 });

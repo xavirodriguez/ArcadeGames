@@ -622,6 +622,112 @@ export function drawPixelFxParry(draw: IDrawAdapter, world: import("@tiny-aster/
   draw.restore();
 }
 
+
+const PERFECT_BLOCK_RING = createVFXTimelineSampler([
+  { start: 0, end: 0.16, from: 0.82, to: 0.34, easing: "ease-in" },
+  { start: 0.16, end: 0.62, from: 0.34, to: 1.18, easing: "ease-out" },
+  { start: 0.62, end: 1, from: 1.18, to: 1.42, easing: "ease-out" }
+]);
+const PERFECT_BLOCK_FLASH = createVFXTimelineSampler([
+  { start: 0, end: 0.08, from: 0.12, to: 1, easing: "ease-out" },
+  { start: 0.08, end: 0.34, from: 1, to: 0.08, easing: "ease-in" },
+  { start: 0.34, end: 0.5, from: 0.08, to: 0.62, easing: "ease-out" },
+  { start: 0.5, end: 1, from: 0.62, to: 0, easing: "ease-in" }
+]);
+/** Perfect Block: compressed guard shell, confirmation flash and expanding segmented pulse. */
+export function drawPixelFxPerfectBlock(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
+  const state = readEffectState(world, entity);
+  if (!state || state.alpha <= 0.01) return;
+  const { progress: p, alpha, size, color, rotation } = state;
+  const radius = size * PERFECT_BLOCK_RING(p), flash = alpha * PERFECT_BLOCK_FLASH(p);
+  const fade = alpha * (1 - p * 0.38), cos = Math.cos(rotation), sin = Math.sin(rotation);
+  draw.save();
+  draw.strokeCircle(0, 0, radius, color, Math.max(1, size * (0.075 - p * 0.035)), flash);
+  draw.drawArc(0, 0, radius * 0.78, rotation - Math.PI * 0.72, Math.PI * 0.52, color, Math.max(1, size * 0.055), fade);
+  draw.drawArc(0, 0, radius * 0.78, rotation + Math.PI * 0.2, Math.PI * 0.52, color, Math.max(1, size * 0.055), fade * 0.82);
+  for (let i = 0; i < 6; i++) {
+    const angle = (i * Math.PI) / 3, inner = radius * 0.38, outer = radius * (1.02 + (i % 2) * 0.14);
+    drawRotatedLine(draw, Math.cos(angle) * inner, Math.sin(angle) * inner, Math.cos(angle) * outer, Math.sin(angle) * outer, color, Math.max(0.8, size * 0.035), fade * (0.9 - (i % 3) * 0.12), cos, sin);
+  }
+  draw.fillCircle(0, 0, size * (0.06 + flash * 0.12), color, flash);
+  draw.restore();
+}
+
+const CRITICAL_CORE_RADIUS = createVFXTimelineSampler([
+  { start: 0, end: 0.12, from: 0.08, to: 0.28, easing: "ease-in" },
+  { start: 0.12, end: 0.3, from: 0.28, to: 0.12, easing: "ease-in" },
+  { start: 0.3, end: 0.72, from: 0.12, to: 0.72, easing: "ease-out" },
+  { start: 0.72, end: 1, from: 0.72, to: 1, easing: "ease-out" }
+]);
+const CRITICAL_FLASH = createVFXTimelineSampler([
+  { start: 0, end: 0.1, from: 0.2, to: 1, easing: "ease-out" },
+  { start: 0.1, end: 0.24, from: 1, to: 0.16, easing: "ease-in" },
+  { start: 0.24, end: 0.38, from: 0.16, to: 0.78, easing: "ease-out" },
+  { start: 0.38, end: 1, from: 0.78, to: 0, easing: "ease-in" }
+]);
+const CRITICAL_FRAGMENT_REACH = createVFXTimelineSampler([
+  { start: 0, end: 0.28, from: 0.18, to: 0.3, easing: "ease-in" },
+  { start: 0.28, end: 0.82, from: 0.3, to: 1.18, easing: "ease-out" },
+  { start: 0.82, end: 1, from: 1.18, to: 1.28, easing: "ease-out" }
+]);
+/** Critical Hit: double-beat core flash followed by staggered radial fragments. */
+export function drawPixelFxCriticalHit(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
+  const state = readEffectState(world, entity);
+  if (!state || state.alpha <= 0.01) return;
+  const { progress: p, alpha, size, color, rotation } = state;
+  const core = size * CRITICAL_CORE_RADIUS(p), flash = alpha * CRITICAL_FLASH(p), fade = alpha * (1 - p * 0.3);
+  draw.save();
+  draw.fillCircle(0, 0, core, color, flash);
+  draw.strokeCircle(0, 0, core * 1.32, color, Math.max(0.8, size * 0.035), flash * 0.72);
+  for (let i = 0; i < 10; i++) {
+    const angle = (i * Math.PI * 2) / 10, delay = (i % 4) * 0.045;
+    const localProgress = Math.max(0, Math.min(1, (p - delay) / (1 - delay)));
+    const fragmentReach = size * (0.18 + CRITICAL_FRAGMENT_REACH(localProgress) * (0.72 + (i % 3) * 0.12));
+    const inner = core * (0.72 + (i % 2) * 0.18), outer = Math.max(inner, fragmentReach);
+    drawRotatedLine(draw, Math.cos(angle) * inner, Math.sin(angle) * inner, Math.cos(angle) * outer, Math.sin(angle) * outer, color, Math.max(0.8, size * (i % 3 === 0 ? 0.06 : 0.035)), fade * (0.92 - (i % 3) * 0.12), Math.cos(rotation), Math.sin(rotation));
+  }
+  draw.restore();
+}
+
+const DEFLECTION_CURVE_REACH = createVFXTimelineSampler([
+  { start: 0, end: 0.18, from: 0.28, to: 0.36, easing: "ease-out" },
+  { start: 0.18, end: 0.7, from: 0.36, to: 1.12, easing: "ease-out" },
+  { start: 0.7, end: 1, from: 1.12, to: 1.28, easing: "ease-out" }
+]);
+const DEFLECTION_CLASH_FLASH = createVFXTimelineSampler([
+  { start: 0, end: 0.12, from: 0.9, to: 1, easing: "ease-out" },
+  { start: 0.12, end: 0.36, from: 1, to: 0.08, easing: "ease-in" },
+  { start: 0.36, end: 0.52, from: 0.08, to: 0.58, easing: "ease-out" },
+  { start: 0.52, end: 1, from: 0.58, to: 0, easing: "ease-in" }
+]);
+/** Projectile Deflection: incoming bolt curves through a clash point and exits on a reflected arc. */
+export function drawPixelFxProjectileDeflection(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
+  const state = readEffectState(world, entity);
+  if (!state || state.alpha <= 0.01) return;
+  const { progress: p, alpha, size, color, rotation } = state;
+  const reach = size * DEFLECTION_CURVE_REACH(p), flash = alpha * DEFLECTION_CLASH_FLASH(p);
+  const cos = Math.cos(rotation), sin = Math.sin(rotation), fade = alpha * (1 - p * 0.26);
+  const pointX = -reach * 0.08, pointY = -reach * 0.04;
+  const startX = -reach * 0.92, startY = reach * 0.34, endX = reach * 0.86, endY = -reach * 0.62;
+  const controlX = reach * 0.62, controlY = reach * 0.48;
+  let previousX = startX, previousY = startY;
+  draw.save();
+  for (let i = 1; i <= 8; i++) {
+    const t = i / 8, inverse = 1 - t;
+    const x = inverse * inverse * startX + 2 * inverse * t * controlX + t * t * endX;
+    const y = inverse * inverse * startY + 2 * inverse * t * controlY + t * t * endY;
+    drawRotatedLine(draw, previousX, previousY, x, y, color, Math.max(1, size * (0.055 - t * 0.003)), fade * (1 - t * 0.42), cos, sin);
+    previousX = x; previousY = y;
+  }
+  draw.fillCircle(pointX, pointY, size * (0.055 + flash * 0.075), color, flash);
+  draw.strokeCircle(pointX, pointY, size * (0.12 + p * 0.18), color, Math.max(0.8, size * 0.025), flash * 0.72);
+  for (let i = 0; i < 5; i++) {
+    const angle = rotation + (i * Math.PI * 2) / 5, inner = size * 0.1, outer = size * (0.22 + p * 0.42 + (i % 2) * 0.1);
+    drawRotatedLine(draw, Math.cos(angle) * inner, Math.sin(angle) * inner, Math.cos(angle) * outer, Math.sin(angle) * outer, color, Math.max(0.8, size * 0.03), fade * 0.72, 1, 0);
+  }
+  draw.restore();
+}
+
 /** Target warning: pulsing lock-on brackets and a central sight line. */
 export function drawPixelFxTargetWarning(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
   const state = readEffectState(world, entity);
@@ -760,6 +866,9 @@ export function registerPixelFxProceduralVFX<TComponents extends CoreComponentRe
     ["pixelfx_charge", drawPixelFxCharge],
     ["pixelfx_shield_pulse", drawPixelFxShieldPulse],
     ["pixelfx_parry", drawPixelFxParry],
+    ["pixelfx_perfect_block", drawPixelFxPerfectBlock],
+    ["pixelfx_critical_hit", drawPixelFxCriticalHit],
+    ["pixelfx_projectile_deflection", drawPixelFxProjectileDeflection],
     ["pixelfx_target_warning", drawPixelFxTargetWarning],
     ["pixelfx_teleport", drawPixelFxTeleport],
     ["pixelfx_surface_skid", drawPixelFxSurfaceSkid],

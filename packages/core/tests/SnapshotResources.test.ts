@@ -83,6 +83,40 @@ describe.each([
     world.setResource("InvalidPolicy", { callback: () => undefined });
     expect(() => world.snapshot()).toThrow(/unsupported function/);
   });
+
+  it("rejects cyclic resource values because deterministic hashing requires acyclic data", () => {
+    const world = createWorld(useSoA);
+    const cyclic: { self?: unknown } = {};
+    cyclic.self = cyclic;
+    world.registerSnapshotResource("CyclicPolicy");
+    world.setResource("CyclicPolicy", cyclic);
+    expect(() => world.snapshot()).toThrow(/circular reference/);
+  });
+
+  it("keeps unregistered service resources outside the rollback payload", () => {
+    const source = createWorld(useSoA);
+    source.setResource("RendererHandle", { id: "source" });
+    const snapshot = source.snapshot();
+
+    const target = createWorld(useSoA);
+    target.setResource("RendererHandle", { id: "target" });
+    target.restore(snapshot);
+
+    expect(target.getResource("RendererHandle")).toEqual({ id: "target" });
+    expect(snapshot.snapshotResourceKeys).toEqual([]);
+    expect(snapshot.snapshotResources).toEqual({});
+  });
+
+  it("includes the complete registered resource state in delta snapshots", () => {
+    const world = createWorld(useSoA);
+    world.registerSnapshotResource("GameplayFreeze");
+    world.setResource("GameplayFreeze", { remaining: 0.04 });
+
+    const delta = world.deltaSnapshot(0);
+
+    expect(delta.snapshotResourceKeys).toEqual(["GameplayFreeze"]);
+    expect(delta.snapshotResources).toEqual({ GameplayFreeze: { remaining: 0.04 } });
+  });
 });
 
 describe("Snapshot resource hashing", () => {

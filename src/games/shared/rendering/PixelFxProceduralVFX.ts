@@ -576,6 +576,52 @@ export function drawPixelFxShieldPulse(draw: IDrawAdapter, world: import("@tiny-
   draw.restore();
 }
 
+const PARRY_CLASH_RADIUS = createVFXTimelineSampler([
+  { start: 0, end: 0.2, from: 0.16, to: 0.48, easing: "ease-out" },
+  { start: 0.2, end: 0.68, from: 0.48, to: 0.3, easing: "ease-in-out" },
+  { start: 0.68, end: 1, from: 0.3, to: 0.76, easing: "ease-out" }
+]);
+const PARRY_FLASH_ALPHA = createVFXTimelineSampler([
+  { start: 0, end: 0.12, from: 0.25, to: 1, easing: "ease-out" },
+  { start: 0.12, end: 0.38, from: 1, to: 0.12, easing: "ease-in" },
+  { start: 0.38, end: 0.58, from: 0.12, to: 0.72, easing: "ease-out" },
+  { start: 0.58, end: 1, from: 0.72, to: 0, easing: "ease-in" }
+]);
+const PARRY_BURST_REACH = createVFXTimelineSampler([
+  { start: 0, end: 0.18, from: 0.22, to: 0.22, easing: "linear" },
+  { start: 0.18, end: 0.76, from: 0.22, to: 1.12, easing: "ease-out" },
+  { start: 0.76, end: 1, from: 1.12, to: 0.72, easing: "ease-in" }
+]);
+
+/** Parry clash: opposing guard arcs snap together, flash, then release a directional counter-burst. */
+export function drawPixelFxParry(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
+  const state = readEffectState(world, entity);
+  if (!state || state.alpha <= 0.01) return;
+  const { progress: p, alpha, size, color, rotation } = state;
+  const clashRadius = size * PARRY_CLASH_RADIUS(p);
+  const flashAlpha = alpha * PARRY_FLASH_ALPHA(p);
+  const burstReach = size * PARRY_BURST_REACH(p);
+  const cos = Math.cos(rotation);
+  const sin = Math.sin(rotation);
+  const fade = alpha * (1 - p * 0.24);
+
+  draw.save();
+  draw.drawArc(0, 0, clashRadius, rotation - Math.PI * 0.88, Math.PI * 0.58, color, Math.max(1, size * 0.075), fade);
+  draw.drawArc(0, 0, clashRadius, rotation + Math.PI * 0.3, Math.PI * 0.58, color, Math.max(1, size * 0.075), fade * 0.82);
+  draw.strokeCircle(0, 0, clashRadius * 0.52, color, Math.max(0.8, size * 0.025), flashAlpha * 0.72);
+  draw.fillCircle(0, 0, size * (0.075 + PARRY_FLASH_ALPHA(p) * 0.09), color, flashAlpha);
+  for (let i = 0; i < 8; i++) {
+    const angle = (i * Math.PI) / 4;
+    const inner = size * (0.12 + (i % 2) * 0.035);
+    const outer = burstReach * (0.72 + (i % 3) * 0.12);
+    drawRotatedLine(draw, Math.cos(angle) * inner, Math.sin(angle) * inner,
+      Math.cos(angle) * outer, Math.sin(angle) * outer, color,
+      Math.max(0.8, size * (i % 2 === 0 ? 0.045 : 0.025)),
+      fade * (0.82 - (i % 3) * 0.12), cos, sin);
+  }
+  draw.restore();
+}
+
 /** Target warning: pulsing lock-on brackets and a central sight line. */
 export function drawPixelFxTargetWarning(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
   const state = readEffectState(world, entity);
@@ -713,6 +759,7 @@ export function registerPixelFxProceduralVFX<TComponents extends CoreComponentRe
     ["pixelfx_ricochet", drawPixelFxRicochet],
     ["pixelfx_charge", drawPixelFxCharge],
     ["pixelfx_shield_pulse", drawPixelFxShieldPulse],
+    ["pixelfx_parry", drawPixelFxParry],
     ["pixelfx_target_warning", drawPixelFxTargetWarning],
     ["pixelfx_teleport", drawPixelFxTeleport],
     ["pixelfx_surface_skid", drawPixelFxSurfaceSkid],

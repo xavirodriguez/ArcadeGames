@@ -108,7 +108,7 @@ describe.each([
     target.restore(snapshot);
 
     expect(target.getResource("RendererHandle")).toEqual({ id: "target" });
-    expect(snapshot.snapshotResourceKeys).toEqual([]);
+    expect(snapshot.snapshotResourceKeys).toEqual(["GameplayFreeze"]);
     expect(snapshot.snapshotResources).toEqual({});
   });
 

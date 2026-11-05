@@ -9,7 +9,13 @@ import type { InternalWorldAccess } from "./SnapshotInternalAccess";
  * Internal interface to access private world state for metadata building.
  * @public
  */
-export type InternalWorldSnapshotAccess = InternalWorldAccess;
+export interface InternalWorldSnapshotAccess {
+  nextEntityId: number;
+  freeEntities: number[];
+  generations?: number[];
+  resources: Map<string, unknown>;
+  snapshotResourceNames: Set<string>;
+}
 
 /**
  * Builds standard snapshot metadata from an active World instance.

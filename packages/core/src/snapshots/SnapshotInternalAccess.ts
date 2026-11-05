@@ -3,6 +3,7 @@ import type { WorldSnapshot } from "./WorldSnapshot";
 import type { ComponentRegistry } from "../ecs/Component";
 import { Query } from "../ecs/Query";
 import { ComponentStorage, MapStorage, SparseSetStorage } from "../ecs/storage";
+import { restoreSnapshotResources } from "./SnapshotResourceState";
 
 /**
  * Internal access interface exposing World metadata and index properties for snapshot restoration.
@@ -44,6 +45,7 @@ export function restoreWorldMetadata<TComponents extends ComponentRegistry>(
   internal._stateVersion = state.stateVersion;
   internal._tick = state.tick;
   internal.useSparseSetStorage = world.getResource("UseSparseSetStorage") === true;
+  restoreSnapshotResources(internal, state);
 
   if (state.rngState !== undefined) {
     world.gameplayRandom.setSeed(state.rngState);

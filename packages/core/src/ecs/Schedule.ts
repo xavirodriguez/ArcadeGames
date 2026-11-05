@@ -173,7 +173,10 @@ export class Schedule<
       // it is removed only after all phases have observed the frozen state.
       const freeze = world.getResource<{ remaining?: number }>("GameplayFreeze");
       const isPausedResource = world.getResource("IsPaused") === true;
-      const isFrozen = freeze !== undefined || isPausedResource || effectiveTimeScale === 0;
+      const hasActiveGameplayFreeze =
+        freeze !== undefined &&
+        (typeof freeze.remaining !== "number" || freeze.remaining > 0);
+      const isFrozen = hasActiveGameplayFreeze || isPausedResource || effectiveTimeScale === 0;
       if (freeze && typeof freeze.remaining === "number") {
         freeze.remaining = Math.max(0, freeze.remaining - deltaTime);
       }

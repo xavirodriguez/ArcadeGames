@@ -241,6 +241,7 @@ describe("HitRunHurtSystem (Paso C)", () => {
     addTransform(world, enemy, 200, 100);
     world.addComponent(enemy, { type: "Health", current: 5, max: 5, invulnerableRemaining: 0 });
     world.addComponent(enemy, { type: "Velocity", vx: 0, vy: 0, angularVelocity: 0 });
+    world.addComponent(enemy, { type: "BeltElevation", z: 0, vz: 0, grounded: true });
     world.addComponent(enemy, { type: "Faction", value: "enemy" });
     const source = spawnSource(100);
 

@@ -223,6 +223,89 @@ describe("HitRunFeedbackSystem (Paso B)", () => {
     expect(shapes).toContain("pixelfx_shield_pulse");
   });
 
+  it("separates hitstun from stability-breaking stagger feedback", () => {
+    const normalTarget = world.createEntity();
+    const heavyTarget = world.createEntity();
+    for (const [entity, x] of [[normalTarget, 24], [heavyTarget, 88]] as const) {
+      world.addComponent(entity, {
+        type: "Transform",
+        x,
+        y: 48,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: x,
+        worldY: 48,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: false
+      });
+    }
+    world.addComponent(heavyTarget, { type: "Faction", value: "enemy" });
+
+    feedback.enqueueHitForTest({
+      targetEntity: normalTarget,
+      amount: 1,
+      remainingHealth: 4,
+      category: "bullet"
+    });
+    feedback.enqueueHitForTest({
+      targetEntity: heavyTarget,
+      amount: 3,
+      remainingHealth: 2,
+      category: "melee"
+    });
+    feedback.update(world, 0);
+
+    const shapes = world.query("Render", "TTL").map((entity) =>
+      (world.getComponent(entity, "Render") as { shape?: string }).shape
+    );
+    expect(shapes.filter((shape) => shape === "pixelfx_hitstun")).toHaveLength(2);
+    expect(shapes.filter((shape) => shape === "pixelfx_stagger")).toHaveLength(1);
+  });
+
+  it("does not emit hit reaction VFX for fully guarded or armor-only contacts", () => {
+    const guarded = world.createEntity();
+    const armored = world.createEntity();
+    for (const [entity, x] of [[guarded, 20], [armored, 60]] as const) {
+      world.addComponent(entity, {
+        type: "Transform",
+        x,
+        y: 40,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: x,
+        worldY: 40,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: false
+      });
+    }
+    feedback.enqueueHitForTest({
+      targetEntity: guarded,
+      amount: 0,
+      remainingHealth: 5,
+      blocked: true
+    });
+    feedback.enqueueHitForTest({
+      targetEntity: armored,
+      amount: 0,
+      remainingHealth: 5,
+      armorHit: true,
+      armorAbsorbed: 3
+    });
+    feedback.update(world, 0);
+
+    const shapes = world.query("Render", "TTL").map((entity) =>
+      (world.getComponent(entity, "Render") as { shape?: string }).shape
+    );
+    expect(shapes).not.toContain("pixelfx_hitstun");
+    expect(shapes).not.toContain("pixelfx_stagger");
+  });
+
   it("does not spawn a combo finisher for a non-lethal melee hit", () => {
     const target = world.createEntity();
     world.addComponent(target, {

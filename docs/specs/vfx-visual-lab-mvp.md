@@ -49,3 +49,14 @@ The production catalog includes `pixelfx_parry`, a combat composition for a succ
 - The same drawer is registered for Canvas and Skia and is exposed in the Visual Lab with a reproducible Neon preset.
 
 The Visual Lab route is covered by a Playwright smoke test that opens `/vfx-lab` directly and verifies the title, renderer preview and effect browser. This is a route-load check, not a claim of pixel-level renderer parity.
+
+
+## Procedural animation evolution — Combat batch 02
+
+Three production combat compositions extend the temporal sampler catalog:
+
+- `pixelfx_perfect_block`: guard shell compression, timed confirmation flash and expanding segmented ring.
+- `pixelfx_critical_hit`: two-beat core flash and staggered radial fragments.
+- `pixelfx_projectile_deflection`: curved incoming-to-outgoing projectile path with a timed clash point and radial sparks.
+
+All three are stateless drawers driven by the existing TTL progress, share Canvas/Skia adapter registration, and are available in the Visual Lab with reproducible presets. The browser smoke test asserts that all three are visible after the route loads.

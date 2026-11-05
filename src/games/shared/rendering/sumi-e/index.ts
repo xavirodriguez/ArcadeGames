@@ -54,6 +54,7 @@ export {
   getRegionalAtmosphere,
   computeMistBands,
   drawMistBandsCanvas,
+  drawMistBandsSkia,
   spawnAmbientParticle,
   spawnAmbientBand,
   cameraXForInkLayer,

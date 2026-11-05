@@ -32,6 +32,7 @@ PR3.1 improves the existing Expo Router Visual Lab at `src/app/vfx-lab`. It does
 - Adds stable IDs to the four built-in presets.
 - Supports saving a named preset for the current screen session, JSON export, JSON import and strict schema/range validation.
 - Seed is passed to both preview drawers as the stable entity identity. Explosion derives deterministic fragment variation from that identity without consuming gameplay RNG; effects that do not use entity-seeded variation remain visually unchanged when the seed changes.
+- The temporal sampler is now used by four production compositions: Explosion, Charge, Shield Pulse and Ricochet. Charge uses a staged core buildup/release, Shield Pulse adds a delayed echo ring, and Ricochet choreographs its contact flash and expanding ring.
 - Imported/exported presets are portable; user-created presets are not persisted across app restarts in this PR.
 
 ## Deliberate non-goals

@@ -1,5 +1,4 @@
-import { Skia, getPaint } from "./SkiaContext";
-import type { SkPaint } from "./SkiaContext";
+import { Skia, getPaint, type SkPaint } from "./SkiaContext";
 import { COSMIC_ARCADE_PALETTE } from "./CosmicPalette";
 import { CanvasGlowCache } from "./CanvasGlowCache";
 
@@ -203,7 +202,6 @@ export function renderCanvasGlow(
 export function renderSkiaGlow(
   _canvas: unknown,
   glow: GlowStyle,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   drawShapeSkia: (paint: SkPaint, isHighlight?: boolean, layerAlpha?: number) => void
 ): void {
   if (!Skia) return;

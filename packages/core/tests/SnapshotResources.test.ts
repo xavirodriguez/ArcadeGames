@@ -1,12 +1,14 @@
 import {
   World,
-  CoreComponentRegistry,
   BinaryCompression,
-  AoSWorldSnapshot,
-  SoAWorldSnapshot,
   hashAoS,
   hashSoA,
-  NetworkReplicationUtils,
+  NetworkReplicationUtils
+} from "../src";
+import type {
+  CoreComponentRegistry,
+  AoSWorldSnapshot,
+  SoAWorldSnapshot,
   SnapshotDelta
 } from "../src";
 

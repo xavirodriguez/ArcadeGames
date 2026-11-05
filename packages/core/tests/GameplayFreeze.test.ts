@@ -96,6 +96,19 @@ describe("GameplayFreeze (Soft Pause) System Tests", () => {
     expect(presentationSys.updated).toBe(1);
   });
 
+  it("should not freeze a tick for an already-expired zero-duration resource", () => {
+    world.setResource("GameplayFreeze", { remaining: 0 } as GameplayFreeze);
+
+    world.update(0.016);
+
+    expect(world.getResource("GameplayFreeze")).toBeUndefined();
+    expect(inputSys.updated).toBe(1);
+    expect(movementSys.updated).toBe(1);
+    expect(collisionSys.updated).toBe(1);
+    expect(rulesSys.updated).toBe(1);
+    expect(presentationSys.updated).toBe(1);
+  });
+
   it("should skip simulation/gameplay systems but execute TTL, Juice, and Presentation systems when frozen", () => {
     world.setResource("GameplayFreeze", {} as GameplayFreeze);
     world.update(0.1);
@@ -123,15 +136,15 @@ describe("GameplayFreeze (Soft Pause) System Tests", () => {
     expect(movementSys.updated).toBe(0);
     expect(presentationSys.updated).toBe(1);
 
-    // Second update: 0.15s passes. Reaches exactly 0, unfreezes.
+    // The tick that consumes the remaining 150ms is still frozen.
     world.update(0.15);
     expect(world.getResource("GameplayFreeze") !== undefined).toBe(false);
-
-    // Since the freeze was cleared *during* this tick when its remaining reached 0,
-    // wait, our Schedule updates freeze duration first, and if it becomes <= 0, deletes the resource,
-    // so during this second tick, `isFrozen` will be false! Let's check:
-    // If freeze is deleted, the systems in the second tick will run!
-    expect(movementSys.updated).toBe(1);
+    expect(movementSys.updated).toBe(0);
     expect(presentationSys.updated).toBe(2);
+
+    // Gameplay resumes on the next tick, not part-way through the expiry tick.
+    world.update(0.01);
+    expect(movementSys.updated).toBe(1);
+    expect(presentationSys.updated).toBe(3);
   });
 });

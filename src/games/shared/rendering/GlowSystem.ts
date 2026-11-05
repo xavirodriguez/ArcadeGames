@@ -1,4 +1,4 @@
-import { Skia, getPaint } from "./SkiaContext";
+import { Skia, getPaint, type SkPaint } from "./SkiaContext";
 import { COSMIC_ARCADE_PALETTE } from "./CosmicPalette";
 import { CanvasGlowCache } from "./CanvasGlowCache";
 
@@ -75,7 +75,7 @@ export interface GlowCacheOptions {
 export function renderCanvasGlow(
   ctx: CanvasRenderingContext2D,
   glow: GlowStyle,
-  drawShape: (ctx: CanvasRenderingContext2D, isHighlight?: boolean) => void,
+  drawShape: (ctx: CanvasRenderingContext2D, isHighlight?: boolean, layerAlpha?: number) => void,
   cacheOptions?: GlowCacheOptions,
   p95Ms?: number
 ): void {
@@ -103,7 +103,7 @@ export function renderCanvasGlow(
         offCtx.globalAlpha = glow.haloAlpha;
         offCtx.strokeStyle = glow.color;
         offCtx.fillStyle = glow.color;
-        drawShape(offCtx);
+        drawShape(offCtx, undefined, glow.haloAlpha);
         offCtx.restore();
       }
 
@@ -115,7 +115,7 @@ export function renderCanvasGlow(
         offCtx.globalAlpha = glow.auraAlpha;
         offCtx.strokeStyle = glow.color;
         offCtx.fillStyle = glow.color;
-        drawShape(offCtx);
+        drawShape(offCtx, undefined, glow.auraAlpha);
         offCtx.restore();
       }
 
@@ -125,7 +125,7 @@ export function renderCanvasGlow(
       offCtx.globalAlpha = 1.0;
       offCtx.strokeStyle = glow.color;
       offCtx.fillStyle = glow.color;
-      drawShape(offCtx);
+      drawShape(offCtx, undefined, 1);
       offCtx.restore();
 
       // 4. Highlight Layer
@@ -136,7 +136,7 @@ export function renderCanvasGlow(
         offCtx.globalAlpha = 0.9;
         offCtx.strokeStyle = glow.highlightColor;
         offCtx.fillStyle = glow.highlightColor;
-        drawShape(offCtx, true);
+        drawShape(offCtx, true, 0.9);
         offCtx.restore();
       }
 
@@ -159,7 +159,7 @@ export function renderCanvasGlow(
     ctx.globalAlpha = glow.haloAlpha;
     ctx.strokeStyle = glow.color;
     ctx.fillStyle = glow.color;
-    drawShape(ctx);
+    drawShape(ctx, undefined, glow.haloAlpha);
     ctx.restore();
   }
 
@@ -170,7 +170,7 @@ export function renderCanvasGlow(
     ctx.globalAlpha = glow.auraAlpha;
     ctx.strokeStyle = glow.color;
     ctx.fillStyle = glow.color;
-    drawShape(ctx);
+    drawShape(ctx, undefined, glow.auraAlpha);
     ctx.restore();
   }
 
@@ -179,7 +179,7 @@ export function renderCanvasGlow(
   ctx.globalAlpha = 1.0;
   ctx.strokeStyle = glow.color;
   ctx.fillStyle = glow.color;
-  drawShape(ctx);
+  drawShape(ctx, undefined, 1);
   ctx.restore();
 
   if (glow.intensity === "strong" || glow.intensity === "critical") {
@@ -189,7 +189,7 @@ export function renderCanvasGlow(
     ctx.globalAlpha = 0.9;
     ctx.strokeStyle = glow.highlightColor;
     ctx.fillStyle = glow.highlightColor;
-    drawShape(ctx, true);
+    drawShape(ctx, true, 0.9);
     ctx.restore();
   }
 
@@ -202,45 +202,49 @@ export function renderCanvasGlow(
 export function renderSkiaGlow(
   _canvas: unknown,
   glow: GlowStyle,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  drawShapeSkia: (paint: any, isHighlight?: boolean) => void
+  drawShapeSkia: (paint: SkPaint, isHighlight?: boolean, layerAlpha?: number) => void
 ): void {
   if (!Skia) return;
 
+  const level = getGlowDegradationLevel();
   const sharedPaint = getPaint();
   if (!sharedPaint) return;
 
-  // 1. Halo Layer
-  sharedPaint.setColor(Skia.Color(glow.color));
-  sharedPaint.setAlphaf(glow.haloAlpha);
-  if (Skia.MaskFilter) {
-    sharedPaint.setMaskFilter(Skia.MaskFilter.MakeBlur(Skia.BlurMode.Normal, glow.haloBlur, true));
-  } else {
-    sharedPaint.setMaskFilter(null);
+  // 1. Halo Layer — same p95 degradation threshold as Canvas.
+  if (level < 1 && glow.haloAlpha > 0 && glow.haloBlur > 0) {
+    sharedPaint.setColor(Skia.Color(glow.color));
+    sharedPaint.setAlphaf(glow.haloAlpha);
+    if (Skia.MaskFilter) {
+      sharedPaint.setMaskFilter(Skia.MaskFilter.MakeBlur(Skia.BlurMode.Normal, glow.haloBlur, true));
+    } else {
+      sharedPaint.setMaskFilter(null);
+    }
+    drawShapeSkia(sharedPaint, undefined, glow.haloAlpha);
   }
-  drawShapeSkia(sharedPaint);
 
-  // 2. Aura Layer
-  sharedPaint.setColor(Skia.Color(glow.color));
-  sharedPaint.setAlphaf(glow.auraAlpha);
-  if (Skia.MaskFilter) {
-    sharedPaint.setMaskFilter(Skia.MaskFilter.MakeBlur(Skia.BlurMode.Normal, glow.auraBlur, true));
-  } else {
-    sharedPaint.setMaskFilter(null);
+  // 2. Aura Layer — retained only while the frame-time budget allows it.
+  if (level < 2 && glow.auraAlpha > 0 && glow.auraBlur > 0) {
+    sharedPaint.setColor(Skia.Color(glow.color));
+    sharedPaint.setAlphaf(glow.auraAlpha);
+    if (Skia.MaskFilter) {
+      sharedPaint.setMaskFilter(Skia.MaskFilter.MakeBlur(Skia.BlurMode.Normal, glow.auraBlur, true));
+    } else {
+      sharedPaint.setMaskFilter(null);
+    }
+    drawShapeSkia(sharedPaint, undefined, glow.auraAlpha);
   }
-  drawShapeSkia(sharedPaint);
 
   // 3. Core Layer
   sharedPaint.setColor(Skia.Color(glow.color));
   sharedPaint.setAlphaf(1.0);
   sharedPaint.setMaskFilter(null);
-  drawShapeSkia(sharedPaint);
+  drawShapeSkia(sharedPaint, undefined, 1);
 
   // 4. Highlight Layer
   if (glow.intensity === "strong" || glow.intensity === "critical") {
     sharedPaint.setColor(Skia.Color(glow.highlightColor));
-    sharedPaint.setAlphaf(0.85);
+    sharedPaint.setAlphaf(0.9);
     sharedPaint.setMaskFilter(null);
-    drawShapeSkia(sharedPaint, true);
+    drawShapeSkia(sharedPaint, true, 0.9);
   }
 }

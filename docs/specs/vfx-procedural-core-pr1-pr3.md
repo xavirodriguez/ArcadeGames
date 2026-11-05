@@ -26,6 +26,18 @@ OKLab interpolation, RGB hex conversion, posterization, 4×4 Bayer ordered
 dithering, perceptual nearest-palette mapping, SDF coverage/rasterization, and
 integer nearest-neighbor RGBA upscaling.
 
+## PR4 — Stateless Temporal Sampling
+
+`vfx-timeline.ts` adds normalized, history-free temporal sampling. It supports
+linear, smoothstep, quadratic ease-in/ease-out and symmetric ease-in-out curves.
+Ordered, non-overlapping phases can be sampled at arbitrary progress values;
+gaps hold the preceding value. The sampler is renderer-independent and performs
+no per-sample allocation. `createVFXTimelineSampler` validates and snapshots the
+phase definitions once, then supports repeated sampling without per-frame setup.
+The one-shot `sampleVFXTimeline` helper validates the complete definition on each
+call and is intended for non-hot-path use. This is a calculation primitive, not
+an effect lifecycle.
+
 ## Integration contract
 
 - Pure utilities only: no Canvas, Skia, React Native, ECS or wall-clock access.
@@ -41,3 +53,22 @@ this PR. That avoids changing the visual output of shipped games without
 Visual Lab comparison. The style-metrics module from the earlier proposed
 source was not present on the repository default branch, so no replacement
 was invented here.
+
+## Glow adapter parity
+
+`DrawAdapter` carries each glow pass's layer alpha into the existing Canvas and
+Skia primitive calls. Skia reuses the pass paint so its blur mask filter is retained
+while primitive color, style and alpha are applied. Both backends use the same
+p95 degradation thresholds (halo above 8 ms, aura above 12 ms) and the same
+strong/critical highlight alpha (0.9). These are adapter-level contracts; the
+Visual Lab remains a human-inspected side-by-side preview, not a pixel-diff
+assertion.
+
+## Deliberate boundaries
+
+The deterministic core, geometry and pixel/color utilities remain opt-in.
+The temporal sampler has one production pilot in `drawPixelFxExplosion`,
+where it drives ring and fragment envelopes; this is intentionally not a
+wholesale migration of existing drawers. The style-metrics module from the
+earlier proposed source was not present on the repository default branch, so
+no replacement was invented here.

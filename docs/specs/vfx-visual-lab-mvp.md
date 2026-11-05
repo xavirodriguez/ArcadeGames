@@ -35,7 +35,7 @@ Provide an in-app workbench for inspecting and tuning the twenty-seven existing 
 
 ## Validation
 
-The focused model test verifies the twenty unique production drawers, family-correct descriptor creation and distinct semantic profile resolution. Explosion tests verify stable entity-seeded geometry. Charge, Shield Pulse and Ricochet now use compiled temporal samplers for staged buildup, delayed echoes, impact flashes and release arcs. CI/Jest and app typecheck results must be read from the PR checks; authored tests are not a claim of execution.
+The focused model test verifies the twenty-seven unique production drawers, family-correct descriptor creation and distinct semantic profile resolution. Explosion tests verify stable entity-seeded geometry. Charge, Shield Pulse and Ricochet now use compiled temporal samplers for staged buildup, delayed echoes, impact flashes and release arcs. CI/Jest and app typecheck results must be read from the PR checks; authored tests are not a claim of execution.
 
 
 ## Procedural animation evolution — Parry
@@ -70,3 +70,14 @@ Three further combat compositions use the compiled temporal sampler and the exis
 - `pixelfx_combo_finisher`: anticipation pulse, decisive sweeping arc and terminal shock ring.
 
 The drawers are stateless, deterministic, and registered through the shared Canvas/Skia adapter path. Each is exposed in the Visual Lab with a reproducible preset; the route smoke test checks all three labels after direct navigation.
+
+## Hit & Run combat event integration
+
+The shared combat drawers are consumed by the existing `HitRunFeedbackSystem` at confirmed combat-hit transitions:
+
+- `melee`: retains the directional slash feedback.
+- lethal `melee` (`remainingHealth <= 0`): additionally spawns `pixelfx_combo_finisher`.
+- `guard-break`: spawns `pixelfx_guard_break` when a combat-hit payload carries this semantic category.
+- `armor-break`: spawns `pixelfx_armor_break` when a combat-hit payload carries this semantic category.
+
+The feedback consumer does not infer a guard or armor break from damage magnitude. The current Hit & Run gameplay source has a melee attack and generic Health/Damage resolution, but no verified guard-state or armor-durability mechanic emitting those two categories. Those two VFX paths are therefore ready at the feedback boundary but will not occur in normal gameplay until the corresponding gameplay transition is implemented and emits the category. The combo finisher is wired to the existing lethal melee transition. Presentation output remains suppressed during rollback re-simulation.

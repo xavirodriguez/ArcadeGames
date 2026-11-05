@@ -13,7 +13,8 @@ import type {
 } from "@tiny-aster/core";
 import { CanvasDrawAdapter, SkiaDrawAdapter, type IDrawAdapter } from "./DrawAdapter";
 import { colors } from "../../../theme/colors";
-import { ballistic, deriveSeed } from "./vfx-geometry";
+import { ballistic } from "./vfx-geometry";
+import { deriveSeed } from "./vfx-core";
 import { createVFXTimelineSampler } from "./vfx-timeline";
 
 interface EffectState {

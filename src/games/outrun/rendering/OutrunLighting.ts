@@ -15,7 +15,8 @@ export function computeOutrunHeadlightBeams(
   config: OutrunConfig,
   visualPalette: OutrunVisualPaletteResource
 ): OutrunHeadlightBeam[] {
-  if (visualPalette.hour !== "night" || config.WIDTH <= 0 || config.HEIGHT <= 0) return [];
+  const lightsFactor = visualPalette.lightsFactor ?? (visualPalette.hour === "night" ? 1 : 0);
+  if (lightsFactor <= 0.01 || config.WIDTH <= 0 || config.HEIGHT <= 0) return [];
 
   const speedRatio = config.maxSpeed > 0
     ? Math.max(0, Math.min(1, state.speed / config.maxSpeed))
@@ -45,6 +46,6 @@ export function computeOutrunHeadlightBeams(
   return points.map(beamPoints => ({
     points: beamPoints,
     color: visualPalette.shared.cream,
-    alpha: 0.1
+    alpha: 0.1 * lightsFactor
   }));
 }

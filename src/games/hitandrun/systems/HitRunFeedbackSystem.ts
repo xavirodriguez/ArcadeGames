@@ -242,7 +242,8 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
             tint: isSumiE ? "#151515" : "#e3a92f",
             ttl: 0.46
           });
-        } else if (hit.armorBroken === true || hit.category === "armor-break") {
+        }
+        if (hit.armorBroken === true || hit.category === "armor-break") {
           this.juice.spawn("pixelfx_armor_break", {
             x: target.x,
             y: target.y,

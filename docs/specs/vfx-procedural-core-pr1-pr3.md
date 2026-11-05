@@ -1,4 +1,4 @@
-# Procedural VFX Core — PR1–PR4
+# Procedural VFX Core — PR1–PR3
 
 This change introduces three renderer-independent helper modules under
 `src/games/shared/rendering`. It does not replace the ECS VFX lifecycle,
@@ -46,6 +46,13 @@ an effect lifecycle.
 - Existing rendering registration and effect lifetimes remain unchanged.
 - The focused Jest suite is `src/games/shared/rendering/__tests__/vfx-procedural-core.test.ts`.
 
+## Deliberate boundaries
+
+The utilities are opt-in and are not wired into existing production drawers in
+this PR. That avoids changing the visual output of shipped games without
+Visual Lab comparison. The style-metrics module from the earlier proposed
+source was not present on the repository default branch, so no replacement
+was invented here.
 
 ## Glow adapter parity
 

@@ -11,26 +11,9 @@ import {
   resolveFlappyPipeDrawContext,
   resolveFlappyBackgroundSetup,
 } from "../../rendering/FlappyBirdRenderUtils";
-import { drawSkiaGlideEnergyBar } from "../../rendering/FlappyBirdSkiaVisuals";
+import { drawSkiaGlideEnergyBar, getCachedSkiaShader } from "../../rendering/FlappyBirdSkiaVisuals";
 import { Skia, getPaint } from "../../../shared/rendering/SkiaContext";
 import { colors } from "../../../../theme/colors";
-
-const skiaShaderCache = new Map<string, SkShader>();
-
-function getCachedSkiaShader(key: string, factory: () => SkShader | null): SkShader | null {
-  let shader = skiaShaderCache.get(key);
-  if (!shader) {
-    if (skiaShaderCache.size > 40) {
-      skiaShaderCache.clear();
-    }
-    const created = factory();
-    if (created) {
-      shader = created;
-      skiaShaderCache.set(key, shader);
-    }
-  }
-  return shader || null;
-}
 
 function drawSkiaVisualParticles(canvas: SkCanvas, paint: SkPaint): void {
   const particles = FLAPPY_PARTICLE_POOL.getActiveParticles();

@@ -77,6 +77,12 @@ export const COLOR_LITERAL_ALLOWLIST = [
   { path: "src/games/pong/systems/PongCollisionSystem.ts", reason: "Pong paddle collision particle colors" },
   { path: "src/games/shared/pixelfx/PixelFXPaletteAdapter.ts", reason: "PixelFX palette ramp definitions" },
   { path: "src/games/shared/rendering/VFXVisualLabModel.ts", reason: "VFX visual lab preview palette" },
+  { path: "src/app/vfx-lab/index.tsx", reason: "VFX Visual Lab screen shell" },
+  { path: "src/games/galaxian/EntityFactory.ts", reason: "Galaxian player ship color token" },
+  { path: "src/games/outrun/OutrunGame.ts", reason: "Outrun player car default color" },
+  { path: "src/games/outrun/rendering/OutrunRoadsideArtwork.ts", reason: "Outrun roadside trunk color" },
+  { path: "src/games/hitandrun/rendering/theme/HitRunThemeUtils.ts", reason: "Hit&Run hitflash white color" },
+  { path: "src/games/racing/EntityFactory.ts", reason: "Racing entity factory effect colors" },
 ];
 const ALLOWED_PREFIXES = ["src/theme/"];
 const HEX_RE = /#([0-9a-fA-F]{3,8})\b/g;

@@ -28,7 +28,7 @@ export const DEFAULT_OUTRUN_VISUAL_CONFIG: OutrunVisualConfig = {
       "decor": "coast"
     }
   ],
-  "transitionFraction": 0.15,
+  "transitionFraction": 0.2,
   "palette": {
     "shared": {
       "car": "#FF5A4F",
@@ -240,98 +240,91 @@ export const DEFAULT_OUTRUN_VISUAL_CONFIG: OutrunVisualConfig = {
       },
       "sierraProfile": {
         "far": [
-          {
-            "x": 0,
-            "height": 28
-          },
-          {
-            "x": 38,
-            "height": 42
-          },
-          {
-            "x": 80,
-            "height": 24
-          },
-          {
-            "x": 125,
-            "height": 50
-          },
-          {
-            "x": 175,
-            "height": 28
-          },
-          {
-            "x": 218,
-            "height": 45
-          },
-          {
-            "x": 260,
-            "height": 30
-          },
-          {
-            "x": 300,
-            "height": 38
-          }
+          { "x": 0, "height": 28 },
+          { "x": 38, "height": 42 },
+          { "x": 80, "height": 24 },
+          { "x": 125, "height": 50 },
+          { "x": 175, "height": 28 },
+          { "x": 218, "height": 45 },
+          { "x": 260, "height": 30 },
+          { "x": 300, "height": 38 }
         ],
         "mid": [
-          {
-            "x": 0,
-            "height": 14
-          },
-          {
-            "x": 30,
-            "height": 24
-          },
-          {
-            "x": 65,
-            "height": 10
-          },
-          {
-            "x": 110,
-            "height": 28
-          },
-          {
-            "x": 155,
-            "height": 8
-          },
-          {
-            "x": 200,
-            "height": 20
-          },
-          {
-            "x": 250,
-            "height": 6
-          },
-          {
-            "x": 300,
-            "height": 16
-          }
+          { "x": 0, "height": 14 },
+          { "x": 30, "height": 24 },
+          { "x": 65, "height": 10 },
+          { "x": 110, "height": 28 },
+          { "x": 155, "height": 8 },
+          { "x": 200, "height": 20 },
+          { "x": 250, "height": 6 },
+          { "x": 300, "height": 16 }
         ],
         "near": [
-          {
-            "x": 0,
-            "height": 7
-          },
-          {
-            "x": 50,
-            "height": 11
-          },
-          {
-            "x": 100,
-            "height": 4
-          },
-          {
-            "x": 160,
-            "height": 9
-          },
-          {
-            "x": 220,
-            "height": 3
-          },
-          {
-            "x": 300,
-            "height": 8
-          }
+          { "x": 0, "height": 7 },
+          { "x": 50, "height": 11 },
+          { "x": 100, "height": 4 },
+          { "x": 160, "height": 9 },
+          { "x": 220, "height": 3 },
+          { "x": 300, "height": 8 }
+        ]
+      },
+      "coastProfile": {
+        "far": [
+          { "x": 0, "height": 18 },
+          { "x": 45, "height": 26 },
+          { "x": 90, "height": 14 },
+          { "x": 140, "height": 30 },
+          { "x": 185, "height": 12 },
+          { "x": 230, "height": 24 },
+          { "x": 270, "height": 16 },
+          { "x": 300, "height": 20 }
+        ],
+        "mid": [
+          { "x": 0, "height": 9 },
+          { "x": 40, "height": 15 },
+          { "x": 85, "height": 7 },
+          { "x": 130, "height": 16 },
+          { "x": 175, "height": 6 },
+          { "x": 220, "height": 13 },
+          { "x": 265, "height": 5 },
+          { "x": 300, "height": 10 }
+        ],
+        "near": [
+          { "x": 0, "height": 4 },
+          { "x": 55, "height": 7 },
+          { "x": 110, "height": 3 },
+          { "x": 170, "height": 6 },
+          { "x": 230, "height": 2 },
+          { "x": 300, "height": 5 }
+        ]
+      },
+      "desertProfile": {
+        "far": [
+          { "x": 0, "height": 16 },
+          { "x": 35, "height": 22 },
+          { "x": 70, "height": 20 },
+          { "x": 110, "height": 28 },
+          { "x": 150, "height": 18 },
+          { "x": 195, "height": 32 },
+          { "x": 245, "height": 20 },
+          { "x": 300, "height": 24 }
+        ],
+        "mid": [
+          { "x": 0, "height": 8 },
+          { "x": 40, "height": 14 },
+          { "x": 90, "height": 10 },
+          { "x": 140, "height": 18 },
+          { "x": 190, "height": 9 },
+          { "x": 240, "height": 15 },
+          { "x": 300, "height": 11 }
+        ],
+        "near": [
+          { "x": 0, "height": 4 },
+          { "x": 60, "height": 8 },
+          { "x": 120, "height": 5 },
+          { "x": 180, "height": 9 },
+          { "x": 240, "height": 4 },
+          { "x": 300, "height": 6 }
         ]
       },
       "snowPeakAlpha": 0.8,
@@ -409,76 +402,28 @@ export const DEFAULT_OUTRUN_VISUAL_CONFIG: OutrunVisualConfig = {
         "cornerRadius": 4.5
       },
       "cabin": [
-        {
-          "x": -20,
-          "y": -20
-        },
-        {
-          "x": 20,
-          "y": -20
-        },
-        {
-          "x": 14,
-          "y": -33
-        },
-        {
-          "x": -14,
-          "y": -33
-        }
+        { "x": -20, "y": -20 },
+        { "x": 20, "y": -20 },
+        { "x": 14, "y": -33 },
+        { "x": -14, "y": -33 }
       ],
       "roof": [
-        {
-          "x": -14,
-          "y": -33
-        },
-        {
-          "x": 14,
-          "y": -33
-        },
-        {
-          "x": 12,
-          "y": -36
-        },
-        {
-          "x": -12,
-          "y": -36
-        }
+        { "x": -14, "y": -33 },
+        { "x": 14, "y": -33 },
+        { "x": 12, "y": -36 },
+        { "x": -12, "y": -36 }
       ],
       "rearWindow": [
-        {
-          "x": -17,
-          "y": -21
-        },
-        {
-          "x": 17,
-          "y": -21
-        },
-        {
-          "x": 12,
-          "y": -31
-        },
-        {
-          "x": -12,
-          "y": -31
-        }
+        { "x": -17, "y": -21 },
+        { "x": 17, "y": -21 },
+        { "x": 12, "y": -31 },
+        { "x": -12, "y": -31 }
       ],
       "reflection": [
-        {
-          "x": -12,
-          "y": -21
-        },
-        {
-          "x": -4,
-          "y": -21
-        },
-        {
-          "x": 4,
-          "y": -31
-        },
-        {
-          "x": -4,
-          "y": -31
-        }
+        { "x": -12, "y": -21 },
+        { "x": -4, "y": -21 },
+        { "x": 4, "y": -31 },
+        { "x": -4, "y": -31 }
       ],
       "lightBar": {
         "x": -28,

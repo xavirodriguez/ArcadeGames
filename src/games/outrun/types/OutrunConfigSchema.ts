@@ -18,6 +18,11 @@ const sharedPaletteSchema = z.object({
   branchAccentSierra: hexColorSchema, branchAccentDesert: hexColorSchema
 });
 const visualPointSchema = z.object({ x: z.number(), height: z.number() });
+const mountainProfileSchema = z.object({
+  far: z.array(visualPointSchema).min(2),
+  mid: z.array(visualPointSchema).min(2),
+  near: z.array(visualPointSchema).min(2)
+});
 const visualRectSchema = z.object({
   x: z.number(), y: z.number(), width: z.number().positive(), height: z.number().positive(),
   cornerRadius: z.number().min(0)
@@ -48,9 +53,9 @@ const visualTuningSchema = z.object({
       baseDriftPxPerSecond: z.number().nonnegative(), speedDriftPxPerSecond: z.number().nonnegative(),
       curvatureScale: z.number().nonnegative()
     }),
-    sierraProfile: z.object({
-      far: z.array(visualPointSchema).min(2), mid: z.array(visualPointSchema).min(2), near: z.array(visualPointSchema).min(2)
-    }),
+    sierraProfile: mountainProfileSchema,
+    coastProfile: mountainProfileSchema.optional(),
+    desertProfile: mountainProfileSchema.optional(),
     snowPeakAlpha: z.number().min(0).max(1),
     snowPeakHalfWidthPx: z.number().positive(), snowPeakMinimumHeightPx: z.number().positive()
   }),

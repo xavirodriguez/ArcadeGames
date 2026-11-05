@@ -6,10 +6,11 @@ import {
   paletteForHour,
   roadColorAtDepth,
   skyBandsForPalette,
-  stageAtProgress
+  stageAtProgress,
+  transitionBlendAtProgress
 } from "../utils/palette";
 import { DEFAULT_OUTRUN_VISUAL_CONFIG } from "../config/visualDefaults";
-import type { OutrunPaletteTokens, OutrunTimedPaletteSet } from "../types/OutrunVisualTypes";
+import type { OutrunTimedPaletteSet } from "../types/OutrunVisualTypes";
 
 const visual = DEFAULT_OUTRUN_VISUAL_CONFIG;
 const defaultTimedPalettes: OutrunTimedPaletteSet = {
@@ -75,17 +76,18 @@ describe("Out Run visual palette", () => {
     expect(roadColorAtDepth(palette, 0, 1)).toBe(lerpColor(palette.roadNear, "#FFFFFF", 0.05));
   });
 
-  it("keeps a pure palette before the transition and blends smoothly in the last 15%", () => {
+  it("keeps a pure palette before the transition and blends smoothly in the last window", () => {
     const stage = stageContext("afternoon");
-    expect(paletteAtProgress(stage, 0.84)).toEqual(visual.palette.afternoon);
-    expect(paletteAtProgress(stage, 0.85)).toEqual(visual.palette.afternoon);
-    expect(paletteAtProgress(stage, 0.925).skyHigh).toBe(
+    const fraction = visual.transitionFraction;
+    const pureUntil = 1 - fraction;
+    expect(paletteAtProgress(stage, pureUntil - 0.01)).toEqual(visual.palette.afternoon);
+    expect(paletteAtProgress(stage, pureUntil)).toEqual(visual.palette.afternoon);
+    const midProgress = pureUntil + fraction * 0.5;
+    expect(transitionBlendAtProgress(midProgress, fraction)).toBeCloseTo(0.5, 5);
+    expect(paletteAtProgress(stage, midProgress).skyHigh).toBe(
       lerpColor(visual.palette.afternoon.skyHigh, visual.palette.night.skyHigh, 0.5)
     );
     expect(paletteAtProgress(stage, 1)).toEqual(visual.palette.night);
-    const before = paletteAtProgress(stage, 0.999);
-    const atBoundary = paletteAtProgress(stage, 1);
-    expect(Math.abs(Number.parseInt(before.roadNear.slice(1), 16) - Number.parseInt(atBoundary.roadNear.slice(1), 16))).toBeLessThan(0xFFFFFF);
   });
 
   it("keeps the noon dark kerb as a distinct navy token", () => {
@@ -116,5 +118,13 @@ describe("Out Run visual palette", () => {
       expect(contrastRatio(visual.palette.shared.car, palette.roadNear)).toBeGreaterThanOrEqual(3);
     }
     expect(paletteForHour("afternoon", visual.paletteColorblind)).not.toEqual(visual.palette.afternoon);
+  });
+
+  it("ships distinct coast and desert mountain profiles", () => {
+    const mountains = visual.tuning.mountains;
+    expect(mountains.coastProfile?.far.length).toBeGreaterThanOrEqual(6);
+    expect(mountains.desertProfile?.far.length).toBeGreaterThanOrEqual(6);
+    expect(mountains.coastProfile?.far[3]?.height).not.toBe(mountains.sierraProfile.far[3]?.height);
+    expect(mountains.desertProfile?.far[5]?.height).not.toBe(mountains.sierraProfile.far[5]?.height);
   });
 });

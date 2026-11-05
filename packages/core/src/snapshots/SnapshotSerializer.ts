@@ -5,6 +5,7 @@ import type { WorldSnapshot, AoSWorldSnapshot, ComponentDataSnapshot, Serialized
 import { buildSnapshotMetadata } from "./SnapshotMetadataBuilder";
 import type { InternalWorldAccess } from "./SnapshotInternalAccess";
 import { isSnapshotComponentExcluded, SNAPSHOT_EXCLUDED_COMPONENT_TYPES } from "./SnapshotExclusionPolicy";
+import { captureSnapshotResources } from "./SnapshotResourceState";
 
 /**
  * Classical Array of Structures (AoS) Serializer.
@@ -142,6 +143,7 @@ export class SnapshotSerializer {
 
     return {
       componentData,
+      ...captureSnapshotResources(internal),
       stateVersion: world.stateVersion,
       structureVersion: world.structureVersion,
       tick: world.tick

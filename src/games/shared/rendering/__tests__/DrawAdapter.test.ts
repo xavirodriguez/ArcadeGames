@@ -1,0 +1,103 @@
+import { CanvasDrawAdapter, SkiaDrawAdapter } from "../DrawAdapter";
+
+jest.mock("../SkiaContext", () => {
+  const createPaint = () => {
+    const paint = {
+      style: undefined as unknown,
+      color: undefined as unknown,
+      alpha: 1,
+      strokeWidth: undefined as number | undefined,
+      maskFilter: undefined as unknown,
+      setStyle(style: unknown) { paint.style = style; },
+      setColor(color: unknown) { paint.color = color; },
+      setAlphaf(alpha: number) { paint.alpha = alpha; },
+      setStrokeWidth(width: number) { paint.strokeWidth = width; },
+      setMaskFilter(filter: unknown) { paint.maskFilter = filter; }
+    };
+    return paint;
+  };
+  const sharedPaint = createPaint();
+  return {
+    Skia: {
+      Paint: createPaint,
+      PaintStyle: { Fill: "fill", Stroke: "stroke" },
+      Color: (color: string) => color,
+      MaskFilter: { MakeBlur: (_mode: unknown, sigma: number) => ({ sigma }) },
+      BlurMode: { Normal: "normal" },
+      XYWHRect: (...values: number[]) => values,
+      Path: { Make: () => ({ addArc: jest.fn() }) },
+      Font: () => null
+    },
+    getPaint: () => sharedPaint
+  };
+});
+
+function createCanvasContext() {
+  const alphaAtFill: number[] = [];
+  const context = {
+    globalAlpha: 1,
+    fillStyle: "",
+    strokeStyle: "",
+    lineWidth: 1,
+    shadowColor: "",
+    shadowBlur: 0,
+    font: "",
+    textAlign: "center",
+    save: jest.fn(),
+    restore: jest.fn(),
+    beginPath: jest.fn(),
+    arc: jest.fn(),
+    fill: jest.fn(() => alphaAtFill.push(context.globalAlpha)),
+    stroke: jest.fn(),
+    fillRect: jest.fn(),
+    strokeRect: jest.fn(),
+    moveTo: jest.fn(),
+    lineTo: jest.fn(),
+    fillText: jest.fn(),
+    drawImage: jest.fn(),
+    translate: jest.fn()
+  };
+  return { context: context as unknown as CanvasRenderingContext2D, alphaAtFill };
+}
+
+describe("DrawAdapter glow composition", () => {
+  it("multiplies primitive alpha by each Canvas glow layer alpha", () => {
+    const { context, alphaAtFill } = createCanvasContext();
+    const adapter = new CanvasDrawAdapter(context);
+
+    adapter.drawGlow("#ff00ff", (layer) => layer.fillCircle(0, 0, 8, "#ffffff", 0.5));
+
+    expect(alphaAtFill).toEqual([0.075, 0.175, 0.5]);
+    adapter.fillCircle(0, 0, 8, "#ffffff", 0.5);
+    expect(alphaAtFill[3]).toBe(0.5);
+  });
+
+  it("preserves Skia blur mask filters and multiplies primitive alpha per layer", () => {
+    const calls: Array<{ alpha: number; maskFilter: unknown; color: unknown }> = [];
+    const canvas = {
+      drawCircle: (_x: number, _y: number, _radius: number, paint: unknown) => {
+        const current = paint as { alpha: number; maskFilter: unknown; color: unknown };
+        calls.push({
+          alpha: current.alpha,
+          maskFilter: current.maskFilter,
+          color: current.color
+        });
+      }
+    };
+    const adapter = new SkiaDrawAdapter(canvas);
+
+    adapter.drawGlow("#ff00ff", (layer) => layer.fillCircle(0, 0, 8, "#ffffff", 0.5));
+
+    expect(calls.map((call) => call.alpha)).toEqual([0.075, 0.175, 0.5]);
+    expect(calls.map((call) => call.maskFilter)).toEqual([
+      { sigma: 18 },
+      { sigma: 8 },
+      null
+    ]);
+    expect(calls.map((call) => call.color)).toEqual(["#ffffff", "#ffffff", "#ffffff"]);
+
+    adapter.fillCircle(0, 0, 8, "#ffffff", 0.5);
+    expect(calls[3].maskFilter).toBeUndefined();
+    expect(calls[3].alpha).toBe(0.5);
+  });
+});

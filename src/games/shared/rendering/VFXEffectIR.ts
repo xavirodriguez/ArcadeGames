@@ -139,6 +139,56 @@ export function resolveVFXPlacement(
   }
 }
 
+/**
+ * A deterministic sample of a temporal effect at an explicitly supplied
+ * presentation-time offset. This is a pure evaluation helper for tooling and
+ * controlled presentation consumers; it does not own a clock or scheduler.
+ */
+export interface TemporalVFXSample {
+  /** Normalized presentation-time progress in the inclusive range [0, 1]. */
+  readonly progress: number;
+  /** Phase envelope in the inclusive range [0, 1]. */
+  readonly opacity: number;
+  /** True once the requested presentation-time interval has elapsed. */
+  readonly complete: boolean;
+}
+
+/**
+ * Evaluate a temporal phase without reading or mutating simulation time.
+ *
+ * presentationFactor is a presentation-time rate multiplier: 0 pauses this
+ * sample, 0.5 advances it at half rate, and 2 advances it at double rate.
+ * The caller supplies elapsed presentation seconds; no runtime clock is created.
+ */
+export function resolveTemporalVFXSample(
+  context: TemporalVFXContext,
+  elapsedPresentationSeconds: number,
+  durationSeconds: number
+): TemporalVFXSample {
+  const factor = context.presentationFactor ?? 1;
+  if (!Number.isFinite(elapsedPresentationSeconds) || elapsedPresentationSeconds < 0) {
+    throw new RangeError("Elapsed presentation time must be finite and non-negative");
+  }
+  if (!Number.isFinite(durationSeconds) || durationSeconds <= 0) {
+    throw new RangeError("Temporal effect duration must be finite and greater than zero");
+  }
+  if (!Number.isFinite(factor) || factor < 0) {
+    throw new RangeError("Presentation factor must be finite and non-negative");
+  }
+
+  const progress = Math.min(1, (elapsedPresentationSeconds * factor) / durationSeconds);
+  const opacity = context.phase === "enter"
+    ? progress
+    : context.phase === "exit"
+      ? 1 - progress
+      : 1;
+
+  return {
+    progress,
+    opacity,
+    complete: progress >= 1
+  };
+}
 /** Resolve semantic family meaning to a palette token, independent of primitive identity. */
 export function resolveVFXSemanticColor(
   profile: VFXVisualProfile,

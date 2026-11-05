@@ -2,12 +2,16 @@ import type { CoreComponentRegistry, World } from "@tiny-aster/core";
 import type { IDrawAdapter } from "../DrawAdapter";
 import {
   drawPixelFxCharge,
+  drawPixelFxHitstun,
+  drawPixelFxStagger,
   drawPixelFxRicochet,
   drawPixelFxShieldPulse,
   drawPixelFxTargetWarning
 } from "../PixelFxProceduralVFX";
 
 const drawers = [
+  ["hitstun", drawPixelFxHitstun],
+  ["stagger", drawPixelFxStagger],
   ["ricochet", drawPixelFxRicochet],
   ["charge", drawPixelFxCharge],
   ["shield pulse", drawPixelFxShieldPulse],

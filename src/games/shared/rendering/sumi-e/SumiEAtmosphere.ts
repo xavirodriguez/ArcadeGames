@@ -12,6 +12,8 @@ import type { InkWashLayerSpec } from "../InkWashParallaxBackdrop";
 import { DEFAULT_INK_WASH_LAYERS, MOUNTAIN_INK_WASH_LAYERS, COASTAL_INK_WASH_LAYERS } from "../InkWashParallaxBackdrop";
 import { PARALLAX_FACTORS, type ParallaxLayerName, computeParallaxOffset } from "../ParallaxSystem";
 import type { VisualParticlePool } from "../VisualParticlePool";
+import { Skia, getPaint } from "../SkiaContext";
+import type { SkCanvas } from "../SkiaContext";
 import { SUMI_E_PALETTE } from "./SumiEPalette";
 
 /** Full atmospheric stack: sky void → far mountains → mid → architecture → near foliage. */
@@ -108,6 +110,26 @@ export function drawMistBandsCanvas(
     ctx.fillRect(0, b.y, w, b.h);
   }
   ctx.globalAlpha = 1;
+}
+
+/** Skia: soft horizontal mist rectangles with sine alpha modulation. */
+export function drawMistBandsSkia(
+  canvas: SkCanvas,
+  w: number,
+  bands: readonly MistBandGeometry[],
+  color = SUMI_E_PALETTE.paperWarm
+): void {
+  if (!Skia || !canvas) return;
+  const paint = getPaint();
+  if (!paint) return;
+
+  paint.setColor(Skia.Color(color));
+  for (const b of bands) {
+    const a = b.alpha * (0.7 + 0.3 * Math.sin(b.phase));
+    paint.setAlphaf(Math.min(1, a));
+    canvas.drawRect(Skia.XYWHRect(0, b.y, w, b.h), paint);
+  }
+  paint.setAlphaf(1);
 }
 
 // ─── Ambient particles (petals, ink residual, birds) ───────────────────────────

@@ -377,8 +377,14 @@ export class AsteroidsGame
     initializeAsteroidsRenderer(renderer, this.visualMod.theme ?? this.visualMod);
     SharedVFX.registerSharedVFX(renderer);
 
-    // Phase 1+2: sumi-e / shan-shui background + ink juice drawers (mountain landscape)
-    registerSumiEBackground(renderer, { aesthetic: "sumi-e", landscape: "mountain", force: true });
+    // Phase 1+2+3+4: sumi-e / shan-shui background with regional atmosphere, mist and quality settings
+    registerSumiEBackground(renderer, {
+      aesthetic: "sumi-e",
+      landscape: "mountain",
+      region: "mountain",
+      quality: "high",
+      force: true
+    });
     registerSumiEVFX(renderer);
 
     if (renderer.type === "canvas") {

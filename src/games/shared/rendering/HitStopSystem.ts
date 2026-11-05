@@ -1,5 +1,5 @@
-import { System, World } from "@tiny-aster/core";
-import type { CoreComponentRegistry } from "@tiny-aster/core";
+import { System } from "@tiny-aster/core";
+import type { CoreComponentRegistry, World } from "@tiny-aster/core";
 
 export const HitStopPriority = {
   LOW: 5,
@@ -19,7 +19,7 @@ export interface JuiceHitStopPolicyState {
   priority: number;
   /** Anti-chaining cooldown in seconds. GameplayFreeze remains the only active duration clock. */
   cooldownRemaining: number;
-  /** True while the canonical GameplayFreeze resource is owned by Juice. */
+  /** True while a positive finite Juice-owned GameplayFreeze countdown is active. */
   active: boolean;
 }
 
@@ -113,11 +113,11 @@ export class HitStopSystem extends System<CoreComponentRegistry> {
     this.runsWhileFrozen = true;
   }
 
-  public onRegister(world: World<CoreComponentRegistry>): void {
+  public override onRegister(world: World<CoreComponentRegistry>): void {
     ensureHitStopPolicy(world);
   }
 
-  public update(world: World<CoreComponentRegistry>, dt: number): void {
+  public override update(world: World<CoreComponentRegistry>, dt: number): void {
     const policy = ensureHitStopPolicy(world);
     const freeze = world.getResource<{ remaining?: number; source?: string }>("GameplayFreeze");
     const ownsActiveFreeze = policy.active &&

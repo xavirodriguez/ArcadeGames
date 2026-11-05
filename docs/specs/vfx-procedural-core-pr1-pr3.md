@@ -32,7 +32,11 @@ integer nearest-neighbor RGBA upscaling.
 linear, smoothstep, quadratic ease-in/ease-out and symmetric ease-in-out curves.
 Ordered, non-overlapping phases can be sampled at arbitrary progress values;
 gaps hold the preceding value. The sampler is renderer-independent and performs
-no per-sample allocation. Repeated render-loop consumers should use the compiled
+no per-sample allocation. `createVFXTimelineSampler` validates and snapshots the
+phase definitions once, then supports repeated sampling without per-frame setup.
+The one-shot `sampleVFXTimeline` helper validates the complete definition on each
+call and is intended for non-hot-path use. This is a calculation primitive, not
+an effect lifecycle.
 
 ## Integration contract
 

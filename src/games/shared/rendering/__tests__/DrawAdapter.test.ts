@@ -2,11 +2,11 @@ import { CanvasDrawAdapter, SkiaDrawAdapter } from "../DrawAdapter";
 
 jest.mock("../SkiaContext", () => {
   class MockPaint {
-    style: unknown;
-    color: unknown;
+    style: unknown = undefined;
+    color: unknown = undefined;
     alpha = 1;
-    strokeWidth: number | undefined;
-    maskFilter: unknown;
+    strokeWidth: number | undefined = undefined;
+    maskFilter: unknown = undefined;
     setStyle(style: unknown) { this.style = style; }
     setColor(color: unknown) { this.color = color; }
     setAlphaf(alpha: number) { this.alpha = alpha; }

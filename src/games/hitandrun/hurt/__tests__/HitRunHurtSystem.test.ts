@@ -260,6 +260,16 @@ describe("HitRunHurtSystem (Paso C)", () => {
     world.addComponent(enemy, { type: "Velocity", vx: 0, vy: 0, angularVelocity: 0 });
     world.addComponent(enemy, { type: "BeltElevation", z: 0, vz: 0, grounded: true });
     world.addComponent(enemy, { type: "Faction", value: "enemy" });
+    const enemyHitbox = world.createEntity();
+    world.addComponent(enemy, {
+      type: "MeleeAttack",
+      phase: "active",
+      phaseElapsed: 0.05,
+      hitboxEntity: enemyHitbox,
+      hitCount: 0,
+      hitEntityIds: [],
+      facing: 1
+    } as never);
     const source = spawnSource(100);
 
     hurt.enqueueHitForTest({
@@ -285,6 +295,10 @@ describe("HitRunHurtSystem (Paso C)", () => {
     expect(isPlayerControlLocked(world, enemy)).toBe(true);
     expect(velocity.vx).toBe(260);
     expect(elevation?.vz).toBe(200);
+    const melee = world.getComponent(enemy, "MeleeAttack") as { phase: string; hitboxEntity: number };
+    expect(melee.phase).toBe("recovery");
+    expect(melee.hitboxEntity).toBe(-1);
+    expect(world.hasEntity(enemyHitbox)).toBe(false);
   });
 
 });

@@ -8,6 +8,7 @@ import {
 } from "@tiny-aster/core";
 import { depthZOverlap, DEFAULT_HALF_DEPTH } from "../combat/HitVolume";
 import { isFriendly } from "../combat/faction";
+import { resolveHitRunDamage } from "../combat/HitRunCombatDefense";
 
 /**
  * HitRunCombatSystem — processes collision contacts for Hit&Run,
@@ -105,39 +106,41 @@ export class HitRunCombatSystem extends System<CoreComponentRegistry> {
     const prevHealth = healthComp.current;
     if (prevHealth <= 0) return;
 
-    const dmgAmount = damageComp.amount;
-    const nextHealth = Math.max(0, prevHealth - dmgAmount);
+    const sourceEntity = damageComp.sourceEntity ?? attacker;
+    const resolution = resolveHitRunDamage(world, sourceEntity, target, damageComp.amount);
+    const nextHealth = Math.max(0, prevHealth - resolution.healthDamage);
 
     const mutableHealth = world.getMutableComponent(target, "Health") as
       | { current: number }
       | undefined;
-    if (mutableHealth) {
-      mutableHealth.current = nextHealth;
-    }
+    if (mutableHealth) mutableHealth.current = nextHealth;
 
-    const sourceEntity = damageComp.sourceEntity ?? attacker;
-
+    const category = resolution.guardBroken
+      ? "guard-break"
+      : resolution.armorBroken
+        ? "armor-break"
+        : damageComp.category ?? "bullet";
     const eventBus = world.getEventBus() as EventBus;
-    if (eventBus) {
-      const hitPayload = {
+    if (eventBus && (resolution.healthDamage > 0 || resolution.guardBroken || resolution.armorBroken)) {
+      eventBus.emitDeferred("combat:hit", {
         targetEntity: target,
         sourceEntity,
         attackerEntity: attacker,
-        amount: dmgAmount,
+        amount: resolution.healthDamage,
         remainingHealth: nextHealth,
-        category: damageComp.category ?? "bullet"
-      };
-      eventBus.emitDeferred("combat:hit", hitPayload);
+        category,
+        guardBroken: resolution.guardBroken,
+        armorBroken: resolution.armorBroken
+      });
     }
 
     if (nextHealth <= 0) {
       world.getCommandBuffer().addComponent(target, { type: "Dead" });
-
       if (eventBus) {
         eventBus.emitDeferred("combat:death", {
           entity: target,
           sourceEntity,
-          category: damageComp.category ?? "bullet"
+          category
         });
       }
     }

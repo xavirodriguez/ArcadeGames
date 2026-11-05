@@ -17,7 +17,7 @@ export interface RegisterSharedJuiceSystemsOptions {
 
 /**
  * Registers HitStopSystem (and optionally KineticFlowSystem) on the world.
- * Safe to call once per game boot. Hit-stop policy is snapshot-backed simulation state;
+ * Safe to call once per game boot. Hit-stop policy runs in Simulation and is snapshot-backed;
  * KineticFlow remains a presentation-side mirror and does not affect gameplay RNG.
  */
 export function registerSharedJuiceSystems<

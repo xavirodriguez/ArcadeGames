@@ -611,7 +611,7 @@ export function drawPixelFxParry(draw: IDrawAdapter, world: import("@tiny-aster/
   draw.strokeCircle(0, 0, clashRadius * 0.52, color, Math.max(0.8, size * 0.025), flashAlpha * 0.72);
   draw.fillCircle(0, 0, size * (0.075 + PARRY_FLASH_ALPHA(p) * 0.09), color, flashAlpha);
   for (let i = 0; i < 8; i++) {
-    const angle = rotation + (i * Math.PI) / 4;
+    const angle = (i * Math.PI) / 4;
     const inner = size * (0.12 + (i % 2) * 0.035);
     const outer = burstReach * (0.72 + (i % 3) * 0.12);
     drawRotatedLine(draw, Math.cos(angle) * inner, Math.sin(angle) * inner,

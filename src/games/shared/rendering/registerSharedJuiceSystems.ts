@@ -1,6 +1,6 @@
 /**
  * registerSharedJuiceSystems.ts
- * One-call registration of shared juice / game-feel systems that depend on VFXWorldState.
+ * One-call registration of deterministic hit-stop policy and shared Juice presentation systems.
  *
  * Games that already call registerSharedVFX should also call this during system setup
  * so hit-stop cooldown policy advances through freezes and kinetic charge is mirrored into VFX state.

@@ -35,10 +35,12 @@ describe("Out Run scenery layout", () => {
   it("reduces sky, cloud and star counts in low quality", () => {
     const parallax = { farOffsetX: 0, midOffsetX: 0, nearOffsetX: 0 };
     const high = buildOutrunSceneryLayout(
-      makeState(), DEFAULT_OUTRUN_CONFIG, makeVisual({ hour: "night", quality: "high" }), parallax
+      makeState(), DEFAULT_OUTRUN_CONFIG,
+      makeVisual({ hour: "night", starAlphaFactor: 1, quality: "high" }), parallax
     );
     const low = buildOutrunSceneryLayout(
-      makeState(), DEFAULT_OUTRUN_CONFIG, makeVisual({ hour: "night", quality: "low" }), parallax
+      makeState(), DEFAULT_OUTRUN_CONFIG,
+      makeVisual({ hour: "night", starAlphaFactor: 1, quality: "low" }), parallax
     );
     expect(high.skyBands).toHaveLength(7);
     expect(low.skyBands).toHaveLength(4);
@@ -52,13 +54,16 @@ describe("Out Run scenery layout", () => {
   it("shows no stars outside night and keeps positions deterministic", () => {
     const parallax = { farOffsetX: 0, midOffsetX: 0, nearOffsetX: 0 };
     const day = buildOutrunSceneryLayout(
-      makeState(), DEFAULT_OUTRUN_CONFIG, makeVisual({ hour: "afternoon" }), parallax
+      makeState(), DEFAULT_OUTRUN_CONFIG,
+      makeVisual({ hour: "afternoon", starAlphaFactor: 0 }), parallax
     );
     const nightA = buildOutrunSceneryLayout(
-      makeState(), DEFAULT_OUTRUN_CONFIG, makeVisual({ hour: "night" }), parallax
+      makeState(), DEFAULT_OUTRUN_CONFIG,
+      makeVisual({ hour: "night", starAlphaFactor: 1 }), parallax
     );
     const nightB = buildOutrunSceneryLayout(
-      makeState(), DEFAULT_OUTRUN_CONFIG, makeVisual({ hour: "night" }), parallax
+      makeState(), DEFAULT_OUTRUN_CONFIG,
+      makeVisual({ hour: "night", starAlphaFactor: 1 }), parallax
     );
     expect(day.stars).toHaveLength(0);
     expect(nightA.stars).toEqual(nightB.stars);
@@ -67,13 +72,34 @@ describe("Out Run scenery layout", () => {
   it("creates three decor-specific mountain layers with cacheable profiles", () => {
     for (const decor of ["sierra", "coast", "desert"] as const) {
       const layout = buildOutrunSceneryLayout(
-        makeState(), DEFAULT_OUTRUN_CONFIG, makeVisual({ decor }),
+        makeState(), DEFAULT_OUTRUN_CONFIG, makeVisual({ decor, nextDecor: decor, decorBlend: 0 }),
         { farOffsetX: 1, midOffsetX: 2, nearOffsetX: 3 }
       );
       expect(layout.mountainLayers).toHaveLength(3);
       expect(layout.mountainLayers.map(layer => layer.layer)).toEqual(["far", "mid", "near"]);
       expect(layout.mountainLayers.every(layer => layer.profile.length >= 6 && layer.cacheKey.length > 0)).toBe(true);
     }
+  });
+  it("morphs mountain silhouettes between coast and desert profiles", () => {
+    const parallax = { farOffsetX: 0, midOffsetX: 0, nearOffsetX: 0 };
+    const coast = buildOutrunSceneryLayout(
+      makeState(), DEFAULT_OUTRUN_CONFIG,
+      makeVisual({ decor: "coast", nextDecor: "coast", decorBlend: 0 }), parallax
+    );
+    const desert = buildOutrunSceneryLayout(
+      makeState(), DEFAULT_OUTRUN_CONFIG,
+      makeVisual({ decor: "desert", nextDecor: "desert", decorBlend: 0 }), parallax
+    );
+    const blended = buildOutrunSceneryLayout(
+      makeState(), DEFAULT_OUTRUN_CONFIG,
+      makeVisual({ decor: "coast", nextDecor: "desert", decorBlend: 0.5 }), parallax
+    );
+    const coastPeak = coast.mountainLayers[0]!.profile[3]!.height;
+    const desertPeak = desert.mountainLayers[0]!.profile[3]!.height;
+    const midPeak = blended.mountainLayers[0]!.profile[3]!.height;
+    expect(coastPeak).not.toBe(desertPeak);
+    expect(midPeak).toBeGreaterThan(Math.min(coastPeak, desertPeak));
+    expect(midPeak).toBeLessThan(Math.max(coastPeak, desertPeak));
   });
   it("computes parallax deterministically from curvature and speed", () => {
     const state = makeState({ playerZ: 280, playerX: 0.25, speed: 8000, lapTime: 12 });

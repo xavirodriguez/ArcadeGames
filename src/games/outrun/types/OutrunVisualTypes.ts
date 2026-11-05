@@ -82,6 +82,8 @@ export interface OutrunVisualTuning {
   mountains: {
     parallax: { far: number; mid: number; near: number; baseDriftPxPerSecond: number; speedDriftPxPerSecond: number; curvatureScale: number };
     sierraProfile: { far: OutrunVisualPoint[]; mid: OutrunVisualPoint[]; near: OutrunVisualPoint[] };
+    coastProfile?: { far: OutrunVisualPoint[]; mid: OutrunVisualPoint[]; near: OutrunVisualPoint[] };
+    desertProfile?: { far: OutrunVisualPoint[]; mid: OutrunVisualPoint[]; near: OutrunVisualPoint[] };
     snowPeakAlpha: number;
     snowPeakHalfWidthPx: number;
     snowPeakMinimumHeightPx: number;
@@ -141,8 +143,21 @@ export interface OutrunVisualConfig {
 export interface OutrunVisualPaletteResource {
   stageIndex: number;
   stageProgress: number;
+  /** Ease-smoothed blend into the next stage (0 outside the transition window). */
+  transitionBlend: number;
   hour: OutrunHour;
+  /** Effective display hour after transition (may equal next hour near the boundary). */
+  nextHour: OutrunHour;
   decor: OutrunDecor;
+  nextDecor: OutrunDecor;
+  /** 0 = pure current decor profile, 1 = pure next decor profile. */
+  decorBlend: number;
+  /** 0–1 factor for night stars (ramps through twilight/dawn). */
+  starAlphaFactor: number;
+  /** 0–1 factor for headlights and night-only lighting. */
+  lightsFactor: number;
+  /** Normalized height multiplier for the sun/moon above the horizon. */
+  astroHeightFactor: number;
   tokens: OutrunPaletteTokens;
   shared: OutrunSharedPaletteTokens;
   skyBands: string[];

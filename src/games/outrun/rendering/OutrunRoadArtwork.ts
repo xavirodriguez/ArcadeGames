@@ -35,6 +35,17 @@ interface OutrunRoadSpeedLineInput {
 const clamp01 = (value: number): number => Math.max(0, Math.min(1, value));
 const fraction = (value: number): number => ((value % 1) + 1) % 1;
 
+/** Weighted decor presence during hour/stage transitions (0–1). */
+function decorWeight(
+  visualPalette: OutrunVisualPaletteResource,
+  target: OutrunVisualPaletteResource["decor"]
+): number {
+  const blend = clamp01(visualPalette.decorBlend ?? 0);
+  const current = visualPalette.decor === target ? 1 - blend : 0;
+  const next = (visualPalette.nextDecor ?? visualPalette.decor) === target ? blend : 0;
+  return clamp01(current + next);
+}
+
 /**
  * Resolves one road slice from the phase-2 palette. Geometry remains owned by
  * projectRoad; this helper only returns deterministic paint and stripe choices.
@@ -44,24 +55,28 @@ export function resolveOutrunRoadSegmentArtwork(
   depth: number,
   visualPalette: OutrunVisualPaletteResource
 ): OutrunRoadSegmentArtwork {
-  const { tokens, shared, tuning, decor } = visualPalette;
+  const { tokens, shared, tuning } = visualPalette;
   const stripeMix = tuning.road.stripeWhiteMix;
   const normalizedDepth = clamp01(depth);
   const rawGround = groundColorAtDepth(tokens, normalizedDepth, segmentIndex, stripeMix);
-  const groundColor = decor === "desert"
-    ? lerpColor(rawGround, tuning.decor.desertSandColor, tuning.decor.desertGroundMix)
+  const desertW = decorWeight(visualPalette, "desert");
+  const coastW = decorWeight(visualPalette, "coast");
+  const groundColor = desertW > 0.01
+    ? lerpColor(rawGround, tuning.decor.desertSandColor, tuning.decor.desertGroundMix * desertW)
     : rawGround;
   const rawWater = lerpColor(tokens.skyMid, tokens.skyLow, normalizedDepth);
-  const waterColor = Math.abs(segmentIndex % 2) === 1
+  const stripedWater = Math.abs(segmentIndex % 2) === 1
     ? lerpColor(rawWater, "#FFFFFF", stripeMix)
     : rawWater;
+  // Soft presence: only expose water when coast weight is meaningful.
+  const waterColor = coastW > 0.05 ? stripedWater : null;
 
   return {
     groundColor,
     roadColor: roadColorAtDepth(tokens, normalizedDepth, segmentIndex, stripeMix),
     kerbColor: Math.abs(segmentIndex % 2) === 0 ? tokens.kerbB : shared.cream,
     laneColor: shared.cream,
-    waterColor: decor === "coast" ? waterColor : null,
+    waterColor,
     drawLane: Math.abs(segmentIndex % 2) === 0,
     kerbWidthRatio: tuning.road.kerbWidthToRoadHalfWidth,
     laneMarkWidthRatio: tuning.road.laneMarkWidthToRoadHalfWidth

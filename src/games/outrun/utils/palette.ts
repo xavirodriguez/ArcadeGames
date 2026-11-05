@@ -158,6 +158,79 @@ export function paletteAtProgress(
 export const OUTRUN_PALETTE_TOKEN_KEYS = TOKEN_KEYS;
 
 
+/**
+ * Smooth 0–1 blend inside the last transitionFraction of a stage.
+ * Matches paletteAtProgress so decor/sky/lighting stay in lockstep.
+ */
+export function transitionBlendAtProgress(
+  stageProgress: number,
+  transitionFraction: number
+): number {
+  const fraction = clamp01(transitionFraction);
+  const p = clamp01(stageProgress);
+  if (fraction <= 0 || p <= 1 - fraction) return 0;
+  const blendProgress = Number(((p - (1 - fraction)) / fraction).toFixed(10));
+  return easeInOut(blendProgress);
+}
+
+/** Night-star visibility: ramps in during twilight, full at night, ramps out at dawn. */
+export function starAlphaFactorForStage(
+  hour: OutrunHour,
+  nextHour: OutrunHour,
+  transitionBlend: number
+): number {
+  const base = (h: OutrunHour): number => {
+    if (h === "night") return 1;
+    if (h === "twilight") return 0.55;
+    if (h === "dawn") return 0.2;
+    return 0;
+  };
+  const a = base(hour);
+  const b = base(nextHour);
+  return a + (b - a) * transitionBlend;
+}
+
+/** Headlight / night lighting factor (presentation only). */
+export function lightsFactorForStage(
+  hour: OutrunHour,
+  nextHour: OutrunHour,
+  transitionBlend: number
+): number {
+  const base = (h: OutrunHour): number => {
+    if (h === "night") return 1;
+    if (h === "twilight") return 0.35;
+    if (h === "dawn") return 0.15;
+    return 0;
+  };
+  const a = base(hour);
+  const b = base(nextHour);
+  return a + (b - a) * transitionBlend;
+}
+
+/**
+ * Relative sun/moon height above the horizon.
+ * Dawn/twilight sit low; noon is highest; night uses a mid moon.
+ */
+export function astroHeightFactorForStage(
+  hour: OutrunHour,
+  nextHour: OutrunHour,
+  transitionBlend: number
+): number {
+  const base = (h: OutrunHour): number => {
+    switch (h) {
+      case "dawn": return 0.55;
+      case "noon": return 1.45;
+      case "afternoon": return 0.85;
+      case "twilight": return 0.5;
+      case "night": return 0.95;
+      default: return 1;
+    }
+  };
+  const a = base(hour);
+  const b = base(nextHour);
+  return a + (b - a) * transitionBlend;
+}
+
 /** Purely resolves the visual palette resource from race progress and config. */
 export function createVisualPaletteResource(
   state: RaceStateComponent,
@@ -169,6 +242,10 @@ export function createVisualPaletteResource(
   const stagePosition = stageAtProgress(config.visual.stages, progress);
   const current = stagePosition.stage;
   const next = config.visual.stages[(stagePosition.stageIndex + 1) % config.visual.stages.length];
+  const transitionBlend = transitionBlendAtProgress(
+    stagePosition.stageProgress,
+    config.visual.transitionFraction
+  );
   const tokens = paletteAtProgress({
     current, next, palette: config.visual.palette,
     paletteColorblind: config.visual.paletteColorblind,
@@ -176,10 +253,22 @@ export function createVisualPaletteResource(
     transitionFraction: config.visual.transitionFraction
   }, stagePosition.stageProgress);
   return {
-    stageIndex: stagePosition.stageIndex, stageProgress: stagePosition.stageProgress,
-    hour: current.hour, decor: current.decor, tokens,
-    shared: config.visual.palette.shared, skyBands: skyBandsForPalette(tokens),
-    quality: config.visual.quality, paletteMode: config.visual.paletteMode,
+    stageIndex: stagePosition.stageIndex,
+    stageProgress: stagePosition.stageProgress,
+    transitionBlend,
+    hour: current.hour,
+    nextHour: next.hour,
+    decor: current.decor,
+    nextDecor: next.decor,
+    decorBlend: transitionBlend,
+    starAlphaFactor: starAlphaFactorForStage(current.hour, next.hour, transitionBlend),
+    lightsFactor: lightsFactorForStage(current.hour, next.hour, transitionBlend),
+    astroHeightFactor: astroHeightFactorForStage(current.hour, next.hour, transitionBlend),
+    tokens,
+    shared: config.visual.palette.shared,
+    skyBands: skyBandsForPalette(tokens),
+    quality: config.visual.quality,
+    paletteMode: config.visual.paletteMode,
     tuning: config.visual.tuning
   };
 }

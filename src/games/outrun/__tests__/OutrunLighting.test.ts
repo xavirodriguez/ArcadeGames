@@ -21,7 +21,8 @@ const state: RaceStateComponent = {
 function makeVisual(hour: OutrunVisualPaletteResource["hour"]): OutrunVisualPaletteResource {
   return {
     ...createVisualPaletteResource(state, roadData, DEFAULT_OUTRUN_CONFIG),
-    hour
+    hour,
+    lightsFactor: hour === "night" ? 1 : hour === "twilight" ? 0.35 : 0
   };
 }
 

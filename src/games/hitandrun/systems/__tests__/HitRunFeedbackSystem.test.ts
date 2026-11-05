@@ -242,8 +242,6 @@ describe("HitRunFeedbackSystem (Paso B)", () => {
         dirty: false
       });
     }
-    world.addComponent(heavyTarget, { type: "Faction", value: "enemy" });
-
     feedback.enqueueHitForTest({
       targetEntity: normalTarget,
       amount: 1,

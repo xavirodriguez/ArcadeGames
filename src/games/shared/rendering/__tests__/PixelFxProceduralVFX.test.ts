@@ -17,6 +17,9 @@ import {
   drawPixelFxTeleport,
   drawPixelFxSurfaceSkid,
   drawPixelFxMechanicalMotion,
+  drawPixelFxRicochet,
+  drawPixelFxCharge,
+  drawPixelFxShieldPulse,
   registerPixelFxProceduralVFX
 } from "../PixelFxProceduralVFX";
 
@@ -119,6 +122,36 @@ describe("PixelFX-inspired procedural VFX", () => {
     expect(drawForEntity(104729)).not.toEqual(drawForEntity(130363));
   });
 
+  it("choreographs shield pulse as a staged wave with a delayed echo", () => {
+    const early = createAdapter();
+    const earlyState = createWorld(0.36); // progress 0.1
+    drawPixelFxShieldPulse(early, earlyState.world, earlyState.entity);
+    const late = createAdapter();
+    const lateState = createWorld(0.08); // progress 0.8
+    drawPixelFxShieldPulse(late, lateState.world, lateState.entity);
+
+    expect(late.strokeCircle.mock.calls[0][2]).toBeGreaterThan(early.strokeCircle.mock.calls[0][2]);
+    expect(early.strokeCircle).toHaveBeenCalledTimes(2);
+    expect(late.strokeCircle).toHaveBeenCalledTimes(3);
+    expect(late.strokeCircle.mock.calls[2][5]).toBeGreaterThan(0);
+  });
+
+  it("animates charge buildup and ricochet release through temporal samplers", () => {
+    const early = createAdapter();
+    const earlyState = createWorld(0.32); // progress 0.2
+    drawPixelFxCharge(early, earlyState.world, earlyState.entity);
+    const late = createAdapter();
+    const lateState = createWorld(0.04); // progress 0.9
+    drawPixelFxCharge(late, lateState.world, lateState.entity);
+    expect(late.fillCircle.mock.calls[0][2]).toBeGreaterThan(early.fillCircle.mock.calls[0][2]);
+
+    const ricochetEarly = createAdapter();
+    drawPixelFxRicochet(ricochetEarly, earlyState.world, earlyState.entity);
+    const ricochetLate = createAdapter();
+    drawPixelFxRicochet(ricochetLate, lateState.world, lateState.entity);
+    expect(ricochetLate.strokeCircle.mock.calls[0][2]).toBeGreaterThan(ricochetEarly.strokeCircle.mock.calls[0][2]);
+  });
+
   it("draws the five additional procedural compositions", () => {
     const adapter = createAdapter();
     const { world, entity } = createWorld();
@@ -194,6 +227,9 @@ describe("PixelFX-inspired procedural VFX", () => {
     adapter.drawLine.mockClear();
     adapter.fillCircle.mockClear();
     drawPixelFxMechanicalMotion(adapter, world, entity);
+    drawPixelFxRicochet(adapter, world, entity);
+    drawPixelFxCharge(adapter, world, entity);
+    drawPixelFxShieldPulse(adapter, world, entity);
     expect(adapter.strokeCircle).toHaveBeenCalledTimes(3);
     expect(adapter.drawLine).toHaveBeenCalledTimes(16);
     expect(adapter.fillCircle).toHaveBeenCalledTimes(1);

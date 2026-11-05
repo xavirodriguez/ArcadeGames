@@ -56,6 +56,12 @@ class JuiceSystem extends System<any> {
 }
 
 describe("GameplayFreeze (Soft Pause) System Tests", () => {
+  it("registers the core GameplayFreeze resource for deterministic snapshots", () => {
+    const snapshotWorld = new World<any>();
+    expect(snapshotWorld.isSnapshotResourceRegistered("GameplayFreeze")).toBe(true);
+  });
+
+
   let world: World<any>;
   let inputSys: TestInputSystem;
   let movementSys: TestMovementSystem;

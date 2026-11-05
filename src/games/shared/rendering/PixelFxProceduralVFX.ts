@@ -157,12 +157,16 @@ export function drawPixelFxExplosion(
     const tangent = size * (0.07 + (i % 3) * 0.025) * (1 - p * 0.35);
     const px = -Math.sin(angle) * tangent;
     const py = Math.cos(angle) * tangent;
-    const tail = rotatePoint(px, py, p * (i % 2 === 0 ? 0.8 : -0.8));
+    const tailRotation = p * (i % 2 === 0 ? 0.8 : -0.8);
+    const tailCos = Math.cos(tailRotation);
+    const tailSin = Math.sin(tailRotation);
+    const tailX = px * tailCos - py * tailSin;
+    const tailY = px * tailSin + py * tailCos;
     const shardAlpha = alpha * EXPLOSION_SHARD_ALPHA(p);
-    draw.drawLine(x - tail.x, y - tail.y, x + tail.x, y + tail.y, color, Math.max(1, size * 0.045), shardAlpha);
+    draw.drawLine(x - tailX, y - tailY, x + tailX, y + tailY, color, Math.max(1, size * 0.045), shardAlpha);
     draw.drawLine(
-      x + tail.x,
-      y + tail.y,
+      x + tailX,
+      y + tailY,
       x + Math.cos(angle) * size * 0.09,
       y + Math.sin(angle) * size * 0.09 + gravity * 0.3,
       color,

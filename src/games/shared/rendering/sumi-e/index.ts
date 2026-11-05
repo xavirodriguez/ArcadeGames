@@ -57,6 +57,8 @@ export {
   drawMistBandsSkia,
   spawnAmbientParticle,
   spawnAmbientBand,
+  drawAmbientParticlesCanvas,
+  drawAmbientParticlesSkia,
   cameraXForInkLayer,
   inkDepthToParallaxLayer,
   type AtmospherePreset,
@@ -66,6 +68,16 @@ export {
   type SumiERegionId,
   type RegionalAtmosphere
 } from "./SumiEAtmosphere";
+
+export {
+  SumiEAmbientSystem,
+  registerSumiEAmbientSystem,
+  ensureSumiEAmbientPool,
+  SUMI_E_AMBIENT_POOL_RESOURCE,
+  SUMI_E_REGION_RESOURCE,
+  SUMI_E_VIEWPORT_RESOURCE,
+  type SumiEAmbientSystemOptions
+} from "./SumiEAmbientSystem";
 
 // Phase 4 — performance, a11y, debug
 export {

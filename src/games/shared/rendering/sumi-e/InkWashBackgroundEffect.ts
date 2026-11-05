@@ -1,7 +1,7 @@
 /**
  * InkWashBackgroundEffect.ts
  * Registrable background-effect adapters for Canvas and Skia that render
- * the shared InkWashParallaxBackdrop + optional mist bands / debug overlay.
+ * the shared InkWashParallaxBackdrop + optional mist bands / ambient particles / debug overlay.
  *
  * Usage (inside a game's registerVisuals):
  *
@@ -25,10 +25,14 @@ import {
   computeMistBands,
   drawMistBandsCanvas,
   drawMistBandsSkia,
+  drawAmbientParticlesCanvas,
+  drawAmbientParticlesSkia,
   DEFAULT_MIST_BANDS,
   type MistBandSpec,
   type SumiERegionId
 } from "./SumiEAtmosphere";
+import type { VisualParticlePool } from "../VisualParticlePool";
+import { SUMI_E_AMBIENT_POOL_RESOURCE } from "./SumiEAmbientSystem";
 import {
   resolveSumiERenderSettings,
   selectLayers,
@@ -48,20 +52,12 @@ export interface InkWashEffectOptions {
   inkColor?: string;
   paperColor?: string;
   alphaScale?: number;
-  /**
-   * How to obtain camera X each frame.
-   * Default: 0 (static). Games with scrolling cameras should pass a resolver.
-   */
   getCameraX?: (world: World<CoreComponentRegistry>) => number;
-  /** Viewport size resolver (needed for Skia when canvas size is not implicit). */
   getViewport?: (world: World<CoreComponentRegistry>) => { w: number; h: number };
-  /** Mist band specs (Phase 3). When omitted and settings.mist is true, DEFAULT_MIST_BANDS is used. */
   mistBands?: readonly MistBandSpec[];
-  /** Quality + accessibility settings (Phase 4). Defaults to high. */
   settings?: SumiERenderSettings;
   quality?: SumiEQualityPreset;
   accessibility?: AccessibilityOverrides;
-  /** Region id for debug overlay labeling. */
   region?: SumiERegionId | string;
 }
 
@@ -92,7 +88,6 @@ function resolveOptions(
     };
   }
 
-  // AestheticThemeConfig shape
   if ("id" in themeOrOpts && "useInkWash" in themeOrOpts) {
     const t = themeOrOpts as AestheticThemeConfig;
     const settings = resolveSumiERenderSettings("high");
@@ -127,15 +122,10 @@ function resolveOptions(
   };
 }
 
-/** Cosmetic clock for mist phase — not gameplay-affecting. */
 function mistTimeSec(): number {
   return (typeof performance !== "undefined" ? performance.now() : Date.now()) / 1000;
 }
 
-/**
- * Creates a Canvas EffectDrawer that paints the ink-wash parallax backdrop
- * plus optional mist bands and debug overlay.
- */
 export function createInkWashCanvasEffect(
   themeOrOpts?: AestheticThemeConfig | InkWashEffectOptions
 ): EffectDrawer<CanvasRenderingContext2D, CoreComponentRegistry> {
@@ -159,6 +149,13 @@ export function createInkWashCanvasEffect(
         drawMistBandsCanvas(ctx, w, mist, opts.paperColor);
       }
 
+      if (opts.settings.ambientParticles) {
+        const pool = world.getResource<VisualParticlePool>(SUMI_E_AMBIENT_POOL_RESOURCE);
+        if (pool) {
+          drawAmbientParticlesCanvas(ctx, pool.getActiveParticles());
+        }
+      }
+
       if (world.getResource<boolean>(SUMI_E_DEBUG_RESOURCE) === true) {
         const snapshot: SumiEDebugSnapshot = {
           cameraX,
@@ -173,10 +170,6 @@ export function createInkWashCanvasEffect(
   };
 }
 
-/**
- * Creates a Skia EffectDrawer that paints the ink-wash parallax backdrop
- * plus optional mist bands.
- */
 export function createInkWashSkiaEffect(
   themeOrOpts?: AestheticThemeConfig | InkWashEffectOptions
 ): EffectDrawer<SkCanvas, CoreComponentRegistry> {
@@ -198,9 +191,15 @@ export function createInkWashSkiaEffect(
         const mist = computeMistBands(vp.h, mistTimeSec(), cameraX, opts.mistBands);
         drawMistBandsSkia(canvas, vp.w, mist, opts.paperColor);
       }
+
+      if (opts.settings.ambientParticles) {
+        const pool = world.getResource<VisualParticlePool>(SUMI_E_AMBIENT_POOL_RESOURCE);
+        if (pool) {
+          drawAmbientParticlesSkia(canvas, pool.getActiveParticles());
+        }
+      }
     }
   };
 }
 
-/** Canonical effect name used across the suite. */
 export const INK_WASH_EFFECT_NAME = "ink-wash-parallax" as const;

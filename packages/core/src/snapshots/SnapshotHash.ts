@@ -144,10 +144,7 @@ function hashSnapshotResourceState(
   initialHash: number,
   snapshot: { snapshotResourceKeys?: string[]; snapshotResources?: Record<string, unknown> }
 ): number {
-  if (snapshot.snapshotResourceKeys === undefined && snapshot.snapshotResources === undefined) {
-    return initialHash;
-  }
-
+  if (snapshot.snapshotResourceKeys === undefined && snapshot.snapshotResources === undefined) return initialHash;
   let hash = hashInt32(initialHash, 0x52535243);
   const keys = (snapshot.snapshotResourceKeys ?? []).slice().sort(compareStableKeys);
   hash = hashInt32(hash, keys.length);

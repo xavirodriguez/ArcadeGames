@@ -3,6 +3,7 @@ import { SoADeserializer } from "../snapshots/SoADeserializer";
 import { NetworkTransport } from "./NetworkTransport";
 import { NullTransport } from "./NullTransport";
 import { ComponentRegistry } from "../ecs/Component";
+import { ComponentCloner } from "../ecs/ComponentCloner";
 
 /**
  * Interface with exact ECS signatures for world mutations.
@@ -253,6 +254,14 @@ export class NetworkReplicationUtils {
     if (delta.nextEntityId !== undefined) base.nextEntityId = delta.nextEntityId;
     if (delta.entities !== undefined) base.entities = [...delta.entities];
     if (delta.freeEntities !== undefined) base.freeEntities = [...delta.freeEntities];
+
+    if (delta.snapshotResourceKeys !== undefined || delta.snapshotResources !== undefined) {
+      if (delta.snapshotResourceKeys === undefined || delta.snapshotResources === undefined) {
+        throw new Error("[NetworkReplicationUtils] Snapshot resource keys and values must be provided together.");
+      }
+      base.snapshotResourceKeys = [...delta.snapshotResourceKeys];
+      base.snapshotResources = ComponentCloner.cloneComponent(delta.snapshotResources);
+    }
 
     if (delta.isSoA !== undefined && base.isSoA !== delta.isSoA) {
       (base as { isSoA?: boolean }).isSoA = delta.isSoA;

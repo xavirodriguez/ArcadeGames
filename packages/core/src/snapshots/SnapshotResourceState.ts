@@ -27,8 +27,8 @@ function assertSnapshotValue(value: unknown, resourceName: string, path: string,
   if (value instanceof WeakMap || value instanceof WeakSet || value instanceof Promise) {
     throw new Error(`[Snapshot] Resource "${resourceName}" contains a non-serializable object at ${path}.`);
   }
-
   if (value instanceof Date || value instanceof ArrayBuffer || ArrayBuffer.isView(value)) return;
+
   if (!(Array.isArray(value) || value instanceof Map || value instanceof Set)) {
     const prototype = Object.getPrototypeOf(value);
     if (prototype !== Object.prototype && prototype !== null) {
@@ -62,7 +62,9 @@ function assertSnapshotValue(value: unknown, resourceName: string, path: string,
 }
 
 /** Captures only explicitly registered resources; presentation and service resources stay outside snapshots. */
-export function captureSnapshotResources(internal: InternalWorldAccess): SnapshotResourceState {
+export function captureSnapshotResources(
+  internal: Pick<InternalWorldAccess, "resources" | "snapshotResourceNames">
+): SnapshotResourceState {
   const snapshotResourceKeys = Array.from(internal.snapshotResourceNames).sort();
   const snapshotResources: Record<string, unknown> = Object.create(null) as Record<string, unknown>;
 
@@ -78,18 +80,34 @@ export function captureSnapshotResources(internal: InternalWorldAccess): Snapsho
 
 /** Restores the exact registered-resource set and its captured values. */
 export function restoreSnapshotResources(
-  internal: InternalWorldAccess,
+  internal: Pick<InternalWorldAccess, "resources" | "snapshotResourceNames">,
   state: Partial<SnapshotResourceState>
 ): void {
-  if (state.snapshotResourceKeys === undefined || state.snapshotResources === undefined) return;
+  const hasKeys = state.snapshotResourceKeys !== undefined;
+  const hasValues = state.snapshotResources !== undefined;
+  if (!hasKeys && !hasValues) return;
+  if (!hasKeys || !hasValues) {
+    throw new Error("[Snapshot] Snapshot resource keys and values must be provided together.");
+  }
 
-  const keys = state.snapshotResourceKeys;
+  const keys = state.snapshotResourceKeys!;
+  const values = state.snapshotResources!;
   const keySet = new Set<string>();
   for (const name of keys) {
     if (typeof name !== "string" || name.length === 0 || keySet.has(name)) {
       throw new Error("[Snapshot] Invalid or duplicate snapshot resource key.");
     }
     keySet.add(name);
+  }
+
+  const restoredValues = new Map<string, unknown>();
+  for (const name of Object.keys(values)) {
+    if (!keySet.has(name)) {
+      throw new Error(`[Snapshot] Resource value "${name}" is not present in snapshotResourceKeys.`);
+    }
+    const value = values[name];
+    assertSnapshotValue(value, name, name, new WeakSet<object>());
+    restoredValues.set(name, ComponentCloner.cloneComponent(value));
   }
 
   for (const name of internal.snapshotResourceNames) {
@@ -99,18 +117,8 @@ export function restoreSnapshotResources(
   internal.snapshotResourceNames.clear();
   for (const name of keys) internal.snapshotResourceNames.add(name);
 
-  for (const name of Object.keys(state.snapshotResources)) {
-    if (!keySet.has(name)) {
-      throw new Error(`[Snapshot] Resource value "${name}" is not present in snapshotResourceKeys.`);
-    }
-    const value = state.snapshotResources[name];
-    assertSnapshotValue(value, name, name, new WeakSet<object>());
-    internal.resources.set(name, ComponentCloner.cloneComponent(value));
-  }
-
+  for (const [name, value] of restoredValues) internal.resources.set(name, value);
   for (const name of keys) {
-    if (!Object.prototype.hasOwnProperty.call(state.snapshotResources, name)) {
-      internal.resources.delete(name);
-    }
+    if (!restoredValues.has(name)) internal.resources.delete(name);
   }
 }

@@ -44,14 +44,9 @@ export interface BaseWorldSnapshot {
    * The current simulation frame/tick count.
    */
   tick: number;
-  /**
-   * Names explicitly registered for rollback-safe resource capture.
-   * Missing values remain registered but are restored as absent.
-   */
+  /** Registered resource names, including registered resources that are currently absent. */
   snapshotResourceKeys?: string[];
-  /**
-   * Plain-data values for registered resources, shared by AoS and SoA layouts.
-   */
+  /** Plain-data values captured for explicitly registered resources. */
   snapshotResources?: Record<string, unknown>;
 }
 
@@ -169,13 +164,14 @@ export type SnapshotDelta = Partial<BaseWorldSnapshot> & {
  * **Serializable state only**: snapshots capture primitives, arrays, plain objects, Map, Set,
  * Date, ArrayBuffer, DataView, and typed arrays. The clone utility preserves circular references,
  * but snapshot hashing requires acyclic component data. The following are not restored as live
- * resources or full class instances:
- * - Functions and closures.
- * - Class prototypes, methods, and private state.
- * - External/native resources (e.g. GPU buffers, DOM elements, AudioContext handles).
- * - Transient output/presentation components listed in SnapshotExclusionPolicy.
+ * resources or full class instances by default. World resources are excluded unless their names are
+ * explicitly registered with `world.registerSnapshotResource(name)`; registered values must be plain
+ * serializable data (primitives, arrays, plain objects, Map, Set, Date, ArrayBuffer and typed arrays).
+ * Functions, symbols, cycles, class instances, and external/native handles are rejected for registered
+ * resource values. Transient output/presentation components remain excluded by SnapshotExclusionPolicy.
  *
- * Reinitialize external resources after restoration. Keep authoritative input in snapshots and hashes.
+ * Reinitialize external resources after restoration. Keep authoritative input and deterministic policy
+ * state in registered resources or components so rollback and snapshot hashes include them.
  * @public
  */
 export type WorldSnapshot = AoSWorldSnapshot | SoAWorldSnapshot;

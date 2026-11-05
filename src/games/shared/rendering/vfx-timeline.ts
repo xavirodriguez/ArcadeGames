@@ -52,18 +52,26 @@ export function easeProgress(progress: number, easing: VFXEasing = "linear"): nu
 export function sampleVFXTimeline(progress: number, phases: readonly VFXTimelinePhase[]): number {
   const t = clamp(finiteNumber(progress, "progress"), 0, 1);
   if (phases.length === 0) throw new RangeError("phases must not be empty");
+
+  // Validate the complete definition before sampling so malformed later phases
+  // cannot be hidden by an early return.
   let previousEnd = 0;
-  let previousValue = phases[0].from;
   for (let i = 0; i < phases.length; i++) {
     const phase = phases[i];
     validatePhase(phase, i);
-    if (i > 0 && phase.start < previousEnd) throw new RangeError(`phases[${i}] overlaps or precedes the previous phase`);
+    if (i > 0 && phase.start < previousEnd) {
+      throw new RangeError(`phases[${i}] overlaps or precedes the previous phase`);
+    }
+    previousEnd = phase.end;
+  }
+
+  let previousValue = phases[0].from;
+  for (const phase of phases) {
     if (t < phase.start) return previousValue;
     if (t <= phase.end) {
       const localProgress = (t - phase.start) / (phase.end - phase.start);
       return phase.from + (phase.to - phase.from) * easeProgress(localProgress, phase.easing);
     }
-    previousEnd = phase.end;
     previousValue = phase.to;
   }
   return previousValue;

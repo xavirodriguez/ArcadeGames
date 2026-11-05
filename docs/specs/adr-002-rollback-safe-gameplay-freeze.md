@@ -46,5 +46,5 @@ Game-specific producers that guard an entire catalog event with `!world.isReSimu
 
 - Run `packages/core/tests/GameplayFreeze.test.ts`, `packages/core/tests/SnapshotResources.test.ts`, and `src/games/shared/rendering/__tests__/JuiceOrchestrator.test.ts`, plus typecheck/build in CI.
 - Verify multiplayer rollback end-to-end.
-- Migrate direct game-specific freeze writers (including Pong and Space Invaders damage paths) in separate game-level slices. They remain external owners and are not overridden by Juice.
+- Migrate remaining direct game-specific freeze writers (notably Space Invaders damage paths) in separate game-level slices. They remain external owners and are not overridden by Juice.
 

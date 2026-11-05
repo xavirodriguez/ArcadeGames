@@ -30,9 +30,9 @@ Provide an in-app workbench for inspecting and tuning the twenty existing PixelF
 
 - Canvas live preview is available on web. The Skia picture preview is rendered through the native Skia surface when the Skia runtime is available.
 - The Lab reports the shared 20/20 registration contract; it does not claim pixel-diff parity or visual equivalence across Canvas and Skia.
-- Presets are built-in reproducible configurations, not persisted user-authored scenarios.
+- Presets are built-in reproducible configurations, not persisted user-authored scenarios. Their seed is passed as the stable entity identity; effects that derive variation from entity identity (currently Explosion) use it, while other effects remain unchanged.
 - No effect authoring, new gameplay events, ECS entities, scheduler, animation clock, lifetime manager, particle engine or PixelFX runtime dependency is introduced.
 
 ## Validation
 
-The focused model test verifies the thirteen unique production drawers, family-correct descriptor creation and distinct semantic profile resolution. CI/Jest and app typecheck results must be read from the PR checks; authored tests are not a claim of execution.
+The focused model test verifies the twenty unique production drawers, family-correct descriptor creation and distinct semantic profile resolution. Explosion tests also verify stable entity-seeded geometry. CI/Jest and app typecheck results must be read from the PR checks; authored tests are not a claim of execution.

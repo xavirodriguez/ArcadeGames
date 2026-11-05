@@ -1,4 +1,4 @@
-import { World, CoreComponentRegistry } from "@tiny-aster/core";
+import { World, CoreComponentRegistry, SystemPhase } from "@tiny-aster/core";
 import { JuiceOrchestrator, JUICE_CATALOG } from "../JuiceOrchestrator";
 import { HitStopSystem, HitStopPriority, requestHitStop, isHitStopActive } from "../HitStopSystem";
 import { KineticFlowSystem } from "../KineticFlowSystem";
@@ -110,8 +110,9 @@ describe("JuiceOrchestrator Unit Tests & Golden Replays", () => {
     });
 
     it("should keep the anti-chaining cooldown after the scheduler expires hit-stop", () => {
+      world.addSystem(hitStopSys, { phase: SystemPhase.Simulation });
       requestHitStop(world, 50, HitStopPriority.NORMAL);
-      hitStopSys.update(world, 0.05);
+      world.update(0.05);
       expect(getVFXState(world).hitStopActive).toBe(false);
       expect(getVFXState(world).hitStopCooldown).toBeCloseTo(0.05, 5);
       expect(requestHitStop(world, 50, HitStopPriority.NORMAL)).toBe(false);

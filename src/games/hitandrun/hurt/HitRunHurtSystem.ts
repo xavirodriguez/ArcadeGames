@@ -64,8 +64,13 @@ export class HitRunHurtSystem extends CombatHitListenerSystem<CombatHitPayload> 
         hit.attackCategory === "throw" ||
         hit.attackCategory === "special" ||
         hit.category === "guard-break";
+      const exceedsPoiseThreshold = hit.amount >= config.staggerDamageThreshold;
       const staggerSeconds = hit.staggerSeconds ??
-        (isHeavy ? config.heavyHitStaggerSeconds : isPlayer ? 0 : config.enemyStaggerSeconds);
+        (isHeavy
+          ? config.heavyHitStaggerSeconds
+          : exceedsPoiseThreshold && !isPlayer
+            ? config.enemyStaggerSeconds
+            : 0);
       const hitstunSeconds = hit.hitstunSeconds ?? baseHitstun;
       const fallbackKnockbackX = isPlayer
         ? config.playerKnockbackX

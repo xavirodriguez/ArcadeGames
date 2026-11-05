@@ -16,6 +16,8 @@ export interface InternalWorldAccess<TComponents extends ComponentRegistry = Com
   _structureVersion: number;
   _stateVersion: number;
   _tick: number;
+  resources: Map<string, unknown>;
+  snapshotResourceNames: Set<string>;
   entityComponentSets: Map<number, Set<string>>;
   componentMaps: Map<string, ComponentStorage<unknown>>;
   componentIndex: Map<string, Set<number>>;

@@ -189,7 +189,8 @@ export class ComboMeleeSystem extends System<CoreComponentRegistry> {
         remainingHealth: next,
         category: resolution.guardBroken ? "guard-break" : resolution.armorBroken ? "armor-break" : "throw",
         guardBroken: resolution.guardBroken,
-        armorBroken: resolution.armorBroken
+        armorBroken: resolution.armorBroken,
+        blocked: resolution.blocked
       });
       if (next <= 0) {
         world.getCommandBuffer().addComponent(best, { type: "Dead" });
@@ -279,7 +280,8 @@ export class ComboMeleeSystem extends System<CoreComponentRegistry> {
           remainingHealth: next,
           category: resolution.guardBroken ? "guard-break" : resolution.armorBroken ? "armor-break" : "special",
           guardBroken: resolution.guardBroken,
-          armorBroken: resolution.armorBroken
+          armorBroken: resolution.armorBroken,
+          blocked: resolution.blocked
         });
         if (next <= 0) {
           world.getCommandBuffer().addComponent(e, { type: "Dead" });

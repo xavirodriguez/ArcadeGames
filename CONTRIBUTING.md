@@ -83,3 +83,5 @@ The current `pnpm run check:game-patterns` implementation enforces three guard g
 All coding agents must follow [the operating contract](docs/agents/OPERATING_CONTRACT.md) and consult the relevant ledgers under `docs/agents/`. Every recurring defect must result in an executable regression test or guard, not just a documentation note.
 
 Run `pnpm run check:agent-guardrails` for the shared architecture and contract checks. The pull-request CI workflow runs the same command.
+
+For changes to a game's lifecycle or deterministic simulation contract, adopt `defineGameContractSuite` from `src/games/shared/testing/GameContractSuite.ts` and follow [the shared game contract guide](docs/GAME_CONTRACTS.md). Before merging to `master`, follow [the branch protection policy](docs/BRANCH_PROTECTION.md).

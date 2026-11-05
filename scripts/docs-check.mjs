@@ -151,7 +151,7 @@ if (
   !identityDoc.includes(`\`${rootExpoConfig.slug}\``) ||
   !identityDoc.includes(`\`${rootExpoConfig.scheme}\``) ||
   !identityDoc.includes(`\`${rootExpoConfig.ios.bundleIdentifier}\``) ||
-  !identityDoc.includes(`\`${rootExpoConfig.android.package}\`) ||
+  !identityDoc.includes(`\`${rootExpoConfig.android.package}\``) ||
   !identityDoc.includes(`\`${rootExpoConfig.owner}\``) ||
   !identityDoc.includes(`\`${rootExpoConfig.extra.eas.projectId}\``) ||
   !identityDoc.includes(`\`${serverManifest.name}\``)

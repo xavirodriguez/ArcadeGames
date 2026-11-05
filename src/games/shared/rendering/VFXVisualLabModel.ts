@@ -106,7 +106,13 @@ export const VFX_LAB_PRESETS: readonly VFXLabPreset[] = [
   { schemaVersion: 1, id: "target-warning-neon", label: "Target Warning / Neon", effect: "pixelfx_target_warning", profile: "arcade-neon", progress: 0.18, size: 50, rotation: 0.18, seed: 293867 },
   { schemaVersion: 1, id: "teleport-neon", label: "Teleport / Neon", effect: "pixelfx_teleport", profile: "arcade-neon", progress: 0.46, size: 56, rotation: 0.3, seed: 318137 },
   { schemaVersion: 1, id: "surface-skid-sumi", label: "Surface Skid / Sumi-e", effect: "pixelfx_surface_skid", profile: "sumi-e", progress: 0.38, size: 52, rotation: 0.12, seed: 342347 },
-  { schemaVersion: 1, id: "mechanical-motion-neon", label: "Mechanical Motion / Neon", effect: "pixelfx_mechanical_motion", profile: "arcade-neon", progress: 0.32, size: 58, rotation: -0.2, seed: 366013 }
+  { schemaVersion: 1, id: "mechanical-motion-neon", label: "Mechanical Motion / Neon", effect: "pixelfx_mechanical_motion", profile: "arcade-neon", progress: 0.32, size: 58, rotation: -0.2, seed: 366013 },
+  { schemaVersion: 1, id: "pickup-neon", label: "Pickup / Neon", effect: "pixelfx_pickup", profile: "arcade-neon", progress: 0.35, size: 44, rotation: 0, seed: 389423 },
+  { schemaVersion: 1, id: "pickup-sumi", label: "Pickup / Sumi-e", effect: "pixelfx_pickup", profile: "sumi-e", progress: 0.48, size: 46, rotation: 0.25, seed: 412807 },
+  { schemaVersion: 1, id: "paddle-impact-neon", label: "Paddle Impact / Neon", effect: "pixelfx_paddle_impact", profile: "arcade-neon", progress: 0.25, size: 50, rotation: 1.57, seed: 436219 },
+  { schemaVersion: 1, id: "brick-shatter-sumi", label: "Brick Shatter / Sumi-e", effect: "pixelfx_brick_shatter", profile: "sumi-e", progress: 0.52, size: 54, rotation: -0.35, seed: 459673 },
+  { schemaVersion: 1, id: "muzzle-neon", label: "Muzzle / Neon", effect: "pixelfx_muzzle", profile: "arcade-neon", progress: 0.2, size: 40, rotation: 0, seed: 483161 },
+  { schemaVersion: 1, id: "shield-crack-sumi", label: "Shield Crack / Sumi-e", effect: "pixelfx_shield_crack", profile: "sumi-e", progress: 0.44, size: 56, rotation: -0.15, seed: 506689 }
 ];
 
 const SEMANTIC_ROLE_BY_FAMILY: Record<VFXFamily, VFXLabSemanticRole> = {

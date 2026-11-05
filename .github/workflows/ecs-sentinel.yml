@@ -1,5 +1,8 @@
 name: ECS Core Sentinel
 
+permissions:
+  contents: read
+
 on:
   pull_request:
     branches: [master, develop]
@@ -63,6 +66,9 @@ jobs:
       - name: Check Code Duplication Ratchet
         run: pnpm run check:duplication
 
+      - name: Test AST determinism-linter scope
+        run: pnpm run test:determinism-scope
+
       - name: 3. Run AST Determinism Linter (ts-morph)
         id: ast_linter
         run: |
@@ -77,6 +83,17 @@ jobs:
           # Corre la suite de tests unitarios del core asegurando que NODE_ENV=development
           # capture cualquier mutación directa prohibida durante world.isUpdating
           pnpm --filter @tiny-aster/core test
+
+      - name: Upload JSCPD clone report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jscpd-clone-report
+          path: |
+            report/jscpd-report.json
+            report/jscpd-report.md
+          if-no-files-found: ignore
+          retention-days: 14
 
   # ---------------------------------------------------------------------------
   # FASE 2: Pruebas de Determinismo y Simulaciones (Solo si FASE 1 pasa)

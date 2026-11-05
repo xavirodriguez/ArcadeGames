@@ -103,34 +103,47 @@ if (!fs.existsSync(BASELINE_FILE)) {
 
 const baseline: BaselineData = JSON.parse(fs.readFileSync(BASELINE_FILE, "utf-8"));
 
-const regressions: Array<{
+interface TypecastRegression {
   file: string;
   current: FileTypecastCounts;
-  baselineTotal: number;
-  increase: number;
-}> = [];
+  baselineAny: number;
+  baselineUnknown: number;
+  anyIncrease: number;
+  unknownIncrease: number;
+}
 
+const regressions: TypecastRegression[] = [];
 let totalProgressReductions = 0;
 
-// Inspect current files against baseline
+// Compare each assertion category independently. A reduction in one category
+// must never mask a regression in the other.
 for (const [file, current] of Object.entries(sortedCurrentCounts)) {
-  const baseTotal = baseline[file] ? baseline[file].total : 0;
-  if (current.total > baseTotal) {
+  const base = baseline[file];
+  const baselineAny = base?.anyCount ?? 0;
+  const baselineUnknown = base?.unknownCount ?? 0;
+  const anyIncrease = Math.max(0, current.anyCount - baselineAny);
+  const unknownIncrease = Math.max(0, current.unknownCount - baselineUnknown);
+
+  if (anyIncrease > 0 || unknownIncrease > 0) {
     regressions.push({
       file,
       current,
-      baselineTotal: baseTotal,
-      increase: current.total - baseTotal
+      baselineAny,
+      baselineUnknown,
+      anyIncrease,
+      unknownIncrease
     });
-  } else if (current.total < baseTotal) {
-    totalProgressReductions += baseTotal - current.total;
   }
+
+  totalProgressReductions +=
+    Math.max(0, baselineAny - current.anyCount) +
+    Math.max(0, baselineUnknown - current.unknownCount);
 }
 
-// Inspect files in baseline that no longer have any typecasts
+// Inspect files in baseline that no longer have any type assertions.
 for (const [file, base] of Object.entries(baseline)) {
   if (!sortedCurrentCounts[file]) {
-    totalProgressReductions += base.total;
+    totalProgressReductions += base.anyCount + base.unknownCount;
   }
 }
 
@@ -138,17 +151,17 @@ console.log(`🤖 Typecast Ratchet Linter Results ('as any' / 'as unknown')`);
 console.log(`===========================================================`);
 
 if (regressions.length > 0) {
-  console.error(`❌ REGRESION DE TIPADO DETECTADA: ${regressions.length} archivo(s) incrementaron 'as any' / 'as unknown':\n`);
+  console.error(`❌ TYPECAST REGRESSION: ${regressions.length} file(s) exceeded an individual category baseline:\n`);
   for (const reg of regressions) {
     console.error(
-      `  - ${reg.file}: actual=${reg.current.total} (any: ${reg.current.anyCount}, unknown: ${reg.current.unknownCount}) vs baseline=${reg.baselineTotal} (+${reg.increase} nuevos)`
+      `  - ${reg.file}: as any=${reg.current.anyCount} (baseline ${reg.baselineAny}, +${reg.anyIncrease}); as unknown=${reg.current.unknownCount} (baseline ${reg.baselineUnknown}, +${reg.unknownIncrease})`
     );
   }
-  console.error(`\nFavor de remover los nuevos typecasts e inferir/tipar adecuadamente.`);
+  console.error(`\nRemove the new assertions or update the baseline only with an evidenced debt reduction.`);
   process.exit(1);
 }
 
-console.log(`✅ Ratchet verification passed! Ningún archivo incrementó 'as any' / 'as unknown'.`);
+console.log(`✅ Ratchet verification passed! No file increased either 'as any' or 'as unknown' independently.`);
 if (totalProgressReductions > 0) {
   console.log(
     `🎉 ¡Progreso detectado! Se redujeron ${totalProgressReductions} typecasts existentes respecto al baseline.`

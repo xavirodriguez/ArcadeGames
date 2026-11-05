@@ -229,6 +229,10 @@ pnpm run story:lint
 
 `docs:check` validates README inventories, workspace/package and Expo/EAS identities, naming rules, agent/contributor links, wiki game counts, Sound Kit version text, ratchet baselines/targets and documented quality-gate commands against repository files. It is separate from API documentation generation: use `pnpm run docs:extract` to extract the API model and `pnpm docs:build` to generate the Markdown API reference.
 
+
+
+For merge requirements, see the [master branch protection policy](docs/BRANCH_PROTECTION.md). For reusable lifecycle and determinism tests, see [shared game contracts](docs/GAME_CONTRACTS.md).
+
 ### Additional local checks
 
 ```bash

@@ -121,7 +121,7 @@ export function drawCanvasVisualParticles(ctx: CanvasRenderingContext2D): void {
 const canvasGradientCache = new Map<string, CanvasGradient>();
 let lastCanvasCtx: CanvasRenderingContext2D | null = null;
 
-function getCachedCanvasGradient(
+export function getCachedCanvasGradient(
   ctx: CanvasRenderingContext2D,
   key: string,
   factory: () => CanvasGradient

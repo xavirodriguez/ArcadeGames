@@ -1,6 +1,12 @@
 import { Project, SyntaxKind, ImportDeclaration, CallExpression, PropertyAccessExpression } from "ts-morph";
 import * as fs from "fs";
 import * as path from "path";
+import {
+  isDeterminismSensitiveSource,
+  isStructuralMutationSensitiveSource,
+  isTestOrMockSource,
+  isGameRandomnessSensitiveSource
+} from "./determinism-scope";
 
 const project = new Project();
 
@@ -9,6 +15,8 @@ project.addSourceFilesAtPaths("packages/core/src/**/*.ts");
 project.addSourceFilesAtPaths("packages/core/src/**/*.tsx");
 project.addSourceFilesAtPaths("src/games/**/*.ts");
 project.addSourceFilesAtPaths("src/games/**/*.tsx");
+project.addSourceFilesAtPaths("packages/gameplay-kit/src/**/*.ts");
+project.addSourceFilesAtPaths("packages/gameplay-kit/src/**/*.tsx");
 
 interface Violation {
   file: string;
@@ -28,8 +36,8 @@ for (const sourceFile of project.getSourceFiles()) {
   const filePath = sourceFile.getFilePath();
   const relativePath = path.relative(process.cwd(), filePath);
 
-  // Skip test files for boundaries and simulation checks
-  const isTestFile = relativePath.includes("__tests__") || relativePath.includes("/tests/") || relativePath.endsWith(".test.ts") || relativePath.endsWith(".test.tsx");
+  // Skip tests and mocks consistently across every scanned workspace.
+  const isTestFile = isTestOrMockSource(relativePath);
 
   // Rule 1 & 2: Platform and Game boundaries inside packages/core/src (excluding tests and ui/debug)
   if (relativePath.startsWith("packages/core/src") && !isTestFile && !relativePath.includes("ui/debug")) {
@@ -69,13 +77,17 @@ for (const sourceFile of project.getSourceFiles()) {
     }
   }
 
-  // Determine if this file is a system or simulation file
-  const isSystemOrSimulation = relativePath.includes("/systems/") || relativePath.includes("/simulation/");
+  // Determinism rules also apply to entity factories, blueprints and the reusable gameplay kit.
+  // Structural mutation checks remain restricted to systems/simulation so legitimate factory
+  // calls such as world.createEntity() are not reported as violations.
+  const isDeterminismSensitive = isDeterminismSensitiveSource(relativePath);
+  const isSystemOrSimulation = isStructuralMutationSensitiveSource(relativePath);
+  const isGameRandomnessSensitive = isGameRandomnessSensitiveSource(relativePath);
 
-  if (isSystemOrSimulation && !isTestFile) {
+  if ((isDeterminismSensitive || isSystemOrSimulation || isGameRandomnessSensitive) && !isTestFile) {
     // Traverse descendants of the file
     sourceFile.forEachDescendant(node => {
-      // Rule 3: Math.random(), Date.now() or performance.now() inside systems & simulation
+      // Rule 3: Unseeded randomness across game source and deterministic gameplay; uncontrolled clocks in deterministic gameplay.
       if (node.getKind() === SyntaxKind.CallExpression) {
         const callExpr = node as CallExpression;
         const expr = callExpr.getExpression();
@@ -84,17 +96,19 @@ for (const sourceFile of project.getSourceFiles()) {
           const callerText = propAccess.getExpression().getText();
           const propName = propAccess.getName();
 
-          if (
-            (callerText === "Math" && propName === "random") ||
-            (callerText === "Date" && propName === "now") ||
-            (callerText === "performance" && propName === "now")
-          ) {
+          const usesUnseededRandom = callerText === "Math" && propName === "random" &&
+            (isDeterminismSensitive || isGameRandomnessSensitive);
+          const usesUncontrolledClock = isDeterminismSensitive &&
+            ((callerText === "Date" && propName === "now") ||
+              (callerText === "performance" && propName === "now"));
+
+          if (usesUnseededRandom || usesUncontrolledClock) {
             const line = callExpr.getStartLineNumber();
             addViolation(
               relativePath,
               line,
               "Determinism violation: Unseeded RNG or Timer",
-              `Use of non-deterministic API '${callerText}.${propName}()' is forbidden in systems or simulation. Use 'world.gameplayRandom' or 'deltaTime' instead.`,
+              `Use of non-deterministic API '${callerText}.${propName}()' is forbidden here. Inject a seeded RNG ('world.gameplayRandom' for gameplay or 'world.renderRandom' for visual effects); use 'deltaTime' for simulation time.`,
               "error"
             );
           }
@@ -102,7 +116,7 @@ for (const sourceFile of project.getSourceFiles()) {
       }
 
       // Rule 4: Unsorted Object.keys, Object.entries, or Set iteration
-      if (node.getKind() === SyntaxKind.CallExpression) {
+      if (isDeterminismSensitive && node.getKind() === SyntaxKind.CallExpression) {
         const callExpr = node as CallExpression;
         const expr = callExpr.getExpression();
         if (expr.getKind() === SyntaxKind.PropertyAccessExpression) {
@@ -161,7 +175,7 @@ for (const sourceFile of project.getSourceFiles()) {
       // Rule 5: Direct mutations (addComponent, removeComponent, createEntity, removeEntity) outside WorldCommandBuffer
       // ParticleSystem.ts is exempt
       const isParticleSystem = relativePath.endsWith("ParticleSystem.ts");
-      if (node.getKind() === SyntaxKind.CallExpression && !isParticleSystem) {
+      if (node.getKind() === SyntaxKind.CallExpression && isSystemOrSimulation && !isParticleSystem) {
         const callExpr = node as CallExpression;
         const expr = callExpr.getExpression();
         if (expr.getKind() === SyntaxKind.PropertyAccessExpression) {

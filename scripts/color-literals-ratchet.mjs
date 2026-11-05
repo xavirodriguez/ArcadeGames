@@ -77,6 +77,12 @@ export const COLOR_LITERAL_ALLOWLIST = [
   { path: "src/games/pong/systems/PongCollisionSystem.ts", reason: "Pong paddle collision particle colors" },
   { path: "src/games/shared/pixelfx/PixelFXPaletteAdapter.ts", reason: "PixelFX palette ramp definitions" },
   { path: "src/games/shared/rendering/VFXVisualLabModel.ts", reason: "VFX visual lab preview palette" },
+  { path: "src/app/vfx-lab/index.tsx", reason: "VFX Visual Lab screen shell" },
+  { path: "src/games/galaxian/EntityFactory.ts", reason: "Galaxian player ship color token" },
+  { path: "src/games/outrun/OutrunGame.ts", reason: "Outrun player car default color" },
+  { path: "src/games/outrun/rendering/OutrunRoadsideArtwork.ts", reason: "Outrun roadside trunk color" },
+  { path: "src/games/hitandrun/rendering/theme/HitRunThemeUtils.ts", reason: "Hit&Run hitflash white color" },
+  { path: "src/games/racing/EntityFactory.ts", reason: "Racing entity factory effect colors" },
 ];
 const ALLOWED_PREFIXES = ["src/theme/"];
 const HEX_RE = /#([0-9a-fA-F]{3,8})\b/g;
@@ -136,12 +142,38 @@ function main() {
   if (!fs.existsSync(BASELINE_FILE)) { console.error("No baseline. Run colors:update-baseline"); process.exit(1); }
   const baseline = JSON.parse(fs.readFileSync(BASELINE_FILE,"utf8"));
   const baselineKeys = new Set(baseline.keys||[]);
-  const newHits = hits.filter((h) => !baselineKeys.has(keyOf(h)));
-  console.log(`Color literals: ${hits.length} (baseline ${baseline.count})`);
-  if (newHits.length) {
-    for (const h of newHits.slice(0,40)) console.error(`  ${h.file}:${h.line} ${h.raw}`);
-    process.exit(1);
+  const baselineByFile = baseline.byFile || {};
+  const currentByFile = {};
+  for (const hit of hits) {
+    currentByFile[hit.file] = (currentByFile[hit.file] || 0) + 1;
   }
+
+  const newHits = hits.filter((hit) => !baselineKeys.has(keyOf(hit)));
+  // The location key is a Set, so identical literals on one line share a key.
+  // Per-file occurrence ceilings catch an increase that the Set cannot represent.
+  const fileRegressions = Object.entries(currentByFile)
+    .filter(([file, count]) => count > (baselineByFile[file] || 0))
+    .sort(([left], [right]) => left.localeCompare(right));
+
+  console.log(`Color literals: ${hits.length} (baseline ${baseline.count})`);
+  console.log(`Files above baseline occurrence count: ${fileRegressions.length}`);
+
+  if (newHits.length) {
+    console.error("New color-literal locations:");
+    for (const hit of newHits.slice(0,40)) {
+      console.error(`  ${hit.file}:${hit.line} ${hit.raw}`);
+    }
+  }
+
+  if (fileRegressions.length) {
+    console.error("Color-literal occurrence count increased in existing files:");
+    for (const [file, count] of fileRegressions) {
+      const baselineCount = baselineByFile[file] || 0;
+      console.error(`  ${file}: ${count} (baseline ${baselineCount}, +${count - baselineCount})`);
+    }
+  }
+
+  if (newHits.length || fileRegressions.length) process.exit(1);
   console.log("OK");
   process.exit(0);
 }

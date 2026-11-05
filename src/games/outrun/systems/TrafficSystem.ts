@@ -4,6 +4,7 @@ import type {
   OutrunEventRegistry,
   RoadData
 } from "../types/OutrunTypes";
+import { isOutrunCrashing } from "../types/OutrunTypes";
 import { resolveOutrunSystemContext } from "./OutrunSystemUtils";
 import {
   circularDeltaZ,
@@ -37,6 +38,7 @@ export class TrafficSystem extends System<OutrunComponentRegistry, OutrunEventRe
     const playerZ = state.playerZ;
     const playerX = state.playerX;
     const playerSpeed = state.speed;
+    const playerAlreadyCrashing = isOutrunCrashing(state);
 
     const collisionZ = config.segmentLength * 0.6;
     const collisionX = config.laneWidth * 1.2;
@@ -45,8 +47,6 @@ export class TrafficSystem extends System<OutrunComponentRegistry, OutrunEventRe
     const lookaheadDist = lookaheadSegments * config.segmentLength;
     const avoidRadius = config.trafficAvoidRadius ?? 0.35;
     const steerSpeed = config.trafficSteerSpeed ?? 1.5;
-    // Adaptive substeps: Session 4 fixed default was enough at 60fps but not at
-    // engine maxDelta (0.25s) where d_frame = maxSpeed*0.25 can exceed collisionZ.
     const minSub = config.trafficCollisionSubsteps ?? 4;
     const maxSub = config.trafficCollisionSubstepsMax ?? 32;
     const substeps = collisionSubstepsForFrame(
@@ -126,13 +126,20 @@ export class TrafficSystem extends System<OutrunComponentRegistry, OutrunEventRe
           collided = true;
           world.getEventBus().emit("outrun:collision", { entity, other: entity });
           world.mutateSingleton("RaceState", (st) => {
-            st.speed = Math.min(st.speed, speed * 0.7);
+            const impactSpeed = Math.min(st.speed, speed * config.crashSpeedFactor);
+            st.speed = impactSpeed;
             if (st.playerX < lateralX) {
-              st.playerX -= 0.15;
+              st.playerX -= 0.2;
             } else {
-              st.playerX += 0.15;
+              st.playerX += 0.2;
             }
             st.playerX = clampLateralX(st.playerX);
+            // Start the classic tumble only once; further hits during the sequence are ignored.
+            if (!playerAlreadyCrashing && !isOutrunCrashing(st)) {
+              st.crashRemaining = config.crashDurationSeconds;
+              st.crashDir = st.playerX < lateralX ? -1 : 1;
+              st.crashSpin = 0;
+            }
           });
         }
       }

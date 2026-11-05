@@ -158,8 +158,8 @@ Sprite-sheet PixelFX remains a separate optional asset pipeline. Its candidate m
 **Updated gate:** the PR merge reconciliation is complete. PR 2 may begin after the rollback and Brick Shatter test fixes pass focused Jest, typecheck and CI. No such execution is claimed by this documentation update; the GitHub connector cannot run the repository toolchain.
 
 
-### Additional decision — hit-stop is not yet one runtime contract
+### Additional decision — canonical hit-stop ownership (2026-11-05)
 
-The current implementation has a split ownership model: `HitStopSystem` maintains priority/cooldown in `VFXWorldState.hitStopTimer`, whereas the core scheduler reads `GameplayFreeze`. Hit & Run calls the core freeze helpers directly; `JuiceOrchestrator` calls the separate VFX timer. The earlier wording that suggested these were already unified is withdrawn.
+The Juice consolidation follow-up now routes accepted `hitStopMs` requests through core `GameplayFreeze`. `HitStopSystem` retains only snapshot-registered priority/active/cooldown policy in `JuiceHitStopPolicy`; it does not own an active duration timer. The VFX-only `hitStopTimer` fields have been removed from `VFXWorldState`.
 
-VFX 2.0 must not add a third hit-stop system. Foundation may preserve the existing profile fields for compatibility, but Combat integration must not assume that `hitStopMs` pauses simulation until the existing Juice consolidation work routes accepted requests through the canonical core freeze resource and verifies the configured schedules. Priority, override and cooldown semantics must survive that migration.
+VFX 2.0 must not add a third hit-stop system. Presentation preferences may scale or suppress visual/audio output, but must not alter authoritative freeze duration. Corrected-input and replay frames must reproduce the freeze request while suppressing duplicate particles, shake and audio. Direct game-specific freezes remain external owners until their callsites are migrated.

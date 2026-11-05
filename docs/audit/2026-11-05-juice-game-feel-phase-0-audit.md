@@ -33,7 +33,7 @@ Code search found explicit `HitStopSystem` registration in `ArkanoidGame`, `Geom
 | Game | Evidence | Follow-up |
 |---|---|---|
 | Arkanoid | Catalog events for brick hit/shatter; inline squash, emitters and SFX remain. Hit event path lacks the rollback guard used by death path. | Fix producer-side rollback guard; preserve game-specific squash. |
-| Pong | Direct 60 ms `GameplayFreeze`, `Juice.shake`, squash, hit emitter and SFX. Catalog has `pong.paddle:hit`. | Migrate only after semantic equivalence; guard particle/audio during rollback. |
+| Pong | Paddle hit now emits the 60 ms `pong.paddle:hit` catalog event; `HitStopSystem` is registered in Simulation. Inline shake/squash/recoil, particles and SFX remain but are suppressed during replay. | Canonical hit-stop migrated; next remove duplicate presentation only after Canvas/Skia equivalence. |
 | Space Invaders | Direct 50 ms boss and 30 ms invader freezes; direct shake/squash; transient orchestrator construction. Boss hit currently emits `ufo:destroyed`. | Correct event semantics and route through canonical policy. |
 | Hit&Run | Core freeze helpers used; both `HitRunScreenShake` and core camera `ScreenShake` are written. Existing ledger reports no renderer for custom resource. | Confirm full reference count before removing orphan channel. |
 | Asteroids / Geometry Wars / Frogger / Racing / Flappy Bird / Platformer / Echo Runner / Tower Defense / Vertical Shmup | Search finds a mix of Juice/catalog producers and presentation-system registrations. | Build full producer-consumer matrix before migration; catalog membership alone is not proof of use. |

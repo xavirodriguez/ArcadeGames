@@ -184,13 +184,19 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
     for (let i = 0; i < len; i++) {
       const hit = this.pendingHits[i];
       const profile = this.resolveProfile(hit.category);
+      const isGuardRecovery = hit.guardRecovered === true;
 
-      this.applyHitStop(world, profile.hitStopSeconds);
+      // Recovery is a state transition, not a damaging impact: no freeze or shake.
+      if (!isGuardRecovery) {
+        this.applyHitStop(world, profile.hitStopSeconds);
+      }
 
       if (reSim) continue;
 
-      this.applyScreenShake(world, profile.shakeIntensity, profile.shakeDuration);
-      this.applyHitFlash(world, hit.targetEntity, profile.hitFlashFrames);
+      if (!isGuardRecovery) {
+        this.applyScreenShake(world, profile.shakeIntensity, profile.shakeDuration);
+        this.applyHitFlash(world, hit.targetEntity, profile.hitFlashFrames);
+      }
 
       const target = world.hasEntity(hit.targetEntity)
         ? world.getComponent(hit.targetEntity, "Transform")
@@ -218,6 +224,18 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
           });
         }
 
+        // Guard recovery is emitted by the simulation-time defense system.
+        if (hit.guardRecovered === true) {
+          this.juice.spawn("pixelfx_shield_pulse", {
+            x: target.x,
+            y: target.y,
+            rotation,
+            scale: 0.72,
+            tint: isSumiE ? "#151515" : "#7fa38a",
+            ttl: 0.28
+          });
+        }
+
         // Guard and armor flags come from the shared damage resolver, not from
         // presentation-side guesses about raw damage values.
         if (hit.blocked === true) {
@@ -241,6 +259,17 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
             ttl: 0.46
           });
         }
+        if (hit.armorHit === true && !hit.armorBroken) {
+          this.juice.spawn("pixelfx_ricochet", {
+            x: target.x,
+            y: target.y,
+            rotation,
+            scale: 0.72,
+            tint: isSumiE ? "#151515" : "#b9a272",
+            ttl: 0.26
+          });
+        }
+
         if (hit.armorBroken === true || hit.category === "armor-break") {
           this.juice.spawn("pixelfx_armor_break", {
             x: target.x,

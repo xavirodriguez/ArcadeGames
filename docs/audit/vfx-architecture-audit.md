@@ -157,10 +157,12 @@ The repository connector does not execute tests. The follow-up changes are commi
 
 ### Additional architecture correction — hit-stop ownership
 
-The prior wording that implied `HitStopSystem` already delegates to core `GameplayFreeze` is incorrect and is superseded. The existing consolidation ledger and source show two distinct paths:
+The canonical hit-stop bridge is now implemented in the Juice consolidation follow-up branch:
 
-- `HitStopSystem.requestHitStop` updates `VFXWorldState.hitStopTimer`, priority and cooldown. Its update method decrements that timer.
-- Core `Schedule.update()` freezes simulation based on the core `GameplayFreeze` resource.
-- Hit & Run feedback uses `enterGameplayFreeze` / `getGameplayFreezeRemaining` directly, while `JuiceOrchestrator.spawn` requests the separate VFX timer.
+- `HitStopSystem.requestHitStop` arbitrates through snapshot-registered `JuiceHitStopPolicy`.
+- Accepted requests write the active duration to core `GameplayFreeze`; `Schedule.update()` remains the only countdown owner.
+- `VFXWorldState` no longer stores `hitStopTimer`, priority or cooldown.
+- The system runs while frozen, and authoritative hit-stop requests are replayed while presentation output remains suppressed.
+- Direct game-specific freeze writes remain separate owners and are not overridden by Juice.
 
-The two paths are not yet a single canonical mechanism. PR 1 therefore records **hit-stop consolidation as an architectural gap**, not as a capability already solved. Do not add a third mechanism. Before VFX Combat profiles rely on hit-stop, reconcile the priority/cooldown policy with core `GameplayFreeze` and add an end-to-end schedule test. This should be coordinated with the existing Juice consolidation roadmap rather than implemented as an unrelated VFX scheduler.
+This implementation still requires CI validation and end-to-end multiplayer rollback verification. Do not add another hit-stop scheduler or move the active duration back into VFX state.

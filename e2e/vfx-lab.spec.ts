@@ -14,6 +14,9 @@ test.describe("VFX Visual Lab", () => {
     await expect(page.getByText("Perfect Block", { exact: true })).toBeVisible();
     await expect(page.getByText("Critical Hit", { exact: true })).toBeVisible();
     await expect(page.getByText("Projectile Deflection", { exact: true })).toBeVisible();
+    await expect(page.getByText("Guard Break", { exact: true })).toBeVisible();
+    await expect(page.getByText("Armor Break", { exact: true })).toBeVisible();
+    await expect(page.getByText("Combo Finisher", { exact: true })).toBeVisible();
 
     expect(pageErrors, `Unhandled errors opening VFX Lab: ${pageErrors.join("; ")}`).toHaveLength(0);
   });

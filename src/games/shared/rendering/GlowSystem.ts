@@ -243,8 +243,8 @@ export function renderSkiaGlow(
   // 4. Highlight Layer
   if (glow.intensity === "strong" || glow.intensity === "critical") {
     sharedPaint.setColor(Skia.Color(glow.highlightColor));
-    sharedPaint.setAlphaf(0.85);
+    sharedPaint.setAlphaf(0.9);
     sharedPaint.setMaskFilter(null);
-    drawShapeSkia(sharedPaint, true, 0.85);
+    drawShapeSkia(sharedPaint, true, 0.9);
   }
 }

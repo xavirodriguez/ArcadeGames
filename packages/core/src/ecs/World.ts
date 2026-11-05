@@ -165,6 +165,8 @@ export class World<
   private freeEntities: number[] = [];
   /** @internal */
   private resources = new Map<string, unknown>();
+  /** Resource keys explicitly included in deterministic snapshots. */
+  private snapshotResourceNames = new Set<string>();
   /** @internal */
   private _tick = 0;
   /** @internal */
@@ -442,6 +444,7 @@ export class World<
     this.nextEntityId = 1;
     this.generations = [];
     this.resources.clear();
+    this.snapshotResourceNames.clear();
     this._tick = 0;
     this._stateVersion = 0;
     this._structureVersion = 0;

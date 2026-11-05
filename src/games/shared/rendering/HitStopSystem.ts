@@ -19,7 +19,7 @@ export interface JuiceHitStopPolicyState {
   priority: number;
   /** Anti-chaining cooldown in seconds. GameplayFreeze remains the only active duration clock. */
   cooldownRemaining: number;
-  /** True while a positive finite Juice-owned GameplayFreeze countdown is active. */
+  /** True while a Juice-owned GameplayFreeze is active. */
   active: boolean;
 }
 

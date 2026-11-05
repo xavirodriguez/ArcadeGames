@@ -15,7 +15,7 @@ import {
 describe("VFX Visual Lab model", () => {
   it("exposes every production PixelFX drawer exactly once", () => {
     const ids = VFX_LAB_EFFECTS.map((effect) => effect.id);
-    expect(ids).toHaveLength(21);
+    expect(ids).toHaveLength(24);
     expect(new Set(ids).size).toBe(ids.length);
     expect(VFX_LAB_EFFECTS.every((effect) => typeof effect.draw === "function")).toBe(true);
   });
@@ -99,6 +99,9 @@ describe("VFX Visual Lab model", () => {
       "pixelfx_charge",
       "pixelfx_shield_pulse",
       "pixelfx_parry",
+      "pixelfx_perfect_block",
+      "pixelfx_critical_hit",
+      "pixelfx_projectile_deflection",
       "pixelfx_target_warning",
       "pixelfx_teleport",
       "pixelfx_surface_skid",

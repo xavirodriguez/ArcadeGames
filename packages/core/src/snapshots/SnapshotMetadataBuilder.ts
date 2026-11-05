@@ -3,6 +3,7 @@ import type { Entity } from "../ecs/Entity";
 import type { ComponentRegistry } from "../ecs/Component";
 import type { BaseWorldSnapshot } from "./WorldSnapshot";
 import { captureSnapshotResources } from "./SnapshotResourceState";
+import type { InternalWorldAccess } from "./SnapshotInternalAccess";
 
 /**
  * Internal interface to access private world state for metadata building.

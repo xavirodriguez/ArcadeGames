@@ -21,6 +21,9 @@ import {
   drawPixelFxCharge,
   drawPixelFxShieldPulse,
   drawPixelFxParry,
+  drawPixelFxPerfectBlock,
+  drawPixelFxCriticalHit,
+  drawPixelFxProjectileDeflection,
   registerPixelFxProceduralVFX
 } from "../PixelFxProceduralVFX";
 
@@ -166,6 +169,35 @@ describe("PixelFX-inspired procedural VFX", () => {
     expect(late.fillCircle.mock.calls[0][4]).toBeLessThan(early.fillCircle.mock.calls[0][4]);
   });
 
+
+  it("animates Perfect Block from compression into a confirmed expanding guard pulse", () => {
+    const early = createAdapter(), earlyState = createWorld(0.36);
+    drawPixelFxPerfectBlock(early, earlyState.world, earlyState.entity);
+    const late = createAdapter(), lateState = createWorld(0.04);
+    drawPixelFxPerfectBlock(late, lateState.world, lateState.entity);
+    expect(late.strokeCircle.mock.calls[0][2]).toBeGreaterThan(early.strokeCircle.mock.calls[0][2]);
+    expect(late.fillCircle.mock.calls[0][4]).toBeLessThan(early.fillCircle.mock.calls[0][4]);
+  });
+
+  it("animates Critical Hit with a double-beat core and outward fragments", () => {
+    const early = createAdapter(), earlyState = createWorld(0.32);
+    drawPixelFxCriticalHit(early, earlyState.world, earlyState.entity);
+    const late = createAdapter(), lateState = createWorld(0.04);
+    drawPixelFxCriticalHit(late, lateState.world, lateState.entity);
+    expect(late.drawLine.mock.calls[0][2]).toBeGreaterThan(early.drawLine.mock.calls[0][2]);
+    expect(late.fillCircle.mock.calls[0][2]).toBeGreaterThan(early.fillCircle.mock.calls[0][2]);
+  });
+
+  it("draws a curved projectile deflection and a timed clash flash", () => {
+    const early = createAdapter(), earlyState = createWorld(0.36);
+    drawPixelFxProjectileDeflection(early, earlyState.world, earlyState.entity);
+    const late = createAdapter(), lateState = createWorld(0.04);
+    drawPixelFxProjectileDeflection(late, lateState.world, lateState.entity);
+    expect(early.drawLine).toHaveBeenCalledTimes(8);
+    expect(late.drawLine).toHaveBeenCalledTimes(8);
+    expect(late.fillCircle.mock.calls[0][4]).toBeLessThan(early.fillCircle.mock.calls[0][4]);
+  });
+
   it("draws the five additional procedural compositions", () => {
     const adapter = createAdapter();
     const { world, entity } = createWorld();
@@ -270,6 +302,9 @@ describe("PixelFX-inspired procedural VFX", () => {
     drawPixelFxCharge(adapter, world, entity);
     drawPixelFxShieldPulse(adapter, world, entity);
     drawPixelFxParry(adapter, world, entity);
+    drawPixelFxPerfectBlock(adapter, world, entity);
+    drawPixelFxCriticalHit(adapter, world, entity);
+    drawPixelFxProjectileDeflection(adapter, world, entity);
     expect(adapter.drawLine).not.toHaveBeenCalled();
     expect(adapter.drawArc).not.toHaveBeenCalled();
     expect(adapter.strokeCircle).not.toHaveBeenCalled();
@@ -299,20 +334,23 @@ describe("PixelFX-inspired procedural VFX", () => {
     drawPixelFxCharge(adapter, world, entity);
     drawPixelFxShieldPulse(adapter, world, entity);
     drawPixelFxParry(adapter, world, entity);
+    drawPixelFxPerfectBlock(adapter, world, entity);
+    drawPixelFxCriticalHit(adapter, world, entity);
+    drawPixelFxProjectileDeflection(adapter, world, entity);
     expect(adapter.drawLine).not.toHaveBeenCalled();
     expect(adapter.drawArc).not.toHaveBeenCalled();
     expect(adapter.strokeCircle).not.toHaveBeenCalled();
     expect(adapter.fillCircle).not.toHaveBeenCalled();
   });
 
-  it("registers all twenty-one shapes for Canvas", () => {
+  it("registers all twenty-four shapes for Canvas", () => {
     const registerShape = jest.fn();
     const renderer = {
       type: "canvas" as const,
       registerShape
     } as never as Renderer<CoreComponentRegistry, RenderContext>;
     registerPixelFxProceduralVFX(renderer);
-    expect(registerShape).toHaveBeenCalledTimes(21);
+    expect(registerShape).toHaveBeenCalledTimes(24);
     expect(registerShape.mock.calls.map(([name]) => name)).toEqual([
       "pixelfx_impact",
       "pixelfx_slash",
@@ -331,6 +369,9 @@ describe("PixelFX-inspired procedural VFX", () => {
       "pixelfx_charge",
       "pixelfx_shield_pulse",
       "pixelfx_parry",
+      "pixelfx_perfect_block",
+      "pixelfx_critical_hit",
+      "pixelfx_projectile_deflection",
       "pixelfx_target_warning",
       "pixelfx_teleport",
       "pixelfx_surface_skid",
@@ -338,14 +379,14 @@ describe("PixelFX-inspired procedural VFX", () => {
     ]);
   });
 
-  it("registers the same twenty-one-shape contract for Skia", () => {
+  it("registers the same twenty-four-shape contract for Skia", () => {
     const registerShape = jest.fn();
     const renderer = {
       type: "skia" as const,
       registerShape
     } as never as Renderer<CoreComponentRegistry, RenderContext>;
     registerPixelFxProceduralVFX(renderer);
-    expect(registerShape).toHaveBeenCalledTimes(21);
+    expect(registerShape).toHaveBeenCalledTimes(24);
     expect(registerShape.mock.calls.map(([name]) => name)).toEqual([
       "pixelfx_impact",
       "pixelfx_slash",
@@ -364,6 +405,9 @@ describe("PixelFX-inspired procedural VFX", () => {
       "pixelfx_charge",
       "pixelfx_shield_pulse",
       "pixelfx_parry",
+      "pixelfx_perfect_block",
+      "pixelfx_critical_hit",
+      "pixelfx_projectile_deflection",
       "pixelfx_target_warning",
       "pixelfx_teleport",
       "pixelfx_surface_skid",

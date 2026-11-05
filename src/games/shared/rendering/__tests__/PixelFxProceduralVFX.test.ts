@@ -280,6 +280,9 @@ describe("PixelFX-inspired procedural VFX", () => {
     drawPixelFxTeleport(adapter, world, entity);
     drawPixelFxSurfaceSkid(adapter, world, entity);
     drawPixelFxMechanicalMotion(adapter, world, entity);
+    drawPixelFxRicochet(adapter, world, entity);
+    drawPixelFxCharge(adapter, world, entity);
+    drawPixelFxShieldPulse(adapter, world, entity);
     expect(adapter.drawLine).not.toHaveBeenCalled();
     expect(adapter.drawArc).not.toHaveBeenCalled();
     expect(adapter.strokeCircle).not.toHaveBeenCalled();

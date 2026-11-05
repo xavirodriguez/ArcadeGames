@@ -4,44 +4,19 @@ import { FlappyBirdComponentRegistry } from "../../types/FlappyBirdTypes";
 import {
   FLAPPY_PARTICLE_POOL,
   updateVisualParticles,
-  resolveFlappyParticleData,
 } from "../../rendering/FlappyBirdParticles";
 import {
   resolveFlappyBirdDrawContext,
   resolveFlappyPipeDrawContext,
   resolveFlappyBackgroundSetup,
 } from "../../rendering/FlappyBirdRenderUtils";
-import { drawSkiaGlideEnergyBar, getCachedSkiaShader } from "../../rendering/FlappyBirdSkiaVisuals";
+import {
+  drawSkiaGlideEnergyBar,
+  drawSkiaVisualParticles,
+  getCachedSkiaShader,
+} from "../../rendering/FlappyBirdSkiaVisuals";
 import { Skia, getPaint } from "../../../shared/rendering/SkiaContext";
 import { colors } from "../../../../theme/colors";
-
-function drawSkiaVisualParticles(canvas: SkCanvas, paint: SkPaint): void {
-  const particles = FLAPPY_PARTICLE_POOL.getActiveParticles();
-  for (let i = 0; i < particles.length; i++) {
-    const data = resolveFlappyParticleData(particles[i]);
-    if (!data) continue;
-
-    const { type, x, y, size, color, skColor, angle, ratio } = data;
-
-    canvas.save();
-    canvas.translate(x, y);
-    if (angle !== undefined && angle !== 0) {
-      canvas.rotate((angle * 180) / Math.PI, 0, 0);
-    }
-
-    paint.reset();
-    paint.setAntiAlias(true);
-    paint.setAlphaf(ratio);
-
-    if (type === "star") {
-      paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(skColor || Skia.Color(color));
-      canvas.drawRect(Skia.XYWHRect(-size / 2, -size / 2, size, size), paint);
-    }
-
-    canvas.restore();
-  }
-}
 
 function drawSkiaPaperAirplane(skCanvas: SkCanvas, paint: SkPaint, size: number, theme?: Theme) {
   const primaryColor = theme?.colorMap?.primary || "#FFFFFF";

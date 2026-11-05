@@ -134,7 +134,7 @@ export function drawSkiaGlideEnergyBar(
   skCanvas.drawRect(Skia.XYWHRect(bx, by, barW, barH), paint);
 }
 
-function drawSkiaVisualParticles(canvas: SkCanvas, paint: SkPaint): void {
+export function drawSkiaVisualParticles(canvas: SkCanvas, paint: SkPaint): void {
   const particles = FLAPPY_PARTICLE_POOL.getActiveParticles();
   for (let i = 0; i < particles.length; i++) {
     const data = resolveFlappyParticleData(particles[i]);

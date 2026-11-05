@@ -5,11 +5,11 @@
 
 ## Purpose
 
-Provide an in-app workbench for inspecting and tuning the twenty existing PixelFX-inspired procedural compositions. The Lab is a developer tool and a consumer of production presentation code, not a new VFX runtime.
+Provide an in-app workbench for inspecting and tuning the twenty-seven existing PixelFX-inspired procedural compositions. The Lab is a developer tool and a consumer of production presentation code, not a new VFX runtime.
 
 ## Included
 
-- Effect Browser for all twenty registered `pixelfx_*` drawers.
+- Effect Browser for all twenty-seven registered `pixelfx_*` drawers.
 - Semantic profile selector: `arcade-neon` and `sumi-e`.
 - Browser Canvas live preview that invokes the real exported drawer functions with a minimal Render/TTL/Transform world fixture.
 - Timeline progress control mapped to the existing normalized TTL contract.
@@ -24,12 +24,12 @@ Provide an in-app workbench for inspecting and tuning the twenty existing PixelF
 - Preview invokes the same composition functions used by `registerPixelFxProceduralVFX`, through the existing `CanvasDrawAdapter`.
 - The preview fixture implements only the component reads consumed by those drawers: `Render`, `TTL` and `Transform`. It does not instantiate a gameplay World or run an ECS schedule.
 - Semantic colors and descriptor placement are resolved through the Foundation contract in `VFXEffectIR`.
-- Canvas and Skia register the same twenty names and use the same composition functions through their existing adapters.
+- Canvas and Skia register the same twenty-seven names and use the same composition functions through their existing adapters.
 
 ## Explicit MVP limitations
 
 - Canvas live preview is available on web. The Skia picture preview is rendered through the native Skia surface when the Skia runtime is available.
-- The Lab reports the shared 20/20 registration contract; it does not claim pixel-diff parity or visual equivalence across Canvas and Skia.
+- The Lab reports the shared 27/27 registration contract; it does not claim pixel-diff parity or visual equivalence across Canvas and Skia.
 - Presets are built-in reproducible configurations, not persisted user-authored scenarios. Their seed is passed as the stable entity identity; Explosion uses it for fragment variation.
 - No effect authoring, new gameplay events, ECS entities, scheduler, animation clock, lifetime manager, particle engine or PixelFX runtime dependency is introduced.
 
@@ -60,3 +60,13 @@ Three production combat compositions extend the temporal sampler catalog:
 - `pixelfx_projectile_deflection`: curved incoming-to-outgoing projectile path with a timed clash point and radial sparks.
 
 All three are stateless drawers driven by the existing TTL progress, share Canvas/Skia adapter registration, and are available in the Visual Lab with reproducible presets. The browser smoke test asserts that all three are visible after the route loads.
+
+## Procedural animation evolution — Combat batch 03
+
+Three further combat compositions use the compiled temporal sampler and the existing TTL progress contract:
+
+- `pixelfx_guard_break`: compressed guard sigil, staggered radial fractures and a short confirmation flash.
+- `pixelfx_armor_break`: six angular armor plates peel away from a fractured shell, with a timed break flash.
+- `pixelfx_combo_finisher`: anticipation pulse, decisive sweeping arc and terminal shock ring.
+
+The drawers are stateless, deterministic, and registered through the shared Canvas/Skia adapter path. Each is exposed in the Visual Lab with a reproducible preset; the route smoke test checks all three labels after direct navigation.

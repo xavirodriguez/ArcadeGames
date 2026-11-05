@@ -4,6 +4,7 @@ import {
   canTakeDamage,
   isPlayerControlLocked
 } from "../HitRunHurtSystem";
+import { HitRunStaggerSystem } from "../HitRunStaggerSystem";
 import {
   DEFAULT_HIT_REACTION_CONFIG,
   PLAYER_INVULN_SECONDS,

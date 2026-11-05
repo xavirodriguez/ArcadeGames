@@ -207,7 +207,7 @@ describe("PixelFX-inspired procedural VFX", () => {
     const late = createAdapter(), lateState = createWorld(0.04);
     drawPixelFxGuardBreak(late, lateState.world, lateState.entity);
     expect(late.strokeCircle.mock.calls[0][2]).toBeGreaterThan(early.strokeCircle.mock.calls[0][2]);
-    expect(late.drawLine.mock.calls[0][6]).toBeGreaterThan(early.drawLine.mock.calls[0][6]);
+    expect(late.drawLine.mock.calls[0][6]).toBeLessThan(early.drawLine.mock.calls[0][6]);
   });
 
   it("animates Armor Break plates outward from the fractured shell", () => {
@@ -225,7 +225,7 @@ describe("PixelFX-inspired procedural VFX", () => {
     const late = createAdapter(), lateState = createWorld(0.04);
     drawPixelFxComboFinisher(late, lateState.world, lateState.entity);
     expect(late.drawArc.mock.calls[0][2]).toBeGreaterThan(early.drawArc.mock.calls[0][2]);
-    expect(late.fillCircle.mock.calls[0][4]).toBeGreaterThan(early.fillCircle.mock.calls[0][4]);
+    expect(late.fillCircle.mock.calls[0][4]).toBeLessThan(early.fillCircle.mock.calls[0][4]);
   });
 
   it("draws the five additional procedural compositions", () => {
@@ -447,6 +447,9 @@ describe("PixelFX-inspired procedural VFX", () => {
       "pixelfx_perfect_block",
       "pixelfx_critical_hit",
       "pixelfx_projectile_deflection",
+      "pixelfx_guard_break",
+      "pixelfx_armor_break",
+      "pixelfx_combo_finisher",
       "pixelfx_target_warning",
       "pixelfx_teleport",
       "pixelfx_surface_skid",

@@ -5,6 +5,7 @@ import {
   ScreenShakeSystem
 } from "@tiny-aster/core";
 import { HitRunFeedbackSystem } from "./HitRunFeedbackSystem";
+import { HitRunCombatDefenseSystem } from "../combat/HitRunCombatDefenseSystem";
 import {
   DEFAULT_HIT_RUN_FEEDBACK_CONFIG,
   type HitRunFeedbackConfig
@@ -22,6 +23,10 @@ export function registerHitRunFeedback(
     ...config
   });
 
+  world.addSystem(new HitRunCombatDefenseSystem(), {
+    phase: SystemPhase.GameRules,
+    priority: 8
+  });
   world.addSystem(feedback, { phase: SystemPhase.GameRules, priority: 10 });
 
   // Presentation: applies VisualOffset on main camera from ScreenShake components.

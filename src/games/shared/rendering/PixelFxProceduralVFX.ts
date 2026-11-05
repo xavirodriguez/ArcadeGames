@@ -977,8 +977,6 @@ export function drawPixelFxHitstun(
   const radius = size * (0.2 + p * 0.28);
   const reach = size * (0.48 + (1 - p) * 0.18);
   const fade = alpha * (1 - p * 0.28);
-  const cos = Math.cos(rotation), sin = Math.sin(rotation);
-
   draw.save();
   draw.fillCircle(0, 0, Math.max(1, size * 0.055 * pulse), color, fade);
   draw.strokeCircle(0, 0, radius, color, Math.max(0.8, size * 0.025), fade * 0.62);
@@ -989,8 +987,7 @@ export function drawPixelFxHitstun(
     const x1 = Math.cos(angle) * inner, y1 = Math.sin(angle) * inner;
     const x2 = Math.cos(angle) * outer, y2 = Math.sin(angle) * outer;
     draw.drawLine(
-      x1 * cos + y1 * -sin, x1 * sin + y1 * cos,
-      x2 * cos + y2 * -sin, x2 * sin + y2 * cos,
+      x1, y1, x2, y2,
       color, Math.max(1, size * (0.045 - p * 0.012)), fade * (0.9 - (i % 3) * 0.12)
     );
   }
@@ -1009,8 +1006,6 @@ export function drawPixelFxStagger(
   const radius = size * (0.42 + p * 0.48);
   const reach = size * (0.12 + p * 0.24);
   const fade = alpha * (1 - p * 0.42);
-  const cos = Math.cos(rotation), sin = Math.sin(rotation);
-
   draw.save();
   for (let i = 0; i < 4; i++) {
     const angle = rotation + (i * Math.PI) / 2 + 0.12;
@@ -1026,8 +1021,7 @@ export function drawPixelFxStagger(
     const innerX = Math.cos(angle + 0.18) * radius * 0.72;
     const innerY = Math.sin(angle + 0.18) * radius * 0.72;
     draw.drawLine(
-      innerX * cos - innerY * sin, innerX * sin + innerY * cos,
-      shardX * cos - shardY * sin, shardX * sin + shardY * cos,
+      innerX, innerY, shardX, shardY,
       color, Math.max(1, size * 0.04), fade * (1 - i * 0.12)
     );
   }

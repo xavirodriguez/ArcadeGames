@@ -395,6 +395,7 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
           amount: resolution.healthDamage,
           remainingHealth: next,
           category,
+          attackCategory: config.damageCategory,
           guardBroken: resolution.guardBroken,
           armorBroken: resolution.armorBroken,
           blocked: resolution.blocked

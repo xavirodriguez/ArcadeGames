@@ -121,7 +121,7 @@ export class HitRunCombatSystem extends System<CoreComponentRegistry> {
         ? "armor-break"
         : damageComp.category ?? "bullet";
     const eventBus = world.getEventBus() as EventBus;
-    if (eventBus && (resolution.healthDamage > 0 || resolution.guardBroken || resolution.armorBroken)) {
+    if (eventBus && (resolution.healthDamage > 0 || resolution.blocked || resolution.guardBroken || resolution.armorBroken)) {
       eventBus.emitDeferred("combat:hit", {
         targetEntity: target,
         sourceEntity,
@@ -130,7 +130,8 @@ export class HitRunCombatSystem extends System<CoreComponentRegistry> {
         remainingHealth: nextHealth,
         category,
         guardBroken: resolution.guardBroken,
-        armorBroken: resolution.armorBroken
+        armorBroken: resolution.armorBroken,
+        blocked: resolution.blocked
       });
     }
 

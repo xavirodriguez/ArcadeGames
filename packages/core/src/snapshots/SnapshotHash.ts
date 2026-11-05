@@ -114,6 +114,7 @@ export function hashAoS(snapshot: {
   snapshotResources?: Record<string, unknown>;
 }): string {
   let hash = hashSnapshotHeader(snapshot);
+  hash = hashSnapshotResourceState(hash, snapshot);
 
   const componentData = snapshot.componentData;
   if (componentData) {

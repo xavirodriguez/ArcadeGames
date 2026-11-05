@@ -9,7 +9,8 @@ import {
   DEFAULT_HIT_REACTION_CONFIG,
   HIT_REACTION_CONFIG_RESOURCE,
   type HitReactionComponent,
-  type HitReactionConfig
+  type HitReactionConfig,
+  resolveHitReactionDurations
 } from "./HitReactionTypes";
 import { CombatHitListenerSystem } from "../combat/CombatHitListenerSystem";
 
@@ -56,21 +57,8 @@ export class HitRunHurtSystem extends CombatHitListenerSystem<CombatHitPayload> 
 
       const target = hit.targetEntity;
       const isPlayer = this.isPlayer(world, target);
-      const baseHitstun = isPlayer
-        ? config.playerHitstunSeconds
-        : config.enemyHitstunSeconds;
-      const isHeavy = hit.attackCategory === "combo-finisher" ||
-        hit.attackCategory === "throw" ||
-        hit.attackCategory === "special" ||
-        hit.category === "guard-break";
-      const exceedsPoiseThreshold = hit.amount >= config.staggerDamageThreshold;
-      const staggerSeconds = hit.staggerSeconds ??
-        (isHeavy
-          ? config.heavyHitStaggerSeconds
-          : exceedsPoiseThreshold && !isPlayer
-            ? config.enemyStaggerSeconds
-            : 0);
-      const hitstunSeconds = hit.hitstunSeconds ?? baseHitstun;
+      const { hitstunSeconds, staggerSeconds } =
+        resolveHitReactionDurations(hit, isPlayer, config);
       const fallbackKnockbackX = isPlayer
         ? config.playerKnockbackX
         : config.enemyKnockbackX;

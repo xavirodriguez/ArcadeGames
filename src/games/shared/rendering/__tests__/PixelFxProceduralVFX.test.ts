@@ -386,7 +386,7 @@ describe("PixelFX-inspired procedural VFX", () => {
       registerShape
     } as never as Renderer<CoreComponentRegistry, RenderContext>;
     registerPixelFxProceduralVFX(renderer);
-    expect(registerShape).toHaveBeenCalledTimes(24);
+    expect(registerShape).toHaveBeenCalledTimes(27);
     expect(registerShape.mock.calls.map(([name]) => name)).toEqual([
       "pixelfx_impact",
       "pixelfx_slash",
@@ -425,7 +425,7 @@ describe("PixelFX-inspired procedural VFX", () => {
       registerShape
     } as never as Renderer<CoreComponentRegistry, RenderContext>;
     registerPixelFxProceduralVFX(renderer);
-    expect(registerShape).toHaveBeenCalledTimes(24);
+    expect(registerShape).toHaveBeenCalledTimes(27);
     expect(registerShape.mock.calls.map(([name]) => name)).toEqual([
       "pixelfx_impact",
       "pixelfx_slash",

@@ -79,7 +79,7 @@ Resolved `combat:hit` events also carry attack-specific knockback magnitudes, ar
 - **Guard feedback:** complete blocks, guard break and guard recovery have separate semantic transitions. Recovery is emitted when the simulation-time break timer reaches zero.
 - **Armor feedback:** armor contact is distinct from guard block. A non-breaking armor hit emits a ricochet cue; depletion emits the Armor Break effect. Armor-only hits do not apply health-hit stun or knockback.
 
-The shared damage resolver reports `armorHit` and `armorAbsorbed`; `blocked` now means a successful guard block only. This prevents armor absorption from being misrepresented as a shield block.
+The shared damage resolver reports `armorHit` and `armorAbsorbed`; `blocked` now means a successful guard block only. This prevents armor absorption from being misrepresented as a shield block.\n\n### Hit reaction presentation\n\nSuccessful health impacts now receive two distinct procedural cues through the shared PixelFX drawer contract:\n\n- `pixelfx_hitstun`: compact core flash and short radial ticks for ordinary hitstun.\n- `pixelfx_stagger`: a broken stability ring and shearing segments only when the shared gameplay resolver reports a positive stagger duration.\n\nThe same pure `resolveHitReactionDurations()` helper is used by `HitRunHurtSystem` and `HitRunFeedbackSystem`, so presentation does not reimplement the heavy-hit/poise threshold rules. Fully guarded and armor-only contacts do not spawn either reaction cue. Both effects use the existing `IDrawAdapter` registration path, preserving the same drawer implementation for Canvas and Skia; their TTL remains owned by the existing ECS transient lifecycle.
 
 ## Validation boundaries
 

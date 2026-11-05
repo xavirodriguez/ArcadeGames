@@ -79,8 +79,8 @@ export class SpawnDirectorSystem<
           world.getCommandBuffer().createEntity(entityId);
           world.getCommandBuffer().spawnFromBlueprintForEntity(
             entityId,
-            spawn.blueprintId as Extract<keyof TComponents, string>,
-            spawn.args as any
+            spawn.blueprintId,
+            spawn.args
           );
 
           // Attach WaveMember component to identify it belongs to the wave

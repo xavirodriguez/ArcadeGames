@@ -45,6 +45,7 @@
     "ratchet:update": "NODE_OPTIONS=\"--max-old-space-size=8192\" pnpm exec tsx scripts/typecast-ratchet.ts --update",
     "sound:golden:update": "pnpm --filter=@tiny-aster/arcade-sound-kit golden:update",
     "check:duplication": "pnpm exec tsx scripts/duplication-ratchet.ts",
+    "test:determinism-scope": "node --import tsx --test scripts/determinism-scope.test.ts",
     "duplication:update-baseline": "pnpm exec tsx scripts/duplication-ratchet.ts --update",
     "check:color-literals": "node scripts/color-literals-ratchet.mjs",
     "colors:update-baseline": "node scripts/color-literals-ratchet.mjs --update",

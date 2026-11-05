@@ -6,7 +6,7 @@ import { Component } from "@tiny-aster/core";
  */
 export interface SpawnRequest {
   blueprintId: string;
-  args: Record<string, any>;
+  args: Record<string, unknown>;
   /** Delay in seconds before spawning this entity (relative to wave start). */
   delay?: number;
   /** Actual absolute time in seconds when this spawn should occur. */

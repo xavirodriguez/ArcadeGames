@@ -192,18 +192,22 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
       this.applyScreenShake(world, profile.shakeIntensity, profile.shakeDuration);
       this.applyHitFlash(world, hit.targetEntity, profile.hitFlashFrames);
 
-      // Melee hits use the directional slash pilot; other weapons retain their existing feedback.
-      if (hit.category === "melee" && world.hasEntity(hit.targetEntity)) {
-        const target = world.getComponent(hit.targetEntity, "Transform");
-        const source = hit.sourceEntity !== undefined && world.hasEntity(hit.sourceEntity)
-          ? world.getComponent(hit.sourceEntity, "Transform")
-          : undefined;
-        if (target) {
-          const rotation = source
-            ? Math.atan2(target.y - source.y, target.x - source.x)
-            : target.rotation ?? 0;
-          this.juice ??= new JuiceOrchestrator(world);
-          const isSumiE = world.getResource<boolean>(SUMI_E_THEME_RESOURCE) === true;
+      const target = world.hasEntity(hit.targetEntity)
+        ? world.getComponent(hit.targetEntity, "Transform")
+        : undefined;
+      const source = hit.sourceEntity !== undefined && world.hasEntity(hit.sourceEntity)
+        ? world.getComponent(hit.sourceEntity, "Transform")
+        : undefined;
+      const isSumiE = world.getResource<boolean>(SUMI_E_THEME_RESOURCE) === true;
+
+      if (target) {
+        this.juice ??= new JuiceOrchestrator(world);
+        const rotation = source
+          ? Math.atan2(target.y - source.y, target.x - source.x)
+          : target.rotation ?? 0;
+
+        // The ordinary melee slash remains the baseline response for every sword hit.
+        if (hit.category === "melee") {
           this.juice.spawn("pixelfx_slash", {
             x: target.x,
             y: target.y,
@@ -211,6 +215,43 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
             scale: 1.05,
             tint: isSumiE ? "#151515" : "#f05a28",
             ttl: 0.24
+          });
+        }
+
+        // These two semantic damage categories are the integration contract for
+        // guard/armor mechanics. They are deliberately not inferred from raw damage:
+        // a future guard or armor system must emit the matching category only when
+        // its state transition actually breaks.
+        if (hit.category === "guard-break") {
+          this.juice.spawn("pixelfx_guard_break", {
+            x: target.x,
+            y: target.y,
+            rotation,
+            scale: 1.1,
+            tint: isSumiE ? "#151515" : "#e3a92f",
+            ttl: 0.46
+          });
+        } else if (hit.category === "armor-break") {
+          this.juice.spawn("pixelfx_armor_break", {
+            x: target.x,
+            y: target.y,
+            rotation,
+            scale: 1.1,
+            tint: isSumiE ? "#151515" : "#b9a272",
+            ttl: 0.48
+          });
+        }
+
+        // A lethal melee hit is the concrete finisher transition currently
+        // represented by Hit&Run's combat model (Health reaches zero).
+        if (hit.category === "melee" && hit.remainingHealth <= 0) {
+          this.juice.spawn("pixelfx_combo_finisher", {
+            x: target.x,
+            y: target.y,
+            rotation,
+            scale: 1.2,
+            tint: isSumiE ? "#151515" : "#d7473f",
+            ttl: 0.58
           });
         }
       }

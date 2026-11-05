@@ -1,6 +1,7 @@
 import {
   World,
   CoreComponentRegistry,
+  BinaryCompression,
   AoSWorldSnapshot,
   SoAWorldSnapshot,
   hashAoS,
@@ -28,12 +29,14 @@ describe.each([
     });
 
     const snapshot = source.snapshot();
+    const packed = BinaryCompression.pack(snapshot);
+    const transportedSnapshot = BinaryCompression.unpack<typeof snapshot>(packed);
     source.getResource<{ policy: { priority: number } }>("GameplayFreeze")!.policy.priority = 99;
 
     const target = createWorld(useSoA);
     target.registerSnapshotResource("GameplayFreeze");
     target.setResource("GameplayFreeze", { remaining: 10 });
-    target.restore(snapshot);
+    target.restore(transportedSnapshot);
 
     expect(target.getResource("GameplayFreeze")).toEqual({
       remaining: 0.125,

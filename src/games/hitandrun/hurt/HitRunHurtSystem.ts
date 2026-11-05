@@ -1,5 +1,4 @@
 import {
-  System,
   World,
   CoreComponentRegistry,
   Entity

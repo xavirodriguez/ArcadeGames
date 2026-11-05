@@ -11,6 +11,9 @@ test.describe("VFX Visual Lab", () => {
     await expect(page.getByText("Renderer comparison", { exact: true })).toBeVisible();
     await expect(page.getByText("Effect browser", { exact: false })).toBeVisible();
     await expect(page.getByText("Parry", { exact: true })).toBeVisible();
+    await expect(page.getByText("Perfect Block", { exact: true })).toBeVisible();
+    await expect(page.getByText("Critical Hit", { exact: true })).toBeVisible();
+    await expect(page.getByText("Projectile Deflection", { exact: true })).toBeVisible();
 
     expect(pageErrors, `Unhandled errors opening VFX Lab: ${pageErrors.join("; ")}`).toHaveLength(0);
   });

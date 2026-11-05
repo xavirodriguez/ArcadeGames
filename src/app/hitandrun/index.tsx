@@ -434,7 +434,7 @@ function HitAndRunContent() {
                 onPressIn={() => handleTouchSpecial()}
                 onPressOut={() => {}}
                 accessibilityLabel="Special"
-                style={{ marginHorizontal: spacing.sm }}
+                style={{ marginHorizontal: spacing.xs }}
               />
               <TouchActionButton
                 label="FIRE"
@@ -447,11 +447,11 @@ function HitAndRunContent() {
                 onPressIn={() => handleTouchFire(true)}
                 onPressOut={() => handleTouchFire(false)}
                 accessibilityLabel="Hold to fire"
-                style={{ marginHorizontal: spacing.sm }}
+                style={{ marginHorizontal: spacing.xs }}
               />
               <TouchActionButton
                 label="GUARD"
-                size={56}
+                size={48}
                 color="rgba(30, 41, 59, 0.7)"
                 borderColor={colors.cyan}
                 pressedColor="rgba(30, 41, 59, 0.9)"
@@ -460,7 +460,7 @@ function HitAndRunContent() {
                 onPressIn={() => handleTouchGuard(true)}
                 onPressOut={() => handleTouchGuard(false)}
                 accessibilityLabel="Hold to guard"
-                style={{ marginHorizontal: spacing.sm }}
+                style={{ marginHorizontal: spacing.xs }}
               />
               <TouchActionButton
                 label="JUMP"
@@ -473,7 +473,7 @@ function HitAndRunContent() {
                 onPressIn={() => handleTouchJump(true)}
                 onPressOut={() => handleTouchJump(false)}
                 accessibilityLabel="Jump"
-                style={{ marginHorizontal: spacing.sm }}
+                style={{ marginHorizontal: spacing.xs }}
               />
             </View>
           </View>

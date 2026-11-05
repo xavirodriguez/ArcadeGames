@@ -6,6 +6,11 @@ import {
   getHitRunTheme,
   resizeHitRunPresentationSession
 } from "./theme/HitRunPresentationSession";
+import {
+  drawAmbientParticlesSkia,
+  SUMI_E_AMBIENT_POOL_RESOURCE
+} from "../../shared/rendering/sumi-e";
+import type { VisualParticlePool } from "../../shared/rendering/VisualParticlePool";
 
 /**
  * Native Skia effect for Hit & Run.
@@ -25,5 +30,10 @@ export const drawHitRunProceduralBackdropSkia: EffectDrawer<RenderContext, CoreC
     const theme = getHitRunTheme(world);
 
     theme.renderBackdropSkia(canvas, width, height, cameraX, 0, elapsed);
+
+    const pool = world.getResource<VisualParticlePool>(SUMI_E_AMBIENT_POOL_RESOURCE);
+    if (pool) {
+      drawAmbientParticlesSkia(canvas, pool.getActiveParticles());
+    }
   }
 };

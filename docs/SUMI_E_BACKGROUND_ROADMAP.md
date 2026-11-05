@@ -9,8 +9,9 @@ InkWash Skia + options, SumiEPalette, AestheticTheme, registrable `ink-wash-para
 ## Phase 1 — Cross-game adoption (partial) ✅*
 
 - Helper `registerSumiEBackground` / `registerSumiEVFX`
-- **Asteroids** wired (mountain)
-- Remaining games: same 2-line pattern
+- **Hit & Run** is the home game (default theme `sumi-e`, village region, ambient + VFX)
+- Asteroids uses cosmic SharedVFX only — do **not** register Sumi-e there
+- Other games: opt-in via `registerSumiEBackground` only when aesthetic is sumi-e
 
 ## Phase 2 — Juice vocabulary ✅
 
@@ -18,13 +19,13 @@ Primitives: `ink_splash`, `ink_bleed`, `brush_stroke`, `dry_brush_trail`, `seal_
 
 Catalog: `SUMI_E_JUICE_CATALOG` + Canvas/Skia drawers.
 
-## Phase 3 — Atmosphere & depth ✅ (activated in Asteroids)
+## Phase 3 — Atmosphere & depth ✅ (activated in Hit & Run)
 
 | Feature | Module | Status |
 | --- | --- | --- |
 | 6-layer atmosphere stack | `ATMOSPHERE_INK_WASH_LAYERS` | ✅ |
 | Mist bands (deterministic) | `computeMistBands` / `drawMistBandsCanvas` / `drawMistBandsSkia` | ✅ wired via `registerSumiEBackground` |
-| Ambient particles (petal, ink_dot, bird) | `spawnAmbientParticle` / `spawnAmbientBand` + `SumiEAmbientSystem` | ✅ pool + draw wired in Asteroids (high quality) |
+| Ambient particles (petal, ink_dot, bird) | `spawnAmbientParticle` / `spawnAmbientBand` + `SumiEAmbientSystem` | ✅ pool + draw wired in Hit & Run (village) |
 | Regional presets | `getRegionalAtmosphere(...)` | ✅ used by register path |
 | ParallaxSystem coupling | `inkDepthToParallaxLayer` / `cameraXForInkLayer` | ✅ exported |
 
@@ -42,7 +43,7 @@ const mist = computeMistBands(h, timeSec, cameraX, region.mist);
 drawMistBandsCanvas(ctx, w, mist);
 ```
 
-**Activation (2026-11-05):** Ambient particles closed via `SumiEAmbientSystem` + draw in `InkWashBackgroundEffect` (Canvas/Skia). `registerSumiEBackground` resolves regional atmosphere (layers + mist), applies `resolveSumiERenderSettings` / `selectLayers`, and draws mist bands on both Canvas and Skia. Asteroids uses `{ landscape: "mountain", quality: "high" }`.
+**Activation (2026-11-05):** Ambient particles closed via `SumiEAmbientSystem` + draw in Hit & Run Canvas/Skia backdrop. Hit & Run registers ambient (`region: "village"`) + `registerSumiEVFX` when `activeThemeId === "sumi-e"`. Backdrop draws the ambient pool after theme ink-wash.
 
 ## Phase 4 — Polish ✅ (settings path live)
 

@@ -12,6 +12,11 @@ import {
   getHitRunTheme,
   resizeHitRunPresentationSession
 } from "./theme/HitRunPresentationSession";
+import {
+  drawAmbientParticlesCanvas,
+  SUMI_E_AMBIENT_POOL_RESOURCE
+} from "../../shared/rendering/sumi-e";
+import type { VisualParticlePool } from "../../shared/rendering/VisualParticlePool";
 
 const RESOURCE_KEY = "HitRunBackdropSpec";
 
@@ -50,6 +55,12 @@ export const drawHitRunProceduralBackdrop: EffectDrawer<
     resizeHitRunPresentationSession(world, w, h);
     const theme = getHitRunTheme(world);
     theme.renderBackdrop(ctx, w, h, camX, 0, elapsed);
+
+    // Ambient Sumi-e particles (pool driven by SumiEAmbientSystem when theme is sumi-e).
+    const pool = world.getResource<VisualParticlePool>(SUMI_E_AMBIENT_POOL_RESOURCE);
+    if (pool) {
+      drawAmbientParticlesCanvas(ctx, pool.getActiveParticles());
+    }
   }
 };
 

@@ -179,6 +179,50 @@ describe("HitRunFeedbackSystem (Paso B)", () => {
     expect(shapes.filter((shape) => shape === "pixelfx_combo_finisher")).toHaveLength(1);
   });
 
+  it("distinguishes armor contact and guard recovery feedback", () => {
+    const armorTarget = world.createEntity();
+    const guardTarget = world.createEntity();
+    for (const [entity, x] of [[armorTarget, 30], [guardTarget, 70]] as const) {
+      world.addComponent(entity, {
+        type: "Transform",
+        x,
+        y: 40,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1,
+        worldX: x,
+        worldY: 40,
+        worldRotation: 0,
+        worldScaleX: 1,
+        worldScaleY: 1,
+        dirty: false
+      });
+    }
+
+    feedback.enqueueHitForTest({
+      targetEntity: armorTarget,
+      amount: 0,
+      remainingHealth: 5,
+      category: "bullet",
+      armorHit: true,
+      armorAbsorbed: 2
+    });
+    feedback.enqueueHitForTest({
+      targetEntity: guardTarget,
+      amount: 0,
+      remainingHealth: 5,
+      category: "guard-recovered",
+      guardRecovered: true
+    });
+    feedback.update(world, 0);
+
+    const shapes = world.query("Render", "TTL").map((entity) =>
+      (world.getComponent(entity, "Render") as { shape?: string }).shape
+    );
+    expect(shapes).toContain("pixelfx_ricochet");
+    expect(shapes).toContain("pixelfx_shield_pulse");
+  });
+
   it("does not spawn a combo finisher for a non-lethal melee hit", () => {
     const target = world.createEntity();
     world.addComponent(target, {

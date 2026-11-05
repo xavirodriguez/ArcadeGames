@@ -73,7 +73,7 @@ There is a second boundary in `RollbackSimulation.processRollback()`: it restore
 
 ## Consequences
 
-This is a deliberate sequencing constraint, not a rejection of canonical hit-stop. It prevents a superficially unified runtime path from producing divergent rollback state. The next runtime PR should begin with the narrow snapshot-safe state contract and its AoS/SoA tests, then add the policy bridge only after those tests pass.
+This sequencing constraint prevented a superficially unified runtime path from producing divergent rollback state. The snapshot-safe resource foundation is now merged, and the current follow-up branch implements the policy bridge on top of it. The branch should not be considered complete until CI runs the core snapshot, scheduler, and Juice replay suites.
 
 
 ## Implementation update — 2026-11-05

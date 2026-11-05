@@ -218,10 +218,8 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
           });
         }
 
-        // These two semantic damage categories are the integration contract for
-        // guard/armor mechanics. They are deliberately not inferred from raw damage:
-        // a future guard or armor system must emit the matching category only when
-        // its state transition actually breaks.
+        // Guard and armor flags come from the shared damage resolver, not from
+        // presentation-side guesses about raw damage values.
         if (hit.blocked === true) {
           this.juice.spawn("pixelfx_shield_pulse", {
             x: target.x,

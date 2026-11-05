@@ -206,28 +206,33 @@ export function renderSkiaGlow(
 ): void {
   if (!Skia) return;
 
+  const level = getGlowDegradationLevel();
   const sharedPaint = getPaint();
   if (!sharedPaint) return;
 
-  // 1. Halo Layer
-  sharedPaint.setColor(Skia.Color(glow.color));
-  sharedPaint.setAlphaf(glow.haloAlpha);
-  if (Skia.MaskFilter) {
-    sharedPaint.setMaskFilter(Skia.MaskFilter.MakeBlur(Skia.BlurMode.Normal, glow.haloBlur, true));
-  } else {
-    sharedPaint.setMaskFilter(null);
+  // 1. Halo Layer — same p95 degradation threshold as Canvas.
+  if (level < 1 && glow.haloAlpha > 0 && glow.haloBlur > 0) {
+    sharedPaint.setColor(Skia.Color(glow.color));
+    sharedPaint.setAlphaf(glow.haloAlpha);
+    if (Skia.MaskFilter) {
+      sharedPaint.setMaskFilter(Skia.MaskFilter.MakeBlur(Skia.BlurMode.Normal, glow.haloBlur, true));
+    } else {
+      sharedPaint.setMaskFilter(null);
+    }
+    drawShapeSkia(sharedPaint, undefined, glow.haloAlpha);
   }
-  drawShapeSkia(sharedPaint, undefined, glow.haloAlpha);
 
-  // 2. Aura Layer
-  sharedPaint.setColor(Skia.Color(glow.color));
-  sharedPaint.setAlphaf(glow.auraAlpha);
-  if (Skia.MaskFilter) {
-    sharedPaint.setMaskFilter(Skia.MaskFilter.MakeBlur(Skia.BlurMode.Normal, glow.auraBlur, true));
-  } else {
-    sharedPaint.setMaskFilter(null);
+  // 2. Aura Layer — retained only while the frame-time budget allows it.
+  if (level < 2 && glow.auraAlpha > 0 && glow.auraBlur > 0) {
+    sharedPaint.setColor(Skia.Color(glow.color));
+    sharedPaint.setAlphaf(glow.auraAlpha);
+    if (Skia.MaskFilter) {
+      sharedPaint.setMaskFilter(Skia.MaskFilter.MakeBlur(Skia.BlurMode.Normal, glow.auraBlur, true));
+    } else {
+      sharedPaint.setMaskFilter(null);
+    }
+    drawShapeSkia(sharedPaint, undefined, glow.auraAlpha);
   }
-  drawShapeSkia(sharedPaint, undefined, glow.auraAlpha);
 
   // 3. Core Layer
   sharedPaint.setColor(Skia.Color(glow.color));

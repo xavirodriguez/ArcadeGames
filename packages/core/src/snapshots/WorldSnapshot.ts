@@ -44,6 +44,10 @@ export interface BaseWorldSnapshot {
    * The current simulation frame/tick count.
    */
   tick: number;
+  /** Registered resource names, including registered resources that are currently absent. */
+  snapshotResourceKeys?: string[];
+  /** Plain-data values captured for explicitly registered resources. */
+  snapshotResources?: Record<string, unknown>;
 }
 
 /**
@@ -96,6 +100,8 @@ export type SnapshotDelta = Partial<BaseWorldSnapshot> & {
   isSoA?: boolean;
   componentData?: ComponentDataSnapshot;
   soaComponentData?: Record<string, Partial<SoAComponentTypeData>>;
+  snapshotResourceKeys?: string[];
+  snapshotResources?: Record<string, unknown>;
 };
 
 /**

@@ -222,7 +222,7 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
         // guard/armor mechanics. They are deliberately not inferred from raw damage:
         // a future guard or armor system must emit the matching category only when
         // its state transition actually breaks.
-        if (hit.category === "guard-break") {
+        if (hit.guardBroken === true || hit.category === "guard-break") {
           this.juice.spawn("pixelfx_guard_break", {
             x: target.x,
             y: target.y,
@@ -231,7 +231,7 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
             tint: isSumiE ? "#151515" : "#e3a92f",
             ttl: 0.46
           });
-        } else if (hit.category === "armor-break") {
+        } else if (hit.armorBroken === true || hit.category === "armor-break") {
           this.juice.spawn("pixelfx_armor_break", {
             x: target.x,
             y: target.y,
@@ -244,7 +244,8 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
 
         // A lethal melee hit is the concrete finisher transition currently
         // represented by Hit&Run's combat model (Health reaches zero).
-        if (hit.category === "melee" && hit.remainingHealth <= 0) {
+        if ((hit.category === "combo-finisher" || hit.category === "melee") &&
+            (hit.category === "combo-finisher" || hit.remainingHealth <= 0)) {
           this.juice.spawn("pixelfx_combo_finisher", {
             x: target.x,
             y: target.y,

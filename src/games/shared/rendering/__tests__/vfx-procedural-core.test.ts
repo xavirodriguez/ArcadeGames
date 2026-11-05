@@ -43,6 +43,7 @@ describe("vfx-geometry", () => {
   it("uses closed-form ballistic motion and deterministic fragments", () => {
     expect(ballistic(0, 10, 0, 2)).toBe(20);
     expect(ballistic(0, 0, 10, 1)).toBeCloseTo(5);
+    expect(ballistic(0, 0, 10, 1, 1)).toBeCloseTo(10 - 10 * (1 - Math.exp(-1)), 8);
     expect(createFragments(12, 42, 10)).toEqual(createFragments(12, 42, 10));
     expect(createFragments(12, 42, 10)).not.toEqual(createFragments(12, 43, 10));
     expect(radiusFromEnergy(4, 2)).toBe(4);

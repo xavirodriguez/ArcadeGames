@@ -222,6 +222,17 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
         // guard/armor mechanics. They are deliberately not inferred from raw damage:
         // a future guard or armor system must emit the matching category only when
         // its state transition actually breaks.
+        if (hit.blocked === true) {
+          this.juice.spawn("pixelfx_shield_pulse", {
+            x: target.x,
+            y: target.y,
+            rotation,
+            scale: 0.9,
+            tint: isSumiE ? "#151515" : "#4da3ff",
+            ttl: 0.32
+          });
+        }
+
         if (hit.guardBroken === true || hit.category === "guard-break") {
           this.juice.spawn("pixelfx_guard_break", {
             x: target.x,

@@ -64,7 +64,7 @@ function assertSnapshotValue(value: unknown, resourceName: string, path: string,
 /** Captures only explicitly registered resources; presentation and service resources stay outside snapshots. */
 export function captureSnapshotResources(internal: InternalWorldAccess): SnapshotResourceState {
   const snapshotResourceKeys = Array.from(internal.snapshotResourceNames).sort();
-  const snapshotResources: Record<string, unknown> = {};
+  const snapshotResources: Record<string, unknown> = Object.create(null) as Record<string, unknown>;
 
   for (const name of snapshotResourceKeys) {
     if (!internal.resources.has(name)) continue;

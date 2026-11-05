@@ -84,13 +84,14 @@ export default function VFXVisualLabScreen() {
   const visibleEffects = VFX_LAB_EFFECTS.filter((item) =>
     `${item.label} ${item.id} ${item.family}`.toLowerCase().includes(filter.toLowerCase())
   );
+  const scenarioSeed = clamp(Number.parseInt(seed, 10) || 0, 0, 0xffffffff);
   const currentSettings = {
     effect: effectId,
     profile,
     progress,
     size,
     rotation,
-    seed: clamp(Number.parseInt(seed, 10) || 0, 0, 0xffffffff)
+    seed: scenarioSeed
   } as const;
 
   useEffect(() => {
@@ -117,10 +118,10 @@ export default function VFXVisualLabScreen() {
     effect.draw(
       new CanvasDrawAdapter(context),
       createPreviewWorld(size, color, progress, rotation),
-      1
+      scenarioSeed
     );
     context.restore();
-  }, [color, effect, previewPalette, profile, progress, rotation, size]);
+  }, [color, effect, previewPalette, progress, rotation, scenarioSeed, size]);
 
   useEffect(() => {
     if (!Skia) {
@@ -135,10 +136,10 @@ export default function VFXVisualLabScreen() {
     for (let y = 0; y < PREVIEW_HEIGHT; y += 32) adapter.drawLine(0, y, PREVIEW_WIDTH, y, previewPalette.grid, 1, previewPalette.gridAlpha);
     skiaCanvas.save();
     skiaCanvas.translate(PREVIEW_WIDTH / 2, PREVIEW_HEIGHT / 2);
-    effect.draw(adapter, createPreviewWorld(size, color, progress, rotation), 1);
+    effect.draw(adapter, createPreviewWorld(size, color, progress, rotation), scenarioSeed);
     skiaCanvas.restore();
     setSkiaPicture(recorder.finishRecordingAsPicture());
-  }, [color, effect, previewPalette, profile, progress, rotation, size]);
+  }, [color, effect, previewPalette, progress, rotation, scenarioSeed, size]);
 
   const applyPreset = (preset: VFXLabPreset) => {
     setEffectId(preset.effect);
@@ -313,7 +314,7 @@ export default function VFXVisualLabScreen() {
             <Text style={styles.controlLabel}>Scenario seed</Text>
             <TextInput value={seed} onChangeText={setSeed} keyboardType="numeric" style={[styles.textInput, styles.seedInput]} />
           </View>
-          <Text style={styles.helper}>The seed is preserved in preset metadata. Current production drawers are deterministic and do not consume random values; changing it does not alter their pixels.</Text>
+          <Text style={styles.helper}>The seed is passed as a stable entity identity to both renderers. Effects with entity-seeded variation (such as Explosion) respond to it; effects without seeded variation remain unchanged.</Text>
         </View>
 
         <View style={styles.panel}>

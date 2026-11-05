@@ -300,6 +300,11 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
     const shipTransform = world.getComponent(ship, "Transform");
     if (shipTransform) {
       this.spawnExplosionParticles(world, shipTransform, "ship");
+      this.juice ??= new JuiceOrchestrator(world);
+      this.juice.triggerEvent("asteroids", "ship:damage", {
+        x: shipTransform.x,
+        y: shipTransform.y
+      });
     }
     Juice.playDeathJuice(world, ship, { shakeIntensity: 6.0, shakeDuration: 180 });
 
@@ -356,6 +361,12 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
     if (asteroidTransform) {
       this.maybeSpawnStoryLog(world, asteroidTransform, size, nextMultiplier);
       this.spawnExplosionParticles(world, asteroidTransform, size);
+      // Catalog hit-stop + shake for rock destruction (JuiceOrchestrator → requestHitStop)
+      this.juice ??= new JuiceOrchestrator(world);
+      this.juice.triggerEvent("asteroids", "rock:destroyed", {
+        x: asteroidTransform.x,
+        y: asteroidTransform.y
+      });
     }
     Juice.shake(world, size === "large" ? 3.0 : 1.5, 80);
 

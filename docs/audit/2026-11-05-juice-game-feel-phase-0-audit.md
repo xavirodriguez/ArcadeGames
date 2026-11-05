@@ -57,11 +57,11 @@ Code search found explicit `HitStopSystem` registration in `ArkanoidGame`, `Geom
 2. Do not bridge `requestHitStop()` to `GameplayFreeze` until duration and arbitration state have an explicit rollback representation and restore tests for both AoS and SoA snapshots.
 3. Do not snapshot all of `VFXWorldState`: it mixes presentation caches/native handles and non-authoritative visual state with hit-stop policy. Extract only the minimal deterministic policy state into a snapshot-safe representation.
 4. Decide whether hit-stop is authoritative simulation time or local presentation before allowing Juice level / reduced-stimulation preferences to scale its duration.
-2. Public Juice durations are milliseconds; ECS timers and `System.update` use seconds.
-3. No fallback is removed until its producer and consumer are migrated and tested.
-5. Rollback suppression is required at presentation producer boundaries, not only in consumers.
-6. Reduced motion must not silently alter authoritative simulation timing.
-7. Game-specific effects remain until semantic equivalence is demonstrated.
+5. Public Juice durations are milliseconds; ECS timers and `System.update` use seconds.
+6. No fallback is removed until its producer and consumer are migrated and tested.
+7. Rollback suppression is required at presentation producer boundaries, not only in consumers.
+8. Reduced motion must not silently alter authoritative simulation timing.
+9. Game-specific effects remain until semantic equivalence is demonstrated.
 
 ## Phase 0 exit
 

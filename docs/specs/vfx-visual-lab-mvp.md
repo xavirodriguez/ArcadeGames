@@ -13,6 +13,7 @@ Provide an in-app workbench for inspecting and tuning the twenty existing PixelF
 - Semantic profile selector: `arcade-neon` and `sumi-e`.
 - Canvas/web and Skia live previews that invoke the real exported drawer functions with a minimal Render/TTL/Transform world fixture.
 - Timeline progress control mapped to the existing normalized TTL contract.
+- Manual temporal phase sampler (`enter`, `hold`, `exit`) with presentation-rate control, evaluated through `resolveTemporalVFXSample` and applied as a multiplicative Render opacity envelope to both preview adapters.
 - Size and rotation controls.
 - Family/context/placement/color inspector backed by `VFXEffectIR`.
 - Built-in deterministic presets for combat and traversal, including impact, ink burst, phase dash, hop, teleport, surface skid and mechanical motion.
@@ -31,8 +32,8 @@ Provide an in-app workbench for inspecting and tuning the twenty existing PixelF
 - Canvas live preview is available on web. The Skia picture preview is rendered through the native Skia surface when the Skia runtime is available.
 - The Lab reports the shared 20/20 registration contract; it does not claim pixel-diff parity or visual equivalence across Canvas and Skia.
 - Presets are built-in reproducible configurations, not persisted user-authored scenarios.
-- No effect authoring, new gameplay events, ECS entities, scheduler, animation clock, lifetime manager, particle engine or PixelFX runtime dependency is introduced.
+- Temporal sampling uses the manually selected progress as caller-supplied presentation time. It does not advance TTL, create an animation clock, mutate simulation time, or introduce an ECS entity, scheduler, lifetime manager, particle engine or PixelFX runtime dependency.
 
 ## Validation
 
-The focused model test verifies the thirteen unique production drawers, family-correct descriptor creation and distinct semantic profile resolution. CI/Jest and app typecheck results must be read from the PR checks; authored tests are not a claim of execution.
+The focused model test verifies the twenty unique production drawers, family-correct descriptor creation and distinct semantic profile resolution. Temporal phase-envelope behavior is covered by `VFXEffectIR.test.ts`; the Visual Lab consumes that pure evaluator in both renderer previews. CI/Jest and app typecheck results must be read from the PR checks; authored tests are not a claim of execution.

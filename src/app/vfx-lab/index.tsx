@@ -27,7 +27,7 @@ import {
   type VFXLabEffectId,
   type VFXLabPreset
 } from "../../games/shared/rendering/VFXVisualLabModel";
-import { resolveVFXPlacement, VFX_VISUAL_PROFILES, type VFXVisualProfileId } from "../../games/shared/rendering/VFXEffectIR";
+import { resolveTemporalVFXSample, resolveVFXPlacement, VFX_VISUAL_PROFILES, type TemporalVFXContext, type VFXVisualProfileId } from "../../games/shared/rendering/VFXEffectIR";
 
 const PREVIEW_WIDTH = 480;
 const PREVIEW_HEIGHT = 240;
@@ -36,8 +36,8 @@ function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
-function createPreviewWorld(size: number, color: string, progress: number, rotation: number): World<CoreComponentRegistry> {
-  const render = { size, color, opacity: 1 };
+function createPreviewWorld(size: number, color: string, progress: number, rotation: number, temporalOpacity: number): World<CoreComponentRegistry> {
+  const render = { size, color, opacity: temporalOpacity };
   const ttl = { remaining: Math.max(0.001, 1 - progress), timeLeft: 1 };
   const transform = { rotation, scaleX: 1 };
   return {
@@ -59,6 +59,8 @@ export default function VFXVisualLabScreen() {
   const [effectId, setEffectId] = useState<VFXLabEffectId>("pixelfx_impact");
   const [profile, setProfile] = useState<VFXVisualProfileId>("arcade-neon");
   const [progress, setProgress] = useState(0.28);
+  const [temporalPhase, setTemporalPhase] = useState<TemporalVFXContext["phase"]>("hold");
+  const [presentationFactor, setPresentationFactor] = useState(1);
   const [size, setSize] = useState(48);
   const [rotation, setRotation] = useState(0);
   const [seed, setSeed] = useState("104729");
@@ -76,6 +78,11 @@ export default function VFXVisualLabScreen() {
     [effect, profile, rotation]
   );
   const placement = resolveVFXPlacement(descriptor);
+  const temporalSample = resolveTemporalVFXSample(
+    { phase: temporalPhase, presentationFactor },
+    progress,
+    1
+  );
   const semanticRole = resolveVFXLabSemanticRole(effect.family);
   const color = resolveVFXLabColor(effect, profile);
   const semanticTokens = VFX_VISUAL_PROFILES[profile].tokens;
@@ -115,7 +122,7 @@ export default function VFXVisualLabScreen() {
     context.save();
     context.translate(PREVIEW_WIDTH / 2, PREVIEW_HEIGHT / 2);
     const remaining = Math.max(0.001, 1 - progress);
-    const render = { size, color, opacity: 1 };
+    const render = { size, color, opacity: temporalSample.opacity };
     const ttl = { remaining, timeLeft: 1 };
     const transform = { rotation, scaleX: 1 };
     const world = {
@@ -129,7 +136,7 @@ export default function VFXVisualLabScreen() {
 
     effect.draw(new CanvasDrawAdapter(context), world, 1);
     context.restore();
-  }, [color, effect, previewPalette, profile, progress, rotation, size]);
+  }, [color, effect, previewPalette, profile, progress, rotation, size, temporalSample.opacity]);
 
   useEffect(() => {
     if (!Skia) {
@@ -144,10 +151,10 @@ export default function VFXVisualLabScreen() {
     for (let y = 0; y < PREVIEW_HEIGHT; y += 32) adapter.drawLine(0, y, PREVIEW_WIDTH, y, previewPalette.grid, 1, previewPalette.gridAlpha);
     skiaCanvas.save();
     skiaCanvas.translate(PREVIEW_WIDTH / 2, PREVIEW_HEIGHT / 2);
-    effect.draw(adapter, createPreviewWorld(size, color, progress, rotation), 1);
+    effect.draw(adapter, createPreviewWorld(size, color, progress, rotation, temporalSample.opacity), 1);
     skiaCanvas.restore();
     setSkiaPicture(recorder.finishRecordingAsPicture());
-  }, [color, effect, previewPalette, profile, progress, rotation, size]);
+  }, [color, effect, previewPalette, profile, progress, rotation, size, temporalSample.opacity]);
 
   const applyPreset = (preset: VFXLabPreset) => {
     setEffectId(preset.effect);
@@ -193,6 +200,7 @@ export default function VFXVisualLabScreen() {
   };
 
   const changeProgress = (delta: number) => setProgress((value) => clamp(value + delta, 0, 0.99));
+  const changePresentationFactor = (delta: number) => setPresentationFactor((value) => clamp(value + delta, 0, 3));
   const changeSize = (delta: number) => setSize((value) => clamp(value + delta, 12, 100));
   const changeRotation = (delta: number) => setRotation((value) => value + delta);
 
@@ -302,6 +310,29 @@ export default function VFXVisualLabScreen() {
             </View>
           </View>
           <View style={styles.track}><View style={[styles.trackFill, { width: `${progress * 100}%` }]} /></View>
+          <View style={styles.temporalPanel}>
+            <Text style={styles.controlLabel}>Temporal phase envelope · preview only</Text>
+            <View style={styles.phaseButtons}>
+              {(["enter", "hold", "exit"] as const).map((phase) => (
+                <TouchableOpacity key={phase} onPress={() => setTemporalPhase(phase)}
+                  style={[styles.phaseButton, temporalPhase === phase && styles.phaseButtonActive]}
+                  accessibilityRole="button" accessibilityState={{ selected: temporalPhase === phase }}>
+                  <Text style={[styles.phaseButtonText, temporalPhase === phase && styles.phaseButtonTextActive]}>{phase.toUpperCase()}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <View style={styles.controlRow}>
+              <Text style={styles.controlLabel}>Presentation rate</Text>
+              <View style={styles.stepper}>
+                <TouchableOpacity style={styles.stepButton} onPress={() => changePresentationFactor(-0.25)}><Text style={styles.stepText}>−</Text></TouchableOpacity>
+                <Text style={styles.controlValue}>{presentationFactor.toFixed(2)}×</Text>
+                <TouchableOpacity style={styles.stepButton} onPress={() => changePresentationFactor(0.25)}><Text style={styles.stepText}>+</Text></TouchableOpacity>
+              </View>
+            </View>
+            <View style={styles.inspectorRow}><Text style={styles.inspectorKey}>Sample opacity</Text><Text style={styles.inspectorValue}>{(temporalSample.opacity * 100).toFixed(0)}%</Text></View>
+            <View style={styles.inspectorRow}><Text style={styles.inspectorKey}>Sample progress</Text><Text style={styles.inspectorValue}>{(temporalSample.progress * 100).toFixed(0)}% · {temporalSample.complete ? "complete" : "active"}</Text></View>
+            <Text style={styles.helper}>The phase envelope multiplies the drawer's Render opacity. It uses the manually selected progress as caller-supplied presentation time; it does not advance TTL or simulation time. A rate of 0 pauses the temporal sample.</Text>
+          </View>
           <View style={styles.controlRow}>
             <Text style={styles.controlLabel}>Size</Text>
             <View style={styles.stepper}>
@@ -338,6 +369,7 @@ export default function VFXVisualLabScreen() {
           <View style={styles.inspectorRow}><Text style={styles.inspectorKey}>Placement rotation</Text><Text style={styles.inspectorValue}>{formatValue(placement.rotation ?? rotation)} rad</Text></View>
           <View style={styles.inspectorRow}><Text style={styles.inspectorKey}>Presentation size</Text><Text style={styles.inspectorValue}>{size}px</Text></View>
           <View style={styles.inspectorRow}><Text style={styles.inspectorKey}>TTL / progress</Text><Text style={styles.inspectorValue}>{(1 - progress).toFixed(2)}s / {(progress * 100).toFixed(0)}%</Text></View>
+          <View style={styles.inspectorRow}><Text style={styles.inspectorKey}>Temporal sample</Text><Text style={styles.inspectorValue}>{temporalPhase} · {presentationFactor.toFixed(2)}× · {Math.round(temporalSample.opacity * 100)}% opacity</Text></View>
         </View>
 
         <View style={styles.panel}>
@@ -419,6 +451,12 @@ const styles = StyleSheet.create({
   controlValue: { color: "#FFF", fontSize: 11, fontFamily: "monospace", minWidth: 74, textAlign: "center" },
   track: { height: 5, backgroundColor: "#1A2233", borderRadius: 4, overflow: "hidden", marginVertical: 4 },
   trackFill: { height: 5, backgroundColor: "#00F0FF" },
+  temporalPanel: { marginTop: 14, padding: 12, backgroundColor: "#101827", borderRadius: 6, borderWidth: 1, borderColor: "#263247" },
+  phaseButtons: { flexDirection: "row", gap: 8, marginTop: 10, marginBottom: 4 },
+  phaseButton: { flex: 1, alignItems: "center", paddingVertical: 9, backgroundColor: "#141A26", borderWidth: 1, borderColor: "#263247", borderRadius: 4 },
+  phaseButtonActive: { borderColor: "#00F0FF", backgroundColor: "#142B38" },
+  phaseButtonText: { color: "#AAB4C4", fontSize: 10, fontFamily: "monospace", fontWeight: "bold" },
+  phaseButtonTextActive: { color: "#00F0FF" },
   helper: { color: "#778399", fontSize: 10, lineHeight: 16, marginTop: 10 },
   textInput: { backgroundColor: "#141A26", borderWidth: 1, borderColor: "#263247", color: "#DCE5F2", borderRadius: 5, paddingHorizontal: 10, paddingVertical: 9, fontSize: 11, fontFamily: "monospace", marginBottom: 10 },
   seedInput: { minWidth: 150, textAlign: "right" },

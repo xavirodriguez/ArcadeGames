@@ -1,7 +1,6 @@
 import {
   World,
   System,
-  TransformComponent,
   VelocityComponent,
   Juice,
   createEmitter,

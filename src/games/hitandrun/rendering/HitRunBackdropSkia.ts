@@ -1,6 +1,6 @@
 import type { CoreComponentRegistry, EffectDrawer, RenderContext } from "@tiny-aster/core";
 import type { SkCanvas } from "@shopify/react-native-skia";
-import { Skia, getPaint } from "../../shared/rendering/SkiaContext";
+import { Skia } from "../../shared/rendering/SkiaContext";
 import { resolveElapsed, resolveMainCameraX } from "./HitRunBackdropCanvas";
 import {
   getHitRunTheme,
@@ -9,8 +9,7 @@ import {
 
 /**
  * Native Skia effect for Hit & Run.
- * Themes implement renderBackdropSkia (required on HitRunTheme); the solid-color
- * fill below is only a last-resort safety net if a theme misbehaves at runtime.
+ * Themes implement renderBackdropSkia (required on HitRunTheme).
  */
 export const drawHitRunProceduralBackdropSkia: EffectDrawer<RenderContext, CoreComponentRegistry> = {
   draw(context, world) {

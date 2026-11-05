@@ -1,4 +1,4 @@
-import { easeProgress, sampleVFXTimeline, type VFXTimelinePhase } from "../vfx-timeline";
+import { createVFXTimelineSampler, easeProgress, sampleVFXTimeline, type VFXTimelinePhase } from "../vfx-timeline";
 import {
   DeterministicRandom, clamp, deriveSeed, finiteNumber, lerp, smoothstep
 } from "../vfx-core";
@@ -76,6 +76,13 @@ describe("vfx-timeline", () => {
       { start: 0, end: 0.2, from: 0, to: 1 },
       { start: 0.3, end: 0.2, from: 1, to: 0 }
     ])).toThrow(RangeError);
+  });
+  it("compiles a stable sampler for repeated hot-loop evaluation", () => {
+    const phase = { start: 0, end: 1, from: 0, to: 1, easing: "smoothstep" as const };
+    const sampler = createVFXTimelineSampler([phase]);
+    phase.to = 0.25;
+    expect(sampler(0.5)).toBeCloseTo(0.5);
+    expect(sampler(0.5)).toBe(sampler(0.5));
   });
   it("implements bounded easing curves", () => {
     for (const easing of ["linear", "smoothstep", "ease-in", "ease-out", "ease-in-out"] as const) {

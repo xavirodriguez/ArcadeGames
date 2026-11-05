@@ -26,6 +26,7 @@ import {
  * - hitFlashFrames on victim Render (also skipped on re-sim).
  */
 import { CombatHitListenerSystem } from "../combat/CombatHitListenerSystem";
+import { isHitRunPlayer } from "../hurt/HitRunHurtSystem";
 import { JuiceOrchestrator } from "../../shared/rendering/JuiceOrchestrator";
 import { SUMI_E_THEME_RESOURCE } from "../presentation/ThemeAssetIds";
 import {
@@ -178,17 +179,6 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
     }
   }
 
-  private isPlayerTarget(world: World<CoreComponentRegistry>, entity: number): boolean {
-    if (
-      world.hasComponent(entity, "PlatformerInput") ||
-      world.hasComponent(entity, "BeltInput")
-    ) return true;
-    const faction = world.getComponent(entity, "Faction") as
-      | { value?: string; faction?: string }
-      | undefined;
-    return faction?.value === "player" || faction?.faction === "player";
-  }
-
   private resolveProfile(category?: string): HitFeedbackProfile {
     if (category && this.config.byCategory[category]) {
       return this.config.byCategory[category];
@@ -263,7 +253,7 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
             DEFAULT_HIT_REACTION_CONFIG;
           const reaction = resolveHitReactionDurations(
             hit,
-            this.isPlayerTarget(world, hit.targetEntity),
+            isHitRunPlayer(world, hit.targetEntity),
             reactionConfig
           );
           if (reaction.hitstunSeconds > 0) {

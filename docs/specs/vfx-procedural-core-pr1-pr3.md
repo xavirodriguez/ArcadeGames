@@ -32,7 +32,7 @@ integer nearest-neighbor RGBA upscaling.
 linear, smoothstep, quadratic ease-in/ease-out and symmetric ease-in-out curves.
 Ordered, non-overlapping phases can be sampled at arbitrary progress values;
 gaps hold the preceding value. The sampler is renderer-independent and performs
-no per-sample allocation. It is a calculation primitive, not an effect lifecycle.
+no per-sample allocation. Repeated render-loop consumers should use the compiled
 
 ## Integration contract
 

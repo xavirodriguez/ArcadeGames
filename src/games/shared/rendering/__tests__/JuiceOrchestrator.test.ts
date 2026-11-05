@@ -108,6 +108,10 @@ describe("JuiceOrchestrator Unit Tests & Golden Replays", () => {
 
       world.update(0.02);
       expect(world.getResource<{ cooldownRemaining: number }>("JuiceHitStopPolicy")?.cooldownRemaining).toBeCloseTo(0.03, 3);
+
+      world.update(0.03);
+      expect(world.getResource<{ cooldownRemaining: number; priority: number }>("JuiceHitStopPolicy"))
+        .toMatchObject({ cooldownRemaining: 0, priority: 0 });
     });
 
     it("blocks chaining during cooldown unless a strictly higher priority arrives", () => {

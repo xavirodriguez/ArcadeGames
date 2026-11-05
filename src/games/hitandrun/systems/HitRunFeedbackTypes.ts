@@ -7,6 +7,9 @@ export interface CombatHitPayload {
   amount: number;
   remainingHealth: number;
   category?: string;
+  guardBroken?: boolean;
+  armorBroken?: boolean;
+  blocked?: boolean;
 }
 
 export interface CombatDeathPayload {

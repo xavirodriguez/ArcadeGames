@@ -15,7 +15,7 @@ const deterministicInputs = [
   { t: 10, b: 16 }
 ] satisfies readonly CompactInputFrame[];
 
-defineGameContractSuite({
+defineGameContractSuite<AsteroidsGame>({
   gameId: "asteroids",
   seed: 98765,
   inputs: deterministicInputs,

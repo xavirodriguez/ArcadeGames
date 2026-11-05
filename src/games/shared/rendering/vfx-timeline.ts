@@ -49,12 +49,8 @@ export function easeProgress(progress: number, easing: VFXEasing = "linear"): nu
  * before the first phase its from value is returned, after the last phase
  * its to value is returned.
  */
-export function sampleVFXTimeline(progress: number, phases: readonly VFXTimelinePhase[]): number {
-  const t = clamp(finiteNumber(progress, "progress"), 0, 1);
+function validatePhases(phases: readonly VFXTimelinePhase[]): void {
   if (phases.length === 0) throw new RangeError("phases must not be empty");
-
-  // Validate the complete definition before sampling so malformed later phases
-  // cannot be hidden by an early return.
   let previousEnd = 0;
   for (let i = 0; i < phases.length; i++) {
     const phase = phases[i];
@@ -64,7 +60,10 @@ export function sampleVFXTimeline(progress: number, phases: readonly VFXTimeline
     }
     previousEnd = phase.end;
   }
+}
 
+function sampleValidatedTimeline(progress: number, phases: readonly VFXTimelinePhase[]): number {
+  const t = clamp(finiteNumber(progress, "progress"), 0, 1);
   let previousValue = phases[0].from;
   for (const phase of phases) {
     if (t < phase.start) return previousValue;
@@ -75,4 +74,17 @@ export function sampleVFXTimeline(progress: number, phases: readonly VFXTimeline
     previousValue = phase.to;
   }
   return previousValue;
+}
+
+/** Compiles and snapshots a timeline once for allocation-free repeated sampling. */
+export function createVFXTimelineSampler(phases: readonly VFXTimelinePhase[]): (progress: number) => number {
+  validatePhases(phases);
+  const snapshot = phases.map(phase => ({ ...phase }));
+  return (progress: number): number => sampleValidatedTimeline(progress, snapshot);
+}
+
+/** Validates and samples a timeline in one call; use a compiled sampler in hot render loops. */
+export function sampleVFXTimeline(progress: number, phases: readonly VFXTimelinePhase[]): number {
+  validatePhases(phases);
+  return sampleValidatedTimeline(progress, phases);
 }

@@ -88,4 +88,33 @@ describe("DrawAdapter glow composition", () => {
     expect(calls[3].maskFilter).toBeUndefined();
     expect(calls[3].alpha).toBe(0.5);
   });
+  it("applies the same p95 glow degradation thresholds to Skia as Canvas", () => {
+    const perfGlobal = globalThis as typeof globalThis & { __ARCADE_PERF_P95__?: number };
+    const previousP95 = perfGlobal.__ARCADE_PERF_P95__;
+    const cases = [
+      { p95: 9, expectedAlpha: [0.175, 0.5] },
+      { p95: 13, expectedAlpha: [0.5] },
+      { p95: 17, expectedAlpha: [0.5] }
+    ];
+
+    try {
+      for (const scenario of cases) {
+        perfGlobal.__ARCADE_PERF_P95__ = scenario.p95;
+        const calls: number[] = [];
+        const canvas = {
+          drawCircle: (_x: number, _y: number, _radius: number, paint: unknown) => {
+            calls.push((paint as { alpha: number }).alpha);
+          }
+        };
+        new SkiaDrawAdapter(canvas).drawGlow("#ff00ff", (layer) => {
+          layer.fillCircle(0, 0, 8, "#ffffff", 0.5);
+        });
+        expect(calls).toEqual(scenario.expectedAlpha);
+      }
+    } finally {
+      if (previousP95 === undefined) delete perfGlobal.__ARCADE_PERF_P95__;
+      else perfGlobal.__ARCADE_PERF_P95__ = previousP95;
+    }
+  });
+
 });

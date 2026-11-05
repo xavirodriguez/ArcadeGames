@@ -433,7 +433,28 @@ export class AsteroidsGame
       if (comboComp) {
         combo = comboComp.combo;
         multiplier = comboComp.multiplier;
-        comboTimerRemaining = Math.max(0, comboComp.timer ?? 0);
+        comboTimerRemaining = Math.max(0, comboComp.timerRemaining);
+      } else {
+        this.cachedComboEntityId = undefined;
+      }
+    }
+
+    let isDialogueActive = false;
+    let dialogueText = "";
+
+    if (this.cachedDialogueBoxEntityId === undefined || !this.world.hasComponent(this.cachedDialogueBoxEntityId, "DialogueBox")) {
+      const dialogueBoxEntities = this.world.query("DialogueBox");
+      this.cachedDialogueBoxEntityId = dialogueBoxEntities[0];
+    }
+
+    if (this.cachedDialogueBoxEntityId !== undefined) {
+      const dialogueBox = this.world.getComponent(this.cachedDialogueBoxEntityId, "DialogueBox");
+      if (dialogueBox) {
+        isDialogueActive = true;
+        const currentLineKey = dialogueBox.lines[dialogueBox.currentLineIndex];
+        dialogueText = currentLineKey || "";
+      } else {
+        this.cachedDialogueBoxEntityId = undefined;
       }
     }
 
@@ -441,11 +462,85 @@ export class AsteroidsGame
       ...state,
       combo,
       multiplier,
-      comboTimerRemaining
-    } as GameStateComponent;
+      comboTimerRemaining,
+      isDialogueActive,
+      dialogueText
+    };
+  }
+
+  public isGameOver(): boolean {
+    const state = this.world.getSingleton("GameState");
+    return !!(state && state.isGameOver);
+  }
+
+  public setInputState(input: Record<string, unknown> | object): void {
+    const localPlayer = this.world.query("LocalPlayer")[0];
+    if (localPlayer !== undefined) {
+      this.world.mutateComponent(localPlayer, "Input", (inputComp) => {
+        const inputObj = input as Record<string, unknown>;
+        if (inputObj) {
+          const actsSet = new Set<import("@tiny-aster/core").CanonicalActionName>(inputComp.actions || []);
+          const incomingActions = inputObj.actions;
+          if (Array.isArray(incomingActions) || incomingActions instanceof Set) {
+            actsSet.clear();
+            for (const action of incomingActions) {
+              if (!isCanonicalActionName(action)) continue;
+              actsSet.add(action);
+              if (action === "fire") actsSet.add("shoot");
+            }
+          }
+
+          const inputAxes = inputObj.axes;
+          if (inputAxes && typeof inputAxes === "object") {
+            const axes = inputAxes as Record<string, unknown>;
+            if (typeof axes.moveX === "number") {
+              inputComp.axes["rotate_x"] = axes.moveX;
+              inputComp.axes["horizontal"] = axes.moveX;
+              if (axes.moveX < -0.25) {
+                actsSet.add("rotateLeft");
+                actsSet.delete("rotateRight");
+              } else if (axes.moveX > 0.25) {
+                actsSet.add("rotateRight");
+                actsSet.delete("rotateLeft");
+              } else {
+                actsSet.delete("rotateLeft");
+                actsSet.delete("rotateRight");
+              }
+            }
+            if (typeof axes.moveY === "number" && axes.moveY < -0.25) {
+              actsSet.add("thrust");
+            }
+          }
+
+          if (typeof inputObj.rotateLeft === "boolean") {
+            if (inputObj.rotateLeft) actsSet.add("rotateLeft"); else actsSet.delete("rotateLeft");
+          }
+          if (typeof inputObj.rotateRight === "boolean") {
+            if (inputObj.rotateRight) actsSet.add("rotateRight"); else actsSet.delete("rotateRight");
+          }
+          if (typeof inputObj.thrust === "boolean") {
+            if (inputObj.thrust) actsSet.add("thrust"); else actsSet.delete("thrust");
+          }
+          if (typeof inputObj.shoot === "boolean") {
+            if (inputObj.shoot) actsSet.add("shoot"); else actsSet.delete("shoot");
+          }
+          if (typeof inputObj.hyperspace === "boolean") {
+            if (inputObj.hyperspace) actsSet.add("hyperspace"); else actsSet.delete("hyperspace");
+          }
+          const sorted = Array.from(actsSet).sort();
+          inputComp.actions = sorted;
+
+          if (typeof inputObj.rotationAmount === "number") {
+            inputComp.axes["rotate_x"] = inputObj.rotationAmount;
+            inputComp.axes["horizontal"] = inputObj.rotationAmount;
+          }
+        }
+      });
+    }
   }
 
   public override destroy(): void {
+    super.destroy();
     this.bulletPool?.clear();
     this.particlePool?.clear();
     this.asteroidPool?.clear();

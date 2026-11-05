@@ -728,6 +728,124 @@ export function drawPixelFxProjectileDeflection(draw: IDrawAdapter, world: impor
   draw.restore();
 }
 
+
+const GUARD_BREAK_RING = createVFXTimelineSampler([
+  { start: 0, end: 0.14, from: 0.72, to: 0.28, easing: "ease-in" },
+  { start: 0.14, end: 0.58, from: 0.28, to: 1.12, easing: "ease-out" },
+  { start: 0.58, end: 1, from: 1.12, to: 1.34, easing: "ease-out" }
+]);
+const GUARD_BREAK_FLASH = createVFXTimelineSampler([
+  { start: 0, end: 0.1, from: 0.18, to: 1, easing: "ease-out" },
+  { start: 0.1, end: 0.32, from: 1, to: 0.12, easing: "ease-in" },
+  { start: 0.32, end: 0.48, from: 0.12, to: 0.52, easing: "ease-out" },
+  { start: 0.48, end: 1, from: 0.52, to: 0, easing: "ease-in" }
+]);
+/** Guard Break: a collapsing guard sigil fractures into six staggered radial cracks. */
+export function drawPixelFxGuardBreak(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
+  const state = readEffectState(world, entity);
+  if (!state || state.alpha <= 0.01) return;
+  const { progress: p, alpha, size, color, rotation } = state;
+  const radius = size * GUARD_BREAK_RING(p), flash = alpha * GUARD_BREAK_FLASH(p);
+  const fade = alpha * (1 - p * 0.32), cos = Math.cos(rotation), sin = Math.sin(rotation);
+  draw.save();
+  draw.strokeCircle(0, 0, radius, color, Math.max(1, size * (0.065 - p * 0.03)), flash * 0.78);
+  draw.drawArc(0, 0, radius * 0.68, rotation - Math.PI * 0.88, Math.PI * 0.66, color, Math.max(1, size * 0.055), fade);
+  draw.drawArc(0, 0, radius * 0.68, rotation + Math.PI * 0.22, Math.PI * 0.54, color, Math.max(1, size * 0.055), fade * 0.72);
+  for (let i = 0; i < 6; i++) {
+    const delay = i * 0.055;
+    const crackProgress = Math.max(0, Math.min(1, (p - delay) / (1 - delay)));
+    const angle = (i * Math.PI) / 3 + 0.16;
+    const reach = radius * (0.28 + crackProgress * (0.62 + (i % 2) * 0.18));
+    const kink = angle + (i % 2 === 0 ? 0.16 : -0.16);
+    drawRotatedLine(draw, Math.cos(angle) * radius * 0.12, Math.sin(angle) * radius * 0.12,
+      Math.cos(kink) * reach * 0.68, Math.sin(kink) * reach * 0.68, color,
+      Math.max(0.9, size * 0.038), fade * crackProgress, cos, sin);
+    drawRotatedLine(draw, Math.cos(kink) * reach * 0.68, Math.sin(kink) * reach * 0.68,
+      Math.cos(angle) * reach, Math.sin(angle) * reach, color,
+      Math.max(0.8, size * 0.028), fade * crackProgress * 0.82, cos, sin);
+  }
+  draw.fillCircle(0, 0, size * (0.045 + flash * 0.1), color, flash);
+  draw.restore();
+}
+
+const ARMOR_BREAK_REACH = createVFXTimelineSampler([
+  { start: 0, end: 0.18, from: 0.12, to: 0.34, easing: "ease-in" },
+  { start: 0.18, end: 0.78, from: 0.34, to: 1.18, easing: "ease-out" },
+  { start: 0.78, end: 1, from: 1.18, to: 1.28, easing: "ease-out" }
+]);
+const ARMOR_BREAK_FLASH = createVFXTimelineSampler([
+  { start: 0, end: 0.08, from: 0.1, to: 1, easing: "ease-out" },
+  { start: 0.08, end: 0.3, from: 1, to: 0.08, easing: "ease-in" },
+  { start: 0.3, end: 1, from: 0.08, to: 0, easing: "ease-in" }
+]);
+/** Armor Break: six angular plates peel away from a fractured central shell. */
+export function drawPixelFxArmorBreak(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
+  const state = readEffectState(world, entity);
+  if (!state || state.alpha <= 0.01) return;
+  const { progress: p, alpha, size, color, rotation } = state;
+  const reach = size * ARMOR_BREAK_REACH(p), flash = alpha * ARMOR_BREAK_FLASH(p);
+  const fade = alpha * (1 - p * 0.42), cos = Math.cos(rotation), sin = Math.sin(rotation);
+  draw.save();
+  draw.strokeCircle(0, 0, size * (0.24 + p * 0.18), color, Math.max(0.8, size * 0.035), flash * 0.72);
+  for (let i = 0; i < 6; i++) {
+    const delay = (i % 3) * 0.045;
+    const fragmentProgress = Math.max(0, Math.min(1, (p - delay) / (1 - delay)));
+    const angle = rotation + (i * Math.PI * 2) / 6;
+    const distance = reach * (0.28 + fragmentProgress * (0.54 + (i % 2) * 0.12));
+    const half = size * (0.075 + (i % 3) * 0.018) * (1 - fragmentProgress * 0.18);
+    const cx = Math.cos(angle) * distance, cy = Math.sin(angle) * distance;
+    const tx = -Math.sin(angle) * half, ty = Math.cos(angle) * half;
+    const tipX = cx + Math.cos(angle) * half * 1.55, tipY = cy + Math.sin(angle) * half * 1.55;
+    drawRotatedLine(draw, cx - tx, cy - ty, tipX, tipY, color, Math.max(1, size * 0.045), fade * fragmentProgress, cos, sin);
+    drawRotatedLine(draw, tipX, tipY, cx + tx, cy + ty, color, Math.max(1, size * 0.04), fade * fragmentProgress, cos, sin);
+    drawRotatedLine(draw, cx + tx, cy + ty, cx - tx, cy - ty, color, Math.max(0.8, size * 0.03), fade * fragmentProgress * 0.78, cos, sin);
+    draw.fillCircle(cx, cy, size * 0.018, color, fade * fragmentProgress);
+  }
+  draw.drawArc(0, 0, size * (0.18 + p * 0.22), rotation + Math.PI * 0.12, Math.PI * 0.76, color, Math.max(1, size * 0.045), flash);
+  draw.restore();
+}
+
+const FINISHER_CORE = createVFXTimelineSampler([
+  { start: 0, end: 0.22, from: 0.08, to: 0.28, easing: "ease-in" },
+  { start: 0.22, end: 0.38, from: 0.28, to: 0.1, easing: "ease-in" },
+  { start: 0.38, end: 0.68, from: 0.1, to: 0.82, easing: "ease-out" },
+  { start: 0.68, end: 1, from: 0.82, to: 1.12, easing: "ease-out" }
+]);
+const FINISHER_ARC = createVFXTimelineSampler([
+  { start: 0, end: 0.34, from: 0.12, to: 0.32, easing: "ease-in" },
+  { start: 0.34, end: 0.62, from: 0.32, to: 1, easing: "ease-out" },
+  { start: 0.62, end: 1, from: 1, to: 1.22, easing: "ease-out" }
+]);
+const FINISHER_FLASH = createVFXTimelineSampler([
+  { start: 0, end: 0.34, from: 0, to: 0.12, easing: "linear" },
+  { start: 0.34, end: 0.46, from: 0.12, to: 1, easing: "ease-out" },
+  { start: 0.46, end: 0.72, from: 1, to: 0.22, easing: "ease-in" },
+  { start: 0.72, end: 1, from: 0.22, to: 0, easing: "ease-in" }
+]);
+/** Combo Finisher: compact anticipation, decisive slash and an expanding terminal shock ring. */
+export function drawPixelFxComboFinisher(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
+  const state = readEffectState(world, entity);
+  if (!state || state.alpha <= 0.01) return;
+  const { progress: p, alpha, size, color, rotation } = state;
+  const core = size * FINISHER_CORE(p), reach = size * FINISHER_ARC(p);
+  const flash = alpha * FINISHER_FLASH(p), fade = alpha * (1 - p * 0.38);
+  const cos = Math.cos(rotation), sin = Math.sin(rotation);
+  draw.save();
+  draw.strokeCircle(0, 0, size * (0.18 + p * 0.92), color, Math.max(1, size * (0.055 - p * 0.02)), flash * 0.62);
+  draw.fillCircle(0, 0, core * 0.22, color, flash);
+  draw.drawArc(0, 0, reach, rotation - Math.PI * 0.62, Math.PI * 1.24, color, Math.max(1.2, size * 0.095 * (1 - p * 0.32)), fade);
+  draw.drawArc(0, 0, reach * 0.78, rotation - Math.PI * 0.48, Math.PI * 0.96, color, Math.max(0.8, size * 0.032), fade * 0.58);
+  for (let i = 0; i < 8; i++) {
+    const angle = (i * Math.PI * 2) / 8;
+    const inner = core * (0.48 + (i % 2) * 0.12);
+    const outer = reach * (0.92 + (i % 3) * 0.09);
+    drawRotatedLine(draw, Math.cos(angle) * inner, Math.sin(angle) * inner,
+      Math.cos(angle) * outer, Math.sin(angle) * outer, color,
+      Math.max(0.8, size * (i % 2 === 0 ? 0.045 : 0.026)), fade * (0.88 - (i % 3) * 0.12), cos, sin);
+  }
+  draw.restore();
+}
+
 /** Target warning: pulsing lock-on brackets and a central sight line. */
 export function drawPixelFxTargetWarning(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
   const state = readEffectState(world, entity);
@@ -869,6 +987,9 @@ export function registerPixelFxProceduralVFX<TComponents extends CoreComponentRe
     ["pixelfx_perfect_block", drawPixelFxPerfectBlock],
     ["pixelfx_critical_hit", drawPixelFxCriticalHit],
     ["pixelfx_projectile_deflection", drawPixelFxProjectileDeflection],
+    ["pixelfx_guard_break", drawPixelFxGuardBreak],
+    ["pixelfx_armor_break", drawPixelFxArmorBreak],
+    ["pixelfx_combo_finisher", drawPixelFxComboFinisher],
     ["pixelfx_target_warning", drawPixelFxTargetWarning],
     ["pixelfx_teleport", drawPixelFxTeleport],
     ["pixelfx_surface_skid", drawPixelFxSurfaceSkid],

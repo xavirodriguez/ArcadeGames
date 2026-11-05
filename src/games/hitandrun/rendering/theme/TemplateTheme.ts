@@ -1,7 +1,9 @@
 /**
  * TemplateTheme — starter template for creating new Hit & Run visual themes.
+ * Demonstrates dual Canvas + Skia backdrop via the neutral solid painter.
  */
 
+import type { SkCanvas } from "@shopify/react-native-skia";
 import type { HitRunTheme, HitRunThemePaletteTokens } from "./HitRunTheme";
 import type {
   EntityRenderSnapshot,
@@ -10,6 +12,10 @@ import type {
   FeedbackEventSnapshot
 } from "./HitRunThemeTypes";
 import { drawThemeEntityContext } from "./HitRunThemeUtils";
+import {
+  paintSolidBackdropCanvas,
+  paintSolidBackdropSkia
+} from "./neutralBackdropPainter";
 
 export const TEMPLATE_PALETTE: HitRunThemePaletteTokens = {
   primary: "#2b2b2b",
@@ -37,8 +43,18 @@ export class TemplateTheme implements HitRunTheme {
     _cameraY: number,
     _elapsed: number
   ): void {
-    ctx.fillStyle = this.palette.background;
-    ctx.fillRect(0, 0, viewportWidth, viewportHeight);
+    paintSolidBackdropCanvas(ctx, viewportWidth, viewportHeight, this.palette.background);
+  }
+
+  public renderBackdropSkia(
+    canvas: SkCanvas,
+    viewportWidth: number,
+    viewportHeight: number,
+    _cameraX: number,
+    _cameraY: number,
+    _elapsed: number
+  ): void {
+    paintSolidBackdropSkia(canvas, viewportWidth, viewportHeight, this.palette.background);
   }
 
   public renderGroundShadow(

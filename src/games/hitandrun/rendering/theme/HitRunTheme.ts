@@ -1,6 +1,9 @@
 /**
  * Interface contract for Hit & Run visual themes.
  * Fully decoupled from gameplay simulation logic.
+ *
+ * Backdrop is dual-backend by contract: every theme must implement both
+ * Canvas and Skia painters so native clients never fall back to a blank fill.
  */
 
 import type { SkCanvas } from "@shopify/react-native-skia";
@@ -29,7 +32,7 @@ export interface HitRunTheme {
   readonly name: string;
   readonly palette: HitRunThemePaletteTokens;
 
-  /** Render background/backdrop layer in world/screen space. */
+  /** Render background/backdrop layer in world/screen space (Canvas 2D). */
   renderBackdrop(
     ctx: CanvasRenderingContext2D,
     viewportWidth: number,
@@ -39,8 +42,11 @@ export interface HitRunTheme {
     elapsed: number
   ): void;
 
-  /** Native backdrop path for renderers that own a Skia canvas. */
-  renderBackdropSkia?(
+  /**
+   * Native backdrop path for renderers that own a Skia canvas.
+   * Required for Canvas/Skia parity — HitRunBackdropSkia calls this first.
+   */
+  renderBackdropSkia(
     canvas: SkCanvas,
     viewportWidth: number,
     viewportHeight: number,

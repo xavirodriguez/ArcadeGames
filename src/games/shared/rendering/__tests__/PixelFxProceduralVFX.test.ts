@@ -20,6 +20,7 @@ import {
   drawPixelFxRicochet,
   drawPixelFxCharge,
   drawPixelFxShieldPulse,
+  drawPixelFxParry,
   registerPixelFxProceduralVFX
 } from "../PixelFxProceduralVFX";
 
@@ -152,6 +153,19 @@ describe("PixelFX-inspired procedural VFX", () => {
     expect(ricochetLate.strokeCircle.mock.calls[0][2]).toBeGreaterThan(ricochetEarly.strokeCircle.mock.calls[0][2]);
   });
 
+  it("animates a parry clash into a delayed directional counter-burst", () => {
+    const early = createAdapter();
+    const earlyState = createWorld(0.36);
+    drawPixelFxParry(early, earlyState.world, earlyState.entity);
+    const late = createAdapter();
+    const lateState = createWorld(0.04);
+    drawPixelFxParry(late, lateState.world, lateState.entity);
+
+    expect(early.drawArc).toHaveBeenCalledTimes(2);
+    expect(late.drawLine.mock.calls[0][2]).toBeGreaterThan(early.drawLine.mock.calls[0][2]);
+    expect(late.fillCircle.mock.calls[0][4]).toBeLessThan(early.fillCircle.mock.calls[0][4]);
+  });
+
   it("draws the five additional procedural compositions", () => {
     const adapter = createAdapter();
     const { world, entity } = createWorld();
@@ -245,7 +259,7 @@ describe("PixelFX-inspired procedural VFX", () => {
     expect(adapter.strokeCircle).toHaveBeenCalled();
   });
 
-  it("suppresses traversal effects when render opacity is zero", () => {
+  it("suppresses effects when render opacity is zero", () => {
     const adapter = createAdapter();
     const { world, entity } = createWorld();
     world.mutateComponent(entity, "Render", render => { render.opacity = 0; });
@@ -255,6 +269,7 @@ describe("PixelFX-inspired procedural VFX", () => {
     drawPixelFxRicochet(adapter, world, entity);
     drawPixelFxCharge(adapter, world, entity);
     drawPixelFxShieldPulse(adapter, world, entity);
+    drawPixelFxParry(adapter, world, entity);
     expect(adapter.drawLine).not.toHaveBeenCalled();
     expect(adapter.drawArc).not.toHaveBeenCalled();
     expect(adapter.strokeCircle).not.toHaveBeenCalled();
@@ -283,20 +298,21 @@ describe("PixelFX-inspired procedural VFX", () => {
     drawPixelFxRicochet(adapter, world, entity);
     drawPixelFxCharge(adapter, world, entity);
     drawPixelFxShieldPulse(adapter, world, entity);
+    drawPixelFxParry(adapter, world, entity);
     expect(adapter.drawLine).not.toHaveBeenCalled();
     expect(adapter.drawArc).not.toHaveBeenCalled();
     expect(adapter.strokeCircle).not.toHaveBeenCalled();
     expect(adapter.fillCircle).not.toHaveBeenCalled();
   });
 
-  it("registers all twenty shapes for Canvas", () => {
+  it("registers all twenty-one shapes for Canvas", () => {
     const registerShape = jest.fn();
     const renderer = {
       type: "canvas" as const,
       registerShape
     } as never as Renderer<CoreComponentRegistry, RenderContext>;
     registerPixelFxProceduralVFX(renderer);
-    expect(registerShape).toHaveBeenCalledTimes(20);
+    expect(registerShape).toHaveBeenCalledTimes(21);
     expect(registerShape.mock.calls.map(([name]) => name)).toEqual([
       "pixelfx_impact",
       "pixelfx_slash",
@@ -314,6 +330,7 @@ describe("PixelFX-inspired procedural VFX", () => {
       "pixelfx_ricochet",
       "pixelfx_charge",
       "pixelfx_shield_pulse",
+      "pixelfx_parry",
       "pixelfx_target_warning",
       "pixelfx_teleport",
       "pixelfx_surface_skid",
@@ -321,14 +338,14 @@ describe("PixelFX-inspired procedural VFX", () => {
     ]);
   });
 
-  it("registers the same twenty-shape contract for Skia", () => {
+  it("registers the same twenty-one-shape contract for Skia", () => {
     const registerShape = jest.fn();
     const renderer = {
       type: "skia" as const,
       registerShape
     } as never as Renderer<CoreComponentRegistry, RenderContext>;
     registerPixelFxProceduralVFX(renderer);
-    expect(registerShape).toHaveBeenCalledTimes(20);
+    expect(registerShape).toHaveBeenCalledTimes(21);
     expect(registerShape.mock.calls.map(([name]) => name)).toEqual([
       "pixelfx_impact",
       "pixelfx_slash",
@@ -346,6 +363,7 @@ describe("PixelFX-inspired procedural VFX", () => {
       "pixelfx_ricochet",
       "pixelfx_charge",
       "pixelfx_shield_pulse",
+      "pixelfx_parry",
       "pixelfx_target_warning",
       "pixelfx_teleport",
       "pixelfx_surface_skid",

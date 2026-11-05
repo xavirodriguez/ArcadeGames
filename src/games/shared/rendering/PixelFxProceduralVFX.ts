@@ -790,7 +790,7 @@ export function drawPixelFxArmorBreak(draw: IDrawAdapter, world: import("@tiny-a
   for (let i = 0; i < 6; i++) {
     const delay = (i % 3) * 0.045;
     const fragmentProgress = Math.max(0, Math.min(1, (p - delay) / (1 - delay)));
-    const angle = rotation + (i * Math.PI * 2) / 6;
+    const angle = (i * Math.PI * 2) / 6;
     const distance = reach * (0.28 + fragmentProgress * (0.54 + (i % 2) * 0.12));
     const half = size * (0.075 + (i % 3) * 0.018) * (1 - fragmentProgress * 0.18);
     const cx = Math.cos(angle) * distance, cy = Math.sin(angle) * distance;
@@ -799,7 +799,7 @@ export function drawPixelFxArmorBreak(draw: IDrawAdapter, world: import("@tiny-a
     drawRotatedLine(draw, cx - tx, cy - ty, tipX, tipY, color, Math.max(1, size * 0.045), fade * fragmentProgress, cos, sin);
     drawRotatedLine(draw, tipX, tipY, cx + tx, cy + ty, color, Math.max(1, size * 0.04), fade * fragmentProgress, cos, sin);
     drawRotatedLine(draw, cx + tx, cy + ty, cx - tx, cy - ty, color, Math.max(0.8, size * 0.03), fade * fragmentProgress * 0.78, cos, sin);
-    draw.fillCircle(cx, cy, size * 0.018, color, fade * fragmentProgress);
+    draw.fillCircle(cx * cos - cy * sin, cx * sin + cy * cos, size * 0.018, color, fade * fragmentProgress);
   }
   draw.drawArc(0, 0, size * (0.18 + p * 0.22), rotation + Math.PI * 0.12, Math.PI * 0.76, color, Math.max(1, size * 0.045), flash);
   draw.restore();

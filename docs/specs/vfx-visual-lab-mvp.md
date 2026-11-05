@@ -36,3 +36,16 @@ Provide an in-app workbench for inspecting and tuning the twenty existing PixelF
 ## Validation
 
 The focused model test verifies the twenty unique production drawers, family-correct descriptor creation and distinct semantic profile resolution. Explosion tests verify stable entity-seeded geometry. Charge, Shield Pulse and Ricochet now use compiled temporal samplers for staged buildup, delayed echoes, impact flashes and release arcs. CI/Jest and app typecheck results must be read from the PR checks; authored tests are not a claim of execution.
+
+
+## Procedural animation evolution — Parry
+
+The production catalog includes `pixelfx_parry`, a combat composition for a successful deflection:
+
+- Two opposing guard arcs converge around a compact clash point.
+- A short flash confirms the timing window.
+- A delayed radial counter-burst communicates the release of force.
+- Clash radius, flash envelope and burst reach are sampled from compiled temporal curves; the drawer remains stateless and uses the existing TTL progress contract.
+- The same drawer is registered for Canvas and Skia and is exposed in the Visual Lab with a reproducible Neon preset.
+
+The Visual Lab route is covered by a Playwright smoke test that opens `/vfx-lab` directly and verifies the title, renderer preview and effect browser. This is a route-load check, not a claim of pixel-level renderer parity.

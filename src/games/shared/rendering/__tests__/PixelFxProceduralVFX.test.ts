@@ -93,6 +93,16 @@ describe("PixelFX-inspired procedural VFX", () => {
     expect(adapter.drawLine).toHaveBeenCalledTimes(24);
   });
 
+  it("evolves Impact from a concentrated contact flash into an expanding shock ring", () => {
+    const early = createAdapter(), earlyState = createWorld(0.36);
+    drawPixelFxImpact(early, earlyState.world, earlyState.entity);
+    const late = createAdapter(), lateState = createWorld(0.04);
+    drawPixelFxImpact(late, lateState.world, lateState.entity);
+    expect(late.strokeCircle.mock.calls[0][2]).toBeGreaterThan(early.strokeCircle.mock.calls[0][2]);
+    expect(late.strokeCircle.mock.calls[0][5]).toBeLessThan(early.strokeCircle.mock.calls[0][5]);
+    expect(early.drawArc).toHaveBeenCalledTimes(2);
+  });
+
   it("draws a directional slash as arcs and trailing strokes", () => {
     const adapter = createAdapter();
     const { world, entity } = createWorld();

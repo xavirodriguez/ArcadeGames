@@ -9,6 +9,8 @@ test.describe("VFX Visual Lab", () => {
     await expect(page.getByText("Loading CanvasKit...")).toBeHidden({ timeout: 20000 });
     await expect(page.getByText("VFX VISUAL LAB", { exact: true })).toBeVisible({ timeout: 15000 });
     await expect(page.getByText("Renderer comparison", { exact: true })).toBeVisible();
+    await expect(page.getByText("CANVAS 2D", { exact: true })).toBeVisible();
+    await expect(page.locator("canvas")).toBeVisible();
     await expect(page.getByText("Effect browser", { exact: false })).toBeVisible();
     await expect(page.getByText("Parry", { exact: true })).toBeVisible();
     await expect(page.getByText("Perfect Block", { exact: true })).toBeVisible();

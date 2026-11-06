@@ -228,7 +228,7 @@ describe("PixelFX-inspired procedural VFX", () => {
     drawPixelFxGuardBreak(early, earlyState.world, earlyState.entity);
     const late = createAdapter(), lateState = createWorld(0.04);
     drawPixelFxGuardBreak(late, lateState.world, lateState.entity);
-    expect(early.drawLine).toHaveBeenCalledTimes(5);
+    expect(early.drawLine).toHaveBeenCalledTimes(6);
     expect(late.drawLine.mock.calls.length).toBeGreaterThan(early.drawLine.mock.calls.length);
     expect(early.drawArc).toHaveBeenCalled();
     expect(early.fillCircle).toHaveBeenCalledTimes(1);

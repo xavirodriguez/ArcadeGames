@@ -16,6 +16,7 @@ import {
   type BeltMovementComponent,
   type BeltMovementConfig
 } from "./BeltMovementTypes";
+import { isPlayerControlLocked } from "../hurt/HitRunHurtSystem";
 import {
   createBeltElevationComponent,
   type BeltElevationComponent
@@ -67,14 +68,18 @@ export class BeltMovementSystem extends System<CoreComponentRegistry> {
 
     if (!belt || !input || !vel || !transform) return;
 
-    const targetVx = input.moveX * config.maxSpeedX;
-    const targetVyDepth = input.moveY * config.maxSpeedY;
+    const controlLocked = isPlayerControlLocked(world, entity);
+    const targetVx = controlLocked ? vel.vx : input.moveX * config.maxSpeedX;
+    const targetVyDepth = controlLocked ? vel.vy : input.moveY * config.maxSpeedY;
 
-    const accel = input.moveX !== 0 || input.moveY !== 0
+    const accel = !controlLocked && (input.moveX !== 0 || input.moveY !== 0)
       ? config.acceleration
       : config.deceleration;
 
-    vel.vx = moveTowards(vel.vx, targetVx, accel * dt);
+    // Hitstun blocks voluntary steering, not physical momentum/knockback.
+    if (!controlLocked) {
+      vel.vx = moveTowards(vel.vx, targetVx, accel * dt);
+    }
 
     if (input.moveX !== 0) {
       belt.facing = input.moveX > 0 ? 1 : -1;
@@ -86,7 +91,9 @@ export class BeltMovementSystem extends System<CoreComponentRegistry> {
     }
 
     // Depth movement on ground plane (Y axis)
-    vel.vy = moveTowards(vel.vy, targetVyDepth, accel * dt);
+    if (!controlLocked) {
+      vel.vy = moveTowards(vel.vy, targetVyDepth, accel * dt);
+    }
 
     if (transform.y < config.depthMin) {
       transform.y = config.depthMin;
@@ -111,7 +118,7 @@ export class BeltMovementSystem extends System<CoreComponentRegistry> {
     }
 
     const canHop = !belt.isHopping && (elevation.grounded || elevation.z <= 0);
-    if (canHop && input.jumpPressed && config.hopImpulse !== 0) {
+    if (!controlLocked && canHop && input.jumpPressed && config.hopImpulse !== 0) {
       belt.isHopping = true;
       belt.hopElapsed = 0;
       elevation.z = Math.max(0, elevation.z);

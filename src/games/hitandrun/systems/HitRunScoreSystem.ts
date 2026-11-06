@@ -40,6 +40,14 @@ export class HitRunScoreSystem extends System<CoreComponentRegistry> {
 
     bus.on("combat:death", (payload: unknown) => {
       const data = payload as { entity?: Entity; category?: string; sourceEntity?: Entity };
+      if (data.entity === undefined || !world.hasEntity(data.entity)) return;
+      const faction = world.getComponent(data.entity, "Faction") as
+        | { value?: string; faction?: string }
+        | undefined;
+      const isPlayer = world.hasComponent(data.entity, "BeltInput") ||
+        world.hasComponent(data.entity, "PlatformerInput") ||
+        faction?.value === "player" || faction?.faction === "player";
+      if (isPlayer) return;
       this.onEnemyKilled(world, data);
     });
 

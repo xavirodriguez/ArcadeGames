@@ -234,7 +234,7 @@ describe("HitRunHurtSystem (Paso C)", () => {
     const vel = world.getComponent(enemy, "Velocity") as { vx: number };
     expect(vel.vx).not.toBe(0);
   });
-  it("enforces enemy stagger after AI steering", () => {
+  it("preserves physical knockback during enemy stagger", () => {
     const enemy = world.createEntity();
     world.addComponent(enemy, { type: "Enemy", kind: "patrol" } as never);
     world.addComponent(enemy, { type: "Velocity", vx: 180, vy: 0, angularVelocity: 0 });
@@ -247,7 +247,7 @@ describe("HitRunHurtSystem (Paso C)", () => {
 
     new HitRunStaggerSystem().update(world, 1 / 60);
 
-    expect((world.getComponent(enemy, "Velocity") as { vx: number }).vx).toBe(0);
+    expect((world.getComponent(enemy, "Velocity") as { vx: number }).vx).toBe(180);
   });
 
   it("applies attack-scaled stagger and knockback to a heavy impact", () => {

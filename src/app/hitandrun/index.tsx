@@ -44,7 +44,6 @@ function applyAimToPlayer(
     moveRight: boolean;
     aimUp: boolean;
     aimDown: boolean;
-    attack: boolean;
     guard?: boolean;
     axisX?: number;
     axisY?: number;
@@ -69,13 +68,9 @@ function applyAimToPlayer(
   world.mutateComponent(player, "BeltInput", (comp: {
     aimX?: number;
     aimY?: number;
-    fireHeld?: boolean;
-    firePressed?: boolean;
   }) => {
     comp.aimX = aim.aimX;
     comp.aimY = aim.aimY;
-    comp.fireHeld = keys.attack;
-    comp.firePressed = keys.attack;
   });
 
   if (Math.abs(aim.aimX) > 0.01 && world.hasComponent(player, "Transform")) {
@@ -172,12 +167,12 @@ function HitAndRunContent() {
       const aimUp = activeKeys.has("ArrowUp") || activeKeys.has("KeyW") || activeKeys.has("KeyI");
       const aimDown = activeKeys.has("ArrowDown") || activeKeys.has("KeyS") || activeKeys.has("KeyK");
       const jump = activeKeys.has("Space");
-      const pulse =
+      const melee =
         activeKeys.has("KeyF") ||
         activeKeys.has("KeyJ") ||
         activeKeys.has("KeyE") ||
         activeKeys.has("ShiftLeft");
-      const attack =
+      const fire =
         activeKeys.has("KeyC") ||
         activeKeys.has("KeyX") ||
         activeKeys.has("ControlLeft") ||
@@ -195,8 +190,8 @@ function HitAndRunContent() {
         aimUp,
         aimDown,
         jump,
-        pulse,
-        attack,
+        attack: melee,
+        fire,
         special,
         guard,
       });
@@ -206,7 +201,6 @@ function HitAndRunContent() {
         moveRight,
         aimUp,
         aimDown,
-        attack,
       });
     };
 
@@ -247,6 +241,7 @@ function HitAndRunContent() {
     aimDown?: boolean;
     jump?: boolean;
     attack?: boolean;
+    fire?: boolean;
     pulse?: boolean;
     special?: boolean;
     guard?: boolean;
@@ -262,12 +257,11 @@ function HitAndRunContent() {
       moveDir?: number;
       aimX?: number;
       aimY?: number;
+      attackHeld?: boolean;
       fireHeld?: boolean;
     } | undefined;
     const moveLeft = partial.moveLeft ?? (inp?.moveDir !== undefined && inp.moveDir < 0);
     const moveRight = partial.moveRight ?? (inp?.moveDir !== undefined && inp.moveDir > 0);
-    const attack =
-      partial.attack !== undefined ? partial.attack : !!inp?.fireHeld;
     const aimUp = partial.aimUp ?? (partial.axisY !== undefined && partial.axisY < -0.2);
     const aimDown = partial.aimDown ?? (partial.axisY !== undefined && partial.axisY > 0.2);
 
@@ -276,7 +270,6 @@ function HitAndRunContent() {
       moveRight: !!moveRight,
       aimUp: !!aimUp,
       aimDown: !!aimDown,
-      attack,
       axisX: partial.axisX,
       axisY: partial.axisY,
     });
@@ -289,7 +282,7 @@ function HitAndRunContent() {
     game?.setInputState({ pulse: true });
     setTimeout(() => game?.setInputState({ pulse: false }), 50);
   };
-  const handleTouchFire = (pressed: boolean) => pushTouch({ attack: pressed });
+  const handleTouchFire = (pressed: boolean) => pushTouch({ fire: pressed });
   const handleTouchGuard = (pressed: boolean) => pushTouch({ guard: pressed });
   const handleTouchSpecial = () => {
     game?.setInputState({ special: true });
@@ -316,7 +309,7 @@ function HitAndRunContent() {
         />
         <GameInstructions>
           {Platform.OS === "web"
-            ? "←→/AD move · ↑↓/WS depth · Space jump · V guard · F melee · Q special · C/X fire · R restart"
+            ? "←→/AD move · ↑↓/WS depth · Space jump · V guard · F/J melee · Q special · C/X fire · R restart"
             : t.common.touch_controls}
         </GameInstructions>
         <HighScoreText label={t.common.record} score={highScore} />

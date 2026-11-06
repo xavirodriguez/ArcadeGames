@@ -23,14 +23,29 @@ export class RollbackSimulation {
    * @param inputsHistory - Map of input frames per tick index.
    * @param localHashes - Optional map to update state hashes during resimulation.
    */
+  private getSimulationWorld(): import("../ecs/World").World | undefined {
+    const simAccess = this.simulation as unknown as {
+      world?: import("../ecs/World").World;
+      getWorld?: () => import("../ecs/World").World;
+    };
+    return simAccess.world ?? simAccess.getWorld?.();
+  }
+
+  /**
+   * Resimulates input frames sequentially starting from `startTick` up to `currentTick`.
+   *
+   * @param startTick - Starting tick index for resimulation.
+   * @param currentTick - Target tick index to resimulate up to.
+   * @param inputsHistory - Map of input frames per tick index.
+   * @param localHashes - Optional map to update state hashes during resimulation.
+   */
   public resimulateFromTick(
     startTick: number,
     currentTick: number,
     inputsHistory: Map<number, CompactInputFrame>,
     localHashes?: Map<number, string>
   ): void {
-    const simAccess = this.simulation as unknown as { world?: import("../ecs/World").World; getWorld?: () => import("../ecs/World").World };
-    const world = simAccess.world ?? simAccess.getWorld?.();
+    const world = this.getSimulationWorld();
     const prevIsReSimulating = world ? world.isReSimulating : false;
     const random = world ? world.gameplayRandom : undefined;
     const wasLocked = random ? random.isLocked() : false;
@@ -99,11 +114,7 @@ export class RollbackSimulation {
     // 3. Apply the corrected input as a replay frame. The corrected frame is also
     // a resimulation: authoritative state must be recomputed, but presentation
     // side effects must not be emitted a second time.
-    const simAccess = this.simulation as unknown as {
-      world?: import("../ecs/World").World;
-      getWorld?: () => import("../ecs/World").World;
-    };
-    const world = simAccess.world ?? simAccess.getWorld?.();
+    const world = this.getSimulationWorld();
     const previousResimulationState = world ? world.isReSimulating : false;
     const random = world ? world.gameplayRandom : undefined;
     const wasRandomLocked = random ? random.isLocked() : false;

@@ -1,34 +1,26 @@
 import {
-  System,
   World,
   CoreComponentRegistry,
   Entity
 } from "@tiny-aster/core";
-import type { EventBus } from "@tiny-aster/core";
 import type { CombatHitPayload } from "../systems/HitRunFeedbackTypes";
 import { applyBeltElevationKnockback } from "../belt/BeltElevationComponent";
 import {
   DEFAULT_HIT_REACTION_CONFIG,
   HIT_REACTION_CONFIG_RESOURCE,
   type HitReactionComponent,
-  type HitReactionConfig
+  type HitReactionConfig,
+  resolveHitReactionDurations
 } from "./HitReactionTypes";
-
-/**
- * HitRunHurtSystem — Paso C.
- *
- * Listens combat:hit (from melee, CombatSystem, etc.):
- * - Knockback on target (direction away from source).
- * - Player only: invulnerability (Health.invulnerableRemaining) + hitstun.
- * - Enemies: knockback + hitstun.
- *
- * Ticks hitstun and invuln blink on HitReaction + Render.opacity.
- * Does not apply damage (already applied by the source system).
- */
 import { CombatHitListenerSystem } from "../combat/CombatHitListenerSystem";
 
+/**
+ * Applies gameplay reactions to resolved combat events.
+ * Damage is owned by the attack system; this system owns hitstun, stagger,
+ * knockback and player invulnerability. Fully guarded and armor-only impacts
+ * never masquerade as health hits.
+ */
 export class HitRunHurtSystem extends CombatHitListenerSystem<CombatHitPayload> {
-
   public enqueueHitForTest(payload: CombatHitPayload): void {
     this.pendingHits.push(payload);
   }
@@ -56,30 +48,49 @@ export class HitRunHurtSystem extends CombatHitListenerSystem<CombatHitPayload> 
     const len = this.pendingHits.length;
     for (let i = 0; i < len; i++) {
       const hit = this.pendingHits[i];
-      const target = hit.targetEntity;
-      if (!world.hasEntity(target)) continue;
+      if (!world.hasEntity(hit.targetEntity)) continue;
 
-      if (this.isPlayer(world, target)) {
-        this.applyPlayerReaction(world, target, hit, config);
+      // Guard feedback is presentation-only unless the guard actually breaks.
+      // Armor-only absorption also has its own feedback and must not cause a
+      // health-hit reaction when no damage reached Health.
+      if (hit.blocked || (hit.amount <= 0 && !hit.guardBroken)) continue;
+
+      const target = hit.targetEntity;
+      const isPlayer = isHitRunPlayer(world, target);
+      const { hitstunSeconds, staggerSeconds } =
+        resolveHitReactionDurations(hit, isPlayer, config);
+      const fallbackKnockbackX = isPlayer
+        ? config.playerKnockbackX
+        : config.enemyKnockbackX;
+      const fallbackKnockbackY = isPlayer
+        ? config.playerKnockbackY
+        : config.enemyKnockbackY;
+
+      if (isPlayer) {
+        this.applyPlayerReaction(
+          world, target, hit, config, hitstunSeconds, staggerSeconds,
+          hit.knockbackX ?? fallbackKnockbackX,
+          hit.knockbackY ?? fallbackKnockbackY
+        );
       } else {
-        this.applyEnemyReaction(world, target, hit, config);
+        this.applyEnemyReaction(
+          world, target, hit, hitstunSeconds, staggerSeconds,
+          hit.knockbackX ?? fallbackKnockbackX,
+          hit.knockbackY ?? fallbackKnockbackY
+        );
       }
     }
-  }
-
-  private isPlayer(world: World<CoreComponentRegistry>, entity: Entity): boolean {
-    if (world.hasComponent(entity, "PlatformerInput")) return true;
-    const faction = world.getComponent(entity, "Faction") as
-      | { value?: string; faction?: string }
-      | undefined;
-    return faction?.value === "player" || faction?.faction === "player";
   }
 
   private applyPlayerReaction(
     world: World<CoreComponentRegistry>,
     target: Entity,
     hit: CombatHitPayload,
-    config: HitReactionConfig
+    config: HitReactionConfig,
+    hitstunSeconds: number,
+    staggerSeconds: number,
+    knockbackX: number,
+    knockbackY: number
   ): void {
     const health = world.getComponent(target, "Health") as
       | { invulnerableRemaining?: number }
@@ -92,15 +103,9 @@ export class HitRunHurtSystem extends CombatHitListenerSystem<CombatHitPayload> 
       return;
     }
 
-    this.applyKnockback(
-      world,
-      target,
-      hit.sourceEntity,
-      config.playerKnockbackX,
-      config.playerKnockbackY
-    );
+    this.applyKnockback(world, target, hit.sourceEntity, knockbackX, knockbackY);
 
-    if (health) {
+    if (health && hit.amount > 0) {
       const mutH = world.getMutableComponent(target, "Health") as
         | { invulnerableRemaining?: number }
         | undefined;
@@ -109,7 +114,7 @@ export class HitRunHurtSystem extends CombatHitListenerSystem<CombatHitPayload> 
       }
     }
 
-    this.ensureHitReaction(world, target, config.playerHitstunSeconds);
+    this.ensureHitReaction(world, target, hitstunSeconds, staggerSeconds);
 
     if (world.hasComponent(target, "Render")) {
       const render = world.getMutableComponent(target, "Render") as
@@ -125,16 +130,31 @@ export class HitRunHurtSystem extends CombatHitListenerSystem<CombatHitPayload> 
     world: World<CoreComponentRegistry>,
     target: Entity,
     hit: CombatHitPayload,
-    config: HitReactionConfig
+    hitstunSeconds: number,
+    staggerSeconds: number,
+    knockbackX: number,
+    knockbackY: number
   ): void {
-    this.applyKnockback(
-      world,
-      target,
-      hit.sourceEntity,
-      config.enemyKnockbackX,
-      config.enemyKnockbackY
-    );
-    this.ensureHitReaction(world, target, config.playerHitstunSeconds);
+    this.applyKnockback(world, target, hit.sourceEntity, knockbackX, knockbackY);
+    this.ensureHitReaction(world, target, hitstunSeconds, staggerSeconds);
+
+    // Any hitstun interrupts an active enemy melee window; stagger extends the lock.
+    if ((hitstunSeconds > 0 || staggerSeconds > 0) && world.hasComponent(target, "MeleeAttack")) {
+      const melee = world.getMutableComponent(target, "MeleeAttack") as
+        | { phase?: string; phaseElapsed?: number; hitboxEntity?: number }
+        | undefined;
+      if (melee) {
+        if (melee.hitboxEntity !== undefined && melee.hitboxEntity >= 0 &&
+          world.hasEntity(melee.hitboxEntity)) {
+          world.getCommandBuffer().removeEntity(melee.hitboxEntity);
+        }
+        melee.hitboxEntity = -1;
+        if (melee.phase === "active" || melee.phase === "startup") {
+          melee.phase = "recovery";
+          melee.phaseElapsed = 0;
+        }
+      }
+    }
   }
 
   private applyKnockback(
@@ -159,20 +179,21 @@ export class HitRunHurtSystem extends CombatHitListenerSystem<CombatHitPayload> 
 
     if (world.hasComponent(target, "Velocity")) {
       const vel = world.getMutableComponent(target, "Velocity") as
-        | { vx: number; vy: number }
+        | { vx: number }
         | undefined;
-      if (vel) {
-        vel.vx = dir * knockX;
-      }
+      if (vel) vel.vx = dir * Math.max(0, knockX);
     }
 
-    applyBeltElevationKnockback(world, target, knockY);
+    if (knockY > 0) {
+      applyBeltElevationKnockback(world, target, knockY);
+    }
   }
 
   private ensureHitReaction(
     world: World<CoreComponentRegistry>,
     entity: Entity,
-    hitstunSeconds: number
+    hitstunSeconds: number,
+    staggerSeconds: number
   ): void {
     if (!world.hasEntity(entity) || world.hasComponent(entity, "Dead")) return;
 
@@ -182,6 +203,7 @@ export class HitRunHurtSystem extends CombatHitListenerSystem<CombatHitPayload> 
         | undefined;
       if (mut) {
         mut.hitstunRemaining = Math.max(mut.hitstunRemaining, hitstunSeconds);
+        mut.staggerRemaining = Math.max(mut.staggerRemaining ?? 0, staggerSeconds);
         mut.blinkElapsed = 0;
       }
       return;
@@ -189,7 +211,8 @@ export class HitRunHurtSystem extends CombatHitListenerSystem<CombatHitPayload> 
 
     world.getCommandBuffer().addComponent(entity, {
       type: "HitReaction",
-      hitstunRemaining: hitstunSeconds,
+      hitstunRemaining: Math.max(0, hitstunSeconds),
+      staggerRemaining: Math.max(0, staggerSeconds),
       blinkElapsed: 0
     } as HitReactionComponent);
   }
@@ -210,19 +233,20 @@ export class HitRunHurtSystem extends CombatHitListenerSystem<CombatHitPayload> 
         | undefined;
       if (!reaction) continue;
 
-      if (reaction.hitstunRemaining > 0) {
-        reaction.hitstunRemaining = Math.max(0, reaction.hitstunRemaining - dt);
-        // Zero horizontal input-like velocity damping while stunned (enemies)
-        if (
-          reaction.hitstunRemaining > 0 &&
-          !world.hasComponent(entity, "PlatformerInput") &&
-          world.hasComponent(entity, "Velocity")
-        ) {
-          const vel = world.getMutableComponent(entity, "Velocity") as
-            | { vx: number }
-            | undefined;
-          if (vel) vel.vx *= 0.85;
-        }
+      reaction.hitstunRemaining = Math.max(0, reaction.hitstunRemaining - dt);
+      reaction.staggerRemaining = Math.max(0, (reaction.staggerRemaining ?? 0) - dt);
+      const locked = reaction.hitstunRemaining > 0 || reaction.staggerRemaining > 0;
+
+      if (
+        locked &&
+        !world.hasComponent(entity, "PlatformerInput") &&
+        !world.hasComponent(entity, "BeltInput") &&
+        world.hasComponent(entity, "Velocity")
+      ) {
+        const vel = world.getMutableComponent(entity, "Velocity") as
+          | { vx: number }
+          | undefined;
+        if (vel) vel.vx *= 0.85;
       }
 
       const health = world.getComponent(entity, "Health") as
@@ -239,9 +263,7 @@ export class HitRunHurtSystem extends CombatHitListenerSystem<CombatHitPayload> 
           | undefined;
         if (render) {
           const nextOpacity = visible ? 1 : 0.35;
-          if (render.opacity !== nextOpacity) {
-            render.opacity = nextOpacity;
-          }
+          if (render.opacity !== nextOpacity) render.opacity = nextOpacity;
         }
       } else if (world.hasComponent(entity, "Render")) {
         const render = world.getComponent(entity, "Render") as
@@ -289,7 +311,8 @@ export function isPlayerControlLocked(
   const reaction = world.getComponent(entity, "HitReaction") as
     | HitReactionComponent
     | undefined;
-  return !!reaction && reaction.hitstunRemaining > 0;
+  return !!reaction &&
+    (reaction.hitstunRemaining > 0 || (reaction.staggerRemaining ?? 0) > 0);
 }
 
 export function canTakeDamage(
@@ -309,4 +332,19 @@ export function canTakeDamage(
   }
   if (world.hasComponent(entity, "Dead")) return false;
   return true;
+}
+
+/** Shared player classification for gameplay reaction and presentation consumers. */
+export function isHitRunPlayer(
+  world: World<CoreComponentRegistry>,
+  entity: Entity
+): boolean {
+  if (
+    world.hasComponent(entity, "PlatformerInput") ||
+    world.hasComponent(entity, "BeltInput")
+  ) return true;
+  const faction = world.getComponent(entity, "Faction") as
+    | { value?: string; faction?: string }
+    | undefined;
+  return faction?.value === "player" || faction?.faction === "player";
 }

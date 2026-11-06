@@ -1,8 +1,13 @@
-import { RenderContext, resolveThemeColor, World, Entity, ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
+import { RenderContext, World, Entity, ShapeDrawer, EffectDrawer } from "@tiny-aster/core";
 import { CentipedeComponentRegistry, CentipedeEventRegistry } from "../types/CentipedeTypes";
 import { CentipedeConfig } from "../types/CentipedeConfigSchema";
-
-type CentipedeWorld = World<CentipedeComponentRegistry, CentipedeEventRegistry>;
+import {
+  CentipedeWorld,
+  getCentipedePalette,
+  getCentipedeHeadVisualContext,
+  getCentipedeBodyVisualContext,
+  getMushroomVisualContext
+} from "./CentipedeVisualHelpers";
 
 export function renderCentipedeBackground(ctx: RenderContext, world: CentipedeWorld): void {
   const c2d = ctx as CanvasRenderingContext2D;
@@ -11,18 +16,9 @@ export function renderCentipedeBackground(ctx: RenderContext, world: CentipedeWo
   const height = canvas?.height ?? 320;
 
   const config = world.getResource<CentipedeConfig>("GameConfig");
-  const isColorblind = config?.visual?.colorblindMode ?? false;
-  const palette = isColorblind
-    ? config?.visual?.paletteColorblind
-    : config?.visual?.palette;
+  const palette = getCentipedePalette(world);
 
-  const soil = palette?.soil ?? resolveThemeColor(world, "soil", "soil") ?? "#0A0F1C";
-  const playerZone = palette?.playerZone ?? resolveThemeColor(world, "playerZone", "playerZone") ?? "#0F182B";
-  const hairline = palette?.hairline ?? resolveThemeColor(world, "hairline", "hairline") ?? "#1F2D47";
-  const lightMassA = palette?.mushroomB ?? resolveThemeColor(world, "mushroomB", "mushroomB") ?? "#8B7CF6";
-  const lightMassB = palette?.mushroomA ?? resolveThemeColor(world, "mushroomA", "mushroomA") ?? "#2DD4BF";
-
-  c2d.fillStyle = soil;
+  c2d.fillStyle = palette.soil;
   c2d.fillRect(0, 0, width, height);
 
   if (config?.visual?.quality !== "low") {
@@ -31,7 +27,7 @@ export function renderCentipedeBackground(ctx: RenderContext, world: CentipedeWo
     const cy1 = height * 0.3 + Math.cos(time * 0.8) * 15;
 
     c2d.globalAlpha = 0.08;
-    c2d.fillStyle = lightMassA;
+    c2d.fillStyle = palette.mushroomB;
     c2d.beginPath();
     c2d.arc(cx1, cy1, 70, 0, Math.PI * 2);
     c2d.fill();
@@ -39,7 +35,7 @@ export function renderCentipedeBackground(ctx: RenderContext, world: CentipedeWo
     const cx2 = width * 0.7 + Math.cos(time * 0.7) * 20;
     const cy2 = height * 0.6 + Math.sin(time * 0.9) * 20;
 
-    c2d.fillStyle = lightMassB;
+    c2d.fillStyle = palette.mushroomA;
     c2d.beginPath();
     c2d.arc(cx2, cy2, 85, 0, Math.PI * 2);
     c2d.fill();
@@ -48,7 +44,7 @@ export function renderCentipedeBackground(ctx: RenderContext, world: CentipedeWo
     if (ambientEntity !== undefined) {
       const ambientVis = world.getComponent(ambientEntity, "AmbientParticleVisual");
       if (ambientVis?.particles) {
-        c2d.fillStyle = palette?.amber ?? resolveThemeColor(world, "amber", "amber") ?? "#FFC24B";
+        c2d.fillStyle = palette.amber;
         for (const p of ambientVis.particles) {
           c2d.globalAlpha = p.alpha;
           c2d.beginPath();
@@ -61,10 +57,10 @@ export function renderCentipedeBackground(ctx: RenderContext, world: CentipedeWo
   }
 
   const zoneY = height * (27 / 32);
-  c2d.fillStyle = playerZone;
+  c2d.fillStyle = palette.playerZone;
   c2d.fillRect(0, zoneY, width, height - zoneY);
 
-  c2d.strokeStyle = hairline;
+  c2d.strokeStyle = palette.hairline;
   c2d.lineWidth = 1;
   c2d.beginPath();
   c2d.moveTo(0, zoneY);
@@ -79,7 +75,7 @@ export function renderCentipedeBackground(ctx: RenderContext, world: CentipedeWo
     if (vis.timerMs <= 120) {
       const progress = vis.timerMs / 120;
       c2d.save();
-      c2d.strokeStyle = palette?.centipedeBody ?? "#FF8A5B";
+      c2d.strokeStyle = palette.centipedeBody;
       c2d.lineWidth = 2 * (1 - progress);
       c2d.beginPath();
       c2d.arc(vis.x, vis.y, 4 + progress * 10, 0, Math.PI * 2);
@@ -96,7 +92,7 @@ export function renderCentipedeBackground(ctx: RenderContext, world: CentipedeWo
     const progress = Math.min(1.0, sVis.timerMs / sVis.maxTimerMs);
     c2d.save();
     c2d.font = "bold 10px system-ui";
-    c2d.fillStyle = palette?.amber ?? "#FFC24B";
+    c2d.fillStyle = palette.amber;
     c2d.globalAlpha = 1 - progress;
     c2d.textAlign = "center";
     c2d.fillText(sVis.text, sVis.x, sVis.y + sVis.offsetY);
@@ -112,33 +108,17 @@ export const drawCentipedeBackground: EffectDrawer<CanvasRenderingContext2D, Cen
 
 export function renderCentipedeHead(ctx: RenderContext, world: CentipedeWorld, entity: Entity): void {
   const c2d = ctx as CanvasRenderingContext2D;
-  const config = world.getResource<CentipedeConfig>("GameConfig");
-  const isColorblind = config?.visual?.colorblindMode ?? false;
-  const palette = isColorblind ? config?.visual?.paletteColorblind : config?.visual?.palette;
-
-  const color = palette?.centipedeHead ?? resolveThemeColor(world, "centipedeHead", "centipedeHead") ?? "#FF4D5E";
-  const amber = palette?.amber ?? resolveThemeColor(world, "amber", "amber") ?? "#FFC24B";
-  const shine = palette?.centipedeShine ?? resolveThemeColor(world, "centipedeShine", "centipedeShine") ?? "rgba(255, 201, 168, 0.6)";
-  const legsColor = palette?.centipedeLegs ?? resolveThemeColor(world, "centipedeLegs", "centipedeLegs") ?? "#FFB38A";
-
-  const vis = world.getComponent(entity, "SegmentVisual");
-  const transform = world.getComponent(entity, "Transform");
+  const { palette, offsetX, offsetY, radius: r } = getCentipedeHeadVisualContext(world, entity);
 
   c2d.save();
-  if (vis && transform) {
-    const offsetX = vis.visualX - transform.x;
-    const offsetY = vis.visualY - transform.y;
+  if (offsetX !== 0 || offsetY !== 0) {
     c2d.translate(offsetX, offsetY);
   }
-
-  const popScale = vis && vis.popTimerMs > 0 ? 1.15 : 1.0;
-  const baseRadius = (config?.CELL_SIZE ?? 10) * (config?.visual?.segmentRadiusHead ?? 0.55);
-  const r = baseRadius * popScale;
 
   const legAngle = Date.now() * 0.015;
   const legOffset = Math.sin(legAngle) * 3;
 
-  c2d.strokeStyle = legsColor;
+  c2d.strokeStyle = palette.centipedeLegs;
   c2d.lineWidth = 1.5;
   c2d.lineCap = "round";
 
@@ -149,12 +129,12 @@ export function renderCentipedeHead(ctx: RenderContext, world: CentipedeWorld, e
   c2d.lineTo(-2, r + 4 - legOffset);
   c2d.stroke();
 
-  c2d.fillStyle = color;
+  c2d.fillStyle = palette.centipedeHead;
   c2d.beginPath();
   c2d.arc(0, 0, r, 0, Math.PI * 2);
   c2d.fill();
 
-  c2d.fillStyle = shine;
+  c2d.fillStyle = palette.centipedeShine;
   c2d.beginPath();
   c2d.arc(-r * 0.3, -r * 0.3, r * 0.35, 0, Math.PI * 2);
   c2d.fill();
@@ -165,14 +145,14 @@ export function renderCentipedeHead(ctx: RenderContext, world: CentipedeWorld, e
   c2d.arc(r * 0.6, r * 0.4, 1.8, 0, Math.PI * 2);
   c2d.fill();
 
-  c2d.fillStyle = amber;
+  c2d.fillStyle = palette.amber;
   c2d.beginPath();
   c2d.arc(r * 0.85, -r * 0.2, 1.4, 0, Math.PI * 2);
   c2d.arc(r * 0.85, r * 0.2, 1.4, 0, Math.PI * 2);
   c2d.fill();
 
-  if (isColorblind) {
-    c2d.strokeStyle = palette?.hudText ?? "#FFFFFF";
+  if (palette.isColorblind) {
+    c2d.strokeStyle = palette.hudText;
     c2d.lineWidth = 1.5;
     c2d.beginPath();
     c2d.arc(0, 0, r, 0, Math.PI * 2);
@@ -190,37 +170,17 @@ export const drawCentipedeHead: ShapeDrawer<CanvasRenderingContext2D, CentipedeC
 
 export function renderCentipedeBody(ctx: RenderContext, world: CentipedeWorld, entity: Entity): void {
   const c2d = ctx as CanvasRenderingContext2D;
-  const config = world.getResource<CentipedeConfig>("GameConfig");
-  const isColorblind = config?.visual?.colorblindMode ?? false;
-  const palette = isColorblind ? config?.visual?.paletteColorblind : config?.visual?.palette;
-
-  const color = palette?.centipedeBody ?? resolveThemeColor(world, "centipedeBody", "centipedeBody") ?? "#FF8A5B";
-  const shine = palette?.centipedeShine ?? resolveThemeColor(world, "centipedeShine", "centipedeShine") ?? "rgba(255, 201, 168, 0.6)";
-  const legsColor = palette?.centipedeLegs ?? resolveThemeColor(world, "centipedeLegs", "centipedeLegs") ?? "#FFB38A";
-
-  const vis = world.getComponent(entity, "SegmentVisual");
-  const transform = world.getComponent(entity, "Transform");
+  const { palette, offsetX, offsetY, radius: r, segmentIndex: idx } = getCentipedeBodyVisualContext(world, entity);
 
   c2d.save();
-  if (vis && transform) {
-    const offsetX = vis.visualX - transform.x;
-    const offsetY = vis.visualY - transform.y;
+  if (offsetX !== 0 || offsetY !== 0) {
     c2d.translate(offsetX, offsetY);
   }
-
-  const seg = world.getComponent(entity, "CentipedeSegment");
-  const total = seg?.totalInChain ?? 12;
-  const idx = seg?.segmentIndex ?? 1;
-
-  const headR = (config?.CELL_SIZE ?? 10) * (config?.visual?.segmentRadiusHead ?? 0.55);
-  const tailR = (config?.CELL_SIZE ?? 10) * (config?.visual?.segmentRadiusTail ?? 0.30);
-  const t = total > 1 ? idx / (total - 1) : 0;
-  const r = headR - t * (headR - tailR);
 
   const legAngle = Date.now() * 0.015 + idx * 0.5;
   const legOffset = Math.sin(legAngle) * 2.5;
 
-  c2d.strokeStyle = legsColor;
+  c2d.strokeStyle = palette.centipedeLegs;
   c2d.lineWidth = 1.2;
   c2d.lineCap = "round";
 
@@ -231,18 +191,18 @@ export function renderCentipedeBody(ctx: RenderContext, world: CentipedeWorld, e
   c2d.lineTo(-1.5, r + 3 - legOffset);
   c2d.stroke();
 
-  c2d.fillStyle = color;
+  c2d.fillStyle = palette.centipedeBody;
   c2d.beginPath();
   c2d.arc(0, 0, r, 0, Math.PI * 2);
   c2d.fill();
 
-  c2d.fillStyle = shine;
+  c2d.fillStyle = palette.centipedeShine;
   c2d.beginPath();
   c2d.arc(-r * 0.3, -r * 0.3, r * 0.35, 0, Math.PI * 2);
   c2d.fill();
 
-  if (isColorblind) {
-    c2d.strokeStyle = palette?.hudText ?? "#FFFFFF";
+  if (palette.isColorblind) {
+    c2d.strokeStyle = palette.hudText;
     c2d.lineWidth = 1.0;
     c2d.beginPath();
     c2d.arc(0, 0, r, 0, Math.PI * 2);
@@ -260,32 +220,12 @@ export const drawCentipedeBody: ShapeDrawer<CanvasRenderingContext2D, CentipedeC
 
 export function renderMushroom(ctx: RenderContext, world: CentipedeWorld, entity: Entity): void {
   const c2d = ctx as CanvasRenderingContext2D;
-  const config = world.getResource<CentipedeConfig>("GameConfig");
-  const isColorblind = config?.visual?.colorblindMode ?? false;
-  const palette = isColorblind ? config?.visual?.paletteColorblind : config?.visual?.palette;
-
-  const mushroom = world.getComponent(entity, "Mushroom");
-  const vis = world.getComponent(entity, "MushroomVisual");
-
-  const isPoisoned = mushroom?.isPoisoned ?? false;
-  const hp = mushroom?.hp ?? 4;
-  const hashSeed = mushroom?.hashSeed ?? 0;
-  const scale = vis?.growProgress ?? 1.0;
-
-  const colorA = palette?.mushroomA ?? resolveThemeColor(world, "mushroomA", "mushroomA") ?? "#2DD4BF";
-  const colorB = palette?.mushroomB ?? resolveThemeColor(world, "mushroomB", "mushroomB") ?? "#8B7CF6";
-  const toxin = palette?.toxin ?? resolveThemeColor(world, "toxin", "toxin") ?? "#FF5FA2";
-  const lobeOff = palette?.lobeOff ?? resolveThemeColor(world, "lobeOff", "lobeOff") ?? "#15283A";
-  const stem = palette?.stem ?? resolveThemeColor(world, "stem", "stem") ?? "#1E2A3C";
-
-  const baseCapColor = isPoisoned
-    ? toxin
-    : (hashSeed % 2 === 0 ? colorA : colorB);
+  const { palette, isPoisoned, hp, scale, baseCapColor, quality } = getMushroomVisualContext(world, entity);
 
   c2d.save();
   c2d.scale(scale, scale);
 
-  if (config?.visual?.quality !== "low") {
+  if (quality !== "low") {
     c2d.globalAlpha = (hp / 4) * 0.25;
     c2d.fillStyle = baseCapColor;
     c2d.beginPath();
@@ -294,7 +234,7 @@ export function renderMushroom(ctx: RenderContext, world: CentipedeWorld, entity
     c2d.globalAlpha = 1.0;
   }
 
-  c2d.fillStyle = stem;
+  c2d.fillStyle = palette.stem;
   c2d.fillRect(-1.5, 1, 3, 3.5);
 
   const lobeWidth = 2.2;
@@ -303,7 +243,7 @@ export function renderMushroom(ctx: RenderContext, world: CentipedeWorld, entity
 
   for (let i = 0; i < 4; i++) {
     const isLit = i < hp;
-    const lobeColor = isLit ? baseCapColor : lobeOff;
+    const lobeColor = isLit ? baseCapColor : palette.lobeOff;
 
     if (isLit && isPoisoned) {
       const pulse = Math.sin(Date.now() * 0.005) * 0.2 + 0.8;
@@ -316,7 +256,7 @@ export function renderMushroom(ctx: RenderContext, world: CentipedeWorld, entity
     c2d.globalAlpha = 1.0;
   }
 
-  c2d.fillStyle = palette?.player ?? resolveThemeColor(world, "centipedePlayer", "player") ?? "#E6FBFF";
+  c2d.fillStyle = palette.player;
   c2d.globalAlpha = 0.5;
   c2d.beginPath();
   c2d.arc(-2.5, -2, 0.8, 0, Math.PI * 2);
@@ -334,19 +274,15 @@ export const drawMushroom: ShapeDrawer<CanvasRenderingContext2D, CentipedeCompon
 
 export function renderSpider(ctx: RenderContext, world: CentipedeWorld, _entity: Entity): void {
   const c2d = ctx as CanvasRenderingContext2D;
-  const config = world.getResource<CentipedeConfig>("GameConfig");
-  const isColorblind = config?.visual?.colorblindMode ?? false;
-  const palette = isColorblind ? config?.visual?.paletteColorblind : config?.visual?.palette;
+  const palette = getCentipedePalette(world);
 
-  const amber = palette?.amber ?? resolveThemeColor(world, "amber", "amber") ?? "#FFC24B";
-
-  c2d.fillStyle = amber;
+  c2d.fillStyle = palette.amber;
   c2d.beginPath();
   c2d.ellipse(0, 0, 5, 3.5, 0, 0, Math.PI * 2);
   c2d.fill();
 
   const stride = Math.sin(Date.now() * 0.02) * 2;
-  c2d.strokeStyle = amber;
+  c2d.strokeStyle = palette.amber;
   c2d.lineWidth = 1.2;
 
   for (let i = 0; i < 4; i++) {
@@ -360,8 +296,8 @@ export function renderSpider(ctx: RenderContext, world: CentipedeWorld, _entity:
     c2d.stroke();
   }
 
-  if (isColorblind) {
-    c2d.strokeStyle = palette?.hudText ?? "#FFFFFF";
+  if (palette.isColorblind) {
+    c2d.strokeStyle = palette.hudText;
     c2d.lineWidth = 1.5;
     c2d.beginPath();
     c2d.ellipse(0, 0, 5, 3.5, 0, 0, Math.PI * 2);
@@ -378,12 +314,9 @@ export const drawSpider: ShapeDrawer<CanvasRenderingContext2D, CentipedeComponen
 export function renderFlea(ctx: RenderContext, world: CentipedeWorld, _entity: Entity): void {
   const c2d = ctx as CanvasRenderingContext2D;
   const config = world.getResource<CentipedeConfig>("GameConfig");
-  const isColorblind = config?.visual?.colorblindMode ?? false;
-  const palette = isColorblind ? config?.visual?.paletteColorblind : config?.visual?.palette;
+  const palette = getCentipedePalette(world);
 
-  const amber = palette?.amber ?? resolveThemeColor(world, "amber", "amber") ?? "#FFC24B";
-
-  c2d.fillStyle = amber;
+  c2d.fillStyle = palette.amber;
   c2d.beginPath();
   c2d.arc(0, -2, 3.5, Math.PI, 0);
   c2d.lineTo(0, 5);
@@ -392,7 +325,7 @@ export function renderFlea(ctx: RenderContext, world: CentipedeWorld, _entity: E
 
   if (config?.visual?.quality !== "low") {
     c2d.globalAlpha = 0.3;
-    c2d.fillStyle = amber;
+    c2d.fillStyle = palette.amber;
     c2d.beginPath();
     c2d.arc(0, -6, 2.5, 0, Math.PI * 2);
     c2d.arc(0, -10, 1.5, 0, Math.PI * 2);
@@ -400,8 +333,8 @@ export function renderFlea(ctx: RenderContext, world: CentipedeWorld, _entity: E
     c2d.globalAlpha = 1.0;
   }
 
-  if (isColorblind) {
-    c2d.strokeStyle = palette?.hudText ?? "#FFFFFF";
+  if (palette.isColorblind) {
+    c2d.strokeStyle = palette.hudText;
     c2d.lineWidth = 1.5;
     c2d.stroke();
   }
@@ -415,26 +348,22 @@ export const drawFlea: ShapeDrawer<CanvasRenderingContext2D, CentipedeComponentR
 
 export function renderScorpion(ctx: RenderContext, world: CentipedeWorld, _entity: Entity): void {
   const c2d = ctx as CanvasRenderingContext2D;
-  const config = world.getResource<CentipedeConfig>("GameConfig");
-  const isColorblind = config?.visual?.colorblindMode ?? false;
-  const palette = isColorblind ? config?.visual?.paletteColorblind : config?.visual?.palette;
+  const palette = getCentipedePalette(world);
 
-  const toxin = palette?.toxin ?? resolveThemeColor(world, "toxin", "toxin") ?? "#FF5FA2";
-
-  c2d.fillStyle = toxin;
+  c2d.fillStyle = palette.toxin;
   c2d.beginPath();
   c2d.ellipse(0, 0, 6, 3, 0, 0, Math.PI * 2);
   c2d.fill();
 
-  c2d.strokeStyle = toxin;
+  c2d.strokeStyle = palette.toxin;
   c2d.lineWidth = 1.5;
   c2d.beginPath();
   c2d.moveTo(-5, 0);
   c2d.quadraticCurveTo(-8, -4, -6, -6);
   c2d.stroke();
 
-  if (isColorblind) {
-    c2d.strokeStyle = palette?.hudText ?? "#FFFFFF";
+  if (palette.isColorblind) {
+    c2d.strokeStyle = palette.hudText;
     c2d.lineWidth = 1.5;
     c2d.beginPath();
     c2d.ellipse(0, 0, 6, 3, 0, 0, Math.PI * 2);
@@ -450,14 +379,9 @@ export const drawScorpion: ShapeDrawer<CanvasRenderingContext2D, CentipedeCompon
 
 export function renderShooter(ctx: RenderContext, world: CentipedeWorld, _entity: Entity): void {
   const c2d = ctx as CanvasRenderingContext2D;
-  const config = world.getResource<CentipedeConfig>("GameConfig");
-  const isColorblind = config?.visual?.colorblindMode ?? false;
-  const palette = isColorblind ? config?.visual?.paletteColorblind : config?.visual?.palette;
+  const palette = getCentipedePalette(world);
 
-  const playerColor = palette?.player ?? resolveThemeColor(world, "centipedePlayer", "player") ?? "#E6FBFF";
-  const accent = palette?.playerAccent ?? resolveThemeColor(world, "playerAccent", "playerAccent") ?? "#7CF3FF";
-
-  c2d.fillStyle = playerColor;
+  c2d.fillStyle = palette.player;
   c2d.beginPath();
   c2d.moveTo(0, -6);
   c2d.lineTo(5, 5);
@@ -466,7 +390,7 @@ export function renderShooter(ctx: RenderContext, world: CentipedeWorld, _entity
   c2d.closePath();
   c2d.fill();
 
-  c2d.fillStyle = accent;
+  c2d.fillStyle = palette.playerAccent;
   c2d.beginPath();
   c2d.arc(0, -1, 1.8, 0, Math.PI * 2);
   c2d.fill();
@@ -480,13 +404,9 @@ export const drawShooter: ShapeDrawer<CanvasRenderingContext2D, CentipedeCompone
 
 export function renderDart(ctx: RenderContext, world: CentipedeWorld, _entity: Entity): void {
   const c2d = ctx as CanvasRenderingContext2D;
-  const config = world.getResource<CentipedeConfig>("GameConfig");
-  const isColorblind = config?.visual?.colorblindMode ?? false;
-  const palette = isColorblind ? config?.visual?.paletteColorblind : config?.visual?.palette;
+  const palette = getCentipedePalette(world);
 
-  const accent = palette?.playerAccent ?? resolveThemeColor(world, "playerAccent", "playerAccent") ?? "#7CF3FF";
-
-  c2d.strokeStyle = accent;
+  c2d.strokeStyle = palette.playerAccent;
   c2d.lineWidth = 3;
   c2d.lineCap = "round";
   c2d.beginPath();

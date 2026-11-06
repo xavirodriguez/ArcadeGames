@@ -30,9 +30,33 @@ jest.mock("../SkiaContext", () => {
   };
 });
 
-function createCanvasContext() {
+interface MockCanvasContext {
+  globalAlpha: number;
+  fillStyle: string;
+  strokeStyle: string;
+  lineWidth: number;
+  shadowColor: string;
+  shadowBlur: number;
+  font: string;
+  textAlign: string;
+  save: jest.Mock;
+  restore: jest.Mock;
+  beginPath: jest.Mock;
+  arc: jest.Mock;
+  fill: jest.Mock;
+  stroke: jest.Mock;
+  fillRect: jest.Mock;
+  strokeRect: jest.Mock;
+  moveTo: jest.Mock;
+  lineTo: jest.Mock;
+  fillText: jest.Mock;
+  drawImage: jest.Mock;
+  translate: jest.Mock;
+}
+
+function createCanvasContext(): { context: CanvasRenderingContext2D; fillSnapshots: Array<{ alpha: number; shadowBlur: number }> } {
   const fillSnapshots: Array<{ alpha: number; shadowBlur: number }> = [];
-  const context = {
+  const context: MockCanvasContext = {
     globalAlpha: 1,
     fillStyle: "",
     strokeStyle: "",
@@ -55,7 +79,7 @@ function createCanvasContext() {
     drawImage: jest.fn(),
     translate: jest.fn()
   };
-  return { context: context as unknown as CanvasRenderingContext2D, fillSnapshots };
+  return { context: context as never as CanvasRenderingContext2D, fillSnapshots };
 }
 
 describe("DrawAdapter glow composition", () => {
@@ -135,7 +159,7 @@ describe("DrawAdapter glow composition", () => {
     let skiaHighlightAlpha = 0;
     const skiaCanvas = { drawCircle: jest.fn() };
     renderSkiaGlow(skiaCanvas, glow, (paint, isHighlight) => {
-      if (isHighlight) skiaHighlightAlpha = (paint as { alpha: number }).alpha;
+      if (isHighlight) skiaHighlightAlpha = (paint as never as { alpha: number }).alpha;
     });
 
     expect(canvasHighlightAlpha).toBe(0.9);

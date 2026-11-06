@@ -20,6 +20,8 @@ export interface HitRunDamageResult {
   blocked: boolean;
   guardBroken: boolean;
   armorBroken: boolean;
+  armorHit: boolean;
+  armorAbsorbed: number;
   remainingGuard?: number;
   remainingArmor?: number;
 }
@@ -64,12 +66,21 @@ export function resolveHitRunDamage(
     | HitRunCombatDefenseComponent
     | undefined;
   if (!defense || damage <= 0) {
-    return { healthDamage: damage, blocked: false, guardBroken: false, armorBroken: false };
+    return {
+      healthDamage: damage,
+      blocked: false,
+      guardBroken: false,
+      armorBroken: false,
+      armorHit: false,
+      armorAbsorbed: 0
+    };
   }
 
   let remainingDamage = damage;
+  let blocked = false;
   let guardBroken = false;
   let armorBroken = false;
+  let armorAbsorbed = 0;
   const input = (world.getComponent(target, "BeltInput") ??
     world.getComponent(target, "PlatformerInput")) as
     | { guardHeld?: boolean }
@@ -95,21 +106,25 @@ export function resolveHitRunDamage(
     defense.guardBreakRemaining <= 0 &&
     defense.guard > 0
   ) {
-    const cost = damage * Math.max(0, defense.guardCostMultiplier);
+    const multiplier = Math.max(0.0001, defense.guardCostMultiplier);
+    const cost = damage * multiplier;
     defense.guardRegenDelayRemaining = Math.max(0, defense.guardRegenDelay);
     if (defense.guard >= cost) {
       defense.guard = Math.max(0, defense.guard - cost);
+      blocked = true;
       return {
         healthDamage: 0,
-        blocked: true,
+        blocked,
         guardBroken: false,
         armorBroken: false,
+        armorHit: false,
+        armorAbsorbed: 0,
         remainingGuard: defense.guard,
         remainingArmor: defense.armor
       };
     }
 
-    const absorbed = defense.guard / Math.max(0.0001, defense.guardCostMultiplier);
+    const absorbed = defense.guard / multiplier;
     defense.guard = 0;
     defense.guardBreakRemaining = Math.max(0, defense.guardBreakDuration);
     remainingDamage = Math.max(0, damage - absorbed);
@@ -117,18 +132,21 @@ export function resolveHitRunDamage(
   }
 
   if (defense.armor > 0 && remainingDamage > 0) {
-    const desiredAbsorption = remainingDamage * Math.min(1, Math.max(0, defense.armorAbsorption));
-    const absorbed = Math.min(defense.armor, desiredAbsorption);
-    defense.armor = Math.max(0, defense.armor - absorbed);
-    remainingDamage = Math.max(0, remainingDamage - absorbed);
+    const desiredAbsorption =
+      remainingDamage * Math.min(1, Math.max(0, defense.armorAbsorption));
+    armorAbsorbed = Math.min(defense.armor, desiredAbsorption);
+    defense.armor = Math.max(0, defense.armor - armorAbsorbed);
+    remainingDamage = Math.max(0, remainingDamage - armorAbsorbed);
     armorBroken = defense.armor <= 0;
   }
 
   return {
     healthDamage: remainingDamage,
-    blocked: remainingDamage <= 0 && !guardBroken,
+    blocked,
     guardBroken,
     armorBroken,
+    armorHit: armorAbsorbed > 0,
+    armorAbsorbed,
     remainingGuard: defense.guard,
     remainingArmor: defense.armor
   };

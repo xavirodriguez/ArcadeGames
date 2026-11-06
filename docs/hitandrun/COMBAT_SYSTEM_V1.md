@@ -67,6 +67,29 @@ world.addComponent(entity, createHitRunCombatDefense({
 
 For a custom player/enemy guard input, set `guardHeld` on its `BeltInput` or `PlatformerInput` component. The guard is directional and requires source and target transforms to be available.
 
+## Impact response (V1.1)
+
+Resolved `combat:hit` events also carry attack-specific knockback magnitudes, armor absorption metadata and optional hitstun/stagger overrides. `HitRunHurtSystem` is the single owner of hit reaction application:
+
+- **Hitstun:** short simulation-time control lock; player and enemy durations are configured independently (defaults: player 0.12 s, enemy 0.14 s).
+- **Stagger:** additional stability-break window reserved for heavy attack categories (finisher, throw, special), explicit attack overrides, or enemy health damage at/above the 2.5-point poise threshold. Defaults: 0.42 s for heavy attacks and 0.32 s for threshold-breaking enemy hits.
+- **Knockback:** horizontal and elevation impulses are applied once from the resolved impact event. Melee, throw and special attack systems no longer also write the victim velocity directly.
+- **Enemy interruption:** active enemy melee hitboxes are removed when stagger interrupts the attack. Hit&Run FSM callbacks are suspended while hitstun/stagger remains, and `HitRunStaggerSystem` enforces zero horizontal velocity after AI steering.
+- **Hit-stop:** continues to use the engine's canonical `GameplayFreeze`; category profiles now distinguish bullets, shotgun, explosive, melee, finisher, throw, special, guard break and armor break. Durations remain capped and are requested only by resolved impact events. The core primitive is a short global gameplay freeze, not actor-local time dilation; true per-entity hit-stop would require a core scheduler capability and is deliberately not reimplemented inside Hit&Run.
+- **Guard feedback:** complete blocks, guard break and guard recovery have separate semantic transitions. Recovery is emitted when the simulation-time break timer reaches zero.
+- **Armor feedback:** armor contact is distinct from guard block. A non-breaking armor hit emits a ricochet cue; depletion emits the Armor Break effect. Armor-only hits do not apply health-hit stun or knockback.
+
+The shared damage resolver reports `armorHit` and `armorAbsorbed`; `blocked` now means a successful guard block only. This prevents armor absorption from being misrepresented as a shield block.
+
+### Hit reaction presentation
+
+Impacts that produce hitstun or stagger now receive two distinct procedural cues through the shared PixelFX drawer contract:
+
+- `pixelfx_hitstun`: compact core flash and short radial ticks for ordinary hitstun.
+- `pixelfx_stagger`: a broken stability ring and shearing segments only when the shared gameplay resolver reports a positive stagger duration.
+
+The same pure `resolveHitReactionDurations()` helper is used by `HitRunHurtSystem` and `HitRunFeedbackSystem`, so presentation does not reimplement the heavy-hit/poise threshold rules. Fully guarded and armor-only contacts do not spawn either reaction cue. Both effects use the existing `IDrawAdapter` registration path, preserving the same drawer implementation for Canvas and Skia; their TTL remains owned by the existing ECS transient lifecycle.
+
 ## Validation boundaries
 
-The focused tests cover frontal blocking, rear attacks, guard break and spillover, armor absorption/break, guard recovery, and legacy behavior for entities without defense. Full CI and in-game balance still need to be confirmed by the PR checks and playtesting. This is a first combat rules layer, not a full stagger, parry, elemental-resistance, or equipment system.
+Focused tests cover frontal/rear guard behavior, guard break and spillover, armor absorption semantics, legacy damage, blocked-hit reaction suppression, enemy-specific hitstun, attack-scaled stagger, knockback, and guard/armor presentation. CI and E2E results must be checked on the PR before merge; in-game balance and Canvas/Skia parity still require playtesting.

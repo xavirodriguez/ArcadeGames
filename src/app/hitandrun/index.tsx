@@ -167,11 +167,6 @@ function HitAndRunContent() {
       const aimUp = activeKeys.has("ArrowUp") || activeKeys.has("KeyW") || activeKeys.has("KeyI");
       const aimDown = activeKeys.has("ArrowDown") || activeKeys.has("KeyS") || activeKeys.has("KeyK");
       const jump = activeKeys.has("Space");
-      const pulse =
-        activeKeys.has("KeyF") ||
-        activeKeys.has("KeyJ") ||
-        activeKeys.has("KeyE") ||
-        activeKeys.has("ShiftLeft");
       const melee =
         activeKeys.has("KeyF") ||
         activeKeys.has("KeyJ") ||

@@ -156,7 +156,15 @@ export class SkiaDrawAdapter implements IDrawAdapter {
     alpha: number,
     strokeWidth?: number
   ): SkPaint | null {
-    if (!Skia || alpha * (this.activeGlowPaint ? this.activeGlowAlpha : 1) <= 0.001) return null;
+    // Skia can be present before its web CanvasKit bindings are fully initialized.
+    // Treat an incomplete API exactly like an unavailable renderer.
+    if (
+      !Skia?.PaintStyle ||
+      style === undefined ||
+      typeof Skia.Paint !== "function" ||
+      typeof Skia.Color !== "function" ||
+      alpha * (this.activeGlowPaint ? this.activeGlowAlpha : 1) <= 0.001
+    ) return null;
     const paint = this.activeGlowPaint ?? Skia.Paint();
     paint.setStyle(style);
     if (strokeWidth !== undefined) {
@@ -169,42 +177,46 @@ export class SkiaDrawAdapter implements IDrawAdapter {
 
   public fillCircle(x: number, y: number, radius: number, color: string, alpha: number = 1.0): void {
     if (!this.skCanvas.drawCircle) return;
-    const paint = this.createSkiaPaint(Skia?.PaintStyle.Fill, color, alpha);
+    const paint = this.createSkiaPaint(Skia?.PaintStyle?.Fill, color, alpha);
     if (!paint) return;
     this.skCanvas.drawCircle(x, y, Math.max(0, radius), paint);
   }
 
   public strokeCircle(x: number, y: number, radius: number, color: string, strokeWidth: number = 1.0, alpha: number = 1.0): void {
     if (!this.skCanvas.drawCircle) return;
-    const paint = this.createSkiaPaint(Skia?.PaintStyle.Stroke, color, alpha, strokeWidth);
+    const paint = this.createSkiaPaint(Skia?.PaintStyle?.Stroke, color, alpha, strokeWidth);
     if (!paint) return;
     this.skCanvas.drawCircle(x, y, Math.max(0, radius), paint);
   }
 
   public fillRect(x: number, y: number, width: number, height: number, color: string, alpha: number = 1.0): void {
-    if (!this.skCanvas.drawRect) return;
-    const paint = this.createSkiaPaint(Skia?.PaintStyle.Fill, color, alpha);
+    if (!this.skCanvas.drawRect || typeof Skia?.XYWHRect !== "function") return;
+    const paint = this.createSkiaPaint(Skia?.PaintStyle?.Fill, color, alpha);
     if (!paint) return;
     this.skCanvas.drawRect(Skia.XYWHRect(x, y, width, height), paint);
   }
 
   public strokeRect(x: number, y: number, width: number, height: number, color: string, strokeWidth: number = 1.0, alpha: number = 1.0): void {
-    if (!this.skCanvas.drawRect) return;
-    const paint = this.createSkiaPaint(Skia?.PaintStyle.Stroke, color, alpha, strokeWidth);
+    if (!this.skCanvas.drawRect || typeof Skia?.XYWHRect !== "function") return;
+    const paint = this.createSkiaPaint(Skia?.PaintStyle?.Stroke, color, alpha, strokeWidth);
     if (!paint) return;
     this.skCanvas.drawRect(Skia.XYWHRect(x, y, width, height), paint);
   }
 
   public drawLine(x1: number, y1: number, x2: number, y2: number, color: string, strokeWidth: number = 1.0, alpha: number = 1.0): void {
     if (!this.skCanvas.drawLine) return;
-    const paint = this.createSkiaPaint(Skia?.PaintStyle.Stroke, color, alpha, strokeWidth);
+    const paint = this.createSkiaPaint(Skia?.PaintStyle?.Stroke, color, alpha, strokeWidth);
     if (!paint) return;
     this.skCanvas.drawLine(x1, y1, x2, y2, paint);
   }
 
   public drawArc(x: number, y: number, radius: number, startAngleRad: number, sweepAngleRad: number, color: string, strokeWidth: number = 1.0, alpha: number = 1.0): void {
-    if (!this.skCanvas.drawPath) return;
-    const paint = this.createSkiaPaint(Skia?.PaintStyle.Stroke, color, alpha, strokeWidth);
+    if (
+      !this.skCanvas.drawPath ||
+      typeof Skia?.XYWHRect !== "function" ||
+      typeof Skia?.Path?.Make !== "function"
+    ) return;
+    const paint = this.createSkiaPaint(Skia?.PaintStyle?.Stroke, color, alpha, strokeWidth);
     if (!paint) return;
 
     const path = Skia.Path.Make();
@@ -217,7 +229,7 @@ export class SkiaDrawAdapter implements IDrawAdapter {
   }
 
   public drawText(text: string, x: number, y: number, color: string, alpha: number = 1.0, fontSize: number = 14): void {
-    if (!Skia || alpha <= 0.001 || !this.skCanvas.drawText) return;
+    if (!Skia?.PaintStyle?.Fill || alpha <= 0.001 || !this.skCanvas.drawText) return;
     const paint = this.createSkiaPaint(Skia.PaintStyle.Fill, color, alpha);
     if (!paint) return;
     const size = Math.max(1, fontSize);

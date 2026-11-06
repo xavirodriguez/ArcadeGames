@@ -20,6 +20,22 @@ import { CombatHitListenerSystem } from "../combat/CombatHitListenerSystem";
  * knockback and player invulnerability. Fully guarded and armor-only impacts
  * never masquerade as health hits.
  */
+/**
+ * Preserve the original 0.85 velocity retention at 60 Hz while expressing it
+ * in simulation time. This makes the impact response independent of update
+ * frequency (and correctly slower in wall-clock time during slow motion).
+ */
+const ENEMY_KNOCKBACK_RETENTION_PER_60HZ_TICK = 0.85;
+const REFERENCE_SIMULATION_HZ = 60;
+
+function getEnemyKnockbackRetention(deltaTime: number): number {
+  if (!Number.isFinite(deltaTime) || deltaTime <= 0) return 1;
+  return Math.pow(
+    ENEMY_KNOCKBACK_RETENTION_PER_60HZ_TICK,
+    deltaTime * REFERENCE_SIMULATION_HZ
+  );
+}
+
 export class HitRunHurtSystem extends CombatHitListenerSystem<CombatHitPayload> {
   public enqueueHitForTest(payload: CombatHitPayload): void {
     this.pendingHits.push(payload);
@@ -246,7 +262,9 @@ export class HitRunHurtSystem extends CombatHitListenerSystem<CombatHitPayload> 
         const vel = world.getMutableComponent(entity, "Velocity") as
           | { vx: number }
           | undefined;
-        if (vel) vel.vx *= 0.85;
+        if (vel) {
+          vel.vx *= getEnemyKnockbackRetention(dt);
+        }
       }
 
       const health = world.getComponent(entity, "Health") as

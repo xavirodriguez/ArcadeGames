@@ -438,7 +438,7 @@ function HitAndRunContent() {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}.${ms.toString().padStart(2, "0")}`;
   };
 
-  if (!started) {
+  if (!started && !isE2E) {
     return (
       <GameScreen>
         <BackButton label={t.common.menu} />

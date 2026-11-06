@@ -26,11 +26,25 @@ export class HitRunDeathFlowSystem extends System<CoreComponentRegistry> {
   private subscribed = false;
   private pendingDeath = false;
 
-  public subscribe(bus: EventBus): void {
+  public subscribe(bus: EventBus, world: World<CoreComponentRegistry>): void {
     if (this.subscribed) return;
     this.subscribed = true;
     bus.on("PlayerDied", () => {
       this.pendingDeath = true;
+    });
+    // HitRunCombatSystem emits combat:death for every lethal target. Bridge
+    // only BeltInput/player-faction deaths into the Hit&Run recovery flow.
+    bus.on("combat:death", (payload: unknown) => {
+      const data = payload as { entity?: Entity };
+      const entity = data.entity;
+      if (entity === undefined || !world.hasEntity(entity)) return;
+      const faction = world.getComponent(entity, "Faction") as
+        | { value?: string; faction?: string }
+        | undefined;
+      if (world.hasComponent(entity, "BeltInput") ||
+          faction?.value === "player" || faction?.faction === "player") {
+        this.pendingDeath = true;
+      }
     });
   }
 
@@ -90,7 +104,7 @@ export function registerHitRunDeathFlow(
   const sys = new HitRunDeathFlowSystem();
   world.addSystem(sys, { phase: SystemPhase.Simulation, priority: 90 });
   const bus = world.getEventBus();
-  if (bus) sys.subscribe(bus);
+  if (bus) sys.subscribe(bus, world);
   world.setResource(DEATH_FLOW_RESOURCE, {
     active: false,
     remaining: 0,

@@ -6,6 +6,7 @@ import {
   SystemPhase,
   World,
   CoreComponentRegistry,
+  Entity,
   RunState
 } from "@tiny-aster/core";
 import { getWeaponDefinition } from "../weapons/HitRunWeaponCatalog";

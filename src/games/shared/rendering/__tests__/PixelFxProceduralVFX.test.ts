@@ -4,6 +4,8 @@ import {
   drawPixelFxDust,
   drawPixelFxExplosion,
   drawPixelFxImpact,
+  drawPixelFxHitstun,
+  drawPixelFxStagger,
   drawPixelFxInkBurst,
   drawPixelFxMuzzle,
   drawPixelFxPickup,
@@ -89,6 +91,16 @@ describe("PixelFX-inspired procedural VFX", () => {
     drawPixelFxImpact(adapter, world, entity);
     expect(adapter.strokeCircle).toHaveBeenCalled();
     expect(adapter.drawLine).toHaveBeenCalledTimes(24);
+  });
+
+  it("evolves Impact from a concentrated contact flash into an expanding shock ring", () => {
+    const early = createAdapter(), earlyState = createWorld(0.36);
+    drawPixelFxImpact(early, earlyState.world, earlyState.entity);
+    const late = createAdapter(), lateState = createWorld(0.04);
+    drawPixelFxImpact(late, lateState.world, lateState.entity);
+    expect(late.strokeCircle.mock.calls[0][2]).toBeGreaterThan(early.strokeCircle.mock.calls[0][2]);
+    expect(late.strokeCircle.mock.calls[0][5]).toBeLessThan(early.strokeCircle.mock.calls[0][5]);
+    expect(early.drawArc).toHaveBeenCalledTimes(2);
   });
 
   it("draws a directional slash as arcs and trailing strokes", () => {
@@ -201,13 +213,46 @@ describe("PixelFX-inspired procedural VFX", () => {
     expect(late.fillCircle.mock.calls[0][4]).toBeLessThan(early.fillCircle.mock.calls[0][4]);
   });
 
-  it("animates Guard Break from a compressed guard into staggered fractures", () => {
+  it("keeps Hitstun as a compact interruption cue with a pulsing orbit", () => {
+    const early = createAdapter(), earlyState = createWorld(0.36);
+    drawPixelFxHitstun(early, earlyState.world, earlyState.entity);
+    const late = createAdapter(), lateState = createWorld(0.04);
+    drawPixelFxHitstun(late, lateState.world, lateState.entity);
+    expect(early.drawArc).toHaveBeenCalledTimes(3);
+    expect(late.drawArc.mock.calls[0][2]).toBeGreaterThan(early.drawArc.mock.calls[0][2]);
+    expect(early.fillCircle).toHaveBeenCalledTimes(1);
+  });
+
+  it("distinguishes Stagger with a sheared, off-axis stability ring", () => {
+    const early = createAdapter(), earlyState = createWorld(0.36);
+    drawPixelFxStagger(early, earlyState.world, earlyState.entity);
+    const late = createAdapter(), lateState = createWorld(0.04);
+    drawPixelFxStagger(late, lateState.world, lateState.entity);
+    expect(early.drawArc).toHaveBeenCalledTimes(3);
+    expect(late.drawArc.mock.calls[0][2]).toBeGreaterThan(early.drawArc.mock.calls[0][2]);
+  });
+
+  it("animates Guard Break by opening a shield contour into branching fractures", () => {
     const early = createAdapter(), earlyState = createWorld(0.36);
     drawPixelFxGuardBreak(early, earlyState.world, earlyState.entity);
     const late = createAdapter(), lateState = createWorld(0.04);
     drawPixelFxGuardBreak(late, lateState.world, lateState.entity);
-    expect(late.strokeCircle.mock.calls[0][2]).toBeGreaterThan(early.strokeCircle.mock.calls[0][2]);
-    expect(late.drawLine.mock.calls[0][6]).toBeLessThan(early.drawLine.mock.calls[0][6]);
+    expect(early.drawLine).toHaveBeenCalledTimes(6);
+    expect(late.drawLine.mock.calls.length).toBeGreaterThan(early.drawLine.mock.calls.length);
+    expect(early.drawArc).toHaveBeenCalled();
+    expect(early.fillCircle).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders Ricochet as a directional path change rather than a radial burst", () => {
+    const early = createAdapter(), earlyState = createWorld(0.36);
+    drawPixelFxRicochet(early, earlyState.world, earlyState.entity);
+    const late = createAdapter(), lateState = createWorld(0.04);
+    drawPixelFxRicochet(late, lateState.world, lateState.entity);
+    expect(early.drawLine).toHaveBeenCalledTimes(8);
+    expect(early.drawArc).toHaveBeenCalledTimes(1);
+    expect(early.strokeCircle).not.toHaveBeenCalled();
+    expect(Math.hypot(late.drawLine.mock.calls[1][2], late.drawLine.mock.calls[1][3]))
+      .toBeGreaterThan(Math.hypot(early.drawLine.mock.calls[1][2], early.drawLine.mock.calls[1][3]));
   });
 
   it("animates Armor Break plates outward from the fractured shell", () => {
@@ -326,6 +371,8 @@ describe("PixelFX-inspired procedural VFX", () => {
     const { world, entity } = createWorld();
     world.mutateComponent(entity, "Render", render => { render.opacity = 0; });
     drawPixelFxTeleport(adapter, world, entity);
+    drawPixelFxHitstun(adapter, world, entity);
+    drawPixelFxStagger(adapter, world, entity);
     drawPixelFxSurfaceSkid(adapter, world, entity);
     drawPixelFxMechanicalMotion(adapter, world, entity);
     drawPixelFxRicochet(adapter, world, entity);
@@ -361,6 +408,8 @@ describe("PixelFX-inspired procedural VFX", () => {
     drawPixelFxHop(adapter, world, entity);
     drawPixelFxPhaseDash(adapter, world, entity);
     drawPixelFxTeleport(adapter, world, entity);
+    drawPixelFxHitstun(adapter, world, entity);
+    drawPixelFxStagger(adapter, world, entity);
     drawPixelFxSurfaceSkid(adapter, world, entity);
     drawPixelFxMechanicalMotion(adapter, world, entity);
     drawPixelFxRicochet(adapter, world, entity);
@@ -427,9 +476,11 @@ describe("PixelFX-inspired procedural VFX", () => {
       registerShape
     } as never as Renderer<CoreComponentRegistry, RenderContext>;
     registerPixelFxProceduralVFX(renderer);
-    expect(registerShape).toHaveBeenCalledTimes(27);
+    expect(registerShape).toHaveBeenCalledTimes(29);
     expect(registerShape.mock.calls.map(([name]) => name)).toEqual([
       "pixelfx_impact",
+      "pixelfx_hitstun",
+      "pixelfx_stagger",
       "pixelfx_slash",
       "pixelfx_explosion",
       "pixelfx_dust",

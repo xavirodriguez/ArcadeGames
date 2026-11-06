@@ -113,6 +113,22 @@ export interface VFXLabSettings {
   readonly seed: number;
 }
 
+export const VFX_COMBAT_QUALITY_EFFECT_IDS = [
+  "pixelfx_impact",
+  "pixelfx_hitstun",
+  "pixelfx_stagger",
+  "pixelfx_guard_break",
+  "pixelfx_armor_break",
+  "pixelfx_ricochet"
+] as const;
+
+export const VFX_COMBAT_QUALITY_PHASES = [
+  { id: "contact", label: "Contact", progress: 0.04 },
+  { id: "expansion", label: "Expansion", progress: 0.28 },
+  { id: "peak", label: "Peak", progress: 0.58 },
+  { id: "dissipation", label: "Dissipation", progress: 0.88 }
+] as const;
+
 export const VFX_LAB_PRESETS: readonly VFXLabPreset[] = [
   { schemaVersion: 1, id: "impact-neon", label: "Impact / Neon", effect: "pixelfx_impact", profile: "arcade-neon", progress: 0.28, size: 48, rotation: 0, seed: 104729 },
   { schemaVersion: 1, id: "ink-burst-sumi", label: "Ink Burst / Sumi-e", effect: "pixelfx_ink_burst", profile: "sumi-e", progress: 0.62, size: 60, rotation: 0.35, seed: 130363 },
@@ -143,7 +159,31 @@ export const VFX_LAB_PRESETS: readonly VFXLabPreset[] = [
   { schemaVersion: 1, id: "slash-neon", label: "Slash / Neon", effect: "pixelfx_slash", profile: "arcade-neon", progress: 0.38, size: 52, rotation: -0.62, seed: 543217 },
   { schemaVersion: 1, id: "explosion-neon", label: "Explosion / Neon", effect: "pixelfx_explosion", profile: "arcade-neon", progress: 0.32, size: 66, rotation: 0.16, seed: 554323 },
   { schemaVersion: 1, id: "dust-sumi", label: "Dust / Sumi-e", effect: "pixelfx_dust", profile: "sumi-e", progress: 0.52, size: 46, rotation: 0.12, seed: 565399 },
-  { schemaVersion: 1, id: "flap-gust-sumi", label: "Flap Gust / Sumi-e", effect: "pixelfx_flap_gust", profile: "sumi-e", progress: 0.34, size: 48, rotation: -0.48, seed: 576481 }
+  { schemaVersion: 1, id: "flap-gust-sumi", label: "Flap Gust / Sumi-e", effect: "pixelfx_flap_gust", profile: "sumi-e", progress: 0.34, size: 48, rotation: -0.48, seed: 576481 },
+  { schemaVersion: 1, id: "impact-contact", label: "impact / Contact", effect: "pixelfx_impact", profile: "arcade-neon", progress: 0.04, size: 48, rotation: 0, seed: 610001 },
+  { schemaVersion: 1, id: "impact-expansion", label: "impact / Expansion", effect: "pixelfx_impact", profile: "arcade-neon", progress: 0.28, size: 48, rotation: 0, seed: 610001 },
+  { schemaVersion: 1, id: "impact-peak", label: "impact / Peak", effect: "pixelfx_impact", profile: "arcade-neon", progress: 0.58, size: 48, rotation: 0, seed: 610001 },
+  { schemaVersion: 1, id: "impact-dissipation", label: "impact / Dissipation", effect: "pixelfx_impact", profile: "arcade-neon", progress: 0.88, size: 48, rotation: 0, seed: 610001 },
+  { schemaVersion: 1, id: "hitstun-contact", label: "hitstun / Contact", effect: "pixelfx_hitstun", profile: "arcade-neon", progress: 0.04, size: 44, rotation: 0.08, seed: 620003 },
+  { schemaVersion: 1, id: "hitstun-expansion", label: "hitstun / Expansion", effect: "pixelfx_hitstun", profile: "arcade-neon", progress: 0.28, size: 44, rotation: 0.08, seed: 620003 },
+  { schemaVersion: 1, id: "hitstun-peak", label: "hitstun / Peak", effect: "pixelfx_hitstun", profile: "arcade-neon", progress: 0.58, size: 44, rotation: 0.08, seed: 620003 },
+  { schemaVersion: 1, id: "hitstun-dissipation", label: "hitstun / Dissipation", effect: "pixelfx_hitstun", profile: "arcade-neon", progress: 0.88, size: 44, rotation: 0.08, seed: 620003 },
+  { schemaVersion: 1, id: "stagger-contact", label: "stagger / Contact", effect: "pixelfx_stagger", profile: "arcade-neon", progress: 0.04, size: 58, rotation: -0.22, seed: 630007 },
+  { schemaVersion: 1, id: "stagger-expansion", label: "stagger / Expansion", effect: "pixelfx_stagger", profile: "arcade-neon", progress: 0.28, size: 58, rotation: -0.22, seed: 630007 },
+  { schemaVersion: 1, id: "stagger-peak", label: "stagger / Peak", effect: "pixelfx_stagger", profile: "arcade-neon", progress: 0.58, size: 58, rotation: -0.22, seed: 630007 },
+  { schemaVersion: 1, id: "stagger-dissipation", label: "stagger / Dissipation", effect: "pixelfx_stagger", profile: "arcade-neon", progress: 0.88, size: 58, rotation: -0.22, seed: 630007 },
+  { schemaVersion: 1, id: "guard-break-contact", label: "guard break / Contact", effect: "pixelfx_guard_break", profile: "arcade-neon", progress: 0.04, size: 62, rotation: -0.2, seed: 640009 },
+  { schemaVersion: 1, id: "guard-break-expansion", label: "guard break / Expansion", effect: "pixelfx_guard_break", profile: "arcade-neon", progress: 0.28, size: 62, rotation: -0.2, seed: 640009 },
+  { schemaVersion: 1, id: "guard-break-peak", label: "guard break / Peak", effect: "pixelfx_guard_break", profile: "arcade-neon", progress: 0.58, size: 62, rotation: -0.2, seed: 640009 },
+  { schemaVersion: 1, id: "guard-break-dissipation", label: "guard break / Dissipation", effect: "pixelfx_guard_break", profile: "arcade-neon", progress: 0.88, size: 62, rotation: -0.2, seed: 640009 },
+  { schemaVersion: 1, id: "armor-break-contact", label: "armor break / Contact", effect: "pixelfx_armor_break", profile: "sumi-e", progress: 0.04, size: 64, rotation: 0.28, seed: 650011 },
+  { schemaVersion: 1, id: "armor-break-expansion", label: "armor break / Expansion", effect: "pixelfx_armor_break", profile: "sumi-e", progress: 0.28, size: 64, rotation: 0.28, seed: 650011 },
+  { schemaVersion: 1, id: "armor-break-peak", label: "armor break / Peak", effect: "pixelfx_armor_break", profile: "sumi-e", progress: 0.58, size: 64, rotation: 0.28, seed: 650011 },
+  { schemaVersion: 1, id: "armor-break-dissipation", label: "armor break / Dissipation", effect: "pixelfx_armor_break", profile: "sumi-e", progress: 0.88, size: 64, rotation: 0.28, seed: 650011 },
+  { schemaVersion: 1, id: "ricochet-contact", label: "ricochet / Contact", effect: "pixelfx_ricochet", profile: "arcade-neon", progress: 0.04, size: 46, rotation: -0.62, seed: 660013 },
+  { schemaVersion: 1, id: "ricochet-expansion", label: "ricochet / Expansion", effect: "pixelfx_ricochet", profile: "arcade-neon", progress: 0.28, size: 46, rotation: -0.62, seed: 660013 },
+  { schemaVersion: 1, id: "ricochet-peak", label: "ricochet / Peak", effect: "pixelfx_ricochet", profile: "arcade-neon", progress: 0.58, size: 46, rotation: -0.62, seed: 660013 },
+  { schemaVersion: 1, id: "ricochet-dissipation", label: "ricochet / Dissipation", effect: "pixelfx_ricochet", profile: "arcade-neon", progress: 0.88, size: 46, rotation: -0.62, seed: 660013 },
 ];
 
 const SEMANTIC_ROLE_BY_FAMILY: Record<VFXFamily, VFXLabSemanticRole> = {

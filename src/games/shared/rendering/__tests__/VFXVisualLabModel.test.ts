@@ -9,7 +9,9 @@ import {
   resolveVFXLabSemanticRole,
   serializeVFXLabPreset,
   VFX_LAB_EFFECTS,
-  VFX_LAB_PRESETS
+  VFX_LAB_PRESETS,
+  VFX_COMBAT_QUALITY_EFFECT_IDS,
+  VFX_COMBAT_QUALITY_PHASES
 } from "../VFXVisualLabModel";
 
 describe("VFX Visual Lab model", () => {
@@ -96,6 +98,17 @@ describe("VFX Visual Lab model", () => {
     const effectsWithPresets = new Set(VFX_LAB_PRESETS.map((preset) => preset.effect));
     for (const effect of VFX_LAB_EFFECTS) {
       expect(effectsWithPresets.has(effect.id)).toBe(true);
+    }
+  });
+
+  it("provides four reproducible temporal checkpoints for each of the six combat quality effects", () => {
+    expect(VFX_COMBAT_QUALITY_PHASES.map((phase) => phase.progress)).toEqual([0.04, 0.28, 0.58, 0.88]);
+    for (const effect of VFX_COMBAT_QUALITY_EFFECT_IDS) {
+      const samples = VFX_LAB_PRESETS.filter((preset) =>
+        preset.id.startsWith(effect.replace("pixelfx_", "").replace(/_/g, "-") + "-")
+      );
+      expect(samples.map((preset) => preset.progress)).toEqual([0.04, 0.28, 0.58, 0.88]);
+      expect(samples.every((preset) => preset.effect === effect)).toBe(true);
     }
   });
 

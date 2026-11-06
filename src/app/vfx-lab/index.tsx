@@ -128,7 +128,7 @@ export default function VFXVisualLabScreen() {
     // On web, the module-level Skia binding may be captured before LoadSkiaWeb()
     // completes. Never assume the API is complete merely because Skia is truthy.
     if (
-      !Skia?.PaintStyle?.Fill ||
+      Skia?.PaintStyle?.Fill === undefined ||
       typeof Skia?.PictureRecorder !== "function" ||
       typeof Skia?.XYWHRect !== "function"
     ) {

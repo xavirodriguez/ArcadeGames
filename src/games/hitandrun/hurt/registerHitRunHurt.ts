@@ -19,8 +19,8 @@ export function registerHitRunHurt(
 
   const system = new HitRunHurtSystem();
   world.addSystem(system, { phase: SystemPhase.GameRules, priority: 15 });
-  // Enemy FSMs run at Simulation priority 16; this final pass enforces stagger
-  // after their steering writes velocity.
+  // Enemy FSMs run at Simulation priority 16 and suspend their state updates
+  // during HitReaction. The post-pass preserves knockback velocity unchanged.
   world.addSystem(new HitRunStaggerSystem(), {
     phase: SystemPhase.Simulation,
     priority: 18

@@ -69,6 +69,7 @@ export default function VFXVisualLabScreen() {
   const [presetError, setPresetError] = useState("");
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [skiaPicture, setSkiaPicture] = useState<any>(null);
+  const [skiaPreviewError, setSkiaPreviewError] = useState<string | null>(null);
 
   const effect = useMemo(() => getVFXLabEffect(effectId), [effectId]);
   const descriptor = useMemo(
@@ -124,21 +125,36 @@ export default function VFXVisualLabScreen() {
   }, [color, effect, previewPalette, progress, rotation, scenarioSeed, size]);
 
   useEffect(() => {
-    if (!Skia) {
+    // On web, the module-level Skia binding may be captured before LoadSkiaWeb()
+    // completes. Never assume the API is complete merely because Skia is truthy.
+    if (
+      Skia?.PaintStyle?.Fill === undefined ||
+      typeof Skia?.PictureRecorder !== "function" ||
+      typeof Skia?.XYWHRect !== "function"
+    ) {
       setSkiaPicture(null);
+      setSkiaPreviewError("Skia is not initialized in this runtime. Canvas 2D remains available.");
       return;
     }
-    const recorder = Skia.PictureRecorder();
-    const skiaCanvas = recorder.beginRecording(Skia.XYWHRect(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT));
-    const adapter = new SkiaDrawAdapter(skiaCanvas);
-    adapter.fillRect(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT, previewPalette.background);
-    for (let x = 0; x < PREVIEW_WIDTH; x += 32) adapter.drawLine(x, 0, x, PREVIEW_HEIGHT, previewPalette.grid, 1, previewPalette.gridAlpha);
-    for (let y = 0; y < PREVIEW_HEIGHT; y += 32) adapter.drawLine(0, y, PREVIEW_WIDTH, y, previewPalette.grid, 1, previewPalette.gridAlpha);
-    skiaCanvas.save();
-    skiaCanvas.translate(PREVIEW_WIDTH / 2, PREVIEW_HEIGHT / 2);
-    effect.draw(adapter, createPreviewWorld(size, color, progress, rotation), scenarioSeed);
-    skiaCanvas.restore();
-    setSkiaPicture(recorder.finishRecordingAsPicture());
+
+    try {
+      const recorder = Skia.PictureRecorder();
+      const skiaCanvas = recorder.beginRecording(Skia.XYWHRect(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT));
+      const adapter = new SkiaDrawAdapter(skiaCanvas);
+      adapter.fillRect(0, 0, PREVIEW_WIDTH, PREVIEW_HEIGHT, previewPalette.background);
+      for (let x = 0; x < PREVIEW_WIDTH; x += 32) adapter.drawLine(x, 0, x, PREVIEW_HEIGHT, previewPalette.grid, 1, previewPalette.gridAlpha);
+      for (let y = 0; y < PREVIEW_HEIGHT; y += 32) adapter.drawLine(0, y, PREVIEW_WIDTH, y, previewPalette.grid, 1, previewPalette.gridAlpha);
+      skiaCanvas.save();
+      skiaCanvas.translate(PREVIEW_WIDTH / 2, PREVIEW_HEIGHT / 2);
+      effect.draw(adapter, createPreviewWorld(size, color, progress, rotation), scenarioSeed);
+      skiaCanvas.restore();
+      setSkiaPicture(recorder.finishRecordingAsPicture());
+      setSkiaPreviewError(null);
+    } catch (error) {
+      console.warn("[VFX Lab] Skia preview failed; keeping Canvas 2D active:", error);
+      setSkiaPicture(null);
+      setSkiaPreviewError(error instanceof Error ? error.message : "Unknown Skia preview error");
+    }
   }, [color, effect, previewPalette, progress, rotation, scenarioSeed, size]);
 
   const applyPreset = (preset: VFXLabPreset) => {
@@ -228,7 +244,13 @@ export default function VFXVisualLabScreen() {
                       <SkiaPicture picture={skiaPicture} />
                     </SkiaCanvas>
                   ) : (
-                    <View style={styles.nativeNotice}><Text style={styles.noticeText}>Skia picture is unavailable in this runtime.</Text></View>
+                    <View style={styles.nativeNotice}>
+                      <Text style={styles.noticeText}>
+                        {skiaPreviewError
+                          ? `Skia preview unavailable: ${skiaPreviewError} Canvas 2D remains available on web.`
+                          : "Skia picture is unavailable in this runtime."}
+                      </Text>
+                    </View>
                   )}
                 </View>
               </View>

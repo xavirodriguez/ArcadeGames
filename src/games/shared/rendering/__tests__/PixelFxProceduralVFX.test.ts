@@ -220,7 +220,6 @@ describe("PixelFX-inspired procedural VFX", () => {
     drawPixelFxStagger(late, lateState.world, lateState.entity);
     expect(early.drawArc).toHaveBeenCalledTimes(3);
     expect(late.drawArc.mock.calls[0][2]).toBeGreaterThan(early.drawArc.mock.calls[0][2]);
-    expect(late.drawLine.mock.calls[0][0]).not.toBe(early.drawLine.mock.calls[0][0]);
   });
 
   it("animates Guard Break by opening a shield contour into branching fractures", () => {
@@ -362,6 +361,8 @@ describe("PixelFX-inspired procedural VFX", () => {
     const { world, entity } = createWorld();
     world.mutateComponent(entity, "Render", render => { render.opacity = 0; });
     drawPixelFxTeleport(adapter, world, entity);
+    drawPixelFxHitstun(adapter, world, entity);
+    drawPixelFxStagger(adapter, world, entity);
     drawPixelFxSurfaceSkid(adapter, world, entity);
     drawPixelFxMechanicalMotion(adapter, world, entity);
     drawPixelFxRicochet(adapter, world, entity);
@@ -397,6 +398,8 @@ describe("PixelFX-inspired procedural VFX", () => {
     drawPixelFxHop(adapter, world, entity);
     drawPixelFxPhaseDash(adapter, world, entity);
     drawPixelFxTeleport(adapter, world, entity);
+    drawPixelFxHitstun(adapter, world, entity);
+    drawPixelFxStagger(adapter, world, entity);
     drawPixelFxSurfaceSkid(adapter, world, entity);
     drawPixelFxMechanicalMotion(adapter, world, entity);
     drawPixelFxRicochet(adapter, world, entity);

@@ -33,6 +33,7 @@ describe("Hit & Run phase 1 gameplay stability", () => {
     world.addComponent(enemy, { type: "Hurtbox" });
 
     new HitRunOrphanEnemyCleanupSystem().update(world, 0.016);
+    world.flush();
 
     expect(world.hasComponent(enemy, "Dead")).toBe(true);
   });
@@ -75,14 +76,14 @@ describe("Hit & Run phase 1 gameplay stability", () => {
     world.addComponent(player, createBeltInputComponent());
     world.addComponent(player, { type: "Faction", value: "player" });
 
-    registerHitRunDeathFlow(world);
+    const deathFlow = registerHitRunDeathFlow(world);
     bus.emitDeferred("combat:death", { entity: player, category: "enemy_melee" });
     bus.flushDeferred();
+    deathFlow.update(world, 1 / 60);
 
-    const system = world.getResource<HitRunDeathFlowState>(DEATH_FLOW_RESOURCE);
-    expect(system?.active).toBe(false);
-    const deathSystem = world.getSystem?.("HitRunDeathFlowSystem");
-    void deathSystem;
+    const state = world.getResource<HitRunDeathFlowState>(DEATH_FLOW_RESOURCE);
+    expect(state?.active).toBe(true);
+    expect(state?.remaining).toBeGreaterThan(0);
   });
 
   it("does not award score or combo for a player death", () => {

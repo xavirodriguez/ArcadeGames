@@ -154,4 +154,83 @@ describe("GameplayFreeze (Soft Pause) System Tests", () => {
     expect(movementSys.updated).toBe(1);
     expect(presentationSys.updated).toBe(3);
   });
+
+  it("suspends GameplayFreeze countdown when IsPaused is explicitly true and resumes when unpaused", () => {
+    world.setResource("GameplayFreeze", { remaining: 0.2, source: "juice" } as GameplayFreeze);
+    world.setResource("IsPaused", true);
+
+    // Update while paused: freeze timer must NOT decrement
+    world.update(0.1);
+    expect(world.getResource<GameplayFreeze>("GameplayFreeze")?.remaining).toBe(0.2);
+    expect(movementSys.updated).toBe(0);
+    expect(presentationSys.updated).toBe(1);
+
+    world.update(0.1);
+    expect(world.getResource<GameplayFreeze>("GameplayFreeze")?.remaining).toBe(0.2);
+    expect(movementSys.updated).toBe(0);
+
+    // Unpause: freeze timer resumes decrementing normally
+    world.deleteResource("IsPaused");
+    world.update(0.1);
+    expect(world.getResource<GameplayFreeze>("GameplayFreeze")?.remaining).toBeCloseTo(0.1, 5);
+    expect(movementSys.updated).toBe(0);
+
+    // Final tick expires the remaining duration
+    world.update(0.1);
+    expect(world.getResource("GameplayFreeze")).toBeUndefined();
+    expect(movementSys.updated).toBe(0);
+
+    // Resumes on the following tick
+    world.update(0.01);
+    expect(movementSys.updated).toBe(1);
+  });
+
+  it("suppresses gameplay phases when TimeScale is 0 independently of GameplayFreeze", () => {
+    // TimeScale = 0 freezes simulation/input/collision/rules even without GameplayFreeze
+    world.setResource("TimeScale", { scale: 0 });
+
+    world.update(0.1);
+    expect(inputSys.updated).toBe(0);
+    expect(movementSys.updated).toBe(0);
+    expect(collisionSys.updated).toBe(0);
+    expect(rulesSys.updated).toBe(0);
+    expect(presentationSys.updated).toBe(1);
+
+    // Resetting TimeScale restores execution
+    world.setResource("TimeScale", { scale: 1.0 });
+    world.update(0.1);
+    expect(inputSys.updated).toBe(1);
+    expect(movementSys.updated).toBe(1);
+    expect(collisionSys.updated).toBe(1);
+    expect(rulesSys.updated).toBe(1);
+  });
+
+  it("preserves indefinite GameplayFreeze without auto-expiring or deleting resource", () => {
+    world.setResource("GameplayFreeze", { source: "external" } as GameplayFreeze);
+
+    world.update(0.1);
+    expect(world.getResource("GameplayFreeze")).toEqual({ source: "external" });
+    expect(movementSys.updated).toBe(0);
+    expect(presentationSys.updated).toBe(1);
+
+    world.update(0.5);
+    expect(world.getResource("GameplayFreeze")).toEqual({ source: "external" });
+    expect(movementSys.updated).toBe(0);
+  });
+
+  it("preserves external finite freeze and halts simulation until tick after expiry", () => {
+    world.setResource("GameplayFreeze", { remaining: 0.15, source: "cutscene" } as GameplayFreeze);
+
+    world.update(0.1);
+    expect(world.getResource<GameplayFreeze>("GameplayFreeze")?.remaining).toBeCloseTo(0.05, 5);
+    expect(world.getResource<GameplayFreeze>("GameplayFreeze")?.source).toBe("cutscene");
+    expect(movementSys.updated).toBe(0);
+
+    world.update(0.05);
+    expect(world.getResource("GameplayFreeze")).toBeUndefined();
+    expect(movementSys.updated).toBe(0);
+
+    world.update(0.016);
+    expect(movementSys.updated).toBe(1);
+  });
 });

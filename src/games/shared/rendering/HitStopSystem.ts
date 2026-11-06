@@ -135,9 +135,12 @@ export class HitStopSystem extends System<CoreComponentRegistry> {
     }
 
     if (!policy.active && policy.cooldownRemaining > 0) {
-      policy.cooldownRemaining = Math.max(0, policy.cooldownRemaining - dt);
-      if (policy.cooldownRemaining === 0) {
+      const nextRemaining = policy.cooldownRemaining - dt;
+      if (nextRemaining <= 1e-5) {
+        policy.cooldownRemaining = 0;
         policy.priority = 0;
+      } else {
+        policy.cooldownRemaining = nextRemaining;
       }
     }
   }

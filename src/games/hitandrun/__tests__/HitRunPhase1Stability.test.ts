@@ -1,5 +1,6 @@
 import { EventBus, World, CoreComponentRegistry } from "@tiny-aster/core";
 import { createBeltInputComponent, createBeltMovementComponent, BELT_MOVEMENT_CONFIG_RESOURCE, DEFAULT_BELT_MOVEMENT_CONFIG } from "../belt/BeltMovementTypes";
+import { mutateBeltInputState } from "../belt/mutateBeltInputState";
 import { BeltMovementSystem } from "../belt/BeltMovementSystem";
 import { HitRunStaggerSystem } from "../hurt/HitRunStaggerSystem";
 import { HitRunOrphanEnemyCleanupSystem } from "../systems/HitRunOrphanEnemyCleanupSystem";
@@ -7,6 +8,22 @@ import { registerHitRunDeathFlow, DEATH_FLOW_RESOURCE, type HitRunDeathFlowState
 import { registerHitRunScoreSystem, HIT_RUN_SCORE_RESOURCE, type HitRunScoreState } from "../systems/HitRunScoreSystem";
 
 describe("Hit & Run phase 1 gameplay stability", () => {
+  it("keeps melee and ranged actions independent in the input bridge", () => {
+    const world = new World<CoreComponentRegistry>();
+    const player = world.createEntity();
+    world.addComponent(player, createBeltInputComponent());
+
+    mutateBeltInputState(world, { attack: true, fire: false });
+    let input = world.getComponent(player, "BeltInput") as { attackHeld: boolean; fireHeld: boolean };
+    expect(input.attackHeld).toBe(true);
+    expect(input.fireHeld).toBe(false);
+
+    mutateBeltInputState(world, { attack: false, fire: true });
+    input = world.getComponent(player, "BeltInput") as { attackHeld: boolean; fireHeld: boolean };
+    expect(input.attackHeld).toBe(false);
+    expect(input.fireHeld).toBe(true);
+  });
+
   it("keeps valid enemies alive after the spawn script has ended", () => {
     const world = new World<CoreComponentRegistry>();
     const enemy = world.createEntity();
@@ -29,7 +46,7 @@ describe("Hit & Run phase 1 gameplay stability", () => {
     world.addComponent(enemy, { type: "Health", current: 3, max: 3 });
     world.addComponent(enemy, { type: "Enemy", kind: "patrol" });
     world.addComponent(enemy, { type: "Faction", value: "enemy" });
-    world.addComponent(enemy, { type: "Render", size: 24, visible: true });
+    world.addComponent(enemy, { type: "Render", shape: "popcorn", size: 24, color: "#fff", visible: true, opacity: 1, order: 1, rotation: 0, angularVelocity: 0 } as never);
     world.addComponent(enemy, { type: "Hurtbox" });
 
     new HitRunOrphanEnemyCleanupSystem().update(world, 0.016);

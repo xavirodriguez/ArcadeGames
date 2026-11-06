@@ -7,7 +7,8 @@ import {
   World,
   CoreComponentRegistry,
   Entity,
-  RunState
+  RunState,
+  TimeScale
 } from "@tiny-aster/core";
 import { getWeaponDefinition } from "../weapons/HitRunWeaponCatalog";
 import type { EventBus } from "@tiny-aster/core";
@@ -24,6 +25,12 @@ const SLOW_MO_DURATION = 0.45;
 const SLOW_MO_SCALE = 0.28;
 
 export class HitRunDeathFlowSystem extends System<CoreComponentRegistry> {
+  /**
+   * Recovery duration is a wall-clock presentation timer. The scheduler therefore
+   * passes unscaled deltaTime to this system even while gameplay is in slow motion.
+   */
+  public runsWhileFrozen = true;
+
   private subscribed = false;
   private pendingDeath = false;
 
@@ -53,6 +60,10 @@ export class HitRunDeathFlowSystem extends System<CoreComponentRegistry> {
   }
 
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {
+    // The scheduler still invokes runsWhileFrozen systems during an explicit pause.
+    // Pause must suspend the recovery clock and defer a queued death until resume.
+    if (world.getResource("IsPaused") === true) return;
+
     let flow = world.getResource<HitRunDeathFlowState>(DEATH_FLOW_RESOURCE);
     if (!flow) {
       flow = { active: false, remaining: 0, requestRestart: false };
@@ -64,7 +75,7 @@ export class HitRunDeathFlowSystem extends System<CoreComponentRegistry> {
       flow.active = true;
       flow.remaining = SLOW_MO_DURATION;
       flow.requestRestart = false;
-      world.setResource("TimeScale", SLOW_MO_SCALE);
+      setTimeScale(world, SLOW_MO_SCALE);
 
       // Reset player weapon to fallback upon death (G3.1)
       const players = world.query("HitRunWeapon");
@@ -91,15 +102,29 @@ export class HitRunDeathFlowSystem extends System<CoreComponentRegistry> {
 
     if (!flow.active) return;
 
-    const scale = (world.getResource<number>("TimeScale") as number) ?? 1;
-    flow.remaining -= deltaTime / Math.max(0.05, scale);
+    // runsWhileFrozen gives this system the unscaled wall-clock delta. Dividing
+    // by TimeScale here would double-compensate and shorten the slow-motion window.
+    flow.remaining -= deltaTime;
 
     if (flow.remaining <= 0) {
       flow.active = false;
       flow.requestRestart = true;
-      world.setResource("TimeScale", 1);
+      setTimeScale(world, 1);
     }
   }
+}
+
+function setTimeScale(
+  world: World<CoreComponentRegistry>,
+  scale: number
+): void {
+  const current = world.getResource<TimeScale>("TimeScale");
+  if (current && typeof current === "object") {
+    current.scale = scale;
+    current.remainingDuration = undefined;
+    return;
+  }
+  world.setResource("TimeScale", new TimeScale(scale));
 }
 
 export function registerHitRunDeathFlow(

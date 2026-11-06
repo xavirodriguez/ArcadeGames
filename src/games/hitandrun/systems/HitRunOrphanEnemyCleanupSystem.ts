@@ -44,18 +44,12 @@ export class HitRunOrphanEnemyCleanupSystem extends System<CoreComponentRegistry
         | undefined;
       if (!health || (health.current ?? 0) <= 0) continue;
 
-      const render = world.getComponent(entity, "Render") as
-        | { size?: number }
-        | undefined;
-      const size = render?.size ?? 0;
+      // Render dimensions and hurtbox presence are not universal lifecycle
+      // contracts. The cleanup only rejects entities that cannot participate
+      // in the collision pipeline at all; archetype-specific validation belongs
+      // with the archetype/blueprint that declares those requirements.
       const hasCollider = world.hasComponent(entity, "Collider2D");
-      const hasHurtbox = world.hasComponent(entity, "Hurtbox");
-
-      // Only remove entities that cannot participate in combat at all.
-      // A missing hurtbox is considered invalid only for tiny placeholder ghosts.
-      const invalid = !hasCollider || (size > 0 && size < 5) ||
-        (hasEnemy && !hasHurtbox && size > 0 && size < 8);
-      if (invalid) killInvalidEnemy(world, entity);
+      if (!hasCollider) killInvalidEnemy(world, entity);
     }
   }
 }

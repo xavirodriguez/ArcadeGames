@@ -17,7 +17,9 @@ import {
 } from "./BeltCameraTypes";
 import {
   WAVE_DIRECTOR_RESOURCE,
-  type WaveDirectorState
+  WAVE_SCRIPT_RESOURCE,
+  type WaveDirectorState,
+  type WaveScript
 } from "../waves/HitRunWaveTypes";
 
 /** Resource: living enemy count used by HUD / debug. */
@@ -31,12 +33,37 @@ function isPlayerEntity(world: World<CoreComponentRegistry>, e: number): boolean
 
 /**
  * Filter enemies belonging to a camera section via dedicated BeltSectionEnemy + Enemy components.
+ * This intentionally does not depend on Render: headless and temporarily hidden enemies still count.
  */
 function isSectionEnemy(world: World<CoreComponentRegistry>, e: number): boolean {
   if (!world.hasComponent(e, "Enemy")) return false;
   if (!world.hasComponent(e, "BeltSectionEnemy")) return false;
   if (world.hasComponent(e, "Dead")) return false;
   return true;
+}
+
+/**
+ * Spawn completion is distinct from combat completion.
+ *
+ * A gap between two timed events is not the end of a wave. The section gate may
+ * open only after the event cursor has reached the end and all interval spawns
+ * have been dispatched. An explicitly stopped director cancels its remaining
+ * timeline, while an endless loop never reaches spawn completion.
+ */
+function isSpawnTimelineComplete(
+  world: World<CoreComponentRegistry>,
+  wave: WaveDirectorState | undefined
+): boolean {
+  if (!wave) return true;
+  if (!wave.active) return true;
+
+  const script = world.getResource<WaveScript>(WAVE_SCRIPT_RESOURCE);
+  if (!script || script.id !== wave.scriptId) return false;
+
+  return (
+    wave.nextEventIndex >= script.events.length &&
+    (wave.pendingStaggers?.length ?? 0) === 0
+  );
 }
 
 export class BeltCameraSystem extends System<CoreComponentRegistry> {
@@ -95,10 +122,10 @@ export class BeltCameraSystem extends System<CoreComponentRegistry> {
       state.hadEnemiesThisSection = true;
     }
 
-    const spawning = (wave?.pendingStaggers?.length ?? 0) > 0;
+    const spawnComplete = isSpawnTimelineComplete(world, wave);
 
     state.sectionCleared =
-      state.hadEnemiesThisSection && aliveInSection === 0 && !spawning;
+      state.hadEnemiesThisSection && aliveInSection === 0 && spawnComplete;
     state.gateLocked = !state.sectionCleared;
 
     const section = config.sections[sectionIndex];

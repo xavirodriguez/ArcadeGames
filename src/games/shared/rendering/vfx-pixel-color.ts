@@ -2,7 +2,7 @@
  * Renderer-independent color and pixel utilities for procedural VFX.
  * Color inputs and outputs use normalized sRGB channels unless documented otherwise.
  */
-import { clamp, finiteNumber, positiveNumber } from "./vfx-core";
+import { clamp, finiteNumber, nonNegativeInteger, positiveNumber } from "./vfx-core";
 
 export interface RGB { r: number; g: number; b: number; }
 export interface OKLab { L: number; a: number; b: number; }

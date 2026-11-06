@@ -631,16 +631,7 @@ export function registerHitRunStateMachines(
   // response; active melee hitboxes are interrupted by HitRunHurtSystem.
   const hitRunMachineIds = ["hr_walk", "hr_flank", "hr_hop", "hr_charge", "hr_shooter", "hr_tank"];
   for (const machineId of hitRunMachineIds) {
-    const machine = registry[machineId] as unknown as {
-      states: Record<string, {
-        onUpdate?: (
-          world: World<CoreComponentRegistry>,
-          entity: number,
-          data: Record<string, unknown>,
-          elapsed: number
-        ) => string | void;
-      }>;
-    } | undefined;
+    const machine = registry[machineId];
     if (!machine) continue;
     for (const state of Object.values(machine.states)) {
       const originalUpdate = state.onUpdate;

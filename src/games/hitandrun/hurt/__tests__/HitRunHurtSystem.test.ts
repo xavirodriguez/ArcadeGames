@@ -223,10 +223,7 @@ describe("HitRunHurtSystem (Paso C)", () => {
     hurt.update(world, 0);
     world.flush();
 
-    const reaction = world.getComponent(enemy, "HitReaction") as {
-      hitstunRemaining: number;
-      staggerRemaining?: number;
-    } | undefined;
+    const reaction = world.getComponent(enemy, "HitReaction" as never) as never as HitReactionComponent;
     expect(reaction?.hitstunRemaining).toBeCloseTo(DEFAULT_HIT_REACTION_CONFIG.enemyHitstunSeconds, 5);
 
     const health = world.getComponent(enemy, "Health") as {
@@ -285,19 +282,16 @@ describe("HitRunHurtSystem (Paso C)", () => {
     hurt.update(world, 0);
     world.flush();
 
-    const reaction = world.getComponent(enemy, "HitReaction") as {
-      hitstunRemaining: number;
-      staggerRemaining?: number;
-    };
+    const reaction = world.getComponent(enemy, "HitReaction" as never) as never as HitReactionComponent;
     const velocity = world.getComponent(enemy, "Velocity") as { vx: number };
     const elevation = world.getComponent(enemy, "BeltElevation") as { vz: number } | undefined;
-    expect(reaction.staggerRemaining).toBeCloseTo(0.42, 5);
+    expect(reaction?.staggerRemaining).toBeCloseTo(0.42, 5);
     expect(isPlayerControlLocked(world, enemy)).toBe(true);
     expect(velocity.vx).toBe(260);
     expect(elevation?.vz).toBe(200);
-    const melee = world.getComponent(enemy, "MeleeAttack") as { phase: string; hitboxEntity: number };
-    expect(melee.phase).toBe("recovery");
-    expect(melee.hitboxEntity).toBe(-1);
+    const melee = world.getComponent(enemy, "MeleeAttack" as never) as never as { phase: string; hitboxEntity: number };
+    expect(melee?.phase).toBe("recovery");
+    expect(melee?.hitboxEntity).toBe(-1);
     expect(world.hasEntity(enemyHitbox)).toBe(false);
   });
 

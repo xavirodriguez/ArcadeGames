@@ -78,5 +78,8 @@ export function mutateBeltInputState(
     if (input.special !== undefined) {
       c.specialHeld = !!input.special;
     }
+    if (input.guard !== undefined) {
+      c.guardHeld = !!input.guard;
+    }
   });
 }

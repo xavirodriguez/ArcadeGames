@@ -45,6 +45,7 @@ function applyAimToPlayer(
     aimUp: boolean;
     aimDown: boolean;
     attack: boolean;
+    guard?: boolean;
     axisX?: number;
     axisY?: number;
   }
@@ -181,6 +182,7 @@ function HitAndRunContent() {
         activeKeys.has("KeyX") ||
         activeKeys.has("ControlLeft") ||
         activeKeys.has("ControlRight");
+      const guard = activeKeys.has("KeyV") || activeKeys.has("ShiftRight");
       const special =
         activeKeys.has("KeyQ") ||
         activeKeys.has("KeyG");
@@ -196,6 +198,7 @@ function HitAndRunContent() {
         pulse,
         attack,
         special,
+        guard,
       });
 
       applyAimToPlayer(game, {
@@ -246,6 +249,7 @@ function HitAndRunContent() {
     attack?: boolean;
     pulse?: boolean;
     special?: boolean;
+    guard?: boolean;
     axisX?: number;
     axisY?: number;
   }) => {
@@ -286,6 +290,7 @@ function HitAndRunContent() {
     setTimeout(() => game?.setInputState({ pulse: false }), 50);
   };
   const handleTouchFire = (pressed: boolean) => pushTouch({ attack: pressed });
+  const handleTouchGuard = (pressed: boolean) => pushTouch({ guard: pressed });
   const handleTouchSpecial = () => {
     game?.setInputState({ special: true });
     setTimeout(() => game?.setInputState({ special: false }), 50);
@@ -311,7 +316,7 @@ function HitAndRunContent() {
         />
         <GameInstructions>
           {Platform.OS === "web"
-            ? "←→/AD move · ↑↓/WS depth · Space jump · F melee · Q special · C/X fire · R restart"
+            ? "←→/AD move · ↑↓/WS depth · Space jump · V guard · F melee · Q special · C/X fire · R restart"
             : t.common.touch_controls}
         </GameInstructions>
         <HighScoreText label={t.common.record} score={highScore} />
@@ -407,7 +412,7 @@ function HitAndRunContent() {
             <View style={styles.actions} pointerEvents="box-none">
               <TouchActionButton
                 label="MELEE"
-                size={64}
+                size={56}
                 color="rgba(30, 41, 59, 0.7)"
                 borderColor={colors.pink}
                 pressedColor="rgba(30, 41, 59, 0.9)"
@@ -416,11 +421,11 @@ function HitAndRunContent() {
                 onPressIn={() => handleTouchPulse()}
                 onPressOut={() => {}}
                 accessibilityLabel="Melee"
-                style={{ marginHorizontal: spacing.sm }}
+                style={{ marginHorizontal: spacing.xs }}
               />
               <TouchActionButton
                 label="SPCL"
-                size={56}
+                size={48}
                 color="rgba(30, 41, 59, 0.7)"
                 borderColor={colors.violet}
                 pressedColor="rgba(30, 41, 59, 0.9)"
@@ -429,11 +434,11 @@ function HitAndRunContent() {
                 onPressIn={() => handleTouchSpecial()}
                 onPressOut={() => {}}
                 accessibilityLabel="Special"
-                style={{ marginHorizontal: spacing.sm }}
+                style={{ marginHorizontal: spacing.xs }}
               />
               <TouchActionButton
                 label="FIRE"
-                size={72}
+                size={60}
                 color="rgba(30, 41, 59, 0.7)"
                 borderColor={colors.gold}
                 pressedColor="rgba(30, 41, 59, 0.9)"
@@ -442,11 +447,24 @@ function HitAndRunContent() {
                 onPressIn={() => handleTouchFire(true)}
                 onPressOut={() => handleTouchFire(false)}
                 accessibilityLabel="Hold to fire"
-                style={{ marginHorizontal: spacing.sm }}
+                style={{ marginHorizontal: spacing.xs }}
+              />
+              <TouchActionButton
+                label="GUARD"
+                size={48}
+                color="rgba(30, 41, 59, 0.7)"
+                borderColor={colors.cyan}
+                pressedColor="rgba(30, 41, 59, 0.9)"
+                pressedBorderColor={colors.white}
+                haptic="light"
+                onPressIn={() => handleTouchGuard(true)}
+                onPressOut={() => handleTouchGuard(false)}
+                accessibilityLabel="Hold to guard"
+                style={{ marginHorizontal: spacing.xs }}
               />
               <TouchActionButton
                 label="JUMP"
-                size={70}
+                size={60}
                 color="rgba(30, 41, 59, 0.7)"
                 borderColor={colors.cyan}
                 pressedColor="rgba(30, 41, 59, 0.9)"
@@ -455,7 +473,7 @@ function HitAndRunContent() {
                 onPressIn={() => handleTouchJump(true)}
                 onPressOut={() => handleTouchJump(false)}
                 accessibilityLabel="Jump"
-                style={{ marginHorizontal: spacing.sm }}
+                style={{ marginHorizontal: spacing.xs }}
               />
             </View>
           </View>

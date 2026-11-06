@@ -57,6 +57,7 @@ export const DEFAULT_COMBO_MELEE_CONFIG: ComboMeleeConfig = {
   },
   finisher: {
     ...DEFAULT_MELEE_ATTACK_CONFIG,
+    damageCategory: "combo-finisher",
     startupSeconds: 0.08,
     activeSeconds: 0.12,
     recoverySeconds: 0.22,

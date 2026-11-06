@@ -111,6 +111,8 @@ export interface EnemyArchetypeDefinition {
   poolId: string;
   /** Health por defecto. */
   health: number;
+  /** Optional armor durability; each point absorbs a fraction of incoming damage. */
+  armor?: number;
   /** Faction. */
   faction: string;
   /** Shape de render. */

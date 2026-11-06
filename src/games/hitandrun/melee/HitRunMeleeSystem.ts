@@ -8,7 +8,7 @@ import { ArcadeEntityBuilder } from "@tiny-aster/gameplay-kit";
 import { isSimulationFrozen } from "../systems/HitRunFeedbackSystem";
 import { isPlayerControlLocked } from "../hurt/HitRunHurtSystem";
 import { depthZOverlap } from "../combat/HitVolume";
-import { applyBeltElevationKnockback } from "../belt/BeltElevationComponent";
+import { resolveHitRunDamage } from "../combat/HitRunCombatDefense";
 import {
   DEFAULT_MELEE_ATTACK_CONFIG,
   MELEE_MAX_HITS_PER_SWING,
@@ -362,8 +362,8 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
         return;
       }
 
-      const prev = health.current;
-      const next = Math.max(0, prev - config.damage);
+      const resolution = resolveHitRunDamage(world, owner, other, config.damage);
+      const next = Math.max(0, health.current - resolution.healthDamage);
       const mutH = world.getMutableComponent(other, "Health") as
         | { current: number }
         | undefined;
@@ -371,32 +371,34 @@ export class HitRunMeleeSystem extends System<CoreComponentRegistry> {
 
       this.markHit(melee, other);
 
-      if (world.hasComponent(other, "Velocity")) {
-        const vel = world.getMutableComponent(other, "Velocity") as
-          | { vx: number; vy: number }
-          | undefined;
-        if (vel) {
-          vel.vx = melee.facing * config.knockbackX;
-        }
-      }
-
-      applyBeltElevationKnockback(world, other, config.knockbackY);
-
+      const category = resolution.guardBroken
+        ? "guard-break"
+        : resolution.armorBroken
+          ? "armor-break"
+          : config.damageCategory;
       const bus = world.getEventBus();
-      if (bus) {
+      if (bus && (resolution.healthDamage > 0 || resolution.blocked || resolution.guardBroken || resolution.armorHit)) {
         bus.emitDeferred("combat:hit", {
           targetEntity: other,
           sourceEntity: owner,
-          amount: config.damage,
+          amount: resolution.healthDamage,
           remainingHealth: next,
-          category: config.damageCategory
+          category,
+          attackCategory: config.damageCategory,
+          guardBroken: resolution.guardBroken,
+          armorBroken: resolution.armorBroken,
+          armorHit: resolution.armorHit,
+          armorAbsorbed: resolution.armorAbsorbed,
+          blocked: resolution.blocked,
+          knockbackX: config.knockbackX,
+          knockbackY: config.knockbackY
         });
         if (next <= 0) {
           world.getCommandBuffer().addComponent(other, { type: "Dead" });
           bus.emitDeferred("combat:death", {
             entity: other,
             sourceEntity: owner,
-            category: config.damageCategory
+            category
           });
         }
       }

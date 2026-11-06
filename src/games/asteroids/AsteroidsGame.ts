@@ -66,7 +66,7 @@ import type { StoryGraph } from "@tiny-aster/core";
 import type { AsteroidsGameOptions } from "./types/AsteroidsGameOptions";
 import * as SharedVFX from "../shared/rendering/SharedVFX";
 import { registerSharedJuiceSystems } from "../shared/rendering/registerSharedJuiceSystems";
-import { registerSumiEBackground, registerSumiEVFX } from "../shared/rendering/sumi-e";
+import { registerSumiEBackground, registerSumiEVFX, registerSumiEAmbientSystem } from "../shared/rendering/sumi-e";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry, AsteroidsBlueprintMap } from "./types/AsteroidRegistry";
 import { AsteroidGameStateSystem } from "./systems/AsteroidGameStateSystem";
 import { AsteroidInputSystem } from "./systems/AsteroidInputSystem";
@@ -255,6 +255,8 @@ export class AsteroidsGame
       this.world.addSystem(new AnimationSystem(), { phase: SystemPhase.Presentation });
       // Shared juice systems: HitStop timer + KineticFlow → VFXWorldState
       registerSharedJuiceSystems(this.world);
+      // Sumi-e ambient particles (petals / ink dots / birds) — Phase 3 pool wiring
+      registerSumiEAmbientSystem(this.world, { region: "mountain", poolSize: 80 });
     }
 
     if (this.networkManager) {
@@ -436,21 +438,28 @@ export class AsteroidsGame
       if (comboComp) {
         combo = comboComp.combo;
         multiplier = comboComp.multiplier;
-        comboTimerRemaining = comboComp.timerRemaining;
+        comboTimerRemaining = Math.max(0, comboComp.timerRemaining);
+      } else {
+        this.cachedComboEntityId = undefined;
       }
     }
 
-    let dialogueText: string | undefined;
-    let dialogueSpeaker: string | undefined;
+    let isDialogueActive = false;
+    let dialogueText = "";
+
     if (this.cachedDialogueBoxEntityId === undefined || !this.world.hasComponent(this.cachedDialogueBoxEntityId, "DialogueBox")) {
-      const dialogueEntities = this.world.query("DialogueBox");
-      this.cachedDialogueBoxEntityId = dialogueEntities[0];
+      const dialogueBoxEntities = this.world.query("DialogueBox");
+      this.cachedDialogueBoxEntityId = dialogueBoxEntities[0];
     }
+
     if (this.cachedDialogueBoxEntityId !== undefined) {
-      const box = this.world.getComponent(this.cachedDialogueBoxEntityId, "DialogueBox");
-      if (box && box.visible) {
-        dialogueText = box.text;
-        dialogueSpeaker = box.speaker;
+      const dialogueBox = this.world.getComponent(this.cachedDialogueBoxEntityId, "DialogueBox");
+      if (dialogueBox) {
+        isDialogueActive = true;
+        const currentLineKey = dialogueBox.lines[dialogueBox.currentLineIndex];
+        dialogueText = currentLineKey || "";
+      } else {
+        this.cachedDialogueBoxEntityId = undefined;
       }
     }
 
@@ -459,22 +468,86 @@ export class AsteroidsGame
       combo,
       multiplier,
       comboTimerRemaining,
-      dialogueText,
-      dialogueSpeaker
+      isDialogueActive,
+      dialogueText
     };
   }
 
   public isGameOver(): boolean {
     const state = this.world.getSingleton("GameState");
-    return state ? state.isGameOver : false;
+    return !!(state && state.isGameOver);
   }
 
-  public setInputState(input: InputState): void {
-    // no-op for network path; local input goes through systems
+  public setInputState(input: Record<string, unknown> | object): void {
+    const localPlayer = this.world.query("LocalPlayer")[0];
+    if (localPlayer !== undefined) {
+      this.world.mutateComponent(localPlayer, "Input", (inputComp) => {
+        const inputObj = input as Record<string, unknown>;
+        if (inputObj) {
+          const actsSet = new Set<import("@tiny-aster/core").CanonicalActionName>(inputComp.actions || []);
+          const incomingActions = inputObj.actions;
+          if (Array.isArray(incomingActions) || incomingActions instanceof Set) {
+            actsSet.clear();
+            for (const action of incomingActions) {
+              if (!isCanonicalActionName(action)) continue;
+              actsSet.add(action);
+              if (action === "fire") actsSet.add("shoot");
+            }
+          }
+
+          const inputAxes = inputObj.axes;
+          if (inputAxes && typeof inputAxes === "object") {
+            const axes = inputAxes as Record<string, unknown>;
+            if (typeof axes.moveX === "number") {
+              inputComp.axes["rotate_x"] = axes.moveX;
+              inputComp.axes["horizontal"] = axes.moveX;
+              if (axes.moveX < -0.25) {
+                actsSet.add("rotateLeft");
+                actsSet.delete("rotateRight");
+              } else if (axes.moveX > 0.25) {
+                actsSet.add("rotateRight");
+                actsSet.delete("rotateLeft");
+              } else {
+                actsSet.delete("rotateLeft");
+                actsSet.delete("rotateRight");
+              }
+            }
+            if (typeof axes.moveY === "number" && axes.moveY < -0.25) {
+              actsSet.add("thrust");
+            }
+          }
+
+          if (typeof inputObj.rotateLeft === "boolean") {
+            if (inputObj.rotateLeft) actsSet.add("rotateLeft"); else actsSet.delete("rotateLeft");
+          }
+          if (typeof inputObj.rotateRight === "boolean") {
+            if (inputObj.rotateRight) actsSet.add("rotateRight"); else actsSet.delete("rotateRight");
+          }
+          if (typeof inputObj.thrust === "boolean") {
+            if (inputObj.thrust) actsSet.add("thrust"); else actsSet.delete("thrust");
+          }
+          if (typeof inputObj.shoot === "boolean") {
+            if (inputObj.shoot) actsSet.add("shoot"); else actsSet.delete("shoot");
+          }
+          if (typeof inputObj.hyperspace === "boolean") {
+            if (inputObj.hyperspace) actsSet.add("hyperspace"); else actsSet.delete("hyperspace");
+          }
+          const sorted = Array.from(actsSet).sort();
+          inputComp.actions = sorted;
+
+          if (typeof inputObj.rotationAmount === "number") {
+            inputComp.axes["rotate_x"] = inputObj.rotationAmount;
+            inputComp.axes["horizontal"] = inputObj.rotationAmount;
+          }
+        }
+      });
+    }
   }
 
-  public destroy(): void {
-    this.network?.destroy?.();
-    super.destroy?.();
+  public override destroy(): void {
+    super.destroy();
+    this.bulletPool?.clear();
+    this.particlePool?.clear();
+    this.asteroidPool?.clear();
   }
 }

@@ -9,6 +9,12 @@ export const CENTIPEDE_VISUAL_TOKENS = {
   centipedeHead: "#FF4D5E",
   centipedeBody: "#FF8A5B",
   centipedeLegs: "#FFB38A",
+  centipedeShine: "rgba(255, 201, 168, 0.6)",
+  toxin: "#FF5FA2",
+  lobeOff: "#15283A",
+  stem: "#1E2A3C",
+  player: "#E6FBFF",
+  playerAccent: "#7CF3FF",
   eyeHighlight: "#FFE9D6",
   hudText: "#FFFFFF",
 } as const;

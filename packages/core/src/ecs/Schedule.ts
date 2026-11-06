@@ -178,7 +178,10 @@ export class Schedule<
         (typeof freeze.remaining !== "number" || freeze.remaining > 0);
       const isFrozen = hasActiveGameplayFreeze || isPausedResource || effectiveTimeScale === 0;
       if (freeze && typeof freeze.remaining === "number") {
-        freeze.remaining = Math.max(0, freeze.remaining - deltaTime);
+        // Explicit pause suspends the freeze clock; TimeScale=0 is handled separately.
+        if (!isPausedResource) {
+          freeze.remaining = Math.max(0, freeze.remaining - deltaTime);
+        }
       }
       const scaledDeltaTime = deltaTime * effectiveTimeScale;
 
@@ -225,6 +228,7 @@ export class Schedule<
       // deleting a replacement freeze installed by a system during the tick.
       if (
         freeze &&
+        !isPausedResource &&
         typeof freeze.remaining === "number" &&
         freeze.remaining <= 0 &&
         world.getResource("GameplayFreeze") === freeze

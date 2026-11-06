@@ -24,7 +24,7 @@ Catalog: `SUMI_E_JUICE_CATALOG` + Canvas/Skia drawers.
 | --- | --- | --- |
 | 6-layer atmosphere stack | `ATMOSPHERE_INK_WASH_LAYERS` | ✅ |
 | Mist bands (deterministic) | `computeMistBands` / `drawMistBandsCanvas` / `drawMistBandsSkia` | ✅ wired via `registerSumiEBackground` |
-| Ambient particles (petal, ink_dot, bird) | `spawnAmbientParticle` / `spawnAmbientBand` | ⏳ helpers ready; pool wiring pending |
+| Ambient particles (petal, ink_dot, bird) | `spawnAmbientParticle` / `spawnAmbientBand` + `SumiEAmbientSystem` | ✅ pool + draw wired in Asteroids (high quality) |
 | Regional presets | `getRegionalAtmosphere(...)` | ✅ used by register path |
 | ParallaxSystem coupling | `inkDepthToParallaxLayer` / `cameraXForInkLayer` | ✅ exported |
 
@@ -42,13 +42,13 @@ const mist = computeMistBands(h, timeSec, cameraX, region.mist);
 drawMistBandsCanvas(ctx, w, mist);
 ```
 
-**Activation (2026-11-05):** `registerSumiEBackground` now resolves regional atmosphere (layers + mist), applies `resolveSumiERenderSettings` / `selectLayers`, and draws mist bands on both Canvas and Skia. Asteroids uses `{ landscape: "mountain", quality: "high" }`.
+**Activation (2026-11-05):** Ambient particles closed via `SumiEAmbientSystem` + draw in `InkWashBackgroundEffect` (Canvas/Skia). `registerSumiEBackground` resolves regional atmosphere (layers + mist), applies `resolveSumiERenderSettings` / `selectLayers`, and draws mist bands on both Canvas and Skia. Asteroids uses `{ landscape: "mountain", quality: "high" }`.
 
 ## Phase 4 — Polish ✅ (settings path live)
 
 | Feature | API | Status |
 | --- | --- | --- |
-| Quality presets | `resolveSumiERenderSettings("low"\|"medium"\|"high"\|"ultra")` | ✅ applied on register |
+| Quality presets | `resolveSumiERenderSettings("low"|"medium"|"high"|"ultra")` | ✅ applied on register |
 | Accessibility | `{ reduceMotion, highContrast, disableParallax, disableParticles }` | ✅ applied on register |
 | Layer trimming | `selectLayers(layers, maxLayers)` | ✅ applied on register |
 | High-contrast colors | `contrastColors(true)` | ✅ applied on register |
@@ -78,8 +78,8 @@ src/games/shared/rendering/sumi-e/
   InkWashBackgroundEffect.ts
   registerSumiEBackground.ts
   SumiEJuice.ts
-  SumiEShapeDrawers.ts
   SumiEAtmosphere.ts      # Phase 3
+  SumiEAmbientSystem.ts   # Phase 3 ambient pool driver
   SumiEPerformance.ts     # Phase 4
   SumiEDebugOverlay.ts    # Phase 4
   index.ts

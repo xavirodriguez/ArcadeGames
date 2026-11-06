@@ -379,16 +379,18 @@ describe("PixelFX-inspired procedural VFX", () => {
     expect(adapter.fillCircle).not.toHaveBeenCalled();
   });
 
-  it("registers all twenty-seven shapes for Canvas", () => {
+  it("registers all twenty-nine shapes for Canvas", () => {
     const registerShape = jest.fn();
     const renderer = {
       type: "canvas" as const,
       registerShape
     } as never as Renderer<CoreComponentRegistry, RenderContext>;
     registerPixelFxProceduralVFX(renderer);
-    expect(registerShape).toHaveBeenCalledTimes(27);
+    expect(registerShape).toHaveBeenCalledTimes(29);
     expect(registerShape.mock.calls.map(([name]) => name)).toEqual([
       "pixelfx_impact",
+      "pixelfx_hitstun",
+      "pixelfx_stagger",
       "pixelfx_slash",
       "pixelfx_explosion",
       "pixelfx_dust",
@@ -418,7 +420,7 @@ describe("PixelFX-inspired procedural VFX", () => {
     ]);
   });
 
-  it("registers the same twenty-seven-shape contract for Skia", () => {
+  it("registers the same twenty-nine-shape contract for Skia", () => {
     const registerShape = jest.fn();
     const renderer = {
       type: "skia" as const,

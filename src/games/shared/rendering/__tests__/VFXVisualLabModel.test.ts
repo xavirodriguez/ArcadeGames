@@ -15,7 +15,7 @@ import {
 describe("VFX Visual Lab model", () => {
   it("exposes every production PixelFX drawer exactly once", () => {
     const ids = VFX_LAB_EFFECTS.map((effect) => effect.id);
-    expect(ids).toHaveLength(27);
+    expect(ids).toHaveLength(29);
     expect(new Set(ids).size).toBe(ids.length);
     expect(VFX_LAB_EFFECTS.every((effect) => typeof effect.draw === "function")).toBe(true);
   });
@@ -92,30 +92,10 @@ describe("VFX Visual Lab model", () => {
     expect(parseVFXLabPreset(serializeVFXLabPreset(preset))).toEqual(preset);
   });
 
-  it("ships reproducible presets for combat, traversal and interaction effects", () => {
-    const effects = new Set(VFX_LAB_PRESETS.map((preset) => preset.effect));
-    for (const effect of [
-      "pixelfx_ricochet",
-      "pixelfx_charge",
-      "pixelfx_shield_pulse",
-      "pixelfx_parry",
-      "pixelfx_perfect_block",
-      "pixelfx_critical_hit",
-      "pixelfx_projectile_deflection",
-      "pixelfx_guard_break",
-      "pixelfx_armor_break",
-      "pixelfx_combo_finisher",
-      "pixelfx_target_warning",
-      "pixelfx_teleport",
-      "pixelfx_surface_skid",
-      "pixelfx_mechanical_motion",
-      "pixelfx_pickup",
-      "pixelfx_paddle_impact",
-      "pixelfx_brick_shatter",
-      "pixelfx_muzzle",
-      "pixelfx_shield_crack"
-    ]) {
-      expect(effects.has(effect as never)).toBe(true);
+  it("ships at least one reproducible baseline preset for every production drawer", () => {
+    const effectsWithPresets = new Set(VFX_LAB_PRESETS.map((preset) => preset.effect));
+    for (const effect of VFX_LAB_EFFECTS) {
+      expect(effectsWithPresets.has(effect.id)).toBe(true);
     }
   });
 

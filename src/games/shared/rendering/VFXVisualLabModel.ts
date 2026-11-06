@@ -17,6 +17,8 @@ import {
   drawPixelFxFlapGust,
   drawPixelFxHop,
   drawPixelFxImpact,
+  drawPixelFxHitstun,
+  drawPixelFxStagger,
   drawPixelFxInkBurst,
   drawPixelFxMuzzle,
   drawPixelFxPaddleImpact,
@@ -56,6 +58,8 @@ export interface VFXLabEffect {
 /** The Visual Lab catalog is a view over production drawers, never a second renderer registry. */
 export const VFX_LAB_EFFECTS = [
   { id: "pixelfx_impact", label: "Impact", family: "combat", draw: drawPixelFxImpact },
+  { id: "pixelfx_hitstun", label: "Hitstun", family: "combat", draw: drawPixelFxHitstun },
+  { id: "pixelfx_stagger", label: "Stagger", family: "combat", draw: drawPixelFxStagger },
   { id: "pixelfx_slash", label: "Slash", family: "combat", draw: drawPixelFxSlash },
   { id: "pixelfx_explosion", label: "Explosion", family: "combat", draw: drawPixelFxExplosion },
   { id: "pixelfx_dust", label: "Dust", family: "traversal", draw: drawPixelFxDust },
@@ -133,7 +137,13 @@ export const VFX_LAB_PRESETS: readonly VFXLabPreset[] = [
   { schemaVersion: 1, id: "paddle-impact-neon", label: "Paddle Impact / Neon", effect: "pixelfx_paddle_impact", profile: "arcade-neon", progress: 0.25, size: 50, rotation: 1.57, seed: 436219 },
   { schemaVersion: 1, id: "brick-shatter-sumi", label: "Brick Shatter / Sumi-e", effect: "pixelfx_brick_shatter", profile: "sumi-e", progress: 0.52, size: 54, rotation: -0.35, seed: 459673 },
   { schemaVersion: 1, id: "muzzle-neon", label: "Muzzle / Neon", effect: "pixelfx_muzzle", profile: "arcade-neon", progress: 0.2, size: 40, rotation: 0, seed: 483161 },
-  { schemaVersion: 1, id: "shield-crack-sumi", label: "Shield Crack / Sumi-e", effect: "pixelfx_shield_crack", profile: "sumi-e", progress: 0.44, size: 56, rotation: -0.15, seed: 506689 }
+  { schemaVersion: 1, id: "shield-crack-sumi", label: "Shield Crack / Sumi-e", effect: "pixelfx_shield_crack", profile: "sumi-e", progress: 0.44, size: 56, rotation: -0.15, seed: 506689 },
+  { schemaVersion: 1, id: "hitstun-neon", label: "Hitstun / Neon", effect: "pixelfx_hitstun", profile: "arcade-neon", progress: 0.3, size: 44, rotation: 0.08, seed: 521003 },
+  { schemaVersion: 1, id: "stagger-neon", label: "Stagger / Neon", effect: "pixelfx_stagger", profile: "arcade-neon", progress: 0.46, size: 58, rotation: -0.22, seed: 532181 },
+  { schemaVersion: 1, id: "slash-neon", label: "Slash / Neon", effect: "pixelfx_slash", profile: "arcade-neon", progress: 0.38, size: 52, rotation: -0.62, seed: 543217 },
+  { schemaVersion: 1, id: "explosion-neon", label: "Explosion / Neon", effect: "pixelfx_explosion", profile: "arcade-neon", progress: 0.32, size: 66, rotation: 0.16, seed: 554323 },
+  { schemaVersion: 1, id: "dust-sumi", label: "Dust / Sumi-e", effect: "pixelfx_dust", profile: "sumi-e", progress: 0.52, size: 46, rotation: 0.12, seed: 565399 },
+  { schemaVersion: 1, id: "flap-gust-sumi", label: "Flap Gust / Sumi-e", effect: "pixelfx_flap_gust", profile: "sumi-e", progress: 0.34, size: 48, rotation: -0.48, seed: 576481 }
 ];
 
 const SEMANTIC_ROLE_BY_FAMILY: Record<VFXFamily, VFXLabSemanticRole> = {

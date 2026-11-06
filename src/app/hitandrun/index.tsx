@@ -267,9 +267,6 @@ function HitAndRunContent() {
     } | undefined;
     const moveLeft = partial.moveLeft ?? (inp?.moveDir !== undefined && inp.moveDir < 0);
     const moveRight = partial.moveRight ?? (inp?.moveDir !== undefined && inp.moveDir > 0);
-    const attack =
-      partial.attack !== undefined ? partial.attack : !!inp?.attackHeld;
-    const fire = partial.fire !== undefined ? partial.fire : !!inp?.fireHeld;
     const aimUp = partial.aimUp ?? (partial.axisY !== undefined && partial.axisY < -0.2);
     const aimDown = partial.aimDown ?? (partial.axisY !== undefined && partial.axisY > 0.2);
 

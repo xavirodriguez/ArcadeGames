@@ -25,7 +25,7 @@ No se exponen métodos que creen entidades, cambien Health, emitan eventos o esc
 1. Route + movement: carga directa de `/hitandrun`, canvas visible, ArrowRight cambia X y no aparecen page errors ni errores de consola.
 2. Combat isolation: C activa FIRE y genera cooldown/proyectil sin activar melee/combo; F activa melee/combo sin FIRE.
 3. Wave lifecycle: espera a que termine la timeline no-loop y comprueba que los spawns diferidos concluyeron, que hubo enemigos y que siguen vivos y con collider de combate.
-4. Death recovery: deja que los enemigos/IA del juego real derroten al jugador; observa el slow-motion 0.28 y el contador de muerte; espera a que la UI consuma requestRestart, BaseGame cree un World nuevo y el jugador reaparezca con salud inicial y canvas visible.
+4. Death recovery: deja que los enemigos/IA del juego real derroten al jugador; observa el slow-motion 0.28 y el contador de muerte; espera a que la UI consuma requestRestart, BaseGame cree un World nuevo y el jugador reaparezca con salud inicial y canvas visible. Comprueba además que el mundo nuevo vuelve a aceptar input y que puede completar un segundo ciclo de muerte/recuperación sin listeners o TimeScale residuales.
 
 ## Configuración
 
@@ -35,7 +35,7 @@ Se conserva `playwright.config.ts`: Expo Web en puerto 8081 y `EXPO_PUBLIC_E2E_H
 
 - No se inyectan enemigos ni se altera directamente el estado de la simulación desde Playwright. El test de wave lifecycle comprueba que los enemigos continúan disponibles para combate tras el último spawn; el pipeline de muerte/score se cubre además por pruebas de sistemas.
 - El test de death recovery usa la progresión normal de enemigos y tiene un timeout extendido. Si la IA/combat balance no consigue matar al jugador en ese entorno, el test debe fallar en vez de fabricar una muerte.
-- Los E2E y el typecheck no se han ejecutado desde esta sesión; la PR requiere CI verde.
+- Los E2E y el typecheck no se han ejecutado desde esta sesión; la PR requiere CI verde. El escenario de death recovery tiene timeout ampliado a 100 s para observar dos ciclos naturales.
 - La API de diagnóstico solo se instala en el build E2E web, no en builds de producción.
 
 ## Dependencias

@@ -41,6 +41,7 @@ async function waitForHitRunDebug(page: import("@playwright/test").Page): Promis
   await page.waitForFunction(
     () => typeof window.__hitAndRunDebug?.getPlayerX === "function" &&
       typeof window.__hitAndRunDebug?.getWaveState === "function",
+    undefined,
     { timeout: 20000 }
   );
 }
@@ -154,7 +155,7 @@ test.describe("Hit & Run gameplay lifecycle E2E", () => {
   });
 
   test("runs death slow motion once and restores a playable world after restart", async ({ page }) => {
-    test.setTimeout(55000);
+    test.setTimeout(100000);
     const pageErrors: Error[] = [];
     page.on("pageerror", (error) => pageErrors.push(error));
 
@@ -176,6 +177,26 @@ test.describe("Hit & Run gameplay lifecycle E2E", () => {
     await expect.poll(() => readPlayerHealth(page), { timeout: 7000 }).toBe(5);
     await expect.poll(() => readPlayerX(page), { timeout: 7000 }).not.toBeNull();
     await expect(page.locator("canvas").first()).toBeVisible();
+
+    // Prove the fresh World is not only rendered but accepting input and advancing.
+    const restartedX = await readPlayerX(page);
+    await page.keyboard.down("ArrowRight");
+    try {
+      await expect.poll(() => readPlayerX(page), { timeout: 2000 }).toBeGreaterThan(restartedX!);
+    } finally {
+      await page.keyboard.up("ArrowRight");
+    }
+
+    // A second full death cycle verifies that restart did not leave stale listeners,
+    // a latched flow flag, or a residual TimeScale value behind.
+    await expect.poll(
+      async () => (await readDeathFlow(page))?.active,
+      { timeout: 40000, intervals: [50, 100, 200] }
+    ).toBe(true);
+    expect(await readRunDeaths(page)).toBe(1);
+    expect(await readTimeScale(page)).toBeCloseTo(0.28, 2);
+    await expect.poll(() => readTimeScale(page), { timeout: 7000 }).toBe(1);
+    await expect.poll(() => readPlayerHealth(page), { timeout: 7000 }).toBe(5);
 
     expect(pageErrors.map((error) => error.message)).toEqual([]);
   });

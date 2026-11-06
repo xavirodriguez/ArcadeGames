@@ -59,6 +59,7 @@ function isSpawnTimelineComplete(
 
   const script = world.getResource<WaveScript>(WAVE_SCRIPT_RESOURCE);
   if (!script || script.id !== wave.scriptId) return false;
+  if (script.loop) return false;
 
   return (
     wave.nextEventIndex >= script.events.length &&

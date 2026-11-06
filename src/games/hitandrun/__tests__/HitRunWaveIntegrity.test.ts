@@ -253,4 +253,24 @@ describe("Hit & Run wave lifecycle integrity", () => {
       (world.getComponent(enemy, "Health") as { current: number }).current
     ).toBe(3);
   });
+  it("does not clear a looping wave during its inter-loop delay", () => {
+    const { world, spawned } = createWaveWorld();
+    const waves = new HitRunWaveSystem();
+
+    startWaveScript(world, {
+      id: "loop-with-gap",
+      loop: true,
+      loopDelay: 10,
+      events: [{ t: 0, type: "popcorn" }]
+    });
+    waves.update(world, 0);
+
+    expect(spawned).toHaveLength(1);
+    killEnemy(world, spawned[0]);
+    new BeltCameraSystem().update(world, 1 / 60);
+
+    expect(getCameraState(world).sectionCleared).toBe(false);
+    expect(getCameraState(world).gateLocked).toBe(true);
+  });
+
 });

@@ -804,8 +804,10 @@ export function drawPixelFxGuardBreak(draw: IDrawAdapter, world: import("@tiny-a
     const x1 = Math.cos(angle) * inner, y1 = Math.sin(angle) * inner;
     const x2 = Math.cos(kink) * reach * 0.62, y2 = Math.sin(kink) * reach * 0.62;
     const x3 = Math.cos(angle) * reach, y3 = Math.sin(angle) * reach;
-    drawRotatedLine(draw, x1, y1, x2, y2, color, Math.max(0.9, size * 0.038), fade * local, cos, sin);
-    drawRotatedLine(draw, x2, y2, x3, y3, color, Math.max(0.8, size * 0.026), fade * local * 0.82, cos, sin);
+    if (local > 0.01) {
+      drawRotatedLine(draw, x1, y1, x2, y2, color, Math.max(0.9, size * 0.038), fade * local, cos, sin);
+      drawRotatedLine(draw, x2, y2, x3, y3, color, Math.max(0.8, size * 0.026), fade * local * 0.82, cos, sin);
+    }
   }
   draw.fillCircle(0, 0, size * (0.045 + flash * 0.085), color, flash);
   draw.restore();

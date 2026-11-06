@@ -13,9 +13,9 @@ describe("Hit & Run phase 1 gameplay stability", () => {
     world.addComponent(enemy, { type: "Health", current: 3, max: 3 });
     world.addComponent(enemy, { type: "Enemy", kind: "patrol" });
     world.addComponent(enemy, { type: "Faction", value: "enemy" });
-    world.addComponent(enemy, { type: "Render", size: 24, visible: true });
-    world.addComponent(enemy, { type: "Collider2D", enabled: true });
-    world.addComponent(enemy, { type: "Hurtbox" });
+    world.addComponent(enemy, { type: "Render", shape: "popcorn", size: 24, color: "#fff", visible: true, opacity: 1, order: 1, rotation: 0, angularVelocity: 0 } as never);
+    world.addComponent(enemy, { type: "Collider2D", shape: { type: "aabb", halfWidth: 8, halfHeight: 8 }, layer: 1, mask: 0xffff, enabled: true, isTrigger: false } as never);
+    world.addComponent(enemy, { type: "Hurtbox" } as never);
 
     new HitRunOrphanEnemyCleanupSystem().update(world, 10);
 

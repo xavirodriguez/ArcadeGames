@@ -229,7 +229,7 @@ export class SkiaDrawAdapter implements IDrawAdapter {
   }
 
   public drawText(text: string, x: number, y: number, color: string, alpha: number = 1.0, fontSize: number = 14): void {
-    if (!Skia?.PaintStyle?.Fill || alpha <= 0.001 || !this.skCanvas.drawText) return;
+    if (Skia?.PaintStyle?.Fill === undefined || alpha <= 0.001 || !this.skCanvas.drawText) return;
     const paint = this.createSkiaPaint(Skia.PaintStyle.Fill, color, alpha);
     if (!paint) return;
     const size = Math.max(1, fontSize);

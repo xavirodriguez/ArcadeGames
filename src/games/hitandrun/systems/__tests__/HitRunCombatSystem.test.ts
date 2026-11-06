@@ -1,6 +1,22 @@
-import { World, CoreComponentRegistry } from "@tiny-aster/core";
+import { World, CoreComponentRegistry, Collision } from "@tiny-aster/core";
 import { HitRunCombatSystem } from "../HitRunCombatSystem";
-import { createHitRunCombatDefense } from "../../combat/HitRunCombatDefense";
+import type { BeltInputComponent } from "../../belt/BeltMovementTypes";
+import { createHitRunCombatDefense, type HitRunCombatDefenseComponent } from "../../combat/HitRunCombatDefense";
+
+function makeCollision(otherEntity: number): Collision {
+  return {
+    otherEntity,
+    normalX: 1,
+    normalY: 0,
+    depth: 0,
+    contactPoints: []
+  };
+}
+
+interface HitRunCombatTestRegistry extends CoreComponentRegistry {
+  CombatDefense: HitRunCombatDefenseComponent;
+  BeltInput: BeltInputComponent;
+}
 
 function addTransform(world: World<CoreComponentRegistry>, entity: number, x: number): void {
   world.addComponent(entity, {
@@ -21,7 +37,7 @@ function addTransform(world: World<CoreComponentRegistry>, entity: number, x: nu
 
 describe("HitRunCombatSystem defense integration", () => {
   it("applies armor before Health for collision-driven weapon damage", () => {
-    const world = new World<CoreComponentRegistry>();
+    const world = new World<HitRunCombatTestRegistry>();
     const attacker = world.createEntity();
     const target = world.createEntity();
     addTransform(world, attacker, 0);
@@ -29,7 +45,7 @@ describe("HitRunCombatSystem defense integration", () => {
 
     world.addComponent(attacker, {
       type: "CollisionEvents",
-      collisions: [{ otherEntity: target }],
+      collisions: [makeCollision(target)],
       triggersEntered: [],
       activeTriggers: [],
       triggersExited: []
@@ -58,11 +74,11 @@ describe("HitRunCombatSystem defense integration", () => {
     new HitRunCombatSystem().update(world, 1 / 60);
 
     expect((world.getComponent(target, "Health") as { current: number }).current).toBe(5);
-    expect((world.getComponent(target, "CombatDefense" as never) as { armor: number }).armor).toBe(0);
+    expect(world.getComponent(target, "CombatDefense")?.armor).toBe(0);
   });
 
   it("prevents a frontal collision hit when the target holds guard", () => {
-    const world = new World<CoreComponentRegistry>();
+    const world = new World<HitRunCombatTestRegistry>();
     const attacker = world.createEntity();
     const target = world.createEntity();
     addTransform(world, attacker, 20);
@@ -70,7 +86,7 @@ describe("HitRunCombatSystem defense integration", () => {
 
     world.addComponent(attacker, {
       type: "CollisionEvents",
-      collisions: [{ otherEntity: target }],
+      collisions: [makeCollision(target)],
       triggersEntered: [],
       activeTriggers: [],
       triggersExited: []
@@ -103,6 +119,6 @@ describe("HitRunCombatSystem defense integration", () => {
     new HitRunCombatSystem().update(world, 1 / 60);
 
     expect((world.getComponent(target, "Health") as { current: number }).current).toBe(10);
-    expect((world.getComponent(target, "CombatDefense" as never) as { guard: number }).guard).toBe(15);
+    expect(world.getComponent(target, "CombatDefense")?.guard).toBe(15);
   });
 });

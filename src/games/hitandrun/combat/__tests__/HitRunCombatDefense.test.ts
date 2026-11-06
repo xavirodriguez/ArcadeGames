@@ -1,10 +1,17 @@
 import { World, CoreComponentRegistry } from "@tiny-aster/core";
 import { mutateBeltInputState } from "../../belt/mutateBeltInputState";
+import type { BeltInputComponent } from "../../belt/BeltMovementTypes";
 import {
   createHitRunCombatDefense,
   resolveHitRunDamage,
-  tickHitRunCombatDefense
+  tickHitRunCombatDefense,
+  type HitRunCombatDefenseComponent
 } from "../HitRunCombatDefense";
+
+interface HitRunTestRegistry extends CoreComponentRegistry {
+  CombatDefense: HitRunCombatDefenseComponent;
+  BeltInput: BeltInputComponent;
+}
 
 function addTransform(
   world: World<CoreComponentRegistry>,
@@ -29,10 +36,10 @@ function addTransform(
 }
 
 describe("HitRunCombatDefense", () => {
-  let world: World<CoreComponentRegistry>;
+  let world: World<HitRunTestRegistry>;
 
   beforeEach(() => {
-    world = new World<CoreComponentRegistry>();
+    world = new World<HitRunTestRegistry>();
   });
 
   function createPair(facing = 1): { source: number; target: number } {
@@ -53,7 +60,7 @@ describe("HitRunCombatDefense", () => {
     expect(result.blocked).toBe(true);
     expect(result.healthDamage).toBe(0);
     expect(result.guardBroken).toBe(false);
-    expect((world.getComponent(target, "CombatDefense" as never) as { guard: number }).guard).toBe(10);
+    expect(world.getComponent(target, "CombatDefense")?.guard).toBe(10);
   });
 
   it("does not guard attacks arriving from behind", () => {
@@ -80,15 +87,12 @@ describe("HitRunCombatDefense", () => {
     world.addComponent(target, { type: "BeltInput", guardHeld: true } as never);
 
     const result = resolveHitRunDamage(world, source, target, 9);
-    const defense = world.getComponent(target, "CombatDefense" as never) as {
-      guard: number;
-      guardBreakRemaining: number;
-    };
+    const defense = world.getComponent(target, "CombatDefense");
 
     expect(result.guardBroken).toBe(true);
     expect(result.healthDamage).toBe(4);
-    expect(defense.guard).toBe(0);
-    expect(defense.guardBreakRemaining).toBe(0.75);
+    expect(defense?.guard).toBe(0);
+    expect(defense?.guardBreakRemaining).toBe(0.75);
   });
 
   it("uses armor durability to absorb damage and reports its break transition", () => {
@@ -137,22 +141,14 @@ describe("HitRunCombatDefense", () => {
     }) as never);
 
     tickHitRunCombatDefense(world, 0.25);
-    let defense = world.getComponent(target, "CombatDefense" as never) as {
-      guard: number;
-      guardBreakRemaining: number;
-      guardRegenDelayRemaining: number;
-    };
-    expect(defense.guard).toBe(0);
-    expect(defense.guardBreakRemaining).toBeCloseTo(0.05);
+    let defense = world.getComponent(target, "CombatDefense");
+    expect(defense?.guard).toBe(0);
+    expect(defense?.guardBreakRemaining).toBeCloseTo(0.05);
 
     tickHitRunCombatDefense(world, 0.1);
-    defense = world.getComponent(target, "CombatDefense" as never) as {
-      guard: number;
-      guardBreakRemaining: number;
-      guardRegenDelayRemaining: number;
-    };
-    expect(defense.guard).toBeCloseTo(1);
-    expect(defense.guardBreakRemaining).toBe(0);
+    defense = world.getComponent(target, "CombatDefense");
+    expect(defense?.guard).toBe(1);
+    expect(defense?.guardBreakRemaining).toBe(0);
   });
 
   it("preserves legacy full damage for entities without a defense component", () => {
@@ -177,8 +173,8 @@ describe("HitRunCombatDefense", () => {
 
     tickHitRunCombatDefense(world, 1);
 
-    const defense = world.getComponent(target, "CombatDefense" as never) as { guard: number };
-    expect(defense.guard).toBe(10);
+    const defense = world.getComponent(target, "CombatDefense");
+    expect(defense?.guard).toBe(10);
   });
 
   it("exposes guard through the existing input bridge", () => {
@@ -208,9 +204,9 @@ describe("HitRunCombatDefense", () => {
     } as never);
 
     mutateBeltInputState(world, { guard: true });
-    expect((world.getComponent(player, "BeltInput") as { guardHeld: boolean }).guardHeld).toBe(true);
+    expect(world.getComponent(player, "BeltInput")?.guardHeld).toBe(true);
     mutateBeltInputState(world, { guard: false });
-    expect((world.getComponent(player, "BeltInput") as { guardHeld: boolean }).guardHeld).toBe(false);
+    expect(world.getComponent(player, "BeltInput")?.guardHeld).toBe(false);
   });
 
 });

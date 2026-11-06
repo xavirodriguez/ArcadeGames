@@ -22,7 +22,9 @@ function parseArguments(argumentsList: readonly string[]): CliOptions {
   for (let index = 0; index < argumentsList.length; index++) {
     const argument = argumentsList[index] ?? "";
 
-    if (argument === "--dry-run") {
+    if (argument === "--") {
+      continue;
+    } else if (argument === "--dry-run") {
       options.dryRun = true;
     } else if (argument === "--check") {
       options.check = true;

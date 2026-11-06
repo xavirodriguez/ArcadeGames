@@ -26,6 +26,12 @@ import {
 } from "../../components/ui";
 import { DEATH_FLOW_RESOURCE } from "../../games/hitandrun/systems/HitRunDeathFlowSystem";
 import type { HitRunDeathFlowState } from "../../games/hitandrun/systems/HitRunDeathFlowSystem";
+import {
+  WAVE_DIRECTOR_RESOURCE,
+  WAVE_SCRIPT_RESOURCE,
+  type WaveDirectorState,
+  type WaveScript
+} from "../../games/hitandrun/waves/HitRunWaveTypes";
 import { resolveHitRunAim } from "../../games/hitandrun/input/resolveHitRunAim";
 import { neonTextGlow } from "../../theme/effects";
 
@@ -33,6 +39,29 @@ declare global {
   interface Window {
     __hitAndRunDebug?: {
       getPlayerX: () => number | null;
+      getPlayerHealth: () => number | null;
+      getAliveEnemyCount: () => number;
+      getCombatableEnemyCount: () => number;
+      getWaveState: () => {
+        scriptId: string | null;
+        active: boolean;
+        elapsed: number;
+        nextEventIndex: number;
+        eventCount: number;
+        pendingSpawnCount: number;
+        totalSpawned: number;
+        spawnComplete: boolean;
+        loop: boolean;
+      };
+      getDeathFlowState: () => HitRunDeathFlowState;
+      getTimeScale: () => number;
+      getRunDeaths: () => number;
+      getCombatInput: () => { attackHeld: boolean; fireHeld: boolean };
+      getComboStep: () => string | null;
+      getMeleePhase: () => string | null;
+      getActiveProjectileCount: () => number;
+      getWeaponCooldown: () => number;
+      getWeaponId: () => string | null;
     };
   }
 }
@@ -211,7 +240,6 @@ function HitAndRunContent() {
     if (process.env.EXPO_PUBLIC_E2E_HOOKS === "true") {
       window.__hitAndRunDebug = {
         getPlayerX: () => {
-          if (!game) return null;
           const w = game.getWorld();
           const players = w.query("BeltMovement", "Transform");
           const player = players[0];
@@ -219,6 +247,120 @@ function HitAndRunContent() {
           const t = w.getComponent(player, "Transform") as { x: number } | undefined;
           return t ? t.x : null;
         },
+        getPlayerHealth: () => {
+          const w = game.getWorld();
+          const player = w.query("BeltInput", "Health")[0];
+          if (player === undefined) return null;
+          const health = w.getComponent(player, "Health") as { current?: number } | undefined;
+          return health?.current ?? null;
+        },
+        getAliveEnemyCount: () => {
+          const w = game.getWorld();
+          const enemies = w.query("Enemy", "Health");
+          let count = 0;
+          for (let i = 0; i < enemies.length; i++) {
+            const enemy = enemies[i];
+            if (w.hasComponent(enemy, "Dead")) continue;
+            const health = w.getComponent(enemy, "Health") as { current?: number } | undefined;
+            if ((health?.current ?? 0) > 0) count++;
+          }
+          return count;
+        },
+        getCombatableEnemyCount: () => {
+          const w = game.getWorld();
+          const enemies = w.query("Enemy", "Health", "Collider2D");
+          let count = 0;
+          for (let i = 0; i < enemies.length; i++) {
+            const enemy = enemies[i];
+            if (w.hasComponent(enemy, "Dead")) continue;
+            const health = w.getComponent(enemy, "Health") as { current?: number } | undefined;
+            const collider = w.getComponent(enemy, "Collider2D") as { enabled?: boolean } | undefined;
+            if ((health?.current ?? 0) > 0 && collider?.enabled !== false) count++;
+          }
+          return count;
+        },
+        getWaveState: () => {
+          const w = game.getWorld();
+          const wave = w.getResource<WaveDirectorState>(WAVE_DIRECTOR_RESOURCE);
+          const script = w.getResource<WaveScript>(WAVE_SCRIPT_RESOURCE);
+          const pending = wave?.pendingStaggers ?? [];
+          const spawnComplete = !wave || !wave.active || (
+            !!script &&
+            script.id === wave.scriptId &&
+            script.loop !== true &&
+            wave.nextEventIndex >= script.events.length &&
+            pending.length === 0
+          );
+          return {
+            scriptId: wave?.scriptId ?? null,
+            active: wave?.active ?? false,
+            elapsed: wave?.elapsed ?? 0,
+            nextEventIndex: wave?.nextEventIndex ?? 0,
+            eventCount: script?.events.length ?? 0,
+            pendingSpawnCount: pending.reduce((total, item) => total + item.remaining, 0),
+            totalSpawned: wave?.totalSpawned ?? 0,
+            spawnComplete,
+            loop: script?.loop === true
+          };
+        },
+        getDeathFlowState: () => {
+          const flow = game.getWorld().getResource<HitRunDeathFlowState>(DEATH_FLOW_RESOURCE);
+          return flow ? { ...flow } : { active: false, remaining: 0, requestRestart: false };
+        },
+        getTimeScale: () => {
+          const scale = game.getWorld().getResource<{ scale?: number } | number>("TimeScale");
+          return typeof scale === "number" ? scale : scale?.scale ?? 1;
+        },
+        getRunDeaths: () => {
+          const run = game.getWorld().getResource<{ deaths?: number }>("RunState");
+          return run?.deaths ?? 0;
+        },
+        getCombatInput: () => {
+          const w = game.getWorld();
+          const player = w.query("BeltInput")[0];
+          const input = player === undefined
+            ? undefined
+            : w.getComponent(player, "BeltInput") as { attackHeld?: boolean; fireHeld?: boolean } | undefined;
+          return { attackHeld: !!input?.attackHeld, fireHeld: !!input?.fireHeld };
+        },
+        getComboStep: () => {
+          const w = game.getWorld();
+          const player = w.query("BeltInput", "ComboMelee")[0];
+          if (player === undefined) return null;
+          const combo = w.getComponent(player, "ComboMelee") as { activeStep?: string } | undefined;
+          return combo?.activeStep ?? null;
+        },
+        getMeleePhase: () => {
+          const w = game.getWorld();
+          const player = w.query("BeltInput", "MeleeAttack")[0];
+          if (player === undefined) return null;
+          const melee = w.getComponent(player, "MeleeAttack") as { phase?: string } | undefined;
+          return melee?.phase ?? null;
+        },
+        getActiveProjectileCount: () => {
+          const w = game.getWorld();
+          const bullets = w.query("PlayerBullet", "TTL");
+          let count = 0;
+          for (let i = 0; i < bullets.length; i++) {
+            const ttl = w.getComponent(bullets[i], "TTL") as { remaining?: number } | undefined;
+            if ((ttl?.remaining ?? 0) > 0) count++;
+          }
+          return count;
+        },
+        getWeaponCooldown: () => {
+          const w = game.getWorld();
+          const player = w.query("BeltInput", "HitRunWeapon")[0];
+          if (player === undefined) return 0;
+          const weapon = w.getComponent(player, "HitRunWeapon") as { cooldownRemaining?: number } | undefined;
+          return weapon?.cooldownRemaining ?? 0;
+        },
+        getWeaponId: () => {
+          const w = game.getWorld();
+          const player = w.query("BeltInput", "HitRunWeapon")[0];
+          if (player === undefined) return null;
+          const weapon = w.getComponent(player, "HitRunWeapon") as { weaponId?: string } | undefined;
+          return weapon?.weaponId ?? null;
+        }
       };
     }
 

@@ -38,8 +38,9 @@ function readEffectState(
   if (!render || !ttl || ttl.timeLeft <= 0 || ttl.remaining <= 0) return null;
 
   const elapsed = Math.max(0, ttl.timeLeft - ttl.remaining);
-  const configuredDuration = typeof render.vfxAnimDuration === "number" && Number.isFinite(render.vfxAnimDuration) && render.vfxAnimDuration > 0
-    ? render.vfxAnimDuration
+  const configuredAnimDuration = (render as typeof render & { vfxAnimDuration?: number }).vfxAnimDuration;
+  const configuredDuration = typeof configuredAnimDuration === "number" && Number.isFinite(configuredAnimDuration) && configuredAnimDuration > 0
+    ? configuredAnimDuration
     : ttl.timeLeft;
   const progress = Math.max(0, Math.min(1, elapsed / configuredDuration));
   const phaseState = resolveVFXPhase(progress);

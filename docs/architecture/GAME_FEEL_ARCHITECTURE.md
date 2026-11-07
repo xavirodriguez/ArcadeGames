@@ -1,7 +1,7 @@
 # Game Feel Architecture Contract
 
-**Status:** Normative target architecture  
-**Scope:** Gameplay events, temporal coordination, visual effects and renderer presentation across ArcadeGames  
+**Status:** Normative target architecture
+**Scope:** Gameplay events, temporal coordination, visual effects and renderer presentation across ArcadeGames
 **Implementation policy:** Incremental migration; this contract does not claim that the current runtime already conforms
 
 ## 1. Purpose

@@ -4,6 +4,9 @@ import {
   resolveEntityIsometricOffset,
   resolveTowerWeaponDrawSetup,
   resolveTransformWorldPosition,
+  resolveCreepHealthBarGeometry,
+  getBossContourPoints,
+  resolveTdTileColors,
 } from "../rendering/TowerDefenseVisualHelpers";
 import { createIsoConfig, projectVector, worldToIso } from "../rendering/IsoProjection";
 import towerDefenseConfigRaw from "../config/tower-defense.json";
@@ -157,5 +160,67 @@ describe("Tower Defense entity projection", () => {
   it("resolves local transforms when hierarchy world coordinates are absent", () => {
     expect(resolveTransformWorldPosition({ x: 17, y: 29 })).toEqual({ x: 17, y: 29 });
     expect(resolveTransformWorldPosition(undefined)).toEqual({ x: 0, y: 0 });
+  });
+});
+
+describe("Tower Defense visual helper functions", () => {
+  it("resolves creep health bar geometry correctly", () => {
+    const world = createWorld();
+    const entity = world.createEntity();
+
+    // No health component -> returns null
+    expect(resolveCreepHealthBarGeometry(world, entity, 20)).toBeNull();
+
+    // Health max <= 0 -> returns null
+    world.addComponent(entity, { type: "Health", current: 0, max: 0 });
+    expect(resolveCreepHealthBarGeometry(world, entity, 20)).toBeNull();
+
+    // Health > 50%
+    world.addComponent(entity, { type: "Health", current: 80, max: 100 });
+    const barHigh = resolveCreepHealthBarGeometry(world, entity, 20);
+    expect(barHigh).not.toBeNull();
+    expect(barHigh?.ratio).toBeCloseTo(0.8);
+    expect(barHigh?.fillColor).toBe("#65e572");
+
+    // Health between 25% and 50%
+    world.addComponent(entity, { type: "Health", current: 40, max: 100 });
+    const barMid = resolveCreepHealthBarGeometry(world, entity, 20);
+    expect(barMid?.fillColor).toBe("#ffce4a");
+
+    // Health <= 25%
+    world.addComponent(entity, { type: "Health", current: 15, max: 100 });
+    const barLow = resolveCreepHealthBarGeometry(world, entity, 20);
+    expect(barLow?.fillColor).toBe("#ff5252");
+    expect(barLow?.width).toBe(25); // Math.max(20, 20 * 1.25)
+  });
+
+  it("generates boss contour points with 10 lobes", () => {
+    const points = getBossContourPoints(20, 10, 100);
+    expect(points).toHaveLength(101);
+    expect(points[0]?.x).toBeCloseTo(20);
+    expect(points[0]?.y).toBeCloseTo(0);
+    expect(points.every(p => Number.isFinite(p.x) && Number.isFinite(p.y))).toBe(true);
+  });
+
+  it("resolves tile colors for classic and paper dusk themes", () => {
+    const world = createWorld();
+
+    // Classic theme (isPaperDusk = false)
+    const classicPath = resolveTdTileColors(world, "path", false);
+    expect(classicPath.isBuildable).toBe(false);
+    expect(classicPath.fillColor).toBeDefined();
+
+    const classicBuildable = resolveTdTileColors(world, "buildable", false);
+    expect(classicBuildable.isBuildable).toBe(true);
+    expect(classicBuildable.strokeColor).toBeUndefined();
+
+    // Paper Dusk theme (isPaperDusk = true)
+    const duskPath = resolveTdTileColors(world, "path", true);
+    expect(duskPath.isBuildable).toBe(false);
+    expect(duskPath.strokeColor).toBeDefined();
+
+    const duskBuildable = resolveTdTileColors(world, "buildable", true);
+    expect(duskBuildable.isBuildable).toBe(true);
+    expect(duskBuildable.strokeColor).toBeDefined();
   });
 });

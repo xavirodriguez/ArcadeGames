@@ -23,6 +23,9 @@ import {
   forEachTileGridCell,
   resolveEntityIsometricOffset,
   getEntityVisualHeight,
+  resolveCreepHealthBarGeometry,
+  getBossContourPoints,
+  resolveTdTileColors,
 } from "./TowerDefenseVisualHelpers";
 
 type TDWorld = World<TowerDefenseComponentRegistry>;
@@ -359,14 +362,11 @@ function drawCreepPath(
     ctx.lineTo(-radius * 0.68, radius * 0.62);
     ctx.lineTo(-radius, -radius * 0.08);
   } else if (type === "boss") {
-    const bumps = 10;
-    for (let i = 0; i <= 100; i++) {
-      const theta = (i / 100) * Math.PI * 2;
-      const r = radius * (1 + 0.14 * Math.sin(theta * bumps));
-      const px = Math.cos(theta) * r;
-      const py = Math.sin(theta) * r;
-      if (i === 0) ctx.moveTo(px, py);
-      else ctx.lineTo(px, py);
+    const points = getBossContourPoints(radius);
+    for (let i = 0; i < points.length; i++) {
+      const p = points[i]!;
+      if (i === 0) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
     }
   } else {
     ctx.arc(0, 0, radius, 0, Math.PI * 2);
@@ -507,21 +507,16 @@ function drawCreepHealthBar(
   entity: number,
   size: number
 ): void {
-  const health = world.getComponent(entity, "Health");
-  if (!health || health.max <= 0) return;
+  const bar = resolveCreepHealthBarGeometry(world, entity, size);
+  if (!bar) return;
 
-  const ratio = Math.max(0, Math.min(1, health.current / health.max));
-  const width = Math.max(20, size * 1.25);
-  const height = Math.max(3, size * 0.12);
-  const x = -width / 2;
-  const y = -size * 0.82 - height;
-
+  const { x, y, width, height, ratio, fillColor, outlineColor } = bar;
   ctx.save();
   ctx.fillStyle = "rgba(8,12,20,0.9)";
   ctx.fillRect(x, y, width, height);
-  ctx.fillStyle = ratio > 0.5 ? "#65e572" : ratio > 0.25 ? "#ffce4a" : "#ff5252";
+  ctx.fillStyle = fillColor;
   ctx.fillRect(x + 1, y + 1, Math.max(0, (width - 2) * ratio), Math.max(1, height - 2));
-  ctx.strokeStyle = isPaperDuskTheme(world) ? "#14161b" : "#f4f7ff";
+  ctx.strokeStyle = outlineColor;
   ctx.lineWidth = 1;
   ctx.strokeRect(x, y, width, height);
   ctx.restore();
@@ -962,54 +957,35 @@ export const drawTdMapBackground: EffectDrawer<CanvasRenderingContext2D, TowerDe
     const vfxElapsed = world.getResource<TowerDefenseVisualEffects>("TowerDefenseVisualEffects")?.elapsedSeconds ?? 0;
 
     forEachTileGridCell(bgCtx, (tile, x, y, row, col) => {
+      const tileColors = resolveTdTileColors(world, tile, isPaperDusk);
+
       if (isoCfg.enabled) {
-        const pdGround = resolveThemeColorWithFallback(world, "#2B2F36", "pd_ground");
-        const pdBuildable = resolveThemeColorWithFallback(world, "#3A4049", "pd_buildable");
-        const pdBuildableEdge = resolveThemeColorWithFallback(world, "#5B6470", "pd_buildableEdge");
-        const pdPath = resolveThemeColorWithFallback(world, "#D8C3A0", "pd_path");
-        const pdPathEdge = resolveThemeColorWithFallback(world, "#B39B73", "pd_pathEdge");
-
-        const fillColor = isPaperDusk
-          ? (tile === "path" || tile === "spawn" || tile === "base" ? pdPath : tile === "buildable" ? pdBuildable : pdGround)
-          : getTileTypeColor(tile);
-
-        const strokeColor = isPaperDusk
-          ? (tile === "path" ? pdPathEdge : tile === "buildable" ? pdBuildableEdge : undefined)
-          : undefined;
-
-        drawRhombusTile(ctx, x, y, isoCfg.tileWidthHalf, isoCfg.tileHeightHalf, fillColor, strokeColor, tile === "buildable");
+        drawRhombusTile(
+          ctx,
+          x,
+          y,
+          isoCfg.tileWidthHalf,
+          isoCfg.tileHeightHalf,
+          tileColors.fillColor,
+          tileColors.strokeColor,
+          tileColors.isBuildable
+        );
       } else {
+        ctx.fillStyle = tileColors.fillColor;
+        ctx.fillRect(x, y, layout.stepX - 1, layout.stepY - 1);
+
         if (isPaperDusk) {
-          const pdGround = resolveThemeColorWithFallback(world, "#2B2F36", "pd_ground");
-          const pdBuildable = resolveThemeColorWithFallback(world, "#3A4049", "pd_buildable");
-          const pdBuildableEdge = resolveThemeColorWithFallback(world, "#5B6470", "pd_buildableEdge");
-          const pdPath = resolveThemeColorWithFallback(world, "#D8C3A0", "pd_path");
-          const pdPathEdge = resolveThemeColorWithFallback(world, "#B39B73", "pd_pathEdge");
-
-          const fillColor =
-            tile === "path" || tile === "spawn" || tile === "base"
-              ? pdPath
-              : tile === "buildable"
-                ? pdBuildable
-                : pdGround;
-
-          ctx.fillStyle = fillColor;
-          ctx.fillRect(x, y, layout.stepX - 1, layout.stepY - 1);
-
-          if (tile === "path") {
-            ctx.strokeStyle = pdPathEdge;
+          if (tile === "path" && tileColors.strokeColor) {
+            ctx.strokeStyle = tileColors.strokeColor;
             ctx.lineWidth = 1;
             ctx.strokeRect(x, y, layout.stepX - 1, layout.stepY - 1);
-          } else if (tile === "buildable") {
-            ctx.strokeStyle = pdBuildableEdge;
+          } else if (tile === "buildable" && tileColors.strokeColor) {
+            ctx.strokeStyle = tileColors.strokeColor;
             ctx.lineWidth = 1;
             ctx.setLineDash([2, 2]);
             ctx.strokeRect(x + 1, y + 1, layout.stepX - 3, layout.stepY - 3);
             ctx.setLineDash([]);
           }
-        } else {
-          ctx.fillStyle = getTileTypeColor(tile);
-          ctx.fillRect(x, y, layout.stepX - 1, layout.stepY - 1);
         }
       }
 

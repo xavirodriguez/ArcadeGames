@@ -22,6 +22,9 @@ import {
   isPaperDuskTheme,
   resolveEntityIsometricOffset,
   getEntityVisualHeight,
+  resolveCreepHealthBarGeometry,
+  getBossContourPoints,
+  resolveTdTileColors,
 } from "./TowerDefenseVisualHelpers";
 import { projectCircleRadii, projectVector } from "./IsoProjection";
 
@@ -372,14 +375,11 @@ function drawSkiaCreepGeometry(
     canvas.drawPath(path, paint);
   } else if (type === "boss") {
     const path = Skia.Path.Make();
-    const bumps = 10;
-    for (let i = 0; i <= 100; i++) {
-      const theta = (i / 100) * Math.PI * 2;
-      const r = radius * (1 + 0.14 * Math.sin(theta * bumps));
-      const px = Math.cos(theta) * r;
-      const py = Math.sin(theta) * r;
-      if (i === 0) path.moveTo(px, py);
-      else path.lineTo(px, py);
+    const points = getBossContourPoints(radius);
+    for (let i = 0; i < points.length; i++) {
+      const p = points[i]!;
+      if (i === 0) path.moveTo(p.x, p.y);
+      else path.lineTo(p.x, p.y);
     }
     path.close();
     canvas.drawPath(path, paint);
@@ -524,16 +524,12 @@ function drawSkiaCreepHealthBar(
   size: number
 ): void {
   if (!Skia) return;
-  const health = world.getComponent(entity, "Health");
-  if (!health || health.max <= 0) return;
+  const bar = resolveCreepHealthBarGeometry(world, entity, size);
+  if (!bar) return;
   const paint = getPaint();
   if (!paint) return;
 
-  const ratio = Math.max(0, Math.min(1, health.current / health.max));
-  const width = Math.max(20, size * 1.25);
-  const height = Math.max(3, size * 0.12);
-  const x = -width / 2;
-  const y = -size * 0.82 - height;
+  const { x, y, width, height, ratio, fillColor, outlineColor } = bar;
 
   paint.reset();
   paint.setAntiAlias(true);
@@ -541,12 +537,12 @@ function drawSkiaCreepHealthBar(
   paint.setColor(Skia.Color("rgba(8,12,20,0.9)"));
   canvas.drawRect(Skia.XYWHRect(x, y, width, height), paint);
 
-  paint.setColor(Skia.Color(ratio > 0.5 ? "#65e572" : ratio > 0.25 ? "#ffce4a" : "#ff5252"));
+  paint.setColor(Skia.Color(fillColor));
   canvas.drawRect(Skia.XYWHRect(x + 1, y + 1, Math.max(0, (width - 2) * ratio), Math.max(1, height - 2)), paint);
 
   paint.setStyle(Skia.PaintStyle.Stroke);
   paint.setStrokeWidth(1);
-  paint.setColor(Skia.Color("#14161b"));
+  paint.setColor(Skia.Color(outlineColor));
   canvas.drawRect(Skia.XYWHRect(x, y, width, height), paint);
 }
 
@@ -1158,55 +1154,37 @@ export const drawSkiaTdMapBackground: EffectDrawer<SkCanvas, TowerDefenseCompone
 
     forEachTileGridCell(bgCtx, (tile, x, y, row, col) => {
       paint.reset();
+      const tileColors = resolveTdTileColors(world, tile, isPaperDusk);
+
       if (isoCfg.enabled) {
-        const pdGround = resolveThemeColorWithFallback(world, "#2B2F36", "pd_ground");
-        const pdBuildable = resolveThemeColorWithFallback(world, "#3A4049", "pd_buildable");
-        const pdBuildableEdge = resolveThemeColorWithFallback(world, "#5B6470", "pd_buildableEdge");
-        const pdPath = resolveThemeColorWithFallback(world, "#D8C3A0", "pd_path");
-        const pdPathEdge = resolveThemeColorWithFallback(world, "#B39B73", "pd_pathEdge");
-
-        const fillColor = isPaperDusk
-          ? (tile === "path" || tile === "spawn" || tile === "base" ? pdPath : tile === "buildable" ? pdBuildable : pdGround)
-          : getTileTypeColor(tile);
-
-        const strokeColor = isPaperDusk
-          ? (tile === "path" ? pdPathEdge : tile === "buildable" ? pdBuildableEdge : undefined)
-          : undefined;
-
-        drawRhombusTileSkia(canvas, paint, x, y, isoCfg.tileWidthHalf, isoCfg.tileHeightHalf, fillColor, strokeColor, tile === "buildable");
+        drawRhombusTileSkia(
+          canvas,
+          paint,
+          x,
+          y,
+          isoCfg.tileWidthHalf,
+          isoCfg.tileHeightHalf,
+          tileColors.fillColor,
+          tileColors.strokeColor,
+          tileColors.isBuildable
+        );
       } else {
-        const pdBuildableEdge = resolveThemeColorWithFallback(world, "#5B6470", "pd_buildableEdge");
-        const pdPathEdge = resolveThemeColorWithFallback(world, "#B39B73", "pd_pathEdge");
         paint.setStyle(Skia.PaintStyle.Fill);
-        if (isPaperDusk) {
-          const pdGround = resolveThemeColorWithFallback(world, "#2B2F36", "pd_ground");
-          const pdBuildable = resolveThemeColorWithFallback(world, "#3A4049", "pd_buildable");
-          const pdBuildableEdge = resolveThemeColorWithFallback(world, "#5B6470", "pd_buildableEdge");
-          const pdPath = resolveThemeColorWithFallback(world, "#D8C3A0", "pd_path");
-          const pdPathEdge = resolveThemeColorWithFallback(world, "#B39B73", "pd_pathEdge");
-
-          const fillColor =
-            tile === "path" || tile === "spawn" || tile === "base"
-              ? pdPath
-              : tile === "buildable"
-                ? pdBuildable
-                : pdGround;
-
-          paint.setColor(Skia.Color(fillColor));
-        } else {
-          paint.setColor(Skia.Color(getTileTypeColor(tile)));
-        }
+        paint.setColor(Skia.Color(tileColors.fillColor));
         canvas.drawRect(Skia.XYWHRect(x, y, layout.stepX - 1, layout.stepY - 1), paint);
-        if (isPaperDusk && tile === "path") {
-          paint.setStyle(Skia.PaintStyle.Stroke);
-          paint.setStrokeWidth(1);
-          paint.setColor(Skia.Color(pdPathEdge));
-          canvas.drawRect(Skia.XYWHRect(x, y, layout.stepX - 1, layout.stepY - 1), paint);
-        } else if (isPaperDusk && tile === "buildable") {
-          paint.setStyle(Skia.PaintStyle.Stroke);
-          paint.setStrokeWidth(1);
-          paint.setColor(Skia.Color(pdBuildableEdge));
-          drawDashedRectSkia(canvas, paint, x + 1, y + 1, layout.stepX - 3, layout.stepY - 3);
+
+        if (isPaperDusk) {
+          if (tile === "path" && tileColors.strokeColor) {
+            paint.setStyle(Skia.PaintStyle.Stroke);
+            paint.setStrokeWidth(1);
+            paint.setColor(Skia.Color(tileColors.strokeColor));
+            canvas.drawRect(Skia.XYWHRect(x, y, layout.stepX - 1, layout.stepY - 1), paint);
+          } else if (tile === "buildable" && tileColors.strokeColor) {
+            paint.setStyle(Skia.PaintStyle.Stroke);
+            paint.setStrokeWidth(1);
+            paint.setColor(Skia.Color(tileColors.strokeColor));
+            drawDashedRectSkia(canvas, paint, x + 1, y + 1, layout.stepX - 3, layout.stepY - 3);
+          }
         }
       }
 

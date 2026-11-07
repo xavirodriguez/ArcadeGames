@@ -23,7 +23,7 @@ function simulateEnemyKnockback(
     hitstunRemaining: 2,
     staggerRemaining: 2,
     blinkElapsed: 0
-  });
+  } as never);
 
   const hurt = new HitRunHurtSystem();
   for (let i = 0; i < frames; i++) {
@@ -63,7 +63,7 @@ describe("Hit & Run hit reaction integration", () => {
       hitstunRemaining: 0.2,
       staggerRemaining: 0.3,
       blinkElapsed: 0
-    });
+    } as never);
 
     const registry = world.getResource<
       Record<
@@ -127,7 +127,7 @@ describe("Hit & Run hit reaction integration", () => {
       hitstunRemaining: 0.2,
       staggerRemaining: 0.3,
       blinkElapsed: 0
-    });
+    } as never);
 
     const registry = world.getResource<
       Record<

@@ -149,7 +149,25 @@ The existing `PlaySFX` event is a presentation command, not a domain fact. It ma
 
 Audio must not expose a public playback path that bypasses PresentationGateway. Its internal playback implementation receives only admitted dispatches. A sound that has already become audible cannot be undone; speculative audio is therefore disabled by default and may be enabled only where the audio engine can cancel the scheduled voice by stable occurrence ID before it becomes audible.
 
-### 2.6 Canvas and Skia — equivalent presentation
+### 2.6 PresentationGateway — single output admission boundary
+
+PresentationGateway is the sole public entry point for visual creation and audio playback. It is a narrow policy boundary, not a new feedback orchestrator or visual/audio engine.
+
+It owns only:
+
+- Checking whether the current execution may emit presentation side effects (including the single `world.isReSimulating` check for full-replay paths).
+- Checking whether the occurrence is committed, confirmed or explicitly admitted as a cancellable speculative preview.
+- Deduplicating dispatch by stable event-occurrence ID.
+- Routing the admitted occurrence to the independently owned VFX and Audio resolvers.
+- Retracting/cancelling previously admitted speculative output when the authoritative timeline rejects that occurrence, where the downstream channel supports it.
+
+It must not select effect IDs, visual profiles, audio assets, hit-stop policy, shake envelopes, renderer operations or playback parameters. Those mappings remain inside VFX, Audio and Juice respectively.
+
+All public VFX spawn and Audio playback entry points must be reachable only through PresentationGateway. Downstream VFX/Audio implementation methods should be internal to their packages/modules or require an admission capability that cannot be forged by gameplay callers. Do not duplicate rollback checks across many public APIs as a substitute for this single boundary.
+
+The gateway treats each channel independently after admission: a failure or rejection in VFX must not prevent a valid Audio response, and vice versa. It does not call JuiceOrchestrator and does not suppress authoritative hit-stop replay.
+
+### 2.7 Canvas and Skia — equivalent presentation
 
 A visual effect has one semantic definition and one composition contract. Canvas and Skia are backends for presenting that definition.
 
@@ -168,7 +186,7 @@ Pixel-identical raster output is not required where backend rasterization differ
 
 A backend-specific bug belongs in its adapter implementation unless the shared effect definition itself is wrong. Do not fork an effect composition to compensate for an adapter defect.
 
-### 2.7 Accessibility preference source and channel ownership
+### 2.8 Accessibility preference source and channel ownership
 
 The application/settings boundary owns the user's accessibility preferences and their persistence. It does not implement visual, temporal or audio effects.
 
@@ -182,7 +200,7 @@ All channels read the same authoritative user preference values. They must not m
 
 Accessibility adaptation must not change gameplay outcomes, hit validity, damage, movement, authoritative hit-stop duration or rollback state. Reduced-stimulation behavior must be testable independently for temporal, visual and audio output.
 
-### 2.8 Visual Lab
+### 2.9 Visual Lab
 
 Visual Lab is a development and review surface over the production effect definitions, profiles and drawers.
 

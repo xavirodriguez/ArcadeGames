@@ -88,3 +88,49 @@ export function sampleVFXTimeline(progress: number, phases: readonly VFXTimeline
   validatePhases(phases);
   return sampleValidatedTimeline(progress, phases);
 }
+
+
+export type VFXSemanticPhase = "contact" | "expansion" | "peak" | "dissipation";
+
+export interface VFXPhaseBoundary {
+  id: VFXSemanticPhase;
+  start: number;
+  end: number;
+}
+
+/** Default combat beats; individual effects may supply a more specific phase map. */
+export const DEFAULT_VFX_COMBAT_PHASES: readonly VFXPhaseBoundary[] = Object.freeze([
+  { id: "contact", start: 0, end: 0.12 },
+  { id: "expansion", start: 0.12, end: 0.52 },
+  { id: "peak", start: 0.52, end: 0.68 },
+  { id: "dissipation", start: 0.68, end: 1 }
+]);
+
+export interface VFXPhaseSample {
+  phase: VFXSemanticPhase;
+  phaseT: number;
+}
+
+/** Resolves a normalized timestamp into a semantic phase and local phase progress. */
+export function resolveVFXPhase(
+  progress: number,
+  phases: readonly VFXPhaseBoundary[] = DEFAULT_VFX_COMBAT_PHASES
+): VFXPhaseSample {
+  const t = clamp(finiteNumber(progress, "progress"), 0, 1);
+  if (phases.length === 0) throw new RangeError("phases must not be empty");
+  let previousEnd = 0;
+  for (let i = 0; i < phases.length; i++) {
+    const phase = phases[i];
+    finiteNumber(phase.start, `phases[${i}].start`);
+    finiteNumber(phase.end, `phases[${i}].end`);
+    if (phase.start < 0 || phase.end > 1 || phase.end <= phase.start || phase.start < previousEnd) {
+      throw new RangeError(`phases[${i}] has invalid or overlapping boundaries`);
+    }
+    previousEnd = phase.end;
+    if (t <= phase.end || i === phases.length - 1) {
+      return { phase: phase.id, phaseT: clamp((t - phase.start) / (phase.end - phase.start), 0, 1) };
+    }
+  }
+  const last = phases[phases.length - 1];
+  return { phase: last.id, phaseT: 1 };
+}

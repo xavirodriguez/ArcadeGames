@@ -15,7 +15,8 @@ import { CanvasDrawAdapter, SkiaDrawAdapter, type IDrawAdapter } from "./DrawAda
 import { colors } from "../../../theme/colors";
 import { ballistic } from "./vfx-geometry";
 import { deriveSeed } from "./vfx-core";
-import { createVFXTimelineSampler } from "./vfx-timeline";
+import { createVFXTimelineSampler, resolveVFXPhase, type VFXSemanticPhase } from "./vfx-timeline";
+import { sampleVFXRecoil } from "./vfx-motion";
 
 interface EffectState {
   progress: number;
@@ -23,6 +24,8 @@ interface EffectState {
   size: number;
   color: string;
   rotation: number;
+  phase: VFXSemanticPhase;
+  phaseT: number;
 }
 
 function readEffectState(
@@ -34,7 +37,12 @@ function readEffectState(
   const transform = world.getComponent(entity, "Transform");
   if (!render || !ttl || ttl.timeLeft <= 0 || ttl.remaining <= 0) return null;
 
-  const progress = Math.max(0, Math.min(1, 1 - ttl.remaining / ttl.timeLeft));
+  const elapsed = Math.max(0, ttl.timeLeft - ttl.remaining);
+  const configuredDuration = typeof render.vfxAnimDuration === "number" && Number.isFinite(render.vfxAnimDuration) && render.vfxAnimDuration > 0
+    ? render.vfxAnimDuration
+    : ttl.timeLeft;
+  const progress = Math.max(0, Math.min(1, elapsed / configuredDuration));
+  const phaseState = resolveVFXPhase(progress);
   const opacity = typeof render.opacity === "number" ? render.opacity : 1;
   const size = Math.max(1, (render.size ?? 20) * (transform?.scaleX ?? 1));
   return {
@@ -42,7 +50,9 @@ function readEffectState(
     alpha: Math.max(0, Math.min(1, ttl.remaining / ttl.timeLeft)) * opacity,
     size,
     color: render.color ?? colors.white,
-    rotation: transform?.rotation ?? 0
+    rotation: transform?.rotation ?? 0,
+    phase: phaseState.phase,
+    phaseT: phaseState.phaseT
   };
 }
 
@@ -62,7 +72,8 @@ export function drawPixelFxImpact(
   if (!state || state.alpha <= 0.01) return;
   const { progress: p, alpha, size, color, rotation } = state;
   const expansion = 1 - Math.pow(1 - p, 2);
-  const radius = size * (0.16 + expansion * 1.22);
+  const recoil = sampleVFXRecoil(p, entity);
+  const radius = size * (0.16 + expansion * 1.22 + recoil * 0.12);
   const contactFlash = alpha * Math.max(0, 1 - p / 0.34);
   const ringFade = alpha * (1 - p) * 0.9;
 

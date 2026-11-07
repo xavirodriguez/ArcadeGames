@@ -1,21 +1,22 @@
 # Game Feel Architecture Contract
 
-**Status:** Normative target architecture
-**Scope:** Gameplay events, temporal coordination, visual effects and renderer presentation across ArcadeGames
+**Status:** Normative target architecture  
+**Scope:** Gameplay events, temporal coordination, visual effects, audio feedback and renderer presentation across ArcadeGames  
 **Implementation policy:** Incremental migration; this contract does not claim that the current runtime already conforms
 
 ## 1. Purpose
 
-This document defines the ownership boundaries for Game Feel in ArcadeGames. It is the architectural reference for new work and for incremental consolidation of existing feedback paths.
+This document defines the ownership boundaries for Game Feel in ArcadeGames. It is the normative reference for new work and for incremental consolidation of existing feedback paths.
 
-The contract is intentionally built around four responsibilities:
+The architecture has five responsibilities with a deliberately narrow shared presentation boundary:
 
-1. **EventBus communicates gameplay facts.**
-2. **JuiceOrchestrator coordinates temporal responses.**
-3. **VFX owns visual representation.**
-4. **Canvas and Skia present equivalent visual output.**
+1. **Gameplay determines what happened.**
+2. **EventBus communicates typed gameplay facts.**
+3. **JuiceOrchestrator coordinates temporal responses.**
+4. **PresentationGateway admits presentation side effects; VFX and Audio independently resolve their own output.**
+5. **Canvas and Skia present equivalent visual output.**
 
-These are separate responsibilities, not four names for one pipeline. A gameplay fact may have multiple independent consumers. In particular, JuiceOrchestrator is not the gateway through which VFX must pass.
+A gameplay fact may produce temporal, visual and audio responses. Those responses remain separately owned. The PresentationGateway is not a visual/audio orchestrator: it is the single admission, confirmation and resimulation boundary through which every VFX creation and audio playback request must pass.
 
 ### 1.1 Canonical flow
 
@@ -23,10 +24,12 @@ These are separate responsibilities, not four names for one pipeline. A gameplay
 flowchart TD
     G[Gameplay systems / ECS] -->|typed gameplay fact| E[EventBus]
     E --> J[JuiceOrchestrator]
-    E --> V[VFX event adapter]
+    E --> PG[PresentationGateway]
     J --> T[Temporal policies]
     T --> H[HitStopSystem / GameplayFreeze]
     T --> S[Existing camera shake channel]
+    PG -->|admitted occurrence| V[VFX resolver]
+    PG -->|admitted occurrence| AU[Audio resolver]
     V --> P[Visual profile + typed VFX context]
     P --> L[ECS presentation lifecycle: Transform / Render / TTL]
     L --> D[Shared VFX drawers]
@@ -35,23 +38,28 @@ flowchart TD
     A --> K[Skia]
 ```
 
-The two EventBus consumer paths are parallel:
+Ownership is split as follows:
 
-- JuiceOrchestrator decides **when and for how long** temporal feedback should act.
-- VFX decides **what visual representation** a gameplay fact produces.
+- JuiceOrchestrator decides **when and for how long** temporal feedback acts.
+- PresentationGateway decides **whether and when a presentation occurrence may produce side effects**, and routes the accepted occurrence to its consumers.
+- VFX decides **what visual representation** the accepted gameplay fact produces.
+- Audio decides **what sound cue** represents the accepted gameplay fact and how it is presented.
 
-Neither path should invoke the other to perform its own responsibility. Canvas and Skia are alternative presentation backends for the same visual definition, not separate effect implementations.
+The gateway must not choose effects, sound assets, colors, temporal policies or rendering behavior. Canvas and Skia remain alternative backends for the same visual definition, not separate effect implementations.
 
 ## 2. Normative ownership contract
 
 | Layer | Owns | Must not own |
 |---|---|---|
-| Gameplay / ECS | Authoritative state transitions, collision outcomes, damage, movement, entity lifecycle and gameplay meaning | Colors, primitive names, visual profiles, particle geometry, camera shake rendering |
-| EventBus | Typed publication and delivery of gameplay facts; immediate/deferred dispatch according to the existing bus API | Gameplay rules, temporal policy, VFX selection, drawing or effect lifetime |
-| JuiceOrchestrator | Temporal response policy: hit-stop requests, shake envelopes, priorities, cooldowns and coordination between temporal channels | Effect primitive selection, VFX profiles, visual entity creation, Render components, TTL, drawer registration or drawing |
-| VFX | Mapping gameplay facts to visual descriptors, family-specific visual context, semantic profiles, effect composition and presentation entities | Damage, collision validity, forces, movement, gameplay clocks, hit-stop policy or authoritative gameplay state |
+| Gameplay / ECS | Authoritative state transitions, collision outcomes, damage, movement, entity lifecycle and gameplay meaning | Visual/audio instructions, primitive names, palettes, particle geometry, camera shake rendering |
+| EventBus | Typed publication and delivery of gameplay facts; immediate/deferred dispatch through the existing API | Gameplay rules, temporal policy, VFX/audio selection or drawing |
+| JuiceOrchestrator | Temporal response policy: hit-stop requests, shake envelopes, priorities, cooldowns and coordination between temporal channels | Effect selection, VFX profiles, visual/audio entity creation, Render/TTL, drawer registration or drawing |
+| PresentationGateway | The single public admission/commit boundary for VFX and Audio side effects; confirmation, resimulation suppression, occurrence deduplication and dispatch | Choosing visual/audio responses, effect composition, sound assets, temporal policy or renderer behavior |
+| VFX | Resolving admitted gameplay facts into visual descriptors, typed family context, semantic profiles, composition and visual presentation entities | Damage, collision validity, forces, movement, gameplay clocks, hit-stop policy or bypassing PresentationGateway |
+| Audio feedback | Resolving admitted gameplay facts into audio cues and controlling playback, voice limits, gain and audio accessibility | Gameplay rules, temporal freeze policy, visual effect selection or bypassing PresentationGateway |
 | Canvas / Skia | Backend-specific execution of the shared drawing contract | Gameplay semantics, event interpretation, per-backend effect designs or independent effect timing |
-| Visual Lab | Inspection and reproducible presentation of production VFX definitions | A parallel production drawer registry, gameplay simulation or an alternative renderer implementation |
+| Accessibility preference source | Persisting user-selected accessibility preferences at the application/settings boundary | Deciding how each feedback channel implements its presentation adaptation |
+| Visual Lab | Inspection and reproducible presentation of production VFX definitions | A parallel production drawer registry, gameplay simulation or alternative renderer implementation |
 
 ### 2.1 Gameplay systems
 
@@ -61,10 +69,12 @@ A gameplay system must:
 
 - Complete or commit the relevant gameplay transition before publishing its event.
 - Publish a typed domain fact such as `combat:hit`, `combat:death`, `locomotion:slide_started` or `CollectiblePickedUp`.
-- Include the semantic information consumers cannot safely recover later, such as source/target identity, impact position, direction or material, where relevant.
+- Include semantic information consumers cannot safely recover later, such as source/target identity, impact position, direction, material or gameplay-defined severity, where relevant.
 - Remain correct when no VFX, audio or Juice consumer is registered.
 
-A gameplay system must not publish a renderer instruction such as `spawn pixelfx_explosion`, choose a palette, decide a TTL or call a drawer. It must not create an event solely to make a particular effect appear. Events describe things that happened in gameplay; they are not visual commands disguised as domain events.
+A gameplay system must not publish a renderer or audio instruction such as `spawn pixelfx_explosion`, choose a palette, decide a TTL, request a sound filename or call a drawer. It must not create an event solely to make a particular effect appear. Events describe things that happened in gameplay; they are not visual/audio commands disguised as domain events.
+
+A gameplay event may contain a semantic classification such as attack strength, damage tier, surface type or interaction result when that classification is genuinely part of the domain. It must not contain presentation choices such as shake amplitude, visual scale, tint, TTL, sound asset ID or renderer-specific objects.
 
 ### 2.2 EventBus
 
@@ -76,11 +86,13 @@ Its responsibilities are limited to:
 - Immediate or deferred dispatch through the existing EventBus API.
 - Subscription and unsubscription lifecycle.
 
-The EventBus does not decide what an event means visually or temporally. It must not depend on JuiceOrchestrator, VFX drawers, Canvas or Skia.
+The EventBus does not decide what an event means visually, temporally or acoustically. It must not depend on JuiceOrchestrator, PresentationGateway internals, VFX drawers, audio implementations, Canvas or Skia.
 
-Event payloads carry facts and semantic context, not presentation policy. Prefer fields such as `entity`, `sourceEntity`, `targetEntity`, `x`, `y`, `direction`, `surface` or `material`. Do not put `effectName`, `tint`, `ttl`, `shakeIntensity` or renderer-specific objects in gameplay event payloads.
+Event payloads carry facts and semantic context, not presentation policy. Prefer fields such as `entity`, `sourceEntity`, `targetEntity`, `x`, `y`, `direction`, `surface`, `material` or a gameplay-defined `severity`. Do not put `effectName`, `tint`, `ttl`, `shakeIntensity`, `soundName` or renderer-specific objects in gameplay event payloads.
 
-Consumers must not depend on handler registration order to establish gameplay semantics. Any required temporal ordering belongs in an explicit temporal policy, not in accidental subscription order.
+The EventBus provides dispatch, not exactly-once delivery, durable event history, rollback compensation or prediction confirmation. Consumers must not infer any of those semantics from `emit` or `emitDeferred`. JuiceOrchestrator may consume domain facts for temporal policy; all VFX and Audio side effects must instead be admitted through PresentationGateway.
+
+Consumers must not depend on handler registration order to establish gameplay semantics. Required temporal ordering belongs in an explicit temporal policy, not in accidental subscription order.
 
 ### 2.3 JuiceOrchestrator — temporal coordination only
 
@@ -89,48 +101,77 @@ JuiceOrchestrator consumes gameplay facts and resolves their temporal response. 
 - Hit-stop duration, priority, ownership and cooldown requests.
 - Screen-shake intensity and duration envelopes through the existing camera feedback channel.
 - Synchronization or sequencing between supported temporal channels.
-- Accessibility policy that scales or suppresses presentation-side temporal feedback, without changing authoritative gameplay outcomes.
+- Accessibility policy for temporal feedback, such as shake suppression or scaling of camera motion.
 
 Hit-stop continues through the existing canonical route: Juice policy requests are resolved by HitStopSystem and core GameplayFreeze. GameplayFreeze and the core scheduler remain authoritative for simulation freeze. JuiceOrchestrator must not create another freeze clock.
 
-For rollback/resimulation, authoritative hit-stop requests must be replayed according to the established snapshot/scheduler contract. Presentation-only outputs such as duplicate shake impulses, VFX and audio must not be emitted again during replay.
+For rollback/resimulation, authoritative hit-stop requests must be replayed according to the established snapshot/scheduler contract. Presentation-only outputs such as duplicate shake impulses must not be emitted again during replay.
 
 JuiceOrchestrator must not:
 
-- Select a VFX primitive or visual profile.
+- Select a VFX primitive, audio cue or visual profile.
 - Construct a VFX descriptor.
 - Create an effect entity or write `Transform`, `Render` or `TTL` components.
 - Register drawers or depend on `IDrawAdapter`, Canvas, Skia or PixelFX effect modules.
-- Own effect progress, particle composition or visual lifetime.
+- Own effect progress, particle composition, visual lifetime or audio playback.
 
 The camera/presentation system remains responsible for rendering camera displacement. JuiceOrchestrator coordinates the temporal request; it does not draw the shake.
 
 ### 2.4 VFX — visual representation only
 
-VFX consumes the same typed gameplay facts independently of JuiceOrchestrator and translates their meaning into a visual representation.
+VFX consumes gameplay facts independently of JuiceOrchestrator and translates their meaning into a visual representation.
 
 VFX owns:
 
-- Mapping gameplay event types to effect identities and compositions.
+- Mapping gameplay event types and semantic context to effect identities and compositions.
 - Typed family contexts (for example combat, traversal, interaction and temporal presentation).
 - Semantic visual profiles and theme-token resolution.
 - Placement and orientation derived from actual gameplay context.
-- Creation of transient presentation entities through the existing ECS lifecycle.
-- Procedural or sprite-backed visual composition and deterministic visual variation.
+- Creation and lifecycle of transient presentation entities through the existing ECS path.
+- Visual accessibility adaptation (flash suppression, reduced visual intensity, motion reduction, density and contrast adjustments).
+- Deterministic visual variation and visual admission control.
 
 VFX must not decide whether a hit, death, pickup, landing or dash occurred. It must not change health, movement, physics, collision, gameplay RNG or simulation time. A VFX failure or missing renderer must never invalidate the gameplay event.
 
 Transient procedural effects continue to use existing ECS presentation components such as `Transform`, `Render` and `TTL`. TTL remains the existing lifetime mechanism; this contract does not authorize a parallel particle engine, lifetime manager or scheduler.
 
-VFX definitions must receive semantic, typed context rather than a universal untyped payload. A drawer should receive resolved presentation state and draw it; it should not query gameplay rules to decide whether an effect is valid.
+VFX definitions receive semantic, typed context rather than a universal untyped payload. A drawer receives resolved presentation state and draws it; it does not query gameplay rules to decide whether an effect is valid.
 
-VFX modules must not import runtime behavior or type definitions from JuiceOrchestrator. Shared visual identities and contracts belong to the VFX/presentation side or to a genuinely neutral contract module. This includes removing the current type-level dependency where `VFXEffectIR` imports `SharedVFXPrimitiveName` from `JuiceOrchestrator`.
+VFX modules must not import runtime behavior or type definitions from JuiceOrchestrator. Shared visual identities and contracts belong to the VFX/presentation domain or to a narrowly justified neutral contract module. This includes removing the current type-level dependency where `VFXEffectIR` imports `SharedVFXPrimitiveName` from `JuiceOrchestrator`.
 
-### 2.5 Canvas and Skia — equivalent presentation
+### 2.5 Audio — sound presentation only
+
+Audio owns cue resolution and sound presentation: asset selection, playback, voice/concurrency limits, gain, spatialization and audio accessibility.
+
+Audio receives admitted gameplay occurrences from PresentationGateway through an Audio-owned resolver. Gameplay systems must not choose audio asset IDs or call playback APIs. A gameplay event must not be named or shaped as a sound command.
+
+The existing `PlaySFX` event is a presentation command, not a domain fact. It may remain as an internal compatibility/playback API during migration, but new gameplay feedback integrations must resolve sound from typed gameplay facts and submit playback through PresentationGateway.
+
+Audio must not expose a public playback path that bypasses PresentationGateway. Its internal playback implementation receives only admitted dispatches. A sound that has already become audible cannot be undone; speculative audio is therefore disabled by default and may be enabled only where the audio engine can cancel the scheduled voice by stable occurrence ID before it becomes audible.
+
+### 2.6 PresentationGateway — single output admission boundary
+
+PresentationGateway is the sole public entry point for visual creation and audio playback. It is a narrow policy boundary, not a new feedback orchestrator or visual/audio engine.
+
+It owns only:
+
+- Checking whether the current execution may emit presentation side effects (including the single `world.isReSimulating` check for full-replay paths).
+- Checking whether the occurrence is committed, confirmed or explicitly admitted as a cancellable speculative preview.
+- Deduplicating dispatch by stable event-occurrence ID.
+- Routing the admitted occurrence to the independently owned VFX and Audio resolvers.
+- Retracting/cancelling previously admitted speculative output when the authoritative timeline rejects that occurrence, where the downstream channel supports it.
+
+It must not select effect IDs, visual profiles, audio assets, hit-stop policy, shake envelopes, renderer operations or playback parameters. Those mappings remain inside VFX, Audio and Juice respectively.
+
+All public VFX spawn and Audio playback entry points must be reachable only through PresentationGateway. Downstream VFX/Audio implementation methods should be internal to their packages/modules or require an admission capability that cannot be forged by gameplay callers. Do not duplicate rollback checks across many public APIs as a substitute for this single boundary.
+
+The gateway treats each channel independently after admission: a failure or rejection in VFX must not prevent a valid Audio response, and vice versa. It does not call JuiceOrchestrator and does not suppress authoritative hit-stop replay.
+
+### 2.7 Canvas and Skia — equivalent presentation
 
 A visual effect has one semantic definition and one composition contract. Canvas and Skia are backends for presenting that definition.
 
-The shared boundary remains `IDrawAdapter` from `DrawAdapter.ts`. Effect drawers should depend on the adapter contract, not on `CanvasRenderingContext2D` or Skia APIs directly.
+The shared boundary remains `IDrawAdapter` from `DrawAdapter.ts`. Effect drawers depend on the adapter contract, not on `CanvasRenderingContext2D` or Skia APIs directly.
 
 Both backends must preserve equivalent:
 
@@ -145,7 +186,21 @@ Pixel-identical raster output is not required where backend rasterization differ
 
 A backend-specific bug belongs in its adapter implementation unless the shared effect definition itself is wrong. Do not fork an effect composition to compensate for an adapter defect.
 
-### 2.6 Visual Lab
+### 2.8 Accessibility preference source and channel ownership
+
+The application/settings boundary owns the user's accessibility preferences and their persistence. It does not implement visual, temporal or audio effects.
+
+Each feedback consumer applies the relevant preferences within its own domain:
+
+- JuiceOrchestrator adapts temporal responses such as camera shake and other temporal motion.
+- VFX adapts flashes, luminance, contrast, effect density, visual intensity and visual motion.
+- Audio adapts gain, dynamic range or other supported sound presentation settings.
+
+All channels read the same authoritative user preference values. They must not maintain conflicting per-subsystem copies of the user's settings. A preference may affect more than one channel, but each channel remains responsible for applying it to its own output.
+
+Accessibility adaptation must not change gameplay outcomes, hit validity, damage, movement, authoritative hit-stop duration or rollback state. Reduced-stimulation behavior must be testable independently for temporal, visual and audio output.
+
+### 2.9 Visual Lab
 
 Visual Lab is a development and review surface over the production effect definitions, profiles and drawers.
 
@@ -153,169 +208,273 @@ It must:
 
 - Invoke the same production drawer functions used by games.
 - Use the same `IDrawAdapter` implementations and registration contracts.
-- Make a scenario reproducible through stable effect identity, profile, semantic context, seed/variant, dimensions, renderer and sampled progress/time.
+- Make a scenario reproducible through stable effect identity, profile, semantic context, seed/variant, dimensions, renderer and sampled presentation time.
 - Support review at meaningful temporal samples, including start, peak and dissipation.
+- Expose accessibility settings used by the scenario.
 
 It must not maintain a second production effect implementation, independent timing engine or alternative renderer registry. A preview is evidence of a visual definition, not proof of a live gameplay integration.
 
-## 3. Contracts between layers
+## 3. Contracts between feedback channels
 
 ### 3.1 Event contract
 
 A feedback-relevant event must satisfy all of the following:
 
-1. It names a real gameplay fact, not a desired visual.
+1. It names a real gameplay fact, not a desired visual/audio result.
 2. It has a typed payload in the owning game's EventRegistry.
 3. It is emitted at a defined point in the gameplay transition.
-4. It is emitted once per authoritative occurrence, with deduplication owned by the gameplay/event producer where needed.
+4. It represents one logical occurrence in the authoritative gameplay history.
 5. Its payload contains enough stable semantic context for consumers to react safely.
-6. It does not contain visual or temporal policy.
+6. It does not contain visual, temporal or audio presentation policy.
 
-If an effect requires information that is lost when the entity is destroyed, the producer should include the relevant immutable snapshot (for example position, direction or material) in the gameplay event. VFX must not depend on querying a destroyed or already-mutated entity.
+If an effect requires information that is lost when the entity is destroyed, the producer includes the relevant immutable snapshot (for example position, direction, material or severity) in the gameplay event. VFX and Audio must not depend on querying a destroyed or already-mutated entity.
 
-### 3.2 Temporal response contract
+### 3.2 Coherence between temporal, visual and audio responses
 
-Temporal response maps are separate from visual response maps.
+The channels are independently owned, but they must resolve the same gameplay meaning.
+
+For a combat hit, the domain may publish a typed semantic classification such as:
+
+```ts
+type ImpactSeverity = "light" | "normal" | "heavy" | "critical";
+```
+
+An `impactSeverity` field belongs in a combat event payload only when it describes the resolved gameplay event: for example, a damage/attack tier derived from actual damage, attack classification or a gameplay rule. Its thresholds and semantics are owned by the combat domain. It is not a display intensity, not a normalized visual scalar and not a request for a particular response.
+
+Do not add a universal `severity` or `intensity` field to every event. Different domains should carry their own meaningful facts (for example `surface`, `pickupValueTier` or `interactionResult`) or rely on the typed event identity when no additional classification exists.
+
+For one semantic occurrence, each channel maps the same domain classification independently:
+
+- Juice maps `impactSeverity` to its temporal response (hit-stop/shake).
+- VFX maps it to visual identity/profile/composition and the effect's time policy.
+- Audio maps it to a sound cue and playback policy.
+
+These mappings must not share a numeric scale. "Heavy" need not mean the same numeric value in milliseconds, pixels or decibels.
+
+A cross-channel conformance test must use a table of domain inputs and explicit expected outputs. For example, each `ImpactSeverity` case has an expected temporal profile, VFX descriptor/profile and audio cue. Tests assert those exact resolver outputs and their shared input classification; they do not attempt to measure subjective "coherence" by comparing unrelated numeric intensities. Each channel also retains focused unit tests for its own resolver.
+
+The conformance fixture is the explicit coupling point. No channel calls another channel's resolver, and no presentation policy is added to the gameplay event.
+
+### 3.3 Temporal response contract
+
+Temporal response maps are separate from visual and audio response maps.
 
 The eventual configuration model must keep these concerns distinct:
 
 - **Temporal response:** hit-stop, priority, cooldown and shake envelope.
 - **Visual response:** effect identity, semantic family, visual profile, placement, scale and visual lifetime.
+- **Audio response:** sound cue and playback properties.
 
-One gameplay event may have both responses, only one response, or neither. A visual effect must not be required to trigger hit-stop; hit-stop must not be required to spawn a visual effect.
+One gameplay event may have all responses, only one response or none. A visual effect is not required to trigger hit-stop; hit-stop is not required to spawn a visual effect; audio is not required for either.
 
-### 3.3 Visual descriptor contract
+### 3.4 Visual descriptor contract
 
-A VFX descriptor should identify:
+A VFX descriptor identifies:
 
 - A stable effect ID.
 - A semantic family.
 - A typed family context.
 - A semantic visual profile.
 - Optional resolved presentation placement and deterministic variation input.
+- The presentation-time policy, where it differs from the default.
 
-The descriptor is presentation data. It cannot grant authority to alter gameplay. Its exact TypeScript shape is owned by the VFX contract and should evolve from real consumers rather than introducing a general-purpose visual scripting runtime.
+The descriptor is presentation data. It cannot grant authority to alter gameplay. Its exact TypeScript shape evolves from real consumers rather than introducing a general-purpose visual scripting runtime.
 
-### 3.4 Time domains
+### 3.5 Time domains and per-effect hit-stop policy
 
-The implementation must distinguish:
+The implementation distinguishes three separate concepts:
 
-- **Simulation time:** advances authoritative gameplay and is controlled by the ECS schedule.
-- **Presentation time:** samples visual-only animation, subject to supported pause/accessibility policy.
-- **Effect lifetime:** bounds the existence of a transient presentation entity; currently represented by ECS TTL.
+- **Simulation time:** advances authoritative gameplay and is controlled by the ECS schedule. During hit-stop, normal gameplay/simulation systems are suspended according to the core scheduler.
+- **Presentation time:** advances visual-only animation and presentation systems. It is not automatically frozen by gameplay hit-stop.
+- **Effect lifetime:** bounds the existence of a transient presentation entity. The current implementation represents this with ECS TTL; TTL is a lifetime bound, not a universal clock abstraction.
 
-VFX must not modify simulation delta or gameplay outcomes. Do not create a second scheduler to support effect curves or Visual Lab scrubbing. Prefer TTL-derived progress and deterministic, closed-form sampling where they satisfy the effect.
+**Hit-stop timing is selected per effect, not globally.** Each VFX definition must declare one of these policies:
 
-## 4. Determinism, rollback and resource ownership
+| Policy | Meaning during hit-stop | Typical use |
+|---|---|---|
+| `advance` | Effect progress and lifetime continue at normal presentation rate (1×). | Sparks, short flashes or decorative responses that should continue immediately. |
+| `freeze` | Effect progress and lifetime hold their current values until hit-stop ends (0×). | Contact poses, impact holds and compositions whose read depends on the frozen moment. |
+| `scale(factor)` | Effect progress and lifetime advance at the declared fraction of normal presentation rate, where `0 < factor < 1`. | Slow-motion trails or energy effects that should continue, but more slowly. |
 
-- Gameplay RNG is reserved for authoritative gameplay. Presentation variation must use an explicit stable seed or deterministic derivation and must not consume gameplay RNG.
-- A resimulation must not duplicate presentation entities, shake impulses or audio.
-- Authoritative temporal requests such as the canonical hit-stop request must follow the established rollback policy and be replayed when required.
+If an effect does not declare a policy, the compatibility default is `advance`. The choice belongs to the VFX effect definition/profile; a per-event override is allowed only when it is intentional, typed and covered by a reproducible scenario.
+
+The selected policy applies consistently to both the effect's visible progress and its remaining lifetime. A drawer must not freeze its animation while TTL expires, or keep TTL alive while its normalized progress uses a different clock, unless that divergence is an explicitly designed effect behavior.
+
+The current `TTLSystem` decrements TTL during `GameplayFreeze` using frame delta. Therefore `advance` is currently supported by the existing path. `freeze` and `scale(factor)` are **target policies, not claims about current runtime capability**: they remain unavailable for production use until the existing ECS TTL/presentation lifecycle can honor the per-effect policy through one canonical time/lifetime mechanism and focused tests. Do not add a second scheduler or modify authoritative simulation time to implement them.
+
+Required coverage when those policies are implemented:
+
+- Scheduler/TTL tests prove each policy's effective elapsed time during GameplayFreeze.
+- Freeze tests prove that a paused effect neither advances progress nor expires.
+- Scale tests prove proportional progress and lifetime, including boundary factors.
+- Canvas and Skia sample the same normalized progress for the same effect policy.
+- Rollback tests are added only for runtimes that actually replay the event/step containing that effect.
+
+Explicit application pause is a separate policy from hit-stop. Its effect on TTL, visual animation, shake and audio must be defined and tested at the relevant application boundary; it must not be inferred from the per-effect hit-stop policy.
+
+### 3.6 Resimulation, rollback and predicted presentation
+
+Rollback obligations apply to a runtime path that actually re-executes gameplay/event producers during correction or replay. They must not be imposed on a mode that only interpolates remote entities or applies an authoritative transform correction without re-running gameplay systems.
+
+When full simulation resimulation is active:
+
+- Re-delivery of the same logical event during replay is not a new gameplay occurrence.
+- Authoritative gameplay state and snapshot-managed temporal requests follow that runtime's rollback contract.
+- Presentation output must not be duplicated during replay.
+- `world.isReSimulating` is the execution-state signal for a full replay path that sets it.
+
+**One presentation side-effect boundary:** PresentationGateway is the only public entry point for VFX creation and Audio playback. It owns the checks for execution mode, confirmation/commit state and occurrence deduplication. VFX and Audio resolvers/players are internal downstream consumers; they must not expose alternate public methods that can create output without gateway admission. Draw adapters never query the scheduler or World for rollback state.
+
+For a full replay path, PresentationGateway suppresses presentation dispatch while `world.isReSimulating` is true. JuiceOrchestrator remains a separate temporal consumer: it replays snapshot-managed authoritative hit-stop requests where required, while suppressing shake and other non-authoritative presentation output. The gateway must not suppress that temporal replay path.
+
+**Confirmation semantics:**
+
+- In offline/local authoritative play, an event is committed for presentation when its gameplay transition has been accepted into the local authoritative tick. PresentationGateway may dispatch it in the same tick.
+- In server-authoritative predicted play, an event is confirmed only when an authoritative server update acknowledges the same logical occurrence ID and covers its simulation tick. A generic state-version acknowledgement or a later snapshot with no causal event evidence is not, by itself, proof that a particular impact/pickup/death occurred.
+- A stable occurrence ID is deterministic for the logical domain event and survives replay of that same occurrence. It must not rely on wall-clock time, callback identity or entity ID alone. It is delivery/occurrence metadata, not visual policy.
+- The current Colyseus snapshot flow has not been shown to carry per-event occurrence acknowledgements. Until such evidence is available, predicted VFX/Audio cannot be treated as confirmed solely because a snapshot arrived.
+
+**Latency budget and speculative presentation:**
+
+- For confirmation-gated transient feedback, the initial target is no more than one configured server replication interval plus one client presentation frame from prediction to admission. The current `BaseRoom` configures a 50 ms state patch interval; at 60 Hz this gives an initial budget of approximately 67 ms. This is a starting budget for the current transport, not a universal constant; derive it from the active replication and presentation rates.
+- If confirmation arrives after that budget, do not play a stale transient impact/audio cue late. Drop it or resolve a current-state feedback that is still semantically valid.
+- A latency-critical VFX may be shown speculatively in the prediction frame only if it is cancellable/reconcilable by stable occurrence ID. On rejection/rollback, the gateway retracts that exact occurrence; on confirmation, it commits it without creating a duplicate.
+- Audio is confirmation-gated by default because audible output cannot be retracted. Speculative audio is allowed only if the audio engine can cancel the scheduled voice before it becomes audible, keyed by the same stable occurrence ID.
+- If the transport does not provide event identity/confirmation and there is no cancellation mechanism, the mode must choose the conservative confirmed-only policy; it must not pretend to offer immediate reversible prediction feedback.
+
+This does not require a global exactly-once EventBus. Gameplay owns logical occurrence identity and authoritative state transitions; PresentationGateway owns presentation admission, duplicate suppression and retraction where supported. Rollback-specific tests are mandatory only for runtimes that actually execute the corresponding replay path.
+
+### 3.7 Determinism and randomness
+
+- Gameplay RNG is reserved for authoritative gameplay. Presentation variation uses an explicit stable seed or deterministic derivation and must not consume gameplay RNG.
+- The same event occurrence, visual descriptor, profile, seed and sampled presentation time must produce the same visual result.
+- A resimulation must not duplicate VFX, shake or audio.
 - Transient presentation state remains in the existing ECS lifecycle. No parallel entity manager or particle lifecycle is permitted.
 - No VFX drawer may mutate gameplay components or authoritative resources.
-- Presentation policy may respect accessibility settings; accessibility must not change authoritative damage, collision, movement or freeze duration.
+- Accessibility preferences may adapt presentation but must not change authoritative damage, collision, movement or freeze duration.
 
-## 5. Dependency direction
+## 4. Module boundaries and shared contracts
 
-The allowed conceptual dependency direction is:
+### 4.1 Neutral contract module — strict admission criteria
 
-- Gameplay systems → typed EventBus contracts.
+A neutral module is allowed only when a contract genuinely needs to be shared by at least two independently owned subsystems.
+
+Every exported symbol must satisfy all of these criteria:
+
+1. It represents stable domain meaning or an immutable cross-boundary data contract.
+2. At least two independently owned consumers require the exact same semantic type or value.
+3. It contains no runtime orchestration, mutable state, service, callback registry, event subscription or side effect.
+4. It imports no concrete implementation from Juice, VFX, Audio, a game, Canvas or Skia.
+5. It does not become the home of unrelated types merely because multiple modules can import it.
+
+Types used only by one subsystem stay local. Gameplay event payload types stay with the owning domain/game EventRegistry or gameplay-kit domain. Renderer-specific types stay with the renderer. Temporal policy types stay with Juice. VFX descriptors and profile types stay with VFX. Audio cue types stay with Audio.
+
+A neutral contract must have a narrow name and documented consumers. A proposed symbol without two real consumers is not admitted. If no valid shared contract exists, use a small explicit mapping at each owner boundary rather than creating a generic `shared`, `common` or `utils` dumping ground.
+
+### 4.2 Dependency direction
+
+Allowed conceptual dependencies:
+
+- Gameplay systems → typed gameplay EventRegistry contracts.
 - EventBus → registered handlers, without depending on their implementations.
 - JuiceOrchestrator → typed gameplay event contracts and existing core temporal/camera channels.
-- VFX event adapters → typed gameplay event contracts and VFX presentation contracts.
+- PresentationGateway → typed occurrence/confirmation metadata and the VFX/Audio adapter interfaces; it must not depend on their concrete implementations.
+- VFX and Audio resolvers → their own presentation contracts; all side effects are invoked through PresentationGateway.
 - VFX drawers → `IDrawAdapter` and read-only presentation state.
 - CanvasDrawAdapter / SkiaDrawAdapter → their respective rendering APIs.
 
-The following dependencies are forbidden:
+Forbidden dependencies:
 
-- Gameplay → VFX drawer, renderer or visual profile.
-- EventBus → JuiceOrchestrator or VFX implementation.
+- Gameplay → VFX drawer, renderer, audio asset or visual profile.
+- EventBus → JuiceOrchestrator, VFX or Audio implementation.
 - JuiceOrchestrator → VFX primitive catalog, drawer, Render/TTL entity creation or renderer.
-- VFX → JuiceOrchestrator.
+- VFX/Audio public output APIs → bypassing PresentationGateway.
+- PresentationGateway → selecting a visual/audio cue or depending on Canvas/Skia/concrete output implementations.
+- VFX → JuiceOrchestrator or Audio implementation.
+- Audio → JuiceOrchestrator or VFX implementation.
 - Effect drawer → Canvas or Skia concrete API.
 - Canvas/Skia → gameplay event registry or gameplay rules.
 
-If a type is required by both Juice and VFX, extract a narrow neutral contract rather than importing one subsystem into the other.
+If a type is required by more than one independently owned subsystem, apply the neutral-module admission criteria before extracting it.
 
-## 6. Current implementation baseline and known gaps
+## 5. VFX capacity and performance evidence
 
-This section records observed source structure so the target contract is not mistaken for an assertion of current compliance.
+VFX owns admission control for visual effects. Gameplay events must never be dropped or delayed because a visual budget is exhausted.
 
-| Concern | Current source evidence | Contract gap |
-|---|---|---|
-| Event transport | `packages/core/src/events/EventBus.ts` exposes typed `on`, immediate/deferred dispatch; `src/games/asteroids/types/AsteroidRegistry.ts` declares `combat:hit` and `combat:death` | Retain this boundary; audit producers and feedback subscribers game by game |
-| Temporal and visual orchestration | `src/games/shared/rendering/JuiceOrchestrator.ts` currently combines `JUICE_CATALOG`, `triggerEvent`, `spawnEffect` and `spawn` | Split temporal response from visual response; remove VFX spawning responsibility from JuiceOrchestrator |
-| Mixed profile catalog | `JUICE_CATALOG` profiles currently contain primitive, tint, scale, TTL, hit-stop and shake fields | Separate temporal policy from visual profile mapping |
-| VFX descriptor dependency | `src/games/shared/rendering/VFXEffectIR.ts` imports `SharedVFXPrimitiveName` from JuiceOrchestrator | Move the shared visual identity to the VFX/presentation domain or a neutral contract |
-| ECS presentation lifecycle | `JuiceOrchestrator.spawn` currently creates entities and writes `Transform`, `Render` and `TTL` | Preserve ECS lifecycle, but move ownership of those operations to VFX |
-| Rendering parity | `DrawAdapter.ts`, `PixelFxProceduralVFX.ts` and `SharedVFX.ts` provide the adapter/drawer/registration foundation | Preserve one shared composition and verify both backends |
-| Asteroids death feedback | `AsteroidCollisionSystem.onRegister` subscribes to `combat:death`; `onCombatDeath` calls `spawnExplosionParticles` and `triggerEvent("asteroids", "rock:destroyed")`, and also calls `Juice.shake` directly | Known duplicate visual request and duplicated shake path; tracked in `docs/agents/vfx-ledger.md` |
+Capacity budgets are a risk-control mechanism, not a prerequisite for every VFX integration. Their applicability is determined by effect density, burst behavior, target hardware and measured frame-time pressure.
 
-### 6.1 Important current behavior in JuiceOrchestrator
+For a high-density effect, a high-frequency event or a scene that shows measurable pressure, establish a representative baseline for:
 
-The current `spawn()` implementation requests hit-stop through `requestHitStop`, applies shake through `Juice.shake`, and creates presentation entities with `Transform`, `Render` and `TTL`. Its rollback behavior intentionally replays authoritative hit-stop requests before suppressing presentation output. That distinction must be preserved while responsibilities are separated.
+- New VFX entities or effect requests per frame.
+- Concurrent live transient VFX entities.
+- Draw operations/draw calls attributable to VFX.
+- CPU time and, where measurable, GPU/frame-time contribution.
+- Allocation and garbage-collection pressure in representative burst scenarios.
 
-The current `triggerEvent()` resolves a game event through `JUICE_CATALOG` and forwards both visual and temporal parameters to `spawn()`. This is a migration seam, not the final contract.
+A first low-density pilot should record enough information to judge whether further measurement is needed; it does not need an arbitrary hard entity cap or a pooling implementation. Unknown performance is recorded as unknown, not as unlimited capacity, but it does not by itself block a functional architecture pilot.
 
-### 6.2 Existing architecture to preserve
+When a measured budget is required and reached, VFX applies deterministic admission/degradation rules:
 
-The separation does not authorize replacement of working infrastructure:
+1. Preserve critical/high-semantic-value feedback ahead of cosmetic/ambient output.
+2. Use stable priority and occurrence ordering to decide which optional effects are admitted.
+3. Prefer controlled degradation (reduced detail, merged/coalesced bursts or lower-cost composition) over silently losing all feedback.
+4. Never feed budget rejection back into gameplay state or EventBus fact delivery.
+5. Record requested, admitted, degraded and rejected counts so the budget can be tuned empirically.
 
-- Core `EventBus` and per-game typed EventRegistry.
-- Core ECS entity/component lifecycle and TTL.
-- `HitStopSystem` and core `GameplayFreeze` as the canonical hit-stop route.
-- Existing camera shake channel and its consumers.
-- `IDrawAdapter`, `CanvasDrawAdapter`, `SkiaDrawAdapter`.
-- `SharedVFX` registration and production drawer modules.
-- Existing sprite registry/animator for sprite-backed effects.
-- Visual Lab as a consumer of production definitions.
+Pooling is never mandatory by default. Introduce or change pools only when profiling shows that allocation/GC cost is material and the pool can preserve deterministic lifecycle, renderer safety and correct reset semantics. Do not claim zero-allocation or add a pool based only on source inspection.
 
-Do not add another EventBus, scheduler, timeline runner, renderer registry, particle engine or entity manager to achieve this contract.
-
-## 7. Incremental migration plan
+## 6. Incremental migration plan and approval gates
 
 Migration is sequential, evidence-based and reversible. Existing integrations continue working until an equivalent replacement is verified.
 
-### Step 0 — Establish and audit the contract
+### Step 0 — Complete the inventory and obtain approval
 
 - Treat this document as the normative ownership reference.
-- Keep `docs/agents/vfx-ledger.md` as the evidence ledger for individual VFX integrations.
+- Keep `docs/agents/vfx-ledger.md` as the evidence ledger for individual VFX effects and integrations.
+- Keep `docs/agents/juice-consolidation-ledger.md` as the evidence ledger for temporal/legacy Juice paths.
+- Keep `docs/agents/game-feel-architecture-ledger.md` as the cross-layer implementation baseline and ownership-gap ledger.
 - Audit one effect or one system per unit of work.
-- Record real event producer, subscribers, temporal response, VFX response, ECS lifecycle, Canvas/Skia registration, tests and Visual Lab scenario.
-- Keep Phase 0 open until the complete inventory is reconciled and approved. Do not begin a broad runtime migration while `unknown` or `blocked` entries remain.
+- Record real event producers, subscribers, temporal response, VFX response, audio response, ECS lifecycle, Canvas/Skia registration, tests and Visual Lab scenario.
+- For each networked mode, classify whether it uses interpolation, local state correction/input replay or full simulation rollback; attach rollback/prediction requirements only to the path actually used.
+- Phase 0 remains open until the complete inventory is reconciled, no unresolved `unknown` or `blocked` entries remain in scope, and the user approves the inventory.
 
-### Step 1 — Separate the configuration and type boundaries
+**No runtime pilot or migration starts before this approval.** Documentation and source-only audits may continue. Asteroids `combat:death` / `rock:destroyed` is only a candidate for the first pilot, not an approved implementation target. After Phase 0 approval, choose and approve the pilot event explicitly.
 
-- Split the current mixed `JUICE_CATALOG` responsibility into distinct temporal and visual response mappings.
+### Step 1 — Separate configuration and type boundaries
+
+- Split the current mixed `JUICE_CATALOG` responsibility into distinct temporal, visual and (where required) audio response mappings.
 - Move visual primitive/effect identities and descriptor types out of JuiceOrchestrator.
 - Make JuiceOrchestrator consume gameplay facts only for temporal coordination.
 - Make VFX consume the same gameplay facts independently for visual response.
-- Keep the existing public behavior available during migration where needed; do not perform a big-bang rewrite.
+- Make Audio consume the same gameplay facts independently for sound presentation.
+- Preserve common semantic severity/context so separate responses remain coherent and cover it with cross-channel conformance tests.
+- Keep existing behavior available during migration where needed; do not perform a big-bang rewrite.
 
-The exact API names and subscription ownership are implementation decisions to be made against the audited call sites. Do not create a generic plugin system or universal event-to-graph engine.
+The exact API names and subscription ownership are implementation decisions to be made against audited call sites. Do not create a generic plugin system or universal event-to-graph engine.
 
-### Step 2 — Migrate one real event as a pilot
+### Step 2 — Migrate one approved real event as a pilot
 
-Choose one event with a complete, reproducible gameplay path and migrate it end to end:
+The pilot is selected only after Step 0 approval.
 
-1. The gameplay producer emits one typed fact.
+1. The gameplay producer publishes one typed fact.
 2. The temporal subscriber resolves only temporal feedback.
 3. The VFX subscriber resolves only visual feedback.
-4. The VFX runtime uses the existing ECS lifecycle.
-5. The same drawer composition is registered for Canvas and Skia.
-6. Focused tests prove the event-to-temporal and event-to-visual paths independently.
-7. Visual Lab provides a reproducible visual scenario where the effect is significant.
-
-Asteroids `combat:death` / `rock:destroyed` is a strong pilot candidate because its current duplicate explosion and shake paths are already documented. It is not permission to skip the Phase 0 inventory approval gate.
+4. The Audio subscriber resolves only sound feedback, if applicable.
+5. The VFX runtime uses the existing ECS lifecycle.
+6. The same drawer composition is registered for Canvas and Skia.
+7. Focused tests prove event-to-temporal and event-to-visual/audio paths independently and together.
+8. If the selected runtime replays gameplay/event producers, tests prove resimulation suppression and the applicable prediction confirmation/retraction policy.
+9. Visual Lab provides a reproducible scenario for the visual effect.
+10. Record a representative burst/cost sample when effect density or measured performance makes capacity a material risk; numeric caps and pooling are not required for a low-density pilot.
 
 After the first integrated effect in a new family (traversal, interaction or environmental), stop for review before integrating a second effect in that family.
 
 ### Step 3 — Expand incrementally
 
 - Migrate one effect or one integration slice per unit.
-- Prefer real gameplay events over direct visual calls.
+- Prefer real gameplay facts over direct visual/audio calls.
 - Preserve game-specific behavior when it is genuinely specialized; do not force every effect into one universal implementation.
-- Require measurable evidence before performance refactors.
+- Require measurable evidence before performance refactors or pooling.
 - Keep sprite-sheet and procedural VFX inventories separate.
 
 ### Step 4 — Retire legacy paths safely
@@ -323,42 +482,52 @@ After the first integrated effect in a new family (traversal, interaction or env
 Before deleting or replacing a legacy feedback path:
 
 - Search all producers and consumers.
-- Verify event coverage and rollback semantics.
-- Prove the replacement produces equivalent temporal and visual behavior.
-- Add or update tests.
+- Verify event coverage, cross-channel coherence, rollback and prediction semantics.
+- Prove the replacement produces equivalent temporal, visual and audio behavior.
+- Add or update focused and cross-channel tests.
 - Remove the legacy path only after the evidence is complete.
 
 Do not remove a path merely because a new abstraction exists.
 
-## 8. Definition of done for an integrated effect
+## 7. Definition of done for an integrated feedback event
 
-An effect integration is complete only when all applicable evidence exists:
+An event integration is complete only when all applicable evidence exists:
 
 - A real gameplay transition publishes a typed EventBus fact.
-- The event is not emitted solely to request a visual.
-- Temporal response is owned by JuiceOrchestrator and does not select or create VFX.
+- The event is not emitted solely to request a visual or sound.
+- Temporal response is owned by JuiceOrchestrator and does not select or create VFX/audio.
 - Visual response is owned by VFX and does not alter gameplay or temporal policy.
+- Audio response is owned by Audio and does not alter gameplay or visual state.
+- A common semantic event classification keeps the channels aligned where applicable.
+- Cross-channel conformance tests assert the intended combined response.
 - ECS presentation lifecycle is used without a second lifetime manager.
-- The production drawer is registered and behaves equivalently on Canvas and Skia.
-- Focused tests cover event mapping, lifecycle, determinism and renderer registration/parity.
-- Rollback/resimulation does not duplicate presentation output and preserves required authoritative temporal behavior.
-- A reproducible Visual Lab or in-game scenario exists for meaningful effects.
+- Production drawers behave equivalently on Canvas and Skia.
+- Hit-stop time-domain behavior is explicitly tested for effects whose timing matters.
+- If the selected runtime performs full simulation replay, rollback/resimulation does not duplicate presentation output and preserves required authoritative temporal behavior.
+- If the selected runtime emits predicted gameplay events, those outputs are confirmed before presentation or support stable-ID cancellation/retraction within the configured latency budget.
+- Accessibility adaptations are covered for temporal, visual and audio channels.
+- Where measured density/performance requires a capacity budget, counters and deterministic overload degradation are evidenced; pooling remains optional and profiling-gated.
+- A reproducible Visual Lab or in-game scenario exists for meaningful visual effects.
 - Typecheck, focused tests, CI/ratchet and duplication checks pass according to repository policy.
 
 A drawer existing in source, a catalog entry, a test fixture or a Visual Lab preset alone is not proof of a complete gameplay integration.
 
-## 9. Change control and decision rules
+## 8. Change control and decision rules
 
 - A change that moves responsibility across these boundaries must update this contract or an associated decision record.
-- If an implementation requires JuiceOrchestrator to create or render VFX, or VFX to request hit-stop directly, stop and resolve the ownership conflict before coding.
-- If a requirement cannot be expressed with the existing EventBus, ECS lifecycle, temporal channels or draw adapter, present the smallest missing contract and its alternatives before introducing new infrastructure.
+- If an implementation requires JuiceOrchestrator to create/render VFX, VFX to request hit-stop directly, or gameplay to select an audio asset, stop and resolve the ownership conflict before coding.
+- If a requirement cannot be expressed with the existing EventBus, ECS lifecycle, temporal channels, audio service or draw adapter, present the smallest missing contract and alternatives before introducing infrastructure.
+- If an effect selects `freeze` or `scale(factor)` time policy, block that effect until the existing ECS lifetime path supports it and its tests pass; `advance` remains the compatibility default.
+- Apply full rollback/retraction requirements only when the selected runtime actually re-executes gameplay producers or emits speculative events. Do not treat replay tooling or a test-only API as proof that every live game uses full rollback.
+- Do not require numeric VFX capacity caps or pooling unless a representative workload makes them relevant; do not infer performance support from the architecture diagram.
 - Do not merge a pull request without explicit authorization.
 - Report source evidence and actual test execution separately. A GitHub source inspection is not a local test run.
 
-## 10. Related records
+## 9. Related records
 
 - `docs/agents/vfx-ledger.md` — per-effect VFX audit and integration evidence.
 - `docs/agents/juice-consolidation-ledger.md` — temporal/legacy Juice audit history and phase status.
+- `docs/agents/game-feel-architecture-ledger.md` — cross-layer runtime baseline, time/rollback evidence and unresolved ownership gaps.
 - `docs/audit/vfx-effects-inventory.md` — procedural and sprite-sheet effect inventory.
 - `docs/audit/vfx-architecture-audit.md` — source-level VFX architecture findings.
-- `docs/specs/vfx-architecture-2.0-decisions.md` — earlier design decisions; its original statement that JuiceOrchestrator remains the combined spawn/event entry point is superseded by this ownership contract.
+- `docs/specs/vfx-architecture-2.0-decisions.md` — earlier design decisions; its former combined JuiceOrchestrator spawn/event guidance is superseded by this ownership contract.

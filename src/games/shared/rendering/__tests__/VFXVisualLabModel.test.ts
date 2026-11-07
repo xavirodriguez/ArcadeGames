@@ -17,9 +17,13 @@ import {
 describe("VFX Visual Lab model", () => {
   it("exposes every production PixelFX drawer exactly once", () => {
     const ids = VFX_LAB_EFFECTS.map((effect) => effect.id);
-    expect(ids).toHaveLength(29);
+    expect(ids).toHaveLength(39);
     expect(new Set(ids).size).toBe(ids.length);
     expect(VFX_LAB_EFFECTS.every((effect) => typeof effect.draw === "function")).toBe(true);
+    expect(ids).toEqual(expect.arrayContaining([
+      "pixelfx_heal", "pixelfx_poison", "pixelfx_burn", "pixelfx_frost", "pixelfx_electric",
+      "pixelfx_bleed", "pixelfx_buff", "pixelfx_debuff", "pixelfx_spawn", "pixelfx_death"
+    ]));
   });
 
   it("stays aligned with the production Canvas and Skia registration names", () => {
@@ -35,6 +39,19 @@ describe("VFX Visual Lab model", () => {
       expect(registerShape.mock.calls.map(([name]) => name)).toEqual(
         VFX_LAB_EFFECTS.map((effect) => effect.id)
       );
+    }
+  });
+
+  it("provides four deterministic temporal review presets for every new effect", () => {
+    const newEffects = [
+      "pixelfx_heal", "pixelfx_poison", "pixelfx_burn", "pixelfx_frost", "pixelfx_electric",
+      "pixelfx_bleed", "pixelfx_buff", "pixelfx_debuff", "pixelfx_spawn", "pixelfx_death"
+    ];
+    for (const effect of newEffects) {
+      const presets = VFX_LAB_PRESETS.filter((preset) => preset.effect === effect);
+      expect(presets.map((preset) => preset.progress)).toEqual([0.04, 0.28, 0.58, 0.88]);
+      expect(new Set(presets.map((preset) => preset.seed)).size).toBe(1);
+      expect(new Set(presets.map((preset) => preset.profile)).size).toBe(1);
     }
   });
 

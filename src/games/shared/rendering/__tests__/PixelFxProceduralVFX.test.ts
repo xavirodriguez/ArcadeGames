@@ -29,6 +29,16 @@ import {
   drawPixelFxGuardBreak,
   drawPixelFxArmorBreak,
   drawPixelFxComboFinisher,
+  drawPixelFxHeal,
+  drawPixelFxPoison,
+  drawPixelFxBurn,
+  drawPixelFxFrost,
+  drawPixelFxElectric,
+  drawPixelFxBleed,
+  drawPixelFxBuff,
+  drawPixelFxDebuff,
+  drawPixelFxSpawn,
+  drawPixelFxDeath,
   registerPixelFxProceduralVFX
 } from "../PixelFxProceduralVFX";
 
@@ -385,10 +395,43 @@ describe("PixelFX-inspired procedural VFX", () => {
     drawPixelFxGuardBreak(adapter, world, entity);
     drawPixelFxArmorBreak(adapter, world, entity);
     drawPixelFxComboFinisher(adapter, world, entity);
+    drawPixelFxHeal(adapter, world, entity);
+    drawPixelFxPoison(adapter, world, entity);
+    drawPixelFxBurn(adapter, world, entity);
+    drawPixelFxFrost(adapter, world, entity);
+    drawPixelFxElectric(adapter, world, entity);
+    drawPixelFxBleed(adapter, world, entity);
+    drawPixelFxBuff(adapter, world, entity);
+    drawPixelFxDebuff(adapter, world, entity);
+    drawPixelFxSpawn(adapter, world, entity);
+    drawPixelFxDeath(adapter, world, entity);
     expect(adapter.drawLine).not.toHaveBeenCalled();
     expect(adapter.drawArc).not.toHaveBeenCalled();
     expect(adapter.strokeCircle).not.toHaveBeenCalled();
     expect(adapter.fillCircle).not.toHaveBeenCalled();
+  });
+
+  it("draws all ten new status and lifecycle effects with stable adapter operations", () => {
+    const effects = [
+      drawPixelFxHeal, drawPixelFxPoison, drawPixelFxBurn, drawPixelFxFrost,
+      drawPixelFxElectric, drawPixelFxBleed, drawPixelFxBuff, drawPixelFxDebuff,
+      drawPixelFxSpawn, drawPixelFxDeath
+    ];
+    for (const drawEffect of effects) {
+      const first = createAdapter();
+      const firstState = createWorld(0.16);
+      drawEffect(first, firstState.world, firstState.entity);
+      const second = createAdapter();
+      const secondState = createWorld(0.16);
+      drawEffect(second, secondState.world, secondState.entity);
+      const operationCount = (adapter: MockDrawAdapter) =>
+        adapter.fillCircle.mock.calls.length + adapter.strokeCircle.mock.calls.length +
+        adapter.drawLine.mock.calls.length + adapter.drawArc.mock.calls.length;
+      expect(operationCount(first)).toBeGreaterThan(0);
+      expect(operationCount(first)).toBe(operationCount(second));
+      expect(first.drawLine.mock.calls).toEqual(second.drawLine.mock.calls);
+      expect(first.drawArc.mock.calls).toEqual(second.drawArc.mock.calls);
+    }
   });
 
   it("does not draw expired effects", () => {
@@ -422,20 +465,30 @@ describe("PixelFX-inspired procedural VFX", () => {
     drawPixelFxGuardBreak(adapter, world, entity);
     drawPixelFxArmorBreak(adapter, world, entity);
     drawPixelFxComboFinisher(adapter, world, entity);
+    drawPixelFxHeal(adapter, world, entity);
+    drawPixelFxPoison(adapter, world, entity);
+    drawPixelFxBurn(adapter, world, entity);
+    drawPixelFxFrost(adapter, world, entity);
+    drawPixelFxElectric(adapter, world, entity);
+    drawPixelFxBleed(adapter, world, entity);
+    drawPixelFxBuff(adapter, world, entity);
+    drawPixelFxDebuff(adapter, world, entity);
+    drawPixelFxSpawn(adapter, world, entity);
+    drawPixelFxDeath(adapter, world, entity);
     expect(adapter.drawLine).not.toHaveBeenCalled();
     expect(adapter.drawArc).not.toHaveBeenCalled();
     expect(adapter.strokeCircle).not.toHaveBeenCalled();
     expect(adapter.fillCircle).not.toHaveBeenCalled();
   });
 
-  it("registers all twenty-nine shapes for Canvas", () => {
+  it("registers all thirty-nine shapes for Canvas", () => {
     const registerShape = jest.fn();
     const renderer = {
       type: "canvas" as const,
       registerShape
     } as never as Renderer<CoreComponentRegistry, RenderContext>;
     registerPixelFxProceduralVFX(renderer);
-    expect(registerShape).toHaveBeenCalledTimes(29);
+    expect(registerShape).toHaveBeenCalledTimes(39);
     expect(registerShape.mock.calls.map(([name]) => name)).toEqual([
       "pixelfx_impact",
       "pixelfx_hitstun",
@@ -465,18 +518,28 @@ describe("PixelFX-inspired procedural VFX", () => {
       "pixelfx_target_warning",
       "pixelfx_teleport",
       "pixelfx_surface_skid",
-      "pixelfx_mechanical_motion"
+      "pixelfx_mechanical_motion",
+      "pixelfx_heal",
+      "pixelfx_poison",
+      "pixelfx_burn",
+      "pixelfx_frost",
+      "pixelfx_electric",
+      "pixelfx_bleed",
+      "pixelfx_buff",
+      "pixelfx_debuff",
+      "pixelfx_spawn",
+      "pixelfx_death"
     ]);
   });
 
-  it("registers the same twenty-nine-shape contract for Skia", () => {
+  it("registers the same thirty-nine-shape contract for Skia", () => {
     const registerShape = jest.fn();
     const renderer = {
       type: "skia" as const,
       registerShape
     } as never as Renderer<CoreComponentRegistry, RenderContext>;
     registerPixelFxProceduralVFX(renderer);
-    expect(registerShape).toHaveBeenCalledTimes(29);
+    expect(registerShape).toHaveBeenCalledTimes(39);
     expect(registerShape.mock.calls.map(([name]) => name)).toEqual([
       "pixelfx_impact",
       "pixelfx_hitstun",
@@ -506,7 +569,17 @@ describe("PixelFX-inspired procedural VFX", () => {
       "pixelfx_target_warning",
       "pixelfx_teleport",
       "pixelfx_surface_skid",
-      "pixelfx_mechanical_motion"
+      "pixelfx_mechanical_motion",
+      "pixelfx_heal",
+      "pixelfx_poison",
+      "pixelfx_burn",
+      "pixelfx_frost",
+      "pixelfx_electric",
+      "pixelfx_bleed",
+      "pixelfx_buff",
+      "pixelfx_debuff",
+      "pixelfx_spawn",
+      "pixelfx_death"
     ]);
   });
 });

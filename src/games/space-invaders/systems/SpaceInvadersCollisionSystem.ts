@@ -149,38 +149,41 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
 
     // Apply micro freeze-frame hit-stop (30ms) and Squash & Stretch deformation on invader hit
     world.setResource("GameplayFreeze", { remaining: 0.03 });
-    Juice.squash(world as World<CoreComponentRegistry>, target, 1.25, 0.75, 120);
 
-    const pos = world.getComponent(target, "Transform");
-    if (pos) {
-      // Calculate bullet velocity/direction before particle burst for directional impact sparks
-      let sparkAngle: [number, number] = [0, 360];
-      if (sourceBullet && world.hasComponent(sourceBullet, "Velocity")) {
-        const vel = world.getComponent(sourceBullet, "Velocity");
-        if (vel && (vel.vx !== 0 || vel.vy !== 0)) {
-          const theta = (Math.atan2(vel.vy, vel.vx) * 180) / Math.PI;
-          sparkAngle = [theta - 30, theta + 30];
+    if (!world.isReSimulating) {
+      Juice.squash(world as World<CoreComponentRegistry>, target, 1.25, 0.75, 120);
+
+      const pos = world.getComponent(target, "Transform");
+      if (pos) {
+        // Calculate bullet velocity/direction before particle burst for directional impact sparks
+        let sparkAngle: [number, number] = [0, 360];
+        if (sourceBullet && world.hasComponent(sourceBullet, "Velocity")) {
+          const vel = world.getComponent(sourceBullet, "Velocity");
+          if (vel && (vel.vx !== 0 || vel.vy !== 0)) {
+            const theta = (Math.atan2(vel.vy, vel.vx) * 180) / Math.PI;
+            sparkAngle = [theta - 30, theta + 30];
+          }
         }
+
+        // Small directional spark burst emitter
+        const sparkEmitter = createEmitter(world, {
+          type: "spark",
+          x: pos.x,
+          y: pos.y,
+          rate: 0,
+          burst: true,
+          count: 5,
+          lifetime: [0.15, 0.3],
+          speed: [80, 180],
+          size: [2, 4],
+          color: ["#00FFFF", "#FFFFFF", "#FFFF00"],
+          angle: sparkAngle,
+          loop: false
+        });
+        world.getCommandBuffer().addComponent(sparkEmitter, { type: "TTL", timeLeft: 0.3, remaining: 0.3 });
+
+        this.createExplosion(world, pos.x, pos.y, "#00FFFF");
       }
-
-      // Small directional spark burst emitter
-      const sparkEmitter = createEmitter(world, {
-        type: "spark",
-        x: pos.x,
-        y: pos.y,
-        rate: 0,
-        burst: true,
-        count: 5,
-        lifetime: [0.15, 0.3],
-        speed: [80, 180],
-        size: [2, 4],
-        color: ["#00FFFF", "#FFFFFF", "#FFFF00"],
-        angle: sparkAngle,
-        loop: false
-      });
-      world.getCommandBuffer().addComponent(sparkEmitter, { type: "TTL", timeLeft: 0.3, remaining: 0.3 });
-
-      this.createExplosion(world, pos.x, pos.y, "#00FFFF");
     }
 
     const eventBus = world.getEventBus();
@@ -224,30 +227,32 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
         gs.score = nextScore;
       });
 
-      const pos = world.getComponent(target, "Transform");
-      if (pos) {
-        const explosionX = pos.x;
-        const explosionY = pos.y;
+      if (!world.isReSimulating) {
+        const pos = world.getComponent(target, "Transform");
+        if (pos) {
+          const explosionX = pos.x;
+          const explosionY = pos.y;
 
-        this.createExplosion(world, explosionX, explosionY, "#FFFFFF");
+          this.createExplosion(world, explosionX, explosionY, "#FFFFFF");
 
-        // Dynamic popup text & color based on combo multiplier
-        let popupColor = "#FFFF00";
-        if (nextMultiplier >= 6) popupColor = "#FFD700"; // Gold
-        else if (nextMultiplier >= 4) popupColor = "#FF00FF"; // Magenta
-        else if (nextMultiplier >= 2) popupColor = "#00FFFF"; // Cyan
+          // Dynamic popup text & color based on combo multiplier
+          let popupColor = "#FFFF00";
+          if (nextMultiplier >= 6) popupColor = "#FFD700"; // Gold
+          else if (nextMultiplier >= 4) popupColor = "#FF00FF"; // Magenta
+          else if (nextMultiplier >= 2) popupColor = "#00FFFF"; // Cyan
 
-        const popupText = nextMultiplier > 1 ? `+${scoreGain} (x${nextMultiplier})` : `+${scoreGain}`;
-        spawnScorePopup(world, explosionX, explosionY, popupText, popupColor);
+          const popupText = nextMultiplier > 1 ? `+${scoreGain} (x${nextMultiplier})` : `+${scoreGain}`;
+          spawnScorePopup(world, explosionX, explosionY, popupText, popupColor);
 
-        const orchestrator = new JuiceOrchestrator(world);
-        orchestrator.triggerEvent("space-invaders", "alien:destroyed", { x: explosionX, y: explosionY });
+          const orchestrator = new JuiceOrchestrator(world);
+          orchestrator.triggerEvent("space-invaders", "alien:destroyed", { x: explosionX, y: explosionY });
+        }
+
+        // Contextual screen shake: light for single kills, medium for fast combo chains
+        const shakeIntensity = nextCombo >= 5 ? 5.5 : 2.5;
+        const shakeDuration = nextCombo >= 5 ? 180 : 100;
+        Juice.shake(world as World<CoreComponentRegistry>, shakeIntensity, shakeDuration);
       }
-
-      // Contextual screen shake: light for single kills, medium for fast combo chains
-      const shakeIntensity = nextCombo >= 5 ? 5.5 : 2.5;
-      const shakeDuration = nextCombo >= 5 ? 180 : 100;
-      Juice.shake(world as World<CoreComponentRegistry>, shakeIntensity, shakeDuration);
 
       const eventBus = world.getEventBus();
       if (eventBus) {

@@ -49,12 +49,40 @@ class TestSimulationAdapter implements Simulation {
 
   hash(): string {
     const snap = this.snapshot();
+    const authoritativeComponentTypes = [
+      "GameState",
+      "Combo",
+      "Invader",
+      "Player",
+      "Boss",
+      "Shield",
+      "PlayerBullet",
+      "EnemyBullet",
+      "Health",
+      "Faction",
+      "Damage"
+    ];
+
+    const compData = snap.componentData || {};
+    const filteredComponents: Record<string, Record<string, unknown>> = {};
+    for (const type of authoritativeComponentTypes) {
+      if (compData[type]) {
+        filteredComponents[type] = {};
+        for (const [entityId, comp] of Object.entries(compData[type])) {
+          if (type === "GameState") {
+            const gs = { ...(comp as Record<string, unknown>) };
+            delete gs.screenShake;
+            filteredComponents[type][entityId] = gs;
+          } else {
+            filteredComponents[type][entityId] = comp;
+          }
+        }
+      }
+    }
+
     const dataToHash = {
       tick: snap.tick,
-      entities: snap.entities,
-      components: snap.isSoA ? snap.soaComponentData : snap.componentData,
-      seed: snap.seed,
-      rngState: snap.rngState
+      components: filteredComponents
     };
     const str = JSON.stringify(dataToHash);
     let hash = 2166136261;

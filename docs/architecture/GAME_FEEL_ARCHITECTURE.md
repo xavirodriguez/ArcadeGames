@@ -263,6 +263,8 @@ The implementation distinguishes three separate concepts:
 
 An effect must not silently assume that TTL freezes with gameplay. If a future effect has a strong requirement to hold its visual pose during hit-stop, that must be an explicit presentation-time policy supported by a tested clock/pause mechanism. Do not add a second scheduler or modify authoritative simulation time to achieve it. Until that mechanism exists, the default `advance-during-hit-stop` policy applies.
 
+Required regression coverage includes a scheduler test proving TTL-backed visual progress continues during GameplayFreeze, an expiry test proving an effect may expire before the freeze ends, and a separate explicit-pause test. Any future hold/freeze policy must add its own deterministic clock and restore tests before use.
+
 Explicit application pause is a separate policy from hit-stop. Its effect on TTL, visual animation, shake and audio must be defined and tested at the relevant application boundary; it must not be inferred from the hit-stop rule.
 
 TTL is a lifetime bound, not a universal clock abstraction. Drawers may derive normalized progress from TTL while it remains the chosen lifetime contract, but must not treat TTL as simulation time.
@@ -289,12 +291,21 @@ The flag is checked by the consumer/runtime at the boundary, not copied into a g
 
 **Prediction/retraction rule:**
 
-A predicted event may later be invalidated by rollback. EventBus dispatch alone does not provide compensation. Therefore:
+A predicted event may later be invalidated by rollback. EventBus dispatch alone does not provide compensation. The response is different for snapshot-managed temporal state and irreversible presentation output:
 
-1. By default, VFX and Audio output is emitted only when the originating event is confirmed/committed for presentation. In non-predicted local gameplay, the authoritative transition may be considered immediately confirmed.
-2. Optimistic speculative VFX/audio is permitted only when the runtime supports cancellation/reconciliation keyed by a stable event-occurrence ID and rollback explicitly retracts or replaces invalidated output.
-3. A stable occurrence ID must survive re-execution of the same logical event during replay. It must not be based on wall-clock time, a transient callback identity or entity ID alone.
-4. Until confirmation or keyed cancellation/retraction is implemented and tested, speculative presentation is a blocker, not an undocumented exception.
+1. **Hit-stop:** a predicted hit-stop request may be applied only through the canonical snapshot-managed `GameplayFreeze` and `JuiceHitStopPolicy` state. Rollback must restore both resources to the pre-event snapshot; corrected replay reissues the request only if the corrected gameplay history still contains the event. If either state is not restored deterministically, defer the request until confirmation.
+2. **Shake, VFX and Audio:** these are presentation side effects. By default, emit them only when the originating event is confirmed/committed for presentation. In non-predicted local gameplay, the authoritative transition may be considered immediately confirmed.
+3. Optimistic shake/VFX/audio is permitted only when the runtime supports cancellation/reconciliation keyed by a stable event-occurrence ID and rollback explicitly retracts or replaces invalidated output.
+4. A stable occurrence ID must survive re-execution of the same logical event during replay. It must not be based on wall-clock time, a transient callback identity or entity ID alone.
+5. Until confirmation or keyed cancellation/retraction is implemented and tested, speculative presentation is a blocker, not an undocumented exception.
+
+**Required regression coverage:**
+
+- Replaying the same gameplay event during `world.isReSimulating` must not create a VFX entity, play audio or add a second shake impulse.
+- A hit-stop request that belongs to the corrected authoritative history must be reproduced during replay.
+- A hit-stop request from a rolled-back prediction must disappear when `GameplayFreeze` and `JuiceHitStopPolicy` are restored to the earlier snapshot.
+- A corrected, confirmed event produces exactly one set of VFX/audio outputs.
+- If optimistic output is ever enabled, rollback must cancel the output associated with the invalidated stable occurrence ID and retain/recreate output for the corrected occurrence.
 
 This does not require a global exactly-once EventBus. The gameplay producer owns prevention of duplicate logical transitions in one authoritative history; consumers own suppression of replay side effects and idempotency for confirmed delivery where needed.
 

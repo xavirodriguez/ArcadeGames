@@ -1175,12 +1175,14 @@ export function drawPixelFxElectric(draw: IDrawAdapter, world: import("@tiny-ast
   const { progress: p, alpha, size, color, rotation } = state;
   const reach = size * (0.34 + p * 0.56);
   const fade = alpha * (1 - p * 0.58);
-  const points = [[-0.42, -0.34], [-0.08, -0.08], [-0.22, 0.12], [0.16, 0.06], [0.04, 0.38]] as const;
+  const points: ReadonlyArray<readonly [number, number]> = [[-0.42, -0.34], [-0.08, -0.08], [-0.22, 0.12], [0.16, 0.06], [0.04, 0.38]];
   const c = Math.cos(rotation), sn = Math.sin(rotation);
   const transform = (x: number, y: number) => ({ x: (x * c - y * sn) * reach, y: (x * sn + y * c) * reach });
   draw.save();
   for (let i = 0; i < points.length - 1; i++) {
-    const a = transform(points[i][0], points[i][1]), b = transform(points[i + 1][0], points[i + 1][1]);
+    const from = points[i], to = points[i + 1];
+    if (!from || !to) continue;
+    const a = transform(from[0], from[1]), b = transform(to[0], to[1]);
     draw.drawLine(a.x, a.y, b.x, b.y, color, Math.max(1.2, size * 0.065), fade);
   }
   const branchA = transform(-0.08, -0.08), branchB = transform(-0.42, 0.02), branchC = transform(0.16, 0.06), branchD = transform(0.42, -0.2);

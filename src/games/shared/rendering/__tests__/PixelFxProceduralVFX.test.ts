@@ -95,6 +95,23 @@ function createWorld(remaining = 0.2): { world: World<CoreComponentRegistry>; en
 }
 
 describe("PixelFX-inspired procedural VFX", () => {
+  it("keeps visual progress independent from TTL when animDuration is configured", () => {
+    const defaultAdapter = createAdapter();
+    const defaultState = createWorld(0.2);
+    drawPixelFxImpact(defaultAdapter, defaultState.world, defaultState.entity);
+
+    const fastAdapter = createAdapter();
+    const fastState = createWorld(0.2);
+    const render = fastState.world.getComponent(fastState.entity, "Render") as unknown as { vfxAnimDuration?: number };
+    render.vfxAnimDuration = 0.2;
+    drawPixelFxImpact(fastAdapter, fastState.world, fastState.entity);
+
+    expect(fastAdapter.strokeCircle.mock.calls[0][2])
+      .toBeGreaterThan(defaultAdapter.strokeCircle.mock.calls[0][2]);
+    expect(fastAdapter.strokeCircle.mock.calls[0][5])
+      .toBe(defaultAdapter.strokeCircle.mock.calls[0][5]);
+  });
+
   it("draws the impact composition with deterministic ring and shard geometry", () => {
     const adapter = createAdapter();
     const { world, entity } = createWorld();

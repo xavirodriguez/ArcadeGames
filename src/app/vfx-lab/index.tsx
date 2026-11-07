@@ -28,6 +28,7 @@ import {
   type VFXLabPreset
 } from "../../games/shared/rendering/VFXVisualLabModel";
 import { resolveVFXPlacement, VFX_VISUAL_PROFILES, type VFXVisualProfileId } from "../../games/shared/rendering/VFXEffectIR";
+import { DEFAULT_VFX_COMBAT_PHASES, resolveVFXPhase } from "../../games/shared/rendering/vfx-timeline";
 
 const PREVIEW_WIDTH = 480;
 const PREVIEW_HEIGHT = 240;
@@ -78,6 +79,7 @@ export default function VFXVisualLabScreen() {
   );
   const placement = resolveVFXPlacement(descriptor);
   const semanticRole = resolveVFXLabSemanticRole(effect.family);
+  const phaseSample = resolveVFXPhase(progress);
   const color = resolveVFXLabColor(effect, profile);
   const semanticTokens = VFX_VISUAL_PROFILES[profile].tokens;
   const previewPalette = useMemo(() => getVFXLabPreviewPalette(profile), [profile]);
@@ -316,6 +318,16 @@ export default function VFXVisualLabScreen() {
             </View>
           </View>
           <View style={styles.track}><View style={[styles.trackFill, { width: `${progress * 100}%` }]} /></View>
+          <View style={styles.phaseTimeline}>
+            {DEFAULT_VFX_COMBAT_PHASES.map((phase) => (
+              <TouchableOpacity key={phase.id} style={[styles.phaseButton, phaseSample.phase === phase.id && styles.phaseButtonActive]}
+                onPress={() => setProgress((phase.start + phase.end) / 2)} accessibilityRole="button"
+                accessibilityState={{ selected: phaseSample.phase === phase.id }}>
+                <Text style={[styles.phaseButtonText, phaseSample.phase === phase.id && styles.phaseButtonTextActive]}>{phase.id.toUpperCase()}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <Text style={styles.helper}>Phase: {phaseSample.phase.toUpperCase()} · local progress {Math.round(phaseSample.phaseT * 100)}%. Select a phase to inspect its midpoint.</Text>
           <View style={styles.controlRow}>
             <Text style={styles.controlLabel}>Size</Text>
             <View style={styles.stepper}>
@@ -352,6 +364,7 @@ export default function VFXVisualLabScreen() {
           <View style={styles.inspectorRow}><Text style={styles.inspectorKey}>Placement rotation</Text><Text style={styles.inspectorValue}>{formatValue(placement.rotation ?? rotation)} rad</Text></View>
           <View style={styles.inspectorRow}><Text style={styles.inspectorKey}>Presentation size</Text><Text style={styles.inspectorValue}>{size}px</Text></View>
           <View style={styles.inspectorRow}><Text style={styles.inspectorKey}>TTL / progress</Text><Text style={styles.inspectorValue}>{(1 - progress).toFixed(2)}s / {(progress * 100).toFixed(0)}%</Text></View>
+          <View style={styles.inspectorRow}><Text style={styles.inspectorKey}>Semantic phase</Text><Text style={styles.inspectorValue}>{phaseSample.phase} · {phaseSample.phaseT.toFixed(2)}</Text></View>
         </View>
 
         <View style={styles.panel}>

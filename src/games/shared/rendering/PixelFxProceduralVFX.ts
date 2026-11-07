@@ -1079,6 +1079,222 @@ export function drawPixelFxStagger(
   draw.strokeCircle(wobble * 0.7, -size * 0.045, size * (0.12 + p * 0.045), color, Math.max(0.8, size * 0.022), fade * 0.42);
   draw.restore();
 }
+
+/** Healing: an upward renewal pulse with a clear plus-sign core and ascending motes. */
+export function drawPixelFxHeal(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
+  const state = readEffectState(world, entity);
+  if (!state || state.alpha <= 0.01) return;
+  const { progress: p, alpha, size, color, rotation } = state;
+  const rise = size * (0.12 + p * 0.72);
+  const fade = alpha * (1 - p * 0.62);
+  const pulse = 0.88 + Math.sin(p * Math.PI * 4) * 0.12;
+  draw.save();
+  draw.drawArc(0, 0, size * (0.28 + p * 0.2), rotation + 0.25, Math.PI * 1.5, color, Math.max(1, size * 0.035), fade * 0.62);
+  draw.drawLine(-size * 0.19, 0, size * 0.19, 0, color, Math.max(1.5, size * 0.075), alpha * pulse);
+  draw.drawLine(0, -size * 0.19, 0, size * 0.19, color, Math.max(1.5, size * 0.075), alpha * pulse);
+  for (let i = 0; i < 4; i++) {
+    const x = (i - 1.5) * size * 0.18;
+    const y = -rise * (0.5 + (i % 2) * 0.16);
+    draw.fillCircle(x, y, size * (0.025 + (i % 2) * 0.009), color, fade * (0.85 - i * 0.1));
+    draw.drawLine(x, y + size * 0.07, x, y + size * 0.13, color, Math.max(0.8, size * 0.018), fade * 0.55);
+  }
+  draw.restore();
+}
+
+/** Poison: a low, bubbling cloud with hanging toxic droplets. */
+export function drawPixelFxPoison(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
+  const state = readEffectState(world, entity);
+  if (!state || state.alpha <= 0.01) return;
+  const { progress: p, alpha, size, color, rotation } = state;
+  const spread = size * (0.24 + p * 0.42);
+  const fade = alpha * (1 - p * 0.58);
+  draw.save();
+  draw.drawArc(0, size * 0.12, spread, rotation + Math.PI * 0.08, Math.PI * 0.84, color, Math.max(1, size * 0.055), fade);
+  for (let i = 0; i < 5; i++) {
+    const side = i - 2;
+    const x = side * size * 0.17 + Math.sin(p * Math.PI * 2 + i) * size * 0.035;
+    const y = size * (0.12 + (i % 2) * 0.07) + p * size * (0.18 + (i % 3) * 0.035);
+    const r = size * (0.035 + (i % 3) * 0.012) * (1 - p * 0.12);
+    draw.drawLine(x, y - r * 1.9, x, y - r * 0.65, color, Math.max(1, size * 0.025), fade * 0.7);
+    draw.fillCircle(x, y, r, color, fade * (0.9 - Math.abs(side) * 0.12));
+    if (i % 2 === 0) draw.strokeCircle(x + size * 0.08, y - size * 0.16, r * 0.72, color, Math.max(0.8, size * 0.018), fade * 0.48);
+  }
+  draw.restore();
+}
+
+/** Burn: three rising flame tongues with a hot, compressed base. */
+export function drawPixelFxBurn(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
+  const state = readEffectState(world, entity);
+  if (!state || state.alpha <= 0.01) return;
+  const { progress: p, alpha, size, color, rotation } = state;
+  const height = size * (0.48 + p * 0.38);
+  const fade = alpha * (1 - p * 0.52);
+  draw.save();
+  draw.drawArc(0, size * 0.16, size * (0.38 + p * 0.08), Math.PI * 0.08, Math.PI * 0.84, color, Math.max(1, size * 0.055), fade * 0.72);
+  for (let i = 0; i < 3; i++) {
+    const x = (i - 1) * size * 0.2;
+    const sway = Math.sin(p * Math.PI * 2 + i * 1.4) * size * 0.055;
+    const tipY = -height * (0.72 + (i === 1 ? 0.2 : 0));
+    draw.drawLine(x - size * 0.07, size * 0.12, x + sway, tipY, color, Math.max(1, size * (0.075 - i * 0.012)), fade);
+    draw.drawLine(x + sway, tipY, x + size * 0.07, size * 0.1, color, Math.max(1, size * 0.045), fade * 0.82);
+  }
+  draw.fillCircle(0, size * 0.12, size * (0.09 * (1 - p * 0.25)), color, fade);
+  draw.drawArc(0, 0, size * 0.56, rotation - 0.5, 0.34, color, Math.max(0.8, size * 0.022), fade * 0.5);
+  draw.restore();
+}
+
+/** Frost: a six-armed snow crystal with secondary branching facets. */
+export function drawPixelFxFrost(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
+  const state = readEffectState(world, entity);
+  if (!state || state.alpha <= 0.01) return;
+  const { progress: p, alpha, size, color, rotation } = state;
+  const radius = size * (0.22 + p * 0.56);
+  const fade = alpha * (1 - p * 0.5);
+  draw.save();
+  draw.strokeCircle(0, 0, radius * 0.28, color, Math.max(0.8, size * 0.022), fade * 0.55);
+  for (let i = 0; i < 6; i++) {
+    const angle = rotation + i * Math.PI / 3;
+    const ux = Math.cos(angle), uy = Math.sin(angle);
+    const ex = ux * radius, ey = uy * radius;
+    draw.drawLine(-ux * radius * 0.18, -uy * radius * 0.18, ex, ey, color, Math.max(1, size * 0.04), fade);
+    const branch = radius * 0.28;
+    for (const sign of [-1, 1]) {
+      const bx = ux * radius * 0.62, by = uy * radius * 0.62;
+      const a = angle + sign * Math.PI * 0.72;
+      draw.drawLine(bx, by, bx + Math.cos(a) * branch, by + Math.sin(a) * branch, color, Math.max(0.8, size * 0.027), fade * 0.82);
+    }
+    draw.fillCircle(ex, ey, size * 0.025, color, fade * 0.8);
+  }
+  draw.restore();
+}
+
+/** Electric: a branching lightning bolt with a concentrated discharge node. */
+export function drawPixelFxElectric(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
+  const state = readEffectState(world, entity);
+  if (!state || state.alpha <= 0.01) return;
+  const { progress: p, alpha, size, color, rotation } = state;
+  const reach = size * (0.34 + p * 0.56);
+  const fade = alpha * (1 - p * 0.58);
+  const points = [[-0.42, -0.34], [-0.08, -0.08], [-0.22, 0.12], [0.16, 0.06], [0.04, 0.38]] as const;
+  const c = Math.cos(rotation), sn = Math.sin(rotation);
+  const transform = (x: number, y: number) => ({ x: (x * c - y * sn) * reach, y: (x * sn + y * c) * reach });
+  draw.save();
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = transform(points[i][0], points[i][1]), b = transform(points[i + 1][0], points[i + 1][1]);
+    draw.drawLine(a.x, a.y, b.x, b.y, color, Math.max(1.2, size * 0.065), fade);
+  }
+  const branchA = transform(-0.08, -0.08), branchB = transform(-0.42, 0.02), branchC = transform(0.16, 0.06), branchD = transform(0.42, -0.2);
+  draw.drawLine(branchA.x, branchA.y, branchB.x, branchB.y, color, Math.max(0.8, size * 0.03), fade * 0.78);
+  draw.drawLine(branchC.x, branchC.y, branchD.x, branchD.y, color, Math.max(0.8, size * 0.03), fade * 0.72);
+  draw.fillCircle(0, 0, size * (0.055 + (1 - p) * 0.025), color, fade);
+  draw.restore();
+}
+
+/** Bleed: directional cuts and falling droplets, deliberately unlike a generic impact burst. */
+export function drawPixelFxBleed(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
+  const state = readEffectState(world, entity);
+  if (!state || state.alpha <= 0.01) return;
+  const { progress: p, alpha, size, color, rotation } = state;
+  const fade = alpha * (1 - p * 0.62);
+  draw.save();
+  for (let i = 0; i < 4; i++) {
+    const angle = rotation + (i - 1.5) * 0.42;
+    const distance = size * (0.18 + p * (0.3 + i * 0.035));
+    const x = Math.cos(angle) * distance, y = Math.sin(angle) * distance + p * size * 0.2;
+    const r = size * (0.035 + (i % 2) * 0.018) * (1 - p * 0.2);
+    draw.fillCircle(x, y, r, color, fade * (0.9 - i * 0.1));
+    draw.drawLine(x, y - r * 2.2, x + Math.cos(angle) * r, y - r * 3.6, color, Math.max(0.8, size * 0.022), fade * 0.72);
+  }
+  draw.drawLine(-size * 0.42, -size * 0.12, size * 0.34, size * 0.06, color, Math.max(1, size * 0.045), fade * 0.82);
+  draw.drawLine(-size * 0.28, size * 0.08, size * 0.18, size * 0.2, color, Math.max(0.8, size * 0.025), fade * 0.58);
+  draw.restore();
+}
+
+/** Buff: an upward double-chevron aura with orbiting status motes. */
+export function drawPixelFxBuff(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
+  const state = readEffectState(world, entity);
+  if (!state || state.alpha <= 0.01) return;
+  const { progress: p, alpha, size, color, rotation } = state;
+  const lift = size * (0.12 + p * 0.22);
+  const fade = alpha * (1 - p * 0.5);
+  draw.save();
+  draw.drawArc(0, size * 0.08, size * (0.42 + p * 0.08), rotation + Math.PI * 1.08, Math.PI * 0.84, color, Math.max(1, size * 0.035), fade * 0.62);
+  for (let i = 0; i < 2; i++) {
+    const y = size * 0.18 - i * size * 0.28 - lift;
+    const width = size * (0.22 + i * 0.07);
+    draw.drawLine(-width, y + size * 0.12, 0, y - size * 0.08, color, Math.max(1, size * 0.055), fade);
+    draw.drawLine(0, y - size * 0.08, width, y + size * 0.12, color, Math.max(1, size * 0.055), fade);
+  }
+  for (let i = 0; i < 3; i++) {
+    const a = rotation + i * Math.PI * 2 / 3 + p * 0.25;
+    draw.fillCircle(Math.cos(a) * size * 0.48, Math.sin(a) * size * 0.48, size * 0.035, color, fade * 0.82);
+  }
+  draw.restore();
+}
+
+/** Debuff: a descending, broken ring and downward chevrons signal weakened state. */
+export function drawPixelFxDebuff(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
+  const state = readEffectState(world, entity);
+  if (!state || state.alpha <= 0.01) return;
+  const { progress: p, alpha, size, color, rotation } = state;
+  const radius = size * (0.48 - p * 0.12);
+  const drop = size * (0.08 + p * 0.28);
+  const fade = alpha * (1 - p * 0.58);
+  draw.save();
+  draw.drawArc(0, 0, radius, rotation + 0.12, Math.PI * 0.56, color, Math.max(1, size * 0.045), fade);
+  draw.drawArc(0, 0, radius, rotation + Math.PI * 1.12, Math.PI * 0.48, color, Math.max(1, size * 0.045), fade * 0.72);
+  for (let i = 0; i < 2; i++) {
+    const y = -size * 0.08 + i * size * 0.22 + drop;
+    const w = size * (0.18 + i * 0.07);
+    draw.drawLine(-w, y - size * 0.1, 0, y + size * 0.1, color, Math.max(1, size * 0.05), fade * (1 - i * 0.16));
+    draw.drawLine(0, y + size * 0.1, w, y - size * 0.1, color, Math.max(1, size * 0.05), fade * (1 - i * 0.16));
+  }
+  draw.fillCircle(0, drop, size * 0.045, color, fade * 0.72);
+  draw.restore();
+}
+
+/** Spawn: a portal-like arrival aperture with inward ticks and an emerging center. */
+export function drawPixelFxSpawn(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
+  const state = readEffectState(world, entity);
+  if (!state || state.alpha <= 0.01) return;
+  const { progress: p, alpha, size, color, rotation } = state;
+  const radius = size * (0.82 - p * 0.34);
+  const fade = alpha * (1 - p * 0.54);
+  draw.save();
+  draw.drawArc(0, 0, radius, rotation + p * 0.4, Math.PI * 1.28, color, Math.max(1, size * 0.055), fade);
+  draw.drawArc(0, 0, radius * 0.72, rotation + Math.PI * 0.78 - p * 0.3, Math.PI * 0.92, color, Math.max(1, size * 0.035), fade * 0.72);
+  for (let i = 0; i < 8; i++) {
+    const a = rotation + i * Math.PI / 4;
+    const inner = radius * 0.62, outer = radius * (0.9 + (i % 2) * 0.08);
+    draw.drawLine(Math.cos(a) * outer, Math.sin(a) * outer, Math.cos(a) * inner, Math.sin(a) * inner, color, Math.max(0.8, size * 0.027), fade * 0.8);
+  }
+  draw.fillCircle(0, 0, size * (0.06 + p * 0.12), color, fade * 0.86);
+  draw.restore();
+}
+
+/** Death: a collapsing shroud and a rising, fading wisp rather than an explosion. */
+export function drawPixelFxDeath(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
+  const state = readEffectState(world, entity);
+  if (!state || state.alpha <= 0.01) return;
+  const { progress: p, alpha, size, color, rotation } = state;
+  const shroud = size * (0.58 - p * 0.2);
+  const rise = size * (0.1 + p * 0.52);
+  const fade = alpha * (1 - p * 0.72);
+  draw.save();
+  draw.drawArc(0, size * 0.12, shroud, rotation + Math.PI * 0.08, Math.PI * 0.42, color, Math.max(1, size * 0.055), fade);
+  draw.drawArc(0, size * 0.12, shroud * 0.88, rotation + Math.PI * 1.08, Math.PI * 0.38, color, Math.max(1, size * 0.045), fade * 0.68);
+  draw.drawLine(-size * 0.16, size * 0.22, -size * 0.08, -rise, color, Math.max(1, size * 0.04), fade * 0.82);
+  draw.drawLine(-size * 0.08, -rise, size * 0.1, -rise - size * 0.12, color, Math.max(0.8, size * 0.03), fade * 0.72);
+  draw.drawLine(size * 0.1, -rise - size * 0.12, size * 0.18, size * 0.18, color, Math.max(0.8, size * 0.025), fade * 0.52);
+  for (let i = 0; i < 5; i++) {
+    const a = rotation + i * Math.PI * 2 / 5;
+    const distance = shroud * (0.72 + p * 0.22);
+    draw.drawLine(Math.cos(a) * shroud * 0.42, Math.sin(a) * shroud * 0.42, Math.cos(a) * distance, Math.sin(a) * distance, color, Math.max(0.8, size * 0.025), fade * (0.5 - i * 0.045));
+  }
+  draw.fillCircle(0, -rise, size * (0.055 * (1 - p * 0.45)), color, fade * 0.8);
+  draw.restore();
+}
+
 export function registerPixelFxProceduralVFX<TComponents extends CoreComponentRegistry>(
   renderer: Renderer<TComponents, RenderContext>
 ): void {
@@ -1111,7 +1327,17 @@ export function registerPixelFxProceduralVFX<TComponents extends CoreComponentRe
     ["pixelfx_target_warning", drawPixelFxTargetWarning],
     ["pixelfx_teleport", drawPixelFxTeleport],
     ["pixelfx_surface_skid", drawPixelFxSurfaceSkid],
-    ["pixelfx_mechanical_motion", drawPixelFxMechanicalMotion]
+    ["pixelfx_mechanical_motion", drawPixelFxMechanicalMotion],
+    ["pixelfx_heal", drawPixelFxHeal],
+    ["pixelfx_poison", drawPixelFxPoison],
+    ["pixelfx_burn", drawPixelFxBurn],
+    ["pixelfx_frost", drawPixelFxFrost],
+    ["pixelfx_electric", drawPixelFxElectric],
+    ["pixelfx_bleed", drawPixelFxBleed],
+    ["pixelfx_buff", drawPixelFxBuff],
+    ["pixelfx_debuff", drawPixelFxDebuff],
+    ["pixelfx_spawn", drawPixelFxSpawn],
+    ["pixelfx_death", drawPixelFxDeath]
   ] as const;
 
   for (const [name, drawEffect] of drawers) {

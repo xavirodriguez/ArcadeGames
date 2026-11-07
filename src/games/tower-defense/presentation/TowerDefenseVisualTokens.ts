@@ -77,6 +77,20 @@ export const TOWER_DEFENSE_VISUAL_TOKENS = {
     paperDusk: "#14161B",
     darkOutline: "#101827",
   },
+  healthBar: {
+    high: "#65e572",
+    mid: "#ffce4a",
+    low: "#ff5252",
+    paperDuskOutline: "#14161b",
+    defaultOutline: "#f4f7ff",
+  },
+  paperDuskMap: {
+    ground: "#2B2F36",
+    buildable: "#3A4049",
+    buildableEdge: "#5B6470",
+    path: "#D8C3A0",
+    pathEdge: "#B39B73",
+  },
 } as const;
 
 export type TowerDefenseVisualTokens = typeof TOWER_DEFENSE_VISUAL_TOKENS;

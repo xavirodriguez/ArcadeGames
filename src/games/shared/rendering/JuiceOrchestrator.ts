@@ -48,7 +48,17 @@ export type SharedVFXPrimitiveName =
   | "pixelfx_target_warning"
   | "pixelfx_teleport"
   | "pixelfx_surface_skid"
-  | "pixelfx_mechanical_motion";
+  | "pixelfx_mechanical_motion"
+  | "pixelfx_heal"
+  | "pixelfx_poison"
+  | "pixelfx_burn"
+  | "pixelfx_frost"
+  | "pixelfx_electric"
+  | "pixelfx_bleed"
+  | "pixelfx_buff"
+  | "pixelfx_debuff"
+  | "pixelfx_spawn"
+  | "pixelfx_death";
 
 /**
  * Base configuration options shared across Juice spawn calls and catalog profiles.

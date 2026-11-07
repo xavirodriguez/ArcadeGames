@@ -396,7 +396,7 @@ Migration is sequential, evidence-based and reversible. Existing integrations co
 - Keep `docs/agents/game-feel-architecture-ledger.md` as the cross-layer implementation baseline and ownership-gap ledger.
 - Audit one effect or one system per unit of work.
 - Record real event producers, subscribers, temporal response, VFX response, audio response, ECS lifecycle, Canvas/Skia registration, tests, Visual Lab scenario, resimulation and prediction behavior.
-- Phase 0 remains open until the complete inventory is reconciled, all `unknown`/`blocked` entries are resolved or explicitly dispositioned, and the user approves the inventory.
+- Phase 0 remains open until the complete inventory is reconciled, no unresolved `unknown` or `blocked` entries remain in scope, and the user approves the inventory.
 
 **No runtime pilot or migration starts before this approval.** Documentation and source-only audits may continue. Asteroids `combat:death` / `rock:destroyed` is only a candidate for the first pilot, not an approved implementation target. After Phase 0 approval, choose and approve the pilot event explicitly.
 

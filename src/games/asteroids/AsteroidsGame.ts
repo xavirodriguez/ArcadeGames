@@ -50,6 +50,9 @@ import {
   RenderContext,
   Mutator,
   CompactInputFrame,
+  CanonicalInputState,
+  CanonicalActionName,
+  hasInputAction,
   preloadSharedAudioManifest,
   isCanonicalActionName
 } from "@tiny-aster/core";
@@ -403,6 +406,10 @@ export class AsteroidsGame
     }
   }
 
+  public isGameOver(): boolean {
+    return this.world.getSingleton("GameState")?.isGameOver ?? false;
+  }
+
   public getMissionSystem(): MissionSystem {
     return this.missionSystem;
   }
@@ -426,7 +433,7 @@ export class AsteroidsGame
     if (this.cachedComboEntityId !== undefined) {
       const comboComp = this.world.getComponent(this.cachedComboEntityId, "Combo");
       if (comboComp) {
-        combo = comboComp.count ?? 0;
+        combo = comboComp.combo ?? 0;
         multiplier = comboComp.multiplier ?? 1;
         comboTimerRemaining = comboComp.timerRemaining ?? 0;
       }
@@ -440,7 +447,7 @@ export class AsteroidsGame
     } as GameStateComponent;
   }
 
-  public setInputState(input: InputState | CompactInputFrame | Record<string, unknown>): void {
+  public setInputState(input: InputState | CompactInputFrame | CanonicalInputState | Record<string, unknown>): void {
     const players = this.world.query("LocalPlayer", "Input");
     for (const entity of players) {
       const inputComp = this.world.getComponent(entity, "Input");
@@ -450,28 +457,49 @@ export class AsteroidsGame
         const actsSet = new Set<string>(comp.actions || []);
         const inputObj = input as Record<string, unknown>;
 
-        if (typeof inputObj.rotateLeft === "boolean") {
-          if (inputObj.rotateLeft) actsSet.add("rotateLeft"); else actsSet.delete("rotateLeft");
-        }
-        if (typeof inputObj.rotateRight === "boolean") {
-          if (inputObj.rotateRight) actsSet.add("rotateRight"); else actsSet.delete("rotateRight");
-        }
-        if (typeof inputObj.thrust === "boolean") {
-          if (inputObj.thrust) actsSet.add("thrust"); else actsSet.delete("thrust");
-        }
-        if (typeof inputObj.shoot === "boolean") {
-          if (inputObj.shoot) actsSet.add("shoot"); else actsSet.delete("shoot");
-        }
-        if (typeof inputObj.hyperspace === "boolean") {
-          if (inputObj.hyperspace) actsSet.add("hyperspace"); else actsSet.delete("hyperspace");
-        }
-        const sorted = Array.from(actsSet).sort();
-        comp.actions = sorted;
+        if (inputObj && typeof inputObj === "object" && inputObj.axes && typeof inputObj.axes === "object") {
+          const axes = inputObj.axes as Record<string, number>;
+          if (typeof axes.moveX === "number") {
+            if (axes.moveX < 0) actsSet.add("rotateLeft"); else actsSet.delete("rotateLeft");
+            if (axes.moveX > 0) actsSet.add("rotateRight"); else actsSet.delete("rotateRight");
+          }
+          if (typeof axes.moveY === "number") {
+            if (axes.moveY < 0) actsSet.add("thrust"); else actsSet.delete("thrust");
+          }
 
-        if (typeof inputObj.rotationAmount === "number") {
-          comp.axes["rotate_x"] = inputObj.rotationAmount;
-          comp.axes["horizontal"] = inputObj.rotationAmount;
+          if (Array.isArray(inputObj.actions)) {
+            for (const act of inputObj.actions) {
+              if (typeof act === "string") actsSet.add(act);
+            }
+          }
+          const actions = inputObj.actions as readonly CanonicalActionName[] | undefined;
+          if (hasInputAction(actions, "fire")) actsSet.add("shoot");
+          if (hasInputAction(actions, "hyperspace")) actsSet.add("hyperspace");
+        } else if (inputObj) {
+          if (typeof inputObj.rotateLeft === "boolean") {
+            if (inputObj.rotateLeft) actsSet.add("rotateLeft"); else actsSet.delete("rotateLeft");
+          }
+          if (typeof inputObj.rotateRight === "boolean") {
+            if (inputObj.rotateRight) actsSet.add("rotateRight"); else actsSet.delete("rotateRight");
+          }
+          if (typeof inputObj.thrust === "boolean") {
+            if (inputObj.thrust) actsSet.add("thrust"); else actsSet.delete("thrust");
+          }
+          if (typeof inputObj.shoot === "boolean") {
+            if (inputObj.shoot) actsSet.add("shoot"); else actsSet.delete("shoot");
+          }
+          if (typeof inputObj.hyperspace === "boolean") {
+            if (inputObj.hyperspace) actsSet.add("hyperspace"); else actsSet.delete("hyperspace");
+          }
+
+          if (typeof inputObj.rotationAmount === "number") {
+            comp.axes["rotate_x"] = inputObj.rotationAmount;
+            comp.axes["horizontal"] = inputObj.rotationAmount;
+          }
         }
+
+        const sorted: CanonicalActionName[] = Array.from(actsSet).filter(isCanonicalActionName).sort();
+        comp.actions = sorted;
       });
     }
   }

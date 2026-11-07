@@ -48,7 +48,17 @@ export type SharedVFXPrimitiveName =
   | "pixelfx_target_warning"
   | "pixelfx_teleport"
   | "pixelfx_surface_skid"
-  | "pixelfx_mechanical_motion";
+  | "pixelfx_mechanical_motion"
+  | "pixelfx_heal"
+  | "pixelfx_poison"
+  | "pixelfx_burn"
+  | "pixelfx_frost"
+  | "pixelfx_electric"
+  | "pixelfx_bleed"
+  | "pixelfx_buff"
+  | "pixelfx_debuff"
+  | "pixelfx_spawn"
+  | "pixelfx_death";
 
 /**
  * Base configuration options shared across Juice spawn calls and catalog profiles.
@@ -59,6 +69,8 @@ export interface BaseJuiceOptions {
   scale?: number;
   intensity?: number;
   ttl?: number;
+  /** Visual animation duration in seconds; independent from entity lifetime. */
+  animDuration?: number;
   text?: string;
   hitStopMs?: number;
   hitStopPriority?: HitStopPriority | number;
@@ -260,7 +272,10 @@ export class JuiceOrchestrator<TComponents extends CoreComponentRegistry = CoreC
       order: 100,
       rotation: 0,
       angularVelocity: 0,
-      hitFlashFrames: 0
+      hitFlashFrames: 0,
+      vfxAnimDuration: typeof options?.animDuration === "number" && Number.isFinite(options.animDuration) && options.animDuration > 0
+        ? options.animDuration
+        : ttlSeconds
     };
 
     if (effectName === "floating_text" && options?.text) {
@@ -314,6 +329,7 @@ export class JuiceOrchestrator<TComponents extends CoreComponentRegistry = CoreC
       scale: profile.scale,
       intensity: profile.intensity,
       ttl: profile.ttl,
+      animDuration: profile.animDuration,
       text: profile.text,
       hitStopMs: profile.hitStopMs,
       hitStopPriority: profile.hitStopPriority,

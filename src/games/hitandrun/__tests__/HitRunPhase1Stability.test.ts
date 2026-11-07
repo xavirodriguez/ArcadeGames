@@ -63,7 +63,7 @@ describe("Hit & Run phase 1 gameplay stability", () => {
     world.addComponent(player, { type: "Velocity", vx: 180, vy: 35, angularVelocity: 0 });
     world.addComponent(player, createBeltInputComponent());
     world.addComponent(player, createBeltMovementComponent());
-    world.addComponent(player, { type: "HitReaction", hitstunRemaining: 0.4, staggerRemaining: 0, blinkElapsed: 0 });
+    world.addComponent(player, { type: "HitReaction", hitstunRemaining: 0.4, staggerRemaining: 0, blinkElapsed: 0 } as never);
     world.mutateComponent(player, "BeltInput", input => { input.moveX = -1; input.moveY = -1; });
 
     new BeltMovementSystem().update(world, 1 / 60);
@@ -78,7 +78,7 @@ describe("Hit & Run phase 1 gameplay stability", () => {
     const enemy = world.createEntity();
     world.addComponent(enemy, { type: "Enemy", kind: "patrol" });
     world.addComponent(enemy, { type: "Velocity", vx: -260, vy: 0, angularVelocity: 0 });
-    world.addComponent(enemy, { type: "HitReaction", hitstunRemaining: 0.2, staggerRemaining: 0.3, blinkElapsed: 0 });
+    world.addComponent(enemy, { type: "HitReaction", hitstunRemaining: 0.2, staggerRemaining: 0.3, blinkElapsed: 0 } as never);
 
     new HitRunStaggerSystem().update(world, 1 / 60);
 

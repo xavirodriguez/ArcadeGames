@@ -75,6 +75,103 @@ export function createPathDirectionMarkers(
 
 export type CreepAnimationType = "grunt" | "fast" | "tank" | "boss";
 
+export interface CreepHealthBarGeometry {
+  ratio: number;
+  width: number;
+  height: number;
+  x: number;
+  y: number;
+  fillColor: string;
+  outlineColor: string;
+}
+
+export function resolveCreepHealthBarGeometry(
+  world: World<TowerDefenseComponentRegistry>,
+  entity: number,
+  size: number
+): CreepHealthBarGeometry | null {
+  const health = world.getComponent(entity, "Health");
+  if (!health || health.max <= 0) return null;
+
+  const ratio = Math.max(0, Math.min(1, health.current / health.max));
+  const width = Math.max(20, size * 1.25);
+  const height = Math.max(3, size * 0.12);
+  const x = -width / 2;
+  const y = -size * 0.82 - height;
+  const fillColor = ratio > 0.5
+    ? TOWER_DEFENSE_VISUAL_TOKENS.healthBar.high
+    : ratio > 0.25
+      ? TOWER_DEFENSE_VISUAL_TOKENS.healthBar.mid
+      : TOWER_DEFENSE_VISUAL_TOKENS.healthBar.low;
+  const outlineColor = isPaperDuskTheme(world)
+    ? TOWER_DEFENSE_VISUAL_TOKENS.healthBar.paperDuskOutline
+    : TOWER_DEFENSE_VISUAL_TOKENS.healthBar.defaultOutline;
+
+  return { ratio, width, height, x, y, fillColor, outlineColor };
+}
+
+/** Pre-calculates radial wave points for boss creep contour. */
+export function getBossContourPoints(radius: number, bumpCount = 10, samples = 100): Point2D[] {
+  const points: Point2D[] = [];
+  for (let i = 0; i <= samples; i++) {
+    const theta = (i / samples) * Math.PI * 2;
+    const r = radius * (1 + 0.14 * Math.sin(theta * bumpCount));
+    points.push({
+      x: Math.cos(theta) * r,
+      y: Math.sin(theta) * r
+    });
+  }
+  return points;
+}
+
+export interface TdTileColors {
+  fillColor: string;
+  strokeColor?: string;
+  isBuildable: boolean;
+}
+
+export function resolveTdTileColors(
+  world: World<TowerDefenseComponentRegistry>,
+  tile: string | undefined,
+  isPaperDusk: boolean
+): TdTileColors {
+  const isBuildable = tile === "buildable";
+  if (!isPaperDusk) {
+    const fillColor = tile === "path"
+      ? TOWER_DEFENSE_VISUAL_TOKENS.tiles.path
+      : tile === "buildable"
+        ? TOWER_DEFENSE_VISUAL_TOKENS.tiles.buildable
+        : tile === "spawn"
+          ? TOWER_DEFENSE_VISUAL_TOKENS.tiles.spawn
+          : tile === "base"
+            ? TOWER_DEFENSE_VISUAL_TOKENS.tiles.base
+            : tile === "blocked"
+              ? TOWER_DEFENSE_VISUAL_TOKENS.tiles.blocked
+              : TOWER_DEFENSE_VISUAL_TOKENS.tiles.default;
+    return { fillColor, isBuildable };
+  }
+
+  const pdGround = resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.paperDuskMap.ground, "pd_ground");
+  const pdBuildable = resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.paperDuskMap.buildable, "pd_buildable");
+  const pdBuildableEdge = resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.paperDuskMap.buildableEdge, "pd_buildableEdge");
+  const pdPath = resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.paperDuskMap.path, "pd_path");
+  const pdPathEdge = resolveThemeColorWithFallback(world, TOWER_DEFENSE_VISUAL_TOKENS.paperDuskMap.pathEdge, "pd_pathEdge");
+
+  const fillColor = tile === "path" || tile === "spawn" || tile === "base"
+    ? pdPath
+    : isBuildable
+      ? pdBuildable
+      : pdGround;
+
+  const strokeColor = tile === "path"
+    ? pdPathEdge
+    : isBuildable
+      ? pdBuildableEdge
+      : undefined;
+
+  return { fillColor, strokeColor, isBuildable };
+}
+
 export interface CreepAnimationState {
   offsetX: number;
   offsetY: number;

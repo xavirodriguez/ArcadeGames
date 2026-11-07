@@ -1,4 +1,5 @@
-import { createVFXTimelineSampler, easeProgress, sampleVFXTimeline, type VFXTimelinePhase } from "../vfx-timeline";
+import { createVFXTimelineSampler, easeProgress, sampleVFXTimeline, resolveVFXPhase, type VFXTimelinePhase } from "../vfx-timeline";
+import { sampleVFXRecoil } from "../vfx-motion";
 import {
   DeterministicRandom, clamp, deriveSeed, finiteNumber, lerp, smoothstep
 } from "../vfx-core";
@@ -84,6 +85,18 @@ describe("vfx-timeline", () => {
     expect(sampler(0.5)).toBeCloseTo(0.5);
     expect(sampler(0.5)).toBe(sampler(0.5));
   });
+
+  it("resolves semantic phase and normalized local phase progress", () => {
+    expect(resolveVFXPhase(0.04)).toEqual({ phase: "contact", phaseT: 1 / 3 });
+    expect(resolveVFXPhase(0.32)).toEqual({ phase: "expansion", phaseT: 0.5 });
+    expect(resolveVFXPhase(0.6)).toEqual({ phase: "peak", phaseT: 0.5 });
+    expect(resolveVFXPhase(0.9)).toEqual({ phase: "dissipation", phaseT: 0.6875 });
+    expect(() => resolveVFXPhase(0.5, [])).toThrow(RangeError);
+    expect(() => resolveVFXPhase(0.5, [
+      { id: "contact", start: 0, end: 0.7 },
+      { id: "peak", start: 0.6, end: 1 }
+    ])).toThrow(RangeError);
+  });
   it("implements bounded easing curves", () => {
     for (const easing of ["linear", "smoothstep", "ease-in", "ease-out", "ease-in-out"] as const) {
       expect(easeProgress(0, easing)).toBe(0);
@@ -128,5 +141,22 @@ describe("vfx-pixel-color", () => {
     expect(image.width).toBe(2);
     expect(Array.from(image.data)).toEqual([1,2,3,4,1,2,3,4,1,2,3,4,1,2,3,4]);
     expect(() => upscaleNearest(new Uint8Array(3), 1, 1, 2)).toThrow(RangeError);
+  });
+});
+
+describe("vfx-motion", () => {
+  it("replays identical recoil samples for the same seed and progress", () => {
+    const samples = [0, 0.04, 0.1, 0.18, 0.32, 0.58, 0.88, 1];
+    expect(samples.map((p) => sampleVFXRecoil(p, 1234)))
+      .toEqual(samples.map((p) => sampleVFXRecoil(p, 1234)));
+    expect(samples.map((p) => sampleVFXRecoil(p, 1234)))
+      .not.toEqual(samples.map((p) => sampleVFXRecoil(p, 4321)));
+  });
+  it("keeps recoil finite and bounded over normalized progress", () => {
+    for (let i = 0; i <= 100; i++) {
+      const value = sampleVFXRecoil(i / 100, 77);
+      expect(Number.isFinite(value)).toBe(true);
+      expect(Math.abs(value)).toBeLessThan(0.25);
+    }
   });
 });

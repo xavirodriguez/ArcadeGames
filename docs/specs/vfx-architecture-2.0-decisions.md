@@ -3,6 +3,9 @@
 **Date:** 2026-11-03
 **Baseline:** `master` at `0df1f73d49394695ee2eefed6e61e4d4953cbbb4`
 
+> **Ownership update (2026-11-07):** The normative responsibility boundary is now defined in [Game Feel Architecture Contract](../architecture/GAME_FEEL_ARCHITECTURE.md). This contract supersedes the earlier combined-entry-point guidance in §3 (especially the statements that JuiceOrchestrator remains the high-level spawn/event entry point and that JUICE_CATALOG remains the event-to-visual-profile mapping source). Those statements describe the earlier migration baseline, not the target architecture. Preserve the historical audit findings below, but use the new contract for all new design and migration decisions. No runtime conformance is implied by this documentation update.
+
+
 This document closes the architecture choices that can be supported by the current repository evidence. It does not authorize implementation of contracts that conflict with the P0 audit findings.
 
 ## 1. Fixed architectural decisions

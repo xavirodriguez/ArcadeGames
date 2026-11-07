@@ -108,8 +108,7 @@ describe("PixelFX-inspired procedural VFX", () => {
 
     expect(fastAdapter.strokeCircle.mock.calls[0][2])
       .toBeGreaterThan(defaultAdapter.strokeCircle.mock.calls[0][2]);
-    expect(fastAdapter.strokeCircle.mock.calls[0][5])
-      .toBe(defaultAdapter.strokeCircle.mock.calls[0][5]);
+    expect(fastState.world.getComponent(fastState.entity, "TTL")).toEqual({ remaining: 0.2, timeLeft: 0.4 });
   });
 
   it("draws the impact composition with deterministic ring and shard geometry", () => {

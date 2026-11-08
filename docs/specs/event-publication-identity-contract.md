@@ -151,7 +151,7 @@ External publications do not participate in rollback deduplication unless a sepa
 - SoA snapshot → advance → restore → replay yields the original tick and same publication IDs.
 - Restoring a snapshot and emitting twice in the restored tick yields the same sequence as the original execution.
 - A publication outside `World.update` cannot accidentally inherit stale simulation context.
-- Asteroids normal tick versus restore/replay with off-viewport colliders produces the same candidate set, collision pairs and ordered `combat:hit` / `combat:death` facts; if the culling policy intentionally differs, it must be proven semantically equivalent.
+- Asteroids normal tick versus restore/replay preserves the effective candidate IDs used by each simulation system. In particular, compare `FrictionSystem` targets and resulting velocities for off-viewport entities: unlike `PhysicsIntegrateSystem` and `CollisionSystem2D`, its current missing-resource fallback does not reconstruct viewport filtering. Then compare collision pairs and ordered `combat:hit` / `combat:death` facts. Any intentional culling difference must be proven semantically equivalent.
 - Broadphase tests assert pair ordering and equal-`minX` tie behavior, rather than normalizing and sorting away traversal order.
 - Manual `advanceTick` and `World.update` use one documented tick convention.
 
@@ -169,7 +169,7 @@ External publications do not participate in rollback deduplication unless a sepa
 1. **Context ownership:** how does EventBus obtain the current World tick without coupling the generic EventBus to ECS internals? Candidate: an explicit simulation publication context supplied by the World/scheduler integration.
 2. **Session namespace:** which session owner provides a stable namespace across rollback and a distinct namespace across new runs?
 3. **Out-of-loop emissions:** which API marks external scope, and should simulation events outside an active tick be rejected in development?
-4. **Sequence determinism and simulation equivalence:** which producer and scheduler ordering guarantees are strong enough to support ordinal IDs? For Asteroids, add an entity-ID tie-break for equal broadphase `minX` if canonical ordering is required, and resolve the normal-versus-resimulation candidate-set discrepancy before replay-order tests can validate identity.
+4. **Sequence determinism and simulation equivalence:** which producer and scheduler ordering guarantees are strong enough to support ordinal IDs? For Asteroids, add an entity-ID tie-break for equal broadphase `minX` if canonical ordering is required, and resolve the `FrictionSystem` normal-versus-resimulation candidate discrepancy before replay-order tests can validate identity; `PhysicsIntegrateSystem` and `CollisionSystem2D` currently reconstruct viewport candidates when the resource is absent.
 5. **Emission ID ownership:** define the narrow owner/API for stable logical emission IDs and enforce that every VFX/audio/shake side-effect path uses the full `(channel, occurrenceId, emissionId)` key. The deduplication tuple itself is already normative.
 6. **Compatibility:** whether metadata is added as a third handler argument, a separate publication callback shape, or an opt-in typed EventBus API.
 

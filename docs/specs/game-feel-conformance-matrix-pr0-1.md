@@ -148,11 +148,11 @@ La muerte de una roca recorre `AsteroidCollisionSystem.onCombatDeath`. La audito
 
 ```
 combat:death
-   ├── temporal consumer
+   ├── Juice consumer
    │     ├── hit-stop → GameplayFreeze (sin Gateway)
-   │     └── shake → PresentationGateway("shake")
-   ├── VFX consumer → PresentationGateway("vfx") → ECS VFX lifecycle
-   └── Audio consumer → PresentationGateway("audio") → audio player
+   │     └── shake ──admit?──> PresentationGateway ──decision──> camera shake
+   ├── VFX consumer ──admit?──> PresentationGateway ──decision──> VFX consumer ──> ECS VFX lifecycle
+   └── Audio consumer ──admit?──> PresentationGateway ──decision──> Audio consumer ──> audio player
 ```
 
 Cada consumidor mantiene su suscripción directa al EventBus.

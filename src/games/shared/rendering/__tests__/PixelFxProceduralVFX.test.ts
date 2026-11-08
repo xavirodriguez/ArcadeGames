@@ -103,7 +103,10 @@ describe("PixelFX-inspired procedural VFX", () => {
     drawPixelFxImpact(defaultAdapter, defaultState.world, defaultState.entity);
 
     const fastAdapter = createAdapter();
-    const fastState = createWorld(0.2, 0.2);
+    const fastState = createWorld(0.2);
+    fastState.world.mutateComponent(fastState.entity, "Render", render => {
+      (render as never as { vfxAnimDuration?: number }).vfxAnimDuration = 0.2;
+    });
     drawPixelFxImpact(fastAdapter, fastState.world, fastState.entity);
 
     expect(fastAdapter.strokeCircle.mock.calls[0][2])

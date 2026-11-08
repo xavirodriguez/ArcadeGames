@@ -278,5 +278,5 @@ Antes de implementar: auditar escritores, lectores y consumidores. Al terminar: 
 |---|---|---|---|
 | 2026-11-08 | Fase 0 — revisión inicial | Revisados EventBus, World.tick, Schedule, TTLSystem, HitStopSystem, GameplayFreeze, Asteroids death path, BaseGame audio y ledgers existentes | En curso |
 | 2026-11-08 | PR2 | GameplayFreeze snapshot-registered; HitStopSystem usa GameplayFreeze como reloj único; existen tests de scheduler. La ejecución completa de la suite no se ha acreditado aquí | Implementación localizada; revalidación pendiente |
-| 2026-11-08 | ADR-003 | EventBus no adjunta metadatos de ocurrencia; Gateway del contrato normativo estaba descrito como router y requiere corrección | Bloqueado hasta reconciliar contrato e identidad |
+| 2026-11-08 | ADR-003 | EventBus no adjunta metadatos de ocurrencia; el contrato normativo y ADR/matriz quedan alineados en esta rama como guardia consultada por consumidores | Identidad bloqueada; Gate 0 abierto |
 | 2026-11-08 | Runtime | Sin cambios runtime en esta línea base; Gate 0 aún no aprobado | No autorizado |

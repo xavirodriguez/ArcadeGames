@@ -163,7 +163,7 @@ La disciplina de consumidores no es suficiente. PR3 requiere:
 3. Tests de consumidor para comprobar que ninguna ruta se ejecuta cuando Gateway devuelve `suppress`.
 4. Aislamiento de errores: fallo de un consumidor no impide que EventBus entregue el hecho a los demás ni altera gameplay.
 
-No se consulta el Gateway por partícula, primitva gráfica o llamada interna de un mismo efecto compuesto. Se consulta una vez por emisión lógica.
+No se consulta el Gateway por partícula, primitiva gráfica o llamada interna de un mismo efecto compuesto. Se consulta una vez por emisión lógica.
 
 ## Consecuencias
 

@@ -96,7 +96,7 @@ The EventBus does not decide what an event means visually, temporally or acousti
 
 Event payloads carry facts and semantic context, not presentation policy. Prefer fields such as `entity`, `sourceEntity`, `targetEntity`, `x`, `y`, `direction`, `surface`, `material` or a gameplay-defined `severity`. Do not put `effectName`, `tint`, `ttl`, `shakeIntensity`, `soundName` or renderer-specific objects in gameplay event payloads.
 
-The EventBus provides dispatch, not exactly-once delivery, durable event history, rollback compensation or prediction confirmation. Consumers must not infer any of those semantics from `emit` or `emitDeferred`. JuiceOrchestrator may consume domain facts for temporal policy; all VFX and Audio side effects must instead be admitted through PresentationGateway.
+The EventBus provides dispatch, not exactly-once delivery, durable event history, rollback compensation or prediction confirmation. Consumers must not infer any of those semantics from `emit` or `emitDeferred`. JuiceOrchestrator may consume domain facts for temporal policy. VFX, Audio and presentation shake side-effects must each request admission through PresentationGateway; authoritative hit-stop does not.
 
 Consumers must not depend on handler registration order to establish gameplay semantics. Required temporal ordering belongs in an explicit temporal policy, not in accidental subscription order.
 
@@ -135,7 +135,7 @@ VFX owns:
 - Placement and orientation derived from actual gameplay context.
 - Creation and lifecycle of transient presentation entities through the existing ECS path.
 - Visual accessibility adaptation (flash suppression, reduced visual intensity, motion reduction, density and contrast adjustments).
-- Deterministic visual variation and visual admission control.
+- Deterministic visual variation and VFX-owned resource-budget control. This is separate from Gateway replay/deduplication admission.
 
 VFX must not decide whether a hit, death, pickup, landing or dash occurred. It must not change health, movement, physics, collision, gameplay RNG or simulation time. A VFX failure or missing renderer must never invalidate the gameplay event.
 

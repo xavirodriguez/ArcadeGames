@@ -6,7 +6,7 @@ import type { EventRegistry } from "../events/EventBus";
  * @public
  */
 export type BlueprintArgs<TBlueprints, TId extends keyof TBlueprints> =
-  TBlueprints[TId] extends BlueprintDefinition<ComponentRegistry, EventRegistry, infer TArgs>
+  TBlueprints[TId] extends BlueprintDefinition<any, any, infer TArgs>
     ? TArgs
     : never;
 

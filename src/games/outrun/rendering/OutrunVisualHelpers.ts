@@ -247,3 +247,295 @@ export function computeSpeedLines(screenW: number, screenH: number, horizonY: nu
   }
   return lines;
 }
+
+export type Point2D = { x: number; y: number };
+
+export interface OutrunBitmapSpriteBounds {
+  w: number;
+  h: number;
+  dx: number;
+  dy: number;
+}
+
+/**
+ * Computes destination rectangle bounds for custom bitmap sprites.
+ */
+export function resolveOutrunBitmapSpriteBounds(
+  spec: import("../mods/types").OutrunBitmapSpriteSpec,
+  sx: number,
+  sy: number,
+  sw: number,
+  clipY: number
+): OutrunBitmapSpriteBounds | null {
+  const aspect = spec.aspectRatio ?? 1.0;
+  const size = sw * 0.8;
+  const w = size;
+  const h = size * aspect;
+  if (sy > clipY || w < 2) return null;
+
+  const anchorX = spec.anchor?.x ?? 0.5;
+  const anchorY = spec.anchor?.y ?? 1.0;
+
+  const dx = sx - w * anchorX;
+  const dy = sy - h * anchorY;
+
+  return { w, h, dx, dy };
+}
+
+export interface PineTierGeometry {
+  lightPolygon: [Point2D, Point2D, Point2D];
+  darkPolygon: [Point2D, Point2D, Point2D];
+}
+
+/**
+ * Computes polygon points for the 3 pine tiers (light and dark halves).
+ */
+export function resolvePineTierGeometry(sx: number, sy: number, h: number): PineTierGeometry[] {
+  const tiers = [
+    { top: h * 0.48, bottom: h * 0.16, halfWidth: h * 0.34 },
+    { top: h * 0.73, bottom: h * 0.39, halfWidth: h * 0.26 },
+    { top: h * 0.98, bottom: h * 0.65, halfWidth: h * 0.18 }
+  ];
+  return tiers.map((tier) => {
+    const topY = sy - tier.top;
+    const bottomY = sy - tier.bottom;
+    return {
+      lightPolygon: [
+        { x: sx, y: topY },
+        { x: sx, y: bottomY },
+        { x: sx - tier.halfWidth, y: bottomY }
+      ],
+      darkPolygon: [
+        { x: sx, y: topY },
+        { x: sx + tier.halfWidth, y: bottomY },
+        { x: sx, y: bottomY }
+      ]
+    };
+  });
+}
+
+export interface RockGeometry {
+  basePolygon: Point2D[];
+  shadePolygon: Point2D[];
+}
+
+/**
+ * Computes polygon points for roadside rocks (base rock and shade facet).
+ */
+export function resolveRockGeometry(sx: number, sy: number, w: number, h: number): RockGeometry {
+  return {
+    basePolygon: [
+      { x: sx - w * 0.5, y: sy },
+      { x: sx - w * 0.43, y: sy - h * 0.18 },
+      { x: sx - w * 0.12, y: sy - h * 0.34 },
+      { x: sx + w * 0.2, y: sy - h * 0.29 },
+      { x: sx + w * 0.48, y: sy - h * 0.08 },
+      { x: sx + w * 0.45, y: sy }
+    ],
+    shadePolygon: [
+      { x: sx - w * 0.43, y: sy - h * 0.18 },
+      { x: sx - w * 0.12, y: sy - h * 0.34 },
+      { x: sx + w * 0.2, y: sy - h * 0.29 },
+      { x: sx + w * 0.02, y: sy - h * 0.12 },
+      { x: sx - w * 0.27, y: sy - h * 0.1 }
+    ]
+  };
+}
+
+export interface PalmFrondGeometry {
+  crownTopX: number;
+  crownTopY: number;
+  trunkCtrlX: number;
+  trunkCtrlY: number;
+  fronds: Array<{
+    polygon: [Point2D, Point2D, Point2D];
+    isLight: boolean;
+  }>;
+}
+
+/**
+ * Computes trunk bezier and frond leaf polygons for palm roadside artwork.
+ */
+export function resolvePalmFrondGeometry(sx: number, sy: number, h: number): PalmFrondGeometry {
+  const crownTopY = sy - h * 0.86;
+  const crownTopX = sx + h * 0.06;
+  const trunkCtrlX = sx - h * 0.04;
+  const trunkCtrlY = sy - h * 0.45;
+
+  const leafAngles = [-2.85, -2.35, -1.8, -1.25, -0.65];
+  const fronds = leafAngles.map((angle, index) => {
+    const length = h * (index === 2 ? 0.42 : 0.36);
+    const tip = {
+      x: crownTopX + Math.cos(angle) * length,
+      y: crownTopY + Math.sin(angle) * length * 0.72
+    };
+    const side = {
+      x: crownTopX + Math.cos(angle + Math.PI / 2) * h * 0.07,
+      y: crownTopY + Math.sin(angle + Math.PI / 2) * h * 0.07
+    };
+    return {
+      polygon: [{ x: crownTopX, y: crownTopY }, tip, side] as [Point2D, Point2D, Point2D],
+      isLight: index % 2 === 0
+    };
+  });
+
+  return { crownTopX, crownTopY, trunkCtrlX, trunkCtrlY, fronds };
+}
+
+export interface LighthouseGeometry {
+  towerPolygon: Point2D[];
+  bands: Point2D[][];
+  topY: number;
+  topW: number;
+  bottomW: number;
+}
+
+/**
+ * Computes polygon coordinates for lighthouse tower and dark accent bands.
+ */
+export function resolveLighthouseGeometry(sx: number, sy: number, w: number, h: number): LighthouseGeometry {
+  const topY = sy - h * 0.84;
+  const topW = w * 0.34;
+  const bottomW = w * 0.7;
+
+  const towerPolygon: Point2D[] = [
+    { x: sx - topW / 2, y: topY },
+    { x: sx + topW / 2, y: topY },
+    { x: sx + bottomW / 2, y: sy },
+    { x: sx - bottomW / 2, y: sy }
+  ];
+
+  const bands: Point2D[][] = [0.28, 0.55, 0.79].map((band) => {
+    const bandY = sy - h * band;
+    const t = (sy - bandY) / Math.max(1, sy - topY);
+    const bandW = topW + (bottomW - topW) * t;
+    return [
+      { x: sx - bandW / 2, y: bandY - h * 0.055 },
+      { x: sx + bandW / 2, y: bandY - h * 0.055 },
+      { x: sx + bandW / 2, y: bandY + h * 0.015 },
+      { x: sx - bandW / 2, y: bandY + h * 0.015 }
+    ];
+  });
+
+  return { towerPolygon, bands, topY, topW, bottomW };
+}
+
+export interface LineSegment {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
+
+export interface CactusGeometry {
+  trunkSegments: LineSegment[];
+  stripeSegment: LineSegment;
+}
+
+/**
+ * Computes line segments for cactus main trunk, branches, and highlight stripe.
+ */
+export function resolveCactusLineSegments(sx: number, sy: number, h: number): CactusGeometry {
+  return {
+    trunkSegments: [
+      { x1: sx, y1: sy, x2: sx, y2: sy - h * 0.82 },
+      { x1: sx, y1: sy - h * 0.4, x2: sx - h * 0.21, y2: sy - h * 0.4 },
+      { x1: sx - h * 0.21, y1: sy - h * 0.4, x2: sx - h * 0.21, y2: sy - h * 0.59 },
+      { x1: sx, y1: sy - h * 0.58, x2: sx + h * 0.2, y2: sy - h * 0.58 },
+      { x1: sx + h * 0.2, y1: sy - h * 0.58, x2: sx + h * 0.2, y2: sy - h * 0.74 }
+    ],
+    stripeSegment: {
+      x1: sx + h * 0.04,
+      y1: sy - h * 0.08,
+      x2: sx + h * 0.04,
+      y2: sy - h * 0.72
+    }
+  };
+}
+
+export interface DryShrubGeometry {
+  mainBranches: Point2D[][];
+  highlightBranches: Point2D[][];
+}
+
+/**
+ * Computes branch polylines for dry shrub artwork.
+ */
+export function resolveDryShrubLineSegments(sx: number, sy: number, h: number): DryShrubGeometry {
+  return {
+    mainBranches: [
+      [
+        { x: sx, y: sy },
+        { x: sx - h * 0.24, y: sy - h * 0.35 },
+        { x: sx - h * 0.32, y: sy - h * 0.55 }
+      ],
+      [
+        { x: sx - h * 0.15, y: sy - h * 0.22 },
+        { x: sx + h * 0.07, y: sy - h * 0.42 },
+        { x: sx + h * 0.2, y: sy - h * 0.52 }
+      ],
+      [
+        { x: sx + h * 0.01, y: sy - h * 0.18 },
+        { x: sx + h * 0.26, y: sy - h * 0.32 }
+      ]
+    ],
+    highlightBranches: [
+      [
+        { x: sx - h * 0.2, y: sy - h * 0.31 },
+        { x: sx - h * 0.3, y: sy - h * 0.46 }
+      ],
+      [
+        { x: sx + h * 0.1, y: sy - h * 0.32 },
+        { x: sx + h * 0.22, y: sy - h * 0.42 }
+      ]
+    ]
+  };
+}
+
+export interface WindTowerGeometry {
+  topY: number;
+  rotorY: number;
+  towerLines: Point2D[][];
+  bladeAngles: [number, number, number];
+  bladeRadius: number;
+  hubRadius: number;
+}
+
+/**
+ * Computes mast polylines, rotor hub center, and blade geometry for wind tower artwork.
+ */
+export function resolveWindTowerGeometry(sx: number, sy: number, h: number): WindTowerGeometry {
+  const topY = sy - h * 0.82;
+  const rotorY = topY - h * 0.13;
+  return {
+    topY,
+    rotorY,
+    towerLines: [
+      [
+        { x: sx - h * 0.15, y: sy },
+        { x: sx, y: topY },
+        { x: sx + h * 0.15, y: sy }
+      ],
+      [
+        { x: sx, y: topY },
+        { x: sx, y: rotorY }
+      ]
+    ],
+    bladeAngles: [0, (2 * Math.PI) / 3, (4 * Math.PI) / 3],
+    bladeRadius: h * 0.2,
+    hubRadius: Math.max(1, h * 0.045)
+  };
+}
+
+/**
+ * Computes triangle vertices for chevron warning road sign.
+ */
+export function resolveChevronGeometry(sx: number, sy: number, size: number): Point2D[] {
+  const cw = size * 0.6;
+  const ch = size * 0.8;
+  return [
+    { x: sx - cw / 2, y: sy },
+    { x: sx + cw / 2, y: sy - ch / 2 },
+    { x: sx - cw / 2, y: sy - ch }
+  ];
+}

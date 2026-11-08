@@ -8,6 +8,17 @@ import {
   resolveOutrunRoadsideKind,
   shouldDrawOutrunRoadsideSprite
 } from "../rendering/OutrunRoadsideArtwork";
+import {
+  resolveOutrunBitmapSpriteBounds,
+  resolvePineTierGeometry,
+  resolveRockGeometry,
+  resolvePalmFrondGeometry,
+  resolveLighthouseGeometry,
+  resolveCactusLineSegments,
+  resolveDryShrubLineSegments,
+  resolveWindTowerGeometry,
+  resolveChevronGeometry
+} from "../rendering/OutrunVisualHelpers";
 
 const roadData: RoadData = {
   trackLength: 600,
@@ -97,5 +108,84 @@ describe("Out Run roadside artwork", () => {
         fogIntensity(0.9)
       ));
     }
+  });
+
+  describe("Roadside geometric helper resolvers", () => {
+    it("computes bitmap sprite destination bounds and respects clipY", () => {
+      const spec = { assetKey: "test", aspectRatio: 1.5 };
+      const bounds = resolveOutrunBitmapSpriteBounds(spec, 100, 200, 50, 250);
+      expect(bounds).not.toBeNull();
+      expect(bounds?.w).toBe(40);
+      expect(bounds?.h).toBe(60);
+      expect(bounds?.dx).toBe(80);
+      expect(bounds?.dy).toBe(140);
+
+      // Occluded below clip line
+      expect(resolveOutrunBitmapSpriteBounds(spec, 100, 260, 50, 250)).toBeNull();
+      // Too small (< 2 width)
+      expect(resolveOutrunBitmapSpriteBounds(spec, 100, 200, 2, 250)).toBeNull();
+    });
+
+    it("generates 3 pine tiers with light and dark polygons", () => {
+      const tiers = resolvePineTierGeometry(150, 300, 100);
+      expect(tiers).toHaveLength(3);
+      for (const tier of tiers) {
+        expect(tier.lightPolygon).toHaveLength(3);
+        expect(tier.darkPolygon).toHaveLength(3);
+        expect(tier.lightPolygon[0].x).toBe(150);
+        expect(tier.darkPolygon[0].x).toBe(150);
+      }
+    });
+
+    it("generates rock base and shade polygons", () => {
+      const rock = resolveRockGeometry(200, 400, 80, 50);
+      expect(rock.basePolygon).toHaveLength(6);
+      expect(rock.shadePolygon).toHaveLength(5);
+      expect(rock.basePolygon[0]).toEqual({ x: 160, y: 400 });
+    });
+
+    it("generates palm trunk bezier control points and 5 leaf fronds", () => {
+      const palm = resolvePalmFrondGeometry(100, 200, 120);
+      expect(palm.fronds).toHaveLength(5);
+      expect(palm.trunkCtrlX).toBeLessThan(100);
+      expect(palm.crownTopX).toBeGreaterThan(100);
+      expect(palm.fronds[0].polygon).toHaveLength(3);
+    });
+
+    it("generates lighthouse tower polygon and 3 accent bands", () => {
+      const lighthouse = resolveLighthouseGeometry(100, 300, 60, 150);
+      expect(lighthouse.towerPolygon).toHaveLength(4);
+      expect(lighthouse.bands).toHaveLength(3);
+      for (const band of lighthouse.bands) {
+        expect(band).toHaveLength(4);
+      }
+    });
+
+    it("generates cactus trunk line segments and highlight stripe", () => {
+      const cactus = resolveCactusLineSegments(100, 200, 80);
+      expect(cactus.trunkSegments).toHaveLength(5);
+      expect(cactus.stripeSegment.x1).toBe(cactus.stripeSegment.x2);
+    });
+
+    it("generates dry shrub main and highlight branches", () => {
+      const shrub = resolveDryShrubLineSegments(100, 200, 60);
+      expect(shrub.mainBranches).toHaveLength(3);
+      expect(shrub.highlightBranches).toHaveLength(2);
+    });
+
+    it("generates wind tower mast lines, rotor hub and 3 blade angles", () => {
+      const tower = resolveWindTowerGeometry(120, 250, 100);
+      expect(tower.towerLines).toHaveLength(2);
+      expect(tower.bladeAngles).toEqual([0, (2 * Math.PI) / 3, (4 * Math.PI) / 3]);
+      expect(tower.rotorY).toBeLessThan(tower.topY);
+    });
+
+    it("generates chevron triangle polygon coordinates", () => {
+      const chevron = resolveChevronGeometry(100, 200, 50);
+      expect(chevron).toHaveLength(3);
+      expect(chevron[0].y).toBe(200);
+      expect(chevron[1].x).toBeGreaterThan(100);
+      expect(chevron[2].y).toBeLessThan(200);
+    });
   });
 });

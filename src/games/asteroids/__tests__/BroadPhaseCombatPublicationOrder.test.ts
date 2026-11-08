@@ -204,9 +204,10 @@ function executeNormalAndReplay(
 
   const normal = executePass(world, eventBus, normalCandidates);
 
-  // Restore the same logical world state, then resimulate with a different but equivalent
-  // candidate enumeration. Candidate order is ephemeral; pair/publication order must not
-  // be derived from that incidental order.
+  // Restore the same logical world state, then resimulate with an intentionally permuted
+  // candidate enumeration. This is an adversarial ordering fixture, not a claim that the
+  // current Asteroids culling path produces this permutation: its source query is ID-sorted
+  // and filterInViewport preserves that order. The contract must still be input-order agnostic.
   world.restore(snapshot);
   world.setResource("EventBus", eventBus);
   world.isReSimulating = true;

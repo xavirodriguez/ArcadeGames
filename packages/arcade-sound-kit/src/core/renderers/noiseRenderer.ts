@@ -3,6 +3,7 @@ import { LayerRendererContext } from './types';
 import { BiquadFilter } from '../dsp/biquad';
 import { computeEnvelope } from '../dsp/envelope';
 import { LfsrNoise } from '../dsp/oscillators';
+import { applyBitcrushSample } from '../dsp/bitcrush';
 
 function dbToLinear(db: number): number {
   return Math.pow(10, db / 20);
@@ -110,17 +111,9 @@ export function renderNoiseLayer(
     if (bitcrushSpec) {
       const bits = bitcrushSpec.bits ?? 8;
       const downsample = bitcrushSpec.downsample ?? 1;
-      const step = 1 / Math.pow(2, bits - 1);
-      if (downsample > 1) {
-        if (sampleCount % downsample !== 0) {
-          val = lastBitcrushVal;
-        } else {
-          val = Math.round(val / step) * step;
-          lastBitcrushVal = val;
-        }
-      } else {
-        val = Math.round(val / step) * step;
-      }
+      const result = applyBitcrushSample(val, sampleCount, bits, downsample, lastBitcrushVal);
+      val = result.value;
+      lastBitcrushVal = result.lastVal;
     }
 
     samples[i] += val;

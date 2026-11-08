@@ -183,7 +183,7 @@ El piloto no debe exigir literalmente una sola entidad ECS: exige una emisión l
 - [ ] Se separan replay, doble entrega y dos ocurrencias distintas.
 - [ ] PR2 está reconciliado contra la implementación/test existentes sin duplicar trabajo.
 - [ ] Predicción local y full replay están diferenciados por modo de producción.
-- [ ] El inventario de audio identifica productores y consumidores actuales.
+- [ ] El inventario principal de audio identifica productores y consumidores conocidos; quedan pendientes aliases dinámicos, audio espacial, límites de voces y rutas UI.
 - [ ] Los estados `freeze`, `scale`, pausa y retractación no se declaran soportados prematuramente.
 - [ ] El ledger registra evidencia de código y ejecución de tests por separado.
 - [ ] Gate 0 recibe aprobación humana explícita.
@@ -198,6 +198,6 @@ El piloto no debe exigir literalmente una sola entidad ECS: exige una emisión l
 | Tiempo VFX durante hit-stop | Verificado para `advance` | TTLSystem recibe frame delta durante GameplayFreeze; pausa explícita retorna |
 | Predicción de producción | Parcialmente verificada | LocalPredictionSystem reconcilia transform/velocity y reproduce inputs por entidad |
 | Full rollback en producción | No demostrado | RollbackSimulation existe y se ejercita en tests; no se localizó composición productiva en la búsqueda revisada |
-| Audio | Parcial | BaseGame enruta PlaySFX directamente; hay consumidores de juego específicos; inventario completo pendiente |
+| Audio | Parcial, inventario principal ampliado | BaseGame, Frogger, Platformer, Geometry Wars, gameplay-kit ContactDamageUtils y productores PlaySFX de Arkanoid, Tower Defense, Pong, Hit & Run y Vertical Shmup inspeccionados; Platformer tiene un guard de replay colocado después del playback en CollectiblePickedUp. Quedan aliases dinámicos, audio espacial y límites de voces |
 | Piloto Asteroids | Gap | Explosión y shake duplicados; falta admisión común y cue audio |
 | Canvas/Skia | Parcial | IDrawAdapter y adaptadores existen; falta conformidad de esta matriz |

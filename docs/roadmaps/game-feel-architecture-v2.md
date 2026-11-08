@@ -27,14 +27,14 @@ Principios:
 
 | Estado | Significado |
 |---|---|
-| \`verified\` | Comportamiento observado directamente en el código revisado. |
-| \`implemented\` | Implementación localizada; no implica que todos los tests estén ejecutados. |
-| \`partial\` | Hay evidencia parcial, pero falta completar el contrato o inventario. |
-| \`gap\` | El código observado contradice la frontera objetivo. |
-| \`blocked\` | No se debe avanzar hasta resolver una dependencia o decisión. |
-| \`unknown\` | No se ha reunido evidencia fiable; no equivale a ausencia. |
-| \`not run\` | El test existe o está previsto, pero no se ha ejecutado en esta revisión. |
-| \`not authorized\` | El trabajo runtime queda fuera del gate aprobado actualmente. |
+| `verified` | Comportamiento observado directamente en el código revisado. |
+| `implemented` | Implementación localizada; no implica que todos los tests estén ejecutados. |
+| `partial` | Hay evidencia parcial, pero falta completar el contrato o inventario. |
+| `gap` | El código observado contradice la frontera objetivo. |
+| `blocked` | No se debe avanzar hasta resolver una dependencia o decisión. |
+| `unknown` | No se ha reunido evidencia fiable; no equivale a ausencia. |
+| `not run` | El test existe o está previsto, pero no se ha ejecutado en esta revisión. |
+| `not authorized` | El trabajo runtime queda fuera del gate aprobado actualmente. |
 
 ## 2. Fase 0 — Contrato, evidencia y decisiones previas
 
@@ -64,11 +64,11 @@ Se supera únicamente cuando:
 
 ### PR1 — Extraer contratos de identidad visual
 
-Mover \`SharedVFXPrimitiveName\` y cualquier identidad compartida fuera de \`JuiceOrchestrator\`.
+Mover `SharedVFXPrimitiveName` y cualquier identidad compartida fuera de `JuiceOrchestrator`.
 
 Criterios:
 
-- \`VFXEffectIR\` no importa tipos ni comportamiento de \`JuiceOrchestrator\`.
+- `VFXEffectIR` no importa tipos ni comportamiento de `JuiceOrchestrator`.
 - No se crea un módulo neutral genérico por anticipado: cada símbolo compartido debe tener al menos dos consumidores independientes reales.
 - El módulo de contratos no importa Juice, VFX runtime, Canvas ni Skia.
 - Sin cambio de comportamiento.
@@ -78,24 +78,24 @@ Criterios:
 
 La revisión inicial del código ya encuentra:
 
-- \`World\` registra \`GameplayFreeze\` para snapshots.
-- \`HitStopSystem\` mantiene prioridad/cooldown en \`JuiceHitStopPolicy\` y usa \`GameplayFreeze\` como único reloj de duración activa.
-- \`Schedule\` congela fases autoritativas y permite las rutas de TTL/Presentation necesarias durante hit-stop.
-- Existe \`GameplayFreeze.test.ts\` con cobertura de expiración, pausa, \`TimeScale=0\`, freeze indefinido y ejecución de Presentation/TTL/Juice durante freeze.
+- `World` registra `GameplayFreeze` para snapshots.
+- `HitStopSystem` mantiene prioridad/cooldown en `JuiceHitStopPolicy` y usa `GameplayFreeze` como único reloj de duración activa.
+- `Schedule` congela fases autoritativas y permite las rutas de TTL/Presentation necesarias durante hit-stop.
+- Existe `GameplayFreeze.test.ts` con cobertura de expiración, pausa, `TimeScale=0`, freeze indefinido y ejecución de Presentation/TTL/Juice durante freeze.
 - El ledger de Juice registra pruebas adicionales de política y snapshot, pero no todas sus ejecuciones están acreditadas en esta revisión.
 
 Por tanto, PR2 comienza como **revalidación de conformidad y cierre de gaps**. No se reimplementa el reloj si la evidencia del HEAD confirma que ya está resuelto.
 
 Aceptación:
 
-- Un solo reloj autoritativo de simulación: \`GameplayFreeze\`.
+- Un solo reloj autoritativo de simulación: `GameplayFreeze`.
 - Prioridad, extensiones y cooldown deterministas y snapshot-safe.
 - El tick que consume el tiempo restante sigue congelado; la reanudación ocurre en el siguiente tick.
 - La pausa explícita suspende el reloj de hit-stop según el contrato actual.
-- El tiempo de presentación sigue siendo un dominio separado: la política \`advance\` continúa TTL/progreso durante hit-stop.
+- El tiempo de presentación sigue siendo un dominio separado: la política `advance` continúa TTL/progreso durante hit-stop.
 - Replay y restauración de estado temporal comprobados en los modos que usan full replay.
 
-**No confundir «un solo reloj de hit-stop» con «un solo reloj para simulación y presentación».** Las políticas \`freeze\` y \`scale(factor)\` siguen siendo objetivo, no capacidad soportada, hasta que el ciclo ECS las implemente y pruebe.
+**No confundir «un solo reloj de hit-stop» con «un solo reloj para simulación y presentación».** Las políticas `freeze` y `scale(factor)` siguen siendo objetivo, no capacidad soportada, hasta que el ciclo ECS las implemente y pruebe.
 
 ### Gate 1
 
@@ -103,34 +103,34 @@ GameplayFreeze es la única autoridad para congelar la simulación; el ciclo de 
 
 ## 4. Fase 2 — Guardia y piloto vertical
 
-**Caso:** Asteroids \`combat:death\` / destrucción de roca. La línea base identifica dos solicitudes de \`pixelfx_explosion\` y dos solicitudes de shake (catálogo y llamada directa).
+**Caso:** Asteroids `combat:death` / destrucción de roca. La línea base identifica dos solicitudes de `pixelfx_explosion` y dos solicitudes de shake (catálogo y llamada directa).
 
 ### PR3 — PresentationGateway mínimo
 
 Implementar un guardia de admisión, no un router.
 
-Canales: \`vfx\`, \`audio\`, \`shake\`.
+Canales: `vfx`, `audio`, `shake`.
 
 Contrato inicial:
 
-- \`admit(channel, emission)\` devuelve \`admit\` o \`suppress\`.
+- `admit(channel, emission)` devuelve `admit` o `suppress`.
 - Supresión por resimulación y por emisión ya admitida.
-- Deduplicación por \`(channel, occurrenceId, emissionId)\`; no solo por ocurrencia ni por tick.
+- Deduplicación por `(channel, occurrenceId, emissionId)`; no solo por ocurrencia ni por tick.
 - Una ocurrencia puede originar varias emisiones lógicas legítimas por canal.
-- El contexto de ejecución se inyecta desde el runtime. Los consumidores no consultan cada uno \`world.isReSimulating\`.
+- El contexto de ejecución se inyecta desde el runtime. Los consumidores no consultan cada uno `world.isReSimulating`.
 - El Gateway no se suscribe al EventBus, no despacha, no encola, no tiene reloj y no modifica estado de gameplay.
 - Hit-stop autoritativo no consulta el Gateway.
 - VFX, audio y Juice siguen suscritos directamente al EventBus.
-- La primera versión no publica \`defer\` ni \`retracted\` sin comportamiento implementado. Esos estados pertenecen a la ampliación condicionada de PR16.
+- La primera versión no publica `defer` ni `retracted` sin comportamiento implementado. Esos estados pertenecen a la ampliación condicionada de PR16.
 - El enforcement incluye encapsulación de APIs de side-effect y tests arquitectónicos para VFX, audio y shake.
 
 #### Dependencia técnica de identidad
 
-El EventBus actual expone handlers \`(payload, event)\`, y sus buffers diferidos almacenan \`{ event, payload }\`; no adjunta tick, secuencia ni occurrence ID. \`World.tick\` sí existe como getter público, pero no está conectado al EventBus.
+El EventBus actual expone handlers `(payload, event)`, y sus buffers diferidos almacenan `{ event, payload }`; no adjunta tick, secuencia ni occurrence ID. `World.tick` sí existe como getter público, pero no está conectado al EventBus.
 
 Antes de activar la deduplicación, PR3 debe incorporar o reutilizar un contexto de emisión que:
 
-1. Capture el tick en el momento de \`emit\` / \`emitDeferred\` (no al vaciar el buffer).
+1. Capture el tick en el momento de `emit` / `emitDeferred` (no al vaciar el buffer).
 2. Asigne una secuencia determinista por tick.
 3. Entregue la identidad como metadato lateral al payload, sin introducir política en los hechos de gameplay.
 4. Reconstruya la misma identidad al reproducir el mismo estado inicial, tick y orden determinista de emisiones.
@@ -144,7 +144,7 @@ El identificador PR10 se conserva para trazabilidad, pero su ejecución se adela
 
 - Suscriptor de audio independiente, directo al EventBus.
 - Consulta PresentationGateway antes de playback.
-- \`PlaySFX\` queda clasificado como comando de presentación/compatibilidad, no como hecho de gameplay.
+- `PlaySFX` queda clasificado como comando de presentación/compatibilidad, no como hecho de gameplay.
 - El resolver de audio elige cue y opciones; no introduce selección de assets en el Gateway.
 - Se inventarían antes las rutas legacy y se migrarían con tests.
 - La ruta interna de playback no queda expuesta a productores gameplay sin admisión.
@@ -173,7 +173,7 @@ Tras el primer efecto de una familia nueva (travesía, interacción o entorno), 
 |---|---|---|
 | PR5 | Screen shake canónico: API de solicitud, unidades normalizadas, prioridad, duración y atenuación | Una frontera de conversión de unidades; multiplicador de accesibilidad aplicado una sola vez; fallbacks conservados hasta migración completa |
 | PR6 | Catálogo temporal de Juice: perfiles reutilizables y presets, separados del catálogo visual | No existe pipeline paralelo; Juice no crea entidades VFX ni selecciona primitivas |
-| PR7 | Semántica de eventos de dominio | Resolver de combate es el único dueño de \`ImpactSeverity\`; solo aparece en hechos donde tenga significado de dominio; death no exige severidad de impacto |
+| PR7 | Semántica de eventos de dominio | Resolver de combate es el único dueño de `ImpactSeverity`; solo aparece en hechos donde tenga significado de dominio; death no exige severidad de impacto |
 
 ### Gate 3
 
@@ -184,15 +184,15 @@ Los canales temporales están separados de los perfiles VFX/audio; la severidad 
 | PR | Trabajo | Aceptación |
 |---|---|---|
 | PR8 | Ciclo de vida VFX: descriptor, entidad ECS, TTL y drawer, política temporal por efecto | Una ruta de emisión protegida por Gateway; usa ECS/TTL existente; expone punto de escala de intensidad/densidad para accesibilidad |
-| PR9 | Paridad Canvas y Skia | Samplers/curvas compartidos; tests de contrato en \`IDrawAdapter\` con adaptador grabador; fidelidad de cada adaptador real probada aparte; tolerancias explícitas; sin exigir igualdad de píxeles |
+| PR9 | Paridad Canvas y Skia | Samplers/curvas compartidos; tests de contrato en `IDrawAdapter` con adaptador grabador; fidelidad de cada adaptador real probada aparte; tolerancias explícitas; sin exigir igualdad de píxeles |
 
 Políticas de tiempo durante hit-stop:
 
 | Política | Comportamiento | Estado |
 |---|---|---|
-| \`advance\` | Progreso y TTL avanzan a velocidad normal de presentación | Vigente en el camino TTL existente; revalidar |
-| \`freeze\` | Progreso y TTL se congelan | Objetivo; requiere soporte ECS y tests |
-| \`scale(factor)\` | Progreso y TTL avanzan proporcionalmente | Objetivo; requiere soporte ECS y tests |
+| `advance` | Progreso y TTL avanzan a velocidad normal de presentación | Vigente en el camino TTL existente; revalidar |
+| `freeze` | Progreso y TTL se congelan | Objetivo; requiere soporte ECS y tests |
+| `scale(factor)` | Progreso y TTL avanzan proporcionalmente | Objetivo; requiere soporte ECS y tests |
 
 El tiempo de presentación durante una pausa explícita se decide por separado. No se deduce de la política de hit-stop.
 
@@ -236,7 +236,7 @@ Dependencias:
 
 Alcance posible: deduplicación tras replay, retractación de VFX especulativos, audio confirmado por defecto y cancelación de voz programada solo si el backend realmente la soporta.
 
-La auditoría de Fase 0 encuentra predicción local por entidad y reconciliación de transform/velocidad en producción. Eso no equivale a full replay del EventBus. La construcción de \`RollbackSimulation\`/\`MultiplayerReconciler\` está localizada en tests en la búsqueda revisada; su uso de producción no está demostrado. Por ello PR16 no se adelanta globalmente con la evidencia actual. Si un juego tiene una ruta real, esa migración queda bloqueada hasta que PR16 y sus dependencias estén listas.
+La auditoría de Fase 0 encuentra predicción local por entidad y reconciliación de transform/velocidad en producción. Eso no equivale a full replay del EventBus. La construcción de `RollbackSimulation`/`MultiplayerReconciler` está localizada en tests en la búsqueda revisada; su uso de producción no está demostrado. Por ello PR16 no se adelanta globalmente con la evidencia actual. Si un juego tiene una ruta real, esa migración queda bloqueada hasta que PR16 y sus dependencias estén listas.
 
 ### PR17 — Accesibilidad y preferencias
 

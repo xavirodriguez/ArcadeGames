@@ -11,7 +11,19 @@ import {
   resolveOutrunHudContext,
   resolveOffroadDustParams
 } from "./OutrunRenderShared";
-import { computeSpeedLines, computeOutrunPlayerArtworkScale } from "./OutrunVisualHelpers";
+import {
+  computeSpeedLines,
+  computeOutrunPlayerArtworkScale,
+  resolveOutrunBitmapSpriteBounds,
+  resolvePineTierGeometry,
+  resolveRockGeometry,
+  resolvePalmFrondGeometry,
+  resolveLighthouseGeometry,
+  resolveCactusLineSegments,
+  resolveDryShrubLineSegments,
+  resolveWindTowerGeometry,
+  resolveChevronGeometry
+} from "./OutrunVisualHelpers";
 import { computeOutrunRoadSpeedLineSegments, resolveOutrunRoadSegmentArtwork } from "./OutrunRoadArtwork";
 import { fogIntensity, resolveRoadFogColor } from "./OutrunFog";
 import { resolveOutrunRoadsideArtworkStyle } from "./OutrunRoadsideArtwork";
@@ -56,24 +68,15 @@ function drawOutrunBitmapSpriteCanvas(
   const rawImg = assetLoader.get<unknown>(spec.assetKey);
   if (!rawImg) return false;
 
-  const aspect = spec.aspectRatio ?? 1.0;
-  const size = sw * 0.8;
-  const w = size;
-  const h = size * aspect;
-  if (sy > clipY || w < 2) return false;
-
-  const anchorX = spec.anchor?.x ?? 0.5;
-  const anchorY = spec.anchor?.y ?? 1.0;
-
-  const dx = sx - w * anchorX;
-  const dy = sy - h * anchorY;
+  const bounds = resolveOutrunBitmapSpriteBounds(spec, sx, sy, sw, clipY);
+  if (!bounds) return false;
 
   ctx.save();
   if (typeof HTMLImageElement !== "undefined" && rawImg instanceof HTMLImageElement) {
     if (spec.srcRect) {
-      ctx.drawImage(rawImg, spec.srcRect.x, spec.srcRect.y, spec.srcRect.w, spec.srcRect.h, dx, dy, w, h);
+      ctx.drawImage(rawImg, spec.srcRect.x, spec.srcRect.y, spec.srcRect.w, spec.srcRect.h, bounds.dx, bounds.dy, bounds.w, bounds.h);
     } else {
-      ctx.drawImage(rawImg, dx, dy, w, h);
+      ctx.drawImage(rawImg, bounds.dx, bounds.dy, bounds.w, bounds.h);
     }
     ctx.restore();
     return true;
@@ -153,13 +156,7 @@ function drawRoadSpriteCanvas(
       ctx.fillText(sp.text, sx, sy - bh - bh * 0.3);
     }
   } else if (sp.kind === "chevron") {
-    const cw = size * 0.6;
-    const ch = size * 0.8;
-    fillRoadsidePolygonCanvas(ctx, [
-      { x: sx - cw / 2, y: sy },
-      { x: sx + cw / 2, y: sy - ch / 2 },
-      { x: sx - cw / 2, y: sy - ch }
-    ], colors.amber);
+    fillRoadsidePolygonCanvas(ctx, resolveChevronGeometry(sx, sy, size), colors.amber);
   } else {
     const style = resolveOutrunRoadsideArtworkStyle(sp, visualPalette, depth, sw, lightsOn, activeMod);
     const h = style.height;
@@ -194,168 +191,116 @@ function drawRoadSpriteCanvas(
         break;
       }
       case "pine": {
-        const tiers = [
-          { top: h * 0.48, bottom: h * 0.16, halfWidth: h * 0.34 },
-          { top: h * 0.73, bottom: h * 0.39, halfWidth: h * 0.26 },
-          { top: h * 0.98, bottom: h * 0.65, halfWidth: h * 0.18 }
-        ];
+        const tiers = resolvePineTierGeometry(sx, sy, h);
         for (const tier of tiers) {
-          const topY = sy - tier.top;
-          const bottomY = sy - tier.bottom;
-          fillRoadsidePolygonCanvas(ctx, [
-            { x: sx, y: topY },
-            { x: sx, y: bottomY },
-            { x: sx - tier.halfWidth, y: bottomY }
-          ], style.foliageLightColor);
-          fillRoadsidePolygonCanvas(ctx, [
-            { x: sx, y: topY },
-            { x: sx + tier.halfWidth, y: bottomY },
-            { x: sx, y: bottomY }
-          ], style.foliageColor);
+          fillRoadsidePolygonCanvas(ctx, tier.lightPolygon, style.foliageLightColor);
+          fillRoadsidePolygonCanvas(ctx, tier.darkPolygon, style.foliageColor);
         }
         ctx.fillStyle = style.trunkColor;
         ctx.fillRect(sx - trunkW * 0.4, sy - trunkH, trunkW * 0.8, trunkH);
         break;
       }
       case "rock": {
-        const w = style.width;
-        fillRoadsidePolygonCanvas(ctx, [
-          { x: sx - w * 0.5, y: sy },
-          { x: sx - w * 0.43, y: sy - h * 0.18 },
-          { x: sx - w * 0.12, y: sy - h * 0.34 },
-          { x: sx + w * 0.2, y: sy - h * 0.29 },
-          { x: sx + w * 0.48, y: sy - h * 0.08 },
-          { x: sx + w * 0.45, y: sy }
-        ], style.rockBaseColor);
-        fillRoadsidePolygonCanvas(ctx, [
-          { x: sx - w * 0.43, y: sy - h * 0.18 },
-          { x: sx - w * 0.12, y: sy - h * 0.34 },
-          { x: sx + w * 0.2, y: sy - h * 0.29 },
-          { x: sx + w * 0.02, y: sy - h * 0.12 },
-          { x: sx - w * 0.27, y: sy - h * 0.1 }
-        ], style.rockShadeColor);
+        const rock = resolveRockGeometry(sx, sy, style.width, h);
+        fillRoadsidePolygonCanvas(ctx, rock.basePolygon, style.rockBaseColor);
+        fillRoadsidePolygonCanvas(ctx, rock.shadePolygon, style.rockShadeColor);
         break;
       }
       case "palm": {
-        const crownTopY = sy - h * 0.86;
-        const crownTopX = sx + h * 0.06;
+        const palm = resolvePalmFrondGeometry(sx, sy, h);
         ctx.strokeStyle = style.trunkColor;
         ctx.lineWidth = Math.max(1, h * 0.055);
         ctx.lineCap = "round";
         ctx.beginPath();
         ctx.moveTo(sx, sy);
-        ctx.quadraticCurveTo(sx - h * 0.04, sy - h * 0.45, crownTopX, crownTopY);
+        ctx.quadraticCurveTo(palm.trunkCtrlX, palm.trunkCtrlY, palm.crownTopX, palm.crownTopY);
         ctx.stroke();
-        const leafAngles = [-2.85, -2.35, -1.8, -1.25, -0.65];
-        leafAngles.forEach((angle, index) => {
-          const length = h * (index === 2 ? 0.42 : 0.36);
-          const tip = {
-            x: crownTopX + Math.cos(angle) * length,
-            y: crownTopY + Math.sin(angle) * length * 0.72
-          };
-          const side = {
-            x: crownTopX + Math.cos(angle + Math.PI / 2) * h * 0.07,
-            y: crownTopY + Math.sin(angle + Math.PI / 2) * h * 0.07
-          };
-          fillRoadsidePolygonCanvas(ctx, [
-            { x: crownTopX, y: crownTopY }, tip, side
-          ], index % 2 === 0 ? style.foliageLightColor : style.foliageColor);
-        });
+        for (const frond of palm.fronds) {
+          fillRoadsidePolygonCanvas(
+            ctx,
+            frond.polygon,
+            frond.isLight ? style.foliageLightColor : style.foliageColor
+          );
+        }
         break;
       }
       case "lighthouse": {
         const w = style.width;
-        const topY = sy - h * 0.84;
-        const topW = w * 0.34;
-        const bottomW = w * 0.7;
-        fillRoadsidePolygonCanvas(ctx, [
-          { x: sx - topW / 2, y: topY },
-          { x: sx + topW / 2, y: topY },
-          { x: sx + bottomW / 2, y: sy },
-          { x: sx - bottomW / 2, y: sy }
-        ], style.creamColor);
-        for (const band of [0.28, 0.55, 0.79]) {
-          const bandY = sy - h * band;
-          const t = (sy - bandY) / Math.max(1, sy - topY);
-          const bandW = topW + (bottomW - topW) * t;
-          fillRoadsidePolygonCanvas(ctx, [
-            { x: sx - bandW / 2, y: bandY - h * 0.055 },
-            { x: sx + bandW / 2, y: bandY - h * 0.055 },
-            { x: sx + bandW / 2, y: bandY + h * 0.015 },
-            { x: sx - bandW / 2, y: bandY + h * 0.015 }
-          ], style.darkAccentColor);
+        const lighthouse = resolveLighthouseGeometry(sx, sy, w, h);
+        fillRoadsidePolygonCanvas(ctx, lighthouse.towerPolygon, style.creamColor);
+        for (const band of lighthouse.bands) {
+          fillRoadsidePolygonCanvas(ctx, band, style.darkAccentColor);
         }
         ctx.fillStyle = style.darkAccentColor;
-        ctx.fillRect(sx - w * 0.25, topY - h * 0.06, w * 0.5, h * 0.07);
+        ctx.fillRect(sx - w * 0.25, lighthouse.topY - h * 0.06, w * 0.5, h * 0.07);
         ctx.fillStyle = style.lightColor;
-        ctx.fillRect(sx - w * 0.13, topY - h * 0.18, w * 0.26, h * 0.12);
+        ctx.fillRect(sx - w * 0.13, lighthouse.topY - h * 0.18, w * 0.26, h * 0.12);
         break;
       }
       case "cactus": {
+        const cactus = resolveCactusLineSegments(sx, sy, h);
         ctx.strokeStyle = style.foliageColor;
         ctx.lineWidth = Math.max(1, h * 0.14);
         ctx.lineCap = "round";
         ctx.beginPath();
-        ctx.moveTo(sx, sy);
-        ctx.lineTo(sx, sy - h * 0.82);
-        ctx.moveTo(sx, sy - h * 0.4);
-        ctx.lineTo(sx - h * 0.21, sy - h * 0.4);
-        ctx.lineTo(sx - h * 0.21, sy - h * 0.59);
-        ctx.moveTo(sx, sy - h * 0.58);
-        ctx.lineTo(sx + h * 0.2, sy - h * 0.58);
-        ctx.lineTo(sx + h * 0.2, sy - h * 0.74);
+        for (const seg of cactus.trunkSegments) {
+          ctx.moveTo(seg.x1, seg.y1);
+          ctx.lineTo(seg.x2, seg.y2);
+        }
         ctx.stroke();
         ctx.strokeStyle = style.foliageLightColor;
         ctx.lineWidth = Math.max(1, h * 0.045);
         ctx.beginPath();
-        ctx.moveTo(sx + h * 0.04, sy - h * 0.08);
-        ctx.lineTo(sx + h * 0.04, sy - h * 0.72);
+        ctx.moveTo(cactus.stripeSegment.x1, cactus.stripeSegment.y1);
+        ctx.lineTo(cactus.stripeSegment.x2, cactus.stripeSegment.y2);
         ctx.stroke();
         break;
       }
       case "dry_shrub": {
+        const shrub = resolveDryShrubLineSegments(sx, sy, h);
         ctx.strokeStyle = style.foliageColor;
         ctx.lineCap = "round";
         ctx.lineWidth = Math.max(1, h * 0.1);
         ctx.beginPath();
-        ctx.moveTo(sx, sy);
-        ctx.lineTo(sx - h * 0.24, sy - h * 0.35);
-        ctx.lineTo(sx - h * 0.32, sy - h * 0.55);
-        ctx.moveTo(sx - h * 0.15, sy - h * 0.22);
-        ctx.lineTo(sx + h * 0.07, sy - h * 0.42);
-        ctx.lineTo(sx + h * 0.2, sy - h * 0.52);
-        ctx.moveTo(sx + h * 0.01, sy - h * 0.18);
-        ctx.lineTo(sx + h * 0.26, sy - h * 0.32);
+        for (const branch of shrub.mainBranches) {
+          ctx.moveTo(branch[0]!.x, branch[0]!.y);
+          for (let b = 1; b < branch.length; b++) {
+            ctx.lineTo(branch[b]!.x, branch[b]!.y);
+          }
+        }
         ctx.stroke();
         ctx.strokeStyle = style.foliageLightColor;
         ctx.lineWidth = Math.max(1, h * 0.055);
         ctx.beginPath();
-        ctx.moveTo(sx - h * 0.2, sy - h * 0.31);
-        ctx.lineTo(sx - h * 0.3, sy - h * 0.46);
-        ctx.moveTo(sx + h * 0.1, sy - h * 0.32);
-        ctx.lineTo(sx + h * 0.22, sy - h * 0.42);
+        for (const branch of shrub.highlightBranches) {
+          ctx.moveTo(branch[0]!.x, branch[0]!.y);
+          for (let b = 1; b < branch.length; b++) {
+            ctx.lineTo(branch[b]!.x, branch[b]!.y);
+          }
+        }
         ctx.stroke();
         break;
       }
       case "wind_tower": {
-        const topY = sy - h * 0.82;
+        const tower = resolveWindTowerGeometry(sx, sy, h);
         ctx.strokeStyle = style.rockShadeColor;
         ctx.lineWidth = Math.max(1, h * 0.045);
         ctx.beginPath();
-        ctx.moveTo(sx - h * 0.15, sy);
-        ctx.lineTo(sx, topY);
-        ctx.lineTo(sx + h * 0.15, sy);
-        ctx.moveTo(sx, topY);
-        ctx.lineTo(sx, topY - h * 0.13);
+        for (const line of tower.towerLines) {
+          ctx.moveTo(line[0]!.x, line[0]!.y);
+          for (let l = 1; l < line.length; l++) {
+            ctx.lineTo(line[l]!.x, line[l]!.y);
+          }
+        }
         ctx.stroke();
         ctx.fillStyle = style.creamColor;
         ctx.beginPath();
-        ctx.arc(sx, topY - h * 0.13, Math.max(1, h * 0.045), 0, Math.PI * 2);
+        ctx.arc(sx, tower.rotorY, tower.hubRadius, 0, Math.PI * 2);
         ctx.fill();
-        for (const angle of [0, (2 * Math.PI) / 3, (4 * Math.PI) / 3]) {
+        for (const angle of tower.bladeAngles) {
           ctx.beginPath();
-          ctx.moveTo(sx, topY - h * 0.13);
-          ctx.lineTo(sx + Math.cos(angle) * h * 0.2, topY - h * 0.13 + Math.sin(angle) * h * 0.2);
+          ctx.moveTo(sx, tower.rotorY);
+          ctx.lineTo(sx + Math.cos(angle) * tower.bladeRadius, tower.rotorY + Math.sin(angle) * tower.bladeRadius);
           ctx.stroke();
         }
         break;

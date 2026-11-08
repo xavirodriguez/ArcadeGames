@@ -13,7 +13,19 @@ import {
   resolveOutrunHudContext,
   resolveOffroadDustParams
 } from "./OutrunRenderShared";
-import { computeSpeedLines, computeOutrunPlayerArtworkScale } from "./OutrunVisualHelpers";
+import {
+  computeSpeedLines,
+  computeOutrunPlayerArtworkScale,
+  resolveOutrunBitmapSpriteBounds,
+  resolvePineTierGeometry,
+  resolveRockGeometry,
+  resolvePalmFrondGeometry,
+  resolveLighthouseGeometry,
+  resolveCactusLineSegments,
+  resolveDryShrubLineSegments,
+  resolveWindTowerGeometry,
+  resolveChevronGeometry
+} from "./OutrunVisualHelpers";
 import { computeOutrunRoadSpeedLineSegments, resolveOutrunRoadSegmentArtwork } from "./OutrunRoadArtwork";
 import { fogIntensity, resolveRoadFogColor } from "./OutrunFog";
 import { resolveOutrunRoadsideArtworkStyle } from "./OutrunRoadsideArtwork";
@@ -63,27 +75,18 @@ function drawOutrunBitmapSpriteSkia(
   const rawImg = assetLoader.get<unknown>(spec.assetKey);
   if (!rawImg) return false;
 
-  const aspect = spec.aspectRatio ?? 1.0;
-  const size = sw * 0.8;
-  const w = size;
-  const h = size * aspect;
-  if (sy > clipY || w < 2) return false;
-
-  const anchorX = spec.anchor?.x ?? 0.5;
-  const anchorY = spec.anchor?.y ?? 1.0;
-
-  const dx = sx - w * anchorX;
-  const dy = sy - h * anchorY;
+  const bounds = resolveOutrunBitmapSpriteBounds(spec, sx, sy, sw, clipY);
+  if (!bounds) return false;
 
   const skImg = rawImg as import("@shopify/react-native-skia").SkImage;
   if (skImg) {
     const paint = Skia.Paint();
-    const dest = Skia.XYWHRect(dx, dy, w, h);
+    const dest = Skia.XYWHRect(bounds.dx, bounds.dy, bounds.w, bounds.h);
     if (spec.srcRect) {
       const src = Skia.XYWHRect(spec.srcRect.x, spec.srcRect.y, spec.srcRect.w, spec.srcRect.h);
       canvas.drawImageRect(skImg, src, dest, paint);
     } else {
-      canvas.drawImageRect(skImg, Skia.XYWHRect(0, 0, w, h), dest, paint);
+      canvas.drawImageRect(skImg, Skia.XYWHRect(0, 0, bounds.w, bounds.h), dest, paint);
     }
     return true;
   }
@@ -154,13 +157,7 @@ function drawRoadSpriteSkia(
     boardPaint.setStyle(Skia.PaintStyle.Fill);
     canvas.drawRect(Skia.XYWHRect(sx - bw / 2, sy - bh - bh * 0.8, bw, bh), boardPaint);
   } else if (sp.kind === "chevron") {
-    const cw = size * 0.6;
-    const ch = size * 0.8;
-    fillRoadsidePolygonSkia(canvas, [
-      { x: sx - cw / 2, y: sy },
-      { x: sx + cw / 2, y: sy - ch / 2 },
-      { x: sx - cw / 2, y: sy - ch }
-    ], colors.amber);
+    fillRoadsidePolygonSkia(canvas, resolveChevronGeometry(sx, sy, size), colors.amber);
   } else {
     const style = resolveOutrunRoadsideArtworkStyle(sp, visualPalette, depth, sw, lightsOn, activeMod);
     const h = style.height;
@@ -196,22 +193,10 @@ function drawRoadSpriteSkia(
         break;
       }
       case "pine": {
-        const tiers = [
-          { top: h * 0.48, bottom: h * 0.16, halfWidth: h * 0.34 },
-          { top: h * 0.73, bottom: h * 0.39, halfWidth: h * 0.26 },
-          { top: h * 0.98, bottom: h * 0.65, halfWidth: h * 0.18 }
-        ];
+        const tiers = resolvePineTierGeometry(sx, sy, h);
         for (const tier of tiers) {
-          const topY = sy - tier.top;
-          const bottomY = sy - tier.bottom;
-          fillRoadsidePolygonSkia(canvas, [
-            { x: sx, y: topY }, { x: sx, y: bottomY },
-            { x: sx - tier.halfWidth, y: bottomY }
-          ], style.foliageLightColor);
-          fillRoadsidePolygonSkia(canvas, [
-            { x: sx, y: topY }, { x: sx + tier.halfWidth, y: bottomY },
-            { x: sx, y: bottomY }
-          ], style.foliageColor);
+          fillRoadsidePolygonSkia(canvas, tier.lightPolygon, style.foliageLightColor);
+          fillRoadsidePolygonSkia(canvas, tier.darkPolygon, style.foliageColor);
         }
         const trunkPaint = Skia.Paint();
         trunkPaint.setColor(Skia.Color(style.trunkColor));
@@ -220,93 +205,55 @@ function drawRoadSpriteSkia(
         break;
       }
       case "rock": {
-        const w = style.width;
-        fillRoadsidePolygonSkia(canvas, [
-          { x: sx - w * 0.5, y: sy },
-          { x: sx - w * 0.43, y: sy - h * 0.18 },
-          { x: sx - w * 0.12, y: sy - h * 0.34 },
-          { x: sx + w * 0.2, y: sy - h * 0.29 },
-          { x: sx + w * 0.48, y: sy - h * 0.08 },
-          { x: sx + w * 0.45, y: sy }
-        ], style.rockBaseColor);
-        fillRoadsidePolygonSkia(canvas, [
-          { x: sx - w * 0.43, y: sy - h * 0.18 },
-          { x: sx - w * 0.12, y: sy - h * 0.34 },
-          { x: sx + w * 0.2, y: sy - h * 0.29 },
-          { x: sx + w * 0.02, y: sy - h * 0.12 },
-          { x: sx - w * 0.27, y: sy - h * 0.1 }
-        ], style.rockShadeColor);
+        const rock = resolveRockGeometry(sx, sy, style.width, h);
+        fillRoadsidePolygonSkia(canvas, rock.basePolygon, style.rockBaseColor);
+        fillRoadsidePolygonSkia(canvas, rock.shadePolygon, style.rockShadeColor);
         break;
       }
       case "palm": {
-        const crownTopY = sy - h * 0.86;
-        const crownTopX = sx + h * 0.06;
+        const palm = resolvePalmFrondGeometry(sx, sy, h);
         const trunkPath = Skia.Path.Make();
         trunkPath.moveTo(sx, sy);
-        trunkPath.quadTo(sx - h * 0.04, sy - h * 0.45, crownTopX, crownTopY);
+        trunkPath.quadTo(palm.trunkCtrlX, palm.trunkCtrlY, palm.crownTopX, palm.crownTopY);
         const trunkPaint = Skia.Paint();
         trunkPaint.setColor(Skia.Color(style.trunkColor));
         trunkPaint.setStyle(Skia.PaintStyle.Stroke);
         trunkPaint.setStrokeWidth(Math.max(1, h * 0.055));
         trunkPaint.setStrokeCap(Skia.StrokeCap.Round);
         canvas.drawPath(trunkPath, trunkPaint);
-        const leafAngles = [-2.85, -2.35, -1.8, -1.25, -0.65];
-        leafAngles.forEach((angle, index) => {
-          const length = h * (index === 2 ? 0.42 : 0.36);
-          const tip = {
-            x: crownTopX + Math.cos(angle) * length,
-            y: crownTopY + Math.sin(angle) * length * 0.72
-          };
-          const side = {
-            x: crownTopX + Math.cos(angle + Math.PI / 2) * h * 0.07,
-            y: crownTopY + Math.sin(angle + Math.PI / 2) * h * 0.07
-          };
-          fillRoadsidePolygonSkia(canvas, [
-            { x: crownTopX, y: crownTopY }, tip, side
-          ], index % 2 === 0 ? style.foliageLightColor : style.foliageColor);
-        });
+        for (const frond of palm.fronds) {
+          fillRoadsidePolygonSkia(
+            canvas,
+            frond.polygon,
+            frond.isLight ? style.foliageLightColor : style.foliageColor
+          );
+        }
         break;
       }
       case "lighthouse": {
         const w = style.width;
-        const topY = sy - h * 0.84;
-        const topW = w * 0.34;
-        const bottomW = w * 0.7;
-        fillRoadsidePolygonSkia(canvas, [
-          { x: sx - topW / 2, y: topY }, { x: sx + topW / 2, y: topY },
-          { x: sx + bottomW / 2, y: sy }, { x: sx - bottomW / 2, y: sy }
-        ], style.creamColor);
-        for (const band of [0.28, 0.55, 0.79]) {
-          const bandY = sy - h * band;
-          const t = (sy - bandY) / Math.max(1, sy - topY);
-          const bandW = topW + (bottomW - topW) * t;
-          fillRoadsidePolygonSkia(canvas, [
-            { x: sx - bandW / 2, y: bandY - h * 0.055 },
-            { x: sx + bandW / 2, y: bandY - h * 0.055 },
-            { x: sx + bandW / 2, y: bandY + h * 0.015 },
-            { x: sx - bandW / 2, y: bandY + h * 0.015 }
-          ], style.darkAccentColor);
+        const lighthouse = resolveLighthouseGeometry(sx, sy, w, h);
+        fillRoadsidePolygonSkia(canvas, lighthouse.towerPolygon, style.creamColor);
+        for (const band of lighthouse.bands) {
+          fillRoadsidePolygonSkia(canvas, band, style.darkAccentColor);
         }
         const capPaint = Skia.Paint();
         capPaint.setColor(Skia.Color(style.darkAccentColor));
         capPaint.setStyle(Skia.PaintStyle.Fill);
-        canvas.drawRect(Skia.XYWHRect(sx - w * 0.25, topY - h * 0.06, w * 0.5, h * 0.07), capPaint);
+        canvas.drawRect(Skia.XYWHRect(sx - w * 0.25, lighthouse.topY - h * 0.06, w * 0.5, h * 0.07), capPaint);
         const lightPaint = Skia.Paint();
         lightPaint.setColor(Skia.Color(style.lightColor));
         lightPaint.setStyle(Skia.PaintStyle.Fill);
-        canvas.drawRect(Skia.XYWHRect(sx - w * 0.13, topY - h * 0.18, w * 0.26, h * 0.12), lightPaint);
+        canvas.drawRect(Skia.XYWHRect(sx - w * 0.13, lighthouse.topY - h * 0.18, w * 0.26, h * 0.12), lightPaint);
         break;
       }
       case "cactus": {
+        const cactus = resolveCactusLineSegments(sx, sy, h);
         const cactusPath = Skia.Path.Make();
-        cactusPath.moveTo(sx, sy);
-        cactusPath.lineTo(sx, sy - h * 0.82);
-        cactusPath.moveTo(sx, sy - h * 0.4);
-        cactusPath.lineTo(sx - h * 0.21, sy - h * 0.4);
-        cactusPath.lineTo(sx - h * 0.21, sy - h * 0.59);
-        cactusPath.moveTo(sx, sy - h * 0.58);
-        cactusPath.lineTo(sx + h * 0.2, sy - h * 0.58);
-        cactusPath.lineTo(sx + h * 0.2, sy - h * 0.74);
+        for (const seg of cactus.trunkSegments) {
+          cactusPath.moveTo(seg.x1, seg.y1);
+          cactusPath.lineTo(seg.x2, seg.y2);
+        }
         const cactusPaint = Skia.Paint();
         cactusPaint.setColor(Skia.Color(style.foliageColor));
         cactusPaint.setStyle(Skia.PaintStyle.Stroke);
@@ -314,8 +261,8 @@ function drawRoadSpriteSkia(
         cactusPaint.setStrokeCap(Skia.StrokeCap.Round);
         canvas.drawPath(cactusPath, cactusPaint);
         const stripePath = Skia.Path.Make();
-        stripePath.moveTo(sx + h * 0.04, sy - h * 0.08);
-        stripePath.lineTo(sx + h * 0.04, sy - h * 0.72);
+        stripePath.moveTo(cactus.stripeSegment.x1, cactus.stripeSegment.y1);
+        stripePath.lineTo(cactus.stripeSegment.x2, cactus.stripeSegment.y2);
         const stripePaint = Skia.Paint();
         stripePaint.setColor(Skia.Color(style.foliageLightColor));
         stripePaint.setStyle(Skia.PaintStyle.Stroke);
@@ -325,15 +272,14 @@ function drawRoadSpriteSkia(
         break;
       }
       case "dry_shrub": {
+        const shrub = resolveDryShrubLineSegments(sx, sy, h);
         const shrubPath = Skia.Path.Make();
-        shrubPath.moveTo(sx, sy);
-        shrubPath.lineTo(sx - h * 0.24, sy - h * 0.35);
-        shrubPath.lineTo(sx - h * 0.32, sy - h * 0.55);
-        shrubPath.moveTo(sx - h * 0.15, sy - h * 0.22);
-        shrubPath.lineTo(sx + h * 0.07, sy - h * 0.42);
-        shrubPath.lineTo(sx + h * 0.2, sy - h * 0.52);
-        shrubPath.moveTo(sx + h * 0.01, sy - h * 0.18);
-        shrubPath.lineTo(sx + h * 0.26, sy - h * 0.32);
+        for (const branch of shrub.mainBranches) {
+          shrubPath.moveTo(branch[0]!.x, branch[0]!.y);
+          for (let b = 1; b < branch.length; b++) {
+            shrubPath.lineTo(branch[b]!.x, branch[b]!.y);
+          }
+        }
         const shrubPaint = Skia.Paint();
         shrubPaint.setColor(Skia.Color(style.foliageColor));
         shrubPaint.setStyle(Skia.PaintStyle.Stroke);
@@ -341,10 +287,12 @@ function drawRoadSpriteSkia(
         shrubPaint.setStrokeCap(Skia.StrokeCap.Round);
         canvas.drawPath(shrubPath, shrubPaint);
         const highlightPath = Skia.Path.Make();
-        highlightPath.moveTo(sx - h * 0.2, sy - h * 0.31);
-        highlightPath.lineTo(sx - h * 0.3, sy - h * 0.46);
-        highlightPath.moveTo(sx + h * 0.1, sy - h * 0.32);
-        highlightPath.lineTo(sx + h * 0.22, sy - h * 0.42);
+        for (const branch of shrub.highlightBranches) {
+          highlightPath.moveTo(branch[0]!.x, branch[0]!.y);
+          for (let b = 1; b < branch.length; b++) {
+            highlightPath.lineTo(branch[b]!.x, branch[b]!.y);
+          }
+        }
         const highlightPaint = Skia.Paint();
         highlightPaint.setColor(Skia.Color(style.foliageLightColor));
         highlightPaint.setStyle(Skia.PaintStyle.Stroke);
@@ -354,27 +302,27 @@ function drawRoadSpriteSkia(
         break;
       }
       case "wind_tower": {
-        const topY = sy - h * 0.82;
+        const tower = resolveWindTowerGeometry(sx, sy, h);
         const towerPath = Skia.Path.Make();
-        towerPath.moveTo(sx - h * 0.15, sy);
-        towerPath.lineTo(sx, topY);
-        towerPath.lineTo(sx + h * 0.15, sy);
-        towerPath.moveTo(sx, topY);
-        towerPath.lineTo(sx, topY - h * 0.13);
+        for (const line of tower.towerLines) {
+          towerPath.moveTo(line[0]!.x, line[0]!.y);
+          for (let l = 1; l < line.length; l++) {
+            towerPath.lineTo(line[l]!.x, line[l]!.y);
+          }
+        }
         const towerPaint = Skia.Paint();
         towerPaint.setColor(Skia.Color(style.rockShadeColor));
         towerPaint.setStyle(Skia.PaintStyle.Stroke);
         towerPaint.setStrokeWidth(Math.max(1, h * 0.045));
         canvas.drawPath(towerPath, towerPaint);
-        const rotorY = topY - h * 0.13;
         const rotorPaint = Skia.Paint();
         rotorPaint.setColor(Skia.Color(style.creamColor));
         rotorPaint.setStyle(Skia.PaintStyle.Fill);
-        canvas.drawCircle(sx, rotorY, Math.max(1, h * 0.045), rotorPaint);
+        canvas.drawCircle(sx, tower.rotorY, tower.hubRadius, rotorPaint);
         const bladesPath = Skia.Path.Make();
-        for (const angle of [0, (2 * Math.PI) / 3, (4 * Math.PI) / 3]) {
-          bladesPath.moveTo(sx, rotorY);
-          bladesPath.lineTo(sx + Math.cos(angle) * h * 0.2, rotorY + Math.sin(angle) * h * 0.2);
+        for (const angle of tower.bladeAngles) {
+          bladesPath.moveTo(sx, tower.rotorY);
+          bladesPath.lineTo(sx + Math.cos(angle) * tower.bladeRadius, tower.rotorY + Math.sin(angle) * tower.bladeRadius);
         }
         const bladesPaint = Skia.Paint();
         bladesPaint.setColor(Skia.Color(style.creamColor));

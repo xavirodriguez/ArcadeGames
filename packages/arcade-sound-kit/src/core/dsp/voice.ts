@@ -2,6 +2,7 @@ import { Wave, FilterSpec, ModulationSpec, LfoSpec, Envelope, FmSpec, UnisonSpec
 import { evalWave } from './oscillators';
 import { computeEnvelope } from './envelope';
 import { BiquadFilter } from './biquad';
+import { applyBitcrushSample } from './bitcrush';
 import { RNG } from '../random';
 
 export interface RenderVoiceContext {
@@ -223,17 +224,9 @@ export function renderVoice(
     if (ctx.bitcrush) {
       const bits = ctx.bitcrush.bits ?? 8;
       const downsample = ctx.bitcrush.downsample ?? 1;
-      const step = 1 / Math.pow(2, bits - 1);
-      if (downsample > 1) {
-        if (sampleCount % downsample !== 0) {
-          val = lastBitcrushVal;
-        } else {
-          val = Math.round(val / step) * step;
-          lastBitcrushVal = val;
-        }
-      } else {
-        val = Math.round(val / step) * step;
-      }
+      const result = applyBitcrushSample(val, sampleCount, bits, downsample, lastBitcrushVal);
+      val = result.value;
+      lastBitcrushVal = result.lastVal;
     }
 
     samples[i] += val;

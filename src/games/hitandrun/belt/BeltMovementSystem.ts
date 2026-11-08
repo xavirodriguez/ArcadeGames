@@ -21,11 +21,7 @@ import {
   createBeltElevationComponent,
   type BeltElevationComponent
 } from "./BeltElevationComponent";
-
-function moveTowards(current: number, target: number, maxDelta: number): number {
-  if (Math.abs(target - current) <= maxDelta) return target;
-  return current + Math.sign(target - current) * maxDelta;
-}
+import { moveTowards } from "@tiny-aster/core/math/MathUtils";
 
 export class BeltMovementSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {

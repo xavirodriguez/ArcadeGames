@@ -61,7 +61,7 @@ export class GeometryWarsGameStateSystem extends System<GeometryWarsComponentReg
       });
 
       if (!world.isReSimulating) {
-        Juice.shake(world, 14, 0.5);
+        Juice.shake(world, 14, 500);
         const audio = world.getResource<{ playSFX: (sfx: string) => void }>("Audio") || (world as unknown as { audio?: { playSFX: (sfx: string) => void } }).audio;
         if (audio) {
           audio.playSFX("explosion2");
@@ -138,7 +138,7 @@ export class GeometryWarsGameStateSystem extends System<GeometryWarsComponentReg
       if (!world.isReSimulating) {
         // Dynamic screen shake based on enemy rank/score
         const shakeAmt = baseScore >= 150 ? 5 : baseScore >= 100 ? 3.5 : 2;
-        Juice.shake(world, shakeAmt, 0.15);
+        Juice.shake(world, shakeAmt, 150);
 
         if (transform) {
           const px = transform.worldX ?? transform.x;

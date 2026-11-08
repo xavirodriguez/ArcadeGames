@@ -28,7 +28,10 @@ export interface CombatDeathPayload {
   category?: string;
 }
 
-/** Presentation mirror resource (optional readers). */
+/**
+ * Legacy shake resource type.
+ * @deprecated Consolidated into core Camera2D ScreenShakeComponent.
+ */
 export interface HitRunScreenShake {
   intensity: number;
   duration: number;

@@ -40,11 +40,5 @@ export function registerHitRunFeedback(
     feedback.subscribe(bus);
   }
 
-  world.setResource("HitRunScreenShake", {
-    intensity: 0,
-    duration: 0,
-    elapsed: 0
-  });
-
   return feedback;
 }

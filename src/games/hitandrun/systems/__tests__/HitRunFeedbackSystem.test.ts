@@ -1,21 +1,30 @@
-import { World, CoreComponentRegistry, getGameplayFreezeRemaining } from "@tiny-aster/core";
+import { World, CoreComponentRegistry, getGameplayFreezeRemaining, EventBus } from "@tiny-aster/core";
 import { HitRunFeedbackSystem, isSimulationFrozen } from "../HitRunFeedbackSystem";
 import {
   HIT_STOP_NORMAL_SECONDS,
   HIT_STOP_KILL_SECONDS,
-  DEFAULT_HIT_RUN_FEEDBACK_CONFIG
+  DEFAULT_HIT_RUN_FEEDBACK_CONFIG,
+  SCREEN_SHAKE_NORMAL_INTENSITY,
+  SCREEN_SHAKE_NORMAL_DURATION
 } from "../HitRunFeedbackTypes";
 
 describe("HitRunFeedbackSystem (Paso B)", () => {
   let world: World<CoreComponentRegistry>;
   let feedback: HitRunFeedbackSystem;
+  let camEnt: number;
 
   beforeEach(() => {
     world = new World<CoreComponentRegistry>();
-    world.setResource("HitRunScreenShake", {
-      intensity: 0,
-      duration: 0,
-      elapsed: 0
+    world.setResource("EventBus", new EventBus());
+    camEnt = world.createEntity();
+    world.addComponent(camEnt, {
+      type: "Camera2D",
+      isMain: true,
+      x: 0,
+      y: 0,
+      targetX: 0,
+      targetY: 0,
+      zoom: 1
     });
     feedback = new HitRunFeedbackSystem({ ...DEFAULT_HIT_RUN_FEEDBACK_CONFIG });
   });
@@ -94,7 +103,7 @@ describe("HitRunFeedbackSystem (Paso B)", () => {
     expect(effects.some((entity) => world.getComponent(entity, "Render")?.shape === "pixelfx_ink_burst")).toBe(true);
   });
 
-  it("does not apply screen shake resource when isReSimulating", () => {
+  it("does not apply screen shake to camera when isReSimulating", () => {
     world.isReSimulating = true;
     feedback.enqueueHitForTest({
       targetEntity: 1,
@@ -107,11 +116,11 @@ describe("HitRunFeedbackSystem (Paso B)", () => {
     // Hit-stop still applies via GameplayFreeze
     expect(getGameplayFreezeRemaining(world) ?? 0).toBeGreaterThan(0);
 
-    const shake = world.getResource<{ intensity: number }>("HitRunScreenShake");
-    expect(shake?.intensity ?? 0).toBe(0);
+    // Core Camera2D should not have ScreenShake added during re-simulation
+    expect(world.hasComponent(camEnt, "ScreenShake")).toBe(false);
   });
 
-  it("writes HitRunScreenShake when not re-simulating", () => {
+  it("writes canonical ScreenShake component to main camera when not re-simulating", () => {
     world.isReSimulating = false;
     feedback.enqueueHitForTest({
       targetEntity: 1,
@@ -120,12 +129,15 @@ describe("HitRunFeedbackSystem (Paso B)", () => {
       category: "melee"
     });
     feedback.update(world, 0);
+    world.getCommandBuffer().flush(world);
 
-    const shake = world.getResource<{ intensity: number; duration: number }>(
-      "HitRunScreenShake"
-    );
-    expect(shake?.intensity ?? 0).toBeGreaterThan(0);
-    expect(shake?.duration ?? 0).toBeGreaterThan(0);
+    // ScreenShake is added via world.getCommandBuffer().addComponent
+    // or direct component on main camera
+    const shake = world.getComponent(camEnt, "ScreenShake");
+    expect(shake).toBeDefined();
+    expect(shake?.intensity).toBe(SCREEN_SHAKE_NORMAL_INTENSITY);
+    expect(shake?.duration).toBe(SCREEN_SHAKE_NORMAL_DURATION);
+    expect(shake?.remaining).toBe(SCREEN_SHAKE_NORMAL_DURATION);
   });
   it("spawns combat break and finisher VFX only for their semantic hit transitions", () => {
     const guardTarget = world.createEntity();

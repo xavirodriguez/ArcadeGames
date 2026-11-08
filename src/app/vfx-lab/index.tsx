@@ -59,7 +59,8 @@ function formatValue(value: unknown): string {
 export default function VFXVisualLabScreen() {
   const [effectId, setEffectId] = useState<VFXLabEffectId>("pixelfx_impact");
   const [profile, setProfile] = useState<VFXVisualProfileId>("arcade-neon");
-  const [progress, setProgress] = useState(0.28);
+  const [progress, setProgress] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(true);
   const [size, setSize] = useState(48);
   const [rotation, setRotation] = useState(0);
   const [seed, setSeed] = useState("104729");
@@ -96,6 +97,41 @@ export default function VFXVisualLabScreen() {
     rotation,
     seed: scenarioSeed
   } as const;
+ 
+  // Advance the real TTL-driven drawer continuously in the lab.
+  // The drawer stays pure; only this preview clock is stateful.
+  useEffect(() => {
+    if (!isPlaying) return;
+    let frame = 0;
+    let previousTime = 0;
+    let lastPublishedTime = 0;
+    const tick = (time: number) => {
+      if (previousTime === 0) previousTime = time;
+      const delta = Math.min(50, Math.max(0, time - previousTime));
+      previousTime = time;
+      if (time - lastPublishedTime >= 1000 / 30) {
+        lastPublishedTime = time;
+        setProgress((current) => {
+          const next = current + delta / 1100;
+          return next >= 1 ? next - 1 : next;
+        });
+      }
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [isPlaying]);
+
+  const selectEffect = (nextEffect: VFXLabEffectId) => {
+    setEffectId(nextEffect);
+    setProgress(0);
+    setIsPlaying(true);
+  };
+  const inspectProgress = (nextProgress: number) => {
+    setIsPlaying(false);
+    setProgress(clamp(nextProgress, 0, 0.99));
+  };
+
 
   useEffect(() => {
     if (Platform.OS !== "web" || !canvasRef.current) return;
@@ -163,6 +199,7 @@ export default function VFXVisualLabScreen() {
     setEffectId(preset.effect);
     setProfile(preset.profile);
     setProgress(preset.progress);
+    setIsPlaying(false);
     setSize(preset.size);
     setRotation(preset.rotation);
     setSeed(String(preset.seed));
@@ -202,7 +239,7 @@ export default function VFXVisualLabScreen() {
     }
   };
 
-  const changeProgress = (delta: number) => setProgress((value) => clamp(value + delta, 0, 0.99));
+  const changeProgress = (delta: number) => inspectProgress(progress + delta);
   const changeSize = (delta: number) => setSize((value) => clamp(value + delta, 12, 100));
   const changeRotation = (delta: number) => setRotation((value) => value + delta);
 
@@ -270,7 +307,7 @@ export default function VFXVisualLabScreen() {
           <TextInput value={filter} onChangeText={setFilter} placeholder="Filter by name, id or family…" placeholderTextColor="#778399" style={styles.textInput} />
           <View style={styles.effectGrid}>
             {visibleEffects.map((item) => (
-              <TouchableOpacity key={item.id} onPress={() => setEffectId(item.id)}
+              <TouchableOpacity key={item.id} onPress={() => selectEffect(item.id)}
                 style={[styles.effectChip, effectId === item.id && styles.effectChipActive]}
                 accessibilityRole="button" accessibilityState={{ selected: effectId === item.id }}>
                 <Text style={[styles.effectChipText, effectId === item.id && styles.effectChipTextActive]}>{item.label}</Text>
@@ -316,6 +353,22 @@ export default function VFXVisualLabScreen() {
               <Text style={styles.controlValue}>{Math.round(progress * 100)}%</Text>
               <TouchableOpacity style={styles.stepButton} onPress={() => changeProgress(0.1)}><Text style={styles.stepText}>+</Text></TouchableOpacity>
             </View>
+          </View>
+          <View style={styles.playbackRow}>
+            <TouchableOpacity testID="vfx-playback-toggle" accessibilityRole="button"
+              accessibilityLabel={isPlaying ? "Pause animation" : "Play animation"}
+              style={[styles.actionButton, styles.playbackButton]}
+              onPress={() => setIsPlaying((playing) => !playing)}>
+              <Text style={styles.actionText}>{isPlaying ? "Ⅱ Pause" : "▶ Play"}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Restart animation"
+              style={[styles.actionButton, styles.playbackButton]}
+              onPress={() => { setProgress(0); setIsPlaying(true); }}>
+              <Text style={styles.actionText}>↺ Restart</Text>
+            </TouchableOpacity>
+            <Text testID="vfx-progress-value" style={styles.playbackStatus}>
+              {isPlaying ? "LIVE PREVIEW" : "INSPECT MODE"} · {(progress * 100).toFixed(0)}%
+            </Text>
           </View>
           <View style={styles.track}><View style={[styles.trackFill, { width: `${progress * 100}%` }]} /></View>
           <View style={styles.phaseTimeline}>
@@ -415,6 +468,9 @@ const styles = StyleSheet.create({
   nativeNotice: { minHeight: 160, justifyContent: "center", padding: 20, backgroundColor: "#141A26", borderRadius: 6 },
   noticeText: { color: "#AAB4C4", fontSize: 11, lineHeight: 18 },
   previewMeta: { flexDirection: "row", justifyContent: "space-between", marginTop: 10, flexWrap: "wrap" },
+  playbackRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8, marginTop: 12, marginBottom: 8 },
+  playbackButton: { minWidth: 112, alignItems: "center" },
+  playbackStatus: { color: "#00F0FF", fontSize: 10, fontFamily: "monospace", marginLeft: 6 },
   effectName: { color: "#FFF", fontSize: 13, fontFamily: "monospace", fontWeight: "bold" },
   effectGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   effectChip: { minWidth: 116, paddingHorizontal: 10, paddingVertical: 8, backgroundColor: "#141A26", borderWidth: 1, borderColor: "#263247", borderRadius: 5 },

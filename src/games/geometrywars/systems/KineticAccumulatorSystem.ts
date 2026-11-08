@@ -162,7 +162,7 @@ export class KineticAccumulatorSystem extends System<GeometryWarsComponentRegist
 
     // Juice screen shake on shockwave trigger
     if (!world.isReSimulating) {
-      Juice.shake(world, 10, 0.3);
+      Juice.shake(world, 10, 300);
       const audio = world.getResource<{ playSFX: (id: string) => void }>("Audio");
       if (audio) {
         audio.playSFX("explosion2");

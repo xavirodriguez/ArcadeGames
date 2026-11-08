@@ -377,7 +377,7 @@ For a full replay path, each presentation consumer receives the fact as usual bu
 
 **Confirmation semantics:**
 
-- In offline/local authoritative play, an event is committed for presentation when its gameplay transition has been accepted into the local authoritative tick. PresentationGateway may dispatch it in the same tick.
+- In offline/local authoritative play, an event is eligible for presentation when its gameplay transition has been accepted into the local authoritative tick. Each consumer may request Gateway admission and perform its own side-effect in that tick.
 - In server-authoritative predicted play, an event is confirmed only when an authoritative server update acknowledges the same logical occurrence ID and covers its simulation tick. A generic state-version acknowledgement or a later snapshot with no causal event evidence is not, by itself, proof that a particular impact/pickup/death occurred.
 - A stable occurrence ID is deterministic for the logical domain event and survives replay of that same occurrence. It must not rely on wall-clock time, callback identity or entity ID alone. It is delivery/occurrence metadata, not visual policy.
 - The current Colyseus snapshot flow has not been shown to carry per-event occurrence acknowledgements. Until such evidence is available, predicted VFX/Audio cannot be treated as confirmed solely because a snapshot arrived.
@@ -386,11 +386,11 @@ For a full replay path, each presentation consumer receives the fact as usual bu
 
 - For confirmation-gated transient feedback, the initial target is no more than one configured server replication interval plus one client presentation frame from prediction to admission. The current `BaseRoom` configures a 50 ms state patch interval; at 60 Hz this gives an initial budget of approximately 67 ms. This is a starting budget for the current transport, not a universal constant; derive it from the active replication and presentation rates.
 - If confirmation arrives after that budget, do not play a stale transient impact/audio cue late. Drop it or resolve a current-state feedback that is still semantically valid.
-- A latency-critical VFX may be shown speculatively in the prediction frame only if it is cancellable/reconcilable by stable occurrence ID. On rejection/rollback, the gateway retracts that exact occurrence; on confirmation, it commits it without creating a duplicate.
+- A latency-critical VFX may be shown speculatively in the prediction frame only if it is cancellable/reconcilable by stable occurrence and emission IDs. On rejection/rollback, the VFX consumer receives a retraction instruction through the later confirmation contract; on confirmation, the consumer commits it without creating a duplicate. The initial Gateway API does not claim this capability.
 - Audio is confirmation-gated by default because audible output cannot be retracted. Speculative audio is allowed only if the audio engine can cancel the scheduled voice before it becomes audible, keyed by the same stable occurrence ID.
 - If the transport does not provide event identity/confirmation and there is no cancellation mechanism, the mode must choose the conservative confirmed-only policy; it must not pretend to offer immediate reversible prediction feedback.
 
-This does not require a global exactly-once EventBus. Gameplay owns logical occurrence identity and authoritative state transitions; PresentationGateway owns presentation admission, duplicate suppression and retraction where supported. Rollback-specific tests are mandatory only for runtimes that actually execute the corresponding replay path.
+This does not require a global exactly-once EventBus. The EventBus/runtime publication boundary supplies stable occurrence metadata without placing transport identity in gameplay payloads; producers remain responsible for deterministic domain transitions. PresentationGateway owns presentation admission and duplicate suppression. Retraction is a later capability and is not claimed by the initial guard. Rollback-specific tests are mandatory only for runtimes that actually execute the corresponding replay path.
 
 ### 3.7 Determinism and randomness
 
@@ -426,8 +426,8 @@ Allowed conceptual dependencies:
 - Gameplay systems → typed gameplay EventRegistry contracts.
 - EventBus → registered handlers, without depending on their implementations.
 - JuiceOrchestrator → typed gameplay event contracts and existing core temporal/camera channels.
-- PresentationGateway → typed occurrence/confirmation metadata and the VFX/Audio adapter interfaces; it must not depend on their concrete implementations.
-- VFX and Audio resolvers → their own presentation contracts; all side effects are invoked through PresentationGateway.
+- Presentation consumers (Juice/shake, VFX, Audio) → neutral occurrence/emission metadata and PresentationGateway admission contract; the Gateway depends on none of the consumers.
+- VFX and Audio resolvers → their own presentation contracts; each resolver performs its own side-effect only after requesting admission from PresentationGateway.
 - VFX drawers → `IDrawAdapter` and read-only presentation state.
 - CanvasDrawAdapter / SkiaDrawAdapter → their respective rendering APIs.
 
@@ -437,7 +437,7 @@ Forbidden dependencies:
 - EventBus → JuiceOrchestrator, VFX or Audio implementation.
 - JuiceOrchestrator → VFX primitive catalog, drawer, Render/TTL entity creation or renderer.
 - VFX/Audio public output APIs → bypassing PresentationGateway.
-- PresentationGateway → selecting a visual/audio cue or depending on Canvas/Skia/concrete output implementations.
+- PresentationGateway → subscribing to EventBus, dispatching/routing consumers, owning queues/clocks, selecting output, or depending on World, Juice, VFX, Audio, Canvas or Skia implementations.
 - VFX → JuiceOrchestrator or Audio implementation.
 - Audio → JuiceOrchestrator or VFX implementation.
 - Effect drawer → Canvas or Skia concrete API.

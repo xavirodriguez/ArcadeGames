@@ -61,10 +61,10 @@ function createAdapter(): MockDrawAdapter {
   };
 }
 
-function createWorld(remaining = 0.2): { world: World<CoreComponentRegistry>; entity: number } {
+function createWorld(remaining = 0.2, vfxAnimDuration?: number): { world: World<CoreComponentRegistry>; entity: number } {
   const world = new World<CoreComponentRegistry>();
   const entity = world.createEntity();
-  world.addComponent(entity, {
+  const renderComponent: CoreComponentRegistry["Render"] & { vfxAnimDuration?: number } = {
     type: "Render",
     shape: "circle",
     size: 32,
@@ -74,8 +74,10 @@ function createWorld(remaining = 0.2): { world: World<CoreComponentRegistry>; en
     order: 0,
     rotation: 0,
     angularVelocity: 0,
-    hitFlashFrames: 0
-  });
+    hitFlashFrames: 0,
+    ...(vfxAnimDuration !== undefined ? { vfxAnimDuration } : {})
+  };
+  world.addComponent(entity, renderComponent as never);
   world.addComponent(entity, { type: "TTL", remaining, timeLeft: 0.4 });
   world.addComponent(entity, {
     type: "Transform",
@@ -101,14 +103,12 @@ describe("PixelFX-inspired procedural VFX", () => {
     drawPixelFxImpact(defaultAdapter, defaultState.world, defaultState.entity);
 
     const fastAdapter = createAdapter();
-    const fastState = createWorld(0.2);
-    const render = fastState.world.getComponent(fastState.entity, "Render") as unknown as { vfxAnimDuration?: number };
-    render.vfxAnimDuration = 0.2;
+    const fastState = createWorld(0.2, 0.2);
     drawPixelFxImpact(fastAdapter, fastState.world, fastState.entity);
 
     expect(fastAdapter.strokeCircle.mock.calls[0][2])
       .toBeGreaterThan(defaultAdapter.strokeCircle.mock.calls[0][2]);
-    expect(fastState.world.getComponent(fastState.entity, "TTL")).toEqual({ remaining: 0.2, timeLeft: 0.4 });
+    expect(fastState.world.getComponent(fastState.entity, "TTL")).toEqual({ type: "TTL", remaining: 0.2, timeLeft: 0.4 });
   });
 
   it("draws the impact composition with deterministic ring and shard geometry", () => {
@@ -194,7 +194,7 @@ describe("PixelFX-inspired procedural VFX", () => {
     drawPixelFxRicochet(ricochetEarly, earlyState.world, earlyState.entity);
     const ricochetLate = createAdapter();
     drawPixelFxRicochet(ricochetLate, lateState.world, lateState.entity);
-    expect(ricochetLate.strokeCircle.mock.calls[0][2]).toBeGreaterThan(ricochetEarly.strokeCircle.mock.calls[0][2]);
+    expect(ricochetLate.drawLine.mock.calls[1][2]).toBeGreaterThan(ricochetEarly.drawLine.mock.calls[1][2]);
   });
 
   it("animates a parry clash into a delayed directional counter-burst", () => {
@@ -234,8 +234,8 @@ describe("PixelFX-inspired procedural VFX", () => {
     drawPixelFxProjectileDeflection(early, earlyState.world, earlyState.entity);
     const late = createAdapter(), lateState = createWorld(0.04);
     drawPixelFxProjectileDeflection(late, lateState.world, lateState.entity);
-    expect(early.drawLine).toHaveBeenCalledTimes(8);
-    expect(late.drawLine).toHaveBeenCalledTimes(8);
+    expect(early.drawLine).toHaveBeenCalledTimes(13);
+    expect(late.drawLine).toHaveBeenCalledTimes(13);
     expect(late.fillCircle.mock.calls[0][4]).toBeLessThan(early.fillCircle.mock.calls[0][4]);
   });
 

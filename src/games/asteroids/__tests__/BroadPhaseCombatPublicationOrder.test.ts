@@ -238,6 +238,9 @@ describe("Asteroids broadphase combat publication ordering", () => {
     );
     const expectedPairs = getExpectedCanonicalPairs(fixture.entities);
 
+    // Compare the two executions first: this must fail on the current comparator and
+    // expose the precise normal-vs-replay divergence in the assertion diff.
+    expect(normal.pairs).toEqual(replay.pairs);
     expect(normal.pairs).toEqual(expectedPairs);
     expect(replay.pairs).toEqual(expectedPairs);
   });
@@ -252,9 +255,10 @@ describe("Asteroids broadphase combat publication ordering", () => {
     );
     const expectedPublications = getExpectedCanonicalPublications(fixture.entities);
 
+    // The first assertion directly proves whether publication order diverges across replay.
+    expect(normal.publications).toEqual(replay.publications);
     expect(normal.publications).toEqual(expectedPublications);
     expect(replay.publications).toEqual(expectedPublications);
-    expect(replay.publications).toEqual(normal.publications);
   });
 
   it("confirms the proposed (minX, entityId) comparator makes both candidate permutations equivalent", () => {

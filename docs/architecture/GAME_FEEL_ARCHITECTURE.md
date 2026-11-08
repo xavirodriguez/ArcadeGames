@@ -13,37 +13,43 @@ The architecture has five responsibilities with a deliberately narrow shared pre
 1. **Gameplay determines what happened.**
 2. **EventBus communicates typed gameplay facts.**
 3. **JuiceOrchestrator coordinates temporal responses.**
-4. **PresentationGateway admits presentation side effects; VFX and Audio independently resolve their own output.**
+4. **PresentationGateway guards admission; each presentation consumer independently resolves and emits its own output.**
 5. **Canvas and Skia present equivalent visual output.**
 
-A gameplay fact may produce temporal, visual and audio responses. Those responses remain separately owned. The PresentationGateway is not a visual/audio orchestrator: it is the single admission, confirmation and resimulation boundary through which every VFX creation and audio playback request must pass.
+A gameplay fact may produce temporal, visual and audio responses. Those responses remain separately owned. PresentationGateway is a shared admission guard consulted by the VFX, Audio and shake consumers at their own side-effect boundaries. It does not subscribe to the EventBus, dispatch events, route output or execute effects. Authoritative hit-stop remains outside this guard.
 
 ### 1.1 Canonical flow
 
 ```mermaid
 flowchart TD
     G[Gameplay systems / ECS] -->|typed gameplay fact| E[EventBus]
-    E --> J[JuiceOrchestrator]
-    E --> PG[PresentationGateway]
+    E --> J[Juice temporal consumer]
+    E --> V[VFX consumer]
+    E --> AU[Audio consumer]
     J --> T[Temporal policies]
     T --> H[HitStopSystem / GameplayFreeze]
-    T --> S[Existing camera shake channel]
-    PG -->|admitted occurrence| V[VFX resolver]
-    PG -->|admitted occurrence| AU[Audio resolver]
+    J -->|admit shake| PG[PresentationGateway]
+    PG -->|decision only| J
+    J --> S[Camera shake channel]
+    V -->|admit vfx| PG
+    PG -->|decision only| V
     V --> P[Visual profile + typed VFX context]
     P --> L[ECS presentation lifecycle: Transform / Render / TTL]
     L --> D[Shared VFX drawers]
     D --> A[IDrawAdapter]
     A --> C[Canvas]
     A --> K[Skia]
+    AU -->|admit audio| PG
+    PG -->|decision only| AU
+    AU --> AP[Audio player]
 ```
 
 Ownership is split as follows:
 
 - JuiceOrchestrator decides **when and for how long** temporal feedback acts.
-- PresentationGateway decides **whether and when a presentation occurrence may produce side effects**, and routes the accepted occurrence to its consumers.
-- VFX decides **what visual representation** the accepted gameplay fact produces.
-- Audio decides **what sound cue** represents the accepted gameplay fact and how it is presented.
+- PresentationGateway decides **whether a logical presentation emission is admitted or suppressed**. The requesting consumer performs its own side-effect after an admission decision; the Gateway does not route or dispatch it.
+- VFX decides **what visual representation** the gameplay fact produces.
+- Audio decides **what sound cue** represents the gameplay fact and how it is presented.
 
 The gateway must not choose effects, sound assets, colors, temporal policies or rendering behavior. Canvas and Skia remain alternative backends for the same visual definition, not separate effect implementations.
 
@@ -54,7 +60,7 @@ The gateway must not choose effects, sound assets, colors, temporal policies or 
 | Gameplay / ECS | Authoritative state transitions, collision outcomes, damage, movement, entity lifecycle and gameplay meaning | Visual/audio instructions, primitive names, palettes, particle geometry, camera shake rendering |
 | EventBus | Typed publication and delivery of gameplay facts; immediate/deferred dispatch through the existing API | Gameplay rules, temporal policy, VFX/audio selection or drawing |
 | JuiceOrchestrator | Temporal response policy: hit-stop requests, shake envelopes, priorities, cooldowns and coordination between temporal channels | Effect selection, VFX profiles, visual/audio entity creation, Render/TTL, drawer registration or drawing |
-| PresentationGateway | The single public admission/commit boundary for VFX and Audio side effects; confirmation, resimulation suppression, occurrence deduplication and dispatch | Choosing visual/audio responses, effect composition, sound assets, temporal policy or renderer behavior |
+| PresentationGateway | Admission/suppression decision for VFX, Audio and shake emissions; resimulation guard and logical-emission deduplication | Event subscription, dispatch/routing, queues, effect/cue selection, composition, sound assets, temporal policy or renderer behavior |
 | VFX | Resolving admitted gameplay facts into visual descriptors, typed family context, semantic profiles, composition and visual presentation entities | Damage, collision validity, forces, movement, gameplay clocks, hit-stop policy or bypassing PresentationGateway |
 | Audio feedback | Resolving admitted gameplay facts into audio cues and controlling playback, voice limits, gain and audio accessibility | Gameplay rules, temporal freeze policy, visual effect selection or bypassing PresentationGateway |
 | Canvas / Skia | Backend-specific execution of the shared drawing contract | Gameplay semantics, event interpretation, per-backend effect designs or independent effect timing |
@@ -90,7 +96,7 @@ The EventBus does not decide what an event means visually, temporally or acousti
 
 Event payloads carry facts and semantic context, not presentation policy. Prefer fields such as `entity`, `sourceEntity`, `targetEntity`, `x`, `y`, `direction`, `surface`, `material` or a gameplay-defined `severity`. Do not put `effectName`, `tint`, `ttl`, `shakeIntensity`, `soundName` or renderer-specific objects in gameplay event payloads.
 
-The EventBus provides dispatch, not exactly-once delivery, durable event history, rollback compensation or prediction confirmation. Consumers must not infer any of those semantics from `emit` or `emitDeferred`. JuiceOrchestrator may consume domain facts for temporal policy; all VFX and Audio side effects must instead be admitted through PresentationGateway.
+The EventBus provides dispatch, not exactly-once delivery, durable event history, rollback compensation or prediction confirmation. Consumers must not infer any of those semantics from `emit` or `emitDeferred`. JuiceOrchestrator may consume domain facts for temporal policy. VFX, Audio and presentation shake side-effects must each request admission through PresentationGateway; authoritative hit-stop does not.
 
 Consumers must not depend on handler registration order to establish gameplay semantics. Required temporal ordering belongs in an explicit temporal policy, not in accidental subscription order.
 
@@ -129,7 +135,7 @@ VFX owns:
 - Placement and orientation derived from actual gameplay context.
 - Creation and lifecycle of transient presentation entities through the existing ECS path.
 - Visual accessibility adaptation (flash suppression, reduced visual intensity, motion reduction, density and contrast adjustments).
-- Deterministic visual variation and visual admission control.
+- Deterministic visual variation and VFX-owned resource-budget control. This is separate from Gateway replay/deduplication admission.
 
 VFX must not decide whether a hit, death, pickup, landing or dash occurred. It must not change health, movement, physics, collision, gameplay RNG or simulation time. A VFX failure or missing renderer must never invalidate the gameplay event.
 
@@ -143,29 +149,71 @@ VFX modules must not import runtime behavior or type definitions from JuiceOrche
 
 Audio owns cue resolution and sound presentation: asset selection, playback, voice/concurrency limits, gain, spatialization and audio accessibility.
 
-Audio receives admitted gameplay occurrences from PresentationGateway through an Audio-owned resolver. Gameplay systems must not choose audio asset IDs or call playback APIs. A gameplay event must not be named or shaped as a sound command.
+The Audio consumer subscribes directly to the EventBus like the other consumers. It resolves a gameplay fact into an Audio-owned cue, then queries PresentationGateway on the `audio` channel immediately before playback. Gameplay systems must not choose audio asset IDs or call playback APIs. A gameplay event must not be named or shaped as a sound command.
 
 The existing `PlaySFX` event is a presentation command, not a domain fact. It may remain as an internal compatibility/playback API during migration, but new gameplay feedback integrations must resolve sound from typed gameplay facts and submit playback through PresentationGateway.
 
-Audio must not expose a public playback path that bypasses PresentationGateway. Its internal playback implementation receives only admitted dispatches. A sound that has already become audible cannot be undone; speculative audio is therefore disabled by default and may be enabled only where the audio engine can cancel the scheduled voice by stable occurrence ID before it becomes audible.
+Audio must not expose a gameplay-facing playback path that bypasses PresentationGateway. The consumer performs playback only after its own admission request returns `admit`; the Gateway does not dispatch or invoke the audio player. A sound that has already become audible cannot be undone; speculative audio is therefore disabled by default and may be enabled only where the audio engine can cancel the scheduled voice by stable occurrence ID before it becomes audible.
 
-### 2.6 PresentationGateway — single output admission boundary
+### 2.6 PresentationGateway — admission guard, not router
 
-PresentationGateway is the sole public entry point for visual creation and audio playback. It is a narrow policy boundary, not a new feedback orchestrator or visual/audio engine.
+PresentationGateway is a narrow guard consulted by each presentation consumer. It is not a subscriber, event router, dispatcher, queue or presentation orchestrator.
 
-It owns only:
+Each consumer remains subscribed directly to the EventBus and calls the Gateway immediately before a logical side-effect:
 
-- Checking whether the current execution may emit presentation side effects (including the single `world.isReSimulating` check for full-replay paths).
-- Checking whether the occurrence is committed, confirmed or explicitly admitted as a cancellable speculative preview.
-- Deduplicating dispatch by stable event-occurrence ID.
-- Routing the admitted occurrence to the independently owned VFX and Audio resolvers.
-- Retracting/cancelling previously admitted speculative output when the authoritative timeline rejects that occurrence, where the downstream channel supports it.
+- VFX requests admission on channel `vfx` before creating a logical visual emission.
+- Audio requests admission on channel `audio` before playback or scheduling a voice.
+- Juice/camera requests admission on channel `shake` before applying a presentation shake impulse.
 
-It must not select effect IDs, visual profiles, audio assets, hit-stop policy, shake envelopes, renderer operations or playback parameters. Those mappings remain inside VFX, Audio and Juice respectively.
+The Gateway returns an admission decision only. After `admit`, the requesting consumer remains responsible for selecting and executing its own output. An admission for one channel does not admit, suppress or dispatch another channel.
 
-All public VFX spawn and Audio playback entry points must be reachable only through PresentationGateway. Downstream VFX/Audio implementation methods should be internal to their packages/modules or require an admission capability that cannot be forged by gameplay callers. Do not duplicate rollback checks across many public APIs as a substitute for this single boundary.
+The initial local-authoritative contract is:
 
-The gateway treats each channel independently after admission: a failure or rejection in VFX must not prevent a valid Audio response, and vice versa. It does not call JuiceOrchestrator and does not suppress authoritative hit-stop replay.
+```ts
+type PresentationChannel = "vfx" | "audio" | "shake";
+
+interface OccurrenceRef {
+  eventName: string;
+  occurrenceId: string;
+  tick: number;
+}
+
+interface PresentationEmissionRef {
+  occurrence: OccurrenceRef;
+  emissionId: string;
+}
+
+type AdmissionDecision =
+  | { kind: "admit" }
+  | { kind: "suppress"; reason: "resimulating" | "duplicate" };
+
+interface PresentationGateway {
+  admit(
+    channel: PresentationChannel,
+    emission: PresentationEmissionRef
+  ): AdmissionDecision;
+}
+```
+
+The final TypeScript shape may follow repository conventions, but these rules are normative:
+
+- It checks execution mode and suppresses presentation output during full resimulation.
+- It deduplicates by `(channel, occurrenceId, emissionId)`. Deduplicating only by occurrence would incorrectly suppress multiple legitimate emissions from one gameplay fact.
+- It receives execution context through a read-only injected boundary. Consumers must not independently implement the `world.isReSimulating` guard.
+- It does not subscribe to EventBus, dispatch or route events, own a queue/clock, or write gameplay state.
+- It does not choose visual profiles, primitives, audio cues/assets, shake envelopes, colors, durations or renderer operations.
+- It has no imports from Juice, VFX runtime, Audio, Canvas or Skia.
+- The initial API does not expose `defer` or `retracted` without implemented confirmation/retention/cancellation semantics. Those remain conditional work for PR16.
+
+**Occurrence identity dependency:** the current EventBus handler signature is `(payload, event)` and its deferred buffers retain only `{ event, payload }`. There is no published tick/sequence/occurrence metadata today. `World.tick` exists but is not connected to EventBus. A deterministic sidecar metadata contract must be implemented and tested before the Gateway can claim reliable occurrence deduplication. EventBus must not import World; its tick/context provider is injected from the World/runtime boundary. Metadata for deferred events is captured at publication, not at flush.
+
+An occurrence may have multiple logical emissions in one channel. For example, `combat:death` may produce a composed `death-explosion` or separate `death-flash` and `death-ring` emissions. Deduplication applies to each logical emission, not to particles, primitives or draw calls within an emission.
+
+**Hit-stop is excluded.** Authoritative hit-stop requests remain in Juice/HitStopSystem/GameplayFreeze and follow the rollback snapshot/replay contract. The Gateway protects only presentation shake impulses, VFX and audio.
+
+Every public side-effect boundary must be protected by the guard. Enforce this with encapsulated/internal downstream APIs and architectural tests, not documentation alone. One Gateway check is made per logical emission, not once per particle or primitive.
+
+The Gateway does not guarantee exactly-once EventBus delivery and must not be used as a substitute for removing duplicate producers. It provides idempotent admission at the presentation boundary.
 
 ### 2.7 Canvas and Skia — equivalent presentation
 
@@ -320,16 +368,16 @@ When full simulation resimulation is active:
 
 - Re-delivery of the same logical event during replay is not a new gameplay occurrence.
 - Authoritative gameplay state and snapshot-managed temporal requests follow that runtime's rollback contract.
-- Presentation output must not be duplicated during replay.
+- Presentation outputs (VFX, audio and shake impulses) must not be duplicated during replay; all three consumers suppress their own side-effects through PresentationGateway.
 - `world.isReSimulating` is the execution-state signal for a full replay path that sets it.
 
-**One presentation side-effect boundary:** PresentationGateway is the only public entry point for VFX creation and Audio playback. It owns the checks for execution mode, confirmation/commit state and occurrence deduplication. VFX and Audio resolvers/players are internal downstream consumers; they must not expose alternate public methods that can create output without gateway admission. Draw adapters never query the scheduler or World for rollback state.
+**Shared admission guard:** each consumer stays subscribed to EventBus and calls PresentationGateway for its own channel. The Gateway returns a decision only; it does not dispatch, route or invoke consumers. The decision key includes stable occurrence and logical emission identities. Draw adapters never query the scheduler or World for rollback state.
 
-For a full replay path, PresentationGateway suppresses presentation dispatch while `world.isReSimulating` is true. JuiceOrchestrator remains a separate temporal consumer: it replays snapshot-managed authoritative hit-stop requests where required, while suppressing shake and other non-authoritative presentation output. The gateway must not suppress that temporal replay path.
+For a full replay path, each presentation consumer receives the fact as usual but its Gateway admission is suppressed while `world.isReSimulating` is true. Juice remains a separate temporal consumer: it replays snapshot-managed authoritative hit-stop requests where required, while shake impulses are suppressed through channel `shake`. The Gateway must not suppress the temporal hit-stop path.
 
 **Confirmation semantics:**
 
-- In offline/local authoritative play, an event is committed for presentation when its gameplay transition has been accepted into the local authoritative tick. PresentationGateway may dispatch it in the same tick.
+- In offline/local authoritative play, an event is eligible for presentation when its gameplay transition has been accepted into the local authoritative tick. Each consumer may request Gateway admission and perform its own side-effect in that tick.
 - In server-authoritative predicted play, an event is confirmed only when an authoritative server update acknowledges the same logical occurrence ID and covers its simulation tick. A generic state-version acknowledgement or a later snapshot with no causal event evidence is not, by itself, proof that a particular impact/pickup/death occurred.
 - A stable occurrence ID is deterministic for the logical domain event and survives replay of that same occurrence. It must not rely on wall-clock time, callback identity or entity ID alone. It is delivery/occurrence metadata, not visual policy.
 - The current Colyseus snapshot flow has not been shown to carry per-event occurrence acknowledgements. Until such evidence is available, predicted VFX/Audio cannot be treated as confirmed solely because a snapshot arrived.
@@ -338,11 +386,11 @@ For a full replay path, PresentationGateway suppresses presentation dispatch whi
 
 - For confirmation-gated transient feedback, the initial target is no more than one configured server replication interval plus one client presentation frame from prediction to admission. The current `BaseRoom` configures a 50 ms state patch interval; at 60 Hz this gives an initial budget of approximately 67 ms. This is a starting budget for the current transport, not a universal constant; derive it from the active replication and presentation rates.
 - If confirmation arrives after that budget, do not play a stale transient impact/audio cue late. Drop it or resolve a current-state feedback that is still semantically valid.
-- A latency-critical VFX may be shown speculatively in the prediction frame only if it is cancellable/reconcilable by stable occurrence ID. On rejection/rollback, the gateway retracts that exact occurrence; on confirmation, it commits it without creating a duplicate.
+- A latency-critical VFX may be shown speculatively in the prediction frame only if it is cancellable/reconcilable by stable occurrence and emission IDs. On rejection/rollback, the VFX consumer receives a retraction instruction through the later confirmation contract; on confirmation, the consumer commits it without creating a duplicate. The initial Gateway API does not claim this capability.
 - Audio is confirmation-gated by default because audible output cannot be retracted. Speculative audio is allowed only if the audio engine can cancel the scheduled voice before it becomes audible, keyed by the same stable occurrence ID.
 - If the transport does not provide event identity/confirmation and there is no cancellation mechanism, the mode must choose the conservative confirmed-only policy; it must not pretend to offer immediate reversible prediction feedback.
 
-This does not require a global exactly-once EventBus. Gameplay owns logical occurrence identity and authoritative state transitions; PresentationGateway owns presentation admission, duplicate suppression and retraction where supported. Rollback-specific tests are mandatory only for runtimes that actually execute the corresponding replay path.
+This does not require a global exactly-once EventBus. The EventBus/runtime publication boundary supplies stable occurrence metadata without placing transport identity in gameplay payloads; producers remain responsible for deterministic domain transitions. PresentationGateway owns presentation admission and duplicate suppression. Retraction is a later capability and is not claimed by the initial guard. Rollback-specific tests are mandatory only for runtimes that actually execute the corresponding replay path.
 
 ### 3.7 Determinism and randomness
 
@@ -378,8 +426,8 @@ Allowed conceptual dependencies:
 - Gameplay systems → typed gameplay EventRegistry contracts.
 - EventBus → registered handlers, without depending on their implementations.
 - JuiceOrchestrator → typed gameplay event contracts and existing core temporal/camera channels.
-- PresentationGateway → typed occurrence/confirmation metadata and the VFX/Audio adapter interfaces; it must not depend on their concrete implementations.
-- VFX and Audio resolvers → their own presentation contracts; all side effects are invoked through PresentationGateway.
+- Presentation consumers (Juice/shake, VFX, Audio) → neutral occurrence/emission metadata and PresentationGateway admission contract; the Gateway depends on none of the consumers.
+- VFX and Audio resolvers → their own presentation contracts; each resolver performs its own side-effect only after requesting admission from PresentationGateway.
 - VFX drawers → `IDrawAdapter` and read-only presentation state.
 - CanvasDrawAdapter / SkiaDrawAdapter → their respective rendering APIs.
 
@@ -389,7 +437,7 @@ Forbidden dependencies:
 - EventBus → JuiceOrchestrator, VFX or Audio implementation.
 - JuiceOrchestrator → VFX primitive catalog, drawer, Render/TTL entity creation or renderer.
 - VFX/Audio public output APIs → bypassing PresentationGateway.
-- PresentationGateway → selecting a visual/audio cue or depending on Canvas/Skia/concrete output implementations.
+- PresentationGateway → subscribing to EventBus, dispatching/routing consumers, owning queues/clocks, selecting output, or depending on World, Juice, VFX, Audio, Canvas or Skia implementations.
 - VFX → JuiceOrchestrator or Audio implementation.
 - Audio → JuiceOrchestrator or VFX implementation.
 - Effect drawer → Canvas or Skia concrete API.

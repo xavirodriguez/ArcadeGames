@@ -3,6 +3,7 @@ import { System } from "../../ecs/System";
 import { ComponentRegistry } from "../../ecs/Component";
 import { CoreComponentRegistry, PlatformerInputComponent, PlatformerMovementConfigComponent, VelocityComponent, PlatformerGroundStateComponent, LocomotionProfileComponent, PhysicsContactStateComponent, PhysicsMaterial, PlatformerGravityConfigComponent } from "../../ecs/CoreComponents";
 import { Entity } from "../../ecs/Entity";
+import { moveTowards } from "../../math/MathUtils";
 
 /**
  * System that handles platformer horizontal movement with acceleration and deceleration.
@@ -61,7 +62,7 @@ export class PlatformerMovementSystem<TRegistry extends ComponentRegistry = Core
           const traction = material ? this.clamp01(material.traction) : 1;
           let slideVx = relativeVx;
           if (moveDir !== 0) {
-            slideVx = this.moveTowards(
+            slideVx = moveTowards(
               relativeVx,
               moveDir * profile.ground.maxSpeed,
               profile.ground.acceleration * steering * traction * Math.max(0, deltaTime)
@@ -69,7 +70,7 @@ export class PlatformerMovementSystem<TRegistry extends ComponentRegistry = Core
           }
           const slideFriction = Math.max(0, material?.dynamicFriction ?? 0.6)
             * Math.max(0, slide.frictionMultiplier) * gravityMagnitude * Math.max(0, deltaTime);
-          slideVx = this.moveTowards(slideVx, 0, slideFriction);
+          slideVx = moveTowards(slideVx, 0, slideFriction);
           const slideVelocity = slideVx + surfaceVelocityX;
           if (vel.vx !== slideVelocity) {
             const mutableVelocity = world.getMutableComponent(entity, velocityType) as VelocityComponent | undefined;
@@ -102,7 +103,7 @@ export class PlatformerMovementSystem<TRegistry extends ComponentRegistry = Core
           acceleration *= this.clamp01(material.traction);
         }
 
-        let controlledVx = this.moveTowards(
+        let controlledVx = moveTowards(
           relativeVx,
           target,
           Math.max(0, acceleration) * Math.max(0, deltaTime)
@@ -135,8 +136,8 @@ export class PlatformerMovementSystem<TRegistry extends ComponentRegistry = Core
         ? effectiveAccel * this.clamp01(material.traction)
         : effectiveAccel;
       let controlledVx = input.moveDir !== 0
-        ? this.moveTowards(relativeVx, targetSpeed, materialAcceleration * deltaTime)
-        : this.moveTowards(relativeVx, 0, effectiveDecel * deltaTime);
+        ? moveTowards(relativeVx, targetSpeed, materialAcceleration * deltaTime)
+        : moveTowards(relativeVx, 0, effectiveDecel * deltaTime);
       if (material && isGrounded) {
         controlledVx = this.applySurfaceFriction(controlledVx, material, gravityMagnitude, deltaTime, input.moveDir === 0);
       }
@@ -172,13 +173,6 @@ export class PlatformerMovementSystem<TRegistry extends ComponentRegistry = Core
     if (noDriveInput && speed <= staticThreshold) return 0;
 
     const frictionDelta = this.clamp01(material.dynamicFriction) * normalAcceleration * dt;
-    return this.moveTowards(relativeVelocity, 0, frictionDelta);
-  }
-
-  private moveTowards(current: number, target: number, maxDelta: number): number {
-    if (Math.abs(target - current) <= maxDelta) {
-      return target;
-    }
-    return current + Math.sign(target - current) * maxDelta;
+    return moveTowards(relativeVelocity, 0, frictionDelta);
   }
 }

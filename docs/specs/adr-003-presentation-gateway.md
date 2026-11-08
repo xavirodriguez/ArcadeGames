@@ -3,11 +3,11 @@
 **Fecha:** 2026-11-08  
 **Estado:** Propuesto · dirección arquitectónica aprobable; identidad de ocurrencia bloqueada hasta validar la extensión de EventBus  
 **Ámbito:** Game Feel Architecture · PR3  
-**Relacionado:** \`docs/architecture/GAME_FEEL_ARCHITECTURE.md\`, \`docs/specs/game-feel-conformance-matrix-pr0-1.md\`, \`docs/roadmaps/game-feel-architecture-v2.md\`
+**Relacionado:** `docs/architecture/GAME_FEEL_ARCHITECTURE.md`, `docs/specs/game-feel-conformance-matrix-pr0-1.md`, `docs/roadmaps/game-feel-architecture-v2.md`
 
 ## Contexto
 
-El contrato de Game Feel separa EventBus, coordinación temporal, VFX, audio y backends Canvas/Skia. Los consumidores VFX, audio y temporal deben reaccionar de forma independiente al mismo hecho de gameplay. Sin embargo, la admisión de efectos de presentación está repartida entre comprobaciones de \`world.isReSimulating\`, llamadas directas como \`spawnExplosionParticles\` o \`Juice.shake\`, y la ruta \`PlaySFX\`.
+El contrato de Game Feel separa EventBus, coordinación temporal, VFX, audio y backends Canvas/Skia. Los consumidores VFX, audio y temporal deben reaccionar de forma independiente al mismo hecho de gameplay. Sin embargo, la admisión de efectos de presentación está repartida entre comprobaciones de `world.isReSimulating`, llamadas directas como `spawnExplosionParticles` o `Juice.shake`, y la ruta `PlaySFX`.
 
 Una guarda olvidada puede duplicar una salida durante resimulación. La deduplicación por sí sola tampoco puede resolver rutas de producción duplicadas que representen dos veces la misma emisión lógica: la arquitectura debe evitar las rutas redundantes y el guardia debe proteger la frontera de side-effects.
 
@@ -17,12 +17,12 @@ La propuesta del roadmap v1 describía el Gateway como router entre EventBus y c
 
 La revisión del código de la rama base confirma:
 
-- \`EventBus.on\` entrega actualmente \`(payload, event)\`; \`EventHandler\` no recibe metadatos de ocurrencia.
-- \`emit\` y \`emitDeferred\` solo aceptan evento y payload.
-- Los buffers de EventBus almacenan \`{ event, payload }\`; el despacho diferido no conserva tick ni secuencia.
-- \`EventBus\` no conoce \`World\`.
-- \`World.tick\` es un getter público, pero no existe un enlace actual que lo proporcione a EventBus como contexto de publicación.
-- \`World.isReSimulating\` existe como estado de ejecución.
+- `EventBus.on` entrega actualmente `(payload, event)`; `EventHandler` no recibe metadatos de ocurrencia.
+- `emit` y `emitDeferred` solo aceptan evento y payload.
+- Los buffers de EventBus almacenan `{ event, payload }`; el despacho diferido no conserva tick ni secuencia.
+- `EventBus` no conoce `World`.
+- `World.tick` es un getter público, pero no existe un enlace actual que lo proporcione a EventBus como contexto de publicación.
+- `World.isReSimulating` existe como estado de ejecución.
 - EventBus no ofrece entrega exactly-once, historial durable ni compensación de rollback.
 
 Por tanto, **la identidad sugerida como metadatos de EventBus no existe todavía en la API actual**. No se debe implementar una deduplicación fiable fingiendo que esos datos están disponibles.
@@ -31,7 +31,7 @@ Por tanto, **la identidad sugerida como metadatos de EventBus no existe todavía
 
 Introducir PresentationGateway como **guardia de admisión consultado por cada consumidor**, nunca como router.
 
-Cada consumidor sigue suscrito directamente al EventBus. Antes de materializar un side-effect, consulta al Gateway y ejecuta la salida únicamente si la decisión es \`admit\`.
+Cada consumidor sigue suscrito directamente al EventBus. Antes de materializar un side-effect, consulta al Gateway y ejecuta la salida únicamente si la decisión es `admit`.
 
 ~~~ts
 type PresentationChannel = "vfx" | "audio" | "shake";
@@ -75,18 +75,18 @@ La forma final de los tipos puede ajustarse a las convenciones del repositorio, 
 3. No despacha eventos, no se suscribe al EventBus, no tiene cola ni reloj.
 4. No escribe ni restaura estado de gameplay.
 5. No depende de Juice, VFX, audio, Canvas ni Skia.
-6. El estado de ejecución se inyecta como contexto de solo lectura. Los consumidores no replican consultas a \`world.isReSimulating\`.
+6. El estado de ejecución se inyecta como contexto de solo lectura. Los consumidores no replican consultas a `world.isReSimulating`.
 7. Cada consumidor produce su propio resultado tras una admisión positiva. El Gateway no ejecuta el efecto ni enruta la ocurrencia.
 
 ### Consumidores y canales
 
 | Consumidor | Suscripción | Consulta | Side-effect protegido |
 |---|---|---|---|
-| Juice / cámara | Directa al EventBus | Canal \`shake\` | Aplicar impulso de shake |
-| VFX | Directa al EventBus | Canal \`vfx\` | Crear emisión/entidades visuales |
-| Audio | Directa al EventBus | Canal \`audio\` | Reproducir o programar audio |
+| Juice / cámara | Directa al EventBus | Canal `shake` | Aplicar impulso de shake |
+| VFX | Directa al EventBus | Canal `vfx` | Crear emisión/entidades visuales |
+| Audio | Directa al EventBus | Canal `audio` | Reproducir o programar audio |
 
-La admisión es independiente por canal. Admitir \`vfx\` no bloquea \`audio\` ni \`shake\`.
+La admisión es independiente por canal. Admitir `vfx` no bloquea `audio` ni `shake`.
 
 **Hit-stop autoritativo no pasa por el Gateway.** Se resuelve por la política temporal y GameplayFreeze; debe repetirse según el contrato de rollback. Solo las salidas de presentación (impulso de shake, VFX y audio) se suprimen durante resimulación.
 
@@ -97,13 +97,13 @@ Deben distinguirse:
 - **Ocurrencia:** un hecho lógico de gameplay publicado una vez en la historia autoritativa.
 - **Emisión:** una salida lógica concreta que un consumidor deriva de esa ocurrencia.
 
-Una ocurrencia puede generar varias emisiones legítimas en un canal. Por tanto, deduplicar solamente por \`(channel, occurrenceId)\` puede suprimir efectos válidos.
+Una ocurrencia puede generar varias emisiones legítimas en un canal. Por tanto, deduplicar solamente por `(channel, occurrenceId)` puede suprimir efectos válidos.
 
 La clave de deduplicación es:
 
-\`(channel, occurrenceId, emissionId)\`
+`(channel, occurrenceId, emissionId)`
 
-Ejemplo: la ocurrencia de muerte puede solicitar \`death-explosion\`, \`death-flash\` y \`death-ring\` como emisiones VFX distintas, o puede producir una única emisión lógica agregada que contenga toda la composición. No se deduplican partículas/primitivas internas; se deduplica la unidad lógica de salida.
+Ejemplo: la ocurrencia de muerte puede solicitar `death-explosion`, `death-flash` y `death-ring` como emisiones VFX distintas, o puede producir una única emisión lógica agregada que contenga toda la composición. No se deduplican partículas/primitivas internas; se deduplica la unidad lógica de salida.
 
 ### Requisito para EventBus
 
@@ -111,15 +111,15 @@ La identidad no debe añadirse al payload de gameplay, porque el payload describ
 
 La dirección propuesta es transportar metadatos laterales de publicación:
 
-- \`eventName\`
-- \`tick\` capturado al publicar
-- \`sequence\` determinista dentro del tick
-- \`occurrenceId\` estable, derivado de esos metadatos
+- `eventName`
+- `tick` capturado al publicar
+- `sequence` determinista dentro del tick
+- `occurrenceId` estable, derivado de esos metadatos
 
 La extensión debe cumplir:
 
 1. El ordinal se asigna cuando se publica el evento.
-2. \`emitDeferred\` conserva los metadatos originales al encolar; no los genera durante \`flushDeferred\`.
+2. `emitDeferred` conserva los metadatos originales al encolar; no los genera durante `flushDeferred`.
 3. La reproducción del mismo estado inicial, tick y orden de productores reconstruye la misma identidad.
 4. La secuencia se reinicia/reconstruye correctamente cuando el replay vuelve a un tick anterior.
 5. Los eventos inmediatos y diferidos tienen semántica definida y no comparten accidentalmente identidades.
@@ -136,19 +136,19 @@ La secuencia solo es válida si el orden de publicación de productores es deter
 Modo local autoritativo:
 
 - Admitir una emisión válida cuando el mundo no está resimulando.
-- Suprimir cualquier solicitud durante resimulación con razón \`resimulating\`.
-- Suprimir una segunda admisión de la misma clave \`(channel, occurrenceId, emissionId)\` con razón \`duplicate\`.
+- Suprimir cualquier solicitud durante resimulación con razón `resimulating`.
+- Suprimir una segunda admisión de la misma clave `(channel, occurrenceId, emissionId)` con razón `duplicate`.
 - Mantener entradas de deduplicación por tick de ocurrencia, no por TTL de pared. Retenerlas mientras la ocurrencia pueda ser entregada dentro de su ciclo síncrono/diferido y limpiar cuando el tick autoritativo haya avanzado más allá de la ventana contractual.
 - No asumir exactly-once en EventBus: el Gateway ofrece idempotencia de emisión en la frontera de presentación, no una garantía de entrega del bus.
 - No admitir automáticamente eventos predichos como confirmados por el mero hecho de recibir un snapshot. La ruta actual de ACK de versión/tick no confirma causalmente una ocurrencia individual.
 
-Los estados \`defer\` y \`retracted\` no se publican en la interfaz inicial. Se incorporarán en PR16 solo junto a semánticas implementadas de confirmación, retención y cancelación. Una emisión ya audible no se puede deshacer; VFX especulativo necesita identidad y ciclo de vida cancelables.
+Los estados `defer` y `retracted` no se publican en la interfaz inicial. Se incorporarán en PR16 solo junto a semánticas implementadas de confirmación, retención y cancelación. Una emisión ya audible no se puede deshacer; VFX especulativo necesita identidad y ciclo de vida cancelables.
 
 ## Alternativas consideradas
 
 | Opción | Ventajas | Inconvenientes |
 |---|---|---|
-| A. Comprobación local por API (\`isReSimulating\`) | Sin infraestructura nueva | Frágil; no centraliza deduplicación ni evita que una nueva API olvide la guarda |
+| A. Comprobación local por API (`isReSimulating`) | Sin infraestructura nueva | Frágil; no centraliza deduplicación ni evita que una nueva API olvide la guarda |
 | B. Gateway como router entre EventBus y consumidores | Un punto de flujo | Rompe consumidores paralelos; añade dispatch/orden de suscripción; deja fuera o acopla Juice; tiende a convertirse en un segundo bus |
 | C. Guardia consultado por cada consumidor (propuesta) | Preserva suscripciones paralelas; cubre VFX, audio y shake; no despacha | Requiere enforcement arquitectónico en las fronteras de side-effect |
 | D. Middleware/filtro dentro de EventBus | Un punto antes de los handlers | EventBus tendría que interpretar política de presentación; suprimir el evento entero impediría que hit-stop reciba el hecho durante replay |
@@ -160,7 +160,7 @@ La disciplina de consumidores no es suficiente. PR3 requiere:
 
 1. APIs de side-effect de VFX/audio/shake encapsuladas como internas o protegidas por una capability de admisión que gameplay no pueda falsificar.
 2. Tests arquitectónicos que enumeren las fronteras públicas de creación VFX, reproducción audio y aplicación de shake.
-3. Tests de consumidor para comprobar que ninguna ruta se ejecuta cuando Gateway devuelve \`suppress\`.
+3. Tests de consumidor para comprobar que ninguna ruta se ejecuta cuando Gateway devuelve `suppress`.
 4. Aislamiento de errores: fallo de un consumidor no impide que EventBus entregue el hecho a los demás ni altera gameplay.
 
 No se consulta el Gateway por partícula, primitva gráfica o llamada interna de un mismo efecto compuesto. Se consulta una vez por emisión lógica.
@@ -193,7 +193,7 @@ No se consulta el Gateway por partícula, primitva gráfica o llamada interna de
 - Mismo evento y tick con dos occurrence IDs distintos: ambas ocurrencias admitidas.
 - Canales independientes.
 - Identidades idénticas en ejecución original y replay.
-- \`emitDeferred\` conserva identidad asignada al publicar.
+- `emitDeferred` conserva identidad asignada al publicar.
 - Emisiones anidadas no colisionan.
 - Fallo de VFX no impide audio ni temporal; fallo de audio no impide VFX.
 - Hit-stop autoritativo se sigue solicitando durante replay.

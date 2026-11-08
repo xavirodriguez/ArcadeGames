@@ -51,47 +51,51 @@ export class Juice {
 
   /**
    * Shakes the screen (world singleton Camera2D if available, or ScreenShake resource).
+   * Input duration is in milliseconds; converted to seconds at the boundary for ECS storage.
    */
   public static shake<
     TComponents extends CoreComponentRegistry = CoreComponentRegistry,
     TEvents extends EventRegistry = EventRegistry,
     TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
-  >(world: World<TComponents, TEvents, TBlueprints>, intensity: number, duration: number): void {
+  >(world: World<TComponents, TEvents, TBlueprints>, intensity: number, durationMs: number): void {
+    if (intensity <= 0 || durationMs <= 0 || !Number.isFinite(intensity) || !Number.isFinite(durationMs)) {
+      return;
+    }
     const coreWorld = world as unknown as World<CoreComponentRegistry>;
+    const durationSec = durationMs / 1000;
     const shake = coreWorld.getSingleton("ScreenShake");
     if (shake) {
         coreWorld.mutateSingleton("ScreenShake", (s) => {
             s.intensity = Math.max(s.intensity, intensity);
-            s.duration = Math.max(s.duration, duration);
-            s.remaining = Math.max(s.remaining, duration);
+            s.duration = Math.max(s.duration, durationSec);
+            s.remaining = Math.max(s.remaining, durationSec);
         });
     } else {
         // Fallback to resource-based shake if component not found
         const res = coreWorld.getResource<{intensity: number, duration: number, remaining: number}>("ScreenShake");
         if (res) {
             res.intensity = Math.max(res.intensity, intensity);
-            res.duration = Math.max(res.duration, duration);
-            res.remaining = Math.max(res.remaining, duration);
+            res.duration = Math.max(res.duration, durationSec);
+            res.remaining = Math.max(res.remaining, durationSec);
         } else {
             // Fallback for GameState singleton holding screenShake (e.g. Space Invaders)
             const gameState = coreWorld.getSingleton("GameState") as { screenShake?: { intensity?: number; duration?: number; totalDuration?: number } } | undefined;
             if (gameState && "screenShake" in gameState) {
-                const durSec = duration > 10 ? duration / 1000 : duration;
                 coreWorld.mutateSingleton("GameState", (gs) => {
                     const currentShake = (gs as { screenShake?: { intensity?: number; duration?: number; totalDuration?: number } }).screenShake;
                     if (!currentShake || (currentShake.duration ?? 0) <= 0) {
                         (gs as { screenShake?: unknown }).screenShake = {
                             intensity,
-                            duration: durSec,
+                            duration: durationSec,
                             elapsed: 0,
-                            totalDuration: durSec
+                            totalDuration: durationSec
                         };
                     } else {
                         (gs as { screenShake?: unknown }).screenShake = {
                             intensity: Math.max(currentShake.intensity ?? 0, intensity),
-                            duration: Math.max(currentShake.duration ?? 0, durSec),
+                            duration: Math.max(currentShake.duration ?? 0, durationSec),
                             elapsed: 0,
-                            totalDuration: Math.max(currentShake.totalDuration ?? 0, durSec)
+                            totalDuration: Math.max(currentShake.totalDuration ?? 0, durationSec)
                         };
                     }
                 });

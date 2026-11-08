@@ -156,7 +156,7 @@ emitDeferred debe conservar los metadatos asignados al publicar; no puede genera
 
 Una secuencia global por tick solo reconstruye identidades estables si los productores publican en un orden determinista. La identidad no puede corregir un orden de entrada que varía entre ejecución normal y replay.
 
-La auditoría de Asteroids del 2026-11-08 encontró que BroadPhase usa Shell sort por minX sin desempate por entity ID. Shell sort no es estable; con varios bounds de igual minX, el orden de recorrido puede variar respecto al orden de entrada. Los tests actuales de pares normalizan/ordenan el conjunto y, por tanto, no prueban el orden de producción.
+La auditoría de Asteroids del 2026-11-08 encontró que BroadPhase usa Shell sort por minX sin desempate por entity ID. Shell sort no es estable y no define un orden canónico para claves iguales: el orden relativo de bounds con el mismo minX depende de la secuencia de entrada. Si esa secuencia difiere entre ejecución normal y replay, también puede diferir el recorrido de pares y la publicación de eventos. Los tests actuales de pares normalizan/ordenan el conjunto y, por tanto, no prueban el orden de producción. El test de conformidad debe afirmar un orden total esperado por entity ID para que falle con el comparador actual y pase con el comparador candidato.
 
 Antes de declarar estable la secuencia de ocurrencias en este camino, las pruebas deben:
 

@@ -129,6 +129,7 @@ describe("HitRunFeedbackSystem (Paso B)", () => {
       category: "melee"
     });
     feedback.update(world, 0);
+    world.getCommandBuffer().flush(world);
 
     // ScreenShake is added via world.getCommandBuffer().addComponent
     // or direct component on main camera

@@ -139,17 +139,12 @@ export class HitRunFeedbackSystem extends CombatHitListenerSystem<CombatHitPaylo
         mut.remaining = duration;
       }
     } else {
-      const comp = {
-        type: "ScreenShake" as const,
+      world.getCommandBuffer().addComponent(mainCam, {
+        type: "ScreenShake",
         intensity,
         duration,
         remaining: duration
-      };
-      if (world.isUpdating) {
-        world.getCommandBuffer().addComponent(mainCam, comp);
-      } else {
-        world.addComponent(mainCam, comp);
-      }
+      });
     }
   }
 

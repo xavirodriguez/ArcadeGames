@@ -34,6 +34,7 @@ The source audit establishes the following:
 12. In Asteroids, `CombatSystem` publishes `combat:death` with `emitDeferred`; `Schedule.update` flushes deferred events after all phases. `AsteroidCollisionSystem` handles that event in its listener. The listener currently mixes authoritative gameplay resolution with direct VFX/Juice/shake output, so Gateway migration will require separating those responsibilities. Its per-entity `processedDeaths` Set is a gameplay-side duplicate guard, not a stable publication identity.
 13. The normative Game Feel architecture already defines Gateway deduplication as `(channel, occurrenceId, emissionId)`. The publication identity proposal must preserve that rule; it must not reopen occurrence-only deduplication as an option.
 14. The current Asteroids registration enables `SpatialCullingSystem` before collision processing. On a normal tick, the culling system populates `SpatialCullingCandidates`; `CollisionSystem2D` consumes that candidate list. During `world.isReSimulating`, `SpatialCullingSystem.update` deletes `SpatialCullingCandidates` and returns. `CollisionSystem2D` then falls back to querying all entities with colliders. This can broaden the collision candidate set during replay and potentially create contacts/publications that were not evaluated on the original tick. The source proves the candidate-set difference; an actual gameplay divergence still requires a focused test.
+15. The existing `WeaponAndBroadphase.test.ts` compares normalized/sorted collision-pair sets, which intentionally discards broadphase output order. It does not assert deterministic pair ordering or equal-`minX` tie behavior. Existing coverage therefore cannot validate the publication sequence derived from collision traversal.
 
 These are source-level findings; this document does not claim tests were executed.
 
@@ -151,6 +152,7 @@ External publications do not participate in rollback deduplication unless a sepa
 - Restoring a snapshot and emitting twice in the restored tick yields the same sequence as the original execution.
 - A publication outside `World.update` cannot accidentally inherit stale simulation context.
 - Asteroids normal tick versus restore/replay with off-viewport colliders produces the same candidate set, collision pairs and ordered `combat:hit` / `combat:death` facts; if the culling policy intentionally differs, it must be proven semantically equivalent.
+- Broadphase tests assert pair ordering and equal-`minX` tie behavior, rather than normalizing and sorting away traversal order.
 - Manual `advanceTick` and `World.update` use one documented tick convention.
 
 ### Gateway contract tests

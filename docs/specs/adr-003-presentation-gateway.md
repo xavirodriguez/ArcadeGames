@@ -52,11 +52,12 @@ type AdmissionDecision =
   | { kind: "admit" }
   | {
       kind: "suppress";
-      reason: "resimulating" | "duplicate";
+      reason: "resimulating" | "duplicate" | "paused";
     };
 
 interface PresentationExecutionContext {
   readonly isResimulating: boolean;
+  readonly isPaused: boolean;
   readonly currentTick: number;
 }
 
@@ -75,7 +76,7 @@ La forma final de los tipos puede ajustarse a las convenciones del repositorio, 
 3. No despacha eventos, no se suscribe al EventBus, no tiene cola ni reloj.
 4. No escribe ni restaura estado de gameplay.
 5. No depende de Juice, VFX, audio, Canvas ni Skia.
-6. El estado de ejecución se inyecta como contexto de solo lectura. Los consumidores no replican consultas a `world.isReSimulating`.
+6. El estado de ejecución se inyecta como contexto de solo lectura (`isResimulating`, `isPaused` y tick actual). Los consumidores no replican consultas a `world.isReSimulating` ni deciden localmente si un evento de gameplay se admite durante una pausa.
 7. Cada consumidor produce su propio resultado tras una admisión positiva. El Gateway no ejecuta el efecto ni enruta la ocurrencia.
 
 ### Consumidores y canales
@@ -137,6 +138,7 @@ Modo local autoritativo:
 
 - Admitir una emisión válida cuando el mundo no está resimulando.
 - Suprimir cualquier solicitud durante resimulación con razón `resimulating`.
+- Suprimir nuevas emisiones de presentación derivadas de gameplay durante pausa explícita con razón `paused`. La admisión de audio UI/menú pertenece a su ruta independiente y no se bloquea por este estado.
 - Suprimir una segunda admisión de la misma clave `(channel, occurrenceId, emissionId)` con razón `duplicate`.
 - Mantener entradas de deduplicación por tick de ocurrencia, no por TTL de pared. Retenerlas mientras la ocurrencia pueda ser entregada dentro de su ciclo síncrono/diferido y limpiar cuando el tick autoritativo haya avanzado más allá de la ventana contractual.
 - No asumir exactly-once en EventBus: el Gateway ofrece idempotencia de emisión en la frontera de presentación, no una garantía de entrega del bus.
@@ -188,6 +190,7 @@ No se consulta el Gateway por partícula, primitiva gráfica o llamada interna d
 
 - Admisión local normal.
 - Supresión durante resimulación para VFX, audio y shake.
+- Supresión durante pausa explícita para nuevas emisiones de gameplay con razón `paused`; la ruta de audio UI/menú permanece independiente.
 - Deduplicación de la misma emisión.
 - Dos emisiones legítimas distintas de una misma ocurrencia admitidas en el mismo canal.
 - Mismo evento y tick con dos occurrence IDs distintos: ambas ocurrencias admitidas.

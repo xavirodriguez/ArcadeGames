@@ -33,6 +33,7 @@ The source audit establishes the following:
 11. `CollisionSystem2D` appends collision records in broadphase pair traversal order. The order of deferred `combat:hit` / `combat:death` publications therefore depends on the candidate list, broadphase ordering and collision array order—not only on sorted World query order.
 12. In Asteroids, `CombatSystem` publishes `combat:death` with `emitDeferred`; `Schedule.update` flushes deferred events after all phases. `AsteroidCollisionSystem` handles that event in its listener. The listener currently mixes authoritative gameplay resolution with direct VFX/Juice/shake output, so Gateway migration will require separating those responsibilities. Its per-entity `processedDeaths` Set is a gameplay-side duplicate guard, not a stable publication identity.
 13. The normative Game Feel architecture already defines Gateway deduplication as `(channel, occurrenceId, emissionId)`. The publication identity proposal must preserve that rule; it must not reopen occurrence-only deduplication as an option.
+14. The current Asteroids registration enables `SpatialCullingSystem` before collision processing. On a normal tick, the culling system populates `SpatialCullingCandidates`; `CollisionSystem2D` consumes that candidate list. During `world.isReSimulating`, `SpatialCullingSystem.update` deletes `SpatialCullingCandidates` and returns. `CollisionSystem2D` then falls back to querying all entities with colliders. This can broaden the collision candidate set during replay and potentially create contacts/publications that were not evaluated on the original tick. The source proves the candidate-set difference; an actual gameplay divergence still requires a focused test.
 
 These are source-level findings; this document does not claim tests were executed.
 
@@ -82,7 +83,7 @@ The World restores its tick, but does not restore EventBus internals. Therefore 
 
 After restore to tick T, the first accepted simulation publication at T starts a fresh per-tick sequence. Replaying the same deterministic simulation inputs and publication order must reproduce the same sequence and occurrence IDs.
 
-This guarantee is conditional: the same logical events must be published in the same deterministic order. If producer execution order changes, ordinal-based IDs can change. Asteroids has a plausible deterministic chain—stable phase/priority/registration ordering, sorted World queries, and collision arrays built by a repeatable broadphase traversal—but the broadphase has no explicit entity-ID tie-break for equal `minX`, and no restore/replay test currently proves identical publication order. Therefore `tick + sequence` remains a candidate contract, not a verified guarantee.
+This guarantee is conditional: the same logical events must be published in the same deterministic order. If producer execution order changes, ordinal-based IDs can change. Asteroids has a plausible deterministic chain—stable phase/priority/registration ordering, sorted World queries, and collision arrays built by a repeatable broadphase traversal—but the broadphase has no explicit entity-ID tie-break for equal `minX`, and no restore/replay test currently proves identical publication order. Therefore `tick + sequence` remains a candidate contract, not a verified guarantee. More importantly, the current resimulation culling path can change the candidate set itself: normal execution uses viewport-filtered `SpatialCullingCandidates`, while resimulation deletes that resource and collision falls back to all collider entities. Publication-order tests alone would miss this upstream simulation-integrity risk; the replay test must compare candidate sets, collision pairs and resulting domain events.
 
 ### 4.3 Immediate and deferred publications
 
@@ -149,6 +150,7 @@ External publications do not participate in rollback deduplication unless a sepa
 - SoA snapshot → advance → restore → replay yields the original tick and same publication IDs.
 - Restoring a snapshot and emitting twice in the restored tick yields the same sequence as the original execution.
 - A publication outside `World.update` cannot accidentally inherit stale simulation context.
+- Asteroids normal tick versus restore/replay with off-viewport colliders produces the same candidate set, collision pairs and ordered `combat:hit` / `combat:death` facts; if the culling policy intentionally differs, it must be proven semantically equivalent.
 - Manual `advanceTick` and `World.update` use one documented tick convention.
 
 ### Gateway contract tests
@@ -165,7 +167,7 @@ External publications do not participate in rollback deduplication unless a sepa
 1. **Context ownership:** how does EventBus obtain the current World tick without coupling the generic EventBus to ECS internals? Candidate: an explicit simulation publication context supplied by the World/scheduler integration.
 2. **Session namespace:** which session owner provides a stable namespace across rollback and a distinct namespace across new runs?
 3. **Out-of-loop emissions:** which API marks external scope, and should simulation events outside an active tick be rejected in development?
-4. **Sequence determinism:** which producer and scheduler ordering guarantees are strong enough to support ordinal IDs? For Asteroids, decide whether the broadphase needs an entity-ID tie-break for equal `minX` and add replay-order tests before relying on the ordinal.
+4. **Sequence determinism and simulation equivalence:** which producer and scheduler ordering guarantees are strong enough to support ordinal IDs? For Asteroids, add an entity-ID tie-break for equal broadphase `minX` if canonical ordering is required, and resolve the normal-versus-resimulation candidate-set discrepancy before replay-order tests can validate identity.
 5. **Emission ID ownership:** define the narrow owner/API for stable logical emission IDs and enforce that every VFX/audio/shake side-effect path uses the full `(channel, occurrenceId, emissionId)` key. The deduplication tuple itself is already normative.
 6. **Compatibility:** whether metadata is added as a third handler argument, a separate publication callback shape, or an opt-in typed EventBus API.
 

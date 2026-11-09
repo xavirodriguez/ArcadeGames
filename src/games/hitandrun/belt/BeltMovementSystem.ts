@@ -8,7 +8,8 @@ import {
   System,
   World,
   CoreComponentRegistry,
-  Entity
+  Entity,
+  moveTowards
 } from "@tiny-aster/core";
 import {
   resolveBeltSystemConfig,
@@ -21,7 +22,6 @@ import {
   createBeltElevationComponent,
   type BeltElevationComponent
 } from "./BeltElevationComponent";
-import { moveTowards } from "@tiny-aster/core/math/MathUtils";
 
 export class BeltMovementSystem extends System<CoreComponentRegistry> {
   public update(world: World<CoreComponentRegistry>, deltaTime: number): void {

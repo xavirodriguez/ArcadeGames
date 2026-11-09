@@ -1,18 +1,31 @@
 import { ShapeDrawer, EffectDrawer, World } from "@tiny-aster/core";
-import { GalaxianComponentRegistry, GalaxianEnemyComponent, VisualPoseComponent, DiveTrailComponent, UnfoldShardComponent, ScorePopupComponent } from "../types/GalaxianTypes";
+import { GalaxianComponentRegistry, VisualPoseComponent, UnfoldShardComponent, ScorePopupComponent } from "../types/GalaxianTypes";
 import { GalaxianConfig } from "../types/GalaxianConfigSchema";
+import {
+  getGalaxianPalette,
+  resolvePaperSkyVisualContext,
+  resolveGalaxianEnemyVisualContext,
+  resolveOrigamiBirdColors,
+  OrigamiBirdColors,
+  GalaxianPalette,
+} from "./GalaxianVisualHelpers";
+import { ORIGAMI_BIRD_POLYGONS, Polygon2D } from "./GalaxianVisualTokens";
+
+function drawPolygonCanvas(ctx: CanvasRenderingContext2D, polygon: Polygon2D): void {
+  ctx.beginPath();
+  ctx.moveTo(polygon[0][0], polygon[0][1]);
+  for (let i = 1; i < polygon.length; i++) {
+    ctx.lineTo(polygon[i][0], polygon[i][1]);
+  }
+  ctx.closePath();
+  ctx.fill();
+}
 
 export function drawPaperSkyCanvas(ctx: CanvasRenderingContext2D, world: World<GalaxianComponentRegistry>): void {
-  const config = world.getResource<GalaxianConfig>("GameConfig");
-  const palette = config?.visual.colorblindMode
-    ? config.visual.paletteColorblind
-    : config?.visual.palette;
+  const skyContext = resolvePaperSkyVisualContext(world);
+  if (!skyContext) return;
 
-  if (!palette) return;
-
-  const w = config?.worldWidth ?? 480;
-  const h = config?.worldHeight ?? 640;
-  const time = (world.tick * (1 / 60));
+  const { w, h, palette, stars, layers } = skyContext;
 
   // 1. Base night sky
   ctx.fillStyle = palette.paperNight;
@@ -20,45 +33,28 @@ export function drawPaperSkyCanvas(ctx: CanvasRenderingContext2D, world: World<G
 
   // 2. Stars scrolling with parallax
   ctx.fillStyle = palette.star;
-  const starCount = config?.visual.quality === "low" ? 25 : 55;
-  for (let i = 0; i < starCount; i++) {
-    const speed = 15 + (i % 3) * 20;
-    const sx = (i * 73 + (i % 5) * 17) % w;
-    const sy = ((i * 41 + time * speed) % h);
-
-    if (i % 4 === 0) {
+  for (const star of stars) {
+    if (star.isDiamond) {
       ctx.beginPath();
-      ctx.moveTo(sx, sy - 3);
-      ctx.lineTo(sx + 1.5, sy);
-      ctx.lineTo(sx, sy + 3);
-      ctx.lineTo(sx - 1.5, sy);
+      ctx.moveTo(star.x, star.y - 3);
+      ctx.lineTo(star.x + 1.5, star.y);
+      ctx.lineTo(star.x, star.y + 3);
+      ctx.lineTo(star.x - 1.5, star.y);
       ctx.closePath();
       ctx.fill();
     } else {
-      ctx.fillRect(sx, sy, 1.5, 1.5);
+      ctx.fillRect(star.x, star.y, 1.5, 1.5);
     }
   }
 
   // 3. Cut paper strata layers
-  const isLowQuality = config?.visual.quality === "low";
-  const layers = isLowQuality
-    ? [{ color: palette.strataMid, edge: palette.strataEdge, speed: 8, scaleY: 0.35, offsetY: 120 }]
-    : [
-        { color: palette.strataFar, edge: palette.strataEdge, speed: 5, scaleY: 0.25, offsetY: 80 },
-        { color: palette.strataMid, edge: palette.strataEdge, speed: 10, scaleY: 0.35, offsetY: 220 },
-        { color: palette.strataNear, edge: palette.strataEdge, speed: 18, scaleY: 0.45, offsetY: 400 },
-      ];
-
   for (const layer of layers) {
-    const scrollY = (time * layer.speed) % (h * 1.5);
-    const cy = (layer.offsetY + scrollY) % (h * 1.5) - h * 0.25;
-
     ctx.save();
 
     // Shadow path (hard offset +4, +6)
     ctx.fillStyle = palette.strataShadow;
     ctx.beginPath();
-    ctx.ellipse(w / 2 + 4, cy + 6, w * 0.7, h * layer.scaleY, -0.15, 0, Math.PI * 2);
+    ctx.ellipse(w / 2 + 4, layer.cy + 6, w * 0.7, h * layer.scaleY, -0.15, 0, Math.PI * 2);
     ctx.fill();
 
     // Main paper layer
@@ -66,7 +62,7 @@ export function drawPaperSkyCanvas(ctx: CanvasRenderingContext2D, world: World<G
     ctx.strokeStyle = layer.edge;
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.ellipse(w / 2, cy, w * 0.7, h * layer.scaleY, -0.15, 0, Math.PI * 2);
+    ctx.ellipse(w / 2, layer.cy, w * 0.7, h * layer.scaleY, -0.15, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
 
@@ -85,10 +81,7 @@ export const drawGalaxianPlayerCanvas: ShapeDrawer<CanvasRenderingContext2D, Gal
     const render = world.getComponent(entity, "Render");
     const transform = world.getComponent(entity, "Transform");
     const pose = world.getComponent(entity, "VisualPose") as VisualPoseComponent | undefined;
-    const config = world.getResource<GalaxianConfig>("GameConfig");
-    const palette = config?.visual.colorblindMode
-      ? config.visual.paletteColorblind
-      : config?.visual.palette;
+    const palette = getGalaxianPalette(world);
 
     if (!render || !palette) return;
 
@@ -149,136 +142,59 @@ export const drawGalaxianPlayerCanvas: ShapeDrawer<CanvasRenderingContext2D, Gal
 export function drawOrigamiBirdCanvas(
   ctx: CanvasRenderingContext2D,
   enemyType: "flagship" | "escort" | "emissary" | "drone",
-  palette: any,
+  palette: GalaxianPalette,
   scale: number = 1.0,
   isDamaged: boolean = false
 ): void {
-  let light = palette.droneLight;
-  let mid = palette.droneMid;
-  let dark = palette.droneDark;
-
-  if (enemyType === "emissary") {
-    light = palette.emissaryLight;
-    mid = palette.emissaryMid;
-    dark = palette.emissaryDark;
-  } else if (enemyType === "escort") {
-    light = palette.escortLight;
-    mid = palette.escortMid;
-    dark = palette.escortDark;
-  } else if (enemyType === "flagship") {
-    light = isDamaged ? palette.escortLight : palette.flagshipLight;
-    mid = isDamaged ? palette.escortMid : palette.flagshipMid;
-    dark = isDamaged ? palette.escortDark : palette.flagshipDark;
-  }
+  const colors: OrigamiBirdColors = resolveOrigamiBirdColors(enemyType, palette, isDamaged);
 
   ctx.save();
   ctx.scale(scale, scale);
 
   // Left Body
-  ctx.fillStyle = light;
-  ctx.beginPath();
-  ctx.moveTo(0, -8);
-  ctx.lineTo(0, 10);
-  ctx.lineTo(-4.5, 0);
-  ctx.closePath();
-  ctx.fill();
+  ctx.fillStyle = colors.light;
+  drawPolygonCanvas(ctx, ORIGAMI_BIRD_POLYGONS.leftBody);
 
   // Right Body
-  ctx.fillStyle = mid;
-  ctx.beginPath();
-  ctx.moveTo(0, -8);
-  ctx.lineTo(4.5, 0);
-  ctx.lineTo(0, 10);
-  ctx.closePath();
-  ctx.fill();
+  ctx.fillStyle = colors.mid;
+  drawPolygonCanvas(ctx, ORIGAMI_BIRD_POLYGONS.rightBody);
 
   // Left Wing Top
-  ctx.fillStyle = light;
-  ctx.beginPath();
-  ctx.moveTo(-4, -2);
-  ctx.lineTo(-15, -10);
-  ctx.lineTo(-13, 2);
-  ctx.closePath();
-  ctx.fill();
+  ctx.fillStyle = colors.light;
+  drawPolygonCanvas(ctx, ORIGAMI_BIRD_POLYGONS.leftWingTop);
 
   // Left Wing Bottom
-  ctx.fillStyle = mid;
-  ctx.beginPath();
-  ctx.moveTo(-4, -2);
-  ctx.lineTo(-13, 2);
-  ctx.lineTo(-4, 6);
-  ctx.closePath();
-  ctx.fill();
+  ctx.fillStyle = colors.mid;
+  drawPolygonCanvas(ctx, ORIGAMI_BIRD_POLYGONS.leftWingBottom);
 
   // Right Wing Top
-  ctx.fillStyle = mid;
-  ctx.beginPath();
-  ctx.moveTo(4, -2);
-  ctx.lineTo(15, -10);
-  ctx.lineTo(13, 2);
-  ctx.closePath();
-  ctx.fill();
+  ctx.fillStyle = colors.mid;
+  drawPolygonCanvas(ctx, ORIGAMI_BIRD_POLYGONS.rightWingTop);
 
   // Right Wing Bottom
-  ctx.fillStyle = dark;
-  ctx.beginPath();
-  ctx.moveTo(4, -2);
-  ctx.lineTo(13, 2);
-  ctx.lineTo(4, 6);
-  ctx.closePath();
-  ctx.fill();
+  ctx.fillStyle = colors.dark;
+  drawPolygonCanvas(ctx, ORIGAMI_BIRD_POLYGONS.rightWingBottom);
 
   if (enemyType === "emissary") {
-    ctx.fillStyle = mid;
-    ctx.beginPath();
-    ctx.moveTo(-15, -10);
-    ctx.lineTo(-19, -4);
-    ctx.lineTo(-13, 2);
-    ctx.closePath();
-    ctx.fill();
+    ctx.fillStyle = colors.mid;
+    drawPolygonCanvas(ctx, ORIGAMI_BIRD_POLYGONS.emissaryHookLeft);
 
-    ctx.fillStyle = dark;
-    ctx.beginPath();
-    ctx.moveTo(15, -10);
-    ctx.lineTo(19, -4);
-    ctx.lineTo(13, 2);
-    ctx.closePath();
-    ctx.fill();
+    ctx.fillStyle = colors.dark;
+    drawPolygonCanvas(ctx, ORIGAMI_BIRD_POLYGONS.emissaryHookRight);
   } else if (enemyType === "escort") {
-    ctx.fillStyle = light;
-    ctx.beginPath();
-    ctx.moveTo(-2, 6);
-    ctx.lineTo(-6, 12);
-    ctx.lineTo(-1, 8);
-    ctx.closePath();
-    ctx.fill();
+    ctx.fillStyle = colors.light;
+    drawPolygonCanvas(ctx, ORIGAMI_BIRD_POLYGONS.escortHornLeft);
 
-    ctx.fillStyle = dark;
-    ctx.beginPath();
-    ctx.moveTo(2, 6);
-    ctx.lineTo(6, 12);
-    ctx.lineTo(1, 8);
-    ctx.closePath();
-    ctx.fill();
+    ctx.fillStyle = colors.dark;
+    drawPolygonCanvas(ctx, ORIGAMI_BIRD_POLYGONS.escortHornRight);
   } else if (enemyType === "flagship") {
-    ctx.fillStyle = light;
-    ctx.beginPath();
-    ctx.moveTo(0, -8);
-    ctx.lineTo(3, -13);
-    ctx.lineTo(0, -18);
-    ctx.lineTo(-3, -13);
-    ctx.closePath();
-    ctx.fill();
+    ctx.fillStyle = colors.light;
+    drawPolygonCanvas(ctx, ORIGAMI_BIRD_POLYGONS.flagshipCrest);
   }
 
   // Head
-  ctx.fillStyle = dark;
-  ctx.beginPath();
-  ctx.moveTo(0, 10);
-  ctx.lineTo(-2.6, 5);
-  ctx.lineTo(2.6, 5);
-  ctx.closePath();
-  ctx.fill();
+  ctx.fillStyle = colors.dark;
+  drawPolygonCanvas(ctx, ORIGAMI_BIRD_POLYGONS.head);
 
   // Eye
   ctx.fillStyle = palette.eye;
@@ -291,46 +207,37 @@ export function drawOrigamiBirdCanvas(
 
 export const drawGalaxianEnemyCanvas: ShapeDrawer<CanvasRenderingContext2D, GalaxianComponentRegistry> = {
   draw(ctx, world, entity) {
-    const enemy = world.getComponent(entity, "GalaxianEnemy") as GalaxianEnemyComponent | undefined;
-    const transform = world.getComponent(entity, "Transform");
-    const pose = world.getComponent(entity, "VisualPose") as VisualPoseComponent | undefined;
-    const trail = world.getComponent(entity, "DiveTrail") as DiveTrailComponent | undefined;
-    const config = world.getResource<GalaxianConfig>("GameConfig");
-    const palette = config?.visual.colorblindMode
-      ? config.visual.paletteColorblind
-      : config?.visual.palette;
+    const enemyCtx = resolveGalaxianEnemyVisualContext(world, entity);
+    if (!enemyCtx) return;
 
-    if (!enemy || !palette) return;
+    const { palette, enemy, deltaRotation, scaleX, scaleY, baseScale, isDamaged, trailPoints, showWindupReticle } = enemyCtx;
 
-    if (trail && trail.history.length > 1 && (enemy.state === "diving" || enemy.state === "windup") && transform) {
+    if (trailPoints) {
       ctx.save();
-      ctx.translate(-transform.x, -transform.y);
-      const pts = trail.history;
-
       ctx.strokeStyle = palette.trail;
       ctx.lineWidth = 4;
       ctx.globalAlpha = 0.35;
       ctx.lineCap = "round";
       ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
-      for (let i = 1; i < pts.length; i++) {
-        ctx.lineTo(pts[i].x, pts[i].y);
+      ctx.moveTo(trailPoints[0].x, trailPoints[0].y);
+      for (let i = 1; i < trailPoints.length; i++) {
+        ctx.lineTo(trailPoints[i].x, trailPoints[i].y);
       }
       ctx.stroke();
 
       ctx.lineWidth = 1.5;
       ctx.globalAlpha = 0.75;
       ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
-      for (let i = 1; i < pts.length; i++) {
-        ctx.lineTo(pts[i].x, pts[i].y);
+      ctx.moveTo(trailPoints[0].x, trailPoints[0].y);
+      for (let i = 1; i < trailPoints.length; i++) {
+        ctx.lineTo(trailPoints[i].x, trailPoints[i].y);
       }
       ctx.stroke();
 
       ctx.restore();
     }
 
-    if (enemy.state === "windup") {
+    if (showWindupReticle) {
       ctx.save();
       ctx.strokeStyle = palette.trail;
       ctx.lineWidth = 2;
@@ -342,13 +249,13 @@ export const drawGalaxianEnemyCanvas: ShapeDrawer<CanvasRenderingContext2D, Gala
     }
 
     ctx.save();
-    if (pose && transform) {
-      ctx.rotate(pose.rotation - transform.rotation);
-      ctx.scale(pose.scaleX, pose.scaleY);
+    if (deltaRotation !== 0) {
+      ctx.rotate(deltaRotation);
+    }
+    if (scaleX !== 1.0 || scaleY !== 1.0) {
+      ctx.scale(scaleX, scaleY);
     }
 
-    const baseScale = enemy.enemyType === "flagship" ? 1.25 : 1.0;
-    const isDamaged = enemy.enemyType === "flagship" && enemy.hitsRemaining === 1;
     drawOrigamiBirdCanvas(ctx, enemy.enemyType, palette, baseScale, isDamaged);
 
     ctx.restore();
@@ -358,9 +265,7 @@ export const drawGalaxianEnemyCanvas: ShapeDrawer<CanvasRenderingContext2D, Gala
 export const drawGalaxianPlayerBulletCanvas: ShapeDrawer<CanvasRenderingContext2D, GalaxianComponentRegistry> = {
   draw(ctx, world, _entity) {
     const config = world.getResource<GalaxianConfig>("GameConfig");
-    const palette = config?.visual.colorblindMode
-      ? config.visual.paletteColorblind
-      : config?.visual.palette;
+    const palette = getGalaxianPalette(world);
     const color = palette?.playerAccent ?? "#5CF2C0";
 
     ctx.save();
@@ -389,9 +294,7 @@ export const drawGalaxianPlayerBulletCanvas: ShapeDrawer<CanvasRenderingContext2
 export const drawGalaxianEnemyBulletCanvas: ShapeDrawer<CanvasRenderingContext2D, GalaxianComponentRegistry> = {
   draw(ctx, world, _entity) {
     const config = world.getResource<GalaxianConfig>("GameConfig");
-    const palette = config?.visual.colorblindMode
-      ? config.visual.paletteColorblind
-      : config?.visual.palette;
+    const palette = getGalaxianPalette(world);
 
     const fireColor = palette?.enemyFire ?? "#FF7A45";
     const coreColor = palette?.enemyFireCore ?? "#FFF6E5";
@@ -449,10 +352,7 @@ export const drawUnfoldShardCanvas: ShapeDrawer<CanvasRenderingContext2D, Galaxi
 export const drawScorePopupCanvas: ShapeDrawer<CanvasRenderingContext2D, GalaxianComponentRegistry> = {
   draw(ctx, world, entity) {
     const popup = world.getComponent(entity, "ScorePopup") as ScorePopupComponent | undefined;
-    const config = world.getResource<GalaxianConfig>("GameConfig");
-    const palette = config?.visual.colorblindMode
-      ? config.visual.paletteColorblind
-      : config?.visual.palette;
+    const palette = getGalaxianPalette(world);
 
     if (!popup || !palette) return;
 

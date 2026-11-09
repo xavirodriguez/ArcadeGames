@@ -167,7 +167,7 @@ function executePass(
 ): PassResult {
   const pairs = BroadPhase.sweepAndPrune(
     candidates,
-    world as unknown as World<CoreComponentRegistry>,
+    world,
     BroadPhase.createScratch()
   ).map(([a, b]) => [a, b] as [Entity, Entity]);
 

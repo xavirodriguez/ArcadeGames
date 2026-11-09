@@ -108,25 +108,7 @@ export type SupportedGameId =
   | "platformer"
   | "echo-runner";
 
-/**
- * Strictly typed mapping of supported games to their valid semantic Juice event keys.
- * @public
- */
-export interface GameJuiceEventMap {
-  pong: "ball:rally" | "paddle:hit" | "goal:scored";
-  asteroids: "rock:destroyed" | "ship:damage" | "ship:fire";
-  "space-invaders": "shield:degraded" | "alien:destroyed" | "ufo:destroyed";
-  arkanoid: "brick:shatter" | "paddle:bounce" | "boss:hit" | "brick:hit";
-  flappybird: "pipe:passed" | "bird:flap" | "bird:crash";
-  frogger: "goal:reached" | "frog:hop" | "frog:splat";
-  "geometry-wars": "enemy:destroyed" | "bomb:trigger" | "player:death";
-  platformer: "player:damage" | "coin:collected" | "enemy:stomp" | "player:dash" | "player:slide" | "platform:reversed";
-  "echo-runner": "echo:ghost" | "dash:boost" | "obstacle:hit" | "player:slide" | "platform:reversed";
-}
-
-export const JUICE_CATALOG: {
-  [G in SupportedGameId]: Record<GameJuiceEventMap[G], JuiceProfile>;
-} = {
+export const JUICE_CATALOG = {
   pong: {
     "ball:rally": { effect: "warp_lines", tint: colors.cyan, intensity: 1.0, scale: 1.0 },
     "paddle:hit": { effect: "pixelfx_paddle_impact", tint: colors.cyan, scale: 0.9, ttl: 0.22, hitStopMs: 60, hitStopPriority: HitStopPriority.LOW, shakeIntensity: 0, shakeDurationMs: 40 },
@@ -178,6 +160,15 @@ export const JUICE_CATALOG: {
     "player:slide": { effect: "pixelfx_surface_skid", tint: colors.cyan, scale: 0.9, ttl: 0.2 },
     "platform:reversed": { effect: "pixelfx_mechanical_motion", tint: colors.green, scale: 0.85, ttl: 0.28 }
   }
+} as const satisfies Record<SupportedGameId, Record<string, JuiceProfile>>;
+
+/**
+ * Strictly typed mapping of supported games to their valid semantic Juice event keys,
+ * derived directly from JUICE_CATALOG.
+ * @public
+ */
+export type GameJuiceEventMap = {
+  [G in SupportedGameId]: keyof (typeof JUICE_CATALOG)[G];
 };
 
 export class JuiceOrchestrator<TComponents extends CoreComponentRegistry = CoreComponentRegistry> {
@@ -315,11 +306,23 @@ export class JuiceOrchestrator<TComponents extends CoreComponentRegistry = CoreC
     eventName: GameJuiceEventMap[G],
     context?: { x?: number; y?: number; rotation?: number; overrideTint?: string }
   ): void {
-    const gameMap = JUICE_CATALOG[gameId] as Record<string, JuiceProfile>;
-    if (!gameMap) return;
+    const gameMap = JUICE_CATALOG[gameId] as Record<string, JuiceProfile> | undefined;
+    if (!gameMap) {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn(`[JuiceOrchestrator] Missing catalog for game "${gameId}"`);
+      }
+      return;
+    }
 
-    const profile = gameMap[eventName as string];
-    if (!profile) return;
+    const profile = gameMap[eventName as string] as JuiceProfile | undefined;
+    if (!profile) {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn(
+          `[JuiceOrchestrator] Missing profile for event "${String(eventName)}" in game "${gameId}"`
+        );
+      }
+      return;
+    }
 
     this.spawn(profile.effect, {
       x: context?.x,

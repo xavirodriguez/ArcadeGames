@@ -222,6 +222,40 @@ describe("JuiceOrchestrator Unit Tests & Golden Replays", () => {
       juice.triggerEvent("arkanoid", "brick:shatter", { x: 200, y: 220 });
       expect(world.query("Render").length).toBe(2);
     });
+
+    it("strictly prevents invalid game/event combinations at compile-time", () => {
+      const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+      try {
+        // Valid combinations compile cleanly
+        juice.triggerEvent("pong", "paddle:hit");
+        juice.triggerEvent("arkanoid", "brick:shatter");
+
+        // Invalid event for given game must be rejected by TypeScript
+        // @ts-expect-error "brick:shatter" is not an event of "pong"
+        juice.triggerEvent("pong", "brick:shatter");
+
+        // @ts-expect-error "nonexistent:event" is not a valid event
+        juice.triggerEvent("asteroids", "nonexistent:event");
+
+        // @ts-expect-error "paddle:hit" is not an event of "space-invaders"
+        juice.triggerEvent("space-invaders", "paddle:hit");
+      } finally {
+        warnSpy.mockRestore();
+      }
+    });
+
+    it("emits a development diagnostic warning when an unknown profile is triggered dynamically", () => {
+      const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+      try {
+        // Trigger with dynamically cast unknown event name
+        juice.triggerEvent("pong", "unknown:event" as never);
+        expect(warnSpy).toHaveBeenCalledWith(
+          expect.stringContaining('[JuiceOrchestrator] Missing profile for event "unknown:event" in game "pong"')
+        );
+      } finally {
+        warnSpy.mockRestore();
+      }
+    });
   });
 
   describe("FR-6: Global JuiceLevel & Low Stimulation Accessibility Mode", () => {

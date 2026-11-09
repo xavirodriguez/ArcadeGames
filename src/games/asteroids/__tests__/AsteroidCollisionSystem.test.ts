@@ -2,7 +2,7 @@ import { World, EventBus } from "@tiny-aster/core";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../types/AsteroidRegistry";
 import { AsteroidCollisionSystem } from "../systems/AsteroidCollisionSystem";
 import { ParticlePool } from "../EntityPool";
-import { createBullet, registerAsteroidsBlueprints } from "../EntityFactory";
+import { createBullet, createAsteroid, registerAsteroidsBlueprints } from "../EntityFactory";
 
 describe("AsteroidCollisionSystem & Bullet Tests", () => {
   let world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>;
@@ -313,5 +313,89 @@ describe("AsteroidCollisionSystem & Bullet Tests", () => {
     expect(asteroidDestroyedSpy).toHaveBeenCalledTimes(1);
     const state = world.getSingleton("GameState")!;
     expect(state.score).toBe(20);
+  });
+
+  it("spawns exactly one pixelfx_explosion entity upon asteroid destruction without duplicating VFX", () => {
+    const testWorld = new World<AsteroidsComponentRegistry, AsteroidsEventRegistry>();
+    const testEventBus = new EventBus<AsteroidsEventRegistry>();
+    testWorld.setResource("EventBus", testEventBus);
+    testWorld.setResource("ScreenConfig", { width: 800, height: 600 });
+    testWorld.setResource("HasCombatSystem", true);
+    testWorld.gameplayRandom.unlock();
+    registerAsteroidsBlueprints(testWorld);
+
+    const stateEntity = testWorld.createEntity();
+    testWorld.addComponent(stateEntity, {
+      type: "GameState",
+      score: 0,
+      level: 1,
+      lives: 3,
+      isGameOver: false
+    });
+
+    const testCollisionSystem = new AsteroidCollisionSystem();
+    testCollisionSystem.onRegister(testWorld);
+
+    const asteroid = createAsteroid({ world: testWorld, x: 100, y: 100, size: "large" });
+
+    // Emit death event
+    testEventBus.emit("combat:death", { entity: asteroid });
+
+    // Query Render entities created for VFX
+    const renderEntities = testWorld.query("Render");
+    const explosionEntities = renderEntities.filter((e) => {
+      const render = testWorld.getComponent(e, "Render");
+      return render?.shape === "pixelfx_explosion";
+    });
+
+    // Proves that only 1 pixelfx_explosion entity was spawned instead of 2
+    expect(explosionEntities.length).toBe(1);
+  });
+
+  it("suppresses presentation VFX, popups and SFX during rollback resimulation", () => {
+    const testWorld = new World<AsteroidsComponentRegistry, AsteroidsEventRegistry>();
+    const testEventBus = new EventBus<AsteroidsEventRegistry>();
+    testWorld.setResource("EventBus", testEventBus);
+    testWorld.setResource("ScreenConfig", { width: 800, height: 600 });
+    testWorld.setResource("HasCombatSystem", true);
+    testWorld.gameplayRandom.unlock();
+    registerAsteroidsBlueprints(testWorld);
+
+    const stateEntity = testWorld.createEntity();
+    testWorld.addComponent(stateEntity, {
+      type: "GameState",
+      score: 0,
+      level: 1,
+      lives: 3,
+      isGameOver: false
+    });
+
+    const sfxSpy = jest.fn();
+    testEventBus.on("PlaySFX", sfxSpy);
+
+    const testCollisionSystem = new AsteroidCollisionSystem();
+    testCollisionSystem.onRegister(testWorld);
+
+    const asteroid = createAsteroid({ world: testWorld, x: 100, y: 100, size: "large" });
+
+    // Enable rollback / resimulation mode
+    testWorld.isReSimulating = true;
+
+    // Emit death event during resimulation
+    testEventBus.emit("combat:death", { entity: asteroid });
+
+    testEventBus.flushDeferred();
+
+    // Query Render entities created for VFX
+    const renderEntities = testWorld.query("Render");
+    const explosionEntities = renderEntities.filter((e) => {
+      const render = testWorld.getComponent(e, "Render");
+      return render?.shape === "pixelfx_explosion";
+    });
+
+    // Presentation VFX suppressed
+    expect(explosionEntities.length).toBe(0);
+    // SFX suppressed during rollback
+    expect(sfxSpy).not.toHaveBeenCalled();
   });
 });

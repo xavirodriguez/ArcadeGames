@@ -162,13 +162,16 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
     size: "large" | "medium" | "small" | "ship"
   ): void {
     const scale = size === "ship" || size === "large" ? 0.95 : size === "medium" ? 0.72 : 0.55;
-    new JuiceOrchestrator(world).spawn("pixelfx_explosion", {
-      x: transform.x,
-      y: transform.y,
-      scale,
-      tint: resolveThemeColorWithFallback(world, colors.warning, "warning", "primary"),
-      ttl: 0.38
-    });
+    if (size === "ship") {
+      this.juice ??= new JuiceOrchestrator(world);
+      this.juice.spawn("pixelfx_explosion", {
+        x: transform.x,
+        y: transform.y,
+        scale,
+        tint: resolveThemeColorWithFallback(world, colors.warning, "warning", "primary"),
+        ttl: 0.38
+      });
+    }
 
     const gameplayMod = world.getResource<AsteroidsGameplayMod>("GameplayMod")
       ?? world.getResource<AsteroidsGameplayMod>("VisualMod");
@@ -298,15 +301,17 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
 
     // Spawn particle explosion and juice for player ship impact/death
     const shipTransform = world.getComponent(ship, "Transform");
-    if (shipTransform) {
-      this.spawnExplosionParticles(world, shipTransform, "ship");
-      this.juice ??= new JuiceOrchestrator(world);
-      this.juice.triggerEvent("asteroids", "ship:damage", {
-        x: shipTransform.x,
-        y: shipTransform.y
-      });
+    if (!world.isReSimulating) {
+      if (shipTransform) {
+        this.spawnExplosionParticles(world, shipTransform, "ship");
+        this.juice ??= new JuiceOrchestrator(world);
+        this.juice.triggerEvent("asteroids", "ship:damage", {
+          x: shipTransform.x,
+          y: shipTransform.y
+        });
+      }
+      Juice.playDeathJuice(world, ship, { shakeIntensity: 6.0, shakeDuration: 180 });
     }
-    Juice.playDeathJuice(world, ship, { shakeIntensity: 6.0, shakeDuration: 180 });
 
     if (lives > 0) {
       // Respawn ship at center with invulnerability
@@ -334,7 +339,9 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
     // Eventos Diferidos: Todo evento debe emitirse con eventBus.emitDeferred()
     const eventBus = world.getEventBus();
     if (eventBus) {
-      eventBus.emitDeferred("PlaySFX", { name: "explosion_large", volume: 1.0 });
+      if (!world.isReSimulating) {
+        eventBus.emitDeferred("PlaySFX", { name: "explosion_large", volume: 1.0 });
+      }
       eventBus.emitDeferred("ship:destroyed", { entity: ship });
     }
   }
@@ -359,16 +366,18 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
 
     const asteroidTransform = world.getComponent(asteroid, "Transform");
     if (asteroidTransform) {
-      this.maybeSpawnStoryLog(world, asteroidTransform, size, nextMultiplier);
-      this.spawnExplosionParticles(world, asteroidTransform, size);
+      if (!world.isReSimulating) {
+        this.maybeSpawnStoryLog(world, asteroidTransform, size, nextMultiplier);
+        this.spawnExplosionParticles(world, asteroidTransform, size);
+      }
       // Catalog hit-stop + shake for rock destruction (JuiceOrchestrator → requestHitStop)
+      // Note: JuiceOrchestrator handles isReSimulating internally by allowing hit-stop while suppressing shake & particles
       this.juice ??= new JuiceOrchestrator(world);
       this.juice.triggerEvent("asteroids", "rock:destroyed", {
         x: asteroidTransform.x,
         y: asteroidTransform.y
       });
     }
-    Juice.shake(world, size === "large" ? 3.0 : 1.5, 80);
 
     // Spawn physical salvage drop (Minerals on medium/large, Energy chance)
     if (asteroidTransform) {
@@ -407,8 +416,10 @@ export class AsteroidCollisionSystem extends System<AsteroidsComponentRegistry, 
     // Emit deferred events
     const eventBus = world.getEventBus();
     if (eventBus) {
-      const sfxName = size === "large" ? "explosion_large" : "explosion_small";
-      eventBus.emitDeferred("PlaySFX", { name: sfxName, pitchRange: 0.06 });
+      if (!world.isReSimulating) {
+        const sfxName = size === "large" ? "explosion_large" : "explosion_small";
+        eventBus.emitDeferred("PlaySFX", { name: sfxName, pitchRange: 0.06 });
+      }
       eventBus.emitDeferred("asteroid:destroyed", { entity: asteroid, size });
       eventBus.emitDeferred("score:changed", { newScore, delta: scoreGain });
     }

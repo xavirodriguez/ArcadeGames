@@ -83,7 +83,7 @@ export class BroadPhase {
    */
   static sweepAndPrune(
     entities: ReadonlyArray<Entity>,
-    world: World<CoreComponentRegistry>,
+    world: World<CoreComponentRegistry, any, any>,
     scratch?: BroadPhaseScratch
   ): Array<[Entity, Entity]> {
     const s = scratch ?? defaultScratch;
@@ -122,7 +122,11 @@ export class BroadPhase {
       for (let i = gap; i < count; i++) {
         const temp = boundsPool[i];
         let j = i;
-        while (j >= gap && boundsPool[j - gap].minX > temp.minX) {
+        while (
+          j >= gap &&
+          (boundsPool[j - gap].minX > temp.minX ||
+            (boundsPool[j - gap].minX === temp.minX && boundsPool[j - gap].entity > temp.entity))
+        ) {
           boundsPool[j] = boundsPool[j - gap];
           j -= gap;
         }
@@ -161,7 +165,7 @@ export class BroadPhase {
    * Converts Collider2D aabb/circle shapes into NarrowPhase Shape format.
    */
   private static resolveColliderLike(
-    world: World<CoreComponentRegistry>,
+    world: World<CoreComponentRegistry, any, any>,
     entity: Entity
   ): ColliderComponent | null {
     const col = world.getComponent(entity, "Collider") as ColliderComponent | undefined;

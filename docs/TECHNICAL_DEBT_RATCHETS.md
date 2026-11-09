@@ -8,14 +8,14 @@ The following values come from the versioned baseline files on `master` at the s
 
 | Metric | Baseline | Source |
 | --- | ---: | --- |
-| `as any` type assertions | 640 | `scripts/typecast-baseline.json` |
+| `as any` type assertions | 639 | `scripts/typecast-baseline.json` |
 | `as unknown` type assertions | 223 | `scripts/typecast-baseline.json` |
-| Total `as any` / `as unknown` assertions | 863 | `scripts/typecast-baseline.json` after removing the ratchet's own unsafe cast |
+| Total `as any` / `as unknown` assertions | 862 | `scripts/typecast-baseline.json` after removing the ratchet's own unsafe cast |
 | Files with these type assertions | 196 | `scripts/typecast-baseline.json` |
-| Duplicated lines | 1,930 | `scripts/duplication-baseline.json` |
-| Duplicate clones | 240 | `scripts/duplication-baseline.json` |
-| Duplication ratio | 1.31% | `scripts/duplication-baseline.json` |
-| Lines scanned by jscpd | 147,387 | `scripts/duplication-baseline.json` |
+| Duplicated lines | 1,851 | `scripts/duplication-baseline.json` |
+| Duplicate clones | 232 | `scripts/duplication-baseline.json` |
+| Duplication ratio | 1.25% | `scripts/duplication-baseline.json` |
+| Lines scanned by jscpd | 147,502 | `scripts/duplication-baseline.json` |
 | Color-literal occurrences | 594 | `scripts/color-literals-baseline.json`, generated 2026-10-31 |
 | Unique color-literal location keys | 593 | `scripts/color-literals-baseline.json` |
 
@@ -65,8 +65,8 @@ Target date: **2027-02-02** (90 days after the baseline review on 2026-11-04).
 
 | Metric | Starting baseline | Target by 2027-02-02 | Minimum reduction |
 | --- | ---: | ---: | ---: |
-| Total `as any` / `as unknown` assertions | 863 | **776 or fewer** | At least 87 (10.1%) |
-| Duplicated lines | 1,930 | **1,737 or fewer** | At least 193 (10.0%) |
+| Total `as any` / `as unknown` assertions | 862 | **775 or fewer** | At least 87 (10.1%) |
+| Duplicated lines | 1,851 | **1,665 or fewer** | At least 217 (10.0%) |
 | Duplication ratio | 1.57% | **1.50% or lower** | 0.07 percentage points |
 | Color-literal occurrences | 594 | **534 or fewer** | At least 60 (10.1%) |
 

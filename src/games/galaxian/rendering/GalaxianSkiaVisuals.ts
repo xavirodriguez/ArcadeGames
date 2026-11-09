@@ -1,21 +1,36 @@
-import { ShapeDrawer, EffectDrawer, World } from "@tiny-aster/core";
-import { GalaxianComponentRegistry, GalaxianEnemyComponent, VisualPoseComponent, DiveTrailComponent, UnfoldShardComponent, ScorePopupComponent } from "../types/GalaxianTypes";
+import { ShapeDrawer, World } from "@tiny-aster/core";
+import { GalaxianComponentRegistry, VisualPoseComponent, UnfoldShardComponent } from "../types/GalaxianTypes";
 import { GalaxianConfig } from "../types/GalaxianConfigSchema";
 import { Skia, getPaint, SkCanvas } from "../../shared/rendering/SkiaContext";
+import type { SkPath } from "@shopify/react-native-skia";
+import {
+  getGalaxianPalette,
+  resolvePaperSkyVisualContext,
+  resolveGalaxianEnemyVisualContext,
+  resolveOrigamiBirdColors,
+  OrigamiBirdColors,
+  GalaxianPalette,
+} from "./GalaxianVisualHelpers";
+import { ORIGAMI_BIRD_POLYGONS, Polygon2D } from "./GalaxianVisualTokens";
+
+function makePolygonPath(polygon: Polygon2D): SkPath | null {
+  if (!Skia) return null;
+  const path = Skia.Path.Make();
+  path.moveTo(polygon[0][0], polygon[0][1]);
+  for (let i = 1; i < polygon.length; i++) {
+    path.lineTo(polygon[i][0], polygon[i][1]);
+  }
+  path.close();
+  return path;
+}
 
 export function drawSkiaPaperSky(canvas: SkCanvas, world: World<GalaxianComponentRegistry>): void {
   if (!Skia) return;
 
-  const config = world.getResource<GalaxianConfig>("GameConfig");
-  const palette = config?.visual.colorblindMode
-    ? config.visual.paletteColorblind
-    : config?.visual.palette;
+  const skyContext = resolvePaperSkyVisualContext(world);
+  if (!skyContext) return;
 
-  if (!palette) return;
-
-  const w = config?.worldWidth ?? 480;
-  const h = config?.worldHeight ?? 640;
-  const time = (world.tick * (1 / 60));
+  const { w, h, palette, stars, layers } = skyContext;
   const paint = getPaint();
 
   // 1. Base night sky
@@ -26,55 +41,38 @@ export function drawSkiaPaperSky(canvas: SkCanvas, world: World<GalaxianComponen
 
   // 2. Stars
   paint.setColor(Skia.Color(palette.star));
-  const starCount = config?.visual.quality === "low" ? 25 : 55;
-  for (let i = 0; i < starCount; i++) {
-    const speed = 15 + (i % 3) * 20;
-    const sx = (i * 73 + (i % 5) * 17) % w;
-    const sy = ((i * 41 + time * speed) % h);
-
-    if (i % 4 === 0) {
+  for (const star of stars) {
+    if (star.isDiamond) {
       const diamond = Skia.Path.Make();
-      diamond.moveTo(sx, sy - 3);
-      diamond.lineTo(sx + 1.5, sy);
-      diamond.lineTo(sx, sy + 3);
-      diamond.lineTo(sx - 1.5, sy);
+      diamond.moveTo(star.x, star.y - 3);
+      diamond.lineTo(star.x + 1.5, star.y);
+      diamond.lineTo(star.x, star.y + 3);
+      diamond.lineTo(star.x - 1.5, star.y);
       diamond.close();
       canvas.drawPath(diamond, paint);
     } else {
-      canvas.drawRect(Skia.XYWHRect(sx, sy, 1.5, 1.5), paint);
+      canvas.drawRect(Skia.XYWHRect(star.x, star.y, 1.5, 1.5), paint);
     }
   }
 
   // 3. Strata layers
-  const isLowQuality = config?.visual.quality === "low";
-  const layers = isLowQuality
-    ? [{ color: palette.strataMid, edge: palette.strataEdge, speed: 8, scaleY: 0.35, offsetY: 120 }]
-    : [
-        { color: palette.strataFar, edge: palette.strataEdge, speed: 5, scaleY: 0.25, offsetY: 80 },
-        { color: palette.strataMid, edge: palette.strataEdge, speed: 10, scaleY: 0.35, offsetY: 220 },
-        { color: palette.strataNear, edge: palette.strataEdge, speed: 18, scaleY: 0.45, offsetY: 400 },
-      ];
-
   for (const layer of layers) {
-    const scrollY = (time * layer.speed) % (h * 1.5);
-    const cy = (layer.offsetY + scrollY) % (h * 1.5) - h * 0.25;
-
     canvas.save();
 
     // Shadow
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color(palette.strataShadow));
-    canvas.drawOval(Skia.XYWHRect(w / 2 - w * 0.7 + 4, cy - h * layer.scaleY + 6, w * 1.4, h * layer.scaleY * 2), paint);
+    canvas.drawOval(Skia.XYWHRect(w / 2 - w * 0.7 + 4, layer.cy - h * layer.scaleY + 6, w * 1.4, h * layer.scaleY * 2), paint);
 
     // Main layer
     paint.setColor(Skia.Color(layer.color));
-    canvas.drawOval(Skia.XYWHRect(w / 2 - w * 0.7, cy - h * layer.scaleY, w * 1.4, h * layer.scaleY * 2), paint);
+    canvas.drawOval(Skia.XYWHRect(w / 2 - w * 0.7, layer.cy - h * layer.scaleY, w * 1.4, h * layer.scaleY * 2), paint);
 
     paint.setStyle(Skia.PaintStyle.Stroke);
     paint.setStrokeWidth(1);
     paint.setColor(Skia.Color(layer.edge));
-    canvas.drawOval(Skia.XYWHRect(w / 2 - w * 0.7, cy - h * layer.scaleY, w * 1.4, h * layer.scaleY * 2), paint);
+    canvas.drawOval(Skia.XYWHRect(w / 2 - w * 0.7, layer.cy - h * layer.scaleY, w * 1.4, h * layer.scaleY * 2), paint);
 
     canvas.restore();
   }
@@ -92,10 +90,7 @@ export const drawSkiaGalaxianPlayer: ShapeDrawer<SkCanvas, GalaxianComponentRegi
     const render = world.getComponent(entity, "Render");
     const transform = world.getComponent(entity, "Transform");
     const pose = world.getComponent(entity, "VisualPose") as VisualPoseComponent | undefined;
-    const config = world.getResource<GalaxianConfig>("GameConfig");
-    const palette = config?.visual.colorblindMode
-      ? config.visual.paletteColorblind
-      : config?.visual.palette;
+    const palette = getGalaxianPalette(world);
 
     if (!render || !palette) return;
 
@@ -156,30 +151,13 @@ export const drawSkiaGalaxianPlayer: ShapeDrawer<SkCanvas, GalaxianComponentRegi
 export function drawSkiaOrigamiBird(
   canvas: SkCanvas,
   enemyType: "flagship" | "escort" | "emissary" | "drone",
-  palette: any,
+  palette: GalaxianPalette,
   scale: number = 1.0,
   isDamaged: boolean = false
 ): void {
   if (!Skia) return;
   const paint = getPaint();
-
-  let light = palette.droneLight;
-  let mid = palette.droneMid;
-  let dark = palette.droneDark;
-
-  if (enemyType === "emissary") {
-    light = palette.emissaryLight;
-    mid = palette.emissaryMid;
-    dark = palette.emissaryDark;
-  } else if (enemyType === "escort") {
-    light = palette.escortLight;
-    mid = palette.escortMid;
-    dark = palette.escortDark;
-  } else if (enemyType === "flagship") {
-    light = isDamaged ? palette.escortLight : palette.flagshipLight;
-    mid = isDamaged ? palette.escortMid : palette.flagshipMid;
-    dark = isDamaged ? palette.escortDark : palette.flagshipDark;
-  }
+  const colors: OrigamiBirdColors = resolveOrigamiBirdColors(enemyType, palette, isDamaged);
 
   canvas.save();
   canvas.scale(scale, scale);
@@ -188,110 +166,61 @@ export function drawSkiaOrigamiBird(
   paint.setStyle(Skia.PaintStyle.Fill);
 
   // Left body
-  paint.setColor(Skia.Color(light));
-  const lb = Skia.Path.Make();
-  lb.moveTo(0, -8);
-  lb.lineTo(0, 10);
-  lb.lineTo(-4.5, 0);
-  lb.close();
-  canvas.drawPath(lb, paint);
+  paint.setColor(Skia.Color(colors.light));
+  const lb = makePolygonPath(ORIGAMI_BIRD_POLYGONS.leftBody);
+  if (lb) canvas.drawPath(lb, paint);
 
   // Right body
-  paint.setColor(Skia.Color(mid));
-  const rb = Skia.Path.Make();
-  rb.moveTo(0, -8);
-  rb.lineTo(4.5, 0);
-  rb.lineTo(0, 10);
-  rb.close();
-  canvas.drawPath(rb, paint);
+  paint.setColor(Skia.Color(colors.mid));
+  const rb = makePolygonPath(ORIGAMI_BIRD_POLYGONS.rightBody);
+  if (rb) canvas.drawPath(rb, paint);
 
   // Left wing top
-  paint.setColor(Skia.Color(light));
-  const lwt = Skia.Path.Make();
-  lwt.moveTo(-4, -2);
-  lwt.lineTo(-15, -10);
-  lwt.lineTo(-13, 2);
-  lwt.close();
-  canvas.drawPath(lwt, paint);
+  paint.setColor(Skia.Color(colors.light));
+  const lwt = makePolygonPath(ORIGAMI_BIRD_POLYGONS.leftWingTop);
+  if (lwt) canvas.drawPath(lwt, paint);
 
   // Left wing bottom
-  paint.setColor(Skia.Color(mid));
-  const lwb = Skia.Path.Make();
-  lwb.moveTo(-4, -2);
-  lwb.lineTo(-13, 2);
-  lwb.lineTo(-4, 6);
-  lwb.close();
-  canvas.drawPath(lwb, paint);
+  paint.setColor(Skia.Color(colors.mid));
+  const lwb = makePolygonPath(ORIGAMI_BIRD_POLYGONS.leftWingBottom);
+  if (lwb) canvas.drawPath(lwb, paint);
 
   // Right wing top
-  paint.setColor(Skia.Color(mid));
-  const rwt = Skia.Path.Make();
-  rwt.moveTo(4, -2);
-  rwt.lineTo(15, -10);
-  rwt.lineTo(13, 2);
-  rwt.close();
-  canvas.drawPath(rwt, paint);
+  paint.setColor(Skia.Color(colors.mid));
+  const rwt = makePolygonPath(ORIGAMI_BIRD_POLYGONS.rightWingTop);
+  if (rwt) canvas.drawPath(rwt, paint);
 
   // Right wing bottom
-  paint.setColor(Skia.Color(dark));
-  const rwb = Skia.Path.Make();
-  rwb.moveTo(4, -2);
-  rwb.lineTo(13, 2);
-  rwb.lineTo(4, 6);
-  rwb.close();
-  canvas.drawPath(rwb, paint);
+  paint.setColor(Skia.Color(colors.dark));
+  const rwb = makePolygonPath(ORIGAMI_BIRD_POLYGONS.rightWingBottom);
+  if (rwb) canvas.drawPath(rwb, paint);
 
   if (enemyType === "emissary") {
-    paint.setColor(Skia.Color(mid));
-    const hookL = Skia.Path.Make();
-    hookL.moveTo(-15, -10);
-    hookL.lineTo(-19, -4);
-    hookL.lineTo(-13, 2);
-    hookL.close();
-    canvas.drawPath(hookL, paint);
+    paint.setColor(Skia.Color(colors.mid));
+    const hookL = makePolygonPath(ORIGAMI_BIRD_POLYGONS.emissaryHookLeft);
+    if (hookL) canvas.drawPath(hookL, paint);
 
-    paint.setColor(Skia.Color(dark));
-    const hookR = Skia.Path.Make();
-    hookR.moveTo(15, -10);
-    hookR.lineTo(19, -4);
-    hookR.lineTo(13, 2);
-    hookR.close();
-    canvas.drawPath(hookR, paint);
+    paint.setColor(Skia.Color(colors.dark));
+    const hookR = makePolygonPath(ORIGAMI_BIRD_POLYGONS.emissaryHookRight);
+    if (hookR) canvas.drawPath(hookR, paint);
   } else if (enemyType === "escort") {
-    paint.setColor(Skia.Color(light));
-    const hornL = Skia.Path.Make();
-    hornL.moveTo(-2, 6);
-    hornL.lineTo(-6, 12);
-    hornL.lineTo(-1, 8);
-    hornL.close();
-    canvas.drawPath(hornL, paint);
+    paint.setColor(Skia.Color(colors.light));
+    const hornL = makePolygonPath(ORIGAMI_BIRD_POLYGONS.escortHornLeft);
+    if (hornL) canvas.drawPath(hornL, paint);
 
-    paint.setColor(Skia.Color(dark));
-    const hornR = Skia.Path.Make();
-    hornR.moveTo(2, 6);
-    hornR.lineTo(6, 12);
-    hornR.lineTo(1, 8);
-    hornR.close();
-    canvas.drawPath(hornR, paint);
+    paint.setColor(Skia.Color(colors.dark));
+    const hornR = makePolygonPath(ORIGAMI_BIRD_POLYGONS.escortHornRight);
+    if (hornR) canvas.drawPath(hornR, paint);
   } else if (enemyType === "flagship") {
-    paint.setColor(Skia.Color(light));
-    const crest = Skia.Path.Make();
-    crest.moveTo(0, -8);
-    crest.lineTo(3, -13);
-    crest.lineTo(0, -18);
-    crest.lineTo(-3, -13);
-    crest.close();
-    canvas.drawPath(crest, paint);
+    paint.setColor(Skia.Color(colors.light));
+    const crest = makePolygonPath(ORIGAMI_BIRD_POLYGONS.flagshipCrest);
+    if (crest) canvas.drawPath(crest, paint);
   }
 
   // Head
-  paint.setColor(Skia.Color(dark));
-  const head = Skia.Path.Make();
-  head.moveTo(0, 10);
-  head.lineTo(-2.6, 5);
-  head.lineTo(2.6, 5);
-  head.close();
-  canvas.drawPath(head, paint);
+  paint.setColor(Skia.Color(colors.dark));
+  const head = makePolygonPath(ORIGAMI_BIRD_POLYGONS.head);
+  if (head) canvas.drawPath(head, paint);
 
   // Eye
   paint.setColor(Skia.Color(palette.eye));
@@ -303,27 +232,18 @@ export function drawSkiaOrigamiBird(
 export const drawSkiaGalaxianEnemy: ShapeDrawer<SkCanvas, GalaxianComponentRegistry> = {
   draw(canvas, world, entity) {
     if (!Skia) return;
-    const enemy = world.getComponent(entity, "GalaxianEnemy") as GalaxianEnemyComponent | undefined;
-    const transform = world.getComponent(entity, "Transform");
-    const pose = world.getComponent(entity, "VisualPose") as VisualPoseComponent | undefined;
-    const trail = world.getComponent(entity, "DiveTrail") as DiveTrailComponent | undefined;
-    const config = world.getResource<GalaxianConfig>("GameConfig");
-    const palette = config?.visual.colorblindMode
-      ? config.visual.paletteColorblind
-      : config?.visual.palette;
+    const enemyCtx = resolveGalaxianEnemyVisualContext(world, entity);
+    if (!enemyCtx) return;
 
-    if (!enemy || !palette) return;
-
+    const { palette, enemy, deltaRotation, scaleX, scaleY, baseScale, isDamaged, trailPoints, showWindupReticle } = enemyCtx;
     const paint = getPaint();
 
-    if (trail && trail.history.length > 1 && (enemy.state === "diving" || enemy.state === "windup") && transform) {
+    if (trailPoints) {
       canvas.save();
-      canvas.translate(-transform.x, -transform.y);
-      const pts = trail.history;
       const path = Skia.Path.Make();
-      path.moveTo(pts[0].x, pts[0].y);
-      for (let i = 1; i < pts.length; i++) {
-        path.lineTo(pts[i].x, pts[i].y);
+      path.moveTo(trailPoints[0].x, trailPoints[0].y);
+      for (let i = 1; i < trailPoints.length; i++) {
+        path.lineTo(trailPoints[i].x, trailPoints[i].y);
       }
 
       paint.reset();
@@ -340,7 +260,7 @@ export const drawSkiaGalaxianEnemy: ShapeDrawer<SkCanvas, GalaxianComponentRegis
       canvas.restore();
     }
 
-    if (enemy.state === "windup") {
+    if (showWindupReticle) {
       canvas.save();
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Stroke);
@@ -351,13 +271,13 @@ export const drawSkiaGalaxianEnemy: ShapeDrawer<SkCanvas, GalaxianComponentRegis
     }
 
     canvas.save();
-    if (pose && transform) {
-      canvas.rotate(((pose.rotation - transform.rotation) * 180) / Math.PI, 0, 0);
-      canvas.scale(pose.scaleX, pose.scaleY);
+    if (deltaRotation !== 0) {
+      canvas.rotate((deltaRotation * 180) / Math.PI, 0, 0);
+    }
+    if (scaleX !== 1.0 || scaleY !== 1.0) {
+      canvas.scale(scaleX, scaleY);
     }
 
-    const baseScale = enemy.enemyType === "flagship" ? 1.25 : 1.0;
-    const isDamaged = enemy.enemyType === "flagship" && enemy.hitsRemaining === 1;
     drawSkiaOrigamiBird(canvas, enemy.enemyType, palette, baseScale, isDamaged);
 
     canvas.restore();
@@ -367,10 +287,7 @@ export const drawSkiaGalaxianEnemy: ShapeDrawer<SkCanvas, GalaxianComponentRegis
 export const drawSkiaGalaxianPlayerBullet: ShapeDrawer<SkCanvas, GalaxianComponentRegistry> = {
   draw(canvas, world, _entity) {
     if (!Skia) return;
-    const config = world.getResource<GalaxianConfig>("GameConfig");
-    const palette = config?.visual.colorblindMode
-      ? config.visual.paletteColorblind
-      : config?.visual.palette;
+    const palette = getGalaxianPalette(world);
     const color = palette?.playerAccent ?? "#5CF2C0";
     const paint = getPaint();
 
@@ -391,10 +308,7 @@ export const drawSkiaGalaxianPlayerBullet: ShapeDrawer<SkCanvas, GalaxianCompone
 export const drawSkiaGalaxianEnemyBullet: ShapeDrawer<SkCanvas, GalaxianComponentRegistry> = {
   draw(canvas, world, _entity) {
     if (!Skia) return;
-    const config = world.getResource<GalaxianConfig>("GameConfig");
-    const palette = config?.visual.colorblindMode
-      ? config.visual.paletteColorblind
-      : config?.visual.palette;
+    const palette = getGalaxianPalette(world);
 
     const fireColor = palette?.enemyFire ?? "#FF7A45";
     const coreColor = palette?.enemyFireCore ?? "#FFF6E5";

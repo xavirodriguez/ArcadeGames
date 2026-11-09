@@ -211,6 +211,7 @@ export * from "./utils/ObjectPool";
 export * from "./utils/ComponentSetPool";
 export * from "./utils/PrefabPool";
 export * from "./utils/ProjectilePool";
+export * from "./math/MathUtils";
 
 // Deterministic Pure Replay System
 export type { Replay } from "./replay/DeterministicReplay";

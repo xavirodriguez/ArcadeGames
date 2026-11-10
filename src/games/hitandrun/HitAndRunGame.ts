@@ -106,7 +106,11 @@ import {
 import { drawHitRunHud, drawHitRunHudSkia } from "./rendering/HitRunHudCanvas";
 import { drawHitRunDebugOverlay } from "./rendering/HitRunDebugOverlay";
 import { registerHitRunDebugMetrics } from "./rendering/HitRunDebugMetrics";
-import { drawLanceroSpriteCanvas, LANCERO_SHAPE } from "../shared/sprites/LanceroSpriteVisuals";
+import {
+  drawLanceroSpriteCanvas,
+  drawSkiaLanceroSprite,
+  LANCERO_SHAPE
+} from "../shared/sprites/LanceroSpriteVisuals";
 import { SpriteRegistry, loadSpriteSheetWithAssetLoader } from "../shared/sprites";
 import { getHitRunCharacterSpriteSheet, HIT_RUN_SUMI_E_SAMURAI_SHEET_ID } from "./rendering/HitRunSpriteAtlas";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
@@ -136,7 +140,7 @@ export type HitAndRunBlueprintMap = Record<
   BlueprintDefinition<CoreComponentRegistry, EventRegistry, unknown>
 >;
 
-function registerHitRunRenderers(
+export function registerHitRunRenderers(
   renderer: Renderer<CoreComponentRegistry, RenderContext>
 ): void {
   if (renderer.type === "skia") {
@@ -188,7 +192,10 @@ function registerHitRunRenderers(
   renderer.registerShape("core", drawHitRunMonoCore);
 
   SpriteRegistry.init();
-  renderer.registerShape(LANCERO_SHAPE, drawLanceroSpriteCanvas);
+  renderer.registerShape(
+    LANCERO_SHAPE,
+    renderer.type === "skia" ? drawSkiaLanceroSprite : drawLanceroSpriteCanvas
+  );
 }
 
 export class HitAndRunGame extends BaseGame<

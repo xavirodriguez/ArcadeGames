@@ -5,11 +5,11 @@
  */
 import type { ShapeDrawer, World, CoreComponentRegistry, RenderComponent } from "@tiny-aster/core";
 import type { SkCanvas } from "../rendering/SkiaContext";
+import { Skia, getPaint } from "../rendering/SkiaContext";
 import {
   createSpriteAnimator,
   drawSpriteCanvas,
   drawSpriteSkia,
-  getSkiaImage,
   isCanvasSpriteReady,
   preloadSpriteSheetCanvas,
   updateSpriteAnimator,
@@ -73,14 +73,59 @@ export const drawLanceroSpriteCanvas: ShapeDrawer<CanvasRenderingContext2D, Core
   },
 };
 
+function drawLanceroFallbackSkia(
+  canvas: SkCanvas,
+  size: number,
+  opacity: number
+): void {
+  if (!Skia) return;
+  const paint = getPaint();
+  if (!paint) return;
+
+  const s = Math.max(12, size);
+  const alpha = Math.max(0, Math.min(1, opacity));
+  if (alpha <= 0) return;
+
+  // Match the Canvas fallback bounds in the same feet-relative local space.
+  const oval = Skia.XYWHRect(-s * 0.35, -s * 0.65, s * 0.7, s * 1.1);
+  paint.reset();
+  paint.setAntiAlias(true);
+  paint.setAlphaf(alpha);
+  paint.setStyle(Skia.PaintStyle?.Fill ?? 0);
+  paint.setColor(Skia.Color("#c4a574"));
+  canvas.drawOval(oval, paint);
+
+  paint.setStyle(Skia.PaintStyle?.Stroke ?? 1);
+  paint.setStrokeWidth(2);
+  paint.setColor(Skia.Color("#2b2118"));
+  canvas.drawOval(oval, paint);
+  paint.reset();
+}
+
 export const drawSkiaLanceroSprite: ShapeDrawer<SkCanvas, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
     const render = readRender(world, entity);
-    if (!render) return;
+    if (!render || !Skia) return;
+
     const animator = resolveEntityAnimator(world, entity);
-    if (!getSkiaImage(LANCERO_SPRITE_ID)) {
+    const opacity = Math.max(0, Math.min(1, render.opacity ?? 1));
+    if (opacity <= 0) return;
+
+    if (drawSpriteSkia(canvas, animator, 0, 0, undefined, { anchor: "feet", opacity })) {
       return;
     }
-    drawSpriteSkia(canvas, animator, 0, 0, undefined, { anchor: "feet", opacity: render.opacity });
+
+    // drawSpriteSkia starts the existing async preload and returns false while
+    // the image is unavailable; keep Lancero visible until the cache is ready.
+    canvas.save();
+    try {
+      const offsetX = (animator.offsetX ?? 0) * animator.scale;
+      const offsetY = (animator.offsetY ?? 0) * animator.scale;
+      canvas.translate(offsetX, offsetY);
+      if (animator.flipX) canvas.scale(-1, 1);
+      drawLanceroFallbackSkia(canvas, render.size ?? 32, opacity);
+    } finally {
+      canvas.restore();
+    }
   },
 };

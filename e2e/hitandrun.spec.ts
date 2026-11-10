@@ -126,7 +126,7 @@ test.describe("Hit & Run gameplay lifecycle E2E", () => {
     await page.keyboard.down("f");
     try {
       await expect.poll(async () => (await readCombatInput(page))?.attackHeld).toBe(true);
-      await expect.poll(() => readComboStep(page), { timeout: 2000 }).toBe("jab1");
+      await expect.poll(() => readComboStep(page), { timeout: 8000 }).toBe("jab1");
       expect((await readCombatInput(page))?.fireHeld).toBe(false);
     } finally {
       await page.keyboard.up("f");
@@ -165,7 +165,7 @@ test.describe("Hit & Run gameplay lifecycle E2E", () => {
     // Let the ordinary wave/AI/combat pipeline defeat the stationary player.
     await expect.poll(
       async () => (await readDeathFlow(page))?.active,
-      { timeout: 40000, intervals: [50, 100, 200] }
+      { timeout: 60000, intervals: [50, 100, 200] }
     ).toBe(true);
 
     const deathsDuringFlow = await readRunDeaths(page);

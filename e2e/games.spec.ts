@@ -32,6 +32,9 @@ test.describe("Game Launch Test Suite", () => {
 
     await page.goto("/", { waitUntil: "domcontentloaded" });
 
+    // Ensure CanvasKit / Root Layout initialization has completed
+    await expect(page.getByText("Loading CanvasKit...")).toBeHidden({ timeout: 20000 });
+
     // Wait for something characteristic of the main menu
     const titleOrButton = page
       .locator("text=/Arcade|Story Campaign|Campaña|Asteroids|Play/i")

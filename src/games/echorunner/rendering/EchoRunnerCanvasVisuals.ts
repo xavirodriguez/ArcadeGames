@@ -18,6 +18,16 @@ import {
 
 import { drawCanvasHitFlashCircle } from "../../shared/rendering/PlatformerSharedVisuals";
 import { resolveEchoRunnerDeathZoneDrawData, resolveEchoRunnerStateGateDrawData, resolveEchoRunnerStateSwitchDrawData } from "./EchoRunnerInteractionVisualUtils";
+import {
+  resolveEchoStarsLayout,
+  resolveEchoPerspectiveGrid,
+  resolveEchoSkylineLayout,
+  resolveEchoPillarLayout,
+  resolveEchoRuinsLayout,
+  resolveEchoFloraLayout,
+  resolveEchoMotesLayout,
+  resolveEchoPlayerRunTrails,
+} from "./EchoRunnerVisualHelpers";
 
 export const drawEchoStateSwitch: ShapeDrawer<CanvasRenderingContext2D, CoreComponentRegistry> = {
   draw(ctx, world, entity) {
@@ -146,13 +156,11 @@ export const drawEchoBackground: EffectDrawer<CanvasRenderingContext2D, CoreComp
     ctx.stroke();
 
     // Sparse pixel stars keep the upper half calm and preserve contrast for gameplay.
-    for (let i = 0; i < 22; i++) {
-      const starX = (i * 127 + elapsed * (2 + (i % 3))) % width;
-      const starY = (i * 59 + (i % 4) * 13) % Math.max(1, horizonY - 18);
-      ctx.globalAlpha = 0.22 + (i % 3) * 0.07;
-      ctx.fillStyle = i % 4 === 0 ? palette.corruptionPurpleGlow : palette.restorationCyanGlow;
-      const starSize = i % 5 === 0 ? 3 : 1.5;
-      ctx.fillRect(starX, starY, starSize, starSize);
+    const stars = resolveEchoStarsLayout(width, horizonY, elapsed, palette);
+    for (const star of stars) {
+      ctx.globalAlpha = star.alpha;
+      ctx.fillStyle = star.color;
+      ctx.fillRect(star.x, star.y, star.size, star.size);
     }
 
     // Perspective lines converge at the horizon (batched single path)
@@ -161,132 +169,110 @@ export const drawEchoBackground: EffectDrawer<CanvasRenderingContext2D, CoreComp
     ctx.strokeStyle = palette.archiveGridLine;
     ctx.lineWidth = 1;
 
+    const grid = resolveEchoPerspectiveGrid(width, height, horizonY, vanishingX);
     if (typeof Path2D !== "undefined") {
       const gridPath = new Path2D();
-      for (let i = 0; i <= 14; i++) {
-        gridPath.moveTo(vanishingX, horizonY);
-        gridPath.lineTo((i / 14) * width, height);
+      for (const line of grid.radialLines) {
+        gridPath.moveTo(line.x1, line.y1);
+        gridPath.lineTo(line.x2, line.y2);
       }
-      for (let i = 1; i <= 8; i++) {
-        const progress = i / 8;
-        const gridY = horizonY + Math.pow(progress, 1.65) * (height - horizonY);
-        gridPath.moveTo(0, gridY);
-        gridPath.lineTo(width, gridY);
+      for (const hLine of grid.horizontalLines) {
+        gridPath.moveTo(0, hLine.y);
+        gridPath.lineTo(width, hLine.y);
       }
       ctx.stroke(gridPath);
     } else {
       ctx.beginPath();
-      for (let i = 0; i <= 14; i++) {
-        ctx.moveTo(vanishingX, horizonY);
-        ctx.lineTo((i / 14) * width, height);
+      for (const line of grid.radialLines) {
+        ctx.moveTo(line.x1, line.y1);
+        ctx.lineTo(line.x2, line.y2);
       }
-      for (let i = 1; i <= 8; i++) {
-        const progress = i / 8;
-        const gridY = horizonY + Math.pow(progress, 1.65) * (height - horizonY);
-        ctx.moveTo(0, gridY);
-        ctx.lineTo(width, gridY);
+      for (const hLine of grid.horizontalLines) {
+        ctx.moveTo(0, hLine.y);
+        ctx.lineTo(width, hLine.y);
       }
       ctx.stroke();
     }
 
     // Procedural skyline: deterministic building silhouettes, lit windows and slow parallax.
-    for (let i = 0; i < 20; i++) {
-      const buildingWidth = 24 + ((i * 13) % 28);
-      const buildingHeight = 36 + ((i * 29) % 100);
-      const span = width + buildingWidth + 32;
-      const wrappedX = ((i * 79 - elapsed * 7) % span + span) % span;
-      const buildingX = wrappedX - buildingWidth;
-      const buildingY = horizonY - buildingHeight;
-
-      ctx.globalAlpha = 0.23 + (i % 3) * 0.035;
+    const skyline = resolveEchoSkylineLayout(width, horizonY, elapsed);
+    for (const b of skyline) {
+      ctx.globalAlpha = b.fillAlpha;
       ctx.fillStyle = palette.archiveBorderDark;
-      ctx.fillRect(buildingX, buildingY, buildingWidth, buildingHeight);
+      ctx.fillRect(b.x, b.y, b.width, b.height);
 
       ctx.globalAlpha = 0.28;
       ctx.strokeStyle = palette.restorationCyanGlow;
       ctx.beginPath();
-      ctx.moveTo(buildingX, buildingY);
-      ctx.lineTo(buildingX + buildingWidth, buildingY);
+      ctx.moveTo(b.x, b.y);
+      ctx.lineTo(b.x + b.width, b.y);
       ctx.stroke();
 
       ctx.globalAlpha = 0.40;
       ctx.fillStyle = palette.restorationCyanGlow;
-      const rows = Math.floor((buildingHeight - 8) / 14);
-      const columns = Math.max(1, Math.floor((buildingWidth - 8) / 10));
-      for (let row = 0; row < rows; row++) {
-        for (let column = 0; column < columns; column++) {
-          if ((i + row * 2 + column) % 3 === 0) {
-            ctx.fillRect(buildingX + 5 + column * 10, buildingY + 8 + row * 14, 3, 5);
-          }
-        }
+      for (const w of b.windows) {
+        ctx.fillRect(w.x, w.y, w.width, w.height);
       }
 
-      if (i % 4 === 1) {
+      if (b.hasAntenna) {
         ctx.globalAlpha = 0.38;
         ctx.beginPath();
-        ctx.moveTo(buildingX + buildingWidth * 0.5, buildingY);
-        ctx.lineTo(buildingX + buildingWidth * 0.5, buildingY - 12 - (i % 3) * 4);
+        ctx.moveTo(b.antennaX, b.y);
+        ctx.lineTo(b.antennaX, b.antennaTopY);
         ctx.stroke();
       }
     }
 
     // Vertical data traces move faster than the skyline to strengthen the parallax.
-    for (let i = 0; i < 4; i++) {
-      const pillarX = ((i * 210 + elapsed * 20) % (width + 24)) - 12;
-      const pillarY = ((i * 150 + elapsed * 35) % (height + 100)) - 50;
+    const pillars = resolveEchoPillarLayout(width, height, elapsed);
+    for (const p of pillars) {
       ctx.globalAlpha = 0.28;
       ctx.fillStyle = palette.archiveDataStream;
-      ctx.fillRect(pillarX, pillarY, 8 + (i % 2) * 5, 34 + (i % 3) * 22);
+      ctx.fillRect(p.x, p.y, p.width, p.height);
     }
 
     // Foreground Archive ruins scroll subtly instead of reading as a static overlay.
-    const ruinBaseY = height * 0.78;
-    for (let i = 0; i < 7; i++) {
-      const ruinWidth = 18 + (i % 3) * 8;
-      const span = width + ruinWidth + 24;
-      const ruinX = ((i * (width / 7 + 17) - elapsed * 2.2) % span + span) % span - ruinWidth;
-      const ruinHeight = 24 + (i % 4) * 13;
-      const ruinY = ruinBaseY - ruinHeight;
+    const ruins = resolveEchoRuinsLayout(width, height, elapsed);
+    for (const r of ruins) {
       ctx.globalAlpha = 0.22;
       ctx.fillStyle = palette.archiveSlate;
-      ctx.fillRect(ruinX, ruinY, ruinWidth, ruinHeight);
-      ctx.fillRect(ruinX - 4, ruinY, ruinWidth + 8, 4);
+      ctx.fillRect(r.x, r.y, r.width, r.height);
+      ctx.fillRect(r.x - 4, r.y, r.width + 8, 4);
+
       ctx.globalAlpha = 0.30;
       ctx.strokeStyle = palette.restorationCyanGlow;
       ctx.beginPath();
-      ctx.moveTo(ruinX - 3, ruinY + 4);
-      ctx.lineTo(ruinX + ruinWidth + 3, ruinY + 4);
+      ctx.moveTo(r.x - 3, r.y + 4);
+      ctx.lineTo(r.x + r.width + 3, r.y + 4);
       ctx.stroke();
-      if (i % 2 === 0) {
+
+      if (r.hasRelicGlow) {
         ctx.fillStyle = palette.restorationGoldGlow;
-        ctx.fillRect(ruinX + ruinWidth * 0.5, ruinY + 9, 3, Math.max(6, ruinHeight * 0.35));
+        ctx.fillRect(r.relicX, r.relicY, r.relicWidth, r.relicHeight);
       }
     }
 
     // Original procedural pixel flora anchors the foreground.
-    for (let i = 0; i < 9; i++) {
-      const plantX = (i * 131 + elapsed * 4) % width;
-      const baseY = height - 8 - (i % 3) * 5;
-      const stemHeight = 14 + (i % 4) * 5;
+    const flora = resolveEchoFloraLayout(width, height, elapsed, palette);
+    for (const f of flora) {
       ctx.globalAlpha = 0.9;
-      ctx.fillStyle = i % 3 === 0 ? palette.restorationGoldGlow : palette.restorationCyanGlow;
-      ctx.fillRect(plantX, baseY - stemHeight, 2, stemHeight);
-      ctx.fillRect(plantX - 3, baseY - stemHeight + 4, 4, 3);
-      ctx.fillRect(plantX + 1, baseY - stemHeight + 9, 4, 3);
-      if (i % 2 === 0) {
+      ctx.fillStyle = f.color;
+      ctx.fillRect(f.x, f.baseY - f.stemHeight, 2, f.stemHeight);
+      ctx.fillRect(f.x - 3, f.baseY - f.stemHeight + 4, 4, 3);
+      ctx.fillRect(f.x + 1, f.baseY - f.stemHeight + 9, 4, 3);
+      if (f.hasBloom) {
         ctx.fillStyle = palette.restorationGold;
-        ctx.fillRect(plantX - 1, baseY - stemHeight - 2, 3, 3);
+        ctx.fillRect(f.bloomX, f.bloomY, 3, 3);
       }
     }
 
     // Ambient motes drift at different speeds; all positions remain deterministic.
-    for (let i = 0; i < 8; i++) {
-      const moteX = (i * 143 + elapsed * (5 + (i % 3))) % width;
-      const moteY = (i * 187 + elapsed * (i % 2 === 0 ? 4 : 7)) % height;
+    const motes = resolveEchoMotesLayout(width, height, elapsed, palette);
+    for (const m of motes) {
       ctx.globalAlpha = 0.62;
-      ctx.fillStyle = i % 2 === 0 ? palette.restorationCyanGlow : palette.corruptionPurpleGlow;
+      ctx.fillStyle = m.color;
       ctx.beginPath();
-      ctx.arc(moteX, moteY, 1.5 + (i % 3), 0, Math.PI * 2);
+      ctx.arc(m.x, m.y, m.radius, 0, Math.PI * 2);
       ctx.fill();
     }
 
@@ -360,15 +346,15 @@ export const drawEchoPlayer: ShapeDrawer<CanvasRenderingContext2D, CoreComponent
     // Motion streaks are only drawn while running to keep idle frames crisp.
     if (motion === "run") {
       const spriteAlpha = ctx.globalAlpha;
-      const trailStrength = Math.min(1, Math.abs(vx) / 180);
-      for (let i = 0; i < 3; i++) {
-        ctx.globalAlpha = spriteAlpha * trailStrength * (0.12 + i * 0.04);
-        ctx.strokeStyle = i === 1 ? palette.corruptionPurpleGlow : palette.restorationCyanGlow;
-        ctx.lineWidth = Math.max(1, pixelSize * (0.6 + i * 0.25));
+      const trails = resolveEchoPlayerRunTrails(size, vx, world.tick, pixelSize, palette);
+      for (const t of trails) {
+        ctx.globalAlpha = spriteAlpha * t.alphaFactor;
+        ctx.strokeStyle = t.color;
+        ctx.lineWidth = t.lineWidth;
         ctx.beginPath();
-        ctx.moveTo(-size * 0.22, -size * 0.2 + i * size * 0.1);
-        ctx.lineTo(-size * (0.42 + i * 0.12), -size * 0.28 + i * size * 0.11 + Math.sin(world.tick * 0.22 + i) * size * 0.035);
-        ctx.lineTo(-size * (0.62 + i * 0.13), -size * 0.14 + i * size * 0.1);
+        ctx.moveTo(t.startX, t.startY);
+        ctx.lineTo(t.midX, t.midY);
+        ctx.lineTo(t.endX, t.endY);
         ctx.stroke();
       }
       ctx.globalAlpha = spriteAlpha;

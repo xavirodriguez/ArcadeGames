@@ -20,6 +20,16 @@ import {
 
 import { drawSkiaHitFlashCircle } from "../../shared/rendering/PlatformerSharedVisuals";
 import { resolveEchoRunnerDeathZoneDrawData, resolveEchoRunnerStateGateDrawData, resolveEchoRunnerStateSwitchDrawData } from "./EchoRunnerInteractionVisualUtils";
+import {
+  resolveEchoStarsLayout,
+  resolveEchoPerspectiveGrid,
+  resolveEchoSkylineLayout,
+  resolveEchoPillarLayout,
+  resolveEchoRuinsLayout,
+  resolveEchoFloraLayout,
+  resolveEchoMotesLayout,
+  resolveEchoPlayerRunTrails,
+} from "./EchoRunnerVisualHelpers";
 
 export const drawSkiaEchoStateSwitch: ShapeDrawer<any, CoreComponentRegistry> = {
   draw(canvas, world, entity) {
@@ -150,13 +160,11 @@ export const drawSkiaEchoBackground: EffectDrawer<any, CoreComponentRegistry> = 
     // Pixel signal stars keep the upper half calm.
     paint.reset();
     paint.setStyle(Skia.PaintStyle.Fill);
-    for (let i = 0; i < 22; i++) {
-      const starX = (i * 127 + elapsed * (2 + (i % 3))) % width;
-      const starY = (i * 59 + (i % 4) * 13) % Math.max(1, horizonY - 18);
-      const starSize = i % 5 === 0 ? 3 : 1.5;
-      paint.setColor(Skia.Color(i % 4 === 0 ? palette.corruptionPurpleGlow : palette.restorationCyanGlow));
-      paint.setAlphaf(0.22 + (i % 3) * 0.07);
-      canvas.drawRect(Skia.XYWHRect(starX, starY, starSize, starSize), paint);
+    const stars = resolveEchoStarsLayout(width, horizonY, elapsed, palette);
+    for (const star of stars) {
+      paint.setColor(Skia.Color(star.color));
+      paint.setAlphaf(star.alpha);
+      canvas.drawRect(Skia.XYWHRect(star.x, star.y, star.size, star.size), paint);
     }
 
     // Perspective grid converges on the archive horizon.
@@ -166,57 +174,45 @@ export const drawSkiaEchoBackground: EffectDrawer<any, CoreComponentRegistry> = 
     paint.setStrokeWidth(1);
     paint.setAlphaf(0.22);
     const vanishingX = centerX + driftX;
-    for (let i = 0; i <= 14; i++) {
-      canvas.drawLine(vanishingX, horizonY, (i / 14) * width, height, paint);
+    const grid = resolveEchoPerspectiveGrid(width, height, horizonY, vanishingX);
+    for (const line of grid.radialLines) {
+      canvas.drawLine(line.x1, line.y1, line.x2, line.y2, paint);
     }
-    for (let i = 1; i <= 8; i++) {
-      const progress = i / 8;
-      const gridY = horizonY + Math.pow(progress, 1.65) * (height - horizonY);
-      canvas.drawLine(0, gridY, width, gridY, paint);
+    for (const hLine of grid.horizontalLines) {
+      canvas.drawLine(0, hLine.y, width, hLine.y, paint);
     }
 
     // Procedural skyline with windows and aerial relays; matches the Canvas layout.
-    for (let i = 0; i < 20; i++) {
-      const buildingWidth = 24 + ((i * 13) % 28);
-      const buildingHeight = 36 + ((i * 29) % 100);
-      const span = width + buildingWidth + 32;
-      const wrappedX = ((i * 79 - elapsed * 7) % span + span) % span;
-      const buildingX = wrappedX - buildingWidth;
-      const buildingY = horizonY - buildingHeight;
-
+    const skyline = resolveEchoSkylineLayout(width, horizonY, elapsed);
+    for (const b of skyline) {
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Fill);
       paint.setColor(Skia.Color(palette.archiveBorderDark));
-      paint.setAlphaf(0.23 + (i % 3) * 0.035);
-      canvas.drawRect(Skia.XYWHRect(buildingX, buildingY, buildingWidth, buildingHeight), paint);
+      paint.setAlphaf(b.fillAlpha);
+      canvas.drawRect(Skia.XYWHRect(b.x, b.y, b.width, b.height), paint);
 
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setColor(Skia.Color(palette.restorationCyanGlow));
       paint.setStrokeWidth(1);
       paint.setAlphaf(0.28);
-      canvas.drawLine(buildingX, buildingY, buildingX + buildingWidth, buildingY, paint);
+      canvas.drawLine(b.x, b.y, b.x + b.width, b.y, paint);
 
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Fill);
       paint.setColor(Skia.Color(palette.restorationCyanGlow));
       paint.setAlphaf(0.40);
-      const rows = Math.floor((buildingHeight - 8) / 14);
-      const columns = Math.max(1, Math.floor((buildingWidth - 8) / 10));
-      for (let row = 0; row < rows; row++) {
-        for (let column = 0; column < columns; column++) {
-          if ((i + row * 2 + column) % 3 === 0) {
-            canvas.drawRect(Skia.XYWHRect(buildingX + 5 + column * 10, buildingY + 8 + row * 14, 3, 5), paint);
-          }
-        }
+      for (const w of b.windows) {
+        canvas.drawRect(Skia.XYWHRect(w.x, w.y, w.width, w.height), paint);
       }
-      if (i % 4 === 1) {
+
+      if (b.hasAntenna) {
         paint.reset();
         paint.setStyle(Skia.PaintStyle.Stroke);
         paint.setColor(Skia.Color(palette.restorationCyanGlow));
         paint.setStrokeWidth(1);
         paint.setAlphaf(0.38);
-        canvas.drawLine(buildingX + buildingWidth * 0.5, buildingY, buildingX + buildingWidth * 0.5, buildingY - 12 - (i % 3) * 4, paint);
+        canvas.drawLine(b.antennaX, b.y, b.antennaX, b.antennaTopY, paint);
       }
     }
 
@@ -225,69 +221,60 @@ export const drawSkiaEchoBackground: EffectDrawer<any, CoreComponentRegistry> = 
     paint.setStyle(Skia.PaintStyle.Fill);
     paint.setColor(Skia.Color(palette.archiveDataStream));
     paint.setAlphaf(0.28);
-    for (let i = 0; i < 4; i++) {
-      const pillarX = ((i * 210 + elapsed * 20) % (width + 24)) - 12;
-      const pillarY = ((i * 150 + elapsed * 35) % (height + 100)) - 50;
-      canvas.drawRect(Skia.XYWHRect(pillarX, pillarY, 8 + (i % 2) * 5, 34 + (i % 3) * 22), paint);
+    const pillars = resolveEchoPillarLayout(width, height, elapsed);
+    for (const p of pillars) {
+      canvas.drawRect(Skia.XYWHRect(p.x, p.y, p.width, p.height), paint);
     }
 
     // Foreground ruins scroll subtly and carry thin cyan/gold signals.
-    const ruinBaseY = height * 0.78;
-    for (let i = 0; i < 7; i++) {
-      const ruinWidth = 18 + (i % 3) * 8;
-      const span = width + ruinWidth + 24;
-      const ruinX = ((i * (width / 7 + 17) - elapsed * 2.2) % span + span) % span - ruinWidth;
-      const ruinHeight = 24 + (i % 4) * 13;
-      const ruinY = ruinBaseY - ruinHeight;
-
+    const ruins = resolveEchoRuinsLayout(width, height, elapsed);
+    for (const r of ruins) {
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Fill);
       paint.setColor(Skia.Color(palette.archiveSlate));
       paint.setAlphaf(0.22);
-      canvas.drawRect(Skia.XYWHRect(ruinX, ruinY, ruinWidth, ruinHeight), paint);
-      canvas.drawRect(Skia.XYWHRect(ruinX - 4, ruinY, ruinWidth + 8, 4), paint);
+      canvas.drawRect(Skia.XYWHRect(r.x, r.y, r.width, r.height), paint);
+      canvas.drawRect(Skia.XYWHRect(r.x - 4, r.y, r.width + 8, 4), paint);
 
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Stroke);
       paint.setColor(Skia.Color(palette.restorationCyanGlow));
       paint.setStrokeWidth(1);
       paint.setAlphaf(0.30);
-      canvas.drawLine(ruinX - 3, ruinY + 4, ruinX + ruinWidth + 3, ruinY + 4, paint);
-      if (i % 2 === 0) {
+      canvas.drawLine(r.x - 3, r.y + 4, r.x + r.width + 3, r.y + 4, paint);
+
+      if (r.hasRelicGlow) {
         paint.reset();
         paint.setStyle(Skia.PaintStyle.Fill);
         paint.setColor(Skia.Color(palette.restorationGoldGlow));
         paint.setAlphaf(0.22);
-        canvas.drawRect(Skia.XYWHRect(ruinX + ruinWidth * 0.5, ruinY + 9, 3, Math.max(6, ruinHeight * 0.35)), paint);
+        canvas.drawRect(Skia.XYWHRect(r.relicX, r.relicY, r.relicWidth, r.relicHeight), paint);
       }
     }
 
     // Pixel flora and ambient motes complete the foreground.
-    for (let i = 0; i < 9; i++) {
-      const plantX = (i * 131 + elapsed * 4) % width;
-      const baseY = height - 8 - (i % 3) * 5;
-      const stemHeight = 14 + (i % 4) * 5;
+    const flora = resolveEchoFloraLayout(width, height, elapsed, palette);
+    for (const f of flora) {
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Fill);
       paint.setAlphaf(0.9);
-      paint.setColor(Skia.Color(i % 3 === 0 ? palette.restorationGoldGlow : palette.restorationCyanGlow));
-      canvas.drawRect(Skia.XYWHRect(plantX, baseY - stemHeight, 2, stemHeight), paint);
-      canvas.drawRect(Skia.XYWHRect(plantX - 3, baseY - stemHeight + 4, 4, 3), paint);
-      canvas.drawRect(Skia.XYWHRect(plantX + 1, baseY - stemHeight + 9, 4, 3), paint);
-      if (i % 2 === 0) {
+      paint.setColor(Skia.Color(f.color));
+      canvas.drawRect(Skia.XYWHRect(f.x, f.baseY - f.stemHeight, 2, f.stemHeight), paint);
+      canvas.drawRect(Skia.XYWHRect(f.x - 3, f.baseY - f.stemHeight + 4, 4, 3), paint);
+      canvas.drawRect(Skia.XYWHRect(f.x + 1, f.baseY - f.stemHeight + 9, 4, 3), paint);
+      if (f.hasBloom) {
         paint.setColor(Skia.Color(palette.restorationGold));
-        canvas.drawRect(Skia.XYWHRect(plantX - 1, baseY - stemHeight - 2, 3, 3), paint);
+        canvas.drawRect(Skia.XYWHRect(f.bloomX, f.bloomY, 3, 3), paint);
       }
     }
 
-    for (let i = 0; i < 8; i++) {
-      const moteX = (i * 143 + elapsed * (5 + (i % 3))) % width;
-      const moteY = (i * 187 + elapsed * (i % 2 === 0 ? 4 : 7)) % height;
+    const motes = resolveEchoMotesLayout(width, height, elapsed, palette);
+    for (const m of motes) {
       paint.reset();
       paint.setStyle(Skia.PaintStyle.Fill);
-      paint.setColor(Skia.Color(i % 2 === 0 ? palette.restorationCyanGlow : palette.corruptionPurpleGlow));
+      paint.setColor(Skia.Color(m.color));
       paint.setAlphaf(0.62);
-      canvas.drawCircle(moteX, moteY, 1.5 + (i % 3), paint);
+      canvas.drawCircle(m.x, m.y, m.radius, paint);
     }
   }
 };
@@ -354,18 +341,15 @@ export const drawSkiaEchoPlayer: ShapeDrawer<any, CoreComponentRegistry> = {
     }
 
     if (motion === "run") {
-      const trailStrength = Math.min(1, Math.abs(vx) / 180);
-      for (let i = 0; i < 3; i++) {
+      const trails = resolveEchoPlayerRunTrails(size, vx, world.tick, pixelSize, palette);
+      for (const t of trails) {
         paint.reset();
         paint.setStyle(Skia.PaintStyle.Stroke);
-        paint.setColor(Skia.Color(i === 1 ? palette.corruptionPurpleGlow : palette.restorationCyanGlow));
-        paint.setStrokeWidth(Math.max(1, pixelSize * (0.6 + i * 0.25)));
-        paint.setAlphaf(alpha * trailStrength * (0.12 + i * 0.04));
-        const startY = -size * 0.2 + i * size * 0.1;
-        const midY = -size * 0.28 + i * size * 0.11 + Math.sin(world.tick * 0.22 + i) * size * 0.035;
-        const endY = -size * 0.14 + i * size * 0.1;
-        canvas.drawLine(-size * 0.22, startY, -size * (0.42 + i * 0.12), midY, paint);
-        canvas.drawLine(-size * (0.42 + i * 0.12), midY, -size * (0.62 + i * 0.13), endY, paint);
+        paint.setColor(Skia.Color(t.color));
+        paint.setStrokeWidth(t.lineWidth);
+        paint.setAlphaf(alpha * t.alphaFactor);
+        canvas.drawLine(t.startX, t.startY, t.midX, t.midY, paint);
+        canvas.drawLine(t.midX, t.midY, t.endX, t.endY, paint);
       }
     }
 

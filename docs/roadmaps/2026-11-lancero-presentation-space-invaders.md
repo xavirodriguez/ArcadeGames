@@ -240,9 +240,17 @@ Los comandos anteriores son el plan de verificación, no resultados ya ejecutado
 | Entrega | Estado |
 |---|---|
 | PR-A — E2E en push a master | Integrada (#1166) |
-| PR-B — Lancero Skia | Pendiente |
-| PR-C — Presentation Guard + AST | Pendiente |
-| PR-D — Space Invaders | Pendiente |
+| PR-B — Lancero Skia | Implementada y abierta (#1169); pendiente de revisión e integración |
+| PR-C — Presentation Guard + AST | Pendiente; bloqueada hasta integrar B y reportar sus checks |
+| PR-D — Space Invaders | Pendiente; requiere C integrada |
 | Validación final B/C/D | Pendiente |
 
-**Siguiente paso:** implementar PR-B como primer cambio de runtime; no iniciar C ni D hasta que B tenga diff acotado y sus checks estén reportados.
+**Evidencia PR-B (2026-11-10):**
+- Rama: `fix/lancero-skia-parity`; base `master` en `67c4edf9dbc355aa4c878199b5926aff2800e693`; head observado: `94ec3fa7d04907b91902bf5586029d044bfc4cea`.
+- Diff: `HitAndRunGame.ts`, `LanceroSpriteVisuals.ts` y dos suites focalizadas de tests; 4 archivos, 1 commit.
+- CI #42843443258: typecheck/build/lint previos completados correctamente; la fase de tests reportó 136 suites y 759 tests correctos, con 1 fallo en `packages/core/tests/CombatRollbackResimulation.test.ts` (hash normal/replay distinto: esperado `414ea9ca`, recibido `2b13582e`). La fase posterior de tests de juegos seguía ejecutándose al registrar este estado. No se atribuye ese fallo a PR-B ni se modifica dentro de este alcance.
+- E2E #42843443172: en ejecución; no hay resultado final disponible.
+- Documentation CI #42843443300: success.
+- No se ha ejecutado pnpm localmente. PR-B no está validada ni integrada.
+
+**Siguiente paso:** revisar el resultado final de CI/E2E y cualquier revisión de #1169. No iniciar C hasta que B esté integrada y sus checks de GitHub Actions estén reportados.

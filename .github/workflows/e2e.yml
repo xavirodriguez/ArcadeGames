@@ -1,6 +1,8 @@
 name: E2E
 
 on:
+  push:
+    branches: [master]
   pull_request:
     branches: [master, develop]
   workflow_dispatch:

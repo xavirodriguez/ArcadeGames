@@ -33,6 +33,7 @@ export const COLOR_LITERAL_ALLOWLIST = [
   { path: "src/games/hitandrun/rendering/HitRunPlaceholderVisuals.ts", reason: "Hit&Run placeholders" },
   { path: "src/games/hitandrun/rendering/theme/sumi-e/SumiETheme.ts", reason: "SumiETheme live" },
   { path: "src/games/asteroids/mods/iceberg/IcebergPalette.ts", reason: "Iceberg palette" },
+  { path: "src/games/shared/sprites/LanceroSpriteVisuals.ts", reason: "Lancero sprite canvas and skia fallback visual tokens" },
   { path: "src/games/shared/procedural/colors/ProceduralPalettes.ts", reason: "Procedural palettes" },
   { path: "src/games/shared/rendering/sumi-e/SumiEPalette.ts", reason: "Shared SumiE palette" },
   { path: "src/games/space-invaders/config/EnemyBlueprints.ts", reason: "SI enemy blueprints" },

@@ -128,4 +128,47 @@ describe("Arkanoid Game & Systems Test Suite", () => {
     expect(registeredSkiaShapes).toContain("paddle");
     expect(registeredSkiaShapes).toContain("box");
   });
+
+  it("should suppress visual emitters and SFX during rollback resimulation while preserving authoritative hit-stop", async () => {
+    game = new ArkanoidGame({ seed: 999, headless: true });
+    await game.init();
+    const world = game.world;
+
+    const bricks = world.query("Brick", "Health", "Transform");
+    expect(bricks.length).toBeGreaterThan(1);
+    const hitBrick = bricks[0];
+    const deathBrick = bricks[1];
+
+    const sfxEvents: any[] = [];
+    world.getEventBus()?.on("PlaySFX", (event) => {
+      sfxEvents.push(event);
+    });
+
+    const initialEmitters = world.query("ParticleEmitter").length;
+
+    // Simulate rollback resimulation tick
+    world.isReSimulating = true;
+
+    // Trigger hit event during rollback
+    world.getEventBus()?.emitDeferred("combat:hit", { targetEntity: hitBrick, amount: 1, remainingHealth: 1 });
+    game.update(0.016);
+
+    // Verify SFX was suppressed and no new particle emitters were created
+    expect(sfxEvents.length).toBe(0);
+    expect(world.query("ParticleEmitter").length).toBe(initialEmitters);
+
+    // Trigger death event during rollback
+    world.getEventBus()?.emitDeferred("combat:death", { entity: deathBrick });
+    game.update(0.016);
+
+    // Verify SFX remained suppressed and no new particle emitters were spawned
+    expect(sfxEvents.length).toBe(0);
+    expect(world.query("ParticleEmitter").length).toBe(initialEmitters);
+
+    // Verify authoritative GameplayFreeze was still requested and active
+    const freeze = world.getResource<{ remaining?: number }>("GameplayFreeze");
+    expect(freeze).toBeDefined();
+
+    world.isReSimulating = false;
+  });
 });

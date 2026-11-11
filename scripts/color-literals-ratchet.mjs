@@ -89,6 +89,7 @@ export const COLOR_LITERAL_ALLOWLIST = [
   { path: "src/games/outrun/rendering/OutrunRoadsideArtwork.ts", reason: "Outrun roadside trunk color" },
   { path: "src/games/hitandrun/rendering/theme/HitRunThemeUtils.ts", reason: "Hit&Run hitflash white color" },
   { path: "src/games/racing/EntityFactory.ts", reason: "Racing entity factory effect colors" },
+  { path: "src/games/shared/sprites/LanceroSpriteVisuals.ts", reason: "Lancero fallback colors" },
 ];
 const ALLOWED_PREFIXES = ["src/theme/"];
 const HEX_RE = /#([0-9a-fA-F]{3,8})\b/g;

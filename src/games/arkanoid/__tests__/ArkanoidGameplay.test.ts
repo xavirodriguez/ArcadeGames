@@ -159,9 +159,12 @@ describe("Arkanoid Arcade Gameplay & Requirements", () => {
 
       setupBallCollision(game, ballEntity, targetBrick);
 
-      // Run game update cycle so CollisionSystem2D detects overlap, ArkanoidCollisionSystem processes collision, and onCombatDeath runs
+      // Run game update cycle so CollisionSystem2D detects overlap, ArkanoidCollisionSystem processes collision, and onCombatDeath runs.
+      // Brick shatter requests canonical 30ms hit-stop. Advance ticks until the freeze expires and GameRules reconciles state.
       game.update(0.016);
-      game.update(0.016); // Reconcile bricksRemaining state
+      game.update(0.016);
+      game.update(0.016);
+      game.update(0.016); // Simulation resumed and bricksRemaining reconciled
 
       // Verify target brick is destroyed (removed from world)
       expect(game.world.getComponent(targetBrick, "Brick")).toBeUndefined();

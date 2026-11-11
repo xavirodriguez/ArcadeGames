@@ -68,31 +68,35 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
     if (!target || !WorldUtils.isEntityActive(world, target)) return;
 
     if (world.hasComponent(target, "Brick")) {
-      world.mutateComponent(target, "Render", (render) => {
-        render.hitFlashFrames = 4;
-      });
+      if (!world.isReSimulating) {
+        world.mutateComponent(target, "Render", (render) => {
+          render.hitFlashFrames = 4;
+        });
 
-      Juice.squash(world as World<CoreComponentRegistry>, target, 1.15, 0.85, 120);
+        Juice.squash(world as World<CoreComponentRegistry>, target, 1.15, 0.85, 120);
+      }
 
       const pos = world.getComponent(target, "Transform");
       if (pos) {
         this.getOrchestrator(world).triggerEvent("arkanoid", "brick:hit", { x: pos.x, y: pos.y });
 
-        const sparkEmitter = createEmitter(world as World<CoreComponentRegistry>, {
-          type: "spark",
-          x: pos.x,
-          y: pos.y,
-          rate: 0,
-          burst: true,
-          count: 4,
-          lifetime: [0.1, 0.25],
-          speed: [60, 150],
-          size: [2, 4],
-          color: ["#00FFFF", "#FFFFFF", "#FF0055"],
-          angle: [0, 360],
-          loop: false
-        });
-        world.getCommandBuffer().addComponent(sparkEmitter, { type: "TTL", timeLeft: 0.25, remaining: 0.25 });
+        if (!world.isReSimulating) {
+          const sparkEmitter = createEmitter(world as World<CoreComponentRegistry>, {
+            type: "spark",
+            x: pos.x,
+            y: pos.y,
+            rate: 0,
+            burst: true,
+            count: 4,
+            lifetime: [0.1, 0.25],
+            speed: [60, 150],
+            size: [2, 4],
+            color: ["#00FFFF", "#FFFFFF", "#FF0055"],
+            angle: [0, 360],
+            loop: false
+          });
+          world.getCommandBuffer().addComponent(sparkEmitter, { type: "TTL", timeLeft: 0.25, remaining: 0.25 });
+        }
       }
 
       const eventBus = world.getEventBus();
@@ -142,8 +146,10 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
         if (nextMultiplier >= 6) popupColor = "#FFD700";
         else if (nextMultiplier >= 3) popupColor = "#FF00FF";
 
-        const popupText = nextMultiplier > 1 ? `+${pointsGained} (x${nextMultiplier})` : `+${pointsGained}`;
-        spawnScorePopup(world, pos.x, pos.y, popupText, popupColor);
+        if (!world.isReSimulating) {
+          const popupText = nextMultiplier > 1 ? `+${pointsGained} (x${nextMultiplier})` : `+${pointsGained}`;
+          spawnScorePopup(world, pos.x, pos.y, popupText, popupColor);
+        }
 
         this.getOrchestrator(world).triggerEvent("arkanoid", "brick:shatter", {
           x: pos.x,
@@ -151,21 +157,23 @@ export class ArkanoidCollisionSystem extends System<ArkanoidComponentRegistry, A
           overrideTint: popupColor
         });
 
-        const explosionEmitter = createEmitter(world as World<CoreComponentRegistry>, {
-          type: "spark",
-          x: pos.x,
-          y: pos.y,
-          rate: 0,
-          burst: true,
-          count: 10,
-          lifetime: [0.15, 0.35],
-          speed: [80, 220],
-          size: [3, 6],
-          color: [popupColor, "#FFFFFF", "#FF0055"],
-          angle: [0, 360],
-          loop: false
-        });
-        world.getCommandBuffer().addComponent(explosionEmitter, { type: "TTL", timeLeft: 0.35, remaining: 0.35 });
+        if (!world.isReSimulating) {
+          const explosionEmitter = createEmitter(world as World<CoreComponentRegistry>, {
+            type: "spark",
+            x: pos.x,
+            y: pos.y,
+            rate: 0,
+            burst: true,
+            count: 10,
+            lifetime: [0.15, 0.35],
+            speed: [80, 220],
+            size: [3, 6],
+            color: [popupColor, "#FFFFFF", "#FF0055"],
+            angle: [0, 360],
+            loop: false
+          });
+          world.getCommandBuffer().addComponent(explosionEmitter, { type: "TTL", timeLeft: 0.35, remaining: 0.35 });
+        }
 
         if (brick.kind === "explosive") {
           this.triggerExplosiveAOE(world, pos.x, pos.y);

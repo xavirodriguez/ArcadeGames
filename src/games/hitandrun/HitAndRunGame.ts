@@ -194,7 +194,7 @@ export function registerHitRunRenderers(
   SpriteRegistry.init();
   renderer.registerShape(
     LANCERO_SHAPE,
-    renderer.type === "skia" ? drawSkiaLanceroSprite : drawLanceroSpriteCanvas
+    renderer.type === "skia" ? (drawSkiaLanceroSprite as never) : drawLanceroSpriteCanvas
   );
 }
 

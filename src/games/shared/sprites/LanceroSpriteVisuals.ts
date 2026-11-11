@@ -3,7 +3,7 @@
  * Frame grid is provisional (see SpriteRegistry LANCERO). Use as the pattern
  * for kapa / kichisake / qiongqi / enemy3 after measuring their sheets.
  */
-import type { ShapeDrawer, World, CoreComponentRegistry, RenderComponent } from "@tiny-aster/core";
+import type { ShapeDrawer, RenderContext, World, CoreComponentRegistry, RenderComponent } from "@tiny-aster/core";
 import type { SkCanvas } from "../rendering/SkiaContext";
 import { Skia, getPaint } from "../rendering/SkiaContext";
 import {
@@ -102,8 +102,10 @@ function drawLanceroFallbackSkia(
   paint.reset();
 }
 
-export const drawSkiaLanceroSprite: ShapeDrawer<SkCanvas, CoreComponentRegistry> = {
-  draw(canvas, world, entity) {
+export const drawSkiaLanceroSprite: ShapeDrawer<RenderContext, CoreComponentRegistry> = {
+  draw(context, world, entity) {
+    const canvas = context as never as SkCanvas;
+    if (!canvas || typeof canvas.drawOval !== "function") return;
     const render = readRender(world, entity);
     if (!render || !Skia) return;
 

@@ -15,5 +15,6 @@ module.exports = {
     '^@tiny-aster/renderer-skia$': path.resolve(__dirname, "../../../packages/renderer-skia/src/index.ts"),
     '^expo-asset$': path.resolve(__dirname, "jest.expoAssetStub.cjs"),
     '\\.(png)$': path.resolve(__dirname, "jest.pngStub.cjs"),
+    '^react-native$': 'react-native-web',
   }
 };

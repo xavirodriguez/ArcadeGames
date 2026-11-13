@@ -1404,7 +1404,8 @@ function drawHighDynamics(kind: HighDynamicsKind, draw: IDrawAdapter, world: imp
   }
   draw.restore();
 }
-\nexport function registerPixelFxProceduralVFX<TComponents extends CoreComponentRegistry>(
+
+export function registerPixelFxProceduralVFX<TComponents extends CoreComponentRegistry>(
   renderer: Renderer<TComponents, RenderContext>
 ): void {
   const drawers = [

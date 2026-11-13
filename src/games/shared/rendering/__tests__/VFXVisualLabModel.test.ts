@@ -17,12 +17,14 @@ import {
 describe("VFX Visual Lab model", () => {
   it("exposes every production PixelFX drawer exactly once", () => {
     const ids = VFX_LAB_EFFECTS.map((effect) => effect.id);
-    expect(ids).toHaveLength(39);
+    expect(ids).toHaveLength(49);
     expect(new Set(ids).size).toBe(ids.length);
     expect(VFX_LAB_EFFECTS.every((effect) => typeof effect.draw === "function")).toBe(true);
     expect(ids).toEqual(expect.arrayContaining([
       "pixelfx_heal", "pixelfx_poison", "pixelfx_burn", "pixelfx_frost", "pixelfx_electric",
-      "pixelfx_bleed", "pixelfx_buff", "pixelfx_debuff", "pixelfx_spawn", "pixelfx_death"
+      "pixelfx_bleed", "pixelfx_buff", "pixelfx_debuff", "pixelfx_spawn", "pixelfx_death",
+      "pixelfx_nova", "pixelfx_vortex", "pixelfx_meteor", "pixelfx_rift", "pixelfx_arc_chain",
+      "pixelfx_gravity_well", "pixelfx_blade_dance", "pixelfx_seismic_wave", "pixelfx_soul_reap", "pixelfx_time_warp"
     ]));
   });
 
@@ -45,7 +47,9 @@ describe("VFX Visual Lab model", () => {
   it("provides four deterministic temporal review presets for every new effect", () => {
     const newEffects = [
       "pixelfx_heal", "pixelfx_poison", "pixelfx_burn", "pixelfx_frost", "pixelfx_electric",
-      "pixelfx_bleed", "pixelfx_buff", "pixelfx_debuff", "pixelfx_spawn", "pixelfx_death"
+      "pixelfx_bleed", "pixelfx_buff", "pixelfx_debuff", "pixelfx_spawn", "pixelfx_death",
+      "pixelfx_nova", "pixelfx_vortex", "pixelfx_meteor", "pixelfx_rift", "pixelfx_arc_chain",
+      "pixelfx_gravity_well", "pixelfx_blade_dance", "pixelfx_seismic_wave", "pixelfx_soul_reap", "pixelfx_time_warp"
     ];
     for (const effect of newEffects) {
       const presets = VFX_LAB_PRESETS.filter((preset) => preset.effect === effect);
@@ -75,7 +79,7 @@ describe("VFX Visual Lab model", () => {
   });
 
   it("resolves semantic family roles and profile colors", () => {
-    const expectedRoles = { combat: "warning", traversal: "energy", interaction: "reward" };
+    const expectedRoles = { combat: "warning", traversal: "energy", interaction: "reward", temporal: "accent" };
     for (const effect of VFX_LAB_EFFECTS) {
       expect(resolveVFXLabSemanticRole(effect.family)).toBe(expectedRoles[effect.family]);
     }

@@ -58,7 +58,17 @@ export type SharedVFXPrimitiveName =
   | "pixelfx_buff"
   | "pixelfx_debuff"
   | "pixelfx_spawn"
-  | "pixelfx_death";
+  | "pixelfx_death"
+  | "pixelfx_nova"
+  | "pixelfx_vortex"
+  | "pixelfx_meteor"
+  | "pixelfx_rift"
+  | "pixelfx_arc_chain"
+  | "pixelfx_gravity_well"
+  | "pixelfx_blade_dance"
+  | "pixelfx_seismic_wave"
+  | "pixelfx_soul_reap"
+  | "pixelfx_time_warp";
 
 /**
  * Base configuration options shared across Juice spawn calls and catalog profiles.

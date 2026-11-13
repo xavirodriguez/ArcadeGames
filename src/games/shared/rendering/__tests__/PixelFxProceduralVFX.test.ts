@@ -49,6 +49,16 @@ import {
   drawPixelFxSeismicWave,
   drawPixelFxSoulReap,
   drawPixelFxTimeWarp,
+  drawPixelFxAfterimage,
+  drawPixelFxSonicBoom,
+  drawPixelFxPlasmaBloom,
+  drawPixelFxCrystalShards,
+  drawPixelFxSmokeColumn,
+  drawPixelFxTetherSnare,
+  drawPixelFxSparkRain,
+  drawPixelFxRuneSeal,
+  drawPixelFxWindShear,
+  drawPixelFxPulseMine,
   registerPixelFxProceduralVFX
 } from "../PixelFxProceduralVFX";
 
@@ -489,6 +499,22 @@ describe("PixelFX-inspired procedural VFX", () => {
     }
   });
 
+  it("renders the second ten effects deterministically across TTL samples", () => {
+    const effects = [drawPixelFxAfterimage, drawPixelFxSonicBoom, drawPixelFxPlasmaBloom, drawPixelFxCrystalShards, drawPixelFxSmokeColumn, drawPixelFxTetherSnare, drawPixelFxSparkRain, drawPixelFxRuneSeal, drawPixelFxWindShear, drawPixelFxPulseMine];
+    for (const effect of effects) {
+      const first=createAdapter(), firstState=createWorld(0.36);
+      effect(first,firstState.world,firstState.entity);
+      const second=createAdapter(), secondState=createWorld(0.04);
+      effect(second,secondState.world,secondState.entity);
+      expect(first.drawLine).toBeDefined();
+      expect(first.drawLine.mock.calls.length+first.drawArc.mock.calls.length+first.fillCircle.mock.calls.length+first.strokeCircle.mock.calls.length).toBeGreaterThan(0);
+      expect([second.drawLine.mock.calls,second.drawArc.mock.calls,second.fillCircle.mock.calls,second.strokeCircle.mock.calls]).not.toEqual([first.drawLine.mock.calls,first.drawArc.mock.calls,first.fillCircle.mock.calls,first.strokeCircle.mock.calls]);
+      const repeat=createAdapter(), repeatState=createWorld(0.04);
+      effect(repeat,repeatState.world,repeatState.entity);
+      expect([repeat.drawLine.mock.calls,repeat.drawArc.mock.calls,repeat.fillCircle.mock.calls,repeat.strokeCircle.mock.calls]).toEqual([second.drawLine.mock.calls,second.drawArc.mock.calls,second.fillCircle.mock.calls,second.strokeCircle.mock.calls]);
+    }
+  });
+
   it("does not draw expired effects", () => {
     const adapter = createAdapter();
     const { world, entity } = createWorld(0);
@@ -536,14 +562,14 @@ describe("PixelFX-inspired procedural VFX", () => {
     expect(adapter.fillCircle).not.toHaveBeenCalled();
   });
 
-  it("registers all forty-nine shapes for Canvas", () => {
+  it("registers all fifty-nine shapes for Canvas", () => {
     const registerShape = jest.fn();
     const renderer = {
       type: "canvas" as const,
       registerShape
     } as never as Renderer<CoreComponentRegistry, RenderContext>;
     registerPixelFxProceduralVFX(renderer);
-    expect(registerShape).toHaveBeenCalledTimes(49);
+    expect(registerShape).toHaveBeenCalledTimes(59);
     expect(registerShape.mock.calls.map(([name]) => name)).toEqual([
       "pixelfx_impact",
       "pixelfx_hitstun",
@@ -593,18 +619,28 @@ describe("PixelFX-inspired procedural VFX", () => {
       "pixelfx_blade_dance",
       "pixelfx_seismic_wave",
       "pixelfx_soul_reap",
-      "pixelfx_time_warp"
+      "pixelfx_time_warp",
+      "pixelfx_afterimage",
+      "pixelfx_sonic_boom",
+      "pixelfx_plasma_bloom",
+      "pixelfx_crystal_shards",
+      "pixelfx_smoke_column",
+      "pixelfx_tether_snare",
+      "pixelfx_spark_rain",
+      "pixelfx_rune_seal",
+      "pixelfx_wind_shear",
+      "pixelfx_pulse_mine"
     ]);
   });
 
-  it("registers the same forty-nine-shape contract for Skia", () => {
+  it("registers the same fifty-nine-shape contract for Skia", () => {
     const registerShape = jest.fn();
     const renderer = {
       type: "skia" as const,
       registerShape
     } as never as Renderer<CoreComponentRegistry, RenderContext>;
     registerPixelFxProceduralVFX(renderer);
-    expect(registerShape).toHaveBeenCalledTimes(49);
+    expect(registerShape).toHaveBeenCalledTimes(59);
     expect(registerShape.mock.calls.map(([name]) => name)).toEqual([
       "pixelfx_impact",
       "pixelfx_hitstun",
@@ -654,7 +690,17 @@ describe("PixelFX-inspired procedural VFX", () => {
       "pixelfx_blade_dance",
       "pixelfx_seismic_wave",
       "pixelfx_soul_reap",
-      "pixelfx_time_warp"
+      "pixelfx_time_warp",
+      "pixelfx_afterimage",
+      "pixelfx_sonic_boom",
+      "pixelfx_plasma_bloom",
+      "pixelfx_crystal_shards",
+      "pixelfx_smoke_column",
+      "pixelfx_tether_snare",
+      "pixelfx_spark_rain",
+      "pixelfx_rune_seal",
+      "pixelfx_wind_shear",
+      "pixelfx_pulse_mine"
     ]);
   });
 });

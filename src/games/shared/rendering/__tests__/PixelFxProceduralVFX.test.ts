@@ -424,6 +424,16 @@ describe("PixelFX-inspired procedural VFX", () => {
     drawPixelFxDebuff(adapter, world, entity);
     drawPixelFxSpawn(adapter, world, entity);
     drawPixelFxDeath(adapter, world, entity);
+    drawPixelFxTimeWarp(adapter, world, entity);
+    drawPixelFxSoulReap(adapter, world, entity);
+    drawPixelFxSeismicWave(adapter, world, entity);
+    drawPixelFxBladeDance(adapter, world, entity);
+    drawPixelFxGravityWell(adapter, world, entity);
+    drawPixelFxArcChain(adapter, world, entity);
+    drawPixelFxRift(adapter, world, entity);
+    drawPixelFxMeteor(adapter, world, entity);
+    drawPixelFxVortex(adapter, world, entity);
+    drawPixelFxNova(adapter, world, entity);
     expect(adapter.drawLine).not.toHaveBeenCalled();
     expect(adapter.drawArc).not.toHaveBeenCalled();
     expect(adapter.strokeCircle).not.toHaveBeenCalled();
@@ -450,6 +460,23 @@ describe("PixelFX-inspired procedural VFX", () => {
       expect(operationCount(first)).toBe(operationCount(second));
       expect(first.drawLine.mock.calls).toEqual(second.drawLine.mock.calls);
       expect(first.drawArc.mock.calls).toEqual(second.drawArc.mock.calls);
+    }
+  });
+
+  it("renders all ten high-dynamics compositions deterministically and changes them over TTL", () => {
+    const effects = [drawPixelFxNova, drawPixelFxVortex, drawPixelFxMeteor, drawPixelFxRift, drawPixelFxArcChain, drawPixelFxGravityWell, drawPixelFxBladeDance, drawPixelFxSeismicWave, drawPixelFxSoulReap, drawPixelFxTimeWarp];
+    for (const effect of effects) {
+      const early=createAdapter(), earlyState=createWorld(0.36);
+      effect(early,earlyState.world,earlyState.entity);
+      const late=createAdapter(), lateState=createWorld(0.04);
+      effect(late,lateState.world,lateState.entity);
+      const count=(d: MockDrawAdapter)=>d.drawLine.mock.calls.length+d.drawArc.mock.calls.length+d.strokeCircle.mock.calls.length+d.fillCircle.mock.calls.length;
+      expect(count(early)).toBeGreaterThan(0);
+      expect(count(late)).toBe(count(early));
+      expect(late.drawLine.mock.calls).not.toEqual(early.drawLine.mock.calls);
+      const again=createAdapter(), againState=createWorld(0.04);
+      effect(again,againState.world,againState.entity);
+      expect(again.drawLine.mock.calls).toEqual(late.drawLine.mock.calls);
     }
   });
 
@@ -500,14 +527,14 @@ describe("PixelFX-inspired procedural VFX", () => {
     expect(adapter.fillCircle).not.toHaveBeenCalled();
   });
 
-  it("registers all thirty-nine shapes for Canvas", () => {
+  it("registers all forty-nine shapes for Canvas", () => {
     const registerShape = jest.fn();
     const renderer = {
       type: "canvas" as const,
       registerShape
     } as never as Renderer<CoreComponentRegistry, RenderContext>;
     registerPixelFxProceduralVFX(renderer);
-    expect(registerShape).toHaveBeenCalledTimes(39);
+    expect(registerShape).toHaveBeenCalledTimes(49);
     expect(registerShape.mock.calls.map(([name]) => name)).toEqual([
       "pixelfx_impact",
       "pixelfx_hitstun",
@@ -547,11 +574,21 @@ describe("PixelFX-inspired procedural VFX", () => {
       "pixelfx_buff",
       "pixelfx_debuff",
       "pixelfx_spawn",
-      "pixelfx_death"
+      "pixelfx_death",
+      "pixelfx_nova",
+      "pixelfx_vortex",
+      "pixelfx_meteor",
+      "pixelfx_rift",
+      "pixelfx_arc_chain",
+      "pixelfx_gravity_well",
+      "pixelfx_blade_dance",
+      "pixelfx_seismic_wave",
+      "pixelfx_soul_reap",
+      "pixelfx_time_warp"
     ]);
   });
 
-  it("registers the same thirty-nine-shape contract for Skia", () => {
+  it("registers the same forty-nine-shape contract for Skia", () => {
     const registerShape = jest.fn();
     const renderer = {
       type: "skia" as const,

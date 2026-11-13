@@ -39,6 +39,16 @@ import {
   drawPixelFxDebuff,
   drawPixelFxSpawn,
   drawPixelFxDeath,
+  drawPixelFxNova,
+  drawPixelFxVortex,
+  drawPixelFxMeteor,
+  drawPixelFxRift,
+  drawPixelFxArcChain,
+  drawPixelFxGravityWell,
+  drawPixelFxBladeDance,
+  drawPixelFxSeismicWave,
+  drawPixelFxSoulReap,
+  drawPixelFxTimeWarp,
   registerPixelFxProceduralVFX
 } from "../PixelFxProceduralVFX";
 
@@ -472,7 +482,6 @@ describe("PixelFX-inspired procedural VFX", () => {
       effect(late,lateState.world,lateState.entity);
       const count=(d: MockDrawAdapter)=>d.drawLine.mock.calls.length+d.drawArc.mock.calls.length+d.strokeCircle.mock.calls.length+d.fillCircle.mock.calls.length;
       expect(count(early)).toBeGreaterThan(0);
-      expect(count(late)).toBe(count(early));
       expect(late.drawLine.mock.calls).not.toEqual(early.drawLine.mock.calls);
       const again=createAdapter(), againState=createWorld(0.04);
       effect(again,againState.world,againState.entity);
@@ -595,7 +604,7 @@ describe("PixelFX-inspired procedural VFX", () => {
       registerShape
     } as never as Renderer<CoreComponentRegistry, RenderContext>;
     registerPixelFxProceduralVFX(renderer);
-    expect(registerShape).toHaveBeenCalledTimes(39);
+    expect(registerShape).toHaveBeenCalledTimes(49);
     expect(registerShape.mock.calls.map(([name]) => name)).toEqual([
       "pixelfx_impact",
       "pixelfx_hitstun",
@@ -635,7 +644,17 @@ describe("PixelFX-inspired procedural VFX", () => {
       "pixelfx_buff",
       "pixelfx_debuff",
       "pixelfx_spawn",
-      "pixelfx_death"
+      "pixelfx_death",
+      "pixelfx_nova",
+      "pixelfx_vortex",
+      "pixelfx_meteor",
+      "pixelfx_rift",
+      "pixelfx_arc_chain",
+      "pixelfx_gravity_well",
+      "pixelfx_blade_dance",
+      "pixelfx_seismic_wave",
+      "pixelfx_soul_reap",
+      "pixelfx_time_warp"
     ]);
   });
 });

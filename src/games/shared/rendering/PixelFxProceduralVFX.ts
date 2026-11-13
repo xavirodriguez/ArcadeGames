@@ -1309,7 +1309,102 @@ export function drawPixelFxDeath(draw: IDrawAdapter, world: import("@tiny-aster/
   draw.restore();
 }
 
-export function registerPixelFxProceduralVFX<TComponents extends CoreComponentRegistry>(
+export function drawPixelFxNova(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("nova", draw, world, entity); }
+
+export function drawPixelFxVortex(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("vortex", draw, world, entity); }
+
+export function drawPixelFxMeteor(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("meteor", draw, world, entity); }
+
+export function drawPixelFxRift(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("rift", draw, world, entity); }
+
+export function drawPixelFxArcChain(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("arc_chain", draw, world, entity); }
+
+export function drawPixelFxGravityWell(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("gravity_well", draw, world, entity); }
+
+export function drawPixelFxBladeDance(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("blade_dance", draw, world, entity); }
+
+export function drawPixelFxSeismicWave(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("seismic_wave", draw, world, entity); }
+
+export function drawPixelFxSoulReap(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("soul_reap", draw, world, entity); }
+
+export function drawPixelFxTimeWarp(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("time_warp", draw, world, entity); }
+
+
+type HighDynamicsKind = "nova" | "vortex" | "meteor" | "rift" | "arc_chain" | "gravity_well" | "blade_dance" | "seismic_wave" | "soul_reap" | "time_warp";
+
+/** Ten distinct closed-form motion studies. All geometry is sampled from normalized TTL progress. */
+function drawHighDynamics(kind: HighDynamicsKind, draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
+  const s = readEffectState(world, entity);
+  if (!s || s.alpha <= 0.01) return;
+  const p=s.progress, a=s.alpha, z=s.size, c=s.color, r=s.rotation, fade=a*(1-p*0.64);
+  const cs=Math.cos(r), sn=Math.sin(r), reach=z*(0.24+p*0.92);
+  draw.save();
+  switch(kind) {
+    case "nova": {
+      const beat=Math.max(0,1-Math.abs(p-0.16)/0.16);
+      draw.fillCircle(0,0,z*(0.08+beat*0.2),c,a*(0.35+beat*0.65));
+      draw.strokeCircle(0,0,reach,c,Math.max(1,z*0.06*(1-p*0.5)),fade);
+      for(let i=0;i<12;i++){const t=r+i*Math.PI/6,inner=z*(0.16+p*0.3),outer=reach*(0.7+(i%3)*0.12);draw.drawLine(Math.cos(t)*inner,Math.sin(t)*inner,Math.cos(t)*outer,Math.sin(t)*outer,c,Math.max(1,z*(i%3===0?0.05:0.026)),fade*(0.9-(i%3)*0.15));}
+      break;
+    }
+    case "vortex": {
+      draw.strokeCircle(0,0,z*(0.12+p*0.05),c,Math.max(1,z*0.04),fade);
+      for(let arm=0;arm<3;arm++){let px=0,py=0;for(let k=1;k<=9;k++){const t=k/9,ang=r+arm*2.094+p*(arm%2? -3.1:3.8)+t*4.8,rad=z*(0.9-p*0.28)*(1-t*0.86),x=Math.cos(ang)*rad,y=Math.sin(ang)*rad;if(k>1)draw.drawLine(px,py,x,y,c,Math.max(1,z*0.03),fade*(1-t*0.4));px=x;py=y;}}
+      break;
+    }
+    case "meteor": {
+      for(let i=0;i<7;i++){const t=i/6,x=-reach*(0.18+t*1.25),w=z*(0.15*(1-t)+0.02);draw.drawLine(x*cs-w*sn,x*sn+w*cs,x*cs+w*sn,x*sn-w*cs,c,Math.max(1,z*0.06),fade*(1-t*0.72));}
+      draw.fillCircle(cs*reach*0.12,sn*reach*0.12,z*(0.1+Math.max(0,p-0.72)*0.4),c,fade);
+      if(p>0.72)draw.strokeCircle(0,0,z*(0.2+(p-0.72)*2),c,Math.max(1,z*0.04),a*(1-p)*3.5);
+      break;
+    }
+    case "rift": {
+      const open=Math.sin(Math.PI*Math.min(1,p*1.12)),w=z*(0.08+open*0.82);
+      draw.drawLine(-w*cs,-w*sn-z*0.24,w*cs,w*sn+z*0.24,c,Math.max(1,z*0.075),fade);
+      draw.drawArc(0,0,z*(0.35+open*0.32),r+p,2.0,c,Math.max(1,z*0.045),fade*0.8);
+      draw.drawArc(0,0,z*(0.35+open*0.32),r+2.2-p,2.0,c,Math.max(1,z*0.045),fade*0.8);
+      for(let i=0;i<7;i++){const x=(i%2?1:-1)*w*(0.25+i*0.12),y=(i-3)*z*0.09;draw.drawLine(x*cs-y*sn,x*sn+y*cs,(x-z*0.16)*cs-y*sn,(x-z*0.16)*sn+y*cs,c,Math.max(1,z*0.025),fade*0.7);}
+      break;
+    }
+    case "arc_chain": {
+      let px=-reach,py=0;
+      for(let i=1;i<=10;i++){const t=i/10,x=-reach+2*reach*t,y=Math.sin(t*Math.PI*5+p*9)*z*0.12;draw.drawLine(px*cs-py*sn,px*sn+py*cs,x*cs-y*sn,x*sn+y*cs,c,Math.max(1,z*0.045),fade);if(i===3||i===7)draw.drawLine(x*cs-y*sn,x*sn+y*cs,(x+z*0.1)*cs-(y+(i===3?-1:1)*z*0.2)*sn,(x+z*0.1)*sn+(y+(i===3?-1:1)*z*0.2)*cs,c,Math.max(1,z*0.025),fade*0.75);px=x;py=y;}
+      break;
+    }
+    case "gravity_well": {
+      draw.fillCircle(0,0,z*(0.1+p*0.08),c,fade);
+      draw.drawArc(0,0,z*(0.48+Math.sin(p*Math.PI)*0.14),r+p*2.8,4.8,c,Math.max(1,z*0.045),fade);
+      for(let i=0;i<9;i++){const t=r+i*Math.PI*2/9+p*(2.4+i*0.08),rad=z*(0.78-p*0.58)*(0.62+(i%3)*0.14),x=Math.cos(t)*rad,y=Math.sin(t)*rad;draw.drawLine(x*1.3,y*1.3,x,y,c,Math.max(1,z*0.03),fade*0.8);draw.fillCircle(x,y,z*0.025,c,fade);}
+      break;
+    }
+    case "blade_dance": {
+      for(let i=0;i<3;i++){const delay=i*0.19,t=Math.max(0,Math.min(1,(p-delay)/(1-delay))),start=r+i*2.14-t*0.82,sweep=Math.PI*(0.34+t*0.52),rad=reach*(1-i*0.12);draw.drawArc(0,0,rad,start,sweep,c,Math.max(1,z*(0.09-i*0.018)),fade*(t>0?1:0.2));const end=start+sweep;draw.drawLine(Math.cos(end)*rad*0.86,Math.sin(end)*rad*0.86,Math.cos(end)*rad*1.12,Math.sin(end)*rad*1.12,c,Math.max(1,z*0.04),fade);}
+      break;
+    }
+    case "seismic_wave": {
+      for(let i=0;i<2;i++)draw.drawArc(0,z*(0.18+i*0.12),reach*(1-i*0.28),Math.PI*1.05,Math.PI*0.9,c,Math.max(1,z*(0.07-i*0.018)),fade*(1-i*0.3));
+      for(let i=0;i<8;i++){const side=i-3.5,x=side*reach*0.2,lift=z*(0.08+(i%3)*0.07)*p;draw.drawLine(x,z*0.08,x+side*z*0.06,z*0.08+lift,c,Math.max(1,z*0.035),fade*(0.86-Math.abs(side)*0.1));}
+      break;
+    }
+    case "soul_reap": {
+      const sweep=-Math.PI*0.9+p*Math.PI*1.45,rad=reach,tip=sweep+1.32;
+      draw.drawArc(0,0,rad,sweep,2.26,c,Math.max(1,z*0.085),fade);
+      draw.drawLine(Math.cos(sweep)*rad*0.72,Math.sin(sweep)*rad*0.72,Math.cos(tip)*rad*1.12,Math.sin(tip)*rad*1.12,c,Math.max(1,z*0.055),fade);
+      for(let i=0;i<5;i++){const x=Math.cos(r+i*1.1+p)*z*(0.2+i*0.09),y=-z*(0.12+p*0.48+(i%2)*0.1);draw.drawLine(x,y+z*0.08,x*0.82,y-z*0.1,c,Math.max(1,z*0.025),fade*(0.7-i*0.09));}
+      break;
+    }
+    case "time_warp": {
+      const envelope=Math.sin(Math.PI*p),spin=r+p*p*Math.PI*5,rad=z*(0.42+envelope*0.24);
+      for(let i=0;i<3;i++)draw.drawArc((i-1)*z*0.12,-(i-1)*z*0.12,rad*(1-i*0.12),spin-i*0.22,4.02,c,Math.max(1,z*(0.045-i*0.008)),fade*(0.82-i*0.2));
+      const hand=spin+(p<0.72?p*Math.PI*3:Math.PI*2.16);
+      draw.drawLine(0,0,Math.cos(hand)*rad*1.08,Math.sin(hand)*rad*1.08,c,Math.max(1,z*0.06),fade);
+      draw.fillCircle(0,0,z*(0.06+envelope*0.06),c,fade);
+      break;
+    }
+  }
+  draw.restore();
+}
+\nexport function registerPixelFxProceduralVFX<TComponents extends CoreComponentRegistry>(
   renderer: Renderer<TComponents, RenderContext>
 ): void {
   const drawers = [
@@ -1351,7 +1446,17 @@ export function registerPixelFxProceduralVFX<TComponents extends CoreComponentRe
     ["pixelfx_buff", drawPixelFxBuff],
     ["pixelfx_debuff", drawPixelFxDebuff],
     ["pixelfx_spawn", drawPixelFxSpawn],
-    ["pixelfx_death", drawPixelFxDeath]
+    ["pixelfx_death", drawPixelFxDeath],
+    ["pixelfx_nova", drawPixelFxNova],
+    ["pixelfx_vortex", drawPixelFxVortex],
+    ["pixelfx_meteor", drawPixelFxMeteor],
+    ["pixelfx_rift", drawPixelFxRift],
+    ["pixelfx_arc_chain", drawPixelFxArcChain],
+    ["pixelfx_gravity_well", drawPixelFxGravityWell],
+    ["pixelfx_blade_dance", drawPixelFxBladeDance],
+    ["pixelfx_seismic_wave", drawPixelFxSeismicWave],
+    ["pixelfx_soul_reap", drawPixelFxSoulReap],
+    ["pixelfx_time_warp", drawPixelFxTimeWarp],
   ] as const;
 
   for (const [name, drawEffect] of drawers) {

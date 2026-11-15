@@ -1330,7 +1330,7 @@ export function drawPixelFxSoulReap(draw: IDrawAdapter, world: import("@tiny-ast
 export function drawPixelFxTimeWarp(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("time_warp", draw, world, entity); }
 
 
-type HighDynamicsKind = "nova" | "vortex" | "meteor" | "rift" | "arc_chain" | "gravity_well" | "blade_dance" | "seismic_wave" | "soul_reap" | "time_warp";
+type HighDynamicsKind = "nova" | "vortex" | "meteor" | "rift" | "arc_chain" | "gravity_well" | "blade_dance" | "seismic_wave" | "soul_reap" | "time_warp" | "afterimage" | "sonic_boom" | "plasma_bloom" | "crystal_shards" | "smoke_column" | "tether_snare" | "spark_rain" | "rune_seal" | "wind_shear" | "pulse_mine";
 
 /** Ten distinct closed-form motion studies. All geometry is sampled from normalized TTL progress. */
 function drawHighDynamics(kind: HighDynamicsKind, draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
@@ -1393,6 +1393,64 @@ function drawHighDynamics(kind: HighDynamicsKind, draw: IDrawAdapter, world: imp
       for(let i=0;i<5;i++){const x=Math.cos(r+i*1.1+p)*z*(0.2+i*0.09),y=-z*(0.12+p*0.48+(i%2)*0.1);draw.drawLine(x,y+z*0.08,x*0.82,y-z*0.1,c,Math.max(1,z*0.025),fade*(0.7-i*0.09));}
       break;
     }
+
+    case "afterimage": {
+      const sweep=r+p*1.9, fadeBase=fade*(1-p*0.35);
+      for(let ghost=2;ghost>=0;ghost--){const t=p+ghost*0.11,angle=sweep-ghost*0.18,offset=-z*(0.3+ghost*0.16)*(1-p*0.25),rad=z*(0.34+t*0.42);draw.drawArc(offset,0,rad,angle,Math.PI*1.35,c,Math.max(1,z*(0.07-ghost*0.014)),fadeBase*(1-ghost*0.23));draw.drawLine(offset+Math.cos(angle)*rad,Math.sin(angle)*rad,offset+Math.cos(angle+1.2)*rad*0.7,Math.sin(angle+1.2)*rad*0.7,c,Math.max(1,z*0.025),fadeBase*(1-ghost*0.25));}
+      break;
+    }
+    case "sonic_boom": {
+      const compression=Math.max(0,1-Math.abs(p-0.22)/0.22),front=z*(0.12+p*1.05);
+      for(let i=0;i<4;i++){const radius=front*(1-i*0.16),alpha=fade*(1-i*0.18);draw.drawArc(0,0,radius,r+i*0.16,Math.PI*(1.5-i*0.12),c,Math.max(1,z*(0.07-i*0.012)+compression*z*0.035),alpha);}
+      draw.drawLine(-front*0.82,0,front*0.82,0,c,Math.max(1,z*0.035),fade*(0.7+compression*0.3));
+      break;
+    }
+    case "plasma_bloom": {
+      const bloom=Math.sin(Math.PI*Math.min(1,p*1.1)),petalRadius=z*(0.2+bloom*0.56);
+      draw.fillCircle(0,0,z*(0.07+bloom*0.1),c,fade);
+      for(let i=0;i<8;i++){const angle=r+i*Math.PI/4+p*(i%2?0.8:-0.55),inner=z*0.12,outer=petalRadius*(0.82+(i%3)*0.1);draw.drawArc(Math.cos(angle)*inner,Math.sin(angle)*inner,outer*0.55,angle-0.55,1.1,c,Math.max(1,z*0.055),fade*(0.85-(i%3)*0.12));draw.drawLine(Math.cos(angle)*inner,Math.sin(angle)*inner,Math.cos(angle)*outer,Math.sin(angle)*outer,c,Math.max(1,z*0.025),fade*0.7);}
+      break;
+    }
+    case "crystal_shards": {
+      for(let i=0;i<9;i++){const angle=r+i*Math.PI*2/9+(i%2?0.12:-0.12),distance=z*(0.18+p*(0.62+(i%3)*0.13)),length=z*(0.12+(i%3)*0.035),x=Math.cos(angle)*distance,y=Math.sin(angle)*distance,tipX=Math.cos(angle)* (distance+length),tipY=Math.sin(angle)*(distance+length),sideX=-Math.sin(angle)*length*0.32,sideY=Math.cos(angle)*length*0.32;draw.drawLine(x-sideX,y-sideY,tipX,tipY,c,Math.max(1,z*0.045),fade*(0.9-(i%3)*0.12));draw.drawLine(tipX,tipY,x+sideX,y+sideY,c,Math.max(1,z*0.035),fade*(0.8-(i%3)*0.1));}
+      draw.strokeCircle(0,0,z*(0.12+p*0.2),c,Math.max(1,z*0.025),fade*0.6);
+      break;
+    }
+    case "smoke_column": {
+      for(let puff=0;puff<7;puff++){const t=puff/6,age=Math.max(0,p-t*0.32),rise=-z*(0.12+t*0.72+age*0.24),drift=Math.sin(p*5+t*4+r)*z*(0.06+t*0.1),radius=z*(0.12+t*0.045+age*0.11);draw.fillCircle(drift,rise,radius,c,fade*(0.48-t*0.035));draw.strokeCircle(drift,rise,radius*0.82,c,Math.max(1,z*0.018),fade*(0.38-t*0.025));}
+      break;
+    }
+    case "tether_snare": {
+      const tighten=1-p*0.62,orbit=r+p*4.8,rad=z*(0.66-p*0.26);
+      for(let strand=0;strand<3;strand++){const phase=orbit+strand*2.094;let px=Math.cos(phase)*rad,py=Math.sin(phase)*rad;for(let k=1;k<=12;k++){const t=k/12,angle=phase+t*Math.PI*(1.4+p*0.8),rr=rad*(1-t*0.72)*tighten,x=Math.cos(angle)*rr,y=Math.sin(angle)*rr;if(k>1)draw.drawLine(px,py,x,y,c,Math.max(1,z*(0.04-strand*0.006)),fade*(1-t*0.3));px=x;py=y;}}
+      draw.strokeCircle(0,0,z*(0.1+p*0.12),c,Math.max(1,z*0.04),fade);
+      break;
+    }
+    case "spark_rain": {
+      for(let i=0;i<12;i++){const delay=(i%4)*0.09,t=Math.max(0,Math.min(1,(p-delay)/(1-delay))),x=(i-5.5)*z*0.105+Math.sin(i*2.1+r)*z*0.08,y=-z*0.62+t*z*1.18+(i%3)*z*0.08,tail=z*(0.1+(i%3)*0.045),dx=Math.cos(r-0.3)*tail,dy=Math.sin(r-0.3)*tail;draw.drawLine(x-dx,y-dy,x,y,c,Math.max(1,z*(0.035+(i%3)*0.008)),fade*(0.9-(i%4)*0.12));draw.fillCircle(x,y,z*0.018,c,fade);}
+      break;
+    }
+    case "rune_seal": {
+      const spin=r+p*1.6,rad=z*(0.38+Math.sin(p*Math.PI)*0.12);
+      draw.drawArc(0,0,rad,spin,Math.PI*1.72,c,Math.max(1,z*0.045),fade);
+      draw.drawArc(0,0,rad*0.72,-spin*0.7,Math.PI*1.35,c,Math.max(1,z*0.028),fade*0.78);
+      for(let i=0;i<12;i++){const angle=spin+i*Math.PI/6,inner=rad*(i%3===0?0.68:0.82),outer=rad*(i%3===0?1.12:0.96);draw.drawLine(Math.cos(angle)*inner,Math.sin(angle)*inner,Math.cos(angle)*outer,Math.sin(angle)*outer,c,Math.max(1,z*(i%3===0?0.045:0.022)),fade*(i%3===0?1:0.65));}
+      draw.fillCircle(0,0,z*(0.055+Math.sin(p*Math.PI)*0.035),c,fade);
+      break;
+    }
+    case "wind_shear": {
+      const sweep=r-p*1.4,span=Math.PI*(0.45+p*0.42);
+      for(let gust=0;gust<4;gust++){const rr=z*(0.38+gust*0.14+p*0.12),start=sweep+gust*0.16;draw.drawArc(0,0,rr,start,span,c,Math.max(1,z*(0.065-gust*0.012)),fade*(1-gust*0.16));}
+      for(let i=0;i<6;i++){const t=i/5,x=-z*0.62+t*z*1.24,y=Math.sin(t*Math.PI*2+p*4+r)*z*0.16;draw.drawLine(x,y,x+z*0.12,y-z*0.08,c,Math.max(1,z*0.022),fade*0.7);}
+      break;
+    }
+    case "pulse_mine": {
+      const charge=Math.max(0,1-p*1.45),burst=Math.max(0,(p-0.42)/0.58),core=z*(0.09+charge*0.12);
+      draw.fillCircle(0,0,core,c,fade*(0.6+charge*0.4));
+      for(let ring=0;ring<3;ring++){const rr=z*(0.18+ring*0.13+burst*0.72),alpha=ring===0?fade:fade*(0.7-ring*0.12);draw.drawArc(0,0,rr,r+ring*0.3,Math.PI*(1.5-ring*0.12),c,Math.max(1,z*(0.05-ring*0.008)),alpha);}
+      for(let i=0;i<8;i++){const angle=r+i*Math.PI/4,inner=z*(0.2+burst*0.18),outer=z*(0.24+burst*0.78);draw.drawLine(Math.cos(angle)*inner,Math.sin(angle)*inner,Math.cos(angle)*outer,Math.sin(angle)*outer,c,Math.max(1,z*0.035),fade*(0.35+burst*0.65));}
+      break;
+    }
     case "time_warp": {
       const envelope=Math.sin(Math.PI*p),spin=r+p*p*Math.PI*5,rad=z*(0.42+envelope*0.24);
       for(let i=0;i<3;i++)draw.drawArc((i-1)*z*0.12,-(i-1)*z*0.12,rad*(1-i*0.12),spin-i*0.22,4.02,c,Math.max(1,z*(0.045-i*0.008)),fade*(0.82-i*0.2));
@@ -1404,6 +1462,26 @@ function drawHighDynamics(kind: HighDynamicsKind, draw: IDrawAdapter, world: imp
   }
   draw.restore();
 }
+
+export function drawPixelFxAfterimage(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("afterimage", draw, world, entity); }
+
+export function drawPixelFxSonicBoom(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("sonic_boom", draw, world, entity); }
+
+export function drawPixelFxPlasmaBloom(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("plasma_bloom", draw, world, entity); }
+
+export function drawPixelFxCrystalShards(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("crystal_shards", draw, world, entity); }
+
+export function drawPixelFxSmokeColumn(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("smoke_column", draw, world, entity); }
+
+export function drawPixelFxTetherSnare(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("tether_snare", draw, world, entity); }
+
+export function drawPixelFxSparkRain(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("spark_rain", draw, world, entity); }
+
+export function drawPixelFxRuneSeal(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("rune_seal", draw, world, entity); }
+
+export function drawPixelFxWindShear(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("wind_shear", draw, world, entity); }
+
+export function drawPixelFxPulseMine(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("pulse_mine", draw, world, entity); }
 
 export function registerPixelFxProceduralVFX<TComponents extends CoreComponentRegistry>(
   renderer: Renderer<TComponents, RenderContext>
@@ -1458,6 +1536,16 @@ export function registerPixelFxProceduralVFX<TComponents extends CoreComponentRe
     ["pixelfx_seismic_wave", drawPixelFxSeismicWave],
     ["pixelfx_soul_reap", drawPixelFxSoulReap],
     ["pixelfx_time_warp", drawPixelFxTimeWarp],
+    ["pixelfx_afterimage", drawPixelFxAfterimage],
+    ["pixelfx_sonic_boom", drawPixelFxSonicBoom],
+    ["pixelfx_plasma_bloom", drawPixelFxPlasmaBloom],
+    ["pixelfx_crystal_shards", drawPixelFxCrystalShards],
+    ["pixelfx_smoke_column", drawPixelFxSmokeColumn],
+    ["pixelfx_tether_snare", drawPixelFxTetherSnare],
+    ["pixelfx_spark_rain", drawPixelFxSparkRain],
+    ["pixelfx_rune_seal", drawPixelFxRuneSeal],
+    ["pixelfx_wind_shear", drawPixelFxWindShear],
+    ["pixelfx_pulse_mine", drawPixelFxPulseMine],
   ] as const;
 
   for (const [name, drawEffect] of drawers) {

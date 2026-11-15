@@ -1,5 +1,5 @@
 import type { SkCanvas } from "@shopify/react-native-skia";
-import { Skia, type SkPaint } from "./SkiaContext";
+import { Skia, BlendMode, type SkPaint } from "./SkiaContext";
 import { renderCanvasGlow, renderSkiaGlow, getGlowStyle } from "./GlowSystem";
 import {
   getActiveThemeTypography,
@@ -10,9 +10,12 @@ import {
  * Platform-agnostic drawing adapter interface for unifying Canvas 2D and Skia rendering operations.
  * @public
  */
+export type DrawBlendMode = "source-over" | "lighter" | "screen";
+
 export interface IDrawAdapter {
   save(): void;
   restore(): void;
+  setBlendMode(mode: DrawBlendMode): void;
   fillCircle(x: number, y: number, radius: number, color: string, alpha?: number): void;
   strokeCircle(x: number, y: number, radius: number, color: string, strokeWidth?: number, alpha?: number): void;
   fillRect(x: number, y: number, width: number, height: number, color: string, alpha?: number): void;
@@ -48,6 +51,10 @@ export class CanvasDrawAdapter implements IDrawAdapter {
 
   public restore(): void {
     this.ctx.restore();
+  }
+
+  public setBlendMode(mode: DrawBlendMode): void {
+    this.ctx.globalCompositeOperation = mode;
   }
 
   public fillCircle(x: number, y: number, radius: number, color: string, alpha: number = 1.0): void {
@@ -131,6 +138,9 @@ export class CanvasDrawAdapter implements IDrawAdapter {
 export class SkiaDrawAdapter implements IDrawAdapter {
   private activeGlowPaint: SkPaint | null = null;
   private activeGlowAlpha = 1;
+  private currentBlendMode: DrawBlendMode = "source-over";
+  private readonly blendModeStack: DrawBlendMode[] = new Array(16);
+  private blendModeDepth = 0;
 
   private get skCanvas(): SkiaCanvasLike {
     return this.canvas as SkiaCanvasLike;
@@ -139,6 +149,7 @@ export class SkiaDrawAdapter implements IDrawAdapter {
   constructor(private canvas: SkCanvas | unknown) {}
 
   public save(): void {
+    this.blendModeStack[this.blendModeDepth++] = this.currentBlendMode;
     if (this.skCanvas.save) {
       this.skCanvas.save();
     }
@@ -148,6 +159,13 @@ export class SkiaDrawAdapter implements IDrawAdapter {
     if (this.skCanvas.restore) {
       this.skCanvas.restore();
     }
+    if (this.blendModeDepth > 0) {
+      this.currentBlendMode = this.blendModeStack[--this.blendModeDepth];
+    }
+  }
+
+  public setBlendMode(mode: DrawBlendMode): void {
+    this.currentBlendMode = mode;
   }
 
   private createSkiaPaint(
@@ -172,6 +190,14 @@ export class SkiaDrawAdapter implements IDrawAdapter {
     }
     paint.setColor(Skia.Color(color));
     paint.setAlphaf(alpha * (this.activeGlowPaint ? this.activeGlowAlpha : 1));
+    const blendMode = this.currentBlendMode === "lighter"
+      ? BlendMode?.Plus
+      : this.currentBlendMode === "screen"
+        ? BlendMode?.Screen
+        : BlendMode?.SrcOver;
+    if (blendMode !== undefined && typeof paint.setBlendMode === "function") {
+      paint.setBlendMode(blendMode as Parameters<SkPaint["setBlendMode"]>[0]);
+    }
     return paint;
   }
 

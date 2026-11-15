@@ -5,7 +5,7 @@
 
 | ID | Unidad | Estado | Dependencias | Archivos | Notas |
 |---|---|---|---|---|---|
-| U1 | `setBlendMode` en `IDrawAdapter` | in-progress | — | `DrawAdapter.ts`, `SkiaContext.ts`, `__tests__/DrawAdapter.test.ts` | Implementación y tests añadidos en esta rama; falta ejecutar `pnpm run ci`. Checkpoint humano: al cerrar CI, pasar a `awaiting-review` y detenerse. |
+| U1 | `setBlendMode` en `IDrawAdapter` | blocked | — | `DrawAdapter.ts`, `SkiaContext.ts`, `__tests__/DrawAdapter.test.ts` | Tests específicos `DrawAdapter.test.ts` pasan y typecheck/build/lint de Turborepo pasan; CI global bloqueada por fallos ajenos (detalles en Hallazgos). No pasar a `awaiting-review` hasta CI verde. |
 | U2 | Blend aditivo en drawers calientes | pending | U1 | `PixelFxProceduralVFX.ts`, perfiles/contrato visual por decidir | Evaluar explosion, muzzle, nova, laser_beam, shockwave y flash de spawnLayeredExplosion. Evitar quemado en sumi-e; no asumir que lighter es apropiado para fondo claro. |
 | U3 | Fases `anticipation` y `residual` en vfx-timeline | pending | — | `vfx-timeline.ts`, tests de timeline | Mantener firma de resolveVFXPhase y comprobar que los mapas por defecto conservan fronteras y resultados. |
 | U4 | Anticipación y residuo en `drawPixelFxExplosion` | pending | U3 | `PixelFxProceduralVFX.ts`, tests de drawers | Anillo previo contractivo y 2–3 partículas residuales deterministas; revisar progreso/TTL real antes de implementar. |
@@ -29,6 +29,13 @@
 - `SharedVFX.ts` reexporta los adapters y llama al registro procedural existente. `VFXVisualLabModel.ts` importa drawers reales desde `PixelFxProceduralVFX.ts`; el Lab no requiere un renderer paralelo.
 - Los tests de adapters existentes están en `src/games/shared/rendering/__tests__/DrawAdapter.test.ts`; los tests de timeline/drawers siguen en el mismo árbol de rendering. El script raíz `ci` está definido en `package.json` y ejecuta build core, build gameplay-kit, guardrails, docs-check y typecheck de app.
 - U7 aún no tiene una decisión de arquitectura validada. La propuesta inicial es estado de simulación con ring buffer fijo y muestras derivadas de ticks; si se decide presentation-only, el ledger debe registrar explícitamente que se descarta durante resimulación y no forma parte del estado reproducible.
+
+## Resultado de CI observado (2026-11-15)
+
+- PR #1177, commit `857f4080fd21a9a3b51bb7f485f6c8b367245d0f`; workflow E2E run `43726397617`: 25/27 pasan. Fallan dos pruebas en `e2e/hitandrun.spec.ts`: combo melee espera `jab1` pero recibe null (línea 129); el death flow no llega a active (timeout de 60 s, línea 166). No se modificaron archivos E2E/Hit & Run en U1.
+- CI run `43726397646`: build, lint y typecheck de Turborepo completados correctamente; `DrawAdapter.test.ts` aparece como PASS. El paso "Run tests through Turborepo" falla en suites no modificadas por U1: `CombatRollbackResimulation.test.ts` (hash normal/resimulado divergente), `vfx-procedural-core.test.ts` (diferencia de precisión floating-point en `phaseT`), y `VFXVisualLabModel.test.ts` (preset extra `0.28`). Los archivos `vfx-timeline.ts` y `vfx-procedural-core.test.ts` tienen el mismo blob SHA en `master` y en la rama U1, confirmando que U1 no los cambió.
+- La suite amplia adicional de 293 suites reportó inicialmente 27 fallos y 266 pases; los fallos incluyen múltiples juegos y watchdogs de GameLoop que siguen emitiendo logs después del test. El job todavía figura en ejecución al registrar esta actualización; no se interpreta como resultado final.
+- Documentación CI pasa; Vercel pasó. E2E y CI no están verdes. Se respeta la regla de no corregir fallos fuera de U1. Por ello U1 queda `blocked`, no `done` ni `awaiting-review`.
 
 ## Deuda detectada
 

@@ -1330,7 +1330,7 @@ export function drawPixelFxSoulReap(draw: IDrawAdapter, world: import("@tiny-ast
 export function drawPixelFxTimeWarp(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("time_warp", draw, world, entity); }
 
 
-type HighDynamicsKind = "nova" | "vortex" | "meteor" | "rift" | "arc_chain" | "gravity_well" | "blade_dance" | "seismic_wave" | "soul_reap" | "time_warp" | "afterimage" | "sonic_boom" | "plasma_bloom" | "crystal_shards" | "smoke_column" | "tether_snare" | "spark_rain" | "rune_seal" | "wind_shear" | "pulse_mine";
+type HighDynamicsKind = "nova" | "vortex" | "meteor" | "rift" | "arc_chain" | "gravity_well" | "blade_dance" | "seismic_wave" | "soul_reap" | "time_warp" | "afterimage" | "sonic_boom" | "plasma_bloom" | "crystal_shards" | "smoke_column" | "tether_snare" | "spark_rain" | "rune_seal" | "wind_shear" | "pulse_mine" | "solar_flare" | "ice_nova" | "thunder_lance" | "void_collapse" | "blooming_vines" | "sandstorm" | "echo_pulse" | "magnet_orbit" | "portal_scatter" | "dragon_breath";
 
 /** Ten distinct closed-form motion studies. All geometry is sampled from normalized TTL progress. */
 function drawHighDynamics(kind: HighDynamicsKind, draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
@@ -1451,6 +1451,69 @@ function drawHighDynamics(kind: HighDynamicsKind, draw: IDrawAdapter, world: imp
       for(let i=0;i<8;i++){const angle=r+i*Math.PI/4,inner=z*(0.2+burst*0.18),outer=z*(0.24+burst*0.78);draw.drawLine(Math.cos(angle)*inner,Math.sin(angle)*inner,Math.cos(angle)*outer,Math.sin(angle)*outer,c,Math.max(1,z*0.035),fade*(0.35+burst*0.65));}
       break;
     }
+
+    case "solar_flare": {
+      const ignition=Math.max(0,1-p*2.2), corona=z*(0.18+p*0.86);
+      draw.fillCircle(0,0,z*(0.06+ignition*0.12),c,fade);
+      for(let ring=0;ring<3;ring++){const radius=corona*(0.72+ring*0.16),phase=r+p*(ring%2?1.4:-0.8);draw.drawArc(0,0,radius,phase,Math.PI*(1.55-ring*0.12),c,Math.max(1,z*(0.055-ring*0.01)),fade*(0.92-ring*0.18));}
+      for(let i=0;i<14;i++){const angle=r+i*Math.PI*2/14+p*(i%2?0.32:-0.24),inner=z*(0.12+ignition*0.12),outer=corona*(0.82+(i%3)*0.08);draw.drawLine(Math.cos(angle)*inner,Math.sin(angle)*inner,Math.cos(angle)*outer,Math.sin(angle)*outer,c,Math.max(1,z*(i%4===0?0.05:0.024)),fade*(0.86-(i%3)*0.12));}
+      break;
+    }
+    case "ice_nova": {
+      const freeze=Math.sin(Math.PI*Math.min(1,p*1.12)),radius=z*(0.16+p*0.9);
+      for(let ring=0;ring<3;ring++){const rr=radius*(1-ring*0.18);draw.drawArc(0,0,rr,r+ring*0.4,Math.PI*(1.65-ring*0.15),c,Math.max(1,z*(0.06-ring*0.012)),fade*(0.9-ring*0.18));}
+      for(let i=0;i<8;i++){const angle=r+i*Math.PI/4,inner=radius*0.34,outer=radius*(0.72+(i%2)*0.16),mid=(inner+outer)*0.5;draw.drawLine(Math.cos(angle)*inner,Math.sin(angle)*inner,Math.cos(angle)*outer,Math.sin(angle)*outer,c,Math.max(1,z*0.04),fade*(0.75+freeze*0.25));draw.drawLine(Math.cos(angle+0.18)*mid,Math.sin(angle+0.18)*mid,Math.cos(angle-0.18)*mid,Math.sin(angle-0.18)*mid,c,Math.max(1,z*0.022),fade*0.72);}
+      draw.fillCircle(0,0,z*(0.055+freeze*0.08),c,fade);
+      break;
+    }
+    case "thunder_lance": {
+      const length=z*(0.25+p*1.2),width=z*(0.08*(1-p*0.35));let px=-length*0.55,py=0;
+      for(let i=1;i<=12;i++){const t=i/12,x=-length*0.55+length*t,y=Math.sin(t*Math.PI*8+p*7+r)*width*(0.45+(i%3)*0.2);draw.drawLine(px,py,x,y,c,Math.max(1,z*(0.05-(i%3)*0.008)),fade);if(i===4||i===8)draw.drawLine(x,y,x+z*0.13,y+(i===4?-1:1)*z*0.22,c,Math.max(1,z*0.025),fade*0.8);px=x;py=y;}
+      draw.drawLine(length*0.45,-width*0.6,length*0.62,0,c,Math.max(1,z*0.045),fade);
+      break;
+    }
+    case "void_collapse": {
+      const collapse=1-p*0.72,core=z*(0.06+p*0.12);
+      for(let ring=0;ring<4;ring++){const rr=z*(0.22+ring*0.19)*collapse,angle=r+(ring%2?1:-1)*p*(3.5+ring);draw.drawArc(0,0,rr,angle,Math.PI*(1.5+ring*0.08),c,Math.max(1,z*(0.05-ring*0.006)),fade*(0.95-ring*0.14));}
+      for(let i=0;i<10;i++){const angle=r+i*Math.PI/5-p*(i%2?2.8:3.7),outer=z*(0.86-p*0.5),inner=core*1.3;draw.drawLine(Math.cos(angle)*outer,Math.sin(angle)*outer,Math.cos(angle)*inner,Math.sin(angle)*inner,c,Math.max(1,z*0.025),fade*0.78);}
+      draw.fillCircle(0,0,core,c,fade);
+      break;
+    }
+    case "blooming_vines": {
+      const growth=Math.sin(Math.PI*Math.min(1,p*1.08)),extent=z*(0.18+p*0.82);
+      for(let vine=0;vine<5;vine++){const base=r+vine*Math.PI*2/5;let px=0,py=0;for(let k=1;k<=10;k++){const t=k/10,angle=base+Math.sin(t*4+p*2+vine)*0.34,rr=extent*t,x=Math.cos(angle)*rr,y=Math.sin(angle)*rr;if(k>1)draw.drawLine(px,py,x,y,c,Math.max(1,z*(0.055-t*0.025)),fade*(0.9-t*0.25));if(k===6||k===10){const leaf=angle+Math.PI/2,leafLen=z*(0.1+growth*0.05);draw.drawLine(x,y,x+Math.cos(leaf)*leafLen,y+Math.sin(leaf)*leafLen,c,Math.max(1,z*0.035),fade*0.8);}px=x;py=y;}}
+      draw.fillCircle(0,0,z*(0.05+growth*0.05),c,fade);
+      break;
+    }
+    case "sandstorm": {
+      const drift=p*z*0.55;
+      for(let band=0;band<5;band++){const y=(band-2)*z*0.16+Math.sin(p*5+band)*z*0.04,start=-z*0.82+drift*(band%2?1:-0.65),end=z*0.82-drift*0.18;draw.drawArc(start,y,z*(0.34+band*0.035),r+band*0.14,Math.PI*(0.42+0.08*(band%3)),c,Math.max(1,z*(0.055-band*0.006)),fade*(0.9-band*0.12));draw.drawLine(start,y,end,y+Math.sin(p*4+band)*z*0.07,c,Math.max(1,z*0.022),fade*0.55);}
+      break;
+    }
+    case "echo_pulse": {
+      for(let echo=0;echo<5;echo++){const delay=echo*0.14,t=Math.max(0,p-delay),rr=z*(0.12+t*1.12),alpha=fade*(1-echo*0.14);draw.drawArc(0,0,rr,r+echo*0.22,Math.PI*(1.72-echo*0.12),c,Math.max(1,z*(0.065-echo*0.008)),alpha);draw.fillCircle(Math.cos(r+echo*1.3)*rr,Math.sin(r+echo*1.3)*rr,z*0.024,c,alpha);}
+      break;
+    }
+    case "magnet_orbit": {
+      const orbit=z*(0.55+Math.sin(p*Math.PI)*0.12),spin=r+p*5.2;
+      for(let i=0;i<4;i++){const angle=spin+i*Math.PI/2,rad=orbit*(i%2?0.78:1);draw.drawArc(0,0,rad,angle,Math.PI*1.12,c,Math.max(1,z*(0.05-i*0.006)),fade*(0.88-i*0.13));const x=Math.cos(angle+1.12)*rad,y=Math.sin(angle+1.12)*rad;draw.fillCircle(x,y,z*(0.045-i*0.005),c,fade*(0.9-i*0.12));}
+      draw.drawLine(-z*0.16,0,z*0.16,0,c,Math.max(1,z*0.055),fade);
+      break;
+    }
+    case "portal_scatter": {
+      const open=Math.sin(Math.PI*Math.min(1,p*1.1)),radius=z*(0.22+open*0.55);
+      draw.drawArc(0,0,radius,r+p*2.4,Math.PI*1.82,c,Math.max(1,z*0.06),fade);
+      draw.drawArc(0,0,radius*0.72,-r-p*1.8,Math.PI*1.45,c,Math.max(1,z*0.035),fade*0.78);
+      for(let i=0;i<12;i++){const angle=r+i*Math.PI/6+p*(i%2?1.8:-1.2),distance=radius*(0.7+(i%3)*0.12),x=Math.cos(angle)*distance,y=Math.sin(angle)*distance,scatter=z*(0.08+p*0.35);draw.drawLine(x,y,x+Math.cos(angle)*scatter,y+Math.sin(angle)*scatter,c,Math.max(1,z*0.03),fade*(0.9-(i%4)*0.13));}
+      break;
+    }
+    case "dragon_breath": {
+      const sweep=-0.72+p*1.44,spread=0.22+p*0.78,length=z*(0.28+p*0.82);
+      for(let ray=0;ray<9;ray++){const t=ray/8,angle=r+sweep+(t-0.5)*spread,inner=z*(0.08+(ray%3)*0.035),outer=length*(0.82+(ray%3)*0.08);draw.drawLine(Math.cos(angle)*inner,Math.sin(angle)*inner,Math.cos(angle)*outer,Math.sin(angle)*outer,c,Math.max(1,z*(0.05-(ray%3)*0.008)),fade*(0.92-t*0.28));}
+      draw.drawArc(0,0,length*0.72,r+sweep-spread*0.5,spread,c,Math.max(1,z*0.045),fade*0.82);
+      draw.fillCircle(Math.cos(r+sweep)*length*0.18,Math.sin(r+sweep)*length*0.18,z*(0.08+Math.sin(p*Math.PI)*0.06),c,fade);
+      break;
+    }
     case "time_warp": {
       const envelope=Math.sin(Math.PI*p),spin=r+p*p*Math.PI*5,rad=z*(0.42+envelope*0.24);
       for(let i=0;i<3;i++)draw.drawArc((i-1)*z*0.12,-(i-1)*z*0.12,rad*(1-i*0.12),spin-i*0.22,4.02,c,Math.max(1,z*(0.045-i*0.008)),fade*(0.82-i*0.2));
@@ -1482,6 +1545,26 @@ export function drawPixelFxRuneSeal(draw: IDrawAdapter, world: import("@tiny-ast
 export function drawPixelFxWindShear(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("wind_shear", draw, world, entity); }
 
 export function drawPixelFxPulseMine(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("pulse_mine", draw, world, entity); }
+
+export function drawPixelFxSolarFlare(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("solar_flare", draw, world, entity); }
+
+export function drawPixelFxIceNova(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("ice_nova", draw, world, entity); }
+
+export function drawPixelFxThunderLance(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("thunder_lance", draw, world, entity); }
+
+export function drawPixelFxVoidCollapse(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("void_collapse", draw, world, entity); }
+
+export function drawPixelFxBloomingVines(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("blooming_vines", draw, world, entity); }
+
+export function drawPixelFxSandstorm(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("sandstorm", draw, world, entity); }
+
+export function drawPixelFxEchoPulse(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("echo_pulse", draw, world, entity); }
+
+export function drawPixelFxMagnetOrbit(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("magnet_orbit", draw, world, entity); }
+
+export function drawPixelFxPortalScatter(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("portal_scatter", draw, world, entity); }
+
+export function drawPixelFxDragonBreath(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("dragon_breath", draw, world, entity); }
 
 export function registerPixelFxProceduralVFX<TComponents extends CoreComponentRegistry>(
   renderer: Renderer<TComponents, RenderContext>
@@ -1546,6 +1629,16 @@ export function registerPixelFxProceduralVFX<TComponents extends CoreComponentRe
     ["pixelfx_rune_seal", drawPixelFxRuneSeal],
     ["pixelfx_wind_shear", drawPixelFxWindShear],
     ["pixelfx_pulse_mine", drawPixelFxPulseMine],
+    ["pixelfx_solar_flare", drawPixelFxSolarFlare],
+    ["pixelfx_ice_nova", drawPixelFxIceNova],
+    ["pixelfx_thunder_lance", drawPixelFxThunderLance],
+    ["pixelfx_void_collapse", drawPixelFxVoidCollapse],
+    ["pixelfx_blooming_vines", drawPixelFxBloomingVines],
+    ["pixelfx_sandstorm", drawPixelFxSandstorm],
+    ["pixelfx_echo_pulse", drawPixelFxEchoPulse],
+    ["pixelfx_magnet_orbit", drawPixelFxMagnetOrbit],
+    ["pixelfx_portal_scatter", drawPixelFxPortalScatter],
+    ["pixelfx_dragon_breath", drawPixelFxDragonBreath],
   ] as const;
 
   for (const [name, drawEffect] of drawers) {

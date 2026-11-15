@@ -29,6 +29,7 @@ jest.mock("../SkiaContext", () => {
       Path: { Make: () => ({ addArc: jest.fn() }) },
       Font: () => null
     },
+    BlendMode: { SrcOver: "src-over", Plus: "plus", Screen: "screen" },
     getPaint: () => sharedPaint
   };
 });

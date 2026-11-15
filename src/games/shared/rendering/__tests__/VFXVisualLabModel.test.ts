@@ -25,7 +25,8 @@ describe("VFX Visual Lab model", () => {
       "pixelfx_bleed", "pixelfx_buff", "pixelfx_debuff", "pixelfx_spawn", "pixelfx_death",
       "pixelfx_nova", "pixelfx_vortex", "pixelfx_meteor", "pixelfx_rift", "pixelfx_arc_chain",
       "pixelfx_gravity_well", "pixelfx_blade_dance", "pixelfx_seismic_wave", "pixelfx_soul_reap", "pixelfx_time_warp",
-      "pixelfx_afterimage", "pixelfx_sonic_boom", "pixelfx_plasma_bloom", "pixelfx_crystal_shards", "pixelfx_smoke_column", "pixelfx_tether_snare", "pixelfx_spark_rain", "pixelfx_rune_seal", "pixelfx_wind_shear", "pixelfx_pulse_mine", "pixelfx_solar_flare", "pixelfx_ice_nova", "pixelfx_thunder_lance", "pixelfx_void_collapse", "pixelfx_blooming_vines", "pixelfx_sandstorm", "pixelfx_echo_pulse", "pixelfx_magnet_orbit", "pixelfx_portal_scatter", "pixelfx_dragon_breath"
+      "pixelfx_afterimage", "pixelfx_sonic_boom", "pixelfx_plasma_bloom", "pixelfx_crystal_shards", "pixelfx_smoke_column", "pixelfx_tether_snare", "pixelfx_spark_rain", "pixelfx_rune_seal", "pixelfx_wind_shear", "pixelfx_pulse_mine",
+      "pixelfx_solar_flare", "pixelfx_ice_nova", "pixelfx_thunder_lance", "pixelfx_void_collapse", "pixelfx_blooming_vines", "pixelfx_sandstorm", "pixelfx_echo_pulse", "pixelfx_magnet_orbit", "pixelfx_portal_scatter", "pixelfx_dragon_breath", "pixelfx_solar_flare", "pixelfx_ice_nova", "pixelfx_thunder_lance", "pixelfx_void_collapse", "pixelfx_blooming_vines", "pixelfx_sandstorm", "pixelfx_echo_pulse", "pixelfx_magnet_orbit", "pixelfx_portal_scatter", "pixelfx_dragon_breath"
     ]));
   });
 

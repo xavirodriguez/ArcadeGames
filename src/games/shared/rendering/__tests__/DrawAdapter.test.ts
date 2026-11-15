@@ -8,7 +8,9 @@ jest.mock("../SkiaContext", () => {
     alpha = 1;
     strokeWidth: number | undefined = undefined;
     maskFilter: unknown = undefined;
+    blendMode: unknown = undefined;
     setStyle(style: unknown) { this.style = style; }
+    setBlendMode(mode: unknown) { this.blendMode = mode; }
     setColor(color: unknown) { this.color = color; }
     setAlphaf(alpha: number) { this.alpha = alpha; }
     setStrokeWidth(width: number) { this.strokeWidth = width; }
@@ -19,6 +21,7 @@ jest.mock("../SkiaContext", () => {
     Skia: {
       Paint: () => new MockPaint(),
       PaintStyle: { Fill: "fill", Stroke: "stroke" },
+      BlendMode: { SrcOver: "src-over", Plus: "plus", Screen: "screen" },
       Color: (color: string) => color,
       MaskFilter: { MakeBlur: (_mode: unknown, sigma: number) => ({ sigma }) },
       BlurMode: { Normal: "normal" },
@@ -32,6 +35,7 @@ jest.mock("../SkiaContext", () => {
 
 interface MockCanvasContext {
   globalAlpha: number;
+  globalCompositeOperation: GlobalCompositeOperation;
   fillStyle: string;
   strokeStyle: string;
   lineWidth: number;
@@ -56,8 +60,10 @@ interface MockCanvasContext {
 
 function createCanvasContext(): { context: CanvasRenderingContext2D; fillSnapshots: Array<{ alpha: number; shadowBlur: number }> } {
   const fillSnapshots: Array<{ alpha: number; shadowBlur: number }> = [];
+  const stateStack: GlobalCompositeOperation[] = [];
   const context: MockCanvasContext = {
     globalAlpha: 1,
+    globalCompositeOperation: "source-over",
     fillStyle: "",
     strokeStyle: "",
     lineWidth: 1,
@@ -65,8 +71,8 @@ function createCanvasContext(): { context: CanvasRenderingContext2D; fillSnapsho
     shadowBlur: 0,
     font: "",
     textAlign: "center",
-    save: jest.fn(),
-    restore: jest.fn(),
+    save: jest.fn(() => stateStack.push(context.globalCompositeOperation)),
+    restore: jest.fn(() => { context.globalCompositeOperation = stateStack.pop() ?? "source-over"; }),
     beginPath: jest.fn(),
     arc: jest.fn(),
     fill: jest.fn(() => fillSnapshots.push({ alpha: context.globalAlpha, shadowBlur: context.shadowBlur })),
@@ -81,6 +87,42 @@ function createCanvasContext(): { context: CanvasRenderingContext2D; fillSnapsho
   };
   return { context: context as never as CanvasRenderingContext2D, fillSnapshots };
 }
+
+describe("DrawAdapter blend modes", () => {
+  it("restores Canvas blend mode with the native save/restore stack", () => {
+    const { context } = createCanvasContext();
+    const adapter = new CanvasDrawAdapter(context);
+    adapter.setBlendMode("lighter");
+    adapter.save();
+    adapter.setBlendMode("screen");
+    expect(context.globalCompositeOperation).toBe("screen");
+    adapter.restore();
+    expect(context.globalCompositeOperation).toBe("lighter");
+  });
+
+  it("maps Skia blend modes and restores the adapter state with save/restore", () => {
+    const blendModes: unknown[] = [];
+    const canvas = {
+      save: jest.fn(),
+      restore: jest.fn(),
+      drawCircle: (_x: number, _y: number, _radius: number, paint: unknown) => {
+        blendModes.push((paint as { blendMode: unknown }).blendMode);
+      }
+    };
+    const adapter = new SkiaDrawAdapter(canvas);
+    adapter.setBlendMode("lighter");
+    adapter.save();
+    adapter.setBlendMode("screen");
+    adapter.fillCircle(0, 0, 4, "#ffffff");
+    adapter.restore();
+    adapter.fillCircle(0, 0, 4, "#ffffff");
+    adapter.setBlendMode("source-over");
+    adapter.fillCircle(0, 0, 4, "#ffffff");
+    expect(blendModes).toEqual(["screen", "plus", "src-over"]);
+    expect(canvas.save).toHaveBeenCalledTimes(1);
+    expect(canvas.restore).toHaveBeenCalledTimes(1);
+  });
+});
 
 describe("DrawAdapter glow composition", () => {
   it("multiplies primitive alpha by each Canvas glow layer alpha", () => {

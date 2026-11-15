@@ -154,12 +154,12 @@
 
 ## Resumen U0b (máximo 8 líneas)
 
-1. **D1:** confirmada como política server-only, pendiente U1a; no existe `serverOnly` y GameRules corre también en cliente (`System.ts:30-62`; `AsteroidsGame.ts:190-245`).
-2. **D2:** se mantiene para lógica ejecutada en ambos lados; un `UfoSystem` solo servidor no depende del handshake de seed (`AsteroidsRoom.ts:82-100`; `NetworkManager.ts:85-125`).
-3. **D3:** confirmada con CombatSystem como único dueño del daño; `onCombatDeath` emitirá score y `ufo:destroyed`, eliminando la ruta manual (`CombatSystem.ts:45-175`; `AsteroidCollisionSystem.ts:105-175,184-220`).
-4. **D4:** confirmada; el filtro es bilateral y requiere cambiar máscara de nave y layer/mask de proyectil (`CollisionSystems.ts:55-80,195-225`; `EntityFactory.ts:120-160`).
-5. **P6-P8:** completas: filtro simétrico, fuentes de tiers duplicadas y API Extractor fuera de CI (`CollisionSystems.ts:55-80`; `AsteroidConfigSchema.ts:1-55`; `api-extractor.json:1-35`; `package.json:20-55`).
-6. **Nuevos hallazgos:** seed cliente no garantizado; preview/LocalPlayer y tratamiento de entidades ausentes son hipótesis; límite 20/tick frente a 50 asteroides (`useAsteroidsGame.ts:26-56`; `AsteroidInputSystem.ts:25-45`; `NetworkManager.ts:85-125,140-205`; `asteroids.json:1-30`).
-7. **Tabla:** añadido U1a; U2 depende de U1+U1a; U3 de U1+U1a; U6 de U1a; U7 especifica CombatSystem y misión por `eventName`.
+1. **D1:** confirmada como política server-only, pendiente U1a; no existe `serverOnly` y GameRules corre también en cliente (`packages/core/src/ecs/System.ts:30-62`; `src/games/asteroids/AsteroidsGame.ts:190-245`).
+2. **D2:** se mantiene para lógica ejecutada en ambos lados; un `UfoSystem` solo servidor no depende del handshake de seed (`server/src/AsteroidsRoom.ts:82-100`; `packages/core/src/network/NetworkManager.ts:85-125`).
+3. **D3:** confirmada con CombatSystem como único dueño del daño; `onCombatDeath` emitirá score y `ufo:destroyed`, eliminando la ruta manual (`packages/gameplay-kit/src/combat/systems/CombatSystem.ts:45-175`; `src/games/asteroids/systems/AsteroidCollisionSystem.ts:105-175,184-220`).
+4. **D4:** confirmada; el filtro es bilateral y requiere cambiar máscara de nave y layer/mask de proyectil (`packages/core/src/physics/collision/CollisionSystems.ts:55-80,195-225`; `src/games/asteroids/EntityFactory.ts:120-160`).
+5. **P6-P8:** completas: filtro simétrico, fuentes de tiers duplicadas y API Extractor fuera de CI (`packages/core/src/physics/collision/CollisionSystems.ts:55-80`; `src/games/asteroids/types/AsteroidConfigSchema.ts:1-55`; `api-extractor.json:1-35`; `package.json:20-55`).
+6. **Nuevos hallazgos:** seed cliente no garantizado; preview/LocalPlayer y tratamiento de entidades ausentes son hipótesis; límite 20/tick frente a 50 asteroides (`src/hooks/useAsteroidsGame.ts:26-56`; `src/games/asteroids/systems/AsteroidInputSystem.ts:25-45`; `packages/core/src/network/NetworkManager.ts:85-125,140-205`; `src/games/asteroids/config/asteroids.json:1-30`).
+7. **Tabla:** añadido U1a; U2 depende de U1+U1a; U3 de U1+U1a; U6 de U1a; U7 especifica CombatSystem y misión por `eventName` (decisiones y cambios de alcance registrados en este ledger).
 8. **Estado:** U1a es la siguiente unidad pero sigue `pending); U0/U0b siguen `awaiting-review`. Solo documental; no se ejecutó `pnpm run ci`, Jest ni E2E.
 

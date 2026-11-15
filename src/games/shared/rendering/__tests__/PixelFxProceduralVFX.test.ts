@@ -59,6 +59,16 @@ import {
   drawPixelFxRuneSeal,
   drawPixelFxWindShear,
   drawPixelFxPulseMine,
+  drawPixelFxSolarFlare,
+  drawPixelFxIceNova,
+  drawPixelFxThunderLance,
+  drawPixelFxVoidCollapse,
+  drawPixelFxBloomingVines,
+  drawPixelFxSandstorm,
+  drawPixelFxEchoPulse,
+  drawPixelFxMagnetOrbit,
+  drawPixelFxPortalScatter,
+  drawPixelFxDragonBreath,
   registerPixelFxProceduralVFX
 } from "../PixelFxProceduralVFX";
 
@@ -515,6 +525,22 @@ describe("PixelFX-inspired procedural VFX", () => {
     }
   });
 
+  it("renders the third ten effects deterministically across TTL samples", () => {
+    const effects = [drawPixelFxSolarFlare, drawPixelFxIceNova, drawPixelFxThunderLance, drawPixelFxVoidCollapse, drawPixelFxBloomingVines, drawPixelFxSandstorm, drawPixelFxEchoPulse, drawPixelFxMagnetOrbit, drawPixelFxPortalScatter, drawPixelFxDragonBreath];
+    for (const effect of effects) {
+      const early=createAdapter(), earlyState=createWorld(0.36);
+      effect(early,earlyState.world,earlyState.entity);
+      const late=createAdapter(), lateState=createWorld(0.04);
+      effect(late,lateState.world,lateState.entity);
+      const calls=(adapter: MockDrawAdapter)=>[adapter.drawLine.mock.calls,adapter.drawArc.mock.calls,adapter.fillCircle.mock.calls,adapter.strokeCircle.mock.calls];
+      expect(calls(early).flat().length).toBeGreaterThan(0);
+      expect(calls(late)).not.toEqual(calls(early));
+      const repeat=createAdapter(), repeatState=createWorld(0.04);
+      effect(repeat,repeatState.world,repeatState.entity);
+      expect(calls(repeat)).toEqual(calls(late));
+    }
+  });
+
   it("does not draw expired effects", () => {
     const adapter = createAdapter();
     const { world, entity } = createWorld(0);
@@ -562,14 +588,14 @@ describe("PixelFX-inspired procedural VFX", () => {
     expect(adapter.fillCircle).not.toHaveBeenCalled();
   });
 
-  it("registers all fifty-nine shapes for Canvas", () => {
+  it("registers all sixty-nine shapes for Canvas", () => {
     const registerShape = jest.fn();
     const renderer = {
       type: "canvas" as const,
       registerShape
     } as never as Renderer<CoreComponentRegistry, RenderContext>;
     registerPixelFxProceduralVFX(renderer);
-    expect(registerShape).toHaveBeenCalledTimes(59);
+    expect(registerShape).toHaveBeenCalledTimes(69);
     expect(registerShape.mock.calls.map(([name]) => name)).toEqual([
       "pixelfx_impact",
       "pixelfx_hitstun",
@@ -629,18 +655,28 @@ describe("PixelFX-inspired procedural VFX", () => {
       "pixelfx_spark_rain",
       "pixelfx_rune_seal",
       "pixelfx_wind_shear",
-      "pixelfx_pulse_mine"
+      "pixelfx_pulse_mine",
+      "pixelfx_solar_flare",
+      "pixelfx_ice_nova",
+      "pixelfx_thunder_lance",
+      "pixelfx_void_collapse",
+      "pixelfx_blooming_vines",
+      "pixelfx_sandstorm",
+      "pixelfx_echo_pulse",
+      "pixelfx_magnet_orbit",
+      "pixelfx_portal_scatter",
+      "pixelfx_dragon_breath"
     ]);
   });
 
-  it("registers the same fifty-nine-shape contract for Skia", () => {
+  it("registers the same sixty-nine-shape contract for Skia", () => {
     const registerShape = jest.fn();
     const renderer = {
       type: "skia" as const,
       registerShape
     } as never as Renderer<CoreComponentRegistry, RenderContext>;
     registerPixelFxProceduralVFX(renderer);
-    expect(registerShape).toHaveBeenCalledTimes(59);
+    expect(registerShape).toHaveBeenCalledTimes(69);
     expect(registerShape.mock.calls.map(([name]) => name)).toEqual([
       "pixelfx_impact",
       "pixelfx_hitstun",

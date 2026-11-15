@@ -4,13 +4,16 @@ import type { SkCanvas, SkPaint } from "@shopify/react-native-skia";
  * Shared Skia context initialization for Node / React Native environments.
  */
 let Skia: any = null;
+let BlendMode: { SrcOver?: unknown; Plus?: unknown; Screen?: unknown } | null = null;
 try {
-  Skia = require("@shopify/react-native-skia").Skia;
+  const skiaModule = require("@shopify/react-native-skia");
+  Skia = skiaModule.Skia;
+  BlendMode = skiaModule.BlendMode;
 } catch {
   // Silent fallback in test environments
 }
 
-export { Skia };
+export { Skia, BlendMode };
 export type { SkCanvas, SkPaint } from "@shopify/react-native-skia";
 
 let cachedPaint: SkPaint | null = null;

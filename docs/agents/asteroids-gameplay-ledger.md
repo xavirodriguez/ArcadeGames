@@ -9,7 +9,7 @@
 |---|---|---|---|---|
 | U0 | Auditoría de arquitectura | approved | — | Sin cambios. |
 | U0b | Anexo de auditoría | approved | U0 | Este anexo + decisiones D1-D4. Checkpoint humano. |
-| U1a | Guard de autoridad | pending | U0b | Recurso/flag de rol de red (servidor, cliente, un jugador) y registro condicional de los sistemas de spawn (`AsteroidGameStateSystem` para olas, futuro `UfoSystem`). **Fase 0:** auditar cómo se decide `isMultiplayer`/`headless` y si ampliar `SystemConfig` toca la API pública del core; si es así, preferir una solución local a Asteroids. Test de dos Worlds (servidor + cliente): un único spawn. Checkpoint humano. |
+| U1a | Guard de autoridad | pending | U0b | Recurso `NetworkRole` y registro condicional de `AsteroidGameStateSystem`; `AsteroidsRoom` declara `server`, multiplayer sin override deriva a `client` y modo local a `single`. Prueba de dos Worlds con un único spawn. Implementación subida a PR; pendiente CI y checkpoint humano. |
 | U1 | `findSafeSpawnPoint` stateless | pending | U0b | K candidatos derivados de `(seed, clave, índice)`, distancia toroidal a naves y asteroides, K fijo, `degraded: true` si todos son malos. No toca `gameplayRandom`. Hash local. Checkpoint humano. |
 | U2 | Adoptar el helper | pending | U1, U1a | `spawnAsteroidWave`, **`AsteroidsRoom.spawnAsteroids(6)`** y respawn de nave. Documentar el cambio de consumo de RNG. |
 | U3 | Hyperspace seguro | pending | U1, U1a | **Fase 0:** test con dos clientes que compruebe si el salto se ejecuta en el servidor (`LocalPlayer`). Si no, resolverlo antes de pulir. Destino derivado solo si hay handshake de seed; si no, lo decide el servidor. |

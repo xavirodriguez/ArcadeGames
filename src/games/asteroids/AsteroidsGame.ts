@@ -117,6 +117,7 @@ export class AsteroidsGame
   /** Active visual presentation mod (classic | iceberg). */
   private visualMod: AsteroidsVisualMod = classicMod;
   private activeRenderer: Renderer<AsteroidsComponentRegistry, RenderContext> | undefined;
+  private readonly networkRole: "server" | "client" | "single";
 
   public get networkManager(): NetworkManager<AsteroidsComponentRegistry> | undefined { return this.network.networkManager; }
   public set networkManager(val: NetworkManager<AsteroidsComponentRegistry> | undefined) { this.network.networkManager = val; }
@@ -136,6 +137,8 @@ export class AsteroidsGame
     this.mode = (config.gameOptions as AsteroidsGameOptions)?.mode || "deathmatch";
     this.network = new NetworkController<AsteroidsComponentRegistry>(this.world);
     this.isMultiplayer = config.isMultiplayer || false;
+    const gameOptions = config.gameOptions as AsteroidsGameOptions | undefined;
+    this.networkRole = gameOptions?.networkRole ?? (this.isMultiplayer ? "client" : "single");
     this.baseConfig = ConfigService.load<AsteroidConfig>(this.gameId, AsteroidConfigSchema, asteroidsConfigRaw);
     this.config = this.baseConfig;
     this.assetLoader = new AssetLoader(config.assetProvider);
@@ -152,6 +155,7 @@ export class AsteroidsGame
     );
 
     this.world.setResource("GameConfig", this.config);
+    this.world.setResource("NetworkRole", this.networkRole);
     this.world.setResource("PowerUpEffects", new PowerUpRegistry());
 
     this.eventBus.on("loot:spawn", (event) => {
@@ -214,7 +218,9 @@ export class AsteroidsGame
     this.world.addSystem(new ResourceCollectionSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new InvulnerabilitySystem(), { phase: SystemPhase.Simulation });
-    this.world.addSystem(this.gameStateSystem, { phase: SystemPhase.GameRules });
+    if (this.networkRole !== "client") {
+      this.world.addSystem(this.gameStateSystem, { phase: SystemPhase.GameRules });
+    }
 
     this.world.addSystem(new SpatialPartitioningSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new LootSystem(), { phase: SystemPhase.GameRules });

@@ -1,5 +1,5 @@
 import { World, ProjectilePool, ProjectileParams, ProjectileComponents, Entity, BoundaryComponent, PrefabConfig } from "@tiny-aster/core";
-import { CollisionLayers, createProjectilePoolConfig } from "@tiny-aster/gameplay-kit";
+import { CollisionLayers, createProjectilePoolConfig, SharedParticlePool } from "@tiny-aster/gameplay-kit";
 
 const config = (player: boolean): PrefabConfig<ProjectileComponents, ProjectileParams> => createProjectilePoolConfig({
   shape: player ? "shmup_player_bullet" : "shmup_enemy_bullet",
@@ -43,4 +43,19 @@ export class PlayerBulletPool extends ProjectilePool<ProjectileComponents, Proje
 export class EnemyBulletPool extends ProjectilePool<ProjectileComponents, ProjectileParams> {
   constructor() { super(config(false)); }
   acquireBullet(world: World, params: ProjectileParams): Entity { return this.acquire(world, params); }
+}
+
+/**
+ * ECS particle pool for layered explosions (`spawnLayeredExplosion` reads `ParticlePool`).
+ * Matches Asteroids / Space Invaders: SharedParticlePool with poolId "ParticlePool".
+ */
+export class ParticlePool extends SharedParticlePool {
+  constructor() {
+    super({
+      poolId: "ParticlePool",
+      shape: "particle",
+      order: 12,
+      isTrigger: true
+    });
+  }
 }

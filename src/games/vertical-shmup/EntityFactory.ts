@@ -147,6 +147,14 @@ export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: 
   add({ type: "ShmupEnemy", score: scaledScore, archetype: isBoss ? "boss" : archetype });
   add({ type: "Health", current: scaledHp, max: scaledHp });
   add({ type: "Faction", faction: "enemy", value: "enemy" });
+  // P2-01: body contact damages the player once per accepted hit; enemy is not consumed.
+  add({
+    type: "Damage",
+    amount: 1,
+    category: "shmup_body",
+    friendlyFire: false,
+    consumption: "none"
+  });
   add({ type: "EnemyPath", kind: pathKind, elapsed: 0, duration: pathDuration, speed: enemySpeed, amplitude: isBoss ? 80 : 120, frequency: isBoss ? 1.0 : 1.8, originX: x, originY: y });
   add({
     type: "Boundary",

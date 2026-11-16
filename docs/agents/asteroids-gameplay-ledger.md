@@ -10,7 +10,7 @@
 | U0 | Auditoría de arquitectura | approved | — | Sin cambios. |
 | U0b | Anexo de auditoría | approved | U0 | Este anexo + decisiones D1-D4. Checkpoint humano. |
 | U1a | Guard de autoridad | pending | U0b | Recurso `NetworkRole` y registro condicional de `AsteroidGameStateSystem`; `AsteroidsRoom` declara `server`, multiplayer sin override deriva a `client` y modo local a `single`. Prueba de dos Worlds con un único spawn. Implementación subida a PR; pendiente CI y checkpoint humano. |
-| U1 | `findSafeSpawnPoint` stateless | pending | U0b | K candidatos derivados de `(seed, clave, índice)`, distancia toroidal a naves y asteroides, K fijo, `degraded: true` si todos son malos. No toca `gameplayRandom`. Hash local. Checkpoint humano. |
+| U1 | `findSafeSpawnPoint` stateless | pending | U0b | U1.1–U1.4 implementadas en `src/games/asteroids/systems/SafeSpawn.ts` y `src/games/asteroids/__tests__/SafeSpawn.test.ts`: hash local type-tagged y candidatos stateless (K=16 por defecto), clearance = distancia toroidal centro-superficie, radio de obstáculo descontado, desempate por índice menor y `degraded` solo si el mejor clearance es menor que el umbral. No consume `gameplayRandom`, no importa rendering ni toca integraciones U2. Tests añadidos; pendiente CI y checkpoint humano. |
 | U2 | Adoptar el helper | pending | U1, U1a | `spawnAsteroidWave`, **`AsteroidsRoom.spawnAsteroids(6)`** y respawn de nave. Documentar el cambio de consumo de RNG. |
 | U3 | Hyperspace seguro | pending | U1, U1a | **Fase 0:** test con dos clientes que compruebe si el salto se ejecuta en el servidor (`LocalPlayer`). Si no, resolverlo antes de pulir. Destino derivado solo si hay handshake de seed; si no, lo decide el servidor. |
 | U4 | Tiers data-driven | pending | — | **Un único resolver** de tiers (Zod + hardcode de `fragmentAsteroid` + radios del blueprint). `hp/fragmentImpulse/splitPattern`; consumir `speedRange` con regresión **con tolerancia** (no bit a bit). Checkpoint humano. |
@@ -30,7 +30,14 @@
 5. **Autoridad y reconciliación.** Toda lógica nueva debe producir el mismo resultado en servidor y cliente, o ser corregible por snapshot autoritativo. Los spawns de entidades únicas/compartidas deben tener un único dueño de autoridad. Todo spawn de entidades compartidas (olas, UFO) se ejecuta solo bajo el guard de autoridad de U1a.
 6. **Determinismo ECS.** No introducir `Date.now`, `performance.now`, `Math.random` ni estado oculto mutable en lógica de gameplay. Mutaciones estructurales durante un tick usan CommandBuffer.
 7. **Calidad.** No usar `any`; evitar duplicación; añadir pruebas deterministas/regresión para cada unidad. `done` exige pruebas pertinentes y `pnpm run ci` ejecutado y verificado en verde.
-8. **Documentación.** Los cambios documentales registran qué se inspeccionó, qué no pudo verificarse y cómo cerrarlo. Esta invocación no modifica código de producción ni tests.
+8. **Documentación.** Los cambios documentales registran qué se inspeccionó, qué no pudo verificarse y cómo cerrarlo; no sustituyen las pruebas ni los cambios de runtime aprobados para cada unidad.
+
+### U1 — Helper puro de spawn seguro (2026-11-16)
+
+- **Verificado.** `SafeSpawn.ts` deriva cada coordenada desde `(seed, key, candidateIndex)` con hash local stateless; las claves string y number se separan por etiqueta de tipo. El valor por defecto es K=16; no lee `World`, `gameplayRandom` ni helpers de rendering (`src/games/asteroids/systems/SafeSpawn.ts:1-213`).
+- **Verificado.** El clearance es `hypot(dxToroidal, dyToroidal) - obstacle.radius`; el umbral `minClearance` representa margen adicional desde la superficie del obstáculo y no incorpora el radio del objeto que aparecerá. El llamador debe sumar ese radio al umbral si necesita separación entre superficies (`src/games/asteroids/systems/SafeSpawn.ts:15-24,143-145,189-194`).
+- **Verificado.** Se conserva el candidato de menor índice en empates exactos; sin obstáculos el clearance es `Infinity`. `degraded` es true únicamente cuando el mejor clearance resulta menor que `minClearance`; la igualdad satisface el umbral (`src/games/asteroids/systems/SafeSpawn.ts:183-211`).
+- **Verificado.** `SafeSpawn.test.ts` cubre golden candidate, repetibilidad, semilla/clave, límites del mundo, seam toroidal en ambos ejes, radio, selección del mejor candidato, desempate, umbral/degraded, entrada inmutable y validación numérica (`src/games/asteroids/__tests__/SafeSpawn.test.ts:1-157`). La ejecución de tests y CI queda pendiente de los checks de la PR.
 
 ## Hallazgos de auditoría
 

@@ -8,6 +8,7 @@ export interface ShmupEventRegistry extends CoreEvents, Record<string, unknown> 
   "shmup:kill": { entity: number; score: number };
   "shmup:wave_complete": { wave: number };
   "shmup:graze": { bullet: number; score: number };
+  "shmup:bomb": { bulletsCleared: number; enemiesHit: number; bombsRemaining: number };
 }
 export interface ShmupInputState { axes: { moveX?: number; moveY?: number }; actions: readonly CanonicalActionName[]; }
 export interface ShmupKeyboardInputState {
@@ -18,6 +19,7 @@ export interface ShmupKeyboardInputState {
   moveUp?: boolean;
   moveDown?: boolean;
   shoot?: boolean;
+  bomb?: boolean;
 }
 export type ShmupInputUpdate = Partial<ShmupInputState> | ShmupKeyboardInputState;
 export interface ShmupInputComponent extends Component { type:"Input"; axes:Record<string,number>; actions:readonly CanonicalActionName[]; shootCooldownRemaining:number; }
@@ -36,8 +38,10 @@ export interface ShmupGameStateComponent extends Component {
   scrollDistance:number;
   isGameOver:boolean;
   spawnTimer:number;
-  /** Session graze credits (AUD-P2-01). Optional for backward-compatible snapshots. */
+  /** Session graze credits (AUD-P2-01). */
   grazeCount?: number;
+  /** Remaining bombs (AUD-P2-01). */
+  bombsRemaining?: number;
 }
 export interface ShmupComponentRegistry extends CoreComponentRegistry {
   Input:ShmupInputComponent; ShmupPlayer:ShmupPlayerComponent; ShmupEnemy:ShmupEnemyComponent; ShmupPlayerBullet:ShmupPlayerBulletComponent; ShmupEnemyBullet:ShmupEnemyBulletComponent; EnemyPath:EnemyPathComponent; BulletPattern:BulletPatternComponent; ShmupGameState:ShmupGameStateComponent; Damage:DamageComponent; Faction:FactionComponent; SpawnDirector:SpawnDirectorComponent; WaveMember:WaveMemberComponent; Combo:ComboComponent; LocalPlayer:{type:"LocalPlayer"}; RemotePlayer:{type:"RemotePlayer";sessionId?:string};

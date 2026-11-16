@@ -8,11 +8,24 @@ import { CoreComponentRegistry } from "../ecs/CoreComponents";
  * @public
  */
 export class EnemySensorSystem extends System<CoreComponentRegistry> {
-  /** Updates enemy sensors and ground detectors relative to level geometry and player entities. */
+  /** Updates enemy sensors and ground detectors relative to tilemap geometry and player entities. */
   public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
     const tilemaps = world.query("Tilemap", "Transform");
-    const players = world.query("PlatformerInput", "Transform");
+
+    // Platformer and belt-scroll games expose different player input components.
+    // Merge both families, deduplicating entities that happen to carry both and
+    // sorting by entity ID so equal-distance target selection stays deterministic.
+    const playerIds = new Set<number>();
+    const platformerPlayers = world.query("PlatformerInput", "Transform");
+    const beltPlayers = world.query("BeltInput", "Transform");
+    for (let i = 0; i < platformerPlayers.length; i++) {
+      playerIds.add(platformerPlayers[i]);
+    }
+    for (let i = 0; i < beltPlayers.length; i++) {
+      playerIds.add(beltPlayers[i]);
+    }
+    const players = Array.from(playerIds).sort((a, b) => a - b);
 
     // 1. Update PlayerSensors
     const sensorEntities = world.query("PlayerSensor", "Transform");

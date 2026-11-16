@@ -39,6 +39,13 @@ export function createPlayer(world: World<ShmupComponentRegistry>, x: number, y:
   world.addComponent(e, { type: "Health", current: 3, max: 3, invulnerableRemaining: 0 });
   world.addComponent(e, { type: "Faction", faction: "player", value: "player" });
   world.addComponent(e, {
+    type: "Combo",
+    combo: 0,
+    multiplier: 1,
+    timerRemaining: 0,
+    timerDuration: 2.5
+  });
+  world.addComponent(e, {
     type: "Boundary",
     minX: c.PLAYER_SIZE,
     maxX: c.WORLD_WIDTH - c.PLAYER_SIZE,
@@ -147,7 +154,6 @@ export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: 
   add({ type: "ShmupEnemy", score: scaledScore, archetype: isBoss ? "boss" : archetype });
   add({ type: "Health", current: scaledHp, max: scaledHp });
   add({ type: "Faction", faction: "enemy", value: "enemy" });
-  // P2-01: body contact damages the player once per accepted hit; enemy is not consumed.
   add({
     type: "Damage",
     amount: 1,

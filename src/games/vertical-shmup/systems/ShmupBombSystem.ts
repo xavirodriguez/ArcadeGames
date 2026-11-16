@@ -2,17 +2,14 @@ import { System, World, WorldUtils, Juice, hasInputAction } from "@tiny-aster/co
 import { ShmupComponentRegistry, ShmupEventRegistry } from "../types/ShmupTypes";
 import { ShmupConfig } from "../types/ShmupConfigSchema";
 import { spawnLayeredExplosion } from "../../shared/rendering/SharedVFX";
+import { requestHitStop, spawnFloatingText, triggerDamageVignette } from "../juice/ShmupJuiceHelpers";
+import { SHMUP_COLOR_TOKENS } from "../rendering/ShmupColorTokens";
 
 const DEFAULT_STOCK = 3;
 const DEFAULT_INVULN = 1.5;
 const DEFAULT_ENEMY_DAMAGE = 2;
 const DEFAULT_BOSS_DAMAGE = 1;
 
-/**
- * AUD-P2-01 bombs: limited stock, screen clear of enemy bullets, brief invulnerability,
- * light damage to non-boss enemies, large VFX + explosion SFX at player.
- * Edge-triggered (one detonation per press).
- */
 export class ShmupBombSystem extends System<ShmupComponentRegistry, ShmupEventRegistry> {
   private bombHeld = false;
 
@@ -82,6 +79,7 @@ export class ShmupBombSystem extends System<ShmupComponentRegistry, ShmupEventRe
       if (transform) {
         spawnLayeredExplosion(world, transform.x, transform.y, { type: "boss", scale: 1.25 });
         Juice.playDeathJuice(world, player, { shakeIntensity: 7.0, shakeDuration: 200 });
+        spawnFloatingText(world, transform.x, transform.y - 24, "BOMB", SHMUP_COLOR_TOKENS.warning, 0.8);
       }
     }
 
@@ -96,8 +94,10 @@ export class ShmupBombSystem extends System<ShmupComponentRegistry, ShmupEventRe
       bombsRemaining: world.getSingleton("ShmupGameState")?.bombsRemaining ?? 0
     });
 
+    requestHitStop(world, 3);
+    triggerDamageVignette(world, 0.12, 0.45);
+
     if (!world.isReSimulating) {
-      // Large blast for bomb clear (SHARED_AUDIO_MANIFEST: explosion_large).
       world.getEventBus()?.emitDeferred("PlaySFX", {
         name: "explosion_large",
         volume: 1.0,

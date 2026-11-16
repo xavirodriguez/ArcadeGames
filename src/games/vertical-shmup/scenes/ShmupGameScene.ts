@@ -2,7 +2,7 @@ import { Scene, World, System, SystemPhase, MovementSystem, BoundarySystem, TTLS
 import { CombatSystem } from "@tiny-aster/gameplay-kit";
 import { ShmupComponentRegistry } from "../types/ShmupTypes";
 import { ShmupConfig } from "../types/ShmupConfigSchema";
-import { PlayerBulletPool, EnemyBulletPool } from "../EntityPool";
+import { PlayerBulletPool, EnemyBulletPool, ParticlePool } from "../EntityPool";
 import { ShmupInputSystem } from "../systems/ShmupInputSystem";
 import { ScrollSystem } from "../systems/ScrollSystem";
 import { EnemyPathSystem } from "../systems/EnemyPathSystem";
@@ -21,7 +21,8 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
     private readonly playerPool: PlayerBulletPool,
     private readonly enemyPool: EnemyBulletPool,
     world: World<ShmupComponentRegistry>,
-    private readonly gameOptions?: Record<string, unknown>
+    private readonly gameOptions?: Record<string, unknown>,
+    private readonly particlePool: ParticlePool = new ParticlePool()
   ) { super(world); }
 
   public onEnter(): void {
@@ -41,6 +42,8 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
     );
     this.world.setResource("PlayerBulletPool", this.playerPool);
     this.world.setResource("EnemyBulletPool", this.enemyPool);
+    // Required by SharedVFX.spawnLayeredExplosion particle-burst layer.
+    this.world.setResource("ParticlePool", this.particlePool);
 
     const state = this.world.createEntity();
     this.world.addComponent(state, { type: "ShmupGameState", score: 0, wave: 1, lives: 3, scrollDistance: 0, isGameOver: false, spawnTimer: 0 });

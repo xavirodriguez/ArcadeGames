@@ -26,6 +26,10 @@ export const ShmupConfigSchema = z.object({
   STAR_COUNT: z.number().int().positive().default(80),
   STAR_SPEED: z.number().nonnegative().default(35),
   COUNTDOWN: z.number().nonnegative().default(2),
+  /** Outer graze annulus = PLAYER_COLLIDER_RADIUS + GRAZE_MARGIN (AUD-P2-01). */
+  GRAZE_MARGIN: z.number().nonnegative().default(12),
+  /** Score granted once per enemy bullet that enters the graze annulus. */
+  GRAZE_SCORE: z.number().nonnegative().default(10),
   KEY_LEFT: z.string().default("ArrowLeft"),
   KEY_RIGHT: z.string().default("ArrowRight"),
   KEY_UP: z.string().default("ArrowUp"),

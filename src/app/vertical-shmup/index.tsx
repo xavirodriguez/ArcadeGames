@@ -14,6 +14,7 @@ import { hapticSelection } from "@/utils/haptics";
 
 export default function VerticalShmupScreen() {
   const [started, setStarted] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const { game, gameState, handleInput, isReady } = useVerticalShmupGame(started);
 
   const touchStateRef = useRef<TouchInputState | null>(null);
@@ -29,11 +30,32 @@ export default function VerticalShmupScreen() {
 
   useKeyboardControls(game, isReady);
 
-  // Web: R / Enter restarts after Game Over (mirrors BaseGame restartKey + Galaxian pattern).
+  useEffect(() => {
+    if (!game || !isReady) return;
+    const id = setInterval(() => {
+      const paused = typeof game.isPausedState === "function" ? game.isPausedState() : false;
+      setIsPaused((prev) => (prev === paused ? prev : paused));
+    }, 100);
+    return () => clearInterval(id);
+  }, [game, isReady]);
+
   useEffect(() => {
     if (Platform.OS !== "web" || !game) return;
 
     const onKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "Escape") {
+        if (gameState?.isGameOver) return;
+        e.preventDefault();
+        hapticSelection();
+        if (game.isPausedState()) {
+          game.resume();
+          setIsPaused(false);
+        } else {
+          game.pause();
+          setIsPaused(true);
+        }
+        return;
+      }
       if (!gameState?.isGameOver) return;
       if (e.code === "KeyR" || e.code === "Enter") {
         e.preventDefault();
@@ -64,11 +86,27 @@ export default function VerticalShmupScreen() {
     if (game) void game.restart();
   }, [game]);
 
+  const handleResume = useCallback(() => {
+    hapticSelection();
+    if (game) {
+      game.resume();
+      setIsPaused(false);
+    }
+  }, [game]);
+
+  const handlePause = useCallback(() => {
+    hapticSelection();
+    if (game && !gameState?.isGameOver) {
+      game.pause();
+      setIsPaused(true);
+    }
+  }, [game, gameState?.isGameOver]);
+
   if (!started) return (
     <GameScreen>
       <BackButton label="Menu" />
       <GameTitle glowColor="#00e5ff">1942 // VERTICAL SHMUP</GameTitle>
-      <GameInstructions>WASD / arrows: move · Space: fire continuously</GameInstructions>
+      <GameInstructions>WASD / arrows: move · Space: fire · Esc: pause</GameInstructions>
       <NeonButton variant="cyan" onPress={() => setStarted(true)}>START MISSION</NeonButton>
     </GameScreen>
   );
@@ -77,6 +115,7 @@ export default function VerticalShmupScreen() {
 
   const lives = Math.max(0, gameState?.lives ?? 3);
   const isGameOver = gameState?.isGameOver === true;
+  const showControls = !isGameOver && !isPaused;
   const world = game.getWorld();
   const bossEntity = world.query("ShmupEnemy", "Health").find(
     (entity) => world.getComponent(entity, "ShmupEnemy")?.archetype === "boss"
@@ -91,7 +130,21 @@ export default function VerticalShmupScreen() {
       <SafeAreaProvider>
         <GameLayoutShell
           style={sharedScreenStyles.container}
-          topLeftSlot={<BackButton label="Menu" />}
+          topLeftSlot={
+            <View style={styles.topBar}>
+              <BackButton label="Menu" />
+              {!isGameOver && (
+                <TouchableOpacity
+                  style={styles.pauseChip}
+                  onPress={isPaused ? handleResume : handlePause}
+                  accessibilityRole="button"
+                  accessibilityLabel={isPaused ? "Resume mission" : "Pause mission"}
+                >
+                  <Text style={styles.pauseChipText}>{isPaused ? "▶" : "❚❚"}</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          }
           centerHudSlot={
             <View style={styles.hudStack} pointerEvents="none">
               <View style={styles.hud}>
@@ -135,7 +188,7 @@ export default function VerticalShmupScreen() {
           }
           canvasSlot={<CanvasRenderer world={game.getWorld()} gameLoop={game.getGameLoop()} onInitialize={(renderer) => game.initializeRenderer(renderer)} />}
           controlsSlot={
-            !isGameOver ? (
+            showControls ? (
               <View style={styles.controls} pointerEvents="box-none">
                 <View style={styles.leftControlArea} pointerEvents="box-none">
                   <TouchVirtualJoystick
@@ -182,6 +235,22 @@ export default function VerticalShmupScreen() {
                   <Text style={styles.restartHint}>R / Enter</Text>
                 )}
               </View>
+            ) : isPaused ? (
+              <View style={sharedScreenStyles.overlay} accessibilityRole="summary">
+                <Text style={sharedScreenStyles.overlayText}>PAUSA</Text>
+                <Text style={styles.gameOverMeta}>MISSION SUSPENDED</Text>
+                <TouchableOpacity
+                  style={styles.restartButton}
+                  onPress={handleResume}
+                  accessibilityRole="button"
+                  accessibilityLabel="Resume mission"
+                >
+                  <Text style={styles.restartButtonText}>CONTINUAR</Text>
+                </TouchableOpacity>
+                {Platform.OS === "web" && (
+                  <Text style={styles.restartHint}>Esc</Text>
+                )}
+              </View>
             ) : null
           }
         />
@@ -191,6 +260,26 @@ export default function VerticalShmupScreen() {
 }
 
 const styles = StyleSheet.create({
+  topBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  pauseChip: {
+    marginLeft: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "rgba(85, 232, 255, 0.55)",
+    backgroundColor: "rgba(8, 17, 42, 0.85)",
+  },
+  pauseChipText: {
+    color: "#55E8FF",
+    fontFamily: "monospace",
+    fontSize: 12,
+    fontWeight: "bold",
+  },
   hudStack: {
     width: "100%",
     maxWidth: 460,
@@ -232,7 +321,6 @@ const styles = StyleSheet.create({
     fontFamily: "monospace",
     fontSize: 13,
     fontWeight: "bold",
-    letterSpacing: 0.5,
   },
   waveValue: {
     color: "#FFD18A",

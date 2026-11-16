@@ -10,6 +10,7 @@ import { ShmupCollisionSystem } from "../systems/ShmupCollisionSystem";
 import { ShmupSingleHitGuardSystem } from "../systems/ShmupSingleHitGuardSystem";
 import { ShmupBulletPatternSystem } from "../systems/BulletPatternSystem";
 import { ShmupSpawnSystem } from "../systems/ShmupSpawnSystem";
+import { ShmupGrazeSystem } from "../systems/ShmupGrazeSystem";
 import { createPlayer, createEnemy } from "../EntityFactory";
 import { selectShmupEnemyArchetype } from "../EnemyArchetypes";
 import { createMainCamera2D } from "../../shared/componentBuilders";
@@ -46,7 +47,16 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
     this.world.setResource("ParticlePool", this.particlePool);
 
     const state = this.world.createEntity();
-    this.world.addComponent(state, { type: "ShmupGameState", score: 0, wave: 1, lives: 3, scrollDistance: 0, isGameOver: false, spawnTimer: 0 });
+    this.world.addComponent(state, {
+      type: "ShmupGameState",
+      score: 0,
+      wave: 1,
+      lives: 3,
+      scrollDistance: 0,
+      isGameOver: false,
+      spawnTimer: 0,
+      grazeCount: 0
+    });
     const player = createPlayer(this.world, this.config.WORLD_WIDTH / 2, this.config.WORLD_HEIGHT - 100);
     this.world.setResource("ScreenConfig", { width: this.config.WORLD_WIDTH, height: this.config.WORLD_HEIGHT });
 
@@ -84,6 +94,8 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
     this.world.addSystem(new ShmupSingleHitGuardSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new ShmupBulletPatternSystem(), { phase: SystemPhase.Simulation });
+    // Graze after movement/transform so positions are current; before death cleanup is fine.
+    this.world.addSystem(new ShmupGrazeSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new ShmupCollisionSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new Camera2DSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation });

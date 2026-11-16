@@ -40,8 +40,16 @@ export class ShmupCollisionSystem extends System<ShmupComponentRegistry, ShmupEv
 
       const transform = world.getComponent(entity, "Transform");
       if (transform) {
-        spawnLayeredExplosion(world, transform.x, transform.y, { type: "enemy" });
-        Juice.playHitJuice(world, entity, { shakeIntensity: 2.0, shakeDuration: 80 });
+        const isBoss = enemy.archetype === "boss";
+        spawnLayeredExplosion(world, transform.x, transform.y, {
+          type: isBoss ? "boss" : "enemy",
+          scale: isBoss ? 1.15 : 1
+        });
+        if (isBoss) {
+          Juice.playDeathJuice(world, entity, { shakeIntensity: 8.0, shakeDuration: 220 });
+        } else {
+          Juice.playHitJuice(world, entity, { shakeIntensity: 2.0, shakeDuration: 80 });
+        }
       }
 
       world.mutateSingleton("ShmupGameState", (state) => {

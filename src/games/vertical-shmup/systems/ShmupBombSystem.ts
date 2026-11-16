@@ -10,7 +10,7 @@ const DEFAULT_BOSS_DAMAGE = 1;
 
 /**
  * AUD-P2-01 bombs: limited stock, screen clear of enemy bullets, brief invulnerability,
- * light damage to non-boss enemies, large VFX at player.
+ * light damage to non-boss enemies, large VFX + explosion SFX at player.
  * Edge-triggered (one detonation per press).
  */
 export class ShmupBombSystem extends System<ShmupComponentRegistry, ShmupEventRegistry> {
@@ -95,6 +95,14 @@ export class ShmupBombSystem extends System<ShmupComponentRegistry, ShmupEventRe
       enemiesHit,
       bombsRemaining: world.getSingleton("ShmupGameState")?.bombsRemaining ?? 0
     });
-    world.getEventBus()?.emitDeferred("PlaySFX", { name: "explosion", cooldownMs: 100 });
+
+    if (!world.isReSimulating) {
+      // Large blast for bomb clear (SHARED_AUDIO_MANIFEST: explosion_large).
+      world.getEventBus()?.emitDeferred("PlaySFX", {
+        name: "explosion_large",
+        volume: 1.0,
+        pitchRange: 0.04
+      });
+    }
   }
 }

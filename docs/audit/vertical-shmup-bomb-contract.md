@@ -5,7 +5,7 @@
 
 ## Intent
 
-Limited **emergency clear**: remove hostile bullets, brief invulnerability, light damage to enemies, large VFX.
+Limited **emergency clear**: remove hostile bullets, brief invulnerability, light damage to enemies, large VFX + SFX.
 
 ## Rules
 
@@ -18,7 +18,19 @@ Limited **emergency clear**: remove hostile bullets, brief invulnerability, ligh
 | Enemies | Non-boss: `BOMB_ENEMY_DAMAGE` (default 2); boss: `BOMB_BOSS_DAMAGE` (default 1) |
 | Player | `invulnerableRemaining = max(..., BOMB_INVULN_DURATION)` (default 1.5 s) |
 | VFX | `spawnLayeredExplosion` type `boss` at player + death juice |
+| SFX | `PlaySFX` `explosion_large` (skipped on re-sim) |
 | Event | `shmup:bomb` |
+
+## Related combat SFX (ShmupCollisionSystem)
+
+| Event | Cue |
+|-------|-----|
+| Enemy kill | `explosion_small` |
+| Boss kill | `explosion_large` |
+| Player hit | `hit` |
+| Player death | `explosion_large` + `game_over` |
+
+Assets: `SHARED_AUDIO_MANIFEST` in `@tiny-aster/core`.
 
 ## Negative cases
 
@@ -29,5 +41,6 @@ Limited **emergency clear**: remove hostile bullets, brief invulnerability, ligh
 ## Files
 
 - `systems/ShmupBombSystem.ts`
+- `systems/ShmupCollisionSystem.ts` (kill/hit SFX)
 - Config keys `BOMB_*`
 - UI: bomb touch button + B key; HUD `BOMBS`

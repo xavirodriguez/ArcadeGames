@@ -2,6 +2,15 @@ import { System, World, WorldUtils, Juice } from "@tiny-aster/core";
 import { ShmupComponentRegistry, ShmupEventRegistry } from "../types/ShmupTypes";
 import { spawnLayeredExplosion } from "../../shared/rendering/SharedVFX";
 
+function playSfx(
+  world: World<ShmupComponentRegistry, ShmupEventRegistry>,
+  name: string,
+  options?: { volume?: number; cooldownMs?: number; pitchRange?: number }
+): void {
+  if (world.isReSimulating) return;
+  world.getEventBus()?.emitDeferred("PlaySFX", { name, ...options });
+}
+
 export class ShmupCollisionSystem extends System<ShmupComponentRegistry, ShmupEventRegistry> {
   private subscribed = false;
 
@@ -19,15 +28,16 @@ export class ShmupCollisionSystem extends System<ShmupComponentRegistry, ShmupEv
             render.hitFlashFrames = 10;
           });
           Juice.playHitJuice(world, event.targetEntity, { shakeIntensity: 4.0, shakeDuration: 120 });
+          playSfx(world, "hit", { volume: 0.9, cooldownMs: 80 });
           return;
         }
 
-        // Enemy hits need an equally immediate visual response, without changing combat state.
         const enemy = world.getComponent(event.targetEntity, "ShmupEnemy");
         if (enemy) {
           world.mutateComponent(event.targetEntity, "Render", (render) => {
             render.hitFlashFrames = Math.max(render.hitFlashFrames ?? 0, 5);
           });
+          playSfx(world, "hit", { volume: 0.55, cooldownMs: 40, pitchRange: 0.08 });
         }
       });
     }
@@ -47,8 +57,10 @@ export class ShmupCollisionSystem extends System<ShmupComponentRegistry, ShmupEv
         });
         if (isBoss) {
           Juice.playDeathJuice(world, entity, { shakeIntensity: 8.0, shakeDuration: 220 });
+          playSfx(world, "explosion_large", { volume: 1.0 });
         } else {
           Juice.playHitJuice(world, entity, { shakeIntensity: 2.0, shakeDuration: 80 });
+          playSfx(world, "explosion_small", { volume: 0.85, cooldownMs: 40 });
         }
       }
 
@@ -75,6 +87,8 @@ export class ShmupCollisionSystem extends System<ShmupComponentRegistry, ShmupEv
           if (transform) {
             spawnLayeredExplosion(world, transform.x, transform.y, { type: "ship" });
             Juice.playDeathJuice(world, entity, { shakeIntensity: 6.0, shakeDuration: 180 });
+            playSfx(world, "explosion_large", { volume: 1.0 });
+            playSfx(world, "game_over", { volume: 0.9 });
           }
           world.mutateSingleton("ShmupGameState", (state) => {
             state.isGameOver = true;
@@ -82,6 +96,5 @@ export class ShmupCollisionSystem extends System<ShmupComponentRegistry, ShmupEv
         }
       }
     }
-
   }
 }

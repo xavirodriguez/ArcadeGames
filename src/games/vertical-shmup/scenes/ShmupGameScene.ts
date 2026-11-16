@@ -11,6 +11,7 @@ import { ShmupSingleHitGuardSystem } from "../systems/ShmupSingleHitGuardSystem"
 import { ShmupBulletPatternSystem } from "../systems/BulletPatternSystem";
 import { ShmupSpawnSystem } from "../systems/ShmupSpawnSystem";
 import { ShmupGrazeSystem } from "../systems/ShmupGrazeSystem";
+import { ShmupBombSystem } from "../systems/ShmupBombSystem";
 import { createPlayer, createEnemy } from "../EntityFactory";
 import { selectShmupEnemyArchetype } from "../EnemyArchetypes";
 import { createMainCamera2D } from "../../shared/componentBuilders";
@@ -29,21 +30,15 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
   public onEnter(): void {
     this.world.setResource("GameConfig", {
       ...this.config,
-      // RendererUtils consumes camelCase world dimensions. Keep the game-facing
-      // UPPER_SNAKE_CASE config while exposing the renderer contract explicitly.
       worldWidth: this.config.WORLD_WIDTH,
       worldHeight: this.config.WORLD_HEIGHT
     });
-    // Visual theme is presentation-only and never participates in simulation rules.
-    // Sumi-e is the pilot default; set gameOptions.visualTheme="aerial-fantasy" to
-    // retain the previous four-biome treatment during comparison.
     this.world.setResource(
       "ShmupVisualTheme",
       this.gameOptions?.visualTheme === "aerial-fantasy" ? "aerial-fantasy" : "sumi-e"
     );
     this.world.setResource("PlayerBulletPool", this.playerPool);
     this.world.setResource("EnemyBulletPool", this.enemyPool);
-    // Required by SharedVFX.spawnLayeredExplosion particle-burst layer.
     this.world.setResource("ParticlePool", this.particlePool);
 
     const state = this.world.createEntity();
@@ -55,7 +50,8 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
       scrollDistance: 0,
       isGameOver: false,
       spawnTimer: 0,
-      grazeCount: 0
+      grazeCount: 0,
+      bombsRemaining: this.config.BOMB_STOCK_INITIAL ?? 3
     });
     const player = createPlayer(this.world, this.config.WORLD_WIDTH / 2, this.config.WORLD_HEIGHT - 100);
     this.world.setResource("ScreenConfig", { width: this.config.WORLD_WIDTH, height: this.config.WORLD_HEIGHT });
@@ -81,20 +77,19 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
 
   private registerSystems(): void {
     this.world.addSystem(new ShmupInputSystem(), { phase: SystemPhase.Input });
+    this.world.addSystem(new ShmupBombSystem(), { phase: SystemPhase.Input });
     this.world.addSystem(new MovementSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new EnemyPathSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new ShmupSpawnSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new ScrollSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new BoundarySystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
-    // Physics integration mutates local x/y. Refresh world-space coordinates before broad/narrow phase.
     this.world.addSystem(new HierarchySystem() as System<ShmupComponentRegistry>, { phase: SystemPhase.Transform });
     this.world.addSystem(new SpatialPartitioningSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
     this.world.addSystem(new ShmupSingleHitGuardSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new ShmupBulletPatternSystem(), { phase: SystemPhase.Simulation });
-    // Graze after movement/transform so positions are current; before death cleanup is fine.
     this.world.addSystem(new ShmupGrazeSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new ShmupCollisionSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new Camera2DSystem(), { phase: SystemPhase.Presentation });

@@ -69,7 +69,7 @@ export class VerticalShmupGame extends BaseGame<ShmupGameStateComponent, ShmupIn
     this.world.mutateComponent(player, "Input", i => {
       if (hasStructuredInput) {
         if (structuredAxes) i.axes = { ...i.axes, ...structuredAxes };
-        if (structuredActions !== undefined) i.actions = [...structuredActions];
+        if (structuredActions !== undefined) i.actions = [...structuredActions] as never;
         return;
       }
 
@@ -85,17 +85,33 @@ export class VerticalShmupGame extends BaseGame<ShmupGameStateComponent, ShmupIn
         i.axes.moveY = (keyboardInput.moveDown ? 1 : 0) - (keyboardInput.moveUp ? 1 : 0);
       }
 
+      let acts = Array.isArray(i.actions) ? [...i.actions] : [];
       if (typeof keyboardInput.shoot === "boolean") {
-        const acts = Array.isArray(i.actions) ? i.actions : [];
-        i.actions = keyboardInput.shoot
-          ? (acts.includes("shoot") ? [...acts] : [...acts, "shoot"])
+        acts = keyboardInput.shoot
+          ? (acts.includes("shoot" as never) ? acts : [...acts, "shoot" as never])
           : acts.filter((action: string) => action !== "shoot");
       }
+      if (typeof keyboardInput.bomb === "boolean") {
+        acts = keyboardInput.bomb
+          ? (acts.includes("bomb" as never) ? acts : [...acts, "bomb" as never])
+          : acts.filter((action: string) => action !== "bomb");
+      }
+      i.actions = acts as never;
     });
   }
 
   public getGameState(): ShmupGameStateComponent {
-    return this.world.getSingleton("ShmupGameState") ?? { type: "ShmupGameState", score: 0, wave: 1, lives: 3, scrollDistance: 0, isGameOver: false, spawnTimer: 0 };
+    return this.world.getSingleton("ShmupGameState") ?? {
+      type: "ShmupGameState",
+      score: 0,
+      wave: 1,
+      lives: 3,
+      scrollDistance: 0,
+      isGameOver: false,
+      spawnTimer: 0,
+      grazeCount: 0,
+      bombsRemaining: 3
+    };
   }
 
   public isGameOver(): boolean { return this.getGameState().isGameOver; }
@@ -113,14 +129,14 @@ export class VerticalShmupGame extends BaseGame<ShmupGameStateComponent, ShmupIn
 export class NullVerticalShmupGame extends NullBaseGame<ShmupGameStateComponent, ShmupInputState, ShmupComponentRegistry> {
   public readonly gameId = "vertical-shmup";
   public getGameState(): ShmupGameStateComponent {
-    return { type: "ShmupGameState", score: 0, wave: 1, lives: 3, scrollDistance: 0, isGameOver: false, spawnTimer: 0 };
+    return { type: "ShmupGameState", score: 0, wave: 1, lives: 3, scrollDistance: 0, isGameOver: false, spawnTimer: 0, bombsRemaining: 3 };
   }
 }
 
 export const VerticalShmupDefinition: GameDefinition = {
   name: "vertical-shmup",
   createSimulation: (seed: number) => new VerticalShmupGame({ gameOptions: { seed } }),
-  inputSchema: { actions: ["shoot", "pause"], axes: ["moveX", "moveY"] },
+  inputSchema: { actions: ["shoot", "pause", "bomb"], axes: ["moveX", "moveY"] },
   assets: { sprites: [], sounds: SHARED_AUDIO_MANIFEST }
 };
 

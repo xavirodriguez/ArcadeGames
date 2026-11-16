@@ -15,6 +15,8 @@ export interface AsteroidsGameOptions {
   mod?: "classic" | "iceberg" | string;
   /** Initial random seed for gameplay determinism. */
   seed?: number;
+  /** Authority role for this simulation World. Defaults from isMultiplayer when omitted. */
+  networkRole?: "server" | "client" | "single";
   /** Active mutators applied to game simulation. */
   mutators?: Mutator<AsteroidsComponentRegistry>[] | unknown[];
   /** Optional modifiers array. */

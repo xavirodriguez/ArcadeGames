@@ -93,7 +93,7 @@ export class AsteroidsRoom extends BaseRoom<AsteroidsState, AsteroidsComponentRe
     const gameSimulation = new AsteroidsGame({
       headless: true,
       isMultiplayer: true,
-      gameOptions: { seed: this.state.seed },
+      gameOptions: { seed: this.state.seed, networkRole: "server" },
       schedule: serverSchedule
     });
     await gameSimulation.init();

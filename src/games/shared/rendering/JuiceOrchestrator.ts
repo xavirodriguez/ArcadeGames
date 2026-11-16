@@ -68,7 +68,17 @@ export type SharedVFXPrimitiveName =
   | "pixelfx_blade_dance"
   | "pixelfx_seismic_wave"
   | "pixelfx_soul_reap"
-  | "pixelfx_time_warp";
+  | "pixelfx_time_warp"
+  | "pixelfx_prism_burst"
+  | "pixelfx_sonic_boom"
+  | "pixelfx_magnetic_surge"
+  | "pixelfx_plasma_orbit"
+  | "pixelfx_solar_flare"
+  | "pixelfx_crystal_bloom"
+  | "pixelfx_pulse_lance"
+  | "pixelfx_echo_shatter"
+  | "pixelfx_tidal_wave"
+  | "pixelfx_phase_collapse";
 
 /**
  * Base configuration options shared across Juice spawn calls and catalog profiles.

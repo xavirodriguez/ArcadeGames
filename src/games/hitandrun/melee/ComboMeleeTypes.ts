@@ -13,6 +13,8 @@ export type ComboStep = "jab1" | "jab2" | "finisher" | "throw" | "special";
 
 export interface ComboMeleeConfig {
   chainWindowSeconds: number;
+  /** How long a melee press survives temporary control locks or an active swing. */
+  attackBufferSeconds?: number;
   jab1: MeleeAttackConfig;
   jab2: MeleeAttackConfig;
   finisher: MeleeAttackConfig;
@@ -29,6 +31,7 @@ export interface ComboMeleeConfig {
 
 export const DEFAULT_COMBO_MELEE_CONFIG: ComboMeleeConfig = {
   chainWindowSeconds: 0.45,
+  attackBufferSeconds: 0.2,
   jab1: {
     ...DEFAULT_MELEE_ATTACK_CONFIG,
     startupSeconds: 0.05,
@@ -84,6 +87,8 @@ export interface ComboMeleeComponent extends Component {
   type: "ComboMelee";
   chainStep: number;
   chainTimer: number;
+  /** Remaining simulation time for a buffered melee press. */
+  attackBufferRemaining?: number;
   facing: number;
   activeStep: ComboStep | "idle";
 }

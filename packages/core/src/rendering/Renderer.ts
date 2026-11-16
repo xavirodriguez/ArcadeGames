@@ -2,10 +2,6 @@ import { World } from "../ecs/World";
 import { ComponentRegistry } from "../ecs/Component";
 
 /**
- * RenderContext represents the basic rendering target contexts.
- * @public
- */
-/**
  * RenderContext represents the basic rendering target contexts (Canvas2D or custom renderer contexts).
  * @public
  */
@@ -32,6 +28,11 @@ export interface Renderer<TRegistry extends ComponentRegistry = ComponentRegistr
   registerBackgroundEffect(name: string, drawer: EffectDrawer<TContext, TRegistry>): void;
   /** Optional scene overlay rendered after all entities, in the active camera coordinate space. */
   registerForegroundEffect?(name: string, drawer: EffectDrawer<TContext, TRegistry>): void;
+  /**
+   * Optional full-screen pass after letterboxing/camera restores (true screen space).
+   * Use for bloom, CRT, color grade — not for world-anchored FX.
+   */
+  registerPostProcessEffect?(name: string, drawer: EffectDrawer<TContext, TRegistry>): void;
 }
 
 /**

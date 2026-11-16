@@ -18,8 +18,21 @@ import {
 } from "./ShmupProjectileThemeRouting";
 import { drawCanvasParticle, drawSkiaParticle } from "./ShmupParticleVisuals";
 import { createShmupBloomPostProcess } from "./ShmupBloomPostProcess";
+import { createShmupDamageVignettePostProcess } from "./ShmupDamageVignettePostProcess";
+import {
+  FloatingTextScoreEffect,
+  SkiaFloatingTextScoreEffect,
+  registerSharedVFXAssets
+} from "../../shared/rendering/SharedVFX";
 
 export function initializeShmupRenderer(renderer: Renderer<ShmupComponentRegistry, unknown>): void {
+  // Shared VFX shapes (floating_text, shockwave, etc.) when available.
+  try {
+    registerSharedVFXAssets(renderer as never);
+  } catch {
+    /* optional on backends without full shared registry */
+  }
+
   RendererUtils.registerAssets(renderer, {
     canvas: (r) => {
       r.registerBackgroundEffect("shmup_starfield", drawShmupStarfield);
@@ -28,7 +41,9 @@ export function initializeShmupRenderer(renderer: Renderer<ShmupComponentRegistr
       r.registerShape("shmup_player_bullet", drawThemeCanvasPlayerBullet);
       r.registerShape("shmup_enemy_bullet", drawThemeCanvasEnemyBullet);
       r.registerShape("particle", drawCanvasParticle as never);
+      r.registerShape("floating_text", FloatingTextScoreEffect as never);
       r.registerPostProcessEffect?.("shmup_bloom", createShmupBloomPostProcess() as never);
+      r.registerPostProcessEffect?.("shmup_damage_vignette", createShmupDamageVignettePostProcess() as never);
     },
     skia: (r) => {
       r.registerBackgroundEffect("shmup_starfield", drawSkiaShmupStarfield as never);
@@ -37,7 +52,7 @@ export function initializeShmupRenderer(renderer: Renderer<ShmupComponentRegistr
       r.registerShape("shmup_player_bullet", drawThemeSkiaPlayerBullet as never);
       r.registerShape("shmup_enemy_bullet", drawThemeSkiaEnemyBullet as never);
       r.registerShape("particle", drawSkiaParticle as never);
-      // Canvas-path bloom; Skia uses per-shape glow until a GPU blur pass exists.
+      r.registerShape("floating_text", SkiaFloatingTextScoreEffect as never);
     }
   });
 }

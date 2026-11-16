@@ -1,4 +1,4 @@
-import { Scene, World, System, SystemPhase, MovementSystem, BoundarySystem, TTLSystem, CollisionSystem2D, Camera2DSystem, RenderUpdateSystem, JuiceSystem, SpatialPartitioningSystem, HierarchySystem } from "@tiny-aster/core";
+import { Scene, World, System, SystemPhase, MovementSystem, BoundarySystem, TTLSystem, CollisionSystem2D, Camera2DSystem, RenderUpdateSystem, JuiceSystem, SpatialPartitioningSystem, HierarchySystem, ComboSystem } from "@tiny-aster/core";
 import { CombatSystem } from "@tiny-aster/gameplay-kit";
 import { ShmupComponentRegistry } from "../types/ShmupTypes";
 import { ShmupConfig } from "../types/ShmupConfigSchema";
@@ -13,6 +13,7 @@ import { ShmupSpawnSystem } from "../systems/ShmupSpawnSystem";
 import { ShmupGrazeSystem } from "../systems/ShmupGrazeSystem";
 import { ShmupBombSystem } from "../systems/ShmupBombSystem";
 import { ShmupParticleFadeSystem } from "../systems/ShmupParticleFadeSystem";
+import { ShmupJuicePresentationSystem } from "../systems/ShmupJuicePresentationSystem";
 import { createPlayer, createEnemy } from "../EntityFactory";
 import { selectShmupEnemyArchetype } from "../EnemyArchetypes";
 import { createMainCamera2D } from "../../shared/componentBuilders";
@@ -85,6 +86,7 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
     this.world.addSystem(new ScrollSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new BoundarySystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
+    this.world.addSystem(new ComboSystem() as System<ShmupComponentRegistry>, { phase: SystemPhase.Simulation });
     this.world.addSystem(new HierarchySystem() as System<ShmupComponentRegistry>, { phase: SystemPhase.Transform });
     this.world.addSystem(new SpatialPartitioningSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
@@ -93,8 +95,8 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
     this.world.addSystem(new ShmupBulletPatternSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new ShmupGrazeSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new ShmupCollisionSystem(), { phase: SystemPhase.GameRules });
-    // Fade after movement so visual lifetime matches current TTL remaining.
     this.world.addSystem(new ShmupParticleFadeSystem(), { phase: SystemPhase.Presentation });
+    this.world.addSystem(new ShmupJuicePresentationSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new Camera2DSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation });

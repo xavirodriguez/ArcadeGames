@@ -22,10 +22,11 @@ export function registerHitRunMelee(
   };
   world.setResource(MELEE_CONFIG_RESOURCE, merged);
 
-  // Combo resolves jab/throw/special and sets customConfig before the swing
+  // Schedule runs higher priorities first. Combo must resolve the semantic
+  // action and set customConfig before the base melee system consumes the edge.
   world.addSystem(new ComboMeleeSystem(), {
     phase: SystemPhase.Simulation,
-    priority: 28
+    priority: 32
   });
 
   const system = new HitRunMeleeSystem();

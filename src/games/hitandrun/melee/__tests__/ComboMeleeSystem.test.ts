@@ -1,8 +1,10 @@
-import { World, CoreComponentRegistry } from "@tiny-aster/core";
+import { SystemPhase, World, CoreComponentRegistry } from "@tiny-aster/core";
+import { BeltInputSystem } from "../../belt/BeltInputSystem";
 import { createBeltInputComponent, type BeltInputComponent } from "../../belt/BeltMovementTypes";
 import { ComboMeleeSystem } from "../ComboMeleeSystem";
 import { createMeleeAttackComponent } from "../HitRunMeleeSystem";
 import type { ComboMeleeComponent } from "../ComboMeleeTypes";
+import { registerHitRunMelee } from "../registerHitRunMelee";
 
 function createPlayerWorld(): {
   world: World<CoreComponentRegistry>;
@@ -110,6 +112,26 @@ describe("ComboMeleeSystem attack buffering", () => {
     system.update(world, 1 / 60);
 
     expect(readCombo(world, player)?.activeStep).toBe("idle");
+    expect(readInput(world, player)?.attackPressed).toBe(false);
+  });
+
+  it("resolves jab1 before HitRunMeleeSystem consumes the real input edge", () => {
+    const { world, player } = createPlayerWorld();
+    world.addSystem(new BeltInputSystem(), {
+      phase: SystemPhase.Input,
+      priority: 5
+    });
+    registerHitRunMelee(world);
+
+    world.mutateComponent(player, "BeltInput", (input) => {
+      input.attackHeld = true;
+    });
+
+    world.update(1 / 60);
+
+    const melee = world.getComponent(player, "MeleeAttack") as { phase?: string } | undefined;
+    expect(readCombo(world, player)?.activeStep).toBe("jab1");
+    expect(melee?.phase).toBe("startup");
     expect(readInput(world, player)?.attackPressed).toBe(false);
   });
 });

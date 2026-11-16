@@ -30,11 +30,20 @@ export const ShmupConfigSchema = z.object({
   GRAZE_MARGIN: z.number().nonnegative().default(12),
   /** Score granted once per enemy bullet that enters the graze annulus. */
   GRAZE_SCORE: z.number().nonnegative().default(10),
+  /** Starting bomb stock (AUD-P2-01). */
+  BOMB_STOCK_INITIAL: z.number().int().nonnegative().default(3),
+  /** Player invulnerability seconds after detonating a bomb. */
+  BOMB_INVULN_DURATION: z.number().nonnegative().default(1.5),
+  /** Damage applied to non-boss enemies on bomb. */
+  BOMB_ENEMY_DAMAGE: z.number().nonnegative().default(2),
+  /** Damage applied to boss on bomb (usually lower). */
+  BOMB_BOSS_DAMAGE: z.number().nonnegative().default(1),
   KEY_LEFT: z.string().default("ArrowLeft"),
   KEY_RIGHT: z.string().default("ArrowRight"),
   KEY_UP: z.string().default("ArrowUp"),
   KEY_DOWN: z.string().default("ArrowDown"),
-  KEY_SHOOT: z.string().default("Space")
+  KEY_SHOOT: z.string().default("Space"),
+  KEY_BOMB: z.string().default("KeyB")
 });
 
 export type ShmupConfig = z.infer<typeof ShmupConfigSchema>;

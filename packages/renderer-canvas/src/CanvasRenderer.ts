@@ -72,6 +72,7 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
   public readonly type = "canvas";
   private readonly backgroundEffects: Map<string, EffectDrawer<CanvasRenderingContext2D, TRegistry>> = new Map();
   private readonly foregroundEffects: Map<string, EffectDrawer<CanvasRenderingContext2D, TRegistry>> = new Map();
+  private readonly postProcessEffects: Map<string, EffectDrawer<CanvasRenderingContext2D, TRegistry>> = new Map();
   private readonly frameTimeMeter = new FrameTimeMeter(300);
 
   private lastCanvas: HTMLCanvasElement | null = null;
@@ -141,7 +142,6 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
   constructor(
     private readonly shapeDrawers: Map<string, ShapeDrawer<CanvasRenderingContext2D, TRegistry>> = new Map()
   ) {
-    // Pre-populate default shape drawers if not already present
     if (!this.shapeDrawers.has("sprite")) {
       this.shapeDrawers.set("sprite", new CanvasSpriteDrawer<TRegistry>());
     }
@@ -177,6 +177,11 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
     this.foregroundEffects.set(name, drawer);
   }
 
+  /** Screen-space pass after letterbox/camera restores (bloom, CRT, color grade). */
+  public registerPostProcessEffect(name: string, drawer: EffectDrawer<CanvasRenderingContext2D, TRegistry>): void {
+    this.postProcessEffects.set(name, drawer);
+  }
+
   public render(world: World<TRegistry>, ctx: CanvasRenderingContext2D): void {
     const sceneManager = world.getResource<SceneManager>("SceneManager");
     if (sceneManager) {
@@ -197,7 +202,6 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
             this.renderWorld(world, ctx);
           }
           if (oldScene) {
-            // Render old scene onto offscreen canvas for the transition effect
             const canvas = ctx.canvas;
             if (canvas) {
               const off = this.getOffscreen(canvas.width, canvas.height);
@@ -295,7 +299,6 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
     const logicalWidth = screenConfig?.width ?? (canvas.width / dpr);
     const logicalHeight = screenConfig?.height ?? (canvas.height / dpr);
 
-    // Shared plan: query + filter + deterministic sort + camera resolution
     const plan = buildRenderPlan(world, this.entriesBuffer);
     this.entriesBuffer = plan.entries;
 
@@ -327,7 +330,6 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
     ctx.rect(0, 0, viewportWidth, viewportHeight);
     ctx.clip();
 
-    // Draw background effects first (e.g. scrolling skies)
     for (const drawer of this.backgroundEffects.values()) {
       drawer.draw(ctx, world);
     }
@@ -335,7 +337,7 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
     const colliderType = "Collider" as Extract<keyof TRegistry, string>;
     const visualOffsetType = "VisualOffset" as Extract<keyof TRegistry, string>;
 
-    ctx.save(); // camera save
+    ctx.save();
 
     let camX = 0;
     let camY = 0;
@@ -402,12 +404,10 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
         lastColor = drawColor;
       }
 
-      // 1. Try custom registered shape drawer
       const customDrawer = render.shape ? this.shapeDrawers.get(render.shape) : undefined;
       if (customDrawer) {
         customDrawer.draw(ctx, world, entity);
       } else {
-        // 2. Try default collider shape drawer
         const collider = world.getComponent(entity, colliderType) as ColliderComponent | undefined;
         if (collider && collider.enabled) {
           const shapeTypeStr = ShapeType[collider.shape.type];
@@ -416,7 +416,6 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
             drawer.draw(ctx, world, entity);
           }
         } else {
-          // 3. Draw fallback circle
           ctx.beginPath();
           ctx.arc(0, 0, 5, 0, Math.PI * 2);
           ctx.fill();
@@ -426,13 +425,22 @@ export class CanvasRenderer<TRegistry extends CoreComponentRegistry = CoreCompon
       ctx.restore();
     }
 
-    // Foreground effects share the active camera transform and draw above entities.
     for (const drawer of this.foregroundEffects.values()) {
       drawer.draw(ctx, world);
     }
 
-    ctx.restore(); // camera restore
-    ctx.restore(); // viewport (letterboxing) restore
+    ctx.restore(); // camera
+    ctx.restore(); // viewport letterbox
+
+    // True screen-space post-process (bloom, etc.) after camera/letterbox restores.
+    if (this.postProcessEffects.size > 0) {
+      ctx.save();
+      ctx.setTransform?.(1, 0, 0, 1, 0, 0);
+      for (const drawer of this.postProcessEffects.values()) {
+        drawer.draw(ctx, world);
+      }
+      ctx.restore();
+    }
 
     if (isPerfEnabled && typeof performance !== "undefined") {
       const durationMs = performance.now() - startMs;

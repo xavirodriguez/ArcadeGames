@@ -16,30 +16,23 @@ import {
   drawThemeSkiaPlayerBullet,
   drawThemeSkiaEnemyBullet
 } from "./ShmupProjectileThemeRouting";
-
-/** Minimal filled-circle particle for SharedParticlePool / spawnLayeredExplosion debris. */
-function drawCanvasParticle(ctx: CanvasRenderingContext2D, entity: { size?: number; color?: string }): void {
-  const size = entity.size ?? 3;
-  const color = entity.color ?? "#ffffff";
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.arc(0, 0, Math.max(0.5, size * 0.5), 0, Math.PI * 2);
-  ctx.fill();
-}
-
-function drawSkiaParticle(
-  canvas: { drawCircle: (x: number, y: number, r: number, paint: unknown) => void },
-  entity: { size?: number; color?: string },
-  paintFactory?: { Color: (c: string) => unknown; setColor: (p: unknown, c: unknown) => void; Make: () => unknown }
-): void {
-  if (!paintFactory) return;
-  const size = entity.size ?? 3;
-  const paint = paintFactory.Make();
-  paintFactory.setColor(paint, paintFactory.Color(entity.color ?? "#ffffff"));
-  canvas.drawCircle(0, 0, Math.max(0.5, size * 0.5), paint);
-}
+import { drawCanvasParticle, drawSkiaParticle } from "./ShmupParticleVisuals";
+import { createShmupBloomPostProcess } from "./ShmupBloomPostProcess";
+import { createShmupDamageVignettePostProcess } from "./ShmupDamageVignettePostProcess";
+import {
+  FloatingTextScoreEffect,
+  SkiaFloatingTextScoreEffect,
+  registerSharedVFXAssets
+} from "../../shared/rendering/SharedVFX";
 
 export function initializeShmupRenderer(renderer: Renderer<ShmupComponentRegistry, unknown>): void {
+  // Shared VFX shapes (floating_text, shockwave, etc.) when available.
+  try {
+    registerSharedVFXAssets(renderer as never);
+  } catch {
+    /* optional on backends without full shared registry */
+  }
+
   RendererUtils.registerAssets(renderer, {
     canvas: (r) => {
       r.registerBackgroundEffect("shmup_starfield", drawShmupStarfield);
@@ -48,6 +41,9 @@ export function initializeShmupRenderer(renderer: Renderer<ShmupComponentRegistr
       r.registerShape("shmup_player_bullet", drawThemeCanvasPlayerBullet);
       r.registerShape("shmup_enemy_bullet", drawThemeCanvasEnemyBullet);
       r.registerShape("particle", drawCanvasParticle as never);
+      r.registerShape("floating_text", FloatingTextScoreEffect as never);
+      r.registerPostProcessEffect?.("shmup_bloom", createShmupBloomPostProcess() as never);
+      r.registerPostProcessEffect?.("shmup_damage_vignette", createShmupDamageVignettePostProcess() as never);
     },
     skia: (r) => {
       r.registerBackgroundEffect("shmup_starfield", drawSkiaShmupStarfield as never);
@@ -56,6 +52,7 @@ export function initializeShmupRenderer(renderer: Renderer<ShmupComponentRegistr
       r.registerShape("shmup_player_bullet", drawThemeSkiaPlayerBullet as never);
       r.registerShape("shmup_enemy_bullet", drawThemeSkiaEnemyBullet as never);
       r.registerShape("particle", drawSkiaParticle as never);
+      r.registerShape("floating_text", SkiaFloatingTextScoreEffect as never);
     }
   });
 }

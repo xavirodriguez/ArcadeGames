@@ -56,6 +56,11 @@ export default function VerticalShmupScreen() {
         }
         return;
       }
+      if (e.code === "KeyB" && !gameState?.isGameOver && !game.isPausedState()) {
+        e.preventDefault();
+        game.setInputState({ bomb: true });
+        return;
+      }
       if (!gameState?.isGameOver) return;
       if (e.code === "KeyR" || e.code === "Enter") {
         e.preventDefault();
@@ -64,20 +69,36 @@ export default function VerticalShmupScreen() {
       }
     };
 
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.code === "KeyB") {
+        game.setInputState({ bomb: false });
+      }
+    };
+
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
+    };
   }, [game, gameState?.isGameOver]);
 
-  const setInput = useCallback((patch: Partial<{ moveX: number; moveY: number; shoot: boolean }>) => {
+  const setInput = useCallback((patch: Partial<{ moveX: number; moveY: number; shoot: boolean; bomb: boolean }>) => {
     handleInput(patch as never);
     if (game) {
-      const inputUpdate: Partial<import("@/games/vertical-shmup/types/ShmupTypes").ShmupInputState> = {};
+      const inputUpdate: Partial<import("@/games/vertical-shmup/types/ShmupTypes").ShmupInputState> & { bomb?: boolean; shoot?: boolean } = {};
       const axes: { moveX?: number; moveY?: number } = {};
       if (patch.moveX !== undefined) axes.moveX = patch.moveX;
       if (patch.moveY !== undefined) axes.moveY = patch.moveY;
       if (Object.keys(axes).length > 0) inputUpdate.axes = axes;
-      if (patch.shoot !== undefined) inputUpdate.actions = patch.shoot ? ["shoot"] : [];
-      game.setInputState(inputUpdate);
+      if (patch.shoot !== undefined || patch.bomb !== undefined) {
+        game.setInputState({
+          ...(patch.shoot !== undefined ? { shoot: patch.shoot } : {}),
+          ...(patch.bomb !== undefined ? { bomb: patch.bomb } : {})
+        });
+        return;
+      }
+      if (Object.keys(inputUpdate).length > 0) game.setInputState(inputUpdate);
     }
   }, [game, handleInput]);
 
@@ -106,7 +127,7 @@ export default function VerticalShmupScreen() {
     <GameScreen>
       <BackButton label="Menu" />
       <GameTitle glowColor="#00e5ff">1942 // VERTICAL SHMUP</GameTitle>
-      <GameInstructions>WASD / arrows: move · Space: fire · Esc: pause</GameInstructions>
+      <GameInstructions>WASD: move · Space: fire · B: bomb · Esc: pause</GameInstructions>
       <NeonButton variant="cyan" onPress={() => setStarted(true)}>START MISSION</NeonButton>
     </GameScreen>
   );
@@ -114,6 +135,7 @@ export default function VerticalShmupScreen() {
   if (!game || !isReady) return null;
 
   const lives = Math.max(0, gameState?.lives ?? 3);
+  const bombs = Math.max(0, gameState?.bombsRemaining ?? 3);
   const isGameOver = gameState?.isGameOver === true;
   const showControls = !isGameOver && !isPaused;
   const world = game.getWorld();
@@ -162,6 +184,11 @@ export default function VerticalShmupScreen() {
                   <Text style={styles.statLabel}>LIVES</Text>
                   <Text style={styles.livesValue}>{String(lives).padStart(2, "0")}</Text>
                 </View>
+                <View style={styles.hudDivider} />
+                <View style={styles.statGroup}>
+                  <Text style={styles.statLabel}>BOMBS</Text>
+                  <Text style={styles.bombsValue}>{String(bombs).padStart(2, "0")}</Text>
+                </View>
               </View>
               {bossHealth && (
                 <View
@@ -200,6 +227,17 @@ export default function VerticalShmupScreen() {
                   />
                 </View>
                 <View style={styles.rightControlArea} pointerEvents="box-none">
+                  <TouchActionButton
+                    label="💣"
+                    buttonName="bomb"
+                    touchState={touchStateRef.current ?? undefined}
+                    accessibilityLabel="Detonate bomb"
+                    onPressIn={() => setInput({ bomb: true })}
+                    onPressOut={() => setInput({ bomb: false })}
+                    haptic="medium"
+                    color="rgba(255, 209, 102, 0.25)"
+                    borderColor="#FFD166"
+                  />
                   <TouchActionButton
                     label="🔥"
                     buttonName="shoot"
@@ -260,11 +298,7 @@ export default function VerticalShmupScreen() {
 }
 
 const styles = StyleSheet.create({
-  topBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
+  topBar: { flexDirection: "row", alignItems: "center", gap: 8 },
   pauseChip: {
     marginLeft: 4,
     paddingHorizontal: 10,
@@ -274,17 +308,8 @@ const styles = StyleSheet.create({
     borderColor: "rgba(85, 232, 255, 0.55)",
     backgroundColor: "rgba(8, 17, 42, 0.85)",
   },
-  pauseChipText: {
-    color: "#55E8FF",
-    fontFamily: "monospace",
-    fontSize: 12,
-    fontWeight: "bold",
-  },
-  hudStack: {
-    width: "100%",
-    maxWidth: 460,
-    alignSelf: "center",
-  },
+  pauseChipText: { color: "#55E8FF", fontFamily: "monospace", fontSize: 12, fontWeight: "bold" },
+  hudStack: { width: "100%", maxWidth: 460, alignSelf: "center" },
   hud: {
     flexDirection: "row",
     alignItems: "center",
@@ -295,145 +320,32 @@ const styles = StyleSheet.create({
     borderColor: "rgba(85, 232, 255, 0.55)",
     borderRadius: 10,
     backgroundColor: "rgba(8, 17, 42, 0.92)",
-    ...(Platform.OS === "web"
-      ? { boxShadow: "0px 0px 10px rgba(8, 17, 42, 0.35)" }
-      : {
-          shadowColor: "#08112a",
-          shadowOpacity: 0.35,
-          shadowRadius: 10,
-          elevation: 5,
-        }),
   },
-  statGroup: {
-    flex: 1,
-    minWidth: 0,
-  },
-  statLabel: {
-    color: "#A6C3DE",
-    fontFamily: "monospace",
-    fontSize: 8,
-    fontWeight: "bold",
-    letterSpacing: 1.5,
-    marginBottom: 3,
-  },
-  scoreValue: {
-    color: "#EAF5FF",
-    fontFamily: "monospace",
-    fontSize: 13,
-    fontWeight: "bold",
-  },
-  waveValue: {
-    color: "#FFD18A",
-    fontFamily: "monospace",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  livesValue: {
-    color: "#55E8FF",
-    fontFamily: "monospace",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  hudDivider: {
-    width: 1,
-    height: 26,
-    backgroundColor: "rgba(166, 195, 222, 0.3)",
-    marginHorizontal: 9,
-  },
+  statGroup: { flex: 1, minWidth: 0 },
+  statLabel: { color: "#A6C3DE", fontFamily: "monospace", fontSize: 8, fontWeight: "bold", letterSpacing: 1.5, marginBottom: 3 },
+  scoreValue: { color: "#EAF5FF", fontFamily: "monospace", fontSize: 13, fontWeight: "bold" },
+  waveValue: { color: "#FFD18A", fontFamily: "monospace", fontSize: 14, fontWeight: "bold" },
+  livesValue: { color: "#55E8FF", fontFamily: "monospace", fontSize: 14, fontWeight: "bold" },
+  bombsValue: { color: "#FFD166", fontFamily: "monospace", fontSize: 14, fontWeight: "bold" },
+  hudDivider: { width: 1, height: 26, backgroundColor: "rgba(166, 195, 222, 0.3)", marginHorizontal: 6 },
   bossPanel: {
-    marginTop: 6,
-    paddingHorizontal: 11,
-    paddingTop: 8,
-    paddingBottom: 9,
-    borderWidth: 1,
-    borderColor: "rgba(255, 209, 102, 0.68)",
-    borderRadius: 9,
-    backgroundColor: "rgba(20, 17, 39, 0.94)",
+    marginTop: 6, paddingHorizontal: 11, paddingTop: 8, paddingBottom: 9,
+    borderWidth: 1, borderColor: "rgba(255, 209, 102, 0.68)", borderRadius: 9, backgroundColor: "rgba(20, 17, 39, 0.94)",
   },
-  bossTopRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  bossTag: {
-    color: "#FFD166",
-    fontFamily: "monospace",
-    fontSize: 8,
-    fontWeight: "bold",
-    letterSpacing: 1.4,
-  },
-  bossHeading: {
-    color: "#F3FCFF",
-    fontFamily: "monospace",
-    fontSize: 9,
-    fontWeight: "bold",
-    letterSpacing: 1.1,
-  },
-  bossWave: {
-    color: "#A6C3DE",
-    fontFamily: "monospace",
-    fontSize: 8,
-    fontWeight: "bold",
-  },
-  bossNameRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: 7,
-  },
-  bossName: {
-    color: "#A6C3DE",
-    fontFamily: "monospace",
-    fontSize: 8,
-    fontWeight: "bold",
-    letterSpacing: 1.1,
-  },
-  bossHealthText: {
-    color: "#FFF4E6",
-    fontFamily: "monospace",
-    fontSize: 9,
-    fontWeight: "bold",
-  },
-  bossHealthTrack: {
-    height: 7,
-    marginTop: 6,
-    overflow: "hidden",
-    borderRadius: 4,
-    backgroundColor: "rgba(166, 195, 222, 0.18)",
-  },
-  bossHealthFill: {
-    height: "100%",
-    borderRadius: 4,
-    backgroundColor: "#F25DBB",
-  },
+  bossTopRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  bossTag: { color: "#FFD166", fontFamily: "monospace", fontSize: 8, fontWeight: "bold", letterSpacing: 1.4 },
+  bossHeading: { color: "#F3FCFF", fontFamily: "monospace", fontSize: 9, fontWeight: "bold", letterSpacing: 1.1 },
+  bossWave: { color: "#A6C3DE", fontFamily: "monospace", fontSize: 8, fontWeight: "bold" },
+  bossNameRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 7 },
+  bossName: { color: "#A6C3DE", fontFamily: "monospace", fontSize: 8, fontWeight: "bold", letterSpacing: 1.1 },
+  bossHealthText: { color: "#FFF4E6", fontFamily: "monospace", fontSize: 9, fontWeight: "bold" },
+  bossHealthTrack: { height: 7, marginTop: 6, overflow: "hidden", borderRadius: 4, backgroundColor: "rgba(166, 195, 222, 0.18)" },
+  bossHealthFill: { height: "100%", borderRadius: 4, backgroundColor: "#F25DBB" },
   controls: { ...StyleSheet.absoluteFill, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", padding: 24 },
   leftControlArea: { flex: 1, height: "100%" },
-  rightControlArea: { width: 120, height: "100%", justifyContent: "flex-end", alignItems: "center", paddingBottom: 20 },
-  gameOverMeta: {
-    color: "#A6C3DE",
-    fontFamily: "monospace",
-    fontSize: 14,
-    marginTop: 12,
-    letterSpacing: 1,
-  },
-  restartButton: {
-    marginTop: 24,
-    backgroundColor: "#55E8FF",
-    paddingHorizontal: 28,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  restartButtonText: {
-    color: "#08112a",
-    fontFamily: "monospace",
-    fontSize: 16,
-    fontWeight: "bold",
-    letterSpacing: 1.2,
-  },
-  restartHint: {
-    color: "#8FA3C7",
-    fontFamily: "monospace",
-    fontSize: 12,
-    marginTop: 10,
-  },
+  rightControlArea: { width: 120, height: "100%", justifyContent: "flex-end", alignItems: "center", paddingBottom: 20, gap: 12 },
+  gameOverMeta: { color: "#A6C3DE", fontFamily: "monospace", fontSize: 14, marginTop: 12, letterSpacing: 1 },
+  restartButton: { marginTop: 24, backgroundColor: "#55E8FF", paddingHorizontal: 28, paddingVertical: 12, borderRadius: 8 },
+  restartButtonText: { color: "#08112a", fontFamily: "monospace", fontSize: 16, fontWeight: "bold", letterSpacing: 1.2 },
+  restartHint: { color: "#8FA3C7", fontFamily: "monospace", fontSize: 12, marginTop: 10 },
 });

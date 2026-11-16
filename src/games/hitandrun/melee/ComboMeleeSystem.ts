@@ -60,12 +60,21 @@ export class ComboMeleeSystem extends System<CoreComponentRegistry> {
       combo.activeStep = "idle";
     }
 
-    if (isPlayerControlLocked(world, entity)) return;
-
     const input = world.getMutableComponent(entity, "BeltInput") as
       | (BeltInputComponent & { specialPressed?: boolean; attackPressed?: boolean })
       | undefined;
     if (!input) return;
+
+    // Preserve the one-frame input edge before any control-lock or melee-phase
+    // early return can discard it. The buffer is measured in simulation time.
+    if (input.attackPressed) {
+      combo.attackBufferRemaining = config.attackBufferSeconds ??
+        DEFAULT_COMBO_MELEE_CONFIG.attackBufferSeconds ?? 0;
+    } else if ((combo.attackBufferRemaining ?? 0) > 0) {
+      combo.attackBufferRemaining = Math.max(0, (combo.attackBufferRemaining ?? 0) - dt);
+    }
+
+    if (isPlayerControlLocked(world, entity)) return;
 
     // Special (arcane burst) — independent of melee phase if idle-ish
     if (input.specialPressed) {
@@ -77,8 +86,11 @@ export class ComboMeleeSystem extends System<CoreComponentRegistry> {
       return;
     }
 
-    if (melee.phase !== "idle") return;
-    if (!input.attackPressed) return;
+    if (melee.phase !== "idle" || (combo.attackBufferRemaining ?? 0) <= 0) return;
+
+    // Reconstitute the consumed edge when a buffered press becomes actionable.
+    input.attackPressed = true;
+    combo.attackBufferRemaining = 0;
 
     // Prefer throw when a target is in grab range
     if (this.tryThrow(world, entity, config)) {

@@ -12,6 +12,7 @@ import { ShmupBulletPatternSystem } from "../systems/BulletPatternSystem";
 import { ShmupSpawnSystem } from "../systems/ShmupSpawnSystem";
 import { ShmupGrazeSystem } from "../systems/ShmupGrazeSystem";
 import { ShmupBombSystem } from "../systems/ShmupBombSystem";
+import { ShmupParticleFadeSystem } from "../systems/ShmupParticleFadeSystem";
 import { createPlayer, createEnemy } from "../EntityFactory";
 import { selectShmupEnemyArchetype } from "../EnemyArchetypes";
 import { createMainCamera2D } from "../../shared/componentBuilders";
@@ -92,6 +93,8 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
     this.world.addSystem(new ShmupBulletPatternSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new ShmupGrazeSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new ShmupCollisionSystem(), { phase: SystemPhase.GameRules });
+    // Fade after movement so visual lifetime matches current TTL remaining.
+    this.world.addSystem(new ShmupParticleFadeSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new Camera2DSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new RenderUpdateSystem(), { phase: SystemPhase.Presentation });

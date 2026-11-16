@@ -338,4 +338,67 @@ describe("Vertical Shmup simulation contracts (P0)", () => {
 
     expect(world.isAlive(projectile)).toBe(false);
   });
+
+  // --- P2-01: body contact damage contract ---
+
+  it("damages the player on enemy body contact without destroying the enemy", async () => {
+    const game = await createGame();
+    const world = game.world;
+    const player = requirePlayer(game);
+    const config = world.getResource<ShmupConfig>("GameConfig");
+    const transform = world.getMutableComponent(player, "Transform");
+    if (!config || !transform) throw new Error("Expected player and config");
+
+    // Disable pre-spawned enemies so only the test enemy participates.
+    for (const enemy of world.query("ShmupEnemy", "Collider")) {
+      world.mutateComponent(enemy, "Collider", (c) => {
+        c.enabled = false;
+      });
+    }
+
+    transform.x = config.WORLD_WIDTH / 2;
+    transform.y = config.WORLD_HEIGHT / 2;
+    transform.dirty = true;
+
+    const enemy = createEnemy(world, transform.x, transform.y, "straight", 1);
+    const healthBefore = world.getComponent(player, "Health")?.current ?? 3;
+
+    game.update(0);
+
+    const healthAfter = world.getComponent(player, "Health")?.current ?? healthBefore;
+    expect(healthAfter).toBe(healthBefore - 1);
+    expect(world.getComponent(player, "Health")?.invulnerableRemaining).toBeGreaterThan(0);
+    expect(world.isAlive(enemy)).toBe(true);
+    expect(world.getComponent(enemy, "Damage")).toMatchObject({
+      amount: 1,
+      category: "shmup_body",
+      consumption: "none"
+    });
+  });
+
+  it("applies at most one body-contact hit per tick when overlapping multiple enemies", async () => {
+    const game = await createGame();
+    const world = game.world;
+    const player = requirePlayer(game);
+    const config = world.getResource<ShmupConfig>("GameConfig");
+    const transform = world.getMutableComponent(player, "Transform");
+    if (!config || !transform) throw new Error("Expected player and config");
+
+    for (const enemy of world.query("ShmupEnemy", "Collider")) {
+      world.mutateComponent(enemy, "Collider", (c) => {
+        c.enabled = false;
+      });
+    }
+
+    transform.x = config.WORLD_WIDTH / 2;
+    transform.y = config.WORLD_HEIGHT / 2;
+    transform.dirty = true;
+
+    createEnemy(world, transform.x, transform.y, "straight", 1);
+    createEnemy(world, transform.x + 1, transform.y, "sine", 1);
+
+    game.update(0);
+
+    expect(world.getComponent(player, "Health")?.current).toBe(2);
+  });
 });

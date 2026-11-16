@@ -45,7 +45,7 @@ Enemy bodies and enemy bullets share the `ENEMY` layer. The player mask includes
 
 - Body contact does **not** destroy the enemy (consumption `none`). Only player projectiles remove enemies via combat death + `ShmupCollisionSystem`.
 - Boss and armored enemies use the same body-damage contract as scouts (1 HP to the player per accepted hit).
-- Graze and bombs are **out of scope** for this matrix (AUD-P2-01); do not assume they exist.
+- **Graze** is specified in [`vertical-shmup-graze-contract.md`](./vertical-shmup-graze-contract.md) (AUD-P2-01): annulus outside the hit disk, distance-based, not a second `Damage` collider. Bombs remain unimplemented.
 
 ## Related code
 
@@ -53,3 +53,4 @@ Enemy bodies and enemy bullets share the `ENEMY` layer. The player mask includes
 - `EntityPool` player/enemy bullet prefabs
 - `ShmupSingleHitGuardSystem`
 - `CombatSystem` (`@tiny-aster/gameplay-kit`)
+- `graze/grazeMath.ts` (pure helpers for future `ShmupGrazeSystem`)

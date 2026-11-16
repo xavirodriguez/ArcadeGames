@@ -17,6 +17,7 @@ import {
   drawThemeSkiaEnemyBullet
 } from "./ShmupProjectileThemeRouting";
 import { drawCanvasParticle, drawSkiaParticle } from "./ShmupParticleVisuals";
+import { createShmupBloomPostProcess } from "./ShmupBloomPostProcess";
 
 export function initializeShmupRenderer(renderer: Renderer<ShmupComponentRegistry, unknown>): void {
   RendererUtils.registerAssets(renderer, {
@@ -27,6 +28,7 @@ export function initializeShmupRenderer(renderer: Renderer<ShmupComponentRegistr
       r.registerShape("shmup_player_bullet", drawThemeCanvasPlayerBullet);
       r.registerShape("shmup_enemy_bullet", drawThemeCanvasEnemyBullet);
       r.registerShape("particle", drawCanvasParticle as never);
+      r.registerPostProcessEffect?.("shmup_bloom", createShmupBloomPostProcess() as never);
     },
     skia: (r) => {
       r.registerBackgroundEffect("shmup_starfield", drawSkiaShmupStarfield as never);
@@ -35,6 +37,7 @@ export function initializeShmupRenderer(renderer: Renderer<ShmupComponentRegistr
       r.registerShape("shmup_player_bullet", drawThemeSkiaPlayerBullet as never);
       r.registerShape("shmup_enemy_bullet", drawThemeSkiaEnemyBullet as never);
       r.registerShape("particle", drawSkiaParticle as never);
+      // Canvas-path bloom; Skia uses per-shape glow until a GPU blur pass exists.
     }
   });
 }

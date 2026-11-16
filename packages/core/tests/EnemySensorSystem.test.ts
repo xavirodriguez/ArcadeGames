@@ -58,7 +58,7 @@ describe("EnemySensorSystem player input families", () => {
     expect(sensor?.detectedPlayerEntity).toBe(player);
   });
 
-  it("keeps the nearest target selection deterministic across both input families", () => {
+  it("breaks equal-distance target ties by stable entity ID across input families", () => {
     const world = new World<CoreComponentRegistry>();
 
     const beltPlayer = world.createEntity();
@@ -79,7 +79,7 @@ describe("EnemySensorSystem player input families", () => {
     });
 
     const platformerPlayer = world.createEntity();
-    addTransform(world, platformerPlayer, 120, 100);
+    addTransform(world, platformerPlayer, 90, 100);
     world.addComponent(platformerPlayer, {
       type: "PlatformerInput",
       moveDir: 0,

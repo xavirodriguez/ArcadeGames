@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Platform, StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { CanvasRenderer } from "@/components/CanvasRenderer";
 import { GameErrorBoundary } from "@/components/GameErrorBoundary";
@@ -10,6 +10,7 @@ import { TouchVirtualJoystick, TouchActionButton } from "@/components/controls";
 import { TouchInputState } from "@tiny-aster/core";
 import { GameLayoutShell, GameScreen, GameTitle, GameInstructions, BackButton, NeonButton } from "@/components/ui";
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
+import { hapticSelection } from "@/utils/haptics";
 
 export default function VerticalShmupScreen() {
   const [started, setStarted] = useState(false);
@@ -28,6 +29,23 @@ export default function VerticalShmupScreen() {
 
   useKeyboardControls(game, isReady);
 
+  // Web: R / Enter restarts after Game Over (mirrors BaseGame restartKey + Galaxian pattern).
+  useEffect(() => {
+    if (Platform.OS !== "web" || !game) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!gameState?.isGameOver) return;
+      if (e.code === "KeyR" || e.code === "Enter") {
+        e.preventDefault();
+        hapticSelection();
+        void game.restart();
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [game, gameState?.isGameOver]);
+
   const setInput = useCallback((patch: Partial<{ moveX: number; moveY: number; shoot: boolean }>) => {
     handleInput(patch as never);
     if (game) {
@@ -41,6 +59,11 @@ export default function VerticalShmupScreen() {
     }
   }, [game, handleInput]);
 
+  const handleRestart = useCallback(() => {
+    hapticSelection();
+    if (game) void game.restart();
+  }, [game]);
+
   if (!started) return (
     <GameScreen>
       <BackButton label="Menu" />
@@ -53,6 +76,7 @@ export default function VerticalShmupScreen() {
   if (!game || !isReady) return null;
 
   const lives = Math.max(0, gameState?.lives ?? 3);
+  const isGameOver = gameState?.isGameOver === true;
   const world = game.getWorld();
   const bossEntity = world.query("ShmupEnemy", "Health").find(
     (entity) => world.getComponent(entity, "ShmupEnemy")?.archetype === "boss"
@@ -111,32 +135,55 @@ export default function VerticalShmupScreen() {
           }
           canvasSlot={<CanvasRenderer world={game.getWorld()} gameLoop={game.getGameLoop()} onInitialize={(renderer) => game.initializeRenderer(renderer)} />}
           controlsSlot={
-            <View style={styles.controls} pointerEvents="box-none">
-              <View style={styles.leftControlArea} pointerEvents="box-none">
-                <TouchVirtualJoystick
-                  touchState={touchStateRef.current ?? undefined}
-                  floating={true}
-                  onMove={(x, y) => setInput({ moveX: x, moveY: y })}
-                  onRelease={() => setInput({ moveX: 0, moveY: 0 })}
-                  accessibilityLabel="Movement Joystick"
-                />
+            !isGameOver ? (
+              <View style={styles.controls} pointerEvents="box-none">
+                <View style={styles.leftControlArea} pointerEvents="box-none">
+                  <TouchVirtualJoystick
+                    touchState={touchStateRef.current ?? undefined}
+                    floating={true}
+                    onMove={(x, y) => setInput({ moveX: x, moveY: y })}
+                    onRelease={() => setInput({ moveX: 0, moveY: 0 })}
+                    accessibilityLabel="Movement Joystick"
+                  />
+                </View>
+                <View style={styles.rightControlArea} pointerEvents="box-none">
+                  <TouchActionButton
+                    label="🔥"
+                    buttonName="shoot"
+                    touchState={touchStateRef.current ?? undefined}
+                    accessibilityLabel="Fire primary weapon"
+                    onPressIn={() => setInput({ shoot: true })}
+                    onPressOut={() => setInput({ shoot: false })}
+                    haptic="light"
+                    color="rgba(255,42,109,0.25)"
+                    borderColor="#ff2a6d"
+                  />
+                </View>
               </View>
-              <View style={styles.rightControlArea} pointerEvents="box-none">
-                <TouchActionButton
-                  label="🔥"
-                  buttonName="shoot"
-                  touchState={touchStateRef.current ?? undefined}
-                  accessibilityLabel="Fire primary weapon"
-                  onPressIn={() => setInput({ shoot: true })}
-                  onPressOut={() => setInput({ shoot: false })}
-                  haptic="light"
-                  color="rgba(255,42,109,0.25)"
-                  borderColor="#ff2a6d"
-                />
-              </View>
-            </View>
+            ) : null
           }
           debugSlot={<DebugOverlay game={game} />}
+          overlaySlot={
+            isGameOver ? (
+              <View style={sharedScreenStyles.overlay} accessibilityRole="summary">
+                <Text style={sharedScreenStyles.overlayText}>GAME OVER</Text>
+                <Text style={styles.gameOverMeta}>
+                  SCORE {String(gameState?.score ?? 0).padStart(6, "0")} · WAVE {String(gameState?.wave ?? 1).padStart(2, "0")}
+                </Text>
+                <TouchableOpacity
+                  style={styles.restartButton}
+                  onPress={handleRestart}
+                  accessibilityRole="button"
+                  accessibilityLabel="Restart mission"
+                >
+                  <Text style={styles.restartButtonText}>REINICIAR</Text>
+                </TouchableOpacity>
+                {Platform.OS === "web" && (
+                  <Text style={styles.restartHint}>R / Enter</Text>
+                )}
+              </View>
+            ) : null
+          }
         />
       </SafeAreaProvider>
     </GameErrorBoundary>
@@ -274,4 +321,31 @@ const styles = StyleSheet.create({
   controls: { ...StyleSheet.absoluteFill, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", padding: 24 },
   leftControlArea: { flex: 1, height: "100%" },
   rightControlArea: { width: 120, height: "100%", justifyContent: "flex-end", alignItems: "center", paddingBottom: 20 },
+  gameOverMeta: {
+    color: "#A6C3DE",
+    fontFamily: "monospace",
+    fontSize: 14,
+    marginTop: 12,
+    letterSpacing: 1,
+  },
+  restartButton: {
+    marginTop: 24,
+    backgroundColor: "#55E8FF",
+    paddingHorizontal: 28,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  restartButtonText: {
+    color: "#08112a",
+    fontFamily: "monospace",
+    fontSize: 16,
+    fontWeight: "bold",
+    letterSpacing: 1.2,
+  },
+  restartHint: {
+    color: "#8FA3C7",
+    fontFamily: "monospace",
+    fontSize: 12,
+    marginTop: 10,
+  },
 });

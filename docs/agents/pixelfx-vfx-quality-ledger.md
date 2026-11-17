@@ -9,7 +9,7 @@ Fuente local recibida: `PixelFxProceduralVFX.ts`, SHA-1 Git blob `bb2caec43bea56
 | Unidad | Estado | PR | Fecha | Nota |
 |---|---|---|---|---|
 | Fase 0 — auditoría y golden preliminar | done | #1189 | 2026-11-17 | Auditoría estática más recorder externo; golden provisional conservado como fixture y ahora consumido por Jest. |
-| U1 — Infra sin cambio visual | in-progress | #1189 (draft mientras CI compara con master) | 2026-11-17 | Wrapper aplicado a los 59 efectos (39 drawers directos + 20 wrappers High Dynamics); recorder y golden integrados en Jest. Pendiente resultado CI y verificación de hashes. |
+| U1 — Infra sin cambio visual | in-progress | #1189 (draft mientras CI compara con master) | 2026-11-17 | Los 59 efectos pasan por `withEffect`; recorder/golden Jest, caché Canvas/Skia y tests de determinismo/presupuesto incorporados. La validación completa de 354 muestras y el guardrail jscpd siguen en CI. |
 | U2 — Paleta semántica y núcleo | pending | — | — | Reutilizar tokens/perfiles existentes en `VFXEffectIR.ts`; no crear otro catálogo de perfiles. |
 | U3 — Envolvente por capas | pending | — | — | Mantener el alpha TTL como opacidad de salida; introducir samplers únicamente tras U1. |
 | U4 — Microdetalles | pending | — | — | Helpers deterministas y presupuesto medido; no añadir arrays/objetos por llamada. |
@@ -204,14 +204,15 @@ Orden de columnas de llamadas: p = `[0, 0.1, 0.25, 0.5, 0.75, 0.9]`. Los valores
 - **Helpers:** `strokeW(size, coefficient, minimum)`; `rand(entity, stream)`; `PIXEL_FX_RANDOM_STREAMS` reserva los streams existentes de Explosion (angle base 0, speed base 16) y mantiene identificadores separados para Impact, CriticalHit y Parry.
 - **Tipos:** `PixelFxPaletteRole`, `PixelFxPalette` y `PixelFxLayer` quedan declarados para las siguientes unidades; no alteran el render en U1.
 - **Asignaciones locales eliminadas:** la tabla de vértices de GuardBreak y los puntos de Electric pasan a constantes de módulo; Electric ya no crea closure ni objetos de coordenadas por muestra. Se eliminó `rotatePoint`, que no tenía llamadas.
-- **Tests:** `PixelFxProceduralVFX.test.ts` lee el JSONL con `node:fs`, graba las 11 operaciones de `IDrawAdapter`, compara los SHA-256 truncados y los conteos para 59 × 6 = 354 muestras, comprueba repetición por entity, variación solo en efectos seeded y presupuesto ≤60.
+- **Adaptadores:** Canvas y Skia se cachean por contexto mediante `WeakMap`; `CanvasDrawAdapter`/`SkiaDrawAdapter` solo se construyen al primer uso de cada contexto. Un test llama dos veces con el mismo contexto y comprueba identidad del adaptador.
+- **Tests:** `PixelFxProceduralVFX.test.ts` lee el JSONL con `node:fs`, graba las 11 operaciones de `IDrawAdapter`, compara los SHA-256 truncados y los conteos para 59 × 6 = 354 muestras, comprueba repetición por entity, variación seeded en `p=0.5` y presupuesto ≤60. En la primera integración, `pixelfx_impact` en `p=0` ya reprodujo 29 primitivas y su digest exacto; la prueba inicial reveló correctamente que el recoil no varía en `p=0`, y el assert se acotó a `p=0.5`.
 - **Registro:** el test anterior esperaba 49 nombres aunque el renderer registraba 59; se actualizó a los 59 nombres derivados del catálogo importado. Esta discrepancia ya fallaba en master y queda corregida en esta unidad.
 - **Fixture:** Documentation CI pasó con el fixture en `docs/agents/fixtures/pixelfx-vfx-golden.jsonl` (run #44075094228); no ha interferido y no se mueve.
-- **CI:** la ejecución del nuevo commit `fb08af8` está pendiente. No se marca U1 como `done` ni se retira draft hasta comparar los fallos de CI con master. No se ejecutó `pnpm run ci` localmente.
+- **CI:** el commit `d65819c` está en la ejecución #44079089005; build/lint/typecheck previos pasaron. El core conserva el único fallo de master en `CombatRollbackResimulation.test.ts:180`. La ejecución anterior #44078385508 solo falló PixelFX por la comprobación incorrecta de variación seeded en `p=0`; el test se corrigió en `d65819c`. Documentation CI pasó (#44078385540). No se ejecutó `pnpm run ci` localmente.
 
 ### Criterio de comparación con master
 
-La ejecución de master #44065834867 falla en `tests/CombatRollbackResimulation.test.ts:180`: el hash normal y el de resimulación no coinciden (en esa ejecución, esperado `1ec1c6ef`, recibido `afafd683`). La ejecución previa de la PR #1189 también falló en la misma aserción (esperado `c9d38be4`, recibido `9f77832a`), por lo que se trata como fallo preexistente; no se toca aquí. Incidencia separada: [#1190](https://github.com/xavirodriguez/ArcadeGames/issues/1190).
+La ejecución de master #44065834867 falla en `tests/CombatRollbackResimulation.test.ts:180`: el hash normal y el de resimulación no coinciden (en esa ejecución, esperado `1ec1c6ef`, recibido `afafd683`). La ejecución de la PR #1189 también falla en la misma aserción (en una ejecución, esperado `532c4602`, recibido `a794d616`), por lo que se trata como fallo preexistente; no se toca aquí. Incidencia separada: [#1190](https://github.com/xavirodriguez/ArcadeGames/issues/1190).
 
 ## Deuda y bloqueos
 
@@ -219,7 +220,7 @@ La ejecución de master #44065834867 falla en `tests/CombatRollbackResimulation.
 2. Falta auditar exhaustivamente los productores `pixelfx_*` en todos los juegos desde el checkout completo; se verificó el contrato canónico JuiceOrchestrator, no todos los spawn directos.
 3. U1 elimina la asignación de `EffectState` y del objeto de fase en los 59 drawers; la revisión futura debe conservar callbacks estáticos y no introducir scratch mutable compartido.
 4. La CI de master mostró un fallo de hash en `CombatRollbackResimulation.test.ts:180`; hasta tener baseline verde y test PixelFX reproducible, no se debe afirmar que `pnpm run ci` pasa.
-5. La extracción de helpers puede disparar jscpd; ejecutar medición antes/después y actualizar baseline solo si duplicación baja o queda igual.
+5. La extracción de helpers puede disparar jscpd. En la CI principal, el paso de guardrails se omite por el fallo preexistente del test core; hay una verificación aislada `check:duplication` en curso. El baseline no se ha actualizado.
 
 ## Siguiente unidad
 

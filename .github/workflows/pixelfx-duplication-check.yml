@@ -22,3 +22,4 @@ jobs:
       - run: pnpm run check:duplication
       - run: pnpm run duplication:update-baseline
       - run: cat scripts/duplication-baseline.json
+      - run: pnpm run typecheck:app

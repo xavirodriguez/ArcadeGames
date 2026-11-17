@@ -4,6 +4,8 @@
  */
 
 import type { SkCanvas } from "@shopify/react-native-skia";
+import { Skia } from "../../../shared/rendering/SkiaContext";
+import type { BeltWalkableDepth } from "../../belt/BeltWalkableDepth";
 import type { HitRunTheme, HitRunThemePaletteTokens } from "./HitRunTheme";
 import type {
   EntityRenderSnapshot,
@@ -41,9 +43,24 @@ export class TemplateTheme implements HitRunTheme {
     viewportHeight: number,
     _cameraX: number,
     _cameraY: number,
-    _elapsed: number
+    _elapsed: number,
+    walkableDepth?: BeltWalkableDepth
   ): void {
     paintSolidBackdropCanvas(ctx, viewportWidth, viewportHeight, this.palette.background);
+    if (!walkableDepth) return;
+    ctx.save();
+    ctx.globalAlpha = 0.12;
+    ctx.fillStyle = this.palette.paperOrFloor;
+    ctx.fillRect(0, walkableDepth.min, viewportWidth, walkableDepth.max - walkableDepth.min);
+    ctx.globalAlpha = 0.35;
+    ctx.strokeStyle = this.palette.paperOrFloor;
+    ctx.beginPath();
+    ctx.moveTo(0, walkableDepth.min);
+    ctx.lineTo(viewportWidth, walkableDepth.min);
+    ctx.moveTo(0, walkableDepth.max);
+    ctx.lineTo(viewportWidth, walkableDepth.max);
+    ctx.stroke();
+    ctx.restore();
   }
 
   public renderBackdropSkia(
@@ -52,9 +69,27 @@ export class TemplateTheme implements HitRunTheme {
     viewportHeight: number,
     _cameraX: number,
     _cameraY: number,
-    _elapsed: number
+    _elapsed: number,
+    walkableDepth?: BeltWalkableDepth
   ): void {
     paintSolidBackdropSkia(canvas, viewportWidth, viewportHeight, this.palette.background);
+    if (!Skia || !walkableDepth) return;
+    const paint = Skia.Paint();
+    paint.setColor(Skia.Color(this.palette.paperOrFloor));
+    paint.setAlphaf(0.12);
+    canvas.drawRect(
+      Skia.XYWHRect(0, walkableDepth.min, viewportWidth, walkableDepth.max - walkableDepth.min),
+      paint
+    );
+    paint.setAlphaf(0.35);
+    paint.setStyle(Skia.PaintStyle.Stroke);
+    const edges = Skia.Path.Make();
+    edges.moveTo(0, walkableDepth.min);
+    edges.lineTo(viewportWidth, walkableDepth.min);
+    edges.moveTo(0, walkableDepth.max);
+    edges.lineTo(viewportWidth, walkableDepth.max);
+    canvas.drawPath(edges, paint);
+    paint.dispose();
   }
 
   public renderGroundShadow(

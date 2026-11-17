@@ -7,6 +7,7 @@
  */
 
 import type { SkCanvas } from "@shopify/react-native-skia";
+import type { BeltWalkableDepth } from "../../belt/BeltWalkableDepth";
 import type {
   EntityRenderSnapshot,
   HudRenderSnapshot,
@@ -39,7 +40,8 @@ export interface HitRunTheme {
     viewportHeight: number,
     cameraX: number,
     cameraY: number,
-    elapsed: number
+    elapsed: number,
+    walkableDepth?: BeltWalkableDepth
   ): void;
 
   /**
@@ -52,7 +54,8 @@ export interface HitRunTheme {
     viewportHeight: number,
     cameraX: number,
     cameraY: number,
-    elapsed: number
+    elapsed: number,
+    walkableDepth?: BeltWalkableDepth
   ): void;
 
   /** Render ground shadow at entity feet position (Transform.y). */

@@ -720,11 +720,11 @@ describe("PixelFX-inspired procedural VFX", () => {
       expect(canvasInstances[0]).toBe(canvasInstances[1]);
       expect(skiaInstances).toHaveLength(2);
       expect(skiaInstances[0]).toBe(skiaInstances[1]);
+      expect(canvasSave).toHaveBeenCalledTimes(2);
+      expect(skiaSave).toHaveBeenCalledTimes(2);
     } finally {
       jest.restoreAllMocks();
     }
-    expect(canvasSave).toHaveBeenCalledTimes(2);
-    expect(skiaSave).toHaveBeenCalledTimes(2);
   });
 
   it("matches the 59-effect adapter golden at six TTL progress samples", () => {

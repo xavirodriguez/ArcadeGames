@@ -9,7 +9,7 @@ Fuente local recibida: `PixelFxProceduralVFX.ts`, SHA-1 Git blob `bb2caec43bea56
 | Unidad | Estado | PR | Fecha | Nota |
 |---|---|---|---|---|
 | Fase 0 — auditoría y golden preliminar | done | #1189 | 2026-11-17 | Auditoría estática más recorder externo; golden provisional conservado como fixture y ahora consumido por Jest. |
-| U1 — Infra sin cambio visual | in-progress | #1189 (draft mientras CI compara con master) | 2026-11-17 | Los 59 efectos pasan por `withEffect`; golden Jest y 354 muestras pasan; caché Canvas/Skia y presupuesto verificados. jscpd pasa y el baseline ya refleja la reducción. Pendiente cerrar workflows de CI/E2E frente a master. |
+| U1 — Infra sin cambio visual | done | #1189 | 2026-11-17 | Golden Jest (354 muestras), determinismo, variación seeded, presupuesto y caché Canvas/Skia verificados. jscpd baja 251 líneas; baseline actualizado. No se observan fallos nuevos frente a master. |
 | U2 — Paleta semántica y núcleo | pending | — | — | Reutilizar tokens/perfiles existentes en `VFXEffectIR.ts`; no crear otro catálogo de perfiles. |
 | U3 — Envolvente por capas | pending | — | — | Mantener el alpha TTL como opacidad de salida; introducir samplers únicamente tras U1. |
 | U4 — Microdetalles | pending | — | — | Helpers deterministas y presupuesto medido; no añadir arrays/objetos por llamada. |
@@ -226,4 +226,4 @@ La ejecución de master #44065834867 falla en `tests/CombatRollbackResimulation.
 
 ## Siguiente unidad
 
-**U1 — cerrar tras finalizar los workflows #44079089005 y #44079088906.** El golden ya pasa, jscpd baja 251 líneas y los fallos observados son preexistentes frente a master. Si las ejecuciones terminan sin fallos nuevos, marcar U1 `done` y PR #1189 ready for review. Después, **U2 — paleta semántica y núcleo**, reutilizando `VFX_VISUAL_PROFILES` y manteniendo fallback al color original.
+**U1 — done.** La siguiente unidad es **U2 — paleta semántica y núcleo**, reutilizando `VFX_VISUAL_PROFILES`, derivando roles desde `render.color` y manteniendo fallback al color original. No se cambia la salida visual hasta comparar el golden de nuevo.

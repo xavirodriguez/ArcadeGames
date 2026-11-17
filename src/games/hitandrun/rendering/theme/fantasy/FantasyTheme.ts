@@ -4,6 +4,7 @@
  */
 
 import type { SkCanvas } from "@shopify/react-native-skia";
+import type { BeltWalkableDepth } from "../../../belt/BeltWalkableDepth";
 import type { HitRunTheme, HitRunThemePaletteTokens } from "../HitRunTheme";
 import { Skia, getPaint } from "../../../../shared/rendering/SkiaContext";
 import type {
@@ -69,7 +70,8 @@ export class FantasyTheme implements HitRunTheme {
     viewportHeight: number,
     _cameraX: number,
     _cameraY: number,
-    _elapsed: number
+    _elapsed: number,
+    walkableDepth?: BeltWalkableDepth
   ): void {
     if (!Skia || !canvas) return;
     const paint = getPaint();
@@ -87,6 +89,24 @@ export class FantasyTheme implements HitRunTheme {
       paint,
       this.getProceduralBackdrop(viewportWidth, viewportHeight)
     );
+
+    if (walkableDepth) {
+      paint.setColor(Skia.Color(FANTASY_PALETTE_TOKENS.paperOrFloor));
+      paint.setAlphaf(0.12);
+      canvas.drawRect(
+        Skia.XYWHRect(0, walkableDepth.min, viewportWidth, walkableDepth.max - walkableDepth.min),
+        paint
+      );
+      paint.setAlphaf(0.35);
+      paint.setStyle(Skia.PaintStyle.Stroke);
+      paint.setStrokeWidth(1.5);
+      const laneEdges = Skia.Path.Make();
+      laneEdges.moveTo(0, walkableDepth.min);
+      laneEdges.lineTo(viewportWidth, walkableDepth.min);
+      laneEdges.moveTo(0, walkableDepth.max);
+      laneEdges.lineTo(viewportWidth, walkableDepth.max);
+      canvas.drawPath(laneEdges, paint);
+    }
 
     paint.setAlphaf(1);
     paint.setStyle(Skia.PaintStyle.Fill);
@@ -118,7 +138,8 @@ export class FantasyTheme implements HitRunTheme {
     viewportHeight: number,
     _cameraX: number,
     _cameraY: number,
-    _elapsed: number
+    _elapsed: number,
+    walkableDepth?: BeltWalkableDepth
   ): void {
     ctx.save();
     ctx.fillStyle = FANTASY_PALETTE_TOKENS.background;
@@ -127,6 +148,21 @@ export class FantasyTheme implements HitRunTheme {
     // Controlled alpha procedural backdrop to preserve combat legibility
     ctx.globalAlpha = 0.35;
     drawProceduralSceneCanvas(ctx, this.getProceduralBackdrop(viewportWidth, viewportHeight));
+
+    if (walkableDepth) {
+      ctx.globalAlpha = 0.12;
+      ctx.fillStyle = FANTASY_PALETTE_TOKENS.paperOrFloor;
+      ctx.fillRect(0, walkableDepth.min, viewportWidth, walkableDepth.max - walkableDepth.min);
+      ctx.globalAlpha = 0.35;
+      ctx.strokeStyle = FANTASY_PALETTE_TOKENS.paperOrFloor;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(0, walkableDepth.min);
+      ctx.lineTo(viewportWidth, walkableDepth.min);
+      ctx.moveTo(0, walkableDepth.max);
+      ctx.lineTo(viewportWidth, walkableDepth.max);
+      ctx.stroke();
+    }
     ctx.restore();
   }
 

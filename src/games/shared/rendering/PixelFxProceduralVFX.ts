@@ -1329,8 +1329,27 @@ export function drawPixelFxSoulReap(draw: IDrawAdapter, world: import("@tiny-ast
 
 export function drawPixelFxTimeWarp(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("time_warp", draw, world, entity); }
 
+export function drawPixelFxPrismBurst(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("prism_burst", draw, world, entity); }
 
-type HighDynamicsKind = "nova" | "vortex" | "meteor" | "rift" | "arc_chain" | "gravity_well" | "blade_dance" | "seismic_wave" | "soul_reap" | "time_warp";
+export function drawPixelFxSonicBoom(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("sonic_boom", draw, world, entity); }
+
+export function drawPixelFxMagneticSurge(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("magnetic_surge", draw, world, entity); }
+
+export function drawPixelFxPlasmaOrbit(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("plasma_orbit", draw, world, entity); }
+
+export function drawPixelFxSolarFlare(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("solar_flare", draw, world, entity); }
+
+export function drawPixelFxCrystalBloom(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("crystal_bloom", draw, world, entity); }
+
+export function drawPixelFxPulseLance(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("pulse_lance", draw, world, entity); }
+
+export function drawPixelFxEchoShatter(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("echo_shatter", draw, world, entity); }
+
+export function drawPixelFxTidalWave(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("tidal_wave", draw, world, entity); }
+
+export function drawPixelFxPhaseCollapse(draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void { drawHighDynamics("phase_collapse", draw, world, entity); }
+
+type HighDynamicsKind = "nova" | "vortex" | "meteor" | "rift" | "arc_chain" | "gravity_well" | "blade_dance" | "seismic_wave" | "soul_reap" | "time_warp" | "prism_burst" | "sonic_boom" | "magnetic_surge" | "plasma_orbit" | "solar_flare" | "crystal_bloom" | "pulse_lance" | "echo_shatter" | "tidal_wave" | "phase_collapse";
 
 /** Ten distinct closed-form motion studies. All geometry is sampled from normalized TTL progress. */
 function drawHighDynamics(kind: HighDynamicsKind, draw: IDrawAdapter, world: import("@tiny-aster/core").World<CoreComponentRegistry>, entity: number): void {
@@ -1392,6 +1411,51 @@ function drawHighDynamics(kind: HighDynamicsKind, draw: IDrawAdapter, world: imp
       draw.drawLine(Math.cos(sweep)*rad*0.72,Math.sin(sweep)*rad*0.72,Math.cos(tip)*rad*1.12,Math.sin(tip)*rad*1.12,c,Math.max(1,z*0.055),fade);
       for(let i=0;i<5;i++){const x=Math.cos(r+i*1.1+p)*z*(0.2+i*0.09),y=-z*(0.12+p*0.48+(i%2)*0.1);draw.drawLine(x,y+z*0.08,x*0.82,y-z*0.1,c,Math.max(1,z*0.025),fade*(0.7-i*0.09));}
       break;
+    }
+    case "prism_burst": {
+      const pulse=Math.sin(Math.PI*p), radius=z*(0.18+p*0.9);
+      for(let i=0;i<8;i++){const ang=r+i*Math.PI/4,inner=radius*(0.18+(i%2)*0.08),outer=radius*(0.72+(i%3)*0.12),mid=ang+0.12;draw.drawLine(Math.cos(ang)*inner,Math.sin(ang)*inner,Math.cos(mid)*outer,Math.sin(mid)*outer,c,Math.max(1,z*0.045),fade);draw.drawLine(Math.cos(mid)*outer,Math.sin(mid)*outer,Math.cos(ang+0.24)*inner,Math.sin(ang+0.24)*inner,c,Math.max(1,z*0.028),fade*0.7);}
+      draw.strokeCircle(0,0,radius*0.28,c,Math.max(1,z*0.035),a*pulse); break;
+    }
+    case "sonic_boom": {
+      for(let i=0;i<4;i++){const delay=i*0.13,t=Math.max(0,(p-delay)/(1-delay)),radius=z*(0.12+t*1.02);draw.drawArc(0,0,radius,r-Math.PI*0.42,Math.PI*0.84,c,Math.max(1,z*(0.085-i*0.012)*(1-t*0.55)),fade*(1-t*0.35));}
+      draw.drawLine(-reach*0.85,0,reach*0.85,0,c,Math.max(1,z*0.025),fade*0.55); break;
+    }
+    case "magnetic_surge": {
+      for(let i=0;i<5;i++){const lane=i-2,offset=lane*z*0.13,arc=z*(0.32+Math.abs(lane)*0.12+p*0.28);draw.drawArc(0,offset,arc,r+Math.PI*0.15,Math.PI*0.7,c,Math.max(1,z*0.035),fade*(1-Math.abs(lane)*0.12));}
+      for(let i=0;i<6;i++){const ang=r+i*Math.PI/3+ p*0.8,inner=z*0.22,outer=z*(0.48+p*0.38);draw.drawLine(Math.cos(ang)*inner,Math.sin(ang)*inner,Math.cos(ang)*outer,Math.sin(ang)*outer,c,Math.max(1,z*0.022),fade*0.72);} break;
+    }
+    case "plasma_orbit": {
+      const orbit=z*(0.48+Math.sin(p*Math.PI)*0.18),spin=r+p*Math.PI*3;
+      draw.drawArc(0,0,orbit,spin,Math.PI*1.75,c,Math.max(1,z*0.04),fade);
+      for(let i=0;i<3;i++){const ang=spin+i*Math.PI*2/3,rad=orbit*(0.82+(i%2)*0.12),x=Math.cos(ang)*rad,y=Math.sin(ang)*rad;draw.strokeCircle(x,y,z*(0.055+(i%2)*0.018),c,Math.max(1,z*0.025),fade);draw.drawLine(x,y,x+Math.cos(ang+0.8)*z*0.14,y+Math.sin(ang+0.8)*z*0.14,c,Math.max(1,z*0.03),fade*0.7);} break;
+    }
+    case "solar_flare": {
+      const flare=z*(0.18+p*0.74),core=a*(0.8-Math.min(0.5,p*0.4));draw.fillCircle(0,0,z*(0.12+(1-p)*0.08),c,core);
+      for(let i=0;i<12;i++){const ang=r+i*Math.PI/6,inner=flare*(0.24+(i%3)*0.05),outer=flare*(0.88+(i%4)*0.08);draw.drawLine(Math.cos(ang)*inner,Math.sin(ang)*inner,Math.cos(ang+Math.sin(p*5+i)*0.08)*outer,Math.sin(ang+Math.sin(p*5+i)*0.08)*outer,c,Math.max(1,z*(i%3===0?0.06:0.026)),fade*(0.85-(i%3)*0.12));} break;
+    }
+    case "crystal_bloom": {
+      const bloom=z*(0.2+p*0.7),spin=r+p*0.22;for(let i=0;i<6;i++){const ang=spin+i*Math.PI/3,tip=bloom*(0.82+(i%2)*0.16),base=bloom*0.18,px=Math.cos(ang),py=Math.sin(ang),tx=-py,ty=px;draw.drawLine(px*base,py*base,px*tip+tx*z*0.08,py*tip+ty*z*0.08,c,Math.max(1,z*0.045),fade);draw.drawLine(px*tip+tx*z*0.08,py*tip+ty*z*0.08,px*base,py*base,c,Math.max(1,z*0.022),fade*0.6);}
+      draw.strokeCircle(0,0,bloom*0.2,c,Math.max(1,z*0.03),fade); break;
+    }
+    case "pulse_lance": {
+      const length=z*(0.3+p*1.25),width=z*(0.12*(1-p*0.55)),x1=-length*0.35,x2=length;
+      draw.drawLine(x1*cs-width*sn,x1*sn+width*cs,x2*cs,x2*sn,c,Math.max(1,z*0.075),fade);
+      draw.drawLine(x1*cs+width*sn,x1*sn-width*cs,x2*cs,x2*sn,c,Math.max(1,z*0.035),fade*0.7);
+      draw.drawLine(x2*cs,x2*sn,(x2-z*0.18)*cs-(width*0.7)*sn,(x2-z*0.18)*sn+(width*0.7)*cs,c,Math.max(1,z*0.045),fade);break;
+    }
+    case "echo_shatter": {
+      for(let echo=0;echo<3;echo++){const delay=echo*0.22,t=Math.max(0,(p-delay)/(1-delay)),radius=z*(0.16+t*0.82);draw.strokeCircle(0,0,radius,c,Math.max(1,z*(0.05-echo*0.009)),fade*(1-t*0.5));}
+      for(let i=0;i<7;i++){const ang=r+i*Math.PI*2/7,dist=z*(0.24+p*0.66),jitter=Math.sin(i*12.7)*0.08;draw.drawLine(Math.cos(ang)*dist,Math.sin(ang)*dist,Math.cos(ang+jitter)*dist*1.22,Math.sin(ang+jitter)*dist*1.22,c,Math.max(1,z*0.035),fade*(0.8-i*0.06));}break;
+    }
+    case "tidal_wave": {
+      for(let i=0;i<3;i++){const phase=Math.max(0,p-i*0.16),radius=z*(0.22+phase*1.08);draw.drawArc(0,z*0.18,radius,Math.PI*1.04,Math.PI*0.92,c,Math.max(1,z*(0.09-i*0.018)*(1-phase*0.45)),fade*(1-i*0.18));}
+      for(let i=0;i<5;i++){const x=(i-2)*z*0.19,y=-z*(0.08+(i%2)*0.05);draw.drawLine(x,y,x*1.18,y-z*(0.1+p*0.18),c,Math.max(1,z*0.028),fade*0.65);}break;
+    }
+    case "phase_collapse": {
+      const pinch=Math.max(0,1-Math.abs(p-0.62)/0.38),radius=z*(0.82-p*0.58);
+      for(let i=0;i<4;i++){const ang=r+i*Math.PI/2+p*0.4,inner=radius*(0.22+pinch*0.32),outer=radius*(0.92-i*0.08);draw.drawLine(Math.cos(ang)*outer,Math.sin(ang)*outer,Math.cos(ang+Math.PI)*inner,Math.sin(ang+Math.PI)*inner,c,Math.max(1,z*0.045),fade);}
+      draw.strokeCircle(0,0,radius*0.36,c,Math.max(1,z*0.04),fade);draw.fillCircle(0,0,z*(0.04+pinch*0.1),c,a*pinch);break;
     }
     case "time_warp": {
       const envelope=Math.sin(Math.PI*p),spin=r+p*p*Math.PI*5,rad=z*(0.42+envelope*0.24);
@@ -1458,6 +1522,16 @@ export function registerPixelFxProceduralVFX<TComponents extends CoreComponentRe
     ["pixelfx_seismic_wave", drawPixelFxSeismicWave],
     ["pixelfx_soul_reap", drawPixelFxSoulReap],
     ["pixelfx_time_warp", drawPixelFxTimeWarp],
+    ["pixelfx_prism_burst", drawPixelFxPrismBurst],
+    ["pixelfx_sonic_boom", drawPixelFxSonicBoom],
+    ["pixelfx_magnetic_surge", drawPixelFxMagneticSurge],
+    ["pixelfx_plasma_orbit", drawPixelFxPlasmaOrbit],
+    ["pixelfx_solar_flare", drawPixelFxSolarFlare],
+    ["pixelfx_crystal_bloom", drawPixelFxCrystalBloom],
+    ["pixelfx_pulse_lance", drawPixelFxPulseLance],
+    ["pixelfx_echo_shatter", drawPixelFxEchoShatter],
+    ["pixelfx_tidal_wave", drawPixelFxTidalWave],
+    ["pixelfx_phase_collapse", drawPixelFxPhaseCollapse],
   ] as const;
 
   for (const [name, drawEffect] of drawers) {

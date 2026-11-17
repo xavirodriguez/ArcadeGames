@@ -49,6 +49,16 @@ import {
   drawPixelFxSeismicWave,
   drawPixelFxSoulReap,
   drawPixelFxTimeWarp,
+  drawPixelFxPrismBurst,
+  drawPixelFxSonicBoom,
+  drawPixelFxMagneticSurge,
+  drawPixelFxPlasmaOrbit,
+  drawPixelFxSolarFlare,
+  drawPixelFxCrystalBloom,
+  drawPixelFxPulseLance,
+  drawPixelFxEchoShatter,
+  drawPixelFxTidalWave,
+  drawPixelFxPhaseCollapse,
   registerPixelFxProceduralVFX
 } from "../PixelFxProceduralVFX";
 
@@ -107,6 +117,18 @@ function createWorld(remaining = 0.2, vfxAnimDuration?: number): { world: World<
 }
 
 describe("PixelFX-inspired procedural VFX", () => {
+  it("draws all ten additional high-dynamics effects with balanced adapter state", () => {
+    const drawers = [drawPixelFxPrismBurst, drawPixelFxSonicBoom, drawPixelFxMagneticSurge, drawPixelFxPlasmaOrbit, drawPixelFxSolarFlare, drawPixelFxCrystalBloom, drawPixelFxPulseLance, drawPixelFxEchoShatter, drawPixelFxTidalWave, drawPixelFxPhaseCollapse];
+    for (const drawer of drawers) {
+      const adapter = createAdapter();
+      const { world, entity } = createWorld();
+      drawer(adapter, world, entity);
+      expect(adapter.save).toHaveBeenCalledTimes(1);
+      expect(adapter.restore).toHaveBeenCalledTimes(1);
+      expect(adapter.drawLine.mock.calls.length + adapter.drawArc.mock.calls.length + adapter.strokeCircle.mock.calls.length + adapter.fillCircle.mock.calls.length).toBeGreaterThan(0);
+    }
+  });
+
   it("keeps visual progress independent from TTL when animDuration is configured", () => {
     const defaultAdapter = createAdapter();
     const defaultState = createWorld(0.2);

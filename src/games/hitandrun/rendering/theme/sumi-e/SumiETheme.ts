@@ -157,7 +157,8 @@ export class SumiETheme implements HitRunTheme {
     h: number,
     cameraX: number,
     _cameraY: number,
-    elapsed: number
+    elapsed: number,
+    walkableDepth?: BeltWalkableDepth
   ): void {
     if (!this.paperCanvas || this.paperCanvas.width !== w || this.paperCanvas.height !== h) {
       this.initParchmentAndBorder(w, h);
@@ -193,8 +194,9 @@ export class SumiETheme implements HitRunTheme {
     ctx.globalAlpha = 1.0;
 
     // 3. Wash ink lane floor
-    const laneY = h * 0.45;
-    const laneH = h * 0.48;
+    const laneY = walkableDepth?.min ?? h * 0.45;
+    const laneBottom = walkableDepth?.max ?? h * 0.93;
+    const laneH = Math.max(0, laneBottom - laneY);
     ctx.fillStyle = "rgba(220, 214, 194, 0.4)";
     ctx.fillRect(0, laneY, w, laneH);
     ctx.strokeStyle = "rgba(23, 24, 23, 0.15)";
@@ -272,7 +274,8 @@ export class SumiETheme implements HitRunTheme {
     h: number,
     cameraX: number,
     _cameraY: number,
-    _elapsed: number
+    _elapsed: number,
+    walkableDepth?: BeltWalkableDepth
   ): void {
     if (!Skia || !canvas) return;
     const paint = getPaint();
@@ -293,8 +296,9 @@ export class SumiETheme implements HitRunTheme {
 
     paint.setColor(Skia.Color(SUMI_E_PALETTE.paperOrFloor));
     paint.setAlphaf(0.4);
-    const laneY = h * 0.45;
-    const laneH = h * 0.48;
+    const laneY = walkableDepth?.min ?? h * 0.45;
+    const laneBottom = walkableDepth?.max ?? h * 0.93;
+    const laneH = Math.max(0, laneBottom - laneY);
     canvas.drawRect(Skia.XYWHRect(0, laneY, w, laneH), paint);
 
     paint.setColor(Skia.Color(SUMI_E_PALETTE.inkOrOutline));

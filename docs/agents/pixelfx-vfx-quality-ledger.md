@@ -195,7 +195,7 @@ Orden de columnas de llamadas: p = `[0, 0.1, 0.25, 0.5, 0.75, 0.9]`. Los valores
 | Primitivas Parry | 12 | — |
 | Primitivas CriticalHit | 12 | — |
 | Máximo de primitivas del catálogo | 32 (`pixelfx_armor_break`) | — |
-| jscpd | 1.22% almacenado en baseline; no reejecutado | — |
+| jscpd | 1.22% · 1801 líneas · 225 clones | 1.03% · 1550 líneas · 191 clones (-251 líneas, -34 clones) |
 
 ## U1 — Infra sin cambio visual (implementación en PR #1189)
 
@@ -207,8 +207,10 @@ Orden de columnas de llamadas: p = `[0, 0.1, 0.25, 0.5, 0.75, 0.9]`. Los valores
 - **Adaptadores:** Canvas y Skia se cachean por contexto mediante `WeakMap`; `CanvasDrawAdapter`/`SkiaDrawAdapter` solo se construyen al primer uso de cada contexto. Un test llama dos veces con el mismo contexto y comprueba identidad del adaptador.
 - **Tests:** `PixelFxProceduralVFX.test.ts` lee el JSONL con `node:fs`, graba las 11 operaciones de `IDrawAdapter`, compara los SHA-256 truncados y los conteos para 59 × 6 = 354 muestras, comprueba repetición por entity, variación seeded en `p=0.5` y presupuesto ≤60. En la primera integración, `pixelfx_impact` en `p=0` ya reprodujo 29 primitivas y su digest exacto; la prueba inicial reveló correctamente que el recoil no varía en `p=0`, y el assert se acotó a `p=0.5`.
 - **Registro:** el test anterior esperaba 49 nombres aunque el renderer registraba 59; se actualizó a los 59 nombres derivados del catálogo importado. Esta discrepancia ya fallaba en master y queda corregida en esta unidad.
-- **Fixture:** Documentation CI pasó con el fixture en `docs/agents/fixtures/pixelfx-vfx-golden.jsonl` (run #44075094228); no ha interferido y no se mueve.
-- **CI:** el commit `d65819c` está en la ejecución #44079089005; build/lint/typecheck previos pasaron. El core conserva el único fallo de master en `CombatRollbackResimulation.test.ts:180`. La ejecución anterior #44078385508 solo falló PixelFX por la comprobación incorrecta de variación seeded en `p=0`; el test se corrigió en `d65819c`. Documentation CI pasó (#44078385540). No se ejecutó `pnpm run ci` localmente.
+- **Fixture:** Documentation CI pasó con el fixture en `docs/agents/fixtures/pixelfx-vfx-golden.jsonl` (runs #44075094228 y #44078385540); no ha interferido y no se mueve.
+- **Duplicación:** `pnpm run check:duplication` pasó en el branch aislado de verificación (#44079625552). Al bajar 251 líneas, se ejecutó `pnpm run duplication:update-baseline` (#44080437373); nuevo baseline: 1550 líneas, 191 clones, 1.03%, 149927 líneas totales. El archivo se copió a esta PR. No se actualizó el baseline hasta comprobar la reducción.
+- **Guardrails restantes:** `pnpm run check:agent-guardrails` pasó los tres boundary checks, pero falla en el guardrail de typecasts por `src/games/vertical-shmup/juice/ShmupJuiceHelpers.ts:48` (`as unknown=1`, baseline 0). El archivo es idéntico en master y PR (blob `2d1fe202438ac047d0cb2483d90a330414ce2ff5`), por tanto no es regresión PixelFX.
+- **CI:** el commit `d65819c` está en la ejecución #44079089005. Build/lint/typecheck pasan; PixelFX golden pasa en la salida de Jest y los 10 test suites fallidos observados son subconjunto de los 33 fallidos en master, sin suites nuevas. El core conserva el fallo de master en `CombatRollbackResimulation.test.ts:180`. E2E en master y PR falla en los mismos tres casos Hit & Run. Documentation CI pasó (#44078385540). No se ejecutó `pnpm run ci` localmente.
 
 ### Criterio de comparación con master
 
@@ -220,7 +222,7 @@ La ejecución de master #44065834867 falla en `tests/CombatRollbackResimulation.
 2. Falta auditar exhaustivamente los productores `pixelfx_*` en todos los juegos desde el checkout completo; se verificó el contrato canónico JuiceOrchestrator, no todos los spawn directos.
 3. U1 elimina la asignación de `EffectState` y del objeto de fase en los 59 drawers; la revisión futura debe conservar callbacks estáticos y no introducir scratch mutable compartido.
 4. La CI de master mostró un fallo de hash en `CombatRollbackResimulation.test.ts:180`; hasta tener baseline verde y test PixelFX reproducible, no se debe afirmar que `pnpm run ci` pasa.
-5. La extracción de helpers puede disparar jscpd. En la CI principal, el paso de guardrails se omite por el fallo preexistente del test core; hay una verificación aislada `check:duplication` en curso. El baseline no se ha actualizado.
+5. La verificación de duplicación pasó y el baseline ya se actualizó por la reducción demostrada. El guardrail agregado sigue bloqueado por el typecast preexistente de `ShmupJuiceHelpers.ts:48`.
 
 ## Siguiente unidad
 

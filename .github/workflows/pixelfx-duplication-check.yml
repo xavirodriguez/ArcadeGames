@@ -19,6 +19,6 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm run check:agent-guardrails
+      - run: pnpm run check:duplication
       - run: pnpm run duplication:update-baseline
       - run: cat scripts/duplication-baseline.json

@@ -4,6 +4,7 @@
  */
 
 import type { HitRunTheme, HitRunThemePaletteTokens } from "../HitRunTheme";
+import type { BeltWalkableDepth } from "../../../belt/BeltWalkableDepth";
 import type { PresentationRandom } from "../../../../shared/presentation/PresentationContracts";
 import type {
   EntityRenderSnapshot,

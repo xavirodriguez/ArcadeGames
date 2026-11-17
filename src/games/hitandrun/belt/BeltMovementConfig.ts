@@ -20,7 +20,9 @@ export interface BeltMovementConfig {
   hopImpulse: number;
   hopGravity: number;
   hopMaxAirSeconds: number;
+  /** Legacy fallback only; authored levels should provide walkableDepth. */
   depthMin: number;
+  /** Legacy fallback only; authored levels should provide walkableDepth. */
   depthMax: number;
 }
 

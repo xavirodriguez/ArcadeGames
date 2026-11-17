@@ -64,6 +64,10 @@ import { registerHitRunDeathFlow } from "./systems/HitRunDeathFlowSystem";
 import { registerHitRunScoreSystem, HIT_RUN_SCORE_RESOURCE, type HitRunScoreState } from "./systems/HitRunScoreSystem";
 import { registerBeltSystems } from "./belt/registerBeltSystems";
 import {
+  resolveBeltMovementConfigForLevel,
+  type BeltLevelDepthDefinition
+} from "./belt/BeltWalkableDepth";
+import {
   registerBeltPlayerBlueprint,
   DEFAULT_BELT_PLAYER_SPAWN
 } from "./belt/registerBeltPlayerBlueprint";
@@ -129,10 +133,15 @@ import {
   registerSumiEVFX
 } from "../shared/rendering/sumi-e";
 
+export interface HitRunLevelData extends BeltLevelDepthDefinition {
+  templates: SegmentTemplate[];
+  grammar: string[];
+}
+
 export interface HitAndRunConfig {
   seed?: number;
   gameOptions?: Record<string, unknown>;
-  levelData?: { templates: SegmentTemplate[]; grammar: string[] };
+  levelData?: HitRunLevelData;
 }
 
 export type HitAndRunBlueprintMap = Record<
@@ -208,7 +217,7 @@ export class HitAndRunGame extends BaseGame<
   public readonly gameId = "hitandrun";
   private gameOver = false;
   private levelPlan!: LevelPlan;
-  private customLevelData?: { templates: SegmentTemplate[]; grammar: string[] };
+  private customLevelData?: HitRunLevelData;
   private readonly samuraiAssetLoader: AssetLoader;
   private readonly activeThemeId: string;
   private presentationSession: HitRunPresentationSession | undefined;
@@ -342,7 +351,9 @@ export class HitAndRunGame extends BaseGame<
 
     setupArcadeRunState(this.world, this.audio);
 
-    registerBeltSystems(this.world);
+    registerBeltSystems(this.world, {
+      movement: resolveBeltMovementConfigForLevel(this.customLevelData ?? hitRunLevelData)
+    });
     registerHitRunAI(this.world);
     registerHitRunFeedback(this.world);
     registerHitRunHurt(this.world);

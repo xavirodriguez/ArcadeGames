@@ -1,5 +1,6 @@
 {
   "name": "HitAndRun Level 1 — Fire Corridor",
+  "walkableDepth": { "min": 280, "max": 520 },
   "grammar": ["intro", "combat", "pressure", "combat", "finale"],
   "templates": [
     {

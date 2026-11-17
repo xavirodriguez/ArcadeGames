@@ -1,7 +1,9 @@
 import { World, CoreComponentRegistry } from "@tiny-aster/core";
 import {
   BELT_MOVEMENT_CONFIG_RESOURCE,
-  DEFAULT_BELT_MOVEMENT_CONFIG
+  DEFAULT_BELT_MOVEMENT_CONFIG,
+  createBeltInputComponent,
+  createBeltMovementComponent
 } from "../BeltMovementTypes";
 import { BeltMovementSystem } from "../BeltMovementSystem";
 import { registerBeltSystems } from "../registerBeltSystems";
@@ -77,30 +79,8 @@ describe("Hit & Run level walkable depth", () => {
       vy: 0,
       angularVelocity: 0
     });
-    world.addComponent(entity, {
-      type: "BeltInput",
-      moveX: 0,
-      moveY: 0,
-      aimX: 0,
-      aimY: 0,
-      attackHeld: false,
-      attackPressed: false,
-      fireHeld: false,
-      firePressed: false,
-      specialHeld: false,
-      specialPressed: false,
-      guardHeld: false,
-      jumpHeld: false,
-      jumpPressed: false,
-      _prevHeldMask: 0
-    });
-    world.addComponent(entity, {
-      type: "BeltMovement",
-      facing: 1,
-      isHopping: false,
-      hopElapsed: 0,
-      groundY: 400
-    });
+    world.addComponent(entity, createBeltInputComponent());
+    world.addComponent(entity, createBeltMovementComponent());
 
     expect(
       world.getResource<typeof movement>(BELT_MOVEMENT_CONFIG_RESOURCE)

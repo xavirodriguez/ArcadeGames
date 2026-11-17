@@ -1,0 +1,22 @@
+name: Temporary PixelFX duplication verification
+
+on:
+  push:
+    branches:
+      - vfx/pixelfx-duplication-check
+
+permissions:
+  contents: read
+
+jobs:
+  duplication:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run check:duplication

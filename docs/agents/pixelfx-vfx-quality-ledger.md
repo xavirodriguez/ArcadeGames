@@ -9,7 +9,7 @@ Fuente local recibida: `PixelFxProceduralVFX.ts`, SHA-1 Git blob `bb2caec43bea56
 | Unidad | Estado | PR | Fecha | Nota |
 |---|---|---|---|---|
 | Fase 0 — auditoría y golden preliminar | done | #1189 | 2026-11-17 | Auditoría estática más recorder externo; golden provisional conservado como fixture y ahora consumido por Jest. |
-| U1 — Infra sin cambio visual | in-progress | #1189 (draft mientras CI compara con master) | 2026-11-17 | Los 59 efectos pasan por `withEffect`; recorder/golden Jest, caché Canvas/Skia y tests de determinismo/presupuesto incorporados. La validación completa de 354 muestras y el guardrail jscpd siguen en CI. |
+| U1 — Infra sin cambio visual | in-progress | #1189 (draft mientras CI compara con master) | 2026-11-17 | Los 59 efectos pasan por `withEffect`; golden Jest y 354 muestras pasan; caché Canvas/Skia y presupuesto verificados. jscpd pasa y el baseline ya refleja la reducción. Pendiente cerrar workflows de CI/E2E frente a master. |
 | U2 — Paleta semántica y núcleo | pending | — | — | Reutilizar tokens/perfiles existentes en `VFXEffectIR.ts`; no crear otro catálogo de perfiles. |
 | U3 — Envolvente por capas | pending | — | — | Mantener el alpha TTL como opacidad de salida; introducir samplers únicamente tras U1. |
 | U4 — Microdetalles | pending | — | — | Helpers deterministas y presupuesto medido; no añadir arrays/objetos por llamada. |
@@ -141,7 +141,7 @@ Orden de columnas de llamadas: p = `[0, 0.1, 0.25, 0.5, 0.75, 0.9]`. Los valores
 - Runner del repositorio: Jest; el script `test:ci` usa `jest --runInBand`, y el script `ci` ejecuta build de core, build de gameplay-kit, guardrails, docs-check y typecheck app. Evidencia: `package.json` (`scripts.test:ci`, `scripts.ci`, `scripts.check:duplication`).
 - Tests específicos: `src/games/shared/rendering/__tests__/PixelFxProceduralVFX.test.ts` (683 líneas); adapter mock local en líneas 69–82. Hay pruebas de geometría/semillas para Impact y Explosion, y paridad de registro por nombre; no hay adapter recorder genérico que conserve la secuencia ordenada completa. Evidencia: `__tests__/PixelFxProceduralVFX.test.ts:69-82`, y casos de Impact/Explosion en líneas 101–169.
 - También existen `PixelFxCombatVFX.test.ts`, `DrawAdapter.test.ts` y `vfx-procedural-core.test.ts`; la última cubre `deriveSeed` y samplers. Evidencia: archivos indicados y `vfx-core.ts:108-118`, `vfx-timeline.ts:79-90`.
-- Baseline jscpd ya almacenado: `scripts/duplication-baseline.json` = 1801 duplicatedLines, 225 clones, 1.22%, 147867 totalLines. **No se ejecutó** `pnpm run check:duplication` en esta sesión; estos son valores del archivo baseline, no una medición nueva.
+- Baseline jscpd antes de U1: 1801 duplicatedLines, 225 clones, 1.22%, 147867 totalLines. La medición aislada confirmó 251 líneas duplicadas menos; `pnpm run duplication:update-baseline` actualizó `scripts/duplication-baseline.json` a 1550 líneas, 191 clones, 1.03%, 149927 totalLines.
 - **No se ejecutó** `pnpm run ci` localmente: el repositorio no está clonado en el entorno de ejecución; solo se recibió la fuente adjunta y se consultó master remotamente.
 - CI remota de master: workflow run `44065834867` inició con push a HEAD `e38e42a...`; en la consulta el run seguía `in_progress`, pero el paso `Run tests through Turborepo` ya había fallado. Log: `tests/CombatRollbackResimulation.test.ts`, caso “Case 2 & 4… normal hash == resimulated hash”; esperado `1ec1c6ef`, recibido `afafd683`, assert en línea 180. Build, lint y typecheck de Turborepo aparecían completados con éxito en el job. No se atribuye la causa del hash al trabajo PixelFX.
 
@@ -155,7 +155,7 @@ Orden de columnas de llamadas: p = `[0, 0.1, 0.25, 0.5, 0.75, 0.9]`. Los valores
 - **H4 — CONFIRMADA:** solo Impact (`sampleVFXRecoil`, `PixelFxProceduralVFX.ts:74`; `vfx-motion.ts:8-15`) y Explosion (`deriveSeed`, `PixelFxProceduralVFX.ts:170-174`) variaron por entity en el recorder de baseline.
 - **H5 — CONFIRMADA:** PhaseDash dibuja rectángulos offset fijos y líneas; no muestrea una trayectoria anterior (`PixelFxProceduralVFX.ts:458-482`).
 - **H6 — CONFIRMADA:** Impact produjo 29 primitivas en cada una de las seis muestras (31 operaciones contando save/restore); el test existente verificaba 24 `drawLine` (`PixelFxProceduralVFX.test.ts:101-108`).
-- **H7 — CONFIRMADA CON MATIZ:** el baseline tenía 40 lecturas de estado y 40 pares save/restore repetidos; jscpd almacenado era 1.22% (1801 líneas, 225 clones), pero no se había medido el delta de extracción. El wrapper compartido elimina la repetición; la CI debe confirmar que el guardrail de duplicación no empeora.
+- **H7 — CONFIRMADA CON MATIZ:** el baseline tenía 40 lecturas de estado y 40 pares save/restore repetidos; tras extraer el wrapper, jscpd bajó de 1.22% (1801 líneas, 225 clones) a 1.03% (1550 líneas, 191 clones). La reducción medida fue de 251 líneas duplicadas y 34 clones.
 
 | Hipótesis | Veredicto | Evidencia y ajuste |
 |---|---|---|
@@ -165,7 +165,7 @@ Orden de columnas de llamadas: p = `[0, 0.1, 0.25, 0.5, 0.75, 0.9]`. Los valores
 | H4 — solo Explosion y sampleVFXRecoil varían por entidad | CONFIRMADA | `deriveSeed` se usa para los fragmentos de Explosion (`PixelFxProceduralVFX.ts:170-174`); Impact llama a `sampleVFXRecoil(p, entity)` (`PixelFxProceduralVFX.ts:74`; `vfx-motion.ts:8-15`). Recorder: solo estos dos logs cambian entre IDs con estado fijo. |
 | H5 — PhaseDash usa afterimages fijos, no trail muestreado | CONFIRMADA | Dibuja tres rectángulos desplazados y líneas de velocidad; no muestrea trayectoria anterior (`PixelFxProceduralVFX.ts:458-482`). |
 | H6 — Impact ~29 llamadas | CONFIRMADA | Recorder: 29 primitivas en seis progresos; 31 incluyendo save/restore. Test actual ya espera 24 drawLine (`PixelFxProceduralVFX.test.ts:101-108`). |
-| H7 — boilerplate alto / riesgo jscpd | CONFIRMADA CON MATIZ | 40 lecturas de estado y 40 pares save/restore encontrados; el patrón repetido justifica helper. El baseline jscpd disponible es 1.22%, pero no se midió el delta de una futura extracción. |
+| H7 — boilerplate alto / riesgo jscpd | CONFIRMADA CON MATIZ | 40 lecturas de estado y 40 pares save/restore encontrados. Tras U1, jscpd baja de 1.22% a 1.03% y de 225 a 191 clones. |
 
 ## Decisiones
 
@@ -226,4 +226,4 @@ La ejecución de master #44065834867 falla en `tests/CombatRollbackResimulation.
 
 ## Siguiente unidad
 
-**U1 — validar CI y cerrar.** Si no hay fallos nuevos frente a master y el golden pasa, marcar U1 `done` y convertir PR #1189 a ready for review. Si el golden falla, ajustar exclusivamente recorder/fixture hasta reproducir los logs; no actualizar el golden para ocultar diferencias. Después, **U2 — paleta semántica y núcleo**, reutilizando `VFX_VISUAL_PROFILES` y manteniendo fallback al color original.
+**U1 — cerrar tras finalizar los workflows #44079089005 y #44079088906.** El golden ya pasa, jscpd baja 251 líneas y los fallos observados son preexistentes frente a master. Si las ejecuciones terminan sin fallos nuevos, marcar U1 `done` y PR #1189 ready for review. Después, **U2 — paleta semántica y núcleo**, reutilizando `VFX_VISUAL_PROFILES` y manteniendo fallback al color original.

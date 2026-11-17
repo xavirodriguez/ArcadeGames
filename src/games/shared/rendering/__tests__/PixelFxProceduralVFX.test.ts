@@ -1,5 +1,8 @@
 import { World, type CoreComponentRegistry, type Renderer, type RenderContext } from "@tiny-aster/core";
-import type { IDrawAdapter } from "../DrawAdapter";
+import { CanvasDrawAdapter, SkiaDrawAdapter, type IDrawAdapter } from "../DrawAdapter";
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import {
   drawPixelFxDust,
   drawPixelFxExplosion,
@@ -59,7 +62,11 @@ import {
   drawPixelFxEchoShatter,
   drawPixelFxTidalWave,
   drawPixelFxPhaseCollapse,
-  registerPixelFxProceduralVFX
+  drawPixelFxTargetWarning,
+  registerPixelFxProceduralVFX,
+  PIXEL_FX_RANDOM_STREAMS,
+  rand,
+  strokeW
 } from "../PixelFxProceduralVFX";
 
 type MockDrawAdapter = {
@@ -70,6 +77,7 @@ function createAdapter(): MockDrawAdapter {
   return {
     save: jest.fn(),
     restore: jest.fn(),
+    setBlendMode: jest.fn(),
     fillCircle: jest.fn(),
     strokeCircle: jest.fn(),
     fillRect: jest.fn(),
@@ -115,6 +123,115 @@ function createWorld(remaining = 0.2, vfxAnimDuration?: number): { world: World<
   });
   return { world, entity };
 }
+
+
+const PIXEL_FX_DRAWERS: Readonly<Record<string, (draw: IDrawAdapter, world: World<CoreComponentRegistry>, entity: number) => void>> = {
+  "pixelfx_impact": drawPixelFxImpact,
+  "pixelfx_hitstun": drawPixelFxHitstun,
+  "pixelfx_stagger": drawPixelFxStagger,
+  "pixelfx_slash": drawPixelFxSlash,
+  "pixelfx_explosion": drawPixelFxExplosion,
+  "pixelfx_dust": drawPixelFxDust,
+  "pixelfx_pickup": drawPixelFxPickup,
+  "pixelfx_muzzle": drawPixelFxMuzzle,
+  "pixelfx_shield_crack": drawPixelFxShieldCrack,
+  "pixelfx_ink_burst": drawPixelFxInkBurst,
+  "pixelfx_paddle_impact": drawPixelFxPaddleImpact,
+  "pixelfx_brick_shatter": drawPixelFxBrickShatter,
+  "pixelfx_flap_gust": drawPixelFxFlapGust,
+  "pixelfx_hop": drawPixelFxHop,
+  "pixelfx_phase_dash": drawPixelFxPhaseDash,
+  "pixelfx_ricochet": drawPixelFxRicochet,
+  "pixelfx_charge": drawPixelFxCharge,
+  "pixelfx_shield_pulse": drawPixelFxShieldPulse,
+  "pixelfx_parry": drawPixelFxParry,
+  "pixelfx_perfect_block": drawPixelFxPerfectBlock,
+  "pixelfx_critical_hit": drawPixelFxCriticalHit,
+  "pixelfx_projectile_deflection": drawPixelFxProjectileDeflection,
+  "pixelfx_guard_break": drawPixelFxGuardBreak,
+  "pixelfx_armor_break": drawPixelFxArmorBreak,
+  "pixelfx_combo_finisher": drawPixelFxComboFinisher,
+  "pixelfx_target_warning": drawPixelFxTargetWarning,
+  "pixelfx_teleport": drawPixelFxTeleport,
+  "pixelfx_surface_skid": drawPixelFxSurfaceSkid,
+  "pixelfx_mechanical_motion": drawPixelFxMechanicalMotion,
+  "pixelfx_heal": drawPixelFxHeal,
+  "pixelfx_poison": drawPixelFxPoison,
+  "pixelfx_burn": drawPixelFxBurn,
+  "pixelfx_frost": drawPixelFxFrost,
+  "pixelfx_electric": drawPixelFxElectric,
+  "pixelfx_bleed": drawPixelFxBleed,
+  "pixelfx_buff": drawPixelFxBuff,
+  "pixelfx_debuff": drawPixelFxDebuff,
+  "pixelfx_spawn": drawPixelFxSpawn,
+  "pixelfx_death": drawPixelFxDeath,
+  "pixelfx_nova": drawPixelFxNova,
+  "pixelfx_vortex": drawPixelFxVortex,
+  "pixelfx_meteor": drawPixelFxMeteor,
+  "pixelfx_rift": drawPixelFxRift,
+  "pixelfx_arc_chain": drawPixelFxArcChain,
+  "pixelfx_gravity_well": drawPixelFxGravityWell,
+  "pixelfx_blade_dance": drawPixelFxBladeDance,
+  "pixelfx_seismic_wave": drawPixelFxSeismicWave,
+  "pixelfx_soul_reap": drawPixelFxSoulReap,
+  "pixelfx_time_warp": drawPixelFxTimeWarp,
+  "pixelfx_prism_burst": drawPixelFxPrismBurst,
+  "pixelfx_sonic_boom": drawPixelFxSonicBoom,
+  "pixelfx_magnetic_surge": drawPixelFxMagneticSurge,
+  "pixelfx_plasma_orbit": drawPixelFxPlasmaOrbit,
+  "pixelfx_solar_flare": drawPixelFxSolarFlare,
+  "pixelfx_crystal_bloom": drawPixelFxCrystalBloom,
+  "pixelfx_pulse_lance": drawPixelFxPulseLance,
+  "pixelfx_echo_shatter": drawPixelFxEchoShatter,
+  "pixelfx_tidal_wave": drawPixelFxTidalWave,
+  "pixelfx_phase_collapse": drawPixelFxPhaseCollapse
+};
+const PIXEL_FX_EFFECT_NAMES = Object.keys(PIXEL_FX_DRAWERS);
+const PIXEL_FX_PROGRESS = [0, 0.1, 0.25, 0.5, 0.75, 0.9] as const;
+
+type PixelFxGoldenRow = {
+  effect: string;
+  entitySeeded: boolean;
+  primitiveCalls: number[];
+  sha256: string[];
+};
+
+function createGoldenWorld(progress: number): World<CoreComponentRegistry> {
+  const render = { type: "Render", size: 32, color: "#FFFFFF", opacity: 1, vfxAnimDuration: 0.4 };
+  const ttl = { type: "TTL", remaining: 0.4 * (1 - progress), timeLeft: 0.4 };
+  const transform = { type: "Transform", rotation: 0.25, scaleX: 1 };
+  return {
+    getComponent: (_entity: number, component: string) => {
+      if (component === "Render") return render;
+      if (component === "TTL") return ttl;
+      if (component === "Transform") return transform;
+      return undefined;
+    }
+  } as never as World<CoreComponentRegistry>;
+}
+
+function createRecorderAdapter(): { adapter: IDrawAdapter; log: unknown[][] } {
+  const log: unknown[][] = [];
+  let adapter: IDrawAdapter;
+  adapter = {
+    save: () => { log.push(["save"]); },
+    restore: () => { log.push(["restore"]); },
+    setBlendMode: mode => { log.push(["setBlendMode", mode]); },
+    fillCircle: (...args) => { log.push(["fillCircle", ...args]); },
+    strokeCircle: (...args) => { log.push(["strokeCircle", ...args]); },
+    fillRect: (...args) => { log.push(["fillRect", ...args]); },
+    strokeRect: (...args) => { log.push(["strokeRect", ...args]); },
+    drawLine: (...args) => { log.push(["drawLine", ...args]); },
+    drawArc: (...args) => { log.push(["drawArc", ...args]); },
+    drawText: (...args) => { log.push(["drawText", ...args]); },
+    drawGlow: (color, drawFn) => {
+      log.push(["drawGlow", color]);
+      drawFn(adapter);
+    }
+  };
+  return { adapter, log };
+}
+
 
 describe("PixelFX-inspired procedural VFX", () => {
   it("draws all ten additional high-dynamics effects with balanced adapter state", () => {
@@ -558,125 +675,125 @@ describe("PixelFX-inspired procedural VFX", () => {
     expect(adapter.fillCircle).not.toHaveBeenCalled();
   });
 
-  it("registers all forty-nine shapes for Canvas", () => {
+
+
+  it("reuses Canvas and Skia adapters for each stable renderer context", () => {
+    const canvasInstances: CanvasDrawAdapter[] = [];
+    const skiaInstances: SkiaDrawAdapter[] = [];
+    const canvasSave = jest.spyOn(CanvasDrawAdapter.prototype, "save").mockImplementation(function (this: CanvasDrawAdapter) {
+      canvasInstances.push(this);
+    });
+    const skiaSave = jest.spyOn(SkiaDrawAdapter.prototype, "save").mockImplementation(function (this: SkiaDrawAdapter) {
+      skiaInstances.push(this);
+    });
+    for (const method of ["restore", "fillCircle", "strokeCircle", "drawLine", "drawArc"] as const) {
+      jest.spyOn(CanvasDrawAdapter.prototype, method).mockImplementation(() => {});
+      jest.spyOn(SkiaDrawAdapter.prototype, method).mockImplementation(() => {});
+    }
+
+    try {
+      const canvasShapes = new Map<string, { draw(ctx: CanvasRenderingContext2D, world: World<CoreComponentRegistry>, entity: number): void }>();
+      registerPixelFxProceduralVFX({
+        type: "canvas",
+        registerShape: (name: string, drawer: unknown) => canvasShapes.set(name, drawer as never)
+      } as never);
+      const canvasDrawer = canvasShapes.get("pixelfx_impact");
+      expect(canvasDrawer).toBeDefined();
+
+      const skiaShapes = new Map<string, { draw(canvas: never, world: World<CoreComponentRegistry>, entity: number): void }>();
+      registerPixelFxProceduralVFX({
+        type: "skia",
+        registerShape: (name: string, drawer: unknown) => skiaShapes.set(name, drawer as never)
+      } as never);
+      const skiaDrawer = skiaShapes.get("pixelfx_impact");
+      expect(skiaDrawer).toBeDefined();
+
+      const { world, entity } = createWorld();
+      const ctx = {} as CanvasRenderingContext2D;
+      const canvas = {} as never;
+      canvasDrawer!.draw(ctx, world, entity);
+      canvasDrawer!.draw(ctx, world, entity);
+      skiaDrawer!.draw(canvas, world, entity);
+      skiaDrawer!.draw(canvas, world, entity);
+
+      expect(canvasInstances).toHaveLength(2);
+      expect(canvasInstances[0]).toBe(canvasInstances[1]);
+      expect(skiaInstances).toHaveLength(2);
+      expect(skiaInstances[0]).toBe(skiaInstances[1]);
+    } finally {
+      jest.restoreAllMocks();
+    }
+    expect(canvasSave).toHaveBeenCalledTimes(2);
+    expect(skiaSave).toHaveBeenCalledTimes(2);
+  });
+
+  it("matches the 59-effect adapter golden at six TTL progress samples", () => {
+    const fixturePath = join(__dirname, "../../../../../docs/agents/fixtures/pixelfx-vfx-golden.jsonl");
+    const rows = readFileSync(fixturePath, "utf8").trim().split(/\r?\n/).map(line => JSON.parse(line) as PixelFxGoldenRow);
+    expect(rows).toHaveLength(59);
+    expect(rows.map(row => row.effect)).toEqual(PIXEL_FX_EFFECT_NAMES);
+
+    for (const row of rows) {
+      const drawer = PIXEL_FX_DRAWERS[row.effect];
+      expect(drawer).toBeDefined();
+      PIXEL_FX_PROGRESS.forEach((progress, sampleIndex) => {
+        const world = createGoldenWorld(progress);
+        const first = createRecorderAdapter();
+        drawer(first.adapter, world, 104729);
+        const primitiveCount = first.log.filter(([method]) =>
+          method !== "save" && method !== "restore" && method !== "setBlendMode"
+        ).length;
+        const digest = createHash("sha256").update(JSON.stringify(first.log)).digest("hex").slice(0, 16);
+
+        expect(primitiveCount).toBe(row.primitiveCalls[sampleIndex]);
+        expect(primitiveCount).toBeLessThanOrEqual(60);
+        expect(digest).toBe(row.sha256[sampleIndex]);
+
+        const repeated = createRecorderAdapter();
+        drawer(repeated.adapter, world, 104729);
+        expect(repeated.log).toEqual(first.log);
+
+        const otherEntity = createRecorderAdapter();
+        drawer(otherEntity.adapter, world, 130363);
+        if (row.entitySeeded) {
+          expect(otherEntity.log).not.toEqual(first.log);
+        } else {
+          expect(otherEntity.log).toEqual(first.log);
+        }
+      });
+    }
+  });
+
+  it("keeps the shared stroke and random helpers deterministic and bounded", () => {
+    expect(strokeW(32, 0.05, 1)).toBe(1.6);
+    expect(strokeW(8, 0.05, 1)).toBe(1);
+    const first = rand(104729, PIXEL_FX_RANDOM_STREAMS.explosion.angle);
+    expect(first).toBe(rand(104729, PIXEL_FX_RANDOM_STREAMS.explosion.angle));
+    expect(first).toBeGreaterThanOrEqual(0);
+    expect(first).toBeLessThan(1);
+    expect(rand(104729, PIXEL_FX_RANDOM_STREAMS.explosion.angle))
+      .not.toBe(rand(104729, PIXEL_FX_RANDOM_STREAMS.explosion.speed));
+  });
+
+  it("registers all fifty-nine shapes for Canvas", () => {
     const registerShape = jest.fn();
     const renderer = {
       type: "canvas" as const,
       registerShape
     } as never as Renderer<CoreComponentRegistry, RenderContext>;
     registerPixelFxProceduralVFX(renderer);
-    expect(registerShape).toHaveBeenCalledTimes(49);
-    expect(registerShape.mock.calls.map(([name]) => name)).toEqual([
-      "pixelfx_impact",
-      "pixelfx_hitstun",
-      "pixelfx_stagger",
-      "pixelfx_slash",
-      "pixelfx_explosion",
-      "pixelfx_dust",
-      "pixelfx_pickup",
-      "pixelfx_muzzle",
-      "pixelfx_shield_crack",
-      "pixelfx_ink_burst",
-      "pixelfx_paddle_impact",
-      "pixelfx_brick_shatter",
-      "pixelfx_flap_gust",
-      "pixelfx_hop",
-      "pixelfx_phase_dash",
-      "pixelfx_ricochet",
-      "pixelfx_charge",
-      "pixelfx_shield_pulse",
-      "pixelfx_parry",
-      "pixelfx_perfect_block",
-      "pixelfx_critical_hit",
-      "pixelfx_projectile_deflection",
-      "pixelfx_guard_break",
-      "pixelfx_armor_break",
-      "pixelfx_combo_finisher",
-      "pixelfx_target_warning",
-      "pixelfx_teleport",
-      "pixelfx_surface_skid",
-      "pixelfx_mechanical_motion",
-      "pixelfx_heal",
-      "pixelfx_poison",
-      "pixelfx_burn",
-      "pixelfx_frost",
-      "pixelfx_electric",
-      "pixelfx_bleed",
-      "pixelfx_buff",
-      "pixelfx_debuff",
-      "pixelfx_spawn",
-      "pixelfx_death",
-      "pixelfx_nova",
-      "pixelfx_vortex",
-      "pixelfx_meteor",
-      "pixelfx_rift",
-      "pixelfx_arc_chain",
-      "pixelfx_gravity_well",
-      "pixelfx_blade_dance",
-      "pixelfx_seismic_wave",
-      "pixelfx_soul_reap",
-      "pixelfx_time_warp"
-    ]);
+    expect(registerShape).toHaveBeenCalledTimes(59);
+    expect(registerShape.mock.calls.map(([name]) => name)).toEqual(PIXEL_FX_EFFECT_NAMES);
   });
 
-  it("registers the same forty-nine-shape contract for Skia", () => {
+  it("registers the same fifty-nine-shape contract for Skia", () => {
     const registerShape = jest.fn();
     const renderer = {
       type: "skia" as const,
       registerShape
     } as never as Renderer<CoreComponentRegistry, RenderContext>;
     registerPixelFxProceduralVFX(renderer);
-    expect(registerShape).toHaveBeenCalledTimes(49);
-    expect(registerShape.mock.calls.map(([name]) => name)).toEqual([
-      "pixelfx_impact",
-      "pixelfx_hitstun",
-      "pixelfx_stagger",
-      "pixelfx_slash",
-      "pixelfx_explosion",
-      "pixelfx_dust",
-      "pixelfx_pickup",
-      "pixelfx_muzzle",
-      "pixelfx_shield_crack",
-      "pixelfx_ink_burst",
-      "pixelfx_paddle_impact",
-      "pixelfx_brick_shatter",
-      "pixelfx_flap_gust",
-      "pixelfx_hop",
-      "pixelfx_phase_dash",
-      "pixelfx_ricochet",
-      "pixelfx_charge",
-      "pixelfx_shield_pulse",
-      "pixelfx_parry",
-      "pixelfx_perfect_block",
-      "pixelfx_critical_hit",
-      "pixelfx_projectile_deflection",
-      "pixelfx_guard_break",
-      "pixelfx_armor_break",
-      "pixelfx_combo_finisher",
-      "pixelfx_target_warning",
-      "pixelfx_teleport",
-      "pixelfx_surface_skid",
-      "pixelfx_mechanical_motion",
-      "pixelfx_heal",
-      "pixelfx_poison",
-      "pixelfx_burn",
-      "pixelfx_frost",
-      "pixelfx_electric",
-      "pixelfx_bleed",
-      "pixelfx_buff",
-      "pixelfx_debuff",
-      "pixelfx_spawn",
-      "pixelfx_death",
-      "pixelfx_nova",
-      "pixelfx_vortex",
-      "pixelfx_meteor",
-      "pixelfx_rift",
-      "pixelfx_arc_chain",
-      "pixelfx_gravity_well",
-      "pixelfx_blade_dance",
-      "pixelfx_seismic_wave",
-      "pixelfx_soul_reap",
-      "pixelfx_time_warp"
-    ]);
+    expect(registerShape).toHaveBeenCalledTimes(59);
+    expect(registerShape.mock.calls.map(([name]) => name)).toEqual(PIXEL_FX_EFFECT_NAMES);
   });
 });

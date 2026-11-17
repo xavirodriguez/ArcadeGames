@@ -8,7 +8,7 @@ Updated: 2026-11-17 (U2)
 - The authored level definition is the source of truth for new levels.
 - `DEFAULT_BELT_MOVEMENT_CONFIG.depthMin/depthMax` remain a compatibility fallback only when a level omits `walkableDepth`.
 - Invalid explicit ranges fail during config resolution instead of silently falling back.
-- Rendering must consume the same resolved config in a later unit; this PR does not claim visual parity with the floor artwork yet.
+- Canvas and Skia backdrop renderers consume the same resolved `BeltMovementConfig` band; theme-specific floor geometry must use those exact world-space bounds.
 
 ## Work ledger
 

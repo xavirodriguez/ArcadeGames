@@ -17,6 +17,11 @@ import {
   SUMI_E_AMBIENT_POOL_RESOURCE
 } from "../../shared/rendering/sumi-e";
 import type { VisualParticlePool } from "../../shared/rendering/VisualParticlePool";
+import {
+  BELT_MOVEMENT_CONFIG_RESOURCE,
+  DEFAULT_BELT_MOVEMENT_CONFIG,
+  type BeltMovementConfig
+} from "../belt/BeltMovementTypes";
 
 const RESOURCE_KEY = "HitRunBackdropSpec";
 
@@ -54,7 +59,12 @@ export const drawHitRunProceduralBackdrop: EffectDrawer<
 
     resizeHitRunPresentationSession(world, w, h);
     const theme = getHitRunTheme(world);
-    theme.renderBackdrop(ctx, w, h, camX, 0, elapsed);
+    const movement = world.getResource<BeltMovementConfig>(BELT_MOVEMENT_CONFIG_RESOURCE)
+      ?? DEFAULT_BELT_MOVEMENT_CONFIG;
+    theme.renderBackdrop(ctx, w, h, camX, 0, elapsed, {
+      min: movement.depthMin,
+      max: movement.depthMax
+    });
 
     // Ambient Sumi-e particles (pool driven by SumiEAmbientSystem when theme is sumi-e).
     const pool = world.getResource<VisualParticlePool>(SUMI_E_AMBIENT_POOL_RESOURCE);

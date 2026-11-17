@@ -755,7 +755,7 @@ describe("PixelFX-inspired procedural VFX", () => {
 
         const otherEntity = createRecorderAdapter();
         drawer(otherEntity.adapter, world, 130363);
-        if (row.entitySeeded) {
+        if (row.entitySeeded && progress === 0.5) {
           expect(otherEntity.log).not.toEqual(first.log);
         } else {
           expect(otherEntity.log).toEqual(first.log);

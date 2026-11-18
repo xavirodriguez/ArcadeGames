@@ -1,4 +1,4 @@
-import { World, CoreComponentRegistry } from "@tiny-aster/core";
+import { createDeferredEntity, World, CoreComponentRegistry } from "@tiny-aster/core";
 import type { DamageComponent } from "@tiny-aster/gameplay-kit";
 import type { HitRunEnemyBulletPool } from "../weapons/HitRunEnemyBulletPool";
 import { recordHitRunDebugAllocation } from "../debug/HitRunDebugMetrics";
@@ -105,33 +105,35 @@ function spawnFallbackEnemyBullet(
     shape: string;
   }
 ): number {
-  const e = world.createEntity();
-  world.addComponent(e, {
+  const { entity, add } = createDeferredEntity(world);
+  const rotation = Math.atan2(p.dy, p.dx);
+
+  add({
     type: "Transform",
     x: p.x,
     y: p.y,
     worldX: p.x,
     worldY: p.y,
-    rotation: Math.atan2(p.dy, p.dx),
-    worldRotation: Math.atan2(p.dy, p.dx),
+    rotation,
+    worldRotation: rotation,
     scaleX: 1,
     scaleY: 1,
     worldScaleX: 1,
     worldScaleY: 1,
     dirty: true
   });
-  world.addComponent(e, {
+  add({
     type: "Velocity",
     vx: p.dx,
     vy: p.dy,
     angularVelocity: 0
   });
-  world.addComponent(e, {
+  add({
     type: "TTL",
     remaining: p.ttl,
     timeLeft: p.ttl
   });
-  world.addComponent(e, {
+  add({
     type: "Faction",
     value: "enemy"
   });
@@ -144,9 +146,9 @@ function spawnFallbackEnemyBullet(
     friendlyFire: false,
     consumption: p.consumption
   };
-  world.addComponent(e, damageComp as never);
+  add(damageComp as never);
 
-  world.addComponent(e, {
+  add({
     type: "Collider2D",
     shape: { type: "aabb", halfWidth: p.size, halfHeight: p.size },
     layer: 1 << 5,
@@ -156,14 +158,14 @@ function spawnFallbackEnemyBullet(
     isTrigger: true,
     enabled: true
   });
-  world.addComponent(e, {
+  add({
     type: "CollisionEvents",
     collisions: [],
     activeTriggers: [],
     triggersEntered: [],
     triggersExited: []
   });
-  world.addComponent(e, {
+  add({
     type: "Render",
     shape: p.shape,
     size: p.size,
@@ -175,5 +177,5 @@ function spawnFallbackEnemyBullet(
     angularVelocity: 0,
     hitFlashFrames: 0
   });
-  return e;
+  return entity;
 }

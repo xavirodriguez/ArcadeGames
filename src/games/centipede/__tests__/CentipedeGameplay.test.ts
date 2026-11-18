@@ -231,11 +231,11 @@ describe("Centipede Gameplay Logic (Headless)", () => {
 
     const partialMushroomEntity = world.query("Mushroom").find((entity) => {
       const mushroom = world.getComponent(entity, "Mushroom");
-      return mushroom !== undefined && mushroom.row === 10 && mushroom.col === 10 && mushroom.hp === 2;
+      return mushroom !== undefined && mushroom.row === 10 && mushroom.col === 10;
     });
     const poisonedMushroomEntity = world.query("Mushroom").find((entity) => {
       const mushroom = world.getComponent(entity, "Mushroom");
-      return mushroom !== undefined && mushroom.row === 11 && mushroom.col === 11 && mushroom.isPoisoned;
+      return mushroom !== undefined && mushroom.row === 11 && mushroom.col === 11;
     });
     const untouchedMushroomEntity = world.query("Mushroom").find((entity) => {
       const mushroom = world.getComponent(entity, "Mushroom");

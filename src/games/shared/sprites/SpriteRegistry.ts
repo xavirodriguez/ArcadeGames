@@ -344,10 +344,12 @@ export const SpriteRegistry = {
     initialized = true;
 
     const isDev = typeof __DEV__ !== "undefined" ? Boolean(__DEV__) : process.env.NODE_ENV !== "production";
+    // Native image modules are unavailable in Jest/Node; missing sources are expected there.
+    const isTest = process.env.NODE_ENV === "test";
 
     for (const definition of SPRITE_SHEET_CATALOG) {
       this.register(definition);
-      if (isDev && definition.imageSource === null && !definition.optional) {
+      if (isDev && !isTest && definition.imageSource === null && !definition.optional) {
         if (!warnedNullImageSources.has(definition.id)) {
           warnedNullImageSources.add(definition.id);
           console.warn(

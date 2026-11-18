@@ -29,7 +29,7 @@ import { AchievementSystem } from "@tiny-aster/gameplay-kit";
  * Implementa mecánicas de scroll infinito y generación procedural de obstáculos (tuberías).
  * Utiliza un sistema de gravedad simple y una única acción de entrada ("jump").
  */
-import { ColliderComponent, CollisionEventsComponent, ShapeType, CircleShape, BoxShape, BoundaryComponent, TransformComponent, VelocityComponent, RenderComponent, HealthComponent, BlueprintDefinition, createEmitter, Theme, resolveThemeColor, EntityBuilder, THEME_RESOURCE_KEY } from "@tiny-aster/core";
+import { ColliderComponent, CollisionEventsComponent, ShapeType, CircleShape, BoxShape, BoundaryComponent, TransformComponent, VelocityComponent, RenderComponent, HealthComponent, BlueprintDefinition, createEmitter, Theme, resolveThemeColorStrict, EntityBuilder, THEME_RESOURCE_KEY } from "@tiny-aster/core";
 import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 import { spawnVisualParticle as spawnCanvasParticle } from "./rendering/FlappyBirdCanvasVisuals";
 import { spawnVisualParticle as spawnSkiaParticle } from "./rendering/FlappyBirdSkiaVisuals";
@@ -90,7 +90,7 @@ export class FlappyBirdGame
     this.blueprints.register("bird", {
       spawn: (world, entity, args: { x: number, y: number }) => {
         const config = world.getResource<FlappyBirdConfigType>("GameConfig") || DEFAULT_FLAPPY_BIRD_CONFIG;
-        const tint = resolveThemeColor(world, "bird", "player");
+        const tint = resolveThemeColorStrict(world, "bird", "player");
 
         EntityBuilder.fromEntity(world, entity)
           .withTransform({ x: args.x, y: args.y })
@@ -174,7 +174,7 @@ export class FlappyBirdGame
         isNarrowGap?: boolean;
       }) => {
         const config = world.getResource<FlappyBirdConfigType>("GameConfig") || DEFAULT_FLAPPY_BIRD_CONFIG;
-        const pipeColor = resolveThemeColor(world, "pipe", "enemy");
+        const pipeColor = resolveThemeColorStrict(world, "pipe", "enemy");
 
         const gapMultiplier = args.isNarrowGap ? 0.7 : 1.0;
         const gapSize = config.GAP_SIZE * gapMultiplier;
@@ -265,7 +265,7 @@ export class FlappyBirdGame
     this.blueprints.register("ground", {
       spawn: (world, entity, _args: {}) => {
         const config = world.getResource<FlappyBirdConfigType>("GameConfig") || DEFAULT_FLAPPY_BIRD_CONFIG;
-        const groundColor = resolveThemeColor(world, "ground");
+        const groundColor = resolveThemeColorStrict(world, "ground");
 
         EntityBuilder.fromEntity(world, entity)
           .withTransform({ x: config.worldWidth / 2, y: config.GROUND_Y })

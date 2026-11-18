@@ -1,7 +1,7 @@
 import { World, Entity, Component, createDeferredEntity } from "@tiny-aster/core";
 import { EnemyBlueprints } from "./config/EnemyBlueprints";
 import { EnemyTagComponent } from "./components/EnemyTagComponent";
-import { TransformComponent, VelocityComponent, RenderComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, CollisionEventsComponent, HealthComponent, BoundaryComponent, SpatialNodeComponent, TagComponent, TTLComponent, FrictionComponent, FactionComponent, Theme, resolveThemeColor } from "@tiny-aster/core";
+import { TransformComponent, VelocityComponent, RenderComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, CollisionEventsComponent, HealthComponent, BoundaryComponent, SpatialNodeComponent, TagComponent, TTLComponent, FrictionComponent, FactionComponent, Theme, resolveThemeColorWithFallback } from "@tiny-aster/core";
 import { getGameplayColor } from "../../theme/GameplayColorMap";
 
 /**
@@ -105,7 +105,7 @@ export class EnemyFactory {
     }
 
     // 3. Rendering
-    const themeColor = resolveThemeColor(world, blueprintId, blueprint.kind, "enemy") ?? getGameplayColor("Enemy", world);
+    const themeColor = resolveThemeColorWithFallback(world, getGameplayColor("Enemy", world), blueprintId, blueprint.kind, "enemy");
 
     add({
       type: "Render",

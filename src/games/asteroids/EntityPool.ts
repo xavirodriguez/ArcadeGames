@@ -9,7 +9,8 @@ import {
   BoundaryComponent,
   HealthComponent,
   CollisionEventsComponent,
-  resolveThemeColor,
+  resolveThemeColorStrict,
+  resolveThemeColorWithFallback,
   ProjectilePool,
   ProjectileParams,
   PrefabPool,
@@ -54,7 +55,7 @@ function createAsteroidsBulletPoolConfig(): PrefabConfig<PooledBulletComponents,
     faction: "player",
     order: 2,
     extraComponents: (data: Record<string, any>, p: AsteroidsBulletParams, world: World, entity: Entity) => {
-      const tint = resolveThemeColor(world, "bullet", "player-bullet");
+      const tint = p.color || resolveThemeColorStrict(world, "bullet", "player-bullet");
       const gameConfig = world.getResource<AsteroidConfig>("GameConfig");
 
       data.position.rotation = p.rotation ?? 0;
@@ -231,7 +232,7 @@ function createAsteroidsPoolConfig(): PrefabConfig<AsteroidComponents, AsteroidP
       else if (p.size === "small") radius = 10;
 
       const logicalRole = p.size === "large" ? "asteroid-large" : p.size === "medium" ? "asteroid-medium" : "asteroid-small";
-      const tint = resolveThemeColor(world, logicalRole, "asteroid", "enemy") || "";
+      const tint = resolveThemeColorWithFallback(world, "", logicalRole, "asteroid", "enemy");
 
       data.position.x = p.x;
       data.position.y = p.y;

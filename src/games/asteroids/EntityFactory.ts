@@ -5,7 +5,6 @@ import {
   BlueprintRegistry,
   CircleShape,
   Theme,
-  resolveThemeColor,
   resolveThemeColorWithFallback,
   EntityBuilder,
   HealthComponent,
@@ -109,7 +108,7 @@ export function registerAsteroidsBlueprints(
       const useSprites = gameConfig?.USE_SPRITES !== false;
 
       const assetKey = theme?.spriteMap["player-ship"] ?? theme?.spriteMap["player"] ?? "ship_sprite";
-      const tint = resolveThemeColor(w, "ship", "player-ship", "player") ?? getGameplayColor("Player", w);
+      const tint = resolveThemeColorWithFallback(w, getGameplayColor("Player", w), "ship", "player-ship", "player");
 
       EntityBuilder.fromEntity(w, entity)
         .withTransform({
@@ -192,7 +191,7 @@ export function registerAsteroidsBlueprints(
 
   registry.register("bullet", {
     spawn: (w: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>, entity: number, args: { x: number; y: number; vx: number; vy: number; rotation?: number; ownerId?: string; ttl?: number }) => {
-      const tint = resolveThemeColor(w, "bullet", "player-bullet") ?? getGameplayColor("PlayerProjectile", w);
+      const tint = resolveThemeColorWithFallback(w, getGameplayColor("PlayerProjectile", w), "bullet", "player-bullet");
       const gameConfig = w.getResource<AsteroidConfig>("GameConfig");
 
       EntityBuilder.fromEntity(w, entity)
@@ -265,7 +264,7 @@ export function registerAsteroidsBlueprints(
       const radius = tier ? tier.radius : (args.size === "medium" ? 20 : args.size === "small" ? 10 : 40);
 
       const logicalRole = args.size === "large" ? "asteroid-large" : args.size === "medium" ? "asteroid-medium" : "asteroid-small";
-      const tint = resolveThemeColor(w, logicalRole, "asteroid", "enemy") ?? getGameplayColor("Enemy", w);
+      const tint = resolveThemeColorWithFallback(w, getGameplayColor("Enemy", w), logicalRole, "asteroid", "enemy");
 
       buildMovingCircularEnemy(w, entity, {
         x: args.x,
@@ -346,7 +345,7 @@ export function registerAsteroidsBlueprints(
       const gameConfig = w.getResource<AsteroidConfig>("GameConfig");
       const worldWidth = gameConfig?.worldWidth ?? 800;
       const worldHeight = gameConfig?.worldHeight ?? 600;
-      const tint = resolveThemeColor(w, "ufo", "enemy") ?? getGameplayColor("Enemy", w);
+      const tint = resolveThemeColorWithFallback(w, getGameplayColor("Enemy", w), "ufo", "enemy");
       const ufoSize = args.size ?? "large";
       const radius = ufoSize === "large" ? 18 : 10;
       const speed = ufoSize === "large" ? 100 : 160;

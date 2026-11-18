@@ -17,7 +17,7 @@ import {
   CircleShape,
   BlueprintDefinition,
   Theme,
-  resolveThemeColor,
+  resolveThemeColorStrict,
   EntityBuilder,
   ParticleSystem,
   Renderer,
@@ -111,7 +111,7 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
     this.blueprints.register("ball", {
       spawn: (world, entity, _args: {}) => {
         const config = world.getResource<ArkanoidConfig>("GameConfig") || DEFAULT_ARKANOID_CONFIG;
-        const tint = resolveThemeColor(world, "ball", "primary");
+        const tint = resolveThemeColorStrict(world, "ball", "primary");
 
         EntityBuilder.fromEntity(world, entity)
           .withTransform({
@@ -146,7 +146,7 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
     this.blueprints.register("paddle", {
       spawn: (world, entity, _args: {}) => {
         const config = world.getResource<ArkanoidConfig>("GameConfig") || DEFAULT_ARKANOID_CONFIG;
-        const tint = resolveThemeColor(world, "paddle", "primary");
+        const tint = resolveThemeColorStrict(world, "paddle", "primary");
 
         EntityBuilder.fromEntity(world, entity)
           .withTransform({
@@ -176,7 +176,7 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
     this.blueprints.register("brick", {
       spawn: (world, entity, args: { x: number; y: number; kind: BrickKind; color?: BrickColorName; hp?: number; points?: number; powerUp?: CapsuleType; row?: number }) => {
         const config = world.getResource<ArkanoidConfig>("GameConfig") || DEFAULT_ARKANOID_CONFIG;
-        const tint = resolveThemeColor(world, "brick", "accent");
+        const tint = resolveThemeColorStrict(world, "brick", "accent");
 
         const material = args.kind;
         const color = args.color || (material === "gold" ? "gold" : material === "silver" ? "silver" : "cyan");

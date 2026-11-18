@@ -1,4 +1,4 @@
-import { World, Theme, THEME_RESOURCE_KEY, RenderComponent, SpriteComponent, BlueprintRegistry, getMissionTitle, getMissionDescription } from "../src";
+import { World, Theme, THEME_RESOURCE_KEY, RenderComponent, SpriteComponent, BlueprintRegistry, getMissionTitle, getMissionDescription, resolveThemeColor, resolveThemeColorStrict, resolveThemeColorWithFallback } from "../src";
 import { registerAsteroidsBlueprints } from "../../../src/games/asteroids/EntityFactory";
 import { createThemeFromGameAccents } from "../../../src/theme/gameAccents";
 import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../../../src/games/asteroids/types/AsteroidRegistry";
@@ -6,6 +6,54 @@ import { ww2DogfightConceptPack } from "../../../src/theme/conceptPacks/ww2Dogfi
 import { zombieSurvivalConceptPack } from "../../../src/theme/conceptPacks/zombieSurvivalConceptPack";
 import { resolvePlayerRoleVisual, calculateBossPhase } from "../../../src/games/shared/rendering/spaceInvadersMath";
 import { colors } from "../../../src/theme/colors";
+
+describe("Theme color resolution diagnostics", () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it("keeps optional lookups silent when no Theme resource is registered", () => {
+    const warning = jest.spyOn(console, "warn").mockImplementation(() => undefined);
+    const world = new World();
+
+    expect(resolveThemeColor(world, "player")).toBeUndefined();
+    expect(resolveThemeColorWithFallback(world, "#abcdef", "player")).toBe("#abcdef");
+    expect(warning).not.toHaveBeenCalled();
+  });
+
+  it("keeps fallback lookups silent when an active Theme omits a role", () => {
+    const warning = jest.spyOn(console, "warn").mockImplementation(() => undefined);
+    const world = new World();
+    const theme: Theme = {
+      spriteMap: {},
+      colorMap: { player: "#123456" }
+    };
+    world.setResource(THEME_RESOURCE_KEY, theme);
+
+    expect(resolveThemeColorWithFallback(world, "#abcdef", "asteroid-medium")).toBe("#abcdef");
+    expect(warning).not.toHaveBeenCalled();
+  });
+
+  it("reports absent Theme resources and missing required roles only through strict lookup", () => {
+    const warning = jest.spyOn(console, "warn").mockImplementation(() => undefined);
+    const world = new World();
+
+    expect(resolveThemeColorStrict(world, "player")).toBeUndefined();
+    expect(warning).toHaveBeenCalledTimes(1);
+    expect(warning.mock.calls[0]?.[0]).toContain("No active Theme resource");
+
+    const theme: Theme = {
+      spriteMap: {},
+      colorMap: { player: "#123456" }
+    };
+    world.setResource(THEME_RESOURCE_KEY, theme);
+
+    expect(resolveThemeColorStrict(world, "player")).toBe("#123456");
+    expect(resolveThemeColorStrict(world, "asteroid-medium")).toBeUndefined();
+    expect(warning).toHaveBeenCalledTimes(2);
+    expect(warning.mock.calls[1]?.[0]).toContain("does not define any requested color role");
+  });
+});
 
 describe("Theme Resource & Entity Factory Integration", () => {
   it("should validate Theme resource shape in development mode", () => {

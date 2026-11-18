@@ -47,7 +47,7 @@ export interface GeometrySubPath {
 export interface EntityGeometryProfile {
   /** Ordered layer list of drawing subpaths. */
   subPaths: GeometrySubPath[];
-  /** Forward direction vector normalized ({x:1, y:0} means right/forward). */
+  /** Forward direction vector normalized (\{x:1, y:0\} means right/forward). */
   forwardAxis?: Point2D;
   /** Anchor coordinate for projectile/muzzle flare spawning relative to center. */
   muzzleOffset?: Point2D;

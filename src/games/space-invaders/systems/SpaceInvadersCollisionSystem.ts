@@ -530,11 +530,15 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
       );
     }
 
-    // Layers 2, 3, 4: Visual-only pool (Expanding ring, debris with gravity, residual smoke)
+    // Layers 2, 3, 4: Explosion particle ring, debris y humo residual.
+    // Visual-only canvas pool is suppressed during resimulation to avoid duplicating external effects.
     if (!world.isReSimulating) {
       spawnLayeredExplosion(x, y, color, 1.0);
-      spawnSharedLayeredExplosion(world, x, y, { color, type: "enemy" });
     }
+    // spawnSharedLayeredExplosion consumes world.gameplayRandom and creates ECS entities
+    // (Transform/Render/TTL) that are part of the hashed state; it must execute during rollback resimulation
+    // to maintain deterministic RNG progression and identical entity state (hashNormal === hashResimulated).
+    spawnSharedLayeredExplosion(world, x, y, { color, type: "enemy" });
   }
 
   private checkInvadersBottom(world: World<SpaceInvadersComponentRegistry>, _gameState: GameStateComponent): void {

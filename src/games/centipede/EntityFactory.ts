@@ -1,4 +1,4 @@
-import { World, ShapeType, CircleShape, BoxShape, TransformComponent, VelocityComponent, RenderComponent, ColliderComponent, Component } from "@tiny-aster/core";
+import { World, ShapeType, CircleShape, BoxShape, VelocityComponent, RenderComponent, ColliderComponent, Component, createTransformComponent } from "@tiny-aster/core";
 import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 import { CentipedeConfig, DEFAULT_CENTIPEDE_CONFIG } from "./types/CentipedeConfigSchema";
 import { CentipedeComponentRegistry, CentipedeEventRegistry } from "./types/CentipedeTypes";
@@ -25,23 +25,6 @@ function attachComponent<T extends Component>(
   } else {
     world.addComponent(entity, component as Component);
   }
-}
-
-function createTransformComponent(x: number, y: number): TransformComponent {
-  return {
-    type: "Transform",
-    x,
-    y,
-    rotation: 0,
-    scaleX: 1,
-    scaleY: 1,
-    worldX: x,
-    worldY: y,
-    worldRotation: 0,
-    worldScaleX: 1,
-    worldScaleY: 1,
-    dirty: true,
-  };
 }
 
 function createCollisionEventsComponent() {

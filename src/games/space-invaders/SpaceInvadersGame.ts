@@ -416,12 +416,6 @@ export class SpaceInvadersGame
       }
     });
 
-    // Bind inputs for UnifiedInputSystem
-    this.unifiedInput.bind("moveLeft", [this.config.KEYS.LEFT]);
-    this.unifiedInput.bind("moveRight", [this.config.KEYS.RIGHT]);
-    this.unifiedInput.bind("shoot", [this.config.KEYS.SHOOT]);
-    this.unifiedInput.bind("emp", [this.config.KEYS.EMP]);
-
     const gameScene = new SpaceInvadersGameScene(
       this,
       this.playerBulletPool,

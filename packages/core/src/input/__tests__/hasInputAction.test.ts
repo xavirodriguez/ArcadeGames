@@ -14,6 +14,28 @@ describe("hasInputAction", () => {
     });
   });
 
+  describe("Set and Record compatibility formats", () => {
+    it("returns true when action is present in Set", () => {
+      const actions = new Set<CanonicalActionName>(["thrust"]);
+      expect(hasInputAction(actions, "thrust")).toBe(true);
+    });
+
+    it("returns false when action is absent in Set", () => {
+      const actions = new Set<CanonicalActionName>(["shoot"]);
+      expect(hasInputAction(actions, "thrust")).toBe(false);
+    });
+
+    it("returns true when action is present in Record map", () => {
+      const actions = { thrust: true };
+      expect(hasInputAction(actions, "thrust")).toBe(true);
+    });
+
+    it("returns false when action is false or absent in Record map", () => {
+      const actions = { thrust: false };
+      expect(hasInputAction(actions, "thrust")).toBe(false);
+    });
+  });
+
   describe("falsy and edge cases", () => {
     it("returns false for empty array", () => {
       const actions: readonly CanonicalActionName[] = [];

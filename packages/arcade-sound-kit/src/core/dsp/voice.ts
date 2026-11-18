@@ -1,6 +1,7 @@
 import { Wave, FilterSpec, ModulationSpec, LfoSpec, Envelope, FmSpec, UnisonSpec } from '../types';
 import { evalWave } from './oscillators';
 import { computeEnvelope } from './envelope';
+import { applyBitcrushSample } from './bitcrushSample';
 import { BiquadFilter } from './biquad';
 import { RNG } from '../random';
 
@@ -102,7 +103,7 @@ export function renderVoice(
   const initPwPhase = pulseWidthLfo ? (pulseWidthLfo.phase ?? (ctx.layerRng ? ctx.layerRng.next() : 0)) : 0;
 
   let sampleCount = 0;
-  let lastBitcrushVal = 0;
+  const crushState = { lastVal: 0 };
 
   for (let i = ctx.sampleStart; i < ctx.sampleEnd; i++) {
     const tRel = (i - ctx.sampleStart) / ctx.sampleRate;
@@ -220,21 +221,7 @@ export function renderVoice(
 
     let val = osc * env * ctx.gainLinear * ampMod;
 
-    if (ctx.bitcrush) {
-      const bits = ctx.bitcrush.bits ?? 8;
-      const downsample = ctx.bitcrush.downsample ?? 1;
-      const step = 1 / Math.pow(2, bits - 1);
-      if (downsample > 1) {
-        if (sampleCount % downsample !== 0) {
-          val = lastBitcrushVal;
-        } else {
-          val = Math.round(val / step) * step;
-          lastBitcrushVal = val;
-        }
-      } else {
-        val = Math.round(val / step) * step;
-      }
-    }
+    val = applyBitcrushSample(val, sampleCount, ctx.bitcrush, crushState);
 
     samples[i] += val;
     sampleCount++;

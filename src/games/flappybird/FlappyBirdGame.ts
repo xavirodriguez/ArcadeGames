@@ -287,17 +287,11 @@ export class FlappyBirdGame
       }
     });
 
-    // Bind inputs for UnifiedInputSystem
-    this.unifiedInput.bind("flap", [FLAPPY_CONFIG.KEYS.FLAP]);
-
     this.gameStateSystem = new FlappyBirdGameStateSystem(this, this.config);
 
     const inputSys = new FlappyBirdInputSystem(this.config);
     if (this.isMultiplayer) inputSys.setMultiplayerMode(true);
 
-    if (this.unifiedInput instanceof System) {
-      this.world.addSystem(this.unifiedInput as unknown as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Input });
-    }
     this.world.addSystem(new InputBufferSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new ComboSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(inputSys, { phase: SystemPhase.Simulation });

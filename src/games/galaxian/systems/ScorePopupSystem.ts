@@ -1,4 +1,4 @@
-import { System, World, createDeferredEntity } from "@tiny-aster/core";
+import { System, World, createDeferredEntity, createTransformComponent } from "@tiny-aster/core";
 import { GalaxianComponentRegistry, GalaxianEventRegistry, ScorePopupComponent } from "../types/GalaxianTypes";
 
 export class ScorePopupSystem extends System<GalaxianComponentRegistry, GalaxianEventRegistry> {
@@ -36,20 +36,7 @@ export class ScorePopupSystem extends System<GalaxianComponentRegistry, Galaxian
   private spawnPopup(world: World<GalaxianComponentRegistry>, x: number, y: number, points: number): void {
     const life = 0.6;
     const { add } = createDeferredEntity(world, true);
-    add({
-      type: "Transform",
-      x,
-      y,
-      rotation: 0,
-      scaleX: 1,
-      scaleY: 1,
-      worldX: x,
-      worldY: y,
-      worldRotation: 0,
-      worldScaleX: 1,
-      worldScaleY: 1,
-      dirty: true,
-    });
+    add(createTransformComponent(x, y));
     add({
       type: "Render",
       shape: "score_popup",

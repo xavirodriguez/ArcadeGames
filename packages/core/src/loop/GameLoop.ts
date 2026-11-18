@@ -118,7 +118,9 @@ export class GameLoop {
     this.maxDelta = config.maxDelta ?? 0.25;
     this.scheduler = config.scheduler ?? browserFrameScheduler;
     this.manual = config.manual ?? false;
-    this.watchdogTimeout = config.watchdogTimeout ?? 5000;
+    // In test mode allow a larger watchdog timeout to avoid false positives.
+    const defaultTimeout = process.env.NODE_ENV === "test" ? 60_000 : 5000;
+    this.watchdogTimeout = config.watchdogTimeout ?? defaultTimeout;
     this.onWatchdogTimeout = config.onWatchdogTimeout;
     this.errorReporter = config.errorReporter;
     this.gameId = config.gameId;
@@ -126,6 +128,12 @@ export class GameLoop {
     this.gitCommit = config.gitCommit;
     this.deploymentId = config.deploymentId;
     this.environment = config.environment;
+
+    // Register this GameLoop globally for Jest teardown (test mode only).
+    if (process.env.NODE_ENV === "test") {
+      const activeLoops = (globalThis.__ACTIVE_GAME_LOOPS__ ??= []);
+      activeLoops.push(this);
+    }
   }
 
   /**

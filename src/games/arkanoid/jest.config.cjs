@@ -2,6 +2,7 @@ const path = require("path");
 
 /** @type {import('ts-jest').JestConfigWithTsJest} **/
 module.exports = {
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   displayName: 'arkanoid',
   preset: 'ts-jest',
   testEnvironment: 'node',

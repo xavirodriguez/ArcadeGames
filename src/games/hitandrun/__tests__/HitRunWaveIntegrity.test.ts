@@ -293,6 +293,15 @@ describe("Hit & Run wave lifecycle integrity", () => {
       defaultSpawnY: 400
     });
 
+    // Schedule runs higher-priority systems first: the wave director (5) checks
+    // before the section system (4) starts the initial script on the first tick.
+    world.update(0);
+    const startedState = world.getResource<WaveDirectorState>(WAVE_DIRECTOR_RESOURCE);
+    expect(startedState?.scriptId).toBe("wave_goblins_s0");
+    expect(startedState?.active).toBe(true);
+    expect(startedState?.nextEventIndex).toBe(0);
+
+    // The next tick advances the active script to its first event at t=1.2s.
     world.update(1.2);
 
     const state = world.getResource<WaveDirectorState>(WAVE_DIRECTOR_RESOURCE);

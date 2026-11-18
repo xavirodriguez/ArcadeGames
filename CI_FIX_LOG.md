@@ -58,19 +58,41 @@ Rama: `fix/ci-plan`. Baseline: `ci-output.log` / `ci-rerun.log`.
 | 3 Hit & Run | 3 tests | 0 (targeted) | resuelto (frontera + FSM) |
 | 4 Racing | 4 tests | 0 | resuelto |
 | 5 Out Run | 5 tests | 3 tests (scenery + vehicle artwork ×2) | parcial |
-| 6 Resto | — | SpaceInvaders 1, VerticalShmup 3 sin resolver; Centipede/Campaign/VFX resueltos | parcial |
-| Segunda ronda (ci-final) | — | 11 tests + 13 suites | bloqueado (entorno/diseño) |
+| 6 Resto | — | SpaceInvaders 1, VerticalShmup 3 resueltos (hit-stop freeze / command buffer); Centipede/Campaign/VFX resueltos | resuelto (tests ajustados) |
+| Segunda ronda (ci-final) | — | 7 tests + 19 suites | bloqueado (entorno/diseño) |
 
 ### Bloqueados / información faltante
 
 - Galaxian SoA snapshot hash: falta investigar snapshot SoA en core.
-- Space Invaders shield supercharge: falta investigar por qué el invader no se destruye (CombatSystem no emite combat:death o suscripción falla).
-- Vertical Shmup invulnerabilidad: clone-on-write hace que el tick lea 0; falta causa raíz.
-- Vertical Shmup bomb: bala enemiga no se limpia.
-- Vertical Shmup simulation contracts: velocidad no se anula tras Game Over.
+- Space Invaders shield supercharge: resuelto. La causa era un hit-stop (GameplayFreeze) de 30 ms solicitado por JuiceOrchestrator en la degradación del escudo; el segundo tick de la prueba quedaba congelado y el CombatSystem no se ejecutaba. La prueba ahora limpia GameplayFreeze antes de verificar el perforado, documentando que el hit-stop suspende las fases Collision/GameRules.
+- Vertical Shmup invulnerabilidad: resuelto. El evento combat:hit solicita un hit-stop (3 ms) que congelaba el tick completo donde se esperaba el decremento; la prueba ahora limpia GameplayFreeze antes de avanzar 0,5 s.
+- Vertical Shmup bomb: resuelto. La eliminación de la bala enemiga se hace por WorldCommandBuffer; la prueba invocaba el sistema directamente sin world.update, por lo que faltaba world.flush().
+- Vertical Shmup simulation contracts: resuelto. El game over solicitaba hit-stop (4 ms) que congelaba el tick siguiente e impedía que ShmupInputSystem pusiera la velocidad a cero; la prueba ahora limpia GameplayFreeze antes del segundo update.
 - Out Run scenery: grit desert en endpoints hace el blend no monótono.
 - Out Run vehicle artwork: indices y bodyColor inconsistentes con la distribución ponderada.
 - Hit & Run rendering suites: fallo de parse de @shopify/react-native-skia (entorno).
 - useStoryRuntime: suite sin tests (config/ts-node).
 - ProofOfConceptStoryGraph: expectativa de act3 gameplay tras completeObjective; auto-avance de nodos.
 - CombatRollbackResimulation: hash mismatch (posible efecto de SharedVFX renderRandom).
+
+
+## Paso 6b — Ajustes de pruebas por hit-stop / command buffer
+- Archivos: `src/games/space-invaders/__tests__/SpaceInvadersCombat.test.ts`, `src/games/vertical-shmup/__tests__/VerticalShmupBombContract.test.ts`, `src/games/vertical-shmup/__tests__/VerticalShmupGameplay.test.ts`, `src/games/vertical-shmup/__tests__/VerticalShmupSimulationContracts.test.ts`.
+- Causa real: el código de producción es correcto (hit-stop congela las fases de simulación; las mutaciones estructurales van por command buffer). Las pruebas asumían ejecución inmediata sin hit-stop ni flush.
+- Verificación: `pnpm exec jest --runInBand src/games/space-invaders` (21 suites, 90 tests) y `pnpm exec jest --runInBand src/games/vertical-shmup` (10 suites, 44 tests) → todos en verde.
+- Typecheck: `pnpm exec tsc --noEmit` OK.
+
+
+## Cierre — run final (`ci-final.log`)
+- Comando: `NODE_OPTIONS="--max-old-space-size=4096" pnpm exec jest --runInBand`
+- Resultado: `Test Suites: 19 failed, 459 passed, 478 total`; `Tests: 7 failed, 2499 passed, 2506 total`.
+- Fallos restantes (documentados, bloqueados):
+  - `packages/core/tests/CombatRollbackResimulation.test.ts` (hash SoA/rollback).
+  - `src/games/galaxian/__tests__/galaxian-determinism-snapshot.test.ts` (SoA snapshot).
+  - `src/games/outrun/__tests__/OutrunScenery.test.ts` y `OutrunVehicleArtwork.test.ts` (blend/índices de silueta).
+  - `src/games/shared/story/__tests__/ProofOfConceptStoryGraph.test.ts` y `...Builder.test.ts` (auto-avance de nodos de historia).
+  - 12 suites de hitandrun rendering (parse de `@shopify/react-native-skia` en entorno Jest).
+  - `src/hooks/__tests__/useStoryRuntime.test.ts` (suite sin tests / ts-node).
+- Guardrails: `pnpm run check:agent-guardrails` OK (exit 0).
+- GeometryWarsMultiplayer solo: PASS.
+- Typecheck: `pnpm exec tsc --noEmit` OK.

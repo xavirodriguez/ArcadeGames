@@ -190,8 +190,8 @@ Fuente: `ci-output.log` (run completo, exit code 1) y `ci-rerun.log` (re-ejecuci
 
 ## Segunda ronda (descubierta en ci-final.log)
 
-- Run completo tras los pasos: `Test Suites: 23 failed, 455 passed, 478 total`; `Tests: 11 failed, 2495 passed, 2506 total`. Jest no terminó (open handles) pero el resumen se emitió.
+- Run completo tras los pasos: `Test Suites: 19 failed, 459 passed, 478 total`; `Tests: 7 failed, 2499 passed, 2506 total`. Jest no terminó (open handles) pero el resumen se emitió.
 - Suites que no llegaron a ejecutar (13): hitandrun rendering (skia native module parse) + useStoryRuntime ("must contain at least one test").
-- Fallos de tests (11): CombatRollbackResimulation (hash), galaxian-determinism-snapshot (SoA), OutrunScenery, OutrunVehicleArtwork (×2), ProofOfConceptStoryGraph (×2), SpaceInvadersCombat (shield supercharge), VerticalShmup (bomb, simulation contracts, gameplay).
+- Fallos de tests (7): CombatRollbackResimulation (hash), galaxian-determinism-snapshot (SoA), OutrunScenery, OutrunVehicleArtwork (×2), ProofOfConceptStoryGraph (×2). (SpaceInvadersCombat y VerticalShmup resueltos.)
 
 Estos fallos no se arreglaron en esta ronda; requieren decisión de diseño / investigación adicional (ver CI_FIX_LOG.md).

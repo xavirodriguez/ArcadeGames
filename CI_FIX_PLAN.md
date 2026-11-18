@@ -187,3 +187,11 @@ Fuente: `ci-output.log` (run completo, exit code 1) y `ci-rerun.log` (re-ejecuci
 1. **Paso 1 (SharedVFX)**: mayor número de errores resueltos por esfuerzo y desbloquea compilación del resto.
 2. **Paso 2 (Galaxian)**: incluye un error de arquitectura (mutación directa) que afecta determinismo y rollback; debe resolverse antes de tocar netcode.
 3. **Paso 3 (Hit & Run)**: combina una violación de frontera detectada por test automatizado con lógica de FSM; requiere decisión de diseño, por eso va después de los mecánicos.
+
+## Segunda ronda (descubierta en ci-final.log)
+
+- Run completo tras los pasos: `Test Suites: 23 failed, 455 passed, 478 total`; `Tests: 11 failed, 2495 passed, 2506 total`. Jest no terminó (open handles) pero el resumen se emitió.
+- Suites que no llegaron a ejecutar (13): hitandrun rendering (skia native module parse) + useStoryRuntime ("must contain at least one test").
+- Fallos de tests (11): CombatRollbackResimulation (hash), galaxian-determinism-snapshot (SoA), OutrunScenery, OutrunVehicleArtwork (×2), ProofOfConceptStoryGraph (×2), SpaceInvadersCombat (shield supercharge), VerticalShmup (bomb, simulation contracts, gameplay).
+
+Estos fallos no se arreglaron en esta ronda; requieren decisión de diseño / investigación adicional (ver CI_FIX_LOG.md).

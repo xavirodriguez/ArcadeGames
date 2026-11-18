@@ -47,3 +47,30 @@ Rama: `fix/ci-plan`. Baseline: `ci-output.log` / `ci-rerun.log`.
 - OutrunGameplay: mock de Skia incompleto (faltaban Shader.MakeLinearGradient, Point, TileMode, setShader en mockPaint). Corregido el mock; aserción de tráfico Skia cambiada de drawRRect a drawRect (el drawer usa drawRect).
 - Verificación: `pnpm exec jest --runInBand src/games/outrun/__tests__/OutrunGameplay.test.ts` → 1 passed, 1 total; 22 tests.
 - Bloqueados: OutrunScenery (midPeak 77.33 vs min 80 por grit desert en endpoints) y OutrunVehicleArtwork (indices 0/1/2 no corresponden a coupe/van/truck y bodyColor/paletteIndex inconsistentes). Requieren decisión de diseño; no se tocaron.
+
+## Resumen final
+
+| Paso | Fallos antes | Fallos después | Estado |
+|---|---:|---:|---|
+| 0 Baseline | 33 tests + 5 suites | — | — |
+| 1 SharedVFX | 33 tests + 5 suites | 4 tests (targeted) | parcial |
+| 2 Galaxian | 3 tests | 1 test (SoA snapshot) | parcial/bloqueado |
+| 3 Hit & Run | 3 tests | 0 (targeted) | resuelto (frontera + FSM) |
+| 4 Racing | 4 tests | 0 | resuelto |
+| 5 Out Run | 5 tests | 3 tests (scenery + vehicle artwork ×2) | parcial |
+| 6 Resto | — | SpaceInvaders 1, VerticalShmup 3 sin resolver; Centipede/Campaign/VFX resueltos | parcial |
+| Segunda ronda (ci-final) | — | 11 tests + 13 suites | bloqueado (entorno/diseño) |
+
+### Bloqueados / información faltante
+
+- Galaxian SoA snapshot hash: falta investigar snapshot SoA en core.
+- Space Invaders shield supercharge: falta investigar por qué el invader no se destruye (CombatSystem no emite combat:death o suscripción falla).
+- Vertical Shmup invulnerabilidad: clone-on-write hace que el tick lea 0; falta causa raíz.
+- Vertical Shmup bomb: bala enemiga no se limpia.
+- Vertical Shmup simulation contracts: velocidad no se anula tras Game Over.
+- Out Run scenery: grit desert en endpoints hace el blend no monótono.
+- Out Run vehicle artwork: indices y bodyColor inconsistentes con la distribución ponderada.
+- Hit & Run rendering suites: fallo de parse de @shopify/react-native-skia (entorno).
+- useStoryRuntime: suite sin tests (config/ts-node).
+- ProofOfConceptStoryGraph: expectativa de act3 gameplay tras completeObjective; auto-avance de nodos.
+- CombatRollbackResimulation: hash mismatch (posible efecto de SharedVFX renderRandom).

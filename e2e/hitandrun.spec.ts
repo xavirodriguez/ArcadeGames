@@ -166,7 +166,7 @@ test.describe("Hit & Run gameplay lifecycle E2E", () => {
     });
 
     const startedWave = await readWaveState(page);
-    expect(startedWave?.scriptId).toMatch(/^wave_goblins_s\\d+$/);
+    expect(startedWave?.scriptId).toMatch(/^wave_goblins_s\d+$/);
     expect(startedWave?.sectionIndex).toBe(0);
 
     await expect.poll(
@@ -176,7 +176,7 @@ test.describe("Hit & Run gameplay lifecycle E2E", () => {
 
     const wave = await readWaveState(page);
     expect(wave).not.toBeNull();
-    expect(wave?.scriptId).toMatch(/^wave_goblins_s\\d+$/);
+    expect(wave?.scriptId).toMatch(/^wave_goblins_s\d+$/);
     expect(wave?.active).toBe(true);
     expect(wave?.loop).toBe(false);
     expect(wave?.expectedSpawnCount).toBeGreaterThan(0);

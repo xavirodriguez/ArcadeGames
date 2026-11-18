@@ -1,4 +1,5 @@
-import { World, SystemPhase, MovementSystem, ComboSystem } from "@tiny-aster/core";
+import { World, SystemPhase, MovementSystem, ComboSystem, THEME_RESOURCE_KEY } from "@tiny-aster/core";
+import { createThemeFromGameAccents } from "../../../theme/gameAccents";
 import { KineticAccumulatorSystem } from "../systems/KineticAccumulatorSystem";
 import { WeaponSystem } from "../systems/WeaponSystem";
 import { GeometryWarsComponentRegistry, GeometryWarsEventRegistry } from "../types/GeometryWarsRegistry";
@@ -15,6 +16,7 @@ describe("KineticAccumulatorSystem Unit Tests", () => {
     world = new World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>();
     world.setResource("GameConfig", config);
     world.setResource("ScreenConfig", { width: config.worldWidth, height: config.worldHeight });
+    world.setResource(THEME_RESOURCE_KEY, createThemeFromGameAccents("geometrywars"));
 
     registerGeometryWarsBlueprints(world);
 

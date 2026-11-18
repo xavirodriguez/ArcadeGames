@@ -14,6 +14,9 @@ interface HitRunE2EDebug {
     hasEnemyPool: boolean;
     sectionIndex: number | null;
     simulationFrozen: boolean;
+    paused: boolean;
+    timeScale: number | null;
+    activeGroups: readonly string[] | null;
     scriptId: string | null;
     active: boolean;
     elapsed: number;
@@ -170,9 +173,9 @@ test.describe("Hit & Run gameplay lifecycle E2E", () => {
     expect(startedWave?.sectionIndex).toBe(0);
 
     await expect.poll(
-      async () => (await readWaveState(page))?.spawnComplete,
+      async () => readWaveState(page),
       { timeout: 22000, intervals: [100, 250, 500] }
-    ).toBe(true);
+    ).toMatchObject({ spawnComplete: true });
 
     const wave = await readWaveState(page);
     expect(wave).not.toBeNull();

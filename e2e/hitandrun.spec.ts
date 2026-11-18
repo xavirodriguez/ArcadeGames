@@ -159,7 +159,7 @@ test.describe("Hit & Run gameplay lifecycle E2E", () => {
 
   test("keeps spawned enemies combat-capable after the wave spawn timeline completes", async ({ page }) => {
     const pageErrors: string[] = [];
-    page.on("pageerror", (error) => pageErrors.push(error.message));
+    page.on("pageerror", (error) => pageErrors.push(error.stack ?? error.message));
 
     await page.goto("/hitandrun");
     await waitForHitRunDebug(page);

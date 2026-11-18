@@ -1,43 +1,34 @@
-## Summary
+## Descripción / Description
 
-<!-- What changed and why? -->
+<!-- Describe el problema, la causa raíz y el resultado esperado. -->
 
-## Impact
+## Causa raíz y prevención
 
-- [ ] Gameplay or simulation behavior
-- [ ] Input handling
-- [ ] ECS components, systems or scheduling
-- [ ] Rendering, Canvas or Skia
-- [ ] Assets, audio or generated files
-- [ ] Lifecycle, restart or resource cleanup
-- [ ] Network, replay or determinism
-- [ ] Documentation or tooling only
+- **Causa raíz confirmada:**
+- **Frontera/contrato afectado:**
+- **Prueba de regresión o guarda añadida:**
+- **Productores y consumidores revisados:**
 
-## Validation
+## Checklist de Arquitectura y Buenas Prácticas
 
-Record each command actually executed and its result. Do not mark a check as passed when it was not run.
+- [ ] He leído `AGENTS.md` y `docs/agents/OPERATING_CONTRACT.md`.
+- [ ] He comprobado la implementación y el contrato canónico; no he inferido el contrato a partir del síntoma.
+- [ ] He revisado los productores, consumidores, serializadores/adaptadores y backends afectados.
+- [ ] He añadido o reforzado una prueba de regresión o una guarda ejecutable.
+- [ ] He actualizado los ledgers/documentación cuando cambia un contrato o una regla.
+- [ ] Determinismo: he usado `runWithUnlockedRandomAndMutators` cuando corresponde.
+- [ ] Colisionadores: he reutilizado `createPaddleColliderConfig` cuando corresponde.
+- [ ] Pooling: he evaluado `SharedEntityPool` para proyectiles/partículas en hot paths.
+- [ ] Tests: he registrado la configuración Jest del juego cuando corresponde.
+- [ ] No he ocultado el problema con casts, mocks globales, silent fallbacks ni tests omitidos.
 
-- [ ] Relevant unit or regression tests
-- [ ] `pnpm run check:agent-guardrails`
-- [ ] `pnpm run docs:check`
-- [ ] Relevant package or app typecheck
-- [ ] Build / E2E checks when affected
+## Verificación ejecutada
 
-Commands and results:
+| Comando | Resultado |
+| --- | --- |
+| `pnpm run check:agent-guardrails` | <!-- PASS / FAIL / NOT RUN + motivo --> |
+| `pnpm run ci` | <!-- PASS / FAIL / NOT RUN + motivo --> |
+| `pnpm run test:ci` o suites específicas | <!-- PASS / FAIL / NOT RUN + motivo --> |
+| Validaciones específicas (sprites, Canvas/Skia, E2E, etc.) | <!-- PASS / FAIL / NOT RUN + motivo --> |
 
-<!-- e.g. pnpm ... — passed / failed / not run -->
-
-## Technical-debt baselines
-
-- [ ] No baseline changed.
-- [ ] Baseline changed with measured before/after values and a concrete reason.
-
-<!-- Explain any baseline change. Never update a baseline only to make CI green. -->
-
-## Contract and regression review
-
-- [ ] New behavior has a regression test.
-- [ ] Deterministic code does not introduce unseeded randomness or time-dependent simulation behavior.
-- [ ] Lifecycle changes cover init, pause/resume, restart and destroy as applicable.
-- [ ] Rendering changes preserve the required Canvas/Skia behavior.
-- [ ] No unrelated files, generated outputs or public APIs changed accidentally.
+<!-- No marques como PASS un comando que no se haya ejecutado. -->

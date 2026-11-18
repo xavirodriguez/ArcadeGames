@@ -285,7 +285,7 @@ describe("Hit & Run wave lifecycle integrity", () => {
   });
 
 
-  it("starts the configured section wave and marks spawned enemies with their source", () => {
+  it("starts the configured section wave and completes the full opening timeline with owned enemies", () => {
     const world = new World<CoreComponentRegistry>();
     registerBeltSystems(world);
     registerHitRunWaves(world, {
@@ -293,35 +293,34 @@ describe("Hit & Run wave lifecycle integrity", () => {
       defaultSpawnY: 400
     });
 
-    // Schedule sorts priority descending, so WaveSystem (5) updates before
-    // SectionWaveSystem (4) starts the initial script on the first tick.
+    // WaveSystem (priority 5) runs before SectionWaveSystem (priority 4).
+    // The first update starts the script; later updates advance its timeline.
     world.update(0);
     const startedState = world.getResource<WaveDirectorState>(WAVE_DIRECTOR_RESOURCE);
     expect(startedState?.scriptId).toBe("wave_goblins_s0");
     expect(startedState?.active).toBe(true);
     expect(startedState?.nextEventIndex).toBe(0);
 
-    // The next tick advances the now-active script to its first event at t=1.2s.
     world.update(1.2);
 
-    const state = world.getResource<WaveDirectorState>(WAVE_DIRECTOR_RESOURCE);
-    expect(state?.scriptId).toBe("wave_goblins_s0");
-    expect(state?.active).toBe(true);
-    expect(state?.nextEventIndex).toBe(1);
-    expect(state?.totalSpawned).toBe(4);
-    expect(state?.failedSpawnCount).toBe(0);
+    const firstEventState = world.getResource<WaveDirectorState>(WAVE_DIRECTOR_RESOURCE);
+    expect(firstEventState?.scriptId).toBe("wave_goblins_s0");
+    expect(firstEventState?.active).toBe(true);
+    expect(firstEventState?.nextEventIndex).toBe(1);
+    expect(firstEventState?.totalSpawned).toBe(4);
+    expect(firstEventState?.failedSpawnCount).toBe(0);
 
     const waveTag = "wave:wave_goblins_s0";
-    const enemies = world.query("Enemy", "Health", "Collider2D", "Tag");
-    const ownedEnemies = enemies.filter((entity) =>
-      world.getComponent(entity, "Tag")?.tags.includes(waveTag)
-    );
-    expect(ownedEnemies).toHaveLength(4);
+    const firstEventEnemies = world.query("Enemy", "Health", "Collider2D", "Tag")
+      .filter((entity) => world.getComponent(entity, "Tag")?.tags.includes(waveTag));
+    expect(firstEventEnemies).toHaveLength(4);
 
-    for (const entity of ownedEnemies) {
+    for (const entity of firstEventEnemies) {
       expect(world.getComponent(entity, "Health")?.current).toBeGreaterThan(0);
       expect(world.getComponent(entity, "Collider2D")?.enabled).toBe(true);
       expect(world.getComponent(entity, "Tag")?.tags).toContain("wave-event:0");
+    }
+
     // Finish the remaining three events in the opening section script.
     // Their expected group sizes are 5, 2 and 4, for 15 enemies total.
     world.update(3.31);
@@ -344,7 +343,6 @@ describe("Hit & Run wave lifecycle integrity", () => {
         world.getComponent(entity, "Tag")?.tags.includes(`wave-event:${eventIndex}`)
       );
       expect(eventEnemies).toHaveLength(expectedCount);
-    }
     }
   });
 

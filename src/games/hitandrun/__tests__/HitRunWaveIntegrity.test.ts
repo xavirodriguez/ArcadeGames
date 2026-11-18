@@ -1,5 +1,6 @@
 import { World, CoreComponentRegistry } from "@tiny-aster/core";
 import { BeltCameraSystem } from "../belt/BeltCameraSystem";
+import { registerBeltSystems } from "../belt/registerBeltSystems";
 import {
   BELT_CAMERA_CONFIG_RESOURCE,
   BELT_CAMERA_STATE_RESOURCE,
@@ -17,6 +18,7 @@ import {
   type WaveScript
 } from "../waves/HitRunWaveTypes";
 import { HitRunWaveSystem, startWaveScript } from "../waves/HitRunWaveSystem";
+import { registerHitRunWaves } from "../waves/registerHitRunWaves";
 
 function createWaveWorld(): {
   world: World<CoreComponentRegistry>;
@@ -185,8 +187,12 @@ describe("Hit & Run wave lifecycle integrity", () => {
     const first = pool.acquireEnemy(world, {
       archetypeId: "popcorn",
       x: 200,
-      y: 400
+      y: 400,
+      waveId: "old-wave",
+      waveEventIndex: 1
     });
+    expect(world.getComponent(first, "Tag")?.tags).toContain("wave:old-wave");
+    expect(world.getComponent(first, "Tag")?.tags).toContain("wave-event:1");
 
     expect(
       (world.getComponent(first, "BeltSectionEnemy") as { sectionIndex: number })
@@ -205,10 +211,15 @@ describe("Hit & Run wave lifecycle integrity", () => {
     const recycled = pool.acquireEnemy(world, {
       archetypeId: "popcorn",
       x: 900,
-      y: 400
+      y: 400,
+      waveId: "new-wave",
+      waveEventIndex: 4
     });
 
     expect(recycled).toBe(first);
+    expect(world.getComponent(recycled, "Tag")?.tags).toContain("wave:new-wave");
+    expect(world.getComponent(recycled, "Tag")?.tags).toContain("wave-event:4");
+    expect(world.getComponent(recycled, "Tag")?.tags).not.toContain("wave:old-wave");
     expect(
       (world.getComponent(recycled, "BeltSectionEnemy") as { sectionIndex: number })
         .sectionIndex
@@ -271,6 +282,38 @@ describe("Hit & Run wave lifecycle integrity", () => {
 
     expect(getCameraState(world).sectionCleared).toBe(false);
     expect(getCameraState(world).gateLocked).toBe(true);
+  });
+
+
+  it("starts the configured section wave and marks spawned enemies with their source", () => {
+    const world = new World<CoreComponentRegistry>();
+    registerBeltSystems(world);
+    registerHitRunWaves(world, {
+      defaultSpawnX: 350,
+      defaultSpawnY: 400
+    });
+
+    world.update(1.2);
+
+    const state = world.getResource<WaveDirectorState>(WAVE_DIRECTOR_RESOURCE);
+    expect(state?.scriptId).toBe("wave_goblins_s0");
+    expect(state?.active).toBe(true);
+    expect(state?.nextEventIndex).toBe(1);
+    expect(state?.totalSpawned).toBe(4);
+    expect(state?.failedSpawnCount).toBe(0);
+
+    const waveTag = "wave:wave_goblins_s0";
+    const enemies = world.query("Enemy", "Health", "Collider2D", "Tag");
+    const ownedEnemies = enemies.filter((entity) =>
+      world.getComponent(entity, "Tag")?.tags.includes(waveTag)
+    );
+    expect(ownedEnemies).toHaveLength(4);
+
+    for (const entity of ownedEnemies) {
+      expect(world.getComponent(entity, "Health")?.current).toBeGreaterThan(0);
+      expect(world.getComponent(entity, "Collider2D")?.enabled).toBe(true);
+      expect(world.getComponent(entity, "Tag")?.tags).toContain("wave-event:0");
+    }
   });
 
 });

@@ -247,9 +247,23 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
       }
     }
 
+    const waveOriginTags = params.waveId
+      ? [
+          `wave:${params.waveId}`,
+          ...(params.waveEventIndex === undefined
+            ? []
+            : [`wave-event:${params.waveEventIndex}`])
+        ]
+      : [];
     setOrAddComp("Tag", {
       type: "Tag",
-      tags: ["Enemy", params.archetypeId, ...(params.tags ?? []), ...(arch?.behaviorTags ?? [])]
+      tags: [
+        "Enemy",
+        params.archetypeId,
+        ...(params.tags ?? []),
+        ...(arch?.behaviorTags ?? []),
+        ...waveOriginTags
+      ]
     });
 
     setOrAddComp("BeltElevation", {

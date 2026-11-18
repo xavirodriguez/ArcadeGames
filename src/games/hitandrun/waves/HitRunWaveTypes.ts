@@ -76,6 +76,8 @@ export interface WaveDirectorState {
   pendingStaggers: PendingStagger[];
   /** Contador de enemigos spawneados en esta run (métricas). */
   totalSpawned: number;
+  /** Number of spawn requests that could not reach the enemy pool. */
+  failedSpawnCount?: number;
   /** Contador de enemigos matados pertenecientes a la oleada. */
   totalKilled?: number;
   /** Claves de eventos telegraph procesados. */
@@ -135,6 +137,10 @@ export interface HitRunEnemySpawnParams {
   /** Índice dentro del grupo (para formaciones). */
   indexInGroup?: number;
   groupSize?: number;
+  /** Source wave script that requested this enemy, when spawned by a wave. */
+  waveId?: string;
+  /** Zero-based event index within the source wave script. */
+  waveEventIndex?: number;
 }
 
 /** Contrato mínimo del pool de enemigos. */

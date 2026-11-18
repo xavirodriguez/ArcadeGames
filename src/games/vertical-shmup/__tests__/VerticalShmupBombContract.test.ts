@@ -55,6 +55,7 @@ describe("Vertical Shmup bomb contract (AUD-P2-01)", () => {
     const stockBefore = world.getSingleton("ShmupGameState")!.bombsRemaining ?? 3;
     const system = new ShmupBombSystem();
     system.update(world, 1 / 60);
+    world.flush();
 
     expect(world.query("ShmupEnemyBullet").length).toBe(0);
     expect(world.getSingleton("ShmupGameState")!.bombsRemaining).toBe(stockBefore - 1);

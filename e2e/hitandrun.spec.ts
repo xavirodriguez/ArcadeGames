@@ -3,6 +3,7 @@ import { test, expect } from "@playwright/test";
 interface HitRunE2EDebug {
   getPlayerX: () => number | null;
   getPlayerHealth: () => number | null;
+  setPlayerInvulnerable: (remainingSeconds: number) => void;
   getAliveEnemyCount: () => number;
   getCombatableEnemyCount: () => number;
   getWaveOwnedEnemyCount: () => number;
@@ -26,6 +27,10 @@ interface HitRunE2EDebug {
     expectedSpawnCount: number;
     totalSpawned: number;
     failedSpawnCount: number;
+    hasEnemyBulletPool: boolean;
+    enemyPoolFreeCount: number | null;
+    lifecycleState: string;
+    lastGameError: string | null;
     spawnComplete: boolean;
     loop: boolean;
   };
@@ -153,8 +158,15 @@ test.describe("Hit & Run gameplay lifecycle E2E", () => {
   });
 
   test("keeps spawned enemies combat-capable after the wave spawn timeline completes", async ({ page }) => {
+    const pageErrors: string[] = [];
+    page.on("pageerror", (error) => pageErrors.push(error.message));
+
     await page.goto("/hitandrun");
     await waitForHitRunDebug(page);
+
+    // The wave timeline must be measured independently of the death/restart loop.
+    // Keep the player alive so death cannot recreate the World and reset the script.
+    await page.evaluate(() => window.__hitAndRunDebug?.setPlayerInvulnerable(600));
 
     await expect.poll(
       () => readWaveState(page),
@@ -164,28 +176,45 @@ test.describe("Hit & Run gameplay lifecycle E2E", () => {
       hasScript: true,
       scriptMatches: true,
       hasEnemyPool: true,
+      hasEnemyBulletPool: true,
       active: true,
       eventCount: 4
     });
 
     const startedWave = await readWaveState(page);
-    expect(startedWave?.scriptId).toMatch(/^wave_goblins_s\d+$/);
+    expect(startedWave?.scriptId).toMatch(/^wave_goblins_s\\d+$/);
     expect(startedWave?.sectionIndex).toBe(0);
 
-    await expect.poll(
-      async () => readWaveState(page),
-      { timeout: 22000, intervals: [100, 250, 500] }
-    ).toMatchObject({ spawnComplete: true });
+    try {
+      await expect.poll(
+        async () => (await readWaveState(page))?.spawnComplete ?? false,
+        { timeout: 22000, intervals: [100, 250, 500] }
+      ).toBe(true);
+    } catch (error) {
+      const diagnostics = await readWaveState(page);
+      const deaths = await readRunDeaths(page);
+      throw new Error(
+        `Hit & Run wave did not complete: ${JSON.stringify({
+          wave: diagnostics,
+          runDeaths: deaths,
+          pageErrors
+        })}. ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
 
     const wave = await readWaveState(page);
     expect(wave).not.toBeNull();
-    expect(wave?.scriptId).toMatch(/^wave_goblins_s\d+$/);
+    expect(wave?.scriptId).toMatch(/^wave_goblins_s\\d+$/);
     expect(wave?.active).toBe(true);
     expect(wave?.loop).toBe(false);
-    expect(wave?.expectedSpawnCount).toBeGreaterThan(0);
+    expect(wave?.expectedSpawnCount).toBe(15);
     expect(wave?.totalSpawned).toBe(wave?.expectedSpawnCount);
     expect(wave?.failedSpawnCount).toBe(0);
     expect(wave?.pendingSpawnCount).toBe(0);
+    expect(wave?.enemyPoolFreeCount).toBeGreaterThanOrEqual(1);
+    expect(wave?.lastGameError).toBeNull();
+    expect(await readRunDeaths(page)).toBe(0);
+    expect(pageErrors).toEqual([]);
     expect(await readWaveOwnedEnemies(page)).toBeGreaterThan(0);
     expect(await readWaveCombatableEnemies(page)).toBeGreaterThan(0);
     expect(await readAliveEnemies(page)).toBeGreaterThan(0);

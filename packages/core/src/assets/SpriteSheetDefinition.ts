@@ -93,7 +93,7 @@ export interface SpriteSheetDefinition {
   frameHeight: number;
   /** Whether to draw individual frames or the full image. Defaults to "frames". */
   sourceMode?: "frames" | "full-image";
-  /** Normalized destination anchor. Defaults to bottom-center { x: 0.5, y: 1 }. */
+  /** Normalized destination anchor. Defaults to bottom-center \{ x: 0.5, y: 1 \}. */
   anchor?: { x: number; y: number };
   /** Animation clips indexed by stable animation name. */
   animations: Record<string, SpriteAnimationDefinition>;

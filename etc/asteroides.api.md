@@ -580,6 +580,8 @@ export interface BaseWorldSnapshot {
     renderRngState?: number;
     rngState?: number;
     seed: number;
+    snapshotResourceKeys?: string[];
+    snapshotResources?: Record<string, unknown>;
     stateVersion: number;
     structureVersion: number;
     tick: number;
@@ -696,7 +698,7 @@ export interface BranchNodeBuilder extends CommonNodeBuilderMethods<BranchNodeBu
 export class BroadPhase {
     static createScratch(): BroadPhaseScratch;
     static getShapeBounds(transform: Readonly<TransformComponent>, collider: Readonly<ColliderComponent>): AABB;
-    static sweepAndPrune(entities: ReadonlyArray<Entity>, world: World<CoreComponentRegistry>, scratch?: BroadPhaseScratch): Array<[Entity, Entity]>;
+    static sweepAndPrune(entities: ReadonlyArray<Entity>, world: World<CoreComponentRegistry, any, any>, scratch?: BroadPhaseScratch): Array<[Entity, Entity]>;
 }
 
 // @public
@@ -1417,6 +1419,20 @@ export interface CoreEvents {
         nextLevel?: number;
         [key: string]: unknown;
     };
+    "locomotion:platform_reversed": {
+        entity: Entity;
+        x: number;
+        y: number;
+        velocityX: number;
+        velocityY: number;
+    };
+    "locomotion:slide_started": {
+        entity: Entity;
+        x: number;
+        y: number;
+        velocityX: number;
+        velocityY: number;
+    };
     "loot:spawn": {
         x: number;
         y: number;
@@ -1647,6 +1663,9 @@ export function createSpringJoint(entityA: Entity, entityB: Entity, anchorA: {
 
 // @public
 export function createSpriteAnimator(sheetId: string, initialAnim?: string): SpriteAnimatorComponent;
+
+// @public
+export function createTransformComponent(x: number, y: number): TransformComponent;
 
 // @public
 export function createVehicleSteering(config: VehicleSteeringOptions): VehicleSteeringComponent;
@@ -2462,6 +2481,7 @@ export interface GameplayEvent {
 // @public
 export interface GameplayFreeze {
     remaining?: number;
+    source?: string;
 }
 
 // @public
@@ -2650,6 +2670,8 @@ export function hashAoS(snapshot: {
     seed: number;
     rngState?: number;
     renderRngState?: number;
+    snapshotResourceKeys?: string[];
+    snapshotResources?: Record<string, unknown>;
 }): string;
 
 // @public
@@ -2899,6 +2921,10 @@ export interface InternalWorldSnapshotAccess {
     generations?: number[];
     // (undocumented)
     nextEntityId: number;
+    // (undocumented)
+    resources: Map<string, unknown>;
+    // (undocumented)
+    snapshotResourceNames: Set<string>;
 }
 
 // @public
@@ -3005,7 +3031,7 @@ export class Juice {
     static playHitJuice<TComponents extends CoreComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, entity: Entity, config?: HitJuiceConfig): void;
     static playPickupJuice<TComponents extends CoreComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, entity: Entity, config?: PickupJuiceConfig): void;
     static playShootJuice<TComponents extends CoreComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, entity: Entity, config?: ShootJuiceConfig): void;
-    static shake<TComponents extends CoreComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, intensity: number, duration: number): void;
+    static shake<TComponents extends CoreComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, intensity: number, durationMs: number): void;
     static squash<TComponents extends CoreComponentRegistry = CoreComponentRegistry, TEvents extends EventRegistry = EventRegistry, TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>>(world: World<TComponents, TEvents, TBlueprints>, entity: Entity, sx: number, sy: number, duration: number): void;
 }
 
@@ -4701,6 +4727,7 @@ export interface Renderer<TRegistry extends ComponentRegistry = ComponentRegistr
     // (undocumented)
     registerBackgroundEffect(name: string, drawer: EffectDrawer<TContext, TRegistry>): void;
     registerForegroundEffect?(name: string, drawer: EffectDrawer<TContext, TRegistry>): void;
+    registerPostProcessEffect?(name: string, drawer: EffectDrawer<TContext, TRegistry>): void;
     // (undocumented)
     registerShape(name: string, drawer: ShapeDrawer<TContext, TRegistry>): void;
     render(world: World<TRegistry>, ctx: TContext, interpolation?: number): void;
@@ -5261,6 +5288,8 @@ export type SnapshotDelta = Partial<BaseWorldSnapshot> & {
     isSoA?: boolean;
     componentData?: ComponentDataSnapshot;
     soaComponentData?: Record<string, Partial<SoAComponentTypeData>>;
+    snapshotResourceKeys?: string[];
+    snapshotResources?: Record<string, unknown>;
 };
 
 // @public
@@ -6743,6 +6772,7 @@ export class World<TComponents extends ComponentRegistry = CoreComponentRegistry
     hasEntity(entity: Entity): boolean;
     isAlive(entity: Entity): boolean;
     isReSimulating: boolean;
+    isSnapshotResourceRegistered(name: string): boolean;
     isUpdating: boolean;
     mutateComponent<K extends ComponentType<TComponents>>(entity: Entity, type: K, updater: (component: TComponents[K]) => void): boolean;
     mutateSingleton<K extends ComponentType<TComponents>>(type: K, mutator: (component: TComponents[K]) => void): void;
@@ -6753,6 +6783,7 @@ export class World<TComponents extends ComponentRegistry = CoreComponentRegistry
     registerComponentMetadata(type: string, options: {
         allowMutationDuringUpdate?: boolean;
     }): void;
+    registerSnapshotResource(name: string): void;
     removeComponent<K extends ComponentType<TComponents>>(entity: Entity, type: K): void;
     removeEntity(entity: Entity): void;
     // @internal
@@ -6765,6 +6796,7 @@ export class World<TComponents extends ComponentRegistry = CoreComponentRegistry
     get stateVersion(): number;
     get structureVersion(): number;
     get tick(): number;
+    unregisterSnapshotResource(name: string): void;
     update(deltaTime: number): void;
 }
 

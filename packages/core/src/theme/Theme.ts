@@ -22,7 +22,7 @@ export interface ConceptPackConfig {
   missionOverrides?: Record<string, { title?: string; description?: string }>;
   /** Overrides for story node graph dialogues/encounters by encounter or beat ID. */
   storyOverrides?: Record<string, { title?: string; text?: string }>;
-  /** Overrides for logical role labels shown on UI / HUD (e.g., "HUNTER" -> "SQUADRON LEADER"). */
+  /** Overrides for logical role labels shown on UI / HUD (e.g., "HUNTER" -\> "SQUADRON LEADER"). */
   roleLabels?: Record<string, string>;
 }
 

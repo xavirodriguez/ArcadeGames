@@ -45,7 +45,7 @@ export function spawnFloatingText(
   ttl = 0.7
 ): void {
   if (world.isReSimulating) return;
-  const core = world as unknown as World;
+  const core = world;
   const isUpdating = core.isUpdating === true;
   const id = isUpdating ? core.reserveEntityId() : core.createEntity();
   if (isUpdating) core.getCommandBuffer().createEntity(id);

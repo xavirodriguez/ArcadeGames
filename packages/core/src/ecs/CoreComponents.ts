@@ -1559,7 +1559,7 @@ export interface Collider2DComponent extends Component {
 export interface BeltElevationComponent extends Component {
   /** Component discriminator type. */
   type: "BeltElevation";
-  /** Height above ground plane in pixels (z >= 0). */
+  /** Height above ground plane in pixels (z \>= 0). */
   z: number;
   /** Vertical speed along the z axis (positive upwards). */
   vz: number;

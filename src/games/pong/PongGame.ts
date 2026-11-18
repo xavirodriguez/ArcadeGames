@@ -61,7 +61,7 @@ export type PongMode = "local" | "ai" | "online";
  * Implementa una física de rebotes basada en el ángulo de incidencia y el movimiento
  * relativo de las paletas (spin). Gestiona modos de juego contra IA o multijugador local.
  */
-import { TransformComponent, VelocityComponent, ColliderComponent, BoundaryComponent, CircleShape, BoxShape, ShapeType, BlueprintDefinition, Theme, resolveThemeColor, EntityBuilder, RenderComponent, RenderContext, Mutator, IAssetProvider, IAudioPlayer } from "@tiny-aster/core";
+import { TransformComponent, VelocityComponent, ColliderComponent, BoundaryComponent, CircleShape, BoxShape, ShapeType, BlueprintDefinition, Theme, resolveThemeColorStrict, EntityBuilder, RenderComponent, RenderContext, Mutator, IAssetProvider, IAudioPlayer } from "@tiny-aster/core";
 
 export interface PongBlueprintMap extends Record<string, BlueprintDefinition<PongComponentRegistry, PongEventRegistry, unknown>> {
   ball: BlueprintDefinition<PongComponentRegistry, PongEventRegistry, {}>;
@@ -111,7 +111,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     this.blueprints.register("ball", {
       spawn: (world, entity, _args: {}) => {
         const config = world.getResource<PongConfig>("GameConfig") || DEFAULT_PONG_CONFIG;
-        const tint = resolveThemeColor(world, "ball", "primary");
+        const tint = resolveThemeColorStrict(world, "ball", "primary");
 
         EntityBuilder.fromEntity(world, entity)
           .withTransform({
@@ -153,7 +153,7 @@ export class PongGame extends BaseGame<PongState, PongInput, PongComponentRegist
     this.blueprints.register("paddle", {
       spawn: (world, entity, args: { side: "left" | "right" }) => {
         const config = world.getResource<PongConfig>("GameConfig") || DEFAULT_PONG_CONFIG;
-        const tint = resolveThemeColor(world, args.side, "paddle", "primary");
+        const tint = resolveThemeColorStrict(world, args.side, "paddle", "primary");
 
         const x = args.side === "left" ? 40 : config.worldWidth - 40;
         const y = config.worldHeight / 2;

@@ -1,4 +1,4 @@
-import { resolveThemeColor, World, Entity } from "@tiny-aster/core";
+import { resolveThemeColorWithFallback, World, Entity } from "@tiny-aster/core";
 import { CentipedeComponentRegistry, CentipedeEventRegistry } from "../types/CentipedeTypes";
 import { CentipedeConfig } from "../types/CentipedeConfigSchema";
 import { CENTIPEDE_VISUAL_TOKENS } from "./CentipedeVisualTokens";
@@ -33,21 +33,21 @@ export function getCentipedePalette(world: CentipedeWorld): CentipedePaletteReso
 
   return {
     isColorblind,
-    soil: palette?.soil ?? resolveThemeColor(world, "soil", "soil") ?? CENTIPEDE_VISUAL_TOKENS.soil,
-    playerZone: palette?.playerZone ?? resolveThemeColor(world, "playerZone", "playerZone") ?? CENTIPEDE_VISUAL_TOKENS.playerZone,
-    hairline: palette?.hairline ?? resolveThemeColor(world, "hairline", "hairline") ?? CENTIPEDE_VISUAL_TOKENS.hairline,
-    mushroomA: palette?.mushroomA ?? resolveThemeColor(world, "mushroomA", "mushroomA") ?? CENTIPEDE_VISUAL_TOKENS.mushroomA,
-    mushroomB: palette?.mushroomB ?? resolveThemeColor(world, "mushroomB", "mushroomB") ?? CENTIPEDE_VISUAL_TOKENS.mushroomB,
-    centipedeHead: palette?.centipedeHead ?? resolveThemeColor(world, "centipedeHead", "centipedeHead") ?? CENTIPEDE_VISUAL_TOKENS.centipedeHead,
-    centipedeBody: palette?.centipedeBody ?? resolveThemeColor(world, "centipedeBody", "centipedeBody") ?? CENTIPEDE_VISUAL_TOKENS.centipedeBody,
-    centipedeLegs: palette?.centipedeLegs ?? resolveThemeColor(world, "centipedeLegs", "centipedeLegs") ?? CENTIPEDE_VISUAL_TOKENS.centipedeLegs,
-    centipedeShine: palette?.centipedeShine ?? resolveThemeColor(world, "centipedeShine", "centipedeShine") ?? CENTIPEDE_VISUAL_TOKENS.centipedeShine,
-    amber: palette?.amber ?? resolveThemeColor(world, "amber", "amber") ?? CENTIPEDE_VISUAL_TOKENS.amber,
-    toxin: palette?.toxin ?? resolveThemeColor(world, "toxin", "toxin") ?? CENTIPEDE_VISUAL_TOKENS.toxin,
-    lobeOff: palette?.lobeOff ?? resolveThemeColor(world, "lobeOff", "lobeOff") ?? CENTIPEDE_VISUAL_TOKENS.lobeOff,
-    stem: palette?.stem ?? resolveThemeColor(world, "stem", "stem") ?? CENTIPEDE_VISUAL_TOKENS.stem,
-    player: palette?.player ?? resolveThemeColor(world, "centipedePlayer", "player") ?? CENTIPEDE_VISUAL_TOKENS.player,
-    playerAccent: palette?.playerAccent ?? resolveThemeColor(world, "playerAccent", "playerAccent") ?? CENTIPEDE_VISUAL_TOKENS.playerAccent,
+    soil: palette?.soil ?? resolveThemeColorWithFallback(world, CENTIPEDE_VISUAL_TOKENS.soil, "soil", "soil"),
+    playerZone: palette?.playerZone ?? resolveThemeColorWithFallback(world, CENTIPEDE_VISUAL_TOKENS.playerZone, "playerZone", "playerZone"),
+    hairline: palette?.hairline ?? resolveThemeColorWithFallback(world, CENTIPEDE_VISUAL_TOKENS.hairline, "hairline", "hairline"),
+    mushroomA: palette?.mushroomA ?? resolveThemeColorWithFallback(world, CENTIPEDE_VISUAL_TOKENS.mushroomA, "mushroomA", "mushroomA"),
+    mushroomB: palette?.mushroomB ?? resolveThemeColorWithFallback(world, CENTIPEDE_VISUAL_TOKENS.mushroomB, "mushroomB", "mushroomB"),
+    centipedeHead: palette?.centipedeHead ?? resolveThemeColorWithFallback(world, CENTIPEDE_VISUAL_TOKENS.centipedeHead, "centipedeHead", "centipedeHead"),
+    centipedeBody: palette?.centipedeBody ?? resolveThemeColorWithFallback(world, CENTIPEDE_VISUAL_TOKENS.centipedeBody, "centipedeBody", "centipedeBody"),
+    centipedeLegs: palette?.centipedeLegs ?? resolveThemeColorWithFallback(world, CENTIPEDE_VISUAL_TOKENS.centipedeLegs, "centipedeLegs", "centipedeLegs"),
+    centipedeShine: palette?.centipedeShine ?? resolveThemeColorWithFallback(world, CENTIPEDE_VISUAL_TOKENS.centipedeShine, "centipedeShine", "centipedeShine"),
+    amber: palette?.amber ?? resolveThemeColorWithFallback(world, CENTIPEDE_VISUAL_TOKENS.amber, "amber", "amber"),
+    toxin: palette?.toxin ?? resolveThemeColorWithFallback(world, CENTIPEDE_VISUAL_TOKENS.toxin, "toxin", "toxin"),
+    lobeOff: palette?.lobeOff ?? resolveThemeColorWithFallback(world, CENTIPEDE_VISUAL_TOKENS.lobeOff, "lobeOff", "lobeOff"),
+    stem: palette?.stem ?? resolveThemeColorWithFallback(world, CENTIPEDE_VISUAL_TOKENS.stem, "stem", "stem"),
+    player: palette?.player ?? resolveThemeColorWithFallback(world, CENTIPEDE_VISUAL_TOKENS.player, "centipedePlayer", "player"),
+    playerAccent: palette?.playerAccent ?? resolveThemeColorWithFallback(world, CENTIPEDE_VISUAL_TOKENS.playerAccent, "playerAccent", "playerAccent"),
     eyeHighlight: CENTIPEDE_VISUAL_TOKENS.eyeHighlight,
     hudText: palette?.hudText ?? CENTIPEDE_VISUAL_TOKENS.hudText,
   };

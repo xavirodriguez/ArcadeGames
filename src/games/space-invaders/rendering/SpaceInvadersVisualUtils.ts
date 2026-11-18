@@ -1,4 +1,4 @@
-import { HealthComponent, RenderComponent, World, THEME_RESOURCE_KEY, Theme, resolveThemeColor, EntityGeometryProfile, SpaceInvadersRoleKey } from "@tiny-aster/core";
+import { HealthComponent, RenderComponent, World, THEME_RESOURCE_KEY, Theme, resolveThemeColorWithFallback, EntityGeometryProfile, SpaceInvadersRoleKey } from "@tiny-aster/core";
 import { InvaderComponent, SpaceInvadersComponentRegistry, GAME_CONFIG } from "../types/SpaceInvadersTypes";
 import { EnemyTagComponent } from "../components/EnemyTagComponent";
 import { resolveHitFlash, HitFlashState } from "../../shared/rendering/RenderUtils";
@@ -154,7 +154,7 @@ export function resolveInvaderColor(
 
   let themeColor: string | undefined;
   if (world) {
-    themeColor = resolveThemeColor(world, ...roles);
+    themeColor = resolveThemeColorWithFallback(world, render?.color || colors.white, ...roles);
   }
 
   let baseColor = themeColor || render?.color || colors.white;

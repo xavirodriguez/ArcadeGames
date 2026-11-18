@@ -23,7 +23,7 @@ import {
   ShapeType,
   HealthComponent,
   Theme,
-  resolveThemeColor,
+  resolveThemeColorStrict,
   EntityBuilder,
   preloadSharedAudioManifest,
   SHARED_AUDIO_MANIFEST,
@@ -249,7 +249,7 @@ export class PlatformerGame extends PlatformerArcadeGame<PlatformerGameState, Pl
       spawn: (world, entity, args: { x: number; y: number }) => {
         const theme = world.getResource<Theme>("Theme");
         const assetKey = theme?.spriteMap["player"] ?? "player_sprite";
-        const tint = resolveThemeColor(world, "player");
+        const tint = resolveThemeColorStrict(world, "player");
 
         EntityBuilder.fromEntity(world, entity)
           .withTransform({ x: args.x, y: args.y })

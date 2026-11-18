@@ -4,7 +4,7 @@ import {
   BlueprintRegistry,
   BlueprintDefinition,
   CircleShape,
-  resolveThemeColor,
+  resolveThemeColorStrict,
   EntityBuilder,
   HealthComponent,
   spawnBlueprintEntity
@@ -185,7 +185,7 @@ export function registerGeometryWarsBlueprints(
   registry.register("player", {
     spawn: (w: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>, entity: number, args: { x: number; y: number }) => {
       const config = w.getResource<GeometryWarsConfig>("GameConfig");
-      const tint = resolveThemeColor(w, "player");
+      const tint = resolveThemeColorStrict(w, "player");
 
       EntityBuilder.fromEntity(w, entity)
         .withTransform({ x: args.x, y: args.y })
@@ -243,7 +243,7 @@ export function registerGeometryWarsBlueprints(
   registry.register("bullet", {
     spawn: (w: World<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>, entity: number, args: { x: number; y: number; vx: number; vy: number; rotation: number }) => {
       const config = w.getResource<GeometryWarsConfig>("GameConfig");
-      const tint = resolveThemeColor(w, "bullet", "secondary");
+      const tint = resolveThemeColorStrict(w, "bullet", "secondary");
 
       EntityBuilder.fromEntity(w, entity)
         .withTransform({ x: args.x, y: args.y, rotation: args.rotation })

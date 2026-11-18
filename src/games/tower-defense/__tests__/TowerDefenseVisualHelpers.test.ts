@@ -1,4 +1,4 @@
-import { World } from "@tiny-aster/core";
+import { THEME_RESOURCE_KEY, World } from "@tiny-aster/core";
 import {
   createPathDirectionMarkers,
   resolveEntityIsometricOffset,
@@ -7,11 +7,13 @@ import {
   resolveCreepHealthBarGeometry,
   getBossContourPoints,
   resolveTdTileColors,
+  isPaperDuskTheme,
 } from "../rendering/TowerDefenseVisualHelpers";
 import { createIsoConfig, projectVector, worldToIso } from "../rendering/IsoProjection";
 import towerDefenseConfigRaw from "../config/tower-defense.json";
 import type { TowerDefenseConfig } from "../types/TowerDefenseConfigSchema";
 import type { TowerDefenseComponentRegistry, TowerDefenseEventRegistry } from "../types/TowerDefenseTypes";
+import { paperDuskConceptPack } from "../../../theme/conceptPacks/paperDuskConceptPack";
 
 const config = towerDefenseConfigRaw as TowerDefenseConfig;
 
@@ -164,6 +166,22 @@ describe("Tower Defense entity projection", () => {
 });
 
 describe("Tower Defense visual helper functions", () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+  it("detects Paper Dusk from the active concept-pack identity", () => {
+    const world = createWorld();
+    const warning = jest.spyOn(console, "warn").mockImplementation(() => undefined);
+
+    expect(isPaperDuskTheme(world)).toBe(false);
+    expect(warning).not.toHaveBeenCalled();
+
+    world.setResource(THEME_RESOURCE_KEY, paperDuskConceptPack);
+    expect(isPaperDuskTheme(world)).toBe(true);
+    expect(warning).not.toHaveBeenCalled();
+
+  });
+
   it("resolves creep health bar geometry correctly", () => {
     const world = createWorld();
     const entity = world.createEntity();

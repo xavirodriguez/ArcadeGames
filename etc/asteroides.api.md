@@ -4866,6 +4866,11 @@ export function resolveThemeColor<TRole extends string = GameRoleKey>(world: {
 }, ...roles: TRole[]): string | undefined;
 
 // @public
+// @public
+export function resolveThemeColorStrict<TRole extends string = GameRoleKey>(world: {
+    getResource: <T>(key: string) => T | undefined;
+}, ...roles: TRole[]): string | undefined;
+
 export function resolveThemeColorWithFallback<TRole extends string = GameRoleKey>(world: {
     getResource: <T>(key: string) => T | undefined;
 }, fallbackColor: string, ...roles: TRole[]): string;

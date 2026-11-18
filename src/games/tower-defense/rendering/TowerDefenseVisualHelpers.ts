@@ -1,4 +1,4 @@
-import { World, resolveThemeColorWithFallback } from "@tiny-aster/core";
+import { THEME_RESOURCE_KEY, World, resolveThemeColorWithFallback, type Theme } from "@tiny-aster/core";
 import type {
   TowerDefenseComponentRegistry,
   TowerDefenseVisualEffects,
@@ -381,8 +381,7 @@ export function resolveTowerProjectileDrawSetup(
 }
 
 export function isPaperDuskTheme(world: World<TowerDefenseComponentRegistry>): boolean {
-  const pdGround = resolveThemeColorWithFallback(world, "", "pd_ground");
-  return Boolean(pdGround);
+  return world.getResource<Theme>(THEME_RESOURCE_KEY)?.conceptPack?.id === "paper_dusk";
 }
 
 export interface TdProjectedBounds {

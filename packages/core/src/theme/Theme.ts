@@ -223,28 +223,24 @@ export function getMissionDescription(theme: Theme | undefined, missionId: strin
 }
 
 /**
- * Resolves an entity's color from the active `Theme` resource registered in `world`.
- * Evaluates candidate role keys in priority order until a match is found.
- *
- * @param world - The ECS `World` instance containing the `Theme` resource.
- * @param roles - Priority list of role keys to evaluate in `colorMap`.
- * @returns Resolved color string or `undefined` if not found.
- *
- * @public
+ * Internal side-effect-free lookup shared by the optional and diagnostic APIs.
  */
-export function resolveThemeColor<TRole extends string = GameRoleKey>(world: { getResource: <T>(key: string) => T | undefined }, ...roles: TRole[]): string | undefined {
-  const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
-  if (theme && theme.colorMap) {
-    for (let i = 0; i < roles.length; i++) {
-      const role = roles[i];
-      if (role && theme.colorMap[role] !== undefined) {
-        return theme.colorMap[role];
-      }
-    }
-  }
+type ThemeColorWorld = {
+  getResource: <T>(key: string) => T | undefined;
+};
 
-  if (process.env.NODE_ENV !== "production") {
-    console.warn(`[resolveThemeColor] None of the specified roles [${roles.join(", ")}] were found in active theme colorMap.`);
+function findThemeColor<TRole extends string>(
+  world: ThemeColorWorld,
+  roles: readonly TRole[]
+): string | undefined {
+  const colorMap = world.getResource<Theme>(THEME_RESOURCE_KEY)?.colorMap;
+  if (!colorMap) return undefined;
+
+  for (let i = 0; i < roles.length; i++) {
+    const role = roles[i];
+    if (role && colorMap[role] !== undefined) {
+      return colorMap[role];
+    }
   }
 
   return undefined;
@@ -252,7 +248,64 @@ export function resolveThemeColor<TRole extends string = GameRoleKey>(world: { g
 
 /**
  * Resolves an entity's color from the active `Theme` resource registered in `world`.
- * Evaluates candidate role keys in priority order until a match is found, falling back to a default color.
+ * Evaluates candidate role keys in priority order until a match is found.
+ *
+ * This is an optional, side-effect-free lookup. Missing roles and an absent Theme
+ * resource are normal outcomes; use `resolveThemeColorStrict` when absence should
+ * be reported as a configuration problem.
+ *
+ * @param world - The ECS `World` instance containing the `Theme` resource.
+ * @param roles - Priority list of role keys to evaluate in `colorMap`.
+ * @returns Resolved color string or `undefined` if not found.
+ *
+ * @public
+ */
+export function resolveThemeColor<TRole extends string = GameRoleKey>(
+  world: { getResource: <T>(key: string) => T | undefined },
+  ...roles: TRole[]
+): string | undefined {
+  return findThemeColor(world, roles);
+}
+
+/**
+ * Resolves a required theme color and reports a missing Theme resource or role set.
+ *
+ * Use this only when the caller cannot continue correctly without one of the
+ * requested theme roles. Optional consumers should use `resolveThemeColor` or
+ * `resolveThemeColorWithFallback` instead.
+ *
+ * @param world - The ECS `World` instance containing the `Theme` resource.
+ * @param roles - Priority list of required role keys.
+ * @returns Resolved color string or `undefined` if not found.
+ *
+ * @public
+ */
+export function resolveThemeColorStrict<TRole extends string = GameRoleKey>(
+  world: { getResource: <T>(key: string) => T | undefined },
+  ...roles: TRole[]
+): string | undefined {
+  const resolved = findThemeColor(world, roles);
+  if (resolved !== undefined) return resolved;
+
+  if (process.env.NODE_ENV !== "production") {
+    const theme = world.getResource<Theme>(THEME_RESOURCE_KEY);
+    const reason = !theme
+      ? "No active Theme resource is registered"
+      : !theme.colorMap
+        ? "The active Theme has no colorMap"
+        : "The active Theme does not define any requested color role";
+    console.warn(`[resolveThemeColorStrict] ${reason}: [${roles.join(", ")}].`);
+  }
+
+  return undefined;
+}
+
+/**
+ * Resolves an entity's color from the active `Theme` resource registered in `world`.
+ * Evaluates candidate role keys in priority order, falling back to a default color.
+ *
+ * This lookup is intentionally silent because the caller has explicitly supplied
+ * a valid fallback for themes that do not define the requested roles.
  *
  * @param world - The ECS `World` instance containing the `Theme` resource.
  * @param fallbackColor - Hardcoded or default token color to return if no role matches.
@@ -261,7 +314,10 @@ export function resolveThemeColor<TRole extends string = GameRoleKey>(world: { g
  *
  * @public
  */
-export function resolveThemeColorWithFallback<TRole extends string = GameRoleKey>(world: { getResource: <T>(key: string) => T | undefined }, fallbackColor: string, ...roles: TRole[]): string {
-  const resolved = resolveThemeColor(world, ...roles);
-  return resolved ?? fallbackColor;
+export function resolveThemeColorWithFallback<TRole extends string = GameRoleKey>(
+  world: { getResource: <T>(key: string) => T | undefined },
+  fallbackColor: string,
+  ...roles: TRole[]
+): string {
+  return findThemeColor(world, roles) ?? fallbackColor;
 }

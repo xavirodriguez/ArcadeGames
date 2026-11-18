@@ -35,7 +35,7 @@ const __DEV__ = process.env.NODE_ENV !== "production";
  * Unlike Asteroids, it uses a rigid formation system where the movement
  * of one entity affects the whole group (Swarm movement).
  */
-import { TransformComponent, VelocityComponent, RenderComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, CollisionEventsComponent, HealthComponent, BoundaryComponent, BlueprintDefinition, Theme, resolveThemeColor, EntityBuilder, THEME_RESOURCE_KEY } from "@tiny-aster/core";
+import { TransformComponent, VelocityComponent, RenderComponent, ColliderComponent, CircleShape, BoxShape, ShapeType, CollisionEventsComponent, HealthComponent, BoundaryComponent, BlueprintDefinition, Theme, resolveThemeColorWithFallback, EntityBuilder, THEME_RESOURCE_KEY } from "@tiny-aster/core";
 import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 import { FactionComponent, DamageComponent } from "@tiny-aster/gameplay-kit";
 
@@ -133,7 +133,7 @@ export class SpaceInvadersGame
     this.blueprints.register("player", {
       spawn: (world, entity, args: { x: number, y: number }) => {
         const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
-        const tint = resolveThemeColor(world, "player") ?? getGameplayColor("Player", world);
+        const tint = resolveThemeColorWithFallback(world, getGameplayColor("Player", world), "player");
 
         const hasComboHeadStart = world.getResource("HasComboHeadStart") === true;
         const initialCombo = hasComboHeadStart ? 5 : 0;
@@ -284,7 +284,7 @@ export class SpaceInvadersGame
     this.blueprints.register("enemy_bullet", {
       spawn: (world, entity, args: { x: number, y: number }) => {
         const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
-        const enemyBulletColor = resolveThemeColor(world, "enemy-bullet", "bullet") ?? getGameplayColor("EnemyProjectile", world);
+        const enemyBulletColor = resolveThemeColorWithFallback(world, getGameplayColor("EnemyProjectile", world), "enemy-bullet", "bullet");
         EntityBuilder.fromEntity(world, entity)
           .withTransform({ x: args.x, y: args.y })
           .withVelocity({ vy: config.ENEMY_BULLET_SPEED })
@@ -317,7 +317,7 @@ export class SpaceInvadersGame
     this.blueprints.register("shield", {
       spawn: (world, entity, args: { x: number, y: number, row: number, col: number }) => {
         const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
-        const tint = resolveThemeColor(world, "shield", "secondary") ?? getGameplayColor("Pickup", world);
+        const tint = resolveThemeColorWithFallback(world, getGameplayColor("Pickup", world), "shield", "secondary");
 
         EntityBuilder.fromEntity(world, entity)
           .withTransform({ x: args.x, y: args.y })
@@ -377,7 +377,7 @@ export class SpaceInvadersGame
       spawn: (world, entity, args: { level: number }) => {
         const config = world.getResource<SpaceInvadersConfig>("GameConfig") || GAME_CONFIG;
         const hp = 50 + (args.level / 5) * 50;
-        const tint = resolveThemeColor(world, "boss", "accent") ?? getGameplayColor("Boss", world);
+        const tint = resolveThemeColorWithFallback(world, getGameplayColor("Boss", world), "boss", "accent");
 
         EntityBuilder.fromEntity(world, entity)
           .withTransform({ x: config.worldWidth / 2, y: 100 })

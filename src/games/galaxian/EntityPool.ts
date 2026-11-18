@@ -1,4 +1,4 @@
-import { World, Entity, ShapeType, createDeferredEntity } from "@tiny-aster/core";
+import { World, Entity, ShapeType, createDeferredEntity, createTransformComponent } from "@tiny-aster/core";
 import { CollisionLayers } from "@tiny-aster/gameplay-kit";
 import { GalaxianComponentRegistry } from "./types/GalaxianTypes";
 import { GalaxianConfig } from "./types/GalaxianConfigSchema";
@@ -33,20 +33,7 @@ export class BulletPool {
     }
 
     const { entity, add } = createDeferredEntity(world, world.isUpdating);
-    add({
-      type: "Transform",
-      x,
-      y,
-      rotation: 0,
-      scaleX: 1,
-      scaleY: 1,
-      worldX: x,
-      worldY: y,
-      worldRotation: 0,
-      worldScaleX: 1,
-      worldScaleY: 1,
-      dirty: true,
-    });
+    add(createTransformComponent(x, y));
     add({
       type: "Velocity",
       vx: 0,

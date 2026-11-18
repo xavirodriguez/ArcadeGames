@@ -2,6 +2,7 @@ import { ComponentRegistry, ComponentType } from "./Component";
 import { World, BlueprintRegistryMap } from "./World";
 import { BlueprintArgs, BlueprintRegistry } from "./BlueprintRegistry";
 import { Entity } from "./Entity";
+import { TransformComponent } from "./CoreComponents";
 import { EventRegistry } from "../events/EventBus";
 
 /**
@@ -46,6 +47,34 @@ export function createDeferredEntity<
   return {
     entity,
     add: (comp) => world.addComponent(entity, comp)
+  };
+}
+
+/**
+ * Builds a `TransformComponent` initialized at a local position with identity
+ * scale/rotation and matching world-space values, flagged as dirty so the
+ * hierarchy system recomputes its matrix on the next `Transform` phase.
+ *
+ * @param x - Local X position (also used as the initial world X).
+ * @param y - Local Y position (also used as the initial world Y).
+ * @returns A new `TransformComponent`.
+ *
+ * @public
+ */
+export function createTransformComponent(x: number, y: number): TransformComponent {
+  return {
+    type: "Transform",
+    x,
+    y,
+    rotation: 0,
+    scaleX: 1,
+    scaleY: 1,
+    worldX: x,
+    worldY: y,
+    worldRotation: 0,
+    worldScaleX: 1,
+    worldScaleY: 1,
+    dirty: true,
   };
 }
 

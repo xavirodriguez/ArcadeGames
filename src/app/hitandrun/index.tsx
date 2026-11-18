@@ -27,11 +27,13 @@ import {
 import { DEATH_FLOW_RESOURCE } from "../../games/hitandrun/systems/HitRunDeathFlowSystem";
 import type { HitRunDeathFlowState } from "../../games/hitandrun/systems/HitRunDeathFlowSystem";
 import {
+  ENEMY_POOL_RESOURCE,
   WAVE_DIRECTOR_RESOURCE,
   WAVE_SCRIPT_RESOURCE,
   type WaveDirectorState,
   type WaveScript
 } from "../../games/hitandrun/waves/HitRunWaveTypes";
+import { BELT_CAMERA_STATE_RESOURCE, type BeltCameraState } from "../../games/hitandrun/belt/BeltCameraTypes";
 import { resolveHitRunAim } from "../../games/hitandrun/input/resolveHitRunAim";
 import { neonTextGlow } from "../../theme/effects";
 
@@ -42,14 +44,24 @@ declare global {
       getPlayerHealth: () => number | null;
       getAliveEnemyCount: () => number;
       getCombatableEnemyCount: () => number;
+      getWaveOwnedEnemyCount: () => number;
+      getWaveCombatableEnemyCount: () => number;
       getWaveState: () => {
+        hasDirector: boolean;
+        hasScript: boolean;
+        scriptMatches: boolean;
+        hasEnemyPool: boolean;
+        sectionIndex: number | null;
+        simulationFrozen: boolean;
         scriptId: string | null;
         active: boolean;
         elapsed: number;
         nextEventIndex: number;
         eventCount: number;
         pendingSpawnCount: number;
+        expectedSpawnCount: number;
         totalSpawned: number;
+        failedSpawnCount: number;
         spawnComplete: boolean;
         loop: boolean;
       };
@@ -279,26 +291,78 @@ function HitAndRunContent() {
           }
           return count;
         },
+        getWaveOwnedEnemyCount: () => {
+          const w = game.getWorld();
+          const wave = w.getResource<WaveDirectorState>(WAVE_DIRECTOR_RESOURCE);
+          if (!wave) return 0;
+          const originTag = `wave:${wave.scriptId}`;
+          const enemies = w.query("Enemy", "Health", "Tag");
+          let count = 0;
+          for (let i = 0; i < enemies.length; i++) {
+            const enemy = enemies[i];
+            if (w.hasComponent(enemy, "Dead")) continue;
+            const health = w.getComponent(enemy, "Health");
+            const tag = w.getComponent(enemy, "Tag");
+            if ((health?.current ?? 0) > 0 && tag?.tags.includes(originTag)) count++;
+          }
+          return count;
+        },
+        getWaveCombatableEnemyCount: () => {
+          const w = game.getWorld();
+          const wave = w.getResource<WaveDirectorState>(WAVE_DIRECTOR_RESOURCE);
+          if (!wave) return 0;
+          const originTag = `wave:${wave.scriptId}`;
+          const enemies = w.query("Enemy", "Health", "Collider2D", "Tag");
+          let count = 0;
+          for (let i = 0; i < enemies.length; i++) {
+            const enemy = enemies[i];
+            if (w.hasComponent(enemy, "Dead")) continue;
+            const health = w.getComponent(enemy, "Health");
+            const collider = w.getComponent(enemy, "Collider2D");
+            const tag = w.getComponent(enemy, "Tag");
+            if (
+              (health?.current ?? 0) > 0 &&
+              collider?.enabled !== false &&
+              tag?.tags.includes(originTag)
+            ) count++;
+          }
+          return count;
+        },
         getWaveState: () => {
           const w = game.getWorld();
           const wave = w.getResource<WaveDirectorState>(WAVE_DIRECTOR_RESOURCE);
           const script = w.getResource<WaveScript>(WAVE_SCRIPT_RESOURCE);
+          const camera = w.getResource<BeltCameraState>(BELT_CAMERA_STATE_RESOURCE);
           const pending = wave?.pendingStaggers ?? [];
-          const spawnComplete = !wave || !wave.active || (
-            !!script &&
-            script.id === wave.scriptId &&
-            script.loop !== true &&
-            wave.nextEventIndex >= script.events.length &&
+          const scriptMatches = Boolean(wave && script && script.id === wave.scriptId);
+          const expectedSpawnCount = script?.events.reduce(
+            (total, event) => total + Math.max(1, event.count ?? 1),
+            0
+          ) ?? 0;
+          const spawnComplete = Boolean(
+            wave &&
+            wave.active &&
+            scriptMatches &&
+            script?.loop !== true &&
+            wave.nextEventIndex >= (script?.events.length ?? 0) &&
             pending.length === 0
           );
           return {
+            hasDirector: wave !== undefined,
+            hasScript: script !== undefined,
+            scriptMatches,
+            hasEnemyPool: w.getResource(ENEMY_POOL_RESOURCE) !== undefined,
+            sectionIndex: camera?.currentSectionIndex ?? null,
+            simulationFrozen: w.getResource("GameplayFreeze") !== undefined,
             scriptId: wave?.scriptId ?? null,
             active: wave?.active ?? false,
             elapsed: wave?.elapsed ?? 0,
             nextEventIndex: wave?.nextEventIndex ?? 0,
             eventCount: script?.events.length ?? 0,
             pendingSpawnCount: pending.reduce((total, item) => total + item.remaining, 0),
+            expectedSpawnCount,
             totalSpawned: wave?.totalSpawned ?? 0,
+            failedSpawnCount: wave?.failedSpawnCount ?? 0,
             spawnComplete,
             loop: script?.loop === true
           };

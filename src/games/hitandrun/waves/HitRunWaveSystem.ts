@@ -186,7 +186,7 @@ export class HitRunWaveSystem extends System<CoreComponentRegistry> {
     const interval = ev.interval ?? 0;
 
     if (interval > 0 && count > 1) {
-      this.spawnOne(world, state, ev.type, formation, baseX, baseY, spacing, 0, count, ev.tags);
+      this.spawnOne(world, state, ev.type, formation, baseX, baseY, spacing, 0, count, eventIndex, ev.tags);
       const pending: PendingStagger = {
         eventIndex,
         remaining: count - 1,
@@ -205,7 +205,7 @@ export class HitRunWaveSystem extends System<CoreComponentRegistry> {
       return;
     }
 
-    this.spawnGroup(world, state, ev.type, formation, baseX, baseY, spacing, count, ev.tags);
+    this.spawnGroup(world, state, ev.type, formation, baseX, baseY, spacing, count, eventIndex, ev.tags);
   }
 
   private tickStaggers(
@@ -226,6 +226,7 @@ export class HitRunWaveSystem extends System<CoreComponentRegistry> {
           s.spacing,
           s.spawned,
           s.count,
+          s.eventIndex,
           s.tags
         );
         s.spawned++;
@@ -247,11 +248,12 @@ export class HitRunWaveSystem extends System<CoreComponentRegistry> {
     baseY: number,
     spacing: number,
     count: number,
+    eventIndex: number,
     tags?: string[]
   ): void {
     const slots = computeFormationSlots(formation, count, baseX, baseY, spacing);
     for (let i = 0; i < slots.length; i++) {
-      this.spawnAt(world, state, type, slots[i].x, slots[i].y, i, count, tags);
+      this.spawnAt(world, state, type, slots[i].x, slots[i].y, i, count, eventIndex, tags);
     }
   }
 
@@ -265,6 +267,7 @@ export class HitRunWaveSystem extends System<CoreComponentRegistry> {
     spacing: number,
     indexInGroup: number,
     groupSize: number,
+    eventIndex: number,
     tags?: string[]
   ): void {
     const slots = computeFormationSlots(formation, groupSize, baseX, baseY, spacing);
@@ -272,7 +275,7 @@ export class HitRunWaveSystem extends System<CoreComponentRegistry> {
       x: baseX,
       y: baseY
     };
-    this.spawnAt(world, state, type, slot.x, slot.y, indexInGroup, groupSize, tags);
+    this.spawnAt(world, state, type, slot.x, slot.y, indexInGroup, groupSize, eventIndex, tags);
   }
 
   private spawnAt(
@@ -283,10 +286,12 @@ export class HitRunWaveSystem extends System<CoreComponentRegistry> {
     y: number,
     indexInGroup: number,
     groupSize: number,
+    eventIndex: number,
     tags?: string[]
   ): void {
     const pool = world.getResource<IHitRunEnemyPool>(ENEMY_POOL_RESOURCE);
     if (!pool) {
+      state.failedSpawnCount = (state.failedSpawnCount ?? 0) + 1;
       if (process.env.NODE_ENV !== "production") {
         console.warn("[HitRunWaveSystem] HitRunEnemyPool resource missing");
       }
@@ -299,7 +304,9 @@ export class HitRunWaveSystem extends System<CoreComponentRegistry> {
       archetypeId: type,
       tags,
       indexInGroup,
-      groupSize
+      groupSize,
+      waveId: state.scriptId,
+      waveEventIndex: eventIndex
     });
     state.totalSpawned++;
   }
@@ -317,7 +324,8 @@ export function startWaveScript(
     nextEventIndex: 0,
     active: true,
     pendingStaggers: [],
-    totalSpawned: 0
+    totalSpawned: 0,
+    failedSpawnCount: 0
   };
   world.setResource(WAVE_DIRECTOR_RESOURCE, state);
   world.setResource(WAVE_TELEGRAPHS_RESOURCE, []);

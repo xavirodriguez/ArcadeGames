@@ -5,14 +5,24 @@ interface HitRunE2EDebug {
   getPlayerHealth: () => number | null;
   getAliveEnemyCount: () => number;
   getCombatableEnemyCount: () => number;
+  getWaveOwnedEnemyCount: () => number;
+  getWaveCombatableEnemyCount: () => number;
   getWaveState: () => {
+    hasDirector: boolean;
+    hasScript: boolean;
+    scriptMatches: boolean;
+    hasEnemyPool: boolean;
+    sectionIndex: number | null;
+    simulationFrozen: boolean;
     scriptId: string | null;
     active: boolean;
     elapsed: number;
     nextEventIndex: number;
     eventCount: number;
     pendingSpawnCount: number;
+    expectedSpawnCount: number;
     totalSpawned: number;
+    failedSpawnCount: number;
     spawnComplete: boolean;
     loop: boolean;
   };
@@ -54,6 +64,10 @@ const readAliveEnemies = (page: import("@playwright/test").Page) =>
   page.evaluate(() => window.__hitAndRunDebug?.getAliveEnemyCount() ?? 0);
 const readCombatableEnemies = (page: import("@playwright/test").Page) =>
   page.evaluate(() => window.__hitAndRunDebug?.getCombatableEnemyCount() ?? 0);
+const readWaveOwnedEnemies = (page: import("@playwright/test").Page) =>
+  page.evaluate(() => window.__hitAndRunDebug?.getWaveOwnedEnemyCount() ?? 0);
+const readWaveCombatableEnemies = (page: import("@playwright/test").Page) =>
+  page.evaluate(() => window.__hitAndRunDebug?.getWaveCombatableEnemyCount() ?? 0);
 const readWaveState = (page: import("@playwright/test").Page) =>
   page.evaluate(() => window.__hitAndRunDebug?.getWaveState() ?? null);
 const readDeathFlow = (page: import("@playwright/test").Page) =>
@@ -139,7 +153,22 @@ test.describe("Hit & Run gameplay lifecycle E2E", () => {
     await page.goto("/hitandrun");
     await waitForHitRunDebug(page);
 
-    await expect.poll(() => readAliveEnemies(page), { timeout: 8000 }).toBeGreaterThan(0);
+    await expect.poll(
+      () => readWaveState(page),
+      { timeout: 8000, intervals: [100, 250, 500] }
+    ).toMatchObject({
+      hasDirector: true,
+      hasScript: true,
+      scriptMatches: true,
+      hasEnemyPool: true,
+      active: true,
+      eventCount: 4
+    });
+
+    const startedWave = await readWaveState(page);
+    expect(startedWave?.scriptId).toMatch(/^wave_goblins_s\\d+$/);
+    expect(startedWave?.sectionIndex).toBe(0);
+
     await expect.poll(
       async () => (await readWaveState(page))?.spawnComplete,
       { timeout: 22000, intervals: [100, 250, 500] }
@@ -147,9 +176,15 @@ test.describe("Hit & Run gameplay lifecycle E2E", () => {
 
     const wave = await readWaveState(page);
     expect(wave).not.toBeNull();
+    expect(wave?.scriptId).toMatch(/^wave_goblins_s\\d+$/);
+    expect(wave?.active).toBe(true);
     expect(wave?.loop).toBe(false);
-    expect(wave?.totalSpawned).toBeGreaterThan(0);
+    expect(wave?.expectedSpawnCount).toBeGreaterThan(0);
+    expect(wave?.totalSpawned).toBe(wave?.expectedSpawnCount);
+    expect(wave?.failedSpawnCount).toBe(0);
     expect(wave?.pendingSpawnCount).toBe(0);
+    expect(await readWaveOwnedEnemies(page)).toBeGreaterThan(0);
+    expect(await readWaveCombatableEnemies(page)).toBeGreaterThan(0);
     expect(await readAliveEnemies(page)).toBeGreaterThan(0);
     expect(await readCombatableEnemies(page)).toBeGreaterThan(0);
   });

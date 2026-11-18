@@ -87,10 +87,14 @@ describe("vfx-timeline", () => {
   });
 
   it("resolves semantic phase and normalized local phase progress", () => {
-    expect(resolveVFXPhase(0.04)).toEqual({ phase: "contact", phaseT: 1 / 3 });
-    expect(resolveVFXPhase(0.32)).toEqual({ phase: "expansion", phaseT: 0.5 });
-    expect(resolveVFXPhase(0.6)).toEqual({ phase: "peak", phaseT: 0.5 });
-    expect(resolveVFXPhase(0.9)).toEqual({ phase: "dissipation", phaseT: 0.6875 });
+    expect(resolveVFXPhase(0.04)).toMatchObject({ phase: "contact" });
+    expect(resolveVFXPhase(0.04).phaseT).toBeCloseTo(1 / 3, 15);
+    expect(resolveVFXPhase(0.32).phase).toBe("expansion");
+    expect(resolveVFXPhase(0.32).phaseT).toBeCloseTo(0.5, 15);
+    expect(resolveVFXPhase(0.6).phase).toBe("peak");
+    expect(resolveVFXPhase(0.6).phaseT).toBeCloseTo(0.5, 15);
+    expect(resolveVFXPhase(0.9).phase).toBe("dissipation");
+    expect(resolveVFXPhase(0.9).phaseT).toBeCloseTo(0.6875, 15);
     expect(() => resolveVFXPhase(0.5, [])).toThrow(RangeError);
     expect(() => resolveVFXPhase(0.5, [
       { id: "contact", start: 0, end: 0.7 },

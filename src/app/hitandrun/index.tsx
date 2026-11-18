@@ -65,6 +65,10 @@ declare global {
         expectedSpawnCount: number;
         totalSpawned: number;
         failedSpawnCount: number;
+        hasEnemyBulletPool: boolean;
+        enemyPoolFreeCount: number | null;
+        lifecycleState: string;
+        lastGameError: string | null;
         spawnComplete: boolean;
         loop: boolean;
       };
@@ -269,6 +273,19 @@ function HitAndRunContent() {
           const health = w.getComponent(player, "Health") as { current?: number } | undefined;
           return health?.current ?? null;
         },
+        setPlayerInvulnerable: (remainingSeconds: number) => {
+          const w = game.getWorld();
+          const player = w.query("BeltInput", "Health")[0];
+          if (player === undefined) return;
+          w.mutateComponent(player, "Health", (health) => {
+            health.current = Math.max(health.current, 100000);
+            health.max = Math.max(health.max, 100000);
+            health.invulnerableRemaining = Math.max(
+              health.invulnerableRemaining ?? 0,
+              remainingSeconds
+            );
+          });
+        },
         getAliveEnemyCount: () => {
           const w = game.getWorld();
           const enemies = w.query("Enemy", "Health");
@@ -355,6 +372,10 @@ function HitAndRunContent() {
             hasScript: script !== undefined,
             scriptMatches,
             hasEnemyPool: w.getResource(ENEMY_POOL_RESOURCE) !== undefined,
+            hasEnemyBulletPool: w.getResource("EnemyBulletPool") !== undefined,
+            enemyPoolFreeCount: w.getResource<number[]>("HitRunEnemyPoolFreeList")?.length ?? null,
+            lifecycleState: String(game.getLifecycleState()),
+            lastGameError: game.getLastError()?.message ?? null,
             sectionIndex: camera?.currentSectionIndex ?? null,
             simulationFrozen: w.getResource("GameplayFreeze") !== undefined,
             paused: w.getResource("IsPaused") === true,

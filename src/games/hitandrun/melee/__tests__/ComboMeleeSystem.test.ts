@@ -4,6 +4,7 @@ import { createBeltInputComponent, type BeltInputComponent } from "../../belt/Be
 import { ComboMeleeSystem } from "../ComboMeleeSystem";
 import { createMeleeAttackComponent } from "../HitRunMeleeSystem";
 import type { ComboMeleeComponent } from "../ComboMeleeTypes";
+import type { HitReactionComponent } from "../../hurt/HitReactionTypes";
 import { registerHitRunMelee } from "../registerHitRunMelee";
 
 function createPlayerWorld(): {
@@ -29,14 +30,16 @@ function createPlayerWorld(): {
   });
   world.addComponent(player, createBeltInputComponent());
   world.addComponent(player, createMeleeAttackComponent());
-  world.addComponent(player, {
+
+  const combo: ComboMeleeComponent = {
     type: "ComboMelee",
     chainStep: 0,
     chainTimer: 0,
     attackBufferRemaining: 0,
     facing: 1,
     activeStep: "idle"
-  } satisfies ComboMeleeComponent);
+  };
+  world.addComponent(player, combo);
 
   return { world, player };
 }
@@ -46,17 +49,28 @@ const readCombo = (world: World<CoreComponentRegistry>, player: number) =>
 const readInput = (world: World<CoreComponentRegistry>, player: number) =>
   world.getComponent(player, "BeltInput") as BeltInputComponent | undefined;
 
+function addHitReaction(world: World<CoreComponentRegistry>, player: number, hitstunRemaining: number): void {
+  const reaction: HitReactionComponent = {
+    type: "HitReaction",
+    hitstunRemaining,
+    staggerRemaining: 0,
+    blinkElapsed: 0
+  };
+  world.addComponent(player, reaction);
+}
+
+function setHitstun(world: World<CoreComponentRegistry>, player: number, hitstunRemaining: number): void {
+  world.mutateComponent(player, "HitReaction", (reaction) => {
+    (reaction as HitReactionComponent).hitstunRemaining = hitstunRemaining;
+  });
+}
+
 describe("ComboMeleeSystem attack buffering", () => {
   it("preserves a melee press through hitstun and starts jab1 after control unlocks", () => {
     const { world, player } = createPlayerWorld();
     const system = new ComboMeleeSystem();
 
-    world.addComponent(player, {
-      type: "HitReaction",
-      hitstunRemaining: 0.05,
-      staggerRemaining: 0,
-      blinkElapsed: 0
-    });
+    addHitReaction(world, player, 0.05);
     world.mutateComponent(player, "BeltInput", (input) => {
       input.attackHeld = true;
       input.attackPressed = true;
@@ -73,9 +87,7 @@ describe("ComboMeleeSystem attack buffering", () => {
     system.update(world, 1 / 60);
     expect(readCombo(world, player)?.attackBufferRemaining).toBeGreaterThan(0);
 
-    world.mutateComponent(player, "HitReaction", (reaction) => {
-      reaction.hitstunRemaining = 0;
-    });
+    setHitstun(world, player, 0);
     system.update(world, 1 / 60);
 
     expect(readCombo(world, player)?.activeStep).toBe("jab1");
@@ -87,12 +99,7 @@ describe("ComboMeleeSystem attack buffering", () => {
     const { world, player } = createPlayerWorld();
     const system = new ComboMeleeSystem();
 
-    world.addComponent(player, {
-      type: "HitReaction",
-      hitstunRemaining: 1,
-      staggerRemaining: 0,
-      blinkElapsed: 0
-    });
+    addHitReaction(world, player, 1);
     world.mutateComponent(player, "BeltInput", (input) => {
       input.attackHeld = true;
       input.attackPressed = true;
@@ -106,9 +113,7 @@ describe("ComboMeleeSystem attack buffering", () => {
       system.update(world, 1 / 60);
     }
 
-    world.mutateComponent(player, "HitReaction", (reaction) => {
-      reaction.hitstunRemaining = 0;
-    });
+    setHitstun(world, player, 0);
     system.update(world, 1 / 60);
 
     expect(readCombo(world, player)?.activeStep).toBe("idle");

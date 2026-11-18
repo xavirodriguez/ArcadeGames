@@ -1,0 +1,45 @@
+name: Restore SharedVFX
+on:
+  workflow_dispatch:
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/restore-shared-vfx-render-random
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Restore SharedVFX from pre-corruption commit and apply renderRandom fix
+        run: |
+          git show 31cd1f71c894649743503befbb27aa53314b8600:src/games/shared/rendering/SharedVFX.ts > src/games/shared/rendering/SharedVFX.ts
+          python3 << 'PY'
+          from pathlib import Path
+          p = Path("src/games/shared/rendering/SharedVFX.ts")
+          text = p.read_text()
+          assert len(text) > 40000, f"file too small: {len(text)}"
+          old = "  if (particlePool) {\n    const rng = world.gameplayRandom;"
+          new = "  if (particlePool) {\n    const rng = world.renderRandom;"
+          if old not in text:
+            if "if (particlePool) {\n    const rng = world.renderRandom;" in text:
+              print("already fixed")
+            else:
+              raise SystemExit("pattern not found")
+          else:
+            text = text.replace(old, new, 1)
+            p.write_text(text)
+            print("applied renderRandom fix")
+          print("size", p.stat().st_size)
+          print("gameplayRandom count", text.count("gameplayRandom"))
+          PY
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/games/shared/rendering/SharedVFX.ts
+          git status
+          git diff --cached --stat
+          git commit -m "fix(vfx): restore SharedVFX.ts and use renderRandom for particle burst"
+          git push origin HEAD:fix/restore-shared-vfx-render-random

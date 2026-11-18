@@ -53,6 +53,9 @@ declare global {
         hasEnemyPool: boolean;
         sectionIndex: number | null;
         simulationFrozen: boolean;
+        paused: boolean;
+        timeScale: number | null;
+        activeGroups: readonly string[] | null;
         scriptId: string | null;
         active: boolean;
         elapsed: number;
@@ -354,6 +357,12 @@ function HitAndRunContent() {
             hasEnemyPool: w.getResource(ENEMY_POOL_RESOURCE) !== undefined,
             sectionIndex: camera?.currentSectionIndex ?? null,
             simulationFrozen: w.getResource("GameplayFreeze") !== undefined,
+            paused: w.getResource("IsPaused") === true,
+            timeScale: (() => {
+              const timeScale = w.getResource<{ scale?: number } | number>("TimeScale");
+              return typeof timeScale === "number" ? timeScale : timeScale?.scale ?? null;
+            })(),
+            activeGroups: w.getResource<string[]>("ActiveGroups") ?? null,
             scriptId: wave?.scriptId ?? null,
             active: wave?.active ?? false,
             elapsed: wave?.elapsed ?? 0,

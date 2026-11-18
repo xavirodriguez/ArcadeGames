@@ -22,6 +22,7 @@ function createAdapter(): IDrawAdapter {
   return {
     save: jest.fn(),
     restore: jest.fn(),
+    setBlendMode: jest.fn(),
     fillCircle: jest.fn(),
     strokeCircle: jest.fn(),
     fillRect: jest.fn(),

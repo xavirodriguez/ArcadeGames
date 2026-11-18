@@ -161,7 +161,8 @@ export function spawnGrazeSparks(
   if (world.isReSimulating) return;
   const pool = world.getResource<{ acquire: (w: unknown, p: unknown) => number }>("ParticlePool");
   if (!pool) return;
-  const rng = world.gameplayRandom;
+  // Presentation-only sparks: use renderRandom so tests/helpers outside Schedule.update do not hit the locked gameplay RNG.
+  const rng = world.renderRandom;
   for (let i = 0; i < 5; i++) {
     const angle = rng.next() * Math.PI * 2;
     const speed = 40 + rng.next() * 80;

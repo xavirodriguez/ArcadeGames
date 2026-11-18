@@ -42,6 +42,7 @@ declare global {
     __hitAndRunDebug?: {
       getPlayerX: () => number | null;
       getPlayerHealth: () => number | null;
+      setPlayerInvulnerable: (remainingSeconds: number) => void;
       getAliveEnemyCount: () => number;
       getCombatableEnemyCount: () => number;
       getWaveOwnedEnemyCount: () => number;

@@ -83,7 +83,7 @@ class EnemyShootDuringUpdateSystem extends System<CoreComponentRegistry> {
     super();
   }
 
-  public update(world: World<CoreComponentRegistry>): void {
+  public update(world: World<CoreComponentRegistry>, _deltaTime: number): void {
     tryEnemyShoot(world, this.enemy, this.data);
   }
 }

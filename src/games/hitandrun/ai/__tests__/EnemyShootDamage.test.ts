@@ -1,4 +1,4 @@
-import { EventBus, World, CoreComponentRegistry } from "@tiny-aster/core";
+import { EventBus, System, World, CoreComponentRegistry } from "@tiny-aster/core";
 import { registerBeltSystems } from "../../belt/registerBeltSystems";
 import { registerHitRunCombat } from "../../systems/HitRunCombatBootstrap";
 import { tryEnemyShoot } from "../enemyShoot";
@@ -75,6 +75,19 @@ function createPlayer(world: World<CoreComponentRegistry>, x: number): number {
   return player;
 }
 
+class EnemyShootDuringUpdateSystem extends System<CoreComponentRegistry> {
+  constructor(
+    private readonly enemy: number,
+    private readonly data: Record<string, unknown>
+  ) {
+    super();
+  }
+
+  public update(world: World<CoreComponentRegistry>): void {
+    tryEnemyShoot(world, this.enemy, this.data);
+  }
+}
+
 describe("tryEnemyShoot fallback damage", () => {
   it("creates a fallback projectile with the complete Damage contract", () => {
     const world = new World<CoreComponentRegistry>();
@@ -89,6 +102,40 @@ describe("tryEnemyShoot fallback damage", () => {
       shootSpeed: 260,
       shootCooldown: 1
     })).toBe(true);
+
+    const bullets = world.query("Damage", "Collider2D");
+    expect(bullets).toHaveLength(1);
+    const damage = world.getComponent(bullets[0], "Damage") as {
+      amount: number;
+      category: string;
+      consumption: string;
+      sourceEntity: number;
+      friendlyFire: boolean;
+    };
+    expect(damage).toMatchObject({
+      amount: 2,
+      category: "enemy_bullet",
+      consumption: "destroy-entity",
+      sourceEntity: enemy,
+      friendlyFire: false
+    });
+  });
+
+  it("defers fallback projectile structure changes when an enemy shoots during World.update", () => {
+    const world = new World<CoreComponentRegistry>();
+    const player = createPlayer(world, 200);
+    const enemy = createEnemy(world, 0, player);
+
+    expect(world.getResource("EnemyBulletPool")).toBeUndefined();
+    world.addSystem(new EnemyShootDuringUpdateSystem(enemy, {
+      canShoot: true,
+      shootDamage: 2,
+      shootCategory: "enemy_bullet",
+      shootSpeed: 260,
+      shootCooldown: 1
+    }));
+
+    expect(() => world.update(1 / 60)).not.toThrow();
 
     const bullets = world.query("Damage", "Collider2D");
     expect(bullets).toHaveLength(1);

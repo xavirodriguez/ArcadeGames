@@ -7,8 +7,8 @@ import { recordHitRunDebugAllocation } from "../debug/HitRunDebugMetrics";
  * Cooldown de disparo guardado en StateMachine.data.shootCooldownRemaining
  * (mutado in-place en data; no requiere componente extra).
  *
- * Spawn mínimo de proyectil enemigo. Si existe resource "EnemyBulletPool"
- * con acquireBullet, se usa; si no, createEntity ligero.
+ * Spawn mínimo de proyectil enemigo. Usa "EnemyBulletPool" cuando está registrado;
+ * el fallback crea la entidad mediante CommandBuffer si se invoca durante World.update.
  */
 export function tryEnemyShoot(
   world: World<CoreComponentRegistry>,

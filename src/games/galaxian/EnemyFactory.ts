@@ -21,28 +21,59 @@ export class EnemyFactory {
     const slotSpacing = config?.formation.slotSpacingX ?? 32;
     const enemyRadius = (slotSpacing * 0.75) / 2;
 
-    const builder = entityOverride !== undefined
-      ? EntityBuilder.fromEntity(world, entityOverride)
-      : EntityBuilder.create(world);
+    const isDeferred = world.isUpdating && entityOverride === undefined;
+    let entity: Entity;
+    if (entityOverride !== undefined) {
+      entity = entityOverride;
+    } else if (isDeferred) {
+      entity = world.reserveEntityId();
+    } else {
+      entity = world.createEntity();
+    }
 
-    const entity = builder
-      .withTransform({ x, y, rotation: Math.PI })
-      .withVelocity()
-      .withRender({
-        shape: `enemy_${enemyType}`,
-        size: enemyRadius * 2,
-        color: "#8CC4FF",
-        order: 5,
-      })
-      .withCollider({
-        shape: { type: ShapeType.Circle, radius: enemyRadius },
-        layer: CollisionLayers.ENEMY,
-        mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE,
-      })
-      .withCollisionEvents()
-      .build();
-
-    world.addComponent(entity, {
+    const transformComponent = {
+      type: "Transform" as const,
+      x,
+      y,
+      rotation: Math.PI,
+      scaleX: 1,
+      scaleY: 1,
+      worldX: x,
+      worldY: y,
+      worldRotation: Math.PI,
+      worldScaleX: 1,
+      worldScaleY: 1,
+      dirty: false,
+    };
+    const velocityComponent = { type: "Velocity" as const, vx: 0, vy: 0, angularVelocity: 0 };
+    const renderComponent = {
+      type: "Render" as const,
+      shape: `enemy_${enemyType}`,
+      size: enemyRadius * 2,
+      color: "#8CC4FF",
+      visible: true,
+      opacity: 1,
+      order: 5,
+      rotation: 0,
+      angularVelocity: 0,
+      hitFlashFrames: 0,
+    };
+    const colliderComponent = {
+      type: "Collider" as const,
+      shape: { type: ShapeType.Circle, radius: enemyRadius },
+      layer: CollisionLayers.ENEMY,
+      mask: CollisionLayers.PLAYER | CollisionLayers.PROJECTILE,
+      enabled: true,
+      isTrigger: false,
+    };
+    const collisionEventsComponent = {
+      type: "CollisionEvents" as const,
+      collisions: [],
+      activeTriggers: [],
+      triggersEntered: [],
+      triggersExited: [],
+    };
+    const galaxianEnemyComponent = {
       type: "GalaxianEnemy",
       enemyType,
       row,
@@ -55,9 +86,8 @@ export class EnemyFactory {
       windupTimer: 0,
       shotsFiredInDive: 0,
       hitsRemaining: enemyType === "flagship" ? 2 : 1,
-    } as GalaxianEnemyComponent);
-
-    world.addComponent(entity, {
+    } as GalaxianEnemyComponent;
+    const visualPoseComponent = {
       type: "VisualPose",
       rotation: Math.PI,
       scaleX: 1.0,
@@ -67,13 +97,33 @@ export class EnemyFactory {
       previousX: x,
       previousY: y,
       hasPreviousPosition: false,
-    });
-
-    world.addComponent(entity, {
+    };
+    const diveTrailComponent = {
       type: "DiveTrail",
       history: [],
       maxHistory: config?.visual.trailLength ?? 24,
-    });
+    };
+
+    const attach = (component: any) => {
+      if (isDeferred) {
+        world.commands.addComponent(entity, component);
+      } else {
+        world.addComponent(entity, component);
+      }
+    };
+
+    if (isDeferred) {
+      world.commands.createEntity(entity);
+    }
+
+    attach(transformComponent);
+    attach(velocityComponent);
+    attach(renderComponent);
+    attach(colliderComponent);
+    attach(collisionEventsComponent);
+    attach(galaxianEnemyComponent);
+    attach(visualPoseComponent);
+    attach(diveTrailComponent);
 
     return entity;
   }

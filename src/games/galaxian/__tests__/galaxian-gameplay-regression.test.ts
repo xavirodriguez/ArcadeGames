@@ -196,7 +196,8 @@ describe("Galaxian gameplay regressions", () => {
 
       const firstShots = world.query("EnemyBullet", "Velocity");
       expect(firstShots).toHaveLength(1);
-      expect(enemy.shotsFiredInDive).toBe(1);
+      const updatedEnemy = world.getComponent(enemyEntity, "GalaxianEnemy");
+      expect(updatedEnemy?.shotsFiredInDive).toBe(1);
 
       const velocity = world.getComponent(firstShots[0], "Velocity");
       if (!velocity) throw new Error("Enemy projectile velocity is missing");
@@ -204,7 +205,8 @@ describe("Galaxian gameplay regressions", () => {
 
       game.update(1 / 60);
       expect(world.query("EnemyBullet")).toHaveLength(1);
-      expect(enemy.shotsFiredInDive).toBe(1);
+      const enemyAfterSecondUpdate = world.getComponent(enemyEntity, "GalaxianEnemy");
+      expect(enemyAfterSecondUpdate?.shotsFiredInDive).toBe(1);
     } finally {
       world.gameplayRandom.next = originalNext;
     }

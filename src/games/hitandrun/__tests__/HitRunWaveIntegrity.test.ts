@@ -322,6 +322,29 @@ describe("Hit & Run wave lifecycle integrity", () => {
       expect(world.getComponent(entity, "Health")?.current).toBeGreaterThan(0);
       expect(world.getComponent(entity, "Collider2D")?.enabled).toBe(true);
       expect(world.getComponent(entity, "Tag")?.tags).toContain("wave-event:0");
+    // Finish the remaining three events in the opening section script.
+    // Their expected group sizes are 5, 2 and 4, for 15 enemies total.
+    world.update(3.31);
+    world.update(3.51);
+    world.update(3.51);
+
+    const completedState = world.getResource<WaveDirectorState>(WAVE_DIRECTOR_RESOURCE);
+    expect(completedState?.active).toBe(true);
+    expect(completedState?.nextEventIndex).toBe(4);
+    expect(completedState?.totalSpawned).toBe(15);
+    expect(completedState?.failedSpawnCount).toBe(0);
+    expect(completedState?.pendingStaggers).toHaveLength(0);
+
+    const allWaveEnemies = world.query("Enemy", "Health", "Collider2D", "Tag")
+      .filter((entity) => world.getComponent(entity, "Tag")?.tags.includes(waveTag));
+    expect(allWaveEnemies).toHaveLength(15);
+
+    for (const [eventIndex, expectedCount] of [4, 5, 2, 4].entries()) {
+      const eventEnemies = allWaveEnemies.filter((entity) =>
+        world.getComponent(entity, "Tag")?.tags.includes(`wave-event:${eventIndex}`)
+      );
+      expect(eventEnemies).toHaveLength(expectedCount);
+    }
     }
   });
 

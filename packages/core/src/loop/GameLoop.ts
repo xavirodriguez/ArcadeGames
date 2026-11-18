@@ -1,6 +1,10 @@
 import { FrameScheduler, browserFrameScheduler } from "./FrameScheduler";
 import { GameErrorReporter, normalizeError, ENGINE_VERSION, GameErrorPhase } from "../diagnostics";
 
+declare global {
+  var __ACTIVE_GAME_LOOPS__: Array<{ stop: () => void }> | undefined;
+}
+
 /**
  * Diagnostic context options provided to GameLoop for error reporting.
  * @public

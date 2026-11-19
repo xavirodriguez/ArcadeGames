@@ -17,7 +17,7 @@
 
 `JuiceOrchestrator.spawnEffect()` resolves the profile and placement, then delegates to the existing `spawn()` method. Therefore entity creation, ECS `Render` + `TTL`, low-stimulation handling, hit-stop/shake compatibility fields, command-buffer behavior, and the central #1044 rollback guard remain owned by the existing orchestrator.
 
-The descriptor does not add a renderer registry or update loop. `SharedVFX` exports the contract; existing Canvas/Skia shape registration and `IDrawAdapter` are unchanged. Transient lifetime remains TTL.
+The descriptor does not add a renderer registry or update loop. `SharedVFX` exports the contract; existing Canvas/Skia shape registration and `IDrawAdapter` are unchanged. Transient lifetime remains TTL. Generic effects keep the central rollback no-op; only callers whose ECS effect entities participate in snapshot/hash state use the explicit deterministic replay API.
 
 The family contexts are typed inputs to the presentation boundary. They do not execute gameplay rules. The Foundation pilot resolves family color and basic placement; it does not yet migrate `JUICE_CATALOG` consumers or add new gameplay events.
 

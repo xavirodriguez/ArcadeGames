@@ -105,8 +105,21 @@ function spawnFallbackEnemyBullet(
     shape: string;
   }
 ): number {
-  const e = world.createEntity();
-  world.addComponent(e, {
+  const isUpdating = world.isUpdating;
+  const cmd = world.getCommandBuffer();
+  let e: number;
+  if (isUpdating) {
+    const reservedId = world.reserveEntityId();
+    cmd.createEntity(reservedId);
+    e = reservedId;
+  } else {
+    e = world.createEntity();
+  }
+  const addComp = (comp: any) => {
+    if (isUpdating) cmd.addComponent(e, comp);
+    else world.addComponent(e, comp);
+  };
+  addComp({
     type: "Transform",
     x: p.x,
     y: p.y,
@@ -120,18 +133,18 @@ function spawnFallbackEnemyBullet(
     worldScaleY: 1,
     dirty: true
   });
-  world.addComponent(e, {
+  addComp({
     type: "Velocity",
     vx: p.dx,
     vy: p.dy,
     angularVelocity: 0
   });
-  world.addComponent(e, {
+  addComp({
     type: "TTL",
     remaining: p.ttl,
     timeLeft: p.ttl
   });
-  world.addComponent(e, {
+  addComp({
     type: "Faction",
     value: "enemy"
   });
@@ -144,9 +157,9 @@ function spawnFallbackEnemyBullet(
     friendlyFire: false,
     consumption: p.consumption
   };
-  world.addComponent(e, damageComp as never);
+  addComp(damageComp as never);
 
-  world.addComponent(e, {
+  addComp({
     type: "Collider2D",
     shape: { type: "aabb", halfWidth: p.size, halfHeight: p.size },
     layer: 1 << 5,
@@ -156,14 +169,14 @@ function spawnFallbackEnemyBullet(
     isTrigger: true,
     enabled: true
   });
-  world.addComponent(e, {
+  addComp({
     type: "CollisionEvents",
     collisions: [],
     activeTriggers: [],
     triggersEntered: [],
     triggersExited: []
   });
-  world.addComponent(e, {
+  addComp({
     type: "Render",
     shape: p.shape,
     size: p.size,

@@ -96,3 +96,37 @@ Rama: `fix/ci-plan`. Baseline: `ci-output.log` / `ci-rerun.log`.
 - Guardrails: `pnpm run check:agent-guardrails` OK (exit 0).
 - GeometryWarsMultiplayer solo: PASS.
 - Typecheck: `pnpm exec tsc --noEmit` OK.
+
+## Cierre re-ejecutado (esta sesión)
+- Fecha: 2026-11-19 (sesión actual).
+- `pnpm run typecheck:app`: OK (exit 0).
+- `pnpm run check:agent-guardrails`: OK (exit 0) — todas las guardas pasan.
+- `pnpm test:ci` (una sola ejecución, en background, salida en `ci-final.log`):
+  - Comando: `NODE_OPTIONS="--max-old-space-size=4096" pnpm exec jest --runInBand`
+  - Rama: `fix/ci-plan`, commit `da8969dc4`.
+  - Resultado: `Test Suites: 19 failed, 459 passed, 478 total`; `Tests: 7 failed, 2499 passed, 2506 total`; `Snapshots: 5 passed, 5 total`; tiempo 163.917 s. Jest no salió por open handles; proceso terminado manualmente tras emitir el resumen. `EXIT=1` añadido al log.
+  - No aparecieron fallos no contemplados: la lista de 19 suites / 7 tests coincide exactamente con la inventariada en "Segunda ronda" (`CI_FIX_PLAN.md`).
+- `git diff --check`: OK (sin errores de whitespace).
+- `git status --short --branch`: `## fix/ci-plan...origin/fix/ci-plan` (árbol limpio).
+
+### Tabla final de estado
+| Paso | Fallos antes | Fallos después | Estado |
+|---|---:|---:|---|
+| 0 Baseline | 33 tests + 5 suites | — | — |
+| 1 SharedVFX | 33 tests + 5 suites | 4 (targeted) / 1 (suite completa: CombatRollback) | parcial |
+| 2 Galaxian | 3 tests | 1 (SoA snapshot) | parcial/bloqueado |
+| 3 Hit & Run | 3 tests | 0 (targeted) / 12 suites (entorno Skia) | resuelto (frontera+FSM) |
+| 4 Racing | 4 tests | 0 | resuelto |
+| 5 Out Run | 5 tests | 3 (scenery + vehicle artwork ×2) | parcial |
+| 6 Resto | varios | SpaceInvaders/VerticalShmup/Centipede/Campaign/VFX resueltos | resuelto |
+| Segunda ronda | — | 7 tests + 19 suites | bloqueado (entorno/diseño) |
+
+### Bloqueados con causa e información faltante
+1. `packages/core/tests/CombatRollbackResimulation.test.ts` (hash mismatch `2cbedd93` vs `b0252ae3`) — posible efecto de SharedVFX/renderRandom en pool de partículas no revertido. Falta: instrumentar hash intermedio y decidir si el pool de partículas debe incluirse en el snapshot.
+2. `src/games/galaxian/__tests__/galaxian-determinism-snapshot.test.ts` (SoA) — falta investigar snapshot SoA en core.
+3. `src/games/outrun/__tests__/OutrunScenery.test.ts` (midPeak) y `OutrunVehicleArtwork.test.ts` (×2) — blend no monótono por grit desert en endpoints; índices/bodyColor inconsistentes con distribución ponderada. Falta: decisión de diseño sobre siluetas y umbrales.
+4. `src/games/shared/story/__tests__/ProofOfConceptStoryGraph.test.ts` y `...Builder.test.ts` — auto-avance de nodos de historia tras `completeObjective`. Falta: decisión sobre si el commit `26431a16c` (remoción de condiciones) es el comportamiento deseado.
+5. 12 suites de rendering de Hit & Run — fallo de parse de `@shopify/react-native-skia` en Jest (entorno). Falta: configuración de Jest para Skia o mover a proyecto separado.
+6. `src/hooks/__tests__/useStoryRuntime.test.ts` — suite sin tests (ts-node). Falta: añadir tests o ajustar config.
+
+No se realizó push ni merge.

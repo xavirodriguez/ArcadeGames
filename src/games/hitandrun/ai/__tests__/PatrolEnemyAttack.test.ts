@@ -1,5 +1,5 @@
 import { World, CoreComponentRegistry } from "@tiny-aster/core";
-import { HitRunHurtSystem, canTakeDamage } from "../../hurt/HitRunHurtSystem";
+import { canTakeDamage } from "../../hurt/HitRunHurtSystem";
 import { DEFAULT_PATROL_ATTACK_CONFIG } from "../EnemyAttackConfig";
 import { MeleeAttackComponent } from "../../melee/MeleeAttackTypes";
 import { createTestWorld, spawnTestPlayer, updateStateMachineHelper } from "../testHelpers";
@@ -129,10 +129,64 @@ describe("PatrolEnemyAttack (Paso A)", () => {
 
     updateStateMachineHelper(world, enemy, 0.016);
     fsm = world.getComponent(enemy, "StateMachine") as { currentState: string };
+    expect(fsm.currentState).toBe("Anticipation");
+
+    hurtSystem.update(world, 0.2);
+    updateStateMachineHelper(world, enemy, 0.016);
+    fsm = world.getComponent(enemy, "StateMachine") as { currentState: string };
     expect(fsm.currentState).toBe("Recovery");
 
     const render = world.getComponent(enemy, "Render") as { color: string };
     expect(render.color).toBe("#f97316");
+  });
+
+  it("cancels an active melee attack after stagger without recreating its hitbox", () => {
+    const { world, hurtSystem, meleeSystem } = createTestWorld();
+    const enemy = spawnPatrolEnemy(world, 100);
+    const player = spawnTestPlayer(world, 80);
+
+    const sensor = world.getMutableComponent(enemy, "PlayerSensor") as { detectedPlayerEntity?: number };
+    sensor.detectedPlayerEntity = player;
+
+    updateStateMachineHelper(world, enemy, 0.016);
+    updateStateMachineHelper(world, enemy, DEFAULT_PATROL_ATTACK_CONFIG.anticipationSeconds + 0.01);
+    let fsm = world.getComponent(enemy, "StateMachine") as { currentState: string };
+    expect(fsm.currentState).toBe("Attack");
+
+    meleeSystem.update(world, 0.016);
+    const melee = world.getMutableComponent(enemy, "MeleeAttack") as MeleeAttackComponent;
+    const hitboxEntity = melee.hitboxEntity;
+    expect(hitboxEntity).toBeGreaterThanOrEqual(0);
+
+    hurtSystem.enqueueHitForTest({
+      targetEntity: enemy,
+      sourceEntity: player,
+      amount: 3,
+      remainingHealth: 0
+    });
+    hurtSystem.update(world, 0);
+    world.flush();
+
+    expect(melee.hitboxEntity).toBe(-1);
+    expect(world.hasEntity(hitboxEntity)).toBe(false);
+
+    updateStateMachineHelper(world, enemy, 0.016);
+    fsm = world.getComponent(enemy, "StateMachine") as { currentState: string };
+    expect(fsm.currentState).toBe("Attack");
+
+    hurtSystem.update(world, 0.4);
+    updateStateMachineHelper(world, enemy, 0.016);
+    fsm = world.getComponent(enemy, "StateMachine") as { currentState: string };
+    expect(fsm.currentState).toBe("Recovery");
+
+    meleeSystem.update(world, 0.016);
+    world.flush();
+    expect(melee.hitboxEntity).toBe(-1);
+    const remainingHitboxes = world.query("Tag").filter((entity) => {
+      const tag = world.getComponent(entity, "Tag") as { tags?: string[] } | undefined;
+      return tag?.tags?.includes("MeleeHitbox") === true;
+    });
+    expect(remainingHitboxes).toHaveLength(0);
   });
 
   it("does not attack if player is invulnerable", () => {

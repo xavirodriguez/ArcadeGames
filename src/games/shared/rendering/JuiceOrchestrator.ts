@@ -203,6 +203,22 @@ export class JuiceOrchestrator<TComponents extends CoreComponentRegistry = CoreC
    * FR-1: High-level single-line API.
    */
   public spawn(effectName: SharedVFXPrimitiveName, options?: JuiceSpawnOptions): number | null {
+    return this.spawnInternal(effectName, options, false);
+  }
+
+  /**
+   * Rebuilds an ECS-backed effect during resimulation when its components participate
+   * in authoritative World snapshots and deterministic hashes.
+   */
+  public spawnDeterministically(effectName: SharedVFXPrimitiveName, options?: JuiceSpawnOptions): number | null {
+    return this.spawnInternal(effectName, options, true);
+  }
+
+  private spawnInternal(
+    effectName: SharedVFXPrimitiveName,
+    options: JuiceSpawnOptions | undefined,
+    replayDeterministicState: boolean
+  ): number | null {
     const state = getVFXState(this.world);
 
     // Hit-stop changes authoritative simulation state, so replay it during rollback.
@@ -211,10 +227,10 @@ export class JuiceOrchestrator<TComponents extends CoreComponentRegistry = CoreC
       requestHitStop(this.world, options.hitStopMs, options.hitStopPriority ?? HitStopPriority.NORMAL);
     }
 
-    // Transform/Render/TTL effect entities and shake state are part of the World state
-    // used by snapshots and deterministic hashes. Rebuild them during replay so a
-    // rollback produces the same ECS state as normal execution. Non-ECS outputs
-    // (audio and Canvas-only effects) must remain guarded at their own boundaries.
+    // Generic presentation effects remain suppressed during replay. Only call sites
+    // whose ECS effect is intentionally part of snapshot/hash state should opt in via
+    // spawnDeterministically() or triggerEventDeterministically().
+    if (this.world.isReSimulating && !replayDeterministicState) return null;
 
     const juiceLevel = state.juiceLevel ?? 1.0;
 
@@ -328,6 +344,27 @@ export class JuiceOrchestrator<TComponents extends CoreComponentRegistry = CoreC
     eventName: GameJuiceEventMap[G],
     context?: { x?: number; y?: number; rotation?: number; overrideTint?: string }
   ): void {
+    this.triggerMappedEvent(gameId, eventName, context, false);
+  }
+
+  /**
+   * Triggers a catalog event whose ECS representation must be reconstructed during replay.
+   * Use only when the effect's World components participate in deterministic snapshots/hashes.
+   */
+  public triggerEventDeterministically<G extends SupportedGameId>(
+    gameId: G,
+    eventName: GameJuiceEventMap[G],
+    context?: { x?: number; y?: number; rotation?: number; overrideTint?: string }
+  ): void {
+    this.triggerMappedEvent(gameId, eventName, context, true);
+  }
+
+  private triggerMappedEvent<G extends SupportedGameId>(
+    gameId: G,
+    eventName: GameJuiceEventMap[G],
+    context: { x?: number; y?: number; rotation?: number; overrideTint?: string } | undefined,
+    replayDeterministicState: boolean
+  ): void {
     const gameMap = JUICE_CATALOG[gameId] as Record<string, JuiceProfile> | undefined;
     if (!gameMap) {
       if (process.env.NODE_ENV !== "production") {
@@ -346,7 +383,7 @@ export class JuiceOrchestrator<TComponents extends CoreComponentRegistry = CoreC
       return;
     }
 
-    this.spawn(profile.effect, {
+    const options: JuiceSpawnOptions = {
       x: context?.x,
       y: context?.y,
       rotation: context?.rotation,
@@ -360,7 +397,13 @@ export class JuiceOrchestrator<TComponents extends CoreComponentRegistry = CoreC
       hitStopPriority: profile.hitStopPriority,
       shakeIntensity: profile.shakeIntensity,
       shakeDurationMs: profile.shakeDurationMs
-    });
+    };
+
+    if (replayDeterministicState) {
+      this.spawnDeterministically(profile.effect, options);
+    } else {
+      this.spawn(profile.effect, options);
+    }
   }
 
   /**

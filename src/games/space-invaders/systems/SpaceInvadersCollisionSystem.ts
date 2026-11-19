@@ -129,7 +129,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     if (pos) {
       this.createExplosion(world, pos.x, pos.y, "#FF00FF");
       const orchestrator = new JuiceOrchestrator(world);
-      orchestrator.triggerEvent("space-invaders", "ufo:destroyed", { x: pos.x, y: pos.y });
+      orchestrator.triggerEventDeterministically("space-invaders", "ufo:destroyed", { x: pos.x, y: pos.y });
     }
 
     world.mutateSingleton("GameState", (gs) => {
@@ -241,7 +241,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
         spawnScorePopup(world, explosionX, explosionY, popupText, popupColor);
 
         const orchestrator = new JuiceOrchestrator(world);
-        orchestrator.triggerEvent("space-invaders", "alien:destroyed", { x: explosionX, y: explosionY });
+        orchestrator.triggerEventDeterministically("space-invaders", "alien:destroyed", { x: explosionX, y: explosionY });
       }
 
       // Contextual screen shake: light for single kills, medium for fast combo chains
@@ -487,7 +487,7 @@ export class SpaceInvadersCollisionSystem extends System<SpaceInvadersComponentR
     const shieldPos = world.getComponent(shieldEntity, "Transform");
     if (shieldPos) {
       const orchestrator = new JuiceOrchestrator(world);
-      orchestrator.triggerEvent("space-invaders", "shield:degraded", { x: shieldPos.x, y: shieldPos.y });
+      orchestrator.triggerEventDeterministically("space-invaders", "shield:degraded", { x: shieldPos.x, y: shieldPos.y });
     }
 
     if (expired) {

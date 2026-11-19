@@ -112,7 +112,7 @@ describe("ChargerEnemyAttack (Paso B)", () => {
     ).toBe(true);
   });
 
-  it("interrupted by player hit during anticipation", () => {
+  it("defers anticipation cancellation until hitstun expires", () => {
     const { world, hurtSystem } = createTestWorld();
     const charger = spawnChargerEnemy(world, 100);
     const player = spawnTestPlayer(world, 200);
@@ -137,10 +137,17 @@ describe("ChargerEnemyAttack (Paso B)", () => {
 
     updateStateMachineHelper(world, charger, 0.016);
     fsm = world.getComponent(charger, "StateMachine") as { currentState: string };
+    expect(fsm.currentState).toBe("Anticipation");
+
+    hurtSystem.update(world, 0.2);
+    updateStateMachineHelper(world, charger, 0.016);
+    fsm = world.getComponent(charger, "StateMachine") as { currentState: string };
     expect(fsm.currentState).toBe("Recovery");
 
     const vel = world.getComponent(charger, "Velocity") as { vx: number };
     expect(vel.vx).toBe(0);
+    const render = world.getComponent(charger, "Render") as { color: string };
+    expect(render.color).toBe("#ef4444");
   });
 
   it("charge terminates upon hitting a wall", () => {

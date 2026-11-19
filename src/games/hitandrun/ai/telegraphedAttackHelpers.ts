@@ -214,7 +214,6 @@ export function updateAnticipationState(
     !canTakeDamage(world, sensor.detectedPlayerEntity)
   ) {
     restoreEnemyColor(world, entity, data);
-    data.interrupted = false;
     return "Recovery";
   }
 

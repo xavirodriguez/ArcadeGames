@@ -11,6 +11,7 @@ import { createDeferredEntity } from "../ecs/EntityHelpers";
  * **Reconstructible Cache Contract ("Reconstructible in 1 tick")**:
  * The internal `pool` (ObjectPool) and `activeEntities` tracking set are un-serialized transient memory structures
  * designed to minimize GC pressure during high-frequency entity lifecycle operations.
+ * Optional `maxSize` is forwarded to the underlying ObjectPool so idle sets cannot grow without bound.
  * Upon `world.restore(snapshot)`, active entities with `Reclaimable` components automatically re-register
  * into `activeEntities` during their next release cycle without throwing double-release errors or producing state hash divergence.
  *
@@ -24,14 +25,16 @@ export class ComponentSetPool<T extends Record<string, Component>> {
   /**
    * @param factory - Creates a new set of component objects.
    * @param reset - Resets component data before an entity is returned to the pool.
-   * @param initialSize - Number of entities to pre-allocate.
+   * @param initialSize - Number of entities to pre-allocate (clamped to maxSize when set).
+   * @param maxSize - Optional cap on idle component sets in the underlying ObjectPool.
    */
   constructor(
     factory: () => T,
     reset: (data: T) => void,
-    initialSize: number = 0
+    initialSize: number = 0,
+    maxSize?: number
   ) {
-    this.pool = new ObjectPool<T>(factory, reset, initialSize);
+    this.pool = new ObjectPool<T>(factory, reset, initialSize, maxSize);
 
     // Capture the mapping from keys in T to ECS component types
     const template = factory();
@@ -149,5 +152,12 @@ export class ComponentSetPool<T extends Record<string, Component>> {
    */
   public get size(): number {
     return this.pool.size;
+  }
+
+  /**
+   * Configured idle capacity limit from the underlying ObjectPool, or undefined when unbounded.
+   */
+  public get capacity(): number | undefined {
+    return this.pool.capacity;
   }
 }

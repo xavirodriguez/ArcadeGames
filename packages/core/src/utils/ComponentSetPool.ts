@@ -61,16 +61,21 @@ export class ComponentSetPool<T extends Record<string, Component>> {
       const comp = components[key];
       if (comp.type === "Reclaimable") {
         delete (comp as unknown as ReclaimableComponent & { _released?: boolean })._released;
-        (comp as unknown as ReclaimableComponent).onReclaim = (context: ReleaseContext) => this.release(context);
       }
     }
 
-    const entity = createDeferredEntity(world);
+    const { entity, add } = createDeferredEntity(world);
+    this.activeEntities.add(entity);
+
     for (const key in components) {
-      world.addComponent(entity, components[key]);
+      const comp = components[key];
+      // Automatically wire up Reclaimable components to return to this pool
+      if (comp.type === "Reclaimable") {
+        (comp as unknown as ReclaimableComponent).onReclaim = (context: ReleaseContext) => this.release(context);
+      }
+      add(comp as T[keyof T] & { type: keyof T & string });
     }
 
-    this.activeEntities.add(entity);
     return { entity, components };
   }
 

@@ -1,5 +1,5 @@
 import { World, CoreComponentRegistry } from "@tiny-aster/core";
-import { HitRunHurtSystem, canTakeDamage } from "../../hurt/HitRunHurtSystem";
+import { canTakeDamage } from "../../hurt/HitRunHurtSystem";
 import { DEFAULT_PATROL_ATTACK_CONFIG } from "../EnemyAttackConfig";
 import { MeleeAttackComponent } from "../../melee/MeleeAttackTypes";
 import { createTestWorld, spawnTestPlayer, updateStateMachineHelper } from "../testHelpers";

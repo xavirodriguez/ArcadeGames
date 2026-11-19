@@ -209,13 +209,11 @@ export function updateAnticipationState(
     | { detectedPlayerEntity?: number }
     | undefined;
 
-  console.log("DEBUG UA interrupted", data.interrupted, "isHitstun", isEnemyInHitstun(world, entity));
   if (isEnemyInHitstun(world, entity) ||
     !sensor?.detectedPlayerEntity ||
     !canTakeDamage(world, sensor.detectedPlayerEntity)
   ) {
     restoreEnemyColor(world, entity, data);
-    data.interrupted = false;
     return "Recovery";
   }
 

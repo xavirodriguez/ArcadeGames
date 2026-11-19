@@ -17,6 +17,11 @@ export interface PrefabConfig<T extends Record<string, Component>, I> {
   initializer: (components: T, params: I, world: World, entity: Entity) => void;
   /** Pre-allocated initial capacity size of the component set pool. */
   initialSize?: number;
+  /**
+   * Optional cap on idle instances retained by the underlying ObjectPool.
+   * When set, excess releases are discarded instead of growing the idle pool.
+   */
+  maxSize?: number;
 }
 
 /**
@@ -30,7 +35,12 @@ export class PrefabPool<T extends Record<string, Component>, I> {
   private initializer: (components: T, params: I, world: World, entity: Entity) => void;
 
   constructor(config: PrefabConfig<T, I>) {
-    this.pool = new ComponentSetPool<T>(config.factory, config.reset, config.initialSize || 0);
+    this.pool = new ComponentSetPool<T>(
+      config.factory,
+      config.reset,
+      config.initialSize || 0,
+      config.maxSize
+    );
     this.initializer = config.initializer;
   }
 
@@ -77,5 +87,12 @@ export class PrefabPool<T extends Record<string, Component>, I> {
    */
   public get size(): number {
     return this.pool.size;
+  }
+
+  /**
+   * Configured idle capacity limit, or undefined when unbounded.
+   */
+  public get capacity(): number | undefined {
+    return this.pool.capacity;
   }
 }

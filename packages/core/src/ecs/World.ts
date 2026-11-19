@@ -334,6 +334,11 @@ export class World<
    * @returns El identificador de la entidad creada o reciclada.
    */
   createEntity(): Entity {
+    if (this.isUpdating) {
+      const id = this.reserveEntityId();
+      this.getCommandBuffer().createEntity(id);
+      return id;
+    }
     this.checkUpdatingMutation("createEntity");
     const id = this.freeEntities.length > 0 ? this.freeEntities.pop()! : this.nextEntityId++;
     if (this.generations[id] === undefined) {

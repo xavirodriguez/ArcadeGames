@@ -54,16 +54,17 @@ The exact TypeScript API remains a PR 2 deliverable. The illustrative `createSta
 
 ### Required runtime correction
 
-The earlier recommendation to make `JuiceOrchestrator.spawn` a central no-op during resimulation is superseded by the `CombatRollbackResimulation` hash regression. `Transform`, `Render` and `TTL` effect entities remain part of the serialized World state, and shake may mutate ECS-backed state such as `GameState.screenShake`. Suppressing those mutations produces a different hash after replay.
+The generic `JuiceOrchestrator.spawn` no-op during resimulation remains the default presentation policy. The `CombatRollbackResimulation` hash regression showed that this policy must be bypassed only for ECS-backed effects whose `Transform`/`Render`/`TTL` entities or shake state participate in serialized World state.
 
 The runtime contract is therefore:
 
 1. Replay authoritative hit-stop requests.
-2. Recreate ECS effect entities and replay ECS-backed shake mutations so snapshots and hashes match normal execution.
-3. Suppress genuinely external outputs (audio playback, Canvas-only pools, native/UI effects) at their own boundaries.
-4. Do not treat an ECS mutation as an external side effect merely because it represents presentation.
+2. Keep generic presentation effects suppressed through `spawn`/`triggerEvent` during resimulation.
+3. Explicitly opt snapshot/hash-relevant ECS effects into reconstruction through `spawnDeterministically`/`triggerEventDeterministically`.
+4. Suppress genuinely external outputs (audio playback, Canvas-only pools, native/UI effects) at their own boundaries.
+5. Do not opt an effect into deterministic reconstruction unless its producer runs in the same deterministic simulation path during normal execution and replay.
 
-A future migration may move transient presentation entities outside the authoritative World or introduce an explicit snapshot policy for them. Until then, deterministic replay must reconstruct them.
+A future migration may move transient presentation entities outside the authoritative World or introduce an explicit snapshot policy for them. Until then, use the explicit deterministic API only for effects that must exist in the hashed World state.
 
 ## 4. Semantic context model
 
@@ -132,7 +133,7 @@ Before PR 2:
 1. Compare the head commits and file diffs of #1040 and #1041. Select one canonical branch; do not merge duplicate implementations.
 2. Reconcile #1036's five additional drawers with current master source, tests and docs. The current drawer implementation and test suite disagree.
 3. Verify the actual #1037 and #1039 merge ancestry and retain their valid procedural/sprite-sheet work.
-4. Add or verify a central rollback no-op in `JuiceOrchestrator.spawn`.
+4. Retain the central rollback no-op and verify explicit deterministic reconstruction only for ECS effects included in snapshots/hashes.
 5. Make Canvas and Skia registration assertions identical.
 6. Run focused Jest, typecheck, build/CI and visual smoke tests in a capable local/Jules environment. The GitHub connector used for this audit cannot execute those commands.
 

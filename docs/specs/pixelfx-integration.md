@@ -29,7 +29,7 @@ Adapter: `adaptPixelFXExport` (pivot array → anchor 0–1, duration = frames/f
 
 ### Rollback
 
-`JuiceOrchestrator.spawn` no-ops when `world.isReSimulating === true`.
+`JuiceOrchestrator.spawn` rebuilds its ECS `Transform`/`Render`/`TTL` representation during resimulation because those entities participate in World snapshots and deterministic hashes. Replay must also reproduce ECS-backed shake state and authoritative hit-stop. Suppress only non-ECS outputs (for example, audio playback and Canvas-only effects) at their respective producer or consumer boundaries; do not suppress the ECS reconstruction here.
 
 ### Themes
 

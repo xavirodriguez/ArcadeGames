@@ -27,7 +27,7 @@ The family contexts are typed inputs to the presentation boundary. They do not e
 - Presentation-time animation remains in existing renderers/systems.
 - Effect lifetime remains the ECS TTL component.
 - Dispatch does not consume gameplay RNG or mutate gameplay state.
-- Resimulation remains suppressed by the existing early guard in `spawn()`.
+- Generic effects remain suppressed by the existing early guard in `spawn()`; only snapshot/hash-relevant ECS effects opt into `spawnDeterministically()` / `triggerEventDeterministically()`.
 
 Hit-stop is intentionally not redesigned here. The VFX timer and core `GameplayFreeze` remain split; do not treat `hitStopMs` as a guaranteed core simulation pause until that separate ownership gap is consolidated and tested.
 

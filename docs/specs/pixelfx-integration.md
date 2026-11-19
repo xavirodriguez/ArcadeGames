@@ -29,7 +29,7 @@ Adapter: `adaptPixelFXExport` (pivot array → anchor 0–1, duration = frames/f
 
 ### Rollback
 
-`JuiceOrchestrator.spawn` rebuilds its ECS `Transform`/`Render`/`TTL` representation during resimulation because those entities participate in World snapshots and deterministic hashes. Replay must also reproduce ECS-backed shake state and authoritative hit-stop. Suppress only non-ECS outputs (for example, audio playback and Canvas-only effects) at their respective producer or consumer boundaries; do not suppress the ECS reconstruction here.
+`JuiceOrchestrator.spawn` keeps the central presentation no-op during resimulation (after replaying authoritative hit-stop). Use `spawnDeterministically` or `triggerEventDeterministically` only when the effect's ECS representation (`Transform`/`Render`/`TTL`) or ECS-backed shake state participates in World snapshots and deterministic hashes and must be reconstructed. Keep audio playback, Canvas-only pools and native/UI effects guarded at their external side-effect boundaries.
 
 ### Themes
 

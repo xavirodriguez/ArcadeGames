@@ -298,7 +298,10 @@ export class World<
       if (type && this.componentRegistry.get(type)?.allowMutationDuringUpdate) {
         return;
       }
-      throw new Error(`Direct structural mutation (${opName}${type ? " of " + type : ""}) during World update is forbidden. Use world.commands instead.`);
+      const stack = new Error().stack ?? "";
+      throw new Error(
+        `Direct structural mutation (${opName}${type ? " of " + type : ""}) during World update is forbidden. Use world.commands instead.\n${stack}`
+      );
     }
   }
 
@@ -414,6 +417,10 @@ export class World<
 
   /** Removes an entity and purges all attached components from world storage. */
   removeEntity(entity: Entity): void {
+    if (this.isUpdating) {
+      this.getCommandBuffer().removeEntity(entity);
+      return;
+    }
     this.checkUpdatingMutation("removeEntity");
     if (!this.isAlive(entity)) {
       if (isDev) {
@@ -481,6 +488,10 @@ export class World<
    * @param component - Instancia del componente, incluyendo su campo `type`.
    */
   addComponent<K extends ComponentType<TComponents>>(entity: Entity, component: TComponents[K] & { type: K }): void {
+    if (this.isUpdating) {
+      this.getCommandBuffer().addComponent(entity, component);
+      return;
+    }
     this.checkUpdatingMutation("addComponent", component.type as string);
     if (!this.isAlive(entity)) {
       if (isDev) {
@@ -630,6 +641,10 @@ export class World<
    * @param type - El tipo del componente a eliminar.
    */
   removeComponent<K extends ComponentType<TComponents>>(entity: Entity, type: K): void {
+    if (this.isUpdating) {
+      this.getCommandBuffer().removeComponent(entity, type);
+      return;
+    }
     this.checkUpdatingMutation("removeComponent", type as string);
     if (!this.isAlive(entity)) {
       if (isDev) {

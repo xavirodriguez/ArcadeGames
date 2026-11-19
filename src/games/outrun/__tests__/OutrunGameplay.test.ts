@@ -18,6 +18,7 @@ const mockPaint = {
   setAlphaf: jest.fn(),
   setStrokeWidth: jest.fn(),
   setStrokeCap: jest.fn(),
+  setShader: jest.fn(),
 };
 
 jest.mock("@shopify/react-native-skia", () => ({
@@ -36,6 +37,11 @@ jest.mock("@shopify/react-native-skia", () => ({
         quadTo: jest.fn(),
       })),
     },
+    Shader: {
+      MakeLinearGradient: jest.fn(() => ({})),
+    },
+    Point: jest.fn((x, y) => ({ x, y })),
+    TileMode: { Clamp: 0 },
   },
 }));
 import {
@@ -313,6 +319,7 @@ describe("OutrunGameplay", () => {
       ellipse: jest.fn(),
       fillText: jest.fn(),
       quadraticCurveTo: jest.fn(),
+      createLinearGradient: jest.fn(() => ({ addColorStop: jest.fn() })),
     };
 
     drawOutrunRoad.draw(mockCanvasCtx, world, 0);
@@ -472,7 +479,7 @@ describe("OutrunGameplay", () => {
     drawSkiaOutrunRacer.draw(skiaTraffic as never, world, racerEntity!);
 
     expect(canvasTraffic.save).toHaveBeenCalled();
-    expect(skiaTraffic.drawRRect).toHaveBeenCalled();
+    expect(skiaTraffic.drawRect).toHaveBeenCalled();
   });
 
   it("ColorScriptSystem updates VisualPalette without mutating RaceState", async () => {

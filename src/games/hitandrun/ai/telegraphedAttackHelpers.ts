@@ -3,8 +3,7 @@ import type { EnemyAttackTypeConfig } from "./EnemyAttackConfig";
 import { canTakeDamage } from "../hurt/HitRunHurtSystem";
 import type { MeleeAttackComponent } from "../melee/MeleeAttackTypes";
 import type { HitReactionComponent } from "../hurt/HitReactionTypes";
-import { JuiceOrchestrator } from "../../shared/rendering/JuiceOrchestrator";
-import { colors } from "../../../theme/colors";
+const DEFAULT_BASE_COLOR = "#FFFFFF";
 
 export function zeroVx(world: World<CoreComponentRegistry>, entity: number): void {
   const vel = world.getComponent(entity, "Velocity");
@@ -112,14 +111,63 @@ function spawnHitRunCombatCue(
   scale = 1,
   ttl = 0.32
 ): void {
-  // JuiceOrchestrator owns the presentation-only rollback guard and ECS TTL lifecycle.
+  // Presentation-only: never emit during replay.
   if (world.isReSimulating) return;
   const transform = world.getComponent(entity, "Transform");
   if (!transform) return;
-  new JuiceOrchestrator(world).spawn(effect, {
-    x: transform.worldX ?? transform.x,
-    y: transform.worldY ?? transform.y,
-    rotation, tint, scale, ttl
+
+  const x = transform.worldX ?? transform.x;
+  const y = transform.worldY ?? transform.y;
+  const isUpdating = world.isUpdating === true;
+
+  const createEntity = (): number => {
+    if (isUpdating) {
+      const id = world.reserveEntityId();
+      world.commands.createEntity(id);
+      return id;
+    }
+    return world.createEntity();
+  };
+
+  const addComponent = (target: number, component: any): void => {
+    if (isUpdating) {
+      world.commands.addComponent(target, component);
+    } else {
+      world.addComponent(target, component);
+    }
+  };
+
+  const cueEntity = createEntity();
+  addComponent(cueEntity, {
+    type: "Transform",
+    x,
+    y,
+    rotation,
+    scaleX: scale,
+    scaleY: scale,
+    worldX: x,
+    worldY: y,
+    worldRotation: rotation,
+    worldScaleX: scale,
+    worldScaleY: scale,
+    dirty: false
+  });
+  addComponent(cueEntity, {
+    type: "Render",
+    shape: effect,
+    size: 20 * scale,
+    color: tint,
+    visible: true,
+    opacity: 1,
+    order: 100,
+    rotation: 0,
+    angularVelocity: 0,
+    hitFlashFrames: 0
+  });
+  addComponent(cueEntity, {
+    type: "TTL",
+    timeLeft: ttl,
+    remaining: ttl
   });
 }
 
@@ -140,7 +188,7 @@ export function enterAnticipationState(
     | undefined;
   if (render) {
     if (!data.baseColor) {
-      data.baseColor = render.color ?? colors.white;
+      data.baseColor = render.color ?? DEFAULT_BASE_COLOR;
     }
     render.color = warningColor;
   }
@@ -161,12 +209,13 @@ export function updateAnticipationState(
     | { detectedPlayerEntity?: number }
     | undefined;
 
-  if (
-    isEnemyInHitstun(world, entity) ||
+  console.log("DEBUG UA interrupted", data.interrupted, "isHitstun", isEnemyInHitstun(world, entity));
+  if (isEnemyInHitstun(world, entity) ||
     !sensor?.detectedPlayerEntity ||
     !canTakeDamage(world, sensor.detectedPlayerEntity)
   ) {
     restoreEnemyColor(world, entity, data);
+    data.interrupted = false;
     return "Recovery";
   }
 

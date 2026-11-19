@@ -280,6 +280,7 @@ describe("Vertical Shmup simulation contracts (P0)", () => {
     expect(game.getGameState().isGameOver).toBe(true);
     const entityCountAfterDeath = world.entities.length;
 
+    world.deleteResource("GameplayFreeze");
     game.update(0);
     expect(world.entities.length).toBe(entityCountAfterDeath);
     expect(world.getComponent(player, "Velocity")).toMatchObject({ vx: 0, vy: 0 });

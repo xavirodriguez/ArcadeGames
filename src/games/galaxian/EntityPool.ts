@@ -173,7 +173,9 @@ export class BulletPool {
     world.mutateComponent(entity, "Transform", (t) => {
       t.x = -9999;
       t.y = -9999;
-      t.dirty = true;
+      t.worldX = -9999;
+      t.worldY = -9999;
+      t.dirty = false;
     });
     world.mutateComponent(entity, "Velocity", (v) => {
       v.vx = 0;

@@ -218,8 +218,7 @@ export const proofOfConceptStoryGraph: StoryGraph = {
         },
         {
           targetNodeId: "eval_act2_performance",
-          priority: 0,
-          condition: { type: "flag", key: "reinforcementsReceived", value: false }
+          priority: 0
         }
       ]
     },
@@ -267,8 +266,7 @@ export const proofOfConceptStoryGraph: StoryGraph = {
         },
         {
           targetNodeId: "eval_act2_performance",
-          priority: 0,
-          condition: { type: "flag", key: "reinforcementsReceived", value: false }
+          priority: 0
         }
       ]
     },
@@ -396,8 +394,7 @@ export const proofOfConceptStoryGraph: StoryGraph = {
         },
         {
           targetNodeId: "final_evaluation_branch",
-          priority: 0,
-          condition: { type: "flag", key: "reduxClimaxFlawless", value: false }
+          priority: 0
         }
       ]
     },
@@ -445,8 +442,7 @@ export const proofOfConceptStoryGraph: StoryGraph = {
         },
         {
           targetNodeId: "final_evaluation_branch",
-          priority: 0,
-          condition: { type: "flag", key: "reduxClimaxFlawless", value: false }
+          priority: 0
         }
       ]
     },

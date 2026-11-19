@@ -127,6 +127,9 @@ export function resolveVFXPhase(
       throw new RangeError(`phases[${i}] has invalid or overlapping boundaries`);
     }
     previousEnd = phase.end;
+  }
+  for (let i = 0; i < phases.length; i++) {
+    const phase = phases[i];
     if (t <= phase.end || i === phases.length - 1) {
       return { phase: phase.id, phaseT: clamp((t - phase.start) / (phase.end - phase.start), 0, 1) };
     }

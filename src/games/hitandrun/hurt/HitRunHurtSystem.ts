@@ -154,6 +154,29 @@ export class HitRunHurtSystem extends CombatHitListenerSystem<CombatHitPayload> 
     this.applyKnockback(world, target, hit.sourceEntity, knockbackX, knockbackY);
     this.ensureHitReaction(world, target, hitstunSeconds, staggerSeconds);
 
+    const stateMachine = world.getMutableComponent(target, "StateMachine") as
+      | {
+          currentState: string;
+          previousState?: string;
+          elapsedInState: number;
+          data: Record<string, unknown>;
+          machineId: string;
+        }
+      | undefined;
+    if (stateMachine && stateMachine.currentState === "Anticipation") {
+      const registry = world.getResource<
+        Record<string, { states: Record<string, { onEnter?: (w: World<CoreComponentRegistry>, e: number, d: Record<string, unknown>) => void }> }>
+      >("StateMachineRegistry");
+      const machine = registry?.[stateMachine.machineId];
+      const recoveryDef = machine?.states?.Recovery;
+      stateMachine.previousState = stateMachine.currentState;
+      stateMachine.currentState = "Recovery";
+      stateMachine.elapsedInState = 0;
+      if (recoveryDef?.onEnter) {
+        recoveryDef.onEnter(world, target, stateMachine.data);
+      }
+    }
+
     // Any hitstun interrupts an active enemy melee window; stagger extends the lock.
     if ((hitstunSeconds > 0 || staggerSeconds > 0) && world.hasComponent(target, "MeleeAttack")) {
       const melee = world.getMutableComponent(target, "MeleeAttack") as
@@ -225,12 +248,17 @@ export class HitRunHurtSystem extends CombatHitListenerSystem<CombatHitPayload> 
       return;
     }
 
-    world.getCommandBuffer().addComponent(entity, {
+    const component = {
       type: "HitReaction",
       hitstunRemaining: Math.max(0, hitstunSeconds),
       staggerRemaining: Math.max(0, staggerSeconds),
       blinkElapsed: 0
-    } as HitReactionComponent);
+    } as HitReactionComponent;
+    if (world.isUpdating) {
+      world.getCommandBuffer().addComponent(entity, component);
+    } else {
+      world.addComponent(entity, component);
+    }
   }
 
   private tickHitstunAndBlink(

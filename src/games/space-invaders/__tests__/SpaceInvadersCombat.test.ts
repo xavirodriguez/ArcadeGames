@@ -279,6 +279,11 @@ describe("Space Invaders Pilot Combat Integration", () => {
       ce.collisions = [{ otherEntity: invader1, normalX: 0, normalY: 0, depth: 0, contactPoints: [] }];
     });
 
+    // The shield degradation above requests a Juice hit-stop (GameplayFreeze).
+    // That freeze intentionally suspends Collision/GameRules phases; the combat
+    // consumption under test is independent of hit-stop timing, so clear it here.
+    world.deleteResource("GameplayFreeze");
+
     world.update(0.016);
 
     // Check (c) & (d): Invader 1 was hit and destroyed, bullet survived, but bullet's Damage component was removed by CombatSystem

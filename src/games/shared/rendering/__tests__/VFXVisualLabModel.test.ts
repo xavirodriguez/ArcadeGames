@@ -126,7 +126,9 @@ describe("VFX Visual Lab model", () => {
     expect(VFX_COMBAT_QUALITY_PHASES.map((phase) => phase.progress)).toEqual([0.04, 0.28, 0.58, 0.88]);
     for (const effect of VFX_COMBAT_QUALITY_EFFECT_IDS) {
       const samples = VFX_LAB_PRESETS.filter((preset) =>
-        preset.id.startsWith(effect.replace("pixelfx_", "").replace(/_/g, "-") + "-")
+        ["-contact", "-expansion", "-peak", "-dissipation"].some((suffix) =>
+          preset.id.endsWith(suffix)
+        ) && preset.effect === effect
       );
       expect(samples.map((preset) => preset.progress)).toEqual([0.04, 0.28, 0.58, 0.88]);
       expect(samples.every((preset) => preset.effect === effect)).toBe(true);

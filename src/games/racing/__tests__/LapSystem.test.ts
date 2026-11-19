@@ -1,4 +1,4 @@
-import { World, SystemPhase } from "@tiny-aster/core";
+import { World, SystemPhase, EventBus } from "@tiny-aster/core";
 import { LapSystem } from "../systems/LapSystem";
 import type { RacingComponentRegistry, RacingEventRegistry } from "../types/RacingRegistry";
 import type { RacingConfig } from "../types/RacingConfigSchema";
@@ -39,6 +39,7 @@ function makeLap(currentLap = 1, lastCheckpoint = -1) {
 describe("LapSystem", () => {
   function setupWorld() {
     const world = new World<RacingComponentRegistry, RacingEventRegistry>();
+    world.setResource("EventBus", new EventBus<RacingEventRegistry>());
     world.addSystem(new LapSystem(config), { phase: SystemPhase.GameRules });
 
     const stateEntity = world.createEntity();
@@ -101,7 +102,7 @@ describe("LapSystem", () => {
       boostRemaining: 0
     });
     world.addComponent(carB, makeTransform(100, 0)); // already at cp 1
-    world.addComponent(carB, makeLap(1, -1));
+    world.addComponent(carB, makeLap(1, 0)); // has already passed cp 0
 
     world.update(1 / 60);
 
@@ -178,7 +179,7 @@ describe("LapSystem", () => {
 
   it("does not count checkpoints during non-racing phases", () => {
     const world = setupWorld();
-    const state = world.getSingleton("RacingState");
+    const state = world.getMutableComponent(world.query("RacingState")[0], "RacingState");
     if (state) state.phase = "countdown";
 
     const car = world.createEntity();

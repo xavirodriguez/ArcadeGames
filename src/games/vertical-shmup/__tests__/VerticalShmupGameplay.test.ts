@@ -73,6 +73,11 @@ describe("VerticalShmup Gameplay Systems & Mechanics", () => {
     const healthAfterHit = world.getComponent(player!, "Health");
     expect(healthAfterHit?.invulnerableRemaining).toBe(1.5);
 
+    // The combat:hit above requests a Juice hit-stop (GameplayFreeze) that
+    // intentionally suspends the Input phase for the first tick. The invulnerability
+    // decrement under test is independent of hit-stop timing, so clear it here.
+    world.deleteResource("GameplayFreeze");
+
     // Tick simulation forward by 0.5s
     game.update(0.5);
 

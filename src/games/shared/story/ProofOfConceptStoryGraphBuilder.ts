@@ -193,11 +193,7 @@ export const builtProofOfConceptStoryGraph: StoryGraph = StoryGraphBuilder.graph
         operator: "==",
         value: true
       }, 10)
-      .addTransition("eval_act2_performance", {
-        type: "flag",
-        key: "reinforcementsReceived",
-        value: false
-      }, 0)
+      .addTransition("eval_act2_performance", undefined, 0)
   )
 
   // 10: Cutscene Flappy Bird Route
@@ -241,11 +237,7 @@ export const builtProofOfConceptStoryGraph: StoryGraph = StoryGraphBuilder.graph
         operator: "==",
         value: true
       }, 10)
-      .addTransition("eval_act2_performance", {
-        type: "flag",
-        key: "reinforcementsReceived",
-        value: false
-      }, 0)
+      .addTransition("eval_act2_performance", undefined, 0)
   )
 
   // 12: Branch Eval Act 2
@@ -347,11 +339,7 @@ export const builtProofOfConceptStoryGraph: StoryGraph = StoryGraphBuilder.graph
         operator: "==",
         value: true
       }, 10)
-      .addTransition("final_evaluation_branch", {
-        type: "flag",
-        key: "reduxClimaxFlawless",
-        value: false
-      }, 0)
+      .addTransition("final_evaluation_branch", undefined, 0)
   )
 
   // 18: Act 3 Space Invaders Redux Intro
@@ -395,11 +383,7 @@ export const builtProofOfConceptStoryGraph: StoryGraph = StoryGraphBuilder.graph
         operator: "==",
         value: true
       }, 10)
-      .addTransition("final_evaluation_branch", {
-        type: "flag",
-        key: "reduxClimaxFlawless",
-        value: false
-      }, 0)
+      .addTransition("final_evaluation_branch", undefined, 0)
   )
 
   // 20: Final Evaluation Branch

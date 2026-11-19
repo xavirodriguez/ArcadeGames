@@ -7,7 +7,7 @@ jest.mock("../theme/HitRunPresentationSession", () => ({
   resizeHitRunPresentationSession: jest.fn()
 }));
 
-jest.mock("../../shared/rendering/SkiaContext", () => ({
+jest.mock("../../../shared/rendering/SkiaContext", () => ({
   Skia: {},
   getPaint: jest.fn()
 }));

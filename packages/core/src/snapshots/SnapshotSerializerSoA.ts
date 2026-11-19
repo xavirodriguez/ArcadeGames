@@ -65,7 +65,7 @@ export class SnapshotSerializerSoA {
           if (k !== "type" && typeof comp[k] !== "function") {
             keySet.add(k);
             const val = comp[k];
-            if (val !== null && typeof val !== "number" && typeof val !== "boolean") {
+            if (typeof val !== "number" && typeof val !== "boolean") {
               nonNumericKeysSet.add(k);
             }
           }
@@ -92,15 +92,17 @@ export class SnapshotSerializerSoA {
           const val = comp[key];
           const offset = i * numKeys + j;
 
-          if (typeof val === "number") {
+          if (val === undefined) {
+            valuesArray[offset] = NaN;
+          } else if (typeof val === "number") {
             valuesArray[offset] = val;
           } else if (typeof val === "boolean") {
             valuesArray[offset] = val ? 1 : 0;
             booleanKeysSet.add(key);
           } else {
             valuesArray[offset] = 0;
-            if (nonNumericValues && val !== undefined && val !== null) {
-              nonNumericValues[offset] = ComponentCloner.cloneComponent(val);
+            if (nonNumericValues) {
+              nonNumericValues[offset] = val === null ? null : ComponentCloner.cloneComponent(val);
             }
           }
         }

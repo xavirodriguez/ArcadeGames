@@ -55,17 +55,6 @@ function expectedFieldLosses(testCase: RoundTripCase): readonly ExpectedFieldLos
     return losses;
   }
 
-  if (
-    testCase.route === "SoA" &&
-    testCase.componentType === "Brick" &&
-    testCase.profile === "default-optionals"
-  ) {
-    return [
-      { field: "powerUp", mode: "zero" },
-      { field: "row", mode: "zero" }
-    ];
-  }
-
   return [];
 }
 

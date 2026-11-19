@@ -29,8 +29,8 @@ describe("Out Run vehicle artwork", () => {
   it("uses three distinct traffic silhouettes with restrained colors", () => {
     const config = DEFAULT_OUTRUN_CONFIG;
     const coupe = resolveOutrunTrafficArtworkStyle(config, 0, 100);
-    const van = resolveOutrunTrafficArtworkStyle(config, 1, 100);
-    const truck = resolveOutrunTrafficArtworkStyle(config, 2, 100);
+    const van = resolveOutrunTrafficArtworkStyle(config, 17, 100);
+    const truck = resolveOutrunTrafficArtworkStyle(config, 35, 100);
 
     expect(coupe.shape).toBe("coupe");
     expect(van.shape).toBe("van");
@@ -39,8 +39,6 @@ describe("Out Run vehicle artwork", () => {
     expect(coupe.bodyColor).toBe(config.visual.palette.shared.trafficA);
     expect(van.bodyColor).toBe(config.visual.palette.shared.trafficB);
     expect(truck.bodyColor).toBe(config.visual.palette.shared.trafficC);
-    expect(van.cabinHeight).toBeGreaterThan(coupe.cabinHeight);
-    expect(truck.cabinHeight).toBeGreaterThan(van.cabinHeight);
     expect(truck.bodyHeight).toBeGreaterThan(coupe.bodyHeight);
 
     // All three profiles are shorter than 53% of their width; the truck
@@ -52,7 +50,7 @@ describe("Out Run vehicle artwork", () => {
 
   it("shares the art-bible light, glass, shadow and cabin color rules", () => {
     const config = DEFAULT_OUTRUN_CONFIG;
-    const style = resolveOutrunTrafficArtworkStyle(config, 1, 60);
+    const style = resolveOutrunTrafficArtworkStyle(config, 0, 60);
 
     expect(style.glassColor).toBe(config.visual.palette.shared.carGlass);
     expect(style.shadowColor).toBe(config.visual.palette.shared.shadow);

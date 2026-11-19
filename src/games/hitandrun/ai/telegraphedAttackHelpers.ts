@@ -38,7 +38,7 @@ export function isEnemyInHitstun(
   const reaction = world.getComponent(entity, "HitReaction") as
     | HitReactionComponent
     | undefined;
-  return !!reaction && (reaction.hitstunRemaining > 0 || (reaction.staggerRemaining ?? 0) > 0);
+  return !!reaction && (reaction.hitstunRemaining > 1e-9 || (reaction.staggerRemaining ?? 0) > 1e-9);
 }
 
 export function restoreEnemyColor(

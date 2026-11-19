@@ -264,6 +264,19 @@ const alertWindup = {
   }
 };
 
+const HIT_REACTION_INTERRUPTION_TARGETS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
+  hr_walk: {
+    Anticipation: "Recovery",
+    Attack: "Recovery"
+  },
+  hr_charge: {
+    Anticipation: "Recovery",
+    Charge: "Recovery"
+  }
+};
+
+const HIT_RUN_PENDING_INTERRUPTION_KEY = "_hitRunPendingInterruption";
+
 export function registerHitRunStateMachines(
   world: World<CoreComponentRegistry>
 ): void {
@@ -627,20 +640,24 @@ export function registerHitRunStateMachines(
   };
 
   // Freeze every Hit&Run enemy FSM transition while hitstun/stagger is active.
-  // This prevents patrol, windup and ranged states from overwriting the impact
-  // response; active melee hitboxes are interrupted by HitRunHurtSystem.
+  // Cancellable melee states remember their Recovery transition and consume it
+  // before the original callback can resume the interrupted action.
   const hitRunMachineIds = ["hr_walk", "hr_flank", "hr_hop", "hr_charge", "hr_shooter", "hr_tank"];
   for (const machineId of hitRunMachineIds) {
     const machine = registry[machineId];
     if (!machine) continue;
-    for (const state of Object.values(machine.states)) {
+    for (const [stateId, state] of Object.entries(machine.states)) {
       const originalUpdate = state.onUpdate;
       if (!originalUpdate) continue;
+      const interruptionTarget = HIT_REACTION_INTERRUPTION_TARGETS[machineId]?.[stateId];
       state.onUpdate = (world, entity, data, elapsed) => {
         const lockStartKey = "_hitRunImpactLockStartElapsed";
         const pausedKey = "_hitRunImpactPausedSeconds";
 
         if (isEnemyInHitstun(world, entity)) {
+          if (interruptionTarget && typeof data[HIT_RUN_PENDING_INTERRUPTION_KEY] !== "string") {
+            data[HIT_RUN_PENDING_INTERRUPTION_KEY] = interruptionTarget;
+          }
           if (typeof data[lockStartKey] !== "number") {
             data[lockStartKey] = elapsed;
           }
@@ -654,6 +671,14 @@ export function registerHitRunStateMachines(
           delete data[lockStartKey];
         }
 
+        const pendingInterruption = data[HIT_RUN_PENDING_INTERRUPTION_KEY];
+        if (typeof pendingInterruption === "string") {
+          delete data[HIT_RUN_PENDING_INTERRUPTION_KEY];
+          delete data[pausedKey];
+          delete data[lockStartKey];
+          return pendingInterruption;
+        }
+
         const pausedSeconds = (data[pausedKey] as number) ?? 0;
         const nextState = originalUpdate(
           world,
@@ -664,6 +689,7 @@ export function registerHitRunStateMachines(
         if (nextState !== undefined) {
           delete data[pausedKey];
           delete data[lockStartKey];
+          delete data[HIT_RUN_PENDING_INTERRUPTION_KEY];
         }
         return nextState;
       };

@@ -48,7 +48,7 @@ describe("JuiceOrchestrator Unit Tests & Golden Replays", () => {
     });
   });
 
-  it("replays authoritative hit-stop but suppresses presentation during rollback resimulation", () => {
+  it("rebuilds ECS effects and replays authoritative hit-stop during rollback resimulation", () => {
     world.isReSimulating = true;
 
     const entity = juice.spawn("shockwave", {
@@ -59,8 +59,13 @@ describe("JuiceOrchestrator Unit Tests & Golden Replays", () => {
       shakeDurationMs: 100
     });
 
-    expect(entity).toBeNull();
-    expect(world.query("Render", "TTL")).toHaveLength(0);
+    expect(entity).not.toBeNull();
+    expect(world.query("Render", "TTL")).toHaveLength(1);
+    if (entity !== null) {
+      expect(world.getComponent(entity, "Render")?.shape).toBe("shockwave");
+      expect(world.getComponent(entity, "Transform")?.x).toBe(100);
+      expect(world.getComponent(entity, "Transform")?.y).toBe(150);
+    }
     expect(world.getResource<{ remaining?: number; source?: string }>("GameplayFreeze")).toEqual({
       remaining: 0.12,
       source: "juice"
@@ -147,19 +152,27 @@ describe("JuiceOrchestrator Unit Tests & Golden Replays", () => {
       expect(world.getResource("GameplayFreeze")).toEqual({ remaining: 0.4, source: "cutscene" });
     });
 
-    it("replays the same authoritative resource state from a pre-hit-stop snapshot", () => {
+    it("replays the same ECS and authoritative resource state from a pre-effect snapshot", () => {
       const initial = world.snapshot();
-      requestHitStop(world, 120, HitStopPriority.HIGH);
+      const normalEntity = juice.spawn("shockwave", {
+        hitStopMs: 120,
+        hitStopPriority: HitStopPriority.HIGH
+      });
+      expect(normalEntity).not.toBeNull();
       const expected = world.snapshot();
 
       world.restore(initial);
       world.isReSimulating = true;
-      juice.spawn("shockwave", { hitStopMs: 120, hitStopPriority: HitStopPriority.HIGH });
+      const replayedEntity = juice.spawn("shockwave", {
+        hitStopMs: 120,
+        hitStopPriority: HitStopPriority.HIGH
+      });
       world.isReSimulating = false;
 
+      expect(replayedEntity).not.toBeNull();
       expect(hashAoS(world.snapshot() as import("@tiny-aster/core").AoSWorldSnapshot))
         .toBe(hashAoS(expected as import("@tiny-aster/core").AoSWorldSnapshot));
-      expect(world.query("Render", "TTL")).toHaveLength(0);
+      expect(world.query("Render", "TTL")).toHaveLength(1);
     });
   });
 
@@ -208,11 +221,16 @@ describe("JuiceOrchestrator Unit Tests & Golden Replays", () => {
       expect(world.getComponent(world.query("Render")[3], "Render")?.shape).toBe("pixelfx_mechanical_motion");
     });
 
-    it("does not spawn traversal effects from locomotion events during resimulation", () => {
+    it("rebuilds traversal ECS effects from locomotion events during resimulation", () => {
       world.isReSimulating = true;
       juice.triggerEvent("platformer", "player:slide", { x: 120, y: 200 });
       juice.triggerEvent("platformer", "platform:reversed", { x: 160, y: 220 });
-      expect(world.query("Render", "TTL")).toHaveLength(0);
+      const effects = world.query("Render", "TTL");
+      expect(effects).toHaveLength(2);
+      expect(effects.map(entity => world.getComponent(entity, "Render")?.shape)).toEqual([
+        "pixelfx_surface_skid",
+        "pixelfx_mechanical_motion"
+      ]);
     });
 
     it("should trigger typed Arkanoid brick:hit and brick:shatter events", () => {

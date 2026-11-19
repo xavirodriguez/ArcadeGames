@@ -211,8 +211,10 @@ export class JuiceOrchestrator<TComponents extends CoreComponentRegistry = CoreC
       requestHitStop(this.world, options.hitStopMs, options.hitStopPriority ?? HitStopPriority.NORMAL);
     }
 
-    // Particles, shake and all other presentation output are never emitted during replay.
-    if (this.world.isReSimulating) return null;
+    // Transform/Render/TTL effect entities and shake state are part of the World state
+    // used by snapshots and deterministic hashes. Rebuild them during replay so a
+    // rollback produces the same ECS state as normal execution. Non-ECS outputs
+    // (audio and Canvas-only effects) must remain guarded at their own boundaries.
 
     const juiceLevel = state.juiceLevel ?? 1.0;
 

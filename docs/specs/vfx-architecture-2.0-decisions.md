@@ -54,7 +54,16 @@ The exact TypeScript API remains a PR 2 deliverable. The illustrative `createSta
 
 ### Required runtime correction
 
-The audited master version of `JuiceOrchestrator.spawn` does not centrally reject `world.isReSimulating`, despite the PixelFX integration spec claiming that it does. Central rollback suppression is a precondition for new shared VFX consumers. The guard must precede hit-stop, shake and entity/command creation.
+The earlier recommendation to make `JuiceOrchestrator.spawn` a central no-op during resimulation is superseded by the `CombatRollbackResimulation` hash regression. `Transform`, `Render` and `TTL` effect entities remain part of the serialized World state, and shake may mutate ECS-backed state such as `GameState.screenShake`. Suppressing those mutations produces a different hash after replay.
+
+The runtime contract is therefore:
+
+1. Replay authoritative hit-stop requests.
+2. Recreate ECS effect entities and replay ECS-backed shake mutations so snapshots and hashes match normal execution.
+3. Suppress genuinely external outputs (audio playback, Canvas-only pools, native/UI effects) at their own boundaries.
+4. Do not treat an ECS mutation as an external side effect merely because it represents presentation.
+
+A future migration may move transient presentation entities outside the authoritative World or introduce an explicit snapshot policy for them. Until then, deterministic replay must reconstruct them.
 
 ## 4. Semantic context model
 

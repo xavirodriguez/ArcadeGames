@@ -80,6 +80,7 @@ describe("ProofOfConceptStoryGraph Unit Tests", () => {
     runtime.navigateToNode("act2_spaceinvaders_gameplay");
     runtime.setVariable("spaceinvadersScore", 6000);
     runtime.applyEffect({ type: "completeObjective", objectiveId: "repel-invaders-wave" });
+    runtime.evaluateTransitions();
 
     expect(runtime.getFlag("reinforcementsReceived")).toBe(true);
     expect(runtime.getCurrentNodeId()).toBe("act3_asteroids_redux_gameplay");

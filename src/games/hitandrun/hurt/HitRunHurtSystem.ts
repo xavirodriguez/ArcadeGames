@@ -256,7 +256,9 @@ export class HitRunHurtSystem extends CombatHitListenerSystem<CombatHitPayload> 
 
       reaction.hitstunRemaining = Math.max(0, reaction.hitstunRemaining - dt);
       reaction.staggerRemaining = Math.max(0, (reaction.staggerRemaining ?? 0) - dt);
-      const locked = reaction.hitstunRemaining > 0 || reaction.staggerRemaining > 0;
+      if (reaction.hitstunRemaining <= 1e-9) reaction.hitstunRemaining = 0;
+      if ((reaction.staggerRemaining ?? 0) <= 1e-9) reaction.staggerRemaining = 0;
+      const locked = reaction.hitstunRemaining > 1e-9 || reaction.staggerRemaining > 1e-9;
 
       if (
         locked &&
@@ -335,7 +337,7 @@ export function isPlayerControlLocked(
     | HitReactionComponent
     | undefined;
   return !!reaction &&
-    (reaction.hitstunRemaining > 0 || (reaction.staggerRemaining ?? 0) > 0);
+    (reaction.hitstunRemaining > 1e-9 || (reaction.staggerRemaining ?? 0) > 1e-9);
 }
 
 export function canTakeDamage(

@@ -212,7 +212,14 @@ export class HitRunPowSystem extends System<CoreComponentRegistry> {
         bus.emit("combat:pow_rescued", { entity: powEntity, dropType: "points" });
       }
     } else {
-      const pickupEntity = world.createEntity();
+      let pickupEntity: number;
+      if (world.isUpdating) {
+        const reservedId = world.reserveEntityId();
+        world.getCommandBuffer().createEntity(reservedId);
+        pickupEntity = reservedId;
+      } else {
+        pickupEntity = world.createEntity();
+      }
       const pickupBp = createWeaponPickupBlueprint();
       pickupBp.spawn(world, pickupEntity, {
         x: x + 20,

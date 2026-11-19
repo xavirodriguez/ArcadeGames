@@ -142,6 +142,10 @@ export class HitRunEnemyPool implements IHitRunEnemyPool {
     if (freeList.length > 0) {
       entity = freeList.pop()!;
       isRecycled = true;
+    } else if (world.isUpdating) {
+      const reservedId = world.reserveEntityId();
+      world.getCommandBuffer().createEntity(reservedId);
+      entity = reservedId;
     } else {
       entity = world.createEntity();
     }

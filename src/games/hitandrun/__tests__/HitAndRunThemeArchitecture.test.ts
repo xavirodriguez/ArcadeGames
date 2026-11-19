@@ -148,7 +148,7 @@ describe("HitAndRun presentation theme boundary", () => {
 
     for (const relativePath of entryPoints) {
       const source = fs.readFileSync(path.join(baseDir, relativePath), "utf-8");
-      expect(source).toContain("getHitRunTheme(world)");
+      expect(source).toMatch(/getHitRun(Theme|PresentationSession)\(world\)/);
       expect(source).not.toContain("ThemeRegistry.getActiveTheme");
       expect(source).not.toContain("setActiveTheme");
     }

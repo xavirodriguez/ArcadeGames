@@ -187,8 +187,8 @@ export function buildOutrunSceneryLayout(
         (visualPalette.decor === "desert" ? 1 - decorBlend : 0) +
         (visualPalette.nextDecor === "desert" ? decorBlend : 0);
       if (desertWeight > 0.01) {
-        height += (scenarioHash("outrun_desert_profile", Math.round(point.x) + layerIndex * 100) - 0.5) *
-          point.height * 0.16 * desertWeight;
+        height += (scenarioHash("outrun_desert_profile", pointIndex + layerIndex * 100) - 0.5) *
+          target.height * 0.16 * desertWeight;
       }
       height = Math.max(2, height);
       return { x: x * referenceScale, height: height * referenceScale };

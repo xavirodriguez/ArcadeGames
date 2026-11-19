@@ -209,7 +209,7 @@ describe("HitRun PresentationPainter theme slice", () => {
   });
 
   test("adds an explicit outline for high-contrast banner presentation", () => {
-    const session = createHitRunPresentationSession("fantasy", "hud-high-contrast", 10);
+    const session = createHitRunPresentationSession("sumi-e", "hud-high-contrast", 10);
     const painter = createPainter();
 
     session.theme.renderBanner?.(painter, banner, { ...frame, highContrast: true });

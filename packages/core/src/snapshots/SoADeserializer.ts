@@ -29,13 +29,16 @@ export class SoADeserializer {
     for (let j = 0; j < numKeys; j++) {
       const key = keys[j];
       const offset = entityIndex * numKeys + j;
-      const nonNumericVal = nonNumericValues ? nonNumericValues[offset] : undefined;
+      const hasNonNumeric = !!nonNumericValues && Object.prototype.hasOwnProperty.call(nonNumericValues, offset);
+      const nonNumericVal = hasNonNumeric ? nonNumericValues![offset] : undefined;
 
-      if (nonNumericVal !== undefined && nonNumericVal !== null) {
+      if (hasNonNumeric) {
         component[key] = ComponentCloner.cloneComponent(nonNumericVal);
       } else {
         const rawVal = values ? values[offset] : undefined;
-        if (booleanKeys && booleanKeys.has(key)) {
+        if (rawVal === undefined || (typeof rawVal === "number" && Number.isNaN(rawVal))) {
+          component[key] = undefined;
+        } else if (booleanKeys && booleanKeys.has(key)) {
           component[key] = rawVal === 1;
         } else {
           component[key] = rawVal;

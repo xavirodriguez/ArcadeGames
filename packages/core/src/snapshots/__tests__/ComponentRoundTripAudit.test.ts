@@ -211,14 +211,14 @@ function expectedFieldLosses(testCase: RoundTripCase): readonly ExpectedFieldLos
     return [{ field: "onReclaim", mode: "omitted" }];
   }
 
-  if (testCase.profile !== "default-optionals" || testCase.route === "AoS") {
+  if (testCase.profile !== "default-optionals" || testCase.route === "AoS" || testCase.route === "SoA") {
     return [];
   }
 
   const fields = UNDEFINED_OPTIONAL_FIELDS[testCase.componentType] ?? [];
   return fields.map(field => ({
     field,
-    mode: testCase.route === "SoA" ? "zero" : "omitted"
+    mode: "omitted"
   }));
 }
 

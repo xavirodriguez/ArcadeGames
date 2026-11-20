@@ -245,8 +245,40 @@ export function createBuilderInstance<
   entity?: Entity,
   useCommandBuffer: boolean = false
 ): TBuilder {
-  const targetEntity = entity !== undefined ? entity : world.createEntity();
+  const targetEntity = entity !== undefined ? entity : createBuilderTargetEntity(world, useCommandBuffer);
   return factory(world, targetEntity, useCommandBuffer);
+}
+
+/**
+ * Resolves the entity a builder should operate on.
+ *
+ * @remarks
+ * A deferred builder must never mutate the world structure directly while a
+ * `World.update` is in flight: `World.checkUpdatingMutation` rejects
+ * `world.createEntity()` with
+ * `Direct structural mutation (createEntity) during World update is forbidden`.
+ * In that case the ID is reserved up-front and its activation is queued on the
+ * command buffer, mirroring `createDeferredEntity` and `World.reserveEntityId`.
+ *
+ * @param world - Target ECS world instance.
+ * @param useCommandBuffer - Whether the builder defers its mutations.
+ * @returns The entity ID the builder will configure.
+ * @internal
+ */
+function createBuilderTargetEntity<
+  TComponents extends ComponentRegistry,
+  TEvents extends EventRegistry,
+  TBlueprints extends BlueprintRegistryMap<TComponents>
+>(
+  world: World<TComponents, TEvents, TBlueprints>,
+  useCommandBuffer: boolean
+): Entity {
+  if (!useCommandBuffer || !world.isUpdating) {
+    return world.createEntity();
+  }
+  const reserved = world.reserveEntityId();
+  world.commands.createEntity(reserved);
+  return reserved;
 }
 
 /**

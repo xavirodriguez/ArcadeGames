@@ -1,4 +1,5 @@
 import type { Asset } from "expo-asset";
+import { resolveSpriteAssetOnce } from "./resolveSpriteAssetOnce";
 import {
   HIT_RUN_CHARACTER_ANIMATIONS,
   HIT_RUN_CHARACTER_ATLAS_COLUMNS,
@@ -34,13 +35,15 @@ export function createSumiESamuraiSpritesheetAsset(): Asset {
 }
 
 export async function loadSumiEPlayerSpritesheetAsset(): Promise<Asset> {
-  const asset = createSumiEPlayerSpritesheetAsset();
-  await asset.downloadAsync();
-  return asset;
+  return resolveSpriteAssetOnce(
+    require("../assets/themes/sumi-e/characters/player.png"),
+    createSumiEPlayerSpritesheetAsset
+  );
 }
 
 export async function loadSumiESamuraiSpritesheetAsset(): Promise<Asset> {
-  const asset = createSumiESamuraiSpritesheetAsset();
-  await asset.downloadAsync();
-  return asset;
+  return resolveSpriteAssetOnce(
+    require("../assets/themes/sumi-e/enemies/samurai.png"),
+    createSumiESamuraiSpritesheetAsset
+  );
 }

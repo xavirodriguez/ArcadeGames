@@ -1,4 +1,4 @@
-import { World, ShapeType } from "@tiny-aster/core";
+import { World, ShapeType, System, SystemPhase } from "@tiny-aster/core";
 import { EntityBuilder } from "../EntityBuilder";
 
 describe("EntityBuilder", () => {
@@ -65,5 +65,31 @@ describe("EntityBuilder", () => {
       .build();
 
     expect(world.getComponent(existing, "Transform")?.x).toBe(300);
+  });
+
+  it("should not mutate world structure directly when createDeferred runs during World.update", () => {
+    const world = new World<any>();
+    let builtEntity = -1;
+
+    class DeferredSpawnSystem extends System<any> {
+      public update(target: World<any>): void {
+        builtEntity = EntityBuilder.createDeferred(target)
+          .withTransform({ x: 12, y: 34 })
+          .withVelocity({ vx: 1, vy: 2 })
+          .build();
+      }
+    }
+
+    world.addSystem(new DeferredSpawnSystem(), { phase: SystemPhase.Simulation });
+
+    // World.update flips `isUpdating`; a direct world.createEntity() throws
+    // "Direct structural mutation (createEntity) during World update is forbidden".
+    expect(() => world.update(1 / 60)).not.toThrow();
+
+    expect(builtEntity).toBeGreaterThanOrEqual(0);
+    // The entity is materialized by the command buffer flush at the end of the tick.
+    expect(world.hasEntity(builtEntity)).toBe(true);
+    expect(world.getComponent(builtEntity, "Transform")?.x).toBe(12);
+    expect(world.getComponent(builtEntity, "Velocity")?.vy).toBe(2);
   });
 });

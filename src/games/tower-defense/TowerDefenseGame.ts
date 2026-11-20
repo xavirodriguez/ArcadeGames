@@ -287,7 +287,7 @@ export class TowerDefenseGame extends BaseGame<
     this.world.addSystem(new WaveSpawnSystem(), { phase: SystemPhase.Simulation });
 
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
-    this.world.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });
+    this.world.addSystem(new CombatSystem<TowerDefenseComponentRegistry, TowerDefenseEventRegistry>(), { phase: SystemPhase.Collision });
 
     this.world.addSystem(new CreepDeathSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new SlowOnHitSystem(), { phase: SystemPhase.GameRules });

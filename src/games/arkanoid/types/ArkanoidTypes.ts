@@ -4,7 +4,7 @@ import {
   EventRegistry,
   Entity
 } from "@tiny-aster/core";
-import { PowerUpComponent, CombatHitEvent, CombatDeathEvent } from "@tiny-aster/gameplay-kit";
+import { PowerUpComponent, CombatHitEvent, CombatDeathEvent, DamageComponent, FactionComponent } from "@tiny-aster/gameplay-kit";
 import {
   BrickMaterial,
   BrickColorName,
@@ -148,6 +148,8 @@ export interface ArkanoidComponentRegistry extends CoreComponentRegistry {
   Tag: { type: "Tag"; tags: string[] };
   BallTrail: BallTrailComponent;
   PaddleReflection: PaddleReflectionComponent;
+  Damage: DamageComponent;
+  Faction: FactionComponent;
 }
 
 export interface ArkanoidEventRegistry extends EventRegistry {

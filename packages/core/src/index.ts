@@ -206,6 +206,7 @@ export * from "./config/BaseConfigSchema";
 
 // Utils
 export * from "./utils/RandomService";
+export * from "./utils/guards";
 export * from "./utils/Juice";
 export * from "./utils/ObjectPool";
 export * from "./utils/ComponentSetPool";

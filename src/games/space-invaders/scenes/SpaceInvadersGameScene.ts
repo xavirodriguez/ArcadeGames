@@ -19,7 +19,7 @@ import {
 import { BENEFICIAL_MUTATORS } from "../../../utils/MutatorRegistry";
 import { ComboSystem } from "@tiny-aster/core";
 import { LootSystem, PowerUpSystem, DifficultyDirectorSystem, AchievementSystem } from "@tiny-aster/gameplay-kit";
-import { SpaceInvadersComponentRegistry } from "../types/SpaceInvadersTypes";
+import { SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry } from "../types/SpaceInvadersTypes";
 import { SpaceInvadersInputSystem } from "../systems/SpaceInvadersInputSystem";
 import { SpaceInvadersFormationSystem } from "../systems/SpaceInvadersFormationSystem";
 import { SpaceInvadersCollisionSystem } from "../systems/SpaceInvadersCollisionSystem";
@@ -186,7 +186,7 @@ export class SpaceInvadersGameScene extends Scene<SpaceInvadersComponentRegistry
     this.world.addSystem(new InvulnerabilitySystem(), { phase: SystemPhase.Simulation, group: "simulation" });
     this.world.addSystem(new SpawnDirectorSystem(), { phase: SystemPhase.Simulation, group: "simulation" });
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision, group: "simulation" });
-    this.world.addSystem(new CombatSystem(), { phase: SystemPhase.Collision, group: "simulation" });
+    this.world.addSystem(new CombatSystem<SpaceInvadersComponentRegistry, SpaceInvadersEventRegistry>(), { phase: SystemPhase.Collision, group: "simulation" });
     this.world.addSystem(new SpaceInvadersCollisionSystem(this.particlePool), { phase: SystemPhase.GameRules, group: "simulation" });
     this.world.addSystem(new KamikazeSystem(), { phase: SystemPhase.Simulation, group: "simulation" });
     this.world.addSystem(new BossSystem(), { phase: SystemPhase.Simulation, group: "simulation" });

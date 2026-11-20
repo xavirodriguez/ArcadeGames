@@ -94,11 +94,13 @@ test.describe("Hit & Run gameplay lifecycle E2E", () => {
   test("loads the route and moves the player through the real browser input bridge", async ({ page }) => {
     const pageErrors: Error[] = [];
     const consoleErrors: string[] = [];
+    page.on("console", (m) => { if (m.type() === "error" || m.type() === "warning") console.log("CONSOLE_" + m.type() + ">>>" + m.text().slice(0, 400) + "<<<"); });
     page.on("pageerror", (error) => pageErrors.push(error));
     page.on("console", (message) => {
       if (message.type() === "error") consoleErrors.push(message.text());
     });
 
+    page.on("pageerror", (e) => console.log("PAGEERROR_STACK>>>" + e.stack + "<<<"));
     await page.goto("/hitandrun");
     await waitForHitRunDebug(page);
     await expect(page.locator("canvas").first()).toBeVisible();
@@ -121,6 +123,7 @@ test.describe("Hit & Run gameplay lifecycle E2E", () => {
     const pageErrors: Error[] = [];
     page.on("pageerror", (error) => pageErrors.push(error));
 
+    page.on("pageerror", (e) => console.log("PAGEERROR_STACK>>>" + e.stack + "<<<"));
     await page.goto("/hitandrun");
     await waitForHitRunDebug(page);
     await expect.poll(() => readPlayerX(page)).not.toBeNull();
@@ -153,6 +156,7 @@ test.describe("Hit & Run gameplay lifecycle E2E", () => {
   });
 
   test("keeps spawned enemies combat-capable after the wave spawn timeline completes", async ({ page }) => {
+    page.on("pageerror", (e) => console.log("PAGEERROR_STACK>>>" + e.stack + "<<<"));
     await page.goto("/hitandrun");
     await waitForHitRunDebug(page);
 
@@ -197,6 +201,7 @@ test.describe("Hit & Run gameplay lifecycle E2E", () => {
     const pageErrors: Error[] = [];
     page.on("pageerror", (error) => pageErrors.push(error));
 
+    page.on("pageerror", (e) => console.log("PAGEERROR_STACK>>>" + e.stack + "<<<"));
     await page.goto("/hitandrun");
     await waitForHitRunDebug(page);
 

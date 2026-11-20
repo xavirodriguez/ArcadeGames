@@ -1,5 +1,6 @@
 import type { Asset } from "expo-asset";
 import type { IAssetProvider } from "@tiny-aster/core";
+import { resolveSpriteAssetOnce } from "./resolveSpriteAssetOnce";
 import {
   HIT_RUN_CHARACTER_ANIMATIONS,
   HIT_RUN_CHARACTER_ATLAS_COLUMNS,
@@ -41,9 +42,10 @@ export function createSamuraiSpritesheetAsset(): Asset {
 }
 
 export async function loadSamuraiSpritesheetAsset(): Promise<Asset> {
-  const asset = createSamuraiSpritesheetAsset();
-  await asset.downloadAsync();
-  return asset;
+  return resolveSpriteAssetOnce(
+    require("../assets/samurai-enemy.png"),
+    createSamuraiSpritesheetAsset
+  );
 }
 
 /**

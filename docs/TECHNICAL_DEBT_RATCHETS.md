@@ -8,9 +8,9 @@ The following values come from the versioned baseline files on `master` at the s
 
 | Metric | Baseline | Source |
 | --- | ---: | --- |
-| `as any` type assertions | 639 | `scripts/typecast-baseline.json` |
-| `as unknown` type assertions | 223 | `scripts/typecast-baseline.json` |
-| Total `as any` / `as unknown` assertions | 862 | `scripts/typecast-baseline.json` after removing the ratchet's own unsafe cast |
+| `as any` type assertions | 637 | `scripts/typecast-baseline.json` |
+| `as unknown` type assertions | 195 | `scripts/typecast-baseline.json` |
+| Total `as any` / `as unknown` assertions | 832 | `scripts/typecast-baseline.json` after removing the ratchet's own unsafe cast |
 | Files with these type assertions | 196 | `scripts/typecast-baseline.json` |
 | Duplicated lines | 1,545 | `scripts/duplication-baseline.json` |
 | Duplicate clones | 193 | `scripts/duplication-baseline.json` |
@@ -65,7 +65,7 @@ Target date: **2027-02-02** (90 days after the baseline review on 2026-11-04).
 
 | Metric | Starting baseline | Target by 2027-02-02 | Minimum reduction |
 | --- | ---: | ---: | ---: |
-| Total `as any` / `as unknown` assertions | 862 | **775 or fewer** | At least 87 (10.1%) |
+| Total `as any` / `as unknown` assertions | 832 | **748 or fewer** | At least 84 (10.1%) |
 | Duplicated lines | 1,545 | **1,390 or fewer** | At least 155 (10.0%) |
 | Duplication ratio | 1.57% | **1.50% or lower** | 0.07 percentage points |
 | Color-literal occurrences | 475 | **427 or fewer** | At least 48 (10.1%) |

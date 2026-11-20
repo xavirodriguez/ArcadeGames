@@ -6,6 +6,7 @@ import { Query } from "./Query";
 import type { System, SystemConfig } from "./System";
 import { Schedule } from "./Schedule";
 import { RandomService } from "../utils/RandomService";
+import { isRecord } from "../utils/guards";
 import type { WorldSnapshot } from "../snapshots/WorldSnapshot";
 import { SnapshotSerializer } from "../snapshots/SnapshotSerializer";
 import { SnapshotRestore } from "../snapshots/SnapshotRestore";
@@ -932,10 +933,6 @@ export class World<
   public deltaSnapshot(sinceVersion: number): Partial<WorldSnapshot> {
     return SnapshotSerializer.deltaSnapshot(this, sinceVersion);
   }
-}
-
-function isRecord(v: unknown): v is Record<string, unknown> {
-  return typeof v === "object" && v !== null;
 }
 
 function assertResourceShape(name: string, value: unknown): void {

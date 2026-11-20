@@ -1,4 +1,4 @@
-import { System, World, Entity, EventBus, CoreComponentRegistry, WorldUtils, WorldCommandBuffer } from "@tiny-aster/core";
+import { System, World, Entity, CoreComponentRegistry, EventRegistry, WorldUtils, EventBus, CollisionEventsComponent, HealthComponent, WorldCommandBuffer } from "@tiny-aster/core";
 import { DamageComponent, FactionComponent } from "../components/CombatComponents";
 
 /**
@@ -6,9 +6,23 @@ import { DamageComponent, FactionComponent } from "../components/CombatComponent
  * Runs deterministically as part of the simulation lifecycle.
  * @public
  */
+/**
+ * Minimal component registry contract required by {@link CombatSystem}.
+ *
+ * `Damage` and `Faction` are optional so that games which do not use damageable
+ * entities (e.g. Arkanoid) can still register the system without declaring
+ * components they never attach. The system treats their absence as "no damage".
+ *
+ * @public
+ */
+export interface CombatComponentRegistry extends CoreComponentRegistry {
+  Damage: DamageComponent;
+  Faction: FactionComponent;
+}
+
 export class CombatSystem<
-  TComponents extends CoreComponentRegistry = CoreComponentRegistry,
-  TEvents extends Record<string, unknown> = Record<string, unknown>
+  TComponents extends CombatComponentRegistry = CombatComponentRegistry,
+  TEvents extends EventRegistry = EventRegistry
 > extends System<TComponents, TEvents> {
   // Safe for determinism/rollback. Reusable Set avoids per-tick heap allocations during combat resolution.
   private destroyedEntities = new Set<number>();
@@ -19,8 +33,7 @@ export class CombatSystem<
 
   public update(world: World<TComponents, TEvents>, _deltaTime: number): void {
     if (world.getResource("IsPaused") === true) return;
-    const colEventsKey = "CollisionEvents" as Extract<keyof TComponents, string>;
-    const entitiesWithEvents = world.query(colEventsKey);
+    const entitiesWithEvents = world.query("CollisionEvents" as Extract<keyof TComponents, string>);
     this.destroyedEntities.clear();
 
     // Step 1: Iterate over collision pairs (both physical collisions and trigger entry overlaps)
@@ -28,10 +41,7 @@ export class CombatSystem<
     // Safe for determinism/rollback. Sequential indexed loop eliminates per-tick iterator allocations.
     for (let i = 0; i < len; i++) {
       const entityA = entitiesWithEvents[i];
-      const colComp = world.getComponent(entityA, colEventsKey) as unknown as {
-        collisions?: Array<{ otherEntity: Entity }>;
-        triggersEntered?: Entity[];
-      } | undefined;
+      const colComp = world.getComponent(entityA, "CollisionEvents" as Extract<keyof TComponents, string>) as CollisionEventsComponent | undefined;
       if (!colComp) continue;
 
       // Process physical collisions
@@ -90,18 +100,14 @@ export class CombatSystem<
     const factionKey = "Faction" as Extract<keyof TComponents, string>;
     const deadKey = "Dead" as Extract<keyof TComponents, string>;
 
-    const damageComp = world.getComponent(attacker, damageKey) as unknown as DamageComponent | undefined;
-    const healthComp = world.getComponent(target, healthKey) as unknown as {
-      current: number;
-      max: number;
-      invulnerableRemaining?: number;
-    } | undefined;
+    const damageComp = world.getComponent(attacker, damageKey) as DamageComponent | undefined;
+    const healthComp = world.getComponent(target, healthKey) as HealthComponent | undefined;
 
     if (!damageComp || !healthComp) return;
 
     // 1. Faction Check (Friendly Fire prevention)
-    const factionA = world.getComponent(attacker, factionKey) as unknown as FactionComponent | undefined;
-    const factionB = world.getComponent(target, factionKey) as unknown as FactionComponent | undefined;
+    const factionA = world.getComponent(attacker, factionKey) as FactionComponent | undefined;
+    const factionB = world.getComponent(target, factionKey) as FactionComponent | undefined;
 
     if (factionA && factionB && factionA.faction === factionB.faction) {
       // Friendly fire: deny damage unless friendlyFire is explicitly true
@@ -128,7 +134,7 @@ export class CombatSystem<
     const nextHealth = Math.max(0, prevHealth - dmgAmount);
 
     // Safe for determinism/rollback. Fetching getMutableComponent directly avoids per-hit callback closure allocations.
-    const mutableHealth = world.getMutableComponent(target, healthKey) as { current: number } | undefined;
+    const mutableHealth = world.getMutableComponent(target, healthKey) as HealthComponent | undefined;
     if (mutableHealth) {
       mutableHealth.current = nextHealth;
     }
@@ -148,7 +154,7 @@ export class CombatSystem<
 
     // Emit combat:death if target died
     if (nextHealth <= 0) {
-      world.getCommandBuffer().addComponent(target, { type: deadKey } as unknown as Parameters<WorldCommandBuffer<TComponents>["addComponent"]>[1]);
+      world.getCommandBuffer().addComponent(target, { type: "Dead" } as Parameters<WorldCommandBuffer<TComponents>["addComponent"]>[1]);
 
       if (eventBus) {
         eventBus.emitDeferred("combat:death", {
@@ -165,7 +171,7 @@ export class CombatSystem<
       this.reclaimAndDestroy(world, attacker);
       destroyedEntities.add(attacker);
     } else if (policy === "remove-component") {
-      world.getCommandBuffer().removeComponent(attacker, damageKey);
+      world.getCommandBuffer().removeComponent(attacker, "Damage" as Extract<keyof TComponents, string>);
     }
   }
 

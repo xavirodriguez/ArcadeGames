@@ -212,7 +212,7 @@ export class AsteroidsGame
     this.world.addSystem(new CCDSystem(), { phase: SystemPhase.Simulation, priority: -10 });
     this.world.addSystem(new HierarchySystem(), { phase: SystemPhase.Transform });
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
-    this.world.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });
+    this.world.addSystem(new CombatSystem<AsteroidsComponentRegistry, AsteroidsEventRegistry>(), { phase: SystemPhase.Collision });
     this.world.setResource("HasCombatSystem", true);
     this.world.addSystem(new AsteroidCollisionSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new ResourceCollectionSystem(), { phase: SystemPhase.GameRules });

@@ -271,7 +271,7 @@ export class ArkanoidGame extends BaseGame<ArkanoidStateComponent, ArkanoidInput
     this.world.addSystem(new HierarchySystem(), { phase: SystemPhase.Transform });
 
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
-    this.world.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });
+    this.world.addSystem(new CombatSystem<ArkanoidComponentRegistry, ArkanoidEventRegistry>(), { phase: SystemPhase.Collision });
 
     this.stateSystem = new ArkanoidGameStateSystem();
     this.world.addSystem(new ArkanoidCollisionSystem(), { phase: SystemPhase.GameRules });

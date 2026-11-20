@@ -65,7 +65,7 @@ export abstract class NullBaseGame<
       seed: 0,
       nextEntityId: 0,
       freeEntities: []
-    } as unknown as WorldSnapshot;
+    };
   }
 
   /**
@@ -205,7 +205,7 @@ export abstract class NullBaseGame<
    * @remarks Null object pattern stub applies freeze to internal World instance.
    */
   public enterGameplayFreeze(duration?: number): void {
-    enterGameplayFreeze(this._world as unknown as World, duration);
+    enterGameplayFreeze(this._world, duration);
   }
 
   /**
@@ -213,7 +213,7 @@ export abstract class NullBaseGame<
    * @remarks Null object pattern stub clears freeze on internal World instance.
    */
   public exitGameplayFreeze(): void {
-    exitGameplayFreeze(this._world as unknown as World);
+    exitGameplayFreeze(this._world);
   }
 
   /**
@@ -221,7 +221,7 @@ export abstract class NullBaseGame<
    * @remarks Null object pattern stub queries freeze on internal World instance.
    */
   public isGameplayFrozen(): boolean {
-    return isGameplayFrozen(this._world as unknown as World);
+    return isGameplayFrozen(this._world);
   }
 
   /**
@@ -229,6 +229,6 @@ export abstract class NullBaseGame<
    * @remarks Null object pattern stub queries freeze remaining on internal World instance.
    */
   public getGameplayFreezeRemaining(): number | undefined {
-    return getGameplayFreezeRemaining(this._world as unknown as World);
+    return getGameplayFreezeRemaining(this._world);
   }
 }

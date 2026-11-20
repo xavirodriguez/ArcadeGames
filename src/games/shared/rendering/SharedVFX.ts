@@ -269,14 +269,14 @@ function initializeVortex(world: World<CoreComponentRegistry>, state: VFXWorldSt
 export function registerSharedVFXAssets(renderer: Renderer<CoreComponentRegistry, RenderContext>): void {
   RendererUtils.registerAssets(renderer, {
     canvas: (r) => {
-      r.registerShape("shield_bubble", EnergyShieldBubbleEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
-      r.registerShape("shockwave", DebrisShockwaveEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
-      r.registerShape("thruster_flame", ThrusterPlumeFlameEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
-      r.registerShape("laser_beam", LaserRailBeamEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
-      r.registerShape("singularity", SingularityVortexEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
-      r.registerShape("comet_trail", CometMotionTrailEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
-      r.registerShape("hologram_glitch", RGBHologramGlitchEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
-      r.registerShape("floating_text", FloatingTextScoreEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("shield_bubble", EnergyShieldBubbleEffect as ShapeDrawer<RenderContext, CoreComponentRegistry>);
+      r.registerShape("shockwave", DebrisShockwaveEffect as ShapeDrawer<RenderContext, CoreComponentRegistry>);
+      r.registerShape("thruster_flame", ThrusterPlumeFlameEffect as ShapeDrawer<RenderContext, CoreComponentRegistry>);
+      r.registerShape("laser_beam", LaserRailBeamEffect as ShapeDrawer<RenderContext, CoreComponentRegistry>);
+      r.registerShape("singularity", SingularityVortexEffect as ShapeDrawer<RenderContext, CoreComponentRegistry>);
+      r.registerShape("comet_trail", CometMotionTrailEffect as ShapeDrawer<RenderContext, CoreComponentRegistry>);
+      r.registerShape("hologram_glitch", RGBHologramGlitchEffect as ShapeDrawer<RenderContext, CoreComponentRegistry>);
+      r.registerShape("floating_text", FloatingTextScoreEffect as ShapeDrawer<RenderContext, CoreComponentRegistry>);
 
       r.registerBackgroundEffect("diffuse_milky_way", DiffuseMilkyWayBackgroundEffect);
       r.registerBackgroundEffect("drifting_nebula", DriftingNebulaBackgroundEffect);
@@ -287,14 +287,14 @@ export function registerSharedVFXAssets(renderer: Renderer<CoreComponentRegistry
       r.registerBackgroundEffect("screen_border_glow", ScreenBorderGlowEffect);
     },
     skia: (r) => {
-      r.registerShape("shield_bubble", SkiaEnergyShieldBubbleEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
-      r.registerShape("shockwave", SkiaDebrisShockwaveEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
-      r.registerShape("thruster_flame", SkiaThrusterPlumeFlameEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
-      r.registerShape("laser_beam", SkiaLaserRailBeamEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
-      r.registerShape("singularity", SkiaSingularityVortexEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
-      r.registerShape("comet_trail", SkiaCometMotionTrailEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
-      r.registerShape("hologram_glitch", SkiaRGBHologramGlitchEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
-      r.registerShape("floating_text", SkiaFloatingTextScoreEffect as unknown as ShapeDrawer<RenderContext, ComponentRegistry>);
+      r.registerShape("shield_bubble", SkiaEnergyShieldBubbleEffect as ShapeDrawer<RenderContext, CoreComponentRegistry>);
+      r.registerShape("shockwave", SkiaDebrisShockwaveEffect as ShapeDrawer<RenderContext, CoreComponentRegistry>);
+      r.registerShape("thruster_flame", SkiaThrusterPlumeFlameEffect as ShapeDrawer<RenderContext, CoreComponentRegistry>);
+      r.registerShape("laser_beam", SkiaLaserRailBeamEffect as ShapeDrawer<RenderContext, CoreComponentRegistry>);
+      r.registerShape("singularity", SkiaSingularityVortexEffect as ShapeDrawer<RenderContext, CoreComponentRegistry>);
+      r.registerShape("comet_trail", SkiaCometMotionTrailEffect as ShapeDrawer<RenderContext, CoreComponentRegistry>);
+      r.registerShape("hologram_glitch", SkiaRGBHologramGlitchEffect as ShapeDrawer<RenderContext, CoreComponentRegistry>);
+      r.registerShape("floating_text", SkiaFloatingTextScoreEffect as ShapeDrawer<RenderContext, CoreComponentRegistry>);
 
       r.registerBackgroundEffect("diffuse_milky_way", SkiaDiffuseMilkyWayBackgroundEffect);
       r.registerBackgroundEffect("drifting_nebula", SkiaDriftingNebulaBackgroundEffect);
@@ -346,7 +346,7 @@ export interface LayeredExplosionOptions {
  * @public
  */
 export function spawnLayeredExplosion<
-  TComponents extends ComponentRegistry = CoreComponentRegistry,
+  TComponents extends CoreComponentRegistry = CoreComponentRegistry,
   TEvents extends EventRegistry = EventRegistry,
   TBlueprints extends BlueprintRegistryMap<TComponents> = BlueprintRegistryMap<TComponents>
 >(
@@ -362,7 +362,7 @@ export function spawnLayeredExplosion<
   const juiceScale = state.juiceLevel ?? 1.0;
   const scale = (options?.scale ?? 1.0) * juiceScale;
   const size = profile.maxRadius * scale;
-  const coreWorld = world as unknown as World<CoreComponentRegistry>;
+  const coreWorld = world;
   const isUpdating = coreWorld.isUpdating === true;
 
   const createEntity = (): number => {
@@ -376,9 +376,9 @@ export function spawnLayeredExplosion<
 
   const addComp = (entity: number, comp: unknown): void => {
     if (isUpdating) {
-      coreWorld.getCommandBuffer().addComponent(entity, comp as any);
+      coreWorld.getCommandBuffer().addComponent(entity, comp as Parameters<typeof coreWorld.addComponent>[1]);
     } else {
-      coreWorld.addComponent(entity, comp as any);
+      coreWorld.addComponent(entity, comp as Parameters<typeof coreWorld.addComponent>[1]);
     }
   };
 

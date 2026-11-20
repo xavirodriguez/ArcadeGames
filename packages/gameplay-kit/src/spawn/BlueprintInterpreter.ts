@@ -1,9 +1,5 @@
-import { World } from "@tiny-aster/core";
+import { World, isRecord } from "@tiny-aster/core";
 import { EntityBlueprintDef } from "./EntityBlueprintSchema";
-
-function isRecord(val: unknown): val is Record<string, unknown> {
-  return typeof val === "object" && val !== null;
-}
 
 /**
  * Resolves expression strings such as "$args.x", "$config.BULLET_SPEED", or "$random(10, 50)".

@@ -1,0 +1,449 @@
+{
+  "generatedAt": "2026-11-20T08:33:26.679Z",
+  "scope": "packages/**/*.ts(x), src/**/*.ts(x), server/**/*.ts, scripts/**/*.ts (excl. dist/.turbo/compiled-js/*.d.ts)",
+  "method": "ts-morph AST, AsExpression/TypeAssertionExpression with type node 'any'/'unknown'",
+  "byArea": {
+    "production": {
+      "anyCount": 64,
+      "unknownCount": 165,
+      "total": 229
+    },
+    "tests": {
+      "anyCount": 575,
+      "unknownCount": 57,
+      "total": 632
+    },
+    "scripts": {
+      "anyCount": 0,
+      "unknownCount": 0,
+      "total": 0
+    }
+  },
+  "byPackage": {
+    "server": {
+      "production": {
+        "anyCount": 7,
+        "unknownCount": 2,
+        "total": 9
+      },
+      "tests": {
+        "anyCount": 34,
+        "unknownCount": 16,
+        "total": 50
+      },
+      "scripts": {
+        "anyCount": 0,
+        "unknownCount": 0,
+        "total": 0
+      }
+    },
+    "app/src": {
+      "production": {
+        "anyCount": 57,
+        "unknownCount": 80,
+        "total": 137
+      },
+      "tests": {
+        "anyCount": 303,
+        "unknownCount": 16,
+        "total": 319
+      },
+      "scripts": {
+        "anyCount": 0,
+        "unknownCount": 0,
+        "total": 0
+      }
+    },
+    "packages/core": {
+      "production": {
+        "anyCount": 0,
+        "unknownCount": 57,
+        "total": 57
+      },
+      "tests": {
+        "anyCount": 204,
+        "unknownCount": 6,
+        "total": 210
+      },
+      "scripts": {
+        "anyCount": 0,
+        "unknownCount": 0,
+        "total": 0
+      }
+    },
+    "packages/renderer-canvas": {
+      "production": {
+        "anyCount": 0,
+        "unknownCount": 11,
+        "total": 11
+      },
+      "tests": {
+        "anyCount": 0,
+        "unknownCount": 19,
+        "total": 19
+      },
+      "scripts": {
+        "anyCount": 0,
+        "unknownCount": 0,
+        "total": 0
+      }
+    },
+    "packages/renderer-skia": {
+      "production": {
+        "anyCount": 0,
+        "unknownCount": 2,
+        "total": 2
+      },
+      "tests": {
+        "anyCount": 0,
+        "unknownCount": 0,
+        "total": 0
+      },
+      "scripts": {
+        "anyCount": 0,
+        "unknownCount": 0,
+        "total": 0
+      }
+    },
+    "packages/gameplay-kit": {
+      "production": {
+        "anyCount": 0,
+        "unknownCount": 13,
+        "total": 13
+      },
+      "tests": {
+        "anyCount": 34,
+        "unknownCount": 0,
+        "total": 34
+      },
+      "scripts": {
+        "anyCount": 0,
+        "unknownCount": 0,
+        "total": 0
+      }
+    }
+  },
+  "topFiles": [
+    {
+      "file": "src/games/space-invaders/__tests__/SpaceInvadersCombat.test.ts",
+      "area": "tests",
+      "pkg": "app/src",
+      "anyCount": 38,
+      "unknownCount": 0,
+      "total": 38
+    },
+    {
+      "file": "packages/core/tests/TTLSystemPool.test.ts",
+      "area": "tests",
+      "pkg": "packages/core",
+      "anyCount": 33,
+      "unknownCount": 0,
+      "total": 33
+    },
+    {
+      "file": "src/games/space-invaders/__tests__/space-invaders.test.ts",
+      "area": "tests",
+      "pkg": "app/src",
+      "anyCount": 33,
+      "unknownCount": 0,
+      "total": 33
+    },
+    {
+      "file": "src/games/space-invaders/__tests__/SpaceInvadersDraftSystem.test.ts",
+      "area": "tests",
+      "pkg": "app/src",
+      "anyCount": 30,
+      "unknownCount": 0,
+      "total": 30
+    },
+    {
+      "file": "packages/gameplay-kit/src/spawn/__tests__/SpawnDirectorSystem.test.ts",
+      "area": "tests",
+      "pkg": "packages/gameplay-kit",
+      "anyCount": 25,
+      "unknownCount": 0,
+      "total": 25
+    },
+    {
+      "file": "src/games/shared/rendering/SharedVFX.ts",
+      "area": "production",
+      "pkg": "app/src",
+      "anyCount": 2,
+      "unknownCount": 22,
+      "total": 24
+    },
+    {
+      "file": "src/games/pong/__tests__/PongUpgrades.test.ts",
+      "area": "tests",
+      "pkg": "app/src",
+      "anyCount": 22,
+      "unknownCount": 0,
+      "total": 22
+    },
+    {
+      "file": "src/games/asteroids/__tests__/NewCorrections.test.ts",
+      "area": "tests",
+      "pkg": "app/src",
+      "anyCount": 19,
+      "unknownCount": 0,
+      "total": 19
+    },
+    {
+      "file": "packages/core/src/audio/__tests__/WebAudioPlayer.test.ts",
+      "area": "tests",
+      "pkg": "packages/core",
+      "anyCount": 19,
+      "unknownCount": 0,
+      "total": 19
+    },
+    {
+      "file": "packages/core/tests/utilsAndNetwork.test.ts",
+      "area": "tests",
+      "pkg": "packages/core",
+      "anyCount": 18,
+      "unknownCount": 0,
+      "total": 18
+    },
+    {
+      "file": "server/src/__tests__/AsteroidsRoom.test.ts",
+      "area": "tests",
+      "pkg": "server",
+      "anyCount": 11,
+      "unknownCount": 7,
+      "total": 18
+    },
+    {
+      "file": "src/games/shared/__tests__/InputUnificationRetrofit.test.ts",
+      "area": "tests",
+      "pkg": "app/src",
+      "anyCount": 15,
+      "unknownCount": 0,
+      "total": 15
+    },
+    {
+      "file": "server/src/__tests__/GeometryWarsRoom.test.ts",
+      "area": "tests",
+      "pkg": "server",
+      "anyCount": 10,
+      "unknownCount": 4,
+      "total": 14
+    },
+    {
+      "file": "src/games/geometrywars/__tests__/GeometryWarsGame.test.ts",
+      "area": "tests",
+      "pkg": "app/src",
+      "anyCount": 14,
+      "unknownCount": 0,
+      "total": 14
+    },
+    {
+      "file": "packages/core/tests/MultiplayerReconciler.test.ts",
+      "area": "tests",
+      "pkg": "packages/core",
+      "anyCount": 13,
+      "unknownCount": 0,
+      "total": 13
+    },
+    {
+      "file": "packages/core/tests/RollbackSimulation.test.ts",
+      "area": "tests",
+      "pkg": "packages/core",
+      "anyCount": 13,
+      "unknownCount": 0,
+      "total": 13
+    },
+    {
+      "file": "src/games/space-invaders/__tests__/SpaceInvadersOverlaysAndDemo.test.ts",
+      "area": "tests",
+      "pkg": "app/src",
+      "anyCount": 13,
+      "unknownCount": 0,
+      "total": 13
+    },
+    {
+      "file": "src/games/geometrywars/__tests__/GeometryWarsTriggerCombat.test.ts",
+      "area": "tests",
+      "pkg": "app/src",
+      "anyCount": 12,
+      "unknownCount": 0,
+      "total": 12
+    },
+    {
+      "file": "src/games/shared/__tests__/UnifiedComboIntegration.test.ts",
+      "area": "tests",
+      "pkg": "app/src",
+      "anyCount": 12,
+      "unknownCount": 0,
+      "total": 12
+    },
+    {
+      "file": "packages/core/tests/golden.test.ts",
+      "area": "tests",
+      "pkg": "packages/core",
+      "anyCount": 11,
+      "unknownCount": 0,
+      "total": 11
+    },
+    {
+      "file": "src/games/echorunner/__tests__/EchoRunner.test.ts",
+      "area": "tests",
+      "pkg": "app/src",
+      "anyCount": 11,
+      "unknownCount": 0,
+      "total": 11
+    },
+    {
+      "file": "packages/core/tests/ReplicationSystem.test.ts",
+      "area": "tests",
+      "pkg": "packages/core",
+      "anyCount": 10,
+      "unknownCount": 0,
+      "total": 10
+    },
+    {
+      "file": "packages/renderer-canvas/src/__tests__/CanvasRenderer.test.ts",
+      "area": "tests",
+      "pkg": "packages/renderer-canvas",
+      "anyCount": 0,
+      "unknownCount": 10,
+      "total": 10
+    },
+    {
+      "file": "src/games/space-invaders/__tests__/AchievementAndBossReactivity.test.ts",
+      "area": "tests",
+      "pkg": "app/src",
+      "anyCount": 10,
+      "unknownCount": 0,
+      "total": 10
+    },
+    {
+      "file": "src/games/space-invaders/__tests__/SpaceInvadersInput.test.ts",
+      "area": "tests",
+      "pkg": "app/src",
+      "anyCount": 10,
+      "unknownCount": 0,
+      "total": 10
+    },
+    {
+      "file": "src/games/space-invaders/__tests__/SpaceInvadersShootingIntegration.test.ts",
+      "area": "tests",
+      "pkg": "app/src",
+      "anyCount": 10,
+      "unknownCount": 0,
+      "total": 10
+    },
+    {
+      "file": "packages/core/tests/refactor.test.ts",
+      "area": "tests",
+      "pkg": "packages/core",
+      "anyCount": 9,
+      "unknownCount": 0,
+      "total": 9
+    },
+    {
+      "file": "packages/renderer-canvas/src/__tests__/CanvasSpriteDrawer.test.ts",
+      "area": "tests",
+      "pkg": "packages/renderer-canvas",
+      "anyCount": 0,
+      "unknownCount": 9,
+      "total": 9
+    },
+    {
+      "file": "src/games/geometrywars/scenes/GeometryWarsGameScene.ts",
+      "area": "production",
+      "pkg": "app/src",
+      "anyCount": 0,
+      "unknownCount": 9,
+      "total": 9
+    },
+    {
+      "file": "src/games/shared/__tests__/SharedGameplayPatterns.test.ts",
+      "area": "tests",
+      "pkg": "app/src",
+      "anyCount": 9,
+      "unknownCount": 0,
+      "total": 9
+    },
+    {
+      "file": "packages/core/src/__tests__/BaseGame.lifecycle.test.ts",
+      "area": "tests",
+      "pkg": "packages/core",
+      "anyCount": 8,
+      "unknownCount": 0,
+      "total": 8
+    },
+    {
+      "file": "packages/core/tests/UnifiedLifecycle.test.ts",
+      "area": "tests",
+      "pkg": "packages/core",
+      "anyCount": 7,
+      "unknownCount": 0,
+      "total": 7
+    },
+    {
+      "file": "packages/renderer-canvas/src/CanvasRenderer.ts",
+      "area": "production",
+      "pkg": "packages/renderer-canvas",
+      "anyCount": 0,
+      "unknownCount": 7,
+      "total": 7
+    },
+    {
+      "file": "packages/core/src/tests/BoltPerformance.test.ts",
+      "area": "tests",
+      "pkg": "packages/core",
+      "anyCount": 7,
+      "unknownCount": 0,
+      "total": 7
+    },
+    {
+      "file": "src/games/asteroids/__tests__/AsteroidsGame.test.ts",
+      "area": "tests",
+      "pkg": "app/src",
+      "anyCount": 7,
+      "unknownCount": 0,
+      "total": 7
+    },
+    {
+      "file": "packages/core/tests/PlatformerSystems.test.ts",
+      "area": "tests",
+      "pkg": "packages/core",
+      "anyCount": 6,
+      "unknownCount": 0,
+      "total": 6
+    },
+    {
+      "file": "server/src/__tests__/GeometryWarsMultiplayer.test.ts",
+      "area": "tests",
+      "pkg": "server",
+      "anyCount": 5,
+      "unknownCount": 1,
+      "total": 6
+    },
+    {
+      "file": "src/games/asteroids/__tests__/AsteroidPoolAndInput.test.ts",
+      "area": "tests",
+      "pkg": "app/src",
+      "anyCount": 6,
+      "unknownCount": 0,
+      "total": 6
+    },
+    {
+      "file": "src/games/asteroids/__tests__/AsteroidsStoryMode.test.ts",
+      "area": "tests",
+      "pkg": "app/src",
+      "anyCount": 6,
+      "unknownCount": 0,
+      "total": 6
+    },
+    {
+      "file": "src/games/geometrywars/__tests__/GeometricWaves.test.ts",
+      "area": "tests",
+      "pkg": "app/src",
+      "anyCount": 6,
+      "unknownCount": 0,
+      "total": 6
+    }
+  ],
+  "totalFilesWithCasts": 196
+}

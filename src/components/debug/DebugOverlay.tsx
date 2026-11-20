@@ -12,12 +12,8 @@ import {
   Clipboard,
   ActivityIndicator
 } from 'react-native';
-import { BaseGame } from "@tiny-aster/core";
+import { BaseGame, isRecord } from "@tiny-aster/core";
 import Svg, { Circle, Rect } from 'react-native-svg';
-
-function isRecord(val: unknown): val is Record<string, unknown> {
-  return typeof val === "object" && val !== null;
-}
 
 export interface EventLogEntry {
   timestamp: number;

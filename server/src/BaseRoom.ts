@@ -329,6 +329,13 @@ export abstract class BaseRoom<
     this.inputBuffers.clear();
     this.clientAcks.clear();
     this.newClients.clear();
+    const simulationRoom = this as unknown as {
+      _simulationInterval?: ReturnType<typeof setInterval>;
+    };
+    if (simulationRoom._simulationInterval !== undefined) {
+      clearInterval(simulationRoom._simulationInterval);
+      simulationRoom._simulationInterval = undefined;
+    }
     if (this.gameSimulation?.destroy) {
       this.gameSimulation.destroy();
     }

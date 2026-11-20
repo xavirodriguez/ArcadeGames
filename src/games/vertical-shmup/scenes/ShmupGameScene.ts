@@ -1,6 +1,6 @@
 import { Scene, World, System, SystemPhase, MovementSystem, BoundarySystem, TTLSystem, CollisionSystem2D, Camera2DSystem, RenderUpdateSystem, JuiceSystem, SpatialPartitioningSystem, HierarchySystem, ComboSystem } from "@tiny-aster/core";
 import { CombatSystem } from "@tiny-aster/gameplay-kit";
-import { ShmupComponentRegistry } from "../types/ShmupTypes";
+import { ShmupComponentRegistry, ShmupEventRegistry } from "../types/ShmupTypes";
 import { ShmupConfig } from "../types/ShmupConfigSchema";
 import { PlayerBulletPool, EnemyBulletPool, ParticlePool } from "../EntityPool";
 import { ShmupInputSystem } from "../systems/ShmupInputSystem";
@@ -91,7 +91,7 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
     this.world.addSystem(new SpatialPartitioningSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
     this.world.addSystem(new ShmupSingleHitGuardSystem(), { phase: SystemPhase.Collision });
-    this.world.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });
+    this.world.addSystem(new CombatSystem<ShmupComponentRegistry, ShmupEventRegistry>(), { phase: SystemPhase.Collision });
     this.world.addSystem(new ShmupBulletPatternSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new ShmupGrazeSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new ShmupCollisionSystem(), { phase: SystemPhase.GameRules });

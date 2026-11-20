@@ -91,7 +91,7 @@ export class GeometryWarsGameScene extends Scene<GeometryWarsComponentRegistry> 
     this.gworld.addSystem(new MovementSystem(), { phase: SystemPhase.Simulation });
     this.gworld.addSystem(new HierarchySystem(), { phase: SystemPhase.Transform });
     this.gworld.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
-    this.gworld.addSystem(new CombatSystem(), { phase: SystemPhase.Collision });
+    this.gworld.addSystem(new CombatSystem<GeometryWarsComponentRegistry, GeometryWarsEventRegistry>(), { phase: SystemPhase.Collision });
     this.gworld.addSystem(new GeometryWarsGameStateSystem(), { phase: SystemPhase.GameRules });
     this.gworld.addSystem(new TTLSystem(), { phase: SystemPhase.Simulation });
     this.gworld.addSystem(new KineticFlowSystem() as unknown as System<GeometryWarsComponentRegistry>, { phase: SystemPhase.Presentation, priority: 50 });

@@ -337,12 +337,12 @@ export class World<
    * @returns El identificador de la entidad creada o reciclada.
    */
   createEntity(): Entity {
+    this.checkUpdatingMutation("createEntity");
     if (this.isUpdating) {
       const id = this.reserveEntityId();
       this.getCommandBuffer().createEntity(id);
       return id;
     }
-    this.checkUpdatingMutation("createEntity");
     const id = this.freeEntities.length > 0 ? this.freeEntities.pop()! : this.nextEntityId++;
     if (this.generations[id] === undefined) {
       this.generations[id] = 1;
@@ -417,11 +417,11 @@ export class World<
 
   /** Removes an entity and purges all attached components from world storage. */
   removeEntity(entity: Entity): void {
+    this.checkUpdatingMutation("removeEntity");
     if (this.isUpdating) {
       this.getCommandBuffer().removeEntity(entity);
       return;
     }
-    this.checkUpdatingMutation("removeEntity");
     if (!this.isAlive(entity)) {
       if (isDev) {
         throw new Error(`Cannot remove entity ${entity}: entity is not alive.`);
@@ -488,11 +488,11 @@ export class World<
    * @param component - Instancia del componente, incluyendo su campo `type`.
    */
   addComponent<K extends ComponentType<TComponents>>(entity: Entity, component: TComponents[K] & { type: K }): void {
+    this.checkUpdatingMutation("addComponent", component.type as string);
     if (this.isUpdating) {
       this.getCommandBuffer().addComponent(entity, component);
       return;
     }
-    this.checkUpdatingMutation("addComponent", component.type as string);
     if (!this.isAlive(entity)) {
       if (isDev) {
         throw new Error(`Cannot add component ${component.type} to entity ${entity}: entity is not alive.`);
@@ -641,11 +641,11 @@ export class World<
    * @param type - El tipo del componente a eliminar.
    */
   removeComponent<K extends ComponentType<TComponents>>(entity: Entity, type: K): void {
+    this.checkUpdatingMutation("removeComponent", type as string);
     if (this.isUpdating) {
       this.getCommandBuffer().removeComponent(entity, type);
       return;
     }
-    this.checkUpdatingMutation("removeComponent", type as string);
     if (!this.isAlive(entity)) {
       if (isDev) {
         throw new Error(`Cannot remove component ${String(type)} from entity ${entity}: entity is not alive.`);

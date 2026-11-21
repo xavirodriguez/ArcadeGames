@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, Platform } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureDetector, Gesture, Directions } from "react-native-gesture-handler";
@@ -22,13 +22,47 @@ import {
 import { sharedScreenStyles } from "@/styles/SharedGameScreenStyles";
 import { useTranslation } from "@/hooks/useTranslation";
 import { hapticSelection } from "@/utils/haptics";
+import {
+  createOutrunE2EDebugApi,
+  type OutrunE2EDebugApi
+} from "@/games/outrun/debug/OutrunE2EDebug";
+
+declare global {
+  interface Window {
+    __outrunDebug?: OutrunE2EDebugApi;
+  }
+}
+
+/**
+ * Reads the optional deterministic seed from the URL (`?seed=123`).
+ * Only active with the E2E hooks flag so production builds keep a random seed.
+ */
+function readE2ESeedFromLocation(): number | undefined {
+  if (process.env.EXPO_PUBLIC_E2E_HOOKS !== "true") return undefined;
+  if (Platform.OS !== "web" || typeof window === "undefined") return undefined;
+  const raw = new URLSearchParams(window.location.search).get("seed");
+  if (raw === null) return undefined;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
 
 export default function OutrunScreen() {
   const { t } = useTranslation();
   const [started, setStarted] = useState(false);
-  const { game, gameState, handleInput, isReady, togglePause, isPaused } = useOutrunGame(started);
+  const isE2E = process.env.EXPO_PUBLIC_E2E_HOOKS === "true";
+  const [debugSeed, setDebugSeed] = useState<number | undefined>(readE2ESeedFromLocation);
+  const { game, gameState, handleInput, isReady, togglePause, isPaused } =
+    useOutrunGame(started || isE2E, debugSeed);
 
   useKeyboardControls(game, isReady);
+
+  useEffect(() => {
+    if (!isE2E || !game || !isReady) return;
+    window.__outrunDebug = createOutrunE2EDebugApi(game, { setSeed: setDebugSeed });
+    return () => {
+      delete window.__outrunDebug;
+    };
+  }, [isE2E, game, isReady]);
 
   const input = useCallback(
     (patch: Partial<{ accelerate: boolean; brake: boolean; left: boolean; right: boolean }>) => {
@@ -38,7 +72,7 @@ export default function OutrunScreen() {
     [handleInput, game]
   );
 
-  if (!started) {
+  if (!started && !isE2E) {
     return (
       <GameScreen>
         <BackButton label={t.common?.menu ?? "Menu"} />

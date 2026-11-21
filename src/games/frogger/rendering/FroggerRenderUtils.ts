@@ -190,3 +190,26 @@ export function resolveFroggerSlotColors(_world: World<FroggerComponentRegistry>
   const occupiedColor = FROGGER_VISUAL_TOKENS.lilyPads.occupied;
   return { slotColor, occupiedColor };
 }
+
+/**
+ * Presentation-only jump pose derived from the frog's remaining input cooldown.
+ *
+ * The cooldown counts down from `cooldownTicks` to 0 after a hop. The helper
+ * maps that interval to a normalized 0..1 arc height that is 0 on takeoff and
+ * landing and peaks in the middle. It never mutates gameplay state.
+ */
+export function resolveFroggerJumpPose(
+  cooldownRemaining: number,
+  cooldownTicks: number = DEFAULT_FROGGER_CONFIG.INPUT_COOLDOWN_TICKS
+): number {
+  if (!Number.isFinite(cooldownRemaining) || !Number.isFinite(cooldownTicks) || cooldownTicks <= 0) {
+    return 0;
+  }
+
+  const clampedRemaining = Math.max(0, Math.min(cooldownTicks, cooldownRemaining));
+  const progress = 1 - clampedRemaining / cooldownTicks;
+  const pose = 4 * progress * (1 - progress);
+
+  if (!Number.isFinite(pose)) return 0;
+  return Math.max(0, Math.min(1, pose));
+}

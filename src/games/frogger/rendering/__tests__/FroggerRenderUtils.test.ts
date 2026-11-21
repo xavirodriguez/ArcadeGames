@@ -1,6 +1,7 @@
 import { World } from "@tiny-aster/core";
 import {
   resolveFroggerFacingRotation,
+  resolveFroggerJumpPose,
   resolveFroggerShellSegments,
   resolveFroggerSlotColors,
   resolveFroggerTurtleVisualState,
@@ -98,5 +99,38 @@ describe("resolveFroggerShellSegments", () => {
     const segments = resolveFroggerShellSegments(120);
     expect(segments).toHaveLength(3);
     expect(segments.map((segment) => segment.segX)).toEqual([-40, 0, 40]);
+  });
+});
+
+describe("resolveFroggerJumpPose", () => {
+  it("returns rest pose at zero cooldown", () => {
+    expect(resolveFroggerJumpPose(0, 3)).toBe(0);
+  });
+
+  it("returns takeoff pose at full cooldown", () => {
+    expect(resolveFroggerJumpPose(3, 3)).toBe(0);
+  });
+
+  it("peaks mid-jump", () => {
+    expect(resolveFroggerJumpPose(1.5, 3)).toBe(1);
+  });
+
+  it("is monotonic on the way up", () => {
+    const a = resolveFroggerJumpPose(3, 3);
+    const b = resolveFroggerJumpPose(2.25, 3);
+    const c = resolveFroggerJumpPose(1.5, 3);
+    expect(a).toBeLessThanOrEqual(b);
+    expect(b).toBeLessThanOrEqual(c);
+  });
+
+  it("clamps out-of-range cooldown values", () => {
+    expect(resolveFroggerJumpPose(-1, 3)).toBe(0);
+    expect(resolveFroggerJumpPose(10, 3)).toBe(0);
+  });
+
+  it("returns zero for non-finite values", () => {
+    expect(resolveFroggerJumpPose(Number.NaN, 3)).toBe(0);
+    expect(resolveFroggerJumpPose(1, Number.NaN)).toBe(0);
+    expect(resolveFroggerJumpPose(Number.POSITIVE_INFINITY, 3)).toBe(0);
   });
 });

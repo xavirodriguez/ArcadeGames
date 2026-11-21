@@ -85,4 +85,14 @@ describe("Frogger visual reference contract", () => {
     expect(FROGGER_VISUAL_TOKENS.vehicles.taillights).toBe("#FF5A4F");
     expect(FROGGER_VISUAL_TOKENS.vehicles.glass).toBe("rgba(20, 20, 42, 0.55)");
   });
+
+  it("exposes semantic ui tokens for app and hud literals", () => {
+    expect(FROGGER_VISUAL_TOKENS.ui.ink).toBe("#232338");
+    expect(FROGGER_VISUAL_TOKENS.ui.accent).toBe("#B6F23C");
+    expect(FROGGER_VISUAL_TOKENS.ui.warm).toBe("#E9B949");
+    expect(FROGGER_VISUAL_TOKENS.ui.ivory).toBe("#F2EEE3");
+    expect(FROGGER_VISUAL_TOKENS.ui.danger).toBe("#FF5A4F");
+    expect(FROGGER_VISUAL_TOKENS.ui.muted).toBe("#A6B9B7");
+    expect(FROGGER_VISUAL_TOKENS.ui.secondaryText).toBe("#C9D4D0");
+  });
 });

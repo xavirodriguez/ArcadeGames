@@ -306,7 +306,7 @@ Maintain automated test coverage in `src/games/outrun/__tests__/`.
 |---|---|---|---|
 | T0.1 Audit the Implementation | HECHO | Source audit confirmed symbol/file mappings and test suite | 2026-03-30 |
 | T0.2 Establish Deterministic Geometry Fixtures | HECHO | `RoadProjection.test.ts` covers straight, curve, hill, crest occlusion, straddle, boundary continuity, wrap, determinism | 2026-03-30 |
-| T0.3 Capture Visual Baseline | PARCIAL | Baseline Canvas2D en `docs/outrun-baseline/` (12 PNG, seed 20260101, `playerZ` documentados en su `README.md`); `pnpm exec playwright test e2e/outrun-baseline.spec.ts` → 1 passed. El backend Skia no es alcanzable desde `/outrun`: la pantalla monta `CanvasRenderer` (`components/CanvasRenderer.tsx`) y nunca `GameRenderer`, y la suite lo comprueba (`OUTRUN_CANVAS_BACKEND>>>canvas2d<<<`) | 2026-11-21 |
+| T0.3 Capture Visual Baseline | PARCIAL | Baseline Canvas2D en `docs/outrun-baseline/` (12 PNG, seed 20260101, `playerZ` documentados en su `README.md`); `pnpm exec playwright test e2e/outrun-baseline.spec.ts` → 2 passed (captura + cambio de seed en caliente). El backend Skia no es alcanzable desde `/outrun`: la pantalla monta `CanvasRenderer` (`components/CanvasRenderer.tsx`) y nunca `GameRenderer`, y la suite lo comprueba (`OUTRUN_CANVAS_BACKEND>>>canvas2d<<<`) | 2026-11-21 |
 | T1.1 Near-Plane Intersections | HECHO | `NEAR_PLANE = 0.5` camera-space clipping in `RoadProjection.ts` | 2026-03-30 |
 | T1.2 Reconcile Road Visibility & Hill Occlusion | HECHO | `dest.clip = maxy` active in `RoadProjection.ts` and shared drawers | 2026-03-30 |
 | T1.3 Correct Sprite & Scenery Occlusion | HECHO | `iterateOutrunSprites` in `OutrunRenderShared.ts` applies `clipY` | 2026-03-30 |

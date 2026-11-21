@@ -33,6 +33,10 @@ moves once the countdown ends, so the frozen world keeps the deterministic spawn
 state of the seeded track. The suite asserts that two consecutive frames of the
 same scene are byte-identical, so a stored frame can be compared across commits.
 
+A second test in the same file switches the seed at runtime
+(`window.__outrunDebug.setSeed(4242)`) and asserts that the game is rebuilt with
+the new deterministic track.
+
 ## Captures
 
 | File | `playerZ` | Scene |

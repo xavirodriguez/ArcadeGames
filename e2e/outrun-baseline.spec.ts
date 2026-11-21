@@ -185,4 +185,25 @@ test.describe("Out Run visual baseline", () => {
 
     expect(pageErrors.map((error) => error.message)).toEqual([]);
   });
+
+  test("rebuilds the deterministic track when the seed changes", async ({ page }) => {
+    test.setTimeout(180000);
+    await page.goto(`/outrun?seed=${SEED}`, { waitUntil: "domcontentloaded" });
+    await expect(page.getByText("Loading CanvasKit...")).toBeHidden({ timeout: 30000 });
+    await waitForOutrunDebug(page);
+
+    const before = await page.evaluate(() => window.__outrunDebug?.getState() ?? null);
+    expect(before?.seed).toBe(SEED);
+
+    await page.evaluate(() => window.__outrunDebug?.setSeed(4242));
+    await page.waitForFunction(
+      () => window.__outrunDebug?.getState().seed === 4242,
+      undefined,
+      { timeout: 30000 }
+    );
+
+    const after = await page.evaluate(() => window.__outrunDebug?.getState() ?? null);
+    expect(after?.seed).toBe(4242);
+    expect(after?.trackLength).not.toBe(before?.trackLength);
+  });
 });

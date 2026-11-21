@@ -1,7 +1,7 @@
 # Investigación: base multiplayer de Asteroids
 
 **Fecha:** 2026-11-21  
-**Alcance:** verificación documental de H1–H4. No se modifica runtime ni `packages/core`.  
+**Alcance:** verificación de H1–H4 y primera implementación U1b. No se modifica `packages/core`.  
 **Estado general:** investigación confirmada por lectura directa; caracterización automatizada y ejecución local de CI no realizadas en esta invocación.
 
 ## Resumen ejecutivo
@@ -13,7 +13,7 @@
 | H3 — Predicción cliente ejecuta World completo y desbloquea RNG | **Confirmada** | `NetworkController` usa `world.update(dt)` por defecto; `runSimulationStep` desbloquea `gameplayRandom`. El hook predice al enviar input y vuelve a aplicar todos los inputs pendientes tras cada snapshot. |
 | H4 — Replicación deja entidades fantasma | **Confirmada con límite** | `NetworkReplicator.replicate` solo resuelve/actualiza IDs presentes; no poda ausentes ni consume una lista de destrucciones. La ausencia no significa destrucción: el modo binario filtra snapshots por presupuesto. |
 
-**Corrección implementada:** ninguna. No se dispone de ejecución del repositorio ni de un resultado real de `pnpm run ci` desde esta integración. Por tanto, no se puede demostrar una prueba que falle antes y pase después ni satisfacer el criterio obligatorio de CI verde. No se debe marcar ninguna unidad como `done`.
+**Corrección U1b implementada en PR #1214:** selección por rol en `AsteroidInputSystem`, ownership de balas por sesión, asociación de `LocalPlayer` a la nave replicada cuyo `Ship.sessionId` coincide con `localSessionId`, y activación de la ruta de snapshots externos en `NetworkManager`. Se añadieron pruebas de sala real y snapshot de dos naves. No se ejecutó Jest/E2E ni `pnpm run ci` desde esta integración; U1b permanece `pending` hasta CI y checkpoint.
 
 ## H1 — El servidor no procesa input
 
@@ -26,7 +26,8 @@
 - **Verificado.** La sala recoge el frame de `inputBuffers` y llama a `gameSimulation.applyInputToEntity(entity, frame)` antes del tick (`server/src/AsteroidsRoom.ts:185-215`).
 - **Verificado.** `applyInputFrameToEntity` crea `Input` si falta y después copia acciones/axes. No crea `LocalPlayer` (`packages/core/src/network/InputComponentFactory.ts:12-48`).
 - **Verificado.** El bootstrap single-player sí añade `LocalPlayer` y `Input`; esa ruta se omite en multiplayer (`src/games/asteroids/AsteroidsGame.ts:275-310`).
-- **Verificado.** El disparo construye la bala con `ownerId: "player"`, no con el `Ship.sessionId` de la entidad procesada (`src/games/asteroids/systems/AsteroidInputSystem.ts:100-145`).
+- **Verificado antes de U1b.** El disparo construía la bala con `ownerId: "player"`, no con el `Ship.sessionId` de la entidad procesada (`src/games/asteroids/systems/AsteroidInputSystem.ts:100-145`). U1b cambia el dueño al `ship.sessionId` con fallback para single-player.
+- **Verificado adicionalmente.** `AsteroidsGame` registraba `NetworkManager` sin suministrar `world`; `NetworkManager.processServerUpdate` solo replica cuando `world` existe y el transporte no está offline. Al omitirse transporte, el manager construye `NullTransport`; el hook multiplayer entrega snapshots directamente y `setMultiplayerMode(true)` no activa ese transporte. U1b conecta `this.world` y usa un adaptador ingress online/no-op para snapshots externos (`src/games/asteroids/AsteroidsGame.ts`; `packages/core/src/network/NetworkManager.ts:155-205`; `packages/core/src/network/NetworkController.ts:35-43`; `src/hooks/useMultiplayerGame.ts:96-109`).
 
 ### Qué no se pudo verificar
 
@@ -49,7 +50,7 @@ U1b: en el cliente, etiquetar explícitamente la nave local replicada con `Local
 - Validar que `ownerId` coincide con `Ship.sessionId` y que score/daño atribuyen el crédito al jugador correcto.
 - Cerrar con la prueba de sala descrita, pruebas de dos clientes y CI completo.
 
-**Implementación:** no implementada; no hay prueba ejecutada ni CI verde. U1b queda `pending`.
+**Implementación U1b:** cambios y regresiones añadidos en PR #1214; las pruebas no se han ejecutado desde esta integración y CI sigue pendiente. U1b permanece `pending`.
 
 ## H2 — No existe GameState en multiplayer
 
@@ -67,7 +68,7 @@ U1b: en el cliente, etiquetar explícitamente la nave local replicada con `Local
 ### Qué no se pudo verificar
 
 - No se ejecutó una sesión multiplayer completa para observar transiciones reales de oleada/intermission/game-over.
-- No se determinó qué semántica de vidas pretende el producto para cuatro jugadores: vidas globales compartidas o vidas independientes por jugador.
+- **Decisión humana tomada (2026-11-21): técnica B.** Cada jugador conserva vidas individuales; cuando agota las suyas queda eliminado y la partida continúa mientras otro jugador siga vivo. `gameOver` ocurre cuando no queda ningún jugador vivo.
 
 ### Prueba de caracterización necesaria
 
@@ -79,7 +80,7 @@ U1e: bootstrap server-only de un componente ECS `GameState` autoritativo, replic
 
 ### Riesgos y cierre
 
-- **Checkpoint humano obligatorio:** decidir vidas globales frente a vidas por jugador en salas de hasta cuatro jugadores.
+- **Política aprobada: B.** Vidas individuales; `gameOver` cuando todos los jugadores estén eliminados.
 - Definir cómo `game:over` y la proyección a `AsteroidsState.gameOver` derivan de esa política.
 - Verificar que oleadas e intermission tienen un único dueño y que el cliente no las vuelve a generar.
 - Cerrar con pruebas de bootstrap, oleadas, intermission, desconexión/muerte de jugadores y CI.
@@ -177,8 +178,22 @@ Esta matriz es propuesta de diseño, no contrato verificado ni autorización par
 - Rollback real de predicción: el hook actual re-aplica pending inputs; no diseñar/implementar rollback aquí.
 - `SafeSpawn.ts`, U2–U10, merge SoA y `SystemConfig.authority`: fuera de alcance.
 - No ampliar el guard de U1a en esta invocación; la matriz anterior solo registra propuesta.
-- Decisión humana de vidas/global game-over para cuatro jugadores, requisito previo de U1e.
+- Política B ya decidida para U1e: vidas por jugador y game-over al eliminarse todos.
+- A6 queda como U1f separado: guard de autoridad incompleto en GameRules; no se amplía en U1b.
 
 ## Estado de pruebas y CI
 
 No se añadieron tests ni cambios de runtime en esta invocación. Se inspeccionaron las pruebas existentes y se detectó que `AsteroidsMultiplayer.test.ts` crea manualmente `LocalPlayer`, por lo que no caracteriza la ruta `AsteroidsRoom.spawnPlayer` (`src/games/asteroids/__tests__/AsteroidsMultiplayer.test.ts:1-75`). No se ejecutaron Jest, E2E ni `pnpm run ci`; el estado de CI es **no ejecutado / desconocido**, nunca verde. La siguiente implementación debe añadir primero los tests de caracterización indicados y ejecutarlos antes de considerar cualquier corrección.
+
+
+## A6 — Guard de autoridad incompleto en GameRules
+
+**Estado: Verificado; no implementado en U1b.**
+
+- **Verificado.** `AsteroidGameStateSystem` es el único de los seis sistemas GameRules que se registra bajo `networkRole !== "client"`. `AsteroidCollisionSystem`, `ResourceCollectionSystem`, `LootSystem`, `DifficultyDirectorSystem` y `MissionSystem` siguen registrándose sin condición de rol (`src/games/asteroids/AsteroidsGame.ts:217-245`).
+- **Verificado.** La exclusión de `AsteroidGameStateSystem` depende del `if` en el registro de Asteroids; el sistema no incorpora por sí mismo un guard de autoridad. `SystemConfig` no ofrece `authority`/`serverOnly` (`packages/core/src/ecs/System.ts:30-62`).
+- **Alcance.** A6 no se mezcla con U1b. Se añade U1f al ledger para definir por sistema qué lógica pertenece al servidor y qué proyección/predicción corresponde al cliente. La API pública del core no se amplía por anticipado.
+
+## Decisión de producto — vidas multiplayer (2026-11-21)
+
+**Aprobada: técnica B.** Las vidas son individuales por jugador. La eliminación de un jugador no termina la partida mientras quede al menos un jugador vivo; `gameOver` se activa cuando todos han agotado sus vidas/están eliminados. Este criterio desbloquea el diseño de U1e; la implementación sigue pendiente.

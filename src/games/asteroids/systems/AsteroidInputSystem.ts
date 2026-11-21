@@ -25,8 +25,11 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
       const config = world.getResource<AsteroidConfig>("GameConfig") || this.config;
       const touchState = world.getResource<TouchInputState>("TouchInputState");
 
-      // Query local player entities
-      const entities = world.query("LocalPlayer", "Transform", "Velocity", "Input");
+      // The server owns every connected Ship; clients and local games process only their LocalPlayer.
+      const networkRole = world.getResource<"server" | "client" | "single">("NetworkRole");
+      const entities = networkRole === "server"
+        ? world.query("Ship", "Transform", "Velocity", "Input")
+        : world.query("LocalPlayer", "Transform", "Velocity", "Input");
 
       if (entities.length > 0) {
           world.setResource("LocalPhysicsProcessedThisFrame", true);
@@ -110,7 +113,7 @@ export class AsteroidInputSystem extends System<AsteroidsComponentRegistry, Aste
                   vx,
                   vy,
                   rotation: transform.rotation,
-                  ownerId: "player"
+                  ownerId: ship?.sessionId || "player"
               });
 
               Juice.playShootJuice(world, entity, {

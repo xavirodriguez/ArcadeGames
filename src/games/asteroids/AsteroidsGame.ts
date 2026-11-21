@@ -26,6 +26,7 @@ import {
   Renderer,
   RendererUtils,
   NetworkManager,
+  NetworkTransport,
   NullTransport,
   LocalPredictionSystem,
   RemoteInterpolationSystem,
@@ -90,7 +91,31 @@ import { getStoryBeatForLevel } from "./story/StoryBeats";
 import { registerMutatorHook } from "../../utils/MutatorRegistry";
 import { loadAndMutateConfig, runWithUnlockedRandomAndMutators } from "../shared/configHelper";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
+import { markLocalPlayerEntity } from "../shared/networkUtils";
 import asteroidsConfigRaw from "./config/asteroids.json";
+
+/**
+ * Multiplayer snapshots are delivered by useMultiplayerGame/Colyseus directly,
+ * not through NetworkTransport.onMessage. This ingress adapter lets the
+ * NetworkManager apply those already-delivered snapshots to the Asteroids World.
+ */
+class AsteroidsSnapshotIngressTransport implements NetworkTransport {
+  public readonly isOffline = false;
+
+  public async connect(_url: string): Promise<void> {}
+
+  public send<K extends keyof Record<string, unknown>>(
+    _type: K,
+    _message: Record<string, unknown>[K]
+  ): void {}
+
+  public onMessage<K extends keyof Record<string, unknown>>(
+    _type: K,
+    _handler: (message: Record<string, unknown>[K]) => void
+  ): void {}
+
+  public disconnect(): void {}
+}
 
 const __DEV__ = process.env.NODE_ENV !== "production";
 
@@ -188,10 +213,16 @@ export class AsteroidsGame
       this.networkManager = NetworkManager.registerGame(this.gameId, this, {
         strategy: 'full',
         interpolationDelay: 100,
-        transport: this.isMultiplayer ? undefined : new NullTransport()
+        transport: this.isMultiplayer ? new AsteroidsSnapshotIngressTransport() : new NullTransport(),
+        world: this.world
       });
     } else if (!this.isMultiplayer) {
       this.networkManager.setTransport(new NullTransport());
+    }
+
+    this.networkManager.world = this.world;
+    if (this.isMultiplayer && this.networkManager.getTransport().isOffline) {
+      this.networkManager.setTransport(new AsteroidsSnapshotIngressTransport());
     }
 
     this.world.setResource("BulletPool", this.bulletPool);
@@ -356,6 +387,12 @@ export class AsteroidsGame
 
   public setMultiplayerMode(active: boolean) {
     this.network.setMultiplayerMode(active);
+    if (!active || !this.networkManager) return;
+
+    this.networkManager.world = this.world;
+    if (this.networkManager.getTransport().isOffline) {
+      this.networkManager.setTransport(new AsteroidsSnapshotIngressTransport());
+    }
   }
 
   public applyInputToEntity(entityId: number, input: InputFrame) {
@@ -372,6 +409,21 @@ export class AsteroidsGame
 
   public updateFromServer(payload: ServerUpdatePayload, localSessionId?: string) {
     this.network.updateFromServer(payload, localSessionId);
+
+    if (this.networkRole !== "client" || !localSessionId) return;
+
+    const ships = this.world.query("Ship");
+    for (let i = 0; i < ships.length; i++) {
+      const entity = ships[i];
+      const ship = this.world.getComponent(entity, "Ship");
+      if (!ship || ship.sessionId !== localSessionId) continue;
+
+      if (!this.world.hasComponent(entity, "LocalPlayer")) {
+        markLocalPlayerEntity(this.world, entity);
+        this.world.flush();
+      }
+      return;
+    }
   }
 
   /** Change the presentation/gameplay adapter in-place without recreating the World or systems. */

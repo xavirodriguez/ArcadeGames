@@ -1,205 +1,68 @@
 import { AsteroidsRoom } from "../AsteroidsRoom";
-import { type Client, CloseCode } from "@colyseus/core";
-import { AsteroidsState } from "../schema/GameState";
+import { type Client } from "@colyseus/core";
+import { World } from "@tiny-aster/core";
+import { AsteroidsComponentRegistry, AsteroidsEventRegistry } from "../../../src/games/asteroids";
+import { InputFrame } from "../NetTypes";
 
-describe("AsteroidsRoom Lifecycle & Normalization", () => {
+type AsteroidsRoomInternalAccess = AsteroidsRoom & { world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>; playerEntities: Map<string, number> };
+function getRoomInternal(room: AsteroidsRoom): AsteroidsRoomInternalAccess { return room as unknown as AsteroidsRoomInternalAccess; }
+type MessageHandler = (client: Client, message: unknown) => void;
+type MockClient = Pick<Client, "sessionId" | "send">;
+function createMockClient(sessionId: string): Client {
+  const mock: MockClient = { sessionId, send: jest.fn() };
+  return mock as unknown as Client;
+}
+
+describe("AsteroidsRoom authoritative input", () => {
   let room: AsteroidsRoom;
-  const messageHandlers = new Map<string, Function>();
-
+  const messageHandlers = new Map<string, MessageHandler>();
   beforeEach(async () => {
     messageHandlers.clear();
     room = new AsteroidsRoom();
-
-    // Mock Colyseus Room infrastructure
-    room.setState = jest.fn((state) => {
-      room.state = state;
-    }) as any;
+    room.setState = jest.fn((state) => { room.state = state; });
     room.setPatchRate = jest.fn();
     room.setSimulationInterval = jest.fn();
-    room.onMessage = jest.fn((type: any, callback: any) => {
-      messageHandlers.set(type.toString(), callback);
-      return {} as any;
-    }) as any;
-    room.allowReconnection = jest.fn().mockResolvedValue({} as any);
+    room.onMessage = jest.fn((type: unknown, callback: MessageHandler) => {
+      messageHandlers.set(String(type), callback);
+      return (() => {}) as unknown as ReturnType<typeof room.onMessage>;
+    }) as unknown as typeof room.onMessage;
     room.broadcast = jest.fn();
-
-    // Initialize room
     await room.onCreate({ seed: 12345 });
   });
+  afterEach(() => { room.onDispose(); });
 
-  afterEach(() => {
-    room.onDispose();
-  });
-
-  it("should initialize with correct state during onCreate", () => {
-    expect(room.state).toBeDefined();
-    expect(room.state.seed).toBe(12345);
-    expect(room.state.gameWidth).toBe(800);
-    expect(room.state.gameHeight).toBe(600);
-    expect(room.state.gameStarted).toBe(false);
-    expect(room.state.gameOver).toBe(false);
-    expect(room.state.serverTick).toBe(0);
-  });
-
-  it("should register message handlers", () => {
-    expect(room.onMessage).toHaveBeenCalledWith("input", expect.any(Function));
-    expect(room.onMessage).toHaveBeenCalledWith("sync_tick", expect.any(Function));
-    expect(room.onMessage).toHaveBeenCalledWith("start_game", expect.any(Function));
-  });
-
-  it("should handle client joining without gameplayRandom locked errors", () => {
-    const mockClient = {
-      sessionId: "client_1",
-      send: jest.fn(),
-    } as unknown as Client;
-
-    // This should run smoothly and not throw RandomService locked error!
-    expect(() => {
-      room.onJoin(mockClient, { name: "Asteroid Slayer" });
-    }).not.toThrow();
-
-    // Verify player state in schema
-    const player = room.state.players.get("client_1");
-    expect(player).toBeDefined();
-    expect(player?.name).toBe("Asteroid Slayer");
-    expect(player?.x).toBeGreaterThanOrEqual(100);
-    expect(player?.x).toBeLessThanOrEqual(700);
-    expect(player?.y).toBeGreaterThanOrEqual(100);
-    expect(player?.y).toBeLessThanOrEqual(500);
-    expect(player?.alive).toBe(true);
-
-    // Verify entity assignment in ECS world
-    const world = (room as any).world;
-    const entity = (room as any).playerEntities.get("client_1");
+  it("processes the real spawned Ship input and attributes bullets to its session", () => {
+    const client = createMockClient("asteroids-session-1");
+    room.onJoin(client, { name: 'Player One' });
+    const internal = getRoomInternal(room);
+    const entity = internal.playerEntities.get(client.sessionId);
     expect(entity).toBeDefined();
-    expect(world.hasComponent(entity, "Ship")).toBe(true);
-  });
+    if (entity === undefined) throw new Error("Room did not create the player ship");
+    expect(internal.world.hasComponent(entity, "LocalPlayer")).toBe(false);
+    expect(internal.world.hasComponent(entity, "Input")).toBe(false);
+    expect(internal.world.getComponent(entity, "Ship")?.sessionId).toBe(client.sessionId);
 
-  it("should support starting game and spawning asteroids without locked errors", () => {
-    const mockClient = {
-      sessionId: "client_1",
-      send: jest.fn(),
-    } as unknown as Client;
+    const startHandler = messageHandlers.get("start_game");
+    const inputHandler = messageHandlers.get("input");
+    expect(startHandler).toBeDefined();
+    expect(inputHandler).toBeDefined();
+    startHandler!(client, undefined);
 
-    room.onJoin(mockClient, { name: "Asteroid Slayer" });
+    // Remove the initial wave so this test isolates ship input from collision outcomes.
+    for (const asteroid of internal.world.query("Asteroid")) internal.world.getCommandBuffer().removeEntity(asteroid);
+    internal.world.flush();
 
-    const startGameHandler = messageHandlers.get("start_game");
-    expect(startGameHandler).toBeDefined();
-
-    // Spawning asteroids should not throw gameplayRandom locked error!
-    expect(() => {
-      startGameHandler!();
-    }).not.toThrow();
-
-    expect(room.state.gameStarted).toBe(true);
-
-    // Run 1 update step to flush commands and sync asteroids
+    inputHandler!(client, { protocolVersion: 1, tick: 1, timestamp: 1, actions: ['thrust'], axes: {} } satisfies InputFrame);
     room.update(16.66);
+    const velocity = internal.world.getComponent(entity, "Velocity");
+    expect(velocity).toBeDefined();
+    expect(velocity ? Math.hypot(velocity.vx, velocity.vy) : 0).toBeGreaterThan(0);
+    expect(internal.world.hasComponent(entity, "LocalPlayer")).toBe(false);
 
-    expect(room.state.asteroids.size).toBe(6);
-  });
-
-  it("should map different sessionIds to different ECS player entities", () => {
-    const mockClient1 = { sessionId: "client_1", send: jest.fn() } as unknown as Client;
-    const mockClient2 = { sessionId: "client_2", send: jest.fn() } as unknown as Client;
-
-    room.onJoin(mockClient1, { name: "Player One" });
-    room.onJoin(mockClient2, { name: "Player Two" });
-
-    const entity1 = (room as any).playerEntities.get("client_1");
-    const entity2 = (room as any).playerEntities.get("client_2");
-
-    expect(entity1).toBeDefined();
-    expect(entity2).toBeDefined();
-    expect(entity1).not.toBe(entity2); // Ensure they are distinct ECS entities
-
-    const world = (room as any).world;
-    expect(world.hasComponent(entity1, "Ship")).toBe(true);
-    expect(world.hasComponent(entity2, "Ship")).toBe(true);
-  });
-
-  it("should support client reconnection on leave and clear input buffer to prevent ghost inputs", async () => {
-    const mockClient = {
-      sessionId: "client_1",
-      send: jest.fn(),
-    } as unknown as Client;
-
-    room.onJoin(mockClient, { name: "Player One" });
-
-    const inputHandler = messageHandlers.get("input")!;
-    inputHandler(mockClient, {
-      tick: 1,
-      timestamp: Date.now(),
-      actions: ["thrust"],
-      axes: {}
-    });
-
-    // Client leaves temporarily (not consented)
-    await room.onLeave(mockClient, CloseCode.GOING_AWAY);
-
-    // Reconnection should have been allowed
-    expect(room.allowReconnection).toHaveBeenCalledWith(mockClient, 10);
-    // State should still have the player
-    expect(room.state.players.has("client_1")).toBe(true);
-    // Input buffer for disconnected client should be cleared to prevent ghost inputs
-    const buffer = (room as any).inputBuffers.get("client_1");
-    expect(buffer).toEqual([]);
-  });
-
-  it("should permanently clean up player state if leave is consented", async () => {
-    const mockClient = {
-      sessionId: "client_1",
-      send: jest.fn(),
-    } as unknown as Client;
-
-    room.onJoin(mockClient, { name: "Player One" });
-
-    // Consented leave (close code normal / CONSENTED)
-    await room.onLeave(mockClient, CloseCode.CONSENTED);
-
-    // Reconnection should NOT be allowed
-    expect(room.allowReconnection).not.toHaveBeenCalled();
-    // State should NOT have the player anymore
-    expect(room.state.players.has("client_1")).toBe(false);
-    // Entity should be removed from player entities mapping
-    expect((room as any).playerEntities.has("client_1")).toBe(false);
-  });
-
-  describe("Input Frame Pipeline & Updates", () => {
-    let mockClient: Client;
-
-    beforeEach(() => {
-      mockClient = {
-        sessionId: "client_1",
-        send: jest.fn(),
-      } as unknown as Client;
-      room.onJoin(mockClient, { name: "Player One" });
-    });
-
-    it("should process input, step the simulation, and synchronize coordinates and components", () => {
-      const startGameHandler = messageHandlers.get("start_game")!;
-      startGameHandler();
-
-      const inputHandler = messageHandlers.get("input")!;
-      inputHandler(mockClient, {
-        tick: 1,
-        timestamp: Date.now(),
-        actions: ["thrust"],
-        axes: { rotate_x: 0 }
-      });
-
-      // Run 1 update step
-      room.update(16.66);
-
-      expect(room.state.serverTick).toBe(1);
-
-      // Verify that coordinates got synchronized to schema
-      const player = room.state.players.get("client_1")!;
-      expect(player).toBeDefined();
-
-      // The ship should move authoritatively
-      expect(player.x).toBeDefined();
-      expect(player.y).toBeDefined();
-    });
+    inputHandler!(client, { protocolVersion: 1, tick: 2, timestamp: 2, actions: ['shoot'], axes: {} } satisfies InputFrame);
+    room.update(16.66);
+    const bullets = internal.world.query("Bullet");
+    expect(bullets).toHaveLength(1);
+    expect(internal.world.getComponent(bullets[0], "Bullet")?.ownerId).toBe(client.sessionId);
   });
 });

@@ -112,4 +112,46 @@ describe("Asteroids Authoritative Multiplayer", () => {
 
     game.destroy();
   });
+
+  it("marks only the replicated ship matching the local Colyseus session", async () => {
+    const game = new AsteroidsGame({ headless: true, isMultiplayer: true, gameOptions: { seed: 1234 } });
+    await game.init();
+    try {
+      const world = game.getWorld();
+      const manager = game.networkManager;
+      expect(manager).toBeDefined();
+      expect(manager?.world).toBe(world);
+      expect(manager?.getTransport().isOffline).toBe(false);
+
+      const fullWorldState: WorldSnapshot = {
+        tick: 1, structureVersion: 1, stateVersion: 1, seed: 1234,
+        entities: [11, 12], nextEntityId: 13, freeEntities: [],
+        componentData: {
+          Ship: {
+            11: { type: "Ship", sessionId: "local-session", shootCooldownRemaining: 0 },
+            12: { type: "Ship", sessionId: "remote-session", shootCooldownRemaining: 0 }
+          },
+          Transform: {
+            11: { type: "Transform", x: 100, y: 100, rotation: 0, scaleX: 1, scaleY: 1, worldX: 100, worldY: 100, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false },
+            12: { type: "Transform", x: 200, y: 200, rotation: 0, scaleX: 1, scaleY: 1, worldX: 200, worldY: 200, worldRotation: 0, worldScaleX: 1, worldScaleY: 1, dirty: false }
+          },
+          Velocity: {
+            11: { type: "Velocity", vx: 0, vy: 0, angularVelocity: 0 },
+            12: { type: "Velocity", vx: 0, vy: 0, angularVelocity: 0 }
+          }
+        }
+      };
+
+      game.updateFromServer({ kind: 'full', serverTick: 1, fullWorldState }, 'local-session');
+      const localPlayer = world.query("LocalPlayer")[0];
+      expect(localPlayer).toBeDefined();
+      if (localPlayer === undefined) throw new Error("Local replicated ship was not tagged");
+      expect(world.getComponent(localPlayer, "Ship")?.sessionId).toBe("local-session");
+      const remoteShip = world.query("Ship").find(entity => world.getComponent(entity, "Ship")?.sessionId === "remote-session");
+      expect(remoteShip).toBeDefined();
+      if (remoteShip !== undefined) expect(world.hasComponent(remoteShip, 'LocalPlayer')).toBe(false);
+    } finally {
+      game.destroy();
+    }
+  });
 });

@@ -197,3 +197,13 @@ No se añadieron tests ni cambios de runtime en esta invocación. Se inspecciona
 ## Decisión de producto — vidas multiplayer (2026-11-21)
 
 **Aprobada: técnica B.** Las vidas son individuales por jugador. La eliminación de un jugador no termina la partida mientras quede al menos un jugador vivo; `gameOver` se activa cuando todos han agotado sus vidas/están eliminados. Este criterio desbloquea el diseño de U1e; la implementación sigue pendiente.
+
+## Regresión encontrada al ejecutar U1b — unidades de deltaTime
+
+**Estado: causa verificada; corrección añadida, CI pendiente.**
+
+- El test `AsteroidsRoom authoritative input` falló porque, tras recibir `thrust` en el tick 1, la velocidad seguía en cero.
+- `BaseRoom` define `fixedTimeStep = 16.66` y `runSimulationStep` pasa ese valor a `AsteroidsGame.runSimulationStep`; `AsteroidInputSystem` interpreta `deltaTime` como segundos y lo entrega a `computeShipPhysics`.
+- `computeShipPhysics` aplica fricción con `max(0, 1 - SHIP_FRICTION * deltaTimeSec)`. Un valor 16.66 segundos fuerza el factor a cero y elimina la aceleración en el mismo frame.
+- **Corrección añadida en PR #1214:** `AsteroidsRoom` sobrescribe el paso fijo a `1 / 60` segundos. No cambia el contrato compartido de `BaseRoom` ni `packages/core`.
+- La prueba de sala ya cubre el síntoma; el siguiente CI debe confirmar que movimiento y disparo pasan. El fallo anterior es evidencia del test rojo, no se afirma todavía que la corrección esté validada.

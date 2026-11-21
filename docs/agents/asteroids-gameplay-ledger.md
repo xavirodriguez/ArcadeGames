@@ -181,3 +181,10 @@
 - **Implementado en PR #1214, pendiente de validación.** Asteroids registra el World en `NetworkManager` y habilita un adaptador ingress para snapshots externos de `useMultiplayerGame`/Colyseus. Tras aplicar un snapshot, solo la nave cuyo `Ship.sessionId` coincide con `localSessionId` recibe `LocalPlayer`.
 - **Pruebas añadidas.** `server/src/__tests__/AsteroidsRoom.test.ts` recorre `onCreate → onJoin/spawnPlayer → input handler → room.update`; `AsteroidsMultiplayer.test.ts` comprueba que un snapshot de dos naves etiqueta solo la sesión local.
 - No declarar `done` hasta comprobar Jest, E2E y `pnpm run ci` en verde y completar el checkpoint humano.
+
+### U1b follow-up — unidad temporal del servidor (2026-11-21)
+
+- **Fallo observado en CI:** `AsteroidsRoom authoritative input` recibía el input y encontraba la nave, pero la velocidad seguía en cero.
+- **Causa verificada:** `BaseRoom.fixedTimeStep` vale `16.66` (milisegundos), mientras `AsteroidInputSystem` pasa `deltaTime` directamente a `computeShipPhysics` como segundos. El término de fricción `max(0, 1 - SHIP_FRICTION * deltaTimeSec)` anulaba la velocidad al tratar 16.66 como segundos.
+- **Corrección en PR #1214:** `AsteroidsRoom` fija `fixedTimeStep = 1 / 60`, conservando la frecuencia aproximada de 60 Hz y entregando segundos al ECS. El test de integración existente comprueba movimiento real tras aplicar thrust; queda pendiente reejecución de CI/E2E.
+- No marcar U1b `done` hasta que todos los workflows obligatorios terminen en verde.

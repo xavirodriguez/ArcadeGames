@@ -9,17 +9,15 @@
  *
  * Curve: smoothstep without a hard threshold (replaces Canvas's abrupt >0.4).
  * Color: far sky-band token of the active scenario palette (OUTRUN_ART tokens).
+ *
+ * Both renderers paint one continuous vertical gradient over the road instead
+ * of one fog strip per segment, so the shared contract is the pair
+ * `fogIntensity` + `resolveRoadFogColor`. A per-segment fog style helper is
+ * deliberately absent: no production path consumed it.
  */
 
 import type { ScenarioPalette } from "./OutrunPalettes";
 import { colors } from "../../../theme/colors";
-
-export interface SegmentFogStyle {
-  /** Alpha in [0, maxAlpha]; 0 means skip drawing fog for this segment. */
-  alpha: number;
-  /** CSS rgba() string for Canvas and Skia color parsing. */
-  rgba: string;
-}
 
 /** Smoothstep 0→1. */
 export function smoothstep(t: number): number {
@@ -53,30 +51,6 @@ export function hexToRgb(hex: string): [number, number, number] {
     parseInt(h.substring(4, 6), 16)
   ];
 }
-
-/**
- * Shared decision: buffer fog + palette → alpha + rgba.
- * Both Canvas and Skia must call this; no divergent intensity/color logic.
- *
- * Layers affected (by callers): full segment strip (grass+rumble+road).
- * Sprites/horizon not fogged this session (intentional residual).
- */
-export function resolveSegmentFog(
-  distanceFog: number,
-  palette: ScenarioPalette,
-  maxAlpha = 0.55
-): SegmentFogStyle {
-  const alpha = fogIntensity(distanceFog, maxAlpha);
-  if (alpha <= 0.001) {
-    return { alpha: 0, rgba: "rgba" + "(" + 0 + ", " + 0 + ", " + 0 + ", " + 0 + ")" };
-  }
-  const bands = palette.skyBands;
-  const farBand = bands[bands.length - 1] ?? bands[0] ?? colors.cyan;
-  const [r, g, b] = hexToRgb(farBand);
-  const a = Math.round(alpha * 1000) / 1000;
-  return { alpha: a, rgba: "rgba" + "(" + r + ", " + g + ", " + b + ", " + a + ")" };
-}
-
 
 /**
  * Resolve the shared fog tint at a specific opacity. Both renderers use this

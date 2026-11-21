@@ -95,8 +95,8 @@ Every change must preserve the following invariants.
 | Back-face culling | Rejects segments whose projected far edge lies below their near edge. | **Already solved:** maxy horizon occlusion clips hidden road trapezoids. | **Already solved** (`dest.clip = maxy` handles hill occlusion). |
 | Occlusion-aware sprite clipping | Captures road occlusion boundary before drawing each segment. | **Already solved:** `iterateOutrunSprites` applies `clipY` during back-to-front pass. | **Already solved** (active in `OutrunCanvasVisuals.ts` and `OutrunSkiaVisuals.ts`). |
 | Traffic lookahead | Scans upcoming segments for slower traffic and adjusts steering before overlap. | **Conditional:** inspect `TrafficSystem` lookahead needs. | **Already solved** (actualizado 2026-03-30) (`TrafficSteering.ts` has lookahead steering). |
-| Curve-driven parallax | Scrolls background layers according to track curvature and distance traveled. | **Conditional:** evaluate adding curvature accumulation to horizon parallax. | **Deferred** (actualizado 2026-03-30) (requires visual judgment). |
-| Exponential fog | Applies distance-dependent fog to road polygons. | **Evaluate visually:** align fog model across Canvas and Skia. | **Already solved** (actualizado 2026-03-30) (shared `resolveSegmentFog` in Canvas and Skia). |
+| Curve-driven parallax | Scrolls background layers according to track curvature and distance traveled. | **Conditional:** evaluate adding curvature accumulation to horizon parallax. | **Already solved** (actualizado 2026-11-21) (`computeCurvatureParallaxOffset` in `OutrunVisualHelpers.ts` is periodic across the lap close; single scale in `computeOutrunCurvatureParallaxPx`). |
+| Exponential fog | Applies distance-dependent fog to road polygons. | **Evaluate visually:** align fog model across Canvas and Skia. | **Already solved** (actualizado 2026-11-21) (shared `fogIntensity` + `resolveRoadFogColor` in `OutrunFog.ts`: one continuous vertical gradient in `OutrunCanvasVisuals.ts` and `OutrunSkiaVisuals.ts`; the unused per-segment helper `resolveSegmentFog` was removed). |
 | Segment traversal invariant | Limits movement to at most one segment per update to simplify collision handling. | **Already solved:** continuous Z space handling supports multi-segment movement. | **Already solved** (`RoadAdvanceSystem.ts` handles continuous delta Z). |
 
 ---
@@ -306,7 +306,7 @@ Maintain automated test coverage in `src/games/outrun/__tests__/`.
 |---|---|---|---|
 | T0.1 Audit the Implementation | HECHO | Source audit confirmed symbol/file mappings and test suite | 2026-03-30 |
 | T0.2 Establish Deterministic Geometry Fixtures | HECHO | `RoadProjection.test.ts` covers straight, curve, hill, crest occlusion, straddle, boundary continuity, wrap, determinism | 2026-03-30 |
-| T0.3 Capture Visual Baseline | BLOQUEADO | Requiere entorno gráfico | 2026-03-30 |
+| T0.3 Capture Visual Baseline | PARCIAL | Baseline Canvas2D en `docs/outrun-baseline/` (12 PNG, seed 20260101, `playerZ` documentados en su `README.md`); `pnpm exec playwright test e2e/outrun-baseline.spec.ts` → 2 passed (captura + cambio de seed en caliente). El backend Skia no es alcanzable desde `/outrun`: la pantalla monta `CanvasRenderer` (`components/CanvasRenderer.tsx`) y nunca `GameRenderer`, y la suite lo comprueba (`OUTRUN_CANVAS_BACKEND>>>canvas2d<<<`) | 2026-11-21 |
 | T1.1 Near-Plane Intersections | HECHO | `NEAR_PLANE = 0.5` camera-space clipping in `RoadProjection.ts` | 2026-03-30 |
 | T1.2 Reconcile Road Visibility & Hill Occlusion | HECHO | `dest.clip = maxy` active in `RoadProjection.ts` and shared drawers | 2026-03-30 |
 | T1.3 Correct Sprite & Scenery Occlusion | HECHO | `iterateOutrunSprites` in `OutrunRenderShared.ts` applies `clipY` | 2026-03-30 |
@@ -314,21 +314,23 @@ Maintain automated test coverage in `src/games/outrun/__tests__/`.
 | T2.2 Improve Elevation Transitions | DIFERIDO | Requiere modelo de altura absoluta si hay saltos; actualmente hill suavizado es adecuado | 2026-03-30 |
 | T2.3 Eliminate Curve-Boundary Discontinuities | HECHO | `basePercent` initial dx/dy offset in `RoadProjection.ts` | 2026-03-30 |
 | T3.1 Unify Palette Selection | HECHO | `getScenarioPaletteAtZ` in `OutrunPalettes.ts` consumed by Canvas & Skia | 2026-03-30 |
-| T3.2 Unify Fog Semantics | HECHO | `resolveSegmentFog` in `OutrunFog.ts` used in both `OutrunCanvasVisuals.ts` and `OutrunSkiaVisuals.ts` | 2026-03-30 |
-| T3.3 Curve-Driven Background Parallax | IMPLEMENTADO | `computeCurvatureParallaxOffset` in `OutrunVisualHelpers.ts`, `OutrunParallax.test.ts` (revisión visual pendiente) | 2026-03-30 |
+| T3.2 Unify Fog Semantics | HECHO | `fogIntensity` + `resolveRoadFogColor` en `OutrunFog.ts` (un gradiente vertical continuo) en `OutrunCanvasVisuals.ts` y `OutrunSkiaVisuals.ts`; `resolveSegmentFog` eliminado porque solo lo llamaban sus tests; baseline re-generado sin cambios de píxel (`git diff` vacío sobre `docs/outrun-baseline/`) | 2026-11-21 |
+| T3.3 Curve-Driven Background Parallax | HECHO | `computeCurvatureParallaxOffset` en `OutrunVisualHelpers.ts` es periódico (`f(0) === f(trackLength) === 0`): el salto medido de 579.50 px a `config.WIDTH` bajó a un máximo de 0.012 px (seeds 1..10, `OutrunParallax.test.ts`); escala única en `computeOutrunCurvatureParallaxPx`, usada por `computeParallaxState` y `resolveOutrunHorizonContext`; comparación visual antes/después en `docs/outrun-baseline/` (`before-wrap-*` vs `after-wrap-*`) | 2026-11-21 |
 | T4.1 Predictive Traffic Steering | HECHO | `TrafficSteering.ts` lookahead and `TrafficSteering.test.ts` | 2026-03-30 |
 | T4.2 Validate Centrifugal Force | HECHO | `centrifugalDelta` in `TrafficSteering.ts` and `TrafficSteering.test.ts` | 2026-03-30 |
 | T5.1 Validate Segment Advancement | HECHO | `RoadAdvanceSystem.ts` and `OutrunGameplay.test.ts` | 2026-03-30 |
 | T5.2 Rendering Performance Baseline | HECHO | `createProjectionBuffer` and buffer reuse in `OutrunRenderShared.ts` | 2026-03-30 |
-| T5.3 Regression Guardrails | HECHO | Test coverage across 6 Jest test files in `src/games/outrun/__tests__/` | 2026-03-30 |
+| T5.3 Regression Guardrails | HECHO | 19 archivos de test en `src/games/outrun/__tests__/`; `pnpm exec jest src/games/outrun` → 19 suites / 157 tests en verde | 2026-11-21 |
 
-### Resumen de estados (2026-03-30)
+### Resumen de estados (2026-11-21)
 
-- **HECHO:** 13
-- **IMPLEMENTADO:** 1 (T3.3 - revisión visual pendiente)
+- **HECHO:** 15
 - **DIFERIDO:** 1 (T2.2)
-- **BLOQUEADO:** 2 (T0.3)
-- **PARCIAL:** 0
+- **PARCIAL:** 1 (T0.3 — baseline Canvas2D capturado; el backend Skia no es alcanzable desde la ruta `/outrun`)
+- **IMPLEMENTADO:** 0
+- **BLOQUEADO:** 0 (el backend Skia queda BLOQUEADO dentro de la fila T0.3)
 - **PENDIENTE:** 0
 
-**Roadmap completo (2026-03-30)**
+Pendiente fuera de alcance: la captura visual del backend Skia (T0.3) no puede
+producirse desde la ruta `/outrun`, que sólo monta el renderizador Canvas2D.
+

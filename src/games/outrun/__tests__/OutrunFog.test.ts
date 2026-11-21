@@ -6,8 +6,7 @@ import {
   smoothstep,
   fogIntensity,
   hexToRgb,
-  resolveRoadFogColor,
-  resolveSegmentFog
+  resolveRoadFogColor
 } from "../rendering/OutrunFog";
 import {
   COAST_PALETTE,
@@ -42,47 +41,6 @@ describe("fogIntensity / smoothstep", () => {
   });
 });
 
-describe("resolveSegmentFog", () => {
-  it("same inputs → identical decision (Canvas/Skia parity)", () => {
-    const a = resolveSegmentFog(0.7, COAST_PALETTE);
-    const b = resolveSegmentFog(0.7, COAST_PALETTE);
-    expect(a.alpha).toBe(b.alpha);
-    expect(a.rgba).toBe(b.rgba);
-  });
-
-  it("color tracks far sky-band token of the active palette", () => {
-    const coast = resolveSegmentFog(1, COAST_PALETTE);
-    const desert = resolveSegmentFog(1, DESERT_PALETTE);
-    const mountain = resolveSegmentFog(1, MOUNTAIN_PALETTE);
-
-    const coastFar = COAST_PALETTE.skyBands[COAST_PALETTE.skyBands.length - 1];
-    const desertFar = DESERT_PALETTE.skyBands[DESERT_PALETTE.skyBands.length - 1];
-    const mountainFar = MOUNTAIN_PALETTE.skyBands[MOUNTAIN_PALETTE.skyBands.length - 1];
-
-    const [cr, cg, cb] = hexToRgb(coastFar);
-    const [dr, dg, db] = hexToRgb(desertFar);
-    const [mr, mg, mb] = hexToRgb(mountainFar);
-
-    expect(coast.rgba).toContain(`${cr}, ${cg}, ${cb}`);
-    expect(desert.rgba).toContain(`${dr}, ${dg}, ${db}`);
-    expect(mountain.rgba).toContain(`${mr}, ${mg}, ${mb}`);
-    expect(coast.rgba).not.toBe(desert.rgba);
-  });
-
-  it("near segment returns zero alpha (skip draw)", () => {
-    const near = resolveSegmentFog(0, COAST_PALETTE);
-    expect(near.alpha).toBe(0);
-  });
-
-  it("never uses the old hardcoded sky-blue outside palette tokens", () => {
-    for (const pal of [COAST_PALETTE, DESERT_PALETTE, MOUNTAIN_PALETTE]) {
-      const style = resolveSegmentFog(0.8, pal);
-      expect(style.rgba.includes("135, 206, 235")).toBe(false);
-    }
-  });
-});
-
-
 describe("resolveRoadFogColor", () => {
   it("uses the far sky band and clamps the requested opacity", () => {
     const farBand = COAST_PALETTE.skyBands[COAST_PALETTE.skyBands.length - 1]!;
@@ -97,6 +55,11 @@ describe("resolveRoadFogColor", () => {
     expect(resolveRoadFogColor(COAST_PALETTE, 2)).toBe(
       `rgba(${red}, ${green}, ${blue}, 1)`
     );
+  });
+
+  it("reads the far sky band from the active visual palette shape", () => {
+    expect(resolveRoadFogColor({ skyBands: ["#102030", "#405060"] }, 0.4))
+      .toBe("rgba(64, 80, 96, 0.4)");
   });
 });
 
@@ -130,17 +93,19 @@ describe("roadside fog parity", () => {
     const style = resolveOutrunRoadsideArtworkStyle(sprite, visual, depth, 80, false);
     const sharedAlpha = fogIntensity(depth);
 
-    expect(resolveSegmentFog(depth, COAST_PALETTE).alpha).toBeCloseTo(sharedAlpha, 3);
     expect(style.foliageColor).toBe(
       lerpColor(baseVisual.tokens.foliage, baseVisual.tokens.horizon, sharedAlpha)
     );
   });
-});
 
+  it("derives the road fog gradient from the same shared intensity", () => {
+    for (const palette of [COAST_PALETTE, DESERT_PALETTE, MOUNTAIN_PALETTE]) {
+      const farStop = resolveRoadFogColor(palette, fogIntensity(1));
+      const nearStop = resolveRoadFogColor(palette, fogIntensity(0));
 
-describe("resolveRoadFogColor palette contract", () => {
-  it("reads the far sky band from the active visual palette shape", () => {
-    expect(resolveRoadFogColor({ skyBands: ["#102030", "#405060"] }, 0.4))
-      .toBe("rgba(64, 80, 96, 0.4)");
+      expect(farStop).not.toBe(nearStop);
+      expect(farStop.endsWith(", 0.55)")).toBe(true);
+      expect(nearStop.endsWith(", 0)")).toBe(true);
+    }
   });
 });

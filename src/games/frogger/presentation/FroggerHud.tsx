@@ -40,7 +40,7 @@ export const FroggerHud: FC<FroggerHudProps> = ({
     : FROGGER_VISUAL_TOKENS.surfaces.riverShallow;
 
   return (
-    <View style={styles.overlay} pointerEvents="none">
+    <View style={styles.overlay} pointerEvents="none" testID="frogger-hud">
       <View style={styles.panel}>
         <View style={styles.topRow}>
           <View style={styles.scoreGroup}>
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   eyebrow: {
-    color: "#A6B9B7",
+    color: FROGGER_VISUAL_TOKENS.ui.eyebrow,
     fontSize: 8,
     lineHeight: 10,
     fontWeight: "700",
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
   padsLabel: {
-    color: "#C9D4D0",
+    color: FROGGER_VISUAL_TOKENS.ui.label,
     fontSize: 9,
     lineHeight: 12,
     fontWeight: "700",
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
   },
   timerLabel: {
     width: 61,
-    color: "#C9D4D0",
+    color: FROGGER_VISUAL_TOKENS.ui.label,
     fontSize: 8,
     lineHeight: 10,
     fontWeight: "700",

@@ -8,9 +8,35 @@ import {
   resolveFroggerSlotColors,
   resolveFroggerVehicleDirection,
   resolveFroggerFacingRotation,
+  resolveFroggerJumpPose,
   resolveFroggerTurtleVisualState,
 } from "./FroggerRenderUtils";
 import { FROGGER_BACKGROUND_ROWS, FROGGER_VISUAL_TOKENS } from "./FroggerVisualTokens";
+import { DEFAULT_FROGGER_CONFIG } from "../types/FroggerConfigSchema";
+import type { FroggerConfig } from "../types/FroggerConfigSchema";
+
+const froggerCanvasGradientCache = new Map<string, CanvasGradient>();
+let froggerCanvasGradientCtx: CanvasRenderingContext2D | null = null;
+
+function getFroggerRiverGradient(
+  ctx: CanvasRenderingContext2D,
+  riverY: number,
+  riverHeight: number
+): CanvasGradient {
+  if (froggerCanvasGradientCtx !== ctx) {
+    froggerCanvasGradientCtx = ctx;
+    froggerCanvasGradientCache.clear();
+  }
+  const key = `river_${riverY}_${riverHeight}`;
+  const cached = froggerCanvasGradientCache.get(key);
+  if (cached) return cached;
+  const gradient = ctx.createLinearGradient(0, riverY, 0, riverY + riverHeight);
+  gradient.addColorStop(0, FROGGER_VISUAL_TOKENS.surfaces.riverShallow);
+  gradient.addColorStop(0.55, FROGGER_VISUAL_TOKENS.surfaces.riverMid);
+  gradient.addColorStop(1, FROGGER_VISUAL_TOKENS.surfaces.riverDeep);
+  froggerCanvasGradientCache.set(key, gradient);
+  return gradient;
+}
 
 export const drawFroggerCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerComponentRegistry> = {
   draw(ctx, world, entity) {
@@ -18,8 +44,11 @@ export const drawFroggerCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCom
     if (!playerCtx) return;
 
     const { half, isInvuln, primaryColor } = playerCtx;
-    const facing = world.getComponent(entity, "Frogger")?.facing;
+    const froggerComponent = world.getComponent(entity, "Frogger");
+    const facing = froggerComponent?.facing;
     const scale = half / 16;
+    const config = world.getResource<FroggerConfig>("GameConfig") || DEFAULT_FROGGER_CONFIG;
+    const jumpPose = resolveFroggerJumpPose(froggerComponent?.cooldownRemaining ?? 0, config.INPUT_COOLDOWN_TICKS);
 
     ctx.save();
     ctx.rotate(resolveFroggerFacingRotation(facing));
@@ -30,6 +59,9 @@ export const drawFroggerCanvas: ShapeDrawer<CanvasRenderingContext2D, FroggerCom
     ctx.beginPath();
     ctx.ellipse(0, 8, 9.5, 4, 0, 0, Math.PI * 2);
     ctx.fill();
+
+    // Presentation-only lift while a hop is in progress.
+    ctx.translate(0, -jumpPose * 6);
 
     // Rear feet and toes sit behind the body.
     ctx.fillStyle = FROGGER_VISUAL_TOKENS.frog.limbs;
@@ -645,10 +677,7 @@ export const froggerBackgroundCanvasEffect: EffectDrawer<CanvasRenderingContext2
     ctx.fillRect(0, grid - 4, w, 4);
 
     // River: a restrained vertical gradient, with slow, low-contrast wave marks.
-    const riverGradient = ctx.createLinearGradient(0, riverY, 0, riverY + riverHeight);
-    riverGradient.addColorStop(0, palette.riverShallow);
-    riverGradient.addColorStop(0.55, palette.riverMid);
-    riverGradient.addColorStop(1, palette.riverDeep);
+    const riverGradient = getFroggerRiverGradient(ctx, riverY, riverHeight);
     ctx.fillStyle = riverGradient;
     ctx.fillRect(0, riverY, w, riverHeight);
 

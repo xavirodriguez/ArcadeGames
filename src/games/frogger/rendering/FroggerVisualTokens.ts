@@ -79,6 +79,21 @@ export const FROGGER_VISUAL_TOKENS = {
     blur: 3,
     offsetY: 2,
   },
+  ui: {
+    ink: "#232338",
+    accent: "#B6F23C",
+    warm: "#E9B949",
+    ivory: "#F2EEE3",
+    danger: "#FF5A4F",
+    muted: "#A6B9B7",
+    secondaryText: "#C9D4D0",
+    textPrimary: "#F2EEE3",
+    textSecondary: "#C9D4D0",
+    warmBorder: "#E9B949",
+    gameOver: "#FF5A4F",
+    eyebrow: "#A6B9B7",
+    label: "#C9D4D0",
+  },
 } as const;
 
 /**

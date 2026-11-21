@@ -17,6 +17,11 @@ import { MutatorBadge } from "@/components/MutatorBadge";
 import { Mutator } from "@/config/MutatorConfig";
 import { FroggerInput } from "../../games/frogger";
 import { FroggerHud } from "../../games/frogger/presentation/FroggerHud";
+import { FROGGER_VISUAL_TOKENS } from "../../games/frogger/rendering/FroggerVisualTokens";
+import {
+  createFroggerE2EDebugApi,
+  type FroggerE2EDebugApi,
+} from "../../games/frogger/debug/FroggerE2EDebug";
 import { DEFAULT_FROGGER_CONFIG } from "../../games/frogger/types/FroggerConfigSchema";
 import type { FroggerConfig } from "../../games/frogger/types/FroggerConfigSchema";
 import { getFroggerTimeLimit } from "../../games/frogger/presentation/FroggerHudModel";
@@ -28,7 +33,6 @@ import { hapticSelection } from "../../utils/haptics";
 import { useTranslation } from "../../hooks/useTranslation";
 import {
   GameScreen,
-  GameTitle,
   GameInstructions,
   PlayerNameInput,
   HighScoreText,
@@ -37,11 +41,25 @@ import {
   GameLayoutShell,
 } from "../../components/ui";
 
+declare global {
+  interface Window {
+    __froggerDebug?: FroggerE2EDebugApi;
+  }
+}
+
 export default function FroggerScreen() {
   const { t } = useTranslation();
   const params = useLocalSearchParams<{ seed?: string; isDaily?: string }>();
   const [playerName, setPlayerName] = useState("");
-  const [initialSeed, setInitialSeed] = useState<number | undefined>();
+  const isE2E = process.env.EXPO_PUBLIC_E2E_HOOKS === "true";
+  const [debugSeed, setDebugSeed] = useState<number | undefined>(() => {
+    if (!isE2E || typeof window === "undefined") return undefined;
+    const raw = new URLSearchParams(window.location.search).get("seed");
+    if (raw === null) return undefined;
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  });
+  const [initialSeed, setInitialSeed] = useState<number | undefined>(debugSeed);
 
   useEffect(() => {
     PlayerProfileService.getProfile().then((p) => {
@@ -56,9 +74,17 @@ export default function FroggerScreen() {
 
   const [started, setStarted] = useState(false);
   const [isDaily, setIsDaily] = useState(false);
-  const { game, gameState, handleInput, isReady, highScore, seed, restartWithSeed } = useFroggerGame(started, false, initialSeed);
+  const { game, gameState, handleInput, isReady, highScore, seed, restartWithSeed } = useFroggerGame(started || isE2E, false, initialSeed ?? debugSeed);
 
   useKeyboardControls(game, isReady);
+
+  useEffect(() => {
+    if (!isE2E || !game || !isReady) return;
+    window.__froggerDebug = createFroggerE2EDebugApi(game, { setSeed: setDebugSeed });
+    return () => {
+      delete window.__froggerDebug;
+    };
+  }, [isE2E, game, isReady]);
 
 
   useEffect(() => {
@@ -110,7 +136,7 @@ export default function FroggerScreen() {
     game?.setInputState(input);
   }, [handleInput, game]);
 
-  if (!started) {
+  if (!started && !isE2E) {
     return (
       <StartScreen
         title="FROGGER"
@@ -250,7 +276,7 @@ const StartScreen: FC<{
   return (
     <GameScreen>
       <BackButton label={t?.common?.menu || "Menu"} />
-      <GameTitle glowColor="#B6F23C">{title}</GameTitle>
+      <Text style={styles.title}>{title}</Text>
 
       <PlayerNameInput
         label={t?.accessibility?.player_name_label || "Player Name"}
@@ -292,6 +318,16 @@ const StartScreen: FC<{
 };
 
 const styles = StyleSheet.create({
+  title: {
+    fontSize: 32,
+    color: FROGGER_VISUAL_TOKENS.ui.ivory,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 24,
+    textShadowColor: FROGGER_VISUAL_TOKENS.shadows.color,
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+  },
   dpadContainer: {
     position: "absolute",
     bottom: 30,
@@ -309,7 +345,7 @@ const styles = StyleSheet.create({
     height: 60,
     backgroundColor: "rgba(15, 110, 122, 0.20)",
     borderWidth: 2,
-    borderColor: "#E9B949",
+    borderColor: FROGGER_VISUAL_TOKENS.ui.warm,
     borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
@@ -322,10 +358,10 @@ const styles = StyleSheet.create({
   dpadButtonPressed: {
     transform: [{ scale: 0.92 }],
     backgroundColor: "rgba(23, 163, 163, 0.36)",
-    borderColor: "#F2EEE3",
+    borderColor: FROGGER_VISUAL_TOKENS.ui.ivory,
   },
   dpadText: {
-    color: "#F2EEE3",
+    color: FROGGER_VISUAL_TOKENS.ui.ivory,
     fontSize: 24,
     fontWeight: "bold",
     userSelect: "none",
@@ -338,27 +374,27 @@ const styles = StyleSheet.create({
     zIndex: 100,
   },
   gameOverText: {
-    color: "#FF5A4F",
+    color: FROGGER_VISUAL_TOKENS.ui.danger,
     fontSize: 36,
     fontFamily: "monospace",
     fontWeight: "bold",
     marginBottom: 10,
   },
   finalScoreText: {
-    color: "#F2EEE3",
+    color: FROGGER_VISUAL_TOKENS.ui.ivory,
     fontSize: 20,
     fontFamily: "monospace",
     marginBottom: 20,
   },
   restartButton: {
-    backgroundColor: "#B6F23C",
+    backgroundColor: FROGGER_VISUAL_TOKENS.ui.accent,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 6,
     userSelect: "none",
   },
   restartButtonText: {
-    color: "#232338",
+    color: FROGGER_VISUAL_TOKENS.ui.ink,
     fontWeight: "bold",
     fontFamily: "monospace",
     userSelect: "none",
@@ -453,15 +489,15 @@ function FroggerTouchControls({
 
   return (
     <GestureDetector gesture={flingGesture}>
-      <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+      <View style={StyleSheet.absoluteFill} pointerEvents="box-none" testID="frogger-controls">
         <View style={styles.dpadContainer} pointerEvents="box-none">
           <GestureActionButton
             label="▲"
             size={58}
             color="rgba(15, 110, 122, 0.20)"
-            borderColor="#E9B949"
+            borderColor={FROGGER_VISUAL_TOKENS.ui.warm}
             pressedColor="rgba(23, 163, 163, 0.36)"
-            pressedBorderColor="#F2EEE3"
+            pressedBorderColor={FROGGER_VISUAL_TOKENS.ui.ivory}
             haptic="medium"
             onPressIn={() => handleGameInput({ moveUp: true })}
             onPressOut={() => handleGameInput({ moveUp: false })}
@@ -473,9 +509,9 @@ function FroggerTouchControls({
               label="◀"
               size={58}
               color="rgba(15, 110, 122, 0.20)"
-              borderColor="#E9B949"
+              borderColor={FROGGER_VISUAL_TOKENS.ui.warm}
               pressedColor="rgba(23, 163, 163, 0.36)"
-              pressedBorderColor="#F2EEE3"
+              pressedBorderColor={FROGGER_VISUAL_TOKENS.ui.ivory}
               haptic="medium"
               onPressIn={() => handleGameInput({ moveLeft: true })}
               onPressOut={() => handleGameInput({ moveLeft: false })}
@@ -486,9 +522,9 @@ function FroggerTouchControls({
               label="▶"
               size={58}
               color="rgba(15, 110, 122, 0.20)"
-              borderColor="#E9B949"
+              borderColor={FROGGER_VISUAL_TOKENS.ui.warm}
               pressedColor="rgba(23, 163, 163, 0.36)"
-              pressedBorderColor="#F2EEE3"
+              pressedBorderColor={FROGGER_VISUAL_TOKENS.ui.ivory}
               haptic="medium"
               onPressIn={() => handleGameInput({ moveRight: true })}
               onPressOut={() => handleGameInput({ moveRight: false })}
@@ -500,9 +536,9 @@ function FroggerTouchControls({
             label="▼"
             size={58}
             color="rgba(15, 110, 122, 0.20)"
-            borderColor="#E9B949"
+            borderColor={FROGGER_VISUAL_TOKENS.ui.warm}
             pressedColor="rgba(23, 163, 163, 0.36)"
-            pressedBorderColor="#F2EEE3"
+            pressedBorderColor={FROGGER_VISUAL_TOKENS.ui.ivory}
             haptic="medium"
             onPressIn={() => handleGameInput({ moveDown: true })}
             onPressOut={() => handleGameInput({ moveDown: false })}

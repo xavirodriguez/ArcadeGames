@@ -1,6 +1,6 @@
 import type { World } from "@tiny-aster/core";
 import { scenarioHash } from "./OutrunPalettes";
-import { computeCurvatureParallaxOffset } from "./OutrunVisualHelpers";
+import { computeOutrunCurvatureParallaxPx } from "./OutrunVisualHelpers";
 import { createVisualPaletteResource, groundColorAtDepth, lerpColor } from "../utils/palette";
 import type { OutrunConfig } from "../types/OutrunConfigSchema";
 import type {
@@ -53,9 +53,7 @@ export function computeParallaxState(
   const screenWidth = config.WIDTH;
   const tuning = config.visual.tuning.mountains.parallax;
   const speedRatio = config.maxSpeed > 0 ? clamp01(state.speed / config.maxSpeed) : 0;
-  const curvatureOffset = computeCurvatureParallaxOffset(
-    roadData.segments, state.playerZ, roadData.trackLength, tuning.curvatureScale
-  ) * screenWidth;
+  const curvatureOffset = computeOutrunCurvatureParallaxPx(roadData, state.playerZ, config);
   // Elapsed race time provides a deterministic phase that doesn't jump at track wrap.
   const distanceOffset = state.lapTime *
     (tuning.baseDriftPxPerSecond + tuning.speedDriftPxPerSecond * speedRatio);

@@ -10,6 +10,11 @@
 | U0 | Auditoría de arquitectura | approved | — | Sin cambios. |
 | U0b | Anexo de auditoría | approved | U0 | Este anexo + decisiones D1-D4. Checkpoint humano. |
 | U1a | Guard de autoridad | pending | U0b | Recurso `NetworkRole` y registro condicional de `AsteroidGameStateSystem`; `AsteroidsRoom` declara `server`, multiplayer sin override deriva a `client` y modo local a `single`. Prueba de dos Worlds con un único spawn. Implementación subida a PR; pendiente CI y checkpoint humano. |
+| U1b | Input autoritativo y marcado de LocalPlayer | pending | U1a | Implementación en PR #1214: servidor consulta `Ship + Input` bajo rol server; cliente marca solo el `Ship.sessionId` local después del snapshot; bala atribuye `ownerId` a `Ship.sessionId`. Añade test de sala real y test de snapshot cliente. Pendiente CI y checkpoint. |
+| U1c | Predicción cliente acotada | pending | U1a, U1b | Ver H3 en `docs/agents/asteroids-multiplayer-investigation.md`. Inyectar paso de física local sin GameRules/Collision/Loot/Mission y sin desbloquear RNG. Primero verificar si Schedule/World lo permite sin `packages/core`; si no, documentar bloqueo. |
+| U1d | Reconciliación con destroyedEntities | pending | — | Ver H4 en `docs/agents/asteroids-multiplayer-investigation.md`. Tombstones explícitos; nunca podar por ausencia debido al filtrado binario/AOI. Requiere compatibilidad/versionado de protocolo y pruebas de snapshot/delta. |
+| U1e | GameState autoritativo en servidor | pending | U1a, decisión B tomada | Ver H2 en `docs/agents/asteroids-multiplayer-investigation.md`. Bootstrap server-only y replicar GameState ECS. Política acordada: vidas individuales; game-over cuando todos los jugadores estén eliminados. |
+| U1f | Aislamiento de GameRules por NetworkRole | pending | U1a | Hallazgo A6: solo `AsteroidGameStateSystem` se registra con guard; definir autoridad y proyección para `AsteroidCollisionSystem`, `ResourceCollectionSystem`, `LootSystem`, `DifficultyDirectorSystem` y `MissionSystem`. Unidad separada de U1b/U1c; no añadir `SystemConfig.authority` sin necesidad demostrada. |
 | U1 | `findSafeSpawnPoint` stateless | pending | U0b | U1.1–U1.4 implementadas en `src/games/asteroids/systems/SafeSpawn.ts` y `src/games/asteroids/__tests__/SafeSpawn.test.ts`: hash local type-tagged y candidatos stateless (K=16 por defecto), clearance = distancia toroidal centro-superficie, radio de obstáculo descontado, desempate por índice menor y `degraded` solo si el mejor clearance es menor que el umbral. No consume `gameplayRandom`, no importa rendering ni toca integraciones U2. Tests añadidos; pendiente CI y checkpoint humano. |
 | U2 | Adoptar el helper | pending | U1, U1a | `spawnAsteroidWave`, **`AsteroidsRoom.spawnAsteroids(6)`** y respawn de nave. Documentar el cambio de consumo de RNG. |
 | U3 | Hyperspace seguro | pending | U1, U1a | **Fase 0:** test con dos clientes que compruebe si el salto se ejecuta en el servidor (`LocalPlayer`). Si no, resolverlo antes de pulir. Destino derivado solo si hay handshake de seed; si no, lo decide el servidor. |
@@ -157,3 +162,29 @@
 7. **Tabla:** añadido U1a; U2 depende de U1+U1a; U3 de U1+U1a; U6 de U1a; U7 especifica CombatSystem y misión por `eventName` (decisiones y cambios de alcance registrados en este ledger).
 8. **Estado:** U1a es la siguiente unidad pero sigue `pending`; U0/U0b están aprobadas. Solo documental; no se ejecutó `pnpm run ci`, Jest ni E2E.
 
+
+
+### U1b–U1e — Investigación de base multiplayer (2026-11-21)
+
+- **Verificado.** H1: `AsteroidInputSystem` consulta `LocalPlayer + Transform + Velocity + Input`; `AsteroidsRoom.spawnPlayer` crea Ship y añade `Ship.sessionId`, mientras `applyInputFrameToEntity` sí añade `Input` cuando falta. La query no procesa esa nave sin `LocalPlayer` (`src/games/asteroids/systems/AsteroidInputSystem.ts:14-45`; `server/src/AsteroidsRoom.ts:150-215`; `packages/core/src/network/InputComponentFactory.ts:12-48`).
+- **Verificado.** H2: el bootstrap multiplayer retorna antes de crear `GameState`; el servidor registra `AsteroidGameStateSystem`, pero el sistema obtiene el componente mediante `getSingleton` y `syncWorldToSchema` solo lo lee si existe (`src/games/asteroids/AsteroidsGame.ts:215-245,275-310`; `src/games/asteroids/systems/AsteroidGameStateSystem.ts:15-40`; `server/src/AsteroidsRoom.ts:350-405`).
+- **Verificado.** H3: `AsteroidsGame` construye `NetworkController` sin callback acotado; `NetworkController` usa `world.update(dt)` por defecto y desbloquea `gameplayRandom`; `useMultiplayerGame` predice al enviar input y vuelve a aplicar todos los pending inputs tras snapshot (`src/games/asteroids/AsteroidsGame.ts:130-145`; `packages/core/src/network/NetworkController.ts:25-95`; `src/hooks/useMultiplayerGame.ts:85-135`).
+- **Verificado con límite.** H4: `WorldSnapshot` no define `destroyedEntities`; `NetworkReplicator.replicate` solo resuelve IDs presentes y no poda por ausencia. El modo binario filtra el snapshot por presupuesto/interés, por lo que la ausencia no demuestra destrucción (`packages/core/src/snapshots/WorldSnapshot.ts:1-105`; `packages/core/src/network/NetworkManager.ts:30-125`; `server/src/replication/BinaryReplicationStrategy.ts:1-50`; `packages/core/src/network/MultiplayerSystems.ts:235-330`).
+- **Hipótesis no promovida.** El síntoma de naves inmóviles/disparos ausentes en una sala real no se observó ejecutando Colyseus; se deduce directamente de la incompatibilidad de la query y del spawn. La prueba multiplayer existente crea `LocalPlayer` manualmente y no caracteriza `AsteroidsRoom.spawnPlayer` (`src/games/asteroids/__tests__/AsteroidsMultiplayer.test.ts:1-75`).
+- **Estado de ejecución.** Esta invocación no añadió tests de caracterización ni runtime; no se ejecutaron Jest/E2E ni `pnpm run ci`. Ninguna unidad multiplayer se marca `done`; U1b–U1e permanecen `pending`. La investigación detallada, propuestas, matriz de autoridad y pruebas necesarias están en `docs/agents/asteroids-multiplayer-investigation.md`.
+- **Checkpoint humano.** U1e requiere decisión de vidas globales frente a vidas individuales y su semántica de game-over. La matriz server/client/single es propuesta documental; no amplía el guard de U1a.
+
+
+### U1b — Input autoritativo y nave local (2026-11-21)
+
+- **Implementado en PR #1214, pendiente de validación.** `AsteroidInputSystem` selecciona `Ship + Transform + Velocity + Input` en server y conserva `LocalPlayer + Transform + Velocity + Input` en client/single. La bala toma `Ship.sessionId` como `ownerId`, con fallback `"player"` para single-player.
+- **Implementado en PR #1214, pendiente de validación.** Asteroids registra el World en `NetworkManager` y habilita un adaptador ingress para snapshots externos de `useMultiplayerGame`/Colyseus. Tras aplicar un snapshot, solo la nave cuyo `Ship.sessionId` coincide con `localSessionId` recibe `LocalPlayer`.
+- **Pruebas añadidas.** `server/src/__tests__/AsteroidsRoom.test.ts` recorre `onCreate → onJoin/spawnPlayer → input handler → room.update`; `AsteroidsMultiplayer.test.ts` comprueba que un snapshot de dos naves etiqueta solo la sesión local.
+- No declarar `done` hasta comprobar Jest, E2E y `pnpm run ci` en verde y completar el checkpoint humano.
+
+### U1b follow-up — unidad temporal del servidor (2026-11-21)
+
+- **Fallo observado en CI:** `AsteroidsRoom authoritative input` recibía el input y encontraba la nave, pero la velocidad seguía en cero.
+- **Causa verificada:** `BaseRoom.fixedTimeStep` vale `16.66` (milisegundos), mientras `AsteroidInputSystem` pasa `deltaTime` directamente a `computeShipPhysics` como segundos. El término de fricción `max(0, 1 - SHIP_FRICTION * deltaTimeSec)` anulaba la velocidad al tratar 16.66 como segundos.
+- **Corrección en PR #1214:** `AsteroidsRoom` fija `fixedTimeStep = 1 / 60`, conservando la frecuencia aproximada de 60 Hz y entregando segundos al ECS. El test de integración existente comprueba movimiento real tras aplicar thrust; queda pendiente reejecución de CI/E2E.
+- No marcar U1b `done` hasta que todos los workflows obligatorios terminen en verde.

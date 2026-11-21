@@ -139,7 +139,17 @@ export function computePlayerCarGeometry(
 /**
  * Pure curvature-driven background parallax offset (T3.3).
  *
- * Computes accumulated horizon parallax shift driven by track curvature up to `playerZ`.
+ * Computes the curvature accumulated between the lap start and `playerZ`,
+ * expressed as a deviation from the lap average curvature.
+ *
+ * The deviation is what makes the offset periodic: `f(0) === f(trackLength) === 0`,
+ * so closing the lap does not jump the horizon layers back to the start value.
+ * The subtraction is a pure function of the generated geometry (no mutable
+ * system state, no extra `RoadSegment` field), and it keeps the local response:
+ * a stretch that bends harder than the lap average still shifts the horizon.
+ *
+ * The returned value is in "curve units × layerFactor"; callers convert it to
+ * pixels with {@link computeOutrunCurvatureParallaxPx}.
  */
 export function computeCurvatureParallaxOffset(
   segments: readonly { length: number; curve: number }[],
@@ -155,23 +165,53 @@ export function computeCurvatureParallaxOffset(
 
   let accumZ = 0;
   let accumCurve = 0;
+  let totalCurve = 0;
+  let reachedZ = false;
 
   for (let i = 0; i < n; i++) {
     const segLen = segments[i].length;
     const curve = segments[i].curve;
+    totalCurve += curve;
+
+    if (reachedZ) continue;
 
     if (accumZ + segLen >= z) {
       const frac = segLen > 0 ? (z - accumZ) / segLen : 0;
       accumCurve += curve * frac;
-      break;
+      reachedZ = true;
+    } else {
+      accumCurve += curve;
+      accumZ += segLen;
     }
-
-    accumCurve += curve;
-    accumZ += segLen;
   }
 
-  const offset = accumCurve * layerFactor;
+  // Deviation from the lap average curvature: keeps the offset periodic.
+  const lapAverage = totalCurve * (z / trackLength);
+  const offset = (accumCurve - lapAverage) * layerFactor;
   return offset === 0 ? 0 : offset;
+}
+
+/**
+ * Curvature parallax offset in screen pixels.
+ *
+ * Single source of truth for the scale: `config.visual.tuning.mountains.parallax.curvatureScale`.
+ * Both the scenery parallax state and the horizon context use this helper so the
+ * two paths cannot drift apart.
+ */
+export function computeOutrunCurvatureParallaxPx(
+  roadData: RoadData,
+  playerZ: number,
+  config: OutrunConfig
+): number {
+  const scale = config.visual.tuning.mountains.parallax.curvatureScale;
+  return (
+    computeCurvatureParallaxOffset(
+      roadData.segments,
+      playerZ,
+      roadData.trackLength,
+      scale
+    ) * config.WIDTH
+  );
 }
 
 export interface CloudParam {

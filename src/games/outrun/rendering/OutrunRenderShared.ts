@@ -8,7 +8,7 @@ import { COAST_PALETTE, getScenarioPaletteAtZ, applyDayPhase, scenarioHash, type
 import {
   computePlayerCarGeometry,
   computeRacerProjection,
-  computeCurvatureParallaxOffset,
+  computeOutrunCurvatureParallaxPx,
   computeCloudParams,
   computeHeatHazeLines,
   type CloudParam,
@@ -237,15 +237,11 @@ export interface OutrunHorizonContext {
 export function resolveOutrunHorizonContext(
   roadCtx: OutrunRoadRenderContext
 ): OutrunHorizonContext {
-  const { state, roadData, screenW, screenH, palette } = roadCtx;
+  const { state, roadData, screenW, screenH, palette, config } = roadCtx;
   const horizonY = screenH * 0.45;
   const bands = palette.skyBands;
   const bandHeight = horizonY / Math.max(1, bands.length);
-  const curveParallax = computeCurvatureParallaxOffset(
-    roadData.segments,
-    state.playerZ,
-    roadData.trackLength
-  );
+  const curveParallax = computeOutrunCurvatureParallaxPx(roadData, state.playerZ, config);
 
   const clouds = palette.cloudColor
     ? computeCloudParams(screenW, screenH, state.playerZ, state.playerX, 8, curveParallax * 0.4)

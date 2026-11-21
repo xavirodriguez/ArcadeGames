@@ -45,8 +45,14 @@ same scene are byte-identical, so a stored frame can be compared across commits.
 | `scenario-coast.png` | 24300 | Scenario change — coast (25 % of the lap) |
 | `scenario-desert.png` | 53460 | Scenario change — desert (55 % of the lap) |
 | `scenario-mountain.png` | 68040 | Scenario change — mountain/sierra (70 % of the lap) |
-| `before-wrap-end.png` | 97199 | Lap close — last world unit before the wrap |
-| `before-wrap-start.png` | 0 | Lap close — first world unit after the wrap |
+| `before-wrap-end.png` | 97199 | Lap close — last world unit before the wrap (pre-fix) |
+| `before-wrap-start.png` | 0 | Lap close — first world unit after the wrap (pre-fix) |
+| `after-wrap-end.png` | 97199 | Lap close — last world unit before the wrap (post-fix) |
+| `after-wrap-start.png` | 0 | Lap close — first world unit after the wrap (post-fix) |
+
+Every frame except the `before-wrap-*` pair was captured with the curvature
+parallax fix of roadmap task T3.3 in place; the `before-wrap-*` pair documents
+the behaviour before that fix.
 
 ## Lap-close pair
 
@@ -55,6 +61,16 @@ camera sits one world unit before `playerZ` wraps and then at the wrapped
 position. The pair documents the curvature parallax jump that roadmap task T3.3
 fixed — before the fix the horizon layers were displaced by the accumulated
 curvature of the whole lap at the wrap.
+
+Measured on the captured frames (same camera position, before vs after the fix):
+
+| Pair | Pixels changed | Bounding box of the change |
+|---|---|---|
+| `before-wrap-end.png` vs `after-wrap-end.png` | 65 687 / 921 600 (7.13 %) | `(0, 131) – (1280, 332)` (horizon band) |
+| `before-wrap-start.png` vs `after-wrap-start.png` | 2 183 / 921 600 (0.24 %) | `(4, 666) – (54, 716)` (touch-control overlay, not the canvas) |
+
+So the fix moves the horizon layers only where the jump used to happen: at the
+end of the lap. The wrapped position (`playerZ = 0`) keeps the same horizon.
 
 The `after-wrap-*.png` frames are the same two positions captured once the fix
 landed; they are produced by the same command with a different tag:

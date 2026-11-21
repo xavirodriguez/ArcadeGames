@@ -67,7 +67,6 @@ test.describe("Frogger visual baseline", () => {
         const bandBottom = canvasRect.top + rowHeight * 12;
 
         const hud = document.querySelector('[data-testid="frogger-hud"]') as HTMLElement | null;
-        const controls = document.querySelector('[data-testid="frogger-controls"]') as HTMLElement | null;
 
         const collect = (el: HTMLElement | null) => {
           if (!el) return null;
@@ -76,7 +75,23 @@ test.describe("Frogger visual baseline", () => {
         };
 
         const hudRect = collect(hud);
-        const controlsRect = collect(controls);
+
+        // Measure the actual touch-control buttons, not their full-screen gesture layer.
+        const controlButtons = Array.from(document.querySelectorAll("*")).filter((el) =>
+          ["▲", "▼", "◀", "▶"].includes((el.textContent || "").trim()) && (el as HTMLElement).children.length === 0
+        );
+        const controlRects = controlButtons.map((button) => collect(button as HTMLElement)).filter(Boolean);
+        const controlsRect =
+          controlRects.length > 0
+            ? {
+                top: Math.min(...controlRects.map((rect) => rect!.top)),
+                bottom: Math.max(...controlRects.map((rect) => rect!.bottom)),
+                left: Math.min(...controlRects.map((rect) => rect!.left)),
+                right: Math.max(...controlRects.map((rect) => rect!.right)),
+                width: 0,
+                height: 0,
+              }
+            : null;
 
         const overlapsBand = (rect: { top: number; bottom: number } | null) => {
           if (!rect) return false;

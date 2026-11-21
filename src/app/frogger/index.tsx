@@ -17,7 +17,7 @@ import { MutatorBadge } from "@/components/MutatorBadge";
 import { Mutator } from "@/config/MutatorConfig";
 import { FroggerInput } from "../../games/frogger";
 import { FroggerHud } from "../../games/frogger/presentation/FroggerHud";
-import { FROGGER_VISUAL_TOKENS } from "../../games/frogger/rendering/FroggerVisualTokens";
+import { FROGGER_VISUAL_TOKENS, FROGGER_VISUAL_REFERENCE } from "../../games/frogger/rendering/FroggerVisualTokens";
 import {
   createFroggerE2EDebugApi,
   type FroggerE2EDebugApi,
@@ -202,11 +202,13 @@ export default function FroggerScreen() {
             />
           }
           canvasSlot={
-            <CanvasRenderer
-              world={game.getWorld()}
-              gameLoop={game.getGameLoop()}
-              onInitialize={(renderer) => game.initializeRenderer(renderer)}
-            />
+            <View style={{ flex: 1, marginTop: FROGGER_VISUAL_REFERENCE.viewport.hudHeight }}>
+              <CanvasRenderer
+                world={game.getWorld()}
+                gameLoop={game.getGameLoop()}
+                onInitialize={(renderer) => game.initializeRenderer(renderer)}
+              />
+            </View>
           }
           controlsSlot={
             <FroggerTouchControls
@@ -330,14 +332,14 @@ const styles = StyleSheet.create({
   },
   dpadContainer: {
     position: "absolute",
-    bottom: 30,
+    bottom: 0,
     alignSelf: "center",
     alignItems: "center",
     zIndex: 10,
   },
   dpadHorizontalRow: {
     flexDirection: "row",
-    gap: 30,
+    gap: 16,
     marginVertical: 4,
   },
   dpadButton: {
@@ -493,7 +495,7 @@ function FroggerTouchControls({
         <View style={styles.dpadContainer} pointerEvents="box-none">
           <GestureActionButton
             label="▲"
-            size={58}
+            size={44}
             color="rgba(15, 110, 122, 0.20)"
             borderColor={FROGGER_VISUAL_TOKENS.ui.warm}
             pressedColor="rgba(23, 163, 163, 0.36)"
@@ -507,7 +509,7 @@ function FroggerTouchControls({
           <View style={styles.dpadHorizontalRow} pointerEvents="box-none">
             <GestureActionButton
               label="◀"
-              size={58}
+              size={44}
               color="rgba(15, 110, 122, 0.20)"
               borderColor={FROGGER_VISUAL_TOKENS.ui.warm}
               pressedColor="rgba(23, 163, 163, 0.36)"
@@ -520,7 +522,7 @@ function FroggerTouchControls({
             />
             <GestureActionButton
               label="▶"
-              size={58}
+              size={44}
               color="rgba(15, 110, 122, 0.20)"
               borderColor={FROGGER_VISUAL_TOKENS.ui.warm}
               pressedColor="rgba(23, 163, 163, 0.36)"
@@ -534,7 +536,7 @@ function FroggerTouchControls({
           </View>
           <GestureActionButton
             label="▼"
-            size={58}
+            size={44}
             color="rgba(15, 110, 122, 0.20)"
             borderColor={FROGGER_VISUAL_TOKENS.ui.warm}
             pressedColor="rgba(23, 163, 163, 0.36)"

@@ -25,6 +25,8 @@ const HISTORY_BUFFER_TICKS = 30;
 
 export class AsteroidsRoom extends BaseRoom<AsteroidsState, AsteroidsComponentRegistry, AsteroidsEventRegistry> {
   maxClients = 4;
+  // Asteroids physics consumes deltaTime in seconds; BaseRoom defaults to milliseconds.
+  protected override fixedTimeStep = 1 / 60;
   protected declare world: World<AsteroidsComponentRegistry, AsteroidsEventRegistry>;
   protected declare gameSimulation: AsteroidsGame;
   private stateHistory = new Map<number, WorldSnapshot>();

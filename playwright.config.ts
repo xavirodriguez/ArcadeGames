@@ -13,6 +13,20 @@ export default defineConfig({
     headless: true,
     viewport: { width: 1280, height: 720 },
   },
+  projects: [
+    {
+      name: "ci",
+      testMatch: ["games.spec.ts", "hitandrun.spec.ts", "vfx-lab.spec.ts"],
+    },
+    {
+      name: "baseline",
+      testMatch: ["frogger-baseline.spec.ts", "outrun-baseline.spec.ts"],
+    },
+    {
+      name: "diag",
+      testMatch: ["tmp-*.spec.ts"],
+    },
+  ],
   webServer: {
     command: useDevServer
       ? "NODE_OPTIONS=\"--max-old-space-size=8192\" EXPO_PUBLIC_E2E_HOOKS=true npx expo start --web --port 8081"

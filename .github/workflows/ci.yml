@@ -55,7 +55,7 @@ jobs:
         run: pnpm exec turbo run typecheck
 
       - name: Run tests through Turborepo
-        run: pnpm exec turbo run test
+        run: pnpm exec turbo run test --continue
 
       - name: Enforce repository agent and architecture guardrails
         if: ${{ steps.install_dependencies.outcome == 'success' }}

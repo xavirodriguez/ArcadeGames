@@ -237,6 +237,15 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
         state.isGameOver = false;
         state.score = 0;
         state.pipeSpawnTimer = 0;
+        state.pipesSpawnedCount = 0;
+        state.currentScenario = "open_space";
+        state.previousScenario = undefined;
+        state.scenarioTransitionTicks = 0;
+        state.currentSectorEvent = "none";
+        state.sectorEventTicks = 0;
+        state.sectorEventDuration = 0;
+        state.pipeSpeedMultiplier = 1;
+        state.sectorScoreMultiplier = 1;
         state.graceTimeRemaining = this.config.GRACE_PERIOD_SECONDS;
         state.sectorScoreMultiplier = 1;
       });

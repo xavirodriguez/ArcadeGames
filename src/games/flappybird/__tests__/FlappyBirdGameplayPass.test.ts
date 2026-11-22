@@ -2,6 +2,7 @@ import { FlappyBirdGame } from "../FlappyBirdGame";
 import { createPipe } from "../EntityFactory";
 import { FlappyBirdGameStateSystem } from "../systems/FlappyBirdGameStateSystem";
 import { DEFAULT_FLAPPY_BIRD_CONFIG } from "../types/FlappyBirdConfigSchema";
+import { officePaperTheme } from "../../../theme/officePaperTheme";
 
 describe("Flappy Bird gameplay pass — sector score multiplier", () => {
   let game: FlappyBirdGame;
@@ -80,5 +81,70 @@ describe("Flappy Bird gameplay pass — sector score multiplier", () => {
     expect(world.getSingleton("FlappyState")?.sectorScoreMultiplier).toBe(1);
     expect(world.getComponent(combo, "Combo")?.multiplier).toBe(3);
     expect(game.getGameState().multiplier).toBe(3);
+  });
+});
+
+describe("Flappy Bird gameplay pass — announcement presentation", () => {
+  let game: FlappyBirdGame;
+
+  afterEach(() => {
+    game?.destroy();
+  });
+
+  function announcements(target: FlappyBirdGame) {
+    const world = target.getWorld();
+    return world.query("Render", "Transform", "TTL").flatMap((entity) => {
+      const render = world.getComponent(entity, "Render");
+      const transform = world.getComponent(entity, "Transform");
+      if (render?.shape !== "floating_text" || !render.text || !transform) return [];
+      return [{ text: render.text, x: transform.x, y: transform.y }];
+    });
+  }
+
+  it("announces both events with separated positions", async () => {
+    game = new FlappyBirdGame();
+    await game.init();
+    expect(announcements(game)).toHaveLength(0);
+
+    const bus = game.getEventBus();
+    bus.emit("flappy:scenario_changed", { from: "open_space", to: "asteroid_belt" });
+    bus.emit("flappy:sector_event_started", { event: "asteroid_storm" });
+
+    const rendered = announcements(game);
+    expect(rendered.map((item) => item.text)).toEqual(["ASTEROID BELT", "ASTEROID STORM"]);
+    expect(Math.abs(rendered[0].y - rendered[1].y)).toBeGreaterThan(20);
+  });
+
+  it("uses office-paper wording instead of spatial wording", async () => {
+    game = new FlappyBirdGame({ theme: officePaperTheme });
+    await game.init();
+
+    game.getEventBus().emit("flappy:scenario_changed", {
+      from: "open_space",
+      to: "asteroid_belt"
+    });
+
+    expect(announcements(game).map((item) => item.text)).toEqual(["ARCHIVE AISLE"]);
+  });
+
+  it("does not announce on initialisation or when resetting a run", async () => {
+    game = new FlappyBirdGame();
+    await game.init();
+    const world = game.getWorld();
+
+    expect(announcements(game)).toHaveLength(0);
+    world.mutateSingleton("FlappyState", (state) => {
+      state.currentScenario = "warp_corridor";
+      state.pipesSpawnedCount = 20;
+      state.currentSectorEvent = "hyper_warp";
+      state.sectorEventDuration = 100;
+    });
+    const stateSystem = new FlappyBirdGameStateSystem(game, DEFAULT_FLAPPY_BIRD_CONFIG);
+    stateSystem.resetGameOverState(world);
+    game.update(1 / 60);
+
+    expect(world.getSingleton("FlappyState")?.currentScenario).toBe("open_space");
+    expect(world.getSingleton("FlappyState")?.currentSectorEvent).toBe("none");
+    expect(announcements(game)).toHaveLength(0);
   });
 });

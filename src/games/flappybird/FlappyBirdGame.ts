@@ -11,6 +11,7 @@ import { FlappyBirdCollisionSystem } from "./systems/FlappyBirdCollisionSystem";
 import { FlappyBirdGlideSystem } from "./systems/FlappyBirdGlideSystem";
 import { FlappyBirdPipeMovementSystem } from "./systems/FlappyBirdPipeMovementSystem";
 import { FlappyBirdRenderSystem } from "./systems/FlappyBirdRenderSystem";
+import { FlappyBirdAnnouncementSystem } from "./systems/FlappyBirdAnnouncementSystem";
 import { IFlappyBirdGame } from "./types/GameInterfaces";
 import { InputBufferSystem } from "./systems/FlappyBirdInputSystem";
 import {
@@ -332,6 +333,7 @@ export class FlappyBirdGame
 
     // Visual / Presentation
     this.world.addSystem(new JuiceSystem() as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Presentation });
+    this.world.addSystem(new FlappyBirdAnnouncementSystem(), { phase: SystemPhase.Presentation, priority: 1 });
     this.world.addSystem(new FlappyBirdRenderSystem(), { phase: SystemPhase.Presentation });
 
     // Register visual feedback listener for obstacle pipe clearance

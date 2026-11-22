@@ -557,13 +557,14 @@ export class FlappyBirdGame
     let combo = 0;
     let multiplier = 1;
     let comboTimerRemaining = 0;
+    const sectorScoreMultiplier = state?.sectorScoreMultiplier ?? 1;
 
     const comboEntities = world.query("Combo");
     if (comboEntities.length > 0) {
       const comboComp = world.getComponent(comboEntities[0], "Combo");
       if (comboComp) {
         combo = comboComp.combo ?? 0;
-        multiplier = comboComp.multiplier ?? 1;
+        multiplier = (comboComp.multiplier ?? 1) * sectorScoreMultiplier;
         comboTimerRemaining = Math.max(0, comboComp.timerRemaining ?? 0);
       }
     }

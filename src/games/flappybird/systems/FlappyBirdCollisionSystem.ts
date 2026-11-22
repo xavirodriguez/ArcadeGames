@@ -188,7 +188,7 @@ export class FlappyBirdCollisionSystem extends System<FlappyBirdComponentRegistr
 
       const comboEntities = world.query("Combo");
       if (comboEntities.length > 0) {
-        world.mutateComponent(comboEntities[0], "Combo", (c: any) => {
+        world.mutateComponent(comboEntities[0], "Combo", (c) => {
           c.combo = 0;
           c.multiplier = 1;
           c.timerRemaining = 0;

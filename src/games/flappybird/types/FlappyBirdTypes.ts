@@ -108,6 +108,8 @@ export interface FlappyBirdState extends Component {
   sectorEventTicks?: number;
   sectorEventDuration?: number;
   pipeSpeedMultiplier?: number;
+  /** Independent score bonus applied while a sector event is active. */
+  sectorScoreMultiplier?: number;
 
   currentScenario: ScenarioId;
   previousScenario?: ScenarioId;
@@ -132,6 +134,7 @@ export function createFlappyState(overrides?: Partial<FlappyBirdState>): FlappyB
     sectorEventTicks: 0,
     sectorEventDuration: 0,
     pipeSpeedMultiplier: 1.0,
+    sectorScoreMultiplier: 1,
     currentScenario: "open_space",
     scenarioTransitionTicks: 0,
     ...overrides,

@@ -43,6 +43,7 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
     const activeScenarioId = selectScenario(pipesSpawned, this.config);
 
     // --- SCENARIO ROTATION & OVERRIDES ---
+    let scenarioAssociatedEvent: FlappyBirdState["currentSectorEvent"] | undefined;
     if (gameState.currentScenario !== activeScenarioId) {
       const prevScenario = gameState.currentScenario;
       const newScenarioConfig = getScenarioConfig(activeScenarioId);
@@ -52,6 +53,7 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
         gs.currentScenario = activeScenarioId;
         gs.scenarioTransitionTicks = 30;
         if (newScenarioConfig.associatedSectorEvent) {
+          scenarioAssociatedEvent = newScenarioConfig.associatedSectorEvent;
           gs.currentSectorEvent = newScenarioConfig.associatedSectorEvent;
           gs.sectorEventDuration = 300;
         }
@@ -83,8 +85,10 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
 
     // --- SECTOR ENVIRONMENTAL EVENTS ---
     const eventTicks = (gameState.sectorEventTicks ?? 0) + 1;
-    let currentEvent = gameState.currentSectorEvent ?? "none";
-    let eventDuration = gameState.sectorEventDuration ?? 0;
+    let currentEvent = scenarioAssociatedEvent ?? gameState.currentSectorEvent ?? "none";
+    let eventDuration = scenarioAssociatedEvent !== undefined
+      ? 300
+      : gameState.sectorEventDuration ?? 0;
     let eventSpeedMultiplier = 1.0;
 
     if (currentEvent === "none" && eventTicks % 600 === 0) { // Trigger every 10 seconds
@@ -94,14 +98,6 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
       else if (nextEventRand === 2) currentEvent = "hyper_warp";
 
       eventDuration = 360; // 6 seconds at 60 FPS
-      if (currentEvent === "hyper_warp") {
-        const comboEntities = world.query("Combo");
-        if (comboEntities.length > 0) {
-          world.mutateComponent(comboEntities[0], "Combo", (c: any) => {
-            c.multiplier = (c.multiplier || 1) * 2;
-          });
-        }
-      }
 
       const eventBus = world.getResource<EventBus>("EventBus");
       if (eventBus) {
@@ -111,14 +107,6 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
 
     if (currentEvent !== "none") {
       if (eventDuration <= 1) {
-        if (currentEvent === "hyper_warp") {
-          const comboEntities = world.query("Combo");
-          if (comboEntities.length > 0) {
-            world.mutateComponent(comboEntities[0], "Combo", (c: any) => {
-              c.multiplier = Math.max(1, Math.floor((c.multiplier || 1) / 2));
-            });
-          }
-        }
         const endedEvent = currentEvent;
         currentEvent = "none";
         eventDuration = 0;
@@ -136,12 +124,14 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
     }
 
     const totalPipeSpeedMultiplier = scenarioSpeedMult * eventSpeedMultiplier;
+    const sectorScoreMultiplier = currentEvent === "hyper_warp" ? 2 : 1;
 
     world.mutateSingleton("FlappyState", (gs) => {
       gs.sectorEventTicks = eventTicks;
       gs.currentSectorEvent = currentEvent;
       gs.sectorEventDuration = eventDuration;
       gs.pipeSpeedMultiplier = totalPipeSpeedMultiplier;
+      gs.sectorScoreMultiplier = sectorScoreMultiplier;
     });
 
     // Grace period: countdown and freeze pipe spawning while active
@@ -198,7 +188,7 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
           let multiplier = 1;
           const comboEntities = world.query("Combo");
           if (comboEntities.length > 0) {
-            world.mutateComponent(comboEntities[0], "Combo", (c: any) => {
+            world.mutateComponent(comboEntities[0], "Combo", (c) => {
               c.combo = (c.combo || 0) + 1;
               c.multiplier = 1 + Math.floor(c.combo / 5);
               c.timerRemaining = c.timerDuration || 2.0;
@@ -206,8 +196,9 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
             });
           }
 
+          const effectiveScore = multiplier * sectorScoreMultiplier;
           world.mutateSingleton("FlappyState", (gs) => {
-            gs.score += multiplier;
+            gs.score += effectiveScore;
             if (gs.score > gs.highScore) {
               gs.highScore = gs.score;
             }
@@ -247,6 +238,7 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
         state.score = 0;
         state.pipeSpawnTimer = 0;
         state.graceTimeRemaining = this.config.GRACE_PERIOD_SECONDS;
+        state.sectorScoreMultiplier = 1;
       });
     }
   }

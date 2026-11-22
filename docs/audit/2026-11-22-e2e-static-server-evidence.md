@@ -25,7 +25,13 @@ Date: 2026-11-22. Branch: `chore/e2e-static-server`. Base: `chore/hitrun-1-1-val
 
 ## Remote runs (Tarea 4)
 
-To be appended after `gh workflow run e2e.yml`.
+| Run | URL | Total duration | Build step | E2E step | Tests passed/failed | OOM | hitandrun scenarios |
+|---|---|---|---|---|---|---|---|
+| 1 | https://github.com/xavirodriguez/ArcadeGames/actions/runs/45038254895 | 3m24s | 1m48s | 1m04s | 27/0 | none | 4/4 passed |
+| 2 | https://github.com/xavirodriguez/ArcadeGames/actions/runs/45038612164 | 3m37s | 1m54s | 1m07s | 27/0 | none | 4/4 passed |
+| 3 | https://github.com/xavirodriguez/ArcadeGames/actions/runs/45039142901 | 3m23s | 1m35s | 0m58s | 27/0 | none | 4/4 passed |
+
+All three runs completed without `heap out of memory` / `Ineffective mark-compacts`. Playwright diagnostics artifact not uploaded (no failure).
 
 ## Tarea 3 classification
 

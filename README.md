@@ -240,7 +240,10 @@ pnpm test
 pnpm lint
 pnpm run test:ci
 pnpm run test:games:ci
+pnpm run e2e:build
 pnpm run test:e2e
+pnpm run test:e2e:baseline
+pnpm run test:e2e:diag
 pnpm run sprites:build -- --check
 pnpm run sprites:validate
 pnpm run typecheck:core
@@ -255,7 +258,7 @@ The three debt ratchets measure type assertions, code duplication and color lite
 The GitHub Actions workflows provide additional coverage beyond `pnpm ci`:
 
 - **CI** (`.github/workflows/ci.yml`): generated-sprite verification, sprite metadata validation and tests, Turborepo build/lint/typecheck/test, architecture guardrails, README consistency validation, an input-path benchmark, game regression tests and application typechecking.
-- **E2E** (`.github/workflows/e2e.yml`): Playwright browser tests via `pnpm test:e2e`.
+- **E2E** (`.github/workflows/e2e.yml`): Playwright browser tests via `pnpm test:e2e` (project `ci`). Static bundle: `pnpm run e2e:build` (export with `EXPO_PUBLIC_E2E_HOOKS=true` into `dist-e2e/`). Projects: `ci` (games, hitandrun, vfx-lab), `baseline` (frogger/outrun visual baselines, writes PNGs to `docs/*/captures`), `diag` (tmp-*). Use `E2E_DEV_SERVER=1` to keep the dev server (`expo start --web`) for local debugging. Run all projects with `pnpm exec playwright test`.
 - **Documentation CI** (`.github/workflows/docs.yml`): API reference generation via `pnpm docs:build` and a check that `docs/api-reference` contains output.
 
 The test suite spans multiple layers:

@@ -36,6 +36,7 @@ import { spawnVisualParticle as spawnCanvasParticle } from "./rendering/FlappyBi
 import { spawnVisualParticle as spawnSkiaParticle } from "./rendering/FlappyBirdSkiaVisuals";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import { registerPixelFxProceduralVFX } from "../shared/rendering/PixelFxProceduralVFX";
+import { registerSharedVFX } from "../shared/rendering/SharedVFX";
 import { getScenarioConfig } from "./ScenarioDefinitions";
 import {
   FLAPPY_NARROW_GAP_MULTIPLIER,
@@ -543,6 +544,7 @@ export class FlappyBirdGame
   }
 
   public initializeRenderer(renderer: Renderer<FlappyBirdComponentRegistry, RenderContext>): void {
+    registerSharedVFX(renderer);
     registerPixelFxProceduralVFX(renderer);
     const theme = this.world.getResource<Theme>(THEME_RESOURCE_KEY);
     const packId = theme?.conceptPack?.id;

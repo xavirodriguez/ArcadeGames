@@ -1,7 +1,10 @@
 import { FlappyBirdGame } from "../FlappyBirdGame";
 import { createPipe } from "../EntityFactory";
 import { FlappyBirdCollisionSystem } from "../systems/FlappyBirdCollisionSystem";
-import { FlappyBirdConfigSchema } from "../types/FlappyBirdConfigSchema";
+import {
+  DEFAULT_FLAPPY_BIRD_CONFIG,
+  FlappyBirdConfigSchema
+} from "../types/FlappyBirdConfigSchema";
 import {
   computeDifficultyRamp,
   estimateMaxFlapAscent,
@@ -9,7 +12,6 @@ import {
 } from "../systems/FlappyBirdDifficulty";
 import { getScenarioConfig, SCENARIO_ORDER } from "../ScenarioDefinitions";
 import { FlappyBirdGameStateSystem } from "../systems/FlappyBirdGameStateSystem";
-import { DEFAULT_FLAPPY_BIRD_CONFIG } from "../types/FlappyBirdConfigSchema";
 import { officePaperTheme } from "../../../theme/officePaperTheme";
 
 describe("Flappy Bird gameplay pass — sector score multiplier", () => {
@@ -171,9 +173,9 @@ describe("Flappy Bird gameplay pass — near-miss glide recharge", () => {
     collisionSystem = new FlappyBirdCollisionSystem(game);
     world.mutateComponent(bird, "Transform", (transform) => {
       transform.x = 80;
-      transform.y = 220;
+      transform.y = 214;
       transform.worldX = 80;
-      transform.worldY = 220;
+      transform.worldY = 214;
     });
     createPipe({
       world,
@@ -242,7 +244,7 @@ describe("Flappy Bird gameplay pass — near-miss glide recharge", () => {
     setEnergy(10);
 
     // Pipe's left edge is x=100; bird's right edge is x=95.
-    // The bird is vertically outside the gap and has a five-pixel AABB separation.
+    // The whole bird remains above the gap and has a five-pixel AABB separation.
     runNearMiss();
 
     expect(world.getComponent(bird, "Bird")?.nearMissTimer).toBeCloseTo(0.3);

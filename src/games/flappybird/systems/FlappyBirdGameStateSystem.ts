@@ -244,7 +244,6 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
         state.pipeSpeedMultiplier = 1;
         state.sectorScoreMultiplier = 1;
         state.graceTimeRemaining = this.config.GRACE_PERIOD_SECONDS;
-        state.sectorScoreMultiplier = 1;
       });
     }
   }

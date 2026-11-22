@@ -1,6 +1,6 @@
-import { Theme, World, THEME_RESOURCE_KEY } from "@tiny-aster/core";
-import { ScenarioId } from "../types/FlappyBirdTypes";
-import { FlappySectorEvent } from "../types/FlappyBirdTypes";
+import { THEME_RESOURCE_KEY } from "@tiny-aster/core";
+import type { Theme, World } from "@tiny-aster/core";
+import type { ScenarioId, FlappySectorEvent } from "../types/FlappyBirdTypes";
 
 export const OFFICE_PAPER_THEME_ID = "office-paper";
 

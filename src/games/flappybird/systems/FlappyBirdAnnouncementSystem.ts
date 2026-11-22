@@ -1,21 +1,18 @@
-import {
-  System,
+import { System, THEME_RESOURCE_KEY } from "@tiny-aster/core";
+import type {
   World,
   Theme,
-  THEME_RESOURCE_KEY,
   TransformComponent,
   TTLComponent
 } from "@tiny-aster/core";
 import { colors } from "../../../theme/colors";
-import {
+import type {
   FlappyBirdComponentRegistry,
   FlappyBirdEventRegistry,
   FlappyBirdRenderComponent
 } from "../types/FlappyBirdTypes";
-import {
-  FlappyAnnouncementDescriptor,
-  resolveFlappyAnnouncement
-} from "../theme/FlappyThemeShared";
+import { resolveFlappyAnnouncement } from "../theme/FlappyThemeShared";
+import type { FlappyAnnouncementDescriptor } from "../theme/FlappyThemeShared";
 
 /**
  * VFX consumer for scenario and sector-event announcements.

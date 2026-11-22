@@ -152,6 +152,16 @@ export class FlappyBirdCollisionSystem extends System<FlappyBirdComponentRegistr
              if (eventBus) eventBus.emitDeferred("flappy:near_miss", { points });
 
              const closeness = 1 - dist / this.config.NEAR_MISS_THRESHOLD;
+             const glideEnergy = world.getComponent(bird, "GlideEnergy");
+             if (glideEnergy && !glideEnergy.isOverheated) {
+               world.mutateComponent(bird, "GlideEnergy", (energy) => {
+                 energy.currentEnergy = Math.min(
+                   energy.maxEnergy,
+                   energy.currentEnergy + this.config.NEAR_MISS_GLIDE_ENERGY * closeness
+                 );
+               });
+             }
+
              const particleCount = Math.max(3, Math.round(12 * closeness));
              const minSpeed = Math.round(40 + 40 * closeness);
              const maxSpeed = Math.round(80 + 80 * closeness);

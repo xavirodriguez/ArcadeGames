@@ -1,5 +1,7 @@
 import { FlappyBirdGame } from "../FlappyBirdGame";
 import { createPipe } from "../EntityFactory";
+import { FlappyBirdCollisionSystem } from "../systems/FlappyBirdCollisionSystem";
+import { FlappyBirdConfigSchema } from "../types/FlappyBirdConfigSchema";
 import { FlappyBirdGameStateSystem } from "../systems/FlappyBirdGameStateSystem";
 import { DEFAULT_FLAPPY_BIRD_CONFIG } from "../types/FlappyBirdConfigSchema";
 import { officePaperTheme } from "../../../theme/officePaperTheme";
@@ -146,5 +148,103 @@ describe("Flappy Bird gameplay pass — announcement presentation", () => {
     expect(world.getSingleton("FlappyState")?.currentScenario).toBe("open_space");
     expect(world.getSingleton("FlappyState")?.currentSectorEvent).toBe("none");
     expect(announcements(game)).toHaveLength(0);
+  });
+});
+
+describe("Flappy Bird gameplay pass — near-miss glide recharge", () => {
+  let game: FlappyBirdGame;
+  let world: ReturnType<FlappyBirdGame["getWorld"]>;
+  let bird: number;
+  let collisionSystem: FlappyBirdCollisionSystem;
+
+  beforeEach(async () => {
+    game = new FlappyBirdGame();
+    await game.init();
+    world = game.getWorld();
+    bird = world.query("Bird")[0];
+    collisionSystem = new FlappyBirdCollisionSystem(game);
+    world.mutateComponent(bird, "Transform", (transform) => {
+      transform.x = 80;
+      transform.y = 220;
+      transform.worldX = 80;
+      transform.worldY = 220;
+    });
+    createPipe({
+      world,
+      x: 130,
+      gapY: 300,
+      visualVariant: "standard",
+      movementType: "static",
+      isNarrowGap: false
+    });
+  });
+
+  afterEach(() => {
+    game.destroy();
+  });
+
+  function setEnergy(currentEnergy: number, isOverheated = false): void {
+    world.mutateComponent(bird, "GlideEnergy", (energy) => {
+      energy.currentEnergy = currentEnergy;
+      energy.isOverheated = isOverheated;
+    });
+  }
+
+  function runNearMiss(): void {
+    collisionSystem.update(world, 1 / 60);
+  }
+
+  it("adds NEAR_MISS_GLIDE_ENERGY in proportion to geometric closeness", () => {
+    setEnergy(10);
+
+    runNearMiss();
+
+    expect(world.getComponent(bird, "GlideEnergy")?.currentEnergy).toBeCloseTo(
+      10 + 25 * (1 - 5 / 12)
+    );
+    expect(world.getComponent(bird, "Bird")?.nearMissTimer).toBeCloseTo(0.3);
+  });
+
+  it("caps the recharge at maxEnergy", () => {
+    setEnergy(98);
+
+    runNearMiss();
+
+    expect(world.getComponent(bird, "GlideEnergy")?.currentEnergy).toBe(100);
+  });
+
+  it("does not recharge an overheated glide component", () => {
+    setEnergy(35, true);
+
+    runNearMiss();
+
+    expect(world.getComponent(bird, "GlideEnergy")?.currentEnergy).toBe(35);
+    expect(world.getComponent(bird, "GlideEnergy")?.isOverheated).toBe(true);
+  });
+
+  it("does not recharge again while the 0.3-second near-miss timer is active", () => {
+    setEnergy(10);
+    runNearMiss();
+    const afterFirstNearMiss = world.getComponent(bird, "GlideEnergy")?.currentEnergy;
+
+    runNearMiss();
+
+    expect(world.getComponent(bird, "GlideEnergy")?.currentEnergy).toBe(afterFirstNearMiss);
+  });
+
+  it("detects a near-miss at the pipe face before horizontal collision", () => {
+    setEnergy(10);
+
+    // Pipe's left edge is x=100; bird's right edge is x=95.
+    // The bird is vertically outside the gap and has a five-pixel AABB separation.
+    runNearMiss();
+
+    expect(world.getComponent(bird, "Bird")?.nearMissTimer).toBeCloseTo(0.3);
+    expect(world.getComponent(bird, "CollisionEvents")?.collisions).toHaveLength(0);
+    expect(world.getSingleton("FlappyState")?.score).toBeGreaterThan(0);
+  });
+
+  it("defaults NEAR_MISS_GLIDE_ENERGY to 25", () => {
+    expect(FlappyBirdConfigSchema.parse({}).NEAR_MISS_GLIDE_ENERGY).toBe(25);
   });
 });

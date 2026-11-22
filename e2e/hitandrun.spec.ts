@@ -152,6 +152,7 @@ test.describe("Hit & Run gameplay lifecycle E2E", () => {
     await page.keyboard.down("f");
     try {
       await expect.poll(async () => (await readCombatInput(page))?.attackHeld).toBe(true);
+      await page.waitForTimeout(300);
       await expect.poll(() => readComboStep(page), { timeout: 8000 }).toBe("jab1");
       expect((await readCombatInput(page))?.fireHeld).toBe(false);
     } finally {

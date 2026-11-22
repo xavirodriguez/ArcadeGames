@@ -13,6 +13,8 @@ function addTransform(world: World<CoreComponentRegistry>, e: number, x: number,
     worldRotation: 0,
     scaleX: 1,
     scaleY: 1,
+    worldScaleX: 1,
+    worldScaleY: 1,
     dirty: true
   });
 }

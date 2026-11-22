@@ -1,5 +1,12 @@
 import { test } from "@playwright/test";
 
+/** Minimal shape of an expo-asset registry entry read by this diagnostic spec. */
+interface ExpoAssetRegistryEntry {
+  downloaded?: boolean;
+  localUri?: string | null;
+  uri?: string;
+}
+
 test("asset identity", async ({ page }) => {
   test.setTimeout(120000);
   page.on("console", (m) => console.log("T_LOG>>>" + m.text().slice(0, 400) + "<<<"));
@@ -21,7 +28,8 @@ test("asset identity", async ({ page }) => {
     out.byUriSize = AssetClass.byUri ? Object.keys(AssetClass.byUri).length : -1;
     out.byHashSize = AssetClass.byHash ? Object.keys(AssetClass.byHash).length : -1;
     out.keys = Object.keys(AssetClass.byUri ?? {}).slice(0, 5);
-    const a = AssetClass.byUri ? Object.values(AssetClass.byUri)[0] : undefined;
+    const byUri: Record<string, ExpoAssetRegistryEntry> = AssetClass.byUri ?? {};
+    const a = Object.values(byUri)[0];
     out.firstDownloaded = a?.downloaded;
     out.firstLocalUri = a?.localUri;
     out.firstUri = a?.uri;

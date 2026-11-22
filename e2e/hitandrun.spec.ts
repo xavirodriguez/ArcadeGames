@@ -73,12 +73,18 @@ const readWaveCombatableEnemies = (page: import("@playwright/test").Page) =>
   page.evaluate(() => window.__hitAndRunDebug?.getWaveCombatableEnemyCount() ?? 0);
 const readWaveState = (page: import("@playwright/test").Page) =>
   page.evaluate(() => window.__hitAndRunDebug?.getWaveState() ?? null);
-const readDeathFlow = (page: import("@playwright/test").Page) =>
-  page.evaluate(() => window.__hitAndRunDebug?.getDeathFlowState() ?? null);
 const readTimeScale = (page: import("@playwright/test").Page) =>
   page.evaluate(() => window.__hitAndRunDebug?.getTimeScale() ?? 1);
-const readRunDeaths = (page: import("@playwright/test").Page) =>
-  page.evaluate(() => window.__hitAndRunDebug?.getRunDeaths() ?? 0);
+/** Reads the death flow, the death counter and the time scale in one round trip. */
+const readDeathObservation = (page: import("@playwright/test").Page) =>
+  page.evaluate(() => {
+    const debug = window.__hitAndRunDebug;
+    return {
+      active: debug?.getDeathFlowState().active ?? false,
+      deaths: debug?.getRunDeaths() ?? 0,
+      timeScale: debug?.getTimeScale() ?? 1
+    };
+  });
 const readCombatInput = (page: import("@playwright/test").Page) =>
   page.evaluate(() => window.__hitAndRunDebug?.getCombatInput() ?? null);
 const readComboStep = (page: import("@playwright/test").Page) =>
@@ -176,10 +182,21 @@ test.describe("Hit & Run gameplay lifecycle E2E", () => {
     expect(startedWave?.scriptId).toMatch(/^wave_goblins_s\d+$/);
     expect(startedWave?.sectionIndex).toBe(0);
 
-    await expect.poll(
-      async () => readWaveState(page),
-      { timeout: 22000, intervals: [100, 250, 500] }
-    ).toMatchObject({ spawnComplete: true });
+    // The section-0 wave script ends at t = 11.5 s of simulation time. A player
+    // that stands still loses its last hit point at ~6.7 s, and the death flow
+    // then recreates the World, which restarts the wave director from zero, so
+    // the timeline could never be observed as complete. Holding ArrowLeft keeps
+    // the real input bridge moving the player away from the incoming pack; the
+    // scenario still fails if the input bridge or the wave director regress.
+    await page.keyboard.down("ArrowLeft");
+    try {
+      await expect.poll(
+        async () => readWaveState(page),
+        { timeout: 22000, intervals: [100, 250, 500] }
+      ).toMatchObject({ spawnComplete: true });
+    } finally {
+      await page.keyboard.up("ArrowLeft");
+    }
 
     const wave = await readWaveState(page);
     expect(wave).not.toBeNull();
@@ -206,14 +223,22 @@ test.describe("Hit & Run gameplay lifecycle E2E", () => {
     await waitForHitRunDebug(page);
 
     // Let the ordinary wave/AI/combat pipeline defeat the stationary player.
-    await expect.poll(
-      async () => (await readDeathFlow(page))?.active,
-      { timeout: 60000, intervals: [50, 100, 200] }
-    ).toBe(true);
+    // The slow-motion window is only 450 ms wide and the UI recreates the World
+    // right after it, so the death counter and the time scale have to be read
+    // in the same round trip that observes the death flow. Two separate reads
+    // can land in two different Worlds and observe a reset death counter.
+    const firstDeath: { deaths: number; timeScale: number } = { deaths: 0, timeScale: 1 };
+    await expect.poll(async () => {
+      const snapshot = await readDeathObservation(page);
+      if (snapshot.active) {
+        firstDeath.deaths = snapshot.deaths;
+        firstDeath.timeScale = snapshot.timeScale;
+      }
+      return snapshot.active;
+    }, { timeout: 60000, intervals: [50, 100, 200] }).toBe(true);
 
-    const deathsDuringFlow = await readRunDeaths(page);
-    expect(deathsDuringFlow).toBeGreaterThan(0);
-    expect(await readTimeScale(page)).toBeCloseTo(0.28, 2);
+    expect(firstDeath.deaths).toBeGreaterThan(0);
+    expect(firstDeath.timeScale).toBeCloseTo(0.28, 2);
 
     // UI consumes requestRestart and BaseGame creates a fresh World/EventBus.
     await expect.poll(() => readTimeScale(page), { timeout: 7000 }).toBe(1);
@@ -232,12 +257,17 @@ test.describe("Hit & Run gameplay lifecycle E2E", () => {
 
     // A second full death cycle verifies that restart did not leave stale listeners,
     // a latched flow flag, or a residual TimeScale value behind.
-    await expect.poll(
-      async () => (await readDeathFlow(page))?.active,
-      { timeout: 40000, intervals: [50, 100, 200] }
-    ).toBe(true);
-    expect(await readRunDeaths(page)).toBe(1);
-    expect(await readTimeScale(page)).toBeCloseTo(0.28, 2);
+    const secondDeath: { deaths: number; timeScale: number } = { deaths: 0, timeScale: 1 };
+    await expect.poll(async () => {
+      const snapshot = await readDeathObservation(page);
+      if (snapshot.active) {
+        secondDeath.deaths = snapshot.deaths;
+        secondDeath.timeScale = snapshot.timeScale;
+      }
+      return snapshot.active;
+    }, { timeout: 40000, intervals: [50, 100, 200] }).toBe(true);
+    expect(secondDeath.deaths).toBe(1);
+    expect(secondDeath.timeScale).toBeCloseTo(0.28, 2);
     await expect.poll(() => readTimeScale(page), { timeout: 7000 }).toBe(1);
     await expect.poll(() => readPlayerHealth(page), { timeout: 7000 }).toBe(5);
 

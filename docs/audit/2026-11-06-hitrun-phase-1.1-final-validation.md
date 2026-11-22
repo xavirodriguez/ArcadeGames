@@ -1,5 +1,7 @@
 # Hit & Run — Fase 1.1: final validation ledger
 
+> Estado actualizado: ver `docs/audit/2026-11-22-hitrun-phase-1.1-execution-evidence.md`
+
 Fecha: 6 de noviembre de 2026  
 Alcance: PR6–PR10, integridad de oleadas, hit reactions, death recovery y regresión web.
 

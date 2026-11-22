@@ -1,5 +1,6 @@
 import { GeometryWarsRoom } from "../GeometryWarsRoom";
 import { type Client } from "@colyseus/core";
+import { auditLog } from "./helpers/auditLog";
 
 describe("GeometryWarsMultiplayer Stress Test", () => {
   let room: GeometryWarsRoom;
@@ -106,7 +107,7 @@ describe("GeometryWarsMultiplayer Stress Test", () => {
     }
 
     const duration = Date.now() - startTime;
-    console.log(`[GeometryWarsMultiplayer Stress Test] Simulated ${numberOfTicks} ticks under load of 4 players and 150+ enemies in ${duration}ms.`);
+    auditLog(`[GeometryWarsMultiplayer Stress Test] Simulated ${numberOfTicks} ticks under load of 4 players and 150+ enemies in ${duration}ms.`);
 
     // 5. Verify that all 4 players remain connected and synchronized
     expect(room.state.players.size).toBe(4);

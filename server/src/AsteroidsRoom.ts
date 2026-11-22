@@ -260,7 +260,9 @@ export class AsteroidsRoom extends BaseRoom<AsteroidsState, AsteroidsComponentRe
   }
 
   override onDispose(): void {
-    console.log(`[AsteroidsRoom] Disposing room ${this.roomId}`);
+    if (this.roomId) {
+      console.log(`[AsteroidsRoom] Disposing room ${this.roomId}`);
+    }
     this.stateHistory.clear();
     this.replayFrames = [];
     if (this.gameOverUnsubscribe) {

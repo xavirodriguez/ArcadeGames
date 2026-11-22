@@ -36,6 +36,11 @@ import { spawnVisualParticle as spawnCanvasParticle } from "./rendering/FlappyBi
 import { spawnVisualParticle as spawnSkiaParticle } from "./rendering/FlappyBirdSkiaVisuals";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import { registerPixelFxProceduralVFX } from "../shared/rendering/PixelFxProceduralVFX";
+import { getScenarioConfig } from "./ScenarioDefinitions";
+import {
+  FLAPPY_NARROW_GAP_MULTIPLIER,
+  resolveGapSize
+} from "./systems/FlappyBirdDifficulty";
 
 export interface FlappyBirdBlueprintMap extends Record<string, BlueprintDefinition<FlappyBirdComponentRegistry, EventRegistry, unknown>> {
   bird: BlueprintDefinition<FlappyBirdComponentRegistry, EventRegistry, { x: number, y: number }>;
@@ -177,8 +182,14 @@ export class FlappyBirdGame
         const config = world.getResource<FlappyBirdConfigType>("GameConfig") || DEFAULT_FLAPPY_BIRD_CONFIG;
         const pipeColor = resolveThemeColorStrict(world, "pipe", "enemy");
 
-        const gapMultiplier = args.isNarrowGap ? 0.7 : 1.0;
-        const gapSize = config.GAP_SIZE * gapMultiplier;
+        const gapMultiplier = args.isNarrowGap ? FLAPPY_NARROW_GAP_MULTIPLIER : 1.0;
+        const activeScenario = world.getSingleton("FlappyState")?.currentScenario ?? "open_space";
+        const scenarioGapSize = getScenarioConfig(activeScenario).configOverrides?.GAP_SIZE;
+        const gapSize = resolveGapSize({
+          baseGapSize: config.GAP_SIZE,
+          scenarioGapSizeOverride: scenarioGapSize,
+          isNarrowGap: !!args.isNarrowGap
+        });
         const halfGap = gapSize / 2;
         const pipeWidth = config.PIPE_WIDTH;
         const pipeSpeed = config.PIPE_SPEED;

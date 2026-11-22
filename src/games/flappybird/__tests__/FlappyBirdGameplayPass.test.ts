@@ -2,6 +2,7 @@ import { FlappyBirdGame } from "../FlappyBirdGame";
 import { createPipe } from "../EntityFactory";
 import { FlappyBirdCollisionSystem } from "../systems/FlappyBirdCollisionSystem";
 import { FlappyBirdConfigSchema } from "../types/FlappyBirdConfigSchema";
+import { resolveGapSize } from "../systems/FlappyBirdDifficulty";
 import { FlappyBirdGameStateSystem } from "../systems/FlappyBirdGameStateSystem";
 import { DEFAULT_FLAPPY_BIRD_CONFIG } from "../types/FlappyBirdConfigSchema";
 import { officePaperTheme } from "../../../theme/officePaperTheme";
@@ -246,5 +247,70 @@ describe("Flappy Bird gameplay pass — near-miss glide recharge", () => {
 
   it("defaults NEAR_MISS_GLIDE_ENERGY to 25", () => {
     expect(FlappyBirdConfigSchema.parse({}).NEAR_MISS_GLIDE_ENERGY).toBe(25);
+  });
+});
+
+describe("Flappy Bird gameplay pass — scenario gap sizes", () => {
+  let game: FlappyBirdGame;
+  let world: ReturnType<FlappyBirdGame["getWorld"]>;
+
+  beforeEach(async () => {
+    game = new FlappyBirdGame();
+    await game.init();
+    world = game.getWorld();
+    world.mutateSingleton("FlappyState", (state) => {
+      state.currentScenario = "asteroid_belt";
+    });
+  });
+
+  afterEach(() => {
+    game.destroy();
+  });
+
+  function topPipeGapAt(x: number): number | undefined {
+    const entity = world.query("Pipe", "Transform").find((candidate) => {
+      const pipe = world.getComponent(candidate, "Pipe");
+      const transform = world.getComponent(candidate, "Transform");
+      return pipe?.isTopPipe === true && transform?.x === x;
+    });
+    return entity === undefined ? undefined : world.getComponent(entity, "Pipe")?.gapSize;
+  }
+
+  it("uses GAP_SIZE from the active scenario and applies narrow-gap scaling afterward", () => {
+    createPipe({
+      world,
+      x: 150,
+      gapY: 300,
+      visualVariant: "standard",
+      movementType: "static",
+      isNarrowGap: false
+    });
+    createPipe({
+      world,
+      x: 350,
+      gapY: 300,
+      visualVariant: "standard",
+      movementType: "static",
+      isNarrowGap: true
+    });
+
+    expect(topPipeGapAt(150)).toBe(125);
+    expect(topPipeGapAt(350)).toBeCloseTo(125 * 0.7);
+  });
+
+  it("falls back to the base GAP_SIZE when the active scenario has no override", () => {
+    expect(resolveGapSize({
+      baseGapSize: 140,
+      scenarioGapSizeOverride: undefined,
+      isNarrowGap: false
+    })).toBe(140);
+  });
+
+  it("uses a scenario override before applying narrow-gap scaling", () => {
+    expect(resolveGapSize({
+      baseGapSize: 140,
+      scenarioGapSizeOverride: 120,
+      isNarrowGap: true
+    })).toBeCloseTo(84);
   });
 });

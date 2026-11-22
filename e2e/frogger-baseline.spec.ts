@@ -78,6 +78,16 @@ test.describe("Frogger visual baseline", () => {
         const hudRect = collect(hud);
         const controlsRect = collect(controls);
 
+        // The controls container is a full-screen transparent overlay (box-none),
+        // so its rect is not meaningful. Measure the actual control buttons.
+        const controlButtons = controls
+          ? (Array.from(controls.querySelectorAll('[role="button"]')) as HTMLElement[])
+          : [];
+        const controlButtonRects = controlButtons.map((btn) => {
+          const r = btn.getBoundingClientRect();
+          return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, width: r.width, height: r.height };
+        });
+
         const overlapsBand = (rect: { top: number; bottom: number } | null) => {
           if (!rect) return false;
           return rect.bottom > bandTop && rect.top < bandBottom;
@@ -90,8 +100,9 @@ test.describe("Frogger visual baseline", () => {
           bandBottom,
           hudRect,
           controlsRect,
+          controlButtonRects,
           hudOverlaps: overlapsBand(hudRect),
-          controlsOverlaps: overlapsBand(controlsRect),
+          controlsOverlaps: controlButtonRects.some((rect) => overlapsBand(rect)),
         };
       });
 

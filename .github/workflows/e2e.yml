@@ -34,6 +34,9 @@ jobs:
       - name: Install Playwright Chromium
         run: pnpm exec playwright install chromium
 
+      - name: Build static E2E bundle
+        run: pnpm run e2e:build
+
       - name: Run E2E suite
         run: pnpm test:e2e
 

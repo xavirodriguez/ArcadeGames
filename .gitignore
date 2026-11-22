@@ -86,3 +86,5 @@ server/src/**/*.js.map
 **/src/**/*.js
 **/src/**/*.js.map
 .vercel
+
+dist-e2e/

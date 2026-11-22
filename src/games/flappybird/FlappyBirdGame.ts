@@ -39,6 +39,7 @@ import { registerPixelFxProceduralVFX } from "../shared/rendering/PixelFxProcedu
 import { getScenarioConfig } from "./ScenarioDefinitions";
 import {
   FLAPPY_NARROW_GAP_MULTIPLIER,
+  computeDifficultyRamp,
   resolveGapSize
 } from "./systems/FlappyBirdDifficulty";
 
@@ -183,12 +184,19 @@ export class FlappyBirdGame
         const pipeColor = resolveThemeColorStrict(world, "pipe", "enemy");
 
         const gapMultiplier = args.isNarrowGap ? FLAPPY_NARROW_GAP_MULTIPLIER : 1.0;
-        const activeScenario = world.getSingleton("FlappyState")?.currentScenario ?? "open_space";
+        const state = world.getSingleton("FlappyState");
+        const activeScenario = state?.currentScenario ?? "open_space";
         const scenarioGapSize = getScenarioConfig(activeScenario).configOverrides?.GAP_SIZE;
+        const difficultyRamp = computeDifficultyRamp(state?.pipesSpawnedCount ?? 0, config);
+        const minimumGapSize = difficultyRamp.gapMultiplier < 1
+          ? config.MIN_GAP_SIZE
+          : 0;
         const gapSize = resolveGapSize({
           baseGapSize: config.GAP_SIZE,
           scenarioGapSizeOverride: scenarioGapSize,
-          isNarrowGap: !!args.isNarrowGap
+          isNarrowGap: !!args.isNarrowGap,
+          difficultyGapMultiplier: difficultyRamp.gapMultiplier,
+          minGapSize: minimumGapSize
         });
         const halfGap = gapSize / 2;
         const pipeWidth = config.PIPE_WIDTH;

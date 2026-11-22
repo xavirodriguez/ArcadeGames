@@ -2,7 +2,12 @@ import { FlappyBirdGame } from "../FlappyBirdGame";
 import { createPipe } from "../EntityFactory";
 import { FlappyBirdCollisionSystem } from "../systems/FlappyBirdCollisionSystem";
 import { FlappyBirdConfigSchema } from "../types/FlappyBirdConfigSchema";
-import { resolveGapSize } from "../systems/FlappyBirdDifficulty";
+import {
+  computeDifficultyRamp,
+  estimateMaxFlapAscent,
+  resolveGapSize
+} from "../systems/FlappyBirdDifficulty";
+import { getScenarioConfig, SCENARIO_ORDER } from "../ScenarioDefinitions";
 import { FlappyBirdGameStateSystem } from "../systems/FlappyBirdGameStateSystem";
 import { DEFAULT_FLAPPY_BIRD_CONFIG } from "../types/FlappyBirdConfigSchema";
 import { officePaperTheme } from "../../../theme/officePaperTheme";
@@ -312,5 +317,176 @@ describe("Flappy Bird gameplay pass — scenario gap sizes", () => {
       scenarioGapSizeOverride: 120,
       isNarrowGap: true
     })).toBeCloseTo(84);
+  });
+});
+
+
+describe("Flappy Bird gameplay pass — global difficulty ramp", () => {
+  it("leaves lap zero unchanged and increases difficulty monotonically", () => {
+    const config = DEFAULT_FLAPPY_BIRD_CONFIG;
+    expect(computeDifficultyRamp(0, config)).toEqual({
+      speedMultiplier: 1,
+      gapMultiplier: 1
+    });
+    expect(computeDifficultyRamp(19, config)).toEqual({
+      speedMultiplier: 1,
+      gapMultiplier: 1
+    });
+
+    const lapOne = computeDifficultyRamp(20, config);
+    const lapTwo = computeDifficultyRamp(40, config);
+    expect(lapOne.speedMultiplier).toBeGreaterThan(1);
+    expect(lapTwo.speedMultiplier).toBeGreaterThan(lapOne.speedMultiplier);
+    expect(lapTwo.gapMultiplier).toBeLessThan(lapOne.gapMultiplier);
+  });
+
+  it("respects speed and gap caps", () => {
+    const ramp = computeDifficultyRamp(20 * 100, DEFAULT_FLAPPY_BIRD_CONFIG);
+    expect(ramp.speedMultiplier).toBe(1.2);
+    expect(ramp.gapMultiplier).toBe(0);
+  });
+
+  it("disables both ramp factors when DIFFICULTY_RAMP_ENABLED is false", () => {
+    const config = {
+      ...DEFAULT_FLAPPY_BIRD_CONFIG,
+      DIFFICULTY_RAMP_ENABLED: false
+    };
+    expect(computeDifficultyRamp(20 * 100, config)).toEqual({
+      speedMultiplier: 1,
+      gapMultiplier: 1
+    });
+  });
+
+  it("is deterministic for the same pipe count and config", () => {
+    const first = computeDifficultyRamp(735, DEFAULT_FLAPPY_BIRD_CONFIG);
+    const second = computeDifficultyRamp(735, DEFAULT_FLAPPY_BIRD_CONFIG);
+    expect(second).toEqual(first);
+  });
+
+  it("applies the minimum gap only after the global ramp starts", () => {
+    const scenarioGapSize = getScenarioConfig("warp_corridor").configOverrides?.GAP_SIZE;
+    expect(scenarioGapSize).toBe(120);
+    expect(resolveGapSize({
+      baseGapSize: 140,
+      scenarioGapSizeOverride: scenarioGapSize,
+      isNarrowGap: true
+    })).toBeCloseTo(84);
+
+    const ramp = computeDifficultyRamp(20, DEFAULT_FLAPPY_BIRD_CONFIG);
+    expect(resolveGapSize({
+      baseGapSize: 140,
+      scenarioGapSizeOverride: scenarioGapSize,
+      isNarrowGap: true,
+      difficultyGapMultiplier: ramp.gapMultiplier,
+      minGapSize: DEFAULT_FLAPPY_BIRD_CONFIG.MIN_GAP_SIZE
+    })).toBe(90);
+  });
+
+  it("keeps the fastest stacked scenario above the flap and vertical-reach limits", () => {
+    const config = DEFAULT_FLAPPY_BIRD_CONFIG;
+    const warpScenario = getScenarioConfig("warp_corridor");
+    const maximumRamp = computeDifficultyRamp(20 * 100, config);
+    const finalGapSize = resolveGapSize({
+      baseGapSize: config.GAP_SIZE,
+      scenarioGapSizeOverride: warpScenario.configOverrides?.GAP_SIZE,
+      isNarrowGap: true,
+      difficultyGapMultiplier: maximumRamp.gapMultiplier,
+      minGapSize: config.MIN_GAP_SIZE
+    });
+
+    const eventSpeedMultiplier = 1.4;
+    const scenarioSpeedMultiplier = warpScenario.configOverrides?.pipeSpeedMultiplier ?? 1;
+    const maximumPipeSpeed =
+      config.PIPE_SPEED *
+      scenarioSpeedMultiplier *
+      eventSpeedMultiplier *
+      maximumRamp.speedMultiplier;
+    const passageWindowSeconds =
+      (config.PIPE_WIDTH + 2 * config.BIRD_RADIUS) / maximumPipeSpeed;
+    const fastestSpawnIntervalSeconds =
+      (warpScenario.configOverrides?.PIPE_SPAWN_INTERVAL ?? config.PIPE_SPAWN_INTERVAL) / 1000;
+    const maximumAscent = estimateMaxFlapAscent(
+      config.GRAVITY,
+      config.FLAP_STRENGTH,
+      config.FLAP_COOLDOWN,
+      fastestSpawnIntervalSeconds
+    );
+    const warpOscillationAmplitude =
+      warpScenario.pipeRecipe.movementTypes.find((option) => option.type === "oscillating")
+        ?.oscillationAmplitude ?? 0;
+    const spawnIntervalTicks = Math.round(fastestSpawnIntervalSeconds * 60);
+    // createPipe seeds oscillationPhase from world.tick * 0.1. Consecutive pairs
+    // therefore differ by this phase delta; the maximum separation between their
+    // sine offsets is 2 * amplitude * abs(sin(deltaPhase / 2)).
+    const phaseDelta = spawnIntervalTicks * 0.1;
+    const maximumOscillationDelta =
+      2 * warpOscillationAmplitude * Math.abs(Math.sin(phaseDelta / 2));
+    const maximumGapCenterDelta =
+      config.worldHeight -
+      2 * config.PIPE_SPAWN_MARGIN +
+      maximumOscillationDelta;
+    const birdClearanceInsideGap = finalGapSize - 2 * config.BIRD_RADIUS;
+    const requiredVerticalTravel = maximumGapCenterDelta - birdClearanceInsideGap;
+
+    expect(SCENARIO_ORDER).toHaveLength(4);
+    expect(finalGapSize).toBe(90);
+    expect(warpOscillationAmplitude).toBe(20);
+    expect(maximumPipeSpeed).toBe(252);
+    expect(passageWindowSeconds).toBeGreaterThan(config.FLAP_COOLDOWN / 1000);
+    expect(maximumAscent).toBeCloseTo(384, 5);
+    expect(maximumAscent).toBeGreaterThan(requiredVerticalTravel);
+  });
+
+  it("defaults to a conservative ramp configuration", () => {
+    expect(FlappyBirdConfigSchema.parse({})).toMatchObject({
+      DIFFICULTY_RAMP_ENABLED: true,
+      DIFFICULTY_SPEED_INCREMENT_PER_LAP: 0.05,
+      DIFFICULTY_GAP_REDUCTION_PER_LAP: 0.03,
+      MAX_DIFFICULTY_SPEED_MULTIPLIER: 1.2,
+      MIN_GAP_SIZE: 90
+    });
+  });
+});
+
+describe("Flappy Bird gameplay pass — applied speed ramp", () => {
+  let game: FlappyBirdGame;
+  let world: ReturnType<FlappyBirdGame["getWorld"]>;
+
+  beforeEach(async () => {
+    game = new FlappyBirdGame();
+    await game.init();
+    world = game.getWorld();
+    world.mutateSingleton("FlappyState", (state) => {
+      state.pipesSpawnedCount = 20;
+      state.currentScenario = "open_space";
+      state.currentSectorEvent = "hyper_warp";
+      state.sectorEventDuration = 10;
+      state.sectorEventTicks = 0;
+      state.graceTimeRemaining = 3;
+    });
+  });
+
+  afterEach(() => {
+    game.destroy();
+  });
+
+  it("multiplies the existing Hyper Warp speed by the lap ramp", () => {
+    const system = new FlappyBirdGameStateSystem(game, DEFAULT_FLAPPY_BIRD_CONFIG);
+    system.onRegister(world);
+    system.update(world, 1 / 60);
+
+    expect(world.getSingleton("FlappyState")?.pipeSpeedMultiplier).toBeCloseTo(1.4 * 1.05);
+  });
+
+  it("preserves sector-event speed when the global ramp is disabled", () => {
+    const config = {
+      ...DEFAULT_FLAPPY_BIRD_CONFIG,
+      DIFFICULTY_RAMP_ENABLED: false
+    };
+    const system = new FlappyBirdGameStateSystem(game, config);
+    system.onRegister(world);
+    system.update(world, 1 / 60);
+
+    expect(world.getSingleton("FlappyState")?.pipeSpeedMultiplier).toBe(1.4);
   });
 });

@@ -8,15 +8,10 @@ import {
 } from "../types/FlappyBirdTypes";
 import { IFlappyBirdGame, IFlappyStateSystem } from "../types/GameInterfaces";
 import { createPipe } from "../EntityFactory";
-import { getScenarioConfig } from "../ScenarioDefinitions";
+import { getScenarioConfig, SCENARIO_ORDER } from "../ScenarioDefinitions";
+import { computeDifficultyRamp } from "./FlappyBirdDifficulty";
+export { SCENARIO_ORDER } from "../ScenarioDefinitions";
 import { FlappyBirdConfig } from "../types/FlappyBirdConfigSchema";
-
-export const SCENARIO_ORDER: ScenarioId[] = [
-  "open_space",
-  "asteroid_belt",
-  "solar_storm",
-  "warp_corridor",
-];
 
 export function selectScenario(
   pipesSpawnedCount: number,
@@ -79,7 +74,7 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
       });
     }
 
-    const activeScenarioConfig = getScenarioConfig(gameState.currentScenario ?? "open_space");
+    const activeScenarioConfig = getScenarioConfig(activeScenarioId);
     const scenarioOverrides = activeScenarioConfig.configOverrides;
     const scenarioSpeedMult = scenarioOverrides?.pipeSpeedMultiplier ?? 1.0;
 
@@ -123,7 +118,9 @@ export class FlappyBirdGameStateSystem extends BaseGameStateSystem<FlappyBirdSta
       }
     }
 
-    const totalPipeSpeedMultiplier = scenarioSpeedMult * eventSpeedMultiplier;
+    const difficultyRamp = computeDifficultyRamp(pipesSpawned, this.config);
+    const totalPipeSpeedMultiplier =
+      scenarioSpeedMult * eventSpeedMultiplier * difficultyRamp.speedMultiplier;
     const sectorScoreMultiplier = currentEvent === "hyper_warp" ? 2 : 1;
 
     world.mutateSingleton("FlappyState", (gs) => {

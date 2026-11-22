@@ -19,6 +19,7 @@ import { InterestReplicationStrategy } from "../replication/InterestReplicationS
 import { BinaryReplicationStrategy } from "../replication/BinaryReplicationStrategy";
 import { DeltaReplicationStrategy } from "../replication/DeltaReplicationStrategy";
 import { type Client } from "@colyseus/core";
+import { auditLog } from "./helpers/auditLog";
 
 interface InputTestComponent extends Component {
   type: "Input";
@@ -119,8 +120,8 @@ describe("S4 Replication Surface Audit Tests & Measurements", () => {
 
       expect(hashSoA1).not.toEqual(hashSoA2);
 
-      console.log(`[4.1 Hash Test] AoS Hash 1: ${hashAoS1}, AoS Hash 2: ${hashAoS2} (Different? ${hashAoS1 !== hashAoS2})`);
-      console.log(`[4.1 Hash Test] SoA Hash 1: ${hashSoA1}, SoA Hash 2: ${hashSoA2} (Different? ${hashSoA1 !== hashSoA2})`);
+      auditLog(`[4.1 Hash Test] AoS Hash 1: ${hashAoS1}, AoS Hash 2: ${hashAoS2} (Different? ${hashAoS1 !== hashAoS2})`);
+      auditLog(`[4.1 Hash Test] SoA Hash 1: ${hashSoA1}, SoA Hash 2: ${hashSoA2} (Different? ${hashSoA1 !== hashSoA2})`);
     });
   });
 
@@ -219,7 +220,7 @@ describe("S4 Replication Surface Audit Tests & Measurements", () => {
 
       // Verify that reconciliation restored server snapshot because local hash !== server hash
       expect(restoredCount).toBe(1);
-      console.log(`[4.5 Divergence Test] Client Hash: ${clientHash}, Server Hash: ${serverHash}. Reconciliation restored state? ${restoredCount === 1}`);
+      auditLog(`[4.5 Divergence Test] Client Hash: ${clientHash}, Server Hash: ${serverHash}. Reconciliation restored state? ${restoredCount === 1}`);
     });
   });
 
@@ -325,23 +326,23 @@ describe("S4 Replication Surface Audit Tests & Measurements", () => {
       const res2 = await setupAsteroidsRoomAndMeasure(2);
       const res8 = await setupAsteroidsRoomAndMeasure(8);
 
-      console.log("\n=== 4.4 MEASUREMENT RESULTS - ASTEROIDS (N=2) ===");
-      console.log(`Game: Asteroids, Tick: ${res2.tick}, Players: 2, Entities: ${res2.activeEntities}`);
-      console.log(`Legacy Strategy Payload: ${res2.legacyBytes} bytes`);
-      console.log(`Interest Strategy Payload: ${res2.interestBytes} bytes`);
-      console.log(`Binary Strategy Payload: ${res2.binaryBytes} bytes`);
-      console.log(`Delta Strategy Payload: ${res2.deltaBytes} bytes`);
-      console.log(`Component Breakdown (JSON bytes):`, JSON.stringify(res2.componentBytes, null, 2));
-      console.log(`Total Component Bytes: ${res2.totalCompBytes}, Input Bytes: ${res2.inputBytes} (${res2.inputPercent.toFixed(2)}%)`);
+      auditLog("\n=== 4.4 MEASUREMENT RESULTS - ASTEROIDS (N=2) ===");
+      auditLog(`Game: Asteroids, Tick: ${res2.tick}, Players: 2, Entities: ${res2.activeEntities}`);
+      auditLog(`Legacy Strategy Payload: ${res2.legacyBytes} bytes`);
+      auditLog(`Interest Strategy Payload: ${res2.interestBytes} bytes`);
+      auditLog(`Binary Strategy Payload: ${res2.binaryBytes} bytes`);
+      auditLog(`Delta Strategy Payload: ${res2.deltaBytes} bytes`);
+      auditLog(`Component Breakdown (JSON bytes):`, JSON.stringify(res2.componentBytes, null, 2));
+      auditLog(`Total Component Bytes: ${res2.totalCompBytes}, Input Bytes: ${res2.inputBytes} (${res2.inputPercent.toFixed(2)}%)`);
 
-      console.log("\n=== 4.4 MEASUREMENT RESULTS - ASTEROIDS (N=8) ===");
-      console.log(`Game: Asteroids, Tick: ${res8.tick}, Players: 8, Entities: ${res8.activeEntities}`);
-      console.log(`Legacy Strategy Payload: ${res8.legacyBytes} bytes`);
-      console.log(`Interest Strategy Payload: ${res8.interestBytes} bytes`);
-      console.log(`Binary Strategy Payload: ${res8.binaryBytes} bytes`);
-      console.log(`Delta Strategy Payload: ${res8.deltaBytes} bytes`);
-      console.log(`Component Breakdown (JSON bytes):`, JSON.stringify(res8.componentBytes, null, 2));
-      console.log(`Total Component Bytes: ${res8.totalCompBytes}, Input Bytes: ${res8.inputBytes} (${res8.inputPercent.toFixed(2)}%)`);
+      auditLog("\n=== 4.4 MEASUREMENT RESULTS - ASTEROIDS (N=8) ===");
+      auditLog(`Game: Asteroids, Tick: ${res8.tick}, Players: 8, Entities: ${res8.activeEntities}`);
+      auditLog(`Legacy Strategy Payload: ${res8.legacyBytes} bytes`);
+      auditLog(`Interest Strategy Payload: ${res8.interestBytes} bytes`);
+      auditLog(`Binary Strategy Payload: ${res8.binaryBytes} bytes`);
+      auditLog(`Delta Strategy Payload: ${res8.deltaBytes} bytes`);
+      auditLog(`Component Breakdown (JSON bytes):`, JSON.stringify(res8.componentBytes, null, 2));
+      auditLog(`Total Component Bytes: ${res8.totalCompBytes}, Input Bytes: ${res8.inputBytes} (${res8.inputPercent.toFixed(2)}%)`);
 
       expect(res2.legacyBytes).toBeGreaterThan(0);
       expect(res8.legacyBytes).toBeGreaterThan(0);

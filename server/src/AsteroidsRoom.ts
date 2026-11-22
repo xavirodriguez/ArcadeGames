@@ -171,10 +171,11 @@ export class AsteroidsRoom extends BaseRoom<AsteroidsState, AsteroidsComponentRe
 
     const entity = createShip({ world: this.world, x: player.x, y: player.y });
 
-    this.world.addComponent(entity, {
-      type: "Ship",
-      sessionId: client.sessionId,
-    } as AsteroidsComponentRegistry["Ship"]);
+    // The ship blueprint already owns the authoritative Ship component. Mutate it
+    // instead of replacing it so fields such as shootCooldownRemaining survive.
+    this.world.mutateComponent(entity, "Ship", (ship) => {
+      ship.sessionId = client.sessionId;
+    });
 
     return entity;
   }
@@ -259,7 +260,9 @@ export class AsteroidsRoom extends BaseRoom<AsteroidsState, AsteroidsComponentRe
   }
 
   override onDispose(): void {
-    console.log(`[AsteroidsRoom] Disposing room ${this.roomId}`);
+    if (this.roomId) {
+      console.log(`[AsteroidsRoom] Disposing room ${this.roomId}`);
+    }
     this.stateHistory.clear();
     this.replayFrames = [];
     if (this.gameOverUnsubscribe) {

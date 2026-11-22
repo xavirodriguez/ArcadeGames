@@ -188,3 +188,10 @@
 - **Causa verificada:** `BaseRoom.fixedTimeStep` vale `16.66` (milisegundos), mientras `AsteroidInputSystem` pasa `deltaTime` directamente a `computeShipPhysics` como segundos. El término de fricción `max(0, 1 - SHIP_FRICTION * deltaTimeSec)` anulaba la velocidad al tratar 16.66 como segundos.
 - **Corrección en PR #1214:** `AsteroidsRoom` fija `fixedTimeStep = 1 / 60`, conservando la frecuencia aproximada de 60 Hz y entregando segundos al ECS. El test de integración existente comprueba movimiento real tras aplicar thrust; queda pendiente reejecución de CI/E2E.
 - No marcar U1b `done` hasta que todos los workflows obligatorios terminen en verde.
+
+### U1b follow-up — cooldown de disparo perdido en el spawn autoritativo (2026-11-22)
+
+- **Fallo observado en CI:** con `thrust` el test ya pasaba, pero el tick de `shoot` no creaba ninguna bala (`AsteroidsRoom.test.ts:65`, `Bullet` length 0).
+- **Causa verificada:** `createShip` crea el componente `Ship` del blueprint con `shootCooldownRemaining: 0` (`src/games/asteroids/EntityFactory.ts:155`). `AsteroidsRoom.spawnPlayer` reemplazaba ese componente con un objeto `{ type: "Ship", sessionId }`, borrando el cooldown (`server/src/AsteroidsRoom.ts:172-177`). `AsteroidInputSystem` evalúa `cooldown <= 0`; con `undefined` la comparación es falsa y nunca dispara (`src/games/asteroids/systems/AsteroidInputSystem.ts:93-103`).
+- **Commit que expuso el defecto:** `1ab16916` cambió la query del servidor de `LocalPlayer` a `Ship`, activando por primera vez el procesamiento de disparo autoritativo; `a53f185a` corrigió el paso temporal y permitió que el test llegara a la aserción de bala. En `1ab16916` el test fallaba antes, en la comprobación de `thrust`.
+- **Corrección:** `spawnPlayer` muta el `Ship` existente para asignar `sessionId` en lugar de sustituirlo, conservando `shootCooldownRemaining` y el resto de campos del blueprint. El test de sala verifica ahora explícitamente que el cooldown sigue en 0 tras el spawn y mantiene la aserción de `ownerId`.

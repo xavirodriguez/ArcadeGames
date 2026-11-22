@@ -54,6 +54,7 @@ describe("SpaceInvadersRoom Lifecycle & Normalization", () => {
 
   afterEach(() => {
     room.onDispose();
+    jest.restoreAllMocks();
   });
 
   it("should initialize with correct state during onCreate", () => {
@@ -173,6 +174,7 @@ describe("SpaceInvadersRoom Lifecycle & Normalization", () => {
     });
 
     it("should reject malformed inputs", () => {
+      const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
       const handler = messageHandlers.get("input");
       const malformedFrame = {
         tick: "invalid-tick", // non-number tick
@@ -181,12 +183,15 @@ describe("SpaceInvadersRoom Lifecycle & Normalization", () => {
 
       handler!(mockClient, malformedFrame);
 
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining("Malformed input frame"));
       const internal = getRoomInternal(room);
       const buffer = internal.inputBuffers.get("client_1");
       expect(buffer?.length).toBe(0);
     });
 
     it("should reject negative tick", () => {
+      const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
       const handler = messageHandlers.get("input");
       const negativeTickFrame = {
         tick: -10,
@@ -196,6 +201,8 @@ describe("SpaceInvadersRoom Lifecycle & Normalization", () => {
 
       handler!(mockClient, negativeTickFrame);
 
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining("Malformed input frame"));
       const internal = getRoomInternal(room);
       const buffer = internal.inputBuffers.get("client_1");
       expect(buffer?.length).toBe(0);
@@ -248,6 +255,7 @@ describe("SpaceInvadersRoom Lifecycle & Normalization", () => {
     });
 
     it("should reject input frames exceeding actions limit or axes key count", () => {
+      const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
       const handler = messageHandlers.get("input");
 
       // Too many actions (> 16)
@@ -258,6 +266,8 @@ describe("SpaceInvadersRoom Lifecycle & Normalization", () => {
       };
       handler!(mockClient, excessiveActionsFrame);
 
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining("Malformed input frame"));
       const internal = getRoomInternal(room);
       let buffer = internal.inputBuffers.get("client_1");
       expect(buffer?.some((f) => f.tick === 12)).toBe(false);

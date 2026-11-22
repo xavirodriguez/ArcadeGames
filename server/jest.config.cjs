@@ -4,7 +4,9 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   transform: {
-    '^.+\\.m?[jt]sx?$': ['ts-jest', {}],
+    // allowJs lets ts-jest compile jest.setup.js without warning; the inline
+    // tsconfig is merged into server/tsconfig.json rather than replacing it.
+    '^.+\\.m?[jt]sx?$': ['ts-jest', { tsconfig: { allowJs: true } }],
   },
   transformIgnorePatterns: [],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node', 'mjs'],

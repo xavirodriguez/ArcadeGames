@@ -41,6 +41,9 @@ describe("AsteroidsRoom authoritative input", () => {
     expect(internal.world.hasComponent(entity, "LocalPlayer")).toBe(false);
     expect(internal.world.hasComponent(entity, "Input")).toBe(false);
     expect(internal.world.getComponent(entity, "Ship")?.sessionId).toBe(client.sessionId);
+    // Spawning must preserve the blueprint's shoot cooldown so the authoritative
+    // input system can fire on the very next processed tick.
+    expect(internal.world.getComponent(entity, "Ship")?.shootCooldownRemaining).toBe(0);
 
     const startHandler = messageHandlers.get("start_game");
     const inputHandler = messageHandlers.get("input");
@@ -53,6 +56,7 @@ describe("AsteroidsRoom authoritative input", () => {
     internal.world.flush();
 
     inputHandler!(client, { protocolVersion: 1, tick: 1, timestamp: 1, actions: ['thrust'], axes: {} } satisfies InputFrame);
+    // BaseRoom ignores this argument and steps with AsteroidsRoom.fixedTimeStep (1/60 s).
     room.update(16.66);
     const velocity = internal.world.getComponent(entity, "Velocity");
     expect(velocity).toBeDefined();

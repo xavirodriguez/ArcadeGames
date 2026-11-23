@@ -20,6 +20,10 @@ import { drawCanvasParticle, drawSkiaParticle } from "./ShmupParticleVisuals";
 import { createShmupBloomPostProcess } from "./ShmupBloomPostProcess";
 import { createShmupDamageVignettePostProcess } from "./ShmupDamageVignettePostProcess";
 import {
+  drawShmupWaveAnnouncementCanvas,
+  drawShmupWaveAnnouncementSkia
+} from "./ShmupWaveAnnouncementForeground";
+import {
   FloatingTextScoreEffect,
   SkiaFloatingTextScoreEffect,
   registerSharedVFXAssets
@@ -44,6 +48,7 @@ export function initializeShmupRenderer(renderer: Renderer<ShmupComponentRegistr
       r.registerShape("floating_text", FloatingTextScoreEffect as never);
       r.registerPostProcessEffect?.("shmup_bloom", createShmupBloomPostProcess() as never);
       r.registerPostProcessEffect?.("shmup_damage_vignette", createShmupDamageVignettePostProcess() as never);
+      r.registerForegroundEffect?.("shmup_wave_announcement", drawShmupWaveAnnouncementCanvas);
     },
     skia: (r) => {
       r.registerBackgroundEffect("shmup_starfield", drawSkiaShmupStarfield as never);
@@ -53,6 +58,7 @@ export function initializeShmupRenderer(renderer: Renderer<ShmupComponentRegistr
       r.registerShape("shmup_enemy_bullet", drawThemeSkiaEnemyBullet as never);
       r.registerShape("particle", drawSkiaParticle as never);
       r.registerShape("floating_text", SkiaFloatingTextScoreEffect as never);
+      r.registerForegroundEffect?.("shmup_wave_announcement", drawShmupWaveAnnouncementSkia as never);
     }
   });
 }

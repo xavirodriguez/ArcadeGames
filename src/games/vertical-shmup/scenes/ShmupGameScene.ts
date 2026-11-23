@@ -15,6 +15,7 @@ import { ShmupGrazeSystem } from "../systems/ShmupGrazeSystem";
 import { ShmupBombSystem } from "../systems/ShmupBombSystem";
 import { ShmupParticleFadeSystem } from "../systems/ShmupParticleFadeSystem";
 import { ShmupJuicePresentationSystem } from "../systems/ShmupJuicePresentationSystem";
+import { ShmupWaveAnnouncementSystem } from "../systems/ShmupWaveAnnouncementSystem";
 import { createPlayer, createEnemy } from "../EntityFactory";
 import { selectShmupEnemyArchetype } from "../EnemyArchetypes";
 import { createMainCamera2D } from "../../shared/componentBuilders";
@@ -99,6 +100,7 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
     this.world.addSystem(new ShmupGrazeSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new ShmupCollisionSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new ShmupParticleFadeSystem(), { phase: SystemPhase.Presentation });
+    this.world.addSystem(new ShmupWaveAnnouncementSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new ShmupJuicePresentationSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new Camera2DSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation });

@@ -11,17 +11,21 @@ describe("VerticalShmup Rendering & Parity", () => {
     const registeredSkiaShapes = new Set<string>();
     const registeredCanvasEffects = new Set<string>();
     const registeredSkiaEffects = new Set<string>();
+    const registeredCanvasForeground = new Set<string>();
+    const registeredSkiaForeground = new Set<string>();
 
     const mockCanvasRenderer = {
       type: "canvas",
       registerShape: (name: string) => registeredCanvasShapes.add(name),
-      registerBackgroundEffect: (name: string) => registeredCanvasEffects.add(name)
+      registerBackgroundEffect: (name: string) => registeredCanvasEffects.add(name),
+      registerForegroundEffect: (name: string) => registeredCanvasForeground.add(name)
     } as unknown as Renderer<ShmupComponentRegistry, unknown>;
 
     const mockSkiaRenderer = {
       type: "skia",
       registerShape: (name: string) => registeredSkiaShapes.add(name),
-      registerBackgroundEffect: (name: string) => registeredSkiaEffects.add(name)
+      registerBackgroundEffect: (name: string) => registeredSkiaEffects.add(name),
+      registerForegroundEffect: (name: string) => registeredSkiaForeground.add(name)
     } as unknown as Renderer<ShmupComponentRegistry, unknown>;
 
     game.initializeRenderer(mockCanvasRenderer);
@@ -32,13 +36,28 @@ describe("VerticalShmup Rendering & Parity", () => {
     expect(registeredCanvasShapes.has("shmup_player_bullet")).toBe(true);
     expect(registeredCanvasShapes.has("shmup_enemy_bullet")).toBe(true);
     expect(registeredCanvasEffects.has("shmup_starfield")).toBe(true);
+    expect(registeredCanvasForeground.has("shmup_wave_announcement")).toBe(true);
 
     expect(registeredSkiaShapes.has("shmup_player")).toBe(true);
     expect(registeredSkiaShapes.has("shmup_enemy")).toBe(true);
     expect(registeredSkiaShapes.has("shmup_player_bullet")).toBe(true);
     expect(registeredSkiaShapes.has("shmup_enemy_bullet")).toBe(true);
     expect(registeredSkiaEffects.has("shmup_starfield")).toBe(true);
+    expect(registeredSkiaForeground.has("shmup_wave_announcement")).toBe(true);
 
+    game.destroy();
+  });
+
+  it("tolerates renderers that do not implement foreground effects", async () => {
+    const game = new VerticalShmupGame();
+    await game.init();
+    const minimalRenderer = {
+      type: "canvas",
+      registerShape: () => undefined,
+      registerBackgroundEffect: () => undefined
+    } as unknown as Renderer<ShmupComponentRegistry, unknown>;
+
+    expect(() => game.initializeRenderer(minimalRenderer)).not.toThrow();
     game.destroy();
   });
 });

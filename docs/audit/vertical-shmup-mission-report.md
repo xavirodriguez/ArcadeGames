@@ -3,7 +3,7 @@
 - **Date:** 2026-11-23
 - **Branch:** `feat/shmup-boss-and-graze`
 - **Base commit:** `5bb7b3303` (`master`)
-- **Final commit:** `d61645cca`
+- **Final commit:** `c561f739a`
 
 ## A. Resumen
 
@@ -39,6 +39,7 @@ No hay tareas BLOCKED por cambios de esta misión. Los comandos que fallan lo ha
 | `9ffa1b7b6` | `feat(shmup): add wave announcement presentation` (T6) |
 | `1da1d9018` | `test(shmup): keep rendering mock typecasts at baseline` (T7, corrige regresión de ratchet propia) |
 | `d61645cca` | `docs(shmup): document boss, waves, rewards and announcements` (T7) |
+| `c561f739a` | `docs(shmup): add final mission report` (T7) |
 
 ## D. Verificaciones ejecutadas
 
@@ -72,4 +73,4 @@ Los fallos preexistentes se confirmaron ejecutando los mismos comandos en un wor
 - Rama actual: `feat/shmup-boss-and-graze` (sincronizada localmente; `origin/feat/shmup-boss-and-graze` y `origin/master` siguen en `5bb7b3303`).
 - `git status --short --branch`: `## feat/shmup-boss-and-graze` y `?? dist-e2e/` (único archivo sin trackear, sin tocar).
 - No se hizo `push`, no se abrieron PRs, no se usaron `reset`, `clean` ni `rebase` destructivos.
-- `git diff 5bb7b3303..HEAD --stat`: 35 archivos, 1967 inserciones, 57 borrados.
+- `git diff 5bb7b3303..HEAD --stat`: 36 archivos, 2042 inserciones, 57 borrados.

@@ -12,6 +12,12 @@ import {
   comboParticleColor
 } from "../juice/ShmupJuiceHelpers";
 import { SHMUP_COLOR_TOKENS } from "../rendering/ShmupColorTokens";
+import type { ShmupConfig } from "../types/ShmupConfigSchema";
+import {
+  DEFAULT_BOMB_STOCK_MAX,
+  DEFAULT_BOSS_KILL_BOMB_REWARD,
+  grantBombs
+} from "../bombs/bombEconomy";
 
 function playSfx(
   world: World<ShmupComponentRegistry, ShmupEventRegistry>,
@@ -65,6 +71,8 @@ export class ShmupCollisionSystem extends System<ShmupComponentRegistry, ShmupEv
         }
       });
     }
+
+    const config = world.getResource<ShmupConfig>("GameConfig");
 
     // 1. Process Enemy Destruction
     for (const entity of world.query("ShmupEnemy", "Health")) {
@@ -129,6 +137,24 @@ export class ShmupCollisionSystem extends System<ShmupComponentRegistry, ShmupEv
       world.mutateSingleton("ShmupGameState", (state) => {
         state.score += award;
       });
+
+      // Boss reward is gameplay state, so it also applies while resimulating.
+      // The flag travels with the serializable enemy component, keeping the
+      // reward single-shot even if this entity is processed again before the
+      // deferred removal is flushed.
+      if (isBoss && enemy.bombRewardGranted !== true) {
+        world.mutateComponent(entity, "ShmupEnemy", (component) => {
+          component.bombRewardGranted = true;
+        });
+        world.mutateSingleton("ShmupGameState", (state) => {
+          state.bombsRemaining = grantBombs(
+            state.bombsRemaining ?? config?.BOMB_STOCK_INITIAL ?? 3,
+            config?.BOSS_KILL_BOMB_REWARD ?? DEFAULT_BOSS_KILL_BOMB_REWARD,
+            config?.BOMB_STOCK_MAX ?? DEFAULT_BOMB_STOCK_MAX
+          );
+        });
+      }
+
       world.getEventBus()?.emitDeferred("shmup:kill", { entity, score: award });
       WorldUtils.removeOrReclaim(world, entity);
     }

@@ -7,6 +7,12 @@ import {
   spawnGrazeSparks
 } from "../juice/ShmupJuiceHelpers";
 import { SHMUP_COLOR_TOKENS } from "../rendering/ShmupColorTokens";
+import {
+  DEFAULT_BOMB_STOCK_MAX,
+  DEFAULT_GRAZE_BOMB_THRESHOLD,
+  grazeBombRewards,
+  grantBombs
+} from "../bombs/bombEconomy";
 
 /**
  * Awards score when the player near-misses enemy bullets (AUD-P2-01).
@@ -53,7 +59,23 @@ export class ShmupGrazeSystem extends System<ShmupComponentRegistry, ShmupEventR
       });
       world.mutateSingleton("ShmupGameState", (s) => {
         s.score += grazeScore;
-        s.grazeCount = (s.grazeCount ?? 0) + 1;
+        const previousGraze = s.grazeCount ?? 0;
+        const nextGraze = previousGraze + 1;
+        s.grazeCount = nextGraze;
+
+        // Gameplay mutation: it must also run during rollback resimulation.
+        const reward = grazeBombRewards(
+          previousGraze,
+          nextGraze,
+          config?.GRAZE_BOMB_THRESHOLD ?? DEFAULT_GRAZE_BOMB_THRESHOLD
+        );
+        if (reward > 0) {
+          s.bombsRemaining = grantBombs(
+            s.bombsRemaining ?? config?.BOMB_STOCK_INITIAL ?? 3,
+            reward,
+            config?.BOMB_STOCK_MAX ?? DEFAULT_BOMB_STOCK_MAX
+          );
+        }
       });
       world.getEventBus()?.emitDeferred("shmup:graze", { bullet, score: grazeScore });
 

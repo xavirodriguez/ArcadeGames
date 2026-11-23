@@ -26,7 +26,7 @@ export type ShmupInputUpdate = Partial<ShmupInputState> | ShmupKeyboardInputStat
 export interface ShmupInputComponent extends Component { type:"Input"; axes:Record<string,number>; actions:readonly CanonicalActionName[]; shootCooldownRemaining:number; }
 export interface ShmupPlayerComponent extends Component { type:"ShmupPlayer"; }
 export type ShmupEnemyArchetype = "scout" | "interceptor" | "armored" | "support" | "boss";
-export interface ShmupEnemyComponent extends Component { type:"ShmupEnemy"; score:number; archetype:ShmupEnemyArchetype; }
+export interface ShmupEnemyComponent extends Component { type:"ShmupEnemy"; score:number; archetype:ShmupEnemyArchetype; /** Guards one-shot kill rewards across deferred removal / resimulation. */ bombRewardGranted?:boolean; }
 export interface ShmupPlayerBulletComponent extends Component { type:"ShmupPlayerBullet"; }
 /** Per-projectile graze credit is serializable so rollback cannot duplicate it. */
 export interface ShmupEnemyBulletComponent extends Component { type:"ShmupEnemyBullet"; grazed?:boolean; }

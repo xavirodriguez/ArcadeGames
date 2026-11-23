@@ -28,7 +28,8 @@ export interface ShmupPlayerComponent extends Component { type:"ShmupPlayer"; }
 export type ShmupEnemyArchetype = "scout" | "interceptor" | "armored" | "support" | "boss";
 export interface ShmupEnemyComponent extends Component { type:"ShmupEnemy"; score:number; archetype:ShmupEnemyArchetype; }
 export interface ShmupPlayerBulletComponent extends Component { type:"ShmupPlayerBullet"; }
-export interface ShmupEnemyBulletComponent extends Component { type:"ShmupEnemyBullet"; }
+/** Per-projectile graze credit is serializable so rollback cannot duplicate it. */
+export interface ShmupEnemyBulletComponent extends Component { type:"ShmupEnemyBullet"; grazed?:boolean; }
 export interface EnemyPathComponent extends Component { type:"EnemyPath"; kind:"straight"|"sine"|"arc"|"hover"; elapsed:number; duration:number; speed:number; amplitude:number; frequency:number; originX:number; originY:number; /** Boss hover target altitude. */ hoverY?:number; /** Vertical bob amplitude while hovering. */ bobAmplitude?:number; /** Vertical bob angular frequency (rad/s). */ bobFrequency?:number; }
 export interface BulletPatternComponent extends Component { type:"BulletPattern"; config:BulletPatternConfig; cooldownRemaining:number; phase:number; }
 /** Current (monotonic) attack phase of a boss. Pure serializable state. */

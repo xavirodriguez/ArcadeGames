@@ -14,8 +14,6 @@ import { SHMUP_COLOR_TOKENS } from "../rendering/ShmupColorTokens";
  * Juice: flash, cyan sparks, floating GRAZE text, distinct SFX.
  */
 export class ShmupGrazeSystem extends System<ShmupComponentRegistry, ShmupEventRegistry> {
-  private readonly grazedBullets = new Set<number>();
-
   update(world: World<ShmupComponentRegistry, ShmupEventRegistry>, _dt: number): void {
     const state = world.getSingleton("ShmupGameState");
     if (state?.isGameOver) return;
@@ -32,14 +30,11 @@ export class ShmupGrazeSystem extends System<ShmupComponentRegistry, ShmupEventR
     if (!playerT) return;
 
     const bullets = world.query("ShmupEnemyBullet", "Transform");
-    const alive = new Set(bullets);
-    for (const id of this.grazedBullets) {
-      if (!alive.has(id)) this.grazedBullets.delete(id);
-    }
 
     for (const bullet of bullets) {
       const bt = world.getComponent(bullet, "Transform");
-      if (!bt) continue;
+      const bulletTag = world.getComponent(bullet, "ShmupEnemyBullet");
+      if (!bt || !bulletTag) continue;
 
       const { graze } = evaluateGraze({
         playerX: playerT.x,
@@ -48,12 +43,14 @@ export class ShmupGrazeSystem extends System<ShmupComponentRegistry, ShmupEventR
         bulletY: bt.y,
         hitRadius,
         grazeMargin,
-        alreadyGrazed: this.grazedBullets.has(bullet)
+        alreadyGrazed: bulletTag.grazed === true
       });
 
       if (!graze) continue;
 
-      this.grazedBullets.add(bullet);
+      world.mutateComponent(bullet, "ShmupEnemyBullet", (tag) => {
+        tag.grazed = true;
+      });
       world.mutateSingleton("ShmupGameState", (s) => {
         s.score += grazeScore;
         s.grazeCount = (s.grazeCount ?? 0) + 1;

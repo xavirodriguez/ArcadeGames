@@ -9,6 +9,7 @@ import { EnemyPathSystem } from "../systems/EnemyPathSystem";
 import { ShmupCollisionSystem } from "../systems/ShmupCollisionSystem";
 import { ShmupSingleHitGuardSystem } from "../systems/ShmupSingleHitGuardSystem";
 import { ShmupBulletPatternSystem } from "../systems/BulletPatternSystem";
+import { ShmupBossPhaseSystem } from "../systems/ShmupBossPhaseSystem";
 import { ShmupSpawnSystem } from "../systems/ShmupSpawnSystem";
 import { ShmupGrazeSystem } from "../systems/ShmupGrazeSystem";
 import { ShmupBombSystem } from "../systems/ShmupBombSystem";
@@ -92,6 +93,8 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
     this.world.addSystem(new ShmupSingleHitGuardSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new CombatSystem<ShmupComponentRegistry, ShmupEventRegistry>(), { phase: SystemPhase.Collision });
+    // Resolve boss phase before the pattern system fires this tick's volley.
+    this.world.addSystem(new ShmupBossPhaseSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new ShmupBulletPatternSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new ShmupGrazeSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new ShmupCollisionSystem(), { phase: SystemPhase.GameRules });

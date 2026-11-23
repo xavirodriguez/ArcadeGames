@@ -6,6 +6,7 @@ import { PlayerBulletPool, EnemyBulletPool } from "./EntityPool";
 import { getGameplayColor } from "../../theme/GameplayColorMap";
 import { SHMUP_COLOR_TOKENS } from "./rendering/ShmupColorTokens";
 import { computeBossHp } from "./boss/bossMath";
+import { createBossPatternConfig } from "./boss/bossPatterns";
 import type { BulletPatternConfig } from "../shared/BulletPatternSystem";
 
 function nextGameplayRandom(world: World<ShmupComponentRegistry>): number {
@@ -85,10 +86,12 @@ export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: 
     straight: { kind: "aimed", bulletCount: 1, speed: baseBulletSpeed * Math.min(1.5, waveMult), ratePerSec: 0.8 * waveMult },
     sine: { kind: "spread", bulletCount: 3, speed: baseBulletSpeed * 0.9 * Math.min(1.5, waveMult), ratePerSec: 0.6 * waveMult, arcDegrees: 45 },
     arc: { kind: "ring", bulletCount: 6, speed: baseBulletSpeed * 0.8 * Math.min(1.5, waveMult), ratePerSec: 0.4 * waveMult },
-    armored: { kind: "spread", bulletCount: 5, speed: baseBulletSpeed * 0.85 * Math.min(1.5, waveMult), ratePerSec: 0.5 * waveMult, arcDegrees: 60 },
-    boss: { kind: "ring", bulletCount: 8, speed: baseBulletSpeed * 0.75 * Math.min(1.5, waveMult), ratePerSec: 0.8 * waveMult }
+    armored: { kind: "spread", bulletCount: 5, speed: baseBulletSpeed * 0.85 * Math.min(1.5, waveMult), ratePerSec: 0.5 * waveMult, arcDegrees: 60 }
   };
-  const patternConfig = patternConfigs[kind] ?? patternConfigs.straight;
+  // The boss owns a per-phase pattern; phase 1 is its opening ring attack.
+  const patternConfig = isBoss
+    ? createBossPatternConfig(1, baseBulletSpeed, wave)
+    : (patternConfigs[kind] ?? patternConfigs.straight);
   const pathKind = kind === "armored" ? "sine" : kind === "boss" ? "hover" : kind;
 
   const entitySize = isBoss ? 85 : isArmored ? Math.floor(c.ENEMY_SIZE * 1.4) : c.ENEMY_SIZE;
@@ -161,6 +164,7 @@ export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: 
   const maxHp = isBoss ? bossHp : scaledHp;
   add({ type: "ShmupEnemy", score: scaledScore, archetype: isBoss ? "boss" : archetype });
   add({ type: "Health", current: maxHp, max: maxHp });
+  if (isBoss) add({ type: "BossPhase", phase: 1 });
   add({ type: "Faction", faction: "enemy", value: "enemy" });
   add({
     type: "Damage",

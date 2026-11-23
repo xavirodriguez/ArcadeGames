@@ -28,6 +28,8 @@ export const FlappyBirdConfigSchema = BaseConfigSchema.extend({
   PIPE_SPAWN_MARGIN: z.number().default(100),
   COYOTE_TIME: z.number().default(0.05),
   MAX_NEAR_MISS_POINTS: z.number().default(80),
+  /** Glide energy restored by a near-miss at full closeness. */
+  NEAR_MISS_GLIDE_ENERGY: z.number().min(0).default(25),
 
   KEYS: z.object({
     FLAP: z.string().default("Space"),
@@ -40,7 +42,13 @@ export const FlappyBirdConfigSchema = BaseConfigSchema.extend({
   }),
 
   SCENARIO_ROTATION_ENABLED: z.boolean().default(true),
-  PIPES_PER_SCENARIO: z.number().default(5)
+  PIPES_PER_SCENARIO: z.number().min(1).default(5),
+
+  DIFFICULTY_RAMP_ENABLED: z.boolean().default(true),
+  DIFFICULTY_SPEED_INCREMENT_PER_LAP: z.number().min(0).default(0.05),
+  DIFFICULTY_GAP_REDUCTION_PER_LAP: z.number().min(0).max(1).default(0.03),
+  MAX_DIFFICULTY_SPEED_MULTIPLIER: z.number().min(1).default(1.2),
+  MIN_GAP_SIZE: z.number().min(1).default(90)
 });
 
 export type FlappyBirdConfig = z.infer<typeof FlappyBirdConfigSchema>;

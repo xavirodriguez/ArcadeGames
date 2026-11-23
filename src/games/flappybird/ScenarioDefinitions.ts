@@ -4,6 +4,13 @@ import { ScenarioId } from "./types/FlappyBirdTypes";
 import { FlappyBirdConfig } from "./types/FlappyBirdConfigSchema";
 import { SCENARIO_THEMES } from "./rendering/FlappyBirdBackgroundData";
 
+export const SCENARIO_ORDER: ScenarioId[] = [
+  "open_space",
+  "asteroid_belt",
+  "solar_storm",
+  "warp_corridor",
+];
+
 export const SCENARIOS: Record<ScenarioId, ScenarioConfig> = {
   open_space: {
     id: "open_space",
@@ -79,7 +86,8 @@ export const SCENARIOS: Record<ScenarioId, ScenarioConfig> = {
       movementTypes: [
         { type: "static", weight: 0.2 },
         { type: "laser_gate", weight: 0.4 },
-        { type: "oscillating", weight: 0.4, oscillationFrequency: 3.5, oscillationAmplitude: 50 },
+        // Keep consecutive Warp Corridor gaps vertically reachable at the fastest 1.8 s spawn cadence.
+        { type: "oscillating", weight: 0.4, oscillationFrequency: 3.5, oscillationAmplitude: 20 },
       ],
       narrowGapProbability: 0.3,
     },

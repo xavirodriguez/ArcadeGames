@@ -1,13 +1,23 @@
-import { Component, CoreComponentRegistry, CoreEvents, ComboComponent } from "@tiny-aster/core";
+import { Component, CoreComponentRegistry, CoreEvents, ComboComponent, RenderComponent } from "@tiny-aster/core";
 import { DEFAULT_FLAPPY_BIRD_CONFIG } from "./FlappyBirdConfigSchema";
+
+export type FlappySectorEvent = "solar_flare" | "asteroid_storm" | "hyper_warp";
 
 export interface FlappyBirdEventRegistry extends CoreEvents, Record<string, unknown> {
   "flappy:near_miss": { points: number };
   "flappy:near_miss_particles": { x: number; y: number; count: number; minSpeed: number; maxSpeed: number };
+  "flappy:scenario_changed": { from: ScenarioId; to: ScenarioId };
+  "flappy:sector_event_started": { event: FlappySectorEvent };
+  "flappy:sector_event_ended": { event: FlappySectorEvent };
   "pipe:passed": Record<string, unknown>;
 }
 
+export interface FlappyBirdRenderComponent extends RenderComponent {
+  text?: string;
+}
+
 export interface FlappyBirdComponentRegistry extends CoreComponentRegistry {
+  Render: FlappyBirdRenderComponent;
   FlappyInput: FlappyBirdInputComponent;
   Bird: BirdComponent;
   Pipe: PipeComponent;
@@ -104,10 +114,12 @@ export interface FlappyBirdState extends Component {
   graceTimeRemaining: number;
 
   pipesSpawnedCount?: number;
-  currentSectorEvent?: "none" | "solar_flare" | "asteroid_storm" | "hyper_warp";
+  currentSectorEvent?: "none" | FlappySectorEvent;
   sectorEventTicks?: number;
   sectorEventDuration?: number;
   pipeSpeedMultiplier?: number;
+  /** Independent score bonus applied while a sector event is active. */
+  sectorScoreMultiplier?: number;
 
   currentScenario: ScenarioId;
   previousScenario?: ScenarioId;
@@ -132,6 +144,7 @@ export function createFlappyState(overrides?: Partial<FlappyBirdState>): FlappyB
     sectorEventTicks: 0,
     sectorEventDuration: 0,
     pipeSpeedMultiplier: 1.0,
+    sectorScoreMultiplier: 1,
     currentScenario: "open_space",
     scenarioTransitionTicks: 0,
     ...overrides,

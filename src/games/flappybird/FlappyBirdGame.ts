@@ -11,6 +11,7 @@ import { FlappyBirdCollisionSystem } from "./systems/FlappyBirdCollisionSystem";
 import { FlappyBirdGlideSystem } from "./systems/FlappyBirdGlideSystem";
 import { FlappyBirdPipeMovementSystem } from "./systems/FlappyBirdPipeMovementSystem";
 import { FlappyBirdRenderSystem } from "./systems/FlappyBirdRenderSystem";
+import { FlappyBirdAnnouncementSystem } from "./systems/FlappyBirdAnnouncementSystem";
 import { IFlappyBirdGame } from "./types/GameInterfaces";
 import { InputBufferSystem } from "./systems/FlappyBirdInputSystem";
 import {
@@ -35,6 +36,13 @@ import { spawnVisualParticle as spawnCanvasParticle } from "./rendering/FlappyBi
 import { spawnVisualParticle as spawnSkiaParticle } from "./rendering/FlappyBirdSkiaVisuals";
 import { createThemeFromGameAccents } from "../../theme/gameAccents";
 import { registerPixelFxProceduralVFX } from "../shared/rendering/PixelFxProceduralVFX";
+import { registerSharedVFX } from "../shared/rendering/SharedVFX";
+import { getScenarioConfig } from "./ScenarioDefinitions";
+import {
+  FLAPPY_NARROW_GAP_MULTIPLIER,
+  computeDifficultyRamp,
+  resolveGapSize
+} from "./systems/FlappyBirdDifficulty";
 
 export interface FlappyBirdBlueprintMap extends Record<string, BlueprintDefinition<FlappyBirdComponentRegistry, EventRegistry, unknown>> {
   bird: BlueprintDefinition<FlappyBirdComponentRegistry, EventRegistry, { x: number, y: number }>;
@@ -176,8 +184,21 @@ export class FlappyBirdGame
         const config = world.getResource<FlappyBirdConfigType>("GameConfig") || DEFAULT_FLAPPY_BIRD_CONFIG;
         const pipeColor = resolveThemeColorStrict(world, "pipe", "enemy");
 
-        const gapMultiplier = args.isNarrowGap ? 0.7 : 1.0;
-        const gapSize = config.GAP_SIZE * gapMultiplier;
+        const gapMultiplier = args.isNarrowGap ? FLAPPY_NARROW_GAP_MULTIPLIER : 1.0;
+        const state = world.getSingleton("FlappyState");
+        const activeScenario = state?.currentScenario ?? "open_space";
+        const scenarioGapSize = getScenarioConfig(activeScenario).configOverrides?.GAP_SIZE;
+        const difficultyRamp = computeDifficultyRamp(state?.pipesSpawnedCount ?? 0, config);
+        const minimumGapSize = difficultyRamp.gapMultiplier < 1
+          ? config.MIN_GAP_SIZE
+          : 0;
+        const gapSize = resolveGapSize({
+          baseGapSize: config.GAP_SIZE,
+          scenarioGapSizeOverride: scenarioGapSize,
+          isNarrowGap: !!args.isNarrowGap,
+          difficultyGapMultiplier: difficultyRamp.gapMultiplier,
+          minGapSize: minimumGapSize
+        });
         const halfGap = gapSize / 2;
         const pipeWidth = config.PIPE_WIDTH;
         const pipeSpeed = config.PIPE_SPEED;
@@ -332,6 +353,7 @@ export class FlappyBirdGame
 
     // Visual / Presentation
     this.world.addSystem(new JuiceSystem() as System<FlappyBirdComponentRegistry>, { phase: SystemPhase.Presentation });
+    this.world.addSystem(new FlappyBirdAnnouncementSystem(), { phase: SystemPhase.Presentation, priority: 1 });
     this.world.addSystem(new FlappyBirdRenderSystem(), { phase: SystemPhase.Presentation });
 
     // Register visual feedback listener for obstacle pipe clearance
@@ -522,6 +544,7 @@ export class FlappyBirdGame
   }
 
   public initializeRenderer(renderer: Renderer<FlappyBirdComponentRegistry, RenderContext>): void {
+    registerSharedVFX(renderer);
     registerPixelFxProceduralVFX(renderer);
     const theme = this.world.getResource<Theme>(THEME_RESOURCE_KEY);
     const packId = theme?.conceptPack?.id;
@@ -557,13 +580,14 @@ export class FlappyBirdGame
     let combo = 0;
     let multiplier = 1;
     let comboTimerRemaining = 0;
+    const sectorScoreMultiplier = state?.sectorScoreMultiplier ?? 1;
 
     const comboEntities = world.query("Combo");
     if (comboEntities.length > 0) {
       const comboComp = world.getComponent(comboEntities[0], "Combo");
       if (comboComp) {
         combo = comboComp.combo ?? 0;
-        multiplier = comboComp.multiplier ?? 1;
+        multiplier = (comboComp.multiplier ?? 1) * sectorScoreMultiplier;
         comboTimerRemaining = Math.max(0, comboComp.timerRemaining ?? 0);
       }
     }

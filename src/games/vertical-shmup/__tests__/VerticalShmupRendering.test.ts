@@ -45,19 +45,10 @@ describe("VerticalShmup Rendering & Parity", () => {
     expect(registeredSkiaEffects.has("shmup_starfield")).toBe(true);
     expect(registeredSkiaForeground.has("shmup_wave_announcement")).toBe(true);
 
-    game.destroy();
-  });
+    // The foreground hook is optional: renderers without it must still load.
+    Reflect.deleteProperty(mockCanvasRenderer, "registerForegroundEffect");
+    expect(() => game.initializeRenderer(mockCanvasRenderer)).not.toThrow();
 
-  it("tolerates renderers that do not implement foreground effects", async () => {
-    const game = new VerticalShmupGame();
-    await game.init();
-    const minimalRenderer = {
-      type: "canvas",
-      registerShape: () => undefined,
-      registerBackgroundEffect: () => undefined
-    } as unknown as Renderer<ShmupComponentRegistry, unknown>;
-
-    expect(() => game.initializeRenderer(minimalRenderer)).not.toThrow();
     game.destroy();
   });
 });

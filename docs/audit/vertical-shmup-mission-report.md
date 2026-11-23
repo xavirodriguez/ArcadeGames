@@ -75,4 +75,4 @@ Los fallos preexistentes se confirmaron ejecutando los mismos comandos en un wor
 - Rama actual: `feat/shmup-boss-and-graze` (sincronizada localmente; `origin/feat/shmup-boss-and-graze` y `origin/master` siguen en `5bb7b3303`).
 - `git status --short --branch`: `## feat/shmup-boss-and-graze` y `?? dist-e2e/` (único archivo sin trackear, sin tocar).
 - No se hizo `push`, no se abrieron PRs, no se usaron `reset`, `clean` ni `rebase` destructivos.
-- `git diff 5bb7b3303..HEAD --stat`: 36 archivos, 2042 inserciones, 57 borrados.
+- `git diff 5bb7b3303..HEAD --stat`: 36 archivos modificados/creados; el detalle exacto de inserciones se confirma ejecutando el comando al cierre de la misión.

@@ -86,3 +86,6 @@ server/src/**/*.js.map
 **/src/**/*.js
 **/src/**/*.js.map
 .vercel
+
+# Local E2E static build output
+/dist-e2e/

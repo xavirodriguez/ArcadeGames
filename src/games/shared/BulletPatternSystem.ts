@@ -7,9 +7,30 @@ export interface BulletPatternConfig {
   speed: number;
   ratePerSec: number;
   arcDegrees?: number;
+  /**
+   * Angular advance applied once per emitted volley (radians).
+   * Only `spiral` consumes it. When omitted, a spiral advances one bullet slot
+   * (`2π / bulletCount`) per volley so the pattern never depends on frame time.
+   */
+  spinPerShot?: number;
 }
 
 export interface BulletPatternState { cooldownRemaining: number; phase: number; }
+
+/** Default spiral rotation per volley: one bullet slot. */
+export function resolveSpinPerShot(config: BulletPatternConfig): number {
+  if (config.spinPerShot !== undefined) return config.spinPerShot;
+  return (Math.PI * 2) / Math.max(1, Math.floor(config.bulletCount));
+}
+
+/**
+ * Advances the pattern orientation for the next volley.
+ * The phase depends only on how many volleys were emitted, never on elapsed time.
+ */
+export function advanceBulletPatternPhase(phase: number, config: BulletPatternConfig): number {
+  if (config.kind !== "spiral") return phase;
+  return phase + resolveSpinPerShot(config);
+}
 
 export function computeBulletPatternAngles(config: BulletPatternConfig, aimRadians: number, phase: number): number[] {
   const count = Math.max(1, Math.floor(config.bulletCount));
@@ -21,8 +42,18 @@ export function computeBulletPatternAngles(config: BulletPatternConfig, aimRadia
   return Array.from({ length: count }, (_, i) => aimRadians - arc / 2 + (arc * i) / (count - 1));
 }
 
-export function tickBulletPattern(state: BulletPatternState, deltaTime: number, config: BulletPatternConfig): BulletPatternState {
+/**
+ * Ticks a bullet pattern cooldown.
+ *
+ * Orientation is intentionally untouched: `phase` advances once per emitted
+ * volley via `advanceBulletPatternPhase`, so a different `deltaTime` (or a
+ * different simulation frequency) cannot add extra revolutions between shots.
+ */
+export function tickBulletPattern(
+  state: BulletPatternState,
+  deltaTime: number,
+  _config: BulletPatternConfig
+): BulletPatternState {
   const cooldown = Math.max(0, state.cooldownRemaining - deltaTime);
-  const phase = state.phase + deltaTime * config.ratePerSec * Math.PI * 2;
-  return { cooldownRemaining: cooldown, phase };
+  return { cooldownRemaining: cooldown, phase: state.phase };
 }

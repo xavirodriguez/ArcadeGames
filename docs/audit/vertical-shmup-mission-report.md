@@ -3,7 +3,7 @@
 - **Date:** 2026-11-23
 - **Branch:** `feat/shmup-boss-and-graze`
 - **Base commit:** `5bb7b3303` (`master`)
-- **Final commit:** `c561f739a`
+- **Estado final:** todos los cambios están commiteados localmente; el hash más reciente se confirma con `git log --oneline --decorate -12` al cierre de la misión.
 
 ## A. Resumen
 
@@ -27,6 +27,8 @@ Se completaron las tareas T2–T7 sobre la rama, partiendo del commit base `5bb7
 No hay tareas BLOCKED por cambios de esta misión. Los comandos que fallan lo hacen por deuda preexistente en commit base o por el artefacto sin trackear `dist-e2e/`, ambos verificados y detallados en D y E.
 
 ## C. Commits locales
+
+Hashes principales de la misión (el commit más reciente se confirma con `git log`):
 
 | Hash | Mensaje |
 |------|---------|

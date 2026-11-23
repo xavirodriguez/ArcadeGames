@@ -2,7 +2,7 @@ import { System, World } from "@tiny-aster/core";
 import { ShmupComponentRegistry, ShmupEventRegistry } from "../types/ShmupTypes";
 import { EnemyBulletPool } from "../EntityPool";
 import { createEnemyBullet } from "../EntityFactory";
-import { tickBulletPattern, computeBulletPatternAngles } from "../../shared/BulletPatternSystem";
+import { tickBulletPattern, computeBulletPatternAngles, advanceBulletPatternPhase } from "../../shared/BulletPatternSystem";
 import { SHMUP_COLOR_TOKENS } from "../rendering/ShmupColorTokens";
 
 export class ShmupBulletPatternSystem extends System<ShmupComponentRegistry, ShmupEventRegistry> {
@@ -41,6 +41,8 @@ export class ShmupBulletPatternSystem extends System<ShmupComponentRegistry, Shm
           bulletColor
         );
       }
+      // Orientation advances once per emitted volley: angle(n) = initialPhase + n * spinPerShot.
+      pattern.phase = advanceBulletPatternPhase(pattern.phase, pattern.config);
       pattern.cooldownRemaining = 1 / Math.max(0.001, pattern.config.ratePerSec);
     }
   }

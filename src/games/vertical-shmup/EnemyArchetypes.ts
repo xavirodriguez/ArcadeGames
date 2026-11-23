@@ -1,4 +1,5 @@
 import type { ShmupEnemyArchetype } from "./types/ShmupTypes";
+import { isShmupBossWave } from "./boss/bossWaves";
 
 /**
  * Chooses a visual identity from wave and spawn slot, never from movement or bullet pattern.
@@ -17,7 +18,8 @@ export function selectShmupEnemyArchetype(wave: number, spawnIndex: number): Shm
   const safeWave = Math.max(1, Math.floor(wave));
   const safeIndex = Math.max(0, Math.floor(spawnIndex));
 
-  if (safeWave > 1 && safeWave % 4 === 0 && safeIndex === 0) {
+  // Same predicate as the spawn director: no boss visuals on non-boss waves.
+  if (isShmupBossWave(safeWave) && safeIndex === 0) {
     return "boss";
   }
 

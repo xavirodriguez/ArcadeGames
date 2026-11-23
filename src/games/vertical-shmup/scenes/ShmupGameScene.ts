@@ -9,11 +9,13 @@ import { EnemyPathSystem } from "../systems/EnemyPathSystem";
 import { ShmupCollisionSystem } from "../systems/ShmupCollisionSystem";
 import { ShmupSingleHitGuardSystem } from "../systems/ShmupSingleHitGuardSystem";
 import { ShmupBulletPatternSystem } from "../systems/BulletPatternSystem";
+import { ShmupBossPhaseSystem } from "../systems/ShmupBossPhaseSystem";
 import { ShmupSpawnSystem } from "../systems/ShmupSpawnSystem";
 import { ShmupGrazeSystem } from "../systems/ShmupGrazeSystem";
 import { ShmupBombSystem } from "../systems/ShmupBombSystem";
 import { ShmupParticleFadeSystem } from "../systems/ShmupParticleFadeSystem";
 import { ShmupJuicePresentationSystem } from "../systems/ShmupJuicePresentationSystem";
+import { ShmupWaveAnnouncementSystem } from "../systems/ShmupWaveAnnouncementSystem";
 import { createPlayer, createEnemy } from "../EntityFactory";
 import { selectShmupEnemyArchetype } from "../EnemyArchetypes";
 import { createMainCamera2D } from "../../shared/componentBuilders";
@@ -92,10 +94,13 @@ export class ShmupGameScene extends Scene<ShmupComponentRegistry> {
     this.world.addSystem(new CollisionSystem2D(), { phase: SystemPhase.Collision });
     this.world.addSystem(new ShmupSingleHitGuardSystem(), { phase: SystemPhase.Collision });
     this.world.addSystem(new CombatSystem<ShmupComponentRegistry, ShmupEventRegistry>(), { phase: SystemPhase.Collision });
+    // Resolve boss phase before the pattern system fires this tick's volley.
+    this.world.addSystem(new ShmupBossPhaseSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new ShmupBulletPatternSystem(), { phase: SystemPhase.Simulation });
     this.world.addSystem(new ShmupGrazeSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new ShmupCollisionSystem(), { phase: SystemPhase.GameRules });
     this.world.addSystem(new ShmupParticleFadeSystem(), { phase: SystemPhase.Presentation });
+    this.world.addSystem(new ShmupWaveAnnouncementSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new ShmupJuicePresentationSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new Camera2DSystem(), { phase: SystemPhase.Presentation });
     this.world.addSystem(new JuiceSystem(), { phase: SystemPhase.Presentation });

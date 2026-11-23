@@ -78,8 +78,9 @@ describe("Vertical Shmup theme contracts", () => {
     expect(selectShmupEnemyArchetype(1, 1)).toBe("interceptor");
     expect(selectShmupEnemyArchetype(1, 2)).toBe("armored");
     expect(selectShmupEnemyArchetype(1, 3)).toBe("support");
-    expect(selectShmupEnemyArchetype(4, 0)).toBe("boss");
-    expect(selectShmupEnemyArchetype(4, 1)).not.toBe("boss");
+    expect(selectShmupEnemyArchetype(5, 0)).toBe("boss");
+    expect(selectShmupEnemyArchetype(5, 1)).not.toBe("boss");
+    expect(selectShmupEnemyArchetype(4, 0)).not.toBe("boss");
   });
 
   it("defines four distinct background treatments with deterministic parallax budgets", () => {

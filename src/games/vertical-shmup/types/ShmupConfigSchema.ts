@@ -32,12 +32,38 @@ export const ShmupConfigSchema = z.object({
   GRAZE_SCORE: z.number().nonnegative().default(10),
   /** Starting bomb stock (AUD-P2-01). */
   BOMB_STOCK_INITIAL: z.number().int().nonnegative().default(3),
+  /** Maximum bomb inventory. Rewards never exceed this value. */
+  BOMB_STOCK_MAX: z.number().int().positive().default(5),
+  /** Bomb stock granted on every completed boss kill. */
+  BOSS_KILL_BOMB_REWARD: z.number().int().nonnegative().default(1),
+  /** Accumulated grazes required to earn one extra bomb. */
+  GRAZE_BOMB_THRESHOLD: z.number().int().positive().default(40),
   /** Player invulnerability seconds after detonating a bomb. */
   BOMB_INVULN_DURATION: z.number().nonnegative().default(1.5),
   /** Damage applied to non-boss enemies on bomb. */
   BOMB_ENEMY_DAMAGE: z.number().nonnegative().default(2),
   /** Damage applied to boss on bomb (usually lower). */
   BOMB_BOSS_DAMAGE: z.number().nonnegative().default(1),
+  /** Boss base health before wave scaling. */
+  BOSS_HP_BASE: z.number().positive().default(250),
+  /** First wave whose boss uses the scaled health curve. */
+  BOSS_HP_SCALING_START_WAVE: z.number().int().positive().default(5),
+  /** Extra boss health per wave beyond `BOSS_HP_SCALING_START_WAVE`. */
+  BOSS_HP_PER_EXTRA_WAVE: z.number().nonnegative().default(4),
+  /** Boss hover altitude as a fraction of world height. */
+  BOSS_HOVER_Y_RATIO: z.number().positive().max(1).default(0.22),
+  /** Seconds the boss takes to ease from its entry point to the hover altitude. */
+  BOSS_HOVER_ENTRY_DURATION: z.number().positive().default(1.8),
+  /** Vertical bob amplitude in world units while hovering. */
+  BOSS_HOVER_BOB_AMPLITUDE: z.number().nonnegative().default(18),
+  /** Vertical bob angular frequency (rad/s) while hovering. */
+  BOSS_HOVER_BOB_FREQUENCY: z.number().nonnegative().default(1.6),
+  /** Horizontal sway amplitude in world units while hovering. */
+  BOSS_HOVER_SWAY_AMPLITUDE: z.number().nonnegative().default(90),
+  /** Horizontal sway angular frequency (rad/s) while hovering. */
+  BOSS_HOVER_SWAY_FREQUENCY: z.number().nonnegative().default(0.9),
+  /** Seconds a wave banner stays on screen. */
+  WAVE_ANNOUNCEMENT_DURATION: z.number().positive().default(2),
   KEY_LEFT: z.string().default("ArrowLeft"),
   KEY_RIGHT: z.string().default("ArrowRight"),
   KEY_UP: z.string().default("ArrowUp"),

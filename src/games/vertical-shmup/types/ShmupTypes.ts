@@ -28,7 +28,7 @@ export type ShmupEnemyArchetype = "scout" | "interceptor" | "armored" | "support
 export interface ShmupEnemyComponent extends Component { type:"ShmupEnemy"; score:number; archetype:ShmupEnemyArchetype; }
 export interface ShmupPlayerBulletComponent extends Component { type:"ShmupPlayerBullet"; }
 export interface ShmupEnemyBulletComponent extends Component { type:"ShmupEnemyBullet"; }
-export interface EnemyPathComponent extends Component { type:"EnemyPath"; kind:"straight"|"sine"|"arc"; elapsed:number; duration:number; speed:number; amplitude:number; frequency:number; originX:number; originY:number; }
+export interface EnemyPathComponent extends Component { type:"EnemyPath"; kind:"straight"|"sine"|"arc"|"hover"; elapsed:number; duration:number; speed:number; amplitude:number; frequency:number; originX:number; originY:number; /** Boss hover target altitude. */ hoverY?:number; /** Vertical bob amplitude while hovering. */ bobAmplitude?:number; /** Vertical bob angular frequency (rad/s). */ bobFrequency?:number; }
 export interface BulletPatternComponent extends Component { type:"BulletPattern"; config:BulletPatternConfig; cooldownRemaining:number; phase:number; }
 export interface ShmupGameStateComponent extends Component {
   type:"ShmupGameState";

@@ -3,6 +3,7 @@ import { ShmupComponentRegistry, ShmupEventRegistry } from "../types/ShmupTypes"
 import { ShmupConfig } from "../types/ShmupConfigSchema";
 import { createEnemy } from "../EntityFactory";
 import { selectShmupEnemyArchetype } from "../EnemyArchetypes";
+import { isShmupBossWave } from "../boss/bossWaves";
 
 export class ShmupSpawnSystem extends System<ShmupComponentRegistry, ShmupEventRegistry> {
   update(world: World<ShmupComponentRegistry, ShmupEventRegistry>, deltaTime: number): void {
@@ -30,8 +31,8 @@ export class ShmupSpawnSystem extends System<ShmupComponentRegistry, ShmupEventR
       // Spawn initial enemy squad for new wave
       const rng = world.gameplayRandom;
 
-      // Boss Wave every 5 waves
-      if (nextWave % 5 === 0) {
+      // Boss waves are a single curated encounter: boss + escorts.
+      if (isShmupBossWave(nextWave)) {
         createEnemy(world, config.WORLD_WIDTH / 2, -90, "boss", nextWave);
         createEnemy(world, config.WORLD_WIDTH * 0.25, -50, "armored", nextWave);
         createEnemy(world, config.WORLD_WIDTH * 0.75, -50, "armored", nextWave);
@@ -49,7 +50,11 @@ export class ShmupSpawnSystem extends System<ShmupComponentRegistry, ShmupEventR
       return;
     }
 
-    // 2. Continuous interval spawning when under wave capacity
+    // 2. Boss encounters pause continuous spawning: the boss wave is finite and
+    // the wave only advances once the boss *and* its escorts are gone.
+    if (isShmupBossWave(state.wave)) return;
+
+    // 3. Continuous interval spawning when under wave capacity
     world.mutateSingleton("ShmupGameState", (s) => {
       s.spawnTimer += deltaTime;
     });

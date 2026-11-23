@@ -5,6 +5,7 @@ import { ShmupConfig } from "./types/ShmupConfigSchema";
 import { PlayerBulletPool, EnemyBulletPool } from "./EntityPool";
 import { getGameplayColor } from "../../theme/GameplayColorMap";
 import { SHMUP_COLOR_TOKENS } from "./rendering/ShmupColorTokens";
+import { computeBossHp } from "./boss/bossMath";
 import type { BulletPatternConfig } from "../shared/BulletPatternSystem";
 
 function nextGameplayRandom(world: World<ShmupComponentRegistry>): number {
@@ -88,7 +89,7 @@ export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: 
     boss: { kind: "ring", bulletCount: 8, speed: baseBulletSpeed * 0.75 * Math.min(1.5, waveMult), ratePerSec: 0.8 * waveMult }
   };
   const patternConfig = patternConfigs[kind] ?? patternConfigs.straight;
-  const pathKind = (kind === "armored" || kind === "boss") ? "sine" : kind;
+  const pathKind = kind === "armored" ? "sine" : kind === "boss" ? "hover" : kind;
 
   const entitySize = isBoss ? 85 : isArmored ? Math.floor(c.ENEMY_SIZE * 1.4) : c.ENEMY_SIZE;
   const colliderRadius = isBoss ? 42 : isArmored ? 22 : c.ENEMY_COLLIDER_RADIUS;
@@ -118,7 +119,7 @@ export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: 
   add({
     type: "Velocity",
     vx: 0,
-    vy: enemySpeed,
+    vy: isBoss ? 0 : enemySpeed,
     angularVelocity: 0
   });
   add({
@@ -151,8 +152,15 @@ export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: 
   });
   const scaledScore = Math.floor(c.ENEMY_SCORE * (1 + (wave - 1) * 0.2));
   const scaledHp = c.ENEMY_HP + Math.floor((wave - 1) / 3);
+  // Bosses own their health curve: never reuse the trash-mob formula.
+  const bossHp = computeBossHp(wave, {
+    base: c.BOSS_HP_BASE,
+    scalingStartWave: c.BOSS_HP_SCALING_START_WAVE,
+    perExtraWave: c.BOSS_HP_PER_EXTRA_WAVE
+  });
+  const maxHp = isBoss ? bossHp : scaledHp;
   add({ type: "ShmupEnemy", score: scaledScore, archetype: isBoss ? "boss" : archetype });
-  add({ type: "Health", current: scaledHp, max: scaledHp });
+  add({ type: "Health", current: maxHp, max: maxHp });
   add({ type: "Faction", faction: "enemy", value: "enemy" });
   add({
     type: "Damage",
@@ -161,17 +169,53 @@ export function createEnemy(world: World<ShmupComponentRegistry>, x: number, y: 
     friendlyFire: false,
     consumption: "none"
   });
-  add({ type: "EnemyPath", kind: pathKind, elapsed: 0, duration: pathDuration, speed: enemySpeed, amplitude: isBoss ? 80 : 120, frequency: isBoss ? 1.0 : 1.8, originX: x, originY: y });
-  add({
-    type: "Boundary",
-    minX: -c.OFFSCREEN_MARGIN,
-    maxX: c.WORLD_WIDTH + c.OFFSCREEN_MARGIN,
-    minY: -c.OFFSCREEN_MARGIN * 2,
-    maxY: c.WORLD_HEIGHT + c.OFFSCREEN_MARGIN,
-    width: c.WORLD_WIDTH + c.OFFSCREEN_MARGIN,
-    height: c.WORLD_HEIGHT + c.OFFSCREEN_MARGIN,
-    mode: "destroy"
-  } as BoundaryComponent);
+  if (isBoss) {
+    add({
+      type: "EnemyPath",
+      kind: "hover",
+      elapsed: 0,
+      duration: c.BOSS_HOVER_ENTRY_DURATION,
+      speed: enemySpeed,
+      amplitude: c.BOSS_HOVER_SWAY_AMPLITUDE,
+      frequency: c.BOSS_HOVER_SWAY_FREQUENCY,
+      originX: x,
+      originY: y,
+      hoverY: c.WORLD_HEIGHT * c.BOSS_HOVER_Y_RATIO,
+      bobAmplitude: c.BOSS_HOVER_BOB_AMPLITUDE,
+      bobFrequency: c.BOSS_HOVER_BOB_FREQUENCY
+    });
+  } else {
+    add({ type: "EnemyPath", kind: pathKind, elapsed: 0, duration: pathDuration, speed: enemySpeed, amplitude: isBoss ? 80 : 120, frequency: isBoss ? 1.0 : 1.8, originX: x, originY: y });
+  }
+  if (isBoss) {
+    // Boss-specific boundary policy: never self-destruct. The hover path owns
+    // vertical placement; this clamp is only a safety net against runaway drift.
+    add({
+      type: "Boundary",
+      minX: entitySize / 2,
+      maxX: c.WORLD_WIDTH - entitySize / 2,
+      minY: -c.OFFSCREEN_MARGIN * 2,
+      maxY: c.WORLD_HEIGHT * 0.5,
+      width: c.WORLD_WIDTH,
+      height: c.WORLD_HEIGHT,
+      mode: "bounce",
+      bounceX: false,
+      bounceY: false,
+      clampX: true,
+      clampY: true
+    } as BoundaryComponent);
+  } else {
+    add({
+      type: "Boundary",
+      minX: -c.OFFSCREEN_MARGIN,
+      maxX: c.WORLD_WIDTH + c.OFFSCREEN_MARGIN,
+      minY: -c.OFFSCREEN_MARGIN * 2,
+      maxY: c.WORLD_HEIGHT + c.OFFSCREEN_MARGIN,
+      width: c.WORLD_WIDTH + c.OFFSCREEN_MARGIN,
+      height: c.WORLD_HEIGHT + c.OFFSCREEN_MARGIN,
+      mode: "destroy"
+    } as BoundaryComponent);
+  }
   add({
     type: "BulletPattern",
     config: patternConfig,

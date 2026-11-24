@@ -78,7 +78,27 @@ export type SharedVFXPrimitiveName =
   | "pixelfx_pulse_lance"
   | "pixelfx_echo_shatter"
   | "pixelfx_tidal_wave"
-  | "pixelfx_phase_collapse";
+  | "pixelfx_phase_collapse"
+  | "pixelfx_ember_cascade"
+  | "pixelfx_frost_lattice"
+  | "pixelfx_thorn_eruption"
+  | "pixelfx_thunderclap"
+  | "pixelfx_rune_ward"
+  | "pixelfx_verdant_growth"
+  | "pixelfx_venom_miasma"
+  | "pixelfx_sand_devour"
+  | "pixelfx_hydro_surge"
+  | "pixelfx_wind_shear"
+  | "pixelfx_eclipse_veil"
+  | "pixelfx_starfall"
+  | "pixelfx_comet_shower"
+  | "pixelfx_dimensional_gate"
+  | "pixelfx_afterimage_dash"
+  | "pixelfx_beam_lattice"
+  | "pixelfx_chain_reaction"
+  | "pixelfx_shrapnel_fan"
+  | "pixelfx_magma_fissure"
+  | "pixelfx_aurora_ribbon";
 
 /**
  * Base configuration options shared across Juice spawn calls and catalog profiles.

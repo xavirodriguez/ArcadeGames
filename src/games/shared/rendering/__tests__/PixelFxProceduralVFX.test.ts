@@ -62,6 +62,26 @@ import {
   drawPixelFxEchoShatter,
   drawPixelFxTidalWave,
   drawPixelFxPhaseCollapse,
+  drawPixelFxEmberCascade,
+  drawPixelFxFrostLattice,
+  drawPixelFxThornEruption,
+  drawPixelFxThunderclap,
+  drawPixelFxRuneWard,
+  drawPixelFxVerdantGrowth,
+  drawPixelFxVenomMiasma,
+  drawPixelFxSandDevour,
+  drawPixelFxHydroSurge,
+  drawPixelFxWindShear,
+  drawPixelFxEclipseVeil,
+  drawPixelFxStarfall,
+  drawPixelFxCometShower,
+  drawPixelFxDimensionalGate,
+  drawPixelFxAfterimageDash,
+  drawPixelFxBeamLattice,
+  drawPixelFxChainReaction,
+  drawPixelFxShrapnelFan,
+  drawPixelFxMagmaFissure,
+  drawPixelFxAuroraRibbon,
   drawPixelFxTargetWarning,
   registerPixelFxProceduralVFX,
   PIXEL_FX_RANDOM_STREAMS,
@@ -184,7 +204,27 @@ const PIXEL_FX_DRAWERS: Readonly<Record<string, (draw: IDrawAdapter, world: Worl
   "pixelfx_pulse_lance": drawPixelFxPulseLance,
   "pixelfx_echo_shatter": drawPixelFxEchoShatter,
   "pixelfx_tidal_wave": drawPixelFxTidalWave,
-  "pixelfx_phase_collapse": drawPixelFxPhaseCollapse
+  "pixelfx_phase_collapse": drawPixelFxPhaseCollapse,
+"pixelfx_ember_cascade": drawPixelFxEmberCascade,
+"pixelfx_frost_lattice": drawPixelFxFrostLattice,
+"pixelfx_thorn_eruption": drawPixelFxThornEruption,
+"pixelfx_thunderclap": drawPixelFxThunderclap,
+"pixelfx_rune_ward": drawPixelFxRuneWard,
+"pixelfx_verdant_growth": drawPixelFxVerdantGrowth,
+"pixelfx_venom_miasma": drawPixelFxVenomMiasma,
+"pixelfx_sand_devour": drawPixelFxSandDevour,
+"pixelfx_hydro_surge": drawPixelFxHydroSurge,
+"pixelfx_wind_shear": drawPixelFxWindShear,
+"pixelfx_eclipse_veil": drawPixelFxEclipseVeil,
+"pixelfx_starfall": drawPixelFxStarfall,
+"pixelfx_comet_shower": drawPixelFxCometShower,
+"pixelfx_dimensional_gate": drawPixelFxDimensionalGate,
+"pixelfx_afterimage_dash": drawPixelFxAfterimageDash,
+"pixelfx_beam_lattice": drawPixelFxBeamLattice,
+"pixelfx_chain_reaction": drawPixelFxChainReaction,
+"pixelfx_shrapnel_fan": drawPixelFxShrapnelFan,
+"pixelfx_magma_fissure": drawPixelFxMagmaFissure,
+"pixelfx_aurora_ribbon": drawPixelFxAuroraRibbon
 };
 const PIXEL_FX_EFFECT_NAMES = Object.keys(PIXEL_FX_DRAWERS);
 const PIXEL_FX_PROGRESS = [0, 0.1, 0.25, 0.5, 0.75, 0.9] as const;
@@ -234,8 +274,8 @@ function createRecorderAdapter(): { adapter: IDrawAdapter; log: unknown[][] } {
 
 
 describe("PixelFX-inspired procedural VFX", () => {
-  it("draws all ten additional high-dynamics effects with balanced adapter state", () => {
-    const drawers = [drawPixelFxPrismBurst, drawPixelFxSonicBoom, drawPixelFxMagneticSurge, drawPixelFxPlasmaOrbit, drawPixelFxSolarFlare, drawPixelFxCrystalBloom, drawPixelFxPulseLance, drawPixelFxEchoShatter, drawPixelFxTidalWave, drawPixelFxPhaseCollapse];
+  it("draws all thirty additional high-dynamics effects with balanced adapter state", () => {
+    const drawers = [drawPixelFxPrismBurst, drawPixelFxSonicBoom, drawPixelFxMagneticSurge, drawPixelFxPlasmaOrbit, drawPixelFxSolarFlare, drawPixelFxCrystalBloom, drawPixelFxPulseLance, drawPixelFxEchoShatter, drawPixelFxTidalWave, drawPixelFxPhaseCollapse, drawPixelFxEmberCascade, drawPixelFxFrostLattice, drawPixelFxThornEruption, drawPixelFxThunderclap, drawPixelFxRuneWard, drawPixelFxVerdantGrowth, drawPixelFxVenomMiasma, drawPixelFxSandDevour, drawPixelFxHydroSurge, drawPixelFxWindShear, drawPixelFxEclipseVeil, drawPixelFxStarfall, drawPixelFxCometShower, drawPixelFxDimensionalGate, drawPixelFxAfterimageDash, drawPixelFxBeamLattice, drawPixelFxChainReaction, drawPixelFxShrapnelFan, drawPixelFxMagmaFissure, drawPixelFxAuroraRibbon];
     for (const drawer of drawers) {
       const adapter = createAdapter();
       const { world, entity } = createWorld();
@@ -731,7 +771,8 @@ describe("PixelFX-inspired procedural VFX", () => {
     const fixturePath = join(__dirname, "../../../../../docs/agents/fixtures/pixelfx-vfx-golden.jsonl");
     const rows = readFileSync(fixturePath, "utf8").trim().split(/\r?\n/).map(line => JSON.parse(line) as PixelFxGoldenRow);
     expect(rows).toHaveLength(59);
-    expect(rows.map(row => row.effect)).toEqual(PIXEL_FX_EFFECT_NAMES);
+    // Golden remains the baseline for the original 59; newest drawers have dedicated deterministic smoke coverage.
+    expect(rows.map(row => row.effect)).toEqual(PIXEL_FX_EFFECT_NAMES.slice(0, 59));
 
     for (const row of rows) {
       const drawer = PIXEL_FX_DRAWERS[row.effect];

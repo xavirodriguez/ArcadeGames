@@ -194,8 +194,8 @@
     "frames": "src/games/hitandrun/assets/candidates/samurai-painted/samurai-painted.frames.json",
     "atlas": "src/games/hitandrun/assets/candidates/samurai-painted/samurai-painted.atlas.json",
     "animations": "src/games/hitandrun/assets/candidates/samurai-painted/samurai-painted.animations.json",
-    "readme": "docs/hitandrun/assets/samurai-painted/README.md",
-    "provenance": "docs/hitandrun/assets/samurai-painted/provenance.md"
+    "readme": "docs/HISTORICAL_RECORD.md#10-samurai--sumi-e",
+    "provenance": "docs/HISTORICAL_RECORD.md#10-samurai--sumi-e"
   },
   "approval_gates": [
     "Source author and license resolved.",

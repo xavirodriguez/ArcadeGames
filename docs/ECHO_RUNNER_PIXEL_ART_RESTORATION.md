@@ -6,7 +6,7 @@ This first visual slice replaces the protagonist's smooth geometric body with an
 
 ## Rendering contract
 
-- The 12×16 indexed-colour grid is shared by Canvas and Skia.
+- The 16×20 indexed-colour grid is shared by Canvas and Skia (contract enforced by `EchoRunnerPixelArt.test.ts`). The earlier "12×16" figure in this slice was wrong; current specs are `docs/ARCADE_SPRITE_POLISH_WAVE1.md` and `docs/HISTORICAL_RECORD.md` §14.
 - Animation state is derived from velocity, grounded state, attack state and the simulation tick; it does not read wall-clock time or random values.
 - The gameplay collider, ECS components, movement systems and pulse hitbox are unchanged.
 - The sprite is rasterized as rectangles rather than relying on image smoothing or platform-specific image assets.

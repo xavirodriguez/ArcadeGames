@@ -231,8 +231,13 @@ const requiredTargets = [
 for (const [expected, label] of requiredTargets) {
   if (!ratchetPolicy.includes(expected)) failures.push(`Technical-debt policy target is stale: ${label}.`);
 }
-if (!ratchetPolicy.includes("| Duplication ratio | 1.57% | **1.50% or lower** |")) {
-  failures.push("Technical-debt policy must retain the 1.50% duplication-ratio target.");
+const ratioTarget = (duplicationBaseline.percentage * 0.9).toFixed(2);
+if (
+  !ratchetPolicy.includes(
+    `| Duplication ratio | ${duplicationBaseline.percentage}% | **${ratioTarget}% or lower** |`,
+  )
+) {
+  failures.push(`Technical-debt policy ratio target must match the baseline (${ratioTarget}% or lower).`);
 }
 
 const gameIdPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;

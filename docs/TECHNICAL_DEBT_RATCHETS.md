@@ -11,11 +11,11 @@ The following values come from the versioned baseline files on `master` at the s
 | `as any` type assertions | 637 | `scripts/typecast-baseline.json` |
 | `as unknown` type assertions | 195 | `scripts/typecast-baseline.json` |
 | Total `as any` / `as unknown` assertions | 832 | `scripts/typecast-baseline.json` after removing the ratchet's own unsafe cast |
-| Files with these type assertions | 196 | `scripts/typecast-baseline.json` |
+| Files with these type assertions | 194 | `scripts/typecast-baseline.json` |
 | Duplicated lines | 1,545 | `scripts/duplication-baseline.json` |
 | Duplicate clones | 193 | `scripts/duplication-baseline.json` |
 | Duplication ratio | 1.03% | `scripts/duplication-baseline.json` |
-| Lines scanned by jscpd | 147,867 | `scripts/duplication-baseline.json` |
+| Lines scanned by jscpd | 150,481 | `scripts/duplication-baseline.json` |
 | Color-literal occurrences | 475 | `scripts/color-literals-baseline.json`, generated 2026-10-31 |
 | Unique color-literal location keys | 593 | `scripts/color-literals-baseline.json` |
 
@@ -67,8 +67,13 @@ Target date: **2027-02-02** (90 days after the baseline review on 2026-11-04).
 | --- | ---: | ---: | ---: |
 | Total `as any` / `as unknown` assertions | 832 | **748 or fewer** | At least 84 (10.1%) |
 | Duplicated lines | 1,545 | **1,390 or fewer** | At least 155 (10.0%) |
-| Duplication ratio | 1.57% | **1.50% or lower** | 0.07 percentage points |
+| Duplication ratio | 1.03% | **0.93% or lower** | 0.10 percentage points |
 | Color-literal occurrences | 475 | **427 or fewer** | At least 48 (10.1%) |
+
+The 1.03% ratio and its 0.93% target are derived from `scripts/duplication-baseline.json`
+(10% reduction, as for the other metrics). The old 1.57% / 1.50% pair came from the retired
+`2026-11-04-technical-debt-quality-audit.md` (2,164 duplicated lines) and was mixed with
+the current 1,545-line baseline. Do not restore it. See `docs/HISTORICAL_RECORD.md` §7.
 
 These are project reduction targets, not new CI failure thresholds. Existing ratchets continue to prevent regressions immediately; target attainment is reviewed by rerunning the three scanners and recording the measured values. Do not change the baseline just to match the target.
 

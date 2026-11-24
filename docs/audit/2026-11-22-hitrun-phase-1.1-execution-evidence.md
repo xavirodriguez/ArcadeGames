@@ -3,7 +3,7 @@
 Fecha real de ejecución: **2026-11-22** (`date +%F`).
 Base auditada: `0e336039bf16d5a7f68b2826acc98826bb95e28a` (merge PR #1215, HEAD de `master`).
 Rama de trabajo: `chore/hitrun-1-1-validation` (creada desde `master` en `0e336039b`).
-Documento sustituto de referencia: `docs/audit/2026-11-06-hitrun-phase-1.1-final-validation.md`.
+Los registros del 2026-11-06 que este documento sustituía se retiraron; ver `docs/HISTORICAL_RECORD.md` §5.
 
 Este documento sustituye a los documentos del 6 de noviembre en cuanto a **evidencia de
 ejecución**: allí se razonaba sobre el código; aquí se registra lo que se ejecutó, con el
@@ -621,7 +621,7 @@ Rama: `chore/hitrun-1-1-validation` (creada desde `master` en `0e336039b`). No s
 | --- | --- | --- | --- |
 | 1 | `6be99be08` — `hitrun(fix): make typecheck:app pass for the Hit & Run E2E and melee coverage` | Tarea 2 | `src/games/hitandrun/melee/__tests__/HitRunMeleeSystemWorldUpdate.test.ts` (campos `worldScaleX`/`worldScaleY` que `TransformComponent` exige) y `e2e/tmp-asset.spec.ts` (tipado de la lectura del registro de `expo-asset`, sin `any`/`unknown`/casts nuevos). |
 | 2 | `16123807e` — `hitrun(fix): let the wave lifecycle E2E observe the completed spawn timeline` | Tarea 3 | `e2e/hitandrun.spec.ts`: `ArrowLeft` mantenido durante la espera de `spawnComplete` y lectura atómica del contador de muertes y del `TimeScale` en el mismo viaje que observa el flujo de muerte. Añade `src/games/hitandrun/__tests__/HitRunWaveTimelineReachability.test.ts` como guarda de regresión (2 pruebas). |
-| 3 | `docs(hitandrun): record the Phase 1.1 execution evidence` (HEAD de la rama) | Tarea 6 | Este documento y la nota en `docs/audit/2026-11-06-hitrun-phase-1.1-final-validation.md`. |
+| 3 | `docs(hitandrun): record the Phase 1.1 execution evidence` (HEAD de la rama) | Tarea 6 | Este documento (sustituye a los registros del 2026-11-06; ver `docs/HISTORICAL_RECORD.md` §5). |
 
 Los SHA de los commits 1 y 2 son los definitivos **después** del rebase descrito más abajo (antes del
 rebase eran `d653454a3` y `d2357618e`).

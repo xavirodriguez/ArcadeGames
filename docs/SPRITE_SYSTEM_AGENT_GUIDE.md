@@ -383,7 +383,7 @@ Use when regenerating outline atlases. Hand-painted multi-row characters are mea
 
 ## 12. Related docs
 
-- `docs/SPRITE_READINESS_AUDIT.md` — inventory of `assets/sprites` vs registry (may lag; trust code).
+- Historical inventory (retired because it lagged the registry; trust code): `docs/HISTORICAL_RECORD.md` §2. The live inventory is `docs/sprites-baseline.md`.
 - `src/games/shared/sprites/README.md` — short sprite quick-start.
 - `docs/ARCADE_SPRITE_POLISH_WAVE1.md` — polish often procedural/pixel, not registry sheets.
 - `packages/core/src/rendering/Renderer.ts` — authoritative ShapeDrawer contract.

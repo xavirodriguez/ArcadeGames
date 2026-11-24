@@ -49,7 +49,7 @@ The merged sprite-sheet integration work establishes a deliberately thin layer:
 - `PixelFXCatalog.ts` labels its entries as candidates and explicitly requires exact source-ID confirmation and visual review.
 - `PixelFXRuntime.ts` marks the procedural createFx/composite runtime as deferred.
 - `PixelFXInstanceManager.ts` marks a dedicated instance manager/pool as deferred.
-- `docs/audit/PIXELFX_INTEGRATION_AUDIT.md` says the layer scaffold/export spike is present, but PNG/JSON assets are not registered in `SPRITE_SHEET_CATALOG`; SpriteAnimator Canvas/Skia parity and art review remain blockers.
+- Historical spike note (retired): the layer scaffold/export was present but PNG/JSON assets were not yet registered. Current truth: `docs/specs/pixelfx-integration.md` and `docs/agents/pixelfx-vfx-quality-ledger.md`; see `docs/HISTORICAL_RECORD.md` §7.
 
 Keep this path separate from the procedural drawer catalog. PixelFX is an optional content/build-time source, not an Effect IR runtime dependency.
 

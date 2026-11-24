@@ -17,14 +17,14 @@ import {
 describe("VFX Visual Lab model", () => {
   it("exposes every production PixelFX drawer exactly once", () => {
     const ids = VFX_LAB_EFFECTS.map((effect) => effect.id);
-    expect(ids).toHaveLength(59);
+    expect(ids).toHaveLength(79);
     expect(new Set(ids).size).toBe(ids.length);
     expect(VFX_LAB_EFFECTS.every((effect) => typeof effect.draw === "function")).toBe(true);
     expect(ids).toEqual(expect.arrayContaining([
       "pixelfx_heal", "pixelfx_poison", "pixelfx_burn", "pixelfx_frost", "pixelfx_electric",
       "pixelfx_bleed", "pixelfx_buff", "pixelfx_debuff", "pixelfx_spawn", "pixelfx_death",
       "pixelfx_nova", "pixelfx_vortex", "pixelfx_meteor", "pixelfx_rift", "pixelfx_arc_chain",
-      "pixelfx_gravity_well", "pixelfx_blade_dance", "pixelfx_seismic_wave", "pixelfx_soul_reap", "pixelfx_time_warp", "pixelfx_prism_burst", "pixelfx_sonic_boom", "pixelfx_magnetic_surge", "pixelfx_plasma_orbit", "pixelfx_solar_flare", "pixelfx_crystal_bloom", "pixelfx_pulse_lance", "pixelfx_echo_shatter", "pixelfx_tidal_wave", "pixelfx_phase_collapse"
+      "pixelfx_gravity_well", "pixelfx_blade_dance", "pixelfx_seismic_wave", "pixelfx_soul_reap", "pixelfx_time_warp", "pixelfx_prism_burst", "pixelfx_sonic_boom", "pixelfx_magnetic_surge", "pixelfx_plasma_orbit", "pixelfx_solar_flare", "pixelfx_crystal_bloom", "pixelfx_pulse_lance", "pixelfx_echo_shatter", "pixelfx_tidal_wave", "pixelfx_phase_collapse", "pixelfx_ember_cascade", "pixelfx_frost_lattice", "pixelfx_thorn_eruption", "pixelfx_thunderclap", "pixelfx_rune_ward", "pixelfx_verdant_growth", "pixelfx_venom_miasma", "pixelfx_sand_devour", "pixelfx_hydro_surge", "pixelfx_wind_shear", "pixelfx_eclipse_veil", "pixelfx_starfall", "pixelfx_comet_shower", "pixelfx_dimensional_gate", "pixelfx_afterimage_dash", "pixelfx_beam_lattice", "pixelfx_chain_reaction", "pixelfx_shrapnel_fan", "pixelfx_magma_fissure", "pixelfx_aurora_ribbon"
     ]));
   });
 
@@ -49,7 +49,7 @@ describe("VFX Visual Lab model", () => {
       "pixelfx_heal", "pixelfx_poison", "pixelfx_burn", "pixelfx_frost", "pixelfx_electric",
       "pixelfx_bleed", "pixelfx_buff", "pixelfx_debuff", "pixelfx_spawn", "pixelfx_death",
       "pixelfx_nova", "pixelfx_vortex", "pixelfx_meteor", "pixelfx_rift", "pixelfx_arc_chain",
-      "pixelfx_gravity_well", "pixelfx_blade_dance", "pixelfx_seismic_wave", "pixelfx_soul_reap", "pixelfx_time_warp", "pixelfx_prism_burst", "pixelfx_sonic_boom", "pixelfx_magnetic_surge", "pixelfx_plasma_orbit", "pixelfx_solar_flare", "pixelfx_crystal_bloom", "pixelfx_pulse_lance", "pixelfx_echo_shatter", "pixelfx_tidal_wave", "pixelfx_phase_collapse"
+      "pixelfx_gravity_well", "pixelfx_blade_dance", "pixelfx_seismic_wave", "pixelfx_soul_reap", "pixelfx_time_warp", "pixelfx_prism_burst", "pixelfx_sonic_boom", "pixelfx_magnetic_surge", "pixelfx_plasma_orbit", "pixelfx_solar_flare", "pixelfx_crystal_bloom", "pixelfx_pulse_lance", "pixelfx_echo_shatter", "pixelfx_tidal_wave", "pixelfx_phase_collapse", "pixelfx_ember_cascade", "pixelfx_frost_lattice", "pixelfx_thorn_eruption", "pixelfx_thunderclap", "pixelfx_rune_ward", "pixelfx_verdant_growth", "pixelfx_venom_miasma", "pixelfx_sand_devour", "pixelfx_hydro_surge", "pixelfx_wind_shear", "pixelfx_eclipse_veil", "pixelfx_starfall", "pixelfx_comet_shower", "pixelfx_dimensional_gate", "pixelfx_afterimage_dash", "pixelfx_beam_lattice", "pixelfx_chain_reaction", "pixelfx_shrapnel_fan", "pixelfx_magma_fissure", "pixelfx_aurora_ribbon"
     ];
     for (const effect of newEffects) {
       const presets = VFX_LAB_PRESETS.filter((preset) => preset.effect === effect);

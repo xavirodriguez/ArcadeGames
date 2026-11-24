@@ -172,6 +172,10 @@ To create a new game without breaking core invariants, follow this process:
 
 - **Code Duplication Check (jscpd):** Run `pnpm run check:duplication` to check code duplication and enforce ratchet threshold limits locally.
 
+### Historical documentation record
+
+- Before reopening a settled documentation question (retired audits, superseded art direction, closed type-safety spikes), consult `docs/HISTORICAL_RECORD.md`. It is the single archive of retired docs and lines: each entry records what was done, why it is obsolete, the durable conclusion not to revisit, the current source of truth, and the git SHA needed to recover the full text. Do not reintroduce retired plans or figures into live docs.
+
 ---
 
 ## 5. Security Considerations

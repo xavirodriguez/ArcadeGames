@@ -83,3 +83,158 @@ Las escrituras directas a `GameplayFreeze`, el shake/squash directo y la creaci�
 | F8 | `deferred` | Pipeline de combate aplazado; no presentar como implementado |
 
 **Ejecución de esta revalidación:** inspección documental y de código referenciada; no se ejecutaron Jest, typecheck ni CI en esta actualización.
+
+
+---
+
+## Anexo — Reconciliación de autoridad temporal (Unidad 1, 2026-11-27)
+
+### Alcance y método
+
+- **Repositorio:** `xavirodriguez/ArcadeGames`
+- **Ref inspeccionada:** `master`
+- **Commit exacto:** `3c0cb4e8ef4f74e8e1585063a35e687d02b26b1e`
+- **Método:** lectura de archivos en ese SHA y búsquedas de call sites. Las rutas y líneas de este anexo corresponden a ese commit.
+- **Ejecución:** no se ejecutaron Jest, typecheck, builds ni CI en esta unidad. Los resultados históricos anotados en el ledger se conservan como antecedentes, no como ejecuciones repetidas ahora.
+- **Limitación documental:** no se encontró `docs/audits/cross-system-consolidation-audit.md` ni un documento con ese nombre en el árbol inspeccionado. Existe `docs/audit/2026-11-05-juice-game-feel-phase-0-audit.md` (singular `audit`), además de este ledger y `docs/specs/adr-002-rollback-safe-gameplay-freeze.md`. El documento literal solicitado debe considerarse ausente o renombrado hasta que se localice su historial.
+- **ADR:** el documento encontrado es `docs/specs/adr-002-rollback-safe-gameplay-freeze.md`; no se ha modificado.
+
+### 1.1 — Reconstrucción F1–F5
+
+La tabla distingue el estado histórico consignado de la evidencia de código que se volvió a inspeccionar en este commit.
+
+| Fase | Decisión / propósito | Implementación actual observada | Consumidores / juegos | Snapshot | Tests | Estado |
+|---|---|---|---|---|---|---|
+| F1 — Hit-stop canónico | Sustituir el temporizador VFX por `GameplayFreeze`, mantener arbitraje de Juice y replay autoritativo | `HitStopSystem` delega el tiempo efectivo en `GameplayFreeze`; `requestHitStop` escribe ese recurso y el scheduler lo consume. La política conserva prioridad, propietario/active y cooldown. | Consumido donde los productores llaman `requestHitStop` y el juego registra `HitStopSystem`. Space Invaders registra el sistema, pero sus dos productores principales inspeccionados lo eluden. Hit & Run no lo registra en la composición localizada. | `GameplayFreeze` se registra por defecto en `World`; `JuiceHitStopPolicy` se registra bajo demanda desde `ensureHitStopPolicy`. No se verificó aquí un snapshot round-trip ejecutado. | Ledger histórico cita `GameplayFreeze.test.ts` 9/9, `JuiceOrchestrator.test.ts` 22/24 y `SnapshotResources.test.ts` 18/18 en ejecuciones previas (la propia fila posterior corrige el recuento Juice a 24/24). No ejecutados en esta unidad. | `partial` a escala transversal; mecanismo core integrado, adopción por juego desigual |
+| F2 — Shake y unidades | Unificar la entrada pública en ms y almacenamiento ECS en segundos; retirar canal duplicado Hit & Run | Ledger histórico registra conversión en `Juice.shake` y eliminación del canal `HitRunScreenShake`. El código actual de `JuiceOrchestrator` pasa `shakeDurationMs` directamente a `Juice.shake`. | Geometry Wars y Hit & Run son consumidores relevantes. Falta cerrar en esta unidad la cadena completa del valor directo y el perfil en Geometry Wars. | Screen shake es presentación y no debe asumirse snapshot-backed sin revisar sus componentes/consumidores. | Historial cita `JuiceShake.test.ts` 8/8 y `HitRunFeedbackSystem.test.ts` 11/11; no ejecutados ahora. | `partial` para el alcance de esta autoridad temporal; consolidación histórica de unidades anotada |
+| F3 — Catálogo tipado | Derivar el mapa de eventos del catálogo y detectar eventos no mapeados | Ledger histórico identifica `JUICE_CATALOG` tipado en `JuiceOrchestrator.ts`; la fuente actual contiene perfiles y los campos `hitStopMs`, `shakeDurationMs`. | Consumidores que instancian/llaman `JuiceOrchestrator`; la presencia de perfiles no demuestra que todos se emitan. | El catálogo es configuración estática, no estado snapshot. | Historial cita 24/24 tests tipados del orquestador; no ejecutados ahora. | `implemented / verified historically`, no re-ejecutado |
+| F4 — Arkanoid | Piloto vertical de hit-stop canónico y supresión de presentación en replay | Ledger registra `brick:hit`/`brick:shatter` y registro de `HitStopSystem` en Simulation. | Arkanoid; la evidencia actual recuperada en esta inspección no incluyó una relectura completa de cada call site ni de la composición del juego. | Depende de F1 y recursos registrados. No se repitió round-trip. | Historial cita 6 suites/32 tests pasando; no ejecutados ahora. | `implemented / historical evidence`; revalidación incompleta en esta unidad |
+| F5 — Pong / Space Invaders | Migrar Pong y Space Invaders al contrato canónico | Pong: ledger registra migración de 60 ms y registro del sistema. Space Invaders: `SpaceInvadersGameScene.ts:180` registra `HitStopSystem`, pero `SpaceInvadersCollisionSystem.ts:125,151` escribe directamente `GameplayFreeze` con 50/30 ms. | Pong aparentemente migrado; Space Invaders tiene registro sin consumo canónico en esos call sites. | `GameplayFreeze` está registrado por defecto; `JuiceHitStopPolicy` solo se activa si pasa por `requestHitStop`. Las escrituras directas no actualizan necesariamente esa política. | El ledger conserva tests históricos de replay, pero no se ejecutaron ni se inspeccionó una prueba que cubra estos dos escritores directos. | `partial`; Space Invaders no cerrado |
+
+**Conclusión F5:** la fase no está completa. El registro de `HitStopSystem` en `SpaceInvadersGameScene.ts:180` no demuestra que los impactos usen el arbitraje. Los escritores directos observados en `SpaceInvadersCollisionSystem.ts:125,151` bypassan prioridad, propietario y cooldown de `JuiceHitStopPolicy`. Las líneas 97–103, 140–142, 186–188 y 265–267 muestran guards de resimulación para algunos SFX/efectos, pero no corrigen el bypass del freeze.
+
+### Estado específico de Hit & Run
+
+- `registerHitRunFeedback.ts:26-35` registra defensa, feedback y `ScreenShakeSystem`; en ese archivo no aparece registro de `HitStopSystem`.
+- `HitRunFeedbackSystem.ts:4-8,20-24,69-90` importa helpers de `GameplayFreeze`, documenta el freeze core y llama `enterGameplayFreeze`. El feedback sí consume la API de freeze, pero no el arbitraje de `requestHitStop`/política compartida de Juice.
+- El ledger histórico de F6 indica que `HitRunFeedbackSystem.test.ts` no integra el `Schedule` real y decrementa el freeze manualmente. Esta limitación sigue sin ser refutada por la inspección actual.
+- Por tanto, Hit & Run tiene freeze efectivo core, pero no se ha demostrado paridad con el contrato de `HitStopSystem`. D-5 permanece abierta.
+
+### 1.2 — Game loop, acumulador y fixed timestep
+
+Evidencia directa:
+
+- `packages/core/src/loop/GameLoop.ts:98-102`: `accumulator` es privado de `GameLoop`; `step` y `maxDelta` también son propiedades privadas.
+- `GameLoop.ts:120-123`: defaults `step = 1/60` y `maxDelta = 0.25) segundos.
+- `GameLoop.ts:269-281`: delta de frame clamped a `maxDelta`, añadido sin escala al acumulador; se ejecutan tantos ticks como permita `while (accumulator >= step)`, sin límite adicional visible en ese bucle; cada callback recibe exactamente `step`; se resta `step`.
+- `GameLoop.ts:284-286`: alpha de render es el resto dividido por step.
+- `packages/core/src/ecs/Schedule.ts:155-168,179-186`: lee `TimeScale`, descuenta `remainingDuration` con delta sin escalar y calcula `scaledDeltaTime = deltaTime * effectiveTimeScale`. La escala se aplica al delta que reciben sistemas, no a la acumulación del `GameLoop`.
+
+Implicaciones observadas:
+
+1. El paso entregado por GameLoop es fijo, pero los sistemas pueden recibir delta escalado y por tanto variable respecto al step nominal.
+2. El acumulador no tiene un límite explícito de ticks por frame en el bucle inspeccionado. El clamp limita tiempo de entrada a 250 ms, lo que a 60 Hz permite hasta 15 ticks en ese frame si el acumulador previo es pequeño; no es un cap de ticks.
+3. No se encontró una asociación explícita input→tick en `GameLoop` en el recorrido inspeccionado; los inputs dependen de los sistemas/juegos. No afirmar política universal de input para múltiples ticks sin rastrear cada adaptador de entrada.
+4. El acumulador no aparece entre los recursos registrados en `World` ni como campo serializado de `SnapshotResourceState`; pertenece a `GameLoop`, fuera del snapshot de World.
+5. La pausa/freeze se decide en `Schedule`, después de que GameLoop haya acumulado y llamado el callback. No hay integración visible que detenga la acumulación del GameLoop.
+6. `TimeScale=0` hace `isFrozen` en Schedule, pero el GameLoop continúa consumiendo ticks fijos. El scheduler sigue siendo invocado.
+7. `GameplayFreeze` suprime fases de gameplay por el latcheo del scheduler, no detiene la acumulación del GameLoop.
+8. No se observó un límite explícito de ticks por frame ni un tratamiento de inputs por tick centralizado en GameLoop.
+
+**Estado:** comportamiento actual verificado por inspección estática; no se ejecutó una prueba temporal de frame/tick. La propuesta ADR v2 de escalar acumulación y preservar fixed timestep es un cambio de comportamiento respecto al estado actual, no una descripción de lo ya implementado.
+
+### 1.3 — Snapshot y rollback
+
+| Estado | Registro | Captura/restauración | Observación de rollback | Estado |
+|---|---|---|---|---|
+| Acumulador GameLoop | No es World resource | No aparece en `SnapshotResourceState`; no se vio serialización del GameLoop | No hay evidencia de restauración del remainder | `verified absent` en el snapshot World inspeccionado |
+| `TimeScale` | No se encontró registro por defecto; no se confirmó registro en juegos | No aparece en el listado de recursos temporales registrado en los call sites inspeccionados | Schedule muta su instancia directamente; snapshot no se deduce de su tipo | `partial`: no snapshot probado |
+| `GameplayFreeze` | Sí: `World.ts:160-162`; además no puede desregistrarse, `World.ts:833-837` | El contrato de recursos captura claves registradas y clona valores (`SnapshotResourceState.ts:68-78)); restore valida y reconcilia claves (`86-96`). No se ejecutó round-trip ahora | Rollback marca `world.isReSimulating = true` durante las rutas inspeccionadas (`RollbackSimulation.ts:48-55,117-130`) | Registro verificado; captura/restauración por código verificada estáticamente, ejecución no verificada |
+| `IsPaused` | No se encontró registro por defecto en `World` | No hay evidencia de snapshot | Scheduler lee el recurso directamente (`Schedule.ts:175,181-183`) | `partial / not demonstrated` |
+| `JuiceHitStopPolicy` | Sí, condicionalmente: `HitStopSystem.ts:29-31` registra `JUICE_HIT_STOP_POLICY_RESOURCE` | El tipo de estado contiene números/booleanos y source owner, compatible en principio con recurso plano; no se ejecutó captura/restauración | La política se lee y actualiza durante peticiones y update del sistema | Registro verificado por código; snapshot round-trip no ejecutado |
+| Otros temporizadores de HitStopSystem | Cooldown en política; duración efectiva en GameplayFreeze | No se identificó un segundo timer de duración en el sistema inspeccionado | La expiración efectiva queda en Scheduler | Sin evidencia de reloj paralelo en HitStopSystem actual |
+
+El serializador de recursos usa `snapshotResourceKeys` y `snapshotResources`, clona los valores y valida que sean serializables. La existencia de `registerSnapshotResource` no registra automáticamente todos los recursos: en este commit se verifica por defecto `GameplayFreeze`; la política Juice se registra cuando se asegura su uso.
+
+### 1.4 — Productores y consumidores: Hit & Run / Space Invaders
+
+| Juego / call site | Registro | Productor / API | Escritura directa | Prioridad/owner/cooldown | Duración efectiva | Snapshot |
+|---|---|---|---|---|---|---|
+| Space Invaders | `SpaceInvadersGameScene.ts:180` registra HitStopSystem en Simulation, priority 100 | Los call sites inspeccionados de boss/invader no llaman `requestHitStop` | Sí: `SpaceInvadersCollisionSystem.ts:125` 50 ms; `:151` 30 ms | Se omiten para esas escrituras directas | Scheduler consume `GameplayFreeze`; los valores directos son 0.05/0.03 s | `GameplayFreeze` registrado; la política de Juice no se arbitra para esos eventos |
+| Hit & Run | `registerHitRunFeedback.ts:26-35` registra defensa/feedback y ScreenShakeSystem, no HitStopSystem en esa composición | `HitRunFeedbackSystem.ts:83-90` llama `enterGameplayFreeze` | No llama `requestHitStop` en ese camino | No se aplica arbitraje de Juice por prioridad/owner/cooldown | Configura freeze core limitado por `maxHitStopSeconds`; el scheduler lo consume | `GameplayFreeze` registrado; no se demostró snapshot de estado adicional de feedback |
+
+**Conclusión:** no hay paridad demostrada. Space Invaders tiene el sistema registrado pero bypassado por dos productores; Hit & Run tiene productores de freeze core pero sin el sistema compartido en la composición localizada. No se debe afirmar que ambos utilizan la política canónica completa.
+
+### 1.5 — Geometry Wars: discrepancia 7/200 vs 6.0/300
+
+- La fuente actual de `JUICE_CATALOG` inspeccionada en `JuiceOrchestrator.ts:183-186` define para `geometry-wars`:
+  - `enemy:destroyed`: hit-stop 50 ms, shake 3.0, duración 80 ms.
+  - `bomb:trigger`: hit-stop 200 ms, shake 7.0, duración 200 ms.
+  - `player:death`: hit-stop 250 ms, shake 8.0, duración 250 ms.
+- La misma fuente pasa `shakeDurationMs` a `Juice.shake` (`JuiceOrchestrator.ts:264-270`).
+- El ledger histórico de 8 de noviembre describe `bomb:trigger` como 6.0/300 ms, y una llamada directa `Juice.shake(world, 10, 0.3)`. Esa afirmación no coincide con el catálogo actual leído en este commit.
+- La discrepancia 7/200 vs 6.0/300 no se resuelve mezclando el valor de catálogo con la llamada directa. El código actual de catálogo es 7.0/200 ms. La llamada directa histórica debe volver a rastrearse desde el productor y el valor que finalmente llega al consumidor para afirmar si sigue activa o fue eliminada.
+- La cifra 7/200 del catálogo no es equivalente a 6.0/300 del ledger; se conservan como evidencia de versiones/estados distintos hasta que el historial por ruta determine el commit exacto de transición.
+
+**Estado:** catálogo actual verificado por lectura; escritor directo y valor efectivo final de Geometry Wars quedan `partial`, no ejecutar ni atribuir valor de runtime sin inspeccionar el productor completo y el sistema consumidor.
+
+### 1.6 — Resimulación y duplicación de efectos
+
+La política canónica implementada en `JuiceOrchestrator.ts:244-253` solicita hit-stop antes de suprimir la presentación genérica durante replay. Esto separa explícitamente el efecto autoritativo (freeze) de la presentación. No todos los productores usan el orquestador.
+
+| Juego / productor | Efecto emitido | Guard en productor | Supresión posterior | Clasificación |
+|---|---|---|---|---|
+| Asteroids `onCombatDeath` | En historial: `rock:destroyed`, shake directo y partículas | La auditoría histórica de 7-nov dice que faltaba guard. La actualización posterior de 27-nov no se pudo contrastar con una lectura completa de la implementación actual del método | `JuiceOrchestrator.spawn` suprime presentación genérica durante replay; la partícula directa requiere su propio guard o consumidor con deduplicación. No hay evidencia suficiente de gate posterior universal | `partial`; confirmar método y emisión actual antes de llamar bug |
+| Asteroids colisión nave-asteroide | Historial: `ship:damage` y `playDeathJuice` | Auditoría histórica dice sin guard en ese camino | El orquestador suprime su presentación interna, pero `playDeathJuice` es ruta separada; no se probó supresión posterior | `partial` |
+| Flappy Bird `handleNearMissLogic` | Historial: `Juice.shake(world, 2, 100)` | Ledger dice sin `!world.isReSimulating` | No se identificó gate posterior del shake directo; no se ejecutó replay para demostrar duplicación | `partial`; riesgo de duplicación, no reproducción verificada |
+| Flappy Bird `triggerGameOver` | Tweens inline y `hitFlashFrames` | Ledger indica que el método no invoca perfil de catálogo; el análisis completo de guard actual queda pendiente | No se verificó supresión posterior de tween/render | `partial` |
+| Flappy Bird `pipe:passed` | EventBus `pipe:passed`, catálogo tiene perfil `floating_text` | El ledger indica que no se llama a JuiceOrchestrator para ese evento | El EventBus por sí mismo no demuestra emisión visual del perfil | `partial`; catálogo no consumido no equivale a efecto duplicado |
+
+No se corrigió ningún productor. No se afirma duplicación reproducida en ejecución: solo rutas con ausencia histórica de guard y falta de evidencia de suppression gate posterior.
+
+### 1.7 — Audio
+
+Evidencia obtenida:
+
+- `IAudioPlayer.ts:47` expone `playSFX`; `:85` expone `pauseBGM`. La interfaz también contiene controles de volumen separados para SFX/BGM.
+- La interfaz no define una política temporal global para SFX ya iniciados ni para nuevas reproducciones durante pausa/hit-stop.
+- Space Invaders protege varios `emitDeferred("PlaySFX", ...)` con `!world.isReSimulating` (`SpaceInvadersCollisionSystem.ts:97-103,140-142,186-188,265-267,494-501`).
+- `JuiceOrchestrator` suprime su propia presentación genérica durante replay, pero eso no demuestra que todos los productores directos de audio estén protegidos.
+
+**No verificado en esta unidad:** comportamiento del backend concreto para BGM ya iniciado durante pausa; SFX ya iniciados; nuevos SFX durante pausa; BGM/SFX durante hit-stop; política de duck/mute/pausa por sonido; comportamiento de sonidos ya iniciados durante rollback. La interfaz por sí sola no responde a estas preguntas. Es necesario seguir el adaptador de audio y los consumidores de `PlaySFX`/BGM en los juegos antes de decidir comportamiento. No se propone un tercer reloj de audio.
+
+### Inventario de escritores y consumidores temporales (alcance inspeccionado)
+
+| Recurso / API | Escritores o propietarios localizados | Consumidores / lectura | Estado |
+|---|---|---|---|
+| `GameLoop.accumulator` | `GameLoop.tick` | condición de tick fijo y alpha de render | privado; fuera de snapshot World |
+| `TimeScale.scale / remainingDuration` | `TimeScale.setScale` y cualquier consumidor que muta el resource | `Schedule.update` | Schedule decrementa duración y escala delta de sistemas |
+| `GameplayFreeze` | World/core freeze helpers; `requestHitStop`; legacy direct writes como Space Invaders; Hit & Run usa `enterGameplayFreeze` | `Schedule` y helpers de consulta | recurso snapshot registrado por defecto |
+| `JuiceHitStopPolicy` | `ensureHitStopPolicy`, `requestHitStop`, `HitStopSystem.update` | `HitStopSystem` / arbitraje de request | snapshot registrado condicionalmente |
+| `IsPaused` | productores de pausa de juego/runtime no inventariados exhaustivamente | `Schedule`, juegos como Space Invaders también consultan directamente | registro/snapshot no demostrado |
+| `ScreenShake` / `ScreenShakeComponent` | `Juice.shake`, feedback por juego | `ScreenShakeSystem` y cámara | presentación; snapshot no demostrado |
+| Audio | `EventBus PlaySFX`, `IAudioPlayer.playSFX`, BGM APIs | adaptadores de audio y buses | inventario incompleto; requiere seguir backend |
+
+### Preguntas abiertas para ADR v2
+
+1. ¿Dónde se debe ubicar el estado serializable del acumulador sin crear un segundo acumulador ni romper la propiedad actual de GameLoop?
+2. ¿Cómo asociar los inputs con cada tick cuando un frame ejecuta cero, uno o varios ticks? No hay política global demostrada.
+3. ¿Debe migrarse primero Hit & Run a `requestHitStop`/HitStopSystem o integrar explícitamente la política compartida en su composición? La inspección confirma que la ruta actual no es la misma que Space Invaders.
+4. ¿Qué identidad estable de fuente se usará en el arbitraje ampliado sin timestamps ni IDs aleatorios?
+5. ¿Cómo tratar snapshots antiguos que no incluyen TimeScale, IsPaused, política de hit-stop o acumulador?
+6. ¿Qué adaptador de audio controla BGM y SFX en cada plataforma, y qué política se aplica a sonidos ya iniciados?
+7. ¿Qué guardas de Asteroids/Flappy Bird faltan realmente en el código actual y cuáles tienen una supresión posterior? Falta cerrar con lectura completa y test/replay.
+8. ¿Qué commit introdujo la diferencia Geometry Wars 6.0/300 → 7.0/200 y qué valor directo queda activo en el consumidor?
+9. ¿Cuál es la ruta documental correcta para `cross-system-consolidation-audit.md`, que no aparece en el árbol inspeccionado?
+10. ¿Cuáles son los límites de ticks por frame y la política de input de cada integración de GameLoop? El bucle observado no contiene un max-ticks explícito.
+
+### Estado de verificación de esta unidad
+
+- **Verificado por inspección en SHA fijado:** GameLoop accumulator/step/clamp; TimeScale aplicado a delta de Schedule; freeze/pausa/TimeScale=0; registro de GameplayFreeze; registro condicional de JuiceHitStopPolicy; HitStopSystem registrado en Space Invaders; escritores directos Space Invaders; ruta de freeze Hit & Run; catálogo actual de Geometry Wars; guard de replay de JuiceOrchestrator.
+- **Parcial:** snapshot round-trip (código estático, sin ejecución); F4/Arkanoid; F5/Pong; productores Asteroids/Flappy Bird actuales; Geometry Wars productor directo y consumidor; inventario global de escritores; audio.
+- **Hipótesis / no demostrado:** duplicación real de presentación en replay para las rutas sin guard; comportamiento de audio durante pausa/hit-stop/rollback; paridad temporal Hit & Run / Space Invaders; restauración del acumulador.
+- **Tests ejecutados en esta unidad:** ninguno.
+- **Cambios de producción/tests:** ninguno.
+- **ADR modificado:** no.
+- **PR creada:** no.
+- **Siguiente paso permitido:** revisión del anexo y autorización explícita antes de Unidad 2. La Unidad 1 no debe declararse exhaustivamente cerrada mientras sigan abiertas las verificaciones parciales enumeradas.

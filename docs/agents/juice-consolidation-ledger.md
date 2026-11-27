@@ -45,3 +45,41 @@
 | **F6** (Corrección Hit & Run) | **PENDIENTE** | Doble canal de shake en `HitRunFeedbackSystem.ts`. Falta test de integración de freeze sobre schedule real. | Pendiente de unificar canal y verificar `ParticleSystem`. |
 | **F7** (Juegos adicionales con beneficio) | **PENDIENTE** | Ningún juego adicional migrado. | Solo migrar bajo beneficio comprobado. |
 | **F8** (Reevaluación de pipeline de combate) | **APLAZADA** | Aplazada formalmente hasta concluir F0-F7. | Condición de parada respetada. |
+
+
+## Revalidación de afirmaciones históricas (2026-11-27)
+Esta sección prevalece sobre los resúmenes de fase y las filas históricas anteriores cuando describen el estado actual. Las filas fechadas se conservan como registro de lo observado entonces.
+
+### F0 — inventario
+
+**Estado corregido: parcial; no declarar inventario exhaustivo.** Las auditorías de Juice identifican rutas principales y varios consumidores, pero el inventario transversal de Game Feel sigue incompleto. En particular, el ledger de Game Feel mantiene el audio como `partial`: existen consumidores directos, rutas que no pasan por `PlaySFX`, aliases/interfaces inyectadas y guardas de resimulación no uniformes. La auditoría de audio del 8 de noviembre se describe expresamente como inventario dirigido de alta cobertura, no como prueba exhaustiva. La etiqueta anterior `HECHA` para F0 solo puede entenderse como cierre de una primera pasada, no como cierre del inventario completo.
+
+### Hit & Run — shake
+
+**Estado corregido: canal duplicado retirado del runtime observado.** Las filas del 31 de octubre y 1 de noviembre describen correctamente el hallazgo histórico, pero ya no describen el código actual. La migración del 8 de noviembre indica que `HitRunFeedbackSystem` y `HitRunWeaponSystem` escriben al componente core `ScreenShake` de la cámara principal y que `HitRunScreenShake` fue retirado de esos caminos. El tipo/compatibilidad deprecated puede seguir existiendo; su mera definición no demuestra un escritor ni un consumidor activo.
+
+**Límite de verificación:** `src/games/hitandrun/systems/__tests__/HitRunFeedbackSystem.test.ts` prueba el feedback y la supresión durante resimulación, pero el test inspeccionado no registra `Schedule` ni demuestra la integración del freeze con el scheduler real; decrementa `GameplayFreeze` manualmente. No presentar esa suite como prueba E2E del scheduler.
+
+### Asteroids — doble explosión y shake
+
+**Estado corregido: hallazgo histórico consolidado.** La fila de VFX del 9 de noviembre y la prueba `src/games/asteroids/systems/__tests__/AsteroidCollisionSystem.test.ts` respaldan que la ruta de muerte ya no solicita dos veces `pixelfx_explosion` y que se retiró el shake directo redundante. Las filas del 7 y 8 de noviembre en este ledger son hallazgos previos a esa consolidación; deben leerse como histórico, no como deuda vigente. No volver a etiquetar el piloto como duplicado sin una nueva reproducción en el código actual.
+
+### Space Invaders y límites de la consolidación
+
+Las escrituras directas a `GameplayFreeze`, el shake/squash directo y la creación transitoria de `JuiceOrchestrator` descritos en la auditoría del 4 de noviembre siguen siendo deuda parcial hasta que una revalidación de los call sites demuestre lo contrario. No inferir que la migración de Pong o Arkanoid se extiende a Space Invaders.
+
+### Estados de fase corregidos
+
+| Fase | Estado de evidencia actual | Interpretación |
+|---|---|---|
+| F0 | `partial` | Primera pasada amplia completada; inventario transversal no exhaustivo, especialmente audio y rutas inyectadas |
+| F1 | `implemented / verified historically` | Hit-stop canónico basado en `GameplayFreeze` y scheduler respaldado por tests registrados; esta actualización no vuelve a ejecutar las suites |
+| F2 | `implemented / verified historically` | Unidades de shake normalizadas y canal Hit & Run consolidado; la prueba citada no sustituye validación de scheduler |
+| F3 | `implemented / verified historically` | Catálogo tipado y diagnósticos respaldados por la fila del 9 de noviembre |
+| F4 | `implemented / verified historically` | Piloto Arkanoid respaldado por la fila del 10 de noviembre |
+| F5 | `partial` | Space Invaders conserva los bypasses descritos en la auditoría hasta nueva evidencia |
+| F6 | `implemented; scheduler integration not proven by cited test` | No mantener la afirmación de doble canal Hit & Run |
+| F7 | `pending / unverified` | No generalizar la consolidación a otros juegos |
+| F8 | `deferred` | Pipeline de combate aplazado; no presentar como implementado |
+
+**Ejecución de esta revalidación:** inspección documental y de código referenciada; no se ejecutaron Jest, typecheck ni CI en esta actualización.

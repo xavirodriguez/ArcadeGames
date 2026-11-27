@@ -83,3 +83,105 @@ Las escrituras directas a `GameplayFreeze`, el shake/squash directo y la creaci�
 | F8 | `deferred` | Pipeline de combate aplazado; no presentar como implementado |
 
 **Ejecución de esta revalidación:** inspección documental y de código referenciada; no se ejecutaron Jest, typecheck ni CI en esta actualización.
+
+
+---
+
+## Unidad 1 — Autoridad temporal: inspección de solo lectura (2026-11-27)
+
+**Base inspeccionada:** `master` en `3c0cb4e8ef4f74e8e1585063a35e687d02b26b1e` (el HEAD observado al consultar GitHub; no coincide con la base `c6fb48c` indicada en el borrador ADR).  
+**Alcance:** inspección estática de código y búsqueda de referencias. No se modificó código de producción ni tests. No se ejecutaron tests ni typecheck. Las etiquetas **Verificado** significan verificado por lectura del código en ese commit, no por ejecución.
+
+### 1. Fixed timestep, escala e inputs
+
+| Hallazgo | Evidencia | Estado |
+|---|---|---|
+| El acumulador vive en `GameLoop`, no en `World`: `private accumulator = 0`. | `packages/core/src/loop/GameLoop.ts:93-101` | **Verificado** |
+| Cada frame limita el delta entrante a `maxDelta` (por defecto 0.25 s), suma el delta sin escalar al acumulador y ejecuta `while (accumulator >= step)`; el paso por defecto es 1/60 s. | `GameLoop.ts:120-123, 266-282` | **Verificado** |
+| No hay un límite independiente de substeps/ticks por frame. Con los defaults actuales, el clamp de 0.25 s limita indirectamente el máximo a 15 ticks por frame (0.25 / (1/60)). | `GameLoop.ts:40-48, 120-123, 269-282` | **Verificado** |
+| El acumulador se escala hoy? No: `GameLoop` no conoce `TimeScale`; acumula `deltaTime` real y entrega `step` fijo. La escala se aplica más tarde en `Schedule`, multiplicando el delta entregado a sistemas elegibles. | `GameLoop.ts:274-282`; `packages/core/src/ecs/Schedule.ts:151-185` | **Verificado** |
+| `Schedule` pasa `scaledDeltaTime = deltaTime * effectiveTimeScale` a sistemas normales; Presentation y sistemas exentos reciben el delta original. El paso de entrada a `Schedule` sigue siendo fijo, pero algunos sistemas reciben un delta reducido o cero. | `Schedule.ts:154-185, 210-224` | **Verificado** |
+| El `GameLoop` no mantiene una cola de input ni captura un input frame por substep. Ejecuta los suscriptores de update una vez por cada tick fijo. La ruta explícita `BaseGame.step(input)` aplica el frame y llama una vez a `world.update(1/60)`; la lectura de input en el loop normal queda en los sistemas/adaptadores de cada juego. | `GameLoop.ts:276-282`; `packages/core/src/runtime/BaseGame.ts:155-163, 385-390` | **Verificado** |
+| El estado `accumulator` es privado de `GameLoop` y no forma parte del `WorldSnapshot`; por tanto, el snapshot de World no lo captura ni restaura. | `GameLoop.ts:93-101`; `packages/core/src/snapshots/WorldSnapshot.ts:8-51`; `SnapshotMetadataBuilder.ts:64-78` | **Verificado** |
+
+**Implicación para el ADR:** la migración propuesta a acumulación escalada no es un cambio local de `Schedule`. El acumulador actual está dentro de `GameLoop`, separado del snapshot del World. La integración con rollback necesita definir y probar quién posee/restaura el acumulador, especialmente si el loop y la simulación pueden avanzar de forma independiente.
+
+### 2. Cobertura actual de snapshot/rollback
+
+| Estado | Captura/restauración actual | Evidencia | Estado |
+|---|---|---|---|
+| Acumulador de `GameLoop` | No incluido en `WorldSnapshot`. | `GameLoop.ts:93-101`; `WorldSnapshot.ts:8-51` | **Verificado** |
+| `TimeScale` | No registrado por defecto como snapshot resource. La clase no se registra a sí misma y el constructor de World solo registra `GameplayFreeze`. Si un consumidor lo registra manualmente, el mecanismo genérico podría capturarlo; no se encontró ese registro en los call sites de producción inspeccionados. | `World.ts:156-162`; `TimeScale.ts:1-38`; `SnapshotResourceState.ts:64-78` | **Verificado** para ausencia de registro por defecto; **Parcial** para todos los posibles registros indirectos |
+| `IsPaused` | No registrado por defecto. `BaseGame.pause()` escribe el resource, pero no llama a `registerSnapshotResource`. | `BaseGame.ts:583-610`; `World.ts:156-162` | **Verificado** |
+| `GameplayFreeze` | Registrado por defecto por cada `World`; su valor y su ausencia se capturan/restauran como resource registrado. | `World.ts:156-162`; `SnapshotResourceState.ts:64-78, 81-124`; `SnapshotInternalAccess.ts:25-34` | **Verificado** |
+| `JuiceHitStopPolicy` | Registrado cuando `HitStopSystem.onRegister()` llama a `ensureHitStopPolicy()`. El estado plano `priority/cooldownRemaining/active` se incluye en snapshots. | `HitStopSystem.ts:17-38, 118-120`; `SnapshotResourceState.ts:64-78` | **Verificado** |
+| Estado interno de `HitStopSystem` | No mantiene un timer mutable de instancia; la política mutable vive en `JuiceHitStopPolicy`. | `HitStopSystem.ts:110-145` | **Verificado** |
+
+Los serializers AoS y SoA construyen metadata con `captureSnapshotResources`; ambos restore paths pasan por `restoreWorldMetadata`, que restaura resources registrados y vuelve a registrar `GameplayFreeze` como invariante core. Evidencia: `SnapshotSerializer.ts:1-8, 34-88`; `SnapshotSerializerSoA.ts:1-8, 34-123`; `SnapshotInternalAccess.ts:25-34`.
+
+### 3. Hipótesis D-5 — Hit & Run inicializa estado snapshot-backed de HitStopSystem
+
+**Hipótesis descartada para el wiring actual de Hit & Run.** `registerHitRunFeedback()` registra `HitRunCombatDefenseSystem`, `HitRunFeedbackSystem` y `ScreenShakeSystem`, pero no registra `HitStopSystem` ni llama a `registerSharedJuiceSystems()`. `HitRunGame.onRegisterSystems()` llama a `registerHitRunFeedback()` y no aparece otra ruta de registro de HitStopSystem en el juego. En consecuencia, el resource `JuiceHitStopPolicy` no se inicializa desde ese wiring.  
+Evidencia: `src/games/hitandrun/systems/registerHitRunFeedback.ts:1-42`; `src/games/hitandrun/HitAndRunGame.ts:330-385`; búsqueda de `HitStopSystem` / `registerSharedJuiceSystems` en el código de registro.
+
+Hit & Run sí escribe el resource snapshot-registered `GameplayFreeze`: `HitRunFeedbackSystem.applyHitStop()` calcula el máximo entre el freeze restante y la duración solicitada y llama a `enterGameplayFreeze()`. Esta ruta no pasa por la política de prioridad/cooldown de `HitStopSystem`. Evidencia: `HitRunFeedbackSystem.ts:82-90`; `GameplayFreezeMixin.ts:1-20`.
+
+Como contraste, Space Invaders registra `new HitStopSystem()` en Simulation, prioridad 100; su `onRegister` registra `JuiceHitStopPolicy`. Evidencia: `src/games/space-invaders/scenes/SpaceInvadersGameScene.ts:180-190`; `HitStopSystem.ts:26-38, 118-120`. Space Invaders también conserva una escritura directa de `GameplayFreeze` en la colisión del boss, que no incluye `source: "juice"`: `SpaceInvadersCollisionSystem.ts:109-143`.
+
+### 4. Inventario de escritores y consumidores
+
+#### Escritores de producción identificados
+
+| Recurso | Escritor(es) | Evidencia | Estado |
+|---|---|---|---|
+| `IsPaused` | `BaseGame.pause()` escribe `true`; `BaseGame.resume()` elimina el resource. Los demás resultados de `setResource("IsPaused", ...)` encontrados pertenecen a tests/helpers. | `packages/core/src/runtime/BaseGame.ts:583-610` | **Verificado** |
+| `GameplayFreeze` | `enterGameplayFreeze()` (fachada helper usada por Hit & Run); `requestHitStop()` (HitStopSystem); escritura directa en Space Invaders boss collision. | `packages/core/src/runtime/GameplayFreezeMixin.ts:1-20`; `HitStopSystem.ts:59-107`; `src/games/space-invaders/systems/SpaceInvadersCollisionSystem.ts:109-143` | **Verificado** |
+| `TimeScale` | `HitRunDeathFlowSystem.setTimeScale()` muta el recurso existente o instala `new TimeScale(scale)`; se usa para slow motion y restauración a escala 1. | `src/games/hitandrun/systems/HitRunDeathFlowSystem.ts:78-128` | **Verificado** |
+
+#### Consumidores directos de `IsPaused`
+
+El consumidor central es `Schedule`, que usa `IsPaused === true` para congelar fases y suspender el decremento de `GameplayFreeze`: `packages/core/src/ecs/Schedule.ts:165-185`. Además, existe una red amplia de guardas locales que devuelven sin actualizar. Entre los call sites inspeccionados con línea exacta están:
+
+- Core: `packages/core/src/systems/systemHelpers.ts:25`, `TTLSystem.ts:27`, `ComboSystem.ts:45`, `TrailSystem.ts:19`.
+- Hit & Run: `src/games/hitandrun/belt/BeltInputSystem.ts:20`, `BeltDepthScaleSystem.ts:24`, `hurt/HitRunStaggerSystem.ts:13`, `combat/HitRunCombatDefenseSystem.ts:7`, `systems/HitRunDeathFlowSystem.ts:65`.
+- Space Invaders: `src/games/space-invaders/systems/WaveTransitionSystem.ts:11`, `InvulnerabilitySystem.ts:10`.
+- Geometry Wars: `src/games/geometrywars/systems/GeometryWarsInputSystem.ts:11`.
+- Misiones compartidas: `src/games/shared/missions/MissionSystem.ts:177`.
+- Pong: `src/games/pong/systems/PongCollisionSystem.ts:25`.
+
+La búsqueda exacta adicional devolvió consumidores en Galaxian, OutRun, Arkanoid, Platformer, Vertical Shmup, Flappy Bird, Asteroids, Echo Runner, Racing y otros sistemas core/gameplay-kit (entre ellos Input, movimiento/física, AI, proyectiles, limpieza, TTL, partículas y state machines). **Inventario de consumidores: Parcial**, no se etiqueta como exhaustivo: la búsqueda de código de GitHub devuelve un máximo de 100 resultados para el patrón amplio `getResource("IsPaused")`, y no se ejecutó un grep local del repositorio completo. La lista anterior es evidencia concreta, no una afirmación de que sean los únicos consumidores.
+
+#### Consumidores de `GameplayFreeze` y `TimeScale`
+
+- `GameplayFreeze`: `Schedule.ts:165-185` determina el estado congelado y envejece el temporizador; `HitStopSystem.ts:41-47, 70-107, 122-145` consulta/actualiza la política; `GameplayFreezeMixin.ts` expone helpers de lectura/escritura; Hit & Run lo consulta mediante `getGameplayFreezeRemaining()`; el overlay de Hit & Run lee el resource para diagnóstico.
+- `TimeScale`: `Schedule.ts:154-180` es el consumidor de runtime que lee escala y temporizador; `HitRunDeathFlowSystem.ts:117-128` lee/muta el recurso para el flujo de slow motion; `src/app/hitandrun/index.tsx` lo lee para diagnóstico. No se encontró una lectura de `TimeScale` en el resto de los resultados de búsqueda de código (9 referencias de archivo totales, incluyendo tests y export).
+
+### 5. Envejecimiento de temporizadores
+
+| Situación | `TimeScale.remainingDuration` | `GameplayFreeze.remaining` | Evidencia |
+|---|---|---|---|
+| Running | Decrementa con `deltaTime` sin escalar. | Decrementa con `deltaTime` sin escalar. | `Schedule.ts:154-180` |
+| Slow motion (`scale > 0`) | Decrementa a tiempo real, no a tiempo escalado. | Si coexiste, decrementa a tiempo real. | `Schedule.ts:154-180` |
+| `TimeScale = 0` | Decrementa a tiempo real y se restablece al expirar. | Decrementa a tiempo real si no hay pausa explícita. | `Schedule.ts:154-180` |
+| `GameplayFreeze` activo | Sigue decrementando a tiempo real. | Su propio reloj sigue decrementando; el tick se mantiene congelado si el freeze era activo al inicio. | `Schedule.ts:154-185, 226-235` |
+| `IsPaused === true` | **Sigue decrementando** a tiempo real. | **Se suspende**; el freeze no envejece durante la pausa explícita. | `Schedule.ts:154-180` |
+
+La distinción es importante: el comentario del scheduler dice explícitamente que la pausa suspende el reloj de GameplayFreeze, pero el decremento de TimeScale ocurre antes de comprobar `IsPaused` y no tiene esa protección.
+
+### 6. Audio ya iniciado bajo pausa y freeze
+
+- **Pausa explícita de BaseGame:** el hook por defecto `onPause()` llama a `audio.pauseBGM()`; `onResume()` reanuda BGM mediante `playBGM("ambient_loop")`. Evidencia: `packages/core/src/runtime/BaseGame.ts:930-951`.
+- **SFX ya iniciado:** el contrato `IAudioPlayer` no expone pausa de SFX ni un handle de instancia. `WebAudioPlayer.playSFX()` crea un `AudioBufferSourceNode` local, lo inicia y no conserva una referencia para detenerlo. `pauseBGM()` solo pausa `HTMLAudioElement` de BGM. Evidencia: `packages/core/src/audio/IAudioPlayer.ts:1-120`; `WebAudioPlayer.ts:250-270, 300-360`. Por tanto, la pausa de BaseGame no detiene los SFX ya iniciados.
+- **GameplayFreeze / hit-stop:** `Schedule` solo gobierna ejecución de sistemas ECS; no llama a la API de audio. Los SFX iniciados continúan y BGM continúa, salvo que haya una pausa explícita independiente de BaseGame. **Verificado por inspección estática** de Schedule, BaseGame y WebAudioPlayer; no se ejecutó una prueba de reproducción de audio.
+
+### Preguntas abiertas que pasan a ADR v2
+
+1. **Acumulador/rollback:** ¿el acumulador debe pertenecer a `GameLoop` o al estado de simulación? La propuesta de acumular tiempo escalado exige snapshot/restore; hoy no existe esa integración.
+2. **Input sampling:** ¿se toma un input frame por tick fijo, se repite el último estado en todos los substeps, o se consume una cola con secuencia/tick? El GameLoop no define hoy esa semántica.
+3. **Snapshot resources:** ¿se registran explícitamente `TimeScale` y `JuiceHitStopPolicy` en todos los juegos que usan sus productores, o se elimina la dependencia de registros opcionales por wiring?
+4. **Hit & Run D-5:** el juego no registra HitStopSystem actualmente. ¿La futura migración registra la política compartida y cambia el productor para solicitar hit-stop a través de ella, manteniendo un solo reloj de duración?
+5. **Pausa:** ¿la pausa de BaseGame debe detener solo BGM o también SFX activos? Hoy no detiene SFX.
+6. **Freeze:** ¿el audio debe seguir siempre, atenuarse o aplicar una política por sonido durante hit-stop? Hoy el freeze no cambia audio.
+7. **Inventario IsPaused:** completar el barrido local con grep sobre el checkout/commit exacto antes de declarar exhaustividad; el índice remoto consultado alcanzó su límite de resultados.
+
+**Resultado de la Unidad 1:** inspección de código completada con hallazgos verificables y dos límites explícitos: no se ejecutó el runtime y el inventario de lectores de `IsPaused` queda parcial por límite de búsqueda remota. No se ha iniciado la Unidad 2 ni la Unidad 3.

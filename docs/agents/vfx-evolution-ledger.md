@@ -45,3 +45,23 @@
 - U2 debe decidir si el blend es política del perfil o decisión local del drawer. Recomendación pendiente de evaluación: política explícita por perfil, con `sumi-e` en `source-over` salvo prueba visual que justifique otro modo.
 - Motion blur global por decay de framebuffer y bloom real/shaders GPU quedan fuera de alcance; solo ideas futuras, no dependencias de esta secuencia.
 - No se ha ejecutado todavía `pnpm run ci` en esta sesión. No declarar U1 verde ni `done` hasta obtener evidencia de CI o ejecución local completa.
+
+
+## Revalidación de estado (2026-11-27)
+### U1 — `setBlendMode`
+
+**Estado corregido: implementación integrada; aceptación global bloqueada/no verificada.** `IDrawAdapter.setBlendMode`, Canvas y Skia están implementados y cubiertos por `src/games/shared/rendering/__tests__/DrawAdapter.test.ts`. PR #1177 está fusionada (merge commit `bfb215d123d769b04533b3b463d95cd66b6860dd`). Por tanto, `blocked` no debe interpretarse como “implementación no integrada”.
+
+La verificación global sí quedó bloqueada por evidencia de CI histórica: workflow E2E run `43726397617` falló en el paso de E2E y CI run `43726397646` no terminó en verde; el propio ledger registra fallos en suites ajenas a U1. Esos runs no prueban el estado de CI del HEAD actual. Mantener la regla de no declarar `done` hasta tener pruebas y `pnpm run ci` verdes, pero separar los campos: implementación integrada, aceptación/verificación global pendiente.
+
+### U10 — Visual Lab
+
+El Visual Lab **ya existe**: `src/app/vfx-lab/index.tsx` y `src/games/shared/rendering/VFXVisualLabModel.ts` consumen drawers/perfiles compartidos con producción; el modelo actual expone 79 efectos. U10 no puede describirse como “construir el Visual Lab desde cero”. Lo pendiente en el alcance de esta evolución es ampliar/verificar la cobertura para las unidades U2/U4/U8 y sus perfiles/trails cuando estén implementados. La dependencia U2/U4/U8 debe interpretarse como ampliación de casos y validación, no como dependencia para la existencia del laboratorio.
+
+### Unidades restantes
+
+U2–U9 permanecen pendientes según la evidencia revisada; esta revalidación no las marca como implementadas. La existencia de drawers y presets no demuestra blend aditivo aplicado a drawers concretos, fases anticipation/residual, telegraph o trails conectados a gameplay.
+
+### Alcance de la evidencia
+
+Los runs citados son históricos (15 de noviembre) y no representan CI del HEAD actual. No se ejecutó `pnpm run ci` ni Jest en esta actualización. La regla de cierre de la cabecera permanece vigente: pruebas y CI actuales en verde, más checkpoint humano cuando corresponda.

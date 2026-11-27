@@ -10,3 +10,24 @@
 | 2026-11-16 | combat/traversal/interaction/temporal | `PixelFxProceduralVFX.ts`, `JuiceOrchestrator.ts`, `VFXVisualLabModel.ts` | in-progress | Nueva familia de diez drawers deterministas: Prism Burst, Sonic Boom, Magnetic Surge, Plasma Orbit, Solar Flare, Crystal Bloom, Pulse Lance, Echo Shatter, Tidal Wave y Phase Collapse. Añadidos a registro Canvas/Skia, unión de primitivas y catálogo/presets del Visual Lab; pruebas de smoke para estado balanceado y cobertura del catálogo. Pendiente ejecutar suites y CI; no se afirma paridad raster exacta ni integración gameplay de cada primitiva. |
 
 | 2026-11-24 | combat/traversal/interaction/temporal | `PixelFxProceduralVFX.ts`, `JuiceOrchestrator.ts`, `VFXVisualLabModel.ts`, rendering tests | in-progress | Añadidos veinte drawers adicionales: Ember Cascade, Frost Lattice, Thorn Eruption, Thunderclap, Rune Ward, Verdant Growth, Venom Miasma, Sand Devour, Hydro Surge, Wind Shear, Eclipse Veil, Starfall, Comet Shower, Dimensional Gate, Afterimage Dash, Beam Lattice, Chain Reaction, Shrapnel Fan, Magma Fissure, Aurora Ribbon. Registro compartido Canvas/Skia y cuatro presets deterministas por efecto. La golden conserva sus 59 filas de baseline; los veinte nuevos reciben smoke coverage. Pendiente ejecutar suites y CI; sin wiring de gameplay. |
+
+
+## Revalidación de catálogo y wiring (2026-11-27)
+### Conteo de drawers frente a cobertura de tests
+
+La implementación actual inspeccionada registra **79 drawers** en `src/games/shared/rendering/PixelFxProceduralVFX.ts`, y `src/games/shared/rendering/VFXVisualLabModel.ts` expone **79 efectos** al Visual Lab. Esto acredita registro y disponibilidad en el laboratorio; **no** acredita que los 79 estén conectados a eventos de gameplay.
+
+La golden `docs/agents/fixtures/pixelfx-vfx-golden.jsonl` conserva **59 casos** de baseline. Los casos añadidos después de esa baseline tienen smoke coverage según las entradas del 16 y 24 de noviembre. No se debe cambiar el golden a 79 sin una decisión explícita de ampliar el contrato de regresión visual.
+
+**Inconsistencia detectada en el código de tests:** `src/games/shared/rendering/__tests__/PixelFxProceduralVFX.test.ts` todavía contiene expectativas de **59 registros** para Canvas y Skia (incluidos los asserts identificados alrededor de las líneas 819 y 830), mientras que el registro actual contiene 79. `VFXVisualLabModel.test.ts` ya espera 79 y contrasta los nombres con los registros. La expectativa de conteo de registro está desalineada con la implementación.
+
+Esta es una incompatibilidad estática observada al comparar código; **no** se afirma que Jest se haya ejecutado ni que una suite haya fallado en esta revalidación. La corrección propuesta es actualizar los asserts de cantidad de registros Canvas/Skia a 79, mantener el golden de 59 y ejecutar las suites de drawers/adapters/Visual Lab antes de declarar verde.
+
+### Alcance de integración
+
+- Registro Canvas/Skia, presencia en Visual Lab, golden visual y smoke coverage son dimensiones diferentes y deben reportarse por separado.
+- Las entradas del 16 y 24 de noviembre declaran explícitamente que los nuevos drawers no tienen wiring de gameplay individual verificado. Mantener esa limitación.
+- No se ha demostrado paridad raster exacta Canvas/Skia mediante pixel-diff de escenas reales.
+- La Fase 0 continúa **abierta**: no hay evidencia de un inventario completo de todos los sistemas, efectos y productores de gameplay.
+
+**Ejecución de esta revalidación:** inspección de fuentes y tests; no se ejecutaron Jest, typecheck, render snapshots ni CI.

@@ -36,12 +36,50 @@
 
 | Fase | Estado | Evidencia en código real y tests | Observaciones |
 |---|---|---|---|
-| **F0** (Auditoría e inventario) | **HECHA** | Matrices en `docs/audit/2026-10-27-game-feel-audit-inventory.md` y `docs/audit/2026-11-05-juice-game-feel-phase-0-audit.md`. Decisiones en ADR 001. | Inventario completo de llamadas directas, matriz productor-consumidor, tabla de unidades (ms pública / s core) y decisiones documentadas. |
+| **F0** (Auditoría e inventario) | **PARCIAL** | Matrices en `docs/audit/2026-10-27-game-feel-audit-inventory.md` y `docs/audit/2026-11-05-juice-game-feel-phase-0-audit.md`. Decisiones en ADR 001. | Primera pasada amplia completada, pero no inventario transversal exhaustivo: audio conserva consumidores directos, rutas fuera de `PlaySFX`, aliases/inyección y guardas de resimulación por revalidar. |
 | **F1** (Hit-stop canónico en Scheduler) | **HECHA** | `HitStopSystem.ts:92` actualiza `GameplayFreeze`; `hitStopTimer` retirado; `Schedule.ts:173` latched freeze; epsilon en `HitStopSystem.ts:139`; pausa suspende freeze en `Schedule.ts:182`. Tests: `GameplayFreeze.test.ts` (9/9), `JuiceOrchestrator.test.ts` (24/24), `SnapshotResources.test.ts` (18/18). | Una sola autoridad de freeze (`GameplayFreeze`); prioridad y cooldown 50ms en `JuiceHitStopPolicy`; freeze indefinido, externo, `IsPaused` y `TimeScale=0` verificados. |
 | **F2** (Auditoría de shake y frontera de unidades) | **HECHA** | `Juice.ts:60` convierte `durationMs / 1000`; heurística `> 10` eliminada; llamadas de Geometry Wars normalizadas a ms; `HitRunScreenShake` eliminado en `HitRunFeedbackSystem.ts` y `HitRunWeaponSystem.ts`. Tests: `JuiceShake.test.ts` (8/8) y `HitRunFeedbackSystem.test.ts` (11/11). | Unidades coherentes en la frontera: ms público, segundos en ECS. Un único canal efectivo en cámara principal. |
 | **F3** (Contrato tipado de catálogo) | **HECHA** | `JuiceOrchestrator.ts:119-173` deriva `GameJuiceEventMap` de `JUICE_CATALOG`; diagnósticos en L309, 319. Tests: `JuiceOrchestrator.test.ts:226-258` (24/24 pasan). | Tipado estricto contra catálogo; rechazo en tiempo de compilación (@ts-expect-error); diagnóstico de advertencia en desarrollo ante eventos dinámicos desconocidos. |
 | **F4** (Piloto vertical Arkanoid) | **HECHA** | `ArkanoidCollisionSystem.ts:71, 83, 149, 160` con guardas `!world.isReSimulating` y separación semántica `brick:hit` / `brick:shatter`; `HitStopSystem` en `ArkanoidGame.ts:287`. Tests: `ArkanoidGameplay.test.ts` y `arkanoid.test.ts:131`. | Un solo hit-stop y una sola ruta de shake por evento; score y combo preservados; rollback seguro probado. |
 | **F5** (Migración Pong y Space Invaders) | **PARCIAL** | Pong migrado (`pong.paddle:hit`). Space Invaders escribe directamente `GameplayFreeze` y usa `ufo:destroyed` en boss hit. | Space Invaders pendiente de normalizar a eventos canónicos (`boss:hit`) y retirar escrituras directas. |
-| **F6** (Corrección Hit & Run) | **PENDIENTE** | Doble canal de shake en `HitRunFeedbackSystem.ts`. Falta test de integración de freeze sobre schedule real. | Pendiente de unificar canal y verificar `ParticleSystem`. |
+| **F6** (Corrección Hit & Run) | **IMPLEMENTADA; integración Scheduler no demostrada por el test citado** | `HitRunFeedbackSystem.ts` y `HitRunWeaponSystem.ts` escriben al componente core `ScreenShake` de la cámara; `HitRunScreenShake` no tiene escritores en esos caminos. `HitRunFeedbackSystem.test.ts` cubre feedback/resimulación, pero no registra `Schedule` ni prueba su integración real. | No mantener la afirmación de doble canal como deuda vigente. Verificar por separado el freeze con Scheduler; no presentar el test unitario actual como prueba de integración. |
 | **F7** (Juegos adicionales con beneficio) | **PENDIENTE** | Ningún juego adicional migrado. | Solo migrar bajo beneficio comprobado. |
 | **F8** (Reevaluación de pipeline de combate) | **APLAZADA** | Aplazada formalmente hasta concluir F0-F7. | Condición de parada respetada. |
+
+
+## Revalidación de afirmaciones históricas (2026-11-27)
+Esta sección prevalece sobre los resúmenes de fase y las filas históricas anteriores cuando describen el estado actual. Las filas fechadas se conservan como registro de lo observado entonces.
+
+### F0 — inventario
+
+**Estado corregido: parcial; no declarar inventario exhaustivo.** Las auditorías de Juice identifican rutas principales y varios consumidores, pero el inventario transversal de Game Feel sigue incompleto. En particular, el ledger de Game Feel mantiene el audio como `partial`: existen consumidores directos, rutas que no pasan por `PlaySFX`, aliases/interfaces inyectadas y guardas de resimulación no uniformes. La auditoría de audio del 8 de noviembre se describe expresamente como inventario dirigido de alta cobertura, no como prueba exhaustiva. La etiqueta anterior `HECHA` para F0 solo puede entenderse como cierre de una primera pasada, no como cierre del inventario completo.
+
+### Hit & Run — shake
+
+**Estado corregido: canal duplicado retirado del runtime observado.** Las filas del 31 de octubre y 1 de noviembre describen correctamente el hallazgo histórico, pero ya no describen el código actual. La migración del 8 de noviembre indica que `HitRunFeedbackSystem` y `HitRunWeaponSystem` escriben al componente core `ScreenShake` de la cámara principal y que `HitRunScreenShake` fue retirado de esos caminos. El tipo/compatibilidad deprecated puede seguir existiendo; su mera definición no demuestra un escritor ni un consumidor activo.
+
+**Límite de verificación:** `src/games/hitandrun/systems/__tests__/HitRunFeedbackSystem.test.ts` prueba el feedback y la supresión durante resimulación, pero el test inspeccionado no registra `Schedule` ni demuestra la integración del freeze con el scheduler real; decrementa `GameplayFreeze` manualmente. No presentar esa suite como prueba E2E del scheduler.
+
+### Asteroids — doble explosión y shake
+
+**Estado corregido: hallazgo histórico consolidado.** La fila de VFX del 9 de noviembre y la prueba `src/games/asteroids/systems/__tests__/AsteroidCollisionSystem.test.ts` respaldan que la ruta de muerte ya no solicita dos veces `pixelfx_explosion` y que se retiró el shake directo redundante. Las filas del 7 y 8 de noviembre en este ledger son hallazgos previos a esa consolidación; deben leerse como histórico, no como deuda vigente. No volver a etiquetar el piloto como duplicado sin una nueva reproducción en el código actual.
+
+### Space Invaders y límites de la consolidación
+
+Las escrituras directas a `GameplayFreeze`, el shake/squash directo y la creación transitoria de `JuiceOrchestrator` descritos en la auditoría del 4 de noviembre siguen siendo deuda parcial hasta que una revalidación de los call sites demuestre lo contrario. No inferir que la migración de Pong o Arkanoid se extiende a Space Invaders.
+
+### Estados de fase corregidos
+
+| Fase | Estado de evidencia actual | Interpretación |
+|---|---|---|
+| F0 | `partial` | Primera pasada amplia completada; inventario transversal no exhaustivo, especialmente audio y rutas inyectadas |
+| F1 | `implemented / verified historically` | Hit-stop canónico basado en `GameplayFreeze` y scheduler respaldado por tests registrados; esta actualización no vuelve a ejecutar las suites |
+| F2 | `implemented / verified historically` | Unidades de shake normalizadas y canal Hit & Run consolidado; la prueba citada no sustituye validación de scheduler |
+| F3 | `implemented / verified historically` | Catálogo tipado y diagnósticos respaldados por la fila del 9 de noviembre |
+| F4 | `implemented / verified historically` | Piloto Arkanoid respaldado por la fila del 10 de noviembre |
+| F5 | `partial` | Space Invaders conserva los bypasses descritos en la auditoría hasta nueva evidencia |
+| F6 | `implemented; scheduler integration not proven by cited test` | No mantener la afirmación de doble canal Hit & Run |
+| F7 | `pending / unverified` | No generalizar la consolidación a otros juegos |
+| F8 | `deferred` | Pipeline de combate aplazado; no presentar como implementado |
+
+**Ejecución de esta revalidación:** inspección documental y de código referenciada; no se ejecutaron Jest, typecheck ni CI en esta actualización.

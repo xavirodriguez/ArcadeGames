@@ -5,7 +5,7 @@
 
 | ID | Unidad | Estado | Dependencias | Archivos | Notas |
 |---|---|---|---|---|---|
-| U1 | `setBlendMode` en `IDrawAdapter` | blocked | — | `DrawAdapter.ts`, `SkiaContext.ts`, `__tests__/DrawAdapter.test.ts` | Tests específicos `DrawAdapter.test.ts` pasan y typecheck/build/lint de Turborepo pasan; CI global bloqueada por fallos ajenos (detalles en Hallazgos). No pasar a `awaiting-review` hasta CI verde. |
+| U1 | `setBlendMode` en `IDrawAdapter` | implemented / acceptance blocked | — | `DrawAdapter.ts`, `SkiaContext.ts`, `__tests__/DrawAdapter.test.ts` | Implementación integrada por PR #1177 (merge commit `bfb215d123d769b04533b3b463d95cd66b6860dd`). Los runs históricos de CI/E2E no quedaron verdes; mantener aceptación global pendiente hasta ejecutar CI actual en verde. |
 | U2 | Blend aditivo en drawers calientes | pending | U1 | `PixelFxProceduralVFX.ts`, perfiles/contrato visual por decidir | Evaluar explosion, muzzle, nova, laser_beam, shockwave y flash de spawnLayeredExplosion. Evitar quemado en sumi-e; no asumir que lighter es apropiado para fondo claro. |
 | U3 | Fases `anticipation` y `residual` en vfx-timeline | pending | — | `vfx-timeline.ts`, tests de timeline | Mantener firma de resolveVFXPhase y comprobar que los mapas por defecto conservan fronteras y resultados. |
 | U4 | Anticipación y residuo en `drawPixelFxExplosion` | pending | U3 | `PixelFxProceduralVFX.ts`, tests de drawers | Anillo previo contractivo y 2–3 partículas residuales deterministas; revisar progreso/TTL real antes de implementar. |
@@ -14,7 +14,7 @@
 | U7 | Componente `Trail` + `TrailSystem` | pending | — | ECS component/system, registro y tests | Decisión pendiente: preferir estado de simulación reproducible si el trail debe sobrevivir rollback; si es solo presentación, excluirlo explícitamente de resimulación. Checkpoint humano. |
 | U8 | Drawer de trail con paridad Canvas/Skia | pending | U7, U1 | adapters, drawer y tests Canvas/Skia | Polyline/tiras con ancho y alpha decrecientes; sin allocations por frame. |
 | U9 | Adopción de trails | pending | U8 | `JuiceOrchestrator.ts`, catálogo y pilotos | Bola de Pong, proyectiles y nave de Asteroids; comprobar coste y supresión durante rollback. |
-| U10 | Visual Lab | pending | U2, U4, U8 | `VFXVisualLabModel.ts`, `src/app/vfx-lab/index.tsx` | Reutilizar exclusivamente drawers y perfiles de producción. |
+| U10 | Ampliación de cobertura del Visual Lab | partial / pending enhancements | U2, U4, U8 | `VFXVisualLabModel.ts`, `src/app/vfx-lab/index.tsx` | El Visual Lab ya existe y consume drawers compartidos con producción. Ampliar/verificar cobertura de blend, anticipation/residual y trails cuando esas unidades estén implementadas; no construir un laboratorio paralelo. |
 
 ## Hallazgos de auditoría
 
@@ -45,3 +45,23 @@
 - U2 debe decidir si el blend es política del perfil o decisión local del drawer. Recomendación pendiente de evaluación: política explícita por perfil, con `sumi-e` en `source-over` salvo prueba visual que justifique otro modo.
 - Motion blur global por decay de framebuffer y bloom real/shaders GPU quedan fuera de alcance; solo ideas futuras, no dependencias de esta secuencia.
 - No se ha ejecutado todavía `pnpm run ci` en esta sesión. No declarar U1 verde ni `done` hasta obtener evidencia de CI o ejecución local completa.
+
+
+## Revalidación de estado (2026-11-27)
+### U1 — `setBlendMode`
+
+**Estado corregido: implementación integrada; aceptación global bloqueada/no verificada.** `IDrawAdapter.setBlendMode`, Canvas y Skia están implementados y cubiertos por `src/games/shared/rendering/__tests__/DrawAdapter.test.ts`. PR #1177 está fusionada (merge commit `bfb215d123d769b04533b3b463d95cd66b6860dd`). Por tanto, `blocked` no debe interpretarse como “implementación no integrada”.
+
+La verificación global sí quedó bloqueada por evidencia de CI histórica: workflow E2E run `43726397617` falló en el paso de E2E y CI run `43726397646` no terminó en verde; el propio ledger registra fallos en suites ajenas a U1. Esos runs no prueban el estado de CI del HEAD actual. Mantener la regla de no declarar `done` hasta tener pruebas y `pnpm run ci` verdes, pero separar los campos: implementación integrada, aceptación/verificación global pendiente.
+
+### U10 — Visual Lab
+
+El Visual Lab **ya existe**: `src/app/vfx-lab/index.tsx` y `src/games/shared/rendering/VFXVisualLabModel.ts` consumen drawers/perfiles compartidos con producción; el modelo actual expone 79 efectos. U10 no puede describirse como “construir el Visual Lab desde cero”. Lo pendiente en el alcance de esta evolución es ampliar/verificar la cobertura para las unidades U2/U4/U8 y sus perfiles/trails cuando estén implementados. La dependencia U2/U4/U8 debe interpretarse como ampliación de casos y validación, no como dependencia para la existencia del laboratorio.
+
+### Unidades restantes
+
+U2–U9 permanecen pendientes según la evidencia revisada; esta revalidación no las marca como implementadas. La existencia de drawers y presets no demuestra blend aditivo aplicado a drawers concretos, fases anticipation/residual, telegraph o trails conectados a gameplay.
+
+### Alcance de la evidencia
+
+Los runs citados son históricos (15 de noviembre) y no representan CI del HEAD actual. No se ejecutó `pnpm run ci` ni Jest en esta actualización. La regla de cierre de la cabecera permanece vigente: pruebas y CI actuales en verde, más checkpoint humano cuando corresponda.

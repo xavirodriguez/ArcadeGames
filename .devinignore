@@ -1,0 +1,11 @@
+# Keep Devin's code index focused on executable source and configuration.
+# Exclude Markdown documentation, historical audits and planning files from
+# Devin Desktop Context Awareness, Tab suggestions and DeepWiki.
+*.md
+*.mdx
+*.markdown
+
+# These are operational instructions for coding agents, not project documentation.
+# Keep the canonical repository instructions and the contract they require.
+!AGENTS.md
+!docs/agents/OPERATING_CONTRACT.md

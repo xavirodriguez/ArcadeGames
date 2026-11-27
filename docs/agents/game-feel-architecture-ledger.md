@@ -51,3 +51,40 @@
 5. Verify visual and audio accessibility preference sources and current consumers.
 
 No runtime implementation is authorized by this ledger alone.
+
+
+## Revalidación de contradicciones con el código (2026-11-27)
+Esta sección prevalece sobre las filas históricas incompatibles que se señalan a continuación. El snapshot original del 8 de noviembre se conserva para trazabilidad.
+
+### BroadPhase — desempate por Entity ID
+
+La afirmación de la fila “Asteroids publication ordering audit” de que el comparador de Shell sort no tiene desempate por Entity ID está **obsoleta**. En `packages/core/src/physics/collision/BroadPhase.ts`, el comparador inspeccionado ordena primero por `minX` y, cuando hay igualdad, por `entity`:
+
+```ts
+boundsPool[j - gap].minX > temp.minX ||
+  (boundsPool[j - gap].minX === temp.minX &&
+   boundsPool[j - gap].entity > temp.entity)
+```
+
+Por tanto, el orden de bounds sí tiene un desempate determinista para `minX` iguales. Esto corrige la afirmación concreta sobre el comparador; **no** demuestra por sí solo que el orden completo de pares/eventos sea determinista en todos los caminos. La cobertura de tests de orden de pares debe evaluarse por separado. La propuesta de añadir `(minX, entityId)` como corrección de runtime deja de ser necesaria para el comparador actual.
+
+### Asteroids — doble emisión de explosión
+
+La fila del 7 de noviembre que propone la explosión de Asteroids como piloto duplicado y la fila del 8 de noviembre que reitera dos solicitudes describen un estado anterior a la consolidación del 9 de noviembre. `vfx-ledger.md` registra la eliminación del spawn redundante y del shake directo; `AsteroidCollisionSystem.test.ts` cubre que la muerte genere una sola entidad `pixelfx_explosion`. Marcar esas filas anteriores como **superseded by VFX ledger 2026-11-09**; no conservar la duplicación como deuda actual sin una nueva reproducción.
+
+### PR #1157 y alcance de rollback
+
+La fila del 8 de noviembre que llama a PR #1157 “draft” es histórica. PR #1157 se fusionó el 8 de noviembre (merge commit `f024091a00f98eeecb62635797a072edfb52081f`). La fusión de una PR documental no implica que el PresentationGateway ni el contrato de ocurrencia estén implementados en runtime. Mantener separados el estado de la PR, el estado del contrato documental y la conformidad del runtime.
+
+### Hechos que siguen siendo gaps
+
+- **EventBus occurrence metadata:** la inspección previa de `EventBus.ts` sigue describiendo el contrato sin `occurrenceId`, tick de publicación ni secuencia determinista por tick suministrados a los handlers. El gap del contrato sigue vigente hasta una implementación y tests que preserven esos metadatos en publicación inmediata y diferida.
+- **PresentationGateway:** no se encontró implementación runtime; sigue siendo arquitectura propuesta/documentada, no componente integrado.
+- **Juice/VFX boundary:** `JuiceOrchestrator.spawn` sigue combinando coordinación temporal con creación de entidades de presentación y efectos visuales; la separación de ownership no debe declararse completada.
+- **Audio:** el inventario es de alta cobertura pero parcial; existen rutas directas y aliases/inyección que requieren revalidación. No afirmar que todo playback atraviesa una única frontera.
+- **Canvas/Skia:** existe paridad funcional de adapter/registro en las áreas cubiertas; no hay evidencia suficiente de paridad raster exacta en escenas reales.
+- **Rollback:** los tests de resimulación demuestran capacidad del core, pero no establecen por sí solos que todos los juegos de producción ejecuten full-world rollback ni que todos los canales de presentación estén protegidos por una única frontera.
+
+### Estado y límites de esta actualización
+
+El ledger sigue siendo un snapshot de evidencia, no una especificación normativa. Se corrigieron los hallazgos concretos arriba; no se ejecutaron tests ni CI en esta actualización. Las ausencias de búsqueda deben leerse como “no localizado en el alcance inspeccionado”, no como prueba universal de inexistencia.
